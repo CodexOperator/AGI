@@ -69,6 +69,14 @@ TIERS = ("kid", "parent", "advisor", "director", "prime_director", "liaison")
 #: every call path routes through it, so the two cannot drift.
 PROFILES = ("full", "survival", "ultimate_survival")
 
+# Pi agents deliberately skip repository context files. Carry the one rule
+# those files uniquely supplied into every role brief from this single source.
+PAID_FOR_PATH_GUARD = (
+    "Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or "
+    "`.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or "
+    "`.agi/context/plans/build-site.md`."
+)
+
 
 def _configured_profile(project_root: Path | None = None) -> str | None:
     """Read the durable operating mode from ``.agi/config.json``.
@@ -1459,7 +1467,7 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         "`git add -A` is especially forbidden: other agents and the director "
         "have uncommitted work in this tree, and it WILL be swept into your "
         "commit. If you see unexpected files, report them in one line and "
-        "leave them exactly where they are.",
+        f"leave them exactly where they are. {PAID_FOR_PATH_GUARD}",
         "A g15 CLAIM IS BEHAVIOUR TO BUILD, not a hypothesis to measure: "
         "measure the pre-fix state, IMPLEMENT the claim, then prove it on the "
         "built bytes. A node that only reproduces the defect and reports "
@@ -1758,8 +1766,9 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
                 f"Everything else stays forbidden, on this branch or any "
                 f"other: no push, no sync, no rebase, no `grid.py`, no "
                 f"touching any branch other than this round branch, no "
-                f"staging by hand, no raw `git merge`. Automation still owns "
-                f"remote traffic; the done-time commit is automatic and is "
+                f"staging by hand, no raw `git merge`. {PAID_FOR_PATH_GUARD} "
+                f"Automation still owns remote traffic; the done-time commit is "
+                f"automatic and is "
                 f"not yours to reach for."
             )
         else:
@@ -1800,15 +1809,16 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
                 f"measured waste. Everything else stays forbidden: no push, no "
                 f"sync, no rebase, no `grid.py`, no touching any branch other "
                 f"than this round branch, no staging by hand, no raw `git "
-                f"merge` beyond the one into this round branch. Automation "
-                f"still owns remote traffic; the done-time commit is "
+                f"merge` beyond the one into this round branch. "
+                f"{PAID_FOR_PATH_GUARD} Automation still owns remote traffic; "
+                f"the done-time commit is "
                 f"automatic and is not yours to reach for."
             )
     else:
         merge_protocol = ""
         ship = (
-            "5. DO NOT commit, push, or sync. Automation owns all remote "
-            "traffic"
+            "5. DO NOT commit, push, or sync. "
+            f"{PAID_FOR_PATH_GUARD} Automation owns all remote traffic"
         )
     # hypothesis:l4-the-must-implement-rule-is-g15-lineage-gated -- the
     # "THIS KID MUST IMPLEMENT THE FIX" review rule is a g15-specific demand.
