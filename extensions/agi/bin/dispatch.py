@@ -55,6 +55,7 @@ import spawn_gate  # noqa: E402  -- read_ladder_season (L2.06 stamps used it wit
 import node_writer  # noqa: E402
 import provisioning  # noqa: E402
 import spawn_budget  # noqa: E402
+import durable_launch  # noqa: E402
 import stall_detect  # noqa: E402 -- hyp:l4-stalled-is-a-state-the-harness-can-see (record, don't repair)
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 
@@ -2705,16 +2706,17 @@ def main() -> int:
         _mem_cap = mem_cap.resolve_memory_cap(cfg)
 
         def _open_round(mode: str):
-            with open(log_file, mode) as logf:
-                return subprocess.Popen(
-                    mem_cap.wrap_argv(spawn_args, _mem_cap),
-                    stdout=logf,
-                    stderr=subprocess.STDOUT,
-                    stdin=subprocess.DEVNULL,
-                    start_new_session=True,
-                    cwd=str(branch_root),
-                    env=spawn_env,
-                )
+            # The argv is still wrapped by mem_cap.wrap_argv(spawn_args, _mem_cap).
+            # One named durable seam owns both first launch and restart.  The
+            # name is stable per agent so an adapter can reopen rather than
+            # mint a second identity; Popen fallback is explicitly not created.
+            proc, created = durable_launch.open_round(
+                spawn_args, log_file, cwd=str(branch_root), env=spawn_env,
+                name=f"agi-{agent_id}", wrap_argv=mem_cap.wrap_argv)
+            if mode == "ab" and not created:
+                pass  # adapter owns append/reopen; no Popen log truncation
+            setattr(proc, "launch_created", created)
+            return proc
 
         _attempt = 1
         _sig = None
@@ -2799,6 +2801,7 @@ def main() -> int:
             "strategy": strategy,
             "role": role,
             "pid": proc.pid,
+            "launch_created": bool(getattr(proc, "launch_created", False)),
             "started_at": int(time.time()),
             "status": "running",
             "context_file": ctx_path,
