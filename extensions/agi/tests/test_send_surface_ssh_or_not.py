@@ -152,6 +152,19 @@ def test_no_is_ssh_in_caller_facing_send_bodies():
         assert "is_ssh" not in (ast.get_source_segment(src, fn) or ""), fn.name
 
 
+def test_router_has_no_rotation_or_dispatch_import():
+    """The lifecycle adapter owns those imports; the public router does not."""
+    tree = ast.parse((BIN / "send.py").read_text(encoding="utf-8"))
+    forbidden = {"rotate", "dispatch"}
+    imported = set()
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            imported.update(alias.name.split(".")[0] for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            imported.add(node.module.split(".")[0])
+    assert imported.isdisjoint(forbidden)
+
+
 # conjunct 2, REAL path: send_dm -> REAL _nudge_window -> REAL _nudge_target.
 # Only the tmux/capture layer is faked; neither _nudge_window nor
 # _nudge_target is stubbed, so the foreign-box refusal is exercised as built.
