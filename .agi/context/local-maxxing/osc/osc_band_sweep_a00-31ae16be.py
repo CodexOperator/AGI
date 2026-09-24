@@ -21,8 +21,11 @@ def arms(E):
     for L in range(E.shape[0]):
       rows=[]
       for h in range(E.shape[1]):
-        order=np.argsort(-E[L,h]); pc=np.empty(E.shape[2],np.int64); i=0
-        for c,n in enumerate(sizes): pc[order[i:i+n]]=c; i+=n
+        n=E.shape[2]
+        # The old 32-pair sizes left Qwen3's second 32 channels unassigned.
+        ns=sizes if n==32 else [n//8,n//8,n//4,n//2]
+        order=np.argsort(-E[L,h]); pc=np.empty(n,np.int64); i=0
+        for c,size in enumerate(ns): pc[order[i:i+size]]=c; i+=size
         rows.append(np.r_[pc,pc])
       dm.append(torch.from_numpy(np.stack(rows)))
     out[tag]=(dm,widths)
