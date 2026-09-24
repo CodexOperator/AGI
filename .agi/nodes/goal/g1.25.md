@@ -6,7 +6,7 @@ parents:
   - goal:g1
 next_edges: []
 confidence: 0.8
-edited_by: director-engine
+edited_by: belam
 goal_id: G1.25
 goal_kind: subgoal
 heading_level: 3
@@ -23,6 +23,7 @@ tags:
   - jev
   - magic-pane
   - engine
+thought_session: belam-S2-L5-IV
 title: "G1.25: CLI GRAMMAR = jev's one choice surface -- every engine verb a typed entry in command:commands, ONE machine-readable manifest, propose-only endpoints; the cli-grammar part of g7.33 claimed under config-maxxing, on the local-maxxing town board (owner 09:5xZ 09-23; assigned director-engine)"
 town: local-maxxing
 ---
@@ -41,10 +42,14 @@ home      the G1 CONFIG-MAXXING umbrella (commands.py's own goal is goal:g1.10; 
           town:local-maxxing's board lists it for the town across umbrellas
 claims    ONLY the cli-grammar deliverable of goal:g7.33 (g7.33.md:57, G14.14.6's maxxing pass: every bin verb, its args, invariants,
           traps) -- g7.33 itself stays core's and held
-shape     command:commands = every engine verb as a typed entry · `commands.py manifest` = ONE machine-readable choice set ·
+shape     (owner 2026-09-24 20:3xZ steer, verbatim in doc:l5-owner-decisions) an ACTION REGISTRY = every engine action as a typed entry, the ONE choice set jev reads · commands.py = a lightweight query + parse layer over the registry, never the registry itself · the registry stays compatible with off-the-shelf libraries that turn python scripts into CLI commands dynamically via templates ·
           propose (Python / CLI / localhost endpoint) validates and returns the argv, never executes
 serves    goal:g5.24.3 the magic pane: MP.02's suggester and held-out set score against this manifest; the town builds no second grammar
 work      director-engine (build lane) · first round: hypothesis:commands-manifest-is-jevs-one-choice-surface
 done when the manifest lands with its coverage test (every listed CLI verb declared or excluded by name) · merged up to thought-master ·
           director-thought told "[jev] choice surface ready" with the SHA (the director-engine card's standing rule)
 ```
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+2026-09-24 20:5xZ belam-S2-L5-IV: the owner's 20:3xZ steer, verbatim: 'Steer director-engine to shift the work on commands.py into an action registry instead that uses the commands.py as a lightweight query and parse layer, and also so it can be compatible with other command libraries instead that turn python scripts into cli commands dynamically via templates.' The shape line changes from the commands.py manifest being the choice set to an action registry being it, with commands.py only querying and parsing that registry; the 09-23 owner lines stay as the goal's origin. Nothing else here changes: director-engine re-plans its first round (hypothesis:commands-manifest-is-jevs-one-choice-surface) against the new shape.
+<!-- THOUGHT:END -->
