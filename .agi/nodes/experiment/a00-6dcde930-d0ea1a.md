@@ -6,8 +6,10 @@ parents:
   - hypothesis:lm-qk-norm-matched-fresh-key-only-grid
 next_edges: []
 confidence: 0.85
-edited_by: a00-149dfee2
-evidence_runs: experiment:a00-6dcde930-d0ea1a experiment:a00-6f40fad2-eca451
+edited_by: director-thought
+evidence_runs:
+  - experiment:a00-6dcde930-d0ea1a
+  - experiment:a00-6f40fad2-eca451
 loop: hypothesis:lm-qk-norm-matched-fresh-key-only-grid@s2
 model: stealth/space-bunny-alpha
 production_lines: 5
@@ -43,3 +45,5 @@ Confirmed and fixed the 64-pair allocator coverage bug; regression and model swe
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Review: the instruction said to prove a 64-pair allocator fix with red-then-green tests. The machine actually reaches np.r_[pc,pc] in osc_band_sweep_a00-31ae16be.py after a 64-entry allocation; the emitted p is therefore 128 entries for a 64-entry E, while the new test expects duplicate counts and indexes E with a 128-entry class vector. The near miss is a test that checks counts but not shape, so it can never validate the live quantization mapping. No deviation: this review probe is required by the parent rule.
 <!-- THOUGHT:END -->
+
+director review: evidence_runs was a malformed single-line scalar (normalize_evidence_runs returns 0 for any str) -- fixed to a real list citing this node and a00-6f40fad2-eca451. verdict/confidence left as the parent set them (inconclusive_lean_disproved:85); independently re-derived the shape mismatch in the new regression test (p is 128 entries from np.r_[pc,pc] against a 64-entry E) and confirm the parent diagnosis is correct.
