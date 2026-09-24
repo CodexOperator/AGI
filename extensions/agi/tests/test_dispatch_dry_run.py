@@ -271,6 +271,45 @@ def test_dry_run_takes_no_budget_slot(project):
         f"a dry run must not register a spawn-budget slot, but {budget_dir} exists")
 
 
+def test_kid_inherits_zero_usd_parent_harness_unless_explicit(project):
+    """A direct kid adopts its zero-cost parent's harness, never a paid ladder row."""
+    cfg = json.loads((project / ".agi" / "config.json").read_text())
+    cfg["harnesses"]["pi-free"] = {
+        "zero_usd": True, "adapter": "pi", "provider": "openrouter",
+        "models": {"kid": "free/kid-model"},
+        "allowed_extra": ["free/kid-model"],
+    }
+    (project / ".agi" / "config.json").write_text(json.dumps(cfg))
+
+    inherited = _run(project, "--tier", "kid", "--target", "hypothesis:x",
+                      "--dry-run", env={"AGI_HARNESS": "pi-free"})
+    assert inherited.returncode == 0, inherited.stderr
+    inherited_command = next(line for line in inherited.stdout.splitlines()
+                             if line.strip().startswith("command:"))
+    assert "harness=pi-free" in inherited.stdout
+    assert "inherited zero_usd harness pi-free from AGI_HARNESS" in inherited.stdout
+    assert "--model free/kid-model" in inherited_command
+    assert "deepseek" not in inherited_command
+
+    explicit = _run(project, "--harness", "pi", "--tier", "kid",
+                    "--target", "hypothesis:x", "--dry-run",
+                    env={"AGI_HARNESS": "pi-free"})
+    assert explicit.returncode == 0, explicit.stderr
+    assert "harness=pi" in explicit.stdout
+    assert "inherited zero_usd harness" not in explicit.stdout
+    assert "--model ~deepseek/deepseek-v4-flash-latest" in explicit.stdout
+
+    for parent_harness, expected_model in (
+            ("pi", "~deepseek/deepseek-v4-flash-latest"),
+            ("claude-code", "claude-sonnet-5")):
+        ordinary = _run(project, "--tier", "kid", "--target", "hypothesis:x",
+                        "--dry-run", env={"AGI_HARNESS": parent_harness})
+        assert ordinary.returncode == 0, ordinary.stderr
+        assert "inherited zero_usd harness" not in ordinary.stdout
+        assert f"harness={parent_harness}" in ordinary.stdout
+        assert f"--model {expected_model}" in ordinary.stdout
+
+
 def test_explicit_harness_flag_wins_over_ladder_row(project):
     """hypothesis:l3-dispatch-harness-flag-overridden — an explicit
     --harness claude-code must beat a ladder row that names pi (the tier-1
