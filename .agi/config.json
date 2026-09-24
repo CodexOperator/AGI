@@ -89,6 +89,20 @@
       ],
       "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
     },
+    "pi-free": {
+      "adapter": "pi",
+      "bin": "~/.npm-global/bin/pi",
+      "provider": "openrouter",
+      "thinking": "medium",
+      "models": {
+        "kid": "stealth/space-bunny-alpha",
+        "parent": "stealth/space-bunny-alpha"
+      },
+      "allowed_extra": [
+        "stealth/space-bunny-alpha"
+      ],
+      "forward_env": ["TYPESAFE_KEY", "TYPESAFE_KEY2", "TYPESAFE_API_KEY"]
+    },
     "claude-code": {
       "adapter": "claude_code",
       "models": {
@@ -139,7 +153,7 @@
       "provider": "openrouter",
       "per_spawn_limit_usd": 1.0,
       "ttl_minutes": 300,
-      "workspace_id": "e31711fe-f121-4904-abe3-c54e7bcbe7e6"
+      "workspace_id": "7e12bcd2-321e-51ec-b3f5-80efeb4fdaf0"
     },
     "parent_max_kids": 10,
     "memory_max": "6G"
