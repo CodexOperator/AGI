@@ -2157,7 +2157,7 @@ def assemble(*, tier: str, agent_id: str, iter_n: int, cli_py: str | Path = "",
     # a programmatic caller", so it re-resolves via env -> config. One switch,
     # every caller; the surfaces cannot drift.
     if profile == "full":
-        profile = _effective_profile(profile=None)
+        profile = _effective_profile(profile=None, project_root=project_root)
     if tier not in TIERS:
         raise BriefError(
             f"no brief for tier {tier!r}; known tiers: {', '.join(TIERS)}. "
