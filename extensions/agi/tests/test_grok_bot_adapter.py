@@ -146,6 +146,30 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
     assert written["pid"] == 5252 and written["status"] == "restarted"
 
 
+def test_held_restart_names_pane_and_carries_scrubbed_env(monkeypatch, tmp_path):
+    """HOLD_PANE reaches tmux with an explicit environment, not server inheritance."""
+    calls = {}
+    class FakeProc:
+        pid = 6262
+    def fake_popen(args, **kwargs):
+        calls.update(args=args, kwargs=kwargs)
+        return FakeProc()
+    monkeypatch.setattr(grok.subprocess, "Popen", fake_popen)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "must-drop")
+    sess = tmp_path / "sess"; sess.mkdir()
+    harness = dict(RESTART_HARNESS, HOLD_PANE=True, credential="none",
+                   env={"GROK_MARKER": "carried"})
+    pid = grok.restart(harness=harness, tier="kid", context_file="context.md",
+                       agent_id="a00/test", iter_n=1, sess_dir=sess)
+    assert pid == 6262
+    assert calls["args"][:4] == ["tmux", "new-session", "-d", "-s"]
+    assert calls["args"][4] == "grok-a00-test"
+    joined = " ".join(calls["args"])
+    assert "GROK_MARKER=carried" in joined
+    assert "OPENROUTER_API_KEY" not in joined
+    assert calls["kwargs"]["env"]["GROK_MARKER"] == "carried"
+
+
 def test_restart_returns_none_when_popen_fails(monkeypatch, tmp_path):
     """An OSError from Popen yields None, never a raised exception — same as
     the other adapters."""
