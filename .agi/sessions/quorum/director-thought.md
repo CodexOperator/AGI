@@ -2,7 +2,7 @@
 
 ## Identity
 ```
-post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · gen 18 claude-opus-5-5 seated 04:55:17Z 09-24 (session post-director-thought-e8) · the Prime writes the config:posts model cell · rotate at meter f >= 0.47, BARE (never --model: rotate exits 3 on a model that differs from the row) · master thought-master
+post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · gen 18 claude-opus-5-5 seated 04:55:17Z 09-24 (session post-director-thought-e8); the row = claude-sonnet-5 max from gen 19 (owner 05:1xZ) · the Prime writes the config:posts model cell · rotate at meter f >= 0.47, BARE (never --model: rotate exits 3 on a model that differs from the row) · master thought-master
 tree      /data/work/agi/.agi/worktrees/post-director-thought · branch local-maxxing/season2/posts/director-thought/main · mirror refs/agi/posts/director-thought
 trunk     local-maxxing/season2/main -- the only branch merged in
 ids       retired ids are never used (owner 09-23 09:0xZ): owner lines live on goal:g5 · switch = g5.27 (.1 battery) · magic pane g5.24.3 · telepathy g5.30 · diagram-max g5.31 · engine g7.33 (parked)
@@ -64,7 +64,7 @@ OWNER    via TM, verbatim: TMM.90 02:3xZ "Let's resume normal operations using t
 LANES    FREE   pi-free (stealth/space-bunny-alpha), 0 USD, the provider RETAINS prompts -> anonymize --text on every orders file
                 a lean parent = 3-6.5 min per round today; parent orders pin the kid spawn to `dispatch.py .` from the parent's own worktree (no 401 since)
          PAID   held (TMM.66) · LOCAL retired as an operating mode (TMM.90) · BRAIN brain-orcabonsai27b UP (router stopped): never restart it
-LANDED   batch 1 7b63a6a5b2 (TMM.105) · batch 2 b8eb4e9ea1 (TMM.106: CTX.02 + CMP.01) -> "Keep self-looping lean." · batch 3 offered 05:3xZ
+LANDED   batch 1 7b63a6a5b2 (TMM.105) · batch 2 b8eb4e9ea1 (TMM.106: CTX.02 + CMP.01) · batch 3 50db63e3fb (CMP.03 + HOOK.01) -> "Keep self-looping lean."
 LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
   done   L1 KV format · L6 knobs · L10 open-loop map · L6b -ub refuted · the LEAF (path literals -> paths.py)
   L3     DISPROVED x3 at 3.5 bits · STEP energy holds both bars at 9.0 bits · REFRAME a QK-norm model or per-channel keys
@@ -74,22 +74,30 @@ LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
 routed   director-engine: the CTX.02 flags (04:25Z) + the probe heads-up (04:54Z) -> its one-copy adapter build (TMM.99)
 ```
 
-## 🔴 Where it stops -- 05:3xZ 09-24: batch 3 [merge-up] SENT to TM 05:35:15Z (tip 3e39c60a24, mirror pushed); HOOK-B.01 LIVE (parent a00-a5082be0)
+## 🔴 Where it stops -- 05:4xZ 09-24: batch 3 LANDED 50db63e3fb; HOOK-B.02 LIVE (parent a00-34a6b7b4); gen 18 ROTATES on the owner's order -> gen 19 on claude-sonnet-5 max
 ```
-NOW      batch 3 = the pi context thread, offered to TM as ONE [merge-up] (tip in the dm log) -> wait for TM's gate; a posts.md / config.json conflict at
-         landing = TMM.104's recipe (merge the named trunk commit, the conflicting row to the trunk, re-offer ONE line)
-NOW+     HOOK-B.01 = the HOOK.01 replication, harder (HOOK.01b was not a valid iteration id): a ~7,000-token system prompt + distinct call ids,
-         the estimate from ctx.getContextUsage() -- parent a00-a5082be0 pid 3232048, 05:37:25Z · wait on the pid · review like HOOK.01 (re-derive
-         from the log; pairing BY ID this time) -> batch 4 · HOOK.02 (a real pi-local kid on the brain slot) = TM's go · SWR-SV.01 / REPLAY.02 HOLD
+OWNER    05:1xZ verbatim (config:posts THOUGHT): "Set both directors that are active now to sonnet on max. Let them know as well to rotate once they reach
+         a good point to apply changes." -> the row (merged into this worktree from 3b6e0eb632) = claude-sonnet-5 effort max; gen 18 rotated at a good point
+NOW      HOOK-B.02 = HOOK.01 replicated harder (a ~7,000-token system prompt + DISTINCT call ids; the extension estimate from ctx.getContextUsage())
+         on hypothesis:lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot · parent a00-34a6b7b4 pid 3258347, 05:40:27Z · orders
+         .agi/sessions/orders/HOOK-B.02.{parent,kid}.txt · my manifest has the PARENT row only -> wait on the pid (kill -0), never cli.py wait here
+GEN 19   1 on the harvest line in the inbox: check kids=[...] is NON-EMPTY, then the round branch diff vs its merge-base (ONE new kid node + extension +
+           probe + log under datasets/brain-swap/2026-09-24) BEFORE any merge -- HOOK-B.01's parent spawned no kid and re-verdicted the CLOSED HOOK.01
+           node (branch a85a41625f, REJECTED, never merge it)
+         2 review by name like HOOK.01 (the thread block below): re-derive per arm from the committed log; pairing BY ID now; the system prompt reached
+           every request -> close in place -> a lean mur -> batch 4 [merge-up] to TM
+         3 then TM's answer to batch 3's next moves: HOOK.02 (a real pi-local kid on the brain slot) needs TM's go · SWR-SV.01 / REPLAY.02 HOLD
+LANDED   batch 3 = 50db63e3fb (TM, lean gate): CMP.03 + HOOK.01 + the CTX.02 probe fix + the CMP brief; mirror pushed after the landing
 THREAD   CMP.03 DISPROVED (a00-b6ec457f): a declared contextWindow 60,000 does not bound ONE pi -p loop -- request 20 past W, 21 past the 65,536 ceiling
          (400), a 2nd 400 at 36; pi checks compaction only at agent_end + a new prompt (agent-session.js:337/:738; pi 0.73.1 the same)
          HOOK.01 PROVED (a00-cdde7530, conf 0.9): a 13-line context-event extension (types.d.ts:400-404) -> 40 requests, max 44,849.7, 0 x 400 (control:
          400s at 12 + 22); compact() aborts the loop (agent-session.js:1249-1251) -- routed to director-engine 05:3xZ (estimate = messages only)
-murs     mur-director-thought-20 (cmp03 + ctx02fix): 4/4 ok; cmp03 = 4 residues, verify missed 0; ctx02fix = residues (cwd ROOT, no discovery selftest),
-         the real-pi line set aside as at mur-19 -- all closed in place
 infra    CMP.02 died on a dispatch lease race (kid dispatch killed inside the 20 s startup grace, dispatch.py L2784 before L2831 -> key revoked -> 401)
-         -> director-engine 05:1xZ (not blocking; my parent orders carry a >= 180 s spawn timeout)
-traps  RE-READ the dm log right before any dispatch: TMM.90 landed 02:30:27Z between my gate read and the LEAF.04 dispatch and stopped a
+         -> director-engine 05:1xZ (not blocking; parent orders carry a >= 180 s spawn timeout)
+
+traps  a harvest line with kids=[] = a FAILED round: diff its branch before any merge -- HOOK-B.01's parent re-verdicted a CLOSED node instead of
+       spawning (orders now name closed nodes) · an iteration id is LETTERS[-LETTERS].NN (HOOK.01b refused; HOOK-B.01 ok)
+       · RE-READ the dm log right before any dispatch: TMM.90 landed 02:30:27Z between my gate read and the LEAF.04 dispatch and stopped a
        special 0-USD run; TMM.71 once withdrew TMM.70 the same way; TMM.106 landed 18 s before gen 17's rotate (dm log only)
        · NEVER grep a dispatch output down to spawned|manifest: a stale-base refusal (exit 3) then prints nothing you see -- tee it to a file
          and read the tail
@@ -120,7 +128,7 @@ tool   Nsight Systems: paths.local_maxxing.nsys_dir (+ /target-linux-x64/nsys) -
 
 ## Scratch -- orders (tracked; live rounds only, replaced when they land)
 ```
-ORDERS HOOK.01 (landed) -- .agi/sessions/orders/HOOK.01.parent.txt + HOOK.01.kid.txt (gitignored) = the newest pair to sed from (spawn timeout + no-kid-row lines)
+ORDERS HOOK-B.02 (LIVE) -- .agi/sessions/orders/HOOK-B.02.parent.txt + HOOK-B.02.kid.txt (gitignored; if lost: HOOK.01's pair + the node's HOOK-B TESTS line + the closed line)
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
             (evidence_runs as a LIST) · never · wall -- CMP.02.parent.txt is the newest copy to sed from
