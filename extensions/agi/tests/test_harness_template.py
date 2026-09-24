@@ -180,6 +180,20 @@ def _harness_branch_offenders(source: str) -> list[str]:
     is NOT narrowed: a bare comparison against a harness read names the id
     directly, so any string there is a harness decision."""
     tree = ast.parse(source)
+    # Follow the common local alias shape (`h = getattr(args, "harness", None)`)
+    # so a membership branch cannot evade the gate by hiding the read behind a
+    # variable. This is intentionally conservative: only assignments whose
+    # RHS visibly reads harness become aliases.
+    aliases = {
+        target.id for node in ast.walk(tree)
+        if isinstance(node, ast.Assign) and _mentions_harness(node.value)
+        for target in node.targets if isinstance(target, ast.Name)
+    }
+
+    def reads_harness(node) -> bool:
+        return _mentions_harness(node) or (
+            isinstance(node, ast.Name) and node.id in aliases)
+
     found = set()
     for node in ast.walk(tree):
         if not isinstance(node, ast.Compare):
@@ -190,12 +204,10 @@ def _harness_branch_offenders(source: str) -> list[str]:
             if isinstance(op, (ast.Eq, ast.NotEq)):
                 for const, other in ((right, left), (left, right)):
                     if isinstance(const, ast.Constant) and \
-                            isinstance(const.value, str) and \
-                            _mentions_harness(other):
+                            isinstance(const.value, str) and reads_harness(other):
                         found.add(const.value)
             if isinstance(op, (ast.In, ast.NotIn)) and \
-                    not isinstance(left, ast.Constant) and \
-                    _mentions_harness(left):
+                    not isinstance(left, ast.Constant) and reads_harness(left):
                 # NARROW (DH.28): only KNOWN ids are harness decisions; a
                 # harmless neighbouring string in the container is not.
                 found.update(set(_string_constants(right))
@@ -310,6 +322,15 @@ def test_gate_flags_harness_membership_container():
     (DH.28 narrow: over-flagging `x` was a false positive)."""
     src = ('def f(harness):\n'
            '    if harness in ("grok", "x"):\n'
+           '        return ["grokbin"]\n')
+    assert _harness_branch_offenders(src) == ["grok"]
+
+
+def test_gate_flags_alias_of_harness_membership():
+    """An alias must not hide a per-harness membership branch."""
+    src = ('def f(args):\n'
+           '    h = getattr(args, "harness", None)\n'
+           '    if h in ("grok", "x"):\n'
            '        return ["grokbin"]\n')
     assert _harness_branch_offenders(src) == ["grok"]
 
