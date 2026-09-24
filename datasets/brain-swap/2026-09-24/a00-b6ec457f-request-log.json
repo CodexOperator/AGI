@@ -1,0 +1,312 @@
+{
+  "selftest": "PASS valid under/over fixtures",
+  "arms": [
+    {
+      "arm": "declared",
+      "declared_window": 60000,
+      "largest_request_bytes": 249654,
+      "first_over": 21,
+      "compaction_request": null,
+      "400_preceded_compaction": false,
+      "requests": [
+        {
+          "request": 1,
+          "bytes": 5593,
+          "estimated_tokens": 1471.8,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 0
+        },
+        {
+          "request": 2,
+          "bytes": 17788,
+          "estimated_tokens": 4681.1,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 1
+        },
+        {
+          "request": 3,
+          "bytes": 29983,
+          "estimated_tokens": 7890.3,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 2
+        },
+        {
+          "request": 4,
+          "bytes": 42178,
+          "estimated_tokens": 11099.5,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 3
+        },
+        {
+          "request": 5,
+          "bytes": 54373,
+          "estimated_tokens": 14308.7,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 4
+        },
+        {
+          "request": 6,
+          "bytes": 66568,
+          "estimated_tokens": 17517.9,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 5
+        },
+        {
+          "request": 7,
+          "bytes": 78763,
+          "estimated_tokens": 20727.1,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 6
+        },
+        {
+          "request": 8,
+          "bytes": 90958,
+          "estimated_tokens": 23936.3,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 7
+        },
+        {
+          "request": 9,
+          "bytes": 103153,
+          "estimated_tokens": 27145.5,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 8
+        },
+        {
+          "request": 10,
+          "bytes": 115348,
+          "estimated_tokens": 30354.7,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 9
+        },
+        {
+          "request": 11,
+          "bytes": 127543,
+          "estimated_tokens": 33563.9,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 10
+        },
+        {
+          "request": 12,
+          "bytes": 139738,
+          "estimated_tokens": 36773.2,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 11
+        },
+        {
+          "request": 13,
+          "bytes": 151933,
+          "estimated_tokens": 39982.4,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 12
+        },
+        {
+          "request": 14,
+          "bytes": 164128,
+          "estimated_tokens": 43191.6,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 13
+        },
+        {
+          "request": 15,
+          "bytes": 176323,
+          "estimated_tokens": 46400.8,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 14
+        },
+        {
+          "request": 16,
+          "bytes": 188518,
+          "estimated_tokens": 49610.0,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 15
+        },
+        {
+          "request": 17,
+          "bytes": 200713,
+          "estimated_tokens": 52819.2,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 16
+        },
+        {
+          "request": 18,
+          "bytes": 212908,
+          "estimated_tokens": 56028.4,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 17
+        },
+        {
+          "request": 19,
+          "bytes": 225103,
+          "estimated_tokens": 59237.6,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 18
+        },
+        {
+          "request": 20,
+          "bytes": 237298,
+          "estimated_tokens": 62446.8,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 19
+        },
+        {
+          "request": 21,
+          "bytes": 249493,
+          "estimated_tokens": 65656.1,
+          "status": 400,
+          "phase": "turn",
+          "tool_results": 20
+        },
+        {
+          "request": 22,
+          "bytes": 106470,
+          "estimated_tokens": 28018.4,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 0
+        },
+        {
+          "request": 23,
+          "bytes": 91119,
+          "estimated_tokens": 23978.7,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 7
+        },
+        {
+          "request": 24,
+          "bytes": 103314,
+          "estimated_tokens": 27187.9,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 8
+        },
+        {
+          "request": 25,
+          "bytes": 115509,
+          "estimated_tokens": 30397.1,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 9
+        },
+        {
+          "request": 26,
+          "bytes": 127704,
+          "estimated_tokens": 33606.3,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 10
+        },
+        {
+          "request": 27,
+          "bytes": 139899,
+          "estimated_tokens": 36815.5,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 11
+        },
+        {
+          "request": 28,
+          "bytes": 152094,
+          "estimated_tokens": 40024.7,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 12
+        },
+        {
+          "request": 29,
+          "bytes": 164289,
+          "estimated_tokens": 43233.9,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 13
+        },
+        {
+          "request": 30,
+          "bytes": 176484,
+          "estimated_tokens": 46443.2,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 14
+        },
+        {
+          "request": 31,
+          "bytes": 188679,
+          "estimated_tokens": 49652.4,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 15
+        },
+        {
+          "request": 32,
+          "bytes": 200874,
+          "estimated_tokens": 52861.6,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 16
+        },
+        {
+          "request": 33,
+          "bytes": 213069,
+          "estimated_tokens": 56070.8,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 17
+        },
+        {
+          "request": 34,
+          "bytes": 225264,
+          "estimated_tokens": 59280.0,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 18
+        },
+        {
+          "request": 35,
+          "bytes": 237459,
+          "estimated_tokens": 62489.2,
+          "status": 200,
+          "phase": "turn",
+          "tool_results": 19
+        },
+        {
+          "request": 36,
+          "bytes": 249654,
+          "estimated_tokens": 65698.4,
+          "status": 400,
+          "phase": "turn",
+          "tool_results": 20
+        }
+      ]
+    },
+    {
+      "arm": "missing",
+      "declared_window": null,
+      "largest_request_bytes": 0,
+      "first_over": null,
+      "compaction_request": null,
+      "400_preceded_compaction": false,
+      "requests": []
+    }
+  ]
+}
