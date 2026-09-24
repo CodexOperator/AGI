@@ -42,6 +42,9 @@ RESIDUES  (named, NOT minted): .15 r4 CR/CRLF readers (write.py:2751/2166/2462) 
 401       TMM.97: TM suspects a cross-box REAP revoking live kid keys. EF.96/97/99 hit it; EF.100/101 ran clean. A recurrence:
           note the dead kid key name + time, ONE [red] to TM, no third re-dispatch.
 NOT MERGED EF.79 crons r1 tip 256dbb2f26 -- regressed; never merge it.
+RULE      TMM.103: every orders file's spawn line pins the kid's project to the PARENT'S OWN WORKTREE path (`dispatch.py
+          <your worktree> <iter> --tier kid ... --harness pi-free`), as director-thought does -- my parents used the town NAME
+          `local-maxxing` (EF.102 measured) and only my kids hit the 401s. [decision] line sent to TM. #6 LANDED 2687448d93 (TMM.102).
 TRAP      the stops slot grows +1 fence per rotation (rotate.py _fence_for) -> write the slot with ONE 3-backtick fence
 TRAP      git merge -F - does not read stdin; the trunk moves every few minutes -> sync + dispatch in ONE command
 TRAP      mur pid: ps -eo pid,sid,etime,args | awk '$4=="python3" && $5 ~ /workflow.py$/' (never the `$!` wrapper)
