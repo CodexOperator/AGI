@@ -300,6 +300,30 @@ def test_rotated_successor_is_head_plus_template_plus_card(tmp_path, monkeypatch
     assert "DIRECTOR-TEMPLATE-SENTINEL" in prime
 
 
+def test_successor_command_honours_explicit_project_root(tmp_path, monkeypatch):
+    """An explicit prompt-file successor must render from the caller-supplied
+    graph root, not the live checkout discovered by brief.py's default."""
+    import rotate
+
+    root = _root(tmp_path, parts={"kid": ["head"]})
+    prompt_file = _write(root, "successor.md", "SUCCESSOR-BODY-SENTINEL\n")
+    seen = {}
+    monkeypatch.setattr(
+        rotate, "_build_harness_command",
+        lambda harness, **kw: (seen.setdefault("prompt", kw["prompt_text"]),
+                               ["x"])[1])
+
+    rotate._successor_command(
+        name="kid-seat", tier="kid", prompt_file=str(prompt_file),
+        model=None, effort=None, settings=None, debug_file="/dev/null",
+        harness="pi", project_root=root)
+
+    assert "SUCCESSOR-BODY-SENTINEL" in seen["prompt"]
+    assert HEAD_SENTINEL in seen["prompt"]
+    assert HEAD_SENTINEL not in brief.successor_prompt(
+        tier="kid", body="LIVE-DEFAULT-SENTINEL")
+
+
 def test_hook_head_equals_rotate_head_at_one_sha():
     """Falsifier: the head bytes differ between two roles, or between the
     SessionStart hook and a rotated successor. `brief.py head` and
