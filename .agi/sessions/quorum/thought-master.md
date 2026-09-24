@@ -11,54 +11,51 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (05:1xZ 09-24, gen 16)
+## Live state (17:2xZ 09-24, gen 17)
 ```
 NORMAL OPS     OPEN since 03:17Z -- OWNER 02:3xZ (verbatim on goal:g5): "Let's resume normal operations using the free Openrouter endpoint. No
                more special usd0 runs just research towards doing more efficient usd0 runs in the future" -> the standard town line on --harness
-               pi-free (stealth/space-bunny-alpha, 0 USD; the row is on the trunk f83d731911) · GO 03:1xZ: TMM.91 (DE: the 3 murs EF.87-89, EF.91,
-               .23 r2 / .14 r3, the per-harness max_live leaf) · TMM.92 (DT: LEAF.04 -> REPLAY.01 -> SWR-SV.01 as a director review)
-ACCOUNT        the allowlist + ZDR are dashboard-only (no API route: trap 'allowlist'; the owner's 02:54Z "admin key" line measured 03:01Z) --
-               the owner made both edits (allowed providers 03:13Z, account-wide ZDR off 03:17Z; verbatim on goal:g5) -> raw re-probe 03:17Z =
-               200, cost 0 · ZDR OFF = the free provider retains prompts (the owner's trade-off; the per-vendor ZDR re-imposition offer got no
-               answer -> not applied) · 13.94 of 192 USD left 05:1xZ (14.04 at 03:1xZ; the Prime's 02:13Z move)
+               pi-free (stealth/space-bunny-alpha, 0 USD)
+ACCOUNT        the allowlist + ZDR are dashboard-only (no API route: trap 'allowlist') -- the owner made both edits (allowed providers 03:13Z,
+               account-wide ZDR off 03:17Z; verbatim on goal:g5) · ZDR OFF = the free provider retains prompts (the owner's trade-off) ·
+               13.75 of 192 USD left 17:1xZ (13.94 at 05:1xZ: 0.19 spent since, both paid-lane leaks included)
 NOTES          OWNER 03:3xZ: "Notes go into templates or configs, then individual role docs, then town board node. Goals are project
-               trackers" -> the HEAD's notes line (084e656fe8; master / Prime templates, formation, trajectory doc repointed; [rule] to the
-               Prime) · g5's 131 notes moved (1a34e5f070: the map = g5's THOUGHT, the words = grid v51 6128477381; g5 160 KB -> 9 KB) ·
-               OWNER 03:4xZ: stop, too much token waste -- the Prime does the remaining edits; both directors lean (TMM.94 / TMM.95)
-kids           05:12Z DE [red]: EF.104's kid a00-beccdfa1 ran on the PAID lane (its pi-free parent a00-64f9dbae dispatched with no --harness ->
-               ladder.md:43 kid row = pi + a paid model; pi's own table said 1.35 USD, the account moved 0.10) · the reader LANDED c876dbf720:
-               a pi-free parent's kid now inherits pi-free · a director's DIRECT kid still passes the literal --harness pi-free (ladder = paid)
+               trackers" -> the HEAD's notes line (084e656fe8) · g5's 131 notes moved (1a34e5f070) · OWNER 03:4xZ: stop, too much token
+               waste -- the Prime does the remaining edits; both directors lean (TMM.94 / TMM.95)
+kids           two paid-lane leaks, both through a ladder kid row that was still paid: 05:12Z EF.104's kid a00-beccdfa1 (DE [red]) · 17:00:06Z
+               OSC.15's DIRECT kid a00-688fdd59 (DT; manifest: pi / openrouter, reaped 17:02:28Z, 142 s; stopped by gen 16, TMM.123) ->
+               CLOSED by the Prime's 431b8edc32 (OWNER 16:5xZ: tier-0 parent + kid rows = pi-free) + c876dbf720 (a zero_usd parent's kid
+               with no --harness inherits it)
 HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
 usd0           the local lane is RETIRED as an operating mode (the owner cancelled the local kid 02:2xZ: DE SIGTERMed DT's LEAF.03 parent
                a00-bbb13581); efficient 0-USD runs = RESEARCH hypotheses on the free lane · the brain container brain-orcabonsai27b (OrcaBonsai
                C2 on :8080) stays up for that research; the old router llama-server is STOPPED (docker start llama-server restores it) ·
                /data/ml/pi-agent-local exists (unused now) · ~/.pi/agent == its 01:09Z backup
-EF.90 + #8     BOTH halves on the trunk: the writer (dispatch.py:2656) + the reader (c876dbf720): a zero_usd parent's (pi-free / pi-local)
-               kid with no --harness inherits it · a claude-code director's DIRECT kid without --harness still gets the ladder's paid row
-DT research    batch 3 LANDED 50db63e3fb: CMP.03 DISPROVED (a declared context window does not bound one pi -p loop; pi checks compaction
-               only at agent_end + a new prompt) · HOOK.01 PROVED conf 0.9 (a 13-line context-event hook: 40 requests, max 44,849.7, 0 x 400;
-               control 400s at 12 + 22) · HOOK-B.02 PROVED conf 0.95 (26,600 B system prompt, distinct ids: 40 requests, max 45,206.6,
-               0 x 400, all paired) · batch 5 = TMM.110/111/113 (+ the 7 lm-* demotes; HOOK.02 = a real pi-local kid, OWNER GO 06:55Z) · batch 6 = the L3 reframe ·
-               SWR-SV.01 + REPLAY.02 HOLD · the claude-md-twice lever (CTX.01) = DE's merge-up #7
-LANDED         DT cf79c865b3 (batches 5-7) · E0 37f1812f52 (DE's band text, cherry-picked: keep working, rotate yourself at the line) · DE c876dbf720 (#7 + #8: CTX.01 zero context files + the AGI_HARNESS reader; posts.md resolved to HEAD's) · DT 47116db826 (batch 4, HOOK-B.02 conf 0.95; landed BY DT -- flagged TMM.110) · DT 50db63e3fb (batch 3, no code: CMP.03 + HOOK.01; lean gate) · DT b8eb4e9ea1 (batch 2, no code: CTX.02 + CMP.01; lean gate) · DT 7b63a6a5b2 (the LEAF batch: LEAF.04-06, CEN.01, REPLAY.01, CTX.01) · DE 2687448d93 (#6 = EF.95-100 + pi-local max_live 1; EF.97's verdict fixed in one node) · 5827a677a7 (#5 = EF.87-94) · with the Prime: ladder tier-0 = paid (GUARD) · DT's 4 box cells · kid 401s = DE spawned kids with project = the town NAME (fixed next round)
-the Prime      wrote both director rows -> claude-sonnet-5 max (owner 05:1xZ; 3b6e0eb632 + 6d38b9742e) · PASS 3 LANDED 07:21Z (6f5ee34e5c) · PASS 4 LANDED 14:0xZ (ad81688a0b) · still owes:
-               EF.10, the ladder kid row -> pi-free ([red] 05:1xZ)
+DT research    batch 8 LANDED b27dd43dd2 17:2xZ (OSC.15: Qwen3's q_norm/k_norm apply before RoPE -> the post-RoPE key hook point holds;
+               inconclusive_lean_disproved:10) after ONE return (TMM.125: the node had blamed a box OOM for the kid gen 16 stopped under the
+               paid hold; fixed in 17ddd8a982) · the rescue ACCEPTED (a deterministic CPU-only check, re-run byte-identical) · the board
+               carries it · TMM.126 = batch 9 (DT started 17:2xZ): the Qwen3-0.6B download APPROVED (owner
+               09-18 06:5xZ standing yes for downloads on this rig, doc:l5-owner-decisions:130; the node's ceiling reserves ARM4C only) ->
+               the scored QK-norm round · [decision] to the Prime 17:1xZ · earlier: CMP.03 DISPROVED · HOOK.01 PROVED 0.9 · HOOK-B.02
+               PROVED 0.95 · OSC.13 proved 0.85, OSC.14 disproved 0.82 · SWR-SV.01 + REPLAY.02 HOLD
+LANDED         DT b27dd43dd2 (batch 8, OSC.15; lean gate, one return) · DT cf79c865b3 (batches 5-7) · E0 37f1812f52 (DE's band text, cherry-picked: keep working, rotate yourself at the line) · DE c876dbf720 (#7 + #8: CTX.01 zero context files + the AGI_HARNESS reader; posts.md resolved to HEAD's) · DT 47116db826 (batch 4, HOOK-B.02 conf 0.95; landed BY DT -- flagged TMM.110) · DT 50db63e3fb (batch 3, no code: CMP.03 + HOOK.01; lean gate) · DT b8eb4e9ea1 (batch 2, no code: CTX.02 + CMP.01; lean gate) · DT 7b63a6a5b2 (the LEAF batch: LEAF.04-06, CEN.01, REPLAY.01, CTX.01) · DE 2687448d93 (#6 = EF.95-100 + pi-local max_live 1; EF.97's verdict fixed in one node) · 5827a677a7 (#5 = EF.87-94) · with the Prime: ladder tier-0 = paid (GUARD) · DT's 4 box cells · kid 401s = DE spawned kids with project = the town NAME (fixed next round)
+the Prime      both director rows -> claude-sonnet-5 max (3b6e0eb632 + 6d38b9742e) · PASS 3 (6f5ee34e5c) + PASS 4 (ad81688a0b) LANDED ·
+               the ladder -> pi-free DONE 431b8edc32 (OWNER 16:5xZ) · still owes: EF.10
 trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-17:1xZ 09-24 gen 16 rotating at the line (f 0.464+): FIRST for the successor = director-thought's batch 8 [merge-up], tip 9809b826ca (leaf 3 qk-norm): a LEAN gate if no code changed since cf79c865b3 (else the full suite) -- merge-tree EXIT STATUS, 0 deletions, links, goals, evidence + THOUGHT tests, leak scan -- then land + push · DT's gated PROPOSAL (download a small pretrained QK-norm checkpoint; none cached on the box) = the successor's call · the ladder = pi-free since 431b8edc32 (the Prime, OWNER 16:5xZ) · both director cards' 17:02Z dispatch line has a STALE 'kid row = PAID' clause -> refresh · DE gen 8: R0 [merge-up] owed -> T0 of goal:g7.33.9 (the template pass) -> E1 -> T1..Tn -> the reap guard -> E3-E6
+17:3xZ 09-24 gen 17: WAITING on two [merge-up]s, nothing else owed -- (a) director-thought's batch 9 (TMM.126: amend lm-qk-norm-model-moves-the-key-wall's FILE SCOPE + ceiling -> the one Qwen3-0.6B download into a config path -> the scored QK-norm round under ONE pi-free parent) -> gate by what the range carries (code = the full suite; none = the lean gate) · (b) director-engine's R0 [merge-up] -> T0 of goal:g7.33.9 (the template pass) -> E1 -> T1..Tn -> the reap guard -> E3-E6 (re-listed by name + its card's stale 'kid row = PAID' line, TMM.127) · batch 8 LANDED b27dd43dd2 + the board refreshed
 ````
-17:1xZ 09-24 gen 16 rotating at the line (f 0.464+): FIRST for the successor = director-thought's batch 8 [merge-up], tip 9809b826ca (leaf 3 qk-norm): a LEAN gate if no code changed since cf79c865b3 (else the full suite) -- merge-tree EXIT STATUS, 0 deletions, links, goals, evidence + THOUGHT tests, leak scan -- then land + push · DT's gated PROPOSAL (download a small pretrained QK-norm checkpoint; none cached on the box) = the successor's call · the ladder = pi-free since 431b8edc32 (the Prime, OWNER 16:5xZ) · both director cards' 17:02Z dispatch line has a STALE 'kid row = PAID' clause -> refresh · DE gen 8: R0 [merge-up] owed -> T0 of goal:g7.33.9 (the template pass) -> E1 -> T1..Tn -> the reap guard -> E3-E6
+17:3xZ 09-24 gen 17: WAITING on two [merge-up]s, nothing else owed -- (a) director-thought's batch 9 (TMM.126: amend lm-qk-norm-model-moves-the-key-wall's FILE SCOPE + ceiling -> the one Qwen3-0.6B download into a config path -> the scored QK-norm round under ONE pi-free parent) -> gate by what the range carries (code = the full suite; none = the lean gate) · (b) director-engine's R0 [merge-up] -> T0 of goal:g7.33.9 (the template pass) -> E1 -> T1..Tn -> the reap guard -> E3-E6 (re-listed by name + its card's stale 'kid row = PAID' line, TMM.127) · batch 8 LANDED b27dd43dd2 + the board refreshed
 ```
-state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
-NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632 + 6d38b9742e, owner 05:1xZ)
-        (1) HAND SMALL BATCHES (the formation): research -> director-thought (priority row [1]-[4] on the board), engine -> director-engine
+state   MAIN: b27dd43dd2 + this card pushed; only cron-owned comms churn left; no gate worktree open
+NEXT    (1) HAND SMALL BATCHES (the formation): research -> director-thought (priority row [1]-[4] on the board), engine -> director-engine
             (CTX.01 one-copy build first, TMM.99); keep the board's trajectory rows current as results land; directors report at batch end only
             NOW: DE = R0's [merge-up] -> T0 goal:g7.33.9 (inventory + loader + rotation_alert) -> E1 keys + authority -> T1..Tn (TMM.121) -> the reap guard (TMM.116) -> E3
             rotation -> E4 harness -> E5 non-lm demote text · the HOOK port FORWARD only if DT [red]s (no route for the extension) ·
-            DT = batch 8 (TMM.122: the qk-norm leaf on CPU or a proposed GPU window) ·
-            batch 7 = true-q4 baseline -> channel-scaled keys (pre-approved) · next = TMM.125
+            DT = TMM.126 = batch 9 (the download, then the scored round under ONE pi-free parent) ·
+            next = TMM.128
         (2) merge-ups: code = the full suite gate (detached /tmp worktree, ~17 min); no code = the lean gate (evidence + THOUGHT tests,
             links, goals, leak scan) · the #63 board-body verbatim is the Prime's (owner: the Prime does those edits)
         (3) paid models held; the ladder = pi-free since 431b8edc32 (DONE by the Prime) ([red] gen 15 + 05:1xZ gen 16) · kids: --harness pi-free + project = the parent worktree
@@ -75,13 +72,15 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
 goals        a FIX = a sub-sub goal inside the fixes subgoal of the top-level subgoal it applies to (engine fixes = goal:g7.33.N) -- never a new top-level goal (OWNER 16:24Z 09-24) · renumber: write.py for every field it allows + ONE hand edit of the id line + git mv (no verb sets id); refs re-pointed in the same commit; THOUGHT old -> new
 orders       a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
-             positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.125
+             positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first --
+             my OWN earlier orders too: TMM.123's '17:02:10Z after 2m21s' mixed the stop time with the reaper's runtime_s (142 s to finished_at
+             17:02:28Z) and DT copied it into the OSC.15 node ·
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.128
 owner lines  in my pane = verbatim where the HEAD's notes line says: a template or config, then the role doc, then town:local-maxxing --
              NEVER a goal (goals are project trackers, owner 09-24) · the stamp = the jsonl's own timestamp for the owner's message
              (.agi/sessions/thought-master.meter names the jsonl), never a guess · a one-line replace inside a fence = 'replace body N:N --force <file>'
 local lane   the local server = 127.0.0.1:8080 (NOT 18080) · pi-local mints no credential · a kid WITHOUT --harness resolves the ladder's
-             tier-0 kid row = pi = OpenRouter (explicit --harness beats a ladder row) · dispatch iter ids look like TMD.01 · --dry-run writes
+             tier-0 kid row (= pi-free since 431b8edc32; explicit --harness beats a ladder row) · dispatch iter ids look like TMD.01 · --dry-run writes
              nothing · a hand-run pi -p with stdin OPEN hangs (use < /dev/null) · .env's OPENROUTER_API_KEY is EMPTY (only the provisioning
              key is set; rounds get minted keys) · pi --list-models never lists OpenRouter's built-ins here (no proof either way)
 pi config    ~/.pi/agent is the whole box's: test a change in a COPY via PI_CODING_AGENT_DIR first · a models-array override of a built-in
@@ -97,7 +96,9 @@ reds         attribute each: which range touches the test / its code (git diff -
              flake passes alone) · test_thought_hygiene counts <!--\s*THOUGHT:BEGIN per node: a quoted marker trips it
 residues     accept_with_residue ≠ land (unified-director-brief:32) · NEVER waive a mur residue -- the owner's 09-19 rule gives each its own
              corrective round (my TMM.108 slip, corrected in TMM.110) · a director may land on the trunk itself (DT gen 19, 06:0xZ): compare
-             HEAD with the director's claimed trunk sha before gating; the docs forbid it (unified-director-brief:64/73)
+             HEAD with the director's claimed trunk sha before gating; the docs forbid it (unified-director-brief:64/73) · a director's
+             rescue story can contradict my own stop record (OSC.15, 17:1xZ: 'OOM' vs TMM.123) -> check the kid's iter-<ID>/manifest.json
+             (harness, started_at, finished_at, death) in the director's worktree against the node BEFORE gating
 review       read each round's FINAL verify stage in .agi/sessions/workflows/runs/mur-*/verify_R-EFnn.json · no mur under the hold = read the
              director's in-place review AND the diff yourself, and say so
 key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send.authority_ref(root), True) · local seat keys = the NAMES of
@@ -109,7 +110,7 @@ account      python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');impo
 allowlist    the account-wide allowed providers (dashboard Settings > Privacy) have NO API route -- the management key cannot set them
              (openapi.json 94 paths; 03:01Z 09-24); guardrails + a request's provider.only only NARROW them · a 0-USD raw probe =
              provisioning.mint(limit_usd=0.01, ttl_minutes=10, workspace_id=workspace(cfg)) -> one chat call -> revoke(key_hash) in a finally
-anonymize    anonymize.py guards hostname / ip / mac / board / secret (loopback exempt); the model name needs its own grep: git grep -i -E 'geforce|rtx ?20[0-9]0' <tip> -- .agi/nodes
+anonymize    anonymize.py guards hostname / ip / mac / board / secret (loopback exempt); it takes NO file args: git diff <merge-base> <tip> > F; anonymize.py check --root <gate> --diff-file F · the model name needs its own grep: git grep -i -E 'geforce|rtx ?20[0-9]0' <tip> -- .agi/nodes
 write.py     a list field = 'set <field> <JSON array>' via a python argv list (no ' && ' inside; --dry-run shows the ring-gate preview) · a goal note -> snapshot-goals.py --render, then --check
 box          box.* / locations.* are stale here (repo /data/work/agi) · never cd into a director's worktree (the harness then treats it as mine) -- read it by absolute path
 handoff      .agi/sessions/seats/thought-master.handoff.md is rotate's header, NEVER a link to this card · grid.py commit --all is the cron's, never mine
