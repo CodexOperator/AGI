@@ -72,11 +72,13 @@ LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
 routed   director-engine: dispatch.py --memory N = BYTES · the CLAUDE.md one-copy adapter change (CTX.01, 04:0xZ) · stale box.* / locations.* cells
 ```
 
-## 🔴 Where it stops -- 04:5xZ 09-24: batch 1 GREEN (6380/0) and re-offered as gate tip 8ca16feccb (TMM.104); batch 2 (CTX.02 + CMP.01) murred, waits for it to land
+## 🔴 Where it stops -- 05:0xZ 09-24: batch 1 LANDED 7b63a6a5b2 (TMM.105); batch 2 [merge-up] SENT at 0487d6777d; waiting on TM's gate -- nothing else actionable
 ```
-NOW      TMM.104 04:49Z: the batch suite GREEN 6380 passed / 0 failed; landing hit posts.md -> gate tip 8ca16feccb = b57101ae9a + trunk 99cfce84d5, the
-         conflict (director-engine's row) resolved to the trunk (byte-identical) -> re-offered 04:5xZ; mirror 64ef60e110 carries it + batch 2 past it
-         ON LANDING: merge the trunk -> checks (anonymize, links, tests) -> ONE [merge-up] for batch 2 (CTX.02 lean_proved:80 + CMP.01 lean_proved:60)
+NOW      batch 1 (the LEAF batch) LANDED 7b63a6a5b2 (TMM.105: green suite, "stay lean") · batch 2 [merge-up] SENT 05:0xZ at 0487d6777d (CTX.02 lean_proved:80
+         + CMP.01 lean_proved:60; no code) -> on TMM's land line: merge the trunk, push the mirror · a posts.md conflict again -> TMM.104's recipe (gate tip
+         from the offered SHA + the named trunk commit, the conflicting row to the trunk, merge it into my branch, re-offer ONE line)
+NEXT     batch 3 so far: 01045931c5 the CTX.02 probe fix (parents[3]; heads-up to director-engine queued, its pane busy) · the queue: 2 SWR-SV.01 HOLD ·
+         3 REPLAY.02 HOLD (no token ids) · 4 box cells with TM -> Prime · CTX to PROVED = one re-run of the fixed probe (director-engine's adapter proof)
 mur-19   04:49Z demote x2, closed in place: CTX.02 proved -> lean_proved:80 (the committed probe cannot re-run: parents[4] for parents[3]; the numbers stand)
          · CMP.01 stays lean_proved:60 + fixture corrections · set aside: "a real pi process" (the design runs pi against a stub; that rule binds reviewers)
 CMP.01   eace9b2e44 (parent a00-188c77c5 -> kid a00-3a7f8962, 12 min): the stub never ran (its own fixture) -> lean_proved:60 on the node STEP from pi source
