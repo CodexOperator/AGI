@@ -61,6 +61,42 @@ def test_needs_no_openrouter_credential():
     assert grok.needs_credential(HARNESS) is False
 
 
+# ------------------------------------------------------------- pane feature
+
+
+def test_pane_methods_are_absent_without_a_hold():
+    adapter = grok.GrokPaneAdapter()
+    assert not hasattr(adapter, "pane_attach")
+    assert adapter.build_command(harness=HARNESS, tier="kid", context_file="x")
+
+
+def test_pane_methods_use_the_borrowed_named_hold(monkeypatch):
+    hold = {"pane": "seat:grok"}
+    adapter = grok.GrokPaneAdapter(hold)
+    calls = []
+
+    class Result:
+        stdout = "captured pane"
+
+    def run(*args, **kwargs):
+        calls.append((args, kwargs))
+        return Result()
+
+    monkeypatch.setattr(grok.subprocess, "run", run)
+    assert adapter.pane_attach() == "seat:grok"
+    adapter.pane_send("hello")
+    assert adapter.pane_read() == "captured pane"
+    assert calls[0][0][0][:2] == ["tmux", "send-keys"]
+    assert calls[1][0][0][:2] == ["tmux", "capture-pane"]
+    assert hold == {"pane": "seat:grok"}
+
+
+def test_available_method_without_named_pane_fails_closed():
+    adapter = grok.GrokPaneAdapter({})
+    with pytest.raises(grok.PaneUnavailableError, match="named pane"):
+        adapter.pane_read()
+
+
 # ------------------------------------------------------------- tier contract
 
 
