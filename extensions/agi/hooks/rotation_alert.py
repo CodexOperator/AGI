@@ -1535,7 +1535,8 @@ def main(argv: list[str] | None = None) -> int:
         _rc = _emit(BENEATH_TITLE,
                     f"Approaching rotation ({fraction:.4f} of {threshold:.3f} "
                     f"window ({fraction/threshold * 100:.2f}% of the line)). "
-                    f"Crossed band {pct}% of threshold.")
+                    f"Crossed band {pct}% of threshold. Keep working; at the "
+                    f"line run rotate.py rotate yourself.")
         _meter(used, threshold, fraction)
         return _rc
 
