@@ -1,0 +1,100 @@
+{
+ "arms": {
+  "true_uniform_4p5": {
+   "agree": 0.599609,
+   "kl": 1.439806,
+   "bits": 4.5
+  },
+  "energy_4p5": {
+   "agree": 0.739502,
+   "kl": 0.545099,
+   "bits": 4.5
+  }
+ },
+ "hits_both_bars": {
+  "true_uniform_4p5": false,
+  "energy_4p5": false
+ },
+ "old_bw4_ternary": {
+  "agree": 0.102783,
+  "kl": 5.749527,
+  "bits": 4.5
+ },
+ "ddd4762f_u45_matched_control": {
+  "agree": 0.638916,
+  "kl": 1.021206
+ },
+ "delta_vs_old_ternary_bw4": {
+  "agree": 0.496826,
+  "kl": -4.309721
+ },
+ "delta_vs_ddd4762f_u45_control": {
+  "agree": -0.039307,
+  "kl": 0.4186
+ },
+ "energy_minus_true_uniform": {
+  "agree": 0.139893,
+  "kl": -0.894707
+ },
+ "meta": {
+  "model": "Qwen/Qwen2.5-0.5B-Instruct (rev 7ae557604adf67be50417f59c2c2f167def9a775)",
+  "dtype": "float32",
+  "eval": {
+   "wiki_slice_starts": [
+    5000,
+    61000,
+    120000,
+    240000
+   ],
+   "wiki_span": 512,
+   "heval_task_ids": [
+    "HumanEval/107",
+    "HumanEval/108",
+    "HumanEval/109",
+    "HumanEval/11"
+   ],
+   "heval_padded_to": 512,
+   "n_prompts": 8,
+   "n_tokens": 4096,
+   "hop1_wiki_starts": [
+    0,
+    29875,
+    59751,
+    89627,
+    119503,
+    149379,
+    179254,
+    209130,
+    239006,
+    268882
+   ],
+   "hop1_heval_task_ids": [
+    "HumanEval/0",
+    "HumanEval/1",
+    "HumanEval/10",
+    "HumanEval/100",
+    "HumanEval/101",
+    "HumanEval/102",
+    "HumanEval/103",
+    "HumanEval/104",
+    "HumanEval/105",
+    "HumanEval/106"
+   ]
+  },
+  "selftest_16bit": {
+   "max_abs_logit_diff": 0.05757713317871094,
+   "agree": 1.0,
+   "kl": 7.379556450359814e-07
+  },
+  "patched_hook": true,
+  "profiles_sha256": "e80ec2772b1845f27a860d698e398b527fd4233141820ccbc27aecb98aab12a3",
+  "sha_reverify": {
+   "config.json": true,
+   "generation_config.json": true,
+   "model.safetensors": true,
+   "tokenizer.json": true,
+   "tokenizer_config.json": true
+  },
+  "t_s": 88.9
+ }
+}

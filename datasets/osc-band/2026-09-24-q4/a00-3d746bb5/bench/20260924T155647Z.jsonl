@@ -1,0 +1,16 @@
+{"prompt": 0, "arm": "true_uniform_4p5", "agree": 0.314453, "kl": 2.325698, "bits": 4.5}
+{"prompt": 0, "arm": "energy_4p5", "agree": 0.626953, "kl": 0.628159, "bits": 4.5}
+{"prompt": 1, "arm": "true_uniform_4p5", "agree": 0.375, "kl": 2.335425, "bits": 4.5}
+{"prompt": 1, "arm": "energy_4p5", "agree": 0.585938, "kl": 0.963984, "bits": 4.5}
+{"prompt": 2, "arm": "true_uniform_4p5", "agree": 0.335938, "kl": 3.109758, "bits": 4.5}
+{"prompt": 2, "arm": "energy_4p5", "agree": 0.632812, "kl": 0.764418, "bits": 4.5}
+{"prompt": 3, "arm": "true_uniform_4p5", "agree": 0.453125, "kl": 1.696468, "bits": 4.5}
+{"prompt": 3, "arm": "energy_4p5", "agree": 0.642578, "kl": 0.683892, "bits": 4.5}
+{"prompt": 4, "arm": "true_uniform_4p5", "agree": 0.8125, "kl": 0.567522, "bits": 4.5}
+{"prompt": 4, "arm": "energy_4p5", "agree": 0.832031, "kl": 0.40725, "bits": 4.5}
+{"prompt": 5, "arm": "true_uniform_4p5", "agree": 0.835938, "kl": 0.606965, "bits": 4.5}
+{"prompt": 5, "arm": "energy_4p5", "agree": 0.873047, "kl": 0.296397, "bits": 4.5}
+{"prompt": 6, "arm": "true_uniform_4p5", "agree": 0.783203, "kl": 0.480041, "bits": 4.5}
+{"prompt": 6, "arm": "energy_4p5", "agree": 0.779297, "kl": 0.448704, "bits": 4.5}
+{"prompt": 7, "arm": "true_uniform_4p5", "agree": 0.886719, "kl": 0.396574, "bits": 4.5}
+{"prompt": 7, "arm": "energy_4p5", "agree": 0.943359, "kl": 0.167989, "bits": 4.5}
