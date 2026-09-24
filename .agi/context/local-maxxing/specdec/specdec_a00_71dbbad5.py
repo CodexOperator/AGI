@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""OSC.12 draft-free n-gram speculation on the served Qwen3.5-9B-Q4_K_M (router's image/args): build|t1|full|analyze|margins. Fresh container per arm, model_args_9b minus --port, host 0.0.0.0 (bridge net; host side is 127.0.0.1), -fa on, --spec-type <arm> at DEFAULT parameters. The CALLER stops and restores llama-server; this script never touches it. Repo paths via paths.get_local (rule 13); /data/ml/models and the JIT cache are out-of-repo box roots kept literal (proposed as box cells)."""
+"""OSC.12 draft-free n-gram speculation on the served Qwen3.5-9B-Q4_K_M (router's image/args): build|t1|full|analyze|margins. Fresh container per arm, model_args_9b minus --port, host 0.0.0.0 (bridge net; host side is 127.0.0.1), -fa on, --spec-type <arm> at DEFAULT parameters. The CALLER stops and restores llama-server; this script never touches it. Repo paths via paths.get_local (rule 13); out-of-repo model and JIT roots resolve through paths.py proposed box cells."""
 import ast, glob, json, math, os, re, subprocess, sys, time
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = HERE
 while not os.path.isfile(ROOT + "/.agi/config.json"): ROOT = os.path.dirname(ROOT)
 sys.path.insert(0, ROOT + "/.agi/context/local-maxxing"); import paths
-IMG = "ghcr.io/ggml-org/llama.cpp:server-cuda"; MODELS = "/data/ml/models"; CACHE = "/data/ml/scratch/cuda-jit-cache"
+IMG = "ghcr.io/ggml-org/llama.cpp:server-cuda"; MODELS = paths.get("served_models_dir"); CACHE = paths.get("cuda_jit_cache_dir")
 MODEL = "/models/Qwen3.5-9B-Q4_K_M.gguf"; MNAME = "Qwen3.5-9B-Q4_K_M"
 OUT = paths.get_local("specdec_out_dir"); LOG = OUT + "/logs"
 ARMS = ["none", "ngram-simple", "ngram-map-k", "ngram-map-k4v", "ngram-mod", "ngram-cache", "none-LAST"]

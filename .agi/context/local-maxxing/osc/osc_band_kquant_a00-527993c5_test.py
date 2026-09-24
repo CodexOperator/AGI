@@ -1,7 +1,7 @@
 """Selftests for osc_band_kquant_a00-527993c5.py -- fixtures only, no model load.
 
-Run (the torch venv has no pytest):  PYTHONPATH=/data/ml/scratch/osc03/pylib \
-  /data/ml/.venv/bin/python osc_band_kquant_a00-527993c5_test.py
+Run (the torch venv has no pytest):  V="$(python3 .agi/context/local-maxxing/paths.py osc03_pylib_dir)" PYTHONPATH="$V" \
+  "$(python3 .agi/context/local-maxxing/paths.py ml_python)" osc_band_kquant_a00-527993c5_test.py
 Pytest-compatible too: every check is a function named test_*.
 """
 import importlib.util

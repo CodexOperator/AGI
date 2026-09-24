@@ -11,8 +11,8 @@ Controls at each matched average-bit point: UNIFORM (one integer width on every
 pair) and RANDOM (same class sizes, energy ranking replaced by a permutation,
 3 seeds). Plus the blockwise q4_0 key baseline (32-value blocks, 4.5 bits/elem).
 
-Run: PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 \
-  /data/ml/.venv/bin/python .agi/context/local-maxxing/osc/osc_band_kquant.py
+Run: V="$(python3 .agi/context/local-maxxing/paths.py osc03_pylib_dir)" PYTHONPATH="$V" nice -n 19 \
+  "$(python3 .agi/context/local-maxxing/paths.py ml_python)" .agi/context/local-maxxing/osc/osc_band_kquant.py
 """
 import json, os, sys, time
 import numpy as np

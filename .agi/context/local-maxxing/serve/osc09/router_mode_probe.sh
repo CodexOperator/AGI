@@ -1,8 +1,11 @@
 #!/bin/bash
 # OSC.09 probe: does the ROUTER's own container command (models-dir mode) have the ~45 s cold first request?
 set -u
-NAME=coldprobe; PORT=18092; SC=/data/ml/scratch/osc02
-S="$(cd "$(dirname "$0")/../../../../.." && pwd)"; OUT="$(python3 "$S/.agi/context/local-maxxing/paths.py" --local serving_sweep_cold_out_dir)"
+NAME=coldprobe; PORT=18092
+S="$(cd "$(dirname "$0")/../../../../.." && pwd)"
+# Run: V="$(python3 .agi/context/local-maxxing/paths.py osc02_scratch_dir)"
+V="$(python3 "$S/.agi/context/local-maxxing/paths.py" osc02_scratch_dir)"
+SC=$V; OUT="$(python3 "$S/.agi/context/local-maxxing/paths.py" --local serving_sweep_cold_out_dir)"
 mkdir -p $OUT/logs
 docker rm -f $NAME >/dev/null 2>&1
 docker run --rm -d --name $NAME --gpus all -v $SC:/models -p 127.0.0.1:$PORT:8080 \
@@ -12,10 +15,10 @@ docker run --rm -d --name $NAME --gpus all -v $SC:/models -p 127.0.0.1:$PORT:808
 for i in $(seq 1 300); do curl -sf --max-time 3 http://127.0.0.1:$PORT/health >/dev/null && break; sleep 1; done
 echo "health after ${i}s"
 echo '{"model":"Qwen3.5-9B-Q4_K_M","messages":[{"role":"user","content":"hi"}],"max_tokens":8,"temperature":0,"chat_template_kwargs":{"enable_thinking":false}}' > $OUT/req_probe_w.json
-python3 - "$PORT" "$OUT" <<'PY'
+python3 - "$PORT" "$OUT" "$(python3 "$S/.agi/context/local-maxxing/paths.py" wikitext2_test_raw)" <<'PY'
 import json,sys,subprocess,time
 port=sys.argv[1]; OUT=sys.argv[2]
-raw=open("/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw","rb").read()
+raw=open(sys.argv[3],"rb").read()
 reqs={"probe_w":{"messages":[{"role":"user","content":"hi"}]},
       "probe_a":{"messages":[{"role":"user","content":raw[10000:19000].decode("utf-8","replace")}]}}
 res={}

@@ -30,11 +30,20 @@ never by a new absolute literal.
 """
 import json
 import os
+import re
+import subprocess
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 NAMESPACE = "local_maxxing"
 _CACHE = {}
+
+PROPOSED_BOX_ROOTS = {
+    "models_dir": "/data/ml/models",     # proposed box.models_dir
+    "ml_scratch_dir": "/data/ml/scratch",  # proposed box.ml_scratch_dir
+    "ml_venv_dir": "/data/ml/.venv",     # proposed box.ml_venv_dir
+    "ml_tools_dir": "/data/ml/tools",    # proposed box.ml_tools_dir
+}
 
 
 def config_path(start=None):
@@ -60,10 +69,19 @@ def _config():
 
 def _placeholders(cfg):
     """`{name}` for every string cell in box.* and locations.*; box.root wins."""
-    cells = {}
+    cells = dict(PROPOSED_BOX_ROOTS)
     cells.update(cfg.get("locations") or {})
     cells.update(cfg.get("box") or {})
     return {"{%s}" % k: v for k, v in cells.items() if isinstance(v, str)}
+
+
+def _substitute(doc, value):
+    for name, repl in _placeholders(doc).items():
+        value = value.replace(name, repl)
+    unresolved = re.search(r"\{([^}]+)\}", value)
+    if unresolved:
+        raise KeyError("unresolved path placeholder: %s" % unresolved.group(1))
+    return value
 
 
 def get(key):
@@ -73,9 +91,7 @@ def get(key):
     if key not in table:
         raise KeyError("paths.%s.%s is not defined in %s"
                        % (NAMESPACE, key, cfg))
-    val = table[key]
-    for name, repl in _placeholders(doc).items():
-        val = val.replace(name, repl)
+    val = _substitute(doc, table[key])
     root = (doc.get("box") or {}).get("root")
     if not root:
         raise KeyError("box.root is not defined in %s" % cfg)
@@ -85,6 +101,18 @@ def get(key):
 def checkout_root(start=None):
     """Dir holding the .agi/ that config_path() resolved -- not box.root."""
     return os.path.dirname(os.path.dirname(config_path(start)))
+
+
+def main_checkout_root(start=None):
+    """Main checkout containing this checkout's shared git directory."""
+    checkout = checkout_root(start)
+    try:
+        common = subprocess.check_output(
+            ["git", "-C", checkout, "rev-parse", "--path-format=absolute", "--git-common-dir"],
+            text=True, stderr=subprocess.DEVNULL).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return checkout
+    return os.path.dirname(os.path.abspath(common))
 
 
 def get_local(key):
@@ -99,9 +127,7 @@ def get_local(key):
     table = ((doc.get("paths") or {}).get(NAMESPACE)) or {}
     if key not in table:
         raise KeyError("paths.%s.%s is not defined in %s" % (NAMESPACE, key, cfg))
-    val = table[key]
-    for name, repl in _placeholders(doc).items():
-        val = val.replace(name, repl)
+    val = _substitute(doc, table[key])
     return val if os.path.isabs(val) else os.path.normpath(os.path.join(checkout_root(), val))
 
 

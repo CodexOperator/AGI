@@ -9,7 +9,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = HERE
 while not os.path.isfile(os.path.join(ROOT, ".agi/config.json")): ROOT = os.path.dirname(ROOT)
 sys.path.insert(0, os.path.join(ROOT, ".agi/context/local-maxxing"))
 import paths
-IMG = "ghcr.io/ggml-org/llama.cpp:full-cuda"; IMG2 = "ghcr.io/ggml-org/llama.cpp:server-cuda"; SC = "/data/ml/scratch/osc02"; M = "/work/Qwen3.5-9B-Q4_K_M.gguf"
+IMG = "ghcr.io/ggml-org/llama.cpp:full-cuda"; IMG2 = "ghcr.io/ggml-org/llama.cpp:server-cuda"; SC = paths.get("osc02_scratch_dir"); M = "/work/Qwen3.5-9B-Q4_K_M.gguf"
 OUT = paths.get_local("serving_sweep_cold_out_dir"); LOG = OUT + "/logs"; WIKI = SC + "/wikitext-2-raw/wiki.test.raw"
 ARGS = ["--cache-reuse", "8", "--host", "0.0.0.0", "--jinja", "--alias", "Qwen3.5-9B-Q4_K_M", "--fit", "on", "--model", M, "--parallel", "1"]
 RAW = open(WIKI, "rb").read()
