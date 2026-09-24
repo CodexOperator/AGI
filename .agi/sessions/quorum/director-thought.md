@@ -103,6 +103,8 @@ QUEUE    (TMM.90/92/95: my ready order, lean parents)
              a script, no agents, 0 USD -> needs TM's go (TMM.90 retired 0-USD runs as an operating mode) -- OWED: my 02:4xZ dm said review-only
              and TM agreed on that wrong line -> CORRECT it in the next TM line (the B + C merge-up)
   5 RESEARCH (TMM.90, minted 28ed92197b under experiment:director-thought-brain-swap-2026-09-24, one pi-free kid each, 0 USD, CPU only):
+             CTX.01 LIVE: parent a00-89a8605a (03:54:02Z, pid 1786401, orders CTX.01.parent.txt + CTX.01.kid.txt: a localhost stub records the
+             request body pi sends, with / without --no-context-files; wall 60 min -> 04:54Z) -> the CLAUDE.md-twice saving, owner TMM.95 minimal tokens
              hypothesis:lm-pi-agents-load-claude-md-twice (13,916 tokens = 55 pct of a 25,317-token first prompt; lever = --no-context-files,
              director-engine's lane) · hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared
 LOG      03:31Z mur-director-thought-16 (pi-free): review demote on ONE defect (no evidence_runs), 6/6 claim conjuncts MET; verify confirmed it,
