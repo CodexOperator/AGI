@@ -12,7 +12,7 @@ class TemplateFieldError(ValueError):
 def render(family: str, name: str, **fields) -> str:
     """Render one plain-text template, refusing undeclared/missing fields."""
     path = _TEMPLATE_ROOT / family / f"{name}.md"
-    text = path.read_text(encoding="utf-8")
+    text = path.read_text(encoding="utf-8").rstrip("\n")
     required = {field for _, field, _, _ in Formatter().parse(text) if field}
     missing = sorted(required - fields.keys())
     if missing:
