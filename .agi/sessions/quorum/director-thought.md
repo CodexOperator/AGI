@@ -80,23 +80,23 @@ routed   OPEN: dispatch.py --memory N = MemoryMax N BYTES (6G or omit) -> direct
          RELATIVE cell resolves there -- use get_local) · pi-free parent -> kid 401 + no kid manifest / agent.json (to TM 03:27Z, for director-engine)
 ```
 
-## 🔴 Where it stops -- 03:4xZ 09-24: LEAF.05 (kid B) LANDED proved @7acd103f71; LEAF.06 (kid C) LIVE as a lean pi-free PARENT (TMM.95)
+## 🔴 Where it stops -- 03:5xZ 09-24: LEAF B + C LANDED (claim holds on the final bytes); mur-director-thought-17 running; REPLAY.01 live
 ```
-NOW      LEAF.06 parent a00-9bca4596 LIVE since 03:46:17Z (pid 1680349, pi-free, key agi-iterLEAF.06-parent-a00-9bca4596) · branch
-         season2/loops/hypothesis-lm-town-code-host-pat-a00-9bca4596 · manifest .agi/sessions/iter-LEAF.06/ in MY tree · wall 60 min -> 04:46Z
-         orders .agi/sessions/orders/LEAF.06.parent.txt (ONE kid C, --harness pi-free, project = its own worktree) + LEAF.06.kid-C.txt (15 files, 19 lines)
-         the parent runs leaf_sweep_evidence.py LEAF.06 itself · watch: a background loop here (dies with me) -- by hand: ps -p 1680349
+NOW      mur-director-thought-17 = systemd --user unit agi-director-thought-mur-17 (03:52:42Z, pi-free, rounds leaf05 + leaf06, args /tmp/dt17-mur-args.json)
+         results MAIN .agi/sessions/workflows/runs/mur-director-thought-17/ · by hand: systemctl --user is-active agi-director-thought-mur-17
+         ON ITS VERDICT: close any fix in place -> the LEAF hypothesis verdict -> ONE [merge-up] (LEAF B + C) + the MILESTONE line to TM (TMM.96):
+         the LEAF done (56 lines / 32 files -> 4 table lines + 6 ~/.venv-lm) + next-move options + the SWR-SV.01 correction owed
+LEAF     B LEAF.05 proved @7acd103f71 · C LEAF.06 harvested 0890b9604a (parent a00-9bca4596 -> kid a00-5e699898, 3 min, the parent->kid spawn WORKED
+         with project = its own worktree: no 401) -> parent verdict inconclusive_lean_proved:85 STANDS; my fix delta 6a1253fce1 (router_mode_probe
+         argv[3] was the scratch DIRECTORY, a moved value the parent missed) · final bytes: whole-town regex = 4 paths.py table lines + 6 ~/.venv-lm
+         + 11 test fixtures (excluded by the node's note) · 24 passed · residue: detect.py ROOT = checkout_root() names a worktree when run from one
+         (its census wants the main checkout) -> a follow-up leaf
          REPLAY.01 parent a00-7d91a301 LIVE since 03:48:30Z (pid 1700697, pi-free) · branch season2/loops/hypothesis-lm-agent-transcript-r-a00-7d91a301
          · orders .agi/sessions/orders/REPLAY.01.parent.txt + REPLAY.01.kid.txt (lean; the kid never pulls transcript text into its prompts: ZDR off)
          · wall 120 min -> 05:48Z · by hand: ps -p 1700697
-ON DONE  LEAN: the parent's verdict + its evidence json (after_hits 0, cells identical) + git diff --stat vs the merge-base (15 files + node + evidence)
-         -> merge its branch -> the whole-town regex = only the 4 table lines + 6 ~/.venv-lm lines (the LEAF claim) -> ONE mur for B + C (pi-free)
-         -> the LEAF parent's verdict -> [merge-up] + MILESTONE line to TM with next-move options (TMM.96)
-LANDED   LEAF.05 kid B a00-78eb042c (direct, 90 s, 0 USD): experiment:a00-78eb042c-b02230 PROVED -- regex 31 -> 0, 9/9 cells identical, 24 = 24,
-         osc tests before = after; the kid skipped the evidence + the before run -> written by me under path_sweep_out_dir (7acd103f71)
 QUEUE    (TMM.90/92/95: my ready order, lean parents)
   1 LEAF.04  DONE: proved, mur-16 closed in place, [merge-up] sent 03:36Z (GATE)
-  2 LEAF.01  B DONE (LEAF.05) · C LIVE (LEAF.06, parent)
+  2 LEAF.01  B + C DONE (LEAF.05 proved, LEAF.06 lean_proved:85 + my fix delta) -> mur-17 -> the LEAF verdict + [merge-up]
   3 REPLAY.01 (bc777c1fe7) -- LIVE (NOW), beside LEAF.06: TMM.92's order puts it right after leaf A; CPU-only, 0 USD
   4 SWR-SV.01 -- the brain IS the SWR-C2.02 serve config: output 1 = the brain-swap numbers + the ONE LoRA-proof prompt still owed · output 3 =
              HumanEval 164 ONCE MORE on the served build (the mvp words; the battery C2 143/164 is the single run it replicates) = ~1 h of the slot,
