@@ -76,7 +76,16 @@ except Exception:                                              # noqa: BLE001
 ROOT = "goal:g17"
 
 #: z offset of layer 1 above layer 0 (arbitrary; the page scales to fit).
-LAYER1_Z = 60.0
+#: Large enough that each layer's own SPHERE_R-radius ball (below) sits
+#: clear of the other's — two distinct spheres joined at ROOT, not one
+#: merged blob (owner 2026-09-24: "arrange the graph in 3D space more so
+#: it's not so flat but more spherical shaped").
+LAYER1_Z = 700.0
+
+#: Radius of the filled ball each layer's flat force-layout gets projected
+#: into (see `_spherical_z`). Comfortably under half of LAYER1_Z so the two
+#: layers stay visually separate spheres.
+SPHERE_R = 260.0
 
 #: Fixed seed so a render is byte-stable across restarts.
 LAYOUT_SEED = 20260911
@@ -994,6 +1003,31 @@ def cached_build_graph(graph_root: Path, seed: int = LAYOUT_SEED) -> dict:
     return build_graph(graph_root, seed=seed)
 
 
+def _spherical_z(x: float, y: float, nid: str) -> float:
+    """Deterministic z-offset that folds a flat (x,y) force-layout point into
+    a FILLED BALL of radius `SPHERE_R` instead of a flat plane: a pure
+    function of (x, y, nid) only, so it costs nothing to stay byte-identical
+    alongside the existing 2D layout cache/persistence/incremental machinery
+    (none of which change) — a survivor's (x,y) is pinned exactly as before,
+    so its derived z is too, and a new node's z is automatically close to its
+    parent's whenever its seeded (x,y) is (B2's "within 2 units" check reads
+    only x/y and is untouched).
+
+    r (distance from the layer's own center) becomes the node's depth budget
+    `zmax`; a per-id hash picks how much of that budget to use (0.15..1.0)
+    and which side of the layer plane (+/-), so nodes fill the ball's volume
+    rather than sitting on its shell or its equator. Points with r >= SPHERE_R
+    (rare; the layout's own centering pulls most points well inside it) fall
+    back to z=0 for that node — still a valid point, just on the equator.
+    """
+    r = math.hypot(x, y)
+    zmax = math.sqrt(max(0.0, SPHERE_R * SPHERE_R - r * r))
+    h = int(hashlib.sha256(nid.encode("utf-8")).hexdigest()[:8], 16)
+    frac = 0.15 + 0.85 * ((h % 10000) / 10000.0)
+    sign = 1.0 if (h >> 20) % 2 == 0 else -1.0
+    return sign * frac * zmax
+
+
 def build_graph(graph_root: Path, seed: int = LAYOUT_SEED) -> dict:
     """The /graph.json payload: two-layer nodes + edges + palette + layout.
 
@@ -1054,13 +1088,14 @@ def build_graph(graph_root: Path, seed: int = LAYOUT_SEED) -> dict:
             met = meta.get(_nid, {"id": _nid, "type": "node",
                                   "title": _nid, "parents": []})
             x, y = pos.get(_nid, (0.0, 0.0))
+            base_z = LAYER1_Z if layer == 1 else 0.0
+            z = base_z + _spherical_z(x, y, _nid)
             out.append({
                 "id": _nid,
                 "type": met.get("type") or "node",
                 "title": met.get("title") or _nid,
                 "layer": layer,
-                "pos": [round(x, 3), round(y, 3),
-                        round(LAYER1_Z if layer == 1 else 0.0, 3)],
+                "pos": [round(x, 3), round(y, 3), round(z, 3)],
             })
         return out
 
