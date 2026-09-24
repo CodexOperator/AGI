@@ -141,6 +141,7 @@ The town trunk moved VERY fast this generation -- 5 separate stale-base refusals
 ```
 
 ## 🔴 WHERE IT STOPS — the one next command (17:3xZ 09-24, gen 8 -> rotating NOW at the line per TMM.120)
+``````
 `````
 ````
 ```
@@ -162,3 +163,4 @@ The town trunk moved VERY fast this generation -- 5 separate stale-base refusals
 ```
 ````
 `````
+``````
