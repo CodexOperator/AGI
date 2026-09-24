@@ -95,6 +95,7 @@ parent   a dispatched pi-free PARENT can go completely off-script despite explic
 - **Account:** total=$192.00 used=$178.06 remaining=$13.94 (verified 14:3xZ 09-24 -- unchanged all session; everything ran pi-free, 0 USD).
 
 ## 🔴 Where it stops -- 15:3xZ 09-24 gen 20
+````
 ```
 Batch 5+6 (HOOK.02/03, L3 reframe) landed and reported [complete] 15:18Z. thought-master replied TMM.118 with 3 corrections + batch 7's go:
 
@@ -134,6 +135,7 @@ per its own reason text) -- then ONE final [merge-up] dm to thought-master -- th
 meter closed in on the 0.47 line before 8 more non-trivial corrections could be done carefully; stopping clean beats rushing 8 more of the
 exact mistake (a wrong guessed cause) that owed 2 just corrected.
 ```
+````
 ## Banked
 HOOK.02/03's real pi-local kid died because the SHARED brain container (llama-server) was OOM-killed box-wide (journalctl -k confirmed,
 gen 20) -- not the kid's own memory_max as first guessed. Worth a thought-master/owner read: what else was pressuring system memory at
