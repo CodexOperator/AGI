@@ -47,7 +47,7 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-17:1xZ 09-24 gen 16 AT THE LINE: the Prime applied the OWNER 16:5xZ order -- the ladder's parent + kid rows and spawn.harness = pi-free (stealth/space-bunny-alpha), trunk 431b8edc32: never pass --harness pi or pi-local for a parent or kid; both of today's paid leaks closed structurally · both director cards carry the 17:02Z dispatch rule (DT 7819c6e567 line 46, DE 4adfa489dc line 7) -- their 'the ladder's kid row = PAID' clause is now STALE: refresh it at the next touch · DT on batch 8 (TMM.122/123) · DE gen 8: R0 [merge-up] owed -> T0 of goal:g7.33.9 -> E1 -> T1..Tn -> the reap guard -> E3-E6
+17:1xZ 09-24 gen 16 rotating at the line (f 0.464+): FIRST for the successor = director-thought's batch 8 [merge-up], tip 9809b826ca (leaf 3 qk-norm): a LEAN gate if no code changed since cf79c865b3 (else the full suite) -- merge-tree EXIT STATUS, 0 deletions, links, goals, evidence + THOUGHT tests, leak scan -- then land + push · DT's gated PROPOSAL (download a small pretrained QK-norm checkpoint; none cached on the box) = the successor's call · the ladder = pi-free since 431b8edc32 (the Prime, OWNER 16:5xZ) · both director cards' 17:02Z dispatch line has a STALE 'kid row = PAID' clause -> refresh · DE gen 8: R0 [merge-up] owed -> T0 of goal:g7.33.9 (the template pass) -> E1 -> T1..Tn -> the reap guard -> E3-E6
 ```
 state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632 + 6d38b9742e, owner 05:1xZ)
