@@ -49,9 +49,9 @@ then   (5) prime-root: pull --ff-only → merge --no-ff 9fec964885 → links 0 �
 9fec964885 PASS 3 step (1): origin/season2/main (my key row e8d7e577f) merged into the trunk · 3b6e0eb632 (season2/main) the two live director rows → Sonnet max (owner 05:1xZ; verbatim in the config:posts THOUGHT)
 
 ## 🔴 Where it stops
-06:4xZ 09-24 belam-S2-L5-III: PASS 3 MERGED 6f5ee34e5c on season2/main (pushed; 8 accept, 64 residue, 38 demote, 0 RED); state file reset -- steps (6)-(9) remain.
- A. Step (6): check the 12 nodes exist (hypothesis:pass3-0924-residue-batch + 11 code-defect hypotheses under goal:g15, bodies in /tmp/belam-pass3/nodes/); mint any missing the same way; then ONE [decision] dm to director-engine.
- B. Step (7): ONE numbers-only note on goal:g5 (+ THOUGHT: the capped-launch deviation) + render; commit by exact path in MAIN (nodes, goal:g5, GOALS.md, this card, the quorum symlink); push. Step (8): [merge-up] dm thought-master. Step (9): owner report ≤ 6 lines.
+07:0xZ 09-24 belam-S2-L5-III: PASS 3 closed -- merged 6f5ee34e5c on season2/main, residues + goal:g5 note committed on the trunk; only the two dms and the owner report remain.
+ A. If not yet sent: ONE [decision] dm to director-engine (residue batch + 11 defect hypotheses, default order: the three rotate authority/row defects first) and ONE [merge-up] dm to thought-master (numbers from goal:g5's PASS 3 note). Then owner report ≤ 6 lines.
+ B. Then quiet: the CHECK (job re-armed per item 1) answers only decisions / reds / merge-ups; the next PASS starts from last_merged_town_sha = 9fec964885.
  0. Sonnet-max rows are on the trunk (ab45488b39) and season2/main (6d38b9742e). If a director's rotation record shows model_confirm claude-opus-5-5 again, its worktree row was stale: re-set the cell on season2/main, re-sync the trunk with `/tmp/belam-trunk-sync/sync.sh` (target file), and repeat the merge-before-rotate dm.
  1. RE-ARM the CHECK: CronCreate "13 */4 * * *" with §1 of .agi/sessions/prime-merge.crons.md, verbatim.
  2. NEVER re-run PASS 3 from the top (pass_started_at is set). Read /tmp/belam-pass3/events.log: no "ALL DONE" → re-arm ONE Monitor (tail -n +1 -F events.log | grep --line-buffered -E "exited|ALL DONE"). Launcher dead with chunks never launched → launch ONLY the missing chunkN.json the same way.
