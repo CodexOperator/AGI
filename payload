@@ -533,7 +533,7 @@ def live_count(root: Path) -> int:
 
 
 def acquire(root: Path, cap: int, agent_id: str, tier: str = "kid",
-            iter_n: int | None = None) -> Lease | None:
+            iter_n: int | None = None, harness: str | None = None) -> Lease | None:
     """Reserve one slot, or return None if the tree is already at `cap`.
 
     Non-blocking on purpose — see the module docstring. A caller that is
@@ -574,7 +574,16 @@ def acquire(root: Path, cap: int, agent_id: str, tier: str = "kid",
             return None
     with _budget_lock(root):
         live, orphaned = _sweep_locked(root)
-        if len(live) >= cap:
+        harness_live = sum(rec.get("harness") == harness for rec in live) if harness else 0
+        harnesses = cfg.get("harnesses") or {}
+        harness_row = harnesses.get(harness) if harness else None
+        harness_cap = harness_row.get("max_live") if harness_row else None
+        if harness_cap is not None and harness_live >= int(harness_cap):
+            print(f"spawn_budget: refusing {agent_id} -- harness {harness} "
+                  f"at max_live ({harness_live}/{int(harness_cap)})",
+                  file=sys.stderr)
+            admitted = None
+        elif len(live) >= cap:
             admitted = None
         else:
             holder = os.getpid()
@@ -582,6 +591,7 @@ def acquire(root: Path, cap: int, agent_id: str, tier: str = "kid",
                 "agent_id": agent_id,
                 "tier": tier,
                 "iter": iter_n,
+                "harness": harness,
                 "holder_pid": holder,
                 "agent_pid": None,
                 "reserved_at": int(time.time()),
