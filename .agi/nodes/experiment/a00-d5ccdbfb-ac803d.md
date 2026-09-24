@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-2043ac6b-84c801
 next_edges: []
 confidence: 0.99
-edited_by: a00-d5ccdbfb
+edited_by: a00-509c0d34
 evidence_runs:
   - experiment:a00-d5ccdbfb-ac803d
 line_ceiling: 40
@@ -60,3 +60,9 @@ and provenance resolution is false.
 
 ## Agent Notes
 On this checkout the hypothesized tmux_hold.py source and exact payload_ref are both absent; import and coverage probes disprove both runtime and provenance conjuncts.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review accepts this experiment as an accurate falsification of the current tip, not as completion of goal:g7.31.1.2.3. Instruction: “Restart falls back to direct Popen when tmux absent or session unset” and “Build node (or grid coverage entry) versions extensions/agi/bin/adapters/tmux_hold.py.” Machine: the parent independently built two probes on this checkout: runtime_probe reported FileNotFoundError for extensions/agi/bin/adapters/tmux_hold.py; provenance_probe used production grid_coverage_check.collect_payload_refs and returned no exact payload_ref (matching=[]). Thus both named claims are absent. Near miss: treating the missing artifact as proof that a hold design is impossible, or treating a generic coverage failure as a completed hold. No standing rule was deviated from: git was not run, and the child artifact, not its result prose, was read.
+<!-- THOUGHT:END -->
+
+probes: gate/runtime — extensions/agi/bin/adapters/tmux_hold.py is absent, FileNotFoundError; gate/provenance — production collect_payload_refs has no exact tmux_hold.py payload_ref. Review: accept experiment:a00-d5ccdbfb-ac803d as disproved current-tip claim; continue parent goal with an implementation child.
