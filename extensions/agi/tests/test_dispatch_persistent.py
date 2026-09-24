@@ -96,7 +96,7 @@ def _fake_spawn(monkeypatch, plans, stop_after=None):
             f.flush()
         proc = _StubProc(1000 + len(spawned), plan.get("rc"),
                          plan.get("left", 0))
-        spawned.append((argv, proc))
+        spawned.append((argv, proc, dict(kwargs.get("env") or {})))
         if stop_after is not None and len(spawned) >= stop_after:
             os.environ[dispatch._PERSIST_STOP_ENV] = "1"
         return proc
@@ -162,6 +162,40 @@ def test_persistent_restart_reuses_the_very_same_argv(
     # exactly ONCE -- a restart through a second argv path would rebuild it.
     assert spawned[0][0] == spawned[1][0]
     assert len(builds) == 1, f"argv was rebuilt: build_command x{len(builds)}"
+
+
+@pytest.mark.parametrize("credential", ["none", "openrouter"])
+def test_persistent_restart_reuses_the_sanitized_child_env(
+        project, monkeypatch, capsys, credential):
+    """The held restart reaches the real Popen seam with the same env map.
+
+    This is deliberately boundary-level: spying only child_env would miss a
+    second argv/env path.  Credential-off strips the inherited key; the
+    credential-on row preserves it, and explicit harness vars survive both.
+    """
+    config = json.loads((project / ".agi/config.json").read_text())
+    config["harnesses"]["pi"] = dict(config["harnesses"]["pi"])
+    config["harnesses"]["pi"].update({"credential": credential,
+                                        "env": {"HARNESS_ONLY": "yes"}})
+    (project / ".agi/config.json").write_text(json.dumps(config))
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-v1-inherited")
+    spawned = _fake_spawn(monkeypatch, [
+        {"left": 14, "rc": 1},
+        {"left": 999, "rc": None},
+    ], stop_after=2)
+    monkeypatch.setattr(sys, "argv", _argv(project, "--persistent"))
+
+    assert dispatch.main() == 0
+    assert len(spawned) == 2
+    first_env, restart_env = spawned[0][2], spawned[1][2]
+    if credential == "none":
+        assert "OPENROUTER_API_KEY" not in first_env
+        assert "OPENROUTER_API_KEY" not in restart_env
+    else:
+        assert first_env["OPENROUTER_API_KEY"] == "sk-or-v1-inherited"
+        assert restart_env == first_env
+    assert restart_env == first_env
+    assert restart_env["HARNESS_ONLY"] == "yes"
 
 
 def test_fire_and_forget_default_spawns_no_supervisor(
