@@ -102,12 +102,15 @@ S2 LEAVES (TMM.76 step 2; route per TMM.79 01:30Z, OWNER 01:1x-01:3xZ verbatim o
          providers point at the loopback 8080) + the STANDARD line; kids inherit the env -> every request hits the brain; 0 USD on tokens (dispatch still
          mints a per-spawn OpenRouter key -- it only reaches the loopback). The DEFAULT ~/.pi/agent is RESTORED byte-identical to the 01:09Z backup (sha
          41ea5cf92385 = my pre-edit backup at /data/ml/scratch/brain-swap/) -- my OrcaBonsai entry there is GONE: a hand-run pi needs the local dir
-   SLOT   ONE local round town-wide: director-engine's EF.90 kid a00-0d0977d3 held it at 01:3xZ -- mine after it. Gate on a SEPARATE read: no live
-         lease whose agent runs local-town / AGI_HARNESS local (my background watch dies with this session -- re-check by hand)
-   NEXT   merge the town trunk, push the mirror, then (leaf A, the resolver, <= 60 lines; LEAF.01 was the cut kid -> use LEAF.02):
+   SLOT   TMM.81 (TM 01:34Z): the local slot is MINE ALONE once EF.90 (a00-0d0977d3, pid 523515) ends; director-engine moves to pi-free (the free
+         cloud model). Gate on a SEPARATE read right before the dispatch: spawn_budget.py status lists NO live EF.* record (my background pid watch
+         dies with this session -- re-check by hand)
+   NEXT   READY (gen 16, 01:4xZ): trunk merged ea658a4915 + mirror pushed · orders written: .agi/sessions/orders/LEAF.02.parent.txt (ONE kid, cli.py
+         wait --max-seconds 3000, review against the bytes) + LEAF.02.kid-A.txt (the leaf A orders, the 11 values re-verified vs config at HEAD) ·
+         --dry-run exit 0 (189-line parent brief) -> on the gate, the one command:
          PI_CODING_AGENT_DIR=/data/ml/pi-agent-local python3 extensions/agi/bin/dispatch.py . LEAF.02 --target hypothesis:lm-paths-py-resolves-proposed-box-roots
-         --level small --tier parent --harness pi --branch --detach --orders <parent orders: ONE kid on leaf A with the kid orders in
-         .agi/sessions/iter-LEAF.01/orders.leafA.txt; review its diff against the bytes> --from director-thought   (--dry-run first)
+         --level small --tier parent --harness pi --branch --detach --orders .agi/sessions/orders/LEAF.02.parent.txt --from director-thought
+         B/C split waits on LEAF.02's measured bar: 50 lines / 26 files outside c2/ d1/ at HEAD (= the node's f1f675975f count, no drift)
    VERIFY this first round IS the check: the brain log (docker logs brain-orcabonsai27b) shows the parent's AND the kid's requests; each node names its
          REAL brain (OrcaBonsai-27B-C2) even where pi reports the ladder model · NEVER restart brain-orcabonsai27b while a local round runs (owner)
    then   review in place (no paid mur), ONE [merge-up] per batch to TM · split LEAF.01 B/C and REPLAY.01 into leaves the same way
