@@ -15,7 +15,7 @@ docker run --rm -d --name $NAME --gpus all -v $SC:/models -p 127.0.0.1:$PORT:808
 for i in $(seq 1 300); do curl -sf --max-time 3 http://127.0.0.1:$PORT/health >/dev/null && break; sleep 1; done
 echo "health after ${i}s"
 echo '{"model":"Qwen3.5-9B-Q4_K_M","messages":[{"role":"user","content":"hi"}],"max_tokens":8,"temperature":0,"chat_template_kwargs":{"enable_thinking":false}}' > $OUT/req_probe_w.json
-python3 - "$PORT" "$OUT" "$V" <<'PY'
+python3 - "$PORT" "$OUT" "$(python3 "$S/.agi/context/local-maxxing/paths.py" wikitext2_test_raw)" <<'PY'
 import json,sys,subprocess,time
 port=sys.argv[1]; OUT=sys.argv[2]
 raw=open(sys.argv[3],"rb").read()
