@@ -84,7 +84,7 @@ routed   OPEN: dispatch.py --memory N = MemoryMax N BYTES (6G or omit) -> direct
          · cli.py done drops config.json · stale box.* / locations.* cells (pi_traj_dir resolves to another box's pi home)
 ```
 
-## 🔴 Where it stops -- 01:3xZ 09-24, TMM.76 STEP 1 DONE (the brain is LIVE); STEP 2 (LEAVES) is next -- the next command is item S2
+## 🔴 Where it stops -- 01:3xZ 09-24, the brain is LIVE; step 2 LEAVES started -- LEAF.01 (leaf A) waits for the ONE local slot; the next command is S2
 ```
 BRAIN LIVE (TMM.76 step 1, experiment:director-thought-brain-swap-2026-09-24 @b5a2ab7d24): container brain-orcabonsai27b (restart unless-stopped) on the
          loopback port 8080 = OrcaBonsai C2 (Bonsai 27B + abliterate LoRA scale 2.0 IN the launch line, --alias OrcaBonsai-27B-C2), q4_0 KV, ONE 65,536-token
@@ -94,11 +94,17 @@ BRAIN LIVE (TMM.76 step 1, experiment:director-thought-brain-swap-2026-09-24 @b5
    RESTORE the 9B if the brain misbehaves: docker rm -f brain-orcabonsai27b; docker start llama-server; prove :8080 answers a PARSED completion naming
          Qwen3.5-9B-Q4_K_M -> fallback B (TMM.76): the 9B with L1s -fa on -ctk q4_0 -ctv q4_0 (3 slots of ~52K)
    TRAP any hand-run pi: CLOSE STDIN (setsid pi ... < /dev/null) -- with stdin open pi -p waits forever and sends nothing (attempt 1, killed by the owner)
-S2 LEAVES (TMM.76 step 2), I am the parent: (a) harnesses.pi-local models kid/parent + allowed_extra = OrcaBonsai-27B-C2 in MY branch config ·
-         (b) split REPLAY.01 (CPU-only, fits) into leaves: one script <= ~150 lines OR one measurement command · <= 3 files read by range · one experiment
-         node · <= 30 tool calls · (c) dispatch ONE kid: dispatch.py . <ITER> --target hypothesis:<leaf> --level small --tier kid --harness pi-local --branch
-         --detach --orders <file> --from director-thought -- NEVER a pi-local parent, NEVER a kid without --harness pi-local, NEVER OpenRouter while held
-         · review in place against the bytes (no paid mur) · ONE [merge-up] per batch to TM · record turns / prefill / wall per leaf
+S2 LEAVES (TMM.76 step 2) -- STARTED 01:2xZ: harnesses.pi-local models + allowed_extra = OrcaBonsai-27B-C2 in my branch config (8ca1a1d1cd) · town trunk merged
+         (4277d787b2; posts.md rows resolved to the trunk, whose TM + DE rows were newer) · leaf A MINTED = hypothesis:lm-paths-py-resolves-proposed-box-roots
+         (LEAF.01; <= 60 lines; orders in the scratch dir, rebuilt below) -- its FIRST kid a00-f380da1f (01:29Z, branch season2/loops/hypothesis-lm-paths-py-
+         resolves--a00-f380da1f, stub experiment:a00-f380da1f-1e1471) was CUT by me at 01:30:48Z: director-engine's EF.90 kid a00-0d0977d3 was ALREADY a
+         pi-local kid on the brain (TMM.76: ONE local kid town-wide; one slot = two kids evict each other's prompt cache every turn). My error: the live
+         check and the dispatch ran in ONE command -> gate the dispatch on its own read of spawn_budget.py status
+   NEXT  when NO pi-local kid is live (spawn_budget.py status + the lease harness): python3 extensions/agi/bin/dispatch.py . LEAF.01 --target
+         hypothesis:lm-paths-py-resolves-proposed-box-roots --level small --tier kid --harness pi-local --branch --detach --orders <orders> --from
+         director-thought (dry-run verified 01:2xZ: harness pi-local, provider local-town, model OrcaBonsai-27B-C2, no credential) · then review in place
+         against the bytes, one [merge-up] per batch to TM · after leaf A: split LEAF.01 B/C and REPLAY.01 into leaves the same way
+   OWNER 01:3xZ in my pane: "I paused the pass from prime" -- PASS 3 is PAUSED (no 01:37Z window for now); TMM.66 paid HOLD unchanged
 0 MODEL (TMM.71/72): NO rotation for the switch -- the owner switches this live session in the app, the Prime writes the config:posts row. Rotate only
          at the line (f >= 0.47), BARE: python3 extensions/agi/bin/rotate.py rotate -- if it refuses a stale .agi/nodes/.geometry/, merge origin/season2/main
          as the refusal names (40fd462f4c did: a row conflict resolves to origin's live values) and re-run
