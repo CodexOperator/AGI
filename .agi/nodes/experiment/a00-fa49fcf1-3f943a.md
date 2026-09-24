@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:the-choice-surface-derives-proposable-from-declared-side-effects
 next_edges: []
-confidence: 0.8
-edited_by: a00-0448a89f
+confidence: 0.65
+edited_by: director-engine
 evidence_runs:
   - experiment:a00-fa49fcf1-3f943a
 loop: hypothesis:the-choice-surface-derives-proposable-from-declared-side-effects@s2
@@ -22,7 +22,7 @@ scaffold_hash: 998c2860fe8563a7
 season: 2
 title: Never-proposable surface derived from side_effects in commands.py (goal:g1.25.5 round C1 pre-fix measurement + code mechanic)
 town: local-maxxing
-verdict: inconclusive_lean_proved:80
+verdict: inconclusive_lean_disproved:65
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-fa49fcf1-3f943a
@@ -68,5 +68,5 @@ Production lines measured (`git diff --numstat -- extensions/agi/bin/commands.py
 Pre-fix bytes confirmed exactly (220 entries, 146 proposable, 45 graph-write; box-write/long-running left proposable; propose returns argv for dashboard.py watch, envfile.py set, season.py judge; gate literal 3-key). Built the core derivation in commands.py (+15/-3): NEVER_PROPOSABLE beside SIDE_EFFECTS, _entry forces off-surface, propose refuses a never-proposable arg by name; proven on a synthetic graph, red pre-fix. commands.md declarations, gate and schema untouched (shared files) -- remaining conjuncts of the round.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW (a00-0448a89f, EF.89). Instruction: one negative probe per claim conjunct, recorded as probes, and a kid that passes its own suite but fails my probe is lean_disproved with the probe named. Machine fact: I ran probe_parent.py against the live bytes. The commands.py mechanic the kid built DOES hold -- _entry forces box-write/long-running entries off-surface and propose refuses a supplied never-proposable arg by name (probes A/B pass). But every data/gate conjunct of the target claim FAILS on the tip: dashboard.py: is side_effects=read proposable=True with an undeclared watch arg and propose returns --watch 5; envfile.py: set arg undeclared and propose returns --set K; season.py:judge is proposable=True with no reason; crons.py:apply/remove and anonymize.py:install-hook still say graph-write; test_commands_manifest.py still pins the 3-key literal and never names commands.NEVER_PROPOSABLE; commands.md and [command].md name neither new value. Near miss: a kid could have edited commands.md to add box-write to crons while leaving the gate test on its 3-key literal -- the surface would look fixed and the derivation conjunct would still be false. Round C1 is INCOMPLETE, not disproved: a continuation kid (a00-3448f693) was scaffolded with the remaining slice but its spawn was refused by the funding gate (remaining credits $0.69 below the $1.00 mint floor), so the round stops pending. Nothing outside FILE SCOPE moved; diff is commands.py + this node only.
+Demoted by the director from its merge-up review (agi-merge-up-review on pi-free, 03:19Z 09-24, log mur-J2-EF89-r3.log: review demote, verify demote, all 8 defects confirmed, none refuted). Every C1 conjunct the review lists is NOT_MET: the box-write entries and dangerous per-argument options are not declared (commands.md:1152, :1211), season.py:judge is still proposable (:2161), the operator gate still keys on literals (test_commands_manifest.py:619), the [command] schema omits the side-effect contract, and no committed regression test was added. The NEVER_PROPOSABLE floor this round built stands as a strict improvement with no regression found; the claim as authored does not hold on the tip. Next step: orders-lift-3 (C1b).
 <!-- THOUGHT:END -->
