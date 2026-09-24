@@ -1,22 +1,31 @@
 """Named-pane restart holder; direct Popen is the explicit fallback."""
 from __future__ import annotations
-import os, subprocess
+import hashlib, os, subprocess
+
+def _socket(pane_name):
+    return "agi-hold-" + hashlib.sha256(pane_name.encode()).hexdigest()[:16]
 
 def start_held(args, env, *, cwd, pane_name, log_file):
-    """Attach to a deterministic pane, else create it; return its pid."""
+    """Return a live deterministic pane pid, recreating its private server if needed."""
+    socket = _socket(pane_name)
+    def tmux(*cmd, **kw):
+        return subprocess.run(["tmux", "-L", socket, *cmd], env=env,
+            capture_output=True, text=True, check=False, **kw)
     try:
-        found = subprocess.run(["tmux", "display-message", "-p", "-t", pane_name,
-            "#{pane_pid}"], env=env, capture_output=True, text=True, check=False)
+        found = tmux("display-message", "-p", "-t", pane_name, "#{pane_pid} #{pane_dead}")
         if found.returncode == 0 and found.stdout.strip():
-            return int(found.stdout.strip())
-        launched = subprocess.run(["tmux", "new-window", "-d", "-n", pane_name,
-            "--", *args], env=env, cwd=cwd, stdout=log_file,
-            stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, check=False)
-        if launched.returncode == 0:
-            pid = subprocess.run(["tmux", "display-message", "-p", "-t", pane_name,
-                "#{pane_pid}"], env=env, capture_output=True, text=True, check=False)
-            if pid.returncode == 0 and pid.stdout.strip():
-                return int(pid.stdout.strip())
+            pid, dead = found.stdout.split()[:2]
+            if dead == "0":
+                return int(pid)
+        # A private server is replaced wholesale: its inherited environment is
+        # the only secret-safe way to give the new pane its exact child_env.
+        tmux("kill-server")
+        launched = tmux("new-session", "-d", "-P", "-F", "#{pane_pid}",
+            "-s", pane_name, "-n", pane_name, "-c", cwd, "--",
+            "sh", "-c", 'log=$1; shift; exec "$@" >>"$log" 2>&1',
+            "hold", str(log_file), *args)
+        if launched.returncode == 0 and launched.stdout.strip():
+            return int(launched.stdout.strip())
     except (OSError, ValueError):
         pass
     return subprocess.Popen(args, env=env, cwd=cwd, stdout=log_file,
