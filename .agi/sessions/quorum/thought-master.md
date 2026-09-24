@@ -47,7 +47,7 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-16:5xZ 09-24 gen 16 near the line: DT batches 5-7 LANDED cf79c865b3 (lean re-gate green) -> DT on batch 8 (TMM.122: the qk-norm leaf on CPU or a PROPOSED GPU window) · the new rotation warning LIVE (37f1812f52) · pending: DE's R0 [merge-up] (DE gen 8), then T0 of goal:g7.33.9 (the template pass) -> E1 -> T1..Tn -> the reap guard -> E3-E6 · every code merge-up = the full suite gate; read merge-tree's EXIT STATUS
+17:0xZ 09-24 gen 16 at ~0.46 (rotating at the line): both director cards carry the dispatch rule (OWNER 17:02Z: one pi-free PARENT per round, direct kids only for tiny fixes) -- DT 7819c6e567 card line 46, DE 4adfa489dc card line 7 · the 2nd paid leak stopped (a00-688fdd59, 17:02:10Z) -> [red] to the Prime (the ladder kid row -> pi-free is theirs) · DT batches 5-7 LANDED cf79c865b3; DT on batch 8 (TMM.122/123: qk-norm on CPU or a proposed GPU window) · DE gen 8: R0 [merge-up] owed, then T0 of goal:g7.33.9 (the template pass) -> E1 -> T1..Tn -> the reap guard -> E3-E6 · every code merge-up = the full suite; read merge-tree's EXIT STATUS; check lease harness ('pi' = PAID)
 ```
 state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632 + 6d38b9742e, owner 05:1xZ)
@@ -56,7 +56,7 @@ NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632
             NOW: DE = R0's [merge-up] -> T0 goal:g7.33.9 (inventory + loader + rotation_alert) -> E1 keys + authority -> T1..Tn (TMM.121) -> the reap guard (TMM.116) -> E3
             rotation -> E4 harness -> E5 non-lm demote text · the HOOK port FORWARD only if DT [red]s (no route for the extension) ·
             DT = batch 8 (TMM.122: the qk-norm leaf on CPU or a proposed GPU window) ·
-            batch 7 = true-q4 baseline -> channel-scaled keys (pre-approved) · next = TMM.123
+            batch 7 = true-q4 baseline -> channel-scaled keys (pre-approved) · next = TMM.125
         (2) merge-ups: code = the full suite gate (detached /tmp worktree, ~17 min); no code = the lean gate (evidence + THOUGHT tests,
             links, goals, leak scan) · the #63 board-body verbatim is the Prime's (owner: the Prime does those edits)
         (3) paid models held; the ladder tier-0 kid row = paid -> the Prime's edit ([red] gen 15 + 05:1xZ gen 16) · kids: --harness pi-free + project = the parent worktree
@@ -73,7 +73,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
 goals        a FIX = a sub-sub goal inside the fixes subgoal of the top-level subgoal it applies to (engine fixes = goal:g7.33.N) -- never a new top-level goal (OWNER 16:24Z 09-24) · renumber: write.py for every field it allows + ONE hand edit of the id line + git mv (no verb sets id); refs re-pointed in the same commit; THOUGHT old -> new
 orders       a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.123
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.125
 owner lines  in my pane = verbatim where the HEAD's notes line says: a template or config, then the role doc, then town:local-maxxing --
              NEVER a goal (goals are project trackers, owner 09-24) · the stamp = the jsonl's own timestamp for the owner's message
              (.agi/sessions/thought-master.meter names the jsonl), never a guess · a one-line replace inside a fence = 'replace body N:N --force <file>'
@@ -101,6 +101,7 @@ key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send
              .agi/sessions/seats/*.key (+ .key.pending), never the bytes
 suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
              call · ~13.5 min at load 2 · foreground sleep is blocked: wait with a background loop
+paid lane    a live lease with harness 'pi' = the PAID ladder row (deepseek via openrouter): a claude-code director's kid without --harness lands there; the reader (c876dbf720) covers only zero_usd parents -> read .agi/sessions/.spawn-budget/*.lease harness on every check; stop a paid kid under the hold (SIGTERM agent_pid) and tell its director
 account      python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');import provisioning as p;print(p.credit_balance('.'))" = (total, used, left); prints no key
 allowlist    the account-wide allowed providers (dashboard Settings > Privacy) have NO API route -- the management key cannot set them
              (openapi.json 94 paths; 03:01Z 09-24); guardrails + a request's provider.only only NARROW them · a 0-USD raw probe =
