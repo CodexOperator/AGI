@@ -1145,7 +1145,8 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
         body = None
     if not body:
         parts = brief.assemble(tier=tier, agent_id=name, iter_n=0,
-                               dispatch_py=dispatch_py, cli_py=cli_py)
+                               dispatch_py=dispatch_py, cli_py=cli_py,
+                               project_root=project_root)
         body = "\n\n".join(parts)
     if _is_ultracode(settings):
         # keyword as the first line of the user turn (see _successor_command)
