@@ -7765,12 +7765,12 @@ thought-master 20:06Z 09-23: the town (local-maxxing) LANDED its session-capture
 
 | | |
 |---|---|
-| goal | grid.py stores each branch's grid as a SUBDIRECTORY inside that branch's own tree -- one directory per branch, never a separate remote head and never refs/grid/* -- so branches never share grid state, the grid reaches origin with the branch's own push, merges back through the ordinary merge (or stays as that branch's per-node history), and origin/season2/main + origin/main keep the coarse history of node changes |
-| origin | the owner 17:57Z + 18:17Z + 18:21Z 09-24 (verbatim on town:local-maxxing's board): the fix NOW, worked by the director; the 0.7 GB of failure logs cleaned up; the shape = a per-branch subdirectory, not a separate head |
+| goal | grid.py stores a town's grid in ONE named branch (the owner's example: the local-maxxing branch) -- commit writes there, log / diff / versions / payload read from there, and a push is one ref |
+| origin | the owner 17:57Z + 18:17Z 09-24 (verbatim on town:local-maxxing's board): the fix NOW, worked by the director, and the 0.7 GB of failure logs cleaned up |
 | measured | 18:0xZ 09-24: the grid_sync cron commits every 5 min into refs/grid/local-maxxing/ (4,293 refs, newest 17:55:42Z), but its push of refs/grid/local-maxxing/* has failed 967 times -- GitHub rejects each ref "Timed out validating rule, please try again" -> the remote holds 0 of the 4,293 (its 4,204 refs/grid refs are all outside that namespace) -> the town's grid history lives on this box's disk alone · the cron log is 775 MB of those rejection lines · 18:2xZ: what exists = grid.storage_trunk (goal:g14.14.7; config value refs/grid/local-maxxing), a per-trunk ref NAMESPACE -- still one ref per node; no verb stores or pushes the grid as one branch (core/season2/main's grid.py is unchanged since the 09-23 merge-base; ours is newer) |
-| where | the directory derives from a config cell (grid.storage_trunk, one per branch), never a literal · the cron line = config:crons (.agi/nodes/.geometry/crons.md) |
-| done | every node's version count in = out across the move (the 4,293 ref histories carried into the directory, 0 lost) · grid.py commit / log / diff / versions / payload write and read the directory · the grid reaches origin through the branch's own push -- no refs/grid push left in the cron · two branches never write the same grid path · the 5-min grid commit and an agent's commit on the same checkout never drop each other's files (a test) · every version's bytes reachable from the pushed branch (a test) · the push-rejection lines stripped from the cron log once the refs/grid push is gone (before / after bytes reported) · tests pin it |
-| who | director-engine NOW (the owner 18:17Z: "let the director work it"), batched by thought-master (TMM.128 -> TMM.129 -> TMM.130) |
+| where | the branch name = a config cell per town, never a literal · the cron line = config:crons (.agi/nodes/.geometry/crons.md) |
+| done | every node's version count in = out across the move (the 4,293 ref histories migrated or archived, 0 lost) · git ls-remote shows the grid branch on origin carrying the latest versions · grid.py log / diff / versions / payload read it · the cron's push is one ref and logs one summary line per run, never one line per ref · the push-rejection lines stripped from the cron log once the new push is live (before / after bytes reported) · tests pin it |
+| who | director-engine NOW (the owner 18:17Z: "let the director work it"), batched by thought-master (TMM.128 -> TMM.129) |
 
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
@@ -13033,6 +13033,11 @@ director-thought 02:2xZ 09-21 (owner direct-to-pane, same line thought-master fi
 
 director-thought 03:4xZ 09-21 -- owner correction (direct-to-pane): end-of-turn USER replies had regressed to narrative paragraphs while notes/dms/card stayed diagram-shaped -- a channel gap, not a full regression. Calibrated against director-engine card (dense labeled lines, prose only inside a cell) and thought-master card (same). Fix: end-of-turn summaries now use the identical labeled-line shape as notes/dms; a short warm prose line stays the one carve-out (genuine human-connection replies, where a table would read as tone-deaf, per goal:g14.16 own falsifier -- prose only where a diagram drops meaning).
 thought-master 02:1xZ 09-21 (owner via the Prime, goal:g14 L240: diagram-max ALL spawn-in context docs -- card, brief, standing instructions): ADD G5.31.2 THE BRIEF PASS (director-engine, after G5.31.1): doc:unified-director-brief (94 lines prose; §4 'thought' still names season1 paths) + doc:lm-director-brief-customizations rewritten into the shape by a KID, a parent verifies the four shapes against the source line by line, tokens measured before/after; stale facts corrected from the cards/box doc, never invented. NOT by a master's hand: a rule doc every director spawns with is exactly what a round with a reviewer is for.
+
+#### G5.32 — model-facing hardcoded prose (hook output, CLI refusals/warnings, nudges, reminders) moves out of inline literals in build nodes into extensions/agi/templates/<family>/, loaded dynamically at the call site -- byte-identical render first, wording changes land separately — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g5.32
 
 ##### G7.33.1 — G14.14.1: WRITE.PY ERGONOMICS -- three independent write.py gaps hit live this session: replace body has no anchor/structural guard (write.py:2068-2108, ABL.01 corruption class), create leaves an unfilled scaffold body, replace body cannot share a submit with note/thought (owner 01:1xZ-01:2xZ 09-21 on goal:g7.33) — status: active
 
