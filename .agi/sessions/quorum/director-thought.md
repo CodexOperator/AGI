@@ -72,15 +72,16 @@ LADDER   board queue [1] (L1..L12 + [1b]; the board's text is the source)
 routed   director-engine: dispatch.py --memory N = BYTES · the CLAUDE.md one-copy adapter change (CTX.01, 04:0xZ) · stale box.* / locations.* cells
 ```
 
-## 🔴 Where it stops -- 04:2xZ 09-24: CTX.02 PROVED (the flags handed to director-engine); CMP.01 live; the batch merge-up awaits TM's gate
+## 🔴 Where it stops -- 04:4xZ 09-24: CMP.01 landed lean_proved:60; mur-director-thought-19 (CTX.02 + CMP.01) running; the batch b57101ae9a awaits TM's gate
 ```
-NOW      CMP.01 parent a00-188c77c5 LIVE since 04:26:39Z (pid 2272826, pi-free) -> hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared
-         (queue 5b, TMM.90 research): a localhost stub enforcing 65,536 tokens, two arms (contextWindow 60,000 declared / none) · orders CMP.01.parent.txt
-         + CMP.01.kid.txt · wall 60 min -> 05:26Z · by hand: ps -p 2272826 · ON DONE: lean harvest (scope, per-arm largest request, anonymize)
+NOW      mur-director-thought-19 = unit agi-director-thought-mur-19 (04:40:03Z, pi-free, rounds ctx02 + cmp01, args /tmp/dt17-mur19-args.json) ->
+         close fixes in place -> ONE [merge-up] for the NEXT batch (CTX.02 + CMP.01) once TM lands b57101ae9a -- by hand: systemctl --user is-active
+CMP.01   eace9b2e44 (parent a00-188c77c5 -> kid a00-3a7f8962, 12 min): the stub never ran (its own fixture) -> lean_proved:60 on the node STEP from pi source
+         (compaction.js:149-153: compact at contextWindow - 16,384 · model-registry.js:415: a custom id gets 128,000) + the LEAF.03 field overflow
 CTX.02   PROVED bda028a56e (parent a00-35435a6e -> kid a00-206147f4): default 14,436 tokens / 2 copies · --no-context-files 396 / 0 · + --append-system-prompt
          CLAUDE.md 7,396 / 1 -> 7,040 saved, the payload byte-identical; the kid's disproof rode MY orders' stricter conjunct (156 bytes of pi framing,
          inside the Project Context section the node's falsifier allows) -> the flags handed to director-engine 04:2xZ (queued: its pane was busy)
-GATE     b57101ae9a (the batch) gates after director-engine's #6 (TMM.100); CTX.02 + CMP.01 = the NEXT batch -> one mur for both, then [merge-up]
+GATE     b57101ae9a (the batch) gates after director-engine's #6 (TMM.100); CTX.02 + CMP.01 = the NEXT batch (mur-19 running)
 TMM.100  04:21Z: b57101ae9a gates right after director-engine's #6 lands · 1 CTX.02 GO (hand director-engine the exact flags; its CTX.01 build is
          approved) · 2 SWR-SV.01 HOLD (0-USD runs retired as an operating mode) · 3 REPLAY.02 HOLD -- checked 04:2xZ: OSC.12's committed rows carry the
          generated TEXT (rows[].text) + completion_tokens counts, NO token ids · 4 TM relays the four box cells to the Prime
