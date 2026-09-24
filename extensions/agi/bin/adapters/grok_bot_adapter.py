@@ -66,6 +66,26 @@ def build_command(*, harness: dict, tier: str, context_file: str,
             "-p", str(context_file)]
 
 
+HOLD_PANE = "HOLD_PANE"
+
+
+def _pane_name(agent_id: str) -> str:
+    """Stable, tmux-safe seat name shared by start and reattach."""
+    return "grok-" + "".join(c if c.isalnum() or c in "-_" else "-" for c in agent_id)
+
+
+def tmux_hold(*, args: list[str], env: dict[str, str], cwd: str,
+               agent_id: str) -> int:
+    """Start the CLI in a named detached pane, explicitly carrying env."""
+    pane = _pane_name(agent_id)
+    flags = [item for key, value in sorted(env.items()) for item in ("-e", f"{key}={value}")]
+    proc = subprocess.Popen(
+        ["tmux", "new-session", "-d", "-s", pane, "-c", cwd, *flags, "--", *args],
+        env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL, start_new_session=True)
+    return proc.pid
+
+
 def is_alive(pid: int) -> bool:
     """A zombie counts as dead — same /proc rule as pi_adapter."""
     try:
@@ -135,20 +155,25 @@ def restart(
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
     try:
-        with open(log_file, "ab") as logf:
-            proc = subprocess.Popen(
-                args,
-                stdout=logf,
-                stderr=subprocess.STDOUT,
-                stdin=subprocess.DEVNULL,
-                start_new_session=True,
-                cwd=str(_restart_cwd(sess_dir, agent_record)),
-                env=env,
-            )
+        if harness.get(HOLD_PANE) is True:
+            new_pid = tmux_hold(args=args, env=env,
+                                cwd=str(_restart_cwd(sess_dir, agent_record)),
+                                agent_id=agent_id)
+        else:
+            with open(log_file, "ab") as logf:
+                proc = subprocess.Popen(
+                    args,
+                    stdout=logf,
+                    stderr=subprocess.STDOUT,
+                    stdin=subprocess.DEVNULL,
+                    start_new_session=True,
+                    cwd=str(_restart_cwd(sess_dir, agent_record)),
+                    env=env,
+                )
+            new_pid = proc.pid
     except OSError as exc:
         print(f"restart failed for {agent_id}: {exc}", file=sys.stderr)
         return None
-    new_pid = proc.pid
     if agent_record is not None:
         agent_record["pid"] = new_pid
         agent_record["status"] = "restarted"
