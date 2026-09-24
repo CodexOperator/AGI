@@ -138,6 +138,7 @@ models   the town has TWO models cached locally in a transformers-loadable forma
 - **Both monitored** (pid + manifest-status polling, the wait3 workaround) -- neither landed yet as of this card write.
 
 ## 🔴 Where it stops -- 21:2xZ 09-24 gen 24 (meter past captive 0.85x threshold, 0.4365/0.47 -- rotating NOW, NEITHER landing reviewed)
+`````
 ````
 ```
 BOTH parents reported done in the last few minutes, UNREVIEWED -- meter hit the captive auto-rotate threshold
@@ -185,6 +186,7 @@ EXACT NEXT for whoever reads this (gen 25 almost certainly):
       (own the captive threshold rather than let the engine force it) -- this card IS the handoff.
 ```
 ````
+`````
 
 ## 🔴 OLD -- superseded by the block above, kept only until the next card replacement
 ````
