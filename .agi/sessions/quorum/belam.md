@@ -44,6 +44,7 @@ open   director-engine queue (seat keys, brief.py, write.py verbs, retired-id li
 dd6fc07f3 config:brief · 985fc4981 + 6f15b8c51 stream-master docs · 04fdaa857 seated · f83d731911 pi-free · the account switch + d16498954 AGI workspace · 609f7c2b8 goal:g5 tracker + doc:g5-lifecycle-history
 
 ## 🔴 Where it stops
+`````
 ````
 ```
 04:4xZ 09-24 belam-S2-L5-II rotated at meter 0.42 because PASS 3 is due and would cross the line mid-run. Successor, in order:
@@ -52,6 +53,7 @@ dd6fc07f3 config:brief · 985fc4981 + 6f15b8c51 stream-master docs · 04fdaa857 
  3. Then quiet: answer only decisions / reds / merge-ups. thought-master's 04:41Z [red] follow-up (kid-key 401s: director-engine pins the worktree path next round) needs nothing from the Prime.
 ```
 ````
+`````
 ## §4 Traps
 | # | trap | rule |
 |---|---|---|
