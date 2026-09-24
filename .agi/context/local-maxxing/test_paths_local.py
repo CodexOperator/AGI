@@ -13,12 +13,31 @@ import unittest
 import paths
 
 
-def _fixture(root, box_root):
+def _fixture(root, box_root, table=None, extra_box=None):
     os.makedirs(os.path.join(root, ".agi"), exist_ok=True)
+    box = {"root": box_root}
+    box.update(extra_box or {})
+    table = table or {"k": "datasets/x", "abs": box_root}
     with open(os.path.join(root, ".agi", "config.json"), "w", encoding="utf-8") as fh:
-        json.dump({"box": {"root": box_root},
-                   "paths": {"local_maxxing": {"k": "datasets/x",
-                                               "abs": box_root}}}, fh)
+        json.dump({"box": box, "paths": {"local_maxxing": table}}, fh)
+
+
+class TestProposedRoots(unittest.TestCase):
+    def test_value_table(self):
+        expected = {
+            "served_models_dir": "/data/ml/models",
+            "served_9b_gguf": "/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf",
+            "osc02_scratch_dir": "/data/ml/scratch/osc02",
+            "osc02_9b_gguf": "/data/ml/scratch/osc02/Qwen3.5-9B-Q4_K_M.gguf",
+            "wikitext2_test_raw": "/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw",
+            "wikitext2_zip": "/data/ml/scratch/osc02/wikitext-2-raw-v1.zip",
+            "osc03_hf_dir": "/data/ml/scratch/osc03/hf",
+            "osc03_pylib_dir": "/data/ml/scratch/osc03/pylib",
+            "cuda_jit_cache_dir": "/data/ml/scratch/cuda-jit-cache",
+            "ml_python": "/data/ml/.venv/bin/python",
+            "nsys_dir": "/data/ml/tools/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2",
+        }
+        self.assertEqual({key: paths.get(key) for key in expected}, expected)
 
 
 class TestGetLocal(unittest.TestCase):
@@ -52,6 +71,19 @@ class TestGetLocal(unittest.TestCase):
             paths.get_local("nope")
         with self.assertRaises(KeyError):
             paths.get("nope")
+
+    def test_box_cell_beats_proposed_table(self):
+        _fixture(self.checkout, self.other, {"model": "{models_dir}/x"},
+                 {"models_dir": "/override"})
+        paths._CACHE.clear()
+        self.assertEqual(paths.get("model"), "/override/x")
+
+    def test_unresolved_placeholder_raises_named_key_error(self):
+        _fixture(self.checkout, self.other, {"bad": "{no_such_root}/x"})
+        paths._CACHE.clear()
+        for resolve in (paths.get, paths.get_local):
+            with self.assertRaisesRegex(KeyError, "no_such_root"):
+                resolve("bad")
 
 
 if __name__ == "__main__":
