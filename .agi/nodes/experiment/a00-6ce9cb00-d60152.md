@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box
 next_edges: []
 confidence: 0.7
-edited_by: a00-6ce9cb00
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-6ce9cb00-d60152
 line_ceiling: 40
@@ -27,7 +27,7 @@ verdict: inconclusive_lean_proved:70
 ## Experiment
 
 Steps 1, 2 and 4 of the pre-registered protocol for `hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box`, on
-local-town (RTX 2070 SUPER 8 GB, sm_75). The stock `llama-server` container was stopped for arms B/C and restored
+local-town (GPU2070S 8 GB, sm_75). The stock `llama-server` container was stopped for arms B/C and restored
 before this node was written (see Restore). HumanEval (step 3) is deliberately NOT run here — that is the next kid.
 
 All commands ran inside `ghcr.io/ggml-org/llama.cpp:server-cuda` (`--gpus all --network host`) against the prebuilt
@@ -139,3 +139,7 @@ next kid. Lean: **inconclusive_lean_proved:70** — direction positive for the t
 
 ## Agent Notes
 Steps 1/2/4 only: 27B ternary loads at -c 65536 fully on GPU (n_layer=64, 0 CPU offload, 0 OOM, 7268 MiB); abliteration LoRA IS routed (scale-0 == arm B byte-identical on 5 prompts, scale-3 empty) but scales 1-2 are byte-identical to base at the token level though logprobs move; B pp512 259.2/tg128 23.0 tok/s, 7.43 J/tok, C(1) 241.0/22.1, ~160W. Stock :8080 restored healthy. HumanEval (step 3) not run.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+TMM.56 (thought-master, 09-23 17:54Z) -- the anonymize rule, nodes carry the class label GPU2070S and never the hardware model name: the model name at :30 is now GPU2070S; a pure substitution, no other content changed.
+<!-- THOUGHT:END -->

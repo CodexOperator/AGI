@@ -30,6 +30,17 @@ import dispatch as _dispatch  # noqa: E402
 _ALLOC = "x=bytearray(600*1024*1024)"
 
 
+@pytest.fixture(autouse=True)
+def _no_ambient_pi_bin(monkeypatch):
+    """`$PI_BIN` WINS over the `harnesses.pi.bin` config cell (the ONE
+    shared resolver, env-first by design), so a suite run from a pi seat
+    would dispatch these fake-bin tests at the REAL pi. Same EF.14 pattern
+    as test_workflow.py's autouse fixture. A test that exercises the
+    override sets PI_BIN itself, after this fixture.
+    (hypothesis:harness-bin-paths-resolve-per-box round 4)"""
+    monkeypatch.delenv("PI_BIN", raising=False)
+
+
 def _fake_pi(tmp_path: Path) -> Path:
     """A `pi`-shaped binary that ignores its argv and allocates past any cap."""
     p = tmp_path / "fakepi"

@@ -1,0 +1,41 @@
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:   0%|          | 1/290 [00:32<2:36:40, 32.53s/it]Loading weights:   9%|▉         | 26/290 [00:32<03:55,  1.12it/s] Loading weights:  63%|██████▎   | 183/290 [00:32<00:09, 10.76it/s]Loading weights:  63%|██████▎   | 183/290 [00:50<00:09, 10.76it/s]Loading weights:  76%|███████▌  | 220/290 [00:50<00:12,  5.54it/s]Loading weights:  77%|███████▋  | 222/290 [00:53<00:14,  4.80it/s]Loading weights:  77%|███████▋  | 222/290 [01:20<00:14,  4.80it/s]Loading weights:  77%|███████▋  | 223/290 [01:31<00:35,  1.88it/s]Loading weights:  77%|███████▋  | 224/290 [01:31<00:47,  1.38it/s]Loading weights:  78%|███████▊  | 225/290 [01:34<00:50,  1.28it/s]Loading weights:  83%|████████▎ | 242/290 [01:36<00:25,  1.90it/s]Loading weights:  87%|████████▋ | 253/290 [01:43<00:20,  1.81it/s]Loading weights:  90%|█████████ | 261/290 [01:43<00:12,  2.28it/s]Loading weights:  97%|█████████▋| 280/290 [01:43<00:02,  3.77it/s]Loading weights: 100%|██████████| 290/290 [01:43<00:00,  2.79it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (299078 > 131072). Running this sequence through the model will result in indexing errors
+prompt 1 145
+prompt 2 167
+prompt 3 187
+prompt 4 507
+prompt 5 526
+prompt 6 541
+prompt 7 557
+prompt 8 574
+{
+ "6": {
+  "agree": 0.851562,
+  "kl": 0.168396,
+  "avg_bits": 6.25,
+  "avg_data_bits": 6.0,
+  "C": 1
+ },
+ "8": {
+  "agree": 0.938965,
+  "kl": 0.027813,
+  "avg_bits": 8.25,
+  "avg_data_bits": 8.0,
+  "C": 1
+ },
+ "12": {
+  "agree": 0.995361,
+  "kl": 0.000106,
+  "avg_bits": 12.25,
+  "avg_data_bits": 12.0,
+  "C": 1
+ },
+ "16": {
+  "agree": 0.999512,
+  "kl": 0.0,
+  "avg_bits": 16.25,
+  "avg_data_bits": 16.0,
+  "C": 1
+ },
+ "_note": "in-eval uniform absmax key-precision anchor; w=16 is the lossless-path control"
+}

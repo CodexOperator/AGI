@@ -205,7 +205,7 @@ mint it on the node.
   - <sibling goal:…>
 
   ## Agent Notes
-  Assigned to **<post>**. <owner one-liners only.>
+  Assigned to **<post>**. <nothing else: a goal is a project tracker -- notes land per the HEAD's notes line (owner 09-24)>
   ```
 - **Goal ids MAY be renumbered (owner 2026-09-23, superseding "never renumbered";
   core's 09-21 re-arrangement renumbered 82).** A renumber keeps every `mint_id`

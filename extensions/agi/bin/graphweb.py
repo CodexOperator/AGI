@@ -65,6 +65,8 @@ import zlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
+import commands  # noqa: E402  (same bin dir; the one choice surface)
+
 try:
     import yaml  # type: ignore  # present in-repo; fallback below if not
 except Exception:                                              # noqa: BLE001
@@ -74,7 +76,16 @@ except Exception:                                              # noqa: BLE001
 ROOT = "goal:g17"
 
 #: z offset of layer 1 above layer 0 (arbitrary; the page scales to fit).
-LAYER1_Z = 60.0
+#: Large enough that each layer's own SPHERE_R-radius ball (below) sits
+#: clear of the other's — two distinct spheres joined at ROOT, not one
+#: merged blob (owner 2026-09-24: "arrange the graph in 3D space more so
+#: it's not so flat but more spherical shaped").
+LAYER1_Z = 700.0
+
+#: Radius of the filled ball each layer's flat force-layout gets projected
+#: into (see `_spherical_z`). Comfortably under half of LAYER1_Z so the two
+#: layers stay visually separate spheres.
+SPHERE_R = 260.0
 
 #: Fixed seed so a render is byte-stable across restarts.
 LAYOUT_SEED = 20260911
@@ -992,6 +1003,31 @@ def cached_build_graph(graph_root: Path, seed: int = LAYOUT_SEED) -> dict:
     return build_graph(graph_root, seed=seed)
 
 
+def _spherical_z(x: float, y: float, nid: str) -> float:
+    """Deterministic z-offset that folds a flat (x,y) force-layout point into
+    a FILLED BALL of radius `SPHERE_R` instead of a flat plane: a pure
+    function of (x, y, nid) only, so it costs nothing to stay byte-identical
+    alongside the existing 2D layout cache/persistence/incremental machinery
+    (none of which change) — a survivor's (x,y) is pinned exactly as before,
+    so its derived z is too, and a new node's z is automatically close to its
+    parent's whenever its seeded (x,y) is (B2's "within 2 units" check reads
+    only x/y and is untouched).
+
+    r (distance from the layer's own center) becomes the node's depth budget
+    `zmax`; a per-id hash picks how much of that budget to use (0.15..1.0)
+    and which side of the layer plane (+/-), so nodes fill the ball's volume
+    rather than sitting on its shell or its equator. Points with r >= SPHERE_R
+    (rare; the layout's own centering pulls most points well inside it) fall
+    back to z=0 for that node — still a valid point, just on the equator.
+    """
+    r = math.hypot(x, y)
+    zmax = math.sqrt(max(0.0, SPHERE_R * SPHERE_R - r * r))
+    h = int(hashlib.sha256(nid.encode("utf-8")).hexdigest()[:8], 16)
+    frac = 0.15 + 0.85 * ((h % 10000) / 10000.0)
+    sign = 1.0 if (h >> 20) % 2 == 0 else -1.0
+    return sign * frac * zmax
+
+
 def build_graph(graph_root: Path, seed: int = LAYOUT_SEED) -> dict:
     """The /graph.json payload: two-layer nodes + edges + palette + layout.
 
@@ -1052,13 +1088,14 @@ def build_graph(graph_root: Path, seed: int = LAYOUT_SEED) -> dict:
             met = meta.get(_nid, {"id": _nid, "type": "node",
                                   "title": _nid, "parents": []})
             x, y = pos.get(_nid, (0.0, 0.0))
+            base_z = LAYER1_Z if layer == 1 else 0.0
+            z = base_z + _spherical_z(x, y, _nid)
             out.append({
                 "id": _nid,
                 "type": met.get("type") or "node",
                 "title": met.get("title") or _nid,
                 "layer": layer,
-                "pos": [round(x, 3), round(y, 3),
-                        round(LAYER1_Z if layer == 1 else 0.0, 3)],
+                "pos": [round(x, 3), round(y, 3), round(z, 3)],
             })
         return out
 
@@ -1287,9 +1324,10 @@ def _incremental_layout(surviving: dict, ids: set, edges: list,
 # --------------------------------------------------------------------------- #
 # HTTP server                                                                  #
 # --------------------------------------------------------------------------- #
-def _json(handler: BaseHTTPRequestHandler, payload: dict | list) -> None:
+def _json(handler: BaseHTTPRequestHandler, payload: dict | list,
+          status: int = 200) -> None:
     body = json.dumps(payload).encode("utf-8")
-    handler.send_response(200)
+    handler.send_response(status)
     handler.send_header("Content-Type", "application/json; charset=utf-8")
     handler.send_header("Content-Length", str(len(body)))
     handler.send_header("Cache-Control", "no-store")
@@ -1303,12 +1341,33 @@ class GraphHandler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):                                 # noqa: A003
         sys.stderr.write("[graphweb] %s\n" % (fmt % args))
 
+    def do_POST(self):                                                  # noqa: N802
+        """`POST /propose` — validate a command and return its argv; it runs
+        NOTHING. A refusal is a 400 with the reason as JSON."""
+        path = self.path.split("?")[0]
+        if path not in ("/propose", "/propose/"):
+            self.send_response(404)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
+        try:
+            n = int(self.headers.get("Content-Length") or 0)
+            body = json.loads(self.rfile.read(n) or b"{}")
+            argv = commands.propose(self.graph_root, body["name"],
+                                    body.get("args") or {})
+        except Exception as exc:                                        # noqa: BLE001
+            _json(self, {"error": str(exc)}, 400)
+            return
+        _json(self, {"argv": argv})
+
     def do_GET(self):                                                   # noqa: N802
         path = self.path.split("?")[0]
         if path in ("/graph.json", "/graph.json/"):
             _json(self, cached_build_graph(self.graph_root))
         elif path in ("/live.json", "/live.json/"):
             _json(self, live_view(self.graph_root))
+        elif path in ("/commands.json", "/commands.json/"):
+            _json(self, commands.manifest(self.graph_root))
         elif path in ("/", "/index.html"):
             page = _page_path(self.graph_root)
             body = page.read_bytes() if page.is_file() else PLACEHOLDER_PAGE.encode("utf-8")

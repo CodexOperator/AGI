@@ -1,0 +1,30 @@
+{
+ "probe_w": {
+  "wall_s": 99.21,
+  "timings": {
+   "cache_n": 0,
+   "prompt_n": 13,
+   "prompt_ms": 44718.354,
+   "prompt_per_token_ms": 3439.8733846153846,
+   "prompt_per_second": 0.2907083744629778,
+   "predicted_n": 8,
+   "predicted_ms": 149.472,
+   "predicted_per_token_ms": 21.35314285714286,
+   "predicted_per_second": 46.83151359451937
+  }
+ },
+ "probe_a": {
+  "wall_s": 2.04,
+  "timings": {
+   "cache_n": 0,
+   "prompt_n": 2061,
+   "prompt_ms": 1853.206,
+   "prompt_per_token_ms": 0.8991780688985929,
+   "prompt_per_second": 1112.1267684218592,
+   "predicted_n": 8,
+   "predicted_ms": 117.062,
+   "predicted_per_token_ms": 16.723142857142857,
+   "predicted_per_second": 59.79737233261007
+  }
+ }
+}

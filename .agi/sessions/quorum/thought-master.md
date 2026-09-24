@@ -1,72 +1,101 @@
-# thought-master — CARD (state only) · role = `doc:unified-master-brief` (TEMPLATE) + `doc:unified-head` (HEAD) · town todo + town rules = `town:local-maxxing` trajectory_standin · owner lines = goal:g5
+# thought-master — CARD (state only) · role = `doc:unified-master-brief` (TEMPLATE) + `doc:unified-head` (HEAD) · formation = `doc:formation-local-town` (.agi/nodes/.geometry/formations/) · town todo = `town:local-maxxing` trajectory_standin · owner lines = where the HEAD's notes line says (never a goal)
 
 ## Who I am
 ```
-post        thought-master · master of town local-maxxing · owns goal:g5 (the town bundle g5.19-g5.31) · claude-opus-5-5 · row in config:posts (Prime-written)
+post        thought-master · master of town local-maxxing · owns goal:g5 (the town bundle g5.19-g5.31, + goal:g1.25 in the town bundle) · claude-opus-5-5 · row in config:posts (role director, template cell = the master brief)
+authority   INTERIM RULER over the town branch -- full authority, seat assignment included, while the Prime stays quiet (owner 09-19 grant, confirmed 09-23 14:5xZ; the Prime reads the dm logs every 4 h)
+formation   doc:formation-local-town: research-focused; no point / helper (directors free-float under me); a framing hedge before minting ideas (a prompt, not a gate)
 trunk       MAIN /data/work/agi = local-maxxing/season2/main (no worktree) · tmux agi-rc window thought-master
-directors   director-thought (research; SELF-LOOPS on the trajectory, messages me only for a blocker or a completed merge-up -- owner 09:5xZ 09-23, superseding 08:3xZ's ask-first)
-            director-engine (Prime-assigned g15 residues + goal:g1.25 CLI GRAMMAR = the jev choice surface, claimed on the owner's direct order in its pane 09-23 (hypothesis:commands-manifest-is-jevs-one-choice-surface, EF.21 first, cap 3); 8 rounds live, 'more spend and more spawning' (owner); '[jev] choice surface ready' + SHA goes straight to director-thought, me copied; g1.25's town-bundle row = the owner's edit)
-field       inference R+D toward running the town's own parents/kids off OpenRouter · lead candidate C2 (Bonsai 2 27B + LoRA) · treasury: doc:recurrent-looped-transformer
-rig         RTX 2070 SUPER 8 GB · 16 threads · 15 GB RAM · unix user belam · Camber XS only on a banked ask with numbers
+directors   director-thought (research; SELF-LOOPS; REVIEW IN PLACE) · director-engine gen 3 (g15 residues + goal:g1.25 + brief.py; goal:g7.33 is core's)
+rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · sudo works
+pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (09:5xZ 09-23)
+## Live state (03:1xZ 09-24, gen 15)
 ```
-C2       ACCEPTED 09-23 (merge 4e63658d0): IFEval N=10 mean 0.8002, CI [0.7992, 0.8012] > 0.7819 · HumanEval 143/164 = 92.9 pct of ref (single run)
-         -> within 10 pct on every EXISTING battery row (the typed-round row does not exist yet) -> TRIGGERS the g5.27 mvp, never a switch by itself
-running  oscillator chain chunk 1 (hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point, TOP PRIORITY, TMM.49) · rr-mp02-g01 (G.01's research-review, propose-only) · CFG.02 (reader-loop guard + pi store-dir from the real checkout root, ONE kid, + a test per fix)
-         · director-engine: EF.21 (g1.25 CLI grammar = the jev choice surface) + EF.20/22-27, 8 rounds live
-held     G.01 loop branch @109bcb618: off-scope pilot, 282 dm segments · lexical 0.305/0.575 · author habit 0.4397/0.7482 · best blend 0.4539/0.7766 < 0.5/0.85 · local 9B 0.085/0.277
-         · director-engine's 0921 chunk-1 merge-up (pre-hold g7.33 EF.10 rides in, no mur) -> the Prime/core decide
-pool     owner topped up 08:0xZ · account floor -50 on the trunk (owner 10:3xZ, 'so headroom never blocks a round'; supersedes the Prime's 10:1xZ 1.6) · per-spawn key TTL 300 min
-jev      TypeSafe jev-latest (api.typesafe.ai/v1/systemone): called by the typed-acts judge line (a00-96b083ff: 0.743 verdict-class, 0.492 accept-vs-demote, disproved);
-         NEVER yet by the magic pane · keys LIVE since 10:2xZ (owner: TYPESAFE_KEY + TYPESAFE_KEY2, 5 USD each, HTTP 200, forwarded to kids) -> the pane waits only on DE's choice surface (EF.21)
-```
-
-## Plan
-```
-done     batch B landed (C2) · the switch mvp minted + queued (09:4xZ) · oscillator chain chunk 1 PLANNED + handed to director-thought as top priority (09:5xZ) · TMM.33-46 answered · g14 re-pointed to goal:g5 · owner 09:2xZ lines banked on goal:g5 · card = state only (owner's master template, 09:31Z)
-next     (0) IDLE (owner 09:5xZ): directors self-loop on the trajectory and message me only for a blocker or a completed merge-up -> answer those; the oscillator chain is director-thought's top priority until the jev fixes land
-         (1) switch mvp: round 1 queued after pass 2 and behind any head-pruning chunk that loads a model; round 2 waits for its slot + the Prime's pi-provider go
-         (2) CFG.01 + CFG.02 = ONE merge-up after CFG.02's review -> my loop (template §1)
-         (3) director-engine's choice-surface hypothesis + dispatch line -> go / no-go
-         (4) rr-mp02-g01's proposals -> plan MP.02's next shape (T.01 / S.01 score against DE's manifest)
-blocked  MP.02's jev arm (DE's choice surface, EF.21; keys live) · local-inference kids (kids do not inherit --harness pi-local: the Prime) · DE chunk 1 (the Prime) · box.* cells stale (the Prime)
-```
-
-## Landed today (one line each)
-```
-4e63658d0  batch B: SWR-C2.02 + SWR-RS.01 (C2 fires both rows) + agent-prompt.md Rules item 13 + TMM.39/40 corrections · gate: links 0, GOALS identical, 0 deletions,
-           suite 5939 passed / 3 failed = pre-existing on 6bda57e14, anonymize = 127.0.0.1 only
+NORMAL OPS     OPEN since 03:17Z -- OWNER 02:3xZ (verbatim on goal:g5): "Let's resume normal operations using the free Openrouter endpoint. No
+               more special usd0 runs just research towards doing more efficient usd0 runs in the future" -> the standard town line on --harness
+               pi-free (stealth/space-bunny-alpha, 0 USD; the row is on the trunk f83d731911) · GO 03:1xZ: TMM.91 (DE: the 3 murs EF.87-89, EF.91,
+               .23 r2 / .14 r3, the per-harness max_live leaf) · TMM.92 (DT: LEAF.04 -> REPLAY.01 -> SWR-SV.01 as a director review)
+ACCOUNT        the allowlist + ZDR are dashboard-only (no API route: trap 'allowlist'; the owner's 02:54Z "admin key" line measured 03:01Z) --
+               the owner made both edits (allowed providers 03:13Z, account-wide ZDR off 03:17Z; verbatim on goal:g5) -> raw re-probe 03:17Z =
+               200, cost 0 · ZDR OFF = the free provider retains prompts (the owner's trade-off; the per-vendor ZDR re-imposition offer got no
+               answer -> not applied) · 14.04 of 192 USD left (the Prime's 02:13Z move)
+NOTES          OWNER 03:3xZ: "Notes go into templates or configs, then individual role docs, then town board node. Goals are project
+               trackers" -> the HEAD's notes line (084e656fe8; master / Prime templates, formation, trajectory doc repointed; [rule] to the
+               Prime) · g5's 131 notes moved (1a34e5f070: the map = g5's THOUGHT, the words = grid v51 6128477381; g5 160 KB -> 9 KB) ·
+               OWNER 03:4xZ: stop, too much token waste -- the Prime does the remaining edits; both directors lean (TMM.94 / TMM.95)
+kids           a pi-free parent's kids pass --harness pi-free until EF.90's harness inheritance reaches the trunk (the ladder's kid row = paid)
+HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
+usd0           the local lane is RETIRED as an operating mode (the owner cancelled the local kid 02:2xZ: DE SIGTERMed DT's LEAF.03 parent
+               a00-bbb13581); efficient 0-USD runs = RESEARCH hypotheses on the free lane · the brain container brain-orcabonsai27b (OrcaBonsai
+               C2 on :8080) stays up for that research; the old router llama-server is STOPPED (docker start llama-server restores it) ·
+               /data/ml/pi-agent-local exists (unused now) · ~/.pi/agent == its 01:09Z backup
+EF.90          DE's pi-local kid a00-0d0977d3 (AGI_HARNESS inheritance) OVERFLOWED its slot (66,720 of 65,536, DT's bytes) -- DE reports
+DT research    02:41Z (28ed92197b): hypothesis:lm-pi-agents-load-claude-md-twice (CLAUDE.md loaded twice = 13,916 tokens = 55 pct of a first
+               prompt on EVERY pi agent; lever pi --no-context-files = DE's lane once measured) · hypothesis:lm-pi-compacts-before-the-slot-
+               ceiling-once-the-window-is-declared · LEAF.04 on pi-free GO (TMM.92) · SWR-SV.01 closes as a director review
+LANDED         DT 7b63a6a5b2 (the LEAF batch: LEAF.04-06, CEN.01, REPLAY.01, CTX.01) · DE 2687448d93 (#6 = EF.95-100 + pi-local max_live 1; EF.97's verdict fixed in one node) · 5827a677a7 (#5 = EF.87-94) · with the Prime: ladder tier-0 = paid (GUARD) · DT's 4 box cells · kid 401s = DE spawned kids with project = the town NAME (fixed next round)
+the Prime      PASS 3 may resume on pi-free at its next CHECK ([owner] line 03:1xZ) · still owes: the two director rows, EF.10
+trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-`````
+05:0xZ 09-24 gen 15: DT's LEAF batch LANDED 7b63a6a5b2 + DE #6 LANDED 2687448d93; waiting on DT's next [merge-up] (CTX.02 + CMP.01) and DE's CTX.01 build (TMM.99); both lean on pi-free
 ````
+05:0xZ 09-24 gen 15: DT's LEAF batch LANDED 7b63a6a5b2 + DE #6 LANDED 2687448d93; waiting on DT's next [merge-up] (CTX.02 + CMP.01) and DE's CTX.01 build (TMM.99); both lean on pi-free
 ```
-09:5xZ 09-23  IDLE (owner 09:5xZ): wake only on a director's blocker or completed merge-up, or an owner line
- BATCH C 11:4xZ: reviewed by name (run mur-refs-agi-posts-director-thought: cfg-01-02 accept_with_residue x2; osc-01 accept_with_residue, verify cut by my 60-min wrapper -> accepted on the review's byte-identical re-run + my stats/fits check) -> RETURNED to DT for 3 residues (a00-797ee7be notes 79 vs 200/40 lines + '<real pi home>'; the chunk-1 node's 3 Spearman gates; dead_head_artifact = a filename) -> land its NEW tip after pass 2: merge-tree vs the live head, ONE commit, ACCEPT note names config-max yes (e3_lut /tmp/kidB -> box.tmp_scratch = the Prime's) + template-max no
- OWNER GO 10:0xZ (g1.25 into the town bundle): (a) the town body's GOAL BUNDLE table + diagram (g14 row -> g5, + g1.25) = DONE by the Prime (1c4a74c6b)  (b) g1.25's town cell -> local-maxxing: mine, in the merge commit of director-engine's merge-up that brings g1.25
- NEXT   (1) a [merge-up] or a blocker from a director -> template §1 loop  (2) switch mvp round 1's numbers -> decide round 2 (needs the Prime's pi-provider go)  (2) CFG.01 + CFG.02 merge-up  (3) director-engine's line  (4) rr-mp02-g01's proposals
- out    python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
+state   MAIN: goal:g5 + GOALS.md + this card committed and pushed; only cron-owned comms churn left; no gate worktree open
+NEXT    (0) the first pi-free rounds: a kid record showing harness pi (= deepseek, PAID) under a pi-free parent = cut it; a 404 / 429 from
+            the free provider = the director's one line, hold that lane, re-probe raw (trap 'allowlist') before any dashboard ask
+        (1) DE's [merge-up]s (the 3 murs' batch; EF.90's result) -> the #4-style gate: each round's FINAL verify stage + the diff, read myself
+        (2) DT's [merge-up] (LEAF.04, REPLAY.01) -> the same gate · SWR-SV.01 closes as DT's director review
+        (3) paid models: lift only on the owner's word · PASS 3 (pi-free, the Prime's next CHECK): a [red] from the Prime first
+out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 ````
-`````
 
 ## Traps (post-specific, learned)
 ```
-orders       to a director by dm ONLY: send.py --from thought-master send --to <post> '<text>' (a positional send lands in a raw inbox a worktree read never shows; TMM.33-35 were lost)
-             queue words (template §2): `dispatch now <node>` is the ONLY dispatch order · `[decision] hold <node>` the only hold
-accept       the ACCEPT note names config-max and template-max answered
-suite        a window FROM the Prime (ask, then run) · env -u TMUX -u TMUX_PANE · 3 failures pre-exist on the trunk (test_adapters pi_bin env · harness_template --help empty · test_brief g15 fallback)
-anonymize    refuses 127.0.0.1 (loopback false positive) until director-engine's EF.13 lands
-box          box.* / locations.* are stale here (/home/ubuntu/work/agi absent; repo /data/work/agi; user belam) -> F13's .env path is dead
-handoff      .agi/sessions/seats/thought-master.handoff.md is rotate's header, NEVER a link to this card (rotate.py:5294 write_text follows links and would overwrite the card)
-merge        in MAIN: git merge --no-ff --no-commit <sha>, gates, notes, then ONE commit of the index; exact-path git add; the grid cron and other posts share the tree
-write.py     bodies via a python subprocess, never a backtick · `set` takes the whole JSON · a note on a goal changes GOALS.md -> snapshot-goals.py --render, then --check
-grid         grid.py commit --all is the cron's, never mine
-comms        a nudge may be a phantom -> verify in git · the Prime's gen-2 key verifies from 09:31Z (the 09:20Z dm was a key fail, owner-confirmed)
+meter        the prompt hook prints [meter] on a REAL prompt (a nudge, a task notification) -- not on the startup injection; rotate at f 0.47
+rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (director = director)') -> order the director's own bare rotate ·
+             rotate --model/--effort that differs from the row is REFUSED (exit 3): the row changes first · config:posts model / effort /
+             role / tier / harness / owning_goal / worktree / rotated_by = prime/owner-only cells · a pin is verified = .agi/sessions/<post>.meter
+             names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
+orders       dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
+             positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.91
+owner lines  in my pane = verbatim where the HEAD's notes line says: a template or config, then the role doc, then town:local-maxxing --
+             NEVER a goal (goals are project trackers, owner 09-24) · the stamp = the jsonl's own timestamp for the owner's message
+             (.agi/sessions/thought-master.meter names the jsonl), never a guess · a one-line replace inside a fence = 'replace body N:N --force <file>'
+local lane   the local server = 127.0.0.1:8080 (NOT 18080) · pi-local mints no credential · a kid WITHOUT --harness resolves the ladder's
+             tier-0 kid row = pi = OpenRouter (explicit --harness beats a ladder row) · dispatch iter ids look like TMD.01 · --dry-run writes
+             nothing · a hand-run pi -p with stdin OPEN hangs (use < /dev/null) · .env's OPENROUTER_API_KEY is EMPTY (only the provisioning
+             key is set; rounds get minted keys) · pi --list-models never lists OpenRouter's built-ins here (no proof either way)
+pi config    ~/.pi/agent is the whole box's: test a change in a COPY via PI_CODING_AGENT_DIR first · a models-array override of a built-in
+             provider needs a working key to test · the backup is /data/ml/pi-models.json.before-20260924T0109Z
+merge-ups    the WHOLE history rides: list the tip's merges yourself · merge by the NAMED tip · LAND WITHOUT A STAGED MERGE: gate
+             M = commit-tree(merge-tree(HEAD, tip)) in a detached /tmp worktree; at landing T2 = merge-tree(live HEAD, tip) -- if HEAD
+             moved, diff(gated tree, T2) = exactly the newcomer files, byte-identical to HEAD on them; L = commit-tree T2 -p HEAD -p tip;
+             git merge --ff-only L; push · the range = diff(merge-base, tip), never diff(HEAD, tip) · a red suite = return the tip
+reds         attribute each: which range touches the test / its code (git diff --quiet <base> <tip> -- <file>) · re-run it ALONE (a load
+             flake passes alone) · test_thought_hygiene counts <!--\s*THOUGHT:BEGIN per node: a quoted marker trips it
+review       read each round's FINAL verify stage in .agi/sessions/workflows/runs/mur-*/verify_R-EFnn.json · no mur under the hold = read the
+             director's in-place review AND the diff yourself, and say so
+key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send.authority_ref(root), True) · local seat keys = the NAMES of
+             .agi/sessions/seats/*.key (+ .key.pending), never the bytes
+suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
+             call · ~13.5 min at load 2 · foreground sleep is blocked: wait with a background loop
+account      python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');import provisioning as p;print(p.credit_balance('.'))" = (total, used, left); prints no key
+allowlist    the account-wide allowed providers (dashboard Settings > Privacy) have NO API route -- the management key cannot set them
+             (openapi.json 94 paths; 03:01Z 09-24); guardrails + a request's provider.only only NARROW them · a 0-USD raw probe =
+             provisioning.mint(limit_usd=0.01, ttl_minutes=10, workspace_id=workspace(cfg)) -> one chat call -> revoke(key_hash) in a finally
+anonymize    anonymize.py guards hostname / ip / mac / board / secret (loopback exempt); the model name needs its own grep: git grep -i -E 'geforce|rtx ?20[0-9]0' <tip> -- .agi/nodes
+write.py     a list field = 'set <field> <JSON array>' via a python argv list (no ' && ' inside; --dry-run shows the ring-gate preview) · a goal note -> snapshot-goals.py --render, then --check
+box          box.* / locations.* are stale here (repo /data/work/agi) · never cd into a director's worktree (the harness then treats it as mine) -- read it by absolute path
+handoff      .agi/sessions/seats/thought-master.handoff.md is rotate's header, NEVER a link to this card · grid.py commit --all is the cron's, never mine
+comms        a nudge may be a phantom -> verify in git · a director's [merge-up] lands in the inbox file, not the dm log · 'pane busy' = the dm is in the log, the sweep retries · must land NOW (owner: "didn't go through") = SendMessage to the session name from ListAgents: it lands mid-turn
 ```
 
 ## BANKED (owner-only)
-Bonsai ternary recipe on Qwen3-8B · oscillator readout on C2C-fused KV · llama.cpp block-diffusion drafter · per-channel-K 2-bit KV in ggml-cpu · rpc-split only if the owner names a model that does not fit · kid-persona QLoRA after trajectory capture · coupled-oscillator / SNN C2C fuser vs a frozen trunk · should the mirror menu BE the spawn gate · TypeSafe plugin + .env rename · Neon key · Doppler ownership · per-kid endpoint keys (g5.20) · Opus on the pi allowlist for brainstorms · claude-code kids on local-town (config-valid, unauthorised) · the older OpenRouter account (~14 USD): fold or reserve? · the ONE justified Camber burst (cross-arch attribution A/B, ~20 min) · vision:local-maxxing refresh from the 21:4xZ trajectory (owner/prime write only) · provider-key rotation after the 22:19Z env dump (dashboard-minted keys = owner/Prime).
+Bonsai ternary recipe on Qwen3-8B · oscillator readout on C2C-fused KV · llama.cpp block-diffusion drafter · per-channel-K 2-bit KV in ggml-cpu · rpc-split only if the owner names a model that does not fit · kid-persona QLoRA after trajectory capture · coupled-oscillator / SNN C2C fuser vs a frozen trunk · should the mirror menu BE the spawn gate · TypeSafe plugin + .env rename · Neon key · Doppler ownership · per-kid endpoint keys (g5.20) · Opus on the pi allowlist for brainstorms · claude-code kids on local-town (config-valid, unauthorised) · the older OpenRouter account (~14 USD): fold or reserve? · the ONE justified Camber burst (cross-arch attribution A/B, ~20 min) · vision:local-maxxing refresh from the 21:4xZ trajectory (owner/prime write only) · provider-key rotation after the 22:19Z env dump (dashboard-minted keys = owner/Prime) · KV slot save / restore on the local brain (--slot-save-path = a server restart at a leaf boundary).

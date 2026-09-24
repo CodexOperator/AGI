@@ -1,0 +1,70 @@
+{
+ "a": "Qwen3.5-9B-Q4_K_M.gguf",
+ "b": "Ternary-Bonsai-2-27B-PTQ1_0.gguf",
+ "tokenizer_identical": false,
+ "keys": {
+  "tokenizer.ggml.model": {
+   "a": "gpt2",
+   "b": "gpt2",
+   "equal": true
+  },
+  "tokenizer.ggml.pre": {
+   "a": "qwen35",
+   "b": "qwen35",
+   "equal": true
+  },
+  "tokenizer.ggml.tokens": {
+   "a": {
+    "n": 248320,
+    "sha256": "6d8afc30d32560a9"
+   },
+   "b": {
+    "n": 248320,
+    "sha256": "6d8afc30d32560a9"
+   },
+   "equal": true
+  },
+  "tokenizer.ggml.merges": {
+   "a": {
+    "n": 247587,
+    "sha256": "b645cd089105aa7f"
+   },
+   "b": {
+    "n": 247587,
+    "sha256": "b645cd089105aa7f"
+   },
+   "equal": true
+  },
+  "tokenizer.ggml.token_type": {
+   "a": {
+    "n": 248320,
+    "sha256": "c432c92360b8767e"
+   },
+   "b": {
+    "n": 248320,
+    "sha256": "c432c92360b8767e"
+   },
+   "equal": true
+  },
+  "tokenizer.ggml.bos_token_id": {
+   "a": null,
+   "b": 248044,
+   "equal": false
+  },
+  "tokenizer.ggml.eos_token_id": {
+   "a": 248046,
+   "b": 248046,
+   "equal": true
+  },
+  "tokenizer.ggml.padding_token_id": {
+   "a": 248055,
+   "b": 248044,
+   "equal": false
+  },
+  "tokenizer.ggml.add_bos_token": {
+   "a": null,
+   "b": false,
+   "equal": false
+  }
+ }
+}

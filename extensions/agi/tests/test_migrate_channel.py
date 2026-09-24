@@ -180,6 +180,8 @@ def test_receive_seats_once_and_writes_the_cells_through_the_one_writer(
     path, text = _place(fake, _request(), signer="p", root=tmp_path)
     monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {
         "name": "p", "role": "director", "pubkey": pub.hex()})
+    monkeypatch.setattr(rotate, "_migrate_seating_actor",
+                        lambda root: "sanctuary-master")
     seated = []
     monkeypatch.setattr(rotate, "_migrate_seat", lambda root, *, post, rec, row, box: (
         seated.append((post, rec["mode"], box)) or
@@ -192,15 +194,14 @@ def test_receive_seats_once_and_writes_the_cells_through_the_one_writer(
     out = capsys.readouterr().out
     assert rc == 0
     assert seated == [("p", "rotate", "boxB")]
-    assert len(cell_calls) == 1          # session cells: the post's self_row
+    assert len(cell_calls) == 2          # session (post) + seating (master)
     assert cell_calls[0]["actor"] == "p"
     assert cell_calls[0]["cells"]["pid"] == 4242
     assert "box" not in cell_calls[0]["cells"]   # seating is the master's
-    assert "no actor_rows grant covers box/worktree" in out
-    # SLICE 6: no seating grant -> NO seated ack, and the request record is
-    # left exactly as it was (a receive that could not seat has not seated).
-    assert _acks(fake) == []
-    assert "seated p on boxB" not in out
+    assert cell_calls[1]["actor"] == "sanctuary-master"
+    assert cell_calls[1]["cells"] == {"box": "boxB"}
+    assert len(_acks(fake)) == 1
+    assert "seated p on boxB" in out
     assert path.read_text(encoding="utf-8") == text
 
 
@@ -341,6 +342,8 @@ def test_receive_seats_when_the_live_row_belongs_to_another_box(
     monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {
         "name": "p", "role": "director", "pubkey": pub.hex(),
         "box": "boxA", "pid": os.getpid(), "session_id": "source-live"})
+    monkeypatch.setattr(rotate, "_migrate_seating_actor",
+                        lambda root: "sanctuary-master")
     seated = []
     monkeypatch.setattr(rotate, "_migrate_seat",
                         lambda root, *, post, rec, row, box: (
@@ -367,6 +370,8 @@ def test_receive_skips_a_non_numeric_pid_without_killing_the_tick(
     rows = {"p": {"name": "p", "pubkey": pub.hex(), "pid": "not-a-pid"},
             "q": {"name": "q", "pubkey": pubq.hex()}}
     monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: rows.get(post, {}))
+    monkeypatch.setattr(rotate, "_migrate_seating_actor",
+                        lambda root: "sanctuary-master")
     seated = []
     monkeypatch.setattr(rotate, "_migrate_seat",
                         lambda root, *, post, rec, row, box: (
@@ -392,15 +397,21 @@ def test_fork_mode_without_session_id_is_refused_by_name(tmp_path, monkeypatch,
     assert not (tmp_path / "comms").exists()
 
 
-def test_migrate_transcript_dest_is_the_path_resume_reads(tmp_path):
+def test_migrate_transcript_dest_is_the_path_resume_reads(tmp_path, monkeypatch):
     """SHOULD FIX (a)+(b): dest is the projects path (never a copy in the
-    worktree) and the slug canonicalizes BOTH '/' and '.'."""
+    worktree) and the slug canonicalizes BOTH '/' and '.'.
+
+    The oracle is INDEPENDENT of the module global the code derives from:
+    CC_PROJECTS_DIR is redirected to a separately built tmp path, so a mutant
+    that derives dest from the wrong root is caught."""
+    fixture = tmp_path / ".claude" / "projects"
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", fixture)
     dest = rotate._migrate_transcript_dest(
         Path("/home/x/.agi/worktrees/p"), "sess-1")
     assert dest.name == "sess-1.jsonl"
     assert dest.parent.name == "-home-x--agi-worktrees-p"
     assert ".migrate-transcript.jsonl" not in str(dest)
-    assert str(dest).startswith(str(Path.home() / ".claude" / "projects"))
+    assert dest == fixture / "-home-x--agi-worktrees-p" / "sess-1.jsonl"
 
 
 def test_seat_makes_a_real_worktree_from_the_pushed_ref(tmp_path, monkeypatch):
@@ -680,6 +691,8 @@ def test_receive_skips_a_record_it_cannot_seat_without_killing_the_tick(
     rows = {"p": {"name": "p", "pubkey": pub.hex()},
             "q": {"name": "q", "pubkey": pubq.hex()}}
     monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: rows.get(post, {}))
+    monkeypatch.setattr(rotate, "_migrate_seating_actor",
+                        lambda root: "sanctuary-master")
     seated = []
 
     def fake_seat(root, *, post, rec, row, box):
@@ -697,3 +710,169 @@ def test_receive_skips_a_record_it_cannot_seat_without_killing_the_tick(
     assert rc == 0
     assert "could not seat" in out and "tick lives" in out
     assert seated == ["q"]
+
+
+# --- FR-B2 (goal:g15.27.2): the grant is resolved BEFORE the seat -----------
+
+
+def test_receive_without_a_grant_never_seats_and_a_later_record_still_seats(
+        tmp_path, monkeypatch, capsys):
+    """Conjunct A: an ungranted record gets no worktree, no spawn and no row
+    cell (not even the session cells); it is skipped BY NAME, the request
+    stays byte-identical and a later good record is seated in the same tick."""
+    monkeypatch.setenv("AGI_BOX", "boxB")
+    live, fake = _fake_comms(tmp_path, monkeypatch)
+    _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
+    _q, pubq = live._mint_seat_key(tmp_path, "q", "ed25519")
+    p_path, p_text = _place(
+        fake, _request(post="p", ts="2026-09-18T12:00:00+00:00"),
+        signer="p", root=tmp_path)
+    _place(fake, _request(post="q", ts="2026-09-18T12:01:00+00:00"),
+           signer="q", root=tmp_path)
+    rows = {"p": {"name": "p", "pubkey": pub.hex()},
+            "q": {"name": "q", "role": "director", "pubkey": pubq.hex()}}
+    monkeypatch.setattr(rotate, "_migrate_row",
+                        lambda root, post: rows.get(post, {}))
+    # the grant is resolved once per record: empty on p's pass, present on q's.
+    grants = iter(["", "sanctuary-master"])
+    monkeypatch.setattr(rotate, "_migrate_seating_actor",
+                        lambda root: next(grants))
+    seated = []
+    monkeypatch.setattr(rotate, "_migrate_seat",
+                        lambda root, *, post, rec, row, box: (
+                            seated.append(post) or {
+                                "box": box,
+                                "worktree": f".agi/worktrees/post-{post}",
+                                "window": "w", "pid": 1, "session_id": "s",
+                                "session_name": "n"}))
+    writes = []
+    monkeypatch.setattr(rotate, "_write_identity_cells",
+                        lambda root, **kw: writes.append(kw) or "ok")
+    rc = rotate.cmd_migrate_receive(_rns(), tmp_path)
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert seated == ["q"]                        # p was NEVER seated
+    assert all(w["seat"] != "p" for w in writes)  # and no cell written for p
+    assert "no actor_rows grant covers box/worktree for p" in out
+    assert p_path.read_text(encoding="utf-8") == p_text   # byte-identical
+    assert [a["post"] for a in _acks(fake)] == ["q"]      # the tick lived
+
+
+def test_receive_identity_write_edit_error_skips_the_record_and_tick_lives(
+        tmp_path, monkeypatch, capsys):
+    """Conjunct B: a write.EditError from the ONE identity writer is caught
+    explicitly (never a bare except); the record is skipped BY NAME and a
+    later good record still seats."""
+    import write as write_mod
+    monkeypatch.setenv("AGI_BOX", "boxB")
+    live, fake = _fake_comms(tmp_path, monkeypatch)
+    _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
+    _q, pubq = live._mint_seat_key(tmp_path, "q", "ed25519")
+    _place(fake, _request(post="p", ts="2026-09-18T12:00:00+00:00"),
+           signer="p", root=tmp_path)
+    _place(fake, _request(post="q", ts="2026-09-18T12:01:00+00:00"),
+           signer="q", root=tmp_path)
+    rows = {"p": {"name": "p", "pubkey": pub.hex()},
+            "q": {"name": "q", "role": "director", "pubkey": pubq.hex()}}
+    monkeypatch.setattr(rotate, "_migrate_row",
+                        lambda root, post: rows.get(post, {}))
+    monkeypatch.setattr(rotate, "_migrate_seating_actor",
+                        lambda root: "sanctuary-master")
+    monkeypatch.setattr(rotate, "_migrate_seat",
+                        lambda root, *, post, rec, row, box: {
+                            "box": box,
+                            "worktree": f".agi/worktrees/post-{post}",
+                            "window": "w", "pid": 1, "session_id": "s",
+                            "session_name": "n"})
+
+    def fake_write(root, *, seat, actor, role, cells):
+        if seat == "p":
+            raise write_mod.EditError(
+                "refused by name: seat 'p' may update only its OWN row")
+        return "ok"
+
+    monkeypatch.setattr(rotate, "_write_identity_cells", fake_write)
+    rc = rotate.cmd_migrate_receive(_rns(), tmp_path)
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "identity write refused" in out and "tick lives" in out
+    assert [a["post"] for a in _acks(fake)] == ["q"]
+
+
+def test_migrate_refs_come_from_branches_mirror_ref(tmp_path, monkeypatch,
+                                                    capsys):
+    """Conjunct C: the migrate path's post ref is branches.mirror_ref's ONE
+    spelling -- for cmd_migrate's record and _migrate_seat's fallback."""
+    sentinel = "refs/agi/SENTINEL/p"
+    calls = []
+    monkeypatch.setattr(rotate.branches, "mirror_ref",
+                        lambda season, kind, name: (
+                            calls.append((kind, name)) or sentinel))
+    assert rotate._migrate_post_ref(tmp_path, "p") == sentinel
+    # _migrate_seat with no rec branch falls back to that same spelling.
+    with monkeypatch.context() as m:
+        runs = []
+        m.setattr(rotate.subprocess, "run",
+                  lambda argv, **kw: runs.append(argv))
+        m.setattr(rotate, "_migrate_row", lambda root, post: {})
+        rotate._migrate_seat(tmp_path, post="p", rec={"mode": "rotate"},
+                             row={"role": "director"}, box="boxB")
+        assert any(sentinel in argv for argv in runs)
+    # cmd_migrate writes that same ref into its ONE record.
+    monkeypatch.setenv("AGI_BOX", "boxA")
+    live, fake = _fake_comms(tmp_path, monkeypatch)
+    live._mint_seat_key(tmp_path, "p", "ed25519")
+    rc = rotate.cmd_migrate(_ns(post="p", to="boxB"), tmp_path)
+    assert rc == 0
+    rec = migrate_channel.parse_record(
+        sorted((fake / migrate_channel.SUBDIR).glob("*.md"))[0].read_text())
+    assert rec["branch"] == sentinel
+    assert ("posts", "p") in calls
+
+
+def test_migrate_path_has_no_second_ref_literal():
+    """Conjunct C falsifier: no `refs/agi/posts/` literal survives in the
+    migrate functions -- the one spelling is branches.mirror_ref."""
+    src = (Path(__file__).resolve().parents[1]
+           / "bin" / "rotate.py").read_text(encoding="utf-8")
+    start = src.index("def cmd_migrate(")
+    end = src.index("def cmd_rotate(")
+    assert "refs/agi/posts/" not in src[start:end]
+
+
+def test_transcript_scp_argv_is_tilde_relative_never_literal_dollar_home(
+        tmp_path, monkeypatch):
+    """FR-B3: `_migrate_copy_transcript` builds a literal argv -- no shell --
+    and scp's default since OpenSSH 9.0 is the SFTP protocol, which runs no
+    remote shell either. So `$HOME` arrives at sftp-server as four literal
+    characters, while a leading `~` is server-expanded via
+    expand-path@openssh.com. Measured on OpenSSH_9.6p1 with an sshd-free
+    `scp -D /usr/lib/openssh/sftp-server` fixture: `boxA:~/.claude/.../x.jsonl`
+    copies, `boxA:$HOME/.claude/.../x.jsonl` is ENOENT. This pins the argv.
+
+    Hygiene: `_migrate_transcript_dest` derives its dest under the module
+    global `rotate.CC_PROJECTS_DIR` at CALL time, and `_migrate_copy_transcript`
+    mkdirs `dest.parent`. Left unredirected that mkdir creates a REAL directory
+    under the live `~/.claude/projects` on every run (seven empty leftovers
+    were removed by hand once). So the global is pointed at `tmp_path` and the
+    test asserts on THAT fixture — no live path is ever read."""
+    fixture_projects = tmp_path / ".claude" / "projects"
+    monkeypatch.setattr(rotate, "CC_PROJECTS_DIR", fixture_projects)
+    seen = []
+    monkeypatch.setattr(rotate.subprocess, "run",
+                        lambda argv, **kw: seen.append(argv))
+    dest = rotate._migrate_copy_transcript(
+        tmp_path, {"source_box": "boxA", "session_id": "sess-1"},
+        tmp_path / "fork-wt")
+    assert len(seen) == 1
+    argv = seen[0]
+    assert argv[0] == "scp" and argv[1] == "-q"
+    assert argv[2] == f"boxA:~/.claude/projects/{dest.parent.name}/{dest.name}"
+    assert argv[2].endswith("/sess-1.jsonl")
+    assert argv[3] == str(dest)
+    assert "$HOME" not in " ".join(argv)
+    # dest must have landed under the redirected root, never the real home,
+    # and the fixture dir must actually have been created.
+    assert str(dest).startswith(str(fixture_projects))
+    assert (fixture_projects / dest.parent.name).is_dir()
+    assert dest.parent.is_dir()

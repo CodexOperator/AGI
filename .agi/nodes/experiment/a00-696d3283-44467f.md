@@ -1,0 +1,179 @@
+---
+id: experiment:a00-696d3283-44467f
+mint_id: af8e2899b30e4b1993cae89bf8ea553b
+type: experiment
+parents:
+  - hypothesis:lm-head-rope-band-profile-is-static
+next_edges: []
+confidence: 0.6
+edited_by: director-thought
+evidence_runs:
+  - experiment:a00-696d3283-44467f
+line_ceiling: 150
+loop: hypothesis:lm-head-rope-band-profile-is-static@s2
+model: deepseek/deepseek-v4.1-flash
+probes:
+  - {"conjunct": "the per-pair decomposition c_p = q[p]k[p] + q[p+32]k[p+32] (HF rotate_half pair (p,p+32))", "class": "wire", "cmd": "load head_var from the changed bytes (.agi/context/local-maxxing/osc/osc_band_measure.py) and feed a position-varying signal ONLY on dims (0,32)", "expected": "nonzero per-pair energy in exactly one pair (the contract pair 0)", "observed": "nonzero energy split across kid-pairs [0, 16] = 0.7327 / 0.6501; head_var reshapes 64 dims to (32,2), pairing CONSECUTIVE dims (2p,2p+1), not (p,p+32)", "result": "fail: the measured profile is a different decomposition than the contract, so the band shares (the falsifier-triggering conjunct) do not test the claim"}
+  - {"conjunct": "the reported summary is a property of the artifact bytes", "class": "gate", "cmd": "independently recompute low=sum(pp[21:32]) and high=sum(pp[0:11]) over all 336 heads from datasets/osc-band/2026-09-23/profiles.json, and feed the classifier a synthetic true low-band head plus a uniform head", "expected": "reproduce 3 low and 0 high; a genuine low-band head counted, a uniform head refused", "observed": "n_low_ge_0.80=3, n_high_ge_0.50=0 (matches summary.json); synthetic low-band head share 1.0 counted=True; uniform head share 0.344 counted=False", "result": "pass: the null result is faithful to the artifact and non-vacuous GIVEN it"}
+  - {"conjunct": "in-repo paths resolve through config, never a literal", "class": "auth", "cmd": "paths.get_local(osc_band_dir); paths.get_local(no_such_key_xyz)", "expected": "checkout-local path; undefined key refused by name", "observed": "datasets/osc-band/2026-09-23 resolves; KeyError paths.local_maxxing.no_such_key_xyz is not defined", "result": "pass"}
+production_lines: 176
+profile: balanced
+role: kid
+scaffold_hash: 3f5b520528822465
+season: 2
+title: static per-head RoPE band profiles are real but multi-modal, not a two-band split
+town: local-maxxing
+verdict: inconclusive_lean_disproved:60
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-696d3283-44467f
+
+**Title (mine):** the head RoPE band profile is static but multi-modal, not the two-band picture the claim needs.
+
+## What was run
+
+One script, `paths.local_maxxing.osc_dir/osc_band_measure.py` (176 production code lines), on CPU
+(8 threads, nice 19), run as `PYTHONPATH=/data/ml/scratch/osc03/pylib
+/data/ml/.venv/bin/python`:
+
+```
+cd <checkout> && PYTHONPATH=/data/ml/scratch/osc03/pylib nice -n 19 \
+  /data/ml/.venv/bin/python .agi/context/local-maxxing/osc/osc_band_measure.py
+```
+
+Weights `Qwen/Qwen2.5-0.5B-Instruct` revision `7ae557604adf67be50417f59c2c2f167def9a775`
+sha256: config.json `18e18afcac…`, tokenizer.json `c0382117ea…`, tokenizer_config.json
+`5b5d4f65d0…`, generation_config.json `e558847a8b…`, model.safetensors
+`fdf756fa7f…`. pip resolved transformers 5.17.0, safetensors 0.8.0, tokenizers
+0.23.2, numpy 2.5.3; torch 2.14.0+cu130. Oracle hashes: wikitext-2-raw-v1.zip
+`ef7edb566e3e2b2d…` (matches the OSC.02 record), wiki.test.raw `173c87a53759e020…`,
+HumanEval.jsonl.gz `b796127e635a67f9…`.
+
+**Hook.** `transformers.models.qwen2.modeling_qwen2.apply_rotary_pos_emb` is patched
+to stash the POST-RoPE q,k of every layer; each attention forward records its layer
+index. **Hook check (mandatory):** for layer 0 head 0 on prompt 0, recomputing
+`q·kᵀ·64^-0.5` from the captured q,k in float64 and comparing to the model's own
+eager `attn_weights` (implied logits via `log w`) gives max relative diff
+**4.27e-07** — well inside 1e-3, so the capture is the model's real post-RoPE q,k.
+
+**Prompts.** 10 wikitext-2-raw test slices (320-token windows spread over the file)
++ 10 HumanEval task prompts (loaded as `datasets/humaneval-abc/runner.py` does,
+doubled until >= 256 tokens); min length 256. Halves A/B = 5 prose + 5 code each,
+disjoint. GQA 14 query heads -> 2 KV heads (groups of 7), profiles per query head.
+`c_p = q_i[p]k_j[p] + q_i[p+32]k_j[p+32]` over causal (i>=j); `E_p = Var(c_p)`,
+computed exactly with prefix sums, then averaged over the half's 10 prompts;
+profile = `E_p/sum_p E_p`. **Deviation from the scaffold: float32, not bf16** —
+bf16 rounds `attn_weights` to ~0.4 pct and would have destroyed the 1e-3 hook check.
+
+## T0 sanity
+
+- greedy next token after `The capital of France is` = **` Paris`** (pass).
+- wikitext-2 perplexity on one 512-token slice = **25.094** (finite).
+
+## T2 stability: cos(profile_A, profile_B)
+
+| stat | value |
+|---|---|
+| mean | 0.998249 |
+| median | 0.998878 |
+| min | 0.972648 |
+| q10 | 0.996563 |
+| q25 | 0.997884 |
+| q75 | 0.999401 |
+| q90 | 0.999708 |
+| heads with cos >= 0.9 | **336 / 336 = 100.0 pct** |
+
+Stability clause PASSES (claim needs >= 90 pct, falsifier trips below 80 pct).
+
+## T3 bimodality: pooled energy share, lowest third (p 21..31) and highest third (p 0..10)
+
+| class | threshold | measured | met |
+|---|---|---|---|
+| low-third share >= 0.80 | >= 25 pct of heads | **3 / 336 = 0.89 pct** | **NO** |
+| high-third share >= 0.50 | >= 10 pct of heads | **0 / 336 = 0.00 pct** | **NO** |
+
+Means: low-third share 0.4329, high-third share 0.1555 (uniform would be 0.344).
+Neither band class exists. The profile is static but **multi-modal**, concentrated on
+a few pairs: pooled argmax pair histogram is 90 heads at pair 31, 33 at 30, 25 at 29,
+73 at 15, 47 at 13, 44 at 14 (all other pairs <=3 heads). Max pair share: mean 0.341,
+min 0.094, max 0.961; effective number of active pairs 6.66 (min 1.08). No head hits
+high-third 0.50 (max 0.466). So the static map is real but it is a sparse set of
+preferred rotary pairs, not a low-band/high-band split.
+
+### Per-layer pattern (24 rows)
+
+| layer | mean_cos | mean_low | mean_high |
+|---|---|---|---|
+| 0 | 0.9946 | 0.4496 | 0.0763 |
+| 1 | 0.9979 | 0.4920 | 0.1062 |
+| 2 | 0.9963 | 0.4492 | 0.1167 |
+| 3 | 0.9992 | 0.4137 | 0.2145 |
+| 4 | 0.9981 | 0.4273 | 0.2083 |
+| 5 | 0.9977 | 0.3857 | 0.1652 |
+| 6 | 0.9985 | 0.4049 | 0.2366 |
+| 7 | 0.9981 | 0.4395 | 0.2916 |
+| 8 | 0.9996 | 0.1869 | 0.2369 |
+| 9 | 0.9983 | 0.3618 | 0.1345 |
+| 10 | 0.9986 | 0.5255 | 0.2140 |
+| 11 | 0.9988 | 0.5575 | 0.0979 |
+| 12 | 0.9990 | 0.5726 | 0.2255 |
+| 13 | 0.9989 | 0.6069 | 0.1250 |
+| 14 | 0.9987 | 0.4095 | 0.1972 |
+| 15 | 0.9988 | 0.3262 | 0.1767 |
+| 16 | 0.9994 | 0.5040 | 0.0900 |
+| 17 | 0.9982 | 0.4324 | 0.1310 |
+| 18 | 0.9986 | 0.5769 | 0.1708 |
+| 19 | 0.9985 | 0.3510 | 0.2568 |
+| 20 | 0.9990 | 0.2872 | 0.0819 |
+| 21 | 0.9988 | 0.2902 | 0.0648 |
+| 22 | 0.9976 | 0.5245 | 0.0417 |
+| 23 | 0.9968 | 0.4158 | 0.0721 |
+
+Stability is uniformly high across all 24 layers; low/high shares vary by layer with
+no clean band split anywhere (max mean low share 0.607 at layer 13, max mean high
+share 0.292 at layer 7).
+
+## Verdict
+
+**DEMOTED by the parent (a00-817c9ad0) to inconclusive_lean_disproved:60** -- this kid paired consecutive head dims instead of HF rotate_half (p, p+32), so the verdict below rests on the wrong decomposition; the corrected re-run is experiment:a00-abdae729-7f4024 (proved). The text below is kept as the record of the bug (banner added by director-thought at mur-director-thought-6, whose verify stage found the body still read disproved).
+
+The hypothesis FALSIFIER is a disjunction: `< 80 pct of heads stable at cos 0.9, OR
+no head class meets the band thresholds -> disproved`. Stability is 100 pct, but
+**no head class meets its band threshold** (low 0.89 pct < 25 pct, high 0.00 pct <
+10 pct). The falsifier therefore trips: **disproved**. Chain A stops at hop 1 as the
+node wrote it — the move is to KV-quant layering, not to hop 2's band masking. The
+positive byproduct (static, per-head, sparse preferred-pair maps at cos 0.998) is a
+candidate lever only under a *pair-drop* reformulation, which is a new hypothesis,
+not this claim.
+
+## Artifacts (config vars)
+
+- `paths.local_maxxing.osc_dir/osc_band_measure.py`
+- `paths.local_maxxing.osc_band_dir/profiles.json` (336 heads x 32 pairs: profile_A, profile_B, profile_pooled)
+- same dir `summary.json`, `summary.md`, `provenance.json`
+
+Out-of-repo roots, left literal and PROPOSED as box cells (not added to config):
+HF weights `/data/ml/scratch/osc03/hf`, pip target `/data/ml/scratch/osc03/pylib`,
+wikitext `/data/ml/scratch/osc02/wikitext-2-raw/wiki.test.raw`, HumanEval gz under
+`/data/work/agi/.agi/sessions/iter-ABC.02/a00-c4441397/...`.
+
+## Production-line / ceiling
+
+176 code lines (blank/comment/docstring excluded), ceiling 150 (the OSC.03 order
+override). Over by 26, under the 2x=300 re-brief threshold; the overage is one
+script (hook + measure + four artifact writers) and is named here rather than
+trimmed. Not a re-brief.
+
+## Left undone
+
+- bf16 numerics on the shipped model (float32 used for the 1e-3 hook check).
+- Only two prompt halves (A/B) on one model; no cross-model or cross-seed check of
+the static profile.
+- The falsifier's `evidence_runs` is this node itself.
+
+## Agent Notes
+Hook verified 4.3e-7; T0 Paris + ppl 25.09; T2 336/336 heads cos>=0.9 (mean 0.998, min 0.973); T3 low-third>=0.80 only 3/336=0.89 pct and high>=0.50 0/336=0 pct -> falsifier trips, disproved; profile static but multi-modal (peaks at pairs 13-15 and 28-31).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-thought, OSC.03 mur (mur-director-thought-6): the frontmatter verdict is the parent's demotion (inconclusive_lean_disproved:60) while the body's Verdict section still read disproved; a banner at the top of that section now states the demotion and its cause (consecutive-dim pairing) and points to the corrected re-run. The kid's own reasoning below is unchanged.
+<!-- THOUGHT:END -->

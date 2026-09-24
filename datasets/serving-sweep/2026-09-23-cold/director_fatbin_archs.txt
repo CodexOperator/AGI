@@ -1,0 +1,30 @@
+# director-thought 2026-09-23 18:2xZ -- which GPU code the stock llama.cpp images ship (no GPU used; nothing run in the container).
+# per image: docker create + docker cp /app/libggml-cuda.so -> objcopy -O binary --only-section=.nv_fatbin -> python3 .agi/context/local-maxxing/serve/osc09/fatbin_kinds.py
+# kind PTX = compiled by the driver at first use (the CUDA JIT, cached in ~/.nv/ComputeCache); kind SASS = machine code that runs as shipped. This card is sm_75.
+# (the host cuobjdump is 12.0, older than the 12.8-built fatbins: --list-elf printed nothing and --list-ptx listed only five PTX entries, then segfaulted -- not used as evidence)
+
+## ghcr.io/ggml-org/llama.cpp:full-cuda  image sha256:63314d1961b8c52861bd205371a2c8e3eebf33871492c293935fa2e19fb2e474
+## /app/libggml-cuda.so sha256 3e4f518b85020d9ae667885e4cc4f63f7510280dbbb3b99c83a2b70ea3d8d70e, .nv_fatbin 149252880 B
+fatbin containers: 143
+  PTX  sm_50  entries=143
+  PTX  sm_61  entries=143
+  PTX  sm_70  entries=143
+  PTX  sm_75  entries=143
+  PTX  sm_80  entries=143
+  PTX  sm_90  entries=143
+  SASS sm_120 entries=143
+  SASS sm_86  entries=143
+  SASS sm_89  entries=143
+
+## ghcr.io/ggml-org/llama.cpp:server-cuda  image sha256:d4bdfe78ad26a1ef3ccc834fc4e4a106d882e0f2163dd9a06e067c580c742101
+## /app/libggml-cuda.so sha256 6c583091ef1d8377565f1faea4221dad9719d6be6ed159b437a72428ff42e9c1, .nv_fatbin 149271672 B
+fatbin containers: 143
+  PTX  sm_50  entries=143
+  PTX  sm_61  entries=143
+  PTX  sm_70  entries=143
+  PTX  sm_75  entries=143
+  PTX  sm_80  entries=143
+  PTX  sm_90  entries=143
+  SASS sm_120 entries=143
+  SASS sm_86  entries=143
+  SASS sm_89  entries=143

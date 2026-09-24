@@ -196,7 +196,8 @@ def _seat_key_path(root: Path, seat: str) -> Path:
     return _seats_dir(root) / f"{seat}.key"
 
 
-def _signing_key_obj(root: Path, seat: str, key_file: Path) -> dict | None:
+def _signing_key_obj(root: Path, seat: str, key_file: Path,
+                     prefer_authority_deferred: bool = False) -> dict | None:
     """g15.26 (c) -- the signing key dict, with the PENDING-SUCCESSOR
     preference. A `<seat>.key.pending` (persisted by
     rotate._persist_pending_key when a push FAILED after the committed row
@@ -210,7 +211,16 @@ def _signing_key_obj(root: Path, seat: str, key_file: Path) -> dict | None:
     be read, the signer falls back to the live `<seat>.key` and signs EXACTLY
     as before -- a seat with no deferred swap never changes a byte. Returns
     the JSON dict, or None when neither key yields a usable object (the
-    caller then emits an unsigned line, as today)."""
+    caller then emits an unsigned line, as today).
+
+    EF.84 conjunct B: an AUTHORITY-deferred pending (`deferred_for ==
+    "authority"`) is NOT preferred on this match -- the authority never
+    received the successor, so its row still names the predecessor (the live
+    `<seat>.key`), and signing with the pending successor would read
+    FORGED/RETIRED against the authority. The caller that compares the held
+    key to the COMMITTED row (`rotate._caller_hold_key`) passes
+    ``prefer_authority_deferred=True`` to keep that comparison coherent; a
+    push-deferred pending is preferred in BOTH modes, unchanged."""
     import json as _json
     from pathlib import Path as _Path
     _pend = _Path(key_file).parent / f"{_Path(key_file).name}.pending"
@@ -219,9 +229,19 @@ def _signing_key_obj(root: Path, seat: str, key_file: Path) -> dict | None:
             _pobj = _json.loads(_pend.read_text())
         except (ValueError, OSError):
             _pobj = None
+        _authority_deferred = bool(
+            _pobj and _pobj.get("deferred_for") == "authority")
         if _pobj and _pobj.get("pub_hex") and _pobj.get("priv_hex"):
-            _committed = _seats_committed_rows(root)
-            _row = _seat_row_for(root, _committed, seat)
+            if _authority_deferred:
+                if prefer_authority_deferred:
+                    _committed = _seats_committed_rows(root)
+                    _row = _seat_row_for(root, _committed, seat)
+                else:
+                    _row = _row_for_label(
+                        root, _load_rows(root, do_fetch=False), seat)
+            else:
+                _committed = _seats_committed_rows(root)
+                _row = _seat_row_for(root, _committed, seat)
             _row_pub = str((_row or {}).get("pubkey") or "")
             if _row_pub and _row_pub == str(_pobj.get("pub_hex")):
                 return _pobj
@@ -2796,7 +2816,13 @@ def _notify_undelivered(root: Path, seat: str, rec: dict) -> None:
             continue
         excerpt = (r.get("body") or "").replace("\n", " ")[:80]
         try:
-            send_dm(root, "wake-repair", r.get("sender") or "unknown",
+            # `root` here is the GRAPH root (`_nudge_deferred_path`/
+            # `_comms_config` need it); the dm itself must land in the same
+            # comms root every other send_dm caller uses, or no reader ever
+            # sees it (hypothesis:send-undelivered-notice-lands-in-the-
+            # comms-root).
+            send_dm(comms_root(root), "wake-repair",
+                    r.get("sender") or "unknown",
                     f"[undelivered] {seat} {ts} '{excerpt}' -- pane busy "
                     f"{int(age)} min", sender="wake-repair")
         except SystemExit:
@@ -3058,30 +3084,59 @@ def _seat_row_in(rows: list, from_id: str) -> dict | None:
     return None
 
 
+def _alias_table(root: Path) -> dict:
+    """The ONE `aliases:` table (posts.md frontmatter `old -> new`), LOADED
+    ONCE per caller. Returns the raw dict (old -> new), or {} when the
+    geometry config is absent/unparseable/not a mapping. NEVER prints -- the
+    deprecation notice belongs to the caller that knows whether the token
+    actually matched its reader."""
+    try:
+        path, _key = geometry_config.resolve(root)
+    except Exception:  # noqa: BLE001
+        path = None
+    if path is None or not path.exists():
+        return {}
+    try:
+        nf = _fm.load_node_file(path)
+    except Exception:  # noqa: BLE001
+        return {}
+    al = nf.frontmatter.get("aliases") or {}
+    return al if isinstance(al, dict) else {}
+
+
 def _alias_canon(root: Path, name: str) -> str | None:
     """The ONE `aliases:` table (posts.md frontmatter `old -> new`), the same
     table rotate._find_seat reads, so an old director name resolves through
     it for one season in send.py too (send/read/peek/whois/wake). Returns the
     canonical name and prints `deprecated alias used: old -> new` on stderr
     when `name` is an alias; None when not."""
-    try:
-        path, _key = geometry_config.resolve(root)
-    except Exception:  # noqa: BLE001
-        path = None
-    if path is None or not path.exists():
-        return None
-    try:
-        nf = _fm.load_node_file(path)
-    except Exception:  # noqa: BLE001
-        return None
-    al = nf.frontmatter.get("aliases") or {}
-    if not isinstance(al, dict):
-        return None
-    canon = al.get(name)
+    canon = _alias_table(root).get(name)
     if canon and str(canon) != name:
         print(f"deprecated alias used: {name} -> {canon}", file=sys.stderr)
         return str(canon)
     return None
+
+
+def _dm_names_reader(stem: str, me: str, aliases: dict,
+                     noticed: set | None = None) -> bool:
+    """Whether a dm/room conversation filename names `me`: one of its
+    `--`-separated tokens IS `me`, or is a FORMER name of `me` in the ONE
+    `aliases:` table (old -> new) -- resolved ONCE by the caller and passed
+    in, never re-loaded per token per file. The deprecation notice prints at
+    most once per alias per call (deduped through `noticed`), and ONLY for a
+    token that canonicalises to `me`: an alias of a DIFFERENT post is silent,
+    because it does not select this reader."""
+    for t in stem.split("--"):
+        if t == me:
+            return True
+        canon = aliases.get(t)
+        if canon and str(canon) == me:
+            if noticed is not None and t not in noticed:
+                noticed.add(t)
+                print(f"deprecated alias used: {t} -> {canon}",
+                      file=sys.stderr)
+            return True
+    return False
 
 
 def _seat_row_for(root: Path, rows: list, seat: str) -> dict | None:
@@ -3103,7 +3158,7 @@ def _seat_row_for(root: Path, rows: list, seat: str) -> dict | None:
     return None
 
 
-def _load_rows(root: Path) -> list | None:
+def _load_rows(root: Path, do_fetch: bool = True) -> list | None:
     """The seat rows, through the SAME resolver whois uses: the PUSHED ref
     first, then the working-tree rows as the fallback. Returns None when
     neither yields any rows -- a reader then labels any sig FORGED rather
@@ -3117,7 +3172,7 @@ def _load_rows(root: Path) -> list | None:
     freshly keyed/rotated post's signed dms verify instead of reading
     UNKEYED/FORGED until the hourly push. A pushed row that DOES name a key
     stays authoritative (a stale MAIN key never overrides origin)."""
-    seeded = _pushed_seats(root, _PUSHED_SEATS, True)
+    seeded = _pushed_seats(root, authority_ref(root), do_fetch)
     if seeded is not None:
         rows, _sha, _resolved_ref = seeded
         if rows:
@@ -3851,8 +3906,11 @@ def read_dms(croot: Path, me: str, *, commit: bool = True,
     to-a-post... clauses 1 and 3). Returns the block count shown."""
     n = 0
     d = croot / "dm"
+    root = locations.find_project_root(croot) or croot
+    aliases = _alias_table(root)
+    noticed: set = set()
     for path in (sorted(d.glob("*.md")) if d.is_dir() else []):
-        if me not in path.stem.split("--"):
+        if not _dm_names_reader(path.stem, me, aliases, noticed):
             continue
         blocks = _conv_blocks(path)
         shown = _past(blocks, None, _load_state(path).get(me, 0), me, path,
@@ -3894,7 +3952,13 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     # delivery, the file is the record.
     ok = _nudge_window(locations.find_project_root(croot) or croot, other,
                        sender=_detect_sender(sender), body=text)
-    _announce_nudge(croot, other, ok)
+    # `_announce_nudge` reads the SEATS row and the comms config, both of
+    # which live under the GRAPH root -- the same root `_nudge_window` is
+    # handed one line above. Handing it the raw `croot` (the comms root)
+    # silently dropped the plain `[undelivered-yet]` line whenever the graph
+    # root could not be reached by a rebase (a test fixture, or any layout
+    # without a git common root): the announcement vanished with no error.
+    _announce_nudge(locations.find_project_root(croot) or croot, other, ok)
     return path
 
 
@@ -4072,9 +4136,12 @@ def rooms(croot: Path, me: str) -> list[tuple[str, str, int]]:
 
     dm_dir = croot / "dm"
     if dm_dir.is_dir():
+        root = locations.find_project_root(croot) or croot
+        aliases = _alias_table(root)
+        noticed: set = set()
         for f in sorted(dm_dir.glob("*.md")):
             name = f.stem
-            if me not in name.split("--"):
+            if not _dm_names_reader(name, me, aliases, noticed):
                 continue
             blocks = _conv_blocks(f)
             count = int(_load_state(f).get(me, 0) or 0)
@@ -4305,6 +4372,25 @@ def prime_excluded(croot: Path, round_: str) -> int:
 #: HEAD is the authoritative answer after a fetch — never the local working
 #: tree.
 _PUSHED_SEATS = "origin/" + branches.season_main(2)
+
+
+def authority_ref(root: Path) -> str:
+    """The pushed ref seat keys are verified against -- ONE config cell
+    (config:key-authority, frontmatter `authority_ref`), defaulting to the
+    reviewed root when the node/field is absent. Never raises."""
+    try:
+        from node_writer import find_node_file
+        path = find_node_file(_main_graph_root(root), "config:key-authority")
+        if path is not None:
+            fm = _fm.load_node_file(path, body=False).frontmatter or {}
+            val = fm.get("authority_ref")
+            if isinstance(val, str) and val.strip():
+                return val
+    except Exception:
+        pass
+    return _PUSHED_SEATS
+
+
 #: Candidate paths, posts.md FIRST, tried in order by `_pushed_seats`; the
 #: first that `git show` succeeds on wins.
 _SEATS_REPO_PATHS = (
@@ -4744,7 +4830,7 @@ def _whois_sig_label(root: Path, rows: list | None, session_ref: str,
 
 
 def whois(root: Path, session_ref: str, claim: str | None,
-          source: str = _PUSHED_SEATS, do_fetch: bool = True,
+          source: str | None = None, do_fetch: bool = True,
           sig_line: str | None = None, msg_text: str | None = None,
           target: tuple | None = None):
     """Resolve session_ref against the PUSHED config:seats.
@@ -4770,6 +4856,8 @@ def whois(root: Path, session_ref: str, claim: str | None,
     non-FORGED label returns today's bytes and exit unchanged: Prime ruling A
     keeps the sig label off the exit axis except at this one enforced seam.
     """
+    if source is None:
+        source = authority_ref(root)
     seeded = _pushed_seats(root, source, do_fetch)
     if seeded is None:
         # Pushed authority unreachable. Do NOT silently answer from the working
@@ -5224,7 +5312,7 @@ def main(argv: list[str] | None = None) -> int:
     p_whois.add_argument("--claim", default=None,
                          help="claimed seat name or role; answer whether this "
                               "ref IS that row (impersonation check)")
-    p_whois.add_argument("--source", default=_PUSHED_SEATS,
+    p_whois.add_argument("--source", default=None,
                          help=f"git ref to read seats from (default: pushed "
                               f"{_PUSHED_SEATS})")
     p_whois.add_argument("--no-fetch", dest="no_fetch", action="store_true",

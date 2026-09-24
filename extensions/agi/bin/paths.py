@@ -6,12 +6,14 @@ import argparse, re, subprocess, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import boxes  # noqa: E402
+import locations  # noqa: E402
 HOME_RE = re.compile(r"/home/[A-Za-z0-9._-]+|~/|\$HOME|\bexpanduser\b")
 def files(root, target):
     if target:
         return [str(p) for p in sorted(Path(target).rglob("*")) if p.is_file()]
-    out = subprocess.run(["git", "ls-files"], cwd=str(root), capture_output=True, text=True).stdout
-    return [str(root / r) for r in out.splitlines()]
+    top = locations.repo_root(root)
+    out = subprocess.run(["git", "ls-files"], cwd=str(top), capture_output=True, text=True).stdout
+    return [str(top / r) for r in out.splitlines()]
 def classify(line, cells, classes):
     hits = ["home"] if HOME_RE.search(line) else []
     for cls, key in classes:
@@ -22,7 +24,11 @@ def classify(line, cells, classes):
     return hits + (["box"] if v and v in line else [])
 def findings(root, target=None):
     cells, allow = boxes.box_cells(root), boxes.allow_paths(root)
-    classes = [(k.split("_")[0], k) for k in boxes.box_cell_names(root) if k != "root"]
+    boxes.require_box_cells(root)  # absent/empty [box].md refuses by name
+    missing = sorted(k for k, v in cells.items() if not v)
+    if missing:
+        raise ValueError("missing box cells: %s" % ", ".join(missing))
+    classes = [(k.split("_")[0], k) for k in boxes.require_box_cells(root) if k != "root"]
     out = []
     for name in files(root, target):
         if any(name.endswith(a) for a in allow):
@@ -42,11 +48,20 @@ def main(argv=None):
     a.add_argument("--root", default=str(Path(__file__).resolve().parents[3] / ".agi"))
     args = ap.parse_args(argv)
     cells = boxes.box_cells(Path(args.root))
+    try:
+        boxes.require_box_cells(Path(args.root))
+    except boxes.BoxSchemaError as err:
+        print(str(err))
+        return 3
     missing = sorted(k for k, v in cells.items() if not v)
     if missing:
         print("missing box cells: %s" % ", ".join(missing))
         return 2
-    found = findings(Path(args.root), args.dir)
+    try:
+        found = findings(Path(args.root), args.dir)
+    except boxes.BoxSchemaError as err:
+        print(str(err))
+        return 3
     if found:
         print("\n".join(found))
     return 1 if found else 0

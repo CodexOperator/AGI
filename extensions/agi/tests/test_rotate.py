@@ -641,10 +641,10 @@ def test_rotate_self_stops_push_completes_pending_swap_site(
     calls = []
     real_finish = rotate._finish_pending_swap_on_push
 
-    def rec_finish(root, seat, push_line):
+    def rec_finish(root, seat, push_line, authority_line=None):
         kp = bin_send._seat_key_path(root, seat)
         before = (kp.parent / f"{kp.name}.pending").exists()
-        r = real_finish(root, seat, push_line)
+        r = real_finish(root, seat, push_line, authority_line=authority_line)
         after = (kp.parent / f"{kp.name}.pending").exists()
         if before:
             calls.append((push_line, r != "", after))
@@ -779,10 +779,10 @@ def test_rotate_self_merge_push_completes_pending_swap_site(
     calls = []
     real_finish = rotate._finish_pending_swap_on_push
 
-    def rec_finish(root, seat, push_line):
+    def rec_finish(root, seat, push_line, authority_line=None):
         kp = bin_send._seat_key_path(root, seat)
         before = (kp.parent / f"{kp.name}.pending").exists()
-        r = real_finish(root, seat, push_line)
+        r = real_finish(root, seat, push_line, authority_line=authority_line)
         after = (kp.parent / f"{kp.name}.pending").exists()
         if before:
             calls.append((push_line, r != "", after))
@@ -1554,7 +1554,10 @@ def test_spawn_falls_back_to_defaults_without_table(monkeypatch, tmp_path, capsy
 def test_successor_prompt_prepends_constitution_head():
     body = "the successor body"
     prompt = brief.successor_prompt(tier="prime_director", body=body)
-    assert prompt.startswith("─── CONSTITUTION HEAD ───")
+    # hypothesis:brief-py-assembles-every-first-turn-from-config: the head
+    # is `render`'s head part (doc:unified-head), the same bytes the
+    # SessionStart hook prints -- one head, never a second copy.
+    assert prompt.startswith("─── HEAD ───")
     assert "THE FOUR PRAYERS" in prompt
     assert prompt.rstrip().endswith(body)
     assert prompt.index(body) > prompt.index("THE FOUR PRAYERS")
@@ -1625,9 +1628,11 @@ def test_spawn_liaison_prompt_sources_the_assembled_brief_not_the_static_file(mo
     assert "OWNER LIAISON" in out, "the assembled liaison brief is the body"
 
 
-def test_spawn_prime_director_static_path_is_unchanged(monkeypatch, tmp_path, capsys):
-    # Regression: the prime's spawned (no --prompt-file) must still read the
-    # DEFAULT_PROMPT_FILE static successor file, never the assembled brief.
+def test_spawn_prime_director_renders_not_the_static_file(monkeypatch, tmp_path, capsys):
+    # Regression for hypothesis:brief-py-assembles-every-first-turn-from-config:
+    # a prime spawned with NO --prompt-file gets the assembled brief (the
+    # render, or its loud fallback on this brief-less fixture root), never the
+    # static DEFAULT_PROMPT_FILE that the pre-fix path read for the prime.
     root = _proj(tmp_path)
     sentinel = tmp_path / "prime.md"
     sentinel.write_text("STATIC PRIME BODY {name}\n")
@@ -1639,10 +1644,13 @@ def test_spawn_prime_director_static_path_is_unchanged(monkeypatch, tmp_path, ca
         "spawn", "--name", "belam-1", "--tier", "prime_director",
         "--dry-run",
     ])
-    out = capsys.readouterr().out
+    captured = capsys.readouterr()
     assert exit_code == 0
-    assert "STATIC PRIME BODY belam-1" in out, (
-        "the prime must still read DEFAULT_PROMPT_FILE through the static path")
+    assert "STATIC PRIME BODY belam-1" not in captured.out, (
+        "the prime must render its brief, not read DEFAULT_PROMPT_FILE")
+    assert "--remote-control belam-1" in captured.out
+    assert "falling back to brief.assemble" in captured.err, (
+        "the no-config-brief fallback must say so on stderr")
 
 
 def test_derive_successor_name():

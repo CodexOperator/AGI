@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """anonymize.py — physical-token guard at the write seam (SM.122)."""
 from __future__ import annotations
-import argparse, json, os, re, socket, subprocess, sys
+import argparse, ipaddress, json, os, re, socket, subprocess, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import envfile, locations
@@ -21,12 +21,23 @@ def _secret_tokens(root):
     from frontmatter import split_frontmatter
     import yaml
     keys = set()
-    node = Path(root) / SECRETS_NODE
+    # `root` is whatever the caller was handed -- the installed hook passes
+    # the SOURCE (repo) root, the tests pass a graph root. The secrets node
+    # lives under the GRAPH root, so resolve it rather than assuming the two
+    # are the same directory; assuming it made the hook check ZERO secret
+    # values (goal:g15.29.16).
+    graph = locations.shared_project_root(root) or locations.find_project_root(root)
+    node = Path(graph or root) / SECRETS_NODE
     if node.is_file():
         parts = split_frontmatter(node.read_text(encoding="utf-8"))
         fm = (yaml.safe_load(parts[0]) if parts else None) or {}
         for f in ("required_keys", "optional_keys", "forbidden_keys"):
             keys.update(str(k) for k in (fm.get(f) or []))
+        # `required_any` is a list of GROUPS; a key named only inside one is
+        # still a key this node names, so its env value belongs in the denylist.
+        for group in (fm.get("required_any") or []):
+            if isinstance(group, list):
+                keys.update(str(k) for k in group)
     env = envfile.read_env(envfile.resolve(root).env_file)
     return [("secret", env[k]) for k in keys if env.get(k)]
 def box_tokens(root):
@@ -39,7 +50,14 @@ def box_tokens(root):
     for line in (_run(["ip", "-o", "addr"]) + _run(["ip", "-o", "link"])).splitlines():
         m = re.search(r"inet6?\s+([0-9a-fA-F:.]+)", line)
         if m:
-            toks.append(("ip", m.group(1)))
+            addr = m.group(1)
+            try:
+                parsed = ipaddress.ip_address(addr)
+            except ValueError:
+                parsed = None
+            # loopback/link-local are identical on every box, not identifiers
+            if parsed is None or not (parsed.is_loopback or parsed.is_link_local):
+                toks.append(("ip", addr))
         m = re.search(r"link/ether\s+([0-9a-fA-F:]{17})", line)
         if m:
             toks.append(("mac", m.group(1)))

@@ -27,6 +27,8 @@ is `mvp:unified-spawn-path`'s first falsifier, stated as code.
 from __future__ import annotations
 
 import importlib
+import os
+import shutil
 import sys
 from pathlib import Path
 from types import ModuleType
@@ -38,6 +40,63 @@ REQUIRED = ("build_command", "child_env", "is_alive", "restart", "needs_credenti
 
 class AdapterError(RuntimeError):
     """Raised for an adapter that is missing, unimportable or incomplete."""
+
+
+def resolve_bin(harness: dict, env_var: str, default: str) -> str:
+    """The ONE harness bin resolver (`goal:g15` config-max).
+
+    `$env_var` override, then the config `bin` cell, then the built-in
+    default. `~/x`, bare `~` and `{home}` expand against the CURRENT HOME at
+    resolve time; `~user/x` expands against THAT user's home
+    (`os.path.expanduser` semantics, `goal:g15.29.2`); a token-expanded path
+    is used only if it exists; a bare name is looked up on PATH. An
+    explicit override naming anything but the default that resolves nowhere
+    refuses BY NAME -- never a bare `Popen` FileNotFoundError.
+
+    A path-shaped cell that needed a home token and whose expanded file does
+    not exist refuses BY NAME too, naming the harness, the EXPANDED path that
+    was tried and the `$env_var` that would override it. Returning the raw
+    `~/...` cell instead is what made `Popen` die on a bare
+    `FileNotFoundError('~/...')` that names nothing (round 2 of this
+    hypothesis). A concrete absolute path with no token is still carried
+    unchanged, because `$env_var`/config precedence must not start refusing
+    values the caller spelled out in full -- several live tests pin that.
+    """
+    explicit = os.environ.get(env_var) or harness.get("bin")
+    raw = explicit or default
+    override = bool(explicit) and raw != default
+    home = os.path.expanduser("~")
+    if raw.startswith("~"):
+        # `~/x`/`~` -> CURRENT HOME; `~user/x` -> THAT user's home. Splicing
+        # `home + raw[1:]` made `~bob/x` resolve to `/home/<me>bob/x`.
+        path = os.path.expanduser(raw)
+        # A `~user` that does not exist cannot expand: `expanduser` hands the
+        # raw token back unchanged, and the `path == raw` branch below then
+        # returned it, so `Popen` died on a bare
+        # `FileNotFoundError('~nosuch/x')` that named nothing.
+        if path == raw:
+            raise FileNotFoundError(
+                f"harness {harness.get('adapter') or '?'!r}: cannot resolve binary "
+                f"{raw!r}: no such user's home directory; "
+                f"set ${env_var} to override")
+    else:
+        path = raw.replace("{home}", home)
+    if os.sep in path or (os.altsep and os.altsep in path):
+        if os.path.exists(path):
+            return path
+        if path != raw:
+            raise FileNotFoundError(
+                f"harness {harness.get('adapter') or '?'!r}: cannot resolve binary "
+                f"{raw!r}: expanded to {path!r}, which does not exist; "
+                f"set ${env_var} to override")
+        return raw
+    if shutil.which(path):
+        return path
+    if override:
+        raise FileNotFoundError(
+            f"harness {harness.get('adapter') or '?'!r}: cannot resolve binary "
+            f"{raw!r}: ${env_var} unset, config `bin` absent, not on PATH")
+    return path
 
 
 def load(name: str) -> ModuleType:

@@ -27,10 +27,10 @@ cadences:
     every_mins: 2
     enabled: true
   prime_merge:
-    schedule: 13 */6 * * *
+    schedule: 13 */4 * * *
     enabled: true
     box: local-town
-    why_box: the Prime's town->season2/main merge routine runs where the Prime and the town trunk live (owner 01:2xZ 09-21, goal:g14); inert until extensions/agi/bin/prime_merge.py lands (director-engine round)
+    why_box: the Prime's town->season2/main merge routine runs where the Prime and the town trunk live (owner 01:2xZ 09-21, goal:g5; every 4 hours, owner 09-23 15:0xZ); inert until extensions/agi/bin/prime_merge.py lands (director-engine round)
     cmd: test -f {repo_root}/extensions/agi/bin/prime_merge.py && PI_BIN=$HOME/.npm-global/bin/pi python3 {repo_root}/extensions/agi/bin/prime_merge.py tick --root {root}
 crons_live: true
 edited_by: belam

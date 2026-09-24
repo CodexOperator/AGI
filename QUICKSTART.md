@@ -59,7 +59,7 @@ still open. `agi-tree` deleted its `bin/` entirely for this reason (goal S1).
 
 ### 2a. Clone
 
-`CodexOperator/AGI` is **private**, default branch `master`. Authenticate with
+`CodexOperator/AGI` is **public**, default branch `master`. Authenticate with
 `gh auth login` or an SSH key, then:
 
 ```bash
@@ -169,7 +169,7 @@ rotation unless `--morals`).
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --live` | the live graph, agents drawn as spiders where they are working |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --emit llm` | goal:g2.19 — exactly what a kid is handed, from the same frame stream |
 | `python3 '<engine>/extensions/agi/bin/viewport.py' --emit both` | human and llm views side by side, from ONE stream |
-| `python3 '<engine>/extensions/agi/bin/write.py'` | named node operations; a hand edit becomes an engine action |
+| `python3 '<engine>/extensions/agi/bin/write.py'` | goal:g4.18 — named node operations; a hand edit becomes an engine action |
 <!-- COMMANDS:END -->
 
 ## Write guard hook (goal:g4.19, L2 wave 1.5)

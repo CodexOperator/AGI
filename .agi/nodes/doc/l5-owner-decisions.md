@@ -12,7 +12,7 @@ tags:
   - doc
   - l5
   - owner-decisions
-thought_session: dissolve-legacy-2026-09-19
+thought_session: belam-S2-L5-I
 title: L5 owner decisions — verbatim, banked by the Prime
 town: core
 ---

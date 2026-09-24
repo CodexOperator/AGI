@@ -1,0 +1,14 @@
+=== T0 guard 2026-09-23T13:37:07Z ===
+--- spawn_budget ---
+budget: 3/30 live  load 4.9/4.6/4.0  dir=/data/work/agi/.agi/sessions/.spawn-budget
+  a00-30ac1417 tier=kid iter=OSC.06 pid=2732210
+  a00-48468b87 tier=parent iter=OSC.06 pid=2672619
+  a00-72e9d440 tier=parent iter=EF.32 pid=1313471
+--- slots (n_ctx/is_processing) ---
+[{'id': 0, 'n_ctx': 49664, 'is_processing': False}]
+--- mem ---
+MemAvailable:    7751264 kB
+--- gpu before stop ---
+6730 MiB
+--- loadavg ---
+4.90 4.56 3.96 4/1059 2753254

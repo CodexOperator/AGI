@@ -1,0 +1,2 @@
+emptycache cache_mb=77 wall=49.116040209 prompt_n=13 prompt_ms=44992.008 prompt_tps=0.3
+warmcache cache_mb=77 wall=.731966174 prompt_n=13 prompt_ms=136.774 prompt_tps=95.0
