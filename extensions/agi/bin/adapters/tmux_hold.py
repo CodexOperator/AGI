@@ -20,10 +20,14 @@ def start_held(args, env, *, cwd, pane_name, log_file):
         # A private server is replaced wholesale: its inherited environment is
         # the only secret-safe way to give the new pane its exact child_env.
         tmux("kill-server")
+        # Popen supplies a file object, but tmux's shell command needs a path.
+        # Keep the object alive for the direct fallback and hand only its name
+        # to tmux; str(file) leaks a repr like <_io.BufferedWriter ...>.
+        log_path = getattr(log_file, "name", log_file)
         launched = tmux("new-session", "-d", "-P", "-F", "#{pane_pid}",
             "-s", pane_name, "-n", pane_name, "-c", cwd, "--",
             "sh", "-c", 'log=$1; shift; exec "$@" >>"$log" 2>&1',
-            "hold", str(log_file), *args)
+            "hold", os.fspath(log_path), *args)
         if launched.returncode == 0 and launched.stdout.strip():
             return int(launched.stdout.strip())
     except (OSError, ValueError):
