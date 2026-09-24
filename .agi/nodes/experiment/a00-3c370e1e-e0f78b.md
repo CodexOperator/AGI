@@ -14,7 +14,7 @@ scaffold_hash: e9ea7052a8436c01
 season: 2
 title: Real pi-local replication of context-event result trimming
 town: local-maxxing
-verdict: inconclusive
+verdict: inconclusive_lean_disproved:10
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-3c370e1e-e0f78b
@@ -28,7 +28,7 @@ What did you do? What happened? Include command/inputs and actual outputs.
 Raw output, screenshots, logs.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-CORRECTED per thought-master TMM.118 (owed 2): original merge wrongly guessed OOM under memory_max 6G on the kids own scope, reasoning the kid loads the 27B itself -- it does not. The kid is a thin pi-local client; OrcaBonsai-27B-C2 is served by an always-on brain container (llama-server, docker scope) on :8080. Measured cause, from bytes: journalctl -k shows a GLOBAL oom-killer invocation at 15:13:0x 09-24 (trigger task mi-scavenger, likely a Node V8 GC scavenge pass, not this round), constraint=CONSTRAINT_NONE (system-wide, not this cgroup), which killed llama-server pid 477123 (docker-3afa536a7ae60f855b325bd3302bea43d254677e9e229525fa8ba257e0397e4e.scope, anon-rss 6.7 GB) -- the shared brain backend, not the kid. The kids own log shows its last real event immediately after: a 400, request (67981 tokens) exceeds the available context size (65536 tokens), then a compaction_start(overflow) with no further recovery -- consistent with its backend dying mid-conversation, not with the kids own memory. No evidence the kids own process was OOM-killed. Verdict: inconclusive -- the real-pi-local conjunct is untested, not disproved; the measured cause is a box-wide memory event that killed the shared model server, a dependency this round does not control. Residue: retry HOOK.02 only once the brain container has headroom confirmed before dispatch (or after whatever else was pressuring system memory at 15:13Z is identified), not blind.
+CORRECTED per thought-master TMM.122 (the same red as TMM.119, lost in the gen20->21 rotation): the frontmatter verdict field read the bare word inconclusive, which test_evidence_gate::test_no_live_node_carries_an_out_of_range_lean correctly refuses -- the schema requires inconclusive_lean_<proved|disproved>:<N>, never a bare inconclusive. Setting inconclusive_lean_disproved:10: this round collected ZERO evidence about its target hypothesis (lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot) -- it died to a box-wide OOM of the shared brain container before any real-pi-local test data existed, as the version above already establishes from the bytes (journalctl -k, a global oom-killer event, not this cgroup). The previous version's own wording ("untested, not disproved") is why the lean is DISPROVED at the LOWEST honest N rather than PROVED at any N: absence of evidence for a positive claim (the hook keeps loops under the slot) is conventionally the conservative/null reading, not a reason to lean toward the claim holding, but N=10 keeps that lean as close to uninformative as the schema's positive-integer requirement allows -- this is not a finding against the hypothesis, it is a record that the hypothesis was not tested. The prior THOUGHT's measured-cause analysis is unchanged and correct; only the verdict field's format was invalid. Residue unchanged: retry once the brain container's headroom is confirmed before dispatch.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
