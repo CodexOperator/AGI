@@ -201,6 +201,28 @@ def test_pi_argv_loads_no_context_files():
     assert argv.count("--no-context-files") == 1
 
 
+def test_pi_argv_does_not_duplicate_caller_no_context_files():
+    argv = harness_template.render(
+        "pi", bin_path="pi", provider="p", model="m", thinking="medium",
+        extra_args=["--no-context-files", "--append-system-prompt", "brief"],
+        prompt="turn")
+    assert argv.count("--no-context-files") == 1
+
+
+def test_pi_argv_no_context_files_stays_before_the_prompt_when_duplicated():
+    """A caller-supplied duplicate must not relocate the flag after the
+    positional prompt (mur-9-5) — count-only assertions can't catch this."""
+    argv = harness_template.render(
+        "pi", bin_path="pi", provider="p", model="m", thinking="medium",
+        extra_args=["--no-context-files", "--append-system-prompt", "brief"],
+        prompt="turn")
+    assert argv == [
+        "pi", "--provider", "p", "--model", "m", "--thinking", "medium",
+        "--no-context-files", "-p", "--mode", "json",
+        "--append-system-prompt", "brief", "turn",
+    ]
+
+
 # --------------------------------------------------- the seam itself (F1/F2)
 
 
