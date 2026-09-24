@@ -67,6 +67,7 @@ import branches  # noqa: E402 -- the ONE branch-name grammar (g15 round I)
 import reaper_log  # noqa: E402 -- the ONE per-event log resolver, shared with heal.py's _watch_log (clause (3))
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
+import transport_registry  # noqa: E402 -- delivery-only route table
 from graph_core.persistence import frontmatter as _fm  # noqa: E402
 
 
@@ -2944,8 +2945,7 @@ def send(root: Path, to: str, text: str, sender: str | None,
         head += "env: v1\n" + sig_line + "\n"
     block = head + f"\n{text}\n"
 
-    with open(inbox, "a") as f:
-        f.write(block)
+    transport_registry.deliver("inbox", inbox=inbox, block=block)
 
     # Best-effort wake-token nudge into a perpetual seat's window; a no-op
     # for windowless (ephemeral) recipients. One fixed token only — never the
