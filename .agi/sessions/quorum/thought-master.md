@@ -11,36 +11,27 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (01:3xZ 09-24, gen 14)
+## Live state (02:3xZ 09-24, gen 14)
 ```
-LANDED         DE d81b44404 (merge-up #4 = EF.83-86; EF.84 with the named no-cell residue, 0 such seats here) + the earlier 09-23 landings
-FREE BLOCKED   02:2xZ (TMM.85 / TMM.86 hold pi-free): the account in use allows only provider deepseek -> 404 for the free model, 0 USD;
-               the owner's dashboard fix = allow `stealth` (asked 02:1xZ; [red] to the Prime) -- was LIFTED 02:1xZ TMM.83 / TMM.84: the Prime's [rule] 02:13Z moved dispatch to the other OpenRouter account (credit_balance 14.04 of 192
-               at 02:1xZ; mints work; the old account's 0.48 sat under provisioning.py:206's hard-coded 1 USD mint floor) · owner: "still on
-               the free model" -> pi-free open (parents, kids, murs); a pi-free parent's kids pass --harness pi-free until EF.90 lands
+NORMAL OPS     OWNER 02:3xZ (verbatim on goal:g5): "Let's resume normal operations using the free Openrouter endpoint. No more special usd0 runs
+               just research towards doing more efficient usd0 runs in the future" -> TMM.89 / TMM.90: the standard town line on --harness
+               pi-free (stealth/space-bunny-alpha, 0 USD; the row is on the trunk f83d731911) once DE's ONE probe (TMM.87) passes
+BLOCKER        the account in use (the Prime's 02:13Z move: 14.04 of 192 USD, mints work) allowed ONLY provider deepseek at 02:2xZ -> 404 for the
+               free model, 0 USD; fix = the owner's dashboard setting (allow `stealth`); [red] to the Prime 02:1xZ
+kids           a pi-free parent's kids pass --harness pi-free until EF.90's harness inheritance reaches the trunk (the ladder's kid row = paid)
 HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
-0-CREDIT LANE  the OWNER, 13 lines 00:xZ-01:3xZ 09-24, verbatim on goal:g5 (TMM.76-80)
-  local brain  OrcaBonsai C2 = Bonsai 2 27B PTQ1_0 + abliterate LoRA scale 2.0 (DT's choice = the town's C2 arm), PrismML fork b10685 (CUDA),
-               q4_0 KV, ONE 65,536-token slot, 7.29 GB, decode ~20 tok/s, prefill ~250 tok/s · container brain-orcabonsai27b on 127.0.0.1:8080
-               · the old router container llama-server STOPPED (restore: docker start llama-server) · DT: experiment:director-thought-brain-swap-2026-09-24
-  local round  export PI_CODING_AGENT_DIR=/data/ml/pi-agent-local (built-in openrouter provider -> :8080) + the STANDARD town line -> parent
-               AND kids local (the adapter builds each child env from its parent's) -- UNVERIFIED until DT's first such round (TMM.79)
-  default pi   ~/.pi/agent/models.json byte-identical to /data/ml/pi-models.json.before-20260924T0109Z (the box-wide redirect was NOT applied;
-               PASS 3 + other posts stay on OpenRouter)
-  slot         ONE local round at a time · DE's EF.90 (pi-local kid a00-0d0977d3, 01:29Z: every spawn exports its resolved harness as
-               AGI_HARNESS -> kids inherit) = DE's LAST local round; then the slot is DT's ALONE (leaf A = hypothesis:lm-paths-py-resolves-
-               proposed-box-roots @8ca1a1d1cd queued) and DE runs on pi-free (TMM.81 / TMM.82) · DT's check: no live EF.* in spawn_budget status
-  free cloud   stealth/space-bunny-alpha (0 / 0 USD, 1M ctx, tools; public model list 01:1xZ) via a pi-free harness row in DE's branch config
-               (TMM.80) -- unproved: .env's OPENROUTER_API_KEY is EMPTY, only dispatch's minted per-spawn key reaches OpenRouter; if pi refuses
-               the id, merging it into pi's openrouter provider is MINE (my first try broke auth for that provider: reverted)
-the Prime      told: the swap, the correction (no box-wide redirect), PASS 3 could use the free model · still owes: the account, the two director
-               rows, EF.10 · the router question answered by the owner (Bonsai + KV compression)
-PASS 3         paused by the owner 01:3xZ, resumed on the free model (owner 01:5xZ via the Prime) -- runs on pi-free at the Prime's next CHECK
+usd0           the local lane is RETIRED as an operating mode (the owner cancelled the local kid 02:2xZ: DE SIGTERMed DT's LEAF.03 parent
+               a00-bbb13581); efficient 0-USD runs = RESEARCH hypotheses on the free lane · the brain container brain-orcabonsai27b (OrcaBonsai
+               C2 on :8080) stays up for that research; the old router llama-server is STOPPED (docker start llama-server restores it) ·
+               /data/ml/pi-agent-local exists (unused now) · ~/.pi/agent == its 01:09Z backup
+EF.90          DE's pi-local kid a00-0d0977d3 (every spawn exports its resolved harness as AGI_HARNESS -> kids inherit) -- its [merge-up] comes to me
+LANDED         DE d81b44404 (merge-up #4 = EF.83-86) + the 09-23 landings
+the Prime      PASS 3 resumes on pi-free at its next CHECK (same filter) · still owes: the two director rows, EF.10
 trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-02:2xZ 09-24 gen 14: pi-free blocked at the OpenRouter account (allowed providers = deepseek only), the owner asked; EF.90 holds the local slot
+02:3xZ 09-24 gen 14: normal operations on the free endpoint ordered (TMM.89 / TMM.90); waiting on DE's pi-free probe (the account filter) and EF.90's merge-up
 ```
 state   MAIN clean (only cron-owned comms churn), nothing staged, no gate worktree open
 NEXT    (1) DE's EF.90 lands (review in place by DE) -> its [merge-up] -> the #4-style gate (no mur: read DE's review + the diff yourself)
@@ -60,7 +51,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
 orders       dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.87
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.91
 owner lines  in my pane = verbatim on goal:g5 (write.py goal:g5 'note ...' -> snapshot-goals.py --render, then --check); run date -u FIRST
              and stamp THAT clock (two wrong stamps this gen, fixed in place: body line N = file line N+27, 'replace body N:N --force <file>')
 local lane   the local server = 127.0.0.1:8080 (NOT 18080) · pi-local mints no credential · a kid WITHOUT --harness resolves the ladder's
