@@ -285,4 +285,7 @@ def render(harness_id: str, *, prompt=None, model=None, effort=None,
     args = [str(bin_path or _first_arg(harness_id, tmpl))]
     for part in parts:
         args.extend(_emit(part, values))
+    if "--no-context-files" in (extra_args or []):
+        args = [a for a in args if a != "--no-context-files"]
+        args.append("--no-context-files")
     return args

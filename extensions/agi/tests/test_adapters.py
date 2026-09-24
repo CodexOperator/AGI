@@ -201,6 +201,14 @@ def test_pi_argv_loads_no_context_files():
     assert argv.count("--no-context-files") == 1
 
 
+def test_pi_argv_does_not_duplicate_caller_no_context_files():
+    argv = harness_template.render(
+        "pi", bin_path="pi", provider="p", model="m", thinking="medium",
+        extra_args=["--no-context-files", "--append-system-prompt", "brief"],
+        prompt="turn")
+    assert argv.count("--no-context-files") == 1
+
+
 # --------------------------------------------------- the seam itself (F1/F2)
 
 
