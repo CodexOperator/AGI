@@ -531,7 +531,8 @@ def _timeout(args):
     raise subprocess.TimeoutExpired(args, 60)
 
 
-def _stub_git_run(monkeypatch, *, fetch=None, probe=None, push=None):
+def _stub_git_run(monkeypatch, *, fetch=None, probe=None, push=None,
+                  plumbing=None):
     """Route `subprocess.run` inside rotate: a `fetch` / `ls-remote` / `push`
     call is answered by the given callable (or raises through it); every other
     git call falls through to the real binary, so the tmp fixture stays real."""
@@ -545,6 +546,8 @@ def _stub_git_run(monkeypatch, *, fetch=None, probe=None, push=None):
                 return probe(args)
             if "push" in args and push is not None:
                 return push(args)
+            if "hash-object" in args and plumbing is not None:
+                return plumbing(args, *a, **kw)
         return real(args, *a, **kw)
 
     monkeypatch.setattr(rotate.subprocess, "run", fake)
@@ -599,6 +602,27 @@ def test_publish_push_oserror_fails_and_never_raises(tmp_path, monkeypatch):
     assert out.startswith("authority: FAILED"), out
     assert "could not launch git push" in out, out
     assert "authority: SKIPPED" not in out, out
+
+
+def test_publish_plumbing_timeout_is_bounded_fails_and_defers_the_swap(
+        tmp_path, monkeypatch):
+    """Every authority-plumbing git call is bounded; hash-object timeout is
+    an authority FAILED, and the retry keeps the successor key deferred."""
+    _repo, g, posts, _bare = _fixture(tmp_path)
+    seen_timeouts = []
+
+    def timeout_plumbing(args, **kw):
+        seen_timeouts.append(kw.get("timeout"))
+        raise subprocess.TimeoutExpired(args, kw.get("timeout") or 0)
+
+    _stub_git_run(monkeypatch, plumbing=timeout_plumbing)
+    out = rotate._publish_row_to_authority(g, "aa", posts.read_text())
+    assert out.startswith("authority: FAILED"), out
+    assert "authority commit build" in out and "timed out" in out, out
+    assert "authority: SKIPPED" not in out, out
+    assert seen_timeouts and all(seen_timeouts), seen_timeouts
+    seat_key, before = _seed_authority_pending(g)
+    _assert_retry_defers(g, seat_key, before)
 
 
 def test_ef86_fetch_timeout_fails_and_defers_the_swap(tmp_path, monkeypatch):
