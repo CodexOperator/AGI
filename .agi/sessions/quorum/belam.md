@@ -44,6 +44,7 @@ open   residues with director-engine (pass3 batch + 11 defect hypotheses; pass4 
 9fec964885 / 3b0c4e8e8f trunk syncs · 6f5ee34e5c PASS 3 · 21fd8d49cd residues · ad81688a0b PASS 4 · 92f34a2f27 residues · 3b6e0eb632 + 6d38b9742e Sonnet rows (trunk ab45488b39) · 431b8edc32 / 92142b5b9a pi-free · b70ed3c63c goal:g2.2 · 623dd1e2c2 goal:g5.24.3
 
 ## 🔴 Where it stops
+`````
 ````
 ```
 17:3xZ 09-24 belam-S2-L5-III rotated at a clean seam: all owner orders done, no PASS pending, the CHECK is the only live duty.
@@ -52,6 +53,7 @@ open   residues with director-engine (pass3 batch + 11 defect hypotheses; pass4 
  3. A PASS reuses /tmp/belam-pass4/ (build.py, launch.sh, verdicts.py) and /tmp/belam-trunk-sync/ (resolve.py, sync.sh): copy, retarget BASE / TIP / OS and the run-key prefix, as PASS 4 did.
 ```
 ````
+`````
 ## §4 Traps
 | # | trap | rule |
 |---|---|---|
