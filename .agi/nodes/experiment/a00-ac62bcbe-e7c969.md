@@ -6,6 +6,7 @@ parents:
   - hypothesis:lm-jev-cua-off-the-shelf-survey-against-action-registry-and-magic-pane
 next_edges: []
 confidence: 0.78
+edited_by: a00-b4fb9e29
 evidence_runs:
   - experiment:a00-ac62bcbe-e7c969
 loop: hypothesis:lm-jev-cua-off-the-shelf-survey-against-action-registry-and-magic-pane@s2
@@ -44,3 +45,7 @@ The synthesis is stored at `.agi/context/local-maxxing/troves/2026-09-24-jev-sur
 
 ## Agent Notes
 Public-docs digest covers three concrete components with all four fields; Cua, Browser Use, and LangGraph are adapt/reference-only, while openjev is demoted because its reachable public landing lacked a stable dependency contract. No live key or model call.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+WHAT THE INSTRUCTION SAID: survey at least three off-the-shelf components and fill needs, key-fit, recommendation, and reason. WHAT THE MACHINE ACTUALLY DOES: the synthesis file contains four rows, with three concrete rows populated and openjev explicitly demoted; the public README checks fetched in this review confirm Cua offers a bring-your-own model, Browser Use requires Python and an OpenAI/provider model, and LangGraph is a pip-installable orchestration framework. TypeSafe concepts-api.md says POST /v1/systemone accepts noul/choice/score only and explicitly excludes replies/code/reasoning, so the no/partial key-fit calls are supported. THE NEAR MISS: accepting a general LLM loop as TypeSafe-compatible because the rows name a provider, or padding openjev with an inferred contract. IF I DEVIATED: none. Probes: auth—wrong OpenAI credential is not a TypeSafe-compatible System One credential; gate—the typed endpoint rejects a general text-generation request shape; wire—the synthesis artifact contains the changed survey rows and the node points to it. No live TypeSafe or paid call was made.
+<!-- THOUGHT:END -->
