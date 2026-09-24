@@ -6401,6 +6401,25 @@ def test_worktree_reader_committed_lookup_targets_main_not_worktree(
         "not [] (the worktree bug) and not a worktree-forked row")
 
 
+def test_load_rows_do_fetch_false_reads_pushed_ref_without_fetching(
+        tmp_path, monkeypatch):
+    """The no-fetch path reads the last-fetched authority; the default still fetches."""
+    calls = []
+    rows = [{"name": "seat-a", "sig_scheme": "ed25519", "pubkey": "00"}]
+
+    def pushed(root, ref, do_fetch):
+        calls.append(do_fetch)
+        return (rows, "deadbeef", "origin/season2/main")
+
+    monkeypatch.setattr(send_mod, "_pushed_seats", pushed)
+    monkeypatch.setattr(send_mod, "_seats_committed_rows", lambda root: [])
+
+    assert send_mod._load_rows(tmp_path, do_fetch=False) == rows
+    assert calls == [False]
+    assert send_mod._load_rows(tmp_path) == rows
+    assert calls == [False, True]
+
+
 def test_empty_pushed_set_reads_none_never_dirty_copy(
         tmp_path, monkeypatch):
     """CLAUSE (2): an EMPTY pushed row set (a real, reachable authority with
