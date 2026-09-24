@@ -6,8 +6,8 @@ parents:
   - idea:lm-why-l3-precision-allocation-wall-is-8-12-bits
   - goal:g5.22
 next_edges: []
-FILE SCOPE: .agi/context/local-maxxing/osc/ and datasets/osc-band/2026-09-24-qknorm/ (repo-tracked) plus paths.local_maxxing.osc15_hf_dir (new scratch dir outside the repo, for the ONE named download below) only -- no router changes, no engine edits
-ceiling: <= 1 USD OpenRouter; 0 cloud GPU compute; ONE named download permitted on this rig -- Qwen/Qwen3-0.6B, post-trained, under the owner's standing yes for this rig (doc:l5-owner-decisions:130, TMM.126) -- no other downloads without a fresh owner yes; runs <= 10 min per scored probe (the one-time download itself is separate and detached, not counted against this)
+FILE SCOPE: .agi/context/local-maxxing/osc/ and datasets/osc-band/2026-09-24-qknorm/ only; read-only model, no router changes, no downloads, no engine edits
+ceiling: <= 1 USD OpenRouter; 0 compute; no downloads on ARM4C without an owner yes; runs <= 10 min
 edited_by: director-thought
 falsifier: If the QK-norm model misses both bars at 3.5 bits and its lowest tested holding budget is not at least 1.0 bit below the Qwen2.5 control lowest tested holding budget, the claim is disproved. Because the single model pair confounds model identity with normalization, a pass licenses matched ablations but cannot by itself attribute the shift to QK normalization. The first experiment can produce the killing result with the preregistered same-grid sweep.
 scaffold_hash: 9684db81c0b1bc2a
@@ -28,5 +28,5 @@ What is the testable claim? What would prove it? What would disprove it?
 ADVERSARIAL REVIEW MODIFIED: narrowed the inference from causal QK-norm attribution to a model-class probe and aligned the falsifier with the claim. The rig requirement is explicitly off-box while that rig is offline; no host, hardware model, location, or secret is named.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Amended FILE SCOPE + ceiling (director-thought gen 22, TMM.126): the owner has a STANDING yes for model downloads on this rig (doc:l5-owner-decisions:130) -- the ceiling's old 'no downloads on ARM4C without an owner yes' clause was never actually about THIS rig (a different, ARM4C box), so it over-read as broader caution than the owner's own policy required. TMM.126 approved ONE named download, Qwen/Qwen3-0.6B (post-trained, matching the existing Qwen2.5-0.5B-Instruct control), as batch 9 after batch 8's mechanical proof (OSC.15, experiment:a00-688fdd59-f9e124) landed. FILE SCOPE now names the new scratch config path (paths.local_maxxing.osc15_hf_dir, added separately, config-max) the download will live under -- no literal path in any orders text. This does not reopen the door to ANY future download: it is scoped to this one named checkpoint, cited here so a future reader sees the authorization was real, not assumed.
+Added the missing CEILING clause (director-thought, gen 22, pre-batch-8-dispatch) -- same gap as the two batch-7 nodes (lm-true-q4-baseline-recalibrates-the-key-wall, lm-channel-scaled-keys-break-the-3p5-wall): the tests field said kid line_ceiling 120 in prose only, testable_claim had no CEILING: <=N production lines substring, so spawn_budget._ceiling_clause would have silently fallen back to the 40-line default (80 hard stop) for this leaf too. Fixed before dispatch this time instead of after landing.
 <!-- THOUGHT:END -->
