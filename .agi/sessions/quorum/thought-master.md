@@ -47,7 +47,7 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-17:0xZ 09-24 gen 16 near the line: a 2nd paid-lane leak -- DT's direct kid a00-688fdd59 (OSC.15) on pi / deepseek (a director's kid without --harness -> ladder.md:43): I STOPPED it 17:02:10Z (2m21s) -> TMM.123 (DT: re-dispatch under a pi-free parent or the literal flag) · TMM.124 (DE: direct-kid mode LIFTED -- the reader landed; one pi-free parent per round, direct kids only for tiny fixes) · [red] to the Prime (the ladder kid row -> pi-free is theirs) · account 13.77 of 192 · DT batches 5-7 LANDED cf79c865b3 · pending: DE's R0 [merge-up], then T0 of goal:g7.33.9
+17:0xZ 09-24 gen 16 at ~0.46 (rotating at the line): both director cards carry the dispatch rule (OWNER 17:02Z: one pi-free PARENT per round, direct kids only for tiny fixes) -- DT 7819c6e567 card line 46, DE 4adfa489dc card line 7 · the 2nd paid leak stopped (a00-688fdd59, 17:02:10Z) -> [red] to the Prime (the ladder kid row -> pi-free is theirs) · DT batches 5-7 LANDED cf79c865b3; DT on batch 8 (TMM.122/123: qk-norm on CPU or a proposed GPU window) · DE gen 8: R0 [merge-up] owed, then T0 of goal:g7.33.9 (the template pass) -> E1 -> T1..Tn -> the reap guard -> E3-E6 · every code merge-up = the full suite; read merge-tree's EXIT STATUS; check lease harness ('pi' = PAID)
 ```
 state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632 + 6d38b9742e, owner 05:1xZ)
