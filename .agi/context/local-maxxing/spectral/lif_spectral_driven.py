@@ -13,7 +13,7 @@ state-independent and enters exactly.  With spikes frozen for S steps:
   vh_m <- a^S vh_m + b * sum_{j<S} a^{S-1-j} (lambda_m sh_m + xhat_m(t+j))
 M symmetric low modes kept; threshold+reset only at snapshot boundaries.
 """
-import importlib.util, json, os, subprocess, time
+import importlib.util, json, os, subprocess, tempfile, time
 import numpy as np
 
 N, SYN, T, DT = 10000, 100, 1000, 0.1
@@ -63,7 +63,8 @@ def ref_trains():
     src = mod.C.replace("if(fired){ v[i]=v1-ONE; total++; }",
                         'if(fired){ v[i]=v1-ONE; total++; printf("S %d %d %d\\n",q,i,t); }')
     src = src.replace('printf("%llu\\n", total);', 'fprintf(stderr,"TOTAL %llu\\n", total);')
-    src_c, exe = "/tmp/tm58drv.c", "/tmp/tm58drv"
+    src_c = os.path.join(tempfile.gettempdir(), "tm58drv.c")
+    exe = os.path.join(tempfile.gettempdir(), "tm58drv")
     open(src_c, "w").write(src)
     subprocess.run(["cc", "-O3", "-march=native", "-fopenmp", src_c, "-o", exe], check=True)
     t0 = time.perf_counter()

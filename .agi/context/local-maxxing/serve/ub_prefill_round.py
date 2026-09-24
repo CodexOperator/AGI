@@ -11,7 +11,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = HERE
 while not os.path.isfile(os.path.join(ROOT, ".agi/config.json")): ROOT = os.path.dirname(ROOT)
 sys.path.insert(0, os.path.join(ROOT, ".agi/context/local-maxxing"))
 import paths
-IMG = "ghcr.io/ggml-org/llama.cpp:server-cuda"; SC = "/data/ml/scratch/osc02"; CACHE = "/data/ml/scratch/cuda-jit-cache"
+IMG = "ghcr.io/ggml-org/llama.cpp:server-cuda"; SC = paths.get("osc02_scratch_dir"); CACHE = paths.get("cuda_jit_cache_dir")
 M = "/work/Qwen3.5-9B-Q4_K_M.gguf"
 OUT = paths.get_local("serving_sweep_ub_out_dir"); LOG = OUT + "/logs"
 ARGS = ["--cache-reuse", "8", "--host", "0.0.0.0", "--jinja", "--alias", "Qwen3.5-9B-Q4_K_M", "--fit", "on",
