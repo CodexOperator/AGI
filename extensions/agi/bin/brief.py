@@ -80,7 +80,8 @@ PAID_FOR_PATH_GUARD = (
 
 def _paid_for_path_guard(project_root: Path | None = None) -> str:
     """Read the project override, retaining the historical default."""
-    value = _config_data(project_root).get("brief", {}).get("paid_for_path_guard")
+    root = _resolve_graph_root(project_root)
+    value = _brief_cell(root).get("paid_for_path_guard")
     return value if isinstance(value, str) and value else PAID_FOR_PATH_GUARD
 
 

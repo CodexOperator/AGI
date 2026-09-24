@@ -99,6 +99,17 @@ def test_paid_for_path_guard_follows_project_config(tmp_path):
     assert "CONFIG-GUARD-SENTINEL" in rendered
 
 
+def test_paid_for_path_guard_follows_config_brief_node(tmp_path):
+    root = _root(tmp_path, parts={"kid": ["head"]})
+    _write(root, "nodes/config/brief.md",
+           "---\nid: config:brief\nbrief:\n"
+           "  paid_for_path_guard: NODE-GUARD-SENTINEL\n---\n")
+    rendered = "\n".join(brief.assemble(
+        tier="kid", agent_id="a", iter_n=1, cli_py="cli.py",
+        project_root=root))
+    assert "NODE-GUARD-SENTINEL" in rendered
+
+
 def _write(root: Path, rel: str, text: str) -> Path:
     p = root / rel
     p.parent.mkdir(parents=True, exist_ok=True)
