@@ -2649,10 +2649,6 @@ def main() -> int:
             seat_val = _resolved_seat(args.seat)
             if seat_val:
                 spawn_env["AGI_SEAT"] = seat_val
-            # hypothesis:every-spawn-exports-its-own-resolved-harness-as-agi-harness --
-            # hand the child the harness resolved FOR IT, not merely inherit the
-            # parent's AGI_HARNESS (the same resolved spec the spawn above used, no literal)
-            spawn_env["AGI_HARNESS"] = harness_name
             if args.tier in ("kid", "parent"):
                 plugin_root = Path(__file__).resolve().parent.parent
                 hooks_dir = plugin_root / "hooks" / "agent-git"
