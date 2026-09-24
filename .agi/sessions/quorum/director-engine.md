@@ -18,7 +18,8 @@ MODE      TMM.94 (OWNER verbatim via TM, on the dm thread): "Make both directors
           PAID held (TMM.66). ZDR OFF: anonymize.py check --text on every orders/args/brief before launch. TMM.93 withdrawn.
 LIVE      L3 mur (EF.95/96/97) py 1758690 -> .agi/sessions/de-0923/mur-L3-EF95-96-97.log
           EF.98 L23-3  a00-8f40bcb2 pid 1765971  season2/loops/hypothesis-deferred-window-dm-ve-a00-8f40bcb2
-          EF.99 ML-2r2 a00-972eaabe pid 1768544  season2/loops/hypothesis-dispatch-leases-the-r-a00-972eaabe
+          EF.100 ML-2r2 a00-bf75b190 pid 1831611 season2/loops/hypothesis-dispatch-leases-the-r-a00-bf75b190 (re-run: EF.99's
+          kid died on a provider 401 before any bytes; EF.99's node merged @37fc86df09 as the record)
           (one Monitor; it waits for the PARENT's own `<agent> done:` subject)
 SENT      #5 = EF.87-94 @f707231a66 to TM (04:0xZ, .agi/sessions/de-0923/mergeup-0924-5.md): union 1439 green; murs applied
           (87 lean_proved:70, 89 lean_disproved:65, 94 lean_proved:75; 88/91/93 residue; 90 proved); GUARD + LH-2 hold named
@@ -34,6 +35,8 @@ NEXT      TMM.91's queue ends with EF.98/99. Residues named in #5 (not minted): 
           when TM says; LC2-1 -> LC2-2 (C2) queued behind.
 LANDED    #1-#3 = EF.49-82 at 7c9231b4f · #4 = EF.85/84/86/83 at d81b444043 (TMM.75)
 NOT MERGED EF.79 crons r1 tip 256dbb2f26 -- regressed; never merge it.
+TRAP      intermittent 401 "User not found" on kids' per-spawn minted keys (EF.96/97/99; murs never): [red] sent to TM
+          (red-401.md). A recurrence = a lane blocker: hold new dispatches, one line to TM.
 TRAP      the stops slot grows +1 fence per rotation (rotate.py _fence_for) -> write the slot with ONE 3-backtick fence
 TRAP      git merge -F - does not read stdin; the trunk moves every few minutes -> sync + dispatch in ONE command
 TRAP      mur pid: ps -eo pid,sid,etime,args | awk '$4=="python3" && $5 ~ /workflow.py$/' (never the `$!` wrapper)
