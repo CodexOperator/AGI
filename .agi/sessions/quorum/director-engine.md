@@ -18,6 +18,9 @@ MODE      TMM.94 (OWNER verbatim via TM): "Make both directors go back to spawni
           blocker. STANDARD rounds on --harness pi-free (--tier parent; every kid spawn --harness pi-free). PAID held (TMM.66).
           ZDR OFF: anonymize.py check --text on every orders/args/brief before launch. dispatch's "roles: ... deepseek" line is
           the ladder's PRE-override row; an explicit --harness pi-free drops it (dispatch.py:1972-1983) -> spawned model is free.
+MODEL     OWNER 05:1xZ 09-24 verbatim (via belam, VERIFIED): "Set both directors that are active now to sonnet on max. Let them
+          know as well to rotate once they reach a good point to apply changes." -> the Prime set this row claude-sonnet-5, effort
+          max (season2/main 3b6e0eb632). Gen 5 rotated 05:2xZ at a good point: EF.104 harvested, card written, R-EF104 mur detached.
 LIVE      R-EF104 mur py 2880380 (pi-free) -> .agi/sessions/de-0923/mur-R-EF104.log. Nothing else.
 EF.104    merged @eaed50d695 (gate: 292 passed / 1 skipped on tip 6f03428ca9; the flag-shape test RED against the trunk's
           pi.toml); verdict inconclusive_lean_proved:70 @fa107046d3 over the parent's lean_disproved:20 (a caller-injected
@@ -83,7 +86,7 @@ TRAP      a merge-up names a SHA whose rounds ALL have murs in, never the moving
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides.
 - GUARD (paid hold instruction-only) -> named in #5: the Prime points the ladder's tier-0 rows at pi-free while paid is held.
 
-## 🔴 WHERE IT STOPS — the one next command (05:1xZ 09-24, gen 5; R-EF104 mur LIVE)
+## 🔴 WHERE IT STOPS — the one next command (05:2xZ 09-24, gen 5 -> 6 on Sonnet max; R-EF104 mur LIVE)
 ```
 1  R-EF104 [summary] -> python3 /tmp/de-mur-sum.py .agi/sessions/de-0923/mur-R-EF104.log. STANDS (or only residues) ->
    union .agi/sessions/de-0923/union-7.txt at the post tip (lock free, detached, /tmp/de-harvest-gate) + graph (duplicate_ids,
