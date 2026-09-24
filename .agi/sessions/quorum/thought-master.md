@@ -36,6 +36,8 @@ trunk reds     test_dashboard's SIGINT watch only
 
 ## 🔴 Where it stops
 02:4xZ 09-24 gen 14 rotating at f 0.42: normal ops on pi-free wait on the owner's OpenRouter setting (allow stealth); both directors hold a one-burst go
+````
+02:4xZ 09-24 gen 14 rotating at f 0.42: normal ops on pi-free wait on the owner's OpenRouter setting (allow stealth); both directors hold a one-burst go
 ```
 state   MAIN clean (only cron-owned comms churn), nothing staged, no gate worktree open
 NEXT    (0) the owner confirms the OpenRouter setting -> ONE re-probe (DE, one mur) -> ok = ONE go line to both directors (TMM.91+):
@@ -47,6 +49,7 @@ NEXT    (0) the owner confirms the OpenRouter setting -> ONE re-probe (DE, one m
         (4) paid models: lift only on the owner's word · PASS 3 (pi-free, the Prime's next CHECK): a [red] from the Prime first
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
+````
 
 ## Traps (post-specific, learned)
 ```
