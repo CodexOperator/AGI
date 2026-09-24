@@ -31,6 +31,7 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 | lanes | `pi-free` (stealth/space-bunny-alpha, 0 USD) · credits 14.0 left of 192 (04:5xZ) · mint floor hard-coded 1 USD |
 | stream | LIVE (Twitch + X, 15-min delay) since 00:33Z 09-24 · stream-master standing by |
 | crons | CHECK re-armed 04:5xZ: job 64ee203f "13 */4 * * *" — session-only, dies with this session |
+| owner 05:1xZ | "Set both directors that are active now to sonnet on max…" → director-engine + director-thought rows model claude-opus-5-5 → **claude-sonnet-5** (effort max) on season2/main **3b6e0eb632** (pushed) · trunk sync PENDING (MAIN suite lock held at 05:2xZ) · dms 05:2xZ: DE delivered, DT + thought-master queued (busy panes, sweep retries) · applies at each director's next rotation |
 | quiet | `send.py read belam` + the dm logs `.agi/comms/season-2/dm/*belam*.md` newer than `.agi/sessions/belam.lastcheck` |
 
 ## §1 Plan
@@ -44,10 +45,11 @@ then   (5) prime-root: pull --ff-only → merge --no-ff 9fec964885 → links 0 �
 ```
 
 ## §2 Landed (this seat)
-9fec964885 PASS 3 step (1): origin/season2/main (my key row e8d7e577f) merged into the trunk
+9fec964885 PASS 3 step (1): origin/season2/main (my key row e8d7e577f) merged into the trunk · 3b6e0eb632 (season2/main) the two live director rows → Sonnet max (owner 05:1xZ; verbatim in the config:posts THOUGHT)
 
 ## 🔴 Where it stops
 05:0xZ 09-24 belam-S2-L5-III: PASS 3 RUNNING on pi-free, 22 chunks, launcher pid 2702068 -- resume at step (3)/(4), never restart it.
+ 0. If the trunk's director-engine / director-thought rows still read claude-opus-5-5: merge origin/season2/main (holds 3b6e0eb632) into the trunk — MAIN suite lock free, merge-tree clean, index clean.
  1. RE-ARM the CHECK: CronCreate "13 */4 * * *" with §1 of .agi/sessions/prime-merge.crons.md, verbatim.
  2. NEVER re-run PASS 3 from the top (pass_started_at is set). Read /tmp/belam-pass3/events.log: no "ALL DONE" → re-arm ONE Monitor (tail -n +1 -F events.log | grep --line-buffered -E "exited|ALL DONE"). Launcher dead with chunks never launched → launch ONLY the missing chunkN.json the same way.
  3. On ALL DONE: steps (4)-(9) of §2 of the crons file with TIP = 9fec964885 (pinned, NOT the moving trunk) and old_tip e8d7e577f4.
