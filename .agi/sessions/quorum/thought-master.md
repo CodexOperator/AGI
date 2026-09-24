@@ -35,23 +35,25 @@ usd0           the local lane is RETIRED as an operating mode (the owner cancell
                /data/ml/pi-agent-local exists (unused now) · ~/.pi/agent == its 01:09Z backup
 EF.90          the WRITER half is on the trunk (dispatch.py:2656 exports AGI_HARNESS; a00-0d0977d3 verdict=proved, 3807d32c6d) -- NOTHING reads
                it -> TMM.107 (2) to DE: a 0-USD parent's kid with no --harness takes that harness; paid / claude-code parents unchanged
-DT research    02:41Z (28ed92197b): hypothesis:lm-pi-agents-load-claude-md-twice (CLAUDE.md loaded twice = 13,916 tokens = 55 pct of a first
-               prompt on EVERY pi agent; lever pi --no-context-files = DE's lane once measured) · hypothesis:lm-pi-compacts-before-the-slot-
-               ceiling-once-the-window-is-declared · LEAF.04 on pi-free GO (TMM.92) · SWR-SV.01 closes as a director review
-LANDED         DT b8eb4e9ea1 (batch 2, no code: CTX.02 + CMP.01; lean gate) · DT 7b63a6a5b2 (the LEAF batch: LEAF.04-06, CEN.01, REPLAY.01, CTX.01) · DE 2687448d93 (#6 = EF.95-100 + pi-local max_live 1; EF.97's verdict fixed in one node) · 5827a677a7 (#5 = EF.87-94) · with the Prime: ladder tier-0 = paid (GUARD) · DT's 4 box cells · kid 401s = DE spawned kids with project = the town NAME (fixed next round)
-the Prime      PASS 3 may resume on pi-free at its next CHECK ([owner] line 03:1xZ) · still owes: the two director rows, EF.10
+DT research    batch 3 LANDED 50db63e3fb: CMP.03 DISPROVED (a declared context window does not bound one pi -p loop; pi checks compaction
+               only at agent_end + a new prompt) · HOOK.01 PROVED conf 0.9 (a 13-line context-event hook: 40 requests, max 44,849.7, 0 x 400;
+               control 400s at 12 + 22) · batch 4 = TMM.108: HOOK.01b (stub) -> HOOK.02 as a brain-slot PROBE only, no pi-local kid ·
+               SWR-SV.01 + REPLAY.02 HOLD · the claude-md-twice lever (CTX.01) = DE's merge-up #7
+LANDED         DT 50db63e3fb (batch 3, no code: CMP.03 + HOOK.01; lean gate) · DT b8eb4e9ea1 (batch 2, no code: CTX.02 + CMP.01; lean gate) · DT 7b63a6a5b2 (the LEAF batch: LEAF.04-06, CEN.01, REPLAY.01, CTX.01) · DE 2687448d93 (#6 = EF.95-100 + pi-local max_live 1; EF.97's verdict fixed in one node) · 5827a677a7 (#5 = EF.87-94) · with the Prime: ladder tier-0 = paid (GUARD) · DT's 4 box cells · kid 401s = DE spawned kids with project = the town NAME (fixed next round)
+the Prime      wrote both director rows -> claude-sonnet-5 max (owner 05:1xZ; 3b6e0eb632 + 6d38b9742e) · PASS 3 on pi-free · still owes:
+               EF.10, the ladder kid row -> pi-free ([red] 05:1xZ)
 trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-05:1xZ 09-24 gen 16: DE's [red] answered -- EF.104's kid spent on the paid lane (a pi-free parent, no --harness -> ladder.md:43); account 13.94 of 192 USD (0.10 moved since 03:1xZ); TMM.107 to DE (merge-up #7 = CTX.01, then the AGI_HARNESS reader, direct pi-free kids until then); [red] to the Prime (the ladder kid row stays theirs)
+05:4xZ 09-24 gen 16: DT batch 3 LANDED 50db63e3fb (lean gate); TMM.108 to DT (batch 4: HOOK.01b -> HOOK.02 as a brain-slot probe); TMM.109 to DE (after TMM.107: CMP.02's lease race, then the HOOK port on my word); both director rows = Sonnet max (the Prime, owner 05:1xZ); earlier: DE's paid-lane [red] answered (TMM.107; 0.10 USD by the account)
 ```
 state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
-NEXT    (0) the directors' model cells: config:posts director-thought.model + director-engine.model = stream-master's Sonnet id, NO rotation --
-            only the Prime or the owner can write them; the owner gives the seated Prime (belam-S2-L5-III, PASS 3 in MAIN) the word
+NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632 + 6d38b9742e, owner 05:1xZ)
         (1) HAND SMALL BATCHES (the formation): research -> director-thought (priority row [1]-[4] on the board), engine -> director-engine
             (CTX.01 one-copy build first, TMM.99); keep the board's trajectory rows current as results land; directors report at batch end only
-            NOW: DE = TMM.107 (merge-up #7 = CTX.01, then the reader half, one item) · DT = CMP.03 in flight (parent a00-74f91ef4, pi-free) · next = TMM.108
+            NOW: DE = TMM.107 (merge-up #7 = CTX.01, then the AGI_HARNESS reader) -> TMM.109 (a) CMP.02's lease race -> (b) the HOOK port
+            on my word · DT = TMM.108 batch 4 (HOOK.01b -> HOOK.02 probe) · next = TMM.110
         (2) merge-ups: code = the full suite gate (detached /tmp worktree, ~17 min); no code = the lean gate (evidence + THOUGHT tests,
             links, goals, leak scan) · the #63 board-body verbatim is the Prime's (owner: the Prime does those edits)
         (3) paid models held; the ladder tier-0 kid row = paid -> the Prime's edit ([red] gen 15 + 05:1xZ gen 16) · kids: --harness pi-free + project = the parent worktree
@@ -67,7 +69,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
 orders       dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.108
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.110
 owner lines  in my pane = verbatim where the HEAD's notes line says: a template or config, then the role doc, then town:local-maxxing --
              NEVER a goal (goals are project trackers, owner 09-24) · the stamp = the jsonl's own timestamp for the owner's message
              (.agi/sessions/thought-master.meter names the jsonl), never a guess · a one-line replace inside a fence = 'replace body N:N --force <file>'
