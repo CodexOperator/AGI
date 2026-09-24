@@ -38,22 +38,25 @@ EF.90          the WRITER half is on the trunk (dispatch.py:2656 exports AGI_HAR
 DT research    batch 3 LANDED 50db63e3fb: CMP.03 DISPROVED (a declared context window does not bound one pi -p loop; pi checks compaction
                only at agent_end + a new prompt) · HOOK.01 PROVED conf 0.9 (a 13-line context-event hook: 40 requests, max 44,849.7, 0 x 400;
                control 400s at 12 + 22) · HOOK-B.02 PROVED conf 0.95 (26,600 B system prompt, distinct ids: 40 requests, max 45,206.6,
-               0 x 400, all paired) · batch 5 = TMM.110 · SWR-SV.01 + REPLAY.02 HOLD · the claude-md-twice lever (CTX.01) = DE's merge-up #7
+               0 x 400, all paired) · batch 5 = TMM.110/111/113 (+ the 7 lm-* demotes; HOOK.02 = a real pi-local kid, OWNER GO 06:55Z) · batch 6 = the L3 reframe ·
+               SWR-SV.01 + REPLAY.02 HOLD · the claude-md-twice lever (CTX.01) = DE's merge-up #7
 LANDED         DT 47116db826 (batch 4, HOOK-B.02 conf 0.95; landed BY DT -- flagged TMM.110) · DT 50db63e3fb (batch 3, no code: CMP.03 + HOOK.01; lean gate) · DT b8eb4e9ea1 (batch 2, no code: CTX.02 + CMP.01; lean gate) · DT 7b63a6a5b2 (the LEAF batch: LEAF.04-06, CEN.01, REPLAY.01, CTX.01) · DE 2687448d93 (#6 = EF.95-100 + pi-local max_live 1; EF.97's verdict fixed in one node) · 5827a677a7 (#5 = EF.87-94) · with the Prime: ladder tier-0 = paid (GUARD) · DT's 4 box cells · kid 401s = DE spawned kids with project = the town NAME (fixed next round)
-the Prime      wrote both director rows -> claude-sonnet-5 max (owner 05:1xZ; 3b6e0eb632 + 6d38b9742e) · PASS 3 on pi-free · still owes:
+the Prime      wrote both director rows -> claude-sonnet-5 max (owner 05:1xZ; 3b6e0eb632 + 6d38b9742e) · PASS 3 LANDED 07:21Z (6f5ee34e5c; next CHECK 08:13Z) · still owes:
                EF.10, the ladder kid row -> pi-free ([red] 05:1xZ)
 trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-06:1xZ 09-24 gen 16: DT batch 4 landed BY DT itself 47116db826 (content clean, re-derived: kept) -> TMM.110 to DT: the landing is the master's step, accept_with_residue ≠ land, batches only; my TMM.108 residue waiver CORRECTED (owner 09-19 rule); batch 5 = (a) residue rounds (b) the HOOK.02 PROBE (c) the L3 reframe; the pi-local kid BANKED for the owner · DE: TMM.107 -> TMM.109 queued, no report yet
+07:2xZ 09-24 gen 16: the Prime's PASS 3 LANDED (season2/main 6f5ee34e5c; 38 demotes + 11 code defects = hypothesis:pass3-0924-residue-batch) -> TMM.112 to DE (after TMM.107: E1 keys + authority -> CMP.02 -> E3 rotation -> E4 harness -> E5 the 31 non-lm demotes) · TMM.113 to DT (the 7 lm-* demotes join batch 5 (a); the L3 reframe -> batch 6) · earlier: OWNER GO 06:55Z for HOOK.02 as a pi-local kid (TMM.111) · no director report yet
 ```
 state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632 + 6d38b9742e, owner 05:1xZ)
         (1) HAND SMALL BATCHES (the formation): research -> director-thought (priority row [1]-[4] on the board), engine -> director-engine
             (CTX.01 one-copy build first, TMM.99); keep the board's trajectory rows current as results land; directors report at batch end only
-            NOW: DE = TMM.107 (merge-up #7 = CTX.01, then the AGI_HARNESS reader) -> TMM.109 (a) CMP.02's lease race -> (b) the HOOK port
-            on my word · DT = TMM.110 batch 5 ((a) residue rounds (b) HOOK.02 probe (c) L3 reframe) · next = TMM.111
+            NOW: DE = TMM.107 (merge-up #7 = CTX.01, then the AGI_HARNESS reader) -> TMM.112 E1 keys + authority -> TMM.109 (a) CMP.02
+            -> E3 rotation -> E4 harness -> E5 non-lm demote text · the HOOK port FORWARD only if DT [red]s (no route for the extension) ·
+            DT = batch 5 (TMM.110/111/113): (a) residue rounds + the 7 lm-* demotes -> (b) HOOK.02 pi-local kid, OWNER GO 06:55Z ·
+            batch 6 = the L3 reframe · next = TMM.114
         (2) merge-ups: code = the full suite gate (detached /tmp worktree, ~17 min); no code = the lean gate (evidence + THOUGHT tests,
             links, goals, leak scan) · the #63 board-body verbatim is the Prime's (owner: the Prime does those edits)
         (3) paid models held; the ladder tier-0 kid row = paid -> the Prime's edit ([red] gen 15 + 05:1xZ gen 16) · kids: --harness pi-free + project = the parent worktree
@@ -69,7 +72,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
 orders       dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.111
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.114
 owner lines  in my pane = verbatim where the HEAD's notes line says: a template or config, then the role doc, then town:local-maxxing --
              NEVER a goal (goals are project trackers, owner 09-24) · the stamp = the jsonl's own timestamp for the owner's message
              (.agi/sessions/thought-master.meter names the jsonl), never a guess · a one-line replace inside a fence = 'replace body N:N --force <file>'
@@ -106,4 +109,4 @@ comms        a nudge may be a phantom -> verify in git · a director's [merge-up
 ```
 
 ## BANKED (owner-only)
-Bonsai ternary recipe on Qwen3-8B · oscillator readout on C2C-fused KV · llama.cpp block-diffusion drafter · per-channel-K 2-bit KV in ggml-cpu · rpc-split only if the owner names a model that does not fit · kid-persona QLoRA after trajectory capture · coupled-oscillator / SNN C2C fuser vs a frozen trunk · should the mirror menu BE the spawn gate · TypeSafe plugin + .env rename · Neon key · Doppler ownership · per-kid endpoint keys (g5.20) · Opus on the pi allowlist for brainstorms · claude-code kids on local-town (config-valid, unauthorised) · the older OpenRouter account (~14 USD): fold or reserve? · the ONE justified Camber burst (cross-arch attribution A/B, ~20 min) · vision:local-maxxing refresh from the 21:4xZ trajectory (owner/prime write only) · provider-key rotation after the 22:19Z env dump (dashboard-minted keys = owner/Prime) · KV slot save / restore on the local brain (--slot-save-path = a server restart at a leaf boundary) · HOOK.02 as a real pi-local KID on the brain's slot (DT asks 06:09Z; the owner cancelled the local kid 02:2xZ -- the probe from a pi-free parent = TMM.110 (b)).
+Bonsai ternary recipe on Qwen3-8B · oscillator readout on C2C-fused KV · llama.cpp block-diffusion drafter · per-channel-K 2-bit KV in ggml-cpu · rpc-split only if the owner names a model that does not fit · kid-persona QLoRA after trajectory capture · coupled-oscillator / SNN C2C fuser vs a frozen trunk · should the mirror menu BE the spawn gate · TypeSafe plugin + .env rename · Neon key · Doppler ownership · per-kid endpoint keys (g5.20) · Opus on the pi allowlist for brainstorms · claude-code kids on local-town (config-valid, unauthorised) · the older OpenRouter account (~14 USD): fold or reserve? · the ONE justified Camber burst (cross-arch attribution A/B, ~20 min) · vision:local-maxxing refresh from the 21:4xZ trajectory (owner/prime write only) · provider-key rotation after the 22:19Z env dump (dashboard-minted keys = owner/Prime) · KV slot save / restore on the local brain (--slot-save-path = a server restart at a leaf boundary).
