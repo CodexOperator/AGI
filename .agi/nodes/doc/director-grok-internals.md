@@ -82,8 +82,9 @@ reports ──▶ {{REPORTS_TO}}
 SURFACE  town:core ↔ .geometry/towns/core.md (TEMP until g7.34.3)
 CLAIM    REOPENED > horizon OR any leaf in town:core (claimable)
          NOT only already-active · director activates THEMSELF
-         distribute durable across depth · ≤18/dir · ≤30 box
-         CAP-RULER: fill toward ≤18 when box can take it + claimable/residual exist
+         distribute durable across depth · ≤5/dir · ≤10 box  (owner GO 2026-09-23 space-bunny; was ≤18/≤30)
+         CAP-RULER: fill toward ≤5 when box can take it + claimable/residual exist  (owner GO 2026-09-23)
+  · OWNER GO 2026-09-23 override (space-bunny): engine spawn.max_live=10 box-wide; directors treat ≤5 live/dir as CAP-RULER (SoT awareness; acquire enforces box max_live only)
            soft floor ≥10 combined = minimum only · NOT a stop after MUR-only fill
          NEST+FILL (HARD · multi-leaf): nest format-worthy residues as MULTIPLE kids · FILL MUR/parent slots toward CAP across leaves
          HORIZON-UNDER-ACTIVE: active parent → scan sub / sub-sub leaves still horizon · those are claimable/spawn targets
@@ -122,8 +123,8 @@ EXCEPT   exposed keys/leak → Belam NOW
 Directors continuously nest format-worthy residues as MULTIPLE kids under the yielding goal
   (multi-leaf nest · not one fat same-level sibling) · FILL toward CAP across those leaves.
 CLAIM: REOPENED > horizon OR any leaf · activate self to concurrent sense
-  distribute durable across depth · spawn.parallel=1/goal · ≤18/dir · ≤30 box
-  soft floor ≥10 = minimum · cap-ruler ≤18 when claimable remains
+  distribute durable across depth · spawn.parallel=1/goal · ≤5/dir · ≤10 box  (owner GO 2026-09-23)
+  cap-ruler ≤5 when claimable remains · box ≤10  (owner GO 2026-09-23; soft floor superseded for this GO)
   HORIZON-UNDER-ACTIVE: under every active goal, scan sub/sub-sub still-horizon leaves → claimable
 ACTIVE-BEFORE-SPAWN: write.py status active (bare) on leaf BEFORE dispatch · never spawn on horizon
 ACTIVE⇒SPAWN SAME TURN: bare active write ⇒ durable pi parent spawn in same wake (HARD)
@@ -158,7 +159,7 @@ watch: SECTION:ROUTINE_WATCH ACTION FORMAT (self-contained HARD fill · NO stand
 watch-claim (HARD · DIAGRAM C): horizon|leaf claimable · write.py status active (BARE) BEFORE spawn
   · never spawn while goal still horizon · quoted 'active' = BUG
   · ACTIVE⇒SPAWN SAME TURN: bare active ⇒ durable pi parent in same wake (HARD)
-  · activate self toward ≤18/≤30 · soft floor ≥10 minimum · distribute durable across depth
+  · activate self toward ≤5/≤10 · distribute durable across depth  (owner GO 2026-09-23)
   · horizon-under-active kids are claimable
 internals-sync: grok-internals-sync title+body from doc:grok-harness-internals-sync ONLY
 OWNER CADENCE (HARD — 2026-09-22): sync every 30m · parents hourly · 15m between bot syncs · parents offset :07 vs :22
@@ -167,9 +168,9 @@ CONCURRENCY (HARD — DIAGRAM B · ROUTINE_WATCH ACTION FORMAT):
   spawn.parallel=1 per goal (config + orders)
   concurrency = spawn multiple parents for multiple goals
               = one parent per goal via separate dispatches
-  ≤18 live / director · ≤30 box-wide · parents+MURs SAME pool
-  CAP-RULER (HARD): ≤18 is the real fill target when box can handle it + claimable/residual/horizon-under-active exist
-  soft floor ≥10 combined (parents+MURs) after each watch/check when town bundle still has claimable work
+  ≤5 live / director · ≤10 box-wide · parents+MURs SAME pool  (owner GO 2026-09-23)
+  CAP-RULER (HARD): ≤5 is the real fill target when box can handle it + claimable/residual/horizon-under-active exist  (owner GO 2026-09-23)
+  under owner 5/10 GO: do not fill past ≤5/dir or box 10 after each watch/check when claimable remains
     · raised from ≥5 · MINIMUM only · NOT a stop
     · distribute across sub/sub-subgoals as needed
     · ONLY exception = end of goal bundle (no claimable / residual / horizon-under-active left)
@@ -224,7 +225,7 @@ pins (post-local DH/DT — fill placeholders):
 
 ACTION FORMAT (HARD — self-contained watch body; NO POINT AT standing §3c / stub):
   Sense → multi-leaf nest owed work → FILL owed MURs toward CAP → residual parents / horizon-under-active → emit
-  CAP-RULER (HARD): ≤18 live/dir · ≤30 box is the REAL fill target when box can take it + claimable work exists
+  CAP-RULER (HARD): ≤5 live/dir · ≤10 box is the REAL fill target when box can take it + claimable work exists  (owner GO 2026-09-23)
     · soft floor ≥10 combined (parents+MURs) — raised from ≥5 — ONLY a minimum, NOT a stop
     · NEVER stop just because soft floor is met after MUR-only fill
     · ONLY exception to filling toward cap = end of goal bundle (no claimable / residual / horizon-under-active left)
@@ -233,7 +234,7 @@ ACTION FORMAT (HARD — self-contained watch body; NO POINT AT standing §3c / s
     2) residual parents owed (see Sense)
     3) fresh claim / horizon leaves (incl. horizon kids under active parents)
   FILL under cap · multi-leaf nest+FILL · spawn MUR(s) · durable systemd · ACTIVE⇒spawn SAME TURN
-  parents+MURs SAME pool ≤18/dir · ≤30 box
+  parents+MURs SAME pool ≤5/dir · ≤10 box  (owner GO 2026-09-23)
   never tip-only table with backlog and zero action when slots free
   never invent slot-blocked / one-at-a-time
 
@@ -258,7 +259,7 @@ ZERO-RESIDUE
   MUR reject/format-fail  ──▶ fix → re-MUR
 
 1) Sense
-   parents alive? workflows running? slots free under ≤18/≤30?
+   parents alive? workflows running? slots free under ≤5/≤10?
    LIVE parent age >90m → health check (progress/traj/log idle · stuck cmd · lease holder alive)
      · unhealthy >90m → treat as hung for watch decision (emit · eligible remur/reclaim ONLY-IF already in SoT · NEVER invent kill)
      · healthy >90m → leave alone
@@ -280,5 +281,5 @@ ZERO-RESIDUE
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner-fix: soft floor ≥5→≥10; CAP-RULER > soft floor (≤18 real target); no early-exit after MUR-only fill; residual parents + horizon-under-active scan; ACTIVE⇒SPAWN SAME TURN; FILL ORDER MUR→residual→horizon; morals up-down + verify-suite forward metric after 0-residue merge-up; cadence/pins unchanged; LIVE parent >90m health check (unhealthy→hung watch decision · healthy→leave · never invent kill)
+owner-fix: owner GO 2026-09-23 space-bunny CAP ≤5/dir · ≤10 box (engine max_live=10); no early-exit after MUR-only fill; residual parents + horizon-under-active scan; ACTIVE⇒SPAWN SAME TURN; FILL ORDER MUR→residual→horizon; morals up-down + verify-suite forward metric after 0-residue merge-up; cadence/pins unchanged; LIVE parent >90m health check (unhealthy→hung watch decision · healthy→leave · never invent kill)
 <!-- THOUGHT:END -->

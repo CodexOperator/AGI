@@ -95,7 +95,7 @@ DONE     residues=0 · format✓ · §3e suite green on tip (leaf/trunk)
 BELAM    ~once/day: merge · full verify · vision→goals + moral→visions lens
          · morals = up-down axis · verify-suite progress = forward-backward metric
          · reopen/mint residues · NO mid-batch director chatter
-         · fleet awareness: directors treat ≤18 as cap-ruler · soft floor ≥10 · residual after MUR
+         · fleet awareness: directors treat ≤5 as cap-ruler · box ≤10 · residual after MUR  (owner GO 2026-09-23)
 RECON-MIN (daily DIAGRAM B · HARD):
          recon checks = minimal tokens · minimal/no comms · NO action
          report exactly what was asked · diagram-max · stop · no bonus narrative
@@ -142,9 +142,10 @@ Grok seed: install grok-internals-sync + mint/link per-post *-grok-internals
 Pointer: doc:standing-llm-ops · recipe: doc:grok-harness-internals-sync
 CONCURRENCY (HARD — DIAGRAM D awareness · SoT doc:standing-llm-ops §4): spawn.parallel=1/goal
   concurrency=multi-parent×multi-goal · never raise parallel for cross-goal
-  ≤18 live / director · ≤30 box-wide · parents+MURs SAME pool
-  CAP-RULER awareness: directors fill toward ≤18 when claimable remains (soft floor ≥10 = minimum only)
-  soft floor ≥10 combined / director when claimable work remains (directors enforce; Belam awareness)
+  ≤5 live / director · ≤10 box-wide · parents+MURs SAME pool  (owner GO 2026-09-23 space-bunny; was ≤18/≤30)
+  CAP-RULER awareness: directors fill toward ≤5 when claimable remains (soft floor stays awareness-only under owner 5/10 GO)
+  · OWNER GO 2026-09-23 override (space-bunny): engine spawn.max_live=10 box-wide; directors treat ≤5 live/dir as CAP-RULER (SoT awareness; acquire enforces box max_live only)
+  soft floor: under owner 5/10 GO, do not fill past ≤5/dir or box 10 (Belam awareness; directors enforce)
   residual-after-MUR + horizon-under-active + ACTIVE⇒spawn same turn = director WATCH HARD (see director SoT)
 DURABLE SPAWN (HARD — SoT standing §4): parents → systemd --user scope via dispatch durable; never SSH/bash children
 ACTIVE-BEFORE-SPAWN (directors · bare YAML active): never spawn while goal still horizon · quoted 'active' = BUG
