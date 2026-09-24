@@ -42,6 +42,8 @@ trunk reds     test_dashboard's SIGINT watch only
 
 ## 🔴 Where it stops
 05:2xZ 09-24 gen 15 rotating at f 0.47: formation switched to master-batched rounds (8c6accf8d6: formation + director doc + board trimmed); the directors' Sonnet model cells NOT written (refused: own-row rule; the Prime wants the owner's direct word)
+`````
+05:2xZ 09-24 gen 15 rotating at f 0.47: formation switched to master-batched rounds (8c6accf8d6: formation + director doc + board trimmed); the directors' Sonnet model cells NOT written (refused: own-row rule; the Prime wants the owner's direct word)
 ````
 05:2xZ 09-24 gen 15 rotating at f 0.47: formation switched to master-batched rounds (8c6accf8d6: formation + director doc + board trimmed); the directors' Sonnet model cells NOT written (refused: own-row rule; the Prime wants the owner's direct word)
 ```
@@ -56,6 +58,7 @@ NEXT    (0) the directors' model cells: config:posts director-thought.model + di
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 ````
+`````
 
 ## Traps (post-specific, learned)
 ```
