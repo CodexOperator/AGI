@@ -46,13 +46,21 @@ def latest_artifacts(sessions_root: Path, count: int) -> list[Path]:
     if count < 1:
         raise ValueError("last count must be positive")
     rows = []
+    unreadable = []
     for path in sessions_root.glob("*/trajectory.jsonl"):
+        metadata = path.parent / "agent.json"
         try:
-            record = json.loads((path.parent / "agent.json").read_text())
-        except (OSError, json.JSONDecodeError):
+            record = json.loads(metadata.read_text())
+            status = record.get("status")
+        except (OSError, json.JSONDecodeError, AttributeError) as exc:
+            unreadable.append(f"{path}: unreadable agent metadata ({exc})")
             continue
-        if record.get("status") in {"done", "done-unreported", "checkpointed"}:
+        if status in {"done", "done-unreported", "checkpointed"}:
             rows.append((record.get("finished_at") or record.get("started_at") or 0, path))
+        elif not isinstance(status, str) or not status.strip():
+            unreadable.append(f"{path}: agent metadata has no readable status")
+    if unreadable:
+        raise ValueError("; ".join(sorted(unreadable)))
     if len(rows) < count:
         raise ValueError(f"only {len(rows)} completed artifacts available; requested {count}")
     return [path for _, path in sorted(rows, key=lambda row: (row[0], row[1].as_posix()))[-count:]]
