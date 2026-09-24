@@ -184,7 +184,25 @@ def test_push_batches_omit_matching_and_remote_only_refs(tmp_path, monkeypatch):
     assert "refs/grid/node/remote-only:refs/grid/node/remote-only" not in sum(batches, [])
 
 
-def test_push_changed_stops_after_failed_batch(tmp_path, monkeypatch):
+def test_push_batches_exclude_pre_split_v1_roots(tmp_path, monkeypatch):
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"push_batch_limit": 10, "push_min_season": 2}}))
+    rows = ["refs/grid/node/old oid-old", "refs/grid/node/new oid-new",
+            "refs/grid/node/child oid-child"]
+    def fake_git(root, *args):
+        if args[0] == "ls-remote":
+            return ""
+        if args[0] == "for-each-ref":
+            return "\n".join(rows)
+        if args[:2] == ("show", "-s"):
+            return "" if args[-1] == "oid-old" else "parent"
+        return "---\nseason: 1\n" if args[-1] == "oid-old:node.md" else "---\nseason: 2\n"
+    monkeypatch.setattr(grid, "git", fake_git)
+    assert grid.push_batches(tmp_path) == [
+        ["refs/grid/node/new:refs/grid/node/new",
+         "refs/grid/node/child:refs/grid/node/child"]]
+
+
     monkeypatch.setattr(grid, "ensure_repo", lambda root: None)
     monkeypatch.setattr(grid, "push_batches", lambda root: [["a"], ["b"], ["c"]])
     calls = []

@@ -187,13 +187,23 @@ def push_batch_limit(root: Path) -> int:
 
 
 def push_batches(root: Path) -> list[list[str]]:
-    """Exact refspec batches for changed local tips; never a wildcard."""
+    """Exact post-split refspec batches for changed local tips; never a wildcard."""
     ns = ref_ns_for(root)
     local = [line.split() for line in git(
         root, "for-each-ref", ns, "--format=%(refname) %(objectname)").splitlines()]
     remote = {parts[1]: parts[0] for parts in (
         line.split() for line in git(root, "ls-remote", "--refs", "origin", ns).splitlines())}
-    changed = [f"{ref}:{ref}" for ref, oid in local if remote.get(ref) != oid]
+    cfg = locations.load_config(locations.shared_project_root(Path(root)) or Path(root))
+    minimum = int((cfg.get("grid") or {}).get("push_min_season", 0))
+    changed = []
+    for ref, oid in local:
+        if remote.get(ref) == oid:
+            continue
+        if minimum and " " not in git(root, "show", "-s", "--format=%P", oid).strip():
+            season = re.search(r"^season:\s*(\d+)\s*$", git(root, "show", f"{oid}:node.md"), re.M)
+            if season and int(season.group(1)) < minimum:
+                continue
+        changed.append(f"{ref}:{ref}")
     size = push_batch_limit(root)
     return [changed[i:i + size] for i in range(0, len(changed), size)]
 
