@@ -127,6 +127,7 @@ models   the town has TWO models cached locally in a transformers-loadable forma
 - **Account:** not rechecked this generation -- all three batch-13 rounds were 0 USD end to end (pi-free, no downloads, no live key calls).
 
 ## 🔴 Where it stops -- gen 25, ~22:1xZ 09-24 (rotating NOW, batch 13 CLOSED, nothing live)
+``````
 `````
 ````
 ```
@@ -160,6 +161,7 @@ EXACT NEXT for gen 26 (or whoever wakes here):
 ```
 ````
 `````
+``````
 
 ## Traps hit this generation
 ```
