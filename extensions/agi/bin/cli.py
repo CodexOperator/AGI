@@ -5756,7 +5756,8 @@ def cmd_branch_reshuffle(args: argparse.Namespace) -> int:
 
 def cmd_ingest(args: argparse.Namespace) -> int:
     try:
-        nid = session_ingest.ingest(Path(args.artifact), Path(args.root or _find_root()))
+        nid = session_ingest.ingest(Path(args.artifact), Path(args.root or _find_root()),
+                                    session_id=args.session_id, goal=args.goal)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(f"ERR: refusing session artifact: {exc}", file=sys.stderr)
         return 2
@@ -6012,6 +6013,8 @@ def main() -> int:
     p_ingest = sub.add_parser("ingest", help="ingest a JSON/JSONL session artifact")
     p_ingest.add_argument("artifact")
     p_ingest.add_argument("--root", default=None, help="graph root (.agi) override")
+    p_ingest.add_argument("--goal", default=None, help="live goal id/address for the session")
+    p_ingest.add_argument("--session-id", default=None, help="stable external session identity")
     p_ingest.set_defaults(func=cmd_ingest)
 
     p_scope = sub.add_parser("scope-check")
