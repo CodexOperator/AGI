@@ -43,4 +43,8 @@ Neighbours: test_rotate_pending_swap_authority.py (baseline 9 passed).
 extensions/agi/bin/rotate.py 10399-10522 (+ read 17491-17497, 17565-17595)
 extensions/agi/tests/test_rotate_key_authority.py 1-62, 517-617
 ## CEILING
-1 pi-local kid (tier kid, harness pi-local) · ~9 production lines · 0 USD · runs BEFORE its sibling leaf (same try block)
+1 kid under a pi-free parent (STANDARD round: --tier parent --harness pi-free, --harness pi-free on every kid spawn; TMM.89) · ~9 production lines · 0 USD · runs BEFORE its sibling leaf (same try block)
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+TMM.89 (owner 02:3xZ via TM: "No more special usd0 runs") retired the pi-local kid lane this CEILING was written for; the round now runs the STANDARD way on the free lane. Only the CEILING harness moved: claim, tests and file scope unchanged.
+<!-- THOUGHT:END -->

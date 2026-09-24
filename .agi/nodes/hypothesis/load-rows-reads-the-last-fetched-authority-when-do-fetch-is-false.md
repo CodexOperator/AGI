@@ -36,4 +36,8 @@ recorder saw False, and a plain `_load_rows(project)` records True. Neighbours: 
 extensions/agi/bin/send.py 3154-3187, 4429-4474
 extensions/agi/tests/test_send.py 37-45, 4150-4157, 6404-6427
 ## CEILING
-1 pi-local kid (tier kid, harness pi-local) · 3 production lines · 0 USD · FIRST of three (the signer leaf calls this kwarg)
+1 kid under a pi-free parent (STANDARD round: --tier parent --harness pi-free, --harness pi-free on every kid spawn; TMM.89) · 3 production lines · 0 USD · FIRST of three (the signer leaf calls this kwarg)
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+TMM.89 (owner 02:3xZ via TM: "No more special usd0 runs") retired the pi-local kid lane this CEILING was written for; the round now runs the STANDARD way on the free lane. Only the CEILING harness moved: claim, tests and file scope unchanged.
+<!-- THOUGHT:END -->

@@ -37,4 +37,8 @@ before and after (a pin). Neighbours: test_commands_manifest.py, then test_comma
 extensions/agi/tests/test_commands_manifest.py -- read :20-37, :103-106, :846-875
 extensions/agi/bin/commands.py -- read :262-264 (read-only)
 ## CEILING
-1 pi-local kid (tier kid, harness pi-local) · 0 production lines · 0 USD · FIRST of two; never while C1's continuation is in flight
+1 kid under a pi-free parent (STANDARD round: --tier parent --harness pi-free, --harness pi-free on every kid spawn; TMM.89) · 0 production lines · 0 USD · FIRST of two; never while C1's continuation is in flight
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+TMM.89 (owner 02:3xZ via TM: "No more special usd0 runs") retired the pi-local kid lane this CEILING was written for; the round now runs the STANDARD way on the free lane. Only the CEILING harness moved: claim, tests and file scope unchanged.
+<!-- THOUGHT:END -->
