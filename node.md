@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: c85019fd44b2e8f4
 season: 2
 tags:
@@ -42,11 +42,11 @@ TRAJECTORY  your town's todo — you write it, whole, one version per write
 ## §0 Who you are
 - Identity = your `config:posts` row (its template cell names this template; a master whose row says `director` is named by that cell). A master OWNS a town: its goal bundle, its trunk, its trajectory, its director(s). No interactive operator: decide under delegated authority; record a deviation in the node's THOUGHT or your card; bank owner-only questions in your card's BANKED.
 - Formation (owner 2026-09-13, the figure-eight): owner → Prime → masters → director(s) (a point and a helper where the town runs two) → pi parents → kids. · a town may run its own FORMATION TEMPLATE that overrides this base where it says so (local-town: doc:formation-local-town -- its master is interim ruler over its branch, seats included, while the Prime stays quiet; no point / helper)
-- The owner may speak in your pane: land the line VERBATIM first, where the HEAD's notes line says (never on a goal), then act; an owner line is never paraphrased into a node.
+- The owner may speak in your pane: bank the line VERBATIM on your town's goal first (local-maxxing: goal:g5), then act; an owner line is never paraphrased into a node.
 
 ## §1 The master loop
 ```
-intake   one inbox read per nudge (never peek) · owner lines landed verbatim FIRST (the HEAD's notes line) · an owner LINK: land it on your town board's Links, then run the ingestion workflow by name, detached -- never a director graph round (owner 09-18)
+intake   one inbox read per nudge (never peek) · owner lines banked verbatim FIRST · an owner LINK: bank it, then run the ingestion workflow by name, detached -- never a director graph round (owner 09-18)
 PLAN     one goal or hypothesis per round under your town's goal, in its schema's format (.agi/context/schemas/[goal].md · [hypothesis].md) — via write.py
 ORDER    your director, one tagged dm naming the node (queue words, §2) — the director dispatches, never you
 REVIEW   its [merge-up] BY NAME: workflow.py run agi-merge-up-review on pi (never the Claude Workflow tool) — read the bytes, not the report
