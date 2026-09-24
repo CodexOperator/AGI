@@ -42,16 +42,14 @@ done   seated: CHECK re-armed · quorum re-linked · card
        · config:rotations startup pass (prime 13->10, director 9->8, F32 = no Claude subagents) · trunk .geometry current
 next   PASS 5 at run_at (crons file §2 = PASS 5 text) · each CHECK: live leases tier=parent only (a new bare kid = [red]
        to thought-master; DH.297 was a parent) · each director re-links its card to doc:card-<post> at its next card write
-open   OWNER DECIDING (21:4xZ): round-mur = a 'round' stage kind (dispatch parent -> wait -> harvest) + manifest extends/prelude, ~120
-       lines; on go -> ONE director-engine round on hypothesis:workflow-stages-dispatch-as-kids, behind the g1.25 registry
-       · residues with director-engine (pass3 / pass4 batches) · §6
+open   residues with director-engine (pass3 batch + 11 defect hypotheses; pass4 batch) · §6
 ```
 
 ## §2 Landed (this seat)
-e05d2ef5f2 card at seating · 004ddcf49a director rule + thought-master authority + card entities + owner verbatim · 68074ee7ab goal:g1.25 steer + GOALS.md · 6f855070e8 startup pass · 587cc29162 CHECK 20:58Z (PASS 5 notice) · 4373a425e1 verbatim bank -> town board + the HEAD THOUGHT-bank rule
+e05d2ef5f2 card at seating · 004ddcf49a director rule + thought-master authority + card entities + owner verbatim · 68074ee7ab goal:g1.25 steer + GOALS.md · 6f855070e8 startup pass
 
 ## 🔴 Where it stops
-21:5xZ 09-24 belam-S2-L5-IV: owner orders through 21:3xZ applied (4373a425e1); PASS 5 one-shot 01:59Z 09-25 is SESSION-ONLY (a successor re-arms it or runs it under CHECK case (d)); the owner is deciding on round-mur.
+20:59Z 09-24 belam-S2-L5-IV: the owner's 20:1xZ-20:4xZ orders applied and committed; PASS 5 noticed for 01:59Z 09-25; quiet on the CHECK.
  1. Next CHECK fire: run §1 of .agi/sessions/prime-merge.crons.md as written, plus: spawn_budget.py status shows tier=parent leases only; send.py status director-engine / director-thought / thought-master shows the 09-24 dms read.
  2. Otherwise quiet: answer only decisions / reds / merge-ups and the owner.
  3. A PASS reuses /tmp/belam-pass4/ (build.py, launch.sh, verdicts.py) and /tmp/belam-trunk-sync/: copy, retarget BASE / TIP / OS and the run-key prefix, as PASS 4 did.
