@@ -30,6 +30,9 @@ OWNER 17:57Z   (verbatim on the board's priority row) write.py = one named row, 
                goal:g7.33.10 + goal:g7.33.11 (minted, GOALS.md 358) -> DE batch TMM.128, ahead of T1..Tn · [owner] to the Prime · MEASURED:
                the grid_sync push failed 967 times ('Timed out validating rule') -> the remote holds 0 of 4,293 refs/grid/local-maxxing refs
                (the town's grid is on this disk alone); the cron log = 775 MB · write.py set admitted 5 of 5 schema-invalid writes (scratch)
+OWNER 18:17Z   (verbatim on the board) the grid fix NOW, worked by the director, + clean the 0.7 GB of fail logs -> TMM.129 (dm + a
+               SendMessage mid-turn to DE's live session) · measured: grid.storage_trunk (goal:g14.14.7) = a per-trunk ref NAMESPACE, still one
+               ref per node -- no single-branch storage anywhere (core/season2/main's grid.py unchanged since the 09-23 merge-base)
 HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
 usd0           the local lane is RETIRED as an operating mode (the owner cancelled the local kid 02:2xZ: DE SIGTERMed DT's LEAF.03 parent
                a00-bbb13581); efficient 0-USD runs = RESEARCH hypotheses on the free lane · the brain container brain-orcabonsai27b (OrcaBonsai
@@ -49,17 +52,17 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-18:1xZ 09-24 gen 17: WAITING on [merge-up]s, nothing else owed -- (a) director-thought's batch 9 (TMM.126: amend lm-qk-norm-model-moves-the-key-wall's FILE SCOPE + ceiling -> the one Qwen3-0.6B download into a config path -> the scored QK-norm round under ONE pi-free parent) -> gate by what the range carries (code = the full suite; none = the lean gate) · (b) director-engine: R0's last finding -> TMM.128 (OWNER 17:57Z: round A goal:g7.33.11 the grid in one branch, round B goal:g7.33.10 schema-checked rows; code = the full-suite gate; config:crons may need the Prime) -> T1..Tn of goal:g7.33.9 -> the reap guard -> E3-E6 · batch 8 LANDED b27dd43dd2
+18:1xZ 09-24 gen 17: WAITING on [merge-up]s, nothing else owed -- (a) director-thought's batch 9 (TMM.126: amend lm-qk-norm-model-moves-the-key-wall's FILE SCOPE + ceiling -> the one Qwen3-0.6B download into a config path -> the scored QK-norm round under ONE pi-free parent) -> gate by what the range carries (code = the full suite; none = the lean gate) · (b) director-engine: TMM.129 = goal:g7.33.11 NOW (OWNER 18:17Z; round A in parallel with R0's last finding) -> its OWN [merge-up] as soon as A is done (the full-suite gate; the owner's log cleanup is part of A; config:crons may need the Prime) -> R0 -> round B goal:g7.33.10 -> T1..Tn of goal:g7.33.9 -> the reap guard -> E3-E6 · batch 8 LANDED b27dd43dd2
 ````
-18:1xZ 09-24 gen 17: WAITING on [merge-up]s, nothing else owed -- (a) director-thought's batch 9 (TMM.126: amend lm-qk-norm-model-moves-the-key-wall's FILE SCOPE + ceiling -> the one Qwen3-0.6B download into a config path -> the scored QK-norm round under ONE pi-free parent) -> gate by what the range carries (code = the full suite; none = the lean gate) · (b) director-engine: R0's last finding -> TMM.128 (OWNER 17:57Z: round A goal:g7.33.11 the grid in one branch, round B goal:g7.33.10 schema-checked rows; code = the full-suite gate; config:crons may need the Prime) -> T1..Tn of goal:g7.33.9 -> the reap guard -> E3-E6 · batch 8 LANDED b27dd43dd2
+18:1xZ 09-24 gen 17: WAITING on [merge-up]s, nothing else owed -- (a) director-thought's batch 9 (TMM.126: amend lm-qk-norm-model-moves-the-key-wall's FILE SCOPE + ceiling -> the one Qwen3-0.6B download into a config path -> the scored QK-norm round under ONE pi-free parent) -> gate by what the range carries (code = the full suite; none = the lean gate) · (b) director-engine: TMM.129 = goal:g7.33.11 NOW (OWNER 18:17Z; round A in parallel with R0's last finding) -> its OWN [merge-up] as soon as A is done (the full-suite gate; the owner's log cleanup is part of A; config:crons may need the Prime) -> R0 -> round B goal:g7.33.10 -> T1..Tn of goal:g7.33.9 -> the reap guard -> E3-E6 · batch 8 LANDED b27dd43dd2
 ```
 state   MAIN: b27dd43dd2 + this card pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (1) HAND SMALL BATCHES (the formation): research -> director-thought (priority row [1]-[4] on the board), engine -> director-engine
             (CTX.01 one-copy build first, TMM.99); keep the board's trajectory rows current as results land; directors report at batch end only
-            NOW: DE = R0's last finding -> TMM.128 (goal:g7.33.11 grid branch, goal:g7.33.10 schema rows) -> E1 keys + authority -> T1..Tn (TMM.121) -> the reap guard (TMM.116) -> E3
+            NOW: DE = goal:g7.33.11 NOW (TMM.129) in parallel with R0's last finding -> goal:g7.33.10 (TMM.128 B) -> E1 keys + authority -> T1..Tn (TMM.121) -> the reap guard (TMM.116) -> E3
             rotation -> E4 harness -> E5 non-lm demote text · the HOOK port FORWARD only if DT [red]s (no route for the extension) ·
             DT = TMM.126 = batch 9 (the download, then the scored round under ONE pi-free parent) ·
-            next = TMM.129
+            next = TMM.130
         (2) merge-ups: code = the full suite gate (detached /tmp worktree, ~17 min); no code = the lean gate (evidence + THOUGHT tests,
             links, goals, leak scan) · the #63 board-body verbatim is the Prime's (owner: the Prime does those edits)
         (3) paid models held; the ladder = pi-free since 431b8edc32 (DONE by the Prime) ([red] gen 15 + 05:1xZ gen 16) · kids: --harness pi-free + project = the parent worktree
@@ -79,7 +82,7 @@ orders       a director's rotation can drop an order it read but had not carded 
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first --
              my OWN earlier orders too: TMM.123's '17:02:10Z after 2m21s' mixed the stop time with the reaper's runtime_s (142 s to finished_at
              17:02:28Z) and DT copied it into the OSC.15 node ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.129
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.130
 owner lines  in my pane = verbatim where the HEAD's notes line says: a template or config, then the role doc, then town:local-maxxing --
              NEVER a goal (goals are project trackers, owner 09-24) · the stamp = the jsonl's own timestamp for the owner's message
              (.agi/sessions/thought-master.meter names the jsonl), never a guess · a one-line replace inside a fence = 'replace body N:N --force <file>'
@@ -115,7 +118,7 @@ allowlist    the account-wide allowed providers (dashboard Settings > Privacy) h
              (openapi.json 94 paths; 03:01Z 09-24); guardrails + a request's provider.only only NARROW them · a 0-USD raw probe =
              provisioning.mint(limit_usd=0.01, ttl_minutes=10, workspace_id=workspace(cfg)) -> one chat call -> revoke(key_hash) in a finally
 anonymize    anonymize.py guards hostname / ip / mac / board / secret (loopback exempt); it takes NO file args: git diff <merge-base> <tip> > F; anonymize.py check --root <gate> --diff-file F · the model name needs its own grep: git grep -i -E 'geforce|rtx ?20[0-9]0' <tip> -- .agi/nodes
-write.py     a list field = 'set <field> <JSON array>' via a python argv list (no ' && ' inside; --dry-run shows the ring-gate preview) · a goal note -> snapshot-goals.py --render, then --check · set checks NO schema (18:0xZ: 5 of 5 invalid writes admitted -> goal:g7.33.10): verify a value yourself · probe a verb for real only in a scratch worktree (--root /tmp/<wt>), never on MAIN · mint a goal = --dry-run the create first; owner verbatim -> pull it from the jsonl, never retype
+write.py     a list field = 'set <field> <JSON array>' via a python argv list (no ' && ' inside; --dry-run shows the ring-gate preview) · a goal note -> snapshot-goals.py --render, then --check · set checks NO schema (18:0xZ: 5 of 5 invalid writes admitted -> goal:g7.33.10): verify a value yourself · probe a verb for real only in a scratch worktree (--root /tmp/<wt>), never on MAIN · mint a goal = --dry-run the create first; create writes its OWN '# <id>' heading, so a --body-file starts at the content · replace body refuses to share a submit with thought / note: two calls · owner verbatim -> pull it from the jsonl (a mid-turn line = an 'attachment' queued_command), never retype
 grid         the grid lives in refs/grid/local-maxxing/ and has NEVER reached the remote (18:0xZ: 0 of 4,293; 967 failed pushes) -> goal:g7.33.11
 box          box.* / locations.* are stale here (repo /data/work/agi) · never cd into a director's worktree (the harness then treats it as mine) -- read it by absolute path
 handoff      .agi/sessions/seats/thought-master.handoff.md is rotate's header, NEVER a link to this card · grid.py commit --all is the cron's, never mine
