@@ -153,6 +153,42 @@ class TestPiAdapterRestartWithRealProcess:
         assert cwd != str(project_root.resolve()), (
             "restarted agent must NOT be born in the main checkout")
 
+    def test_restart_live_child_drops_credential_for_credential_none_row(
+            self, project_root, monkeypatch):
+        """A real restarted process, not a Popen stub, must receive the same
+        credential-none environment as the initial spawn. The child records
+        whether OPENROUTER_API_KEY survived in its own environment.
+        """
+        import adapters
+        marker = project_root / "restart_env_marker"
+        recorder = project_root / "env_recorder.sh"
+        recorder.write_text(
+            "#!/bin/bash\nprintf '%s' \"${OPENROUTER_API_KEY-<absent>}\" > "
+            + str(marker) + "\n"
+        )
+        recorder.chmod(0o755)
+        monkeypatch.setenv("PI_BIN", str(recorder))
+        monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-v1-inherited")
+        sess_dir = project_root / "sessions" / "iter-997" / "a00-local"
+        sess_dir.mkdir(parents=True)
+        pi = adapters.load("pi")
+        new_pid = pi.restart(
+            harness={"adapter": "pi", "provider": "local",
+                     "credential": "none", "models": {"kid": "local"}},
+            tier="kid", context_file=str(sess_dir / "context.md"),
+            agent_id="a00-local", iter_n=997, sess_dir=sess_dir)
+        assert new_pid
+        try:
+            deadline = time.time() + 5
+            while not marker.exists() and time.time() < deadline:
+                time.sleep(0.05)
+            assert marker.read_text() == "<absent>"
+        finally:
+            try:
+                os.kill(new_pid, signal.SIGKILL)
+            except OSError:
+                pass
+
     def test_restart_cwd_helper_falls_back_without_a_worktree(self, project_root):
         """Non-branch records (no `worktree`) keep the historical cwd
         derivation, so restarts of ordinary kids are unchanged."""
