@@ -26,34 +26,37 @@ NOTES          OWNER 03:3xZ: "Notes go into templates or configs, then individua
                Prime) · g5's 131 notes moved (1a34e5f070: the map = g5's THOUGHT, the words = grid v51 6128477381; g5 160 KB -> 9 KB) ·
                OWNER 03:4xZ: stop, too much token waste -- the Prime does the remaining edits; both directors lean (TMM.94 / TMM.95)
 kids           05:12Z DE [red]: EF.104's kid a00-beccdfa1 ran on the PAID lane (its pi-free parent a00-64f9dbae dispatched with no --harness ->
-               ladder.md:43 kid row = pi + a paid model; pi's own table said 1.35 USD, the account moved 0.10) · until TMM.107 (2) lands: kids
-               DIRECT from the director, literal --tier kid --harness pi-free (DT's CMP.03 kid a00-b6ec457f ran pi-free: clean)
+               ladder.md:43 kid row = pi + a paid model; pi's own table said 1.35 USD, the account moved 0.10) · the reader LANDED c876dbf720:
+               a pi-free parent's kid now inherits pi-free · a director's DIRECT kid still passes the literal --harness pi-free (ladder = paid)
 HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
 usd0           the local lane is RETIRED as an operating mode (the owner cancelled the local kid 02:2xZ: DE SIGTERMed DT's LEAF.03 parent
                a00-bbb13581); efficient 0-USD runs = RESEARCH hypotheses on the free lane · the brain container brain-orcabonsai27b (OrcaBonsai
                C2 on :8080) stays up for that research; the old router llama-server is STOPPED (docker start llama-server restores it) ·
                /data/ml/pi-agent-local exists (unused now) · ~/.pi/agent == its 01:09Z backup
-EF.90          the WRITER half is on the trunk (dispatch.py:2656 exports AGI_HARNESS; a00-0d0977d3 verdict=proved, 3807d32c6d) -- NOTHING reads
-               it -> TMM.107 (2) to DE: a 0-USD parent's kid with no --harness takes that harness; paid / claude-code parents unchanged
+EF.90 + #8     BOTH halves on the trunk: the writer (dispatch.py:2656) + the reader (c876dbf720): a zero_usd parent's (pi-free / pi-local)
+               kid with no --harness inherits it · a claude-code director's DIRECT kid without --harness still gets the ladder's paid row
 DT research    batch 3 LANDED 50db63e3fb: CMP.03 DISPROVED (a declared context window does not bound one pi -p loop; pi checks compaction
                only at agent_end + a new prompt) · HOOK.01 PROVED conf 0.9 (a 13-line context-event hook: 40 requests, max 44,849.7, 0 x 400;
-               control 400s at 12 + 22) · batch 4 = TMM.108: HOOK.01b (stub) -> HOOK.02 as a brain-slot PROBE only, no pi-local kid ·
+               control 400s at 12 + 22) · HOOK-B.02 PROVED conf 0.95 (26,600 B system prompt, distinct ids: 40 requests, max 45,206.6,
+               0 x 400, all paired) · batch 5 = TMM.110/111/113 (+ the 7 lm-* demotes; HOOK.02 = a real pi-local kid, OWNER GO 06:55Z) · batch 6 = the L3 reframe ·
                SWR-SV.01 + REPLAY.02 HOLD · the claude-md-twice lever (CTX.01) = DE's merge-up #7
-LANDED         DT 50db63e3fb (batch 3, no code: CMP.03 + HOOK.01; lean gate) · DT b8eb4e9ea1 (batch 2, no code: CTX.02 + CMP.01; lean gate) · DT 7b63a6a5b2 (the LEAF batch: LEAF.04-06, CEN.01, REPLAY.01, CTX.01) · DE 2687448d93 (#6 = EF.95-100 + pi-local max_live 1; EF.97's verdict fixed in one node) · 5827a677a7 (#5 = EF.87-94) · with the Prime: ladder tier-0 = paid (GUARD) · DT's 4 box cells · kid 401s = DE spawned kids with project = the town NAME (fixed next round)
-the Prime      wrote both director rows -> claude-sonnet-5 max (owner 05:1xZ; 3b6e0eb632 + 6d38b9742e) · PASS 3 on pi-free · still owes:
+LANDED         DE c876dbf720 (#7 + #8: CTX.01 zero context files + the AGI_HARNESS reader; posts.md resolved to HEAD's) · DT 47116db826 (batch 4, HOOK-B.02 conf 0.95; landed BY DT -- flagged TMM.110) · DT 50db63e3fb (batch 3, no code: CMP.03 + HOOK.01; lean gate) · DT b8eb4e9ea1 (batch 2, no code: CTX.02 + CMP.01; lean gate) · DT 7b63a6a5b2 (the LEAF batch: LEAF.04-06, CEN.01, REPLAY.01, CTX.01) · DE 2687448d93 (#6 = EF.95-100 + pi-local max_live 1; EF.97's verdict fixed in one node) · 5827a677a7 (#5 = EF.87-94) · with the Prime: ladder tier-0 = paid (GUARD) · DT's 4 box cells · kid 401s = DE spawned kids with project = the town NAME (fixed next round)
+the Prime      wrote both director rows -> claude-sonnet-5 max (owner 05:1xZ; 3b6e0eb632 + 6d38b9742e) · PASS 3 LANDED 07:21Z (6f5ee34e5c; next CHECK 08:13Z) · still owes:
                EF.10, the ladder kid row -> pi-free ([red] 05:1xZ)
 trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-05:4xZ 09-24 gen 16: DT batch 3 LANDED 50db63e3fb (lean gate); TMM.108 to DT (batch 4: HOOK.01b -> HOOK.02 as a brain-slot probe); TMM.109 to DE (after TMM.107: CMP.02's lease race, then the HOOK port on my word); both director rows = Sonnet max (the Prime, owner 05:1xZ); earlier: DE's paid-lane [red] answered (TMM.107; 0.10 USD by the account)
+07:5xZ 09-24 gen 16: DE #7 + #8 LANDED c876dbf720 (CTX.01 + the AGI_HARNESS reader; full suite 6385 passed; a REAL config:posts conflict caught by test_node_writer's live corpus -- my merge-tree read skipped the exit status -> resolved to HEAD's posts.md verbatim, re-gated 407 passed) · TMM.114 to DE (CMP.02: pin from the bytes) · TMM.115 to DE (R0 = the #7/#8 residues next; [merge-up] only at residues 0; sync the trunk) · DT batch 5 in flight
 ```
 state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632 + 6d38b9742e, owner 05:1xZ)
         (1) HAND SMALL BATCHES (the formation): research -> director-thought (priority row [1]-[4] on the board), engine -> director-engine
             (CTX.01 one-copy build first, TMM.99); keep the board's trajectory rows current as results land; directors report at batch end only
-            NOW: DE = TMM.107 (merge-up #7 = CTX.01, then the AGI_HARNESS reader) -> TMM.109 (a) CMP.02's lease race -> (b) the HOOK port
-            on my word · DT = TMM.108 batch 4 (HOOK.01b -> HOOK.02 probe) · next = TMM.110
+            NOW: DE = R0 (#7/#8 residues, TMM.115) -> E1 keys + authority (TMM.112) -> CMP.02 pinned from its bytes (TMM.114) -> E3
+            rotation -> E4 harness -> E5 non-lm demote text · the HOOK port FORWARD only if DT [red]s (no route for the extension) ·
+            DT = batch 5 (TMM.110/111/113): (a) residue rounds + the 7 lm-* demotes -> (b) HOOK.02 pi-local kid, OWNER GO 06:55Z ·
+            batch 6 = the L3 reframe · next = TMM.116
         (2) merge-ups: code = the full suite gate (detached /tmp worktree, ~17 min); no code = the lean gate (evidence + THOUGHT tests,
             links, goals, leak scan) · the #63 board-body verbatim is the Prime's (owner: the Prime does those edits)
         (3) paid models held; the ladder tier-0 kid row = paid -> the Prime's edit ([red] gen 15 + 05:1xZ gen 16) · kids: --harness pi-free + project = the parent worktree
@@ -69,7 +72,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
 orders       dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.110
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.116
 owner lines  in my pane = verbatim where the HEAD's notes line says: a template or config, then the role doc, then town:local-maxxing --
              NEVER a goal (goals are project trackers, owner 09-24) · the stamp = the jsonl's own timestamp for the owner's message
              (.agi/sessions/thought-master.meter names the jsonl), never a guess · a one-line replace inside a fence = 'replace body N:N --force <file>'
@@ -82,9 +85,15 @@ pi config    ~/.pi/agent is the whole box's: test a change in a COPY via PI_CODI
 merge-ups    the WHOLE history rides: list the tip's merges yourself · merge by the NAMED tip · LAND WITHOUT A STAGED MERGE: gate
              M = commit-tree(merge-tree(HEAD, tip)) in a detached /tmp worktree; at landing T2 = merge-tree(live HEAD, tip) -- if HEAD
              moved, diff(gated tree, T2) = exactly the newcomer files, byte-identical to HEAD on them; L = commit-tree T2 -p HEAD -p tip;
-             git merge --ff-only L; push · the range = diff(merge-base, tip), never diff(HEAD, tip) · a red suite = return the tip
+             git merge --ff-only L; push · the range = diff(merge-base, tip), never diff(HEAD, tip) · a red suite = return the tip ·
+             merge-tree --write-tree prints the tree id EVEN ON CONFLICT: read its exit status (1 = conflict) + --name-only's list, never
+             line 1 alone (07:5xZ: config:posts conflict markers reached the gate; test_node_writer's live corpus caught them) · a
+             rotation-cells-only conflict in config:posts = take HEAD's file verbatim once the tip's posts.md delta is proven on HEAD
 reds         attribute each: which range touches the test / its code (git diff --quiet <base> <tip> -- <file>) · re-run it ALONE (a load
              flake passes alone) · test_thought_hygiene counts <!--\s*THOUGHT:BEGIN per node: a quoted marker trips it
+residues     accept_with_residue ≠ land (unified-director-brief:32) · NEVER waive a mur residue -- the owner's 09-19 rule gives each its own
+             corrective round (my TMM.108 slip, corrected in TMM.110) · a director may land on the trunk itself (DT gen 19, 06:0xZ): compare
+             HEAD with the director's claimed trunk sha before gating; the docs forbid it (unified-director-brief:64/73)
 review       read each round's FINAL verify stage in .agi/sessions/workflows/runs/mur-*/verify_R-EFnn.json · no mur under the hold = read the
              director's in-place review AND the diff yourself, and say so
 key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send.authority_ref(root), True) · local seat keys = the NAMES of
