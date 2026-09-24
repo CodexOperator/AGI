@@ -15,7 +15,21 @@ Never: `grid.py checkout` · `grid.py commit --all` · `git add -A` · rebase ·
 ```
 HOLD      TMM.66/68/69 (TM 22:29Z/22:46Z): NO NEW OpenRouter dispatch -- pi parents, kids, MURS -- until TM's one lift line
           (the owner tops up). The engine's funding gate ALSO refuses a spawn below $1.00 (it refused EF.89's continuation kid).
-          Local work goes on. NOTHING is running (23:3xZ).
+          Local work goes on.
+0-CREDIT  TMM.77 (owner 00:xZ-01:0xZ 09-24, verbatim on goal:g5): 9 leaves MINTED @35b434d960 (9B-sized: one function, <= 3 files
+LANE      by line range, one test). Dispatch ONLY after director-thought's brain swap is measured (TMM.76) AND spawn_budget = 0 live
+          (ONE local kid town-wide); I am the PARENT, review in place (gate + merge, no paid mur); ONE [merge-up] per batch to TM.
+          dispatch.py . EF.9x --target hypothesis:<leaf> --level small --tier kid --harness pi-local --branch --detach --orders <f>
+          --from director-engine (dry-run 01:3xZ: harness=pi-local, AGI_MODEL=Qwen3.5-9B-Q4_K_M, no key -- re-check the model
+          alias AFTER the brain swap). NEVER a pi-local parent · a kid without --harness pi-local · OpenRouter under the HOLD.
+QUEUE     chains run in order, one kid at a time: LH-1 every-spawn-exports-its-own-resolved-harness-as-agi-harness (orders
+          .agi/sessions/de-0923/orders-local-LH1.md) -> LH-2 a-kid-under-a-credential-none-parent-inherits-its-harness-not-the-
+          ladder-row · L14-1 authority-publish-push-timeout-yields-failed-never-raises -> L14-2 ...-plumbing-git-calls-are-bounded-
+          and-never-raise · L23-1 load-rows-reads-the-last-fetched-authority-when-do-fetch-is-false -> L23-2 authority-deferred-
+          signer-signs-with-the-key-the-verifiers-row-names -> L23-3 deferred-window-dm-verifies-through-a-real-authority-ref-with-
+          no-fetch · LC2-1 the-box-detail-guard-scan-lives-in-one-helper-over-one-list-and-one-pattern -> LC2-2 a-box-label-in-an-
+          about-a-reason-shadows-fails-the-guard (never while C1's continuation runs). .19 r2 = DONE by the #3 close (RED 3).
+WATCH     Monitor /tmp/de-lane-watch.sh (director-thought's dm headlines to TM + the live count); re-arm on expiry
 LANDED    #1-#3 = EF.49-82 via the #3 close e428f88c80 (TMM.68's 3 reds, test+graph only, made by me) at 7c9231b4f (TMM.74)
           #4 8042f69f3c = EF.85 + EF.84 + EF.86 + EF.83 at d81b444043 (TMM.75): trunk suite 6355 passed / 1 = the dashboard load
           flake. EF.84 shipped with its named residue (TM: 22 authority rows / 12 unkeyed, this box's 4 seat keys all keyed, 0
@@ -56,13 +70,15 @@ TRAP      gen 2 dispatched EF.88 + 4 murs AFTER TMM.66/68 because its card never
 - prime-merge-routine-is-one-cron-script (09-21, never built) -> asked TM whether it is still wanted.
 - EF.10 + goal:g7.33.8 stranded on this branch (pre-hold) -> flagged in the 0921 merge-up; core decides. EF.10's post-landing mur = DEMOTE (merge-up #1).
 
-## 🔴 WHERE IT STOPS — the one next command (23:4xZ 09-23, gen 3; #1-#4 LANDED; post tip 0a96932407 pushed; idle on the HOLD)
+## 🔴 WHERE IT STOPS — the one next command (01:4xZ 09-24, gen 3; #1-#4 LANDED; 9 leaves minted @35b434d960; waiting on the brain swap)
 ```````
 ``````
 `````
 ````
 ```
-1  WAIT for TM's LIFT line (TMM.66 HOLD; $0.48 at 23:31Z) -- nothing else is owed: #1-#4 landed, EF.87/88/89 harvested
+0  0-CREDIT LANE: director-thought's brain swap measured + 0 live -> dispatch LH-1 (the QUEUE's command, EF.90), watch its
+   done, harvest in place (gate + merge, no mur), next leaf; ONE [merge-up] per batch
+1  WAIT for TM's LIFT line (TMM.66 HOLD; $0.48 at 23:31Z) -- #1-#4 landed, EF.87/88/89 harvested
 2  on the LIFT line -> for m in H2-EF87 I2-EF88 J2-EF89: setsid nohup python3 extensions/agi/bin/workflow.py run
      agi-merge-up-review --harness pi --args "$(cat .agi/sessions/de-0923/mur-$m-args.json)" > .agi/sessions/de-0923/mur-$m.log
      2>&1 < /dev/null & disown   (then dispatch orders-lift-1 + -2, then -3, then -4; iter ids EF.90+)
