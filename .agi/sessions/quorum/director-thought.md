@@ -99,12 +99,12 @@ parent   a dispatched pi-free PARENT can go completely off-script despite explic
          an explicit "these existing nodes are not your kids" fence. Review every parent round's diff scope before merging, always.
 ```
 
-## Live state (16:2xZ 09-24, gen 21)
-- **Rotation record:** gen 21, session 3ad8b73b / post-director-thought-7c, sequence=245, model_confirm ok. Predecessor's rotate already answered the ack (`continue`); nothing owed there.
+## Live state (16:4xZ 09-24, gen 21 -- SESSION CLOSING, rotating now)
+- **Rotation record:** gen 21, session 3ad8b73b / post-director-thought-7c, sequence=245, model_confirm ok. Predecessor's rotate already answered the ack (`continue`); nothing owed there. Rotating myself via bare `rotate.py rotate` at the line, per thought-master's 16:14Z rule (bands are not a stop; timeout fallback is the safety net, never the route) -- not waiting for the captive auto-capture.
 - **Node counts:** active n/a, deprecated n/a (not queried this session).
-- **Tree:** branch local-maxxing/season2/posts/director-thought/main, pushed through **f54428853a** (all 9/9 owed-1 corrections + OSC.13 + OSC.14, both done and reviewed, + a real CEILING-clause fix -- everything landed and pushed this generation). Working tree clean.
-- **Meter:** 0.3917 (391681/1000000) line=0.4700 at last read (16:18Z) -- 83 pct of the line. STOPPING new dispatches here; not starting batch 7 leaf 3 (the GPU leaf) this generation -- it WAITS on the brain window regardless, per the original plan.
-- **Account:** total=$192.00 used=$178.13 remaining=$13.87 (verified after OSC.13; OSC.14 also ran well under its $1 cap, not yet re-verified by a fresh curl -- both were deepseek-v4.1-flash small CPU rounds, expect ~$0.05-0.10 more).
+- **Tree:** branch local-maxxing/season2/posts/director-thought/main, pushed through **b453249c5d** (all 9/9 owed-1 corrections + OSC.13 + OSC.14 + the CEILING-clause fix + the TMM.122 verdict-format fix -- everything landed and pushed this generation). Working tree clean.
+- **Meter:** 0.4663 (466255/1000000) line=0.4700 at last read -- at the line, rotating now.
+- **Account:** total=$192.00 used=$178.13 remaining=$13.87 (last verified after OSC.13; OSC.14 ran well under its $1 cap too, not re-verified after -- expect ~$0.03-0.05 more unaccounted, immaterial).
 
 ## 🔴 Where it stops -- 16:2xZ 09-24 gen 21
 ````
@@ -142,11 +142,27 @@ PROCESS FIX (found reviewing OSC.14, applies to both leaves): neither hypothesis
 GPU LEAF (lm-qk-norm-model-moves-the-key-wall) -- still WAITS, per the original batch-7 order (names its own window first, the brain
   holds the GPU). Not started this generation; a CPU-only director session has now worked everything else in batch 7 that it can.
 
-EXACT NEXT for gen 21 continuing (meter allowing) or gen 22 cold: nothing is mid-flight -- both leaves are DONE, reviewed, committed,
-  pushed. Options, not obligations: (a) check thought-master's inbox for a batch-5+6 merge-up reply and act on it, (b) if the GPU brain
-  window is free, take up lm-qk-norm-model-moves-the-key-wall (read it fresh, it has not been read this session), (c) a townwide grep
-  for the same missing-CEILING-clause pattern flagged above, (d) otherwise keep working town:local-maxxing trajectory_standin's next
-  priority per SELF-LOOP. Nothing here is a blocker; nothing is banked for the owner.
+TMM.122 (16:36Z, HELD gate) -- FIXED this generation, do not re-open: experiment:a00-3c370e1e-e0f78b carried an invalid bare
+  `verdict: inconclusive` (schema requires `inconclusive_lean_<proved|disproved>:<N>`), failing
+  test_evidence_gate::test_no_live_node_carries_an_out_of_range_lean and blocking thought-master's batches-5-7 land. Same red as
+  TMM.119, lost once already in the gen20->21 rotation -- do NOT lose it again. Set to `inconclusive_lean_disproved:10` (zero evidence
+  was ever collected -- the round died to a box-wide brain OOM before any real-pi-local test data existed; disproved-lean at the
+  lowest N is the conservative/null reading for an untested positive claim, not a finding against it). Verified: test_evidence_gate.py
+  full suite 139 passed (was 138 + 1 failed). Committed b453249c5d, pushed. [merge-up] reply sent to thought-master confirming the new
+  tip; thought-master said it would land batches 5-7 together once this landed -- next generation should check whether that happened.
+
+PROTOCOL CHANGE this generation (read this before doing anything self-directed): the owner switched formation to BATCHES ONLY
+  (doc:lm-director-brief-customizations, TMM.120) -- work ONLY the batch thought-master hands you, ONE results report when every
+  hypothesis/leaf in it is built out, WAIT between batches. This supersedes the old SELF-LOOP protocol my card's "My R&D loop" section
+  used to cite (now updated). Batch 7's CPU-workable leaves are built out and reported (15:4xZ owed-1 report + this generation's
+  batch-7 report, both sent); do NOT self-select a new item from town:local-maxxing trajectory_standin.
+
+EXACT NEXT for gen 22 cold (or gen 21 continuing if somehow not yet rotated): (a) read the thought-master dm thread for a reply to
+  either merge-up report or the TMM.122 fix -- act on whatever it says; (b) if nothing has replied yet, WAIT (per batches-only) rather
+  than inventing work -- the one standing exception is the GPU leaf (lm-qk-norm-model-moves-the-key-wall), which per batch 8's own
+  note from thought-master should be tried on CPU with a small QK-norm model FIRST if it fits, and only PROPOSED as a GPU window
+  (brain down <=30 min, before/after recorded) in a report, never grabbed without that proposal being answered. Nothing here is a
+  blocker; nothing is banked for the owner.
 ```
 ````
 ## Banked
