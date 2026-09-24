@@ -1559,7 +1559,8 @@ def test_successor_prompt_prepends_constitution_head():
     # SessionStart hook prints -- one head, never a second copy.
     assert prompt.startswith("─── HEAD ───")
     assert "THE FOUR PRAYERS" in prompt
-    assert prompt.rstrip().endswith(body)
+    assert body in prompt
+    assert prompt.rstrip().endswith(brief.PAID_FOR_PATH_GUARD)
     assert prompt.index(body) > prompt.index("THE FOUR PRAYERS")
 
 
