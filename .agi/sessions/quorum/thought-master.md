@@ -47,16 +47,16 @@ trunk reds     test_dashboard's SIGINT watch only
 ```
 
 ## 🔴 Where it stops
-16:2xZ 09-24 gen 16: OWNER 16:14Z (DE stalls at 0.40 waiting to be rotated) -> TMM.120 woke DE (idle since 14:10Z, R0 done, no [merge-up]): work to f >= 0.47 then rotate itself; E0 = the rule in rotation_alert.py's band text; queue E1 -> guard -> E3 -> E4 -> E5 -> E6 · the rule verbatim in doc:lm-director-brief-customizations + [rule] to the Prime (the template is theirs) · DT: TMM.119 (fix a00-3c370e1e's verdict) then a LEAN re-gate + land; batch 7 running
+16:2xZ 09-24 gen 16: OWNER 16:20Z (move every model-facing prose literal into templates) -> goal:g5.32 minted in my bundle (GOALS.md rendered, --check ok) + TMM.121 to DE: R0's [merge-up] -> T0 inventory + one loader + rotation_alert (absorbs E0) -> E1 -> T1..Tn one family per batch -> guard -> E3-E6 · [owner] line to the Prime (g5.32 feeds its g1.19) · OWNER 16:14Z rule (work to the line, rotate yourself) in doc:lm-director-brief-customizations; DE woken 16:16Z · DT: TMM.119 (fix a00-3c370e1e's verdict) then a LEAN re-gate + land; batch 7 running
 ```
 state   MAIN: this card committed and pushed; only cron-owned comms churn left; no gate worktree open
 NEXT    (0) DONE: both director rows = claude-sonnet-5 max (the Prime 3b6e0eb632 + 6d38b9742e, owner 05:1xZ)
         (1) HAND SMALL BATCHES (the formation): research -> director-thought (priority row [1]-[4] on the board), engine -> director-engine
             (CTX.01 one-copy build first, TMM.99); keep the board's trajectory rows current as results land; directors report at batch end only
-            NOW: DE = R0 (#7/#8 residues, TMM.115) -> E1 keys + authority (TMM.112) -> the cross-box reap guard (TMM.116) -> E3
+            NOW: DE = R0's [merge-up] -> T0 goal:g5.32 (inventory + loader + rotation_alert) -> E1 keys + authority -> T1..Tn (TMM.121) -> the reap guard (TMM.116) -> E3
             rotation -> E4 harness -> E5 non-lm demote text · the HOOK port FORWARD only if DT [red]s (no route for the extension) ·
             DT = TMM.118: owed 1-3 on 6b5ed4743d, then ONE [merge-up]; then batch 7 ·
-            batch 7 = true-q4 baseline -> channel-scaled keys (pre-approved) · next = TMM.121
+            batch 7 = true-q4 baseline -> channel-scaled keys (pre-approved) · next = TMM.122
         (2) merge-ups: code = the full suite gate (detached /tmp worktree, ~17 min); no code = the lean gate (evidence + THOUGHT tests,
             links, goals, leak scan) · the #63 board-body verbatim is the Prime's (owner: the Prime does those edits)
         (3) paid models held; the ladder tier-0 kid row = paid -> the Prime's edit ([red] gen 15 + 05:1xZ gen 16) · kids: --harness pi-free + project = the parent worktree
@@ -72,7 +72,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
 orders       a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.121
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.122
 owner lines  in my pane = verbatim where the HEAD's notes line says: a template or config, then the role doc, then town:local-maxxing --
              NEVER a goal (goals are project trackers, owner 09-24) · the stamp = the jsonl's own timestamp for the owner's message
              (.agi/sessions/thought-master.meter names the jsonl), never a guess · a one-line replace inside a fence = 'replace body N:N --force <file>'
