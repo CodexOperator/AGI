@@ -1,0 +1,316 @@
+{
+  "selftest": "PASS under+usage / recognised over / shape 0,1,2,1 flags only 4",
+  "arms": [
+    {
+      "arm": "declared",
+      "declared_window": 60000,
+      "temp_dir": "/tmp/pi-d0e2727c-tg0sy41m",
+      "largest_request_bytes": 249661,
+      "first_over": 21,
+      "compaction_request": 22,
+      "400_preceded_compaction": true,
+      "wall_seconds": 1.16,
+      "requests": [
+        {
+          "seq": 1,
+          "bytes": 5593,
+          "estimated_tokens": 1471.8,
+          "status": 200,
+          "tool_results": 0,
+          "is_compaction": false
+        },
+        {
+          "seq": 2,
+          "bytes": 17788,
+          "estimated_tokens": 4681.1,
+          "status": 200,
+          "tool_results": 1,
+          "is_compaction": false
+        },
+        {
+          "seq": 3,
+          "bytes": 29983,
+          "estimated_tokens": 7890.3,
+          "status": 200,
+          "tool_results": 2,
+          "is_compaction": false
+        },
+        {
+          "seq": 4,
+          "bytes": 42178,
+          "estimated_tokens": 11099.5,
+          "status": 200,
+          "tool_results": 3,
+          "is_compaction": false
+        },
+        {
+          "seq": 5,
+          "bytes": 54373,
+          "estimated_tokens": 14308.7,
+          "status": 200,
+          "tool_results": 4,
+          "is_compaction": false
+        },
+        {
+          "seq": 6,
+          "bytes": 66568,
+          "estimated_tokens": 17517.9,
+          "status": 200,
+          "tool_results": 5,
+          "is_compaction": false
+        },
+        {
+          "seq": 7,
+          "bytes": 78763,
+          "estimated_tokens": 20727.1,
+          "status": 200,
+          "tool_results": 6,
+          "is_compaction": false
+        },
+        {
+          "seq": 8,
+          "bytes": 90958,
+          "estimated_tokens": 23936.3,
+          "status": 200,
+          "tool_results": 7,
+          "is_compaction": false
+        },
+        {
+          "seq": 9,
+          "bytes": 103153,
+          "estimated_tokens": 27145.5,
+          "status": 200,
+          "tool_results": 8,
+          "is_compaction": false
+        },
+        {
+          "seq": 10,
+          "bytes": 115348,
+          "estimated_tokens": 30354.7,
+          "status": 200,
+          "tool_results": 9,
+          "is_compaction": false
+        },
+        {
+          "seq": 11,
+          "bytes": 127543,
+          "estimated_tokens": 33563.9,
+          "status": 200,
+          "tool_results": 10,
+          "is_compaction": false
+        },
+        {
+          "seq": 12,
+          "bytes": 139738,
+          "estimated_tokens": 36773.2,
+          "status": 200,
+          "tool_results": 11,
+          "is_compaction": false
+        },
+        {
+          "seq": 13,
+          "bytes": 151933,
+          "estimated_tokens": 39982.4,
+          "status": 200,
+          "tool_results": 12,
+          "is_compaction": false
+        },
+        {
+          "seq": 14,
+          "bytes": 164128,
+          "estimated_tokens": 43191.6,
+          "status": 200,
+          "tool_results": 13,
+          "is_compaction": false
+        },
+        {
+          "seq": 15,
+          "bytes": 176323,
+          "estimated_tokens": 46400.8,
+          "status": 200,
+          "tool_results": 14,
+          "is_compaction": false
+        },
+        {
+          "seq": 16,
+          "bytes": 188518,
+          "estimated_tokens": 49610.0,
+          "status": 200,
+          "tool_results": 15,
+          "is_compaction": false
+        },
+        {
+          "seq": 17,
+          "bytes": 200713,
+          "estimated_tokens": 52819.2,
+          "status": 200,
+          "tool_results": 16,
+          "is_compaction": false
+        },
+        {
+          "seq": 18,
+          "bytes": 212908,
+          "estimated_tokens": 56028.4,
+          "status": 200,
+          "tool_results": 17,
+          "is_compaction": false
+        },
+        {
+          "seq": 19,
+          "bytes": 225103,
+          "estimated_tokens": 59237.6,
+          "status": 200,
+          "tool_results": 18,
+          "is_compaction": false
+        },
+        {
+          "seq": 20,
+          "bytes": 237298,
+          "estimated_tokens": 62446.8,
+          "status": 200,
+          "tool_results": 19,
+          "is_compaction": false
+        },
+        {
+          "seq": 21,
+          "bytes": 249493,
+          "estimated_tokens": 65656.1,
+          "status": 400,
+          "tool_results": 20,
+          "is_compaction": false
+        },
+        {
+          "seq": 22,
+          "bytes": 106470,
+          "estimated_tokens": 28018.4,
+          "status": 200,
+          "tool_results": 0,
+          "is_compaction": true
+        },
+        {
+          "seq": 23,
+          "bytes": 91126,
+          "estimated_tokens": 23980.5,
+          "status": 200,
+          "tool_results": 7,
+          "is_compaction": false
+        },
+        {
+          "seq": 24,
+          "bytes": 103321,
+          "estimated_tokens": 27189.7,
+          "status": 200,
+          "tool_results": 8,
+          "is_compaction": false
+        },
+        {
+          "seq": 25,
+          "bytes": 115516,
+          "estimated_tokens": 30398.9,
+          "status": 200,
+          "tool_results": 9,
+          "is_compaction": false
+        },
+        {
+          "seq": 26,
+          "bytes": 127711,
+          "estimated_tokens": 33608.2,
+          "status": 200,
+          "tool_results": 10,
+          "is_compaction": false
+        },
+        {
+          "seq": 27,
+          "bytes": 139906,
+          "estimated_tokens": 36817.4,
+          "status": 200,
+          "tool_results": 11,
+          "is_compaction": false
+        },
+        {
+          "seq": 28,
+          "bytes": 152101,
+          "estimated_tokens": 40026.6,
+          "status": 200,
+          "tool_results": 12,
+          "is_compaction": false
+        },
+        {
+          "seq": 29,
+          "bytes": 164296,
+          "estimated_tokens": 43235.8,
+          "status": 200,
+          "tool_results": 13,
+          "is_compaction": false
+        },
+        {
+          "seq": 30,
+          "bytes": 176491,
+          "estimated_tokens": 46445.0,
+          "status": 200,
+          "tool_results": 14,
+          "is_compaction": false
+        },
+        {
+          "seq": 31,
+          "bytes": 188686,
+          "estimated_tokens": 49654.2,
+          "status": 200,
+          "tool_results": 15,
+          "is_compaction": false
+        },
+        {
+          "seq": 32,
+          "bytes": 200881,
+          "estimated_tokens": 52863.4,
+          "status": 200,
+          "tool_results": 16,
+          "is_compaction": false
+        },
+        {
+          "seq": 33,
+          "bytes": 213076,
+          "estimated_tokens": 56072.6,
+          "status": 200,
+          "tool_results": 17,
+          "is_compaction": false
+        },
+        {
+          "seq": 34,
+          "bytes": 225271,
+          "estimated_tokens": 59281.8,
+          "status": 200,
+          "tool_results": 18,
+          "is_compaction": false
+        },
+        {
+          "seq": 35,
+          "bytes": 237466,
+          "estimated_tokens": 62491.1,
+          "status": 200,
+          "tool_results": 19,
+          "is_compaction": false
+        },
+        {
+          "seq": 36,
+          "bytes": 249661,
+          "estimated_tokens": 65700.3,
+          "status": 400,
+          "tool_results": 20,
+          "is_compaction": false
+        }
+      ]
+    },
+    {
+      "arm": "missing",
+      "declared_window": null,
+      "temp_dir": "/tmp/pi-d0e2727c-obralzcf",
+      "largest_request_bytes": 0,
+      "first_over": null,
+      "compaction_request": null,
+      "400_preceded_compaction": false,
+      "wall_seconds": 0.67,
+      "requests": []
+    }
+  ]
+}
