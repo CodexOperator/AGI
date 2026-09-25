@@ -12565,7 +12565,7 @@ home      the G1 CONFIG-MAXXING umbrella (commands.py's own goal is goal:g1.10; 
           town:local-maxxing's board lists it for the town across umbrellas
 claims    ONLY the cli-grammar deliverable of goal:g7.33 (g7.33.md:57, G14.14.6's maxxing pass: every bin verb, its args, invariants,
           traps) -- g7.33 itself stays core's and held
-shape     (owner 2026-09-24 20:3xZ steer, verbatim in doc:l5-owner-decisions) an ACTION REGISTRY = every engine action as a typed entry, the ONE choice set jev reads · commands.py = a lightweight query + parse layer over the registry, never the registry itself · the registry stays compatible with off-the-shelf libraries that turn python scripts into CLI commands dynamically via templates ·
+shape     (owner 2026-09-24 20:3xZ steer, verbatim in this goal's THOUGHT) an ACTION REGISTRY = every engine action as a typed entry, the ONE choice set jev reads · commands.py = a lightweight query + parse layer over the registry, never the registry itself · the registry stays compatible with off-the-shelf libraries that turn python scripts into CLI commands dynamically via templates ·
           propose (Python / CLI / localhost endpoint) validates and returns the argv, never executes
 serves    goal:g5.24.3 the magic pane: MP.02's suggester and held-out set score against this manifest; the town builds no second grammar
 work      director-engine (build lane) · first round: hypothesis:commands-manifest-is-jevs-one-choice-surface
