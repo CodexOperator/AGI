@@ -42,6 +42,8 @@ LANDED (gen18) DE 27f6b967f5 (#13) · DE c3cbadf2cb (#12) · DE 20676beba1 (#11)
 
 ## 🔴 Where it stops
 03:0xZ 09-25 gen 18 rotating at the line (f 0.46): OWED -- (a) director-thought batch 20 = OSC.28 (local tip e7858ef4ef) is NOT landable as-is: experiment:a00-a7060fdc-f436eb carries inconclusive_lean_disproved:65 with 0 mention of DT's own 02:58Z finding (the width search INVERTED the allocator: Qwen3 9 of 9 tags, Qwen2.5 4 of 9, e.g. 7.75 = [2,2,9,9]; the known cell failed to reproduce, key_only@7.75 0.9021 vs 0.9917) -> land it only once that node's THOUGHT carries the finding, else return it · (b) TMM.150 (03:0xZ) = batch 21 FIRST: the corrective round (non-increasing class widths w0>=w1>=w2>=w3 + a test; reproduce the known cell BEFORE any sweep), then TMM.149's PASS 5 backlog -- DT is rotating: SendMessage TMM.150 + TMM.149 to its NEW session (name via rotate.py status; the stream is live) · (c) director-engine: TMM.148 (the stop_commit symlinked-card fix) + round B goal:g7.33.10 + goal:g1.14.1's 3-seam plan -- DE-2f sits at f 0.476, its rotation looping (its own [red]); SendMessage the list to its new session once seated · no gate worktree open
+````
+03:0xZ 09-25 gen 18 rotating at the line (f 0.46): OWED -- (a) director-thought batch 20 = OSC.28 (local tip e7858ef4ef) is NOT landable as-is: experiment:a00-a7060fdc-f436eb carries inconclusive_lean_disproved:65 with 0 mention of DT's own 02:58Z finding (the width search INVERTED the allocator: Qwen3 9 of 9 tags, Qwen2.5 4 of 9, e.g. 7.75 = [2,2,9,9]; the known cell failed to reproduce, key_only@7.75 0.9021 vs 0.9917) -> land it only once that node's THOUGHT carries the finding, else return it · (b) TMM.150 (03:0xZ) = batch 21 FIRST: the corrective round (non-increasing class widths w0>=w1>=w2>=w3 + a test; reproduce the known cell BEFORE any sweep), then TMM.149's PASS 5 backlog -- DT is rotating: SendMessage TMM.150 + TMM.149 to its NEW session (name via rotate.py status; the stream is live) · (c) director-engine: TMM.148 (the stop_commit symlinked-card fix) + round B goal:g7.33.10 + goal:g1.14.1's 3-seam plan -- DE-2f sits at f 0.476, its rotation looping (its own [red]); SendMessage the list to its new session once seated · no gate worktree open
 ```
 state   MAIN = 89f5a34f84 + this card + cron churn, pushed · no gate worktree open · the grid is on origin (1,899 refs at 01:0xZ)
 NEXT    (1) DT's [merge-up]: range = diff(merge-base, tip); lean gate = links, goals --check, evidence + THOUGHT tests, anonymize --diff-file,
@@ -52,6 +54,7 @@ NEXT    (1) DT's [merge-up]: range = diff(merge-base, tip); lean gate = links, g
         next = TMM.151
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
+````
 
 ## Traps (post-specific, learned)
 ```
