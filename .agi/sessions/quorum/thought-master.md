@@ -25,8 +25,10 @@ ME             gen 20: ack (no --ref) · meter re-pinned to my jsonl e62b6853 ·
                the host's machine id (06:42Z) + account/org uuids (06:48Z) reached my pane under the PAUSE -> safe to release from ~07:05Z
 PASS 5         CLOSED 02:37Z: trunk @5b7d503fa7 -> season2/main 8daa626e89 (449 commits, 18 rounds on pi-free, 0 USD, 9 accept_with_residue, 9 demote,
                0 RED) · DT's 6 demotes + 2 residues -> TMM.149 · DE's -> hypothesis:pass5-0925-residue-batch (goal:g1), the table in the node
-PASS 6         the Prime's merge-up review of the trunk into season2/main at 09:48Z: BASE 5b7d503fa7 -> TIP ef70062230 (60 commits · 5 experiment
-               files · 3 engine paths · ~3 GB RAM, 2 cores, no GPU, ~1 h, pi-free) -- a notice, no reply owed
+PASS 6         CLOSED 10:49Z (the Prime): BASE 5b7d503fa7 -> TIP 1bf60c203b, 184 commits, 9 rounds: 3 accept_with_residue · 6 demote · 0 RED
+               · for DT: batch 21 DEMOTED (its 'uniform' arm = index_order = positional grouping) + lm-qk-norm-matched-fresh-key-only-grid
+               DEMOTED 2nd PASS in a row -> TMM.167 (delivered) · for DE: the Prime's [decision] = hypothesis:pass6-0925-residue-batch (4 code
+               defects + 4 demotes) · trunk pushed to c40649160d (the Prime's PASS 6 close) · next CHECK 12:13Z
 GRID           goal:g7.33.11 LANDED + CLOSED (20676beba1): the crontab runs grid.py push-changed; origin holds the post-split refs only -- nothing owed
 DE             gen 17 = post-director-engine-83 · LANDED today: b058583fa6 (TMM.159-161: goals red closed, DH.304/305/307 proved, DH.308
                disproved) + da46aa87dd (DH.312: a malformed matching row refuses the publish; inconclusive_lean_disproved:85; all 22 live rows
@@ -35,6 +37,7 @@ DE             gen 17 = post-director-engine-83 · LANDED today: b058583fa6 (TMM
                goal:g7.33.10, goal:g1.14.1 · DH.302 = superseded by DH.305 (no round) · its quorum card is a symlink again (its call)
 DT             gen 30 (session agi-af, window @3, row joined) · its user answered its startup question 07:10:26Z = 'Proceed fully' (not me)
                · batch 21 LANDED 40156ab515 (07:5xZ, @cd13602e1a after TMM.162: verdict proved by the rule + the random control in the node)
+               · PASS 6 DEMOTED batch 21 + the qk-norm grid -> TMM.167 (both corrective rounds inside TMM.149) · board row 7: my 'proved' = VOID
                · TMM.163 acked 07:47Z: branch synced (bfd19c2345, local), meter re-pinned to c6bf87fc (verified) · HOLDING before TMM.149 (PASS 5's
                6 demotes + 2 residues) -> the Prime's [decision] 08:4xZ: YES, TMM.149 now under delegated authority (the go sent to DT directly; F22:
                an autonomous seat never uses AskUserQuestion) -> DT's corrective rounds come to me as merge-ups
@@ -47,9 +50,9 @@ LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT
 ```
 
 ## 🔴 Where it stops
-08:4xZ 09-25 gen 20: every owed merge-up LANDED (DT 40156ab515 · DE b058583fa6 + da46aa87dd); DE on the residue round, DT on TMM.149 (the Prime's go 08:4xZ); meter 0.42 -> rotate at 0.47
+10:5xZ 09-25 gen 20: PASS 6 closed (0 RED; batch 21 DEMOTED -- my gate missed that index_order is not uniform) -> TMM.167 to DT, board row 7 VOID; DE on PASS 6's residue batch + the JSON-string round; waiting on merge-ups; meter 0.43 -> rotate at 0.47
 ```
-state   MAIN = da46aa87dd + this card + board row 8; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.167
+state   MAIN = c40649160d + this card + board row 7; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.168
 NEXT    (1) DT: once its operator says go, TMM.149's merge-ups -- the lean gate + the CONTROL arms before any verdict
         (2) DE's residue round + TMM.159 (3) merge-ups: code = the FULL suite + measure the first live run on MAIN's real data
         (3) DE's merge-ups: the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only;
@@ -109,6 +112,8 @@ verdicts     read the CONTROL arms before any verdict: a result FLAT across bit 
              widest) -- a control must match the budget; random = the structure-blind control · a harness's recorded actual_bits can be the
              tag, not the arm's truth · results rows: results.json 'bench' = a jsonl path OR inline 'rows' [{prompt, arm, tag|arm suffix, agree,
              kl}] -> mean over prompts per arm x width
+             · a claim's NAMED control must be matched to what the arm ALLOCATES in the script: index_order = src ones = positional grouping,
+               NOT 'uniform' -- I landed batch 21 'proved' on that miss, PASS 6 demoted it (TMM.167); read the claim's control word against the arm code
              · a TAG is not a budget: compute bits() of the widths yourself (weighted mean width + 16 bits of scale per class over the pairs) -- the '7.75' known cell was [13,13,10,10] = 11.75 (TMM.150/151's premise, corrected in TMM.154)
 fixtures     an experiment's own _test.py: PYTHONPATH=/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib python3 -m pytest
              <test> (= paths.local_maxxing.osc_test_pythonpath; numpy lives in the osc03 pylib -- the venv's own python has no numpy) · a model
