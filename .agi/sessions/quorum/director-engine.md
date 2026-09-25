@@ -1,3 +1,4 @@
+AUTO-CAPTURED
 ---
 id: doc:card-director-engine
 mint_id: 83442527f7084dd0a6f18f3d9cdf32ab
