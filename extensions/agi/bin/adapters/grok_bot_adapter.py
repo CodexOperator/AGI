@@ -160,3 +160,44 @@ def restart(
 def needs_credential(harness: dict) -> bool:
     """Grok Bot uses its own auth channel; no minted OpenRouter key."""
     return False
+
+
+class PaneUnavailableError(RuntimeError):
+    """Raised when an optional pane operation has no held named pane."""
+
+
+def pane_attach(seat: str, *, tmux_session: str = "agi") -> str:
+    """Resolve a held named pane through send.py's existing hold check.
+
+    This is deliberately a thin wrapper: send.py owns window listing and
+    addressing, while this adapter only exposes the optional feature surface.
+    A missing pane is a named, immediate failure rather than a silent fallback
+    or an unbounded wait.
+    """
+    import send
+    if not seat or not send._window_listed(tmux_session, seat):
+        raise PaneUnavailableError(
+            f"grok-bot pane unavailable: {tmux_session}:{seat!r} is not held")
+    return f"{tmux_session}:{seat}"
+
+
+def pane_send(pane: str, text: str) -> bool:
+    """Send through send.py's held-pane mechanics, without owning them."""
+    if not pane or not text:
+        raise PaneUnavailableError("grok-bot pane send requires a held pane and text")
+    import send
+    if not (send._send_keys(pane, text, literal=True)
+            and send._send_keys(pane, "Enter")):
+        raise PaneUnavailableError(f"grok-bot pane send failed for {pane!r}")
+    return True
+
+
+def pane_read(pane: str) -> str:
+    """Read a held pane through send.py's existing capture contract."""
+    if not pane:
+        raise PaneUnavailableError("grok-bot pane read requires a held pane")
+    import send
+    result = send._capture_pane(pane.rsplit(":", 1)[0], pane.rsplit(":", 1)[-1])
+    if result is None:
+        raise PaneUnavailableError(f"grok-bot pane read failed for {pane!r}")
+    return result

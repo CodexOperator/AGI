@@ -158,6 +158,44 @@ def test_restart_returns_none_when_popen_fails(monkeypatch, tmp_path):
     assert grok.restart(harness=RESTART_HARNESS, tier="kid",
                         context_file=str(tmp_path / "context.md"),
                         agent_id="a00-test", iter_n=1, sess_dir=sess) is None
+# ------------------------------------------------------------ pane feature
+
+
+def test_pane_attach_uses_send_hold_registry(monkeypatch):
+    import send
+    monkeypatch.setattr(send, "_window_listed",
+                        lambda session, seat: (session, seat) == ("agi", "kid"))
+    assert grok.pane_attach("kid") == "agi:kid"
+    monkeypatch.setattr(send, "_window_listed", lambda *_args: False)
+    with pytest.raises(grok.PaneUnavailableError, match="grok-bot pane unavailable"):
+        grok.pane_attach("missing")
+
+
+def test_pane_send_wraps_send_keys_and_fails_named(monkeypatch):
+    import send
+    calls = []
+    monkeypatch.setattr(send, "_send_keys",
+                        lambda target, *keys, **kw: calls.append((target, keys, kw)) or True)
+    assert grok.pane_send("agi:kid", "hello") is True
+    assert calls == [("agi:kid", ("hello",), {"literal": True}),
+                     ("agi:kid", ("Enter",), {})]
+    monkeypatch.setattr(send, "_send_keys", lambda *_args, **_kw: False)
+    with pytest.raises(grok.PaneUnavailableError, match="pane send failed"):
+        grok.pane_send("agi:kid", "hello")
+
+
+def test_pane_read_wraps_capture_and_fails_named(monkeypatch):
+    import send
+    seen = []
+    monkeypatch.setattr(send, "_capture_pane",
+                        lambda session, target: seen.append((session, target)) or "ready")
+    assert grok.pane_read("agi:kid") == "ready"
+    assert seen == [("agi", "kid")]
+    monkeypatch.setattr(send, "_capture_pane", lambda *_args: None)
+    with pytest.raises(grok.PaneUnavailableError, match="pane read failed"):
+        grok.pane_read("agi:kid")
+
+
 # -------------------------------------------------------- live config row
 # The tests above build their `cfg` in memory, so they would stay green even
 # if the shipped `.agi/config.json` lost the `grok-bot` row. These read the
