@@ -22,12 +22,11 @@ PASS 5         CLOSED 02:37Z: trunk @5b7d503fa7 -> season2/main 8daa626e89 (449 
                0 RED) · DT's 6 demotes + 2 residues -> TMM.149 · DE's -> hypothesis:pass5-0925-residue-batch (goal:g1), the table in the node
 GRID           goal:g7.33.11 LANDED + CLOSED (20676beba1): the crontab runs grid.py push-changed; origin holds the post-split refs only
                (1,900 at the close = 4,330 - 2,430 split-only, 0 rejected) -- nothing owed
-DE             DE-2f (gen 13) idle PAST the line (f 0.486) since 02:57Z; its bare rotate LOOPS: its quorum card is the ONLY symlinked one
-               (-> ../../nodes/doc/card-director-engine.md; mine + DT's are plain files) -- stop_commit commits a flattened copy, the
-               dirty check refuses the TYPECHANGE · TMM.152 (03:05:45Z, landed as a prompt): (0) cp the link target over the link,
-               commit that one path, bare rotate NOW -> successor: (1) re-dispatch DH.303 = the owner's PASS 5 item 1 (died ~02:40Z,
-               0 commits) (2) DH.302 (a00-fe4b70ef @1c72417999) NOT landable: no test, experiment body = the empty template, it
-               unlinks the symlink (3) PASS 5 items 2-4 + the residue batch's DE rows (4) round B g7.33.10 (5) g1.14.1
+DE             ROTATED 03:07:52Z on TMM.152's hand-unblock (its quorum card = a plain file now; doc:card-director-engine = the gen-13
+               snapshot, re-link = its call) -> post-director-engine-b3 (gen 14, seated 03:08:27Z) · TMM.153 03:1xZ = dm (pane busy ->
+               coalesced) + SendMessage: (1) re-dispatch DH.303 = the owner's PASS 5 item 1 FIRST (died ~02:40Z, 0 commits) (2) DH.302
+               (a00-fe4b70ef @1c72417999) NOT landable: no test, experiment body = the empty template, it unlinks the symlink (3) PASS 5
+               items 2-4 + the residue batch's DE rows (4) round B g7.33.10 (5) g1.14.1
 DT             ROTATED 02:59:04Z (29 s after TMM.150) -> post-director-thought-21 (gen 29) · TMM.151 03:05Z = dm (pane busy -> coalesced)
                + SendMessage (enqueued 03:05:53Z): batch 20's THOUGHT fix, then TMM.150 (batch 21 = the corrective round FIRST; the
                known cell VERIFIED at experiment:a00-6f40fad2-eca451:33 = 0.991699 / 0.000489), then TMM.149 (PASS 5's 6 + 2)
@@ -40,10 +39,10 @@ LANDED (gen19) none yet
 ```
 
 ## 🔴 Where it stops
-03:1xZ 09-25 gen 19: TMM.151 (DT's new session: dm + SendMessage) and TMM.152 (DE: rotate now past the line) sent; waiting on DE's rotation and DT's [merge-up] for batch 20
+03:1xZ 09-25 gen 19: both directors re-seated and re-ordered BY NAME (DT: TMM.151; DE: TMM.152 -> rotated -> TMM.153); waiting on DT's [merge-up] for batch 20 and DE's merge-ups
 ```
-state   MAIN = bf1954b212 + this card; cron churn + sequence.json not mine · no gate worktree open (/tmp/de-close is not mine) · next = TMM.153
-NEXT    (1) DE seats a new session -> SendMessage TMM.152's (1)-(5) to it (rotate.py status --post director-engine --record latest | grep session_name)
+state   MAIN = bf1954b212 + this card; cron churn + sequence.json not mine · no gate worktree open (/tmp/de-close is not mine) · next = TMM.154
+NEXT    (1) after ANY director rotation: SendMessage the newest owed order to the NEW session (rotate.py status --post <p> --record latest | grep session_name)
         (2) DT's [merge-up] for batch 20: lean gate = links, goals --check, evidence + THOUGHT tests, anonymize --diff-file, the GPU-name grep
             on added lines, the round's _test.py; land ONLY if experiment:a00-a7060fdc-f436eb's THOUGHT carries the inversion finding, else return it
         (3) DE's merge-ups: the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only
