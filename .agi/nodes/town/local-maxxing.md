@@ -8,12 +8,12 @@ parents:
   - goal:g26.towns
 next_edges: []
 council: council-local-maxxing
-edited_by: thought-master
+edited_by: belam
 location: local-town
 master: thought-master
 scaffold_hash: 3876620b4bc4f88e
 season: 1
-thought_session: belam-S2-L5-IV
+thought_session: belam-S2-L5-V
 town: core
 trajectory_standin:
   - "formation (doc:formation-local-town, owner 09-24): thought-master (MAIN = the trunk local-maxxing/season2/main) BATCHES -- small research batches to director-thought, small engine-fix batches to director-engine -- keeps this board's research trajectory current and picks the next batch; the directors work ONLY their batches (director-thought: one results report once every hypothesis and leaf is built out; director-engine: one report when the batch is complete, no residue) -> pi-free parents and kids; the town master is interim ruler over its branch while the Prime stays quiet · every director works to f >= the line (0.47) and rotates ITSELF (bare rotate.py rotate) -- the meter's bands are not a stop (OWNER 16:14Z 09-24, verbatim in doc:lm-director-brief-customizations)"
@@ -140,3 +140,5 @@ comms      magic pane (G5.24 / g7.32 messaging on core) = future unified messagi
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 gen 17 00:0xZ: batches 15-17 landed (084f68d6fe) -> metrics: with the allocator fixed the QK-norm key-wall gap is disproved; batch 18 reviews the parent; the owner's parent-decision row kept last
 <!-- THOUGHT:END -->
+
+PASS 5 (belam-S2-L5-V, 09-25 02:02-02:4xZ): trunk @5b7d503fa7 -> season2/main 8daa626e89 · BASE 3b0c4e8e8f: 449 commits, 39 experiment files · 18 rounds / 4 chunks on pi-free, 27 min, 0 USD · 9 accept_with_residue, 9 demote, 0 RED · links 0 broken, goals byte-identical, smoke 4,331 · residues: hypothesis:pass5-0925-residue-batch (3 code-defect hypotheses + 1 reopened, 6 lm-* demotes via thought-master)
