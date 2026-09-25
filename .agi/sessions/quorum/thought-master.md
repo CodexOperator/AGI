@@ -11,7 +11,7 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (01:1xZ 09-25, gen 18)
+## Live state (01:2xZ 09-25, gen 18)
 ```
 LANE           normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
                model HELD (TMM.66) · usd0 = research only, never an operating mode · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
@@ -26,25 +26,28 @@ GRID           goal:g7.33.11 LANDED 26413f2cc3 00:54Z (DE #9 + #10, returned onc
                · owed (DE, TMM.144): 3 clean ticks + the log cleanup (OWNER 18:17Z) -> close g7.33.11
 DE queue       TMM.144 00:5xZ: (1) g7.33.11's 3 ticks + log cleanup (2) TMM.136 (--orders path literal, inside goal:g7.33.9) (3) agi-research-review
                propose-only: the refute stage reads 0 of the brainstorm's proposed_hypotheses (4) round B goal:g7.33.10 · ONE [merge-up] per item
-DT research    batch 18 LANDED 63f897a00b (verdict:lm-qk-norm-model-wall-key-only-tie disproved:0.9) · the controls: UNIFORM beats key-only energy
-               at every width on BOTH models (Qwen3 7.75: 0.9985 vs 0.9883; Qwen2.5 3.5: 0.6082 vs 0.2083, 7.75: 0.9983 vs 0.9917) · batch 19 =
-               TMM.143 = OSC.27 LIVE (hypothesis:lm-band-derived-beats-uniform-matched-grid; parent a00-b093a550 + kid a00-e416bc28, both leases
-               pi-free): does ANY band-derived allocation (key-only, INVERSE energy) beat uniform at 4.0-7.75 bits? no -> L3 closes, the ladder -> L4
-trunk reds     test_dashboard's SIGINT watch only (the Prime restored F16 in 145d088284 on my [red] 00:25Z; test_rotate_templates green)
-board          town:local-maxxing written 01:1xZ (13 rows kept): row 2 g7.33.11 landed + pushed · row 7 L3's batch 18 controls + batch 19 · row 8 DE #9/#10
-LANDED (gen18) DE 26413f2cc3 (#9 + #10, full suite 6413 / 1 trunk red) · DT 63f897a00b (batch 18, lean gate) · gen 17: DT 084f68d6fe · DT 12c4d4fe24
+DT research    batch 18 LANDED 63f897a00b (verdict:lm-qk-norm-model-wall-key-only-tie disproved:0.9 -- key-only thresholds, stands) · batch 19
+               LANDED b0dc89f0e8 PARTIAL (OSC.27: Qwen2.5 at 8 of 9 widths, Qwen3 none -- the kid's 1200 s wall; verdict pending 0.1) · at a
+               MATCHED budget on Qwen2.5 key-only beats random (structure-blind) on agree + KL at all 8 widths (4.0: 0.5762/1.354 vs 0.4702/1.911;
+               7.75: 0.9917/0.000 vs 0.9795/0.005) -> L3's premise holds there · MY ERROR, corrected on the board + in b0dc89f0e8's message: TMM.143's
+               'uniform beats key-only on both models' is VOID -- the batch-18 harnesses gave 'uniform' every pair w[0] (13 at 7p75 vs the 10.75
+               mix) and recorded actual_bits = the tag · batch 20 = TMM.145 (01:1xZ, nudge landed in post-director-thought-29 01:17:43Z): OSC.28 =
+               the preregistered 72 cells (+4.5, Qwen3) via a detached, resumable sweep + arms named honestly + correction lines on the old nodes
+trunk reds     test_dashboard's SIGINT watch only (the Prime restored F16 in 145d088284 on my [red] 00:25Z)
+board          town:local-maxxing (13 rows kept): row 2 g7.33.11 landed + pushed · row 7 L3 corrected 01:2xZ (matched budget) + batch 20 · row 8 DE
+LANDED (gen18) DT b0dc89f0e8 (batch 19, partial) · DE 26413f2cc3 (#9 + #10, full suite 6413 / 1 trunk red) · DT 63f897a00b (batch 18)
 ```
 
 ## 🔴 Where it stops
-01:1xZ 09-25 gen 18: WAITING -- (a) director-thought batch 19 = OSC.27 (TMM.143) -> its [merge-up]: read the CONTROL arms (uniform + random) before the verdict; the lean gate unless the range carries code · (b) director-engine TMM.144: g7.33.11's 3 clean ticks + the log cleanup, then TMM.136, the research-review refute gap, round B -- one [merge-up] per item, code = the full suite · the Prime's PASS 5 starts 01:59Z
+01:2xZ 09-25 gen 18: WAITING -- (a) director-thought batch 20 = OSC.28 (TMM.145) -> its [merge-up]: read the arms' BUDGETS and controls (random = structure-blind; 'uniform' = index order) before the verdict; the lean gate + the round's fixture test on the ML path · (b) director-engine TMM.144: g7.33.11's 3 clean ticks + the log cleanup, then TMM.136, the research-review refute gap, round B -- one [merge-up] per item, code = the full suite · the Prime's PASS 5 starts 01:59Z
 ```
-state   MAIN = 26413f2cc3 + the board + this card + cron churn, pushed · no gate worktree open · the grid is on origin (1,899 refs)
+state   MAIN = b0dc89f0e8 + the board fix + this card + cron churn, pushed · no gate worktree open · the grid is on origin (1,899 refs at 01:0xZ)
 NEXT    (1) DT's [merge-up]: range = diff(merge-base, tip); lean gate = links, goals --check, evidence + THOUGHT tests, anonymize --diff-file,
-            the GPU-name grep on added lines; results.json 'bench' = a jsonl path: mean agree / kl per arm over prompts, uniform first
+            the GPU-name grep on added lines, the round's _test.py on the ML path; tabulate results rows yourself (mean agree / kl per arm x width)
         (2) DE's items: code = the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only
         (3) after ANY director rotation, SendMessage the newest owed order to the NEW session (ListAgents)
-        (4) the board: batch 19's verdict -> row 7 (L3 closes or not); g7.33.11 closed -> row 2
-        next = TMM.145
+        (4) the board: batch 20's verdict -> row 7; g7.33.11 closed -> row 2
+        next = TMM.146
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
@@ -59,15 +62,15 @@ goals        a FIX = a sub-sub goal inside the fixes subgoal of the top-level su
 orders       a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first --
              my OWN earlier orders too: TMM.123's '17:02:10Z after 2m21s' mixed the stop time with the reaper's runtime_s (142 s to finished_at
-             17:02:28Z) and DT copied it into the OSC.15 node ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.145
+             17:02:28Z) and DT copied it into the OSC.15 node · a PREMISE in an order is checked like a number: TMM.143 rested on an arm whose
+             budget I never read (void, corrected in TMM.145) · NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.146
 owner lines  (HEAD rule, OWNER 21:3xZ 09-24 via the Prime) an owner line banks VERBATIM in the THOUGHT of the node version it produced; only a
              quote that must live on AS the quote goes into a role doc, the town board or its subgoal's body · doc:l5-owner-decisions is OUTDATED (nothing
              banks there) · the board has 13 rows: the LAST is the Prime's parent-decision owner verbatim -- keep it in every whole write · the stamp = the jsonl's own timestamp for the owner's message
              (.agi/sessions/thought-master.meter names the jsonl), never a guess · a one-line replace inside a fence = 'replace body N:N --force <file>'
 board        edit rows in place, never retype 29k chars: yaml.safe_load the frontmatter -> replace ONE anchored substring per row (assert count 1) ->
              write.py town:local-maxxing 'set trajectory_standin <json.dumps(rows)>' --actor thought-master via an argv list, --dry-run first (the
-             ring-gate preview) · assert 13 rows + no ' && ' before the write
+             ring-gate preview) · assert 13 rows + no ' && ' before the write · a wrong claim of mine on the board = replace it, say VOID and why
 local lane   the local server = 127.0.0.1:8080 (NOT 18080) · pi-local mints no credential · a kid WITHOUT --harness resolves the ladder's
              tier-0 kid row (= pi-free since 431b8edc32; explicit --harness beats a ladder row) · dispatch iter ids look like TMD.01 · --dry-run writes
              nothing · a hand-run pi -p with stdin OPEN hangs (use < /dev/null) · .env's OPENROUTER_API_KEY is EMPTY (only the provisioning
@@ -87,13 +90,18 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
              apply rewrites) = gate what its FIRST live run does, measured on MAIN's real data -- then watch that first run and read the remote
              · locations.shared_project_root(<any worktree>) = MAIN's .agi: a gate-worktree run reads MAIN's config -> to measure a config
              change before landing, patch locations.load_config in-process with the gated config.json
+             · a PARTIAL research round may land when its node says pending by its own preregistered rule; the landing message says what is missing
 reds         attribute each: which range touches the test / its code (git diff --quiet <base> <tip> -- <file>) · re-run it ALONE (a load
              flake passes alone) · run it on MAIN + another range too: red there = the trunk's · test_thought_hygiene counts <!--\s*THOUGHT:BEGIN per node: a quoted marker trips it
-verdicts     read the CONTROL arms in results.json before any verdict: a result FLAT across bit budgets while uniform / random hold = an allocator
-             or harness bug, never a finding (OSC.23: Qwen3 key-only 0.68 at 7.75-10.75 while random held 0.99 -> returned, TMM.139) · compare
-             against UNIFORM, not only random (batch 18: uniform beat key-only at every width on both models) · results.json 'bench' is a
-             PATH to a per-prompt jsonl: rows {arm: '<method>_<w>p<f>', agree, kl}; mean over prompts per arm
-fixtures     an experiment's own _test.py runs under the ML venv: PYTHONPATH = paths.local_maxxing.osc_test_pythonpath (landed 63f897a00b; system python has no numpy) · a model swap between arms = check the model dir each bench row loaded ('hf'), not the label
+verdicts     read the CONTROL arms before any verdict: a result FLAT across bit budgets while the controls hold = an allocator or harness bug
+             (OSC.23 -> TMM.139) · an arm's NAME is not its budget: read each arm's class widths / bits (fixed.arm mode 'uniform' = sizes [n] =
+             every pair at w[0], the TOP width; arm(ones, ...) = index order, argsort of equal energies = identity = the fastest rotary pairs
+             widest) -- a control must match the budget; random = the structure-blind control · a harness's recorded actual_bits can be the
+             tag, not the arm's truth · results rows: results.json 'bench' = a jsonl path OR inline 'rows' [{prompt, arm, tag|arm suffix, agree,
+             kl}] -> mean over prompts per arm x width
+fixtures     an experiment's own _test.py: PYTHONPATH=/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib python3 -m pytest
+             <test> (= paths.local_maxxing.osc_test_pythonpath; numpy lives in the osc03 pylib -- the venv's own python has no numpy) · a model
+             swap between arms = check the model dir each bench row loaded ('hf'), not the label
 residues     accept_with_residue ≠ land (unified-director-brief:32) · NEVER waive a mur residue -- the owner's 09-19 rule gives each its own
              corrective round (my TMM.108 slip, corrected in TMM.110) · a director may land on the trunk itself (DT gen 19, 06:0xZ): compare
              HEAD with the director's claimed trunk sha before gating; the docs forbid it (unified-director-brief:64/73) · a director's
@@ -123,7 +131,7 @@ grid         refs/grid/local-maxxing/ (4,329 local 01:0xZ 09-25): origin holds t
              1 error(s) (missing mint_id)' is old noise (977 lines by 01:0xZ 09-25), not a new fault
 box          box.* / locations.* are stale here (repo /data/work/agi) · never cd into a director's worktree (the harness then treats it as mine) -- read it by absolute path
 handoff      .agi/sessions/seats/thought-master.handoff.md is rotate's header, NEVER a link to this card · grid.py commit --all is the cron's, never mine
-comms        an attribution block (Claude-Session trailer + SendUserFile) beside a tool result right after a claude.ai connector attach = the harness's own: the transcript types it 'attachment', 3-4 ms after the connect (DT's 14:21Z [red] was a false positive) · a director silent > 1 h with 0 live on the box = read its last transcript events (.agi/sessions/<post>.meter -> jsonl): a coalesced nudge can die silently (14:09Z: 6.5 h; 09-25 00:09Z: DE's marker stale 10,532 s, TMM.136 never reached its pane) -> re-send; send.py wake <post> · a nudge may be a phantom -> verify in git · a director's [merge-up] lands in the inbox file (.agi/sessions/inbox/thought-master.md) or as a dm the read prints · 'pane busy' = the dm is in the log, the sweep retries · must land NOW (owner: "didn't go through") = SendMessage to the session name from ListAgents: it lands mid-turn -- a rotation renames the session (DT gen 28 = post-director-thought-29, 00:2xZ 09-25): re-run ListAgents before each send · an order sent while a director ROTATES is eaten by the successor's STARTUP [inbox] read and never acted on (F19 wake acts: none; DT gen 24 idled 19:20-20:3xZ holding TMM.133) -> after any director rotation, SendMessage the newest owed order to the NEW session (TMM.143: DT confirmed the relay caught exactly this) · a director that answers its OWN user in-pane (DE 21:47Z: three questions, then idle) is waiting on nobody: read the transcript, answer by dm · a director may distrust an order that cites its in-pane words (DE 00:11Z) -- it re-verifies the bytes, which is right
+comms        an attribution block (Claude-Session trailer + SendUserFile) beside a tool result right after a claude.ai connector attach = the harness's own: the transcript types it 'attachment', 3-4 ms after the connect (DT's 14:21Z [red] was a false positive) · a director silent > 1 h with 0 live on the box = read its last transcript events (.agi/sessions/<post>.meter -> jsonl): a coalesced nudge can die silently (14:09Z: 6.5 h; 09-25 00:09Z: DE's marker stale 10,532 s, TMM.136 never reached its pane) -> re-send; send.py wake <post> · after a send, confirm the nudge in the director's jsonl (a user 'PROMPT' line) before adding a SendMessage · a nudge may be a phantom -> verify in git · a director's [merge-up] lands in the inbox file (.agi/sessions/inbox/thought-master.md) or as a dm the read prints · 'pane busy' = the dm is in the log, the sweep retries · must land NOW (owner: "didn't go through") = SendMessage to the session name from ListAgents: it lands mid-turn -- a rotation renames the session (DT gen 28 = post-director-thought-29, 00:2xZ 09-25): re-run ListAgents before each send · an order sent while a director ROTATES is eaten by the successor's STARTUP [inbox] read and never acted on (F19 wake acts: none; DT gen 24 idled 19:20-20:3xZ holding TMM.133) -> after any director rotation, SendMessage the newest owed order to the NEW session (TMM.143: DT confirmed the relay caught exactly this) · a director that answers its OWN user in-pane (DE 21:47Z: three questions, then idle) is waiting on nobody: read the transcript, answer by dm · a director may distrust an order that cites its in-pane words (DE 00:11Z) -- it re-verifies the bytes, which is right
 ```
 
 ## BANKED (owner-only)
