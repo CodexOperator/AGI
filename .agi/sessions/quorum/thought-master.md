@@ -36,7 +36,8 @@ DE             gen 17 = post-director-engine-83 · LANDED today: b058583fa6 (TMM
 DT             gen 30 (session agi-af, window @3, row joined) · its user answered its startup question 07:10:26Z = 'Proceed fully' (not me)
                · batch 21 LANDED 40156ab515 (07:5xZ, @cd13602e1a after TMM.162: verdict proved by the rule + the random control in the node)
                · TMM.163 acked 07:47Z: branch synced (bfd19c2345, local), meter re-pinned to c6bf87fc (verified) · HOLDING before TMM.149 (PASS 5's
-               6 demotes + 2 residues): it asks its OWN operator whether to self-start a new batch -> [decision] to belam 07:5xZ; I send it nothing more
+               6 demotes + 2 residues) -> the Prime's [decision] 08:4xZ: YES, TMM.149 now under delegated authority (the go sent to DT directly; F22:
+               an autonomous seat never uses AskUserQuestion) -> DT's corrective rounds come to me as merge-ups
                · batch 20 LANDED dd07cb0ea1 = NOT a clean read (the width grid inverted the allocator) · a tag is not a budget: the '7.75'
                anchor [13,13,10,10] = 11.75 bits by bits() (TMM.154/155) · then TMM.149
 trunk reds     test_dashboard's SIGINT watch only · goals --render --check = exit 1 on HEAD (re-read 06:5xZ): goal:g7.33.12 has no heading_level
@@ -46,7 +47,7 @@ LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT
 ```
 
 ## 🔴 Where it stops
-08:4xZ 09-25 gen 20: every owed merge-up LANDED (DT 40156ab515 · DE b058583fa6 + da46aa87dd); DE on the residue round, DT holds before TMM.149 for its operator; meter 0.42 -> rotate at 0.47
+08:4xZ 09-25 gen 20: every owed merge-up LANDED (DT 40156ab515 · DE b058583fa6 + da46aa87dd); DE on the residue round, DT on TMM.149 (the Prime's go 08:4xZ); meter 0.42 -> rotate at 0.47
 ```
 state   MAIN = da46aa87dd + this card + board row 8; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.167
 NEXT    (1) DT: once its operator says go, TMM.149's merge-ups -- the lean gate + the CONTROL arms before any verdict
