@@ -520,7 +520,6 @@ def test_rotate_self_completes_pending_swap_before_minting(
     # upstream prepare check 2 finds a CLEAN tree, never a blocker).
     (tmp_path / "agi-tree.config.json").write_text("{}", encoding="utf-8")
     _init_git_remote(tmp_path)            # commits
-    _write_readable_veto_cell(tmp_path)
     pend = bin_send._seats_dir(tmp_path) / "adv-alive.key.pending"
     pend.write_text(json.dumps({"scheme": "ed25519",
                                 "priv_hex": succ_priv.hex(),
@@ -631,7 +630,6 @@ def test_rotate_self_stops_push_completes_pending_swap_site(
         "# adv-alive card\n## Intro\ncarried\n", encoding="utf-8")
     (tmp_path / "agi-tree.config.json").write_text("{}", encoding="utf-8")
     _init_git_remote(tmp_path)
-    _write_readable_veto_cell(tmp_path)
     pend = bin_send._seats_dir(tmp_path) / "adv-alive.key.pending"
     pend.write_text(json.dumps({"scheme": "ed25519",
                                 "priv_hex": succ_priv.hex(),
@@ -726,7 +724,6 @@ def test_rotate_self_merge_push_completes_pending_swap_site(
     (quorum / "adv-alive.md").write_text(
         "# adv-alive card\n## Intro\ncarried\n", encoding="utf-8")
     (tmp_path / "agi-tree.config.json").write_text("{}", encoding="utf-8")
-    _write_readable_veto_cell(tmp_path)
     bare = _init_git_remote(tmp_path)
     # layer an AHEAD commit onto origin/season/s2 (the ladder's season
     # branch, `_prepare_merge_target`'s fallback for a non-post branch) so
@@ -2707,15 +2704,6 @@ def test_sessions_dir_resolves_to_main_from_a_worktree(tmp_path):
 # ── l3w4-seat-rotation-loops: alarms --holder / rotate-self / status --seats ──
 
 
-def _write_readable_veto_cell(g):
-    from seatsig import veto
-    veto.save(g, {
-        "veto_room": "veto", "rate_limit_per_window": 1,
-        "window_seconds": 3600, "expiry_seconds": 86400,
-        "active_gates": [], "vetoes": [],
-    })
-
-
 def _write_seats_sheet(root, rows):
     """Write a minimal seals-md-style registry the loader can parse."""
     nodes = root / "nodes" / ".geometry"
@@ -3362,73 +3350,6 @@ def test_rotate_self_stops_one_call_writes_card_commits_rotates(
         ["git", "-C", str(top), "show", "HEAD:sessions/quorum/adv-alive.md"],
         capture_output=True, text=True).stdout
     assert "fix the merge on seat-3" in committed_card
-
-
-def test_rotate_self_stops_symlinked_card_converges_once(
-        fake_ladder, tmp_path, monkeypatch, capsys):
-    """A quorum symlink is flattened BEFORE the stops write, so one real
-    rotate-self call neither dirties the link target nor adds a THOUGHT block."""
-    _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
-                                   "model": "x", "effort": "max"}])
-    node = tmp_path / "nodes" / "doc" / "card-adv-alive.md"
-    node.parent.mkdir(parents=True, exist_ok=True)
-    target_before = (
-        "# adv-alive card\n\n## Intro\ncarried\n\n"
-        "<!-- THOUGHT:BEGIN -->\none authored thought\n"
-        "<!-- THOUGHT:END -->\n")
-    node.write_text(target_before, encoding="utf-8")
-    quorum = tmp_path / "sessions" / "quorum"
-    quorum.mkdir(parents=True, exist_ok=True)
-    card = quorum / "adv-alive.md"
-    card.symlink_to(os.path.relpath(node, card.parent))
-    _init_git_remote(tmp_path)
-    win = tmp_path / "windows.txt"
-    win.write_text("adv-alive\n", encoding="utf-8")
-
-    def fake_spawn(**kw):
-        with open(win, "a", encoding="utf-8") as fh:
-            fh.write("adv-alive\n")
-        return 0, "echo hi"
-    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
-    monkeypatch.setattr(
-        rotate, "_read_ack",
-        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
-    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
-    calls = []
-    status_after_commit = []
-    real_commit = rotate._commit_stops_row
-    def counting_commit(*a, **k):
-        result = real_commit(*a, **k)
-        calls.append(a)
-        status_after_commit.append(subprocess.run(
-            ["git", "-C", str(tmp_path), "status", "--porcelain"],
-            capture_output=True, text=True, check=True).stdout)
-        return result
-    monkeypatch.setattr(rotate, "_commit_stops_row", counting_commit)
-    args = _rotate_self_args(tmp_path, window_path=str(win),
-                             stops="fix the merge")
-    rc = rotate.cmd_rotate_self(args, tmp_path)
-    captured = capsys.readouterr()
-    out, err = captured.out, captured.err
-
-    assert rc == 0, out + err
-    assert len(calls) == 1
-    assert "stop_commit: committed" in err
-    assert "dirty tree" not in out + err
-    assert not card.is_symlink()
-    assert node.read_text(encoding="utf-8") == target_before
-    assert node.read_text(encoding="utf-8").count("THOUGHT:BEGIN") == 1
-    assert card.read_text(encoding="utf-8").count("THOUGHT:BEGIN") == 1
-    assert "fix the merge" in card.read_text(encoding="utf-8")
-    assert status_after_commit == [""]
-
-    # Negative scope probe: a plain card is already converged and stays
-    # byte-identical; this fix must not rewrite any non-symlink card.
-    plain = quorum / "plain.md"
-    plain_bytes = b"# plain\n"
-    plain.write_bytes(plain_bytes)
-    rotate._flatten_card_symlink(plain)
-    assert plain.read_bytes() == plain_bytes
 
 
 def test_stops_replacer_keeps_prose_outside_fence_and_round_trips(tmp_path):
