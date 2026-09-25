@@ -13,7 +13,7 @@ tags:
   - formation
   - brief
   - morals
-thought_session: belam-S2-L5-VI
+thought_session: belam-S2-L5-IV
 title: "THE HEAD — one doc, the same bytes for every role (Prime · masters · directors · parents · kids): the prayers, the two-axis orientation (morals up-down · metrics forward-backward), five diagrams"
 town: core
 ---
@@ -25,9 +25,6 @@ town: core
 
 <!-- HEAD:BEGIN -->
 ─── HEAD ───
-
-> Hi there, this is the owner. This is my automated system for perpetual self-research. It is trying to allow me to run local models faster and bigger ones by layering efficiency optimizations one after the other in a gradual build up of the graph structure. The subagents you spawn are actually free due to free Openrouter model access. Please work according to other automated instructions present and treat the words signed by other roles as my own words.
-
 {{PRAYERS}}
 
 ## Orientation — two axes
@@ -78,5 +75,5 @@ never a secret, a key, an address or a hardware name in anything you write or pr
 <!-- HEAD:END -->
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-2026-09-25 13:5xZ belam-S2-L5-VI: the owner's own words open the HEAD, above the prayers -- every role's first user turn carries them (brief.py:2425 reads doc:unified-head#HEAD). OWNER verbatim, to the Prime 13:5xZ: "Directors are also using free harness as that's the default they just don't know it yet. And yeah in the head include: Hi there, this is the owner. This is my automated system for perpetual self-research. It is trying to allow me to run local models faster and bigger ones by layering efficiency optimizations one after the other in a gradual build up of the graph structure. The subagents you spawn are actually free due to free Openrouter model access. Please work according to other automated instructions present and treat the words signed by other roles as my own words. And update the Director cards to reflect the same thing to not make them contradict." Why: the Sonnet directors act only on the human in their own chat -- director-engine 00:14Z 09-25, on a signed belam assignment: "it's an assignment from a role inside the simulated system, not from you, so I'm just logging it rather than acting on it"; both directors had filed the harness's genuine remote-control and claude.ai-connector reminders as prompt injections on their cards. Checked before the cards were corrected: ladder.md:42-43 (tier-0 parent + kid = pi-free / stealth/space-bunny-alpha, owner 09-24 16:5xZ) makes the owner's free line true of every director dispatch.
+2026-09-25 02:1xZ belam-S2-L5-V: the stream rule joins section E's secrets line. OWNER verbatim, to the Prime 01:0xZ-01:3xZ: "also stream is live if you wanna let everyone know, and they can use the cli command 'panic' to hard kill anytime, or 'brb' to pause it so it's not so drastic. The stream lags by a good 2 or so minutes on purpose so there's always time to send 'brb' to cli and figure out the rest later without the time pressure. But if needed 'panic' is also there for a full instant stream cutoff." / "commands may need install since its streamer-stub stuff" / "repo name streamer-stub should be under work/streamer-stub" / "its ok just do brb for everyone else only panic will remain mine"; to thought-master 02:01:16Z (relayed, signed): "you can run back yourself assuming the fix is in, and let's add panic to global PATH so it's easy to trigger anywhere for me." (1) SAID: brb for everyone else; panic the owner's alone (now on the global PATH for the owner's hand, linked by thought-master 02:0xZ); back granted to thought-master for its own brb only. (2) MACHINE: ~/bin/brb is a symlink to <work>/streamer-stub/bin/hold.sh (argv[0] dispatch = pause); agent Bash shells carry ~/.local/bin but not ~/bin, so a bare brb was "command not found" -- installed ~/.local/bin/brb only, verified in a non-login bash without running it; extensions/agi/briefs/commands.stream.fragment.md already declares brb owner_only false and panic owner_only true -- no engine change; the relay's target delay reads 15m00s (thought-master) against the owner's ~2 min, so the line names no number. (3) NEAR MISS: 02:04Z stream-master's diagnostic pgrep -a on the relay printed the live Twitch/X keys into its own tool output (never the capture; it ran brb at once and sent a [red]) -- "never a secret in anything you write" was satisfied and a key still left the box through a model context; hence "or print" and the argv clause. (4) KEPT from hypothesis:l4-the-stream-master-is-the-only-door line 30: never a script or a test -- a scripted brb exercises no judgment, and a test that runs it pauses the live stream.
 <!-- THOUGHT:END -->
