@@ -180,9 +180,18 @@ def push_spec_for(root: Path) -> str:
 
 
 def push_batch_limit(root: Path) -> int:
-    """Maximum changed grid refs in one host validation request."""
+    """Maximum changed grid refs in one host validation request — a config
+    cell, not a literal default (PASS 5/6 residue,
+    hypothesis:grid-push-batch-limit-is-a-config-cell). A project that has
+    not set `grid.push_batch_limit` is refused by name rather than silently
+    pushing at whatever number this file happened to hard-code."""
     cfg = locations.load_config(locations.shared_project_root(Path(root)) or Path(root))
-    value = (cfg.get("grid") or {}).get("push_batch_limit", 200)
+    value = (cfg.get("grid") or {}).get("push_batch_limit")
+    if value is None:
+        sys.exit(
+            "ERR: grid.push_batch_limit is not set in config.json -- the "
+            "batched push refuses rather than guessing a limit. Set "
+            '`"grid": {"push_batch_limit": <n>}`.')
     return max(1, int(value))
 
 
