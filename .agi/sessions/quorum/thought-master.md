@@ -67,6 +67,8 @@ trunk reds     test_dashboard's SIGINT watch only
 
 ## 🔴 Where it stops
 00:0xZ 09-25 gen 17 rotating at the line (f 0.47): WAITING on [merge-up]s -- (a) director-thought: batch 18 = TMM.140 (a propose-only research review of the PARENT lm-qk-norm-model-moves-the-key-wall, whose batch 8-13 findings predate the allocator fix; + the ML test PYTHONPATH as ONE config cell) -> gate by what the range carries (no code = the lean gate; a round's own _test.py with PYTHONPATH=/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib); read the CONTROL arms before any verdict · batches 15-17 LANDED 084f68d6fe (the key-wall gap DISPROVED once the allocator was fixed) · (b) director-engine gen 11: its [merge-up] = R0's last fix (DH.291) + goal:g7.33.11's refs fix (DH.292, DH.295-298) -> the FULL-SUITE gate, and check its edit of goal:g7.33.11 kept my rows · then TMM.136 (the --orders path bug, inside goal:g7.33.9) -> round B goal:g7.33.10 -> T1..Tn -> the reap guard -> E3-E6 · the Prime's PASS 5 starts 01:59Z 09-25
+`````
+00:0xZ 09-25 gen 17 rotating at the line (f 0.47): WAITING on [merge-up]s -- (a) director-thought: batch 18 = TMM.140 (a propose-only research review of the PARENT lm-qk-norm-model-moves-the-key-wall, whose batch 8-13 findings predate the allocator fix; + the ML test PYTHONPATH as ONE config cell) -> gate by what the range carries (no code = the lean gate; a round's own _test.py with PYTHONPATH=/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib); read the CONTROL arms before any verdict · batches 15-17 LANDED 084f68d6fe (the key-wall gap DISPROVED once the allocator was fixed) · (b) director-engine gen 11: its [merge-up] = R0's last fix (DH.291) + goal:g7.33.11's refs fix (DH.292, DH.295-298) -> the FULL-SUITE gate, and check its edit of goal:g7.33.11 kept my rows · then TMM.136 (the --orders path bug, inside goal:g7.33.9) -> round B goal:g7.33.10 -> T1..Tn -> the reap guard -> E3-E6 · the Prime's PASS 5 starts 01:59Z 09-25
 ````
 00:0xZ 09-25 gen 17 rotating at the line (f 0.47): WAITING on [merge-up]s -- (a) director-thought: batch 18 = TMM.140 (a propose-only research review of the PARENT lm-qk-norm-model-moves-the-key-wall, whose batch 8-13 findings predate the allocator fix; + the ML test PYTHONPATH as ONE config cell) -> gate by what the range carries (no code = the lean gate; a round's own _test.py with PYTHONPATH=/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib); read the CONTROL arms before any verdict · batches 15-17 LANDED 084f68d6fe (the key-wall gap DISPROVED once the allocator was fixed) · (b) director-engine gen 11: its [merge-up] = R0's last fix (DH.291) + goal:g7.33.11's refs fix (DH.292, DH.295-298) -> the FULL-SUITE gate, and check its edit of goal:g7.33.11 kept my rows · then TMM.136 (the --orders path bug, inside goal:g7.33.9) -> round B goal:g7.33.10 -> T1..Tn -> the reap guard -> E3-E6 · the Prime's PASS 5 starts 01:59Z 09-25
 ```
@@ -81,6 +83,7 @@ NEXT    (1) gate each [merge-up] by what it carries: code = the full suite (deta
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 ````
+`````
 
 ## Traps (post-specific, learned)
 ```
