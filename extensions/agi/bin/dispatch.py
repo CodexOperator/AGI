@@ -137,6 +137,13 @@ def _persistent_hold(harness: dict, seat: str | None):
     return tmux_hold if seat and harness.get("persistent") else None
 
 
+def _open_round_launch(argv, log_file, cwd, env, mem_cap_obj, mode="ab", hold=None,
+                       pane_name=None):
+    """The one launch seam used by the live dispatcher, exposed for probing."""
+    return _launch_round(argv, log_file, cwd, env, mem_cap_obj, mode,
+                         hold=hold, pane_name=pane_name)
+
+
 def _await_startup(proc, max_s: int = _GRACE_MAX_S,
                    step_s: int = _GRACE_STEP_S) -> bool:
     """True when `proc` OUTLIVED the startup grace, False the moment it
@@ -2696,7 +2703,7 @@ def main() -> int:
         hold = _persistent_hold(dispatch_harness, seat_val)
 
         def _open_round(mode: str):
-            return _launch_round(
+            return _open_round_launch(
                 spawn_args, log_file, branch_root, spawn_env, _mem_cap, mode,
                 hold=hold, pane_name=seat_val)
 

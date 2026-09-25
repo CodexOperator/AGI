@@ -6,6 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 BIN = Path(__file__).resolve().parents[1] / "bin"
 spec = importlib.util.spec_from_file_location("dispatch_launch_result", BIN / "dispatch.py")
 dispatch = importlib.util.module_from_spec(spec)
@@ -90,6 +92,30 @@ def test_tmux_hold_founds_named_pane_without_fabricating_identity(tmp_path, monk
     assert calls[0][0][:4] == ["tmux", "new-session", "-d", "-s"]
     assert calls[0][0][4] == "grok-seat"
     assert calls[1][0][:3] == ["tmux", "list-panes", "-t"]
+
+
+def test_open_round_probe_routes_persistent_pane_without_popen(tmp_path, monkeypatch):
+    """The live dispatcher's launch seam returns a reusable pane identity."""
+    class FakeProcess:
+        pid = 909
+
+    class FakeHold:
+        @staticmethod
+        def start(**kwargs):
+            assert kwargs["pane_name"] == "grok-seat"
+            return {"process": FakeProcess(), "pane_id": "%9",
+                    "created": True, "adapter": "tmux_hold"}
+
+    monkeypatch.setattr(dispatch.subprocess, "Popen",
+                        lambda *a, **k: pytest.fail("persistent open used Popen"))
+    first = dispatch._open_round_launch(
+        ["grok-bot"], tmp_path / "output.log", tmp_path, {"A": "1"},
+        None, hold=FakeHold, pane_name="grok-seat", mode="wb")
+    second = dispatch._open_round_launch(
+        ["grok-bot"], tmp_path / "output.log", tmp_path, {"A": "1"},
+        None, hold=FakeHold, pane_name="grok-seat", mode="ab")
+    assert (first.created, first.adapter, first.pane_id) == (True, "tmux_hold", "%9")
+    assert (second.created, second.adapter, second.pane_id) == (True, "tmux_hold", "%9")
 
 
 def test_launch_round_preserves_truncate_then_append_modes(tmp_path, monkeypatch):
