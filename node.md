@@ -20,36 +20,38 @@ town: core
 
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
-## §0 State (02:4xZ 09-25)
+## §0 State (02:1xZ 09-25)
 | | |
 |---|---|
-| post | belam-S2-L5-V gen 5 · seated 00:44Z 09-25 · Opus 5.5 · meter ~0.25 |
+| post | belam-S2-L5-V gen 5 · seated 00:44Z 09-25 · Opus 5.5 · meter ~0.20 |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` (thought-master shares MAIN: exact-path commits only) · prime-root = `season2/main` in `.agi/worktrees/prime-root` · tz UTC |
-| merge | PASS 5 CLOSED 02:37Z → season2/main 8daa626e89 (pushed; grid commit there: 6 versions, 1 pre-existing error §6) · BASE 3b0c4e8e8f → TIP 5b7d503fa7 · 449 commits · 39 exp · 18 rounds / 4 chunks on pi-free · 27 min · 0 USD · 9 accept_with_residue · 9 demote · 0 RED · state reset (last_merged_town_sha 5b7d503fa7; notice/run_at/pass_started_at null) · crons file §2 = the PASS 6 template (goal:g1, board note) |
-| residues | hypothesis:pass5-0925-residue-batch (goal:g1) · 3 code-defect hypotheses + veto hypothesis REOPENED → [decision] director-engine · 6 lm-* demotes → [merge-up] thought-master (→ director-thought) |
+| PASS 5 | RUNNING since 02:02Z (state `pass_started_at`) · trunk synced 5b7d503fa7 (season2/main ee13b9564a merged in, clean) · PIN TIP 5b7d503fa7 · OS ee13b9564a · BASE 3b0c4e8e8f → 449 commits · 39 exp · 18 rounds (15 hyp + 3 engine-delta) · 4 chunks (5/5/4/4) on pi-free, launched 02:02-02:05Z · Monitor bqugxyvyu on `/tmp/belam-pass5/events.log` |
 | directors | director-engine + director-thought, claude-sonnet-5 max · `doc:unified-director-brief` §1: ONE parent per round, `--tier parent --role parent --ladder-tier 0` |
-| stream | LIVE on Twitch + X · PAUSED by stream-master's `brb` ~02:04Z (its `pgrep -a` printed relay keys into its own tool output; never the capture) · `back` = the owner's · `brb` for every post (`~/.local/bin/brb`) · `panic` the owner's (`/usr/local/bin/panic`) |
-| owner asks | Jev: ANSWERED in chat -- the existing-tools survey ran 09-24 (troves/2026-09-24-jev-survey, experiment a00-ac62bcbe inconclusive-lean-proved 0.78, PASS 5 accept_with_residue); no trove survey ran 09-25 |
-| crons | CHECK 4f4c68c7 "13 */4 * * *" (next 04:13Z) · SESSION-ONLY · retired belam panes hold no crons |
+| stream | LIVE on Twitch + X · PAUSED by stream-master's `brb` ~02:04Z (its `pgrep -a` printed relay keys into its own tool output; never the capture) · `back` = the owner's · relay target delay 15m00s (owner: ~2 min) · `brb` for every post (`~/.local/bin/brb`) · `panic` the owner's (`/usr/local/bin/panic`, TM 02:0xZ) |
+| dms | [owner] brb notice → TM/DE/DT/SM · in: TM [owner] 02:03Z (panic on PATH; `back` granted to TM for its own brb) · SM [red] 02:04Z → answered [decision] hold |
+| lanes | credits 13.75 (01:59Z) · parents + kids pi-free · mint floor 1 USD |
+| crons | CHECK 4f4c68c7 "13 */4 * * *" (next 04:13Z) · PASS 5 one-shot 7f0c852a fired 01:59Z (consumed) · retired belam panes hold no crons (gen 4 cancelled 7ce06676) · SESSION-ONLY |
 
 ## §1 Plan
 ```
-done   seated · crons · quorum · owner stream line (dm x4, ~/.local/bin/brb, doc:unified-head E) · PASS 5 (0)-(9)
-       · the owner's Jev ask answered
-next   04:13Z CHECK (§1 verbatim): live leases tier=parent only · otherwise quiet: decisions / reds / merge-ups / owner
-open   round-mur ROUTED to director-engine as a WORKFLOW (behind g1.25) · PASS 5 residues (DE + TM) · §6
+done   seated · crons re-armed · quorum re-linked · owner stream line: [owner] dm x4, ~/.local/bin/brb, doc:unified-head
+       line E (+ relay-argv clause after SM's red) · PASS 5 steps (0)-(3)
+next   PASS 5 (4)-(9) at ALL DONE · then the OWNER'S JEV ASK: did the Jev existing-tools exploratory run happen
+       (thought-master, g5.24.3; PASS round lm-jev-cua-off-the-shelf-survey-* in chunk 4) + any Jev in today's
+       trove survey -> did it yield results -> owner report
+open   round-mur ROUTED to director-engine as a WORKFLOW (behind g1.25) · residues with director-engine · §6
 ```
 
 ## §2 Landed (this seat)
-f6dd6dad92 card at seating · 5b7d503fa7 trunk sync (season2/main key row) · da01751a85 HEAD stream line + card · 8daa626e89 season2/main PASS 5 merge (pushed) · bca1ec38d0 PASS 5 residue batch + 3 defect hypotheses + veto reopen + board line · this card
+f6dd6dad92 card at seating + quorum re-link · 5b7d503fa7 trunk sync (season2/main key row, clean) · HEAD stream line + card (this commit)
 
 ## 🔴 Where it stops
 ```
-02:4xZ 09-25 belam-S2-L5-V: PASS 5 closed at season2/main 8daa626e89 (18 rounds, 0 RED); quiet until the 04:13Z CHECK; stream held for the owner's back.
- 1. CHECK fires 04:13Z: run section 1 of .agi/sessions/prime-merge.crons.md as written, plus spawn_budget.py status = tier=parent leases only.
- 2. Otherwise quiet: answer only decisions / reds / merge-ups and the owner. The stream stays held until the owner runs back.
- 3. A new pending delta -> the CHECK's case (b): 5 h notice, then a PASS 6 one-shot from section 2 (the template: goal:g1, board note, /tmp/belam-pass5 tooling).
- 4. A successor at wake: RE-ARM the CHECK (CronCreate "13 */4 * * *", section 1 verbatim), re-link the quorum symlink (trap 10), write this card whole.
+02:1xZ 09-25 belam-S2-L5-V: PASS 5 running (4 chunks on pi-free); stream held by stream-master's brb, back is the owner's.
+ 1. At ALL DONE in /tmp/belam-pass5/events.log: python3 /tmp/belam-pass5/verdicts.py (-v for every round) = step (4).
+ 2. Step (5) in .agi/worktrees/prime-root: pull --ff-only, merge-tree preview, merge --no-ff 5b7d503fa7, verify, push, grid commit --all (background).
+ 3. Steps (6)-(9) as section 2 of .agi/sessions/prime-merge.crons.md; then the owner's Jev ask (§1 next).
+ 4. A successor at wake: RE-ARM the CHECK (§1 verbatim); pass_started_at is SET, so resume PASS 5 from /tmp/belam-pass5 (runs mur-p5chunk*), never relaunch; re-link the quorum (trap 10); write this card whole.
 ```
 ## §4 Traps
 | # | trap | rule |
@@ -84,7 +86,6 @@ f6dd6dad92 card at seating · 5b7d503fa7 trunk sync (season2/main key row) · da
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
-| experiment:a00-2a4dfb57-triage (09-18) has no mint_id -- every grid commit logs 1 error | `backfill-mint-ids.py --write` by its town (local-maxxing) or a director-engine round |
 | stream `back` after stream-master's brb (02:04Z) | the owner's; keys never reached the capture per SM |
 | Twitch/X stream keys passed through a model context (SM 02:04Z) | rotate them at leisure |
 | retired belam panes I-IV + agi-98 still alive (a numeral-chain window is not reaped) | reap, or keep for the stream -- the owner's call; none holds a cron |
