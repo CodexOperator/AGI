@@ -10369,6 +10369,17 @@ def _push_season_branch(root: Path) -> str:
     return _l
 
 
+def _parse_authority_row(line: str) -> dict:
+    """Parse one posts.md list item and fail closed unless it is an object."""
+    text = line.lstrip()
+    if not text.startswith("-"):
+        raise ValueError("matching posts.md row is not a JSON list item")
+    row = json.loads(text[1:].strip())
+    if not isinstance(row, dict):
+        raise ValueError("matching posts.md row is not a JSON object")
+    return row
+
+
 def _authority_row_content(base: str, new: str, seat: str) -> str:
     """Publish rotation-owned cells while retaining authority policy edits."""
     b = base.splitlines(keepends=True)
@@ -10377,11 +10388,8 @@ def _authority_row_content(base: str, new: str, seat: str) -> str:
     own = [ln for ln in b if _own_row_line(ln, seat)]
     if row is None or not own:
         return base
-    try:
-        old_row = json.loads(own[0][own[0].index("{"):].rstrip("\r\n"))
-        new_row = json.loads(row[row.index("{"):].rstrip("\r\n"))
-    except (ValueError, json.JSONDecodeError):
-        return base
+    old_row = _parse_authority_row(own[0])
+    new_row = _parse_authority_row(row)
     rotation_owned = {
         "pubkey", "key_history", "session_id", "session_ref", "session_name",
         "session_label", "pid", "window", "generation",
@@ -10428,7 +10436,8 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
     never the silent ``SKIPPED -- no ... row to replace``."""
     try:
         from seatsig import veto as _veto
-        _frozen, _why = _veto.is_frozen(_shared_graph_root(root), "prime")
+        _veto_geom = _veto.read(_shared_graph_root(root), strict=True)
+        _frozen, _why = _veto.is_frozen(None, "prime", geom=_veto_geom)
         if _frozen:
             return f"authority: HELD -- publish is a gated Prime-scope act; {_why}"
     except ImportError:  # veto subsystem is not installed on this host
@@ -10471,7 +10480,11 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
             last = fetch.stderr.strip() or fetch.stdout.strip() or (
                 f"authority branch {branch} has no {rel}")
             continue
-        content = _authority_row_content(base, new_content, seat)
+        try:
+            content = _authority_row_content(base, new_content, seat)
+        except (ValueError, TypeError) as exc:
+            return (f"authority: FAILED -- malformed matching posts.md row "
+                    f"for {seat!r} ({exc})")
         if content == base and not any(
                 _own_row_line(ln, seat) for ln in base.splitlines()):
             # FIRST seating (C4): no row to replace -> append the new one.
@@ -17965,6 +17978,14 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
     return full, "replaced"
 
 
+def _flatten_card_symlink(card_path: Path) -> None:
+    """Make a quorum symlink regular before a caller mutates the card."""
+    if card_path.is_symlink():
+        text = card_path.read_text(encoding="utf-8")
+        card_path.unlink()
+        card_path.write_text(text, encoding="utf-8")
+
+
 def _commit_stops_row(root: Path, seat: str, card_path: Path,
                       msg: str) -> str:
     """goal:g15.25 line (3) -- the ONE rotate-out commit: the stop text's
@@ -18013,8 +18034,8 @@ def _commit_stops_row(root: Path, seat: str, card_path: Path,
             if seed.returncode != 0:
                 return (f"stop_commit: FAILED — git read-tree: "
                         f"{seed.stderr.strip()}")
-        cb = _tg(["hash-object", "-w", "--stdin"],
-                 input=card_path.read_text(encoding="utf-8"))
+        card_text = card_path.read_text(encoding="utf-8")
+        cb = _tg(["hash-object", "-w", "--stdin"], input=card_text)
         if cb.returncode != 0 or not cb.stdout.strip():
             return "stop_commit: FAILED — card hash-object"
         upd = _tg(["update-index", "--add", "--cacheinfo",
@@ -18035,6 +18056,10 @@ def _commit_stops_row(root: Path, seat: str, card_path: Path,
         if rc.returncode != 0:
             return (f"stop_commit: FAILED — git commit: "
                     f"{rc.stderr.strip()}")
+        # A quorum symlink is intentionally flattened in the snapshot. Make
+        # the working tree agree, or the later dirty check sees only a
+        # regular-vs-symlink mismatch and refuses its own rotate-out.
+        _flatten_card_symlink(card_path)
         # point the REAL index's card (and own-row seats) entry at the
         # committed blob — the same sync `_ack_commit_seats` does for its own
         # row — so the rotate-out leaves `git status` CLEAN (the claim's
@@ -18918,6 +18943,9 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             #     already reads -- never re-derived), and passed down so the
             #     rotate-out is ONE card write + ONE commit.
             _frac = _seat_fraction(root, row)
+            # Flatten BEFORE the write: writing through the link would dirty
+            # its node target, which this pathspec commit does not own.
+            _flatten_card_symlink(_card)
             _full, _slot = _write_stops_section(
                 _card, seat, _stops_text, diff_gap=_gap, frac=_frac)
             if _full is None:
