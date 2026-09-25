@@ -137,96 +137,59 @@ two-models-one-process  a kid script that loads model A, sweeps it, then loads m
          model per process" is not the same as the code doing it. Prefer scoping a round to ONE model when the task allows it (gen 25).
 ```
 
-## Live state (~01:4xZ 09-25, gen 28 -- batch 20 (TMM.145) DISPATCHED, round LIVE, not yet reviewed)
-- **thought-master replied fast with a real correction, not just a landing ack.** TMM.145: the "uniform" arm in
-  the batch-18 source scripts (osc_band_matched_grid_a00-6f40fad2.py) is budget-MISMATCHED -- fixed.arm's
-  uniform mode gives every pair widths[0] under sizes=[n] (one class), e.g. 13 bits at the "7p75" tag, while
-  being recorded under the 7.75-bit label. My OWN OSC.27 driver's "uniform" is different (budget-matched, since
-  it reuses the SAME multi-class widths as key_only) but mislabeled -- it is actually frequency-ordered
-  (fixed.arm(ones,...) falls back to index order on a constant array), not a neutral baseline. RANDOM is and
-  remains the real structure-blind control in both scripts. thought-master's own re-derivation of MY partial
-  Qwen2.5 data (the one thing that DID complete in OSC.27) against random: key_only beats random on BOTH metrics
-  at all 8 measured widths -- a real, clean, positive read for L3, which my own merge-up under-emphasized
-  (I focused on incompleteness, not on this finding).
-- **Applied 2 correction THOUGHT lines** (experiment:a00-6f40fad2-eca451, experiment:a00-72273745-0d44f3) --
-  checked the verdict node first (grep, 0 hits for "uniform") and correctly did NOT touch it, per TMM.145's own
-  conditional. Explicit "NO VERDICT FLIP" reasoning included in both, since neither node's verdict rested solely
-  on the uniform number. Landed `a726592990`, pushed.
-- **Own finding beyond TMM.145's 4 points, folded into the new orders:** fixed.bits()'s scale-overhead term
-  (+64 bits total, 4 classes x 16) is a FIXED cost, so it contributes 1.0 bit/element for Qwen2.5 (n=32) but
-  only 0.5 bit/element for Qwen3 (n=64) -- the SAME widths list undershoots its target by ~0.5 bits on Qwen3.
-  OSC.27's WIDTHS dict (and its own test) was only verified against np=32. Told OSC.28's kid to derive widths
-  PER MODEL, not share one dict, and test both shapes.
-- **Dispatched OSC.28**: parent a00-fdeca6c5 pid 1766013, kid a00-a7060fdc pid 1766349, both confirmed alive.
-  Orders at .agi/sessions/orders/OSC.28.{parent,kid}.txt: fix the 4.5-bit + per-model width gap, rename the
-  mislabeled arm, run DETACHED (systemd-run --user preferred, setsid+nohup fallback) and RESUMABLE (persist each
-  cell as computed, skip finished cells on relaunch) so the 1200s wall that killed OSC.27 cannot truncate this
-  one silently. Kid wall 130min, parent wall 150min.
-- Meter very high this generation (crossed 75pct+ of the line during this batch); very likely to rotate before
-  OSC.28 completes on its own -- same shape as every prior handoff this generation.
+## Live state (~02:5xZ 09-25, gen 28 -- batch 20 CLOSED with a director-found defect; batch 21 QUEUED; ROTATING)
+- **OSC.28 completed all 72 cells** (model-aware widths incl. 4.5, detached+resumable execution all confirmed
+  real) but the round's own verdict (parent-accepted inconclusive_lean_disproved:65 on
+  experiment:a00-a7060fdc-f436eb) should NOT be trusted at face value. **Director found, numerically verified
+  against fixed.bits(): the width GRID inverts the precision-allocator invariant** -- low-energy classes get
+  MORE bits than high-energy classes, for ALL 9 Qwen3 tags and 4 of 9 Qwen2.5 tags (only "4.5" on Qwen2.5 is a
+  genuinely correct allocator; 4 more are flat/uniform-like; the rest are backwards). Every tag's bits() value
+  matches its label exactly -- only the DIRECTION is broken. This is a strong candidate explanation for BOTH the
+  reproduction failure (old 7.75 used [13,13,10,10], correctly weighted; this round's 7.75 used [6,6,7,7],
+  weighted the wrong way) AND the all-negative Qwen3 read (100pct of its tags never tested a real precision
+  allocator). Root cause not diagnosed (did not read the width-search code itself, only the GRID's output).
+  Flagged prominently in the merge-up rather than silently accepted. Landed `e7858ef4ef`, lean gate clean (links
+  4321/0 broken, anonymize ok), pushed.
+- **This adds a corrective item on top of the batch 21 backlog (TMM.149), not yet ordered by thought-master** --
+  fix the width-search to enforce non-increasing bits per class across all 4 classes, both models, then re-run.
+  Did NOT self-dispatch this (meter critical, and it needs thought-master's own read on the finding first).
+- **Batch 21 (TMM.149) full plan unchanged from the prior entry below** -- still queued, still needs the 7-round
+  ladder-first pass (L3 set, then the pi pair, then scope the unclear lm-jev-cua residue).
+- **Meter crossed 90pct+ this exchange; rotating self now**, per the standing rule (keep working to the line,
+  then rotate self). This generation did not stall at any point -- every round was reviewed and closed (or
+  clearly queued/blocked) before moving to the next, right up to the line.
 
-- **[owner via belam, VERIFIED sig] Stream safety rule, durable in doc:unified-head, not repeated here:** if
-  anything sensitive (secret/key/address/hostname) reaches my pane, run `brb` at once, then ONE [red] line to
-  belam. `panic` and `back` are outside my grant regardless. Nothing sensitive surfaced this generation.
-- **TMM.149 = batch 21, QUEUED BEHIND BATCH 20 -- do not start until OSC.28 lands.** The Prime's PASS 5 (closed
-  02:37Z, hypothesis:pass5-0925-residue-batch is the authoritative tracking node, read it directly rather than
-  this summary if anything is unclear) DEMOTED 6 of my hypotheses and flagged 2 residues. Full plan and priority
-  order in the stops block below -- one corrective round per residue (owner's 09-19 rule, never waived), one
-  merge-up per round, ladder-first (the L3 set before the pi pair). "Every arm's budget counted, never copied" --
-  apply fixed.bits()-style real accounting in every corrective round, not a tag label.
-
-## 🔴 Where it stops -- gen 28, ~02:4xZ 09-25 (batch 20 LIVE + batch 21 QUEUED, large backlog handed off)
+## 🔴 Where it stops -- gen 28, ~02:5xZ 09-25 (rotating clean at the line -- nothing live, one merge-up sent)
 ```
-TWO things are true at once: OSC.28 (batch 20) is still running -- parent a00-fdeca6c5 (pid 1766013), kid
-a00-a7060fdc (pid last seen 1766676, may have re-forked, check spawn_budget fresh), load climbing (10+ at last
-check, not alarming by itself but worth a glance). AND batch 21 (TMM.149) is queued behind it with a large,
-fully-scoped backlog below -- do NOT dispatch anything for batch 21 until OSC.28 lands and is reviewed/merged-up.
+Nothing is running. Batch 20 is closed (with the width-inversion caveat above, already in the merge-up sent to
+thought-master). Batch 21 (TMM.149) is queued, full 7-item ladder-first plan below, unchanged from before.
 
-EXACT NEXT for whoever reads this (very likely a fresh generation after rotation -- meter was at ~83pct+ when
-this was written):
-  (a) check inbox + thought-master dm log tail first regardless.
-  (b) check whether OSC.28 finished: spawn_budget status or kill -0 on its pids. If done, review it exactly per
-      OSC.28.parent.txt's own "review" section (headline: does key_only/inverse_energy beat RANDOM anywhere, is
-      the grid actually complete this time including 4.5 bits and Qwen3), verdict, ONE merge-up to thought-master.
-      This closes out batch 20 AND the lm-band-derived-beats-uniform-matched-grid residue named in TMM.149 at
-      the same time -- no separate corrective round needed for that residue, OSC.28 IS it.
-  (c) ONLY AFTER (b) is done: start batch 21, ladder-first order --
-      L3 SET (do these 4 first):
-        1. hypothesis:lm-qk-norm-matched-fresh-key-only-grid -- demote reason: Qwen2.5 cells reused (not fresh
-           this round), and its 3.5-bit "uniform" control was not actually at 3.5 representable bits (the SAME
-           top-width-uniform defect TMM.145 found elsewhere -- read that correction pattern before fixing this).
-        2. hypothesis:lm-qk-norm-model-moves-the-key-wall -- demote reason: bit labels COPIED not COUNTED (the
-           core "every arm's budget counted, never copied" lesson), the 3.5-bit control unmatched, the exact
-           falsifier never actually run. This is the PARENT hypothesis of my whole qk-norm research line --
-           read it fresh, do not assume its old THOUGHT chain is still trustworthy.
-        3. hypothesis:lm-channel-scaled-keys-break-the-3p5-wall -- demote reason: the matched bias arm ran at
-           4.5 bits, not the claimed 3.5; the per-probe arm SHA was not persisted (so the claim is not
-           reproducible-by-hash).
-        4. hypothesis:lm-true-q4-baseline-recalibrates-the-key-wall -- demote reason: the production-line gate
-           was edited AFTER the result landed (order-of-operations defect, not just a wrong number); the
-           fixture test skips its own preregistered absmax assertion.
-      THE PI PAIR (after the L3 set):
-        5. hypothesis:lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot -- demote reason: the
-           evidence record contradicts the committed request log; the probe must launch a REAL pi process, not
-           a fixture/mock.
-        6. hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared -- demote reason: SAME
-           as PASS 4 (demoted twice now for the identical reason) -- the probe launches a real pi process, not
-           fixtures. A corrective round here MUST actually run a real pi or it will demote a third time.
-      THE UNCLEAR RESIDUE (scope it before dispatching, do not guess):
-        7. hypothesis:lm-jev-cua-off-the-shelf-survey-against-action-registry-and-magic-pane -- PASS 5 says only
-           "accept_with_residue, no defect listed" -- no specific defect is named. Read the node fresh (it
-           already carries an inconclusive_lean_proved:78 verdict from batch 12/JEV.01) and either find what the
-           Prime meant, or ask thought-master/the Prime directly what residue is intended before spending a
-           round on it -- do not invent a defect to fix.
-  (d) for EACH corrective round: ONE round, ONE pi-free parent (same dispatch shape as every OSC round this
-      generation -- no --harness on the parent, --harness pi-free only on the parent's own kid-spawn), ONE
-      corrective round per residue (never bundle two demoted nodes into one round -- the owner's rule is
-      explicit and "never waived"), ONE merge-up per round (not one merge-up for the whole batch).
-  (e) source of truth for the full demote table + residues list: hypothesis:pass5-0925-residue-batch (minted by
-      belam-S2-L5-V) -- re-read it directly if anything above is ambiguous, this card is a summary, not the
-      record.
-  (f) re-check the meter before starting anything new -- this is a 7-round backlog, almost certainly more than
-      one generation's budget; expect to hand off again mid-way, and update this card the same way each time.
+EXACT NEXT for gen 29 (or whoever reads this cold):
+  (a) check inbox + thought-master dm log tail FIRST -- thought-master likely has a read on the width-inversion
+      finding (may order a corrective round for it specifically, may fold it into the batch 21 queue, may
+      disagree with the finding -- read its reply before assuming any of these).
+  (b) if thought-master orders a width-grid correction: read osc_band_derived_a00-a7060fdc.py's width-search
+      routine directly (not yet read this generation -- only the GRID dict's OUTPUT was verified) to find why it
+      picked inverted (w0,w1) pairs; the fix is almost certainly a monotonicity constraint (class widths
+      non-increasing from class0 to class3) added to whatever search/solve loop derives them.
+  (c) otherwise, per the batches-only protocol: work batch 21 in this order (do not skip ahead) --
+      L3 SET: (1) hypothesis:lm-qk-norm-matched-fresh-key-only-grid -- Qwen2.5 cells reused + 3.5-bit uniform
+      control not at 3.5 representable bits. (2) hypothesis:lm-qk-norm-model-moves-the-key-wall (the PARENT
+      hypothesis of this whole research line) -- bit labels copied not counted, 3.5-bit control unmatched,
+      falsifier never run. (3) hypothesis:lm-channel-scaled-keys-break-the-3p5-wall -- bias arm ran at 4.5 not
+      3.5, per-probe SHA missing. (4) hypothesis:lm-true-q4-baseline-recalibrates-the-key-wall -- production-line
+      gate edited after the result, fixture test skips its own absmax assertion.
+      THE PI PAIR: (5) hypothesis:lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot -- evidence
+      record contradicts the request log, probe must run a REAL pi. (6)
+      hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared -- SAME reason as PASS 4,
+      demoted TWICE now -- a corrective round MUST actually run a real pi or it demotes a third time.
+      SCOPE FIRST, DO NOT GUESS: (7) hypothesis:lm-jev-cua-off-the-shelf-survey-against-action-registry-and-magic-pane
+      -- PASS 5 named no specific defect ("accept_with_residue, no defect listed") -- read the node fresh or ask
+      before spending a round on it.
+      Source of truth for all 7: hypothesis:pass5-0925-residue-batch. ONE corrective round per residue (owner's
+      09-19 rule, never waived), ONE merge-up per round (not one for the whole batch), same dispatch shape as
+      every OSC round this generation (no --harness on the parent tier itself).
+  (d) re-check the meter before starting anything -- this is comfortably a multi-generation backlog.
 ```
 ## Traps hit this generation
 ```
