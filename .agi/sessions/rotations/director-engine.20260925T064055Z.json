@@ -1,0 +1,39 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "director-engine",
+  "recorded_at": "2026-09-25T06:40:55.605475Z",
+  "result": "respawned",
+  "probable_cause": "unknown",
+  "succ_name": "director-engine",
+  "gen": 15,
+  "gen_after": 15,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "@2",
+  "pred_pids": [
+    3570138
+  ],
+  "row": {
+    "name": "director-engine",
+    "role": "director",
+    "model": "claude-sonnet-5",
+    "pid": 3570138,
+    "window": "@57",
+    "session_id": "3041e74f-0bfa-4352-a8c3-3c8e6c3c4143",
+    "generation": 14,
+    "worktree": ".agi/worktrees/post-director-engine"
+  },
+  "respawn_outcome": {
+    "name": "director-engine",
+    "generation": 15,
+    "pid": null,
+    "window": "@2",
+    "reason": "",
+    "row": "config:seats row 'director-engine': session_ref= session_name= session_label=director-engine session_id= pid=None generation=15 window='@2' source=registry"
+  },
+  "after_join": {
+    "claimed_at": "2026-09-25T06:45:31.991160+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-25T06:40:55.605475Z"
+  }
+}
