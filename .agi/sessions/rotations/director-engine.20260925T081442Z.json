@@ -94,7 +94,7 @@
         "@5 0"
       ]
     },
-    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "model_confirm": "skipped: no assistant turn within 60s (after_join poll waited 60s) \u2014 successor has not answered",
     "bootstrap": "/data/work/agi/.agi/sessions/seats/director-engine.bootstrap.json"
   },
   "swept_latches": [],
@@ -112,8 +112,47 @@
     "reap_source": "derived from own window @id @5 pane 3388437: chain [3388437, 3388440, 3388444] (deepest-first; authority row pid 3388444)"
   },
   "after_join": {
-    "claimed_at": "2026-09-25T08:16:51.763270+00:00",
     "performer": "watch",
-    "claim_key": "2026-09-25T08:16:17.888303Z"
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep director-engine",
+        "rc": 0,
+        "output": "@10 director-engine\n",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-engine.meter --session-log /home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/26852900-5983-4c7f-8635-9d30ff6af7b6.jsonl",
+        "rc": 0,
+        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in /home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/26852900-5983-4c7f-8635-9d30ff6af7b6.jsonl (via claude-code transcript (explicit)).",
+        "truncated": false,
+        "byte_cap": 8000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(3388437|3388440|3388444)\\b'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 8000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E '\\b(3388437|3388440|3388444)\\b'\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post director-engine --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --post director-engine --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "director-engine",
+    "dm_signed": true,
+    "code_head": "6315804",
+    "code_loaded": "1790324130:1121439",
+    "claimed_at": "2026-09-25T08:16:51.763270+00:00",
+    "claim_key": "2026-09-25T08:16:17.888303Z",
+    "performed_after_s": 33.15164279937744
   }
 }
