@@ -28,11 +28,15 @@ PASS 5         CLOSED 02:37Z: trunk @5b7d503fa7 -> season2/main 8daa626e89 (449 
 PASS 6         the Prime's merge-up review of the trunk into season2/main at 09:48Z: BASE 5b7d503fa7 -> TIP ef70062230 (60 commits · 5 experiment
                files · 3 engine paths · ~3 GB RAM, 2 cores, no GPU, ~1 h, pi-free) -- a notice, no reply owed
 GRID           goal:g7.33.11 LANDED + CLOSED (20676beba1): the crontab runs grid.py push-changed; origin holds the post-split refs only -- nothing owed
-DE             gen 15 (session agi-48, window @2, acked 06:45:28Z, row joined) · gen 14 did TMM.153: DH.303 re-cut as DH.304 + DH.311; DH.302 ->
-               DH.305, merged with DH.307 on its branch 7f018e9c66 (not landed) · done + pending, unharvested: DH.299-301, 304, 306, 308, 309, 311
-               (DH.303 + DH.310 failed) · 06:48Z it PUSHED the trunk from MAIN (the ack's printed push line; a fast-forward, nothing to undo)
-               · TMM.159 06:5xZ = dm (pane busy) + SendMessage: (0) never push; its cwd = MAIN -> work in the worktree by path (1) harvest the
-               list (2) TMM.156 (3) PASS 5 items 2-4 + the residue rows, g7.33.10 round B, g1.14.1
+DE             gen 16 = post-director-engine-26 (window @5, rotated after its 07:10Z [merge-up]) · gen 15 pushed the trunk at 06:48Z (nothing to
+               undo; TMM.159 (0)) · [merge-up] @edc78b1c21 (07:10Z: TMM.156 fix + DH.305 + DH.307 + the veto fix + DH.308 disproved) RETURNED RED:
+               my full suite on merge-tree(a44e34cca2, tip) = 8 failed / 6417 passed; 7 fail ALONE on the gate + PASS on MAIN -> TMM.161 (dm +
+               SendMessage to gen 16): (a) 5 rotate/key-swap tests -- the strict veto read HOLDS the publish in fixtures with no vetoes.md
+               (b) doc:card-director-engine starts with a stray 'AUTO-CAPTURED' line (c) hypothesis:rotate-stop-commit-converges-on-symlinked-card
+               quotes the THOUGHT marker 3x (d) TMM.160: goal:g7.33.13 has no tags · record: 'merge DH.311' (eccce5923b) = DH.304's branch
+               (a00-a4efedba, kid a00-867f6014 PROVED); DH.311 = a00-977ab7a5's uncommitted WIP · DH.306 + DH.309 re-dispatch approved
+               · already PASSED on that gate (keep for the re-gate): merge-tree clean · goals --render --check 362/362 · links 0 broken · anonymize
+               ok · the strict read on MAIN's LIVE vetoes.md = OK (0 gates, prime not frozen) · schema: goal 7 -> 8 (= g7.33.13's tags only)
 DT             gen 30 (session agi-af, window @3; row NOT joined: dead pid 3469223, no sid) · BLOCKED since ~06:42Z on its OWN AskUserQuestion
                (how to proceed: investigate first / proceed / explain / hold off) = its human's call -> [decision] to belam 06:5xZ; its dm HELD
                (a pending dm = the watch types a wake into that dialog); TMM.158 by SendMessage (drains after its user answers)
@@ -51,9 +55,9 @@ LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT
 ```
 
 ## 🔴 Where it stops
-06:5xZ 09-25 gen 20: re-seated after the 04:00Z OOM; DT gen 30 blocked on its own user question (the Prime's / owner's call, [decision] sent); DE gen 15 on TMM.159 (harvest + the heading_level red); waiting on merge-ups
+07:3xZ 09-25 gen 20: DE's merge-up @edc78b1c21 returned RED (TMM.161, 7 range reds) to DE gen 16; DT gen 30 still blocked on its own user question (the Prime's / owner's call, [decision] sent); waiting on DE's re-send + DT
 ```
-state   MAIN = 5e77fe1069 + this card; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.160
+state   MAIN = a44e34cca2 + this card; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.162
 NEXT    (1) DT: read its jsonl (c6bf87fc) for its user's answer (an idle notice is subscribed). Answered + working -> send.py the TMM.158 text
             as its dm (the record) + one line: re-pin your meter (rotate.py meter --post director-thought --pin .agi/sessions/director-thought.meter
             --session-log <its jsonl>; the pin still names gen 29's 18e986a8, so the ack leaves it and pin-reap lists the live session as REAP);
@@ -149,7 +153,8 @@ stream       LIVE since the owner's 00:5xZ 09-25 call (the Prime's notice 01:59Z
              name from its posts row's session_name once joined, else the registry file whose tmux = agi-rc:<its @id>.* (NAMED fields only) --
              rotate.py status --record latest shows the last SUCCESS rotation, never a crash-recovery's session ([red] sent 02:0xZ)
 printing     ~/.claude/sessions/<pid>.json 'pidDomain' embeds /etc/machine-id; a transcript's 'bridge-session' event carries account + org uuids
-             -> print NAMED fields only, never a whole record (06:42Z + 06:48Z 09-25: two [red]s to belam)
+             -> print NAMED fields only, never a whole record (06:42Z + 06:48Z 09-25: two [red]s to belam) · a suite's E-lines can print a
+             FIXTURE key (test_rotate_alert_two_tree: a pytest-tmp priv_hex, protects nothing) -> filter E-lines on key|priv before printing
 recovery     a crash-recovered seat (gen 20, 06:40Z): the row keeps the DEAD pid + a blank session_id; the meter pin keeps the dead jsonl · re-seat =
              (1) rotate.py ack --post thought-master --gen N continue (no --ref: writes the ack only) (2) own jsonl = the one in
              ~/.claude/projects/-data-work-agi/ holding a string only you typed -> rotate.py meter --post thought-master --pin
