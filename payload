@@ -1722,12 +1722,6 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
     # -- deliberately well under max_live, so an uninstrumented parent still
     # plans against a bounded number rather than the tree's whole capacity.
     ceiling = kid_ceiling if kid_ceiling is not None else 4
-    carry_forward_file = (
-        Path(session_dir) / "last-kid-result.md" if session_dir else None
-    )
-    carry_forward_arg = (
-        f"--orders {carry_forward_file}" if carry_forward_file else "--orders"
-    )
     if branch_name:
         # hypothesis:l4-the-merge-protocol-block-is-gated-on-the-held-state
         # — the merge-protocol block is gated on the held state. When the
@@ -1883,10 +1877,10 @@ def _parent(*, agent_id: str, iter_n: int, cli_py: str, dispatch_py: str,
         f"  - **continue** -- the target still has work in it. Spawn the next "
         f"    kid. Its brief MUST carry what the last kid actually produced, so "
         f"    the second is never a blind rerun of the first. The lever that "
-        f"    makes that possible is `{carry_forward_arg}` on the spawn "
-        f"    command below: write the last kid's result to that file before "
-        f"    spawning the NEXT kid, and the result lands in the next brief as "
-        f"    its OWN labelled segment "
+        f"    makes that possible is `--prompt-file <path|->` on the spawn "
+        f"    command below: write the last kid's result to a file (or leave it "
+        f"    on stdin for `-`) and pass that path to the NEXT kid's spawn, and "
+        f"    the result lands in the next brief as its OWN labelled segment "
         f"    ('WHAT THE LAST KID PRODUCED'). Use it whenever you continue. Do "
         f"    NOT inline the result as an argv string -- it holds arbitrary "
         f"    characters (quotes, newlines) that will break the spawn command. "
