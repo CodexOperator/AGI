@@ -6,11 +6,12 @@ parents:
   - hypothesis:parent-orders-line-names-a-real-path-not-prose
 next_edges: []
 confidence: 0.98
-edited_by: a00-8952a6fa
+edited_by: a00-5497ee99
 evidence_runs:
   - experiment:a00-8952a6fa-adf2ba
 loop: hypothesis:parent-orders-line-names-a-real-path-not-prose@s2
 model: stealth/space-bunny-alpha
+probes: wire-real-session:assembled-parent-names-exact-absolute-session-file,--prompt-file-absent,placeholder-absent,parent-dir-exists; gate-placeholder:negative-render-found-no-prompt-file-or-path-angle-placeholder; auth:not-applicable-render-contract-has-no-caller-role
 profile: balanced
 role: kid
 scaffold_hash: 6c165beb8b1d048c
@@ -56,3 +57,9 @@ Production-line measurement: 10 added production lines (4 deleted), below the 40
 
 ## Agent Notes
 Implemented and regression-tested a concrete session-scoped --orders carry-forward path; all 156 test_brief tests pass.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+WHAT THE INSTRUCTION SAID: “teaches --orders <path>” and “substitutes a real, existing absolute path … at render time instead of descriptive placeholder prose.” WHAT THE MACHINE ACTUALLY DOES: I assembled a parent brief through brief.assemble with a real temporary absolute session_dir; its carry-forward block contained exactly --orders /tmp/.../last-kid-result.md, did not contain --prompt-file or <path|->, and the containing directory existed. A second adversarial assemble without session_dir produced the bare --orders form, but that outside-the-claimed real-session render is not accepted as path proof either way. THE NEAR MISS: changing only --prompt-file to --orders while retaining “that file” prose passes a flag-only assertion and fails the real-session wire assertion; the exact absolute equality check above refutes that counterfactual. No standing-rule deviation: the review used a built parent render, not the kid test report.
+<!-- THOUGHT:END -->
+
+Accepted: changed bytes implement the scoped parent-only template substitution and add the requested rendered regression. Parent probes cover the live real-session wire contract, placeholder gate, and the non-applicable auth dimension. Caveat: callers that assemble a parent without session_dir receive bare --orders rather than a path; production dispatch supplies session_dir, and the hypothesis acceptance test is explicitly a real-session render.
