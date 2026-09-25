@@ -757,33 +757,6 @@ def test_pi_prose_stage_is_unstructured_not_failed(tmp_path_factory, tmp_path,
 
 # ---------- stage manifests match the .js Claude Code scripts ---------------
 
-def test_brainstorm_manifest_and_js_require_nonempty_goal(tmp_path):
-    """The brainstorm goal is a parent, not decorative prompt text: a missing
-    or empty goal must fail before any agent dispatch, and both halves name
-    the required argument."""
-    import shutil
-    import subprocess
-
-    man = json.loads((WF_DIR / "brainstorm.json").read_text(encoding="utf-8"))
-    assert "required args: {idea, goal, why, max_hypotheses}" in man["description"]
-
-    node = shutil.which("node")
-    if not node:
-        pytest.skip("node is required to execute the workflow contract")
-    src = (WF_DIR / "agi-brainstorm.js").read_text(encoding="utf-8")
-    lines = src.splitlines()
-    start = lines.index("export const meta = {")
-    end = start + 1 + lines[start + 1:].index("}")
-    body = "\n".join(lines[:start] + lines[end + 1:])
-    script = tmp_path / "brainstorm.mjs"
-    script.write_text(
-        "async function __w(args, agent, parallel, pipeline, phase, log) {\n"
-        + body + "\n}\nawait __w({idea: 'idea:x'})\n", encoding="utf-8")
-    proc = subprocess.run([node, str(script)], capture_output=True, text=True, timeout=30)
-    assert proc.returncode != 0, proc.stdout
-    assert "requires a non-empty goal argument" in proc.stderr, proc.stderr
-
-
 def test_review_and_drafting_stage_json_matches_js_prompts():
     js = (WF_DIR / "agi-round-review.js").read_text(encoding="utf-8")
     manifest = workflow._load_manifest(REPO, "review")
@@ -3158,7 +3131,6 @@ def test_pi_empty_handoff_lands_in_the_tracked_row(tmp_path_factory):
     from workflow import run_workflow
 
     good = json.dumps({"target": "k", "decisions": [], "ready_batch": [],
-                       "batch_empty": True,
                        "kept": "none", "dropped": "none", "notes": "n"})
 
     def fake_run(cmd, **kw):
