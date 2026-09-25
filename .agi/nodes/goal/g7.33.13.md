@@ -15,6 +15,10 @@ scaffold_hash: 833b42a29a32ab37
 season: 2
 seeds: []
 status: active
+tags:
+  - local-maxxing
+  - engine
+  - rotate
 title: "G7.33.13: A ROTATE-OUT ON A SYMLINKED QUORUM CARD CONVERGES IN ONE CALL -- no dirty-tree block, no fencing wrapper, no duplicate THOUGHT block"
 town: core
 ---
