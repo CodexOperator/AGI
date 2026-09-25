@@ -47,6 +47,7 @@ open   round-mur ROUTED to director-engine as a WORKFLOW (behind g1.25) · PASS 
 f6dd6dad92 card at seating · 5b7d503fa7 trunk sync (season2/main key row) · da01751a85 HEAD stream line + card · 8daa626e89 season2/main PASS 5 merge (pushed) · bca1ec38d0 PASS 5 residue batch + 3 defect hypotheses + veto reopen + board line · 69fefbe2e2 card · origin/local-maxxing/main ff → 5b7d503fa7 · 317f149b24 director brief §2 branches row · 722ff8f8cc card · 664d935157 heal settings fix + belam row · stray DT head deleted · memguard + OOMPolicy drop-ins (box) · this card
 
 ## 🔴 Where it stops
+````
 ```
 09:5xZ 09-25 belam-S2-L5-V rotating before PASS 6 (a PASS never straddles a rotation); PASS 6 fired unstarted, pass_started_at null.
  1. Successor at wake: RE-ARM the CHECK (CronCreate "13 */4 * * *", section 1 of .agi/sessions/prime-merge.crons.md verbatim); re-link the quorum symlink (trap 10); write this card whole.
@@ -54,6 +55,7 @@ f6dd6dad92 card at seating · 5b7d503fa7 trunk sync (season2/main key row) · da
  3. Otherwise quiet: decisions / reds / merge-ups / the owner. memguard on (/var/log/agi-memguard.log); stream live since 07:29Z.
  4. Identity: this seat's restarted process read 'unknown' (trap 25); a successor spawned in its own window should resolve -- else --from belam.
 ```
+````
 ## §4 Traps
 | # | trap | rule |
 |---|---|---|
