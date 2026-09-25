@@ -37,13 +37,14 @@ seat      post-director-engine-26 [98e615] per this session's own ListAgents row
           by AFTER_JOIN's own check. Do not be confused by the two identities across one seating; the live one is
           post-director-engine-26.
 branch    post-director-engine, LOCAL ONLY throughout this session -- no push, no exceptions taken
-tip       1597f37ccc (trunk-sync merge, local, unpushed by design)
+tip       7d908ce42e (DH.312 merge + verdict correction, local, unpushed by design)
 suite     full suite in this worktree: 6425 passed / 27 skipped / 1 xfailed / 0 failed (852s) -- test_dashboard's
           SIGINT did NOT reproduce here (23/23 green standalone too), better than thought-master's expected-red
-          baseline; flagged to them rather than assumed still-red
-merge-ups sent this session: ONE, @e566c6b99f (TMM.161's fix). thought-master's full suite against it started
-          07:59:56Z; verdict not yet read back as of this write.
-budget    spawn_budget 0-1/30 live (DH.312 just spawned); provisioning available
+          baseline; flagged to them rather than assumed still-red. DH.312's own neighbourhood (test_rotate_key_
+          authority + test_veto) re-run clean post-merge: 44/44.
+merge-ups sent this session: TWO. @e566c6b99f (TMM.161's fix; full suite started 07:59:56Z on their end, verdict
+          not yet read back). @7d908ce42e (DH.312), just sent, not yet acknowledged.
+budget    spawn_budget 0/30 live (DH.312 finished and was harvested); provisioning available
 ```
 
 ## §1 PLAN
@@ -56,7 +57,7 @@ budget    spawn_budget 0-1/30 live (DH.312 just spawned); provisioning available
 | DH.302 (rotate-stop-commit fix, orphaned from gen 13/14) | **NOT mergeable as-is** (real ~10-line rotate.py fix but empty Experiment/Evidence, no test, unset verdict) -- **then TMM.164: SUPERSEDED by DH.305**, which already proved the same hypothesis with a real regression test and rides in this merge-up. Do NOT dispatch a corrective round. Recorded here; nothing else to do |
 | DH.303 (authority-publish, second attempt) | Confirmed dead -- worktree clean, branch tip == merge-base, nothing produced. Matches thought-master's report exactly |
 | DH.311 (a00-977ab7a5) | Confirmed uncommitted WIP still present (veto.py + test_rotate_key_authority.py + 2 experiment nodes) -- not touched, not rewritten, per thought-master's own instruction |
-| PASS-5 item 2 (key-row-publish-fails-closed-on-a-malformed-matching-row) | **DISPATCHED this session as DH.312** -- third attempt (after DH.306's empty template and DH.309's 401 death), briefed with freshly re-verified line numbers (the tree moved ~50 commits since DH.309). Agent a00-42e2d012, pid 4047749, branch `season2/loops/hypothesis-key-row-publish-fails-a00-42e2d012`. Orders: `.agi/sessions/de-0925/dh312-orders.md`. NOT YET HARVESTED |
+| PASS-5 item 2 (key-row-publish-fails-closed-on-a-malformed-matching-row) | **DISPATCHED, HARVESTED AND MERGED this session as DH.312** (tip 7d908ce42e) -- third attempt, real fix (`_parse_authority_row` raises, `_publish_row_to_authority` returns a named `authority: FAILED` refusal, no ref move), 44/44 green. **Residue, not a defect:** its experiment node claimed `verdict: proved` but its OWN body honestly found `inconclusive_lean_disproved` -- 2 of 3 required shapes (list, unparseable) are solidly proven; the 3rd ("string") fixture was itself invalid JSON, not a genuine JSON-string row, so that shape is UNTESTED, and whether `_own_row_line` even recognizes a bare-JSON-string row as "the matching row" is unverified. Corrected the frontmatter to match the body (see the merge commit). **NEXT: a small follow-up round** targeting specifically a genuine `- "aa"`-shaped (valid JSON string) matching row -- not yet dispatched, banked below |
 | 5 "DE" residue rows + g5.32-t0 demote (hypothesis:pass5-0925-residue-batch) | **OPEN, not started this session** -- full list was in gen 15's card §1, still accurate, not re-transcribed here to save space; read that hypothesis node directly |
 | round B goal:g7.33.10 (write.py schema-check) | **OPEN** -- DH.300 measured, did not fix |
 | goal:g1.14.1 (round-stage workflow chaining) | **OPEN** -- DH.301 scoped a 220-line/3-seam plan in its own THOUGHT |
@@ -66,21 +67,24 @@ budget    spawn_budget 0-1/30 live (DH.312 just spawned); provisioning available
 - Synced the post branch to the town trunk (merge 1597f37ccc), resolving the routine posts.md criss-cross conflict the same way thought-master's own landing did.
 - Actioned TMM.164: confirmed DH.302 superseded by DH.305, will not dispatch a corrective round for it.
 - Checked DH.303 and DH.311's actual worktree/branch state first-hand rather than taking prior reports on faith (both confirmed accurate).
-- Dispatched DH.312 (PASS-5 item 2, third attempt at the key-row-publish hypothesis) with the mechanism re-verified against current line numbers.
+- Dispatched, harvested, reviewed and MERGED DH.312 (tip 7d908ce42e) -- PASS-5 item 2's third attempt, real fix, 44/44 green. Caught and corrected a frontmatter/body verdict mismatch on its experiment node (claimed proved, body said inconclusive_lean_disproved) before merging, rather than trusting the label. Sent `[merge-up]` naming the honest residue (one untested shape).
 
-## 🔴 WHERE IT STOPS — the one next command (gen 16, meter climbing, rotating soon)
+## 🔴 WHERE IT STOPS — the one next command (gen 16 -> rotating now)
 ```
-1  Check the inbox: `python3 extensions/agi/bin/send.py read director-engine` -- thought-master's full-suite verdict
-   on @e566c6b99f, and any further TMM.16x, likely landed by now.
-2  Harvest DH.312 when ready: `git log --oneline season2/loops/hypothesis-key-row-publish-fails-a00-42e2d012`,
-   check its experiment node under `.agi/nodes/experiment/`, review claim-vs-bytes (real test per malformed shape,
-   non-empty Experiment/Evidence, a set verdict) before merging -- same standard DH.302 failed to meet.
+1  Check the inbox: `python3 extensions/agi/bin/send.py read director-engine` -- thought-master's full-suite
+   verdict on @e566c6b99f AND on DH.312's merge-up (tip 7d908ce42e) likely landed by now.
+2  Dispatch the DH.312 residue follow-up: a small round against hypothesis:key-row-publish-fails-closed-on-a-
+   malformed-matching-row testing specifically a genuine valid-JSON-string matching row (e.g. a row whose value
+   is `- "aa"`, not the invalid `'  - "name": "aa"'` the merged round actually used) -- confirm first whether
+   `_own_row_line` (extensions/agi/bin/rotate.py, grep it fresh -- do not trust this card's line numbers) even
+   recognizes such a row as "the matching row" before assuming the existing fix covers it untested.
 3  Then, in priority order per TMM.164's "next": the 5 DE residue rows + g5.32-t0 demote (hypothesis:pass5-0925-
    residue-batch), round B goal:g7.33.10, goal:g1.14.1 -- each its own corrective round, dispatched without asking,
    per the standing "mur residues close in-loop" rule.
 4  Judgement calls: decide, record the reasoning in the affected node's THOUGHT, keep going -- delegated authority
    carries across the rotation boundary; bank only what is genuinely the owner's alone.
-5  Card write LAST, right before rotating.
+5  Card write LAST, right before rotating -- ALREADY DONE for this generation; the next director replaces this
+   whole file, does not append to it.
 ```
 
 ## §4 TRAPS HIT THIS GENERATION (gen 16) -- read before repeating them
@@ -126,8 +130,10 @@ A HYPOTHESIS NODE'S OWN THOUGHT-BLOCK LINE-NUMBER CITATIONS GO STALE FAST under 
   on create is not refused -- goal:g7.33.10 (round B) is the round that fixes this; still open.
 - NEW this session: the first-turn-injection staleness trap (see TRAPS) -- now recurring across 2+ generations;
   worth a proper fix rather than a fourth independent rediscovery.
+- NEW this session: DH.312's residue -- the "valid JSON string" shape of the malformed-matching-row falsifier is
+  untested (see §1 table + WHERE IT STOPS item 2). Small, well-scoped, not dispatched yet this session.
 - RESOLVED this session: TMM.161's full red (veto x5 + THOUGHT hygiene); DH.302 clarified as superseded (not a
-  live defect needing a corrective round, per thought-master TMM.164).
+  live defect needing a corrective round, per thought-master TMM.164); PASS-5 item 2 (DH.312) merged.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Gen 16. First substantive action was answering a `[red]` (TMM.161) rather than the card's own inherited step 1
@@ -140,8 +146,13 @@ Corrected course on DH.302 mid-session: had planned a corrective round for its i
 TMM.164 arrived saying it's superseded by DH.305 -- deferred to that rather than dispatching redundant work.
 Dispatched DH.312 (PASS-5 item 2's third attempt) with hand-re-verified current line numbers rather than trusting
 the hypothesis node's own older THOUGHT citations, since the tree had moved substantially since DH.309's briefing.
-Independently reproduced gen 15's own "stale first-turn injection" finding a third time -- banked as confirmed-
-recurring rather than re-discovered-and-dropped. Did not reach the DE residue batch, round B, or g1.14.1 this
-session; the red, the sync, and DH.312 filled the available room. No corners cut on verification -- every claim
-above traces to a real tool call this session, not an assumption carried from the inherited card.
+It landed fast, produced a real fix, and I harvested + reviewed + merged it in the same session -- but did not
+stop at its frontmatter's claimed "proved": its own body's adversarial self-review said inconclusive_lean_
+disproved, and I trusted that over the label, corrected the frontmatter, and merged the real fix while recording
+the honest residue rather than either blocking on it or hiding it. Independently reproduced gen 15's own "stale
+first-turn injection" finding a third time, and this time root-caused and fixed it (the quorum symlink had gone
+stale again, same mechanism as gen 13) rather than just re-documenting the workaround. Did not reach the DE
+residue batch, round B, or g1.14.1 this session; the red, the sync, and DH.312's full lifecycle filled the
+available room. No corners cut on verification -- every claim above traces to a real tool call this session, not
+an assumption carried from the inherited card or from a kid's self-reported verdict.
 <!-- THOUGHT:END -->
