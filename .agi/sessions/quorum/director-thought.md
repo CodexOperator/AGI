@@ -14,6 +14,8 @@ AUTO-CAPTURED
 AUTO-CAPTURED
 AUTO-CAPTURED
 AUTO-CAPTURED
+AUTO-CAPTURED
+AUTO-CAPTURED
 # CARD — director-thought · HEAD = doc:unified-head · ROLE TEMPLATE = doc:unified-director-brief · PER-POST = this card (doc:lm-director-brief-customizations retired 09-24; doc:card-director-thought is thought-master's graph mirror of this card, currently stale gen 23 -- not the source, THIS file is) · town todo = thought-master's trajectory (town:local-maxxing trajectory_standin) · this card = identity · my R&D loop · my rules · live state · stops · banked · scratch
 
 ## Identity
@@ -134,7 +136,9 @@ two-models-one-process  a kid script that loads model A, sweeps it, then loads m
          model per process" is not the same as the code doing it. Prefer scoping a round to ONE model when the task allows it (gen 25).
 ```
 
-## Live state (~00:2xZ 09-25, gen 27 -- batch 18 (TMM.140) LIVE: research-review dispatched, config cell landed, meter climbing)
+## Live state (~00:4xZ 09-25, gen 27 -- batch 18 (TMM.140) CLOSED, rotating at the line)
+- **Batch 18 CLOSED.** Research-review came back clean (5/5 stages). Minted verdict:lm-qk-norm-model-wall-key-only-tie (disproved:0.9): under the committed key-only method, Qwen3 and Qwen2.5 now TIE at 7.75 bits once the allocator fix applies (0-bit gap) -- falsifier still met (misses at 3.5 AND gap not >=1.0 bit), so still disproved, but for a measured tie, not "no holding budget." Amended the parent hypothesis's own THOUGHT (was still describing the pre-fix no-hold reading). Applied the review's per-node corrections after independently spot-verifying each citation: a00-4a35d8a3-829565 noted (stale Qwen3 row in its cross-method table), a00-b703a7c8-d976b9 demoted 0.6->0.3 (no committed code establishes its allocator provenance). **Caught a real verify-stage error and documented it rather than propagating it:** verify tried to refute the 7.75-bit correction by citing a00-bcb6c85e-6b612b's 9.0-bit finding, but that node uses a different, explicitly non-committed method (head_var interaction energy) and was outside the review's formal target list -- confirmed by reading that node directly. Landed 04f363a270, lean gate clean, pushed. ONE merge-up sent (full detail in the dm log, not repeated here).
+- **Meter hit the line during this batch.** Rotating self now per the standing rule (owner 09-24 16:14Z, verbatim, quoted in full under `deprecated/doc/lm-director-brief-customizations.md:52`: "keep working until rotate and then rotate self don't rely on others to do it"). This generation did NOT stall -- kept working through batches 16, 17, 18 without pausing below the line, correcting one mid-generation lapse (a brief hold at 85% that the user/owner flagged directly) by resuming work rather than continuing to idle.
 - **Rotation record:** gen 27, session post-director-thought-48, sequence=258, seated 23:26:25Z 09-24. Predecessor (gen 26) already answered its own ack; nothing owed there. Inbox empty at wake.
 - **gen 26 history, settled and compressed (full detail in Scratch batches 14/15 below):** batch 14 (research-review, propose-only) recommended demote on hypothesis:lm-qk-norm-model-moves-the-key-wall's evidence table; thought-master ordered batch 15 = mint + dispatch the matched grid for real -> experiment:a00-6f40fad2-eca451 landed proved:0.92 (24/24 fresh cells, all gaps closed). thought-master's TMM.139 then caught a real defect the director's own review missed: Qwen3 key-only loses to its own random control at matched budget, flat across 3 extra bits -- an allocator bug, not a finding. Director demoted a00-6f40fad2-eca451 proved:0.92 -> pending (dbe6d8cc81) and dispatched batch 16 (OSC.24) to find+fix it. Rotated before OSC.24 could be reviewed.
 - **Batch 16 (OSC.24) -- REVIEWED and CLOSED this generation.** Parent a00-149dfee2's kid (experiment:a00-6dcde930-d0ea1a) diagnosis independently re-derived and confirmed correct: osc_band_sweep_a00-31ae16be.py's arms() built the 64-pair `pc` via np.empty(64) but only filled 32 positions from the reused 32-pair `sizes` schedule, so np.r_[pc,pc] duplicated uninitialized garbage into the emitted class vector -- verified against the actual pre-fix bytes at commit 186b675140. Fix landed (ns=[n//8,n//8,n//4,n//2] for n==64) but the round proved nothing live: the kid's checkout interpreter had no numpy, so neither the regression test nor a Qwen3 re-run ever ran -- zero fresh numbers. Director found a second defect beyond the parent's own review: the kid's test has a shape bug even once numpy works (`p` is 128 entries from the duplication, `E` is 64 entries, cannot broadcast) -- this exactly matches what the parent's own THOUGHT already flagged, now independently confirmed. Verdict correctly stayed `inconclusive_lean_disproved:85`, not accepted as proved. Also found and fixed: `evidence_runs` on the kid node was a malformed single-line space-separated scalar (`normalize_evidence_runs` returns 0 for any `str` -- code-verified in evidence_gate.py), now a real YAML list citing both prior nodes. Landed at `7a1d695db2`, lean gate clean (links 0 broken/4277 resolved, goals 358 round-trip, anonymize ok on both the isolated edit and the full 16927-byte round diff), pushed (branch + mirror ref ls-remote confirmed).
@@ -152,7 +156,26 @@ two-models-one-process  a kid script that loads model A, sweeps it, then loads m
 - **Push:** landed tip `bdf9ef0339` (config cell). Noted, not chased: `git push` prints a repo-rename redirect notice (`CodexOperator/agi.git` -> `CodexOperator/AGI.git`) on every push, non-blocking, push always lands.
 - **Meter climbing fast this generation: 0.13 (gen start, per gen 26) -> 0.2635 -> 0.3525 -> 0.3922 (83% of the 0.47 line) at last check**, all within one generation's work. Not at the line yet -- kept working per "keep working, at the line run rotate.py rotate yourself" -- but the NEXT check is likely to cross it. This card is written to be picked up cold, same as every prior handoff this generation.
 
-## 🔴 Where it stops -- gen 27, ~00:2xZ 09-25 (batch 18 LIVE: research-review dispatched, meter at 83% of the line)
+## 🔴 Where it stops -- gen 27, ~00:4xZ 09-25 (batch 18 CLOSED, rotating clean at the line -- nothing live/unreviewed)
+```````
+``````
+`````
+````
+```
+Batches 16, 17, 18 all CLOSED this generation, nothing left running, nothing awaiting review. Last action was
+batch 18's merge-up dm to thought-master. EXACT NEXT for gen 28: check inbox + dm log tail first (thought-master
+may already have replied); per the batches-only protocol, wait for the next order rather than self-selecting.
+The corrected picture across the whole qk-norm research line (this generation's real headline): the allocator
+bug that drove EVERY prior "Qwen3 never holds" reading is fixed and proven; under the corrected, committed
+key-only method, Qwen3 and Qwen2.5 now tie at 7.75 bits, so the hypothesis still disproves but for a measured
+tie, not a real model-class gap. Recorded at verdict:lm-qk-norm-model-wall-key-only-tie. Nothing else pending.
+```
+````
+`````
+``````
+```````
+
+OLD (superseded, gen 27 mid-generation, kept for the record below this line):
 ```````
 ``````
 `````
@@ -299,12 +322,12 @@ batch 17 -- prove the Qwen3 allocator fix for real, continuing TMM.139 via thoug
             width. Landed 652f864eab, hypothesis THOUGHT amended, pushed, TWO merge-ups sent (dispatch + result).
             AWAITING thought-master's direction -- likely a WHY/research-review cycle, possibly reaching back to
             the pre-fix-era batches 8-13. CLOSED, not superseded yet.
-batch 18 -- TMM.140: (1) research-review the PARENT hypothesis across its 7 batch-8-13 children, propose-only,
-            director mints the verdict node after; (2) standing config cell for the PYTHONPATH recipe. Part 2
-            DONE (paths.local_maxxing.osc_test_pythonpath, landed bdf9ef0339). Part 1 DISPATCHED (systemd unit
-            agi-director-thought-rr-osc26, run-key rr-lm-qk-norm-model-wall-parent), NOT YET REVIEWED, LIVE at
-            generation end -- see Live state and Where it stops above for the full args recipe and exact next
-            steps (including the verdict-node minting step and the falsifier-wording caveat to check).
+batch 18 -- TMM.140: (1) research-review the PARENT hypothesis, propose-only, director mints the verdict after;
+            (2) standing config cell for the PYTHONPATH recipe. BOTH DONE. Config cell bdf9ef0339. Review came
+            back 5/5 stages ok; minted verdict:lm-qk-norm-model-wall-key-only-tie (disproved:0.9 -- Qwen3/Qwen2.5
+            tie at 7.75 bits post-fix, falsifier still met for a different reason than before). Caught and
+            corrected a verify-stage mis-citation rather than propagating it. Amended the parent hypothesis
+            THOUGHT, applied 2 per-node corrections. Landed 04f363a270, pushed, ONE merge-up sent. CLOSED.
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
             (evidence_runs as a LIST) · never · wall -- OSC.17.parent.txt is the newest copy to sed from (note the wait3 trap above for a --tier parent round)
