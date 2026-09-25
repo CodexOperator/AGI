@@ -139,6 +139,31 @@ def test_authority_row_content_preserves_prime_policy_cells():
     assert out.splitlines()[1] == base.splitlines()[1]
 
 
+@pytest.mark.parametrize("malformed_row", [
+    '  - [{"name": "aa"}]',       # list, not object
+    '  - "name": "aa"',            # string-like / unparseable
+    '  - {"name": "aa",',          # truncated JSON
+])
+def test_malformed_matching_authority_row_fails_closed(
+        tmp_path, malformed_row):
+    repo, g, posts, _bare = _fixture(tmp_path)
+    new_content = posts.read_text()
+    own = next(ln for ln in new_content.splitlines(keepends=True)
+               if rotate._own_row_line(ln, "aa"))
+    malformed = new_content.replace(own, malformed_row + "\n")
+    _advance_authority(
+        repo, "season2/main", ".agi/nodes/.geometry/posts.md", malformed)
+    pre = _git(repo, "rev-parse", "origin/season2/main").stdout.strip()
+
+    out = rotate._publish_row_to_authority(g, "aa", new_content)
+
+    assert out.startswith("authority: FAILED -- malformed matching"), out
+    assert "'aa'" in out
+    _git(repo, "fetch", "-q", "origin", "season2/main")
+    assert _git(repo, "rev-parse",
+                "origin/season2/main").stdout.strip() == pre
+
+
 def test_publish_lands_one_row_on_the_authority_and_whois_reads_it(tmp_path):
     repo, g, posts, _bare = _fixture(tmp_path)
     pre = _git(repo, "rev-parse", "origin/season2/main").stdout.strip()
