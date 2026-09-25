@@ -53,6 +53,18 @@ def test_every_migrated_script_declares_the_root_seam():
         assert SEAM in text, name
 
 
+def test_no_absolute_slash_is_left_in_front_of_root():
+    """The migration replaced the PATH but not the `/` that made it
+    absolute. `Repo: /${ROOT}` renders `Repo: /.` when project_root is
+    absent -- i.e. the FILESYSTEM ROOT -- and `Repo: //data/work/agi`
+    when it is present. A grep for the stale literal cannot see either.
+    """
+    hits = [(p.name, i) for p in sorted(WF.glob("*.js"))
+            for i, l in enumerate(p.read_text(encoding="utf-8").split("\n"), 1)
+            if "/${ROOT}" in l]
+    assert hits == [], hits
+
+
 def test_root_is_declared_before_it_is_used():
     """A `ROOT` used in a template before its `const` would be a TDZ
     ReferenceError at run time -- invisible to grep, fatal to the run."""
