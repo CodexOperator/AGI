@@ -525,19 +525,21 @@ def test_preflight_force_allows_dirty_and_existing_agi(repos):
 
 def test_preflight_refuses_the_real_repos(tmp_path):
     tree = make_tree_repo(tmp_path)
-    result = unify.preflight(Path("/home/ubuntu/work/agi"), tree)
+    here = unify._git_common_root()
+    assert here is not None, "git must name the repo this checkout belongs to"
+    result = unify.preflight(here, tree)
     assert result["ok"] is False
     assert result["reason"] == "refuses_real_repo"
 
     engine = make_engine_repo(tmp_path)
-    result = unify.preflight(engine, Path("/home/ubuntu/work/agi-tree"))
+    result = unify.preflight(engine, here)
     assert result["ok"] is False
     assert result["reason"] == "refuses_real_repo"
 
 
 def test_preflight_force_does_not_bypass_real_repo_guard(tmp_path):
     tree = make_tree_repo(tmp_path)
-    result = unify.preflight(Path("/home/ubuntu/work/agi"), tree, force=True)
+    result = unify.preflight(unify._git_common_root(), tree, force=True)
     assert result["ok"] is False
     assert result["reason"] == "refuses_real_repo"
 
