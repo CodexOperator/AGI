@@ -10389,6 +10389,10 @@ def _authority_row_content(base: str, new: str, seat: str) -> str:
     own = [ln for ln in b if _own_row_line(ln, seat)]
     if row is None or not own:
         return base
+    if len(own) > 1:
+        raise ValueError(
+            f"{len(own)} rows match seat {seat!r} on the authority branch, "
+            f"expected exactly 1")
     old_row = _parse_authority_row(own[0])
     new_row = _parse_authority_row(row)
     rotation_owned = {
