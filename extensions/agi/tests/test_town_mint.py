@@ -369,7 +369,7 @@ def test_non_int_season_refused_by_name_at_mint(tmp_path, monkeypatch, capsys):
         err = capsys.readouterr().err
         assert "refused by name" in err, bad
         assert "'season'" in err, bad
-        assert "must be an integer" in err, bad
+        assert "must be an int value" in err, bad
         assert not (g / "nodes" / "town" / "bad-season.md").exists(), bad
 
     # The positive corner: a real int season still mints.

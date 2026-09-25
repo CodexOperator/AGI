@@ -1845,8 +1845,9 @@ def _schema_field_refusal(schema, node_type: str, key, value, *,
     if declared is None and isinstance(field, dict):
         declared = field.get("type")
     if declared and not _matches_type(value, declared):
-        return (f"{verb} {node_type} refused by name: {key!r} must be a "
-                f"{declared} value, got {value!r} (schema declares "
+        article = "an" if declared[0] in "aeiou" else "a"
+        return (f"{verb} {node_type} refused by name: {key!r} must be "
+                f"{article} {declared} value, got {value!r} (schema declares "
                 f"{key}: {declared})")
     pattern = (validation.get("regex") or {}).get(key)
     if pattern and (not isinstance(value, str)
