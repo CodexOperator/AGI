@@ -1174,6 +1174,80 @@ sweep-judges-it.
     return homed[iter_name]
 
 
+#: Worktrees already judged NOT removable, keyed agent_id -> (head, base).
+#: A refusal is a pure function of (HEAD, base tip): while neither moves the
+#: verdict cannot change, so re-running merge-base + status + the bring-home
+#: probe every pass buys nothing. Measured on encryption-town: 622 worktrees,
+#: `removed=0` on all 2387 passes since 2026-09-23, ~5 git subprocesses per
+#: worktree per 30s pass -- ~3000 process spawns per pass to reach the same
+#: answer. The cache is per-process and rebuilt on restart, never on disk.
+_SWEEP_SKIP: dict = {}
+
+
+def _sweep_worktree_heads(main_checkout: Path) -> dict:
+    """`agent_id -> (branch, head_sha)` for every linked worktree, from ONE
+    `git worktree list --porcelain`. Replaces two `rev-parse` subprocesses
+    per worktree per pass with a single call for the whole pass."""
+    out, rc = _git(["worktree", "list", "--porcelain"], main_checkout)
+    if rc != 0:
+        return {}
+    heads: dict = {}
+    cur: dict = {}
+    def _flush(rec):
+        wt = rec.get("worktree")
+        if not wt:
+            return
+        heads[Path(wt).name] = (
+            (rec.get("branch") or "").replace("refs/heads/", ""),
+            rec.get("HEAD") or "")
+    for line in out:
+        if not line.strip():
+            _flush(cur); cur = {}
+            continue
+        key, _, val = line.partition(" ")
+        cur[key] = val
+    _flush(cur)
+    return heads
+
+
+def _live_worktrees_by_cwd(wt_base: Path) -> set:
+    """Worktrees a RUNNING process is standing in, by `/proc/<pid>/cwd` and
+    open descriptors -- an exact kernel fact about this box, not a `ps` name
+    match, so it does not reintroduce the name heuristic condition (1) rules
+    out. This is a BACKSTOP under the lease dir, never a replacement: leases
+    are the contract, but a leaseless live tree is still live. Measured on
+    encryption-town 2026-09-25: the lease dir was EMPTY (`kept-live=0`) while
+    11 worktrees held running processes, three of them mid
+    `workflow.py run merge-up-review` -- had the other four conditions passed,
+    the sweep would have deleted a tree out from under a live round."""
+    live: set = set()
+    marker = f"{wt_base}{os.sep}"
+    def _claim(target: str) -> None:
+        if target.startswith(marker):
+            rest = target[len(marker):].split(os.sep)[0]
+            if rest:
+                live.add(rest)
+    try:
+        pids = [d for d in os.listdir("/proc") if d.isdigit()]
+    except OSError:
+        return live
+    for pid in pids:
+        try:
+            _claim(os.readlink(f"/proc/{pid}/cwd"))
+        except OSError:
+            pass
+        try:
+            fds = os.listdir(f"/proc/{pid}/fd")
+        except OSError:
+            continue
+        for fd in fds:
+            try:
+                _claim(os.readlink(f"/proc/{pid}/fd/{fd}"))
+            except OSError:
+                pass
+    return live
+
+
 def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
                               grace_min: int | None = None
                               ) -> tuple[int, int, int]:
@@ -1223,6 +1297,16 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         # live worktree be removed under a transient budget failure.
         _watch_log(f"[sweep] skipped: budget unreadable ({exc})")
         return (0, 0, 0)
+    # (1b) BACKSTOP under the lease dir: a tree a live process is standing in
+    # is live whatever the leases say (see `_live_worktrees_by_cwd`).
+    cwd_live = _live_worktrees_by_cwd(wt_base)
+    if cwd_live - live_ids:
+        _watch_log(f"[sweep] {len(cwd_live - live_ids)} leaseless tree(s) "
+                   f"held live by a running process")
+    live_ids = live_ids | cwd_live
+    # Every worktree's branch and HEAD in ONE call, not two per tree.
+    wt_heads = _sweep_worktree_heads(main_checkout)
+    skipped = 0
     main_sessions = locations.sessions_dir(root)
     homed: dict[str, str] = {}  # iter dirname -> "" (home) | refusal reason,
     # memoized per pass so a `--branch` round's TWO trees home its iter dir ONCE
@@ -1237,9 +1321,9 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
     for wt_p in sorted(wt_base.glob("a00-*")):
         if not wt_p.is_dir():
             continue
-        b0, _ = _git(["rev-parse", "--abbrev-ref", "HEAD"], wt_p)
+        b0 = wt_heads.get(wt_p.name, ("", ""))[0]
         base_pre[wt_p.name] = _sweep_worktree_base(
-            root, wt_p, _sweep_season(b0[0] if b0 else ""))
+            root, wt_p, _sweep_season(b0))
     for wt in sorted(wt_base.glob("a00-*")):
         if not wt.is_dir():
             continue
@@ -1249,8 +1333,7 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             kept += 1
             _watch_log(f"[sweep] kept {agent_id}: live")
             continue
-        branch_lines, _ = _git(["rev-parse", "--abbrev-ref", "HEAD"], wt)
-        branch = branch_lines[0] if branch_lines else ""
+        branch, head_cached = wt_heads.get(agent_id, ("", ""))
         season = _sweep_season(branch)
         base = base_pre.get(agent_id, _sweep_worktree_base(root, wt, season))
         if base:
@@ -1259,17 +1342,30 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             refused += 1
             _watch_log(f"[sweep] refused {agent_id}: unmerged (no base)")
             continue
-        head_lines, _ = _git(["rev-parse", "HEAD"], wt)
-        head = head_lines[0] if head_lines else ""
+        head = head_cached
+        if not head:
+            head_lines, _ = _git(["rev-parse", "HEAD"], wt)
+            head = head_lines[0] if head_lines else ""
         # (2) a round that never landed is NOT removed.
         if not head:
             refused += 1
             _watch_log(f"[sweep] refused {agent_id}: unmerged (no HEAD)")
             continue
+        # Neither HEAD nor the base has moved since this tree was last
+        # refused -> the verdict is unchanged by construction. Skip the
+        # subprocesses AND the per-pass log line (the log, not the work, is
+        # what grew to 48 MB in 6 days).
+        base_lines, _ = _git(["rev-parse", base], main_checkout)
+        base_tip = base_lines[0] if base_lines else ""
+        if _SWEEP_SKIP.get(agent_id) == (head, base_tip):
+            refused += 1
+            skipped += 1
+            continue
         _, anc_rc = _git(["merge-base", "--is-ancestor", head, base],
                          main_checkout)
         if anc_rc != 0:
             refused += 1
+            _SWEEP_SKIP[agent_id] = (head, base_tip)
             _watch_log(f"[sweep] refused {agent_id}: unmerged")
             continue
         # (3) a dirty tree is REFUSED by name, never forced.
@@ -1280,6 +1376,7 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
             _watch_log(f"[sweep] refused {agent_id}: dirty "
                        f"({len(dirty)} paths)")
             continue
+        _SWEEP_SKIP.pop(agent_id, None)
         # (4)/(5) A finished round's session dir comes home before the sweep
         # judges condition (4): for a leaseless+merged+clean round, the GRACE
         # check moves AHEAD of the bring-home step, so a director's hand
@@ -1343,7 +1440,8 @@ def _sweep_finished_worktrees(root: Path, dry_run: bool = False,
         _watch_log(f"[sweep] removed {agent_id} "
                    f"iter={iter_name} base={base}")
         removed += 1
-    _watch_log(f"sweep: removed={removed} refused={refused} kept-live={kept}")
+    _watch_log(f"sweep: removed={removed} refused={refused} kept-live={kept}"
+               f"{f' (unchanged={skipped})' if skipped else ''}")
     return (removed, refused, kept)
 
 
