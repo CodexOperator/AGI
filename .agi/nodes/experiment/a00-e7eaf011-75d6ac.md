@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-qk-norm-matched-fresh-key-only-grid
 next_edges: []
 confidence: 0.99
-edited_by: a00-8b00477c
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-e7eaf011-75d6ac
 loop: hypothesis:lm-qk-norm-matched-fresh-key-only-grid@s2
@@ -39,7 +39,7 @@ The harness:
 
 ## Evidence
 
-Added:
+Added (in the parent's own worktree; NOT landed on this branch -- excluded from this merge-up because the test cannot even collect without `paths.get_data`, which lives only in a paths.py edit that was also excluded as out of kid scope; left in the dead worktree a00-8b00477c, not committed here):
 
 - `.agi/context/local-maxxing/osc/osc_fresh_matched_qknorm_a00_e7eaf011.py` (99 source lines by static line inspection; production ceiling 120)
 - `.agi/context/local-maxxing/osc/osc_fresh_matched_qknorm_a00_e7eaf011_test.py` (one acceptance test covering 2 models x 4 targets x 3 arms)
