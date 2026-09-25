@@ -18,7 +18,7 @@ def test_start_only_creates_absent_window_with_explicit_env(monkeypatch):
     env = {"PATH": "/bin", "SENTINEL": "yes"}
     tmux_hold.start(pane="seat", argv=["agent"], env=env)
     assert calls[-1][0] == ["tmux", "new-window", "-t", "seat", "-n", "seat", "--",
-                            "env", "PATH=/bin", "SENTINEL=yes", "agent"]
+                            "/usr/bin/env", "-i", "PATH=/bin", "SENTINEL=yes", "agent"]
     assert calls[-1][1] == env
 
 
@@ -33,7 +33,7 @@ def test_hold_pane_respawns_existing_window_and_returns_live_pid(monkeypatch):
     env = {"PATH": "/bin", "SENTINEL": "yes"}
     assert tmux_hold.hold_pane(pane="seat", argv=["agent"], env=env) == 4242
     assert calls[1][0] == ["tmux", "respawn-window", "-k", "-t", "seat", "--",
-                            "env", "PATH=/bin", "SENTINEL=yes", "agent"]
+                            "/usr/bin/env", "-i", "PATH=/bin", "SENTINEL=yes", "agent"]
     assert all(call[1] == env for call in calls)
     assert calls[-1][0] == ["tmux", "display-message", "-p", "-t", "seat", "#{pane_pid}"]
 
