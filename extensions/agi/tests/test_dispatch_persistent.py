@@ -46,6 +46,9 @@ def project(tmp_path: Path) -> Path:
         "spawn": {"harness": "pi", "parallel": 1, "max_live": 25},
         "agent_dispatch": {"inline_reaper": False},
     }))
+    (graph / "nodes" / ".geometry" / "posts.md").write_text(
+        "---\nid: config:posts\ntype: config\nposts:\n"
+        "  - {name: probe-seat, role: kid, pid: 77, session_ref: old}\n---\n")
     (graph / "nodes" / ".geometry" / "ladder.md").write_text(
         "---\ncurrent_season: 2\nroles:\n  - {tier: 0, role: kid, "
         "harness: pi, model: deepseek-v4}\n---\nbody")
@@ -178,22 +181,54 @@ def test_fire_and_forget_default_spawns_no_supervisor(
     assert "restart_count" not in agents[0], agents
 
 
-def test_record_carries_persistent_live_pid_and_restart_count(
+def test_terminal_exhaustion_clears_authoritative_record(
         project, monkeypatch, capsys):
-    """Conjunct (c): the seat's own record shows the occupation -- persistent
-    true, the CURRENT (restarted) pid, and the restart count."""
-    spawned = _fake_spawn(monkeypatch, [
-        {"left": 14, "rc": 1},
-        {"left": 999, "rc": None},
-    ], stop_after=2)
+    """Exhausted replacement death leaves no corpse pid or live claim."""
+    spawned = _fake_spawn(monkeypatch, [{"left": 0, "rc": 1}])
     monkeypatch.setattr(sys, "argv", _argv(project, "--persistent"))
 
     assert dispatch.main() == 0
-    agents = _manifest(project)
-    assert len(agents) == 1, agents
-    rec = agents[0]
-    assert rec["persistent"] is True, rec
-    assert rec["restart_count"] == 1, rec
-    assert rec["pid"] == spawned[1][1].pid, (
-        f"record pid {rec['pid']} is not the live child "
-        f"{spawned[1][1].pid}")
+    assert len(spawned) == 4
+    rec = _manifest(project)[0]
+    assert rec["persistent"] is False
+    assert rec["pid"] is None
+    assert rec["persistent_terminal_reason"] == "restart-exhausted"
+    session_rec = json.loads(next(project.glob(
+        ".agi/sessions/iter-001/*/agent.json")).read_text())
+    assert (session_rec["persistent"], session_rec["pid"]) == (False, None)
+
+
+def test_live_persistent_child_claims_then_clean_stop_releases_post(
+        project, monkeypatch, capsys):
+    """The real call path publishes the live pid/session pin, then releases."""
+    _fake_spawn(monkeypatch, [{"left": 999, "rc": None}])
+    seen = []
+
+    def observe(_seconds):
+        row = dispatch.geometry_config.load_rows(project / ".agi")[0]
+        seen.append(dict(row))
+        os.environ[dispatch._PERSIST_STOP_ENV] = "1"
+
+    monkeypatch.setattr(dispatch, "_PERSIST_SLEEP", observe)
+    monkeypatch.setattr(
+        sys, "argv", _argv(project, "--persistent", "--seat", "probe-seat"))
+
+    assert dispatch.main() == 0
+    assert seen[0]["pid"] == 1000
+    assert seen[0]["session_ref"].startswith("a00-")
+    row = dispatch.geometry_config.load_rows(project / ".agi")[0]
+    assert (row["pid"], row["session_ref"]) == (0, "")
+
+
+def test_non_persistent_dispatch_never_writes_or_claims_post(
+        project, monkeypatch, capsys):
+    """Opt-in remains opt-in, including the graph/config authority."""
+    before = (project / ".agi/nodes/.geometry/posts.md").read_bytes()
+    _fake_spawn(monkeypatch, [{"left": 999, "rc": None}])
+    monkeypatch.setattr(
+        sys, "argv", _argv(project, "--seat", "probe-seat"))
+
+    assert dispatch.main() == 0
+    assert (project / ".agi/nodes/.geometry/posts.md").read_bytes() == before
+    row = dispatch.geometry_config.load_rows(project / ".agi")[0]
+    assert (row["pid"], row["session_ref"]) == (77, "old")
