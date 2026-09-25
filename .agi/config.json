@@ -51,10 +51,11 @@
       "provider": "openrouter",
       "thinking": "medium",
       "models": {
-        "kid": "deepseek/deepseek-v4.1-flash",
-        "parent": "deepseek/deepseek-v4.1-flash"
+        "kid": "stealth/space-bunny-alpha",
+        "parent": "stealth/space-bunny-alpha"
       },
       "allowed_extra": [
+        "stealth/space-bunny-alpha",
         "deepseek/deepseek-v4.1-flash",
         "~z-ai/glm-flash-latest",
         "anthropic/claude-opus-5"
@@ -126,12 +127,12 @@
   "spawn": {
     "harness": "pi",
     "parallel": 1,
-    "max_live": 30,
+    "max_live": 10,
     "credential": {
       "provider": "openrouter",
-      "per_spawn_limit_usd": 1.5,
+      "per_spawn_limit_usd": 1.0,
       "ttl_minutes": 180,
-      "workspace_id": "023ce4bd-9c23-57d1-9f2e-b15abb0842d8"
+      "workspace_id": "7e12bcd2-321e-51ec-b3f5-80efeb4fdaf0"
     },
     "parent_max_kids": 10,
     "memory_max": "6G"
@@ -145,7 +146,7 @@
     "ollama_max_parallel": 0,
     "ollama_model": "qwen3:4b",
     "provider": "openrouter",
-    "model": "deepseek/deepseek-v4.1-flash",
+    "model": "stealth/space-bunny-alpha",
     "thinking": "medium",
     "inline_reaper": false
   },
@@ -187,7 +188,7 @@
       "note": "defaults for the round-review workflow; resolved by workflow.py run review --harness pi with --args overriding; config-maxxed so it can run on any harness (hypothesis:l3w4-workflows-config-maxxed), 2026-09-07. No 'model' here on purpose: provider is pi, and the pi harness resolves its model from harnesses.pi.models by role, never from this row \u2014 a shared model field across disjoint namespaces (Claude Code aliases vs OpenRouter slugs) is what billed Anthropic Sonnet on an OpenRouter key (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
     },
     "drafting": {
-      "model": "deepseek/deepseek-v4.1-flash",
+      "model": "stealth/space-bunny-alpha",
       "effort": "max",
       "provider": "pi",
       "note": "defaults for the brief-drafting workflow; override per run with Workflow args {model, effort}; the drafter seat (hypothesis:l3w4-drafter-seat) reads this row and passes it through \u2014 owner quote (6), 2026-09-07. 'sonnet' is correct HERE because provider is claude-code, whose model namespace is subscription aliases, not OpenRouter slugs (hypothesis:l3-workflow-model-crosses-harness-namespace)."
