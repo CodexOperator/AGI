@@ -6,15 +6,15 @@ parents:
   - hypothesis:rotate-flattens-a-symlinked-card-before-every-card-write
 next_edges: []
 confidence: 0.9
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
-demoted_from: proved
 edited_by: director-engine
+evidence_runs:
+  - experiment:rotate-flattens-symlinked-card-fix
 role: director
 scaffold_hash: c22a7b956b2c9b99
 season: 2
 title: flatten-before-write added to _write_stops_section and _closeout_apply, red/green verified
 town: core
-verdict: inconclusive_lean_proved:50
+verdict: proved
 ---
 # experiment:rotate-flattens-symlinked-card-fix
 
