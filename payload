@@ -2362,20 +2362,6 @@ class RenderError(BriefError):
     """A render cannot be assembled -- a bad part, a missing card or node."""
 
 
-def _extras_ref_text(root: Path, ref: str) -> str:
-    """An `extras` ref: a file under `.agi/context/` (verbatim, read live),
-    else a graph node ref via `_node_text`. Lets config:brief's `extras`
-    cell name a schema file directly -- e.g. `context/schemas/[goal].md` --
-    not only a node id (director-engine, goal:g7.33.14-adjacent: the owner
-    wants the goal/hypothesis schemas reachable as brief guides)."""
-    if ref.startswith("context/"):
-        path = root / ref
-        if not path.is_file():
-            raise RenderError(f"brief extras file not found: {ref}")
-        return path.read_text(encoding="utf-8")
-    return _node_text(root, ref)
-
-
 def _brief_cell(root: Path) -> dict:
     """The one `brief` cell -- the parts source.
 
@@ -2479,23 +2465,16 @@ def _part(name: str, root: Path, role: str, post: str | None, harness: str | Non
     if name == "trajectory":
         town = (_brief_cell(root).get("trajectory") or {}).get("town")
         return _node_text(root, f"town:{town}") if town else ""
+    if extras_text is not None:
+        # dispatch.py hands render the DYNAMIC dispatch brief (target,
+        # ceiling, session dir, addendum); PARTS and ORDER still come from
+        # the config cell, never from the caller.
+        return extras_text
     refs = (_brief_cell(root).get("extras") or {}).get(role) or []
     # A `{{template:}}` line in an extras node is DATA, never an expansion
     # directive -- the mechanism is GONE (hypothesis:brief-render-hygiene-
     # after-the-batch-mur). Templates come from config alone.
-    ref_text = "\n\n".join(_extras_ref_text(root, r) for r in refs)
-    if extras_text is not None:
-        # dispatch.py hands render the DYNAMIC dispatch brief (target,
-        # ceiling, session dir, addendum); PARTS and ORDER still come from
-        # the config cell, never from the caller. The config-declared refs
-        # land AFTER it, so a DISPATCHED parent sees both -- this used to
-        # return extras_text alone, so config:brief's extras.<role> never
-        # reached a real dispatch (director-engine, goal:g7.33.14-adjacent:
-        # the owner wants a dispatched parent's brief to carry configured
-        # guides, e.g. the goal/hypothesis schemas, not just the dynamic
-        # dispatch text).
-        return extras_text + ("\n\n" + ref_text if ref_text else "")
-    return ref_text
+    return "\n\n".join(_node_text(root, r) for r in refs)
 
 
 def render(*, post: str | None = None, role: str | None = None,
