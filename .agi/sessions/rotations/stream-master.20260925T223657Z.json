@@ -1,0 +1,38 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "stream-master",
+  "recorded_at": "2026-09-25T22:36:57.560484Z",
+  "result": "respawned",
+  "probable_cause": "remote-control-disconnect",
+  "succ_name": "stream-master",
+  "gen": 4,
+  "gen_after": 4,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "@5",
+  "pred_pids": [
+    1261357
+  ],
+  "row": {
+    "name": "stream-master",
+    "role": "director",
+    "model": "claude-sonnet-5",
+    "pid": 1261357,
+    "window": "@4",
+    "session_id": "845f3fa4-4835-451c-85b2-ca3155e3dbc6",
+    "generation": 3,
+    "worktree": ""
+  },
+  "respawn_outcome": {
+    "name": "stream-master",
+    "generation": 4,
+    "pid": null,
+    "window": "@5",
+    "reason": "",
+    "row": "config:seats row 'stream-master': session_ref= session_name= session_label=stream-master session_id= pid=None generation=4 window='@5' source=registry"
+  },
+  "after_join": {
+    "skipped": "no live session",
+    "age_s": 308.1629559993744
+  }
+}
