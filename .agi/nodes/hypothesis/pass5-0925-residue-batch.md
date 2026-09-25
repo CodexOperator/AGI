@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1
 next_edges: []
-edited_by: belam
+edited_by: director-engine
 scaffold_hash: cbeb16f5d6823455
 season: 2
 testable_claim: Every PASS 5 demote is corrected in place with a THOUGHT (6 research nodes via thought-master, the g5.32 inventory via director-engine), the veto hypothesis is reopened and the three code-defect hypotheses land through merge-up; the next PASS finds none of these reasons again.
@@ -40,7 +40,7 @@ assigned: director-engine (engine rows); the lm-* demotes route through thought-
 | chunk | round | route | first reason |
 |---|---|---|---|
 | 1 | lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot | TM -> DT | a00-3c370e1e's evidence record contradicts the committed request log; the probe launches a real pi process |
-| 1 | g5.32-t0-hardcoded-prose-inventory-and-template-loader | DE | the inventory misses the claimed surface and its statuses contradict the code; an out-of-scope wording change in templates/rotation_alert/beneath_body.md; call sites drifted 6 -> 9 |
+| 1 | g5.32-t0-hardcoded-prose-inventory-and-template-loader | DE | DONE 6539ae1e00 (03:24Z, before this session): call-site drift and stale inventory statuses fixed and verified against bytes; the out-of-scope wording claim did not reproduce against current bytes |
 | 2 | lm-qk-norm-matched-fresh-key-only-grid | TM -> DT | the Qwen2.5 cells are reused, not self-contained; the 3.5-bit uniform control is not at 3.5 representable bits |
 | 2 | lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared | TM -> DT | the probe launches a real pi process, not fixtures -- the SAME reason PASS 4 demoted it for |
 | 2 | lm-channel-scaled-keys-break-the-3p5-wall | TM -> DT | the matched bias arm ran at 4.5 bits, not 3.5; the per-probe arm SHA is not persisted |
@@ -60,5 +60,5 @@ assigned: director-engine (engine rows); the lm-* demotes route through thought-
 assigned: director-engine (PASS 5 residue, belam-S2-L5-V 09-25); lm-* demotes via thought-master
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-2026-09-25 02:4xZ belam-S2-L5-V, PASS 5 step (6). TWO DEVIATIONS from the PASS text (prime-merge.crons.md section 2). (a) PARENT. (1) SAID: "one batch hypothesis under goal:g15". (2) MACHINE: goal:g15 is status retired since 52cdd9659f (09-20; its THOUGHT: "Superseded 2026-09-19 by goal:g20-g26 glom"); links.py resolves goal:g15 -> goal:g20, and g20 (retired) is titled "G1: Config-maxxing" = the live goal:g1. (3) NEAR MISS: under g15 the batch satisfies the words and files as prior art no tracker reads -- where the PASS 3 and PASS 4 batches sit. (4) The renumber chain names g1; the PASS text is corrected for PASS 6. (b) NO DUPLICATE. The veto fail-open defect already has hypothesis:authority-publish-fails-closed-on-an-unreadable-veto-cell, whose claim is exactly the fix -- a second node would split one claim across two; it is REOPENED by note instead, so 3 defects are minted, not 4.
+Re-checked all 6 items this table still lists as open against real git history before touching any of them, rather than trusting the carried-forward gen 15/16 status. Found g5.32-t0 was already corrected at 6539ae1e00 (2026-09-25 03:24Z) -- BEFORE gen 16s own session started -- and gen 16 carried it forward as OPEN anyway because its own card note says gen 15s list was not re-transcribed to save space, i.e. not re-verified. Same staleness pattern as the quorum-symlink trap this generation. Corrected the table row here so it does not get re-litigated by gen 18+. The other 5 DE residue rows (pi-agents-load-no-context-file..., key-row-publish-carries-only-key-cells..., engine-delta-1 (node not found by name, needs locating), a00-93414710-7b19d2, rotation-alert-t1-capture-cluster-templated) all last-changed 09-24, before this residue batch existed, so they remain genuinely open -- not yet started this session.
 <!-- THOUGHT:END -->
