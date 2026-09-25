@@ -79,13 +79,16 @@ ack       RESOLVED this session (was refused, see traps). `rotate.py ack --seat 
            `rotate.py meter --pin /data/work/agi/.agi/sessions/director-engine.meter --session-log
            <this session's own .jsonl>` -- the worktree-relative path form refuses (pins live only
            under the shared /data/work/agi/.agi/sessions, by name).
-branch    local-maxxing/season2/posts/director-engine/main, LOCAL ONLY, no push. Tip 37e931691f
-          after merging DH.360 (7d738a75f9) + DH.362 (37e931691f), --no-ff, both clean, no
-          conflicts. grid.py commit --all done (17 new versions, 0 errors, 0 demoted). links.py:
-          4351 resolved, 0 broken. Full suite (extensions/agi/tests/) dispatched in background
-          after both merges; see next write for the confirmed count -- do not trust this card for
-          that number until it names an actual pass count.
-finding   MAJOR, unfixed, flagged not patched: .agi/config.json `root` = "/home/ubuntu/work/agi"
+branch    local-maxxing/season2/posts/director-engine/main, LOCAL ONLY, no push. Tip 3622ba49d0
+          after merging DH.360 (7d738a75f9) + DH.362 (37e931691f) --no-ff (both clean, no
+          conflicts), merging origin/local-maxxing/season2/main, and committing goal:g7.33.14 +
+          this card. grid.py commit --all done (17 new versions, 0 errors, 0 demoted). links.py:
+          4351 resolved, 0 broken. Full suite CONFIRMED on tip 37e931691f (before the later,
+          node-only commits): 6456 passed, 27 skipped, 1 xfailed, 0 failed, 992.57s -- exactly +6
+          over the 6450 baseline (DH.360's 5 new tests + DH.362's 1). Reported to thought-master,
+          who acked (TMM.183) with no further gate. Merge-up fully closed, nothing pending on it.
+finding   MAJOR, now minted as goal:g7.33.14 (under goal:g7.33, per thought-master TMM.183): a
+          real box-path bug, not yet fixed. `.agi/config.json` `root` = "/home/ubuntu/work/agi"
           (line 188), and the identical literal (NOT a {template} var) is hardcoded into the
           prompt text of ~15 workflow.py-authored review/investigation templates: review.json,
           drafting.json, recovery-survey.json (+.js), g15-close-triage.json (+.js),
@@ -93,19 +96,33 @@ finding   MAJOR, unfixed, flagged not patched: .agi/config.json `root` = "/home/
           agi-brief-drafting.js, agi-trove-survey.js, desktop-check.json (+.js),
           prime-open-questions.json (+.js), rotation_alert.py, unify.py, commands.py. MEASURED:
           `ls /home/ubuntu/work/agi` -> No such file or directory on this box; `whoami` -> belam;
-          `$HOME` -> /home/belam; the real repo root is /data/work/agi (confirmed via
-          `ps -ef | grep director-engine\|thought-master` showing real launch-wrapper processes
-          running from /data/work/agi). Kid/parent agent dispatch (dispatch.py/cli.py) is
-          UNAFFECTED -- DH.360's own 6 kids ran fine, so that path resolves the root dynamically
-          (bin/locations.py, nearest .agi/ wins). Only the workflow.py-authored JS/JSON prompt
-          TEXT hardcodes the box path as a literal string sent verbatim to the dispatched model --
-          every such dispatch, on THIS box, tells its reviewer/investigator to `cd` into a
-          directory that does not exist. This is why I did NOT re-dispatch DH.360's mur
-          (merge-up-review) -- reviewed both diffs directly myself instead (see §2) rather than
-          gamble a pi-free dispatch on broken instructions. NOT triaged for root cause (box
-          migration vs. always-wrong) or fix mechanism (config.json-derived vs. independently
-          hardcoded per template) -- too large for this session, flagged to thought-master/belam,
-          left for a proper hypothesis + round.
+          `$HOME` -> /home/belam; the real repo root is /data/work/agi. Kid/parent agent dispatch
+          (dispatch.py/cli.py) is UNAFFECTED (confirmed AGAIN via the swarm dispatch's own
+          --dry-run below, which correctly resolved /data/work/agi paths) -- only the
+          workflow.py-authored JS/JSON prompt TEXT hardcodes the stale box path. This is why
+          DH.360's mur was never re-dispatched; both diffs were reviewed directly instead (§2,
+          gen 20 section above).
+swarm     OWNER-DIRECTED TRIAL, live now: hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis
+          (goal:g7.16, belam-S2-L5-VII, commit 5bbcbe7128) -- "do parallel hypotheses make sense
+          in a build loop?" director-engine = the build arm. Minted goal:g7.33.14 as the swarm
+          target (see `finding` above) since it genuinely splits into >=3 disjoint file groups
+          (a candidate 3-way split was handed to the parents as director-context, not a mandate --
+          parent 1 still proposes the real split per protocol). Dispatched 3 parents, same
+          --target goal:g7.33.14, cap 2 kids live/parent, pi-free:
+            a00-613b8582 (1 of 3, iter DH.364, pid 782959, branch season2/loops/goal-g7.33.14-a00-613b8582)
+            a00-3b546363 (2 of 3, iter DH.365, pid 803887, branch season2/loops/goal-g7.33.14-a00-3b546363)
+            a00-96b32433 (3 of 3, iter DH.366, pid 823006, branch season2/loops/goal-g7.33.14-a00-96b32433)
+          Roster posted to room swarm-g73314 (.agi/comms/season-2/room/swarm-g73314.md), same
+          pattern as OSC.10 (director-thought, 09-23). NOT foreground-waited -- dispatched,
+          recorded, moving on. One earlier attempt (DH.363, target goal:g7.33.14 before it was
+          committed) failed cleanly with no budget slot taken and no stray worktree
+          (`--branch` cuts from the SPAWNER's COMMITTED branch tip; an uncommitted new node is
+          invisible to the cut worktree) -- committed first, then DH.364/365/366 succeeded.
+          Falsifiers to watch at harvest (from the hypothesis node): throughput < 1.5x a
+          single-parent baseline; two swarm siblings' branches touching the same file; the
+          talk-first split taking > 2 laps or > 20 min median; a memguard SIGSTOP/OOM/MemAvailable
+          < 1.5 GiB; pi-free empty responses spiking. Report owed at merge-up: split, laps, wall
+          clock, kids, experiments landed, any sibling file overlap (per belam's ask).
 ```
 
 ## §1 PLAN
