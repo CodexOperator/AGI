@@ -45,6 +45,9 @@ config-max: swarm_size (3) + max_swarms (3) become config cells ONLY after the v
 5. One line to <room> at each landing (kid done, verdict) and before you exit.
 ```
 
+## BUILD the --orders file (owner 22:5xZ, verbatim: “Make sure the patent brief contains the goal and hypothesis node schemas as guides.”)
+The --orders file = the ORDERS block above (filled) + BOTH schema files appended VERBATIM at dispatch time (read live, never a copy that can go stale), each under a `### GUIDE: the <type> node schema (<path>, verbatim)` line inside a four-backtick fence: `.agi/context/schemas/[goal].md`, then `.agi/context/schemas/[hypothesis].md`. Verified 23:1xZ by building the real spawn: `dispatch.py . 999 --target goal:g7.16 --level small --tier parent --role parent --ladder-tier 0 --orders <file> --dry-run` reports `orders: 391 lines` (389 file lines + the heading), both schemas whole, frontmatter included. Config route (answering the owner 23:0xZ, “Do we have a config or template based way to append docs to briefs”): config:brief `extras: {role: [refs]}` exists (brief.py:2473) but a DISPATCHED parent never sees it (the extras part returns the dynamic dispatch brief first, brief.py:2467-2471) and a ref must be a node (`_node_text`), not a schema file -- director-engine closes both, then `extras.parent` = the two schema paths is one config edit for every parent.
+
 ## FALSIFIERS
 - throughput < 1.5x the branch's single-parent baseline after 2 swarms per arm;
 - a build-loop collision: two siblings' branches touch the same file (merge-tree conflict at the merge-up);
