@@ -150,7 +150,7 @@
           "template_max"
         ]
       },
-      "timeout_s": 1800,
+      "timeout_s": 2100,
       "load_factor": 0.5
     },
     {
@@ -256,7 +256,7 @@
           "template_max"
         ]
       },
-      "timeout_s": 1800,
+      "timeout_s": 2100,
       "load_factor": 0.5
     }
   ],
