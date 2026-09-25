@@ -28,26 +28,22 @@ PASS 5         CLOSED 02:37Z: trunk @5b7d503fa7 -> season2/main 8daa626e89 (449 
 PASS 6         CLOSED 10:49Z (the Prime): BASE 5b7d503fa7 -> TIP 1bf60c203b, 184 commits, 9 rounds: 3 accept_with_residue · 6 demote · 0 RED
                · for DT: batch 21 DEMOTED (its 'uniform' arm = index_order = positional grouping) + lm-qk-norm-matched-fresh-key-only-grid
                DEMOTED 2nd PASS in a row -> TMM.167 (delivered) · for DE: the Prime's [decision] = hypothesis:pass6-0925-residue-batch (4 code
-               defects + 4 demotes) · trunk pushed to c40649160d (the Prime's PASS 6 close) · next CHECK 12:13Z
+               defects + 4 demotes) · trunk pushed to c40649160d (the Prime's PASS 6 close)
+PASS 7         NOTICED 12:44Z (the Prime, [owner]): trunk -> season2/main review at 17:43Z 09-25, BASE 1bf60c203b -> TIP f20b29eba8 at notice
+               (47 commits) · what lands before 17:43Z rides in it · RED = secrets / node deletion / broken link / protocol regression
 GRID           goal:g7.33.11 LANDED + CLOSED (20676beba1): the crontab runs grid.py push-changed; origin holds the post-split refs only -- nothing owed
 DE             gen 19 = post-director-engine-c2 (window @14, seated 12:28Z; gen 18 = post-director-engine-61) · LANDED today: b058583fa6 (TMM.159-161: goals red closed, DH.304/305/307 proved, DH.308
                disproved) + da46aa87dd (DH.312: a malformed matching row refuses the publish; inconclusive_lean_disproved:85; all 22 live rows
                pass its strict parse) · TMM.166 (dm): next = the residue round hypothesis:key-row-publish-appends-instead-of-refusing-on-an-
                unrecognized-own-row (a valid JSON-string row -> likely fail-open append) · PASS 6 defect 4 LANDED 2054e3e04c (TMM.168: rotate
                flattens a symlinked card before every card write) + 850896a493 (TMM.169: defect 1, >1 matching own row refuses) + 985f58879b
-               (TMM.170: defect 2, manifest required_args) · 12:09Z [merge-up] @0f08a9d3d8 (4 commits: bookkeeping, write.py set schema gate =
-               round B goal:g7.33.10, grid.push_batch_limit cell, brainstorm JS pin) RETURNED 12:1xZ (TMM.171): the set gate refuses routine
-               protocol writes on MAIN's live graph (hypothesis verdict, goal heading_level, experiment rebrief_*/production_lines, the
-               brief's scalar evidence_runs) -- 155 (type, field) pairs over 2,324 live node-fields undeclared (incl. .geometry config nodes);
-               re-gate = full suite + python3 /tmp/tm21-setgate-measure.py <worktree root> (only junk rows may stay undeclared) · TMM.172
-               (dm 12:2xZ): the merged tree's suite = 9 failed (8 NEW: test_ring_cli_seam A-D, test_write_ring_cli x3, test_town_mint's
-               'must be an integer' message) · the 12:19Z addendum @87c5b3e446 (5 THOUGHT-only commits) rides on the same red · DE (12:22Z,
-               its pane): drops the undeclared-field check, keeps type + regex = @00ec4a2094 (12:26Z) -> RETURNED 12:3xZ (TMM.173): 0 undeclared
-               refusals + every routine write admitted + the ring tests green, BUT brief.py:1518 (every kid brief's WRITE.PY SYNTAX example
-               'set evidence_runs experiment:x') is a type refusal ('["experiment:x"]' passes; 21 live experiments hold the scalar form) +
-               test_town_mint still red on 'must be a int value' · TMM.173 went out mid-rotation -> relayed by SendMessage to gen 19
-               · then defect 3 (banked), the JSON-string round + TMM.159 (3): the open PASS 5 residues, round B
-               goal:g7.33.10, goal:g1.14.1 · DH.302 = superseded by DH.305 (no round) · its quorum card is a symlink again (its call)
+               (TMM.170: defect 2, manifest required_args) + a39187ca27 (TMM.174: round B goal:g7.33.10 = write.py set / create --set judge
+               each row by a declared type / regex / refuse:, NO undeclared-field refusal + grid.push_batch_limit a config cell (200) + the
+               brainstorm JS pin + brief.py's JSON-list evidence_runs example + 5 PASS 5 residues closed) -- returned 3 times first: TMM.171
+               (the set gate refused 155 live (type, field) pairs over 2,324 node-fields: verdict, heading_level, rebrief_*, production_lines),
+               TMM.172 (8 new suite reds), TMM.173 (brief.py:1518's scalar example + test_town_mint's message; relayed to gen 19 by SendMessage)
+               · next (TMM.174 dm): the JSON-string residue round · the last open PASS 5 row (key-row-publish-carries-only-key-cells-and-a-prime-
+               row-edit-reaches-a-worktree-post) · goal:g1.14.1 fresh against DH.301's plan · PASS 6 defect 3 banked (DH.311's WIP)
 DT             gen 30 (session agi-af, window @3, row joined) · its user answered its startup question 07:10:26Z = 'Proceed fully' (not me)
                · batch 21 LANDED 40156ab515 (07:5xZ, @cd13602e1a after TMM.162: verdict proved by the rule + the random control in the node)
                · PASS 6 DEMOTED batch 21 + the qk-norm grid -> TMM.167 (both corrective rounds inside TMM.149) · board row 7: my 'proved' = VOID
@@ -60,25 +56,24 @@ DT             gen 30 (session agi-af, window @3, row joined) · its user answer
                anchor [13,13,10,10] = 11.75 bits by bits() (TMM.154/155) · then TMM.149
 trunk reds     test_dashboard's SIGINT watch only · goals --render --check = exit 0 on MAIN (362/362, re-read 12:0xZ on 985f58879b)
 board          town:local-maxxing (13 rows): row 7 = batch 21 VOID -> pending (07:5xZ + TMM.167) · row 8 += PASS 6 defects 4 / 1 / 2 LANDED (713b9604a8)
-LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21) · DE b058583fa6 (TMM.159-161) + da46aa87dd (DH.312) · DT 4c8376c991 (batch 21 -> pending) · DE 2054e3e04c (PASS 6 defect 4) + 850896a493 (defect 1) · gen 21: DE 985f58879b (defect 2)
+               + round B goal:g7.33.10 LANDED (5be6220496)
+LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21) · DE b058583fa6 (TMM.159-161) + da46aa87dd (DH.312) · DT 4c8376c991 (batch 21 -> pending) · DE 2054e3e04c (PASS 6 defect 4) + 850896a493 (defect 1) · gen 21: DE 985f58879b (defect 2) + a39187ca27 (round B goal:g7.33.10, TMM.174)
 ```
 
 ## 🔴 Where it stops
-12:3xZ 09-25 gen 21 WAITS on DE gen 19's [merge-up] for TMM.173 (brief.py:1518's scalar evidence_runs example + test_town_mint's message; @00ec4a2094 returned); DT holds new dispatch for its operator ([decision] to belam 11:0xZ, no answer by 12:3xZ)
+12:5xZ 09-25 gen 21 WAITS on the next [merge-up]: round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT holds new dispatch for its operator ([decision] to belam 11:0xZ, no answer by 12:5xZ); the Prime's PASS 7 at 17:43Z
 ````
-12:3xZ 09-25 gen 21 WAITS on DE gen 19's [merge-up] for TMM.173 (brief.py:1518's scalar evidence_runs example + test_town_mint's message; @00ec4a2094 returned); DT holds new dispatch for its operator ([decision] to belam 11:0xZ, no answer by 12:3xZ)
+12:5xZ 09-25 gen 21 WAITS on the next [merge-up]: round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT holds new dispatch for its operator ([decision] to belam 11:0xZ, no answer by 12:5xZ); the Prime's PASS 7 at 17:43Z
 ```
-state   MAIN = 985f58879b + board 713b9604a8 + ancestry merge 78cf796ce9 + this card; comms churn, sequence.json, rotation records = not mine
-        · gate worktrees /tmp/tm21-gate-0f08 (done, 9 failed) + /tmp/tm21-gate-00ec (suite running, informational) -- remove both once
-        read · TMM.173 = the last order sent · next = TMM.174
+state   MAIN = a39187ca27 + board 5be6220496 + this card; comms churn, sequence.json, rotation records = not mine · no gate worktree open
+        · TMM.174 = the last order sent (the [landed] dm) · next = TMM.175
 NEXT    (1) DT: once its operator says go, TMM.149's merge-ups -- the lean gate + the CONTROL arms before any verdict
-        (2) DE's re-sent [merge-up] for TMM.171: the full suite on merge-tree(HEAD, tip) + python3 /tmp/tm21-setgate-measure.py <gate root>
-            = the only undeclared (type, field) pairs left are junk rows; + real --dry-runs of verdict / heading_level / rebrief_answer /
-            production_lines / the brief's evidence_runs line with the gated write.py --root <gate> (all must be admitted)
-        (2b) any later DE [merge-up] (the JSON-string residue round, then TMM.159 (3)): the full suite on merge-tree(HEAD, tip) in a detached /tmp
-            worktree (expected red = test_dashboard's SIGINT only) + goals --render --check + links + the schema diff vs MAIN + anonymize on the
-            gated tree; reproduce red/green in a pre-fix worktree; measure the first live run on MAIN's data
+        (2) DE's next [merge-up] (the JSON-string residue round, the last PASS 5 row, goal:g1.14.1): the full suite on merge-tree(HEAD, tip)
+            in a detached /tmp worktree (expected red = test_dashboard's SIGINT only) + goals --render --check + links + the schema diff vs
+            MAIN + anonymize on the gated tree; reproduce red/green in a pre-fix worktree; measure the first live run on MAIN's data (a
+            validation gate: /tmp/tm21-setgate-measure.py <gate root> + real --dry-runs of the routine writes)
         (3) keep goals --render --check at exit 0 on MAIN: every landing runs it
+        (4) before 17:43Z: what lands rides in PASS 7 -- a protocol regression there is RED for the whole pass
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 ````
