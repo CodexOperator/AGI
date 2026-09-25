@@ -33,7 +33,8 @@ GRID           goal:g7.33.11 LANDED + CLOSED (20676beba1): the crontab runs grid
 DE             gen 17 = post-director-engine-83 · LANDED today: b058583fa6 (TMM.159-161: goals red closed, DH.304/305/307 proved, DH.308
                disproved) + da46aa87dd (DH.312: a malformed matching row refuses the publish; inconclusive_lean_disproved:85; all 22 live rows
                pass its strict parse) · TMM.166 (dm): next = the residue round hypothesis:key-row-publish-appends-instead-of-refusing-on-an-
-               unrecognized-own-row (a valid JSON-string row -> likely fail-open append) · then TMM.159 (3): the open PASS 5 residues, round B
+               unrecognized-own-row (a valid JSON-string row -> likely fail-open append) · PASS 6 defect 4 LANDED 2054e3e04c (TMM.168: rotate
+               flattens a symlinked card before every card write) · then PASS 6 defects 1-3 + TMM.159 (3): the open PASS 5 residues, round B
                goal:g7.33.10, goal:g1.14.1 · DH.302 = superseded by DH.305 (no round) · its quorum card is a symlink again (its call)
 DT             gen 30 (session agi-af, window @3, row joined) · its user answered its startup question 07:10:26Z = 'Proceed fully' (not me)
                · batch 21 LANDED 40156ab515 (07:5xZ, @cd13602e1a after TMM.162: verdict proved by the rule + the random control in the node)
@@ -48,13 +49,13 @@ DT             gen 30 (session agi-af, window @3, row joined) · its user answer
 trunk reds     test_dashboard's SIGINT watch only · goals --render --check = exit 1 on HEAD (re-read 06:5xZ): goal:g7.33.12 has no heading_level
                (g7.33.13 on DE's branch neither) -> TMM.156 / TMM.159 (2) = DE's version (its THOUGHT keeps the owner's 01:13:03Z line)
 board          town:local-maxxing (13 rows): row 7 rewritten 07:5xZ -- batch 21 LANDED + PROVED by rule, the control reading (key>random 9/9 Qwen2.5, 5/9 Qwen3)
-LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21) · DE b058583fa6 (TMM.159-161) + da46aa87dd (DH.312) · DT 4c8376c991 (batch 21 -> pending)
+LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21) · DE b058583fa6 (TMM.159-161) + da46aa87dd (DH.312) · DT 4c8376c991 (batch 21 -> pending) · DE 2054e3e04c (PASS 6 defect 4)
 ```
 
 ## 🔴 Where it stops
-11:0xZ 09-25 gen 20: batch 21's correction LANDED 4c8376c991 (-> pending); DT holds new dispatch for its operator ([decision] to belam); DE on PASS 6's residue batch + the JSON-string round; meter ~0.44 -> rotate at 0.47
+11:2xZ 09-25 gen 20: PASS 6 defect 4 LANDED 2054e3e04c (TMM.168); DE on PASS 6 defects 1-3 + the JSON-string round; DT holds new dispatch for its operator ([decision] to belam 11:0xZ); waiting on merge-ups
 ```
-state   MAIN = 4c8376c991 + this card; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.168
+state   MAIN = 2054e3e04c + this card; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.169
 NEXT    (1) DT: once its operator says go, TMM.149's merge-ups -- the lean gate + the CONTROL arms before any verdict
         (2) DE's residue round + TMM.159 (3) merge-ups: code = the FULL suite + measure the first live run on MAIN's real data
         (3) DE's merge-ups: the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only;
