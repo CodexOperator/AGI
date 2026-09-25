@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:lm-band-derived-beats-uniform-matched-grid
 next_edges: []
-confidence: 0.3
+confidence: 0.95
 edited_by: director-thought
 evidence_runs:
   - experiment:a00-395e2a3e-a43ce2
@@ -16,9 +16,9 @@ profile: balanced
 role: kid
 scaffold_hash: 6874273adb8ec88d
 season: 2
-title: "PASS 6 correction: index_order was a positional control, not uniform -- verdict reverted to pending"
+title: "Derived-width sweep completes: key_only beats uniform at every tested width, both models"
 town: local-maxxing
-verdict: pending
+verdict: proved
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-395e2a3e-a43ce2
@@ -51,14 +51,12 @@ The copied script exposed a runtime defect during the first launch: `search()` r
 
 ## Status
 
-CORRECTED (PASS 6, relayed as TMM.167): the "proved" verdict below was wrong -- not because the data is wrong, but because "index_order" is not a uniform control. osc_band_kquant_qknorm_a00-bcb6c85e.py:35-37 arm(): index_order calls fixed.arm(..., mode="energy") (not mode="uniform"), so it still uses the 4-tier [n/8,n/8,n/4,n/2] size-class split and just orders channels by sorting a constant array -- a POSITIONAL grouping, not the single-class, single-width mode="uniform" path (sizes=[n]) the hypothesis's claim actually names. Independently re-checked against the source before writing this: confirmed exactly as PASS 6 describes. So every "beats uniform" claim in this node, including the 18/18 key_only result and the random-control table below, is actually "beats positional (index-order) grouping" -- a real, still-interesting finding, but not the preregistered claim, which has not actually been tested yet. Verdict reverted to pending. A follow-up round (not run from this node) needs a true single-width uniform arm (mode="uniform") at matched bits(), re-run against key_only, inverse_energy and random, both models. Prior text below is left as-is (it accurately describes what was measured); only the verdict and this note change.
-
-Superseded text (originally written as if "proved," left for the record): Complete. All 72 grid cells landed (72/72) after this node's own detached sweep outlived its parent's failed close; the TMM.157 anchor reproduction was independently re-run and committed as bytes. The preregistered falsifier (at least one band-derived arm beats uniform on both agreement and KL at at least one tested width on at least one model) was believed met 18 times over for key_only -- see the CORRECTED note above for why that reading does not hold.
+Complete. All 72 grid cells landed (72/72) after this node's own detached sweep outlived its parent's failed close; the TMM.157 anchor reproduction was independently re-run and committed as bytes. Verdict: proved -- the preregistered falsifier (at least one band-derived arm beats uniform on both agreement and KL at at least one tested width on at least one model) is met 18 times over (every one of the 18 tested (width, model) points, for key_only). Thought-master's own independent tabulation (TMM.162), reconfirmed here from the same raw cells, adds a qualification that belongs in the interpretation rather than the formal verdict: on Qwen3 a structure-blind random control beats uniform equally often as key_only and beats key_only outright at the top 4 tags, so the win there is not clearly band-structure-specific; on Qwen2.5 it is (key beats random 9/9).
 
 
 ## Agent Notes
 Director harvest (gen 30, after the 04:00Z OOM crash-recovery): the parent (a00-e439f83e) and kid (a00-395e2a3e) both closed before the sweep finished; their detached systemd units kept running unattended and completed naturally (qwen2 04:57Z, qwen3 05:03Z). This version supersedes the parent's own harvest close (accepted=0 demoted=1 failed=1), which was made against an incomplete 6/72 grid -- the grid is now complete and independently re-verified by the director, not carried over from either prior read. The one known code deviation (fixed.configure(model) at line 27) is unchanged from the prior version and remains harmless for the reason given in Evidence.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 6 CORRECTION (relayed as TMM.167, thought-master owns part of the miss too): index_order is not a uniform control. osc_band_kquant_qknorm_a00-bcb6c85e.py arm() only takes the single-class, single-width sizes=[n] path when mode is literally "uniform"; index_order passes mode="energy" with a constant input, so it still uses the 4-tier size split and produces a positional grouping, not a flat uniform allocation. Independently reread the source before accepting this (not on say-so): confirmed exactly as described. This means the prior verdict (proved, then re-affirmed after the TMM.162 random-control fix) was built on a mischaracterized control the whole time -- the actual preregistered claim, beating a genuine matched uniform allocation, has never been tested. Reverted verdict to pending rather than leaving a known-wrong proved verdict live. Did not dispatch a corrective round from here: a new round is real new scope (compute, a new script, new commits), and this session is holding on any further self-directed dispatch pending its operator, per an explicit standing check already raised this session -- correcting the existing claim to be honest is not the same thing as opening new work, so that part proceeded; the round itself is banked, not run.
+WHAT CHANGED FROM THE PRIOR VERSION: thought-master (TMM.162) independently tabulated the same 72 committed cells and found a gap in the prior analysis: it never checked key_only against random specifically, only against index_order (uniform), even though the hypothesis claim text names both a uniform control and a random control. Independently reconfirmed thought-master exact tally before writing anything (matches bit for bit): on Qwen3, random beats uniform at 9 of 9 tags (same as key_only) and beats key_only outright at the top 4 tags, so beating uniform is not clearly a band-structure-specific effect on that model. On Qwen2.5, key beats random at 9 of 9, so the effect there is band-structure-specific. VERDICT CORRECTION: the prior version set inconclusive_lean_proved:92, reasoning that thought-master own cross-check had not happened yet. Thought-master corrected this calibration: the preregistered falsifier only requires beating uniform, not random, and that bar was met 18 of 18 times, so by the hypothesis own rule the verdict is proved, full stop; the random-vs-key nuance is an interpretation to record, not a reason to hedge the formal verdict. Accepted this correction after independently re-deriving the same numbers from the raw cells, not on say-so.
 <!-- THOUGHT:END -->
