@@ -107,8 +107,12 @@ def _await_startup(proc, max_s: int = _GRACE_MAX_S,
 
 
 def _startup_alive_or_complete(proc) -> bool:
-    """Accept an already-complete rc=0 process before entering the grace wait."""
-    return proc.returncode == 0 or _await_startup(proc)
+    """Accept rc=0 both before and after a poll during the grace wait."""
+    if proc.returncode == 0:
+        return True
+    if _await_startup(proc):
+        return True
+    return proc.returncode == 0
 
 
 def _startup_death_is_transient(log_file: Path) -> "str | None":
