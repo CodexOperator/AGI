@@ -1,0 +1,51 @@
+---
+id: experiment:a00-e416bc28-0c9d1b
+mint_id: 753f4070e1404ce4b6cd4b9684d3ea9f
+type: experiment
+parents:
+  - hypothesis:lm-band-derived-beats-uniform-matched-grid
+next_edges: []
+confidence: 0.1
+edited_by: a00-b093a550
+evidence_runs:
+  - experiment:a00-e416bc28-0c9d1b
+  - experiment:a00-6f40fad2-eca451
+  - experiment:a00-72273745-0d44f3
+loop: hypothesis:lm-band-derived-beats-uniform-matched-grid@s2
+model: stealth/space-bunny-alpha
+probes: "gate: the requested 4.5-bit width is absent from WIDTHS; AST and qwen2 results.json independently show only [4.0,5.0,5.5,6.0,6.5,7.0,7.5,7.75], yielding 32 settings rather than 36 per model. gate: only qwen2 results.json exists after timeout, so the two-model 72-cell conjunction is not executable; qwen2 has 256 prompt rows but no qwen3 aggregate."
+profile: balanced
+role: kid
+scaffold_hash: 1240e73ac4ca2fa5
+season: 2
+title: Fresh inverse-energy allocator grid (incomplete timeout)
+town: local-maxxing
+verdict: pending
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-e416bc28-0c9d1b
+
+## Experiment
+
+Implemented the requested fixed-allocator two-model sweep and its width/mirror tests. The test passed (`2 passed in 1.13s`); the inverse-energy symmetry was confirmed. The fresh sequential driver completed Qwen2.5 (available memory 7260 MB, 8 prompts) and began Qwen3 (available memory 8160 MB, prompts 1–2), but the command hit the 1200-second wall timeout before Qwen3 completed. Therefore the required 72-cell grid is incomplete and no aggregate verdict is justified.
+
+The Qwen2.5 7.75 key-only cell is `0.991699 / 0.000489`, exactly matching the committed reproduction reference. Qwen3 did not finish, so its reproduction check and the full cross-model falsifier are unavailable.
+
+## Evidence
+
+- Script: `.agi/context/local-maxxing/osc/osc_band_derived_a00-e416bc28.py`
+- Test: `.agi/context/local-maxxing/osc/osc_band_derived_a00-e416bc28_test.py` (`2 passed in 1.13s`)
+- Partial Qwen2.5 results: `datasets/osc-band/` under the configured `osc_band_qknorm_dir`, `a00-e416bc28/qwen2/results.json`
+- Qwen3 process was interrupted after prompts 1–2; no complete Qwen3 results file was produced.
+- Reproduction observed: Qwen2.5 key-only 7.75 = `0.991699 / 0.000489`, matching `experiment:a00-6f40fad2-eca451`.
+
+## Caveat
+
+The timeout left the mandated 72 primary cells incomplete; this node is pending rather than claiming either direction. The width test validates the Qwen2.5 (np=32) accounting, while the driver preserves the requested 7.75 reproduction list verbatim.
+
+## Agent Notes
+Width and inverse symmetry tests passed; Qwen2.5 completed and reproduced key-only 7.75 at 0.991699/0.000489, but Qwen3 timed out after two prompts so the 72-cell grid is incomplete.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+The instruction required a fresh matched grid at 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, and 7.75 bits on both models. The machine actually contains eight widths (4.5 is absent) and the timeout leaves only qwen2/results.json, so it cannot establish or falsify the cross-model claim. A plausible passing local test (width accounting and inverse symmetry) satisfies the implementation checks but misses the 4.5 cell and the second resident model. I therefore retain pending and record both negative gate probes; no deviation from the standing rule is needed.
+<!-- THOUGHT:END -->

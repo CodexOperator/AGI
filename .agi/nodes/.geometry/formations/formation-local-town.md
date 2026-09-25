@@ -32,6 +32,6 @@ town: local-maxxing
 Before minting ideas, a quick framing check: is there a bigger picture here, or a smaller, simpler one? (owner 09-23 07:5xZ-08:2xZ; kept as a hedge 09-23 14:5xZ)
 
 ## Where the town's other rules live
-The research, dispatch and batch rules: `doc:lm-director-brief-customizations` · spawn limits: the director cards only · the town todo: `town:local-maxxing` trajectory_standin · owner lines: where the HEAD's notes line says (never a goal).
+The research, dispatch and batch rules: the director cards (`doc:card-director-thought`, `doc:card-director-engine`; `doc:lm-director-brief-customizations` retired 09-24) · spawn limits: the director cards only · the town todo: `town:local-maxxing` trajectory_standin · owner lines: where the HEAD's notes line says (never a goal).
 
 ## Agent Notes

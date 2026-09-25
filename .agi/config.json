@@ -213,7 +213,8 @@
     "max_restarts": 0
   },
   "grid": {
-    "storage_trunk": "refs/grid/local-maxxing"
+    "storage_trunk": "refs/grid/local-maxxing",
+    "push_split_epoch": 1789955640
   },
   "paths": {
     "local_maxxing": {
@@ -232,6 +233,9 @@
       "osc_band_dir": "datasets/osc-band/2026-09-23",
       "osc_band_hop2_dir": "datasets/osc-band/2026-09-23-hop2",
       "osc_band_kquant_dir": "datasets/osc-band/2026-09-23-kquant",
+      "osc_band_q4_dir": "datasets/osc-band/2026-09-24-q4",
+      "osc_band_kquant_0924_dir": "datasets/osc-band/2026-09-24-kquant",
+      "osc_band_qknorm_dir": "datasets/osc-band/2026-09-24-qknorm",
       "humaneval_file": "datasets/humaneval-abc/data/HumanEval.jsonl.gz",
       "kv_format_out_dir": "datasets/kv-format/2026-09-23",
       "kv_speed_out_dir": "datasets/kv-format/2026-09-23-speed",
@@ -249,6 +253,8 @@
       "wikitext2_zip": "{ml_scratch_dir}/osc02/wikitext-2-raw-v1.zip",
       "osc03_hf_dir": "{ml_scratch_dir}/osc03/hf",
       "osc03_pylib_dir": "{ml_scratch_dir}/osc03/pylib",
+      "osc_test_pythonpath": "{ml_venv_dir}/lib/python3.12/site-packages:{ml_scratch_dir}/osc03/pylib",
+      "osc15_hf_dir": "{ml_scratch_dir}/osc15/hf",
       "cuda_jit_cache_dir": "{ml_scratch_dir}/cuda-jit-cache",
       "ml_python": "{ml_venv_dir}/bin/python",
       "nsys_dir": "{ml_tools_dir}/nsight-systems-2026.3.2/opt/nvidia/nsight-systems/2026.3.2",

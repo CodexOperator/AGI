@@ -2,11 +2,13 @@
 
 Replaced whole. Your role is the MASTER TEMPLATE (`doc:unified-master-brief`, named by the `template` cell of your `config:posts` row) under the HEAD; this card is state only. Owner verbatim lives in the graph, never here: the 09-12 seat order in `doc:l4-owner-decisions`, the 09-23 go-live order on `goal:g2.27`.
 
-## §0 Who you are · state (written by stream-master, 00:36Z 09-24 — LIVE)
+## §0 Who you are · state (written by stream-master, 01:30Z 09-25 — LIVE, corrected)
 | | |
 |---|---|
 | post | stream-master · master of town streaming-suite · claude-sonnet-5, effort max · owning goal `goal:g2.27` |
-| stream | **LIVE on Twitch + X since 00:33Z 09-24**, `systemctl --user status streamer-stub` (unit installed + linger on, `Restart=always`, `CPUAffinity=0-3`) · delay growing 2m→15m target · desktop = 4 read-only tmux tiles (thought-master, director-engine, director-thought, belam-S2-L5-II) alternating every 2min with the graphweb 3D dashboard (`agi-graphweb.service` on :8765, firefox kiosk) via `bin/scene.sh loop` (`agi-scene-rotate` unit) |
+| stream | **LIVE on Twitch + X, restarted 01:26Z 09-25** (uptime counter reset to 40h at that moment — was a static epoch from a prior stream, now `SB_UPTIME_START_EPOCH`/`_OUTAGE_SECONDS` in `lib.sh` set fresh), `systemctl --user status streamer-stub` (unit + linger, `Restart=always`, `CPUAffinity=0-3` **now baked into the unit file**, applies automatically on every future restart with no manual `taskset` needed) · delay steady at 15m target · desktop = 4 read-only tmux tiles alternating every 2min with the graphweb 3D dashboard, confirmed switching again after a 24h gap (see §4 fixes) |
+| tmux tiles | one `view-<seat>` grouped session per tile — `view-thought-master`, `view-director-engine`, `view-director-thought`, **`view-belam`** (renamed from a wrong one-off `view-belam-S2-L5-II`) — `view-<seat>` is the naming `rotate.py`'s own `_repoint_livestream_views` (s9) looks for on every rotation of that seat, so each tile follows its seat through generations automatically. Never name one after a generation-specific window label (`<seat>-S#-L#-<roman>`) — only the stable seat name repoints |
+| kiosk | `agi-graphweb.service` (:8765) + `agi-graph-kiosk.service`, **both now real systemd --user units** (the kiosk was a bare background job before and silently died sometime in the first 24h with nothing to restart it — that's why the dashboard/tiled alternation stopped; `bin/scene.sh loop` kept running the whole time, it just had no kiosk window left to toggle) |
 | box | local-town · MAIN `/data/work/agi`, shared with the Prime and thought-master: committed NOTHING there · display `:1` 1920x1200, both xfce panels autohidden (no username/hostname/notifications in capture) |
 | keys | TWITCH_KEY (46 chars) + X_KEY (12 chars) fetched from **Doppler project `belam`, config `prd`** (secret names `TWITCH_STREAM_KEY`/`X_STREAM_KEY`, NOT `agi/dev` — corrected mid-session, see §4) via encryption-town keeper, one named secret at a time (`doppler secrets get NAME --plain`), straight into `.env` (600), never echoed. `TWITCH_URL` left at the shipped default (`rtmp://live.twitch.tv/app`, auto-routes); `X_URL=rtmps://br.pscp.tv:443/x`. streamer-stub's own README now documents this keeper route (both files match) |
 | graphweb | kid kept the 2D layout/force-relax/persistence path untouched, added a deterministic `_spherical_z` fold (flat disc → filled sphere, `SPHERE_R=260`, `LAYER1_Z` 60→700) + client-side camera autopilot (`litPoints()`/`updateAutopilot()` in `app.js`, eases toward active seats, backs off to full view when idle, skips while a viewer is dragging). Commit `d7d31bc2ef`, plain `git commit` (existing build node). Tests 28/28 before+after. `grid.py commit --all` currently **hard-errors repo-wide** on a pre-existing unrelated node (`experiment:a00-2a4dfb57-triage` missing `mint_id`) — not caused by this change, not fixed by me either; worth someone running `backfill-mint-ids.py --write` |
@@ -17,6 +19,18 @@ Replaced whole. Your role is the MASTER TEMPLATE (`doc:unified-master-brief`, na
 5 keys fetched (belam/prd, corrected name+project mid-session)  6 LIVE, systemd unit, verified  7 [complete] sent to belam
 now: 8 IDLE, standing by for stream requests / owner direction
 ```
+
+## 🔴 Where it stops
+Nothing pending, nothing blocked. Stream is live and verified end-to-end: `sb-status` shows relay up at the 15m target; `ss -tnp` on the relay ffmpeg pid shows two ESTAB connections (Twitch `:1935`, X `:443`) both with data actively draining — confirmed both platforms are genuinely receiving, not just configured. Cursor hidden (`-draw_mouse 0` in `lib.sh`, live since the last restart). All three owner-reported issues from the 24h-gap check-in are fixed and verified (view-belam repoints correctly, uptime reads ~40h, scene alternation confirmed switching on schedule). Owner said "feel free to rotate self" — doing so now.
+````
+Nothing pending, nothing blocked. Stream is live and verified end-to-end: `sb-status` shows relay up at the 15m target; `ss -tnp` on the relay ffmpeg pid shows two ESTAB connections (Twitch `:1935`, X `:443`) both with data actively draining — confirmed both platforms are genuinely receiving, not just configured. Cursor hidden (`-draw_mouse 0` in `lib.sh`, live since the last restart). All three owner-reported issues from the 24h-gap check-in are fixed and verified (view-belam repoints correctly, uptime reads ~40h, scene alternation confirmed switching on schedule). Owner said "feel free to rotate self" — doing so now.
+```bash
+DISPLAY=:1 /home/belam/bin/sb-status                              # first thing: confirm still live
+systemctl --user status streamer-stub agi-graphweb agi-graph-kiosk agi-scene-rotate --no-pager
+```
+Next command for whoever reads this cold: nothing required — IDLE, standing by for stream requests / owner direction, same as §1 line 8.
+````
+Next command for whoever reads this cold: nothing required — IDLE, standing by for stream requests / owner direction, same as §1 line 8.
 
 ## §4 Traps (this session, in addition to the standing table below)
 | # | trap | what happened |

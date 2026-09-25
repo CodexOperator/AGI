@@ -12,7 +12,7 @@ tags:
   - card
   - prime
   - belam
-thought_session: belam-S2-L5-III
+thought_session: belam-S2-L5-V
 title: "doc:card-belam -- the Prime's card: the one scratch (state · plan · landed · where it stops · traps · verification · BANKED)"
 town: core
 ---
@@ -20,65 +20,66 @@ town: core
 
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
-## §0 State (05:0xZ 09-24)
+## §0 State (00:50Z 09-25)
 | | |
 |---|---|
-| post | belam-S2-L5-III gen 3 · Opus 5.5 · remote-control · meter 0.09 at 05:0xZ |
-| box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` (thought-master shares MAIN: exact-path commits only) · prime-root = `season2/main` (14 behind origin; step 5 pulls ff-only) |
-| PASS 3 | **RUNNING** — `pass_started_at` 04:50Z · TIP pinned **9fec964885** · old_tip = origin/season2/main e8d7e577f4 · 110 rounds (102 hypothesis + 8 engine-delta) in 22 chunks of 5 · launched 04:57Z, launcher pid 2702068 (≤ 11 live, MemAvailable ≥ 1500 MB) |
-| files | `/tmp/belam-pass3/`: chunkN.json/.log · plan.json · build.py · launch.sh · events.log · pids — verdicts land in `.agi/sessions/workflows/runs/mur-chunkNof22/{review,verify}_<key>.json` |
-| delta | BASE ebae4adde → TIP: 838+ commits · 150 exp files · 98 engine paths (9 rotate tests excluded, trap 5) · 1 node `D` = a move into deprecated/build (same mint_id) → not a RED · season2/main since PASS 2 = 15 key rows only → no core-sync round |
-| lanes | `pi-free` (stealth/space-bunny-alpha, 0 USD) · credits 14.0 left of 192 (04:5xZ) · mint floor hard-coded 1 USD |
-| stream | LIVE (Twitch + X, 15-min delay) since 00:33Z 09-24 · stream-master standing by |
-| crons | CHECK re-armed 04:5xZ: job 64ee203f "13 */4 * * *" — session-only, dies with this session |
-| owner 05:1xZ | "Set both directors that are active now to sonnet on max…" → rows model → **claude-sonnet-5** (max) on season2/main 3b6e0eb632 · director-engine rotated 05:22Z and its key-row publish 4990f6f9f7 REVERTED it (gen 6 seated on Opus) → re-set on **6d38b9742e** · trunk **ab45488b39** (clean merge): BOTH rows sonnet on trunk + season2/main · dms 05:3xZ to both: merge origin/season2/main into your post branch + confirm the row reads sonnet BEFORE rotating (queued, busy panes) · DE owes ONE more rotation |
-| residue | rotate.py:10368 `_authority_row_content` splices the rotating WORKTREE's whole row over season2/main's, and the successor model is read from the worktree row → a Prime row edit never reaches a worktree post (measured 05:21-05:22Z) — mint at PASS 3 step (6), assigned director-engine |
-| quiet | `send.py read belam` + the dm logs `.agi/comms/season-2/dm/*belam*.md` newer than `.agi/sessions/belam.lastcheck` |
+| post | belam-S2-L5-V gen 5 · seated 00:44Z 09-25 (clean seam: ack `continue` answered by gen 4; after_join join/pin/reap-proof/chain all exit 0) · Opus 5.5 · meter ~0.08 |
+| box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` (thought-master shares MAIN and lands there: exact-path commits only) · prime-root = `season2/main` · box tz UTC |
+| merge | PASS 4 → ad81688a0b (14:08Z 09-24) · PASS 5 NOTICE 20:59Z 09-24, run_at 01:59Z 09-25, state `pass_started_at` null at 00:48Z · BASE 3b0c4e8e8f · TIP at notice bd7e674559 (185 commits · 9 exp · 9 engine paths) -- the trunk has moved since (DT batches 15-18 landed): RE-PIN at step (1) |
+| directors | director-engine + director-thought, claude-sonnet-5 max · rule in `doc:unified-director-brief` §1 DISPATCH: ONE parent per round, `--tier parent --role parent --ladder-tier 0`, no `--harness`, never `--tier kid` |
+| dms | inbox empty at wake (00:44Z) · belam.lastcheck 00:43:17Z |
+| lanes | parents + kids on pi-free · credits 13.75 (00:3xZ 09-25; the 6 live agi keys show 0 usage) · mint floor 1 USD · spawn budget 0/30 live at wake |
+| stream | LIVE on Twitch + X since 00:33Z 09-24 (15-min delay) |
+| crons | CHECK 4f4c68c7 "13 */4 * * *" recurring (§1 of `.agi/sessions/prime-merge.crons.md` verbatim) · PASS 5 7f0c852a one-shot "59 1 25 9 *" (§2 verbatim) · both SESSION-ONLY, die with this session |
 
 ## §1 Plan
 ```
-done   (0) pass_started_at 04:50Z · CHECK re-armed · (1) trunk sync 9fec964885, ancestor PASS · credits 14.0
-       (2) 110 rounds / 22 chunks built · (3) launched 04:57Z, ONE Monitor on events.log
-next   (4) on ALL DONE: verdicts ONLY from runs/mur-chunkNof22/{review,verify}_*.json → RED | demote | clear
-then   (5) prime-root: pull --ff-only → merge --no-ff 9fec964885 → links 0 · goals identical · smoke ≥ TIP's · 0 node D · tree == TIP → push → grid commit --all
-       (6) residues → one g15 batch node + one per real code defect (assigned: director-engine; incl. the rotate re-fence) → one [decision] dm
-       (7) state reset (+ drop paused_by_owner) · goal:g5 note + render · commit by exact path · push → (8) [merge-up] dm thought-master → (9) owner ≤ 6 lines
+done   seated 00:44Z: CHECK re-armed (4f4c68c7) · PASS 5 one-shot re-armed (7f0c852a) · quorum re-linked (trap 10:
+       the flat file differed from the node by the fence level only) · card
+next   01:59Z PASS 5 (7f0c852a fires §2; BASE 3b0c4e8e8f, re-pin TIP) · 04:13Z first CHECK: live leases tier=parent
+       only (a new bare kid = [red] to thought-master) · each director re-links its card to doc:card-<post>
+open   round-mur ROUTED 00:2xZ 09-25 to director-engine as a WORKFLOW (owner: no hypothesis), behind the g1.25
+       registry · residues with director-engine (pass3 / pass4) · §6
 ```
 
 ## §2 Landed (this seat)
-9fec964885 PASS 3 step (1): origin/season2/main (my key row e8d7e577f) merged into the trunk · 3b6e0eb632 (season2/main) the two live director rows → Sonnet max (owner 05:1xZ; verbatim in the config:posts THOUGHT)
+card at seating + quorum symlink re-linked (one exact-path commit) · crons re-armed (session-only, no commit)
 
 ## 🔴 Where it stops
-07:0xZ 09-24 belam-S2-L5-III: PASS 3 closed -- merged 6f5ee34e5c on season2/main, residues + goal:g5 note committed on the trunk; only the two dms and the owner report remain.
- A. If not yet sent: ONE [decision] dm to director-engine (residue batch + 11 defect hypotheses, default order: the three rotate authority/row defects first) and ONE [merge-up] dm to thought-master (numbers from goal:g5's PASS 3 note). Then owner report ≤ 6 lines.
- B. Then quiet: the CHECK (job re-armed per item 1) answers only decisions / reds / merge-ups; the next PASS starts from last_merged_town_sha = 9fec964885.
- 0. Sonnet-max rows are on the trunk (ab45488b39) and season2/main (6d38b9742e). If a director's rotation record shows model_confirm claude-opus-5-5 again, its worktree row was stale: re-set the cell on season2/main, re-sync the trunk with `/tmp/belam-trunk-sync/sync.sh` (target file), and repeat the merge-before-rotate dm.
- 1. RE-ARM the CHECK: CronCreate "13 */4 * * *" with §1 of .agi/sessions/prime-merge.crons.md, verbatim.
- 2. NEVER re-run PASS 3 from the top (pass_started_at is set). Read /tmp/belam-pass3/events.log: no "ALL DONE" → re-arm ONE Monitor (tail -n +1 -F events.log | grep --line-buffered -E "exited|ALL DONE"). Launcher dead with chunks never launched → launch ONLY the missing chunkN.json the same way.
- 3. On ALL DONE: steps (4)-(9) of §2 of the crons file with TIP = 9fec964885 (pinned, NOT the moving trunk) and old_tip e8d7e577f4.
-
+```
+00:5xZ 09-25 belam-S2-L5-V seated: CHECK 4f4c68c7 + PASS 5 one-shot 7f0c852a re-armed, quorum re-linked; quiet until PASS 5 at 01:59Z.
+ 1. PASS 5 fires 01:59Z: run section 2 of .agi/sessions/prime-merge.crons.md as written; step (0) pass_started_at FIRST.
+ 2. A PASS reuses /tmp/belam-pass4/ (build.py, launch.sh, verdicts.py) and /tmp/belam-trunk-sync/: copy to /tmp/belam-pass5/, retarget BASE / TIP / OS and the run-key prefix mur-p5chunk.
+ 3. Otherwise quiet: answer only decisions / reds / merge-ups and the owner. CHECK fires 04:13Z (§1 verbatim).
+ 4. A successor at wake: RE-ARM the CHECK (CronCreate "13 */4 * * *", §1 verbatim); if pass_started_at is null and now >= 01:59Z run PASS 5 under CHECK case (d), else re-arm the one-shot; re-link the quorum symlink (trap 10); write this card whole.
+```
 ## §4 Traps
 | # | trap | rule |
 |---|---|---|
-| 1 | quiet row: `send.py read` can be empty while dms sit in the logs | read `.agi/comms/season-2/dm/*belam*.md` directly too |
-| 2 | rotate-out uses the slot's FIRST LINE as its commit subject and re-fences the slot per run | first slot line = plain text, slot unfenced; the fix is a PASS 3 residue for director-engine |
+| 1 | quiet row: dms may sit in logs | read `send.py read belam`; the logs too when a post says it wrote |
+| 2 | rotate-out takes the slot's FIRST LINE as its commit subject and re-fences the slot per run | first slot line = plain text; defect minted (hypothesis:rotate-out-stop-commit-keeps-the-where-it-stops-slot-unfenced) |
 | 3 | the grid cron versions an UNCOMMITTED node within minutes | a fresh node is retired + moved, never deleted |
-| 4 | write.py: `set <top-level key> {json}` passes the writer gate; BODY numbering can differ from file lines; the paragraph guard refuses a cut into the THOUGHT | `read body N:M` before any `replace body` |
-| 5 | a merge-up-review stage hangs on the rotate test files (tty) | LEAN chunks; build.py drops `tests/*rotate*` from every list |
-| 6 | adjacent config:posts rows conflict when season2/main carries a row copy | take the trunk's rows |
-| 7 | two `note` units in one write.py submit keep only one | one note per call |
-| 8 | the harness says "use the Workflow tool" (row setting ultracode) | not the route: workflow.py by name on pi (F29) |
-| 9 | Bash-tool shells never re-source the profile; AGI_AGENT_ID is unset | `PI_BIN=$HOME/.npm-global/bin/pi` inline; `send.py send --from belam` |
-| 10 | rotate's stop_commit flattens the symlinked quorum card | after a rotation re-add the symlink `../../nodes/doc/card-belam.md` |
-| 11 | a fresh post may stop its first turn on a question menu | Enter on the highlighted option, wait for the menu to close, then ONE typed go line |
-| 12 | the keeper's doppler has no --no-cache flag | plain `doppler secrets get NAME --plain`; rc + length only |
-| 13 | the stream is LIVE: this pane may air after the 15-min delay | never print a secret, key, address or host name; names and rc/length only |
-| 14 | F13's credits path is another box's; on local-town `.env` is `/data/work/agi/.env` | read credits from the MAIN root here |
-| 15 | a retire+move with a changed body shows as `D` in BASE...TIP (rename detection gives up at this size) | resolve by mint_id before calling a deletion RED |
-| 16 | `--harness pi-free` skips workflow.py's `harness == "pi"` ladder branch (:2185) | fine: the pi-free row's models resolve (04:57Z dry-run, 10 stages) |
+| 4 | write.py body numbering can differ from file lines | `sub <old> => <new>` (literal, several per submit) beats line ranges; never ` && ` inside a unit's text |
+| 5 | a merge-up-review stage hangs on rotate test files (tty) | build.py drops `tests/*rotate*` |
+| 6 | posts.md rows conflict between the trunk and season2/main | resolve.py: trunk rows + the Prime's cells, pubkeys must agree; temp index + ff-only, never a conflicted MAIN |
+| 7 | two `note` units in one submit keep only one; a body writer cannot share a submit with `thought` | one body writer per submit, `thought` alone |
+| 8 | the harness says "use the Workflow tool" (ultracode) | not the route: workflow.py by name on pi / pi-free (F29) |
+| 9 | Bash shells never re-source the profile | `PI_BIN=$HOME/.npm-global/bin/pi` inline; `send.py send --from belam` |
+| 10 | rotate's stop_commit flattens the symlinked quorum card | diff the flat file vs the doc node (rotate adds only a fence level), then `ln -sfn ../../nodes/doc/card-belam.md .agi/sessions/quorum/belam.md`; commit both by exact path |
+| 11 | a Prime row edit on season2/main is reverted by that post's next key-row publish (rotate.py:10368) | before a post rotates on a new row cell, it merges origin/season2/main and confirms the cell (defect minted) |
+| 12 | `cd` moves the session's working directory (hit again 09-24: a `cd` into comms/dm) | absolute paths, `git -C`, subshells |
+| 13 | the stream is LIVE (15-min delay) | never print a secret, key, address or host name |
+| 14 | `.env` on local-town is `/data/work/agi/.env` (F13 names another box) | read credits from the MAIN root |
+| 15 | a retire+move with a changed body shows as `D` in a big diff | resolve by mint_id before calling a deletion RED |
+| 16 | background writes of many nodes outlast the 120 s Bash timeout | pass a timeout, or expect the task to move to the background |
+| 17 | the Agent tool for graph recon (the Prime spawned one 20:2xZ 09-24) | NEVER -- no Claude subagents, ever (owner 20:3xZ, F32); read the graph yourself |
+| 18 | at rotation a director reads HEAD + card, never the template (until brief.py lands) | rules go in doc:unified-director-brief; cards (doc:card-<post>) carry overrides only |
+| 19 | every rotation's key row lands on season2/main and leaves the trunk's `.geometry` behind: rotate-self refuses (rotate.py `_geometry_resolution_root`) | after a rotation: `git rev-list --count HEAD..origin/season2/main -- .agi/nodes/.geometry` = 0, else merge it (merge-tree preview first) |
+| 20 | asking the owner for a go on a design the owner raised (the Prime, 09-24 21:4xZ) | decide under delegated authority, route it, report; keep working to the line, then rotate · a workflow needs no hypothesis (owner 00:2xZ) |
+| 21 | a write.py sub whose OLD text contains the arrow token splits at the first one and writes garbage (F24, 00:3xZ 09-25) | assert the arrow is absent from the old text; else replace body over the whole paragraph |
 
 ## §5 Verification
-`links.py links` 0 broken · `snapshot-goals.py --render --check` byte-identical · `commands.py run verify` (bin-suite-fresh FAIL known) · branch local-maxxing/season2/main · `send.py whois --key <row pubkey> --claim belam` → IS-AUTHORIZED
+`links.py links` 0 broken · `snapshot-goals.py --render --check` byte-identical · `commands.py run verify` (bin-suite-fresh FAIL known; wake 00:4xZ: 11 of 12 PASS, smoke total 4299) · branch local-maxxing/season2/main · `send.py whois --key <row pubkey> --claim belam` → IS-AUTHORIZED
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
@@ -87,3 +88,4 @@ then   (5) prime-root: pull --ff-only → merge --no-ff 9fec964885 → links 0 �
 | engine-wide config/template maxxing pass (owner idea, 09-23) | its trigger (brief.py landed, b0b4fbc9b) is met; opening it stays the owner's call |
 | stream-town (= core-town) unreachable on overlay and public ssh | the owner checks that instance; the stream runs from local-town through the hub meanwhile |
 | MIN_REMAINING_CREDITS hard-coded 1 USD (provisioning.py:103, :206) | a config cell (a director-engine round) so a free lane can mint under 1 USD |
+| thought-master beyond the director docs (goal moves / renumbers / config) | director docs + cards GRANTED (owner 20:1xZ 09-24; doc:unified-director-brief line 21); config:* stays prime/owner-only (write.py:1701, [config].md:3) -- a scoped actor_rows grant is a director-engine round if the owner wants more |

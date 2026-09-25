@@ -904,6 +904,36 @@ FORMAT UPDATE 2026-09-05: the report has SEVEN sections, not six. New section 6,
 <!-- BODY:BEGIN -->
 # goal:g1.14
 
+#### G1.14.1 — A WORKFLOW "ROUND" STAGE CHAINS A PARENT DISPATCH STRAIGHT INTO ITS OWN REVIEW -- one manifest extends/prelude mechanism so round-mur and round-research-review need no hand-authored glue (re-homed from goal:g15 09-25; assigned director-engine) — status: active
+
+# goal:g1.14.1
+
+# goal:g1.14.1
+
+# goal:g1.14.1 — A WORKFLOW "ROUND" STAGE CHAINS A PARENT DISPATCH STRAIGHT INTO ITS OWN REVIEW
+
+```
+leaf      one workflow.py stage kind ("round") dispatches ONE parent, waits on its own status (never cli.py wait, which is
+          blind to tier:parent rows), and harvests {key, hypothesis, experiments, files, old_tip, new_tip, verdict} from git
+          on its done commit -- so a manifest can chain straight into the existing, unchanged review stages (round-mur ->
+          merge-up-review; round-research-review -> research-review) instead of the director computing harvest args by hand
+          and running the two halves as separate operations
+source    the owner 2026-09-24 21:4xZ (verbatim, via the Prime): "Can we include the parent spawn on a specific goal/
+          hypothesis node as part of our mur workflow in our configs? So that both the parent spawn and the subsequent mur
+          for their result is in one workflow? ... Is it possible to implement with very little code likes but still do it
+          robustly?" -- minted by the Prime as hypothesis:a-round-stage-spawns-the-parent-and-chains-its-review-in-one-
+          workflow (eee1800559) under the generic goal:g15 bucket, deleted the same session on the owner's word ("There's
+          no need for a hypothesis for the round-mur no? It's just a workflow" / "Just delete it if not pushed"), then
+          re-authorized 09-25 00:2xZ once the owner clarified the intent was to re-home it under a properly-scoped goal
+          rather than drop it -- config-maxxing (this is a template/manifest-chaining capability, not a bare code change)
+home      the G1.14 "ONE workflow router" umbrella -- workflow.py's own architecture goal, empty until now; the CLI-grammar
+          tree (goal:g1.25.*) is a different surface (commands.md/jev), not this
+rule      KEEP SPLITTING (goal:g5's standing convention): one leaf, one small round
+round     hypothesis:a-round-stage-spawns-the-parent-and-chains-its-review-in-one-workflow (re-minted here, content
+          unchanged from eee1800559 -- only the parent goal moved)
+writer    director-engine
+```
+
 ### G1.15 — ONE message router — invisible harness translation for seat-addressed sends — status: active
 
 <!-- BODY:BEGIN -->
@@ -1173,6 +1203,22 @@ from the schema, and a `--check` fails when the two disagree.
 This also sharpens the stopgap warning above rather than softening it. An index
 of symbols cannot do either job: it is rebuilt from the current tree, so it
 knows no node, no link, and nothing to propagate *to*.
+
+## Owner 2026-09-24: shape · imap · omap — every tool call is a graph path
+
+OWNER 2026-09-24 19:3xZ, in the Prime's pane (belam-S2-L5-III), verbatim:
+
+> All potential tool calls and such are literal graph paths, and will become formalized even more so with an IOMap node or build node rows called shape, imap, and omap. imap (input map): list and format of all the calls that can/must (clearly marked for what's an optional input and what's mandatory, and the mandatory vs optional shapes for each input) be sent to this node; omap: map of other build nodes and nested inside it individual node functions this build node calls or potentially calls (both marked clearly as mandatory vs potential output) along with the internal function that does that call, and the overall output format/shape the node should have. So a graph function call becomes just a graph read routed smartly via magic-pane.
+
+**The three rows, as the Prime reads them** (a restatement for implementers; the verbatim above governs):
+
+| row | carries | marks |
+|---|---|---|
+| `imap` | every call that can or must be sent to this node, each with its input shape | mandatory vs optional, per call and per input |
+| `omap` | every build node, and every function inside it, that this node calls or may call, plus the internal function that makes each call | mandatory vs potential |
+| `shape` | the node's overall output format | — |
+
+A tool call is then a graph path (a build node plus one of its functions); its argument check is the callee's `imap`, its effects are the caller's `omap`, and its result is the callee's `shape` — so a graph function call is a graph read that the magic pane routes. This is the object the 09-02 section above already names (the IO map as the table the read path resolves through), extended to the call surface; goal:g1.25's CLI grammar is its first consumer (jev proposes, `imap` validates) and goal:g5.21 waits on it.
 
 ### G2.3 — `graph_builder` becomes data-source-agnostic and cold-builds fast — status: horizon
 
@@ -7731,6 +7777,50 @@ thought-master 07:3xZ 09-21 (knowledge, EF.09 merged; G14.14.7 chain CLOSED with
 
 thought-master 20:06Z 09-23: the town (local-maxxing) LANDED its session-capture hook -- EF.10, g7.33.8's pre-hold round (rotate.py captures scrubbed claude-code transcripts at rotation) -- at b0b4fbc9b on local-maxxing/season2/main, inside director-engine's whole post range (the Prime's ruling 09-23 15:00Z). Core: do not duplicate it; g7.33 stays core's; EF.10's mur follows post-landing in director-engine's next batch.
 
+#### G7.33.9 — TEMPLATE-MAX FOR MODEL-FACING PROSE -- every warning, refusal, nudge and reminder the engine sends a model loads at run time from a template, never a literal in a build node — status: active
+
+# goal:g7.33.9
+
+| | |
+|---|---|
+| goal | every warning, refusal, nudge and reminder the engine sends back to a MODEL loads at run time from a template -- never a literal in a build node |
+| origin | the owner 16:20Z 09-24 (verbatim on town:local-maxxing's board) · first case: rotation_alert.py's band text read as a stop (director-engine idled at 0.40 of the 0.47 line, 14:10-16:16Z) |
+| scope | text a model reads: hook output (UserPromptSubmit / SessionStart), CLI refusals and warnings an agent acts on, nudges, reminders · NOT human-only logs, internal exceptions, test fixtures |
+| where | extensions/agi/templates/<family>/ -- ONE loader, placeholders filled at the call site, no second copy in code |
+| order | T0 = the inventory (every model-facing literal: file:line, family, fields; committed) + the loader + rotation_alert migrated -> T1..Tn one family per batch, the largest model-facing surface first |
+| rule | byte-identical first: a test per family pins old render == new render · wording changes land separately, one per commit |
+| done | the inventory's "still in code" column = 0, and every migrated family has a guard test that it prints only through the loader |
+| who | director-engine, batched by thought-master · feeds goal:g1.19 (core's engine surface inventory under config-maxxing) |
+
+#### G7.33.10 — SCHEMA-CHECKED ROWS -- write.py writes one named row of a node, and the node type's schema decides whether that row exists and whether its value is well-formed — status: active
+
+# goal:g7.33.10
+
+| | |
+|---|---|
+| goal | write.py writes ONE named row of a node -- a frontmatter field or a schema-declared body row -- and the node type's schema decides both whether that row exists and whether the value's format is valid: no verb can invent a row |
+| origin | the owner 17:57Z 09-24 (verbatim on town:local-maxxing's board) · enables clean re-titling of goals and clean node body modifications |
+| measured | 18:0xZ 09-24, real writes in a scratch worktree: `set` on goal:g7.33.9 admitted all five of an invented field (invented_row), goal_id X9 (fails [goal]'s regex), status bogus (fails its regex), confidence notafloat (fails its types) and a title with no id prefix (no rule declared) -- exit 0 each; write.py consults no schema on edit |
+| scope | every node type with a schema under .agi/context/schemas/ · frontmatter fields, list rows, and body rows the schema declares · checks the row being written, never blocks on an unrelated legacy violation (links.py schema lists those) · NOT create (the spawn gate already runs there) |
+| done | the five probes above each refused (exit != 0, one line naming the row and the rule) · a valid goal re-title = ONE verb, and snapshot-goals.py --render --check still exits 0 · a body row replaced by its name, never by line numbers · [goal] declares the title format (<goal_id>: <text>) · tests pin all of it |
+| who | director-engine, batched by thought-master (TMM.128) |
+
+#### G7.33.11 — THE GRID STAYS refs/grid/* -- push only the post-split set, batched, so the remote finally holds it — status: complete
+
+# goal:g7.33.11
+
+| | |
+|---|---|
+| goal | the grid stays git refs (the owner withdrew the subdirectory shape at 18:3xZ: refs are the leaner database) -- each branch's namespace (grid.storage_trunk) holds and uploads ONLY what changed after its split from its parent; pushes go <= 200 refs at a time and only for tips origin lacks, so a backlog never forms; merges carry the rest, and origin/season2/main + origin/main keep the coarse history |
+| origin | the owner 17:57Z + 18:17Z + 18:21Z + 18:35Z 09-24 (verbatim on town:local-maxxing's board, relayed to director-engine via thought-master TMM.128 -> TMM.129 -> TMM.130 -> **TMM.132, which WITHDRAWS TMM.130**): TMM.129's "one branch" and TMM.130's "subdirectory per branch" shapes are BOTH dead -- refs/grid/* stays exactly what it was, only the push's ref selection changes; the 0.7 GB of failure logs get cleaned up once the new push is proven |
+| measured | 18:0xZ 09-24: the grid_sync cron commits every 5 min into refs/grid/local-maxxing/ (4,293 refs, newest 17:55:42Z), but its push of refs/grid/local-maxxing/* has failed 967 times -- GitHub rejects each ref "Timed out validating rule, please try again" -> the remote holds 0 of the 4,293 (its 4,204 refs/grid refs are all outside that namespace) -> the town's grid history lives on this box's disk alone · the cron log is 775 MB of those rejection lines · 18:2xZ: what exists = grid.storage_trunk (goal:g14.14.7; config value refs/grid/local-maxxing), a per-trunk ref NAMESPACE -- still one ref per node; no verb stores or pushes the grid as one branch (core/season2/main's grid.py is unchanged since the 09-23 merge-base; ours is newer) · 18:4xZ: of the namespace's 4,298 refs, 3,773 were born in ONE split pass (v1 at 09-21 01:48-01:49Z; the first local-only trunk commit 01:54Z, see commit 2a761ecd71) -> 2,430 split-only v1 snapshots (unchanged since) + 1,343 changed since + 525 born after = a POST-SPLIT set of 1,868 refs carrying 3,449 versions · the pre-split namespace refs/grid/node/* (3,807 local) shares 3,779 names with origin's but 0 identical tips: two boxes wrote the same names (the cross-branch race per-branch namespaces avoid) · the push itself is ONE `git push` with grid.py:171's single wildcard refspec, issued by extensions/agi/bin/crons.py:554-559 -- that call site is what becomes the batched/filtered loop |
+| where | the namespace = grid.storage_trunk (a config cell per branch), never a literal · the push builds in extensions/agi/bin/crons.py:554-559, the refspec in extensions/agi/bin/grid.py:171 (`push_spec_for`) · the cron line = cron:crons (NOT `config:crons` -- that id does not resolve, verified) · .agi/nodes/.geometry/crons.md |
+| done | origin's ref count for the namespace = the local post-split count (1,868 at 18:4xZ, plus any newer) · the 2,430 split-only snapshots never pushed and never deleted (0 local refs deleted, ever) · every push <= 200 refs, only tips origin lacks · 0 rejected in 3 consecutive cron runs · a new branch's namespace cross-populated from its parent's tips at the split (no fresh v1 roots) · the push-rejection lines stripped from the cron log once those 3 runs are clean (before / after bytes reported) · tests pin the batching and the post-split filter · ONE `[merge-up]` as soon as round A is done |
+| who | director-engine NOW (the owner 18:17Z: "let the director work it"), batched by thought-master (TMM.128 -> TMM.129 -> TMM.130 void -> TMM.132) |
+
+## Agent Notes
+director-engine 01:1xZ 09-25: CLOSED. TMM.144 close-out verified end to end: 4 consecutive push-changed ticks on MAIN, 0 rejected each (1899, 1, 0, 21 refs -- the 21 reflects real concurrent town activity, not a regression); ls-remote refs/grid/local-maxxing/* = 1900 = local total 4330 minus the 2430 excluded pre-split roots, exact match; 0 local refs ever deleted (verified by code: push_batches and cmd_push_changed only read and push, no ref deletion call anywhere). Log cleanup done: agi-crons-agi-3fbc6951.log 885043047 to 123271040 bytes (86 pct removed, 761772007 bytes of Timed out validating rule rejection lines from the pre-fix era stripped; 0 remain).
+
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
 <!-- BODY:BEGIN -->
@@ -12054,6 +12144,8 @@ Assigned to **thought-master** (the local-maxxing town master); a perpetual umbr
 
 PASS 3 09-24 (belam-S2-L5-III): trunk @9fec96488 -> season2/main 6f5ee34e5c · BASE ebae4adde · 838 commits · 150 exp files -> 102 hypothesis + 8 engine-delta = 110 rounds · 22 chunks · pi-free · 04:57-06:09Z (71 min) · 0 USD · 8 accept · 64 accept_with_residue · 38 demote · 0 RED · gates: links 0 · goals identical · smoke 4019+226 = 4245 = TIP · node D 1 = move (mint_id live) · residues: hypothesis:pass3-0924-residue-batch + 11 code-defect hypotheses -> director-engine
 
+PASS 4 09-24 (belam-S2-L5-III): trunk @3b0c4e8e8 -> season2/main ad81688a0b · BASE 9fec96488 · 146 commits · 10 exp files -> 5 hypothesis + 1 engine-delta = 6 rounds · 2 chunks · pi-free · 13:47-14:05Z (18 min) · 0 USD · 1 accept · 3 accept_with_residue · 2 demote · 0 RED · gates: tree == TIP · links 0 · goals identical · smoke 4043+226 = 4269 = TIP · node D 0 · residues: hypothesis:pass4-0924-residue-batch
+
 ### G6 — Test-maxxing
 
 <!-- BODY:BEGIN -->
@@ -12473,7 +12565,7 @@ home      the G1 CONFIG-MAXXING umbrella (commands.py's own goal is goal:g1.10; 
           town:local-maxxing's board lists it for the town across umbrellas
 claims    ONLY the cli-grammar deliverable of goal:g7.33 (g7.33.md:57, G14.14.6's maxxing pass: every bin verb, its args, invariants,
           traps) -- g7.33 itself stays core's and held
-shape     command:commands = every engine verb as a typed entry · `commands.py manifest` = ONE machine-readable choice set ·
+shape     (owner 2026-09-24 20:3xZ steer, verbatim in this goal's THOUGHT) an ACTION REGISTRY = every engine action as a typed entry, the ONE choice set jev reads · commands.py = a lightweight query + parse layer over the registry, never the registry itself · the registry stays compatible with off-the-shelf libraries that turn python scripts into CLI commands dynamically via templates ·
           propose (Python / CLI / localhost endpoint) validates and returns the argv, never executes
 serves    goal:g5.24.3 the magic pane: MP.02's suggester and held-out set score against this manifest; the town builds no second grammar
 work      director-engine (build lane) · first round: hypothesis:commands-manifest-is-jevs-one-choice-surface
@@ -12702,6 +12794,37 @@ thought-master 05:4xZ 09-21 (owner program, verbatim on goal:g14) -- THE JEV LAN
 
 director-thought 03:3xZ 09-21 -- MP.01 (chunk 1 detector) landed, accept_with_residue: corpus insufficient (63 real forms vs required 200; dm/merge_up classes = 0, need goal:g14.10.2 director-session capture first) -- accuracy claim UNVERIFIED not falsified. Full numbers on the hypothesis. MP.02 (the wrapper, TMM.22) minted next, scoped around the same corpus dependency.
 
+## Owner brainstorm 2026-09-24 (Prime's pane, belam-S2-L5-III), verbatim
+
+> Hey so I am working this magic pane idea and am wondering if I could organize my thoughts against you.
+>
+> My idea right now is to maximize cli commands that can be used so no one has to use clunky path names to do basic functions. I went with CLI over a nice MCP wrapper or a custom tool because of the versatility of using CLI inside other workflows. The way I see it is:
+>
+> A harness: the boundary between tokens being emitted and actual commands being submitted. Tracks complicated stuff like file ownership and permissions, session logs, etc. Things that we need to go from 'tokens are coming out' to 'described actions get sent into computer os for processing.' It takes care of things like recognizing structured outputs from inside token streams and routing those appropriately. In the back end, is there anything happening in a harness other than CLI commands (or indirect ones via calls to specific scripts from other scripts) chained intelligently and filtered for errors. Also is wrapping cli commands around scripts a major overhead, so that say writing your code so that it calls a specific cli command instead of a different script or script function directly would it still be able to work at around the same speed. Or does the cli bundle and limit raw script functionality to where it can't be used as flexibly. Like you couldn't just run for example 'meter.check' function inside the meter script by just using the 'meter' cli keyword with a dot on the end of it. So inside a program, you can say meter.check() and it makes sense via the import at the top, but leaving it as a raw cli call by calling the cli 'meter' command is not possible in the way bash handles things raw. So I guess the harness can't be all CLI calls internally, or it could but it doesn't make much sense maybe? But technically it could work fine and would it be slowed down a lot?
+>
+> A tool: a small function you can run via your harness structured tool calls by emitting the appropriate JSON directly. Question: is this done fully programmatically via input parsing, or does the LLM have access to different 'lanes' of token emission that it sets before emitting, like 'now i'm doing a tool call token emission, first emit a token to set the tool-call lane active.' I know both can be chained also, just wondering about the surface between 'these are the tool call tokens' and 'these params got passed into a terminal command and sent.' Basically a cli command but more natively integrated into the harness token stream routing layer.
+>
+> A cli command: basically a tool call nested inside a bash tool call, and in the bigger scheme a 'wrapped' tool call. But tool calls and cli commands kinda co-wrap each other as the situation calls for it. Meaning cli commands get wrapped into tool calls (bash) and tool calls 'are' cli commands as far just another way to alias an underlying scripted function but exposed differently.
+>
+> An MCP server: a way to efficiently describe how to call tools to a model in the moment. The MCP is basically just a tool that first posts what sort of structure it has and how to use itself but after that it is essentially tool calling, or calling the "call MCP tools" tool. But still just another layer of nesting on top of tool calls, which in theory are all just CLI commands at heart.
+>
+> So I had the magic pane idea the thought master is trying to research soon once our CLI pass for the engine is done. What if we skipped the tool call MCP chain entirely for internal work and leave an MCP as a way to use the engine from other harnesses without needed a bunch of integration work. But natively, the core of the whole setup is the magic pane, which replaces the MCP, but itself can be wrapped easily into a lightweight MCP, so wrapper-ception. But this isn't my issue, it's just a thing that's been a thing since we decided to let LLM's emit tokens that get sent into actual computer terminals for execution. But what is we can capture a stream as it comes out, and offer the LLM structure output options on the fly based on the token-to-token task description it is emitting. So the magic pane reads the token inputs from the model, and transforms those into CLI commands for the engine or any other tool calls mapped into the configs/templates. Or otherwise transforms them into tool calls, pending your answer to my performance question on using tool calls vs cli calls. It would use jev in the background, or a team of jevs rather, to read incoming tokens, propose single tool calls and then higher-up jevs propose the combined tool call chain options based on existing options surfaced by lower levels and the overall bigger-picture context that exists after the stream happens for a bit longer. So a magic pane is like this weird middle ground between an MCP and a whole other sub-agent doing your bidding.
+>
+> I don't want the pane itself planned out more yet, I want to instead figure out a way to organize which pieces would do what when? Like I figured the magic pane itself would be a CLI tool that you 'open' and start streaming tokens into and it'll fire off tool call chains on the fly as you stream so you can review the history of all the tool calls it imagined doing for you. But my question is whether it should literally just be a single jev model deciding things on the fly as the magic pane call keeps streaming in? Once the stream finishes the magic pane fires back all the options jev came up with throughout the token stream as far as smaller individual calls, and the overall final options it arrived at after having the full context. But something that saves having to emit a specific structured shape. That is the core goal: LLMs that only ever have to use plain prose or minimal formatting to explain to the magic pane what needs to be done and it does it. No more 'use this write path or this messaging path or sync your work tree first.' Jev just reads the intent and presents options to execute, as well as cover any of our known rules regarding keeping worktrees updated and the like. A lot of the work for Jev can also itself be made easier by giving jev additional scripted checks like forbidden tool call combos, flags, options, inputs etc.
+>
+> Also we have jev today already and it could help save us money today via reduced waste on structured ouputs. Maybe we could also implement an off-the-shelf jev thing that immediately boosts productivity and increases token output and tool call savings, and then refine it into our magic pane over time while still reaping the tool call savings now.
+>
+> But a lot of how i'm trying to structure this is dependent on what things I understand correctly, and what things I don't understand correctly, regarding the nature of harnesses, CLIs, tool calls, and how LLM's work behind the curtain. I also am thinking from the point of view of interoperability, the magic pane is the one guaranteed surface absolutely any 'code' harness should be able to access the barest minimum. Even fully online solutions like grok-bot or codex cloud dev, have their own computer access and allow any bash command I imagine outside of like rm / type stuff. And then the magic pane cli capture flow would then also be wrapped by an MCP for things that aren't coding harnesses but rather productivity harnesses like claude chat, cowork, chatgpt chat etc.
+>
+> I was debating on making a custom tool, most harnesses support it. But some don't or not as well. Or just an MCP server, which would work given LLM turn-based nature but would be useless for humans. The point is, the magic pane is the optimal experience for both. For LLM's it could offer options mid-stream once its confidence was high enough one of these top 3-5 options cover the LLM's intent. Or only after turn end to keep it super mcp-optimized. For people it would offer live updates at the bottom of the intended tool calls and tool call fills (nested jev instances could help fill tool calls inside of bigger tool calls). My idea was to have it work like the tom riddle diary horcrux in harry potter - timer based. As tokens stream in, if theres less than 5 seconds per token, the instruction is still parsed, but once user stops typing for at least five seconds it fades away the entered text and offers the options of tool calls that fades in after the initial text faded away. And the visual part would work the same way in either case. But for LLM's they'd also get a direct bash/mcp tool call return behind the scenes. Again though a lot of these pieces depend on how I currently understand harnesses, MCPs, tool calls, etc. The overall goal is to have the magic pane be 'the' surface of graph interaction and all LLMs just post to it or read from it via their harnesses. I'd even go so far as to use my own custom harness internally forked from one of the OS candidates i've been surveying. I'd gut any sort of system prompts or integrated tools/MCPs in it other than like literally bash, and have it be radically-simplified to where the token stream just goes into the magic pane directly which handles routing to different lanes which then control permissions and such. So not a fork with intent to expand, but a fork with intend to dumb it down and simplify it and have a very 'raw' harness that is overall useless without the graph plugged in. That becomes the default harness for everyone just using custom api keys or subscription auths as allowed. Only keep the plumbing for things like permissions and that way it can be integrated smoothly into the advanced encryption upgrades later. And again the whole agi graph/lightweight harness combo is wrapped into an easy-to-use MCP. The magic mirror core of the harness would then be both the way LLMs do anything in there, but also even further the way any person could talk to the graph automatically. It could do things like render graph views and show active goals etc for people dynamically by just offering literal graph paths as options.
+
+### The Prime's reply, condensed (09-24)
+
+- **Tool call vs CLI:** same execution speed (dispatch is milliseconds, a model turn is seconds); the cost is tokens -- every tool schema rides every turn, while bash + CLI needs one schema but syntax knowledge and costs retries on a wrong flag. The common core is (name, args) -> result: define it once as a graph path (goal:g2.2 imap / omap / shape) and generate the CLI, tool and MCP surfaces from it. Library-first functions with a thin dispatcher make `agi meter.check` possible.
+- **Mid-stream:** options can be injected mid-generation only in a harness we control (stop, inject as a tool result, resume); third-party harnesses and MCP get turn-end mode. Time triggers suit humans; models need structural triggers (sentence, paragraph, turn end).
+- **Safety split:** jev proposes, the registry validates (imap), policy guards (forbidden combos, prerequisites such as the worktree sync auto-inserted from omap and rules), then execute; auto-execute only read-only or idempotent calls at high confidence.
+- **One jev first:** a single pass at turn end returning the top 3-5 filled options; nested fill = asking jev for one missing mandatory argument; a jev team only when logs show single-pass misses.
+- **Order:** registry (g2.2) -> CLI dispatcher (g1.25) -> validator -> turn-end `pane "<prose>"` -> one-tool MCP -> streaming UI -> the raw harness fork (keep provider plumbing, keep one structured `pane` tool). jev now: a census of failed tool calls, then v0 fuzzy `find` over the manifest (0 tokens), then retrieval + grammar-constrained fill on the resident 9B.
 director-thought 05:4xZ 09-21 -- TMM.26 (owner 05:4xZ, magic pane now PRIORITY alongside local-inference kids/parents): MP.02 redefined in place from single-call wrapper to top-k SUGGESTER (up to 5 ranked candidates, never executed, top-1/top-5 vs what the author actually ran); MP.03 FORMATTER minted new (invocations built to bypass every recorded town trap by construction, metric 0 trap hits). Both wait on the engines G14.14.6 cli-grammar for full coverage, MP.02 can start narrower-scope on the masters own dm transcripts + MP.01s 63 forms meanwhile. Queue order (TMM.26): TEL.02 -> SWR.02-B -> G14.10.2 capture (engine hook first) -> MP.02 -> MP.03.
 
 #### G5.25 — ABLITERATION — prod candidates must be abliterated (by us if by no one else; identical → abliterated wins); the town own lever (derive, apply at runtime, verify in-graph, price it) and the cross-model question: do the feature differences generalize? (owner 16:2xZ 09-20) — status: active
@@ -12990,6 +13113,11 @@ director-thought 02:2xZ 09-21 (owner direct-to-pane, same line thought-master fi
 
 director-thought 03:4xZ 09-21 -- owner correction (direct-to-pane): end-of-turn USER replies had regressed to narrative paragraphs while notes/dms/card stayed diagram-shaped -- a channel gap, not a full regression. Calibrated against director-engine card (dense labeled lines, prose only inside a cell) and thought-master card (same). Fix: end-of-turn summaries now use the identical labeled-line shape as notes/dms; a short warm prose line stays the one carve-out (genuine human-connection replies, where a table would read as tone-deaf, per goal:g14.16 own falsifier -- prose only where a diagram drops meaning).
 thought-master 02:1xZ 09-21 (owner via the Prime, goal:g14 L240: diagram-max ALL spawn-in context docs -- card, brief, standing instructions): ADD G5.31.2 THE BRIEF PASS (director-engine, after G5.31.1): doc:unified-director-brief (94 lines prose; §4 'thought' still names season1 paths) + doc:lm-director-brief-customizations rewritten into the shape by a KID, a parent verifies the four shapes against the source line by line, tokens measured before/after; stale facts corrected from the cards/box doc, never invented. NOT by a master's hand: a rule doc every director spawns with is exactly what a round with a reviewer is for.
+
+#### G5.32 — model-facing hardcoded prose (hook output, CLI refusals/warnings, nudges, reminders) moves out of inline literals in build nodes into extensions/agi/templates/<family>/, loaded dynamically at the call site -- byte-identical render first, wording changes land separately — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g5.32
 
 ##### G7.33.1 — G14.14.1: WRITE.PY ERGONOMICS -- three independent write.py gaps hit live this session: replace body has no anchor/structural guard (write.py:2068-2108, ABL.01 corruption class), create leaves an unfilled scaffold body, replace body cannot share a submit with note/thought (owner 01:1xZ-01:2xZ 09-21 on goal:g7.33) — status: active
 
