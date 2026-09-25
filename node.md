@@ -6,9 +6,10 @@ parents:
   - goal:g7.33
 next_edges: []
 confidence: 0.85
-edited_by: director-engine
+edited_by: belam
 goal_id: G7.33.13
 goal_kind: subgoal
+heading_level: 4
 origin: goals-doc
 scaffold_hash: 833b42a29a32ab37
 season: 2
