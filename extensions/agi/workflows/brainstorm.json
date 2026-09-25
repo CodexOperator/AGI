@@ -1,7 +1,7 @@
 {
   "name": "brainstorm",
   "script": "agi-brainstorm.js",
-  "description": "Authored via workflow.py author (owner order 2026-09-18 20:2xZ (verbatim on goal:g14): an Opus-max brainstorm that reads an idea + the why + related town work, refines the idea and mints 1-5 hypotheses, then an adversarial review (keep/modify/drop); the director runs it after each disproof; args: {idea, why, max_hypotheses}. Authored by thought-master.)",
+  "description": "Authored via workflow.py author (owner order 2026-09-18 20:2xZ (verbatim on goal:g14): an Opus-max brainstorm that reads an idea + the why + related town work, refines the idea and mints 1-5 hypotheses, then an adversarial review (keep/modify/drop); the director runs it after each disproof; required args: {idea, goal, why, max_hypotheses}. Authored by thought-master.)",
   "stages": [
     {
       "label": "brainstorm",
