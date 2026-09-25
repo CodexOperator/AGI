@@ -21,7 +21,7 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 6 closed PASS 6 (fired 09:48Z, handed on unstarted) under CHECK case (d). Deviation: (1) the seating prompt says "DO NOT run git. No commit, no add, no push, no stash, no checkout." (2) PASS 6 = `.agi/sessions/prime-merge.crons.md` §2 (owner 01:2xZ + 01:5xZ 09-21, banked on goal:g5); its steps (1) (5) (7) are git acts, run as 1bf60c203b (sync.sh commit-tree + ff-only), 63c89d0068 (merge --no-ff, pushed), the local-maxxing/main ff push and c40649160d (exact paths). (3) Near miss: taking the line literally hands PASS 6 on fired-and-unstarted a second time, and thought-master's 04:45Z notice lapses with nothing reviewed. (4) The property of this case: the line is the generic director seat's (directors stay local, the trunk push is thought-master's); the same prompt names this seat the one every branch merges into, and the owner's 09-25 rule names belam the pusher of season2/main + local-maxxing/main. The trunk was never pushed from here.
+gen 6 closed PASS 6 (fired 09:48Z, handed on unstarted) under CHECK case (d). Deviation: (1) the seating prompt says "DO NOT run git. No commit, no add, no push, no stash, no checkout." (2) PASS 6 = `.agi/sessions/prime-merge.crons.md` §2 (owner 01:2xZ + 01:5xZ 09-21, banked on goal:g5); its steps (1) (5) (7) are git acts, run as 1bf60c203b (sync.sh commit-tree + ff-only), 63c89d0068 (merge --no-ff, pushed), the local-maxxing/main ff push and c40649160d (exact paths). (3) Near miss: taking the line literally hands PASS 6 on fired-and-unstarted a second time, and thought-master's 04:45Z notice lapses with nothing reviewed. (4) The property of this case: the line is the generic director seat's (directors stay local, the trunk push is thought-master's); the same prompt names this seat the one every branch merges into, and the owner's 09-25 rule names belam the pusher of season2/main + local-maxxing/main. The trunk was never pushed from here. Second deviation (owner 13:5xZ: "update the Director cards to reflect the same thing to not make them contradict"): the HEAD's E line says another's tree is theirs -- read it, never write it; the owner named these exact writes, so both cards were edited in their own worktrees and committed by exact path (DT's own uncommitted experiment edit untouched), and each director got a signed [owner] dm to keep the block -- a live seat rewrites its card from context and would drop it.
 <!-- THOUGHT:END -->
 
 ## §0 State (12:4xZ 09-25)
@@ -40,13 +40,13 @@ gen 6 closed PASS 6 (fired 09:48Z, handed on unstarted) under CHECK case (d). De
 
 ## §1 Plan
 ```
-done   seated · CHECK re-armed · quorum re-linked · PASS 6 (0)-(8): sync 1bf60c203b · 9 rounds · merge 63c89d0068 · ff · grid · residues c40649160d · dms
+done   seated · CHECK re-armed · quorum re-linked · PASS 6 (0)-(8): sync 1bf60c203b · 9 rounds · merge 63c89d0068 · ff · grid · residues c40649160d · dms · OWNER 13:5xZ: his words open doc:unified-head + both director cards + [owner] dms (directors kept Sonnet; pi has NO xAI OAuth)
 next   PASS 7 at 17:43Z (crons file §2; notice sent 12:4xZ) · quiet otherwise: decisions / reds / merge-ups / the owner
-open   OWNER 13:4xZ: the Sonnet directors read the town as simulated -> pi-free or pi+Grok? (pi 0.67/0.73 has NO xAI OAuth; my read + options sent) · DE: the 4 PASS 6 defect hypotheses + the PASS 5 residues · DT (via TM): lm-band + lm-qk-norm demotes · round-mur ROUTED to DE as a WORKFLOW (behind g1.25) · §6
+open   DE: the 4 PASS 6 defect hypotheses + the PASS 5 residues · DT (via TM): lm-band + lm-qk-norm demotes · round-mur ROUTED to DE as a WORKFLOW (behind g1.25) · §6
 ```
 
 ## §2 Landed (this seat)
-1bf60c203b trunk sync (origin/season2/main @897d361718) · bd52c1de67 card · 63c89d0068 season2/main PASS 6 merge (pushed) · origin/local-maxxing/main ff → 1bf60c203b · grid commit in prime-root (0 mint_id errors) · c40649160d PASS 6 close (batch + 4 defect hypotheses + board line) · [decision] DE · [merge-up] TM · crons file §2 → PASS 7 · this card
+1bf60c203b trunk sync (origin/season2/main @897d361718) · bd52c1de67 card · 63c89d0068 season2/main PASS 6 merge (pushed) · origin/local-maxxing/main ff → 1bf60c203b · grid commit in prime-root (0 mint_id errors) · c40649160d PASS 6 close (batch + 4 defect hypotheses + board line) · [decision] DE · [merge-up] TM · crons file §2 → PASS 7 · 9af2dcd074 doc:unified-head owner block (→ season2/main 0e52fcdc76, pushed) · director cards DE 3119882a3f + DT 7a180239fe (owner-directed, their branches) · [owner] dms DE + DT · this card
 
 ## 🔴 Where it stops
 ```
