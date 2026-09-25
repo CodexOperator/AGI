@@ -56,6 +56,7 @@ import node_writer  # noqa: E402
 import provisioning  # noqa: E402
 import spawn_budget  # noqa: E402
 import stall_detect  # noqa: E402 -- hyp:l4-stalled-is-a-state-the-harness-can-see (record, don't repair)
+import tmux_hold  # noqa: E402 -- one first-spawn/restart held-pane seam
 from spawn_budget import TERMINAL  # noqa: E402 -- the ONE terminal-status set (hyp:l4-one-definition-of-terminal)
 
 #: goal:g11.1 — re-exported from `locations` rather than redefined.
@@ -2649,16 +2650,11 @@ def main() -> int:
         _mem_cap = mem_cap.resolve_memory_cap(cfg)
 
         def _open_round(mode: str):
-            with open(log_file, mode) as logf:
-                return subprocess.Popen(
-                    mem_cap.wrap_argv(spawn_args, _mem_cap),
-                    stdout=logf,
-                    stderr=subprocess.STDOUT,
-                    stdin=subprocess.DEVNULL,
-                    start_new_session=True,
-                    cwd=str(branch_root),
-                    env=spawn_env,
-                )
+            return tmux_hold.start_or_popen(
+                mem_cap.wrap_argv(spawn_args, _mem_cap), env=spawn_env,
+                cwd=branch_root, log=log_file, mode=mode,
+                seat=_resolved_seat(args.seat) or "unknown", agent_id=agent_id,
+                state_dir=sess_dir)
 
         _attempt = 1
         _sig = None
@@ -2743,6 +2739,7 @@ def main() -> int:
             "strategy": strategy,
             "role": role,
             "pid": proc.pid,
+            "pane_id": getattr(proc, "pane_id", None),
             "started_at": int(time.time()),
             "status": "running",
             "context_file": ctx_path,
