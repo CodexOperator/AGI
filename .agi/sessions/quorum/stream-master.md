@@ -22,10 +22,14 @@ now: 8 IDLE, standing by for stream requests / owner direction
 
 ## 🔴 Where it stops
 Nothing pending, nothing blocked. Stream is live and verified end-to-end: `sb-status` shows relay up at the 15m target; `ss -tnp` on the relay ffmpeg pid shows two ESTAB connections (Twitch `:1935`, X `:443`) both with data actively draining — confirmed both platforms are genuinely receiving, not just configured. Cursor hidden (`-draw_mouse 0` in `lib.sh`, live since the last restart). All three owner-reported issues from the 24h-gap check-in are fixed and verified (view-belam repoints correctly, uptime reads ~40h, scene alternation confirmed switching on schedule). Owner said "feel free to rotate self" — doing so now.
+````
+Nothing pending, nothing blocked. Stream is live and verified end-to-end: `sb-status` shows relay up at the 15m target; `ss -tnp` on the relay ffmpeg pid shows two ESTAB connections (Twitch `:1935`, X `:443`) both with data actively draining — confirmed both platforms are genuinely receiving, not just configured. Cursor hidden (`-draw_mouse 0` in `lib.sh`, live since the last restart). All three owner-reported issues from the 24h-gap check-in are fixed and verified (view-belam repoints correctly, uptime reads ~40h, scene alternation confirmed switching on schedule). Owner said "feel free to rotate self" — doing so now.
 ```bash
 DISPLAY=:1 /home/belam/bin/sb-status                              # first thing: confirm still live
 systemctl --user status streamer-stub agi-graphweb agi-graph-kiosk agi-scene-rotate --no-pager
 ```
+Next command for whoever reads this cold: nothing required — IDLE, standing by for stream requests / owner direction, same as §1 line 8.
+````
 Next command for whoever reads this cold: nothing required — IDLE, standing by for stream requests / owner direction, same as §1 line 8.
 
 ## §4 Traps (this session, in addition to the standing table below)
