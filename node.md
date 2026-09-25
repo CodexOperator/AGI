@@ -36,6 +36,7 @@ put them all into templates that get loaded in dynamically." First round under g
 - `extensions/agi/hooks/rotation_alert.py:1496-1499` — the at-or-over-line f-string body (`_emit(AT_OR_OVER_TITLE, "This session is at or over its rotation line. Rotate NOW. ..." + suffix)`)
 - `extensions/agi/hooks/rotation_alert.py:1535-1539` — the beneath-the-line band f-string, freshly worded by E0 (merged `6c33e4d01e`, cherry-picked to trunk `37f1812f52`): `f"Approaching rotation ({fraction:.4f} of {threshold:.3f} window ..." + "Keep working; at the line run rotate.py rotate yourself."`
 - These are ALL model-facing (the SessionStart/UserPromptSubmit hook output every agent reads every turn) and ALL inline Python literals today — zero of them are in a template.
+- **Corrected 2026-09-25 (director-engine, PASS 5 residue demote):** the six lines above are the ORIGINAL T0 measurement and its migration landed (verdict=proved, commit `18c334c35e`) — but the surface has since grown. `extensions/agi/hooks/rotation_alert.py` now has NINE `render("rotation_alert", ...)` call sites, not six: the original six (lines 293, 294, 297, 299, 1494, 1532) plus three landed later (`capture_declined` L830, `captured` L845, `captive_deferred_body` L894). Verified directly by grep against current bytes, not assumed.
 - Precedent already on trunk: `extensions/agi/templates/harness/*.toml` + `extensions/agi/bin/harness_template.py` is a DIFFERENT loader (declarative argv-building vocabulary for spawning a harness process, TOML, closed key vocabulary) under the SAME `extensions/agi/templates/<family>/` directory convention. Reuse the directory convention and the "closed vocabulary, no eval/exec" discipline; do NOT reuse harness_template.py's argv-specific loader code for prose (wrong domain — this is free text with placeholders, not an argv element list).
 - No inventory of the rest of the surface exists yet (dispatch.py's stale-base/refusal messages, send.py's nudge/stranded text, cli.py's refusals, other hooks) — this round's FIRST deliverable is that inventory, not just the migration.
 
@@ -98,3 +99,29 @@ not exist yet for prose (only the argv-building one does) and must be written on
 - USD cap: pi-free per-spawn mint ceiling ($1.00), one round.
 - The inventory doc is NOT production code and is not line-capped, but stay to the two directories named
   above — a whole-repo sweep is T1..Tn's job, not this round's.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PASS 5 chunk 1 (belam-S2-L5-V, 09-25) demoted a round against this hypothesis for three reasons: "the inventory
+misses the claimed surface and its statuses contradict the code; an out-of-scope wording change in
+templates/rotation_alert/beneath_body.md; call sites drifted 6 -> 9". Assigned to director-engine to correct
+this node in place. Verified each claim against current bytes rather than taking the review on faith:
+1. Call-site drift (6 -> 9): CONFIRMED. Corrected in Measured above with exact current line numbers.
+2. Statuses contradict the code: CONFIRMED and FIXED directly in
+   `.agi/context/local-maxxing/g5.32-hardcoded-prose-inventory.md` — its capture-declined/captured/
+   captive-deferred rows said "still-in-code" while the actual call sites already used `render(...)`
+   (landed by whatever round added those three templates at 21:43, after the original six at 17:04; the
+   inventory table was simply never updated to match). Also flagged, in the inventory doc itself, that its
+   `extensions/agi/bin/*.py` coverage is placeholder-depth (stub rows, not a real per-file sweep) — this part
+   of "misses the claimed surface" is real and still open, left for a T1 round rather than fabricated here.
+3. Out-of-scope wording change in beneath_body.md: DOES NOT REPRODUCE against current bytes. Directly
+   computed both the pre-migration f-string (`git show 37f1812f52`) and the current
+   `render("rotation_alert","beneath_body", ...)` output with identical inputs (fraction=0.31245,
+   threshold=0.47, pct=66) — byte-identical, `MATCH: True`. The call site
+   (rotation_alert.py:1532-1534) passes `percent=fraction/threshold * 100`, exactly the pre-migration inline
+   expression. Either this was a real defect in an earlier revision that has since been fixed by another
+   commit, or the review finding was itself mistaken; either way it is not something a future round should
+   spend budget chasing without first re-checking, which is why this THOUGHT records the check rather than
+   just the verdict.
+No wording changed by this correction pass; only the inventory doc's status cells and this node's own stale
+Measured claim. The remaining real gap (bin/ coverage) is not closed here — noted, not hidden.
+<!-- THOUGHT:END -->
