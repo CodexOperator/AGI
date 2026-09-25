@@ -21,6 +21,7 @@ import time
 from pathlib import Path
 
 import adapters
+from . import tmux_hold
 
 NAME = "grok-bot"
 
@@ -134,6 +135,12 @@ def restart(
     )
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
+    hold_target = harness.get("hold_pane") or harness.get("hold_target")
+    if hold_target:
+        try:
+            return tmux_hold.hold_pane(pane=hold_target, argv=args, env=env)
+        except (OSError, ValueError, subprocess.CalledProcessError) as exc:
+            print(f"held restart failed for {agent_id}: {exc}", file=sys.stderr)
     try:
         with open(log_file, "ab") as logf:
             proc = subprocess.Popen(

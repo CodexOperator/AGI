@@ -146,6 +146,34 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
     assert written["pid"] == 5252 and written["status"] == "restarted"
 
 
+def test_restart_hold_path_wires_sanitized_env_to_tmux(monkeypatch, tmp_path):
+    captured = {}
+    monkeypatch.setenv("OPENROUTER_API_KEY", "must-not-leak")
+    monkeypatch.setenv("HOLD_SENTINEL", "kept")
+    def fake_hold(*, pane, argv, env):
+        captured.update(pane=pane, argv=argv, env=env)
+        return 4242
+    monkeypatch.setattr(grok.tmux_hold, "hold_pane", fake_hold)
+    monkeypatch.setattr(grok.subprocess, "Popen", lambda *a, **k: (_ for _ in ()).throw(AssertionError("Popen")))
+    harness = dict(RESTART_HARNESS, hold_pane="grok-seat")
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    pid = grok.restart(harness=harness, tier="kid", context_file="ctx", agent_id="a", iter_n=1, sess_dir=sess)
+    assert pid == 4242
+    assert captured["pane"] == "grok-seat"
+    assert captured["env"]["HOLD_SENTINEL"] == "kept"
+    assert "OPENROUTER_API_KEY" not in captured["env"]
+
+
+def test_restart_without_hold_target_keeps_popen_path(monkeypatch, tmp_path):
+    class FakeProc:
+        pid = 77
+    monkeypatch.setattr(grok.subprocess, "Popen", lambda *a, **k: FakeProc())
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    assert grok.restart(harness=RESTART_HARNESS, tier="kid", context_file="ctx", agent_id="a", iter_n=1, sess_dir=sess) == 77
+
+
 def test_restart_returns_none_when_popen_fails(monkeypatch, tmp_path):
     """An OSError from Popen yields None, never a raised exception — same as
     the other adapters."""
