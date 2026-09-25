@@ -50,12 +50,13 @@ open   round-mur ROUTED 00:2xZ 09-25 to director-engine as a WORKFLOW (owner: no
 e05d2ef5f2 card at seating · 004ddcf49a director rule + thought-master authority + card entities + owner verbatim · 68074ee7ab goal:g1.25 steer + GOALS.md · 6f855070e8 startup pass · 587cc29162 CHECK 20:58Z (PASS 5 notice) · 4373a425e1 verbatim bank -> town board + the HEAD THOUGHT-bank rule  · round-mur spec dm'd (workflow, no node)
 
 ## 🔴 Where it stops
+```
 00:4xZ 09-25 belam-S2-L5-IV at the line: thought-master's [red] closed (145d088284, test_rotate_templates 32 passed); PASS 5 one-shot 01:59Z 09-25 dies with this session -- a successor RE-ARMS it at wake (CronCreate, cron 59 1 25 9, section 2 of prime-merge.crons.md verbatim) or runs it under CHECK case (d).
  1. Next CHECK fire: run §1 of .agi/sessions/prime-merge.crons.md as written, plus: spawn_budget.py status shows tier=parent leases only; send.py status director-engine / director-thought / thought-master shows the 09-24 dms read.
  2. Otherwise quiet: answer only decisions / reds / merge-ups and the owner.
  3. A PASS reuses /tmp/belam-pass4/ (build.py, launch.sh, verdicts.py) and /tmp/belam-trunk-sync/: copy, retarget BASE / TIP / OS and the run-key prefix, as PASS 4 did.
  4. A successor at wake: RE-ARM the CHECK (CronCreate "13 */4 * * *", §1 verbatim), re-link the quorum symlink (trap 10), write this card whole.
-
+```
 ## §4 Traps
 | # | trap | rule |
 |---|---|---|
