@@ -812,6 +812,8 @@ def _load_manifest(root: Path, name: str, _seen: set[str] | None = None) -> dict
         st = dict(st)
         deps = st.get("depends_on") or []
         st["depends_on"] = list(dict.fromkeys(([deps] if isinstance(deps, str) else deps) + rounds))
+        if rounds and not st.get("chained_from"):
+            st["chained_from"] = rounds[0]
         reviews.append(st)
     merged["stages"] = raw.get("prelude", []) + reviews + raw.get("stages", [])
     return merged
@@ -2385,10 +2387,8 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                       file=sys.stderr)
                 continue
             prior = None
-            if "_repeat_key" in st and st.get("chained_from"):
-                # `chained_from` over the same repeat key: the prior stage's
-                # validated return merged into this stage's prompt context.
-                prior = prior_by_key.get((st["chained_from"], st["_repeat_key"]))
+            if st.get("chained_from"):
+                prior = prior_by_key.get((st["chained_from"], st.get("_repeat_key")))
             try:
                 if st.get("kind") == "round":
                     context_text = None
@@ -2440,8 +2440,9 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                 print(f"workflow.py: workflow={key} stage {st['label']} "
                       f"failed (rc={rc}); continuing", file=sys.stderr)
                 continue
-            if "_repeat_key" in st and value is not None:
-                prior_by_key[(st["_base_label"], st["_repeat_key"])] = value
+            if value is not None:
+                prior_by_key[(st.get("_base_label", st["label"]),
+                              st.get("_repeat_key"))] = value
         view.summary()
         _track_run(root, key, harness, view, run_key)
         return first_rc or 0
