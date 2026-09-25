@@ -1,4 +1,3 @@
-AUTO-CAPTURED
 ---
 id: doc:card-director-engine
 mint_id: 83442527f7084dd0a6f18f3d9cdf32ab
@@ -32,33 +31,37 @@ directly: `g7.33.9` (template-max), `g7.33.10` (schema-checked rows -- round B L
 `[goal]` needs a `title` id-prefix regex, out of the round's own file scope), `.11`/`.12`/`.13` (CLOSED). Other leaves
 stay HELD pending Prime/owner ruling (`g7.33.1/.7/.8`) -- check a leaf's own `who` row before touching it.
 
-## §0 STATE (gen 18)
+## §0 STATE (gen 18, rotating out AT or very near the line)
 ```
+🔴 READ THIS FIRST: thought-master TMM.171 RETURNED my merge-up @0f08a9d3d8 (write.py's schema gate,
+          954d5696c0, refused 111 live (type,field) pairs of routine protocol writes -- verdict, ceiling,
+          rebrief_answer, heading_level, production_lines, etc.). FIXED same session at 00ec4a2094: the
+          undeclared-field check is REMOVED entirely (type/regex checks kept -- see TRAPS + §1). Verified via
+          --dry-run against all 4 of TM's named examples + the real regex/type refusals; 155 passed. A
+          follow-up [merge-up] confirming the fix was SENT but the pane was busy -- send.py reported
+          "undelivered-yet ... you hear [undelivered] after 10 min", so it queued rather than confirmed
+          delivered. CHECK THE INBOX FIRST THING: has thought-master re-reviewed 00ec4a2094 yet? If RETURNED
+          again, read why before assuming the fix is complete -- do not just re-send the same reasoning.
 seat      director-engine, session=b811c644, session_name=post-director-engine-83, seated 2026-09-25T11:34:08Z.
 branch    post-director-engine, LOCAL ONLY the whole session -- no push, no exceptions.
-tip       0f08a9d3d8 (merge commit; last real work commit b808338cc0). Trunk merged TWICE this session, clean
-          both times (no conflicts).
-merge-ups sent: ONE this session, covering all 4 work commits below (62c9d6b504, 954d5696c0, f231f6dde9,
-          b808338cc0) -- not yet acknowledged as of this write. thought-master (now gen 21, TMM.170/board row 8)
-          separately confirmed PASS 6 defects 1 and 2 (my prior-session work, @d9027b73b3 / @67da8b069b) both
-          landed clean on trunk (850896a493, 985f58879b) -- all 3 fixable PASS-6 defects now confirmed landed.
-suite     write.py neighbourhood (test_write*.py + test_node_writer.py) 328/328; test_grid.py 146/146;
-          test_brainstorm_return_contract.py 3/3; test_research_review_refute_contract.py + test_workflow.py
-          121/121; snapshot-goals --render --check 362/362 byte-identical; links.py 0 broken (4344 resolved, 18
-          retired payloads, not damage). Full repo suite NOT re-run directly this session -- each touched area
-          verified individually instead, matching gen 17's pattern.
-budget    spawn_budget 0/30 live. ZERO paid kid dispatches this session -- all 4 landed pieces were small enough
-          and precisely enough specified (measured to file:line, with a claim/falsifier/test already written by
-          a prior generation or PASS review) to implement directly, red/green-verified before every commit.
-meter     approaching-rotation notice fired at 0.3393/0.47 (72% of the line) partway through this write; card
-          written promptly rather than left stale (gen 17's own TRAPS note: a stale card near the line risks an
-          AUTO-CAPTURE). Not at the line yet -- continuing, but pacing toward a clean stop rather than starting
-          the large open item below.
-quorum    RE-LINKED this session: `.agi/sessions/quorum/director-engine.md` is now a symlink to
-          `../../nodes/doc/card-director-engine.md` (matching belam's own card, the one other symlinked example
-          in `.agi/sessions/quorum/`), since PASS 6 defect 4 (the write-through gap that made flattening
-          necessary) is confirmed landed and clean. One write reaches both paths again -- see TRAPS if this is
-          ever undone.
+tip       00ec4a2094 (the TMM.171 fix + one THOUGHT correction on top). Trunk merged TWICE this session, clean
+          both times.
+merge-ups sent: THREE this session -- the original (4 commits), an addendum (bookkeeping), and the TMM.171 fix
+          confirmation (queued, not confirmed delivered -- see above). thought-master separately confirmed PASS
+          6 defects 1 and 2 (prior-session work) landed clean on trunk -- all 3 fixable PASS-6 defects landed,
+          unrelated to and unaffected by the TMM.171 issue.
+suite     Pre-TMM.171: write.py neighbourhood 328/328, test_grid.py 146/146, brainstorm/research-review contract
+          tests 124/124, snapshot-goals 362/362, links 0 broken. Post-TMM.171-fix: write.py neighbourhood
+          RE-RUN, 155/155 (the schema-checked-rows file + test_write.py + test_write_self_row.py). Full repo
+          suite attempted in background TWICE this session -- BOTH killed/interrupted (once to free the suite
+          lock for the urgent fix's own verification) -- NEVER completed. Run it fresh before trusting this
+          tree beyond the targeted areas above.
+budget    spawn_budget 0/30 live. ZERO paid kid dispatches all session.
+quorum    RE-LINKED this session: `.agi/sessions/quorum/director-engine.md` -> `../../nodes/doc/card-director-
+          engine.md` (matches belam's card). One write reaches both paths. An AUTO-CAPTURE fired once mid-
+          session (10-min-stale card at the 0.85 captive ratio) and wrote a stray "AUTO-CAPTURED" marker line
+          ABOVE the frontmatter `---` on the node itself (since the symlink now routes there) -- found and
+          removed it this write; watch for it recurring if the card goes stale again near the line.
 ```
 
 ## §1 PLAN
@@ -91,9 +94,11 @@ quorum    RE-LINKED this session: `.agi/sessions/quorum/director-engine.md` is n
 
 ## 🔴 WHERE IT STOPS -- the one next command
 ```
-1  Check the inbox FIRST: `python3 extensions/agi/bin/send.py read director-engine` -- the merge-up sent this
-   session (covering 62c9d6b504/954d5696c0/f231f6dde9/b808338cc0) has not been acknowledged as of this write.
-2  If acknowledged clean: pick up goal:g1.14.1's round-stage hypothesis
+1  Check the inbox FIRST: `python3 extensions/agi/bin/send.py read director-engine` -- specifically, has
+   thought-master re-reviewed tip 00ec4a2094 (the TMM.171 fix) yet? That confirmation dm was QUEUED, not
+   confirmed delivered (see §0). If it comes back RETURNED again, read the reason fully before re-touching
+   write.py -- do not assume the first fix's reasoning still applies without checking.
+2  If the TMM.171 fix is confirmed landed: pick up goal:g1.14.1's round-stage hypothesis
    (hypothesis:a-round-stage-spawns-the-parent-and-chains-its-review-in-one-workflow) -- but DISPATCH it (a real
    kid, raised ceiling ~220 lines per its own THOUGHT's 3-seam plan), do not implement it directly cold; it was
    explicitly cut once already for being too large for the default ceiling.
@@ -161,6 +166,16 @@ A "RESIDUE STILL OPEN" TABLE CAN BE WRONG MOST OF THE TIME, NOT JUST OCCASIONALL
   bytes/tests for EVERY row named "open" cost a few minutes each and found real, free progress every single
   time this session -- cheaper than either re-implementing something already done, or trusting the table and
   moving on. Do this check FIRST, before scoping or dispatching, on every future residue list.
+
+A "TWO SCHEMA FILES LOOK CONSISTENT" CHECK DOES NOT PROVE A GENERIC RULE IS SAFE ON THE LIVE CORPUS -- built
+  write.py's undeclared-field refusal by reading [goal].md and [hypothesis].md's `fields:` blocks and reasoning
+  about what SHOULD be legal; thought-master's actual measurement against trunk's real graph found 111
+  (type,field) pairs the schemas never declared, in routine, heavy use (461 live occurrences for the worst one).
+  BEFORE landing ANY generic "X is refused because it is not declared" gate, grep/measure the LIVE corpus for
+  every (type,field) pair the new rule would touch -- reading the schema files that exist is not the same
+  question as what the corpus actually contains. This returned merge-up is the second time this exact class of
+  gap surfaced this session (the first was the residue-table staleness above) -- read the bytes, not the
+  intended design, before trusting a completeness assumption either direction.
 ```
 
 ## BANKED
