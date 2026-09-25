@@ -1,17 +1,24 @@
 """goal:g7.33.10 round B — `write.py`'s `set` and `create --set` consult the
 target's schema before writing a row (hypothesis:write-py-set-is-schema-
 checked). Until this landed, `write.py <id> 'set <field> <value>'` admitted
-an invented field name, a value failing the schema's regex, a value failing
-its declared type, and a raw string into a list-typed field — all exit 0,
-never coerced, never refused. Measured directly against goal:g7.33.9 (the
-five probes this file pins four of) and independently reproduced twice more
-the same session on `create --set` (goal:g7.33.12's `tags` landing as a raw
-comma string).
+a value failing the schema's regex, a value failing its declared type, and
+a raw string into a list-typed field — all exit 0, never coerced, never
+refused. Measured directly against goal:g7.33.9 and independently
+reproduced on `create --set` (goal:g7.33.12's `tags` landing as a raw comma
+string).
 
-The fifth probe from goal:g7.33.10's own "measured" row — a title with no
-id-prefix format — is NOT pinned here: `[goal].md` declares no `title`
-regex, and adding one is a schema-file change outside this hypothesis's
-FILE SCOPE (`write.py` + `links.py` only). Left open for a follow-up round.
+NARROWED by thought-master TMM.171 (returned merge-up @0f08a9d3d8, gen 18):
+a first version of this round ALSO refused any field name not declared in
+the schema's `fields:` (goal:g7.33.10's "invented field" probe). A
+live-graph sweep found 111 (type, field) pairs across 2,273 node-fields --
+routine protocol fields like `verdict`, `ceiling`, `rebrief_answer`,
+`heading_level` -- that no schema declares either, so that check refused
+thousands of ordinary writes on the real graph. REMOVED; see
+test_an_invented_field_is_admitted_not_refused. Two of goal:g7.33.10's five
+"measured" probes are therefore explicitly NOT refused by this round: the
+invented-field one (reverted, see above) and the title id-prefix-format one
+(never covered -- `[goal].md` declares no `title` regex, and adding one is
+a schema-file change outside this hypothesis's FILE SCOPE).
 """
 from __future__ import annotations
 
@@ -105,17 +112,24 @@ def _set(project, script):
 
 
 # --------------------------------------------------------------------------
-# The five probes from goal:g7.33.10's own "measured" row (four of five —
-# see module docstring for the fifth)
+# The five probes from goal:g7.33.10's own "measured" row (three of five —
+# see module docstring for the other two)
 # --------------------------------------------------------------------------
 
-def test_an_invented_field_is_refused_by_name(project):
-    before = (project / "nodes" / "goal" / "g1.md").read_text()
+def test_an_invented_field_is_admitted_not_refused(project):
+    """REVERSED by thought-master TMM.171 (returned merge-up @0f08a9d3d8): a
+    first version refused any key not in the schema's `fields:` (goal:g7.33.10's
+    own "invented_row" probe), but a live-graph sweep found 111 (type, field)
+    pairs -- routine protocol fields like `verdict`, `ceiling`,
+    `rebrief_answer`, `heading_level` -- that no schema declares either, so
+    the same gate refused thousands of ordinary writes. The undeclared-field
+    check is REMOVED; an undeclared key gates nothing, same as before this
+    round existed. Kept as a test (inverted) so this does not silently regress
+    back to refusing again."""
     out, err, rc = _set(project, "set invented_row somevalue")
-    assert rc == 2, (out, err)
-    assert "invented_row" in err
-    assert "not a field" in err
-    assert (project / "nodes" / "goal" / "g1.md").read_text() == before
+    assert rc == 0, (out, err)
+    text = (project / "nodes" / "goal" / "g1.md").read_text()
+    assert "invented_row: somevalue" in text
 
 
 def test_goal_id_out_of_regex_is_refused_by_name(project):

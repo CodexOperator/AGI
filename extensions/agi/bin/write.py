@@ -1780,13 +1780,6 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
     return
 
 
-_UNIVERSAL_FIELDS = frozenset({
-    "id", "type", "mint_id", "parents", "next_edges", "edited_by",
-    "scaffold_hash", "season", "town", "thought_session", "loop",
-    "model", "profile", "role",
-})
-
-
 def _matches_type(value, declared: str) -> bool:
     """`declared` is one `validation.types` spelling; `value` is already
     `_coerce`d. An unrecognised spelling gates nothing — only a caller that
@@ -1813,18 +1806,32 @@ def _schema_field_refusal(schema, node_type: str, key, value, *,
     traceback, on the first violation:
 
       1. the schema's field-level `refuse:` annotation;
-      2. `key` is neither a structural field every node carries
-         (`_UNIVERSAL_FIELDS`) nor declared in this type's own `fields:` —
-         an invented row;
-      3. `validation.types[key]` (or, absent that, `fields[key].type`) is
+      2. `validation.types[key]` (or, absent that, `fields[key].type`) is
          declared and `value`'s coerced Python type does not match it —
          int/float/list/bool/str, not just int;
-      4. `validation.regex[key]` is declared and `value` does not fully
+      3. `validation.regex[key]` is declared and `value` does not fully
          match it.
 
     Required-ness is a separate concern this predicate does not own
     (create's own `required_nonempty` loop and `links.py schema` do) — a
-    field the schema simply does not mention (case 2 aside) gates nothing.
+    field the schema simply does not mention gates nothing.
+
+    NO "undeclared field is refused" check — REMOVED (thought-master TMM.171,
+    returned merge-up @0f08a9d3d8): a first version refused any `key` not in
+    `fields:` or a hand-picked `_UNIVERSAL_FIELDS` allowlist, and TMM.171's
+    measurement (a scratch-worktree --dry-run sweep) found 111 (type, field)
+    pairs across 2,273 live node-fields sit in no schema's `fields:` at all —
+    `experiment.production_lines` (461 live uses), `experiment.line_ceiling`
+    (362), `goal.heading_level` (362), `hypothesis.verdict` (150),
+    `hypothesis.ceiling` (98), `experiment.rebrief_answer`/`rebrief_request`
+    (brief.py's own re-brief protocol, cli.py:842) among them — every one of
+    which the gate refused on trunk's live graph. The schemas' `fields:`
+    blocks are far less complete than the corpus's actual field usage; an
+    allowlist maintained by hand cannot keep up with that gap, and refusing
+    on it breaks routine protocol writes rather than catching typos. Dropped
+    entirely rather than patched wider — the type/regex checks below stay,
+    because those only fire on a field a schema explicitly typed or
+    regex'd, a far smaller and more deliberate set.
     """
     fields = schema.fields or {}
     field = fields.get(key)
@@ -1833,10 +1840,6 @@ def _schema_field_refusal(schema, node_type: str, key, value, *,
         return (f"{verb} {node_type} refused by name: {key!r} is not a "
                 f"settable cell — {ground} (schema field-level `refuse:`, "
                 f"enforced generically)")
-    if key not in fields and key not in _UNIVERSAL_FIELDS:
-        return (f"{verb} {node_type} refused by name: {key!r} is not a "
-                f"field {node_type}'s schema declares (schema `fields:`, "
-                f"generic undeclared-row refusal)")
     validation = schema.frontmatter.get("validation") or {}
     declared = (validation.get("types") or {}).get(key)
     if declared is None and isinstance(field, dict):
