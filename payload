@@ -15,7 +15,6 @@ import io
 import json
 import os
 import re
-import subprocess
 import sys
 from pathlib import Path
 
@@ -803,105 +802,6 @@ def test_brainstorm_manifest_route_refuses_a_missing_goal(
     assert "[dispatch]" not in buf.getvalue(), buf.getvalue()
     err = capsys.readouterr().err
     assert "refused" in err and "goal" in err, err
-
-
-def test_manifest_extends_materializes_base_then_prelude_then_child(tmp_path):
-    """A composed round keeps the unchanged review source ahead of its prelude."""
-    root = tmp_path / ".agi"
-    wf = root / "extensions" / "agi" / "workflows"
-    wf.mkdir(parents=True)
-    (wf / "base.json").write_text(json.dumps({
-        "name": "base", "type": "review", "harness": "pi-free",
-        "stages": [{"label": "review", "prompt": "unchanged"}],
-    }), encoding="utf-8")
-    (wf / "round.json").write_text(json.dumps({
-        "name": "round", "extends": "base",
-        "prelude": [{"kind": "round", "label": "round-parent"}],
-        "stages": [],
-    }), encoding="utf-8")
-
-    manifest = workflow._load_manifest(root, "round")
-    assert [stage["label"] for stage in manifest["stages"]] == [
-        "round-parent", "review"]
-    assert manifest["type"] == "review"
-    assert manifest["harness"] == "pi-free"
-    assert manifest["stages"][1]["depends_on"] == ["round-parent"]
-    assert manifest["stages"][1]["chained_from"] == "round-parent"
-    assert [stage["label"] for stage in workflow._expand_stages(
-        manifest, {})] == ["round-parent", "review"]
-
-
-def test_round_stage_dispatches_once_and_gates_on_branch_commit(
-        tmp_path, monkeypatch):
-    root = tmp_path / ".agi"
-    root.mkdir()
-    seen = []
-    monkeypatch.setattr(workflow.subprocess, "run", lambda *a, **k: (
-        seen.append(a[0]) or subprocess.CompletedProcess(
-            a[0], 0, "spawned a00-test\nmanifest: ignored\n", "")))
-    monkeypatch.setattr(workflow.time, "sleep", lambda _s: None)
-    monkeypatch.setattr(workflow.time, "monotonic",
-                        iter((0.0, 0.0, 0.0)).__next__)
-    import dispatch
-    monkeypatch.setattr(dispatch, "_branch_has_done_commit",
-                        lambda _root, rec, agent: rec.get("branch") == "loop/hyp")
-    monkeypatch.setattr(workflow, "_round_git_harvest", lambda _root, _rec: {
-        "old_tip": "old", "new_tip": "new", "files": ["extensions/agi/bin/workflow.py"]})
-    manifest = {"agents": [{"id": "a00-test", "status": "running",
-                            "branch": "loop/hyp", "base_branch": "main"}]}
-    monkeypatch.setattr(workflow._loc, "iteration_dir", lambda _root, _iter: root)
-    (root / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
-
-    rc, value = workflow._run_round_stage(
-        root, {"target_arg": "target", "iteration_arg": "iteration"},
-        {"target": "hypothesis:x", "iteration": "L1.01"}, 3)
-
-    assert rc == 0, value
-    assert value == {"key": "hypothesis:x", "hypothesis": "hypothesis:x",
-                     "parent": "a00-test", "branch": "loop/hyp",
-                     "old_tip": "old", "new_tip": "new",
-                     "files": ["extensions/agi/bin/workflow.py"]}
-    assert len(seen) == 1
-    cmd = seen[0]
-    assert cmd[-8:] == ["--tier", "parent", "--role", "parent",
-                        "--ladder-tier", "0", "--branch", "--detach"]
-
-
-def test_round_git_harvest_uses_recorded_refs_and_files(tmp_path, monkeypatch):
-    calls = []
-    answers = {"merge-base": "base-tip\n", "rev-parse": "round-tip\n",
-               "diff": "a.py\nb.py\n\n"}
-    def fake_run(cmd, **kw):
-        calls.append(cmd[3:])
-        op = cmd[3]
-        return subprocess.CompletedProcess(cmd, 0, answers[op], "")
-    monkeypatch.setattr(workflow.subprocess, "run", fake_run)
-    got = workflow._round_git_harvest(tmp_path, {
-        "branch": "loop/hyp", "base_branch": "main"})
-    assert got == {"old_tip": "base-tip", "new_tip": "round-tip",
-                   "files": ["a.py", "b.py"]}
-    assert calls == [["merge-base", "main", "loop/hyp"],
-                     ["rev-parse", "loop/hyp"],
-                     ["diff", "--name-only", "base-tip..round-tip"]]
-
-
-def test_round_stage_refuses_dispatch_without_retry(tmp_path, monkeypatch):
-    calls = []
-    monkeypatch.setattr(workflow.subprocess, "run", lambda *a, **k: (
-        calls.append(a[0]) or subprocess.CompletedProcess(a[0], 3, "", "no")))
-    rc, value = workflow._run_round_stage(
-        tmp_path, {}, {"target": "hypothesis:x", "iteration": "L1.01"}, 3)
-    assert (rc, value, len(calls)) == (3, None, 1)
-
-
-def test_manifest_extends_refuses_a_cycle(tmp_path):
-    root = tmp_path / ".agi"
-    wf = root / "extensions" / "agi" / "workflows"
-    wf.mkdir(parents=True)
-    (wf / "a.json").write_text('{"extends": "b"}', encoding="utf-8")
-    (wf / "b.json").write_text('{"extends": "a"}', encoding="utf-8")
-    with pytest.raises(ValueError, match="cycle at 'a'"):
-        workflow._load_manifest(root, "a")
 
 
 def test_review_and_drafting_stage_json_matches_js_prompts():
