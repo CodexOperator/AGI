@@ -15,6 +15,7 @@ import io
 import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -821,11 +822,53 @@ def test_manifest_extends_materializes_base_then_prelude_then_child(tmp_path):
 
     manifest = workflow._load_manifest(root, "round")
     assert [stage["label"] for stage in manifest["stages"]] == [
-        "review", "round-parent"]
+        "round-parent", "review"]
     assert manifest["type"] == "review"
     assert manifest["harness"] == "pi-free"
+    assert manifest["stages"][1]["depends_on"] == ["round-parent"]
     assert [stage["label"] for stage in workflow._expand_stages(
-        manifest, {})] == ["review", "round-parent"]
+        manifest, {})] == ["round-parent", "review"]
+
+
+def test_round_stage_dispatches_once_and_gates_on_branch_commit(
+        tmp_path, monkeypatch):
+    root = tmp_path / ".agi"
+    root.mkdir()
+    seen = []
+    monkeypatch.setattr(workflow.subprocess, "run", lambda *a, **k: (
+        seen.append(a[0]) or subprocess.CompletedProcess(
+            a[0], 0, "spawned a00-test\nmanifest: ignored\n", "")))
+    monkeypatch.setattr(workflow.time, "sleep", lambda _s: None)
+    monkeypatch.setattr(workflow.time, "monotonic",
+                        iter((0.0, 0.0, 0.0)).__next__)
+    import dispatch
+    monkeypatch.setattr(dispatch, "_branch_has_done_commit",
+                        lambda _root, rec, agent: rec.get("branch") == "loop/hyp")
+    manifest = {"agents": [{"id": "a00-test", "status": "running",
+                            "branch": "loop/hyp", "base_branch": "main"}]}
+    monkeypatch.setattr(workflow._loc, "iteration_dir", lambda _root, _iter: root)
+    (root / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+
+    rc, value = workflow._run_round_stage(
+        root, {"target_arg": "target", "iteration_arg": "iteration"},
+        {"target": "hypothesis:x", "iteration": "L1.01"}, 3)
+
+    assert rc == 0, value
+    assert value == {"target": "hypothesis:x", "parent": "a00-test",
+                     "branch": "loop/hyp"}
+    assert len(seen) == 1
+    cmd = seen[0]
+    assert cmd[-8:] == ["--tier", "parent", "--role", "parent",
+                        "--ladder-tier", "0", "--branch", "--detach"]
+
+
+def test_round_stage_refuses_dispatch_without_retry(tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.setattr(workflow.subprocess, "run", lambda *a, **k: (
+        calls.append(a[0]) or subprocess.CompletedProcess(a[0], 3, "", "no")))
+    rc, value = workflow._run_round_stage(
+        tmp_path, {}, {"target": "hypothesis:x", "iteration": "L1.01"}, 3)
+    assert (rc, value, len(calls)) == (3, None, 1)
 
 
 def test_manifest_extends_refuses_a_cycle(tmp_path):

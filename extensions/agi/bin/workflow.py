@@ -806,8 +806,14 @@ def _load_manifest(root: Path, name: str, _seen: set[str] | None = None) -> dict
         return raw
     inherited = _load_manifest(root, base, seen)
     merged = {**inherited, **raw}
-    merged["stages"] = (inherited.get("stages", []) + raw.get("prelude", [])
-                       + raw.get("stages", []))
+    rounds = [s["label"] for s in raw.get("prelude", []) if s.get("kind") == "round"]
+    reviews = []
+    for st in inherited.get("stages", []):
+        st = dict(st)
+        deps = st.get("depends_on") or []
+        st["depends_on"] = list(dict.fromkeys(([deps] if isinstance(deps, str) else deps) + rounds))
+        reviews.append(st)
+    merged["stages"] = raw.get("prelude", []) + reviews + raw.get("stages", [])
     return merged
 
 
@@ -2120,6 +2126,41 @@ def _resolve_context_timeout(stage: dict, manifest: dict) -> int:
                               raw * _LOAD_CAP_MULT))
 
 
+def _run_round_stage(root: Path, stage: dict, args: dict, timeout_s: int):
+    """Dispatch one detached parent and gate on its own status plus branch commit."""
+    target = args.get(stage.get("target_arg", "target"))
+    iteration = args.get(stage.get("iteration_arg", "iteration"))
+    if not target or not iteration:
+        raise ValueError("round stage requires target and iteration args")
+    cmd = [sys.executable, str(_THIS / "dispatch.py"), str(root), str(iteration),
+           "--target", str(target), "--tier", "parent", "--role", "parent",
+           "--ladder-tier", "0", "--branch", "--detach"]
+    proc = subprocess.run(cmd, capture_output=True, text=True,
+                          timeout=timeout_s)
+    if proc.returncode:
+        return 3, None
+    match = re.search(r"^spawned\s+(\S+)", proc.stdout or "", re.M)
+    if not match:
+        return 3, None
+    agent_id = match.group(1)
+    import dispatch
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        try:
+            manifest = json.loads(_loc.iteration_dir(root, iteration).joinpath(
+                "manifest.json").read_text(encoding="utf-8"))
+            rec = next(a for a in manifest["agents"] if a.get("id") == agent_id)
+        except (OSError, ValueError, KeyError, StopIteration):
+            rec = {}
+        if rec.get("status") in ("failed", "timeout", "stalled"):
+            return 3, None
+        if rec.get("status") == "done" or dispatch._branch_has_done_commit(root, rec, agent_id):
+            return 0, {"target": target, "parent": agent_id,
+                        "branch": rec.get("branch")}
+        time.sleep(min(1, max(0, deadline - time.monotonic())))
+    return 2, None
+
+
 def _failed_dependency(stage: dict, failed_keys: dict) -> str | None:
     """The base label this stage depends on that has a failed slice, or None.
     A repeated slice depends on the SAME `_repeat_key` of its base; a simple
@@ -2209,7 +2250,9 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
         raise ValueError(
             f"workflow {key!r}: invalid harness override {harness!r}: {exc}"
         ) from exc
-    knobs = {st["label"]: _resolve_knobs(st, cfg_row, args) for st in stages}
+    knobs = {st["label"]: ({"effort": st.get("effort_hint", _DEFAULT_EFFORT)}
+                           if st.get("kind") == "round" else
+                           _resolve_knobs(st, cfg_row, args)) for st in stages}
     if harness == "pi":
         # The pi model is resolved and namespace-checked here, BEFORE any
         # dry-run print or spawn — the config row's model is claude-code's,
@@ -2220,6 +2263,8 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
         # a project with no ladder file.
         _roles = spawn_gate.read_ladder_roles(root / "nodes" if root else None)
         for st in stages:
+            if st.get("kind") == "round":
+                continue
             model = _resolve_pi_model(cfg, st, args, _roles)
             _assert_model_in_provider_namespace(model, hc["provider"])
             knobs[st["label"]]["model"] = model
@@ -2345,8 +2390,11 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                 # validated return merged into this stage's prompt context.
                 prior = prior_by_key.get((st["chained_from"], st["_repeat_key"]))
             try:
-                context_text = _stage_context(
-                    repo, root, st, stage_context_timeouts[st["label"]])
+                if st.get("kind") == "round":
+                    context_text = None
+                else:
+                    context_text = _stage_context(
+                        repo, root, st, stage_context_timeouts[st["label"]])
             except (subprocess.TimeoutExpired, RuntimeError) as exc:
                 # Fail THIS stage by name; siblings proceed under SM.105.
                 reason = (f"context-build-timeout after {exc.timeout:g} s"
@@ -2364,10 +2412,13 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
             # The budget was resolved (declared, never truthy) before any
             # dispatch -- see `_resolve_stage_timeout` for `0` and the refusal.
             stage_timeout = stage_timeouts[st["label"]]
-            rc, value = _run_stage_pi(
-                cfg, st, knobs, args, out=out, view=view, prior=prior,
-                spawn_env=spawn_env, context_text=context_text,
-                timeout_s=stage_timeout)
+            runner = (_run_round_stage(root, st, args, stage_timeout)
+                      if st.get("kind") == "round" else
+                      _run_stage_pi(cfg, st, knobs, args, out=out, view=view,
+                                    prior=prior, spawn_env=spawn_env,
+                                    context_text=context_text,
+                                    timeout_s=stage_timeout))
+            rc, value = runner
             if value is not None:
                 _persist_stage_value(root, run_key, st["label"], value)
                 # A declared handoff list that came back EMPTY is a run-level
