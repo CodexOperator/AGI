@@ -68,13 +68,32 @@ def project(tmp_path: Path) -> Path:
 class _StubProc:
     """A fake child: `poll()` returns None `left` times, then `rc` forever."""
 
-    def __init__(self, pid, rc, left):
+    def __init__(self, pid, rc, left, *, stubborn=False):
         self.pid = pid
         self._rc = rc
         self._left = left
+        self._stubborn = stubborn
         self.returncode = None
+        self.calls = []
+
+    def terminate(self):
+        self.calls.append("terminate")
+        if not self._stubborn:
+            self.returncode = -15
+
+    def kill(self):
+        self.calls.append("kill")
+        self.returncode = -9
+
+    def wait(self, timeout=None):
+        self.calls.append("wait")
+        if self.poll() is None:
+            raise subprocess.TimeoutExpired("fake child", timeout)
+        return self.returncode
 
     def poll(self):
+        if self.returncode is not None:
+            return self.returncode
         if self._left <= 0:
             if self._rc is not None:
                 self.returncode = self._rc
@@ -98,7 +117,8 @@ def _fake_spawn(monkeypatch, plans, stop_after=None):
             f.write(plan["bytes"])
             f.flush()
         proc = _StubProc(1000 + len(spawned), plan.get("rc"),
-                         plan.get("left", 0))
+                         plan.get("left", 0),
+                         stubborn=plan.get("stubborn", False))
         spawned.append((argv, proc))
         if stop_after is not None and len(spawned) >= stop_after:
             os.environ[dispatch._PERSIST_STOP_ENV] = "1"
@@ -216,6 +236,42 @@ def test_live_persistent_child_claims_then_clean_stop_releases_post(
     assert dispatch.main() == 0
     assert seen[0]["pid"] == 1000
     assert seen[0]["session_ref"].startswith("a00-")
+    row = dispatch.geometry_config.load_rows(project / ".agi")[0]
+    assert (row["pid"], row["session_ref"]) == (0, "")
+
+
+def test_inherited_seat_is_claimed_and_forced_stop_precedes_release(
+        project, monkeypatch, capsys):
+    """Inherited AGI_SEAT follows the live path; a stubborn child is killed and
+    reaped before the post can become vacant."""
+    os.environ["AGI_SEAT"] = "probe-seat"
+    spawned = _fake_spawn(monkeypatch, [
+        {"left": 999, "rc": None, "stubborn": True},
+    ])
+    seen = []
+    released_alive = []
+
+    def observe(_seconds):
+        seen.append(dict(dispatch.geometry_config.load_rows(project / ".agi")[0]))
+        os.environ[dispatch._PERSIST_STOP_ENV] = "1"
+
+    real_post = dispatch._persistent_post
+
+    def observe_post(root, seat, proc, agent_id, record, occupied):
+        if not occupied:
+            released_alive.append(proc.poll())
+        return real_post(root, seat, proc, agent_id, record, occupied)
+
+    monkeypatch.setattr(dispatch, "_PERSIST_SLEEP", observe)
+    monkeypatch.setattr(dispatch, "_persistent_post", observe_post)
+    monkeypatch.setattr(
+        sys, "argv", _argv(project, "--persistent"))
+
+    assert dispatch.main() == 0
+    assert seen[0]["pid"] == 1000
+    assert seen[0]["session_ref"].startswith("a00-")
+    assert spawned[0][1].calls == ["terminate", "wait", "kill", "wait"]
+    assert released_alive == [-9]
     row = dispatch.geometry_config.load_rows(project / ".agi")[0]
     assert (row["pid"], row["session_ref"]) == (0, "")
 
