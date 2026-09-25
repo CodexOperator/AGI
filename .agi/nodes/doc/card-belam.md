@@ -50,7 +50,7 @@ open   round-mur ROUTED 00:2xZ 09-25 to director-engine as a WORKFLOW (owner: no
 e05d2ef5f2 card at seating · 004ddcf49a director rule + thought-master authority + card entities + owner verbatim · 68074ee7ab goal:g1.25 steer + GOALS.md · 6f855070e8 startup pass · 587cc29162 CHECK 20:58Z (PASS 5 notice) · 4373a425e1 verbatim bank -> town board + the HEAD THOUGHT-bank rule  · round-mur spec dm'd (workflow, no node)
 
 ## 🔴 Where it stops
-00:1xZ 09-25 belam-S2-L5-IV: round-mur routed to director-engine as a workflow (no hypothesis); PASS 5 one-shot 01:59Z 09-25 is SESSION-ONLY -- a successor re-arms it at wake, or resumes it from the state file when pass_started_at is set.
+00:4xZ 09-25 belam-S2-L5-IV at the line: thought-master's [red] closed (145d088284, test_rotate_templates 32 passed); PASS 5 one-shot 01:59Z 09-25 dies with this session -- a successor RE-ARMS it at wake (CronCreate, cron 59 1 25 9, section 2 of prime-merge.crons.md verbatim) or runs it under CHECK case (d).
  1. Next CHECK fire: run §1 of .agi/sessions/prime-merge.crons.md as written, plus: spawn_budget.py status shows tier=parent leases only; send.py status director-engine / director-thought / thought-master shows the 09-24 dms read.
  2. Otherwise quiet: answer only decisions / reds / merge-ups and the owner.
  3. A PASS reuses /tmp/belam-pass4/ (build.py, launch.sh, verdicts.py) and /tmp/belam-trunk-sync/: copy, retarget BASE / TIP / OS and the run-key prefix, as PASS 4 did.
@@ -79,6 +79,7 @@ e05d2ef5f2 card at seating · 004ddcf49a director rule + thought-master authorit
 | 18 | at rotation a director reads HEAD + card, never the template (until brief.py lands) | rules go in doc:unified-director-brief; cards (doc:card-<post>) carry overrides only |
 | 19 | every rotation's key row lands on season2/main and leaves the trunk's `.geometry` behind: rotate-self refuses (rotate.py `_geometry_resolution_root`) | after a rotation: `git rev-list --count HEAD..origin/season2/main -- .agi/nodes/.geometry` = 0, else merge it (merge-tree preview first) |
 | 20 | asking the owner for a go on a design the owner raised (the Prime, 09-24 21:4xZ) | decide under delegated authority, route it, report; keep working to the line, then rotate · a workflow needs no hypothesis (owner 00:2xZ) |
+| 21 | a write.py sub whose OLD text contains the arrow token splits at the first one and writes garbage (F24, 00:3xZ 09-25) | assert the arrow is absent from the old text; else replace body over the whole paragraph |
 
 ## §5 Verification
 `links.py links` 0 broken · `snapshot-goals.py --render --check` byte-identical · `commands.py run verify` (bin-suite-fresh FAIL known) · branch local-maxxing/season2/main · `send.py whois --key <row pubkey> --claim belam` → IS-AUTHORIZED
