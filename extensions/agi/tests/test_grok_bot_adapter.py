@@ -9,6 +9,7 @@ being swallowed by `importorskip`.
 from __future__ import annotations
 
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -109,6 +110,41 @@ def test_restart_is_a_real_respawn_not_a_stub():
     assert callable(grok.restart)
 
 
+def test_restart_holds_default_pane_with_sanitized_env(monkeypatch, tmp_path):
+    """The default route creates/reuses one named pane and threads its env."""
+    calls = []
+    exists = False
+
+    class Result:
+        returncode = 0
+        stdout = "7341\n"
+
+    def fake_run(args, **kwargs):
+        nonlocal exists
+        calls.append(args)
+        if args[:2] == ["tmux", "has-session"]:
+            found, exists = exists, True
+            return subprocess.CompletedProcess(args, 0 if found else 1)
+        return Result()
+
+    monkeypatch.setattr(grok.subprocess, "run", fake_run)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "must-drop")
+    harness = {**RESTART_HARNESS, "env": {"HARNESS_SENTINEL": "yes"}}
+    sess = tmp_path / "sess"
+    sess.mkdir()
+
+    assert grok.restart(harness=harness, tier="kid", context_file="ctx",
+                        agent_id="a00-hold", iter_n=1, sess_dir=sess) == 7341
+    assert grok.restart(harness=harness, tier="kid", context_file="ctx",
+                        agent_id="a00-hold", iter_n=1, sess_dir=sess) == 7341
+    creation, respawn = (c for c in calls if c[1] in ("new-session", "respawn-pane"))
+    assert creation[creation.index("-s") + 1] == "agi-grok-a00-hold"
+    assert respawn[respawn.index("-t") + 1] == "agi-grok-a00-hold"
+    for command in (creation, respawn):
+        assert "HARNESS_SENTINEL=yes" in command
+        assert not any("OPENROUTER_API_KEY" in item for item in command)
+
+
 def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path):
     """Popen faked so no real `grok-bot` binary is needed. Rebuilds the
     identical argv via build_command, spawns detached, stamps the record."""
@@ -122,6 +158,7 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
         captured["kwargs"] = kwargs
         return FakeProc()
 
+    monkeypatch.setattr(grok, "HOLD_PANE", False)
     monkeypatch.setattr(grok.subprocess, "Popen", fake_popen)
     sess = tmp_path / "sess"
     sess.mkdir()
@@ -152,6 +189,7 @@ def test_restart_returns_none_when_popen_fails(monkeypatch, tmp_path):
     def boom(args, **kwargs):
         raise OSError("no such binary")
 
+    monkeypatch.setattr(grok, "HOLD_PANE", False)
     monkeypatch.setattr(grok.subprocess, "Popen", boom)
     sess = tmp_path / "sess"
     sess.mkdir()

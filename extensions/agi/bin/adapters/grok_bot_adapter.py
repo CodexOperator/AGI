@@ -15,6 +15,7 @@ into this file.
 from __future__ import annotations
 import json
 import os
+import shlex
 import subprocess
 import sys
 import time
@@ -28,6 +29,9 @@ NAME = "grok-bot"
 #: (PATH-resolved by Popen). The configured box path is a config cell, not
 #: a literal here.
 DEFAULT_BIN = "grok-bot"
+
+#: Persistent seats live in one named tmux session across process restarts.
+HOLD_PANE = True
 
 
 def resolve_bin(harness: dict) -> str:
@@ -98,6 +102,37 @@ def _restart_cwd(sess_dir: Path, agent_record: dict | None) -> Path:
     return Path(sess_dir).parent.parent.parent
 
 
+def tmux_hold(*, args: list[str], agent_id: str, cwd: Path,
+              env: dict[str, str], log_file: Path) -> int | None:
+    """Create or respawn the seat's stable named tmux pane; return its PID."""
+    target = f"agi-grok-{agent_id}"
+    env_args = [item for key, value in env.items()
+                for item in ("-e", f"{key}={value}")]
+    command = shlex.join(
+        ["sh", "-c", 'log=$1; shift; exec "$@" >>"$log" 2>&1',
+         "sh", str(log_file), *args])
+    try:
+        exists = subprocess.run(
+            ["tmux", "has-session", "-t", target],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+        if exists:
+            create = ["tmux", "respawn-pane", "-k", "-t", target]
+        else:
+            create = ["tmux", "new-session", "-d", "-P", "-F",
+                      "#{pane_pid}", "-s", target]
+        out = subprocess.run(
+            [*create, "-c", str(cwd), *env_args, command],
+            check=True, capture_output=True, text=True).stdout
+        if exists:
+            out = subprocess.run(
+                ["tmux", "display-message", "-p", "-t", target, "#{pane_pid}"],
+                check=True, capture_output=True, text=True).stdout
+        return int(out.strip())
+    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+        print(f"tmux hold failed for {agent_id}: {exc}", file=sys.stderr)
+        return None
+
+
 def restart(
     *,
     harness: dict,
@@ -134,21 +169,23 @@ def restart(
     )
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
-    try:
-        with open(log_file, "ab") as logf:
-            proc = subprocess.Popen(
-                args,
-                stdout=logf,
-                stderr=subprocess.STDOUT,
-                stdin=subprocess.DEVNULL,
-                start_new_session=True,
-                cwd=str(_restart_cwd(sess_dir, agent_record)),
-                env=env,
-            )
-    except OSError as exc:
-        print(f"restart failed for {agent_id}: {exc}", file=sys.stderr)
+    cwd = _restart_cwd(sess_dir, agent_record)
+    if HOLD_PANE:
+        new_pid = tmux_hold(args=args, agent_id=agent_id, cwd=cwd, env=env,
+                            log_file=log_file)
+    else:
+        try:
+            with open(log_file, "ab") as logf:
+                proc = subprocess.Popen(
+                    args, stdout=logf, stderr=subprocess.STDOUT,
+                    stdin=subprocess.DEVNULL, start_new_session=True,
+                    cwd=str(cwd), env=env)
+        except OSError as exc:
+            print(f"restart failed for {agent_id}: {exc}", file=sys.stderr)
+            return None
+        new_pid = proc.pid
+    if new_pid is None:
         return None
-    new_pid = proc.pid
     if agent_record is not None:
         agent_record["pid"] = new_pid
         agent_record["status"] = "restarted"
