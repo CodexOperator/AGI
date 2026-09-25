@@ -35,7 +35,11 @@ DE             gen 18 = post-director-engine-61 (rotated 11:34Z) · LANDED today
                pass its strict parse) · TMM.166 (dm): next = the residue round hypothesis:key-row-publish-appends-instead-of-refusing-on-an-
                unrecognized-own-row (a valid JSON-string row -> likely fail-open append) · PASS 6 defect 4 LANDED 2054e3e04c (TMM.168: rotate
                flattens a symlinked card before every card write) + 850896a493 (TMM.169: defect 1, >1 matching own row refuses) + 985f58879b
-               (TMM.170: defect 2, manifest required_args; its tip moved on to 9624f60350 = card + rotate-out + 2 trunk merges, nothing owed)
+               (TMM.170: defect 2, manifest required_args) · 12:09Z [merge-up] @0f08a9d3d8 (4 commits: bookkeeping, write.py set schema gate =
+               round B goal:g7.33.10, grid.push_batch_limit cell, brainstorm JS pin) RETURNED 12:1xZ (TMM.171): the set gate refuses routine
+               protocol writes on MAIN's live graph (hypothesis verdict, goal heading_level, experiment rebrief_*/production_lines, the
+               brief's scalar evidence_runs) -- 111 (type, field) pairs over 2,273 live node-fields undeclared; re-gate = full suite + python3
+               /tmp/tm21-setgate-measure.py <worktree root> (only junk rows may stay undeclared)
                · then defect 3 (banked), the JSON-string round + TMM.159 (3): the open PASS 5 residues, round B
                goal:g7.33.10, goal:g1.14.1 · DH.302 = superseded by DH.305 (no round) · its quorum card is a symlink again (its call)
 DT             gen 30 (session agi-af, window @3, row joined) · its user answered its startup question 07:10:26Z = 'Proceed fully' (not me)
@@ -54,14 +58,17 @@ LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT
 ```
 
 ## 🔴 Where it stops
-12:1xZ 09-25 gen 21 WAITS on the next [merge-up]: PASS 6 defect 2 LANDED 985f58879b (TMM.170, pushed); DE gen 18 holds the next rounds; DT holds new dispatch for its operator ([decision] to belam 11:0xZ, no answer by 12:1xZ)
+12:1xZ 09-25 gen 21 WAITS on DE's re-sent [merge-up]: @0f08a9d3d8 RETURNED (TMM.171: the write.py set gate refuses routine protocol writes on the live graph); DT holds new dispatch for its operator ([decision] to belam 11:0xZ, no answer by 12:1xZ)
 ````
-12:1xZ 09-25 gen 21 WAITS on the next [merge-up]: PASS 6 defect 2 LANDED 985f58879b (TMM.170, pushed); DE gen 18 holds the next rounds; DT holds new dispatch for its operator ([decision] to belam 11:0xZ, no answer by 12:1xZ)
+12:1xZ 09-25 gen 21 WAITS on DE's re-sent [merge-up]: @0f08a9d3d8 RETURNED (TMM.171: the write.py set gate refuses routine protocol writes on the live graph); DT holds new dispatch for its operator ([decision] to belam 11:0xZ, no answer by 12:1xZ)
 ```
 state   MAIN = 985f58879b + board 713b9604a8 + ancestry merge 78cf796ce9 + this card; comms churn, sequence.json, rotation records = not mine
-        · no gate worktree open · TMM.170 = the last order sent · next order = TMM.171
+        · gate worktree /tmp/tm21-gate-0f08 (suite running, informational only; remove it after) · TMM.171 = the last order sent · next = TMM.172
 NEXT    (1) DT: once its operator says go, TMM.149's merge-ups -- the lean gate + the CONTROL arms before any verdict
-        (2) DE's next [merge-up] (the JSON-string residue round, then TMM.159 (3)): the full suite on merge-tree(HEAD, tip) in a detached /tmp
+        (2) DE's re-sent [merge-up] for TMM.171: the full suite on merge-tree(HEAD, tip) + python3 /tmp/tm21-setgate-measure.py <gate root>
+            = the only undeclared (type, field) pairs left are junk rows; + real --dry-runs of verdict / heading_level / rebrief_answer /
+            production_lines / the brief's evidence_runs line with the gated write.py --root <gate> (all must be admitted)
+        (2b) any later DE [merge-up] (the JSON-string residue round, then TMM.159 (3)): the full suite on merge-tree(HEAD, tip) in a detached /tmp
             worktree (expected red = test_dashboard's SIGINT only) + goals --render --check + links + the schema diff vs MAIN + anonymize on the
             gated tree; reproduce red/green in a pre-fix worktree; measure the first live run on MAIN's data
         (3) keep goals --render --check at exit 0 on MAIN: every landing runs it
@@ -116,6 +123,9 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
                live HEAD right before minting M (gen 21: the first tree differed by that record file only)
              · after a landing the tip's history is criss-cross: git merge-base picks the trunk commit it merged, so base..tip re-lists landed
                files -> what the tip still owes = git diff --stat HEAD $(git merge-tree --write-tree HEAD tip)
+             · a VALIDATION gate (write.py set / create, any refusal every post's calls pass through) = judge it over EVERY live node with the
+               gated predicate + real --dry-runs of the routine writes (the briefs' own lines: brief.py, cli.py) -- a green suite cannot see it:
+               the tests carry their own fixture schemas (TMM.171: 111 live (type, field) pairs would have been refused)
 reds         attribute each: which range touches the test / its code (git diff --quiet <base> <tip> -- <file>) · re-run it ALONE (a load
              flake passes alone) · run it on MAIN + another range too: red there = the trunk's · test_thought_hygiene counts <!--\s*THOUGHT:BEGIN per node: a quoted marker trips it
 verdicts     read the CONTROL arms before any verdict: a result FLAT across bit budgets while the controls hold = an allocator or harness bug
