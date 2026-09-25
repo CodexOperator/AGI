@@ -213,6 +213,40 @@ def live_cfg(live_cfg_raw) -> dict:
     return live_cfg_raw
 
 
+# ------------------------------------------------------------ pane capability
+
+
+def test_optional_pane_methods_are_present_and_fail_closed(monkeypatch):
+    assert callable(grok.pane_attach)
+    assert callable(grok.pane_send)
+    assert callable(grok.pane_read)
+    monkeypatch.setattr(grok, "_HELD_PANE", None)
+    with pytest.raises(grok.PaneNotHeldError, match="no Grok pane held"):
+        grok.pane_send("hello")
+    with pytest.raises(grok.PaneNotHeldError, match="no Grok pane held"):
+        grok.pane_read()
+
+
+def test_held_pane_send_and_read_use_tmux(monkeypatch):
+    calls = []
+
+    class Result:
+        stdout = "held output\n"
+
+    def fake_run(args, **kwargs):
+        calls.append((args, kwargs))
+        return Result()
+
+    monkeypatch.setattr(grok.subprocess, "run", fake_run)
+    monkeypatch.setattr(grok, "_HELD_PANE", None)
+    assert grok.pane_attach("session:0.1") == "session:0.1"
+    grok.pane_send("next step")
+    assert grok.pane_read() == "held output\n"
+    assert calls[0][0] == ["tmux", "has-session", "-t", "session:0.1"]
+    assert calls[1][0] == ["tmux", "send-keys", "-t", "session:0.1", "next step", "Enter"]
+    assert calls[2][0] == ["tmux", "capture-pane", "-p", "-J", "-t", "session:0.1"]
+
+
 def test_live_config_grok_row_resolves(live_cfg, monkeypatch):
     """The on-disk `grok-bot` row resolves to the adapter, and its live `bin`
     cell reaches the argv that actually spawns.

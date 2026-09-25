@@ -29,6 +29,47 @@ NAME = "grok-bot"
 #: a literal here.
 DEFAULT_BIN = "grok-bot"
 
+#: Pane operations are optional capabilities.  They live on this adapter so
+#: callers do not need a second grok-specific module or dispatch branch.
+#: The target is deliberately process-local: a pane belongs to this adapter
+#: instance/session, and no pane means no operation rather than a no-op.
+class PaneNotHeldError(RuntimeError):
+    """Raised when a pane operation is requested before pane_attach()."""
+
+_HELD_PANE: str | None = None
+
+
+def _tmux(*args: str, capture: bool = False) -> str:
+    result = subprocess.run(
+        ["tmux", *args], check=True, text=True,
+        stdout=subprocess.PIPE if capture else subprocess.DEVNULL,
+    )
+    return result.stdout if capture else ""
+
+
+def pane_attach(target: str) -> str:
+    """Hold and validate a tmux pane target, returning its name."""
+    global _HELD_PANE
+    if not isinstance(target, str) or not target.strip():
+        raise ValueError("pane target must be a non-empty string")
+    _tmux("has-session", "-t", target)
+    _HELD_PANE = target
+    return target
+
+
+def pane_send(text: str) -> None:
+    """Send text to the held pane, failing closed when none is held."""
+    if _HELD_PANE is None:
+        raise PaneNotHeldError("no Grok pane held; call pane_attach(target) first")
+    _tmux("send-keys", "-t", _HELD_PANE, text, "Enter")
+
+
+def pane_read() -> str:
+    """Capture text from the held pane, failing closed when none is held."""
+    if _HELD_PANE is None:
+        raise PaneNotHeldError("no Grok pane held; call pane_attach(target) first")
+    return _tmux("capture-pane", "-p", "-J", "-t", _HELD_PANE, capture=True)
+
 
 def resolve_bin(harness: dict) -> str:
     """$GROK_BOT_BIN > harness bin > default (pi_adapter's precedence)."""
