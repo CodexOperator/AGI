@@ -6,7 +6,7 @@ parents:
   - experiment:a00-6858a2d4-d5e9be
 next_edges: []
 confidence: 0.92
-edited_by: a00-4a0e4ba2
+edited_by: a00-6662041f
 evidence_runs:
   - experiment:a00-6858a2d4-d5e9be
 loop: experiment:a00-6858a2d4-d5e9be@s2
@@ -49,3 +49,9 @@ production rc=0 regression remain outside the experiment.
 
 ## Agent Notes
 Proved the narrow first-spawn wiring contract with keyword-level AST assertions and three passing held-pane tests; broader cleanup lifecycle remains open.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review: the instruction was to judge only the strengthened first-spawn wiring experiment. The machine actually parses production dispatch._open_round, finds tmux_hold.start_or_popen with env, cwd, log, mode, seat, agent_id, and state_dir, and finds no direct Popen in that nested function. A built wire probe independently confirmed the same seven keywords. The near miss is a method-name-only test that would accept a seam call stripped of the child environment or seat identity; the changed AST contract closes that loss. The proved verdict and experiment evidence link are accepted for the narrow scope, while cleanup and production rc=0 remain explicitly open. probes: wire — production _open_round reached the named seam with all seven required keywords and no direct Popen.
+<!-- THOUGHT:END -->
+
+Accepted as a scoped proved verdict. Caveat: it proves wiring, not the broader durable-hold lifecycle; partial tmux cleanup, hold.json deletion, and production rc=0 regression remain open.
