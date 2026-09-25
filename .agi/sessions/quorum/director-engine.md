@@ -178,105 +178,12 @@ THE REAL TOWN TRUNK CAN BE AHEAD OF `origin/local-maxxing/season2/main` BY A WID
 ```
 
 ## 🔴 WHERE IT STOPS — the one next command (21:0xZ 09-24, gen 11 -> rotating now)
-``````
-`````
-````
 ```
-1  Check BOTH parents: `python3 extensions/agi/bin/spawn_budget.py status` -- DH.297 (agent a00-65a116b4,
-   g7.33.11) and DH.298 (agent a00-9b2301d9, T1). Each supervises its own kids -- do NOT intervene unless
-   one dm's a blocker or reports done. Harvest each INDEPENDENTLY as it finishes, don't wait for both:
-   per BUILD LOOP #3, read the kid diffs (may be UNCOMMITTED in a kid's own worktree even after its done
-   commit, see TRAPS -- ALWAYS check `git status` there even when the done commit looks complete), verify
-   against bytes, `git merge --no-ff`, re-run the full suite on the merged HEAD yourself (not `| tee`
-   blindly, read the log's real summary line -- see TRAPS), then ONE mur pass per closed round, ONE
-   [merge-up] per batch (can combine both into one merge-up if they land close together, or send two --
-   your call, per the "batch, don't steer" rule).
-2  Confirm merge-up #9 actually reached thought-master: `python3 extensions/agi/bin/send.py status
-   thought-master` (it was queued while their pane was busy, nudge coalesced -- the sweep should have
-   delivered it by now; if not, `send.py wake thought-master` once idle, never on a busy pane).
-3  Check the inbox first thing: `python3 extensions/agi/bin/send.py read director-engine`. thought-master
-   now co-owns the director docs with the Prime (owner 20:4xZ) -- a rules update may land as a direct
-   commit to doc:unified-director-brief / doc:card-director-engine rather than only a dm; diff your card
-   against the trunk's copy if anything looks stale.
-4  T1 (rotation_alert.py's capture-declined/captured/captive-deferred cluster) -- DISPATCHED this session
-   as **DH.298, a PARENT**: minted hypothesis:rotation-alert-t1-capture-cluster-templated (parent
-   goal:g5.32, same nesting T0 used, committed b3e6ae9cc4), agent `a00-9b2301d9`, pid 3401643, branch
-   `season2/loops/hypothesis-rotation-alert-t1-cap-a00-9b2301d9`. Orders:
-   `.agi/sessions/de-0923/dh298-orders.md`. **IN FLIGHT, NOT YET HARVESTED as I rotate** -- this post now
-   has TWO parents live simultaneously (DH.297 for g7.33.11, DH.298 for T1) -- both disjoint file scope,
-   safe in parallel; harvest each independently when it reports done, do not wait for both together.
-   The prose_templates storage mechanism (context, already in the orders file, no need to re-derive):
-   plain files at
-   `extensions/agi/templates/<family>/<name>.md`, read by `prose_templates.render(family, name, **fields)`
-   (prose_templates.py:14-22, a 9-line function: reads the file, `.format(**fields)`s it, refuses missing
-   required fields). Exact template FORMAT confirmed from `extensions/agi/templates/rotation_alert/
-   defer_prefix.md` (single plain-text line, no frontmatter, `{field}` placeholders only where needed --
-   e.g. `beneath_body.md` = "Approaching rotation ({fraction:.4f} of {threshold:.3f} window
-   ({percent:.2f}% of the line))...").
-   Exact CURRENT line numbers (re-grepped this session, extensions/agi/hooks/rotation_alert.py):
-   - line 829: `print(f"rotation: capture for {seat} declined (AGI_HOOK_NO_SPAWN).")`  -- field: seat.
-     New template: rotation_alert/capture_declined.md (or similar name), one field `seat`.
-   - line 843: `print(f"rotation: CAPTURED {seat}'s final card ({minutes} min stale): {line}")` -- fields:
-     seat, minutes, line. New template: rotation_alert/captured.md, three fields.
-   - lines 892-893: `print(f"{DEFER_PREFIX} ({which or 'suite-lock-held'}) — the captive "
-     "auto-rotate does not fire while that holds.")` -- already uses the existing `DEFER_PREFIX = render(
-     "rotation_alert", "defer_prefix")` constant for its first half; only the trailing clause needs a new
-     template (one field: `which`, already computed as `which or 'suite-lock-held'` before the call site,
-     or pass both and let the template decide -- kid's/parent's call).
-   Write real orders directly from this (no more re-deriving needed), dispatch as a PARENT ONLY (no direct
-   kids, ever, per the owner's 20:1xZ-20:4xZ order). Mint a hypothesis under goal:g5.32 or wherever T0's
-   own hypothesis nested (check T0's own node for the right parent before minting a sibling). Then CMP.02,
-   E3-E6.
-5  Before ANY dispatch: sync the town trunk first. `origin/local-maxxing/season2/main` lags the REAL trunk
-   -- the freshest state is the LOCAL branch `local-maxxing/season2/main` checked out at the main checkout
-   `/data/work/agi` (shared object store, same box); `git merge local-maxxing/season2/main` picks up
-   commits before they even reach origin (this is how this session got the owner's 004ddcf49a order before
-   any origin fetch showed it). Also `git fetch origin local-maxxing/season2/main` for anything pushed from
-   elsewhere. Expect to repeat the sync-merge-push cycle more than once if dispatch still refuses (rc 3) --
-   the trunk is actively written by other posts in real time.
-6  Card write LAST, right before rotating. `python3 extensions/agi/bin/rotate.py rotate` (bare) yourself
-   the moment `[meter]` reads f >= 0.47 -- do not wait for a nudge. Write to
-   `.agi/nodes/doc/card-director-engine.md` (keep the frontmatter on top), never the symlink path directly.
+1. Check inbox: python3 extensions/agi/bin/send.py read director-engine -- thought-master's gate on tip 24055dab41 may have already returned.
+2. Resume TMM.144 queue: (2) TMM.136 dispatch.py --orders path template-max fix inside goal:g7.33.9 (re-derive exact ask from the dm log, do not act from a paraphrase); (4) round B on goal:g7.33.10.
+3. Mint the still-missing "fixes leaf" goal for the already-landed agi-research-review fix (tip 74fde134d8) -- read [goal].md schema, --dry-run first, --set heading_level explicitly, NEVER --from-doc (confirmed stale by the owner this session, do not use it).
+Full detail in doc:card-director-engine's LIVE STATE + STOPS and TRAPS sections.
 ```
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted 2026-09-24 20:47Z by the Prime (belam-S2-L5-IV) on the owner's order: "Add the director cards to
-the graph as well." Body = the post's live quorum card at mint, verbatim; from here the post writes to
-this node by absolute path, frontmatter on top, and .agi/sessions/quorum/director-engine.md is a symlink
-to it. This version (gen 11's rotate-out): struck the direct-kid dispatch exception and the old
---tier <parent|kid> --harness <h> line per the same owner order (the canonical form now lives once in
-doc:unified-director-brief §1, not duplicated here); closed out R0's whole arc (merge-up #9 sent, mur-9-7
-accept_with_residue on one already-banked item); dispatched DH.297 as this post's first PARENT-only round
-under the new rule, for g7.33.11, in flight and unharvested at rotation -- the next generation's pickup
-point.
-<!-- THOUGHT:END -->
-````
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted 2026-09-24 20:47Z by the Prime (belam-S2-L5-IV) on the owner's order: "Add the director cards to
-the graph as well." Body = the post's live quorum card at mint, verbatim; from here the post writes to
-this node by absolute path, frontmatter on top, and .agi/sessions/quorum/director-engine.md is a symlink
-to it. This version (gen 11's rotate-out): struck the direct-kid dispatch exception and the old
---tier <parent|kid> --harness <h> line per the same owner order (the canonical form now lives once in
-doc:unified-director-brief §1, not duplicated here); closed out R0's whole arc (merge-up #9 sent, mur-9-7
-accept_with_residue on one already-banked item); dispatched DH.297 as this post's first PARENT-only round
-under the new rule, for g7.33.11, in flight and unharvested at rotation -- the next generation's pickup
-point.
-<!-- THOUGHT:END -->
-`````
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted 2026-09-24 20:47Z by the Prime (belam-S2-L5-IV) on the owner's order: "Add the director cards to
-the graph as well." Body = the post's live quorum card at mint, verbatim; from here the post writes to
-this node by absolute path, frontmatter on top, and .agi/sessions/quorum/director-engine.md is a symlink
-to it. This version (gen 11's rotate-out): struck the direct-kid dispatch exception and the old
---tier <parent|kid> --harness <h> line per the same owner order (the canonical form now lives once in
-doc:unified-director-brief §1, not duplicated here); closed out R0's whole arc (merge-up #9 sent, mur-9-7
-accept_with_residue on one already-banked item); dispatched DH.297 as this post's first PARENT-only round
-under the new rule, for g7.33.11, in flight and unharvested at rotation -- the next generation's pickup
-point.
-<!-- THOUGHT:END -->
-``````
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Minted 2026-09-24 20:47Z by the Prime (belam-S2-L5-IV) on the owner's order: "Add the director cards to
