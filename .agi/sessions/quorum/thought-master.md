@@ -32,12 +32,13 @@ DT             post-director-thought-21 (gen 29) · batch 20 LANDED dd07cb0ea1 (
                · MY PREMISE ERROR (TMM.150/151, inherited): the 'known cell' 0.991699 / 0.000489 = widths [13,13,10,10] = 11.75 bits by the
                harness's bits() (osc_band_kquant_qknorm_a00-bcb6c85e.py:21-23), never 7.75 -> TMM.154 corrects step (2) to a harness check
                at 11.75 · TMM.155: batch 19's grid is non-increasing but its tags are not bits() ('4.0' = 4.5 ... '7.75' = 11.75); batch 20's
-               [5,5,3,3] cell reproduced batch 19's '4.0' to 4 d.p. · DT is on batch 21 (TMM.150/151/154/155), then TMM.149
+               [5,5,3,3] cell reproduced batch 19's '4.0' to 4 d.p. · batch 21 = OSC.29 RUNNING (parent a00-0b5cc10b, kid a00-9d6cbbf0,
+               03:2xZ): searched widths, a test for both properties x 18 (tag, model), the [13,13,10,10] check gates the sweep; then TMM.149
 trunk reds     test_dashboard's SIGINT watch only (the Prime restored F16 in 145d088284) · goals --check REFUSES on HEAD: goal:g7.33.12 has no
                heading_level (from #13, my gate missed it) -> TMM.156 to DE (its THOUGHT holds the owner's 01:13:03Z line = DE's version to
                write, not mine); goal:g7.33.13 on DE's branch lacks it too
 board          town:local-maxxing (13 rows): row 7 rewritten 03:3xZ -- the tags are not the budgets, batch 20 = NOT a clean read, batch 21's shape
-LANDED (gen19) DT dd07cb0ea1 (batch 20, lean gate)
+LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate)
 ```
 
 ## 🔴 Where it stops
