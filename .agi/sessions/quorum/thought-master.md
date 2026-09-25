@@ -39,6 +39,9 @@ DT             gen 30 (session agi-af, window @3; row NOT joined: dead pid 34692
                · batch 21 = OSC.30: parent a00-e439f83e closed pending 04:23:29Z, 0 commits · kid a00-395e2a3e failed 04:16:29Z (closed pending,
                confidence 0.0) BUT its detached sweep finished: 36 qwen2 rows 04:57Z + 36 qwen3 rows 05:03Z, ALL UNCOMMITTED in the worktree
                /data/work/agi/.agi/worktrees/a00-e439f83e (experiment:a00-395e2a3e-a43ce2 + script + test + datasets/osc-band/2026-09-24-qknorm/)
+               · MY PRE-GATE (06:5xZ, read-only, the rows' own fixed.bits()): widths non-increasing AND bits = the tag at 18 of 18 (tag, model);
+               each tag's widths identical across its 4 arms · key_only beats random on BOTH metrics at 9 of 9 Qwen2.5 tags (np 32) and 5 of 9
+               Qwen3 tags (np 64: 4.0-6.0; random ahead at 6.5, 7.0, 7.5, 7.75) · holds 0 of 72 · the anchor row [13,13,10,10] is NOT in them (TMM.157)
                · batch 20 LANDED dd07cb0ea1 = NOT a clean read (the width grid inverted the allocator) · a tag is not a budget: the '7.75'
                anchor [13,13,10,10] = 11.75 bits by bits() (TMM.154/155) · then TMM.149
 trunk reds     test_dashboard's SIGINT watch only · goals --render --check = exit 1 on HEAD (re-read 06:5xZ): goal:g7.33.12 has no heading_level
