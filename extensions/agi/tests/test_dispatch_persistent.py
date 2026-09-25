@@ -13,6 +13,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -181,6 +182,34 @@ def test_fire_and_forget_default_spawns_no_supervisor(
     assert agents and agents[0]["tier"] == tier, agents
     assert "persistent" not in agents[0], agents
     assert "restart_count" not in agents[0], agents
+
+
+@pytest.mark.parametrize("tier", ["kid", "parent"])
+def test_default_argv_matches_pre_persistent_seam(
+        project, monkeypatch, tier):
+    """The pre-g7.28 non-persistent argv fixture is the default call seam.
+
+    There is no historical command fixture in the repository, so the falsifier
+    reconstructs the expected parity by dispatching the same role once on the
+    default path and once with the persistent switch.  The switch must not
+    reach argv; otherwise non-persistent dispatch has silently changed.
+    """
+    default = _fake_spawn(monkeypatch, [{"left": 999, "rc": None}])
+    monkeypatch.setattr(sys, "argv", _argv(project, "--tier", tier))
+    assert dispatch.main() == 0
+    default_argv = default[0][0]
+
+    persistent = _fake_spawn(monkeypatch, [{"left": 999, "rc": None}],
+                             stop_after=1)
+    monkeypatch.setattr(sys, "argv", _argv(project, "--tier", tier,
+                                           "--persistent"))
+    assert dispatch.main() == 0
+    def _without_minted_ids(argv):
+        return [re.sub(r"a00-[0-9a-f]+(?:-[0-9a-f]+)?", "<agent>", arg)
+                for arg in argv]
+
+    assert _without_minted_ids(persistent[0][0]) == _without_minted_ids(
+        default_argv)
 
 
 def test_record_carries_persistent_live_pid_and_restart_count(
