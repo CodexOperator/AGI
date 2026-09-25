@@ -111,6 +111,7 @@ def _fake_spawn(monkeypatch, plans):
         return proc
 
     monkeypatch.setattr(subprocess, "Popen", _patched)
+    monkeypatch.setattr(dispatch, "_tmux_start", lambda *a, **kw: None)
     monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
     return spawned
 
@@ -329,6 +330,7 @@ def test_rc5_exhaustion_unlinks_the_orders_copy(
         return _StubProc(1000 + len(spawned), 1, 0)  # always-dying child
 
     monkeypatch.setattr(subprocess, "Popen", _patched)
+    monkeypatch.setattr(dispatch, "_tmux_start", lambda *a, **kw: None)
     monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
     monkeypatch.setattr(dispatch, "_GRACE_BACKOFF_S", (0, 0))
     monkeypatch.setattr(sys, "argv", _argv(
