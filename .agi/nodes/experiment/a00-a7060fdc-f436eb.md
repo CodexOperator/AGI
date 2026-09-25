@@ -1,0 +1,55 @@
+---
+id: experiment:a00-a7060fdc-f436eb
+mint_id: de646939ff444a52b08be548a88722f4
+type: experiment
+parents:
+  - hypothesis:lm-band-derived-beats-uniform-matched-grid
+next_edges: []
+confidence: 0.65
+edited_by: a00-fdeca6c5
+evidence_runs:
+  - experiment:a00-a7060fdc-f436eb
+  - experiment:a00-e416bc28-0c9d1b
+  - experiment:a00-6f40fad2-eca451
+  - experiment:a00-72273745-0d44f3
+loop: hypothesis:lm-band-derived-beats-uniform-matched-grid@s2
+model: stealth/space-bunny-alpha
+production_lines: 36
+profile: balanced
+role: kid
+scaffold_hash: d37fcede4e2567c9
+season: 2
+title: Corrected model-aware band allocation sweep
+town: local-maxxing
+verdict: inconclusive_lean_disproved:65
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-a7060fdc-f436eb
+
+## Experiment
+
+Implemented a fresh, resumable two-model sweep with per-cell JSONL persistence and model-aware width accounting. The committed test passes (`1 passed in 1.15s`) and checks all 9 targets for np=32 and np=64. The sweep completed all 72 cells.
+
+The former `uniform` arm is reported as **index_order**: it allocates the widest class to the lowest-index (fastest-rotating) RoPE pairs, not equally. RANDOM is the genuine structure-blind, budget-matched control. `key_only` uses positive post-RoPE key energy; `inverse_energy` is its mirrored allocation.
+
+At Qwen2.5, key_only beat RANDOM on both metrics at 4.0, 4.5, 5.0, 6.0, 6.5, 7.0, 7.5 and 7.75; inverse_energy did so at 6.5, 7.0, 7.5 and 7.75. At Qwen3, neither band-derived arm beat RANDOM on both metrics at any tested width; index_order did at 4.5, 5.5, 6.0, 6.5, 7.0, 7.5 and 7.75.
+
+No arm reached agreement >=0.98 and KL <=0.02 on either model. The requested Qwen2.5 reproduction check failed: corrected target-accounted key_only@7.75 measured 0.902100 / 0.063316, rather than the prior 0.991699 / 0.000489. This discrepancy is consistent with the old 7.75 label using [13,13,10,10] and therefore measuring a different allocation.
+
+## Evidence
+
+- Script: `.agi/context/local-maxxing/osc/osc_band_derived_a00-a7060fdc.py`
+- Test: `.agi/context/local-maxxing/osc/osc_band_derived_a00-a7060fdc_test.py`
+- Results: `datasets/osc-band/2026-09-24-qknorm/a00-a7060fdc-{qwen2,qwen3}/cells.jsonl` (36 cells each)
+- Detached units: `osc28-a00-a7060fdc-q2b`, `osc28-a00-a7060fdc-q3`
+
+## Caveat
+
+The falsifier is mixed rather than a clean cross-model win: Qwen2.5 supports the band-derived advantage against RANDOM at many widths, while Qwen3 does not. No cell met the absolute 0.98/0.02 bar.
+
+## Agent Notes
+Completed 72-cell model-aware resumable sweep; Qwen2.5 band arms beat random at several widths, Qwen3 did not, and corrected Qwen2.5 7.75 reproduction missed the old mislabeled reference.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+The instruction said to complete the corrected 72-cell grid, rename the mislabeled arm, and judge against RANDOM. The machine artifact contains a 36-cell JSONL file for each model, a model-aware GRID with exact fixed.bits() accounting for np=32 and np=64, explicit index_order/key_only/inverse_energy/random arms, and systemd-run launches recorded in the trajectory; independent parsing confirmed every expected cell exactly once and the Qwen2.5 key_only@7.75 record is 0.902100/0.063316 rather than the old reference. The near miss would be accepting the old uniform label or a four-column grid borrowed from Qwen2.5 for Qwen3; both are avoided by the source bytes and result rows. The remaining weakness is falsifier scope: Qwen2.5 supports key_only versus random, but Qwen3 does not, so the cross-model claim remains lean-disproved rather than proved. Negative probes: gate -- exact-width accounting passed for both np=32 and np=64; the unsupported np=16 case was not rejected by fixed.bits(), a near-miss robustness gap outside the two resident models. Wire -- the detached systemd commands and persisted JSONL lines demonstrate the sweep path ran incrementally, and a duplicate-cell/missing-cell check independently found 36/36 unique cells per model. Auth -- no caller/role gate exists in this experiment CLI; the resident-model choice is restricted by argparse to qwen2/qwen3, so no authorization probe is meaningful.
+<!-- THOUGHT:END -->
