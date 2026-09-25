@@ -42,13 +42,15 @@ def project(tmp_path: Path) -> Path:
     (graph / "nodes" / "goal").mkdir(parents=True)
     (graph / "config.json").write_text(json.dumps({
         "harnesses": {"pi": {"adapter": "pi", "provider": "fake",
-                             "models": {"kid": "deepseek-v4"}}},
+                             "models": {"kid": "deepseek-v4",
+                                        "parent": "glm-flash"}}},
         "spawn": {"harness": "pi", "parallel": 1, "max_live": 25},
         "agent_dispatch": {"inline_reaper": False},
     }))
     (graph / "nodes" / ".geometry" / "ladder.md").write_text(
         "---\ncurrent_season: 2\nroles:\n  - {tier: 0, role: kid, "
-        "harness: pi, model: deepseek-v4}\n---\nbody")
+        "harness: pi, model: deepseek-v4}\n  - {tier: 1, role: parent, "
+        "harness: pi, model: glm-flash}\n---\nbody")
     (graph / "nodes" / ".geometry" / "secrets.md").write_text(
         "---\nenv_file: /tmp/definitely-not-a-real-secrets-file-zzz\n---\n")
     (graph / "nodes" / "goal" / "g15.md").write_text(
@@ -164,17 +166,20 @@ def test_persistent_restart_reuses_the_very_same_argv(
     assert len(builds) == 1, f"argv was rebuilt: build_command x{len(builds)}"
 
 
+@pytest.mark.parametrize("tier", ["kid", "parent"])
 def test_fire_and_forget_default_spawns_no_supervisor(
-        project, monkeypatch, capsys):
-    """`--persistent` absent: exactly one spawn, no restart bookkeeping, and
-    no supervisor in the path (the default must be unchanged)."""
+        project, monkeypatch, capsys, tier):
+    """goal:g7.28.2 falsifier 3: without `--persistent`, BOTH kid and parent
+    spawn exactly once, never enter the supervisor, and write no persistent
+    occupation fields. The regression boundary covers both ladder roles."""
     spawned = _fake_spawn(monkeypatch, [{"left": 999, "rc": None}])
-    monkeypatch.setattr(sys, "argv", _argv(project))
+    monkeypatch.setattr(sys, "argv", _argv(project, "--tier", tier))
 
     assert dispatch.main() == 0
     assert len(spawned) == 1, f"default path must not restart: {len(spawned)}"
     agents = _manifest(project)
-    assert agents and "persistent" not in agents[0], agents
+    assert agents and agents[0]["tier"] == tier, agents
+    assert "persistent" not in agents[0], agents
     assert "restart_count" not in agents[0], agents
 
 
