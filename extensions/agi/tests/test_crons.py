@@ -552,11 +552,8 @@ def test_apply_from_plain_clone_does_not_refuse(tmp_path):
     assert len(result["managed_lines"]) == 4
 
 
-def test_apply_from_common_root_only_separator_delta(tmp_path):
-    """ITEM 2 guard: same jobs, same schedules as today — the ONLY textual
-    difference from the old rendering is `;` in place of `&&` between the
-    three grid_sync steps. Assert the delta explicitly so the guard cannot
-    become a behaviour change wearing a guard's clothes."""
+def test_apply_from_common_root_keeps_failure_isolated(tmp_path):
+    """The bounded push and self-reapply each run after commit independently."""
     root = make_project(tmp_path)
     fixture = tmp_path / "crontab.fixture"
     fixture.write_text("")
@@ -570,20 +567,13 @@ def test_apply_from_common_root_only_separator_delta(tmp_path):
     crons_py = engine_root / "extensions" / "agi" / "bin" / "crons.py"
     udir = Path.home() / ".config" / "systemd" / "user"
 
-    # What today rendered (the `&&` chain, plus the residue-b --unit-dir on
-    # the self-reapply) — reconstructed honestly as the reference the delta
-    # is measured against.
-    today = (
+    expected = (
         f"*/5 * * * * cd {root} && python3 {grid_py} commit --all "
-        f"--prefix 'cron: ' >> {log} 2>&1 && git -C {repo_root} push -q origin "
-        f"'refs/grid/*:refs/grid/*' >> {log} 2>&1 && python3 {crons_py} apply "
+        f"--prefix 'cron: ' >> {log} 2>&1; python3 {grid_py} push-changed "
+        f">> {log} 2>&1; python3 {crons_py} apply "
         f"--unit-dir {udir} >> {log} 2>&1"
     )
-    # Same jobs and schedules, and the only delta is: `;` where the chain had
-    # `&&` between the steps (never touching the leading `cd {root} &&`).
-    assert grid_sync == today.replace("2>&1 && git", "2>&1; git").replace(
-        "2>&1 && python3", "2>&1; python3")
-    assert grid_sync != today
+    assert grid_sync == expected
 
 
 def test_grid_sync_apply_not_chain_downstream_of_grid(tmp_path):
@@ -611,16 +601,16 @@ def test_grid_sync_pushes_the_configured_storage_trunk(tmp_path):
         json.dumps({"grid": {"storage_trunk": "refs/grid/t1/"}}))
     _, _cfg, repo_root, engine_root, node = crons._resolve(root)
     line = crons.render_managed_lines(root, repo_root, engine_root, node)[0]
-    assert "'refs/grid/t1/*:refs/grid/t1/*'" in line
-    assert "'refs/grid/*:refs/grid/*'" not in line
+    assert f"python3 {engine_root / 'extensions' / 'agi' / 'bin' / 'grid.py'} push-changed" in line
+    assert "'refs/grid/t1/*:refs/grid/t1/*'" not in line
 
 
-def test_grid_sync_default_push_refspec_is_unchanged(tmp_path):
-    """No `storage_trunk` key -> the cron line is byte-identical to today's."""
+def test_grid_sync_default_push_uses_bounded_selector(tmp_path):
+    """No `storage_trunk` key still delegates to the same bounded selector."""
     root = make_project(tmp_path)
     _, _cfg, repo_root, engine_root, node = crons._resolve(root)
     line = crons.render_managed_lines(root, repo_root, engine_root, node)[0]
-    assert "'refs/grid/*:refs/grid/*'" in line
+    assert f"python3 {engine_root / 'extensions' / 'agi' / 'bin' / 'grid.py'} push-changed" in line
 
 
 def test_grid_sync_grid_step_still_logs_not_suppressed(tmp_path):

@@ -148,4 +148,5 @@ def test_render_still_accepts_extras_for_a_role_that_carries_it(tmp_path):
         encoding="utf-8")
     out = brief.render(role="kid", extras_text="EXTRAS-BODY",
                        project_root=tmp_path)
-    assert out == "EXTRAS-BODY"
+    assert out.startswith("EXTRAS-BODY")
+    assert brief.PAID_FOR_PATH_GUARD in out
