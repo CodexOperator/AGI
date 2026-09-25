@@ -27,3 +27,7 @@ Source: PASS 5 chunk 1, round key-row-publish-carries-only-key-cells-and-a-prime
 
 ## Agent Notes
 assigned: director-engine (PASS 5 residue, belam-S2-L5-V 09-25)
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Two dispatch attempts (DH.306, DH.309) both left an empty experiment template -- neither is evidence. DH.306's kid produced nothing at all. DH.309's kid stopped on a 401 User not found before it could touch bytes, but the parent independently read rotate.py:10418-10470 anyway and found the real mechanism: a malformed matching row reaches _authority_row_content, whose parse failure can leave content UNCHANGED; the unchanged branch then returns the string SKIPPED rather than a named refusal -- so the falsifier (malformed row publishes, or exits 0) is not yet ruled out, it is simply untested, and the fix shape is now known before a third dispatch: the same pattern DH.311 just proved for veto.py (raise/catch broadly, return a named HELD-or-refused string on the exception path) applied to _authority_row_content instead of a bare SKIPPED. A fresh round should be briefed against this exact near-miss and told explicitly that a 401 mid-kid is worth checking (provisioning.py status) before assuming the hypothesis itself is at fault.
+<!-- THOUGHT:END -->
