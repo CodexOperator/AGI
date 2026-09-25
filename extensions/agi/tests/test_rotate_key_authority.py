@@ -164,6 +164,30 @@ def test_malformed_matching_authority_row_fails_closed(
                 "origin/season2/main").stdout.strip() == pre
 
 
+def test_duplicate_matching_authority_rows_fails_closed(tmp_path):
+    """hypothesis:key-row-publish-parses-every-matching-own-row -- a VALID
+    first matching row followed by a malformed duplicate used to still
+    publish: _authority_row_content parsed only own[0] (rotate.py:10392),
+    so the second match was never even looked at."""
+    repo, g, posts, _bare = _fixture(tmp_path)
+    new_content = posts.read_text()
+    own = next(ln for ln in new_content.splitlines(keepends=True)
+               if rotate._own_row_line(ln, "aa"))
+    duplicated = new_content.replace(
+        own, own + '  - {"name": "aa", "pubkey": "dup",\n')
+    _advance_authority(
+        repo, "season2/main", ".agi/nodes/.geometry/posts.md", duplicated)
+    pre = _git(repo, "rev-parse", "origin/season2/main").stdout.strip()
+
+    out = rotate._publish_row_to_authority(g, "aa", new_content)
+
+    assert out.startswith("authority: FAILED -- malformed matching"), out
+    assert "'aa'" in out
+    _git(repo, "fetch", "-q", "origin", "season2/main")
+    assert _git(repo, "rev-parse",
+                "origin/season2/main").stdout.strip() == pre
+
+
 def test_publish_lands_one_row_on_the_authority_and_whois_reads_it(tmp_path):
     repo, g, posts, _bare = _fixture(tmp_path)
     pre = _git(repo, "rev-parse", "origin/season2/main").stdout.strip()
