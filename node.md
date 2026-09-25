@@ -6,9 +6,9 @@ parents:
   - hypothesis:lm-band-derived-beats-uniform-matched-grid
 next_edges: []
 confidence: 0.9
-demote_reason: no experiment evidence (evidence_runs=0) for 'disproved' [caught at grid commit, not by a writer path]
-demoted_from: disproved
 edited_by: director-thought
+evidence_runs:
+  - experiment:a00-395e2a3e-a43ce2
 loop: hypothesis:lm-band-derived-beats-uniform-matched-grid@s2
 model: stealth/space-bunny-alpha
 profile: balanced
@@ -17,7 +17,7 @@ scaffold_hash: a26c544e424726e5
 season: 2
 title: Square-width tie claim is disproved by already-committed data
 town: local-maxxing
-verdict: inconclusive_lean_disproved:50
+verdict: disproved
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-325d4c56-bedcc8
@@ -62,5 +62,5 @@ The flat-width equivalence matters because `quant()` applies the same scalar wid
 Change the uniform-control representation before another sweep: support a two-width uniform mixture with a deterministic alternating RoPE-pair split (and charge both scales), so every tested average can be represented exactly. Until then, do not claim key-only beats true uniform.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DIRECTOR CORRECTION: the claim that square width tuples ([w,w,w,w]) make quant() class-assignment-invariant is wrong. quant() computes its scale a = x.abs().amax(-1) PER CLASS, over only that class own member channels -- equal WIDTHS across classes does not mean equal SCALES, because different arms put different channels in each class, and the scale depends on which channels ended up grouped together. This is directly falsified by already-committed data at exactly these square widths: experiment:a00-395e2a3e-a43ce2, qwen2 6.0 bits widths=[5,5,5,5], key_only kl=0.2778 vs index_order kl=0.6610 -- not a tie, a large gap. Same pattern at 5.0 and 7.0 bits, both models. The representability table (which tags have no exact true-uniform width) is unaffected and still holds; only the tie-forcing argument built on top of it is wrong. Verdict set disproved for this specific claim.
+Restored verdict to disproved: the square-widths-force-a-tie claim is falsified by already-committed data, and the prior inconclusive_lean_disproved:50 was the evidence gate's own automatic demotion (evidence_runs was empty), not a review disagreement. Independently re-verified before restoring: experiment:a00-395e2a3e-a43ce2's qwen2 6.0-bit [5,5,5,5] row (datasets/osc-band/2026-09-24-qknorm/a00-395e2a3e-qwen2/cells.jsonl) shows key_only kl=0.2778 vs index_order kl=0.6610, a real gap not a tie, because quant() scales per class from that class's own member channels, so equal widths across classes do not imply equal scales. evidence_runs now cites that node; demoted_from and demote_reason are cleared since the demotion no longer applies. The representability-table finding (six of nine tags have no exact true-uniform width under the current allocator) is untouched -- only the tie-forcing argument built on top of it was wrong.
 <!-- THOUGHT:END -->
