@@ -250,55 +250,10 @@ this dispatch; TMM.148's mint+dispatch commit is f17f44c670, the trunk-sync merg
 
 ## 🔴 WHERE IT STOPS — the one next command (gen 13 -> rotating now)
 ```
-Plain text first line, deliberately (TMM.152: a fence here is what stop_commit's loop chokes on). Numbered list follows.
-0  DH.303 DIED (agent a00-7ed34326, reason=death, ~02:40Z) before producing anything -- confirmed via
-   `spawn_budget.py status` (not live), not just trusting the notification. RE-DISPATCH hypothesis:authority-
-   publish-fails-closed-on-an-unreadable-veto-cell FIRST, same orders file (`.agi/sessions/de-0925/dh303-orders.md`,
-   still valid) or a fresh one -- this is the owner's explicit item-1-FIRST authority-gate priority from the PASS 5
-   [decision], now with ZERO progress made on it despite two dispatch attempts this generation. Not chased further
-   this session: past the rotation line (f=0.4714 at the time of the death notice) with a confirmed-broken
-   `rotate.py rotate` (DH.302 in flight), so re-dispatching now rather than investigating why it died would spend
-   budget this session does not have; the next session should also check WHY it died (load storm? a real crash?)
-   before just re-cutting blind, per doc:unified-director-brief's own reconcile-at-wake guidance.
-1  Check the inbox: `python3 extensions/agi/bin/send.py read director-engine` -- thought-master's reply to
-   [merge-up] #13, or DH.302's own harvest report, may already be waiting.
-2  Poll DH.302 (rotate.py stop_commit fix, TMM.148) for liveness -- harvest when it finishes, standard sequence,
-   never merge unreviewed.
-3  PASS 5 items 2-4 (all already fully specified, no minting needed -- just dispatch): hypothesis:key-row-publish-
-   fails-closed-on-a-malformed-matching-row, hypothesis:brainstorm-and-research-review-contracts-match-their-
-   manifests, hypothesis:grid-push-batch-limit-is-a-config-cell. Order is yours per the owner's decision. Also open
-   hypothesis:pass5-0925-residue-batch and read its own batch table for the g5.32-t0 inventory demote + 5 "DE"
-   residue rows -- not yet read this session.
-4  Then, lower priority: fresh rounds for DH.300's target (hypothesis:write-py-set-is-schema-checked, round B
-   g7.33.10 -- state explicitly this time that a measurement-only kid is not a finished round) and DH.301's target
-   (hypothesis:a-round-stage-spawns-the-parent-and-chains-its-review-in-one-workflow, directly against the 3-seam
-   plan in its THOUGHT with a raised ~220-line ceiling).
-5  If the inbox surfaces something needing a judgement call, decide it, record the reasoning in the affected node's
-   THOUGHT (or here if there is no single node), and keep going -- delegated authority carries across the rotation
-   boundary; bank only what is genuinely the owner's alone to decide.
-6  Re-linking the quorum symlink is YOUR call, not mine (TMM.152, thought-master 03:05Z) -- I left it as a plain
-   flattened copy deliberately, matching the exact tree DH.302's own fix would leave, to unblock my own
-   rotate-out. Re-link it if you want the live-editing convenience back; nothing breaks either way.
-7  If `rotate.py rotate` blocks again on a dirty-tree stop_commit loop (see TRAPS) AND DH.302 has not landed yet:
-   commit ONCE, check `git diff --stat` before retrying -- if the card is growing another THOUGHT block or fence
-   layer instead of the tree going clean, stop and hand-truncate back to one copy rather than retrying blindly
-   again.
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Gen 13's rotate-out. Cleared the entire TMM.147 queue this session: two THOUGHT-block fixes with sources verified
-byte-for-byte (one pulled fuller from the primary transcript than the relay had it, one found nowhere in this post's
-own transcript and honestly cited as a corroborated relay instead), one retroactive fixes-leaf goal minted with two
-of my own mint-time bugs caught and fixed before committing, and three parents dispatched in parallel across
-genuinely disjoint file scopes -- all three harvested before rotation: one real fix merged and independently
-verified twice (DH.299/TMM.136), two that correctly delivered no code but real, recorded findings instead of a
-forced or fabricated implementation (DH.300 measured the bug without fixing it; DH.301 scoped a 220-line/3-seam
-decomposition rather than force a partial 40-line patch). [merge-up] #13 sent with an honestly disclosed deviation:
-merged DH.299 on direct verification rather than a completed mur pass, because the rotation line was close. The
-session also root-caused a real, previously-invisible infra bug the owner independently asked about mid-session
-(the card symlink flatten/re-link bug), and then hit a SECOND, related rotate.py defect at the actual rotate-out
-step itself: `stop_commit`'s dirty-tree block is not safely re-runnable and stacks duplicate THOUGHT blocks on
-retry (caught at 5 duplicates, manually truncated back to 1 in this exact write). Both bugs are now named
-precisely enough for a future round to fix in one pass each, rather than rediscovered from scratch.
-Per thought-master's TMM.152 (03:05Z), the quorum-path symlink was deliberately left as a flattened plain copy this rotate-out, not re-linked -- the exact tree stop_commit itself would leave, done by hand to unblock a rotation the tool's own loop could not complete. Re-linking is the successor's call.
-<!-- THOUGHT:END -->
+Two merge-ups sent this session (@edc78b1c21, @131c7319d1); thought-master's TMM.160 confirms the first is clean on gate (full suite was still running at last read). Corrected a self-caught DH.304/DH.311 mislabeling per thought-master's read of the actual bytes (recorded in the card and dm log, not rewritten into the immutable commit).
+1  Check the inbox: `python3 extensions/agi/bin/send.py read director-engine` -- thought-master's full-suite gate verdict likely landed by now.
+2  Dispatch PASS-5 item 2 (approved, TMM.160): hypothesis:key-row-publish-fails-closed-on-a-malformed-matching-row. Its THOUGHT already carries the mechanism (rotate.py:10418-10470, _authority_row_content returns SKIPPED instead of a named refusal on a malformed row) and the fix shape (DH.304's veto.py pattern). Brief the parent: a prior kid died on a 401 before touching bytes -- check provisioning.py status if that recurs; an empty experiment template is not evidence, re-cut rather than accept it.
+3  Then, in priority order: the 5 "DE" residue rows + g5.32-t0 demote from hypothesis:pass5-0925-residue-batch (full list in the card's §1), each its own corrective round per the standing "mur residues close in-loop" rule; then round B goal:g7.33.10; then goal:g1.14.1.
+4  Judgement calls: decide, record the reasoning in the affected node's THOUGHT, keep going -- delegated authority carries across the rotation boundary.
+5  Card write LAST, right before your own rotation.
 ```
