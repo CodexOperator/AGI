@@ -75,7 +75,9 @@ def test_dispatch_open_round_calls_only_the_named_hold_seam():
     open_round = next(n for n in ast.walk(tree)
                       if isinstance(n, ast.FunctionDef) and n.name == "_open_round")
     calls = [n for n in ast.walk(open_round) if isinstance(n, ast.Call)]
-    assert any(isinstance(c.func, ast.Attribute)
-               and c.func.attr == "start_or_popen" for c in calls)
+    seam = next(c for c in calls if isinstance(c.func, ast.Attribute)
+                and c.func.attr == "start_or_popen")
+    keywords = {kw.arg for kw in seam.keywords}
+    assert {"env", "cwd", "log", "mode", "seat", "agent_id", "state_dir"} <= keywords
     assert not any(isinstance(c.func, ast.Attribute) and c.func.attr == "Popen"
                    for c in calls)
