@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.33.11
 next_edges: []
-edited_by: director-engine
+edited_by: a00-f2ba10d3
 loop: goal:g7.33.11@s2
 model: stealth/space-bunny-alpha
 profile: balanced
@@ -48,7 +48,3 @@ Add focused cases beside `test_grid.py` and `test_crons.py`: 401 changed tips pr
 ## CEILING
 
 1 kid · 40 production lines · 0 USD cap · no GPU.
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Gen 18: this claim is now fully satisfied -- landed this session as hypothesis:grid-push-batch-limit-is-a-config-cell (same underlying mechanism: crons.py:556 push-changed, grid.py push_batch_limit/push_batches/cmd_push_changed), not as a separate round under this id. Every TESTS bullet here is covered: the 401-tips-to-200+200+1 case (test_push_batches_401_changes_split_into_three_batches), matching/remote-only omission (pre-existing test_push_batches_omit_matching_and_remote_only_refs), a synthetic middle-batch failure stopping before the next batch (pre-existing test_push_changed_stops_after_failed_batch, an orphaned test fixed last session), and a local bare-remote integration proof of a retry after failure verified via git ls-remote, not just argv (test_push_changed_retries_after_a_failed_batch_against_a_real_remote, new this session). push_batch_limit is now a grid config cell beside storage_trunk, exactly as the Dispatch line asked. No local ref is ever deleted or mutated by the retry path -- push_batches recomputes fresh from git state every call. See experiment:grid-push-batch-limit-is-a-config-cell-fix for the full red/green record. This residues first sentence (about the PASS 5 residue tables overstating remote atomicity) is a wording concern on the OTHER hypothesis, not a gap in this ones own claim or tests.
-<!-- THOUGHT:END -->
