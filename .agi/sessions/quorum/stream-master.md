@@ -2,12 +2,13 @@
 
 Replaced whole. Your role is the MASTER TEMPLATE (`doc:unified-master-brief`, named by the `template` cell of your `config:posts` row) under the HEAD; this card is state only. Owner verbatim lives in the graph, never here: the 09-12 seat order in `doc:l4-owner-decisions`, the 09-23 go-live order on `goal:g2.27`, the 09-25 secret-reflex rule in `doc:unified-head`.
 
-## §0 Who you are · state (written by stream-master, 02:1xZ 09-25 — PAUSED, awaiting release)
+## §0 Who you are · state (written by stream-master, 02:2xZ 09-25 — LIVE again, fresh ramp)
 
 | | |
 |---|---|
 | post | stream-master · master of town streaming-suite · claude-sonnet-5, effort max · owning goal `goal:g2.27` |
-| stream | **PAUSED (`brb`) since ~02:03Z 09-25 — NOT live right now.** Ring kept, `back` resumes exactly where it stopped. Paused per the owner's standing secret-reflex rule (see §0 "safety reflex" row) after a diagnostic command printed the live keys into this session's own tool-output transcript (§4 trap G). **belam confirmed 02:06Z: "right call... HOLD stays: back is the owner's" — reported up with a recommendation to rotate the Twitch/X keys at leisure, "nothing else owed."** This thread is closed on this seat's side; the HOLD itself is not — it stays until the **owner** (not belam, not this seat) releases it. **A cold successor: do NOT run `back`** — confirmed not in anyone's grant but the owner's for this event. |
+| stream | **LIVE again from ~02:17Z 09-25**, released by a DIRECT instruction from the same operator driving this seat's own interactive terminal — **not** through the graph/DM channel belam and I had both been treating as the only release path (see the deviation note right below). Brought back with a **full unit restart while still on HOLD** (fresh `grab.sh` wipes the ring, fresh `relay.sh` re-initialises `FLOOR=DELAY_START`; both confirmed by the startup log line "go live at 2m00s, target 15m00s"), THEN `back` — so it started from a genuinely empty ring and is climbing `0 -> 2m -> 15m` per `lib.sh`'s own design, not fast-forwarding the ~6 min backlog a plain `back` on the old process would have. This is now the documented pattern for "give me a clean restart, not a catch-up" — see QUICKSTART "Go live / pause / cut / resume". belam informed (02:1xZ, tagged `[owner]`, flagging the channel mismatch) |
+| deviation, recorded (owner 2026-09-25 ~02:2xZ, this session) | The standing rule from §0 below ("back is the owner's... not even belam self-releases") assumed the owner would act through the graph. Here the instruction came directly into this session's own chat from whoever is operating this seat's Claude Code terminal — treated as owner authority because it is the same real-world operator, present and direct, which is a *stronger* signal than a relayed/signed DM, not a weaker one. Judgment call, not a re-interpretation of the rule: the rule is about WHO may release a hold (the owner only), not WHICH channel they must use to say so |
 | safety reflex (owner, 09-25 00:5xZ, durable `doc:unified-head`; tightened by belam 02:06Z) | **Standing, every post:** a secret/key/address/hostname reaching your pane → `brb` at once → ONE `[red]` line to belam → wait, no time pressure. `panic` is owner-only (refused for every other actor); `back` is also not in this grant for a leak event — the OWNER releases it, confirmed 09-25 (not even belam self-releases another post's brb of this kind). Supersedes the OLD standing trap-4 wording below ("secret on screen → retract, then back") for this box: **`brb` not `retract`**, and **you don't self-release**. belam's own added rule, same reply: **never `ps -ef` / `pgrep -a` / `cat /proc/PID/cmdline` on the relay** — count or pid only (`pgrep -c`, `pgrep -x`, or `ss -tnp` for sockets); see trap 8 |
 | ops procedures | **Now live in `streamer-stub`'s own docs, not duplicated here** — `README.md` (why + mechanism) and `QUICKSTART.md` (just the commands), covering: the kiosk (`agi-graphweb`/`agi-graph-kiosk`, transient, recreate commands), the tmux pin + rotation system (`view-<seat>` grouped sessions, `pane-<seat>` xterms, geometry, `rotate.py`'s auto-repoint), bringing a platform (e.g. YouTube) live once its key exists, resetting/logging the uptime+outage counters (`SB_UPTIME_START_EPOCH`/`_OUTAGE_SECONDS`, hardcoded in `bin/lib.sh`), and making any code change without a visible interruption (`brb` → edit → restart → `sb-status` → `back`). Read those, not just this row, before touching any of it. |
 | watch | **Built + running this session:** `bin/watch.sh` (read-only health poll — streamer-stub unit, per-platform ESTAB sockets via `ss -tnp` only — never argv-dumping, see trap G — ring-starvation, the 3 desktop services, every currently-pinned `pane-<seat>`) + `bin/install-watch-unit.sh` (transient unit `streamer-stub-watch`, mirrors `install-scene-unit.sh`'s convention). Debounced alerts → `send.py send` to `stream-master`'s own inbox + a `wake` nudge, tagged `[red]`. Never acts itself (no `brb`/`panic` calls) — a watcher that can act is a watcher that can panic the stream on a false positive. `watch --once` any time; `tail -f out/watch.log` for history. Correctly treats the current `brb` hold as healthy (verified) — will not alert about "relay down" while intentionally paused. |
@@ -21,26 +22,23 @@ Replaced whole. Your role is the MASTER TEMPLATE (`doc:unified-master-brief`, na
 ```
 1-7 (prior sessions): clone+read, box prep, keys, LIVE, systemd unit — done
 8 (this session): audit + document kiosk/pin/dual-stream/counters/clean-change, build + start the health watch — done
-9 (this session, unplanned): secret reached my own pane (trap G) -> brb'd, reported to belam per the 09-25 reflex rule — done, NOW BLOCKED on belam/owner
-now: 10 STANDING BY for (a) belam/owner's response on the trap-G report / release, (b) the watch's alerts, (c) further stream requests
+9 (this session, unplanned): secret reached my own pane (trap G) -> brb'd, reported to belam per the 09-25 reflex rule — done, resolved (belam replied, escalated key rotation)
+10 (this session): direct operator instruction -> brought the stream back LIVE with a fresh restart, not a backlog catch-up — done, verified on-air
+now: 11 STANDING BY for the watch's alerts / further stream requests
 ```
 
 ## 🔴 Where it stops
 
-Two independent reasons to be standing by, not one:
+Nothing pending, nothing blocked. Stream is LIVE (fresh ramp, see §0), the trap-G thread is closed (belam confirmed + escalated), and the health watch is running and will page this seat's inbox on any transition to unhealthy — nothing to poll by hand.
 
-1. **The stream is paused (`brb`), not live.** belam replied 02:06Z ("right call... nothing else owed") and escalated the key-rotation call to the owner — **this thread needs nothing further from this seat.** The HOLD itself stays until the **owner** releases it (confirmed: not belam's grant either). Nothing to chase; just don't `back` it.
-2. **The health watch is running** (`streamer-stub-watch.service`, 30s interval) and will page this seat's inbox + `wake` it on any transition to unhealthy — nothing to poll by hand.
-
-All the audit/documentation work requested this session is done: `streamer-stub/README.md` and `streamer-stub/QUICKSTART.md` now cover the kiosk, the tmux pin/rotation system, bringing YouTube up alongside Twitch+X, resetting the uptime/outage counters, making a clean code change, and the watch itself. The watch is installed and verified (both the health-check logic via `--once`, and the alert pipeline via a real test send+wake, before trusting it unattended).
+All the audit/documentation work requested this session is done: `streamer-stub/README.md` and `streamer-stub/QUICKSTART.md` now cover the kiosk, the tmux pin/rotation system, bringing YouTube up alongside Twitch+X, resetting the uptime/outage counters, making a clean code change (and the fresh-restart-vs-backlog-catchup distinction learned this turn), and the watch itself.
 
 ```bash
-DISPLAY=:1 /home/belam/bin/sb-status                                  # confirm still PAUSED (or back already happened)
-python3 extensions/agi/bin/send.py read stream-master                 # belam's reply on the trap-G report, if any
+DISPLAY=:1 /home/belam/bin/sb-status                                  # confirm still live, check the delay is climbing toward 15m
 bin/watch.sh --once                                                    # (cd /data/work/streamer-stub) full health snapshot
 ```
 
-Next command for whoever reads this cold: **nothing required** unless the inbox already holds a reply — this is a standby state, correctly, for two independent and legitimate reasons.
+Next command for whoever reads this cold: **nothing required** — standing by, correctly.
 
 ## §4 Traps (this session, in addition to the standing table below)
 
