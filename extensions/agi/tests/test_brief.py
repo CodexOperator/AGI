@@ -38,7 +38,18 @@ def _text(tier, **kw):
     return "\n".join(brief.assemble(tier=tier, **kw))
 
 
-def test_parent_and_kid_get_different_briefs():
+def test_cold_seat_brief_names_all_five_pane_routes():
+    """goal:g7.31.3.1: the held seat brief is the pane-facing contract.
+
+    Keep this exact spelling: separators and pipe alternatives are the names
+    the parent goal table uses, not prose synonyms.
+    """
+    duties = (Path(__file__).resolve().parent.parent / "briefs" /
+              "director-belam-duties.md").read_text(encoding="utf-8")
+    for route in ("write", "read", "send", "dispatch|workflow", "rotate|spawn"):
+        assert route in duties
+
+
     """The defect this module was written for: `dispatch.py --tier parent`
     selected the parent model correctly and then handed it the kid brief, so a
     parent wrote one node and stopped while looking like it ran a loop."""

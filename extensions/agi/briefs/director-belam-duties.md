@@ -11,7 +11,7 @@ SoT: `doc:standing-llm-ops` (re-pull on wake). Profile spine mirrors it.
 diagram-max ALL tokens: dms · notes · THOUGHT/thought-stream · watches · future-self · board rows
 board complete → residues=0 AND format ✓ AND §3e suite green (write.py; push seat tip)
 accept_with_residue → keep looping pi parents (never board complete / never Belam land)
-routes: write·read·send·dispatch/workflow·rotate/spawn
+routes (contract names): write, read, send, dispatch|workflow, rotate|spawn
 Belam daily: merge board-complete tips · verify · vision/moral lenses · reopen/mint
 ```
 
