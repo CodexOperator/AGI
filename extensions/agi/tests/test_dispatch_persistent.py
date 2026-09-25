@@ -13,6 +13,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -176,6 +177,52 @@ def test_fire_and_forget_default_spawns_no_supervisor(
     agents = _manifest(project)
     assert agents and "persistent" not in agents[0], agents
     assert "restart_count" not in agents[0], agents
+
+
+def test_persistent_preserves_default_argv_and_environment(
+        project, monkeypatch):
+    """Behavioral parity: the flag changes lifecycle only, not the resolved
+    launch bytes.  Capture the production Popen argv and env for default and
+    persistent runs, then compare them; only the persistent lifecycle fields
+    and supervisor path may differ."""
+    captured = []
+    real_popen = subprocess.Popen
+
+    def _capture(argv, **kwargs):
+        if kwargs.get("start_new_session"):
+            captured.append((argv, dict(kwargs.get("env") or {})))
+            return _StubProc(4242, None, 999)
+        return real_popen(argv, **kwargs)
+
+    monkeypatch.setattr(subprocess, "Popen", _capture)
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
+    monkeypatch.setattr(dispatch, "_PERSIST_SLEEP", lambda s: None)
+
+    monkeypatch.setattr(sys, "argv", _argv(project))
+    assert dispatch.main() == 0
+    default_argv, default_env = captured.pop()
+
+    os.environ[dispatch._PERSIST_STOP_ENV] = "1"
+    monkeypatch.setattr(sys, "argv", _argv(project, "--persistent"))
+    assert dispatch.main() == 0
+    persistent_argv, persistent_env = captured.pop()
+
+    def _scrub(value):
+        if isinstance(value, str):
+            if "SCAFFOLDED NODE FILE:" in value:
+                return "<scaffold prompt>"
+            value = re.sub(r"a00-[0-9a-f]{8}-[0-9a-f]{8}", "a00-<node>", value)
+            return re.sub(r"a00-[0-9a-f]{8}", "a00-<agent>", value)
+        if isinstance(value, list):
+            return [_scrub(v) for v in value]
+        if isinstance(value, dict):
+            return {k: _scrub(v) for k, v in value.items()}
+        return value
+
+    persistent_env.pop(dispatch._PERSIST_STOP_ENV, None)
+    assert _scrub(persistent_argv) == _scrub(default_argv)
+    assert _scrub(persistent_env) == _scrub(default_env)
+    assert any(rec.get("persistent") is True for rec in _manifest(project))
 
 
 def test_record_carries_persistent_live_pid_and_restart_count(
