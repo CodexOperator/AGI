@@ -23,7 +23,7 @@ grok = adapters.load("grok_bot")
 
 #: A config row shaped the way `adapters.resolve` synthesizes the adapter stem
 #: for a `grok-bot` harness name.
-HARNESS = {"adapter": "grok_bot",
+HARNESS = {"adapter": "grok_bot", "target": "Researcher",
            "models": {"kid": "grok-kid", "parent": "grok-parent"}}
 
 
@@ -64,16 +64,26 @@ def test_needs_no_openrouter_credential():
 # ------------------------------------------------------------- tier contract
 
 
-def test_missing_tier_is_a_named_error_not_a_fallback():
-    """A tier absent from a declared `models` block must raise a KeyError
-    naming the tier, never quietly run on another tier's model."""
-    with pytest.raises(KeyError) as exc:
-        grok.model_args({"adapter": "grok_bot", "models": {"kid": "only"}}, "parent")
-    assert "parent" in str(exc.value)
+def test_measured_help_has_no_model_or_prompt_file_flag():
+    help_text = (Path(__file__).parent / "fixtures" / "grok_bot_help.txt").read_text()
+    assert "send <bot-or-group> <message...>" in help_text
+    assert "--model" not in help_text
+    assert " -p " not in help_text
+    assert grok.model_args(HARNESS, "kid") == []
 
 
-def test_no_models_block_passes_no_model_flags():
-    assert "--model" not in grok.model_args({"adapter": "grok_bot"}, "kid")
+def test_build_command_is_the_measured_send_shape(tmp_path):
+    context = tmp_path / "context.md"
+    context.write_text("work on the target", encoding="utf-8")
+    assert grok.build_command(harness=HARNESS, tier="kid",
+                              context_file=str(context)) == [
+        "grok-bot", "send", "Researcher", "work on the target"]
+
+
+def test_build_command_refuses_an_unconfigured_target(tmp_path):
+    with pytest.raises(ValueError, match="target"):
+        grok.build_command(harness={"adapter": "grok_bot"}, tier="kid",
+                            context_file=str(tmp_path / "missing"))
 
 
 # ------------------------------------------------------------ config resolve
@@ -100,6 +110,7 @@ def test_bare_row_defaults_the_adapter_to_the_module_stem():
 # ----------------------------------------------------------------- restart
 
 RESTART_HARNESS = {"adapter": "grok_bot", "bin": "grok-bot",
+                   "target": "Researcher",
                    "models": {"kid": "grok-kid", "parent": "grok-parent"}}
 
 
@@ -125,6 +136,7 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
     monkeypatch.setattr(grok.subprocess, "Popen", fake_popen)
     sess = tmp_path / "sess"
     sess.mkdir()
+    (tmp_path / "context.md").write_text("restart me", encoding="utf-8")
     rec = {"worktree": str(tmp_path)}
     pid = grok.restart(harness=RESTART_HARNESS, tier="kid",
                        context_file=str(tmp_path / "context.md"),
@@ -132,7 +144,7 @@ def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path
                        scaffold=None, target="goal:g17.14.1",
                        agent_record=rec)
     assert pid == 5252
-    # argv is exactly what build_command produces (stub argv today)
+    # argv is exactly the measured send command produced by build_command
     assert captured["args"] == grok.build_command(
         harness=RESTART_HARNESS, tier="kid",
         context_file=str(tmp_path / "context.md"))
@@ -155,6 +167,7 @@ def test_restart_returns_none_when_popen_fails(monkeypatch, tmp_path):
     monkeypatch.setattr(grok.subprocess, "Popen", boom)
     sess = tmp_path / "sess"
     sess.mkdir()
+    (tmp_path / "context.md").write_text("restart me", encoding="utf-8")
     assert grok.restart(harness=RESTART_HARNESS, tier="kid",
                         context_file=str(tmp_path / "context.md"),
                         agent_id="a00-test", iter_n=1, sess_dir=sess) is None
@@ -238,8 +251,8 @@ def test_live_config_grok_row_resolves(live_cfg, monkeypatch):
     # fallback would fail here, where the old same-object assert could not.
     assert live_bin != grok.DEFAULT_BIN
     assert grok.resolve_bin(row) == live_bin
-    argv = grok.build_command(harness=row, tier="kid", context_file="/tmp/x")
-    assert argv[0] == live_bin
+    with pytest.raises(ValueError, match="target"):
+        grok.build_command(harness=row, tier="kid", context_file="/tmp/x")
 
 
 def test_live_bin_cell_threads_through_to_argv(live_cfg, monkeypatch):
@@ -250,8 +263,11 @@ def test_live_bin_cell_threads_through_to_argv(live_cfg, monkeypatch):
     monkeypatch.delenv("GROK_BOT_BIN", raising=False)
     _, row = adapters.resolve(live_cfg, "grok-bot")
     row["bin"] = "/SENTINEL/grok-bot"
-    argv = grok.build_command(harness=row, tier="kid", context_file="/tmp/x")
-    assert argv[0] == "/SENTINEL/grok-bot"
+    row["target"] = "Researcher"
+    context = Path(__file__).parent / "fixtures" / "grok_bot_help.txt"
+    argv = grok.build_command(harness=row, tier="kid",
+                              context_file=str(context))
+    assert argv[:3] == ["/SENTINEL/grok-bot", "send", "Researcher"]
     assert argv[0] != grok.DEFAULT_BIN
 
 

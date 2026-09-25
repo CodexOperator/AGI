@@ -1,9 +1,8 @@
-"""The Grok Bot harness — REQUIRED surface, stub argv (goal:g17.14.1).
+"""The Grok Bot harness — REQUIRED surface (goals g17.14.1, g7.31.1.1).
 
-CLI flags are NOT guessed: `build_command` emits a minimal, measurable argv
-(still a stub until `<bin> --help` is read the way `copilot_cli_adapter`'s
-was). `restart` is a real respawn (`goal:g4.7`) that rebuilds that same argv —
-a stub argv is no reason to refuse the restart contract.
+The measured `grok-bot-cli` contract is a management CLI, not a model runner:
+it supports `send <bot-or-group> <message...>`, and no model or prompt-file
+flag. `build_command` therefore sends the context to a configured bot target.
 `needs_credential` is False — Grok Bot authenticates through its own channel,
 so no OpenRouter key is minted.
 
@@ -36,16 +35,8 @@ def resolve_bin(harness: dict) -> str:
 
 
 def model_args(harness: dict, tier: str) -> list[str]:
-    """models[tier] -> --model; a missing tier errors by name, never another
-    tier's model (a silent fallback would look like it worked)."""
-    models = harness.get("models") or {}
-    if models and tier not in models:
-        raise KeyError(
-            f"harness {harness.get('adapter', NAME)!r} declares no model for "
-            f"tier {tier!r}; known tiers: {sorted(models)}"
-        )
-    model = models.get(tier)
-    return ["--model", model.strip()] if isinstance(model, str) and model.strip() else []
+    """grok-bot-cli has no model flag; the configured models are inert."""
+    return []
 
 
 def child_env(*, harness: dict, base: dict[str, str],
@@ -59,11 +50,16 @@ def child_env(*, harness: dict, base: dict[str, str],
 
 def build_command(*, harness: dict, tier: str, context_file: str,
                   **kwargs) -> list[str]:
-    """STUB argv: `<bin> [--model M] -p <context_file>`. `**kwargs` swallows
-    the channels dispatch.py passes every adapter, so a spawn cannot die on a
-    TypeError before the flags land."""
-    return [resolve_bin(harness), *model_args(harness, tier),
-            "-p", str(context_file)]
+    """Build the measured `grok-bot send TARGET MESSAGE` command.
+
+    The target is an explicit config cell; guessing a bot from an engine seat
+    id would merely move the unsupported assumption somewhere less visible.
+    """
+    target = harness.get("target")
+    if not isinstance(target, str) or not target.strip():
+        raise ValueError("harness 'grok-bot' requires a non-empty target bot/group")
+    return [resolve_bin(harness), "send", target.strip(),
+            Path(context_file).read_text(encoding="utf-8")]
 
 
 def is_alive(pid: int) -> bool:
