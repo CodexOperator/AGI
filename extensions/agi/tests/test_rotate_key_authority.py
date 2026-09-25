@@ -10,6 +10,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate  # noqa: E402
 from agi.bin import send  # noqa: E402
@@ -31,12 +33,22 @@ def _posts_text(rows):
     return body
 
 
+def _write_readable_veto_cell(g):
+    from seatsig import veto
+    veto.save(g, {
+        "veto_room": "veto", "rate_limit_per_window": 1,
+        "window_seconds": 3600, "expiry_seconds": 86400,
+        "active_gates": [], "vetoes": [],
+    })
+
+
 def _fixture(tmp_path):
     """A bare origin + a repo; origin/season2/main carries the OLD `aa` row,
     the checked-out `trunk` carries the NEW one (a re-key)."""
     repo = tmp_path / "repo"
     g = repo / ".agi"
     (g / "nodes" / ".geometry").mkdir(parents=True)
+    _write_readable_veto_cell(g)
     (g / "config.json").write_text("{}", encoding="utf-8")
     posts = g / "nodes" / ".geometry" / "posts.md"
     rows = [{"name": "aa", "role": "parent", "pubkey": _OLD},
@@ -222,6 +234,7 @@ def _fixture_no_seat(tmp_path, seat="aa"):
     repo = tmp_path / "repo"
     g = repo / ".agi"
     (g / "nodes" / ".geometry").mkdir(parents=True)
+    _write_readable_veto_cell(g)
     (g / "config.json").write_text("{}", encoding="utf-8")
     posts = g / "nodes" / ".geometry" / "posts.md"
     rows = [{"name": "bb", "role": "kid", "pubkey": "c" * 64}]
@@ -302,6 +315,27 @@ def test_publish_refuses_closed_when_veto_read_raises(tmp_path, monkeypatch):
     assert "veto cell read failed" in out
     _git(repo, "fetch", "-q", "origin", "season2/main")
     assert _git(repo, "rev-parse", "origin/season2/main").stdout.strip() == pre
+
+
+@pytest.mark.parametrize("cell_state", ["missing", "malformed"])
+def test_publish_refuses_closed_on_real_unreadable_veto_cell(
+        tmp_path, cell_state):
+    repo, g, posts, _bare = _fixture(tmp_path)
+    cell = g / "nodes" / ".geometry" / "vetoes.md"
+    if cell_state == "missing":
+        cell.unlink()
+    else:
+        cell.write_bytes(b"\x00\xff not frontmatter or UTF-8")
+    pre = _git(repo, "rev-parse", "origin/season2/main").stdout.strip()
+
+    out = rotate._publish_row_to_authority(g, "aa", posts.read_text())
+
+    assert out.startswith("authority: HELD -- veto cell is unreadable"), out
+    assert ("missing veto cell" if cell_state == "missing"
+            else "unreadable veto cell") in out
+    _git(repo, "fetch", "-q", "origin", "season2/main")
+    assert _git(repo, "rev-parse",
+                "origin/season2/main").stdout.strip() == pre
 
 
 def test_publish_proceeds_when_veto_subsystem_is_absent(tmp_path, monkeypatch):

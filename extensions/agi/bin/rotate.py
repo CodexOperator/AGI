@@ -10428,7 +10428,8 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
     never the silent ``SKIPPED -- no ... row to replace``."""
     try:
         from seatsig import veto as _veto
-        _frozen, _why = _veto.is_frozen(_shared_graph_root(root), "prime")
+        _veto_geom = _veto.read(_shared_graph_root(root), strict=True)
+        _frozen, _why = _veto.is_frozen(None, "prime", geom=_veto_geom)
         if _frozen:
             return f"authority: HELD -- publish is a gated Prime-scope act; {_why}"
     except ImportError:  # veto subsystem is not installed on this host
