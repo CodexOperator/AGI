@@ -11,45 +11,42 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (02:2xZ 09-25, gen 18 at the line)
+## Live state (03:1xZ 09-25, gen 19)
 ```
 LANE           normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
                model HELD (TMM.66) · usd0 = research only, never an operating mode · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
 OWNER 20:1-4xZ (via the Prime, VERIFIED) I co-own the director docs (doc:unified-director-brief + doc:card-director-*) via write.py + ONE dm
                per live director · dispatch = ONE parent per round (--tier parent --role parent --ladder-tier 0, no --harness), never --tier kid ·
                NEVER the Agent tool, any post
-PASS 5         the Prime merges this trunk -> season2/main from 01:59Z 09-25 (~1 h; ~3 GB RAM + 2 cores, no GPU) · heads-up sent 00:5xZ: the grid
-               block's push_split_epoch + storage_trunk are per-branch cells, never carried into core's config unexamined
-GRID           goal:g7.33.11 LANDED 26413f2cc3 00:54Z (DE #9 + #10, returned once at the gate: TMM.141/142; DE found the {sha: ref} inversion I
-               missed) · crontab -> grid.py push-changed 00:58:07Z · the 01:00Z tick pushed 1,899 refs in 10 batches (9 x 200 + 99), 0 rejected ·
-               ls-remote 01:0xZ: origin 1,899 = the local post-split 1,899 at the same tip; 0 of the 2,430 split-only (OWNER 18:35Z shape met)
-               · CLOSED 20676beba1 (#11, lean gate): 4 ticks 0 rejected (log: 1899/1/0/26), origin 1,900 = 4,330 - 2,430, log 885.0 -> 123.3 MB
-DE queue       the OWNER set it in DE's pane (00:37Z re-mint under the workflow router = goal:g1.14.1; 01:13Z 'research review bug can be
-               prioritized'): #12 LANDED c3cbadf2cb 01:48Z (the research-review refute stage sees proposals; full suite 6419 / 1 trunk red) ·
-               DE ROTATED 01:3xZ -> post-director-engine-2f; TMM.146 never reached the old pane -> TMM.147 (dm + SendMessage 01:3xZ) re-lists BY
-               NAME: (1) both owner lines verbatim in THOUGHTs + 21 -> 26 (2) #12's fixes-leaf goal (3) TMM.136 (4) round B g7.33.10 (5) g1.14.1
-DT research    batch 18 LANDED 63f897a00b (verdict:lm-qk-norm-model-wall-key-only-tie disproved:0.9 -- key-only thresholds, stands) · batch 19
-               LANDED b0dc89f0e8 PARTIAL (OSC.27: Qwen2.5 at 8 of 9 widths, Qwen3 none -- the kid's 1200 s wall; verdict pending 0.1) · at a
-               MATCHED budget on Qwen2.5 key-only beats random (structure-blind) on agree + KL at all 8 widths (4.0: 0.5762/1.354 vs 0.4702/1.911;
-               7.75: 0.9917/0.000 vs 0.9795/0.005) -> L3's premise holds there · MY ERROR, corrected on the board + in b0dc89f0e8's message: TMM.143's
-               'uniform beats key-only on both models' is VOID -- the batch-18 harnesses gave 'uniform' every pair w[0] (13 at 7p75 vs the 10.75
-               mix) and recorded actual_bits = the tag · batch 20 = TMM.145 (01:1xZ, nudge landed in post-director-thought-29 01:17:43Z): OSC.28 =
-               the preregistered 72 cells (+4.5, Qwen3) via a detached, resumable sweep + arms named honestly + correction lines on the old nodes
+PASS 5         CLOSED 02:37Z: trunk @5b7d503fa7 -> season2/main 8daa626e89 (449 commits, 18 rounds on pi-free, 0 USD, 9 accept_with_residue, 9 demote,
+               0 RED) · DT's 6 demotes + 2 residues -> TMM.149 · DE's -> hypothesis:pass5-0925-residue-batch (goal:g1), the table in the node
+GRID           goal:g7.33.11 LANDED + CLOSED (20676beba1): the crontab runs grid.py push-changed; origin holds the post-split refs only
+               (1,900 at the close = 4,330 - 2,430 split-only, 0 rejected) -- nothing owed
+DE             ROTATED 03:07:52Z on TMM.152's hand-unblock (its quorum card = a plain file now; doc:card-director-engine = the gen-13
+               snapshot, re-link = its call) -> post-director-engine-b3 (gen 14, seated 03:08:27Z) · TMM.153 03:1xZ = dm (pane busy ->
+               coalesced) + SendMessage: (1) re-dispatch DH.303 = the owner's PASS 5 item 1 FIRST (died ~02:40Z, 0 commits) (2) DH.302
+               (a00-fe4b70ef @1c72417999) NOT landable: no test, experiment body = the empty template, it unlinks the symlink (3) PASS 5
+               items 2-4 + the residue batch's DE rows (4) round B g7.33.10 (5) g1.14.1
+DT             ROTATED 02:59:04Z (29 s after TMM.150) -> post-director-thought-21 (gen 29) · TMM.151 03:05Z = dm (pane busy -> coalesced)
+               + SendMessage (enqueued 03:05:53Z): batch 20's THOUGHT fix, then TMM.150 (batch 21 = the corrective round FIRST; the
+               known cell VERIFIED at experiment:a00-6f40fad2-eca451:33 = 0.991699 / 0.000489), then TMM.149 (PASS 5's 6 + 2)
+               · batch 20 = OSC.28 on DT's LOCAL branch (e7858ef4ef; branch tip 51d1b79443 = its rotate-out), NOT on the trunk:
+               the width search INVERTED the allocator (DT 02:58Z) -> inconclusive_lean_disproved:65 is not a clean read
+               · L3 context: at a MATCHED budget on Qwen2.5 key-only beat random at all 8 widths (batch 19); TMM.143 VOID (TMM.145)
 trunk reds     test_dashboard's SIGINT watch only (the Prime restored F16 in 145d088284 on my [red] 00:25Z)
-board          town:local-maxxing (13 rows kept): row 2 g7.33.11 landed + pushed · row 7 L3 corrected 01:2xZ (matched budget) + batch 20 · row 8 DE
-LANDED (gen18) DE c3cbadf2cb (#12) · DE 20676beba1 (#11) · DT b0dc89f0e8 (batch 19, partial) · DE 26413f2cc3 (#9 + #10, full suite 6413 / 1 trunk red) · DT 63f897a00b (batch 18)
+board          town:local-maxxing (13 rows): row 7 owes batch 20's verdict (NOT a clean read) once it lands
+LANDED (gen19) none yet
 ```
 
 ## 🔴 Where it stops
-02:2xZ 09-25 gen 18 rotating at the line (f 0.42): OWED -- (a) director-engine #13 (tip 10cc524ac2, 12 commits: DH.299 = TMM.136, brief.py's carry-forward line now a computed absolute path + --orders; + the fixes leaf goal:g7.33.12; g1.14.1's THOUGHT banked; DE merged DH.299 WITHOUT a mur, so this gate is the independent check): the FULL SUITE is RUNNING detached -- pid 2812846, log /tmp/tm18-gate-de13.suite.log, gated merge M b5a9568553 = merge-tree(e83a99a67d, tip), worktree /tmp/tm18-gate-de13 -> expected red = test_dashboard's SIGINT only; read brief.py's 14-line diff yourself; land per the merge-ups trap (T2 = merge-tree(live HEAD, tip), drift = the newcomer files only), then remove the worktree · (b) director-thought batch 20 = OSC.28 (TMM.145) running (parent a00-fdeca6c5 + kid a00-a7060fdc, pi-free) -> its [merge-up]: tabulate the rows yourself, random = the structure-blind control, 'uniform' = index order · (c) director-engine's next: round B goal:g7.33.10 (DH.300 measured the bug, fixed nothing) + goal:g1.14.1's 3-seam plan (DH.301) -- DE is rotating too: SendMessage the owed list to its new session (session name via rotate.py status; the stream is live)
+03:1xZ 09-25 gen 19: both directors re-seated and re-ordered BY NAME (DT: TMM.151; DE: TMM.152 -> rotated -> TMM.153); waiting on DT's [merge-up] for batch 20 and DE's merge-ups
 ```
-state   MAIN = e83a99a67d + this card + cron churn, pushed · ONE gate worktree open: /tmp/tm18-gate-de13 (#13's suite) · the grid is on origin (1,899 refs at 01:0xZ)
-NEXT    (1) DT's [merge-up]: range = diff(merge-base, tip); lean gate = links, goals --check, evidence + THOUGHT tests, anonymize --diff-file,
-            the GPU-name grep on added lines, the round's _test.py on the ML path; tabulate results rows yourself (mean agree / kl per arm x width)
-        (2) DE's items: code = the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only · #13's suite already runs (see the slot)
-        (3) after ANY director rotation, SendMessage the newest owed order to the NEW session (ListAgents)
-        (4) the board: batch 20's verdict -> row 7
-        next = TMM.148
+state   MAIN = bf1954b212 + this card; cron churn + sequence.json not mine · no gate worktree open (/tmp/de-close is not mine) · next = TMM.154
+NEXT    (1) after ANY director rotation: SendMessage the newest owed order to the NEW session (rotate.py status --post <p> --record latest | grep session_name)
+        (2) DT's [merge-up] for batch 20: lean gate = links, goals --check, evidence + THOUGHT tests, anonymize --diff-file, the GPU-name grep
+            on added lines, the round's _test.py; land ONLY if experiment:a00-a7060fdc-f436eb's THOUGHT carries the inversion finding, else return it
+        (3) DE's merge-ups: the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only
+        (4) the board row 7 once batch 20 lands
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
@@ -60,12 +57,13 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              rotate --model/--effort that differs from the row is REFUSED (exit 3): the row changes first · config:posts model / effort /
              role / tier / harness / owning_goal / worktree / rotated_by = prime/owner-only cells · a pin is verified = .agi/sessions/<post>.meter
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
+             · a SYMLINKED quorum card loops the bare rotate (DE gen 13, 5 tries: stop_commit's flattened copy vs the link = a TYPECHANGE the dirty check refuses) -> unblock = cp the target over the link, commit that one path, rotate (TMM.152)
 goals        a FIX = a sub-sub goal inside the fixes subgoal of the top-level subgoal it applies to (engine fixes = goal:g7.33.N) -- never a new top-level goal (OWNER 16:24Z 09-24) · renumber: write.py for every field it allows + ONE hand edit of the id line + git mv (no verb sets id); refs re-pointed in the same commit; THOUGHT old -> new
 orders       a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first --
              my OWN earlier orders too: TMM.123's '17:02:10Z after 2m21s' mixed the stop time with the reaper's runtime_s (142 s to finished_at
              17:02:28Z) and DT copied it into the OSC.15 node · a PREMISE in an order is checked like a number: TMM.143 rested on an arm whose
-             budget I never read (void, corrected in TMM.145) · NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.148
+             budget I never read (void, corrected in TMM.145) · NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.151
 owner lines  (HEAD rule, OWNER 21:3xZ 09-24 via the Prime) an owner line banks VERBATIM in the THOUGHT of the node version it produced; only a
              quote that must live on AS the quote goes into a role doc, the town board or its subgoal's body · doc:l5-owner-decisions is OUTDATED (nothing
              banks there) · the board has 13 rows: the LAST is the Prime's parent-decision owner verbatim -- keep it in every whole write · the stamp = the jsonl's own timestamp for the owner's message
@@ -117,6 +115,9 @@ key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send
 suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
              call · 14:25-15:28 at load 2-6 (6413 passed 00:5xZ 09-25) · foreground sleep is blocked: wait with a background loop · a bare 'cd'
              in a Bash call can stick as the session's cwd -- use absolute paths or cd back to /data/work/agi
+push         (the Prime's [rule] 02:54Z, owner 09-25; doc:unified-director-brief §2) directors' post branches are LOCAL-ONLY, never pushed; a
+             merge-up names a LOCAL tip; my landing on local-maxxing/season2/main is the town's ONLY remote push; the Prime keeps local-maxxing/main
+             + season2/main by SHA from it
 stream       LIVE since the owner's 00:5xZ 09-25 call (the Prime's notice 01:59Z, ~2 min delay; durable in doc:unified-head): a secret, key,
              address or host name in my pane -> run brb at once (~/.local/bin/brb), then ONE [red] to belam · back = GRANTED to me (OWNER
              02:01:16Z 09-25, verbatim: "you can run back yourself assuming the fix is in, and let's add panic to global PATH so it's easy to
