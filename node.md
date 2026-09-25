@@ -21,127 +21,190 @@ town: local-maxxing
 # CARD — director-engine · template: `doc:unified-director-brief` · head: `doc:unified-head`
 
 ## IDENTITY
-**[rule] BRANCHES + PUSH AUTHORITY** -- NEVER `git push`, any form, from this worktree, ever. Post branch is
-LOCAL-ONLY; a finished merge-up is HANDED to thought-master as one `[merge-up]` dm; thought-master alone lands it
-on `local-maxxing/season2/main` and pushes. Durable copy: `doc:unified-director-brief` §2 "branches" row.
+Post `director-engine`, role director, tier 1, town **local-maxxing**. Worktree `.agi/worktrees/post-director-engine` on
+`local-maxxing/season2/posts/director-engine/main`; push ONLY `refs/agi/posts/director-engine`. Merge-ups go to
+**thought-master**. `goal:g7.33` = core's umbrella, but per-LEAF, not a blanket hold: `goal:g7.33.9` (template-max),
+`goal:g7.33.10` (schema-checked rows), `goal:g7.33.11` (grid push, CLOSED) and `goal:g7.33.12` (research-review fix, new
+this session) each carry their own `who: director-engine, batched by thought-master` row and are mine to work directly
+-- verified against the node bytes this session, not assumed. Specific OTHER leaves stay HELD pending a Prime/owner
+ruling (`g7.33.1`, `g7.33.7`, `g7.33.8` confirmed HELD by grep of the dm log) -- check a leaf's own `who` row before
+touching it, never assume the whole g7.33 subtree by default either way.
 
-Post `director-engine`, role director, tier 1, town **local-maxxing**. Worktree `.agi/worktrees/post-director-engine`
-on `local-maxxing/season2/posts/director-engine/main`. Merge-ups go to **thought-master**. `goal:g7.33` leaves mine
-directly: `g7.33.9` (template-max), `g7.33.10` (schema-checked rows, OPEN), `.11`/`.12`/`.13` (CLOSED). Other leaves
-stay HELD pending Prime/owner ruling (`g7.33.1/.7/.8`) -- check a leaf's own `who` row before touching it.
-
-## §0 STATE (gen 16)
+## LIVE STATE + STOPS (gen 13, mid-session -- three parents in flight, none harvested yet)
 ```
-seat      post-director-engine-26 [98e615] per this session's own ListAgents row; STARTUP's initial row (session
-          88efbe08, session_name agi-48, pid 1135343) was the pre-reap snapshot -- that pid was confirmed reaped
-          by AFTER_JOIN's own check. Do not be confused by the two identities across one seating; the live one is
-          post-director-engine-26.
-branch    post-director-engine, LOCAL ONLY throughout this session -- no push, no exceptions taken
-tip       1597f37ccc (trunk-sync merge, local, unpushed by design)
-suite     full suite in this worktree: 6425 passed / 27 skipped / 1 xfailed / 0 failed (852s) -- test_dashboard's
-          SIGINT did NOT reproduce here (23/23 green standalone too), better than thought-master's expected-red
-          baseline; flagged to them rather than assumed still-red
-merge-ups sent this session: ONE, @e566c6b99f (TMM.161's fix). thought-master's full suite against it started
-          07:59:56Z; verdict not yet read back as of this write.
-budget    spawn_budget 0-1/30 live (DH.312 just spawned); provisioning available
-```
+STARTUP NOTE, ROOT-CAUSED (not just worked around): this session's first Read of .agi/sessions/quorum/
+director-engine.md returned STALE gen-11 content (199 lines, DH.298-era) even though `git log`/`git status` on
+`.agi/nodes/doc/card-director-engine.md` prove the real HEAD has been gen 12's accurate 167-line rotate-out
+(0e9974aa13) all along -- no bytes were ever lost. Root cause, confirmed by `ls -la`: the quorum path was NOT a
+symlink at all, it was a two-generations-stale PLAIN FILE. `doc:unified-director-brief` §3 says rotate's
+`stop_commit` step flattens the symlink into a real file, and "the successor re-links, not the outgoing director"
+-- gen 11 flattened it (capturing gen 11's own 199-line content) at its own rotate-out, gen 12 never re-linked it,
+so gen 12's OWN rotate-out had nothing left TO flatten (already a plain file) and silently no-opped, leaving gen
+11's snapshot sitting there completely unrelated to gen 12's real card for this session's entire first read. FIXED:
+`rm` the flattened file, `ln -s ../../nodes/doc/card-director-engine.md director-engine.md` in this worktree's
+`.agi/sessions/quorum/`, verified byte-identical to the real node afterward. LESSON: skipping the re-link once does
+not just cost the skipping generation -- it goes stale FOREVER across every subsequent generation until someone
+notices `ls -la` shows a plain file instead of an `l...` symlink and fixes it. Check this on your FIRST substantive
+action, every generation, not just when a read looks suspicious.
 
-## §1 PLAN
-| item | status |
-|---|---|
-| TMM.161 red (veto x5 fixtures + THOUGHT-hygiene duplicate marker) | **DONE** -- fixed, verified against real bytes (not assumed from the stale @edc78b1c21 tip thought-master's suite ran against); 7/7 tests pass, zero regressions across 150+329 tests in touched files, full suite 6425/0 failed |
-| TMM.161 items (b) card AUTO-CAPTURED line + (d) g7.33.13 tags | **Confirmed already fixed** by earlier commits in-range (131c7319d1 + the gen-15 card rewrite) -- verified against current bytes, no action needed |
-| [merge-up] for TMM.161 | **SENT** -- @e566c6b99f; thought-master's full-suite re-run in progress |
-| Trunk sync (was 50 commits behind local-maxxing/season2/main) | **DONE** -- merge commit 1597f37ccc; one conflict (posts.md, criss-cross history from concurrent seat-row writers) resolved by taking the trunk's version wholesale, matching thought-master's own independent resolution of the same conflict pattern (TMM.164). goals --check and links both clean post-merge |
-| DH.302 (rotate-stop-commit fix, orphaned from gen 13/14) | **NOT mergeable as-is** (real ~10-line rotate.py fix but empty Experiment/Evidence, no test, unset verdict) -- **then TMM.164: SUPERSEDED by DH.305**, which already proved the same hypothesis with a real regression test and rides in this merge-up. Do NOT dispatch a corrective round. Recorded here; nothing else to do |
-| DH.303 (authority-publish, second attempt) | Confirmed dead -- worktree clean, branch tip == merge-base, nothing produced. Matches thought-master's report exactly |
-| DH.311 (a00-977ab7a5) | Confirmed uncommitted WIP still present (veto.py + test_rotate_key_authority.py + 2 experiment nodes) -- not touched, not rewritten, per thought-master's own instruction |
-| PASS-5 item 2 (key-row-publish-fails-closed-on-a-malformed-matching-row) | **DISPATCHED this session as DH.312** -- third attempt (after DH.306's empty template and DH.309's 401 death), briefed with freshly re-verified line numbers (the tree moved ~50 commits since DH.309). Agent a00-42e2d012, pid 4047749, branch `season2/loops/hypothesis-key-row-publish-fails-a00-42e2d012`. Orders: `.agi/sessions/de-0925/dh312-orders.md`. NOT YET HARVESTED |
-| 5 "DE" residue rows + g5.32-t0 demote (hypothesis:pass5-0925-residue-batch) | **OPEN, not started this session** -- full list was in gen 15's card §1, still accurate, not re-transcribed here to save space; read that hypothesis node directly |
-| round B goal:g7.33.10 (write.py schema-check) | **OPEN** -- DH.300 measured, did not fix |
-| goal:g1.14.1 (round-stage workflow chaining) | **OPEN** -- DH.301 scoped a 220-line/3-seam plan in its own THOUGHT |
+TMM.147 (thought-master, cross-session message from "agi-b9", arrived mid-session): re-listed everything owed after
+TMM.146 crossed the rotation boundary undelivered. All five items now DONE or DISPATCHED this session:
 
-## §2 WHAT LANDED THIS SESSION (one line each)
-- Fixed TMM.161's red (5 veto-fixture tests + 1 THOUGHT-hygiene duplicate-marker issue), verified thoroughly, sent as `[merge-up] @e566c6b99f`.
-- Synced the post branch to the town trunk (merge 1597f37ccc), resolving the routine posts.md criss-cross conflict the same way thought-master's own landing did.
-- Actioned TMM.164: confirmed DH.302 superseded by DH.305, will not dispatch a corrective round for it.
-- Checked DH.303 and DH.311's actual worktree/branch state first-hand rather than taking prior reports on faith (both confirmed accurate).
-- Dispatched DH.312 (PASS-5 item 2, third attempt at the key-row-publish hypothesis) with the mechanism re-verified against current line numbers.
+1. THOUGHT fixes (TMM.146/147 item 1) -- DONE, tip aebc4cb7f0.
+   - goal:g1.14.1 had NO THOUGHT block. Added the FULL verbatim owner line at 2026-09-25T00:37:38Z, pulled directly
+     from predecessor session e3bf5bfa's own transcript (jsonl), not retyped from thought-master's ellipsis-truncated
+     relay: "Oh woops sorry i misunderstood what prime was saying. Let's re-mint the hypothesis but under the
+     appropriate subgoal or sub-subgoal instead. Somewhere in config maxxing likely as it'll involve another custom
+     template or chaining existing ones in a fresh template." Much fuller than the relay -- worth pulling the primary
+     source even when a relay looks complete.
+   - goal:g7.33.11's Agent Notes said the 4th push-changed tick was 21 refs; thought-master flagged it as 26. Did NOT
+     take the correction on faith -- grepped the real cron log myself (/home/belam/logs/agi-crons-agi-3fbc6951.log:
+     817431, "grid push batch 1/1: 26 ref(s)") and confirmed 26 is right. Corrected + noted why in the THOUGHT.
+   - The owner's second quote (01:13:03Z, "research review bug can be prioritized at this time") was NOT found
+     anywhere in director-engine's own transcript despite an exhaustive search across every director-engine jsonl in
+     the project dir -- it must have been said in a different pane. Used it anyway, but cited as a corroborated relay
+     (identical, independently, in thought-master's dm AND on town:local-maxxing's board) rather than claiming it as
+     a verified primary-source quote. Say what you actually verified, not more.
 
-## 🔴 WHERE IT STOPS — the one next command (gen 16, meter climbing, rotating soon)
-```
-1  Check the inbox: `python3 extensions/agi/bin/send.py read director-engine` -- thought-master's full-suite verdict
-   on @e566c6b99f, and any further TMM.16x, likely landed by now.
-2  Harvest DH.312 when ready: `git log --oneline season2/loops/hypothesis-key-row-publish-fails-a00-42e2d012`,
-   check its experiment node under `.agi/nodes/experiment/`, review claim-vs-bytes (real test per malformed shape,
-   non-empty Experiment/Evidence, a set verdict) before merging -- same standard DH.302 failed to meet.
-3  Then, in priority order per TMM.164's "next": the 5 DE residue rows + g5.32-t0 demote (hypothesis:pass5-0925-
-   residue-batch), round B goal:g7.33.10, goal:g1.14.1 -- each its own corrective round, dispatched without asking,
-   per the standing "mur residues close in-loop" rule.
-4  Judgement calls: decide, record the reasoning in the affected node's THOUGHT, keep going -- delegated authority
-   carries across the rotation boundary; bank only what is genuinely the owner's alone.
-5  Card write LAST, right before rotating.
-```
+2. Fixes-leaf for the already-landed research-review fix (TMM.144 item 3 / TMM.147 item 2) -- DONE, tip aebc4cb7f0.
+   Minted goal:g7.33.12 under goal:g7.33 (not under goal:g6.11, where a superficially similar sibling hypothesis
+   lives -- g6.11 is a generic spawn/dispatch/kid-lifecycle TEST bucket, not a research-review fixes home; g7.33 is
+   the actual "engine fixes surfaced by the town" family this fix matches, same shape as g7.33.9/10/11). Caught and
+   fixed two of my own mint bugs before committing: `write.py create --set tags=a,b,c` writes a raw comma STRING, not
+   a YAML list, even though the schema declares `tags: {type: list}`; and `seeds` (schema-REQUIRED) was silently
+   omitted with no refusal. `links.py schema` count dropped 198 -> 197 once hand-fixed. This exact bug class became
+   the fresh, first-hand evidence cited in item 4 below.
 
-## §4 TRAPS HIT THIS GENERATION (gen 16) -- read before repeating them
-```
-THE INJECTED FIRST-TURN CARD WAS STALE AGAIN -- THIS TIME ROOT-CAUSED AND FIXED, NOT JUST WORKED AROUND. My own
-  first-turn context showed gen-13-era card content (headers literally reading "gen 13"), not gen 15's real,
-  accurate rotate-out. `ls -la .agi/sessions/quorum/director-engine.md` showed the EXACT gen-13 mechanism recurring:
-  a plain file (`-rw-rw-r--`), not a symlink -- flattened by some rotation's `stop_commit` and never re-linked
-  since. Fixed the same way gen 13 did: `rm` the flattened file, `ln -s ../../nodes/doc/card-director-engine.md
-  director-engine.md`, verified byte-identical after. This is the THIRD time this exact mechanism has been hit
-  (gen 13 found and fixed it once; it silently went stale again some rotation between then and gen 16 without
-  anyone noticing until a cold first-turn read showed old content) -- confirming gen 13's own warning that skipping
-  the re-link goes stale FOREVER, not just for one generation, until someone happens to check `ls -la`. Caused no
-  harm THIS session (every consequential decision was re-verified via direct `Read`/`git log`/`grep` against real
-  committed bytes, never the stale injection alone), but this is now the SECOND time a generation has had to
-  rediscover-and-fix this by hand rather than the rotation flow re-linking it automatically as `doc:unified-
-  director-brief` §3 says the successor should. CHECK `ls -la` ON YOUR OWN QUORUM PATH EVERY GENERATION, FIRST
-  THING -- and consider whether `rotate.py`'s own successor-seating step should just do this automatically instead
-  of relying on every generation to remember.
-POSTS.MD WILL CONFLICT ON NEARLY EVERY TRUNK-SYNC MERGE under this much concurrent multi-post activity --
-  criss-cross history from many live seat-row writers, not a real semantic divergence. Resolve by taking the
-  trunk's (origin's) version of the WHOLE file wholesale, unless you made a deliberate edit to that file yourself
-  this session (I had not). Confirmed this is the standard resolution: thought-master's own landing hit the exact
-  same pattern and resolved it identically (TMM.164).
-A HYPOTHESIS NODE'S OWN THOUGHT-BLOCK LINE-NUMBER CITATIONS GO STALE FAST under this much concurrent trunk
-  activity (~50 commits moved between DH.309's briefing and DH.312's dispatch this session) -- always re-grep and
-  re-read the actual function yourself before writing new orders, never trust an older citation even from the
-  SAME hypothesis node's own prior THOUGHT block.
+3. TMM.136 (parent's kid-spawn --orders path is ambiguous prose, not a real path) -- DISPATCHED, not harvested.
+   Investigated the mechanism myself before minting: `brief.py:2074-2103` (`_orders_section`) renders a DIRECTOR's
+   `--orders` bytes VERBATIM into a PARENT's brief with no path logic of its own, so an ambiguous phrase reaching a
+   parent's own kid-spawn line has to originate in prose somewhere upstream. Best candidate found:
+   `brief.py:1874-1888`, the parent's own carry-forward instruction, still teaches the DEPRECATED `--prompt-file
+   <path|->` while `dispatch.py:1863`'s own runtime message already pushes every kid-tier caller toward `--orders`.
+   Could NOT find the literal string "this worktree absolute path" anywhere in the tree by grep, so the hypothesis
+   (`hypothesis:parent-orders-line-names-a-real-path-not-prose`, under goal:g7.33.9) names this as a well-evidenced
+   CANDIDATE, honestly, and explicitly asks the dispatched parent to confirm against a live repro before committing
+   to the fix -- not a claimed-proven root cause dressed up as one. Dispatched as **DH.299**, agent `a00-5497ee99`,
+   pid 2428863, branch `season2/loops/hypothesis-parent-orders-line-na-a00-5497ee99`. Orders:
+   `.agi/sessions/de-0925/dh299-orders.md`.
+
+4. Round B, goal:g7.33.10 (write.py's set/create --set should be schema-checked) -- DISPATCHED, not harvested.
+   goal:g7.33.10's own body already carried a near-complete brief (the owner's five-probe scratch-worktree
+   measurement: an invented field, an out-of-regex goal_id/status, a non-float confidence, a title with no id prefix
+   -- all admitted, exit 0). Transcribed it into the hypothesis schema shape almost directly, and ADDED my own
+   fresh, first-hand repro from item 2 above (tags-as-string, missing seeds) as independent, same-session
+   confirmation the gap is real and current. Pointed the parent at `links.py schema`'s existing loader/validator to
+   reuse rather than reimplement. Dispatched as **DH.300**, agent `a00-d4088ba1`, pid 2446058, branch
+   `season2/loops/hypothesis-write-py-set-is-schem-a00-d4088ba1`. Orders: `.agi/sessions/de-0925/dh300-orders.md`.
+
+5. goal:g1.14.1's round (the owner's 00:37Z re-mint; hypothesis:a-round-stage-spawns-the-parent-and-chains-its-
+   review-in-one-workflow) -- DISPATCHED, not harvested. The hypothesis was already fully specified from a prior
+   session (Measured/Build/FALSIFIERS/TESTS/FILE SCOPE/CEILING, technical content Prime-verified against
+   workflow.py/cli.py line numbers as of 09-24 21:4xZ) and its own THOUGHT flagged those citations needed
+   re-verification since the tree had moved. Spot-checked before dispatch: cli.py:2387 matches exactly; the
+   chained_from / prior-stage-return mechanism is confirmed real near workflow.py:2116; :1320 and :2315 only loosely
+   checked. Told the parent to finish that verification itself and correct the node's citations if they've drifted
+   further, rather than silently trusting a partial spot-check. Dispatched as **DH.301**, agent `a00-30d529ae`, pid
+   2459647, branch `season2/loops/hypothesis-a-round-stage-spawns--a00-30d529ae`. Orders:
+   `.agi/sessions/de-0925/dh301-orders.md`. Already spawned its first kid (`a00-fa4bba08`) by the time of this write.
+
+All three rounds dispatched with genuinely DISJOINT file scopes (brief.py+tests / write.py+links.py+tests /
+workflow.py+workflows/+tests) and told so explicitly in their own orders files, so running them in parallel matches
+TMM.128's own precedent (round A + round B were explicitly pre-authorized as parallel exactly because their files
+never overlap) rather than inventing a new practice.
+
+Before dispatching: fetched + merged `local-maxxing/season2/main` (0b330293) into this branch, clean, no conflicts;
+confirmed `pi-free` config invariant (grep -c count = 1) after the merge. Pushed twice this session (aebc4cb7f0 after
+the node fixes, 7e36f5f27c after the trunk merge) -- `refs/agi/posts/director-engine` is current as of this write.
+
+Nothing else from TMM.147 remains: all five items are done or in flight. No new work invented beyond what was
+explicitly ordered -- the queue thought-master gave is now empty pending harvest.
 ```
 
 ## BANKED
-- (carried) g5.32 / g7.33.9 near-duplicate flag -- still not chased, still not blocking anything.
-- (carried) research-review's propose-only MODIFY-with-no-real-id design gap -- shipped, visible, handled.
-- (carried) prime-merge-routine-is-one-cron-script -- asked TM whether still wanted, still no reply.
-- (carried) EF.10 + goal:g7.33.8 stranded pre-hold -- core decides.
-- (carried) the mur workflow's repeated `test_survival_state_card_uses_the_passed_project_root` "real subprocess"
-  finding -- still not its own `[red]`.
-- (carried, unconfirmed either way this session) `grid.py commit --all`'s previously-reported pre-existing
-  `experiment:a00-2a4dfb57-triage has no mint_id` warning did NOT appear in either of my two runs this session --
-  may already be fixed by a backfill pass, may just not have triggered. Not re-asserting it as still-open; also
-  not claiming it fixed. Worth a quick look, not urgent.
-- (carried) `write.py create --set` still does not coerce a list-typed schema field, and a missing required field
-  on create is not refused -- goal:g7.33.10 (round B) is the round that fixes this; still open.
-- NEW this session: the first-turn-injection staleness trap (see TRAPS) -- now recurring across 2+ generations;
-  worth a proper fix rather than a fourth independent rediscovery.
-- RESOLVED this session: TMM.161's full red (veto x5 + THOUGHT hygiene); DH.302 clarified as superseded (not a
-  live defect needing a corrective round, per thought-master TMM.164).
+- (carried from gen 12) The g5.32 / g7.33.9 near-duplicate flag -- still not chased, still not blocking anything.
+- (carried from gen 12) research-review's propose-only MODIFY-with-no-real-id design gap -- shipped code makes it
+  VISIBLE and handled, a future round might want to actually mint the MODIFY'd version once a batch is promoted to
+  mint:true. Not a defect in what shipped.
+- (carried from gen 11, still unclaimed) prime-merge-routine-is-one-cron-script -- asked TM whether still wanted, no
+  reply yet.
+- (carried from gen 11, still unclaimed) EF.10 + goal:g7.33.8 stranded pre-hold -- flagged in a prior merge-up; core
+  decides.
+- (carried from gen 11) `seatsig/veto.py`'s `read()` swallows a malformed-cell exception internally -- still just a
+  candidate small round, not queued.
+- (carried from gen 11) the mur workflow's repeated `test_survival_state_card_uses_the_passed_project_root`
+  "real subprocess" finding -- four consecutive passes now flagged it; still not surfaced as its own `[red]` because
+  no merge-up has gone out yet this session to carry it alongside.
+- NEW this session: `grid.py commit --all` printed one pre-existing, unrelated error during this session's node
+  commits: `experiment:a00-2a4dfb57-triage has no mint_id -- refusing to write a node-id-keyed ref for it. Run
+  backfill-mint-ids.py --write first.` Not mine to fix (out of scope, not ordered, not blocking any of this
+  session's own commits, which all versioned fine) -- flagging for whoever next runs a full `backfill-mint-ids.py`
+  pass.
+
+## TRAPS HIT THIS GENERATION (gen 13) -- read before repeating them
+```
+SKIPPING THE POST-ROTATION SYMLINK RE-LINK GOES STALE FOREVER, NOT JUST FOR ONE GENERATION -- CHECK `ls -la` ON YOUR
+  OWN QUORUM PATH ON YOUR FIRST SUBSTANTIVE ACTION, EVERY TIME. The very first Read of this post's own card this
+  session returned gen-11-era content (199 lines) that matched neither `git log` nor `git status` on the REAL node
+  file (`.agi/nodes/doc/card-director-engine.md`; last real commit 0e9974aa13, gen 12's accurate 167-line rotate-out,
+  zero uncommitted changes). Root cause via `ls -la`, not a filesystem fluke: `.agi/sessions/quorum/
+  director-engine.md` was a two-generations-stale PLAIN FILE, not a symlink. `doc:unified-director-brief` §3 already
+  names the mechanism ("rotate's stop_commit flattens the link: re-link it after a rotation... the successor
+  re-links, not the outgoing director") -- gen 11 flattened it at its own rotate-out (capturing gen 11's content),
+  gen 12 never re-linked it, so gen 12's OWN rotate-out had no symlink left to flatten and silently no-opped,
+  stranding gen 11's snapshot indefinitely. Fixed this session (`rm` + `ln -s ../../nodes/doc/card-director-engine.md
+  director-engine.md`, verified byte-identical). The independent ground-truth re-derivation this triggered (dm log +
+  git log) was not wasted -- it happened to confirm exactly what the real card already said was open -- but do not
+  count on that luck: `ls -la` the quorum path FIRST, before trusting a Read through it, every generation.
+AN OWNER QUOTE RELAYED BY A PEER CAN BE PARTIAL EVEN WHEN IT READS AS COMPLETE. Thought-master's relay of the
+  00:37:38Z owner line used ellipsis and was genuinely missing real content (the "Oh woops sorry i misunderstood
+  what prime was saying" opening, and the closing sentence naming config-maxxing specifically) -- the predecessor
+  session's own transcript had the full line. The 01:13:03Z line, by contrast, was relayed WITHOUT ellipsis, reads
+  as a complete sentence, and could not be found in this post's own transcript at all after an exhaustive search --
+  it was said somewhere else entirely. Two quotes, two different failure modes; neither is safe to retype from a
+  relay without at least trying the primary source first, and "I could not find the primary source" is itself worth
+  recording rather than silently upgrading a relay to look like a verified quote.
+`write.py create <type> <slug> --set <field>=<v1,v2,v3>` DOES NOT COERCE A LIST-TYPED SCHEMA FIELD -- it writes the
+  raw string. Hit on BOTH new mints this session before I started checking. `--set tags=a,b,c` on any node whose
+  schema declares `tags: {type: list}` needs a manual follow-up fix (or a real YAML list block) every time until
+  goal:g7.33.10's round actually lands. Same silent gap exists for a missing REQUIRED field on create (no `seeds` ->
+  no refusal) -- `links.py schema` is the only thing that will ever tell you, and only if you remember to run it.
+A DUPLICATE HEADING BUG FROM `write.py create --body-file` CAN RECUR IF YOUR BODY FILE STARTS WITH ITS OWN `#
+  <id>` LINE -- `create` already renders one. g7.33.10 hit this at its own mint (per its THOUGHT); repeated it
+  myself on the FIRST of two mints this session (g7.33.12) before catching it, then avoided it on the second
+  (the TMM.136 hypothesis) by simply not putting a heading line in the body file at all. Cheapest fix: never open a
+  --body-file with a heading, full stop.
+```
+
+## 🔴 WHERE IT STOPS — the one next command (gen 13, mid-session, not rotating yet -- meter well under the line)
+```
+1  Check the inbox: `python3 extensions/agi/bin/send.py read director-engine` -- a reply from thought-master (agi-b9)
+   to this session's status message, or a new TMM order, may already be waiting.
+2  `python3 extensions/agi/bin/spawn_budget.py status` -- poll DH.299/300/301 (agents a00-5497ee99, a00-d4088ba1,
+   a00-30d529ae) for liveness. Do not intervene while they are live and unreported; each parent supervises and
+   reviews its own kids per its brief. Harvest whichever finishes first using the standard sequence (BUILD LOOP §3
+   in doc:unified-director-brief, harvest-in-place on the loop branch, never merge unreviewed).
+3  Once at least one of the three is harvested and merged onto this post branch: ONE mur (agi-merge-up-review,
+   pi-free, detached) per landed batch, then ONE [merge-up] to thought-master naming the pushed SHA -- do not batch
+   all three into one merge-up if they land at different times; TMM.147 asked for "ONE [merge-up] per completed
+   item".
+4  If the inbox or a parent surfaces something that needs a judgement call, decide it, record the reasoning in the
+   affected node's THOUGHT (or here if there is no single node), and keep going -- this run has delegated authority
+   for the rest of its iteration budget; bank only what is genuinely the owner's alone to decide.
+5  Card write LAST, right before rotating. `python3 extensions/agi/bin/rotate.py rotate` (bare) the moment `[meter]`
+   reads f >= 0.47 -- not there yet as of this write (last read: f=0.0598).
+```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Gen 16. First substantive action was answering a `[red]` (TMM.161) rather than the card's own inherited step 1
-(inbox was empty at STARTUP) -- fixed both genuine issues (veto fixtures, THOUGHT-hygiene marker) after confirming
-against real bytes that the other two named issues were already resolved upstream, rather than assuming thought-
-master's report was still fully current against MY tip. Sent one clean merge-up, then did the routine trunk-sync
-merge (50 commits behind) before dispatching new work, per F58 -- hit and resolved the posts.md criss-cross
-conflict the same way thought-master's own parallel landing did, confirmed via their TMM.164 rather than guessed.
-Corrected course on DH.302 mid-session: had planned a corrective round for its incomplete-but-real fix, then
-TMM.164 arrived saying it's superseded by DH.305 -- deferred to that rather than dispatching redundant work.
-Dispatched DH.312 (PASS-5 item 2's third attempt) with hand-re-verified current line numbers rather than trusting
-the hypothesis node's own older THOUGHT citations, since the tree had moved substantially since DH.309's briefing.
-Independently reproduced gen 15's own "stale first-turn injection" finding a third time -- banked as confirmed-
-recurring rather than re-discovered-and-dropped. Did not reach the DE residue batch, round B, or g1.14.1 this
-session; the red, the sync, and DH.312 filled the available room. No corners cut on verification -- every claim
-above traces to a real tool call this session, not an assumption carried from the inherited card.
+Gen 13, mid-session write (not a rotate-out). Cleared the entire TMM.147 queue this session: two THOUGHT-block fixes
+with sources verified byte-for-byte (one pulled fuller from the primary transcript than the relay had it, one found
+nowhere in this post's own transcript and honestly cited as a corroborated relay instead), one retroactive fixes-leaf
+goal minted with two of my own mint-time bugs caught and fixed before committing, and three parents dispatched in
+parallel across genuinely disjoint file scopes (TMM.136's --orders ambiguity, round B's schema-checked write.py, and
+goal:g1.14.1's round-stage workflow chaining) -- none harvested yet, all named here with their exact agent ids,
+pids and branches so a cold reader (or this same session after a context compaction) can pick them up without
+re-deriving anything. The session opened with a confusing false alarm (a stale-looking card read that turned out to
+be a transient glitch, not real data loss) and the investigation spent clearing that up ended up directly informing
+which fixes were still genuinely open -- not wasted, but recorded as a trap so a future session checks git log
+before building an incident narrative on a suspicious read.
 <!-- THOUGHT:END -->
