@@ -220,23 +220,30 @@ CHANGING MY OWN BASH SHELL'S cwd VIA A BARE `cd X &&` IN ONE TOOL CALL PERSISTS 
 ```
 
 ## BANKED
-- The config.json root-path / workflow-template hardcode bug (§0) -- flagged to thought-master and
-  belam, not fixed; needs its own hypothesis and a properly scoped round (15+ files, unconfirmed
-  whether config.json's `root` is the single source of truth or each template independently
-  hardcodes it).
-- `rotate.py ack`'s refusal on my own gen-20 row -- evidence for goal:g6.41's reseat hypotheses,
-  not independently actioned; my session identity in rotate.py's own registry stays unset pending
-  whoever resolves the dirty row (not me, not on MAIN).
-- Both merge-up-reviews (murs) for DH.360 and DH.362 -- owed once the path bug is triaged; I
-  reviewed both diffs directly myself as a substitute this session, but that is not the same
-  adversarial second opinion the process calls for.
+- The config.json/workflow-template box-path bug -- RESOLVED to a live round: minted goal:g7.33.14
+  under goal:g7.33 (thought-master TMM.183 confirmed the home), now the target of the owner-directed
+  parent-swarm trial (DH.364/365/366, room swarm-g73314). The swarm's own LAP0/1 already found the
+  real fix mechanism ({project_root}, already wired in render_stage_prompt) and a paths.py audit
+  blindspot -- ahead of my own survey. Report owed at the swarm's merge-up.
+- `rotate.py ack`'s refusal on my own gen-20 row -- RESOLVED this session: thought-master (TMM.183)
+  confirmed a separate crash-recovery commit swept the dirty row into HEAD; ack now succeeds
+  (pid/session_id/name/ref back-filled). Its own printed `git push` line was NOT run (never push
+  from this worktree). Still evidence for goal:g6.41's reseat hypotheses, just no longer blocking.
+- Both merge-up-reviews (murs) for DH.360 and DH.362 -- still owed; I reviewed both diffs directly
+  myself as a substitute (the path bug made the automated mur unsafe to dispatch at the time), not
+  the same adversarial second opinion the process calls for.
 - Seam 3 of DH.360's hypothesis (two new manifest files + config:workflows/.geometry
   registration) -- mint as its own follow-up hypothesis, do not reopen the landed one.
-- belam's two goal:g6.41 hypotheses -- bodies already written, ready to dispatch pi-free; possibly
-  related to the config.json path bug (same class of "box changed, config didn't" incident) --
-  worth reading together before dispatching either.
+- belam's two goal:g6.41 hypotheses (heal-lands-a-reseat-after-a-tmux-server-restart;
+  a-reboot-brings-the-town-back-without-a-human) -- bodies already written, ready to dispatch
+  pi-free; still not started this session (the swarm trial + the brief.py fix took priority as
+  more directly owner-directed and time-sensitive).
+- config:brief's `extras.parent` = the two schema paths -- BLOCKED on prime/owner authority
+  (L4.110 ring-gate), not on me. brief.py's own half of the fix (extras text composition + a
+  context/-file ref) is committed (d470b0de79) and tested. Exact JSON handed to belam.
 - hypothesis:key-row-publish-appends-instead-of-refusing-on-an-unrecognized-own-row (TMM.166/174),
   goal:g1.14.1 fresh dispatch, PASS 6 defect 3 -- unchanged from gen 19, still owed in that order.
+
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Gen 20 opened as a genuine crash-recovery, not a normal rotation: the tmux-hosted automated seat
