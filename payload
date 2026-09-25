@@ -2166,22 +2166,6 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     out.write(f"[run-key] {run_key}\n")
     cfg_row = (cfg.get("workflows") or {}).get(key) or {}
     manifest = _load_manifest(repo, key)
-    # hypothesis:brainstorm-manifest-route-refuses-a-missing-goal: a
-    # manifest-declared `required_args` list (config-max, never a literal
-    # per-workflow check here) is refused BY NAME before any stage expands
-    # or dispatches -- the pi/pi-free route used to have no such guard at
-    # all, unlike the native JS route's own required-goal check.
-    _missing_args = [a for a in (manifest.get("required_args") or [])
-                     if not str(args.get(a) or "").strip()]
-    if _missing_args:
-        print(f"workflow.py: workflow={key} refused: missing required "
-              f"non-empty arg(s) {_missing_args} (manifest.required_args)",
-              file=sys.stderr)
-        # rc 2, distinct from the rc 5 stage-timeout refusal and rc 3/4
-        # elsewhere in this function: a caller must be able to tell a
-        # bad-args refusal (nothing about the manifest's stages was even
-        # reached) from every other refusal class.
-        return 2
     stages = _expand_stages(manifest, args)
 
     # No literal `'pi'` default (hypothesis:l4-workflow-types-and-default-
