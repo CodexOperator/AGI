@@ -179,55 +179,6 @@ def push_spec_for(root: Path) -> str:
     return f"{ns}/*:{ns}/*"
 
 
-def push_batch_limit(root: Path) -> int:
-    """Maximum changed grid refs in one host validation request."""
-    cfg = locations.load_config(locations.shared_project_root(Path(root)) or Path(root))
-    value = (cfg.get("grid") or {}).get("push_batch_limit", 200)
-    return max(1, int(value))
-
-
-def push_batches(root: Path) -> list[list[str]]:
-    """Exact post-split refspec batches for changed local tips; never a wildcard."""
-    ns = ref_ns_for(root)
-    local = [line.split() for line in git(
-        root, "for-each-ref", ns, "--format=%(refname) %(objectname)").splitlines()]
-    remote = {parts[1]: parts[0] for parts in (
-        line.split() for line in git(
-            root, "ls-remote", "--refs", "origin", f"{ns}/*").splitlines())}
-    cfg = locations.load_config(locations.shared_project_root(Path(root)) or Path(root))
-    grid_cfg = cfg.get("grid") or {}
-    split_epoch = int(grid_cfg.get("push_split_epoch", 0))
-    minimum = int(grid_cfg.get("push_min_season", 0))
-    changed = []
-    for ref, oid in local:
-        if remote.get(ref) == oid:
-            continue
-        is_root = False
-        if split_epoch or minimum:
-            meta = git(root, "show", "-s", "--format=%ct %P", oid).split()
-            is_root = len(meta) < 2
-            if split_epoch and is_root and int(meta[0]) < split_epoch:
-                # The seed pass created unrelated v1 roots; descendants remain.
-                continue
-        if minimum and is_root:
-            season = re.search(r"^season:\s*(\d+)\s*$", git(root, "show", f"{oid}:node.md"), re.M)
-            if season and int(season.group(1)) < minimum:
-                continue
-        changed.append(f"{ref}:{ref}")
-    size = push_batch_limit(root)
-    return [changed[i:i + size] for i in range(0, len(changed), size)]
-
-
-def cmd_push_changed(root: Path) -> None:
-    """Advance only changed local grid tips, stopping at the first bad batch."""
-    ensure_repo(root)
-    batches = push_batches(root)
-    for number, batch in enumerate(batches, 1):
-        git(root, "push", "-q", "origin", *batch)
-        print(f"grid push batch {number}/{len(batches)}: {len(batch)} ref(s)")
-    print(f"grid push: {sum(map(len, batches))} changed ref(s) in {len(batches)} batch(es)")
-
-
 def fetch_spec_for(root: Path) -> str:
     """`REF_NS` fetch refspec for graph root `root` (see `push_spec_for`)."""
     ns = ref_ns_for(root)
@@ -1926,7 +1877,6 @@ def main() -> None:
     mt.add_argument("--write", action="store_true")
     s = sub.add_parser("sync")
     s.add_argument("remote", nargs="?")
-    sub.add_parser("push-changed", help="push only changed grid tips in bounded batches")
     cr = sub.add_parser("cron")
     cr.add_argument("action", choices=["install", "show", "remove"])
     cr.add_argument("--snapshot-mins", type=int, default=5)
@@ -1971,8 +1921,6 @@ def main() -> None:
         cmd_migrate_trunk(root, args.to, args.write, args.from_ns)
     elif args.cmd == "sync":
         cmd_sync(root, args.remote)
-    elif args.cmd == "push-changed":
-        cmd_push_changed(root)
     elif args.cmd == "cron":
         cmd_cron(root, args.action, args.snapshot_mins, args.publish_engine)
 
