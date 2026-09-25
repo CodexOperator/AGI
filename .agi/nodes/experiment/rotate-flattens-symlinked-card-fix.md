@@ -7,6 +7,8 @@ parents:
 next_edges: []
 confidence: 0.9
 edited_by: director-engine
+evidence_runs:
+  - experiment:rotate-flattens-symlinked-card-fix
 role: director
 scaffold_hash: c22a7b956b2c9b99
 season: 2
