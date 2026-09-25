@@ -37,7 +37,7 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 
 ## §1 Plan
 ```
-done   seated · crons · quorum · owner stream line (dm x4, ~/.local/bin/brb, doc:unified-head E) · PASS 5 (0)-(9)
+done   doc:quick-setup (owner 05:3xZ) · seated · crons · quorum · owner stream line (dm x4, ~/.local/bin/brb, doc:unified-head E) · PASS 5 (0)-(9)
        · the owner's Jev ask answered · owner branch rule: brief §2 row, [rule] dm x4, local-maxxing/main ff'd, grid no-ID fix → DE · keys: the owner's
 next   the owner: stream back · 09:48Z PASS 6 (one-shot runs §2) · 08:13Z CHECK = case (c)
 open   round-mur ROUTED to director-engine as a WORKFLOW (behind g1.25) · PASS 5 residues (DE + TM) · §6
