@@ -1505,6 +1505,7 @@ def _round_ring_refusal(project_root: str, ring_name: str, tier: str,
 # hypothesis:a00-c3a24084-4190b2 / goal:g7.28.1 -- persistent seats.
 _PERSIST_SLEEP = time.sleep
 _PERSIST_POLL_S = 0.2
+_PERSIST_STOP_WAIT_S = 2.0
 _PERSIST_MAX_RESTARTS = 3
 _PERSIST_STOP_ENV = "AGI_PERSISTENT_STOP"
 
@@ -1525,6 +1526,18 @@ def _persistent_post(root: Path, seat: str | None, proc, agent_id: str,
         root, seat=seat, actor=seat, role=record["role"],
         cells={"pid": proc.pid if occupied else 0,
                "session_ref": agent_id if occupied else ""})
+
+
+def _stop_persistent(proc) -> None:
+    """Terminate and reap the held child before its post is released."""
+    if proc.poll() is not None:
+        return
+    proc.terminate()
+    try:
+        proc.wait(timeout=_PERSIST_STOP_WAIT_S)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait(timeout=_PERSIST_STOP_WAIT_S)
 
 
 def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
@@ -1563,6 +1576,7 @@ def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
         _persistent_post(root, seat, proc, agent_id, record, True)
         print(f"persistent: {agent_id} restart {restarts}/{max_restarts} "
               f"pid={proc.pid}")
+    _stop_persistent(proc)
     record.update(persistent=False, pid=None,
                   persistent_terminal_reason=terminal)
     (session / "agent.json").write_text(json.dumps(record, indent=2))
@@ -1780,6 +1794,7 @@ def main() -> int:
              "(seatsig/rings.py)",
     )
     args = ap.parse_args()
+    selected_seat = _resolved_seat(args.seat)
 
     # RUNG 2 round-ring gate (hypothesis:l4-a-ring-decision-carries-m-of-n-
     # signatures) -- now signed over the FULL round-cut decision (target,
@@ -2096,8 +2111,7 @@ def main() -> int:
     # untrusted row, its per-key budget cap is the row's `budget` cell instead
     # of the configured default. post_limit_usd returns None for a trusted
     # post or a capped-less untrusted row, so the default stands exactly.
-    _ut_limit = provisioning.post_limit_usd(
-        _resolved_seat(args.seat), cfg, root)
+    _ut_limit = provisioning.post_limit_usd(selected_seat, cfg, root)
     if _ut_limit is not None:
         cred_limit = _ut_limit
     # --cap overrides the standing default and any per-post cap for THIS round.
@@ -2179,7 +2193,7 @@ def main() -> int:
     # write only its own worktree; it never dispatches. The acting post is
     # the resolved seat (--seat > AGI_SEAT); absent a seat the gate fails
     # open (nothing to prove).
-    _ut_spawner = _refuse_untrusted_spawner(root, _resolved_seat(args.seat))
+    _ut_spawner = _refuse_untrusted_spawner(root, selected_seat)
     if _ut_spawner:
         print(_ut_spawner, file=sys.stderr)
         return 2
@@ -2634,7 +2648,7 @@ def main() -> int:
             # export the help text documents) survives when --seat is absent.
             # base=scrubbed_env() already carries an inherited AGI_SEAT, so
             # only the --seat override must be written here.
-            seat_val = _resolved_seat(args.seat)
+            seat_val = selected_seat
             if seat_val:
                 spawn_env["AGI_SEAT"] = seat_val
             if args.tier in ("kid", "parent"):
@@ -2847,7 +2861,7 @@ def main() -> int:
             # present-but-null and the completion/dm path prints ONE stderr
             # line naming the gap rather than guessing a pane identity. Never
             # inferred from a tmux window name or $USER (identity supplied).
-            "dispatched_by": _resolved_seat(args.seat),
+            "dispatched_by": selected_seat,
             # hypothesis:l4-the-harvest-completion-dm-resolves-the-iter-dir-
             # from-the-dispatching-seats-own-tree -- the DISPATCHING seat's
             # OWN graph root at spawn; NOT the agent's `worktree` below (the
@@ -2972,11 +2986,11 @@ def main() -> int:
         if args.persistent:
             # Claim the selected post before the hold; the supervisor keeps
             # only this row and the same in-memory/agent.json record current.
-            _persistent_post(root, args.seat, proc, agent_id, agent_record, True)
+            _persistent_post(root, selected_seat, proc, agent_id, agent_record, True)
             _supervise_persistent(
                 proc, _open_round, iter_dir=iter_dir, agent_id=agent_id,
                 record=agent_record, session=sess_dir, root=root,
-                seat=args.seat)
+                seat=selected_seat)
 
     # The one authoritative write, under lock and against a fresh read
     # (goal:s28 for the merge, goal:g4.8 for surviving concurrency). The
@@ -3040,7 +3054,7 @@ def main() -> int:
         )
 
     # The DISPATCHING seat's own last act (conjunct 1): a round is cut.
-    last_act.touch_env(root, args.seat)
+    last_act.touch_env(root, selected_seat)
     return 0
 
 
