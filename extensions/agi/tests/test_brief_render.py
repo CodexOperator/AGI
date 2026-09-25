@@ -8,6 +8,7 @@ the harness block and the town trajectory — and writes NO injection file.
 Each test is a falsifier from the hypothesis node, pinned red-first.
 """
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -60,6 +61,154 @@ def test_every_pi_role_brief_names_the_paid_for_path_guard(monkeypatch,
             tier="kid", agent_id="a", iter_n=1, cli_py="cli.py",
             scaffold=None, profile=profile, project_root=tmp_path))
         assert sentinel in rendered
+
+
+def test_survival_state_card_uses_the_passed_project_root(tmp_path):
+    """The survival card's TREE row follows each passed repository root."""
+    roots = []
+    for name, count in (("two", 2), ("five", 5)):
+        root = tmp_path / name
+        root.mkdir()
+        subprocess.run(["git", "init", "-q", str(root)], check=True)
+        for index in range(count):
+            (root / f"untracked-{name}-{index}.txt").write_text(
+                "untracked\n", encoding="utf-8")
+        roots.append((root, count))
+
+    for profile in ("survival", "ultimate_survival"):
+        rendered = [
+            "\n".join(brief.assemble(
+                tier="kid", agent_id="a", iter_n=1, cli_py="cli.py",
+                scaffold=None, profile=profile, project_root=root))
+            for root, _ in roots
+        ]
+        assert "TREE  2 dirty/unreviewed" in rendered[0]
+        assert "TREE  2 dirty/unreviewed" not in rendered[1]
+        assert "TREE  5 dirty/unreviewed" in rendered[1]
+        assert "TREE  5 dirty/unreviewed" not in rendered[0]
+
+
+def test_default_profile_resolution_follows_project_root(monkeypatch, tmp_path):
+    """The full sentinel must re-resolve the supplied root's own mode."""
+    monkeypatch.delenv("AGI_BRIEF_PROFILE", raising=False)
+    renders = {}
+    for name, mode in (("survival", "survival"), ("full", "full")):
+        root = _root(tmp_path / name, parts={"kid": []})
+        cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+        cfg["operating_mode"] = mode
+        (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+        renders[name] = "\n".join(brief.assemble(
+            tier="kid", agent_id="a", iter_n=1, cli_py="cli.py",
+            scaffold=None, project_root=root))
+    assert "SURVIVAL PROFILE" in renders["survival"]
+    assert "SURVIVAL PROFILE" not in renders["full"]
+
+
+def test_paid_for_path_guard_follows_project_config(tmp_path):
+    root = _root(tmp_path, parts={"kid": ["head"]})
+    cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    cfg["brief"]["paid_for_path_guard"] = "CONFIG-GUARD-SENTINEL"
+    (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    rendered = "\n".join(brief.assemble(
+        tier="kid", agent_id="a", iter_n=1, cli_py="cli.py",
+        project_root=root))
+    assert "CONFIG-GUARD-SENTINEL" in rendered
+
+
+def test_survival_brief_paid_for_path_guard_follows_project_config(tmp_path):
+    """The survival SUCCESSOR path (successor_prompt), not assemble() —
+    assemble(profile="survival") already goes through _finish()'s
+    substitution and would pass even without _survival_brief's own fix;
+    successor_prompt does not call _finish() at all (mur-9-5)."""
+    root = _root(tmp_path, parts={"kid": ["head"]})
+    cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    cfg["brief"]["paid_for_path_guard"] = "SURVIVAL-CONFIG-GUARD-SENTINEL"
+    (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    rendered = brief.successor_prompt(tier="kid", body="UNUSED-BODY",
+                                      profile="survival", project_root=root)
+    assert rendered.count("SURVIVAL-CONFIG-GUARD-SENTINEL") == 1
+    assert brief.PAID_FOR_PATH_GUARD not in rendered
+
+
+def test_successor_full_profile_carries_paid_for_path_guard_once(tmp_path):
+    root = _root(tmp_path, parts={"kid": ["head"]})
+    rendered = brief.successor_prompt(tier="kid", body="ARBITRARY-BODY",
+                                      project_root=root)
+    assert brief.PAID_FOR_PATH_GUARD in rendered
+    assert rendered.count(brief.PAID_FOR_PATH_GUARD) == 1
+
+
+def test_paid_for_path_guard_falls_back_to_config_with_config_node(tmp_path):
+    root = _root(tmp_path, parts={"kid": ["head"]})
+    _write(root, "nodes/.geometry/brief.md",
+           "---\nid: config:brief\nbrief:\n  parts: {kid: [head]}\n---\n")
+    cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    cfg["brief"]["paid_for_path_guard"] = "CONFIG-FALLBACK-SENTINEL"
+    (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    assert brief._paid_for_path_guard(root) == "CONFIG-FALLBACK-SENTINEL"
+
+
+def test_paid_for_path_guard_follows_config_brief_node(tmp_path):
+    root = _root(tmp_path, parts={"kid": ["head"]})
+    _write(root, "nodes/config/brief.md",
+           "---\nid: config:brief\nbrief:\n"
+           "  paid_for_path_guard: NODE-GUARD-SENTINEL\n---\n")
+    rendered = "\n".join(brief.assemble(
+        tier="kid", agent_id="a", iter_n=1, cli_py="cli.py",
+        project_root=root))
+    assert "NODE-GUARD-SENTINEL" in rendered
+
+
+def test_render_carries_paid_for_path_guard_for_pi_free_and_pi(monkeypatch, tmp_path):
+    sentinel = "RENDER-PAID-FOR-PATH-GUARD-SENTINEL"
+    monkeypatch.setattr(brief, "PAID_FOR_PATH_GUARD", sentinel)
+    for role, harness in (("kid", "pi-free"), ("parent", "pi-free"),
+                          ("director", "pi")):
+        root = _root(tmp_path / f"{role}-{harness}",
+                     parts={role: ["head"]})
+        rendered = brief.render(role=role, harness=harness, project_root=root)
+        assert rendered.count(sentinel) == 1, (role, harness)
+
+
+def test_render_paid_for_path_guard_override_is_exactly_once(tmp_path):
+    root = _root(tmp_path, parts={"kid": ["head"]})
+    cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    cfg["brief"]["paid_for_path_guard"] = "RENDER-OVERRIDE-SENTINEL"
+    (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+    rendered = brief.render(role="kid", harness="pi-free", project_root=root)
+    assert rendered.count("RENDER-OVERRIDE-SENTINEL") == 1
+    assert brief.PAID_FOR_PATH_GUARD not in rendered
+
+
+def test_render_does_not_duplicate_paid_for_path_guard_in_a_part(tmp_path):
+    """render() must not duplicate a guard already present in a part
+    (extras_text, not card+post — see the sibling override test's
+    docstring for why card+post silently renders the wrong role)."""
+    root = _root(tmp_path, parts={"kid": ["extras"]})
+    rendered = brief.render(role="kid", harness="pi-free",
+                            extras_text=brief.PAID_FOR_PATH_GUARD + "\nEXTRAS-SENTINEL",
+                            project_root=root)
+    assert rendered.count(brief.PAID_FOR_PATH_GUARD) == 1
+
+
+def test_render_override_replaces_guard_already_present_in_a_part(tmp_path):
+    """A configured guard replaces historical prose already in a part,
+    rather than joining it (mur-9-4). Uses extras_text, not card+post: the
+    _root() fixture's posts.md row hardcodes role="director", so post=
+    silently overrides any role=/harness= kwarg and a card-based fixture
+    never actually renders the content it thinks it does."""
+    root = _root(tmp_path, parts={"kid": ["extras"]})
+    cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    override = "HISTORICAL-GUARD-REPLACEMENT-SENTINEL"
+    cfg["brief"]["paid_for_path_guard"] = override
+    (root / "config.json").write_text(json.dumps(cfg), encoding="utf-8")
+
+    rendered = brief.render(role="kid", harness="pi-free",
+                            extras_text=brief.PAID_FOR_PATH_GUARD + "\nEXTRAS-SENTINEL",
+                            project_root=root)
+
+    assert rendered.count(override) == 1
+    assert brief.PAID_FOR_PATH_GUARD not in rendered
 
 
 def _write(root: Path, rel: str, text: str) -> Path:
@@ -289,6 +438,30 @@ def test_rotated_successor_is_head_plus_template_plus_card(tmp_path, monkeypatch
     assert "DIRECTOR-TEMPLATE-SENTINEL" in prime
 
 
+def test_successor_command_honours_explicit_project_root(tmp_path, monkeypatch):
+    """An explicit prompt-file successor must render from the caller-supplied
+    graph root, not the live checkout discovered by brief.py's default."""
+    import rotate
+
+    root = _root(tmp_path, parts={"kid": ["head"]})
+    prompt_file = _write(root, "successor.md", "SUCCESSOR-BODY-SENTINEL\n")
+    seen = {}
+    monkeypatch.setattr(
+        rotate, "_build_harness_command",
+        lambda harness, **kw: (seen.setdefault("prompt", kw["prompt_text"]),
+                               ["x"])[1])
+
+    rotate._successor_command(
+        name="kid-seat", tier="kid", prompt_file=str(prompt_file),
+        model=None, effort=None, settings=None, debug_file="/dev/null",
+        harness="pi", project_root=root)
+
+    assert "SUCCESSOR-BODY-SENTINEL" in seen["prompt"]
+    assert HEAD_SENTINEL in seen["prompt"]
+    assert HEAD_SENTINEL not in brief.successor_prompt(
+        tier="kid", body="LIVE-DEFAULT-SENTINEL")
+
+
 def test_hook_head_equals_rotate_head_at_one_sha():
     """Falsifier: the head bytes differ between two roles, or between the
     SessionStart hook and a rotated successor. `brief.py head` and
@@ -317,7 +490,8 @@ def test_extras_text_override_lands_last_and_order_is_the_config_cell(tmp_path):
     root = _root(tmp_path, parts={"kid": ["head", "card", "extras"]})
     out = brief.render(role="kid", extras_text="EXTRAS-SENTINEL",
                        project_root=root)
-    assert out.endswith("EXTRAS-SENTINEL")
+    assert out.index("EXTRAS-SENTINEL") < out.index("Paid-for path guard")
+    assert out.count("Paid-for path guard") == 1
     assert HEAD_SENTINEL in out
     assert out.index(HEAD_SENTINEL) < out.index("EXTRAS-SENTINEL")
 
@@ -365,6 +539,28 @@ def test_rotate_fallback_reason_reaches_stderr(tmp_path, monkeypatch, capsys):
         project_root=root)
     err = capsys.readouterr().err
     assert "brief.render" in err and "falling back to brief.assemble" in err
+
+
+def test_rotate_assemble_fallback_forwards_project_root(tmp_path,
+                                                        monkeypatch):
+    """The legacy fallback must render the same caller-supplied graph root."""
+    import rotate
+
+    def refuse(**kwargs):
+        raise brief.RenderError("forced primary-path refusal")
+
+    captured = {}
+    monkeypatch.setattr(brief, "render", refuse)
+    monkeypatch.setattr(
+        brief, "assemble",
+        lambda **kwargs: captured.update(kwargs) or ["FALLBACK-BODY-SENTINEL"])
+    monkeypatch.setattr(rotate, "_build_harness_command",
+                        lambda harness, **kwargs: ["x"])
+    root = _root(tmp_path, parts={"kid": []})
+    rotate._assembled_successor_command(
+        name="kid-seat", tier="kid", model=None, effort=None,
+        settings=None, debug_file="/dev/null", harness="pi", project_root=root)
+    assert captured["project_root"] == root
 
 
 # ---- phase 4, items 2+3: the Prime spawn path renders and the card lands once

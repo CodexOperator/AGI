@@ -1,0 +1,1 @@
+Approaching rotation ({fraction:.4f} of {threshold:.3f} window ({percent:.2f}% of the line)). Crossed band {pct}% of threshold. Keep working; at the line run rotate.py rotate yourself.
