@@ -1,0 +1,38 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "director-engine",
+  "recorded_at": "2026-09-25T22:35:09.121944Z",
+  "result": "respawned",
+  "probable_cause": "unknown",
+  "succ_name": "director-engine",
+  "gen": 20,
+  "gen_after": 20,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "@3",
+  "pred_pids": [
+    3881925
+  ],
+  "row": {
+    "name": "director-engine",
+    "role": "director",
+    "model": "claude-sonnet-5",
+    "pid": 3881925,
+    "window": "@14",
+    "session_id": "24719d2d-34b4-4fdd-bb0d-70716de20758",
+    "generation": 19,
+    "worktree": ".agi/worktrees/post-director-engine"
+  },
+  "respawn_outcome": {
+    "name": "director-engine",
+    "generation": 20,
+    "pid": null,
+    "window": "@3",
+    "reason": "",
+    "row": "config:seats row 'director-engine': session_ref= session_name= session_label=director-engine session_id= pid=None generation=20 window='@3' source=registry"
+  },
+  "after_join": {
+    "skipped": "no live session",
+    "age_s": 315.06303310394287
+  }
+}
