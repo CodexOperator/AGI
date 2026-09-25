@@ -54,6 +54,44 @@ def test_is_alive_tracks_a_live_pid_and_not_a_reaped_one():
     assert grok.is_alive(pid) is False
 
 
+def test_optional_pane_surface_is_feature_detectable_and_fails_closed():
+    """No-pane callers can omit these methods; direct use is immediate."""
+    assert callable(getattr(grok, "pane_attach", None))
+    with pytest.raises(grok.PaneUnavailableError):
+        grok.pane_attach(None, "seat")
+    with pytest.raises(grok.PaneUnavailableError):
+        grok.pane_send(None, "hello")
+    with pytest.raises(grok.PaneUnavailableError):
+        grok.pane_read(None)
+
+
+def test_pane_operations_delegate_to_durable_hold_without_owning_state():
+    class Hold:
+        def __init__(self):
+            self.calls = []
+        def attach(self, name):
+            self.calls.append(("attach", name))
+            return "attached"
+        def send(self, text):
+            self.calls.append(("send", text))
+            return "sent"
+        def read(self):
+            self.calls.append(("read",))
+            return "text"
+
+    hold = Hold()
+    assert grok.pane_attach(hold, "seat-a") == "attached"
+    assert grok.pane_send(hold, "hello") == "sent"
+    assert grok.pane_read(hold) == "text"
+    assert hold.calls == [("attach", "seat-a"), ("send", "hello"), ("read",)]
+
+
+def test_pane_contract_has_no_special_case_in_dispatch_or_rotate():
+    root = Path(__file__).resolve().parents[3]
+    for name in ("dispatch.py", "rotate.py"):
+        assert "grok" not in (root / "extensions" / "agi" / "bin" / name).read_text().lower()
+
+
 def test_needs_no_openrouter_credential():
     """grok-bot authenticates on its own channel, so dispatch must not mint a
     per-spawn OpenRouter key for it: the EXPLICIT `False` claude_code and

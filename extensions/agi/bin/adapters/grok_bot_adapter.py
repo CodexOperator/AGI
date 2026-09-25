@@ -30,6 +30,29 @@ NAME = "grok-bot"
 DEFAULT_BIN = "grok-bot"
 
 
+class PaneUnavailableError(RuntimeError):
+    """A pane operation was requested without a durable named-pane hold."""
+
+
+def _pane_hold(hold):
+    if hold is None:
+        raise PaneUnavailableError("grok-bot has no held pane")
+    return hold
+
+
+def pane_attach(hold, name):
+    """Attach through the durable hold; this module owns no pane state."""
+    return _pane_hold(hold).attach(name)
+
+
+def pane_send(hold, text):
+    return _pane_hold(hold).send(text)
+
+
+def pane_read(hold):
+    return _pane_hold(hold).read()
+
+
 def resolve_bin(harness: dict) -> str:
     """$GROK_BOT_BIN > harness bin > default (pi_adapter's precedence)."""
     return os.environ.get("GROK_BOT_BIN") or harness.get("bin") or DEFAULT_BIN
