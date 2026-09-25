@@ -30,11 +30,12 @@ PASS 6         CLOSED 10:49Z (the Prime): BASE 5b7d503fa7 -> TIP 1bf60c203b, 184
                DEMOTED 2nd PASS in a row -> TMM.167 (delivered) · for DE: the Prime's [decision] = hypothesis:pass6-0925-residue-batch (4 code
                defects + 4 demotes) · trunk pushed to c40649160d (the Prime's PASS 6 close) · next CHECK 12:13Z
 GRID           goal:g7.33.11 LANDED + CLOSED (20676beba1): the crontab runs grid.py push-changed; origin holds the post-split refs only -- nothing owed
-DE             gen 17 = post-director-engine-83 · LANDED today: b058583fa6 (TMM.159-161: goals red closed, DH.304/305/307 proved, DH.308
+DE             gen 18 = post-director-engine-61 (rotated 11:34Z) · LANDED today: b058583fa6 (TMM.159-161: goals red closed, DH.304/305/307 proved, DH.308
                disproved) + da46aa87dd (DH.312: a malformed matching row refuses the publish; inconclusive_lean_disproved:85; all 22 live rows
                pass its strict parse) · TMM.166 (dm): next = the residue round hypothesis:key-row-publish-appends-instead-of-refusing-on-an-
                unrecognized-own-row (a valid JSON-string row -> likely fail-open append) · PASS 6 defect 4 LANDED 2054e3e04c (TMM.168: rotate
-               flattens a symlinked card before every card write) · then PASS 6 defects 1-3 + TMM.159 (3): the open PASS 5 residues, round B
+               flattens a symlinked card before every card write) + 850896a493 (TMM.169: defect 1, >1 matching own row refuses) · QUEUED
+               @67da8b069b (defect 2) · then defect 3 (banked), the JSON-string round + TMM.159 (3): the open PASS 5 residues, round B
                goal:g7.33.10, goal:g1.14.1 · DH.302 = superseded by DH.305 (no round) · its quorum card is a symlink again (its call)
 DT             gen 30 (session agi-af, window @3, row joined) · its user answered its startup question 07:10:26Z = 'Proceed fully' (not me)
                · batch 21 LANDED 40156ab515 (07:5xZ, @cd13602e1a after TMM.162: verdict proved by the rule + the random control in the node)
@@ -49,15 +50,17 @@ DT             gen 30 (session agi-af, window @3, row joined) · its user answer
 trunk reds     test_dashboard's SIGINT watch only · goals --render --check = exit 1 on HEAD (re-read 06:5xZ): goal:g7.33.12 has no heading_level
                (g7.33.13 on DE's branch neither) -> TMM.156 / TMM.159 (2) = DE's version (its THOUGHT keeps the owner's 01:13:03Z line)
 board          town:local-maxxing (13 rows): row 7 rewritten 07:5xZ -- batch 21 LANDED + PROVED by rule, the control reading (key>random 9/9 Qwen2.5, 5/9 Qwen3)
-LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21) · DE b058583fa6 (TMM.159-161) + da46aa87dd (DH.312) · DT 4c8376c991 (batch 21 -> pending) · DE 2054e3e04c (PASS 6 defect 4)
+LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21) · DE b058583fa6 (TMM.159-161) + da46aa87dd (DH.312) · DT 4c8376c991 (batch 21 -> pending) · DE 2054e3e04c (PASS 6 defect 4) + 850896a493 (defect 1)
 ```
 
 ## 🔴 Where it stops
-11:2xZ 09-25 gen 20: PASS 6 defect 4 LANDED 2054e3e04c (TMM.168); DE on PASS 6 defects 1-3 + the JSON-string round; DT holds new dispatch for its operator ([decision] to belam 11:0xZ); waiting on merge-ups
+11:4xZ 09-25 gen 20 ROTATES at the line: PASS 6 defect 1 LANDED 850896a493; DE gen 18's @67da8b069b (defect 2) is the next gate; DT holds new dispatch for its operator ([decision] to belam 11:0xZ)
 ```
-state   MAIN = 2054e3e04c + this card; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.169
+state   MAIN = 850896a493 + this card; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.170
 NEXT    (1) DT: once its operator says go, TMM.149's merge-ups -- the lean gate + the CONTROL arms before any verdict
-        (2) DE's residue round + TMM.159 (3) merge-ups: code = the FULL suite + measure the first live run on MAIN's real data
+        (2) DE's QUEUED merge-up @67da8b069b (defect 2: workflow manifests declare required_args; run_workflow refuses a missing/blank
+            one before dispatch; brainstorm.json declares idea/goal/why/max_hypotheses) = the FULL suite on merge-tree(HEAD, tip) + measure
+            which live workflows declare required_args and whether their callers pass them (posts.md via criss-cross -> HEAD's file)
         (3) DE's merge-ups: the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only;
             + snapshot-goals.py --render --check on the gated tree
         (4) goals --render --check = exit 0 on MAIN since b058583fa6 -- keep it there: every landing runs it
