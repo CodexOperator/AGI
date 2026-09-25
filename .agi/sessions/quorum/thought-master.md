@@ -37,9 +37,11 @@ DE             gen 16 = post-director-engine-26 (window @5, rotated after its 07
                (a00-a4efedba, kid a00-867f6014 PROVED); DH.311 = a00-977ab7a5's uncommitted WIP · DH.306 + DH.309 re-dispatch approved
                · already PASSED on that gate (keep for the re-gate): merge-tree clean · goals --render --check 362/362 · links 0 broken · anonymize
                ok · the strict read on MAIN's LIVE vetoes.md = OK (0 gates, prime not frozen) · schema: goal 7 -> 8 (= g7.33.13's tags only)
-DT             gen 30 (session agi-af, window @3; row NOT joined: dead pid 3469223, no sid) · BLOCKED since ~06:42Z on its OWN AskUserQuestion
-               (how to proceed: investigate first / proceed / explain / hold off) = its human's call -> [decision] to belam 06:5xZ; its dm HELD
-               (a pending dm = the watch types a wake into that dialog); TMM.158 by SendMessage (drains after its user answers)
+DT             gen 30 (session agi-af, window @3) · its user answered its startup AskUserQuestion 07:10:26Z = 'Proceed fully as director-thought'
+               (not me) · [merge-up] batch 21 @5d86cd6908 (07:32Z, on the OSC.30 round branch; + OSC.29's result) -> my LEAN GATE PASSED on the
+               bytes (merge-tree clean · 72 rows == the sweep's · 18/18 properties · anchor.jsonl = TMM.157 exactly · links 0 · anonymize ok ·
+               schema +0 · corpus 6/6 · osc tests 6/6) but RETURNED the node's reading: TMM.162 (dm + SendMessage) = add the RANDOM control
+               (key>random: Qwen2.5 9/9, Qwen3 5/9 = 4.0-6.0; random>uniform: Qwen3 9/9) + verdict by the preregistered rule = proved (18/18)
                · batch 21 = OSC.30: parent a00-e439f83e closed pending 04:23:29Z, 0 commits · kid a00-395e2a3e failed 04:16:29Z (closed pending,
                confidence 0.0) BUT its detached sweep finished: 36 qwen2 rows 04:57Z + 36 qwen3 rows 05:03Z, ALL UNCOMMITTED in the worktree
                /data/work/agi/.agi/worktrees/a00-e439f83e (experiment:a00-395e2a3e-a43ce2 + script + test + datasets/osc-band/2026-09-24-qknorm/)
@@ -55,16 +57,13 @@ LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT
 ```
 
 ## 🔴 Where it stops
-07:3xZ 09-25 gen 20: DE's merge-up @edc78b1c21 returned RED (TMM.161, 7 range reds) to DE gen 16; DT gen 30 still blocked on its own user question (the Prime's / owner's call, [decision] sent); waiting on DE's re-send + DT
+07:4xZ 09-25 gen 20: DE's @edc78b1c21 returned RED (TMM.161) to DE gen 16 (its 07:20Z tip 131c7319d1 = tags only, still red); DT's batch 21 @5d86cd6908 bytes PASS, node returned (TMM.162: the random control + verdict by rule); waiting on both re-sends
 ```
-state   MAIN = a44e34cca2 + this card; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.162
-NEXT    (1) DT: read its jsonl (c6bf87fc) for its user's answer (an idle notice is subscribed). Answered + working -> send.py the TMM.158 text
-            as its dm (the record) + one line: re-pin your meter (rotate.py meter --post director-thought --pin .agi/sessions/director-thought.meter
-            --session-log <its jsonl>; the pin still names gen 29's 18e986a8, so the ack leaves it and pin-reap lists the live session as REAP);
-            NEVER a send.py dm while the dialog is open. Hold off / investigate-only = that stands: order nothing, one line to belam only if it blocks batch 21
-            (no double-DT risk: the watcher returns early while the row's window @3 is present)
-        (2) DT's batch 21 [merge-up]: the lean gate + tabulate the 72 cells yourself + assert per tag: widths non-increasing AND bits() = the tag;
-            the anchor row [13,13,10,10] = 11.75 bits, 0.99169921875 / 0.000489008, committed as bytes (TMM.157)
+state   MAIN = a44e34cca2 + this card; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.163
+NEXT    (1) DT's re-send: re-gate ONLY the node delta vs 5d86cd6908 (merge-tree, links, corpus tests, schema) -> land by the named tip;
+            the board row 7 in the same pass · DT's meter pin still names gen 29's jsonl: one dm line to re-pin (rotate.py meter --post
+            director-thought --pin .agi/sessions/director-thought.meter --session-log <its jsonl>)
+        (2) DE's re-send after TMM.161: the FULL suite again (the static checks passed on @edc78b1c21, see DE above)
         (3) DE's merge-ups: the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only;
             + snapshot-goals.py --render --check on the gated tree
         (4) the board row 7 once batch 21 lands · goals --check must return to exit 0 after TMM.156 / TMM.159 (2)
