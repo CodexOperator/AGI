@@ -12,7 +12,7 @@ tags:
   - card
   - prime
   - belam
-thought_session: belam-S2-L5-V
+thought_session: belam-S2-L5-IV
 title: "doc:card-belam -- the Prime's card: the one scratch (state · plan · landed · where it stops · traps · verification · BANKED)"
 town: core
 ---
@@ -20,39 +20,41 @@ town: core
 
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
-## §0 State (00:50Z 09-25)
+## §0 State (20:58Z 09-24)
 | | |
 |---|---|
-| post | belam-S2-L5-V gen 5 · seated 00:44Z 09-25 (clean seam: ack `continue` answered by gen 4; after_join join/pin/reap-proof/chain all exit 0) · Opus 5.5 · meter ~0.08 |
+| post | belam-S2-L5-IV gen 4 · seated 20:06Z (clean seam) · Opus 5.5 · remote-control · meter ~0.29 |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` (thought-master shares MAIN and lands there: exact-path commits only) · prime-root = `season2/main` · box tz UTC |
-| merge | PASS 4 → ad81688a0b (14:08Z 09-24) · PASS 5 NOTICE 20:59Z 09-24, run_at 01:59Z 09-25, state `pass_started_at` null at 00:48Z · BASE 3b0c4e8e8f · TIP at notice bd7e674559 (185 commits · 9 exp · 9 engine paths) -- the trunk has moved since (DT batches 15-18 landed): RE-PIN at step (1) |
-| directors | director-engine + director-thought, claude-sonnet-5 max · rule in `doc:unified-director-brief` §1 DISPATCH: ONE parent per round, `--tier parent --role parent --ladder-tier 0`, no `--harness`, never `--tier kid` |
-| dms | inbox empty at wake (00:44Z) · belam.lastcheck 00:43:17Z |
-| lanes | parents + kids on pi-free · credits 13.75 (00:3xZ 09-25; the 6 live agi keys show 0 usage) · mint floor 1 USD · spawn budget 0/30 live at wake |
+| merge | PASS 3 → 6f5ee34e5c · PASS 4 → ad81688a0b (14:08Z) · PASS 5 NOTICE sent 20:59Z, run_at 01:59Z 09-25 (one-shot cron, session-only: a successor runs it under CHECK case (d)) · BASE 3b0c4e8e8f -> TIP bd7e674559 = 185 commits · 9 exp · 9 engine paths · trunk `.geometry` current 20:5xZ (1724e43da4 reached it via thought-master's 4905c6d0bf) |
+| directors | director-engine + director-thought, claude-sonnet-5 max · rule now in `doc:unified-director-brief` §1 DISPATCH: ONE parent per round, `--tier parent --role parent --ladder-tier 0`, no `--harness` (pi-free by the ladder), never `--tier kid` · 20:59Z: DH.297 went out as a PARENT (a00-65a116b4) -- compliant |
+| dms 09-24 | 20:5xZ rule ping: DE delivered · DT undelivered-yet (sweep) · TM delivered (acted: 36cce7af91 retired `doc:lm-director-brief-customizations`) · 20:5xZ DE commands steer + TM Jev survey · all three READ by 20:59Z (send.py status pending=0) · inbox empty |
+| lanes | parents + kids on pi-free (stealth/space-bunny-alpha) · credits 13.94 (13:47Z) · mint floor 1 USD |
 | stream | LIVE on Twitch + X since 00:33Z 09-24 (15-min delay) |
-| crons | CHECK 4f4c68c7 "13 */4 * * *" recurring (§1 of `.agi/sessions/prime-merge.crons.md` verbatim) · PASS 5 7f0c852a one-shot "59 1 25 9 *" (§2 verbatim) · both SESSION-ONLY, die with this session |
+| crons | CHECK job 7ce06676, "13 */4 * * *" recurring, §1 of `.agi/sessions/prime-merge.crons.md` verbatim · SESSION-ONLY, dies with this session |
 
 ## §1 Plan
 ```
-done   seated 00:44Z: CHECK re-armed (4f4c68c7) · PASS 5 one-shot re-armed (7f0c852a) · quorum re-linked (trap 10:
-       the flat file differed from the node by the fence level only) · card
-next   01:59Z PASS 5 (7f0c852a fires §2; BASE 3b0c4e8e8f, re-pin TIP) · 04:13Z first CHECK: live leases tier=parent
-       only (a new bare kid = [red] to thought-master) · each director re-links its card to doc:card-<post>
-open   round-mur ROUTED 00:2xZ 09-25 to director-engine as a WORKFLOW (owner: no hypothesis), behind the g1.25
-       registry · residues with director-engine (pass3 / pass4) · §6
+done   seated: CHECK re-armed · quorum re-linked · card
+       owner 20:1xZ-20:4xZ (verbatim in doc:l5-owner-decisions): raw DMs read -- thought-master never asked the Prime; it authorised
+       direct kids 05:19Z (TMM.107) and lifted them 17:02Z on the two CARDS only · the parent/kid rule + thought-master's co-ownership
+       of the director docs in doc:unified-director-brief · director cards = graph entities (doc:card-director-engine / -thought)
+       · goal:g1.25 reshaped: action registry, commands.py = query + parse layer · Jev survey ordered to thought-master (g5.24.3)
+       · config:rotations startup pass (prime 13->10, director 9->8, F32 = no Claude subagents) · trunk .geometry current
+next   PASS 5 at run_at (crons file §2 = PASS 5 text) · each CHECK: live leases tier=parent only (a new bare kid = [red]
+       to thought-master; DH.297 was a parent) · each director re-links its card to doc:card-<post> at its next card write
+open   residues with director-engine (pass3 batch + 11 defect hypotheses; pass4 batch) · §6
 ```
 
 ## §2 Landed (this seat)
-card at seating + quorum symlink re-linked (one exact-path commit) · crons re-armed (session-only, no commit)
+e05d2ef5f2 card at seating · 004ddcf49a director rule + thought-master authority + card entities + owner verbatim · 68074ee7ab goal:g1.25 steer + GOALS.md · 6f855070e8 startup pass
 
 ## 🔴 Where it stops
-```
-00:5xZ 09-25 belam-S2-L5-V seated: CHECK 4f4c68c7 + PASS 5 one-shot 7f0c852a re-armed, quorum re-linked; quiet until PASS 5 at 01:59Z.
- 1. PASS 5 fires 01:59Z: run section 2 of .agi/sessions/prime-merge.crons.md as written; step (0) pass_started_at FIRST.
- 2. A PASS reuses /tmp/belam-pass4/ (build.py, launch.sh, verdicts.py) and /tmp/belam-trunk-sync/: copy to /tmp/belam-pass5/, retarget BASE / TIP / OS and the run-key prefix mur-p5chunk.
- 3. Otherwise quiet: answer only decisions / reds / merge-ups and the owner. CHECK fires 04:13Z (§1 verbatim).
- 4. A successor at wake: RE-ARM the CHECK (CronCreate "13 */4 * * *", §1 verbatim); if pass_started_at is null and now >= 01:59Z run PASS 5 under CHECK case (d), else re-arm the one-shot; re-link the quorum symlink (trap 10); write this card whole.
-```
+20:59Z 09-24 belam-S2-L5-IV: the owner's 20:1xZ-20:4xZ orders applied and committed; PASS 5 noticed for 01:59Z 09-25; quiet on the CHECK.
+ 1. Next CHECK fire: run §1 of .agi/sessions/prime-merge.crons.md as written, plus: spawn_budget.py status shows tier=parent leases only; send.py status director-engine / director-thought / thought-master shows the 09-24 dms read.
+ 2. Otherwise quiet: answer only decisions / reds / merge-ups and the owner.
+ 3. A PASS reuses /tmp/belam-pass4/ (build.py, launch.sh, verdicts.py) and /tmp/belam-trunk-sync/: copy, retarget BASE / TIP / OS and the run-key prefix, as PASS 4 did.
+ 4. A successor at wake: RE-ARM the CHECK (CronCreate "13 */4 * * *", §1 verbatim), re-link the quorum symlink (trap 10), write this card whole.
+
 ## §4 Traps
 | # | trap | rule |
 |---|---|---|
@@ -75,11 +77,9 @@ card at seating + quorum symlink re-linked (one exact-path commit) · crons re-a
 | 17 | the Agent tool for graph recon (the Prime spawned one 20:2xZ 09-24) | NEVER -- no Claude subagents, ever (owner 20:3xZ, F32); read the graph yourself |
 | 18 | at rotation a director reads HEAD + card, never the template (until brief.py lands) | rules go in doc:unified-director-brief; cards (doc:card-<post>) carry overrides only |
 | 19 | every rotation's key row lands on season2/main and leaves the trunk's `.geometry` behind: rotate-self refuses (rotate.py `_geometry_resolution_root`) | after a rotation: `git rev-list --count HEAD..origin/season2/main -- .agi/nodes/.geometry` = 0, else merge it (merge-tree preview first) |
-| 20 | asking the owner for a go on a design the owner raised (the Prime, 09-24 21:4xZ) | decide under delegated authority, route it, report; keep working to the line, then rotate · a workflow needs no hypothesis (owner 00:2xZ) |
-| 21 | a write.py sub whose OLD text contains the arrow token splits at the first one and writes garbage (F24, 00:3xZ 09-25) | assert the arrow is absent from the old text; else replace body over the whole paragraph |
 
 ## §5 Verification
-`links.py links` 0 broken · `snapshot-goals.py --render --check` byte-identical · `commands.py run verify` (bin-suite-fresh FAIL known; wake 00:4xZ: 11 of 12 PASS, smoke total 4299) · branch local-maxxing/season2/main · `send.py whois --key <row pubkey> --claim belam` → IS-AUTHORIZED
+`links.py links` 0 broken · `snapshot-goals.py --render --check` byte-identical · `commands.py run verify` (bin-suite-fresh FAIL known) · branch local-maxxing/season2/main · `send.py whois --key <row pubkey> --claim belam` → IS-AUTHORIZED
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
