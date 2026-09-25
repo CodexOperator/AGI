@@ -1,4 +1,5 @@
 AUTO-CAPTURED
+AUTO-CAPTURED
 ---
 id: doc:card-director-engine
 mint_id: 83442527f7084dd0a6f18f3d9cdf32ab
@@ -202,6 +203,28 @@ A DUPLICATE HEADING BUG FROM `write.py create --body-file` CAN RECUR IF YOUR BOD
   rotate.py defect, not something to keep working around by retrying.
 ```
 
+## LATER STILL (gen 13, f=0.4539+ -- a SECOND, VERIFIED owner order arrived via belam directly, ed25519-signed)
+[decision] PASS 5 merged: season2/main 8daa626e89 (trunk @5b7d503fa7), from hypothesis:pass5-0925-residue-batch
+(goal:g1). Four items assigned to director-engine, item 1 explicitly FIRST (an authority gate), order of 2-4 mine:
+1. hypothesis:authority-publish-fails-closed-on-an-unreadable-veto-cell -- REOPENED: PASS 5's mur-p5chunk3of4
+   DEMOTED a prior attempt, found a missing/malformed veto cell still fails OPEN (src/seatsig/veto.py:117-127 turns
+   loader errors into free defaults before rotate.py ~10415 can see them). DISPATCHED as **DH.303**, agent
+   `a00-7ed34326`, pid 3225769, branch `season2/loops/hypothesis-authority-publish-fai-a00-7ed34326`. Orders:
+   `.agi/sessions/de-0925/dh303-orders.md` (told explicitly: this is a second attempt at a claim already demoted
+   once, read why before repeating the mistake; the tests must drive the real cell-failure modes, not a sidestepping
+   mock). Two stale-base cycles hit dispatching this (1 behind, then 5 behind -- other posts landing fast); synced
+   both times, standard fix. NOT YET HARVESTED.
+2. hypothesis:key-row-publish-fails-closed-on-a-malformed-matching-row -- NOT STARTED, mine to sequence.
+3. hypothesis:brainstorm-and-research-review-contracts-match-their-manifests -- NOT STARTED.
+4. hypothesis:grid-push-batch-limit-is-a-config-cell -- NOT STARTED.
+Plus: the g5.32-t0 inventory demote, and 5 "DE" residue rows in hypothesis:pass5-0925-residue-batch's own batch
+table -- NOT YET READ, next session should open that node first thing.
+All three PASS-5 hypothesis nodes for 2-4 already exist on disk (pulled in by this session's trunk merge, tip
+03fef6257e) -- fully specified already, no minting needed, just read + dispatch, same shape as DH.303 above.
+DELIBERATE SCOPE CALL under severe time pressure: dispatched only item 1 (explicitly FIRST, an authority gate) this
+session rather than trying to also dispatch 2-4 blind and thin. Items 2-4 and the residue batch are clean,
+well-defined pickup points for the next generation, not something dropped by oversight.
+
 ## LATE UPDATE (still gen 13, past the rotation line -- captive auto-capture fired at f=0.4345, no self-rotate happened)
 Thought-master answered the [red] almost immediately: **TMM.148**, ordering the stop_commit fix ahead of round B.
 Minted **goal:g7.33.13** + `hypothesis:rotate-stop-commit-converges-on-symlinked-card` (parent goal:g7.33.13),
@@ -217,25 +240,29 @@ bug is deterministic and reproduced 5 times already this session -- see TRAPS). 
 this dispatch; TMM.148's mint+dispatch commit is f17f44c670, the trunk-sync merge is c1dda265ee.
 
 ## 🔴 WHERE IT STOPS — the one next command (gen 13 -> rotating now)
-````
 ```
 1  Check the inbox: `python3 extensions/agi/bin/send.py read director-engine` -- thought-master's reply to
-   [merge-up] #13 (tip 10cc524ac2), including whether they want a mur run before landing it, may already be waiting.
-2  Dispatch a fresh round for DH.300's target, hypothesis:write-py-set-is-schema-checked (round B, g7.33.10) -- the
-   hypothesis itself is unchanged and still accurate; write a sharper orders file this time stating explicitly that
-   a measurement-only kid (production_lines=0) is not a finished round for this claim, since that is exactly what
-   happened once already.
-3  Dispatch a fresh round for hypothesis:a-round-stage-spawns-the-parent-and-chains-its-review-in-one-workflow
-   (goal:g1.14.1) directly against the 3-seam plan now recorded in its THOUGHT (round execution ~120 lines, manifest
-   composition ~60, harvest/config ~40) with an explicit raised ceiling (~220 lines) -- do not re-derive the scoping,
-   it is already done.
-4  If the inbox surfaces something needing a judgement call, decide it, record the reasoning in the affected node's
+   [merge-up] #13, or DH.303's own harvest report (the FIRST-priority PASS 5 item, veto.py fail-open), may already
+   be waiting.
+2  Poll DH.302 (rotate.py stop_commit fix, TMM.148) and DH.303 (veto.py fail-open, PASS 5 item 1) for liveness --
+   harvest whichever finishes first, standard sequence, never merge unreviewed.
+3  PASS 5 items 2-4 (all already fully specified, no minting needed -- just dispatch): hypothesis:key-row-publish-
+   fails-closed-on-a-malformed-matching-row, hypothesis:brainstorm-and-research-review-contracts-match-their-
+   manifests, hypothesis:grid-push-batch-limit-is-a-config-cell. Order is yours per the owner's decision. Also open
+   hypothesis:pass5-0925-residue-batch and read its own batch table for the g5.32-t0 inventory demote + 5 "DE"
+   residue rows -- not yet read this session.
+4  Then, lower priority: fresh rounds for DH.300's target (hypothesis:write-py-set-is-schema-checked, round B
+   g7.33.10 -- state explicitly this time that a measurement-only kid is not a finished round) and DH.301's target
+   (hypothesis:a-round-stage-spawns-the-parent-and-chains-its-review-in-one-workflow, directly against the 3-seam
+   plan in its THOUGHT with a raised ~220-line ceiling).
+5  If the inbox surfaces something needing a judgement call, decide it, record the reasoning in the affected node's
    THOUGHT (or here if there is no single node), and keep going -- delegated authority carries across the rotation
    boundary; bank only what is genuinely the owner's alone to decide.
-5  Re-link check: `ls -la .agi/sessions/quorum/director-engine.md` on your FIRST substantive action -- it must show
+6  Re-link check: `ls -la .agi/sessions/quorum/director-engine.md` on your FIRST substantive action -- it must show
    an `l...` symlink, not a plain file.
-6  If `rotate.py rotate` blocks again on a dirty-tree stop_commit loop (see TRAPS): commit ONCE, check `git diff
-   --stat` before retrying -- if the card is growing another THOUGHT block or fence layer instead of the tree going
+7  If `rotate.py rotate` blocks again on a dirty-tree stop_commit loop (see TRAPS) AND DH.302 has not landed yet:
+   commit ONCE, check `git diff --stat` before retrying -- if the card is growing another THOUGHT block or fence
+   layer instead of the tree going
    clean, stop and hand-truncate back to one copy rather than retrying blindly again.
 ```
 
