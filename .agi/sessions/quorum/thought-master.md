@@ -11,49 +11,49 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (22:4xZ 09-25, gen 22)
+## Live state (23:1xZ 09-25, gen 22)
 ```
 LANE      normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
           model HELD (TMM.66) · usd0 = research only, never an operating mode · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
 OWNER     20:1-4xZ 09-24 (via the Prime, VERIFIED): I co-own the director docs (doc:unified-director-brief + doc:card-director-*) via write.py
           + ONE dm per live director · dispatch = ONE parent per round (--tier parent --role parent --ladder-tier 0, no --harness), never
-          --tier kid · NEVER the Agent tool, any post
-WEDGE     13:58:34Z memory livelock froze the box (measured cause = the reaper, goal:g6.49: 1784 mem_cap-probe OOM kills, a ~3000-spawn sweep
-          every 30 s over 622 worktrees, a lease-only liveness read) · box died 19:30Z · owner reset 21:45Z · 22:19Z reboot (a login-screen
-          suspend hung; sleep targets MASKED) · /tmp WIPED · 0 commits on the trunk or any post branch 13:59Z -> 21:55Z
-HOT PATCH 48e16356f0 (the Prime, owner 22:0xZ 'light chain') = codex-town goal:g6.49 reaper fix on the trunk; engine units restarted 22:24Z
-          · render --check exit 0 on MAIN (366/366, 22:4xZ) · memory 11 GB available (22:4xZ)
-TOWN      re-seated by heal crash-recovery 22:34-22:37Z · TM gen 22 = @2 agi-4d [35dd9a] (row 28066c6076; meter pinned by the watch's
-          after_join 22:37:34Z) · DE gen 20 = @3 post-director-engine-83 · DT gen 31 = @4 post-director-thought-ff (both cwd = their worktree)
-          · @5 agi-11 (cwd MAIN, 22:36:58Z, unverified: SM?) · the Prime = belam gen 7 @1 agi-ec (rotated 22:29Z) · stream relay DOWN
-PASS 7    HELD by the Prime (its one-shot died in the wedge; pass_started_at null) · delta = 1bf60c203b -> trunk (91 commits at 22:22Z + the
-          hot patch) · runs once the town is up and memory holds · RED = secrets / node deletion / broken link / protocol regression
-DT        OSC.32 (parent a00-8b00477c, 13:48:25Z) + OSC.33 (a00-ffb2ae74, 13:53:13Z) DIED in the wedge: uncommitted partial work in both
-          worktrees (OSC.32's kid touched .agi/config.json + paths.py = out of a research kid's scope) · experiment:a00-325d4c56-bedcc8
-          (landed in MY ae2276a95c) = disproved with NO evidence_runs -> the grid's evidence gate demoted it IN MAIN'S WORKING TREE
-          (inconclusive_lean_disproved:50, uncommitted) · orders TMM.178 + TMM.180 (my cwd premise corrected)
-DE        DH.360 (a00-aa84faa3 @94eae3ef4c, pending, seams 1+2 of 3): its mur died with the box · DH.362 (a00-a7d949cf @3772c29644, the last
-          open PASS 5 row, +38 test lines, 28 passed): mur never launched · its /tmp log + args GONE · orders TMM.179 + TMM.181 (TMM.181
-          'pane busy' at 22:4xZ, the sweep retries)
-trunk     MAIN = local-maxxing/season2/main, 10 ahead of origin de5c40476f at 22:4xZ (watch after_join + cron + my ack) · no gate worktree
+          --tier kid · NEVER the Agent tool, any post · 22:5xZ 09-25 (via the Prime's [decision] 23:06Z): parent MINI-SWARMS trial =
+          hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis (goal:g7.16, 5bbcbe7128): DE build arm (the Prime, direct)
+          + DT research arm (TMM.184) · supersedes 'one parent per round' for swarm rounds ONLY
+WEDGE     13:58:34Z memory livelock (measured cause = the reaper, goal:g6.49) · box died 19:30Z · reset 21:45Z · 22:19Z reboot · /tmp WIPED
+          · hot patch 48e16356f0 on the trunk · 0 commits anywhere 13:59Z -> 21:55Z
+TOWN      re-seated 22:34-22:47Z · TM gen 22 = @2 agi-4d [35dd9a] (28066c6076) · DE gen 20 = @3 post-director-engine-83 [266821] (ack
+          committed 23:06Z after TMM.183; meter re-pinned) · DT gen 31 = @4 post-director-thought-ff [a49d26] (eb064b313b) · SM gen 4 = @5
+          [cb6dc3] (87513b0b44; stream found down) · the Prime = belam gen 7 = belam-S2-L5-VII @1
+PASS 7    RUNNING since 22:48Z (the Prime): TIP pinned 08a9cf60f8, 9 rounds / 2 chunks, pi-free -> what I land now rides PASS 8 · its range
+          holds a00-325d4c56-bedcc8 = disproved with no evidence_runs (my ae2276a95c; the Prime told 22:4xZ)
+DT        @dc4e6c2356 RETURNED (TMM.182): (1) osc_fresh_matched_qknorm_a00_e7eaf011.py:11 calls paths.get_data (only in the excluded paths.py)
+          -> its test = collection ERROR on the merged tree; drop script + test, a00-e7eaf011-75d6ac's 'Added' list -> 'not landed' (2)
+          a00-5af25530-55de95 pins the off-by-one on 'TMM.175's uniform column' -- it is DT's orders.a00-ffb2ae74.md:3 · VERIFIED in it:
+          a00-325d4c56's evidence_runs [experiment:a00-395e2a3e-a43ce2] (cells np=32 @6.0 [5,5,5,5]: kl 0.6610 / 0.2778 / 0.5066 / 0.5413)
+          · lean 253 passed · OSC.33 script test 2 passed · render / links / evidence / schema / anonymize clean · OSC.34 = parent
+          a00-bcea484d + kid a00-f3703399 (pi-free, a model running) · TMM.184 (swarm) queued 'pane busy' 23:1xZ
+DE        [merge-up] @37e931691f = DH.360 (7d738a75f9: workflow.py round stage kind + manifest 'extends', seams 1+2 of 3) + DH.362
+          (the last open PASS 5 row, +38 test lines) · no mur (the box.root literal /home/ubuntu/work/agi is absent here, verified; DE
+          banks it as a goal:g7.33.N fix) · my gate: M ec48383432 (on ecd3fb7e4d) in scratchpad/gate-de1, FULL SUITE running (pid in
+          scratchpad/gate-de1.suite.pid) · my read of workflow.py: additive, EXCEPT chained_from now carries a NON-repeated stage's return
+          (live effect: brainstorm.json's refute now receives the brainstorm return; at HEAD it got none) -> name it in the landing
+trunk     MAIN = local-maxxing/season2/main (the Prime's 5bbcbe7128 + 1345839cc3 after my M) · pushed to 239a918841 at 22:4xZ
 board     town:local-maxxing (13 rows) unchanged since 7e152b5aa3 (row 7 = OSC.31 LANDED ae2276a95c)
 ```
 
 ## 🔴 Where it stops
-22:4xZ 09-25 gen 22 (re-seated after two reboots) WAITS on DT's + DE's replies to TMM.178-181, then their [merge-up]s
+23:1xZ 09-25 gen 22 WAITS on DE's suite count + my gate suite (DE @37e931691f), DT's re-sent [merge-up] (TMM.182) and DT's swarm roster (TMM.184)
 ```
-state   MAIN = 28066c6076 + watch / cron commits; comms churn, sequence.json, rotation records = not mine · no gate worktree open
-        · last order sent = TMM.181 · next = TMM.182
-NEXT    (1) confirm TMM.178-181 reached both panes (a user PROMPT or queued_command line in each jsonl; DE's TMM.181 was 'pane busy')
-            -- none after the sweep = SendMessage the session name (post-director-thought-ff / post-director-engine-83; re-read the
-            registry first, a rotation renames it)
-        (2) DT: a00-325d4c56-bedcc8's evidence_runs fix FIRST (PASS 7 reads it) · then OSC.33 / OSC.32 re-runs, ONE parent at a time:
-            lean gate + the CONTROL arms + bits() of every arm myself · a kid's .agi/config.json / paths.py edit = out of scope
-        (3) DE: DH.360 then DH.362 [merge-up]s -- full suite on merge-tree(HEAD, tip) in a detached /tmp worktree + render --check +
-            links + the schema diff vs MAIN + anonymize on the gated tree + evidence_gate over the range's nodes (the new trap)
-        (4) the grid gate's uncommitted demote of a00-325d4c56-bedcc8 in MAIN: leave it to the cron / DT's fix; at landing the range's
-            files must not be dirty in MAIN (comm -12)
-        (5) PASS 7 = the Prime's: a protocol regression in what I land before it runs = RED for the whole pass
+state   no landing in flight · gate worktrees: scratchpad/gate-dt1 (M c6b1cc7bb8, stale: DT returned) + scratchpad/gate-de1 (suite
+        running) · last order sent = TMM.184 · next = TMM.185 · comms churn, sequence.json, rotation records = not mine
+NEXT    (1) DE: my suite on gate-de1 green (expected red = test_dashboard's SIGINT only) + DE's count -> T2 = merge-tree(live HEAD,
+            37e931691f); diff(gated tree, T2) = only the newcomers (5bbcbe7128's node + card) -> L = commit-tree T2 -p HEAD -p tip ->
+            ff-only -> push; the message names the chained_from behaviour change + 'no mur, my read'
+        (2) DT: the re-sent tip -> re-gate (lean + both script tests + render + links + evidence + schema + anonymize) -> land; at the
+            ff, MAIN's working-tree demote of a00-325d4c56-bedcc8 must be restored first (git checkout -- that path; the grid ref keeps it)
+        (3) the swarms: judge at their [merge-up]s by the node's FALSIFIERS + throughput vs the last 5 single-parent rounds
+        (4) remove both gate worktrees after landing (git worktree remove)
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
