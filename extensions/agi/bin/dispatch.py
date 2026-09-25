@@ -1515,8 +1515,34 @@ def _persistent_stop(iter_dir: Path, agent_id: str) -> bool:
             or bool(os.environ.get(_PERSIST_STOP_ENV)))
 
 
+def _persistent_post(root: Path, seat: str | None, session: Path,
+                     proc, *, occupied: bool) -> None:
+    """Keep the posts-row pin honest for an opt-in persistent seat."""
+    if not seat:
+        return
+    graph = root / ".agi" if (root / ".agi" / "config.json").is_file() else root
+    try:
+        import write as write_mod
+        rows = list(write_mod._load_seats(graph))
+        row = next((r for r in rows if r.get("name") == seat), None)
+        if row is None:
+            return
+        row["pid"] = int(proc.pid) if occupied and proc is not None else 0
+        row["session_id"] = str(session) if occupied else ""
+        row["session_ref"] = str(session.resolve()) if occupied else ""
+        row["persistent"] = bool(occupied)
+        _, list_key = geometry_config.resolve(graph)
+        edit = write_mod.Edit(f"config:{list_key}")
+        write_mod.verb_set(edit, list_key, json.dumps(rows))
+        write_mod.submit(graph, edit, actor=os.environ.get("AGI_AGENT_ID", seat),
+                         role="dispatch")
+    except Exception as exc:  # registry visibility must not kill the seat
+        print(f"persistent: posts pin update failed: {exc}", file=sys.stderr)
+
+
 def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
-                          record: dict, session: Path,
+                          record: dict, session: Path, root: Path | None = None,
+                          seat: str | None = None,
                           max_restarts: int = _PERSIST_MAX_RESTARTS,
                           poll_s: float = _PERSIST_POLL_S) -> int:
     """HOLD one seat and re-open the SAME round when it dies.
@@ -1544,8 +1570,12 @@ def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
         record["pid"] = proc.pid
         record["restart_count"] = restarts
         (session / "agent.json").write_text(json.dumps(record, indent=2))
+        if root is not None:
+            _persistent_post(root, seat, session, proc, occupied=True)
         print(f"persistent: {agent_id} restart {restarts}/{max_restarts} "
               f"pid={proc.pid}")
+    if root is not None:
+        _persistent_post(root, seat, session, None, occupied=False)
     return restarts
 
 
@@ -2949,11 +2979,13 @@ def main() -> int:
         spawn_line += f" level={level} strategy={strategy}"
         print(spawn_line)
         if args.persistent:
-            # Hold AFTER the record is on disk; the supervisor keeps pid and
-            # restart_count current.
+            # Publish the live pin before the hold; the supervisor clears it
+            # on any terminal path, including exhausted restarts.
+            _persistent_post(root, args.seat, sess_dir, proc, occupied=True)
             _supervise_persistent(
                 proc, _open_round, iter_dir=iter_dir, agent_id=agent_id,
-                record=agent_record, session=sess_dir)
+                record=agent_record, session=sess_dir, root=root,
+                seat=args.seat)
 
     # The one authoritative write, under lock and against a fresh read
     # (goal:s28 for the merge, goal:g4.8 for surviving concurrency). The

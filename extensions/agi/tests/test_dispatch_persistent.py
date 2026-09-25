@@ -178,6 +178,26 @@ def test_fire_and_forget_default_spawns_no_supervisor(
     assert "restart_count" not in agents[0], agents
 
 
+def test_restart_exhaustion_clears_live_pin(project, monkeypatch):
+    """The terminal path must not leave a dead pid advertised as occupied."""
+    calls = []
+    monkeypatch.setattr(dispatch, "_persistent_post",
+                        lambda *a, **k: calls.append((a[3].get("occupied")
+                                                      if False else k["occupied"],
+                                                      a[2], a[3])))
+    dead = _StubProc(9001, 1, 0)
+    (project / "agent.json").mkdir()
+    reopen = lambda mode: _StubProc(9002, 1, 0)
+    n = dispatch._supervise_persistent(dead, reopen, iter_dir=project,
+                                       agent_id="kid", record={},
+                                       session=project / "agent.json",
+                                       root=project, seat="sanctuary-helper",
+                                       max_restarts=2, poll_s=0)
+    assert n == 2
+    assert calls[-1][0] is False
+    assert calls[-1][1].name == "agent.json"
+
+
 def test_record_carries_persistent_live_pid_and_restart_count(
         project, monkeypatch, capsys):
     """Conjunct (c): the seat's own record shows the occupation -- persistent
