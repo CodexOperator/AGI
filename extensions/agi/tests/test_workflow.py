@@ -826,6 +826,7 @@ def test_manifest_extends_materializes_base_then_prelude_then_child(tmp_path):
     assert manifest["type"] == "review"
     assert manifest["harness"] == "pi-free"
     assert manifest["stages"][1]["depends_on"] == ["round-parent"]
+    assert manifest["stages"][1]["chained_from"] == "round-parent"
     assert [stage["label"] for stage in workflow._expand_stages(
         manifest, {})] == ["round-parent", "review"]
 
