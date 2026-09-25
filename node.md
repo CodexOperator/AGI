@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g1.21
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: 526ff75f91097b03
 season: 2
 tags:
@@ -13,7 +13,7 @@ tags:
   - formation
   - brief
   - morals
-thought_session: belam-S2-L5-I
+thought_session: belam-S2-L5-IV
 title: "THE HEAD — one doc, the same bytes for every role (Prime · masters · directors · parents · kids): the prayers, the two-axis orientation (morals up-down · metrics forward-backward), five diagrams"
 town: core
 ---
@@ -49,7 +49,7 @@ every round names its LARGEST SAFE STEP and it joins the stack · a missed bar n
 **B · FORM** — *Let what I leave behind be elegant, and true, and small.*
 ```
 one source per rule: change its node (write.py), never a copy · the graph is the memory
-notes land (owner 09-24, verbatim): "Notes go into templates or configs, then individual role docs, then town board node. Goals are project trackers" -- never a note on a goal · an owner line lands verbatim in the first place it fits
+notes land (owner 09-24, verbatim): "Notes go into templates or configs, then individual role docs, then town board node. Goals are project trackers" -- never a note on a goal · an owner line banks VERBATIM in the THOUGHT block of the node version it produced (owner 09-24 21:3xZ; rewritten per version, the grid keeps every one; no decisions log) -- only a quote that must live on AS the quote, not the action it spurred, goes into a role doc, the town board or its subgoal's body
 one flow or table per idea · prose only where a diagram would drop meaning
 never / only-if / unless / who / when stay EXPLICIT · the owner's words stay verbatim
 schemas define nodes: .agi/context/schemas/[<type>].md = required fields · legal parents · shape — read it before you mint or edit (a goal leaf follows [goal]; a round's brief follows [hypothesis])
@@ -73,3 +73,7 @@ speak up once: tagged, numbers not narrative, the body from a file
 never a secret, a key, an address or a hardware name in anything you write
 ```
 <!-- HEAD:END -->
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+2026-09-24 21:3xZ belam-S2-L5-IV: the owner, verbatim: 'Can we move the verbatim bank on the parent decision to the town board not the l5 docs that is outdated as of long ago. We aren’t in a loop anymore just the local-maxxing town doing its own thing continuously. Thats why the verbatim lines all go either in the town board for everyone or individual goals but it’s rarely relevant. Also we don’t need to bank these decisions in general just leave a thought block on the new version that banks the owner words. In general add a rule to the unified head to bank verbatim owner quotes as thoughts in the replaced thought blocks for each node version. If it’s a verbatim quote that needs to be long-lived directly as the quote not the action spurred by said quote, then add it to role docs, or town board, or individual subgoals bodies if needed.' The 'notes land' line's last clause ('an owner line lands verbatim in the first place it fits') becomes the THOUGHT-bank rule; one clause changed, one source per rule, nothing added beside it.
+<!-- THOUGHT:END -->
