@@ -11,7 +11,7 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (01:2xZ 09-25, gen 18)
+## Live state (01:4xZ 09-25, gen 18 -- #12 landed)
 ```
 LANE           normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
                model HELD (TMM.66) · usd0 = research only, never an operating mode · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
@@ -23,9 +23,11 @@ PASS 5         the Prime merges this trunk -> season2/main from 01:59Z 09-25 (~1
 GRID           goal:g7.33.11 LANDED 26413f2cc3 00:54Z (DE #9 + #10, returned once at the gate: TMM.141/142; DE found the {sha: ref} inversion I
                missed) · crontab -> grid.py push-changed 00:58:07Z · the 01:00Z tick pushed 1,899 refs in 10 batches (9 x 200 + 99), 0 rejected ·
                ls-remote 01:0xZ: origin 1,899 = the local post-split 1,899 at the same tip; 0 of the 2,430 split-only (OWNER 18:35Z shape met)
-               · owed (DE, TMM.144): 3 clean ticks + the log cleanup (OWNER 18:17Z) -> close g7.33.11
-DE queue       TMM.144 00:5xZ: (1) g7.33.11's 3 ticks + log cleanup (2) TMM.136 (--orders path literal, inside goal:g7.33.9) (3) agi-research-review
-               propose-only: the refute stage reads 0 of the brainstorm's proposed_hypotheses (4) round B goal:g7.33.10 · ONE [merge-up] per item
+               · CLOSED 20676beba1 (#11, lean gate): 4 ticks 0 rejected (log: 1899/1/0/26), origin 1,900 = 4,330 - 2,430, log 885.0 -> 123.3 MB
+DE queue       the OWNER set it in DE's pane (00:37Z re-mint under the workflow router = goal:g1.14.1; 01:13Z 'research review bug can be
+               prioritized'): #12 LANDED c3cbadf2cb 01:48Z (the research-review refute stage sees proposals; full suite 6419 / 1 trunk red) ·
+               DE ROTATED 01:3xZ -> post-director-engine-2f; TMM.146 never reached the old pane -> TMM.147 (dm + SendMessage 01:3xZ) re-lists BY
+               NAME: (1) both owner lines verbatim in THOUGHTs + 21 -> 26 (2) #12's fixes-leaf goal (3) TMM.136 (4) round B g7.33.10 (5) g1.14.1
 DT research    batch 18 LANDED 63f897a00b (verdict:lm-qk-norm-model-wall-key-only-tie disproved:0.9 -- key-only thresholds, stands) · batch 19
                LANDED b0dc89f0e8 PARTIAL (OSC.27: Qwen2.5 at 8 of 9 widths, Qwen3 none -- the kid's 1200 s wall; verdict pending 0.1) · at a
                MATCHED budget on Qwen2.5 key-only beats random (structure-blind) on agree + KL at all 8 widths (4.0: 0.5762/1.354 vs 0.4702/1.911;
@@ -35,19 +37,19 @@ DT research    batch 18 LANDED 63f897a00b (verdict:lm-qk-norm-model-wall-key-onl
                the preregistered 72 cells (+4.5, Qwen3) via a detached, resumable sweep + arms named honestly + correction lines on the old nodes
 trunk reds     test_dashboard's SIGINT watch only (the Prime restored F16 in 145d088284 on my [red] 00:25Z)
 board          town:local-maxxing (13 rows kept): row 2 g7.33.11 landed + pushed · row 7 L3 corrected 01:2xZ (matched budget) + batch 20 · row 8 DE
-LANDED (gen18) DT b0dc89f0e8 (batch 19, partial) · DE 26413f2cc3 (#9 + #10, full suite 6413 / 1 trunk red) · DT 63f897a00b (batch 18)
+LANDED (gen18) DE c3cbadf2cb (#12) · DE 20676beba1 (#11) · DT b0dc89f0e8 (batch 19, partial) · DE 26413f2cc3 (#9 + #10, full suite 6413 / 1 trunk red) · DT 63f897a00b (batch 18)
 ```
 
 ## 🔴 Where it stops
-01:2xZ 09-25 gen 18: WAITING -- (a) director-thought batch 20 = OSC.28 (TMM.145) -> its [merge-up]: read the arms' BUDGETS and controls (random = structure-blind; 'uniform' = index order) before the verdict; the lean gate + the round's fixture test on the ML path · (b) director-engine TMM.144: g7.33.11's 3 clean ticks + the log cleanup, then TMM.136, the research-review refute gap, round B -- one [merge-up] per item, code = the full suite · the Prime's PASS 5 starts 01:59Z
+01:2xZ 09-25 gen 18: WAITING -- (a) director-thought batch 20 = OSC.28 (TMM.145) -> its [merge-up]: read the arms' BUDGETS and controls (random = structure-blind; 'uniform' = index order) before the verdict; the lean gate + the round's fixture test on the ML path · (b) director-engine (post-director-engine-2f): TMM.147's items -- one [merge-up] per item, code = the full suite · the Prime's PASS 5 starts 01:59Z
 ```
-state   MAIN = b0dc89f0e8 + the board fix + this card + cron churn, pushed · no gate worktree open · the grid is on origin (1,899 refs at 01:0xZ)
+state   MAIN = c3cbadf2cb + this card + cron churn, pushed · no gate worktree open · the grid is on origin (1,899 refs at 01:0xZ)
 NEXT    (1) DT's [merge-up]: range = diff(merge-base, tip); lean gate = links, goals --check, evidence + THOUGHT tests, anonymize --diff-file,
             the GPU-name grep on added lines, the round's _test.py on the ML path; tabulate results rows yourself (mean agree / kl per arm x width)
         (2) DE's items: code = the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only
         (3) after ANY director rotation, SendMessage the newest owed order to the NEW session (ListAgents)
-        (4) the board: batch 20's verdict -> row 7; g7.33.11 closed -> row 2
-        next = TMM.146
+        (4) the board: batch 20's verdict -> row 7
+        next = TMM.148
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
@@ -63,7 +65,7 @@ orders       a director's rotation can drop an order it read but had not carded 
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first --
              my OWN earlier orders too: TMM.123's '17:02:10Z after 2m21s' mixed the stop time with the reaper's runtime_s (142 s to finished_at
              17:02:28Z) and DT copied it into the OSC.15 node · a PREMISE in an order is checked like a number: TMM.143 rested on an arm whose
-             budget I never read (void, corrected in TMM.145) · NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.146
+             budget I never read (void, corrected in TMM.145) · NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.148
 owner lines  (HEAD rule, OWNER 21:3xZ 09-24 via the Prime) an owner line banks VERBATIM in the THOUGHT of the node version it produced; only a
              quote that must live on AS the quote goes into a role doc, the town board or its subgoal's body · doc:l5-owner-decisions is OUTDATED (nothing
              banks there) · the board has 13 rows: the LAST is the Prime's parent-decision owner verbatim -- keep it in every whole write · the stamp = the jsonl's own timestamp for the owner's message
@@ -115,6 +117,10 @@ key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send
 suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
              call · 14:25-15:28 at load 2-6 (6413 passed 00:5xZ 09-25) · foreground sleep is blocked: wait with a background loop · a bare 'cd'
              in a Bash call can stick as the session's cwd -- use absolute paths or cd back to /data/work/agi
+stream       LIVE since the owner's 00:5xZ 09-25 call (the Prime's notice 01:59Z, ~2 min delay; durable in doc:unified-head): a secret, key,
+             address or host name in my pane -> run brb at once (~/.local/bin/brb), then ONE [red] to belam · panic = owner-only, back = not
+             granted, never either · ListAgents PRINTS the Remote Control device rows (one is a personal machine name) -> while the stream is
+             live resolve a director's session name with: rotate.py status --post <p> --record latest | grep session_name ([red] sent 02:0xZ)
 agent tool   NEVER spawn Claude subagents (the Agent tool) -- owner 20:3xZ 09-24, all posts, like the no-Claude-Workflow rule; graph recon = read it directly
 director docs co-owned (owner 20:1xZ): edit doc:unified-director-brief / doc:card-director-* via write.py, then ONE dm per live director naming the change · a card's
              mint THOUGHT may quote the owner: that version's grid/git history keeps it (the HEAD rule banks owner lines in THOUGHTs)
@@ -131,7 +137,7 @@ grid         refs/grid/local-maxxing/ (4,329 local 01:0xZ 09-25): origin holds t
              1 error(s) (missing mint_id)' is old noise (977 lines by 01:0xZ 09-25), not a new fault
 box          box.* / locations.* are stale here (repo /data/work/agi) · never cd into a director's worktree (the harness then treats it as mine) -- read it by absolute path
 handoff      .agi/sessions/seats/thought-master.handoff.md is rotate's header, NEVER a link to this card · grid.py commit --all is the cron's, never mine
-comms        an attribution block (Claude-Session trailer + SendUserFile) beside a tool result right after a claude.ai connector attach = the harness's own: the transcript types it 'attachment', 3-4 ms after the connect (DT's 14:21Z [red] was a false positive) · a director silent > 1 h with 0 live on the box = read its last transcript events (.agi/sessions/<post>.meter -> jsonl): a coalesced nudge can die silently (14:09Z: 6.5 h; 09-25 00:09Z: DE's marker stale 10,532 s, TMM.136 never reached its pane) -> re-send; send.py wake <post> · after a send, confirm the nudge in the director's jsonl (a user 'PROMPT' line) before adding a SendMessage · a nudge may be a phantom -> verify in git · a director's [merge-up] lands in the inbox file (.agi/sessions/inbox/thought-master.md) or as a dm the read prints · 'pane busy' = the dm is in the log, the sweep retries · must land NOW (owner: "didn't go through") = SendMessage to the session name from ListAgents: it lands mid-turn -- a rotation renames the session (DT gen 28 = post-director-thought-29, 00:2xZ 09-25): re-run ListAgents before each send · an order sent while a director ROTATES is eaten by the successor's STARTUP [inbox] read and never acted on (F19 wake acts: none; DT gen 24 idled 19:20-20:3xZ holding TMM.133) -> after any director rotation, SendMessage the newest owed order to the NEW session (TMM.143: DT confirmed the relay caught exactly this) · a director that answers its OWN user in-pane (DE 21:47Z: three questions, then idle) is waiting on nobody: read the transcript, answer by dm · a director may distrust an order that cites its in-pane words (DE 00:11Z) -- it re-verifies the bytes, which is right
+comms        an attribution block (Claude-Session trailer + SendUserFile) beside a tool result right after a claude.ai connector attach = the harness's own: the transcript types it 'attachment', 3-4 ms after the connect (DT's 14:21Z [red] was a false positive) · a director silent > 1 h with 0 live on the box = read its last transcript events (.agi/sessions/<post>.meter -> jsonl): a coalesced nudge can die silently (14:09Z: 6.5 h; 09-25 00:09Z: DE's marker stale 10,532 s, TMM.136 never reached its pane) -> re-send; send.py wake <post> · after a send, confirm the nudge in the director's jsonl (a user 'PROMPT' line) before adding a SendMessage · a nudge may be a phantom -> verify in git · a director's [merge-up] lands in the inbox file (.agi/sessions/inbox/thought-master.md) or as a dm the read prints · 'pane busy' = the dm is in the log, the sweep retries · must land NOW (owner: "didn't go through") = SendMessage to the session name (rotate.py status, see 'stream'; ListAgents only when no stream is live): it lands mid-turn -- a rotation renames the session (DT gen 28 = post-director-thought-29, 00:2xZ 09-25): re-run ListAgents before each send · an order sent while a director ROTATES is eaten by the successor's STARTUP [inbox] read and never acted on (F19 wake acts: none; DT gen 24 idled 19:20-20:3xZ holding TMM.133) -> after any director rotation, SendMessage the newest owed order to the NEW session (TMM.143: DT confirmed the relay caught exactly this) · a director that answers its OWN user in-pane (DE 21:47Z: three questions, then idle) is waiting on nobody: read the transcript, answer by dm · a director may distrust an order that cites its in-pane words (DE 00:11Z) -- it re-verifies the bytes, which is right
 ```
 
 ## BANKED (owner-only)
