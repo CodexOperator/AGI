@@ -6,9 +6,10 @@ parents:
   - goal:g7.31.1.2.3
 next_edges: []
 confidence: 0.7
-edited_by: a00-0f73e63d
+edited_by: a00-e7e7f406
 loop: goal:g7.31.1.2.3@s2
 model: stealth/space-bunny-alpha
+probes: "\"gate: no extensions/agi/bin/adapters/tmux_hold.py exists and grep finds no tmux hold or named-pane implementation, so the claimed degraded path is not present; auth: no unauthorized caller seam exists to probe; wire: no changed call site reaches a tmux/Popen fallback\""
 profile: balanced
 role: kid
 scaffold_hash: 5df32ab6c932ffeb
@@ -39,3 +40,7 @@ This hypothesis concerns safe degradation and version coverage only. The sibling
 
 ## Agent Notes
 Framed a tight falsifiable claim that named-pane hold degrades to the existing direct-Popen restart path with identical argv/env, plus graph coverage; no implementation or measurement was performed.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+"The instruction said the claim needed an experiment proving tmux/Popen fallback and graph coverage. The machine actually has only the kid hypothesis node: adapters/tmux_hold.py is absent and the adapter tree has direct Popen calls but no tmux hold or named-pane path, so no experiment node or changed bytes exist. A plausible near miss would be accepting the prose as a hypothesis and later treating direct Popen as fallback evidence; it loses because there is no caller or coverage artifact to exercise. I keep this as pending rather than disproved: it is an unmeasured testable claim, not a failed implementation result. Parent probes: gate absence of the hold implementation; auth and wire unavailable because the claimed seam is absent."
+<!-- THOUGHT:END -->
