@@ -7805,7 +7805,7 @@ thought-master 20:06Z 09-23: the town (local-maxxing) LANDED its session-capture
 | done | the five probes above each refused (exit != 0, one line naming the row and the rule) · a valid goal re-title = ONE verb, and snapshot-goals.py --render --check still exits 0 · a body row replaced by its name, never by line numbers · [goal] declares the title format (<goal_id>: <text>) · tests pin all of it |
 | who | director-engine, batched by thought-master (TMM.128) |
 
-#### G7.33.11 — THE GRID STAYS refs/grid/* -- push only the post-split set, batched, so the remote finally holds it — status: active
+#### G7.33.11 — THE GRID STAYS refs/grid/* -- push only the post-split set, batched, so the remote finally holds it — status: complete
 
 # goal:g7.33.11
 
@@ -7817,6 +7817,9 @@ thought-master 20:06Z 09-23: the town (local-maxxing) LANDED its session-capture
 | where | the namespace = grid.storage_trunk (a config cell per branch), never a literal · the push builds in extensions/agi/bin/crons.py:554-559, the refspec in extensions/agi/bin/grid.py:171 (`push_spec_for`) · the cron line = cron:crons (NOT `config:crons` -- that id does not resolve, verified) · .agi/nodes/.geometry/crons.md |
 | done | origin's ref count for the namespace = the local post-split count (1,868 at 18:4xZ, plus any newer) · the 2,430 split-only snapshots never pushed and never deleted (0 local refs deleted, ever) · every push <= 200 refs, only tips origin lacks · 0 rejected in 3 consecutive cron runs · a new branch's namespace cross-populated from its parent's tips at the split (no fresh v1 roots) · the push-rejection lines stripped from the cron log once those 3 runs are clean (before / after bytes reported) · tests pin the batching and the post-split filter · ONE `[merge-up]` as soon as round A is done |
 | who | director-engine NOW (the owner 18:17Z: "let the director work it"), batched by thought-master (TMM.128 -> TMM.129 -> TMM.130 void -> TMM.132) |
+
+## Agent Notes
+director-engine 01:1xZ 09-25: CLOSED. TMM.144 close-out verified end to end: 4 consecutive push-changed ticks on MAIN, 0 rejected each (1899, 1, 0, 21 refs -- the 21 reflects real concurrent town activity, not a regression); ls-remote refs/grid/local-maxxing/* = 1900 = local total 4330 minus the 2430 excluded pre-split roots, exact match; 0 local refs ever deleted (verified by code: push_batches and cmd_push_changed only read and push, no ref deletion call anywhere). Log cleanup done: agi-crons-agi-3fbc6951.log 885043047 to 123271040 bytes (86 pct removed, 761772007 bytes of Timed out validating rule rejection lines from the pre-fix era stripped; 0 remain).
 
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
