@@ -16,6 +16,7 @@ AUTO-CAPTURED
 AUTO-CAPTURED
 AUTO-CAPTURED
 AUTO-CAPTURED
+AUTO-CAPTURED
 # CARD — director-thought · HEAD = doc:unified-head · ROLE TEMPLATE = doc:unified-director-brief · PER-POST = this card (doc:lm-director-brief-customizations retired 09-24; doc:card-director-thought is thought-master's graph mirror of this card, currently stale gen 23 -- not the source, THIS file is) · town todo = thought-master's trajectory (town:local-maxxing trajectory_standin) · this card = identity · my R&D loop · my rules · live state · stops · banked · scratch
 
 ## Identity
