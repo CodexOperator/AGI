@@ -2128,6 +2128,25 @@ def _resolve_context_timeout(stage: dict, manifest: dict) -> int:
                               raw * _LOAD_CAP_MULT))
 
 
+def _round_git_harvest(root: Path, rec: dict) -> dict:
+    """Read the committed review range from the dispatch record's own refs."""
+    branch, base = rec.get("branch"), rec.get("base_branch")
+    if not branch or not base:
+        raise ValueError("round completion record has no branch/base_branch")
+
+    def git(*words: str) -> str:
+        p = subprocess.run(["git", "-C", str(root), *words],
+                           capture_output=True, text=True, timeout=30)
+        if p.returncode:
+            raise ValueError((p.stderr or p.stdout or "git failed").strip())
+        return p.stdout.strip()
+
+    old_tip = git("merge-base", base, branch)
+    new_tip = git("rev-parse", branch)
+    files = [f for f in git("diff", "--name-only", f"{old_tip}..{new_tip}").splitlines() if f]
+    return {"old_tip": old_tip, "new_tip": new_tip, "files": files}
+
+
 def _run_round_stage(root: Path, stage: dict, args: dict, timeout_s: int):
     """Dispatch one detached parent and gate on its own status plus branch commit."""
     target = args.get(stage.get("target_arg", "target"))
@@ -2157,8 +2176,12 @@ def _run_round_stage(root: Path, stage: dict, args: dict, timeout_s: int):
         if rec.get("status") in ("failed", "timeout", "stalled"):
             return 3, None
         if rec.get("status") == "done" or dispatch._branch_has_done_commit(root, rec, agent_id):
-            return 0, {"target": target, "parent": agent_id,
-                        "branch": rec.get("branch")}
+            try:
+                harvest = _round_git_harvest(root, rec)
+            except (OSError, ValueError, subprocess.TimeoutExpired):
+                return 3, None
+            return 0, {"key": target, "hypothesis": target, "parent": agent_id,
+                        "branch": rec.get("branch"), **harvest}
         time.sleep(min(1, max(0, deadline - time.monotonic())))
     return 2, None
 
