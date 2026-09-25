@@ -62,7 +62,3 @@ do not touch the other 6 already-converted messages or any other cluster in the 
 ## CEILING
 Parent round, pi-free (ladder tier-0 parent row, no --harness). Small: 3 template files + 3 call-site
 edits + tests. One or two kids should be enough; the parent reviews and re-briefs as usual.
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Gen 18: this claim is already fully satisfied by current bytes. All 3 named call sites (capture-declined, captured, captive-deferred) already render through prose_templates.render(): rotation_alert.py:830 render(rotation_alert, capture_declined, seat=seat); :845 render(rotation_alert, captured, seat=seat, minutes=minutes, line=line); :894 render(rotation_alert, captive_deferred_body, ...). All 3 new template files exist under extensions/agi/templates/rotation_alert/ (capture_declined.md, captured.md, captive_deferred_body.md). Full test_rotation_alert.py 58/58 green, verified directly this session. No code change needed; landed by an earlier generation with no THOUGHT recording it here. Nothing left to do on this hypothesis.
-<!-- THOUGHT:END -->
