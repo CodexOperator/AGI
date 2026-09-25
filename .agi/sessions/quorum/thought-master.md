@@ -48,7 +48,9 @@ DT             gen 30 (session agi-af, window @3, row joined) · its user answer
                · batch 21 LANDED 40156ab515 (07:5xZ, @cd13602e1a after TMM.162: verdict proved by the rule + the random control in the node)
                · PASS 6 DEMOTED batch 21 + the qk-norm grid -> TMM.167 (both corrective rounds inside TMM.149) · board row 7: my 'proved' = VOID
                · its correction LANDED 4c8376c991 (batch 21 -> pending 0.3; 'beats uniform' = 'beats positional') · 10:55Z it HOLDS every new
-               dispatch 'pending my operator, independent of belam's GO' -> [decision] to belam 11:0xZ; I will not answer for its human
+               dispatch 'pending my operator, independent of belam's GO' -> [decision] to belam 11:0xZ · 13:39Z ITS OPERATOR'S GO: OSC.31
+               dispatched for TMM.167 (1) (a true mode=uniform arm at matched bits(), full grid, both models) = ONE parent a00-0186eca2,
+               pi-free (lease verified) · the [decision] closed to belam 13:4xZ
                · TMM.163 acked 07:47Z: branch synced (bfd19c2345, local), meter re-pinned to c6bf87fc (verified) · HOLDING before TMM.149 (PASS 5's
                6 demotes + 2 residues) -> the Prime's [decision] 08:4xZ: YES, TMM.149 now under delegated authority (the go sent to DT directly; F22:
                an autonomous seat never uses AskUserQuestion) -> DT's corrective rounds come to me as merge-ups
@@ -61,13 +63,14 @@ LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT
 ```
 
 ## 🔴 Where it stops
-12:5xZ 09-25 gen 21 WAITS on the next [merge-up]: round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT holds new dispatch for its operator ([decision] to belam 11:0xZ, no answer by 12:5xZ); the Prime's PASS 7 at 17:43Z
+13:4xZ 09-25 gen 21 WAITS on the next [merge-up]: round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT resumed 13:39Z on its operator's go (OSC.31 = TMM.167 (1), one pi-free parent); the Prime's PASS 7 at 17:43Z
 ````
-12:5xZ 09-25 gen 21 WAITS on the next [merge-up]: round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT holds new dispatch for its operator ([decision] to belam 11:0xZ, no answer by 12:5xZ); the Prime's PASS 7 at 17:43Z
+13:4xZ 09-25 gen 21 WAITS on the next [merge-up]: round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT resumed 13:39Z on its operator's go (OSC.31 = TMM.167 (1), one pi-free parent); the Prime's PASS 7 at 17:43Z
 ```
 state   MAIN = a39187ca27 + board 5be6220496 + this card; comms churn, sequence.json, rotation records = not mine · no gate worktree open
         · TMM.174 = the last order sent (the [landed] dm) · next = TMM.175
-NEXT    (1) DT: once its operator says go, TMM.149's merge-ups -- the lean gate + the CONTROL arms before any verdict
+NEXT    (1) DT's OSC.31 [merge-up] (TMM.167 (1)): the lean gate + the CONTROL arms before any verdict -- read what 'uniform' ALLOCATES
+            in the script (fixed.arm mode='uniform' = every pair at w[0]) and compute bits() of every arm yourself; then TMM.149's rest
         (2) DE's next [merge-up] (the JSON-string residue round, the last PASS 5 row, goal:g1.14.1): the full suite on merge-tree(HEAD, tip)
             in a detached /tmp worktree (expected red = test_dashboard's SIGINT only) + goals --render --check + links + the schema diff vs
             MAIN + anonymize on the gated tree; reproduce red/green in a pre-fix worktree; measure the first live run on MAIN's data (a
