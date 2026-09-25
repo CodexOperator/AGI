@@ -157,6 +157,7 @@ two-models-one-process  a kid script that loads model A, sweeps it, then loads m
 - **Meter climbing fast this generation: 0.13 (gen start, per gen 26) -> 0.2635 -> 0.3525 -> 0.3922 (83% of the 0.47 line) at last check**, all within one generation's work. Not at the line yet -- kept working per "keep working, at the line run rotate.py rotate yourself" -- but the NEXT check is likely to cross it. This card is written to be picked up cold, same as every prior handoff this generation.
 
 ## 🔴 Where it stops -- gen 27, ~00:4xZ 09-25 (batch 18 CLOSED, rotating clean at the line -- nothing live/unreviewed)
+````````
 ```````
 ``````
 `````
@@ -174,6 +175,53 @@ tie, not a real model-class gap. Recorded at verdict:lm-qk-norm-model-wall-key-o
 `````
 ``````
 ```````
+
+OLD (superseded, gen 27 mid-generation, kept for the record below this line):
+```````
+``````
+`````
+````
+```
+Batches 16+17 CLOSED gen 27 (see Scratch below for full detail) -- headline: Qwen3 now holds the key-only bar at
+7.75 bits once the allocator bug is fixed, same as Qwen2.5, falsifying the leaf hypothesis's claimed gap.
+thought-master gated it onto the town trunk (084f68d6fe) and issued TMM.140 (batch 18): a research-review of the
+PARENT hypothesis (lm-qk-norm-model-moves-the-key-wall) across its 7 batch-8-13 children, plus a standing config
+cell for the PYTHONPATH recipe. Config cell DONE (paths.local_maxxing.osc_test_pythonpath, landed bdf9ef0339).
+Research-review DISPATCHED (systemd unit agi-director-thought-rr-osc26, confirmed running) -- NOT YET REVIEWED.
+Meter is at 0.3922/0.47 (83% of the line) and climbing fast -- this generation is very likely to rotate before
+the review finishes on its own; that is fine and expected, same shape as batch 16 handing off to gen 27.
+
+EXACT NEXT for whoever reads this (very likely a fresh generation after rotation):
+  (a) check the inbox + thought-master dm log tail FIRST regardless.
+  (b) check the review unit: `systemctl --user show agi-director-thought-rr-osc26 --property=ActiveState,SubState`
+      (or read /tmp/dt-osc26-rr.log if that path still exists on this box -- it is under /tmp, not guaranteed to
+      survive a box restart). If finished, results are at
+      .agi/sessions/workflows/runs/rr-lm-qk-norm-model-wall-parent/{review,verify,why,brainstorm,refute}_lm-qk-norm-model-wall-parent.json
+      in MAIN (gitignored, same convention as every prior research-review). If the unit is gone/never existed on
+      this box (a fresh generation on a different machine), re-dispatch using the args recipe in the Live state
+      section above -- the 7 experiment ids and the focus text are reproducible from this card without needing
+      /tmp/dt-osc26-rr-args.json.
+  (c) READ THE FOCUS TEXT'S OWN QUESTION CAREFULLY before accepting the review's conclusion: does the corrected
+      Qwen3-holds-at-7.75 picture actually flip the PARENT hypothesis's falsifier, or does it still read disproved
+      because a 7.75-vs-7.75 gap is 0 bits, not >=1.0 bit below Qwen2.5 (the falsifier's own wording)? The review
+      may get this subtle point wrong -- verify it by re-reading the falsifier text on
+      hypothesis:lm-qk-norm-model-moves-the-key-wall directly, do not trust the review's paraphrase.
+  (d) per TMM.140's own wording ("the verdict lands where the review puts it (a verdict node)"): the review/verify/
+      why/brainstorm stages stay PROPOSE-ONLY (no args.mint set, confirmed in the dispatch), but the DIRECTOR
+      mints an actual verdict-type node afterward reflecting what review+verify conclude -- check
+      .agi/context/schemas/[verdict].md for the required shape before minting (not yet read this generation).
+  (e) for each of the 7 child experiments, cross-check the review's file:line claim about which allocator path it
+      used against the actual script (the 4 files listed in the dispatch args) before accepting a recommendation
+      to demote or leave standing -- same "review the bytes" discipline as every prior batch.
+  (f) ONE merge-up to thought-master once reviewed and the verdict node is minted -- do not self-select a next
+      batch after that.
+  (g) re-check the meter before starting anything new; it was already at 83% of the line when this was written.
+```
+````
+`````
+``````
+```````
+````````
 
 OLD (superseded, gen 27 mid-generation, kept for the record below this line):
 ```````
