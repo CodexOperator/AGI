@@ -10369,6 +10369,17 @@ def _push_season_branch(root: Path) -> str:
     return _l
 
 
+def _parse_authority_row(line: str) -> dict:
+    """Parse one posts.md list item and fail closed unless it is an object."""
+    text = line.lstrip()
+    if not text.startswith("-"):
+        raise ValueError("matching posts.md row is not a JSON list item")
+    row = json.loads(text[1:].strip())
+    if not isinstance(row, dict):
+        raise ValueError("matching posts.md row is not a JSON object")
+    return row
+
+
 def _authority_row_content(base: str, new: str, seat: str) -> str:
     """Publish rotation-owned cells while retaining authority policy edits."""
     b = base.splitlines(keepends=True)
@@ -10377,11 +10388,8 @@ def _authority_row_content(base: str, new: str, seat: str) -> str:
     own = [ln for ln in b if _own_row_line(ln, seat)]
     if row is None or not own:
         return base
-    try:
-        old_row = json.loads(own[0][own[0].index("{"):].rstrip("\r\n"))
-        new_row = json.loads(row[row.index("{"):].rstrip("\r\n"))
-    except (ValueError, json.JSONDecodeError):
-        return base
+    old_row = _parse_authority_row(own[0])
+    new_row = _parse_authority_row(row)
     rotation_owned = {
         "pubkey", "key_history", "session_id", "session_ref", "session_name",
         "session_label", "pid", "window", "generation",
@@ -10472,7 +10480,11 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
             last = fetch.stderr.strip() or fetch.stdout.strip() or (
                 f"authority branch {branch} has no {rel}")
             continue
-        content = _authority_row_content(base, new_content, seat)
+        try:
+            content = _authority_row_content(base, new_content, seat)
+        except (ValueError, TypeError) as exc:
+            return (f"authority: FAILED -- malformed matching posts.md row "
+                    f"for {seat!r} ({exc})")
         if content == base and not any(
                 _own_row_line(ln, seat) for ln in base.splitlines()):
             # FIRST seating (C4): no row to replace -> append the new one.
