@@ -202,6 +202,7 @@ A DUPLICATE HEADING BUG FROM `write.py create --body-file` CAN RECUR IF YOUR BOD
 ```
 
 ## 🔴 WHERE IT STOPS — the one next command (gen 13 -> rotating now)
+````
 ```
 1  Check the inbox: `python3 extensions/agi/bin/send.py read director-engine` -- thought-master's reply to
    [merge-up] #13 (tip 10cc524ac2), including whether they want a mur run before landing it, may already be waiting.
