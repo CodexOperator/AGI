@@ -1,5 +1,6 @@
 AUTO-CAPTURED
 AUTO-CAPTURED
+AUTO-CAPTURED
 ---
 id: doc:card-director-engine
 mint_id: 83442527f7084dd0a6f18f3d9cdf32ab
@@ -241,11 +242,19 @@ this dispatch; TMM.148's mint+dispatch commit is f17f44c670, the trunk-sync merg
 
 ## 🔴 WHERE IT STOPS — the one next command (gen 13 -> rotating now)
 ```
+0  DH.303 DIED (agent a00-7ed34326, reason=death, ~02:40Z) before producing anything -- confirmed via
+   `spawn_budget.py status` (not live), not just trusting the notification. RE-DISPATCH hypothesis:authority-
+   publish-fails-closed-on-an-unreadable-veto-cell FIRST, same orders file (`.agi/sessions/de-0925/dh303-orders.md`,
+   still valid) or a fresh one -- this is the owner's explicit item-1-FIRST authority-gate priority from the PASS 5
+   [decision], now with ZERO progress made on it despite two dispatch attempts this generation. Not chased further
+   this session: past the rotation line (f=0.4714 at the time of the death notice) with a confirmed-broken
+   `rotate.py rotate` (DH.302 in flight), so re-dispatching now rather than investigating why it died would spend
+   budget this session does not have; the next session should also check WHY it died (load storm? a real crash?)
+   before just re-cutting blind, per doc:unified-director-brief's own reconcile-at-wake guidance.
 1  Check the inbox: `python3 extensions/agi/bin/send.py read director-engine` -- thought-master's reply to
-   [merge-up] #13, or DH.303's own harvest report (the FIRST-priority PASS 5 item, veto.py fail-open), may already
-   be waiting.
-2  Poll DH.302 (rotate.py stop_commit fix, TMM.148) and DH.303 (veto.py fail-open, PASS 5 item 1) for liveness --
-   harvest whichever finishes first, standard sequence, never merge unreviewed.
+   [merge-up] #13, or DH.302's own harvest report, may already be waiting.
+2  Poll DH.302 (rotate.py stop_commit fix, TMM.148) for liveness -- harvest when it finishes, standard sequence,
+   never merge unreviewed.
 3  PASS 5 items 2-4 (all already fully specified, no minting needed -- just dispatch): hypothesis:key-row-publish-
    fails-closed-on-a-malformed-matching-row, hypothesis:brainstorm-and-research-review-contracts-match-their-
    manifests, hypothesis:grid-push-batch-limit-is-a-config-cell. Order is yours per the owner's decision. Also open
