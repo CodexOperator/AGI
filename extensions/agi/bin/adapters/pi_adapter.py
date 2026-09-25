@@ -30,6 +30,7 @@ from pathlib import Path
 import adapters
 import brief
 import harness_template
+import tmux_hold
 
 NAME = "pi"
 
@@ -307,7 +308,6 @@ def restart(
     import json
     import os
     import shlex
-    import subprocess
     import time
 
     args = build_command(
@@ -320,16 +320,11 @@ def restart(
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=dict(os.environ))
     try:
-        with open(log_file, "ab") as logf:
-            proc = subprocess.Popen(
-                args,
-                stdout=logf,
-                stderr=subprocess.STDOUT,
-                stdin=subprocess.DEVNULL,
-                start_new_session=True,
-                cwd=str(_restart_cwd(sess_dir, agent_record)),
-                env=env,
-            )
+        rec = agent_record or {}
+        proc = tmux_hold.start_or_popen(
+            args, env=env, cwd=_restart_cwd(sess_dir, rec), log=log_file,
+            mode="ab", seat=rec.get("dispatched_by") or "unknown",
+            agent_id=agent_id, state_dir=sess_dir, pane_id=rec.get("pane_id"))
     except OSError as exc:
         print(f"restart failed for {agent_id}: {exc}", file=import_sys_stderr())
         return None
@@ -338,6 +333,7 @@ def restart(
         agent_record["pid"] = new_pid
         agent_record["status"] = "restarted"
         agent_record["restarted_at"] = int(time.time())
+        agent_record["pane_id"] = getattr(proc, "pane_id", None)
         (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
     return new_pid
 
