@@ -1,0 +1,137 @@
+{
+  "rotation": "rotate-self",
+  "seat": "director-engine",
+  "recorded_at": "2026-09-25T03:09:07.578977Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "director-engine",
+      "windows": [
+        "ops",
+        "agi-98",
+        "belam-S2-L5-I",
+        "director-engine",
+        "belam-S2-L5-II",
+        "belam-S2-L5-V",
+        "belam-S2-L5-III",
+        "director-thought",
+        "belam-S2-L5-IV",
+        "stream-master",
+        "director-engine.prev",
+        "thought-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/director-engine.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 1980949,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "director-engine.prev",
+      "windows": [
+        "ops",
+        "agi-98",
+        "belam-S2-L5-I",
+        "director-engine",
+        "belam-S2-L5-II",
+        "belam-S2-L5-V",
+        "belam-S2-L5-III",
+        "director-thought",
+        "belam-S2-L5-IV",
+        "stream-master",
+        "director-engine.prev",
+        "thought-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -48.196
+  },
+  "seated_at": "2026-09-25T03:09:07.578977Z",
+  "window": "director-engine",
+  "session_id": "3041e74f-0bfa-4352-a8c3-3c8e6c3c4143",
+  "pid": 3570138,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "director-engine.prev",
+      "id": "@53"
+    },
+    "successor_window": {
+      "name": "director-engine",
+      "id": "@57"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@57",
+      "pid": 3570138,
+      "session_id": "3041e74f-0bfa-4352-a8c3-3c8e6c3c4143",
+      "transcript": "/home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/3041e74f-0bfa-4352-a8c3-3c8e6c3c4143.jsonl",
+      "name": "post-director-engine-b3",
+      "path": "/home/belam/.claude/sessions/3570138.json",
+      "note": "joined by @57 in registry file 3570138.json"
+    },
+    "successor_row": "config:seats row 'director-engine': session_ref= session_name=post-director-engine-b3 session_label=director-engine session_id=3041e74f-0bfa-4352-a8c3-3c8e6c3c4143 pid=3570138 generation=14 window='@57' source=registry pubkey=8bd4fd0ca3c1e5fd... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 5b4863ae90, retried 0) -- own-row only: director-engine spawn row: gen 14, session_id 3041e74f-0bfa-4352-a8c3-3c8e6c3c4143, window @57, pid 3570138\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- 4a045b277 -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/director-engine.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/director-engine.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/director-engine.ack.3041e74f.json",
+    "own_authority_released": "generation 13 of seat 'director-engine' retired; successor generation 14 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch local-maxxing/season2/posts/director-engine/main",
+    "livestream_repoint": {
+      "session": "view-director-engine",
+      "target": "@57",
+      "selected_rc": 0,
+      "command": [
+        "tmux",
+        "select-window",
+        "-t",
+        "view-director-engine:@57"
+      ],
+      "active_windows": [
+        "@0 0",
+        "@2 0",
+        "@7 0",
+        "@57 1",
+        "@13 0",
+        "@51 0",
+        "@28 0",
+        "@55 0",
+        "@44 0",
+        "@54 0",
+        "@53 0",
+        "@56 0"
+      ]
+    },
+    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/director-engine.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "95292ed274c04d2bb50b4fd52801ee7134c07863846fdbf04e9c9d9b02486478",
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      1897228,
+      1897236,
+      1897341
+    ],
+    "reap_source": "derived from own window @id @53 pane 1897228: chain [1897228, 1897236, 1897341] (deepest-first; authority row pid 1897341)"
+  },
+  "after_join": {
+    "claimed_at": "2026-09-25T03:09:30.839689+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-25T03:09:07.578977Z"
+  }
+}
