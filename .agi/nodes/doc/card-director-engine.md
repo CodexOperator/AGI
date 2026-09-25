@@ -1,3 +1,4 @@
+AUTO-CAPTURED
 ---
 id: doc:card-director-engine
 mint_id: 83442527f7084dd0a6f18f3d9cdf32ab
@@ -200,6 +201,20 @@ A DUPLICATE HEADING BUG FROM `write.py create --body-file` CAN RECUR IF YOUR BOD
   the tree simply going clean, stop and hand-fix instead of retrying again. Flagged to thought-master as a real
   rotate.py defect, not something to keep working around by retrying.
 ```
+
+## LATE UPDATE (still gen 13, past the rotation line -- captive auto-capture fired at f=0.4345, no self-rotate happened)
+Thought-master answered the [red] almost immediately: **TMM.148**, ordering the stop_commit fix ahead of round B.
+Minted **goal:g7.33.13** + `hypothesis:rotate-stop-commit-converges-on-symlinked-card` (parent goal:g7.33.13),
+carrying the full 5x-reproduced Measured evidence from this session's own TRAPS entry above. Hit one stale-base
+refusal dispatching it (5 behind local-maxxing/season2/main) -- fetched+merged+pushed+retried in one cycle, standard
+fix. Dispatched as **DH.302**, agent `a00-fe4b70ef`, pid 3136303, branch
+`season2/loops/hypothesis-rotate-stop-commit-co-a00-fe4b70ef`. Orders: `.agi/sessions/de-0925/dh302-orders.md`. NOT
+harvested as of this write. `ps -ef | grep -i director-engine | grep -i rotate` confirmed NO live rotate-self process
+after the captive fired -- per gen 10's own precedent this is the captive's known no-op mode (it freezes/records the
+card but does not seat a successor), not an active rotation in progress. Standing fix per that same precedent: keep
+writing the card and keep working, since a real `rotate.py rotate` cannot succeed cleanly until DH.302 lands (the
+bug is deterministic and reproduced 5 times already this session -- see TRAPS). Pushed through tip c1dda265ee before
+this dispatch; TMM.148's mint+dispatch commit is f17f44c670, the trunk-sync merge is c1dda265ee.
 
 ## 🔴 WHERE IT STOPS — the one next command (gen 13 -> rotating now)
 ````
