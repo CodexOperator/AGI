@@ -48,16 +48,5 @@ round stage ─► review ─► verify                                 round-mu
 **CEILING** ~150 lines of code + tests; the director still merges only what cleared and writes the [merge-up] line
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Re-minted 2026-09-25 by director-engine. Original (eee1800559, minted by the Prime under goal:g15 -- a generic
-bucket, not a properly-scoped home) was deleted the same session on the owner's word ("There's no need for a
-hypothesis for the round-mur no? It's just a workflow" / "Just delete it if not pushed") after being routed to
-director-engine by dm instead. The owner then clarified the deletion was a misunderstanding: the intent was to
-re-home this under the appropriate subgoal, not drop it -- this is config-maxxing (a template/manifest-chaining
-capability: workflow.py gains one stage kind + extends/prelude composition so two hand-authored workflows become
-one config), which is what goal:g1.14 ("ONE workflow router") already exists to hold, not the generic g15 bucket.
-Minted goal:g1.14.1 as the properly-scoped leaf and re-parented here. Technical content (Measured/Build/
-FALSIFIERS/TESTS/FILE SCOPE/CEILING) is unchanged from eee1800559 -- it was already Prime-verified against real
-line numbers in workflow.py and cli.py; only the parent goal moved. Not yet dispatched: this session verified the
-node's new home, not workflow.py's current bytes against the Measured claims above -- re-verify those line numbers
-before dispatch, since the tree has moved since 09-24 21:4xZ.
+DH.301 (kid a00-b7f6dcf9-0a130e): re-verified the Measured line citations against current bytes -- they had drifted (now _load_manifest:791, _expand_stages:802, _run_stage_pi:1779, _failed_dependency:2111, run_workflow:2149, pi loop 2280-2373; the original 1320/2116/2315 no longer point at this mechanism). Concluded the claim does not fit the default 40-production-line ceiling without omitting a required fail-closed gate, and requested a 220-line ceiling split into three seams: (1) round execution (~120 lines: dispatch once, parse branch/run identity, wait on parent status, distinguish refusal rc3/death/timeout/missing-done-commit, emit the round payload), (2) manifest composition (~60: resolve extends+prelude once, preserve child type/harness, reject cycles/unknown base), (3) harvest/config (~40: derive the review payload from committed parent data, register two thin manifests via the prime-owned geometry node). The parent answered the rebrief with cut rather than granting the larger ceiling (verdict=pending, production_lines=0) -- correctly honest: not forcing an unsafe partial implementation. Next round should dispatch against this 3-seam plan directly with an explicit raised ceiling, rather than re-deriving it from scratch.
 <!-- THOUGHT:END -->

@@ -9,6 +9,7 @@ edited_by: belam
 scaffold_hash: 78c4e15f7e38c732
 season: 2
 testable_claim: "rotate.py (~10415): an unreadable or missing veto cell stops the publish, refused by name, instead of proceeding; a committed test."
+thought_session: belam-S2-L5-V
 title: "The authority publish fails closed when the veto cell cannot be read (assigned: director-engine)"
 town: core
 ---
@@ -22,3 +23,5 @@ assigned: director-engine -- PASS 3 residue (belam-S2-L5-III, 09-24; trunk @9fec
 
 ## Agent Notes
 assigned: director-engine (PASS 3 residue, belam-S2-L5-III 09-24)
+
+PASS 5 (09-25, runs mur-p5chunk3of4) DEMOTE, verified: a missing or malformed veto cell still fails open (src/seatsig/veto.py:117-127 turns loader errors into free defaults before rotate.py can see them); the ImportError arm is broader than the absent-subsystem case; the committed tests do not drive the real cell failure modes. REOPENED -- assigned: director-engine (hypothesis:pass5-0925-residue-batch)
