@@ -46,6 +46,7 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 # `post_wire.py` reach it. dispatch.py used to carry its own un-gated copy.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import adapters  # noqa: E402
+from adapters import tmux_hold  # noqa: E402
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import locations  # noqa: E402
 import mem_cap  # noqa: E402 -- the ONE memory cap both launch paths use (SM.112)
@@ -90,6 +91,50 @@ _GRACE_MAX_ATTEMPTS = 3
 _PI_CATALOGUE_RE = re.compile(
     r'Model "[^"]*" not found for provider "[^"]*"\. '
     r'Using custom model id\.', re.I)
+
+
+class LaunchResult:
+    """Adapter-neutral result of starting one round.
+
+    ``pane_id`` is the stable address when the adapter has one; subprocess
+    launches intentionally carry ``None`` because a pid is not a pane.  A
+    result exists only after the process was created, so ``created`` is an
+    explicit success marker rather than an inferred later status.
+    """
+
+    def __init__(self, process, pane_id, created, adapter):
+        self.process = process
+        self.pane_id = pane_id
+        self.created = created
+        self.adapter = adapter
+
+
+def _launch_round(argv: list[str], log_file: Path, cwd: Path, env: dict[str, str],
+                  mem_cap_obj=None, mode: str = "ab", hold=None,
+                  pane_name: str | None = None) -> LaunchResult:
+    """Start a round through a persistent pane or detached subprocess."""
+    if hold is not None:
+        return LaunchResult(**hold.start(
+            argv=mem_cap.wrap_argv(argv, mem_cap_obj), log_file=log_file,
+            cwd=cwd, env=env, pane_name=pane_name))
+    wrapped = mem_cap.wrap_argv(argv, mem_cap_obj)
+    with open(log_file, mode) as logf:
+        process = subprocess.Popen(
+            wrapped,
+            stdout=logf,
+            stderr=subprocess.STDOUT,
+            stdin=subprocess.DEVNULL,
+            start_new_session=True,
+            cwd=str(cwd),
+            env=env,
+        )
+    return LaunchResult(process=process, pane_id=None, created=True,
+                        adapter="subprocess")
+
+
+def _persistent_hold(harness: dict, seat: str | None):
+    """The named-pane adapter for a configured persistent seat, else None."""
+    return tmux_hold if seat and harness.get("persistent") else None
 
 
 def _await_startup(proc, max_s: int = _GRACE_MAX_S,
@@ -2648,22 +2693,18 @@ def main() -> int:
         # SAME lease, agent id, worktree and log.
         _mem_cap = mem_cap.resolve_memory_cap(cfg)
 
+        hold = _persistent_hold(dispatch_harness, seat_val)
+
         def _open_round(mode: str):
-            with open(log_file, mode) as logf:
-                return subprocess.Popen(
-                    mem_cap.wrap_argv(spawn_args, _mem_cap),
-                    stdout=logf,
-                    stderr=subprocess.STDOUT,
-                    stdin=subprocess.DEVNULL,
-                    start_new_session=True,
-                    cwd=str(branch_root),
-                    env=spawn_env,
-                )
+            return _launch_round(
+                spawn_args, log_file, branch_root, spawn_env, _mem_cap, mode,
+                hold=hold, pane_name=seat_val)
 
         _attempt = 1
         _sig = None
         try:
-            proc = _open_round("wb")
+            launch = _open_round("wb")
+            proc = launch.process
         except BaseException:
             # Nothing was started, so nothing holds the slot. Give it back
             # now rather than leaving it to expire with this process, and if
@@ -2720,7 +2761,8 @@ def main() -> int:
             _GRACE_SLEEP(_sleep_s)
             _attempt += 1
             try:
-                proc = _open_round("ab")
+                launch = _open_round("ab")
+                proc = launch.process
             except BaseException:
                 if branch_ref:
                     drop_branch_worktree(root, branch_ref["worktree"])
@@ -2743,6 +2785,9 @@ def main() -> int:
             "strategy": strategy,
             "role": role,
             "pid": proc.pid,
+            "pane_id": launch.pane_id,
+            "launch_adapter": launch.adapter,
+            "launch_created": launch.created,
             "started_at": int(time.time()),
             "status": "running",
             "context_file": ctx_path,
