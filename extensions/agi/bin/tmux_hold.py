@@ -34,8 +34,10 @@ def start(argv, *, env, cwd, log, mode, seat, agent_id, state_dir, pane_id=None)
                                     if c.isalnum() or c in "-_")[:60]
     runner = f"{shlex.quote(sys.executable)} {shlex.quote(__file__)} _run {shlex.quote(str(spec))}"
     try:
+        created_session = False
         if not pane_id:
             _tmux("tmux", "new-session", "-d", "-s", session)
+            created_session = True
             pane_id = _tmux("tmux", "display-message", "-p", "-t", session,
                             "#{pane_id}")
         _tmux("tmux", "send-keys", "-t", pane_id, "-l", runner)
@@ -49,6 +51,12 @@ def start(argv, *, env, cwd, log, mode, seat, agent_id, state_dir, pane_id=None)
             raise OSError("held pane did not publish a pid")
         return HeldProcess(pid, pane_id, marker)
     except (OSError, ValueError, subprocess.CalledProcessError):
+        if created_session:
+            try:
+                _tmux("tmux", "kill-session", "-t", session)
+            except (OSError, subprocess.CalledProcessError):
+                pass
+        spec.unlink(missing_ok=True)
         return None
 def _popen(argv, *, env, cwd, log, mode):
     with open(log, mode) as logf:
@@ -61,7 +69,9 @@ def start_or_popen(*args, **kwargs):
         args[0], env=kwargs["env"], cwd=kwargs["cwd"], log=kwargs["log"],
         mode=kwargs["mode"])
 def _run(spec_path):
-    path = Path(spec_path); spec = json.loads(path.read_text())
+    path = Path(spec_path)
+    spec = json.loads(path.read_text())
+    path.unlink(missing_ok=True)
     with open(spec["log"], spec["mode"]) as logf:
         proc = subprocess.Popen(spec["argv"], cwd=spec["cwd"], env=spec["env"],
             stdin=subprocess.DEVNULL, stdout=logf, stderr=subprocess.STDOUT)

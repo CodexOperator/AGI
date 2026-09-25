@@ -10,6 +10,7 @@ from types import SimpleNamespace
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
+import dispatch  # noqa: E402
 import tmux_hold  # noqa: E402
 
 
@@ -68,6 +69,60 @@ def test_tmux_unavailable_falls_back_to_direct_popen(monkeypatch, tmp_path):
     assert proc.pid == 123
     assert seen["kwargs"]["env"] == {"A": "B"}
     assert seen["kwargs"]["start_new_session"] is True
+
+
+def test_new_session_is_killed_but_supplied_restart_pane_is_not(monkeypatch, tmp_path):
+    created, restarted = [], []
+    failure = subprocess.CalledProcessError(1, ["tmux"])
+
+    def created_run(argv, **kwargs):
+        created.append(argv)
+        if "display-message" in argv:
+            raise failure
+        return SimpleNamespace(stdout="%9" if "new-session" in argv else "")
+
+    def restarted_run(argv, **kwargs):
+        restarted.append(argv)
+        if "send-keys" in argv:
+            raise failure
+        return SimpleNamespace(stdout="")
+
+    state = tmp_path / "state"
+    common = dict(env={"A": "B"}, cwd=tmp_path, log=tmp_path / "out.log",
+                  mode="wb", seat="seat", agent_id="a00-three",
+                  state_dir=state)
+    monkeypatch.setattr(subprocess, "run", created_run)
+    assert tmux_hold.start(["pi"], **common) is None
+    assert ["tmux", "kill-session", "-t",
+            "agi-hold-seat-a00-three"] in created
+    assert not (state / "hold.json").exists()
+
+    monkeypatch.setattr(subprocess, "run", restarted_run)
+    assert tmux_hold.start(["pi"], **common, pane_id="%7") is None
+    assert not any("kill-session" in argv for argv in restarted)
+    assert not (state / "hold.json").exists()
+
+
+def test_run_consumes_spec_even_when_child_start_fails(monkeypatch, tmp_path):
+    spec = tmp_path / "hold.json"
+    spec.write_text(json.dumps({"argv": ["pi"], "env": {}, "cwd": str(tmp_path),
+                                "log": str(tmp_path / "out.log"), "mode": "wb"}))
+    monkeypatch.setattr(subprocess, "Popen",
+                        lambda *a, **k: (_ for _ in ()).throw(OSError("start")))
+    try:
+        tmux_hold._run(str(spec))
+    except OSError:
+        pass
+    assert not spec.exists()
+
+
+def test_fast_rc_zero_startup_skips_grace_wait(monkeypatch):
+    def unexpected_sleep(_seconds):
+        raise AssertionError("rc=0 process must not enter startup grace")
+
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", unexpected_sleep)
+    proc = SimpleNamespace(returncode=0)
+    assert dispatch._startup_alive_or_complete(proc)
 
 
 def test_dispatch_open_round_calls_only_the_named_hold_seam():

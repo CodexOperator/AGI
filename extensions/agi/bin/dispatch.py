@@ -106,6 +106,11 @@ def _await_startup(proc, max_s: int = _GRACE_MAX_S,
     return proc.poll() is None
 
 
+def _startup_alive_or_complete(proc) -> bool:
+    """Accept an already-complete rc=0 process before entering the grace wait."""
+    return proc.returncode == 0 or _await_startup(proc)
+
+
 def _startup_death_is_transient(log_file: Path) -> "str | None":
     """The MATCHED signature when a child that died inside the startup grace
     left ONLY transient bytes, else None: EVERY non-empty `output.log` line
@@ -2683,7 +2688,7 @@ def main() -> int:
             _report_unregistered_scaffold(root, scaffold_info, agent_id)
             return 4
         while True:
-            if _await_startup(proc) or proc.returncode == 0:
+            if _startup_alive_or_complete(proc):
                 break
             _sig = _startup_death_is_transient(log_file)
             if _sig is None:
