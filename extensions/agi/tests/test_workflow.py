@@ -3158,6 +3158,7 @@ def test_pi_empty_handoff_lands_in_the_tracked_row(tmp_path_factory):
     from workflow import run_workflow
 
     good = json.dumps({"target": "k", "decisions": [], "ready_batch": [],
+                       "batch_empty": True,
                        "kept": "none", "dropped": "none", "notes": "n"})
 
     def fake_run(cmd, **kw):
