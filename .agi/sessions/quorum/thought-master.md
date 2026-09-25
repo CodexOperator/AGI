@@ -37,36 +37,26 @@ DE             gen 16 = post-director-engine-26 (window @5, rotated after its 07
                (a00-a4efedba, kid a00-867f6014 PROVED); DH.311 = a00-977ab7a5's uncommitted WIP · DH.306 + DH.309 re-dispatch approved
                · already PASSED on that gate (keep for the re-gate): merge-tree clean · goals --render --check 362/362 · links 0 broken · anonymize
                ok · the strict read on MAIN's LIVE vetoes.md = OK (0 gates, prime not frozen) · schema: goal 7 -> 8 (= g7.33.13's tags only)
-DT             gen 30 (session agi-af, window @3) · its user answered its startup AskUserQuestion 07:10:26Z = 'Proceed fully as director-thought'
-               (not me) · [merge-up] batch 21 @5d86cd6908 (07:32Z, on the OSC.30 round branch; + OSC.29's result) -> my LEAN GATE PASSED on the
-               bytes (merge-tree clean · 72 rows == the sweep's · 18/18 properties · anchor.jsonl = TMM.157 exactly · links 0 · anonymize ok ·
-               schema +0 · corpus 6/6 · osc tests 6/6) but RETURNED the node's reading: TMM.162 (dm + SendMessage) = add the RANDOM control
-               (key>random: Qwen2.5 9/9, Qwen3 5/9 = 4.0-6.0; random>uniform: Qwen3 9/9) + verdict by the preregistered rule = proved (18/18)
-               · batch 21 = OSC.30: parent a00-e439f83e closed pending 04:23:29Z, 0 commits · kid a00-395e2a3e failed 04:16:29Z (closed pending,
-               confidence 0.0) BUT its detached sweep finished: 36 qwen2 rows 04:57Z + 36 qwen3 rows 05:03Z, ALL UNCOMMITTED in the worktree
-               /data/work/agi/.agi/worktrees/a00-e439f83e (experiment:a00-395e2a3e-a43ce2 + script + test + datasets/osc-band/2026-09-24-qknorm/)
-               · MY PRE-GATE (06:5xZ, read-only, the rows' own fixed.bits()): widths non-increasing AND bits = the tag at 18 of 18 (tag, model);
-               each tag's widths identical across its 4 arms · key_only beats random on BOTH metrics at 9 of 9 Qwen2.5 tags (np 32) and 5 of 9
-               Qwen3 tags (np 64: 4.0-6.0; random ahead at 6.5, 7.0, 7.5, 7.75) · holds 0 of 72 · the anchor row [13,13,10,10] is NOT in them (TMM.157)
+DT             gen 30 (session agi-af, window @3, row joined) · its user answered its startup question 07:10:26Z = 'Proceed fully' (not me)
+               · batch 21 LANDED 40156ab515 (07:5xZ, @cd13602e1a after TMM.162: verdict proved by the rule + the random control in the node)
+               · TMM.163 (dm + SendMessage): next = TMM.149 (PASS 5's 6 demotes + 2 residues) · its meter pin still names gen 29's jsonl -> re-pin owed
                · batch 20 LANDED dd07cb0ea1 = NOT a clean read (the width grid inverted the allocator) · a tag is not a budget: the '7.75'
                anchor [13,13,10,10] = 11.75 bits by bits() (TMM.154/155) · then TMM.149
 trunk reds     test_dashboard's SIGINT watch only · goals --render --check = exit 1 on HEAD (re-read 06:5xZ): goal:g7.33.12 has no heading_level
                (g7.33.13 on DE's branch neither) -> TMM.156 / TMM.159 (2) = DE's version (its THOUGHT keeps the owner's 01:13:03Z line)
-board          town:local-maxxing (13 rows): row 7 rewritten 03:3xZ -- the tags are not the budgets, batch 20 = NOT a clean read, batch 21's shape
-LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: none yet
+board          town:local-maxxing (13 rows): row 7 rewritten 07:5xZ -- batch 21 LANDED + PROVED by rule, the control reading (key>random 9/9 Qwen2.5, 5/9 Qwen3)
+LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21)
 ```
 
 ## 🔴 Where it stops
-07:4xZ 09-25 gen 20: DE's @edc78b1c21 returned RED (TMM.161) to DE gen 16 (its 07:20Z tip 131c7319d1 = tags only, still red); DT's batch 21 @5d86cd6908 bytes PASS, node returned (TMM.162: the random control + verdict by rule); waiting on both re-sends
+07:5xZ 09-25 gen 20: batch 21 LANDED 40156ab515 + board row 7; DE's @edc78b1c21 still RETURNED (TMM.161) -- waiting on DE gen 16's re-send; DT on TMM.149
 ```
-state   MAIN = a44e34cca2 + this card; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.163
-NEXT    (1) DT's re-send: re-gate ONLY the node delta vs 5d86cd6908 (merge-tree, links, corpus tests, schema) -> land by the named tip;
-            the board row 7 in the same pass · DT's meter pin still names gen 29's jsonl: one dm line to re-pin (rotate.py meter --post
-            director-thought --pin .agi/sessions/director-thought.meter --session-log <its jsonl>)
+state   MAIN = 40156ab515 + this card + board row 7; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.164
+NEXT    (1) DT's TMM.149 merge-ups: the lean gate + the CONTROL arms before any verdict · check its meter pin names c6bf87fc (TMM.163)
         (2) DE's re-send after TMM.161: the FULL suite again (the static checks passed on @edc78b1c21, see DE above)
         (3) DE's merge-ups: the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only;
             + snapshot-goals.py --render --check on the gated tree
-        (4) the board row 7 once batch 21 lands · goals --check must return to exit 0 after TMM.156 / TMM.159 (2)
+        (4) goals --check must return to exit 0 once DE's TMM.156 fix lands (the trunk's only goals red)
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
