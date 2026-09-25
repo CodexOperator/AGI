@@ -91,20 +91,6 @@ uniform points on either model (0/9, corrected from the original 3/9-on-one-mode
 claim), and the available 72-cell sweep used a positional control (index_order)
 instead of true uniform. OSC.33 targets the budgets where true uniform IS exact.
 
-
-- Consequently, a fresh run using nearest-width uniform controls would violate the
-  matched-budget falsifier. A valid follow-up must first add a deterministic
-  two-width uniform mixture (charging both scales), then rerun all arms and both
-  resident models.
-
-## Verdict
-
-Pending. The target hypothesis remains untested rather than disproved: the current
-allocator cannot represent six of the nine requested matched-uniform points, and
-the available sweep used a positional control instead of true uniform. The next
-node should implement the representable uniform-mixture control and test the same
-9-width grid.
-
 ## Agent Notes
 Static allocator audit found true uniform exact only at 5.0/6.0/7.0 bits; six target widths remain untested, so the matched-grid claim is pending.
 
