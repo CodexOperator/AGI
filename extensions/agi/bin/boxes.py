@@ -30,9 +30,26 @@ _ENGINE_BOX_SCHEMA = (Path(__file__).resolve().parents[3] / ".agi" /
 _STRAY_TOKEN = re.compile(r"(?<!\$)\{[A-Za-z_][A-Za-z0-9_]*\}")
 
 
+def graph_root(root: Path) -> Path:
+    """`root` itself when it IS a graph, else the nearest enclosing graph.
+
+    Every other reader in the tree resolves its root with locations.py; this
+    one did not, so a REPO root read an EMPTY cell set silently -- the exact
+    render `resolve_placeholders` refuses to produce. `root` is returned
+    unchanged when it already holds a config, and when nothing is found, so
+    an existing caller sees no change.
+    """
+    start = Path(root).resolve()
+    if (start / "config.json").is_file():
+        return start
+    import locations
+    found = locations.find_project_root(start)
+    return Path(found).resolve() if found else start
+
+
 def box_schema_path(root: Path) -> Path:
     """The one declaration: context/schemas/[box].md under the graph root."""
-    return Path(root) / "context" / "schemas" / "[box].md"
+    return graph_root(root) / "context" / "schemas" / "[box].md"
 
 
 def _schema_at(p: Path) -> dict:
@@ -63,7 +80,7 @@ def require_box_cells(root: Path) -> tuple[str, ...]:
 
 def _box(root: Path) -> dict:
     try:
-        data = json.loads((Path(root) / "config.json").read_text(encoding="utf-8"))
+        data = json.loads((graph_root(root) / "config.json").read_text(encoding="utf-8"))
         return data.get("box") or {}
     except Exception:  # noqa: BLE001 -- absent/unreadable config: no cells
         return {}
