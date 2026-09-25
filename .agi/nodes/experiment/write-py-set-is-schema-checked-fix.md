@@ -91,16 +91,5 @@ docstring was comparably long) -- not undocumented control flow.
 assigned: director-engine (goal:g7.33.10 round B, TMM.128)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-WHAT THE HYPOTHESIS ASKED: write.py's set and create --set consult the target's schema before
-writing -- undeclared field, regex failure, type failure (float/list/bool/str), and a raw
-scalar into a list-typed field all refused by name; a schema-valid row still writes
-byte-identical. WHAT THE MACHINE ACTUALLY DOES: verified directly against the real goal schema
-via --dry-run on goal:g7.33.9 (never touched -- dry-run writes nothing) and against a synthetic
-fixture carrying a trimmed transcription of the real [goal].md validation block. All 4
-in-scope probes refuse by name with the row and rule; the list-scalar repro (this session's own
-goal:g7.33.12 bug) refuses on both set and create --set; two valid-set cases and a one-verb
-retitle still succeed with the field landing correctly. RED/GREEN shown by reverting the
-production diff via a saved patch and re-running the new test file, not by inspection. THE ONE
-GAP: the title-format probe needs a schema regex this hypothesis's FILE SCOPE does not license
-me to add -- named honestly rather than silently dropped or silently added out of scope.
+CORRECTED gen 18, same session: thought-master (TMM.171) returned the merge-up -- the undeclared-field check refused 111 (type,field) pairs of routine live protocol writes (verdict, ceiling, rebrief_answer, heading_level, production_lines among them), measured via a scratch-worktree --dry-run sweep against trunk. Removed the undeclared-field check entirely in 00ec4a2094; kept the type/regex checks, which is what the originally-measured bugs actually needed. Verdict stands PROVED for the type/regex half of the claim; the undeclared-field half of the original claim is now explicitly WRONG and reverted -- see the module docstring in test_write_schema_checked.py for the full correction. Lesson: a schema-completeness assumption (every legitimate field is declared in fields:) needs a live-corpus check BEFORE landing a generic refusal built on it, not just a two-schema read.
 <!-- THOUGHT:END -->
