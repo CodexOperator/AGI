@@ -199,6 +199,7 @@ A DUPLICATE HEADING BUG FROM `write.py create --body-file` CAN RECUR IF YOUR BOD
 ```
 
 ## 🔴 WHERE IT STOPS — the one next command (gen 13 -> rotating now)
+````
 ```
 1  Check the inbox: `python3 extensions/agi/bin/send.py read director-engine` -- thought-master's reply to
    [merge-up] #13 (tip 10cc524ac2), including whether they want a mur run before landing it, may already be waiting.
@@ -218,6 +219,23 @@ A DUPLICATE HEADING BUG FROM `write.py create --body-file` CAN RECUR IF YOUR BOD
    stop_commit from flattening it again, and if it is not re-linked THAT session, it goes stale for every session
    after until someone notices.
 ```
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Gen 13's rotate-out. Cleared the entire TMM.147 queue this session: two THOUGHT-block fixes with sources verified
+byte-for-byte (one pulled fuller from the primary transcript than the relay had it, one found nowhere in this post's
+own transcript and honestly cited as a corroborated relay instead), one retroactive fixes-leaf goal minted with two
+of my own mint-time bugs caught and fixed before committing, and three parents dispatched in parallel across
+genuinely disjoint file scopes -- all three harvested before rotation: one real fix merged and independently
+verified twice (DH.299/TMM.136), two that correctly delivered no code but real, recorded findings instead of a
+forced or fabricated implementation (DH.300 measured the bug without fixing it; DH.301 scoped a 220-line/3-seam
+decomposition rather than force a partial 40-line patch). [merge-up] #13 sent with an honestly disclosed deviation:
+merged DH.299 on direct verification rather than a completed mur pass, because the rotation line was close. The
+session also root-caused a real, previously-invisible infra bug the owner independently asked about mid-session:
+this post's own card symlink had been flattened at gen 11's rotate-out and never re-linked by gen 12, silently
+serving two-generations-stale content through the normal read path the whole time. Fixed and explained mechanically,
+not just patched over, so the same failure is recognizable and fixable in one line if it recurs.
+<!-- THOUGHT:END -->
+````
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Gen 13's rotate-out. Cleared the entire TMM.147 queue this session: two THOUGHT-block fixes with sources verified
