@@ -1,0 +1,140 @@
+{
+  "rotation": "rotate-self",
+  "seat": "director-thought",
+  "recorded_at": "2026-09-25T03:00:28.010874Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "director-thought",
+      "windows": [
+        "ops",
+        "agi-98",
+        "belam-S2-L5-I",
+        "director-thought.prev",
+        "belam-S2-L5-II",
+        "belam-S2-L5-V",
+        "belam-S2-L5-III",
+        "director-thought",
+        "thought-master.prev",
+        "belam-S2-L5-IV",
+        "stream-master",
+        "director-engine",
+        "thought-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/director-thought.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 1862107,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "director-thought.prev",
+      "windows": [
+        "ops",
+        "agi-98",
+        "belam-S2-L5-I",
+        "director-thought.prev",
+        "belam-S2-L5-II",
+        "belam-S2-L5-V",
+        "belam-S2-L5-III",
+        "director-thought",
+        "thought-master.prev",
+        "belam-S2-L5-IV",
+        "stream-master",
+        "director-engine",
+        "thought-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -55.59
+  },
+  "seated_at": "2026-09-25T03:00:28.010874Z",
+  "window": "director-thought",
+  "session_id": "18e986a8-2c6d-4d55-a9b7-c5f601f10c0b",
+  "pid": 3469223,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "director-thought.prev",
+      "id": "@50"
+    },
+    "successor_window": {
+      "name": "director-thought",
+      "id": "@55"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@55",
+      "pid": 3469223,
+      "session_id": "18e986a8-2c6d-4d55-a9b7-c5f601f10c0b",
+      "transcript": "/home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-thought/18e986a8-2c6d-4d55-a9b7-c5f601f10c0b.jsonl",
+      "name": "post-director-thought-21",
+      "path": "/home/belam/.claude/sessions/3469223.json",
+      "note": "joined by @55 in registry file 3469223.json"
+    },
+    "successor_row": "config:seats row 'director-thought': session_ref= session_name=post-director-thought-21 session_label=director-thought session_id=18e986a8-2c6d-4d55-a9b7-c5f601f10c0b pid=3469223 generation=29 window='@55' source=registry pubkey=e30cda3dd6a49ff9... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha d775881b71, retried 0) -- own-row only: director-thought spawn row: gen 29, session_id 18e986a8-2c6d-4d55-a9b7-c5f601f10c0b, window @55, pid 3469223\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- e7cbe9a1c -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/director-thought.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/director-thought.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/director-thought.ack.18e986a8.json",
+    "own_authority_released": "generation 28 of seat 'director-thought' retired; successor generation 29 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch local-maxxing/season2/posts/director-thought/main",
+    "livestream_repoint": {
+      "session": "view-director-thought",
+      "target": "@55",
+      "selected_rc": 0,
+      "command": [
+        "tmux",
+        "select-window",
+        "-t",
+        "view-director-thought:@55"
+      ],
+      "active_windows": [
+        "@0 0",
+        "@2 0",
+        "@7 0",
+        "@50 0",
+        "@13 0",
+        "@51 0",
+        "@28 0",
+        "@55 1",
+        "@49 0",
+        "@44 0",
+        "@54 0",
+        "@53 0",
+        "@56 0"
+      ]
+    },
+    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/director-thought.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "be455cd50f17146a9edf4c298f8dd779277ac616e28bdbd8323cd67c8c98ba45",
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      997362,
+      997365,
+      997385
+    ],
+    "reap_source": "derived from own window @id @50 pane 997362: chain [997362, 997365, 997385] (deepest-first; authority row pid 997385)"
+  },
+  "after_join": {
+    "claimed_at": "2026-09-25T03:01:13.687846+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-25T03:00:28.010874Z"
+  }
+}
