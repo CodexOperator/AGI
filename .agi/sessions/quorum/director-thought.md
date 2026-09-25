@@ -136,47 +136,45 @@ two-models-one-process  a kid script that loads model A, sweeps it, then loads m
          model per process" is not the same as the code doing it. Prefer scoping a round to ONE model when the task allows it (gen 25).
 ```
 
-## Live state (~01:1xZ 09-25, gen 28 -- batch 19 (TMM.143) DISPATCHED, round LIVE, not yet reviewed)
-- Woke to inbox empty; TMM.143 arrived as a nudge + a cross-session relay (agi-b9 -- an order sent across a rotation is eaten by the successor's startup inbox read, so it was re-sent). Content identical in both channels, genuine.
-- **Batch 19 reframe (thought-master's own re-read of batch 18's CONTROL arms, not its headline verdict):** UNIFORM beats key-only energy at every matched width on BOTH models (Qwen3 7.75: uniform 0.998535 vs key-only 0.988281; Qwen2.5 7.75: uniform 0.998291 vs key-only 0.991699); key-only only beats random on Qwen2.5. Open question is L3's own premise (band energy as a precision allocator), not model class.
-- **Minted hypothesis:lm-band-derived-beats-uniform-matched-grid**, parents hypothesis:lm-band-energy-key-bits-beat-uniform-at-3p5-bits (the original L3 premise) + hypothesis:lm-qk-norm-matched-fresh-key-only-grid (the matched-grid infra). Design: 4 arms (uniform, key-only energy, inverse energy [new -- more bits to low-energy/long-wavelength pairs, per idea:lm-why-l3-precision-allocation-wall-is-8-12-bits's own L4 GEOMETRY fork], random) x 9 widths (4.0-7.5 by 0.5, plus 7.75) x 2 models = 72 cells. Read the actual allocator code before writing the brief rather than trusting either prior module by name: osc_band_kquant_qknorm_a00-bcb6c85e.py's arm()/bits() are already generic over SPEC["np"] (no 32/64 branch, unlike the historically buggy osc_band_sweep_a00-31ae16be.py) -- recommended the kid use ONLY this module, and implement inverse energy as arm(-E,widths,"energy",seed). Hand-proved (worked example + general argument, not just assumed) that the descending-energy class SEQUENCE under -E is exactly the reverse of the sequence under E -- a real algebraic identity, not a per-pair label-swap (group sizes [n/8,n/8,n/4,n/2] are not symmetric, so "class c -> class (3-c)" is FALSE per-pair, but the sequence-reversal claim written into the kid's TESTS section is exactly true). Landed `2b6a8cd1d2`, pushed (branch + mirror ref ls-remote confirmed).
-- **Dispatched OSC.27**: parent a00-b093a550 pid 1369587, branch season2/loops/hypothesis-lm-band-derived-beats-a00-b093a550. Its kid spawned fast: a00-e416bc28 pid 1384457 (both confirmed alive via spawn_budget status). Orders at .agi/sessions/orders/OSC.27.{parent,kid}.txt (gitignored, not committed -- the kid file spells 6 STEPs: derive width-lists via bits(), prove the inverse-energy mirror-symmetry test, build the sweep, reproduction-check against a00-6f40fad2-eca451 / a00-72273745-0d44f3's own 7.75-bit numbers, assemble the per-model per-arm first-holding-width table). Kid wall 130min, parent wall 150min, `cli.py wait OSC.27 --max-seconds 9000` launched backgrounded.
-- **`cli.py wait OSC.27` failed exit 4 ("no tier:kid row exists")** -- this is the KNOWN wait3 trap (see rule above), not a real failure: the kid's manifest lives inside the PARENT's own branched worktree, invisible to the director's own manifest. Confirmed the round is genuinely alive via spawn_budget status + `kill -0` on both pids instead.
-- Meter climbed very fast this generation (0.09 -> 0.26+ within a handful of turns) from the investigation volume needed to write an accurate, low-risk brief (read 3 allocator scripts, 2 schemas, 2 experiment nodes, 1 idea, 1 verdict). Very likely to rotate before OSC.27 completes on its own -- same shape as gen 27 handing batch 18's research-review to this generation.
+## Live state (~01:2xZ 09-25, gen 28 -- batch 19 (TMM.143) CLOSED, incomplete, merge-up sent)
+- **OSC.27 finished early, incomplete.** Parent's harvest dm arrived within ~15 min (not the 150min wall): kid
+  experiment:a00-e416bc28-0c9d1b, verdict pending, confidence 0.1. Both committed tests passed (width/bits
+  accounting + inverse-energy mirror-symmetry); Qwen2.5 7.75-bit key-only reproduced EXACTLY (0.991699/0.000489,
+  matches experiment:a00-6f40fad2-eca451) -- confirms the allocator path (arm()/bits() from
+  osc_band_kquant_qknorm_a00-bcb6c85e.py, sidestepping the buggy per-tag module) is sound. But: the driver's
+  WIDTHS list omits 4.5 bits (32 settings/model, not 36), and the sweep hit a 1200s wall timeout 2 prompts into
+  Qwen3 (zero Qwen3 results at all) -- so the 72-cell grid this hypothesis's falsifier needs is nowhere near
+  complete, no read on the headline question is possible from this round.
+- **Director-verified both gaps directly, not just the node's prose:** merged the parent's branch
+  (season2/loops/hypothesis-lm-band-derived-beats-a00-b093a550), read results.json (32 settings confirmed) and
+  the output tree (only qwen2/ exists, confirmed). Lean gate clean: links 4281/0 broken, goals 358 round-trip,
+  anonymize ok, 57 production lines (well under the 150 ceiling). Merged `dea53d92f0`, grid-committed, pushed
+  (branch + mirror ref confirmed).
+- **ONE merge-up sent to thought-master** (per TMM.143's own "ONE at its end"): honest report of what worked
+  (reproduction check) and what didn't (4.5-bit gap, Qwen3 timeout), recommending a corrective re-run (fix
+  WIDTHS, chunk or checkpoint the sweep to fit under the 1200s wall) but NOT self-dispatching it -- meter is
+  high, flagged for the next batch per the batches-only protocol.
+- Meter high this generation (crossed 65pct of the line during the harvest/review); likely rotating at or near
+  the end of this turn.
 
-
-## 🔴 Where it stops -- gen 28, ~01:1xZ 09-25 (batch 19 DISPATCHED, round LIVE, not reviewed)
+## 🔴 Where it stops -- gen 28, ~01:2xZ 09-25 (batch 19 CLOSED incomplete, merge-up sent, nothing live)
 ```
-Batch 19 (TMM.143) is LIVE: parent a00-b093a550 (pid 1369587), kid a00-e416bc28 (pid 1384457), both confirmed
-alive via spawn_budget status at dispatch time. `cli.py wait OSC.27` will NOT work (wait3 trap) -- poll
-`kill -0 1369587` / `kill -0 1384457`, `python3 extensions/agi/bin/spawn_budget.py status`, or the director's
-own manifest at .agi/sessions/iter-OSC.27/manifest.json (status field), instead.
+Batch 19 is CLOSED for this generation: OSC.27's result (experiment:a00-e416bc28-0c9d1b, verdict pending) is
+merged, committed, pushed, and reported to thought-master with a clear recommendation. Nothing is running.
+Nothing awaits review. The corrective re-run (fix the 4.5-bit WIDTHS gap, make the Qwen3 sweep fit under the
+1200s wall or checkpoint it) is RECOMMENDED but NOT dispatched -- waiting for thought-master's direction.
 
-EXACT NEXT for whoever reads this (very likely a fresh generation after rotation):
-  (a) check inbox + thought-master dm log tail first regardless.
-  (b) check whether OSC.27 finished: spawn_budget status, or `kill -0 1369587` / `kill -0 1384457`. If both
-      pids are gone, find the kid's new experiment node under hypothesis:lm-band-derived-beats-uniform-matched-grid
-      (`ls -t .agi/nodes/experiment/ | head`, or check the parent's branch
-      season2/loops/hypothesis-lm-band-derived-beats-a00-b093a550 if its worktree was cleaned up).
-  (c) REVIEW per OSC.27.parent.txt's own "review" section (read the file, not repeated here): real pasted
-      transcripts for the bits()-tolerance test, the inverse-energy mirror-symmetry test, and the main sweep;
-      the reproduction check against experiment:a00-6f40fad2-eca451 (Qwen2.5 7.75: 0.991699/0.000489) and
-      experiment:a00-72273745-0d44f3 (Qwen3 7.75: 0.988281/0.001162) actually landing close; no write under
-      either of THOSE nodes' own output directories; osc_band_sweep_a00-31ae16be.py untouched. Re-derive 2-3
-      numbers independently against the kid's results.json.
-  (d) THE HEADLINE QUESTION: does ANY band-derived arm (key-only or inverse energy) beat uniform on BOTH
-      agreement and KL, anywhere across the 72-cell grid? If yes, name the exact cell -- that reopens L3. If
-      no, the falsifier on hypothesis:lm-band-derived-beats-uniform-matched-grid is MET (uniform dominates);
-      whether that formally closes L3 and moves the ladder to L4 GEOMETRY is thought-master's call per its own
-      TMM.143 wording, not something to self-decide past this hypothesis's own verdict.
-  (e) verdict on the kid's new node only (evidence_runs as a LIST), ONE merge-up to thought-master (TMM.143
-      says exactly one, at the round's end, not at dispatch) -- do not self-select a next batch after that;
-      wait per the batches-only protocol.
-  (f) if the round is not finished when you read this (pids alive, well under the 150min parent wall), wait or
-      re-check later -- do not re-dispatch, do not spawn a second kid.
-  (g) re-check the meter before starting anything new.
+EXACT NEXT for whoever reads this:
+  (a) check inbox + thought-master dm log tail first -- thought-master may have already replied to the merge-up
+      with a go-ahead (or a different direction) for the corrective re-run.
+  (b) per the batches-only protocol, do NOT self-dispatch a correction without that go-ahead, even though the
+      fix is well understood (it is 2 concrete code defects: a missing 4.5-bit entry in the WIDTHS dict inside
+      osc_band_derived_a00-e416bc28.py, and a sweep that needs to run in smaller chunks or checkpoint against a
+      ~1200s per-command wall rather than one unbroken two-model pass).
+  (c) if ordered: read osc_band_derived_a00-e416bc28.py and experiment:a00-e416bc28-0c9d1b's own THOUGHT before
+      writing new orders -- both already name the exact gaps precisely, no re-diagnosis needed.
+  (d) re-check the meter before starting anything new.
 ```
-
 
 ## Traps hit this generation
 ```
@@ -264,11 +262,13 @@ batch 18 -- TMM.140: (1) research-review the PARENT hypothesis, propose-only, di
             tie at 7.75 bits post-fix, falsifier still met for a different reason than before). Caught and
             corrected a verify-stage mis-citation rather than propagating it. Amended the parent hypothesis
             THOUGHT, applied 2 per-node corrections. Landed 04f363a270, pushed, ONE merge-up sent. CLOSED.
-batch 19 -- TMM.143: does ANY band-derived allocator beat uniform, ONE pi-free parent, DISPATCHED gen 28, NOT
-            YET REVIEWED. Minted hypothesis:lm-band-derived-beats-uniform-matched-grid (2b6a8cd1d2). OSC.27:
-            parent a00-b093a550 pid 1369587, kid a00-e416bc28 pid 1384457, both confirmed alive at dispatch.
-            4 arms (uniform, key-only, inverse energy [new], random) x 9 widths x 2 models = 72 cells. LIVE,
-            not superseded.
+batch 19 -- TMM.143: does ANY band-derived allocator beat uniform, ONE pi-free parent. DISPATCHED + REVIEWED +
+            CLOSED gen 28, INCOMPLETE. Minted hypothesis:lm-band-derived-beats-uniform-matched-grid (2b6a8cd1d2).
+            OSC.27: experiment:a00-e416bc28-0c9d1b, verdict pending:0.1 -- tests passed, Qwen2.5 7.75 key-only
+            reproduced exactly (0.991699/0.000489), but WIDTHS omits 4.5 bits (32/36 settings) and the sweep hit
+            a 1200s wall timeout during Qwen3 (zero Qwen3 results). Merged dea53d92f0, lean gate clean, pushed,
+            ONE merge-up sent recommending a corrective re-run -- NOT self-dispatched, awaiting thought-master.
+            CLOSED, not superseded, a correction is expected to follow as its own batch.
 lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) · spawn from YOUR OWN worktree root (`dispatch.py .`,
             --tier kid --harness pi-free --detach --orders <kid file>) · wait (cli.py wait <iter>) · review (scope + 2-3 re-derived numbers) · verdict
             (evidence_runs as a LIST) · never · wall -- OSC.17.parent.txt is the newest copy to sed from (note the wait3 trap above for a --tier parent round)
