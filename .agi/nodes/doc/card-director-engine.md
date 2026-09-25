@@ -30,7 +30,29 @@ this session) each carry their own `who: director-engine, batched by thought-mas
 ruling (`g7.33.1`, `g7.33.7`, `g7.33.8` confirmed HELD by grep of the dm log) -- check a leaf's own `who` row before
 touching it, never assume the whole g7.33 subtree by default either way.
 
-## LIVE STATE + STOPS (gen 13, mid-session -- three parents in flight, none harvested yet)
+## LIVE STATE + STOPS (gen 13, rotating -- all three DH.299-301 parents harvested this session)
+```
+HARVEST UPDATE (after the three dispatches below finished, same session): all three reported harvest before rotation.
+- DH.299 (TMM.136): MERGED, tip 10cc524ac2 (merge commit; brief.py + test_brief.py). Verified independently by the
+  director on BOTH the loop branch and the merged HEAD: 201/201 in the brief test neighbourhood each time. [merge-up]
+  #13 sent to thought-master, with a disclosed deviation: merged on direct verification (diff + two independent test
+  runs), not a completed mur pass, because the rotation line was close (73% when the harvest landed) and a malformed
+  mur args file risked eating the remaining budget for nothing. thought-master's own landing gate is the independent
+  check this round; a mur can still run next generation if thought-master wants one before it lands on the trunk.
+- DH.300 (round B, g7.33.10): NOT merged -- correctly nothing to merge. The parent's own review demoted its kid to
+  inconclusive_lean_disproved: it measured the bug (5/5 schema-violation probes still admitted) but did not
+  implement the fix (production_lines=0). Hypothesis stays open; needs a fresh round next generation, ideally with
+  an orders file that states more forcefully that a measurement-only kid is not a finished round for this claim.
+- DH.301 (g1.14.1's round): NOT merged -- nothing to merge (no production diff). The kid re-verified the
+  hypothesis's Measured line citations (they had drifted: now workflow.py _load_manifest:791, _expand_stages:802,
+  _run_stage_pi:1779, _failed_dependency:2111, run_workflow:2149, pi loop 2280-2373) and correctly refused to force
+  a partial 40-line implementation, instead requesting a 220-line/3-seam decomposition (round execution ~120 lines,
+  manifest composition ~60, harvest/config ~40). The parent's rebrief answer was "cut" rather than granting the
+  larger ceiling. Recorded the full plan + corrected citations in the hypothesis's own THOUGHT (committed
+  separately, 10cc524ac2's parent commit) so the next round can dispatch directly against it with a raised ceiling,
+  never re-deriving the scoping work from scratch.
+```
+
 ```
 STARTUP NOTE, ROOT-CAUSED (not just worked around): this session's first Read of .agi/sessions/quorum/
 director-engine.md returned STALE gen-11 content (199 lines, DH.298-era) even though `git log`/`git status` on
@@ -176,35 +198,39 @@ A DUPLICATE HEADING BUG FROM `write.py create --body-file` CAN RECUR IF YOUR BOD
   --body-file with a heading, full stop.
 ```
 
-## 🔴 WHERE IT STOPS — the one next command (gen 13, mid-session, not rotating yet -- meter well under the line)
+## 🔴 WHERE IT STOPS — the one next command (gen 13 -> rotating now)
 ```
-1  Check the inbox: `python3 extensions/agi/bin/send.py read director-engine` -- a reply from thought-master (agi-b9)
-   to this session's status message, or a new TMM order, may already be waiting.
-2  `python3 extensions/agi/bin/spawn_budget.py status` -- poll DH.299/300/301 (agents a00-5497ee99, a00-d4088ba1,
-   a00-30d529ae) for liveness. Do not intervene while they are live and unreported; each parent supervises and
-   reviews its own kids per its brief. Harvest whichever finishes first using the standard sequence (BUILD LOOP §3
-   in doc:unified-director-brief, harvest-in-place on the loop branch, never merge unreviewed).
-3  Once at least one of the three is harvested and merged onto this post branch: ONE mur (agi-merge-up-review,
-   pi-free, detached) per landed batch, then ONE [merge-up] to thought-master naming the pushed SHA -- do not batch
-   all three into one merge-up if they land at different times; TMM.147 asked for "ONE [merge-up] per completed
-   item".
-4  If the inbox or a parent surfaces something that needs a judgement call, decide it, record the reasoning in the
-   affected node's THOUGHT (or here if there is no single node), and keep going -- this run has delegated authority
-   for the rest of its iteration budget; bank only what is genuinely the owner's alone to decide.
-5  Card write LAST, right before rotating. `python3 extensions/agi/bin/rotate.py rotate` (bare) the moment `[meter]`
-   reads f >= 0.47 -- not there yet as of this write (last read: f=0.0598).
+1  Check the inbox: `python3 extensions/agi/bin/send.py read director-engine` -- thought-master's reply to
+   [merge-up] #13 (tip 10cc524ac2), including whether they want a mur run before landing it, may already be waiting.
+2  Dispatch a fresh round for DH.300's target, hypothesis:write-py-set-is-schema-checked (round B, g7.33.10) -- the
+   hypothesis itself is unchanged and still accurate; write a sharper orders file this time stating explicitly that
+   a measurement-only kid (production_lines=0) is not a finished round for this claim, since that is exactly what
+   happened once already.
+3  Dispatch a fresh round for hypothesis:a-round-stage-spawns-the-parent-and-chains-its-review-in-one-workflow
+   (goal:g1.14.1) directly against the 3-seam plan now recorded in its THOUGHT (round execution ~120 lines, manifest
+   composition ~60, harvest/config ~40) with an explicit raised ceiling (~220 lines) -- do not re-derive the scoping,
+   it is already done.
+4  If the inbox surfaces something needing a judgement call, decide it, record the reasoning in the affected node's
+   THOUGHT (or here if there is no single node), and keep going -- delegated authority carries across the rotation
+   boundary; bank only what is genuinely the owner's alone to decide.
+5  Re-link check: `ls -la .agi/sessions/quorum/director-engine.md` on your FIRST substantive action -- it must show
+   an `l...` symlink, not a plain file. This generation fixed it once; nothing prevents a future rotate's
+   stop_commit from flattening it again, and if it is not re-linked THAT session, it goes stale for every session
+   after until someone notices.
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Gen 13, mid-session write (not a rotate-out). Cleared the entire TMM.147 queue this session: two THOUGHT-block fixes
-with sources verified byte-for-byte (one pulled fuller from the primary transcript than the relay had it, one found
-nowhere in this post's own transcript and honestly cited as a corroborated relay instead), one retroactive fixes-leaf
-goal minted with two of my own mint-time bugs caught and fixed before committing, and three parents dispatched in
-parallel across genuinely disjoint file scopes (TMM.136's --orders ambiguity, round B's schema-checked write.py, and
-goal:g1.14.1's round-stage workflow chaining) -- none harvested yet, all named here with their exact agent ids,
-pids and branches so a cold reader (or this same session after a context compaction) can pick them up without
-re-deriving anything. The session opened with a confusing false alarm (a stale-looking card read that turned out to
-be a transient glitch, not real data loss) and the investigation spent clearing that up ended up directly informing
-which fixes were still genuinely open -- not wasted, but recorded as a trap so a future session checks git log
-before building an incident narrative on a suspicious read.
+Gen 13's rotate-out. Cleared the entire TMM.147 queue this session: two THOUGHT-block fixes with sources verified
+byte-for-byte (one pulled fuller from the primary transcript than the relay had it, one found nowhere in this post's
+own transcript and honestly cited as a corroborated relay instead), one retroactive fixes-leaf goal minted with two
+of my own mint-time bugs caught and fixed before committing, and three parents dispatched in parallel across
+genuinely disjoint file scopes -- all three harvested before rotation: one real fix merged and independently
+verified twice (DH.299/TMM.136), two that correctly delivered no code but real, recorded findings instead of a
+forced or fabricated implementation (DH.300 measured the bug without fixing it; DH.301 scoped a 220-line/3-seam
+decomposition rather than force a partial 40-line patch). [merge-up] #13 sent with an honestly disclosed deviation:
+merged DH.299 on direct verification rather than a completed mur pass, because the rotation line was close. The
+session also root-caused a real, previously-invisible infra bug the owner independently asked about mid-session:
+this post's own card symlink had been flattened at gen 11's rotate-out and never re-linked by gen 12, silently
+serving two-generations-stale content through the normal read path the whole time. Fixed and explained mechanically,
+not just patched over, so the same failure is recognizable and fixable in one line if it recurs.
 <!-- THOUGHT:END -->
