@@ -14,7 +14,7 @@ committed test") made satisfiable:
 |---|---|
 | T1 | no live hit outside `EXEMPT`, each entry of which carries a one-line reason |
 | T2 | every `EXEMPT` entry is still live in its file — deleting a warning deletes its exemption |
-| T3 | every exemption is prose (comment / docstring span) or is named in `BOX_BOUND` |
+| T3 | every exemption is prose (comment / docstring span) or is in `BOX_BOUND`; every entry owes a one-line reason |
 | T4 | the frozen fixture exemption is by name and still exists |
 | T5 | the guard itself carries the prefix only inside `PREFIX`/`EXEMPT`/`BOX_BOUND` |
 
@@ -55,21 +55,20 @@ EXEMPT = {
     ("extensions/agi/tests/test_unify.py", "# symlink to CLAUDE.md, same directory, same as `/home/ubuntu/work/agi-tree`."): ("P", "prose: comment on the fixture's shape"),
     ("extensions/agi/tests/test_dispatch_forward_env.py", "`TYPESAFE_KEY` sits in `/home/ubuntu/work/agi/.env`."): ("P", "prose: names the file the env cell points at"),
     ("extensions/agi/tests/test_workflow.py", "# used to `cd /home/ubuntu/work/agi`, so a run started in a git worktree"): ("P", "prose: why the cwd knob exists"),
-    ("extensions/agi/tests/test_provisioning.py", 'ROOT = "/home/ubuntu/work/agi"'): ("B", "dead: every consumer is @live, skipped at test_provisioning.py:44"),
-    ("extensions/agi/tests/test_unify.py", 'result = unify.preflight(Path("/home/ubuntu/work/agi"), tree)'): ("B", "RUNS; passes only while box.root still holds this prefix — repoint via unify._git_common_root() (test below already does)"),
-    ("extensions/agi/tests/test_unify.py", 'result = unify.preflight(engine, Path("/home/ubuntu/work/agi-tree"))'): ("B", "RUNS; same coupling as the line above"),
-    ("extensions/agi/tests/test_unify.py", 'result = unify.preflight(Path("/home/ubuntu/work/agi"), tree, force=True)'): ("B", "RUNS; same coupling as the line above"),
     ("extensions/agi/tests/test_workflow.py", 'assert "/home/ubuntu/work/agi" not in out, (st["label"], out)'): ("F", "inert data: negative assertion, the string is never a path"),
     ("extensions/agi/tests/test_workflow.py", 'assert all("/home/ubuntu/work/agi &&" not in c or f"cd {REPO} &&" in c'): ("F", "inert data: negative assertion, the string is never a path"),
     ("extensions/agi/tests/test_sensei_wake_audit.py", 'cmd = "git -C /home/ubuntu/work/agi status -sb | head -3"'): ("F", "inert data: classified by sensei.classify_call, never shelled out"),
     ("extensions/agi/tests/test_sensei_wake_audit.py", 'cmd = "ls -la /home/ubuntu/work/agi/.agi/sessions/rotations | tail -5"'): ("F", "inert data: classified by sensei.classify_call, never shelled out"),
     ("extensions/agi/tests/test_sensei_wake_audit.py", '"ls -la /home/ubuntu/work/agi/.agi/sessions/rotations | tail -5",'): ("F", "inert data: fixture entry passed to the classifier, never run"),
     ("extensions/agi/tests/test_sensei_wake_audit.py", '("Bash", "ls -la /home/ubuntu/work/agi/.agi/sessions/rotations "'): ("F", "inert data: fixture entry passed to the classifier, never run"),
-    (".agi/config.json", '"root": "/home/ubuntu/work/agi",'): ("B", "box.root cell, group a00-3b546363 owns it; correcting it is what makes the 3 test_unify lines above fail"),
+    (".agi/config.json", '"root": "/home/ubuntu/work/agi",'): ("B", "the one code-level exemption left: the box.root CELL, owned by group a00-3b546363; correcting the cell removes the hit and this entry with it (T2)"),
 }
-# Class B only: a hit on a line that EXECUTES. These are the coupled pair
-# (3 test literals + 1 config cell) a later round must repoint, and the one
-# dead constant. Every other exemption must be prose.
+# Class B only: a hit on a line that EXECUTES. DERIVED from EXEMPT, never
+# hand-listed, and never TALLIED: a count in a gate breaks when a coupled
+# literal is repointed, for a reason that is not a defect. Today this is the
+# single box.root cell in .agi/config.json (group a00-3b546363 owns it); the
+# three test_unify literals and the test_provisioning ROOT constant were
+# repointed to unify._git_common_root() and to the checkout this file lives in.
 BOX_BOUND = {k for k, (cls, _r) in EXEMPT.items() if cls == "B"}
 
 
@@ -158,10 +157,17 @@ def test_t2_every_exemption_is_still_live():
     assert not stale, "exemption no longer matches any line; drop it:\n  " + "\n  ".join(stale)
 
 
-def test_t3_every_exemption_is_prose_or_named_box_bound():
-    """The class story, mechanically: a code-level hit is only tolerated if it
-    is in BOX_BOUND with a stated reason. 17 of 22 exemptions are prose or
-    inert data; the 4 code-level ones are the coupled pair."""
+def test_t3_every_exemption_is_prose_or_carries_a_stated_reason():
+    """The class story, mechanically: a hit that executes is tolerated only
+    because it is in BOX_BOUND (DERIVED from the class, never hand-listed) and
+    because its reason is a real one-line sentence.
+
+    There is deliberately NO count here. An earlier revision ended in
+    `assert len(BOX_BOUND) == 5`: a tally that breaks when the coupled literals
+    are repointed — for a reason that is not a defect, and that the cheapest
+    repair (`delete the entry`) would hide. The property that survives a
+    refactor is 'every non-prose exemption says why it may execute', not 'there
+    are five of them'. The same brittleness this subgoal argues against."""
     misfiled = []
     for rel, text, n in _hits():
         key = (rel, text)
@@ -174,7 +180,15 @@ def test_t3_every_exemption_is_prose_or_named_box_bound():
         if cls in ("F", "B") and prose:
             misfiled.append(f"{rel}:{n} claims class {cls} but is prose: {text!r}")
     assert not misfiled, "\n  ".join(misfiled)
-    assert len(BOX_BOUND) == 5, sorted(BOX_BOUND)
+    unsaid = [
+        f"{rel}:{text[:40]!r} -> {reason!r}"
+        for (rel, text), (cls, reason) in EXEMPT.items()
+        if not reason.strip() or "\n" in reason or len(reason.strip()) < 20
+    ]
+    assert not unsaid, ("every exemption owes a one-line reason of real "
+                        "substance, especially the code-level ones:\n  "
+                        + "\n  ".join(unsaid))
+    assert BOX_BOUND <= set(EXEMPT), "BOX_BOUND must stay derived from EXEMPT"
 
 
 def test_t4_the_frozen_fixture_is_the_only_exempted_tree():
