@@ -21,6 +21,10 @@ import time
 from pathlib import Path
 
 import adapters
+try:  # `bin/` is not always on sys.path — the package import is the real one
+    from . import tmux_hold
+except ImportError:  # pragma: no cover — loaded as a top-level module
+    import tmux_hold  # type: ignore[no-redef]
 
 NAME = "grok-bot"
 
@@ -134,6 +138,16 @@ def restart(
     )
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=dict(os.environ), tier=tier)
+    cwd = _restart_cwd(sess_dir, agent_record)
+    # `goal:g7.31.1.2.3` — the durable pane hold, opt-in and NEVER fatal. A
+    # pane pid means the seat is held; None (no tmux, no session, no pane)
+    # falls through to the Popen path below UNTOUCHED, so a box without tmux
+    # still restarts. Holding is opt-in, not default: a default-on hold would
+    # make every ungrok'd seat depend on a binary the box may not have.
+    new_pid = tmux_hold.hold_or_none(
+        harness, agent_id, args, cwd=cwd, log_file=log_file)
+    if new_pid is not None:
+        return _stamp(sess_dir, agent_record, new_pid)
     try:
         with open(log_file, "ab") as logf:
             proc = subprocess.Popen(
@@ -142,19 +156,24 @@ def restart(
                 stderr=subprocess.STDOUT,
                 stdin=subprocess.DEVNULL,
                 start_new_session=True,
-                cwd=str(_restart_cwd(sess_dir, agent_record)),
+                cwd=str(cwd),
                 env=env,
             )
     except OSError as exc:
         print(f"restart failed for {agent_id}: {exc}", file=sys.stderr)
         return None
-    new_pid = proc.pid
+    return _stamp(sess_dir, agent_record, proc.pid)
+
+
+def _stamp(sess_dir: Path, agent_record: dict | None, pid: int) -> int:
+    """The record is stamped on BOTH paths — a held pane is a restart too, and
+    an unstamped record makes the seat look dead to `is_alive`."""
     if agent_record is not None:
-        agent_record["pid"] = new_pid
+        agent_record["pid"] = pid
         agent_record["status"] = "restarted"
         agent_record["restarted_at"] = int(time.time())
         (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
-    return new_pid
+    return pid
 
 
 def needs_credential(harness: dict) -> bool:
