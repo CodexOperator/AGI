@@ -109,55 +109,26 @@ def test_restart_is_a_real_respawn_not_a_stub():
     assert callable(grok.restart)
 
 
-def test_restart_returns_the_new_pid_and_stamps_the_record(monkeypatch, tmp_path):
-    """Popen faked so no real `grok-bot` binary is needed. Rebuilds the
-    identical argv via build_command, spawns detached, stamps the record."""
-    captured = {}
-
-    class FakeProc:
-        pid = 5252
-
-    def fake_popen(args, **kwargs):
-        captured["args"] = args
-        captured["kwargs"] = kwargs
-        return FakeProc()
-
-    monkeypatch.setattr(grok.subprocess, "Popen", fake_popen)
+def test_restart_refuses_while_cli_is_unmeasured(monkeypatch, tmp_path):
+    """Restart cannot manufacture argv around the retired practice flag."""
+    monkeypatch.setattr(grok.subprocess, "Popen", lambda *a, **k: pytest.fail("Popen called"))
     sess = tmp_path / "sess"
     sess.mkdir()
-    rec = {"worktree": str(tmp_path)}
-    pid = grok.restart(harness=RESTART_HARNESS, tier="kid",
-                       context_file=str(tmp_path / "context.md"),
-                       agent_id="a00-test", iter_n=1, sess_dir=sess,
-                       scaffold=None, target="goal:g17.14.1",
-                       agent_record=rec)
-    assert pid == 5252
-    # argv is exactly what build_command produces (stub argv today)
-    assert captured["args"] == grok.build_command(
-        harness=RESTART_HARNESS, tier="kid",
-        context_file=str(tmp_path / "context.md"))
-    assert captured["kwargs"]["cwd"] == str(tmp_path)
-    assert captured["kwargs"]["start_new_session"] is True
-    assert rec["pid"] == 5252
-    assert rec["status"] == "restarted"
-    assert isinstance(rec["restarted_at"], int)
-    import json as _json
-    written = _json.loads((sess / "agent.json").read_text())
-    assert written["pid"] == 5252 and written["status"] == "restarted"
+    with pytest.raises(RuntimeError, match="help is unmeasured"):
+        grok.restart(harness=RESTART_HARNESS, tier="kid",
+                     context_file=str(tmp_path / "context.md"),
+                     agent_id="a00-test", iter_n=1, sess_dir=sess)
 
 
-def test_restart_returns_none_when_popen_fails(monkeypatch, tmp_path):
-    """An OSError from Popen yields None, never a raised exception — same as
-    the other adapters."""
-    def boom(args, **kwargs):
-        raise OSError("no such binary")
-
-    monkeypatch.setattr(grok.subprocess, "Popen", boom)
+def test_restart_does_not_reach_popen_when_cli_is_unmeasured(monkeypatch, tmp_path):
+    """The unmeasured-CLI guard fires before the OSError-only Popen path."""
+    monkeypatch.setattr(grok.subprocess, "Popen", lambda *a, **k: pytest.fail("Popen called"))
     sess = tmp_path / "sess"
     sess.mkdir()
-    assert grok.restart(harness=RESTART_HARNESS, tier="kid",
-                        context_file=str(tmp_path / "context.md"),
-                        agent_id="a00-test", iter_n=1, sess_dir=sess) is None
+    with pytest.raises(RuntimeError, match="help is unmeasured"):
+        grok.restart(harness=RESTART_HARNESS, tier="kid",
+                     context_file=str(tmp_path / "context.md"),
+                     agent_id="a00-test", iter_n=1, sess_dir=sess)
 # -------------------------------------------------------- live config row
 # The tests above build their `cfg` in memory, so they would stay green even
 # if the shipped `.agi/config.json` lost the `grok-bot` row. These read the
@@ -238,8 +209,8 @@ def test_live_config_grok_row_resolves(live_cfg, monkeypatch):
     # fallback would fail here, where the old same-object assert could not.
     assert live_bin != grok.DEFAULT_BIN
     assert grok.resolve_bin(row) == live_bin
-    argv = grok.build_command(harness=row, tier="kid", context_file="/tmp/x")
-    assert argv[0] == live_bin
+    with pytest.raises(RuntimeError, match="help is unmeasured"):
+        grok.build_command(harness=row, tier="kid", context_file="/tmp/x")
 
 
 def test_live_bin_cell_threads_through_to_argv(live_cfg, monkeypatch):
@@ -250,9 +221,8 @@ def test_live_bin_cell_threads_through_to_argv(live_cfg, monkeypatch):
     monkeypatch.delenv("GROK_BOT_BIN", raising=False)
     _, row = adapters.resolve(live_cfg, "grok-bot")
     row["bin"] = "/SENTINEL/grok-bot"
-    argv = grok.build_command(harness=row, tier="kid", context_file="/tmp/x")
-    assert argv[0] == "/SENTINEL/grok-bot"
-    assert argv[0] != grok.DEFAULT_BIN
+    with pytest.raises(RuntimeError, match="help is unmeasured"):
+        grok.build_command(harness=row, tier="kid", context_file="/tmp/x")
 
 
 def test_live_config_peers_still_resolve(live_cfg_raw):
