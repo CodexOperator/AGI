@@ -1,0 +1,46 @@
+gbot - manage Grok Bot agents and groups
+
+Usage:
+  gbot [--dir DIR] [--json] <command>
+
+Commands:
+  doctor
+  bots list
+  bots create --name NAME [--description TEXT] [--instructions TEXT] [--title TEXT]
+           [--avatar-shape SHAPE] [--avatar-color COLOR]
+  bots update <id-or-name> [--name NAME] [--description TEXT] [--instructions TEXT]
+           [--title TEXT] [--avatar-shape SHAPE] [--avatar-color COLOR]
+           [--notify on|off] [--hidden on|off]
+  bots get <id-or-name>
+  bots delete <id-or-name>
+  groups list
+  groups create --name NAME --member ID_OR_NAME [--member ...]
+           [--description TEXT] [--instructions TEXT] [--title TEXT]
+           [--avatar-shape SHAPE] [--avatar-color COLOR]
+  groups update <id-or-name>  (same flags as bots update; members stay on set/add/remove)
+  groups get <id-or-name>
+  groups members <id-or-name>
+  groups add <group> <bot>
+  groups remove <group> <bot>
+  groups set <group> --member ID [--member ...]
+  groups delete <id-or-name>
+  send <bot-or-group> <message...>
+  thread <bot-or-group> [--limit N] [--root MESSAGE_ID] [--full]
+  chat <bot-or-group>     alias for thread
+  history [bot-or-group] [--search TEXT] [--limit N]  (offline)
+  history --path         print the local JSONL file path
+  codex status
+  codex list-threads [--limit N]
+  codex send <threadId> <message...>
+
+Max group members: 6
+--description / --instructions is the UI Instructions field (same key).
+Avatar shapes: blob pebble bean egg squircle tablet capsule cylinder hex gem crystal wedge shield dome arch cloud teardrop leaf
+Avatar colors: black brown red orange yellow green cyan blue violet magenta gray
+Flags: --gateway  --files  --dir DIR  --json
+Auth: GROK_BOT_GATEWAY_URL + GROK_BOT_GATEWAY_TOKEN, or the Grok Bot app session, or CURSOR_ACCESS_TOKEN
+File fallback: GROK_BOT_AGENTS_DIR
+Codex: talks to the local app-server daemon socket under CODEX_HOME (default ~/.codex)
+History: opt-in plaintext JSONL at ~/.grok-bot-cli/history.jsonl
+         GROK_BOT_HISTORY=on to record; --history-dir / GROK_BOT_HISTORY_DIR to relocate
+         --no-history to skip one command
