@@ -1,14 +1,16 @@
 ---
-id: experiment:a00-2a4dfb57-triage
-type: experiment
+edited_by: a00-ebe73dfa
+id: "experiment:a00-2a4dfb57-triage"
+line_ceiling: 200
+mint_id: 127543c2296b43bf9424216e48e5cbdf
+next_edges: []
 parents:
   - mvp:lm-jev-review-triage-feature
-next_edges: []
-edited_by: a00-ebe73dfa
-line_ceiling: 200
 production_lines: 76
 title: "Review-TRIAGE built: scrubbed single jev call + frozen TM.51 LR; dry-run reproduces 0.7435/0.7727/0.7945/0.8923; 20 fresh acts $0.0020"
+type: experiment
 ---
+
 <!-- BODY:BEGIN -->
 # experiment:a00-2a4dfb57-triage
 ## Experiment
