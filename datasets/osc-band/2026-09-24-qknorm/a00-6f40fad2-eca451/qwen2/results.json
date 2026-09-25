@@ -1,0 +1,164 @@
+{
+ "model": "qwen2",
+ "fresh_post_rope_profile": true,
+ "capture": "post_rope_per_layer",
+ "settings": {
+  "key_only_3p5": {
+   "target_bits": 3.5,
+   "agree": 0.208252,
+   "kl": 4.281412,
+   "holds": false,
+   "actual_bits": 3.5,
+   "representable_widths": [
+    4,
+    4,
+    2,
+    2
+   ]
+  },
+  "uniform_3p5": {
+   "target_bits": 3.5,
+   "agree": 0.608154,
+   "kl": 1.100693,
+   "holds": false,
+   "actual_bits": 3.5,
+   "representable_widths": [
+    4,
+    4,
+    2,
+    2
+   ]
+  },
+  "random_3p5": {
+   "target_bits": 3.5,
+   "agree": 0.162598,
+   "kl": 4.70796,
+   "holds": false,
+   "actual_bits": 3.5,
+   "representable_widths": [
+    4,
+    4,
+    2,
+    2
+   ]
+  },
+  "key_only_7p75": {
+   "target_bits": 7.75,
+   "agree": 0.991699,
+   "kl": 0.000489,
+   "holds": true,
+   "actual_bits": 7.75,
+   "representable_widths": [
+    13,
+    13,
+    10,
+    10
+   ]
+  },
+  "uniform_7p75": {
+   "target_bits": 7.75,
+   "agree": 0.998291,
+   "kl": 3e-05,
+   "holds": true,
+   "actual_bits": 7.75,
+   "representable_widths": [
+    13,
+    13,
+    10,
+    10
+   ]
+  },
+  "random_7p75": {
+   "target_bits": 7.75,
+   "agree": 0.979492,
+   "kl": 0.005069,
+   "holds": false,
+   "actual_bits": 7.75,
+   "representable_widths": [
+    13,
+    13,
+    10,
+    10
+   ]
+  },
+  "key_only_9p0": {
+   "target_bits": 9.0,
+   "agree": 0.997559,
+   "kl": 2.4e-05,
+   "holds": true,
+   "actual_bits": 9.0,
+   "representable_widths": [
+    15,
+    15,
+    12,
+    12
+   ]
+  },
+  "uniform_9p0": {
+   "target_bits": 9.0,
+   "agree": 0.999268,
+   "kl": 2e-06,
+   "holds": true,
+   "actual_bits": 9.0,
+   "representable_widths": [
+    15,
+    15,
+    12,
+    12
+   ]
+  },
+  "random_9p0": {
+   "target_bits": 9.0,
+   "agree": 0.994873,
+   "kl": 0.000175,
+   "holds": true,
+   "actual_bits": 9.0,
+   "representable_widths": [
+    15,
+    15,
+    12,
+    12
+   ]
+  },
+  "key_only_10p75": {
+   "target_bits": 10.75,
+   "agree": 0.999512,
+   "kl": 0.0,
+   "holds": true,
+   "actual_bits": 10.75,
+   "representable_widths": [
+    16,
+    16,
+    16,
+    16
+   ]
+  },
+  "uniform_10p75": {
+   "target_bits": 10.75,
+   "agree": 1.0,
+   "kl": 1e-06,
+   "holds": true,
+   "actual_bits": 10.75,
+   "representable_widths": [
+    16,
+    16,
+    16,
+    16
+   ]
+  },
+  "random_10p75": {
+   "target_bits": 10.75,
+   "agree": 1.0,
+   "kl": 0.0,
+   "holds": true,
+   "actual_bits": 10.75,
+   "representable_widths": [
+    16,
+    16,
+    16,
+    16
+   ]
+  }
+ },
+ "bench": "bench/20260924T225646Z.jsonl"
+}
