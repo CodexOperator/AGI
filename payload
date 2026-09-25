@@ -1515,7 +1515,7 @@ def _kid(*, agent_id: str, iter_n: int, cli_py: str, scaffold: dict | None,
         "quotes. Fields inside the line stay space separated, not k=v. "
         "Example:\n"
         "  python3 extensions/agi/bin/write.py experiment:x 'set verdict proved'\n"
-        "  python3 extensions/agi/bin/write.py experiment:x 'set evidence_runs experiment:x'\n"
+        "  python3 extensions/agi/bin/write.py experiment:x 'set evidence_runs [\"experiment:x\"]'\n"
         "  python3 extensions/agi/bin/write.py hypothesis:x 'thought <why this version>'\n"
         # hypothesis:l3-write-partial-diffs-as-writes -- the partial verbs.
         # `read` fetches a line range (read-only, never restamps edited_by);
