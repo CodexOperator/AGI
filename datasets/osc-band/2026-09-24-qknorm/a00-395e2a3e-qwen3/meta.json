@@ -1,0 +1,102 @@
+{
+ "model": "qwen3",
+ "np": 64,
+ "grid": {
+  "4.0": [
+   5,
+   5,
+   3,
+   3
+  ],
+  "4.5": [
+   4,
+   4,
+   4,
+   4
+  ],
+  "5.0": [
+   6,
+   6,
+   4,
+   4
+  ],
+  "5.5": [
+   5,
+   5,
+   5,
+   5
+  ],
+  "6.0": [
+   7,
+   7,
+   5,
+   5
+  ],
+  "6.5": [
+   6,
+   6,
+   6,
+   6
+  ],
+  "7.0": [
+   8,
+   8,
+   6,
+   6
+  ],
+  "7.5": [
+   7,
+   7,
+   7,
+   7
+  ],
+  "7.75": [
+   8,
+   8,
+   7,
+   7
+  ]
+ },
+ "eval": {
+  "wiki_slice_starts": [
+   5000,
+   61000,
+   120000,
+   240000
+  ],
+  "wiki_span": 512,
+  "heval_task_ids": [
+   "HumanEval/107",
+   "HumanEval/108",
+   "HumanEval/109",
+   "HumanEval/11"
+  ],
+  "heval_padded_to": 512,
+  "n_prompts": 8,
+  "n_tokens": 4096,
+  "hop1_wiki_starts": [
+   0,
+   29875,
+   59751,
+   89627,
+   119503,
+   149379,
+   179254,
+   209130,
+   239006,
+   268882
+  ],
+  "hop1_heval_task_ids": [
+   "HumanEval/0",
+   "HumanEval/1",
+   "HumanEval/10",
+   "HumanEval/100",
+   "HumanEval/101",
+   "HumanEval/102",
+   "HumanEval/103",
+   "HumanEval/104",
+   "HumanEval/105",
+   "HumanEval/106"
+  ]
+ }
+}
