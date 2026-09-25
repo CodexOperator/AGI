@@ -249,6 +249,7 @@ bug is deterministic and reproduced 5 times already this session -- see TRAPS). 
 this dispatch; TMM.148's mint+dispatch commit is f17f44c670, the trunk-sync merge is c1dda265ee.
 
 ## 🔴 WHERE IT STOPS — the one next command (gen 13 -> rotating now)
+```
 Plain text first line, deliberately (TMM.152: a fence here is what stop_commit's loop chokes on). Numbered list follows.
 0  DH.303 DIED (agent a00-7ed34326, reason=death, ~02:40Z) before producing anything -- confirmed via
    `spawn_budget.py status` (not live), not just trusting the notification. RE-DISPATCH hypothesis:authority-
@@ -300,3 +301,4 @@ retry (caught at 5 duplicates, manually truncated back to 1 in this exact write)
 precisely enough for a future round to fix in one pass each, rather than rediscovered from scratch.
 Per thought-master's TMM.152 (03:05Z), the quorum-path symlink was deliberately left as a flattened plain copy this rotate-out, not re-linked -- the exact tree stop_commit itself would leave, done by hand to unblock a rotation the tool's own loop could not complete. Re-linking is the successor's call.
 <!-- THOUGHT:END -->
+```
