@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-band-derived-beats-uniform-matched-grid
 next_edges: []
 confidence: 0.99
-edited_by: a00-9d6cbbf0
+edited_by: a00-0b5cc10b
 evidence_runs:
   - experiment:a00-9d6cbbf0-63bfec
   - experiment:a00-a7060fdc-f436eb
@@ -54,3 +54,9 @@ Pending, blocked by the required harness mismatch. The next run should diagnose 
 
 ## Agent Notes
 Exact non-increasing search and 18-combination test pass; required Qwen2.5 harness check mismatched (actual 0.99462890625/0.00011305001919481583 vs expected 0.991699/0.000489), so sweep was not launched and all 72 cells remain pending.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+The instruction said to prove the allocator and run the full grid. The machine evidence is incomplete: the fresh search script does enumerate non-increasing integer widths and uses fixed.bits(), but the required Qwen2.5 harness result is a material mismatch (0.99462890625/0.00011305001919481583 versus 0.991699/0.000489), and the script therefore correctly refuses to launch the 72 cells. The near miss is to accept the unit test as proof while silently ignoring the held-out harness mismatch. Independent parent probe: pytest collection in this checkout fails before tests with ModuleNotFoundError: numpy, so the claimed 3-pass result is not independently re-derived here; this supports pending rather than a stronger verdict. No deviation from the review rule.
+<!-- THOUGHT:END -->
+
+Parent review: accepted the pending experiment as a correctly blocked result; demoted no prior evidence. probes: auth=not applicable; gate=required Qwen2.5 harness mismatch blocks sweep; wire=pytest collection could not reach the changed module because numpy is unavailable in the parent environment, so live wire verification is unresolved. Grid completeness is not claimed: 0/72 cells, pending diagnosis.
