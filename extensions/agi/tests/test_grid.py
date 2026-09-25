@@ -174,8 +174,11 @@ def test_push_batches_omit_matching_and_remote_only_refs(tmp_path, monkeypatch):
     (tmp_path / "agi-tree.config.json").write_text(
         json.dumps({"grid": {"push_batch_limit": 200}}))
     rows = [f"refs/grid/node/{i} oid-{i}" for i in range(402)]
-    remote = [f"refs/grid/node/0\toid-0", f"refs/grid/node/401\toid-401",
-              "refs/grid/node/remote-only\tremote"]
+    # git ls-remote prints "<sha>\t<refname>" per line, sha first -- not the
+    # reverse. A mock in ref-first order would silently cancel out the exact
+    # key/value inversion push_batches had (goal:g7.33.11).
+    remote = [f"oid-0\trefs/grid/node/0", f"oid-401\trefs/grid/node/401",
+              "remote\trefs/grid/node/remote-only"]
     monkeypatch.setattr(grid, "git", lambda root, *args: (
         "\n".join(remote) if args[0] == "ls-remote" else "\n".join(rows)))
     batches = grid.push_batches(tmp_path)
@@ -261,17 +264,31 @@ def test_push_batches_use_measured_seed_boundary_and_count(tmp_path, monkeypatch
     assert not any(ref.endswith(":refs/grid/node/0") for batch in batches for ref in batch)
 
 
-def test_push_changed_advances_real_bare_remote(project, tmp_path):
+def test_push_changed_advances_real_bare_remote(project, tmp_path, capsys):
     grid.cmd_commit(project, [], do_all=True, session=None)
     remote = tmp_path / "remote.git"
     subprocess.run(["git", "init", "--bare", "-q", str(remote)], check=True)
     grid.git(project, "remote", "add", "origin", str(remote))
     grid.cmd_push_changed(project)
-    tip = grid.ref_tip(project, grid.mint_node_ref(MINT_X))
+    ref = grid.mint_node_ref(MINT_X)
+    tip = grid.ref_tip(project, ref)
     remote_tip = subprocess.run(
-        ["git", "--git-dir", str(remote), "rev-parse",
-         grid.mint_node_ref(MINT_X)], capture_output=True, text=True, check=True).stdout
+        ["git", "--git-dir", str(remote), "rev-parse", ref],
+        capture_output=True, text=True, check=True).stdout
     assert remote_tip.strip() == tip
+    capsys.readouterr()
+
+    # The push-changed stage of three consecutive grid_sync ticks. Every tick
+    # must discover no changed ref, and every assertion below reads the real
+    # bare remote through git ls-remote rather than trusting the report text.
+    for tick in range(1, 4):
+        grid.cmd_push_changed(project)
+        assert capsys.readouterr().out.strip().endswith(
+            "grid push: 0 changed ref(s) in 0 batch(es)"), tick
+        advertised = subprocess.run(
+            ["git", "ls-remote", str(remote), ref],
+            capture_output=True, text=True, check=True).stdout.strip()
+        assert advertised == f"{tip}\t{ref}", tick
 
 
 def test_find_project_root_accepts_canonical_and_legacy_config(tmp_path):

@@ -213,7 +213,8 @@
     "max_restarts": 0
   },
   "grid": {
-    "storage_trunk": "refs/grid/local-maxxing"
+    "storage_trunk": "refs/grid/local-maxxing",
+    "push_split_epoch": 1789955640
   },
   "paths": {
     "local_maxxing": {

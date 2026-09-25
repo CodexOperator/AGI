@@ -191,8 +191,9 @@ def push_batches(root: Path) -> list[list[str]]:
     ns = ref_ns_for(root)
     local = [line.split() for line in git(
         root, "for-each-ref", ns, "--format=%(refname) %(objectname)").splitlines()]
-    remote = {parts[0]: parts[1] for parts in (
-        line.split() for line in git(root, "ls-remote", "--refs", "origin", ns).splitlines())}
+    remote = {parts[1]: parts[0] for parts in (
+        line.split() for line in git(
+            root, "ls-remote", "--refs", "origin", f"{ns}/*").splitlines())}
     cfg = locations.load_config(locations.shared_project_root(Path(root)) or Path(root))
     grid_cfg = cfg.get("grid") or {}
     split_epoch = int(grid_cfg.get("push_split_epoch", 0))
