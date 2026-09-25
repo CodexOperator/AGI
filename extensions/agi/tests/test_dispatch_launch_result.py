@@ -118,7 +118,40 @@ def test_open_round_probe_routes_persistent_pane_without_popen(tmp_path, monkeyp
     assert (second.created, second.adapter, second.pane_id) == (True, "tmux_hold", "%9")
 
 
-def test_launch_round_preserves_truncate_then_append_modes(tmp_path, monkeypatch):
+def test_persistent_restart_reattaches_same_pane_without_popen(tmp_path, monkeypatch):
+    started, restarted = [], []
+
+    class FakeProcess:
+        pid = 700
+
+    def start(**kwargs):
+        started.append(kwargs)
+        return {"process": FakeProcess(), "pane_id": "%7",
+                "created": True, "adapter": "tmux_hold"}
+
+    def restart(**kwargs):
+        restarted.append(kwargs)
+        return {"process": FakeProcess(), "pane_id": "%7",
+                "created": False, "adapter": "tmux_hold"}
+
+    monkeypatch.setattr(dispatch.subprocess, "Popen",
+                        lambda *a, **k: pytest.fail("persistent restart used Popen"))
+    monkeypatch.setattr(dispatch.tmux_hold, "start", start)
+    monkeypatch.setattr(dispatch.tmux_hold, "restart", restart)
+    first = dispatch._open_round_launch(
+        ["grok-bot"], tmp_path / "output.log", tmp_path, {},
+        None, hold=dispatch.tmux_hold, pane_name="grok-seat")
+    # The process dies; the recorded pane survives and is the restart target.
+    rec = {"launch_adapter": first.adapter, "pane_id": first.pane_id,
+           "command": "grok-bot", "log_file": str(tmp_path / "output.log")}
+    second = dispatch._persistent_restart(rec, tmp_path, "agent")
+    assert first.created is True
+    assert (second["pane_id"], second["created"], second["adapter"]) == (
+        "%7", False, "tmux_hold")
+    assert restarted[0]["pane_id"] == "%7"
+    assert started and restarted
+
+
     calls = []
     monkeypatch.setattr(dispatch.subprocess, "Popen",
                         lambda argv, **kwargs: calls.append(kwargs) or FakeProcess())
