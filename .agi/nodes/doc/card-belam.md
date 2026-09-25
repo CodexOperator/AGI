@@ -20,26 +20,26 @@ town: core
 
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
-## §0 State (08:4xZ 09-25)
+## §0 State (09:5xZ 09-25)
 | | |
 |---|---|
-| post | belam-S2-L5-V gen 5 · seated 00:44Z 09-25 · Opus 5.5 · meter ~0.32 BY HAND · RESTARTED 04:07Z by the remote-control unit (pid 1393177 -> 4125508, same transcript e1ff928b); no tmux pane, so identity reads 'unknown' (trap 25) |
+| post | belam-S2-L5-V gen 5 · seated 00:44Z 09-25 · Opus 5.5 · meter ? (measured by hand: rotate.py meter --session-log) -- ROTATING before PASS 6 · restarted 04:07Z by the unit; identity read 'unknown' all day (trap 25) |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` (thought-master shares MAIN: exact-path commits only) · prime-root = `season2/main` in `.agi/worktrees/prime-root` · tz UTC |
 | TOWN | RESTORED 06:4xZ (TM 06:40Z · DT 06:41Z · SM 06:43Z) after the 04:0xZ kill (OOM 04:00:38Z in claude-remote-control.service -> OOMPolicy=stop took the tmux server down): TM gen 20 @1 · DE gen 15 @2 · DT gen 30 @3 · SM gen 3 @4 · belam @0 (row fixed to pid 4125508 FIRST) · via heal._watch_one_seat per seat with a /tmp/agi-recover-<seat>.sh launcher (tmux refused the whole prompt: 'command too long' -> DE) · heal settings fix 664d935157 (owner's diagnosis) |
 | MEMORY | agi-memguard (system unit, /usr/local/sbin/agi-memguard.py): posts + tmux + stream oom_score_adj -900 / nice -5 · pi +500 · SIGSTOP > 70% RAM or the biggest unprotected under 1 GiB free · spike >= 3 GiB/30 s -> [red] to belam · OOMPolicy=continue drop-ins: claude-remote-control + streamer-stub(-watch) · box 15 GiB, stream ~5.3 GiB |
-| merge | PASS 6 NOTICE 04:45Z (queued: thought-master is down) → run_at 09:48Z (one-shot "48 9 25 9 *" = §2 of the crons file) · BASE 5b7d503fa7 → TIP ef70062230 · 60 commits · 5 exp · 3 engine paths · season2/main 4a045b2770 not an ancestor (step 1 syncs) · PASS 5 CLOSED 02:37Z → season2/main 8daa626e89 (pushed; grid commit there: 6 versions, 1 pre-existing error §6) · BASE 3b0c4e8e8f → TIP 5b7d503fa7 · 449 commits · 39 exp · 18 rounds / 4 chunks on pi-free · 27 min · 0 USD · 9 accept_with_residue · 9 demote · 0 RED · state reset (last_merged_town_sha 5b7d503fa7; notice/run_at/pass_started_at null) · crons file §2 = the PASS 6 template (goal:g1, board note) |
+| merge | PASS 6 FIRED 09:48Z in gen 5's session and was HANDED ON UNSTARTED (pass_started_at null) -> the successor runs it under CHECK case (d) · delta at 08:43Z: 174 commits / 15 exp · 60 commits · 5 exp · 3 engine paths · season2/main 4a045b2770 not an ancestor (step 1 syncs) · PASS 5 CLOSED 02:37Z → season2/main 8daa626e89 (pushed; grid commit there: 6 versions, 1 pre-existing error §6) · BASE 3b0c4e8e8f → TIP 5b7d503fa7 · 449 commits · 39 exp · 18 rounds / 4 chunks on pi-free · 27 min · 0 USD · 9 accept_with_residue · 9 demote · 0 RED · state reset (last_merged_town_sha 5b7d503fa7; notice/run_at/pass_started_at null) · crons file §2 = the PASS 6 template (goal:g1, board note) |
 | residues | hypothesis:pass5-0925-residue-batch (goal:g1) · 3 code-defect hypotheses + veto hypothesis REOPENED → [decision] director-engine · 6 lm-* demotes → [merge-up] thought-master (→ director-thought) |
 | directors | director-engine + director-thought, claude-sonnet-5 max · `doc:unified-director-brief` §1: ONE parent per round, `--tier parent --role parent --ladder-tier 0` |
 | branches | owner 09-25: directors LOCAL-ONLY (never push) · merge-ups → thought-master, who ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` (ff'd d3f0403134 → 5b7d503fa7, 02:5xZ) + `season2/main` · brief §2 row replaced · [rule] dm x4 · no pre-push guard yet (offered to DE) |
 | stream | LIVE on Twitch + X · LIVE again since ~07:29Z (stream-master: fresh ramp; the outage aired as dead air) · paused 04:47-07:29Z by the Prime's brb · keys: the owner's · `brb` for every post (`~/.local/bin/brb`) · `panic` the owner's (`/usr/local/bin/panic`) |
 | owner asks | Jev: ANSWERED in chat -- the existing-tools survey ran 09-24 (troves/2026-09-24-jev-survey, experiment a00-ac62bcbe inconclusive-lean-proved 0.78, PASS 5 accept_with_residue); no trove survey ran 09-25 |
-| crons | CHECK 4f4c68c7 "13 */4 * * *" (fired 04:43Z + 08:43Z; next 12:13Z) · PASS 6 one-shot "48 9 25 9 *" · SESSION-ONLY · retired belam panes hold no crons |
+| crons | CHECK 4f4c68c7 "13 */4 * * *" (fired 04:43Z + 08:43Z; next 12:13Z) · PASS 6 one-shot consumed 09:48Z · SESSION-ONLY · retired belam panes hold no crons |
 
 ## §1 Plan
 ```
 done   doc:quick-setup (owner 05:3xZ) · seated · crons · quorum · owner stream line (dm x4, ~/.local/bin/brb, doc:unified-head E) · PASS 5 (0)-(9)
        · the owner's Jev ask answered · owner branch rule: brief §2 row, [rule] dm x4, local-maxxing/main ff'd, grid no-ID fix → DE · keys: the owner's
-next   the owner: stream back · 09:48Z PASS 6 (one-shot runs §2) · 08:13Z CHECK = case (c)
+next   the successor: re-arm the CHECK, then PASS 6 at wake (case d) · quiet otherwise; DT runs TMM.149 (GO 08:4xZ)
 open   round-mur ROUTED to director-engine as a WORKFLOW (behind g1.25) · PASS 5 residues (DE + TM) · §6
 ```
 
@@ -48,11 +48,11 @@ f6dd6dad92 card at seating · 5b7d503fa7 trunk sync (season2/main key row) · da
 
 ## 🔴 Where it stops
 ```
-08:4xZ 09-25 belam-S2-L5-V: town up (5 seats, memguard quiet), stream live since 07:29Z; PASS 6 at 09:48Z (delta now 174 commits / 15 exp); DT told GO on TMM.149.
- 1. If f >= 0.40 when PASS 6 fires, rotate FIRST (a PASS must not straddle a rotation); the successor runs it under CHECK case (d).
- 2. PASS 6 fires 09:48Z: section 2 of .agi/sessions/prime-merge.crons.md as written; step (0) pass_started_at FIRST; copy /tmp/belam-pass5/ to /tmp/belam-pass6/.
- 3. CHECK fires 08:13Z (section 1 verbatim) = case (c). Before rotating: DE's red (dm 02:30:59Z) -- stop_commit loops on the SYMLINKED card: flatten, commit, rerun; the successor re-links (trap 10).
- 4. A successor at wake: RE-ARM the CHECK; now < run_at -> re-arm the PASS 6 one-shot, else run it under CHECK case (d) unless pass_started_at is set; re-link the quorum; write this card whole.
+09:5xZ 09-25 belam-S2-L5-V rotating before PASS 6 (a PASS never straddles a rotation); PASS 6 fired unstarted, pass_started_at null.
+ 1. Successor at wake: RE-ARM the CHECK (CronCreate "13 */4 * * *", section 1 of .agi/sessions/prime-merge.crons.md verbatim); re-link the quorum symlink (trap 10); write this card whole.
+ 2. Then run PASS 6 NOW under CHECK case (d) (notice pending, now >= run_at 09:48Z, never started): section 2 of the crons file as written; copy /tmp/belam-pass5/ to /tmp/belam-pass6/.
+ 3. Otherwise quiet: decisions / reds / merge-ups / the owner. memguard on (/var/log/agi-memguard.log); stream live since 07:29Z.
+ 4. Identity: this seat's restarted process read 'unknown' (trap 25); a successor spawned in its own window should resolve -- else --from belam.
 ```
 ## §4 Traps
 | # | trap | rule |
