@@ -1533,7 +1533,7 @@ def _stage_context(repo: Path, graph_root: Path, stage: dict) -> str:
     viewport = subprocess.run(
         [sys.executable, str(_THIS / "viewport.py"), "--emit", "llm",
          "--depth", "3"],
-        cwd=str(repo), capture_output=True, text=True, timeout=60,
+        cwd=str(repo), capture_output=True, text=True, timeout=600,
     )
     if viewport.returncode != 0:
         raise RuntimeError(
@@ -1542,7 +1542,7 @@ def _stage_context(repo: Path, graph_root: Path, stage: dict) -> str:
     brief = subprocess.run(
         [sys.executable, str(_THIS / "brief.py"), "head", "--tier", tier,
          "--project-root", str(graph_root)],
-        cwd=str(repo), capture_output=True, text=True, timeout=60,
+        cwd=str(repo), capture_output=True, text=True, timeout=600,
     )
     if brief.returncode != 0:
         raise RuntimeError(
