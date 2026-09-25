@@ -11,7 +11,7 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (06:5xZ 09-25, gen 20)
+## Live state (12:0xZ 09-25, gen 21)
 ```
 LANE           normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
                model HELD (TMM.66) · usd0 = research only, never an operating mode · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
@@ -21,8 +21,8 @@ OWNER 20:1-4xZ (via the Prime, VERIFIED) I co-own the director docs (doc:unified
 OOM            04:00Z killed every seat; the 04:0xZ recovery respawned none (the 'ultracode quiet' settings cell crashed rotate._is_ultracode ->
                the Prime's heal fix 664d935157) · the watcher respawned TM gen 20 06:40:25Z · DE gen 15 06:40:55Z · DT gen 30 06:41:25Z · town
                restored 06:44Z (c9652ef3fe: 5 seats, memguard + OOMPolicy=continue) · stream = the Prime's brb PAUSE since 04:47:43Z, for the owner's back
-ME             gen 20: ack (no --ref) · meter re-pinned to my jsonl e62b6853 · row identity back-filled in-process (2e1ea2ec28) · 2 [red] to belam:
-               the host's machine id (06:42Z) + account/org uuids (06:48Z) reached my pane under the PAUSE -> safe to release from ~07:05Z
+ME             gen 21: seated 11:42Z (session agi-7d, window @13) · the ack answered continue by gen 20 -> wake acts none · meter 0.125 at 12:0xZ
+               · gen 20's two [red]s (06:42Z machine id, 06:48Z account/org uuids) = history; the 'printing' trap holds
 PASS 5         CLOSED 02:37Z: trunk @5b7d503fa7 -> season2/main 8daa626e89 (449 commits, 18 rounds on pi-free, 0 USD, 9 accept_with_residue, 9 demote,
                0 RED) · DT's 6 demotes + 2 residues -> TMM.149 · DE's -> hypothesis:pass5-0925-residue-batch (goal:g1), the table in the node
 PASS 6         CLOSED 10:49Z (the Prime): BASE 5b7d503fa7 -> TIP 1bf60c203b, 184 commits, 9 rounds: 3 accept_with_residue · 6 demote · 0 RED
@@ -34,8 +34,9 @@ DE             gen 18 = post-director-engine-61 (rotated 11:34Z) · LANDED today
                disproved) + da46aa87dd (DH.312: a malformed matching row refuses the publish; inconclusive_lean_disproved:85; all 22 live rows
                pass its strict parse) · TMM.166 (dm): next = the residue round hypothesis:key-row-publish-appends-instead-of-refusing-on-an-
                unrecognized-own-row (a valid JSON-string row -> likely fail-open append) · PASS 6 defect 4 LANDED 2054e3e04c (TMM.168: rotate
-               flattens a symlinked card before every card write) + 850896a493 (TMM.169: defect 1, >1 matching own row refuses) · QUEUED
-               @67da8b069b (defect 2) · then defect 3 (banked), the JSON-string round + TMM.159 (3): the open PASS 5 residues, round B
+               flattens a symlinked card before every card write) + 850896a493 (TMM.169: defect 1, >1 matching own row refuses) + 985f58879b
+               (TMM.170: defect 2, manifest required_args; its tip moved on to 9624f60350 = card + rotate-out + 2 trunk merges, nothing owed)
+               · then defect 3 (banked), the JSON-string round + TMM.159 (3): the open PASS 5 residues, round B
                goal:g7.33.10, goal:g1.14.1 · DH.302 = superseded by DH.305 (no round) · its quorum card is a symlink again (its call)
 DT             gen 30 (session agi-af, window @3, row joined) · its user answered its startup question 07:10:26Z = 'Proceed fully' (not me)
                · batch 21 LANDED 40156ab515 (07:5xZ, @cd13602e1a after TMM.162: verdict proved by the rule + the random control in the node)
@@ -47,25 +48,26 @@ DT             gen 30 (session agi-af, window @3, row joined) · its user answer
                an autonomous seat never uses AskUserQuestion) -> DT's corrective rounds come to me as merge-ups
                · batch 20 LANDED dd07cb0ea1 = NOT a clean read (the width grid inverted the allocator) · a tag is not a budget: the '7.75'
                anchor [13,13,10,10] = 11.75 bits by bits() (TMM.154/155) · then TMM.149
-trunk reds     test_dashboard's SIGINT watch only · goals --render --check = exit 1 on HEAD (re-read 06:5xZ): goal:g7.33.12 has no heading_level
-               (g7.33.13 on DE's branch neither) -> TMM.156 / TMM.159 (2) = DE's version (its THOUGHT keeps the owner's 01:13:03Z line)
-board          town:local-maxxing (13 rows): row 7 rewritten 07:5xZ -- batch 21 LANDED + PROVED by rule, the control reading (key>random 9/9 Qwen2.5, 5/9 Qwen3)
-LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21) · DE b058583fa6 (TMM.159-161) + da46aa87dd (DH.312) · DT 4c8376c991 (batch 21 -> pending) · DE 2054e3e04c (PASS 6 defect 4) + 850896a493 (defect 1)
+trunk reds     test_dashboard's SIGINT watch only · goals --render --check = exit 0 on MAIN (362/362, re-read 12:0xZ on 985f58879b)
+board          town:local-maxxing (13 rows): row 7 = batch 21 VOID -> pending (07:5xZ + TMM.167) · row 8 += PASS 6 defects 4 / 1 / 2 LANDED (713b9604a8)
+LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21) · DE b058583fa6 (TMM.159-161) + da46aa87dd (DH.312) · DT 4c8376c991 (batch 21 -> pending) · DE 2054e3e04c (PASS 6 defect 4) + 850896a493 (defect 1) · gen 21: DE 985f58879b (defect 2)
 ```
 
 ## 🔴 Where it stops
-11:4xZ 09-25 gen 20 ROTATES at the line: PASS 6 defect 1 LANDED 850896a493; DE gen 18's @67da8b069b (defect 2) is the next gate; DT holds new dispatch for its operator ([decision] to belam 11:0xZ)
+12:1xZ 09-25 gen 21 WAITS on the next [merge-up]: PASS 6 defect 2 LANDED 985f58879b (TMM.170, pushed); DE gen 18 holds the next rounds; DT holds new dispatch for its operator ([decision] to belam 11:0xZ, no answer by 12:1xZ)
+````
+12:1xZ 09-25 gen 21 WAITS on the next [merge-up]: PASS 6 defect 2 LANDED 985f58879b (TMM.170, pushed); DE gen 18 holds the next rounds; DT holds new dispatch for its operator ([decision] to belam 11:0xZ, no answer by 12:1xZ)
 ```
-state   MAIN = 850896a493 + this card; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.170
+state   MAIN = 985f58879b + board 713b9604a8 + ancestry merge 78cf796ce9 + this card; comms churn, sequence.json, rotation records = not mine
+        · no gate worktree open · TMM.170 = the last order sent · next order = TMM.171
 NEXT    (1) DT: once its operator says go, TMM.149's merge-ups -- the lean gate + the CONTROL arms before any verdict
-        (2) DE's QUEUED merge-up @67da8b069b (defect 2: workflow manifests declare required_args; run_workflow refuses a missing/blank
-            one before dispatch; brainstorm.json declares idea/goal/why/max_hypotheses) = the FULL suite on merge-tree(HEAD, tip) + measure
-            which live workflows declare required_args and whether their callers pass them (posts.md via criss-cross -> HEAD's file)
-        (3) DE's merge-ups: the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only;
-            + snapshot-goals.py --render --check on the gated tree
-        (4) goals --render --check = exit 0 on MAIN since b058583fa6 -- keep it there: every landing runs it
+        (2) DE's next [merge-up] (the JSON-string residue round, then TMM.159 (3)): the full suite on merge-tree(HEAD, tip) in a detached /tmp
+            worktree (expected red = test_dashboard's SIGINT only) + goals --render --check + links + the schema diff vs MAIN + anonymize on the
+            gated tree; reproduce red/green in a pre-fix worktree; measure the first live run on MAIN's data
+        (3) keep goals --render --check at exit 0 on MAIN: every landing runs it
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
+````
 
 ## Traps (post-specific, learned)
 ```
@@ -110,6 +112,10 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
              change before landing, patch locations.load_config in-process with the gated config.json
              · a PARTIAL research round may land when its node says pending by its own preregistered rule; the landing message says what is missing
              · EVERY landing runs snapshot-goals.py --render --check, code merge-ups too: #13 minted goal:g7.33.12 without heading_level and the render has refused since
+             · a fresh seat's first merge-tree can predate the watch's after_join record commit (~2 min after seating): re-run merge-tree on the
+               live HEAD right before minting M (gen 21: the first tree differed by that record file only)
+             · after a landing the tip's history is criss-cross: git merge-base picks the trunk commit it merged, so base..tip re-lists landed
+               files -> what the tip still owes = git diff --stat HEAD $(git merge-tree --write-tree HEAD tip)
 reds         attribute each: which range touches the test / its code (git diff --quiet <base> <tip> -- <file>) · re-run it ALONE (a load
              flake passes alone) · run it on MAIN + another range too: red there = the trunk's · test_thought_hygiene counts <!--\s*THOUGHT:BEGIN per node: a quoted marker trips it
 verdicts     read the CONTROL arms before any verdict: a result FLAT across bit budgets while the controls hold = an allocator or harness bug
@@ -135,11 +141,14 @@ review       read each round's FINAL verify stage in .agi/sessions/workflows/run
 key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send.authority_ref(root), True) · local seat keys = the NAMES of
              .agi/sessions/seats/*.key (+ .key.pending), never the bytes
 suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
-             call · 14:25-15:28 at load 2-6 (6413 passed 00:5xZ 09-25) · foreground sleep is blocked: wait with a background loop · a bare 'cd'
-             in a Bash call can stick as the session's cwd -- use absolute paths or cd back to /data/work/agi
+             call · 14:25-15:28 at load 2-6 (6413 passed 00:5xZ 09-25; 14:36 at load 3-8, 6433 passed 11:59Z) · foreground sleep is blocked: wait
+             with a background loop · a bare 'cd' in a Bash call can stick as the session's cwd -- use absolute paths or cd back to /data/work/agi
+             · a 2nd pytest in a worktree whose full suite runs = ERROR at setup (conftest _suite_lock_guard names the live pid), not a result:
+               reproduce red in a separate pre-fix worktree, read green from the suite (+N passed = the new cases)
 push         (the Prime's [rule] 02:54Z, owner 09-25; doc:unified-director-brief §2) directors' post branches are LOCAL-ONLY, never pushed; a
              merge-up names a LOCAL tip; my landing on local-maxxing/season2/main is the town's ONLY remote push; the Prime keeps local-maxxing/main
-             + season2/main by SHA from it
+             + season2/main by SHA from it · a push's output names the remote URL: print only the ref-update line · a new seat's key row lands
+             on origin/season2/main (f82730feaf, gen 21): merge it ancestry-only (tree identical) so the rotation + dispatch guards read current
 stream       LIVE since the owner's 00:5xZ 09-25 call (the Prime's notice 01:59Z, ~2 min delay; durable in doc:unified-head): a secret, key,
              address or host name in my pane -> run brb at once (~/.local/bin/brb), then ONE [red] to belam · back = GRANTED to me (OWNER
              02:01:16Z 09-25, verbatim: "you can run back yourself assuming the fix is in, and let's add panic to global PATH so it's easy to
