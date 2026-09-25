@@ -11,7 +11,7 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (03:1xZ 09-25, gen 19)
+## Live state (03:3xZ 09-25, gen 19)
 ```
 LANE           normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
                model HELD (TMM.66) · usd0 = research only, never an operating mode · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
@@ -27,26 +27,28 @@ DE             ROTATED 03:07:52Z on TMM.152's hand-unblock (its quorum card = a 
                coalesced) + SendMessage: (1) re-dispatch DH.303 = the owner's PASS 5 item 1 FIRST (died ~02:40Z, 0 commits) (2) DH.302
                (a00-fe4b70ef @1c72417999) NOT landable: no test, experiment body = the empty template, it unlinks the symlink (3) PASS 5
                items 2-4 + the residue batch's DE rows (4) round B g7.33.10 (5) g1.14.1
-DT             ROTATED 02:59:04Z (29 s after TMM.150) -> post-director-thought-21 (gen 29) · TMM.151 03:05Z = dm (pane busy -> coalesced)
-               + SendMessage (enqueued 03:05:53Z): batch 20's THOUGHT fix, then TMM.150 (batch 21 = the corrective round FIRST; the
-               known cell VERIFIED at experiment:a00-6f40fad2-eca451:33 = 0.991699 / 0.000489), then TMM.149 (PASS 5's 6 + 2)
-               · batch 20 = OSC.28 on DT's LOCAL branch (e7858ef4ef; branch tip 51d1b79443 = its rotate-out), NOT on the trunk:
-               the width search INVERTED the allocator (DT 02:58Z) -> inconclusive_lean_disproved:65 is not a clean read
-               · L3 context: at a MATCHED budget on Qwen2.5 key-only beat random at all 8 widths (batch 19); TMM.143 VOID (TMM.145)
-trunk reds     test_dashboard's SIGINT watch only (the Prime restored F16 in 145d088284 on my [red] 00:25Z)
-board          town:local-maxxing (13 rows): row 7 owes batch 20's verdict (NOT a clean read) once it lands
-LANDED (gen19) none yet
+DT             post-director-thought-21 (gen 29) · batch 20 LANDED dd07cb0ea1 (lean gate; I tabulated the 72 cells: Qwen3 9 of 9 tags
+               INVERTED, Qwen2.5 4 inverted + 4 flat + only 4.5 right; key_only beats random at 8 of 9 Qwen2.5 tags, 0 of 9 Qwen3; holds 0)
+               · MY PREMISE ERROR (TMM.150/151, inherited): the 'known cell' 0.991699 / 0.000489 = widths [13,13,10,10] = 11.75 bits by the
+               harness's bits() (osc_band_kquant_qknorm_a00-bcb6c85e.py:21-23), never 7.75 -> TMM.154 corrects step (2) to a harness check
+               at 11.75 · TMM.155: batch 19's grid is non-increasing but its tags are not bits() ('4.0' = 4.5 ... '7.75' = 11.75); batch 20's
+               [5,5,3,3] cell reproduced batch 19's '4.0' to 4 d.p. · DT is on batch 21 (TMM.150/151/154/155), then TMM.149
+trunk reds     test_dashboard's SIGINT watch only (the Prime restored F16 in 145d088284) · goals --check REFUSES on HEAD: goal:g7.33.12 has no
+               heading_level (from #13, my gate missed it) -> TMM.156 to DE (its THOUGHT holds the owner's 01:13:03Z line = DE's version to
+               write, not mine); goal:g7.33.13 on DE's branch lacks it too
+board          town:local-maxxing (13 rows): row 7 rewritten 03:3xZ -- the tags are not the budgets, batch 20 = NOT a clean read, batch 21's shape
+LANDED (gen19) DT dd07cb0ea1 (batch 20, lean gate)
 ```
 
 ## 🔴 Where it stops
-03:1xZ 09-25 gen 19: both directors re-seated and re-ordered BY NAME (DT: TMM.151; DE: TMM.152 -> rotated -> TMM.153); waiting on DT's [merge-up] for batch 20 and DE's merge-ups
+03:3xZ 09-25 gen 19: batch 20 landed (dd07cb0ea1); DT on batch 21 with TMM.154/155's budget correction; DE (b3) on TMM.153 + TMM.156 (the g7.33.12 heading_level red); waiting on merge-ups
 ```
-state   MAIN = bf1954b212 + this card; cron churn + sequence.json not mine · no gate worktree open (/tmp/de-close is not mine) · next = TMM.154
+state   MAIN = bf1954b212 + this card; cron churn + sequence.json not mine · no gate worktree open (/tmp/de-close is not mine) · next = TMM.157
 NEXT    (1) after ANY director rotation: SendMessage the newest owed order to the NEW session (rotate.py status --post <p> --record latest | grep session_name)
-        (2) DT's [merge-up] for batch 20: lean gate = links, goals --check, evidence + THOUGHT tests, anonymize --diff-file, the GPU-name grep
-            on added lines, the round's _test.py; land ONLY if experiment:a00-a7060fdc-f436eb's THOUGHT carries the inversion finding, else return it
+        (2) DT's batch 21 [merge-up]: the lean gate + tabulate the cells yourself + assert per tag: widths non-increasing AND bits() = the tag;
+            the [13,13,10,10] harness check reproduces 0.991699 / 0.000489 recorded at 11.75 bits
         (3) DE's merge-ups: the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only
-        (4) the board row 7 once batch 20 lands
+        (4) the board row 7 once batch 21 lands · goals --check must return to exit 0 after TMM.156
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
@@ -91,6 +93,7 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
              · locations.shared_project_root(<any worktree>) = MAIN's .agi: a gate-worktree run reads MAIN's config -> to measure a config
              change before landing, patch locations.load_config in-process with the gated config.json
              · a PARTIAL research round may land when its node says pending by its own preregistered rule; the landing message says what is missing
+             · EVERY landing runs snapshot-goals.py --render --check, code merge-ups too: #13 minted goal:g7.33.12 without heading_level and the render has refused since
 reds         attribute each: which range touches the test / its code (git diff --quiet <base> <tip> -- <file>) · re-run it ALONE (a load
              flake passes alone) · run it on MAIN + another range too: red there = the trunk's · test_thought_hygiene counts <!--\s*THOUGHT:BEGIN per node: a quoted marker trips it
 verdicts     read the CONTROL arms before any verdict: a result FLAT across bit budgets while the controls hold = an allocator or harness bug
@@ -99,6 +102,7 @@ verdicts     read the CONTROL arms before any verdict: a result FLAT across bit 
              widest) -- a control must match the budget; random = the structure-blind control · a harness's recorded actual_bits can be the
              tag, not the arm's truth · results rows: results.json 'bench' = a jsonl path OR inline 'rows' [{prompt, arm, tag|arm suffix, agree,
              kl}] -> mean over prompts per arm x width
+             · a TAG is not a budget: compute bits() of the widths yourself (weighted mean width + 16 bits of scale per class over the pairs) -- the '7.75' known cell was [13,13,10,10] = 11.75 (TMM.150/151's premise, corrected in TMM.154)
 fixtures     an experiment's own _test.py: PYTHONPATH=/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib python3 -m pytest
              <test> (= paths.local_maxxing.osc_test_pythonpath; numpy lives in the osc03 pylib -- the venv's own python has no numpy) · a model
              swap between arms = check the model dir each bench row loaded ('hf'), not the label
