@@ -330,21 +330,22 @@ def test_kid_addendum_absent_leaves_the_brief_unchanged():
     assert segs == segs_explicit
 
 
-def test_parent_brief_names_the_carry_forward_lever():
-    """The other half of SD.12: an order with no lever is the same defect as
-    a lever nobody is told about. The parent ITERATION CONTRACT says the next
-    kid's brief MUST carry what the last kid produced -- so it must also name
-    the mechanism (dispatch.py --prompt-file <path|->) that makes that
-    possible, with the exact command shape, or the parent cannot comply.
+def test_parent_brief_names_the_carry_forward_lever(tmp_path):
+    """SD.12: the parent names a real output file and the accepted `--orders`
+    mechanism, rather than a placeholder that leaves the model hunting for a
+    path or teaching the deprecated flag.
     """
+    session_dir = tmp_path / "sessions" / "iter-DH.299" / "a00-test"
+    session_dir.mkdir(parents=True)
+    orders_file = session_dir / "last-kid-result.md"
     parent = _text("parent", dispatch_py="/x/dispatch.py", target="t:1",
-                   max_live=25, kid_ceiling=3)
-    assert "--prompt-file" in parent
-    assert "<path|->" in parent
-    assert "WHAT THE LAST KID PRODUCED" in parent, (
-        "the brief must name the labelled segment so the parent knows what "
-        "it is handing down"
-    )
+                   max_live=25, kid_ceiling=3, session_dir=session_dir)
+    assert f"--orders {orders_file}" in parent
+    assert orders_file.is_absolute()
+    assert session_dir.is_dir()
+    assert "--prompt-file" not in parent
+    assert "<path|->" not in parent
+    assert "WHAT THE LAST KID PRODUCED" in parent
 
 
 
