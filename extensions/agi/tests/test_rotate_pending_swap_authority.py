@@ -35,6 +35,15 @@ def _mk_seat_key(root, seat):
     return p, priv.hex(), pub.hex()
 
 
+def _write_readable_veto_cell(g):
+    from seatsig import veto
+    veto.save(g, {
+        "veto_room": "veto", "rate_limit_per_window": 1,
+        "window_seconds": 3600, "expiry_seconds": 86400,
+        "active_gates": [], "vetoes": [],
+    })
+
+
 def _patch_committed(monkeypatch, rows):
     """Patch `_seats_committed_rows` on BOTH module aliases: rotate's local
     `import send` is the top-level module, a different object from
@@ -238,6 +247,7 @@ def _authority_fixture(tmp_path, old_pub, new_pub, sig_scheme=None):
     repo = tmp_path / "repo"
     g = repo / ".agi"
     (g / "nodes" / ".geometry").mkdir(parents=True)
+    _write_readable_veto_cell(g)
     (g / "config.json").write_text("{}", encoding="utf-8")
     posts = g / "nodes" / ".geometry" / "posts.md"
     rows = [{"name": "aa", "role": "parent", "pubkey": old_pub}]

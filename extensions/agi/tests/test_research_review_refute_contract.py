@@ -12,7 +12,9 @@ import json
 import re
 from pathlib import Path
 
-WF = Path(__file__).resolve().parents[1] / "workflows" / "agi-research-review.js"
+WF_DIR = Path(__file__).resolve().parents[1] / "workflows"
+WF = WF_DIR / "agi-research-review.js"
+MANIFEST = WF_DIR / "research-review.json"
 
 
 def _js_string(src: str, name: str) -> str:
@@ -32,3 +34,19 @@ def test_refute_template_key_list_matches_schema_required():
     schema = json.loads(re.search(r"const REFUTE_SCHEMA = (\{.*\})\n", src).group(1))
     assert stated == schema["required"], (stated, schema["required"])
     assert "batch_empty" in stated
+
+
+def test_manifest_refute_prompt_and_schema_match_js_contract():
+    """The manifest drives the Python/pi harness while the JS script drives
+    Claude Code. Both must require and name the same refute return fields."""
+    manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
+    refute = next(s for s in manifest["stages"] if s["label"] == "refute")
+    stated = _stated_top_level_keys(refute["prompt"])
+    required = refute["schema"]["required"]
+    assert stated == required, (stated, required)
+    assert "batch_empty" in stated
+    assert refute["schema"]["properties"]["batch_empty"] == {"type": "boolean"}
+
+    src = WF.read_text(encoding="utf-8")
+    js_stated = _stated_top_level_keys(_js_string(src, "REFUTE_TMPL"))
+    assert stated == js_stated
