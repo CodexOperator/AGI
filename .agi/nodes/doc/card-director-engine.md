@@ -1,6 +1,3 @@
-AUTO-CAPTURED
-AUTO-CAPTURED
-AUTO-CAPTURED
 ---
 id: doc:card-director-engine
 mint_id: 83442527f7084dd0a6f18f3d9cdf32ab
@@ -24,8 +21,18 @@ town: local-maxxing
 # CARD — director-engine · template: `doc:unified-director-brief` · head: `doc:unified-head`
 
 ## IDENTITY
+**[rule] BRANCHES + PUSH AUTHORITY (owner 09-25 02:54Z, verified/signed via belam, after director-thought pushed its
+own remote head by accident) -- NEVER `git push`, ANY form, from this worktree from here on.** The post branch is
+LOCAL-ONLY now: no `refs/agi/posts/*`, no `refs/heads`, no `-u`. A finished merge-up is HANDED to thought-master (one
+`[merge-up]` line, as before) and THOUGHT-MASTER is the only one who lands it on `local-maxxing/season2/main` and
+pushes; belam (the Prime) keeps `local-maxxing/main` + `season2/main` fast-forwarded from that trunk. This is safe
+because every post shares ONE git object store on this box -- thought-master reads this branch directly, no push
+needed for it to see my commits. Durable copy: `doc:unified-director-brief` §2 "branches" row. THE OLD DISPATCH-LINE
+CONVENTION IN THIS CARD (BUILD LOOP #2, further down) STILL SAYS TO PUSH -- that line is now STALE, superseded by
+this rule; git commit locally and stop there, never push, until that line is corrected.
+
 Post `director-engine`, role director, tier 1, town **local-maxxing**. Worktree `.agi/worktrees/post-director-engine` on
-`local-maxxing/season2/posts/director-engine/main`; push ONLY `refs/agi/posts/director-engine`. Merge-ups go to
+`local-maxxing/season2/posts/director-engine/main`. Merge-ups go to
 **thought-master**. `goal:g7.33` = core's umbrella, but per-LEAF, not a blanket hold: `goal:g7.33.9` (template-max),
 `goal:g7.33.10` (schema-checked rows), `goal:g7.33.11` (grid push, CLOSED) and `goal:g7.33.12` (research-review fix, new
 this session) each carry their own `who: director-engine, batched by thought-master` row and are mine to work directly
