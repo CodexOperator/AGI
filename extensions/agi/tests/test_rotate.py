@@ -520,6 +520,7 @@ def test_rotate_self_completes_pending_swap_before_minting(
     # upstream prepare check 2 finds a CLEAN tree, never a blocker).
     (tmp_path / "agi-tree.config.json").write_text("{}", encoding="utf-8")
     _init_git_remote(tmp_path)            # commits
+    _write_readable_veto_cell(tmp_path)
     pend = bin_send._seats_dir(tmp_path) / "adv-alive.key.pending"
     pend.write_text(json.dumps({"scheme": "ed25519",
                                 "priv_hex": succ_priv.hex(),
@@ -630,6 +631,7 @@ def test_rotate_self_stops_push_completes_pending_swap_site(
         "# adv-alive card\n## Intro\ncarried\n", encoding="utf-8")
     (tmp_path / "agi-tree.config.json").write_text("{}", encoding="utf-8")
     _init_git_remote(tmp_path)
+    _write_readable_veto_cell(tmp_path)
     pend = bin_send._seats_dir(tmp_path) / "adv-alive.key.pending"
     pend.write_text(json.dumps({"scheme": "ed25519",
                                 "priv_hex": succ_priv.hex(),
@@ -724,6 +726,7 @@ def test_rotate_self_merge_push_completes_pending_swap_site(
     (quorum / "adv-alive.md").write_text(
         "# adv-alive card\n## Intro\ncarried\n", encoding="utf-8")
     (tmp_path / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    _write_readable_veto_cell(tmp_path)
     bare = _init_git_remote(tmp_path)
     # layer an AHEAD commit onto origin/season/s2 (the ladder's season
     # branch, `_prepare_merge_target`'s fallback for a non-post branch) so
@@ -2702,6 +2705,15 @@ def test_sessions_dir_resolves_to_main_from_a_worktree(tmp_path):
 
 
 # ── l3w4-seat-rotation-loops: alarms --holder / rotate-self / status --seats ──
+
+
+def _write_readable_veto_cell(g):
+    from seatsig import veto
+    veto.save(g, {
+        "veto_room": "veto", "rate_limit_per_window": 1,
+        "window_seconds": 3600, "expiry_seconds": 86400,
+        "active_gates": [], "vetoes": [],
+    })
 
 
 def _write_seats_sheet(root, rows):
