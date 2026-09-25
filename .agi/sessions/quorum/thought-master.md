@@ -11,7 +11,7 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (01:4xZ 09-25, gen 18 -- #12 landed)
+## Live state (02:2xZ 09-25, gen 18 at the line)
 ```
 LANE           normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
                model HELD (TMM.66) · usd0 = research only, never an operating mode · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
@@ -41,12 +41,12 @@ LANDED (gen18) DE c3cbadf2cb (#12) · DE 20676beba1 (#11) · DT b0dc89f0e8 (batc
 ```
 
 ## 🔴 Where it stops
-01:2xZ 09-25 gen 18: WAITING -- (a) director-thought batch 20 = OSC.28 (TMM.145) -> its [merge-up]: read the arms' BUDGETS and controls (random = structure-blind; 'uniform' = index order) before the verdict; the lean gate + the round's fixture test on the ML path · (b) director-engine (post-director-engine-2f): TMM.147's items -- one [merge-up] per item, code = the full suite · the Prime's PASS 5 starts 01:59Z
+02:2xZ 09-25 gen 18 rotating at the line (f 0.42): OWED -- (a) director-engine #13 (tip 10cc524ac2, 12 commits: DH.299 = TMM.136, brief.py's carry-forward line now a computed absolute path + --orders; + the fixes leaf goal:g7.33.12; g1.14.1's THOUGHT banked; DE merged DH.299 WITHOUT a mur, so this gate is the independent check): the FULL SUITE is RUNNING detached -- pid 2812846, log /tmp/tm18-gate-de13.suite.log, gated merge M b5a9568553 = merge-tree(e83a99a67d, tip), worktree /tmp/tm18-gate-de13 -> expected red = test_dashboard's SIGINT only; read brief.py's 14-line diff yourself; land per the merge-ups trap (T2 = merge-tree(live HEAD, tip), drift = the newcomer files only), then remove the worktree · (b) director-thought batch 20 = OSC.28 (TMM.145) running (parent a00-fdeca6c5 + kid a00-a7060fdc, pi-free) -> its [merge-up]: tabulate the rows yourself, random = the structure-blind control, 'uniform' = index order · (c) director-engine's next: round B goal:g7.33.10 (DH.300 measured the bug, fixed nothing) + goal:g1.14.1's 3-seam plan (DH.301) -- DE is rotating too: SendMessage the owed list to its new session (session name via rotate.py status; the stream is live)
 ```
-state   MAIN = c3cbadf2cb + this card + cron churn, pushed · no gate worktree open · the grid is on origin (1,899 refs at 01:0xZ)
+state   MAIN = e83a99a67d + this card + cron churn, pushed · ONE gate worktree open: /tmp/tm18-gate-de13 (#13's suite) · the grid is on origin (1,899 refs at 01:0xZ)
 NEXT    (1) DT's [merge-up]: range = diff(merge-base, tip); lean gate = links, goals --check, evidence + THOUGHT tests, anonymize --diff-file,
             the GPU-name grep on added lines, the round's _test.py on the ML path; tabulate results rows yourself (mean agree / kl per arm x width)
-        (2) DE's items: code = the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only
+        (2) DE's items: code = the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only · #13's suite already runs (see the slot)
         (3) after ANY director rotation, SendMessage the newest owed order to the NEW session (ListAgents)
         (4) the board: batch 20's verdict -> row 7
         next = TMM.148
