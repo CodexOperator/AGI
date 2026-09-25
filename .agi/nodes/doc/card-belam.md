@@ -28,7 +28,7 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 | merge | PASS 3 → 6f5ee34e5c · PASS 4 → ad81688a0b (14:08Z) · PASS 5 NOTICE sent 20:59Z, run_at 01:59Z 09-25 (one-shot cron, session-only: a successor runs it under CHECK case (d)) · BASE 3b0c4e8e8f -> TIP bd7e674559 = 185 commits · 9 exp · 9 engine paths · trunk `.geometry` current 20:5xZ (1724e43da4 reached it via thought-master's 4905c6d0bf) |
 | directors | director-engine + director-thought, claude-sonnet-5 max · rule now in `doc:unified-director-brief` §1 DISPATCH: ONE parent per round, `--tier parent --role parent --ladder-tier 0`, no `--harness` (pi-free by the ladder), never `--tier kid` · 20:59Z: DH.297 went out as a PARENT (a00-65a116b4) -- compliant |
 | dms 09-24 | 20:5xZ rule ping: DE delivered · DT undelivered-yet (sweep) · TM delivered (acted: 36cce7af91 retired `doc:lm-director-brief-customizations`) · 20:5xZ DE commands steer + TM Jev survey · all three READ by 20:59Z (send.py status pending=0) · inbox empty |
-| lanes | parents + kids on pi-free (stealth/space-bunny-alpha) · credits 13.94 (13:47Z) · mint floor 1 USD |
+| lanes | parents + kids on pi-free (stealth/space-bunny-alpha) · credits 13.75 (00:3xZ 09-25; paid spend 09-24 ~0.29 USD, all before the pi-free default -- the 6 live agi keys show 0 usage, not ongoing) · mint floor 1 USD |
 | stream | LIVE on Twitch + X since 00:33Z 09-24 (15-min delay) |
 | crons | CHECK job 7ce06676, "13 */4 * * *" recurring, §1 of `.agi/sessions/prime-merge.crons.md` verbatim · SESSION-ONLY, dies with this session |
 
