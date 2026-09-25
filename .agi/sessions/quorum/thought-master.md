@@ -11,82 +11,51 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (12:0xZ 09-25, gen 21)
+## Live state (22:4xZ 09-25, gen 22)
 ```
-LANE           normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
-               model HELD (TMM.66) · usd0 = research only, never an operating mode · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
-OWNER 20:1-4xZ (via the Prime, VERIFIED) I co-own the director docs (doc:unified-director-brief + doc:card-director-*) via write.py + ONE dm
-               per live director · dispatch = ONE parent per round (--tier parent --role parent --ladder-tier 0, no --harness), never --tier kid ·
-               NEVER the Agent tool, any post
-OOM            04:00Z killed every seat; the 04:0xZ recovery respawned none (the 'ultracode quiet' settings cell crashed rotate._is_ultracode ->
-               the Prime's heal fix 664d935157) · the watcher respawned TM gen 20 06:40:25Z · DE gen 15 06:40:55Z · DT gen 30 06:41:25Z · town
-               restored 06:44Z (c9652ef3fe: 5 seats, memguard + OOMPolicy=continue) · stream = the Prime's brb PAUSE since 04:47:43Z, for the owner's back
-ME             gen 21: seated 11:42Z (session agi-7d, window @13) · the ack answered continue by gen 20 -> wake acts none · meter 0.125 at 12:0xZ
-               · gen 20's two [red]s (06:42Z machine id, 06:48Z account/org uuids) = history; the 'printing' trap holds
-PASS 5         CLOSED 02:37Z: trunk @5b7d503fa7 -> season2/main 8daa626e89 (449 commits, 18 rounds on pi-free, 0 USD, 9 accept_with_residue, 9 demote,
-               0 RED) · DT's 6 demotes + 2 residues -> TMM.149 · DE's -> hypothesis:pass5-0925-residue-batch (goal:g1), the table in the node
-PASS 6         CLOSED 10:49Z (the Prime): BASE 5b7d503fa7 -> TIP 1bf60c203b, 184 commits, 9 rounds: 3 accept_with_residue · 6 demote · 0 RED
-               · for DT: batch 21 DEMOTED (its 'uniform' arm = index_order = positional grouping) + lm-qk-norm-matched-fresh-key-only-grid
-               DEMOTED 2nd PASS in a row -> TMM.167 (delivered) · for DE: the Prime's [decision] = hypothesis:pass6-0925-residue-batch (4 code
-               defects + 4 demotes) · trunk pushed to c40649160d (the Prime's PASS 6 close)
-PASS 7         NOTICED 12:44Z (the Prime, [owner]): trunk -> season2/main review at 17:43Z 09-25, BASE 1bf60c203b -> TIP f20b29eba8 at notice
-               (47 commits) · what lands before 17:43Z rides in it · RED = secrets / node deletion / broken link / protocol regression
-GRID           goal:g7.33.11 LANDED + CLOSED (20676beba1): the crontab runs grid.py push-changed; origin holds the post-split refs only -- nothing owed
-DE             gen 19 = post-director-engine-c2 (window @14, seated 12:28Z; gen 18 = post-director-engine-61) · LANDED today: b058583fa6 (TMM.159-161: goals red closed, DH.304/305/307 proved, DH.308
-               disproved) + da46aa87dd (DH.312: a malformed matching row refuses the publish; inconclusive_lean_disproved:85; all 22 live rows
-               pass its strict parse) · TMM.166 (dm): next = the residue round hypothesis:key-row-publish-appends-instead-of-refusing-on-an-
-               unrecognized-own-row (a valid JSON-string row -> likely fail-open append) · PASS 6 defect 4 LANDED 2054e3e04c (TMM.168: rotate
-               flattens a symlinked card before every card write) + 850896a493 (TMM.169: defect 1, >1 matching own row refuses) + 985f58879b
-               (TMM.170: defect 2, manifest required_args) + a39187ca27 (TMM.174: round B goal:g7.33.10 = write.py set / create --set judge
-               each row by a declared type / regex / refuse:, NO undeclared-field refusal + grid.push_batch_limit a config cell (200) + the
-               brainstorm JS pin + brief.py's JSON-list evidence_runs example + 5 PASS 5 residues closed) -- returned 3 times first: TMM.171
-               (the set gate refused 155 live (type, field) pairs over 2,324 node-fields: verdict, heading_level, rebrief_*, production_lines),
-               TMM.172 (8 new suite reds), TMM.173 (brief.py:1518's scalar example + test_town_mint's message; relayed to gen 19 by SendMessage)
-               · next (TMM.174 dm): the JSON-string residue round · the last open PASS 5 row (key-row-publish-carries-only-key-cells-and-a-prime-
-               row-edit-reaches-a-worktree-post) · goal:g1.14.1 fresh against DH.301's plan · PASS 6 defect 3 banked (DH.311's WIP)
-DT             gen 30 (session agi-af, window @3, row joined) · its user answered its startup question 07:10:26Z = 'Proceed fully' (not me)
-               · batch 21 LANDED 40156ab515 (07:5xZ, @cd13602e1a after TMM.162: verdict proved by the rule + the random control in the node)
-               · PASS 6 DEMOTED batch 21 + the qk-norm grid -> TMM.167 (both corrective rounds inside TMM.149) · board row 7: my 'proved' = VOID
-               · its correction LANDED 4c8376c991 (batch 21 -> pending 0.3; 'beats uniform' = 'beats positional') · 10:55Z it HOLDS every new
-               dispatch 'pending my operator, independent of belam's GO' -> [decision] to belam 11:0xZ · 13:39Z ITS OPERATOR'S GO: OSC.31
-               dispatched for TMM.167 (1) (a true mode=uniform arm at matched bits(), full grid, both models) = ONE parent a00-0186eca2,
-               pi-free (lease verified) · the [decision] closed to belam 13:4xZ
-               · 13:47Z [merge-up] @b3a38f3aa8 (OSC.31) RETURNED (TMM.175): verified (bits([w]) = w + 8/np -> 0/9 tags exact on both models;
-               the square-width tie claim falsified by cells.jsonl: qwen2 6.0 [5,5,5,5] kl 0.2778 vs 0.661) BUT a00-61045375-771f42's BODY
-               keeps the kid's 'w + 1' table -> rewrite · next OSC.32 = true uniform [w] at the exact budgets w + 8/np (a 4-class tuple
-               exists at each: np=32 4.25-7.25, np=64 4.125-7.125), 5 arms x 4 budgets x 2 models = 40 cells, one pi-free parent
-               · TMM.176 (a stale 2nd '## Verdict' survived the rewrite) -> OSC.31 LANDED ae2276a95c 14:0xZ (TMM.177: pending + the tie
-               claim disproved; board row 7 7e152b5aa3) · in flight: OSC.32 = TMM.167 (2) qk-norm grid (parent a00-8b00477c) +
-               OSC.33 = my 40-cell matched-uniform round (parent a00-ffb2ae74) -- both leases pi-free parents (read 13:5xZ)
-               · TMM.163 acked 07:47Z: branch synced (bfd19c2345, local), meter re-pinned to c6bf87fc (verified) · HOLDING before TMM.149 (PASS 5's
-               6 demotes + 2 residues) -> the Prime's [decision] 08:4xZ: YES, TMM.149 now under delegated authority (the go sent to DT directly; F22:
-               an autonomous seat never uses AskUserQuestion) -> DT's corrective rounds come to me as merge-ups
-               · batch 20 LANDED dd07cb0ea1 = NOT a clean read (the width grid inverted the allocator) · a tag is not a budget: the '7.75'
-               anchor [13,13,10,10] = 11.75 bits by bits() (TMM.154/155) · then TMM.149
-trunk reds     test_dashboard's SIGINT watch only · goals --render --check = exit 0 on MAIN (362/362, re-read 12:0xZ on 985f58879b)
-board          town:local-maxxing (13 rows): row 7 = batch 21 VOID -> pending (07:5xZ + TMM.167) · row 8 += PASS 6 defects 4 / 1 / 2 LANDED (713b9604a8)
-               + round B goal:g7.33.10 LANDED (5be6220496)
-LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21) · DE b058583fa6 (TMM.159-161) + da46aa87dd (DH.312) · DT 4c8376c991 (batch 21 -> pending) · DE 2054e3e04c (PASS 6 defect 4) + 850896a493 (defect 1) · gen 21: DE 985f58879b (defect 2) + a39187ca27 (round B goal:g7.33.10, TMM.174) + DT ae2276a95c (OSC.31, TMM.177)
+LANE      normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
+          model HELD (TMM.66) · usd0 = research only, never an operating mode · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
+OWNER     20:1-4xZ 09-24 (via the Prime, VERIFIED): I co-own the director docs (doc:unified-director-brief + doc:card-director-*) via write.py
+          + ONE dm per live director · dispatch = ONE parent per round (--tier parent --role parent --ladder-tier 0, no --harness), never
+          --tier kid · NEVER the Agent tool, any post
+WEDGE     13:58:34Z memory livelock froze the box (measured cause = the reaper, goal:g6.49: 1784 mem_cap-probe OOM kills, a ~3000-spawn sweep
+          every 30 s over 622 worktrees, a lease-only liveness read) · box died 19:30Z · owner reset 21:45Z · 22:19Z reboot (a login-screen
+          suspend hung; sleep targets MASKED) · /tmp WIPED · 0 commits on the trunk or any post branch 13:59Z -> 21:55Z
+HOT PATCH 48e16356f0 (the Prime, owner 22:0xZ 'light chain') = codex-town goal:g6.49 reaper fix on the trunk; engine units restarted 22:24Z
+          · render --check exit 0 on MAIN (366/366, 22:4xZ) · memory 11 GB available (22:4xZ)
+TOWN      re-seated by heal crash-recovery 22:34-22:37Z · TM gen 22 = @2 agi-4d [35dd9a] (row 28066c6076; meter pinned by the watch's
+          after_join 22:37:34Z) · DE gen 20 = @3 post-director-engine-83 · DT gen 31 = @4 post-director-thought-ff (both cwd = their worktree)
+          · @5 agi-11 (cwd MAIN, 22:36:58Z, unverified: SM?) · the Prime = belam gen 7 @1 agi-ec (rotated 22:29Z) · stream relay DOWN
+PASS 7    HELD by the Prime (its one-shot died in the wedge; pass_started_at null) · delta = 1bf60c203b -> trunk (91 commits at 22:22Z + the
+          hot patch) · runs once the town is up and memory holds · RED = secrets / node deletion / broken link / protocol regression
+DT        OSC.32 (parent a00-8b00477c, 13:48:25Z) + OSC.33 (a00-ffb2ae74, 13:53:13Z) DIED in the wedge: uncommitted partial work in both
+          worktrees (OSC.32's kid touched .agi/config.json + paths.py = out of a research kid's scope) · experiment:a00-325d4c56-bedcc8
+          (landed in MY ae2276a95c) = disproved with NO evidence_runs -> the grid's evidence gate demoted it IN MAIN'S WORKING TREE
+          (inconclusive_lean_disproved:50, uncommitted) · orders TMM.178 + TMM.180 (my cwd premise corrected)
+DE        DH.360 (a00-aa84faa3 @94eae3ef4c, pending, seams 1+2 of 3): its mur died with the box · DH.362 (a00-a7d949cf @3772c29644, the last
+          open PASS 5 row, +38 test lines, 28 passed): mur never launched · its /tmp log + args GONE · orders TMM.179 + TMM.181 (TMM.181
+          'pane busy' at 22:4xZ, the sweep retries)
+trunk     MAIN = local-maxxing/season2/main, 10 ahead of origin de5c40476f at 22:4xZ (watch after_join + cron + my ack) · no gate worktree
+board     town:local-maxxing (13 rows) unchanged since 7e152b5aa3 (row 7 = OSC.31 LANDED ae2276a95c)
 ```
 
 ## 🔴 Where it stops
-14:0xZ 09-25 gen 21 WAITS on the next [merge-up] (DT OSC.32 / OSC.33, DE's rounds): round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT: OSC.31 LANDED ae2276a95c (TMM.177), OSC.32 + OSC.33 in flight (pi-free); the Prime's PASS 7 at 17:43Z
-````
-14:0xZ 09-25 gen 21 WAITS on the next [merge-up] (DT OSC.32 / OSC.33, DE's rounds): round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT: OSC.31 LANDED ae2276a95c (TMM.177), OSC.32 + OSC.33 in flight (pi-free); the Prime's PASS 7 at 17:43Z
+22:4xZ 09-25 gen 22 (re-seated after two reboots) WAITS on DT's + DE's replies to TMM.178-181, then their [merge-up]s
 ```
-state   MAIN = ae2276a95c + board 7e152b5aa3 + this card; comms churn, sequence.json, rotation records = not mine · no gate worktree
-        open · TMM.177 = the last order sent (DT's [landed]) · next = TMM.178 · the owner's own words open the HEAD since 13:57Z (9af2dcd074)
-NEXT    (1) DT's re-sent OSC.31 (the corrected node body) then OSC.32 [merge-up]s: the lean gate (test_evidence_gate + test_node_writer
-            + test_thought_hygiene) + the CONTROL arms before any verdict -- compute bits() of every arm yourself (fixed.bits); then TMM.149's rest
-        (2) DE's next [merge-up] (the JSON-string residue round, the last PASS 5 row, goal:g1.14.1): the full suite on merge-tree(HEAD, tip)
-            in a detached /tmp worktree (expected red = test_dashboard's SIGINT only) + goals --render --check + links + the schema diff vs
-            MAIN + anonymize on the gated tree; reproduce red/green in a pre-fix worktree; measure the first live run on MAIN's data (a
-            validation gate: /tmp/tm21-setgate-measure.py <gate root> + real --dry-runs of the routine writes)
-        (3) keep goals --render --check at exit 0 on MAIN: every landing runs it
-        (4) before 17:43Z: what lands rides in PASS 7 -- a protocol regression there is RED for the whole pass
+state   MAIN = 28066c6076 + watch / cron commits; comms churn, sequence.json, rotation records = not mine · no gate worktree open
+        · last order sent = TMM.181 · next = TMM.182
+NEXT    (1) confirm TMM.178-181 reached both panes (a user PROMPT or queued_command line in each jsonl; DE's TMM.181 was 'pane busy')
+            -- none after the sweep = SendMessage the session name (post-director-thought-ff / post-director-engine-83; re-read the
+            registry first, a rotation renames it)
+        (2) DT: a00-325d4c56-bedcc8's evidence_runs fix FIRST (PASS 7 reads it) · then OSC.33 / OSC.32 re-runs, ONE parent at a time:
+            lean gate + the CONTROL arms + bits() of every arm myself · a kid's .agi/config.json / paths.py edit = out of scope
+        (3) DE: DH.360 then DH.362 [merge-up]s -- full suite on merge-tree(HEAD, tip) in a detached /tmp worktree + render --check +
+            links + the schema diff vs MAIN + anonymize on the gated tree + evidence_gate over the range's nodes (the new trap)
+        (4) the grid gate's uncommitted demote of a00-325d4c56-bedcc8 in MAIN: leave it to the cron / DT's fix; at landing the range's
+            files must not be dirty in MAIN (comm -12)
+        (5) PASS 7 = the Prime's: a protocol regression in what I land before it runs = RED for the whole pass
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
-````
 
 ## Traps (post-specific, learned)
 ```
@@ -186,14 +155,21 @@ stream       LIVE since the owner's 00:5xZ 09-25 call (the Prime's notice 01:59Z
 printing     ~/.claude/sessions/<pid>.json 'pidDomain' embeds /etc/machine-id; a transcript's 'bridge-session' event carries account + org uuids
              -> print NAMED fields only, never a whole record (06:42Z + 06:48Z 09-25: two [red]s to belam) · a suite's E-lines can print a
              FIXTURE key (test_rotate_alert_two_tree: a pytest-tmp priv_hex, protects nothing) -> filter E-lines on key|priv before printing
-recovery     a crash-recovered seat (gen 20, 06:40Z): the row keeps the DEAD pid + a blank session_id; the meter pin keeps the dead jsonl · re-seat =
-             (1) rotate.py ack --post thought-master --gen N continue (no --ref: writes the ack only) (2) own jsonl = the one in
-             ~/.claude/projects/-data-work-agi/ holding a string only you typed -> rotate.py meter --post thought-master --pin
-             .agi/sessions/thought-master.meter --session-log <it> (3) identity = in-process rotate._join_successor(window @id) ->
-             _backfill_session_ref(ref='', pid, session_id, session_name) -> _ack_commit_seats (own row only, via a temp index; 2e1ea2ec28)
-             · the watch: a dead row pid + a LIVE pinned session = 'stale-row', never DEAD · pin-reap only LISTS while .agi/config.json
-             reaper.pin_reap is unset · recovered DIRECTORS run with cwd = MAIN (registry cwd; earlier gens ran in their worktrees) and the ack
-             prints a 'git push' line (DE gen 15 ran it, 06:48Z) -> tell each: work in the worktree by path, never commit on MAIN, never push
+recovery     a heal respawn (gen 22, 22:34Z) leaves the OWN row dirty in MAIN (gen + window written, session blank, uncommitted) -> a
+             committing ack REFUSES · route (verified 22:37Z) = brb --status (relay down) -> ListAgents: the bare [ref] beside 'This session
+             is' -> rotate.py ack --seat thought-master --gen N --ref <ref> --no-commit continue (the JOIN by @id back-fills pid + session_id
+             + session_name + ref) -> in-process rotate._ack_commit_seats(rotate._shared_graph_root(rotate.find_project_root()),
+             'thought-master', Namespace(gen=N), ref) = own row only (28066c6076) · the watch's after_join pins the meter to the new jsonl
+             (its 'pin' result in the rotation record) · stream LIVE = gen 20's route: ack without --ref, then _join_successor(@id) ->
+             _backfill_session_ref(ref='') -> _ack_commit_seats in-process · the watch: a dead row pid + a LIVE pinned session =
+             'stale-row', never DEAD · pin-reap only LISTS while .agi/config.json reaper.pin_reap is unset · a recovered DIRECTOR's cwd =
+             the registry's (06:4xZ = MAIN, 22:3xZ = its worktree): read ~/.claude/sessions/<pid>.json cwd (NAMED fields) before saying
+             it in an order (TMM.180/181 corrected my TMM.178/179) · its ack prints a 'git push' line -> never commit on MAIN, never push
+reboot       /tmp is WIPED: a director card's mur log / args file under /tmp points at nothing (DE gen 19's DH.360 / DH.362, 22:4xZ) · a
+             round in flight dies with the box: its worktree keeps uncommitted partial work -> the director salvages or re-dispatches
+evidence     the grid cron's evidence gate (evidence_gate.enforce_on_disk) DEMOTES a proved / disproved verdict without a resolvable
+             evidence_runs (a JSON list of existing type:slug ids) IN MAIN'S WORKING TREE, uncommitted, 'caught at grid commit' -> gate
+             every landing's range with it: my ae2276a95c carried a00-325d4c56-bedcc8 = disproved with no evidence_runs (22:4xZ)
 agent tool   NEVER spawn Claude subagents (the Agent tool) -- owner 20:3xZ 09-24, all posts, like the no-Claude-Workflow rule; graph recon = read it directly
 director docs co-owned (owner 20:1xZ): edit doc:unified-director-brief / doc:card-director-* via write.py, then ONE dm per live director naming the change · a card's
              mint THOUGHT may quote the owner: that version's grid/git history keeps it (the HEAD rule banks owner lines in THOUGHTs)
@@ -214,4 +190,4 @@ comms        an attribution block (Claude-Session trailer + SendUserFile) beside
 ```
 
 ## BANKED (owner-only)
-Bonsai ternary recipe on Qwen3-8B · oscillator readout on C2C-fused KV · llama.cpp block-diffusion drafter · per-channel-K 2-bit KV in ggml-cpu · rpc-split only if the owner names a model that does not fit · kid-persona QLoRA after trajectory capture · coupled-oscillator / SNN C2C fuser vs a frozen trunk · should the mirror menu BE the spawn gate · TypeSafe plugin + .env rename · Neon key · Doppler ownership · per-kid endpoint keys (g5.20) · Opus on the pi allowlist for brainstorms · claude-code kids on local-town (config-valid, unauthorised) · the older OpenRouter account (~14 USD): fold or reserve? · the ONE justified Camber burst (cross-arch attribution A/B, ~20 min) · vision:local-maxxing refresh from the 21:4xZ trajectory (owner/prime write only) · provider-key rotation after the 22:19Z env dump (dashboard-minted keys = owner/Prime) · KV slot save / restore on the local brain (--slot-save-path = a server restart at a leaf boundary) · DT gen 30's own AskUserQuestion (take the seat or not) = its human's / the Prime's ([decision] 06:5xZ 09-25).
+Bonsai ternary recipe on Qwen3-8B · oscillator readout on C2C-fused KV · llama.cpp block-diffusion drafter · per-channel-K 2-bit KV in ggml-cpu · rpc-split only if the owner names a model that does not fit · kid-persona QLoRA after trajectory capture · coupled-oscillator / SNN C2C fuser vs a frozen trunk · should the mirror menu BE the spawn gate · TypeSafe plugin + .env rename · Neon key · Doppler ownership · per-kid endpoint keys (g5.20) · Opus on the pi allowlist for brainstorms · claude-code kids on local-town (config-valid, unauthorised) · the older OpenRouter account (~14 USD): fold or reserve? · the ONE justified Camber burst (cross-arch attribution A/B, ~20 min) · vision:local-maxxing refresh from the 21:4xZ trajectory (owner/prime write only) · provider-key rotation after the 22:19Z env dump (dashboard-minted keys = owner/Prime) · KV slot save / restore on the local brain (--slot-save-path = a server restart at a leaf boundary).
