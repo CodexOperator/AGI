@@ -1515,8 +1515,21 @@ def _persistent_stop(iter_dir: Path, agent_id: str) -> bool:
             or bool(os.environ.get(_PERSIST_STOP_ENV)))
 
 
+def _persistent_post(root: Path, seat: str | None, proc, agent_id: str,
+                     record: dict, occupied: bool) -> None:
+    """Publish/release this persistent child in the one config:posts row."""
+    if not seat:
+        return
+    from rotate import _write_identity_cells  # one identity-cell writer
+    _write_identity_cells(
+        root, seat=seat, actor=seat, role=record["role"],
+        cells={"pid": proc.pid if occupied else 0,
+               "session_ref": agent_id if occupied else ""})
+
+
 def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
-                          record: dict, session: Path,
+                          record: dict, session: Path, root: Path,
+                          seat: str | None = None,
                           max_restarts: int = _PERSIST_MAX_RESTARTS,
                           poll_s: float = _PERSIST_POLL_S) -> int:
     """HOLD one seat and re-open the SAME round when it dies.
@@ -1528,24 +1541,32 @@ def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
     the record's CURRENT pid / `restart_count` and persists `agent.json`.
     """
     restarts = 0
+    terminal = "stopped"
     while not _persistent_stop(iter_dir, agent_id):
         if proc.poll() is None:
             _PERSIST_SLEEP(poll_s)
             continue
         if restarts >= max_restarts:
+            terminal = "restart-exhausted"
             break
         try:
             proc = reopen("ab")
         except BaseException as exc:  # noqa: BLE001
             print(f"persistent: {agent_id} restart failed: {exc}",
                   file=sys.stderr)
+            terminal = "restart-failed"
             break
         restarts += 1
         record["pid"] = proc.pid
         record["restart_count"] = restarts
         (session / "agent.json").write_text(json.dumps(record, indent=2))
+        _persistent_post(root, seat, proc, agent_id, record, True)
         print(f"persistent: {agent_id} restart {restarts}/{max_restarts} "
               f"pid={proc.pid}")
+    record.update(persistent=False, pid=None,
+                  persistent_terminal_reason=terminal)
+    (session / "agent.json").write_text(json.dumps(record, indent=2))
+    _persistent_post(root, seat, proc, agent_id, record, False)
     return restarts
 
 
@@ -2949,11 +2970,13 @@ def main() -> int:
         spawn_line += f" level={level} strategy={strategy}"
         print(spawn_line)
         if args.persistent:
-            # Hold AFTER the record is on disk; the supervisor keeps pid and
-            # restart_count current.
+            # Claim the selected post before the hold; the supervisor keeps
+            # only this row and the same in-memory/agent.json record current.
+            _persistent_post(root, args.seat, proc, agent_id, agent_record, True)
             _supervise_persistent(
                 proc, _open_round, iter_dir=iter_dir, agent_id=agent_id,
-                record=agent_record, session=sess_dir)
+                record=agent_record, session=sess_dir, root=root,
+                seat=args.seat)
 
     # The one authoritative write, under lock and against a fresh read
     # (goal:s28 for the merge, goal:g4.8 for surviving concurrency). The
