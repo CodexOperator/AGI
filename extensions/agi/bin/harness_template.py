@@ -285,4 +285,14 @@ def render(harness_id: str, *, prompt=None, model=None, effort=None,
     args = [str(bin_path or _first_arg(harness_id, tmpl))]
     for part in parts:
         args.extend(_emit(part, values))
+    if "--no-context-files" in (extra_args or []):
+        seen = False
+        deduped = []
+        for a in args:
+            if a == "--no-context-files":
+                if seen:
+                    continue
+                seen = True
+            deduped.append(a)
+        args = deduped
     return args

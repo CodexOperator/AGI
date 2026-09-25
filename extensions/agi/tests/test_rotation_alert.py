@@ -1947,3 +1947,16 @@ def test_l5_no_spawn_declines_never_reads(
     assert calls == [], "NO_SPAWN must decline BEFORE the read ever runs"
     assert "NOT auto-read (AGI_HOOK_NO_SPAWN)" in out, out
     assert "DELIVERED IN THIS TURN" not in out, out
+
+
+def test_capture_cluster_templates_preserve_exact_output():
+    """The capture-declined, captured, and captive-deferred templates keep
+    the original f-string bytes while routing all three through render()."""
+    assert hook.render("rotation_alert", "capture_declined", seat="a") == \
+        "rotation: capture for a declined (AGI_HOOK_NO_SPAWN)."
+    assert hook.render("rotation_alert", "captured", seat="a", minutes=7,
+                       line="stop: threshold") == \
+        "rotation: CAPTURED a's final card (7 min stale): stop: threshold"
+    assert hook.render("rotation_alert", "captive_deferred_body",
+                       prefix=hook.DEFER_PREFIX, which="suite-lock-held") == \
+        f"{hook.DEFER_PREFIX} (suite-lock-held) — the captive auto-rotate does not fire while that holds."
