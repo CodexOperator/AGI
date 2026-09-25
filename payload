@@ -904,36 +904,6 @@ FORMAT UPDATE 2026-09-05: the report has SEVEN sections, not six. New section 6,
 <!-- BODY:BEGIN -->
 # goal:g1.14
 
-#### G1.14.1 — A WORKFLOW "ROUND" STAGE CHAINS A PARENT DISPATCH STRAIGHT INTO ITS OWN REVIEW -- one manifest extends/prelude mechanism so round-mur and round-research-review need no hand-authored glue (re-homed from goal:g15 09-25; assigned director-engine) — status: active
-
-# goal:g1.14.1
-
-# goal:g1.14.1
-
-# goal:g1.14.1 — A WORKFLOW "ROUND" STAGE CHAINS A PARENT DISPATCH STRAIGHT INTO ITS OWN REVIEW
-
-```
-leaf      one workflow.py stage kind ("round") dispatches ONE parent, waits on its own status (never cli.py wait, which is
-          blind to tier:parent rows), and harvests {key, hypothesis, experiments, files, old_tip, new_tip, verdict} from git
-          on its done commit -- so a manifest can chain straight into the existing, unchanged review stages (round-mur ->
-          merge-up-review; round-research-review -> research-review) instead of the director computing harvest args by hand
-          and running the two halves as separate operations
-source    the owner 2026-09-24 21:4xZ (verbatim, via the Prime): "Can we include the parent spawn on a specific goal/
-          hypothesis node as part of our mur workflow in our configs? So that both the parent spawn and the subsequent mur
-          for their result is in one workflow? ... Is it possible to implement with very little code likes but still do it
-          robustly?" -- minted by the Prime as hypothesis:a-round-stage-spawns-the-parent-and-chains-its-review-in-one-
-          workflow (eee1800559) under the generic goal:g15 bucket, deleted the same session on the owner's word ("There's
-          no need for a hypothesis for the round-mur no? It's just a workflow" / "Just delete it if not pushed"), then
-          re-authorized 09-25 00:2xZ once the owner clarified the intent was to re-home it under a properly-scoped goal
-          rather than drop it -- config-maxxing (this is a template/manifest-chaining capability, not a bare code change)
-home      the G1.14 "ONE workflow router" umbrella -- workflow.py's own architecture goal, empty until now; the CLI-grammar
-          tree (goal:g1.25.*) is a different surface (commands.md/jev), not this
-rule      KEEP SPLITTING (goal:g5's standing convention): one leaf, one small round
-round     hypothesis:a-round-stage-spawns-the-parent-and-chains-its-review-in-one-workflow (re-minted here, content
-          unchanged from eee1800559 -- only the parent goal moved)
-writer    director-engine
-```
-
 ### G1.15 — ONE message router — invisible harness translation for seat-addressed sends — status: active
 
 <!-- BODY:BEGIN -->
@@ -7805,7 +7775,7 @@ thought-master 20:06Z 09-23: the town (local-maxxing) LANDED its session-capture
 | done | the five probes above each refused (exit != 0, one line naming the row and the rule) · a valid goal re-title = ONE verb, and snapshot-goals.py --render --check still exits 0 · a body row replaced by its name, never by line numbers · [goal] declares the title format (<goal_id>: <text>) · tests pin all of it |
 | who | director-engine, batched by thought-master (TMM.128) |
 
-#### G7.33.11 — THE GRID STAYS refs/grid/* -- push only the post-split set, batched, so the remote finally holds it — status: complete
+#### G7.33.11 — THE GRID STAYS refs/grid/* -- push only the post-split set, batched, so the remote finally holds it — status: active
 
 # goal:g7.33.11
 
@@ -7817,9 +7787,6 @@ thought-master 20:06Z 09-23: the town (local-maxxing) LANDED its session-capture
 | where | the namespace = grid.storage_trunk (a config cell per branch), never a literal · the push builds in extensions/agi/bin/crons.py:554-559, the refspec in extensions/agi/bin/grid.py:171 (`push_spec_for`) · the cron line = cron:crons (NOT `config:crons` -- that id does not resolve, verified) · .agi/nodes/.geometry/crons.md |
 | done | origin's ref count for the namespace = the local post-split count (1,868 at 18:4xZ, plus any newer) · the 2,430 split-only snapshots never pushed and never deleted (0 local refs deleted, ever) · every push <= 200 refs, only tips origin lacks · 0 rejected in 3 consecutive cron runs · a new branch's namespace cross-populated from its parent's tips at the split (no fresh v1 roots) · the push-rejection lines stripped from the cron log once those 3 runs are clean (before / after bytes reported) · tests pin the batching and the post-split filter · ONE `[merge-up]` as soon as round A is done |
 | who | director-engine NOW (the owner 18:17Z: "let the director work it"), batched by thought-master (TMM.128 -> TMM.129 -> TMM.130 void -> TMM.132) |
-
-## Agent Notes
-director-engine 01:1xZ 09-25: CLOSED. TMM.144 close-out verified end to end: 4 consecutive push-changed ticks on MAIN, 0 rejected each (1899, 1, 0, 21 refs -- the 21 reflects real concurrent town activity, not a regression); ls-remote refs/grid/local-maxxing/* = 1900 = local total 4330 minus the 2430 excluded pre-split roots, exact match; 0 local refs ever deleted (verified by code: push_batches and cmd_push_changed only read and push, no ref deletion call anywhere). Log cleanup done: agi-crons-agi-3fbc6951.log 885043047 to 123271040 bytes (86 pct removed, 761772007 bytes of Timed out validating rule rejection lines from the pre-fix era stripped; 0 remain).
 
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
@@ -12565,7 +12532,7 @@ home      the G1 CONFIG-MAXXING umbrella (commands.py's own goal is goal:g1.10; 
           town:local-maxxing's board lists it for the town across umbrellas
 claims    ONLY the cli-grammar deliverable of goal:g7.33 (g7.33.md:57, G14.14.6's maxxing pass: every bin verb, its args, invariants,
           traps) -- g7.33 itself stays core's and held
-shape     (owner 2026-09-24 20:3xZ steer, verbatim in doc:l5-owner-decisions) an ACTION REGISTRY = every engine action as a typed entry, the ONE choice set jev reads · commands.py = a lightweight query + parse layer over the registry, never the registry itself · the registry stays compatible with off-the-shelf libraries that turn python scripts into CLI commands dynamically via templates ·
+shape     (owner 2026-09-24 20:3xZ steer, verbatim in this goal's THOUGHT) an ACTION REGISTRY = every engine action as a typed entry, the ONE choice set jev reads · commands.py = a lightweight query + parse layer over the registry, never the registry itself · the registry stays compatible with off-the-shelf libraries that turn python scripts into CLI commands dynamically via templates ·
           propose (Python / CLI / localhost endpoint) validates and returns the argv, never executes
 serves    goal:g5.24.3 the magic pane: MP.02's suggester and held-out set score against this manifest; the town builds no second grammar
 work      director-engine (build lane) · first round: hypothesis:commands-manifest-is-jevs-one-choice-surface
