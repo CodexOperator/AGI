@@ -5,6 +5,7 @@ cap-so-a-runaway-dies-alone-and-by-name-never-a-global-oom)."""
 from __future__ import annotations
 
 import os
+import pathlib
 import shutil
 import signal
 import subprocess
@@ -12,6 +13,13 @@ import sys
 
 _PROBE: "bool | None" = None
 _SUFFIX = {"K": 1024, "M": 1024 ** 2, "G": 1024 ** 3, "T": 1024 ** 4}
+
+#: The probe's scope carries a FIXED unit name so its failed unit can be
+#: reset by name afterwards. An anonymous `run-<random>.scope` cannot be, and
+#: systemd keeps every failed transient unit resident until `reset-failed` --
+#: measured 1422 failed `run-*.scope` units against 1784 cgroup OOM kills on
+#: encryption-town in 6 days, one pair per spawn.
+_PROBE_UNIT = "agi-memcap-probe"
 
 
 def resolve_memory_cap(cfg: dict) -> "str | None":
@@ -31,24 +39,105 @@ def _as_bytes(spec: str) -> int:
     return int(float(s[:-1]) * _SUFFIX[s[-1]]) if s[-1] in _SUFFIX else int(s)
 
 
+def _boot_id() -> str:
+    """The running kernel's boot id, so a cached probe verdict is never read
+    across a reboot (cgroup support, swap and the user manager can all differ
+    on the next boot)."""
+    try:
+        return pathlib.Path(
+            "/proc/sys/kernel/random/boot_id").read_text().strip()
+    except OSError:
+        return ""
+
+
+def _probe_cache_path() -> "pathlib.Path | None":
+    """Where the cross-process probe verdict lives. `AGI_MEMCAP_CACHE` wins;
+    else the per-user runtime dir (tmpfs, cleared on boot); else `/tmp`.
+    None means "no cache is writable" -- the probe then runs per process, the
+    old behaviour, rather than failing."""
+    env = os.environ.get("AGI_MEMCAP_CACHE")
+    if env:
+        return pathlib.Path(env)
+    run = os.environ.get("XDG_RUNTIME_DIR")
+    base = pathlib.Path(run) if run else pathlib.Path("/tmp")
+    try:
+        base.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        return None
+    return base / ".agi-memcap-probe"
+
+
+def _read_cached_probe() -> "bool | None":
+    """The verdict cached for THIS boot, or None (absent, stale or corrupt)."""
+    path = _probe_cache_path()
+    if path is None:
+        return None
+    try:
+        boot, _, val = path.read_text().strip().partition(" ")
+    except OSError:
+        return None
+    if not val or boot != _boot_id():
+        return None
+    return val == "1"
+
+
+def _write_cached_probe(val: bool) -> None:
+    """Best-effort: an unwritable cache costs a re-probe, never a failure."""
+    path = _probe_cache_path()
+    if path is None:
+        return
+    try:
+        path.write_text(f"{_boot_id()} {'1' if val else '0'}\n")
+    except OSError:
+        pass
+
+
+def _reset_probe_unit() -> None:
+    """Drop the probe scope's FAILED unit so `systemd --user` does not carry
+    it for the life of the session. The probe's whole contract is an observed
+    SIGKILL, so the unit ALWAYS ends up failed -- leaving it resident is the
+    leak, not the kill."""
+    try:
+        subprocess.run(
+            ["systemctl", "--user", "reset-failed", f"{_PROBE_UNIT}.scope"],
+            capture_output=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+
 def systemd_run_usable() -> bool:
-    """Probe ONCE per process: launchability is not enforcement. Launch a REAL
-    allocation past a REAL tiny cap and require the observed SIGKILL -- on
-    boxes whose swap absorbs the overage, or that swallow the property, the
-    probe must say False so `wrap_argv` falls through to prlimit."""
+    """Launchability is not enforcement: launch a REAL allocation past a REAL
+    tiny cap and require the observed SIGKILL -- on boxes whose swap absorbs
+    the overage, or that swallow the property, the probe must say False so
+    `wrap_argv` falls through to prlimit.
+
+    Probed ONCE PER BOOT, not once per process. The verdict is a property of
+    the box, not of the caller, and every `dispatch.py` / `heal.py` / cron
+    invocation is a fresh process: probing per process meant one deliberate
+    256 MB allocation and one cgroup OOM kill PER SPAWN, each leaving a failed
+    transient scope behind. `AGI_MEMCAP_SYSTEMD_RUN=0|1` forces the verdict
+    and skips the probe entirely (for tests and for boxes already known)."""
     global _PROBE
+    forced = os.environ.get("AGI_MEMCAP_SYSTEMD_RUN")
+    if forced is not None and forced.strip() != "":
+        return forced.strip() not in ("0", "false", "False", "no")
+    if _PROBE is None:
+        _PROBE = _read_cached_probe()
     if _PROBE is None:
         _PROBE = False
         if shutil.which("systemd-run"):
             try:
                 _PROBE = subprocess.run(
                     ["systemd-run", "--user", "--scope", "-q",
+                     f"--unit={_PROBE_UNIT}",
                      "--property=MemoryMax=64M",
                      "--property=MemorySwapMax=0", "--", sys.executable,
                      "-c", "x=bytearray(256*1024*1024)"],
                     capture_output=True, timeout=30).returncode == -signal.SIGKILL
             except (OSError, subprocess.SubprocessError):
                 _PROBE = False
+            _reset_probe_unit()
+        _write_cached_probe(_PROBE)
     return _PROBE
 
 
