@@ -51,3 +51,7 @@ round     hypothesis:a-round-stage-spawns-the-parent-and-chains-its-review-in-on
           unchanged from eee1800559 -- only the parent goal moved)
 writer    director-engine
 ```
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Owner verbatim (in-pane, director-engine session e3bf5bfa, 2026-09-25T00:37:38Z; relayed by thought-master as TMM.146/TMM.147, full text confirmed here directly against the session transcript): "Oh woops sorry i misunderstood what prime was saying. Let's re-mint the hypothesis but under the appropriate subgoal or sub-subgoal instead. Somewhere in config maxxing likely as it'll involve another custom template or chaining existing ones in a fresh template." This is why hypothesis:a-round-stage-spawns-the-parent-and-chains-its-review-in-one-workflow was re-homed here under goal:g1.14 (config-maxxing) as this leaf, goal:g1.14.1, rather than left deleted or re-minted under the generic goal:g15 bucket.
+<!-- THOUGHT:END -->
