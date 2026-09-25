@@ -29,6 +29,7 @@ NO_HELP = {
     "last_act.py": "library module (the seat's own last-act clock); no --help",
     "harness_template.py": "library module (harness argv is data; no __main__,"
                           " no --help)",
+    "prose_templates.py": "library module (the prose-template loader); no --help",
 }
 
 

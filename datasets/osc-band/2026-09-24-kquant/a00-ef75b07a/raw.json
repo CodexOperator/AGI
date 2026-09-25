@@ -1,0 +1,106 @@
+{
+ "arms": {
+  "token_absmax_3p5": {
+   "agree": 0.564453,
+   "kl": 1.381633,
+   "bits": 3.5
+  },
+  "uniform_3p5": {
+   "agree": 0.376953,
+   "kl": 2.417574,
+   "bits": 3.5
+  },
+  "per_channel_3p5": {
+   "agree": 0.596191,
+   "kl": 1.087602,
+   "bits": 3.5
+  },
+  "bias_subtracted_3p5": {
+   "agree": 0.696533,
+   "kl": 0.716746,
+   "bits": 4.5
+  }
+ },
+ "falsifier": "no variant clears BOTH (agree+0.10 vs token_absmax AND KL<0.75x) while agree>0.75",
+ "delta_per_channel_minus_token_absmax": {
+  "agree": 0.031738,
+  "kl": -0.294031
+ },
+ "delta_bias_minus_token_absmax": {
+  "agree": 0.13208,
+  "kl": -0.664887
+ },
+ "per_channel_clears": false,
+ "bias_clears": false,
+ "agreement_gt_0p75": {
+  "token_absmax_3p5": false,
+  "uniform_3p5": false,
+  "per_channel_3p5": false,
+  "bias_subtracted_3p5": false
+ },
+ "meta": {
+  "model": "Qwen/Qwen2.5-0.5B-Instruct (rev 7ae557604adf67be50417f59c2c2f167def9a775)",
+  "dtype": "float32",
+  "eval": {
+   "wiki_slice_starts": [
+    5000,
+    61000,
+    120000,
+    240000
+   ],
+   "wiki_span": 512,
+   "heval_task_ids": [
+    "HumanEval/107",
+    "HumanEval/108",
+    "HumanEval/109",
+    "HumanEval/11"
+   ],
+   "heval_padded_to": 512,
+   "n_prompts": 8,
+   "n_tokens": 4096,
+   "hop1_wiki_starts": [
+    0,
+    29875,
+    59751,
+    89627,
+    119503,
+    149379,
+    179254,
+    209130,
+    239006,
+    268882
+   ],
+   "hop1_heval_task_ids": [
+    "HumanEval/0",
+    "HumanEval/1",
+    "HumanEval/10",
+    "HumanEval/100",
+    "HumanEval/101",
+    "HumanEval/102",
+    "HumanEval/103",
+    "HumanEval/104",
+    "HumanEval/105",
+    "HumanEval/106"
+   ]
+  },
+  "selftest_16bit": {
+   "max_abs_logit_diff": 0.05757713317871094,
+   "agree": 1.0,
+   "kl": 7.379556450359814e-07
+  },
+  "hooks": {
+   "per_channel": true,
+   "bias_subtracted": true
+  },
+  "bits_note": "arm3 charged nscale=4 like arm1 though shared across tokens (conservative); arm4 adds 4 fp16/class -> 4.5 nominal, not a 3.5-bit arm",
+  "profiles_sha256": "e80ec2772b1845f27a860d698e398b527fd4233141820ccbc27aecb98aab12a3",
+  "sha_reverify": {
+   "config.json": true,
+   "generation_config.json": true,
+   "model.safetensors": true,
+   "tokenizer.json": true,
+   "tokenizer_config.json": true
+  },
+  "t_s": 139.4
+ }
+}

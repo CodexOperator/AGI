@@ -97,6 +97,36 @@ def test_authority_row_content_replaces_only_the_seat_row():
     assert rotate._authority_row_content(first, new, "aa") == first
 
 
+def test_authority_row_content_preserves_prime_policy_cells():
+    base = (
+        '  - {"name": "aa", "model": "prime-model", "effort": "high", '
+        '"pubkey": "old", "key_history": [], "session_id": "old-session", '
+        '"session_ref": "old-ref", "session_name": "old-name", '
+        '"session_label": "old-label", "pid": 1, "window": "old-window", '
+        '"generation": 7}\n'
+        '  - {"name": "bb", "model": "foreign-model", "pubkey": "keep"}\n')
+    new = (
+        '  - {"name": "aa", "model": "stale-model", "effort": "low", '
+        '"pubkey": "new", "key_history": ["retired"], '
+        '"session_id": "new-session", "session_ref": "new-ref", '
+        '"session_name": "new-name", "session_label": "new-label", '
+        '"pid": 2, "window": "new-window", "generation": 8}\n')
+    out = rotate._authority_row_content(base, new, "aa")
+    row = json.loads(out.splitlines()[0][out.splitlines()[0].index("{"):])
+    assert row["model"] == "prime-model"
+    assert row["effort"] == "high"
+    assert row["pubkey"] == "new"
+    assert row["key_history"] == ["retired"]
+    assert row["session_id"] == "new-session"
+    assert row["session_ref"] == "new-ref"
+    assert row["session_name"] == "new-name"
+    assert row["session_label"] == "new-label"
+    assert row["pid"] == 2
+    assert row["window"] == "new-window"
+    assert row["generation"] == 8
+    assert out.splitlines()[1] == base.splitlines()[1]
+
+
 def test_publish_lands_one_row_on_the_authority_and_whois_reads_it(tmp_path):
     repo, g, posts, _bare = _fixture(tmp_path)
     pre = _git(repo, "rev-parse", "origin/season2/main").stdout.strip()
@@ -256,6 +286,37 @@ def test_c1_publish_fires_only_on_a_rekey(tmp_path):
     post = _git(repo, "rev-parse", "origin/season2/main").stdout.strip()
     assert _git(repo, "rev-list", "--count",
                 f"{pre}..{post}").stdout.strip() == "1"
+
+
+def test_publish_refuses_closed_when_veto_read_raises(tmp_path, monkeypatch):
+    """A present veto subsystem that cannot answer must refuse, not publish."""
+    repo, g, posts, _bare = _fixture(tmp_path)
+    from seatsig import veto
+    pre = _git(repo, "rev-parse", "origin/season2/main").stdout.strip()
+
+    def broken(*_args, **_kwargs):
+        raise OSError("veto cell read failed")
+    monkeypatch.setattr(veto, "is_frozen", broken)
+    out = rotate._publish_row_to_authority(g, "aa", posts.read_text())
+    assert out.startswith("authority: HELD -- veto cell is unreadable"), out
+    assert "veto cell read failed" in out
+    _git(repo, "fetch", "-q", "origin", "season2/main")
+    assert _git(repo, "rev-parse", "origin/season2/main").stdout.strip() == pre
+
+
+def test_publish_proceeds_when_veto_subsystem_is_absent(tmp_path, monkeypatch):
+    """No installed veto subsystem is the distinct fail-open case."""
+    repo, g, posts, _bare = _fixture(tmp_path)
+    import builtins
+    real_import = builtins.__import__
+
+    def without_seatsig(name, *args, **kwargs):
+        if name == "seatsig" or name.startswith("seatsig."):
+            raise ImportError("seatsig unavailable")
+        return real_import(name, *args, **kwargs)
+    monkeypatch.setattr(builtins, "__import__", without_seatsig)
+    out = rotate._publish_row_to_authority(g, "aa", posts.read_text())
+    assert out.startswith("authority: OK"), out
 
 
 def test_c2_publish_refuses_while_prime_scope_is_frozen(tmp_path):

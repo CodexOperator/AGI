@@ -9,6 +9,7 @@ edited_by: thought-master
 location: source_root
 scaffold_hash: c5f8c6f88c05b958
 season: 2
+status: deprecated
 thought_session: internals-standing-sync-2026-09-21
 title: "director-thought per-master section of the unified director brief (thought town: trunk, cadence, dispatch classes, review-by-director, comms, rotation, typed decisions)"
 town: core
@@ -48,6 +49,7 @@ Written by thought-master 2026-09-18 02:0xZ for the sanctuary-master's unified d
 ## Comms
 - Every nudge: read the inbox AND the master dm thread (`send.py read director-thought --dm thought-master --from director-thought`); dm the master only a `[merge-up]` per batch or a blocker (Self-loop below); owner pane lines relayed verbatim to the master, never interpreted; `[red]` engineering findings go to the master by node id (the SM is inactive; the master routes them).
 - **Batches only (owner 09-24, verbatim: "Let's switch the formation to you batching research rounds and engine rounds as needed. Directors go back to just working the batches - research batches for director thought until all hypotheses and hypothesis leaves are built out then report results, and engine fix batches for director-engine who only reports back when batch complete no residue."; supersedes the 09-23 self-loop):** work ONLY the batch thought-master hands you, head down on graph build -- director-thought: research batches, ONE results report once every hypothesis and hypothesis leaf in the batch is built out; director-engine: engine-fix batches, ONE report only when the batch is complete with no residue. The master keeps the town trajectory and picks the next batch; between batches, wait for it. A blocker that stops the batch is the only early dm.
+- **Rotate YOURSELF, at the line (OWNER 16:14Z 09-24, verbatim, on director-engine's stall: "Director-engine is doing a stall again taking the context limit as a place to stop so the system auto-rotates but being way too conservative stopping at 0.4 of 0.47 so not even triggering the auto function. What can we do to tell them to keep working until rotate and then rotate self don't rely on others to do it. Director-thought is doing it fine but the other one just stalled."):** the meter's "approaching rotation" bands are NOT a stop -- keep working the batch until `[meter]` reads f >= the line (0.47), then run `python3 extensions/agi/bin/rotate.py rotate` yourself (bare, keyed). Nothing rotates an idle pane below the line: the captive hook fires only on a real prompt AT the line. A batch done below the line = its `[merge-up]` line, then the next queued item on your card.
 
 ## Rotation
 - Bare `rotate.py rotate` from its own worktree; card written LAST; the stops line names every live round by agent id + cap. `rotated_by: thought-master` is audit only — the master cannot hand-rotate (equal rank); only the Prime can.
@@ -65,3 +67,7 @@ athena A/B (local-town; TM.27 fetch tool fix) · q4-KV Kid B (A1-heavy) · C2 me
 02:0xZ 09-19 mirrored from the unified brief on core @71cc9c070 / @b564fa270 (SM sync line 02:03Z): the mur-residue in-loop rule (owner 01:5xZ) and the SM.135 meter-forces-rotation line, both under Trunk + cadence.
 
 thought-master 01:3xZ 09-21: the engine seat `director-engine` (owner order 01:1xZ 09-21, goal:g7.33) inherits every customization here and the unified brief §0-§3, with these deltas on its card `.agi/sessions/quorum/director-engine.md`: owning goal goal:g7.33; worktree .agi/worktrees/post-director-engine on local-maxxing/season2/posts/director-engine/main; pi parents only, no GPU, 2-3 engine rounds live at once within the box memory rule on doc:lm-town-trajectory; suite runs in its worktree, never MAIN; one [merge-up] per batch + one line on the trajectory board. Note for the next brief trim: the unified brief §4 'thought' section still names season1 paths (local-maxxing/season1/*, worktree town-local-maxxing) -- stale since the box move; the live facts are on the cards and doc:lm-local-town-box-facts.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+retired by thought-master gen 17 on the owner 20:1xZ-20:4xZ 09-24 (via the Prime, verbatim in doc:l5-owner-decisions): deprecated in favor of the director cards (doc:card-director-thought, doc:card-director-engine) -- status deprecated + moved to deprecated/doc/, never deleted; its mint id keeps every citation resolving
+<!-- THOUGHT:END -->
