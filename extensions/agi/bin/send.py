@@ -5119,6 +5119,10 @@ def main(argv: list[str] | None = None) -> int:
                         action="store_true",
                         help="store harness-shaped text quoted instead of "
                              "refusing the body")
+    p_send.add_argument("--stdin", dest="from_stdin", action="store_true",
+                        help="read the message body from stdin")
+    p_send.add_argument("--body-file", dest="body_file", default=None,
+                        metavar="FILE", help="read the message body from FILE")
 
     p_read = sub.add_parser("read", parents=[common],
                             help="read a conversation / inbox")
@@ -5342,10 +5346,35 @@ def main(argv: list[str] | None = None) -> int:
     sender = args.from_id
 
     if args.verb == "send":
+        if args.from_stdin and args.body_file is not None:
+            print("ERR: --stdin and --body-file are mutually exclusive",
+                  file=sys.stderr)
+            return 1
+        body_from_file = None
+        text_from_source = ""
+        if args.from_stdin:
+            body_from_file = "stdin"
+            text_from_source = sys.stdin.read()
+        elif args.body_file is not None:
+            body_from_file = "body file"
+            try:
+                text_from_source = Path(args.body_file).read_text()
+            except OSError as exc:
+                print(f"ERR: cannot read body file: {exc}", file=sys.stderr)
+                return 1
+        if body_from_file is not None and not text_from_source:
+            print(f"ERR: {body_from_file} body is empty", file=sys.stderr)
+            return 1
+        if body_from_file is not None and args.send_args and (
+                args.room is not None or args.dm_to is not None
+                or len(args.send_args) > 1):
+            print("ERR: positional text and --stdin/--body-file are mutually exclusive",
+                  file=sys.stderr)
+            return 1
         # --room/--to: the whole positional bucket is text, nothing is a
         # target. Split by MODE, not by argparse nargs (see p_send comment).
         if args.room is not None:
-            text = " ".join(args.send_args)
+            text = text_from_source if body_from_file is not None else " ".join(args.send_args)
             if not text:
                 print("ERR: message text is required for send --room",
                       file=sys.stderr)
@@ -5361,7 +5390,7 @@ def main(argv: list[str] | None = None) -> int:
             last_act.touch_env(root, sender)
             return 0
         if args.dm_to is not None:
-            text = " ".join(args.send_args)
+            text = text_from_source if body_from_file is not None else " ".join(args.send_args)
             if not text:
                 print("ERR: message text is required for send --to",
                       file=sys.stderr)
@@ -5382,7 +5411,7 @@ def main(argv: list[str] | None = None) -> int:
                   file=sys.stderr)
             return 1
         target, *rest = args.send_args
-        text = " ".join(rest)
+        text = text_from_source if body_from_file is not None else " ".join(rest)
         if not text:
             print("ERR: message text is required for send", file=sys.stderr)
             return 1

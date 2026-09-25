@@ -7,6 +7,7 @@ shows it; two senders interleave without loss.
 from __future__ import annotations
 
 import importlib.util
+import io
 import json
 import os
 import subprocess
@@ -126,6 +127,47 @@ def test_send_prints_inbox_path(project: Path, capsys):
     captured = capsys.readouterr()
     expected = str((project / ".agi" / "sessions" / "inbox" / "test-agent.md").resolve())
     assert captured.out.strip() == expected
+
+
+def test_send_stdin_body_is_delivered_exactly(project, monkeypatch):
+    monkeypatch.chdir(project)
+    monkeypatch.setattr(sys, "stdin", io.StringIO("body from stdin\n"))
+    assert send_mod.main(["send", "peer", "--stdin", "--from", "seat-a"]) == 0
+    assert "body from stdin" in (project / ".agi/sessions/inbox/peer.md").read_text()
+
+
+def test_send_positional_body_remains_compatible(project, monkeypatch):
+    monkeypatch.chdir(project)
+    assert send_mod.main(["send", "peer", "positional body", "--from", "seat-a"]) == 0
+    assert "positional body" in (project / ".agi/sessions/inbox/peer.md").read_text()
+
+
+def test_send_body_file_is_delivered(project, monkeypatch, tmp_path):
+    monkeypatch.chdir(project)
+    body = tmp_path / "body.txt"
+    body.write_text("body from file")
+    assert send_mod.main(["send", "peer", "--body-file", str(body), "--from", "seat-a"]) == 0
+    assert "body from file" in (project / ".agi/sessions/inbox/peer.md").read_text()
+
+
+def test_send_rejects_empty_and_duplicate_body_sources(project, monkeypatch, capsys, tmp_path):
+    monkeypatch.chdir(project)
+    monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+    assert send_mod.main(["send", "peer", "--stdin", "--from", "seat-a"]) == 1
+    assert "stdin body is empty" in capsys.readouterr().err
+    body = tmp_path / "body.txt"
+    body.write_text("x")
+    assert send_mod.main(["send", "peer", "positional", "--body-file", str(body), "--from", "seat-a"]) == 1
+    assert "mutually exclusive" in capsys.readouterr().err
+
+
+def test_send_body_file_never_interpolates_shell(project, monkeypatch, tmp_path):
+    monkeypatch.chdir(project)
+    body = tmp_path / "body.txt"
+    literal = "`touch /tmp/send-should-not-run` and $HOME"
+    body.write_text(literal)
+    assert send_mod.main(["send", "peer", "--body-file", str(body), "--from", "seat-a"]) == 0
+    assert literal in (project / ".agi/sessions/inbox/peer.md").read_text()
 
 
 def test_send_verb_stamps_the_sending_seat(project: Path, monkeypatch, capsys):
