@@ -93,7 +93,7 @@
         "model": "claude-opus-5-5"
       },
       "verdict": "ok",
-      "confirm_at": "rotate-self"
+      "confirm_at": "after_join"
     },
     "bootstrap": "/data/work/agi/.agi/sessions/seats/belam.bootstrap.json",
     "ack_written_at_spawn": "/data/work/agi/.agi/sessions/seats/belam.ack.json"
@@ -111,8 +111,55 @@
   },
   "committed_by": "rotate-self",
   "after_join": {
-    "claimed_at": "2026-09-25T22:30:12.592579+00:00",
     "performer": "watch",
-    "claim_key": "2026-09-25T22:29:50.425348Z"
+    "performed_by": "watch",
+    "committed_by": "watch",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep belam",
+        "rc": 0,
+        "output": "@0 belam-S2-L5-VI\n@1 belam-S2-L5-VII\n",
+        "truncated": false,
+        "byte_cap": 40000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/belam.meter --session-log /home/belam/.claude/projects/-data-work-agi/82d56d5d-8330-4cfa-9cf9-e11e39510831.jsonl",
+        "rc": 0,
+        "output": "0.0846\t84553/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 40000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E 'none: nothing to reap'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 40000
+      },
+      {
+        "label": "belam-chain",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep -E 'belam-S[0-9]+-L[0-9]+'",
+        "rc": 0,
+        "output": "@0 belam-S2-L5-VI\n@1 belam-S2-L5-VII\n",
+        "truncated": false,
+        "byte_cap": 40000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E 'none: nothing to reap'\n[belam-chain] exit 0\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post belam --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --seat belam --gen 7 --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "belam",
+    "dm_signed": true,
+    "code_head": "de79ac0",
+    "code_loaded": "1790336413:1122184",
+    "claimed_at": "2026-09-25T22:30:12.592579+00:00",
+    "claim_key": "2026-09-25T22:29:50.425348Z",
+    "performed_after_s": 21.441974639892578
   }
 }
