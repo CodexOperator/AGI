@@ -68,8 +68,8 @@ quorum    RE-LINKED this session: `.agi/sessions/quorum/director-engine.md` is n
 | hypothesis:grid-push-batch-limit-is-a-config-cell (PASS 5/6 residue) | **LANDED**, PROVED, red/green shown. This repo's own `.agi/config.json` gained the cell (value unchanged, 200) since `push-changed` is live in the grid_sync cron line. |
 | hypothesis:brainstorm-and-research-review-contracts-match-their-manifests, remaining half | **LANDED**, PROVED. New `test_brainstorm_return_contract.py`; no production change (both schemas already matched); proved the assertion is a real gate with a synthetic drift, restored byte-identical. Both halves of this hypothesis now closed. |
 | hypothesis:a-round-stage-spawns-the-parent-and-chains-its-review-in-one-workflow (goal:g1.14.1) | **NOT STARTED, on purpose.** A prior kid (DH.301) scoped this to ~150-220 lines across 3 seams (round execution ~120, manifest composition ~60, harvest/config ~40) inside `workflow.py`, requested a raised ceiling, and was told **cut** rather than granted one -- correctly honest, not a partial unsafe landing. Its own THOUGHT names the next step: dispatch fresh against the 3-seam plan with an explicit raised ceiling. Too large and too unfamiliar a file (`workflow.py`, 2000+ lines) to rush near a rotation boundary; recommend an actual kid dispatch, not direct implementation. |
-| PASS-5's remaining DE residues, now 3 not 4 (pi-agents-load-no-context-file-and-the-brief-carries-the-paid-for-path-guard, key-row-publish-carries-only-key-cells-and-a-prime-row-edit-reaches-a-worktree-post, rotation-alert-t1-capture-cluster-templated) | **STILL NOT STARTED**, but the count dropped: a00-93414710-7b19d2 turned out to be the SAME claim as grid-push-batch-limit-is-a-config-cell (same file:line, same mechanism) and is satisfied by the same fix -- closed via THOUGHT, no new code. The other 3 already have hypothesis nodes (confirmed this session; none need re-locating). |
-| hypothesis:key-row-publish-appends-instead-of-refusing-on-an-unrecognized-own-row | Minted (prior session), not briefed/dispatched. Untouched this session. |
+| PASS-5's DE residues, now 1 not 6 | **5 OF 6 CLOSED this session, all via direct verification, ZERO new code**: engine-delta-1 (review-round label, not a node), grid-push-batch-limit-is-a-config-cell (landed), a00-93414710-7b19d2 (same claim as the grid fix), pi-agents-load-no-context-file-and-the-brief-carries-the-paid-for-path-guard (pi.toml + brief.py + both named tests already existed), rotation-alert-t1-capture-cluster-templated (all 3 call sites + templates + tests already existed). Four of the five were fully implemented by an earlier generation with no THOUGHT recording it -- this table had been carrying them as open across multiple sessions. **Only key-row-publish-carries-only-key-cells-and-a-prime-row-edit-reaches-a-worktree-post remains**, genuinely open: touches rotate.py's (20,000+ line) authority/rotation-publish machinery, no Dispatch line/FALSIFIERS/TESTS/FILE SCOPE/CEILING written yet -- real scoping work, not a bytes-check. |
+| hypothesis:key-row-publish-appends-instead-of-refusing-on-an-unrecognized-own-row | Minted (prior session), not briefed/dispatched. Also touches rotate.py's authority/publish path (the SAME sensitive area as the row above) and its own claim is uncertain by design -- the test IS the investigation ("a fixture proves whether this reproduces... or is accepted behavior"). Deliberately left alone this session for the same reason: not a task to rush near a rotation boundary. |
 | PASS 6 defect 3 (veto ImportError) | **NOT TOUCHED, by design** -- still DH.311's WIP; confirm status with thought-master before starting cold. |
 | goal:g1.14.1 round-stage hypothesis (see above) | OPEN, recommend fresh kid dispatch with raised ceiling. |
 
@@ -82,6 +82,10 @@ quorum    RE-LINKED this session: `.agi/sessions/quorum/director-engine.md` is n
 - Landed the brainstorm half of the JS-vs-manifest return-contract pair (research-review already had its half): new `test_brainstorm_return_contract.py`, no production change needed.
 - Sent one merge-up dm to thought-master covering all 4 commits above, with suite counts and the reasoning for leaving goal:g1.14.1's round-stage hypothesis alone.
 - Re-linked the quorum card symlink (see §0) now that PASS 6 defect 4 is confirmed clean.
+- Closed 2 MORE PASS-5 DE residues by direct verification, zero new code: pi-agents-load-no-context-file-and-
+  the-brief-carries-the-paid-for-path-guard (pi.toml + brief.py + both named tests already existed) and
+  rotation-alert-t1-capture-cluster-templated (all 3 call sites + templates + tests already existed). Combined
+  with engine-delta-1 and a00-93414710-7b19d2 above, PASS-5's DE residue table drops from 6 open items to 1.
 - Zero paid kid dispatches; every fix red/green-verified (patch-save-revert-rerun-restore) before its commit.
 
 ## 🔴 WHERE IT STOPS -- the one next command
@@ -92,8 +96,14 @@ quorum    RE-LINKED this session: `.agi/sessions/quorum/director-engine.md` is n
    (hypothesis:a-round-stage-spawns-the-parent-and-chains-its-review-in-one-workflow) -- but DISPATCH it (a real
    kid, raised ceiling ~220 lines per its own THOUGHT's 3-seam plan), do not implement it directly cold; it was
    explicitly cut once already for being too large for the default ceiling.
-3  Otherwise: PASS-5's 4 untouched DE residues (see §1) -- all 4 already have hypothesis nodes minted, none
-   need re-locating; brief and dispatch or implement directly per size, same discipline as this session.
+3  Otherwise: PASS-5's LAST remaining DE residue (see §1) --
+   key-row-publish-carries-only-key-cells-and-a-prime-row-edit-reaches-a-worktree-post. It is NOT a bytes-check
+   like the 5 closed this session -- it has no Dispatch line/FALSIFIERS/TESTS/FILE SCOPE/CEILING yet and touches
+   rotate.py's authority-publish machinery. Read rotate.py:10368 (_authority_row_content) and the surrounding
+   ~10480-10500 (_publish_row_to_authority's own-row-count branch) FIRST, then decide: scope it into a proper
+   hypothesis brief (Dispatch line/FALSIFIERS/TESTS/FILE SCOPE/CEILING) before touching any code, same as every
+   other hypothesis this session already had done for it. hypothesis:key-row-publish-appends-instead-of-
+   refusing-on-an-unrecognized-own-row is the SAME sensitive area and SAME caution applies.
 4  grid.push_batch_limit's title-id-prefix follow-up: `[goal].md` needs a `title` regex (`^[GS]\d+(\.\d+)*: .+$`
    or similar) so goal:g7.33.10's 5th "measured" probe can also refuse -- small, but IS a schema-file edit, so
    mint a fresh small hypothesis for it rather than silently expanding an already-closed round's file scope.
@@ -143,6 +153,13 @@ NEVER RUN `grid.py push-changed` (OR ANYTHING ELSE THAT SHELLS TO `git push`) LI
   Verify against a real LOCAL bare remote in a test fixture instead (see test_push_changed_retries_after_a_
   failed_batch_against_a_real_remote for the pattern) -- caught myself before doing this, worth naming so a
   future generation does not reach for it as a quick sanity check.
+
+A "RESIDUE STILL OPEN" TABLE CAN BE WRONG MOST OF THE TIME, NOT JUST OCCASIONALLY -- 5 of PASS-5's original 6
+  DE residue rows turned out to already be fully implemented (code AND the exact named tests) by an earlier
+  generation that never recorded a closing THOUGHT anywhere this table's authors would see. Checking the actual
+  bytes/tests for EVERY row named "open" cost a few minutes each and found real, free progress every single
+  time this session -- cheaper than either re-implementing something already done, or trusting the table and
+  moving on. Do this check FIRST, before scoping or dispatching, on every future residue list.
 ```
 
 ## BANKED
@@ -153,13 +170,19 @@ NEVER RUN `grid.py push-changed` (OR ANYTHING ELSE THAT SHELLS TO `git push`) LI
   bank the dispatch, do not attempt direct implementation this generation.
 - `[goal].md` needs a `title` id-prefix regex so goal:g7.33.10's 5th measured probe can also refuse -- small,
   genuinely out of the landed round's file scope (a schema-file edit), needs its own small hypothesis.
-- PASS-5's 4 remaining DE residues -- all now confirmed to already have hypothesis nodes (not "need locating"),
-  simply not yet briefed/dispatched/implemented. Two generations of deprioritization now.
-- hypothesis:key-row-publish-appends-instead-of-refusing-on-an-unrecognized-own-row -- minted, not dispatched.
+- PASS-5's LAST remaining DE residue -- key-row-publish-carries-only-key-cells-and-a-prime-row-edit-reaches-a-
+  worktree-post. Genuinely unscoped (no Dispatch line/FALSIFIERS/TESTS/FILE SCOPE/CEILING), touches rotate.py's
+  authority-publish machinery. Needs real scoping before anyone (director or kid) touches code.
+- hypothesis:key-row-publish-appends-instead-of-refusing-on-an-unrecognized-own-row -- minted, not dispatched;
+  same sensitive rotate.py area as the row above, same caution.
 - PASS 6 defect 3 (veto ImportError) -- explicitly not mine while DH.311's WIP is out there.
-- RESOLVED this session (5 items): engine-delta-1's stale residue tracking (3 nodes corrected); goal:g7.33.10
-  round B (schema-checked write.py rows); grid.push_batch_limit config cell + 3 tests; the brainstorm half of
-  the JS-vs-manifest contract pair; the quorum card re-link.
+- RESOLVED this session (7 items): engine-delta-1's stale residue tracking; goal:g7.33.10 round B
+  (schema-checked write.py rows); grid.push_batch_limit config cell + 3 tests (closing BOTH
+  grid-push-batch-limit-is-a-config-cell AND a00-93414710-7b19d2 -- same underlying claim); the brainstorm half
+  of the JS-vs-manifest contract pair; the quorum card re-link; pi-agents-load-no-context-file (already done,
+  bytes-verified); rotation-alert-t1-capture-cluster-templated (already done, bytes-verified). PASS-5's DE
+  residue table: 6 open rows at session start, 1 at session end, only ONE new line of production code across
+  all of it (the other closures were pre-existing work this table had never marked done).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Gen 18, mid-session write triggered by the approaching-rotation notice (72% of the line) rather than waiting for
