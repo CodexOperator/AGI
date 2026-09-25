@@ -1,0 +1,113 @@
+{
+  "rotation": "rotate-self",
+  "seat": "belam",
+  "recorded_at": "2026-09-25T22:29:50.425348Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": false,
+      "window": "belam",
+      "windows": [
+        "belam-S2-L5-VI",
+        "belam-S2-L5-VII"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 6,
+      "after": 7
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/belam.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 5483920,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "belam-S2-L5-VI",
+      "windows": [
+        "belam-S2-L5-VI",
+        "belam-S2-L5-VII"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -43.838
+  },
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "belam-S2-L5-VI",
+      "id": "@0"
+    },
+    "successor_window": {
+      "name": "belam-S2-L5-VII",
+      "id": "@1"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@1",
+      "pid": 69212,
+      "session_id": "82d56d5d-8330-4cfa-9cf9-e11e39510831",
+      "transcript": "/home/belam/.claude/projects/-data-work-agi/82d56d5d-8330-4cfa-9cf9-e11e39510831.jsonl",
+      "name": "agi-ec",
+      "path": "/home/belam/.claude/sessions/69212.json",
+      "note": "joined by @1 in registry file 69212.json"
+    },
+    "successor_row": "config:seats row 'belam': session_ref= session_name=agi-ec session_label= session_id=82d56d5d-8330-4cfa-9cf9-e11e39510831 pid=69212 generation=7 window='@1' source=registry pubkey=24d37939516b2891... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha de5c40476f, retried 0) -- own-row only: belam spawn row: gen 7, session_id 82d56d5d-8330-4cfa-9cf9-e11e39510831, window @1, pid 69212\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- 3f00db6a9 -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/belam.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/belam.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/belam.ack.gen7.json",
+    "own_authority_released": "generation 6 of seat 'belam' retired; successor generation 7 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "belam_cap": {
+      "prefix": "belam",
+      "would_exceed_five": false,
+      "oldest_to_reap": null,
+      "live_belam": [
+        "belam-S2-L5-VI",
+        "belam-S2-L5-VII"
+      ]
+    },
+    "button_down": "grid committed \u2014 record+row on branch local-maxxing/season2/main",
+    "livestream_repoint": {
+      "session": "view-belam",
+      "target": "@1",
+      "skipped": "view session view-belam absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "max"
+      },
+      "requested": {
+        "model": "claude-opus-5-5"
+      },
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "rotate-self"
+    },
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/belam.bootstrap.json",
+    "ack_written_at_spawn": "/data/work/agi/.agi/sessions/seats/belam.ack.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "65971e0e3285dd05224b46e48afe2e587fb61b98b11be3f3062f7ea9ad6611be",
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "gated": "own window + own chain kill GATED OFF on a numeral-chain seat (owner chain rule keeps the five newest predecessors idle in their windows)",
+    "own_window_id": "@0",
+    "own_chain_reap": "GATED OFF"
+  },
+  "committed_by": "rotate-self"
+}
