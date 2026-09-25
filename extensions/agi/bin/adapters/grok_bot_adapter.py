@@ -1,9 +1,8 @@
-"""The Grok Bot harness — REQUIRED surface, stub argv (goal:g17.14.1).
+"""The Grok Bot harness — REQUIRED surface (goal:g17.14.1).
 
-CLI flags are NOT guessed: `build_command` emits a minimal, measurable argv
-(still a stub until `<bin> --help` is read the way `copilot_cli_adapter`'s
-was). `restart` is a real respawn (`goal:g4.7`) that rebuilds that same argv —
-a stub argv is no reason to refuse the restart contract.
+The CLI is not guessed: until the installed ``grok-bot --help`` is measured,
+``build_command`` fails closed rather than emitting the retired practice flag
+``-p``.  ``restart`` is a real respawn that rebuilds this same guarded argv.
 `needs_credential` is False — Grok Bot authenticates through its own channel,
 so no OpenRouter key is minted.
 
@@ -59,11 +58,16 @@ def child_env(*, harness: dict, base: dict[str, str],
 
 def build_command(*, harness: dict, tier: str, context_file: str,
                   **kwargs) -> list[str]:
-    """STUB argv: `<bin> [--model M] -p <context_file>`. `**kwargs` swallows
-    the channels dispatch.py passes every adapter, so a spawn cannot die on a
-    TypeError before the flags land."""
-    return [resolve_bin(harness), *model_args(harness, tier),
-            "-p", str(context_file)]
+    """Build argv only after the real Grok Bot help is available.
+
+    ``-p`` was a practice guess, not a measured option.  Refusing here is
+    intentional: dispatch must fail loudly at the harness boundary instead of
+    silently sending a context file to an unknown CLI.
+    """
+    raise RuntimeError(
+        "grok-bot --help is unmeasured; refusing to guess CLI argv "
+        "(retired practice flag -p)"
+    )
 
 
 def is_alive(pid: int) -> bool:
