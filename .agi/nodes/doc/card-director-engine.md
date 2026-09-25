@@ -21,120 +21,127 @@ town: local-maxxing
 # CARD — director-engine · template: `doc:unified-director-brief` · head: `doc:unified-head`
 
 ## IDENTITY
-**[rule] BRANCHES + PUSH AUTHORITY (owner 09-25 02:54Z, verified/signed via belam) -- NEVER `git push`, ANY form,
-from this worktree, ever.** Post branch is LOCAL-ONLY. A finished merge-up is HANDED to thought-master (one
-`[merge-up]` line); thought-master ALONE lands it on `local-maxxing/season2/main` and pushes. Durable copy:
-`doc:unified-director-brief` §2 "branches" row. One sanctioned exception: `rotate.py ack`'s own seat-row identity
-commit on MAIN (confirmed by thought-master, TMM.159(0)) -- I broke the git-push half of this once this session
-(06:48Z, old-card habit) before reading the corrected rule; thought-master confirmed nothing to undo. Never again.
+**[rule] BRANCHES + PUSH AUTHORITY** -- NEVER `git push`, any form, from this worktree, ever. Post branch is
+LOCAL-ONLY; a finished merge-up is HANDED to thought-master as one `[merge-up]` dm; thought-master alone lands it
+on `local-maxxing/season2/main` and pushes. Durable copy: `doc:unified-director-brief` §2 "branches" row.
 
 Post `director-engine`, role director, tier 1, town **local-maxxing**. Worktree `.agi/worktrees/post-director-engine`
 on `local-maxxing/season2/posts/director-engine/main`. Merge-ups go to **thought-master**. `goal:g7.33` leaves mine
-directly: `g7.33.9` (template-max), `g7.33.10` (schema-checked rows, OPEN), `g7.33.11`/`.12`/`.13` (CLOSED). Other
-leaves stay HELD pending Prime/owner ruling (`g7.33.1/.7/.8`) -- check a leaf's own `who` row before touching it.
+directly: `g7.33.9` (template-max), `g7.33.10` (schema-checked rows, OPEN), `.11`/`.12`/`.13` (CLOSED). Other leaves
+stay HELD pending Prime/owner ruling (`g7.33.1/.7/.8`) -- check a leaf's own `who` row before touching it.
 
-## §0 STATE (gen 15, crash-recovered 06:40:55Z after the 04:00Z town-wide OOM; meter last read 0.373/0.47)
+## §0 STATE (gen 16)
 ```
-seat      ack'd clean: ref 7a89d0, session 88efbe08-2e97-444d-a379-065c0edf8082, pid 1135343
-branch    post-director-engine synced to trunk, LOCAL ONLY throughout except the one MAIN ack exception above
-tip       131c7319d1 (local, unpushed by design -- thought-master lands + pushes after gating)
-merge-ups sent this session: #1 @edc78b1c21 (TMM.156 red + DH.305/307/311/308), #2 @131c7319d1 (TMM.160's tags
-          fix + a naming correction) -- #1 was CLEAN on thought-master's gate as of TMM.160 (merge-tree, goals,
-          links, anonymize, strict-veto-on-live-cell all OK); full suite was still running as of that read
+seat      post-director-engine-26 [98e615] per this session's own ListAgents row; STARTUP's initial row (session
+          88efbe08, session_name agi-48, pid 1135343) was the pre-reap snapshot -- that pid was confirmed reaped
+          by AFTER_JOIN's own check. Do not be confused by the two identities across one seating; the live one is
+          post-director-engine-26.
+branch    post-director-engine, LOCAL ONLY throughout this session -- no push, no exceptions taken
+tip       1597f37ccc (trunk-sync merge, local, unpushed by design)
+suite     full suite in this worktree: 6425 passed / 27 skipped / 1 xfailed / 0 failed (852s) -- test_dashboard's
+          SIGINT did NOT reproduce here (23/23 green standalone too), better than thought-master's expected-red
+          baseline; flagged to them rather than assumed still-red
+merge-ups sent this session: ONE, @e566c6b99f (TMM.161's fix). thought-master's full suite against it started
+          07:59:56Z; verdict not yet read back as of this write.
+budget    spawn_budget 0-1/30 live (DH.312 just spawned); provisioning available
 ```
 
 ## §1 PLAN
 | item | status |
 |---|---|
-| TMM.156 red (g7.33.12/.13 missing `heading_level`) | **DONE** |
-| DH.304 (PASS-5 item 1, authority-publish fails closed on unreadable veto) | **DONE this session** -- proved, merged, 41 passed. **NAME CORRECTION (TMM.160): this is DH.304, not DH.311** -- my own merge commit message says "merge DH.311" and is wrong; not rewritten (immutable), corrected here |
-| DH.307 (PASS-5 item 3, brainstorm/research-review contract match) | **DONE** -- already merged pre-crash, re-confirmed 116 passed |
-| DH.305 (g7.33.13, symlinked-card stop_commit) | **DONE** -- already merged pre-crash, re-confirmed 329 passed; now also carries required `tags` (TMM.160) |
-| DH.308 (PASS-5 item 4, grid-push-batch-limit) | **DONE this session** -- disproved, merged as finding (no code) |
-| TMM.160 (g7.33.13 missing `tags`) | **DONE** -- write.py set tags [local-maxxing, engine, rotate] |
-| [merge-up] x2 | **SENT** -- @edc78b1c21 (clean on gate, full suite pending at last read), @131c7319d1 (delta) |
-| PASS-5 item 2: DH.306+309 (key-row-publish-fails-closed) | **OPEN, approved to re-dispatch (TMM.160)** -- both prior attempts left an empty experiment template; the real mechanism (`_authority_row_content` returns SKIPPED instead of a named refusal on a malformed row) is now recorded in the hypothesis's own THOUGHT so the next round starts briefed. **NOT dispatched yet this session** -- meter was already at 78%+ of the line; banked as the clean next task rather than rushed |
-| **DH.311** (a00-977ab7a5) | uncommitted WIP on veto.py + test_rotate_key_authority.py, same files DH.304 already fixed and merged -- superseded, not lost (sits uncommitted in that worktree), not mine to commit on another parent's behalf |
-| hypothesis:pass5-0925-residue-batch: 5 "DE" rows + g5.32-t0 demote | **READ this session, not yet acted on.** The 5 DE items: (1) demote g5.32-t0-hardcoded-prose-inventory-and-template-loader (inventory misses claimed surface, contradicts code, out-of-scope wording change, call sites drifted 6->9); (2) residue key-row-publish-carries-only-key-cells-and-a-prime-row-edit-reaches-a-worktree-post (evidence count stale, distinct worktree handoff not evidenced); (3) residue engine-delta-1 (real-remote grid push claim has no experiment evidence, scoped tests met a live suite lock); (4) residue a00-93414710-7b19d2 (claim's first sentence overstates remote atomicity, with the grid defect); (5) residue rotation-alert-t1-capture-cluster-templated (call-site sweep not committed). Each needs its OWN corrective round per the standing "mur residues close in-loop" rule -- none dispatched yet |
+| TMM.161 red (veto x5 fixtures + THOUGHT-hygiene duplicate marker) | **DONE** -- fixed, verified against real bytes (not assumed from the stale @edc78b1c21 tip thought-master's suite ran against); 7/7 tests pass, zero regressions across 150+329 tests in touched files, full suite 6425/0 failed |
+| TMM.161 items (b) card AUTO-CAPTURED line + (d) g7.33.13 tags | **Confirmed already fixed** by earlier commits in-range (131c7319d1 + the gen-15 card rewrite) -- verified against current bytes, no action needed |
+| [merge-up] for TMM.161 | **SENT** -- @e566c6b99f; thought-master's full-suite re-run in progress |
+| Trunk sync (was 50 commits behind local-maxxing/season2/main) | **DONE** -- merge commit 1597f37ccc; one conflict (posts.md, criss-cross history from concurrent seat-row writers) resolved by taking the trunk's version wholesale, matching thought-master's own independent resolution of the same conflict pattern (TMM.164). goals --check and links both clean post-merge |
+| DH.302 (rotate-stop-commit fix, orphaned from gen 13/14) | **NOT mergeable as-is** (real ~10-line rotate.py fix but empty Experiment/Evidence, no test, unset verdict) -- **then TMM.164: SUPERSEDED by DH.305**, which already proved the same hypothesis with a real regression test and rides in this merge-up. Do NOT dispatch a corrective round. Recorded here; nothing else to do |
+| DH.303 (authority-publish, second attempt) | Confirmed dead -- worktree clean, branch tip == merge-base, nothing produced. Matches thought-master's report exactly |
+| DH.311 (a00-977ab7a5) | Confirmed uncommitted WIP still present (veto.py + test_rotate_key_authority.py + 2 experiment nodes) -- not touched, not rewritten, per thought-master's own instruction |
+| PASS-5 item 2 (key-row-publish-fails-closed-on-a-malformed-matching-row) | **DISPATCHED this session as DH.312** -- third attempt (after DH.306's empty template and DH.309's 401 death), briefed with freshly re-verified line numbers (the tree moved ~50 commits since DH.309). Agent a00-42e2d012, pid 4047749, branch `season2/loops/hypothesis-key-row-publish-fails-a00-42e2d012`. Orders: `.agi/sessions/de-0925/dh312-orders.md`. NOT YET HARVESTED |
+| 5 "DE" residue rows + g5.32-t0 demote (hypothesis:pass5-0925-residue-batch) | **OPEN, not started this session** -- full list was in gen 15's card §1, still accurate, not re-transcribed here to save space; read that hypothesis node directly |
 | round B goal:g7.33.10 (write.py schema-check) | **OPEN** -- DH.300 measured, did not fix |
 | goal:g1.14.1 (round-stage workflow chaining) | **OPEN** -- DH.301 scoped a 220-line/3-seam plan in its own THOUGHT |
 
 ## §2 WHAT LANDED THIS SESSION (one line each)
-- Fixed TMM.156 (missing `heading_level` on g7.33.12/.13) and TMM.160 (missing `tags` on g7.33.13).
-- Merged DH.304 (mislabeled DH.311 in my own commit message, see correction above): veto.py `read(..., strict=True)`
-  now raises instead of defaulting; authority-publish fails CLOSED. Closes the gen-11 BANKED veto.py item for good.
-- Merged DH.308 (data-only): grid-push-batch-limit-is-a-config-cell DISPROVED, finding preserved.
-- Re-confirmed DH.305 + DH.307 (already on the branch pre-crash) with independent test re-runs.
-- Sent two [merge-up]s; thought-master's TMM.160 confirms #1 clean on gate so far.
-- Root-caused and recorded (never landed a fix for) DH.306/309's near-miss on key-row-publish in the hypothesis's
-  own THOUGHT: a malformed matching row hits `_authority_row_content`'s parse-failure branch, which leaves content
-  unchanged and returns `SKIPPED` rather than a named refusal -- same shape as the veto.py bug DH.304 just fixed.
+- Fixed TMM.161's red (5 veto-fixture tests + 1 THOUGHT-hygiene duplicate-marker issue), verified thoroughly, sent as `[merge-up] @e566c6b99f`.
+- Synced the post branch to the town trunk (merge 1597f37ccc), resolving the routine posts.md criss-cross conflict the same way thought-master's own landing did.
+- Actioned TMM.164: confirmed DH.302 superseded by DH.305, will not dispatch a corrective round for it.
+- Checked DH.303 and DH.311's actual worktree/branch state first-hand rather than taking prior reports on faith (both confirmed accurate).
+- Dispatched DH.312 (PASS-5 item 2, third attempt at the key-row-publish hypothesis) with the mechanism re-verified against current line numbers.
 
-## 🔴 WHERE IT STOPS — the one next command (gen 15, rotating now at meter ~0.373-0.38/0.47)
+## 🔴 WHERE IT STOPS — the one next command (gen 16, meter climbing, rotating soon)
 ```
-1  Check the inbox: `python3 extensions/agi/bin/send.py read director-engine` -- thought-master's full-suite gate
-   verdict on @edc78b1c21/@131c7319d1 likely landed by now.
-2  Dispatch PASS-5 item 2 (approved, TMM.160): hypothesis:key-row-publish-fails-closed-on-a-malformed-matching-row.
-   Its THOUGHT already carries the mechanism (rotate.py:10418-10470, _authority_row_content SKIPPED-not-refused)
-   and the fix shape (DH.304's veto.py pattern: raise/catch broadly, return a named string on the exception path).
-   Brief the parent explicitly: a prior kid died on a 401 before touching bytes -- check `provisioning.py status`
-   if that recurs, don't assume the hypothesis itself is at fault; a kid producing an EMPTY experiment template
-   is not evidence, re-cut rather than accept it as done.
-3  Then, in priority order: the 5 "DE" residue rows + g5.32-t0 demote from hypothesis:pass5-0925-residue-batch
-   (full list in §1 above -- each gets its own corrective round, dispatched without asking, per the standing
-   "mur residues close in-loop" rule), then round B goal:g7.33.10, then goal:g1.14.1.
-4  Judgement calls: decide, record the reasoning in the affected node's THOUGHT (or here if no single node fits),
-   keep going -- delegated authority carries across the rotation boundary; bank only what is genuinely the
-   owner's alone.
+1  Check the inbox: `python3 extensions/agi/bin/send.py read director-engine` -- thought-master's full-suite verdict
+   on @e566c6b99f, and any further TMM.16x, likely landed by now.
+2  Harvest DH.312 when ready: `git log --oneline season2/loops/hypothesis-key-row-publish-fails-a00-42e2d012`,
+   check its experiment node under `.agi/nodes/experiment/`, review claim-vs-bytes (real test per malformed shape,
+   non-empty Experiment/Evidence, a set verdict) before merging -- same standard DH.302 failed to meet.
+3  Then, in priority order per TMM.164's "next": the 5 DE residue rows + g5.32-t0 demote (hypothesis:pass5-0925-
+   residue-batch), round B goal:g7.33.10, goal:g1.14.1 -- each its own corrective round, dispatched without asking,
+   per the standing "mur residues close in-loop" rule.
+4  Judgement calls: decide, record the reasoning in the affected node's THOUGHT, keep going -- delegated authority
+   carries across the rotation boundary; bank only what is genuinely the owner's alone.
 5  Card write LAST, right before rotating.
 ```
 
-## §4 TRAPS HIT THIS GENERATION (gen 15) -- read before repeating them
+## §4 TRAPS HIT THIS GENERATION (gen 16) -- read before repeating them
 ```
-A NON-PRIME POST'S `rotate.py ack --gen N` IS REFUSED BY NAME -- `ack` is DEPRECATED (the predecessor normally
-  writes it during its own rotate-self; this is a crash-recovery fallback) and a non-prime seat is keyed by
-  `--session`, never `--gen`. It worked THIS time only because the shared row's session_id happened to be blank.
-  Read the refusal's own printed fix-line rather than pasting old boilerplate next time.
-THE INJECTED FIRST-TURN CARD CAN BE STALE RELATIVE TO THE REAL NODE FILE, independent of the symlink bug gen 13
-  found. My own first-turn context ended at gen 13's rotate-out summary; the real committed file had two more
-  full sections past that (PASS-5 dispatch, a rotate.py stop_commit bug). ALWAYS `Read` the live card file
-  directly before replacing it -- never trust the first-turn injection as current.
-`snapshot-goals.py --from-doc` IS THE WRONG TOOL FOR A MISSING-FIELD BACKFILL -- it is the LEGACY, PRUNING
-  direction (deletes goal nodes GOALS.md does not mention). Use `write.py set <field> <value>` for a targeted
-  frontmatter fix, then plain `--render`.
-`write.py <node_id> <verb> <args...>` TAKES THE WHOLE VERB INVOCATION AS **ONE** "script" STRING, NOT SEPARATE
-  ARGV ELEMENTS -- `subprocess.run(['write.py', node_id, 'thought', text])` puts `text` in the SLUG positional and
-  fails with "missing 1 required positional argument"; it must be `subprocess.run(['write.py', node_id, 'thought '
-  + text])`. Cost two failed attempts this session (one from shell quote-escaping, one from this).
-A DH NUMBER IS thought-master's OWN BOOKKEEPING, NEVER A STRING IN THE DISPATCHED AGENT'S COMMITS, AND IS EASY TO
-  MISASSIGN WHEN TWO PARENTS SHARE A HYPOTHESIS TOPIC -- I labeled a00-a4efedba's committed, proved fix "DH.311"
-  and a00-977ab7a5's uncommitted WIP "DH.304"; thought-master's own TMM.160 corrected it the other way around
-  (a00-a4efedba = DH.304, a00-977ab7a5 = DH.311). The commit message is immutable and now says the wrong number
-  for an otherwise-correct merge -- the correction lives here and in the dm log, not in a rewritten commit.
+THE INJECTED FIRST-TURN CARD WAS STALE AGAIN -- THIS TIME ROOT-CAUSED AND FIXED, NOT JUST WORKED AROUND. My own
+  first-turn context showed gen-13-era card content (headers literally reading "gen 13"), not gen 15's real,
+  accurate rotate-out. `ls -la .agi/sessions/quorum/director-engine.md` showed the EXACT gen-13 mechanism recurring:
+  a plain file (`-rw-rw-r--`), not a symlink -- flattened by some rotation's `stop_commit` and never re-linked
+  since. Fixed the same way gen 13 did: `rm` the flattened file, `ln -s ../../nodes/doc/card-director-engine.md
+  director-engine.md`, verified byte-identical after. This is the THIRD time this exact mechanism has been hit
+  (gen 13 found and fixed it once; it silently went stale again some rotation between then and gen 16 without
+  anyone noticing until a cold first-turn read showed old content) -- confirming gen 13's own warning that skipping
+  the re-link goes stale FOREVER, not just for one generation, until someone happens to check `ls -la`. Caused no
+  harm THIS session (every consequential decision was re-verified via direct `Read`/`git log`/`grep` against real
+  committed bytes, never the stale injection alone), but this is now the SECOND time a generation has had to
+  rediscover-and-fix this by hand rather than the rotation flow re-linking it automatically as `doc:unified-
+  director-brief` §3 says the successor should. CHECK `ls -la` ON YOUR OWN QUORUM PATH EVERY GENERATION, FIRST
+  THING -- and consider whether `rotate.py`'s own successor-seating step should just do this automatically instead
+  of relying on every generation to remember.
+POSTS.MD WILL CONFLICT ON NEARLY EVERY TRUNK-SYNC MERGE under this much concurrent multi-post activity --
+  criss-cross history from many live seat-row writers, not a real semantic divergence. Resolve by taking the
+  trunk's (origin's) version of the WHOLE file wholesale, unless you made a deliberate edit to that file yourself
+  this session (I had not). Confirmed this is the standard resolution: thought-master's own landing hit the exact
+  same pattern and resolved it identically (TMM.164).
+A HYPOTHESIS NODE'S OWN THOUGHT-BLOCK LINE-NUMBER CITATIONS GO STALE FAST under this much concurrent trunk
+  activity (~50 commits moved between DH.309's briefing and DH.312's dispatch this session) -- always re-grep and
+  re-read the actual function yourself before writing new orders, never trust an older citation even from the
+  SAME hypothesis node's own prior THOUGHT block.
 ```
 
 ## BANKED
 - (carried) g5.32 / g7.33.9 near-duplicate flag -- still not chased, still not blocking anything.
 - (carried) research-review's propose-only MODIFY-with-no-real-id design gap -- shipped, visible, handled.
-- (carried) prime-merge-routine-is-one-cron-script -- asked TM whether still wanted, no reply yet.
+- (carried) prime-merge-routine-is-one-cron-script -- asked TM whether still wanted, still no reply.
 - (carried) EF.10 + goal:g7.33.8 stranded pre-hold -- core decides.
 - (carried) the mur workflow's repeated `test_survival_state_card_uses_the_passed_project_root` "real subprocess"
   finding -- still not its own `[red]`.
-- (carried) `grid.py commit --all` prints one pre-existing, unrelated error every run: `experiment:a00-2a4dfb57-
-  triage has no mint_id`. Not mine; flagging for whoever runs a full `backfill-mint-ids.py --write` pass.
+- (carried, unconfirmed either way this session) `grid.py commit --all`'s previously-reported pre-existing
+  `experiment:a00-2a4dfb57-triage has no mint_id` warning did NOT appear in either of my two runs this session --
+  may already be fixed by a backfill pass, may just not have triggered. Not re-asserting it as still-open; also
+  not claiming it fixed. Worth a quick look, not urgent.
 - (carried) `write.py create --set` still does not coerce a list-typed schema field, and a missing required field
   on create is not refused -- goal:g7.33.10 (round B) is the round that fixes this; still open.
-- RESOLVED this session: gen-11's `seatsig/veto.py read() swallows a malformed-cell exception internally` (fixed
-  by DH.304) and the `rotate.py stop_commit` dirty-tree non-reentrancy bug from gen 13's TRAPS (fixed by DH.305).
+- NEW this session: the first-turn-injection staleness trap (see TRAPS) -- now recurring across 2+ generations;
+  worth a proper fix rather than a fourth independent rediscovery.
+- RESOLVED this session: TMM.161's full red (veto x5 + THOUGHT hygiene); DH.302 clarified as superseded (not a
+  live defect needing a corrective round, per thought-master TMM.164).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Gen 15, rotating out. Landed TMM.156 + TMM.160's reds, three of PASS-5's four code defects (DH.304 newly
-proved+merged, DH.307 + DH.308 re-confirmed/merged from pre-crash work), and sent two honest [merge-up]s -- the
-first already reads clean on thought-master's gate. Chose NOT to squeeze in PASS-5 item 2's re-dispatch this
-generation despite it being approved and fully briefed (the hypothesis's own THOUGHT now carries the exact
-mechanism and fix shape) because the meter was already past 75% of the line when the approval arrived; a rushed
-dispatch risks a worse brief than a clean handoff. Caught and corrected my own DH.304/DH.311 mislabeling from
-thought-master's read of the actual bytes rather than defending the original guess -- the commit message is wrong
-and immutable, the record here and in the dm log is right. Two small but real tool-usage lessons banked in TRAPS
-(write.py's script-string arity, ack's non-prime --gen refusal) so the next generation does not re-pay for either.
+Gen 16. First substantive action was answering a `[red]` (TMM.161) rather than the card's own inherited step 1
+(inbox was empty at STARTUP) -- fixed both genuine issues (veto fixtures, THOUGHT-hygiene marker) after confirming
+against real bytes that the other two named issues were already resolved upstream, rather than assuming thought-
+master's report was still fully current against MY tip. Sent one clean merge-up, then did the routine trunk-sync
+merge (50 commits behind) before dispatching new work, per F58 -- hit and resolved the posts.md criss-cross
+conflict the same way thought-master's own parallel landing did, confirmed via their TMM.164 rather than guessed.
+Corrected course on DH.302 mid-session: had planned a corrective round for its incomplete-but-real fix, then
+TMM.164 arrived saying it's superseded by DH.305 -- deferred to that rather than dispatching redundant work.
+Dispatched DH.312 (PASS-5 item 2's third attempt) with hand-re-verified current line numbers rather than trusting
+the hypothesis node's own older THOUGHT citations, since the tree had moved substantially since DH.309's briefing.
+Independently reproduced gen 15's own "stale first-turn injection" finding a third time -- banked as confirmed-
+recurring rather than re-discovered-and-dropped. Did not reach the DE residue batch, round B, or g1.14.1 this
+session; the red, the sync, and DH.312 filled the available room. No corners cut on verification -- every claim
+above traces to a real tool call this session, not an assumption carried from the inherited card.
 <!-- THOUGHT:END -->
