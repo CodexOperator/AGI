@@ -1,13 +1,17 @@
-"""Harness-to-harness pane transport.
-
-Routing is intentionally a pure equality decision; this module owns no
-harness registry and imports no rotation internals.
-"""
+"""Harness-to-harness pane transport: a pure equality router, no registry."""
 from __future__ import annotations
 import subprocess
 
 NATIVE = "native"
 CROSS = "cross"
+
+
+class UnknownRoute(ValueError):
+    """A route() result outside {NATIVE, CROSS}. Refusal, never a fallback."""
+
+    def __init__(self, decision: object) -> None:
+        super().__init__(f"unrecognised route decision: {decision!r}")
+        self.decision = decision
 
 
 def route(from_harness: str, to_harness: str) -> str:
@@ -37,4 +41,6 @@ def deliver(from_harness: str, to_harness: str, text: str, *, target: str | None
     decision = route(from_harness, to_harness)
     if decision == NATIVE:
         return decision, native_send(text, target=target)
-    return decision, cross_send(text, target=target or to_harness, sender=sender)
+    if decision == CROSS:
+        return decision, cross_send(text, target=target or to_harness, sender=sender)
+    raise UnknownRoute(decision)

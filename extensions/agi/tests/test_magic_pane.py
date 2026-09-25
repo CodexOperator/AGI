@@ -1,6 +1,21 @@
 from __future__ import annotations
 
+import pytest
+
 import magic_pane
+
+
+@pytest.mark.parametrize("bogus", ["bridge", None, 0, ""])
+def test_deliver_refuses_unrecognised_route(monkeypatch, bogus):
+    """A gate that delivers on a decision it does not understand is a default."""
+    sent = []
+    monkeypatch.setattr(magic_pane, "route", lambda *_: bogus)
+    monkeypatch.setattr(magic_pane, "cross_send", lambda *a, **k: sent.append("cross") or 0)
+    monkeypatch.setattr(magic_pane, "native_send", lambda *a, **k: sent.append("native") or True)
+    with pytest.raises(magic_pane.UnknownRoute) as exc:
+        magic_pane.deliver("a", "b", "hello", target="seat")
+    assert exc.value.decision is bogus
+    assert sent == [], "refusal must precede any transport"
 
 
 def test_route_is_harness_equality():
