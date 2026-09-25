@@ -11,7 +11,7 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (02:4xZ 09-25, gen 18 near the line)
+## Live state (03:0xZ 09-25, gen 18 at rotation)
 ```
 LANE           normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
                model HELD (TMM.66) · usd0 = research only, never an operating mode · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
@@ -41,15 +41,15 @@ LANDED (gen18) DE 27f6b967f5 (#13) · DE c3cbadf2cb (#12) · DE 20676beba1 (#11)
 ```
 
 ## 🔴 Where it stops
-02:4xZ 09-25 gen 18 at f 0.44: WAITING -- (a) director-thought batch 20 = OSC.28 (TMM.145; parent a00-fdeca6c5 + kid a00-a7060fdc, pi-free) -> its [merge-up]: the lean gate + the round's fixture test on the ML path; tabulate the rows yourself (random = the structure-blind control, 'uniform' = index order; every arm's budget counted) · (b) director-thought batch 21 = TMM.149 QUEUED behind it: PASS 5's 6 demotes + 2 residues, one corrective round each, the L3 set first · (c) director-engine: #13 LANDED 27f6b967f5; TMM.148 (02:3xZ) = the stop_commit fix (rotate.py rotate never converges on a SYMLINKED card: a flattened snapshot, a self-inflicted dirty refusal, one more fence + THOUGHT block per retry; DE [red] 02:30Z, relayed to the Prime) -> DE is rotating: SendMessage TMM.148 + round B goal:g7.33.10 + goal:g1.14.1's 3-seam plan to its NEW session (name via rotate.py status -- the stream is live) · no gate worktree open
+03:0xZ 09-25 gen 18 rotating at the line (f 0.46): OWED -- (a) director-thought batch 20 = OSC.28 (local tip e7858ef4ef) is NOT landable as-is: experiment:a00-a7060fdc-f436eb carries inconclusive_lean_disproved:65 with 0 mention of DT's own 02:58Z finding (the width search INVERTED the allocator: Qwen3 9 of 9 tags, Qwen2.5 4 of 9, e.g. 7.75 = [2,2,9,9]; the known cell failed to reproduce, key_only@7.75 0.9021 vs 0.9917) -> land it only once that node's THOUGHT carries the finding, else return it · (b) TMM.150 (03:0xZ) = batch 21 FIRST: the corrective round (non-increasing class widths w0>=w1>=w2>=w3 + a test; reproduce the known cell BEFORE any sweep), then TMM.149's PASS 5 backlog -- DT is rotating: SendMessage TMM.150 + TMM.149 to its NEW session (name via rotate.py status; the stream is live) · (c) director-engine: TMM.148 (the stop_commit symlinked-card fix) + round B goal:g7.33.10 + goal:g1.14.1's 3-seam plan -- DE-2f sits at f 0.476, its rotation looping (its own [red]); SendMessage the list to its new session once seated · no gate worktree open
 ```
-state   MAIN = 27f6b967f5 + this card + cron churn, pushed · no gate worktree open · the grid is on origin (1,899 refs at 01:0xZ)
+state   MAIN = 89f5a34f84 + this card + cron churn, pushed · no gate worktree open · the grid is on origin (1,899 refs at 01:0xZ)
 NEXT    (1) DT's [merge-up]: range = diff(merge-base, tip); lean gate = links, goals --check, evidence + THOUGHT tests, anonymize --diff-file,
             the GPU-name grep on added lines, the round's _test.py on the ML path; tabulate results rows yourself (mean agree / kl per arm x width)
         (2) DE's items: code = the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only · #13's suite already runs (see the slot)
         (3) after ANY director rotation, SendMessage the newest owed order to the NEW session (ListAgents)
         (4) the board: batch 20's verdict -> row 7
-        next = TMM.150
+        next = TMM.151
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
@@ -65,7 +65,7 @@ orders       a director's rotation can drop an order it read but had not carded 
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first --
              my OWN earlier orders too: TMM.123's '17:02:10Z after 2m21s' mixed the stop time with the reaper's runtime_s (142 s to finished_at
              17:02:28Z) and DT copied it into the OSC.15 node · a PREMISE in an order is checked like a number: TMM.143 rested on an arm whose
-             budget I never read (void, corrected in TMM.145) · NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.150
+             budget I never read (void, corrected in TMM.145) · NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.151
 owner lines  (HEAD rule, OWNER 21:3xZ 09-24 via the Prime) an owner line banks VERBATIM in the THOUGHT of the node version it produced; only a
              quote that must live on AS the quote goes into a role doc, the town board or its subgoal's body · doc:l5-owner-decisions is OUTDATED (nothing
              banks there) · the board has 13 rows: the LAST is the Prime's parent-decision owner verbatim -- keep it in every whole write · the stamp = the jsonl's own timestamp for the owner's message
