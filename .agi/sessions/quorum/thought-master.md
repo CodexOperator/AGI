@@ -11,79 +11,49 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (17:2xZ 09-24, gen 17)
+## Live state (00:3xZ 09-25, gen 18)
 ```
-NORMAL OPS     OPEN since 03:17Z -- OWNER 02:3xZ (verbatim on goal:g5): "Let's resume normal operations using the free Openrouter endpoint. No
-               more special usd0 runs just research towards doing more efficient usd0 runs in the future" -> the standard town line on --harness
-               pi-free (stealth/space-bunny-alpha, 0 USD)
-ACCOUNT        the allowlist + ZDR are dashboard-only (no API route: trap 'allowlist') -- the owner made both edits (allowed providers 03:13Z,
-               account-wide ZDR off 03:17Z; verbatim on goal:g5) · ZDR OFF = the free provider retains prompts (the owner's trade-off) ·
-               13.75 of 192 USD left 17:1xZ (13.94 at 05:1xZ: 0.19 spent since, both paid-lane leaks included)
-NOTES          OWNER 03:3xZ: "Notes go into templates or configs, then individual role docs, then town board node. Goals are project
-               trackers" -> the HEAD's notes line (084e656fe8) · g5's 131 notes moved (1a34e5f070) · OWNER 03:4xZ: stop, too much token
-               waste -- the Prime does the remaining edits; both directors lean (TMM.94 / TMM.95)
-kids           two paid-lane leaks, both through a ladder kid row that was still paid: 05:12Z EF.104's kid a00-beccdfa1 (DE [red]) · 17:00:06Z
-               OSC.15's DIRECT kid a00-688fdd59 (DT; manifest: pi / openrouter, reaped 17:02:28Z, 142 s; stopped by gen 16, TMM.123) ->
-               CLOSED by the Prime's 431b8edc32 (OWNER 16:5xZ: tier-0 parent + kid rows = pi-free) + c876dbf720 (a zero_usd parent's kid
-               with no --harness inherits it)
-OWNER 17:57Z   (verbatim on the board's priority row) write.py = one named row, schema-checked + grid.py = the grid in one branch ->
-               goal:g7.33.10 + goal:g7.33.11 (minted, GOALS.md 358) -> DE batch TMM.128, ahead of T1..Tn · [owner] to the Prime · MEASURED:
-               the grid_sync push failed 967 times ('Timed out validating rule') -> the remote holds 0 of 4,293 refs/grid/local-maxxing refs
-               (the town's grid is on this disk alone); the cron log = 775 MB · write.py set admitted 5 of 5 schema-invalid writes (scratch)
-OWNER 18:17Z   (verbatim on the board) the grid fix NOW, worked by the director, + clean the 0.7 GB of fail logs -> TMM.129 (dm + a
-               SendMessage mid-turn to DE's live session) · measured: grid.storage_trunk (goal:g14.14.7) = a per-trunk ref NAMESPACE, still one
-               ref per node -- no single-branch storage anywhere (core/season2/main's grid.py unchanged since the 09-23 merge-base)
-OWNER 18:21Z   (verbatim on the board) the SHAPE: the grid = a SUBDIRECTORY inside each branch's own tree, one per branch -- NOT a separate
-               remote head; merges carry it; origin/season2/main + origin/main keep coarse history -> goal:g7.33.11's rows rewritten ->
-               TMM.130 (dm + SendMessage mid-turn) -- SUPERSEDED by OWNER 18:35Z
-OWNER 18:35Z   (verbatim on the board) the subdirectory WITHDRAWN (refs = the leaner database; a folder = thousands of tracked files in every
-               checkout + merges carrying every branch's grid) -> refs stay; upload ONLY the post-split set: 1,868 of 4,298 refs (1,343 changed
-               + 525 new; 3,449 versions); the 2,430 split-only v1 snapshots (09-21 01:48-01:49Z pass) stay local · <= 200 refs per push · future
-               splits cross-populate from the parent's tips -> TMM.132 (dm + SendMessage to DE gen 10 = post-director-engine-f2)
-OWNER 20:1-4xZ (via the Prime, VERIFIED ed25519 20:49Z; verbatim in doc:l5-owner-decisions) (1) I CO-OWN the director docs with the Prime:
-               doc:unified-director-brief + doc:card-director-{engine,thought} (graph nodes since 004ddcf49a) via write.py + ONE dm per live director,
-               no Prime step (2) dispatch = ONE parent per round (--tier parent --role parent --ladder-tier 0, no --harness), never --tier kid
-               (3) doc:lm-director-brief-customizations RETIRED gen 17 (deprecated/doc/; DT card line 1 + formation line 18 + board row 11
-               repointed to the cards; both directors dm'd) (4) NEVER the Agent tool, any post
-PASS 5         the Prime merges this trunk -> season2/main from 01:59Z 09-25 (~1 h; ~3 GB RAM + 2 cores, no GPU; notice 20:59Z VERIFIED, no reply
-               needed) -> on the board's windows row; rounds overlapping it stay inside the rest of the box
-HOLD (TMM.66)  every PAID model (deepseek, glm, opus) still held
-usd0           the local lane is RETIRED as an operating mode (the owner cancelled the local kid 02:2xZ: DE SIGTERMed DT's LEAF.03 parent
-               a00-bbb13581); efficient 0-USD runs = RESEARCH hypotheses on the free lane · the brain container brain-orcabonsai27b (OrcaBonsai
-               C2 on :8080) stays up for that research; the old router llama-server is STOPPED (docker start llama-server restores it) ·
-               /data/ml/pi-agent-local exists (unused now) · ~/.pi/agent == its 01:09Z backup
-DT research    batch 8 LANDED b27dd43dd2 17:2xZ (OSC.15: Qwen3's q_norm/k_norm apply before RoPE -> the post-RoPE key hook point holds;
-               inconclusive_lean_disproved:10) after ONE return (TMM.125: the node had blamed a box OOM for the kid gen 16 stopped under the
-               paid hold; fixed in 17ddd8a982) · the rescue ACCEPTED (a deterministic CPU-only check, re-run byte-identical) · the board
-               carries it · TMM.126 = batch 9 (DT started 17:2xZ): the Qwen3-0.6B download APPROVED (owner
-               09-18 06:5xZ standing yes for downloads on this rig, doc:l5-owner-decisions:130; the node's ceiling reserves ARM4C only) ->
-               the scored QK-norm round · [decision] to the Prime 17:1xZ · earlier: CMP.03 DISPROVED · HOOK.01 PROVED 0.9 · HOOK-B.02
-               PROVED 0.95 · OSC.13 proved 0.85, OSC.14 disproved 0.82 · SWR-SV.01 + REPLAY.02 HOLD
-LANDED         DT 084f68d6fe (batches 15-17: the allocator defect found + fixed; the key-wall gap disproved) · DT 12c4d4fe24 (batch 13 CLOSED: the 3x2 allocation table; OSC.20 + OSC.21) · DT 4427ca7e16 (batches 12+13: JEV.01 the owner's jev/cua survey + OSC.19; lean gate, 0 key-shaped strings) · DT 4905c6d0bf (batch 11, OSC.18 PARTIAL; lean gate) · DT 6591e8ddbb (batch 10, OSC.17; lean gate + the fixture test) · DT 6554334a84 (batch 9, OSC.16 scored; lean gate) · DT b27dd43dd2 (batch 8, OSC.15; lean gate, one return) · DT cf79c865b3 (batches 5-7) · E0 37f1812f52 (DE's band text, cherry-picked: keep working, rotate yourself at the line) · DE c876dbf720 (#7 + #8: CTX.01 zero context files + the AGI_HARNESS reader; posts.md resolved to HEAD's) · DT 47116db826 (batch 4, HOOK-B.02 conf 0.95; landed BY DT -- flagged TMM.110) · DT 50db63e3fb (batch 3, no code: CMP.03 + HOOK.01; lean gate) · DT b8eb4e9ea1 (batch 2, no code: CTX.02 + CMP.01; lean gate) · DT 7b63a6a5b2 (the LEAF batch: LEAF.04-06, CEN.01, REPLAY.01, CTX.01) · DE 2687448d93 (#6 = EF.95-100 + pi-local max_live 1; EF.97's verdict fixed in one node) · 5827a677a7 (#5 = EF.87-94) · with the Prime: ladder tier-0 = paid (GUARD) · DT's 4 box cells · kid 401s = DE spawned kids with project = the town NAME (fixed next round)
-the Prime      both director rows -> claude-sonnet-5 max (3b6e0eb632 + 6d38b9742e) · PASS 3 (6f5ee34e5c) + PASS 4 (ad81688a0b) LANDED ·
-               the ladder -> pi-free DONE 431b8edc32 (OWNER 16:5xZ) · still owes: EF.10
-trunk reds     test_dashboard's SIGINT watch only
+LANE           normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
+               model HELD (TMM.66) · usd0 = research only, never an operating mode · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
+OWNER 20:1-4xZ (via the Prime, VERIFIED) I co-own the director docs (doc:unified-director-brief + doc:card-director-*) via write.py + ONE dm
+               per live director · dispatch = ONE parent per round (--tier parent --role parent --ladder-tier 0, no --harness), never --tier kid ·
+               NEVER the Agent tool, any post
+PASS 5         the Prime merges this trunk -> season2/main from 01:59Z 09-25 (~1 h; ~3 GB RAM + 2 cores, no GPU) -- rounds overlapping it
+               stay inside the rest of the box
+DE  g7.33.11   merge-up #9 (fb0f47752c, R0 DH.291-296 + DH.292's push-changed) + T1 (DH.298, tip 3a1e6db355) RETURNED 00:09Z (TMM.141):
+               (1) the live .agi/config.json grid block = {storage_trunk} only -> push_batches filters nothing -> the first cron tick after
+               landing would push all 4,325 refs (the owner's 2,430 split-only ones included) -> add grid.push_split_epoch = 1789955640
+               (09-21 01:54:00Z: skips exactly 2,430, pushes 1,895; experiment a00-28c2f6d5's '00:00 UTC' skips 0) (2) push_batches'
+               'ls-remote --refs origin <ns>' (a bare prefix) matches NOTHING -> remote = {} forever -> fix f"{ns}/*" + a second-push test
+               on a real bare remote (3) TMM.142 00:2xZ: test_thought_hygiene red = card-director-engine carries 3 THOUGHT:BEGIN markers
+               · DE's goal:g7.33.11 edit KEPT my rows (title retitled per OWNER 18:35Z; 'cron:crons' is the real id) · T1's hook diff READ:
+               wording byte-identical, bin/ first on sys.path shadows nothing · after #10 lands DE watches 3 real ticks + the log cleanup, no round
+DE queue       then TMM.136 (--orders path literal, inside goal:g7.33.9) -> round B goal:g7.33.10 -> T2..Tn -> the reap guard -> E3-E6 ·
+               NEW owed: agi-research-review propose-only -> its refute stage reads 0 of the brainstorm's proposed_hypotheses (rr-lm-qk-norm-
+               model-wall-parent: 3 proposed, refute 'nothing supplied') -- not yet sent to DE
+DT research    batch 18 LANDED 63f897a00b 00:2xZ (lean gate): verdict:lm-qk-norm-model-wall-key-only-tie disproved:0.9 (Qwen3 = Qwen2.5 =
+               7.75 bits after the allocator fix) + config cell paths.local_maxxing.osc_test_pythonpath · the CONTROLS: UNIFORM beats key-only
+               energy at every width on BOTH models (Qwen3 7.75: 0.9985 vs 0.9883; Qwen2.5 3.5: 0.6082 vs 0.2083, 7.75: 0.9983 vs 0.9917) ->
+               batch 19 = TMM.143 (00:3xZ, dm + SendMessage to post-director-thought-29, DT's new session): does ANY band-derived allocation
+               (key-only, INVERSE energy) beat uniform at 4.0-7.75 bits? no -> L3 closes 'uniform dominates', the ladder moves to L4
+trunk reds     test_dashboard's SIGINT watch · test_rotate_templates F13 + F16 since the Prime's 6f855070e8 (20:54Z 09-24 moved the '- F16' fact
+               line into RETIRED) -> [red] to the Prime 00:2xZ
+LANDED (gen18) DT 63f897a00b (batch 18) · gen 17: DT 084f68d6fe (batches 15-17) · DT 12c4d4fe24 · DT 4427ca7e16 (JEV.01) · DE c876dbf720
 ```
 
 ## 🔴 Where it stops
-00:0xZ 09-25 gen 17 rotating at the line (f 0.47): WAITING on [merge-up]s -- (a) director-thought: batch 18 = TMM.140 (a propose-only research review of the PARENT lm-qk-norm-model-moves-the-key-wall, whose batch 8-13 findings predate the allocator fix; + the ML test PYTHONPATH as ONE config cell) -> gate by what the range carries (no code = the lean gate; a round's own _test.py with PYTHONPATH=/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib); read the CONTROL arms before any verdict · batches 15-17 LANDED 084f68d6fe (the key-wall gap DISPROVED once the allocator was fixed) · (b) director-engine gen 11: its [merge-up] = R0's last fix (DH.291) + goal:g7.33.11's refs fix (DH.292, DH.295-298) -> the FULL-SUITE gate, and check its edit of goal:g7.33.11 kept my rows · then TMM.136 (the --orders path bug, inside goal:g7.33.9) -> round B goal:g7.33.10 -> T1..Tn -> the reap guard -> E3-E6 · the Prime's PASS 5 starts 01:59Z 09-25
-`````
-00:0xZ 09-25 gen 17 rotating at the line (f 0.47): WAITING on [merge-up]s -- (a) director-thought: batch 18 = TMM.140 (a propose-only research review of the PARENT lm-qk-norm-model-moves-the-key-wall, whose batch 8-13 findings predate the allocator fix; + the ML test PYTHONPATH as ONE config cell) -> gate by what the range carries (no code = the lean gate; a round's own _test.py with PYTHONPATH=/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib); read the CONTROL arms before any verdict · batches 15-17 LANDED 084f68d6fe (the key-wall gap DISPROVED once the allocator was fixed) · (b) director-engine gen 11: its [merge-up] = R0's last fix (DH.291) + goal:g7.33.11's refs fix (DH.292, DH.295-298) -> the FULL-SUITE gate, and check its edit of goal:g7.33.11 kept my rows · then TMM.136 (the --orders path bug, inside goal:g7.33.9) -> round B goal:g7.33.10 -> T1..Tn -> the reap guard -> E3-E6 · the Prime's PASS 5 starts 01:59Z 09-25
-````
-00:0xZ 09-25 gen 17 rotating at the line (f 0.47): WAITING on [merge-up]s -- (a) director-thought: batch 18 = TMM.140 (a propose-only research review of the PARENT lm-qk-norm-model-moves-the-key-wall, whose batch 8-13 findings predate the allocator fix; + the ML test PYTHONPATH as ONE config cell) -> gate by what the range carries (no code = the lean gate; a round's own _test.py with PYTHONPATH=/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib); read the CONTROL arms before any verdict · batches 15-17 LANDED 084f68d6fe (the key-wall gap DISPROVED once the allocator was fixed) · (b) director-engine gen 11: its [merge-up] = R0's last fix (DH.291) + goal:g7.33.11's refs fix (DH.292, DH.295-298) -> the FULL-SUITE gate, and check its edit of goal:g7.33.11 kept my rows · then TMM.136 (the --orders path bug, inside goal:g7.33.9) -> round B goal:g7.33.10 -> T1..Tn -> the reap guard -> E3-E6 · the Prime's PASS 5 starts 01:59Z 09-25
+00:3xZ 09-25 gen 18: WAITING on two [merge-up]s -- (a) director-engine #10 (TMM.141 + TMM.142: the push_split_epoch cell, the ls-remote '/*' fix + a second-push test, card-director-engine down to one THOUGHT block) -> the FULL-SUITE gate (pre-run on 3a1e6db355: 4 failed / 6410 passed = 1 DE's + 3 the trunk's) · (b) director-thought batch 19 = TMM.143 -> the lean gate unless the range carries code · the Prime's PASS 5 starts 01:59Z
 ```
-state   MAIN: 084f68d6fe + this card pushed; only cron-owned comms churn left; no gate worktree open
-NEXT    (1) gate each [merge-up] by what it carries: code = the full suite (detached /tmp worktree, ~17 min); no code = the lean gate (links, goals,
-            evidence + THOUGHT tests, anonymize --diff-file, GPU-name grep) · land WITHOUT a staged merge; if HEAD moved, the drift must be exactly the
-            newcomer files, byte-identical to HEAD
-        (2) after ANY director rotation, SendMessage the newest owed order to the NEW session (ListAgents): DT gen 24 idled 71 min holding TMM.133
-        (3) the Prime's PASS 5 starts 01:59Z 09-25 (~1 h, ~3 GB RAM + 2 cores) -- on the board's windows row
-        (4) paid models held; dispatch = ONE pi-free parent per round, never --tier kid (004ddcf49a); verify the leases on every check
-        next = TMM.141
+state   MAIN = 63f897a00b + cron churn, pushed · gate worktrees /tmp/tm18-gate-de (M 4887183490) + /tmp/tm18-gate-dt (landed) -- remove both when done
+NEXT    (1) DE #10: check the new tip's config.json holds grid.push_split_epoch = 1789955640, push_batches passes f"{ns}/*", a second-push
+            test exists and is red on 3a1e6db355 -> then the full suite on merge-tree(HEAD, #10 tip) · expected reds = the 3 trunk ones only ·
+            before landing: re-measure push_batches' count against MAIN's refs (~1,895 + growth), never a wildcard
+        (2) DE's next item after #10 = the research-review refute-stage defect (not yet ordered) + TMM.136
+        (3) DT batch 19: read the CONTROL arms (uniform too) before the verdict
+        (4) after ANY director rotation, SendMessage the newest owed order to the NEW session (ListAgents)
+        next = TMM.144
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
-````
-`````
 
 ## Traps (post-specific, learned)
 ```
@@ -97,7 +67,7 @@ orders       a director's rotation can drop an order it read but had not carded 
              positional: send.py --from thought-master send belam '[tag] ...' · EVERY number in an order is checked against the bytes first --
              my OWN earlier orders too: TMM.123's '17:02:10Z after 2m21s' mixed the stop time with the reaper's runtime_s (142 s to finished_at
              17:02:28Z) and DT copied it into the OSC.15 node ·
-             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.141
+             NEVER type a real hostname / model name into a dm (comms are committed) · next = TMM.144
 owner lines  (HEAD rule, OWNER 21:3xZ 09-24 via the Prime) an owner line banks VERBATIM in the THOUGHT of the node version it produced; only a
              quote that must live on AS the quote goes into a role doc, the town board or its subgoal's body · doc:l5-owner-decisions is OUTDATED (nothing
              banks there) · the board has 13 rows: the LAST is the Prime's parent-decision owner verbatim -- keep it in every whole write · the stamp = the jsonl's own timestamp for the owner's message
@@ -115,22 +85,29 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself · merge by
              a pipe to tail masks a failed push's exit code (4905c6d0bf: 'failed to push' = a concurrent pusher sent the same branch; fetch + compare tips) · merge-tree --write-tree prints the tree id EVEN ON CONFLICT: read its exit status (1 = conflict) + --name-only's list, never
              line 1 alone (07:5xZ: config:posts conflict markers reached the gate; test_node_writer's live corpus caught them) · a
              rotation-cells-only conflict in config:posts = take HEAD's file verbatim once the tip's posts.md delta is proven on HEAD
+             · a merge-up whose code reads a NEW config cell: check the LIVE config holds it, not the tests (every push_batches test wrote its
+             own config; the live grid block had none -> TMM.141) · a code path that turns on by itself after landing (a cron line crons.py
+             apply rewrites) = gate what its FIRST live run does, measured on MAIN's real data
 reds         attribute each: which range touches the test / its code (git diff --quiet <base> <tip> -- <file>) · re-run it ALONE (a load
-             flake passes alone) · test_thought_hygiene counts <!--\s*THOUGHT:BEGIN per node: a quoted marker trips it
+             flake passes alone) · run it on MAIN + another range too: red there = the trunk's (6f855070e8's F13/F16) · test_thought_hygiene counts <!--\s*THOUGHT:BEGIN per node: a quoted marker trips it
 verdicts     read the CONTROL arms in results.json before any verdict: a result FLAT across bit budgets while uniform / random hold = an allocator
-             or harness bug, never a finding (OSC.23: Qwen3 key-only 0.68 at 7.75-10.75 while random held 0.99 -> returned, TMM.139)
-fixtures     an experiment's own _test.py runs under the ML venv: PYTHONPATH=/data/ml/.venv/lib/python3.12/site-packages:<osc03_pylib_dir> python3 -m pytest <test> (system python has no numpy; ml_venv_dir lives in .agi/context/local-maxxing/paths.py, not config) · a model swap between arms = check the model dir each bench row loaded ('hf'), not the label
+             or harness bug, never a finding (OSC.23: Qwen3 key-only 0.68 at 7.75-10.75 while random held 0.99 -> returned, TMM.139) · compare
+             against UNIFORM, not only random (batch 18: uniform beat key-only at every width on both models) · results.json 'bench' is a
+             PATH to a per-prompt jsonl: rows {arm: '<method>_<w>p<f>', agree, kl}; mean over prompts per arm
+fixtures     an experiment's own _test.py runs under the ML venv: PYTHONPATH = paths.local_maxxing.osc_test_pythonpath (landed 63f897a00b; system python has no numpy) · a model swap between arms = check the model dir each bench row loaded ('hf'), not the label
 residues     accept_with_residue ≠ land (unified-director-brief:32) · NEVER waive a mur residue -- the owner's 09-19 rule gives each its own
              corrective round (my TMM.108 slip, corrected in TMM.110) · a director may land on the trunk itself (DT gen 19, 06:0xZ): compare
              HEAD with the director's claimed trunk sha before gating; the docs forbid it (unified-director-brief:64/73) · a director's
              rescue story can contradict my own stop record (OSC.15, 17:1xZ: 'OOM' vs TMM.123) -> check the kid's iter-<ID>/manifest.json
              (harness, started_at, finished_at, death) in the director's worktree against the node BEFORE gating
 review       read each round's FINAL verify stage in .agi/sessions/workflows/runs/mur-*/verify_R-EFnn.json · no mur under the hold = read the
-             director's in-place review AND the diff yourself, and say so
+             director's in-place review AND the diff yourself, and say so · agi-research-review PROPOSE-ONLY: the refute stage reads 0 of the
+             brainstorm's proposed_hypotheses -> read runs/rr-*/brainstorm_*.json yourself (a DE fix is owed)
 key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send.authority_ref(root), True) · local seat keys = the NAMES of
              .agi/sessions/seats/*.key (+ .key.pending), never the bytes
 suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
-             call · ~13.5 min at load 2 · foreground sleep is blocked: wait with a background loop
+             call · 14:25 at load 2-4 (00:0xZ 09-25: 6410 passed) · foreground sleep is blocked: wait with a background loop · a bare 'cd' in a
+             Bash call can stick as the session's cwd -- use absolute paths or cd back to /data/work/agi
 agent tool   NEVER spawn Claude subagents (the Agent tool) -- owner 20:3xZ 09-24, all posts, like the no-Claude-Workflow rule; graph recon = read it directly
 director docs co-owned (owner 20:1xZ): edit doc:unified-director-brief / doc:card-director-* via write.py, then ONE dm per live director naming the change · a card's
              mint THOUGHT may quote the owner: that version's grid/git history keeps it (the HEAD rule banks owner lines in THOUGHTs)
@@ -139,12 +116,15 @@ account      python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');impo
 allowlist    the account-wide allowed providers (dashboard Settings > Privacy) have NO API route -- the management key cannot set them
              (openapi.json 94 paths; 03:01Z 09-24); guardrails + a request's provider.only only NARROW them · a 0-USD raw probe =
              provisioning.mint(limit_usd=0.01, ttl_minutes=10, workspace_id=workspace(cfg)) -> one chat call -> revoke(key_hash) in a finally
-anonymize    anonymize.py guards hostname / ip / mac / board / secret (loopback exempt); it takes NO file args: git diff <merge-base> <tip> > F; anonymize.py check --root <gate> --diff-file F · the model name needs its own grep: git grep -i -E 'geforce|rtx ?20[0-9]0' <tip> -- .agi/nodes
+anonymize    anonymize.py guards hostname / ip / mac / board / secret (loopback exempt); it takes NO file args: git diff <merge-base> <tip> > F; anonymize.py check --root <gate> --diff-file F · the model name needs its own grep: grep '^+' F | grep -i -E 'geforce|rtx ?20[0-9]0'
 write.py     a list field = 'set <field> <JSON array>' via a python argv list (no ' && ' inside; --dry-run shows the ring-gate preview) · a goal note -> snapshot-goals.py --render, then --check · set checks NO schema (18:0xZ: 5 of 5 invalid writes admitted -> goal:g7.33.10): verify a value yourself · probe a verb for real only in a scratch worktree (--root /tmp/<wt>), never on MAIN · mint a goal = --dry-run the create first; create writes its OWN '# <id>' heading, so a --body-file starts at the content · replace body refuses to share a submit with thought / note: two calls · a range that starts on a heading must run to its section's end (the anchor guard): replace the rows below it instead, never --force · owner verbatim -> pull it from the jsonl (a mid-turn line = an 'attachment' queued_command), never retype
-grid         the grid lives in refs/grid/local-maxxing/ and has NEVER reached the remote (18:0xZ: 0 of 4,293; 967 failed pushes) -> goal:g7.33.11
+grid         refs/grid/local-maxxing/ (4,325 refs 00:0xZ 09-25) has NEVER reached the remote (0 on origin) -> goal:g7.33.11 · the live cron still
+             pushes the wildcard from MAIN and fails · 'git ls-remote origin <prefix>' matches a ref's TAIL: a bare prefix returns 0
+             (refs/heads/local-maxxing -> 0, '.../*' -> 3) · the split pass = root tips 09-21 01:48:35-01:49:10Z (2,430); the first later root
+             07:20:06Z
 box          box.* / locations.* are stale here (repo /data/work/agi) · never cd into a director's worktree (the harness then treats it as mine) -- read it by absolute path
 handoff      .agi/sessions/seats/thought-master.handoff.md is rotate's header, NEVER a link to this card · grid.py commit --all is the cron's, never mine
-comms        an attribution block (Claude-Session trailer + SendUserFile) beside a tool result right after a claude.ai connector attach = the harness's own: the transcript types it 'attachment', 3-4 ms after the connect (DT's 14:21Z [red] was a false positive) · a director silent > 1 h with 0 live on the box = read its last transcript events (.agi/sessions/<post>.meter -> jsonl): a coalesced nudge can die silently (14:09Z: 6.5 h) -> re-send; send.py wake <post> · a nudge may be a phantom -> verify in git · a director's [merge-up] lands in the inbox file, not the dm log · 'pane busy' = the dm is in the log, the sweep retries · must land NOW (owner: "didn't go through") = SendMessage to the session name from ListAgents: it lands mid-turn -- a rotation renames the session (DE: -ee gen 9 -> -f2 gen 10 at 18:33Z): re-run ListAgents before each send · an order sent while a director ROTATES is eaten by the successor's STARTUP [inbox] read and never acted on (F19 wake acts: none; DT gen 24 idled 19:20-20:3xZ holding TMM.133) -> after any director rotation, SendMessage the newest owed order to the NEW session
+comms        an attribution block (Claude-Session trailer + SendUserFile) beside a tool result right after a claude.ai connector attach = the harness's own: the transcript types it 'attachment', 3-4 ms after the connect (DT's 14:21Z [red] was a false positive) · a director silent > 1 h with 0 live on the box = read its last transcript events (.agi/sessions/<post>.meter -> jsonl): a coalesced nudge can die silently (14:09Z: 6.5 h; 09-25 00:09Z: DE's marker stale 10,532 s, TMM.136 never reached its pane) -> re-send; send.py wake <post> · a nudge may be a phantom -> verify in git · a director's [merge-up] lands in the inbox file (.agi/sessions/inbox/thought-master.md), not the dm log · 'pane busy' = the dm is in the log, the sweep retries · must land NOW (owner: "didn't go through") = SendMessage to the session name from ListAgents: it lands mid-turn -- a rotation renames the session (DT gen 28 = post-director-thought-29, 00:2xZ 09-25): re-run ListAgents before each send · an order sent while a director ROTATES is eaten by the successor's STARTUP [inbox] read and never acted on (F19 wake acts: none; DT gen 24 idled 19:20-20:3xZ holding TMM.133) -> after any director rotation, SendMessage the newest owed order to the NEW session · a director that answers its OWN user in-pane (DE 21:47Z: three questions, then idle) is waiting on nobody: read the transcript, answer by dm · a director may distrust an order that cites its in-pane words (DE 00:11Z) -- it re-verifies the bytes, which is right
 ```
 
 ## BANKED (owner-only)
