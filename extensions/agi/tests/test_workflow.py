@@ -845,6 +845,8 @@ def test_round_stage_dispatches_once_and_gates_on_branch_commit(
     import dispatch
     monkeypatch.setattr(dispatch, "_branch_has_done_commit",
                         lambda _root, rec, agent: rec.get("branch") == "loop/hyp")
+    monkeypatch.setattr(workflow, "_round_git_harvest", lambda _root, _rec: {
+        "old_tip": "old", "new_tip": "new", "files": ["extensions/agi/bin/workflow.py"]})
     manifest = {"agents": [{"id": "a00-test", "status": "running",
                             "branch": "loop/hyp", "base_branch": "main"}]}
     monkeypatch.setattr(workflow._loc, "iteration_dir", lambda _root, _iter: root)
@@ -855,12 +857,32 @@ def test_round_stage_dispatches_once_and_gates_on_branch_commit(
         {"target": "hypothesis:x", "iteration": "L1.01"}, 3)
 
     assert rc == 0, value
-    assert value == {"target": "hypothesis:x", "parent": "a00-test",
-                     "branch": "loop/hyp"}
+    assert value == {"key": "hypothesis:x", "hypothesis": "hypothesis:x",
+                     "parent": "a00-test", "branch": "loop/hyp",
+                     "old_tip": "old", "new_tip": "new",
+                     "files": ["extensions/agi/bin/workflow.py"]}
     assert len(seen) == 1
     cmd = seen[0]
     assert cmd[-8:] == ["--tier", "parent", "--role", "parent",
                         "--ladder-tier", "0", "--branch", "--detach"]
+
+
+def test_round_git_harvest_uses_recorded_refs_and_files(tmp_path, monkeypatch):
+    calls = []
+    answers = {"merge-base": "base-tip\n", "rev-parse": "round-tip\n",
+               "diff": "a.py\nb.py\n\n"}
+    def fake_run(cmd, **kw):
+        calls.append(cmd[3:])
+        op = cmd[3]
+        return subprocess.CompletedProcess(cmd, 0, answers[op], "")
+    monkeypatch.setattr(workflow.subprocess, "run", fake_run)
+    got = workflow._round_git_harvest(tmp_path, {
+        "branch": "loop/hyp", "base_branch": "main"})
+    assert got == {"old_tip": "base-tip", "new_tip": "round-tip",
+                   "files": ["a.py", "b.py"]}
+    assert calls == [["merge-base", "main", "loop/hyp"],
+                     ["rev-parse", "loop/hyp"],
+                     ["diff", "--name-only", "base-tip..round-tip"]]
 
 
 def test_round_stage_refuses_dispatch_without_retry(tmp_path, monkeypatch):
