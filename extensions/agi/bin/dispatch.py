@@ -92,6 +92,70 @@ _PI_CATALOGUE_RE = re.compile(
     r'Using custom model id\.', re.I)
 
 
+def _tmux(*args: str) -> str:
+    """Run one tmux query; absence or failure is an explicit exception."""
+    out = subprocess.run(("tmux", *args), check=True, capture_output=True,
+                         text=True)
+    return out.stdout.strip()
+
+class _TmuxHeld:
+    """Popen-shaped view of an agent that is itself a tmux pane process."""
+    def __init__(self, pid: int, pane_id: str, session: str):
+        self.pid, self.pane_id, self.session = pid, pane_id, session
+
+    def poll(self):
+        try:
+            if _tmux("display-message", "-p", "-t", self.pane_id,
+                     "#{pane_dead}") != "1":
+                return None
+            status = _tmux("display-message", "-p", "-t", self.pane_id,
+                           "#{pane_dead_status}")
+        except (OSError, subprocess.CalledProcessError):
+            return 0
+        return int(status) if status else -9
+    @property
+    def returncode(self):
+        return self.poll()
+
+def _tmux_start(argv, *, env, cwd, log, seat, agent_id, state) -> _TmuxHeld | None:
+    """Found or re-enter a named pane; never type into a shell.
+
+    Durability is `respawn-pane` over a pane with `remain-on-exit`: the agent
+    is the pane's own process, so SIGKILL leaves the same pane id re-attachable.
+    """
+    safe = "".join(c for c in f"{seat}-{agent_id}" if c.isalnum() or c in "-_")
+    session = "agi-hold-" + safe[:60]
+    created = False
+    try:
+        found = _tmux("list-panes", "-a", "-F", "#{session_name} #{pane_id}")
+        panes = [line.split() for line in found.splitlines() if line.split()]
+        pane_id = next((parts[1] for parts in panes
+                        if parts[:1] == [session]), "")
+        if not pane_id:
+            _tmux("new-session", "-d", "-s", session, "-c", str(cwd),
+                  'sh -c "sleep 86400"')
+            created = True
+            pane_id = _tmux("display-message", "-p", "-t", session, "#{pane_id}")
+        _tmux("set-option", "-t", pane_id, "remain-on-exit", "on")
+        env_args = [part for k, v in env.items() for part in ("-e", f"{k}={v}")]
+        shell = f"exec >>{shlex.quote(str(log))} 2>&1; exec " + \
+                " ".join(shlex.quote(a) for a in argv)
+        _tmux("respawn-pane", "-k", "-t", pane_id, "-c", str(cwd),
+              *env_args, "--", "sh", "-c", shell)
+        pid = int(_tmux("display-message", "-p", "-t", pane_id, "#{pane_pid}"))
+        state.update(held=True, created=created, pane_id=pane_id,
+                     session=session, pid=pid)
+        return _TmuxHeld(pid, pane_id, session)
+    except (OSError, ValueError, subprocess.CalledProcessError) as exc:
+        if created:
+            try:
+                _tmux("kill-session", "-t", session)
+            except (OSError, subprocess.CalledProcessError):
+                pass
+        state.update(held=False, created=False, pane_id=None,
+                     session=session, reason=str(exc))
+        return None
+
 def _await_startup(proc, max_s: int = _GRACE_MAX_S,
                    step_s: int = _GRACE_STEP_S) -> bool:
     """True when `proc` OUTLIVED the startup grace, False the moment it
@@ -2648,17 +2712,23 @@ def main() -> int:
         # SAME lease, agent id, worktree and log.
         _mem_cap = mem_cap.resolve_memory_cap(cfg)
 
+        _tmux_hold: dict = {}
+
         def _open_round(mode: str):
+            argv = mem_cap.wrap_argv(spawn_args, _mem_cap)
+            proc = _tmux_start(
+                argv, env=spawn_env, cwd=branch_root, log=log_file,
+                seat=_resolved_seat(args.seat) or "seat", agent_id=agent_id,
+                state=_tmux_hold)
+            if proc is not None:
+                return proc
+            print(f"WARN: tmux hold unavailable for {agent_id}; "
+                  "falling back to plain Popen", file=sys.stderr)
             with open(log_file, mode) as logf:
                 return subprocess.Popen(
-                    mem_cap.wrap_argv(spawn_args, _mem_cap),
-                    stdout=logf,
-                    stderr=subprocess.STDOUT,
-                    stdin=subprocess.DEVNULL,
-                    start_new_session=True,
-                    cwd=str(branch_root),
-                    env=spawn_env,
-                )
+                    argv, stdout=logf, stderr=subprocess.STDOUT,
+                    stdin=subprocess.DEVNULL, start_new_session=True,
+                    cwd=str(branch_root), env=spawn_env)
 
         _attempt = 1
         _sig = None
@@ -2743,6 +2813,8 @@ def main() -> int:
             "strategy": strategy,
             "role": role,
             "pid": proc.pid,
+            "tmux": _tmux_hold or {"held": False,
+                                   "reason": "tmux unavailable"},
             "started_at": int(time.time()),
             "status": "running",
             "context_file": ctx_path,
