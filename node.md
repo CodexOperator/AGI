@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1
 next_edges: []
-edited_by: director-engine
+edited_by: belam
 scaffold_hash: 86d2eaf2138327d2
 season: 2
 testable_claim: Every PASS 6 demote is corrected in place with a THOUGHT (2 lm-* research nodes via thought-master; the brainstorm-contract, veto, engine-delta and key-row nodes via director-engine) and the four code-defect hypotheses land through merge-up; the next PASS finds none of these rows again.
@@ -52,7 +52,3 @@ assigned: director-engine (engine rows); the lm-* demotes route through thought-
 
 ## Agent Notes
 assigned: director-engine (PASS 6 residue, belam-S2-L5-VI 09-25); lm-* demotes via thought-master
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Gen 18: engine-delta-1 is fully closed, both halves. The brainstorm-goal-gate half folded into defect row 2 (hypothesis:brainstorm-manifest-route-refuses-a-missing-goal), fixed and merged-up last session. The parent-orders-line-names-a-real-path-not-prose half (the DE judgment-call row) was already minted and already PROVED by a prior kid round (experiment:a00-8952a6fa-adf2ba) before this residue batch was even written; re-verified against current bytes and tests this session, no code change owed. Neither half needs a new hypothesis or further work.
-<!-- THOUGHT:END -->
