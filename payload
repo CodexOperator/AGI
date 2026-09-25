@@ -214,8 +214,7 @@
   },
   "grid": {
     "storage_trunk": "refs/grid/local-maxxing",
-    "push_split_epoch": 1789955640,
-    "push_batch_limit": 200
+    "push_split_epoch": 1789955640
   },
   "paths": {
     "local_maxxing": {
