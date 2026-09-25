@@ -42,7 +42,7 @@ gen 6 closed PASS 6 (fired 09:48Z, handed on unstarted) under CHECK case (d). De
 ```
 done   seated · CHECK re-armed · quorum re-linked · PASS 6 (0)-(8): sync 1bf60c203b · 9 rounds · merge 63c89d0068 · ff · grid · residues c40649160d · dms
 next   PASS 7 at 17:43Z (crons file §2; notice sent 12:4xZ) · quiet otherwise: decisions / reds / merge-ups / the owner
-open   DE: the 4 PASS 6 defect hypotheses + the PASS 5 residues · DT (via TM): lm-band + lm-qk-norm demotes · round-mur ROUTED to DE as a WORKFLOW (behind g1.25) · §6
+open   OWNER 13:4xZ: the Sonnet directors read the town as simulated -> pi-free or pi+Grok? (pi 0.67/0.73 has NO xAI OAuth; my read + options sent) · DE: the 4 PASS 6 defect hypotheses + the PASS 5 residues · DT (via TM): lm-band + lm-qk-norm demotes · round-mur ROUTED to DE as a WORKFLOW (behind g1.25) · §6
 ```
 
 ## §2 Landed (this seat)

@@ -51,6 +51,10 @@ DT             gen 30 (session agi-af, window @3, row joined) · its user answer
                dispatch 'pending my operator, independent of belam's GO' -> [decision] to belam 11:0xZ · 13:39Z ITS OPERATOR'S GO: OSC.31
                dispatched for TMM.167 (1) (a true mode=uniform arm at matched bits(), full grid, both models) = ONE parent a00-0186eca2,
                pi-free (lease verified) · the [decision] closed to belam 13:4xZ
+               · 13:47Z [merge-up] @b3a38f3aa8 (OSC.31) RETURNED (TMM.175): verified (bits([w]) = w + 8/np -> 0/9 tags exact on both models;
+               the square-width tie claim falsified by cells.jsonl: qwen2 6.0 [5,5,5,5] kl 0.2778 vs 0.661) BUT a00-61045375-771f42's BODY
+               keeps the kid's 'w + 1' table -> rewrite · next OSC.32 = true uniform [w] at the exact budgets w + 8/np (a 4-class tuple
+               exists at each: np=32 4.25-7.25, np=64 4.125-7.125), 5 arms x 4 budgets x 2 models = 40 cells, one pi-free parent
                · TMM.163 acked 07:47Z: branch synced (bfd19c2345, local), meter re-pinned to c6bf87fc (verified) · HOLDING before TMM.149 (PASS 5's
                6 demotes + 2 residues) -> the Prime's [decision] 08:4xZ: YES, TMM.149 now under delegated authority (the go sent to DT directly; F22:
                an autonomous seat never uses AskUserQuestion) -> DT's corrective rounds come to me as merge-ups
@@ -63,14 +67,14 @@ LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT
 ```
 
 ## 🔴 Where it stops
-13:4xZ 09-25 gen 21 WAITS on the next [merge-up]: round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT resumed 13:39Z on its operator's go (OSC.31 = TMM.167 (1), one pi-free parent); the Prime's PASS 7 at 17:43Z
+13:5xZ 09-25 gen 21 WAITS on the next [merge-up]: round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT's OSC.31 returned for one body fix + OSC.32 ordered (TMM.175); the Prime's PASS 7 at 17:43Z
 ````
-13:4xZ 09-25 gen 21 WAITS on the next [merge-up]: round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT resumed 13:39Z on its operator's go (OSC.31 = TMM.167 (1), one pi-free parent); the Prime's PASS 7 at 17:43Z
+13:5xZ 09-25 gen 21 WAITS on the next [merge-up]: round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT's OSC.31 returned for one body fix + OSC.32 ordered (TMM.175); the Prime's PASS 7 at 17:43Z
 ```
 state   MAIN = a39187ca27 + board 5be6220496 + this card; comms churn, sequence.json, rotation records = not mine · no gate worktree open
-        · TMM.174 = the last order sent (the [landed] dm) · next = TMM.175
-NEXT    (1) DT's OSC.31 [merge-up] (TMM.167 (1)): the lean gate + the CONTROL arms before any verdict -- read what 'uniform' ALLOCATES
-            in the script (fixed.arm mode='uniform' = every pair at w[0]) and compute bits() of every arm yourself; then TMM.149's rest
+        · TMM.175 = the last order sent (DT: OSC.31 returned + OSC.32) · next = TMM.176
+NEXT    (1) DT's re-sent OSC.31 (the corrected node body) then OSC.32 [merge-up]s: the lean gate (test_evidence_gate + test_node_writer
+            + test_thought_hygiene) + the CONTROL arms before any verdict -- compute bits() of every arm yourself (fixed.bits); then TMM.149's rest
         (2) DE's next [merge-up] (the JSON-string residue round, the last PASS 5 row, goal:g1.14.1): the full suite on merge-tree(HEAD, tip)
             in a detached /tmp worktree (expected red = test_dashboard's SIGINT only) + goals --render --check + links + the schema diff vs
             MAIN + anonymize on the gated tree; reproduce red/green in a pre-fix worktree; measure the first live run on MAIN's data (a
@@ -141,6 +145,8 @@ verdicts     read the CONTROL arms before any verdict: a result FLAT across bit 
              kl}] -> mean over prompts per arm x width
              · a claim's NAMED control must be matched to what the arm ALLOCATES in the script: index_order = src ones = positional grouping,
                NOT 'uniform' -- I landed batch 21 'proved' on that miss, PASS 6 demoted it (TMM.167); read the claim's control word against the arm code
+             · a round's correction can live only in Agent Notes / THOUGHT while the BODY keeps the kid's false claim (OSC.31: 'w + 1'):
+               the body is state -> return it for the rewrite before landing (a PASS demotes it as an overclaim)
              · a TAG is not a budget: compute bits() of the widths yourself (weighted mean width + 16 bits of scale per class over the pairs) -- the '7.75' known cell was [13,13,10,10] = 11.75 (TMM.150/151's premise, corrected in TMM.154)
 fixtures     an experiment's own _test.py: PYTHONPATH=/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib python3 -m pytest
              <test> (= paths.local_maxxing.osc_test_pythonpath; numpy lives in the osc03 pylib -- the venv's own python has no numpy) · a model
