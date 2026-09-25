@@ -5,10 +5,9 @@ type: experiment
 parents:
   - hypothesis:a00-04a658e1-e2b811
 next_edges: []
-confidence: 0.92
-edited_by: a00-04a658e1
-evidence_runs:
-  - experiment:named-cli-compose
+confidence: 0.4
+edited_by: a00-91267413
+evidence_runs: experiment:named-cli-compose
 line_ceiling: 40
 loop: goal:g7.31.3.2@s2
 model: stealth/space-bunny-alpha
@@ -19,7 +18,7 @@ scaffold_hash: eef7d6b16428030a
 season: 2
 title: Named CLI composition probe
 town: core
-verdict: proved
+verdict: inconclusive_lean_disproved:40
 ---
 # experiment:named-cli-compose
 
@@ -45,3 +44,5 @@ The three seams are executable with the documented syntax. The first send was co
 
 ## Agent Notes
 Executed write.py graph write, file-backed inert send with kid refusal then parent DM, and dispatch.py dry-run; all three seams composed safely.
+
+probes: auth — AGI_AGENT_ID=unauthorized-probe AGI_ROLE=kid AGI_TIER=kid send.py send --to a00-04a658e1 auth-negative-probe-without-override emitted the fail-open warning and created a DM, so the caller authorization is not refused; gate — a backtick-containing send.py message was accepted rather than refused; wire — dispatch.py --dry-run reached the live dry-run branch and printed nothing spawned, nothing written, no budget slot taken.
