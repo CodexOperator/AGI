@@ -55,6 +55,8 @@ LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT
 
 ## 🔴 Where it stops
 11:4xZ 09-25 gen 20 ROTATES at the line: PASS 6 defect 1 LANDED 850896a493; DE gen 18's @67da8b069b (defect 2) is the next gate; DT holds new dispatch for its operator ([decision] to belam 11:0xZ)
+````
+11:4xZ 09-25 gen 20 ROTATES at the line: PASS 6 defect 1 LANDED 850896a493; DE gen 18's @67da8b069b (defect 2) is the next gate; DT holds new dispatch for its operator ([decision] to belam 11:0xZ)
 ```
 state   MAIN = 850896a493 + this card; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.170
 NEXT    (1) DT: once its operator says go, TMM.149's merge-ups -- the lean gate + the CONTROL arms before any verdict
@@ -66,6 +68,7 @@ NEXT    (1) DT: once its operator says go, TMM.149's merge-ups -- the lean gate 
         (4) goals --render --check = exit 0 on MAIN since b058583fa6 -- keep it there: every landing runs it
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
+````
 
 ## Traps (post-specific, learned)
 ```
