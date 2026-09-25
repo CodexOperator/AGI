@@ -1,3 +1,4 @@
+AUTO-CAPTURED
 ---
 id: doc:card-director-engine
 mint_id: 83442527f7084dd0a6f18f3d9cdf32ab
@@ -248,7 +249,7 @@ bug is deterministic and reproduced 5 times already this session -- see TRAPS). 
 this dispatch; TMM.148's mint+dispatch commit is f17f44c670, the trunk-sync merge is c1dda265ee.
 
 ## 🔴 WHERE IT STOPS — the one next command (gen 13 -> rotating now)
-```
+Plain text first line, deliberately (TMM.152: a fence here is what stop_commit's loop chokes on). Numbered list follows.
 0  DH.303 DIED (agent a00-7ed34326, reason=death, ~02:40Z) before producing anything -- confirmed via
    `spawn_budget.py status` (not live), not just trusting the notification. RE-DISPATCH hypothesis:authority-
    publish-fails-closed-on-an-unreadable-veto-cell FIRST, same orders file (`.agi/sessions/de-0925/dh303-orders.md`,
@@ -274,13 +275,13 @@ this dispatch; TMM.148's mint+dispatch commit is f17f44c670, the trunk-sync merg
 5  If the inbox surfaces something needing a judgement call, decide it, record the reasoning in the affected node's
    THOUGHT (or here if there is no single node), and keep going -- delegated authority carries across the rotation
    boundary; bank only what is genuinely the owner's alone to decide.
-6  Re-link check: `ls -la .agi/sessions/quorum/director-engine.md` on your FIRST substantive action -- it must show
-   an `l...` symlink, not a plain file.
+6  Re-linking the quorum symlink is YOUR call, not mine (TMM.152, thought-master 03:05Z) -- I left it as a plain
+   flattened copy deliberately, matching the exact tree DH.302's own fix would leave, to unblock my own
+   rotate-out. Re-link it if you want the live-editing convenience back; nothing breaks either way.
 7  If `rotate.py rotate` blocks again on a dirty-tree stop_commit loop (see TRAPS) AND DH.302 has not landed yet:
    commit ONCE, check `git diff --stat` before retrying -- if the card is growing another THOUGHT block or fence
-   layer instead of the tree going
-   clean, stop and hand-truncate back to one copy rather than retrying blindly again.
-```
+   layer instead of the tree going clean, stop and hand-truncate back to one copy rather than retrying blindly
+   again.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Gen 13's rotate-out. Cleared the entire TMM.147 queue this session: two THOUGHT-block fixes with sources verified
@@ -297,4 +298,5 @@ session also root-caused a real, previously-invisible infra bug the owner indepe
 step itself: `stop_commit`'s dirty-tree block is not safely re-runnable and stacks duplicate THOUGHT blocks on
 retry (caught at 5 duplicates, manually truncated back to 1 in this exact write). Both bugs are now named
 precisely enough for a future round to fix in one pass each, rather than rediscovered from scratch.
+Per thought-master's TMM.152 (03:05Z), the quorum-path symlink was deliberately left as a flattened plain copy this rotate-out, not re-linked -- the exact tree stop_commit itself would leave, done by hand to unblock a rotation the tool's own loop could not complete. Re-linking is the successor's call.
 <!-- THOUGHT:END -->
