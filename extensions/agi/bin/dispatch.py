@@ -137,6 +137,15 @@ def _persistent_hold(harness: dict, seat: str | None):
     return tmux_hold if seat and harness.get("persistent") else None
 
 
+def _persistent_restart(rec, iter_dir, agent_id):
+    """Restart a persistent round in its recorded pane, never via Popen."""
+    argv = shlex.split(rec.get("command", ""))
+    log_file = Path(rec.get("log_file") or (Path(iter_dir) / agent_id / "output.log"))
+    cwd = Path(rec.get("worktree") or log_file.parent)
+    return tmux_hold.restart(pane_id=rec["pane_id"], argv=argv, cwd=cwd,
+                             log_file=log_file)
+
+
 def _open_round_launch(argv, log_file, cwd, env, mem_cap_obj, mode="ab", hold=None,
                        pane_name=None):
     """The one launch seam used by the live dispatcher, exposed for probing."""
@@ -3534,6 +3543,7 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
                 "message": (f"agent {agent_id} failed (pid {pid} gone; spawn "
                             f"budget full, not restarted)")}
 
+    persistent = None
     try:
         # hypothesis:l2-dispatch-restart-twin-node — Fix A: pass scaffold
         # info to restart so the restarted agent reuses its existing
@@ -3550,17 +3560,21 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
                 "node_type": existing_nid.split(":", 1)[0],
                 "path": str(nf) if nf else "",
             }
-        new_pid = adapter.restart(
-            harness=rec.get("harness_spec") or {},
-            tier=rec.get("tier", "kid"),
-            context_file=rec.get("context_file", ""),
-            agent_id=agent_id,
-            iter_n=locations.iteration_id(rec.get("iter", 0) or 0),
-            sess_dir=Path(iter_dir) / agent_id,
-            target=rec.get("target"),
-            scaffold=scaffold_info,
-            agent_record=rec,
-        )
+        if rec.get("launch_adapter") == "tmux_hold" and rec.get("pane_id"):
+            persistent = _persistent_restart(rec, iter_dir, agent_id)
+            new_pid = persistent["process"].pid
+        else:
+            new_pid = adapter.restart(
+                harness=rec.get("harness_spec") or {},
+                tier=rec.get("tier", "kid"),
+                context_file=rec.get("context_file", ""),
+                agent_id=agent_id,
+                iter_n=locations.iteration_id(rec.get("iter", 0) or 0),
+                sess_dir=Path(iter_dir) / agent_id,
+                target=rec.get("target"),
+                scaffold=scaffold_info,
+                agent_record=rec,
+            )
     except (NotImplementedError, Exception) as exc:   # noqa: B014
         spawn_budget.release(lease)
         return {"record": dict(failed, fail_reason=f"{failed['fail_reason']}; "
@@ -3581,6 +3595,9 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
                    # are looking at the same process under the same name.
                    "restart_of": f"{agent_id}-r{restarts + 1}",
                    "restarted_at": int(time.time()),
+                   **({"pane_id": persistent["pane_id"],
+                       "launch_adapter": "tmux_hold",
+                       "launch_created": False} if persistent else {}),
                    "fail_reason": f"pid {pid} disappeared; restarted"},
         "message": (f"agent {agent_id} restarted as pid {new_pid} "
                     f"({restarts + 1}/{max_restarts})"),
