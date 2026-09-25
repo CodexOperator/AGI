@@ -82,6 +82,7 @@ meter     0.4211 at last hook read (89.6% of the 0.47 line); an automatic "AUTO-
 - Merged trunk three times; sent four merge-ups; zero paid kid dispatches; every fix red/green-verified before commit.
 
 ## 🔴 WHERE IT STOPS -- the one next command
+````
 ```
 1  Check meter/rotation status FIRST. If gen 17 has not actually rotated yet when this is read, finish that:
    `python3 extensions/agi/bin/rotate.py rotate`.
@@ -103,6 +104,7 @@ meter     0.4211 at last hook read (89.6% of the 0.47 line); an automatic "AUTO-
    as a symlink -- they are NOT linked right now (see TRAPS), so a node-only write will NOT reach the path
    rotate.py itself reads.
 ```
+````
 
 ## §4 TRAPS HIT THIS GENERATION (gen 17) -- read before repeating them
 ```
