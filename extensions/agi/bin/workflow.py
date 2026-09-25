@@ -788,15 +788,27 @@ def validate_registry(root: Path, wf: Path | None = None,
     return 0
 
 
-def _load_manifest(root: Path, name: str) -> dict:
-    """The single stage manifest both harnesses read: <name>.json."""
+def _load_manifest(root: Path, name: str, _seen: set[str] | None = None) -> dict:
+    """Load one manifest, materializing inherited stages then its prelude."""
+    seen = set() if _seen is None else _seen
+    if name in seen:
+        raise ValueError(f"workflow manifest cycle at {name!r}")
+    seen.add(name)
     p = root.joinpath(*WORKFLOWS_DIR_REL, f"{name}.json")
     if not p.is_file():
         # fall back to the .js script's sibling (rare; name may carry it)
         p = root.joinpath(*WORKFLOWS_DIR_REL, f"agi-{name}.js")
         if not p.is_file():
             raise FileNotFoundError(f"no stage manifest {name}.json under {WORKFLOWS_DIR_REL}")
-    return json.loads(p.read_text(encoding="utf-8"))
+    raw = json.loads(p.read_text(encoding="utf-8"))
+    base = raw.get("extends")
+    if not base:
+        return raw
+    inherited = _load_manifest(root, base, seen)
+    merged = {**inherited, **raw}
+    merged["stages"] = (inherited.get("stages", []) + raw.get("prelude", [])
+                       + raw.get("stages", []))
+    return merged
 
 
 def _expand_stages(manifest: dict, args: dict) -> list[dict]:

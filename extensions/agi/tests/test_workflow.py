@@ -804,6 +804,40 @@ def test_brainstorm_manifest_route_refuses_a_missing_goal(
     assert "refused" in err and "goal" in err, err
 
 
+def test_manifest_extends_materializes_base_then_prelude_then_child(tmp_path):
+    """A composed round keeps the unchanged review source ahead of its prelude."""
+    root = tmp_path / ".agi"
+    wf = root / "extensions" / "agi" / "workflows"
+    wf.mkdir(parents=True)
+    (wf / "base.json").write_text(json.dumps({
+        "name": "base", "type": "review", "harness": "pi-free",
+        "stages": [{"label": "review", "prompt": "unchanged"}],
+    }), encoding="utf-8")
+    (wf / "round.json").write_text(json.dumps({
+        "name": "round", "extends": "base",
+        "prelude": [{"kind": "round", "label": "round-parent"}],
+        "stages": [],
+    }), encoding="utf-8")
+
+    manifest = workflow._load_manifest(root, "round")
+    assert [stage["label"] for stage in manifest["stages"]] == [
+        "review", "round-parent"]
+    assert manifest["type"] == "review"
+    assert manifest["harness"] == "pi-free"
+    assert [stage["label"] for stage in workflow._expand_stages(
+        manifest, {})] == ["review", "round-parent"]
+
+
+def test_manifest_extends_refuses_a_cycle(tmp_path):
+    root = tmp_path / ".agi"
+    wf = root / "extensions" / "agi" / "workflows"
+    wf.mkdir(parents=True)
+    (wf / "a.json").write_text('{"extends": "b"}', encoding="utf-8")
+    (wf / "b.json").write_text('{"extends": "a"}', encoding="utf-8")
+    with pytest.raises(ValueError, match="cycle at 'a'"):
+        workflow._load_manifest(root, "a")
+
+
 def test_review_and_drafting_stage_json_matches_js_prompts():
     js = (WF_DIR / "agi-round-review.js").read_text(encoding="utf-8")
     manifest = workflow._load_manifest(REPO, "review")
