@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import ast
+import hashlib
 import subprocess
 import sys
 from pathlib import Path
@@ -30,16 +31,38 @@ def test_tmux_start_founds_named_pane_and_truthful_created(monkeypatch, tmp_path
         log=tmp_path / "out.log", seat="point director", agent_id="a00-x",
         state=state)
     assert proc.pid == 77
+    expected = ("agi-hold-pointdirector-a00-x-" +
+                hashlib.sha256("point director\0a00-x".encode()).hexdigest()[:16])
     assert state == {"held": True, "created": True, "pane_id": "%42",
-                     "session": "agi-hold-pointdirector-a00-x", "pid": 77}
-    assert ["tmux", "new-session", "-d", "-s",
-            "agi-hold-pointdirector-a00-x", "-c", str(tmp_path),
-            'sh -c "sleep 86400"'] in calls
+                     "session": expected, "pid": 77}
+    assert ["tmux", "new-session", "-d", "-s", state["session"], "-c",
+            str(tmp_path), 'sh -c "sleep 86400"'] in calls
     respawn = next(c for c in calls if c[1] == "respawn-pane")
     assert respawn[:7] == ["tmux", "respawn-pane", "-k", "-t", "%42",
                            "-c", str(tmp_path)]
     assert "SECRET=value" in respawn
     assert "sleep" in respawn[-1] and "600" in respawn[-1]
+
+
+def test_long_names_with_shared_prefix_get_distinct_sessions(monkeypatch, tmp_path):
+    sessions = []
+
+    def run(argv, **kwargs):
+        if argv[1:2] == ("list-panes",):
+            return SimpleNamespace(stdout="")
+        if argv[1:2] == ("display-message",):
+            return SimpleNamespace(stdout="%99" if argv[-1] == "#{pane_id}" else "88")
+        return SimpleNamespace(stdout="")
+
+    monkeypatch.setattr(subprocess, "run", run)
+    for agent in ("a00-" + "x" * 50, "a00-" + "x" * 51):
+        state = {}
+        dispatch._tmux_start(["sleep"], env={}, cwd=tmp_path,
+                             log=tmp_path / "log", seat="s" * 70,
+                             agent_id=agent, state=state)
+        sessions.append(state["session"])
+    assert sessions[0] != sessions[1]
+    assert all(s.startswith("agi-hold-") and len(s) > 60 for s in sessions)
 
 
 def test_tmux_absent_falls_back_and_names_degradation(monkeypatch, tmp_path):

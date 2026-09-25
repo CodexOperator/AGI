@@ -123,8 +123,12 @@ def _tmux_start(argv, *, env, cwd, log, seat, agent_id, state) -> _TmuxHeld | No
     Durability is `respawn-pane` over a pane with `remain-on-exit`: the agent
     is the pane's own process, so SIGKILL leaves the same pane id re-attachable.
     """
+    # Keep a readable prefix, but bind the full *unsanitised* pair into the
+    # name: sanitisation and truncation can otherwise make two agents share a
+    # live pane (and the second respawn-pane -k would kill the first's round).
     safe = "".join(c for c in f"{seat}-{agent_id}" if c.isalnum() or c in "-_")
-    session = "agi-hold-" + safe[:60]
+    digest = hashlib.sha256(f"{seat}\0{agent_id}".encode("utf-8")).hexdigest()[:16]
+    session = f"agi-hold-{safe[:40]}-{digest}"
     created = False
     try:
         found = _tmux("list-panes", "-a", "-F", "#{session_name} #{pane_id}")
