@@ -8508,6 +8508,7 @@ def _closeout_apply(root: Path, seat: str, role: str,
             f"section ({biggest})")
     if write:                     # `--dry-run` gets the composed bytes and
         card.parent.mkdir(parents=True, exist_ok=True)   # touches nothing
+        _flatten_card_symlink(card)
         card.write_text(full, encoding="utf-8")
     return full, s3_value, None
 
@@ -17932,6 +17933,7 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
             full = _stamp_rotating_header(
                 full, frac, datetime.utcnow().strftime("%H:%MZ"))
         card_path.parent.mkdir(parents=True, exist_ok=True)
+        _flatten_card_symlink(card_path)
         card_path.write_text(full, encoding="utf-8")
         return full, "created"
     sec_idx, sub = stops
@@ -17974,6 +17976,7 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
         full = _stamp_rotating_header(
             full, frac, datetime.utcnow().strftime("%H:%MZ"))
     card_path.parent.mkdir(parents=True, exist_ok=True)
+    _flatten_card_symlink(card_path)
     card_path.write_text(full, encoding="utf-8")
     return full, "replaced"
 
