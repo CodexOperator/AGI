@@ -1,0 +1,54 @@
+{
+ "method": "key_only",
+ "rows": {
+  "3p5": {
+   "bits": 3.5,
+   "agree": 0.056885,
+   "kl": 7.740288,
+   "holds": false
+  },
+  "4p5": {
+   "bits": 4.5,
+   "agree": 0.192383,
+   "kl": 3.311736,
+   "holds": false
+  },
+  "4p75": {
+   "bits": 4.75,
+   "agree": 0.294434,
+   "kl": 2.492532,
+   "holds": false
+  },
+  "5p75": {
+   "bits": 5.75,
+   "agree": 0.320312,
+   "kl": 2.50554,
+   "holds": false
+  },
+  "6p75": {
+   "bits": 6.75,
+   "agree": 0.410156,
+   "kl": 1.524674,
+   "holds": false
+  },
+  "7p75": {
+   "bits": 7.75,
+   "agree": 0.5271,
+   "kl": 1.11969,
+   "holds": false
+  },
+  "9p0": {
+   "bits": 9.0,
+   "agree": 0.684814,
+   "kl": 0.671797,
+   "holds": false
+  },
+  "10p75": {
+   "bits": 10.75,
+   "agree": 0.895996,
+   "kl": 0.500741,
+   "holds": false
+  }
+ },
+ "bench": "bench/20260924T214628Z.jsonl"
+}
