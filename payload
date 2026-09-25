@@ -2590,7 +2590,7 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     tier = str(row.get("tier") or role or "kid").strip()
     model = row.get("model")
     effort = row.get("effort")
-    settings = row.get("settings")
+    settings = _rotate._normalize_settings(row.get("settings"))
     existing = [w for (_i, w) in windows]
     old_pid = int(row.get("pid", 0) or 0)
 
