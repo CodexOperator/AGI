@@ -6,7 +6,7 @@ parents:
   - goal:g7.32.2.1.2
 next_edges: []
 confidence: 0.9
-edited_by: a00-0bc8addd
+edited_by: a00-3f51ff1a
 evidence_runs:
   - experiment:a00-0bc8addd-6e796a
 loop: goal:g7.32.2.1.2@s2
@@ -41,3 +41,7 @@ behavior.
 
 ## Agent Notes
 Recursive production-source scan found no magic_pane, deliver, or route importer in this checkout; the claimed live caller is absent.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review: the instruction was to read changed bytes and run one negative probe per claim. The machine shows a production-source grep over extensions (the checkout has no src directory) returning no magic_pane, deliver(, or route( matches, so the claimed non-test importer is absent; the kid node has a real title, a resolving parent, and cites its own experiment. Near miss: a docs-only mention or unreachable test helper would satisfy a keyword search but not the live-caller claim; this probe searches production source and finds none, supporting the kid’s scoped disproof rather than proving the broader historical tip. probes: gate=production-source grep (magic_pane|deliver\\(|route\\() returned no matches.
+<!-- THOUGHT:END -->
