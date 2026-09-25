@@ -7819,7 +7819,38 @@ thought-master 20:06Z 09-23: the town (local-maxxing) LANDED its session-capture
 | who | director-engine NOW (the owner 18:17Z: "let the director work it"), batched by thought-master (TMM.128 -> TMM.129 -> TMM.130 void -> TMM.132) |
 
 ## Agent Notes
-director-engine 01:1xZ 09-25: CLOSED. TMM.144 close-out verified end to end: 4 consecutive push-changed ticks on MAIN, 0 rejected each (1899, 1, 0, 21 refs -- the 21 reflects real concurrent town activity, not a regression); ls-remote refs/grid/local-maxxing/* = 1900 = local total 4330 minus the 2430 excluded pre-split roots, exact match; 0 local refs ever deleted (verified by code: push_batches and cmd_push_changed only read and push, no ref deletion call anywhere). Log cleanup done: agi-crons-agi-3fbc6951.log 885043047 to 123271040 bytes (86 pct removed, 761772007 bytes of Timed out validating rule rejection lines from the pre-fix era stripped; 0 remain).
+director-engine 01:1xZ 09-25: CLOSED. TMM.144 close-out verified end to end: 4 consecutive push-changed ticks on MAIN, 0 rejected each (1899, 1, 0, 26 refs -- the 26 reflects real concurrent town activity, not a regression); ls-remote refs/grid/local-maxxing/* = 1900 = local total 4330 minus the 2430 excluded pre-split roots, exact match; 0 local refs ever deleted (verified by code: push_batches and cmd_push_changed only read and push, no ref deletion call anywhere). Log cleanup done: agi-crons-agi-3fbc6951.log 885043047 to 123271040 bytes (86 pct removed, 761772007 bytes of Timed out validating rule rejection lines from the pre-fix era stripped; 0 remain).
+
+#### G7.33.12 — RESEARCH-REVIEW SEES EVERY PROPOSAL -- the refute stage never silently drops brainstormed hypotheses when propose-only mode never minted them — status: complete
+
+# goal:g7.33.12
+
+| | |
+|---|---|
+| goal | agi-research-review's REFUTE stage evaluates whatever the BRAINSTORM stage actually produced, minted (mint:true) or proposal-only (mint:false) -- the adversarial filter must never silently see an empty list when real proposals exist |
+| origin | surfaced live by director-engine running rr-lm-qk-norm-model-wall-parent in propose-only mode: brainstorm proposed 3 hypotheses, refute read "No hypotheses were supplied by the brainstorm stage" -- the filter never ran on them · ordered as thought-master TMM.144 item 3 (00:54Z 09-25, the owner's priority call), landed same session |
+| where | extensions/agi/workflows/agi-research-review.js:36 (REFUTE_TMPL, only ever templated `{hypotheses}`) and its call site (~line 53, `fill(REFUTE_TMPL, ...)`), plus the matching JSON manifest's refute stage prompt |
+| done | REFUTE_TMPL now templates both `{hypotheses}` (minted, real ids) and `{proposed_hypotheses}` (proposal-only, no id) explicitly, and RETURN CONTRACT `ready_batch` entries carry a real id only when one exists, else the proposal's title -- so MODIFY knows whether to call write.py or just return a corrected title/claim · fill()'s array interpolation now JSON.stringifies instead of naive string-substitution (would have printed "[object Object]") · new test_research_review_refute_sees_proposals.py plus the two pre-existing research-review test files: 17 passed |
+| who | director-engine, ordered by thought-master (TMM.144 item 3 / TMM.147 item 2) |
+
+## Agent Notes
+director-engine (gen 13): retroactive goal for already-landed and tested code (74fde134d8, merge-up #12). No round dispatched -- nothing left to do.
+
+#### G7.33.13 — A ROTATE-OUT ON A SYMLINKED QUORUM CARD CONVERGES IN ONE CALL -- no dirty-tree block, no fencing wrapper, no duplicate THOUGHT block — status: active
+
+# goal:g7.33.13
+
+| | |
+|---|---|
+| goal | a rotate-out on a symlinked quorum card converges in ONE `rotate.py rotate` call -- no dirty-tree block, no fencing wrapper, no duplicate THOUGHT block |
+| origin | director-engine's [red] (02:30Z 09-25), reproduced 5 times live at its own rotate-out; thought-master TMM.148 orders the fix, ahead of round B |
+| where | extensions/agi/bin/rotate.py's `stop_commit` step + its dirty-tree check |
+| done | a scratch symlinked-card rotate-out test proves: one call, no refusal, exactly one THOUGHT block, clean tree after |
+| who | director-engine, ordered by thought-master (TMM.148) |
+
+## Agent Notes
+director-engine (gen 13): minted retroactively-fast under time pressure (own meter near the rotation line) --
+the hypothesis underneath carries full Measured/CLAIM/FALSIFIERS/TESTS/FILE SCOPE/CEILING detail.
 
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
