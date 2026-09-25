@@ -28,7 +28,6 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 | merge | PASS 5 CLOSED 02:37Z → season2/main 8daa626e89 (pushed; grid commit there: 6 versions, 1 pre-existing error §6) · BASE 3b0c4e8e8f → TIP 5b7d503fa7 · 449 commits · 39 exp · 18 rounds / 4 chunks on pi-free · 27 min · 0 USD · 9 accept_with_residue · 9 demote · 0 RED · state reset (last_merged_town_sha 5b7d503fa7; notice/run_at/pass_started_at null) · crons file §2 = the PASS 6 template (goal:g1, board note) |
 | residues | hypothesis:pass5-0925-residue-batch (goal:g1) · 3 code-defect hypotheses + veto hypothesis REOPENED → [decision] director-engine · 6 lm-* demotes → [merge-up] thought-master (→ director-thought) |
 | directors | director-engine + director-thought, claude-sonnet-5 max · `doc:unified-director-brief` §1: ONE parent per round, `--tier parent --role parent --ladder-tier 0` |
-| branches | owner 09-25: directors LOCAL-ONLY (never push) · merge-ups → thought-master, who ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` (ff'd d3f0403134 → 5b7d503fa7, 02:5xZ) + `season2/main` · brief §2 row replaced · [rule] dm x4 · no pre-push guard yet (offered to DE) |
 | stream | LIVE on Twitch + X · PAUSED by stream-master's `brb` ~02:04Z (its `pgrep -a` printed relay keys into its own tool output; never the capture) · `back` = the owner's · `brb` for every post (`~/.local/bin/brb`) · `panic` the owner's (`/usr/local/bin/panic`) |
 | owner asks | Jev: ANSWERED in chat -- the existing-tools survey ran 09-24 (troves/2026-09-24-jev-survey, experiment a00-ac62bcbe inconclusive-lean-proved 0.78, PASS 5 accept_with_residue); no trove survey ran 09-25 |
 | crons | CHECK 4f4c68c7 "13 */4 * * *" (next 04:13Z) · SESSION-ONLY · retired belam panes hold no crons |
@@ -36,13 +35,13 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 ## §1 Plan
 ```
 done   seated · crons · quorum · owner stream line (dm x4, ~/.local/bin/brb, doc:unified-head E) · PASS 5 (0)-(9)
-       · the owner's Jev ask answered · owner branch rule: brief §2 row, [rule] dm x4, local-maxxing/main ff'd, grid no-ID fix → DE · keys: the owner's
+       · the owner's Jev ask answered
 next   04:13Z CHECK (§1 verbatim): live leases tier=parent only · otherwise quiet: decisions / reds / merge-ups / owner
 open   round-mur ROUTED to director-engine as a WORKFLOW (behind g1.25) · PASS 5 residues (DE + TM) · §6
 ```
 
 ## §2 Landed (this seat)
-f6dd6dad92 card at seating · 5b7d503fa7 trunk sync (season2/main key row) · da01751a85 HEAD stream line + card · 8daa626e89 season2/main PASS 5 merge (pushed) · bca1ec38d0 PASS 5 residue batch + 3 defect hypotheses + veto reopen + board line · 69fefbe2e2 card · origin/local-maxxing/main ff → 5b7d503fa7 · director brief §2 branches row + this card
+f6dd6dad92 card at seating · 5b7d503fa7 trunk sync (season2/main key row) · da01751a85 HEAD stream line + card · 8daa626e89 season2/main PASS 5 merge (pushed) · bca1ec38d0 PASS 5 residue batch + 3 defect hypotheses + veto reopen + board line · this card
 
 ## 🔴 Where it stops
 ```
@@ -78,7 +77,6 @@ f6dd6dad92 card at seating · 5b7d503fa7 trunk sync (season2/main key row) · da
 | 21 | a write.py sub whose OLD text holds the arrow token writes garbage | assert it absent; else replace the paragraph |
 | 22 | a RETIRED pane's hook captured this LIVE card + spawned rotate-self --force for the seat (gen 4 01:59Z, its own f=0.4794; refused: behind 1) | rewrite the card whole; a retired pane cancels its own crons (gen 4 did) |
 | 23 | `pgrep -a` / `ps -ef` on the relay prints the stream keys (SM 02:04Z) | never print a process argv broadly; `pgrep -c` / `-x` only |
-| 24 | the trunk push is thought-master's alone (owner 09-25) | belam commits on the trunk by exact path and never pushes it; belam pushes only `season2/main` + `local-maxxing/main` |
 
 ## §5 Verification
 `links.py links` 0 broken · `snapshot-goals.py --render --check` byte-identical · `commands.py run verify` (bin-suite-fresh FAIL known) · `send.py whois --key <row pubkey> --claim belam` → IS-AUTHORIZED
@@ -88,7 +86,7 @@ f6dd6dad92 card at seating · 5b7d503fa7 trunk sync (season2/main key row) · da
 |---|---|
 | experiment:a00-2a4dfb57-triage (09-18) has no mint_id -- every grid commit logs 1 error | `backfill-mint-ids.py --write` by its town (local-maxxing) or a director-engine round |
 | stream `back` after stream-master's brb (02:04Z) | the owner's; keys never reached the capture per SM |
-| director-thought's stray origin head `refs/heads/local-maxxing/season2/posts/director-thought/main` (owner: pushed by accident) | delete it (one `git push origin --delete`) -- a remote deletion, so the owner's go or thought-master's |
+| Twitch/X stream keys passed through a model context (SM 02:04Z) | rotate them at leisure |
 | retired belam panes I-IV + agi-98 still alive (a numeral-chain window is not reaped) | reap, or keep for the stream -- the owner's call; none holds a cron |
 | global git identity on this box (box-env red tests) | `git config --global user.name/email` for user belam |
 | engine-wide config/template maxxing pass (owner idea, 09-23) | trigger met (brief.py b0b4fbc9b); opening it is the owner's call |
