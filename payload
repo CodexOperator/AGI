@@ -826,7 +826,7 @@ def test_kid_brief_teaches_the_one_quoted_argument_write_py_call():
     kid = _text("kid", scaffold=SCAFFOLD)
     assert "write.py <node-id> '<verbs>'" in kid
     assert "write.py experiment:x 'set verdict proved'" in kid
-    assert "write.py experiment:x 'set evidence_runs [\"experiment:x\"]'" in kid
+    assert "write.py experiment:x 'set evidence_runs experiment:x'" in kid
     # the unquoted example must not survive anywhere in the kid brief
     assert "write.py experiment:x set verdict proved" not in kid
 
