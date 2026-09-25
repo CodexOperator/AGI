@@ -35,7 +35,7 @@ gen 6 closed PASS 6 (fired 09:48Z, handed on unstarted) under CHECK case (d). De
 | residues | hypothesis:pass6-0925-residue-batch (goal:g1) + 4 code-defect hypotheses → [decision] director-engine 10:5xZ (REC the symlink-card writers first: trap 10's cause) · 2 lm-* demotes → [merge-up] thought-master (→ DT; lm-qk-norm demoted in PASS 5 AND 6) |
 | directors | director-engine + director-thought, claude-sonnet-5 max · `doc:unified-director-brief` §1: ONE parent per round, `--tier parent --role parent --ladder-tier 0` |
 | branches | owner 09-25: directors LOCAL-ONLY (never push) · merge-ups → thought-master, who ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
-| stream | LIVE on Twitch + X since ~07:29Z · PAUSED by belam 10:45:54Z (`brb`: a push printed the remote's moved location, trap 27) → `back` fires 11:02:54Z from a background waiter (the line is older than the 15 m delay by then); if this seat dies first, run `back` after 11:03Z |
+| stream | LIVE on Twitch + X since ~07:29Z · paused by belam 10:45:54-11:03:14Z (`brb` / `brb --off`: a push printed the remote's moved location, trap 27; the line never aired) · `brb` for every post (`~/.local/bin/brb`) · `panic` the owner's |
 | crons | CHECK b79b541a "13 */4 * * *" re-armed 09:52Z (next 12:13Z; 7-day expiry) · SESSION-ONLY |
 
 ## §1 Plan
@@ -51,7 +51,7 @@ open   DE: the 4 PASS 6 defect hypotheses + the PASS 5 residues · DT (via TM): 
 ## 🔴 Where it stops
 ```
 10:5xZ 09-25 belam-S2-L5-VI: PASS 6 CLOSED at season2/main 63c89d0068; quiet until the CHECK at 12:13Z.
- 1. The stream comes back by itself at 11:02:54Z (background waiter); confirm `brb --status` says not on hold after that.
+ 1. The stream is back on air since 11:03:14Z (`brb --status`: not on hold).
  2. The CHECK (cron b79b541a) runs section 1 of .agi/sessions/prime-merge.crons.md; a successor re-arms it from there first.
  3. PASS 7 = section 2 of that file, armed by the CHECK's case (b) with a 5 h notice; tooling /tmp/belam-pass6/ (retry-aware).
  4. Otherwise quiet: decisions / reds / merge-ups / the owner.
@@ -70,7 +70,7 @@ open   DE: the 4 PASS 6 defect hypotheses + the PASS 5 residues · DT (via TM): 
 | 9 | Bash shells never re-source the profile | `PI_BIN=$HOME/.npm-global/bin/pi` inline; `send.py send --from belam` |
 | 10 | rotate's stop_commit flattens the symlinked quorum card (cause: hypothesis:rotate-flattens-a-symlinked-card-before-every-card-write) | pre-flatten before rotating; the successor diffs vs the doc node, `ln -sfn ../../nodes/doc/card-belam.md .agi/sessions/quorum/belam.md`, commits both by exact path |
 | 11 | a Prime row edit on season2/main is reverted by that post's next key-row publish | the post merges origin/season2/main and confirms the cell (defect minted) |
-| 13 | the stream is LIVE | never print a secret, key, address or host name; one shows → `brb`, then `back` once it is older than the delay |
+| 13 | the stream is LIVE | never print a secret, key, address or host name; one shows → `brb`, then `brb --off` once it is older than the delay (no `back` on PATH on this box) |
 | 14 | `.env` on local-town is `/data/work/agi/.env` | read credits from the MAIN root |
 | 15 | a retire+move with a changed body shows as `D` in a big diff | resolve by mint_id before calling a deletion RED |
 | 17 | the Agent tool for graph recon | NEVER -- no Claude subagents (owner, F32) |
@@ -83,7 +83,7 @@ open   DE: the 4 PASS 6 defect hypotheses + the PASS 5 residues · DT (via TM): 
 | 24 | the trunk push is thought-master's alone (owner 09-25) | belam commits on the trunk by exact path and never pushes it; belam pushes only `season2/main` + `local-maxxing/main` |
 | 25 | identity can drop mid-seat (no tmux pane after a restart: meter `no-post`, send.py 'unknown') | `--from belam` on every send.py call; meter by hand: `rotate.py meter --pin .agi/sessions/belam.meter --session-log <transcript>` |
 | 26 | /tmp PASS tooling carries the LAST run's values (sync.sh target + msg; build.py BASE, dir, prefix) | retarget all before a run; build.py's EF text is a single-quoted Python string (an apostrophe = SyntaxError) |
-| 27 | every push prints the remote's 'This repository moved' + its new location (`remote:` lines) | `git push ... 2>&1 \| grep -v '^remote:'`; one showed 10:4xZ 09-25 → brb 10:45:54Z, back 11:02:54Z |
+| 27 | every push prints the remote's 'This repository moved' + its new location (`remote:` lines) | `git push ... 2>&1 \| grep -v '^remote:'`; one showed 10:4xZ 09-25 → `brb` 10:45:54Z, `brb --off` 11:03:14Z |
 
 ## §5 Verification
 `links.py links` 0 broken · `snapshot-goals.py --render --check` byte-identical · `commands.py run verify` (bin-suite-fresh FAIL known) · `send.py whois --key <row pubkey> --claim belam` → IS-AUTHORIZED
