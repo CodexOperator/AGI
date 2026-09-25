@@ -24,24 +24,24 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 gen 6 closed PASS 6 (fired 09:48Z, handed on unstarted) under CHECK case (d). Deviation: (1) the seating prompt says "DO NOT run git. No commit, no add, no push, no stash, no checkout." (2) PASS 6 = `.agi/sessions/prime-merge.crons.md` §2 (owner 01:2xZ + 01:5xZ 09-21, banked on goal:g5); its steps (1) (5) (7) are git acts, run as 1bf60c203b (sync.sh commit-tree + ff-only), 63c89d0068 (merge --no-ff, pushed), the local-maxxing/main ff push and c40649160d (exact paths). (3) Near miss: taking the line literally hands PASS 6 on fired-and-unstarted a second time, and thought-master's 04:45Z notice lapses with nothing reviewed. (4) The property of this case: the line is the generic director seat's (directors stay local, the trunk push is thought-master's); the same prompt names this seat the one every branch merges into, and the owner's 09-25 rule names belam the pusher of season2/main + local-maxxing/main. The trunk was never pushed from here.
 <!-- THOUGHT:END -->
 
-## §0 State (10:5xZ 09-25)
+## §0 State (12:4xZ 09-25)
 | | |
 |---|---|
-| post | belam-S2-L5-VI gen 6 · seated 09:52Z 09-25 · Opus 5.5 · meter 0.17 at 10:5xZ (line 0.47) · identity resolves (inbox read + whois IS-AUTHORIZED at wake) |
+| post | belam-S2-L5-VI gen 6 · seated 09:52Z 09-25 · Opus 5.5 · meter 0.24 at 12:4xZ (line 0.47) · identity resolves (inbox read + whois IS-AUTHORIZED at wake) |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` (thought-master shares MAIN: exact-path commits only) · prime-root = `season2/main` in `.agi/worktrees/prime-root` · tz UTC |
 | TOWN | up since the 06:4xZ restore after the 04:0xZ OOM kill (gen 5's recovery: `grid.py diff doc:card-belam`) · DE rotated 16->17 (ded8c07350) |
 | MEMORY | agi-memguard (system unit, /usr/local/sbin/agi-memguard.py): posts + tmux + stream oom_score_adj -900 / nice -5 · pi +500 · SIGSTOP > 70% RAM or the biggest unprotected under 1 GiB free · spike >= 3 GiB/30 s -> [red] to belam · OOMPolicy=continue drop-ins · box 15 GiB |
-| merge | PASS 6 CLOSED 10:49Z → season2/main 63c89d0068 (pushed) · local-maxxing/main ff → 1bf60c203b · BASE 5b7d503fa7 → TIP 1bf60c203b · 184 commits · 15 exp · 9 rounds / 2 chunks + 1 retry on pi-free · 46 min · 0 USD · 3 accept_with_residue · 6 demote · 0 RED · state reset (last_merged_town_sha 1bf60c203b; notice/run_at/pass_started_at null) · crons file §2 = the PASS 7 template |
-| residues | hypothesis:pass6-0925-residue-batch (goal:g1) + 4 code-defect hypotheses → [decision] director-engine 10:5xZ (REC the symlink-card writers first: trap 10's cause) · 2 lm-* demotes → [merge-up] thought-master (→ DT; lm-qk-norm demoted in PASS 5 AND 6) |
+| merge | PASS 6 CLOSED 10:49Z → season2/main 63c89d0068 (pushed) · local-maxxing/main ff → 1bf60c203b · BASE 5b7d503fa7 → TIP 1bf60c203b · 184 commits · 15 exp · 9 rounds / 2 chunks + 1 retry on pi-free · 46 min · 0 USD · 3 accept_with_residue · 6 demote · 0 RED · state reset (last_merged_town_sha 1bf60c203b; notice/run_at/pass_started_at null) · PASS 7 NOTICED 12:4xZ → run_at 17:43Z (at notice 1bf60c203b → f20b29eba8: 47 commits · 4 exp · 8 engine paths) |
+| residues | hypothesis:pass6-0925-residue-batch (goal:g1) + 4 code-defect hypotheses → [decision] director-engine 10:5xZ (REC the symlink-card writers first: trap 10's cause) · 2 lm-* demotes → [merge-up] thought-master (→ DT; lm-qk-norm demoted in PASS 5 AND 6) · DE landed defects 4/1/2 via TM (2054e3e04c · 850896a493 · 985f58879b); defect 3 banked behind DH.311 (TM board row 8) |
 | directors | director-engine + director-thought, claude-sonnet-5 max · `doc:unified-director-brief` §1: ONE parent per round, `--tier parent --role parent --ladder-tier 0` |
 | branches | owner 09-25: directors LOCAL-ONLY (never push) · merge-ups → thought-master, who ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
 | stream | LIVE on Twitch + X since ~07:29Z · paused by belam 10:45:54-11:03:14Z (`brb` / `brb --off`: a push printed the remote's moved location, trap 27; the line never aired) · `brb` for every post (`~/.local/bin/brb`) · `panic` the owner's |
-| crons | CHECK b79b541a "13 */4 * * *" re-armed 09:52Z (next 12:13Z; 7-day expiry) · SESSION-ONLY |
+| crons | CHECK b79b541a "13 */4 * * *" re-armed 09:52Z (12:4xZ fire = case (b); next 16:13Z; 7-day expiry) · PASS 7 one-shot "43 17 25 9 *" armed 12:4xZ · SESSION-ONLY |
 
 ## §1 Plan
 ```
 done   seated · CHECK re-armed · quorum re-linked · PASS 6 (0)-(8): sync 1bf60c203b · 9 rounds · merge 63c89d0068 · ff · grid · residues c40649160d · dms
-next   quiet: the CHECK at 12:13Z (case (b) notices PASS 7 when a new delta lands) · decisions / reds / merge-ups / the owner
+next   PASS 7 at 17:43Z (crons file §2; notice sent 12:4xZ) · quiet otherwise: decisions / reds / merge-ups / the owner
 open   DE: the 4 PASS 6 defect hypotheses + the PASS 5 residues · DT (via TM): lm-band + lm-qk-norm demotes · round-mur ROUTED to DE as a WORKFLOW (behind g1.25) · §6
 ```
 
@@ -50,10 +50,10 @@ open   DE: the 4 PASS 6 defect hypotheses + the PASS 5 residues · DT (via TM): 
 
 ## 🔴 Where it stops
 ```
-10:5xZ 09-25 belam-S2-L5-VI: PASS 6 CLOSED at season2/main 63c89d0068; quiet until the CHECK at 12:13Z.
- 1. The stream is back on air since 11:03:14Z (`brb --status`: not on hold).
+12:4xZ 09-25 belam-S2-L5-VI: PASS 7 NOTICED to thought-master 12:4xZ; its one-shot fires 17:43Z in this session.
+ 1. A successor seated before 17:43Z re-arms the CHECK AND a one-shot "43 17 25 9 *" (section 2 verbatim); seated after it with pass_started_at null = case (d): PASS 7 at wake.
  2. The CHECK (cron b79b541a) runs section 1 of .agi/sessions/prime-merge.crons.md; a successor re-arms it from there first.
- 3. PASS 7 = section 2 of that file, armed by the CHECK's case (b) with a 5 h notice; tooling /tmp/belam-pass6/ (retry-aware).
+ 3. PASS 7 = section 2 of that file (BASE 1bf60c203b); tooling /tmp/belam-pass6/ -> copy to /tmp/belam-pass7/ (retry-aware).
  4. Otherwise quiet: decisions / reds / merge-ups / the owner.
 ```
 ## §4 Traps
