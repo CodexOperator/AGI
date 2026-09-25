@@ -42,16 +42,15 @@ done   seated: CHECK re-armed · quorum re-linked · card
        · config:rotations startup pass (prime 13->10, director 9->8, F32 = no Claude subagents) · trunk .geometry current
 next   PASS 5 at run_at (crons file §2 = PASS 5 text) · each CHECK: live leases tier=parent only (a new bare kid = [red]
        to thought-master; DH.297 was a parent) · each director re-links its card to doc:card-<post> at its next card write
-open   OWNER DECIDING (21:4xZ): round-mur = a 'round' stage kind (dispatch parent -> wait -> harvest) + manifest extends/prelude, ~120
-       lines; on go -> ONE director-engine round on hypothesis:workflow-stages-dispatch-as-kids, behind the g1.25 registry
-       · residues with director-engine (pass3 / pass4 batches) · §6
+open   round-mur ROUTED 00:1xZ 09-25: hypothesis:a-round-stage-spawns-the-parent-and-chains-its-review-in-one-workflow
+       (eee1800559, assigned: director-engine, behind the g1.25 registry) · residues with director-engine (pass3 / pass4) · §6
 ```
 
 ## §2 Landed (this seat)
-e05d2ef5f2 card at seating · 004ddcf49a director rule + thought-master authority + card entities + owner verbatim · 68074ee7ab goal:g1.25 steer + GOALS.md · 6f855070e8 startup pass · 587cc29162 CHECK 20:58Z (PASS 5 notice) · 4373a425e1 verbatim bank -> town board + the HEAD THOUGHT-bank rule
+e05d2ef5f2 card at seating · 004ddcf49a director rule + thought-master authority + card entities + owner verbatim · 68074ee7ab goal:g1.25 steer + GOALS.md · 6f855070e8 startup pass · 587cc29162 CHECK 20:58Z (PASS 5 notice) · 4373a425e1 verbatim bank -> town board + the HEAD THOUGHT-bank rule · eee1800559 round-mur hypothesis (director-engine)
 
 ## 🔴 Where it stops
-21:5xZ 09-24 belam-S2-L5-IV: owner orders through 21:3xZ applied (4373a425e1); PASS 5 one-shot 01:59Z 09-25 is SESSION-ONLY (a successor re-arms it or runs it under CHECK case (d)); the owner is deciding on round-mur.
+00:1xZ 09-25 belam-S2-L5-IV: round-mur routed to director-engine (eee1800559); PASS 5 one-shot 01:59Z 09-25 is SESSION-ONLY -- a successor re-arms it at wake, or resumes it from the state file when pass_started_at is set.
  1. Next CHECK fire: run §1 of .agi/sessions/prime-merge.crons.md as written, plus: spawn_budget.py status shows tier=parent leases only; send.py status director-engine / director-thought / thought-master shows the 09-24 dms read.
  2. Otherwise quiet: answer only decisions / reds / merge-ups and the owner.
  3. A PASS reuses /tmp/belam-pass4/ (build.py, launch.sh, verdicts.py) and /tmp/belam-trunk-sync/: copy, retarget BASE / TIP / OS and the run-key prefix, as PASS 4 did.
@@ -79,6 +78,7 @@ e05d2ef5f2 card at seating · 004ddcf49a director rule + thought-master authorit
 | 17 | the Agent tool for graph recon (the Prime spawned one 20:2xZ 09-24) | NEVER -- no Claude subagents, ever (owner 20:3xZ, F32); read the graph yourself |
 | 18 | at rotation a director reads HEAD + card, never the template (until brief.py lands) | rules go in doc:unified-director-brief; cards (doc:card-<post>) carry overrides only |
 | 19 | every rotation's key row lands on season2/main and leaves the trunk's `.geometry` behind: rotate-self refuses (rotate.py `_geometry_resolution_root`) | after a rotation: `git rev-list --count HEAD..origin/season2/main -- .agi/nodes/.geometry` = 0, else merge it (merge-tree preview first) |
+| 20 | asking the owner for a go on a design the owner raised (the Prime, 09-24 21:4xZ) | decide under delegated authority, route it, report; the meter notice says keep working to the line, then rotate |
 
 ## §5 Verification
 `links.py links` 0 broken · `snapshot-goals.py --render --check` byte-identical · `commands.py run verify` (bin-suite-fresh FAIL known) · branch local-maxxing/season2/main · `send.py whois --key <row pubkey> --claim belam` → IS-AUTHORIZED
