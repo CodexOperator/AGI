@@ -206,6 +206,7 @@ def test_push_batches_exclude_pre_split_v1_roots(tmp_path, monkeypatch):
          "refs/grid/node/child:refs/grid/node/child"]]
 
 
+def test_push_changed_stops_after_failed_batch(tmp_path, monkeypatch):
     monkeypatch.setattr(grid, "ensure_repo", lambda root: None)
     monkeypatch.setattr(grid, "push_batches", lambda root: [["a"], ["b"], ["c"]])
     calls = []
