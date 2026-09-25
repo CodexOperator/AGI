@@ -55,8 +55,8 @@ DT             gen 30 (session agi-af, window @3, row joined) · its user answer
                the square-width tie claim falsified by cells.jsonl: qwen2 6.0 [5,5,5,5] kl 0.2778 vs 0.661) BUT a00-61045375-771f42's BODY
                keeps the kid's 'w + 1' table -> rewrite · next OSC.32 = true uniform [w] at the exact budgets w + 8/np (a 4-class tuple
                exists at each: np=32 4.25-7.25, np=64 4.125-7.125), 5 arms x 4 budgets x 2 models = 40 cells, one pi-free parent
-               · 13:53Z: body rewritten @5acf4d4ea9 but the OLD ending survived (a 2nd '## Verdict', 'six of the nine', lines 95-107)
-               -> TMM.176 (delete them, then ONE [merge-up]) · in flight: OSC.32 = TMM.167 (2) qk-norm grid (parent a00-8b00477c) +
+               · TMM.176 (a stale 2nd '## Verdict' survived the rewrite) -> OSC.31 LANDED ae2276a95c 14:0xZ (TMM.177: pending + the tie
+               claim disproved; board row 7 7e152b5aa3) · in flight: OSC.32 = TMM.167 (2) qk-norm grid (parent a00-8b00477c) +
                OSC.33 = my 40-cell matched-uniform round (parent a00-ffb2ae74) -- both leases pi-free parents (read 13:5xZ)
                · TMM.163 acked 07:47Z: branch synced (bfd19c2345, local), meter re-pinned to c6bf87fc (verified) · HOLDING before TMM.149 (PASS 5's
                6 demotes + 2 residues) -> the Prime's [decision] 08:4xZ: YES, TMM.149 now under delegated authority (the go sent to DT directly; F22:
@@ -66,16 +66,16 @@ DT             gen 30 (session agi-af, window @3, row joined) · its user answer
 trunk reds     test_dashboard's SIGINT watch only · goals --render --check = exit 0 on MAIN (362/362, re-read 12:0xZ on 985f58879b)
 board          town:local-maxxing (13 rows): row 7 = batch 21 VOID -> pending (07:5xZ + TMM.167) · row 8 += PASS 6 defects 4 / 1 / 2 LANDED (713b9604a8)
                + round B goal:g7.33.10 LANDED (5be6220496)
-LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21) · DE b058583fa6 (TMM.159-161) + da46aa87dd (DH.312) · DT 4c8376c991 (batch 21 -> pending) · DE 2054e3e04c (PASS 6 defect 4) + 850896a493 (defect 1) · gen 21: DE 985f58879b (defect 2) + a39187ca27 (round B goal:g7.33.10, TMM.174)
+LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21) · DE b058583fa6 (TMM.159-161) + da46aa87dd (DH.312) · DT 4c8376c991 (batch 21 -> pending) · DE 2054e3e04c (PASS 6 defect 4) + 850896a493 (defect 1) · gen 21: DE 985f58879b (defect 2) + a39187ca27 (round B goal:g7.33.10, TMM.174) + DT ae2276a95c (OSC.31, TMM.177)
 ```
 
 ## 🔴 Where it stops
-14:0xZ 09-25 gen 21 WAITS on the next [merge-up]: round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT: OSC.31's node needs one delete (TMM.176), OSC.32 + OSC.33 in flight (pi-free); the Prime's PASS 7 at 17:43Z
+14:0xZ 09-25 gen 21 WAITS on the next [merge-up] (DT OSC.32 / OSC.33, DE's rounds): round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT: OSC.31 LANDED ae2276a95c (TMM.177), OSC.32 + OSC.33 in flight (pi-free); the Prime's PASS 7 at 17:43Z
 ````
-14:0xZ 09-25 gen 21 WAITS on the next [merge-up]: round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT: OSC.31's node needs one delete (TMM.176), OSC.32 + OSC.33 in flight (pi-free); the Prime's PASS 7 at 17:43Z
+14:0xZ 09-25 gen 21 WAITS on the next [merge-up] (DT OSC.32 / OSC.33, DE's rounds): round B goal:g7.33.10 LANDED a39187ca27 (TMM.174, pushed; the 13:00Z grid_sync tick read after it); DT: OSC.31 LANDED ae2276a95c (TMM.177), OSC.32 + OSC.33 in flight (pi-free); the Prime's PASS 7 at 17:43Z
 ```
-state   MAIN = a39187ca27 + board 5be6220496 + this card; comms churn, sequence.json, rotation records = not mine · no gate worktree open
-        · TMM.176 = the last order sent (DT: delete the stale Verdict) · next = TMM.177
+state   MAIN = ae2276a95c + board 7e152b5aa3 + this card; comms churn, sequence.json, rotation records = not mine · no gate worktree
+        open · TMM.177 = the last order sent (DT's [landed]) · next = TMM.178 · the owner's own words open the HEAD since 13:57Z (9af2dcd074)
 NEXT    (1) DT's re-sent OSC.31 (the corrected node body) then OSC.32 [merge-up]s: the lean gate (test_evidence_gate + test_node_writer
             + test_thought_hygiene) + the CONTROL arms before any verdict -- compute bits() of every arm yourself (fixed.bits); then TMM.149's rest
         (2) DE's next [merge-up] (the JSON-string residue round, the last PASS 5 row, goal:g1.14.1): the full suite on merge-tree(HEAD, tip)
