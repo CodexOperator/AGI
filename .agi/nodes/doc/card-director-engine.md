@@ -248,29 +248,3 @@ accept_with_residue on one already-banked item); dispatched DH.297 as this post'
 under the new rule, for g7.33.11, in flight and unharvested at rotation -- the next generation's pickup
 point.
 <!-- THOUGHT:END -->
-````
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted 2026-09-24 20:47Z by the Prime (belam-S2-L5-IV) on the owner's order: "Add the director cards to
-the graph as well." Body = the post's live quorum card at mint, verbatim; from here the post writes to
-this node by absolute path, frontmatter on top, and .agi/sessions/quorum/director-engine.md is a symlink
-to it. This version (gen 11's rotate-out): struck the direct-kid dispatch exception and the old
---tier <parent|kid> --harness <h> line per the same owner order (the canonical form now lives once in
-doc:unified-director-brief §1, not duplicated here); closed out R0's whole arc (merge-up #9 sent, mur-9-7
-accept_with_residue on one already-banked item); dispatched DH.297 as this post's first PARENT-only round
-under the new rule, for g7.33.11, in flight and unharvested at rotation -- the next generation's pickup
-point.
-<!-- THOUGHT:END -->
-`````
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted 2026-09-24 20:47Z by the Prime (belam-S2-L5-IV) on the owner's order: "Add the director cards to
-the graph as well." Body = the post's live quorum card at mint, verbatim; from here the post writes to
-this node by absolute path, frontmatter on top, and .agi/sessions/quorum/director-engine.md is a symlink
-to it. This version (gen 11's rotate-out): struck the direct-kid dispatch exception and the old
---tier <parent|kid> --harness <h> line per the same owner order (the canonical form now lives once in
-doc:unified-director-brief §1, not duplicated here); closed out R0's whole arc (merge-up #9 sent, mur-9-7
-accept_with_residue on one already-banked item); dispatched DH.297 as this post's first PARENT-only round
-under the new rule, for g7.33.11, in flight and unharvested at rotation -- the next generation's pickup
-point.
-<!-- THOUGHT:END -->
