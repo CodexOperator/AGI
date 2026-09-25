@@ -1,3 +1,4 @@
+AUTO-CAPTURED
 ---
 id: doc:card-belam
 mint_id: ced15049ceb843b08e51cc50da416298
@@ -21,17 +22,13 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
 ## §0 State (00:50Z 09-25)
-| | |
+| Field | Value |
 |---|---|
-| post | belam-S2-L5-V gen 5 · seated 00:44Z 09-25 (clean seam: ack `continue` answered by gen 4; after_join join/pin/reap-proof/chain all exit 0) · Opus 5.5 · meter ~0.08 |
-| box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` (thought-master shares MAIN and lands there: exact-path commits only) · prime-root = `season2/main` · box tz UTC |
-| merge | PASS 4 → ad81688a0b (14:08Z 09-24) · PASS 5 NOTICE 20:59Z 09-24, run_at 01:59Z 09-25, state `pass_started_at` null at 00:48Z · BASE 3b0c4e8e8f · TIP at notice bd7e674559 (185 commits · 9 exp · 9 engine paths) -- the trunk has moved since (DT batches 15-18 landed): RE-PIN at step (1) |
-| directors | director-engine + director-thought, claude-sonnet-5 max · rule in `doc:unified-director-brief` §1 DISPATCH: ONE parent per round, `--tier parent --role parent --ladder-tier 0`, no `--harness`, never `--tier kid` |
-| dms | inbox empty at wake (00:44Z) · belam.lastcheck 00:43:17Z |
-| lanes | parents + kids on pi-free · credits 13.75 (00:3xZ 09-25; the 6 live agi keys show 0 usage) · mint floor 1 USD · spawn budget 0/30 live at wake |
-| stream | LIVE on Twitch + X since 00:33Z 09-24 (15-min delay) |
-| crons | CHECK 4f4c68c7 "13 */4 * * *" recurring (§1 of `.agi/sessions/prime-merge.crons.md` verbatim) · PASS 5 7f0c852a one-shot "59 1 25 9 *" (§2 verbatim) · both SESSION-ONLY, die with this session |
-
+| Rotation record | gen 4->5, window @51, pid 1393177, model_confirm ok. |
+| Node counts | active n/a, deprecated n/a. |
+| Tree | branch local-maxxing/season2/main, behind season2/main 1, unpushed 0. |
+| Meter | 0.128103 · role prime_director · model claude-opus-5-5. |
+| Account | total=$192.00 used=$178.25 remaining=$13.75 |
 ## §1 Plan
 ```
 done   seated 00:44Z: CHECK re-armed (4f4c68c7) · PASS 5 one-shot re-armed (7f0c852a) · quorum re-linked (trap 10:
@@ -47,11 +44,7 @@ card at seating + quorum symlink re-linked (one exact-path commit) · crons re-a
 
 ## 🔴 Where it stops
 ```
-00:5xZ 09-25 belam-S2-L5-V seated: CHECK 4f4c68c7 + PASS 5 one-shot 7f0c852a re-armed, quorum re-linked; quiet until PASS 5 at 01:59Z.
- 1. PASS 5 fires 01:59Z: run section 2 of .agi/sessions/prime-merge.crons.md as written; step (0) pass_started_at FIRST.
- 2. A PASS reuses /tmp/belam-pass4/ (build.py, launch.sh, verdicts.py) and /tmp/belam-trunk-sync/: copy to /tmp/belam-pass5/, retarget BASE / TIP / OS and the run-key prefix mur-p5chunk.
- 3. Otherwise quiet: answer only decisions / reds / merge-ups and the owner. CHECK fires 04:13Z (§1 verbatim).
- 4. A successor at wake: RE-ARM the CHECK (CronCreate "13 */4 * * *", §1 verbatim); if pass_started_at is null and now >= 01:59Z run PASS 5 under CHECK case (d), else re-arm the one-shot; re-link the quorum symlink (trap 10); write this card whole.
+auto-captured at f=0.4794 after 10 min without a self-rotate
 ```
 ## §4 Traps
 | # | trap | rule |
@@ -82,10 +75,4 @@ card at seating + quorum symlink re-linked (one exact-path commit) · crons re-a
 `links.py links` 0 broken · `snapshot-goals.py --render --check` byte-identical · `commands.py run verify` (bin-suite-fresh FAIL known; wake 00:4xZ: 11 of 12 PASS, smoke total 4299) · branch local-maxxing/season2/main · `send.py whois --key <row pubkey> --claim belam` → IS-AUTHORIZED
 
 ## §6 BANKED (owner-only)
-| item | recommendation |
-|---|---|
-| global git identity on this box (the box-env red tests) | `git config --global user.name/email` for user belam |
-| engine-wide config/template maxxing pass (owner idea, 09-23) | its trigger (brief.py landed, b0b4fbc9b) is met; opening it stays the owner's call |
-| stream-town (= core-town) unreachable on overlay and public ssh | the owner checks that instance; the stream runs from local-town through the hub meanwhile |
-| MIN_REMAINING_CREDITS hard-coded 1 USD (provisioning.py:103, :206) | a config cell (a director-engine round) so a free lane can mint under 1 USD |
-| thought-master beyond the director docs (goal moves / renumbers / config) | director docs + cards GRANTED (owner 20:1xZ 09-24; doc:unified-director-brief line 21); config:* stays prime/owner-only (write.py:1701, [config].md:3) -- a scoped actor_rows grant is a director-engine round if the owner wants more |
+auto-captured at f=0.4794 after 10 min without a self-rotate
