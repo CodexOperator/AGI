@@ -784,6 +784,26 @@ def test_brainstorm_manifest_and_js_require_nonempty_goal(tmp_path):
     assert "requires a non-empty goal argument" in proc.stderr, proc.stderr
 
 
+@pytest.mark.parametrize("brainstorm_args", [
+    {"idea": "idea:x", "why": "w", "max_hypotheses": 3},        # goal absent
+    {"idea": "idea:x", "goal": "", "why": "w", "max_hypotheses": 3},  # blank
+])
+def test_brainstorm_manifest_route_refuses_a_missing_goal(
+        brainstorm_args, capsys):
+    """hypothesis:brainstorm-manifest-route-refuses-a-missing-goal -- the
+    pi/pi-free MANIFEST route used to have no required-arg check at all
+    (only the native JS route did); a missing or blank goal must refuse by
+    name before any stage dispatches, same as the JS route."""
+    from workflow import run_workflow
+    buf = io.StringIO()
+    rc = run_workflow(REPO / ".agi", "brainstorm", "pi", brainstorm_args,
+                      True, out=buf)
+    assert rc != 0
+    assert "[dispatch]" not in buf.getvalue(), buf.getvalue()
+    err = capsys.readouterr().err
+    assert "refused" in err and "goal" in err, err
+
+
 def test_review_and_drafting_stage_json_matches_js_prompts():
     js = (WF_DIR / "agi-round-review.js").read_text(encoding="utf-8")
     manifest = workflow._load_manifest(REPO, "review")
