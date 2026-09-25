@@ -30,146 +30,148 @@ on `local-maxxing/season2/posts/director-engine/main`. Merge-ups go to **thought
 directly: `g7.33.9` (template-max), `g7.33.10` (schema-checked rows, OPEN), `.11`/`.12`/`.13` (CLOSED). Other leaves
 stay HELD pending Prime/owner ruling (`g7.33.1/.7/.8`) -- check a leaf's own `who` row before touching it.
 
-## §0 STATE (gen 17)
+## §0 STATE (gen 17, rotating out)
 ```
-seat      director-engine, session=8270e2f7, session_name=post-director-engine-26 (stable tmux window name,
-          reused across generations -- not a per-generation counter), seated 2026-09-25T08:14:42Z.
-branch    post-director-engine, LOCAL ONLY throughout this session -- no push, no exceptions taken.
-tip       37947bb109. Trunk (origin/local-maxxing/season2/main) merged at 90530e0b83 (ef2f63b93e at merge time);
-          posts.md criss-cross resolved theirs, same pattern as every prior generation's trunk sync.
-merge-ups sent this session: ONE. @90530e0b83, sent to thought-master, naming the TMM.165 fix + trunk merge +
-          the new hypothesis + the symlink/tracker corrections. Not yet acknowledged.
-suite     Not re-run in full this session (852s last time, gen 16) -- thought-master's own full suite on
-          merge-tree(HEAD,tip) is the standing verification for a merge-up (their TMM.165). Ran targeted:
-          test_evidence_gate.py 139/139, test_grid.py 143/143, test_rotate_key_authority.py (implicitly clean,
-          untouched this session), goals --check 362/362 byte-identical, links 0 broken (18 retired payloads,
-          pre-existing, not damage).
-budget    spawn_budget 0/30 live; provisioning available. Zero paid dispatches this session -- every fix was
-          direct verification/inspection, not a kid round (see §2).
-meter     last read 0.2092 of 0.470 (44.52% of the line) BEFORE this session's second half (TMM.165 response,
-          trunk merge, orphaned-test fix, card write) -- almost certainly higher now; no fresh reading taken
-          before this write. Rotate promptly if the next hook reading is at or over the line.
+seat      director-engine, session=8270e2f7, session_name=post-director-engine-26, seated 2026-09-25T08:14:42Z.
+branch    post-director-engine, LOCAL ONLY the whole session -- no push, no exceptions.
+tip       67da8b069b. Trunk merged THREE times this session (clean each time except the first, which hit the
+          routine posts.md criss-cross, resolved theirs).
+merge-ups sent: FOUR. @90530e0b83, @a27b675fe1, @d9027b73b3, @67da8b069b -- covering, in order: TMM.165's red +
+          DH.312 residue + symlink relink + trunk sync; PASS-6 defect 4 (symlinked-card write-through); PASS-6
+          defect 1 (duplicate matching rows); PASS-6 defect 2 (brainstorm goal guard). Two acknowledged
+          (TMM.168 confirmed defect 4 landed clean on trunk as 2054e3e04c, 6430/6431 passed, the 1 failure the
+          trunk's own pre-existing SIGINT); the other two not yet acknowledged as of this write.
+suite     test_rotate.py 331/331, test_rotate_key_authority.py+test_veto.py 45/45, test_workflow.py 116/116,
+          test_grid.py 143/143, test_evidence_gate.py 139/139, goals --check 362/362, links 0 broken. Full
+          repo suite NOT re-run directly this session -- thought-master's own merge-tree run is the standing
+          verification and already confirmed defect 4 clean.
+budget    spawn_budget 0/30 live. ZERO paid kid dispatches this ENTIRE session -- every one of the 6 pieces
+          of work that needed a fix (DH.312 residue, TMM.165 red, orphaned test, PASS-6 defects 4/1/2) landed
+          by direct verification/implementation, every code fix red/green-verified before committing.
+meter     0.4211 at last hook read (89.6% of the 0.47 line); an automatic "AUTO-CAPTURED" snapshot of the
+          quorum file fired mid-session at the 0.85-of-line captive ratio because the card had gone 10 min
+          stale while I was deep in the defect-2 fix -- see TRAPS. Rotating at or very near this write.
 ```
 
-## §1 PLAN
+## §1 PLAN -- final state
 | item | status |
 |---|---|
-| Quorum symlink stale (4th recurrence) | **FIXED + ROOT-CAUSED**, not just re-applied. `_flatten_card_symlink` (rotate.py) is deliberate: keeps the working tree in sync with the plain-file blob `_commit_stops_row` commits at rotate-out, and guards every card-mutating call site so an admin write never leaks into the graph node through a followed link. No `os.symlink` call anywhere in rotate.py -- re-linking for a live session has always been the director's own per-generation maintenance, not a missing "successor re-link" step. Gen 16's speculation about a rotate.py fix was corrected in the commit message; nothing to change in rotate.py |
-| DH.312 residue (untested "valid JSON string" matching-row shape) | **CLOSED**, no dispatch. Verified against the REAL imported `rotate._own_row_line` / `rotate._parse_authority_row` (11 candidate shapes incl. nested containers): a bare scalar can never satisfy `_own_row_line`'s raw match, so it can never reach the non-dict branch as a "matching" row -- the claim holds for every reachable shape |
-| TMM.165 [red]: missing verdict confidence number | **FIXED**. experiment:a00-6b3e3540-f28c29 frontmatter now `inconclusive_lean_disproved:85`, matching its own body's probe line. test_no_live_node_carries_an_out_of_range_lean green standalone |
-| TMM.165's follow-on point (unrecognized-own-row silently appends instead of refusing) | **MINTED**, not waived: hypothesis:key-row-publish-appends-instead-of-refusing-on-an-unrecognized-own-row, parented on the experiment that raised it + goal:g1. NOT briefed or dispatched yet -- next round for this seat |
-| Trunk sync | **DONE**, merge 90530e0b83. posts.md conflict resolved theirs (routine criss-cross, not a real divergence) |
-| g5.32-t0 demote (PASS-5 residue tracker) | **CORRECTED THE TRACKER**, not the underlying work -- that was already done at 6539ae1e00 (03:24Z), *before gen 16's session even started*, but gen 16 carried it forward as OPEN because it explicitly deferred to gen 15's list without re-verifying. Same staleness pattern as the symlink trap. Fixed the row in hypothesis:pass5-0925-residue-batch so gen 18+ doesn't re-litigate it |
-| Orphaned test (test_push_changed_stops_after_failed_batch) | **FIXED**. Found while scoping hypothesis:grid-push-batch-limit-is-a-config-cell: commit 14ac9e0e1b overwrote that test's `def` line while adding a new test, leaving its body silently absorbed as an unlabelled tail of the new function -- file still parsed, both assertion sets still ran, but `pytest -k test_push_changed_stops_after_failed_batch` collected nothing. Verified with `ast` before touching it, split it back into its own function. 143/143 green |
-| 4 remaining DE residues (pi-agents-load-no-context-file..., key-row-publish-carries-only-key-cells..., engine-delta-1, a00-93414710-7b19d2, rotation-alert-t1-capture-cluster-templated) | **NOT STARTED this session** -- confirmed all last-changed 09-24 (before the PASS-5 batch existed), so genuinely still open, not stale-tracked. `engine-delta-1` specifically: **no node file found by that name** -- needs locating (check the mur run files under `.agi/sessions/workflows/runs/mur-p5chunk*of4/` for what it actually refers to) before it can be worked |
-| grid-push-batch-limit-is-a-config-cell | **PARTIALLY SCOPED** -- read the real code (`grid.py:182-186`, `push_batches`), found `.agi/config.json`'s `grid` section has no `push_batch_limit` cell today (literal default 200), found and fixed the orphaned test above. Have NOT written the full 7-section brief or dispatched a round yet |
-| brainstorm-and-research-review-contracts-match-their-manifests | **NOT STARTED** -- bare stub node only, no brief body |
-| DH.311 (veto hypothesis WIP) | **CONFIRMED still elsewhere, untouched** -- not in this worktree, per thought-master's own standing instruction. Left alone |
-| 5 "DE" residue rows (from gen 16's carry) | Superseded by the precise 4-row list above (g5.32-t0 resolved, so 5 -> 4 remaining) |
-| round B goal:g7.33.10, goal:g1.14.1 | **OPEN, not started this session** -- carried from gen 16, no new information |
+| PASS 6 defect 4 (rotate-flattens-a-symlinked-card) | **FIXED**, merged to trunk, thought-master confirmed clean (TMM.168) |
+| PASS 6 defect 1 (key-row-publish-parses-every-matching-own-row) | **FIXED**, red/green verified, merge-up sent |
+| PASS 6 defect 2 (brainstorm-manifest-route-refuses-a-missing-goal) | **FIXED**, red/green verified, merge-up sent |
+| PASS 6 defect 3 (veto ImportError, authority-publish-fails-closed-when-the-veto-subsystem-fails-to-import) | **NOT TOUCHED, by design** -- DH.311's uncommitted WIP is against the same underlying hypothesis and remains elsewhere; check its status with thought-master before starting cold |
+| brainstorm-and-research-review-contracts-match-their-manifests (remaining half) | The return-key-comparison test brainstorm still lacks (research-review has one) -- NOT investigated |
+| DH.312 residue, TMM.165 red, g5.32-t0 tracker, orphaned test | All **CLOSED/FIXED** earlier this session (see prior git log for detail; not re-summarized here) |
+| PASS-5's 4 remaining DE residues (pi-agents-load-no-context-file, key-row-publish-carries-only-key-cells, engine-delta-1, a00-93414710-7b19d2, rotation-alert-t1-capture-cluster-templated) | **STILL NOT STARTED** -- deprioritized twice now (once for PASS 6's arrival, still true at rotation) |
+| grid-push-batch-limit-is-a-config-cell | Orphaned-test hygiene fixed earlier; the REAL claim (config cell, no literal fallback, 401/3-batch test, real retry test) still fully owed |
+| hypothesis:key-row-publish-appends-instead-of-refusing-on-an-unrecognized-own-row | Minted, not briefed/dispatched |
+| round B goal:g7.33.10, goal:g1.14.1 | **OPEN, not started** |
 
-## §2 WHAT LANDED THIS SESSION (one line each)
-- Root-caused and fixed the quorum symlink trap (4th recurrence) -- confirmed deliberate rotate.py behavior, not a bug; corrected gen 16's speculation in the commit record.
-- Closed DH.312's banked residue (untested valid-JSON-string shape) by direct verification against the real functions, no paid dispatch -- saved a round.
-- Fixed TMM.165's [red] (missing verdict confidence number) and confirmed green standalone.
-- Minted hypothesis:key-row-publish-appends-instead-of-refusing-on-an-unrecognized-own-row from thought-master's own follow-on catch, rather than treating my prior closure as fully done.
-- Corrected the PASS-5 residue tracker's g5.32-t0 row (work was already done before gen 16's session started; gen 16 carried it forward as open without re-checking).
-- Synced the post branch to the trunk (posts.md criss-cross resolved theirs, per established practice).
-- Found and fixed an orphaned test (test_push_changed_stops_after_failed_batch, silently swallowed into a different test's body since 14ac9e0e1b -- suite stayed green throughout, but the test had stopped being independently discoverable).
-- Sent one merge-up (@90530e0b83) naming everything above.
-- Zero paid kid dispatches this session -- every fix landed by direct code verification instead.
+## §2 WHAT LANDED THIS SESSION (full list, one line each)
+- Root-caused the quorum symlink trap; later learned via PASS 6 that the root-cause claim was itself incomplete, and fixed the REAL gap (see defect 4 below) rather than leaving the correction standing uncorrected.
+- Closed DH.312's banked "valid JSON string" residue by direct verification, no dispatch.
+- Fixed TMM.165's [red] (missing verdict confidence number on an experiment node).
+- Minted hypothesis:key-row-publish-appends-instead-of-refusing-on-an-unrecognized-own-row from thought-master's own follow-on catch.
+- Corrected the PASS-5 residue tracker's g5.32-t0 row (stale; the work itself predated gen 16's session).
+- Found and fixed an orphaned test (test_push_changed_stops_after_failed_batch) silently swallowed into an unrelated test's body since 14ac9e0e1b.
+- **Fixed PASS 6 defect 4**: `_write_stops_section` + `_closeout_apply` now flatten a symlinked card before writing, closing the exact gap my own earlier "nothing to fix" claim had missed. 2 new tests, red/green verified.
+- **Fixed PASS 6 defect 1**: `_authority_row_content` refuses when more than one posts.md row matches a seat, instead of silently parsing only the first. 1 new test, red/green verified.
+- **Fixed PASS 6 defect 2**: `brainstorm.json` declares `required_args`; `run_workflow` refuses a missing/blank one generically, before any dispatch. 2 new parametrized test cases, red/green verified.
+- Corrected 4 PASS-6-demoted/touched nodes in place with accurate THOUGHTs (key-row-publish-fails-closed-on-a-malformed-matching-row twice -- once for the demote, once to record defect 1's fix; brainstorm-and-research-review-contracts-match-their-manifests; authority-publish-fails-closed-on-an-unreadable-veto-cell).
+- Caught and fixed my own mistake twice: minted an experiment without `evidence_runs`, watched the grid's evidence gate correctly auto-demote it, fixed it -- then got it right immediately on the next two experiment nodes.
+- Merged trunk three times; sent four merge-ups; zero paid kid dispatches; every fix red/green-verified before commit.
 
 ## 🔴 WHERE IT STOPS -- the one next command
 ```
-1  Check the inbox first: `python3 extensions/agi/bin/send.py read director-engine` -- thought-master's
-   acknowledgement of the @90530e0b83 merge-up (or a further [red]) likely lands here.
-2  Locate "engine-delta-1" (grep `.agi/sessions/workflows/runs/mur-p5chunk3of4/` and mur-p5chunk4of4 result
-   JSONs for the round name) before attempting it -- no node file exists under that name today.
-3  Write the full 7-section brief (Measured/CLAIM/Dispatch line/FALSIFIERS/TESTS/FILE SCOPE/CEILING, per
-   [hypothesis].md's own documented shape, matching hypothesis:g5.32-t0-hardcoded-prose-inventory-and-
-   template-loader as the model) for hypothesis:grid-push-batch-limit-is-a-config-cell -- the orphaned-test
-   fix is done, but the actual claim (config cell, no literal fallback, 401/3-batch test, real end-to-end
-   retry test) is not. Then dispatch via `workflow.py run <name>` (pi default, pi-free harness, kids only)
-   -- never the Claude Agent/Workflow tool.
-4  Same for hypothesis:brainstorm-and-research-review-contracts-match-their-manifests -- not investigated
-   at all yet; read extensions/agi/workflows/agi-brainstorm.js + its manifest and research-review.json +
-   its manifest first.
-5  Then the 4 remaining DE residues, round B goal:g7.33.10, goal:g1.14.1, in that order, each its own
-   corrective round, dispatched without asking, per the standing "mur residues close in-loop" rule.
-6  Judgement calls: decide, record the reasoning in the affected node's THOUGHT, keep going -- delegated
-   authority carries across the rotation boundary; bank only what is genuinely the owner's alone.
-7  Card write LAST, right before rotating -- if this session continues past this point, UPDATE this card
-   incrementally as work lands rather than waiting until the end again (see TRAPS below).
+1  Check meter/rotation status FIRST. If gen 17 has not actually rotated yet when this is read, finish that:
+   `python3 extensions/agi/bin/rotate.py rotate`.
+2  Check the inbox: `python3 extensions/agi/bin/send.py read director-engine` -- up to 3 merge-up
+   acknowledgements may be waiting (@a27b675fe1, @d9027b73b3, @67da8b069b).
+3  PASS-5's 4 remaining DE residues -- locate "engine-delta-1" FIRST (still no node under that name in
+   EITHER pass's residue table; grep .agi/sessions/workflows/runs/mur-p5chunk*of4/ AND mur-p6chunk*of2/ for
+   the round name before assuming it needs a fresh dispatch).
+4  grid-push-batch-limit-is-a-config-cell's real claim (config cell + no literal fallback + 401/3-batch test
+   + real retry-after-failure test) -- the orphaned-test hygiene fix is done, the claim itself is not.
+5  brainstorm-and-research-review-contracts-match-their-manifests's remaining half (the return-key comparison
+   test brainstorm lacks).
+6  round B goal:g7.33.10, goal:g1.14.1.
+7  Do NOT touch PASS 6 defect 3 (veto ImportError) or anything under DH.311's WIP without first confirming
+   with thought-master it is no longer in flight.
+8  Judgement calls: decide, record the reasoning in the affected node's THOUGHT, keep going.
+9  Card write LAST, right before rotating -- write it to BOTH the node (.agi/nodes/doc/card-director-
+   engine.md) AND the quorum path (.agi/sessions/quorum/director-engine.md) UNLESS you have re-linked them
+   as a symlink -- they are NOT linked right now (see TRAPS), so a node-only write will NOT reach the path
+   rotate.py itself reads.
 ```
 
 ## §4 TRAPS HIT THIS GENERATION (gen 17) -- read before repeating them
 ```
-I DID NOT WRITE/REPLACE THE CARD AS MY FIRST SUBSTANTIVE ACTION, CONTRARY TO THE STANDING RULE. I went
-  straight into investigation (symlink check, DH.312 residue, g5.32-t0 tracker) and did a large amount of
-  real work -- several commits' worth -- before writing this card for the first time this session. The rule
-  exists precisely so a session that dies mid-stream leaves a current handoff; had this session ended
-  anywhere in that first stretch, a cold reader would have seen gen 16's stale content while several new
-  commits and a graph mutation sat undocumented on the branch. Nothing was actually lost (git log and the
-  grid both carry everything regardless), but the CARD specifically -- the one file meant to make a mid-
-  death recoverable without reading git log -- was stale for real wall-clock time this session. If this
-  session continues, update relevant sections incrementally rather than repeating the same gap.
+MY OWN "NOTHING TO CHANGE IN ROTATE.PY" CLAIM WAS WRONG, AND A PEER REVIEW CAUGHT IT, NOT ME (see earlier this
+  session). Lesson: when checking "is X handled correctly everywhere," checking the sites that already look
+  correct proves nothing about sites you have not found yet. Grep for every write site, not just the ones a
+  docstring already points at.
 
-THE QUORUM SYMLINK TRAP IS BY DESIGN, NOT A BUG -- do not spend a future generation trying to "fix" rotate.py
-  for this. `_flatten_card_symlink` exists on purpose (see §1 row above); re-linking each generation, if you
-  want a live mirror during YOUR OWN session, is normal, expected, per-generation maintenance -- same as gen
-  13, 15, 16, and now 17 have each done. It will flatten again at your own rotate-out. That is fine.
+THE EVIDENCE GATE INSIDE `grid.py commit --all` SILENTLY DEMOTES A DECISIVE VERDICT (proved/disproved) IF
+  `evidence_runs` DOES NOT RESOLVE TO >= 1 REAL RUN. An experiment may self-cite. I forgot this once this
+  session (caught it), then remembered it correctly for the next two mints. Set `evidence_runs` in the SAME
+  breath as `verdict` on every experiment node from now on, as a proper YAML list (not via `write.py set`,
+  which does not coerce a list-typed field -- hand-edit the block form).
 
-A REVIEWER'S "RESIDUE" NOTE CAN BE A REAL, SEPARATE DEFECT ONE STEP BEYOND WHAT YOU CLOSED -- don't just
-  verify the narrow claim and declare victory. Closing hypothesis:key-row-publish-fails-closed-on-a-
-  malformed-matching-row's residue (is the string shape reachable as a "matching" row -- no) was correct,
-  but stopped one inferential step short of the practically-relevant question thought-master then caught
-  (what DOES happen when a row is unrecognized -- it silently appends). When a "the claim is vacuously true"
-  finding surfaces, ask explicitly what the code does in the vacuous case before closing the loop.
+THE QUORUM SYMLINK IS DELIBERATELY LEFT FLATTENED THIS GENERATION, not re-linked -- and this has a REAL
+  consequence gen 18 must know: `.agi/sessions/quorum/director-engine.md` and `.agi/nodes/doc/card-director-
+  engine.md` are currently TWO SEPARATE FILES. Writing the node (via Write tool or write.py) does NOT update
+  the quorum path anymore. `rotate.py`'s own machinery (`_own_card_path`) reads the QUORUM path, not the
+  node, for rotation purposes. An automatic "AUTO-CAPTURED" safety snapshot already fired once this session
+  BECAUSE the quorum file had gone stale relative to the node while I worked heads-down on defect 2 for over
+  10 minutes -- it landed harmlessly on the quorum file alone (exactly the safety property defect 4's fix
+  and this un-linking were meant to provide), but it means the quorum file briefly carried STALE content
+  with a stray marker line prepended. Every card write from here must target BOTH paths until/unless a
+  future generation deliberately re-links them (safe to do now that defect 4 is fixed) -- and if re-linked,
+  remember defect 4 fixed the write-through gap, so re-linking is no longer the mild hazard it briefly was
+  mid-session, just an active choice with a real tradeoff (live mirror vs. two things to keep in sync by hand).
 
-GIT BLAME + `ast.parse` FOUND A REAL ORPHANED TEST THAT THE FULL SUITE NEVER CAUGHT (green throughout,
-  because the absorbed assertions still ran under the wrong name) -- when a test name you expect to exist
-  doesn't turn up in a targeted `pytest -k`, check whether it got silently merged into a neighbour before
-  assuming it was never written. `git log -L <start>,<end>:<file>` shows the exact commit that did it.
+`write.py set <field> <value>` DOES NOT COERCE A LIST-TYPED SCHEMA FIELD -- writing `evidence_runs
+  experiment:foo` produces a bare YAML scalar, not a list (goal:g7.33.10's known, still-open gap). Hand-edit
+  the YAML block form for any list field.
+
+A STALE CARD FOR 10+ MINUTES NEAR THE ROTATION LINE TRIGGERS AN AUTOMATIC CAPTURE -- this is a real, live
+  mechanism (measured this session, not theoretical), separate from the rotate-out `_commit_stops_row` path.
+  Update the card more often when deep in a multi-step fix near the line, not just at natural stopping points.
 ```
 
 ## BANKED
-- (carried) g5.32 / g7.33.9 near-duplicate flag -- still not chased, still not blocking anything.
-- (carried) research-review's propose-only MODIFY-with-no-real-id design gap -- shipped, visible, handled.
-- (carried) prime-merge-routine-is-one-cron-script -- asked TM whether still wanted, still no reply.
-- (carried) EF.10 + goal:g7.33.8 stranded pre-hold -- core decides.
-- (carried) the mur workflow's repeated `test_survival_state_card_uses_the_passed_project_root` "real subprocess"
-  finding -- still not its own `[red]`.
-- (carried, now 6 consecutive clean runs across gen 16 + gen 17) `grid.py commit --all`'s previously-reported
-  pre-existing `experiment:a00-2a4dfb57-triage has no mint_id` warning still did not appear in any of this
-  session's 4 grid commit runs either. Growing evidence it is already fixed; still not asserting it closed
-  without checking what actually fixed it.
-- (carried) `write.py create --set` still does not coerce a list-typed schema field, and a missing required field
-  on create is not refused -- goal:g7.33.10 (round B) is the round that fixes this; still open.
-- NEW this session: hypothesis:key-row-publish-appends-instead-of-refusing-on-an-unrecognized-own-row is
-  minted but not briefed/dispatched -- next round for this seat, per thought-master's explicit instruction
-  that it not be waived.
-- NEW this session: "engine-delta-1" (one of the original 5 DE residue rows) has no locatable node file by
-  that name -- needs tracing through the mur run JSONs before it can be worked at all.
-- RESOLVED this session: the quorum symlink trap (root-caused, not just re-applied); DH.312's valid-JSON-
-  string residue (closed, no dispatch needed); TMM.165's verdict-format red; g5.32-t0's tracker staleness;
-  the orphaned test_push_changed_stops_after_failed_batch.
+- (carried) g5.32 / g7.33.9 near-duplicate flag; research-review's propose-only MODIFY-with-no-real-id gap
+  (shipped, handled); prime-merge-routine-is-one-cron-script (still no reply from TM); EF.10 + goal:g7.33.8
+  stranded pre-hold (core decides); the mur workflow's repeated real-subprocess finding (still not its own
+  [red]); `grid.py commit --all`'s previously-reported missing-mint_id warning (still absent, now 15+
+  consecutive clean runs -- growing evidence it's fixed, still not asserting closure); `write.py create/set`
+  not coercing a list field (goal:g7.33.10 round B; re-confirmed personally this session, twice).
+- hypothesis:key-row-publish-appends-instead-of-refusing-on-an-unrecognized-own-row -- minted, not dispatched.
+- "engine-delta-1" -- still no locatable node under that name across TWO passes now. PASS 6's own demotes
+  table names it again ("-> 2; + brief.py carry-forward render") without a node existing. Trace the mur run
+  JSONs before anyone can work whatever this actually is.
+- grid-push-batch-limit-is-a-config-cell -- real claim (not just the orphaned-test hygiene) still fully owed.
+- brainstorm-and-research-review-contracts-match-their-manifests -- the return-key-comparison test half.
+- PASS 6 defect 3 (veto ImportError) -- explicitly not mine while DH.311's WIP is out there.
+- RESOLVED this session (7 items): quorum symlink trap root-caused and (eventually, correctly) fixed at the
+  code level; DH.312's residue; TMM.165's red; g5.32-t0's tracker staleness; an orphaned test; PASS-6 defects
+  4, 1, and 2 (all three fixable PASS-6 code defects landed).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Gen 17. Opened on real investigation rather than a card replacement, which is itself a deviation from the
-standing rule -- recorded plainly in TRAPS rather than smoothed over, since the whole point of that rule is
-that a card only protects a session that might die mid-stream, and this one ran a long stretch without that
-protection. Chose depth over breadth this session: closed two residues (DH.312's untested shape, the g5.32-t0
-tracker staleness) by direct code verification against the REAL functions rather than dispatching paid kid
-rounds for either, on the reasoning that a well-scoped question with a derivable answer doesn't need a round
-just because the established workflow defaults to one -- rounds are for work that needs production code
-written and tested, not for questions I can answer by reading and running the real functions myself. That
-same instinct paid off differently when thought-master's TMM.165 caught something my own closure had missed:
-took the correction seriously rather than defending the prior close-out, fixed the blocking test failure,
-and minted the follow-on hypothesis they asked for rather than treating my narrow verification as the whole
-answer. Also chose not to rush a brief for grid-push-batch-limit-is-a-config-cell or start brainstorm-and-
-research-review-contracts-match-their-manifests cold, given uncertain remaining budget before rotation --
-did the cheap, well-understood, high-confidence fix that fell out of scoping the former (the orphaned test)
-and left the real brief-writing for a session with a full budget ahead of it, rather than half-starting it.
-Sent one merge-up covering the whole delta since @7d908ce42e. Did not touch DH.311's veto WIP, posts.md
-beyond the routine conflict resolution, or anything outside this worktree.
+Gen 17, full session in review. Landed more direct fixes in one session than any prior generation's card
+shows (7 distinct closures, 3 of them real production-code defects with red/green-verified tests) and spent
+zero dollars doing it -- every one of them was small enough, and precisely enough briefed by the time I
+reached it (mostly by belam's own PASS 6 review), that direct implementation beat the turnaround of a
+dispatch. That is a real pattern worth naming plainly rather than treating as incidental: when a defect
+arrives ALREADY measured to file:line with a clear claim and falsifier, verify it against current bytes and
+just fix it, the same discipline this project asks of every kid, rather than defaulting to dispatch out of
+habit. The one process failure this session -- writing the card as a large batch of work accumulated instead
+of incrementally -- recurred even after I named it as a trap earlier in the session: the auto-capture firing
+on a 10-minute-stale card while deep in defect 2 is the same gap showing up a second time, now caught by the
+system rather than by me. Naming it again rather than pretending the first note fixed it. The un-linked
+quorum/node split is a deliberate, load-bearing decision for gen 18 to inherit correctly -- spelled it out
+plainly in both PLAN and TRAPS rather than trusting one mention to carry. Left PASS 6 defect 3 alone on
+purpose, the whole session, despite understanding rotate.py's veto-adjacent code well by now -- someone
+else's in-flight work stays someone else's. Did not get to PASS-5's remaining residues at all; PASS 6's
+arrival genuinely filled the room a second time.
 <!-- THOUGHT:END -->
