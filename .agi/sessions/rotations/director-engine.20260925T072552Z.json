@@ -1,0 +1,104 @@
+{
+  "rotation": "rotate-self",
+  "seat": "director-engine",
+  "recorded_at": "2026-09-25T07:27:11.995585Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "director-engine",
+      "windows": [
+        "belam-S2-L5-V",
+        "thought-master",
+        "director-engine.prev",
+        "director-thought",
+        "stream-master",
+        "director-engine"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/director-engine.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 2495344,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "director-engine.prev",
+      "windows": [
+        "belam-S2-L5-V",
+        "thought-master",
+        "director-engine.prev",
+        "director-thought",
+        "stream-master",
+        "director-engine"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -51.919
+  },
+  "seated_at": "2026-09-25T07:27:11.995585Z",
+  "window": "director-engine",
+  "session_id": "8270e2f7-60c8-410c-be1e-48e4589cef2e",
+  "pid": 3388444,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "director-engine.prev",
+      "id": "@2"
+    },
+    "successor_window": {
+      "name": "director-engine",
+      "id": "@5"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@5",
+      "pid": 3388444,
+      "session_id": "8270e2f7-60c8-410c-be1e-48e4589cef2e",
+      "transcript": "/home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/8270e2f7-60c8-410c-be1e-48e4589cef2e.jsonl",
+      "name": "post-director-engine-26",
+      "path": "/home/belam/.claude/sessions/3388444.json",
+      "note": "joined by @5 in registry file 3388444.json"
+    },
+    "successor_row": "config:seats row 'director-engine': session_ref= session_name=post-director-engine-26 session_label=director-engine session_id=8270e2f7-60c8-410c-be1e-48e4589cef2e pid=3388444 generation=16 window='@5' source=registry pubkey=195c1894b1f2ddf0... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha aa126920cf, retried 0) -- own-row only: director-engine spawn row: gen 16, session_id 8270e2f7-60c8-410c-be1e-48e4589cef2e, window @5, pid 3388444\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- 48d32c18b -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/director-engine.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/director-engine.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/director-engine.ack.8270e2f7.json",
+    "own_authority_released": "generation 15 of seat 'director-engine' retired; successor generation 16 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "grid committed \u2014 record+row on branch local-maxxing/season2/posts/director-engine/main",
+    "livestream_repoint": {
+      "session": "view-director-engine",
+      "target": "@5",
+      "skipped": "view session view-director-engine absent"
+    },
+    "model_confirm": "deferred: after_join \u2014 no assistant turn yet at rotate-self; run_after_join confirms once the successor transcript carries one",
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/director-engine.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      1135148,
+      1135153,
+      1135343
+    ],
+    "reap_source": "derived from own window @id @2 pane 1135148: chain [1135148, 1135153, 1135343] (deepest-first; authority row pid 1135343)"
+  },
+  "after_join": {
+    "claimed_at": "2026-09-25T07:27:41.081951+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-25T07:27:11.995585Z"
+  }
+}
