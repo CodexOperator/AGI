@@ -13,6 +13,7 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -34,21 +35,26 @@ def _load_dispatch():
 dispatch = _load_dispatch()
 
 
-@pytest.fixture()
-def project(tmp_path: Path) -> Path:
-    graph = tmp_path / ".agi"
+# role -> (ladder tier, model). Both seats are the ones goal:g7.28.2 names.
+_ROLES = {"kid": (0, "deepseek-v4"), "parent": (1, "fake-parent")}
+
+
+def _write_project(root: Path, role: str = "kid") -> Path:
+    """A minimal one-node project whose ladder knows `role`."""
+    tier_n, model = _ROLES[role]
+    graph = root / ".agi"
     (graph / "nodes" / ".geometry").mkdir(parents=True)
     (graph / "nodes" / "hypothesis").mkdir(parents=True)
     (graph / "nodes" / "goal").mkdir(parents=True)
     (graph / "config.json").write_text(json.dumps({
         "harnesses": {"pi": {"adapter": "pi", "provider": "fake",
-                             "models": {"kid": "deepseek-v4"}}},
+                             "models": {role: model}}},
         "spawn": {"harness": "pi", "parallel": 1, "max_live": 25},
         "agent_dispatch": {"inline_reaper": False},
     }))
     (graph / "nodes" / ".geometry" / "ladder.md").write_text(
-        "---\ncurrent_season: 2\nroles:\n  - {tier: 0, role: kid, "
-        "harness: pi, model: deepseek-v4}\n---\nbody")
+        "---\ncurrent_season: 2\nroles:\n  - {tier: %d, role: %s, "
+        "harness: pi, model: %s}\n---\nbody" % (tier_n, role, model))
     (graph / "nodes" / ".geometry" / "secrets.md").write_text(
         "---\nenv_file: /tmp/definitely-not-a-real-secrets-file-zzz\n---\n")
     (graph / "nodes" / "goal" / "g15.md").write_text(
@@ -59,7 +65,12 @@ def project(tmp_path: Path) -> Path:
     for k in ("AGI_TREE_PROJECT_ROOT", "AGI_PROJECT_ROOT", "AGI_AGENT_ID",
               "AGI_ACTOR", dispatch._PERSIST_STOP_ENV):
         os.environ.pop(k, None)
-    return tmp_path
+    return root
+
+
+@pytest.fixture()
+def project(tmp_path: Path) -> Path:
+    return _write_project(tmp_path, "kid")
 
 
 class _StubProc:
@@ -108,9 +119,9 @@ def _fake_spawn(monkeypatch, plans, stop_after=None):
     return spawned
 
 
-def _argv(tmp_path: Path, *extra):
+def _argv(tmp_path: Path, *extra, role: str = "kid"):
     return [str(BIN / "dispatch.py"), str(tmp_path), "1",
-            "--level", "small", "--harness", "pi", "--tier", "kid",
+            "--level", "small", "--harness", "pi", "--tier", role,
             "--target", "hypothesis:x", *extra]
 
 
@@ -197,3 +208,89 @@ def test_record_carries_persistent_live_pid_and_restart_count(
     assert rec["pid"] == spawned[1][1].pid, (
         f"record pid {rec['pid']} is not the live child "
         f"{spawned[1][1].pid}")
+
+
+# ---------------------------------------------------------------------------
+# goal:g7.28.2 -- falsifier 1: the `--persistent` branch must not move the
+# DEFAULT spawn for EITHER seat. The comparison is the rendered argv and the
+# exported environment of the one child each run opens, so a flag that only
+# changes lifecycle (and not the wire) is invisible here by construction.
+# ---------------------------------------------------------------------------
+
+class _IdleProc:
+    """A child that never exits: `poll()` is None forever, so a persistent
+    seat has nothing to restart even if the supervisor is left alone."""
+
+    def __init__(self, pid):
+        self.pid = pid
+        self.returncode = None
+
+    def poll(self):
+        return None
+
+
+def _capture(root: Path, role: str, extra, monkeypatch):
+    """One dispatch, Popen faked ONLY on the start_new_session spawn path so
+    the internal zoom subprocess.run calls still go to the real thing.
+    Returns (spawns, supervisor_calls, manifest_agents)."""
+    spawns: list = []
+    supervised: list = []
+    real_popen = subprocess.Popen
+
+    def _patched(argv, **kwargs):
+        if not kwargs.get("start_new_session"):
+            return real_popen(argv, **kwargs)
+        spawns.append((list(argv), dict(kwargs.get("env") or {})))
+        return _IdleProc(4000 + len(spawns))
+
+    monkeypatch.setattr(subprocess, "Popen", _patched)
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
+    monkeypatch.setattr(dispatch, "_PERSIST_SLEEP", lambda s: None)
+    monkeypatch.setattr(dispatch, "_supervise_persistent",
+                        lambda *a, **k: supervised.append(1))
+    monkeypatch.setattr(sys, "argv", _argv(root, *extra, role=role))
+    assert dispatch.main() == 0
+    return spawns, supervised, _manifest(root)
+
+
+# a minted agent id, and the scaffolded node id that carries its hash as a
+# suffix (`a00-8079f434-9398bd`) -- both are per-run coin flips.
+_ID_RE = re.compile(r"a00-[0-9a-f]{6,10}(?:-[0-9a-f]{4,10})?")
+
+
+def _norm(value, root: Path) -> str:
+    """Normalize ONLY the per-run identity: this run's project root and its
+    minted ids. Everything else must match byte-wise."""
+    return _ID_RE.sub("<ID>", value.replace(str(root), "<ROOT>"))
+
+
+@pytest.mark.parametrize("role", ["kid", "parent"])
+def test_default_spawn_is_identical_with_and_without_persistent(
+        tmp_path: Path, monkeypatch, role):
+    got = {}
+    for label, extra in (("default", []),
+                         ("persistent", ["--persistent", "--detach"])):
+        root = _write_project(tmp_path / label, role)
+        spawns, supervised, agents = _capture(root, role, extra, monkeypatch)
+        assert len(spawns) == 1, f"{role}/{label}: {len(spawns)} spawns, want 1"
+        argv, env = spawns[0]
+        got[label] = (
+            [_norm(a, root) for a in argv],
+            {k: _norm(v, root) for k, v in env.items()},
+            supervised,
+            agents[0],
+        )
+
+    d_argv, d_env, d_sup, d_rec = got["default"]
+    p_argv, p_env, p_sup, p_rec = got["persistent"]
+    assert d_argv == p_argv, f"{role}: --persistent changed the rendered argv"
+    assert d_env == p_env, f"{role}: --persistent changed the child env"
+    # Without the flag the supervisor is never even entered, and the seat
+    # record carries neither occupation key.
+    assert d_sup == [], f"{role}: supervisor ran on the default path: {d_sup}"
+    assert "persistent" not in d_rec, d_rec
+    assert "restart_count" not in d_rec, d_rec
+    # The two runs really are the same seat on the same loop, so the
+    # comparison above was between like and like.
+    assert d_rec["tier"] == role == p_rec["tier"], (d_rec, p_rec)
+    assert p_sup, f"{role}: --persistent never opened the supervisor"
