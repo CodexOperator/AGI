@@ -11,6 +11,11 @@ class HeldProcess:
             return int(self._marker.read_text().strip())
         except (OSError, ValueError):
             return None
+
+    @property
+    def returncode(self):
+        """Match subprocess.Popen's post-poll return-code contract."""
+        return self.poll()
 def _tmux(*args):
     result = subprocess.run(list(args), check=True, capture_output=True, text=True)
     output = getattr(result, "stdout", None)
