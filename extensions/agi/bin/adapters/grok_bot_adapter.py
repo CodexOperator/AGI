@@ -21,6 +21,7 @@ import time
 from pathlib import Path
 
 import adapters
+import tmux_hold
 
 NAME = "grok-bot"
 
@@ -155,6 +156,13 @@ def restart(
         agent_record["restarted_at"] = int(time.time())
         (sess_dir / "agent.json").write_text(json.dumps(agent_record, indent=2))
     return new_pid
+
+
+def start_held(*, name: str, argv: list[str], cwd: str | Path,
+               env: dict[str, str], log_file: str | Path) -> int:
+    """Production first-spawn seam: a named pane owns the process."""
+    return tmux_hold.start(name=name, argv=argv, cwd=cwd, env=env,
+                           log_file=log_file)
 
 
 def needs_credential(harness: dict) -> bool:

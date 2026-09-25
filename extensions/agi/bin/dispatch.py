@@ -2649,6 +2649,12 @@ def main() -> int:
         _mem_cap = mem_cap.resolve_memory_cap(cfg)
 
         def _open_round(mode: str):
+            held_start = getattr(adapter, "start_held", None)
+            if held_start is not None:
+                from types import SimpleNamespace
+                return SimpleNamespace(pid=held_start(
+                    name=agent_id, argv=mem_cap.wrap_argv(spawn_args, _mem_cap),
+                    cwd=branch_root, env=spawn_env, log_file=log_file))
             with open(log_file, mode) as logf:
                 return subprocess.Popen(
                     mem_cap.wrap_argv(spawn_args, _mem_cap),
