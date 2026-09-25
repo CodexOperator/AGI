@@ -41,6 +41,7 @@ def test_first_start_reuses_the_same_pane_and_receives_child_env(monkeypatch, tm
 
     (tmp_path / "state/hold.done").write_text("1")
     assert first.poll() == 1
+    assert first.returncode == 1
     second = tmux_hold.start(
         ["pi", "again"], env=env, cwd=tmp_path, log=tmp_path / "out.log",
         mode="ab", seat="sanctuary-director", agent_id="a00-one",
