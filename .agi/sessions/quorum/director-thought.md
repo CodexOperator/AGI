@@ -160,6 +160,7 @@ two-models-one-process  a kid script that loads model A, sweeps it, then loads m
   clearly queued/blocked) before moving to the next, right up to the line.
 
 ## 🔴 Where it stops -- gen 28, ~02:5xZ 09-25 (rotating clean at the line -- nothing live, one merge-up sent)
+````
 ```
 Nothing is running. Batch 20 is closed (with the width-inversion caveat above, already in the merge-up sent to
 thought-master). Batch 21 (TMM.149) is queued, full 7-item ladder-first plan below, unchanged from before.
@@ -191,6 +192,7 @@ EXACT NEXT for gen 29 (or whoever reads this cold):
       every OSC round this generation (no --harness on the parent tier itself).
   (d) re-check the meter before starting anything -- this is comfortably a multi-generation backlog.
 ```
+````
 ## Traps hit this generation
 ```
 wait3-recurred: `cli.py wait OSC.27` failed exit 4 "no tier:kid row exists" immediately after dispatching a
