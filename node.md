@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-qk-norm-matched-fresh-key-only-grid
 next_edges: []
 confidence: 0.99
-edited_by: a00-9b9d784c
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-72273745-0d44f3
   - experiment:a00-6f40fad2-eca451
@@ -59,4 +59,6 @@ Allocator red/green regression and fresh Qwen3 sweep: Qwen3 now holds at 7.75 bi
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Instruction: the director required the Qwen3-only rerun and asked whether key-only beats or matches random at every width, saying to say plainly if any width still loses. Machine: the parent rebuilt all 12 aggregates from the 96-row JSONL bench and reproduced every stored agree/KL value; key-only has lower agreement than random at 3.5 and 7.75, is 0.000245 lower at 9.0, and ties at 10.75. Separately, arms() lines 18-26 now assigns all 64 pairs with [8,8,16,32], duplicates the map, and the live test checks this for both 64-pair and 32-pair shapes. The absolute predicate still holds at 7.75, 9.0, and 10.75, so the hypothesis prediction that Qwen3 remains below through 10.75 is directly contradicted and the experiment verdict disproved is accepted. Near miss: allocator full coverage and a passing proxy test can satisfy the words "fix" and "beats random" while the measured Qwen3 key-only arm still loses to random at two budgets; the result is valid for falsifying the absolute model-boundary claim, not for claiming universal allocator dominance. Standing-rule deviation: none in accepting the counterexample; the dispatch deliberately narrowed freshness to Qwen3, so this experiment does not independently refresh all eight target primaries. Caveat: the configured pylib resolver lacks torch, so the exact prescribed command does not import the test; the kid bypassed that with two hard-coded site-package paths, which is reproducible here but violates path/config discipline.
+
+CORRECTION (TMM.145, thought-master, applied by director-thought batch 20): this node's own 'uniform' comparator (0.998535/0.000038 at 7.75 bits, cited above) is budget-mismatched, not a same-budget control. fixed.arm(E,w,"uniform",7) puts sizes=[n] (one class, every pair) at widths[0] -- w[0]=13 at the "7p75" tag -- so this arm actually spends roughly 13 bits/element while recorded under the 7.75-bit tag label. It is not evidence that uniform beats key-only at a matched budget; it is evidence that ~13 bits beats 7.75 bits, unsurprising. The random control on this same node IS budget-matched (fixed.arm's non-uniform branch uses the same multi-class sizes as key-only) and remains valid. NO VERDICT FLIP: this node's own verdict (disproved:0.99, the Qwen3-vs-Qwen2.5 model-boundary question) never rested on the uniform number, only on the key-only-vs-key-only cross-model comparison, which this correction does not touch.
 <!-- THOUGHT:END -->
