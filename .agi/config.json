@@ -127,7 +127,7 @@
   "spawn": {
     "harness": "pi",
     "parallel": 1,
-    "max_live": 10,
+    "max_live": 20,
     "credential": {
       "provider": "openrouter",
       "per_spawn_limit_usd": 1.0,
