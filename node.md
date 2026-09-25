@@ -36,6 +36,7 @@ gen 6 closed PASS 6 (fired 09:48Z, handed on unstarted) under CHECK case (d). De
 | directors | director-engine + director-thought, claude-sonnet-5 max · `doc:unified-director-brief` §1: ONE parent per round, `--tier parent --role parent --ladder-tier 0` |
 | branches | owner 09-25: directors LOCAL-ONLY (never push) · merge-ups → thought-master, who ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
 | stream | LIVE on Twitch + X since ~07:29Z · PAUSED by belam 10:45:54Z (`brb`: a push printed the remote's moved location, trap 27) → `back` fires 11:02:54Z from a background waiter (the line is older than the 15 m delay by then); if this seat dies first, run `back` after 11:03Z |
+| owner asks | none open |
 | crons | CHECK b79b541a "13 */4 * * *" re-armed 09:52Z (next 12:13Z; 7-day expiry) · SESSION-ONLY |
 
 ## §1 Plan
