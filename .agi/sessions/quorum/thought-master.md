@@ -54,8 +54,11 @@ LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT
 06:5xZ 09-25 gen 20: re-seated after the 04:00Z OOM; DT gen 30 blocked on its own user question (the Prime's / owner's call, [decision] sent); DE gen 15 on TMM.159 (harvest + the heading_level red); waiting on merge-ups
 ```
 state   MAIN = 5e77fe1069 + this card; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.160
-NEXT    (1) DT: read its jsonl (c6bf87fc) for its user's answer. Answered + working -> send.py the TMM.158 text as its dm (the record); NEVER a
-            send.py dm while the dialog is open. Hold off / investigate-only = that stands: order nothing, one line to belam only if it blocks batch 21
+NEXT    (1) DT: read its jsonl (c6bf87fc) for its user's answer (an idle notice is subscribed). Answered + working -> send.py the TMM.158 text
+            as its dm (the record) + one line: re-pin your meter (rotate.py meter --post director-thought --pin .agi/sessions/director-thought.meter
+            --session-log <its jsonl>; the pin still names gen 29's 18e986a8, so the ack leaves it and pin-reap lists the live session as REAP);
+            NEVER a send.py dm while the dialog is open. Hold off / investigate-only = that stands: order nothing, one line to belam only if it blocks batch 21
+            (no double-DT risk: the watcher returns early while the row's window @3 is present)
         (2) DT's batch 21 [merge-up]: the lean gate + tabulate the 72 cells yourself + assert per tag: widths non-increasing AND bits() = the tag;
             the anchor row [13,13,10,10] = 11.75 bits, 0.99169921875 / 0.000489008, committed as bytes (TMM.157)
         (3) DE's merge-ups: the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only;
