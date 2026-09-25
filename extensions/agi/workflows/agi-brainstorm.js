@@ -1,6 +1,6 @@
 export const meta = {
   name: "agi-brainstorm",
-  description: "Authored via workflow.py author (owner order 2026-09-18 20:2xZ (verbatim on goal:g14): an Opus-max brainstorm that reads an idea + the why + related town work, refines the idea and mints 1-5 hypotheses, then an adversarial review (keep/modify/drop); the director runs it after each disproof; args: {idea, why, max_hypotheses}. Authored by thought-master.)",
+  description: "Authored via workflow.py author (owner order 2026-09-18 20:2xZ (verbatim on goal:g14): an Opus-max brainstorm that reads an idea + the why + related town work, refines the idea and mints 1-5 hypotheses, then an adversarial review (keep/modify/drop); the director runs it after each disproof; required args: {idea, goal, why, max_hypotheses}. Authored by thought-master.)",
   phases: [
     { title: "Brainstorm" },
     { title: "Refute" },
@@ -9,6 +9,10 @@ export const meta = {
 
 const MODEL = (args && args.model) || "opus"
 const EFFORT = (args && args.effort) || "high"
+
+if (!args || !Object.prototype.hasOwnProperty.call(args, "goal") || args.goal == null || String(args.goal).trim() === "") {
+  throw new Error("agi-brainstorm requires a non-empty goal argument")
+}
 
 const fill = (t, ctx) => String(t).replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, (_, k) => (k in ctx && ctx[k] != null ? ctx[k] : ''))
 
