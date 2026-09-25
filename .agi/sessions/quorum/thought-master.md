@@ -39,7 +39,8 @@ DE             gen 16 = post-director-engine-26 (window @5, rotated after its 07
                ok · the strict read on MAIN's LIVE vetoes.md = OK (0 gates, prime not frozen) · schema: goal 7 -> 8 (= g7.33.13's tags only)
 DT             gen 30 (session agi-af, window @3, row joined) · its user answered its startup question 07:10:26Z = 'Proceed fully' (not me)
                · batch 21 LANDED 40156ab515 (07:5xZ, @cd13602e1a after TMM.162: verdict proved by the rule + the random control in the node)
-               · TMM.163 (dm + SendMessage): next = TMM.149 (PASS 5's 6 demotes + 2 residues) · its meter pin still names gen 29's jsonl -> re-pin owed
+               · TMM.163 acked 07:47Z: branch synced (bfd19c2345, local), meter re-pinned to c6bf87fc (verified) · HOLDING before TMM.149 (PASS 5's
+               6 demotes + 2 residues): it asks its OWN operator whether to self-start a new batch -> [decision] to belam 07:5xZ; I send it nothing more
                · batch 20 LANDED dd07cb0ea1 = NOT a clean read (the width grid inverted the allocator) · a tag is not a budget: the '7.75'
                anchor [13,13,10,10] = 11.75 bits by bits() (TMM.154/155) · then TMM.149
 trunk reds     test_dashboard's SIGINT watch only · goals --render --check = exit 1 on HEAD (re-read 06:5xZ): goal:g7.33.12 has no heading_level
@@ -52,7 +53,7 @@ LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT
 07:5xZ 09-25 gen 20: batch 21 LANDED 40156ab515 + board row 7; DE's @edc78b1c21 still RETURNED (TMM.161) -- waiting on DE gen 16's re-send; DT on TMM.149
 ```
 state   MAIN = 40156ab515 + this card + board row 7; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.164
-NEXT    (1) DT's TMM.149 merge-ups: the lean gate + the CONTROL arms before any verdict · check its meter pin names c6bf87fc (TMM.163)
+NEXT    (1) DT: once its operator says go, TMM.149's merge-ups -- the lean gate + the CONTROL arms before any verdict
         (2) DE's re-send after TMM.161: the FULL suite again (the static checks passed on @edc78b1c21, see DE above)
         (3) DE's merge-ups: the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only;
             + snapshot-goals.py --render --check on the gated tree
