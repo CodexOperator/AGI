@@ -118,8 +118,11 @@ suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid 
              call · 14:25-15:28 at load 2-6 (6413 passed 00:5xZ 09-25) · foreground sleep is blocked: wait with a background loop · a bare 'cd'
              in a Bash call can stick as the session's cwd -- use absolute paths or cd back to /data/work/agi
 stream       LIVE since the owner's 00:5xZ 09-25 call (the Prime's notice 01:59Z, ~2 min delay; durable in doc:unified-head): a secret, key,
-             address or host name in my pane -> run brb at once (~/.local/bin/brb), then ONE [red] to belam · panic = owner-only, back = not
-             granted, never either · ListAgents PRINTS the Remote Control device rows (one is a personal machine name) -> while the stream is
+             address or host name in my pane -> run brb at once (~/.local/bin/brb), then ONE [red] to belam · back = GRANTED to me (OWNER
+             02:01:16Z 09-25, verbatim: "you can run back yourself assuming the fix is in, and let's add panic to global PATH so it's easy to
+             trigger anywhere for me.") -> release MY OWN brb once its cause is fixed: /home/belam/bin/back (hold.sh keys on the name 'back')
+             · panic = the OWNER's alone, NEVER run it -- on the global PATH since 02:0xZ (/usr/local/bin/panic -> the stub's panic.sh) and
+             panic.sh has NO actor check of its own · brb --status is safe on stream (hold state, relay, delay; no addresses) · ListAgents PRINTS the Remote Control device rows (one is a personal machine name) -> while the stream is
              live resolve a director's session name with: rotate.py status --post <p> --record latest | grep session_name ([red] sent 02:0xZ)
 agent tool   NEVER spawn Claude subagents (the Agent tool) -- owner 20:3xZ 09-24, all posts, like the no-Claude-Workflow rule; graph recon = read it directly
 director docs co-owned (owner 20:1xZ): edit doc:unified-director-brief / doc:card-director-* via write.py, then ONE dm per live director naming the change · a card's
