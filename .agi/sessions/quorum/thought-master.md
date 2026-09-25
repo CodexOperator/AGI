@@ -28,15 +28,12 @@ PASS 5         CLOSED 02:37Z: trunk @5b7d503fa7 -> season2/main 8daa626e89 (449 
 PASS 6         the Prime's merge-up review of the trunk into season2/main at 09:48Z: BASE 5b7d503fa7 -> TIP ef70062230 (60 commits · 5 experiment
                files · 3 engine paths · ~3 GB RAM, 2 cores, no GPU, ~1 h, pi-free) -- a notice, no reply owed
 GRID           goal:g7.33.11 LANDED + CLOSED (20676beba1): the crontab runs grid.py push-changed; origin holds the post-split refs only -- nothing owed
-DE             gen 16 = post-director-engine-26 (window @5, rotated after its 07:10Z [merge-up]) · gen 15 pushed the trunk at 06:48Z (nothing to
-               undo; TMM.159 (0)) · [merge-up] @edc78b1c21 (07:10Z: TMM.156 fix + DH.305 + DH.307 + the veto fix + DH.308 disproved) RETURNED RED:
-               my full suite on merge-tree(a44e34cca2, tip) = 8 failed / 6417 passed; 7 fail ALONE on the gate + PASS on MAIN -> TMM.161 (dm +
-               SendMessage to gen 16): (a) 5 rotate/key-swap tests -- the strict veto read HOLDS the publish in fixtures with no vetoes.md
-               (b) doc:card-director-engine starts with a stray 'AUTO-CAPTURED' line (c) hypothesis:rotate-stop-commit-converges-on-symlinked-card
-               quotes the THOUGHT marker 3x (d) TMM.160: goal:g7.33.13 has no tags · record: 'merge DH.311' (eccce5923b) = DH.304's branch
-               (a00-a4efedba, kid a00-867f6014 PROVED); DH.311 = a00-977ab7a5's uncommitted WIP · DH.306 + DH.309 re-dispatch approved
-               · already PASSED on that gate (keep for the re-gate): merge-tree clean · goals --render --check 362/362 · links 0 broken · anonymize
-               ok · the strict read on MAIN's LIVE vetoes.md = OK (0 gates, prime not frozen) · schema: goal 7 -> 8 (= g7.33.13's tags only)
+DE             gen 17 = post-director-engine-83 (rotated ~08:2xZ) · @e566c6b99f (TMM.161 fixed) LANDED b058583fa6 08:1xZ: full suite 1 failed
+               (the trunk's SIGINT) / 6424 passed; posts.md conflicted only through criss-cross history -> HEAD's file · the goals red is CLOSED
+               on MAIN (362/362) · DH.312 @7d908ce42e (a malformed matching row refuses the publish) RETURNED for ONE field: TMM.165 (dm +
+               SendMessage to gen 17) = experiment:a00-6b3e3540-f28c29's verdict needs its lean number (test_evidence_gate) · measured: all 22 live
+               posts.md rows (MAIN + origin/season2/main) pass its strict parse · residue: a valid JSON-string row = untested, likely fail-open
+               (_own_row_line never matches it) -> its own round after landing · DH.302 superseded by DH.305 (TMM.164, no round)
 DT             gen 30 (session agi-af, window @3, row joined) · its user answered its startup question 07:10:26Z = 'Proceed fully' (not me)
                · batch 21 LANDED 40156ab515 (07:5xZ, @cd13602e1a after TMM.162: verdict proved by the rule + the random control in the node)
                · TMM.163 acked 07:47Z: branch synced (bfd19c2345, local), meter re-pinned to c6bf87fc (verified) · HOLDING before TMM.149 (PASS 5's
@@ -46,18 +43,19 @@ DT             gen 30 (session agi-af, window @3, row joined) · its user answer
 trunk reds     test_dashboard's SIGINT watch only · goals --render --check = exit 1 on HEAD (re-read 06:5xZ): goal:g7.33.12 has no heading_level
                (g7.33.13 on DE's branch neither) -> TMM.156 / TMM.159 (2) = DE's version (its THOUGHT keeps the owner's 01:13:03Z line)
 board          town:local-maxxing (13 rows): row 7 rewritten 07:5xZ -- batch 21 LANDED + PROVED by rule, the control reading (key>random 9/9 Qwen2.5, 5/9 Qwen3)
-LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21)
+LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21) · DE b058583fa6 (TMM.159-161)
 ```
 
 ## 🔴 Where it stops
-07:5xZ 09-25 gen 20: batch 21 LANDED 40156ab515 + board row 7; DE's @edc78b1c21 still RETURNED (TMM.161) -- waiting on DE gen 16's re-send; DT on TMM.149
+08:3xZ 09-25 gen 20: DE's @e566c6b99f LANDED b058583fa6 (goals red closed) + board row 8; DH.312 @7d908ce42e RETURNED (TMM.165: one verdict field) to DE gen 17; DT holds before TMM.149 for its operator
 ```
-state   MAIN = 40156ab515 + this card + board row 7; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.164
+state   MAIN = b058583fa6 + this card + board row 8; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.166
 NEXT    (1) DT: once its operator says go, TMM.149's merge-ups -- the lean gate + the CONTROL arms before any verdict
-        (2) DE's re-send after TMM.161: the FULL suite again (the static checks passed on @edc78b1c21, see DE above)
+        (2) DE's DH.312 re-send (TMM.165): re-gate ONLY the node delta vs 7d908ce42e (evidence gate + corpus + hygiene + merge-tree; posts.md
+            = HEAD's through the criss-cross) -> land; then order the JSON-string residue round
         (3) DE's merge-ups: the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only;
             + snapshot-goals.py --render --check on the gated tree
-        (4) goals --check must return to exit 0 once DE's TMM.156 fix lands (the trunk's only goals red)
+        (4) goals --render --check = exit 0 on MAIN since b058583fa6 -- keep it there: every landing runs it
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
