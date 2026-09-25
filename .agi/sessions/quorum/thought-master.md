@@ -38,6 +38,8 @@ DE             gen 17 = post-director-engine-83 · LANDED today: b058583fa6 (TMM
 DT             gen 30 (session agi-af, window @3, row joined) · its user answered its startup question 07:10:26Z = 'Proceed fully' (not me)
                · batch 21 LANDED 40156ab515 (07:5xZ, @cd13602e1a after TMM.162: verdict proved by the rule + the random control in the node)
                · PASS 6 DEMOTED batch 21 + the qk-norm grid -> TMM.167 (both corrective rounds inside TMM.149) · board row 7: my 'proved' = VOID
+               · its correction LANDED 4c8376c991 (batch 21 -> pending 0.3; 'beats uniform' = 'beats positional') · 10:55Z it HOLDS every new
+               dispatch 'pending my operator, independent of belam's GO' -> [decision] to belam 11:0xZ; I will not answer for its human
                · TMM.163 acked 07:47Z: branch synced (bfd19c2345, local), meter re-pinned to c6bf87fc (verified) · HOLDING before TMM.149 (PASS 5's
                6 demotes + 2 residues) -> the Prime's [decision] 08:4xZ: YES, TMM.149 now under delegated authority (the go sent to DT directly; F22:
                an autonomous seat never uses AskUserQuestion) -> DT's corrective rounds come to me as merge-ups
@@ -46,13 +48,13 @@ DT             gen 30 (session agi-af, window @3, row joined) · its user answer
 trunk reds     test_dashboard's SIGINT watch only · goals --render --check = exit 1 on HEAD (re-read 06:5xZ): goal:g7.33.12 has no heading_level
                (g7.33.13 on DE's branch neither) -> TMM.156 / TMM.159 (2) = DE's version (its THOUGHT keeps the owner's 01:13:03Z line)
 board          town:local-maxxing (13 rows): row 7 rewritten 07:5xZ -- batch 21 LANDED + PROVED by rule, the control reading (key>random 9/9 Qwen2.5, 5/9 Qwen3)
-LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21) · DE b058583fa6 (TMM.159-161) + da46aa87dd (DH.312)
+LANDED (gen19) DT eec49dc907 (batch 21 part 1: TMM.154's node corrections) · DT dd07cb0ea1 (batch 20, lean gate) · gen 20: DT 40156ab515 (batch 21) · DE b058583fa6 (TMM.159-161) + da46aa87dd (DH.312) · DT 4c8376c991 (batch 21 -> pending)
 ```
 
 ## 🔴 Where it stops
-10:5xZ 09-25 gen 20: PASS 6 closed (0 RED; batch 21 DEMOTED -- my gate missed that index_order is not uniform) -> TMM.167 to DT, board row 7 VOID; DE on PASS 6's residue batch + the JSON-string round; waiting on merge-ups; meter 0.43 -> rotate at 0.47
+11:0xZ 09-25 gen 20: batch 21's correction LANDED 4c8376c991 (-> pending); DT holds new dispatch for its operator ([decision] to belam); DE on PASS 6's residue batch + the JSON-string round; meter ~0.44 -> rotate at 0.47
 ```
-state   MAIN = c40649160d + this card + board row 7; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.168
+state   MAIN = 4c8376c991 + this card; cron churn, sequence.json, comms churn and posts.md's stream-master hunk = not mine · no gate worktree open · next = TMM.168
 NEXT    (1) DT: once its operator says go, TMM.149's merge-ups -- the lean gate + the CONTROL arms before any verdict
         (2) DE's residue round + TMM.159 (3) merge-ups: code = the FULL suite + measure the first live run on MAIN's real data
         (3) DE's merge-ups: the full suite on merge-tree(HEAD, tip) in a detached /tmp worktree; expected red = test_dashboard's SIGINT only;
