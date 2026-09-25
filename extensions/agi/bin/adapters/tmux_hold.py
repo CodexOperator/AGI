@@ -20,9 +20,9 @@ def _window_exists(*, pane: str, env: Mapping[str, str]) -> bool:
 
 
 def _with_env(argv: Sequence[str], env: Mapping[str, str]) -> list[str]:
-    """Prefix the launched process with the complete sanitized environment."""
+    """Launch with exactly the sanitized environment, never tmux's inherited one."""
     assignments = [f"{key}={value}" for key, value in sorted(env.items())]
-    return ["env", *assignments, *argv]
+    return ["/usr/bin/env", "-i", *assignments, *argv]
 
 
 def start(*, pane: str, argv: Sequence[str], env: Mapping[str, str]) -> subprocess.CompletedProcess:
