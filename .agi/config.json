@@ -252,6 +252,7 @@
       "wikitext2_zip": "{ml_scratch_dir}/osc02/wikitext-2-raw-v1.zip",
       "osc03_hf_dir": "{ml_scratch_dir}/osc03/hf",
       "osc03_pylib_dir": "{ml_scratch_dir}/osc03/pylib",
+      "osc_test_pythonpath": "{ml_venv_dir}/lib/python3.12/site-packages:{ml_scratch_dir}/osc03/pylib",
       "osc15_hf_dir": "{ml_scratch_dir}/osc15/hf",
       "cuda_jit_cache_dir": "{ml_scratch_dir}/cuda-jit-cache",
       "ml_python": "{ml_venv_dir}/bin/python",
