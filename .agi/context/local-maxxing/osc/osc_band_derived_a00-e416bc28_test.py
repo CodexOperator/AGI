@@ -1,4 +1,6 @@
-import importlib.util, os, numpy as np
+import importlib.util, os
+import pytest  # skip-by-name: this module cannot run without numpy
+np = pytest.importorskip('numpy')
 HERE=os.path.dirname(__file__)
 _s=importlib.util.spec_from_file_location("fixed",os.path.join(HERE,"osc_band_kquant_qknorm_a00-bcb6c85e.py")); fixed=importlib.util.module_from_spec(_s); _s.loader.exec_module(fixed)
 W={4.0:[3,3,3,3],5.0:[4,4,4,4],5.5:[3,3,5,5],6.0:[5,5,5,5],6.5:[4,4,6,6],7.0:[6,6,6,6],7.5:[5,5,7,7],7.75:[6,6,7,7]}

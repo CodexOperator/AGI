@@ -4,7 +4,8 @@
 No model, no download. Run: python3 -m pytest <this file> -q
 """
 import importlib.util, os
-import torch
+import pytest  # skip-by-name: this module cannot run without torch
+torch = pytest.importorskip('torch')
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _s = importlib.util.spec_from_file_location(

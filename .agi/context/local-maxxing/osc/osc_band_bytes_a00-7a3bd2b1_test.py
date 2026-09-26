@@ -1,6 +1,8 @@
 """Emitted-bit audit tests: the count is taken from the real quant() call."""
 import importlib.util, io, json, os
-import numpy as np, torch
+import pytest  # skip-by-name: this module cannot run without numpy, torch
+np = pytest.importorskip('numpy')
+torch = pytest.importorskip('torch')
 P = os.path.dirname(os.path.abspath(__file__))
 def _load(name, fn):
     s = importlib.util.spec_from_file_location(name, os.path.join(P, fn))
