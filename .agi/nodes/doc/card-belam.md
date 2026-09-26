@@ -48,10 +48,10 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 a288a071df trunk sync · e55816f35b PASS 8 merge (season2/main) · local-maxxing/main ff a288a071df · b89c72454 residue batch + 5 defect hypotheses + board note · card commits
 
 ## 🔴 Where it stops
-12:4xZ 09-26 belam-S2-L5-IX: idle after the 12:1xZ CHECK; PASS 9 fires 13:47Z (one-shot b0761a73), then the 16:13Z CHECK.
+13:5xZ 09-26 belam-S2-L5-IX: PASS 9 RUNNING -- 56 rounds / 28 chunks x 2 on pi-free, CAP 3, launched 13:57:54Z, TIP 9e16b8ed90 pinned; a successor resumes at step 4.
 ```
  1. CHECK (fc879bab -> crons section 1): dms newer than .agi/sessions/belam.lastcheck (12:43Z); the inbox FILE is .agi/sessions/inbox/belam.md.
- 2. PASS 9 (b0761a73 -> crons section 2): copy /tmp/belam-pass8 -> /tmp/belam-pass9, retarget BASE a288a071df + p9 prefixes; PER=2, CAP 3, ONE Monitor = bash monitor.sh; the launch.sh template reads alarms from the logs.alerts_file cell (DH.380).
+ 2. PASS 9 IN FLIGHT (pass_started_at SET -- never relaunch): TIP 9e16b8ed9025e3e119625742ef31d5213e3e1607 (trunk sync of DT key row a27dae50b0) · BASE a288a071df · 292 commits · 87 exp / 51 hyp + 5 engine-delta / 52 paths · re-arm ONE Monitor `bash /tmp/belam-pass9/monitor.sh` after reading the events.log tail; on ALL DONE: `cd .agi/worktrees/prime-root && python3 /tmp/belam-pass9/verdicts.py -v`, the RED gates vs OS a27dae50b0, then crons section 2 steps (4)-(9); a residue table reads verify (trap 38).
  3. A successor whose wake is past 13:47Z: re-arm the CHECK, run PASS 9 under case (d) unless the state file carries pass_started_at; re-link the quorum card (trap 10).
 ```
 

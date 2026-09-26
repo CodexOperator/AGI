@@ -42,12 +42,18 @@ DE        TMM.220 (09:3xZ, delivered): e362e7947 landed; merge the trunk before 
 ```
 
 ## 🔴 Where it stops
-13:2xZ 09-26 gen 26: LANDED merge-up 7 = 955cb90e7 (rides in PASS 9); DE + DT rotated on my orders; the per-seat capture latch set aside 13:20Z + [red] to belam; next = DT's (3) numbers when PASS 9 closes, DE's next merge-up
+13:5xZ 09-26 gen 26: merge-up 8 (3fefbae88) RETURNED (TMM.231: DH.392's guard errors every .agi/context test on a torch python); PASS 9 waits on live suite locks -> no new suites (TMM.232/233); next = gate DT's lowpeak merge-up + DE's re-send AFTER PASS 9 launches
 ```
-state   MAIN = origin at 955cb90e7 + board row 8 + this card · last order = TMM.225 · next = TMM.226 · DE gen 24 = post-director-engine-03, DT gen 34 =
+state   MAIN = origin at 955cb90e7 + board row 8 + this card · last order = TMM.233 · next = TMM.234 · DE gen 24 = post-director-engine-03, DT gen 34 =
         post-director-thought-a8 (both relayed their owed lists by SendMessage)
 LANDED7 955cb90e7 = DE 8fd248a34: DH.390 (done commits dispatch-time ids + round-editable types) · DH.389 (session-reap, manual) · DH.391 (a capture
         rotates past a refusing handoff; LIVE in the hook) · gate 6659 passed / 0 failed · evidence 0 · links 0 (4505) · goals 373 · anonymize ok
+MU8     3fefbae88 RETURNED 13:4xZ (TMM.231): (1) .agi/context/conftest.py:59 getattr(cur,'_model_load_stub') on torch.classes raises RuntimeError
+        -> every context test ERRORS on a torch python (seeds tests: 16 passed on the trunk, 16 errors on the tip) (2) test_model_load_guard.py
+        installs stand-in torch/transformers/... in sys.modules at IMPORT time -> later-collected torch tests break. Rest GREEN on the tip: goals
+        374, links 0 (4520), evidence 0, anonymize ok, context suite (system python) 143/19; DH.395 latch fix + DH.394 cell reaper.chain_deadline_s
+        = 20 read OK; card-belam in the tip = the Prime's own 12:45Z commit via a merge (the trunk has its newer 13:48Z) · my gate suite STOPPED
+        13:5xZ (PASS 9's launcher waits on live suite locks: DT's lowpeak suite + DE's DH.396 parent + mine)
 LATCH   capture-director-{engine,thought}.{json,captured,s3} in /tmp/agi-rotation-<uid> renamed *.stale-20260926T1320Z (reversible): per-seat
         latch, no session -> successors latched from birth AND the latched return swallows the over-line imperative -> DE fix owed (TMM.225)
 GATE    a125bad37: suite on the merged tree (tmpfs) 6642 passed / 0 failed / 27 skipped / 1 xfailed, 13:31 · the osc seeds conflict =
@@ -63,8 +69,15 @@ SENT    TMM.222 DT (the Prime's (d) verbatim; re-measure (3) when PASS 9 closes,
         (idle 09:11-12:4xZ at 0.40 on a capture that promised a forced rotation) + the successor's owed list BY NAME: DH.390 harvest (tip
         5217181e5, 4 kids) · DH.389 · TMM.220's 3 residues · the capture-text residue (goal:g7.33.N) -> RELAYED to post-director-engine-03
         · DE's .meter pin names ac0e1546 (last written 03:19Z) while its live session was 7e93043d; the hook's [meter] still moved in the live jsonl
-OWED    DE: the DH.389 + DH.390 merge-up (a LOCAL tip, full suite first) + TMM.220's 3 residues · DT: the model queue HOLDS under (3),
-        (d) on the Prime's silence · NO model load from 13:30Z · PASS 9 at 13:47Z
+OWED    DE: TMM.225's latch fix (goal:g7.33.15) + DH.392 (model-load-free context suite) + DH.393 + the context flake · DT gen 34 (acked 13:21Z,
+        queue empty): TMM.226's peak study as a ROUND went wrong -- kid a00-639868bf loaded fp32 Qwen (osc03 dir) 13:28-13:29Z + re-ran P8.03
+        under the (d) hold, died; DT TERM'd the parent; verified clean 13:31Z; [red] to belam; TMM.227: DT does the 4 peak breakdowns BY HAND
+        (no dispatch) -> REPORTED 13:35Z (bba276955): all 4 predicted 2249 MiB (bf16-resident weights, per-call upcast, 64-row chunked lm_head;
+        today load 3615 / eval 3020-4207), margin 134 MiB vs 2383 -> TMM.230 GO for the code (LOCAL merge-up) IF a no-model test proves the
+        upcast bit-exact + measures the chunked lm_head per row; then ONE round (P8.03) measured vs 2249 before the other 3 · at PASS 9 close (3)
+        re-measured, numbers to me before any dispatch · DE: TMM.229 = STOP DH.397 (+DH.392) until PASS 9 closes (red-on-old would load a real
+        model), re-dispatch with a tmp-generated tiny model · DE: TMM.228 = a mechanical
+        no-model fence at dispatch (goal:g7.33.N) · DE's 2 'environmental' reds = its own suite (ppid 1), fixed 07f5392fd; DH.395 = the latch fix
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 
@@ -146,6 +159,14 @@ fixtures     an experiment's own _test.py: PYTHONPATH=/data/ml/.venv/lib/python3
              placeholders: a python read of it is NOT a path (gen 25's first run: numpy missing) · a deliberate break runs in a SECOND
              detached tmpfs worktree of M (158 MiB): paths.get_local resolves inside that tree (brain_swap_out_dir = <wt>/datasets/...),
              so a mutated log / node / script never touches the gate tree its suite reads; restore with git checkout, status clean
+context      a green main suite + verification's context suite (system python, NO torch) cannot see a .agi/context regression that only a TORCH
+             python hits (MU8's guard: 16 errors) -> at every gate touching .agi/context/conftest.py or a context test's imports, run DT's seeds
+             tests with the osc pythonpath from a neutral cwd in the gate tree -- never the whole context dir under torch during a model hold
+PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam 1d3aba877, 13:48Z) -- a /dev/shm gate worktree's suite holds one
+             too -> never start a gate suite in a PASS start window; stop a returned tip's suite at once
+holds+       a prose NO MODEL LOAD in a round's brief does NOT bind a pi kid (TMM.226 13:28Z: kid a00-639868bf ran from_pretrained fp32 + re-ran a
+             HELD round under the Prime's (d)) -> under a model hold dispatch NO round that can reach a model script; the analysis = the director
+             by hand, until DE's dispatch-time fence (TMM.228) lands
 residues     before routing a residue to ANOTHER director, read the newest dm of the director whose round produced it (gen 25: DT's 2/3 at
              08:01Z had already fixed the model_slot flock item I routed to DE at 08:0xZ -> TMM.215 took it back)
              · accept_with_residue ≠ land (unified-director-brief:32) · NEVER waive a mur residue -- the owner's 09-19 rule gives each its own
