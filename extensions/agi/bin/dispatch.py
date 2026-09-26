@@ -3631,6 +3631,10 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
                 "path": str(nf) if nf else "",
             }
         new_pid = adapter.restart(
+            # hypothesis:every-adapter-restart-spawns-from-the-scrubbed-env
+            # -- the restart child gets the same scrubbed base as the first
+            # spawn; one scrub list (dispatch.scrubbed_env), never a second.
+            base_env=scrubbed_env(),
             harness=rec.get("harness_spec") or {},
             tier=rec.get("tier", "kid"),
             context_file=rec.get("context_file", ""),
