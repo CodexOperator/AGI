@@ -104,12 +104,23 @@ def test_claude_empty_tool_lists_emit_no_flag_at_all(rig):
     assert "--allowedTools" not in args
 
 
-def test_copilot_dispatch_shape_is_the_old_inline_argv(rig):
-    harness = {"adapter": "copilot_cli", "bin": "/x/copilot",
+def _fake_bin(tmp_path, name):
+    """A REAL `bin` cell. A path-shaped cell that does not exist refuses by
+    name (`hypothesis:harness-bin-absolute-token-free-bins-refused-by-name`),
+    so a literal like `/x/copilot` can no longer stand in for one."""
+    p = tmp_path / name
+    p.write_text("#!/bin/sh\n", encoding="utf-8")
+    p.chmod(0o755)
+    return str(p)
+
+
+def test_copilot_dispatch_shape_is_the_old_inline_argv(rig, tmp_path):
+    copilot_bin = _fake_bin(tmp_path, "copilot")
+    harness = {"adapter": "copilot_cli", "bin": copilot_bin,
                "models": {"kid": "auto"}, "effort": "high",
                "extra_args": ["--foo"]}
     args = build(cp, rig, harness)
-    assert args[:5] == ["/x/copilot", "--model", "auto", "--effort", "high"]
+    assert args[:5] == [copilot_bin, "--model", "auto", "--effort", "high"]
     assert args[5:8] == ["--allow-all", "--remote", "--foo"]
     assert args[-2] == "-p"
     assert "ZOOM CONTEXT MARKER" in args[-1]
@@ -118,9 +129,10 @@ def test_copilot_dispatch_shape_is_the_old_inline_argv(rig):
     assert "-i" not in args
 
 
-def test_copilot_dispatch_omits_model_and_effort_when_absent(rig):
-    args = build(cp, rig, {"adapter": "copilot_cli", "bin": "/x/copilot"})
-    assert args[:4] == ["/x/copilot", "--allow-all", "--remote", "-p"]
+def test_copilot_dispatch_omits_model_and_effort_when_absent(rig, tmp_path):
+    copilot_bin = _fake_bin(tmp_path, "copilot")
+    args = build(cp, rig, {"adapter": "copilot_cli", "bin": copilot_bin})
+    assert args[:4] == [copilot_bin, "--allow-all", "--remote", "-p"]
 
 
 # --------------------------------------------------- the template is data

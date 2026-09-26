@@ -17947,6 +17947,71 @@ def _unwrap_fence_block(text: str) -> str:
     return "\n".join(inner)
 
 
+def _slot_exterior_prose(lines: list[str]) -> set[str]:
+    """The slot body's non-blank lines OUTSIDE its fence -- the prose a
+    rewrite carries back verbatim."""
+    out, i, n = [], 0, len(lines)
+    while i < n:
+        r = _fence_run(lines[i])
+        if r >= 3:
+            j = i + 1
+            while j < n and _fence_run(lines[j]) < r:
+                j += 1
+            if j >= n:
+                # an UNPAIRED run (no closer to the end) is a stray
+                # delimiter sitting in PROSE position, and it is the card's
+                # own exterior line -- treating it as an opener swallowed
+                # every line after it, so the sign-off below it stopped
+                # counting as exterior and the handback re-nested it (and
+                # the stray run with it) on EVERY rotation, +1 depth and one
+                # copied sign-off per round (probe: a00-a177f505).
+                out.append(lines[i].strip())
+                i += 1
+                continue
+            i = j + 1
+        else:
+            out.append(lines[i].strip())
+            i += 1
+    return {ln for ln in out if ln}
+
+
+def _drop_slot_exterior_prose(stops_text: str, exterior: set[str]) -> str:
+    """The card IS the prompt, so a handback of the where-it-stops slot carries
+    the slot's OWN exterior prose as well as its block, and the rewrite writes
+    that prose back from the card -- so a copy left inside the stops text is
+    re-nested inside the block every rotation (measured live: a genuine inner
+    ``` block went 4 -> 5 -> 6 over three rotations, experiment
+    a00-a066dc22-5cb6c8). Drop the runs OUTSIDE the handback's outermost fence
+    that are the card's own prose, and nothing else: a line the handback holds
+    outside the fence that the card does not, or any line inside the fence, is
+    the model's own."""
+    if not exterior:
+        return stops_text
+    lines = stops_text.split("\n")
+    runs = [i for i, ln in enumerate(lines) if _fence_run(ln) >= 3]
+    if not runs:
+        return stops_text
+    # the handback's block is its FIRST fence PAIR, not everything from the
+    # first run to the LAST one: an unpaired run below the pair (a stray
+    # delimiter in prose position) would otherwise be swallowed into `mid`
+    # and its sign-off with it, so neither was ever droppable.
+    opener = _fence_run(lines[runs[0]])
+    close = runs[0]
+    for i in runs[1:]:
+        if _fence_run(lines[i]) >= opener:
+            close = i
+            break
+    else:
+        return stops_text
+    head, mid, tail = lines[:runs[0]], lines[runs[0]:close + 1], lines[close + 1:]
+
+    def _is_ours(rs: list[str]) -> bool:
+        return all((not r.strip()) or r.strip() in exterior for r in rs)
+    if not (_is_ours(head) and _is_ours(tail)):
+        return stops_text
+    return "\n".join(mid)
+
+
 def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
     """Render the where-it-stops SLOT BLOCK -- the ```-fenced code block
     holding the stops text, plus the optional `diff requested:` line AFTER
@@ -17960,6 +18025,10 @@ def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
     rule) so the inner fence is content, never a delimiter (goal:g15.25
     line (3), residue (iii))."""
     stops_text = _unwrap_fence_block(stops_text)
+    if not stops_text.strip():
+        # an empty fence pair would render a block with an EMPTY body: the
+        # slot's prose is dropped and the next subject is a bare constant.
+        stops_text = STOPS_SUBJECT_FALLBACK
     fence = _fence_for(stops_text)
     out = fence + "\n" + stops_text.rstrip("\n") + "\n" + fence
     if diff_gap:
@@ -18078,12 +18147,16 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
                 end = j
                 break
         tail = lines[end:] if end < len(lines) else []
+        stops_text = _drop_slot_exterior_prose(
+            stops_text, _slot_exterior_prose(lines[sub + 1:end]))
         block = _render_stops_block(stops_text, diff_gap)
         new_region = _stops_replace_fenced_region(lines[sub + 1:end], block)
         if new_region is None:
             new_region = block.splitlines()   # no fence: whole slot replaced
         new_body = _join_body(keep + [sub_header] + new_region + tail)
     else:
+        stops_text = _drop_slot_exterior_prose(
+            stops_text, _slot_exterior_prose(body.splitlines()))
         block = _render_stops_block(stops_text, diff_gap)
         new_region = _stops_replace_fenced_region(body.splitlines(), block)
         new_body = block if new_region is None else _join_body(new_region)
@@ -18910,24 +18983,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if guard:
         print(guard, file=sys.stderr)
         return 1
-    # (geometry guard, mechanism 3): a worktree whose own .agi/nodes/.geometry/
-    # is BEHIND the shared geometry branch would spawn its successor on a
-    # stale config:rotations / config:seats. Resolve WHICH tree the geometry
-    # comes from once, up front — the integration tree when the worktree's own
-    # is behind but the integration tree's is current; else refuse BY NAME with
-    # the behind-count and the sync command. `cfg_root` feeds seat + template
-    # resolution; every other rotate-self path keeps the worktree `root`.
-    cfg_root, geom_src = _geometry_resolution_root(root)
-    if cfg_root is None:
-        print(geom_src, file=sys.stderr)
-        return 1
     seat = args.name
-    # goal:g15.14 P1-c — the registry gate runs BEFORE the prepare/perform
-    # step. The only-behind merge `_prepare_checks(perform=)` performs is a
-    # SIDE EFFECT; on a behind worktree an unregistered `--name` would
-    # otherwise MERGE a commit before the "no seat" refusal. So the seat must
-    # exist in the registry FIRST, and an unregistered name refuses with NO
-    # merge performed. A THROWAWAY seat (hypothesis:l3-rotate-self-successor-
+    # goal:g15.14 P1-c — the registry gate runs FIRST: before the geometry
+    # resolution below, and so before the only-behind merge that resolution
+    # may now PERFORM (a SIDE EFFECT). An unregistered `--name` must reach
+    # nothing that fetches, pushes or merges; it refuses with `no seat` and
+    # no merge. A THROWAWAY seat (hypothesis:l3-rotate-self-successor-
     # override) is a rehearsal-only registration that NEVER writes seats.md:
     # it skips this registry gate and builds a default row instead (role from
     # --role, default parent; model/effort/settings resolved from the ladder
@@ -18942,6 +19003,32 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             return 1
     else:
         row = {}  # default row; never consulted against seats.md
+    # (geometry guard, mechanism 3): a worktree whose own .agi/nodes/.geometry/
+    # is BEHIND the shared geometry branch would spawn its successor on a
+    # stale config:rotations / config:seats. Resolve WHICH tree the geometry
+    # comes from once, up front — the integration tree when the worktree's own
+    # is behind but the integration tree's is current; else ONE free
+    # mechanical merge before the refusal (see below). `cfg_root` feeds seat +
+    # template resolution; every other rotate-self path keeps the worktree
+    # `root`.
+    cfg_root, geom_src = _geometry_resolution_root(root)
+    if cfg_root is None and not getattr(args, "dry_run", False):
+        # A REGISTERED seat on a behind CLEAN worktree is the COMMON case, not
+        # an error: every other seat's commits land on the geometry branch, so
+        # a seat that waited long enough to be due was almost always behind,
+        # and it refused instead of rotating. So the refusal is preceded by ONE
+        # attempt at the merge rotate-self ALREADY performs by default: the
+        # SAME `_prepare_checks(perform=True)` the captive gate runs below
+        # (fetch + merge, never rebase; only on a clean tree and only when the
+        # merge applies clean — no second implementation). Only a merge that
+        # brings the geometry to 0 behind re-resolves; a conflicting, dirty or
+        # failing merge leaves the BY-NAME refusal exactly as it was.
+        _prepare_checks(root, seat, perform=True)
+        if _geometry_behind_count(root) == 0:
+            cfg_root, geom_src = _geometry_resolution_root(root)
+    if cfg_root is None:
+        print(geom_src, file=sys.stderr)
+        return 1
 
     # re-cut (Prime XIX 07:28Z): the row is the ONE launch source -- a
     # differing flag refuses here (exit 3); equal = no-op; throwaway left alone.
