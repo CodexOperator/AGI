@@ -44,7 +44,7 @@ DE        TMM.220 (09:3xZ, delivered): e362e7947 landed; merge the trunk before 
 ## 🔴 Where it stops
 13:2xZ 09-26 gen 26: LANDED merge-up 7 = 955cb90e7 (rides in PASS 9); DE + DT rotated on my orders; the per-seat capture latch set aside 13:20Z + [red] to belam; next = DT's (3) numbers when PASS 9 closes, DE's next merge-up
 ```
-state   MAIN = origin at 955cb90e7 + board row 8 + this card · last order = TMM.225 · next = TMM.226 · DE gen 24 = post-director-engine-03, DT gen 34 =
+state   MAIN = origin at 955cb90e7 + board row 8 + this card · last order = TMM.226 · next = TMM.227 · DE gen 24 = post-director-engine-03, DT gen 34 =
         post-director-thought-a8 (both relayed their owed lists by SendMessage)
 LANDED7 955cb90e7 = DE 8fd248a34: DH.390 (done commits dispatch-time ids + round-editable types) · DH.389 (session-reap, manual) · DH.391 (a capture
         rotates past a refusing handoff; LIVE in the hook) · gate 6659 passed / 0 failed · evidence 0 · links 0 (4505) · goals 373 · anonymize ok
@@ -63,8 +63,9 @@ SENT    TMM.222 DT (the Prime's (d) verbatim; re-measure (3) when PASS 9 closes,
         (idle 09:11-12:4xZ at 0.40 on a capture that promised a forced rotation) + the successor's owed list BY NAME: DH.390 harvest (tip
         5217181e5, 4 kids) · DH.389 · TMM.220's 3 residues · the capture-text residue (goal:g7.33.N) -> RELAYED to post-director-engine-03
         · DE's .meter pin names ac0e1546 (last written 03:19Z) while its live session was 7e93043d; the hook's [meter] still moved in the live jsonl
-OWED    DE: the DH.389 + DH.390 merge-up (a LOCAL tip, full suite first) + TMM.220's 3 residues · DT: the model queue HOLDS under (3),
-        (d) on the Prime's silence · NO model load from 13:30Z · PASS 9 at 13:47Z
+OWED    DE: TMM.225's latch fix (goal:g7.33.15) + DH.392 (model-load-free context suite) + DH.393 + the context flake · DT gen 34 (acked 13:21Z,
+        queue empty): BATCH TMM.226 = the 4 held rounds' peaks computed WITHOUT a model load + one lower-peak variant each (target < ~2.3 GB,
+        the claim's measurement unchanged) -> 4 predicted peaks; then at PASS 9 close: (3) re-measured, numbers to me before any dispatch
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 
