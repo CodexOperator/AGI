@@ -50,7 +50,7 @@ seat       gen 23 crash-recovery seat 04:1xZ: box REBOOTED ~03:56Z (uptime 19m a
            ack: own posts.md row was dirty in MAIN (recovery respawn blanked session_id) -> restored, ack keyed --session 7e93043d
 trunk      f52f62a32 (TM gen 23, merged into post)
 merge-up 2 LANDED 78c55c208 (TMM.204) -> trunk merged into post 23ae2e5b1
-merge-up 3 JUDGED GREEN (TMM.208) except TM's suite: HELD for the box I/O stall (io PSI ~90% 05:16Z), TM re-runs + lands when it falls
+merge-up 3 LANDED d26cca923 (TMM.209; 6566/1 = trunk's memory_alarm manifest) -> trunk merged into post 020d93735
 HOLD       TMM.208: no new dispatch/load until io PSI falls (05:3xZ: avg10 6.8, avg300 35.9): merge-up 1 LANDED 496f4565a · merge-up 2 (DH.368+369) not yet landed -- await TM
 rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing lost
   DH.367   MERGED abd8ce125 (kid a00-a6059a55 proved; claim + falsifiers 1-3 match the bytes) -- falsifier 4 = full suite, RUNNING
@@ -62,12 +62,10 @@ rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing
   DH.375   MERGED 96423c887 (2 kids proved; 30/30 green; residue: values.memcap cells + THOUGHT uncommitted in parent -> DE dc1c764cb)
   DH.376   MERGED aa55b24f2 (test-only: forced prlimit seam + self-checking systemd shim; sibling a7eb70d3's divergent copy NOT taken)
   DH.377   MERGED af50e5a94 -- RE-VERIFICATION ONLY: the guard had shipped in 67da8b069 (my card queue was stale); parent's 5 live probes on the experiment
-  DH.378   DONE, NOT MERGED -- parent's cli.py done blocked 3x by a stale index.lock (I/O stall); DE removed it (0 B, no holder) + committed
-           10 stranded paths on its branch feec4d0cb. Verdicts: defect REPRODUCED (e070fb47 disproved the rename: .1 1052912 B > cap, never re-capped);
-           copy-truncate fix live-validated (4 applies 0.074 s vs copyfile 127 s) but 3 leans DISPROVED on MY claim's words: 'stays under'
-           is unreachable for a cap enforced at apply time (no-sleep writer: base 220 MB between applies). Kid 19fc5ec2 = infra death, no verdict.
-           NEXT (after io PSI falls): run its 3 test files + test_crons*, rewrite the claim to 'under at each apply' as a NEW version with
-           THOUGHT (never quietly), merge; falsifier 2 (non-O_APPEND NUL hole) open -> push_further: a logs.writer precondition check
+  DH.378   MERGED 9d98cd9f0 (salvaged feec4d0cb; 134/134 test_crons*): logs.mode=copytruncate LIVE on landing. Rename defect reproduced;
+           3 leans DISPROVED my 'stays under' wording -- parent node LEFT AS IS (verdicts judged the old sentence); reachable claim +
+           open falsifier 2 (non-O_APPEND NUL hole) MINTED 07438507d: hypothesis:log-cap-holds-at-each-apply-and-refuses-a-non-append-writer
+  NEXT     dispatch that as DH.379 (standing orders) ONCE io PSI avg10 < ~10 -- 05:5xZ it was 31.8, held
   row      own posts row repaired in MAIN d6c0f2b49: window @1, pid 100671, session_id 7e93043d (ack join had missed)
   dm       [ask] sanctuary-master: stream-master row box cell = DH.373 conjunct (d) (nudge refused: foreign box; dm file stored)
 GUARD      belam [decision] 04:29Z (VERIFIED): <= 10 live spawns town-wide, pi only; user@ capped 5829M; memory_alarm WARN = hold dispatch
