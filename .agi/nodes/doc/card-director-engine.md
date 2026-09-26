@@ -52,10 +52,10 @@ HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. T
 
 ## 🔴 WHERE IT STOPS
 ```
-FIRST  harvest DH.404 a00-1976a847 (g7.33.17 row 1, harness-bin) when it reports (DH.405 row 2 DONE: VOID by design): review vs claim + falsifiers (orders: re-verify the 09-24 defect on TODAY's bytes first; if it
+FIRST  harvest DH.404 a00-1976a847 (g7.33.17 row 1, harness-bin) + DH.406 a00-1d76f39c (row 3) when they report (DH.405 row 2 DONE: VOID by design): review vs claim + falsifiers (orders: re-verify the 09-24 defect on TODAY's bytes first; if it
        no longer reproduces the round PROVES that); commit parent-worktree leftovers; merge --no-ff; run the round's tests
 AWAIT  TM on merge-up 11 (tip 26cf15194: DH.401/402/403, suite 7404904fe 6733/0)
-THEN   g7.33.17 rows 3,4,5 -> 9 CMP.02 (design pinned .agi/sessions/de-0923/cmp02-pinned.md) -> 10,11,13 (re-read TMM.112
+THEN   g7.33.17 rows 4,5 -> 9 CMP.02 (design pinned .agi/sessions/de-0923/cmp02-pinned.md) -> 10,11,13 (re-read TMM.112
        first) -> 12 only on TM's GO. <= 2 live. Full suite before each merge-up (detached is fine).
 HOLD   until TM/Prime says PASS 9 CLOSED: DH.397 re-dispatch + TMM.235 (2) -- tmp random-init fixture rule (see §0 HOLD)
 AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
