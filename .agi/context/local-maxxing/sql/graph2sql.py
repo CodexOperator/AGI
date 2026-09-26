@@ -155,6 +155,36 @@ def iter_files(nodes_dir: Path):
     return sorted(p for p in nodes_dir.rglob("*.md") if p.is_file())
 
 
+def read_all(root: Path, nodes_dir: Path, files: list[Path] | None = None):
+    """`([(path, parsed)], [vanished])` for ONE file set.
+
+    The single read point for `build` and `file_sets`, so a node deleted after the
+    set was frozen is SKIPPED, COUNTED and NAMED once, in one place, rather than
+    raising FileNotFoundError out of `read_node` (measured: frozen seam + delete
+    between build and verify raised where the old re-glob printed a clean DRIFT).
+    Not swallowed: its id is absent from the want set, so the db row shows up as
+    EXTRA and the run stays red, with a reason."""
+    paths = iter_files(nodes_dir) if files is None else files
+    live, vanished = [], []
+    for path in paths:
+        try:
+            live.append((path, read_node(path, root)))
+        except OSError:  # vanished (or unreadable) between the freeze and this read
+            vanished.append(path)
+    return live, vanished
+
+
+def report_vanished(root: Path, vanished: list, label: str) -> int:
+    """Name every path that vanished under `label`; return how many."""
+    for path in vanished:
+        try:
+            rel = path.relative_to(root)
+        except ValueError:
+            rel = path
+        print(f"  VANISHED {label}: {rel}")
+    return len(vanished)
+
+
 def build(root: Path, nodes_dir: Path, db_path: Path, quiet: bool = False,
           files: list[Path] | None = None):
     """`files` freezes the file set ONCE: on a live graph other agents write nodes
@@ -170,15 +200,16 @@ def build(root: Path, nodes_dir: Path, db_path: Path, quiet: bool = False,
         con.executescript(ddl)
         n_nodes = n_edges = n_files = 0
         placeholders = ",".join("?" for _ in NODE_COLS)
-        for path in (iter_files(nodes_dir) if files is None else files):
-            parsed = read_node(path, root)
+        live, vanished = read_all(root, nodes_dir, files=files)
+        n_vanished = report_vanished(root, vanished, "build")
+        for _path, parsed in live:
             if parsed is None:
                 continue
-            row, edges, files = parsed
+            row, edges, file_row = parsed
             con.execute(f"INSERT OR REPLACE INTO nodes ({','.join(NODE_COLS)}) "
                         f"VALUES ({placeholders})", tuple(row[c] for c in NODE_COLS))
             con.executemany("INSERT OR REPLACE INTO edges (src,dst,kind) VALUES (?,?,?)", edges)
-            con.execute("INSERT OR REPLACE INTO files (path,mint_id,sha256) VALUES (?,?,?)", files)
+            con.execute("INSERT OR REPLACE INTO files (path,mint_id,sha256) VALUES (?,?,?)", file_row)
             n_nodes += 1
             n_edges += len(edges)
             n_files += 1
@@ -191,7 +222,8 @@ def build(root: Path, nodes_dir: Path, db_path: Path, quiet: bool = False,
         except sqlite3.OperationalError:
             pass  # no FTS5 in this build -> notes_with_dates falls back to LIKE
         if not quiet:
-            print(f"nodes={n_nodes} edges={n_edges} files={n_files} -> {db_path}")
+            print(f"nodes={n_nodes} edges={n_edges} files={n_files} "
+                  f"vanished={n_vanished} -> {db_path}")
         return n_nodes, n_edges, n_files
     finally:
         con.close()
@@ -199,8 +231,9 @@ def build(root: Path, nodes_dir: Path, db_path: Path, quiet: bool = False,
 
 def file_sets(root: Path, nodes_dir: Path, files: list[Path] | None = None):
     ids, edges = set(), set()
-    for path in (iter_files(nodes_dir) if files is None else files):
-        parsed = read_node(path, root)
+    live, vanished = read_all(root, nodes_dir, files=files)
+    report_vanished(root, vanished, "verify")
+    for _path, parsed in live:
         if parsed is None:
             continue
         ids.add(parsed[0]["id"])
