@@ -40,8 +40,22 @@ def draws(g, bud):  # the random group at a budget, or a REFUSAL: <3 seeds is no
         raise ValueError("refuse to call: %s/random has %d distinct seeds" % (bud, n_distinct(d)))
     return d
 
+KINDS = ("margin", "range")  # the only two denominators that exist; anything else is a typo, not a kind
+
 def call(g, kind):
-    """(a) margin: abs(key_only - uniform) <= half_range(random). (b) range: min <= key_only <= max."""
+    """(a) margin: abs(key_only - uniform) <= half_range(random). (b) range: min <= key_only <= max.
+
+    Fail-closed in its OWN bytes, not only through the door (osc_band_gate_a00-be5449f2.py): an
+    unnamed kind, or a budget that carries no control arm, is REFUSED. The old `else:` answered
+    any typo with the RANGE call and a missing random group with {}, which reads downstream as
+    "nothing to decide here" -- the exact slip this reader exists to end.
+    """
+    if kind not in KINDS:
+        raise ValueError("refuse to call: %r is not one of %s" % (kind, list(KINDS)))
+    for bud in sorted({b for (b, _arm) in g}):
+        for arm in ("random", "uniform", "key_only"):
+            if (bud, arm) not in g:
+                raise ValueError("refuse to call: %s has no %s arm (missing control)" % (bud, arm))
     out = {}
     for (bud, arm) in sorted(g):
         if arm != "random":
