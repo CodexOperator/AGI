@@ -179,19 +179,26 @@ def push_spec_for(root: Path) -> str:
     return f"{ns}/*:{ns}/*"
 
 
+# The ONE declared home of the grid push defaults: a project that has not set
+# `grid.push_batch_limit` in its config.json gets the value declared here, and
+# the missing cell is named once in the log instead of killing the cron path
+# (hypothesis:grid-sync-survives-a-project-without-push-batch-limit).
+GRID_PUSH_DEFAULTS = {"push_batch_limit": 200}
+
+
 def push_batch_limit(root: Path) -> int:
     """Maximum changed grid refs in one host validation request — a config
     cell, not a literal default (PASS 5/6 residue,
-    hypothesis:grid-push-batch-limit-is-a-config-cell). A project that has
-    not set `grid.push_batch_limit` is refused by name rather than silently
-    pushing at whatever number this file happened to hard-code."""
+    hypothesis:grid-push-batch-limit-is-a-config-cell). A project that has not
+    set the cell is named once and falls back to `GRID_PUSH_DEFAULTS`, so the
+    grid_sync cron keeps versioning every project on the box."""
     cfg = locations.load_config(locations.shared_project_root(Path(root)) or Path(root))
     value = (cfg.get("grid") or {}).get("push_batch_limit")
     if value is None:
-        sys.exit(
-            "ERR: grid.push_batch_limit is not set in config.json -- the "
-            "batched push refuses rather than guessing a limit. Set "
-            '`"grid": {"push_batch_limit": <n>}`.')
+        value = GRID_PUSH_DEFAULTS["push_batch_limit"]
+        print(
+            f"grid: config cell grid.push_batch_limit is absent -- using the "
+            f"declared default {value} (set it in config.json to override)")
     return max(1, int(value))
 
 
