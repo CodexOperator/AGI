@@ -14,19 +14,29 @@ REFUSED = {
     "safetensors.torch": ("load_file", "load"), "gguf": ("GGUFReader",),
     "transformers": ("from_pretrained",), "llama_cpp": ("Llama", "LlamaModel"),
     "vllm": ("LLM",),
+    "huggingface_hub": ("hf_hub_download", "snapshot_download"),
 }
-ROOTS = frozenset(n.split(".")[0] for n in REFUSED)
+
+
+def _attrs_for(name):
+    """Refused attrs for a module name: its OWN row plus its refused ROOT's.
+    `transformers.models.llama.AutoModelForCausalLM` is the dominant real shape and
+    the class lives on a SUBMODULE, so the root's row has to reach it."""
+    return frozenset(REFUSED.get(name, ())) | frozenset(REFUSED.get(name.split(".")[0], ()))
 
 
 class ModelLoadRefused(RuntimeError):
     """A test in this suite tried to load model weights."""
 
 
+def _why(owner, attr):
+    return (f"model load refused by construction: {owner}.{attr}() may read "
+            "weights; this suite asserts on bytes, never on a model")
+
+
 def _stub(owner, attr):
     def _refuse(*_a, **_kw):
-        raise ModelLoadRefused(
-            f"model load refused by construction: {owner}.{attr}() may read "
-            "weights; this suite asserts on bytes, never on a model")
+        raise ModelLoadRefused(_why(owner, attr))
     _refuse.__name__, _refuse._model_load_stub = attr, True
     return _refuse
 
@@ -34,12 +44,13 @@ def _stub(owner, attr):
 def _patch_one(name, module):
     """Patch a loader's refused attrs on the module AND on the classes it holds:
     AutoModel.from_pretrained is a method on the class, not a module attribute."""
-    if module is None or name.split(".")[0] not in ROOTS:
+    attrs = _attrs_for(name)
+    if module is None or not attrs:
         return 0
     owners = [module] + [o for o in vars(module).values() if isinstance(o, type)]
     n = 0
     for owner in owners:
-        for attr in REFUSED.get(name, ()):
+        for attr in attrs:
             if getattr(getattr(owner, attr, None), "_model_load_stub", False) is not True:
                 setattr(owner, attr, _stub(owner.__name__, attr))
                 n += 1
