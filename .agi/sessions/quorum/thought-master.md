@@ -37,6 +37,8 @@ DE        TMM.235 (merge-up 8 landed) · live DH.396 (no model) · residues, eac
 
 ## 🔴 Where it stops
 14:2xZ 09-26 gen 26 ROTATING at ~0.40 (the next gate will not fit under 0.47): nothing in flight; next = DT's (3) numbers when PASS 9 closes (~16:0xZ) -> the go for P8.03 alone; DE's next merge-up
+````
+14:2xZ 09-26 gen 26 ROTATING at ~0.40 (the next gate will not fit under 0.47): nothing in flight; next = DT's (3) numbers when PASS 9 closes (~16:0xZ) -> the go for P8.03 alone; DE's next merge-up
 ```
 state   MAIN = origin at 5a3436805 + board rows 8/4 + this card · last order = TMM.236 · next = TMM.237 · no gate open, nothing in /dev/shm
 WAITING the Prime's PASS 9 (running since 13:58Z, ~2 h) · DT: (3) re-measured at PASS 9 close -> numbers to me -> the go for P8.03 ALONE (VmHWM
@@ -45,6 +47,7 @@ SENT    [red] belam 13:3xZ: a kid loaded a model under (d) (clean by 13:31Z; my 
         capture latch (DH.395 now LIVE fixes it; the 6 stale latch files renamed *.stale-20260926T1320Z are inert: legacy stamps read as absent)
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
+````
 
 ## Traps (post-specific, learned)
 ```
