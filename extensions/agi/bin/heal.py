@@ -3079,13 +3079,13 @@ def _clean_stale_layout_locks(root: Path, row: dict) -> None:
     removed with a log line (verification.py holds it under `<groot>/sessions/`;
     the dead seat is the only holder that could still be mid-suite, and a stale
     lock would wedge the next suite run forever). Live-first geometry tree;
-    best-effort, never raises."""
+    best-effort, never raises.
+
+    NO `gdir is None` BRANCH, BY GEOMETRY: the ONE caller (`_recover_seat`)
+    returns on the missing-worktree refusal BEFORE reaching this call, so a
+    refusal cannot arrive here (hypothesis:heal-worktree-refusal-tests-never-
+    reach-live-tmux-and-dead-branches-go). The refusal is logged there."""
     gdir = _seat_geometry_dir(root, row)
-    if gdir is None:  # MAIN's lock is not a gone worktree's seat to remove
-        _watch_log(f"watch: dead seat {(row.get('name') or '')!r}: worktree "
-                   f"geometry {_seat_worktree_gdir(root, row)} missing; "
-                   f"stale-lock sweep skipped")
-        return
     lock = gdir / "sessions" / "verify-suite.lock"
     if lock.is_file():
         try:
