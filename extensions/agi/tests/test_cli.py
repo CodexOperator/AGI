@@ -1952,6 +1952,33 @@ def test_round_committable_reads_the_config_cell_and_the_schema_written_by(tmp_p
     assert not cli._round_committable(root, "town:local-maxxing")
 
 
+def test_round_commit_policy_lives_in_the_committed_schemas_not_in_config(tmp_path):
+    """The cell that says which types a round's `done` commit may sweep must be
+    in a file this actor class CAN commit. `.agi/config.json` is refused by
+    `_round_scope_ok` (cli.py:2096), so a policy living there is fail-open in
+    every committed tree -- measured: goal:g5 and doc:unified-head passed the
+    gate with the cell absent. This test copies the REAL schema files and an
+    EMPTY config.json, so only committed bytes decide."""
+    import json
+    import shutil
+    from pathlib import Path
+    cli = _load_cli()
+    src = Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas"
+    if not src.is_dir():
+        pytest.skip("no .agi/context/schemas in this checkout")
+    root = tmp_path / ".agi"
+    shutil.copytree(src, root / "context" / "schemas")
+    (root / "config.json").write_text(json.dumps({}))
+    # Committed policy, no config: the two families the claim names are refused.
+    assert not cli._round_committable(root, "goal:g5")
+    assert not cli._round_committable(root, "doc:unified-head")
+    # Not swept up with them: a doc of another family, a hypothesis, a town row
+    # (its own schema's written_by still refuses it).
+    assert cli._round_committable(root, "doc:goals-preamble")
+    assert cli._round_committable(root, "hypothesis:tgt")
+    assert not cli._round_committable(root, "town:local-maxxing")
+
+
 def test_own_node_paths_drops_a_named_goal_and_keeps_the_target(tmp_path):
     import json
     cli = _load_cli()

@@ -2154,6 +2154,12 @@ def _round_committable(root: Path, nid: str) -> bool:
       2. the type's OWN schema `written_by` (`.agi/context/schemas/[<type>].md`
          via `schema_registry`, the same reader `write.py` enforces it with) --
          a type admitting ONLY owner/prime_director is never round-editable.
+      3. the type's schema `round_commit` cell -- `false` refuses the type,
+         `true` allows it, a map allows it and may add `never_node_ids`. This
+         cell is read from a COMMITTED file a round may itself commit
+         (`_round_scope_ok` only refuses `.agi/config.json`, the quorum dir and
+         foreign node files), so unlike (1) it survives into main; an explicit
+         cell WINS over the config allowlist either way.
     """
     ntype = nid.split(":", 1)[0]
     try:
@@ -2165,6 +2171,16 @@ def _round_committable(root: Path, nid: str) -> bool:
                 wb = links.parse_written_by(sch.frontmatter.get("written_by"))
                 if wb and not (wb - {"owner", "prime_director"}):
                     return False
+                cell = sch.frontmatter.get("round_commit")
+                if cell is not None:
+                    if isinstance(cell, dict):
+                        if cell.get("allow") is False:
+                            return False
+                        if any(isinstance(p, str) and nid.startswith(p)
+                               for p in (cell.get("never_node_ids") or [])):
+                            return False
+                    else:
+                        return bool(cell)
     except Exception:  # noqa: BLE001 -- an unreadable schema gates nothing
         pass
     try:
