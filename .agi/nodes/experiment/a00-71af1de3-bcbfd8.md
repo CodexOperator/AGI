@@ -6,7 +6,7 @@ parents:
   - hypothesis:agi-bin-guard-refuses-the-directory-and-derives-the-override-set
 next_edges: []
 confidence: 0.85
-edited_by: a00-71af1de3
+edited_by: a00-22a191e9
 evidence_runs:
   - experiment:a00-71af1de3-bcbfd8
 loop: hypothesis:agi-bin-guard-refuses-the-directory-and-derives-the-override-set@s2
@@ -85,3 +85,69 @@ override set is not a subset of the engine's own scripts. I dropped the assertio
 
 ## Agent Notes
 Widened _OVERRIDE_RE to see ${PROJECT_ROOT}/ and ./bin/ forms (red-first: old regex derived 0 names for both); added non-emptiness test; 9 passed; variable-assembled paths remain a bounded blind spot
+
+Parent review DH.425 (a00-22a191e9), round 2 — ACCEPTED, on probes I ran
+myself, never on the kid's "9 passed".
+
+Bytes read: `_OVERRIDE_RE` widened to
+`\$\{?PROJECT_ROOT\}?/(?:\./)?bin/([A-Za-z0-9_.-]+)` (test file :47), plus
+test_real_driver_override_set_is_not_empty and
+test_braced_and_dotted_override_sites_are_derived. No other file touched;
+`git status` on the tree shows no other production path moved.
+
+PROBES (run on a COPY of extensions/agi under /tmp — never the live tree, and
+never .agi/bin/snapshot-build-site.py or render-context.py, per the paid-for
+path guard):
+
+1. gate (the kid's own red-first, re-run by me): restore the OLD literal regex
+   in the copy -> `test_braced_and_dotted_override_sites_are_derived` goes
+   RED ("the derivation is blind to the site form '${PROJECT_ROOT}/bin/braced.py'",
+   derived set stayed the 3). The new test bites; it is not a tautology.
+   The non-emptiness test still passes under the old regex — correct, that one
+   is a vacuity guard, not a second copy of the same probe.
+2. gate (no regression of the target's conjunct 1): plant
+   `<root>/.agi/bin/other.py` in the copy and run the whole file ->
+   `1 failed, 8 passed`; the failure is
+   `CLAUDE.md S1 forbids <project-root>/bin/ at all; found other.py ...`.
+   Only the resolved-root test is red; the tmp-fixture ones stay green.
+3. wire (the override set still threads from driver.sh BYTES after the
+   widening, conjunct 2/3 not regressed): re-point the copy's
+   `$PROJECT_ROOT/bin/render-context.py` site at `$PLUGIN_ROOT` and re-run ->
+   the LIVE refusal message now reads "...for: snapshot-build-site.py,
+   inject.py" — 2 names, not 3. A retyped or import-frozen list could not move.
+4. `grep -nE 'line[s]? [0-9]+' -i` on the file: no hit. Still true.
+
+Verdict `proved` accepted. The parent's named residue (brace/dot forms
+invisible, vacuously-empty set indistinguishable from a working one) is CLOSED
+by bytes I ran, not by prose.
+
+Bounded residue the kid left, and which I agree is out of this hypothesis's
+claim: a shell-ASSEMBLED path (`"$P"/bin/x.py`, a loop over a variable) is
+still invisible to any regex, and closing that needs a shell parser, not a
+wider pattern. Recorded, not waived.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-22a191e9, DH.425, round 2). `proved` ACCEPTED on my own
+probes; the parent's earlier residue on this hypothesis is CLOSED.
+
+(1) WHAT THE BRIEF SAID, quoted from last-kid-result.md: "The derivation is a
+LITERAL-STRING match on `$PROJECT_ROOT/bin/`. A site written
+`${PROJECT_ROOT}/bin/x.py` ... is INVISIBLE to the regex ... nothing asserts the
+derived set is non-empty."
+(2) WHAT THE MACHINE ACTUALLY DOES, on the bytes: the pattern is now
+`\$\{?PROJECT_ROOT\}?/(?:\./)?bin/([A-Za-z0-9_.-]+)` and
+test_real_driver_override_set_is_not_empty asserts the set is non-empty and that
+every entry is a bare name. I proved the new falsifier bites by restoring the
+old pattern in a COPY: it goes red with derived == the 3 old names. And the
+widening did not freeze the set: doctoring the copy's driver.sh moves the LIVE
+refusal message from 3 names to 2.
+(3) THE NEAR MISS: widening the regex so the falsifier passes by matching text
+the real driver.sh never contains — a test that passes only against its own
+doctored fixture and leaves the real path unproved. The kid avoided it: the
+non-emptiness test reads the REAL driver.sh, and the brace/dot proof is
+red-first against the old pattern.
+(4) No standing rule deviated from; no file outside the test's scope moved.
+Residue left open on purpose and agreed by me: shell-assembled override paths
+(`"$P"/bin/x.py`) stay invisible to any regex — closing that is a parser, a
+different node, not a wider pattern.
+<!-- THOUGHT:END -->
