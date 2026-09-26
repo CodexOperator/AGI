@@ -17888,6 +17888,22 @@ def _fence_run(ln: str) -> int:
     return n if n >= 3 else 0
 
 
+STOPS_SUBJECT_FALLBACK = "(no prose outside the fences -- see the card)"
+
+
+def _stops_subject_tail(stops_text: str, limit: int = 80) -> str:
+    """The rotate-out commit subject TAIL: the first line of the stops text
+    that is NOT a fence delimiter (`_fence_run == 0`), stripped and
+    truncated to `limit` chars; `STOPS_SUBJECT_FALLBACK` (a named,
+    non-empty constant) when every line is a fence line or the text carries
+    no prose. Never a backtick run, whatever the model hands back."""
+    for ln in stops_text.splitlines():
+        s = ln.strip()
+        if s and _fence_run(s) == 0:
+            return s[:limit]
+    return STOPS_SUBJECT_FALLBACK
+
+
 def _fence_for(stops_text: str) -> str:
     """The fence string that wraps `stops_text`: a run of backticks LONGER
     than every code fence already inside it, three by default. CommonMark
@@ -17903,6 +17919,34 @@ def _fence_for(stops_text: str) -> str:
     return "`" * inner
 
 
+def _unwrap_fence_block(text: str) -> str:
+    """If `text` is ITSELF exactly one fence-wrapped block -- the first
+    non-blank line opens a fence of run n, the last non-blank line is that
+    same run and nothing else, and no line inside carries a run >= n --
+    return the CONTENT between the pair. That is the shape a card slot has
+    when the model hands the slot back as it reads it in the card (the card
+    IS the prompt), so unwrapping here keeps the slot's fence depth IDEMPOTENT
+    across N rotations instead of compounding +1 per rotation (belam 09-24:
+    commit subjects that were literally a backtick run, 95b4f0a21 / 11e170950
+    / 1c69c9e81). Anything else -- a fence as ONE part among others, an
+    unpaired opener, a lone line -- is returned UNCHANGED, so a genuine
+    inner ``` block still nests in a longer outer fence (`_fence_for`)."""
+    lines = text.split("\n")
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    if len(lines) < 2:
+        return text
+    n = _fence_run(lines[0])
+    if n < 3 or lines[-1].strip() != "`" * n:
+        return text
+    inner = lines[1:-1]
+    if any(_fence_run(ln) >= n for ln in inner):
+        return text
+    return "\n".join(inner)
+
+
 def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
     """Render the where-it-stops SLOT BLOCK -- the ```-fenced code block
     holding the stops text, plus the optional `diff requested:` line AFTER
@@ -17915,6 +17959,7 @@ def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
     fence is wrapped in a LONGER outer fence (`_fence_for`, the CommonMark
     rule) so the inner fence is content, never a delimiter (goal:g15.25
     line (3), residue (iii))."""
+    stops_text = _unwrap_fence_block(stops_text)
     fence = _fence_for(stops_text)
     out = fence + "\n" + stops_text.rstrip("\n") + "\n" + fence
     if diff_gap:
@@ -18998,7 +19043,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _stops_gap = getattr(args, "ask_diff", False)
         _gap = _stops_gap if isinstance(_stops_gap, str) and _stops_gap \
             else None
-        _first = _stops_text.strip().splitlines()[0][:80]
+        _first = _stops_subject_tail(_stops_text)
         _msg = (f"{seat} rotate-out gen {_gb}->{_gb + 1}: {_first}")
         _card = _own_card_path(root, seat)
         if args.dry_run:

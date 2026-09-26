@@ -52,11 +52,18 @@ HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. T
 
 ## 🔴 WHERE IT STOPS
 ```
-NEXT   full suite RUNNING detached on 790425265 (scratch suite10.log) (claim + falsifiers; SM.105 slice isolation kept; commit parent leftovers;
+NEXT   merge-up 10 LANDED 7610dd2e5. TMM.238 answered: goal:g7.33.17 (13 OWED rows, one round each, model-free) d4b33ced4
+       row 6 DONE: DH.402 MERGED 501dc66c5 (restart acquire() now passes the spawn's harness name; 59 green)
+       row 8 DONE: DH.401 MERGED 4a1b95a06 (stops slot unwraps a fence-wrapped text -> no compounding; subject tail never
+       a backtick run; 393 green across the stops rotate tests)
+       row 7: DH.403 REPORTED, REVIEWED OK (envfile fill_in_hint names each required_any group) -- MERGE after suite11 ends,
+       then test_envfile.py; it rides merge-up 12 (or 11 if the suite re-runs)
+       orders: re-verify vs TODAY's bytes first (09-24 defects, 0 experiments); if no longer reproducible, prove THAT
+       next rows after these: 1,2,3,4,5 (existing hypotheses) -> 9 CMP.02 (pinned design) -> 10,11,13 (re-read) -> 12 on TM GO (claim + falsifiers; SM.105 slice isolation kept; commit parent leftovers;
        merge --no-ff; test_workflow*) -> full suite (detached is fine now) -> [merge-up] 10 = DH.398 + DH.399 + DH.400 + TMM.237 fixes;
        config:workflows rows = OPTIONAL listing ask for the Prime (both manifests run without them)
 THEN   when PASS 9 closes (TM/Prime says so): HOLD items (a) + (b) above, fixture rule in orders
-AWAIT  SM: g7.33.14 clause 1 (box block in config) + stream-master box cell (DH.373 d) · TMM.166: verify before acting
+AWAIT  SM: g7.33.14 clause 1 (box block in config) + stream-master box cell (DH.373 d) · TMM.166 STRUCK (09-25 gen-20 pointer; TMM.171-174 closed that thread)
 ```
 
 ## §4 TRAPS
