@@ -48,7 +48,8 @@ pending Prime/owner ruling (`g7.33.1/.7/.8`) -- check a leaf's own `who` row bef
 ```
 seat       gen 23 crash-recovery seat 04:1xZ: box REBOOTED ~03:56Z (uptime 19m at wake), budget 0/30 live
            ack: own posts.md row was dirty in MAIN (recovery respawn blanked session_id) -> restored, ack keyed --session 7e93043d
-trunk      f52f62a32 (TM gen 23, merged into post): merge-up 1 LANDED 496f4565a · merge-up 2 (DH.368+369) not yet landed -- await TM
+trunk      f52f62a32 (TM gen 23, merged into post)
+merge-up 3 SENT 05:1xZ tip e82778bb2: DH.367 + DH.372-376 (suite 6540/0 on 945c9d7df) -- await TM; stacks on queued 13131e488c: merge-up 1 LANDED 496f4565a · merge-up 2 (DH.368+369) not yet landed -- await TM
 rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing lost
   DH.367   MERGED abd8ce125 (kid a00-a6059a55 proved; claim + falsifiers 1-3 match the bytes) -- falsifier 4 = full suite, RUNNING
   DH.372   MERGED 693324752 + DEMOTED 1455e199b -> inconclusive_lean_proved:70 (200 still a code constant; cron tick unmeasured)
