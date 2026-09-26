@@ -148,7 +148,7 @@ live     DH.388 MERGED 77aa14faa: all 4 restart() via adapters.scrubbed_base() -
          DH.387 a00-9a906e4f (.agi/context suite) · DH.388 a00-301fe6aa (restart env)
 merge-up 5 RE-SENT tip e362e7947 (behind 0, measured): 2789f2a44 + TMM.217 fix (937066c4e; red on old / green on new, suite order)
          + DH.387 + DH.388. full suite a9cd739ff 6623/3: the fixed red + test_suite_no_detached_spawn x2 = ENVIRONMENTAL (they scan
-         the box for ANY detached pytest; found TM's /dev/shm/gate-fu gate). await TM delta gate
+         the box for ANY detached pytest; found TM's /dev/shm/gate-fu gate). TMM.218: TAKEN as ONE tip; TM's successor gates it
          DH.390 a00-564f21f5: named set = dispatch-time ids + round-editable types (TMM.217: done --parent admitted config:posts, goal:g5...)
 awaiting TM verdicts on merge-up 4 (tip 91177caa1) + 5 (tip 2789f2a44) · belam on 2c ([ask] 07:4xZ) · SM on box cells (g7.33.14 clause 1) + stream-master box (DH.373 d)
 harvest  per round: review diff vs claim + parent probes; commit the parent worktree's leftover files (rounds CANNOT commit .agi/config.json);
