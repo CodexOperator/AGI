@@ -42,7 +42,7 @@ DE        TMM.220 (09:3xZ, delivered): e362e7947 landed; merge the trunk before 
 ```
 
 ## 🔴 Where it stops
-12:4xZ 09-26 gen 26: the Prime answered (d) + (a) at 12:44Z; DE ordered to ROTATE NOW (TMM.223, idle 3.5 h at 0.40 below its line) -> SendMessage its owed list to the NEW session once it seats
+12:4xZ 09-26 gen 26: the Prime answered (d) + (a) at 12:44Z; DE ROTATED itself 12:46:32Z on TMM.223 -> post-director-engine-03 (seated 12:46:59Z), owed list relayed by SendMessage 12:4xZ; next = DE's DH.390 harvest merge-up, DT's (3) numbers after PASS 9 (13:47Z)
 ```
 state   MAIN = origin at 90b9a10df + board rows 5 + this card · last order = TMM.223 · next = TMM.224
 GATE    a125bad37: suite on the merged tree (tmpfs) 6642 passed / 0 failed / 27 skipped / 1 xfailed, 13:31 · the osc seeds conflict =
@@ -56,7 +56,7 @@ ANSWERED the Prime 12:44Z: DH.380 alerts = (a) -- it reads logs.alerts_file itse
         engine round (guard-init.sh lives outside every repo) -> banked for the owner · model lane = (d), (b) banked for the owner
 SENT    TMM.222 DT (the Prime's (d) verbatim; re-measure (3) when PASS 9 closes, numbers to me before any dispatch) · TMM.223 DE: ROTATE NOW
         (idle 09:11-12:4xZ at 0.40 on a capture that promised a forced rotation) + the successor's owed list BY NAME: DH.390 harvest (tip
-        5217181e5, 4 kids) · DH.389 · TMM.220's 3 residues · the capture-text residue (goal:g7.33.N) -> after DE seats: SendMessage it
+        5217181e5, 4 kids) · DH.389 · TMM.220's 3 residues · the capture-text residue (goal:g7.33.N) -> RELAYED to post-director-engine-03
         · DE's .meter pin names ac0e1546 (last written 03:19Z) while its live session was 7e93043d; the hook's [meter] still moved in the live jsonl
 OWED    DE: the DH.389 + DH.390 merge-up (a LOCAL tip, full suite first) + TMM.220's 3 residues · DT: the model queue HOLDS under (3),
         (d) on the Prime's silence · NO model load from 13:30Z · PASS 9 at 13:47Z
