@@ -74,7 +74,8 @@ rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing
   DH.379   MERGED f13e83ebb (1): guard had shipped 3097fdd04; round pinned the claim's fixtures (.env, symlink, absolute) -- lean_proved:85, 197 green
   DH.381   MERGED ddd4dc245 (4): opt-in NO_REAL_PROCESSES conftest guard; baseline disproved (499 /proc reads, 17 kills), fix proved; 19 green
            conftest.py changed -> FULL SUITE owed before the next merge-up
-  DH.382   a00-e447936e  (5) heal late-reap bound + stale-pin logs once
+  DH.382   MERGED 08a7fcdf7 (5): kid 6cdd14b1 built BOTH conjuncts; sibling 40b778ab's 117-line overlapping re-port NOT taken (parent never
+           merged kid 1 before dispatching kid 2 -- same trap as DH.370/376). OWED: its 3 test files after the suite frees the lock
   DH.380   MERGED 7448e90e3 (2): memory_alarm declared (trunk red GREEN), alerts log moved INTO capped ~/logs as logs.alerts_file (was ~/logs/
            sanctuary-guard/alerts.log -- a behaviour change on the Prime's tool: SAY SO in the merge-up); residue commands.md + cell -> DE bfe212fd2; 333 green
   DH.383   a00-ab53bb94  (3) crons log cap bounds archives + prunes only its own files -- my 07438507d FOLDED in via orders (not a separate round);
