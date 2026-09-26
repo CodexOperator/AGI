@@ -67,6 +67,35 @@ def test_falsifier_3_the_emitted_file_carries_the_deterministic_arms_as_rows():
     assert len({x["seed"] for x in rs if x["arm"] == "random"}) == 3
 
 
+def test_falsifier_4_an_unnamed_kind_is_refused_not_answered_with_the_range_call():
+    """The old `if kind == "margin": ... else:` made every typo a RANGE call. Now it raises."""
+    g = C.groups(C.merged())
+    for kind in ("typo", "INSIDE?", "", None, "MARGIN", "margin "):
+        try:
+            C.call(g, kind)
+        except ValueError as e:
+            assert "refuse to call" in str(e) and repr(kind) in str(e), kind
+        else:
+            raise AssertionError("falsifier 4: kind %r silently returned a call" % (kind,))
+    assert C.call(g, "range")[("5.25", "kl")]["call"] == "range"
+
+
+def test_falsifier_6_a_budget_with_no_random_group_is_refused_not_empty():
+    """uniform+key_only only: the old reader returned {} -- downstream, 'nothing to decide'."""
+    g = C.groups(_rows("4.25", [0], "uniform", False) + _rows("4.25", [0], "key_only", False))
+    for kind in C.KINDS:
+        try:
+            C.call(g, kind)
+        except ValueError as e:
+            assert "refuse to call" in str(e) and "4.25" in str(e) and "random" in str(e)
+        else:
+            raise AssertionError("falsifier 6: a control-less budget returned a call")
+    # and a budget that DOES carry its random arm is still called -- the hand table is unmoved
+    m = C.call(C.groups(C.merged()), "margin")
+    assert {k for k, v in m.items() if v["verdict"] == "inside-noise"} == {("5.25", "agree"), ("5.25", "kl"),
+                                                                          ("7.25", "agree"), ("7.25", "kl")}
+
+
 def test_the_row_contract_is_a_config_cell_cited_not_a_script_literal():
     c = C.contract()
     assert set(c["fields"]) <= set(C.merged()[0])

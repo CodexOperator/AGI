@@ -1,0 +1,50 @@
+{
+ "model": "qwen3",
+ "np": 64,
+ "budgets": [
+  "4.125"
+ ],
+ "seeds": [
+  7,
+  21,
+  99
+ ],
+ "min_seeds": 3,
+ "grid_budgets": [
+  "4.125",
+  "5.125",
+  "6.125",
+  "7.125"
+ ],
+ "band_rule": "max-min over random SEED MEANS (allocation); per-prompt spread is the sampling error, never folded in",
+ "call_rule": "osc_band_call2_a00-cc7b25cc.judge(key_only vs uniform)",
+ "cut": "PARTIAL MEASUREMENT: 1 of 4 np64 budgets, 2 eval prompts (first 2 of build_eval)",
+ "cells": {
+  "4.125": {
+   "seed_means": {
+    "7": 0.033203125,
+    "21": 0.025390625,
+    "99": 0.051757812
+   },
+   "band": 0.026367187,
+   "band_why": "max-min over 3 random seed means",
+   "n_prompts": 2,
+   "key_only_minus_uniform": 0.020507812,
+   "prompt_margins": [
+    0.01953125,
+    0.021484375
+   ],
+   "sampling_spread": 0.001953125,
+   "calls": {
+    "qwen3|64|4.125|key_only|uniform|agree": [
+     "inside-noise",
+     "margin +0.02051 vs band +0.02637"
+    ],
+    "qwen3|64|4.125|key_only|uniform|kl": [
+     "inside-noise",
+     "margin +0.1043 vs band +4.041"
+    ]
+   }
+  }
+ }
+}

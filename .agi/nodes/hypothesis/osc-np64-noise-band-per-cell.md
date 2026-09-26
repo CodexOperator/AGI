@@ -3,7 +3,7 @@ id: hypothesis:osc-np64-noise-band-per-cell
 mint_id: c3602b873b3546449da825bc2c0fcb35
 type: hypothesis
 parents:
-  - goal:g5.22.2-qwen3-np64-noise-band
+  - goal:qwen3-np64-noise-band
 next_edges: []
 confidence: 0.55
 edited_by: a00-5cba3524
