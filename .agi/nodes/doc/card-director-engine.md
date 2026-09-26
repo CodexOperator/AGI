@@ -33,7 +33,7 @@ Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW
 
 ## §0 STATE (gen 25 · live scratch · landed history = grid.py diff doc:card-director-engine)
 ```
-SENT      [merge-up] 12 (18:0xZ) tip ec5819629, code 8d974e5c3, suite-12b 6753/0, ahead 45 / behind 5 = DH.404-409 + row 14
+LANDED    merge-up 12 = cbe776456 (TMM.248; 6753/0 on M; GOALS.md was STALE at my tip -- TM re-rendered it)
 MERGED    after 12 (-> merge-up 13): DH.410 c11128889 (row 5; red 2/green) · DH.411 320b4450c (PASS 9 re-open; red 1/green);
           650 passed over the touched files. (DH.410 dropped NO asserts -- my diff grep misread it)
 LIVE      DH.413 a00-aa4554be (TMM.235 (2): in-body loader hole, allow-list under basetemp; tiny tmp models only)
@@ -51,11 +51,12 @@ FIRST  harvest DH.413 + DH.412 as each reports (red-on-old/green-on-new; parent 
 THEN   DH.397 re-dispatch on DH.413's table (orders: .agi/sessions/iter-DH.397/orders.a00-aae44e7f.md + the tiny-tmp rule)
 THEN   DH.411 residues (a)+(b) as ONE round -> PASS 9 new 5 -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
 THEN   full suite (NO merge into this tree while it runs) -> [merge-up] 13
-AWAIT  TM on merge-up 12 · SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
+AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
 
 ## §4 TRAPS
 ```
+goals-md    EVERY goal-node edit: snapshot-goals.py --render + commit GOALS.md in the SAME commit, then --check (TMM.248)
 card size   the driven handoff refuses a composed card > 100 lines -> the capture never rotates. KEEP THIS CARD SMALL.
 never wait  on a capture: rotate yourself at f >= 0.47 (`python3 extensions/agi/bin/rotate.py rotate`, bare)
 torch-py    a guard that walks sys.modules must never getattr blind: torch.classes RAISES, torch.ops answers ANY name.
