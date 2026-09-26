@@ -32,7 +32,17 @@ class _AutoModel:
         return "RECORDED"
 
 
-_AutoModel._calls = []
+class _AutoCausal:
+    """The REAL shape: the loader class is held by a SUBMODULE, not by the root."""
+    @classmethod
+    def from_pretrained(cls, name, **kw):
+        cls._calls.append((name, kw))
+        return "RECORDED"
+
+
+_AutoModel._calls, _AutoCausal._calls = [], []
+_tfl = types.ModuleType("transformers.models.llama")
+_tfl.AutoModelForCausalLM = _AutoCausal
 STANDS = {
     "torch": _standin("torch", load=lambda *a, **k: "RECORDED"),
     "safetensors.torch": _standin("safetensors.torch", load_file=lambda *a, **k: "RECORDED"),
@@ -42,6 +52,10 @@ STANDS = {
 _tf = _standin("transformers")
 _tf.AutoModel = _AutoModel
 STANDS["transformers"] = _tf
+STANDS["transformers.models.llama"] = _tfl
+STANDS["huggingface_hub"] = _standin(
+    "huggingface_hub", hf_hub_download=lambda *a, **k: "RECORDED",
+    snapshot_download=lambda *a, **k: "RECORDED")
 sys.modules.update(STANDS)
 
 
@@ -71,6 +85,43 @@ def test_standin_transformers_from_pretrained(model_load_refusal):
     with pytest.raises(model_load_refusal):
         _AutoModel.from_pretrained("qwen/qwen3-8b")
     assert _AutoModel._calls == []
+
+
+def test_submodule_held_transformers_class_is_refused(model_load_refusal):
+    """Hole A: AutoModelForCausalLM lives on `transformers.models.llama`, a SUBMODULE
+    of a refused root -- a root-only walk misses it, and it is the dominant real shape."""
+    sub = sys.modules["transformers.models.llama"]
+    with pytest.raises(model_load_refusal):
+        sub.AutoModelForCausalLM.from_pretrained("qwen/qwen3-8b")
+    assert _AutoCausal._calls == []
+
+
+def test_hf_hub_download_is_refused(model_load_refusal):
+    """Hole B: the hub fetch is a weights read too, and was absent from the table."""
+    hub = sys.modules["huggingface_hub"]
+    for call in (lambda: hub.hf_hub_download("Qwen/Qwen3-8B", "qwen3.safetensors"),
+                 lambda: hub.snapshot_download("Qwen/Qwen3-8B")):
+        with pytest.raises(model_load_refusal):
+            call()
+    assert hub._calls == []
+
+
+@pytest.mark.xfail(strict=False, reason="OPEN HOLE: the conftest scans at setup only, so a stand-in "
+                                       "installed mid-body is unguarded. sys.modules cannot be wrapped "
+                                       "(CPython caches the dict; the swap broke collection with "
+                                       "KeyError: zoneinfo._tzpath) and types.ModuleType is immutable, "
+                                       "so no attribute-access hook exists. Close it, and this XPASSes.")
+def test_body_installed_standin_hole_is_named_not_closed(model_load_refusal):
+    """Hole C, still open: the per-test autouse scan runs BEFORE the body, so a stand-in
+    the body itself installs is never seen. This test is the canary, not a proof."""
+    late = types.ModuleType("vllm")
+    late.LLM = lambda *a, **k: "RECORDED"
+    sys.modules["vllm"] = late
+    try:
+        with pytest.raises(model_load_refusal):
+            sys.modules["vllm"].LLM(model="/models/8b.gguf")
+    finally:
+        sys.modules.pop("vllm", None)
 
 
 def test_standin_gguf_reader_and_llama_construction(model_load_refusal):
