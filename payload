@@ -8284,7 +8284,6 @@ def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
         return 0
 
     card_path.parent.mkdir(parents=True, exist_ok=True)
-    _flatten_card_symlink(card_path)   # a symlinked card is a graph NODE
     card_path.write_text(full, encoding="utf-8")
     print(f"wrote driven handoff card {card_path} (§0 built; §3/§6 "
           f"filled; {len(sections)} section(s) handled).")
