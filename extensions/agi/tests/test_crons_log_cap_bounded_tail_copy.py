@@ -76,7 +76,7 @@ def test_apply_cost_does_not_follow_the_writer(tmp_path):
     costs = []
     for writer_ms in (100, 3000):
         root = make_project(tmp_path / f"p{writer_ms}")
-        log = Path(os.environ["HOME"]) / "logs" / "agi-crons-test.log"
+        log = crons._log_path(root)
         log.write_bytes(OVER)
         costs.append(one_apply_cost(root, log, writer_ms))
     print("\nAPPLY COST", json.dumps({"100ms_writer": costs[0],
@@ -93,7 +93,7 @@ def test_archive_is_the_newest_cap_bytes_and_never_over(tmp_path):
     full-copy-then-trim path had to trim in a second pass. No writer here: this
     asserts CONTENT, which a live writer would race."""
     root = make_project(tmp_path)
-    log = Path(os.environ["HOME"]) / "logs" / "agi-crons-test.log"
+    log = crons._log_path(root)
     # 2.34 MB of numbered lines, the last 0.25 MB over the cap.
     src = b"".join(b"%08d\n" % i for i in range(260000))
     log.write_bytes(src)

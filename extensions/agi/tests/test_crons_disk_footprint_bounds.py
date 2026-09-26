@@ -186,9 +186,10 @@ def test_maintenance_job_keeps_objects_within_1_5x_of_a_fresh_repack(tmp_path):
 def test_over_cap_log_is_rotated_and_older_copies_leave(tmp_path,
                                                          redirected_home):
     home = redirected_home
-    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 2})
+    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 2,
+                                   "also_manage": ["agi-reaper-agi-2f118e6f.log"]})
     logs = home / "logs"
-    big = logs / "agi-crons-proj-aaaaaaaa.log"
+    big = logs / crons._log_path(root).name
     big.write_bytes(b"a" * (2 * 1024 * 1024))
     # The reaper log lives in the SAME dir and is NOT this project's cron log:
     # it must be covered by the same cap.
@@ -196,6 +197,9 @@ def test_over_cap_log_is_rotated_and_older_copies_leave(tmp_path,
     reap.write_bytes(b"b" * (2 * 1024 * 1024))
     small = logs / "quiet.log"
     small.write_text("one line\n")
+    # `quiet.log` is NOT a declared name: since DH.383 the scope is the
+    # declared set, so an undeclared file is not even stat'd -- it is left
+    # alone whether it is over the cap or not. See also_manage above.
 
     out = crons.enforce_log_caps(root, root, dry_run=False)
     assert len(out) == 2, out
@@ -218,7 +222,8 @@ def test_over_cap_log_is_rotated_and_older_copies_leave(tmp_path,
 def test_dry_run_reports_the_breach_and_touches_nothing(tmp_path,
                                                          redirected_home):
     home = redirected_home
-    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 1})
+    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 1,
+                                   "also_manage": ["agi-reaper-agi-2f118e6f.log"]})
     big = home / "logs" / "agi-reaper-agi-2f118e6f.log"
     big.write_bytes(b"a" * (2 * 1024 * 1024))
     out = crons.enforce_log_caps(root, root, dry_run=True)
@@ -250,7 +255,8 @@ def test_apply_enforces_the_cap_through_its_own_command(tmp_path, monkeypatch,
                                                         capsys,
                                                         redirected_home):
     home = redirected_home
-    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 1})
+    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 1,
+                                   "also_manage": ["agi-reaper-agi-2f118e6f.log"]})
     big = home / "logs" / "agi-reaper-agi-2f118e6f.log"
     big.write_bytes(b"a" * (2 * 1024 * 1024))
     fixture = tmp_path / "crontab.fixture"
@@ -303,7 +309,8 @@ def test_n_applies_leave_exactly_one_base_plus_n_rotations(tmp_path,
     """
     home = redirected_home
     logs = home / "logs"
-    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 3})
+    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 3,
+                                   "also_manage": ["x.log"]})
     big = logs / "x.log"
     big.write_bytes(b"a" * (2 * 1024 * 1024))
     for _ in range(3):
@@ -311,7 +318,10 @@ def test_n_applies_leave_exactly_one_base_plus_n_rotations(tmp_path,
         crons.enforce_log_caps(root, root, dry_run=False)
     assert _names(logs) == ["x.log", "x.log.1", "x.log.2", "x.log.3"]
     assert big.stat().st_size == 0  # the LAST apply rotated it, once
-    assert (logs / "x.log.3").stat().st_size == 2 * 1024 * 1024
+    # Since DH.383 the ARCHIVES are bounded too, not just the base: the path
+    # count above is unchanged and every path is now at or under the cap.
+    assert (logs / "x.log.3").stat().st_size <= 1024 * 1024
+    assert not (logs / "x.log.4").exists()
     assert not list(logs.glob("*.1.*")), "a rotation rotated a rotation"
 
 
@@ -332,7 +342,8 @@ def test_rotations_zero_truncates_in_place_and_keeps_one_path(tmp_path,
     is emptied in place, so the dir holds ONE path, forever."""
     home = redirected_home
     logs = home / "logs"
-    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 0})
+    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 0,
+                                   "also_manage": ["x.log"]})
     big = logs / "x.log"
     for _ in range(3):
         big.write_bytes(b"a" * (2 * 1024 * 1024))
@@ -344,8 +355,9 @@ def test_rotations_zero_truncates_in_place_and_keeps_one_path(tmp_path,
 def test_an_archive_named_like_one_from_outside_is_never_rotated_as_a_base(
         tmp_path, redirected_home):
     """Boundary DECLARED: `<x>.1` is an ARCHIVE by shape wherever it came
-    from. It is pruned by its own base's rotation shift (or deleted as the
-    oldest slot), never rotated into `<x>.1.1`."""
+    from, and since DH.383 an archive of an UNDECLARED name is not this
+    project's file at all: not a base to rotate into `<x>.1.1`, not a legacy
+    residue to unlink -- just a neighbour's file, untouched."""
     home = redirected_home
     logs = home / "logs"
     root = make_project(tmp_path, {"cap_mb": 1, "rotations": 2})
@@ -363,7 +375,8 @@ def test_a_legacy_nested_residue_is_pruned_not_rotated(tmp_path,
     it left shrinks, monotonically, on the next apply."""
     home = redirected_home
     logs = home / "logs"
-    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 3})
+    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 3,
+                                   "also_manage": ["old.log"]})
     (logs / "old.log.1.1.1").write_bytes(b"a" * (2 * 1024 * 1024))
     out = crons.enforce_log_caps(root, root, dry_run=False)
     assert not (logs / "old.log.1.1.1").exists()
@@ -397,7 +410,8 @@ def test_a_legitimately_named_log_with_a_digit_suffix_is_still_a_base(
     base -- capped, rotated, with its own `rotations` archives."""
     home = redirected_home
     logs = home / "logs"
-    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 2})
+    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 2,
+                                   "also_manage": ["agi-crons-x.1.log"]})
     base = logs / "agi-crons-x.1.log"
     base.write_bytes(b"a" * (2 * 1024 * 1024))
     out = crons.enforce_log_caps(root, root, dry_run=False)
