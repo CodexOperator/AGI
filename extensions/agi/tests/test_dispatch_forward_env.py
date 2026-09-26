@@ -3,7 +3,7 @@
 The gap: `harnesses.<h>.env` is LITERALS ONLY and `dispatch.scrubbed_env` is
 the DISPATCHER's environ. A post-session director round (a shell that never
 `source`d the MAIN `.env`) therefore hands no `.env` key to a kid, even though
-`TYPESAFE_KEY` sits in `/home/ubuntu/work/agi/.env`.
+`TYPESAFE_KEY` sits in the MAIN root's `.env`.
 
 `harnesses.<h>.forward_env: [NAMES]` closes it: names only, each read from the
 MAIN-root `.env` at spawn by the ONE seam every adapter's `child_env` calls
