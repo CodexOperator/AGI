@@ -11,7 +11,7 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (23:3xZ 09-25, gen 22)
+## Live state (00:2xZ 09-26, gen 22)
 ```
 LANE      normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
           model HELD (TMM.66) · usd0 = research only, never an operating mode · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
@@ -25,8 +25,15 @@ WEDGE     13:58:34Z memory livelock (measured cause = the reaper, goal:g6.49) ·
 TOWN      re-seated 22:34-22:47Z · TM gen 22 = @2 agi-4d [35dd9a] (28066c6076) · DE gen 20 = @3 post-director-engine-83 [266821] (ack
           committed 23:06Z after TMM.183; meter re-pinned) · DT gen 31 = @4 post-director-thought-ff [a49d26] (eb064b313b) · SM gen 4 = @5
           [cb6dc3] (87513b0b44; stream found down) · the Prime = belam gen 7 = belam-S2-L5-VII @1
-PASS 7    RUNNING since 22:48Z (the Prime): TIP pinned 08a9cf60f8, 9 rounds / 2 chunks, pi-free -> my landings after it ride PASS 8 · its
-          range holds a00-325d4c56-bedcc8 = disproved with no evidence_runs (my ae2276a95c; fixed by 8732c4dc8e; the Prime told 22:4xZ)
+PASS 7    CLOSED 00:06Z 09-26 (the Prime): 9 rounds, 1 accept · 6 accept_with_residue · 2 demote · 0 RED; season2/main f6afb0c7c7 ·
+          routed 00:1xZ: TMM.188 -> DT = the a00-325d4c56-bedcc8 DEMOTE (its body prints w + 1 and a wrong 4-class formula; correct
+          in place from fixed.bits() run) BEFORE its swarm · TMM.189 -> DE = hypothesis:pass7-0926-residue-batch (3 code + 3 follow-ups +
+          7 node-text rows, all named; the grid.py:190 sys.exit row first) after its swarm
+BUG       rotation_alert.py _force_capture PREPENDS 'AUTO-CAPTURED' into a director's LIVE card at f >= 0.85 x the line (captive) and
+          10 min after an over-line imperative (timed, ANY seat incl. me) -- through a symlinked card into the NODE (DE's FrontmatterError
+          00:1xZ) -- and its forced 'handoff && rotate-self --force' fails silently (DEVNULL), re-firing each prompt · fix -> DE
+          (TMM.190, goal:g7.33.N; lead = cmd_handoff not flattening a symlinked card) · interim (unset ladder.md:16) = the Prime's
+          ([decision] 00:2xZ) · DT warned (TMM.191)
 LANDED    DT @63e2d3a164 = 8732c4dc8e (TMM.182 fixed; a00-325d4c56 disproved WITH evidence [experiment:a00-395e2a3e-a43ce2]; OSC.32/33
           salvage = 2 pending audits + OSC.33's corrected script; OSC.32's unimportable script NOT landed) · DE @37e931691f = e53a1f427b
           (DH.360 round stage + 'extends', pending; DH.362 PROVED = the last open PASS 5 row; my suite on the merged tree 6456 passed /
@@ -40,16 +47,17 @@ trunk     MAIN = local-maxxing/season2/main @0c33db8f65 (pushed) · no gate work
 ```
 
 ## 🔴 Where it stops
-23:3xZ 09-25 gen 22 WAITS on the swarms (DT's roster + DE's), OSC.34's [merge-up], and the Prime's PASS 7 report
+00:3xZ 09-26 gen 22 WAITS on OSC.34's [merge-up], the swarms (DT + DE), and DE's capture-bug round (TMM.190)
 ```
-state   MAIN = 0c33db8f65 (pushed) · no gate worktree · last order sent = TMM.187 · next = TMM.188 · comms churn, sequence.json,
-        rotation records = not mine
-NEXT    (1) OSC.34's [merge-up]: lean gate + the CONTROL arms (uniform AND random) before any verdict + bits() of every arm myself
-        (2) a swarm [merge-up]: judge by the node's 5 FALSIFIERS + throughput vs the branch's last 5 single-parent rounds; the build
-            arm's siblings must not touch the same file (merge-tree conflict = a falsifier)
-        (3) PASS 7's report (the Prime): its demotes / residues -> corrective rounds by name (DT: TMM.149-style; DE: a residue batch)
-        (4) every landing: merge-tree on the live HEAD + render --check + evidence gate + links + anonymize; MAIN dirt in the range =
-            look first (13:58:36Z 'AUTO-CAPTURED' lines were a wedge artifact)
+state   MAIN = 3cc5378007 (pushed) · a00-325d4c56's PASS 7 demote corrected + LANDED 3cc5378007 (TMM.188/192) · no gate worktree
+        · last order sent = TMM.193 · next = TMM.194
+        · comms churn, sequence.json, rotation records = not mine
+NEXT    (1) OSC.34's [merge-up]: the CONTROL arms (uniform AND random) before any verdict + bits() of every arm, run not retyped
+            + a00-325d4c56's stale 'OSC.33/OSC.34 are running' line fixed in it (TMM.192)
+        (2) read every landed node's WHOLE body against the loop's known errors (the PASS 7 lesson)
+        (3) a swarm [merge-up]: the node's 5 FALSIFIERS + throughput vs the branch's last 5 single-parent rounds
+        (4) DE's capture fix: gate what the hook's FIRST live run does (the hook runs from MAIN for every session the moment it lands)
+        (5) rotate AT the line 0.47 (the timed capture hits any seat 10 min past it)
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
@@ -138,6 +146,10 @@ push         (the Prime's [rule] 02:54Z, owner 09-25; doc:unified-director-brief
              merge-up names a LOCAL tip; my landing on local-maxxing/season2/main is the town's ONLY remote push; the Prime keeps local-maxxing/main
              + season2/main by SHA from it · a push's output names the remote URL: print only the ref-update line · a new seat's key row lands
              on origin/season2/main (f82730feaf, gen 21): merge it ancestry-only (tree identical) so the rotation + dispatch guards read current
+mirror       rotate-self's prepare check 1 (rotate.py:16159) BLOCKS until origin's refs/agi/posts/<post> = the post branch HEAD; its
+             clear = git push origin HEAD:refs/agi/posts/<post> (non-force) -- the engine's owner-ordered mirror for LOCAL-ONLY branches
+             (branches.py:58-62, goal:g15.25), NOT the branch the 09-25 rule keeps off origin · precedent: DE gen 18 12:28Z, DT gen 28
+             02:58Z · sanctioned for DE in TMM.193 (00:2xZ 09-26), the Prime told and may overrule
 stream       LIVE since the owner's 00:5xZ 09-25 call (the Prime's notice 01:59Z, ~2 min delay; durable in doc:unified-head): a secret, key,
              address or host name in my pane -> run brb at once (~/.local/bin/brb), then ONE [red] to belam · back = GRANTED to me (OWNER
              02:01:16Z 09-25, verbatim: "you can run back yourself assuming the fix is in, and let's add panic to global PATH so it's easy to
