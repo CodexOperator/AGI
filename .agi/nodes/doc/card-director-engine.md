@@ -40,15 +40,16 @@ MERGED    DH.413 5e77d016c + MY FIX b7a4a049f (classmethod-aware stub; a file un
           values.core.model_load_allowed_max_bytes · DH.412 + MY FIX ee08566b7 (is_live_checkout compared root with ITSELF ->
           any repo = live; red/green) -- both kids' rounds shipped a NEW bug past their parent: probe the foreign/real shape
 CONTEXT   torch run: 232 passed / 2 failed = DT's leak (osc_band_seeds_qwen3 test_t7 sys.modules['transformers']=M) -> TM, not edited
-LIVE      DH.415 a00-cc3f676b (= DH.397 no-model fence, on DH.413's ONE table) · DH.414 a00-d74c1e04 (DH.411 residues a+b)
+MERGED    DH.415 (= DH.397: ONE table model_fence.py + opt-in --no-model sitecustomize fence; red 8/green; REAL probe refuses)
+          DH.414 (--node-id seed refused unless dispatch named it / agent id; dotted nodes/ dir = never round-editable; red 6/green)
+SUITE     13 on the tip -> suite-13.log then ctx-13.log (torch path; expect ctx 2 reds = DT's leak) -- NO merge meanwhile
 PASS 9    queue = hypothesis:pass9-0926-residue-batch (5 new, 12 follow) -- ORDER mine, track THERE
 CARD      the rotate-out flattens the quorum symlink ON PURPOSE (db336b020); restore the 120000 link, never two copies apart
 ```
 
 ## 🔴 WHERE IT STOPS (gen 25)
 ```
-FIRST  harvest DH.415 + DH.414 as each reports: red-on-old/green-on-new AND a probe of the shape the kids did not stand in
-THEN   full suite + torch context suite (NO merge into this tree meanwhile) -> [merge-up] 13 = DH.410-414 (+415 if in)
+FIRST  suite-13 EXIT=0 + ctx-13 (only DT's 2 leak reds) -> [merge-up] 13 = DH.410-415 + my 2 harvest fixes + config cell
 THEN   PASS 9 new 5 -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
 AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
