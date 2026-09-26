@@ -44,7 +44,8 @@ ROUND  agent        what                         state (mur units agi-director-e
 427    a00-a7de2b88 heal tmux / dead branch      mur-3: tmux guard VACUOUS (conftest _no_real_tmux eats the shim) -> 436 a00-68d48a54 LIVE
 429    a00-abda526f resolve_tasks_max -> spawn.tasks_max   live 150, nbhd 168 · mur-5 DH.429-k1/k2 RUNNING
 430    a00-cfa396d1 DH.419 re-dispatch (suite_guards.py)   61 green in a TasksMax scope · 1 kid failed · mur-5 DH.430-k1 RUNNING
-432-4  a00-d0870e64 / a00-eafe7a6a / a00-bdfa0c37   g7.33.18.1 templates / .2 installer / .3 probe   LIVE (KIT CONTRACT in each brief)
+432/433 a00-d0870e64 / a00-eafe7a6a  g7.33.18.1 templates / .2 installer (kid cut at 210 lines; follow-up kid: dry-run after-values + no default reserve) LIVE
+434    a00-bdfa0c37 g7.33.18.3 probe: --user asked for user@<uid> (MEASURED: user mgr = infinity) + partial table -> 437 a00-97f3bc1b LIVE (no mur on 434)
 GRAPH     (3) DONE 864572bd6 · (2) level3.py after 435 merges · (9) judge heal-never-reseats after 436 · (11) verdicts x3 at merge
 g15       concurrent murs mint ONE run key (-3 x2, -4 x3, -5 x3): _existing_run_keys sees only finished rows
 g15       a parent's harvest dm can be lost (DH.429 finished, no inbox line) -- reconcile by branch, never by inbox alone
