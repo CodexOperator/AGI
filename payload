@@ -5,7 +5,7 @@
 # supports a `"!command"` key form, so:
 #
 #   "openrouter": { "type": "api_key",
-#                   "key": "!/<engine-root>/extensions/agi/bin/env-get.sh OPENROUTER_API_KEY" }
+#                   "key": "!/home/ubuntu/work/agi/extensions/agi/bin/env-get.sh OPENROUTER_API_KEY" }
 #
 # makes pi resolve the secret from the SAME single file `driver.sh` sources,
 # instead of holding a second copy that can drift from it. One value, one file,
