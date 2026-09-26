@@ -2597,6 +2597,24 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                                     context_text=context_text,
                                     timeout_s=stage_timeout))
             rc, value = runner
+            if rc == 0 and st.get("kind") == "round":
+                # A RESOLVED round is NAMED, never left `pending`:
+                # `_run_round_stage` returns a bare (rc, value) and never
+                # touches the view, so the success twin of the mark-and-
+                # continue patch below (which covers rc != 0) was missing —
+                # the run record read `{'round-parent': 'pending'}` with
+                # `failed=0`, indistinguishable from a round that never
+                # resolved at all. The exact mirror of falsifier 3, where a
+                # FAILED round is named and its whole review chain is named
+                # skipped (hypothesis:two-committed-round-manifests-run-a-
+                # round-then-its-review-by-name, seam 4).
+                if view.state.get(st["label"], {}).get("status") == "pending":
+                    v = value if isinstance(value, dict) else {}
+                    view.stage_resolved(
+                        st["label"],
+                        f"round resolved: {v.get('old_tip')}..{v.get('new_tip')}"
+                        f" ({len(v.get('files') or [])} files,"
+                        f" parent {v.get('parent')})")
             if value is not None:
                 _persist_stage_value(root, run_key, st["label"], value)
                 # A round's harvest is the RUN's context, not just its first

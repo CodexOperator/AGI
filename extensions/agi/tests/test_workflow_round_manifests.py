@@ -209,6 +209,32 @@ def test_failed_round_skips_every_review_stage_by_name(
     assert skipped, rows[-1]["stages"]
 
 
+# ---------- seam 4: a SUCCESSFUL round is recorded as resolved -----------
+
+@pytest.mark.parametrize("name", MANIFESTS)
+def test_successful_round_is_recorded_resolved_not_pending(
+        tmp_path, monkeypatch, capsys, name):
+    """A round that reached its done commit is the mirror of falsifier 3: it
+    dispatched a parent, resolved, and nothing ever marked it so. `_run_round_stage`
+    returns a bare (rc, value) and never touches the view, so the record read
+    `{'round-parent': 'pending'}` with failed=0 -- a consumer could not tell a
+    RESOLVED round from one that never resolved, and every review slice sat
+    `pending` behind it too (the mark-and-continue patch for the FAILURE path
+    was written and its success twin was not)."""
+    _done_record(tmp_path)
+    files = [".agi/nodes/experiment/a00-abc123-11aa22.md"]
+    rc, ran, prompts, out, rows = _drive(tmp_path, monkeypatch, name, 0, files)
+    assert rc == 0, out
+    st = rows[-1]["stages"]["round-parent"]
+    assert st not in ("pending", "running"), rows[-1]["stages"]
+    assert st in ("resolved", "ok"), rows[-1]["stages"]
+    # the tree names the range it resolved over, so a reader of the record can
+    # see the two tips without opening the harvest
+    assert "n3wt1p" in out, out
+    # (the review slices behind it are the STAND-IN's mark: the real
+    # `_run_stage_pi` names its own stages, which this test replaces)
+
+
 # ---------- falsifier 4: no regression in the workflow suite ---------------
 
 def test_composed_manifests_do_not_alter_the_base_manifests():
