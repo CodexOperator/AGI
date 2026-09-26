@@ -74,6 +74,7 @@ import difflib
 import hashlib
 import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -451,6 +452,20 @@ def _log_path(repo_root: Path) -> Path:
 
 
 _ARCHIVE_RE = re.compile(r".+\.\d+$")
+# The rotation MODE is a declared `logs.mode` cell, never a literal here.
+_LOG_MODES = ("rename", "copytruncate")
+
+
+def _tail_to(path: Path, cap: int) -> None:
+    """Keep the LAST `cap` bytes of an ARCHIVE -- newest data first. The
+    archive is rewritten through its own inode, never the base's."""
+    with open(path, "r+b") as fh:
+        fh.seek(-cap, os.SEEK_END)
+        tail = fh.read()
+    with open(path, "wb") as fh:
+        fh.write(tail)
+
+
 _NESTED_RE = re.compile(r".*\.\d+\.\d+$")
 
 
@@ -463,11 +478,18 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False) -> list
     but malformed one raises by name, because a cap that silently does not
     apply is worse than no cap. The scope is the whole logs dir, not just
     this project's cron log: the reaper log grows there too and shares it.
+    The MODE is the `logs.mode` cell: `rename` (the default) renames the base,
+    which strands a long-lived writer on an uncapped ARCHIVE; `copytruncate`
+    copies to `.1` and truncates the base IN PLACE, so an `O_APPEND` writer
+    keeps landing in a file the next apply still caps. The copy-then-truncate
+    race costs only the bytes appended between the copy and the truncate (less
+    than one apply cycle); no pre-rotation byte is lost.
     """
     cells = locations.load_config(root).get("logs") or {}
     if not cells:
         return []
     cap_mb, keep = cells.get("cap_mb"), cells.get("rotations")
+    mode = cells.get("mode", "rename")
     if not (isinstance(cap_mb, int) and cap_mb > 0
             and isinstance(keep, int) and keep >= 0):
         raise CronsError(
@@ -475,6 +497,11 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False) -> list
             f"positive integer and rotations a non-negative one, got "
             f"{cap_mb!r}/{keep!r} -- a cap that silently does not apply is "
             f"worse than no cap")
+    if mode not in _LOG_MODES:
+        raise CronsError(
+            f"config cell logs.mode: must be one of {sorted(_LOG_MODES)}, got "
+            f"{mode!r} -- a rotation mode this file does not implement would "
+            f"silently leave the cap unenforced")
     cap, out, d = cap_mb * 1024 * 1024, [], _log_path(repo_root).parent
     for p in sorted(d.glob("*")) if d.is_dir() else []:
         if p.is_symlink() or not p.is_file():
@@ -503,7 +530,17 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False) -> list
             if Path(f"{p}.{i}").exists():
                 Path(f"{p}.{i}").replace(f"{p}.{i + 1}")
         if keep:
-            p.replace(f"{p}.1")
+            if mode == "copytruncate":
+                # The writer's fd is the BASE INODE (every crontab line is a
+                # `>>` redirect), so COPY to `.1` and truncate the same inode
+                # in place: later bytes re-enter a file the cap still governs,
+                # never an ARCHIVE that `_ARCHIVE_RE` skips forever.
+                arch = Path(f"{p}.1")
+                shutil.copyfile(p, arch)
+                if arch.stat().st_size > cap:
+                    _tail_to(arch, cap)   # the copy inherits the overage
+            else:
+                p.replace(f"{p}.1")
         p.write_text("", encoding="utf-8")
         out.append(f"{p.name} rotated (cap {cap_mb} MB, {keep} kept)")
     return out
