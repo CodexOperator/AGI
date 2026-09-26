@@ -47,7 +47,7 @@ ROUND  agent        what                         state (mur units agi-director-e
 432    SUPERSEDED (never merge: hostname in its history) -> 438 a00-d821a9fd REBUILT clean (125 green, anonymize ok, no host in history)
        -> mur-6 DH.438-k1 RUNNING; 438 lands with a normal --no-ff (its history is clean)
 433    a00-eafe7a6a installer  mur-5 residue (config-max: code fracs dup cells; graph root '.'; restore gap) -> 444 LIVE
-434    SUPERSEDED (never merge) -> 437 a00-97f3bc1b rebuilt probe, 12 green, live run 2 real DRIFTs -> 439 a00-58736bab LIVE
+434    SUPERSEDED -> 437 -> 439 a00-58736bab (incl 437; reserve 1911 correct w/ --held flag; 20 green) -> mur-6 DH.439-k1 RUNNING
        BOX DRIFT (for TM, not ours to fix): OOMPolicy unset on streamer-stub-watch.service · agi.slice drop-in FILE absent
 GRAPH     (3) DONE 864572bd6 · (2) level3.py after 435 merges · (9) judge heal-never-reseats after 436 · (11) verdicts x3 at merge
 g15       concurrent murs mint ONE run key (-3 x2, -4 x3, -5 x3): _existing_run_keys sees only finished rows
@@ -75,6 +75,8 @@ never wait  on a capture: rotate yourself at f >= 0.47 (`python3 extensions/agi/
 torch-py    a guard that walks sys.modules must never getattr blind: torch.classes RAISES, torch.ops answers ANY name
 refused==   a value threaded as "refused" but judged by the same gate as "named" is not refused: grep the loop, probe it
 behind      interpolate the MEASURED rev-list count into a merge-up, never type it
+nproc       NEVER `prlimit --nproc` in orders: RLIMIT_NPROC is PER-USER (this uid runs >300) -> EAGAIN in unrelated tests;
+            the per-tree bound is the round scope TasksMax (spawn.tasks_max). My orders DH.428-444 carried it: expect EAGAIN notes
 fork-bound  every orders file: a test that spawns python/pytest runs it under `timeout` + a process cap, NEVER a pytest
             that can re-collect its own dir; a conftest never exec's another conftest (DH.419 fork bomb, 127 procs)
 basetemp    NEVER pytest --basetemp <dir in the repo>: pytest WIPES it (DH.412 parent lost engine bin/, 84 files)
