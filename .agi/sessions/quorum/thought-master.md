@@ -39,31 +39,13 @@ state   MAIN = origin + this card · last order = TMM.266 · next = TMM.267 · s
 OWNER   20:4xZ (via belam 21:28:58Z), verbatim in goal:g7.33.18's mint THOUGHT: "Yeah sanctuary master may be not fully set up properly. Can we
         have thought master make sure the other box is fully set up with all the proper updated memory watch fixes." -> ONE line to the Prime
         when it holds
-OTHERBOX local-town has NO route to encryption-town (~/.ssh = authorized_keys + known_hosts only; ssh encryption-town / sanctuary rc 255) ->
-        (a) goal:g7.33.18 minted (aadf7979c): the kit spec = local-town's measured layer table + SIZING + acceptance on BOTH boxes · TMM.265 =
-        dispatch now to DE (fences: never run the installer for real here, dry-run + tmp root; anonymize the copied bytes) · (b) the audit (10
-        items, read-only) -> SendMessage 'sanctuary' 21:5xZ (msg da8604b5, Remote Control: unconfirmed, may await its user's approval) +
-        TMM.266 dm to sanctuary-master · NEXT on its reply: size user@ (MemTotal - budgets outside user@ - 2 GiB; High = 0.9 x Max; SwapMax =
-        0.5 x swap) + agi.slice (0.63 / 0.70 x user@ Max) -> send the values; it applies with before-values; its re-audit = the read-back
-        · silent > 1 h -> ask the Prime which route reaches that seat (the stream moved there: never ListAgents while it is live)
-RETURN  mu 14 (a65a283a7) = DH.416-418 accept_with_residue x3 (mur-director-engine-2, verify_*.json read): 416 (1) guard narrower than S1
-        (2) stale BUILD-CONTRACT (3) kid-1 overclaim · 417 (4) CONFIG-MAX cli.py:2123 literal vs locations.schemas_root (5) silent exit-0
-        no-commit (6) bracketed + broken-neighbour tests (7) parent tier unbound (pre-commit:98) · 418 (8) a test reaches the LIVE tmux server
-        (send.py:2208 default session; fixture @777 absent, live max @14 = no pane hit) (9) unjudged hypothesis + stale lean reason (10) the
-        unreachable None branch · all (11) 3 hypotheses carry no verdict · rulings: cards NOT round-owned (doc:card- -> never_node_ids) ·
-        the seat wrap stays out (the Prime's) · gate-mu14 REMOVED -> the re-delivery gets a fresh M
-REGATE  = the same sequence on the new tip: merge-tree rc + --name-only · M in /dev/shm/gate-* · the ENGINE suite with cwd INSIDE the gate
-        tree · goals --check · links · evidence dry-run on <gate>/.agi · anonymize · live-data probes for any gate/heal change · the mur
-        (workflow.py run agi-merge-up-review --harness pi-free --args <rounds json>; detached) -> each residue CLOSED by name
-        + TMM.261's two asks rode? row 17's THOUGHT names the env-strip gap · ONE g7.33.17 row for DH.410's CLAUDE.md x2 (else re-list them)
-WAITING DT: the model_slot lift + probe merge-up (TMM.259) · DE: the re-delivery (+ row 17 d82d1757d, DH.420, DH.421 091808547)
-GATE+   the model_slot merge-up = a FIRST LIVE RUN gate: run the probe YOURSELF with no other model round live: a --no-model kid-shaped python's
-        bare from_pretrained is REFUSED; the same script through model_slot.py loads under the VmHWM wrapper; a script with a bare
-        from_pretrained is refused by model_slot · the env-strip gap is KNOWN (TMM.261), not a red · the model round must fit the 3G
-        per-spawn scope (OSC.44 VmHWM 2766 + pi ~170) · then the whole .agi/context under torch · then OSC.41's GO (one model round at a time)
-WATCH   spawn.memory_max 3G first live run: the next dispatched round's scope memory.max = 3072 MiB (/sys/fs/cgroup/.../user@1000.service/
-        **/run-*.scope) · PASS 10 = the Prime merges the trunk from 01:23Z 09-27 (<= 6 pi-free, ~3-4 h): no gate suite live at 01:23Z
-out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; the slot = a plain first line + ONE fence block)
+OTHERBOX local-town has NO route to encryption-town (~/.ssh = authorized_keys + known_hosts; ssh rc 255) -> goal:g7.33.18 (aadf7979c, v2 21:5xZ)
+        + TMM.265 dispatch now to DE (the repo kit) · AUDIT back 21:5xZ from its sanctuary session (bridge session, Remote Control): caps /
+        oomd / slices / agi.slice / watchdog PRESENT, ratio-sized on a 942 MiB reserve (7854 MiB RAM) · MISSING memguard, memory_alarm cron,
+        OOMPolicy=continue, the engine half (6G, no model_fence, core/main b7bf08187, 267 dirty) -> I SENT the exact bytes (memguard unit +
+        script with 2 edits: its checkout path in the [red] call, SPIKE 3<<29; the survival drop-in; the cron line) 21:5xZ msg 39dea99a; it
+        puts them to the OWNER before applying · [red] to belam: the ~5.3 GiB stream (doc 09-25) + seats do not fit that box
+        · NEXT: its read-back (items 6/7/8 + is-active agi-memguard) -> ONE 'holds' line to the Prime · the session is NOT an agi seat (no card)
 ```
 
 ## Traps (post-specific, learned)
