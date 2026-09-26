@@ -45,7 +45,8 @@ TMM.223   (4) CAUSE MEASURED (/tmp/agi-rotation-<uid>/capture-chain.log): handof
           -> DH.391 a00-183ce225 LIVE
 TMM.220   (3) RETIRED 84d550f3f experiment:a00-19fc5ec2-2a74e4 (deprecated + moved; infra-dead kid, nothing to fill)
           (1) hypothesis:the-context-suite-refuses-a-model-load-by-construction -> DH.392 a00-8f0cd2a4 LIVE
-          (2) unnamed context flake -> DH.393 a00-9093e188 LIVE (FAIL line names tests + hunt the flake)
+          (2) DONE: DH.393 MERGED 053daac49 (5 kids): FAIL line names every id (-rsEf; kid1 lean_disproved:60 closed by kid2);
+              flake NAMED = test_graph2sql re-globbed the LIVE node tree (TOCTOU) -> one frozen file set; 69 + context 143/19/5x
 DH.391    MERGED 9b17c907e (1 kid proved; capture/crons files 116 green)
 DH.392    MERGED 4ca024b00 + FIX adfca3994: guard setattr'd every class -> TypeError on real torch C types (errored EVERY
           context test on a torch python); now only attrs an owner has, immutable skipped; red/green; context 137/19/5x
@@ -59,7 +60,7 @@ DH.395     a00-ccaf64d0 LIVE (TMM.225: capture latch keyed per SEAT -> successor
 PASS 8    row 47 DONE: DH.394 MERGED b39533d28 + cell reaper.chain_deadline_s=20 + a00-2fa1fab0 THOUGHT 4a30a66e1;
           probe: 3 non-child TERM-ignoring stand-ins, deadline 3 s -> all gone 2.30 s, gone_after honest; 657 green (_reap_chain files)
           row 50 DONE 696e915e2 · row 51 DONE db5ac813f (publish runs in the shared main checkout, rotate.py:10461)
-          row 46 (workflow.py a-round-stage fail-open) OPEN -> next free slot
+          row 46 -> DH.396 a00-160f01a9 LIVE (round stage fails closed by name; 2 sequential kids)
 ```
 
 ## 🔴 WHERE IT STOPS
