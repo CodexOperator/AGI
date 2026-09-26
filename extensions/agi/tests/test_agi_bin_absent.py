@@ -44,7 +44,7 @@ import locations  # noqa: E402
 
 #: A site of the form `$PROJECT_ROOT/bin/<name>` in driver.sh: that is the whole
 #: override rule, written once. No line number anywhere -- those rot on edit.
-_OVERRIDE_RE = re.compile(r"\$PROJECT_ROOT/bin/([A-Za-z0-9_.-]+)")
+_OVERRIDE_RE = re.compile(r"\$\{?PROJECT_ROOT\}?/(?:\./)?bin/([A-Za-z0-9_.-]+)")
 
 
 def driver_override_scripts(driver: Path = DRIVER) -> tuple[str, ...]:
@@ -140,6 +140,36 @@ def test_override_set_moves_with_driver_bytes(tmp_path) -> None:
     assert "inject.py" in driver_override_scripts(DRIVER)
     assert "inject.py" not in driver_override_scripts(doctored)
     assert set(driver_override_scripts(DRIVER)) >= set(driver_override_scripts(doctored))
+
+
+def test_real_driver_override_set_is_not_empty() -> None:
+    """The derivation must actually SEE driver.sh, not vacuously return ().
+
+    Conjunct 1 (refuse the directory) holds even when the regex is blind, so
+    an empty set was never caught: the message would name nothing.
+    """
+    real = driver_override_scripts(DRIVER)
+    assert real, "the derived override set is empty -- the regex is blind to driver.sh"
+    for name in real:
+        # A bare file name, never a path fragment: the regex captures the tail.
+        assert name and "/" not in name, f"derived a path, not a name: {name!r}"
+
+
+def test_braced_and_dotted_override_sites_are_derived(tmp_path) -> None:
+    """Blind spot closed: `${PROJECT_ROOT}/bin/x.py` and `$PROJECT_ROOT/./bin/x.py`.
+
+    RED before the widening: the old `\\$PROJECT_ROOT/bin/` literal matched
+    neither form, so a site written any other way was invisible to the guard's
+    message while the directory refusal still held -- the message listed fewer
+    names, or none, with nothing red anywhere.
+    """
+    for site in ("${PROJECT_ROOT}/bin/braced.py", "$PROJECT_ROOT/./bin/dotted.py"):
+        doctored = tmp_path / "driver.sh"
+        doctored.write_text(DRIVER.read_text() + f'\nSNAP="{site}"\n')
+        assert "braced.py" in driver_override_scripts(doctored) or "dotted.py" in driver_override_scripts(doctored), (
+            f"the derivation is blind to the site form {site!r}"
+        )
+        assert site.rsplit("/", 1)[1] in driver_override_scripts(doctored)
 
 
 def test_no_driver_line_number_is_cited() -> None:
