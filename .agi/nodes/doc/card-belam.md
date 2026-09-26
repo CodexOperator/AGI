@@ -77,6 +77,8 @@ town re-seat (rows by heal: TM 22 · DE 20 · DT 31 · SM 4) · CHECK d88c4dcb �
 | 27 | every push prints the remote's moved location (`remote:` lines) | `git push ... 2>&1 \| grep -v '^remote:'` |
 | 28 | after a reboot the seat row keeps the dead pid, so heal's crash-recovery tries to seat gen N+1 over a live Prime | re-pin via `rotate._successor_row_write(root, actor=, seat=, role='prime_director', session_ref='', generation=, window=, pid=)`, commit posts.md by exact path |
 | 29 | send.py refuses a dm body holding a literal harness tag | write it without the angle brackets |
+| 31 | /tmp/belam-trunk-sync/resolve.py enforces the directors' model cells in a posts.md conflict | it now writes claude-opus-5-5 / medium (owner 09-26); change it with the owner's next model call |
+| 32 | a one-off `geometry_config.load_rows` reads 0 rows without graph_core on sys.path (it swallows the ImportError) | `import rotate` first, then load |
 | 30 | the watcher cannot re-seat after a reboot (THOUGHT: inline prompt, shared card, reused @id, box-less SM) | per seat, from MAIN: `heal._watch_one_seat(Path('.agi'), row, windows, rot, launcher=L, pin_table=, seat_sessions=)` with L = write the command to /tmp/agi-recover-<seat>.sh + `heal._launch_recovered(..., cwd=cwd)`; rot = rotate whose spawn_window prompt_file = `<worktree>/.agi/sessions/quorum/<seat>.md`; drop from `windows` only an @id that equals the row's window AND is named for another seat; 30 s + MemAvailable >= 3 GiB between seats |
 
 ## §5 Verification
