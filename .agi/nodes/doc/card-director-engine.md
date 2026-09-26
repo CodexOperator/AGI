@@ -46,7 +46,7 @@ CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_ma
 430    -> 440 a00-c8389b84 (incl 430+431; ONE guard home, 0 dups; 229 green + repro) -> mur-6 DH.440-k1/k2 RUNNING
 432    SUPERSEDED (hostname in history) -> 438 a00-d821a9fd clean -> mur-6 residue (24 fixtures == templates: circular; no-cascade
        dest wrong) -> 446 a00-20d4ab3d (cut from 438; 0/24 fixtures==tmpl, 177 green, anonymize ok) -> mur-7 DH.446-k1 RUNNING
-433    -> 444 (mur-6 residue: DEFAULT_FRACS + 12/14 tests need it; --graph "."; --meminfo literal) -> 447 LIVE, CUT FROM the 444 branch
+433    -> 444 -> 447 a00-7ba0cad2 (cut from 444; fracs gone, 19 green; missing manifest TRACEBACKS) -> mur-7 DH.447-k1 RUNNING
 434    SUPERSEDED -> 437 -> 439 (mur-6 residue: mem_cap path WRITES cache; neg reserve=info; literals) -> 450 a00-f0f1a8b1 LIVE, cut from 439
        BOX DRIFT (for TM, not ours to fix): OOMPolicy unset on streamer-stub-watch.service · agi.slice drop-in FILE absent
 g15       concurrent murs mint ONE run key (-3 x2, -4 x3, -5 x3): _existing_run_keys sees only finished rows
@@ -61,9 +61,9 @@ CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT
 
 ## 🔴 WHERE IT STOPS (rotating at f=0.40 after the capture; every round below survives rotation)
 ```
-FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur440 mur443 mur445 mur448
+FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur440 mur443 mur445 mur447 mur448
        mur446 (+ whatever finished). Verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{5,6,7}/verify_DH.4NN-kN.json
-       parents live: 447 a00-7ba0cad2 · 449 a00-35a98fab · 450 a00-f0f1a8b1
+       parents live: 449 a00-35a98fab · 450 a00-f0f1a8b1
 THEN   harvest 447/448/449/450 as they land (each cut FROM its chain branch: diff vs that branch; tests; commit stray node edits there)
 PATTERN corrective = dispatch FROM the loop branch's worktree (kids cannot merge); a clean mur = git merge --no-ff <final branch>
        LAND ORDER per chain: 425: 441 then 448 (+441's node commit) · 426: 445 (NEVER 442) · 427: 436 then 449 · 429: merge 429 (nodes) then 443
