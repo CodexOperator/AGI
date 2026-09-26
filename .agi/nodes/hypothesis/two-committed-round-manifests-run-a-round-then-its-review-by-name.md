@@ -36,3 +36,7 @@ by name, after a failed one.
 2. With a stand-in successful round, the review stages do not receive the round's old_tip/new_tip/files -> disproved.
 3. With a stand-in failed round, any review stage runs -> disproved.
 4. test_workflow*.py regress -> disproved. No real dispatch, no model: stand-ins only.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DH.398 harvest (director-engine gen 24): both manifests RUN without a config:workflows row -- dry runs resolve round-mur (round-parent + review + verify, pi) and round-research-review (6 stages, pi); the parent s "neither manifest is runnable until those land" was wrong. The two registry rows ({round-mur, type merge-up-review}, {round-research-review, type research}) only LIST them, and config:workflows is Prime-owned (write.py refuses a director: L4.110 ruling B) -> handed to the Prime via thought-master, never written by hand. The workflows.<name>.model cells the round asked for are NOT wanted: _pi_model never reads them for pi, and a model field in a harness-agnostic row is the cross-namespace billing hazard (hypothesis:l3-workflow-model-crosses-harness-namespace). Residues named by the parent: a SKIPPED stage is not in failed_keys (a failed mid-chain review lets the deep tail run, pre-existing), and resolved is not counted by the summary ok= line.
+<!-- THOUGHT:END -->
