@@ -1899,7 +1899,7 @@ def test_reshuffle_refs_grid_reads_the_projects_storage_trunk(tmp_path, monkeypa
 def test_named_target_node_ids_come_from_the_record_and_the_parent():
     cli = _load_cli()
     rec = {"target": "hypothesis:tgt", "parent": "goal:g1",
-           "node_id": "experiment:a00-x-1"}
+           "dispatch_node_id": "experiment:a00-x-1"}
     ids = cli._round_named_node_ids(rec, "hypothesis:tgt")
     assert ids == ["hypothesis:tgt", "goal:g1", "experiment:a00-x-1"]
     # No record (a fixture, a dead tree) yields NOTHING -- a kid's --parent
@@ -2146,3 +2146,58 @@ def test_dispatch_parent_survives_the_done_parent_overwrite():
             "hypothesis:tgt", "hypothesis:dp"]
     # and the set is the same whatever the kid typed on the command line
     assert cli._round_named_node_ids(rec, "config:posts") == cli._round_named_node_ids(rec, None)
+
+
+def test_dispatch_node_id_survives_the_done_node_id_overwrite():
+    """DH.414: the `--parent` half was closed in DH.390/411; the `--node-id`
+    half was still open. `cmd_done` writes `rec["node_id"] = args.node_id`
+    BEFORE the sweep reads the record, and `rec["node_id"]` is DISPATCH's
+    field -- so a kid that named a FOREIGN node on `--node-id` landed it in
+    the round's named set, and `nid != node_id` exempted exactly that id from
+    the type gate: swept into this round's loop-branch commit, unjudged.
+    Dispatch's value is captured under `dispatch_node_id` before the
+    overwrite, and the named set reads ONLY that."""
+    cli = _load_cli()
+    rec = {"target": "hypothesis:tgt", "parent": "hypothesis:dp",
+           "node_id": "experiment:a00-x-1"}
+    # exactly what cmd_done does, in order
+    rec.setdefault("dispatch_node_id", rec.get("node_id") or "")
+    rec["node_id"] = "hypothesis:kid-supplied-foreign"
+    assert cli._round_named_node_ids(rec, "hypothesis:kid-supplied-foreign") == [
+        "hypothesis:tgt", "hypothesis:dp", "experiment:a00-x-1"]
+    # the KID's id is in the record under a key the set never reads
+    assert "hypothesis:kid-supplied-foreign" not in rec["dispatch_node_id"]
+    assert cli._round_named_node_ids(
+        {"target": "hypothesis:tgt", "node_id": "hypothesis:foreign"}, None) == [
+            "hypothesis:tgt"]
+
+
+def test_own_node_id_is_type_gated_too(tmp_path, capsys):
+    """The round's OWN `--node-id` is no longer exempt from the type gate: a
+    kid cannot name a `config:`/`goal:` id on its own line and have it swept.
+    Its own `experiment:`/`hypothesis:` node (basename carries the agent id)
+    is round-committable and still lands -- the gate judges the TYPE, not the
+    ownership."""
+    from pathlib import Path
+    cli = _load_cli()
+    root = tmp_path / ".agi"
+    (root / "context" / "schemas").mkdir(parents=True)
+    (root / "config.json").write_text("{}")
+    (root / "nodes" / "experiment").mkdir(parents=True)
+    (root / "nodes" / "goal").mkdir(parents=True)
+    (root / "nodes" / "experiment" / "a00-x-1.md").write_text(
+        "---\nid: experiment:a00-x-1\ntype: experiment\n---\n\nbody\n")
+    (root / "nodes" / "goal" / "g5.md").write_text(
+        "---\nid: goal:g5\ntype: goal\n---\n\nbody\n")
+    (root / "context" / "schemas" / "[goal].md").write_text(
+        "---\ntype: goal\nround_commit: false\n---\n\nbody\n")
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, "experiment:a00-x-1", None, [], refused=["goal:g5"])
+    assert paths == {"nodes/experiment/a00-x-1.md"}, paths
+    assert "goal:g5" in capsys.readouterr().err
+    # the round's OWN node named on --node-id, but of a refused TYPE
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(root, root, "goal:g5", None, [])
+    assert paths == set(), paths
+    assert "goal:g5" in capsys.readouterr().err

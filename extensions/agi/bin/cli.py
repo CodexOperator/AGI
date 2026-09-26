@@ -1598,6 +1598,13 @@ def cmd_done(args: argparse.Namespace) -> int:
     rec["finished_at"] = int(time.time())
     rec["verdict"] = verdict
     rec["confidence"] = args.confidence
+    # SAME DEFECT, the `--node-id` line: `rec["node_id"]` is DISPATCH's field
+    # (dispatch.py stamps the scaffolded id there) and the sweep reads it, so
+    # the kid's `--node-id` re-entered the named set one page after `del
+    # parent` protected the parameter. Capture dispatch's value under a key
+    # nothing writes, BEFORE the overwrite, and let the named set read only
+    # the captured one (`dispatch_parent` below is the same precedent).
+    rec.setdefault("dispatch_node_id", rec.get("node_id") or "")
     rec["node_id"] = args.node_id
     # hypothesis:a-rounds-named-node-set-is-its-dispatch-time-ids-never-a-kid-
     # supplied-parent -- `rec["parent"]` is DISPATCH's field, and the sweep
@@ -2151,7 +2158,14 @@ def _round_named_node_ids(rec, parent) -> list:
     # the `done` path the capture above has always run first.
     if isinstance(rec, dict):
         _dp = rec.get("dispatch_parent", rec.get("parent"))
-        _cand = (rec.get("target"), _dp, rec.get("node_id"))
+        # `node_id` is read ONLY as `dispatch_node_id` -- the value dispatch
+        # wrote, captured by `cmd_done` before the kid's `--node-id`
+        # overwrote it. There is deliberately NO `rec.get("node_id")`
+        # fallback here: that key is the kid's line, and reading it let
+        # `done --node-id hypothesis:<foreign>` ride a foreign node into this
+        # round's loop-branch commit with no type gate at all (the `--parent`
+        # half of the same hole, closed in DH.390/411).
+        _cand = (rec.get("target"), _dp, rec.get("dispatch_node_id"))
     else:
         _cand = (None, None, None)
     for v in _cand:
@@ -2242,7 +2256,7 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
                   f"--parent never widens this round's done commit",
                   file=sys.stderr)
             continue
-        if nid != node_id and not _round_committable(root, nid):
+        if not _round_committable(root, nid):
             print(f"round-commit gate: refusing {nid} — not "
                   f"round-committable, so it is left uncommitted by this "
                   f"round's done commit", file=sys.stderr)
