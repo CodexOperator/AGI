@@ -82,8 +82,9 @@ rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing
            non_append=skip; kid1 597143ad lean_disproved:70 (rename archive 2 MB > cap), kid2 945d7ae4 lean_proved:80; 166 green.
            config cells committed by DE (rounds CANNOT commit .agi/config.json: cli.py:2094 by design -- the cause of every 'uncommitted config' residue).
            residue: also_manage names agi-reaper-agi-2f118e6f.log = a box-hashed name in git-shared config (same SM.125 per-box question)
-  DH.384   a00-3b8cfcdc  hypothesis:every-in-place-log-trim-refuses-a-non-append-holder (DH.383 open-next: rename-arm trim unguarded)
-  NEXT     after DH.384: merge-up 5 = DH.383 + DH.384 (suite first) -- NOT YET SENT
+  DH.384   MERGED 4b69308e4: ONE _in_place_precondition guards all 3 in-place writes; 169 green. residue: non_append=rename moves a held
+           archive to .1.1, which the next apply's prune unlinks -> a live non-append writer keeps a deleted inode (space freed only at its exit)
+  NEXT     full suite RUNNING on 4b69308e4 -> merge-up 5 = DH.383 + DH.384 (quote the MEASURED behind count)
   suite    full suite GREEN on 7448e90e3: 6582 passed / 0 failed (conftest changed by DH.381); DH.382 after it 59/59
 merge-up 4 SENT tip 91177caa1: DH.377-382 + PASS 8 rows (first send claimed '0 behind' while 2 behind -> CORRECTED by dm)
   rows     DONE 286272925: DEMOTE DH.369 exp a00-2a2760a8 + hypothesis:a00-f30b6285-0e37a6 (lean_disproved:60) + graph-root exp adopted mint_id
