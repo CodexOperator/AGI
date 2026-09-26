@@ -450,6 +450,10 @@ def _log_path(repo_root: Path) -> Path:
     return Path.home() / "logs" / f"agi-crons-{Path(repo_root).name}-{project_hash(repo_root)[:8]}.log"
 
 
+_ARCHIVE_RE = re.compile(r".+\.\d+$")
+_NESTED_RE = re.compile(r".*\.\d+\.\d+$")
+
+
 def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False) -> list[str]:
     """Rotate every file in the box logs dir that is over the declared cap.
 
@@ -473,7 +477,22 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False) -> list
             f"worse than no cap")
     cap, out, d = cap_mb * 1024 * 1024, [], _log_path(repo_root).parent
     for p in sorted(d.glob("*")) if d.is_dir() else []:
-        if not p.is_file() or p.stat().st_size <= cap:
+        if p.is_symlink() or not p.is_file():
+            continue
+        if _ARCHIVE_RE.match(p.name):
+            # An ARCHIVE is never a base: rotating it would rotate the
+            # enforcement itself (`x.log` -> `x.log.1` -> `x.log.1.1` -> ...,
+            # one more nesting level per apply, unbounded by `rotations`).
+            # It leaves the way the rotation shift of ITS base deletes it, or
+            # now, if it is residue of the pre-fix unbounded enforcement --
+            # the new one can never create a nested tail.
+            if _NESTED_RE.match(p.name):
+                out.append(f"{p.name} pruned (legacy rotation residue)"
+                           + (" (dry-run)" if dry_run else ""))
+                if not dry_run:
+                    p.unlink()
+            continue
+        if p.stat().st_size <= cap:  # over-cap is strictly `>`
             continue
         if dry_run:
             out.append(f"{p.name} is over the {cap_mb} MB cap (dry-run)")
