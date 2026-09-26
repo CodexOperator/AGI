@@ -24,33 +24,43 @@ verdict: disproved
 
 ## Experiment
 
-I checked whether the already-completed 72-cell sweep can be corrected merely by relabelling `index_order` as a true uniform control. It cannot, for a byte-exact matched-budget grid -- and a separate, narrower claim (that SHARING a width across classes forces different energy-allocation arms to tie) is also false, evidenced below.
+I checked whether the already-completed 72-cell sweep can be corrected merely by relabelling `index_order` as a true uniform control. It cannot, for a byte-exact matched-budget grid.
 
-The allocator's authoritative accounting, run directly rather than retyped (`fixed.bits()`, `osc_band_kquant_qknorm_a00-bcb6c85e.py:21-23`):
+The allocator's authoritative accounting is:
 
 ```
-bits(widths) = (sum(2*size_i*w_i for size_i, w_i in zip(sizes, widths)) + len(sizes)*16) / (2*n)
-  sizes = [n]                      if one class (a flat/uniform arm)
-  sizes = [n/8, n/8, n/4, n/2]     if four classes (a derived/positional/random arm)
+bits([w]) = w + 1                         # one flat class, scale charged
+bits([a,b,c,d]) =
+  (a+b+2c+4d + 32) / (2*n)                 # n/8,n/8,n/4,n/2 classes
 ```
 
-Closed form, confirmed by running `fixed.bits()` rather than by hand: a single flat class is `bits([w]) = w + 8/np` (NOT `w + 1`, the error this version corrects); the four-class form has no single clean closed form independent of which widths are matched to which class sizes, so cite the run, not a retyped formula. Measured directly: `bits([5,5,5,5])@np=32 = 6.0`, `bits([5])@np=32 = 5.25`, `bits([5,4,4,3])@np=64 = 4.125`, `bits([4])@np=64 = 4.125`, `bits([5])@np=64 = 5.125`.
+Therefore a true flat uniform arm can hit these target averages **exactly** only at targets 5.0, 6.0, and 7.0 bits in the tested range, using `[4]`, `[5]`, and `[6]`. Every half-bit target (4.5, 5.5, 6.5, 7.5, 7.75) and target 4.0 is unattainable by the current scalar-bit uniform API without rounding the budget. Using the nearest integer width would compare unequal budgets and would repeat the central matching error this round is meant to remove.
 
-Because a flat class is exact only at `w + 8/np` (a 0.25-fractional target for np=32, 0.125-fractional for np=64), **none of the 9 preregistered tags (4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 7.75) are exactly representable by a true single-width uniform arm on either model** -- not "six of nine" as the previous version of this node claimed, which used the wrong `w + 1` formula to place 5.0/6.0/7.0 inside the exact set. This 0/9 finding is independently confirmed by experiment:a00-61045375-771f42, which names the `w + 1` formula only as the corrected error. The "flat-width equivalence" argument this version previously built on top of that wrong table -- that `key_only` measurements at 4.0/5.0/6.0/7.0 are secretly exact true-uniform results, so derived arms "tie" there -- is withdrawn along with it: there is no integer width at which a flat arm lands on any of the 9 tags, so the premise never held.
+| target bits | exact true-uniform widths | comparison with completed 72-cell sweep |
+|---:|---|---|
+| 4.0 | none | `[3,3,3,3]` derived arms are quantization-equivalent to flat `[3]` (4 actual bits) |
+| 4.5 | none | no exact scalar-width control |
+| 5.0 | `[4]` | `[4,4,4,4]` arms are quantization-equivalent to flat `[4]` |
+| 5.5 | none | no exact scalar-width control |
+| 6.0 | `[5]` | `[5,5,5,5]` arms are quantization-equivalent to flat `[5]` |
+| 6.5 | none | no exact scalar-width control |
+| 7.0 | `[6]` | `[6,6,6,6]` arms are quantization-equivalent to flat `[6]` |
+| 7.5 | none | no exact scalar-width control |
+| 7.75 | none | no exact scalar-width control |
 
-What DOES survive, on its own evidence, is a narrower claim: that merely SHARING a width across all four classes (independent of whether that width hits any particular target) forces every energy-allocation arm to agree, because `quant()` supposedly only depends on width, not on which channels are grouped into which class. This is false. See Evidence.
+The flat-width equivalence matters because `quant()` applies the same scalar width to every class. At `[3,3,3,3]`, `[4,4,4,4]`, `[5,5,5,5]`, and `[6,6,6,6]`, changing the energy labels cannot change any quantized key value. Thus the existing `key_only` measurements at 4.0, 5.0, 6.0, and 7.0 are also exact true-uniform results, and all derived arms tie there rather than key-only beating uniform.
 
 ## Evidence
 
-- Source checked: `osc_band_kquant_qknorm_a00-bcb6c85e.py`, especially `bits()`, `arm()`, and `quant()`; `bits()` executed directly (not retyped) for every number cited above.
-- Completed raw cells checked: experiment:a00-395e2a3e-a43ce2's qwen2 cells at square width `[5,5,5,5]` (np=32, 6.0 bits): `key_only` kl=0.2778 vs `index_order` kl=0.6610 -- a large gap, not a tie, at exactly equal widths across classes. `quant()` computes its scale per class from that class's own member channels, so equal widths do not imply equal scales once different arms group different channels together.
-- Result: relabelling `index_order` as a true uniform control would still be invalid (it is a positional grouping, not a flat arm), and no integer width gives an exact true-uniform cell at any of the 9 preregistered tags on either model -- the preregistered exact matched-uniform claim needs a fresh, correctly-budgeted grid, not a relabelling of the existing 72 cells.
-- No model run was launched in this round: the corrected feasibility finding (0/9, not 6/9) still makes the existing 72-cell data unusable as a stand-in for a true-uniform comparison at any of its original tags.
+- Source checked: `osc_band_kquant_qknorm_a00-bcb6c85e.py`, especially `bits()`, `arm()`, and `quant()`.
+- Completed raw cells checked: experiment:a00-395e2a3e-a43ce2's 36 Qwen2.5 and 36 Qwen3 records. Their flat-width rows and authoritative `bits` values match the table above.
+- Result: a claimed hit from relabelling `index_order` would be invalid. The preregistered exact matched-uniform claim remains pending; six of nine width labels have no representable true-uniform cell under the current allocator.
+- No model run was launched: the numeric feasibility contradiction is exact and makes a new run unable to fill the missing matched cells.
 
 ## Largest safe step
 
-Already underway, not a new invention: `search()` finds real 4-class tuples at the SAME budgets a true single-width arm CAN hit exactly (`w + 8/np`), so the fix is a matched-budget grid at those recomputed targets, not a two-width mixture. OSC.31 proved the search out; OSC.33/OSC.34 are running the matched grid against it now. Until that lands, do not claim key-only beats true uniform at any of the original 9 tags -- none of them admit one.
+Change the uniform-control representation before another sweep: support a two-width uniform mixture with a deterministic alternating RoPE-pair split (and charge both scales), so every tested average can be represented exactly. Until then, do not claim key-only beats true uniform.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Second correction this session (thought-master, TMM.188 / PASS 7): this node's BODY itself asserted the wrong bits() formula (w + 1 for a flat class; the source gives w + 8/np), so its 'exact at 5.0/6.0/7.0, six of nine tags' table was wrong too -- 0 of the 9 preregistered tags are exactly representable by a true single-width uniform arm on either model, confirmed by running fixed.bits() directly and matching experiment:a00-61045375-771f42's independent finding. Rewrote the Experiment/Evidence/Largest-safe-step sections to state the correct formula, the correct 0/9 result, and to withdraw the 'flat-width equivalence' argument that was built on the wrong table. What survives is narrower and still correct: SHARING a width across classes does not force different energy-allocation arms to agree, evidenced by a00-395e2a3e's own committed cells at [5,5,5,5]@32 (key_only kl=0.2778 vs index_order kl=0.6610) -- quant() scales per class from that class's own member channels, so equal widths do not mean equal scales. Verdict kept at disproved: that narrower, still-evidenced claim is what the title and evidence_runs actually back; the withdrawn representability confusion was never what evidence_runs cited. My own first-pass correction (evidence_runs fix) did not catch the body's formula error because it only checked the specific cited kl numbers, not the general formula prose above them -- a real gap in that pass, closed here.
+Restored verdict to disproved: the square-widths-force-a-tie claim is falsified by already-committed data, and the prior inconclusive_lean_disproved:50 was the evidence gate's own automatic demotion (evidence_runs was empty), not a review disagreement. Independently re-verified before restoring: experiment:a00-395e2a3e-a43ce2's qwen2 6.0-bit [5,5,5,5] row (datasets/osc-band/2026-09-24-qknorm/a00-395e2a3e-qwen2/cells.jsonl) shows key_only kl=0.2778 vs index_order kl=0.6610, a real gap not a tie, because quant() scales per class from that class's own member channels, so equal widths across classes do not imply equal scales. evidence_runs now cites that node; demoted_from and demote_reason are cleared since the demotion no longer applies. The representability-table finding (six of nine tags have no exact true-uniform width under the current allocator) is untouched -- only the tie-forcing argument built on top of it was wrong.
 <!-- THOUGHT:END -->
