@@ -55,7 +55,8 @@ rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing
   DH.370   -> RESUMED as DH.373 a00-1b09cac6 (orders: build on 2d9d7e3b (a)+(b); (c) WIP d11948744; (d) = SANCTUARY-MASTER's box cell,
            never ours -- kid e0ae8900's posts.md edit left uncommitted in its worktree). parent notes salvaged ff950564f
   DH.371   -> RESUMED as DH.374 a00-a2524533 (orders: kid WIP 20d41f3f4; empty experiment; log-path literal -> cell; latch per SEATING)
-  DH.375   a00-72c4195b  hypothesis:mem-cap-probe-cache-is-private-and-atomic (PASS 7 code round 1; next = launch-memory-cap-tests-never-touch-real-systemd AFTER it merges, same file)
+  DH.375   MERGED 96423c887 (2 kids proved; 30/30 green; residue: values.memcap cells + THOUGHT uncommitted in parent -> DE dc1c764cb)
+  DH.376   a00-cb67ed0e  hypothesis:launch-memory-cap-tests-never-touch-real-systemd (PASS 7 code round 2; next = brainstorm-manifest-route workflow.py:2175)
   dm       [ask] sanctuary-master: stream-master row box cell = DH.373 conjunct (d) (nudge refused: foreign box; dm file stored)
 memory     MemAvailable 12.2 GiB, load 0.7 -- clear for rounds
 push       never from here (IDENTITY rule)
