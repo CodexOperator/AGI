@@ -12,7 +12,7 @@ The USER manager owns agi.slice and the other per-user units.  Every row carries
 its manager; nothing is asked of the wrong one.
 """
 from __future__ import annotations
-import argparse, json, os, pathlib, re, subprocess, sys
+import argparse, json, os, pathlib, re, subprocess, sys, tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "bin"))
@@ -21,7 +21,6 @@ import crons  # noqa: E402
 
 SCALERS = {"": 1 / 1048576.0, "K": 1 / 1024.0, "M": 1.0, "G": 1024.0, "T": 1048576.0}
 OK_TOL = 0.05                      # MiB: the installer writes whole MiB, off-by-one IS drift
-OOMD_DROPIN = "oomd.conf.d/50-sanctuary-guard.conf"
 READ_VERBS = ("show", "is-active")  # the ONLY verbs this probe may ever call
 
 # (row, unit, manager "s"|"u", prop, kind, target)  kind: ratio | swap | mem | eq |
@@ -47,11 +46,16 @@ UNITS = [
     ("OOMPolicy streamer-stub-watch", "streamer-stub-watch.service", "u", "OOMPolicy", "eq", "eq:OOM_POLICY"),
 ]
 # (row, dest_cell, dest_rel or "" when the cell is the file, key, kind, target)
+# MANIFEST SWAP (KIT CONTRACT): every `dest_rel` below is the manifest's
+# `dest_cell` + `dest_rel` pair for that piece -- ONE table, no literal
+# anywhere else in this file.  When g7.33.18.1's manifest.json lands, each
+# row here reads ITS OWN manifest row (name/template/dest_cell/dest_rel) and
+# this table collapses into the index that says which manifest row is which.
 FILES = [
     ("user@ drop-in", "systemd_system_dir", "user@{uid}.service.d/50-sanctuary-guard.conf", None, "present", None),
-    ("oomd SwapUsedLimit", "systemd_conf_dir", OOMD_DROPIN, "SwapUsedLimit", "eq", "eq:OOMD_SWAP_PCT"),
-    ("oomd DefaultMemoryPressureLimit", "systemd_conf_dir", OOMD_DROPIN, "DefaultMemoryPressureLimit", "eq", "eq:OOMD_PRESSURE_PCT"),
-    ("oomd DefaultMemoryPressureDurationSec", "systemd_conf_dir", OOMD_DROPIN, "DefaultMemoryPressureDurationSec", "eq", "eq:OOMD_PRESSURE_SEC"),
+    ("oomd SwapUsedLimit", "systemd_conf_dir", "oomd.conf.d/50-sanctuary-guard.conf", "SwapUsedLimit", "eq", "eq:OOMD_SWAP_PCT"),
+    ("oomd DefaultMemoryPressureLimit", "systemd_conf_dir", "oomd.conf.d/50-sanctuary-guard.conf", "DefaultMemoryPressureLimit", "eq", "eq:OOMD_PRESSURE_PCT"),
+    ("oomd DefaultMemoryPressureDurationSec", "systemd_conf_dir", "oomd.conf.d/50-sanctuary-guard.conf", "DefaultMemoryPressureDurationSec", "eq", "eq:OOMD_PRESSURE_SEC"),
     ("user.slice drop-in MemoryLow", "systemd_system_dir", "user.slice.d/50-sanctuary-guard.conf", "MemoryLow", "mem", "mem:MEM_LOW"),
     ("user-<uid>.slice drop-in MemoryLow", "systemd_system_dir", "user-{uid}.slice.d/50-sanctuary-guard.conf", "MemoryLow", "mem", "mem:MEM_LOW"),
     ("system.slice drop-in MemoryMin", "systemd_system_dir", "system.slice.d/50-sanctuary-guard.conf", "MemoryMin", "mem", "mem:SYSTEM_MIN"),
@@ -176,11 +180,42 @@ def judge(got, want, kind, tol: float = OK_TOL, info: bool = False) -> str:
     return ("info" if info else "ok") if good else "DRIFT"
 
 
-def run_usable():
+def cached_usable(cfg: "dict | None" = None):
+    """mem_cap's boot-cached verdict, READ WITHOUT TOUCHING THE BOX.
+
+    mem_cap._read_cached_probe() is NOT read-only: _probe_cache_path ->
+    _private_dir does `path.mkdir(parents=True, mode=0o700)` and
+    `os.chmod(path, 0o700)` under $XDG_RUNTIME_DIR before any read, so a
+    read-only caller CREATED a directory on the box.  This re-implements only
+    the READ half -- the same cells mem_cap names
+    (`values.memcap.probe_cache_dir_name` / `probe_cache_file`, or the
+    AGI_MEMCAP_CACHE file path), the same $XDG_RUNTIME_DIR-then-tempdir base,
+    and the same trust test (regular file, our uid, THIS boot id) -- and
+    reports UNKNOWN when there is nothing trustworthy to read.  No mkdir, no
+    chmod, no write, no spawn."""
+    env = os.environ.get("AGI_MEMCAP_CACHE")
+    if env:
+        path = pathlib.Path(env)
+    else:
+        names = mem_cap._cache_names(cfg)
+        if names is None:
+            return None
+        base = os.environ.get("XDG_RUNTIME_DIR") or tempfile.gettempdir()
+        path = pathlib.Path(base) / names[0] / names[1]
+    path = mem_cap._trusted_cache_file(path)      # a symlink or a foreign file is not read
+    if path is None:
+        return None
+    try:
+        boot, _, val = path.read_text().strip().partition(" ")
+    except OSError:
+        return None
+    return val == "1" if val in ("0", "1") and boot == mem_cap._boot_id() else None
+
+
+def run_usable(cfg: "dict | None" = None):
     """The mem_cap row, READ-ONLY: env force or the cached verdict, never a spawn."""
     forced = (os.environ.get("AGI_MEMCAP_SYSTEMD_RUN") or "").strip()
-    return (forced not in ("0", "false", "False", "no") if forced
-            else mem_cap._read_cached_probe(None))
+    return (forced not in ("0", "false", "False", "no") if forced else cached_usable(cfg))
 
 
 def rows(root: pathlib.Path, install_root: pathlib.Path, systemctl: str = "systemctl",
@@ -201,10 +236,15 @@ def rows(root: pathlib.Path, install_root: pathlib.Path, systemctl: str = "syste
     # yet, so it is a REQUIRED flag: without it the reserve is UNKNOWN -- never
     # a number, never a pass, and a non-zero exit.
     if held_outside_user_mib is not None and total is not None and base is not None:
-        out = [("reserve (derived, informational)",
-                total - float(held_outside_user_mib) - base, "info", "info")]
+        # A NEGATIVE reserve is not information: user@ has been committed more
+        # than the box has left after everything held outside it -- an
+        # OVER-COMMITTED box is DRIFT and must reach the exit code.  Only a
+        # healthy margin stays informational, and a MISSING input stays
+        # UNKNOWN (never a number, never a pass).
+        res = total - float(held_outside_user_mib) - base
+        out = [("reserve (derived)", res, "info", "DRIFT" if res < 0 else "info")]
     else:
-        out = [("reserve (derived, informational)", "UNKNOWN", "UNKNOWN", "UNKNOWN")]
+        out = [("reserve (derived)", "UNKNOWN", "UNKNOWN", "UNKNOWN")]
     # g7.33.18.1's manifest: a layer this table does not cover is not covered, and
     # saying so is information, not a verdict.  No row here is manifest-only, so
     # this probe never exits 2 -- every layer is read from the live installed bytes.
@@ -244,7 +284,7 @@ def rows(root: pathlib.Path, install_root: pathlib.Path, systemctl: str = "syste
         out.append((f"spawn.{cell}", want, resolved,
                     "info" if want is None else
                     judge(str(want), str(resolved), "eq")))
-    usable = run_usable()
+    usable = run_usable(cfg_all)
     out.append(("mem_cap.systemd_run_usable", usable, True,
                 "UNKNOWN" if usable is None else judge(usable, True, "eq")))
     return out

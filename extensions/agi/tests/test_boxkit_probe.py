@@ -226,7 +226,7 @@ def test_judging_uses_the_installed_max_not_a_constant(tmp_path, monkeypatch):
     os.environ["PROBE_FACTORY"] = json.dumps(fact)
     assert _run(agi, root, shim) == 1
     table = _by_name(probe.rows(agi, root, shim, HELD))
-    assert table["reserve (derived, informational)"][0] == pytest.approx(942.0)
+    assert table["reserve (derived)"][0] == pytest.approx(942.0)
     assert probe.as_mib(table["user@ MemoryMax"][0]) == pytest.approx(6912.0)
 
 
@@ -257,7 +257,7 @@ def test_no_finite_base_is_not_ok(tmp_path, monkeypatch, capsys):
     table = _by_name(probe.rows(agi, root, shim, HELD))
     assert table["user@ MemoryHigh"][1] is None
     assert table["user@ MemoryHigh"][2] in ("DRIFT", "UNKNOWN")
-    assert table["reserve (derived, informational)"][0] == "UNKNOWN"
+    assert table["reserve (derived)"][0] == "UNKNOWN"
 
 
 def test_missing_drop_in_is_a_drift(tmp_path, monkeypatch):
@@ -269,8 +269,11 @@ def test_missing_drop_in_is_a_drift(tmp_path, monkeypatch):
 
 def test_mem_cap_row_comes_from_the_cache_not_a_spawn(tmp_path, monkeypatch):
     monkeypatch.delenv("AGI_MEMCAP_SYSTEMD_RUN", raising=False)
-    monkeypatch.setattr(probe.mem_cap, "_read_cached_probe", lambda cfg: True)
     agi, root, shim = _fixture(tmp_path, monkeypatch)
+    run = tmp_path / "rt" / "agi-memcap"
+    run.mkdir(parents=True)
+    run.joinpath("probe").write_text(f"{probe.mem_cap._boot_id()} 1\n")
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(tmp_path / "rt"))
     table = _by_name(probe.rows(agi, root, shim, HELD))
     assert table["mem_cap.systemd_run_usable"] == (True, True, "ok")
 
@@ -284,15 +287,150 @@ def test_reserve_is_unknown_without_the_flag_and_never_passes(tmp_path, monkeypa
     rc = probe.main(["--root", str(agi), "--install-root", str(root), "--systemctl", str(shim)])
     out = capsys.readouterr().out
     assert rc == 3, out
-    assert "reserve (derived, informational)" in out and "UNKNOWN" in out
-    got = _by_name(probe.rows(agi, root, shim))["reserve (derived, informational)"]
+    assert "reserve (derived)" in out and "UNKNOWN" in out
+    got = _by_name(probe.rows(agi, root, shim))["reserve (derived)"]
     assert got == ("UNKNOWN", "UNKNOWN", "UNKNOWN"), got
 
 
 def test_the_reserve_is_memtotal_minus_held_minus_the_installed_max(tmp_path, monkeypatch):
     agi, root, shim = _fixture(tmp_path, monkeypatch)
     table = _by_name(probe.rows(agi, root, shim, 2000.0))
-    assert table["reserve (derived, informational)"][0] == pytest.approx(MEMTOTAL - 2000.0 - BASE)
+    assert table["reserve (derived)"][0] == pytest.approx(MEMTOTAL - 2000.0 - BASE)
+
+
+def test_a_negative_reserve_is_drift_and_reaches_the_exit_code(tmp_path, monkeypatch, capsys):
+    """An OVER-COMMITTED box (user@ capped above MemTotal - held) is DRIFT, not
+    information: the table must name it and exit 1.  A healthy reserve stays
+    informational, and a MISSING input stays UNKNOWN with exit 3."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    assert _by_name(probe.rows(agi, root, shim, 0.0))["reserve (derived)"][2] == "info"
+    rc = probe.main(["--root", str(agi), "--install-root", str(root), "--systemctl", str(shim),
+                     "--held-outside-user-mib", str(MEMTOTAL)])
+    out = capsys.readouterr().out
+    assert rc == 1, out
+    assert "DRIFT: reserve (derived)" in out, out
+
+
+# --- the four closes of DH.450 --------------------------------------------
+
+class _Spy:
+    """Every write-shaped call a READ-ONLY probe must not make.  Recorded, not
+    asserted by prose: `open(..., w|a|x|+)`, `Path.write_*`, `os.mkdir`,
+    `os.chmod`, `os.replace`, `os.unlink`."""
+
+    def __init__(self, monkeypatch):
+        self.calls = []
+        import builtins
+        real_open, real_mkdir, real_chmod = builtins.open, os.mkdir, os.chmod
+        real_write_text, real_write_bytes = pathlib.Path.write_text, pathlib.Path.write_bytes
+        monkeypatch.setattr(builtins, "open", self._open(real_open))
+        monkeypatch.setattr(os, "mkdir", self._wrap(real_mkdir, "os.mkdir"))
+        monkeypatch.setattr(os, "chmod", self._wrap(real_chmod, "os.chmod"))
+        monkeypatch.setattr(pathlib.Path, "write_text", self._wrap(real_write_text, "write_text"))
+        monkeypatch.setattr(pathlib.Path, "write_bytes", self._wrap(real_write_bytes, "write_bytes"))
+
+    def _wrap(self, real, what):
+        def call(*a, **k):
+            self.calls.append((what, a[0] if a else None))
+            return real(*a, **k)
+        return call
+
+    def _open(self, real):
+        def call(file, mode="r", *a, **k):
+            if set(mode) & set("wax+"):
+                self.calls.append(("open-w", file))
+            return real(file, mode, *a, **k)
+        return call
+
+
+def _no_systemctl(tmp_path, monkeypatch, agi, root):
+    """rows() with the systemctl door answered IN-PROCESS and NOT recorded, so
+    the only thing that can write during the spy window is the probe."""
+    def fake_run(systemctl, argv):
+        mgr = "user" if "--user" in argv else "system"
+        rest = [a for a in argv if a != "--user"]
+        unit, prop = rest[-1], (rest[rest.index("-p") + 1] if "-p" in rest else "active")
+        fact = json.loads(os.environ["PROBE_FACTORY"]).get(mgr, {}).get(unit, {})
+        if rest[0] == "is-active":
+            return "active\n" if fact.get(prop) else "inactive\n"
+        return f"{fact.get(prop, 'infinity')}\n"
+    monkeypatch.setattr(probe, "run", fake_run)
+
+
+def test_the_real_cached_probe_path_creates_nothing_and_reports_unknown(tmp_path, monkeypatch):
+    """THE DH.450 DEFECT, red first: mem_cap._read_cached_probe(None) mkdirs a
+    0700 dir under $XDG_RUNTIME_DIR and chmods it, so the 'read-only' probe
+    WROTE on the box.  The row must now come from a real READ of the cache
+    FILE: an empty runtime dir is UNKNOWN, and nothing is created."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    rt = tmp_path / "rt"
+    rt.mkdir()
+    monkeypatch.delenv("AGI_MEMCAP_SYSTEMD_RUN", raising=False)
+    monkeypatch.delenv("AGI_MEMCAP_CACHE", raising=False)
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(rt))
+    _no_systemctl(tmp_path, monkeypatch, agi, root)
+    spy = _Spy(monkeypatch)
+    table = _by_name(probe.rows(agi, root, shim, HELD))
+    assert table["mem_cap.systemd_run_usable"] == (None, True, "UNKNOWN"), table
+    assert spy.calls == [], spy.calls
+    assert list(rt.iterdir()) == [], "the probe CREATED something under $XDG_RUNTIME_DIR"
+
+
+def test_the_real_cached_probe_path_reads_a_planted_verdict_and_writes_nothing(tmp_path, monkeypatch):
+    """Same path with a trusted cache FILE present: the row is ok, the dir is
+    untouched (no mkdir, no chmod), and the memcap cells drive WHERE it reads."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    cfg = json.loads((agi / "config.json").read_text())
+    cfg["values"]["memcap"].update({"probe_cache_dir_name": "capdir", "probe_cache_file": "verdict"})
+    (agi / "config.json").write_text(json.dumps(cfg))
+    rt = tmp_path / "rt"
+    (rt / "capdir").mkdir(parents=True)
+    (rt / "capdir" / "verdict").write_text(f"{probe.mem_cap._boot_id()} 0\n")
+    monkeypatch.delenv("AGI_MEMCAP_SYSTEMD_RUN", raising=False)
+    monkeypatch.delenv("AGI_MEMCAP_CACHE", raising=False)
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(rt))
+    _no_systemctl(tmp_path, monkeypatch, agi, root)
+    spy = _Spy(monkeypatch)
+    table = _by_name(probe.rows(agi, root, shim, HELD))
+    assert table["mem_cap.systemd_run_usable"] == (False, True, "DRIFT"), table
+    assert spy.calls == [], spy.calls
+
+
+def test_a_cache_file_from_another_boot_is_unknown_not_false(tmp_path, monkeypatch):
+    """A stale (pre-reboot) verdict is UNKNOWN, never a `False` that would read
+    as DRIFT and send the caller down a path the box never took."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    rt = tmp_path / "rt"
+    (rt / "agi-memcap").mkdir(parents=True)
+    (rt / "agi-memcap" / "probe").write_text("stale-boot-id 0\n")
+    monkeypatch.setenv("XDG_RUNTIME_DIR", str(rt))
+    assert probe.cached_usable(json.loads((agi / "config.json").read_text())) is None
+    (rt / "agi-memcap" / "probe").unlink()
+    (rt / "agi-memcap").rmdir()
+    (rt / "agi-memcap").symlink_to(tmp_path / "nowhere")
+    assert probe.cached_usable(json.loads((agi / "config.json").read_text())) is None
+
+
+def test_the_only_dest_literals_left_live_in_one_table():
+    """KIT CONTRACT: dest_rel belongs to the manifest; until g7.33.18.1 lands
+    every one of them sits in ONE module-level table (FILES), not scattered."""
+    import ast
+    tree = ast.parse(pathlib.Path(probe.__file__).read_text())
+    lits = set()
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Constant) and isinstance(node.value, str)
+                and (node.value.endswith(".conf") or node.value.endswith(".py"))
+                and "/" in node.value):
+            lits.add((node.lineno, node.value))
+    tables = {getattr(n, "targets", None) and n.targets[0].id for n in tree.body
+              if isinstance(n, ast.Assign)}
+    assert "FILES" in tables and "UNITS" in tables
+    for lineno, val in lits:
+        assert val in FILES_SRC, f"line {lineno}: {val!r} is a dest literal outside the table"
+
+
+FILES_SRC = {r[2] for r in probe.FILES} | {r[2] for r in probe.UNITS}
+
 
 
 def test_a_target_cell_is_read_from_the_config_and_unit_normalised(tmp_path, monkeypatch):
