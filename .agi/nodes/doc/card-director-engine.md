@@ -136,8 +136,14 @@ DH.369 gate (maint_gc = git gc, 04:41 daily, NOT in the live crontab until TM la
 | 6 | PASS 7 code rounds NEXT, one per parent exit (memory 3.1 GiB + load 24/16 at 03:2xZ -> held): mem-cap-probe-cache-is-private-and-atomic -> launch-memory-cap-tests-never-touch-real-systemd -> brainstorm-manifest-route (workflow.py:2175) -> brainstorm contracts | queued |
 | 4 | DH.360 seam 3 (fresh mint) -> TMM.166/174 -> g1.14.1 -> PASS 6 defect 3 -> pass7-0926-residue-batch (read fully) | queued |
 
-## 🔴 WHERE IT STOPS (gen 23, ~08:4xZ, meter 0.335/0.47)
+## 🔴 WHERE IT STOPS (gen 23, 09:1xZ, CAPTURED at f=0.4005 -> forced rotation)
 ```
+FIRST    DH.390 a00-564f21f5 REPORTED 09:11Z, NOT HARVESTED: 4 kids, tip 5217181e5, branch season2/loops/hypothesis-a-rounds-named-node-s-a00-564f21f5
+         -> review vs claim (done --parent never widens; config/.geometry/unified docs/town/goal never committed; target still lands),
+         one tree if kids overlap, commit parent-worktree leftovers, merge --no-ff, test_cli.py
+THEN     DH.389 a00-36fc62fe (2c reap verb) when it reports: verify fake-claude seam, dry-run default, no force flags
+         -> merge-up 7 = DH.389 + DH.390 after a FULL suite (targeted runs missed TMM.217); send with MEASURED behind count
+TM       e362e7947 taken (TMM.218), TM's successor gates it
 live     DH.388 MERGED 77aa14faa: all 4 restart() via adapters.scrubbed_base() -> scrubbed_env(); explicit base scrubbed too; 295 green
          (my earlier 'pi_adapter.py:326' cite was claude_code_adapter's line -- grep printed the first file; all 4 had it)
          DH.386 MERGED d54e7e3aa-line (target/--parent node set commits; orders-TEXT ids not read, lean_proved:65 --
