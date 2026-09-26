@@ -731,7 +731,20 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False,
                     with open(arch, "r+b") as fh:
                         fh.truncate(cap)
             else:
-                p.replace(f"{p}.1")
+                arch = Path(f"{p}.1")
+                p.replace(arch)
+                # `rename` moved the WHOLE over-cap base into `.1`, and the
+                # archive-bounding loop above ran BEFORE this rotation -- so
+                # without this line the apply returns holding an over-cap
+                # archive in the DEFAULT mode, and only `copytruncate` (whose
+                # `_tail_copy` bounds by construction) was ever covered.
+                # Bounded IN PLACE, in the same inode the stranded writer
+                # still holds: a `replace()` here would strand it on a
+                # deleted inode (experiment:a00-945d7ae4-8974f4).
+                if arch.stat().st_size > cap:
+                    _trim_in_place(arch, cap)
+                    out.append(f"{arch.name} bounded to the {cap_mb} MB cap "
+                               f"(new archive)")
         p.write_text("", encoding="utf-8")
         out.append(f"{p.name} rotated (cap {cap_mb} MB, {keep} kept)")
     return out
