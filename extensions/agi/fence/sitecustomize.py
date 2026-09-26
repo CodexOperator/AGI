@@ -10,12 +10,24 @@ loader. It reads the SAME table module as the pytest conftest
    refuses. Degradation is a file-load, NEVER a second table: two tables is
    falsifier 3.
 
-Fails SILENT and never raises: a sitecustomize that throws breaks the
-interpreter it was meant to protect.
+Never raises -- a sitecustomize that throws breaks the interpreter it was
+meant to protect -- but it is never SILENT: every fail-open path writes a
+marker to stderr AND `AGI_MODEL_FENCE_STATUS` into the environment, so a
+caller can assert on the status without a second table. The pre-fix
+silence was the TMM.228 shape in miniature: a misconfigured round believed
+it was fenced and nothing said otherwise.
 """
 import importlib.util
 import os
 import sys
+
+#: the env cell a caller asserts on: "installed", or "unresolved: <reason>".
+STATUS_ENV = "AGI_MODEL_FENCE_STATUS"
+
+
+def _fail_open(reason: str) -> None:
+    os.environ[STATUS_ENV] = f"unresolved: {reason}"
+    print(f"AGI-MODEL-FENCE: NOT INSTALLED -- {reason}", file=sys.stderr)
 
 
 def _fence_module():
@@ -40,8 +52,12 @@ def _fence_module():
 
 try:
     _fence = _fence_module()
-    if _fence is not None:
+    if _fence is None:
+        _fail_open("no model_fence table: neither `import model_fence` nor "
+                   "AGI_MODEL_FENCE_SRC resolved to a file")
+    else:
         _fence.install()       # the import-time barrier, consulted by `import` itself
         _fence.patch_all()     # and a sampler over whatever is ALREADY in sys.modules
-except Exception:  # noqa: BLE001 -- a fence that cannot install must not break python
-    pass
+        os.environ[STATUS_ENV] = "installed"
+except Exception as exc:  # noqa: BLE001 -- a fence that cannot install must not break python
+    _fail_open(f"install raised {exc!r}")
