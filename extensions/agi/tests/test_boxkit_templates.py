@@ -14,11 +14,15 @@ Nine rows, one per clause of the claim:
    the template rendered with the measured inputs and the fixed stand-ins, so a
    changed template, a changed sized value or a changed stand-in MOVES it (the old
    test asserted template == fixture, i.e. X == X); the three no-cascade rows
-   record the LIVE bytes and are compared on payload only -- a named drift;
-7. the rendered bytes EQUAL the live bytes on a box that has the guard
-   (skipped, not silently passed, where the live file is absent) -- with the
-   identity tokens the KIT derives from the running engine checkout and the
-   committed paths.boxkit.guard_dir cell, never tokens the test injects;
+   record the LIVE bytes and are compared by the drift cell each manifest row
+   carries -- the EXACT set of differing lines, not merely "they differ";
+7. the rendered bytes EQUAL the RECORDED LIVE bytes -- recorded once into an anonymized
+   fixture, never read from ~/.config at test time: a committed test that reads a live
+   unit is a probe wearing a test's name, green here and red or skipped on every other
+   box. The fixture is compared against the render made with the identity tokens the KIT
+   derives from the running engine checkout and the committed paths.boxkit.guard_dir
+   cell, each token swapped for the stand-in that anonymized it, never tokens the test
+   injects. The live comparison itself is a probe the PARENT runs;
 7b. the identity roots are DERIVED, not cells: repo_root comes from the engine's
    own __file__ (through a linked worktree's .git FILE, no git subprocess) and
    guard_dir from the committed cell -- and the per-box inputs are ARGUMENTS,
@@ -33,16 +37,18 @@ Nine rows, one per clause of the claim:
    live counterparts (test 10b), and agi-survival-conf is new to the kit and has
    none. Whether the kit or the box is first is a SEPARATE question, asked in 10b;
 10. the manifest covers EVERY unit goal:g7.33.18's no-cascade row names, read from
-   the LIVE goal node (never a copied list), and each no-cascade drop-in is
-   compared against the live file at its user-systemd-dir destination wherever the
-   box has one -- a NAMED header drift -- a box without it is a NAMED skip, never
-   a silent pass.
+    the LIVE goal node (never a copied list), and each no-cascade drop-in is compared
+    against its RECORDED LIVE bytes by the DELTA the manifest declares, line for
+    line: a converging render and a differently-drifting render are both RED, and a
+    row with no recorded live bytes is a NAMED skip, never a silent pass.
 
-Reads: config cells, the per-box measurement fixture, and the live files (read-only).
+Reads: config cells, the goal node, and the committed fixtures. It reads NO live unit
+file and calls no systemd: the live-bytes comparison is a probe, run by the parent.
 Writes: tmp_path only.
 """
 from __future__ import annotations
 
+import collections
 import importlib.util
 import json
 import os
@@ -53,10 +59,14 @@ from pathlib import Path
 import pytest
 
 KIT = Path(__file__).resolve().parents[1] / "boxkit"
-TEMPLATES = KIT / "templates"
-FIXTURES = Path(__file__).resolve().parent / "fixtures" / "boxkit"
 PROJECT = Path(__file__).resolve().parents[3]
 UID = str(os.getuid())
+
+CFG = json.loads((PROJECT / ".agi" / "config.json").read_text(encoding="utf-8"))
+CELLS = dict(CFG["paths"]["boxkit"])
+# every path this suite touches is a committed paths.boxkit cell, resolved at runtime
+TEMPLATES = PROJECT / CELLS["templates_dir"]
+FIXTURES = PROJECT / CELLS["fixtures_dir"]
 OWNER = pwd.getpwuid(os.getuid()).pw_name
 
 # The per-box inputs are ARGUMENTS, never cells (director rule 5): local-town's
@@ -83,8 +93,6 @@ def _load():
 
 
 R = _load()
-CFG = json.loads((PROJECT / ".agi" / "config.json").read_text(encoding="utf-8"))
-CELLS = dict(CFG["paths"]["boxkit"])
 MISSING_CELLS = sorted({p["dest_cell"] for p in R.manifest()["pieces"]} - set(CELLS))
 # only for the leak checks (a template or a fixture must not carry a literal root)
 LEAK_ROOTS = sorted({str(p) for p in [PROJECT] + list(Path(PROJECT).parents[1:3])})
@@ -114,14 +122,30 @@ def _payload(text):
     return "\n".join(ln for ln in text.splitlines() if not ln.lstrip().startswith("#"))
 
 
-# The three no-cascade rows: the kit renders what SHOULD be installed (the guard
-# header), the live file carries the owner 09-25 survival header. NAMED DRIFT --
-# asserted by test 6 and by test 10b, never hidden by weakening either.
-DRIFT_ROWS = {"streamer-stub-no-cascade", "streamer-stub-watch-no-cascade",
-              "claude-remote-control-no-cascade"}
-
-
+# The drift rows are the rows whose manifest row carries a drift cell -- the
+# template-render and the RECORDED LIVE file differ by a DELTA THE MANIFEST
+# DECLARES, line for line. The set is read from the manifest, never copied here.
 PIECES = R.manifest()["pieces"]
+DRIFT_ROWS = {p["name"] for p in PIECES if p.get("drift")}
+
+
+def _declared(piece, key, v):
+    """A declared drift line, resolved through the SAME renderer as the template, so
+    an identity token in the declaration comes from values/stand-ins, not a literal."""
+    return R.render("\n".join(piece["drift"][key]), v, piece["name"] + ".drift." + key).splitlines()
+
+
+# the identity placeholders a stand-in stands in for: the only values a committed
+# fixture is allowed to differ from a live box on.
+IDENTITY = ("OWNER_USER", "UID", "REPO_ROOT", "GUARD_SRC")
+
+
+def _delta(rendered, recorded):
+    """(lines only in the render, lines only in the recorded live bytes), as exact
+    multisets -- a duplicated or dropped line is a delta, not a no-op."""
+    a, b = collections.Counter(rendered.splitlines()), collections.Counter(recorded.splitlines())
+    return sorted((a - b).elements()), sorted((b - a).elements())
+
 BY_NAME = {p["name"]: p for p in PIECES}
 # LIVE = the pieces copied from an INSTALLED file, i.e. the ones the kit can
 # falsify byte-for-byte against this box. A new_bytes row is new TO THE KIT (it was
@@ -207,11 +231,35 @@ def test_rendered_bytes_equal_the_anonymized_fixture(piece):
     assert fix.is_file(), fix
     got, want = R.rendered(piece, _vs()), fix.read_text(encoding="utf-8")
     if piece["name"] in DRIFT_ROWS:
-        assert _payload(got) == _payload(want), _diff(_payload(want), _payload(got))
-        assert got != want, ("%s is listed as a DRIFT row but the template now renders the "
-                             "live bytes exactly -- drop it from DRIFT_ROWS" % piece["name"])
+        _assert_declared_drift(piece, got, want, _vs())
     else:
         assert got == want, _diff(want, got)
+
+
+def _assert_declared_drift(piece, got, recorded, v):
+    """The EXACT-DELTA falsifier for a drift row. "They differ" is not a falsifier: a
+    template that lost a whole section still differs, and would keep a `got != want`
+    green. So: the payload is equal, and the full multiset of differing lines EQUALS
+    the set the manifest declares. A render that CONVERGES (no delta at all) is RED
+    here, not an improvement: the live file carries the owner's 09-25 survival header
+    and the drift cell is the record of that difference -- a kit that adopts the
+    header silently drops the declaration, and a row whose declared delta no longer
+    describes reality is a lie in the manifest. A render that drifts DIFFERENTLY is
+    RED too, printing the ACTUAL differing lines."""
+    name = piece["name"]
+    assert _payload(got) == _payload(recorded), _diff(_payload(recorded), _payload(got))
+    extra, missing = _delta(got, recorded)
+    want_extra = sorted(_declared(piece, "render_only_lines", v))
+    want_missing = sorted(_declared(piece, "live_only_lines", v))
+    assert not (not extra and not missing), (
+        "%s CONVERGED: the render now equals the recorded live bytes exactly, so the drift "
+        "cell in the manifest describes nothing. The live file carries the owner 09-25 "
+        "survival header on purpose (see drift_means): a converging render is a lost "
+        "declaration, not an improvement." % name)
+    assert (extra, missing) == (want_extra, want_missing), (
+        "%s drifted DIFFERENTLY than the manifest declares.\n  actual render-only:   %s\n"
+        "  declared render-only: %s\n  actual live-only:    %s\n  declared live-only:  %s\n"
+        "  why: %s" % (name, extra, want_extra, missing, want_missing, piece["drift"]["why"]))
 
 
 def _diff(want, got):
@@ -245,6 +293,20 @@ def test_no_fixture_carries_a_live_host_token(piece):
     assert not [t for t in HOST_TOKENS if t and t in fix], piece["name"]
 
 
+# 6e -- ANONYMIZATION IS A PROPERTY OF THE BYTES, checked over EVERY committed fixture
+# (including the recorded live ones), not only the rendered ones: no home path, no repo
+# root, no box user, no absolute path outside the kit's own destination cells. A
+# fixture built by copying a live file is the leak this forbids.
+def test_every_committed_fixture_is_anonymized():
+    forbidden = {str(Path.home()), OWNER, "/data/work", "/root/"}
+    for fix in sorted(FIXTURES.glob("*.fixture")):
+        text = fix.read_text(encoding="utf-8")
+        bad = sorted(t for t in forbidden | set(HOST_TOKENS) if t and t in text)
+        assert not bad, "%s carries %s" % (fix.name, bad)
+        assert not re.search(r"^/(home|root)/[^/\s]+", text, re.M), fix.name
+        assert "{{" not in text, fix.name
+
+
 # 6d -- the stand-ins are constants, not this box: a fixture rendered with the LIVE
 # host tokens must not be the committed fixture (or the anonymization is a no-op).
 def test_the_stand_ins_are_constants_and_not_this_box():
@@ -255,17 +317,36 @@ def test_the_stand_ins_are_constants_and_not_this_box():
         (FIXTURES / (piece["name"] + ".fixture")).read_text(encoding="utf-8")
 
 
-# 7 -- THE FALSIFIER: rendered bytes == the live bytes on this box, with the
-# identity tokens the KIT derives. No candidate search, no injected root: a worktree
-# is not the checkout the live kit came from, so a walk renders the wrong bytes in
-# every worktree. This goes RED, naming the cell, until the director commits it.
+# 7 -- THE FALSIFIER, OFF-BOX: rendered bytes == the RECORDED LIVE bytes, up to the
+# identity tokens. A committed test that reads ~/.config/systemd/user/... is not a
+# test, it is a probe wearing a test's name: green here, red or skipped on every
+# other box. So the live bytes are RECORDED once into the anonymized fixture, and the
+# live comparison itself is a PROBE (the parent's to run; see the node body). What is
+# left here, and is not test 6, is the claim that the fixture is a faithful record of
+# a LIVE render: render this box's own derived host tokens, swap each identity token
+# for the stand-in that anonymized it, and the bytes must be the committed fixture.
 @pytest.mark.parametrize("piece", LIVE, ids=[p["name"] for p in LIVE])
-def test_rendered_bytes_equal_the_live_bytes(piece):
-    v = R.values(CFG, MEASURED, R.host_tokens(CFG))
-    dest = R.destination(piece, CELLS, v, "/")
-    if not dest.is_file():
-        pytest.skip("no live %s on this box (the kit is portable; nothing to falsify here)" % dest)
-    assert R.rendered(piece, v) == dest.read_text(encoding="utf-8")
+def test_rendered_bytes_equal_the_recorded_live_bytes(piece):
+    live, standin = _masked(piece, R.host_tokens(CFG)), _masked(piece, STANDINS)
+    assert live == standin, (
+        "%s differs between the live box render and the stand-in render OUTSIDE its "
+        "identity placeholders -- the committed fixture is not a faithful anonymized "
+        "record of the live bytes:\n%s" % (piece["name"], _diff(standin, live)))
+
+
+def _masked(piece, tokens):
+    """Render the template with every IDENTITY placeholder replaced by a marker, on both
+    sides. Swapping the bytes instead would be wrong: a template may legitimately carry
+    a literal that happens to equal this box's uid (memguard ships a hard -1000), and a
+    blind string replace would corrupt it. Masking at the placeholder site is exact."""
+    ident = [k for k in IDENTITY if ("{{%s}}" % k) in
+             (TEMPLATES / piece["template"]).read_text(encoding="utf-8")]
+    marked = {"\x00%s\x00" % k: "\x00%s\x00" % k for k in ident}
+    body = re.sub(r"\{\{(%s)\}\}" % "|".join(IDENTITY),
+                  lambda m: marked["\x00%s\x00" % m.group(1)],
+                  (TEMPLATES / piece["template"]).read_text(encoding="utf-8"))
+    return R.render(body, {**_v(**{k: tokens[k] for k in ident}), **marked},
+                    piece["name"] + "[identity-masked]")
 
 
 # 7b -- the identity roots are DERIVED (director rules 2 and 3), never cells: the repo
@@ -359,26 +440,27 @@ def test_manifest_covers_every_unit_the_goal_no_cascade_row_names(unit):
 
 
 @pytest.mark.parametrize("unit", _no_cascade_units())
-def test_no_cascade_drop_in_matches_the_live_bytes_or_names_its_absence(unit):
-    """The LIVE half of the falsifier: the three drop-ins ARE installed on this box,
-    under the user_systemd_dir cell, even though they are new_bytes rows (new to
-    the kit). A new-to-the-kit row renders what SHOULD be installed and the live
-    file carries the owner survival header, so the FUNCTIONAL bytes must be
-    identical and the header difference is a NAMED, DELIBERATE drift -- asserted
-    here, never papered over."""
+def test_no_cascade_drop_in_matches_the_recorded_live_bytes_or_names_its_absence(unit):
+    """The coverage closure: every unit goal:g7.33.18's no-cascade row names carries a
+    new_bytes drop-in whose RECORDED LIVE bytes (the anonymized fixture) carry the same
+    payload the kit renders, and differ from it by EXACTLY the delta the manifest
+    declares, line for line. A box with no recorded live bytes is a NAMED skip, never a
+    silent pass. This reads FIXTURES only -- the live-unit comparison is the probe."""
     rows = [r for r in _drop_ins_for(unit) if r.get("new_bytes")]
     if not rows:
         pytest.skip("unit %s has no new_bytes no-cascade row in the kit" % unit)
-    v = R.values(CFG, MEASURED, R.host_tokens(CFG))
-    absent = [r["name"] for r in rows if not R.destination(r, CELLS, v, "/").is_file()]
+    v = _vs()
+    absent = [r["name"] for r in rows if not (FIXTURES / (r["name"] + ".fixture")).is_file()]
     if absent:
-        pytest.skip("no live bytes on this box for the no-cascade drop-in(s) %s of unit %s "
-                    "(the kit is portable), so there is nothing to falsify against"
+        pytest.skip("no RECORDED live bytes for the no-cascade drop-in(s) %s of unit %s "
+                    "(the kit is portable); the parent must run the live probe and record them"
                     % (", ".join(absent), unit))
     for row in rows:
-        live = R.destination(row, CELLS, v, "/").read_text(encoding="utf-8")
-        got = R.rendered(row, v)
-        assert row["name"] in DRIFT_ROWS, row["name"]
-        assert _payload(got) == _payload(live), _diff(_payload(live), _payload(got))
-        assert got != live, ("%s: the template now renders the live bytes exactly -- the "
-                             "named header drift is gone, drop the row from DRIFT_ROWS" % row["name"])
+        assert row["name"] in DRIFT_ROWS, (row["name"], "a no-cascade drop-in with a recorded "
+                                              "live file and no drift cell declares nothing")
+        live = (FIXTURES / (row["name"] + ".fixture")).read_text(encoding="utf-8")
+        _assert_declared_drift(row, R.rendered(row, v), live, v)
+        # the whole live record is accounted for: its only comments are the declared
+        # live_only lines, so a new unexplained comment in the live file is RED.
+        comments = [ln for ln in live.splitlines() if ln.lstrip().startswith("#")]
+        assert comments == _declared(row, "live_only_lines", v), (row["name"], comments)

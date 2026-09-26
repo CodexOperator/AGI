@@ -1,5 +1,6 @@
 {
  "new_bytes_means": "new to the kit: these bytes were authored here, not copied from an installed file; it says nothing about whether a given box carries the file",
+ "drift_means": "a row with a drift cell carries a RECORDED LIVE file (tests/fixtures/boxkit/<name>.fixture, anonymized) and DECLARES, line for line, the exact difference between what the template renders and what that live file carries: render_only_lines are the header lines the render has and the live file does not, live_only_lines the reverse. The payload (every non-comment line) is equal. Placeholders resolve through the same renderer as the template. A render that CONVERGES on the live bytes is a DEFECT here, not an improvement: the live file is the owner's 09-25 survival header, and a kit that quietly adopts it loses the declaration of why the drop-in exists.",
  "pieces": [
   {
    "name": "user-at-service-guard",
@@ -284,7 +285,19 @@
     "GUARD_SRC",
     "OOM_POLICY"
    ],
-   "new_bytes": true
+   "new_bytes": true,
+   "drift": {
+    "render_only_lines": [
+     "# sanctuary guard layer 2. Written by {{GUARD_SRC}}.",
+     "# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.",
+     "# The no-cascade drop-in (goal:g7.33.18): OOM-killing streamer-stub must not take the",
+     "# session down with it, so the failure continues instead of cascading."
+    ],
+    "live_only_lines": [
+     "# owner 09-25: one OOM-killed process must never stop the whole unit (04:02Z took every seat down)"
+    ],
+    "why": "the live file was hand-written by the owner on 09-25 while the 04:02Z cascade took every seat down; it states the same decision in the owner's words. The template states it in guard-kit words. The payload is identical -- only the prose header differs, and that difference is the declared delta."
+   }
   },
   {
    "name": "streamer-stub-watch-no-cascade",
@@ -299,7 +312,19 @@
     "GUARD_SRC",
     "OOM_POLICY"
    ],
-   "new_bytes": true
+   "new_bytes": true,
+   "drift": {
+    "render_only_lines": [
+     "# sanctuary guard layer 2. Written by {{GUARD_SRC}}.",
+     "# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.",
+     "# The no-cascade drop-in (goal:g7.33.18): OOM-killing streamer-stub-watch must not take the",
+     "# session down with it, so the failure continues instead of cascading."
+    ],
+    "live_only_lines": [
+     "# owner 09-25: one OOM-killed process must never stop the whole unit (04:02Z took every seat down)"
+    ],
+    "why": "the live file was hand-written by the owner on 09-25 while the 04:02Z cascade took every seat down; it states the same decision in the owner's words. The template states it in guard-kit words. The payload is identical -- only the prose header differs, and that difference is the declared delta."
+   }
   },
   {
    "name": "claude-remote-control-no-cascade",
@@ -314,7 +339,19 @@
     "GUARD_SRC",
     "OOM_POLICY"
    ],
-   "new_bytes": true
+   "new_bytes": true,
+   "drift": {
+    "render_only_lines": [
+     "# sanctuary guard layer 2. Written by {{GUARD_SRC}}.",
+     "# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.",
+     "# The no-cascade drop-in (goal:g7.33.18): OOM-killing claude-remote-control must not take the",
+     "# session down with it, so the failure continues instead of cascading."
+    ],
+    "live_only_lines": [
+     "# owner 09-25: one OOM-killed process must never stop the whole unit (04:02Z took every seat down)"
+    ],
+    "why": "the live file was hand-written by the owner on 09-25 while the 04:02Z cascade took every seat down; it states the same decision in the owner's words. The template states it in guard-kit words. The payload is identical -- only the prose header differs, and that difference is the declared delta."
+   }
   },
   {
    "name": "sanctuary-watch-service",
