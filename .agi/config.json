@@ -218,7 +218,9 @@
     "cap_mb": 16,
     "rotations": 3,
     "mode": "copytruncate",
-    "alerts_file": "memory-alarm-alerts.log"
+    "alerts_file": "memory-alarm-alerts.log",
+    "also_manage": ["agi-reaper-agi-2f118e6f.log"],
+    "non_append": "skip"
   },
   "grid": {
     "storage_trunk": "refs/grid/local-maxxing",
