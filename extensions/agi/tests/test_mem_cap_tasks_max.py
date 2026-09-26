@@ -5,8 +5,9 @@ beside `spawn.memory_max`; the shipped
 default lives in `mem_cap._DEFAULT_TASKS_MAX` so a config with no cell keeps
 working (a round may never commit `.agi/config.json`).
 
-The fan-out probe uses `bash` + `sleep` only -- no python, no pytest, nothing
-that recurses into the suite -- and every subprocess carries a `timeout`.
+The fan-out probe is a `python3` `os.fork()` script (`_FANOUT`) run under
+`timeout`; it forks only, it imports nothing and it never recurses into the
+suite. (An earlier docstring said `bash` + `sleep`; that was false.)
 """
 from __future__ import annotations
 
@@ -73,6 +74,19 @@ def test_an_unreadable_cell_falls_back_and_never_uncaps(monkeypatch):
             mem_cap._DEFAULT_TASKS_MAX, bad
     monkeypatch.setenv("AGI_TASKS_MAX", "5")
     assert mem_cap.resolve_tasks_max(_cfg(tasks_max=8)) == 5
+
+
+def test_a_non_dict_spawn_container_reads_as_absent_for_bOTH_readers():
+    """One shared guard: `{"spawn": 42}` raised TypeError out of
+    resolve_memory_cap while resolve_tasks_max already defaulted."""
+    for bad in (42, 0, [], "x", None, True):
+        cfg = {"spawn": bad}
+        assert mem_cap.resolve_tasks_max(cfg) == mem_cap._DEFAULT_TASKS_MAX, bad
+        assert mem_cap.resolve_memory_cap(cfg) == "4G", bad
+    # a dict with the real cell still reads through the SAME helper
+    assert mem_cap.resolve_tasks_max({"spawn": {"tasks_max": 7}}) == 7
+    assert mem_cap.resolve_memory_cap({"spawn": {"memory_max": "1G"}}) == "1G"
+    assert mem_cap._spawn_block({"spawn": 42}) == {}
 
 
 # ---- (2) the argv ----------------------------------------------------------

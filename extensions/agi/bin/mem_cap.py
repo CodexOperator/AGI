@@ -54,6 +54,17 @@ def _normalise_cap(val) -> "str | None":
     return str(val)
 
 
+def _spawn_block(cfg: "dict | None") -> dict:
+    """The `spawn` container AS A DICT, or {} -- one shared guard.
+
+    A cell is data, not a promise: `spawn` that is a number, a list or a
+    string must not raise out of a reader (it did: `resolve_memory_cap`
+    raised TypeError on `{"spawn": 42}`), it must read as absent and fall
+    back to the shipped default."""
+    spawn = (cfg or {}).get("spawn")
+    return spawn if isinstance(spawn, dict) else {}
+
+
 def resolve_tasks_max(cfg: "dict | None" = None) -> int:
     """`spawn.tasks_max` -> an int >= 1, else the shipped default.
 
@@ -63,9 +74,7 @@ def resolve_tasks_max(cfg: "dict | None" = None) -> int:
     to `_DEFAULT_TASKS_MAX` rather than to "no bound": an unreadable cell
     must not silently un-cap the tree. `AGI_TASKS_MAX` overrides for tests."""
     env = os.environ.get("AGI_TASKS_MAX")
-    spawn = (cfg or {}).get("spawn")
-    spawn = spawn if isinstance(spawn, dict) else {}
-    raw = env if env not in (None, "") else spawn.get("tasks_max")
+    raw = env if env not in (None, "") else _spawn_block(cfg).get("tasks_max")
     try:
         n = int(str(raw).strip())
     except (TypeError, ValueError):
@@ -83,7 +92,7 @@ def resolve_memory_cap(cfg: dict, override: "str | None" = None) -> "str | None"
     """
     if override is not None:
         return _normalise_cap(override)
-    spawn = (cfg or {}).get("spawn") or {}
+    spawn = _spawn_block(cfg)
     if "memory_max" not in spawn:
         return "4G"
     return _normalise_cap(spawn.get("memory_max"))
@@ -264,8 +273,10 @@ def wrap_argv(argv: list, cap: "str | None",
               cfg: "dict | None" = None) -> list:
     """`cap is None` -> the SAME argv object, unwrapped; else systemd-run when
     usable, else the prlimit fallback. `cfg` is OPTIONAL and read only for the
-    cache's `values.memcap` cells -- a caller with no config on hand gets the
-    shipped defaults, so the hot path never has to resolve the graph itself."""
+    cache's `values.memcap` cells and for `spawn.tasks_max` (via
+    `resolve_tasks_max`, which defaults when `cfg` is None) -- a caller with
+    no config on hand gets the shipped defaults, so the hot path never has to
+    resolve the graph itself."""
     if cap is None:
         return argv
     if systemd_run_usable(cfg):
