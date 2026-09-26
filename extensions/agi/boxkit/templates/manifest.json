@@ -1,4 +1,5 @@
 {
+ "new_bytes_means": "new to the kit: these bytes were authored here, not copied from an installed file; it says nothing about whether a given box carries the file",
  "pieces": [
   {
    "name": "user-at-service-guard",

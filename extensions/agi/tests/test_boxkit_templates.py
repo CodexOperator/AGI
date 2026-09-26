@@ -26,10 +26,17 @@ Nine rows, one per clause of the claim:
 7c. every manifest dest_cell resolves against the COMMITTED config (the
    user_systemd_data_dir debt is closed: the director committed that cell);
 8. install() writes only under a tmp install_root, with the manifest mode;
-9. a row whose bytes do not exist on this box is flagged new_bytes;
+9. a row whose bytes are NEW TO THE KIT -- authored here, not copied from an
+   installed file -- is flagged new_bytes, and is therefore excluded from the
+   rendered==live comparison. new_bytes says NOTHING about whether this box
+   carries the file: the three no-cascade drop-ins are new to the kit AND have
+   live counterparts (test 10b), and agi-survival-conf is new to the kit and has
+   none. Whether the kit or the box is first is a SEPARATE question, asked in 10b;
 10. the manifest covers EVERY unit goal:g7.33.18's no-cascade row names, read from
-   the LIVE goal node (never a copied list), and a unit with no live drop-in on
-   this box is a NAMED skip, never a silent pass.
+   the LIVE goal node (never a copied list), and each no-cascade drop-in is
+   compared against the live file at its user-systemd-dir destination wherever the
+   box has one -- a NAMED header drift -- a box without it is a NAMED skip, never
+   a silent pass.
 
 Reads: config cells, the per-box measurement fixture, and the live files (read-only).
 Writes: tmp_path only.
@@ -116,6 +123,10 @@ DRIFT_ROWS = {"streamer-stub-no-cascade", "streamer-stub-watch-no-cascade",
 
 PIECES = R.manifest()["pieces"]
 BY_NAME = {p["name"]: p for p in PIECES}
+# LIVE = the pieces copied from an INSTALLED file, i.e. the ones the kit can
+# falsify byte-for-byte against this box. A new_bytes row is new TO THE KIT (it was
+# authored here, not read off a box), so it is excluded -- whether a live
+# counterpart happens to exist is question 10b, not a property of the flag.
 LIVE = [p for p in PIECES if not p.get("new_bytes")]
 # the LIVE identity tokens, used only to assert a committed fixture does not carry them
 HOST_TOKENS = (OWNER, str(Path.home()), str(R.engine_checkout()),
@@ -294,12 +305,17 @@ def test_install_writes_under_a_tmp_install_root_only(tmp_path):
     assert not (tmp_path / "etc" / "systemd" / "system" / "10-agi-survival.conf").exists()
 
 
-# 9 -- a row with no live bytes on this box says so
-def test_new_bytes_row_is_flagged_and_has_no_live_counterpart():
-    row = BY_NAME["agi-survival-conf"]
-    assert row["new_bytes"] is True
-    assert not R.destination(row, CELLS, _v(), "/").exists()
-    assert "OOMPolicy" in R.rendered(row, _v())
+# 9 -- new_bytes means NEW TO THE KIT: these bytes were authored here, not copied
+# from an installed file. It is not a statement about this box, so this test asserts
+# neither presence nor absence of a live counterpart -- it asserts only that the flag
+# says what it means and steers the one thing it steers: the falsifier's LIVE set.
+def test_new_bytes_rows_are_flagged_and_excluded_from_the_live_comparison():
+    rows = [p for p in PIECES if p.get("new_bytes")]
+    assert {p["name"] for p in rows} == set(DRIFT_ROWS) | {"agi-survival-conf"}
+    assert not [p for p in rows if p in LIVE], "a new_bytes row must not be compared as a copy"
+    assert len(LIVE) == len(PIECES) - len(rows)
+    for p in rows:
+        assert "OOMPolicy=" in R.rendered(p, _v()), p["name"]
 
 
 # 10 -- the no-cascade coverage closure (kid a00-057a8121, probe 5 of the previous
@@ -344,11 +360,12 @@ def test_manifest_covers_every_unit_the_goal_no_cascade_row_names(unit):
 
 @pytest.mark.parametrize("unit", _no_cascade_units())
 def test_no_cascade_drop_in_matches_the_live_bytes_or_names_its_absence(unit):
-    """The LIVE half of the falsifier, after the dest fix: the three drop-ins ARE on
-    this box, under the user_systemd_dir cell. For a new_bytes row the kit renders
-    what SHOULD be installed and the live file carries the owner survival header, so
-    the FUNCTIONAL bytes must be identical and the header difference is a NAMED,
-    DELIBERATE drift -- asserted here, never papered over."""
+    """The LIVE half of the falsifier: the three drop-ins ARE installed on this box,
+    under the user_systemd_dir cell, even though they are new_bytes rows (new to
+    the kit). A new-to-the-kit row renders what SHOULD be installed and the live
+    file carries the owner survival header, so the FUNCTIONAL bytes must be
+    identical and the header difference is a NAMED, DELIBERATE drift -- asserted
+    here, never papered over."""
     rows = [r for r in _drop_ins_for(unit) if r.get("new_bytes")]
     if not rows:
         pytest.skip("unit %s has no new_bytes no-cascade row in the kit" % unit)
