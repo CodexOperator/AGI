@@ -47,7 +47,7 @@ def _graph(tmp_path, extra="", row_role="director", row_name="probe-director",
     (graph / "config.json").write_text("{}")
     (graph / "nodes" / ".geometry" / "ladder.md").write_text(
         "---\ndirector_context_tokens: 100000\ndirector_rotate_at: 0.25\n"
-        + extra + "---\n")
+        "capture_chain_log: capture-chain.log\n" + extra + "---\n")
     (graph / "nodes" / ".geometry" / "seats.md").write_text(
         "---\nseats:\n"
         f"  - {{\"name\": \"{row_name}\", \"role\": \"{row_role}\", "
