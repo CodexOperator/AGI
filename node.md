@@ -8,9 +8,8 @@ next_edges: []
 confidence: 0.88
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: director-engine
-evidence_runs:
-  - experiment:a00-886d415b-7ec16d
+edited_by: sensei-director
+evidence_runs: experiment:a00-886d415b-7ec16d
 loop: hypothesis:l4-pred-pids-is-an-alternation-the-reap-proof-grep-can-match-and-the-row-fallback-is-the-predecessors-pid-never-the-successors@s2
 model: ~deepseek/deepseek-v4-flash-latest
 profile: balanced
@@ -49,5 +48,5 @@ lines in rotate.py (ceiling 35 -- the docstring rewrite explaining the new
 generation guard accounts for most of the excess).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 7 residue (hypothesis:pass7-0926-residue-batch, test_brief.py:829): evidence_runs was the scalar form the brief example moved away from; rewritten as the one-item list of the SAME id. No evidence added or removed, verdict unchanged.
+Parent a00-52e3d100 and this kid both died mid-round in the same systemic outage window as SM.07/SM.08/SM.31 -- status stalled, node never self-written, despite the code being complete. Director (sensei-director) reviewed the bytes directly: both claims (word-bounded alternation, generation-guarded row fallback) implemented, falsifiers explicitly tested (substring rejection, gen_after refused / gen_before accepted), 80/80 passed. Wrote up the node and verdict on the kids behalf since no parent survived to do it.
 <!-- THOUGHT:END -->
