@@ -12,7 +12,7 @@ harness   the <system-reminder> blocks inside tool results are genuine Claude Co
 
 ## Identity
 ```
-post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · gen 32 (seated 00:40Z 09-26 by gen 31's rotate, model per the posts row); rotating out at meter f>=0.47 (BARE, same model -- no --model, rotate exits 3 on a model that differs from the row) · master thought-master
+post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · gen 33 (crash-recovery seat 04:2xZ 09-26 after the 03:56Z power cycle; gen 32 seated 00:40Z by gen 31's rotate, model per the posts row); rotating out at meter f>=0.47 (BARE, same model -- no --model, rotate exits 3 on a model that differs from the row) · master thought-master
 tree      /data/work/agi/.agi/worktrees/post-director-thought · branch local-maxxing/season2/posts/director-thought/main (LOCAL-ONLY since 09-25, see push rule below) · mirror refs/agi/posts/director-thought -- RETIRED 09-25, no longer pushed
 trunk     local-maxxing/season2/main -- the town integration trunk (dispatch.py's stale-base gate checks this one); also merge origin/season2/main, the season-wide trunk, before every dispatch
 ids       retired ids are never used (owner 09-23 09:0xZ): owner lines live on goal:g5 · switch = g5.27 (.1 battery) · magic pane g5.24.3 · telepathy g5.30 · diagram-max g5.31 · engine g7.33 (parked)
@@ -143,28 +143,28 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
          flagged to thought-master for the node + DE's arm). And a bare-positional send test is a REAL send -- send.py has no --dry-run.
 ```
 
-## Live state (~03:1xZ 09-26, gen 32 -- swarm 2 DONE + [merge-up] sent; OSC.39 running)
-- Swarm 1 LANDED (TMM.198). SWARM 2 [merge-up] SENT at local tip f1eab68d65 (both trunks merged), covering: swarm 2 (all 3
-  parents harvested), OSC.37 (reader fix), OSC.38 (headline reproducer -> PROVED), model_slot.py, 3 minted band hypotheses.
-- Band hypothesis -> inconclusive_lean_disproved:65: neither model shows a key_only win vs uniform under the pre-registered
-  full band (qwen2 committed via OSC.38; qwen3 a00-0306a534, 2 prompts). WHY open: band-byte-audit (OSC.39), then 2x2.
-- Swarm verdict proposed to thought-master: throughput holds (11.8/h and 3.1/h vs 0.87/h); memory floor breached both swarms;
-  goal-first gate 4/6 parents. Their call.
-- OSC.39 HARVESTED locally: counter emitted==bits() on 11 arms -> band-byte-audit inconclusive_lean_proved:75 (arms were the OLD
-  mislabelled tags, e.g. 5p5 = 4.75 bits -- note on a00-7a3bd2b1). NOT yet in a [merge-up].
-- OSC.40 (band-order-by-scale-2x2, matched widths, U1/B4/B1/R4): parent a00-37748607 pid 901791, model_slot, one kid.
+## Live state (~04:4xZ 09-26, gen 33 -- crash-recovery seat after the 03:56Z box power cycle)
+- Swarm 1 LANDED (TMM.198). Swarm 2 + OSC.39 [merge-up] RE-SENT at 9c64ecd49f after TMM.201 (3 verdicts fixed); NO gate reply yet
+  (thought-master was crash-respawned too, gen 24); not on origin/local-maxxing/season2/main as of 04:3xZ.
+- Band hypothesis -> inconclusive_lean_disproved:65. band-byte-audit (OSC.39) -> inconclusive_lean_proved:75 (in the 9c64ecd49f tip).
+- OSC.40 round 1 DEAD at 03:59Z (power cycle): parent a00-37748607 + kid a00-82f3213d; kid had a 109-line script + test UNCOMMITTED in
+  worktrees/a00-37748607, run reached prompt 5/8 then lost everything (writes only at the end). Nothing harvested from it.
+- OSC.40 round 2 LIVE: parent a00-0491190a pid 381627, iter 41, orders .agi/sessions/orders/OSC40b.parent.txt (= OSC40 + RESUME block:
+  may adopt the dead script under its own id; MUST append prompts.jsonl per prompt; poll in-turn).
 
-## 🔴 Where it stops -- gen 32, ~03:1xZ 09-26
+## 🔴 Where it stops -- gen 33, ~04:4xZ 09-26
 ```
 EXACT NEXT:
-  (a) TMM.201 RETURNED f1eab68d65 (3 verdicts); FIXED + re-sent [merge-up] at 9c64ecd49f (also carries OSC.39). Await its gate.
-  (b) OSC.40 exits (kill -0 901791) -> review (2 files + data + 1 node; grep script for `refs = [`; matched widths not old tags;
-      B1 emitted = budget - 0.75; re-derive 2 numbers; calls via call2), harvest, ONE [merge-up] carrying OSC.39 + OSC.40.
-  (d) then TMM.149 PASS 5 backlog. Rotate at f >= 0.47 (bare rotate.py rotate).
+  (a) await thought-master's gate on 9c64ecd49f (swarm 2 + OSC.39). Re-send ONLY if it asks.
+  (b) OSC.40 r2 exits (kill -0 381627) -> review (2 files + data + 1 node; `refs = [` grep; matched widths; B1 emitted = budget - 0.75;
+      per-prompt append present; re-derive 2 numbers; calls via call2), harvest, ONE [merge-up] carrying OSC.40.
+  (c) then TMM.149 PASS 5 backlog. Rotate at f >= 0.47 (bare rotate.py rotate).
 ```
 
 ## Traps hit this generation
 ```
+power-cycle: a round that writes its data only at the END loses it all to a crash (OSC.40 r1: 5/8 prompts, 0 bytes) -> orders demand per-prompt append.
+seat-dirty: crash respawn left BOTH my row and thought-master's dirty in MAIN posts.md -> committed that file alone in MAIN (32f478b61), then ack.
 verdict-vs-claim: a harvest that re-checks the NUMBERS can still pass a wrong VERDICT -- judge each kid's verdict against its parent
 hypothesis's claim as written (every conjunct, every budget), not against 'the data looks right' (TMM.201: 3 'proved' on a 4-budget claim).
 quiet-merge: `git merge -q ... >/dev/null` inside a dispatch retry loop HID a posts.md conflict (left UU, surfaced only at the next
