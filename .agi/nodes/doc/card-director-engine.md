@@ -85,7 +85,9 @@ rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing
   DH.384   MERGED 4b69308e4: ONE _in_place_precondition guards all 3 in-place writes; 169 green. residue: non_append=rename moves a held
            archive to .1.1, which the next apply's prune unlinks -> a live non-append writer keeps a deleted inode (space freed only at its exit)
   NEXT     full suite RUNNING on 4b69308e4 -> merge-up 5 = DH.383 + DH.384 (quote the MEASURED behind count)
-  TMM.212/215 (goal:g7.33, minted 214f76cf1): DH.385 a00-09d1b5a8 scrub AGI_MODEL_SLOT_LOCK from spawns (my ruling: --lock ok, env = inherited hole)
+  TMM.212/215 (goal:g7.33, minted 214f76cf1): DH.385 MERGED 3b3b020e2 lean_disproved:40 -- scrub list gained AGI_MODEL_SLOT_LOCK, but
+           ALL 4 adapter restart() read raw os.environ (pi_adapter.py:326) -> every scrubbed key (Anthropic creds, key-minting key) leaks on restart
+           -> DH.388 a00-301fe6aa hypothesis:every-adapter-restart-spawns-from-the-scrubbed-env
            DH.386 a00-ea72c5f8 kid commits orders-named nodes (#1) · DH.387 a00-9a906e4f .agi/context in a declared suite (#3) · #2 CLOSED by DT 49e8cd268
   suite    full suite GREEN on 7448e90e3: 6582 passed / 0 failed (conftest changed by DH.381); DH.382 after it 59/59
 merge-up 4 SENT tip 91177caa1: DH.377-382 + PASS 8 rows (first send claimed '0 behind' while 2 behind -> CORRECTED by dm)
@@ -132,12 +134,17 @@ DH.369 gate (maint_gc = git gc, 04:41 daily, NOT in the live crontab until TM la
 | 6 | PASS 7 code rounds NEXT, one per parent exit (memory 3.1 GiB + load 24/16 at 03:2xZ -> held): mem-cap-probe-cache-is-private-and-atomic -> launch-memory-cap-tests-never-touch-real-systemd -> brainstorm-manifest-route (workflow.py:2175) -> brainstorm contracts | queued |
 | 4 | DH.360 seam 3 (fresh mint) -> TMM.166/174 -> g1.14.1 -> PASS 6 defect 3 -> pass7-0926-residue-batch (read fully) | queued |
 
-## 🔴 WHERE IT STOPS
+## 🔴 WHERE IT STOPS (gen 23, ~08:4xZ, meter 0.335/0.47)
 ```
-1  send.py read director-engine   -> TM's verdict on the re-sent merge-up; a red = fix + re-send with sha
-2  spawn_budget.py status + .agi/sessions/iter-DH.36{7,8,9}/ -> harvest each parent as it reports
-3  after DH.368 merges: dispatch.py . DH.<n> --target hypothesis:heal-lands-a-reseat-after-a-tmux-server-restart
-   --tier parent --role parent --ladder-tier 0 --from director-engine --branch --detach (MemAvailable >= 3 GiB first)
+live     DH.386 a00-ea72c5f8 (kid commits orders-named nodes) · DH.387 a00-9a906e4f (.agi/context suite) · DH.388 a00-301fe6aa (restart env)
+suite    full suite on 4b69308e4 RUNNING (bg) for merge-up 5 -- result in scratchpad suite-mu5.log; if green: send merge-up 5 =
+         DH.383 + DH.384 + DH.385 (tip = HEAD, behind = MEASURED rev-list count, never typed); residues: also_manage box-hashed name,
+         non_append=rename .1.1 prune vs live writer, DH.385 restart leak (-> DH.388)
+awaiting TM verdict on merge-up 4 (tip 91177caa1) · belam on 2c ([ask] 07:4xZ) · SM on box cells (g7.33.14 clause 1) + stream-master box (DH.373 d)
+harvest  per round: review diff vs claim + parent probes; commit the parent worktree's leftover files (rounds CANNOT commit .agi/config.json);
+         take ONE tree when kids overlap; cat-literal grep; merge --no-ff; run the round's test files
+guard    <= 10 live town-wide, pi only, no model loads; hold dispatch while io PSI avg10 > ~10; never grep -r over .agi/ (101 worktrees)
+next     after these: remaining PASS 8 rows (card PASS 8 'rows OPEN') -> DH.360 seam 3 -> TMM.166/174 -> g1.14.1
 ```
 
 ## §4 TRAPS (gen 22)
