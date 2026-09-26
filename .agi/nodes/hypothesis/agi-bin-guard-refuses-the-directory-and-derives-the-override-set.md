@@ -37,3 +37,6 @@ extensions/agi/tests/test_agi_bin_absent.py · extensions/agi/tests/fixtures/mak
 
 ## CEILING
 1 kid · <= 12 production lines per conjunct · pi parents (tier-0) · 0 USD. Every test that spawns python/pytest runs under `timeout` + a process cap; never a pytest that can re-collect its own dir; kids never launch real claude.
+
+## Agent Notes
+DIRECTOR DH.428 (corrective, mur-director-engine-3 DH.425 residues 1-4): the dead SHADOW_SCRIPTS constant goes; RULING -- the guard is red when <project-root>/bin EXISTS at all (S1 forbids the directory; the fixture makes bin/ only to plant); the line-citation guard also catches the colon form; the message states exactly what is checked. DH.428 merges the DH.425 loop branch first and is reviewed as one branch.
