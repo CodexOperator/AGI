@@ -277,3 +277,41 @@ def test_live_config_declares_the_four_cells():
     cells = boxes.box_cells(graph)
     assert set(cells) == set(CELLS)
     assert all(cells[k] for k in CELLS), cells
+
+
+def test_repo_root_and_graph_root_read_the_same_cells(tmp_path):
+    """A REPO root is not a graph root, but the same tree, so it reads the same.
+
+    `box_schema_path` used to look for `context/schemas/[box].md` under the
+    root it was HANDED, so a repo root got an empty cell set SILENTLY -- the
+    render `resolve_placeholders` refuses to produce. It resolves the graph the
+    way every other reader in the tree does (locations.py), so one tree cannot
+    audit two ways depending on which root the caller passed.
+    """
+    repo = tmp_path / "repo"
+    (repo / ".git").mkdir(parents=True)          # a repo boundary
+    graph = repo / ".agi"
+    graph.mkdir()
+    (graph / "config.json").write_text(json.dumps({"box": dict(CELLS)}))
+    _write_schema(graph)
+    assert boxes.box_cells(repo) == boxes.box_cells(graph) == CELLS
+    assert boxes.box_schema_path(repo) == boxes.box_schema_path(graph)
+
+
+def test_a_root_with_no_graph_refuses_by_name(tmp_path):
+    """Not-found resolves to the root handed in, and then it refuses."""
+    plain = tmp_path / "plain"
+    plain.mkdir()
+    assert boxes.graph_root(plain) == plain.resolve()
+    with pytest.raises(boxes.BoxSchemaError) as err:
+        boxes.require_box_cells(plain)
+    assert str(plain.resolve()) in str(err.value)
+
+
+def test_classify_never_repeats_a_class(tmp_path):
+    graph = _graph(tmp_path)
+    cells = boxes.box_cells(graph)
+    # `root` passed as a class AND matched by the tail: one 'box', not two.
+    classes = [(k.split("_")[0], k) for k in boxes.require_box_cells(graph)]
+    hits = paths.classify("see %s today" % CELLS["root"], cells, classes)
+    assert hits.count("box") == 1
