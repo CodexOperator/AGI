@@ -88,7 +88,7 @@ def test_broken_config_json_falls_back(tmp_path, monkeypatch):
     assert rot._term_grace_s() == 15.0
 
 
-def _fake_reaper(monkeypatch, *, pid=424242, ignore_term=True):
+def _fake_reaper(monkeypatch, *, pid=424242, pids=None, ignore_term=True):
     """Inject the three seams `_reap_chain` reaches for: the liveness probe
     (`_pid_alive`), the `ps -o pid=,cmd= -p` reader (`_short_ps`) and the
     signalling seam (`os.kill` in rotate's own module globals, plus
@@ -99,15 +99,15 @@ def _fake_reaper(monkeypatch, *, pid=424242, ignore_term=True):
     `ignore_term=True` models the original subject of this test: a process
     that IGNORES SIGTERM, so the wait runs to the cell's deadline and the
     survivor is SIGKILL'd."""
-    state = {"alive": True, "signals": []}
+    state = {"alive": set(pids) if pids else {pid}, "signals": []}
 
     def _alive(p):
-        return int(p) == pid and state["alive"]
+        return int(p) in state["alive"]
 
     def _kill(p, sig, *a, **k):
         state["signals"].append((int(p), sig))
         if sig != signal.SIGTERM or not ignore_term:
-            state["alive"] = False
+            state["alive"].discard(int(p))
 
     monkeypatch.setattr(rot, "_pid_alive", _alive)
     monkeypatch.setattr(rot, "_short_ps", lambda p: f"{int(p)} fake-cmd")
@@ -176,3 +176,61 @@ def test_reap_chain_refuses_the_real_own_pid(fake_root, monkeypatch):
     assert "refused" in out["chain"][-1]["note"]
     assert all(p == 424242 for p, _s in state["signals"])
 
+
+
+# ── hypothesis:a-reap-chain-is-bounded-by-one-chain-deadline-not-per-pid-grace
+def test_absent_chain_deadline_cell_resolves_to_the_code_default(fake_root):
+    """The chain deadline is a CONFIG CELL like the term grace, and 20.0 is
+    the RESOLVER for a missing cell, not a second value."""
+    fake_root({})
+    assert rot._chain_deadline_s() == 20.0
+
+
+def test_chain_deadline_cell_is_read_at_runtime(fake_root):
+    fake_root({"chain_deadline_s": 2.5})
+    assert rot._chain_deadline_s() == 2.5
+    fake_root({"chain_deadline_s": 7})
+    assert rot._chain_deadline_s() == 7.0   # not cached from the first read
+
+
+@pytest.mark.parametrize("bad", ["abc", True, -1, 0, None, []])
+def test_malformed_chain_deadline_falls_back_and_never_raises(fake_root, bad):
+    fake_root({"chain_deadline_s": bad})
+    assert rot._chain_deadline_s() == 20.0
+
+
+def test_three_term_immune_members_cost_ONE_chain_deadline(fake_root,
+                                                          monkeypatch):
+    """The falsifier: N TERM-ignoring members must all be SIGKILLed inside ONE
+    `chain_deadline_s` budget, never N x `term_grace_s`. term_grace 1.0 x 3 =
+    3.0 s is what the old per-pid deadline would have cost; the chain deadline
+    of 1.2 s is what the whole chain may cost (+ settling)."""
+    fake_root({"term_grace_s": 1.0, "chain_deadline_s": 1.2})
+    state = _fake_reaper(monkeypatch, pids=[424242, 424243, 424244],
+                         ignore_term=True)
+
+    t0 = time.monotonic()
+    out = rot._reap_chain([424242, 424243, 424244])
+    elapsed = time.monotonic() - t0
+
+    assert all(e["gone_after"] is True for e in out["chain"])
+    assert [p for p, _s in state["signals"]] == \
+        [424244, 424244, 424243, 424243, 424242, 424242]  # TERM+KILL each
+    assert elapsed >= 1.2, elapsed          # the whole chain really waited
+    assert elapsed < 2.5, elapsed           # NOT 3 x term_grace_s
+
+
+def test_chain_deadline_caps_an_oversized_term_grace(fake_root, monkeypatch):
+    """`term_grace_s` 41.0 with a 0.5 s chain deadline: the member still gets
+    TERM then KILL, inside the chain deadline, not after 41 s of waiting."""
+    fake_root({"term_grace_s": 41.0, "chain_deadline_s": 0.5})
+    state = _fake_reaper(monkeypatch, ignore_term=True)
+
+    t0 = time.monotonic()
+    out = rot._reap_chain([424242])
+    elapsed = time.monotonic() - t0
+
+    assert out["chain"][0]["gone_after"] is True
+    assert [s for _p, s in state["signals"]] == [signal.SIGTERM,
+                                                 signal.SIGKILL]
+    assert elapsed < 2.5, elapsed
