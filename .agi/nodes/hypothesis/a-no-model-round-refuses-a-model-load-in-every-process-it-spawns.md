@@ -36,3 +36,7 @@ the round starts -- parent, kids, their subprocesses -- inherits an env that ins
 3. The loader list exists in two places (the conftest and the fence) -> disproved.
 4. The python -I / -S bypass is neither closed (memory ceiling via mem_cap) nor named in the node as the residual -> disproved.
 5. test_dispatch*.py regress -> disproved. No real transformers/torch is installed or imported; stand-ins only.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+STOPPED 13:3xZ on TMM.229 (Prime condition 4: no real model load from any process before PASS 9 closes; (d) holds all model rounds). DH.397 parent a00-aae44e7f + kid a00-1f6fc2ce TERMed (gone), worktree .agi/worktrees/a00-aae44e7f KEPT (kid experiment stub uncommitted). Re-dispatch ONLY after PASS 9 closes, with the fixture rule in the orders AND the test: red-on-old loads a tiny model GENERATED in tmp from a random-init config, never osc03/osc15/brain or any real weights dir; stand-in modules for the refusal itself.
+<!-- THOUGHT:END -->
