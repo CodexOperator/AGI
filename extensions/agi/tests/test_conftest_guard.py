@@ -30,11 +30,19 @@ CONFTEST = os.path.join(os.path.dirname(__file__), "conftest.py")
 
 def _load_tests_conftest():
     """`import conftest` would resolve to extensions/agi/conftest.py, so the
-    tests-dir conftest (the file that OWNS the guard) is loaded by path."""
+    tests-dir conftest (the file that OWNS the guard) is loaded by path.
+
+    The env var tells that conftest this is a UNIT LOAD: a unit load must
+    not install the session-wide import-time fence (and then uninstall it)
+    under the running suite's feet."""
     import importlib.util  # noqa: PLC0415
-    spec = importlib.util.spec_from_file_location("_tests_conftest", CONFTEST)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
+    os.environ["AGI_TESTS_CONFTEST_UNIT_LOAD"] = "1"
+    try:
+        spec = importlib.util.spec_from_file_location("_tests_conftest", CONFTEST)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+    finally:
+        os.environ.pop("AGI_TESTS_CONFTEST_UNIT_LOAD", None)
     return mod
 
 CONFTEST = os.path.join(os.path.dirname(__file__), "conftest.py")
@@ -180,6 +188,41 @@ OFFENDING_SRCS = {
         "    # workflow._REAL_POPEN IS the real class, captured at import:\n"
         "    # no stdlib hook can see this call at all.\n"
         "    workflow._REAL_POPEN(['true'])\n"),
+    "system": _OPTIN_HEAD + (
+        "import os\n"
+        "def test_offender():\n"
+        "    # os.system ran a REAL shell inside an opted-in module: the old\n"
+        "    # fence listed four subprocess names and os.fork/forkpty only.\n"
+        "    os.system('true')\n"),
+    "execv": _OPTIN_HEAD + (
+        "import os\n"
+        "def test_offender():\n"
+        "    # heal.py:1780 reaches os.execv; unfenced, this REPLACES the\n"
+        "    # pytest process, so red-on-old is a silent rc 0 with no report.\n"
+        "    os.execv('/bin/true', ['true'])\n"),
+    "posix_spawn": _OPTIN_HEAD + (
+        "import os\n"
+        "def test_offender():\n"
+        "    os.posix_spawn('/bin/true', ['true'], {})\n"),
+    "pty_spawn": _OPTIN_HEAD + (
+        "import pty\n"
+        "def test_offender():\n"
+        "    pty.spawn(['true'])\n"),
+    "killpg": _OPTIN_HEAD + (
+        "import os\n"
+        "def test_offender():\n"
+        "    # signal 0 delivers NOTHING, so this probe is harmless; the\n"
+        "    # guard refuses the GROUP outright (see _make_guarded_killpg).\n"
+        "    os.killpg(os.getpgid(0), 0)\n"),
+    "import_time_spawn": _OPTIN_HEAD + (
+        "import subprocess\n"
+        "# NOT inside a test body: collection imports this module before any\n"
+        "# fixture exists, so the function-scoped guard cannot see it.\n"
+        "subprocess.run(['echo', 'IMPORT-TIME-SPAWN-ESCAPED'],"
+        "capture_output=True)\n"),
+    "import_time_system": _OPTIN_HEAD + (
+        "import os\n"
+        "os.system('true')  # a REAL shell at import time\n"),
     "live_config": _OPTIN_HEAD + (
         "import json, pathlib\n"
         "def test_offender():\n"
@@ -189,16 +232,74 @@ OFFENDING_SRCS = {
 
 def test_process_config_guard_fires_on_every_fenced_resource():
     """conftest's `_no_real_process_or_live_config` is IN FORCE, not merely
-    documented: for each fenced resource a deliberately offending test in an
-    opted-in module FAILS, and the guard's own message is the reason.
+    documented, and so is the import-time fence that covers the leaves a
+    function-scoped fixture cannot reach: for each fenced resource a
+    deliberately offending test in an opted-in module FAILS, and the guard's
+    own message is the reason.
 
-    Red-first: drop the fixture (or its opt-in read) and all five nested
-    suites report rc 0 — the offenders would then really fork, really scan
-    /proc and really signal pid 1."""
+    Red-first: drop the fixture (or its opt-in read) and every nested suite
+    except the two import-time ones reports rc 0 — the offenders would then
+    really fork, really run a shell, really scan /proc and really signal a
+    pid. Drop the IMPORT-TIME fence and `import_time_spawn` reports rc 0
+    again (its `echo` really runs at collection)."""
     for name, src in OFFENDING_SRCS.items():
         code, out = _run_guarded_subprocess(src)
         assert code != 0, f"guard did not fire on {name}:\n{out}"
         assert "NO_REAL_PROCESSES" in out, out
+
+
+def test_import_time_fence_lets_a_plain_module_spawn_at_import():
+    """The import-time fence is opt-in like the fixture, not a session-wide
+    ban: a module with no `NO_REAL_PROCESSES` still spawns for real at
+    collection, which is how the wider suite's own helpers keep working."""
+    code, out = _run_guarded_subprocess(
+        "import subprocess\n"
+        "subprocess.run(['echo', 'ok'], capture_output=True)\n"
+        "def test_x():\n"
+        "    assert True\n")
+    assert code == 0, f"import-time fence over-reached a plain module:\n{out}"
+
+
+def test_unit_loading_the_conftest_leaves_the_session_fence_alone():
+    """A unit load of conftest.py BY PATH (every leaf test above does it)
+    must not install-then-remove the process-wide import-time fence: the
+    stdlib this suite is using has to come out byte-identical."""
+    before_run, before_popen = subprocess.run, subprocess.Popen
+    _load_tests_conftest()
+    assert subprocess.run is before_run, "unit load clobbered subprocess.run"
+    assert subprocess.Popen is before_popen, "unit load clobbered subprocess.Popen"
+
+
+def test_every_fenced_spawn_leaf_exists_and_is_fenced():
+    """The leaf list is one source per rule, so a renamed or deleted stdlib
+    leaf (or a typo in the name) must be RED here rather than silently
+    unfenced at runtime."""
+    leaves = _load_tests_conftest()._FENCED_SPAWN_LEAVES
+    resolved = _load_tests_conftest()._resolve_leaves(leaves)
+    assert len(resolved) == len(leaves), (
+        "these fenced leaves do not exist in this interpreter -- the fence "
+        f"is dead weight: {[m + '.' + a for m, a in leaves[len(resolved):]]}")
+    names = {f"{m.__name__}.{a}" for m, a in resolved}
+    for required in ("os.system", "os.execv", "os.posix_spawn", "pty.spawn",
+                     "subprocess.Popen", "os.fork"):
+        assert required in names, f"{required} is not in the fence: {sorted(names)}"
+
+
+def test_spawn_fence_install_and_uninstall_restore_the_module():
+    """The import-time fence is undo-able: install it on a STUB module (never
+    on os/subprocess, which the running suite is using) and assert (a) a
+    caller that has not opted in still reaches the real leaf and (b) the
+    ORIGINAL leaf object is back after uninstall. Without this the fence
+    would outlive the session that installed it."""
+    import types  # noqa: PLC0415
+    cf = _load_tests_conftest()
+    real = lambda *a, **k: "real"  # noqa: E731 -- a stub, not a spawn
+    stub = types.SimpleNamespace(run=real)
+    saved = cf._install_spawn_fence(leaves=((stub, "run"),), kills=False)
+    assert stub.run() == "real", "a caller that never opted in must pass through"
+    assert stub.run.__name__.startswith("_import_fence"), "fence not installed"
+    cf._uninstall_spawn_fence(saved)
+    assert stub.run is real, "uninstall did not restore the real leaf"
 
 
 def test_process_config_guard_is_opt_in_not_blanket():
@@ -251,6 +352,23 @@ def test_guarded_kill_refuses_parent_pid_and_arms_no_syscall():
         with pytest.raises(AssertionError, match="NO_REAL_PROCESSES"):
             guarded(foreign, signal.SIGKILL)
     assert calls == [(4242, 0)], f"a real syscall was armed: {calls}"
+
+
+def test_guarded_killpg_refuses_outright_and_arms_no_syscall():
+    """conftest._make_guarded_killpg refuses a process GROUP without calling
+    through: a group leader the test spawned can share a group with a shell
+    the test never spawned, so no pid is exempt. The recorder proves the real
+    killpg is never reached -- no live group is ever signalled by this file.
+    The probe itself is signal 0 (delivers nothing) in the offender table."""
+    calls = []
+    guarded = _load_tests_conftest()._make_guarded_killpg(
+        lambda pgid, sig, *a, **k: calls.append((pgid, sig)))
+    for pgid in (os.getpgrp(), os.getpid(), 1, 4242):
+        with pytest.raises(AssertionError, match="NO_REAL_PROCESSES"):
+            guarded(pgid, 0)
+    with pytest.raises(AssertionError, match="process GROUP"):
+        guarded(os.getpgrp(), signal.SIGTERM)
+    assert calls == [], f"a real killpg was armed: {calls}"
 
 
 def test_the_guard_offender_table_arms_no_fatal_signal():

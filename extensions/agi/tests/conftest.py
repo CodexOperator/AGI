@@ -671,6 +671,131 @@ _FENCED_MODULE_RUNNERS = (
     ("workflow", "_REAL_RUN"),
 )
 
+#: EVERY process-creating stdlib leaf, as (module, attr). The old fence
+#: listed four `subprocess` names plus os.fork/forkpty and nothing else, so
+#: `os.system("true")` really ran a shell inside an opted-in module (measured
+#: 2026-09-26 a00-6e17df77) -- and the engine's own leaves were wide open:
+#: heal.py:1780 calls `os.execv`. One list, one source per rule, applied by
+#: BOTH the per-test fixture and the import-time fence below, so the two can
+#: never drift.
+_FENCED_SPAWN_LEAVES = (
+    ("subprocess", "Popen"), ("subprocess", "run"),
+    ("subprocess", "call"), ("subprocess", "check_output"),
+    ("os", "fork"), ("os", "forkpty"),
+    ("os", "execv"), ("os", "execve"), ("os", "execvp"), ("os", "execvpe"),
+    ("os", "posix_spawn"), ("os", "posix_spawnp"), ("os", "system"),
+    ("pty", "spawn"),
+)
+
+#: A caller that set this module attribute opted in to the process guard.
+_GUARD_FLAG = _GUARD_OPTIN_ATTR
+
+
+def _resolve_leaves(leaves=_FENCED_SPAWN_LEAVES):
+    """(module, attr) pairs that exist in THIS interpreter, in order. An
+    entry's first element may be a module OBJECT (a unit test passes a stub
+    so it can drive install/uninstall without touching os/subprocess) or a
+    module NAME to import."""
+    out = []
+    for mod_name, attr in leaves:
+        mod = mod_name
+        if isinstance(mod, str):
+            mod = sys.modules.get(mod)
+            if mod is None:
+                try:                   # noqa: PLC0415 -- lazy on purpose
+                    mod = __import__(mod_name)
+                except Exception:       # noqa: BLE001 -- absent here, no fence
+                    continue
+        if hasattr(mod, attr):
+            out.append((mod, attr))
+    return out
+
+
+def _caller_opted_in():
+    """True when ANY frame on the stack belongs to a module that set
+    `NO_REAL_PROCESSES = True`. Walking the whole stack (not just the
+    innermost frame) is what makes the import-time fence see an opted-in test
+    module that spawns through engine code, e.g. heal.py's os.execv."""
+    frame = sys._getframe(1)  # noqa: SLF001 -- the only way to see the caller
+    while frame is not None:
+        if frame.f_globals.get(_GUARD_FLAG):
+            return True
+        frame = frame.f_back
+    return False
+
+
+def _make_import_time_fence(real, label, kill=False):
+    """Wrap ONE process leaf so an opted-in caller is refused even when the
+    call happens at IMPORT time -- before any fixture can exist."""
+    def _fence(*a, **k):
+        if _caller_opted_in():
+            if kill and a and int(a[0]) == os.getpid():
+                pass                     # own-pid signal-0 liveness probe
+            else:
+                raise AssertionError(
+                    f"guard: a NO_REAL_PROCESSES module called {label} at "
+                    "IMPORT time (collection), where no fixture can guard it; "
+                    "move the call into a test body, or inject the seam")
+        return real(*a, **k)
+    _fence.__name__ = f"_import_fence_{label.rsplit('.', 1)[-1]}"
+    _fence.__module__ = "conftest"
+    return _fence
+
+
+def _install_spawn_fence(leaves=_FENCED_SPAWN_LEAVES, kills=True):
+    """Install the import-time fence NOW (conftest import, which pytest does
+    before it imports any test module in this dir) and return the undo list.
+
+    Measured 2026-09-26 a00-6e17df77: a function-scoped fixture is too late
+    (a module-level `subprocess.run` really ran `echo`) and a SESSION-scoped
+    fixture is exactly as late (measured, same escape) -- pytest imports test
+    modules during collection, after session setup. The conftest module itself
+    is imported before those modules, so conftest-import-time is the only
+    ordering that covers it; that is why this is a plain import-time install
+    and not a hook."""
+    saved = []
+    for mod, attr in _resolve_leaves(leaves):
+        real = getattr(mod, attr)
+        saved.append((mod, attr, real))
+        label = f"{getattr(mod, '__name__', mod.__class__.__name__)}.{attr}"
+        setattr(mod, attr, _make_import_time_fence(real, label))
+    for attr in (("kill", "killpg") if kills else ()):
+        saved.append((os, attr, getattr(os, attr)))
+        setattr(os, attr, _make_import_time_fence(getattr(os, attr), f"os.{attr}",
+                                                  kill=True))
+    return saved
+
+
+def _uninstall_spawn_fence(saved):
+    for mod, attr, real in reversed(saved or []):
+        setattr(mod, attr, real)
+
+
+def _fence_spawn_leaves(setattr_, refuse, leaves=_FENCED_SPAWN_LEAVES):
+    """Fence every process leaf for a TEST BODY (fixture path). `setattr_` is
+    monkeypatch.setattr, so the test can still win by injecting its own seam
+    after the fixture."""
+    for mod, attr in _resolve_leaves(leaves):
+        setattr_(mod, attr, refuse)
+
+
+def _make_guarded_killpg(real_killpg):
+    """os.killpg is refused OUTRIGHT, and that is the honest rule rather than
+    a lazy one: a group leader the test spawned may sit in a group that also
+    holds a shell the test never spawned (the session group it inherited), so
+    "own pid" is not a sound exemption for a GROUP. A test that needs to
+    signal a group it made isolates itself (setsid) and asserts on a
+    stand-in it started; until then the whole call is refused.
+
+    `real_killpg` is a parameter so a test can prove with a RECORDER that no
+    syscall is armed -- never a live group."""
+    def _guarded_killpg(pgid, sig, *a, **k):
+        raise AssertionError(
+            f"guard: a NO_REAL_PROCESSES test signalled process GROUP {pgid}; "
+            "a group is refused outright -- a group leader this test spawned "
+            "can share a group with a shell it did not")
+    return _guarded_killpg
+
 
 @pytest.fixture(autouse=True)
 def _no_real_process_or_live_config(request, monkeypatch):
@@ -736,6 +861,7 @@ def _no_real_process_or_live_config(request, monkeypatch):
 
     real_open, real_kill = builtins.open, os.kill
     real_scandir, real_listdir = os.scandir, os.listdir
+    real_killpg = os.killpg
     # builtins.open AND io.open: they are two names, and only io.open is what
     # Path.read_text/open resolves at call time (the C _io.open never calls
     # the Python-level os.open, so an os.open hook alone catches nothing).
@@ -745,11 +871,9 @@ def _no_real_process_or_live_config(request, monkeypatch):
     # A directory walk needs BOTH hooks: Path.iterdir/glob/listdir reach
     # os.listdir, os.walk/scandir callers reach os.scandir.
     monkeypatch.setattr(os, "listdir", _guarded_listdir)
-    for _name in ("Popen", "run", "call", "check_output"):
-        monkeypatch.setattr(subprocess, _name, _refuse_spawn)
-    monkeypatch.setattr(os, "fork", _refuse_spawn)
-    monkeypatch.setattr(os, "forkpty", _refuse_spawn)
+    _fence_spawn_leaves(monkeypatch.setattr, _refuse_spawn)
     monkeypatch.setattr(os, "kill", _make_guarded_kill(real_kill, own))
+    monkeypatch.setattr(os, "killpg", _make_guarded_killpg(real_killpg))
     _fence_bound_runners(monkeypatch, _refuse_spawn)
     yield
 
@@ -765,6 +889,26 @@ def _fence_bound_runners(monkeypatch, refuse):
             continue
         if hasattr(mod, attr):
             monkeypatch.setattr(mod, attr, refuse)
+
+
+#: Set by a test that loads this conftest BY PATH to unit-test one of its
+#: leaves: the unit load must not install (and then remove) the session-wide
+#: import-time fence under the running suite's feet.
+_UNIT_LOAD_ENV = "AGI_TESTS_CONFTEST_UNIT_LOAD"
+
+_IMPORT_FENCE_SAVED = None
+if os.environ.get(_UNIT_LOAD_ENV) != "1":
+    _IMPORT_FENCE_SAVED = _install_spawn_fence()
+
+
+def pytest_unconfigure(config):
+    """Undo the import-time fence when the session ends: it is installed in
+    the pytest PROCESS, so a suite that embeds pytest must get its stdlib
+    back."""
+    global _IMPORT_FENCE_SAVED  # noqa: PLW0603 -- one install per process
+    if _IMPORT_FENCE_SAVED is not None:
+        _uninstall_spawn_fence(_IMPORT_FENCE_SAVED)
+        _IMPORT_FENCE_SAVED = None
 
 
 @pytest.fixture(autouse=True)
