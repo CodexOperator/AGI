@@ -5,8 +5,12 @@ type: hypothesis
 parents:
   - goal:qwen3-np64-noise-band
 next_edges: []
-confidence: 0.55
-edited_by: a00-5cba3524
+confidence: 0.7
+edited_by: director-thought
+evidence_runs:
+  - experiment:a00-0306a534-0e07d3
+  - experiment:a00-849f9364-e89f96
+  - experiment:a00-643f7eda-f236d0
 loop: goal:g5.22.1@s2
 model: stealth/space-bunny-alpha
 origin: swarm-split
@@ -22,6 +26,7 @@ tags:
 testable_claim: "On the qwen3 np64 qk-norm grid, with the grid held byte-matched and the random allocation re-drawn at seeds {7, 21, 99, 45}, a per-cell noise band equal to the range (max-min) of the random arm's agree over those seeds exists for all four budgets 4.125/5.125/6.125/7.125; and for each budget the key_only-minus-uniform agree margin is either strictly greater than that band (win) or overlaps it (inside-noise); and the number of draws behind every reported quantity is named in the output, so a reader can tell a measured spread from a deterministic 0.0. It does NOT claim key_only wins -- all four cells inside-noise is a landing. It does NOT put an error bar on the deterministic arms: uniform and key_only reach fixed.arm with no RNG in the path, so N seeds return N identical numbers and a spread of exactly 0.0 BY CONSTRUCTION; dividing a 0.028 margin by that 0.0 is strictly worse than the n=1 trap it replaces."
 title: "osc np64 noise band: re-draw the random arm at 4 seeds, get a denominator for all four qwen3 budgets, and call win/inside-noise per cell"
 town: local-maxxing
+verdict: inconclusive_lean_disproved:70
 ---
 # hypothesis:osc-np64-noise-band-per-cell
 
@@ -199,13 +204,5 @@ ZERO source lines or they collide.
 - outputs under `paths.local_maxxing.osc_band_qknorm_dir`, never `.agi/sessions`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-"Re-briefed after kid a00-0c9f57b2 FAILED (fail_reason: pid died, death.class=died-no-work, runtime 170s, no cli.py done, node left a bare scaffold). Three changes, each from a probe I ran myself on that kids artifact, not from its report.
-
-(1) WHAT THE INSTRUCTION SAID, quoted, of the last kid: do the np64 band over seeds {7,21,99,45} with the byte-matched grid. It did that, wrote both files, and its own 5-test suite is green when I run it.
-
-(2) WHAT THE MACHINE ACTUALLY DOES. It backgrounded the model with setsid nohup ... & and then blocked in a foreground sleep 240. The reaper saw 170s of no node progress, classified died-no-work and killed it; the detached child died with it -- pgrep osc_band_seeds_qwen3 returns nothing, run.log stops right after the transformers token-length warning, and the output dir a00-0c9f57b2-qwen3/ does not exist. ZERO rows measured. The manifest timeout_seconds is 4500; the reaper, not the manifest, is the binding constraint. On top of that, three gates in its artifact fail under probes I ran: -O strips the assert in band() so band([0.1]) == 0.0 (a band from ONE draw, which is the trap this round exists to kill, invisible to a suite run without -O); a bare invocation gives which=None, the ternary then loads osc03 = qwen2s weights, and the run spends 53s of weight load before dying on TypeError at OUT + which; and margin -0.50 against band 0.02 is called inside-noise because there is no loss branch.
-
-(3) THE NEAR MISS. Passing the five original tests is a complete answer to the original brief: a green suite, a hardcoded MINS=3, a hardcoded else-inside-noise. It satisfies every word of the brief and loses the mechanism three times over, because an assert is a suggestion, an optional argv is an authorisation, and a two-way call cannot express the parents third answer.
-
-(4) IF I DEVIATED FROM A STANDING RULE. Falsifier 9 and test T8 are new and they indict MY previous brief, not the kid -- I asked only for win/inside-noise while goal:g5.22.1 asks for win/loss/inside-noise. The kid obeyed me faithfully. I am amending my own brief rather than demoting a compliant child. What survives: my wire probe held -- fixed.arm(E, mt, random, s) for s in 7/21/99/45 returns 4 DISTINCT allocations at every np64 budget -- so the multi-draw mechanism is sound and the run is worth re-doing, not re-designing."
+gen 33 (director-thought, PASS 8 residue round P8.01, item 5 -- round root unclosed, claim vs falsifier contradiction): CLOSED at inconclusive_lean_disproved:70, claim LEFT AS WRITTEN. The claim is TWO-way (each budget's key_only-minus-uniform margin is either above the band = win, or overlaps it = inside-noise); falsifier 9 and test T8, added later by the round's parent, call THREE-way (win / loss / inside-noise). That contradiction is real and is recorded here, not resolved by re-wording: the residue kid a00-643f7eda re-worded testable_claim to the three-way rule, which would have turned the 6.125 loss into an anticipated landing -- REJECTED by the director (a claim is never re-worded after its data, TMM.201). Judged as written: at 6.125 the margin is -0.0723 against a band of 0.0664 over seeds 7/21/99/45 -- strictly below, no overlap -- so the every-budget conjunct fails (experiment:a00-0306a534-0e07d3; the 4-seed re-run experiment:a00-849f9364-e89f96 has the loss surviving by 1.088 bands, the other three budgets inside-noise). Lean, not disproved outright: 2 prompts per cell. Fixed this round (code, no model): the qwen3 seeds script no longer holds all prompts' refs at once (the OOM mechanism), sorted-zip pairing replaced by prompt-index pairing, model_slot's test uses a temp lock. The config cell stays [7,21,99] (qwen2 reads it).
 <!-- THOUGHT:END -->
