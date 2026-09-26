@@ -8,9 +8,8 @@ next_edges: []
 confidence: 0.9
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: director-engine
-evidence_runs:
-  - experiment:a00-9608da10-ec05af
+edited_by: a00-107fc3a7
+evidence_runs: experiment:a00-9608da10-ec05af
 line_ceiling: 15
 loop: hypothesis:l4-suite-green-on-main-the-18-reds-after-h2-and-rc-propagation-are-fixtures-that-learn-the-resolver-plus-one-no-repo-predicate-fix@s2
 model: ~deepseek/deepseek-v4-flash-latest
@@ -110,7 +109,15 @@ the re-pin stays as a legitimate re-triage but no longer blames the landings.
 0 production lines changed — this round was test + node-reword only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 7 residue (hypothesis:pass7-0926-residue-batch, test_brief.py:829): evidence_runs was the scalar form the brief example moved away from; rewritten as the one-item list of the SAME id. No evidence added or removed, verdict unchanged.
+This round closes the two gaps the parent review used to demote the claim to
+inconclusive_lean_proved:80. Gap 1: parent's diff had only the summary-parser
+test; added the dedicated no-repo predicate test the claim's TESTS name. Gap 2:
+parent's CLASS D reason falsely blamed the two landings for the workflow.py
+hit; git-blame (present at 982257cdd, merge c67b973f8) shows it predates them,
+so re-worded the section to keep the legitimate inventory re-triage without the
+false attribution. First-draft assertion on git_common_root returning None was
+wrong (it returns the path itself for a gitless dir) and was dropped — the
+claim only needs the predicate's False/True behaviour. No production change.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
