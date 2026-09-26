@@ -1539,21 +1539,25 @@ def check_extra_suite(groot: Path) -> CheckResult:
             notes.append(f"{root}: not a directory")
             ok = False
             continue
-        # -rf as well as -rs: `-q` alone prints NO short summary, so the
-        # FAILED <nodeid> lines the reader needs were never in the output to
-        # be parsed out of it.
+        # ONE `-r` flag carrying every category the reader parses: `-q` alone
+        # prints no short summary, and in pytest the LAST `-r` flag on the
+        # argv WINS (`-rs -rf -rE` prints none of them; `-rsEf` prints all
+        # three), so the categories go in one flag or not at all. `E` is the
+        # one that is easy to leave out: a module that fails to IMPORT is a
+        # collection ERROR and prints no `ERROR <file>` line without it
+        # (experiment:a00-45ecb18d-d5a017).
         proc = subprocess.run([sys.executable, "-m", "pytest", str(root),
-                               "-q", "-rs", "-rf"], capture_output=True, text=True,
+                               "-q", "-rsEf"], capture_output=True, text=True,
                               timeout=SUITE_TIMEOUT, cwd=groot)
         out = (proc.stdout or "") + (proc.stderr or "")
         counts.update(_parse_pytest_counts(out))
         if proc.returncode:
             ok = False
             ids = _suite_fail_ids(out)
-            named = "\n".join(f"  FAILED {i}" for i in ids)
+            named = "\n".join(f"  FAILED/ERROR {i}" for i in ids)
             notes.append(
                 f"{root.name}: exit {proc.returncode}\n"
-                f"{named or '  (no FAILED node id in the output)'}\n"
+                f"{named or '  (no FAILED/ERROR node id in the output)'}\n"
                 + "\n".join(out.splitlines()[-10:]))
     return CheckResult(EXTRA_SUITE_CMD, "PASS" if ok else "FAIL",
                        time.monotonic() - start, counts or None, "\n".join(notes))
