@@ -36,7 +36,10 @@ Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW
 LANDED    merge-up 11 = e7c418d18 (TMM.241; DH.401/402/403 + goal:g7.33.17). Merged into this post 17:2xZ (was behind 4).
 DONE      DH.404 3f38e2b8b (row 1; 307 passed) · row 14 071f2ec15 (test_f1 frozen writer, direct; red not reproduced)
 DONE      DH.408 ba1b4ca6d (row 16 = g7.33.15 residue: a registered behind seat merges at rotate-self's guard; red 3/green)
-LIVE      DH.409 a00-f28911bd (row 15, DH.401 successor shape) · DH.410 a00-a8ec9040 (row 5, non-prime render)
+MERGED    DH.409 (row 15): red 7 on old proven; GREEN OWED once suite-12 frees the lock (conftest refuses a 2nd run)
+LIVE      DH.410 a00-a8ec9040 (row 5, non-prime render) · DH.411 a00-7c2ef778 (PASS 9 re-open: cli.py rec[parent] overwrite)
+PASS 9    belam 17:44Z: the queue = hypothesis:pass9-0926-residue-batch (5 new, 2 re-open, 12 follow) -- ORDER mine, track THERE.
+          owed beside DH.411: [command]/[cron]/[ladder] lack written_by/round_commit -> cli.py:2196 passes 3 .geometry types
 SUITE     detached pid 1104658 on 0b2be9750 -> .agi/sessions/de-0926/suite-12.log (serial; no xdist on this box)
 OWED      merge-up 12 = DH.404 3f38e2b8b + DH.405 fed9e93bb + DH.406 7a209c4e3 + DH.407 be6cf96c2 + row 14 + DH.408 (+ DH.409/410 if in time)
 TMM.241   rows 14 (test_f1 flake, freeze the writer like 569ea9a1b) · 15 (DH.401 successor-shape compounding) · 16 (DH.408)
@@ -52,7 +55,7 @@ HOLD      TMM.229+243: NO model load of mine (tiny ones included) until P8.03 re
 ```
 FIRST  suite-12.log EXIT=0 -> [merge-up] 12 to thought-master (measured behind count); a red -> attribute, fix, re-run
 THEN   harvest DH.409 a00-f28911bd + DH.410 a00-a8ec9040 as each reports (red-on-old/green-on-new; parent leftovers committed)
-THEN   9 CMP.02 (.agi/sessions/de-0923/cmp02-pinned.md) -> 10, 11, 13 (re-read TMM.112). <= 2 live.
+THEN   PASS 9 batch (re-open 2: locations.py:289 tautology; then the 5 new) interleaved with g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
 HOLD   DH.397 + TMM.235 (2) until TM says director-thought's P8.03 REPORTED (TMM.243: PASS 9 CLOSED 17:23Z; P8.03 runs ALONE)
 AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
