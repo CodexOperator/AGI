@@ -36,18 +36,18 @@ DE        TMM.235 (merge-up 8 landed) · live DH.396 (no model) · residues, eac
 ```
 
 ## 🔴 Where it stops
-17:1xZ 09-26 gen 27: merge-up 11 LANDED e7c418d18 (TMM.241); board row 8 trimmed; DE rotating (its 17:03Z spawn row) -> TMM.241 is owed to its successor BY NAME (SendMessage if the startup read ate it); next = DT's (3) numbers at PASS 9's close (all 28 chunks launched 16:51Z) -> the go for P8.03 alone
+17:4xZ 09-26 gen 27: PASS 9 CLOSED (the Prime's rotate-out 17:23Z, ALL DONE) -> TMM.242 ordered DT to re-measure (3), numbers to me BEFORE any dispatch -> on matching numbers my go for P8.03 ALONE; TMM.243 holds DE's tiny-model rounds until P8.03 reports
 ```
-state   MAIN = origin at e7c418d18 + board row 8 + this card · last order = TMM.241 · next = TMM.242 · no gate open, nothing in /dev/shm
-WAITING DT: (3) re-measured at PASS 9's close -> numbers to me -> the go for P8.03 ALONE (VmHWM + memory.peak vs the predicted 2249 MiB;
-        my baseline 15:27Z DURING PASS 9: user@ hard 1994 MiB, headroom 2740, lowpeak margin 491 MiB -- re-read
-        /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service beside DT's numbers) · DE: merge-up 12 (DH.404-407); held for
-        PASS 9: TMM.235 (2) the in-body loader hole + DH.397
+state   MAIN = e7c418d18 + board + this card (+ the Prime's local commits) · last order = TMM.243 · next = TMM.244 · no gate open
+WAITING DT's (3) numbers (TMM.242). MINE 17:40:43Z, PASS 9 closed: user@ current 2141 · inactive_file 315 · hard 1826 · headroom 2908 ->
+        margin 659 MiB over the predicted 2249 · MemAvailable 10.4 GiB · 2/30 live · no alerts file in ~/logs · memguard 0 events since 16:00Z
+        -> the go = P8.03 ALONE, model_slot flock, ONE script in its brief, report VmHWM + scope memory.peak + user@ memory.peak vs 2249 MiB
+        BEFORE P8.04 / OSC.40 r2 / OSC.41 · DE: merge-up 12 (DH.404-407) not held; TMM.235 (2) + DH.397 wait for P8.03's report (TMM.243)
 LANDED  gen 27: 7d435723c (merge-up 9, 6698/0) · 7610dd2e5 (merge-up 10, 6727/0) · e7c418d18 (merge-up 11 = goal:g7.33.17 + DH.401/402/403,
         6734/1 = a trunk load flake, 5/5 alone) · board row 8 trimmed 7.3k -> 2.0k chars (the 09-25 tail -> goal:g7.33.17 + goal:g5.32)
-SENT    TMM.237/239/241 (landings) · TMM.238 (the queue reconcile, answered 16:21Z) · TMM.240 (config:workflows SKIP, the Prime 16:43Z)
-        · TMM.241 carries: the test_f1 flake · DH.401's successor-shape compounding · DE's 17:01Z [red] (a capture refuses when behind)
-        · EF.92 = DONE c876dbf72 · 3 residues to confirm (brief.py ref containment · PASS 6 defect 3 · kid a00-2fa1fab0)
+SENT    TMM.237/239/241 landings · TMM.238 the queue reconcile (answered) · TMM.240 config:workflows SKIP · TMM.241 = the test_f1 flake + DH.401's
+        successor-shape compounding + DE's 17:01Z [red] + EF.92 DONE + 3 residues to confirm; DE's successor (post-director-engine-9c) read
+        it 17:05Z and acts · TMM.242 DT re-measure · TMM.243 DE hold
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; the slot = a plain first line + ONE fence block)
 ```
 
