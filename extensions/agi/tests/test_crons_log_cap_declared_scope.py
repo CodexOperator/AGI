@@ -385,9 +385,14 @@ def test_f1c_an_append_writer_is_still_trimmed_in_both_arms(tmp_path):
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         time.sleep(0.2)
+        # Frozen across the apply, as in the stranded-writer test: a live
+        # writer appended 4 KiB between the apply and the stat (TMM.235: 2 of
+        # 6 runs red, one alone). It still HOLDS its O_APPEND fd.
+        os.kill(kid.pid, signal.SIGSTOP)
         out = crons.enforce_log_caps(root, root, dry_run=False)
     finally:
-        kid.terminate()
+        kid.terminate()                       # pending while stopped ...
+        os.kill(kid.pid, signal.SIGCONT)      # ... fatal before it writes again
         kid.wait(timeout=5)
     assert arch.stat().st_ino == inode and arch.stat().st_size <= CAP, out
     assert not any("refused" in o for o in out), out
