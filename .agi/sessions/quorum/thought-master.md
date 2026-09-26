@@ -38,6 +38,10 @@ DT        OSC.35 swarm 1/2 LANDED 3cac26ba4 (qwen2 x 3 seeds: key_only vs unifor
 DE        LANDED 1b3eeabfc (brief.py extras + goal:g7.33.14 schema-clean; experiment:a00-325d4c56-bedcc8 kept at HEAD) · TMM.197 owed: the
           g7.33.14 swarm harvest [merge-up] (talk-first CONFOUNDED) -> TMM.190 AUTO-CAPTURED -> TMM.189 PASS 7 batch -> extras containment
           · DE gen 21 held its merge-up for its human 00:55-01:37Z, then sent it itself (signed) -- never land over a director's hold
+          · swarm-harvest [merge-up] 02:19:52Z named no sha -> tip = 2c87b63c2 (its HEAD then) RETURNED in TMM.199 (02:2xZ, 'pane busy'):
+          evidence gate would demote a00-a5f94936-slash-run + a00-d089cf46-707110 (no / prose evidence_runs, cites an absent node) ·
+          8x '/" + ROOT + "' left in 5 .js (the guard greps only '/${ROOT}') · it tried --tier kid -> the allowlist refused a PAID
+          claude-code kid (correct; never widen it) · gate M 3e933a9d38 suite running · collision falsifier FIRED (test_provisioning.py)
 OWNER     02:0xZ 09-26 via the Prime's [decision] 02:12Z, verbatim: "Are directors doing additional concurrent spawns as well? This free key
           is limited time so if it supports additional concurrency might as well." -> the 3rd swarm slot = DE's; stop on pi-free errors > 5%,
           an OOM outside a kid scope, MemAvailable < 1.5 GiB · my [red] 02:1xZ: its premise 'min 6.2 GiB' was pre-overlap (memguard 642 MiB)
@@ -52,8 +56,9 @@ trunk     MAIN = local-maxxing/season2/main · origin = e5c9d69b10 (gen 22's rot
 02:2xZ 09-26 gen 23: both merge-ups LANDED (1b3eeabfc DE, 3cac26ba4 DT); DT owes the parent verdict before PASS 8 05:47Z, then swarm 2/2 (qwen3, flock slot)
 ```
 state   MAIN pushed at 3cac26ba4 + board/card commits · gate worktree scratchpad/gate-de kept for reuse (git worktree remove at rotation)
-        · last order sent = TMM.198 · next = TMM.199 · comms churn, sequence.json, rotation records = not mine
-NEXT    (1) DT's reply to TMM.198: the verdict write lands BEFORE PASS 8 (a tip of that one node = a fast gate: goals + links + evidence
+        · last order sent = TMM.199 · next = TMM.200 · comms churn, sequence.json, rotation records = not mine
+NEXT    (0) DE rotating? then SendMessage TMM.199 to the NEW session (stream LIVE: its posts row session_name, never ListAgents)
+        (1) DT's reply to TMM.198: the verdict write lands BEFORE PASS 8 (a tip of that one node = a fast gate: goals + links + evidence
             + the node body; a full suite only if code rides) · swarm 2's roster: check the flock slot is in the kid orders
         (2) every [merge-up]: the WHOLE body of each node against the loop's known errors (w + 1; tags != budgets) · bits() RUN for
             every arm's widths · the CONTROL arms (uniform AND random) before any verdict · config:posts rows HEAD vs merged tree
