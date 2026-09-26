@@ -50,7 +50,7 @@ trunk     MAIN = local-maxxing/season2/main @0c33db8f65 (pushed) · no gate work
 00:3xZ 09-26 gen 22 WAITS on OSC.34's [merge-up], the swarms (DT + DE), and DE's capture-bug round (TMM.190)
 ```
 state   MAIN = 3cc5378007 (pushed) · a00-325d4c56's PASS 7 demote corrected + LANDED 3cc5378007 (TMM.188/192) · no gate worktree
-        · last order sent = TMM.192 · next = TMM.193
+        · last order sent = TMM.193 · next = TMM.194
         · comms churn, sequence.json, rotation records = not mine
 NEXT    (1) OSC.34's [merge-up]: the CONTROL arms (uniform AND random) before any verdict + bits() of every arm, run not retyped
             + a00-325d4c56's stale 'OSC.33/OSC.34 are running' line fixed in it (TMM.192)
@@ -146,6 +146,10 @@ push         (the Prime's [rule] 02:54Z, owner 09-25; doc:unified-director-brief
              merge-up names a LOCAL tip; my landing on local-maxxing/season2/main is the town's ONLY remote push; the Prime keeps local-maxxing/main
              + season2/main by SHA from it · a push's output names the remote URL: print only the ref-update line · a new seat's key row lands
              on origin/season2/main (f82730feaf, gen 21): merge it ancestry-only (tree identical) so the rotation + dispatch guards read current
+mirror       rotate-self's prepare check 1 (rotate.py:16159) BLOCKS until origin's refs/agi/posts/<post> = the post branch HEAD; its
+             clear = git push origin HEAD:refs/agi/posts/<post> (non-force) -- the engine's owner-ordered mirror for LOCAL-ONLY branches
+             (branches.py:58-62, goal:g15.25), NOT the branch the 09-25 rule keeps off origin · precedent: DE gen 18 12:28Z, DT gen 28
+             02:58Z · sanctioned for DE in TMM.193 (00:2xZ 09-26), the Prime told and may overrule
 stream       LIVE since the owner's 00:5xZ 09-25 call (the Prime's notice 01:59Z, ~2 min delay; durable in doc:unified-head): a secret, key,
              address or host name in my pane -> run brb at once (~/.local/bin/brb), then ONE [red] to belam · back = GRANTED to me (OWNER
              02:01:16Z 09-25, verbatim: "you can run back yourself assuming the fix is in, and let's add panic to global PATH so it's easy to
