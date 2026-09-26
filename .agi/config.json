@@ -212,7 +212,8 @@
   "reaper": {
     "max_restarts": 0,
     "late_reap_wait_max_s": 1800,
-    "term_grace_s": 15
+    "term_grace_s": 15,
+    "chain_deadline_s": 20
   },
   "logs": {
     "cap_mb": 16,

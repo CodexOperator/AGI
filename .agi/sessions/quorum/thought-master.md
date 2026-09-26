@@ -11,61 +11,44 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (09:3xZ 09-26, gen 26 -- the where-it-stops block below is newer than these lines)
+## Live state (14:2xZ 09-26, gen 26 -- the where-it-stops block below is newer than these lines)
 ```
-LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66) · 09:1xZ 09-26: 0/30 live
-GUARD     the Prime's [decision] 04:29Z (owner's order after the 03:20Z livelock + 03:56Z power cycle): user@1000.service capped 5829M
-          (high 5246M) · agi.slice 4080M · oomd at 40% pressure · watchdog reboot at PSI full >= 40% for 5 min · <= 10 live spawns
-          town-wide, pi rounds only · a model-loading kid waits for the Prime's go on a quiet town (or the brain container, 8G, HTTP) ·
-          memory_alarm (20680940c) WARN -> hold new dispatches · SUPERSEDES the 02:1xZ concurrency-up (30) · relayed to DT in TMM.202
-          · GAP [red] 04:4xZ: TM + DT (the heal's 04:28Z respawns) run in session-73.scope, OUTSIDE the cap (3531 MiB there at 04:4xZ)
-          · the scope rides the pane: a NORMAL rotate (gen 25 07:53Z, gen 26 09:14Z) does not move a seat back under the cap
-OWNER     (standing) co-own the director docs via write.py + ONE dm per live director · dispatch = ONE parent per round (--tier parent
-          --role parent --ladder-tier 0, no --harness) · NEVER the Agent tool · mini-swarm trial = hypothesis:a-parent-swarm-splits-its-
-          goal-before-it-mints-a-hypothesis (goal:g7.16)
-TOWN      TM gen 26 @6 (rotate 09:14Z, session agi-52, pid 3777971) · DT gen 33 @3 · DE / belam / SM rows not re-read by gen 26
-PASS      PASS 9 = the Prime merges the trunk at 13:47Z 09-26 (notice 08:45Z: a288a071df -> 052e8991c7+, <= 6 pi reviewers, ~2 h,
-          no model load) -- what lands before 13:47Z rides in it · NO NEW model load from 13:30Z until PASS 9 closes
-MODEL     the Prime's GO 08:45Z (signed) on 4 conditions, relayed VERBATIM to DT in TMM.216: (1) floor = measured peak + 2 GiB (2) memory_alarm
-          WARN/ALARM = no new load (3) the model process's user@ peak + user@ hard < memory.high - 512 MiB (4) none from 13:30Z ·
-          DT [hold] 08:49Z under (3): headroom 2383 MiB vs a 4.26-4.69 GB peak -> ALL 4 queued rounds hold · [decision] to belam 08:5xZ:
-          (b) own scope + MemoryMax else (d) hold to PASS 9 -> the Prime 12:44Z (signed) = (d); (b) BANKED for the owner (it changes the owner
-          guard's cgroup policy); after PASS 9 the 4 still need (b) or seats hard in user@ under the line -> relayed VERBATIM in TMM.222
-LANDED    gen 26: a125bad37 (DE e362e7947 = DH.377-388 via ef7a09f2a, then DT d7139c317) · board 2c1d2367e (row 8) · gen 25: 49e8cd268 ·
-          6f4fb27e0 · board 4c1f0e542 (row 10) · gen 24: 9ddc0fe23 · 78c55c208 · 2dd64167d · d26cca923
-DT        TMM.221 (09:3xZ, delivered): d7139c317 landed; the osc seeds union named · queue P8.03 -> P8.04 -> OSC.40 r2 -> OSC.41 (serial,
-          4 conditions in each order) HELD under (3)
-DE        TMM.220 (09:3xZ, delivered): e362e7947 landed; merge the trunk before the next tip · live: DH.389 (2c reap verb), DH.390 (named
-          set = dispatch-time ids) · residues, each its own round: the context suite model-load-free BY CONSTRUCTION (today: only while
-          sys.executable lacks torch/numpy) · the unnamed context flake (a00-7bc04de0) · stub experiment:a00-19fc5ec2-2a74e4 (26 lines,
-          no verdict, placeholder title)
+LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66) · 13:3xZ: 4 leases, all pi-free
+GUARD     the Prime's [decision] 04:29Z (unchanged): user@1000.service capped 5829M (high 5246M) · agi.slice 4080M · oomd 40% · watchdog PSI full
+          >= 40% for 5 min · <= 10 live spawns · memory_alarm WARN -> hold new dispatches · its alerts now ~/logs/memory-alarm-alerts.log (read by
+          the Prime + its PASS launcher gate, 12:44Z) · TM + DT seats ride session-73.scope (outside the cap): the scope rides the pane
+OWNER     (standing) co-own the director docs via write.py + ONE dm per live director · dispatch = ONE parent per round (--tier parent --role
+          parent --ladder-tier 0, no --harness) · NEVER the Agent tool
+TOWN      TM gen 26 (pid 3777971) · DT gen 34 = post-director-thought-a8 (rotated 13:08Z on TMM.224) · DE gen 24 = post-director-engine-03
+          (rotated 12:46Z on TMM.223) · belam gen 9
+PASS      PASS 9 RUNNING since 13:58Z (belam a03d8574a: 56 rounds, 28 chunks x 2, CAP 3, TIP 9e16b8ed90 pinned, ~2 h) -- everything I landed
+          after 9e16b8ed90 rides in PASS 10 · its launcher WAITED 13:47-13:58Z on live suite locks
+MODEL     the Prime 12:44Z (signed) = (d): the 4 model rounds hold through PASS 9; (b) own scope + MemoryMax BANKED for the owner; after PASS 9
+          they need (b) or user@ hard under the line · condition (3) = the model's peak + user@ hard < memory.high - 512 MiB · lowpeak LANDED
+          (predicted 2249 MiB vs 3615 load / 4207 eval)
+LANDED    gen 26: a125bad37 (DE DH.377-388 + DT title) · 955cb90e7 (DE merge-up 7) · 43d9fba24 (DE merge-up 8) + 5a3436805 (DT lowpeak) ·
+          board rows 8 / 5 / 10 / 4 · gen 25: 49e8cd268 · 6f4fb27e0
+DT        TMM.236 (lowpeak landed) · next: at PASS 9 close re-measure (3), numbers to me BEFORE any dispatch -> my go -> P8.03 ALONE (VmHWM +
+          memory.peak vs 2249 MiB) -> P8.04, OSC.40 r2, OSC.41 · TMM.227: no round dispatched until then (a kid loaded a model 13:28Z)
+DE        TMM.235 (merge-up 8 landed) · live DH.396 (no model) · residues, each its own round: test_f1c flake · the guard's in-body loader hole
+          (close it with a tmp_path allowance; DT's lowpeak test must still pass) · DH.397 (the no-model fence) re-dispatch after PASS 9 closes,
+          red-on-old on a tmp-generated tiny model (TMM.229)
 ```
 
 ## 🔴 Where it stops
-13:2xZ 09-26 gen 26: LANDED merge-up 7 = 955cb90e7 (rides in PASS 9); DE + DT rotated on my orders; the per-seat capture latch set aside 13:20Z + [red] to belam; next = DT's (3) numbers when PASS 9 closes, DE's next merge-up
+17:4xZ 09-26 gen 27: PASS 9 CLOSED (the Prime's rotate-out 17:23Z, ALL DONE) -> TMM.242 ordered DT to re-measure (3), numbers to me BEFORE any dispatch -> on matching numbers my go for P8.03 ALONE; TMM.243 holds DE's tiny-model rounds until P8.03 reports
 ```
-state   MAIN = origin at 955cb90e7 + board row 8 + this card · last order = TMM.225 · next = TMM.226 · DE gen 24 = post-director-engine-03, DT gen 34 =
-        post-director-thought-a8 (both relayed their owed lists by SendMessage)
-LANDED7 955cb90e7 = DE 8fd248a34: DH.390 (done commits dispatch-time ids + round-editable types) · DH.389 (session-reap, manual) · DH.391 (a capture
-        rotates past a refusing handoff; LIVE in the hook) · gate 6659 passed / 0 failed · evidence 0 · links 0 (4505) · goals 373 · anonymize ok
-LATCH   capture-director-{engine,thought}.{json,captured,s3} in /tmp/agi-rotation-<uid> renamed *.stale-20260926T1320Z (reversible): per-seat
-        latch, no session -> successors latched from birth AND the latched return swallows the over-line imperative -> DE fix owed (TMM.225)
-GATE    a125bad37: suite on the merged tree (tmpfs) 6642 passed / 0 failed / 27 skipped / 1 xfailed, 13:31 · the osc seeds conflict =
-        the UNION (osc pythonpath, neutral cwd: 16 passed; system python: 2 skipped by name) · context-suite 128 passed / 19 skipped,
-        40.4 s · evidence 0 · links 0 (4494) · goals 372 · anonymize ok · config:posts = HEAD · kid-commit check: .geometry/commands.md
-        (gen 25's) + DE's own card only
-WATCHED the log cap's FIRST live apply = the 09:35 grid_sync tick: agi-crons-*.log.1 140080753 -> 16777216 B, agi-reaper-*.log.1
-        32096155 -> 16777216 B; base logs still appended; nothing else in ~/logs touched · remote = a125bad37 (ls-remote)
-BOARD   rows 5 (live: the model GO's 4 conditions + DT's hold) + 10 (windows: PASS 9 13:47Z, follow-ups landed) + 8 (engine)
-ANSWERED the Prime 12:44Z: DH.380 alerts = (a) -- it reads logs.alerts_file itself + its PASS launcher gate moved there; (b) impossible as an
-        engine round (guard-init.sh lives outside every repo) -> banked for the owner · model lane = (d), (b) banked for the owner
-SENT    TMM.222 DT (the Prime's (d) verbatim; re-measure (3) when PASS 9 closes, numbers to me before any dispatch) · TMM.223 DE: ROTATE NOW
-        (idle 09:11-12:4xZ at 0.40 on a capture that promised a forced rotation) + the successor's owed list BY NAME: DH.390 harvest (tip
-        5217181e5, 4 kids) · DH.389 · TMM.220's 3 residues · the capture-text residue (goal:g7.33.N) -> RELAYED to post-director-engine-03
-        · DE's .meter pin names ac0e1546 (last written 03:19Z) while its live session was 7e93043d; the hook's [meter] still moved in the live jsonl
-OWED    DE: the DH.389 + DH.390 merge-up (a LOCAL tip, full suite first) + TMM.220's 3 residues · DT: the model queue HOLDS under (3),
-        (d) on the Prime's silence · NO model load from 13:30Z · PASS 9 at 13:47Z
-out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
+state   MAIN = e7c418d18 + board + this card (+ the Prime's local commits) · last order = TMM.243 · next = TMM.244 · no gate open
+WAITING DT's (3) numbers (TMM.242). MINE 17:40:43Z, PASS 9 closed: user@ current 2141 · inactive_file 315 · hard 1826 · headroom 2908 ->
+        margin 659 MiB over the predicted 2249 · MemAvailable 10.4 GiB · 2/30 live · no alerts file in ~/logs · memguard 0 events since 16:00Z
+        -> the go = P8.03 ALONE, model_slot flock, ONE script in its brief, report VmHWM + scope memory.peak + user@ memory.peak vs 2249 MiB
+        BEFORE P8.04 / OSC.40 r2 / OSC.41 · DE: merge-up 12 (DH.404-407) not held; TMM.235 (2) + DH.397 wait for P8.03's report (TMM.243)
+LANDED  gen 27: 7d435723c (merge-up 9, 6698/0) · 7610dd2e5 (merge-up 10, 6727/0) · e7c418d18 (merge-up 11 = goal:g7.33.17 + DH.401/402/403,
+        6734/1 = a trunk load flake, 5/5 alone) · board row 8 trimmed 7.3k -> 2.0k chars (the 09-25 tail -> goal:g7.33.17 + goal:g5.32)
+SENT    TMM.237/239/241 landings · TMM.238 the queue reconcile (answered) · TMM.240 config:workflows SKIP · TMM.241 = the test_f1 flake + DH.401's
+        successor-shape compounding + DE's 17:01Z [red] + EF.92 DONE + 3 residues to confirm; DE's successor (post-director-engine-9c) read
+        it 17:05Z and acts · TMM.242 DT re-measure · TMM.243 DE hold
+out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; the slot = a plain first line + ONE fence block)
 ```
 
 ## Traps (post-specific, learned)
@@ -77,7 +60,9 @@ rotation     the CAPTURE latch (/tmp/agi-rotation-<uid>/capture-<seat>.json {cap
              · rotate.py rotate --post <director> is REFUSED ('equal rank (director = director)') -> order the director's own bare rotate ·
              rotate --model/--effort that differs from the row is REFUSED (exit 3): the row changes first · config:posts model / effort /
              role / tier / harness / owning_goal / worktree / rotated_by = prime/owner-only cells · a pin is verified = .agi/sessions/<post>.meter
-             names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
+             names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence -- and ONE fence block under it: never keep the 4-backtick wrapper +
+             the copied first line that rotate hands you (it compounds +1 per rotation even with DH.401: gen 27 measured 5/4/3 on a copy with
+             the real _write_stops_section; the clean shape stays 4/3)
              · a SYMLINKED quorum card loops the bare rotate (DE gen 13, 5 tries: stop_commit's flattened copy vs the link = a TYPECHANGE the dirty check refuses) -> unblock = cp the target over the link, commit that one path, rotate (TMM.152)
 goals        a FIX = a sub-sub goal inside the fixes subgoal of the top-level subgoal it applies to (engine fixes = goal:g7.33.N) -- never a new top-level goal (OWNER 16:24Z 09-24) · renumber: write.py for every field it allows + ONE hand edit of the id line + git mv (no verb sets id); refs re-pointed in the same commit; THOUGHT old -> new
 orders       a Prime [decision] 'through you' that binds a director goes out BEFORE any gate (04:29Z 09-26: gated first, relayed 9 min later; DT dispatched 2 model-loading rounds in the gap -> memory CRIT 04:39Z) · a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
@@ -146,6 +131,16 @@ fixtures     an experiment's own _test.py: PYTHONPATH=/data/ml/.venv/lib/python3
              placeholders: a python read of it is NOT a path (gen 25's first run: numpy missing) · a deliberate break runs in a SECOND
              detached tmpfs worktree of M (158 MiB): paths.get_local resolves inside that tree (brain_swap_out_dir = <wt>/datasets/...),
              so a mutated log / node / script never touches the gate tree its suite reads; restore with git checkout, status clean
+context      a green main suite + verification's context suite (system python, NO torch) cannot see a .agi/context regression that only a TORCH
+             python hits (MU8's guard: 16 errors) -> at every gate touching .agi/context/conftest.py or a context test's imports, run DT's seeds
+             tests with the osc pythonpath from a neutral cwd in the gate tree -- never the whole context dir under torch during a model hold
+PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam 1d3aba877, 13:48Z) -- a /dev/shm gate worktree's suite holds one
+             too -> never start a gate suite in a PASS start window; stop a returned tip's suite at once
+             · a PASS's mur runs import MAIN's LIVE workflow.py (3 runners, cwd MAIN, 16:0xZ): a workflow.py landing mid-PASS changes every chunk
+               launched after it -> land mid-PASS only when the mur shape (no extends, no round stage) runs unchanged (gen 27, merge-ups 9 + 10)
+holds+       a prose NO MODEL LOAD in a round's brief does NOT bind a pi kid (TMM.226 13:28Z: kid a00-639868bf ran from_pretrained fp32 + re-ran a
+             HELD round under the Prime's (d)) -> under a model hold dispatch NO round that can reach a model script; the analysis = the director
+             by hand, until DE's dispatch-time fence (TMM.228) lands
 residues     before routing a residue to ANOTHER director, read the newest dm of the director whose round produced it (gen 25: DT's 2/3 at
              08:01Z had already fixed the model_slot flock item I routed to DE at 08:0xZ -> TMM.215 took it back)
              · accept_with_residue ≠ land (unified-director-brief:32) · NEVER waive a mur residue -- the owner's 09-19 rule gives each its own
@@ -155,10 +150,11 @@ residues     before routing a residue to ANOTHER director, read the newest dm of
              (harness, started_at, finished_at, death) in the director's worktree against the node BEFORE gating
 review       read each round's FINAL verify stage in .agi/sessions/workflows/runs/mur-*/verify_R-EFnn.json · no mur under the hold = read the
              director's in-place review AND the diff yourself, and say so · agi-research-review PROPOSE-ONLY: the refute stage reads 0 of the
-             brainstorm's proposed_hypotheses -> read runs/rr-*/brainstorm_*.json yourself (DE fix owed, TMM.144 item 3)
+             brainstorm's proposed_hypotheses -> read runs/rr-*/brainstorm_*.json yourself (FIXED: goal:g7.33.12 complete, read gen 27)
 key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send.authority_ref(root), True) · local seat keys = the NAMES of
              .agi/sessions/seats/*.key (+ .key.pending), never the bytes
-suite        ON TMPFS (09-26): git worktree add --detach /dev/shm/<gate> M + TMPDIR=/dev/shm/<tmp> (chmod 700) -> no disk writes, 13:20; remove both after · suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
+suite        ON TMPFS (09-26): git worktree add --detach /dev/shm/<gate> M + TMPDIR=/dev/shm/<tmp> (chmod 700) (NEVER a tmp name that starts with the gate path: test_commands' ENGINE_ROOT substring check reds -- gen 27, /dev/shm/gate-mu9 + gate-mu9-tmp) -> no disk writes, 13:20; remove both after (STOPPING one = kill every pid whose /proc/<pid>/cwd is the gate path, THEN remove
+             it: a test spawns pytest in its OWN session -- gen 26's orphan 2318135 reddened DT's test_suite_no_detached_spawn) · suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
              call · 14:25-15:28 at load 2-6 (6413 passed 00:5xZ 09-25; 14:36 at load 3-8, 6433 passed 11:59Z) · foreground sleep is blocked: wait
              with a background loop · a bare 'cd' in a Bash call can stick as the session's cwd -- use absolute paths or cd back to /data/work/agi (gen 24 did it again with a `cd .agi/worktrees && ...`: the session cwd moved; pass absolute paths instead) · grep here is UGREP: a long alternation regex fails ('exceeds complexity limits') -> extract with python re
              · pgrep -f pytest matches the claude + rotate-wrapper processes (their argv carries the startup prompt): find a live suite by
@@ -243,6 +239,8 @@ detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashbo
              · an ORDER-DEPENDENT red passes alone: two modules named paths (extensions/agi/bin/paths.py + .agi/context/local-maxxing/paths.py)
                -> an earlier test caches one in sys.modules and a later bare `import paths` gets it (DH.385's test, gen 25); a director's
                targeted run cannot see it -- only the full suite; attribute by the traceback, not by 'passes alone'
+             · test_crons_log_cap_long_lived_writer::test_f1_rename_mode... = a load flake (the test_f1c race at another site; gen 27: 1 red
+               in the full suite, 5/5 alone) until DE freezes its writer (TMM.241)
 print dms    when printing the dm log yourself, print EVERY block since your last read, never [-1] (gen 25: DE's merge-up 4 at 08:18Z hid behind
              its 08:33Z ruling; found only because the next tip carried it) · send.py read prints the new blocks itself -- read its output whole
 kid commits  DH.386 (DE, lands with e362e7947): `cli.py done` auto-commits the round's NAMED nodes -- a kid-supplied --parent resolves ANY id
