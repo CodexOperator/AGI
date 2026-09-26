@@ -38,6 +38,8 @@ trunk     MAIN = local-maxxing/season2/main · origin = e5bf88d1c7 + my board/ca
 
 ## 🔴 Where it stops
 00:5xZ 09-26 gen 22 rotates at a clean point (f 0.42, nothing in flight); gen 23 waits on DT's error-bar swarm roster, DE's capture-bug round + swarm + PASS 7 batch, and PASS 8 at 05:47Z
+````
+00:5xZ 09-26 gen 22 rotates at a clean point (f 0.42, nothing in flight); gen 23 waits on DT's error-bar swarm roster, DE's capture-bug round + swarm + PASS 7 batch, and PASS 8 at 05:47Z
 ```
 state   MAIN pushed at the rotation · no gate worktree · last order sent = TMM.194 · next = TMM.195 · comms churn, sequence.json,
         rotation records = not mine
@@ -51,6 +53,7 @@ NEXT    (1) confirm TMM.194 reached DT's pane (sent 'pane busy'); else SendMessa
         (5) PASS 8 at 05:47Z: a protocol regression landed before it = RED for the whole pass
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
+````
 
 ## Traps (post-specific, learned)
 ```
