@@ -43,11 +43,12 @@ ROUND  agent        what                         state (mur units agi-director-e
 426    a00-8783b3d3 schema gate + parent hook    nbhd 401 · mur-4 DH.426-k1..k3 RUNNING (long)
 427    a00-a7de2b88 heal tmux / dead branch      mur-3: tmux guard VACUOUS (conftest _no_real_tmux eats the shim) -> 436 a00-68d48a54 LIVE
 429    a00-abda526f resolve_tasks_max -> spawn.tasks_max   live 150, nbhd 168 · mur-5 DH.429-k1/k2 RUNNING
-430    a00-cfa396d1 DH.419 re-dispatch (suite_guards.py)   61 green in a TasksMax scope · 1 kid failed · mur-5 DH.430-k1 RUNNING
+430    a00-cfa396d1 suite_guards (DH.419 redo)  mur-5 accept_with_residue (2nd guard home, not ONE) -> 440 a00-c8389b84 LIVE (merges 430+431)
 432    a00-d0870e64 templates: 20 red (repo_root cell) + kid printed HOSTNAME (scrubbed on loop br) -> cells 80dc2a99e -> 438 a00-d821a9fd LIVE
        LAND 432/438 WITH git merge --squash (the hostname stays in the loop branch HISTORY; never --no-ff it) -- name it in [merge-up]
 433    a00-eafe7a6a installer: refuses w/o measured reserve, dry-run writes 0, 10 green -> mur-5 DH.433-k1 RUNNING
-434    a00-bdfa0c37 g7.33.18.3 probe: --user asked for user@<uid> (MEASURED: user mgr = infinity) + partial table -> 437 a00-97f3bc1b LIVE (no mur on 434)
+434    SUPERSEDED (never merge) -> 437 a00-97f3bc1b rebuilt probe, 12 green, live run 2 real DRIFTs -> 439 a00-58736bab LIVE
+       BOX DRIFT (for TM, not ours to fix): OOMPolicy unset on streamer-stub-watch.service · agi.slice drop-in FILE absent
 GRAPH     (3) DONE 864572bd6 · (2) level3.py after 435 merges · (9) judge heal-never-reseats after 436 · (11) verdicts x3 at merge
 g15       concurrent murs mint ONE run key (-3 x2, -4 x3, -5 x3): _existing_run_keys sees only finished rows
 g15       a parent's harvest dm can be lost (DH.429 finished, no inbox line) -- reconcile by branch, never by inbox alone
