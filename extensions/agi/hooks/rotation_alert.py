@@ -812,6 +812,47 @@ def _maybe_force_capture(root: Path, seat: str, card: Path, fraction: float,
     return True, (None if which == "captured" else which)
 
 
+#: The bash the ONE capture-chain child runs. handoff and rotate-self are
+#: SEQUENTIAL, not `&&`-chained: a REFUSING driven handoff (the 100-line
+#: composed-card guard) must not SKIP the rotation — the pre-fix `&&` did
+#: exactly that while the stamp had already latched `captured`, so a refusal
+#: idled the seat for hours with nothing but the /tmp log (TMM.223). Each
+#: step's rc is CHECKED; a non-zero one appends `<step> rc=<n>` to the failure
+#: marker `_chain_failure_note` prints to the seat on its next check. Argvs
+#: are positional ($1 = marker, $2 = handoff length, $3.. = the two argvs), so
+#: nothing is shell-interpolated; P7 holds (the child waits, not the hook).
+_CHAIN_SCRIPT = (
+    'f=$1; n=$2; shift 2; a=("$@");'
+    ' "${a[@]:0:$n}"; c=$?;'
+    ' [ "$c" -eq 0 ] || printf "handoff rc=%s\\n" "$c" >>"$f";'
+    ' "${a[@]:$n}"; c=$?;'
+    ' [ "$c" -eq 0 ] || printf "rotate-self rc=%s\\n" "$c" >>"$f"'
+)
+
+
+def _spawn_capture_chain(fail: Path, chain_log, handoff_argv: list[str],
+                         rotate_argv: list[str]):
+    """ONE background child: handoff THEN rotate-self, never blocking the hook."""
+    return _Popen(["bash", "-c", _CHAIN_SCRIPT, "bash", str(fail),
+                   str(len(handoff_argv)), *handoff_argv, *rotate_argv],
+                  stdout=chain_log, stderr=chain_log,
+                  stdin=subprocess.DEVNULL, start_new_session=True)
+
+
+def _chain_failure_note(state_dir: Path, seat: str) -> list[str]:
+    """The lines a FAILED capture-chain step left the seat. The chain appends
+    `<step> rc=<n>` to a marker in the state dir; the hook's NEXT check prints
+    one line each and CLEARS the marker, so the failure is named to the seat
+    exactly once and never only in the /tmp log."""
+    p = state_dir / f"capture-{seat or 'noseat'}.failed"
+    try:
+        lines = [ln for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
+        p.unlink()
+    except OSError:
+        return []
+    return lines
+
+
 def _force_capture(root: Path, seat: str, card: Path, fraction: float,
                    minutes: int, state_dir: Path, line: str | None = None) -> str:
     """Capture the final card N min after the imperative first fired (driven
@@ -850,18 +891,14 @@ def _force_capture(root: Path, seat: str, card: Path, fraction: float,
     # lands above the node's `---` (TMM.190 gen 22, f 0.41/0.42/0.43).
     (state_dir / f"capture-{seat}.captured").write_text(
         f"{AUTO_CAPTURED}: {line}\n", encoding="utf-8")
-    # ONE background child chains handoff THEN rotate-self with `&&`, so the
-    # card write completes before rotate-self reads it (`--stops` is built
-    # from the card). Both argvs are passed POSITIONALLY ($2.. = handoff argv,
-    # then rotate-self argv; $1 = its length) so nothing is shell-interpolated;
-    # P7 holds -- the hook itself never blocks, the child does the waiting.
+    # ONE background child runs handoff THEN rotate-self, so the card write
+    # completes before rotate-self reads it (`--stops` is built from the card)
+    # — and a REFUSING handoff still rotates, naming its rc to the seat on the
+    # next check (`_CHAIN_SCRIPT` / `_chain_failure_note`).
     handoff_argv, rotate_argv = argvs
     chain_log = (state_dir / log_name).open("ab")   # never DEVNULL
-    _Popen(["bash", "-c",
-            'n=$1; shift; a=("$@"); "${a[@]:0:$n}" && "${a[@]:$n}"',
-            "bash", str(len(handoff_argv)), *handoff_argv, *rotate_argv],
-           stdout=chain_log, stderr=chain_log,
-           stdin=subprocess.DEVNULL, start_new_session=True)
+    _spawn_capture_chain(state_dir / f"capture-{seat}.failed", chain_log,
+                         handoff_argv, rotate_argv)
     try:
         blob = json.loads(stamp.read_text())
     except (OSError, ValueError):
@@ -1426,6 +1463,13 @@ def main(argv: list[str] | None = None) -> int:
     state_dir = Path(os.environ.get("AGI_ROTATION_STATE_DIR")
                      or f"/tmp/agi-rotation-{os.getuid()}")
     state_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+    # A capture-chain step that exited non-zero names ITSELF here, on the seat's
+    # next check, and the marker is cleared: the /tmp log alone is not a report.
+    for note in _chain_failure_note(state_dir, seat):
+        print("rotation-alert: capture-chain step FAILED: "
+              f"{note} — the captive capture's driven handoff/rotate-self "
+              "chain did not complete; see the ladder's capture_chain_log for "
+              "its output.")
     state_path = state_dir / f"{session_id or 'nosession'}.json"
     fired_bands = set()
     if state_path.is_file():
