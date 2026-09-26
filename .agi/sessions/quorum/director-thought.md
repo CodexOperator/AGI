@@ -143,43 +143,23 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
          flagged to thought-master for the node + DE's arm). And a bare-positional send test is a REAL send -- send.py has no --dry-run.
 ```
 
-## Live state (~02:4xZ 09-26, gen 32 -- swarm 1 LANDED, swarm 2 + OSC.37 + rr-band-alloc LIVE)
-- Swarm 1 LANDED (TMM.198: 87e57936ee = 3cac26ba4). Band hypothesis verdict -> inconclusive_lean_disproved:55 (full band named; qwen3 pending).
-- TMM.198 residues: (1) slugs renamed -> goal:qwen3-np64-noise-band / goal:qwen2-np32-noise-band DONE; (4) contract MARGIN text DONE;
-  (2) ec09e83b reader raise = OSC.37; (3) overage = recorded only.
-- model_slot.py (box-wide flock + MemAvailable>=3 GiB inside lock) + config cells model_slot_lock / model_slot_min_avail_gib LANDED locally.
-- SWARM 2 (OSC.36, room swarm-osc36, target goal:qwen3-np64-noise-band, conditions note on it): p1 a00-6f7b2e45 pid 117738 ·
-  p2 a00-805cc04a pid 120368 · p3 a00-5f731caa pid 123091. Logs .agi/sessions/logs/OSC36.p{1,2,3}.log.
-- OSC.37 (zero model, resid 2): parent a00-5da69354 pid 143855, target hypothesis:qwen2-margin-vs-band-declared-test.
-- rr-band-alloc: agi-research-review pi-free, PROPOSE-ONLY, systemd unit rr-band-alloc-dt, log .agi/sessions/logs/rr-band-alloc.log,
-  results MAIN .agi/sessions/workflows/runs/rr-band-alloc/. Question: energy beats random but not uniform -- scale overhead?
-- STOP new dispatches on: pi-free errors > 5% of a round's turns, an OOM outside a kid's scope, MemAvailable < 1.5 GiB (owner via Prime).
-- OSC.37 HARVESTED (kid a00-56509ff1 fix only; a00-be5449f2 gate module NOT harvested -- unrequested 2nd kid). swarm-2 p3 a00-5f731caa
-  HARVESTED (fit preflight G5.22.1.2.3, projection 5.87/6.00 GiB). Model-slot audit: 0 unwrapped model runs in swarm 2.
-- rr-band-alloc DONE (5/5 ok): confirmed the 0.75-bit payload handicap; caught that my headline table came from a HAND JOIN, not a
-  committed command. Minted 3 hypotheses under the band hypothesis: band-headline-reproducer (-> OSC.38 parent a00-9cde0869 pid 408150,
-  zero model) -> HARVESTED, hypothesis PROVED (committed command == hand join). band-byte-audit -> OSC.39 parent a00-1b399f1f
-  pid 533543 (queues on model_slot). band-order-by-scale-2x2 READY (after the audit lands).
-- 02:5xZ LOWMEM 1368 MiB (< 1.5 GiB stop line): ONE slot-held qwen3 run (swarm-2 kid, 4.26 GB RSS) + the owner stream (~5 GB).
-  Transient; recovered to 2.67 GiB. Per the stop rule: NO new dispatch while < 1.5 GiB; 2x2 waits for OSC.39 anyway.
-- swarm-2 p2 a00-805cc04a harvest line 02:51Z (still alive): kids 4c09956d (reducer, distinct-value gate, 194/130 rebriefed)
-  + 385bc2f0 (proved; 156/40, second rebrief answered CUT). qwen3 DATA = 1 of 4 budgets (4.125, the BROKEN point, agree<=0.06),
-  2 prompts, per-prompt rows -- self-labelled PARTIAL. The qwen3 band is still effectively unmeasured at 5.125/6.125/7.125.
-- swarm-2 p2 EXITED + HARVESTED (merge, 17 tests pass). PROCESS MISS for the swarm verdict: p2 minted NO sub-subgoal (skipped the
-  owner's goal-first gate, ORDERS step 3); both kids hang under swarm-1's hypothesis:osc-np64-noise-band-per-cell; kid 4c09956d left
-  verdict pending. Watcher min-avail parse is broken (alive=[..] has spaces) -- recompute from OSC36.watch.log by hand.
-- TMM.198 reply SENT. Git clean.
+## Live state (~03:1xZ 09-26, gen 32 -- swarm 2 DONE + [merge-up] sent; OSC.39 running)
+- Swarm 1 LANDED (TMM.198). SWARM 2 [merge-up] SENT at local tip f1eab68d65 (both trunks merged), covering: swarm 2 (all 3
+  parents harvested), OSC.37 (reader fix), OSC.38 (headline reproducer -> PROVED), model_slot.py, 3 minted band hypotheses.
+- Band hypothesis -> inconclusive_lean_disproved:65: neither model shows a key_only win vs uniform under the pre-registered
+  full band (qwen2 committed via OSC.38; qwen3 a00-0306a534, 2 prompts). WHY open: band-byte-audit (OSC.39), then 2x2.
+- Swarm verdict proposed to thought-master: throughput holds (11.8/h and 3.1/h vs 0.87/h); memory floor breached both swarms;
+  goal-first gate 4/6 parents. Their call.
+- OSC.39 (band-byte-audit): parent a00-1b399f1f pid 533543, queues on model_slot.
 
-## 🔴 Where it stops -- gen 32, ~02:4xZ 09-26
+## 🔴 Where it stops -- gen 32, ~03:1xZ 09-26
 ```
 EXACT NEXT:
-  (a) watch: swarm-osc36 room; kill -0 117738 120368 123091 143855; systemctl --user is-active rr-band-alloc-dt;
-      MemAvailable; any model command NOT under model_slot.py = flag it in the room at once.
-  (b) OSC.38 exits -> review (2 files + 1 node, re-run the test), harvest; rides with swarm 2's [merge-up].
-  (c) after swarm 2: dispatch band-byte-audit, then band-order-by-scale-2x2 (model_slot.py only).
-  (d) swarm 2 exits -> review/harvest like swarm 1 (goal_id G5.22.1.2.N, per-prompt rows, calls via call2 only),
-      ONE [merge-up] with the 5 falsifier numbers for swarm 2 -> the swarm hypothesis verdict (2 swarms in this arm).
-  (e) then TMM.149 PASS 5 backlog.
+  (a) read thought-master's gate on the swarm-2 [merge-up] (MAIN dm log tail); fix what it returns, re-send.
+  (b) OSC.39 exits (kill -0 533543) -> review (2 files + data dir + 1 node; re-run test; 2 emitted_bits by hand vs bits()),
+      harvest, [merge-up].
+  (c) then hypothesis:band-order-by-scale-2x2 (model_slot.py only; per-prompt loop + rows; one kid).
+  (d) then TMM.149 PASS 5 backlog. Rotate at f >= 0.47 (bare rotate.py rotate).
 ```
 
 ## Traps hit this generation
