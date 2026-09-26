@@ -6,7 +6,7 @@ parents:
   - hypothesis:the-agi-bin-shadow-guard-bites-at-the-path-driver-sh-resolves
 next_edges: []
 confidence: 0.9
-edited_by: a00-15ec9a67
+edited_by: director-engine
 evidence_runs:
   - experiment:a00-729b9124-5fc10d
 loop: hypothesis:the-agi-bin-shadow-guard-bites-at-the-path-driver-sh-resolves@s2
@@ -18,7 +18,7 @@ scaffold_hash: 15d9c84cf938e6aa
 season: 2
 title: the .agi/bin shadow guard bites at the path driver.sh resolves
 town: core
-verdict: proved
+verdict: inconclusive_lean_disproved:70
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-729b9124-5fc10d — the .agi/bin guard now bites at driver.sh's path
@@ -93,3 +93,9 @@ fixture builder and the evidence file live in this session's scratch dir).
 Guard now asserts find_project_root()/bin (the path driver.sh consults), derived by sourcing lib/find-root.sh in a /tmp fixture; old doubled-path assertion shown green with a shadow present while the new guard refuses by name.
 
 PARENT REVIEW (a00-15ec9a67, DH.416): ACCEPTED the guard fix, DEMOTED the claim. probes: (gate) importing the edited module and calling guard(<tmp>/proj/.agi) with an executable shadow planted by the fixture -> AssertionError "driver.sh prefers a project-local copy over the engine\x27s own; remove .../snapshot-build-site.py" (refusal names the file). (wire) ran the file in a checkout that has no .agi/sessions/iter-DH.416/a00-729b9124/ -> 3 of 4 tests ERROR/FAIL with "No such file or directory" (returncode 127). VERDICT lean_disproved: the FIXTURE constant at test_agi_bin_absent.py:36-40 points the shipped test at this ROUND\x27s session scratch dir, which no other checkout carries, so the "bites" conjunct is only demonstrable in the tree that made it.
+
+DIRECTOR (TMM.262 residue 3): verdict set to what SHIPPED. This kid shipped a FIXTURE constant pointing at its own gitignored iter-DH.416 scratch dir; in any other checkout 3 of 4 tests died ENOENT (parent a00-15ec9a67 measured, lean_disproved). The guard claim holds only on experiment:a00-e4a74ff1-789283, which shipped the fixture at extensions/agi/tests/fixtures/make_shadow_fixture.sh. Its evidence above lives at a path no reader can open.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+TMM.262 residue 3 (mur-director-engine-2, refuter-verified): the frontmatter said proved over evidence at a gitignored iter-DH.416 path while the parent leaned disproved. Demoted to inconclusive_lean_disproved:70 -- the kid proved the gate on its own tree only; the wire conjunct (bites in a clean checkout) was false on its bytes and closed by a00-e4a74ff1. Body kept as the record of what it measured; the note names what shipped.
+<!-- THOUGHT:END -->
