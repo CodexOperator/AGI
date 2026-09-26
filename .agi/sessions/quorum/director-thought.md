@@ -65,7 +65,8 @@ anon      an anonymize REFUSED names a class: locate it in-process; never type a
 (3) NO model load from 13:30Z · (4) TMM.226 ACCEPTED (TMM.230 GO on 3 conditions). Code landed LOCAL: osc_lowpeak.py + test (6 pass, no checkpoint;
     chunked head 0.0 abs; tiny-Qwen2 load == fp32 load) + P8.03/P8.04 scripts load only through it + config lowpeak_head_rows=64. OSC40b/OSC41 orders
     now REQUIRE osc_lowpeak. LANDED 5a3436805 on local-maxxing/season2/main (TMM.236, rides PASS 10). If osc_lowpeak_test reds on ModelLoadRefused =
-    DE's guard closing the tmp_path hole (TMM.235), not a defect. WAIT: PASS 9 close -> re-measure (3) -> numbers to TM -> P8.03 ALONE. Then, after PASS 9 + (3): P8.03 FIRST,
+    DE's guard closing the tmp_path hole (TMM.235), not a defect. PASS 9 CLOSED 17:23Z (TMM.242). (3) re-measured 17:42Z: hard 1859 + 2249 = 4108 < 4734,
+    SENT to TM. NEXT: on TM's go, dispatch P8.03 ALONE with orders .agi/sessions/orders/P8.03b.parent.txt (trunks merged 98de79e20; --dry-run first). Then, after PASS 9 + (3): P8.03 FIRST,
     ONE round, its VmHWM + scope memory.peak vs predicted 2249 MiB -> TM, BEFORE the other 3 (TMM.230 cond. 3).
     stopped round worktrees kept as prior art: a00-0491190a (OSC.40 r2 script), a00-caa7f0fe (OSC.41 script)
 ```
