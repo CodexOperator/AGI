@@ -4,9 +4,18 @@ The box is memory-guarded (belam 04:29Z). A stand-in `torch` that only RECORDS i
 `load` calls still trips this; no library is imported to install the guard.
 """
 import importlib.util
+import json
+import os
+import pathlib
 import sys
 
 import pytest
+
+_CFG = json.loads((pathlib.Path(__file__).resolve().parents[1] / "config.json").read_text())
+# The byte budget a DECLARED dir may hold and still be read. A config cell, not a
+# literal: the allow-list is only as safe as this number (falsifier 3, > ~200 MiB).
+MAX_ALLOWED_LOAD_BYTES = _CFG["values"]["core"]["model_load_allowed_max_bytes"]
+_ALLOWED: set = set()   # realpaths a test declared for THIS test, cleared per test
 
 # loader module -> the attributes that would read weights off disk or the hub
 REFUSED = {
@@ -35,11 +44,34 @@ def _why(owner, attr):
             "weights; this suite asserts on bytes, never on a model")
 
 
-def _stub(owner, attr):
-    def _refuse(*_a, **_kw):
+def _stub(owner, attr, real):
+    """Refuse, unless the call names a dir THIS test DECLARED (allow_model_load)
+    whose bytes are still under the cap -- then delegate to the real loader, so a
+    test that built a tiny config-built checkpoint in its own tmp dir can read it
+    back (osc_lowpeak_test.py:46-51). Declaration, not tmp-ness, is the key: a
+    from_pretrained on a dir under tmp_path that the test did not declare is
+    still refused, so the allow-list is not a general tmp_path hole."""
+    def _refuse(*a, **kw):
+        if _declared_ok(a[0] if a else None):
+            return real(*a, **kw)
         raise ModelLoadRefused(_why(owner, attr))
     _refuse.__name__, _refuse._model_load_stub = attr, True
+    _refuse._real_loader = real
     return _refuse
+
+
+def _declared_ok(obj):
+    """True only for a declared, existing-or-empty, under-cap directory path."""
+    if not isinstance(obj, (str, os.PathLike)):
+        return False
+    try:
+        real = os.path.realpath(obj)
+        if real not in _ALLOWED:
+            return False
+        return sum(os.path.getsize(os.path.join(r, f))
+                   for r, _, fs in os.walk(real) for f in fs) <= MAX_ALLOWED_LOAD_BYTES
+    except (OSError, TypeError, ValueError):
+        return False
 
 
 def _safe_get(obj, attr):
@@ -75,7 +107,10 @@ def _patch_one(name, module):
             if cur is None or _safe_get(cur, "_model_load_stub") is True:
                 continue
             try:
-                setattr(owner, attr, _stub(_safe_get(owner, "__name__") or name, attr))
+                # the real loader is kept for the declared-dir delegation, and the
+                # stub is never wrapped by itself if the module is patched twice
+                setattr(owner, attr, _stub(_safe_get(owner, "__name__") or name, attr,
+                                           _safe_get(cur, "_real_loader") or cur))
             except Exception:  # noqa: BLE001 -- immutable / proxy owner: skip
                 continue
             n += 1
@@ -142,11 +177,21 @@ def pytest_sessionfinish(session, exitstatus):
         sys.meta_path.remove(_LOAD_HOOK)
 
 
+@pytest.fixture
+def allow_model_load():
+    """Declare the one dir this test BUILT itself, so it may be read back."""
+    def _declare(*paths):
+        for p in paths:
+            _ALLOWED.add(os.path.realpath(p))
+    return _declare
+
+
 @pytest.fixture(autouse=True)
 def _no_model_load():
     """Re-scan per test: a module imported since the last scan is caught too."""
     _patch_all()
     yield
+    _ALLOWED.clear()   # a declaration never outlives its test
 
 
 @pytest.hookimpl(tryfirst=True)
