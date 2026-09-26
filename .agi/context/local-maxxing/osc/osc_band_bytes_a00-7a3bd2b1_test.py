@@ -1,5 +1,5 @@
 """Emitted-bit audit tests: the count is taken from the real quant() call."""
-import importlib.util, os
+import importlib.util, io, json, os
 import numpy as np, torch
 P = os.path.dirname(os.path.abspath(__file__))
 def _load(name, fn):
@@ -39,11 +39,27 @@ def test_narrow_class_carries_32_payload_bits_under_one_16_bit_scale():
     assert round(100 * 16 / (u64["emitted_bits"] - 16), 4) == 6.25                # the 6.25 pct reference
 
 def test_an_empty_class_is_counted_as_no_scale_not_as_a_nominal_one():
+    # COUNTER branch on a synthetic mask.  The SHIPPED quant() never reaches it (amax over
+    # a zero-width dim cannot complete) and arm() always fills every class, so this is a
+    # property of the counter, NOT evidence about a path the run takes.
     spec()
     dm = torch.zeros((1, 32), dtype=torch.long)   # every channel in class 0: classes 1..3 empty
     r = b.audit(torch.randn(1, 2, 2, 64), dm, [3, 3, 3, 3])[0]
     assert r["n_scales"] == 1 and r["emitted_bits"] == 32 * 3 + 16
     assert r["emitted_bits"] != fixed.bits([3, 3, 3, 3]) * 64     # bits() would have said 4.00
+
+def test_each_arm_line_is_followed_by_that_arm_s_own_head_rows():
+    # The PASS 8 defect: run() read STATE["rows"] AFTER the arm loop, so all 11 arms
+    # re-wrote the LAST arm's 48 rows (528 head rows, 48 distinct, all random_4p5).
+    spec()
+    arms = [("energy_4p5", [4, 4, 3, 3], "energy", 1), ("uniform_2p0", [2], "uniform", 1)]
+    summary = [(dict(arm=n, emitted_bits=b), [dict(arm=n, emitted_bits=b)])
+               for (n, w, m, s), b in zip(arms, (272, 144))]
+    buf = io.StringIO(); b.emit(buf, "synthetic", arms, summary)
+    rows = [json.loads(l) for l in buf.getvalue().splitlines()]
+    assert [r["event"] for r in rows] == ["arm", "head", "arm", "head"]
+    assert [r["arm"] for r in rows] == ["energy_4p5", "energy_4p5", "uniform_2p0", "uniform_2p0"]
+
 
 def test_counter_wraps_the_shipped_quant_without_replacing_it():
     spec()

@@ -1,6 +1,6 @@
 """The retired box prefix must never come back as a LIVE executable path.
 
-`goal:g73314-a-nonworkflow-residue` asked for "0 grep hits outside the frozen
+`goal:g7.33.14` (the loop id it was drafted under, `goal:g73314-a-nonworkflow-residue`, was never minted) asked for "0 grep hits outside the frozen
 fixture" and measured 22 live hits. `experiment:a00-600cf080-0cd865-exp` then
 measured that **0 of the 22 sit on an executing line**: 11 are prose
 prohibitions, 5 are negative assertions, 4 are inert fixture command strings,
@@ -32,7 +32,14 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[3]
 EXT = REPO / "extensions" / "agi"
 PREFIX = "/home/ubuntu/work/agi"
-SCAN_DIRS = ("bin", "hooks", "briefs", "tests")
+# PASS 8 item 5: this list was NARROWER than goal:g7.33.14 clause 1's own scan
+# set (`extensions/ .claude/ .agi/config.json`), so T1 went green while being
+# structurally unable to catch a hardcoded box path in a workflow template --
+# exactly where the 24 unclassified hits of 2026-09-25 lived, and where this
+# goal's original ~15-template defect lived. `workflows` and `.claude` are now
+# inside the gate; the set is read from the goal clause, not from a habit.
+SCAN_DIRS = ("bin", "hooks", "briefs", "tests", "workflows")
+SCAN_ROOTS = (".claude",)
 SCAN_FILES = (REPO / ".agi" / "config.json",)
 # Exempt BY NAME and for a stated reason: recorded argv of a past run
 # (l4_85_frozen). Rewriting those bytes would falsify the record.
@@ -50,7 +57,7 @@ EXEMPT = {
     ("extensions/agi/tests/test_workflow_template_seam_js.py", 'STALE = "/home/ubuntu/work/agi"'): ("F", "inert data: negative-fixture constant, asserted absent from rendered .js output"),
     ("extensions/agi/tests/test_workflow_template_seam_json.py", "used to name `/home/ubuntu/work/agi` in their stage prompts, so a run started"): ("P", "prose: docstring naming the bug this test guards against"),
     ("extensions/agi/tests/test_workflow_template_seam_json.py", 'STALE = "/home/ubuntu/work/agi"'): ("F", "inert data: negative-fixture constant, asserted absent from rendered .json output"),
-    (".agi/config.json", '"root": "/home/ubuntu/work/agi",'): ("B", "the one code-level exemption left: the box.root CELL, owned by group a00-3b546363; correcting the cell removes the hit and this entry with it (T2)"),
+    (".agi/config.json", '"root": "/home/ubuntu/work/agi",'): ("B", "the one live hit left under goal:g7.33.14 clause 1: the box.root CELL, stale (/data/work/agi is the real root). Two owners, neither this test: group a00-3b546363 corrects the CELL, and the goal's clause must gain a config-cell exemption or clause 1 stays unsatisfiable (PASS 8 item 6)"),
 }
 # 15 entries retired here (P/F class, all in extensions/agi/bin/{commands,unify}.py,
 # env-get.sh, hooks/rotation_alert.py, test_unify.py, test_dispatch_forward_env.py,
@@ -71,6 +78,10 @@ def _scanned() -> list[Path]:
     out: list[Path] = []
     for d in SCAN_DIRS:
         base = EXT / d
+        if base.is_dir():
+            out += [p for p in base.rglob("*") if p.is_file()]
+    for d in SCAN_ROOTS:
+        base = REPO / d
         if base.is_dir():
             out += [p for p in base.rglob("*") if p.is_file()]
     out += [p for p in SCAN_FILES if p.is_file()]

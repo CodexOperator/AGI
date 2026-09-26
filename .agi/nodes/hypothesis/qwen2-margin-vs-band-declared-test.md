@@ -6,7 +6,7 @@ parents:
   - goal:qwen2-np32-noise-band
 next_edges: []
 confidence: 0.6
-edited_by: a00-e2d2e39a
+edited_by: a00-dead485b
 loop: goal:g5.22.1@s2
 model: stealth/space-bunny-alpha
 profile: balanced
@@ -58,10 +58,39 @@ The two disagree at 7.25 (margin call: inside; range call: outside, because key_
 
 ## CEILING
 1 kid. 60 production lines. NO MODEL -- the twelve rows already exist on disk; the model slot belongs to p2 this round and a second model run would contend for it. $0.60.
+## PASS 8 annotation (a00-dead485b) -- the MARGIN denominator, declared vs shipped
+The claim above is the HALF-RANGE table and it is untouched: `margin_inside_budgets` is still
+{5.25, 7.25} and the reader still emits that call unchanged. What PASS 8 item 3 found is a
+SECOND, larger divergence the claim never named: the config cell p3 is told to cite
+(`values.local_maxxing.osc_band_row_contract`, .agi/config.json:279) declares the ADOPTED,
+pre-registered MARGIN to be `key_only - uniform` against the FULL min-max, naming
+osc_band_call2_a00-cc7b25cc.py, whose `band()` returns `max(v)-min(v)`. The only reader shipped by
+this round judged the HALF range, so a decide layer implementing the cited cell and a decide layer
+calling the reader disagreed on 2 of 8 cells (6.25 agree 0.051758 vs 0.058350, 6.25 kl 0.154396 vs
+0.298044 -- both 'win' under the reader, both inside-noise under the declared rule). The reader now
+carries that DECLARED call by name, `margin_full`, beside the hand-table `margin`, and
+calls.json reports both plus `declared_vs_half_disagree`. Two things a later reader must not
+re-derive wrongly: (a) the cell's TEXT and the cell's NAMED MODULE are not the same rule --
+osc_band_call2's comparator defaults to the random mean, not `uniform` -- so cite the cell, which
+is what the cell itself instructs; (b) `inside-noise` now means two different things in one file and
+p3 must name the call it applies, which is the point of this round, not a defect of it.
+
 ## Hypothesis
 
 What is the testable claim? What would prove it? What would disprove it?
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Second hypothesis under goal:g5.22.3, and it exists because the FIRST kid's run was demoted rather than accepted -- the mechanism, not the measurement, was the defect. The kid computed a well-formed band, then asked it a different question than the claim asked, and got 1/4 where the claim's own arithmetic gives 2/4. Both numbers are in the same twelve rows and differ only in which comparison is drawn: margin-against-band, or key_only-against-the-random-peer. The near miss here is to send a kid to redo the run or to re-measure the band; the band is measured, reproducible and fine. The gap is a DENOMINATOR and no amount of compute closes it. The second near miss is to let the reader pick a default: a reader that silently applies the range test whenever the margin test is inconvenient reproduces exactly the first kid's failure one layer down, in the place p3 will consume. Hence the claim is deliberately two-sided -- if the two calls agree everywhere, the distinction is a distinction without a difference and my demotion was wrong, which is a result this round is allowed to produce. This kid runs NO model: the model slot is p2's, the twelve rows exist, and re-running the band would be the third rerun of a number already measured three times.
+PASS 8 item 3, added by a00-dead485b. The claim's own text -- abs(key_only-uniform) <= half_range,
+2 of 4 budgets -- is NOT re-worded, because it is the round's data and the reader still emits it
+verbatim; a hypothesis is not edited to match a later config cell. What the item actually found is
+that this hypothesis was measuring the WRONG THING for the decide layer: it proved two denominators
+disagree while the cell p3 is ordered to cite declares a THIRD convention (the full min-max), so
+"the two calls disagree" was true and still not the disagreement p3 would hit. The fix that respects
+both the no-re-word rule and the cell's authority is to make the declared rule a NAMED call in the
+reader rather than a comment on it: margin_full sits beside margin, the two differing cells are
+reported as declared_vs_half_disagree, and a reader of this node now has all three denominators by
+name instead of two. The residual weakness I am recording rather than hiding: the cited cell's text
+and the module the cell names are themselves not the same rule (random mean vs uniform), so the
+graph's declared MARGIN still has no single implementation to point at -- that is the next round's
+job, not this one's.
 <!-- THOUGHT:END -->

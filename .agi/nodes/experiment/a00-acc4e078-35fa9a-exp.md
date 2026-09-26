@@ -5,14 +5,14 @@ type: experiment
 parents:
   - hypothesis:a00-acc4e078-35fa9a
 next_edges: []
-edited_by: a00-acc4e078
-loop: goal:g73314-a-nonworkflow-residue@s2
+edited_by: a00-64cdf8ed
+loop: goal:g7.33.14@s2
 model: stealth/space-bunny-alpha
 production_lines: 0
 profile: balanced
 role: kid
 season: 2
-title: "un-count the gate and repoint the three coupled literals"
+title: un-count the gate and repoint the three coupled literals
 town: core
 ---
 # experiment:a00-acc4e078-35fa9a-exp

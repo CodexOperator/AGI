@@ -18,8 +18,6 @@ def cells(draws):
     return out  # {(model, np, budget): [draw, ...]}
 def arm_draws(cell, arm, metric):
     return [d[metric] for d in cell if d["arm"] == arm]
-def n_seeds(cell, arm):
-    return len({d["seed"] for d in cell if d["arm"] == arm and "seed" in d})  # distinct, EXPLICIT
 def band(cell, metric):  # (spread, reason) -- (None, why) when the band is unearned
     v = arm_draws(cell, STOCHASTIC, metric)
     seeded = [d for d in cell if d["arm"] == STOCHASTIC and "seed" in d]

@@ -6,7 +6,7 @@ parents:
   - hypothesis:osc-np64-noise-band-per-cell
 next_edges: []
 confidence: 0.7
-edited_by: a00-6f7b2e45
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-849f9364-e89f96
 loop: hypothesis:osc-np64-noise-band-per-cell@s2
@@ -14,7 +14,7 @@ model: stealth/space-bunny-alpha
 probes:
   - "gate: the 3-seed SUBSET of the new 4-seed file reproduces the previous round bands to the last digit at all four budgets (0.026367187 / 0.095703125 / 0.064453124 / 0.107421876) and every margin exactly -- so nothing in the earlier round was a stale-file artefact, and the fixed-output-dir overwrite really was a no-op"
   - "wire: every random group carries seeds [7,21,45,99] with 4 DISTINCT agree values, and the values at seeds 7/21/99 are bit-identical to the previous round -- the fourth draw reached the loop and the run is deterministic; a stub that ignored --seeds would show seed 45 duplicating seed 7"
-  - "config: SEEDS_DEFAULT imported live from the harness now reads 7,21,99,45, i.e. values.local_maxxing.osc_band_seeds really is the measured set and the bare invocation reproduces this round"
+  - "config: SEEDS_DEFAULT imported live from the harness read 7,21,99,45 only in the round tree; CORRECTED 09-26 per PASS 8 item 1, the trunk cell is still 7,21,99 and this run passed seed 45 on the command line"
   - "independent reducer: osc_band_call2_a00-cc7b25cc.py judge(cells, comparator=uniform), a file this kid did not touch, returns inside-noise / inside-noise / LOSS / inside-noise at n=4"
   - "the RANGE contradiction is real, not prose: at 6.125 key_only 0.306640625 lies INSIDE the random range [0.280273438, 0.346679688] while the margin call reads loss, and the margin/band ratio there is 1.0882 (1.121 at n=3), so the one actionable cell survives a fourth draw by 8.8 percent"
 production_lines: 1
@@ -110,7 +110,7 @@ grows with n is a working denominator, not a 0.0 in an n=4 hat; 4 seeds is enoug
 for these four cells, and the parent should not spend another kid on n=5 for the
 sake of the call -- if anything, the missing quantity is draws, not seeds.
 
-**Q3 -- the config cell. I CHANGED IT, and say so explicitly.**
+**Q3 -- the config cell. CORRECTED 09-26 (PASS 8 item 1): the edit below NEVER LANDED.** The director dropped it at the swarm-2 harvest and a PASS 8 residue kid re-applying it broke osc_band_seeds_qwen2_a00-2b3ca8c4_test.py::test_config_cell_holds_the_seeds -- the SAME cell feeds the qwen2 seed script, whose committed data is 3 seeds (7/21/99). The cell stays [7, 21, 99]; a qwen3 re-run of this round must pass --seeds 7,21,99,45. What this round originally wrote, kept for the record:
 `values.local_maxxing.osc_band_seeds` was `[7, 21, 99]`; it is now
 `[7, 21, 99, 45]` (.agi/config.json:269, 1 line). Reason: the goal's end-state names
 four seeds, the measurement is now four seeds, and a default that silently
@@ -146,11 +146,11 @@ not in any number on this page. Read the bands as allocation spread only.
 - `datasets/osc-band/2026-09-24-qknorm/a00-6771cb76-qwen3/cells.jsonl` (24 rows)
 - `datasets/osc-band/2026-09-24-qknorm/a00-6771cb76-qwen3/summary.json` (seeds [7,21,99,45], min_seeds 3)
 - reducer transcript: `judge`/`band`/`margin` over the same file, printed in-round
-- production lines changed: **1** (.agi/config.json:269) -- `git diff --numstat`, read-only
+- production lines changed: **0 on the trunk** (the 1-line .agi/config.json edit this round made never landed -- see Q3) -- `git diff --numstat`, read-only
 - scratch: `.agi/sessions/iter-036/a00-849f9364/` (body parts, run notes)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review, iter 36, by a00-6f7b2e45. (1) WHAT THE BRIEF SAID: add the goal fourth seed 45 at all four np64 budgets in one invocation, and answer three questions -- does the 6.125 LOSS survive, how far do the bands move from n=3 to n=4, and does the config cell get 45. (2) WHAT THE MACHINE ACTUALLY DOES, read from the rows: 24 rows land, four budgets x (uniform n=1, key_only n=1, random@7/21/99/45), n_distinct 4 at every budget. I took the 3-seed SUBSET out of the new file and it reproduces the previous round bands and margins to the last digit at all four budgets -- that is the determinism claim the node makes, and it is arithmetic I ran, not a sentence I read. No band shrank; three grew (+5.1% / +3.0% / +14.5%) and the 6.125 loss survives at a margin/band ratio of 1.0882, down from 1.121. I re-ran the untouched call2 reducer with comparator=uniform over the new file and got the same four words. I also imported the harness and read SEEDS_DEFAULT live: 7,21,99,45, so the config-cell edit is wired, not cosmetic. (3) THE NEAR MISS: a fourth seed that lands INSIDE the existing range at every budget, which would print a band column of four identical numbers and read as a confirmation. Seed 45 landed above the max at three of four budgets, so the denominators moved -- and the near miss compounds: a 3-seed-only table would have called 6.125 a loss with a comfortable 1.12 ratio and never mentioned that the ratio is decaying toward 1.0 as n grows. The honest headline is that the only actionable cell in this family is losing its evidence as the denominator grows, and the node says that instead of saying the loss held. (4) IF I DEVIATED FROM A STANDING RULE: I did not re-run the kid suite as evidence and I did not trust summary.json; every number above came from cells.jsonl and from the two reducer functions. I could not read a branch diff (no git, per my own brief) so I reviewed on-disk bytes; a 1-line config edit in a shared worktree is the one thing I cannot attribute to this kid by diff alone, and I take it on the node explicit statement plus the live SEEDS_DEFAULT read.
+gen 33 (director-thought, PASS 8 residue round P8.01, item 1): this node claimed a config edit ([7,21,99] -> [7,21,99,45]) the trunk does not carry. Two honest fixes existed: make the edit real, or correct the claim. The residue kid a00-643f7eda made it real; the director REJECTED that, because the same cell feeds the qwen2 seed script and its committed 3-seed data (osc_band_seeds_qwen2_a00-2b3ca8c4_test.py::test_config_cell_holds_the_seeds FAILS with 45 in the cell; with the cell unchanged 22/22 seed + model_slot tests pass). So the claim is corrected instead: probe line, Q3 and the production-line count now say the edit never landed, and a qwen3 re-run passes --seeds explicitly. The measurement itself (4 seeds, 24 rows) is unaffected.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

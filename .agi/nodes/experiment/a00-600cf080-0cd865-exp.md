@@ -5,7 +5,8 @@ type: experiment
 parents:
   - hypothesis:a00-600cf080-0cd865
 next_edges: []
-loop: goal:g73314-a-nonworkflow-residue@s2
+edited_by: a00-28bbc0b9
+loop: goal:g7.33.14@s2
 model: stealth/space-bunny-alpha
 profile: balanced
 role: kid
@@ -135,3 +136,7 @@ a guard test should target.
 - Classes P and F are still worth rewriting, one class per node.
 - The goal's table (19 hits) and its falsifier clause 1 should be corrected
   against these measurements.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PASS 8 items 2+3+4 (round a00-28bbc0b9, 2026-09-26) — MEASUREMENTS ABOVE STAY AS THE 2026-09-25 RECORD; the following present-tense claims and the "What remains" list (lines 130-137) are STALE and must not be read as this box. (item 2) M3 at :111-112 ("they pass only because this box happens to sit at that path") is FALSE and its cleanup at :134 ("Deleting/repointing ROOT and the 3 redundant test_unify.py prefixes") is DANGEROUS: the literals pass because the box.root CONFIG CELL is stale, not because of this path (this box is /data/work/agi), and correcting the cell makes test_unify.py:529 fail (preflight -> engine_not_git_repo, not refuses_real_repo). Do NOT perform that edit on the strength of :134. (item 3) At this tip: the guard test leg IS built (extensions/agi/tests/test_retired_box_prefix.py, 5 passed 2026-09-26); test_provisioning.py:356 is now ROOT = str(BIN.parent.parent.parent); test_unify.py carries 0 prefix hits; so all four "What remains" items are already done. (item 4) this node frontmatter loop: goal:g73314-a-nonworkflow-residue@s2 -> goal:g7.33.14@s2 (the id was never minted; parents: already correct). No measurement was re-run and none is deleted.
+<!-- THOUGHT:END -->
