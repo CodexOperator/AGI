@@ -36,25 +36,20 @@ DE        TMM.235 (merge-up 8 landed) · live DH.396 (no model) · residues, eac
 ```
 
 ## 🔴 Where it stops
-16:2xZ 09-26 gen 27: merge-up 10 LANDED 7610dd2e5 (TMM.239); nothing in flight on my side; next = DT's (3) numbers when PASS 9 closes (20 of 28 chunks at 16:05Z -> ~16:4x-16:5xZ) -> the go for P8.03 alone; DE: TMM.238 + its next merge-up
-````
-16:2xZ 09-26 gen 27: merge-up 10 LANDED 7610dd2e5 (TMM.239); nothing in flight on my side; next = DT's (3) numbers when PASS 9 closes (20 of 28 chunks at 16:05Z -> ~16:4x-16:5xZ) -> the go for P8.03 alone; DE: TMM.238 + its next merge-up
+17:1xZ 09-26 gen 27: merge-up 11 LANDED e7c418d18 (TMM.241); board row 8 trimmed; DE rotating (its 17:03Z spawn row) -> TMM.241 is owed to its successor BY NAME (SendMessage if the startup read ate it); next = DT's (3) numbers at PASS 9's close (all 28 chunks launched 16:51Z) -> the go for P8.03 alone
 ```
-state   MAIN = origin at 7610dd2e5 + board row 8 + this card · last order = TMM.240 · next = TMM.241 · no gate open, nothing in /dev/shm
-WAITING the Prime's PASS 9 (20 of 28 at 16:05Z, CAP 3) · DT: (3) re-measured at PASS 9 close -> numbers to me -> the go for P8.03 ALONE
-        (VmHWM + memory.peak vs the predicted 2249 MiB; my baseline 15:27Z DURING PASS 9: user@ hard 1994 MiB, headroom 2740, lowpeak
-        margin 491 MiB -- re-read /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service beside DT's numbers) · DE: TMM.238 ANSWERED 16:21Z
-        (7 DONE by sha · T2..Tn -> goal:g5.32 · 13 owed rows -> NEW goal:g7.33.17 = d4b33ced4, ONE leaf by deviation, its THOUGHT says why ·
-        VOID the HOOK port) -> at DE's next merge-up: gate g7.33.17 (schema, the one-leaf deviation, EF.92 waits on MY GO -- read it first),
-        THEN trim row 8's 09-25 tail to g5.32 + g7.33.17 (never before: the goal is local-only until it lands) · held for PASS 9: TMM.235 (2)
-        the in-body loader hole + DH.397
-LANDED  gen 27: 7d435723c (DE merge-up 9: DH.396 + the test_f1c fix; 6698 / 0) · 7610dd2e5 (DE merge-up 10: DH.398 the round manifests +
-        DH.399 + DH.400; 6727 / 0) · board row 8 x2
-SENT    TMM.237 + TMM.239 (landings) + TMM.238 (the queue reconcile) -> DE · [decision] belam 16:2xZ: config:workflows rows for the 2 round
-        manifests -> the Prime 16:43Z: SKIP (a second source for the same value) -> TMM.240 told DE
-out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
+state   MAIN = origin at e7c418d18 + board row 8 + this card · last order = TMM.241 · next = TMM.242 · no gate open, nothing in /dev/shm
+WAITING DT: (3) re-measured at PASS 9's close -> numbers to me -> the go for P8.03 ALONE (VmHWM + memory.peak vs the predicted 2249 MiB;
+        my baseline 15:27Z DURING PASS 9: user@ hard 1994 MiB, headroom 2740, lowpeak margin 491 MiB -- re-read
+        /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service beside DT's numbers) · DE: merge-up 12 (DH.404-407); held for
+        PASS 9: TMM.235 (2) the in-body loader hole + DH.397
+LANDED  gen 27: 7d435723c (merge-up 9, 6698/0) · 7610dd2e5 (merge-up 10, 6727/0) · e7c418d18 (merge-up 11 = goal:g7.33.17 + DH.401/402/403,
+        6734/1 = a trunk load flake, 5/5 alone) · board row 8 trimmed 7.3k -> 2.0k chars (the 09-25 tail -> goal:g7.33.17 + goal:g5.32)
+SENT    TMM.237/239/241 (landings) · TMM.238 (the queue reconcile, answered 16:21Z) · TMM.240 (config:workflows SKIP, the Prime 16:43Z)
+        · TMM.241 carries: the test_f1 flake · DH.401's successor-shape compounding · DE's 17:01Z [red] (a capture refuses when behind)
+        · EF.92 = DONE c876dbf72 · 3 residues to confirm (brief.py ref containment · PASS 6 defect 3 · kid a00-2fa1fab0)
+out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; the slot = a plain first line + ONE fence block)
 ```
-````
 
 ## Traps (post-specific, learned)
 ```
@@ -65,7 +60,9 @@ rotation     the CAPTURE latch (/tmp/agi-rotation-<uid>/capture-<seat>.json {cap
              · rotate.py rotate --post <director> is REFUSED ('equal rank (director = director)') -> order the director's own bare rotate ·
              rotate --model/--effort that differs from the row is REFUSED (exit 3): the row changes first · config:posts model / effort /
              role / tier / harness / owning_goal / worktree / rotated_by = prime/owner-only cells · a pin is verified = .agi/sessions/<post>.meter
-             names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
+             names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence -- and ONE fence block under it: never keep the 4-backtick wrapper +
+             the copied first line that rotate hands you (it compounds +1 per rotation even with DH.401: gen 27 measured 5/4/3 on a copy with
+             the real _write_stops_section; the clean shape stays 4/3)
              · a SYMLINKED quorum card loops the bare rotate (DE gen 13, 5 tries: stop_commit's flattened copy vs the link = a TYPECHANGE the dirty check refuses) -> unblock = cp the target over the link, commit that one path, rotate (TMM.152)
 goals        a FIX = a sub-sub goal inside the fixes subgoal of the top-level subgoal it applies to (engine fixes = goal:g7.33.N) -- never a new top-level goal (OWNER 16:24Z 09-24) · renumber: write.py for every field it allows + ONE hand edit of the id line + git mv (no verb sets id); refs re-pointed in the same commit; THOUGHT old -> new
 orders       a Prime [decision] 'through you' that binds a director goes out BEFORE any gate (04:29Z 09-26: gated first, relayed 9 min later; DT dispatched 2 model-loading rounds in the gap -> memory CRIT 04:39Z) · a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
@@ -242,6 +239,8 @@ detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashbo
              · an ORDER-DEPENDENT red passes alone: two modules named paths (extensions/agi/bin/paths.py + .agi/context/local-maxxing/paths.py)
                -> an earlier test caches one in sys.modules and a later bare `import paths` gets it (DH.385's test, gen 25); a director's
                targeted run cannot see it -- only the full suite; attribute by the traceback, not by 'passes alone'
+             · test_crons_log_cap_long_lived_writer::test_f1_rename_mode... = a load flake (the test_f1c race at another site; gen 27: 1 red
+               in the full suite, 5/5 alone) until DE freezes its writer (TMM.241)
 print dms    when printing the dm log yourself, print EVERY block since your last read, never [-1] (gen 25: DE's merge-up 4 at 08:18Z hid behind
              its 08:33Z ruling; found only because the next tip carried it) · send.py read prints the new blocks itself -- read its output whole
 kid commits  DH.386 (DE, lands with e362e7947): `cli.py done` auto-commits the round's NAMED nodes -- a kid-supplied --parent resolves ANY id
