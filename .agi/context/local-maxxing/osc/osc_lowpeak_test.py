@@ -5,7 +5,8 @@ full 512 x 151936 logits; (c) the whole load path on a TINY random Qwen2 (config
 a few MB) against today's fp32 from_pretrained of the same bf16 checkpoint."""
 import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path[:0] = [os.path.dirname(HERE), HERE]
-import pytest, torch
+import pytest
+torch = pytest.importorskip("torch")
 import torch.nn.functional as F
 from torch.nn.utils import parametrize
 import osc_lowpeak as lp
