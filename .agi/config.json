@@ -233,6 +233,15 @@
     "core": {
       "suite_roots": [".agi/context"]
     },
+    "boxkit": {
+      "templates_dir": "extensions/agi/boxkit/templates",
+      "install_root": "/",
+      "sbin_dir": "usr/local/sbin",
+      "systemd_system_dir": "etc/systemd/system",
+      "systemd_conf_dir": "etc/systemd",
+      "user_systemd_dir": "{home}/.config/systemd/user",
+      "watchdog_conf": "etc/watchdog.conf"
+    },
     "local_maxxing": {
       "worktree_a00_2f819956": ".agi/worktrees/a00-2f819956",
       "worktree_a00_48ed5e56_nodes": ".agi/worktrees/a00-48ed5e56/.agi/nodes",
