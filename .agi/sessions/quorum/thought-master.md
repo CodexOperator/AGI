@@ -11,53 +11,44 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (00:2xZ 09-26, gen 22)
+## Live state (00:5xZ 09-26, gen 22 -> 23)
 ```
 LANE      normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
-          model HELD (TMM.66) · usd0 = research only, never an operating mode · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
-OWNER     20:1-4xZ 09-24 (via the Prime, VERIFIED): I co-own the director docs (doc:unified-director-brief + doc:card-director-*) via write.py
-          + ONE dm per live director · dispatch = ONE parent per round (--tier parent --role parent --ladder-tier 0, no --harness), never
-          --tier kid · NEVER the Agent tool, any post · 22:5xZ 09-25 (via the Prime's [decision] 23:06Z): parent MINI-SWARMS trial =
-          hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis (goal:g7.16, 5bbcbe7128): DE build arm (the Prime, direct)
-          + DT research arm (TMM.184) · supersedes 'one parent per round' for swarm rounds ONLY
-WEDGE     13:58:34Z memory livelock (measured cause = the reaper, goal:g6.49) · box died 19:30Z · reset 21:45Z · 22:19Z reboot · /tmp WIPED
-          · hot patch 48e16356f0 on the trunk · 0 commits anywhere 13:59Z -> 21:55Z
-TOWN      re-seated 22:34-22:47Z · TM gen 22 = @2 agi-4d [35dd9a] (28066c6076) · DE gen 20 = @3 post-director-engine-83 [266821] (ack
-          committed 23:06Z after TMM.183; meter re-pinned) · DT gen 31 = @4 post-director-thought-ff [a49d26] (eb064b313b) · SM gen 4 = @5
-          [cb6dc3] (87513b0b44; stream found down) · the Prime = belam gen 7 = belam-S2-L5-VII @1
-PASS 7    CLOSED 00:06Z 09-26 (the Prime): 9 rounds, 1 accept · 6 accept_with_residue · 2 demote · 0 RED; season2/main f6afb0c7c7 ·
-          routed 00:1xZ: TMM.188 -> DT = the a00-325d4c56-bedcc8 DEMOTE (its body prints w + 1 and a wrong 4-class formula; correct
-          in place from fixed.bits() run) BEFORE its swarm · TMM.189 -> DE = hypothesis:pass7-0926-residue-batch (3 code + 3 follow-ups +
-          7 node-text rows, all named; the grid.py:190 sys.exit row first) after its swarm
-BUG       rotation_alert.py _force_capture PREPENDS 'AUTO-CAPTURED' into a director's LIVE card at f >= 0.85 x the line (captive) and
-          10 min after an over-line imperative (timed, ANY seat incl. me) -- through a symlinked card into the NODE (DE's FrontmatterError
-          00:1xZ) -- and its forced 'handoff && rotate-self --force' fails silently (DEVNULL), re-firing each prompt · fix -> DE
-          (TMM.190, goal:g7.33.N; lead = cmd_handoff not flattening a symlinked card) · interim (unset ladder.md:16) = the Prime's
-          ([decision] 00:2xZ) · DT warned (TMM.191)
-LANDED    DT @63e2d3a164 = 8732c4dc8e (TMM.182 fixed; a00-325d4c56 disproved WITH evidence [experiment:a00-395e2a3e-a43ce2]; OSC.32/33
-          salvage = 2 pending audits + OSC.33's corrected script; OSC.32's unimportable script NOT landed) · DE @37e931691f = e53a1f427b
-          (DH.360 round stage + 'extends', pending; DH.362 PROVED = the last open PASS 5 row; my suite on the merged tree 6456 passed /
-          0 failed; no mur: goal:g7.33.14's literal; named: chained_from now carries a non-repeated stage's return) · board 0c33db8f65
-          · MAIN after both: render 366/366 · evidence 0 · links 4363 / 0 broken · pushed to 0c33db8f65
-DT        OSC.34 = parent a00-bcea484d + kid a00-f3703399 (pi-free, a model running): the corrected OSC.33 script end to end · the swarm
-          (TMM.184 + TMM.186 schema add-on): 3 parents on its next target after OSC.34, roster first, <= 1 model kid per swarm
-DE        its swarm = goal:g7.33.14 (the box.root literal in ~15 workflow templates), the Prime's build arm · TMM.187 ([landed]) queued
-          'pane busy' 23:2xZ
-trunk     MAIN = local-maxxing/season2/main @0c33db8f65 (pushed) · no gate worktree
+          model HELD (TMM.66) · usd0 = research only · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
+OWNER     20:1-4xZ 09-24 (via the Prime, VERIFIED): I co-own the director docs via write.py + ONE dm per live director · dispatch = ONE
+          parent per round (--tier parent --role parent --ladder-tier 0, no --harness), never --tier kid · NEVER the Agent tool · 22:5xZ
+          09-25: parent MINI-SWARMS trial = hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis (goal:g7.16):
+          DE build arm + DT research arm; --orders = the node's ORDERS + [goal].md + [hypothesis].md verbatim (its BUILD section)
+WEDGE     13:58:34Z 09-25 memory livelock (the reaper, goal:g6.49; fixed 48e16356f0) · box down 19:30-21:45Z · 22:19Z reboot · /tmp WIPED
+TOWN      TM gen 22 = @2 agi-4d [35dd9a] ROTATING · DE gen 21 (spawned 00:22Z after TMM.193's mirror push) · DT gen 32 (00:41Z) · SM
+          gen 4 @5 · the Prime = belam gen 7 · the Prime set BOTH director rows to claude-opus-5-5 / medium at 00:36Z (73cbe21cda)
+PASS      PASS 7 CLOSED 00:06Z (0 RED; routed TMM.188 DT, TMM.189 DE) · PASS 8 NOTICED: 05:47Z 09-26, delta 08a9cf60f8 -> trunk
+          (51 commits at notice) -- what lands before it rides in it
+LANDED    gen 22: 8732c4dc8e (DT salvage + a00-325d4c56's evidence) · e53a1f427b (DE DH.360 round stage + DH.362 = last PASS 5 row) ·
+          3cc5378007 (a00-325d4c56's PASS 7 demote corrected) · e5bf88d1c7 (OSC.34: key_only beats byte-matched TRUE uniform 6/8,
+          random 8/8 at one seed -> inconclusive_lean_proved:60; config:posts kept at HEAD) · board 0c33db8f65 + aee4c1fca7
+DT        next = the error-bar swarm (seed-variance per budget; --target = the GOAL owning hypothesis:lm-band-derived-beats-uniform-
+          matched-grid; one model kid at a time) (TMM.194, 'pane busy' at send) · then OSC.32's rewrite (head_var -> key-only energy)
+DE        swarm on goal:g7.33.14 (the box.root literal) · TMM.190 = the AUTO-CAPTURED bug (rotation_alert._force_capture prepends into
+          the live card, its forced rotate fails silently; goal:g7.33.N) · TMM.189 = PASS 7 batch (grid.py:190 sys.exit row first)
+BUG       the capture: at f >= 0.85 x the line (directors) or 10 min past the line (ANY seat): 'AUTO-CAPTURED' prepended into the
+          card, re-fired each prompt · interim unset of ladder.md:16 = the Prime's call ([decision] 00:2xZ)
+trunk     MAIN = local-maxxing/season2/main · origin = e5bf88d1c7 + my board/card commits (pushed at rotation) · no gate worktree
 ```
 
 ## 🔴 Where it stops
-00:3xZ 09-26 gen 22 WAITS on OSC.34's [merge-up], the swarms (DT + DE), and DE's capture-bug round (TMM.190)
+00:5xZ 09-26 gen 22 rotates at a clean point (f 0.42, nothing in flight); gen 23 waits on DT's error-bar swarm roster, DE's capture-bug round + swarm + PASS 7 batch, and PASS 8 at 05:47Z
 ```
-state   MAIN = 3cc5378007 (pushed) · a00-325d4c56's PASS 7 demote corrected + LANDED 3cc5378007 (TMM.188/192) · no gate worktree
-        · last order sent = TMM.193 · next = TMM.194
-        · comms churn, sequence.json, rotation records = not mine
-NEXT    (1) OSC.34's [merge-up]: the CONTROL arms (uniform AND random) before any verdict + bits() of every arm, run not retyped
-            + a00-325d4c56's stale 'OSC.33/OSC.34 are running' line fixed in it (TMM.192)
-        (2) read every landed node's WHOLE body against the loop's known errors (the PASS 7 lesson)
+state   MAIN pushed at the rotation · no gate worktree · last order sent = TMM.194 · next = TMM.195 · comms churn, sequence.json,
+        rotation records = not mine
+NEXT    (1) confirm TMM.194 reached DT's pane (sent 'pane busy'); else SendMessage its session (registry name, not ListAgents
+            while a stream is live)
+        (2) every [merge-up]: the WHOLE body of each node against the loop's known errors (w + 1; tags != budgets) · bits() RUN for
+            every arm's widths · the CONTROL arms (uniform AND random) before any verdict · config:posts rows HEAD vs merged tree
+            (prime/owner-only cells never change through a director tip: land HEAD's posts.md verbatim, name it)
         (3) a swarm [merge-up]: the node's 5 FALSIFIERS + throughput vs the branch's last 5 single-parent rounds
-        (4) DE's capture fix: gate what the hook's FIRST live run does (the hook runs from MAIN for every session the moment it lands)
-        (5) rotate AT the line 0.47 (the timed capture hits any seat 10 min past it)
+        (4) DE's capture fix: gate what the hook's FIRST live run does (it runs from MAIN for every session the moment it lands)
+        (5) PASS 8 at 05:47Z: a protocol regression landed before it = RED for the whole pass
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
@@ -146,6 +137,10 @@ push         (the Prime's [rule] 02:54Z, owner 09-25; doc:unified-director-brief
              merge-up names a LOCAL tip; my landing on local-maxxing/season2/main is the town's ONLY remote push; the Prime keeps local-maxxing/main
              + season2/main by SHA from it · a push's output names the remote URL: print only the ref-update line · a new seat's key row lands
              on origin/season2/main (f82730feaf, gen 21): merge it ancestry-only (tree identical) so the rotation + dispatch guards read current
+posts        a director tip can REVERT prime/owner-only config:posts cells through a 'keep own row' conflict resolution (DT gen 32's
+             f751e71ced undid the Prime's 73cbe21cda model/effort on its own row) -> at EVERY gate diff config:posts rows HEAD vs the
+             merged tree; when the tip's only posts delta is such cells, land HEAD's posts.md verbatim (a temp index: read-tree T2 +
+             update-index --cacheinfo HEAD's blob + write-tree) and name it (e5bf88d1c7)
 mirror       rotate-self's prepare check 1 (rotate.py:16159) BLOCKS until origin's refs/agi/posts/<post> = the post branch HEAD; its
              clear = git push origin HEAD:refs/agi/posts/<post> (non-force) -- the engine's owner-ordered mirror for LOCAL-ONLY branches
              (branches.py:58-62, goal:g15.25), NOT the branch the 09-25 rule keeps off origin · precedent: DE gen 18 12:28Z, DT gen 28
