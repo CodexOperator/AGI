@@ -94,6 +94,48 @@
    ]
   }
  },
+ "band": {
+  "4.25": {
+   "agree_half_range": 0.020508,
+   "kl_half_range": 0.179178,
+   "key_only_minus_uniform_agree": -0.07959,
+   "uniform_minus_key_only_kl": -0.470127,
+   "margin_call_inside_agree": false,
+   "margin_call_inside_kl": false,
+   "inside_agree": false,
+   "inside_kl": false
+  },
+  "5.25": {
+   "agree_half_range": 0.04248,
+   "kl_half_range": 0.2494,
+   "key_only_minus_uniform_agree": 0.027832,
+   "uniform_minus_key_only_kl": 0.125137,
+   "margin_call_inside_agree": true,
+   "margin_call_inside_kl": true,
+   "inside_agree": false,
+   "inside_kl": true
+  },
+  "6.25": {
+   "agree_half_range": 0.029175,
+   "kl_half_range": 0.149022,
+   "key_only_minus_uniform_agree": 0.051758,
+   "uniform_minus_key_only_kl": 0.154396,
+   "margin_call_inside_agree": true,
+   "margin_call_inside_kl": true,
+   "inside_agree": false,
+   "inside_kl": false
+  },
+  "7.25": {
+   "agree_half_range": 0.019043,
+   "kl_half_range": 0.06055,
+   "key_only_minus_uniform_agree": 0.009033,
+   "uniform_minus_key_only_kl": 0.01424,
+   "margin_call_inside_agree": true,
+   "margin_call_inside_kl": true,
+   "inside_agree": false,
+   "inside_kl": false
+  }
+ },
  "cells": {
   "4.25@s7": [
    0.499755859375,
@@ -144,39 +186,5 @@
    0.2312656999565661
   ]
  },
- "band": {
-  "4.25": {
-   "agree_half_range": 0.020508,
-   "kl_half_range": 0.179178,
-   "key_only_minus_uniform_agree": -0.07959,
-   "uniform_minus_key_only_kl": -0.470127,
-   "inside_agree": false,
-   "inside_kl": false
-  },
-  "5.25": {
-   "agree_half_range": 0.04248,
-   "kl_half_range": 0.2494,
-   "key_only_minus_uniform_agree": 0.027832,
-   "uniform_minus_key_only_kl": 0.125137,
-   "inside_agree": false,
-   "inside_kl": true
-  },
-  "6.25": {
-   "agree_half_range": 0.029175,
-   "kl_half_range": 0.149022,
-   "key_only_minus_uniform_agree": 0.051758,
-   "uniform_minus_key_only_kl": 0.154396,
-   "inside_agree": false,
-   "inside_kl": false
-  },
-  "7.25": {
-   "agree_half_range": 0.019043,
-   "kl_half_range": 0.06055,
-   "key_only_minus_uniform_agree": 0.009033,
-   "uniform_minus_key_only_kl": 0.01424,
-   "inside_agree": false,
-   "inside_kl": false
-  }
- },
- "t_s": 745.0
+ "t_s": 500.0
 }
