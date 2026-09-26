@@ -9,6 +9,10 @@ live-kid`) already threads the resolved harness into `spawn_budget.acquire`;
 this is the same bound on the reaper's restart path.
 
 RED on pre-fix bytes: `_reap_one_impl` passed no `harness=` to `acquire()`,
+and the refusal below is provably the ROW's: the caller threads the global
+`cap` explicitly, because `_reap_one_impl`'s default `cap=1` would otherwise
+refuse every restart here and leave the row check unreached (the first
+committed version of this file did exactly that -- see the parent's review).
 so the restart was admitted and the adapter's `restart()` ran with the row
 full. GREEN post-fix: the restart is refused BY NAME, the adapter is never
 called, and the record reads a refusal rather than a running pid.
@@ -30,6 +34,14 @@ CONFIG = json.dumps({
     "spawn": {"harness": "pi-local", "parallel": 1, "max_live": 25},
     "harnesses": {"pi-local": {"max_live": 1, "credential": "none"}},
 })
+
+# `_reap_one_impl`'s `cap` is the GLOBAL bound and it DEFAULTS TO 1
+# (dispatch.py:3455), which is the same number as this file's `max_live: 1`
+# row. A caller that omits `cap` therefore has its restart refused by the
+# global bound and the row check is never reached: the refusal tests below
+# go green for the WRONG reason and only the stderr string separates pre-fix
+# from post-fix bytes. Every reap in this file threads the cap explicitly.
+GLOBAL_CAP = 25
 
 
 class _CountingAdapter:
@@ -90,13 +102,27 @@ def _cfg() -> dict:
     return json.loads(CONFIG)
 
 
+def _reap(graph, iter_dir, adapter, rec, agent_id):
+    """The reaper's restart lane, with the GLOBAL cap stated by the caller.
+
+    Both halves of the claim need this: `cfg` (above) and `cap` (here) are
+    the two ways the global bound can pre-empt the row, and only threading
+    both makes a pre-fix byte a RED run.
+    """
+    return dispatch._reap_one_impl(
+        graph, iter_dir, adapter, rec, agent_id, 999999,
+        cap=GLOBAL_CAP, cfg={"reaper": {"max_restarts": 1}, **_cfg()})
+
+
 def test_a_restart_is_refused_while_its_harness_row_is_full(tmp_path, capsys):
     graph, iter_dir, sess = _rig(tmp_path)
     _occupy(graph)
     adapter = _CountingAdapter()
-    out = dispatch._reap_one_impl(
-        graph, iter_dir, adapter, _record(sess), "a00-kid", 999999,
-        cfg={"reaper": {"max_restarts": 1}, **_cfg()})
+    # The global bound is NOT the binding constraint, so a refusal here can
+    # only be the row. Stated as an assertion: if a future edit makes `cap`
+    # tighter, this test must fail LOUDLY rather than pass vacuously.
+    assert spawn_budget.live_count(graph) < GLOBAL_CAP
+    out = _reap(graph, iter_dir, adapter, _record(sess), "a00-kid")
     assert adapter.calls == 0, (
         "a refused restart must never reach the adapter while the row is full")
     rec = out["record"]
@@ -122,9 +148,7 @@ def test_a_restart_is_admitted_once_its_harness_row_is_free(tmp_path):
             return 4242
 
     adapter = _Adapter()
-    out = dispatch._reap_one_impl(
-        graph, iter_dir, adapter, _record(sess), "a00-kid", 999999,
-        cfg={"reaper": {"max_restarts": 1}, **_cfg()})
+    out = _reap(graph, iter_dir, adapter, _record(sess), "a00-kid")
     assert out["record"]["status"] == "running", out["record"]
     assert adapter.calls == 1
     lease = json.loads(
