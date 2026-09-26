@@ -56,7 +56,8 @@ re-attrib  my 2 'environmental' reds = the suite flagging ITSELF (setsid-detache
 DH.395     a00-ccaf64d0 LIVE (TMM.225: capture latch keyed per SEAT -> successors latched from birth + a latched capture
            swallows the imperative; TM renamed both stamps by hand 13:20Z). 3rd live round = DEVIATION from my <=2 hold:
            it silences every latched director's rotate-now line; town cap 10, load 1.2, io PSI 3.7
-PASS 8    row 47 -> DH.394 a00-ba7c9fba LIVE (one chain deadline; cell reaper.chain_deadline_s = DE commits it)
+PASS 8    row 47 DONE: DH.394 MERGED b39533d28 + cell reaper.chain_deadline_s=20 + a00-2fa1fab0 THOUGHT 4a30a66e1;
+          probe: 3 non-child TERM-ignoring stand-ins, deadline 3 s -> all gone 2.30 s, gone_after honest; 657 green (_reap_chain files)
           row 50 DONE 696e915e2 · row 51 DONE db5ac813f (publish runs in the shared main checkout, rotate.py:10461)
           row 46 (workflow.py a-round-stage fail-open) OPEN -> next free slot
 ```
