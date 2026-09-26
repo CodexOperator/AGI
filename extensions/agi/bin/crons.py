@@ -74,7 +74,6 @@ import difflib
 import hashlib
 import os
 import re
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -456,14 +455,28 @@ _ARCHIVE_RE = re.compile(r".+\.\d+$")
 _LOG_MODES = ("rename", "copytruncate")
 
 
-def _tail_to(path: Path, cap: int) -> None:
-    """Keep the LAST `cap` bytes of an ARCHIVE -- newest data first. The
-    archive is rewritten through its own inode, never the base's."""
-    with open(path, "r+b") as fh:
-        fh.seek(-cap, os.SEEK_END)
-        tail = fh.read()
-    with open(path, "wb") as fh:
-        fh.write(tail)
+def _tail_copy(src: Path, dst: Path, cap: int) -> None:
+    """Copy the LAST `cap` bytes of `src` (the whole file when it is shorter)
+    into a FRESH `dst`.
+
+    The size is snapshotted once, so a writer still appending to `src` cannot
+    make this read chase a moving EOF: `shutil.copyfile` on a live base blocked
+    one apply for up to 127 s, and the copy-then-truncate race window is
+    `writer_rate x copy duration` (experiment:a00-e4ba316a-1f6748). Cost here is
+    a function of `cap` alone, and the archive is never over the cap, so no
+    second trimming pass is needed."""
+    with open(src, "rb") as fh:
+        fh.seek(0, os.SEEK_END)
+        size = fh.tell()
+        fh.seek(max(0, size - cap))
+        left = size - fh.tell()
+        with open(dst, "wb") as out:
+            while left > 0:
+                chunk = fh.read(min(left, 1 << 20))
+                if not chunk:      # the writer truncated under us; take what is there
+                    break
+                out.write(chunk)
+                left -= len(chunk)
 
 
 _NESTED_RE = re.compile(r".*\.\d+\.\d+$")
@@ -480,10 +493,13 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False) -> list
     this project's cron log: the reaper log grows there too and shares it.
     The MODE is the `logs.mode` cell: `rename` (the default) renames the base,
     which strands a long-lived writer on an uncapped ARCHIVE; `copytruncate`
-    copies to `.1` and truncates the base IN PLACE, so an `O_APPEND` writer
-    keeps landing in a file the next apply still caps. The copy-then-truncate
-    race costs only the bytes appended between the copy and the truncate (less
-    than one apply cycle); no pre-rotation byte is lost.
+    copies the newest `cap` bytes to `.1` and truncates the base IN PLACE, so an
+    `O_APPEND` writer keeps landing in a file the next apply still caps. The
+    copy reads a snapshotted size, so its cost is bounded by the cap and the
+    copy-then-truncate race costs only the bytes appended between the copy and
+    the truncate. A writer that is NOT `O_APPEND` still resumes at its stale
+    offset and leaves a NUL hole (falsifier 2): the cap holds, the file shape
+    does not.
     """
     cells = locations.load_config(root).get("logs") or {}
     if not cells:
@@ -536,9 +552,12 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False) -> list
                 # in place: later bytes re-enter a file the cap still governs,
                 # never an ARCHIVE that `_ARCHIVE_RE` skips forever.
                 arch = Path(f"{p}.1")
-                shutil.copyfile(p, arch)
+                _tail_copy(p, arch, cap)   # bounded, and <= cap by construction
                 if arch.stat().st_size > cap:
-                    _tail_to(arch, cap)   # the copy inherits the overage
+                    # Only a live writer that SHRANK the base under us can land
+                    # here (a concurrent truncation mid-copy); the cap is a cap.
+                    with open(arch, "r+b") as fh:
+                        fh.truncate(cap)
             else:
                 p.replace(f"{p}.1")
         p.write_text("", encoding="utf-8")

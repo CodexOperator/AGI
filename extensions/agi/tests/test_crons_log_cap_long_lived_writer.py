@@ -47,13 +47,18 @@ def redirected_home(tmp_path, monkeypatch):
     return home
 
 
-def make_project(tmp_path) -> Path:
+def make_project(tmp_path, mode: str | None = None) -> Path:
+    """`mode` is the declared `logs.mode` cell. ABSENT = today's default
+    (`rename`) -- the box's own config declares it explicitly, so a test that
+    means to exercise one mode must SAY which one."""
     root = tmp_path / "proj"
     (root / "nodes" / ".geometry").mkdir(parents=True)
     (root / crons.CRONS_NODE_REL).write_text(
         "---\n" + yaml.safe_dump({"id": "cron:crons", "type": "cron"}) + "---\n\nB.\n")
-    (root / "agi-tree.config.json").write_text(
-        json.dumps({"logs": {"cap_mb": CAP_MB, "rotations": KEEP}}))
+    logs = {"cap_mb": CAP_MB, "rotations": KEEP}
+    if mode:
+        logs["mode"] = mode
+    (root / "agi-tree.config.json").write_text(json.dumps({"logs": logs}))
     return root
 
 
@@ -73,9 +78,16 @@ def sizes(d: Path) -> dict:
     return {p.name: p.stat().st_size for p in sorted(d.iterdir())}
 
 
-def test_f1_live_writer_keeps_appending_into_an_archive(tmp_path):
-    """FALSIFIER 1: after one apply, further bytes land in an ARCHIVE."""
-    root, d = make_project(tmp_path), Path(os.environ["HOME"]) / "logs"
+def test_f1_rename_mode_strands_the_live_writer_on_an_archive(tmp_path):
+    """FALSIFIER 1, as the EXPLICIT expectation of `logs.mode: rename`.
+
+    This is the defect the hypothesis names, so the suite states it in green
+    rather than leaving a red assertion nobody can read: rename moves the base,
+    the writer's fd follows the renamed inode, and every later byte lands in an
+    ARCHIVE -- which `_ARCHIVE_RE` never caps again. The contrast case
+    (`test_f1b`) is the mode the box ships.
+    """
+    root, d = make_project(tmp_path, "rename"), Path(os.environ["HOME"]) / "logs"
     log = d / "agi-crons-test.log"
     jr = d / "writer.journal"
     log.write_bytes(OVER)
@@ -96,8 +108,31 @@ def test_f1_live_writer_keeps_appending_into_an_archive(tmp_path):
                                    "3_more_applies": outs, "recheck": recheck,
                                    "cap_bytes": CAP_MB * 1024 * 1024}, indent=1))
     archives = {n for n in grew if crons._ARCHIVE_RE.match(n)}
-    assert not archives, (
-        f"live writer still appending to uncapped archive(s) {sorted(archives)}")
+    assert archives, "rename mode is no longer stranding the writer -- update this test"
+    assert outs == [[], [], []], "an archive is still skipped, so it grows uncapped"
+
+
+def test_f1b_copytruncate_keeps_the_live_writer_on_a_capped_base(tmp_path):
+    """The same fixture under the mode the box ships: no file in the dir ends
+    over the cap, and no ARCHIVE grows."""
+    root, d = make_project(tmp_path, "copytruncate"), Path(os.environ["HOME"]) / "logs"
+    log = d / "agi-crons-test.log"
+    jr = d / "writer.journal"
+    log.write_bytes(OVER)
+    kid = start_writer(log, "KID", jr)
+    try:
+        time.sleep(0.2)
+        crons.enforce_log_caps(root, root, dry_run=False)
+        before = sizes(d)
+        time.sleep(0.4)
+        after = sizes(d)
+        outs = [crons.enforce_log_caps(root, root, dry_run=False) for _ in range(3)]
+    finally:
+        kid.terminate(); kid.wait(timeout=5)
+    grew = {n: after[n] - before.get(n, 0) for n in after if after[n] > before.get(n, 0)}
+    print("\nCOPYTRUNCATE DIR", json.dumps({"before": before, "after": after,
+                                            "grew": grew, "3_more_applies": outs}, indent=1))
+    assert not [n for n in grew if crons._ARCHIVE_RE.match(n)], grew
     assert not any(s > CAP_MB * 1024 * 1024 for s in sizes(d).values()), sizes(d)
 
 
@@ -139,7 +174,7 @@ def test_f4_alt_copytruncate_keeps_the_live_writer_on_a_capped_base(tmp_path):
 
 def test_f2_truncated_base_has_no_nul_hole(tmp_path):
     """FALSIFIER 2: O_APPEND writes at the CURRENT end -- no sparse hole."""
-    root, d = make_project(tmp_path), Path(os.environ["HOME"]) / "logs"
+    root, d = make_project(tmp_path, "copytruncate"), Path(os.environ["HOME"]) / "logs"
     log = d / "agi-crons-test.log"
     jr = d / "writer.journal"
     log.write_bytes(OVER)
@@ -158,7 +193,7 @@ def test_f2_truncated_base_has_no_nul_hole(tmp_path):
 
 def test_f3_pre_rotation_bytes_survive_somewhere(tmp_path):
     """FALSIFIER 3: bytes written BEFORE the rotation are still readable."""
-    root, d = make_project(tmp_path), Path(os.environ["HOME"]) / "logs"
+    root, d = make_project(tmp_path, "copytruncate"), Path(os.environ["HOME"]) / "logs"
     log = d / "agi-crons-test.log"
     jr = d / "writer.journal"
     log.write_bytes(OVER)
