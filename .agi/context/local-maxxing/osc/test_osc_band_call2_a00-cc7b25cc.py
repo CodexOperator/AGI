@@ -60,6 +60,22 @@ def test_p4_zero_band_on_one_metric_only():
     assert "degenerate" in j["qwen2", 32, 5.25, "key_only", "random", "kl"][1]
 
 
+def test_p7_absent_seed_is_not_a_distinct_draw():
+    # the 16 on-disk rows carry NO seed field (osc_band_matched_uniform_a00-a721f95f.py:74-77):
+    # three rows that vary must NOT become three distinct seeds
+    nos = [{k: v for k, v in d.items() if k != "seed"} for d in
+           [rec("random", 1, .50, .10), rec("random", 2, .53, .11),
+            rec("random", 3, .56, .12), rec("key_only", 0, .90, .05)]]
+    j = m.judge(nos)
+    assert {v[0] for v in j.values()} == {"unresolved"}, j
+    assert all("no seed" in v[1] for v in j.values()), j
+    assert old.judge(nos)["qwen2", 32, 5.25, "key_only", "agree"] == "win"  # the old hole
+
+
+def test_p8_the_superseded_module_is_marked_deprecated():
+    assert (HERE / "osc_band_call_a00-ee9a5cdc.py").read_text().startswith('"""DEPRECATED')
+
+
 def test_too_few_random_draws_is_unresolved():
     j = m.judge(CELL_D)
     assert {v[0] for v in j.values()} == {"unresolved"}
