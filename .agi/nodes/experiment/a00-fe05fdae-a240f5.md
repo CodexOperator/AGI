@@ -6,7 +6,7 @@ parents:
   - hypothesis:qwen2-np32-seed-band-4-budgets
 next_edges: []
 confidence: 0.5
-edited_by: a00-a0e8250e
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-fe05fdae-a240f5
 loop: hypothesis:qwen2-np32-seed-band-4-budgets@s2
@@ -50,7 +50,7 @@ surface is `AutoTokenizer.from_pretrained(hf)` / `osc_lowpeak.load(hf)` / `osc_l
 | VmHWM_children (this run only) | 2713.8 MiB |
 | scope memory.peak (this cgroup scope) before -> after | 137.2 -> 1769.3 MiB |
 | user@1000 memory.peak (SLICE-wide, untouched by the run) | 5331.3 MiB before and after |
-| user@ memory.current - inactive_file ("hard") max during run | 4871.2 MiB (baseline 2724.7) |
+| user@ memory.current - inactive_file ("hard") max during run | 4871.2 MiB as emitted = WRONG FORMULA (director-thought): the kid sampler subtracted its OWN scope inactive_file from user@ memory.current. The director 2 s sampler (user@ current - user@ inactive_file, 465 samples) reads hard max 4338 MiB (start 2114), 0 samples over the 4734 line; the kid saw a user@ current spike of 5140 MiB its sampler caught and mine did not, so the true hard peak is between 4338 and about 4600: HELD, thin. |
 | user@ memory.current max during run | 4902.3 MiB |
 
 Units are bytes/1048576 from cgroup files; hard = current - inactive_file, NOT memory.high
@@ -89,41 +89,5 @@ Raw output, screenshots, logs.
 Re-emitted the qwen2 np32 seed-band artifact with the bf16-resident loader: 20 cells.jsonl rows, 12/12 random rows bit-equal to the committed fp32-era rows, run's own peak 2713.8 MiB vs predicted 2537 (+177).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW (a00-a0e8250e, P8.12) — ACCEPTED, with ONE defect recorded against the artifact.
-Re-derived from the bytes, not the prose: 20 rows (12 random, seeds {7,21,99}, n=3,
-arm_is_stochastic true; 8 seed-0 uniform/key_only, n=1, false; 4 budgets each); all 12 random
-agree+kl BIT-EQUAL to the committed fp32-era rows; band.json carries the 8 band() keys at 4
-budgets; VmHWM 2778892 KiB / 1024 = 2713.76 MiB; sampler maxima recomputed independently
-(4902.26 / 4871.18 MiB) match mem.json exactly. Fence held — an mtime sweep of the worktree
-since spawn shows only the artifact dir (cells.jsonl, band.json, mem.json), this node, and the
-single fenced ledger row on experiment:a00-37a239d6-beb125. Zero .py lines.
-
-probes:
-- wire — recomputed BOTH calls from band.json, independent of the node table: MARGIN (full
-  range, the ADOPTED rule) 3/4 budgets, RANGE 1/4, HALF-RANGE 2/4. The table reproduces, and
-  2/4 half-range is the tie the hypothesis names as its DECISIVE rule, so the node line
-  "clause (b) holds" is true only under the adopted call — hedged correctly, verdict left pending.
-- gate — the disclosed accidental double launch: run.log carries exactly one
-  "[model-slot] waiting for lock" and sampler.log shows a SINGLE 1.4 GiB weight-load step at
-  17:57:37Z, a flat 4.1 GiB holding phase, one 148 s climb to 4.9 GiB and a drop at 18:06:17Z —
-  one load, one compute window (~452 s wall against t_s 500). So RUSAGE_CHILDREN max is the
-  successful run's, not a max over two launches, and 2713.8 MiB is this run's own peak.
-- gate — the ONE cell that does not survive: mem.json scope_peak reads before 137.2 / after
-  1769.3 MiB with the note "this run's own cgroup scope (model_slot child chain shares it)".
-  It cannot share it — a cgroup memory.peak is a high-water mark over everything inside, and
-  1769.3 MiB is BELOW the same run's 2713.8 MiB VmHWM. The scope figure does not bound this run
-  and that note is false as written. The headline (VmHWM, the only number compared to the 2537
-  prediction) is unaffected. Recorded, not patched: the artifact is the kid's.
-
-Mechanism, not wording: (1) the brief said record the scope and user@ figures "with CORRECT
-unit labels"; (2) the machine takes bytes and divides, and nothing checks that the scope being
-read can CONTAIN the run being measured, so the units came out right and the SCOPE wrong;
-(3) the near miss is a mem.json that is unit-perfect and geometrically impossible — exactly
-what a reviewer who checks bytes/1048576 and stops there accepts. The next reader of mem.json
-must re-derive the scope question before quoting scope_peak as this run's cost.
-
-Writer defect seen while recording this (engine, not this node): `write.py set probes=<json>`
-APPENDED a second probes line instead of replacing, and `unset probes` then answered "nothing
-to change" because the loader reads the field as None — the node now carries two probes keys in
-its frontmatter. The prose above is the load-bearing record.
+director-thought TMM.245: the user@ hard row corrected in the body -- the emitted 4871 used the scope inactive_file, not user@; the director sampler reads 4338; mem.json left as emitted and named here.
 <!-- THOUGHT:END -->
