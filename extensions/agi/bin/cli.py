@@ -1599,6 +1599,14 @@ def cmd_done(args: argparse.Namespace) -> int:
     rec["verdict"] = verdict
     rec["confidence"] = args.confidence
     rec["node_id"] = args.node_id
+    # hypothesis:a-rounds-named-node-set-is-its-dispatch-time-ids-never-a-kid-
+    # supplied-parent -- `rec["parent"]` is DISPATCH's field, and the sweep
+    # reads it (see `_round_named_node_ids`). Preserve the value dispatch
+    # wrote under a key NOTHING writes, BEFORE the kid's `--parent`
+    # overwrites the original: otherwise the line `del parent` protects the
+    # parameter while the record re-introduces the kid's id one page earlier,
+    # and `done --parent config:posts` widens the committed set again.
+    rec.setdefault("dispatch_parent", rec.get("parent") or "")
     rec["parent"] = args.parent
     if args.owns:
         rec["owns"] = list(args.owns)   # goal:s27 — a parent's real artefact
@@ -2136,9 +2144,17 @@ def _round_named_node_ids(rec, parent) -> list:
     filtered by type in `_round_own_node_paths`."""
     out = []
     del parent   # dispatch-time ids only; the kid's --parent never widens
-    for v in ((rec or {}).get("target") if isinstance(rec, dict) else None,
-              (rec or {}).get("parent") if isinstance(rec, dict) else None,
-              (rec or {}).get("node_id") if isinstance(rec, dict) else None):
+    # `dispatch_parent` is captured by `cmd_done` BEFORE it writes the kid's
+    # `--parent` into `rec["parent"]`; it is the ONLY parent the set reads.
+    # The `parent` fallback is for a record that never went through `cmd_done`
+    # (a fixture, a record written by an older dispatch, a direct call) -- in
+    # the `done` path the capture above has always run first.
+    if isinstance(rec, dict):
+        _dp = rec.get("dispatch_parent", rec.get("parent"))
+        _cand = (rec.get("target"), _dp, rec.get("node_id"))
+    else:
+        _cand = (None, None, None)
+    for v in _cand:
         if isinstance(v, str) and ":" in v and v not in out:
             out.append(v)
     return out
