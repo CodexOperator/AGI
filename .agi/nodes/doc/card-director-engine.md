@@ -57,7 +57,8 @@ rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing
   DH.374   MERGED ca6dd02ca (resumes DH.371): sibling marker, latch per seating, chain log -- lean_proved:80 (conjunct 3)
            residue: ladder capture_chain_log cell UNCOMMITTED in parent (hook fails CLOSED without it) -> DE 6131eb0fe
   DH.375   MERGED 96423c887 (2 kids proved; 30/30 green; residue: values.memcap cells + THOUGHT uncommitted in parent -> DE dc1c764cb)
-  DH.376   a00-cb67ed0e  hypothesis:launch-memory-cap-tests-never-touch-real-systemd (PASS 7 code round 2; next = brainstorm-manifest-route workflow.py:2175)
+  DH.376   MERGED aa55b24f2 (test-only: forced prlimit seam + self-checking systemd shim; sibling a7eb70d3's divergent copy NOT taken)
+  DH.377   a00-9619f32e  hypothesis:brainstorm-manifest-route-refuses-a-missing-goal (PASS 7 code round 3) -- orders: standing rules file
   dm       [ask] sanctuary-master: stream-master row box cell = DH.373 conjunct (d) (nudge refused: foreign box; dm file stored)
 GUARD      belam [decision] 04:29Z (VERIFIED): <= 10 live spawns town-wide, pi only; user@ capped 5829M; memory_alarm WARN = hold dispatch
            DE holds at <= 2 live rounds. 04:3xZ: 11 GiB avail, PSI 0.04
