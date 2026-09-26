@@ -34,7 +34,8 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ## 🔴 Where it stops
 23:1xZ 09-26: the other-box ask is CANCELLED (OWNER HOLD 21:1xZ via belam 23:12Z); idle until a [merge-up] (DE's re-delivery, DT's model_slot lift) or a blocker; MODEL-LOADING ROUNDS HELD
 ```
-state   MAIN = origin + this card · last order = TMM.267 · next = TMM.268 · spawn.memory_max = 2G (f28493d5b, the OWNER's number; my 3G VOID)
+state   MAIN = origin + this card · last order = TMM.268 · next = TMM.269 · TMM.268 23:4xZ RULED DE's [red]: a director may commit write.py-
+        LOGGED kid bytes (diff == the log rows, exact paths, actors + row ids named, mur-reviewed) + row (b): dispatch-named edit targets admitted by done · spawn.memory_max = 2G (f28493d5b, the OWNER's number; my 3G VOID)
 HOLD    OWNER 21:1xZ (the Prime's relay 23:12Z): encryption-town config + sanctuary-master activation + the stream ALL on hold until messaging
         (goal:send-is-hub-only-dm-file-versions-synced-every-30s) is done; it cancels the 20:4xZ other-box ask -> DONE: goal:g7.33.18 titled HELD
         (v2 = the audit, v3 THOUGHT = the relay) · TMM.267 hold to DE (voids TMM.265; a live round finishes in its fences, parked) · the
