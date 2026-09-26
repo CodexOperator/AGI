@@ -139,10 +139,8 @@ DH.369 gate (maint_gc = git gc, 04:41 daily, NOT in the live crontab until TM la
 live     DH.386 MERGED d54e7e3aa-line (target/--parent node set commits; orders-TEXT ids not read, lean_proved:65 --
          parent's demote was only in the body, I set the field) -- OWED: test_cli.py after the suite lock frees
          DH.387 a00-9a906e4f (.agi/context suite) · DH.388 a00-301fe6aa (restart env)
-suite    full suite on 4b69308e4 RUNNING (bg) for merge-up 5 -- result in scratchpad suite-mu5.log; if green: send merge-up 5 =
-         DH.383 + DH.384 + DH.385 (tip = HEAD, behind = MEASURED rev-list count, never typed); residues: also_manage box-hashed name,
-         non_append=rename .1.1 prune vs live writer, DH.385 restart leak (-> DH.388)
-awaiting TM verdict on merge-up 4 (tip 91177caa1) · belam on 2c ([ask] 07:4xZ) · SM on box cells (g7.33.14 clause 1) + stream-master box (DH.373 d)
+merge-up 5 SENT tip 2789f2a44 (behind 0, measured): DH.383-386; suite 6603/0 on 4b69308e4 + 199/199 after
+awaiting TM verdicts on merge-up 4 (tip 91177caa1) + 5 (tip 2789f2a44) · belam on 2c ([ask] 07:4xZ) · SM on box cells (g7.33.14 clause 1) + stream-master box (DH.373 d)
 harvest  per round: review diff vs claim + parent probes; commit the parent worktree's leftover files (rounds CANNOT commit .agi/config.json);
          take ONE tree when kids overlap; cat-literal grep; merge --no-ff; run the round's test files
 guard    <= 10 live town-wide, pi only, no model loads; hold dispatch while io PSI avg10 > ~10; never grep -r over .agi/ (101 worktrees)
