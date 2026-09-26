@@ -1737,7 +1737,8 @@ def cmd_done(args: argparse.Namespace) -> int:
     # this parent runs in, if it holds uncommitted node writes; a no-op in
     # main (the loop owns main) and outside git. Never fatal.
     _auto_commit_worktree(root, args.agent_id, args.node_id, args.owns, verdict,
-                          _round_named_node_ids(rec, args.parent))
+                          _round_named_node_ids(rec, args.parent),
+                          refused=[args.parent] if args.parent else None)
 
     # hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- a round that
     # finishes alarms the seat that dispatched it: exactly ONE dm, sent with
@@ -2197,15 +2198,28 @@ def _round_committable(root: Path, nid: str) -> bool:
 
 def _round_own_node_paths(root: Path, checkout_root: Path,
                           node_id: str | None, owns: list | None,
-                          named: list | None = None) -> set:
+                          named: list | None = None,
+                          refused: list | None = None) -> set:
     """The round's own node files, relative to the checkout toplevel. The
-    round's OWN node is always its own; every other id -- `--owns` and the
-    dispatch-time named set alike -- must be round-committable by type."""
+    round's OWN node is always its own; every other id -- `--owns`, the
+    dispatch-time named set, and the kid's own `--parent` -- must be
+    round-committable by type.
+
+    Every REFUSED id is NAMED on stderr: a round told `done --parent goal:g5`
+    used to get silence, and could not tell "I refuse that" from "I never saw
+    it". `--parent` is threaded in as `refused` because it is `del`eted from
+    the named set in `_round_named_node_ids` -- it is still a value the round
+    asked for, so it is judged (and named) where it is in hand."""
     out = set()
-    for nid in [node_id, *(owns or []), *(named or [])]:
-        if not nid:
+    seen = set()
+    for nid in [node_id, *(owns or []), *(named or []), *(refused or [])]:
+        if not nid or nid in seen:
             continue
+        seen.add(nid)
         if nid != node_id and not _round_committable(root, nid):
+            print(f"round-commit gate: refusing {nid} — not "
+                  f"round-committable, so it is left uncommitted by this "
+                  f"round's done commit", file=sys.stderr)
             continue
         nf = _find_node_file(root, nid)
         if nf and nf.exists():
@@ -2218,7 +2232,8 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
 
 def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
                          owns: list | None, verdict: str,
-                         named: list | None = None) -> Path | None:
+                         named: list | None = None,
+                         refused: list | None = None) -> Path | None:
     """Give the commit to the parent at the moment it accepts its kid's node.
 
     hypothesis:l3w4-branch-parent-commits — a `--branch` parent runs inside a
@@ -2296,7 +2311,8 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
     # the round's OWN paths, never `add -A` (hypothesis:l4-the-round-done-
     # commit-scopes-to-the-round-own-paths-never-git-add-a). A foreign dirty
     # path is named on stderr and left where it is.
-    own = _round_own_node_paths(root, checkout_root, node_id, owns, named)
+    own = _round_own_node_paths(root, checkout_root, node_id, owns, named,
+                                refused)
     in_scope, foreign = [], []
     for rec in status.stdout.split("\0"):
         if len(rec) < 4:
