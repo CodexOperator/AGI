@@ -55,6 +55,8 @@ rounds     all pi-free stealth/space-bunny-alpha, --tier parent --ladder-tier 0,
   DH.369   a00-8cf344ba  hypothesis:cron-layer-keeps-its-disk-footprint-bounded (g6.49, 2d)
 held       goal:g6.41 pair (heal-lands-a-reseat..., a-reboot-brings-the-town-back...) -- heal.py = DH.368's file;
            dispatch (1) once DH.368 merges, (2) after (1) per belam's order · MemAvailable was 3.6 GiB at DH.369 (floor 3)
+STOP       fired ~02:4xZ: MemAvailable 1270 MiB (<1.5 GiB; a 4.1 GiB OSC qwen3 run, not DE's) -> [red] to belam sent;
+           NO new DE dispatch until MemAvailable >= 3 GiB again; running rounds continue
 push       never from here (IDENTITY rule)
 ```
 | TMM.199 red | fix in 34ceccce2 | proof |
