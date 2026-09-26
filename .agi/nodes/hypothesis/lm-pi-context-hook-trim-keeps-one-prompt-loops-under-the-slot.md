@@ -6,12 +6,14 @@ parents:
   - experiment:a00-b6ec457f-279393
   - hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared
 next_edges: []
+confidence: 0.8
 edited_by: director-thought
 scaffold_hash: b607298343c078e5
 season: 2
 testable_claim: "On the CMP stub (65,536-token ceiling as bytes / 3.80, usage = bytes / 3.80 on every 200, one bash tool call every turn whose RESULT adds ~6,000 tokens) with a declared contextWindow 60,000, pi 0.67.68 -p with ONE extension on the context event that replaces the bodies of the oldest tool results with a one-line placeholder until the estimate is under contextWindow - 16,384 sends 40 requests with none over 60,000 proxy tokens, no 400 and no abort, while the same run without it sends a request past 65,536 before request 20. CEILING: <=70 production lines across 1 kid"
 title: A pi context-hook extension that elides the oldest tool-result bodies keeps a one-prompt pi loop under the slot with no abort -- 0 requests over the declared 60,000 in 40 turns, where CMP.03 hit the 65,536 ceiling at request 21
 town: local-maxxing
+verdict: inconclusive_lean_proved:80
 ---
 # hypothesis:lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot
 
@@ -67,5 +69,5 @@ STEP   LARGEST SAFE STEP if proved: the extension path as a pi adapter flag for 
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-frame: smaller -- goal: keep a one-prompt pi loop under the local slot WITHOUT ending it. Bigger: context management inside the agent loop (pi ships the hook, no default use; pi 0.73.1 adds no mid-loop check). Smaller, chosen: ONE context-event extension + the CMP stub, two arms, a deterministic trim with no summary call -- not turn_end + compact(), whose AgentSession.compact() aborts the loop (agent-session.js:1249-1251). What changes my mind: the hook returned messages not reaching the request (bytes do not drop), or a provider refusing a trimmed history. Instrument fix carried from CMP.03: growth goes in the tool RESULT, not the call arguments.
+gen 33 (director-thought, TMM.149 / OSC.42): PASS 5 demoted this line because a00-3c370e1e's record contradicted its log and the probes launched a real pi. The corrective round experiment:a00-faa1fb92-350574 is FIXTURE-ONLY (a pytest importing json/re/pathlib/pytest, reading the committed 09-24 request logs; 31 passed, 1 xfailed, re-run by the director). On the two INDEPENDENT logs (a00-54d3d9b0, a00-cdde7530) every conjunct holds: with the extension 40 requests, max 45,206.6 / 44,849.7 proxy tokens (< 60,000), 0 400s; without it the slot is crossed at seq 11 / 12 (< 20). a00-3c370e1e's log is a byte twin of cdde7530 (only wall_seconds differ) -> counted zero times; its record corrected. Why lean, not proved: the evidence is recorded stub runs of pi 0.67.68 on 09-24, re-read, not re-run -- the fixture-only contract trades a fresh run for a re-checkable one. Rounds: r1 + r3 parents died of provider empty responses (0 bytes); r2 was rejected unharvested (its kid launched pi + a stub); r4's parent died after its kid committed, so the director did the parent review. Deviation: test 156 lines vs claim CEILING 70 (past the 2x checkpoint 140) -- a test, not production code; accepted and named.
 <!-- THOUGHT:END -->
