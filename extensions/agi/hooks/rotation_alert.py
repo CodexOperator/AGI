@@ -983,7 +983,11 @@ def _captive_rotate(root: Path, seat: str, fraction: float, threshold: float,
         # (hypothesis:a-capture-latch-is-keyed-by-session-and-never-swallows-
         # the-imperative). A latch is a memory, never a reason to go quiet.
         return False
-    return True
+    # Only a capture that SPAWNED its chain (or recorded it under NO_SPAWN)
+    # may go quiet: `capture-no-log` / `capture-failed` rotated nothing, so
+    # returning True there swallowed the imperative exactly as the latch did
+    # (DH.395 harvest, director-engine gen 24).
+    return which in ("captured", "capture-no-spawn")
 
 #: once-per-generation latch dir, under the shared sessions dir. Keyed by
 #: seat + generation so a slow spawn is never doubled (gate (d)).
