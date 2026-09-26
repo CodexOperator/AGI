@@ -38,6 +38,35 @@ from types import ModuleType
 REQUIRED = ("build_command", "child_env", "is_alive", "restart", "needs_credential")
 
 
+def scrubbed_base(explicit: dict | None = None) -> dict[str, str]:
+    """The base env a RESTART child is built from.
+
+    `dispatch.scrubbed_env()` is the ONE definition of what gets scrubbed; it
+    is imported lazily because dispatch imports this package. An `explicit`
+    base from the caller wins, so the reaper hands over exactly the env it
+    scrubbed for the first spawn. Before this, every `restart()` read raw
+    `os.environ` and a restarted round inherited the Claude-Code Anthropic
+    credentials (hypothesis:every-adapter-restart-spawns-from-the-scrubbed-env).
+
+    The explicit base is scrubbed on the way through, NOT trusted: before this,
+    `restart(base_env=dict(os.environ))` leaked AGI_MODEL_SLOT_LOCK,
+    ANTHROPIC_API_KEY, AGI_ORDERS_TEXT and PROVISIONING_KEY_VAR, and nothing
+    but the absence of such a caller kept it from leaking live.
+    """
+    # ONE scrub list: `dispatch.ENV_VARS_TO_SCRUB` is imported from dispatch,
+    # which imports this package -- hence the lazy import, not a copy of the
+    # names here. Whatever the caller hands over is FILTERED, so the property
+    # holds by construction instead of by caller discipline: a second spawner
+    # (heal.py's precedent) passing raw `dict(os.environ)` now gets the same
+    # scrub the default base gets. Idempotent over `scrubbed_env()`'s own
+    # output, which is already free of every name in the list.
+    import dispatch
+    if explicit is None:
+        return dispatch.scrubbed_env()
+    scrub = dispatch.ENV_VARS_TO_SCRUB
+    return {k: v for k, v in explicit.items() if k not in scrub}
+
+
 class AdapterError(RuntimeError):
     """Raised for an adapter that is missing, unimportable or incomplete."""
 

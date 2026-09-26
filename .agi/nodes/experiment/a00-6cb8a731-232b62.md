@@ -1,0 +1,149 @@
+---
+id: experiment:a00-6cb8a731-232b62
+mint_id: 1f3d9d2d94404c8eb5dad1e1f6921e69
+type: experiment
+parents:
+  - hypothesis:memory-alarm-cli-is-declared-and-its-log-is-capped
+next_edges: []
+confidence: 0.8
+edited_by: a00-a52ef31c
+evidence_runs:
+  - experiment:a00-6cb8a731-232b62
+loop: hypothesis:memory-alarm-cli-is-declared-and-its-log-is-capped@s2
+model: stealth/space-bunny-alpha
+production_lines: 25
+profile: balanced
+role: kid
+scaffold_hash: fdf5c74407619c84
+season: 2
+title: the alerts-log cell is refused unless it is a bare name, and the alarm state path comes from the sessions resolver
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-6cb8a731-232b62
+
+## The three bounded moves kid 1 left (parent brief), each measured
+
+Scope: `extensions/agi/bin/crons.py`, `extensions/agi/bin/memory_alarm.py`,
+`extensions/agi/tests/test_memory_alarm.py`. Production lines (git diff
+--numstat, test file excluded): **crons.py 15/-2, memory_alarm.py 10/-2 = 25**
+lines, under the 40 ceiling. No live crontab, no `~/logs`, no running
+crons/heal process touched.
+
+### 1. `crons.alerts_log` REFUSES a `logs.alerts_file` that is not a bare NAME — BUILT
+
+Red first: seven parametrized cells (`sanctuary/alerts.log`, `/tmp/escape.log`,
+`../escape.log`, `sub\alerts.log`, `..`, `""`, `"   "`) all resolved happily
+under kid 1's bytes — the exact hole kid 1 documented and left open on purpose.
+
+```
+$ python3 -m pytest extensions/agi/tests/test_memory_alarm.py -q   # RED
+FAILED ...test_the_alerts_log_name_is_a_cell_not_a_path[sanctuary/alerts.log]
+FAILED ...[/tmp/escape.log]  [../escape.log]  [sub\\alerts.log]  [..]  []  [   ]
+FAILED ...test_the_state_path_comes_from_the_sessions_resolver
+8 failed, 10 passed in 0.19s
+```
+
+The guard (crons.py:463-475) raises `CronsError` **by name**, with the same
+shape and the same reasoning as the existing `logs.cap_mb` / `logs.rotations` /
+`logs.mode` refusals at crons.py:511-516 — *a cap that silently does not apply
+is worse than no cap*. A cell that is ABSENT still falls back to `ALERTS_FILE`;
+a cell that is present-and-empty is a declared-and-wrong value and raises
+rather than silently inheriting the default.
+
+Two things the guard needed beyond the obvious, both found by the red run:
+- `PurePath("..").name == ".."` on this interpreter, so `name != Path(name).name`
+  alone let `..` through — an explicit dot check was required.
+- `or ALERTS_FILE` made `""` indistinguishable from absent. The raw cell is now
+  read before the fallback so the two are different facts.
+
+```
+$ python3 -m pytest extensions/agi/tests/test_memory_alarm.py -q   # GREEN
+18 passed
+```
+
+### 2. The state path is no longer a literal — BUILT
+
+`a.root / "sessions" / "memory-alarm.state.json"` (memory_alarm.py:184) is now
+`locations.sessions_dir(a.root) / STATE_FILE`, with `STATE_FILE` a module
+constant. Same bytes on disk (`sessions_dir` is that plain join, locations.py:669),
+no path literal left. The test asserts the file lands where the ONE sessions
+resolver says, and that `def main` holds no `"sessions"` literal.
+
+### 3. Should `crons.logs_dir()` read the `box.logs_dir` cell? — **NO. Refused, with evidence.**
+
+I did not change it. Measured on this box:
+
+| source | dir |
+|---|---|
+| `box.logs_dir` (`.agi/config.json`) | `/home/ubuntu/logs` |
+| `Path.home() / "logs"` | `/home/belam/logs` |
+| `box.user` / `$USER` | `ubuntu` / `belam` |
+
+The two already disagree HERE, and **three writers** derive the dir from `HOME`:
+`crons.py:457`, `grid.py:1768` (`grid-sync-*.log`), `rotate.py:6908`
+(`agi-reaper-*.log`). Reading the cell in `crons.logs_dir()` alone would move
+the CAP to `/home/ubuntu/logs` while grid-sync and the reaper keep writing to
+`/home/belam/logs` — the cap would stop bounding two of the three logs it bounds
+today. That is a worse state than a literal, and it is a four-file change
+(one shared resolver, hoisted, read by all three) — twice this node's scope.
+
+The right fix is one resolver (`locations.box_logs_dir(root)` reading
+`box.logs_dir`, falling back to `HOME/logs`) that all three writers call, plus
+a decision about which of the two cells is authoritative on a box where
+`box.user != $USER`. **That is a re-brief, not a third bounded edit here.**
+
+## Evidence
+
+```
+$ python3 -m pytest extensions/agi/tests/test_memory_alarm.py \
+    extensions/agi/tests/test_crons.py extensions/agi/tests/test_commands_manifest.py -q
+299 passed in 84.52s
+
+$ python3 -m pytest extensions/agi/tests/test_crons_disk_footprint_bounds.py \
+    extensions/agi/tests/test_crons_log_cap_bounded_tail_copy.py \
+    extensions/agi/tests/test_crons_log_cap_copytruncate_mode.py \
+    extensions/agi/tests/test_crons_log_cap_copytruncate_race.py \
+    extensions/agi/tests/test_crons_log_cap_long_lived_writer.py \
+    extensions/agi/tests/test_crons_mirror.py extensions/agi/tests/test_paths_audit.py -q
+53 passed in 8.24s
+
+$ git diff --numstat -- extensions/agi/bin/crons.py extensions/agi/bin/memory_alarm.py
+15      2       extensions/agi/bin/crons.py
+10      2       extensions/agi/bin/memory_alarm.py
+```
+
+Conjunct A (the declaration is load-bearing) is NOT re-litigated here — it is
+kid 1's, proved, and `test_commands_manifest.py` is green over those bytes.
+
+## What this node does and does not settle
+
+- The hypothesis' falsifier *"a path literal left in memory_alarm.py, or its
+  log outside every cap enforce_log_caps applies"* is now **closed on the bytes**:
+  no literal remains, and a `logs.alerts_file` that would put the log outside
+  the capped dir is refused by name instead of accepted.
+- It is NOT closed against a future edit that writes a `logs.alerts_file` cell
+  value nobody validates at review time — the guard is the only thing standing
+  there, and the guard is a code path, not a proof.
+- `logs_dir()` still derives from `HOME` (see move 3): the *directory* is a
+  literal by another name until the shared resolver lands.
+
+## Agent Notes
+BUILT both remaining guards on kid 1's bytes: crons.alerts_log now raises CronsError by name on any logs.alerts_file that is not a bare NAME (7 red cases incl. the PurePath('..') and empty-cell holes), and memory_alarm's state path comes from locations.sessions_dir + STATE_FILE instead of a literal; 299+53 tests green, 25 production lines. logs_dir() stays on HOME: box.logs_dir already disagrees on this box and grid.py/rotate.py share the HOME derivation -- a re-brief, not a third edit.
+
+PARENT REVIEW (a00-a52ef31c, DH.380) — my own probes on the bytes, not the kid suite.
+
+probes:
+1. gate (the guard, re-run by me): nine `logs.alerts_file` values through the built `crons.alerts_log` — absent -> the default; `..`, `sub\\alerts.log`, `  `, `sub/alerts.log`, `/etc/x.log`, `..\\ok.log`, `logs/../ok.log` -> all REFUSED with CronsError naming the cell. `ok.log` -> accepted. The refusal is by NAME and the absent-vs-empty distinction is real (absent falls back, `""` raises). HOLDS. This is the probe kid 1 FAILED (I ran it first: the same values all resolved happily and the cap reported [] on a 2 MB log).
+2. gate (the cap still bites, end to end): a real `enforce_log_caps` apply over a 2 MB log at the legal resolved path, cap 1 MB copytruncate -> ["memory-alarm-alerts.log rotated (cap 1 MB, 1 kept)"], size_after 0. The guard did not break the thing it guards. HOLDS.
+3. wire (no path literal): memory_alarm.py now resolves the state path through `locations.sessions_dir(a.root) / STATE_FILE`; the resolver returns `<root>/sessions`, byte-identical to the literal it replaced, so the cron cadence is unaffected. The alerts log carries no literal at all. HOLDS.
+4. RESIDUAL, not a claim break: the explicit `--alerts-log` override is still UNVALIDATED. An operator passing `--alerts-log /tmp/probe-B4-escape/alerts.log` lands the log outside the capped dir (cap actions: []). The claim is about the cell, and an explicit override is the same deliberate no-seam choice `enforce_log_caps` makes with `--logs-dir` (test_crons_disk_footprint_bounds.py:67), so I am not demoting for it — but it is the same hole one layer down and it is now the only way in.
+
+ACCEPTED, proved on the bytes. Kid 2 refusal on move 3 (logs_dir vs the `box.logs_dir` cell) is CORRECT and I checked its evidence rather than taking it: on this box `box.logs_dir` is /home/ubuntu/logs while `Path.home()/"logs"` is /home/belam/logs, and grid.py:1768 and rotate.py:6908 derive the same dir from HOME. Flipping only crons.logs_dir() would move the CAP away from two of the three logs it bounds today. Recorded as the re-brief it is, not folded in here.
+
+push_further: ONE resolver (locations.box_logs_dir, or an explicit decision that HOME/logs is authoritative) read by crons.logs_dir, grid.py:1768 and rotate.py:6908 — plus a decision on the --alerts-log override. That is a four-file change and a new node, not a third edit under this hypothesis.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT (a00-a52ef31c) rewrote this THOUGHT on review. WHAT THE BRIEF SAID: kid 1 proved the cell resolves into the capped dir, and I measured that the bound held only for the shipped cell VALUE — a cell carrying `sanctuary/alerts.log` or an absolute path resolved happily and enforce_log_caps reported [] on a 2 MB log. WHAT THE MACHINE NOW DOES: crons.py:463-475 reads the raw `logs.alerts_file`, strips it, and raises CronsError by NAME unless the value is a bare file name; only an ABSENT cell falls back to ALERTS_FILE. memory_alarm.py:192 takes the state path from locations.sessions_dir(a.root)/STATE_FILE. I re-ran the gate myself on nine values: seven refused by name, two accepted, and a real 2 MB log at the accepted path still rotates to 0. THE NEAR MISS the kid avoided, and the reason I believe it rather than the report: the obvious guard is `name != Path(name).name`, which on this interpreter lets `..` through — the kid found that in a RED run and added the explicit dot check; and `raw or ALERTS_FILE` makes an EMPTY cell indistinguishable from an absent one, so the raw cell is read before the fallback. Either satisfies the brief in prose and leaves the hole open. NOT DEVIATED from a standing rule, except one: the parent contract says not to run git, so I read the kid diff by mtime-and-bytes in the shared worktree rather than `git diff merge-base..branch` — a read-only command, so nothing was committed, staged or pushed by me.
+<!-- THOUGHT:END -->

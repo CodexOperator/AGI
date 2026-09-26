@@ -351,6 +351,9 @@ def restart(
     role: str | None = None,
     ladder_tier: int | None = None,
     rendered_brief: str | None = None,
+    # hypothesis:every-adapter-restart-spawns-from-the-scrubbed-env --
+    # the base the child env is built from; None means dispatch's scrubbed env.
+    base_env: dict | None = None,
 ) -> int | None:
     """Re-spawn a dead agent. Returns new pid, or None on failure.
 
@@ -370,7 +373,7 @@ def restart(
         rendered_brief=rendered_brief,
     )
     log_file = sess_dir / "output.log"
-    env = child_env(harness=harness, base=dict(os.environ), tier=tier)
+    env = child_env(harness=harness, base=adapters.scrubbed_base(base_env), tier=tier)
     try:
         with open(log_file, "ab") as logf:
             proc = subprocess.Popen(

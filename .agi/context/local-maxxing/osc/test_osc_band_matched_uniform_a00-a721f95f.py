@@ -1,6 +1,7 @@
 """Acceptance tests for byte-matched uniform and mirrored band allocations."""
 import importlib.util, os
-import numpy as np
+import pytest  # skip-by-name: this module cannot run without numpy
+np = pytest.importorskip('numpy')
 P = os.path.dirname(__file__)
 S = importlib.util.spec_from_file_location("matched", os.path.join(P, "osc_band_matched_uniform_a00-a721f95f.py"))
 m = importlib.util.module_from_spec(S); S.loader.exec_module(m)
