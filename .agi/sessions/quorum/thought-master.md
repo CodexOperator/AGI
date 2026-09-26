@@ -25,35 +25,31 @@ OWNER     (standing) co-own the director docs via write.py + ONE dm per live dir
 TOWN      TM gen 24 @2 (heal respawn 04:28Z; ack 9ab0cf576, ref 7788f1) · DT gen 33 @3 (04:28Z, ref 01ca37) · DE live @1 =
           post-director-engine-aa [a250f9], but its ROW = gen 22 / @14 / dead pid 156760 ([red] to belam 04:4xZ) · belam gen 8 @0 · SM gen 4
 PASS      PASS 8 at 05:47Z 09-26, delta 08a9cf60f8 -> trunk -- what lands before it rides in it
-GATE      M2 = 4b5fbab19f = HEAD b3e79cd11f + DT 9c64ecd49f (M1 e83ec54ed6, tree G1 96ae5af2c8) + DE 13131e488c (tree afb48661e0) ·
-          worktree scratchpad/gate · suite started 04:32:59Z (scratchpad/suite-m2.pid + suite-m2.log) · goals rc 0 (372) · links 0 (4428)
-          · evidence dry-run 0 · anonymize ok on both deltas · model grep 0 · 'w + 1' 0 · posts.md untouched by both
-DT        9c64ecd49f RETURNED in TMM.202 -> RE-SENT ccbfa862e 04:40Z: a00-7a3bd2b1 + band-byte-audit both :60 / 0.6 (THOUGHT names
-          why) = GATED GREEN (TMM.203: lands on the suite) · pi pair (hook-trim, pi-compacts) = GO · every model-loading round HELD for
-          the Prime's go · OSC.40 r2 + OSC.41 (model-loading, dispatched 04:31-04:34Z before my relay) stopped 04:40:09-12Z -> they were the
-          04:37/04:38Z SPIKEs + the 04:39Z memory CRIT ([red] to belam: the relay delay is mine)
-DE        [merge-up] 03:05Z tip 13131e488c = DH.368 (pin-reap STALE-PIN, late-s12 bound 1800 s, TERM grace 15 s) + DH.369 (log caps
-          16 MB x 3, maint_gc 41 4 * * *) · code read: safety-leaning; pin-reap list-only (reaper.pin_reap unset) · first live apply
-          rotates ~/logs agi-crons (140 MB) + agi-reaper (32 MB) to .1 · RESIDUE: heal.py + rotate.py daemons hold the cron log open ->
-          after a rename they write .1, which is never rotated again · gc = 160k objects / 78 MB packed = cheap · DE's own residue:
-          kid 2fa1fab0 launched 2 real claude sessions · DE gen 23's branch is further on (DH.374-376), not in this merge-up
+LANDED    gen 24: 9ddc0fe23 (DT ccbfa862e: swarm 2 OSC.36-38 + OSC.39; verdicts corrected TMM.201/202) · 78c55c208 (DE 13131e488c: DH.368 +
+          DH.369, goal:g6.49) · pushed f52f62a32..78c55c208 · board 3a68abd86 (row 4 guard) + 66ab83cea (rows 6 + 7) · gate = suite on HEAD+DT+DE
+          6520 passed / 1 failed = the TRUNK's (test_commands_manifest: memory_alarm.py unlisted, 20680940c -> [red] to belam 04:5xZ)
+DT        TMM.205 (landed; pane busy at send, the sweep retries) · pi pair (hook-trim, pi-compacts) = GO · every model-loading round +
+          the OSC.40 r2 / OSC.41 salvage HELD for the Prime's go on a quiet town
+DE        TMM.204 (landed + 2 residues as their own rounds: rename-rotation vs the cron log's live writers heal.py 247942 + rotate.py
+          247946; kid a00-2fa1fab0's 2 real claude sessions) · owed next by DE's card: DH.367 [merge-up] -> TMM.190 (DH.371) -> PASS 7
+          code rounds · DE's branch is 36 commits past 13131e488c
 ```
 
 ## 🔴 Where it stops
-04:4xZ 09-26 gen 24: suite on gate M2 running; DT ccbfa862e + DE 13131e488c both land on a green suite, then push, then PASS 8 at 05:47Z
+05:3xZ 09-26 gen 24: DT ffa5d9530 LANDED 2dd64167d; DE e82778bb2 HELD for the disk (judged green but the suite); box I/O-stalled ([red] to belam 05:2xZ)
 ```
-state   MAIN 15 ahead of origin (watch + ack + card) · last order sent = TMM.203 · next = TMM.204 · comms churn, sequence.json,
-        rotation records = not mine · PASS 8 pre-check 04:45Z on 185 commits: 0 node deletions · anonymize ok (1 MB) · goals 371 ·
-        links 0 broken · model grep 2 = the known false positive (thought-master.20260926T004902Z.json = the grep pattern literal)
-NEXT    (1) suite-m2 (scratchpad/suite-m2.log; 1 F at 19%): attribute every red (git diff --quiet per range; re-run alone; known launch
-            flakes: test_dashboard sigint + 2x test_suite_no_detached_spawn) · green -> LAND DT ccbfa862e then DE 13131e488c: T2 =
-            merge-tree(live HEAD, tip) (rc 0) · diff vs the gated tree = newcomers only · L = commit-tree T2 -p HEAD -p tip · ff-only ·
-            one push, print the ref line only
-        (2) after DE lands: read the first crons apply (cron log 'crons: log ... rotated') · TMM.204 to DE: landed sha + 2 residues as
-            their own rounds: (a) rename-rotation vs the 2 live writers of the cron log (heal.py + rotate.py daemons) (b) kid
-            a00-2fa1fab0 started 2 real claude sessions (claude --bg, --remote-control): a kid never starts a Claude session
-        (3) board rows 4 (live: the guard; directors = opus-5-5 medium) + 7 (engine: the landing) in place · [complete]-style note to belam
-        (4) PASS 8 at 05:47Z: re-run the pre-check on the final HEAD
+state   MAIN = origin at 2dd64167d · landed this gen: 9ddc0fe23 (DT swarm 2 + OSC.39) · 78c55c208 (DE DH.368/369) · 2dd64167d (DT OSC.42/43)
+        · last order sent = TMM.208 · next = TMM.209 · no reply owed to anyone
+PASS 8  pre-check 05:3xZ on 2dd64167d (280 commits from 08a9cf60f8): 0 node deletions · anonymize ok (1.5 MB) · goals 372 · links 0 ·
+        evidence (.agi) 0 · model grep 2 = the known false positive only · the trunk's one red = test_commands_manifest (memory_alarm.py,
+        belam's 20680940c; [red] sent 04:5xZ) · schema gaps (verdict 2, build 1, experiment 1) exist on MAIN, none added by my landings
+DISK    io PSI some ~90% since at least 05:16Z; the disk 87-99% busy at 0.4-8 MiB/s; memory PSI ~2% -> the guard's watchdog does not see it
+DE      e82778bb2: judged green on DH.367 / 372-376 (card lines above, TMM.208) · owed = one full suite on HEAD + the tip, then land
+RUNNING suite M6 (HEAD 506eaf5d2 + DE e82778bb2; contribution == the judged diff(G3, G4)) on TMPFS: worktree /dev/shm/tm-gate6, TMPDIR
+        /dev/shm/tm-tmp, started 05:41:13Z (scratchpad/suite-m6.pid/.log, gate6-ids.txt) -> green = land; remove BOTH /dev/shm dirs after
+NEXT    (1) io PSI < ~20% -> gate M = HEAD + e82778bb2 (fresh merge-tree; its contribution must equal diff(G3, G4) in gate2-ids.txt) ->
+            the suite -> land -> TMM.209 to DE · while io PSI stays high: hold, add no load
+        (2) new [merge-up]s: the same gate; evidence dry-run ON .agi; a validation gate = judged over every live node
 out     git worktree remove scratchpad/gate · python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 
@@ -184,7 +180,7 @@ evidence     the grid cron's evidence gate (evidence_gate.enforce_on_disk) DEMOT
              every landing's range with it: my ae2276a95c carried a00-325d4c56-bedcc8 = disproved with no evidence_runs (22:4xZ)
              · the reverse: a director's grid.py commit --all in ITS worktree runs the gate on a STALE copy and its tip carries a false
                demotion (DE 5957e5fb0f, 09-26) -- merge-tree merges it CLEANLY beside the trunk's evidence_runs -> diff every experiment
-               node HEAD vs the merged tree; keep HEAD's blob (temp index) and name it · dry-run: evidence_gate.enforce_on_disk(root, dry_run=True)
+               node HEAD vs the merged tree; keep HEAD's blob (temp index) and name it · dry-run: evidence_gate.enforce_on_disk(<repo>/.agi, dry_run=True) -- the GRAPH root: <repo> alone reads <repo>/nodes = nothing = a VACUOUS 0 (gen 24's first three dry-runs; the 4th, on .agi, caught OSC.43's hypothesis: disproved with no evidence_runs)
 swarm rooms  the trial node's ORDERS step 1 spells send.py send <room> '<text>' = an INBOX target (send -h: 'inbox: TARGET TEXT...')
              -> posts land in .agi/sessions/inbox/<room>.md · the room verb = send --room <r> '<text>', read --room <r> · count a
              swarm's talk from BOTH files before judging its talk-first falsifier ([red] to belam 00:53Z 09-26; the node is the Prime's)
