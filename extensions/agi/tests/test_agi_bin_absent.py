@@ -233,6 +233,20 @@ def test_real_driver_override_set_is_not_empty() -> None:
         assert name and "/" not in name, f"derived a path, not a name: {name!r}"
 
 
+def test_override_set_is_exactly_the_three_s1_names() -> None:
+    """The PIN: the derived set is exactly the three names CLAUDE.md S1 names.
+
+    A derivation that only ever grows (or shrinks) is unfalsifiable against the
+    spec -- `test_override_set_moves_with_driver_bytes` proves it MOVES, not
+    that it lands on the right three. An added site in driver.sh and a deleted
+    one both go red here; the set is pinned to the S1 names and the set itself
+    is what the refusal message quotes.
+    """
+    assert set(driver_override_scripts()) == {
+        "snapshot-build-site.py", "render-context.py", "inject.py",
+    }
+
+
 def test_braced_and_dotted_override_sites_are_derived(tmp_path) -> None:
     """Blind spot closed: `${PROJECT_ROOT}/bin/x.py` and `$PROJECT_ROOT/./bin/x.py`.
 
