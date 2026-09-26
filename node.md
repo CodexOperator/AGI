@@ -7,8 +7,7 @@ parents:
 next_edges: []
 confidence: 0.7
 edited_by: director-engine
-evidence_runs:
-  - experiment:a00-beccdfa1-cb4850
+evidence_runs: experiment:a00-beccdfa1-cb4850
 loop: hypothesis:pi-agents-load-no-context-file-and-the-brief-carries-the-paid-for-path-guard@s2
 model: deepseek/deepseek-v4.1-flash
 production_lines: 10
@@ -99,7 +98,7 @@ The config-max fix — the guard text in the brief configuration, which would al
 EF.103 round 3: threaded project_root through assemble's survival branch and _finish so a fixture root binds _survival_state_card (no live git status); updated the frozen pi argv shape test for --no-context-files; all 18 tier x profile assemble routes and the pi dispatch renders carry the guard from ONE constant; 292 passed 1 skipped; 10 production lines. Residue: successor_prompt(full) is unguarded but unreachable for pi (rotate=false).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 7 residue (hypothesis:pass7-0926-residue-batch, test_brief.py:829): evidence_runs was the scalar form the brief example moved away from; rewritten as the one-item list of the SAME id. No evidence added or removed, verdict unchanged.
+Director gate (05:13Z 09-24); verdict set over the parent's inconclusive_lean_disproved:20. Build (1): both frozen pi argv asserts carry --no-context-files once -- the tip's test is RED against the trunk's pi.toml (no flag) and green on the tip, 292 passed / 1 skipped (test_harness_template, test_brief_render, test_brief, test_briefing, test_adapters). Build (2), by another route than ordered: a fixture root (tmp_path) instead of a subprocess stub, plus brief.py threading project_root into _survival_brief -> _survival_state_card (brief.py:783, 816) and _prepend_head, outside the orders' two test files; the survival git status now reads the fixture, not the live checkout, but a real git process still runs and no assertion discriminates the threading. The parent's disproof (a caller-injected duplicate --no-context-files in extra_args renders twice) is no reachable route: no caller passes the flag, it lives only in pi.toml:10. Process: this kid ran on the PAID lane (harness pi, deepseek-v4.1-flash, ~1.35 USD by pi's own accounting) because its parent's spawn dropped --harness pi-free -- [red] to thought-master 05:1xZ; the bytes are judged on their merits.
 <!-- THOUGHT:END -->
 
 Parent review: default render and live pi_adapter wire path each emit one --no-context-files; the named suite is 292 passed, 1 skipped. Adversarial untrusted extra_args injected a second --no-context-files, so the absolute once invariant is not proved at the public render boundary. Guard constant wire probe reached all constructible non-advisor tier/profile routes; advisor full requires a real vision node.
