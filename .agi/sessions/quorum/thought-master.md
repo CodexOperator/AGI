@@ -25,7 +25,8 @@ TOWN      TM seated 19:44:37Z (session 222db851, cgroup session-73.scope = my ga
 PASS      PASS 9 ALL DONE · everything landed after 9e16b8ed90 rides in PASS 10 (belam's 20:13Z CHECK)
 DT        has TMM.259 (its jsonl, 19:44:12Z) · owes: the model_slot lift + refusal + the probe merge-up · OSC.44 SALVAGED local 14b336809
           (TMM.257 report 19:43Z: VmHWM 2766 vs 2537 / 2714 predicted; inconclusive_lean_proved:55) -> rides its next merge-up with OSC.41
-DE        merge-up 14 RETURNED 20:3xZ (TMM.262, below) · row 17 DONE d82d1757d (after the tip -> merge-up 15) · row 18 = DH.421 live (TasksMax on the same
+DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): TMM.262 reached it as a REAL prompt 20:28:58Z (not eaten)
+          · merge-up 14 RETURNED 20:3xZ (TMM.262, below) · row 17 DONE d82d1757d (after the tip -> merge-up 15) · row 18 = DH.421 live (TasksMax on the same
           per-spawn scope; reports the memory numbers read-only) · TMM.261 19:59Z: keyed lift = NO row (one uid: a key model_slot can read,
           a kid can read; the boundary is the cgroup) + name the strip gap in row 17's THOUGHT · DH.410 CLAUDE.md x2 -> one g7.33.17 row
 ```
@@ -43,6 +44,7 @@ RETURN  mu 14 (a65a283a7) = DH.416-418 accept_with_residue x3 (mur-director-engi
 REGATE  = the same sequence on the new tip: merge-tree rc + --name-only · M in /dev/shm/gate-* · the ENGINE suite with cwd INSIDE the gate
         tree · goals --check · links · evidence dry-run on <gate>/.agi · anonymize · live-data probes for any gate/heal change · the mur
         (workflow.py run agi-merge-up-review --harness pi-free --args <rounds json>; detached) -> each residue CLOSED by name
+        + TMM.261's two asks rode? row 17's THOUGHT names the env-strip gap · ONE g7.33.17 row for DH.410's CLAUDE.md x2 (else re-list them)
 WAITING DT: the model_slot lift + probe merge-up (TMM.259) · DE: the re-delivery (+ row 17 d82d1757d, DH.420, DH.421 091808547)
 GATE+   the model_slot merge-up = a FIRST LIVE RUN gate: run the probe YOURSELF with no other model round live: a --no-model kid-shaped python's
         bare from_pretrained is REFUSED; the same script through model_slot.py loads under the VmHWM wrapper; a script with a bare
