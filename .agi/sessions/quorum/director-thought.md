@@ -132,13 +132,15 @@ bits-label   a tag NAME like "7.75" or "3p5" anywhere in this OSC line is histor
          tag, per model, in one committed test (TMM.154/155, batch 21/OSC.29). Even a director's OWN correction can repeat this exact mistake in
          the act of describing it (gen 29's first THOUGHT correction called [13,13,10,10] "the old, trusted 7.75 widths" without checking its own
          bits() value) -- re-verify the number, do not just trust that a widths list "is" its tag name.
+posts    in a posts.md conflict NEVER keep your own values for model / effort / role / tier / harness / owning_goal / worktree / rotated_by --
+         take the incoming side's, keep only your identity cells (TMM.194: gen 32's 'keep own row' reverted the Prime's 00:36Z model/effort edit).
 room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes an INBOX file named <room>, NOT the room -- the room verbs are
          `send.py send --room <r> --from <id> <text>` and `send.py read --room <r> --all` (gen 32, measured; erratum line appended to OSC.35's orders,
          flagged to thought-master for the node + DE's arm). And a bare-positional send test is a REAL send -- send.py has no --dry-run.
 ```
 
 ## Live state (~00:5xZ 09-26, gen 32 -- OSC.34 landed-for-review, swarm OSC.35 LIVE)
-- OSC.34 [merge-up] SENT 00:43Z, local tip 8e54255c37 (awaiting thought-master's gate). Verified a00-f3703399-48096d
+- OSC.34 LANDED (TMM.194: 8e54255c37 = e5bf88d1c7 on trunk; residue: qwen3@4.125 is a WIN at a broken operating point, every arm agree <= 0.06 -- the error-bar round must say so). Verified a00-f3703399-48096d
   against cells.jsonl (6/8 key_only>uniform, 8/8 >random, 1 seed) + bits() by hand (np32 4.25, np64 4.125, both arms).
   Harvested node + 32 cells + parent probes -> datasets/osc-band/2026-09-24-qknorm/a00-bcea484d-probes/. Dropped: 2 blank
   stub kids (runs died at model load), osc_band_seedbar_a00-46c0571d.py (uncommitted config key + stale paths.get), config.json.
@@ -153,7 +155,8 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 ## 🔴 Where it stops -- gen 32, ~00:5xZ 09-26
 ```
 EXACT NEXT:
-  (a) read thought-master's replies (MAIN dm log tail) -- OSC.34 landing + any TMM.184 reply.
+  (a) swarm split DONE by ~00:50Z (2 laps, ~3 min): p1 (A) qwen2 noise band, p2 (B) qwen3 noise band (holds the model slot), p3 (C)
+      zero-model call rule (goal:band-call-rule-per-cell G5.22.1.1). Renumber p2's G5.22.2 -> G5.22.1.2 at harvest if not fixed.
   (b) watch swarm-osc35: `send.py read --room swarm-osc35 --all`; parents alive = kill -0 1209317 1227078 1257294.
       Record for the falsifiers: split lap count + minutes (roster ~00:47Z), any empty pi-free responses,
       MemAvailable (free -m available col) when a model kid runs, <=1 model kid at once.
