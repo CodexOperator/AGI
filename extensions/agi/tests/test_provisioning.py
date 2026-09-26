@@ -348,7 +348,10 @@ def test_live_can_fund_passes_with_sufficient_balance():
 # Live — against the real API
 # --------------------------------------------------------------------------
 
-ROOT = "/home/ubuntu/work/agi"
+# Box-independent: the checkout this file lives in, not a retired box path.
+# Every consumer below is `@live` and skipped, so ROOT is a DEFAULT here, not
+# a fact about this box — and the goal forbids making it pass by unskipping.
+ROOT = str(BIN.parent.parent.parent)
 
 
 @live
