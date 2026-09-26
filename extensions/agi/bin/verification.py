@@ -161,6 +161,24 @@ _PYTEST_COUNT_PATTERNS = (
 )
 
 
+_PYTEST_ID_PATTERN = re.compile(r"^(?:FAILED|ERROR)\s+(\S+)", re.M)
+
+
+def _suite_fail_ids(output: str) -> list[str]:
+    """Every failing test of a run, by pytest node id, in first-seen order.
+
+    A WINDOW of the output is not a report: the short summary of N failures
+    is N+ lines long, so a fixed tail budget drops the first ids and can leave
+    only a bare count (hypothesis:a-declared-suite-fail-names-its-failing-
+    tests-and-the-context-flake-is-named). Read the `FAILED <nodeid>` lines
+    pytest already writes instead of guessing a line count.
+    """
+    seen: dict = {}
+    for m in _PYTEST_ID_PATTERN.finditer(output):
+        seen.setdefault(m.group(1), None)
+    return list(seen)
+
+
 def _parse_pytest_counts(output: str) -> dict:
     """Counts from pytest's own FINAL summary line, in whatever order pytest
     emits them.
@@ -1521,15 +1539,26 @@ def check_extra_suite(groot: Path) -> CheckResult:
             notes.append(f"{root}: not a directory")
             ok = False
             continue
+        # ONE `-r` flag carrying every category the reader parses: `-q` alone
+        # prints no short summary, and in pytest the LAST `-r` flag on the
+        # argv WINS (`-rs -rf -rE` prints none of them; `-rsEf` prints all
+        # three), so the categories go in one flag or not at all. `E` is the
+        # one that is easy to leave out: a module that fails to IMPORT is a
+        # collection ERROR and prints no `ERROR <file>` line without it
+        # (experiment:a00-45ecb18d-d5a017).
         proc = subprocess.run([sys.executable, "-m", "pytest", str(root),
-                               "-q", "-rs"], capture_output=True, text=True,
+                               "-q", "-rsEf"], capture_output=True, text=True,
                               timeout=SUITE_TIMEOUT, cwd=groot)
         out = (proc.stdout or "") + (proc.stderr or "")
         counts.update(_parse_pytest_counts(out))
         if proc.returncode:
             ok = False
-            notes.append(f"{root.name}: exit {proc.returncode}\n" +
-                         "\n".join(out.splitlines()[-10:]))
+            ids = _suite_fail_ids(out)
+            named = "\n".join(f"  FAILED/ERROR {i}" for i in ids)
+            notes.append(
+                f"{root.name}: exit {proc.returncode}\n"
+                f"{named or '  (no FAILED/ERROR node id in the output)'}\n"
+                + "\n".join(out.splitlines()[-10:]))
     return CheckResult(EXTRA_SUITE_CMD, "PASS" if ok else "FAIL",
                        time.monotonic() - start, counts or None, "\n".join(notes))
 

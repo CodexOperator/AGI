@@ -42,8 +42,14 @@ class MirrorTest(unittest.TestCase):
     def setUpClass(cls):
         cls.tmp = Path(tempfile.mkdtemp(prefix="g2sql-test-"))
         cls.db = cls.tmp / "nodes.sqlite"
+        # ONE frozen file set, taken before the first read. The live node tree moves
+        # under the suite (every parallel kid mints nodes while it runs), so a re-glob
+        # after the build compares the db against a set that grew mid-run -- the
+        # DH.387 `FAIL 127 passed, 1 failed` flake, cause measured in
+        # .agi/sessions/iter-DH.393/a00-6f88eaa5/probe_toctou.py, fixed here.
+        cls.files = g.iter_files(NODES)
         t0 = time.perf_counter()
-        g.build(ROOT, NODES, cls.db, quiet=True)
+        g.build(ROOT, NODES, cls.db, quiet=True, files=cls.files)
         cls.build_s = time.perf_counter() - t0
         cls.con = sqlite3.connect(cls.db)
 
@@ -54,7 +60,7 @@ class MirrorTest(unittest.TestCase):
 
     def test_build_under_60s_and_covers_every_node_file(self):
         self.assertLess(self.build_s, 60.0, f"build took {self.build_s:.1f}s")
-        n_files = sum(1 for p in g.iter_files(NODES) if g.read_node(p, ROOT))
+        n_files = sum(1 for p in self.files if g.read_node(p, ROOT))
         n_db = self.con.execute("SELECT count(*) FROM nodes").fetchone()[0]
         self.assertEqual(n_files, n_db, "node count differs from the file set")
         self.assertGreater(n_db, 3000, "the whole ~3.5k-node graph should be here")
@@ -62,15 +68,16 @@ class MirrorTest(unittest.TestCase):
         self.assertGreater(retired, 100, "deprecated/ sibling trees must be included")
 
     def test_verify_roundtrip_exits_0(self):
-        self.assertEqual(g.verify(ROOT, NODES, self.db), 0)
+        self.assertEqual(g.verify(ROOT, NODES, self.db, files=self.files), 0)
 
     def test_verify_detects_drift(self):
         con = sqlite3.connect(self.db)
         con.execute("DELETE FROM nodes WHERE id=(SELECT id FROM nodes ORDER BY id LIMIT 1)")
         con.commit()
         con.close()
-        self.assertNotEqual(g.verify(ROOT, NODES, self.db), 0, "a missing id must fail the check")
-        g.build(ROOT, NODES, self.db, quiet=True)  # restore the good file
+        self.assertNotEqual(g.verify(ROOT, NODES, self.db, files=self.files), 0,
+                            "a missing id must fail the check")
+        g.build(ROOT, NODES, self.db, quiet=True, files=self.files)  # restore the good file
 
     def test_five_queries_under_50ms(self):
         self.assertEqual({n for n, _ in QUERY_CASES} - set(g.QUERIES), set())
