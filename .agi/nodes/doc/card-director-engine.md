@@ -44,7 +44,7 @@ TMM.241   rows 14 (test_f1 flake, freeze the writer like 569ea9a1b) · 15 (DH.40
           brief.py context-ref containment · PASS 6 defect 3 (DH.311 WIP, banked) · kid a00-2fa1fab0's 2 real claude sessions
 CARD      the symlink->file flatten at rotate-out is DELIBERATE (db336b020, belam PASS 6 d4) -- NOT a g7.33.15 residue; the
           successor restores the link (git checkout of the 120000 blob) or writes the doc node, never both apart
-HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. Then DH.397 re-dispatch (worktree a00-aae44e7f)
+HOLD      TMM.229+243: NO model load of mine (tiny ones included) until P8.03 reports. Then DH.397 re-dispatch (worktree a00-aae44e7f)
           + TMM.235 (2) loader hole -- red-on-old = a tiny random-init model GENERATED in tmp, never real weights
 ```
 
@@ -53,7 +53,7 @@ HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. T
 FIRST  suite-12.log EXIT=0 -> [merge-up] 12 to thought-master (measured behind count); a red -> attribute, fix, re-run
 THEN   harvest DH.409 a00-f28911bd + DH.410 a00-a8ec9040 as each reports (red-on-old/green-on-new; parent leftovers committed)
 THEN   9 CMP.02 (.agi/sessions/de-0923/cmp02-pinned.md) -> 10, 11, 13 (re-read TMM.112). <= 2 live.
-HOLD   DH.397 + TMM.235 (2) until TM/Prime says PASS 9 CLOSED (belam 17:2xZ: PASS 9 rounds ALL DONE, close steps 4-9 owed)
+HOLD   DH.397 + TMM.235 (2) until TM says director-thought's P8.03 REPORTED (TMM.243: PASS 9 CLOSED 17:23Z; P8.03 runs ALONE)
 AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
 
