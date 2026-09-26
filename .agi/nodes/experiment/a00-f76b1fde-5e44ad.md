@@ -6,7 +6,7 @@ parents:
   - hypothesis:heal-worktree-refusal-tests-never-reach-live-tmux-and-dead-branches-go
 next_edges: []
 confidence: 0.9
-edited_by: a00-f76b1fde
+edited_by: a00-a7de2b88
 evidence_runs:
   - experiment:a00-f76b1fde-5e44ad
 loop: hypothesis:heal-worktree-refusal-tests-never-reach-live-tmux-and-dead-branches-go@s2
@@ -90,3 +90,16 @@ from the test file and the parent's own node.
 
 ## Agent Notes
 stale-lock skip row in test_heal.py is now a real gate: Path.unlink spy + warn-branch stderr assert; mutation of heal.py guard goes red, restore byte-exact
+
+PARENT REVIEW DH.427 (a00-7de2b88) — probe run by me against the diff d1d2b9f67..61f81dadc, not against the kid's report.
+
+probes:
+- gate/c2 (the conjunct this kid owns): I re-ran the mutation myself — replaced `if lock.is_file():` at heal.py:3090 with `if True:` in MY checkout and ran `pytest test_heal.py -q` → `FAILED test_heal.py::test_stale_lock_skip_leaves_a_clean_sessions_dir_alone, 1 failed, 19 passed`, with the guard's own warn branch visible in the captured output. The row is a REAL gate now: the spy on Path.unlink is what makes it one, not the no-log-line assertion.
+- restore: heal.py restored byte-exact from a pre-mutation copy, `sha256sum -c` OK.
+- wire/sanity: `pytest test_heal.py test_heal_worktree_tmux_guard.py test_heal_worktree_refusal.py -q` → 26 passed.
+
+ACCEPTED. (a) guard non-vacuous (parent probe, previous round), (b) dead None branch deleted and provably unreachable, (c1) log-tail guard gated, (c2) stale-lock skip now gated. Conjuncts (a),(b),(c) all stand on probes I ran myself.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Accepted on my own mutation, not on the kid's paste. (1) WHAT THE BRIEF SAID: make the stale-lock skip a real gate and run the mutation yourself. (2) WHAT THE MACHINE DOES: the diff replaces the observable-only assertion with a Path.unlink spy plus a stderr assertion, and when I strip `if lock.is_file():` to `if True:` in my own checkout the row goes red on `lock not in touched`. (3) THE NEAR MISS: `monkeypatch.undo()` before the assertions is what stops the spy from also intercepting pytest's own tmpdir teardown — a row that left the spy installed would have passed for the wrong reason or errored on cleanup; the kid undoes it, so the failure is the assertion, not a teardown traceback. (4) No standing rule deviated — I restored the mutated production file from a pre-mutation copy and verified the sha before accepting.
+<!-- THOUGHT:END -->
