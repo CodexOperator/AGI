@@ -243,16 +243,24 @@ def test_illegal_parent_real_vision_refused_by_name(tmp_path, monkeypatch):
         "a rejected spawn must leave no node behind"
 
 
-def test_phantom_parent_is_unverified_not_refused(tmp_path, monkeypatch):
-    """`--parent vision:alive` when NO such node exists does NOT hard-refuse —
-    the gate cannot resolve the phantom id's type, so it is UNVERIFIED and the
-    node IS written (the same corner the first kid's dry-run hid). The gate
-    refuses by RESOLVED type; a phantom resolves to nothing."""
+def test_phantom_parent_is_unverified_at_the_gate_refused_at_the_create(
+        tmp_path, monkeypatch):
+    """`--parent vision:alive` when NO such node exists stays UNVERIFIED at the
+    GATE — the gate cannot resolve the phantom id's type, and it refuses by
+    RESOLVED type; a phantom resolves to nothing.
+
+    hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-id-
+    does-not-resolve is what changed at the WRITER layer: a brand-new create
+    onto an id that names no node is refused by name, no file, no directory.
+    An existing node keeps its phantom edge and keeps failing open (G7.1).
+    """
     proj = _fixture(tmp_path)  # vision:alive does NOT exist here
     rc = _mint(monkeypatch, proj, "phantom-parent", visions=["vision:a"],
                council="council-core", season=2, agi_season="2",
                parent="vision:alive")
-    assert rc == 0, "an unresolvable parent id is UNVERIFIED, not rejected"
+    assert rc == 2, "a create onto a phantom parent id must be refused"
+    assert not (proj / ".agi" / "nodes" / "town" / "phantom-parent.md").exists(), \
+        "a refused create must leave no node behind"
 
 
 def test_visions_omitted_refused_by_create_gate_by_name(tmp_path, monkeypatch, capsys):

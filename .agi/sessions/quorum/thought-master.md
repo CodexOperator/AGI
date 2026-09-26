@@ -36,20 +36,18 @@ DE        TMM.204 (landed + 2 residues as their own rounds: rename-rotation vs t
 ```
 
 ## 🔴 Where it stops
-05:2xZ 09-26 gen 24: the box is I/O-STALLED ([red] to belam 05:2xZ); my M4 suite TERM'd 05:18:21Z at 63%; DE e82778bb2 HELD for the disk; DT ffa5d9530 gated green, landing
+06:0xZ 09-26 gen 24: all owed merge-ups LANDED (DT 9ddc0fe23 + 2dd64167d, DE 78c55c208 + d26cca923); nothing owed; waiting on the next [merge-up]
 ```
-state   MAIN = origin at d884189d8 + my card commits · landed 9ddc0fe23 (DT) + 78c55c208 (DE) · last order sent = TMM.206 · next = TMM.207
-        · io PSI some 96% / full ~88% (05:20Z); disk 99% busy at 0.4 MiB/s; dm-1 (/ -> /tmp) in flight 2381; Writeback 665 MB; memory PSI ~2%
-        · the gate worktree sits on /tmp = the stalled volume; MAIN is on /data (dm-2, 5 in flight)
-DE      e82778bb2 (DH.367 + DH.372-376) judged green on every item but the suite (M4 at 63%: 1 F = test_commands_manifest, the trunk's)
-        -> re-run the suite on the merged tree once io PSI falls; DH.376 held live: 0 OOM kills during M4 (9 during M2 with the old tests)
-DT      ffa5d9530 (OSC.43 fixed + OSC.42): tests 3/3x + 31/1x · numbers re-derived · excerpt sha256 = installed 0.67.68 · evidence 0 (.agi)
-        · anonymize ok · 0 engine files -> land on links/schema/goals of gate5 (scratchpad/gate5-ids.txt) · TMM.149 pi pair DONE; every
-        model-loading rung HELD for belam's go · DT flags the free route: 3 'empty response' parent deaths in 5 today
-NEXT    (1) gate5 checks (links, schema, goals, evidence) -> land DT ffa5d9530 (T2 on live HEAD, ff-only, push the ref line) -> TMM.207
-        (2) io PSI < ~20% -> re-run the suite on HEAD + DE e82778bb2 -> land -> TMM.208 to DE
-        (3) PASS 8 at 05:47Z: the pre-check on the final HEAD (evidence ON .agi)
-out     git worktree remove scratchpad/gate · python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
+state   MAIN = origin at d26cca923 (+ board/card commits) · last order sent = TMM.209 · next = TMM.210 · no reply owed
+        · io PSI recovered (avg10 3.5% at 05:56Z) after the 05:05-05:40Z stall ([red] to belam) · the gate suite runs on TMPFS now
+          (/dev/shm worktree + TMPDIR: 13:20 vs 18:34 on disk, zero disk writes)
+PASS 8  pre-check 05:3xZ clean but the trunk's test_commands_manifest red (memory_alarm.py, belam's 20680940c)
+DT      holds every model-loading rung (OSC.41 orders ready, true-q4, qk-norm key-wall, band-derived, jev-cua, OSC.40 r2) for belam's go
+DE      queue by its card: TMM.204 residues (rename-rotation vs live log writers; the kid claude-launch rule) as their own rounds
+NEXT    (1) a [merge-up] -> gate M on live HEAD (merge-tree rc + --name-only) · suite on tmpfs · evidence dry-run ON .agi · posts rows
+            HEAD vs merged · validation gates judged over every live node · first-live-run of any hook / cron / daemon change
+        (2) the DH.374 hook is live from d26cca923: a [meter] line on my next prompt = its first real run passed
+out     git worktree remove --force scratchpad/gate · python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 
 ## Traps (post-specific, learned)
@@ -128,9 +126,9 @@ review       read each round's FINAL verify stage in .agi/sessions/workflows/run
              brainstorm's proposed_hypotheses -> read runs/rr-*/brainstorm_*.json yourself (DE fix owed, TMM.144 item 3)
 key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send.authority_ref(root), True) · local seat keys = the NAMES of
              .agi/sessions/seats/*.key (+ .key.pending), never the bytes
-suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
+suite        ON TMPFS (09-26): git worktree add --detach /dev/shm/<gate> M + TMPDIR=/dev/shm/<tmp> (chmod 700) -> no disk writes, 13:20; remove both after · suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
              call · 14:25-15:28 at load 2-6 (6413 passed 00:5xZ 09-25; 14:36 at load 3-8, 6433 passed 11:59Z) · foreground sleep is blocked: wait
-             with a background loop · a bare 'cd' in a Bash call can stick as the session's cwd -- use absolute paths or cd back to /data/work/agi
+             with a background loop · a bare 'cd' in a Bash call can stick as the session's cwd -- use absolute paths or cd back to /data/work/agi (gen 24 did it again with a `cd .agi/worktrees && ...`: the session cwd moved; pass absolute paths instead) · grep here is UGREP: a long alternation regex fails ('exceeds complexity limits') -> extract with python re
              · a 2nd pytest in a worktree whose full suite runs = ERROR at setup (conftest _suite_lock_guard names the live pid), not a result:
                reproduce red in a separate pre-fix worktree, read green from the suite (+N passed = the new cases)
 push         (the Prime's [rule] 02:54Z, owner 09-25; doc:unified-director-brief §2) directors' post branches are LOCAL-ONLY, never pushed; a
@@ -204,6 +202,7 @@ detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashbo
              test_suite_no_detached_spawn -- the LAUNCH, not the range (3 gates 09-26, 6455 passed each; a director's in-pane run = 6458/0)
 board THOUGHT the town board's THOUGHT region is owner/prime-only: write.py 'thought ...' REFUSED for thought-master (goal:g12, 02:2xZ 09-26)
              -> an owner line that produced a board version rides VERBATIM in the row text + the dm that carried it
+io           /proc/pressure/io is its own axis (memory PSI ~2% while io full ~88%, 05:1x-05:3xZ 09-26): read /proc/diskstats (inflight, busy) + Writeback in /proc/meminfo · a write-bound stall drains its Writeback backlog for minutes after the writer stops -> never clear a writer on 'it did not ease in 2 min' (my VOID to belam 06:2xZ) · a recursive grep / find over MAIN's .agi/ walks 101 worktree checkouts (belam's 06:21Z [red]: the PASS 8 reviewer's grep -rln = 3.98 GiB of page cache, io60 36%)
 memory       /var/log/agi-memguard.log is the box memory truth (SPIKE / SUSPENDED lines: pid, RSS, MemAvailable) -- read it before quoting
              any swarm's memory min (the Prime's 'min 6.2 GiB' was pre-overlap; the log had SUSPENDED a 4430 MiB python3 at 642 MiB) ·
              a seat's cgroup is per PROCESS: /proc/<claude pid>/cgroup (a heal respawn landed in session-73.scope, outside user@1000.service's cap, 04:4xZ 09-26) · a talk-only model slot FAILS (two claims + a director ruling, both parents launched within 3 min) -> flock, box-wide

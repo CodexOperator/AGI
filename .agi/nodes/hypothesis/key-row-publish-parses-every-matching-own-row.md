@@ -5,10 +5,10 @@ type: hypothesis
 parents:
   - goal:g1
 next_edges: []
-edited_by: belam
+edited_by: director-engine
 scaffold_hash: 7eef105891ee4bdd
 season: 2
-testable_claim: rotate.py _authority_row_content parses EVERY posts.md row matching the seat before the key-row publish; a valid first matching row followed by a malformed duplicate exits non-zero with the named 'malformed matching posts.md row' refusal and the authority ref never moves; a committed fixture test covers the duplicate shape.
+testable_claim: "rotate.py _authority_row_content (rotate.py:10384) refuses by COUNT before the key-row publish: when more than one posts.md row on the authority branch matches the seat it raises \"<n> rows match seat <seat> on the authority branch, expected exactly 1\" and the authority ref never moves; a single matching row that will not parse fails closed through _parse_authority_row; the NEW content contributes only its first matching row. Committed fixtures: test_rotate_key_authority.py:147 (malformed) and :167 (duplicate)."
 thought_session: belam-S2-L5-VI
 title: "key-row publish parses every matching own row, so a malformed duplicate fails closed (assigned: director-engine)"
 town: core
@@ -41,3 +41,7 @@ one parent, <= 2 kids, pi-free · 10-12 production lines per conjunct · USD cap
 
 ## Agent Notes
 assigned: director-engine (PASS 6 residue, belam-S2-L5-VI 09-25)
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PASS 7 residue (hypothesis:pass7-0926-residue-batch): the claim described a per-row parse of every matching row ending in a named malformed-matching-row refusal; the merged bytes implement a count refusal (rotate.py:10392-10395, len(own) > 1 -> ValueError) plus a parse of the one surviving row. Claim corrected to the mechanism, with both committed tests cited.
+<!-- THOUGHT:END -->
