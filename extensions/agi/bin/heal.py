@@ -709,6 +709,43 @@ def _late_reap_wait_max_s(root) -> float:
     return 1800.0
 
 
+#: heal's PERSISTED reaper-state dir name under the shared sessions dir.
+REAPER_STATE_SUBDIR = "reaper"
+
+
+def _reaper_state_file(root, name: str) -> Path:
+    """The ONE reaper-state resolver: `AGI_REAPER_STATE` when set (tests
+    point it at a tmp dir), else `<shared sessions>/reaper/<name>` — shared
+    across processes and worktrees, so a one-shot marker survives exit."""
+    base = os.environ.get("AGI_REAPER_STATE") or str(
+        locations.shared_sessions_dir(root) / REAPER_STATE_SUBDIR)
+    return Path(base) / name
+
+
+def _state_load(root, name) -> dict:
+    """Read one reaper state file as {str: float}; {} on any miss. A corrupt
+    marker must never stop the healer."""
+    try:
+        doc = json.loads(_reaper_state_file(root, name).read_text("utf-8"))
+        if isinstance(doc, dict):
+            return {str(k): float(v) for k, v in doc.items()}
+    except (OSError, ValueError, TypeError, AttributeError):
+        pass
+    return {}
+
+
+def _state_save(root, name, seen) -> None:
+    """Write the state file atomically (tmp + replace), best-effort."""
+    p = _reaper_state_file(root, name)
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        tmp = p.with_suffix(".tmp")
+        tmp.write_text(json.dumps(seen), encoding="utf-8")
+        tmp.replace(p)
+    except OSError:
+        pass
+
+
 def _close_late_reap_abandoned(record, record_path, now, succ_id, waited,
                                bound) -> dict:
     """Close a record whose successor registry NEVER appeared, as
@@ -778,13 +815,34 @@ def _late_reap_for_skipped(root, record, *, record_path=None,
         # Age from the record's OWN `recorded_at` (written with the rotation),
         # never from an mtime a reboot can invalidate.
         ts = _parse_record_ts(str(record.get("recorded_at") or ""))
+        source = "recorded_at"
         if ts is None:
-            return {"action": "waiting", "window_id": succ_id,
-                    "reason": "no-recorded_at"}
+            # Unparsable: age from a PERSISTED first-seen stamp keyed by
+            # seat+successor, so the wait ACCUMULATES across passes and
+            # processes. Never `now` (it would reset the wait every pass and
+            # wait forever); the first sighting falls back to the file mtime
+            # (durable, written with the rotation), clamped to `now`.
+            name = "late-reap-first-seen.json"
+            key = f"late-reap|{record.get('seat')}|{succ_id}"
+            seen = _state_load(root, name)
+            source = "first-seen"
+            ts = seen.get(key)
+            if ts is None:
+                source = "first-pass"
+                try:
+                    ts = min(float(os.path.getmtime(record_path)), now) \
+                        if record_path else float(now)
+                    if record_path:
+                        source = "mtime"
+                except (OSError, TypeError, ValueError):
+                    ts = float(now)
+                seen[key] = ts
+                _state_save(root, name, seen)
         waited = max(0.0, now - ts)
         bound = _late_reap_wait_max_s(root)
         if waited <= bound:
             return {"action": "waiting", "window_id": succ_id,
+                    "ts_source": source,
                     "waited_s": round(waited, 1), "bound_s": bound}
         return _close_late_reap_abandoned(record, record_path, now, succ_id,
                                           waited, bound)
@@ -2630,13 +2688,24 @@ def _pin_reap_pass(root: Path, *, registry_dir: str | None = None,
     armed = (mode == "armed")
     pid_is_alive = pid_alive or _pid_alive
     acted: list[dict] = []
+    # ONE line per row STATE, not per pass: the seen-set is keyed on the
+    # whole row state and lives in a state file, so a FRESH process still
+    # suppresses an unchanged row. Keys absent this pass are pruned, so a
+    # row that went GONE and came back logs again.
+    seen_name = "pin-reap-seen.json"
+    seen, fresh, stamp = _state_load(root, seen_name), {}, \
+        float(now if now is not None else time.time())
     for j in judged:
         if j["verdict"] == "KEEP":
             continue
-        _watch_log(f"watch: pin-reap {j['verdict']}: "
-                   f"seat={j['seat']} sid={j['session_id']} "
-                   f"pid={j['pid']} window={j['window_id']} "
-                   f"({j['reason']})")
+        key = "|".join(str(j.get(k)) for k in ("seat", "session_id", "pid",
+                                                "window_id", "verdict", "reason"))
+        fresh[key] = stamp
+        if key not in seen:
+            _watch_log(f"watch: pin-reap {j['verdict']}: "
+                       f"seat={j['seat']} sid={j['session_id']} "
+                       f"pid={j['pid']} window={j['window_id']} "
+                       f"({j['reason']})")
         if j["verdict"] != "REAP" or not armed:
             continue
         rec = {"seat": j["seat"], "session_id": j["session_id"],
@@ -2682,6 +2751,7 @@ def _pin_reap_pass(root: Path, *, registry_dir: str | None = None,
         _watch_log(f"watch: pin-reap REAP: seat={j['seat']} "
                    f"window={j['window_id']} pid={j['pid']} -> armed")
         acted.append(rec)
+    _state_save(root, seen_name, fresh)
     return acted
 
 
