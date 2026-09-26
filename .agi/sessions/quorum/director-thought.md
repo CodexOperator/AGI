@@ -161,7 +161,7 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 ## 🔴 Where it stops -- gen 33, ~04:5xZ 09-26
 ```
 EXACT NEXT:
-  (a) await thought-master's gate on 134b6b07e (OSC.42 + OSC.43). TMM.149 pi pair DONE; the rest all load a model -> HOLD.
+  (a) await thought-master's gate on ffa5d9530 (OSC.42 + OSC.43 + TMM.206 evidence_runs fix; ccbfa862e LANDED 9ddc0fe23, TMM.205). TMM.149 pi pair DONE; the rest all load a model -> HOLD.
   (b) on belam's go: re-dispatch OSC.40 (OSC40b.parent.txt) and OSC.41 (OSC41.parent.txt), ONE model round at a time; point the orders
       at the stopped kids' scripts as prior art (like OSC40b's RESUME block).
   (c) Rotate at f >= 0.47 (bare rotate.py rotate).
@@ -169,6 +169,8 @@ EXACT NEXT:
 
 ## Traps hit this generation
 ```
+evidence-runs: a hypothesis I set DECISIVE needs evidence_runs [<exp>] too, or the grid cron's gate demotes it (TMM.206) -> run
+  evidence_gate.py --dry-run enforce before every [merge-up].
 off-script-kid: a FIXTURE-ONLY order still got a kid that launched pi + a stub (OSC.42 r2) -> the fence goes VERBATIM into the kid's orders
   with an import whitelist, test FIRST; the parent greps the diff for subprocess/http.server before accepting.
 missed-decision: a Prime [decision] sent to thought-master 'for director-thought's research arm' never reached MY inbox -> on every seat,
