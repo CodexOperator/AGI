@@ -41,6 +41,14 @@ GATE ON DT [merge-up] tip 94cb69ec8 (P8.03 + P8.04 + leak fix): M = 1e03e9b77 (H
         leg -> RE-SENT tip 5668caf09 (2 commits: that node + DT's card; no number moved; the 7 arm bits = the artifact's emitted_bits/64,
         verified) · SUITE on M 6753 passed / 0 failed 18:50:01Z · context dir of M = DT's tested tips (0 files differ) · OWED: the 3 osc
         files under torch AFTER OSC.44 exits (DT's watcher: only osc_band_2x2_ may load) -> land 5668caf09 · a crash: remove both /dev/shm dirs
+GATE ON DE [merge-up] #13 tip 46fc2b716 (DH.410/411/412/413/414/415): PIPELINED on a provisional DT landing 1e3919229 (tree 9972e7f00 =
+        the DT landing tree) -> M_DE 2576729dd in /dev/shm/gate-mu13 (+ tmp-mu13), engine suite from 19:06:30Z · HELD: goals 375 · evidence 0 ·
+        links 4566/0 · anonymize ok · DH.410 render measured on real cards (83126 / 65299 / 61414 chars, no refusal) · DH.414 over 4364 live
+        nodes = 9 structural flips only · dispatch fence opt-in (spawn.no_model absent) · values.core cell present · OWED: suite result +
+        the CONTEXT suite under torch in the SAME window as DT's 3 files · then land DT (re-mint L with its final message, ff, push), then DE
+        (T2 = merge-tree(live HEAD, 46fc2b716), ff, push) · drafts: scratchpad msg-dt.txt / msg-de.txt · DT HOLDS OSC.41 until my GO (TMM.253)
+        · after landing: residue to DE (model_fence KeyError when a config lacks the cell) + WATCH the first non-prime successor's first turn
+          (DH.410) for a second head from the hook
 DT      OSC.40 r2 DISPATCHED 18:4xZ as iter OSC.44 (parent a00-39caeb06, hard 1982 < 2020) -> its report line when it exits
 WAITING DT: OSC.40 r2 (hard < 2020 at dispatch) -> OSC.41, one report line each (VmHWM + user@ hard peak + min MemAvailable); ANY sample of
         user@ memory.current >= memory.high (5246) = no next dispatch until told (TMM.247) · DT's merge-up: the P8.03 / P8.04 BODIES must state
