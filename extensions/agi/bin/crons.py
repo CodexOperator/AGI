@@ -444,30 +444,241 @@ def block_markers(repo_root: Path) -> tuple[str, str]:
     return begin, end
 
 
+#: The alerts file the memory alarm appends to when a graph declares no
+#: `logs.alerts_file` cell: a bare NAME, never a path — the directory is
+#: `logs_dir()` below, the same dir `enforce_log_caps` bounds.
+ALERTS_FILE = "memory-alarm-alerts.log"
+
+
+def logs_dir() -> Path:
+    """The box logs dir — the ONE place `enforce_log_caps` looks, so any
+    writer that resolves its log through this directory is capped by
+    construction rather than by coincidence."""
+    return Path.home() / "logs"
+
+
+def alerts_log(root: Path) -> Path:
+    """The memory alarm's log: a declared `logs.alerts_file` NAME inside
+    `logs_dir()`. A writer that re-derived its own path (the pre-fix
+    `~/logs/sanctuary-guard/alerts.log`) wrote into a SUBDIRECTORY the
+    non-recursive cap glob never reached, so it grew without bound."""
+    raw = (locations.load_config(root).get("logs") or {}).get("alerts_file")
+    # A NAME, or nothing: an absolute path, a separator, a traversal or an
+    # empty value all put the log where the non-recursive cap glob cannot see
+    # it, so a malformed cell raises BY NAME exactly as a malformed
+    # `logs.cap_mb`/`logs.mode` does -- a cap that silently does not apply is
+    # worse than no cap. Only an ABSENT cell falls back to the default: an
+    # empty one is a declared-and-wrong value, not an undeclared one.
+    name = ALERTS_FILE if raw is None else str(raw).strip()
+    if (not name or "\\" in name or "/" in name or name in (".", "..")
+            or Path(name).name != name):
+        raise CronsError(
+            f"config cell logs.alerts_file: must be a bare file NAME inside "
+            f"{logs_dir()}, got {name!r} -- a path here would write where "
+            f"enforce_log_caps does not look")
+    return logs_dir() / name
+
+
 def _log_path(repo_root: Path) -> Path:
     # One log for every job in this project's block — matches grid.py's own
     # convention of one file per project rather than one per cadence.
-    return Path.home() / "logs" / f"agi-crons-{Path(repo_root).name}-{project_hash(repo_root)[:8]}.log"
+    return logs_dir() / f"agi-crons-{Path(repo_root).name}-{project_hash(repo_root)[:8]}.log"
 
 
 _ARCHIVE_RE = re.compile(r".+\.\d+$")
+# The rotation MODE is a declared `logs.mode` cell, never a literal here.
+_LOG_MODES = ("rename", "copytruncate")
+#: What to do with a base a writer holds open WITHOUT `O_APPEND` (the NUL-hole
+#: falsifier): `skip` refuses it by name, `rename` rotates it away instead --
+#: the cap then holds and the stranded writer lands in an archive, which the
+#: per-archive bound below keeps capped anyway. Declared as `logs.non_append`.
+_NON_APPEND_ACTIONS = ("rename", "skip")
+
+
+def _managed_names(root: Path, repo_root: Path) -> list[str]:
+    """The base log NAMES this project declares -- its own cron log, the memory
+    alarm's alerts file, plus any extra NAME in `logs.also_manage` (the reaper
+    log, which shares the dir). A WILDCARD glob is the near-miss: it bounds
+    every archive at the cost of rotating, unlinking and stat'ing files that
+    belong to OTHER services (`sanctuary-guard/`, a sibling project's log)."""
+    extra = (locations.load_config(root).get("logs") or {}).get("also_manage") or []
+    if not isinstance(extra, list):
+        raise CronsError("config cell logs.also_manage: must be a list of bare "
+                         f"file NAMEs, got {extra!r}")
+    names = {_log_path(repo_root).name, alerts_log(root).name}
+    for n in extra:
+        n = str(n).strip()
+        if not n or "/" in n or "\\" in n or n in (".", "..") or Path(n).name != n:
+            raise CronsError(f"config cell logs.also_manage: must be a bare file "
+                             f"NAME inside {logs_dir()}, got {n!r}")
+        names.add(n)
+    return sorted(names)
+
+
+def _non_append_holders(path: Path) -> tuple[bool | None, list[str]]:
+    """(False, holders) when a process holds `path` open WITHOUT `O_APPEND` --
+    it would resume at its stale offset and leave a NUL hole; (None, []) when
+    /proc cannot be read (UNKNOWN, never a silent pass); (True, []) otherwise.
+    A box with `hidepid` cannot enumerate other users' fd dirs, so UNKNOWN
+    counts the pids this scan had to skip. An `O_APPEND` writer of THIS box is
+    always visible -- same uid -- which is the writer the cap is about."""
+    unseeable = 0
+    try:
+        pids = [p for p in Path("/proc").iterdir() if p.name.isdigit()]
+    except OSError:
+        return None, []
+    try:
+        want = path.resolve()
+    except OSError:
+        return None, []
+    holders = []
+    for pid in pids:
+        try:
+            fds = list((pid / "fd").iterdir())
+        except OSError:
+            unseeable += 1           # hidepid: said once per apply, below
+            continue
+        for fd in fds:
+            try:
+                if Path(os.readlink(fd)) != want:
+                    continue
+                info = (pid / "fdinfo" / fd.name).read_text()
+            except OSError:
+                unseeable += 1
+                continue
+            flags = next((ln.split()[1] for ln in info.splitlines()
+                          if ln.startswith("flags:")), None)
+            if flags is None:
+                unseeable += 1
+                continue
+            if not int(flags, 8) & os.O_APPEND:
+                holders.append(f"pid {pid.name} fd {fd.name}")
+    if holders:
+        return False, holders               # a real NUL-hole writer, by name
+    return (None, []) if unseeable else (True, [])
+
+
+def _in_place_precondition(path: Path, label: str, non_append: str,
+                           out: list[str], state: dict,
+                           rotate_away: bool = True) -> bool:
+    """Whether `path` may be trimmed IN PLACE, per the `logs.non_append` cell.
+
+    ONE precondition for EVERY in-place write `enforce_log_caps` performs -- the
+    copytruncate base truncate AND the two archive trims (the bounding loop and
+    the archive the rename arm just made). A writer that did NOT open
+    `O_APPEND` resumes at a stale offset over the shifted bytes (the NUL hole),
+    so `skip` REFUSES it by name and leaves the file whole; `rename` cannot
+    rewrite an inode, so the file is rotated to a NESTED name that the prune
+    above collects on the next apply. An unreadable /proc is UNKNOWN and said
+    ONCE per apply (`state["unknown_said"]`), never a silent pass.
+    `rotate_away=False` on the copytruncate BASE, whose `rename` action IS the
+    rotation that follows: nothing is left to rotate an archive away from.
+    """
+    clean, holders = _non_append_holders(path)
+    if clean is None:
+        if not state["unknown_said"]:
+            state["unknown_said"] = True
+            out.append(f"{label} writer check UNKNOWN (/proc not fully readable: "
+                       f"hidepid) -- the O_APPEND contract is assumed, not proven")
+        return True
+    if clean is False:
+        if non_append == "skip":
+            out.append(f"{label} refused: held without O_APPEND by "
+                       f"{', '.join(holders)} (logs.non_append: skip)")
+            return False
+        if not rotate_away:
+            return True
+        nested = Path(f"{path}.1")     # `d+.d+` tail -- pruned next apply
+        path.replace(nested)
+        out.append(f"{label} rotated to {nested.name} (logs.non_append: rename) "
+                   f"-- held without O_APPEND by {', '.join(holders)}")
+        return False
+    return True
+
+
+def _tail_copy(src: Path, dst: Path, cap: int) -> None:
+    """Copy the LAST `cap` bytes of `src` (the whole file when it is shorter)
+    into a FRESH `dst`.
+
+    The size is snapshotted once, so a writer still appending to `src` cannot
+    make this read chase a moving EOF: `shutil.copyfile` on a live base blocked
+    one apply for up to 127 s, and the copy-then-truncate race window is
+    `writer_rate x copy duration` (experiment:a00-e4ba316a-1f6748). Cost here is
+    a function of `cap` alone, and the archive is never over the cap, so no
+    second trimming pass is needed."""
+    with open(src, "rb") as fh:
+        fh.seek(0, os.SEEK_END)
+        size = fh.tell()
+        fh.seek(max(0, size - cap))
+        left = size - fh.tell()
+        with open(dst, "wb") as out:
+            while left > 0:
+                chunk = fh.read(min(left, 1 << 20))
+                if not chunk:      # the writer truncated under us; take what is there
+                    break
+                out.write(chunk)
+                left -= len(chunk)
+
+
 _NESTED_RE = re.compile(r".*\.\d+\.\d+$")
 
 
-def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False) -> list[str]:
+def _trim_in_place(src: Path, cap: int) -> None:
+    """Keep the LAST `cap` bytes of `src`, IN THE SAME INODE.
+
+    An over-cap ARCHIVE is trimmed, not replaced: a `rename`-mode rotation
+    strands a long-lived writer on the archive, and replacing the file would
+    strand it on a deleted inode -- its bytes going somewhere the cap never
+    looks again. The write offset always trails the read offset, so the shift
+    cannot overwrite bytes it has yet to read."""
+    with open(src, "r+b") as fh:
+        size = fh.seek(0, os.SEEK_END)
+        fh.seek(max(0, size - cap))
+        done = 0
+        while done < cap:
+            chunk = fh.read(min(1 << 20, cap - done))
+            if not chunk:            # a writer truncated under us
+                break
+            fh.seek(done)
+            fh.write(chunk)
+            done += len(chunk)
+        fh.truncate(done)
+
+#: The same two shapes, matched on the SUFFIX (`x.log` + `.1.1`), because the
+#: declared-name scope selects `x.log.*` and must then tell an archive tail
+#: from a sibling that merely starts with the same characters.
+_ARCHIVE_TAIL_RE = re.compile(r"\.\d+$")
+_NESTED_TAIL_RE = re.compile(r"\.\d+\.\d+(\.\d+)*$")
+
+
+def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False,
+                     live: bool = True) -> list[str]:
     """Rotate every file in the box logs dir that is over the declared cap.
 
     The cap is the `logs.cap_mb` / `logs.rotations` cells in
     `.agi/config.json`, read at apply time -- never a literal here. An ABSENT
     `logs` namespace is a no-op (nothing is declared to enforce); a PRESENT
     but malformed one raises by name, because a cap that silently does not
-    apply is worse than no cap. The scope is the whole logs dir, not just
-    this project's cron log: the reaper log grows there too and shares it.
+    apply is worse than no cap. The scope is this project's DECLARED names
+    (`_log_path`, `alerts_log`, plus `logs.also_manage`) and their `.N`
+    archives -- never a `*` glob, which reaches into other services' files --
+    and EVERY managed archive is bounded, not only the one a rotation just
+    made. `live=False` (the `crons_live: false` kill switch) is a no-op.
+    The MODE is the `logs.mode` cell: `rename` (the default) renames the base,
+    which strands a long-lived writer on an uncapped ARCHIVE; `copytruncate`
+    copies the newest `cap` bytes to `.1` and truncates the base IN PLACE, so an
+    `O_APPEND` writer keeps landing in a file the next apply still caps. The
+    copy reads a snapshotted size, so its cost is bounded by the cap and the
+    copy-then-truncate race costs only the bytes appended between the copy and
+    the truncate. A writer that is NOT `O_APPEND` is REFUSED by name before
+    EVERY in-place write -- the copytruncate base AND either archive trim
+    (falsifier 2): the cap holds, the file shape does not.
     """
     cells = locations.load_config(root).get("logs") or {}
     if not cells:
         return []
     cap_mb, keep = cells.get("cap_mb"), cells.get("rotations")
+    mode = cells.get("mode", "rename")
     if not (isinstance(cap_mb, int) and cap_mb > 0
             and isinstance(keep, int) and keep >= 0):
         raise CronsError(
@@ -475,35 +686,101 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False) -> list
             f"positive integer and rotations a non-negative one, got "
             f"{cap_mb!r}/{keep!r} -- a cap that silently does not apply is "
             f"worse than no cap")
-    cap, out, d = cap_mb * 1024 * 1024, [], _log_path(repo_root).parent
-    for p in sorted(d.glob("*")) if d.is_dir() else []:
-        if p.is_symlink() or not p.is_file():
-            continue
-        if _ARCHIVE_RE.match(p.name):
-            # An ARCHIVE is never a base: rotating it would rotate the
-            # enforcement itself (`x.log` -> `x.log.1` -> `x.log.1.1` -> ...,
-            # one more nesting level per apply, unbounded by `rotations`).
-            # It leaves the way the rotation shift of ITS base deletes it, or
-            # now, if it is residue of the pre-fix unbounded enforcement --
-            # the new one can never create a nested tail.
-            if _NESTED_RE.match(p.name):
-                out.append(f"{p.name} pruned (legacy rotation residue)"
+    if mode not in _LOG_MODES:
+        raise CronsError(
+            f"config cell logs.mode: must be one of {sorted(_LOG_MODES)}, got "
+            f"{mode!r} -- a rotation mode this file does not implement would "
+            f"silently leave the cap unenforced")
+    non_append = cells.get("non_append", "skip")
+    if non_append not in _NON_APPEND_ACTIONS:
+        raise CronsError(f"config cell logs.non_append: must be one of "
+                         f"{sorted(_NON_APPEND_ACTIONS)}, got {non_append!r}")
+    # The kill switch: `crons_live: false` schedules NOTHING, so a cap that
+    # keeps rotating and unlinking behind it is a surprise with no job to
+    # explain it. Gated HERE, at the one function that touches the dir.
+    if not live:
+        return []
+    cap, out, d = cap_mb * 1024 * 1024, [], logs_dir()
+    if not d.is_dir():
+        return []
+    names = _managed_names(root, repo_root)
+    entries = sorted(d.iterdir())
+    unknown = {"unknown_said": False}
+    for name in names:
+        p = d / name
+        # (1) EVERY archive of a declared name is bounded, not just the base:
+        # `_tail_copy` bounds only the NEW archive, so a pre-existing 172 MB
+        # archive stayed over the cap forever, the apply saying nothing.
+        for q in [q for q in entries if q.name.startswith(f"{name}.")]:
+            tail = q.name[len(name):]
+            if q.is_symlink() or not q.is_file():
+                continue
+            if _NESTED_TAIL_RE.match(tail):
+                out.append(f"{q.name} pruned (legacy rotation residue)"
                            + (" (dry-run)" if dry_run else ""))
                 if not dry_run:
-                    p.unlink()
+                    q.unlink()
+                continue
+            if not _ARCHIVE_TAIL_RE.match(tail):
+                continue
+            if q.stat().st_size <= cap:
+                continue
+            if dry_run:
+                out.append(f"{q.name} is over the {cap_mb} MB cap (dry-run)")
+                continue
+            if not _in_place_precondition(q, q.name, non_append, out, unknown):
+                continue
+            _trim_in_place(q, cap)
+            out.append(f"{q.name} bounded to the {cap_mb} MB cap (archive)")
+        if p.is_symlink() or not p.is_file():
             continue
         if p.stat().st_size <= cap:  # over-cap is strictly `>`
             continue
         if dry_run:
             out.append(f"{p.name} is over the {cap_mb} MB cap (dry-run)")
             continue
+        if mode == "copytruncate":
+            # Truncating IN PLACE under a writer that did NOT open O_APPEND
+            # leaves a NUL hole at its stale offset: the cap holds, the file
+            # shape does not. UNKNOWN is said, never assumed.
+            if not _in_place_precondition(p, name, non_append, out, unknown,
+                                          rotate_away=False):
+                continue
         if Path(f"{p}.{keep}").exists():
             Path(f"{p}.{keep}").unlink()  # the oldest rotation leaves
         for i in range(keep - 1, 0, -1):
             if Path(f"{p}.{i}").exists():
                 Path(f"{p}.{i}").replace(f"{p}.{i + 1}")
         if keep:
-            p.replace(f"{p}.1")
+            if mode == "copytruncate":
+                # The writer's fd is the BASE INODE (every crontab line is a
+                # `>>` redirect), so COPY to `.1` and truncate the same inode
+                # in place: later bytes re-enter a file the cap still governs,
+                # never an ARCHIVE that `_ARCHIVE_RE` skips forever.
+                arch = Path(f"{p}.1")
+                _tail_copy(p, arch, cap)   # bounded, and <= cap by construction
+                if arch.stat().st_size > cap:
+                    # Only a live writer that SHRANK the base under us can land
+                    # here (a concurrent truncation mid-copy); the cap is a cap.
+                    with open(arch, "r+b") as fh:
+                        fh.truncate(cap)
+            else:
+                arch = Path(f"{p}.1")
+                p.replace(arch)
+                # `rename` moved the WHOLE over-cap base into `.1`, and the
+                # archive-bounding loop above ran BEFORE this rotation -- so
+                # without this line the apply returns holding an over-cap
+                # archive in the DEFAULT mode, and only `copytruncate` (whose
+                # `_tail_copy` bounds by construction) was ever covered.
+                # Bounded IN PLACE, in the same inode the stranded writer
+                # still holds: a `replace()` here would strand it on a
+                # deleted inode (experiment:a00-945d7ae4-8974f4).
+                if (arch.stat().st_size > cap
+                        and _in_place_precondition(arch, arch.name, non_append,
+                                                   out, unknown)):
+                    _trim_in_place(arch, cap)
+                    out.append(f"{arch.name} bounded to the {cap_mb} MB cap "
+                               f"(new archive)")
         p.write_text("", encoding="utf-8")
         out.append(f"{p.name} rotated (cap {cap_mb} MB, {keep} kept)")
     return out
@@ -1069,7 +1346,8 @@ def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool 
         write_crontab(new_lines, crontab_file)
 
     unit_actions = reconcile_units(root, repo_root, node, unit_dir, dry_run)
-    log_actions = enforce_log_caps(root, repo_root, dry_run)
+    log_actions = enforce_log_caps(root, repo_root, dry_run,
+                                  live=node["crons_live"])
 
     return {
         "root": root, "repo_root": repo_root, "engine_root": engine_root,

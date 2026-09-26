@@ -216,7 +216,11 @@
   },
   "logs": {
     "cap_mb": 16,
-    "rotations": 3
+    "rotations": 3,
+    "mode": "copytruncate",
+    "alerts_file": "memory-alarm-alerts.log",
+    "also_manage": ["agi-reaper-agi-2f118e6f.log"],
+    "non_append": "skip"
   },
   "grid": {
     "storage_trunk": "refs/grid/local-maxxing",
@@ -224,6 +228,9 @@
     "push_batch_limit": 200
   },
   "paths": {
+    "core": {
+      "suite_roots": [".agi/context"]
+    },
     "local_maxxing": {
       "worktree_a00_2f819956": ".agi/worktrees/a00-2f819956",
       "worktree_a00_48ed5e56_nodes": ".agi/worktrees/a00-48ed5e56/.agi/nodes",
