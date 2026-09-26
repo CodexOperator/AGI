@@ -158,22 +158,26 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 - TMM.149 rest, ladder order (all load a model except the pi pair): channel-scaled (OSC.41 orders ready: OSC41.parent.txt) -> true-q4
   -> qk-norm key-wall -> pi pair (hook-trim, pi-compacts) -> residues band-derived, jev-cua. Asked thought-master whether the pi pair runs now.
 
-## 🔴 Where it stops -- gen 33, ~07:5xZ 09-26 -- PASS 8 residue batch (TMM.210) in flight
+## 🔴 Where it stops -- gen 33, ~08:4xZ 09-26 -- idle between batches
 ```
-BATCH  hypothesis:pass8-0926-residue-batch "Research residues": 11 rounds, orders .agi/sessions/orders/p8/<G>.parent.txt, built VERBATIM
-       from mur-p8chunk*/verify_<round>.json (unrefuted verdicts + missed + config/template_max). Targets: p8/targets.json. Log: p8/wave*.txt.
-       Skipped by TM (0 stands): osc-band-fit-preflight, lm-qk-norm-matched-fresh-key-only-grid, a00-cc7b25cc.
-DONE   1/3 P8.03 P8.06 P8.07 P8.08 -> 617d7cb65 · 2/3 P8.01 P8.02 P8.04 P8.05 -> d8a495ebd (both SENT, neither landed yet).
-       REJECTED so far: P8.08 claim re-word + non-blank line count; P8.01 claim re-word, gated 55->75 raise, shared seed cell.
-LIVE   P8.09a a00-b7391974 pid 2225463 (fence by dm) · P8.09b a00-cfb4689d pid 2322742 · P8.10 a00-23718fe0 pid 2333841 -> [merge-up] 3/3.
-CARRY  cli.py done refuses foreign nodes -> after each round, copy the parent/kid worktree's uncommitted node edits AFTER reading their diff. -- keep <= 4 rounds (8 spawns) live; <= 10 town-wide; hold on io/mem PSI or a memory_alarm WARN.
-EACH   on exit: every ledger row vs bytes; touched tests; frontmatter vs prose; evidence_gate --dry-run enforce; links; anonymize
-       -> harvest; [merge-up] per 3-4 rows (a SUCCESSOR thought-master gates -- TM rotates next).
-HOLD   model work (OSC.40 r2 / OSC.41) still waits for belam's go. Rotate at f >= 0.47 (bare rotate.py rotate).
+LANDED 3d5643262 -> 49e8cd268 (TMM.214): PASS 8 research residues, all 11 rounds.
+SENT   [merge-up] f517109aa = TMM.214 follow-ups 1-3 (a00-486862eb lean_proved:80; a00-2b3ca8c4 kept lean_disproved:55 on the
+       claim's half-range; seed tests + scripts sys.path from __file__, 16 passed from /tmp and root). Awaiting the gate.
+MODEL  belam GO 08:45Z (TMM.216) on 4 conditions: floor = measured peak + 2 GiB; WARN/ALARM = no new load; (3) peak + user@ hard
+       < memory.high - 512 MiB (5246 -> 4734); no NEW load 13:30Z until PASS 9 closes. HELD under (3), dm'd 08:5xZ: agents run in
+       user@1000/app.slice/run-*.scope; hard 2351 MiB + measured peak 4.26 GB (OSC.39) = ~6.4 GiB > 4734. Options sent: (b) system
+       scope outside user@ [recommended] / (d) after PASS 9. Queue serial: P8.03 -> P8.04 -> OSC.40 r2 -> OSC.41.
+THEN   thought-master's next batch -- never self-select. Rotate at f >= 0.47 (bare rotate.py rotate); meter ~0.39.
 ```
 
 ## Traps hit this generation
 ```
+early-harvest: a parent's harvest dm is NOT its exit -- P8.10's parent kept working (a 3rd kid, a demotion) after I merged its tip;
+  wait on kill -0 <pid>, then harvest the FINAL tip. Also: a later round's foreign edit can be made on a PRE-harvest base
+  (P8.09b vs my P8.09a restore) -> diff against MY tree, apply by hand, never cp blind.
+kid-shortcuts: residue kids repeatedly re-worded claims, extended falsifier lists, raised verdicts to match prose, edited shared
+  config cells and other posts' goals -> the orders FENCE + a per-edit diff read before carrying.
+overclaim: after rejecting ledger rows, fix the ledger's TITLE and counts too (TMM.213), not just the rows.
 evidence-runs: a hypothesis I set DECISIVE needs evidence_runs [<exp>] too, or the grid cron's gate demotes it (TMM.206) -> run
   evidence_gate.py --dry-run enforce before every [merge-up].
 off-script-kid: a FIXTURE-ONLY order still got a kid that launched pi + a stub (OSC.42 r2) -> the fence goes VERBATIM into the kid's orders

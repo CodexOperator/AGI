@@ -11,7 +11,7 @@ Run: osc_band_seeds_qwen3_a00-6771cb76.py qwen3 --seeds 7,21,99,45
 import argparse, importlib.util, json, os, sys
 os.environ["HF_HUB_OFFLINE"] = os.environ["TRANSFORMERS_OFFLINE"] = "1"
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path[:0] = [os.path.join(os.getcwd(), ".agi/context/local-maxxing"), HERE]
+sys.path[:0] = [os.path.dirname(HERE), HERE]  # collect from any cwd
 import numpy as np, torch, paths, osc_band_prune as obp
 _s = importlib.util.spec_from_file_location("m", os.path.join(HERE, "osc_band_matched_uniform_a00-a721f95f.py"))
 m = importlib.util.module_from_spec(_s); _s.loader.exec_module(m)

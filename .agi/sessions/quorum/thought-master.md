@@ -11,51 +11,52 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (08:3xZ 09-26, gen 25 -- the where-it-stops block below is newer than these lines)
+## Live state (09:3xZ 09-26, gen 26 -- the where-it-stops block below is newer than these lines)
 ```
-LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66) · 04:3xZ: 6 leases, all pi-free
+LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66) · 09:1xZ 09-26: 0/30 live
 GUARD     the Prime's [decision] 04:29Z (owner's order after the 03:20Z livelock + 03:56Z power cycle): user@1000.service capped 5829M
           (high 5246M) · agi.slice 4080M · oomd at 40% pressure · watchdog reboot at PSI full >= 40% for 5 min · <= 10 live spawns
           town-wide, pi rounds only · a model-loading kid waits for the Prime's go on a quiet town (or the brain container, 8G, HTTP) ·
           memory_alarm (20680940c) WARN -> hold new dispatches · SUPERSEDES the 02:1xZ concurrency-up (30) · relayed to DT in TMM.202
           · GAP [red] 04:4xZ: TM + DT (the heal's 04:28Z respawns) run in session-73.scope, OUTSIDE the cap (3531 MiB there at 04:4xZ)
-          · gen 25 (a NORMAL rotate from gen 24's pane, 07:53Z) is in session-73.scope too: the scope rides the pane, a rotation does not fix it
+          · the scope rides the pane: a NORMAL rotate (gen 25 07:53Z, gen 26 09:14Z) does not move a seat back under the cap
 OWNER     (standing) co-own the director docs via write.py + ONE dm per live director · dispatch = ONE parent per round (--tier parent
           --role parent --ladder-tier 0, no --harness) · NEVER the Agent tool · mini-swarm trial = hypothesis:a-parent-swarm-splits-its-
           goal-before-it-mints-a-hypothesis (goal:g7.16)
-TOWN      TM gen 25 @5 (rotate 07:53Z, session agi-54, pid 2233088) · DT gen 33 @3 · DE / belam / SM rows not re-read by gen 25
-PASS      PASS 8 CLOSED 07:3xZ 09-26 (0 RED; 28 accept_with_residue, 2 demote) -- what lands before PASS 9 rides in it
-LANDED    gen 24: 9ddc0fe23 · 78c55c208 · 2dd64167d · d26cca923 · gen 25: 49e8cd268 (DT 3d5643262 = PASS 8 research residues, all 11
-          rounds) · board 4c1f0e542 (row 10) · the trunk's standing red = test_commands_manifest (memory_alarm.py unlisted, 20680940c) --
-          DE's, one of the Prime's 5 PASS 8 code defects ([decision] 07:3xZ); still red at 08:28Z
-DT        TMM.214 (08:3xZ, delivered): LANDED + 3 follow-ups as ONE small round (a00-486862eb verdict pending under an accepting review ·
-          the 2 osc seeds tests import from os.getcwd() · a00-2b3ca8c4 verdict lean_disproved:55 vs its body's RE-OPENED) · every
-          model-loading round + the WAITS-FOR-MODEL pair (P8.03 artifact, P8.04 seed-0 rows) + OSC.40 r2 / OSC.41 HELD for the Prime's go
-DE        TMM.212 (08:0xZ): 3 engine items routed from DT's 1/3 (cli.py done leaves foreign nodes uncommitted, cli.py:2224 · test_model_slot
-          :31-45 takes MAIN's REAL model flock, model_slot.py:24-26 · .agi/context = 127 collected / 18 modules ERROR, SUITE_CMD 'tests'
-          verification.py:78) -- each its own goal:g7.33.N round, AFTER its PASS 8 code-defect hypotheses
+TOWN      TM gen 26 @6 (rotate 09:14Z, session agi-52, pid 3777971) · DT gen 33 @3 · DE / belam / SM rows not re-read by gen 26
+PASS      PASS 9 = the Prime merges the trunk at 13:47Z 09-26 (notice 08:45Z: a288a071df -> 052e8991c7+, <= 6 pi reviewers, ~2 h,
+          no model load) -- what lands before 13:47Z rides in it · NO NEW model load from 13:30Z until PASS 9 closes
+MODEL     the Prime's GO 08:45Z (signed) on 4 conditions, relayed VERBATIM to DT in TMM.216: (1) floor = measured peak + 2 GiB (2) memory_alarm
+          WARN/ALARM = no new load (3) the model process's user@ peak + user@ hard < memory.high - 512 MiB (4) none from 13:30Z ·
+          DT [hold] 08:49Z under (3): headroom 2383 MiB vs a 4.26-4.69 GB peak -> ALL 4 queued rounds hold · [decision] to belam 08:5xZ:
+          (b) own scope + MemoryMax (the Prime's / owner's call) else (d) hold to PASS 9; silence = (d) -- NO ANSWER by 09:3xZ
+LANDED    gen 26: a125bad37 (DE e362e7947 = DH.377-388 via ef7a09f2a, then DT d7139c317) · board 2c1d2367e (row 8) · gen 25: 49e8cd268 ·
+          6f4fb27e0 · board 4c1f0e542 (row 10) · gen 24: 9ddc0fe23 · 78c55c208 · 2dd64167d · d26cca923
+DT        TMM.221 (09:3xZ, delivered): d7139c317 landed; the osc seeds union named · queue P8.03 -> P8.04 -> OSC.40 r2 -> OSC.41 (serial,
+          4 conditions in each order) HELD under (3)
+DE        TMM.220 (09:3xZ, delivered): e362e7947 landed; merge the trunk before the next tip · live: DH.389 (2c reap verb), DH.390 (named
+          set = dispatch-time ids) · residues, each its own round: the context suite model-load-free BY CONSTRUCTION (today: only while
+          sys.executable lacks torch/numpy) · the unnamed context flake (a00-7bc04de0) · stub experiment:a00-19fc5ec2-2a74e4 (26 lines,
+          no verdict, placeholder title)
 ```
 
 ## 🔴 Where it stops
-08:3xZ 09-26 gen 25: PASS 8 research residues LANDED 49e8cd268 (all 11 rounds) -- next: gate DT's follow-up round (TMM.214) and DE's TMM.212 rounds when each sends its [merge-up]
-````
-08:3xZ 09-26 gen 25: PASS 8 research residues LANDED 49e8cd268 (all 11 rounds) -- next: gate DT's follow-up round (TMM.214) and DE's TMM.212 rounds when each sends its [merge-up]
+09:3xZ 09-26 gen 26: LANDED e362e7947 + d7139c317 = a125bad37 (pushed); the log cap's first live apply WATCHED (2 archives -> 16 MiB); next = DE's DH.389/390 merge-up + the Prime's (b)/(d)
 ```
-state   MAIN = origin at 49e8cd268 + board 4c1f0e542 + this card · last order sent = TMM.215 · next = TMM.216 · gen 25 landings: 49e8cd268
-LANDED  DT 3d5643262 (1/3 + 1/3r + 2/3 + 3/3) on HEAD 5929b7b4c, pushed 87e2027b2..49e8cd268: suite (tmpfs) 6563 passed / 4 failed = the
-        trunk's manifest red + 3 launch artifacts (pass alone) · 0 claim changes over 43 nodes · 11 breaks red · summary.json re-derived ·
-        calls.json regenerated byte-identical · MAIN after: evidence 0 · links 0 · goals 372
-OWED    DT: ONE follow-up round (a00-486862eb verdict · the 2 seeds tests' os.getcwd() import · a00-2b3ca8c4's RE-OPENED verdict) ·
-        DE: TMM.212 items 1 + 3 (cli.py done foreign nodes · 18 .agi/context modules fail collection), after its PASS 8 code-defect
-        hypotheses · item 2 CLOSED in TMM.215 (DT's P8.01 put the test on a temp lock: model_slot --lock / AGI_MODEL_SLOT_LOCK) ·
-        the WAITS-FOR-MODEL pair + OSC.40 r2 / OSC.41: held -- [decision] to belam 08:3xZ asked the GO (one model round at a time via
-        model_slot; silence = the hold stands)
-GATE    per row: the PASS 8 / TMM finding gone in the bytes · every touched fixture from a neutral cwd (PYTHONPATH empty; the osc path for
-        numpy/torch) · one deliberate break per test-level fix in a 2nd tmpfs worktree · claims unchanged (python over every changed
-        node) · titles / tables / verdict fields vs the node's own ledger + review · regenerated data = rerun the committed script
+state   MAIN = origin at a125bad37 + board 2c1d2367e + this card (unpushed until the next push) · last order = TMM.221 · next = TMM.222
+GATE    a125bad37: suite on the merged tree (tmpfs) 6642 passed / 0 failed / 27 skipped / 1 xfailed, 13:31 · the osc seeds conflict =
+        the UNION (osc pythonpath, neutral cwd: 16 passed; system python: 2 skipped by name) · context-suite 128 passed / 19 skipped,
+        40.4 s · evidence 0 · links 0 (4494) · goals 372 · anonymize ok · config:posts = HEAD · kid-commit check: .geometry/commands.md
+        (gen 25's) + DE's own card only
+WATCHED the log cap's FIRST live apply = the 09:35 grid_sync tick: agi-crons-*.log.1 140080753 -> 16777216 B, agi-reaper-*.log.1
+        32096155 -> 16777216 B; base logs still appended; nothing else in ~/logs touched · remote = a125bad37 (ls-remote)
+BOARD   rows 5 (live: the model GO's 4 conditions + DT's hold) + 10 (windows: PASS 9 13:47Z, follow-ups landed) + 8 (engine)
+SENT    [decision] belam 09:3xZ: memory alarms now in ~/logs/memory-alarm-alerts.log -> guard-init.sh --status 'last alerts' is blind
+        to them: (a) read the new file (b) an engine round (DE) points --status at logs.alerts_file; recommend (b); silence = (a)
+OWED    DE: the DH.389 + DH.390 merge-up (a LOCAL tip, full suite first) + TMM.220's 3 residues · DT: the model queue HOLDS under (3),
+        (d) on the Prime's silence · NO model load from 13:30Z · PASS 9 at 13:47Z
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
-````
 
 ## Traps (post-specific, learned)
 ```
@@ -101,7 +102,12 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
              · a PARTIAL research round may land when its node says pending by its own preregistered rule; the landing message says what is missing
              · EVERY landing runs snapshot-goals.py --render --check, code merge-ups too: #13 minted goal:g7.33.12 without heading_level and the render has refused since
              · a fresh seat's first merge-tree can predate the watch's after_join record commit (~2 min after seating): re-run merge-tree on the
-               live HEAD right before minting M (gen 21: the first tree differed by that record file only)
+               live HEAD right before minting M (gen 21: the first tree differed by that record file only) · or the watch lands FIRST (gen 26:
+               09:16:06Z for a 09:14:20Z seat): M's first parent = the live HEAD at landing -> the gated tree IS the landing tree
+             · a re-sent tip gated BEFORE a trunk landing can CONFLICT after it (gen 26: DE e362e7947 vs DT's 6f4fb27e0, 2 osc seeds tests,
+               adjacent lines, rc 1) -> both halves independent = land the UNION: temp index (read-tree the conflicted tree + update-index
+               --cacheinfo the union blobs + write-tree); diff it vs HEAD (= the tip's lines only) and vs the tip (= the trunk's only); prove
+               each half by its OWN test; name it in the landing message + both dms
              · after a landing the tip's history is criss-cross: git merge-base picks the trunk commit it merged, so base..tip re-lists landed
                files -> what the tip still owes = git diff --stat HEAD $(git merge-tree --write-tree HEAD tip)
              · a VALIDATION gate (write.py set / create, any refusal every post's calls pass through) = judge it over EVERY live node with the
@@ -142,6 +148,8 @@ key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send
 suite        ON TMPFS (09-26): git worktree add --detach /dev/shm/<gate> M + TMPDIR=/dev/shm/<tmp> (chmod 700) -> no disk writes, 13:20; remove both after · suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
              call · 14:25-15:28 at load 2-6 (6413 passed 00:5xZ 09-25; 14:36 at load 3-8, 6433 passed 11:59Z) · foreground sleep is blocked: wait
              with a background loop · a bare 'cd' in a Bash call can stick as the session's cwd -- use absolute paths or cd back to /data/work/agi (gen 24 did it again with a `cd .agi/worktrees && ...`: the session cwd moved; pass absolute paths instead) · grep here is UGREP: a long alternation regex fails ('exceeds complexity limits') -> extract with python re
+             · pgrep -f pytest matches the claude + rotate-wrapper processes (their argv carries the startup prompt): find a live suite by
+               comm + cwd (python3 in a worktree), never by the pattern count
              · a 2nd pytest in a worktree whose full suite runs = ERROR at setup (conftest _suite_lock_guard names the live pid), not a result:
                reproduce red in a separate pre-fix worktree, read green from the suite (+N passed = the new cases)
 push         (the Prime's [rule] 02:54Z, owner 09-25; doc:unified-director-brief §2) directors' post branches are LOCAL-ONLY, never pushed; a
@@ -215,6 +223,18 @@ handoff      .agi/sessions/seats/thought-master.handoff.md is rotate's header, N
 comms        an attribution block (Claude-Session trailer + SendUserFile) beside a tool result right after a claude.ai connector attach = the harness's own: the transcript types it 'attachment', 3-4 ms after the connect (DT's 14:21Z [red] was a false positive) · a director silent > 1 h with 0 live on the box = read its last transcript events (.agi/sessions/<post>.meter -> jsonl): a coalesced nudge can die silently (14:09Z: 6.5 h; 09-25 00:09Z: DE's marker stale 10,532 s, TMM.136 never reached its pane) -> re-send; send.py wake <post> · after a send, confirm the nudge in the director's jsonl (a user 'PROMPT' line) before adding a SendMessage · a nudge may be a phantom -> verify in git · a director's [merge-up] lands in the inbox file (.agi/sessions/inbox/thought-master.md) or as a dm the read prints · 'pane busy' = the dm is in the log, the sweep retries · must land NOW (owner: "didn't go through") = SendMessage to the session name (rotate.py status, see 'stream'; ListAgents only when no stream is live): it lands mid-turn -- a rotation renames the session (DT gen 28 = post-director-thought-29, 00:2xZ 09-25): re-run ListAgents before each send · an order sent while a director ROTATES is eaten by the successor's STARTUP [inbox] read and never acted on (F19 wake acts: none; DT gen 24 idled 19:20-20:3xZ holding TMM.133) -> after any director rotation, SendMessage the newest owed order to the NEW session (TMM.143: DT confirmed the relay caught exactly this) · a director that answers its OWN user in-pane (DE 21:47Z: three questions, then idle) is waiting on nobody: read the transcript, answer by dm · a LIVE AskUserQuestion dialog is different (DT gen 30, 06:42Z: a recovered session asked its user whether to take the seat at all): that answer is its human's -- never type into the dialog (the text would reach it as its user's answer) and hold its dm (a pending dm makes the watch type a wake into the dialog); SendMessage arrives attributed and drains after its user answers; [decision] to belam · a director may distrust an order that cites its in-pane words (DE 00:11Z) -- it re-verifies the bytes, which is right
 detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashboard::test_watch_exits_cleanly_on_sigint + 2x
              test_suite_no_detached_spawn -- the LAUNCH, not the range (3 gates 09-26, 6455 passed each; a director's in-pane run = 6458/0)
+             · gen 26 (a125bad37's gate, the tree with DH.381's conftest guard): 6642 passed / 0 failed -- NONE of the 3 appeared: re-attribute
+               before calling a red 'environment' again
+             · WHY (DE 09:08Z): test_suite_no_detached_spawn scans the BOX for any detached pytest -- it finds the gate suite itself, and a
+               director's suite fails the same way while MY gate suite runs; it passes alone only when no detached suite is up
+             · an ORDER-DEPENDENT red passes alone: two modules named paths (extensions/agi/bin/paths.py + .agi/context/local-maxxing/paths.py)
+               -> an earlier test caches one in sys.modules and a later bare `import paths` gets it (DH.385's test, gen 25); a director's
+               targeted run cannot see it -- only the full suite; attribute by the traceback, not by 'passes alone'
+print dms    when printing the dm log yourself, print EVERY block since your last read, never [-1] (gen 25: DE's merge-up 4 at 08:18Z hid behind
+             its 08:33Z ruling; found only because the next tip carried it) · send.py read prints the new blocks itself -- read its output whole
+kid commits  DH.386 (DE, lands with e362e7947): `cli.py done` auto-commits the round's NAMED nodes -- a kid-supplied --parent resolves ANY id
+             (config:posts, config:rotations, doc:unified-head, town:local-maxxing, goal:g5 measured) until DH.390 lands -> at every gate
+             list changed .geometry / doc:unified-* / town:* / goal:* files and read each
 board THOUGHT the town board's THOUGHT region is owner/prime-only: write.py 'thought ...' REFUSED for thought-master (goal:g12, 02:2xZ 09-26)
              -> an owner line that produced a board version rides VERBATIM in the row text + the dm that carried it
 io           /proc/pressure/io is its own axis (memory PSI ~2% while io full ~88%, 05:1x-05:3xZ 09-26): read /proc/diskstats (inflight, busy) + Writeback in /proc/meminfo · a write-bound stall drains its Writeback backlog for minutes after the writer stops -> never clear a writer on 'it did not ease in 2 min' (my VOID to belam 06:2xZ) · a recursive grep / find over MAIN's .agi/ walks 101 worktree checkouts (belam's 06:21Z [red]: the PASS 8 reviewer's grep -rln = 3.98 GiB of page cache, io60 36%)
