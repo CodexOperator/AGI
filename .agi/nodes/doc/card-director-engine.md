@@ -63,7 +63,7 @@ PASS 8    row 47 DONE: DH.394 MERGED b39533d28 + cell reaper.chain_deadline_s=20
 TMM.228   goal:g7.33.16 + hypothesis 6cf5681d2 -> DH.397 a00-aae44e7f STOPPED on TMM.229 (parent + kid TERMed, worktree kept)
 HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. Re-dispatch DH.397 only after, with the FIXTURE
           rule in orders + test: red-on-old = a tiny random-init model GENERATED in tmp, never osc03/osc15/brain weights
-suite8    full suite RUNNING detached on 1ed781999 -> merge-up 8 (DH.392-395 + rows 47/50/51 + watcher fix)
+merge-up 8 SENT tip 3fefbae88 behind 0: suite 1ed781999 6680/0 (tip = +4 graph files) -- await TM
 ```
 
 ## 🔴 WHERE IT STOPS
