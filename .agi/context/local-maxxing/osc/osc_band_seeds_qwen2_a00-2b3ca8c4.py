@@ -9,7 +9,7 @@ import importlib.util, json, os, sys, time
 os.environ["HF_HUB_OFFLINE"] = os.environ["TRANSFORMERS_OFFLINE"] = "1"
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [os.path.dirname(HERE), HERE]  # collect from any cwd
-import numpy as np, torch, paths, osc_band_prune as obp
+import numpy as np, torch, paths, osc_band_prune as obp, osc_lowpeak
 
 _s = importlib.util.spec_from_file_location("grid", os.path.join(HERE, "osc_band_matched_uniform_a00-a721f95f.py"))
 grid = importlib.util.module_from_spec(_s); _s.loader.exec_module(grid)
@@ -34,18 +34,18 @@ def check():
     print("check OK np", NP, "seeds", seeds())
 
 def run(which="qwen2"):
-    from transformers import AutoTokenizer, AutoModelForCausalLM
+    from transformers import AutoTokenizer
     hf = paths.get("osc03_hf_dir")
-    tok = AutoTokenizer.from_pretrained(hf); model = AutoModelForCausalLM.from_pretrained(hf, dtype=torch.float32, attn_implementation="eager").eval()
+    tok = AutoTokenizer.from_pretrained(hf); model, head = osc_lowpeak.load(hf)  # bf16-resident, fp32 compute (TMM.230)
     fixed.install(model)  # configures fixed.SPEC
     assert fixed.SPEC["np"] == NP
     prompts, emeta = obp.build_eval(tok); E = grid.profile(model, prompts); S = seeds()
     arms = [(tag, m, fixed.arm(E, m, "random", s), s) for tag, (u, m) in grid.GRID[NP].items() for s in S]
     t = time.time(); agg = {}
     for pi, ids in enumerate(prompts):
-        ref = torch.log_softmax(fixed.forward(model, ids).float(), -1)
+        ref = fixed.forward(model, ids)  # hidden [T, H]: osc_lowpeak.metrics applies the head in row chunks
         for tag, m, a, s in arms:
-            ag, kl = obp.metrics(ref, fixed.forward(model, ids, a, m))
+            ag, kl = osc_lowpeak.metrics(head, ref, fixed.forward(model, ids, a, m))
             r = agg.setdefault((tag, s), [0., 0.]); r[0] += ag / len(prompts); r[1] += kl / len(prompts)
         print(which, pi + 1, round(time.time() - t), flush=True)
     with open(os.path.join(OUT, "cells.jsonl"), "w") as fh:
