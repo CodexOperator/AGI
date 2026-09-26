@@ -324,6 +324,73 @@ def test_log_tail_falls_back_to_main_when_the_worktree_log_is_gone(
     assert heal._read_seat_log_tail(gdir, WT_ROW, rotate) == "MAIN-COPY"
 
 
+class _SessionsDirSpy:
+    """The candidate ORDER `_read_seat_log_tail` asks for, in-process: every
+    `_sessions_dir(gdir)` call is recorded, so the row can name WHICH geometry
+    was asked first; `watch_reads` records every log file the tail actually
+    READS, in order — the candidate list as the code consumes it.
+
+    It answers each geometry root with that root's OWN `<gdir>/sessions`,
+    which is the contract the tail code is written against. The real
+    `rotate._sessions_dir` deliberately collapses every worktree seat onto
+    MAIN's shared room (hypothesis:l4-a-check-that-answers-a-question-it-is-
+    not-asking), so with the real module `own` and `main` are one path here and
+    the worktree-vs-MAIN preference is unobservable."""
+
+    def __init__(self):
+        self.seen: list[Path] = []
+        self.reads: list[Path] = []
+
+    def _sessions_dir(self, gdir):
+        self.seen.append(Path(gdir))
+        return Path(gdir) / "sessions"
+
+    def watch_reads(self, monkeypatch) -> "_SessionsDirSpy":
+        real_read = Path.read_bytes
+        reads = self.reads
+
+        def spy_read(self, *a, **kw):
+            reads.append(Path(self))
+            return real_read(self, *a, **kw)
+
+        monkeypatch.setattr(Path, "read_bytes", spy_read)
+        return self
+
+
+def test_log_tail_prefers_own_copy_then_falls_back_to_main_exactly_once(
+        tmp_path, monkeypatch):
+    """THE LOG-TAIL CANDIDATE ORDER, red-first for its OWN reason: a worktree
+    seat's OWN copy is read first, and MAIN's copy is the fallback of LAST
+    resort once the own copy is gone. Asserting the fallback TEXT alone is not
+    a gate — deleting the whole MAIN branch made DH.427's row red through an
+    unrelated locations.py RuntimeError instead
+    (experiment:a00-416266d2-e77f31). The `if main != own` DEDUP is NOT pinned
+    here: the read loop returns at the first readable candidate, so a
+    duplicated MAIN candidate is never stat-ed or read and the guard has no
+    observable effect (probe MUT-B below, in my experiment node)."""
+    gdir, wt = _wt_graph(tmp_path, worktree=True)
+    (gdir / "sessions").mkdir(parents=True, exist_ok=True)
+    own_log = wt / "sessions" / "wt.log"
+    main_log = gdir / "sessions" / "wt.log"
+    main_log.write_text("MAIN-COPY", encoding="utf-8")
+    own_log.write_text("OWN-COPY", encoding="utf-8")
+
+    spy = _SessionsDirSpy().watch_reads(monkeypatch)
+    assert heal._read_seat_log_tail(gdir, WT_ROW, spy) == "OWN-COPY"
+    assert spy.seen[0] == wt, f"own geometry not asked first: {spy.seen}"
+    assert spy.reads == [own_log], f"own copy not preferred: {spy.reads}"
+
+    # worktree pruned: the own copy is gone, MAIN's copy answers.
+    own_log.unlink()
+    spy.seen.clear()
+    spy.reads.clear()
+    tail = heal._read_seat_log_tail(gdir, WT_ROW, spy)
+    assert tail == "MAIN-COPY", (
+        f"MAIN fallback copy not preferred after the worktree went: {tail!r}")
+    assert spy.reads == [main_log], (
+        f"MAIN copy is not the fallback of last resort: {spy.reads}")
+
+
 def test_stale_lock_skip_leaves_a_clean_sessions_dir_alone(tmp_path,
                                                           monkeypatch,
                                                           capsys):
