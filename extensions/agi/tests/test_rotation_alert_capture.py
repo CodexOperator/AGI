@@ -62,7 +62,7 @@ def _graph(tmp_path, extra=""):
     (graph / "config.json").write_text("{}")
     (graph / "nodes" / ".geometry" / "ladder.md").write_text(
         "---\ndirector_context_tokens: 100000\ndirector_rotate_at: 0.25\n"
-        + extra + "---\n")
+        "capture_chain_log: capture-chain.log\n" + extra + "---\n")
     (graph / "nodes" / ".geometry" / "seats.md").write_text(
         "---\nseats:\n"
         "  - {\"name\": \"probe-director\", \"role\": \"director\", "
@@ -238,8 +238,9 @@ def test_same_session_old_stamp_still_captures(tmp_path, run_hook,
 
 def test_captured_card_carries_auto_captured_marker(tmp_path, run_hook,
                                                     monkeypatch, capsys):
-    """Conjunct 2 (4): the card the hook captures carries AUTO-CAPTURED and the
-    generated stops line is non-empty (the successor knows it was not authored)."""
+    """Conjunct 2 (4): the AUTO-CAPTURED record lands in the hook's OWN state
+    dir (never in the card) and the generated stops line is non-empty.
+    hypothesis:the-captive-capture-never-writes-into-the-live-card-..."""
     graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
     monkeypatch.setenv("AGI_SEAT", "probe-director")
     monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
@@ -251,7 +252,9 @@ def test_captured_card_carries_auto_captured_marker(tmp_path, run_hook,
                               monkeypatch, capsys)
     assert code == 0, err
     text = card.read_text()
-    assert text.startswith(hook.AUTO_CAPTURED), text
+    assert not text.startswith(hook.AUTO_CAPTURED), text
+    marker = state_dir / "capture-probe-director.captured"
+    assert hook.AUTO_CAPTURED in marker.read_text()
     rots = [a for a in _SPAWNS if "rotate-self" in a]
     assert len(rots) == 1, _SPAWNS
     assert len([a for a in _SPAWNS if "handoff" in a]) == 1, _SPAWNS

@@ -405,3 +405,27 @@ def test_state_shape_taken_from_target_table_stays_table(
     # a table row under §5 STATE (new measured value), not a `- **` bullet
     assert "| Rotation record |" in card or "|" in card
     assert "- **Rotation record:**" not in card
+
+
+def test_handoff_flattens_a_symlinked_card_instead_of_writing_through(
+        card_root, capsys, monkeypatch):
+    """Conjunct 3: a quorum card that is a SYMLINK into a graph node (the live
+    shape, restored by director-engine gen 22) is flattened before the write
+    (`_flatten_card_symlink`, the ONE rule `rotate.py` already owns). Pre-fix
+    `card_path.write_text(full)` followed the link and REPLACED the node's
+    bytes with a card — the node stopped parsing as a node."""
+    node = card_root / "nodes" / "doc" / "card-adv-alive.md"
+    node.parent.mkdir(parents=True, exist_ok=True)
+    node.write_text("---\nid: doc:card-adv-alive\ntype: doc\n---\n" + _DIRECTOR,
+                    encoding="utf-8")
+    q = card_root / "sessions" / "quorum"
+    q.mkdir(parents=True, exist_ok=True)
+    card = q / "adv-alive.md"
+    card.symlink_to(node)
+    _stdin(monkeypatch, ["bash next.sh"])
+    rc = rotate.cmd_handoff(_args(field=[["s3", "-"]]), card_root)
+    assert rc == 0, capsys.readouterr().err
+    assert not card.is_symlink(), "the link is flattened, never written through"
+    assert card.is_file()
+    assert node.read_text(encoding="utf-8").startswith("---\nid: doc:"), \
+        node.read_text(encoding="utf-8")[:120]
