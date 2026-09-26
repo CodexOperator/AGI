@@ -60,7 +60,7 @@ def sizes(d: Path) -> dict:
 
 def test_copytruncate_keeps_the_live_writer_on_a_capped_base(tmp_path):
     root, d = make_project(tmp_path), Path(os.environ["HOME"]) / "logs"
-    log, jr = d / "agi-crons-test.log", d / "writer.journal"
+    log, jr = crons._log_path(root), d / "writer.journal"
     log.write_bytes(OVER)
     kid = subprocess.Popen([sys.executable, "-c", WRITER, str(log), str(jr), "KID"],
                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -99,7 +99,7 @@ def test_absent_mode_keeps_rename(tmp_path):
     (root / "agi-tree.config.json").write_text(json.dumps(
         {"logs": {"cap_mb": CAP_MB, "rotations": KEEP}}))
     d = Path(os.environ["HOME"]) / "logs"
-    log = d / "agi-crons-test.log"
+    log = crons._log_path(root)
     log.write_bytes(OVER)
     out = crons.enforce_log_caps(root, root)
     assert out and log.with_name(log.name + ".1").exists(), out

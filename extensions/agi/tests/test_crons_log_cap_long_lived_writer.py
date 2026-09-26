@@ -78,17 +78,17 @@ def sizes(d: Path) -> dict:
     return {p.name: p.stat().st_size for p in sorted(d.iterdir())}
 
 
-def test_f1_rename_mode_strands_the_live_writer_on_an_archive(tmp_path):
-    """FALSIFIER 1, as the EXPLICIT expectation of `logs.mode: rename`.
+def test_f1_rename_mode_strands_the_live_writer_on_a_BOUNDED_archive(tmp_path):
+    """FALSIFIER 1 under `logs.mode: rename`, restated by DH.383.
 
-    This is the defect the hypothesis names, so the suite states it in green
-    rather than leaving a red assertion nobody can read: rename moves the base,
-    the writer's fd follows the renamed inode, and every later byte lands in an
-    ARCHIVE -- which `_ARCHIVE_RE` never caps again. The contrast case
-    (`test_f1b`) is the mode the box ships.
-    """
+    rename still moves the base and the writer's fd still follows the renamed
+    inode -- that is the mode's standing trade, and the contrast case
+    (`test_f1b`) is the mode the box ships. What is NO LONGER true is that the
+    archive then grows uncapped forever: every managed ARCHIVE is now bounded,
+    in the SAME inode (a replace would strand the writer on a deleted one), so
+    the cap holds and the writer keeps appending past the trim."""
     root, d = make_project(tmp_path, "rename"), Path(os.environ["HOME"]) / "logs"
-    log = d / "agi-crons-test.log"
+    log = crons._log_path(root)
     jr = d / "writer.journal"
     log.write_bytes(OVER)
     kid = start_writer(log, "KID-AFTER-ROTATION", jr)
@@ -98,7 +98,8 @@ def test_f1_rename_mode_strands_the_live_writer_on_an_archive(tmp_path):
         before = sizes(d)
         time.sleep(0.4)                      # the writer keeps writing, unrotated
         after = sizes(d)
-        # 3 further applies: an ARCHIVE is skipped, so they can never cap it.
+        # 3 further applies: the first BOUNDS the over-cap archive, the rest
+        # are no-ops -- the cap now holds on the archive too.
         outs = [crons.enforce_log_caps(root, root, dry_run=False) for _ in range(3)]
         recheck = sizes(d)
     finally:
@@ -109,14 +110,17 @@ def test_f1_rename_mode_strands_the_live_writer_on_an_archive(tmp_path):
                                    "cap_bytes": CAP_MB * 1024 * 1024}, indent=1))
     archives = {n for n in grew if crons._ARCHIVE_RE.match(n)}
     assert archives, "rename mode is no longer stranding the writer -- update this test"
-    assert outs == [[], [], []], "an archive is still skipped, so it grows uncapped"
+    assert outs[0] == [f"{archives.pop()} bounded to the {CAP_MB} MB cap (archive)"], outs
+    assert outs[1:] == [[], []], outs
+    cap = CAP_MB * 1024 * 1024
+    assert all(v <= cap for v in recheck.values()), recheck
 
 
 def test_f1b_copytruncate_keeps_the_live_writer_on_a_capped_base(tmp_path):
     """The same fixture under the mode the box ships: no file in the dir ends
     over the cap, and no ARCHIVE grows."""
     root, d = make_project(tmp_path, "copytruncate"), Path(os.environ["HOME"]) / "logs"
-    log = d / "agi-crons-test.log"
+    log = crons._log_path(root)
     jr = d / "writer.journal"
     log.write_bytes(OVER)
     kid = start_writer(log, "KID", jr)
@@ -145,7 +149,7 @@ def test_f4_alt_copytruncate_keeps_the_live_writer_on_a_capped_base(tmp_path):
     BASE inode, so later bytes re-enter the capped file, not an archive.
     """
     root, d = make_project(tmp_path), Path(os.environ["HOME"]) / "logs"
-    log = d / "agi-crons-test.log"
+    log = crons._log_path(root)
     jr = d / "writer.journal"
     log.write_bytes(OVER)
     kid = start_writer(log, "KID", jr)
@@ -175,7 +179,7 @@ def test_f4_alt_copytruncate_keeps_the_live_writer_on_a_capped_base(tmp_path):
 def test_f2_truncated_base_has_no_nul_hole(tmp_path):
     """FALSIFIER 2: O_APPEND writes at the CURRENT end -- no sparse hole."""
     root, d = make_project(tmp_path, "copytruncate"), Path(os.environ["HOME"]) / "logs"
-    log = d / "agi-crons-test.log"
+    log = crons._log_path(root)
     jr = d / "writer.journal"
     log.write_bytes(OVER)
     kid = start_writer(log, "KID", jr)
@@ -194,7 +198,7 @@ def test_f2_truncated_base_has_no_nul_hole(tmp_path):
 def test_f3_pre_rotation_bytes_survive_somewhere(tmp_path):
     """FALSIFIER 3: bytes written BEFORE the rotation are still readable."""
     root, d = make_project(tmp_path, "copytruncate"), Path(os.environ["HOME"]) / "logs"
-    log = d / "agi-crons-test.log"
+    log = crons._log_path(root)
     jr = d / "writer.journal"
     log.write_bytes(OVER)
     kid = start_writer(log, "KID-BEFORE-ROTATION", jr)

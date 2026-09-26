@@ -56,7 +56,7 @@ def make_project(tmp_path, mode="copytruncate") -> Path:
 
 def run_one(tmp_path, flags: str, mode="copytruncate", burst=20, gap_ms=400):
     root = make_project(tmp_path, mode)
-    log = root.parent / "home" / "logs" / f"agi-crons-{root.name}-deadbeef.log"
+    log = crons._log_path(root)
     journal = root.parent / "home" / "writer.journal"   # OUTSIDE the capped dir
     log.write_bytes(b"H" * (CAP + 4096))                # already over the cap
     child = subprocess.Popen([sys.executable, "-c", CHILD, str(log), str(journal),
@@ -80,18 +80,23 @@ def test_append_writer_loses_no_line_and_leaves_no_hole(tmp_path):
     """The claim's writer: every 4 KiB line the process wrote is in the base or
     the archive, and the truncated base carries no NUL hole."""
     r = run_one(tmp_path, "append")
-    assert r["out"] == [f"{r['name']} rotated (cap {CAP_MB} MB, {KEEP} kept)"]
+    assert [o for o in r["out"] if "rotated" in o] == [
+        f"{r['name']} rotated (cap {CAP_MB} MB, {KEEP} kept)"]
     assert r["nul"] == 0
     assert r["written_u"] <= r["base_u"] + r["arch_u"]   # nothing lost
     assert len(r["arch"]) <= CAP                         # the archive is capped too
 
 
-def test_a_plain_gt_writer_leaves_the_nul_hole_the_mode_does_not_refuse(tmp_path):
-    """Falsifier 2, MEASURED for the writer the claim does NOT authorise: a
-    plain `>` redirect (O_WRONLY without O_APPEND) resumes at its stale offset
-    after the truncate, so the base is 163840 B of which 81920 B are NUL. The
-    config cell accepts this writer silently -- the precondition is prose, not
-    code, which is why this is pinned rather than asserted away."""
+def test_a_plain_gt_writer_is_refused_by_name_and_leaves_no_nul_hole(tmp_path):
+    """Falsifier 2 of hypothesis:log-cap-holds-at-each-apply-and-refuses-a-
+    non-append-writer, MEASURED: a plain `>` redirect (O_WRONLY without
+    O_APPEND) would resume at its stale offset after the in-place truncate and
+    leave a NUL hole. Since DH.383 the apply REFUSES that file by name before
+    truncating, so the base is still whole and the refusal is reported."""
     r = run_one(tmp_path, "noappend")
-    assert r["nul"] > 0, "the hazard disappeared -- re-measure the precondition"
-    assert r["written_u"] > r["base_u"] + r["arch_u"]   # a line is lost too
+    assert r["nul"] == 0, "the non-append writer was truncated anyway"
+    refusals = [o for o in r["out"] if "refused" in o]
+    assert len(refusals) == 1 and refusals[0].startswith(
+        f"{r['name']} refused: held without O_APPEND by pid "), r["out"]
+    assert r["arch"] == b""                    # no archive was made either
+    assert r["base_u"] == r["written_u"]       # every line the writer wrote survived
