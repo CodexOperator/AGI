@@ -35,7 +35,7 @@ _PROBE_UNIT = "agi-memcap-probe"
 _CACHE_DIR_NAME = "agi-memcap"
 _CACHE_FILE_NAME = "probe"
 
-#: `values.memcap.tasks_max` -- the PER-TREE process bound carried as
+#: `spawn.tasks_max` -- the PER-TREE process bound carried as
 #: `TasksMax` on the SAME scope that carries `MemoryMax`. Shipped default
 #: 96: one round's own tree is a round process plus its tools (a `pytest -n8`
 #: run is ~15 procs), so 96 is ~6x headroom on a normal round, while the
@@ -55,14 +55,17 @@ def _normalise_cap(val) -> "str | None":
 
 
 def resolve_tasks_max(cfg: "dict | None" = None) -> int:
-    """`values.memcap.tasks_max` -> an int >= 1, else the shipped default.
+    """`spawn.tasks_max` -> an int >= 1, else the shipped default.
 
-    A cell that is absent, non-numeric, or below 1 falls back to
-    `_DEFAULT_TASKS_MAX` rather than to "no bound": an unreadable cell must
-    not silently un-cap the tree. `AGI_TASKS_MAX` overrides for tests."""
+    The cell sits beside `spawn.memory_max`, the one `resolve_memory_cap`
+    reads, so the whole per-spawn scope is one `spawn` block (TMM.263 (2),
+    owner 19:5xZ). A cell that is absent, non-numeric, or below 1 falls back
+    to `_DEFAULT_TASKS_MAX` rather than to "no bound": an unreadable cell
+    must not silently un-cap the tree. `AGI_TASKS_MAX` overrides for tests."""
     env = os.environ.get("AGI_TASKS_MAX")
-    raw = env if env not in (None, "") else (
-        ((cfg or {}).get("values") or {}).get("memcap") or {}).get("tasks_max")
+    spawn = (cfg or {}).get("spawn")
+    spawn = spawn if isinstance(spawn, dict) else {}
+    raw = env if env not in (None, "") else spawn.get("tasks_max")
     try:
         n = int(str(raw).strip())
     except (TypeError, ValueError):

@@ -1,6 +1,7 @@
 """TasksMax on the same scope that carries MemoryMax (DH.421,
 hypothesis:a00-1ff9316d-177aae -- "a round's kid cannot fan out processes
-past the box's bound"). The cell is `values.memcap.tasks_max`; the shipped
+past the box's bound"). The cell is `spawn.tasks_max`, the one that sits
+beside `spawn.memory_max`; the shipped
 default lives in `mem_cap._DEFAULT_TASKS_MAX` so a config with no cell keeps
 working (a round may never commit `.agi/config.json`).
 
@@ -9,6 +10,7 @@ that recurses into the suite -- and every subprocess carries a `timeout`.
 """
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
 import sys
@@ -22,8 +24,14 @@ import mem_cap  # noqa: E402
 WANTED = 18  # < 20 processes even on the uncapped path (the kid-tier rule)
 
 
-def _cfg(**memcap):
-    return {"values": {"memcap": memcap}}
+def _cfg(**spawn):
+    return {"spawn": spawn}
+
+
+def _live_config():
+    root = Path(__file__).resolve().parents[3]
+    with open(root / ".agi" / "config.json") as fh:
+        return json.load(fh)
 
 
 # ---- (1) the cell and the shipped default ----------------------------------
@@ -31,7 +39,26 @@ def _cfg(**memcap):
 def test_default_is_shipped_when_no_cell_is_present():
     assert mem_cap.resolve_tasks_max() == mem_cap._DEFAULT_TASKS_MAX
     assert mem_cap.resolve_tasks_max({}) == mem_cap._DEFAULT_TASKS_MAX
-    assert mem_cap.resolve_tasks_max({"values": {}}) == mem_cap._DEFAULT_TASKS_MAX
+    assert mem_cap.resolve_tasks_max({"spawn": {}}) == mem_cap._DEFAULT_TASKS_MAX
+    assert mem_cap.resolve_tasks_max({"spawn": "2G"}) == \
+        mem_cap._DEFAULT_TASKS_MAX
+
+
+def test_the_live_config_carries_the_owners_own_value(monkeypatch):
+    """`spawn.tasks_max` = 150 on the live config (TMM.263 (2)), so a real
+    round is bounded at the owner's number, not at the shipped default."""
+    monkeypatch.delenv("AGI_TASKS_MAX", raising=False)
+    cfg = _live_config()
+    assert cfg["spawn"]["tasks_max"] == 150
+    assert mem_cap.resolve_tasks_max(cfg) == 150
+
+
+def test_the_old_cell_is_read_nowhere(monkeypatch):
+    """`values.memcap.tasks_max` is not a second spelling of the same bound."""
+    monkeypatch.delenv("AGI_TASKS_MAX", raising=False)
+    cfg = _live_config()
+    cfg["values"]["memcap"]["tasks_max"] = 7
+    assert mem_cap.resolve_tasks_max(cfg) == 150
 
 
 def test_the_cell_wins_when_it_is_readable():
