@@ -690,6 +690,57 @@ def _late_reap_window_pids(rot, name, tmux_session, window_path, pids_for):
 
 
 
+def _late_reap_wait_max_s(root) -> float:
+    """`reaper.late_reap_wait_max_s` from `.agi/config.json`; the code default
+    (1800) is the RESOLVER for a missing cell, not a second value. A
+    malformed cell must never raise — the healer runs when things are broken.
+    Never raises."""
+    try:
+        cfg_path = locations.config_path(root)
+        if cfg_path is not None:
+            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+            v = (cfg.get("reaper") or {}).get("late_reap_wait_max_s")
+            if isinstance(v, (int, float)) and not isinstance(v, bool) \
+                    and v > 0:
+                return float(v)
+    except (OSError, json.JSONDecodeError, TypeError, AttributeError):
+        pass
+    return 1800.0
+
+
+def _close_late_reap_abandoned(record, record_path, now, succ_id, waited,
+                               bound) -> dict:
+    """Close a record whose successor registry NEVER appeared, as
+    `abandoned` in the SAME `s12_self_reap` shape the success path writes.
+    The log line is the pass driver's, not this function's. Never raises."""
+    out = {"action": "abandoned", "already": False, "window_id": succ_id,
+           "waited_s": round(waited, 1), "bound_s": bound}
+    doc = dict(record)
+    if record_path:
+        try:
+            loaded = json.loads(Path(record_path).read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                doc = loaded
+        except (OSError, ValueError):
+            pass
+    doc["s12_self_reap"] = {
+        "state": "abandoned",
+        "performer": "watch",
+        "abandoned_at": int(now),
+        "waited_s": round(waited, 1),
+        "bound_s": bound,
+        "successor_id": succ_id,
+        "reason": "successor-registry-never-appeared",
+    }
+    if record_path:
+        try:
+            Path(record_path).write_text(json.dumps(doc, indent=2) + "\n",
+                                         encoding="utf-8")
+        except OSError:
+            out["written"] = False
+    return out
+
+
 def _late_reap_for_skipped(root, record, *, record_path=None,
                            rows=None, tmux_session="", window_path=None,
                            registry_dir=None, pids_for=None, rot=None,
@@ -717,7 +768,25 @@ def _late_reap_for_skipped(root, record, *, record_path=None,
         now = time.time()
     reg_file = _registry_now_has(rot, succ_id, registry_dir)
     if reg_file is None:
-        return {"action": "waiting", "window_id": succ_id}
+        done = record.get("s12_self_reap")
+        if isinstance(done, dict) and done.get("state") == "abandoned":
+            # Idempotence: an earlier pass closed it. Never re-log, re-close.
+            return {"action": "abandoned", "already": True,
+                    "window_id": succ_id, "waited_s": done.get("waited_s"),
+                    "bound_s": done.get("bound_s")}
+        # Age from the record's OWN `recorded_at` (written with the rotation),
+        # never from an mtime a reboot can invalidate.
+        ts = _parse_record_ts(str(record.get("recorded_at") or ""))
+        if ts is None:
+            return {"action": "waiting", "window_id": succ_id,
+                    "reason": "no-recorded_at"}
+        waited = max(0.0, now - ts)
+        bound = _late_reap_wait_max_s(root)
+        if waited <= bound:
+            return {"action": "waiting", "window_id": succ_id,
+                    "waited_s": round(waited, 1), "bound_s": bound}
+        return _close_late_reap_abandoned(record, record_path, now, succ_id,
+                                          waited, bound)
 
 
     base, _own_line = rot._split_roman_suffix(own_name)
@@ -859,6 +928,12 @@ def _late_reap_skipped_pass(root, *, window_path=None,
         if outcome.get("action") == "waiting":
             _watch_log(f"late s12 reap waiting for {rec.get('seat')}: "
                        f"successor registry for @{succ.get('id')} still absent")
+        elif outcome.get("action") == "abandoned" \
+                and not outcome.get("already"):
+            _watch_log(f"late s12 reap ABANDONED for {rec.get('seat')}: "
+                       f"successor registry for @{succ.get('id')} still absent "
+                       f"after {outcome.get('waited_s')}s "
+                       f"(bound {outcome.get('bound_s')}s)")
         elif outcome.get("action") == "reaped":
             _watch_log(f"watch: LATE s12 reap for {rec.get('seat')} "
                        f"(role={outcome.get('role')}, "
