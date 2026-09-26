@@ -49,14 +49,22 @@ import locations  # noqa: E402
 _OVERRIDE_RE = re.compile(r"\$\{?PROJECT_ROOT\}?/(?:\./)?bin/([A-Za-z0-9_.-]+)")
 
 
-def driver_override_scripts(driver: Path = DRIVER) -> tuple[str, ...]:
+def driver_override_scripts(driver: Path | None = None) -> tuple[str, ...]:
     """The <project-root>/bin/ names driver.sh prefers, read from its bytes.
 
     DERIVED, never retyped (`inject.py` and the retired `render-context.py` are
     both honoured at the RENDER_PY site). Rename a site in driver.sh and this
     set moves with it -- which is what test_override_set_moves_with_driver_bytes
     asserts on a doctored copy.
+
+    `driver=None` resolves the module global DRIVER at CALL time. A default of
+    `driver: Path = DRIVER` freezes the path into `__defaults__` at import, so
+    rebinding DRIVER (a monkeypatch, a test harness, a relocated checkout) left
+    the refusal message naming the OLD file's sites -- derivation that cannot
+    be pointed at another file is half a derivation.
     """
+    if driver is None:
+        driver = DRIVER
     return tuple(dict.fromkeys(_OVERRIDE_RE.findall(driver.read_text())))
 
 
@@ -72,7 +80,7 @@ def _driver_line_citations(text: str) -> tuple[str, ...]:
 
 
 def guard(project_root: Path) -> None:
-    """Refuse the DIRECTORY: if <project-root>/bin exists, S1 is broken.
+    """Refuse the DIRECTORY: if <project-root>/bin is a directory, S1 is broken.
 
     CLAUDE.md S1 forbids the directory, not a list of three names, so the
     guard cannot be walked around by planting `bin/other.py` (the mur refuter
@@ -87,7 +95,7 @@ def guard(project_root: Path) -> None:
         return
     found = sorted(p.name for p in bin_dir.rglob("*") if p.is_file())
     raise AssertionError(
-        f"CLAUDE.md S1 forbids the directory {bin_dir} at all, and it exists. "
+        f"CLAUDE.md S1 forbids the directory {bin_dir} at all, and it is a directory. "
         "files found under it: " + (", ".join(found) if found else "(empty)") + ". "
         "driver.sh prefers a project-local copy over the engine's own for: "
         + ", ".join(driver_override_scripts())
@@ -152,6 +160,53 @@ def test_guard_is_red_on_a_file_that_is_not_an_override(tmp_path) -> None:
     with pytest.raises(AssertionError) as exc:
         guard(project_root)
     assert "other.py" in str(exc.value)
+
+
+def test_bin_as_a_regular_file_is_green_and_the_words_say_directory(tmp_path) -> None:
+    """Falsifier 1: a bin FILE cannot shadow a script, so it stays green.
+
+    The check is `bin_dir.is_dir()`. S1 forbids the directory; a regular file
+    named `bin` shadows nothing (driver.sh tests `bin/<script>.py`, and
+    `<file>/x.py` is not a path), so green is CORRECT and `exists` in the
+    docstring or the message was the real defect -- prose that overstates the
+    check. RED before the wording fix: both texts still said "exists".
+    """
+    project_root = tmp_path / "proj"
+    project_root.mkdir()
+    (project_root / "bin").write_text("not a directory\n")
+    assert not (project_root / "bin").is_dir()
+    guard(project_root)  # green: nothing to shadow
+
+    # ...and the refusal text, where a directory IS present, must say so.
+    (project_root / "bin").unlink()
+    (project_root / "bin").mkdir()
+    with pytest.raises(AssertionError) as exc:
+        guard(project_root)
+    assert "is a directory" in str(exc.value)
+    assert "exists" not in str(exc.value), "the message claims more than the check"
+    docstring = guard.__doc__ or ""
+    assert "is a directory" in docstring
+    assert " if <project-root>/bin exists" not in docstring, (
+        "the docstring still overstates the check it makes"
+    )
+
+
+def test_guard_message_follows_a_rebound_module_driver(monkeypatch, tmp_path) -> None:
+    """Falsifier 2: the message derives from the CURRENT DRIVER, not import.
+
+    RED before the fix: `driver: Path = DRIVER` binds the path into
+    `__defaults__` at import, so rebinding the module global left the message
+    naming the real driver.sh's sites.
+    """
+    patched = tmp_path / "driver.sh"
+    patched.write_text(DRIVER.read_text() + '\nSNAP="$PROJECT_ROOT/bin/only-in-patch.py"\n')
+    monkeypatch.setattr(sys.modules[__name__], "DRIVER", patched)
+    assert "only-in-patch.py" in driver_override_scripts()
+
+    project_root, _ = _fixture(tmp_path / "proj")
+    with pytest.raises(AssertionError) as exc:
+        guard(project_root)
+    assert "only-in-patch.py" in str(exc.value), "the refusal ignored the rebound DRIVER"
 
 
 def test_override_set_moves_with_driver_bytes(tmp_path) -> None:
