@@ -55,7 +55,10 @@ rounds     all pi-free stealth/space-bunny-alpha, --tier parent --ladder-tier 0,
            residue for the merge-up: kid 2fa1fab0 launched 2 real throwaway claude sessions (--bg, --remote-control zz-probe-2fa1fab0),
            both gone by pid; their app-side entries unmeasurable from here
   DH.370   a00-6c3524a8  hypothesis:heal-lands-a-reseat-after-a-tmux-server-restart (g6.41 (1), cut after DH.368)
-  DH.369   a00-8cf344ba  hypothesis:cron-layer-keeps-its-disk-footprint-bounded (g6.49, 2d)
+  DH.369   MERGED b101094c2 + residue ca98f266b · A lean_disproved:60 (parent's probe: archives re-rotated) -> B proved the repair
+           residue: declarations (logs cells, maint_gc) were UNCOMMITTED in the parent worktree -- committed by DE;
+           parent's THOUGHT/notes stored literal "$(cat ...)" x3 -- restored. LIVE on landing: first apply rotates the
+           134 MB cron + 31 MB reaper logs to .1; daily git gc 04:41. conjunct 4 (09-23 re-fetch) + send.py half of 3 NOT done
 held       hypothesis:a-reboot-brings-the-town-back-without-a-human (g6.41 (2)) -- after DH.370 merges, per belam's order · MemAvailable was 3.6 GiB at DH.369 (floor 3)
 STOP       fired ~02:4xZ (1270 MiB, an OSC qwen3 run, not DE's) -> [red] to belam; CLEARED at 7.0 GiB before DH.370
 push       never from here (IDENTITY rule)
@@ -88,6 +91,10 @@ push       never from here (IDENTITY rule)
 stale-base   dispatch --branch refuses (prints JSON, rc 0 through a pipe) when 1+ behind trunk: read for
              "spawned a00-..." before assuming it went; sync = git merge origin/local-maxxing/season2/main
 card link    the quorum card was a flat file at wake (rotation flattens it) -- re-linked to the doc node
+cat-literal  a pi parent passing a file to write.py as "$(cat f)" inside a quoted script stores the LITERAL:
+             grep 'cat /data' in every harvested node before merging
+uncommitted  a kid's .agi/config.json / .geometry edits can stay uncommitted in the parent worktree:
+             `git -C ../<parent> status -s` before trusting an experiment's 'where it lives' table
 render test  backtick templates span lines and reference other seams (${SCRATCH}); agi-trove-survey
              uses ROOT only inside an object literal -- the render test stubs / skips those, by design
 ```
