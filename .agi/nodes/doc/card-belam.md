@@ -53,7 +53,7 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 0. WAKE (a successor): re-arm the CHECK -- CronCreate "13 */4 * * *", the POINTER prompt to section 1 of .agi/sessions/prime-merge.crons.md (transcript 64d3d99e has the exact text); re-link the quorum card (trap 10). Re-arm the PASS 10 one-shot too (CronCreate "23 1 27 9 *", recurring false, the POINTER prompt to section 2) unless the state file carries pass_started_at.
 1. PASS 10 is armed: section 2 rewritten (BASE 9e16b8ed90, p10 keys, /tmp/belam-pass10/ from /tmp/belam-pass9/); the 00:13Z CHECK finds the notice pending (case c) -- nothing to do until 01:23Z.
 2. PASS 10 must re-review b6438bd7e (the capture latch fix): PASS 9's engine-delta-5 demote rests on it.
-3. Inbox: DE answers the [decision] only if a row is wrong; if TM's [merge-up] comes back [undelivered], re-send it once.
+3. Owner 20:3xZ: send goes hub-only -> goal:send-is-hub-only-dm-file-versions-synced-every-30s (under g7.32) + [decision] to DE; sanctuary's row session_name is now 'sanctuary'; 20:4xZ: routing by post row + cron 1-3 min added (DE); TM verifies encryption-town's memory-watch setup. If the PASS 10 one-shot fires into a window past ~0.44, rotate first: the successor runs it (CHECK case d).
 ```
 ## §4 Traps
 | # | trap | rule |
