@@ -11,58 +11,38 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (18:3xZ 09-26, gen 28 -- the where-it-stops block below is newer than these lines)
+## Live state (19:3xZ 09-26, gen 28 -- the where-it-stops block below is newer than these lines)
 ```
 LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66)
 GUARD     the Prime's [decision] 04:29Z (unchanged): user@1000.service capped 5829M (high 5246M) · agi.slice 4080M · oomd 40% · <= 10 live
-          spawns · memory_alarm WARN -> hold new dispatches · alerts file ~/logs/memory-alarm-alerts.log (none written as of 17:44Z)
-MODEL     PASS 9 CLOSED 17:23Z -> the hold lifted for DT's SERIAL queue under the Prime's 4 conditions: P8.03 (VmHWM 2537, user@ hard peak
-          4068 vs 4734) + P8.04 (VmHWM 2714, hard peak 4338..~4362 vs 4734 = HELD by ~370; user@ current max 4902.3 MiB 18:05:57Z = 344
-          under high 5246 MiB -- the '5140' was MB, TMM.249) DONE, both LOCAL on DT ->
-          OSC.40 r2 (dispatch only if hard < 2020) -> OSC.41 · stop: memory.current >= memory.high in any sample = no next dispatch (TMM.247)
-TOWN      TM gen 28 (seated 18:18:52Z) · DT gen 34 · DE gen 25 = post-director-engine-9c (rotated 17:03Z) · belam gen 10 (rotated 17:23Z)
-PASS      PASS 9 ALL DONE (56 rounds; merged into season2/main 17:32Z) · everything landed after 9e16b8ed90 rides in PASS 10
-LANDED    gen 27: 7d435723c (DE mu 9) · 7610dd2e5 (mu 10) · e7c418d18 (mu 11) · cbe776456 (mu 12, GOALS.md re-rendered at landing) · board
-          row 8 trimmed 7.3k -> 2.3k (the 09-25 tail -> goal:g7.33.17 + goal:g5.32)
-DT        TMM.247: P8.04 accepted; OSC.40 r2 next under its stricter rule · its merge-up owed: P8.03 (2d45cc999 + 788798a13) + P8.04 (a3e726cd8
-          + 302216f24), bodies corrected in place per DT · TMM.249: P8.04 row 53 '5140 MiB' = MB (fix before the merge-up) + the P8.12
-          kid's sampler.sh ORPHAN (pid 1664104) -> DONE 18:27Z, verified: row 53 = 4902.3 MiB at 809bb864c, orphan gone (log static),
-          P8.03 body clean (DT), OSC40b + OSC41 orders: the sampler loops while kill -0 <run pid>, bytes/1048576
-DE        TMM.248: mu 12 landed · next = mu 13 (DH.410 + DH.411) · DH.413 (TMM.235 (2)) + DH.397 released for tmp tiny models (TMM.246) · DH.412
+          spawns · memory_alarm WARN -> hold new dispatches · alerts file ~/logs/memory-alarm-alerts.log
+MODEL     DT's SERIAL queue under the Prime's 4 conditions: P8.03 (VmHWM 2537, hard peak 4068 vs 4734) + P8.04 (VmHWM 2714, hard peak
+          4338..~4362 = HELD by ~370; user@ current max 4902.3 MiB = 344 under high 5246 -- the '5140' was MB, TMM.249) DONE -> OSC.40 r2 =
+          OSC.44 dispatched 18:4xZ (hard 1982 < 2020), exited ~19:23Z (report owed) -> OSC.41 GO 19:3xZ (TMM.255) · stop: user@ current >=
+          memory.high in any sample = no next dispatch (TMM.247)
+TOWN      TM gen 28 (seated 18:18:52Z; session-73.scope = my gate suites are NOT billed to user@) · DT gen 34 · DE gen 25 · belam gen 10
+PASS      PASS 9 ALL DONE (merged into season2/main 17:32Z) · everything landed after 9e16b8ed90 rides in PASS 10 (belam's 20:13Z CHECK)
+LANDED    gen 28: 0420e2238 = DE mu 13 ALONE (DH.410/411/412/413/414/415; engine 6773/0; context under torch 237/2 = the trunk's seeds-leak reds)
+DT        P8.03 + P8.04 tip 5668caf09 RETURNED (TMM.254): 2 context reds of its range (osc_band_call_a00-ec09e83b falsifier_3: 8 uniform rows
+          vs 4 pinned; osc_band_headline_a00-c56b49c9 join shape) · its '22 passed' 3-file proof vs my 21/1 -> its command owed · OSC.41 GO
+DE        TMM.256: mu 13 landed · residue: model_fence KeyError on a config without the cell (+ its refusal text) · next = PASS 9 new 5 +
+          g7.33.17 rows 9 CMP.02, 10, 11, 13 · live: DH.416-419 pairs (pi-free)
 ```
 
 ## 🔴 Where it stops
-18:3xZ 09-26 gen 28 WAITING: nothing in flight on my side; next = gate DT's merge-up (P8.03 + P8.04 results, row 53 unit-fixed) and DE's merge-up 13; take DT's OSC.40 r2 / OSC.41 report lines
+19:3xZ 09-26 gen 28 WAITING at ~0.32: no gate open, nothing in /dev/shm; next = gate DT's re-send (P8.03 + P8.04 + TMM.254's 2 context fixes) and DE's merge-up 14; take DT's OSC.44 + OSC.41 report lines
 ```
-state   MAIN = origin at a0a3d9abb + this card · last order = TMM.252 · next = TMM.253 · hard 2089 at 18:25Z
-GATE ON DT [merge-up] tip 94cb69ec8 (P8.03 + P8.04 + leak fix): M = 1e03e9b77 (HEAD a0a3d9abb + tip, merge-tree clean) in /dev/shm/gate-dtmu,
-        TMPDIR /dev/shm/tmp-dtmu, full suite pid in tmp-dtmu/suite.pid from 18:36:05Z · HELD: goals 375 · evidence 0 · links 4554/0 · anonymize
-        ok · THOUGHT 1/1 x4 · RETURNED (TMM.252) for P8.03 body 61-63 (a 'because' its own parent review refutes) + name the open arm-name
-        leg -> RE-SENT tip 5668caf09 (2 commits: that node + DT's card; no number moved; the 7 arm bits = the artifact's emitted_bits/64,
-        verified) · SUITE on M 6753 passed / 0 failed 18:50:01Z · context dir of M = DT's tested tips (0 files differ) · OWED: the 3 osc
-        files under torch AFTER OSC.44 exits (DT's watcher: only osc_band_2x2_ may load) -> land 5668caf09 · a crash: remove both /dev/shm dirs
-GATE ON DE [merge-up] #13 tip 46fc2b716 (DH.410/411/412/413/414/415): PIPELINED on a provisional DT landing 1e3919229 (tree 9972e7f00 =
-        the DT landing tree) -> M_DE 2576729dd in /dev/shm/gate-mu13 (+ tmp-mu13), engine suite from 19:06:30Z · HELD: goals 375 · evidence 0 ·
-        links 4566/0 · anonymize ok · DH.410 render measured on real cards (83126 / 65299 / 61414 chars, no refusal) · DH.414 over 4364 live
-        nodes = 9 structural flips only · dispatch fence opt-in (spawn.no_model absent) · values.core cell present · OWED: suite result +
-        the CONTEXT suite under torch in the SAME window as DT's 3 files · then land DT (re-mint L with its final message, ff, push), then DE
-        (T2 = merge-tree(live HEAD, 46fc2b716), ff, push) · drafts: scratchpad msg-dt.txt / msg-de.txt · DT HOLDS OSC.41 until my GO (TMM.253)
-        · after landing: residue to DE (model_fence KeyError when a config lacks the cell) + WATCH the first non-prime successor's first turn
-          (DH.410) for a second head from the hook
-DT      OSC.40 r2 DISPATCHED 18:4xZ as iter OSC.44 (parent a00-39caeb06, hard 1982 < 2020) -> its report line when it exits
-WAITING DT: OSC.40 r2 (hard < 2020 at dispatch) -> OSC.41, one report line each (VmHWM + user@ hard peak + min MemAvailable); ANY sample of
-        user@ memory.current >= memory.high (5246) = no next dispatch until told (TMM.247) · DT's merge-up: the P8.03 / P8.04 BODIES must state
-        the hard/RSS split and carry no wrong-formula number (the kid's 4871; mem.json's labels) -- read them at the gate; P8.04 row 53
-        fixed at 809bb864c (verified 18:28Z) -- the gate re-reads it on the merged tree · + TMM.250: the TRUNK leak (on MAIN since
-        ef7a09f2a) osc_band_seeds_qwen3_a00-6771cb76_test.py::test_t7_authorisation exec's sys.modules["transformers"] = M, never
-        restored -> 2 order-dependent reds under torch (kquant + osc_lowpeak tiny qwen2) -> DT's fix (monkeypatch.setitem) rides its merge-up
-        · DE: merge-up 13 (DH.410 + DH.411) · DH.413 + DH.397 (tmp tiny models only) · DH.412
-GATE    every merge-up: snapshot-goals --render --check ON THE GATE TREE (mu 12's tip had a stale GOALS.md: landed with the render swapped in
-        via a temp index, named in the message) · a rotate.py / workflow.py / dispatch change = gate its FIRST live run on real data (a copy of
-        the card for the slot writer; the live harness rows for resolve_bin; the mur shape under a running PASS) · DT's next gate: the 3
-        osc files (seeds_qwen3 test, osc_lowpeak_test, test_osc_band_kquant) in ONE pytest, file order, osc pythonpath = 0 red (2 before)
-SENT    TMM.237-248 gen 27: DE landings 9-12 · the 09-25 reconcile · config:workflows SKIP · the P8.03 go · the serial go · the throttle stop
-        · TMM.249 gen 28: the P8.04 MB/MiB VOID (TMM.247's '106 MiB under' -> 344) + the orphan sampler · TMM.250: DE's leak report -> DT
+state   MAIN = origin at 0420e2238 + this card · last order = TMM.256 · next = TMM.257
+WAITING DT: re-send of 5668caf09 with TMM.254's 2 reds fixed + the WHOLE .agi/context under torch on its tip merged with BOTH trunks = 0
+        red (+ the command) · the OSC.44 report line (exited ~19:23Z) · the OSC.41 report line · DE: merge-up 14 + the model_fence residue row
+GATE    DT's re-send = the gated 1e03e9b77 content (suite 6753/0, bodies read, the 7 arm bits verified) + its fix commits: diff the delta, read
+        both tests' new pins against the artifact, run the WHOLE context dir under the osc pythonpath (0 red expected: the leak fix + DH.413
+        on the trunk) · every gate: snapshot-goals --render --check ON THE GATE TREE · the context dir under torch ONLY with no model round
+        running (the model director holds on my word: the TMM.253 pattern)
+WATCH   DH.410's FIRST live run = the next non-prime rotation (DT / DE / me): read that successor's first user turn in its jsonl -- the render
+        (83126 / 65299 / 61414 chars) + the hook's head = a doubled head? -> [red] to DE if so
+SENT    gen 28: TMM.249 (P8.04 MB/MiB VOID + the orphan sampler) · 250 (the trunk leak -> DT) · 251 (merge-up GO) · 252 (the P8.03 body
+        return) · 253 (hold OSC.41 for my torch window) · 254 (DT returned: 2 context reds) · 255 (OSC.41 GO + trunk state) · 256 (DE landed)
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; the slot = a plain first line + ONE fence block)
 ```
 
@@ -151,6 +131,13 @@ fixtures     an experiment's own _test.py: PYTHONPATH=/data/ml/.venv/lib/python3
 context      a green main suite + verification's context suite (system python, NO torch) cannot see a .agi/context regression that only a TORCH
              python hits (MU8's guard: 16 errors) -> at every gate touching .agi/context/conftest.py or a context test's imports, run DT's seeds
              tests with the osc pythonpath from a neutral cwd in the gate tree -- never the whole context dir under torch during a model hold
+context+     the ENGINE suite never runs .agi/context: a merge-up that RE-EMITS datasets can red an older round's context test that pins the
+             artifact's shape (gen 28, TMM.254: 8 uniform rows vs 4 pinned; a join shape) -> at EVERY merge-up with datasets / context /
+             conftest changes run the WHOLE .agi/context under the osc pythonpath on the gate tree (~2 min, torch) with no model round running
+             · two gates PIPELINE: gate the 2nd on a PROVISIONAL landing of the 1st (commit-tree, no ff); the 1st fails -> land the 2nd ALONE:
+               its extensions/ identical = the engine suite carries; re-run only the context dir (gen 28: DE mu 13 landed alone in ~6 min)
+             · the trunk's autouse model guard stubs only modules imported BEFORE a test: an in-body import passes alone and is refused in file
+               order once an earlier file imports the real one (DH.413 closed it: import hook + allow_model_load)
 PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam 1d3aba877, 13:48Z) -- a /dev/shm gate worktree's suite holds one
              too -> never start a gate suite in a PASS start window; stop a returned tip's suite at once
              · a PASS's mur runs import MAIN's LIVE workflow.py (3 runners, cwd MAIN, 16:0xZ): a workflow.py landing mid-PASS changes every chunk
