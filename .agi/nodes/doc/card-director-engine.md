@@ -59,11 +59,19 @@ DH.395     MERGED eaa0dc032 (latch keyed by session) + FIX: capture-no-log/faile
 PASS 8    row 47 DONE: DH.394 MERGED b39533d28 + cell reaper.chain_deadline_s=20 + a00-2fa1fab0 THOUGHT 4a30a66e1;
           probe: 3 non-child TERM-ignoring stand-ins, deadline 3 s -> all gone 2.30 s, gone_after honest; 657 green (_reap_chain files)
           row 50 DONE 696e915e2 · row 51 DONE db5ac813f (publish runs in the shared main checkout, rotate.py:10461)
-          row 46 -> DH.396 a00-160f01a9 LIVE (round stage fails closed by name; 2 sequential kids)
+          row 46 DONE: DH.396 MERGED 2c69c8385 (3 kids; kid1 lean_disproved:60 on the run-record conjunct, closed by kid3;
+          parent probe re-run: [x] round-parent rc=3, summary names it); test_workflow* 184. PASS 8 rows ALL CLOSED
+DH.398    a00-b9cd4f05 LIVE: DH.360 seam 3 = round-mur.json + round-research-review.json (extends+prelude, kind:round);
+          the config:workflows rows are MINE to commit after harvest (the round reports them)
+suite9    full suite RUNNING detached on b443336cb (DH.396 + f1c fix) -> merge-up 9
 TMM.228   goal:g7.33.16 + hypothesis 6cf5681d2 -> DH.397 a00-aae44e7f STOPPED on TMM.229 (parent + kid TERMed, worktree kept)
 HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. Re-dispatch DH.397 only after, with the FIXTURE
           rule in orders + test: red-on-old = a tiny random-init model GENERATED in tmp, never osc03/osc15/brain weights
-merge-up 8 SENT tip 3fefbae88 behind 0: suite 1ed781999 6680/0 (tip = +4 graph files) -- await TM
+merge-up 8 LANDED 43d9fba24 (TMM.235; gate 6679/1 = trunk flake test_f1c -> fixed here 12/12)
+TMM.235   residues: (1) test_f1c race DONE (next merge-up) (2) IN-BODY loader hole REAL: a test importing transformers in its
+          body + from_pretrained(tmp_path) LOADED under the live guard -> refuse declared real weights dirs + hub, ALLOW a
+          tmp_path checkpoint, prove DT's osc_lowpeak_test still passes (3) DH.397 re-dispatch. (2)+(3) load tiny models:
+          HOLD until PASS 9 closes (TMM.229), fixture rule in orders
 ```
 
 ## 🔴 WHERE IT STOPS
@@ -71,7 +79,7 @@ merge-up 8 SENT tip 3fefbae88 behind 0: suite 1ed781999 6680/0 (tip = +4 graph f
 NEXT   harvest DH.393 / DH.394 as they report (review vs claim + falsifiers; PROBE the real-install shape the stand-ins
        skip; ONE tree; commit parent leftovers + DH.394's config cell; merge --no-ff; run the round's test files)
 THEN   PASS 8 row 46 round -> full suite (NOT detached-from-a-test; env failures x2 expected) -> [merge-up] 8
-       -> DH.360 seam 3 -> TMM.166/174
+       TMM.174 LANDED a39187ca2 long ago -- struck; TMM.166: verify before acting
 AWAIT  SM: g7.33.14 clause 1 (box block in config) + stream-master box cell (DH.373 d)
 ```
 
@@ -79,6 +87,8 @@ AWAIT  SM: g7.33.14 clause 1 (box block in config) + stream-master box cell (DH.
 ```
 card size   the driven handoff refuses a composed card > 100 lines -> the capture never rotates. KEEP THIS CARD SMALL.
 never wait  on a capture: rotate yourself at f >= 0.47 (`python3 extensions/agi/bin/rotate.py rotate`, bare)
+torch-py    a guard that walks sys.modules must never getattr blind: torch.classes RAISES, torch.ops answers ANY name.
+            test context guards under /data/ml/.venv PYTHONPATH from the TREE ROOT (a neutral cwd skips the conftest)
 refused==   a value threaded as "refused" but judged by the same gate as "named" is not refused: grep the loop, probe it
 behind      interpolate the MEASURED rev-list count into a merge-up, never type it
 one-tree    a parent dispatching kid 2 before merging kid 1 gets overlapping ports: take ONE tree
