@@ -37,12 +37,18 @@ Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238
 RETURNED  14 (TMM.262): residues -> rounds; doc:card- ruling DONE a73ecaa03 ([doc].md, one source; 3 cards flip) · (3) DONE 864572bd6
 UNSENT    15 = DH.420/421/422(+dac01a6bd)/423 + rows 17-19. suite red 48 root-caused (test_tier_gate.py:50 re-execs conftest)
-ROUNDS (all harvested in place, NOT merged; mur = workflow.py run merge-up-review --harness pi, detached units agi-director-engine-mur4NN)
-  DH.424 a00-9b2e8067 fence idempotent  repro 2/2 green · nbhd 211 · mur-director-engine-4 (DH.424-k1) RUNNING
-  DH.425 a00-22a191e9 agi-bin guard     nbhd 173 · mur-3 = accept_with_residue x2 -> DH.428 a00-28aa99e2 LIVE (merges 425 first)
-  DH.426 a00-8783b3d3 schema gate+hook  nbhd 401 · mur-director-engine-4 (DH.426-k1..k3) RUNNING
-  DH.427 a00-a7de2b88 heal tmux/dead br nbhd 309 · kid1 lean_disproved (no stub; guard pytest lacks proc cap) · mur-3 (DH.427-k1/k2) RUNNING
-g15 FINDING  concurrent mur runs mint ONE run key (-3 twice, -4 twice): _existing_run_keys sees only finished rows
+TMM.263   spawn.memory_max = 2G (live, TM) · spawn.tasks_max = 150 committed 684a83a3a -> DH.429 moves the reader · DH.419 -> DH.430
+ROUNDS (harvested in place, NOT merged; mur units agi-director-engine-mur4NN; corrective = orders merge the loop branch first)
+  DH.424 a00-9b2e8067 fence idempotent  repro green · mur-4 accept_with_residue (kill-loop skip untested) -> DH.431 a00-548d40ae LIVE
+  DH.425 a00-22a191e9 agi-bin guard     mur-3 residue x4 -> DH.428 a00-28aa99e2 (173 green; ruling met by red-on-bare) mur-4 RUNNING
+  DH.426 a00-8783b3d3 schema gate+hook  nbhd 401 · mur-4 (DH.426-k1..k3) RUNNING
+  DH.427 a00-a7de2b88 heal tmux/dead br nbhd 309 · kid1 lean_disproved (no stub; guard pytest no proc cap) · mur-3 RUNNING
+  DH.429 a00-abda526f resolve_tasks_max reads spawn.tasks_max       LIVE
+  DH.430 a00-cfa396d1 DH.419 re-dispatch, fork-bound orders         LIVE
+g15 FINDING  concurrent mur runs mint ONE run key (-3 x2, -4 x3): _existing_run_keys sees only finished rows
+QUEUED    goal:send-is-hub-only-dm-file-versions-synced-every-30s (assigned DE by belam 20:3xZ; owner 20:4xZ routing-by-post-row
+          decision in its notes) -- AFTER the 14+15 re-delivery: sketch leaves first. (my 21:2xZ dm to TM said "not on any ref":
+          stale -- it landed on the trunk after; correct it in the [merge-up] line)
 PASS 10   the Prime merges the trunk 01:23Z 09-27: a clean 14 re-delivery (+15) before then rides it
 CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT re-linked (re-arms g7.33.15)
 ```
