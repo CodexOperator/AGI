@@ -1,0 +1,9 @@
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (299078 > 131072). Running this sequence through the model will result in indexing errors
+uniform (0.70459, 0.73766)
+key_only (0.732422, 0.612523)
+random_seed7 (0.656982, 0.927568)
+random_seed21 (0.72876, 0.565215)
+random_seed99 (0.643799, 1.064014)
+random agree spread: min 0.643799 max 0.728760 range 0.084961
+key_only margin over uniform (agree): +0.027832  (kl): -0.125137
+VERDICT: win WITHIN single-sample noise

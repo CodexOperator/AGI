@@ -222,6 +222,44 @@ def test_publish_lands_one_row_on_the_authority_and_whois_reads_it(tmp_path):
     assert sha and ref == "origin/season2/main"
 
 
+def test_prime_edit_from_one_worktree_survives_publish_from_another(
+        tmp_path):
+    repo, _g, _posts, _bare = _fixture(tmp_path)
+    second = tmp_path / "rotation-worktree"
+    _git(repo, "worktree", "add", "-q", "-b", "rotation", str(second), "trunk")
+    assert _git(second, "rev-parse", "--show-toplevel").stdout.strip() == str(second)
+
+    # A Prime edits policy cells on authority/season2/main from worktree A.
+    _git(repo, "fetch", "-q", "origin", "season2/main")
+    authority = _git(repo, "show",
+                     "origin/season2/main:.agi/nodes/.geometry/posts.md").stdout
+    own = next(line for line in authority.splitlines(keepends=True)
+               if rotate._own_row_line(line, "aa"))
+    prime = json.loads(own[own.index("{"):])
+    prime.update(model="prime-model", effort="high")
+    prime_line = "  - " + json.dumps(prime) + "\n"
+    _advance_authority(repo, "season2/main", ".agi/nodes/.geometry/posts.md",
+                       authority.replace(own, prime_line))
+
+    # The rotation changes only its owned cells in distinct worktree B.
+    posts_b = second / ".agi" / "nodes" / ".geometry" / "posts.md"
+    content = posts_b.read_text(encoding="utf-8")
+    content = content.replace(
+        f'"pubkey": "{_NEW}"',
+        f'"pubkey": "{_NEW}", "generation": 8, "session_id": "rot-session"')
+    posts_b.write_text(content, encoding="utf-8")
+    _git(second, "add", ".agi/nodes/.geometry/posts.md")
+    _git(second, "commit", "-q", "-m", "rotation-owned cells")
+    out = rotate._publish_row_to_authority(second / ".agi", "aa", content)
+    assert out.startswith("authority: OK"), out
+
+    rows, _sha, _ref = send._pushed_seats(second / ".agi", "origin/season2/main", True)
+    merged = next(row for row in rows if row["name"] == "aa")
+    assert merged["model"] == "prime-model" and merged["effort"] == "high"
+    assert merged["pubkey"] == _NEW and merged["generation"] == 8
+    assert merged["session_id"] == "rot-session"
+
+
 def test_publish_refetches_and_recomposes_on_a_non_ff_race(tmp_path,
                                                            monkeypatch):
     repo, g, posts, bare = _fixture(tmp_path)

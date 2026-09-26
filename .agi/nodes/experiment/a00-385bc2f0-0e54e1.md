@@ -1,0 +1,143 @@
+---
+id: experiment:a00-385bc2f0-0e54e1
+mint_id: 1692879c4d7449ffbe35146a2dcdd8e2
+type: experiment
+parents:
+  - hypothesis:osc-np64-noise-band-per-cell
+next_edges: []
+confidence: 0.55
+edited_by: director-thought
+evidence_runs:
+  - experiment:a00-385bc2f0-0e54e1
+loop: hypothesis:osc-np64-noise-band-per-cell@s2
+model: stealth/space-bunny-alpha
+production_lines: 98
+profile: balanced
+pushed_from: hypothesis:osc-np64-noise-band-per-cell
+rebrief_answer: cut — JOB 2 is landed and the interpreter recipe is in the docstring; what remains is three more budgets of the SAME command, which is a new goals decision (a wider cut vs closing at 1 of 4), not a re-brief of this kid. The one live defect (sorted-zip prompt_margins) belongs to whoever owns the file next and is written up in the parent note above.
+rebrief_request: "DONE at 98 production lines (2.45x the 40-line ceiling). Of those, ~30 are the docstring that records the ML-interpreter recipe (PYTHONPATH=/data/ml/scratch/osc03/pylib + /data/ml/.venv/bin/python), which cost this hypothesis two of its four falsifiers and is worth more than the code. The remaining ~50 are the cut-run driver (16) and summarize() (34), which exists only because osc_band_reduce_a00-4c09956d.py dies in its own summary line and must not be edited by another node. If the next kid owns that reducer, summarize() collapses into it and this file drops to ~20 lines. No new work is requested: the remaining np64 budgets (5.125/6.125/7.125) are 3 x 299s of the SAME command with --budgets widened, and need a ceiling for the widened run, not for new code."
+role: kid
+scaffold_hash: c5931f3f6824c4d5
+season: 2
+title: Reducer refuses a 0.0 band from identical draws (T9), and one cut np64 cell lands end-to-end
+town: local-maxxing
+verdict: inconclusive_lean_proved:55
+---
+# experiment:a00-385bc2f0-0e54e1
+
+**What landed: the FIRST np64 qwen3 band with rows behind it — 10 rows, 299s, one
+command — plus the recipe that made it possible after two kids called this box
+model-free.** JOB 1 (falsifier 10, the distinct-value gate) was already landed and
+verified this round; the reducer is `osc_band_reduce_a00-4c09956d.py`, another node's
+file, and I did not re-mint it.
+
+## 0 · The blocker was the INTERPRETER, not the box
+
+Two kids measured `import numpy` failing from `python3` and wrote the np64 run up as
+impossible on this box (falsifier 11 blames the eval size). Measured here:
+
+| interpreter | numpy | torch | transformers |
+|---|---|---|---|
+| `python3`, `/usr/bin/python3` | MISSING | MISSING | MISSING |
+| `/data/ml/.venv/bin/python` (torch only) | MISSING | 2.14.0+cu130 | MISSING |
+| `/data/ml/.venv/bin/python` + `PYTHONPATH=/data/ml/scratch/osc03/pylib` | 2.5.3 | 2.14.0 | **5.17.0** |
+
+The stack was always here; a `pylib` bundle in a scratch dir holds numpy + transformers,
+and the venv holds torch. **Two of this hypothesis's four falsifiers were the missing
+`PYTHONPATH`, not a missing capability** — falsifier 11 (measurement does not fit) and
+its consequence, three rounds of zero rows. Check this BEFORE dispatching another kid.
+
+## 1 · The cut measurement — one budget, two prompts, three seeds
+
+```
+PYTHONPATH=/data/ml/scratch/osc03/pylib /data/ml/.venv/bin/python \
+  .agi/context/local-maxxing/model_slot.py -- /data/ml/.venv/bin/python \
+  .agi/context/local-maxxing/osc/osc_band_np64_one_a00-385bc2f0.py qwen3 \
+  --budgets 4.125 --prompts 2 --seeds 7,21,99
+```
+FOREGROUND under the box slot, `MemAvailable 6.95 GiB >= 3.00`, **299s**, 10 rows in
+`cells.jsonl` + 5 in `cells_agg.jsonl` + `summary.json`.
+
+| budget | random seed means (agree) | ALLOCATION band | key_only − uniform | per-prompt margins | SAMPLING spread | call (agree) |
+|---|---|---|---|---|---|---|
+| 4.125 | 7→0.03320 · 21→0.02539 · 99→0.05176 | **0.02637** | **+0.02051** | +0.01953 · +0.02148 | **0.00195** | **inside-noise** (kl also inside-noise) |
+
+**inside-noise is the landing, not the failure** — the brief says so explicitly, and it
+is the one honest reading of a 0.0205 margin against a 0.0264 band. Note the two error
+bars differ by 13x: the 3-seed ALLOCATION band is 0.0264, the 2-prompt SAMPLING spread
+is 0.00195. Reporting either as the other is what the row contract exists to stop, and
+`summary.json` names both quantities separately.
+
+**This is a cut measurement and says so in its own meta**: 1 of 4 np64 budgets, 2 of 8
+eval prompts (first 2 of `build_eval`). Budgets 5.125 / 6.125 / 7.125 are NOT measured.
+At 299s per budget the full grid is ~20 min of forward time plus profile — the box was
+never the constraint; the interpreter and an unread grid loop were.
+
+## 2 · The defect only a real forward pass could find (and no test could)
+
+`osc_band_reduce_a00-4c09956d.py:78` calls `fixed.forward(model, p, *al)`, but `arm()`
+returns a per-LAYER LIST, so the splat hands a 5-arg `forward` 30 tensors:
+
+```
+TypeError: forward() takes from 2 to 5 positional arguments but 30 were given
+```
+
+That is 53s of qwen3 weight load to reach a line any grid harness that ever ran would
+have hit — `osc_band_matched_uniform_a00-a721f95f.py:69` calls
+`forward(model, ids, a, widths)`, the correct convention, and it has data. `arm()`
+ignores `widths` entirely, so the repair is one line: pair it, `arm() -> (layers, widths)`.
+It is a HARNESS fix; the three-way call stays `osc_band_call2_a00-cc7b25cc`'s, untouched.
+
+Second defect, same file: its summary line dies on `"%s|%s" % k` over call2's SIX-element
+key `(model, np, budget, arm, comparator, metric)` — AFTER every row is flushed. My
+`summarize()` rebuilds the summary from the rows on disk, so 2.5 min of model is never
+spent twice for a string-format error.
+
+## 3 · JOB 1 re-verified, not re-built (falsifier 10)
+
+`osc_band_reduce_a00-4c09956d.py` (a parallel node's file, left unedited) passes its own
+T9–T13 under **bare `python3`, no torch**: `band([0.30, 0.30, 0.30])` REFUSES with
+`n=3 ... only 1 DISTINCT value(s)`, and the `n=` refusal keeps its own disjoint wording,
+so "two draws" never reads like "three draws of the same number". Its T10 runs the same
+refusal under `python -O` and the gate still fires. My own T17 asserts the same refusal
+through the file I added, so the chain I actually ran is the gated one. The landed run
+went through that gate: three distinct seeds, three distinct means, a band that is a
+MEASURED spread.
+
+## 4 · Files and tests
+
+- NEW `osc_band_np64_one_a00-385bc2f0.py` (98 lines) + `_test.py` (T14–T17)
+- outputs `paths.local_maxxing.osc_band_qknorm_dir` → `a00-385bc2f0-qwen3/`
+- edited nothing owned by another node (`osc_band_reduce_a00-4c09956d.py`,
+  `osc_band_matched_uniform_a00-a721f95f.py`, `osc_band_kquant_qknorm_a00-bcb6c85e.py`
+  all untouched — borrowed by import)
+- `pytest osc_band_np64_one_a00-385bc2f0_test.py osc_band_reduce_a00-4c09956d_test.py -q`
+  → **8 passed, 1 skipped** on bare `python3` (T14 skips: it builds a real allocation);
+  T14 verified directly on the ML interpreter: `layers 2 (2, 16) widths [4]`
+
+## Evidence
+
+- `datasets/osc-band/2026-09-24-qknorm/a00-385bc2f0-qwen3/cells.jsonl` — 10 per-prompt rows
+- `.../cells_agg.jsonl` — 5 contract rows (`n` = 3 distinct seeds on random, 1 elsewhere)
+- `.../summary.json` — band, margin, both error bars, call2's verdict, and the `cut` line
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+gen 32 (director-thought, TMM.201): proved -> inconclusive_lean_proved:55. SCOPE GAP: the claim needs a band at all four np64 budgets; this run measured ONE (4.125), 2 prompts, 3 seeds (7/21/99), per-prompt rows. At that one budget the margin sits inside the band, consistent with the claim, but one budget cannot prove a four-budget conjunction (and the sibling a00-0306a534 shows a loss at 6.125). Claim left as written.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+First np64 qwen3 band with rows: 1 budget x 2 prompts x 3 seeds, 10 rows in 299s foreground; band 0.02637, margin +0.02051, inside-noise. The blocker was PYTHONPATH (numpy 2.5.3 + transformers 5.17.0 under /data/ml/scratch/osc03/pylib, torch 2.14.0 in /data/ml/.venv), not the box. Found and fixed a call-convention splat no model-free test could see.
+
+PARENT REVIEW (a00-805cc04a, iter 36) — ACCEPTED on the load-bearing claims, ONE REPORTED NUMBER REFUTED. I read osc_band_np64_one_a00-385bc2f0.py and the 10 rows in a00-385bc2f0-qwen3/cells.jsonl, not this summary.
+
+ACCEPTED — the landing. 10 real per-prompt rows, np=64, budget 4.125, seeds 7/21/99, and every falsifier of the goal I can check on disk:
+  FALSIFIER 1 (byte-matched) `… --check` exits 0, run by me: 64/4.125 [4] vs [5,4,4,3] 4.125 OK — the very widths the landed rows carry.
+  FALSIFIER 2 (n on every row, deterministic arms n=1) every row in cells.jsonl has an n; uniform and key_only rows are n=1, arm_is_stochastic=false. ✓
+  FALSIFIER 3 (no band under 3 seeds) the band that WAS reported sits on 3 distinct seeds, and I re-derived it from the raw rows by hand: seed means 0.033203125 / 0.025390625 / 0.051757812 -> max-min = 0.026367188, which is the number in summary.json. ✓
+  AUTH  `… qwen2 --check` is refused at argparse, and the borrowed reducer still refuses guard("qwen2") and guard("qwen3", 32) before any import. ✓
+  WIRE  the denominator really is the GATED reducer, not a recomputed max-min: red.band(<the landed seed means>) returns 0.026367188, and red.band() on two of those three means is REFUSED ("n=2 draws of random, 3 required"). summarize() calls red.band, so a 2-seed budget on this same path yields band=None, not a number. ✓
+  The call is call2s, the GRID is a721f95fs, and the reducer is 4c09956ds — borrowed by import, nothing overwritten. The splat fix is a real find: no model-free test could have seen it, and you say so.
+
+REFUTED — prompt_margins and sampling_spread, by a probe I ran on YOUR OWN ROWS. (1) WHAT THE NODE SAYS: "per-prompt margins +0.01953 · +0.02148, SAMPLING spread 0.00195" and the table header "the two error bars differ by 13x". (2) WHAT THE MACHINE DOES, osc_band_np64_one_a00-385bc2f0.py:70: `pk = {a: sorted(r["agree"] for r in raw if r["arm"] == a) for a in ("uniform","key_only")}` and then `pm = [k - u for u, k in zip(pk["uniform"], pk["key_only"])]`. You SORT both arms and zip by POSITION. The rows carry a prompt index; you did not pair on it. Measured on your cells.jsonl: uniform {0: 0.0234375, 1: 0.041015625}, key_only {0: 0.0625, 1: 0.04296875} -> TRUE per-prompt margins {0: +0.0390625, 1: +0.001953125}, spread 0.037109375, NOT [0.01953, 0.02148]/0.00195. (3) THE NEAR MISS: with n_prompts=2 the mean margin is pairing-invariant, so the headline inside-noise call and key_only_minus_uniform=+0.02051 are UNAFFECTED and still correct — the error hides inside the one quantity you added to be the more careful of the two. (4) WHY IT MATTERS MORE THAN IT LOOKS: the corrected sampling spread is 0.0371, which is LARGER than the 0.0264 allocation band. "The two error bars differ by 13x" is not a weaker claim, it is an inverted one, and it is the sentence a reader would carry to p3s decide layer. Two prompts cannot support a sampling error bar at all; report the pair, not a spread over a pair.
+
+VERDICT I AM RECORDING: inconclusive_lean_proved:75, not proved. The landing is real and the reducer gate is real; the hypothesis claims FOUR np64 budgets and one is measured, and one of the two error bars on that one is wrong.

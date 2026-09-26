@@ -1,0 +1,170 @@
+{
+ "model": "qwen3",
+ "np": 64,
+ "seeds": [
+  7,
+  21,
+  99,
+  45
+ ],
+ "min_seeds": 3,
+ "band": "max-min of random agree",
+ "eval": {
+  "wiki_slice_starts": [
+   5000,
+   61000,
+   120000,
+   240000
+  ],
+  "wiki_span": 512,
+  "heval_task_ids": [
+   "HumanEval/107",
+   "HumanEval/108",
+   "HumanEval/109",
+   "HumanEval/11"
+  ],
+  "heval_padded_to": 512,
+  "n_prompts": 2,
+  "n_tokens": 4096,
+  "hop1_wiki_starts": [
+   0,
+   29875,
+   59751,
+   89627,
+   119503,
+   149379,
+   179254,
+   209130,
+   239006,
+   268882
+  ],
+  "hop1_heval_task_ids": [
+   "HumanEval/0",
+   "HumanEval/1",
+   "HumanEval/10",
+   "HumanEval/100",
+   "HumanEval/101",
+   "HumanEval/102",
+   "HumanEval/103",
+   "HumanEval/104",
+   "HumanEval/105",
+   "HumanEval/106"
+  ]
+ },
+ "grid": {
+  "4.125": [
+   [
+    4
+   ],
+   [
+    5,
+    4,
+    4,
+    3
+   ]
+  ],
+  "5.125": [
+   [
+    5
+   ],
+   [
+    6,
+    5,
+    5,
+    4
+   ]
+  ],
+  "6.125": [
+   [
+    6
+   ],
+   [
+    7,
+    6,
+    6,
+    5
+   ]
+  ],
+  "7.125": [
+   [
+    7
+   ],
+   [
+    8,
+    7,
+    7,
+    6
+   ]
+  ]
+ },
+ "calls": {
+  "4.125": {
+   "band": 0.026367188,
+   "n_seeds": 4,
+   "n_distinct": 4,
+   "key_only_minus_uniform": 0.020507812,
+   "call": "inside-noise",
+   "random_agree": [
+    0.033203125,
+    0.025390625,
+    0.051757812,
+    0.043945312
+   ],
+   "uniform_agree": 0.032226562,
+   "key_only_agree": 0.052734375,
+   "uniform_n": 1,
+   "key_only_n": 1
+  },
+  "5.125": {
+   "band": 0.100585938,
+   "n_seeds": 4,
+   "n_distinct": 4,
+   "key_only_minus_uniform": 0.002929688,
+   "call": "inside-noise",
+   "random_agree": [
+    0.046875,
+    0.04296875,
+    0.138671875,
+    0.143554688
+   ],
+   "uniform_agree": 0.153320312,
+   "key_only_agree": 0.15625,
+   "uniform_n": 1,
+   "key_only_n": 1
+  },
+  "6.125": {
+   "band": 0.06640625,
+   "n_seeds": 4,
+   "n_distinct": 4,
+   "key_only_minus_uniform": -0.072265625,
+   "call": "loss",
+   "random_agree": [
+    0.280273438,
+    0.3359375,
+    0.344726562,
+    0.346679688
+   ],
+   "uniform_agree": 0.37890625,
+   "key_only_agree": 0.306640625,
+   "uniform_n": 1,
+   "key_only_n": 1
+  },
+  "7.125": {
+   "band": 0.123046875,
+   "n_seeds": 4,
+   "n_distinct": 4,
+   "key_only_minus_uniform": -0.0234375,
+   "call": "inside-noise",
+   "random_agree": [
+    0.6796875,
+    0.602539062,
+    0.709960938,
+    0.725585938
+   ],
+   "uniform_agree": 0.776367188,
+   "key_only_agree": 0.752929688,
+   "uniform_n": 1,
+   "key_only_n": 1
+  }
+ }
+}

@@ -4,11 +4,10 @@ the whole risk of this script is in what real git actually does with `merge
 -s ours` + `read-tree --prefix`, so the fixtures below are small but real —
 `git init`, real commits, real `refs/grid/*` refs via `update-ref`.
 
-**Never point this test file at `/home/ubuntu/work/agi` or
-`/home/ubuntu/work/agi-tree`.** Every fixture builds its own tiny repos under
-`tmp_path`; `unify.py` itself also refuses those two paths unconditionally
-(`test_preflight_refuses_the_real_repos`), so a mistake here would be caught
-twice over.
+**Never point this test file at a real checkout.** Every fixture builds its
+own tiny repos under `tmp_path`; `unify.py` itself also refuses the real
+checkouts unconditionally (`test_preflight_refuses_the_real_repos`), so a
+mistake here would be caught twice over.
 """
 from __future__ import annotations
 
@@ -102,7 +101,7 @@ def make_tree_repo(tmp_path: Path) -> Path:
     (d / "GOALS.md").write_text("# GOALS\n\n## G1: something\n")
     (d / ".gitignore").write_text(TREE_GITIGNORE)
     # CLAUDE.md + AGENTS.md, modeled on the real tree: AGENTS.md is a relative
-    # symlink to CLAUDE.md, same directory, same as `/home/ubuntu/work/agi-tree`.
+    # symlink to CLAUDE.md, same directory, as the real `agi-tree` checkout keeps it.
     # Both are required by relocate_files, so every fixture built with this
     # helper carries them, same as the real tree always does.
     (d / "CLAUDE.md").write_text("# CLAUDE.md\n\nProject instructions.\n")
@@ -525,19 +524,21 @@ def test_preflight_force_allows_dirty_and_existing_agi(repos):
 
 def test_preflight_refuses_the_real_repos(tmp_path):
     tree = make_tree_repo(tmp_path)
-    result = unify.preflight(Path("/home/ubuntu/work/agi"), tree)
+    here = unify._git_common_root()
+    assert here is not None, "git must name the repo this checkout belongs to"
+    result = unify.preflight(here, tree)
     assert result["ok"] is False
     assert result["reason"] == "refuses_real_repo"
 
     engine = make_engine_repo(tmp_path)
-    result = unify.preflight(engine, Path("/home/ubuntu/work/agi-tree"))
+    result = unify.preflight(engine, here)
     assert result["ok"] is False
     assert result["reason"] == "refuses_real_repo"
 
 
 def test_preflight_force_does_not_bypass_real_repo_guard(tmp_path):
     tree = make_tree_repo(tmp_path)
-    result = unify.preflight(Path("/home/ubuntu/work/agi"), tree, force=True)
+    result = unify.preflight(unify._git_common_root(), tree, force=True)
     assert result["ok"] is False
     assert result["reason"] == "refuses_real_repo"
 

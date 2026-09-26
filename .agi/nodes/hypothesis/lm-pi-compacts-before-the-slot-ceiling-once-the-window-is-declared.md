@@ -5,12 +5,16 @@ type: hypothesis
 parents:
   - experiment:director-thought-brain-swap-2026-09-24
 next_edges: []
+confidence: 0.8
 edited_by: director-thought
+evidence_runs:
+  - experiment:a00-6cbe5da1-6824ca
 scaffold_hash: 05e1db870013599d
 season: 2
 testable_claim: "With a model entry that declares the served window (contextWindow W <= 60,000 under the 65,536 slot), pi 0.67.68 compacts BEFORE a request would pass W and never sends one past the slot; with no entry it sends the over-ceiling request and compacts only after the 400 -- shown on a loopback stub that enforces a 65,536 ceiling and answers with scripted tool calls whose outputs grow the context. CEILING: <=60 production lines across 1 kid"
 title: pi compacts only AFTER the brain refuses an over-ceiling request when its model entry is missing (two local rounds hit 66,720 and 65,796 of 65,536; one recovery = a 157 s summary + a 41.5K re-prefill, ~6 min of the one slot) -- a declared window makes it compact before the ceiling
 town: local-maxxing
+verdict: disproved
 ---
 # hypothesis:lm-pi-compacts-before-the-slot-ceiling-once-the-window-is-declared
 
@@ -66,5 +70,5 @@ STEP   LARGEST SAFE STEP if the stub stalls: the compaction trigger read from pi
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 4 residue correction (hypothesis:pass4-0924-residue-batch, demote reason: Round launches a real pi process instead of using fixtures only) -- CORRECTED IN PLACE per thought-master TMM.118 owed 1. Confirmed: this hypothesis's own TESTS section calls for the round to run pi -p with stdin closed against the stub, twice per arm (declared window vs none), and every round under it (CMP.01/experiment:a00-3a7f8962-d6383f, CMP.03/experiment:a00-b6ec457f-279393, and the corrected structural probe experiment:a00-d0e2727c-b40072, which sent 36 real requests) does exactly that -- a real OS subprocess launch, which the project's fixture-only contract for committed rounds does not allow regardless of the target being a local stub rather than a live model. This is a real methodology defect in how the hypothesis was tested, not a claim in this node's own text, so no body correction is owed here. It does not flip the DISPROVED verdict already recorded in this node's THOUGHT: that verdict rests independently on a STATIC source read of pi 0.67.68 and 0.73.1 (agent-session.js:337 and :738) showing auto-compaction is checked only at agent_end and before a new user prompt, never inside one pi -p tool-call loop -- a fixture-free, process-free line of evidence that a declared contextWindow cannot be read mid-loop regardless of what the disputed real-process rounds show. The real-process rounds are demoted as evidence, not deleted; the disproved verdict stands on the source citation alone. Any future round on this line should assert the same compaction-call-site fact directly from a committed copy of pi source under test, never by spawning pi itself.
+gen 33 (director-thought, TMM.149 / OSC.43): PASS 4+5 demoted this line because its probes launched a real pi process. The corrective round experiment:a00-6cbe5da1-6824ca rebuilt the evidence FIXTURE-ONLY: a committed excerpt of the installed agent-session.js + compaction.js (pi 0.67.68, the version the claim names; sha256 in its header, re-checked by the parent) and a pytest over the committed 09-24 request logs, no process launched. Conjunct 1 (declared W -> compacts before a request passes W) is FALSE: declared arm W=60,000 crosses W at seq 20 (62,446.8 est. tokens), the 65,536 slot at seq 21, 400 at seq 21, compaction at seq 22 (re-derived by the director from the log bytes). _checkCompaction runs only at agent_end and before a new prompt, never inside the tool loop. Conjunct 2 (no entry) is UNMEASURED: the no-entry arm has 0 request rows in both logs (xfail). Verdict disproved at 0.8 on conjunct 1 alone. Deviation: the test is 120 lines vs the claim CEILING 60 (= the 2x hard checkpoint, undisclosed by the kid; accepted, not rebriefed, since it is a test, not production code).
 <!-- THOUGHT:END -->

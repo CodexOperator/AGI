@@ -151,7 +151,7 @@ def _seats(graph: Path) -> list[dict]:
 
 
 def _judge(*, graph: Path, registry: Path, names: list[str], rows: list[dict],
-           now: float | None = None) -> list[dict]:
+           now: float | None = None, pid_alive=None) -> list[dict]:
     """Wire the whole KID-1 pipeline for a set of window names: build the
     window list, read rows, build pins, list seat sessions, judge."""
     windows = _windows(names)
@@ -159,7 +159,7 @@ def _judge(*, graph: Path, registry: Path, names: list[str], rows: list[dict],
     pins, _skipped = heal._pin_table(graph, rows)
     sess = heal._seat_sessions(str(registry), windows)
     return heal._judge_leases(pins, sess, rows, graph,
-                              now=now or time.time())
+                              now=now or time.time(), pid_alive=pid_alive)
 
 
 # --------------------------------------------------------------------------
@@ -401,6 +401,86 @@ def test_skipped_transcript_judged_unpinned(graph, registry):
     assert any("transcript missing" in s["reason"] for s in skipped)
     out = _judge(graph=graph, registry=registry, names=names, rows=None)
     assert out and out[0]["verdict"] == "REAP"
+
+# --------------------------------------------------------------------------
+# STALE-PIN — a LIVE seat session whose pin is STALE is never REAP.
+# Three cases: current-row + live pid -> STALE-PIN; live pid that the row does
+# NOT name (a genuinely orphaned session) -> still REAP (no blanket amnesty);
+# dead pid -> unchanged (REAP / the pass's idempotent skip). The pass-level
+# test at the end proves STALE-PIN never arms even under `armed`.
+# --------------------------------------------------------------------------
+
+def test_live_current_session_with_stale_pin_is_stale_pin(graph, registry):
+    """LIVE pid + STALE pin (transcript gone) + the row still names this
+    session -> STALE-PIN, never REAP."""
+    names = ["seat-live"]
+    sid = "llll-live"
+    _mk_pin(graph, "seat-live", None)                 # stale pin
+    _write_registry(registry, 9501, sid, _id_for(names, "seat-live"))
+    _write_seats(graph, [{"name": "seat-live", "session_id": sid,
+                          "pid": 9501,
+                          "window": _id_for(names, "seat-live")}])
+    out = _judge(graph=graph, registry=registry, names=names, rows=None,
+                 pid_alive=lambda p: True)
+    assert [(s["verdict"], s["reason"]) for s in out] == [
+        ("STALE-PIN", "stale pin for the seat's current session")]
+
+
+def test_live_orphan_session_not_row_current_still_reaps(graph, registry):
+    """LIVE pid + stale pin, but the row names a DIFFERENT current session
+    (a genuinely orphaned registry file) -> still REAP: STALE-PIN is not a
+    blanket amnesty for anything alive."""
+    names = ["seat-orph"]
+    sid = "oooo-orphan"
+    _mk_pin(graph, "seat-orph", None)                 # stale pin
+    _write_registry(registry, 9601, sid, _id_for(names, "seat-orph"))
+    _write_seats(graph, [{"name": "seat-orph", "session_id": "ffff-other",
+                          "pid": 999999, "window": "@424242"}])
+    out = _judge(graph=graph, registry=registry, names=names, rows=None,
+                 pid_alive=lambda p: True)
+    assert out and out[0]["verdict"] == "REAP"
+
+
+def test_dead_current_session_still_reaps(graph, registry):
+    """DEAD pid + the row naming it as current -> unchanged: REAP (the pin is
+    stale AND the process is gone, so there is nothing to protect)."""
+    names = ["seat-deadc"]
+    sid = "dddd-curdead"
+    _mk_pin(graph, "seat-deadc", None)                # stale pin
+    _write_registry(registry, 9701, sid, _id_for(names, "seat-deadc"))
+    _write_seats(graph, [{"name": "seat-deadc", "session_id": sid,
+                          "pid": 9701}])
+    out = _judge(graph=graph, registry=registry, names=names, rows=None,
+                 pid_alive=lambda p: False)
+    assert out and out[0]["verdict"] == "REAP"
+
+
+def test_stale_pin_never_arms_under_armed_mode(graph, registry):
+    """End-to-end through `_pin_reap_pass` in ARMED mode: a live current
+    session with a stale pin is STALE-PIN and the reaper is NEVER called; a
+    dead orphan in the same pass IS reaped (the branch is narrow, not a
+    blanket)."""
+    names = ["seat-mix"]
+    live_sid = "mmmm-live"
+    dead_sid = "mmmm-dead"
+    _mk_pin(graph, "seat-mix", None)                  # stale pin
+    _write_registry(registry, 9801, live_sid, _id_for(names, "seat-mix"))
+    _write_seats(graph, [{"name": "seat-mix", "session_id": live_sid,
+                          "pid": 9801}])
+    judged = _judge(graph=graph, registry=registry, names=names, rows=None,
+                    pid_alive=lambda p: True)
+    assert [j["verdict"] for j in judged] == ["STALE-PIN"]
+    called = []
+
+    def reaper(root, j, rt):
+        called.append(j["session_id"])
+        return {"reaped": True}
+
+    acted = _run_pass(graph=graph, registry=registry, names=names, rows=None,
+                      mode="armed", reaper=reaper, pid_alive=lambda p: True)
+    assert called == [] and acted == []
+    assert dead_sid not in called   # never judged: not in the registry
+
 
 # --------------------------------------------------------------------------
 # KID 2 — the PASS + the ARM (_pin_reap_pass, mode from config).

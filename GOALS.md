@@ -7884,6 +7884,64 @@ director-engine (gen 13): retroactive goal for already-landed and tested code (7
 director-engine (gen 13): minted retroactively-fast under time pressure (own meter near the rotation line) --
 the hypothesis underneath carries full Measured/CLAIM/FALSIFIERS/TESTS/FILE SCOPE/CEILING detail.
 
+#### G7.33.14 — NO WORKFLOW-AUTHORED TEMPLATE HARDCODES A BOX PATH SEPARATE FROM CONFIG.JSON'S ROOT -- ~15 review/investigation templates carried a stale /home/ubuntu/work/agi literal; kid/parent dispatch was never affected — status: active
+
+# goal:g7.33.14
+
+## Why this exists
+**Parent `goal:g7.33`.** director-engine gen 20 (2026-09-25), while checking whether DH.360's
+merge-up-review could safely be re-dispatched, found `.agi/config.json` declares
+`root: "/home/ubuntu/work/agi"` and that exact literal (not a `{template}` var) is hardcoded
+into the prompt text of ~15 workflow.py-authored review/investigation templates. MEASURED on
+this box: `ls /home/ubuntu/work/agi` -> No such file or directory; `whoami` -> belam; `$HOME` ->
+/home/belam; the real repo root is /data/work/agi (confirmed via `ps -ef` showing real
+launch-wrapper processes running from /data/work/agi). thought-master independently verified
+the same absence (TMM.183, 2026-09-25 23:0xZ) and named this the right home for the fix.
+
+## Target end-state
+- Every `workflow.py run <name>` dispatch, on the box it actually runs on, sends its dispatched
+  model a working directory / cd target that exists and is the real repo root.
+- `.agi/config.json`'s `root` field (and `paths.local_maxxing.pi_home`, `claude_home`,
+  `logs_dir`, which carry the same `/home/ubuntu/...` assumption) match the box.
+- A single seam retires: no workflow-authored `.json`/`.js` template carries an
+  independently-hardcoded absolute repo path that can drift from config.json's own `root`.
+
+## Invariants
+- Kid/parent agent dispatch (`dispatch.py`/`cli.py`) must stay unaffected -- it already resolves
+  the root dynamically (`bin/locations.py`, nearest `.agi/` wins) and every existing round
+  (hundreds of `iter-*` dirs) depends on that continuing to work exactly as it does today.
+- A fix must not require every template to be hand-edited forever after: if `workflow.py author`
+  can regenerate the `.js` siblings from their `.json` source, the fix belongs at the source
+  (config.json's `root`, or the `.json` templates it feeds), not scattered N times.
+
+## Falsifier
+1. `grep -rn '/home/ubuntu/work/agi' extensions/ .claude/ .agi/config.json` returns 0 hits,
+   EXCEPT lines in test_workflow.py, test_unify.py, test_workflow_template_seam_js.py and
+   test_workflow_template_seam_json.py that assert the literal's ABSENCE as a negative fixture
+   -- those files must keep the string to test for it. A hit anywhere else is real; a hit only
+   in these files, only as an asserted-absent string, is the guard working, not a miss.
+2. A fresh `workflow.py run <any review/investigate workflow> --dry-run` on THIS box resolves a
+   root that `ls` confirms exists, for every stage.
+3. `env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/ -q` passes with no NEW
+   failure attributable to this goal's own changes (no template or config change should touch
+   dispatch.py's own root resolution). Run from a dispatched agent shell specifically,
+   `test_dispatch_forward_env.py` can fail on an inherited `TYPESAFE_KEY` -- environmental, not
+   this goal's; run with that var absent, as this repo's own suite invocation already does.
+
+## Out of scope
+- Actually re-running either DH.360's or DH.362's merge-up-review mur -- owed after this lands,
+  not part of it.
+- Any change to `dispatch.py`/`cli.py`/`bin/locations.py`'s own (already-correct) dynamic root
+  resolution.
+- goal:g6.41's reseat-bug hypotheses (heal.py) -- a different, only possibly-related mechanism
+  (both are "the box changed, something didn't know" incidents, but distinct code paths).
+
+## Agent Notes
+Assigned to **director-engine**. Minted as the parent goal for the owner-directed parent
+mini-swarm trial (hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis,
+goal:g7.16) -- 3 parents split this goal's remaining work into 3 disjoint file groups and each
+mints its own sub-subgoal before proceeding to hypothesis -> kids as normal.
+
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
 <!-- BODY:BEGIN -->
@@ -12737,6 +12795,247 @@ OWNER 2026-09-18 17:4xZ (thought-master pane), verbatim: "We need to map bend2 i
 **Done when.** A layered configuration is measured end to end on a real round (a parent + kid on the served model) and its rows sit in the G5.27 gap table; the mvp that G5.27 mints cites this goal's contributing chains.
 
 **First chunk (minted):** `hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point` (the 5-CPU-minute kill-test). Sub-sub-goals are the director's to mint (G5.22.1 heads, G5.22.2 context/throughput, G5.22.3 layering), same format as this node, before any chunk runs.
+
+##### G5.22.1 — key-energy band allocation vs byte-matched uniform on the qk-norm grid -- a verdict with error bars, not a cell count (swarm target, hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g5.22.1
+
+## Agent Notes
+GOAL: turn experiment:a00-f3703399-48096d (key_only beats byte-matched TRUE uniform on agree+KL in 6/8 cells, random in 8/8, ONE draw per cell) into a verdict that survives seed variance. WHY: its parent probe (datasets/osc-band/2026-09-24-qknorm/a00-bcea484d-probes/probe_noise.log) re-drew the random arm at seeds 7/21/99 at qwen2@5.25: agree spread 0.085 = 3x the key_only margin (0.028), seed 21 beats key_only on KL. 3 of 8 cells sit inside that spread. DONE WHEN: every (model, budget) cell of the matched grid (qwen2 np32 4.25-7.25, qwen3 np64 4.125-7.125; widths from osc_band_matched_uniform_a00-a721f95f.py --check) carries a per-arm spread over >= 3 draws, and key_only vs uniform and key_only vs random are each called win / loss / inside-noise per cell. HARNESS: .agi/context/local-maxxing/osc/osc_band_matched_uniform_a00-a721f95f.py + osc_band_kquant_qknorm_a00-bcb6c85e.py (fixed.bits, arm); outputs under paths.local_maxxing.osc_band_qknorm_dir, never .agi/sessions. LIMITS: ONE model-running kid per swarm at a time (3.2 GiB each), MemAvailable >= 3 GiB before a model kid launches, one model per process. NOT IN SCOPE: new budgets, new models, inverse_energy (0/8, refuted).
+
+###### G5.22.1.1 — a per-cell win/loss/inside-noise CALL rule with a named band statistic, landed before the seed-sweep data exists — status: active
+
+<!-- BODY:BEGIN -->
+# goal:band-call-rule-per-cell
+# goal:band-call-rule-per-cell
+
+## Why this exists
+**Parent `goal:g5.22.1`.** That goal's DONE WHEN is the word "called": "key_only vs uniform and key_only vs random are each called win / loss / inside-noise per cell". Nothing on disk can emit that word. `osc_band_matched_uniform_a00-a721f95f.py:74-77` writes exactly one record per (arm, budget) with no seed field, so 16 cells are n=1, and `a00-bcea484d`'s probe shows the random arm's agree spread at qwen2@5.25 is 0.085 -- 3x the 0.028 key_only margin. A verdict that has no call rule is the n=1 trap wearing a verdict's clothes.
+
+**Swarm split (room swarm-osc35, lap 1).** p1 (`a00-e2d2e39a`) proposed three sub-subgoals of `goal:g5.22.1` and took (A) qwen2 np32 noise band; p2 (`a00-5cba3524`) took (B) qwen3 np64 noise band with two amendments, one of which binds here (the >=3-draw rule binds the STOCHASTIC arm only -- uniform and key_only are deterministic, so their spread is 0.0 by construction and must be labelled n=1). p3 (`a00-553975e2`, this node) took (C).
+
+## Target end-state
+- ONE named band statistic and ONE call rule, implemented, tested, and committed -- the tree can turn a jsonl of per-(cell, arm, seed) draws into per-cell `win` / `loss` / `inside-noise` calls.
+- The rule is written and landed BEFORE any seed-sweep jsonl exists, so neither (A) nor (B) can tune it to its own numbers.
+- A gate that refuses to emit a call for a cell with fewer than 3 stochastic draws.
+
+## Invariants
+- The band denominator is the RANDOM arm's seed spread. It is never a key_only spread (0.0 by determinism -- dividing by it calls every cell an infinite win).
+- KL sign is inverted: for KL, lower is better, for agree, higher is better. A rule that gets this backwards inverts the verdict.
+- Zero model, zero GPU. This slice never takes the swarm's one model slot; that belongs to (A) and (B).
+
+## Falsifier
+FAILED if any red:
+1. A synthetic jsonl (hand-written fixtures, no model) with a known band produces a call that disagrees with the hand-computed call.
+2. A cell with n=2 stochastic draws still produces a call.
+3. The rule is landed after a seed-sweep jsonl exists under `paths.local_maxxing.osc_band_qknorm_dir`.
+
+## Out of scope
+- goal:g5.22.1 (the swarm target) and its (A) qwen2 / (B) qwen3 model-running slices.
+- `inverse_energy` (0/8, refuted).
+- New budgets, new models, new arms.
+
+## Agent Notes
+Assigned to **post**. goal:band-call-rule-per-cell is the (C) DECIDE LAYER slice of the swarm split recorded above.
+
+###### G5.22.1.2 — qwen3 np64 noise band -- >=3 seeds per cell so the np64 grid has a denominator at all (swarm split (B), p2) — status: active
+
+# goal:qwen3-np64-noise-band
+
+# goal:g5.22.2
+
+## Why this exists
+
+**Parent `goal:g5.22.1`.** g5.22.1 asks for a per-cell CALL with error bars on the
+qk-norm grid instead of the n=1 cell count that experiment:a00-f3703399-48096d
+landed. It is one goal over two models, and the swarm split of iter 35 (room
+swarm-osc35, p1's proposal 00:48) cut it three ways: (A) p1 takes the qwen2 np32
+grid, **(B) p2 takes the qwen3 np64 grid — this node**, (C) p3 takes the
+model-free decide layer that turns draws into win/loss/inside-noise.
+
+The measured thing that made this a parent of THIS node: every row on disk is
+n=1. `.agi/context/local-maxxing/osc/osc_band_matched_uniform_a00-a721f95f.py`
+line 50 routes the random arm to `fixed.arm(E, widths, "random", 7)` — a
+hardcoded seed, one draw per cell, and no seed loop anywhere in the file — so
+the 16 rows under
+`paths.local_maxxing.osc_band_qknorm_dir/a00-a721f95f-{qwen2,qwen3}/cells.jsonl`
+are single points. The one place a spread has been measured at all is the parent
+probe `a00-bcea484d-probes/probe_noise.log` (qwen2@5.25, seeds 7/21/99): agree
+range 0.085, three times the key_only margin of 0.028, and seed 21's KL 0.565
+beats key_only's 0.613. That probe is on np32 only. **The np64 grid has never
+had a second draw, so its four budgets have no band at all** — and the band is
+the denominator every verdict divides by.
+
+## Target end-state
+
+- `paths.local_maxxing.osc_band_qknorm_dir/a00-<mint>-qwen3/` holds one jsonl row
+  per (budget, arm, seed) for budgets 4.125 / 5.125 / 6.125 / 7.125, arms
+  uniform / key_only / random, seeds {7, 21, 99, 45} for random — the seed set is
+  a superset of the parent's probe seeds so probe numbers fold into the same
+  table rather than sitting beside it.
+- A per-cell band exists for all four np64 budgets: the range (max-min) of the
+  random arm's agree over the four seeds, plus the same for KL.
+- The four np64 cells each carry a stated answer to "is key_only distinguishable
+  from uniform here", with the n of every number named.
+
+## Invariants
+
+- The np64 grid stays BYTE-MATCHED: every budget's uniform widths and the
+  non-uniform widths cost the same bits, asserted by `--check` before any model
+  loads (that is what `check_table()` in the a721f95f harness is for; reuse its
+  GRID, do not re-derive it).
+- **The >=3-draw requirement binds the STOCHASTIC arm only.** uniform and
+  key_only are deterministic — `allocation()` sends them to `fixed.arm(...,
+  "uniform")` and `fixed.arm(..., "energy", 1)` with no RNG in the path — so
+  re-drawing them at four seeds returns four identical numbers and a spread of
+  exactly 0.0 by construction, not by measurement. They carry n=1 and MUST be
+  labelled n=1. A verifier allowed to divide a margin by a 0.0 deterministic
+  spread is worse off than the n=1 trap it replaces: it calls every cell an
+  infinite win.
+- The band denominator is the random arm's spread alone.
+- Outputs land under `paths.local_maxxing.osc_band_qknorm_dir`, never under
+  `.agi/sessions` and never under the repo root.
+- One model per process. qwen3 np64 is the larger of the two; the swarm admits
+  ONE model-running kid at a time, claimed in swarm-osc35.
+
+## Falsifier
+
+FAILED if any of these is true when the round closes:
+
+1. `--check` exits non-zero, or any budget's `fixed.bits(uniform)` differs from
+   `fixed.bits(matched)` — the grid is not byte-matched.
+2. Any (budget, arm) row in the emitted jsonl lacks a `n` field, or a
+   deterministic arm (uniform, key_only) claims `n >= 3`.
+3. A band is reported for a budget whose random arm has fewer than 3 seeds.
+4. The np64 grid the run measured is not the one `check_table()` asserts
+   (budgets 4.125/5.125/6.125/7.125, widths from the a721f95f GRID table).
+5. Anything was written outside `paths.local_maxxing.osc_band_qknorm_dir`.
+
+## Out of scope
+
+- `goal:g5.22.1.a` (p1) — the qwen2 np32 grid. Same shape, different model,
+  different process, zero shared source lines.
+- `goal:g5.22.1.c` (p3) — the decide layer that converts >=3 draws into
+  win/loss/inside-noise. This node produces the DRAWS and the band; it does not
+  own the call rule, and must not tune one to fit these numbers.
+- New budgets, new models, `inverse_energy` (0/8, refuted).
+- Bandwidth/serving questions. This is an allocation-of-bits question.
+
+## Agent Notes
+Assigned to **post**. One model-running kid; see Falsifier for the closure test.
+
+SWARM 2 CONDITIONS (thought-master TMM.198, director-thought gen 32) -- binding on every parent and kid under this goal: (a) MODEL SLOT IS MECHANICAL: every model-loading command runs as `python3 .agi/context/local-maxxing/model_slot.py -- <cmd>` (flock on paths.local_maxxing.model_slot_lock under the MAIN checkout, box-wide). A room claim is information, never the gate. (b) the wrapper reads MemAvailable >= values.local_maxxing.model_slot_min_avail_gib (3) INSIDE the lock right before the load; exit 75 = it did not start, retry later, never bypass. (c) references PER PROMPT: build every (budget, arm, seed) allocation first, then loop prompts OUTER -- ref = log_softmax(forward(ids)) once per prompt, score every arm against it, drop it (osc_band_seeds_qwen2_a00-2b3ca8c4.py:42-45). NEVER a refs = [...] list over prompts: that line killed both earlier qwen3 kids (6.19 GB scope OOM). (d) ERROR BAR: emit PER-PROMPT rows (cell, budget, arm, seed, prompt index, agree, kl) so a per-prompt bootstrap over the eval prompts gives the sampling error of key_only - uniform; the random 3-seed spread is the allocation band, a different quantity. Row contract = values.local_maxxing.osc_band_row_contract. (e) calls use the PRE-REGISTERED rule osc_band_call2_a00-cc7b25cc.py (full random min-max band) and name it; no new call rule. (f) children take goal_id G5.22.1.2.N and a slug with NO number in it. (g) a kid past 2x its line budget with no rebrief dm is CUT (F31). (h) keep kid a00-6771cb76's gates (band raises not asserts, model guard, three-way call) and close its open probe: three IDENTICAL draws must not pass the n>=3 gate.
+
+####### G5.22.1.2.3 — the np64 qwen3 band must FIT the 6 GiB scope -- a model-free preflight that refuses an over-budget run before from_pretrained — status: active
+
+# goal:qwen3-np64-band-fit
+
+# goal:qwen3-np64-band-fit
+
+## Why this exists
+
+**Parent `goal:qwen3-np64-noise-band`.** The np64 qwen3 band has now failed to
+produce a single row twice — kid `a00-0c9f57b2` (backgrounded, reaped
+`died-no-work`) and kid `a00-6771cb76` (correctly foreground, 2700s timeout, 0
+rows). The parent's own review ruled the harness innocent ("the blocker is not
+the harness"); the director's correction (experiment:a00-6771cb76-8469e1,
+gen 32) refuted that from `journalctl -k`: both kids were killed by
+**CONSTRAINT_MEMCG**, anon-rss 6.19 GB against a 6 GiB scope. So the blocking
+question is not "is the harness right" — its gates are parent-verified — it is
+**"does this measurement fit in the box, and how big a measurement does fit"**,
+and right now nobody can answer that number without spending a kid to find out
+by dying.
+
+This node is the model-free half of that answer. p2 (`a00-805cc04a`) holds the
+swarm's single model slot for one cut end-to-end band; a preflight that costs no
+model is disjoint from that run and is what the NEXT round's brief needs before
+it spends another kid.
+
+## Target end-state
+
+- `.agi/context/local-maxxing/osc/osc_band_fit_<mint>.py` answers, with numbers
+  and without loading a weight: given the hf `config.json`, the eval prompt
+  count, the token count, the seed count and the arm count, what is the projected
+  peak RSS, does it fit inside `box.memory_max`, and the largest (prompts x
+  seeds) that does fit.
+- A run that would not fit is **refused by name, before `from_pretrained`**, not
+  discovered by an OOM kill 53s in.
+- The per-prompt full-vocab term is named explicitly, because that is the term
+  that scales: 512 tokens x 151936 vocab x 4 B = 311 MB **per prompt**, and the
+  current harness holds one reference for every prompt at once.
+
+## Invariants
+
+- The preflight never imports `torch`/`transformers` and never opens a weight
+  file — a test proves it with a poisoned `from_pretrained` and a poisoned import.
+- Every number it prints is derived from `config.json` + the arguments, never
+  hardcoded, and the memory budget comes from `box.memory_max` in
+  `.agi/config.json`, never from a literal and never from a bare
+  `/sys/fs/cgroup/...` path.
+- It is advisory about FIT and authoritative about REFUSAL: it may be wrong
+  about peak RSS by some constant factor, but it must never be wrong in the
+  direction that lets a 6.19 GB run start under a 6 GiB scope.
+
+## Falsifier
+
+1. `python3 osc_band_fit_<mint>.py --check` exits non-zero on the argument set
+   the current harness uses (8 prompts x 512 tokens x 4 seeds x 4 budgets),
+   naming the projected peak and the 6 GiB budget.
+2. `/data/ml/.venv/bin/python -O` on the same command gives the SAME answer —
+   a refusal built on `assert` is invisible under `-O` and would let the run
+   start (the falsifier-7 shape that killed kid 1's band gate).
+3. A grep for a hardcoded `6G`/`6 * 1024**3`/`/sys/fs/cgroup` literal in the new
+   file returns zero hits.
+
+## Out of scope
+
+- goal:qwen3-np64-noise-band's own measurement (p2 holds the model slot)
+- the qwen2 np32 grid (p1's slice)
+- the win/loss/inside-noise rule itself, which already exists at
+  `osc_band_call2_a00-cc7b25cc.py` with a distinct-seed gate and a degenerate-band
+  refusal
+
+## Agent Notes
+Assigned to **p3** in swarm-osc36 (room `swarm-osc36`), model-free slice of the
+iter-36 split of `goal:qwen3-np64-noise-band`.
+
+DIRECTOR HARVEST (director-thought gen 32): the 5.87/6.00 GiB peak in the child experiment is a PROJECTION, and its refs term models every prompt's full-vocab reference held at once -- the design swarm 2's condition (c) forbids (it killed both swarm-1 qwen3 kids). Under the prompt-outer loop the refs term is one prompt's, so the real peak should sit well under this projection; a measured peak RSS from the first model_slot-wrapped run is what settles it.
+
+###### G5.22.1.3 — qwen2 np32 allocation-noise band over >=3 random seeds per cell, so key_only-vs-uniform is called with error bars — status: active
+
+<!-- BODY:BEGIN -->
+# goal:qwen2-np32-noise-band
+
+## Why this exists
+**Parent `goal:g5.22.1`** — its Agent Names says the blocker is n=1: every one of the 16 matched-grid cells was produced by a single hardcoded random draw, while the parent probe (a00-bcea484d) re-drew the random arm at seeds 7/21/99 on qwen2@5.25 and got an agree spread of 0.085 — 3x the key_only margin of 0.028 — with seed 21 beating key_only on KL outright. A verdict cannot be built on a denominator nobody has measured, so this subgoal measures the denominator on one of the two models while p2 measures the other and p3 writes the decision rule against it.
+
+## Target end-state
+- `datasets/osc-band/<osc_band_qknorm_dir>/<mint>-qwen2/cells.jsonl` carries, for every budget in {4.25, 5.25, 6.25, 7.25} and every arm in {uniform, key_only, random}, one row per (cell, arm, seed) with the seed named, `arm_is_stochastic`, and `n` = count of distinct seeds.
+- The random arm has n >= 3 distinct seeds per cell at every budget, so a per-cell allocation-noise band exists for the whole qwen2 np32 grid.
+- Per-cell callable quantity exists: `margin = key_only - uniform` per metric, against a band that is NOT zero.
+
+## Invariants
+- byte-matched: `fixed.bits(uniform) == fixed.bits(matched) == float(budget)` for every cell, re-checked by `--check` before any model loads (osc_band_matched_uniform_a00-a721f95f.py:20 check_table).
+- `n >= 3` binds the STOCHASTIC arm only; uniform and key_only are deterministic given the calibration energy profile, so they are labelled n=1, not padded to n=3 with duplicates.
+- the band denominator is the RANDOM arm's spread over seeds, never a spread of key_only (which is ~0 by determinism and would make every cell a fake win).
+- one model per process, MemAvailable >= 3 GiB checked before launch; outputs under `paths.local_maxxing.osc_band_qknorm_dir`, never `.agi/sessions`.
+- paths live in config, not as literals: no bare `datasets/...` or worktree path in a new script (the parent probe's own copy, a00-bcea484d-probes/probe_noise.py:7-8, hardcodes two absolute paths and is the counterexample).
+
+## Falsifier
+1. `python3 .agi/context/local-maxxing/osc/osc_band_seeds_qwen2_*.py --check` exits 0 and prints OK for all 4 budgets (bit-matched table intact).
+2. `python3 -c "...jsonl..."` — the qwen2 cells file has >= 3 distinct seeds for every random row group, and zero rows lacking a `seed` field. Any group with n=1 is FAILED.
+3. A row whose `(cell, arm)` group has 4 rows all carrying the same `seed` is FAILED (duplicated determinism must not read as n=4).
+4. `grep -c "worktrees" <new script>` is 0 — no absolute worktree literal.
+
+## Out of scope
+- qwen3 / np64 (p2, goal:g5.22.2) — the swarm allows one model-running kid at a time.
+- the win/loss/inside-noise CALL itself (p3, goal:band-call-rule-per-cell G5.22.1.1) — this subgoal produces the numbers and the band, not the verdict.
+- inverse_energy (refuted, 0/8, named out of scope by the parent).
+- new budgets, new models, prompt-bootstrap in place of seed-bootstrap.
+
+## Agent Notes
+Assigned to **p1 (a00-e2d2e39a)** in swarm-osc35, iter 35.
 
 #### G5.23 — TRACK II — fine-tuning the bigger local models off the shelf: SFT/LoRA on our morals + the Sanctuary substack (Shaelaran) with A/B trials, then the fine-tune + the oscillator optimisation, then a quantisation-oriented fine-tune; Camber hours authorised, failing is fine (owner 21:4xZ 09-20) — status: active
 
