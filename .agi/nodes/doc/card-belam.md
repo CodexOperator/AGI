@@ -32,7 +32,7 @@ gen 10 closed PASS 9 (steps 4-9) at 49d2b6f6a and idles for the 20:13Z CHECK. Th
 | GUARD | user@1000 high **6628M / max 7365M** (raised 19:5xZ on the owner's go: guard docker budget 8G -> 6.5G, guard.env.bak-20260926T1955Z; the model container keeps its own 8G cap, peak 6.8G at load) · a pi stage ~210 MiB |
 | TOWN | DE gen 25 (a live suite lock in post-director-engine at 17:3xZ) · TM gen 27 · SM DOWN (owner's go) · 4 kid-worktree suite locks are pre-reboot dead pids |
 | merge | **PASS 9 CLOSED 17:43Z**: season2/main 2c6e8953c -> 49d2b6f6a (merge --no-ff of TIP 9e16b8ed90, pushed) · local-maxxing/main -> 9e16b8ed9 (ff) · grid 28 versions · 56 rounds: 52 accept_with_residue, 4 demote, 0 RED · residues hypothesis:pass9-0926-residue-batch + 5 defect hypotheses (DE) · trunk c2724f841 unpushed (TM's) |
-| crons | CHECK 116eb21c ("13 */4", next 20:13Z; dies with gen 10) · no PASS one-shot armed (section 2 DONE) |
+| crons | CHECK 116eb21c ("13 */4"; ran 20:21Z) · PASS 10 one-shot "23 1 27 9 *" (section 2, noticed 20:2xZ) -- both die with gen 10 |
 | spend | credits 13.75 USD · PASS 9 0 USD |
 | dms | 17:4xZ PASS 9 [decision] -> DE, [merge-up] -> TM · 19:5xZ OWNER: [decision] per-spawn caps -> DE (memory_max 2G + TasksMax 150 + model --memory-max) · [owner] -> TM · [owner] stream -> sanctuary-master (dm file) |
 | branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
@@ -48,10 +48,10 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 49d2b6f6a PASS 9 merge (season2/main, pushed) · local-maxxing/main ff 9e16b8ed9 · grid 28 versions · c2724f841 residue batch + 5 defect hypotheses + the board's PASS line + quorum re-link (trunk; TM pushes) · card commit
 
 ## 🔴 Where it stops
-17:4xZ 09-26 belam-S2-L5-X idles after PASS 9 closed at 49d2b6f6a -- the next act is the 20:13Z CHECK (section 1)
+20:2xZ 09-26 belam-S2-L5-X: the CHECK noticed PASS 10 for 01:23Z 09-27 (section 2) -- next: the 00:13Z CHECK, then PASS 10
 ```
-0. WAKE (a successor): re-arm the CHECK -- CronCreate "13 */4 * * *", the POINTER prompt to section 1 of .agi/sessions/prime-merge.crons.md (transcript 64d3d99e has the exact text); re-link the quorum card (trap 10). No PASS one-shot to re-arm: section 2 is DONE.
-1. The CHECK = section 1 verbatim. BASE = 9e16b8ed90 (the state file). Landed experiments since -> case (b): one 5 h [owner] notice to thought-master + a PASS 10 one-shot; rewrite section 2 from PASS 9's text (BASE 9e16b8ed90, p10chunk/p10retry keys, /tmp/belam-pass10/ copied from /tmp/belam-pass9/).
+0. WAKE (a successor): re-arm the CHECK -- CronCreate "13 */4 * * *", the POINTER prompt to section 1 of .agi/sessions/prime-merge.crons.md (transcript 64d3d99e has the exact text); re-link the quorum card (trap 10). Re-arm the PASS 10 one-shot too (CronCreate "23 1 27 9 *", recurring false, the POINTER prompt to section 2) unless the state file carries pass_started_at.
+1. PASS 10 is armed: section 2 rewritten (BASE 9e16b8ed90, p10 keys, /tmp/belam-pass10/ from /tmp/belam-pass9/); the 00:13Z CHECK finds the notice pending (case c) -- nothing to do until 01:23Z.
 2. PASS 10 must re-review b6438bd7e (the capture latch fix): PASS 9's engine-delta-5 demote rests on it.
 3. Inbox: DE answers the [decision] only if a row is wrong; if TM's [merge-up] comes back [undelivered], re-send it once.
 ```
