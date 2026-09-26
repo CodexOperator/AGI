@@ -6,7 +6,7 @@ parents:
   - goal:g1
   - hypothesis:pass8-0926-residue-batch
 next_edges: []
-edited_by: belam
+edited_by: a00-82c2b89e
 scaffold_hash: ab0bf3563c32749b
 season: 2
 testable_claim: brief.py _extras_ref_text refuses by name any ref whose resolved path leaves <graph>/context (dot-dot segments, absolute paths, symlinks out), and a fixture ref of context/../../.env yields that refusal, never file bytes.
@@ -26,3 +26,7 @@ town: core
 
 ## Agent Notes
 assigned: director-engine (PASS 8 residue, belam-S2-L5-IX 09-26; runs mur-p8chunk{1..15}of15)
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+experiment:a00-82c2b89e-dabc7c probed all three conjuncts on the real bytes: dot-dot (the claim own .env fixture), symlink out, absolute ref -- all refuse by name, no bytes, positives still read. The absolute conjunct is refused by _node_text, not by the containment check: a string cannot be absolute AND context/-prefixed, so the branch is unreachable for it. Guard is real, not a blanket refusal.
+<!-- THOUGHT:END -->

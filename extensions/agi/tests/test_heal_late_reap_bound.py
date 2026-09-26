@@ -15,6 +15,7 @@ from __future__ import annotations
 import datetime
 import importlib.util
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -143,8 +144,65 @@ def test_absent_bound_cell_uses_code_default(graph, tmp_path):
     assert _wait(graph, rec, _now(60.0))["bound_s"] == 1800.0
 
 
-# a record with no parsable recorded_at can never be aged: waiting, not a
-# fabricated age (MEASURED GAP, recorded in the node).
-def test_no_timestamp_never_abandons(graph):
-    out = _wait(graph, _rec(recorded_at=""), _now(10.0))
-    assert out["action"] == "waiting" and out.get("reason") == "no-recorded_at"
+# CONJUNCT A (hypothesis:heal-late-reap-bound-covers-an-unparsable-record-
+# and-stale-pin-logs-once). The test below USED TO assert the UNBOUNDED wait
+# was correct — that was a test of the gap, not of the product. The contract
+# is now: a record whose recorded_at will not parse is aged from a PERSISTED
+# first-seen stamp, so it CLOSES past the declared bound like any other.
+LATE_REAP_SEEN = "late-reap-first-seen.json"
+
+
+def _state_file(graph: Path) -> Path:
+    return heal._reaper_state_file(graph, LATE_REAP_SEEN)
+
+
+def test_unparsable_recorded_at_is_bounded_not_unbounded(graph, tmp_path):
+    rec = _rec(recorded_at="")            # unparsable
+    p = _rec_path(tmp_path, rec)
+    first = _wait(graph, rec, _now(60.0), record_path=p)
+    assert first["action"] == "waiting", first
+    assert first["ts_source"] in ("mtime", "first-pass"), first
+    # the stamp is PERSISTED, not `now` re-read every pass
+    assert _state_file(graph).is_file(), "no persisted first-seen stamp"
+    second = _wait(graph, rec, _now(960.0), record_path=p)
+    assert second["ts_source"] == "first-seen", second
+    # ...and the wait ACCUMULATES (900s, not a reset 0) and crosses the bound
+    assert second["waited_s"] >= 900.0, second
+    third = _wait(graph, rec, _now(3660.0), record_path=p)
+    assert third["action"] == "abandoned" and third["waited_s"] > 1800.0, third
+    doc = json.loads(p.read_text())
+    assert doc["s12_self_reap"]["state"] == "abandoned", doc
+    # the next pass is the existing idempotence guard, nothing re-closes
+    assert _wait(graph, doc, _now(7200.0), record_path=p)["already"] is True
+
+
+def test_unparsable_recorded_at_bounded_across_processes(graph, tmp_path,
+                                                         monkeypatch):
+    """The stamp lives on DISK, not in module memory: a FRESH interpreter
+    keeps accumulating the wait (the probe the parent runs)."""
+    rec = _rec(recorded_at="not a timestamp")
+    p = _rec_path(tmp_path, rec)
+    first = _wait(graph, rec, _now(10.0), record_path=p)
+    assert first["action"] == "waiting", first
+    import subprocess  # noqa: PLC0415
+    script = (
+        "import json, sys, datetime, rotate, heal\n"
+        "from pathlib import Path\n"
+        "g, p = Path(sys.argv[1]), Path(sys.argv[2])\n"
+        "rec = json.loads(p.read_text())\n"
+        "now = datetime.datetime(2026, 9, 26, tzinfo=datetime.timezone.utc)"
+        ".timestamp() + 960.0\n"
+        "o = heal._late_reap_for_skipped(g, rec, record_path=p,"
+        " rows=[{'name': 'belam', 'role': 'director', 'pid': 1}],"
+        " tmux_session='', window_path=None,"
+        " registry_dir=str(p.parent / 'nope'), pids_for=lambda n: [1],"
+        " rot=rotate, now=now)\n"
+        "print(json.dumps(o))\n"
+    )
+    env = dict(os.environ, PYTHONPATH=str(BIN))
+    out = subprocess.run([sys.executable, "-c", script, str(graph), str(p)],
+                         capture_output=True, text=True, env=env)
+    assert out.returncode == 0, out.stderr
+    got = json.loads(out.stdout.strip().splitlines()[-1])
+    assert got["action"] == "waiting", got
+    assert got["ts_source"] == "first-seen" and got["waited_s"] > 900.0, got

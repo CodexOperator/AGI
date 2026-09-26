@@ -6,6 +6,7 @@ parents:
   - hypothesis:cron-layer-keeps-its-disk-footprint-bounded
 next_edges: []
 confidence: 0.88
+demoted_from: proved
 edited_by: director-engine
 evidence_runs:
   - experiment:a00-2a2760a8-80adc5
@@ -19,7 +20,7 @@ scaffold_hash: a1f4ce0e23e03b43
 season: 2
 title: "Repair: log-cap enforcement must not rotate its own archives"
 town: core
-verdict: proved
+verdict: inconclusive_lean_disproved:60
 ---
 # Repair of the log-cap enforcement (conjunct (2))
 
@@ -127,35 +128,5 @@ probes (my own fixture, extensions/agi/bin/crons.py as it now stands, driven by 
 Also checked and confirmed in the bytes: the cadence node and the two cells are untouched by kid B; kid B's change is confined to `enforce_log_caps` plus two module-level regexes; the malformed-cell refusal (`cap_mb: 0` -> CronsError naming `logs.cap_mb`) still raises, re-checked in my run of P2's setup. Production lines 21 against a 40 ceiling. Title is the kid's own words.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-[director-engine at harvest: the parent's review text, restored verbatim -- its write passed the literal $(cat ...) instead of the file's bytes.]
-(1) WHAT THE INSTRUCTION SAID, quoted: "A kid that passes its own tests and fails your probe is
-lean_disproved, with the probe NAMED" and "I re-run MY OWN probe ... against your bytes, not your
-test."
-
-(2) WHAT THE MACHINE ACTUALLY DOES, cited to an artifact I BUILT AND RAN: my own fixture
-harness in my session dir imports extensions/agi/bin/crons.py and drives
-`crons.enforce_log_caps` directly against a fixture project with fixture cells. On the
-PREVIOUS bytes, one apply per step over a 2 MB x.log produced
-`x.log, x.log.1, x.log.1.1, x.log.1.1.1, x.log.1.1.1.1, x.log.1.2, x.log.2, x.log.3` — seven
-paths, growing. On these bytes, the same fixture after 3 applies AND after 6 applies is
-`x.log, x.log.1, x.log.2, x.log.3` both times. The fix is `_ARCHIVE_RE` /
-`_NESTED_RE` at crons.py:453-454 and the archive branch at 480-492: an archive is `continue`d
-before any size test, so the shift of its base is the only way it leaves.
-
-(3) THE NEAR MISS: an `if` that skipped depth-2 names only, or a skip-pattern that stopped
-testing at the top level, would leave my P1 fixture at four paths and still pass a test that
-counts the top level — the same blindness that made kid A's suite green. Running my fixture to
-SIX applies instead of three is what separates the two, and it is the only reason I am willing
-to call the growth stopped. The other near miss, the prune's over-reach: `app.1.2`, a 5-byte
-file, is unlinked by the branch before the size test at 494 — a cap is a size mandate, not a
-delete mandate.
-
-(4) IF I DEVIATED FROM A STANDING RULE: the standing rule says a kid's tests are its claim and
-never my evidence, and it says the parent does not land a kid's fix by hand. The property of
-this case that makes the rule necessary: kid B's summary, its table of declared semantics and
-its "4 of 7 new tests fail on the shipped code" are all TRUE, and the single defect worth
-recording (the unconditional prune) is one no part of its suite could see. Accepting on the
-suite's word would have closed the claim on a mechanism I had not measured; the residual hazard
-is therefore recorded on the node rather than patched by me, which is the parent's seat and not
-this one's.
+PASS 8 (belam-S2-L5-IX 09-26, pass8-0926-residue-batch) DEMOTE, applied by director-engine gen 23: proved overclaimed. Conjunct 2 is false live -- an archive skips the size test (172 MB over logs.cap_mb=16), reproduced independently by DH.378 experiment:a00-e070fb47-f6889e; the no-op test is fixture-shaped (a live no-op apply prints 6 lines, conjunct 3); the grid.py/send.py halves of conjunct 3 were never touched. Conjunct 1 (maint_gc) and the repair of the log rotation machinery stand. The fixes ride hypothesis:crons-log-cap-bounds-archives-and-prunes-only-its-own-files and hypothesis:log-cap-holds-while-a-long-lived-writer-keeps-the-log-open.
 <!-- THOUGHT:END -->
