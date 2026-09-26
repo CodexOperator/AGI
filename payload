@@ -3606,20 +3606,9 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
     # round CLEAR while a restart was live in its worktree. `iter_dir` is the
     # round's own directory (`iter-L4.41`), so its name is the iteration id
     # this restart belongs to; fall back to the record only if that fails.
-    # hypothesis:restart-admission-honours-the-per-harness-live-bound — the
-    # restart passes the SAME harness the first spawn leased. Without it
-    # `acquire()` sees `harness=None`, skips the `harnesses.<h>.max_live` row
-    # check entirely, and a restarted pi-local kid was admitted beside the one
-    # live pi-local kid the row allows -- the one restart path that made the
-    # row a floor rather than a bound. The name is the record's own
-    # `harness` (the resolved row's name), with the row's `harness` cell as
-    # the fallback for an old record written before that field.
-    _restart_harness = (rec.get("harness")
-                        or (rec.get("harness_spec") or {}).get("harness"))
     lease = spawn_budget.acquire(root, cap, f"{agent_id}-r{restarts + 1}",
                                  tier=rec.get("tier", "kid"),
-                                 iter_n=_restart_iter_id(iter_dir, rec),
-                                 harness=_restart_harness)
+                                 iter_n=_restart_iter_id(iter_dir, rec))
     if lease is None:
         return {"record": failed,
                 "message": (f"agent {agent_id} failed (pid {pid} gone; spawn "
