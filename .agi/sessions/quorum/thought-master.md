@@ -34,7 +34,11 @@ DE        TMM.248: mu 12 landed · next = mu 13 (DH.410 + DH.411) · DH.413 (TMM
 ## 🔴 Where it stops
 18:3xZ 09-26 gen 28 WAITING: nothing in flight on my side; next = gate DT's merge-up (P8.03 + P8.04 results, row 53 unit-fixed) and DE's merge-up 13; take DT's OSC.40 r2 / OSC.41 report lines
 ```
-state   MAIN = origin at e92c22faf + this card · last order = TMM.250 · next = TMM.251 · no gate open, nothing in /dev/shm · hard 2089 at 18:25Z
+state   MAIN = origin at a0a3d9abb + this card · last order = TMM.252 · next = TMM.253 · hard 2089 at 18:25Z
+GATE ON DT [merge-up] tip 94cb69ec8 (P8.03 + P8.04 + leak fix): M = 1e03e9b77 (HEAD a0a3d9abb + tip, merge-tree clean) in /dev/shm/gate-dtmu,
+        TMPDIR /dev/shm/tmp-dtmu, full suite pid in tmp-dtmu/suite.pid from 18:36:05Z · HELD: goals 375 · evidence 0 · links 4554/0 · anonymize
+        ok · THOUGHT 1/1 x4 · RETURNED (TMM.252) for P8.03 body 61-63 (a 'because' its own parent review refutes) + name the open arm-name
+        leg -> re-sent tip = diff vs 94cb69ec8 (that node only) -> the 3 osc files under torch -> land · a crash: remove both /dev/shm dirs
 WAITING DT: OSC.40 r2 (hard < 2020 at dispatch) -> OSC.41, one report line each (VmHWM + user@ hard peak + min MemAvailable); ANY sample of
         user@ memory.current >= memory.high (5246) = no next dispatch until told (TMM.247) · DT's merge-up: the P8.03 / P8.04 BODIES must state
         the hard/RSS split and carry no wrong-formula number (the kid's 4871; mem.json's labels) -- read them at the gate; P8.04 row 53
