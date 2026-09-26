@@ -4,8 +4,11 @@ import json
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
 import crons  # noqa: E402
+import locations  # noqa: E402
 import memory_alarm as m  # noqa: E402
 
 TH = argparse.Namespace(warn_avail_mib=2048, crit_avail_mib=1024,
@@ -123,13 +126,61 @@ def test_the_default_alerts_log_lands_where_the_cap_looks(tmp_path, monkeypatch)
     assert written.stat().st_size == 0
 
 
-def test_the_alerts_log_name_is_a_cell_not_a_path(tmp_path, monkeypatch):
-    """The cell carries a NAME. A path in it would re-open the subdirectory
-    hole the cap's non-recursive glob cannot see."""
+@pytest.mark.parametrize("bad", [
+    "sanctuary/alerts.log",   # a subdirectory: the pre-fix hole, uncapped by the glob
+    "/tmp/escape.log",        # absolute: outside the capped dir entirely
+    "../escape.log",          # a traversal out of the capped dir
+    "sub\\alerts.log",        # a separator the cap's glob cannot see on this box
+    "..",                     # the parent dir itself
+    "", "   ",                # empty after strip: a dir, not a file
+])
+def test_the_alerts_log_name_is_a_cell_not_a_path(tmp_path, monkeypatch, bad):
+    """The cell carries a NAME, or it is REFUSED BY NAME. A path in it would
+    re-open the subdirectory hole the cap's non-recursive glob cannot see, so
+    a malformed cell raises `CronsError` exactly as a malformed
+    `logs.cap_mb`/`logs.mode` does -- a cap that silently does not apply is
+    worse than no cap."""
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     root = tmp_path / "proj"
     root.mkdir()
-    (root / "agi-tree.config.json").write_text(json.dumps(
-        {"logs": {"alerts_file": "sanctuary/alerts.log"}}))
-    assert crons.alerts_log(root) == crons.logs_dir() / "sanctuary" / "alerts.log"
-    assert crons.alerts_log(root).parent != crons.logs_dir()  # the shape the fix removed
+    (root / "agi-tree.config.json").write_text(json.dumps({"logs": {"alerts_file": bad}}))
+    with pytest.raises(crons.CronsError, match="logs.alerts_file"):
+        crons.alerts_log(root)
+    assert not (tmp_path / "escape.log").exists()
+
+
+def test_the_default_alerts_file_name_still_resolves(tmp_path, monkeypatch):
+    """The guard is not a ban: the shipped bare NAME resolves into the capped
+    dir, and an ABSENT cell falls back to `crons.ALERTS_FILE`."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    (tmp_path / "home" / "logs").mkdir(parents=True)
+    for cell in (None, "alerts.log"):
+        root = tmp_path / ("p-absent" if cell is None else "p-present")
+        root.mkdir()
+        (root / "agi-tree.config.json").write_text(json.dumps(
+            {} if cell is None else {"logs": {"alerts_file": cell}}))
+        assert crons.alerts_log(root).parent == crons.logs_dir()
+        assert crons.alerts_log(root).name == (cell or crons.ALERTS_FILE)
+
+
+# --- the claim, restated: NO path literal is left in memory_alarm.py ------
+
+def test_the_state_path_comes_from_the_sessions_resolver(tmp_path, monkeypatch):
+    """No `--state` means `locations.sessions_dir(root) / STATE_FILE` -- the
+    ONE sessions resolver, so the state file follows the room the graph moved
+    it to. A `<root>/"sessions"/...` literal is a path a reader cannot move."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    (tmp_path / "home" / "logs").mkdir(parents=True)
+    root = tmp_path / "proj"
+    (root / "sessions").mkdir(parents=True)
+    (root / "agi-tree.config.json").write_text("{}")
+    monkeypatch.setattr(m, "_dm", lambda *a: None)
+    argv = ["--root", str(root), "--warn-avail-mib", "1e12",
+            "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000",
+            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000",
+            "--repeat-mins", "15", "--cgroup", str(tmp_path / "no-cgroup")]
+    assert m.main(argv) == 0
+    state = locations.sessions_dir(root) / m.STATE_FILE
+    assert state.is_file() and json.loads(state.read_text())["level"] == "warn"
+    src = Path(m.__file__).read_text()
+    assert 'STATE_FILE' in src and '"sessions"' not in src.split("def main")[1]
