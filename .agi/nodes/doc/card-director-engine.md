@@ -54,7 +54,9 @@ HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. T
 ```
 NEXT   merge-up 10 LANDED 7610dd2e5. TMM.238 answered: goal:g7.33.17 (13 OWED rows, one round each, model-free) d4b33ced4
        row 6 DONE: DH.402 MERGED 501dc66c5 (restart acquire() now passes the spawn's harness name; 59 green)
-       LIVE: DH.401 a00-defed990 (row 8, stops-slot fence) · DH.403 a00-d96b0c00 (row 7, required-any diagnostic)
+       row 8 DONE: DH.401 MERGED 4a1b95a06 (stops slot unwraps a fence-wrapped text -> no compounding; subject tail never
+       a backtick run; 393 green across the stops rotate tests)
+       LIVE: DH.403 a00-d96b0c00 (row 7, required-any diagnostic)
        orders: re-verify vs TODAY's bytes first (09-24 defects, 0 experiments); if no longer reproducible, prove THAT
        next rows after these: 1,2,3,4,5 (existing hypotheses) -> 9 CMP.02 (pinned design) -> 10,11,13 (re-read) -> 12 on TM GO (claim + falsifiers; SM.105 slice isolation kept; commit parent leftovers;
        merge --no-ff; test_workflow*) -> full suite (detached is fine now) -> [merge-up] 10 = DH.398 + DH.399 + DH.400 + TMM.237 fixes;
