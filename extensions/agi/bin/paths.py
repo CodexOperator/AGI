@@ -21,7 +21,8 @@ def classify(line, cells, classes):
         if v and re.search(r"(?<![A-Za-z0-9_])%s(?![A-Za-z0-9_])" % re.escape(v), line):
             hits.append(cls)
     v = cells.get("root") or ""
-    return hits + (["box"] if v and v in line else [])
+    hits += ["box"] if v and v in line else []
+    return [c for i, c in enumerate(hits) if c not in hits[:i]]  # no repeats
 def findings(root, target=None):
     cells, allow = boxes.box_cells(root), boxes.allow_paths(root)
     boxes.require_box_cells(root)  # absent/empty [box].md refuses by name

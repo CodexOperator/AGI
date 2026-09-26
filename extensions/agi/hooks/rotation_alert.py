@@ -44,7 +44,7 @@
 #
 #    "UserPromptSubmit": [ { "hooks": [
 #        { "type": "command",
-#          "command": "python3 /home/ubuntu/work/agi/extensions/agi/hooks/rotation_alert.py",
+#          "command": "python3 <this box's engine root>/extensions/agi/hooks/rotation_alert.py",
 #          "timeout": 10,
 #          "statusMessage": "agi rotation meter..." } ] } ]
 #
@@ -333,7 +333,7 @@ def _canonical_pin(root: Path, seat: str) -> Path | None:
     `rotate._sessions_dir` routes them to the MAIN checkout via
     `locations.git_common_root`, while a seat's root is its own worktree. On
     this box that is the difference between
-    `/home/ubuntu/work/agi/.agi/sessions/` (where every reader looks) and
+    the MAIN checkout's `.agi/sessions/` (where every reader looks) and
     `…/.agi/worktrees/seat-<name>/.agi/sessions/` (where nothing does), so a
     naive join emits a command that writes a pin no later `--seat` read will
     ever find.
