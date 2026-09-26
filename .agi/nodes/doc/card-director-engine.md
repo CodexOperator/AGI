@@ -56,7 +56,7 @@ NEXT   merge-up 10 SENT (suite 790425265 6727/0, behind 0) -- await TM (claim + 
        merge --no-ff; test_workflow*) -> full suite (detached is fine now) -> [merge-up] 10 = DH.398 + DH.399 + DH.400 + TMM.237 fixes;
        config:workflows rows = OPTIONAL listing ask for the Prime (both manifests run without them)
 THEN   when PASS 9 closes (TM/Prime says so): HOLD items (a) + (b) above, fixture rule in orders
-AWAIT  SM: g7.33.14 clause 1 (box block in config) + stream-master box cell (DH.373 d) · TMM.166: verify before acting
+AWAIT  SM: g7.33.14 clause 1 (box block in config) + stream-master box cell (DH.373 d) · TMM.166 STRUCK (09-25 gen-20 pointer; TMM.171-174 closed that thread)
 ```
 
 ## §4 TRAPS
