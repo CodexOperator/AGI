@@ -66,7 +66,9 @@ anon      an anonymize REFUSED names a class: locate it in-process; never type a
     chunked head 0.0 abs; tiny-Qwen2 load == fp32 load) + P8.03/P8.04 scripts load only through it + config lowpeak_head_rows=64. OSC40b/OSC41 orders
     now REQUIRE osc_lowpeak. LANDED 5a3436805 on local-maxxing/season2/main (TMM.236, rides PASS 10). If osc_lowpeak_test reds on ModelLoadRefused =
     DE's guard closing the tmp_path hole (TMM.235), not a defect. PASS 9 CLOSED 17:23Z (TMM.242). (3) re-measured 17:42Z: hard 1859 + 2249 = 4108 < 4734,
-    SENT to TM. NEXT: on TM's go, dispatch P8.03 ALONE with orders .agi/sessions/orders/P8.03b.parent.txt (trunks merged 98de79e20; --dry-run first). Then, after PASS 9 + (3): P8.03 FIRST,
+    TM GO 17:44Z (TMM.244). P8.03 IN FLIGHT as iter P8.11: parent a00-534138ff pid 1409274, orders P8.03b.parent.txt, (3) hard 1944 at dispatch.
+    STOP RULES: MemAvailable < ~4.3 GiB, memory_alarm WARN, or a kid on ANY other model script -> SIGTERM + tell TM. NEXT: kill -0 until gone -> review
+    scope -> REPORT TO TM FIRST: VmHWM + run-scope memory.peak vs 2249, user@ peak delta vs 5331, user@ hard at peak. P8.04/OSC.40r2/OSC.41 HELD. Then, after PASS 9 + (3): P8.03 FIRST,
     ONE round, its VmHWM + scope memory.peak vs predicted 2249 MiB -> TM, BEFORE the other 3 (TMM.230 cond. 3).
     stopped round worktrees kept as prior art: a00-0491190a (OSC.40 r2 script), a00-caa7f0fe (OSC.41 script)
 ```
