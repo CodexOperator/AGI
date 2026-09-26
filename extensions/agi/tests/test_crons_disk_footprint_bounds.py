@@ -278,3 +278,129 @@ def test_a_noop_apply_writes_exactly_one_line(tmp_path, capsys,
         f"crons: no-op — the crontab already matches the node "
         f"({installed - 1} line(s))"], out
     assert os.path.isfile(fixture)
+
+
+# --- (2) the cap enforcement is ITSELF bounded ---------------------------
+#
+# A ROTATED ARCHIVE lives in the same dir and is the same size as the log it
+# came from, so an enforcement that globs `*` and rotates whatever is over the
+# cap rotates its own archives too: `x.log` -> `x.log.1` -> `x.log.1.1` -> ...
+# One more nesting level per apply, forever. The cap then GROWS the footprint
+# it was declared to bound.
+
+
+def _names(logs: Path) -> list[str]:
+    return sorted(p.name for p in logs.iterdir())
+
+
+def test_n_applies_leave_exactly_one_base_plus_n_rotations(tmp_path,
+                                                           redirected_home):
+    """The claim: N applies over one over-cap log leave `1 + rotations` paths.
+
+    The shipped code leaves seven (with rotations=3) and adds a nesting level
+    every apply. This cannot have passed before the repair: the assertion is on
+    the PATH SET, not on any one file's size.
+    """
+    home = redirected_home
+    logs = home / "logs"
+    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 3})
+    big = logs / "x.log"
+    big.write_bytes(b"a" * (2 * 1024 * 1024))
+    for _ in range(3):
+        big.write_bytes(b"a" * (2 * 1024 * 1024))
+        crons.enforce_log_caps(root, root, dry_run=False)
+    assert _names(logs) == ["x.log", "x.log.1", "x.log.2", "x.log.3"]
+    assert big.stat().st_size == 0  # the LAST apply rotated it, once
+    assert (logs / "x.log.3").stat().st_size == 2 * 1024 * 1024
+    assert not list(logs.glob("*.1.*")), "a rotation rotated a rotation"
+
+
+def test_a_base_exactly_at_the_cap_is_left_alone(tmp_path, redirected_home):
+    """Boundary DECLARED: over-cap is strictly `>`; at the cap is kept."""
+    home = redirected_home
+    logs = home / "logs"
+    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 2})
+    at = logs / "at.log"
+    at.write_bytes(b"a" * (1024 * 1024))
+    assert crons.enforce_log_caps(root, root, dry_run=False) == []
+    assert _names(logs) == ["at.log"]
+
+
+def test_rotations_zero_truncates_in_place_and_keeps_one_path(tmp_path,
+                                                              redirected_home):
+    """Boundary DECLARED: `rotations: 0` means no archive is kept -- the log
+    is emptied in place, so the dir holds ONE path, forever."""
+    home = redirected_home
+    logs = home / "logs"
+    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 0})
+    big = logs / "x.log"
+    for _ in range(3):
+        big.write_bytes(b"a" * (2 * 1024 * 1024))
+        crons.enforce_log_caps(root, root, dry_run=False)
+    assert _names(logs) == ["x.log"]
+    assert big.stat().st_size == 0
+
+
+def test_an_archive_named_like_one_from_outside_is_never_rotated_as_a_base(
+        tmp_path, redirected_home):
+    """Boundary DECLARED: `<x>.1` is an ARCHIVE by shape wherever it came
+    from. It is pruned by its own base's rotation shift (or deleted as the
+    oldest slot), never rotated into `<x>.1.1`."""
+    home = redirected_home
+    logs = home / "logs"
+    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 2})
+    orphan = logs / "external.log.1"
+    orphan.write_bytes(b"a" * (2 * 1024 * 1024))
+    for _ in range(3):
+        crons.enforce_log_caps(root, root, dry_run=False)
+    assert not list(logs.glob("*.1.*"))
+
+
+def test_a_legacy_nested_residue_is_pruned_not_rotated(tmp_path,
+                                                        redirected_home):
+    """Boundary DECLARED: `x.log.1.1` can only be residue of the pre-fix
+    unbounded enforcement. It is DELETED, not rotated deeper -- the footprint
+    it left shrinks, monotonically, on the next apply."""
+    home = redirected_home
+    logs = home / "logs"
+    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 3})
+    (logs / "old.log.1.1.1").write_bytes(b"a" * (2 * 1024 * 1024))
+    out = crons.enforce_log_caps(root, root, dry_run=False)
+    assert not (logs / "old.log.1.1.1").exists()
+    assert any("residue" in line for line in out), out
+    assert crons.enforce_log_caps(root, root, dry_run=True) == []
+
+
+def test_a_directory_and_a_symlink_in_the_logs_dir_are_left_alone(
+        tmp_path, redirected_home):
+    """Boundary DECLARED: a subdirectory is not a log; a symlink is an
+    operator's link to somewhere else, and rotating it would sever it (and
+    truncating it would empty the target). Neither is touched."""
+    home = redirected_home
+    logs = home / "logs"
+    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 2})
+    elsewhere = tmp_path / "elsewhere.log"
+    elsewhere.write_bytes(b"a" * (2 * 1024 * 1024))
+    (logs / "sub").mkdir()
+    (logs / "sub" / "x.log").write_bytes(b"a" * (2 * 1024 * 1024))
+    link = logs / "linked.log"
+    link.symlink_to(elsewhere)
+    assert crons.enforce_log_caps(root, root, dry_run=False) == []
+    assert link.is_symlink() and elsewhere.stat().st_size == 2 * 1024 * 1024
+    assert (logs / "sub" / "x.log").stat().st_size == 2 * 1024 * 1024
+
+
+def test_a_legitimately_named_log_with_a_digit_suffix_is_still_a_base(
+        tmp_path, redirected_home):
+    """The NEAR MISS, pinned: an archive is `<stem>.<digits>` AT THE END. A
+    log legitimately named `agi-crons-x.1.log` does not match, and stays a
+    base -- capped, rotated, with its own `rotations` archives."""
+    home = redirected_home
+    logs = home / "logs"
+    root = make_project(tmp_path, {"cap_mb": 1, "rotations": 2})
+    base = logs / "agi-crons-x.1.log"
+    base.write_bytes(b"a" * (2 * 1024 * 1024))
+    out = crons.enforce_log_caps(root, root, dry_run=False)
+    assert [o for o in out if base.name in o], out
+    assert base.stat().st_size == 0
+    assert (logs / f"{base.name}.1").stat().st_size == 2 * 1024 * 1024
