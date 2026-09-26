@@ -45,6 +45,8 @@ PASS 8  pre-check 05:3xZ on 2dd64167d (280 commits from 08a9cf60f8): 0 node dele
         belam's 20680940c; [red] sent 04:5xZ) · schema gaps (verdict 2, build 1, experiment 1) exist on MAIN, none added by my landings
 DISK    io PSI some ~90% since at least 05:16Z; the disk 87-99% busy at 0.4-8 MiB/s; memory PSI ~2% -> the guard's watchdog does not see it
 DE      e82778bb2: judged green on DH.367 / 372-376 (card lines above, TMM.208) · owed = one full suite on HEAD + the tip, then land
+RUNNING suite M6 (HEAD 506eaf5d2 + DE e82778bb2; contribution == the judged diff(G3, G4)) on TMPFS: worktree /dev/shm/tm-gate6, TMPDIR
+        /dev/shm/tm-tmp, started 05:41:13Z (scratchpad/suite-m6.pid/.log, gate6-ids.txt) -> green = land; remove BOTH /dev/shm dirs after
 NEXT    (1) io PSI < ~20% -> gate M = HEAD + e82778bb2 (fresh merge-tree; its contribution must equal diff(G3, G4) in gate2-ids.txt) ->
             the suite -> land -> TMM.209 to DE · while io PSI stays high: hold, add no load
         (2) new [merge-up]s: the same gate; evidence dry-run ON .agi; a validation gate = judged over every live node
