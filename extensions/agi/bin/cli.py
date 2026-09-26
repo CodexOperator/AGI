@@ -32,6 +32,7 @@ import frontmatter  # noqa: E402
 import geometry_config  # noqa: E402
 import grid  # noqa: E402 -- the ONE ref-namespace resolver (goal:g14.14.7)
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
+import links  # noqa: E402 -- parse_written_by, the ONE parse of a type's writers
 import locations  # noqa: E402
 import node_writer  # noqa: E402
 import spawn_budget  # noqa: E402
@@ -2120,16 +2121,21 @@ def cmd_scope_check(args: argparse.Namespace) -> int:
 
 
 def _round_named_node_ids(rec, parent) -> list:
-    """hypothesis:a-kid-can-commit-the-existing-nodes-its-orders-name --
-    the node ids the round's ORDERS name: the target the record carries, the
-    parent it was given, and `--parent` on the command line. A kid ordered to
-    correct an EXISTING node in place cannot have that edit committed by any
-    other rule (its own node is its own; a foreign node is foreign), so the
-    round's own NAMED set is the target plus these. Ids only -- each is
-    resolved to an existing file by `_round_own_node_paths`."""
+    """hypothesis:a-rounds-named-node-set-is-its-dispatch-time-ids-never-a-kid-
+    supplied-parent -- the node ids the round's ORDERS name: ONLY what
+    dispatch wrote into the agent record (`target` / `parent` / `node_id`).
+    A kid ordered to correct an EXISTING node in place cannot have that edit
+    committed by any other rule (its own node is its own; a foreign node is
+    foreign), so the round's own NAMED set is the target dispatch picked.
+    `--parent` is the KID's line, not dispatch's, so it is read here for
+    signature compatibility and never widens the set -- before, one round
+    could name `config:posts` on the command line and have that edit swept
+    into its own loop-branch commit. `parent` stays in the signature (call
+    sites and tests name it) but contributes NOTHING. Ids only -- each is
+    filtered by type in `_round_own_node_paths`."""
     out = []
-    for v in (parent,
-              (rec or {}).get("target") if isinstance(rec, dict) else None,
+    del parent   # dispatch-time ids only; the kid's --parent never widens
+    for v in ((rec or {}).get("target") if isinstance(rec, dict) else None,
               (rec or {}).get("parent") if isinstance(rec, dict) else None,
               (rec or {}).get("node_id") if isinstance(rec, dict) else None):
         if isinstance(v, str) and ":" in v and v not in out:
@@ -2137,13 +2143,53 @@ def _round_named_node_ids(rec, parent) -> list:
     return out
 
 
+def _round_committable(root: Path, nid: str) -> bool:
+    """May a round's `done` commit sweep node id `nid`? Two DATA gates, no
+    type list in code (hypothesis:a-rounds-named-node-set-is-its-dispatch-time-
+    ids-never-a-kid-supplied-parent):
+      1. `grid.round_commit` in `.agi/config.json` -- `node_types` (a type no
+         round may edit: goal, config, town, ...) and `never_node_ids` (id
+         prefixes: `doc:unified-`). An ABSENT cell gates nothing, so a fixture
+         or a fresh tree behaves as it did.
+      2. the type's OWN schema `written_by` (`.agi/context/schemas/[<type>].md`
+         via `schema_registry`, the same reader `write.py` enforces it with) --
+         a type admitting ONLY owner/prime_director is never round-editable.
+    """
+    ntype = nid.split(":", 1)[0]
+    try:
+        from schema_registry import load_schemas_from_dir
+        sdir = Path(root) / "context" / "schemas"
+        if sdir.is_dir():
+            sch = load_schemas_from_dir(sdir).get(ntype)
+            if sch is not None:
+                wb = links.parse_written_by(sch.frontmatter.get("written_by"))
+                if wb and not (wb - {"owner", "prime_director"}):
+                    return False
+    except Exception:  # noqa: BLE001 -- an unreadable schema gates nothing
+        pass
+    try:
+        cfg = json.loads((Path(root) / "config.json").read_text(encoding="utf-8"))
+        rc = ((cfg.get("grid") or {}).get("round_commit") or {})
+    except (OSError, ValueError, AttributeError):
+        rc = {}
+    if any(isinstance(p, str) and nid.startswith(p)
+           for p in (rc.get("never_node_ids") or [])):
+        return False
+    types = rc.get("node_types")
+    return not (isinstance(types, list) and types and ntype not in types)
+
+
 def _round_own_node_paths(root: Path, checkout_root: Path,
                           node_id: str | None, owns: list | None,
                           named: list | None = None) -> set:
-    """The round's own node files, relative to the checkout toplevel."""
+    """The round's own node files, relative to the checkout toplevel. The
+    round's OWN node is always its own; every other id -- `--owns` and the
+    dispatch-time named set alike -- must be round-committable by type."""
     out = set()
     for nid in [node_id, *(owns or []), *(named or [])]:
         if not nid:
+            continue
+        if nid != node_id and not _round_committable(root, nid):
             continue
         nf = _find_node_file(root, nid)
         if nf and nf.exists():
