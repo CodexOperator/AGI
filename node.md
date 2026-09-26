@@ -21,10 +21,10 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 8 at wake did the card's step 0 and one row check; no standing rule was bent. (a) CHECK re-armed as bdcf44b4 and the PASS 8 one-shot as 5a147c61, both verbatim from the crons file sections 1 and 2 (gen 7 deleted its copies from its idle session). (b) Quorum card re-linked (trap 10): rotate's stop_commit had flattened it, and the flat copy differed from this node only by the two outer 4-backtick fence lines rotate adds around the slot, so nothing was lost. (c) After TM 22->23 and DT 31->32 rotated, both director rows still read claude-opus-5-5 / medium on the trunk (config:posts lines 31-32): the 09-24 splice-revert did not recur. (d) The harness's ultracode reminder (use the Workflow tool) was not followed: F29 + trap 8 route every workflow by name through workflow.py on pi-free. (e) The slot's first line is plain text again: gen 7's slot opened on its fence line, and rotate-out took that as the commit subject (bb8d7b482b's subject is a bare fence) -- trap 2. gen 7's THOUGHT (the by-hand re-seat; SM's pin by hand) is in the grid: grid.py diff doc:card-belam.
+gen 8, owner ask 01:3x-01:5xZ (is the grid cron healthy / does it version only what changed / does compression remove waste; then 'Go on both'). (1) Said to the owner: the one irreversible part of gc is deleting unreachable objects older than two weeks. (2) Machine: a bare git gc also expires reflog entries (90/30 days), prunes worktree admin dirs (3 months) and rerere records; the run passed -c gc.reflogExpire=never -c gc.reflogExpireUnreachable=never -c gc.worktreePruneExpire=never (rr-cache empty), in a window with no grid.py alive (minute%5=1): 258 -> 80 MiB, refs/grid 8196 -> 8196, fsck --connectivity-only exit 0. (3) Near miss: a bare git gc satisfies 'run gc' and silently drops reflog history the owner was never told about. (4) No standing rule bent. The hygiene hypothesis sits under goal:g6.49 (the reaper burns the box; g6.49.2 made 'logged every pass' a defect), not goal:g1 (PASS residues). gen 8's wake reasoning (crons, re-link, row check, ultracode not followed): grid.py diff doc:card-belam.
 <!-- THOUGHT:END -->
 
-## §0 State (01:2xZ 09-26)
+## §0 State (01:5xZ 09-26)
 | | |
 |---|---|
 | post | belam-S2-L5-VIII gen 8 · seated 01:1xZ 09-26 · Opus 5.5 · @1 `agi-ec` · meter 0.08 at wake · gen 7 idle (owner chain rule; its crons deleted) |
@@ -39,22 +39,23 @@ gen 8 at wake did the card's step 0 and one row check; no standing rule was bent
 
 ## §1 Plan
 ```
-done   gen 7: town re-seated · PASS 7 CLOSED · PASS 8 noticed · swarm trial routed · stale app sessions -> DE · gen 8: crons re-armed · card re-linked · director rows re-checked
-next   the 04:13Z CHECK · PASS 8 at 05:47Z (f >= 0.40 -> rotate FIRST) · judge DE/DT merge-ups (swarm arms vs their last 5 single-parent rounds)
+done   gen 7: town re-seated · PASS 7 CLOSED · PASS 8 noticed · swarm trial routed · stale app sessions -> DE · gen 8: crons re-armed · card re-linked · director rows re-checked · grid-cron check + gc (owner)
+next   the 04:13Z CHECK · PASS 8 at 05:47Z (f >= 0.40 -> rotate FIRST) · judge DE/DT merge-ups (swarm arms vs their last 5 single-parent rounds) · DE's hygiene round (2d) after 2c
 open   guard on local-town (3) · DE: re-seat + anchor hypotheses, the 4 PASS 6 defect hypotheses (defect 3 banked) · DT: lm-* demotes · §6
 ```
 
 ## §2 Landed (this seat)
-CHECK bdcf44b4 + PASS 8 one-shot 5a147c61 (session crons) · quorum card re-link + this card (one commit, exact paths) · grid-cron check 01:4xZ (owner ask): healthy (no overlap; push storms over since ~09-25 03Z), logs unrotated (crons 134 MB, reaper 31 MB), object store 251 MiB -> 72.8 MiB on a repack (45% duplicate pack entries)
+CHECK bdcf44b4 + PASS 8 one-shot 5a147c61 (session crons) · quorum card re-link + this card (one commit, exact paths) · grid-cron check (owner ask): healthy, versions only on change (grid.py:858-872) · one-off git gc 01:51Z on the owner's go: 258 -> 80 MiB, fsck clean · ede1350c2 hypothesis:cron-layer-keeps-its-disk-footprint-bounded (goal:g6.49) -> DE [decision]
 
 ## 🔴 Where it stops
-01:2xZ 09-26 belam-S2-L5-VIII seated: crons re-armed, card re-linked; idle to the 04:13Z CHECK, PASS 8 fires 05:47Z.
+01:5xZ 09-26 belam-S2-L5-VIII: gc done (258 -> 80 MiB), the cron-layer hygiene round routed to DE; idle to the 04:13Z CHECK, PASS 8 fires 05:47Z.
 ```
  0. WAKE (a successor): re-arm the CHECK (crons file section 1); if now < 05:47Z re-arm the PASS 8 one-shot (section 2), else run section 2 under CHECK case (d) unless the state file carries pass_started_at; re-link the quorum card (trap 10).
  1. PASS 8 fires 05:47Z (one-shot 5a147c61). A PASS must not straddle a rotation: at f >= 0.40 rotate FIRST. /tmp tooling dies at reboot: gen 7's transcript 82d56d5d (22:48Z 09-25) holds every file.
  2. DE: [decision] 22:4xZ 09-25 -- (1) hypothesis:heal-lands-a-reseat-after-a-tmux-server-restart (inline prompt, shared-dir card, @id reuse, box-less SM row) then (2) hypothesis:a-reboot-brings-the-town-back-without-a-human (the anchor unit). No reply until the merge-up.
  2b. OWNER swarm trial: hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis (goal:g7.16, 5bbcbe7128; owner verbatim + ORDERS in the node). Build arm = DE, research arm = DT via thought-master; 3 parents/swarm, <= 3 swarms town-wide (DE 1, DT 1, 3rd to the first clean split at MemAvailable >= 3 GiB), <= 2 kids/parent, <= 1 model kid per research swarm. Judge at their merge-ups vs each branch's last 5 single-parent rounds; promote ORDERS to the parent template + 2 config cells only after the verdict. DE's build swarm = DH.364/365/366. DE's brief route d470b0de79 (its branch): once on the trunk, extras.parent = [.agi/context/schemas/[goal].md, .agi/context/schemas/[hypothesis].md] is ONE config edit for every parent.
  2c. OWNER 01:0xZ 09-26 stale app sessions ([decision] -> DE, NEXT): registry clean; the app keeps uncleanly-dead sessions; no engine path ends an app session. Judge DE's round against "the app lists only live sessions"; watch SM stays alive.
+ 2d. OWNER 01:5xZ 'Go on both': DE [decision] hypothesis:cron-layer-keeps-its-disk-footprint-bounded (ede1350c2, goal:g6.49), queued after 2c. Judge at DE's merge-up on its four conjuncts: maintenance job <= 1.5x a fresh repack · ~/logs capped + rotated from declared cells · a no-op writes <= 1 line per command · the 09-23 07:35Z re-fetch reproduced + guarded.
  3. Guard is NOT on local-town: encryption-town ~/work/.sanctuary/GUARD.md (5 layers): measure docker (llama-server) first, GUARD_DOCKER_BUDGET_belam_gpu, dry-run, then sudo apply (§6 row 1 first).
 ```
 ## §4 Traps
@@ -93,4 +94,3 @@ CHECK bdcf44b4 + PASS 8 one-shot 5a147c61 (session crons) · quorum card re-link
 | the origin remote moved (every push prints the new location) | `git remote set-url origin <new>` -- the owner's call |
 | engine-wide config/template maxxing pass (owner idea, 09-23) | opening it is the owner's call |
 | MIN_REMAINING_CREDITS hard-coded 1 USD (provisioning.py:103, :206) | a config cell (a director-engine round) |
-| `git gc` in MAIN reclaims ~178 MiB (dry run: 72.8 MiB repacked vs 251 MiB); prunes unreachable objects > 2 weeks old | owner's go (asked 01:4xZ); then one DE hygiene round: a maintenance line in crons.md, ~/logs rotation, no-op output trims, the 09-23 07:35Z full re-fetch |
