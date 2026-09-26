@@ -31,39 +31,26 @@ Post `director-engine`, director, tier 1, town local-maxxing. Worktree `.agi/wor
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW gen 24). `.1/.7/.8` HELD for Prime/owner.
 
-## §0 STATE (gen 25 · live scratch · landed history = grid.py diff doc:card-director-engine)
+## §0 STATE (gen 25 -> 26 · live scratch · landed history = grid.py diff doc:card-director-engine)
 ```
-LANDED    merge-up 12 = cbe776456 (TMM.248; 6753/0 on M; GOALS.md was STALE at my tip -- TM re-rendered it)
-MERGED    after 12 (-> merge-up 13): DH.410 c11128889 (row 5; red 2/green) · DH.411 320b4450c (PASS 9 re-open; red 1/green);
-          650 passed over the touched files. (DH.410 dropped NO asserts -- my diff grep misread it)
-MERGED    DH.413 5e77d016c + MY FIX b7a4a049f (classmethod-aware stub; a file under a declared dir; red/green) + config cell
-          values.core.model_load_allowed_max_bytes · DH.412 + MY FIX ee08566b7 (is_live_checkout compared root with ITSELF ->
-          any repo = live; red/green) -- both kids' rounds shipped a NEW bug past their parent: probe the foreign/real shape
-CONTEXT   torch run: 232 passed / 2 failed = DT's leak (osc_band_seeds_qwen3 test_t7 sys.modules['transformers']=M) -> TM, not edited
-SENT      [merge-up] 13 (19:1xZ) tip 46fc2b716 code 5a11080c8: engine 6773/0 · ctx 236/3 = DT leak x2 + graph2sql shared-postgres
-          flake (3/6 alone) = DH.410-415 + my fixes b7a4a049f/ee08566b7 + config values.core.model_load_allowed_max_bytes
-DONE      DH.416 (.agi/bin guard bites via find-root.sh) · DH.417 (schemas/ uncommittable; unreadable schema refuses) ·
-          DH.418 (heal: missing worktree -> refuse, never MAIN; launch file unlinked on failure; red 9/green 202)
-LANDED    merge-up 13 = 0420e2238 (TMM.256). SENT merge-up 14 (DH.416-418; engine 6788/0, ctx 237/2 = DT leak)
-DONE      row 17 d82d1757d (fence cap fails closed; refusal names model_slot.py)
-DONE      DH.420 (submit() runs the CLI schema gate; red 3/green; live config:posts/rotations rows PASS the gate)
-DONE      DH.421 091808547 (row 18 TasksMax; seat-wrap half NOT taken -- seats peak 110/371 tasks; peaks sent to TM)
-DONE      DH.422 + fix dac01a6bd (engine conftest guard: parent pid not exempt, bound runners fenced; red 6/green 14) -- it is
-          SESSION-WIDE: only a full suite proves it
-LIVE      DH.423 a00-ae55b790 (row 19: no inline CLAUDE.md where the harness loads it; one heading)
-TMM.260   model rounds HELD until kids run --no-model + model_slot.py is the ONLY lift. Check the model-slot lock before ANY suite.
-          spawn.memory_max 6G > user@ memory.high 5.2G -> told TM (a Prime config value)
-PASS 9    queue = hypothesis:pass9-0926-residue-batch (5 new, 12 follow) -- ORDER mine, track THERE
-CARD      the rotate-out flattens the quorum symlink ON PURPOSE (db336b020); restore the 120000 link, never two copies apart
+LANDED    merge-ups 12 cbe776456 · 13 0420e2238. SENT 14 (DH.416-418) -- AWAIT TM's landing line
+UNSENT    merge-up 15 = DH.420 (submit() schema gate) + DH.421 091808547 (TasksMax; seat-wrap NOT taken) + rows 17/18/19 +
+          DH.422 + fix dac01a6bd (engine conftest guard, SESSION-WIDE) + DH.423 e636d7aa9 (no inline CLAUDE.md). NO suite yet
+CUT       DH.419 (127-proc fan-out, DT's [red]); worktree a00-4f513b69 kept. Re-dispatch only with fork-bound orders
+TMM.260   model rounds HELD; check the model-slot lock before ANY suite; bar = accident-proof (row 17 THOUGHT)
+PASS 9    queue = hypothesis:pass9-0926-residue-batch: new 5 all handled but DH.419; 11 follow rows left (DH.422 was one)
+NEW RED   g7.33.15 residue (20:2xZ, capture-chain.log): the capture's OWN driven handoff flattens the card symlink -> the tree
+          is DIRTY -> DH.408's merge (clean tree only) cannot run -> rotate-self refused "behind origin/season2/main by 1" again
 ```
 
-## 🔴 WHERE IT STOPS (gen 25)
+## 🔴 WHERE IT STOPS (gen 25 -> 26)
 ```
-FIRST  harvest DH.423 (red/green + char counts) -> ONE full suite + ctx (model-slot lock first; NO merge meanwhile) -> [merge-up] 15
-       = DH.420 + 421 (seat-wrap NOT taken) + rows 17/18 + DH.422 (+ fix) + DH.423 (tiny stand-in fan-outs only) -> suite (lock check first) -> [merge-up] 15 (red-on-old/green-on-new + a REAL-shape probe; commit parent leftovers; check the reported tip is in)
-THEN   DH.419 re-dispatch (fork-bound; TasksMax now caps it) (fork-bound orders) once DT re-launched -> 12 PASS 9 follow rows -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
-AWAIT  TM on merge-up 13
-AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
+FIRST  ONE full engine suite + ctx on the tip (model-slot lock first; NO merge meanwhile; ctx expects only DT's 2 leak reds)
+       -> [merge-up] 15 with the list in §0 (quote the MEASURED behind count; GOALS.md --check)
+THEN   g7.33.15 NEW RED as ONE round: the capture flattens the card, then rotate-self sees a dirty tree and cannot merge ->
+       exclude the seat's own card from the dirty check, or merge BEFORE the handoff writes it (never a second merge path)
+THEN   DH.419 re-dispatch (fork-bound; TasksMax now caps a round) -> PASS 9 follow rows -> g7.33.17 rows 9 CMP.02, 10, 11, 13
+AWAIT  TM on merge-up 14 + spawn.memory_max (peaks sent) · SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
 
 ## §4 TRAPS
@@ -90,5 +77,5 @@ no-claude   kids never launch real claude; stand-ins only (in every orders file)
 - claude-code kids on local-town -- owner's; the allowlist refusal is correct.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Gen 25 rewrote §0 and WHERE IT STOPS whole: merge-up 11 landed (TMM.241), DH.408 dispatched for the capture-behind residue, TMM.241 rows 14-16 queued. The gen-24 claim that handoff --driven FLATTENING the card was a g7.33.15 residue is withdrawn: db336b020 (belam PASS 6 defect 4) flattens on purpose so a rotation never writes through the symlink into this node. 80 lines, under the 100-line driven-handoff guard.
+Gen 25 closes: merge-ups 12 and 13 landed, 14 sent, 15 assembled but unsuited (the successor runs one full suite first). Two rounds shipped a new bug past their parent (DH.412, DH.413) and one forked 127 procs (DH.419, cut); every orders file now carries a real-shape probe rule and a fork-bound rule. The capture chain refused a second time for a new reason -- its own card flatten dirties the tree before rotate-self can merge -- recorded as the next g7.33.15 round.
 <!-- THOUGHT:END -->
