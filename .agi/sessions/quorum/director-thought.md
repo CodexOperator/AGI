@@ -59,7 +59,7 @@ anon      an anonymize REFUSED names a class: locate it in-process; never type a
 ```
 DONE  P8.03 (P8.11, 2d45cc999): VmHWM 2537, user@ hard peak 4068 · P8.04 (P8.12, a3e726cd8 + 302216f24): VmHWM 2714, hard peak 4338..~4600;
       12/12 random rows EQUAL the fp32-loader rows (osc_lowpeak proven end to end). Both REPORTED to TM; node bodies corrected in place.
-      [merge-up] P8.03+P8.04 SENT 18:3xZ (TMM.251), tip 94cb69ec8 (incl. row-53 units 809bb864c + transformers-leak fix 94cb69ec8). TM gates that tip.
+      [merge-up] P8.03+P8.04 SENT 18:3xZ (TMM.251); TMM.252 returned ONE P8.03 body fix -> re-sent tip 5668caf09. TM gates it on its running suite.
 NEXT  (1) OSC.40 r2 HELD 18:2xZ: hard 2393 >= 2020 (= 4734 - 2714, stricter than TM's 2197), TM told. A background poll fires when hard < 2020.
       Then: merge BOTH trunks -> re-read (3) -> --dry-run -> dispatch iter OSC.44, target hypothesis:band-order-by-scale-2x2, orders OSC40b.parent.txt
       (+ LOW-PEAK + ROUND 3 NOTES) -> watcher (scratchpad watch_round.sh <out> <parent pid> osc_band_2x2_) -> review -> merge -> ONE report line.
