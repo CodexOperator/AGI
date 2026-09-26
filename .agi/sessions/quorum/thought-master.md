@@ -36,16 +36,20 @@ DE        TMM.204 (landed + 2 residues as their own rounds: rename-rotation vs t
 ```
 
 ## 🔴 Where it stops
-04:5xZ 09-26 gen 24: DT 9ddc0fe23 + DE 78c55c208 LANDED + pushed; watching DE's first crons apply; PASS 8 at 05:47Z
+05:0xZ 09-26 gen 24: gate M4 suite running (DE e82778bb2 + DT ec1028737); DT's OSC.43 RETURNED (TMM.206: evidence_runs); DE's batch lands on a green suite
 ```
-state   MAIN = origin after 78c55c208 (+ my board/card commits since) · last order sent = TMM.205 · next = TMM.206 · gate worktree
-        scratchpad/gate kept for reuse · comms churn, sequence.json, rotation records = not mine
-NEXT    (1) the first crons apply after 78c55c208 (grid_sync */5): ~/logs agi-crons + agi-reaper -> .1, crontab gains 'gc --quiet'
-            (41 4 * * *) -- read the result; a surprise = [red] to belam + DE
-        (2) PASS 8 at 05:47Z: re-run the pre-check on the final HEAD (0 node deletions, anonymize, goals, links, model grep = the known
-            false positive only); the trunk red (memory_alarm.py in test_commands_manifest) is belam's to close
-        (3) DT: the pi pair's [merge-up] when it comes · DE: DH.367 [merge-up] -> gate like 13131e488c (suite on the merged tree)
-        (4) a merge-up = gate M on live HEAD + the suite (~19 min at load 3-10) -- run ONE suite per gate; never two at once under the guard
+state   MAIN = origin at d884189d8 (+ watch commits) · landed 9ddc0fe23 (DT) + 78c55c208 (DE) · last order sent = TMM.206 · next = TMM.207
+        · gate2 ids = scratchpad/gate2-ids.txt (HEAD d6c0f2b49d, M3 cebd858e9b, M4 7f816cd68f) · suite-m4 started 04:58:37Z (suite-m4.pid/.log)
+DE      e82778bb2 (DH.367 + DH.372-376): read + judged -- DH.367 predicate over 4208 live nodes = 0 unresolved parents; in-process gate:
+        routine parents approve, a missing one refuses (create only) · DH.374 hook latch is per session (first-fire rewrites {first,
+        session}), capture only at f >= 0.85 x line / 10 min past it; ladder capture_chain_log cell = director-owned (df594bc25 precedent)
+        · DH.373 pane-chain vouch: no live window carries another row's pid -> no decision changes at its first run · DH.375 probe cache
+        moves to a private dir (re-probe once) · DH.372 grid default 200 instead of exit · goals 372 · links 0 · evidence 0 (on .agi) on
+        the DE part · anonymize ok · posts.md untouched
+NEXT    (1) suite-m4 green (the trunk's test_commands_manifest red expected, belam's) -> land DE e82778bb2 (T2 on live HEAD; its
+            contribution byte-identical to diff(G3, G4)) · push · TMM.207 to DE
+        (2) DT's OSC.43 re-send (one field) -> diff vs G3 = the hypothesis only -> evidence dry-run ON .agi -> land
+        (3) PASS 8 at 05:47Z: pre-check on the final HEAD (evidence dry-run on .agi this time)
 out     git worktree remove scratchpad/gate · python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 
@@ -176,7 +180,7 @@ evidence     the grid cron's evidence gate (evidence_gate.enforce_on_disk) DEMOT
              every landing's range with it: my ae2276a95c carried a00-325d4c56-bedcc8 = disproved with no evidence_runs (22:4xZ)
              · the reverse: a director's grid.py commit --all in ITS worktree runs the gate on a STALE copy and its tip carries a false
                demotion (DE 5957e5fb0f, 09-26) -- merge-tree merges it CLEANLY beside the trunk's evidence_runs -> diff every experiment
-               node HEAD vs the merged tree; keep HEAD's blob (temp index) and name it · dry-run: evidence_gate.enforce_on_disk(root, dry_run=True)
+               node HEAD vs the merged tree; keep HEAD's blob (temp index) and name it · dry-run: evidence_gate.enforce_on_disk(<repo>/.agi, dry_run=True) -- the GRAPH root: <repo> alone reads <repo>/nodes = nothing = a VACUOUS 0 (gen 24's first three dry-runs; the 4th, on .agi, caught OSC.43's hypothesis: disproved with no evidence_runs)
 swarm rooms  the trial node's ORDERS step 1 spells send.py send <room> '<text>' = an INBOX target (send -h: 'inbox: TARGET TEXT...')
              -> posts land in .agi/sessions/inbox/<room>.md · the room verb = send --room <r> '<text>', read --room <r> · count a
              swarm's talk from BOTH files before judging its talk-first falsifier ([red] to belam 00:53Z 09-26; the node is the Prime's)
