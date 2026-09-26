@@ -36,18 +36,20 @@ DE        TMM.204 (landed + 2 residues as their own rounds: rename-rotation vs t
 ```
 
 ## 🔴 Where it stops
-06:0xZ 09-26 gen 24: all owed merge-ups LANDED (DT 9ddc0fe23 + 2dd64167d, DE 78c55c208 + d26cca923); nothing owed; waiting on the next [merge-up]
+07:4xZ 09-26 gen 24: PASS 8 CLOSED (0 RED); its research residues relayed to DT (TMM.210) -- the NEXT thing owed is gating DT's residue [merge-up]
 ```
-state   MAIN = origin at d26cca923 (+ board/card commits) · last order sent = TMM.209 · next = TMM.210 · no reply owed
-        · io PSI recovered (avg10 3.5% at 05:56Z) after the 05:05-05:40Z stall ([red] to belam) · the gate suite runs on TMPFS now
-          (/dev/shm worktree + TMPDIR: 13:20 vs 18:34 on disk, zero disk writes)
-PASS 8  pre-check 05:3xZ clean but the trunk's test_commands_manifest red (memory_alarm.py, belam's 20680940c)
-DT      holds every model-loading rung (OSC.41 orders ready, true-q4, qk-norm key-wall, band-derived, jev-cua, OSC.40 r2) for belam's go
-DE      queue by its card: TMM.204 residues (rename-rotation vs live log writers; the kid claude-launch rule) as their own rounds
-NEXT    (1) a [merge-up] -> gate M on live HEAD (merge-tree rc + --name-only) · suite on tmpfs · evidence dry-run ON .agi · posts rows
-            HEAD vs merged · validation gates judged over every live node · first-live-run of any hook / cron / daemon change
-        (2) the DH.374 hook is live from d26cca923: a [meter] line on my next prompt = its first real run passed
-out     git worktree remove --force scratchpad/gate · python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
+state   MAIN = origin at b89c72454 (belam's PASS 8 close, pushed by me) · my landings this gen: 9ddc0fe23 · 78c55c208 · 2dd64167d · d26cca923
+        · last order sent = TMM.210 · next = TMM.211 · meter 0.41 of 0.47 at 07:4xZ
+PASS 8  CLOSED 07:3xZ: trunk a288a071df -> season2/main e55816f35b · 28 accept_with_residue · 2 demote (engine-delta-1 = the crons log cap
+        does not bound archives = my TMM.204 residue 1; a00-f30b6285 no-graph conjunct) · residues = hypothesis:pass8-0926-residue-batch:
+        engine rows -> DE (belam's [decision]; memory_alarm's test red is one) · research rows -> DT via me (TMM.210) · d26cca923 = PASS 9
+DT      TMM.210 owed: 10 research rows corrected in place (THOUGHT = the reason), [merge-up] per 3-4 rows or the batch · every model-loading
+        rung HELD for belam's go · 3 rows = 0 stands -> skip (osc-band-fit-preflight, lm-qk-norm-matched-fresh-key-only-grid, a00-cc7b25cc)
+DE      belam's PASS 8 engine rows (5 code-defect hypotheses) + TMM.204 residues · merge the trunk before its next [merge-up]
+NEXT    (1) DT's residue [merge-up]: per row, the PASS 8 finding is gone in the bytes (the node line / the test assertion RUNS -- an
+            xfail-heavy fixture can leave its load-bearing assert dead: OSC.43, my miss) · evidence dry-run ON .agi · suite on TMPFS if code
+        (2) DE's next [merge-up]: the same gate as d26cca923 (validation over every live node; hook / cron / daemon first live run)
+out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST) -- rotate BEFORE a gate that will not fit under 0.47
 ```
 
 ## Traps (post-specific, learned)
@@ -102,6 +104,7 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
                the tests carry their own fixture schemas (TMM.171: 111 live (type, field) pairs would have been refused)
 reds         attribute each: which range touches the test / its code (git diff --quiet <base> <tip> -- <file>) · re-run it ALONE (a load
              flake passes alone) · run it on MAIN + another range too: red there = the trunk's · test_thought_hygiene counts <!--\s*THOUGHT:BEGIN per node: a quoted marker trips it
+fixtures+    a fixture test's xfails can leave its LOAD-BEARING assertion dead (OSC.43: PASS 8 found the ordering assert dead in all 3 cases after I re-derived only the numbers) -> run it and show the assert executes (pytest -rx; a deliberate break must turn it red) · a verdict resting on a PASS-demoted round's log is weaker than its number
 verdicts     read the CONTROL arms before any verdict: a result FLAT across bit budgets while the controls hold = an allocator or harness bug
              (OSC.23 -> TMM.139) · an arm's NAME is not its budget: read each arm's class widths / bits (fixed.arm mode 'uniform' = sizes [n] =
              every pair at w[0], the TOP width; arm(ones, ...) = index order, argsort of equal energies = identity = the fastest rotary pairs
