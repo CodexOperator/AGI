@@ -44,8 +44,8 @@ CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_ma
 427    -> 436 (mur-6: restore None arm + say why) -> 449 a00-35a98fab LIVE, cut from 436 in worktree de-base-436 (1st try a00-b39f1a3d CUT)
 429    -> 443 a00-169a5424 REBUILT standalone (live 150, both guards) -> mur-6 DH.443-k1 RUNNING; LAND: merge 429 (nodes) THEN 443 (-X theirs)
 430    -> 440 a00-c8389b84 (incl 430+431; ONE guard home, 0 dups; 229 green + repro) -> mur-6 DH.440-k1/k2 RUNNING
-432    SUPERSEDED (hostname in history) -> 438 a00-d821a9fd clean -> mur-6 residue (24 fixtures == templates: circular; no-cascade
-       dest wrong) -> 446 a00-20d4ab3d (cut from 438; 0/24 fixtures==tmpl, 177 green, anonymize ok) -> mur-7 DH.446-k1 RUNNING
+432    SUPERSEDED (host in history) -> 438 -> 446 a00-20d4ab3d (cut from 438; 0/24 fixtures==tmpl, 177 green) -> mur-7 DONE:
+       accept_with_residue (sibling node a00-f787eff3 false; new_bytes 2 meanings; config_max YES) -> READ verify_DH.446-k1 WHOLE, cut 451 from 446
 433    -> 444 -> 447 a00-7ba0cad2 (cut from 444; 19 green) -> mur-7 RUNNING; OPEN after 438/446 land: templates_dir is
        repo-relative + unresolved -> load_manifest traceback: resolve vs the repo root + refuse a missing manifest by name
 434    SUPERSEDED -> 437 -> 439 (mur-6 residue: mem_cap path WRITES cache; neg reserve=info; literals) -> 450 a00-f0f1a8b1 LIVE, cut from 439
@@ -54,15 +54,17 @@ g15       concurrent murs mint ONE run key (-3 x2, -4 x3, -5 x3): _existing_run_
 g15       "merge the loop branch first" is NOT reliable: kids are forbidden git and get an EMPTY .git (no refs); 437/438/442/443
           did not merge (442 then built nothing useful). FIX: cut correctives FROM the loop branch: git worktree add <tmp> <loop br>,
           run dispatch.py there (it cuts from the spawner's branch); --allow-stale-base with the reason if it refuses
+g15       dms "iter=iter-001 agent=a00-b74398d0/2fff1dcd/10f8818c reason=death" hit MY inbox 23:01Z with no agent record:
+          likely a kid TEST writing the live inbox -- find the test (never grep -r .agi/)
 g15       a parent's harvest dm can be lost (DH.429 finished, no inbox line) -- reconcile by branch, never by inbox alone
 QUEUED    goal:send-is-hub-only-... (assigned DE 20:3xZ; owner routing in notes; OWNER 21:0xZ via belam 22:08Z: box id = env AGI_BOX label, set by init in environment.d + stamped by crons.py, engine refuses unset -- NOT yet on the node) after the re-delivery; my 21:2xZ dm to TM
           said "not on any ref" -- stale, correct it in the [merge-up] line
 CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT re-linked (re-arms g7.33.15)
 ```
 
-## 🔴 WHERE IT STOPS (rotating at f=0.40 after the capture; every round below survives rotation)
+## 🔴 WHERE IT STOPS (rotated at f=0.43; capture chain rc=1 = g7.33.15; every round below survives rotation)
 ```
-FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur440 mur443 mur445 mur447 mur448
+FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur440 mur443 mur445 mur447 mur448 (mur446 DONE, above)
        mur446 (+ whatever finished). Verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{5,6,7}/verify_DH.4NN-kN.json
        parents live: 449 a00-35a98fab · 450 a00-f0f1a8b1
 THEN   harvest 447/448/449/450 as they land (each cut FROM its chain branch: diff vs that branch; tests; commit stray node edits there)
