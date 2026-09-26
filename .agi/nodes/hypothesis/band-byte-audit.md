@@ -19,7 +19,27 @@ verdict: pending
 
 ## Hypothesis
 
-What is the testable claim? What would prove it? What would disprove it?
+### Measured
+- osc_band_kquant_qknorm_a00-bcb6c85e.py:21-23 bits() is the sole cost oracle; no shipped cells.jsonl column records bytes, absmax or step (rr-band-alloc refute stage, KEEP).
+- by hand: np32 uniform [4] = 4.00 payload + 0.25 scale = 4.25; band [4,4,3,3] = 3.25 payload + 1.00 scale = 4.25 (director gen 32, verified twice).
+
+### CLAIM
+quant()'s emitted bits (2*w per pair plus 16 per scale, per layer per head) are counted and written per row as emitted_bits, n_scales and per-class step; for every arm at every qwen2 np32 budget emitted_bits == fixed.bits(widths) exactly, and the row records that the narrow class carries 32 payload bits under one 16-bit scale (50 pct overhead) against uniform's 6.25 pct. CEILING: <=60 production lines across 1 kids.
+
+### Dispatch line
+config-max: none / template-max: none / code: an emitted-bits counter alongside quant(), never a second copy of bits().
+
+### FALSIFIERS
+- any arm where emitted_bits != bits() -> the 4.25 control is void and every matched-grid verdict must be re-derived.
+
+### TESTS
+a committed test that counts on a synthetic tensor (no model) plus one model_slot-wrapped run on qwen2.
+
+### FILE SCOPE
+.agi/context/local-maxxing/osc/ (one new script + test). Model commands ONLY via model_slot.py.
+
+### CEILING
+one pi-free parent, kids as the CEILING clause says, $0, zero paid spend.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 minted gen 32 by director-thought from the rr-band-alloc research review (pi-free, propose-only run; my review before minting). Kept/modified per its refute stage; ordered reproducer -> byte audit -> 2x2.
