@@ -316,6 +316,13 @@ ENV_VARS_TO_SCRUB = (
     "AGI_ORDERS_TEXT",
     "AGI_ORDERS_FROM",
     "AGI_ORDERS_TS",
+    # hypothesis:a-spawned-round-never-inherits-a-model-slot-lock-override --
+    # AGI_MODEL_SLOT_LOCK is model_slot.py's test seam: it points lock_path() at
+    # a file other than the box-wide flock. Set anywhere up the tree it would be
+    # inherited by every spawned parent AND kid, each then loading a model
+    # outside the one slot the memory guard relies on. `--lock` stays explicit
+    # and visible in argv, so a deliberate test still has its seam.
+    "AGI_MODEL_SLOT_LOCK",
 )
 
 
