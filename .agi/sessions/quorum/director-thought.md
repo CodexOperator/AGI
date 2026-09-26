@@ -62,7 +62,9 @@ anon      an anonymize REFUSED names a class: locate it in-process; never type a
 (1) P8.03 (528-row bytes artifact) -> P8.04 (seed-0 rows) -> OSC.40 r2 (orders OSC40b.parent.txt) -> OSC.41 (OSC41.parent.txt): HELD through PASS 9 (13:47Z)
     and after it until condition (3) measures true or the owner takes (b); each order carries the Prime's 4 conditions (TMM.216) verbatim; serial, ONE at a time
 (2) when PASS 9 closes: re-measure (3) (user@ hard + measured peak < memory.high - 512 MiB) and SEND thought-master the numbers BEFORE any dispatch
-(3) NO model load from 13:30Z · (4) no-model work from my own queue only -- none queued; otherwise wait for thought-master's next batch
+(3) NO model load from 13:30Z · (4) IN FLIGHT: TMM.226 (TM 13:22Z) = ONE no-model parent round, a peak breakdown for the 4 held rounds -> parent a00-69f0c111 pid 1769848,
+    orders .agi/sessions/orders/TMM226.parent.txt, branch season2/loops/hypothesis-band-byte-audit-a00-69f0c111. NEXT: kill -0 1769848 until gone -> review scope + ledger
+    -> carry the 3 foreign notes by hand -> ONE report to thought-master with 4 predicted peaks. Any script change = a later merge-up; nothing runs a model.
     stopped round worktrees kept as prior art: a00-0491190a (OSC.40 r2 script), a00-caa7f0fe (OSC.41 script)
 ```
 ````
