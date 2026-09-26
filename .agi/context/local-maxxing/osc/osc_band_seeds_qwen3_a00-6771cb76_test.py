@@ -89,6 +89,25 @@ def test_t8_three_way_call():
     assert h.call(-0.01, b) == "inside-noise"
     assert h.call(+0.50, 0.0) == "win" and h.call(-0.50, 0.0) == "loss"
 
+def test_t9_distinct_draw_gate():
+    """T9: the gate is on DISTINCT VALUES, not len(). Three identical draws are n=1."""
+    for dup in ([0.30, 0.30, 0.30], [0.1, 0.1, 0.2, 0.2], [0.5] * 5):
+        try: h.band(dup); assert False, "band emitted from %r (distinct=%d)" % (dup, len(set(dup)))
+        except ValueError as e: assert "refuse" in str(e) and "distinct" in str(e), e
+    assert h.band([0.30, 0.30, 0.31, 0.32]) == round(0.32 - 0.30, 9), "distinct-count gate refuses a real band"
+    # and the reducer call is unreachable over a refused band
+    assert h.call(+0.01, 0.0) == "win"  # only reachable if a caller ignores the refusal
+
+
+def test_t10_row_contract():
+    """T10: the cut is honest -- --budgets/--prompts narrow the grid, defaults are the whole thing."""
+    import inspect
+    sig = inspect.signature(h.run)
+    assert list(sig.parameters) == ["which", "seeds", "budgets", "n_prompts"], list(sig.parameters)
+    assert h.SEEDS_DEFAULT == "7,21,99", h.SEEDS_DEFAULT   # config values.local_maxxing.osc_band_seeds
+    assert h.MINS == 3 and h.NP64 == 64
+
+
 if __name__ == "__main__":
     for name, f in sorted(globals().items()):
         if name.startswith("test_"): f(); print(name, "OK")
