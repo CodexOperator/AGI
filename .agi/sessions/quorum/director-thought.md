@@ -62,9 +62,9 @@ anon      an anonymize REFUSED names a class: locate it in-process; never type a
 (1) P8.03 (528-row bytes artifact) -> P8.04 (seed-0 rows) -> OSC.40 r2 (orders OSC40b.parent.txt) -> OSC.41 (OSC41.parent.txt): HELD through PASS 9 (13:47Z)
     and after it until condition (3) measures true or the owner takes (b); each order carries the Prime's 4 conditions (TMM.216) verbatim; serial, ONE at a time
 (2) when PASS 9 closes: re-measure (3) (user@ hard + measured peak < memory.high - 512 MiB) and SEND thought-master the numbers BEFORE any dispatch
-(3) NO model load from 13:30Z · (4) TMM.226 peak study STOPPED + REJECTED 13:3xZ: parent a00-69f0c111's kid a00-639868bf broke the orders' HARD RULE --
-    from_pretrained fp32 in osc_band_bytes_matched_a00-639868bf.py:40, wrote datasets/.../bytes-matched-a00-639868bf-qwen2 at 13:28-29Z (re-ran P8.03, not the study), died (reason=death);
-    I TERM'd the parent. Worktree a00-69f0c111 = prior art, NOTHING merged. Reported to TM. NEXT: TM's call on a re-dispatch (orders TMM226.parent.txt; or I do the no-model arithmetic myself).
+(3) NO model load from 13:30Z · (4) TMM.226 DONE by me (round a00-69f0c111 REJECTED: its kid loaded the model; worktree = prior art, nothing merged):
+    notes on the 4 hypotheses + report to TM (bba276955): predicted peak 2249 MiB each after bf16-resident weights + chunked lm_head (fp32 floor 2673 > line);
+    runtime 788 MiB MEASURED. NEXT: wait for TM's go on the code change (a LOCAL merge-up, full suite) or the next batch.
     stopped round worktrees kept as prior art: a00-0491190a (OSC.40 r2 script), a00-caa7f0fe (OSC.41 script)
 ```
 ````
