@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:a00-b9700763-8d8657
 next_edges: []
-edited_by: a00-b9700763
-loop: goal:g73314-a-nonworkflow-residue@s2
+edited_by: a00-64cdf8ed
+loop: goal:g7.33.14@s2
 model: stealth/space-bunny-alpha
 production_lines: 0
 profile: balanced
