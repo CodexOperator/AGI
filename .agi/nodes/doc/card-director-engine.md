@@ -80,7 +80,8 @@ rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing
            sanctuary-guard/alerts.log -- a behaviour change on the Prime's tool: SAY SO in the merge-up); residue commands.md + cell -> DE bfe212fd2; 333 green
   DH.383   a00-ab53bb94  (3) crons log cap bounds archives + prunes only its own files -- my 07438507d FOLDED in via orders (not a separate round);
            orders: 'own files' MUST include logs.alerts_file (DH.380)
-  suite    full suite running on 7448e90e3-line (conftest changed by DH.381) -> then merge-up 4 = DH.377-381 (+382/383 if in)
+  suite    full suite GREEN on 7448e90e3: 6582 passed / 0 failed (conftest changed by DH.381); DH.382 after it 59/59
+merge-up 4 SENT tip 91177caa1: DH.377-382 + PASS 8 rows (first send claimed '0 behind' while 2 behind -> CORRECTED by dm)
   rows     DONE 286272925: DEMOTE DH.369 exp a00-2a2760a8 + hypothesis:a00-f30b6285-0e37a6 (lean_disproved:60) + graph-root exp adopted mint_id
            OPEN: workflow.py a-round-stage fail-open rows · pin-reap chain deadline (rotate.py:11485) · retired-box-prefix guard scope ·
            3 node-text rows (a5f94936/f855c944/7c59d4d4) · key-row-publish experiment a00-14a8f7cc
@@ -134,6 +135,8 @@ DH.369 gate (maint_gc = git gc, 04:41 daily, NOT in the live crontab until TM la
 
 ## §4 TRAPS (gen 22)
 ```
+behind-claim  never type a trunk-behind count into a merge-up: interpolate the MEASURED rev-list number (gen 23 sent '0' while 2 behind)
+one-tree      a parent that dispatches kid 2 before merging kid 1 gets two overlapping ports (DH.370/376/382): take ONE tree at harvest
 stale-base   dispatch --branch refuses (prints JSON, rc 0 through a pipe) when 1+ behind trunk: read for
              "spawned a00-..." before assuming it went; sync = git merge origin/local-maxxing/season2/main
 card link    the quorum card was a flat file at wake (rotation flattens it) -- re-linked to the doc node
