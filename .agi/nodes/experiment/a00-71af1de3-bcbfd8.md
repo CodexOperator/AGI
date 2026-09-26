@@ -6,7 +6,7 @@ parents:
   - hypothesis:agi-bin-guard-refuses-the-directory-and-derives-the-override-set
 next_edges: []
 confidence: 0.85
-edited_by: a00-22a191e9
+edited_by: a00-dd7678e9
 evidence_runs:
   - experiment:a00-71af1de3-bcbfd8
 loop: hypothesis:agi-bin-guard-refuses-the-directory-and-derives-the-override-set@s2
@@ -42,8 +42,7 @@ $ python3 -c "<old pattern> <new pattern> over three site forms>"
 The old regex saw ZERO names for the brace and dotted forms. Blind, not red.
 
 ## What I changed
-
-One file: `extensions/agi/tests/test_agi_bin_absent.py` (tests only, production_lines 0).
+One file: `extensions/agi/tests/test_agi_bin_absent.py` (tests only: 0 production lines).
 
 | | before | after |
 |---|---|---|
@@ -67,11 +66,15 @@ $ python3 -m pytest extensions/agi/tests/test_agi_bin_absent.py -q
 
 Intermediate red, before I corrected an overreach of my own: the first form of
 test 2 also asserted every derived name exists in the engine's `bin/`. That went
-RED on `render-context.py` -- driver.sh line 265 still prefers a project-local
-`render-context.py` although `bin/inject.py` replaced it in the engine (L1.05),
-so the engine has no such file. That is a REAL residue, not a test bug: the
-override set is not a subset of the engine's own scripts. I dropped the assertion
-(no engine file) and recorded it below rather than encoding a wrong invariant.
+Intermediate red, before I corrected an overreach of my own: the first form of
+test 2 also asserted every derived name exists in the engine's `bin/`. That went
+RED on `render-context.py` -- a driver.sh `RENDER_PY` site still prefers a
+project-local `render-context.py` although `bin/inject.py` replaced it in the
+engine (L1.05), so the engine has no such file. That is a REAL residue, not a
+test bug: the override set is not a subset of the engine's own scripts. I
+dropped the assertion (no engine file) and recorded it below rather than
+encoding a wrong invariant. (DH.435: the driver.sh line number this paragraph
+used to quote is replaced by the SITE NAME; a line citation rots.)
 
 ## Bounded residue (left open, deliberately)
 
