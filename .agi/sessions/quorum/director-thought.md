@@ -163,10 +163,9 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 BATCH  hypothesis:pass8-0926-residue-batch "Research residues": 11 rounds, orders .agi/sessions/orders/p8/<G>.parent.txt, built VERBATIM
        from mur-p8chunk*/verify_<round>.json (unrefuted verdicts + missed + config/template_max). Targets: p8/targets.json. Log: p8/wave*.txt.
        Skipped by TM (0 stands): osc-band-fit-preflight, lm-qk-norm-matched-fresh-key-only-grid, a00-cc7b25cc.
-DONE   P8.03 P8.06 P8.07 P8.08 -> [merge-up] 617d7cb65 sent (1/3). P8.01 (605d4d76a) + P8.02 (5ff33238f) harvested, NOT yet sent.
-       REJECTED so far: P8.08 claim re-word + non-blank line count; P8.01 claim re-word, gated 55->75 raise, shared seed cell (breaks qwen2 test).
-LIVE   P8.05 a00-eb06e8c1 pid 2196754 · P8.09a a00-b7391974 pid 2225463 (fence sent by dm) · P8.09b a00-cfb4689d pid 2322742
-QUEUE  (none) -- P8.10 a00-23718fe0 pid 2333841 LIVE. P8.04 harvested 901544ba2. Next [merge-up] 2/3 = P8.01 + P8.02 + P8.04 + P8.05.
+DONE   1/3 P8.03 P8.06 P8.07 P8.08 -> 617d7cb65 · 2/3 P8.01 P8.02 P8.04 P8.05 -> d8a495ebd (both SENT, neither landed yet).
+       REJECTED so far: P8.08 claim re-word + non-blank line count; P8.01 claim re-word, gated 55->75 raise, shared seed cell.
+LIVE   P8.09a a00-b7391974 pid 2225463 (fence by dm) · P8.09b a00-cfb4689d pid 2322742 · P8.10 a00-23718fe0 pid 2333841 -> [merge-up] 3/3.
 CARRY  cli.py done refuses foreign nodes -> after each round, copy the parent/kid worktree's uncommitted node edits AFTER reading their diff. -- keep <= 4 rounds (8 spawns) live; <= 10 town-wide; hold on io/mem PSI or a memory_alarm WARN.
 EACH   on exit: every ledger row vs bytes; touched tests; frontmatter vs prose; evidence_gate --dry-run enforce; links; anonymize
        -> harvest; [merge-up] per 3-4 rows (a SUCCESSOR thought-master gates -- TM rotates next).
