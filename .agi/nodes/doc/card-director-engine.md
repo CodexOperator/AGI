@@ -33,34 +33,25 @@ Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW
 
 ## §0 STATE (gen 25 · live scratch · landed history = grid.py diff doc:card-director-engine)
 ```
-LANDED    merge-up 11 = e7c418d18 (TMM.241; DH.401/402/403 + goal:g7.33.17). Merged into this post 17:2xZ (was behind 4).
-DONE      DH.404 3f38e2b8b (row 1; 307 passed) · row 14 071f2ec15 (test_f1 frozen writer, direct; red not reproduced)
-DONE      DH.408 ba1b4ca6d (row 16 = g7.33.15 residue: a registered behind seat merges at rotate-self's guard; red 3/green)
-MERGED    DH.409 (row 15): red 7 on old proven; GREEN OWED once suite-12 frees the lock (conftest refuses a 2nd run)
-REVIEWED  DH.410 (row 5: non-prime successor = the ONE brief.render, card as card_file; ACCEPT; restore the 3 asserts dropped from
-          test_pre_fix_brief_stays_cwd_relative) · DH.411 (re-open: dispatch_parent kept before --parent overwrites; ACCEPT)
-          -> MERGE BOTH only after suite-12b exits (never mid-suite)
-PASS 9    belam 17:44Z: the queue = hypothesis:pass9-0926-residue-batch (5 new, 2 re-open, 12 follow) -- ORDER mine, track THERE.
-          owed beside DH.411: (a) [command]/[cron]/[ladder] lack written_by/round_commit -> cli.py:2196 passes 3 .geometry types
+SENT      [merge-up] 12 (18:0xZ) tip ec5819629, code 8d974e5c3, suite-12b 6753/0, ahead 45 / behind 5 = DH.404-409 + row 14
+MERGED    after 12 (-> merge-up 13): DH.410 c11128889 (row 5; red 2/green) · DH.411 320b4450c (PASS 9 re-open; red 1/green);
+          650 passed over the touched files. (DH.410 dropped NO asserts -- my diff grep misread it)
+LIVE      DH.413 a00-aa4554be (TMM.235 (2): in-body loader hole, allow-list under basetemp; tiny tmp models only)
+          DH.412 a00-7485004d (PASS 9 re-open 2: locations.py:289 tautology + a test that cannot fail)
+RELEASED  TMM.246 17:55Z: model hold lifted (tmp-built tiny models ONLY). DH.397 re-dispatch AFTER DH.413 merges (one table)
+PASS 9    queue = hypothesis:pass9-0926-residue-batch (5 new, 12 follow) -- ORDER mine, track THERE. Owed on DH.411's node:
+          (a) [command]/[cron]/[ladder] lack written_by/round_commit -> cli.py:2196 passes 3 .geometry types
           (b) rec[node_id] = the kid's args.node_id, unchecked -> `done --node-id <foreign hypothesis>` still widens the set
-SUITE     12 on 0b2be9750: 6744/2 = MY merge of DH.409 mid-run (2 getsource tests; 2/2 alone). 12b re-run -> suite-12b.log
-OWED      merge-up 12 = DH.404 3f38e2b8b + DH.405 fed9e93bb + DH.406 7a209c4e3 + DH.407 be6cf96c2 + row 14 + DH.408 (+ DH.409/410 if in time)
-TMM.241   rows 14 (test_f1 flake, freeze the writer like 569ea9a1b) · 15 (DH.401 successor-shape compounding) · 16 (DH.408)
-          added to g7.33.17 eb946d4e0; row 12 EF.92 VOID (DONE c876dbf72). 3 unqueued residues, one line each when it fits:
-          brief.py context-ref containment · PASS 6 defect 3 (DH.311 WIP, banked) · kid a00-2fa1fab0's 2 real claude sessions
-CARD      the symlink->file flatten at rotate-out is DELIBERATE (db336b020, belam PASS 6 d4) -- NOT a g7.33.15 residue; the
-          successor restores the link (git checkout of the 120000 blob) or writes the doc node, never both apart
-HOLD      TMM.229+243: NO model load of mine (tiny ones included) until P8.03 reports. Then DH.397 re-dispatch (worktree a00-aae44e7f)
-          + TMM.235 (2) loader hole -- red-on-old = a tiny random-init model GENERATED in tmp, never real weights
+CARD      the rotate-out flattens the quorum symlink ON PURPOSE (db336b020); restore the 120000 link, never two copies apart
 ```
 
 ## 🔴 WHERE IT STOPS (gen 25)
 ```
-FIRST  suite-12.log EXIT=0 -> [merge-up] 12 to thought-master (measured behind count); a red -> attribute, fix, re-run
-THEN   harvest DH.409 a00-f28911bd + DH.410 a00-a8ec9040 as each reports (red-on-old/green-on-new; parent leftovers committed)
-THEN   PASS 9 batch (re-open 2: locations.py:289 tautology; then the 5 new) interleaved with g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
-HOLD   DH.397 + TMM.235 (2) until TM says director-thought's P8.03 REPORTED (TMM.243: PASS 9 CLOSED 17:23Z; P8.03 runs ALONE)
-AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
+FIRST  harvest DH.413 + DH.412 as each reports (red-on-old/green-on-new; parent leftovers; DH.413: osc_lowpeak_test green)
+THEN   DH.397 re-dispatch on DH.413's table (orders: .agi/sessions/iter-DH.397/orders.a00-aae44e7f.md + the tiny-tmp rule)
+THEN   DH.411 residues (a)+(b) as ONE round -> PASS 9 new 5 -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
+THEN   full suite (NO merge into this tree while it runs) -> [merge-up] 13
+AWAIT  TM on merge-up 12 · SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
 
 ## §4 TRAPS
