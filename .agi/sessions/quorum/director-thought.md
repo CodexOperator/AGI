@@ -161,6 +161,8 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
   qwen2 seeds 7/21/99 x 4 budgets; seed 7 == OSC.34 exactly. p3's pre-registered rule on it: key_only vs uniform 0 win / 1 loss / 3 noise
   (both metrics); vs random agree win 3/4, kl 0/4. HEADLINE: OSC.34's 6/8 does not survive on qwen2. Kid ec09e83b wrote a competing
   half-range rule (calls 6.25 a win) -- flag, do not adopt. Overage: 2b3ca8c4 112/40, ec09e83b 167/40, no rebrief. p1 goal_id G5.22.3 -> renumber G5.22.1.3.
+- p1 EXITED + HARVESTED locally (goal renumbered G5.22.1.3). p2 (B) second kid a00-6771cb76 scope-OOM 01:44:30Z, SAME refs-list line (:46);
+  told p2 (room + dm) to quote p1's prompt-outer loop (2b3ca8c4.py:42-45) in the next kid's orders; a 3rd OOM = stop (B), node inconclusive.
 - Git clean; both trunks merged as of the p3 dispatch.
 
 ## 🔴 Where it stops -- gen 32, ~00:5xZ 09-26
