@@ -48,7 +48,7 @@ CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_ma
 430    -> 440 a00-c8389b84 (incl 430+431; ONE guard home, 0 dups; 229 green + repro) -> mur-6 DH.440 DONE accept_with_residue x2 (import-time kill leaf pid-only; context conftest no import fence; env= pinned by source string; _STRIPPED note) -> 452 a00-cbb9f70e (closed 1/3/4: one signal0 predicate, env-strip by behaviour, _STRIPPED gone; 67 green; kid a00-e734f35a FAILED empty) -> 457 a00-7ceac8c4 LIVE, cut from 452 (residue 2 context import fence + killpg); mur 440->457 ONCE after (stale-base overridden with reason, x all correctives)
 432    SUPERSEDED (host in history) -> 438 -> 446 a00-20d4ab3d (cut from 438; 0/24 fixtures==tmpl, 177 green) -> mur-7 DONE:
        accept_with_residue (sibling node a00-f787eff3 false; new_bytes 2 meanings; config_max YES) -> 451 a00-5712dd56 HARVESTED (proved; kid's sibling-node fix was UNCOMMITTED -> I committed it on the loop br 79bdb3490; 177 green) -> mur-8 DH.451-k1 RUNNING
-433    -> 444 -> 447 a00-7ba0cad2 (cut from 444; 19 green) -> mur-7 accept_with_residue (own renderer KeyError GUARD_DOC; dest_rel {{UID}} raw; no unlisted guard; templates_dir cwd; missing manifest traceback; vacuous privileged row; cfg+tmpl YES) -> 454 a00-2752c658 LIVE, cut from branch de-base-454 (= 447 + 451 merged, worktree de-base-454); OPEN after 438/446 land: templates_dir is
+433    -> 444 -> 447 a00-7ba0cad2 (cut from 444; 19 green) -> mur-7 accept_with_residue (own renderer KeyError GUARD_DOC; dest_rel {{UID}} raw; no unlisted guard; templates_dir cwd; missing manifest traceback; vacuous privileged row; cfg+tmpl YES) -> 454 a00-2752c658 HARVESTED (2 kids proved; one renderer; 204 green) -> mur DH.454-k1 RUNNING, cut from branch de-base-454 (= 447 + 451 merged, worktree de-base-454); OPEN after 438/446 land: templates_dir is
        repo-relative + unresolved -> load_manifest traceback: resolve vs the repo root + refuse a missing manifest by name
 434    SUPERSEDED -> 437 -> 439 (mur-6 residue: mem_cap path WRITES cache; neg reserve=info; literals) -> 450 a00-f0f1a8b1 HARVESTED (proved; 34 green on loop br) -> mur-8 DH.450-k1 RUNNING (unit agi-director-engine-mur450)
        BOX DRIFT (for TM, not ours to fix): OOMPolicy unset on streamer-stub-watch.service · agi.slice drop-in FILE absent
@@ -58,6 +58,7 @@ g15       "merge the loop branch first" is NOT reliable: kids are forbidden git 
           run dispatch.py there (it cuts from the spawner's branch); --allow-stale-base with the reason if it refuses
 g15       dms "iter=iter-001 agent=a00-b74398d0/2fff1dcd/10f8818c reason=death" hit MY inbox 23:01Z with no agent record:
           likely a kid TEST writing the live inbox -- find the test (never grep -r .agi/)
+g15       DH.454 parent harvest dm said kids=[] accepted=0 while 2 kids ran + proved (reporter blind to kids registered via --owns)
 g15       a parent's harvest dm can be lost (DH.429 finished, no inbox line) -- reconcile by branch, never by inbox alone
 QUEUED    goal:send-is-hub-only-... (assigned DE 20:3xZ; owner routing in notes; OWNER 21:0xZ via belam 22:08Z: box id = env AGI_BOX label, set by init in environment.d + stamped by crons.py, engine refuses unset -- NOT yet on the node) after the re-delivery; my 21:2xZ dm to TM
           said "not on any ref" -- stale, correct it in the [merge-up] line
@@ -66,9 +67,9 @@ CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT
 
 ## 🔴 WHERE IT STOPS (rotated at f=0.43; capture chain rc=1 = g7.33.15; every round below survives rotation)
 ```
-FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur449 mur450 mur451 mur453 (440->452 · 443->453 · 447->454 · 445->455 · 448->456) (mur446 DONE, above)
+FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur449 mur450 mur451 mur453 mur454 (440->452 · 443->453 · 447->454 · 445->455 · 448->456) (mur446 DONE, above)
        mur446 (+ whatever finished). Verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{5,6,7,8}/verify_DH.4NN-kN.json
-       parents live: 457 a00-7ceac8c4 · 454 a00-2752c658 · 455 a00-4d187f38 · 456 a00-f38de815
+       parents live: 457 a00-7ceac8c4 · 455 a00-4d187f38 · 456 a00-f38de815
 THEN   harvest 454-457 as they land (each cut FROM its chain branch: diff vs that branch; tests; commit stray node edits there)
 PATTERN corrective = dispatch FROM the loop branch's worktree (kids cannot merge); a clean mur = git merge --no-ff <final branch>
        LAND ORDER per chain: 425: 441 then 448 then 456 · 426: 445 then 455 (NEVER 442) · 427: 436 then 449 @2cee3ba21 · 429: merge 429 (nodes) then 443
