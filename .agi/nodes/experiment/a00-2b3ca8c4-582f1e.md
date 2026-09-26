@@ -6,7 +6,7 @@ parents:
   - hypothesis:qwen2-np32-seed-band-4-budgets
 next_edges: []
 confidence: 0.55
-edited_by: a00-e2d2e39a
+edited_by: a00-0ae1cfe2
 evidence_runs:
   - experiment:a00-2b3ca8c4-582f1e
 loop: hypothesis:qwen2-np32-seed-band-4-budgets@s2
@@ -55,21 +55,27 @@ runs are the same harness, not two drifts.
 
 ## The numbers
 
-| budget | agree draws s7/s21/s99 | agree half-range | agree margin (key_only-uniform) | inside? | kl half-range | kl margin | inside? |
+| budget | agree draws s7/s21/s99 | agree half-range | agree margin key_only-minus-uniform | kl half-range | kl margin uniform-minus-key_only | (a) MARGIN inside? | (b) RANGE inside? |
 |---|---|---|---|---|---|---|---|
-| 4.25 | .4998 .4958 .4587 | .0205 | -.0796 | no | .1792 | -.4701 | no |
-| 5.25 | .6570 .7288 .6438 | .0425 | +.0278 | no | .2494 | +.1251 | **yes** |
-| 6.25 | .7390 .7959 .7375 | .0292 | +.0518 | no | .1490 | +.1544 | no |
-| 7.25 | .8159 .8540 .8374 | .0190 | +.0090 | no | .0606 | +.0142 | no |
+| 4.25 | .4998 .4958 .4587 | .0205 | -.0796 | .1792 | -.4701 | no | no |
+| 5.25 | .6570 .7288 .6438 | .0425 | +.0278 | .2494 | +.1251 | **yes** | kl only |
+| 6.25 | .7390 .7959 .7375 | .0292 | +.0518 | .1490 | +.1544 | **yes** (agree .0518<=.0584) | no |
+| 7.25 | .8159 .8540 .8374 | .0190 | +.0090 | .0606 | +.0142 | **yes** | no |
 
+The two inside? columns are the TWO calls of the canonical row contract
+(`.agi/config.json` `values.local_maxxing.osc_band_row_contract`), named HERE, at the table, not
+twenty lines below. **(a) MARGIN** (the ADOPTED rule) asks `|key_only - uniform| <= the full min-max
+range of the 3 random seeds` -- 3 of 4 budgets inside, 5.25 / 6.25 / 7.25, re-checked budget by budget below against that FULL min-max range:
+4.25 OUT (.0796>.0410, .4701>.3584), 5.25 IN (.0278<=.0850, .1251<=.4988), 6.25 IN (.0518<=.0584, .1544<=.2980), 7.25 IN (.0090<=.0380, .0142<=.1212). The PASS 8 edit marked the 6.25 row `no`; that was an arithmetic omission, not a reading -- parent re-derivation 2026-09-26, and this round's own shipped band(), fed the committed cells.jsonl, returns margin_call_inside_agree=True and margin_call_inside_kl=True at 6.25. **(b) RANGE** asks
+`min(random) <= key_only <= max(random)` -- 1 of 4 (5.25, KL only). The two margin columns are in
+OPPOSITE order by metric (key_only-minus-uniform on agree, uniform-minus-key_only on KL), so each
+is sign-labelled in its header; a reader applying one convention to both flips the KL sign.
+PASS 8 items 1 and 7, fixed in place; the hypothesis claim itself is NOT re-worded.
 ## Reading
 
 - **Clause (a) HOLDS.** The band is strictly positive and resolvable at every budget; the random arm is
   genuinely stochastic. n=1 was measuring one draw of a wide distribution.
-- **Clause (b) FAILS.** Containment holds at 1 of 4 budgets (5.25, KL only) -- a minority, not the
-  majority the claim needed. On agree the band contains the key_only value nowhere. So the n=1
-  "key_only wins 6/8" reading is NOT inside allocation noise at three of four cells, and the honest
-  per-cell call there stays `win`, not `inside-noise`. The hypothesis is disproved on its decisive clause.
+- **Clause (b) is DEFINITION-DEPENDENT and the verdict is RE-OPENED.** Three calls over the same twelve rows give three different counts: (a) MARGIN against the FULL min-max range -- the rule `values.local_maxxing.osc_band_row_contract` names ADOPTED and `osc_band_call2_a00-cc7b25cc.py:30` runs, `b = max(v) - min(v)` -- gives 3 of 4, a MAJORITY, so clause (b) HOLDS under the adopted rule; (a') the same test against the HALF-range gives 2 of 4, a tie; (b) RANGE, the key_only value against the random draws, gives 1 of 4, a minority. The earlier prose here read only (b) and called the hypothesis disproved on its decisive clause. By the adopted rule the n=1 "key_only wins 6/8" reading IS inside allocation noise at 3 of 4 budgets, and that conclusion is WITHDRAWN. The `verdict` field is deliberately NOT restated by this edit: a decisive proved/disproved needs its own experiment, and re-opening it is the next kid's job, not a prose edit. Parent re-derivation 2026-09-26, iter 54, a00-0ae1cfe2, from the committed cells.jsonl; PASS 8 items 1 and 7 answered here. The hypothesis claim itself is NOT re-worded.
 - **The load-bearing extra finding, and the one the parent goal should read:** the correct control
   comparison is key_only vs the random draws, not key_only vs uniform. key_only beats **all three**
   random draws on agree at **all four** budgets (and on KL at 3 of 4). The random control is not a noisy
@@ -84,16 +90,22 @@ runs are the same harness, not two drifts.
 - Single model (qwen2), single eval slice, no CI -- the honest next step is >= 8 seeds, not more budgets.
 - The dispatch also asked for the row schema as a template line p3 cites; I ran out of ceiling and left
   the contract in the module docstring only. That is a real gap, not a decision.
+- The dispatch also asked for the row schema as a template line p3 cites; I ran out of ceiling and left
+  the contract in the module docstring only. That is a real gap, not a decision. (CLOSED in PASS 8:
+  the contract lives in the config cell `osc_band_row_contract`, and the docstring now cites the cell.)
 
-production_lines: 79 (script) + 5 (config cell) = 84 measured, within 2x the 40-line default; the run
-is done and nothing is pending on the ceiling.
+production_lines: 79 (script) + 5 (config cell) = 84 measured -- the round OVERSHOT its declared
+ceiling of 60 production lines (hypothesis:qwen2-np32-seed-band-4-budgets) by 24 lines, 40%. An
+earlier version of this line claimed "within 2x the 40-line default"; that was false on its own
+arithmetic (2 x 40 = 80 < 84) and it silently swapped the DECLARED 60 for the engine default 40.
+The measurement 84 stands; the green self-report did not. PASS 8 item 6.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The run is sound; the NUMBER in it is not the number the claim asked for.
-Clause (a) survives my probes intact -- the band is real, resolvable, and the seed reaches the allocation (24 of 24 layer tensors differ between seeds 7 and 21; energy is bit-identical to itself). That half of the claim is the durable finding and it should not be re-run.
-Clause (b) was measured with a substituted test. band() asks whether the key_only value lies inside the range of the random DRAWS; the claim asked whether the band contains the key_only-vs-uniform MARGIN. From the same twelve rows the parent's re-derivation gives 2 of 4 budgets under the claim's test and 1 of 4 under the script's. A tie is not a minority and is not a majority, and 6.25 KL misses by 0.0054 at a 1-2 dof half-range -- so `disproved` claims a resolution the data does not have, which is the exact overclaim the parent's evidence gate exists to stop.
-The claim-vs-bytes gap is separate and smaller: the docstring and the body both promise the p3 row contract "on EVERY row", and the emitted cells.jsonl is 12 rows, every one arm=random. The deterministic baselines are read from another run's file instead of being emitted with seed 0, so the reader p3 was told to build has no uniform group and no key_only group to count. A contract stated in prose and absent from the bytes is a deliverable the kid names and the diff does not carry.
-What I am NOT demoting: the seed-band measurement itself, the bit-match check, the config-cell indirection, and above all the finding that key_only beats all three random draws on agree at all four budgets. That last one reframes the parent goal -- the random control is a strictly worse allocation rather than a noisy peer, so the n=1 six-of-eight reading is not an artefact of one lucky draw -- and it deserves its own node, which the second kid will open.
+Parent a00-0ae1cfe2, iter 54, PASS 8 residue round. This version answers PASS 8 items 1 and 7 on this node (and re-derives the count item 1 was about), and supersedes the previous THOUGHT, whose substance is kept below in the first paragraph.
+WHAT THE INSTRUCTION SAID: "IN PLACE: fix the existing node the item names ... Every node you touch gets a THOUGHT naming the PASS 8 item(s) it answers", and "NEVER re-word a hypothesis claim after its data. If an item says the claim and the data disagree, fix the DATA-SIDE statement or the verdict, and say so."
+WHAT THE MACHINE ACTUALLY DOES: I re-derived every cell of the numbers table from the committed artifact (datasets/.../a00-2b3ca8c4-582f1e-qwen2-seeds/cells.jsonl, 12 random rows) plus the baseline rows band() reads from a00-a721f95f-qwen2/cells.jsonl. Under call (a) MARGIN, |key_only - uniform| <= the FULL min-max range of the three random seeds, the count is 3 of 4 budgets (5.25, 6.25, 7.25), not the 2 of 4 the PASS 8 edit wrote: at 6.25 the agree margin .0518 sits inside a .0584 agree range and the KL margin .1544 inside a .2980 KL range, so that row is IN on both metrics. The round's own shipped band() agrees with me -- fed the committed cells.jsonl it returns margin_call_inside_agree=True and margin_call_inside_kl=True at 6.25 -- so the node and the code the round ships disagreed with each other, and the node was the wrong one. The definition in force is not a matter of taste: .agi/config.json values.local_maxxing.osc_band_row_contract names the FULL min-max range the ADOPTED, pre-registered rule, and osc_band_call2_a00-cc7b25cc.py:30 implements exactly that (b = max(v) - min(v)). A MAJORITY of four budgets is what the claim's clause (b) asks for, so under the adopted rule clause (b) HOLDS and "disproved on its decisive clause" does not survive; I withdrew that sentence rather than restate the verdict, because a decisive proved/disproved needs its own experiment.
+THE NEAR MISS: a repair that stops at labelling. Naming both calls in the header and sign-labelling each margin satisfies items 1 and 7 word for word and still leaves the one cell that decides the claim wrong -- a table that is honestly labelled and arithmetically wrong is worse than an unlabelled one, because the label lends the wrong number borrowed authority. I hit exactly that: I made the labelling edit myself, and my own re-derivation is what caught the 6.25 omission in it. A second near miss sits one level down: keeping the HALF-range reading because the node's own column is labelled half-range. The column header is not the rule; the config cell and the pre-registered implementation are, and they say full range. Reading the rule off the table you are editing is how a 2-of-4 tie survives as a 1-of-4 minority for two review rounds.
+CARRIED FORWARD, unchanged and not mine to re-derive: the band is real and resolvable (agree half-range 0.019-0.042, KL 0.061-0.249), seed 7 reproduces the a00-a721f95f random rows bit-for-bit, and the load-bearing extra finding stands -- key_only beats all three random draws on agree at all four budgets, so the random arm is a strictly worse allocation, not a noisy peer, and goal:g5.22.1's premise that noise explains the n=1 wins is wrong in the direction that matters.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
