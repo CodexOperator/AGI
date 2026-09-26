@@ -65,7 +65,18 @@ rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing
   DH.378   MERGED 9d98cd9f0 (salvaged feec4d0cb; 134/134 test_crons*): logs.mode=copytruncate LIVE on landing. Rename defect reproduced;
            3 leans DISPROVED my 'stays under' wording -- parent node LEFT AS IS (verdicts judged the old sentence); reachable claim +
            open falsifier 2 (non-O_APPEND NUL hole) MINTED 07438507d: hypothesis:log-cap-holds-at-each-apply-and-refuses-a-non-append-writer
-  NEXT     dispatch that as DH.379 (standing orders) ONCE io PSI avg10 < ~10 -- 05:5xZ it was 31.8, held
+  PASS 8   belam [decision] 07:3xZ (VERIFIED): hypothesis:pass8-0926-residue-batch (goal:g1), order: 2c -> (1) brief-extras-refs-cannot-escape-context
+           -> (2) memory-alarm-cli-is-declared-and-its-log-is-capped -> (3) crons-log-cap-bounds-archives-and-prunes-only-its-own-files
+           -> (4) rotate-term-grace-tests-never-touch-a-real-process-or-the-live-config -> (5) heal-late-reap-bound-covers-an-unparsable-record-and-stale-pin-logs-once
+  2c       = OWNER 01:0xZ stale app sessions ("the app lists only live sessions"; belam card 38460c40f). MEASURED read-only: A 2 local exited --bg
+           (5861181b kid probe, 710907bf likely owner's) -> `claude rm <id>` exists (CLI 2.1.283, deletes its worktree too); B ~20 app
+           "Remote Control offline" rows -> no local record, no CLI verb. BANKED [ask] to belam (irreversible on the owner's account); default = delete nothing
+  DH.379   a00-5f574b26  (1) brief-extras containment (my own d470b0de79 code)
+  DH.380   a00-a52ef31c  (2) memory_alarm CLI declared + log capped (trunk's one red) -- (3) WAITS for it (both touch crons.py log-cap region)
+  (3)      fold my minted 07438507d log-cap-holds-at-each-apply into (3)'s round as extra orders, not a separate round
+  rows     DONE 286272925: DEMOTE DH.369 exp a00-2a2760a8 + hypothesis:a00-f30b6285-0e37a6 (lean_disproved:60) + graph-root exp adopted mint_id
+           OPEN: workflow.py a-round-stage fail-open rows · pin-reap chain deadline (rotate.py:11485) · retired-box-prefix guard scope ·
+           3 node-text rows (a5f94936/f855c944/7c59d4d4) · key-row-publish experiment a00-14a8f7cc
   row      own posts row repaired in MAIN d6c0f2b49: window @1, pid 100671, session_id 7e93043d (ack join had missed)
   dm       [ask] sanctuary-master: stream-master row box cell = DH.373 conjunct (d) (nudge refused: foreign box; dm file stored)
 GUARD      belam [decision] 04:29Z (VERIFIED): <= 10 live spawns town-wide, pi only; user@ capped 5829M; memory_alarm WARN = hold dispatch
