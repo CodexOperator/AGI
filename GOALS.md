@@ -8055,6 +8055,36 @@ SIZING, per box: user@ MemoryMax = MemTotal - every budget held outside user@ (c
 
 ACCEPTANCE: one idempotent installer (dry-run by default; records every before-value; restores them on failure; sudo only for the system pieces) + one read-back probe that prints this table for the box it runs on -- green on local-town AND on encryption-town, the latter run by that box's own seat.
 
+##### G7.33.18.1 — the memory-watch stack as repo TEMPLATES -- every live piece, sized values as placeholders, paths as config cells, anonymize-clean (assigned: director-engine) — status: active
+
+# goal:g7.33.18.1
+
+# goal:g7.33.18.1
+
+WORLD-AFTER: every box-level piece of local-town's memory-watch stack (goal:g7.33.18's table: the user@ / oomd / slice drop-ins, agi.slice, agi-memguard.py + its unit, the 10-agi-survival no-cascade drop-ins, watchdog.conf + sanctuary-health) lives in the repo as a TEMPLATE whose sized values are placeholders and whose paths come from config cells (paths.*), never literals; the copied bytes pass `anonymize.py check` (a host name / address inside a script becomes a config cell).
+
+ACCEPTANCE: one template per live piece, byte-equal to the live file once rendered with local-town's measured values (a committed test renders each against a fixture of the live values and diffs); no template carries a literal path, host, address or hardware name; anonymize clean.
+
+##### G7.33.18.2 — ONE idempotent installer -- dry-run by default, sized from the box's MemTotal/swap, every before-value recorded and restored on failure (assigned: director-engine) — status: active
+
+# goal:g7.33.18.2
+
+# goal:g7.33.18.2
+
+WORLD-AFTER: ONE idempotent installer renders goal:g7.33.18.1's templates sized by goal:g7.33.18's SIZING from the box's own MemTotal/swap, and installs them: DRY-RUN BY DEFAULT (prints the plan: path, before-value, after-value), records every before-value, restores them all on any failure, needs sudo only for the system pieces, and a second run changes nothing.
+
+ACCEPTANCE: in a tmp-root fixture (never the live box): dry-run writes nothing; a real run against the tmp root writes every piece; a second run is a no-op; an injected failure mid-install restores every before-value byte-for-byte; the sizing rows reproduce local-town's measured numbers from its MemTotal/swap.
+
+##### G7.33.18.3 — ONE read-only read-back probe -- prints g7.33.18's table for the box it runs on, ok/drift per row (assigned: director-engine) — status: active
+
+# goal:g7.33.18.3
+
+# goal:g7.33.18.3
+
+WORLD-AFTER: ONE read-only read-back probe prints goal:g7.33.18's table (layer · the value on THIS box · the value SIZING wants · ok/drift) for the box it runs on, from the box's own files and `systemctl show` reads -- no write, no sudo, no unit change.
+
+ACCEPTANCE: a committed test drives it over a tmp-root fixture + a stubbed `systemctl show` and gets the table; run read-only on local-town it prints every row with no drift against the measured values; exits non-zero on any drift, naming the row.
+
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
 <!-- BODY:BEGIN -->
