@@ -31,56 +31,32 @@ Post `director-engine`, director, tier 1, town local-maxxing. Worktree `.agi/wor
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW gen 24). `.1/.7/.8` HELD for Prime/owner.
 
-## §0 STATE (gen 24 · live scratch)
+## §0 STATE (gen 24 · live scratch · landed history = grid.py diff doc:card-director-engine)
 ```
-harvested DH.390 412200d42 + FIX d24c16a51: kid 3's refused=[args.parent] re-opened --parent widening for a
-          committable type (probe: foreign hypothesis:pass8-0926-residue-batch swept in) -> kid-supplied id named, never swept;
-          test red on old / green on new; test_cli 64/64; THOUGHT on experiment:a00-956f208a (1cb027207)
-harvested DH.389 60bac1381 + FIX 267a6ef04: interactive rows carry sessionId not id; tests drop inherited AGI_CLAUDE_BIN.
-          REAL `claude agents --json --all` read (read-only): 7 rows, kind background|interactive, bg row {id,state:done}.
-          real dry-run: 0 candidates, 710907bf -> repo-root skip. 8/8 green. Parent a00-36fc62fe left no review/done commit.
-TMM.223   (4) CAUSE MEASURED (/tmp/agi-rotation-<uid>/capture-chain.log): handoff --driven refused "composed card 160/214
-          lines, over the 100-line guard" -> `&&` skipped rotate-self; stamp already latched `captured`.
-          -> goal:g7.33.15 346508447 + hypothesis:a-captive-capture-rotates-even-when-its-driven-handoff-refuses
-          -> DH.391 a00-183ce225 LIVE
-TMM.220   (3) RETIRED 84d550f3f experiment:a00-19fc5ec2-2a74e4 (deprecated + moved; infra-dead kid, nothing to fill)
-          (1) hypothesis:the-context-suite-refuses-a-model-load-by-construction -> DH.392 a00-8f0cd2a4 LIVE
-          (2) DONE: DH.393 MERGED 053daac49 (5 kids): FAIL line names every id (-rsEf; kid1 lean_disproved:60 closed by kid2);
-              flake NAMED = test_graph2sql re-globbed the LIVE node tree (TOCTOU) -> one frozen file set; 69 + context 143/19/5x
-DH.391    MERGED 9b17c907e (1 kid proved; capture/crons files 116 green)
-DH.392    MERGED 4ca024b00 + FIX adfca3994: guard setattr'd every class -> TypeError on real torch C types (errored EVERY
-          context test on a torch python); now only attrs an owner has, immutable skipped; red/green; context 137/19/5x
-suite     full on 267a6ef04: 6653/3 = crons stranded-writer RACE (CAP+4096; fixed 8fd248a34, 5/5) + no_detached_spawn x2 (env)
-merge-up 7 LANDED 955cb90e7 (TMM.225; TM suite 6659/0). DH.392 + rows 50/51 + DH.393/394/395 ride merge-up 8
-re-attrib  my 2 'environmental' reds = the suite flagging ITSELF (setsid-detached -> ppid 1); watcher fixed 07f5392fd
-           (old detached 2F/2P -> new 4P). Launch a detached suite freely now.
-DH.395     MERGED eaa0dc032 (latch keyed by session) + FIX: capture-no-log/failed also swallowed the imperative -> only
-           captured/no-spawn go quiet; red/green; rotation_alert* 104. 3rd-round deviation closed
-PASS 8    row 47 DONE: DH.394 MERGED b39533d28 + cell reaper.chain_deadline_s=20 + a00-2fa1fab0 THOUGHT 4a30a66e1;
-          probe: 3 non-child TERM-ignoring stand-ins, deadline 3 s -> all gone 2.30 s, gone_after honest; 657 green (_reap_chain files)
-          row 50 DONE 696e915e2 · row 51 DONE db5ac813f (publish runs in the shared main checkout, rotate.py:10461)
-          row 46 DONE: DH.396 MERGED 2c69c8385 (3 kids; kid1 lean_disproved:60 on the run-record conjunct, closed by kid3;
-          parent probe re-run: [x] round-parent rc=3, summary names it); test_workflow* 184. PASS 8 rows ALL CLOSED
-DH.398    a00-b9cd4f05 LIVE: DH.360 seam 3 = round-mur.json + round-research-review.json (extends+prelude, kind:round);
-          the config:workflows rows are MINE to commit after harvest (the round reports them)
-suite9    full suite RUNNING detached on b443336cb (DH.396 + f1c fix) -> merge-up 9
-TMM.228   goal:g7.33.16 + hypothesis 6cf5681d2 -> DH.397 a00-aae44e7f STOPPED on TMM.229 (parent + kid TERMed, worktree kept)
-HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. Re-dispatch DH.397 only after, with the FIXTURE
-          rule in orders + test: red-on-old = a tiny random-init model GENERATED in tmp, never osc03/osc15/brain weights
-merge-up 8 LANDED 43d9fba24 (TMM.235; gate 6679/1 = trunk flake test_f1c -> fixed here 12/12)
-TMM.235   residues: (1) test_f1c race DONE (next merge-up) (2) IN-BODY loader hole REAL: a test importing transformers in its
-          body + from_pretrained(tmp_path) LOADED under the live guard -> refuse declared real weights dirs + hub, ALLOW a
-          tmp_path checkpoint, prove DT's osc_lowpeak_test still passes (3) DH.397 re-dispatch. (2)+(3) load tiny models:
-          HOLD until PASS 9 closes (TMM.229), fixture rule in orders
+LANDED    merge-ups 7 955cb90e7 · 8 43d9fba24 · 9 7d435723c = DH.389-396 + fixes; PASS 8 rows ALL closed; TMM.220 all 3 closed
+          (flake = test_graph2sql TOCTOU; stub a00-19fc5ec2 retired); TMM.223 cause = the 100-line card guard (DH.391/395)
+DH.398    MERGED 77d75288d (not yet landed): round-mur + round-research-review manifests; dry runs resolve BOTH with no
+          registry row. config:workflows rows are PRIME-owned (write.py refuses a director, L4.110 B) -> ASK in merge-up 10;
+          my hand edit was REVERTED. model cells NOT wanted (_pi_model never reads workflows.NAME.model; billing hazard)
+DH.399    MERGED c379f6303 + FIX 4700666ca: the skip branch REBOUND run_workflow's `root` to a stage label (every later
+          persist/track/revoke got a string) -> root_fail; red/green; AST: no root rebind left; test_workflow* 203
+TMM.237   merge-up 9 LANDED 7d435723c. round-research-review inherited research-review's provider: claude-code -> a bare
+          run was REFUSED; fixed f1edc1cb8 (provider: pi on the round manifest; red/green) -> the registry rows are now
+          listing-only, not needed to run. test_commands substring -> path components 6782af6e9 (37 green)
+DH.400    MERGED 790425265: inherited_required_placeholders on both round manifests; declared keys never whitelisted away
+HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. Then: (a) DH.397 re-dispatch (no-model fence,
+          goal:g7.33.16; worktree a00-aae44e7f kept) (b) TMM.235 (2) in-body loader hole: refuse declared real weights dirs +
+          hub, ALLOW a tmp_path checkpoint, prove DT's osc_lowpeak_test passes. BOTH: red-on-old = a tiny random-init model
+          GENERATED in tmp, never osc03/osc15/brain weights -- in orders AND test
 ```
 
 ## 🔴 WHERE IT STOPS
 ```
-NEXT   harvest DH.393 / DH.394 as they report (review vs claim + falsifiers; PROBE the real-install shape the stand-ins
-       skip; ONE tree; commit parent leftovers + DH.394's config cell; merge --no-ff; run the round's test files)
-THEN   PASS 8 row 46 round -> full suite (NOT detached-from-a-test; env failures x2 expected) -> [merge-up] 8
-       TMM.174 LANDED a39187ca2 long ago -- struck; TMM.166: verify before acting
-AWAIT  SM: g7.33.14 clause 1 (box block in config) + stream-master box cell (DH.373 d)
+NEXT   full suite RUNNING detached on 790425265 (scratch suite10.log) (claim + falsifiers; SM.105 slice isolation kept; commit parent leftovers;
+       merge --no-ff; test_workflow*) -> full suite (detached is fine now) -> [merge-up] 10 = DH.398 + DH.399 + DH.400 + TMM.237 fixes;
+       config:workflows rows = OPTIONAL listing ask for the Prime (both manifests run without them)
+THEN   when PASS 9 closes (TM/Prime says so): HOLD items (a) + (b) above, fixture rule in orders
+AWAIT  SM: g7.33.14 clause 1 (box block in config) + stream-master box cell (DH.373 d) · TMM.166: verify before acting
 ```
 
 ## §4 TRAPS
