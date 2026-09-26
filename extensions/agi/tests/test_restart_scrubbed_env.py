@@ -12,6 +12,7 @@ key-minting key, the AGI_ORDERS_* text, AGI_MODEL_SLOT_LOCK).
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -115,3 +116,37 @@ def test_no_adapter_carries_a_second_scrub_list():
         base = adapters.scrubbed_base()
     assert "ANTHROPIC_API_KEY" not in base and "AGI_MODEL_SLOT_LOCK" not in base, (
         "the default base must be dispatch.scrubbed_env(), nothing else")
+
+
+def test_scrubbed_base_filters_an_EXPLICIT_raw_environ():
+    """FALSIFIER 3: an explicit base is scrubbed, not trusted.
+
+    The parent's auth probe: `restart(base_env=dict(os.environ))` handed
+    AGI_MODEL_SLOT_LOCK / ANTHROPIC_API_KEY / AGI_ORDERS_TEXT /
+    PROVISIONING_KEY_VAR to the child, because the filter was a caller's
+    discipline rather than this function's property. Reverting the filter in
+    `scrubbed_base` turns this red.
+    """
+    dirty = {k: f"leaked-{k}" for k in dispatch.ENV_VARS_TO_SCRUB}
+    dirty[provisioning.PROVISIONING_KEY_VAR] = "sk-or-v1-leak"
+    dirty["KEEP_ME"] = "1"
+    base = adapters.scrubbed_base(dirty)
+    for key in dispatch.ENV_VARS_TO_SCRUB:
+        assert key not in base, f"explicit base leaked the scrubbed key {key}"
+    assert base == {"KEEP_ME": "1"}, (
+        "the explicit base keeps ONLY its non-scrubbed names, verbatim")
+
+
+@pytest.mark.parametrize("adapter", ADAPTERS)
+def test_restart_with_a_raw_environ_base_leaks_nothing(monkeypatch, tmp_path, adapter):
+    """FALSIFIER 4: end to end, the caller's raw environ is harmless."""
+    for key in list(dispatch.ENV_VARS_TO_SCRUB) + [provisioning.PROVISIONING_KEY_VAR]:
+        monkeypatch.setenv(key, f"leaked-{key}")
+    monkeypatch.setenv("GH_TOKEN", "ghp_fixture")
+    raw = dict(os.environ)
+    env = _restart_child_env(monkeypatch, adapter, tmp_path / adapter,
+                             base_env=raw)
+    for key in [k for k in dispatch.ENV_VARS_TO_SCRUB
+                if k not in CLAUDE_CODE_OWNS] + [provisioning.PROVISIONING_KEY_VAR]:
+        assert key not in env, (
+            f"{adapter}.restart(base_env=dict(os.environ)) leaked {key}")
