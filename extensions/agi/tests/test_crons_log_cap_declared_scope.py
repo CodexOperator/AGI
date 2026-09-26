@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import os
+import signal
 import subprocess
 import sys
 import time
@@ -301,6 +302,11 @@ def test_a_rename_stranded_writer_is_bounded_in_its_own_inode(tmp_path):
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
         time.sleep(0.3)
+        # Freeze the writer: it still HOLDS its O_APPEND fd on the inode (the
+        # property under test), but it can no longer append 4 KiB between the
+        # apply's return and the stat below -- the suite measured exactly that
+        # race (1052672 = CAP + one blob, 6653/3 run, director-engine gen 24).
+        os.kill(kid.pid, signal.SIGSTOP)
         out = crons.enforce_log_caps(root, root, dry_run=False)
         arch = logs() / f"{log.name}.1"
         assert arch.stat().st_ino == inode, "the archive must be the SAME inode"
@@ -310,7 +316,8 @@ def test_a_rename_stranded_writer_is_bounded_in_its_own_inode(tmp_path):
         assert any(os.readlink(f"/proc/{kid.pid}/fd/{fd}") == str(arch)
                    for fd in fds), "the writer was stranded on a deleted inode"
     finally:
-        kid.terminate()
+        kid.terminate()                       # pending while stopped ...
+        os.kill(kid.pid, signal.SIGCONT)      # ... fatal before it writes again
         kid.wait(timeout=5)
     assert any("rotated" in o for o in out), out
     assert all(p.stat().st_size <= CAP for p in logs().iterdir() if p.is_file())
