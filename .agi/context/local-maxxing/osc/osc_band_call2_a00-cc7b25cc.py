@@ -1,8 +1,10 @@
 """TOTAL per-cell win/loss/inside-noise call rule over an osc band cells.jsonl.
-Amends osc_band_call_a00-ee9a5cdc.py at its three holes (parent probes P3/P4/P6):
-P3 gate on DISTINCT draw indices not rows; P4 a zero-width band is refused with
-its reason; P6 the comparator is a parameter. The band is ALWAYS the stochastic
-arm's min-max spread -- a deterministic comparator gives a mean, never a band.
+The rule that was split off and superseded this module is DELETED, not banner-marked
+(see hypothesis:a00-66d002ad-8cee33): its only remaining defect was a win on a degenerate
+band, and a pinned DEPRECATED file is a callable defective rule. This module closes three
+holes the earlier draft left: P3 gate on DISTINCT seeds not rows; P4 a zero-width band is
+refused with its reason; P6 the comparator is a parameter. The band is ALWAYS the
+stochastic arm's min-max spread -- a deterministic comparator gives a mean, never a band.
 """
 import json
 STOCHASTIC = "random"                 # the only denominator, whatever the comparator

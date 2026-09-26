@@ -14,7 +14,6 @@ def _load(name):
 
 
 m = _load("osc_band_call2_a00-cc7b25cc")
-old = _load("osc_band_call_a00-ee9a5cdc")
 
 
 def rec(arm, seed, agree, kl, np=32, budget=5.25, model="qwen2"):
@@ -41,7 +40,6 @@ def test_p3_one_seed_repeated_three_times_is_unresolved():
     j = m.judge(CELL_B)
     assert {v[0] for v in j.values()} == {"unresolved"}
     assert all("distinct" in v[1] for v in j.values()), j
-    assert old.judge(CELL_B)["qwen2", 32, 5.25, "key_only", "agree"] == "win"  # the old hole
 
 
 def test_p4_degenerate_band_is_unresolved_not_a_win():
@@ -69,11 +67,6 @@ def test_p7_absent_seed_is_not_a_distinct_draw():
     j = m.judge(nos)
     assert {v[0] for v in j.values()} == {"unresolved"}, j
     assert all("no seed" in v[1] for v in j.values()), j
-    assert old.judge(nos)["qwen2", 32, 5.25, "key_only", "agree"] == "win"  # the old hole
-
-
-def test_p8_the_superseded_module_is_marked_deprecated():
-    assert (HERE / "osc_band_call_a00-ee9a5cdc.py").read_text().startswith('"""DEPRECATED')
 
 
 def test_too_few_random_draws_is_unresolved():
@@ -94,12 +87,12 @@ def test_p6_both_comparators_appear_in_one_return():
         b["qwen2", 32, 5.25, "key_only", "uniform", "agree"][1].split(" vs ")[1]
 
 
-def test_no_regression_against_the_old_module_on_an_earned_cell():
-    for arm, comp in (("key_only", "random"),):
-        new = m.judge(CELL_A, arm, comp)
-        oldc = old.judge(CELL_A, arm)
-        for k, v in new.items():
-            assert v[0] == oldc[k[:3] + (k[3], k[5])], (k, v, oldc[k[:3] + (k[3], k[5])])
+def test_an_earned_cell_calls_under_both_comparators():
+    # the old differential-vs-the-superseded-module check, repointed at the RULE alone:
+    # on an earned cell (3 distinct seeds, a varying arm) no comparator may return a refusal
+    for comp in ("random", "uniform"):
+        got = m.judge(CELL_A, "key_only", comp)
+        assert {v[0] for v in got.values()} <= {"win", "loss", "inside-noise"}, (comp, got)
 
 
 def test_kl_sign_still_inverts():
