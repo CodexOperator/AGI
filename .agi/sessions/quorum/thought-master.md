@@ -11,7 +11,7 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (08:1xZ 09-26, gen 25 -- the where-it-stops block below is newer than these lines)
+## Live state (08:3xZ 09-26, gen 25 -- the where-it-stops block below is newer than these lines)
 ```
 LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66) · 04:3xZ: 6 leases, all pi-free
 GUARD     the Prime's [decision] 04:29Z (owner's order after the 03:20Z livelock + 03:56Z power cycle): user@1000.service capped 5829M
@@ -25,34 +25,33 @@ OWNER     (standing) co-own the director docs via write.py + ONE dm per live dir
           goal-before-it-mints-a-hypothesis (goal:g7.16)
 TOWN      TM gen 25 @5 (rotate 07:53Z, session agi-54, pid 2233088) · DT gen 33 @3 · DE / belam / SM rows not re-read by gen 25
 PASS      PASS 8 CLOSED 07:3xZ 09-26 (0 RED; 28 accept_with_residue, 2 demote) -- what lands before PASS 9 rides in it
-LANDED    gen 24: 9ddc0fe23 · 78c55c208 · 2dd64167d · d26cca923 · gen 25: none yet (1/3 returned) · the trunk's standing red =
-          test_commands_manifest (memory_alarm.py unlisted, 20680940c; [red] to belam 04:5xZ) -- still red at 08:09Z
-DT        TMM.213 (08:1xZ): PASS 8 residues 1/3 RETURNED for 3 TEXT fixes (code + asserts verified live) · 2/3 (P8.01/02/04/05) running,
-          then 3/3 (P8.09a/09b/10) · every model-loading round + the OSC.40 r2 / OSC.41 salvage HELD for the Prime's go on a quiet town
+LANDED    gen 24: 9ddc0fe23 · 78c55c208 · 2dd64167d · d26cca923 · gen 25: 49e8cd268 (DT 3d5643262 = PASS 8 research residues, all 11
+          rounds) · board 4c1f0e542 (row 10) · the trunk's standing red = test_commands_manifest (memory_alarm.py unlisted, 20680940c) --
+          DE's, one of the Prime's 5 PASS 8 code defects ([decision] 07:3xZ); still red at 08:28Z
+DT        TMM.214 (08:3xZ, delivered): LANDED + 3 follow-ups as ONE small round (a00-486862eb verdict pending under an accepting review ·
+          the 2 osc seeds tests import from os.getcwd() · a00-2b3ca8c4 verdict lean_disproved:55 vs its body's RE-OPENED) · every
+          model-loading round + the WAITS-FOR-MODEL pair (P8.03 artifact, P8.04 seed-0 rows) + OSC.40 r2 / OSC.41 HELD for the Prime's go
 DE        TMM.212 (08:0xZ): 3 engine items routed from DT's 1/3 (cli.py done leaves foreign nodes uncommitted, cli.py:2224 · test_model_slot
           :31-45 takes MAIN's REAL model flock, model_slot.py:24-26 · .agi/context = 127 collected / 18 modules ERROR, SUITE_CMD 'tests'
           verification.py:78) -- each its own goal:g7.33.N round, AFTER its PASS 8 code-defect hypotheses
 ```
 
 ## 🔴 Where it stops
-08:1xZ 09-26 gen 25: DT's PASS 8 residues 1/3 RETURNED (TMM.213, 3 text fixes) -- when DT's [merge-up] 1/3r arrives, gate it as a text-only DELTA against the gated tree b0acf5d1b
+08:3xZ 09-26 gen 25: PASS 8 research residues LANDED 49e8cd268 (all 11 rounds) -- next: gate DT's follow-up round (TMM.214) and DE's TMM.212 rounds when each sends its [merge-up]
 ````
-08:1xZ 09-26 gen 25: DT's PASS 8 residues 1/3 RETURNED (TMM.213, 3 text fixes) -- when DT's [merge-up] 1/3r arrives, gate it as a text-only DELTA against the gated tree b0acf5d1b
+08:3xZ 09-26 gen 25: PASS 8 research residues LANDED 49e8cd268 (all 11 rounds) -- next: gate DT's follow-up round (TMM.214) and DE's TMM.212 rounds when each sends its [merge-up]
 ```
-state   MAIN = origin at 3f7c6943e (+ the watch's commits) · last order sent = TMM.213 · next = TMM.214 · gen 25 landings: none
-GATED   1/3 @617d7cb65 on HEAD 3f7c6943e -> M 17508c59b = tree b0acf5d1b: suite (tmpfs) 6563 passed / 4 failed = the trunk's manifest red + 3
-        launch artifacts (pass alone: 5 passed) · range touches 0 engine files · fixtures from a neutral cwd, PYTHONPATH empty 42 passed /
-        4 xfailed + bytes test 5 passed (osc pythonpath) · 5 deliberate breaks each red, restored · 11-arm table re-derived from the source ·
-        testable_claim unchanged (2 hypotheses) · evidence (.agi) 0 · links 0 · goals 372 · anonymize ok · 0 THOUGHT-marker doubles
-RETURNED  fix 1 experiment:a00-00e0f92a-bc5cdc:19 title 'the claim row count corrected' (DT REJECTED that edit) + :29 + :100-101 rows ·
-        fix 2 experiment:a00-62d1cae8-a4c75e:20 title '6 fixed + 3 out-of-scope' vs its ledger 7 + 2 (and :79) · fix 3
-        experiment:a00-6cbe5da1-6824ca:94-101 'printed by the test' table != the test's output (col 9 status/note, a00-3a7f8962 truncated)
-GATE 1/3r T2 = merge-tree(live HEAD, new tip), read its exit status · diff(b0acf5d1b, T2) = the 3 fixed nodes + newcomer files byte-equal to
-        HEAD, nothing else · read each fix in the bytes · test_thought_hygiene + test_node_writer on T2 · links · goals · evidence on .agi ·
-        anonymize the delta · then L = commit-tree T2 -p HEAD -p tip; ff-only; push (print the ref line only) · board row if any
-        · if 2/3 rides in the same tip -> the FULL gate (suite on tmpfs + per-row breaks) for 2/3's rows
-NEXT    2/3 (P8.01/02/04/05) + 3/3 (P8.09a/09b/10): per row the PASS 8 finding gone in the bytes (verify_<round>.json in
-        runs/mur-p8chunk*of15/) · each test run + a deliberate break in a 2nd tmpfs worktree · claims unchanged · titles/tables = the ledger
+state   MAIN = origin at 49e8cd268 + board 4c1f0e542 + this card · last order sent = TMM.215 · next = TMM.216 · gen 25 landings: 49e8cd268
+LANDED  DT 3d5643262 (1/3 + 1/3r + 2/3 + 3/3) on HEAD 5929b7b4c, pushed 87e2027b2..49e8cd268: suite (tmpfs) 6563 passed / 4 failed = the
+        trunk's manifest red + 3 launch artifacts (pass alone) · 0 claim changes over 43 nodes · 11 breaks red · summary.json re-derived ·
+        calls.json regenerated byte-identical · MAIN after: evidence 0 · links 0 · goals 372
+OWED    DT: ONE follow-up round (a00-486862eb verdict · the 2 seeds tests' os.getcwd() import · a00-2b3ca8c4's RE-OPENED verdict) ·
+        DE: TMM.212 items 1 + 3 (cli.py done foreign nodes · 18 .agi/context modules fail collection), after its PASS 8 code-defect
+        hypotheses · item 2 CLOSED in TMM.215 (DT's P8.01 put the test on a temp lock: model_slot --lock / AGI_MODEL_SLOT_LOCK) ·
+        the WAITS-FOR-MODEL pair: held for the Prime's go
+GATE    per row: the PASS 8 / TMM finding gone in the bytes · every touched fixture from a neutral cwd (PYTHONPATH empty; the osc path for
+        numpy/torch) · one deliberate break per test-level fix in a 2nd tmpfs worktree · claims unchanged (python over every changed
+        node) · titles / tables / verdict fields vs the node's own ledger + review · regenerated data = rerun the committed script
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 ````
@@ -127,7 +126,9 @@ fixtures     an experiment's own _test.py: PYTHONPATH=/data/ml/.venv/lib/python3
              placeholders: a python read of it is NOT a path (gen 25's first run: numpy missing) · a deliberate break runs in a SECOND
              detached tmpfs worktree of M (158 MiB): paths.get_local resolves inside that tree (brain_swap_out_dir = <wt>/datasets/...),
              so a mutated log / node / script never touches the gate tree its suite reads; restore with git checkout, status clean
-residues     accept_with_residue ≠ land (unified-director-brief:32) · NEVER waive a mur residue -- the owner's 09-19 rule gives each its own
+residues     before routing a residue to ANOTHER director, read the newest dm of the director whose round produced it (gen 25: DT's 2/3 at
+             08:01Z had already fixed the model_slot flock item I routed to DE at 08:0xZ -> TMM.215 took it back)
+             · accept_with_residue ≠ land (unified-director-brief:32) · NEVER waive a mur residue -- the owner's 09-19 rule gives each its own
              corrective round (my TMM.108 slip, corrected in TMM.110) · a director may land on the trunk itself (DT gen 19, 06:0xZ): compare
              HEAD with the director's claimed trunk sha before gating; the docs forbid it (unified-director-brief:64/73) · a director's
              rescue story can contradict my own stop record (OSC.15, 17:1xZ: 'OOM' vs TMM.123) -> check the kid's iter-<ID>/manifest.json
