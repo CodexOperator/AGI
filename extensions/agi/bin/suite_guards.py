@@ -71,51 +71,89 @@ def graph_root():
         Path(__file__))
 
 
-@pytest.fixture(scope="session", autouse=True)
-def suite_lock():
-    """Hold `<graph>/sessions/verify-suite.lock` for the whole session.
+def make_suite_lock_fixture(root_resolver):
+    """The suite-lock guard as ONE body with a caller-supplied ROOT POLICY.
 
-    One suite at a time, and the refusal NAMES the live holder: a second
-    independent runner must stop, not proceed beside the first. A suite whose
-    caller already holds the window (the marker is inherited) no-ops -- the
-    window is still held, one level up."""
-    if os.environ.get(SUITE_LOCK_MARKER) or graph_root() is None:
-        yield
-        return
-    root = graph_root()
-    lock_path, holder = verification.acquire_suite_lock(root)
-    if lock_path is None:
-        raise RuntimeError(
-            "suite window refused — the suite lock could not be written "
-            f"under {root / 'sessions'}" if holder is None else
-            f"suite window refused — pid {holder} is a LIVE runner holding "
-            f"{root / 'sessions' / verification.SUITE_LOCK}; one suite at a "
-            "time — wait for it or ask whoever owns it")
-    os.environ[SUITE_LOCK_MARKER] = str(os.getpid())
-    try:
-        yield
-    finally:
-        os.environ.pop(SUITE_LOCK_MARKER, None)
-        lock_path.unlink(missing_ok=True)
+    `root_resolver()` names the graph whose window this run contends for: the
+    engine suite passes `find_project_root(Path(__file__))` (its own file,
+    never the cwd, hypothesis:l4-the-suite-lock-belongs-to-pytest-not-its-
+    caller), the declared context suite keeps `graph_root()`. Same lock file,
+    same marker, same refusal -- only the root is an argument."""
+    @pytest.fixture(scope="session", autouse=True)
+    def suite_lock():
+        if os.environ.get(SUITE_LOCK_MARKER):
+            yield
+            return
+        root = root_resolver()
+        if root is None:
+            yield
+            return
+        lock_path, holder = verification.acquire_suite_lock(root)
+        if lock_path is None:
+            raise RuntimeError(
+                "suite window refused — the suite lock could not be written "
+                f"under {root / 'sessions'}" if holder is None else
+                f"suite window refused — pid {holder} is a LIVE runner holding "
+                f"{root / 'sessions' / verification.SUITE_LOCK}; one suite at a "
+                "time — wait for it or ask whoever owns it")
+        os.environ[SUITE_LOCK_MARKER] = str(os.getpid())
+        try:
+            yield
+        finally:
+            os.environ.pop(SUITE_LOCK_MARKER, None)
+            lock_path.unlink(missing_ok=True)
+    return suite_lock
+
+
+#: The declared-suite policy: VERIFY_GRAPH_ROOT, else the invocation cwd's
+#: project, else the project the guards ship from.
+suite_lock = make_suite_lock_fixture(graph_root)
 
 
 _STRIPPED: dict = {}
 
 
-@pytest.fixture(scope="session", autouse=True)
-def agi_env_stripped():
-    """Strip the dispatch spawn vars before any test body runs, so a suite is
-    green or red on the same bytes whichever seat spawned it. The spawning
-    process's own environment is left alone."""
-    for key in list(os.environ):
-        if key.startswith(("AGI_", "AUTORESEARCH_")):
-            _STRIPPED[key] = os.environ.pop(key, None)
-    yield
-    for key, value in _STRIPPED.items():
+def strip_dispatch_env(extra_keys=(), env=None, memo=None) -> dict:
+    """Remove every AGI_*/AUTORESEARCH_* key, plus `extra_keys`, from `env`
+    (default os.environ), remembering the values in the returned `memo` so a
+    caller with its OWN dict (extensions/agi/conftest.py's `_AGI_STRIPPED`,
+    driven by path from test_agi_env_strip.py) keeps reading and writing it.
+    The engine suite passes the dispatcher's git-hook channel as `extra_keys`
+    (core.hooksPath is not AGI_*-prefixed, so the glob alone leaves it and
+    every `git` a test shells out to would run the commit guard); the declared
+    context suite passes nothing."""
+    env = os.environ if env is None else env
+    memo = {} if memo is None else memo
+    extra = tuple(extra_keys or ())
+    for key in list(env):
+        if key.startswith(("AGI_", "AUTORESEARCH_")) or key in extra:
+            memo[key] = env.pop(key, None)
+    return memo
+
+
+def restore_dispatch_env(memo) -> None:
+    """Put back exactly what `strip_dispatch_env` removed, and nothing else."""
+    for key, value in (memo or {}).items():
         os.environ.pop(key, None)
         if value is not None:
             os.environ[key] = value
-    _STRIPPED.clear()
+
+
+def make_agi_env_stripped_fixture(extra_keys=()):
+    """The dispatch-env strip as ONE body, plus whatever extra non-AGI channel
+    the caller names: a suite is green or red on the same bytes whichever seat
+    spawned it."""
+    @pytest.fixture(scope="session", autouse=True)
+    def agi_env_stripped():
+        _STRIPPED.update(strip_dispatch_env(extra_keys))
+        yield
+        restore_dispatch_env(_STRIPPED)
+        _STRIPPED.clear()
+    return agi_env_stripped
+
+
+#: The declared-suite policy: the AGI_*/AUTORESEARCH_* channel only.
+agi_env_stripped = make_agi_env_stripped_fixture()
 
 
 #: A test module opts in with `NO_REAL_PROCESSES = True`; the guard is opt-in

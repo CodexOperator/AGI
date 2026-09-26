@@ -417,11 +417,13 @@ import verification  # noqa: E402
 #: re-exported under their historical spellings so the leaf tests that load
 #: this conftest BY PATH keep reading the same attributes.
 from suite_guards import (  # noqa: E402,F401 -- the guard, imported not copied
+    SUITE_LOCK_MARKER,
     _FENCED_MODULE_RUNNERS,
     _FENCED_SPAWN_LEAVES,
     _fence_bound_runners,
     _make_guarded_kill,
     _make_guarded_killpg,
+    make_suite_lock_fixture,
     no_real_process as _no_real_process_or_live_config,
 )
 
@@ -443,51 +445,14 @@ PROVISIONING_TESTS_ARE_GUARDED = True
 #: refuses itself against its own parent's live lock and deadlocks the round.
 #: The name must NOT begin AGI_ or AUTORESEARCH_ (extensions/agi/conftest.py
 #: strips those prefixes) — that is why it is VERIFY_*.
-SUITE_LOCK_MARKER = "VERIFY_SUITE_LOCK_PID"
-
-
-@pytest.fixture(scope="session", autouse=True)
-def _suite_lock_guard():
-    """Acquire the suite lock for the whole pytest session, once.
-
-    A bare `python3 -m pytest extensions/agi/tests/` creates
-    `<graph>/sessions/verify-suite.lock` with its own pid and removes it on
-    exit. A second independent pytest started while the first runs finds the
-    lock held by a LIVE pid and REFUSES, naming that holder. A nested pytest
-    (pytest inside pytest) inherits SUITE_LOCK_MARKER from its acquiring
-    parent and NO-OPS — the parent still holds the window, so the child must
-    not re-acquire.
-    """
-    if os.environ.get(SUITE_LOCK_MARKER):
-        # Inherited: our parent process holds the suite window for this run.
-        yield
-        return
-
-    root = locations.find_project_root(Path(__file__).resolve())
-    if root is None:
-        # Not inside an agi project — no graph sessions dir to guard. No-op.
-        yield
-        return
-    lock_path, holder = verification.acquire_suite_lock(root)
-    if lock_path is None:
-        if holder is None:
-            raise RuntimeError(
-                "suite window refused — the suite lock could not be written "
-                f"under {root / 'sessions'}")
-        raise RuntimeError(
-            f"suite window refused — pid {holder} is a LIVE runner holding "
-            f"{root / 'sessions' / verification.SUITE_LOCK}; one suite at a "
-            "time — wait for it or ask whoever owns it")
-    os.environ[SUITE_LOCK_MARKER] = str(os.getpid())
-    try:
-        yield
-    finally:
-        os.environ.pop(SUITE_LOCK_MARKER, None)
-        if lock_path.exists():
-            try:
-                lock_path.unlink()
-            except OSError:
-                pass
+#: The engine suite's ROOT POLICY, and all that is left of it: the lock body
+#: is `suite_guards.make_suite_lock_fixture`, instantiated with this conftest's
+#: own `find_project_root(Path(__file__))` -- the FILE, never the cwd, so a
+#: `cd` cannot move the window (hypothesis:l4-the-suite-lock-belongs-to-
+#: pytest-not-its-caller). The declared context suite instantiates the same
+#: factory with the VERIFY_GRAPH_ROOT-else-cwd resolver.
+_suite_lock_guard = make_suite_lock_fixture(
+    lambda: locations.find_project_root(Path(__file__).resolve()))
 
 
 @pytest.fixture(scope="session", autouse=True)
