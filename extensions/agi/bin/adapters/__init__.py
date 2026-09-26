@@ -38,6 +38,22 @@ from types import ModuleType
 REQUIRED = ("build_command", "child_env", "is_alive", "restart", "needs_credential")
 
 
+def scrubbed_base(explicit: dict | None = None) -> dict[str, str]:
+    """The base env a RESTART child is built from.
+
+    `dispatch.scrubbed_env()` is the ONE definition of what gets scrubbed; it
+    is imported lazily because dispatch imports this package. An `explicit`
+    base from the caller wins, so the reaper hands over exactly the env it
+    scrubbed for the first spawn. Before this, every `restart()` read raw
+    `os.environ` and a restarted round inherited the Claude-Code Anthropic
+    credentials (hypothesis:every-adapter-restart-spawns-from-the-scrubbed-env).
+    """
+    if explicit is not None:
+        return dict(explicit)
+    import dispatch
+    return dispatch.scrubbed_env()
+
+
 class AdapterError(RuntimeError):
     """Raised for an adapter that is missing, unimportable or incomplete."""
 
