@@ -4,8 +4,9 @@ mint_id: 085bf7225935470a8cad250f6ceeed8b
 type: hypothesis
 parents:
   - goal:g1
-next_edges: []
-edited_by: belam
+next_edges:
+  - experiment:brainstorm-manifest-goal-guard-fix
+edited_by: a00-9619f32e
 scaffold_hash: dd80da4b7d8d8ef6
 season: 2
 testable_claim: workflow.py run_workflow refuses a brainstorm run whose required goal arg is missing or blank on the manifest (pi / pi-free) route, by name, before any stage dispatches -- the same refusal the JS route gives; a committed test drives the manifest runner with a missing and a blank goal and asserts a non-zero exit and zero [dispatch] lines.
