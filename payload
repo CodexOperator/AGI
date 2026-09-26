@@ -2435,7 +2435,8 @@ def _template_text(root: Path, ref: str) -> str:
 
 
 def _part(name: str, root: Path, role: str, post: str | None, harness: str | None,
-          extras_text: str | None = None) -> str:
+          extras_text: str | None = None,
+          card_file: str | None = None) -> str:
     """One part, resolved from the graph/config; a missing piece refuses."""
     if name == "head":
         prayers = "## THE FOUR PRAYERS\n\n" + (_read_faith_ref(root).get("prayers") or "")
@@ -2465,6 +2466,15 @@ def _part(name: str, root: Path, role: str, post: str | None, harness: str | Non
         from node_writer import find_node_file
         # `doc:card-<post>` WINS; the quorum file is the fallback (a symlink
         # to the node during the move). Both missing still refuses by name.
+        # A caller-NAMED card path WINS (hypothesis:non-prime-rotate-self-
+        # renders-through-brief-render): `rotate.py` already resolves the
+        # rotating post's OWN quorum card through the rename boundary (L5.11),
+        # and that file is more specific than either lookup below. A name
+        # that does not exist is NOT fatal here -- resolution falls through to
+        # `doc:card-<post>` and the graph root's quorum copy, so a stale name
+        # degrades instead of refusing a rotation.
+        if card_file and Path(card_file).is_file():
+            return _strip_thought(Path(card_file).read_text(encoding="utf-8"))
         if find_node_file(root, f"doc:card-{post}") is not None:
             return _node_text(root, f"doc:card-{post}")
         card = root / "sessions" / "quorum" / f"{post}.md"
@@ -2503,7 +2513,8 @@ def _part(name: str, root: Path, role: str, post: str | None, harness: str | Non
 
 def render(*, post: str | None = None, role: str | None = None,
            harness: str | None = None, project_root: Path | None = None,
-           extras_text: str | None = None) -> str:
+           extras_text: str | None = None,
+           card_file: str | None = None) -> str:
     """The WHOLE first user turn: the config parts in order, joined; `--post`
     resolves role + harness from the post's row. Writes NO file."""
     root = _resolve_graph_root(project_root)
@@ -2528,7 +2539,8 @@ def render(*, post: str | None = None, role: str | None = None,
         raise RenderError(
             f"role {role!r} parts {parts} carry no 'extras' part, so "
             f"extras_text ({len(extras_text)} chars) would be dropped")
-    segs = [_part(p, root, role, post, harness, extras_text) for p in parts]
+    segs = [_part(p, root, role, post, harness, extras_text, card_file)
+            for p in parts]
     rendered = "\n\n".join(s for s in segs if s)
     guard = _paid_for_path_guard(root)
     if guard != PAID_FOR_PATH_GUARD:
