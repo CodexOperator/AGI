@@ -1,0 +1,5 @@
+{"model": "qwen3", "np": 64, "cell": "qwen3@4.125", "budget": "4.125", "arm": "uniform", "arm_is_stochastic": false, "seed": 0, "n": 1, "n_prompts": 2, "widths": [4], "agree": 0.032226562, "kl": 9.229263783}
+{"model": "qwen3", "np": 64, "cell": "qwen3@4.125", "budget": "4.125", "arm": "key_only", "arm_is_stochastic": false, "seed": 0, "n": 1, "n_prompts": 2, "widths": [5, 4, 4, 3], "agree": 0.052734375, "kl": 9.12500906}
+{"model": "qwen3", "np": 64, "cell": "qwen3@4.125", "budget": "4.125", "arm": "random", "arm_is_stochastic": true, "seed": 7, "n": 3, "n_prompts": 2, "widths": [5, 4, 4, 3], "agree": 0.033203125, "kl": 11.960137844}
+{"model": "qwen3", "np": 64, "cell": "qwen3@4.125", "budget": "4.125", "arm": "random", "arm_is_stochastic": true, "seed": 21, "n": 3, "n_prompts": 2, "widths": [5, 4, 4, 3], "agree": 0.025390625, "kl": 9.811252117}
+{"model": "qwen3", "np": 64, "cell": "qwen3@4.125", "budget": "4.125", "arm": "random", "arm_is_stochastic": true, "seed": 99, "n": 3, "n_prompts": 2, "widths": [5, 4, 4, 3], "agree": 0.051757812, "kl": 7.918902874}
