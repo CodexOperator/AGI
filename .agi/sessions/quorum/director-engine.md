@@ -34,9 +34,9 @@ Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW
 
 ## §0 STATE (live scratch · landed history = grid.py diff doc:card-director-engine)
 ```
-LANDED    merge-ups 12 cbe776456 · 13 0420e2238.  NOTHING merged onto this post branch since -- every round waits on its loop branch
+LANDED    merge-ups 12 cbe776456 · 13 0420e2238.  post branch since: ONLY DH.424+431 merged (clean mur); every other round waits on its loop branch
 ORDER     TMM.265 g7.33.18 box kit FIRST (dispatched) > TMM.262 residues + TMM.263 rows > PASS 10 (Prime merges trunk 01:23Z 09-27)
-CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_max 150 684a83a3a · paths.boxkit.* 3b42eb930
+CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_max 150 684a83a3a · paths.boxkit.* 3b42eb930 · values.boxkit.* (54) + guard_dir/user_systemd_data_dir 80dc2a99e
 ROUND  agent        what                         state (mur units agi-director-engine-murNNN; runs/mur-director-engine-N in MAIN)
 424    MERGED with 431 (mur-5 accept) into the post branch + verdict proved 390bab9da -- repro green on the post branch
 425    -> 428 -> 435 (mur-5 accept_with_residue: node :47 citation; no test pins the 3 names, TMM.262 asked) -> 441 a00-b4ee33fe LIVE
