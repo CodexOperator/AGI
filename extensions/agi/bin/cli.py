@@ -32,6 +32,7 @@ import frontmatter  # noqa: E402
 import geometry_config  # noqa: E402
 import grid  # noqa: E402 -- the ONE ref-namespace resolver (goal:g14.14.7)
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
+import links  # noqa: E402 -- parse_written_by, the ONE parse of a type's writers
 import locations  # noqa: E402
 import node_writer  # noqa: E402
 import spawn_budget  # noqa: E402
@@ -1736,7 +1737,8 @@ def cmd_done(args: argparse.Namespace) -> int:
     # this parent runs in, if it holds uncommitted node writes; a no-op in
     # main (the loop owns main) and outside git. Never fatal.
     _auto_commit_worktree(root, args.agent_id, args.node_id, args.owns, verdict,
-                          _round_named_node_ids(rec, args.parent))
+                          _round_named_node_ids(rec, args.parent),
+                          refused=[args.parent] if args.parent else None)
 
     # hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- a round that
     # finishes alarms the seat that dispatched it: exactly ONE dm, sent with
@@ -2120,16 +2122,21 @@ def cmd_scope_check(args: argparse.Namespace) -> int:
 
 
 def _round_named_node_ids(rec, parent) -> list:
-    """hypothesis:a-kid-can-commit-the-existing-nodes-its-orders-name --
-    the node ids the round's ORDERS name: the target the record carries, the
-    parent it was given, and `--parent` on the command line. A kid ordered to
-    correct an EXISTING node in place cannot have that edit committed by any
-    other rule (its own node is its own; a foreign node is foreign), so the
-    round's own NAMED set is the target plus these. Ids only -- each is
-    resolved to an existing file by `_round_own_node_paths`."""
+    """hypothesis:a-rounds-named-node-set-is-its-dispatch-time-ids-never-a-kid-
+    supplied-parent -- the node ids the round's ORDERS name: ONLY what
+    dispatch wrote into the agent record (`target` / `parent` / `node_id`).
+    A kid ordered to correct an EXISTING node in place cannot have that edit
+    committed by any other rule (its own node is its own; a foreign node is
+    foreign), so the round's own NAMED set is the target dispatch picked.
+    `--parent` is the KID's line, not dispatch's, so it is read here for
+    signature compatibility and never widens the set -- before, one round
+    could name `config:posts` on the command line and have that edit swept
+    into its own loop-branch commit. `parent` stays in the signature (call
+    sites and tests name it) but contributes NOTHING. Ids only -- each is
+    filtered by type in `_round_own_node_paths`."""
     out = []
-    for v in (parent,
-              (rec or {}).get("target") if isinstance(rec, dict) else None,
+    del parent   # dispatch-time ids only; the kid's --parent never widens
+    for v in ((rec or {}).get("target") if isinstance(rec, dict) else None,
               (rec or {}).get("parent") if isinstance(rec, dict) else None,
               (rec or {}).get("node_id") if isinstance(rec, dict) else None):
         if isinstance(v, str) and ":" in v and v not in out:
@@ -2137,13 +2144,92 @@ def _round_named_node_ids(rec, parent) -> list:
     return out
 
 
+def _round_committable(root: Path, nid: str) -> bool:
+    """May a round's `done` commit sweep node id `nid`? Three DATA gates, no
+    type list in code (hypothesis:a-rounds-named-node-set-is-its-dispatch-time-
+    ids-never-a-kid-supplied-parent):
+      1. `grid.round_commit` in `.agi/config.json` -- `node_types` (a type no
+         round may edit: goal, config, town, ...) and `never_node_ids` (id
+         prefixes: `doc:unified-`). An ABSENT cell gates nothing, so a fixture
+         or a fresh tree behaves as it did.
+      2. the type's OWN schema `written_by` (`.agi/context/schemas/[<type>].md`
+         via `schema_registry`, the same reader `write.py` enforces it with) --
+         a type admitting ONLY owner/prime_director is never round-editable.
+      3. the type's schema `round_commit` cell -- `false` refuses the type,
+         `true` allows it, a map allows it and may add `never_node_ids`. This
+         cell is read from a COMMITTED file a round may itself commit
+         (`_round_scope_ok` only refuses `.agi/config.json`, the quorum dir and
+         foreign node files), so unlike (1) it survives into main; an explicit
+         cell WINS over the config allowlist either way.
+    """
+    ntype = nid.split(":", 1)[0]
+    try:
+        from schema_registry import load_schemas_from_dir
+        sdir = Path(root) / "context" / "schemas"
+        if sdir.is_dir():
+            sch = load_schemas_from_dir(sdir).get(ntype)
+            if sch is not None:
+                wb = links.parse_written_by(sch.frontmatter.get("written_by"))
+                if wb and not (wb - {"owner", "prime_director"}):
+                    return False
+                cell = sch.frontmatter.get("round_commit")
+                if cell is not None:
+                    if isinstance(cell, dict):
+                        if cell.get("allow") is False:
+                            return False
+                        if any(isinstance(p, str) and nid.startswith(p)
+                               for p in (cell.get("never_node_ids") or [])):
+                            return False
+                    else:
+                        return bool(cell)
+    except Exception:  # noqa: BLE001 -- an unreadable schema gates nothing
+        pass
+    try:
+        cfg = json.loads((Path(root) / "config.json").read_text(encoding="utf-8"))
+        rc = ((cfg.get("grid") or {}).get("round_commit") or {})
+    except (OSError, ValueError, AttributeError):
+        rc = {}
+    if any(isinstance(p, str) and nid.startswith(p)
+           for p in (rc.get("never_node_ids") or [])):
+        return False
+    types = rc.get("node_types")
+    return not (isinstance(types, list) and types and ntype not in types)
+
+
 def _round_own_node_paths(root: Path, checkout_root: Path,
                           node_id: str | None, owns: list | None,
-                          named: list | None = None) -> set:
-    """The round's own node files, relative to the checkout toplevel."""
+                          named: list | None = None,
+                          refused: list | None = None) -> set:
+    """The round's own node files, relative to the checkout toplevel. The
+    round's OWN node is always its own; every other id -- `--owns`, the
+    dispatch-time named set, and the kid's own `--parent` -- must be
+    round-committable by type.
+
+    Every REFUSED id is NAMED on stderr: a round told `done --parent goal:g5`
+    used to get silence, and could not tell "I refuse that" from "I never saw
+    it". `--parent` is threaded in as `refused` because it is `del`eted from
+    the named set in `_round_named_node_ids` -- it is still a value the round
+    asked for, so it is judged (and named) where it is in hand."""
     out = set()
-    for nid in [node_id, *(owns or []), *(named or [])]:
-        if not nid:
+    seen = set()
+    asked = [node_id, *(owns or []), *(named or [])]
+    for nid in [*asked, *(refused or [])]:
+        if not nid or nid in seen:
+            continue
+        seen.add(nid)
+        if nid not in asked:
+            # A kid-supplied id (`done --parent`) NEVER widens the set, even
+            # for a round-committable type -- judged by the type gate it let
+            # a foreign `hypothesis:` ride into this round's commit (DH.390
+            # harvest). Named, never swept.
+            print(f"round-commit gate: refusing {nid} — a kid-supplied "
+                  f"--parent never widens this round's done commit",
+                  file=sys.stderr)
+            continue
+        if nid != node_id and not _round_committable(root, nid):
+            print(f"round-commit gate: refusing {nid} — not "
+                  f"round-committable, so it is left uncommitted by this "
+                  f"round's done commit", file=sys.stderr)
             continue
         nf = _find_node_file(root, nid)
         if nf and nf.exists():
@@ -2156,7 +2242,8 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
 
 def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
                          owns: list | None, verdict: str,
-                         named: list | None = None) -> Path | None:
+                         named: list | None = None,
+                         refused: list | None = None) -> Path | None:
     """Give the commit to the parent at the moment it accepts its kid's node.
 
     hypothesis:l3w4-branch-parent-commits — a `--branch` parent runs inside a
@@ -2234,7 +2321,8 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
     # the round's OWN paths, never `add -A` (hypothesis:l4-the-round-done-
     # commit-scopes-to-the-round-own-paths-never-git-add-a). A foreign dirty
     # path is named on stderr and left where it is.
-    own = _round_own_node_paths(root, checkout_root, node_id, owns, named)
+    own = _round_own_node_paths(root, checkout_root, node_id, owns, named,
+                                refused)
     in_scope, foreign = [], []
     for rec in status.stdout.split("\0"):
         if len(rec) < 4:
