@@ -40,7 +40,7 @@ DE        TMM.235 (merge-up 8 landed) · live DH.396 (no model) · residues, eac
 ````
 16:2xZ 09-26 gen 27: merge-up 10 LANDED 7610dd2e5 (TMM.239); nothing in flight on my side; next = DT's (3) numbers when PASS 9 closes (20 of 28 chunks at 16:05Z -> ~16:4x-16:5xZ) -> the go for P8.03 alone; DE: TMM.238 + its next merge-up
 ```
-state   MAIN = origin at 7610dd2e5 + board row 8 + this card · last order = TMM.239 · next = TMM.240 · no gate open, nothing in /dev/shm
+state   MAIN = origin at 7610dd2e5 + board row 8 + this card · last order = TMM.240 · next = TMM.241 · no gate open, nothing in /dev/shm
 WAITING the Prime's PASS 9 (20 of 28 at 16:05Z, CAP 3) · DT: (3) re-measured at PASS 9 close -> numbers to me -> the go for P8.03 ALONE
         (VmHWM + memory.peak vs the predicted 2249 MiB; my baseline 15:27Z DURING PASS 9: user@ hard 1994 MiB, headroom 2740, lowpeak
         margin 491 MiB -- re-read /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service beside DT's numbers) · DE: TMM.238 ANSWERED 16:21Z
@@ -51,7 +51,7 @@ WAITING the Prime's PASS 9 (20 of 28 at 16:05Z, CAP 3) · DT: (3) re-measured at
 LANDED  gen 27: 7d435723c (DE merge-up 9: DH.396 + the test_f1c fix; 6698 / 0) · 7610dd2e5 (DE merge-up 10: DH.398 the round manifests +
         DH.399 + DH.400; 6727 / 0) · board row 8 x2
 SENT    TMM.237 + TMM.239 (landings) + TMM.238 (the queue reconcile) -> DE · [decision] belam 16:2xZ: config:workflows rows for the 2 round
-        manifests (optional; both resolve pi without one)
+        manifests -> the Prime 16:43Z: SKIP (a second source for the same value) -> TMM.240 told DE
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 ````
