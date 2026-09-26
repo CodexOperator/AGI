@@ -154,6 +154,8 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 - rr-band-alloc: agi-research-review pi-free, PROPOSE-ONLY, systemd unit rr-band-alloc-dt, log .agi/sessions/logs/rr-band-alloc.log,
   results MAIN .agi/sessions/workflows/runs/rr-band-alloc/. Question: energy beats random but not uniform -- scale overhead?
 - STOP new dispatches on: pi-free errors > 5% of a round's turns, an OOM outside a kid's scope, MemAvailable < 1.5 GiB (owner via Prime).
+- OSC.37 HARVESTED (kid a00-56509ff1 fix only; a00-be5449f2 gate module NOT harvested -- unrequested 2nd kid). swarm-2 p3 a00-5f731caa
+  HARVESTED (fit preflight G5.22.1.2.3, projection 5.87/6.00 GiB). Model-slot audit: 0 unwrapped model runs in swarm 2.
 - TMM.198 reply SENT. Git clean.
 
 ## 🔴 Where it stops -- gen 32, ~02:4xZ 09-26
