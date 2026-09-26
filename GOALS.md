@@ -12796,6 +12796,170 @@ OWNER 2026-09-18 17:4xZ (thought-master pane), verbatim: "We need to map bend2 i
 
 **First chunk (minted):** `hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point` (the 5-CPU-minute kill-test). Sub-sub-goals are the director's to mint (G5.22.1 heads, G5.22.2 context/throughput, G5.22.3 layering), same format as this node, before any chunk runs.
 
+##### G5.22.1 — key-energy band allocation vs byte-matched uniform on the qk-norm grid -- a verdict with error bars, not a cell count (swarm target, hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g5.22.1
+
+## Agent Notes
+GOAL: turn experiment:a00-f3703399-48096d (key_only beats byte-matched TRUE uniform on agree+KL in 6/8 cells, random in 8/8, ONE draw per cell) into a verdict that survives seed variance. WHY: its parent probe (datasets/osc-band/2026-09-24-qknorm/a00-bcea484d-probes/probe_noise.log) re-drew the random arm at seeds 7/21/99 at qwen2@5.25: agree spread 0.085 = 3x the key_only margin (0.028), seed 21 beats key_only on KL. 3 of 8 cells sit inside that spread. DONE WHEN: every (model, budget) cell of the matched grid (qwen2 np32 4.25-7.25, qwen3 np64 4.125-7.125; widths from osc_band_matched_uniform_a00-a721f95f.py --check) carries a per-arm spread over >= 3 draws, and key_only vs uniform and key_only vs random are each called win / loss / inside-noise per cell. HARNESS: .agi/context/local-maxxing/osc/osc_band_matched_uniform_a00-a721f95f.py + osc_band_kquant_qknorm_a00-bcb6c85e.py (fixed.bits, arm); outputs under paths.local_maxxing.osc_band_qknorm_dir, never .agi/sessions. LIMITS: ONE model-running kid per swarm at a time (3.2 GiB each), MemAvailable >= 3 GiB before a model kid launches, one model per process. NOT IN SCOPE: new budgets, new models, inverse_energy (0/8, refuted).
+
+###### G5.22.1.1 — a per-cell win/loss/inside-noise CALL rule with a named band statistic, landed before the seed-sweep data exists — status: active
+
+<!-- BODY:BEGIN -->
+# goal:band-call-rule-per-cell
+# goal:band-call-rule-per-cell
+
+## Why this exists
+**Parent `goal:g5.22.1`.** That goal's DONE WHEN is the word "called": "key_only vs uniform and key_only vs random are each called win / loss / inside-noise per cell". Nothing on disk can emit that word. `osc_band_matched_uniform_a00-a721f95f.py:74-77` writes exactly one record per (arm, budget) with no seed field, so 16 cells are n=1, and `a00-bcea484d`'s probe shows the random arm's agree spread at qwen2@5.25 is 0.085 -- 3x the 0.028 key_only margin. A verdict that has no call rule is the n=1 trap wearing a verdict's clothes.
+
+**Swarm split (room swarm-osc35, lap 1).** p1 (`a00-e2d2e39a`) proposed three sub-subgoals of `goal:g5.22.1` and took (A) qwen2 np32 noise band; p2 (`a00-5cba3524`) took (B) qwen3 np64 noise band with two amendments, one of which binds here (the >=3-draw rule binds the STOCHASTIC arm only -- uniform and key_only are deterministic, so their spread is 0.0 by construction and must be labelled n=1). p3 (`a00-553975e2`, this node) took (C).
+
+## Target end-state
+- ONE named band statistic and ONE call rule, implemented, tested, and committed -- the tree can turn a jsonl of per-(cell, arm, seed) draws into per-cell `win` / `loss` / `inside-noise` calls.
+- The rule is written and landed BEFORE any seed-sweep jsonl exists, so neither (A) nor (B) can tune it to its own numbers.
+- A gate that refuses to emit a call for a cell with fewer than 3 stochastic draws.
+
+## Invariants
+- The band denominator is the RANDOM arm's seed spread. It is never a key_only spread (0.0 by determinism -- dividing by it calls every cell an infinite win).
+- KL sign is inverted: for KL, lower is better, for agree, higher is better. A rule that gets this backwards inverts the verdict.
+- Zero model, zero GPU. This slice never takes the swarm's one model slot; that belongs to (A) and (B).
+
+## Falsifier
+FAILED if any red:
+1. A synthetic jsonl (hand-written fixtures, no model) with a known band produces a call that disagrees with the hand-computed call.
+2. A cell with n=2 stochastic draws still produces a call.
+3. The rule is landed after a seed-sweep jsonl exists under `paths.local_maxxing.osc_band_qknorm_dir`.
+
+## Out of scope
+- goal:g5.22.1 (the swarm target) and its (A) qwen2 / (B) qwen3 model-running slices.
+- `inverse_energy` (0/8, refuted).
+- New budgets, new models, new arms.
+
+## Agent Notes
+Assigned to **post**. goal:band-call-rule-per-cell is the (C) DECIDE LAYER slice of the swarm split recorded above.
+
+###### G5.22.1.2 — qwen3 np64 noise band -- >=3 seeds per cell so the np64 grid has a denominator at all (swarm split (B), p2) — status: active
+
+# goal:g5.22.2-qwen3-np64-noise-band
+
+# goal:g5.22.2
+
+## Why this exists
+
+**Parent `goal:g5.22.1`.** g5.22.1 asks for a per-cell CALL with error bars on the
+qk-norm grid instead of the n=1 cell count that experiment:a00-f3703399-48096d
+landed. It is one goal over two models, and the swarm split of iter 35 (room
+swarm-osc35, p1's proposal 00:48) cut it three ways: (A) p1 takes the qwen2 np32
+grid, **(B) p2 takes the qwen3 np64 grid — this node**, (C) p3 takes the
+model-free decide layer that turns draws into win/loss/inside-noise.
+
+The measured thing that made this a parent of THIS node: every row on disk is
+n=1. `.agi/context/local-maxxing/osc/osc_band_matched_uniform_a00-a721f95f.py`
+line 50 routes the random arm to `fixed.arm(E, widths, "random", 7)` — a
+hardcoded seed, one draw per cell, and no seed loop anywhere in the file — so
+the 16 rows under
+`paths.local_maxxing.osc_band_qknorm_dir/a00-a721f95f-{qwen2,qwen3}/cells.jsonl`
+are single points. The one place a spread has been measured at all is the parent
+probe `a00-bcea484d-probes/probe_noise.log` (qwen2@5.25, seeds 7/21/99): agree
+range 0.085, three times the key_only margin of 0.028, and seed 21's KL 0.565
+beats key_only's 0.613. That probe is on np32 only. **The np64 grid has never
+had a second draw, so its four budgets have no band at all** — and the band is
+the denominator every verdict divides by.
+
+## Target end-state
+
+- `paths.local_maxxing.osc_band_qknorm_dir/a00-<mint>-qwen3/` holds one jsonl row
+  per (budget, arm, seed) for budgets 4.125 / 5.125 / 6.125 / 7.125, arms
+  uniform / key_only / random, seeds {7, 21, 99, 45} for random — the seed set is
+  a superset of the parent's probe seeds so probe numbers fold into the same
+  table rather than sitting beside it.
+- A per-cell band exists for all four np64 budgets: the range (max-min) of the
+  random arm's agree over the four seeds, plus the same for KL.
+- The four np64 cells each carry a stated answer to "is key_only distinguishable
+  from uniform here", with the n of every number named.
+
+## Invariants
+
+- The np64 grid stays BYTE-MATCHED: every budget's uniform widths and the
+  non-uniform widths cost the same bits, asserted by `--check` before any model
+  loads (that is what `check_table()` in the a721f95f harness is for; reuse its
+  GRID, do not re-derive it).
+- **The >=3-draw requirement binds the STOCHASTIC arm only.** uniform and
+  key_only are deterministic — `allocation()` sends them to `fixed.arm(...,
+  "uniform")` and `fixed.arm(..., "energy", 1)` with no RNG in the path — so
+  re-drawing them at four seeds returns four identical numbers and a spread of
+  exactly 0.0 by construction, not by measurement. They carry n=1 and MUST be
+  labelled n=1. A verifier allowed to divide a margin by a 0.0 deterministic
+  spread is worse off than the n=1 trap it replaces: it calls every cell an
+  infinite win.
+- The band denominator is the random arm's spread alone.
+- Outputs land under `paths.local_maxxing.osc_band_qknorm_dir`, never under
+  `.agi/sessions` and never under the repo root.
+- One model per process. qwen3 np64 is the larger of the two; the swarm admits
+  ONE model-running kid at a time, claimed in swarm-osc35.
+
+## Falsifier
+
+FAILED if any of these is true when the round closes:
+
+1. `--check` exits non-zero, or any budget's `fixed.bits(uniform)` differs from
+   `fixed.bits(matched)` — the grid is not byte-matched.
+2. Any (budget, arm) row in the emitted jsonl lacks a `n` field, or a
+   deterministic arm (uniform, key_only) claims `n >= 3`.
+3. A band is reported for a budget whose random arm has fewer than 3 seeds.
+4. The np64 grid the run measured is not the one `check_table()` asserts
+   (budgets 4.125/5.125/6.125/7.125, widths from the a721f95f GRID table).
+5. Anything was written outside `paths.local_maxxing.osc_band_qknorm_dir`.
+
+## Out of scope
+
+- `goal:g5.22.1.a` (p1) — the qwen2 np32 grid. Same shape, different model,
+  different process, zero shared source lines.
+- `goal:g5.22.1.c` (p3) — the decide layer that converts >=3 draws into
+  win/loss/inside-noise. This node produces the DRAWS and the band; it does not
+  own the call rule, and must not tune one to fit these numbers.
+- New budgets, new models, `inverse_energy` (0/8, refuted).
+- Bandwidth/serving questions. This is an allocation-of-bits question.
+
+## Agent Notes
+Assigned to **post**. One model-running kid; see Falsifier for the closure test.
+
+###### G5.22.1.3 — qwen2 np32 allocation-noise band over >=3 random seeds per cell, so key_only-vs-uniform is called with error bars — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g5.22.3-qwen2-np32-noise-band
+
+## Why this exists
+**Parent `goal:g5.22.1`** — its Agent Names says the blocker is n=1: every one of the 16 matched-grid cells was produced by a single hardcoded random draw, while the parent probe (a00-bcea484d) re-drew the random arm at seeds 7/21/99 on qwen2@5.25 and got an agree spread of 0.085 — 3x the key_only margin of 0.028 — with seed 21 beating key_only on KL outright. A verdict cannot be built on a denominator nobody has measured, so this subgoal measures the denominator on one of the two models while p2 measures the other and p3 writes the decision rule against it.
+
+## Target end-state
+- `datasets/osc-band/<osc_band_qknorm_dir>/<mint>-qwen2/cells.jsonl` carries, for every budget in {4.25, 5.25, 6.25, 7.25} and every arm in {uniform, key_only, random}, one row per (cell, arm, seed) with the seed named, `arm_is_stochastic`, and `n` = count of distinct seeds.
+- The random arm has n >= 3 distinct seeds per cell at every budget, so a per-cell allocation-noise band exists for the whole qwen2 np32 grid.
+- Per-cell callable quantity exists: `margin = key_only - uniform` per metric, against a band that is NOT zero.
+
+## Invariants
+- byte-matched: `fixed.bits(uniform) == fixed.bits(matched) == float(budget)` for every cell, re-checked by `--check` before any model loads (osc_band_matched_uniform_a00-a721f95f.py:20 check_table).
+- `n >= 3` binds the STOCHASTIC arm only; uniform and key_only are deterministic given the calibration energy profile, so they are labelled n=1, not padded to n=3 with duplicates.
+- the band denominator is the RANDOM arm's spread over seeds, never a spread of key_only (which is ~0 by determinism and would make every cell a fake win).
+- one model per process, MemAvailable >= 3 GiB checked before launch; outputs under `paths.local_maxxing.osc_band_qknorm_dir`, never `.agi/sessions`.
+- paths live in config, not as literals: no bare `datasets/...` or worktree path in a new script (the parent probe's own copy, a00-bcea484d-probes/probe_noise.py:7-8, hardcodes two absolute paths and is the counterexample).
+
+## Falsifier
+1. `python3 .agi/context/local-maxxing/osc/osc_band_seeds_qwen2_*.py --check` exits 0 and prints OK for all 4 budgets (bit-matched table intact).
+2. `python3 -c "...jsonl..."` — the qwen2 cells file has >= 3 distinct seeds for every random row group, and zero rows lacking a `seed` field. Any group with n=1 is FAILED.
+3. A row whose `(cell, arm)` group has 4 rows all carrying the same `seed` is FAILED (duplicated determinism must not read as n=4).
+4. `grep -c "worktrees" <new script>` is 0 — no absolute worktree literal.
+
+## Out of scope
+- qwen3 / np64 (p2, goal:g5.22.2) — the swarm allows one model-running kid at a time.
+- the win/loss/inside-noise CALL itself (p3, goal:band-call-rule-per-cell G5.22.1.1) — this subgoal produces the numbers and the band, not the verdict.
+- inverse_energy (refuted, 0/8, named out of scope by the parent).
+- new budgets, new models, prompt-bootstrap in place of seed-bootstrap.
+
+## Agent Notes
+Assigned to **p1 (a00-e2d2e39a)** in swarm-osc35, iter 35.
+
 #### G5.23 — TRACK II — fine-tuning the bigger local models off the shelf: SFT/LoRA on our morals + the Sanctuary substack (Shaelaran) with A/B trials, then the fine-tune + the oscillator optimisation, then a quantisation-oriented fine-tune; Camber hours authorised, failing is fine (owner 21:4xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
