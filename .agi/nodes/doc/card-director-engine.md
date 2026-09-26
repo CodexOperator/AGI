@@ -41,14 +41,13 @@ CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_ma
 426    a00-8783b3d3 schema gate  mur-4 residue x3 (cli.py: named-id hole, double ERR, stale comment) -> 442 FAILED TO BUILD ON IT (no
        merge; hook-only overlap) -> NEVER merge 442 -> 445 a00-5a2ac2fb (cut from 426; 191 green) -> mur-7 DH.445-k1 RUNNING
        stale-base "behind 1" overridden with reason -- quote the refusal line in [merge-up])
-427    -> 436 (mur-6 residue: deleted None arm = latent TypeError; ruling: RESTORE it + say why). 449 a00-b39f1a3d CUT by me:
-       its worktree cd failed -> cut from the POST branch, wrong base. REDO 449 from a NEW worktree on the 436 branch (below)
+427    -> 436 (mur-6: restore None arm + say why) -> 449 a00-35a98fab LIVE, cut from 436 in worktree de-base-436 (1st try a00-b39f1a3d CUT)
 429    -> 443 a00-169a5424 REBUILT standalone (live 150, both guards) -> mur-6 DH.443-k1 RUNNING; LAND: merge 429 (nodes) THEN 443 (-X theirs)
 430    -> 440 a00-c8389b84 (incl 430+431; ONE guard home, 0 dups; 229 green + repro) -> mur-6 DH.440-k1/k2 RUNNING
 432    SUPERSEDED (hostname in history) -> 438 a00-d821a9fd clean -> mur-6 residue (24 fixtures == templates: circular; no-cascade
        dest wrong) -> 446 a00-20d4ab3d (cut from 438; 0/24 fixtures==tmpl, 177 green, anonymize ok) -> mur-7 DH.446-k1 RUNNING
 433    -> 444 (mur-6 residue: DEFAULT_FRACS + 12/14 tests need it; --graph "."; --meminfo literal) -> 447 LIVE, CUT FROM the 444 branch
-434    SUPERSEDED -> 437 -> 439 a00-58736bab (reserve 1911 w/ --held flag; 20 green) -> mur-6 DH.439 DONE: READ verify_DH.439-k1
+434    SUPERSEDED -> 437 -> 439 (mur-6 residue: mem_cap path WRITES cache; neg reserve=info; literals) -> 450 a00-f0f1a8b1 LIVE, cut from 439
        BOX DRIFT (for TM, not ours to fix): OOMPolicy unset on streamer-stub-watch.service · agi.slice drop-in FILE absent
 g15       concurrent murs mint ONE run key (-3 x2, -4 x3, -5 x3): _existing_run_keys sees only finished rows
 g15       "merge the loop branch first" is NOT reliable: kids are forbidden git and get an EMPTY .git (no refs); 437/438/442/443
@@ -64,15 +63,11 @@ CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT
 ```
 FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur440 mur443 mur445
        mur446 (+ whatever finished). Verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{5,6,7}/verify_DH.4NN-kN.json
-       parents live: DH.447 a00-7ba0cad2 (installer) · DH.448 a00-991dc2e8 (agi-bin wording + guard(None))
-       READ mur439 (DH.439 probe) -> accept = merge; residue = corrective CUT FROM its branch (pattern below)
-THEN   REDO DH.449: git worktree add .agi/worktrees/de-base-436 season2/loops/hypothesis-heal-worktree-refusal-a00-68d48a54 ;
-       cd there ; dispatch.py . DH.449 --target hypothesis:heal-worktree-refusal-tests-never-reach-live-tmux-and-dead-branches-go
-       --level small --tier parent --role parent --ladder-tier 0 --branch --detach --orders /tmp/claude-1000/-data-work-agi--agi-worktrees-post-director-engine/5dfded99-03c0-4bed-9312-5ccdf4415702/scratchpad/o449.md --from director-engine
-       --allow-stale-base "<reason>"   (orders files o4NN.md live in that scratchpad dir)
+       parents live: 447 a00-7ba0cad2 · 448 a00-991dc2e8 · 449 a00-35a98fab · 450 a00-f0f1a8b1
+THEN   harvest 447/448/449/450 as they land (each cut FROM its chain branch: diff vs that branch; tests; commit stray node edits there)
 PATTERN corrective = dispatch FROM the loop branch's worktree (kids cannot merge); a clean mur = git merge --no-ff <final branch>
-       LAND ORDER per chain: 425: 441 then 448 (+441's node commit) · 426: 445 (NEVER 442) · 427: 449 · 429: merge 429 (nodes) then 443
-       -X theirs · 430: 440 · 432: 438 then 446 (NEVER 432) · 433: 444 then 447 · 434: 439 (NEVER 434)
+       LAND ORDER per chain: 425: 441 then 448 (+441's node commit) · 426: 445 (NEVER 442) · 427: 436 then 449 · 429: merge 429 (nodes) then 443
+       -X theirs · 430: 440 · 432: 438 then 446 (NEVER 432) · 433: 444 then 447 · 434: 439 then 450 (NEVER 434)
 THEN   graph acts (2) level3.py build:tests-test-agi-bin-absent · (9)(11) verdicts · full suite + ctx -> ONE [merge-up] 14+15 + g7.33.18
        (name: 442 discarded, stale-base overrides, the g15 lines, the 2 BOX DRIFTs, my stale 21:2xZ dm)
 ```
