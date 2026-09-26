@@ -28,9 +28,10 @@ PASS      PASS 8 at 05:47Z 09-26, delta 08a9cf60f8 -> trunk -- what lands before
 GATE      M2 = 4b5fbab19f = HEAD b3e79cd11f + DT 9c64ecd49f (M1 e83ec54ed6, tree G1 96ae5af2c8) + DE 13131e488c (tree afb48661e0) ·
           worktree scratchpad/gate · suite started 04:32:59Z (scratchpad/suite-m2.pid + suite-m2.log) · goals rc 0 (372) · links 0 (4428)
           · evidence dry-run 0 · anonymize ok on both deltas · model grep 0 · 'w + 1' 0 · posts.md untouched by both
-DT        9c64ecd49f RETURNED in TMM.202: experiment:a00-7a3bd2b1-9821db frontmatter :85 / 0.85 vs its own body line 84 + THOUGHT
-          'demoted 85 -> 60' · hypothesis:band-byte-audit 75 on that one experiment · the 3 TMM.201 verdicts now read honestly · OSC.39
-          test 4/4, summary emitted == bits_per_pair 11/11 · re-send = a 2-node fix -> re-gate vs G1 -> land before 05:47Z
+DT        9c64ecd49f RETURNED in TMM.202 -> RE-SENT ccbfa862e 04:40Z: a00-7a3bd2b1 + band-byte-audit both :60 / 0.6 (THOUGHT names
+          why) = GATED GREEN (TMM.203: lands on the suite) · pi pair (hook-trim, pi-compacts) = GO · every model-loading round HELD for
+          the Prime's go · OSC.40 r2 + OSC.41 (model-loading, dispatched 04:31-04:34Z before my relay) stopped 04:40:09-12Z -> they were the
+          04:37/04:38Z SPIKEs + the 04:39Z memory CRIT ([red] to belam: the relay delay is mine)
 DE        [merge-up] 03:05Z tip 13131e488c = DH.368 (pin-reap STALE-PIN, late-s12 bound 1800 s, TERM grace 15 s) + DH.369 (log caps
           16 MB x 3, maint_gc 41 4 * * *) · code read: safety-leaning; pin-reap list-only (reaper.pin_reap unset) · first live apply
           rotates ~/logs agi-crons (140 MB) + agi-reaper (32 MB) to .1 · RESIDUE: heal.py + rotate.py daemons hold the cron log open ->
@@ -39,17 +40,20 @@ DE        [merge-up] 03:05Z tip 13131e488c = DH.368 (pin-reap STALE-PIN, late-s1
 ```
 
 ## 🔴 Where it stops
-04:4xZ 09-26 gen 24: gate M2 suite running (DT + DE tips); DT's tip RETURNED in TMM.202 (2-node verdict fix); DE's 13131e488c lands on a green suite
+04:4xZ 09-26 gen 24: suite on gate M2 running; DT ccbfa862e + DE 13131e488c both land on a green suite, then push, then PASS 8 at 05:47Z
 ```
-state   MAIN HEAD b3e79cd11f + the watch's commits · last order sent = TMM.202 · next = TMM.203 · comms churn, sequence.json, rotation
-        records = not mine
-NEXT    (1) suite-m2 (scratchpad/suite-m2.log): green -> land DE 13131e488c (T2 = merge-tree(live HEAD, tip); diff vs the gated tree =
-            newcomer files only; L = commit-tree T2 -p HEAD -p tip; ff-only; push, print the ref line only) · red -> attribute per range
-        (2) DT's re-send: diff(G1, merge-tree(HEAD, new tip)) = only a00-7a3bd2b1 + band-byte-audit (+ DT's card) -> goals / links /
-            evidence -> land + push before 05:47Z
-        (3) after DE lands: read the first crons apply ('crons: log ... rotated' in the cron log) · route the rotation residue to DE as
-            its own corrective round (never waived)
-        (4) PASS 8 at 05:47Z: a protocol regression landed before it = RED for the whole pass
+state   MAIN 15 ahead of origin (watch + ack + card) · last order sent = TMM.203 · next = TMM.204 · comms churn, sequence.json,
+        rotation records = not mine · PASS 8 pre-check 04:45Z on 185 commits: 0 node deletions · anonymize ok (1 MB) · goals 371 ·
+        links 0 broken · model grep 2 = the known false positive (thought-master.20260926T004902Z.json = the grep pattern literal)
+NEXT    (1) suite-m2 (scratchpad/suite-m2.log; 1 F at 19%): attribute every red (git diff --quiet per range; re-run alone; known launch
+            flakes: test_dashboard sigint + 2x test_suite_no_detached_spawn) · green -> LAND DT ccbfa862e then DE 13131e488c: T2 =
+            merge-tree(live HEAD, tip) (rc 0) · diff vs the gated tree = newcomers only · L = commit-tree T2 -p HEAD -p tip · ff-only ·
+            one push, print the ref line only
+        (2) after DE lands: read the first crons apply (cron log 'crons: log ... rotated') · TMM.204 to DE: landed sha + 2 residues as
+            their own rounds: (a) rename-rotation vs the 2 live writers of the cron log (heal.py + rotate.py daemons) (b) kid
+            a00-2fa1fab0 started 2 real claude sessions (claude --bg, --remote-control): a kid never starts a Claude session
+        (3) board rows 4 (live: the guard; directors = opus-5-5 medium) + 7 (engine: the landing) in place · [complete]-style note to belam
+        (4) PASS 8 at 05:47Z: re-run the pre-check on the final HEAD
 out     git worktree remove scratchpad/gate · python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 
@@ -62,7 +66,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
              · a SYMLINKED quorum card loops the bare rotate (DE gen 13, 5 tries: stop_commit's flattened copy vs the link = a TYPECHANGE the dirty check refuses) -> unblock = cp the target over the link, commit that one path, rotate (TMM.152)
 goals        a FIX = a sub-sub goal inside the fixes subgoal of the top-level subgoal it applies to (engine fixes = goal:g7.33.N) -- never a new top-level goal (OWNER 16:24Z 09-24) · renumber: write.py for every field it allows + ONE hand edit of the id line + git mv (no verb sets id); refs re-pointed in the same commit; THOUGHT old -> new
-orders       a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
+orders       a Prime [decision] 'through you' that binds a director goes out BEFORE any gate (04:29Z 09-26: gated first, relayed 9 min later; DT dispatched 2 model-loading rounds in the gap -> memory CRIT 04:39Z) · a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' -- tags [merge-up] [decision] [rotation] [red] [rule] [complete]
              [owner] only; any other = REFUSED rc 3, nothing written ('[bank]' 06:5xZ) · EVERY number in an order is checked against the bytes first --
              my OWN earlier orders too: TMM.123's '17:02:10Z after 2m21s' mixed the stop time with the reaper's runtime_s (142 s to finished_at
