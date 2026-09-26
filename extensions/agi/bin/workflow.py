@@ -814,6 +814,16 @@ def _load_manifest(root: Path, name: str, _seen: set[str] | None = None) -> dict
         st["depends_on"] = list(dict.fromkeys(([deps] if isinstance(deps, str) else deps) + rounds))
         if rounds and not st.get("chained_from"):
             st["chained_from"] = rounds[0]
+        # What the INHERITED stages of THIS round are owed, declared by the
+        # round manifest rather than by the base: a base's review stages are
+        # shared by bare runs (which owe no range at all), so the range keys
+        # belong to the round that gathers one. Composition -- never the base
+        # bytes -- is where they are declared (a manifest cell, not a list in
+        # this file, so a reader can see WHICH round owes what).
+        owed = raw.get("inherited_required_placeholders")
+        if owed:
+            st["required_placeholders"] = list(dict.fromkeys(
+                list(st.get("required_placeholders") or []) + list(owed)))
         reviews.append(st)
     merged["stages"] = raw.get("prelude", []) + reviews + raw.get("stages", [])
     return merged
@@ -1186,6 +1196,9 @@ class RunView:
         # own run-level fact (never a failure), rendered by `summary` and
         # recorded in the tracking row as `batch_empty`.
         self.empty_handoffs: list = []
+        # the `resolved` stages this run OBSERVED succeed (today: a
+        # `kind: round` stage that returned 0) and therefore counts in `ok=`
+        self.ok_resolved: set = set()
 
     def _tree(self) -> None:
         o = self.out
@@ -1214,11 +1227,23 @@ class RunView:
     def run_started(self) -> None:
         self._tree()
 
-    def stage_resolved(self, label: str, detail: str = "") -> None:
+    def stage_resolved(self, label: str, detail: str = "",
+                       counts_ok: bool = False) -> None:
         """claude-code path: the script is the runner there, so a stage can
         only be RESOLVED here, never observed to completion. Also the pi
         path's digest fallback: a stage with no schema-valid stdout whose
-        declared `result_file` validates is resolved from that file."""
+        declared `result_file` validates is resolved from that file.
+
+        `counts_ok` marks the ONE case where `resolved` is a SUCCESS the run
+        itself observed — a `kind: round` stage `_run_round_stage` returned 0
+        for. It is FALSE for the claude-code path, where `resolved` only
+        means "handed to the Workflow tool", and for the digest fallback,
+        where it is a recovery: folding either into `ok=` would change the
+        summary bytes two certificates in test_workflow.py pin
+        (hypothesis:a-skipped-stage-gates-its-dependents-like-a-failed-one,
+        falsifier 4 vs falsifier 5)."""
+        if counts_ok:
+            self.ok_resolved.add(label)
         self._set(label, "resolved", detail)
 
     def stage_started(self, label: str, detail: str = "") -> None:
@@ -1297,12 +1322,18 @@ class RunView:
         counts: dict[str, int] = {}
         for s in self.state.values():
             counts[s["status"]] = counts.get(s["status"], 0) + 1
+        # a `resolved` round stage SUCCEEDED: a stand-in round stage that
+        # never touched this view left itself `pending` and a fully
+        # successful run under-counted ok by one
+        # (hypothesis:a-skipped-stage-gates-its-dependents-like-a-failed-one,
+        # falsifier 4). Only the round marks itself this way.
+        resolved = len(self.ok_resolved)
         for e in self.empty_handoffs:
             o.write(f"[warn] {e['stage']}: handoff {e['field']} is empty — "
                     "the stage ran and kept nothing (batch_empty=true); "
                     "this is not a chain failure\n")
         o.write(f"[summary] workflow={self.key} stages={len(self.order)} "
-                f"ok={counts.get('ok', 0)} "
+                f"ok={counts.get('ok', 0) + resolved} "
                 f"unstructured={counts.get('unstructured', 0)} "
                 f"failed={counts.get('failed', 0)}\n")
 
@@ -2251,16 +2282,22 @@ def _chain_owed_keys(stage: dict, by_label: dict,
     manifest and args alone an unsupplied optional arg is indistinguishable
     from a typo (hypothesis:a-round-stage-fails-closed-by-name-and-every-
     inherited-review-stage-is-gated, falsifier 3)."""
+    declared = list(stage.get("required_placeholders") or [])
     known = set(run_args or {})
     known.update((stage.get("_repeat_item") or {}).keys())
-    known.update(_STRUCTURED_RETURN_KEYS)
+    # A DECLARED key is judged only by what can actually supply it here. It
+    # is NOT excused by the blanket structured-return whitelist: that
+    # whitelist is a description of what a round BUILDS, and a round whose
+    # harvest dropped the key builds nothing of it -- so a declared
+    # `old_tip`/`new_tip`/`files` is owed until the round's own return (or an
+    # explicit run arg) puts it in `args`.
+    known.update(_STRUCTURED_RETURN_KEYS - set(declared))
     base = stage.get("chained_from")
     src = by_label.get(base) if isinstance(base, str) else None
     schema = (src or {}).get("schema") or {}
     known.update(schema.get("properties") or {})
     known.update(schema.get("required") or [])
-    return sorted(k for k in (stage.get("required_placeholders") or [])
-                  if k not in known)
+    return sorted(k for k in declared if k not in known)
 
 
 def _failed_dependency(stage: dict, failed_keys: dict,
@@ -2276,11 +2313,23 @@ def _failed_dependency(stage: dict, failed_keys: dict,
     dependent slice's `_repeat_key` against `{None}` and let EVERY inherited
     review slice RUN after the round had already failed
     (hypothesis:a-round-stage-fails-closed-by-name-and-every-inherited-
-    review-stage-is-gated, falsifier 1)."""
-    deps = stage.get("chained_from") or stage.get("depends_on")
+    review-stage-is-gated, falsifier 1).
+
+    `chained_from` and `depends_on` are BOTH consulted, not one-or-the-other:
+    the composed round manifests give every inherited stage a
+    `depends_on=[round-parent]` while the later ones ALSO keep their own
+    `chained_from` (verify <- review, refute <- brainstorm). Reading only
+    `chained_from` let a DOWNSTREAM stage run after the round had failed and
+    the stage it chains from had merely been SKIPPED -- the chain was gated at
+    its head only, which is the gate the composition was supposed to close
+    (hypothesis:two-committed-round-manifests-run-a-round-then-its-review-by-
+    name, falsifier 3)."""
+    chained = stage.get("chained_from")
+    depends = stage.get("depends_on") or []
+    depends = [depends] if isinstance(depends, str) else list(depends)
+    deps = ([chained] if isinstance(chained, str) else []) + depends
     if not deps:
         return None
-    deps = [deps] if isinstance(deps, str) else deps
     for d in deps:
         if d in simple_failed:
             return d
@@ -2508,26 +2557,55 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
         # the bases that failed AS A WHOLE (a stage with no `repeat`): they
         # gate every slice of their dependents, unlike a failed single slice
         simple_failed: set[str] = set()
+        # the ROOT failure behind each gated base, so a stage skipped for a
+        # SKIPPED dependency names the stage that actually failed, not the
+        # intermediate that never ran (hypothesis:a-skipped-stage-gates-its-
+        # dependents-like-a-failed-one, falsifier 3)
+        root_failed: dict[str, str] = {}
 
-        def note_failed(stage: dict) -> None:
+        def note_failed(stage: dict, root: str | None = None) -> None:
             base = stage.get("_base_label", stage["label"])
             failed_keys.setdefault(base, set()).add(stage.get("_repeat_key"))
             if "_repeat_key" not in stage:
                 simple_failed.add(base)
+            root_failed.setdefault(base, root or base)
 
         first_rc: int | None = None
         by_label = {s.get("_base_label", s["label"]): s for s in stages}
         for st in stages:
             dep = _failed_dependency(st, failed_keys, simple_failed)
             if dep is not None:
-                view.stage_skipped(st["label"], f"dependency {dep!r} failed")
+                # a SKIPPED stage is not-succeeded for gating, so the gate
+                # holds through the WHOLE chain and not only one hop: without
+                # this a stage that depends on the SKIPPED one found nothing
+                # to fail on and ran (falsifier 1, the plain A->B->C chain)
+                # NOT `root`: that name is run_workflow's project root, and
+                # rebinding it sent every later _run_round_stage /
+                # _persist_stage_value / _track_run / _revoke_run_credential a
+                # stage LABEL (DH.399 harvest, director-engine gen 24)
+                root_fail = root_failed.get(dep, dep)
+                why = (f"dependency {dep!r} failed" if root_fail == dep else
+                       f"dependency {root_fail!r} failed (via {dep!r})")
+                view.stage_skipped(st["label"], why)
                 print(f"workflow.py: workflow={key} skipped stage "
-                      f"{st['label']} (dependency {dep!r} failed)",
+                      f"{st['label']} ({why})",
                       file=sys.stderr)
+                note_failed(st, root_fail)
                 continue
             prior = None
             if st.get("chained_from"):
-                prior = prior_by_key.get((st["chained_from"], st.get("_repeat_key")))
+                # A repeated stage chained from a SIMPLE upstream (the
+                # prelude `kind: round` parent, which no repeat expands) looks
+                # up (round-parent, <its own slice key>) and finds nothing, so
+                # every inherited review SLICE rendered {old_tip}/{new_tip}/
+                # {files} as blank -- a run that looked chained and carried
+                # nothing. The exact match still wins; the `(cf, None)` row
+                # exists only when a NON-repeated upstream ran, and a
+                # repeated upstream never writes that row, so a failed sibling
+                # slice still hands down nothing.
+                prior = (prior_by_key.get((st["chained_from"],
+                                           st.get("_repeat_key")))
+                         or prior_by_key.get((st["chained_from"], None)))
                 # A placeholder the chain DECLARES it is owed, that nothing
                 # can supply, is a named stage failure and never a blank.
                 # A key the upstream return itself dropped is NOT this case
@@ -2574,8 +2652,37 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                                     context_text=context_text,
                                     timeout_s=stage_timeout))
             rc, value = runner
+            if rc == 0 and st.get("kind") == "round":
+                # A RESOLVED round is NAMED, never left `pending`:
+                # `_run_round_stage` returns a bare (rc, value) and never
+                # touches the view, so the success twin of the mark-and-
+                # continue patch below (which covers rc != 0) was missing —
+                # the run record read `{'round-parent': 'pending'}` with
+                # `failed=0`, indistinguishable from a round that never
+                # resolved at all. The exact mirror of falsifier 3, where a
+                # FAILED round is named and its whole review chain is named
+                # skipped (hypothesis:two-committed-round-manifests-run-a-
+                # round-then-its-review-by-name, seam 4).
+                if view.state.get(st["label"], {}).get("status") == "pending":
+                    v = value if isinstance(value, dict) else {}
+                    view.stage_resolved(
+                        st["label"],
+                        f"round resolved: {v.get('old_tip')}..{v.get('new_tip')}"
+                        f" ({len(v.get('files') or [])} files,"
+                        f" parent {v.get('parent')})", counts_ok=True)
             if value is not None:
                 _persist_stage_value(root, run_key, st["label"], value)
+                # A round's harvest is the RUN's context, not just its first
+                # dependent's: every inherited review prompt names
+                # {old_tip}/{new_tip}/{files} (and the deeper slices chain from
+                # the FIRST review stage, whose own return is the reviewer's
+                # findings, not the round's range), so without this the tail of
+                # a composed chain rendered the range BLANK -- a run that
+                # looked chained and compared nothing. An explicit run arg still
+                # wins over the round's value (hypothesis:two-committed-round-
+                # manifests-run-a-round-then-its-review-by-name, falsifier 2).
+                if st.get("kind") == "round":
+                    args = {**(value if isinstance(value, dict) else {}), **args}
                 # A declared handoff list that came back EMPTY is a run-level
                 # fact, not a stage failure: name it so a consumer can tell
                 # "the stage dropped everything" from "the chain broke"
