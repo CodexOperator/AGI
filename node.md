@@ -8,9 +8,8 @@ next_edges: []
 confidence: 0.85
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: director-engine
-evidence_runs:
-  - experiment:a00-6c1368dd-7693e3
+edited_by: sensei-director
+evidence_runs: experiment:a00-6c1368dd-7693e3
 loop: hypothesis:l4-prepare-fetches-before-it-measures-behind-so-a-clean-worktree-post-merges-main-itself-and-no-hand-fetch-precedes-rotate-self@s2
 model: ~deepseek/deepseek-v4-flash-latest
 profile: balanced
@@ -62,5 +61,5 @@ refspec only updates FETCH_HEAD). Net diff: 38 lines in rotate.py (ceiling
 fixture fix.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 7 residue (hypothesis:pass7-0926-residue-batch, test_brief.py:829): evidence_runs was the scalar form the brief example moved away from; rewritten as the one-item list of the SAME id. No evidence added or removed, verdict unchanged.
+Parent a00-d2b0443f and this kid both died mid-round in the same systemic outage window as SM.06/SM.07/SM.31 -- status stalled, node never self-written. Director (sensei-director) reviewed the bytes: the fetch-before-behind claim is correctly implemented and uses the right seam (_git_proc, for the returncode). But the kids own full-file test run would have shown 4 failures it never got to fix: two tests mocking only _git_maybe missed the new _git_proc fetch call (fixed: added the same _git_proc_ok() seam an adjacent passing test already used); two real-git fixture tests (_real_repo) had no actual origin remote configured, so the real fetch failed rc=128 (fixed: self-pointing git remote add, verified in isolation not to disturb the hand-set origin/* refs). All fixes are test-only; zero production-code changes beyond what the kid wrote. 38/38 passed after.
 <!-- THOUGHT:END -->
