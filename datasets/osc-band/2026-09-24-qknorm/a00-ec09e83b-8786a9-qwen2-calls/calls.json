@@ -21,48 +21,114 @@
   "4.25|agree": {
    "call": "margin",
    "margin": -0.07959,
+   "band": 0.020508,
    "half_range": 0.020508,
    "verdict": "loss"
   },
   "4.25|kl": {
    "call": "margin",
    "margin": -0.470127,
+   "band": 0.179178,
    "half_range": 0.179178,
    "verdict": "loss"
   },
   "5.25|agree": {
    "call": "margin",
    "margin": 0.027832,
+   "band": 0.04248,
    "half_range": 0.04248,
    "verdict": "inside-noise"
   },
   "5.25|kl": {
    "call": "margin",
    "margin": 0.125137,
+   "band": 0.2494,
    "half_range": 0.2494,
    "verdict": "inside-noise"
   },
   "6.25|agree": {
    "call": "margin",
    "margin": 0.051758,
+   "band": 0.029175,
    "half_range": 0.029175,
    "verdict": "win"
   },
   "6.25|kl": {
    "call": "margin",
    "margin": 0.154396,
+   "band": 0.149022,
    "half_range": 0.149022,
    "verdict": "win"
   },
   "7.25|agree": {
    "call": "margin",
    "margin": 0.009033,
+   "band": 0.019043,
    "half_range": 0.019043,
    "verdict": "inside-noise"
   },
   "7.25|kl": {
    "call": "margin",
    "margin": 0.01424,
+   "band": 0.06055,
+   "half_range": 0.06055,
+   "verdict": "inside-noise"
+  }
+ },
+ "declared_margin_call": {
+  "4.25|agree": {
+   "call": "margin_full",
+   "margin": -0.07959,
+   "band": 0.041016,
+   "half_range": 0.020508,
+   "verdict": "loss"
+  },
+  "4.25|kl": {
+   "call": "margin_full",
+   "margin": -0.470127,
+   "band": 0.358356,
+   "half_range": 0.179178,
+   "verdict": "loss"
+  },
+  "5.25|agree": {
+   "call": "margin_full",
+   "margin": 0.027832,
+   "band": 0.084961,
+   "half_range": 0.04248,
+   "verdict": "inside-noise"
+  },
+  "5.25|kl": {
+   "call": "margin_full",
+   "margin": 0.125137,
+   "band": 0.4988,
+   "half_range": 0.2494,
+   "verdict": "inside-noise"
+  },
+  "6.25|agree": {
+   "call": "margin_full",
+   "margin": 0.051758,
+   "band": 0.05835,
+   "half_range": 0.029175,
+   "verdict": "inside-noise"
+  },
+  "6.25|kl": {
+   "call": "margin_full",
+   "margin": 0.154396,
+   "band": 0.298044,
+   "half_range": 0.149022,
+   "verdict": "inside-noise"
+  },
+  "7.25|agree": {
+   "call": "margin_full",
+   "margin": 0.009033,
+   "band": 0.038086,
+   "half_range": 0.019043,
+   "verdict": "inside-noise"
+  },
+  "7.25|kl": {
+   "call": "margin_full",
+   "margin": 0.01424,
+   "band": 0.121101,
    "half_range": 0.06055,
    "verdict": "inside-noise"
   }
@@ -129,6 +195,15 @@
   "margin_inside_budgets": [
    "5.25",
    "7.25"
+  ],
+  "declared_margin_inside_budgets": [
+   "5.25",
+   "6.25",
+   "7.25"
+  ],
+  "declared_vs_half_disagree": [
+   "6.25|agree",
+   "6.25|kl"
   ],
   "range_inside_cells": [
    "5.25|kl"

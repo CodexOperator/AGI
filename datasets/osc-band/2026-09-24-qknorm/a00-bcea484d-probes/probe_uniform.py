@@ -4,8 +4,24 @@
 Refutes the near-miss "a relabelled band arm carrying the uniform label".
 """
 import importlib.util, json, os, sys
-HERE = "/data/work/agi/.agi/worktrees/a00-bcea484d/.agi/context/local-maxxing/osc"
-ROOT = "/data/work/agi/.agi/worktrees/a00-bcea484d"
+
+def _repo_root():
+    """Walk up from this file to the dir holding BOTH .agi/ and datasets/ (PASS 8 item 5).
+
+    Derived, not declared: the gitignored worktree path this probe used to
+    hardcode does not exist on a fresh clone, so the probe died at import.
+    """
+    p = os.path.dirname(os.path.abspath(__file__))
+    while True:
+        if os.path.isdir(os.path.join(p, ".agi")) and os.path.isdir(os.path.join(p, "datasets")):
+            return p
+        n = os.path.dirname(p)
+        if n == p:
+            raise SystemExit("no repo root (.agi/ + datasets/) above " + os.path.abspath(__file__))
+        p = n
+
+ROOT = _repo_root()
+HERE = os.path.join(ROOT, ".agi/context/local-maxxing/osc")
 sys.path[:0] = [os.path.join(ROOT, ".agi/context/local-maxxing"), HERE]
 import numpy as np, torch
 s = importlib.util.spec_from_file_location("fixed", HERE + "/osc_band_kquant_qknorm_a00-bcb6c85e.py")

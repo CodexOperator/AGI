@@ -22,8 +22,18 @@ TEMPFAIL = 75
 
 
 def lock_path():
+    """The PRODUCTION lock unless the caller injects one (--lock, or AGI_MODEL_SLOT_LOCK).
+    The default is byte-unchanged; the seam exists so a test can exercise the flock
+    EXCLUSION without blocking behind -- or serialising on -- the one lock every model
+    run in the swarm contends for (no timeout on that flock)."""
+    p = lock_path.injected
+    if p is None:
+        p = os.environ.get("AGI_MODEL_SLOT_LOCK")
+    if p is not None:
+        return p if os.path.isabs(p) else os.path.join(paths.main_checkout_root(), p)
     rel = json.load(open(paths.config_path()))["paths"]["local_maxxing"]["model_slot_lock"]
     return rel if os.path.isabs(rel) else os.path.join(paths.main_checkout_root(), rel)
+lock_path.injected = None
 
 
 def min_avail_gib():
@@ -52,11 +62,13 @@ def main(argv=None):
     p = argparse.ArgumentParser()
     p.add_argument("--wait", type=float, default=1800.0, help="max seconds to wait for memory once holding the slot")
     p.add_argument("--poll", type=float, default=10.0)
+    p.add_argument("--lock", default=None, help="override the lock path (test seam); default is the config cell")
     p.add_argument("cmd", nargs=argparse.REMAINDER)
     a = p.parse_args(argv)
     cmd = a.cmd[1:] if a.cmd[:1] == ["--"] else a.cmd
     if not cmd:
         p.error("no command given")
+    lock_path.injected = a.lock
     path = lock_path()
     os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "a+") as fh:
