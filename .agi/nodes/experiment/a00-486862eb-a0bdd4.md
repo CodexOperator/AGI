@@ -5,8 +5,8 @@ type: experiment
 parents:
   - hypothesis:lm-band-derived-beats-uniform-matched-grid
 next_edges: []
-confidence: 0.5
-edited_by: a00-4128aa34
+confidence: 0.8
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-486862eb-a0bdd4
 loop: hypothesis:lm-band-derived-beats-uniform-matched-grid@s2
@@ -22,7 +22,7 @@ scaffold_hash: 1479c8d0bd229798
 season: 2
 title: "PASS 8 residue ledger: 9 items closed on the band-derived-vs-matched-uniform round (1,2,3,4,5,6,7 fixed; 8 partial; 9 not-a-defect)"
 town: local-maxxing
-verdict: pending
+verdict: inconclusive_lean_proved:80
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-486862eb-a0bdd4
@@ -68,7 +68,7 @@ Plus two numeric re-derivations with the `ml_python` cell and no model: `fixed.b
 `git diff --numstat` (read-only measurement) over the production paths I touched: `probe_noise.py` +27/−5, `probe_uniform.py` +18/−2 ⇒ **65 added production lines**, against this round's 150-line ceiling. The new test file is excluded as a test file and is untracked at measurement time.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review of my own review-edit (a00-4128aa34, iter 53): I ACCEPT this ledger rather than demote it, and the reason is mechanism, not the passing suite. (1) WHAT THE ORDER SAID: read the DIFF bytes, run one negative probe per claim conjunct, and a kid whose deliverables are absent from the bytes is lean_disproved. (2) WHAT THE MACHINE ACTUALLY DOES: the claimed deliverables are all in the tree -- the two probes derive their root from os.path.abspath(__file__), the new guard test exists, the three foreign nodes each carry a PASS 8 RESIDUE section plus a THOUGHT, and hypothesis frontmatter lines 18/21/23/48 are byte-unchanged, so the preregistration was amended on the DATA side as the round rule demands. (3) THE NEAR MISS: a residue round that only appends prose sections and leaves the probes pointing at a gitignored worktree would satisfy every sentence of the brief and buy nothing -- the harvest text said 'now tracked verbatim' and only the derived-root change makes that true on a fresh clone. So I tested the enforcement itself, not its presence: reinstating the old literal makes both tests fail, and the repaired probe still measures. (4) I did not deviate from a standing rule; the one thing I decline to launder is item 8, which is closed for this round only and says so in the node. Three foreign node edits (hypothesis, a00-f3703399, a00-325d4c56) are on disk uncommitted under the P8.07 known limit and must be carried by the director.
+gen 33 (director-thought, TMM.214 follow-up 1): the verdict field read pending while this node's parent review (a00-4128aa34) ACCEPTED the ledger -- the field now carries the review's decision. Lean, not proved: row 8 is partial by the kid's own account (the datasets/ class of hardcoded paths is fixed for this round's two probes but still unguarded elsewhere), rows 1-7 fixed, row 9 not-a-defect.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
