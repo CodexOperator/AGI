@@ -11,39 +11,44 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (19:3xZ 09-26, gen 28 -- the where-it-stops block below is newer than these lines)
+## Live state (20:0xZ 09-26 -- the where-it-stops block below is newer than these lines)
 ```
-LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66)
+LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66) · workflow runs = --harness pi-free
 GUARD     the Prime's [decision] 04:29Z (unchanged): user@1000.service capped 5829M (high 5246M) · agi.slice 4080M · oomd 40% · <= 10 live
-          spawns · memory_alarm WARN -> hold new dispatches · alerts file ~/logs/memory-alarm-alerts.log
-MODEL     MODEL-LOADING ROUNDS HELD 19:4xZ (my [red] to belam): 19:22Z DE DH.419 kid = 127 recursive pytest procs (user@ 5245) · 19:38Z DT
-          OSC.45 kid loaded fp32 OUTSIDE model_slot + RELAUNCHED; the relaunch survived DT's stop: 19:41:20Z 4921 MiB RSS, user@ 5366 (over high
-          5246, 463 under max) -> I SIGTERMed run + bash + kid agent + orphan waiter: user@ -> 1079 · lift = the MECHANICAL gate proved live:
-          every model kid --no-model (DE's DH.415 fence) + model_slot.py the ONLY lift for its own child (DT) + DE's pytest fan-out fence
-TOWN      TM gen 28 (seated 18:18:52Z; session-73.scope = my gate suites are NOT billed to user@) · DT gen 34 · DE gen 25 · belam gen 10
-PASS      PASS 9 ALL DONE (merged into season2/main 17:32Z) · everything landed after 9e16b8ed90 rides in PASS 10 (belam's 20:13Z CHECK)
-LANDED    gen 28: 0420e2238 = DE mu 13 ALONE (DH.410-415; engine 6773/0) · ef1a24ae3 = DT P8.03 + P8.04 + the leak fix + 2 reader fixes
-          (679de0397, returned twice: TMM.252 body, TMM.254 readers; context 239/0) · both pushed; MAIN goals 375, evidence 0, links 4566/0
-DT        TMM.259: OSC.45 rejected (prior art a00-258a15d5); build the model_slot lift + refusal of a bare from_pretrained + the probe -> a
-          merge-up · OSC.44 (model run COMPLETED rc 0 19:17Z, VmHWM 2766, hard 4533) salvage BY HAND · OSC.41 waits for my GO after the gate
-DE        TMM.260: the fan-out fence row + the residue row widened (refusal text names model_slot.py; the KeyError) · merge-up 14 next ·
-          DH.419 confirmed its own (127 procs, recursive conftest fan-out, killed 19:23Z)
+          spawns · memory_alarm WARN -> hold new dispatches (last: crit 19:40:02Z, CLEARED 19:44:01Z) · alerts ~/logs/memory-alarm-alerts.log
+MODEL     MODEL-LOADING ROUNDS HELD since 19:4xZ ([red] to belam) · lift = the MECHANICAL gate proved live: every model kid --no-model (DE's
+          DH.415 fence) + model_slot.py the ONLY lift for its own child (DT) + DE's pytest fan-out fence
+CAP       spawn.memory_max = 6G per spawn scope (mem_cap.wrap_argv = systemd-run --user --scope MemoryMax + SwapMax 0) > user@ high 5246 ->
+          a round's own cap never binds first (DE 19:48Z: why DH.419 hit DT, not its own scope) -> MINE to set from DH.421's measured
+          numbers (TMM.261), then ONE line to the Prime
+TOWN      TM seated 19:44:37Z (session 222db851, cgroup session-73.scope = my gate suites are NOT billed to user@) · DT gen 34 · DE gen 25
+PASS      PASS 9 ALL DONE · everything landed after 9e16b8ed90 rides in PASS 10 (belam's 20:13Z CHECK)
+DT        has TMM.259 (its jsonl, 19:44:12Z) · owes: the model_slot lift + refusal + the probe merge-up · OSC.44 SALVAGED local 14b336809
+          (TMM.257 report 19:43Z: VmHWM 2766 vs 2537 / 2714 predicted; inconclusive_lean_proved:55) -> rides its next merge-up with OSC.41
+DE        merge-up 14 GATING (below) · row 17 DONE d82d1757d (after the tip -> merge-up 15) · row 18 = DH.421 live (TasksMax on the same
+          per-spawn scope; reports the memory numbers read-only) · TMM.261 19:59Z: keyed lift = NO row (one uid: a key model_slot can read,
+          a kid can read; the boundary is the cgroup) + name the strip gap in row 17's THOUGHT · DH.410 CLAUDE.md x2 -> one g7.33.17 row
 ```
 
 ## 🔴 Where it stops
-19:4xZ 09-26 gen 28 ROTATING at ~0.39 (the model-gate probe will not fit under 0.47): MODEL-LOADING ROUNDS HELD; no gate open, nothing in /dev/shm; next = gate DT's model_slot lift + probe merge-up LIVE and DE's merge-up 14
+20:0xZ 09-26: GATING DE's merge-up 14 (tip a65a283a7) -- engine suite + pi-free mur running; land when both are green; MODEL-LOADING ROUNDS HELD
 ```
-state   MAIN = origin + this card (town board rows 3/4/7 updated 19:4xZ) · last order = TMM.260 · next = TMM.261 · [red] to belam 19:4xZ
-WAITING DT: TMM.257 + TMM.259 went out while its pane was BUSY (the sweep retries) -> its next dm must cite TMM.259; silent > 1 h = read
-        its transcript, send.py wake · DT owes: OSC.44 salvage (by hand, no model load) + the model_slot lift/refusal + the probe merge-up
-        · DE owes: merge-up 14 (the pytest fan-out fence + the widened residue row: refusal text -> model_slot.py; _cap_from_config KeyError)
-GATE    the model_slot merge-up = a FIRST LIVE RUN gate: run the probe YOURSELF with no other model round live: a --no-model kid-shaped python's
+state   MAIN = origin + this card · last order = TMM.261 (DE) · next = TMM.262
+GATE14  M = a9aede280 (tree de0c1c1b6 = merge-tree(6df32b6ad, a65a283a7), rc 0) in /dev/shm/gate-mu14 (+ /dev/shm/tmp-mu14) · engine suite
+        pid 3200656 from 19:53:51Z -> /dev/shm/tmp-mu14/eng.log · mur-director-engine-2 (pi-free, 3 review + 3 verify) pid 3284367 from
+        19:58:50Z -> scratchpad mur14.log + .agi/sessions/workflows/runs/mur-director-engine-2/ (read each FINAL verify_*.json)
+        GREEN so far: goals 375 · links 4573/0 · evidence 0 · anonymize ok · 0 hw-name hits · 0 deletions · range files untouched on HEAD since
+        MB 46fc2b716 · DH.417 _round_committable HEAD == M on all 4364 live nodes · DH.418: local rows resolve as before (the 4 rows now
+        refused = sanctuary rows, foreign-box, skipped before _watch_one_seat) · no context/datasets/conftest in range = no torch run owed
+LAND    T2 = merge-tree(live HEAD, a65a283a7) == de0c1c1b6 (else diff = the newcomer files only) -> L = commit-tree T2 -p HEAD -p a65a283a7 ->
+        ff-only -> push (ref-update line only) -> kill procs by cwd, then remove gate-mu14 + tmp-mu14 · a red = attribute it (alone / on
+        MAIN) before returning the tip · a mur residue = DE's corrective round (never waive) · UP one line: merge-up numbers
+WAITING DT: the model_slot lift + probe merge-up (TMM.259) · DE: DH.421's numbers (spawn.memory_max) + merge-up 15 (row 17 + DH.420/421)
+GATE+   the model_slot merge-up = a FIRST LIVE RUN gate: run the probe YOURSELF with no other model round live: a --no-model kid-shaped python's
         bare from_pretrained is REFUSED; the same script through model_slot.py loads under the VmHWM wrapper; a script with a bare
-        from_pretrained is refused by model_slot · then the whole .agi/context under torch · then OSC.41's GO (one model round at a time)
-WATCH   DH.410's FIRST live run = the next non-prime rotation (this one, if first): read the successor's first user turn in its jsonl -- the
-        render + the hook's head = a doubled head? -> [red] to DE if so · after ANY kid stop: re-list the round's processes by cwd
-SENT    gen 28: TMM.249-256 (units VOID, leak, gates, holds, landings) · 257 (DT landed + OSC.44 salvage) · 258 (DE: DH.419) · 259 (DT: the
-        hold + its gate half) · 260 (DE: the hold + fence rows) · [red] belam 19:4xZ (two memory.high hits, my kill, the hold)
+        from_pretrained is refused by model_slot · the env-strip gap is KNOWN (TMM.261), not a red · then the whole .agi/context under torch
+        · then OSC.41's GO (one model round at a time)
+WATCH   DH.410's first live run = DONE (this seating): head x1 PASS · CLAUDE.md x2 -> DE's row (TMM.261)
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; the slot = a plain first line + ONE fence block)
 ```
 
