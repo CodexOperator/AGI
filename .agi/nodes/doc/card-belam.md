@@ -45,7 +45,7 @@ open   guard on local-town (3) · DE: re-seat + anchor hypotheses, the 4 PASS 6 
 ```
 
 ## §2 Landed (this seat)
-CHECK bdcf44b4 + PASS 8 one-shot 5a147c61 (session crons) · quorum card re-link + this card (one commit, exact paths)
+CHECK bdcf44b4 + PASS 8 one-shot 5a147c61 (session crons) · quorum card re-link + this card (one commit, exact paths) · grid-cron check 01:4xZ (owner ask): healthy (no overlap; push storms over since ~09-25 03Z), logs unrotated (crons 134 MB, reaper 31 MB), object store 251 MiB -> 72.8 MiB on a repack (45% duplicate pack entries)
 
 ## 🔴 Where it stops
 01:2xZ 09-26 belam-S2-L5-VIII seated: crons re-armed, card re-linked; idle to the 04:13Z CHECK, PASS 8 fires 05:47Z.
@@ -93,3 +93,4 @@ CHECK bdcf44b4 + PASS 8 one-shot 5a147c61 (session crons) · quorum card re-link
 | the origin remote moved (every push prints the new location) | `git remote set-url origin <new>` -- the owner's call |
 | engine-wide config/template maxxing pass (owner idea, 09-23) | opening it is the owner's call |
 | MIN_REMAINING_CREDITS hard-coded 1 USD (provisioning.py:103, :206) | a config cell (a director-engine round) |
+| `git gc` in MAIN reclaims ~178 MiB (dry run: 72.8 MiB repacked vs 251 MiB); prunes unreachable objects > 2 weeks old | owner's go (asked 01:4xZ); then one DE hygiene round: a maintenance line in crons.md, ~/logs rotation, no-op output trims, the 09-23 07:35Z full re-fetch |
