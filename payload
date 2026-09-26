@@ -1100,6 +1100,54 @@ def _assert_allowed_model(harness_name: str, harness: dict,
             f"(hypothesis:l4-dispatch-model-allowlist)")
 
 
+#: the no-model fence's two cells, REPO-RELATIVE, resolved against the engine's
+#: repo-relative, resolved against the engine's own repo root; the literals are
+#: the shipped DEFAULTS, so a config that omits the cells still fences. A round
+#: cannot commit `.agi/config.json` -- the cells are named in the node instead.
+_FENCE_DIR_DEFAULT = "extensions/agi/fence"
+_FENCE_SRC_DEFAULT = "extensions/agi/model_fence.py"
+
+
+def _fence_cell(cfg: dict, key: str, default: str) -> str:
+    return str((((cfg or {}).get("paths") or {}).get("core") or {}).get(key) or default)
+
+
+def model_fence_requested(cfg: dict, flag: bool = False) -> bool:
+    """Is this round a NO-MODEL round? `--no-model` wins; else the config
+    default `spawn.no_model`. Opt-in, always: an absent cell is an unfenced
+    round, not a fenced one (hypothesis:a-no-model-round-refuses-a-model-load-
+    in-every-process-it-spawns)."""
+    if flag:
+        return True
+    return bool(((cfg or {}).get("spawn") or {}).get("no_model"))
+
+
+def apply_model_fence_env(env: dict, cfg: dict = None, enabled: bool = False,
+                          cap: "int | None" = None,
+                          plugin_root=None) -> dict:
+    """Two cells, not one (the parent's PASS-F probe: a one-cell round is
+    silently UNFENCED): `PYTHONPATH += paths.core.model_fence_dir` (so the
+    interpreter finds the `sitecustomize`) and `AGI_MODEL_FENCE_SRC =
+    paths.core.model_fence_src` (the fallback when PYTHONPATH is rewritten).
+    INHERITABLE, never per-child argv: the cells also go into this
+    dispatcher's OWN `os.environ`, so a nested dispatch (`scrubbed_env()`)
+    inherits them. `cap` is written only when an override is passed."""
+    if not enabled:
+        return env
+    base = Path(plugin_root or Path(__file__).resolve().parent.parent).parents[1]
+    fence_dir = str(base / _fence_cell(cfg, "model_fence_dir", _FENCE_DIR_DEFAULT))
+    env["PYTHONPATH"] = os.pathsep.join(
+        p for p in (env.get("PYTHONPATH") or "", fence_dir) if p)
+    env["AGI_MODEL_FENCE_SRC"] = str(
+        base / _fence_cell(cfg, "model_fence_src", _FENCE_SRC_DEFAULT))
+    if cap is not None:
+        env["AGI_MODEL_FENCE_MAX_BYTES"] = str(int(cap))
+    for _k in ("PYTHONPATH", "AGI_MODEL_FENCE_SRC", "AGI_MODEL_FENCE_MAX_BYTES"):
+        if _k in env:
+            os.environ[_k] = env[_k]
+    return env
+
+
 def resolve_role_spec(cfg: dict, roles: list | None, tier: int,
                       role: str) -> dict:
     """Resolve (tier, role) to {harness, model, effort, settings, from_ladder}.
@@ -1419,6 +1467,11 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                 env["AGI_SEAT"] = seat_val
             if args.tier in ("kid", "parent"):
                 env["GIT_CONFIG_COUNT"] = "1"
+            # mirror of the live fence export, so the dry report SHOWS both
+            # cells (a check that costs a spawn is a check that never runs)
+            apply_model_fence_env(
+                env, cfg, enabled=model_fence_requested(cfg, args.no_model),
+                cap=args.model_fence_max_bytes)
 
         brief_lines = [l for l in brief_text.splitlines() if l.strip()]
 
@@ -1453,9 +1506,16 @@ def _dry_run_report(*, root: Path, cfg: dict, harness_name: str,
                        "AGI_PROFILE", "AGI_AGENT_ID", "AGI_ACTOR",
                        "AGI_SEAT", "GIT_CONFIG_COUNT",
                        "CLAUDE_CODE_WORKFLOWS",
-                       "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP"]
+                       "CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP",
+                       "AGI_MODEL_FENCE_SRC", "AGI_MODEL_FENCE_MAX_BYTES"]
         shown = [f"{k}={env[k]}" for k in export_keys if k in env]
         print(f"  env: {' '.join(shown)}")
+        if env.get("AGI_MODEL_FENCE_SRC"):
+            # the fence DIR rides PYTHONPATH (a full PYTHONPATH would drown the
+            # report); it is the entry apply_model_fence_env appended last.
+            print(f"  model fence: dir={env.get('PYTHONPATH', '').split(os.pathsep)[-1]} "
+                  f"src={env['AGI_MODEL_FENCE_SRC']} "
+                  f"max_bytes={env.get('AGI_MODEL_FENCE_MAX_BYTES', '-')}")
         print(f"  brief: tier={brief_tier} {len(brief_lines)} lines; "
               f"first 20:")
         for ln in brief_lines[:20]:
@@ -1598,6 +1658,23 @@ def main() -> int:
         help="per-round mint cap in USD; refused before minting when it "
              "exceeds pool remaining minus floor minus live caps "
              "(hypothesis:l4-dispatch-takes-a-per-round-cap...).",
+    )
+    ap.add_argument(
+        "--no-model",
+        action="store_true",
+        help="hypothesis:a-no-model-round-refuses-a-model-load-in-every-"
+             "process-it-spawns -- spawn this round INSIDE the inherited model "
+             "fence: both env cells ride the env the child is spawned with AND "
+             "this dispatcher's own env, so the parent, the kids and their "
+             "subprocesses all refuse the declared loaders by name. Opt-in; "
+             "the config default is `spawn.no_model` (absent = unfenced).",
+    )
+    ap.add_argument(
+        "--model-fence-max-bytes",
+        type=int, default=None, metavar="N",
+        help="cap override for the no-model fence: export "
+             "AGI_MODEL_FENCE_MAX_BYTES=N. Absent -> the fence's own config cap "
+             "(values.core.model_load_allowed_max_bytes).",
     )
     ap.add_argument(
         "--memory",
@@ -2672,6 +2749,14 @@ def main() -> int:
             # hand the child the harness resolved FOR IT, not merely inherit the
             # parent's AGI_HARNESS (the same resolved spec the spawn above used, no literal)
             spawn_env["AGI_HARNESS"] = harness_name
+            # hypothesis:a-no-model-round-refuses-a-model-load-in-every-process-
+            # it-spawns -- the fence rides the CHILD ENV (inheritable by every
+            # process it starts), never argv. No flag, no `spawn.no_model`
+            # cell -> the round is unfenced, exactly as before.
+            apply_model_fence_env(
+                spawn_env, cfg,
+                enabled=model_fence_requested(cfg, args.no_model),
+                cap=args.model_fence_max_bytes)
             if args.tier in ("kid", "parent"):
                 plugin_root = Path(__file__).resolve().parent.parent
                 hooks_dir = plugin_root / "hooks" / "agent-git"
