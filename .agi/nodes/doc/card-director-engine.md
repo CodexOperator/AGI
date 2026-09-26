@@ -71,7 +71,8 @@ rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing
   2c       = OWNER 01:0xZ stale app sessions ("the app lists only live sessions"; belam card 38460c40f). MEASURED read-only: A 2 local exited --bg
            (5861181b kid probe, 710907bf likely owner's) -> `claude rm <id>` exists (CLI 2.1.283, deletes its worktree too); B ~20 app
            "Remote Control offline" rows -> no local record, no CLI verb. BANKED [ask] to belam (irreversible on the owner's account); default = delete nothing
-  DH.379   a00-5f574b26  (1) brief-extras containment (my own d470b0de79 code)
+  DH.379   MERGED f13e83ebb (1): guard had shipped 3097fdd04; round pinned the claim's fixtures (.env, symlink, absolute) -- lean_proved:85, 197 green
+  DH.381   a00-b0a277d8  (4) rotate-term-grace tests never touch a real process / live config
   DH.380   a00-a52ef31c  (2) memory_alarm CLI declared + log capped (trunk's one red) -- (3) WAITS for it (both touch crons.py log-cap region)
   (3)      fold my minted 07438507d log-cap-holds-at-each-apply into (3)'s round as extra orders, not a separate round
   rows     DONE 286272925: DEMOTE DH.369 exp a00-2a2760a8 + hypothesis:a00-f30b6285-0e37a6 (lean_disproved:60) + graph-root exp adopted mint_id
