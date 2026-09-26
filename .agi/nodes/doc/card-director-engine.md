@@ -48,7 +48,7 @@ ROUND  agent        what                         state (mur units agi-director-e
 430    -> 440 a00-c8389b84 (incl 430+431; ONE guard home, 0 dups; 229 green + repro) -> mur-6 DH.440-k1/k2 RUNNING
 432    SUPERSEDED (hostname in history) -> 438 a00-d821a9fd clean -> mur-6 residue (24 fixtures == templates: circular; no-cascade
        dest wrong) -> 446 a00-20d4ab3d (cut from 438; 0/24 fixtures==tmpl, 177 green, anonymize ok) -> mur-7 DH.446-k1 RUNNING
-433    -> 444 a00-9cf89293 (incl 433; restore fixed; STILL OPEN: DEFAULT_FRACS code copy, --graph "." refuses) -> mur-6 DH.444-k1 RUNNING
+433    -> 444 (mur-6 residue: DEFAULT_FRACS + 12/14 tests need it; --graph "."; --meminfo literal) -> 447 LIVE, CUT FROM the 444 branch
 434    SUPERSEDED -> 437 -> 439 a00-58736bab (incl 437; reserve 1911 correct w/ --held flag; 20 green) -> mur-6 DH.439-k1 RUNNING
        BOX DRIFT (for TM, not ours to fix): OOMPolicy unset on streamer-stub-watch.service · agi.slice drop-in FILE absent
 GRAPH     (3) DONE 864572bd6 · (2) level3.py after 435 merges · (9) judge heal-never-reseats after 436 · (11) verdicts x3 at merge
