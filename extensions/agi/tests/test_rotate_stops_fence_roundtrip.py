@@ -168,3 +168,35 @@ def test_slot_exterior_prose_reads_only_outside_the_fence():
     lines = ["lead-in", "```", "body", "lead-in", "```", "sign-off"]
     assert rotate._slot_exterior_prose(lines) == {"lead-in", "sign-off"}
     assert rotate._slot_exterior_prose(["```", "body", "```"]) == set()
+
+
+# --- an UNPAIRED fence run in the slot's exterior (experiment a00-a177f505)
+def test_unpaired_fence_run_in_exterior_does_not_compound_over_n_rotations():
+    """A stray (unpaired) ``` in the slot's PROSE position -- below the block
+    and after the sign-off -- grew the slot by one nesting level and one copied
+    sign-off on EVERY rotation (depth 3 -> 4 -> 5 -> 6, measured live before
+    the fix). An unpaired run is a delimiter in prose position, not an opener,
+    so it is the card's own exterior line like any other, and the block is the
+    handback's FIRST fence PAIR, not everything to the last run."""
+    seed = ("card edit landed; waiting on the suite\n```\n"
+            "prior edit done\nnext: run suite\n```\n"
+            "sign-off prose\n```")
+    cards = _rotate_n(seed)
+    assert len(set(cards)) == 1, cards          # byte-identical over N
+    assert _max_run(cards[0]) == 3, cards
+    assert cards[0].count("sign-off prose") == 1, cards
+
+
+def test_unpaired_run_counts_as_exterior_prose_and_never_swallows_the_tail():
+    lines = ["lead-in", "```", "body", "```", "sign-off", "```"]
+    assert rotate._slot_exterior_prose(lines) == \
+        {"lead-in", "sign-off", "```"}
+    # the block is the FIRST pair, so the sign-off below it is droppable
+    assert rotate._drop_slot_exterior_prose(
+        "\n".join(lines), rotate._slot_exterior_prose(lines)) == \
+        "```\nbody\n```"
+    # still fail-closed: a FOREIGN line in the tail is the model's own
+    foreign = "\n".join(["lead-in", "```", "body", "```",
+                         "the model says more", "```"])
+    assert rotate._drop_slot_exterior_prose(
+        foreign, rotate._slot_exterior_prose(lines)) == foreign
