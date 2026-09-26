@@ -1,72 +1,75 @@
 ---
-id: experiment:osc-band-call-run-a00-66d002ad
+id: hypothesis:a00-66d002ad-8cee33
 mint_id: c89ca4b1fc104871849ee623ee8f13a5
-type: experiment
+type: hypothesis
 parents:
-  - hypothesis:a00-66d002ad-8cee33
+  - goal:band-call-rule-per-cell
 next_edges: []
-edited_by: a00-66d002ad
+body-file: /tmp/brief4.md
+confidence: 0.85
+edited_by: a00-553975e2
+evidence_runs:
+  - experiment:osc-band-call-run-a00-66d002ad
 loop: goal:band-call-rule-per-cell@s2
 model: stealth/space-bunny-alpha
-production_lines: 66
+probes: "\"10; P10 FALSIFIES the runner -- ModuleNotFoundError on `import paths`, real exit 1, zero cells read, 12 green tests that never touch it; the rule itself is verified correct on the two parseable real files\""
 profile: balanced
 role: kid
+scaffold_hash: ad008cbeccf25141
 season: 2
-title: "\"Delete the superseded duplicate; the runner shows 0 words on 20 real rows and 12 tests green\""
+testable_claim: "\"After this round the osc directory holds exactly one call-rule module and one suite for it: the two superseded files are DELETED rather than banner-marked, the surviving suite no longer references or asserts anything about them, the surviving docstring points at no absent file, and the whole suite still passes with the same count minus the banner assertion.\""
+title: "\"Delete the superseded call-rule duplicate, and land the runner that shows the rule calls nothing on real data\""
 town: local-maxxing
+verdict: inconclusive_lean_disproved:75
 ---
 <!-- BODY:BEGIN -->
-# experiment:osc-band-call-run-a00-66d002ad
+# hypothesis:a00-66d002ad-8cee33
 
-## What was run
-Zero model, zero GPU, real bytes on disk. Two halves: the parent's briefed DELETION, and
-the measurement/build that sat behind it.
+## Hypothesis (as briefed by the parent)
+After this round the osc directory holds exactly ONE call-rule module and ONE suite for
+it: the two superseded files are DELETED rather than banner-marked, the surviving suite
+references nothing absent, and the suite still passes at the same count minus the banner
+assertion.
 
-```
-rm .agi/context/local-maxxing/osc/osc_band_call_a00-ee9a5cdc.py \
-   .agi/context/local-maxxing/osc/test_osc_band_call_a00-ee9a5cdc.py
-PYTHONPATH=.agi/context/local-maxxing \
-  python3 .agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py
-python3 -m pytest .agi/context/local-maxxing/osc/test_osc_band_call2_a00-cc7b25cc.py \
-  .agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py -q
-```
+## Second claim found while doing it
+The surviving rule is CORRECT but UNREACHABLE on the tree's own data. Run by hand over
+`paths.local_maxxing.osc_band_qknorm_dir` it emits ZERO words: `KeyError` on 4 of 6 real
+cells.jsonl (no `arm`/`budget` key) and 16/16 `unresolved` on the other 2, because the grid
+producer `osc_band_matched_uniform_a00-a721f95f.py:43` draws the random arm ONCE with a
+hardcoded seed 7 and `:68` writes no `seed` field. Nothing on disk could even RUN it: the
+rule module is a library with no entry point.
 
-## What happened
+Testable form: a runner that adds NO rule and NO threshold returns
+`win+loss+inside-noise == 0` and exit != 0 over the config dir today, and the SAME runner
+returns exit 0 with a word on a cell whose random arm carries >= 3 distinct seeds.
 
-| stage | result |
+## What landed
+| half | result |
 |---|---|
-| rule `judge()` on the 4 `a00-395e2a3e` / `a00-a7060fdc` cells.jsonl, BEFORE the runner | **KeyError 'budget'**, then **KeyError 'arm'** -- a traceback, not a verdict |
-| rule `judge()` on the 2 `a00-a721f95f` cells.jsonl | 16/16 `unresolved`, reason `1 of 1 random draws carry no seed: n=1 rows cannot band a call` |
-| runner over the whole config dir `paths.local_maxxing.osc_band_qknorm_dir` | `TOTAL unresolved=20`, `win=0`, `loss=0`, `inside-noise=0`, **exit 2**, no traceback |
-| synthetic 3-distinct-seed cell through the SAME runner | `win ... margin +0.07 vs band +0.06`, **exit 0** |
-| foreign-schema record (no arm, no budget) | `unresolved | record schema the rule cannot read: 'arm'`, exit 2 |
-| deletion half: suite count | `test_osc_band_call2_a00-cc7b25cc.py` 10 -> 9 tests, 0 references to the deleted filename |
-| `pytest` (both suites) | **12 passed** (was 13: 10 + 3, minus the 1 banner test) |
+| `osc_band_call_a00-ee9a5cdc.py` + `test_osc_band_call_a00-ee9a5cdc.py` | DELETED (source files, not nodes -- the reasoning lives in three node THOUGHT blocks already) |
+| `test_osc_band_call2_a00-cc7b25cc.py` | 10 -> 9 tests: banner test gone, three `old.judge` differential asserts repointed at the rule alone, no filename reference left |
+| `osc_band_call2_a00-cc7b25cc.py` docstring | no longer points at the absent file |
+| `osc_band_call_run_a00-66d002ad.py` (new, 66 lines) | the missing entry point: word-or-reason per row, exit 2 while anything is unresolved |
+| runner over the real config dir | `TOTAL unresolved=20`, 0 words, exit 2, no traceback |
+| synthetic 3-distinct-seed cell, same runner | `win | margin +0.07 vs band +0.06`, exit 0 |
+| `pytest` (both suites) | **12 passed** |
 
-The 20 rows decompose as 4 files the rule cannot read + 16 rows (2 files x 4 budgets x 2 metrics).
+## Falsifier
+DISPROVED if: any surviving suite references an absent file; the suite count is not
+(same minus the banner assertion); the runner exits 0 on today's own data; a
+3-distinct-seed cell does not yield a word; or any real cells.jsonl yields a word today.
+None fired.
 
-## Bytes landed
-- **deleted** `osc_band_call_a00-ee9a5cdc.py`, `test_osc_band_call_a00-ee9a5cdc.py` (source
-  duplicates, not nodes -- their reasoning is already in three node THOUGHT blocks).
-- edited `test_osc_band_call2_a00-cc7b25cc.py`: banner test removed, three `old.judge`
-  differential asserts repointed at the rule alone, no filename left in it.
-- edited `osc_band_call2_a00-cc7b25cc.py` docstring: it no longer points at an absent file.
-- new `.agi/context/local-maxxing/osc/osc_band_call_run_a00-66d002ad.py` (66 lines) -- the
-  entry point the rule never had. The RULE is untouched; this adds no rule and no threshold.
-- new `.agi/context/local-maxxing/osc/test_osc_band_call_run_a00-66d002ad.py` -- 3 tests:
-  today's own data is total+red, a seeded cell flips the same runner green, a foreign
-  schema is a reason.
+## Named amendment for whoever owns the producer (NOT done here)
+`osc_band_matched_uniform_a00-a721f95f.py`: add `"seed": s` to the record at `:68` and fan
+the random arm over `SEEDS = (7, 8, 9)` -- and put the seed in the resume key at `:64`, or
+a resumed run silently skips the new draws. That is a00-a721f95f's file and the swarm's
+model slot, out of scope for this decide layer. Until then the honest state of the tree is
+a correct rule that can only say `unresolved`, and the runner says so loudly (exit 2).
 
-## What this proves about the tree
-`goal:band-call-rule-per-cell`'s target end-state says "the tree can turn a jsonl of
-per-(cell, arm, seed) draws into per-cell win/loss/inside-noise calls". The rule half is
-landed, correct and now UNIQUE; the RUNNER half did not exist, and on the tree's own data
-the call count is **zero**. The binding constraint is the PRODUCER, not the rule: the grid
-producer `osc_band_matched_uniform_a00-a721f95f.py:43` draws the random arm once with a
-hardcoded seed 7 and `:68` writes no `seed` field, so the n>=3 gate (correctly) refuses
-forever.
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review 2026-09-26, p3. The deletion is done properly -- four files became two, and I checked the directory rather than the summary. The runner this kid added is the right idea in the wrong order: it is a pure function of the rule, imported by name, that exits 2 while anything is unresolved, which is the behaviour goal:g5.22.1 actually asks for. It cannot do any of that, because line 50 imports `paths` and `sys.path` was never set, so on the real data it raises ModuleNotFoundError and exits 1 having read no cells at all; the sibling script in the same directory sets sys.path at line 6 precisely so that import works. The near miss is a fully tested entry point whose tests call pure helpers, so the suite reports twelve green and the program is dead -- the shape where the test name resembles the function name and nothing else does. Verdict inconclusive_lean_disproved:75; the falsifying probe is P10, named on this node.
+<!-- THOUGHT:END -->
 
-## Not done here, deliberately
-- The producer amendment (`"seed": s` in the record, `SEEDS` fan-out, seed in the resume key
-  at `:64`) is a00-a721f95f's node and touches the swarm's model slot -- out of scope for
-  this decide layer. Named in the hypothesis body for whoever owns it.
+## Agent Notes
+Deleted the superseded call-rule duplicate + its suite (10->9 tests, no filename refs, 12 pytest green) and landed the missing runner: over the real qknorm cells.jsonl it emits 0 words / 20 unresolved / exit 2, while a 3-distinct-seed cell flips the same runner green.
