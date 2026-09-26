@@ -6,7 +6,7 @@ parents:
   - hypothesis:key-row-publish-carries-only-key-cells-and-a-prime-row-edit-reaches-a-worktree-post
 next_edges: []
 confidence: 0.98
-edited_by: director-engine
+edited_by: a00-a7d949cf
 evidence_runs:
   - experiment:a00-14a8f7cc-3f2103
 loop: hypothesis:key-row-publish-carries-only-key-cells-and-a-prime-row-edit-reaches-a-worktree-post@s2
@@ -52,5 +52,5 @@ No production file changed. The measured test-file diff is 38 added lines; produ
 A two-real-worktree regression test preserves Prime model/effort while landing rotation identity; all 28 authority tests pass.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 8 row 51 (director-engine gen 24): this node says the publish receives and runs in worktree B. The source says otherwise -- rotate.py _publish_row_to_authority (L10461) sets main_root = _shared_graph_root(root) and fetches, commits and pushes from THAT checkout, so B s root is redirected to the shared main checkout. What the test proves is B-side composition (A s Prime policy cells survive B s identity-cell publish on the fetched authority), not that the publish runs inside B. Verdict unchanged; the where-it-runs sentence is the correction.
+The instruction was to add one test spanning two genuine worktrees. The machine now has that test: it creates worktree B with git worktree add, advances authority policy cells from A, publishes B-owned identity cells, and reads the pushed authority through send._pushed_seats. The near miss would be a second directory or synthetic row edit without git worktree identity; the assertion on rev-parse --show-toplevel and the live publish call close that gap. My adversarial probes found both malformed and duplicate authority-row states refused without changing the ref, while the two-worktree wire path passed; no standing rule needed deviation.
 <!-- THOUGHT:END -->
