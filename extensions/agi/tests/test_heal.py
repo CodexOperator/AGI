@@ -325,14 +325,34 @@ def test_log_tail_falls_back_to_main_when_the_worktree_log_is_gone(
 
 
 def test_stale_lock_skip_leaves_a_clean_sessions_dir_alone(tmp_path,
-                                                          monkeypatch):
-    """THE STALE-LOCK SKIP: a dead seat with NO verify-suite.lock under its
-    own sessions/ is a no-op — nothing unlinked, no raise, no log claim that
-    a lock was removed. The sweep must not invent a lock to delete."""
+                                                          monkeypatch,
+                                                          capsys):
+    """THE STALE-LOCK SKIP, as a real gate: a dead seat with NO
+    verify-suite.lock under its own sessions/ must leave Path.unlink
+    UNCALLED on that path and never reach the `warn: could not remove stale
+    lock` branch. The no-log-line claim alone is not a gate — the unlink's
+    `except OSError` swallows FileNotFoundError, so a mutating version
+    produces the same log and stays green
+    (experiment:a00-f76b1fde-5e44ad)."""
     gdir, wt = _wt_graph(tmp_path, worktree=True)
+    lock = wt / "sessions" / "verify-suite.lock"
     log = tmp_path / "reaper.log"
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+
+    real_unlink = Path.unlink
+    touched: list[Path] = []
+
+    def spy_unlink(self, *a, **kw):
+        touched.append(Path(self))
+        return real_unlink(self, *a, **kw)
+
+    monkeypatch.setattr(Path, "unlink", spy_unlink)
     heal._clean_stale_layout_locks(gdir, WT_ROW)
-    assert not (wt / "sessions" / "verify-suite.lock").exists()
+    monkeypatch.undo()
+
+    assert lock not in touched, f"unlink called on a lock that is not there: {touched}"
+    assert not lock.exists()
+    err = capsys.readouterr().err
+    assert "could not remove stale lock" not in err, err
     text = log.read_text(encoding="utf-8") if log.exists() else ""
     assert "removed stale verify-suite.lock" not in text, text
