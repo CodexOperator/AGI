@@ -22,6 +22,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import types
 
 import pytest
 
@@ -400,6 +401,44 @@ def test_fenced_module_runners_cover_the_engines_bound_names():
     assert getattr(rotate._RUN, "__module__", "") == "subprocess", (
         "rotate._RUN is no longer the stdlib run captured at import -- the "
         "fence premise changed and this list must be re-derived")
+
+def test_a_second_conftest_exec_wraps_no_already_fenced_leaf():
+    """hypothesis:conftest-spawn-fence-install-is-idempotent-across-a-second-conftest-exec
+
+    test_tier_gate.py loads conftest.py a SECOND time in one interpreter, so
+    `_install_spawn_fence()` runs twice over the same leaves. A fence over a
+    fence made `subprocess.Popen is workflow._REAL_POPEN` (workflow.py:1806)
+    false, and 48 tests that pass ALONE went red under full-dir collection.
+
+    Red-first: drop the `_FENCE_MARKER` skip in `_install_spawn_fence` and the
+    identity assertion below fails (the second exec replaces the leaf with a
+    NEW fence object) and `second` is no longer empty."""
+    conf = _load_tests_conftest()
+    real = lambda *a, **k: "real"  # noqa: E731 -- a stub, not a spawn
+    stub = types.SimpleNamespace(run=real)
+    leaves = ((stub, "run"),)
+    first = conf._install_spawn_fence(leaves=leaves, kills=False)
+    fenced = stub.run
+    second = conf._install_spawn_fence(leaves=leaves, kills=False)
+    assert stub.run is fenced, "a second exec wrapped an already-fenced leaf"
+    assert second == [], "the second exec saved an undo for a leaf it skipped"
+    conf._uninstall_spawn_fence(second)          # must be a no-op
+    assert stub.run is fenced, "the second exec's uninstall tore down the first"
+    conf._uninstall_spawn_fence(first)
+    assert stub.run is real, "the first exec's uninstall did not restore"
+    # Live half: the running interpreter's own conftest already fenced the
+    # real leaves, so a second exec over them must also change nothing.
+    if hasattr(subprocess.Popen, conf._FENCE_MARKER):
+        was = subprocess.Popen
+        again = conf._install_spawn_fence()
+        try:
+            assert subprocess.Popen is was, (
+                "a second exec re-fenced the live conftest's subprocess.Popen; "
+                "every engine `is _REAL_POPEN` check then fails")
+        finally:
+            conf._uninstall_spawn_fence(again)
+        assert subprocess.Popen is was, "the second exec's uninstall tore it down"
+
 
 def test_conftest_tmux_guard_is_in_force():
     """The autouse `_no_real_tmux` guard answers tmux with a safe rc-1
