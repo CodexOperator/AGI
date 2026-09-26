@@ -11459,36 +11459,6 @@ def _term_grace_s() -> float:
     return 15.0
 
 
-#: Reserved OUT of the ONE chain budget for the post-SIGKILL settle poll
-#: (L4.122): the TERM wait may not eat it, or a chain that exhausts the
-#: deadline -- exactly the chains the deadline exists for -- records
-#: gone_after=False on every member it did KILL.
-_SIGKILL_SETTLE_S = 1.0
-
-
-def _chain_deadline_s() -> float:
-    """`reaper.chain_deadline_s` from `.agi/config.json`; 20.0 is the RESOLVER
-    for a missing cell, not a second value. It bounds the WHOLE reap chain
-    (hypothesis:a-reap-chain-is-bounded-by-one-chain-deadline-not-per-pid-
-    grace): N TERM-ignoring members are all gone inside this ONE budget,
-    never N x `reaper.term_grace_s`. The LAST `_SIGKILL_SETTLE_S` of that
-    budget is RESERVED for the post-KILL poll, so a chain that exhausts the
-    deadline still records an honest `gone_after`. The default
-    exceeds the 15.0 term grace so a single-member chain is unchanged by it.
-    Same never-raises shape as `_term_grace_s`."""
-    try:
-        cfg_path = locations.config_path(find_project_root())
-        if cfg_path is not None:
-            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
-            v = (cfg.get("reaper") or {}).get("chain_deadline_s")
-            if isinstance(v, (int, float)) and not isinstance(v, bool) \
-                    and v > 0:
-                return float(v)
-    except (OSError, json.JSONDecodeError, TypeError, AttributeError):
-        pass
-    return 20.0
-
-
 def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
                 kill_survivors: bool = True) -> dict:
     """s12 — TERM a predecessor process chain DEEPEST-FIRST, verify each gone.
@@ -11500,14 +11470,8 @@ def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
     termd, gone_after and the `ps -p` reads around it.
 
     Each pid gets up to `wait_secs` (`reaper.term_grace_s`, default 15 s) to
-    die after TERM, but the WHOLE chain is bounded by ONE deadline
-    (`reaper.chain_deadline_s`, default 20 s): a member's wait is
-    `min(now + wait_secs, chain_deadline - settle)`, so N TERM-ignoring
-    members cost one chain deadline, never N x term_grace_s. `settle` is
-    `min(_SIGKILL_SETTLE_S, half the chain budget)`: the post-SIGKILL poll
-    needs a reserve INSIDE the budget, or an exhausted chain records a KILLed
-    member as still alive. A survivor is SIGKILL'd
-    when `kill_survivors` (L4.118/R2: "wait up to the grace, KILL what
+    die after TERM; a survivor is SIGKILL'd
+    when `kill_survivors` (L4.118/R2: "wait up to 5 s per pid, KILL what
     survives").
 
     Refuses the caller's OWN pid and any pid <= 0 (like `_reap_pid`):
@@ -11518,11 +11482,6 @@ def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
     chain: list[dict] = []
     if wait_secs is None:
         wait_secs = _term_grace_s()  # reaper.term_grace_s, read at runtime
-    chain_budget = _chain_deadline_s()
-    chain_deadline = time.time() + chain_budget  # ONE budget, all pids
-    # the settle reserve is CARVED OUT of it, never added on top, and never
-    # more than half of it, so a tiny chain_deadline_s still gets a TERM wait
-    settle = min(_SIGKILL_SETTLE_S, chain_budget / 2.0)
     for pid in reversed(pids):
         pid = int(pid)
         if pid <= 0 or pid == os.getpid():
@@ -11541,8 +11500,7 @@ def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
                 os.kill(pid, signal.SIGTERM)
             except OSError:
                 pass
-            deadline = min(time.time() + wait_secs,
-                           max(time.time(), chain_deadline - settle))
+            deadline = time.time() + wait_secs
             while time.time() < deadline and _pid_alive(pid):
                 # L4.122 criterion 2 (merge-up 23): bind `wpid` BEFORE the
                 # `if`. A pid that is NOT our child (an ancestor pane bash /
@@ -11578,7 +11536,7 @@ def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
                 # briefly so the recorded gone_after reflects the eventual
                 # state, not the reaping race.
                 if not termd:
-                    deadline_t = min(time.time() + settle, chain_deadline)
+                    deadline_t = time.time() + 1.0
                     while time.time() < deadline_t and _pid_alive(pid):
                         time.sleep(0.05)
                     termd = not _pid_alive(pid)
@@ -17888,22 +17846,6 @@ def _fence_run(ln: str) -> int:
     return n if n >= 3 else 0
 
 
-STOPS_SUBJECT_FALLBACK = "(no prose outside the fences -- see the card)"
-
-
-def _stops_subject_tail(stops_text: str, limit: int = 80) -> str:
-    """The rotate-out commit subject TAIL: the first line of the stops text
-    that is NOT a fence delimiter (`_fence_run == 0`), stripped and
-    truncated to `limit` chars; `STOPS_SUBJECT_FALLBACK` (a named,
-    non-empty constant) when every line is a fence line or the text carries
-    no prose. Never a backtick run, whatever the model hands back."""
-    for ln in stops_text.splitlines():
-        s = ln.strip()
-        if s and _fence_run(s) == 0:
-            return s[:limit]
-    return STOPS_SUBJECT_FALLBACK
-
-
 def _fence_for(stops_text: str) -> str:
     """The fence string that wraps `stops_text`: a run of backticks LONGER
     than every code fence already inside it, three by default. CommonMark
@@ -17919,34 +17861,6 @@ def _fence_for(stops_text: str) -> str:
     return "`" * inner
 
 
-def _unwrap_fence_block(text: str) -> str:
-    """If `text` is ITSELF exactly one fence-wrapped block -- the first
-    non-blank line opens a fence of run n, the last non-blank line is that
-    same run and nothing else, and no line inside carries a run >= n --
-    return the CONTENT between the pair. That is the shape a card slot has
-    when the model hands the slot back as it reads it in the card (the card
-    IS the prompt), so unwrapping here keeps the slot's fence depth IDEMPOTENT
-    across N rotations instead of compounding +1 per rotation (belam 09-24:
-    commit subjects that were literally a backtick run, 95b4f0a21 / 11e170950
-    / 1c69c9e81). Anything else -- a fence as ONE part among others, an
-    unpaired opener, a lone line -- is returned UNCHANGED, so a genuine
-    inner ``` block still nests in a longer outer fence (`_fence_for`)."""
-    lines = text.split("\n")
-    while lines and not lines[0].strip():
-        lines.pop(0)
-    while lines and not lines[-1].strip():
-        lines.pop()
-    if len(lines) < 2:
-        return text
-    n = _fence_run(lines[0])
-    if n < 3 or lines[-1].strip() != "`" * n:
-        return text
-    inner = lines[1:-1]
-    if any(_fence_run(ln) >= n for ln in inner):
-        return text
-    return "\n".join(inner)
-
-
 def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
     """Render the where-it-stops SLOT BLOCK -- the ```-fenced code block
     holding the stops text, plus the optional `diff requested:` line AFTER
@@ -17959,7 +17873,6 @@ def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
     fence is wrapped in a LONGER outer fence (`_fence_for`, the CommonMark
     rule) so the inner fence is content, never a delimiter (goal:g15.25
     line (3), residue (iii))."""
-    stops_text = _unwrap_fence_block(stops_text)
     fence = _fence_for(stops_text)
     out = fence + "\n" + stops_text.rstrip("\n") + "\n" + fence
     if diff_gap:
@@ -19043,7 +18956,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _stops_gap = getattr(args, "ask_diff", False)
         _gap = _stops_gap if isinstance(_stops_gap, str) and _stops_gap \
             else None
-        _first = _stops_subject_tail(_stops_text)
+        _first = _stops_text.strip().splitlines()[0][:80]
         _msg = (f"{seat} rotate-out gen {_gb}->{_gb + 1}: {_first}")
         _card = _own_card_path(root, seat)
         if args.dry_run:
