@@ -36,20 +36,19 @@ DE        TMM.204 (landed + 2 residues as their own rounds: rename-rotation vs t
 ```
 
 ## 🔴 Where it stops
-05:0xZ 09-26 gen 24: gate M4 suite running (DE e82778bb2 + DT ec1028737); DT's OSC.43 RETURNED (TMM.206: evidence_runs); DE's batch lands on a green suite
+05:2xZ 09-26 gen 24: the box is I/O-STALLED ([red] to belam 05:2xZ); my M4 suite TERM'd 05:18:21Z at 63%; DE e82778bb2 HELD for the disk; DT ffa5d9530 gated green, landing
 ```
-state   MAIN = origin at d884189d8 (+ watch commits) · landed 9ddc0fe23 (DT) + 78c55c208 (DE) · last order sent = TMM.206 · next = TMM.207
-        · gate2 ids = scratchpad/gate2-ids.txt (HEAD d6c0f2b49d, M3 cebd858e9b, M4 7f816cd68f) · suite-m4 started 04:58:37Z (suite-m4.pid/.log)
-DE      e82778bb2 (DH.367 + DH.372-376): read + judged -- DH.367 predicate over 4208 live nodes = 0 unresolved parents; in-process gate:
-        routine parents approve, a missing one refuses (create only) · DH.374 hook latch is per session (first-fire rewrites {first,
-        session}), capture only at f >= 0.85 x line / 10 min past it; ladder capture_chain_log cell = director-owned (df594bc25 precedent)
-        · DH.373 pane-chain vouch: no live window carries another row's pid -> no decision changes at its first run · DH.375 probe cache
-        moves to a private dir (re-probe once) · DH.372 grid default 200 instead of exit · goals 372 · links 0 · evidence 0 (on .agi) on
-        the DE part · anonymize ok · posts.md untouched
-NEXT    (1) suite-m4 green (the trunk's test_commands_manifest red expected, belam's) -> land DE e82778bb2 (T2 on live HEAD; its
-            contribution byte-identical to diff(G3, G4)) · push · TMM.207 to DE
-        (2) DT's OSC.43 re-send (one field) -> diff vs G3 = the hypothesis only -> evidence dry-run ON .agi -> land
-        (3) PASS 8 at 05:47Z: pre-check on the final HEAD (evidence dry-run on .agi this time)
+state   MAIN = origin at d884189d8 + my card commits · landed 9ddc0fe23 (DT) + 78c55c208 (DE) · last order sent = TMM.206 · next = TMM.207
+        · io PSI some 96% / full ~88% (05:20Z); disk 99% busy at 0.4 MiB/s; dm-1 (/ -> /tmp) in flight 2381; Writeback 665 MB; memory PSI ~2%
+        · the gate worktree sits on /tmp = the stalled volume; MAIN is on /data (dm-2, 5 in flight)
+DE      e82778bb2 (DH.367 + DH.372-376) judged green on every item but the suite (M4 at 63%: 1 F = test_commands_manifest, the trunk's)
+        -> re-run the suite on the merged tree once io PSI falls; DH.376 held live: 0 OOM kills during M4 (9 during M2 with the old tests)
+DT      ffa5d9530 (OSC.43 fixed + OSC.42): tests 3/3x + 31/1x · numbers re-derived · excerpt sha256 = installed 0.67.68 · evidence 0 (.agi)
+        · anonymize ok · 0 engine files -> land on links/schema/goals of gate5 (scratchpad/gate5-ids.txt) · TMM.149 pi pair DONE; every
+        model-loading rung HELD for belam's go · DT flags the free route: 3 'empty response' parent deaths in 5 today
+NEXT    (1) gate5 checks (links, schema, goals, evidence) -> land DT ffa5d9530 (T2 on live HEAD, ff-only, push the ref line) -> TMM.207
+        (2) io PSI < ~20% -> re-run the suite on HEAD + DE e82778bb2 -> land -> TMM.208 to DE
+        (3) PASS 8 at 05:47Z: the pre-check on the final HEAD (evidence ON .agi)
 out     git worktree remove scratchpad/gate · python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 
