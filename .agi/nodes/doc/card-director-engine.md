@@ -51,12 +51,13 @@ tip        post branch: 34ceccce2 (TMM.199 fix) -> 6fe0719df (trunk sync, dispat
 merge-up   swarm harvest 2c87b63c2 RETURNED (TMM.199) -> reds FIXED 34ceccce2 -> RE-SENT tip 938111b38 [delivered] -- await TM
 rounds     all pi-free stealth/space-bunny-alpha, --tier parent --ladder-tier 0, cap $1, --branch --detach
   DH.367   a00-0c992f07  hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-id-does-not-resolve (g7.33)
-  DH.368   a00-5aaa03c7  hypothesis:pin-reap-never-names-a-live-session-and-a-reap-leaves-no-stale-app-session (g6.49, 2c, minted aeaeceb23)
+  DH.368   MERGED 7cc5c0a44 + cells de9dced85 · 3/3 kids (2 proved, app half lean: no CLI path ends an app session) · 204 heal/reap tests
+           residue for the merge-up: kid 2fa1fab0 launched 2 real throwaway claude sessions (--bg, --remote-control zz-probe-2fa1fab0),
+           both gone by pid; their app-side entries unmeasurable from here
+  DH.370   a00-6c3524a8  hypothesis:heal-lands-a-reseat-after-a-tmux-server-restart (g6.41 (1), cut after DH.368)
   DH.369   a00-8cf344ba  hypothesis:cron-layer-keeps-its-disk-footprint-bounded (g6.49, 2d)
-held       goal:g6.41 pair (heal-lands-a-reseat..., a-reboot-brings-the-town-back...) -- heal.py = DH.368's file;
-           dispatch (1) once DH.368 merges, (2) after (1) per belam's order · MemAvailable was 3.6 GiB at DH.369 (floor 3)
-STOP       fired ~02:4xZ: MemAvailable 1270 MiB (<1.5 GiB; a 4.1 GiB OSC qwen3 run, not DE's) -> [red] to belam sent;
-           NO new DE dispatch until MemAvailable >= 3 GiB again; running rounds continue
+held       hypothesis:a-reboot-brings-the-town-back-without-a-human (g6.41 (2)) -- after DH.370 merges, per belam's order · MemAvailable was 3.6 GiB at DH.369 (floor 3)
+STOP       fired ~02:4xZ (1270 MiB, an OSC qwen3 run, not DE's) -> [red] to belam; CLEARED at 7.0 GiB before DH.370
 push       never from here (IDENTITY rule)
 ```
 | TMM.199 red | fix in 34ceccce2 | proof |
@@ -70,7 +71,8 @@ push       never from here (IDENTITY rule)
 |---|---|---|
 | 1 | re-send `[merge-up]` naming 34ceccce2 + tip | SENT 938111b38 -- await TM verdict |
 | 2 | harvest DH.367 / .368 / .369: review kids against each claim + falsifiers; merge `--no-ff`; one merge-up | running |
-| 3 | goal:g6.41 pair | HELD on heal.py disjointness behind DH.368 |
+| 3 | goal:g6.41 pair | (1) DH.370 running · (2) after DH.370 merges |
+| 4 | merge-up of DH.368 (+ 367/369/370 as they land) | after TM answers the 938111b38 re-send -- one merge-up in flight at a time |
 | 4 | DH.360 seam 3 (fresh mint) -> TMM.166/174 -> g1.14.1 -> PASS 6 defect 3 -> pass7-0926-residue-batch (read fully) | queued |
 
 ## 🔴 WHERE IT STOPS
