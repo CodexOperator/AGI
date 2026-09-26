@@ -496,6 +496,34 @@ def test_extras_text_override_lands_last_and_order_is_the_config_cell(tmp_path):
     assert out.index(HEAD_SENTINEL) < out.index("EXTRAS-SENTINEL")
 
 
+def test_extras_config_refs_still_land_when_a_dispatched_parent_supplies_extras_text(tmp_path):
+    """A DISPATCHED parent hands `render` a dynamic `extras_text` (target,
+    ceiling, session dir); config:brief's `extras.<role>` refs must still
+    reach it, appended after -- previously `extras_text is not None` returned
+    immediately and a role's configured refs never reached a real dispatch
+    (director-engine, goal:g7.33.14-adjacent)."""
+    root = _root(tmp_path, parts={"parent": ["head", "extras"]},
+                 extras={"parent": ["town:t"]})
+    out = brief.render(role="parent", extras_text="DYNAMIC-SENTINEL",
+                       project_root=root)
+    assert "DYNAMIC-SENTINEL" in out
+    assert "TOWN-TRAJECTORY-SENTINEL" in out
+    assert out.index("DYNAMIC-SENTINEL") < out.index("TOWN-TRAJECTORY-SENTINEL")
+
+
+def test_extras_ref_can_name_a_context_file_not_only_a_node(tmp_path):
+    """`extras.<role>` may name a file under `.agi/context/` (verbatim, read
+    live) as well as a graph node ref -- e.g. `context/schemas/[goal].md` --
+    so a dispatched parent's brief can carry a schema as a guide without a
+    node standing in for the file (owner ask 09-25 22:5xZ via belam,
+    director-engine, goal:g7.33.14-adjacent)."""
+    _write(tmp_path, "context/schemas/[fake].md", "SCHEMA-FILE-SENTINEL\n")
+    root = _root(tmp_path, parts={"kid": ["head", "extras"]},
+                 extras={"kid": ["context/schemas/[fake].md"]})
+    out = brief.render(role="kid", project_root=root)
+    assert "SCHEMA-FILE-SENTINEL" in out
+
+
 def test_a_doc_card_node_wins_over_the_quorum_file(tmp_path):
     """`doc:card-<post>`'s file must win; the quorum file is the fallback."""
     root = _root(tmp_path, parts={"director": ["head", "card"]},
