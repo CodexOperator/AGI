@@ -687,6 +687,13 @@ _FENCED_SPAWN_LEAVES = (
     ("pty", "spawn"),
 )
 
+#: Every fence carries the real leaf it wraps under this attribute, and
+#: `_install_spawn_fence` SKIPS a leaf already carrying it: conftest.py is
+#: exec'd twice in one interpreter (test_tier_gate.py), and a fence over a
+#: fence made `subprocess.Popen is _REAL_POPEN` false for 48 tests (measured
+#: 2026-09-26 a00-585205f4).
+_FENCE_MARKER = "__agi_spawn_fence__"
+
 #: A caller that set this module attribute opted in to the process guard.
 _GUARD_FLAG = _GUARD_OPTIN_ATTR
 
@@ -739,6 +746,7 @@ def _make_import_time_fence(real, label, kill=False):
         return real(*a, **k)
     _fence.__name__ = f"_import_fence_{label.rsplit('.', 1)[-1]}"
     _fence.__module__ = "conftest"
+    setattr(_fence, _FENCE_MARKER, real)   # the idempotence marker
     return _fence
 
 
@@ -756,13 +764,17 @@ def _install_spawn_fence(leaves=_FENCED_SPAWN_LEAVES, kills=True):
     saved = []
     for mod, attr in _resolve_leaves(leaves):
         real = getattr(mod, attr)
+        if hasattr(real, _FENCE_MARKER):
+            continue                    # a second exec: leave the fence alone
         saved.append((mod, attr, real))
         label = f"{getattr(mod, '__name__', mod.__class__.__name__)}.{attr}"
         setattr(mod, attr, _make_import_time_fence(real, label))
     for attr in (("kill", "killpg") if kills else ()):
-        saved.append((os, attr, getattr(os, attr)))
-        setattr(os, attr, _make_import_time_fence(getattr(os, attr), f"os.{attr}",
-                                                  kill=True))
+        real = getattr(os, attr)
+        if hasattr(real, _FENCE_MARKER):
+            continue
+        saved.append((os, attr, real))
+        setattr(os, attr, _make_import_time_fence(real, f"os.{attr}", kill=True))
     return saved
 
 
