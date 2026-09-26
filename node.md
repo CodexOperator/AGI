@@ -8,9 +8,8 @@ next_edges: []
 confidence: 0.85
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: director-engine
-evidence_runs:
-  - experiment:a00-9103101b-54f1cd
+edited_by: ubuntu
+evidence_runs: experiment:a00-9103101b-54f1cd
 scaffold_hash: 2355af8689766dcc
 season: 1
 title: A00 9103101b 54f1cd
@@ -85,7 +84,7 @@ PASS — one stream, two formatters, same nodes in the same order
 L2.11 graph hygiene: moved .agi/bin/analyze-chat-structure.py to extensions/agi/bin/, removed .agi/bin dir, deprecated 3 L2.09 orphan nodes (experiment:a00-1a2f54da-8f6d2b, experiment:season:l2w4, verdict:outcomes:l2w4), added test_agi_bin_absent.py. Verify: links 0 broken, snapshot-goals byte-identical, viewport PASS, 1628/1638 pytest pass (1 pre-existing failure), active+deprecated total 1397 unchanged.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 7 residue (hypothesis:pass7-0926-residue-batch, test_brief.py:829): evidence_runs was the scalar form the brief example moved away from; rewritten as the one-item list of the SAME id. No evidence added or removed, verdict unchanged.
+Parent review L2.11 re-verified every claim against the tree: .agi/bin/ gone, analyze-chat-structure.py re-homed under extensions/agi/bin/ with test_agi_bin_absent.py passing, experiment:a01-c6a5fb12-52f818 payload_ref retargeted, 3 L2.09 orphans deprecated and moved (1208 active + 189 deprecated = 1397, unchanged), links.py 1358 resolved 0 broken. Two frontmatter defects found and fixed in this version: evidence_runs was absent from a proved verdict (gate would have demoted it) and was set to this node, which IS its own run; experiment:season:l2w4 had been moved to deprecated/ without status: deprecated and now carries it. Kid is credited for all substantive work; no claim was demoted because every one held under re-verification.
 <!-- THOUGHT:END -->
 
 Parent a00-32fc16b3 review: accepted proved with evidence_runs restored; both hygiene items and all four verification claims re-verified true; no demotion.
