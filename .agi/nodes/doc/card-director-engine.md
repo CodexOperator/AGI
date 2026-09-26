@@ -52,13 +52,17 @@ trunk      f52f62a32 (TM gen 23, merged into post): merge-up 1 LANDED 496f4565a 
 rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing lost
   DH.367   MERGED abd8ce125 (kid a00-a6059a55 proved; claim + falsifiers 1-3 match the bytes) -- falsifier 4 = full suite, RUNNING
   DH.372   MERGED 693324752 + DEMOTED 1455e199b -> inconclusive_lean_proved:70 (200 still a code constant; cron tick unmeasured)
-  DH.370   -> RESUMED as DH.373 a00-1b09cac6 (orders: build on 2d9d7e3b (a)+(b); (c) WIP d11948744; (d) = SANCTUARY-MASTER's box cell,
-           never ours -- kid e0ae8900's posts.md edit left uncommitted in its worktree). parent notes salvaged ff950564f
-  DH.371   -> RESUMED as DH.374 a00-a2524533 (orders: kid WIP 20d41f3f4; empty experiment; log-path literal -> cell; latch per SEATING)
+  DH.373   MERGED d83deb339 (resumes DH.370): (a)+(b) e74c1b172 + (c) pane-chain vouches the @id -- lean_proved:80; (d) = SM's box cell (dm sent)
+           residue: parent's review notes uncommitted -> DE commit on its branch
+  DH.374   MERGED ca6dd02ca (resumes DH.371): sibling marker, latch per seating, chain log -- lean_proved:80 (conjunct 3)
+           residue: ladder capture_chain_log cell UNCOMMITTED in parent (hook fails CLOSED without it) -> DE 6131eb0fe
   DH.375   MERGED 96423c887 (2 kids proved; 30/30 green; residue: values.memcap cells + THOUGHT uncommitted in parent -> DE dc1c764cb)
   DH.376   a00-cb67ed0e  hypothesis:launch-memory-cap-tests-never-touch-real-systemd (PASS 7 code round 2; next = brainstorm-manifest-route workflow.py:2175)
   dm       [ask] sanctuary-master: stream-master row box cell = DH.373 conjunct (d) (nudge refused: foreign box; dm file stored)
-memory     MemAvailable 12.2 GiB, load 0.7 -- clear for rounds
+GUARD      belam [decision] 04:29Z (VERIFIED): <= 10 live spawns town-wide, pi only; user@ capped 5829M; memory_alarm WARN = hold dispatch
+           DE holds at <= 2 live rounds. 04:3xZ: 11 GiB avail, PSI 0.04
+suite      one-suite-per-worktree lock (conftest.py:460): a second pytest errors 'suite window refused' -- not a red
+           full suite started on 1455e199b; tree merged under it -> RE-RUN on the final tip before the merge-up
 push       never from here (IDENTITY rule)
 ```
 | TMM.199 red | fix in 34ceccce2 | proof |
