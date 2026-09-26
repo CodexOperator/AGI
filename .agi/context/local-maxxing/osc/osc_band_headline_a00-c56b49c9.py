@@ -25,7 +25,8 @@ def rows(root, run):
 def join(root=None):
     """Grid rows minus their unseeded random rows, plus the seeded random draws."""
     root = root or paths.get_local("osc_band_qknorm_dir")
-    return [d for d in rows(root, GRID_RUN) if d["arm"] != STOCHASTIC] + rows(root, SEEDS_RUN)
+    return [d for d in rows(root, GRID_RUN) if d["arm"] != STOCHASTIC] + [
+        d for d in rows(root, SEEDS_RUN) if d["arm"] == STOCHASTIC]  # seeds run carries seed-0 rows too since P8.04 (TMM.254)
 
 def headline(root=None):
     """{comparator: {(budget, arm, comparator, metric): (word, reason)}} for key_only."""

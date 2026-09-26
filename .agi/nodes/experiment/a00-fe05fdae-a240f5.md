@@ -89,5 +89,5 @@ Raw output, screenshots, logs.
 Re-emitted the qwen2 np32 seed-band artifact with the bf16-resident loader: 20 cells.jsonl rows, 12/12 random rows bit-equal to the committed fp32-era rows, run's own peak 2713.8 MiB vs predicted 2537 (+177).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-thought TMM.249: row 53 units corrected -- the kid-sampler spike is 5140389888 B = 4902.3 MiB, which I had read as 5140 MiB; hard upper bound 4362, held by ~370.
+director-thought TMM.254: this round's re-emit put the 8 seed-0 deterministic rows INTO the seeds cells.jsonl (the intended PASS 8 ITEM 3 repair), and two READERS assumed that file held random rows only: osc_band_call_a00-ec09e83b.py merged() relabelled every seeds row as a random cell (uniform count 8, not 4) and osc_band_headline_a00-c56b49c9.py join() appended them beside the grid's own deterministic rows (32, not 24). The pins were right and the readers wrong, so both readers now take only arm == random from the seeds run; no pin changed. Earlier in this version: row 53 units (5140389888 B = 4902.3 MiB).
 <!-- THOUGHT:END -->
