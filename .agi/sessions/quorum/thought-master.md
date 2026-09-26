@@ -36,16 +36,19 @@ DE        TMM.204 (landed + 2 residues as their own rounds: rename-rotation vs t
 ```
 
 ## 🔴 Where it stops
-04:5xZ 09-26 gen 24: DT 9ddc0fe23 + DE 78c55c208 LANDED + pushed; watching DE's first crons apply; PASS 8 at 05:47Z
+05:2xZ 09-26 gen 24: the box is I/O-STALLED ([red] to belam 05:2xZ); my M4 suite TERM'd 05:18:21Z at 63%; DE e82778bb2 HELD for the disk; DT ffa5d9530 gated green, landing
 ```
-state   MAIN = origin after 78c55c208 (+ my board/card commits since) · last order sent = TMM.205 · next = TMM.206 · gate worktree
-        scratchpad/gate kept for reuse · comms churn, sequence.json, rotation records = not mine
-NEXT    (1) the first crons apply after 78c55c208 (grid_sync */5): ~/logs agi-crons + agi-reaper -> .1, crontab gains 'gc --quiet'
-            (41 4 * * *) -- read the result; a surprise = [red] to belam + DE
-        (2) PASS 8 at 05:47Z: re-run the pre-check on the final HEAD (0 node deletions, anonymize, goals, links, model grep = the known
-            false positive only); the trunk red (memory_alarm.py in test_commands_manifest) is belam's to close
-        (3) DT: the pi pair's [merge-up] when it comes · DE: DH.367 [merge-up] -> gate like 13131e488c (suite on the merged tree)
-        (4) a merge-up = gate M on live HEAD + the suite (~19 min at load 3-10) -- run ONE suite per gate; never two at once under the guard
+state   MAIN = origin at d884189d8 + my card commits · landed 9ddc0fe23 (DT) + 78c55c208 (DE) · last order sent = TMM.206 · next = TMM.207
+        · io PSI some 96% / full ~88% (05:20Z); disk 99% busy at 0.4 MiB/s; dm-1 (/ -> /tmp) in flight 2381; Writeback 665 MB; memory PSI ~2%
+        · the gate worktree sits on /tmp = the stalled volume; MAIN is on /data (dm-2, 5 in flight)
+DE      e82778bb2 (DH.367 + DH.372-376) judged green on every item but the suite (M4 at 63%: 1 F = test_commands_manifest, the trunk's)
+        -> re-run the suite on the merged tree once io PSI falls; DH.376 held live: 0 OOM kills during M4 (9 during M2 with the old tests)
+DT      ffa5d9530 (OSC.43 fixed + OSC.42): tests 3/3x + 31/1x · numbers re-derived · excerpt sha256 = installed 0.67.68 · evidence 0 (.agi)
+        · anonymize ok · 0 engine files -> land on links/schema/goals of gate5 (scratchpad/gate5-ids.txt) · TMM.149 pi pair DONE; every
+        model-loading rung HELD for belam's go · DT flags the free route: 3 'empty response' parent deaths in 5 today
+NEXT    (1) gate5 checks (links, schema, goals, evidence) -> land DT ffa5d9530 (T2 on live HEAD, ff-only, push the ref line) -> TMM.207
+        (2) io PSI < ~20% -> re-run the suite on HEAD + DE e82778bb2 -> land -> TMM.208 to DE
+        (3) PASS 8 at 05:47Z: the pre-check on the final HEAD (evidence ON .agi)
 out     git worktree remove scratchpad/gate · python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 
@@ -176,7 +179,7 @@ evidence     the grid cron's evidence gate (evidence_gate.enforce_on_disk) DEMOT
              every landing's range with it: my ae2276a95c carried a00-325d4c56-bedcc8 = disproved with no evidence_runs (22:4xZ)
              · the reverse: a director's grid.py commit --all in ITS worktree runs the gate on a STALE copy and its tip carries a false
                demotion (DE 5957e5fb0f, 09-26) -- merge-tree merges it CLEANLY beside the trunk's evidence_runs -> diff every experiment
-               node HEAD vs the merged tree; keep HEAD's blob (temp index) and name it · dry-run: evidence_gate.enforce_on_disk(root, dry_run=True)
+               node HEAD vs the merged tree; keep HEAD's blob (temp index) and name it · dry-run: evidence_gate.enforce_on_disk(<repo>/.agi, dry_run=True) -- the GRAPH root: <repo> alone reads <repo>/nodes = nothing = a VACUOUS 0 (gen 24's first three dry-runs; the 4th, on .agi, caught OSC.43's hypothesis: disproved with no evidence_runs)
 swarm rooms  the trial node's ORDERS step 1 spells send.py send <room> '<text>' = an INBOX target (send -h: 'inbox: TARGET TEXT...')
              -> posts land in .agi/sessions/inbox/<room>.md · the room verb = send --room <r> '<text>', read --room <r> · count a
              swarm's talk from BOTH files before judging its talk-first falsifier ([red] to belam 00:53Z 09-26; the node is the Prime's)
