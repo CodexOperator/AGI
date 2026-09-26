@@ -142,6 +142,8 @@ live     DH.388 MERGED 77aa14faa: all 4 restart() via adapters.scrubbed_base() -
          (my earlier 'pi_adapter.py:326' cite was claude_code_adapter's line -- grep printed the first file; all 4 had it)
          DH.386 MERGED d54e7e3aa-line (target/--parent node set commits; orders-TEXT ids not read, lean_proved:65 --
          parent's demote was only in the body, I set the field) -- OWED: test_cli.py after the suite lock frees
+         DH.387 OWED AT HARVEST: DE commits .agi/config.json paths.core.suite_roots = ['.agi/context'] WITH the round's reader
+         (parent a00-9a906e4f named it; until then the 2nd suite is a named SKIP)
          DH.387 a00-9a906e4f (.agi/context suite) · DH.388 a00-301fe6aa (restart env)
 merge-up 5 SENT tip 2789f2a44 (behind 0, measured): DH.383-386; suite 6603/0 on 4b69308e4 + 199/199 after
 awaiting TM verdicts on merge-up 4 (tip 91177caa1) + 5 (tip 2789f2a44) · belam on 2c ([ask] 07:4xZ) · SM on box cells (g7.33.14 clause 1) + stream-master box (DH.373 d)
