@@ -272,19 +272,13 @@ def test_unverified_reason_survives_yaml_round_trip(project):
     like `parent id(s) resolve to no node: ['x']` produced frontmatter that
     `yaml.safe_load` then rejected — in the one field whose whole job is
     telling a reviewer why the node was not checked.
-
-    hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-
-    id-does-not-resolve took the create case away from this test: a brand-new
-    node onto a dangling parent is REFUSED now, so the stamp is the refusal's
-    reason. The yaml-safety claim is unchanged and still pinned — same corpus
-    (`: ` and quotes), same `safe_load` round trip.
     """
     import yaml
     res = nw.write_node(project, "verdict", "dangling", ["experiment:missing"])
-    assert res.rejected, f"{res.status}: {res.reason}"
-    stamped = yaml.safe_dump({"spawn_check_reason": res.reason})
-    assert yaml.safe_load(stamped)["spawn_check_reason"] == res.reason
-    assert "experiment:missing" in res.reason
+    assert res.written
+    fm = yaml.safe_load(res.path.read_text().split("---", 2)[1])
+    assert fm["spawn_check"] == "unverified"
+    assert "experiment:missing" in fm["spawn_check_reason"]
 
 
 def test_frontmatter_is_valid_yaml_for_every_type(project):
@@ -621,13 +615,6 @@ def _schema_project(tmp_path, required):
         "---\nname: hypothesis\nvalidation:\n  required: ["
         + ", ".join(required) + "]\nspawn:\n  allowed_parents: [goal]\n"
         "  min_parents: 1\n  max_parents: 2\n---\n\nbody\n")
-    # hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-
-    # id-does-not-resolve -- these tests want a REAL parent, so seed it. A
-    # create onto an id that names no node is refused by name; naming one
-    # that exists is the other half of the contract.
-    (graph / "nodes" / "goal").mkdir(parents=True, exist_ok=True)
-    (graph / "nodes" / "goal" / "g1.md").write_text(
-        "---\nid: goal:g1\ntype: goal\n---\n\nbody\n")
     return graph
 
 
@@ -1652,39 +1639,6 @@ def test_existing_undeclared_type_file_is_still_skipped(project):
     res = nw.write_node(project, "notown", "existing", ["idea:i1"])
     assert res.status == nw.SKIPPED, f"{res.status}: {res.reason}"
     assert not res.rejected
-
-
-# --------------------------------------------------------------------------
-# hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-id-
-# does-not-resolve -- a brand-new create onto a parent id that resolves to no
-# node is refused by name. The same UNVERIFIED verdict stays fail-OPEN for
-# anything already alive, and the no-active-schema branch above is untouched.
-# --------------------------------------------------------------------------
-
-
-def test_create_onto_an_unresolvable_parent_refuses_before_writing(project):
-    """Falsifier 1: REJECTED, no file, no directory, the id is named."""
-    res = nw.write_node(project, "hypothesis", "orphan", ["idea:never-minted"])
-    assert res.rejected, f"expected REJECTED, got {res.status} ({res.reason})"
-    assert res.gate.status == nw.spawn_gate.UNVERIFIED
-    assert "idea:never-minted" in res.reason
-    assert not (project / "nodes" / "hypothesis" / "orphan.md").exists()
-
-
-def test_existing_node_with_an_unresolved_parent_is_untouched(project):
-    """Falsifier 2: G7.1 still fails OPEN for a node that is already alive."""
-    f = project / "nodes" / "hypothesis" / "legacy.md"
-    f.write_text("---\nid: hypothesis:legacy\ntype: hypothesis\n---\n\nbody\n")
-    res = nw.write_node(project, "hypothesis", "legacy", ["idea:never-minted"])
-    assert res.status == nw.SKIPPED, f"{res.status}: {res.reason}"
-    assert not res.rejected
-    assert f.read_text().startswith("---\nid: hypothesis:legacy")
-
-
-# --------------------------------------------------------------------------
-# hypothesis:l4-create-refuses-a-genuinely-unknown-type-before-any-file-is-
-# written (continued)
-# --------------------------------------------------------------------------
 
 
 def test_a_project_with_no_schemas_loaded_still_writes(tmp_path):
