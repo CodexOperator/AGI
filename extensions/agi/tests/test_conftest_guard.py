@@ -326,7 +326,10 @@ def test_process_config_guard_lets_a_test_inject_its_own_seams():
         "def test_injected(monkeypatch):\n"
         "    monkeypatch.setattr(os, 'kill', lambda p, s: None)\n"
         "    monkeypatch.setattr(subprocess, 'Popen', lambda *a, **k: None)\n"
-        "    os.kill(424242, signal.SIGKILL)\n"
+        # signal 0, never SIGKILL: pids on this box pass 4 million, so a
+        # fixed pid can be LIVE -- drop the patch line above by mistake and
+        # a SIGKILL here would land on a stranger (DH.422 harvest)
+        "    os.kill(424242, 0)\n"
         "    subprocess.Popen(['true'])\n"))
     assert code == 0, f"guard blocked a test's own injected seams:\n{out}"
 
