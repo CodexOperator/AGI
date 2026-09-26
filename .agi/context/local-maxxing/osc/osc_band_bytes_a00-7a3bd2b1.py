@@ -7,6 +7,10 @@ that call iterates.  The mask entry d is ONE channel, and the cost of a channel 
 w bits (2*w per RoPE PAIR, two channels); the per-class scale is one 16-bit value
 per class actually visited, shared by that class's channels.  A degenerate class is
 therefore VISIBLE, which a nominal-size re-derivation could never show.
+
+One row per (layer, kv head) of one quant() call: 24 layers x 2 kv heads = 48 rows
+per arm.  quant() is called once per layer and is given every kv head at once, so a
+row carries no layer index -- 48 rows per arm are 48 LAYER-HEAD pairs, not 48 heads.
 """
 import argparse, importlib.util, json, os, sys
 os.environ["HF_HUB_OFFLINE"] = os.environ["TRANSFORMERS_OFFLINE"] = "1"
@@ -18,13 +22,17 @@ fixed = importlib.util.module_from_spec(_s); _s.loader.exec_module(fixed)
 STATE = {"arm": None, "rows": []}
 
 def audit(k, dm, widths):
-    """Emit one row per kv head: bits, scales, per-class channels and max step."""
+    """Emit one row per kv head of THIS call: bits, scales, per-class channels, max step."""
     out = []
     for h in range(dm.shape[0]):
         n_scales = 0; payload = 0; chans = []; step = {}
         for c, w in enumerate(widths):
             d = (dm[h] == c).nonzero().flatten()
-            if d.numel() == 0:                      # quant() emits no scale for an empty class
+            if d.numel() == 0:
+                # Counter branch only.  The SHIPPED quant() cannot reach it: it takes
+                # amax over a zero-width dim and does not complete, and arm() always
+                # fills every class.  The synthetic test asserts the counter, not a path
+                # the pipeline runs.
                 chans.append(0); continue
             n_scales += 1; payload += int(d.numel()) * w; chans.append(int(d.numel()))
             x = k[:, h, :, d]
@@ -62,15 +70,26 @@ def audit_arm(E, name, widths, mode="energy", seed=1):
     fixed.forward(MODEL[0], PROMPTS[0], a, widths)
     heads = STATE["rows"]; per = fixed.bits(widths) * 2 * fixed.SPEC["np"]
     assert heads and all(r["emitted_bits"] == per for r in heads), (name, per, heads[:1])
+    # snapshot THIS arm's rows with its summary: the writer must not read STATE later
     nar = min(min(r["class_channels"][c] for r in heads) for c in range(len(widths)))
     nar_w = widths[[min(r["class_channels"][c] for r in heads) for c in range(len(widths))].index(nar)]
-    ns = heads[0]["n_scales"]; pay = per - 16 * ns
+    ns = heads[0]["n_scales"]
+    pay = sum(c * w for c, w in zip(heads[0]["class_channels"], widths))   # MEASURED channels
+    assert pay + 16 * ns == per, (name, pay, ns, per)                      # ... and it still ties to bits()
     return {"arm": name, "mode": mode, "widths": widths, "n_scales": ns, "bits_per_pair": per,
             "emitted_bits": heads[0]["emitted_bits"], "payload_bits": pay,
             "overhead_pct": round(100 * 16 * ns / pay, 4),
             "narrow_class": {"w": nar_w, "channels": nar, "pairs": nar // 2, "payload_bits": nar * nar_w},
             "heads": len(heads),
-            "max_step": {str(c): max(r["class_step"][c] for r in heads if c in r["class_step"]) for c in range(len(widths))}}
+            "max_step": {str(c): max(r["class_step"][c] for r in heads if c in r["class_step"]) for c in range(len(widths))}}, heads
+
+def emit(f, which, arms, summary):
+    """One arm line, then THAT arm's own head rows (rows travel with the summary)."""
+    for (n, w, m, s), (summ, rows) in zip(arms, summary):
+        f.write(json.dumps({"event": "arm", "model": which, "np": fixed.SPEC["np"], "mode": m, **summ}) + "\n")
+        for r in rows:
+            f.write(json.dumps({"event": "head", "model": which, "arm": n, **r}) + "\n")
+
 
 def run(which):
     from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -86,13 +105,9 @@ def run(which):
     arms += [("uniform_3p5", [3], "uniform", 1), ("uniform_2p0", [2], "uniform", 1), ("random_4p5", g["4p5"], "random", 7)]
     summary = [audit_arm(E, n, w, m, s) for n, w, m, s in arms]
     with open(out + "/cells.jsonl", "w") as f:
-        for (n, w, m, s), summ in zip(arms, summary):
-            rows = STATE["rows"]
-            f.write(json.dumps({"event": "arm", "model": which, "np": fixed.SPEC["np"], "mode": m, **summ}) + "\n")
-            for r in rows:
-                f.write(json.dumps({"event": "head", "model": which, "arm": n, **r}) + "\n")
-    json.dump({"model": which, "np": fixed.SPEC["np"], "eval": emeta, "arms": summary}, open(out + "/summary.json", "w"), indent=1)
-    print(json.dumps(summary, indent=1))
+        emit(f, which, arms, summary)
+    json.dump({"model": which, "np": fixed.SPEC["np"], "eval": emeta, "arms": [s for s, _ in summary]}, open(out + "/summary.json", "w"), indent=1)
+    print(json.dumps([s for s, _ in summary], indent=1))
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser(); p.add_argument("which", choices=("qwen2", "qwen3")); run(p.parse_args().which)
