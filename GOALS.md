@@ -12738,6 +12738,14 @@ OWNER 2026-09-18 17:4xZ (thought-master pane), verbatim: "We need to map bend2 i
 
 **First chunk (minted):** `hypothesis:lm-dead-head-kc-threshold-is-not-a-critical-point` (the 5-CPU-minute kill-test). Sub-sub-goals are the director's to mint (G5.22.1 heads, G5.22.2 context/throughput, G5.22.3 layering), same format as this node, before any chunk runs.
 
+##### G5.22.1 — key-energy band allocation vs byte-matched uniform on the qk-norm grid -- a verdict with error bars, not a cell count (swarm target, hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g5.22.1
+
+## Agent Notes
+GOAL: turn experiment:a00-f3703399-48096d (key_only beats byte-matched TRUE uniform on agree+KL in 6/8 cells, random in 8/8, ONE draw per cell) into a verdict that survives seed variance. WHY: its parent probe (datasets/osc-band/2026-09-24-qknorm/a00-bcea484d-probes/probe_noise.log) re-drew the random arm at seeds 7/21/99 at qwen2@5.25: agree spread 0.085 = 3x the key_only margin (0.028), seed 21 beats key_only on KL. 3 of 8 cells sit inside that spread. DONE WHEN: every (model, budget) cell of the matched grid (qwen2 np32 4.25-7.25, qwen3 np64 4.125-7.125; widths from osc_band_matched_uniform_a00-a721f95f.py --check) carries a per-arm spread over >= 3 draws, and key_only vs uniform and key_only vs random are each called win / loss / inside-noise per cell. HARNESS: .agi/context/local-maxxing/osc/osc_band_matched_uniform_a00-a721f95f.py + osc_band_kquant_qknorm_a00-bcb6c85e.py (fixed.bits, arm); outputs under paths.local_maxxing.osc_band_qknorm_dir, never .agi/sessions. LIMITS: ONE model-running kid per swarm at a time (3.2 GiB each), MemAvailable >= 3 GiB before a model kid launches, one model per process. NOT IN SCOPE: new budgets, new models, inverse_energy (0/8, refuted).
+
 #### G5.23 — TRACK II — fine-tuning the bigger local models off the shelf: SFT/LoRA on our morals + the Sanctuary substack (Shaelaran) with A/B trials, then the fine-tune + the oscillator optimisation, then a quantisation-oriented fine-tune; Camber hours authorised, failing is fine (owner 21:4xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
