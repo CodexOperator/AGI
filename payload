@@ -428,6 +428,17 @@ def set_key(res: "Resolution", name: str) -> int:
     return 0
 
 
+def fill_in_hint(res: Resolution) -> str:
+    """What a missing `.env` should be told to fill in: every `required_key`,
+    then each `required_any` GROUP as `at least one of A, B` -- a group is
+    satisfied by any ONE of its keys, which the bare join did not say. A node
+    that declares neither gets the honest '(no keys declared)'.
+    (hypothesis:required-any-diagnostic-names-the-declared-alternatives)"""
+    parts = list(res.required_keys)
+    parts += [f"at least one of {', '.join(group)}" for group in res.required_any]
+    return ", ".join(parts) or "(no keys declared)"
+
+
 def check(res: Resolution, verify: bool = False) -> tuple[list[str], list[str]]:
     """`(problems, notes)` — neither ever contains a secret value.
 
@@ -453,7 +464,7 @@ def check(res: Resolution, verify: bool = False) -> tuple[list[str], list[str]]:
     if not res.env_file.is_file():
         problems.append(
             f"missing {res.env_file} — copy {res.template.name} to it, "
-            f"chmod 600, and fill in: {', '.join(res.required_keys) or '(no keys declared)'}"
+            f"chmod 600, and fill in: {fill_in_hint(res)}"
         )
         return problems, notes
 
