@@ -1266,3 +1266,151 @@ def test_entry_level_byte_cap_truncates_at_its_own_cap_not_the_template_cap(
     assert len(res[1]["output"]) == 10 and res[1]["byte_cap"] == 10
     block = rotate._compose_startup_output(res)
     assert "(output truncated to 7 bytes)" in block
+
+
+# --- DH.408 composition: registry gate FIRST, then the geometry merge -----
+# hypothesis:a-captive-capture-rotates-even-when-its-driven-handoff-refuses
+# Two halves landed on sibling branches, neither carrying both:
+#   (1) the registry gate moved ABOVE `_geometry_resolution_root`, so an
+#       unregistered `--name` reaches nothing that fetches/pushes/merges;
+#   (2) a REGISTERED seat on a behind CLEAN worktree performs the only-behind
+#       merge (the SAME `_prepare_checks(perform=True)` the captive gate runs)
+#       instead of refusing, and re-resolves only when the geometry reached 0
+#       behind. Composed here: order AND the merge, with both refusals intact.
+
+
+def _stale_seat_repo(tmp_path, remote: bool = True):
+    """A plain (non-worktree) seat repo on `loop/stale` at geometry v1 while
+    `origin/season/s2` carries v2 — behind by exactly 1 geometry commit, and
+    with no OTHER tree whose geometry is current to serve it from, so
+    `_geometry_resolution_root` REFUSES. With `remote`, `origin` is a real
+    (local, bare) remote so the ONE fetch inside `_prepare_checks(
+    perform=True)` succeeds; without it that fetch fails, check 3 reports
+    unmeasured and merges nothing."""
+    repo = tmp_path / "repo"
+    _mgit_repo(repo)
+    base = _geometry_commit(repo, ROTATIONS_BODY, "geometry v1")
+    _mgit(repo, "checkout", "-q", "-b", "season/s2")
+    if remote:
+        bare = tmp_path / "origin.git"
+        subprocess.run(["git", "init", "-q", "--bare", str(bare)], check=True)
+        _mgit(repo, "remote", "add", "origin", str(bare))
+    tip = _geometry_commit(repo, ROTATIONS_BODY + "# v2\n", "geometry v2")
+    if remote:
+        _mgit(repo, "push", "-q", "origin", "season/s2:refs/heads/season/s2")
+    else:
+        _mgit(repo, "update-ref", "refs/remotes/origin/season/s2", tip)
+    _mgit(repo, "checkout", "-q", "-b", "loop/stale", base)
+    return repo, base, tip
+
+
+
+    """A linked worktree forked at geometry v1 while origin/season/s2 moved to
+    v3 — i.e. behind by exactly 1 geometry commit. With `remote`, `origin` is a
+    real (local, bare) remote so the ONE fetch inside `_prepare_checks(
+    perform=True)` succeeds; without it the fetch fails and check 3 reports
+    unmeasured instead of merging."""
+    main = tmp_path / "main"
+    _mgit_repo(main)
+    base = _geometry_commit(main, ROTATIONS_BODY, "geometry v1")
+    _mgit(main, "checkout", "-q", "-b", "season/s2")
+    if remote:
+        bare = tmp_path / "origin.git"
+        subprocess.run(["git", "init", "-q", "--bare", str(bare)], check=True)
+        _mgit(main, "remote", "add", "origin", str(bare))
+    wt = tmp_path / "wt"
+    _mgit(main, "worktree", "add", "-q", "-b", "loop/stale", str(wt), base)
+    tip = _geometry_commit(main, ROTATIONS_BODY + "# v3\n", "geometry v3")
+    if remote:
+        _mgit(main, "push", "-q", "origin", "HEAD:refs/heads/season/s2")
+    else:
+        _mgit(main, "update-ref", "refs/remotes/origin/season/s2", tip)
+    return wt, base, tip
+
+
+def test_registry_gate_runs_before_the_geometry_merge_attempt():
+    """The ORDER is the fix: in `cmd_rotate_self` the registry gate
+    (`_find_seat(_seat_read_root(root, seat), seat)`) sits ABOVE
+    `_geometry_resolution_root`, so nothing that fetches, pushes or merges is
+    reachable by an unregistered name. Non-vacuous: the pre-composition order
+    (geometry resolution + the behind refusal first) is asserted to FAIL this
+    same index test."""
+    import inspect  # noqa: E402
+    src = inspect.getsource(rotate.cmd_rotate_self)
+    gate = src.index("_find_seat(_seat_read_root(root, seat), seat)")
+    geom = src.index("_geometry_resolution_root(root)")
+    assert gate < geom, "the registry gate must precede the geometry guard"
+    # the merge the geometry guard may perform is the ONE implementation
+    assert "_prepare_checks(root, seat, perform=True)" in src
+
+
+def test_a_registered_behind_seat_merges_the_geometry_and_rotates(
+        tmp_path, monkeypatch, capsys):
+    """The residue: a REGISTERED seat on a behind CLEAN tree used to
+    refuse `... is behind origin/season/s2 by 1 commit(s)`. Now the only-behind
+    merge rotate-self already performs BY DEFAULT lands first, the geometry
+    reaches 0 behind, and the rotation proceeds past the geometry guard (the
+    run then stops at the NEXT gate this test arms, with nothing rotated)."""
+    wt, base, tip = _stale_seat_repo(tmp_path)
+    root = wt / ".agi"
+    assert rotate._geometry_behind_count(root) == 1
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.chdir(wt)
+    real_checks = rotate._prepare_checks
+    seen: list[bool] = []
+
+    def spy(r, seat, perform=False, **kw):
+        seen.append(bool(perform))
+        if len(seen) == 1:
+            return real_checks(r, seat, perform=perform, **kw)  # the merge
+        return [(True, "test: stop after the geometry gate", "n/a")]
+
+    monkeypatch.setattr(rotate, "_prepare_checks", spy)
+    rc = rotate.main(["rotate-self", "--name", "sanctuary-director",
+                      "--role", "director"])
+    err = capsys.readouterr().err
+    assert seen[0] is True, "the geometry guard must PERFORM the only-behind merge"
+    assert rotate._geometry_behind_count(root) == 0, "the merge landed"
+    assert _mgit(wt, "rev-parse", "HEAD") == tip, "the worktree took the tip"
+    assert "stale" not in err or "spawning on a stale" not in err
+    assert "test: stop after the geometry gate" in err, err
+    assert rc == 3, err
+
+
+def test_a_behind_seat_whose_merge_cannot_land_still_refuses_by_name(
+        tmp_path, monkeypatch, capsys):
+    """The refusal is NOT retired: a behind seat tree with NO reachable origin
+    (the fetch fails, so check 3 reports unmeasured and merges nothing) keeps
+    the by-name behind-count refusal and its ONE clear command (merge, never
+    rebase)."""
+    wt, _base, _tip = _stale_seat_repo(tmp_path, remote=False)
+    root = wt / ".agi"
+    head = _mgit(wt, "rev-parse", "HEAD")
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.chdir(wt)
+    rc = rotate.main(["rotate-self", "--name", "sanctuary-director",
+                      "--role", "director"])
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "refused" in err and "behind" in err
+    assert "git merge --no-edit origin/season/s2" in err
+    assert _mgit(wt, "rev-parse", "HEAD") == head, "nothing merged"
+
+
+def test_an_unregistered_behind_seat_refuses_before_any_merge(
+        tmp_path, monkeypatch, capsys):
+    """The gate the move exists for: an unregistered `--name` on the SAME
+    behind seat tree refuses `no seat` at the registry gate — the geometry
+    guard's merge attempt is never reached and no commit is merged."""
+    wt, _base, tip = _stale_seat_repo(tmp_path)
+    root = wt / ".agi"
+    head = _mgit(wt, "rev-parse", "HEAD")
+    monkeypatch.setattr(rotate, "find_project_root", lambda: root)
+    monkeypatch.chdir(wt)
+    rc = rotate.main(["rotate-self", "--name", "no-such-seat",
+                      "--role", "director"])
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert "no seat" in err
+    assert "behind" not in err, "the registry gate answers before the geometry"
+    assert _mgit(wt, "rev-parse", "HEAD") == head != tip
