@@ -8024,9 +8024,6 @@ each row becomes its own round (and its own sub-leaf if it grows) when it is dis
 | 14 | test_f1_rename_mode_strands_the_live_writer_on_a_BOUNDED_archive trunk load flake: freeze the stranded writer across the apply like 569ea9a1b | TMM.241 (1) | DONE 071f2ec15 (test-only; 12/12 under load; red not reproduced -- rare) |
 | 15 | DH.401 successor shape: a slot [P, fence(n)[P, ```...```]] still compounds +1 per rotation -> drop the outer fence + the duplicated P; prove on the successor shape | TMM.241 (2) | LIVE DH.409 a00-f28911bd |
 | 16 | a capture refuses whenever trunk moved (rotate-self skips the bare rotate's origin merge) -- goal:g7.33.15 residue | TMM.241 (3) + DE 17:01Z [red] | DONE DH.408 242dd3475 (registered behind seat merges at the guard; red 3/green) |
-| 17 | model_fence: _cap_from_config KeyError at import when a config lacks the cell (-> cap 0, fail closed) + the refusal names model_slot.py, not 'this suite asserts on bytes' | TMM.256 + TMM.260 (2) | DONE (director, direct; test_model_fence_cap.py red 5/green 6) |
-| 18 | a round's kid cannot fan out pytest past the box's bound -- an ENGINE fence (the suite lock and spawn_budget did not stop DH.419's 127 procs) | TMM.258/260 (1) | DONE DH.421 091808547 (TasksMax on the round scope; peaks sent to TM; the seat-wrap half NOT taken) |
-| 19 | DH.410's first live render (TMM.261): the render INLINES CLAUDE.md (26,597 B + COMMANDS) where the claude-code harness already loads it as project instructions, and prints the role template heading twice (the render's + the node's own) -> 106,144 vs 64,896 chars (+64 pct). Drop the inline CLAUDE.md for a harness that loads it itself; one template heading | TMM.261 | DONE DH.423 e636d7aa9 (director-engine render 62,304 -> 35,589 chars; only CLAUDE.md dropped) |
 
 ## Who
 director-engine (engine leaf of g7.33). Model-free rounds; one row per round.
@@ -8054,36 +8051,6 @@ WORLD-AFTER: every box that runs seats carries the SAME memory-watch stack, size
 SIZING, per box: user@ MemoryMax = MemTotal - every budget held outside user@ (container caps; the stream when it runs outside user@) - the box's MEASURED system reserve (local-town ~1.9 GiB; encryption-town 942 MiB, its 09-25 install) · MemoryHigh = 0.9 x MemoryMax · MemorySwapMax = 0.5 x swap · agi.slice MemoryHigh / MemoryMax = 0.63 / 0.70 x user@ MemoryMax (local-town's ratios).
 
 ENCRYPTION-TOWN, audited 21:5xZ 09-26 by its sanctuary session (read-only): user@ 6220 / 6912 · oomd · slices · agi.slice 4354 / 4838 · watchdog PRESENT, ratio-sized on a 942 MiB reserve (7854 MiB RAM, nothing held outside user@) · MISSING agi-memguard, the memory_alarm cron, OOMPolicy=continue (claude-remote-control on stop), and the engine half (spawn.memory_max 6G; no model_fence.py; a 0-arg mem_cap probe on core/main b7bf08187) -> the exact bytes went to that session for the owner's go. ACCEPTANCE: one idempotent installer (dry-run by default; records every before-value; restores them on failure; sudo only for the system pieces) + one read-back probe that prints this table for the box it runs on -- green on local-town AND on encryption-town, the latter run by that box's own seat.
-
-##### G7.33.18.1 — the memory-watch stack as repo TEMPLATES -- every live piece, sized values as placeholders, paths as config cells, anonymize-clean (assigned: director-engine) — status: active
-
-# goal:g7.33.18.1
-
-# goal:g7.33.18.1
-
-WORLD-AFTER: every box-level piece of local-town's memory-watch stack (goal:g7.33.18's table: the user@ / oomd / slice drop-ins, agi.slice, agi-memguard.py + its unit, the 10-agi-survival no-cascade drop-ins, watchdog.conf + sanctuary-health) lives in the repo as a TEMPLATE whose sized values are placeholders and whose paths come from config cells (paths.*), never literals; the copied bytes pass `anonymize.py check` (a host name / address inside a script becomes a config cell).
-
-ACCEPTANCE: one template per live piece, byte-equal to the live file once rendered with local-town's measured values (a committed test renders each against a fixture of the live values and diffs); no template carries a literal path, host, address or hardware name; anonymize clean.
-
-##### G7.33.18.2 — ONE idempotent installer -- dry-run by default, sized from the box's MemTotal/swap, every before-value recorded and restored on failure (assigned: director-engine) — status: active
-
-# goal:g7.33.18.2
-
-# goal:g7.33.18.2
-
-WORLD-AFTER: ONE idempotent installer renders goal:g7.33.18.1's templates sized by goal:g7.33.18's SIZING from the box's own MemTotal/swap, and installs them: DRY-RUN BY DEFAULT (prints the plan: path, before-value, after-value), records every before-value, restores them all on any failure, needs sudo only for the system pieces, and a second run changes nothing.
-
-ACCEPTANCE: in a tmp-root fixture (never the live box): dry-run writes nothing; a real run against the tmp root writes every piece; a second run is a no-op; an injected failure mid-install restores every before-value byte-for-byte; the sizing rows reproduce local-town's measured numbers from its MemTotal/swap.
-
-##### G7.33.18.3 — ONE read-only read-back probe -- prints g7.33.18's table for the box it runs on, ok/drift per row (assigned: director-engine) — status: active
-
-# goal:g7.33.18.3
-
-# goal:g7.33.18.3
-
-WORLD-AFTER: ONE read-only read-back probe prints goal:g7.33.18's table (layer · the value on THIS box · the value SIZING wants · ok/drift) for the box it runs on, from the box's own files and `systemctl show` reads -- no write, no sudo, no unit change.
-
-ACCEPTANCE: a committed test drives it over a tmp-root fixture + a stubbed `systemctl show` and gets the table; run read-only on local-town it prints every row with no drift against the measured values; exits non-zero on any drift, naming the row.
 
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
