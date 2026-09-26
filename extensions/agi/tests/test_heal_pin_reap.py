@@ -653,3 +653,116 @@ def test_pass_mode_reads_config_default_dry_run(graph, registry):
     acted = _run_pass(graph=graph, registry=registry, names=names, rows=None,
                       mode=None, reaper=reaper)
     assert acted == [] and called == []
+
+
+# --------------------------------------------------------------------------
+# CONJUNCT B (hypothesis:heal-late-reap-bound-covers-an-unparsable-record-
+# and-stale-pin-logs-once) — a per-row pin-reap line is emitted ONCE per row
+# STATE, and the suppression SURVIVES PROCESS EXIT (a state file under the
+# shared reaper state dir, never a module-level set).
+# --------------------------------------------------------------------------
+
+PIN_REAP_SEEN = "pin-reap-seen.json"
+
+
+def _pin_reap_seen_file(graph: Path) -> Path:
+    return heal._reaper_state_file(graph, PIN_REAP_SEEN)
+
+
+def _stale_fixture(graph: Path, registry: Path, sid: str, pid: int):
+    names = ["seat-one"]
+    _mk_pin(graph, "seat-one", None)                     # stale pin
+    _write_registry(registry, pid, sid, _id_for(names, "seat-one"))
+    _write_seats(graph, [{"name": "seat-one", "session_id": sid, "pid": pid}])
+    return names
+
+
+def test_stale_pin_row_logs_once_per_state(graph, registry, tmp_path,
+                                           monkeypatch):
+    """Two passes in ONE process, no state change -> exactly ONE row line;
+    a changed state (new sid) -> a second line."""
+    monkeypatch.setenv("AGI_REAPER_STATE", str(tmp_path / "state"))
+    lines: list[str] = []
+    monkeypatch.setattr(heal, "_watch_log", lines.append)
+    sid = "ssss-1"
+    _stale_fixture(graph, registry, sid, 9701)
+    for _ in range(2):
+        _run_pass(graph=graph, registry=registry, names=["seat-one"],
+                  rows=None, mode="dry-run", pid_alive=lambda p: True)
+    rows = [ln for ln in lines if "pin-reap STALE-PIN" in ln]
+    assert len(rows) == 1, lines
+    assert _pin_reap_seen_file(graph).is_file(), "no persisted seen-state"
+    # a STATE change (the seat re-pinned to a new session) logs again
+    _write_registry(registry, 9702, "ssss-2", _id_for(["seat-one"], "seat-one"))
+    _write_seats(graph, [{"name": "seat-one", "session_id": "ssss-2",
+                          "pid": 9702}])
+    _run_pass(graph=graph, registry=registry, names=["seat-one"], rows=None,
+              mode="dry-run", pid_alive=lambda p: True)
+    assert len([ln for ln in lines if "pin-reap STALE-PIN" in ln]) == 2, lines
+
+
+def test_stale_pin_suppression_survives_a_fresh_process(graph, registry,
+                                                        tmp_path, monkeypatch):
+    """THE wire probe: process 1 logs, process 2 (a NEW interpreter) is
+    SILENT for the same unchanged row, and loud again once the state moves."""
+    monkeypatch.setenv("AGI_REAPER_STATE", str(tmp_path / "state"))
+    log = tmp_path / "reaper.log"
+    lines: list[str] = []
+    monkeypatch.setattr(heal, "_watch_log", lines.append)
+    sid = "ssss-1"
+    _stale_fixture(graph, registry, sid, 9701)
+    _run_pass(graph=graph, registry=registry, names=["seat-one"], rows=None,
+              mode="dry-run", pid_alive=lambda p: True)
+    assert len([ln for ln in lines if "pin-reap STALE-PIN" in ln]) == 1, lines
+
+    script = (
+        "import sys, rotate, heal\n"
+        "from pathlib import Path\n"
+        "g, reg, wp, logf = Path(sys.argv[1]), sys.argv[2], sys.argv[3],"
+        " sys.argv[4]\n"
+        "heal._watch_log = lambda l: open(logf, 'a').write(l + '\\n')\n"
+        "heal._pin_reap_pass(g, registry_dir=reg, window_path=wp,"
+        " pid_alive=lambda p: True, mode='dry-run')\n"
+    )
+    wp = _window_file(["seat-one"])
+    import subprocess  # noqa: PLC0415
+    env = dict(_os.environ, PYTHONPATH=str(BIN))
+    for _ in range(2):
+        out = subprocess.run([sys.executable, "-c", script, str(graph),
+                              str(registry), wp, str(log)],
+                             capture_output=True, text=True, env=env)
+        assert out.returncode == 0, out.stderr
+    text = log.read_text() if log.is_file() else ""
+    assert "pin-reap STALE-PIN" not in text, text
+    # a state change in a fresh process logs again
+    _write_registry(registry, 9703, "ssss-3", _id_for(["seat-one"], "seat-one"))
+    _write_seats(graph, [{"name": "seat-one", "session_id": "ssss-3",
+                          "pid": 9703}])
+    wp = _window_file(["seat-one"])
+    out = subprocess.run([sys.executable, "-c", script, str(graph),
+                          str(registry), wp, str(log)],
+                         capture_output=True, text=True, env=env)
+    assert out.returncode == 0, out.stderr
+    assert "pin-reap STALE-PIN: seat=seat-one sid=ssss-3" in log.read_text()
+
+
+def test_suppressed_row_still_arms(graph, registry, tmp_path, monkeypatch):
+    """Suppression touches the LOG line only: a second armed pass over an
+    unchanged REAP row still reaps (one-shot logging is not one-shot arming)."""
+    monkeypatch.setenv("AGI_REAPER_STATE", str(tmp_path / "state"))
+    monkeypatch.setattr(heal, "_watch_log", lambda ln: None)
+    names = ["seat-arm"]
+    sid = "wwww-1"
+    _write_registry(registry, 9801, sid, _id_for(names, "seat-arm"))
+    _write_seats(graph, [{"name": "seat-arm"}])
+    _set_pin_reap_mode(graph, "armed")
+    called = []
+
+    def reaper(root, j, rt):
+        called.append(j["session_id"])
+        return {"reaped": True}
+
+    for _ in range(2):
+        _run_pass(graph=graph, registry=registry, names=names, rows=None,
+                  mode="armed", reaper=reaper, pid_alive=lambda p: True)
+    assert called == [sid, sid], called

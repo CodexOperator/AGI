@@ -316,6 +316,13 @@ ENV_VARS_TO_SCRUB = (
     "AGI_ORDERS_TEXT",
     "AGI_ORDERS_FROM",
     "AGI_ORDERS_TS",
+    # hypothesis:a-spawned-round-never-inherits-a-model-slot-lock-override --
+    # AGI_MODEL_SLOT_LOCK is model_slot.py's test seam: it points lock_path() at
+    # a file other than the box-wide flock. Set anywhere up the tree it would be
+    # inherited by every spawned parent AND kid, each then loading a model
+    # outside the one slot the memory guard relies on. `--lock` stays explicit
+    # and visible in argv, so a deliberate test still has its seam.
+    "AGI_MODEL_SLOT_LOCK",
 )
 
 
@@ -2756,7 +2763,7 @@ def main() -> int:
         def _open_round(mode: str):
             with open(log_file, mode) as logf:
                 return subprocess.Popen(
-                    mem_cap.wrap_argv(spawn_args, _mem_cap),
+                    mem_cap.wrap_argv(spawn_args, _mem_cap, cfg),
                     stdout=logf,
                     stderr=subprocess.STDOUT,
                     stdin=subprocess.DEVNULL,
@@ -3624,6 +3631,10 @@ def _reap_one_impl(root, iter_dir, adapter, rec, agent_id, pid, cap=1, cfg=None,
                 "path": str(nf) if nf else "",
             }
         new_pid = adapter.restart(
+            # hypothesis:every-adapter-restart-spawns-from-the-scrubbed-env
+            # -- the restart child gets the same scrubbed base as the first
+            # spawn; one scrub list (dispatch.scrubbed_env), never a second.
+            base_env=scrubbed_env(),
             harness=rec.get("harness_spec") or {},
             tier=rec.get("tier", "kid"),
             context_file=rec.get("context_file", ""),

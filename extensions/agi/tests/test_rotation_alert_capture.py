@@ -13,6 +13,7 @@ import importlib.util
 import io
 import json
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -62,7 +63,7 @@ def _graph(tmp_path, extra=""):
     (graph / "config.json").write_text("{}")
     (graph / "nodes" / ".geometry" / "ladder.md").write_text(
         "---\ndirector_context_tokens: 100000\ndirector_rotate_at: 0.25\n"
-        + extra + "---\n")
+        "capture_chain_log: capture-chain.log\n" + extra + "---\n")
     (graph / "nodes" / ".geometry" / "seats.md").write_text(
         "---\nseats:\n"
         "  - {\"name\": \"probe-director\", \"role\": \"director\", "
@@ -238,8 +239,9 @@ def test_same_session_old_stamp_still_captures(tmp_path, run_hook,
 
 def test_captured_card_carries_auto_captured_marker(tmp_path, run_hook,
                                                     monkeypatch, capsys):
-    """Conjunct 2 (4): the card the hook captures carries AUTO-CAPTURED and the
-    generated stops line is non-empty (the successor knows it was not authored)."""
+    """Conjunct 2 (4): the AUTO-CAPTURED record lands in the hook's OWN state
+    dir (never in the card) and the generated stops line is non-empty.
+    hypothesis:the-captive-capture-never-writes-into-the-live-card-..."""
     graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
     monkeypatch.setenv("AGI_SEAT", "probe-director")
     monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
@@ -251,7 +253,9 @@ def test_captured_card_carries_auto_captured_marker(tmp_path, run_hook,
                               monkeypatch, capsys)
     assert code == 0, err
     text = card.read_text()
-    assert text.startswith(hook.AUTO_CAPTURED), text
+    assert not text.startswith(hook.AUTO_CAPTURED), text
+    marker = state_dir / "capture-probe-director.captured"
+    assert hook.AUTO_CAPTURED in marker.read_text()
     rots = [a for a in _SPAWNS if "rotate-self" in a]
     assert len(rots) == 1, _SPAWNS
     assert len([a for a in _SPAWNS if "handoff" in a]) == 1, _SPAWNS
@@ -281,11 +285,104 @@ def test_capture_is_one_ordered_child_handoff_then_rotate_self(
     assert len(_SPAWNS) == 1, _SPAWNS
     argv = _SPAWNS[0]
     assert argv[0] == "bash" and argv[1] == "-c", argv
-    assert "&&" in argv[2], argv
+    assert hook._CHAIN_SCRIPT in argv[2], argv
     joined = " ".join(argv)
     assert "handoff" in joined and "rotate-self" in joined, argv
     assert joined.index("handoff") < joined.index("rotate-self"), argv
     assert "--stops" in argv, argv
+    # The failure marker rides the child as its FIRST positional arg ($1).
+    assert argv[4].endswith("capture-probe-director.failed"), argv
+
+
+def _real_bash(monkeypatch):
+    """The ONE `_Popen` seam back to the real subprocess: these two tests run
+    the chain's OWN bash with STAND-IN argvs (never rotate.py, never a live
+    seat, never the real /tmp state dir)."""
+    monkeypatch.setattr(hook, "_Popen", subprocess.Popen)
+
+
+def _stand_ins(tmp_path, refuse_first):
+    """`python3 -c` stand-ins: a step that exits 1, and a step that touches a
+    file so the probe can SEE it ran."""
+    ran = tmp_path / ("ran-handoff" if refuse_first else "ran-rotate")
+    handoff = ["python3", "-c", (f"open({str(ran)!r},'w').write('h');"
+                                 "import sys; sys.exit(1)")] if refuse_first else [
+        "python3", "-c", f"open({str(ran)!r},'w').write('h')"]
+    rot_ran = tmp_path / "ran-rotate"
+    rotate = ["python3", "-c", f"open({str(rot_ran)!r},'w').write('r')"]
+    return handoff, rotate, ran, rot_ran
+
+
+def _run_chain(tmp_path, monkeypatch, refuse_first):
+    state_dir = tmp_path / "state-chain"
+    state_dir.mkdir(exist_ok=True)
+    handoff, rotate, _ran, rot_ran = _stand_ins(tmp_path, refuse_first)
+    fail = state_dir / "capture-probe-director.failed"
+    log = (state_dir / "capture-chain.log").open("ab")
+    _real_bash(monkeypatch)
+    hook._spawn_capture_chain(fail, log, handoff, rotate)
+    log.close()
+    for _ in range(100):
+        if rot_ran.is_file():
+            break
+        __import__("time").sleep(0.05)
+    __import__("time").sleep(0.3)   # the child's last append
+    return fail, rot_ran, tmp_path / "ran-handoff"
+
+
+def test_chain_rotates_even_after_a_refusing_handoff(tmp_path, monkeypatch):
+    """Conjunct 1 (TMM.223): the pre-fix `&&` chain SKIPPED rotate-self when
+    the driven handoff refused (the 100-line card guard), while the stamp had
+    already latched `captured` -> no retry, no report, 3.5 h idle. The built
+    chain runs rotate-self ANYWAY and records the refusing step's rc."""
+    fail, rot_ran, _ = _run_chain(tmp_path, monkeypatch, refuse_first=True)
+    assert rot_ran.is_file(), "rotate-self stand-in must run after a refusal"
+    assert fail.read_text().strip() == "handoff rc=1", fail.read_text()
+
+
+def test_chain_leaves_no_marker_when_both_steps_succeed(tmp_path, monkeypatch):
+    """The success path is UNCHANGED: both steps run in order, nothing fails,
+    and no marker is written (no line the seat does not need)."""
+    state_dir = tmp_path / "state-ok"
+    state_dir.mkdir()
+    _handoff, _rotate, h_ran, rot_ran = _stand_ins(tmp_path, False)
+    fail = state_dir / "capture-probe-director.failed"
+    log = (state_dir / "capture-chain.log").open("ab")
+    _real_bash(monkeypatch)
+    hook._spawn_capture_chain(fail, log, _handoff, _rotate)
+    log.close()
+    for _ in range(100):
+        if rot_ran.is_file():
+            break
+        __import__("time").sleep(0.05)
+    __import__("time").sleep(0.3)
+    assert h_ran.is_file() and rot_ran.is_file()
+    assert not fail.exists(), fail.read_text()
+
+
+def test_a_failed_step_is_named_to_the_seat_and_cleared(tmp_path, run_hook,
+                                                        monkeypatch, capsys):
+    """Conjunct 2: any non-zero chain step leaves ONE line the seat READS --
+    naming the step AND its rc -- not only the ladder's /tmp capture log. The
+    hook reads and CLEARS the marker, so the line is read exactly once."""
+    graph, cwd = _graph(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    state_dir = tmp_path / "state-note"
+    state_dir.mkdir()
+    fail = state_dir / "capture-probe-director.failed"
+    fail.write_text("rotate-self rc=1\n")
+    tp = tmp_path / "note.jsonl"
+    _transcript(tp, 10_000)                     # 0.10 < 0.25 -> below the line
+    payload = _payload(graph, tp, "s-note", cwd)
+    code, out, err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert code == 0, err
+    named = [ln for ln in out.splitlines() if "capture-chain step FAILED" in ln]
+    assert len(named) == 1, out
+    assert "rotate-self" in named[0] and "rc=1" in named[0], named[0]
+    assert not fail.exists(), "the marker must be CLEARED after being read"
+    assert out.strip().splitlines()[-1].startswith("[meter]"), out
+    _code, out2, _err = run_hook(payload, state_dir, monkeypatch, capsys)
+    assert not [ln for ln in out2.splitlines() if "rc=" in ln], out2
 
 
 def test_rotate_now_from_unrelated_sender_is_silent_below_the_line(

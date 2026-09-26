@@ -6,7 +6,8 @@ Run: python3 -m pytest <this file> -q   (or directly: python3 <this file>)
 import importlib.util
 import os
 
-import torch
+import pytest  # skip-by-name: this module cannot run without torch
+torch = pytest.importorskip('torch')
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _s = importlib.util.spec_from_file_location(

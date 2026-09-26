@@ -326,6 +326,12 @@ _LISTED_CLIS += [
 # declared or excluded BY NAME in `command:commands`.
 _LISTED_CLIS += ["verification.py", "write_guard.py"]
 
+#: `memory_alarm.py` is the box's memory-pressure reader: a plain module-level
+#: `main` with a bare parser, whose EVERY threshold is a `config:crons` cell,
+#: so a bare invocation has nothing to read. Declared by name in
+#: `command:commands` with that reason, never proposable.
+_LISTED_CLIS += ["memory_alarm.py"]
+
 #: CLIs with NO argparse parser at all: `node_writer.py` is a library module
 #: with no `main`, `metrics.py` reads a manual argv, `pi_edit_forgiveness.py`
 #: and `pi_trajectory.py` parse argv by hand, and `ws_raw.py`'s `_parse_args`

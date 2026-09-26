@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1
 next_edges: []
-edited_by: belam
+edited_by: director-engine
 scaffold_hash: defdafad64b443fe
 season: 2
 testable_claim: Every PASS 7 residue is closed in place (node text corrected with a THOUGHT; code through the three new defect hypotheses and follow-ups on the named existing ones) and the next PASS finds none of these rows again.
@@ -57,3 +57,6 @@ Every row below is closed in place -- node text corrected with a THOUGHT, code t
 | hypothesis:grid-push-batch-limit-is-a-config-cell (:20) | the round brief is not in the [hypothesis] schema order (no Dispatch line) | DE |
 | doc:quick-setup (:74) | still calls the batch limit a code default and restates 200 in prose | DE |
 | hypothesis:key-row-publish-parses-every-matching-own-row (:11) | describes a per-row parse; the bytes implement a count refusal | DE |
+
+## Agent Notes
+director-engine gen 22 progress -- CLOSED in place: write-py-set-is-schema-checked pair (claim corrected, experiment demoted to lean_proved:70, cb8022760) · doc:quick-setup:74 · key-row-publish claim (count refusal) · grid-push-batch-limit brief in schema order · a00-ca6e4b39:100 quote (03603d739) · 11 scalar evidence_runs -> lists (0f1f3fd78). CODE: grid.py:190 sys.exit = DH.372 running · rotate.py cmd_handoff flatten folded into DH.371 (same card-write path, TMM.190) · mem_cap / launch-memory-cap / workflow.py / brainstorm contract rows NEXT, memory-gated. HELD, a decision: [goal].md title id-prefix regex -- 18 of 371 live goal titles have no id prefix (legacy-direct containers, g13, g5.21, g26.towns ...), so the cell would refuse every later write to them; it needs those titles migrated first, several on other posts, not a one-line schema edit.

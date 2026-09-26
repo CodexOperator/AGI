@@ -9,9 +9,9 @@ body-file: /tmp/brief.md
 confidence: 0.8
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
-edited_by: a00-553975e2
+edited_by: a00-22385c8a
 evidence_runs:
-  - experiment:osc-band-call-rule-per-cell-fixture
+  - experiment:osc-band-call-rule-total
 loop: goal:band-call-rule-per-cell@s2
 model: stealth/space-bunny-alpha
 probes: 6 (p3/p4 FALSIFY the distinct-seed gate and the zero-band-inside-noise clause; p1/p2/p5 hold; p6 shows key_only-vs-uniform is inexpressible)
@@ -20,7 +20,7 @@ role: kid
 scaffold_hash: cdba528227d09cec
 season: 2
 testable_claim: A committed, model-free decide layer turns a jsonl of per-(cell, arm, seed) draws into per-cell win/loss/inside-noise calls, and REFUSES to call any cell with fewer than 3 distinct seeds on the stochastic arm. The band is one NAMED statistic of the stochastic arm's draws; the call is |key_only - comparator| < band -> inside-noise else the sign of the difference -> win/loss, per metric, with the KL sign inverted; a zero band is inside-noise with the reason recorded, never an infinite win; and the script never imports torch or transformers.
-title: "G5.22.1.c: a per-cell win/loss/inside-noise CALL rule over a named band statistic, landed before the seed-sweep data exists"
+title: "G5.22.1.c: a per-cell win/loss/inside-noise CALL rule over a named band statistic (ordering precondition falsified: the rule post-dates the qknorm cells.jsonl it judges)"
 town: local-maxxing
 verdict: inconclusive_lean_disproved:70
 ---
@@ -86,15 +86,11 @@ implementation is `osc_band_call_a00-ee9a5cdc.py`; the run is
 `experiment:osc-band-call-rule-per-cell-fixture`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review 2026-09-26, p3 (a00-553975e2). The bytes are good and the fixtures are honest -- the band is the stochastic arm, the KL sign is right in both directions, no model import. Two of the four gate clauses in MY OWN CLAIM do not hold in the machine. (1) The instruction said "fewer than 3 distinct seeds"; band() counts rows with len(v) >= MIN_DRAWS, so seeds [7,7,7] clears the gate, and the resulting band 0.0 is then spent as evidence FOR key_only (P3 returns win/win). (2) The instruction said "a zero band is inside-noise with the reason recorded, never an infinite win"; call() is m > b + EPS, so at b == 0.0 any positive margin wins (P4 returns win/win). The near miss is the plausible implementation that satisfies the words and loses the mechanism: counting RECORDS where the claim says counting SEEDS, and a gate that refuses too-few draws but never refuses the degenerate band its own gate can manufacture. Verdict moved proved -> inconclusive_lean_disproved:70; the two falsifying probes are named on this node. Also unmet, and it is the parent goal not this claim: key_only vs uniform is inexpressible (no comparator parameter; judge() always keeps random in the denominator), so half of goal:g5.22.1 DONE WHEN cannot be produced by this module.
+PASS 9 ITEM 4 (title clause, agent a00-22385c8a 2026-09-26): the title asserted "landed before the seed-sweep data exists", which the bytes falsify -- 18 tracked files exist under datasets/osc-band/2026-09-24-qknorm/* including cells.jsonl at 2026-09-25 02:52:53, and the rule file osc_band_call2_a00-cc7b25cc.py landed 2026-09-26 00:51:30; the rule consumes exactly that cells.jsonl. The TITLE is not a claim field, so I rewrote ONLY the title, keeping the claim content (per-cell win/loss/inside-noise call rule over a named band statistic) and stating the falsified ordering inside it. testable_claim and the falsifier are deliberately left FROZEN per the PASS 8 fence P8.01: never re-word a claim after its data. The falsification is carried in the fixture node experiment:osc-band-call-rule-per-cell-fixture Falsifier-status block (Disproof 3 MET) and in this THOUGHT.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-Stochastic-arm min-max band + sign-corrected margin + 3-draw gate implemented and fixture-tested (5 passed); landed before any qknorm seed sweep.
-
-## Agent Notes
-Stochastic-arm min-max band + sign-corrected margin + 3-draw gate, fixture-tested 5 passed; landed before any qknorm seed sweep.
-
+Stochastic-arm min-max band + sign-corrected margin + 3-draw gate, fixture-tested (5 passed) on the module `osc_band_call_a00-ee9a5cdc.py` that this node names -- now DELETED (banner 2f25c8258, removal 5c6387958); the rule survives as `osc_band_call2_a00-cc7b25cc.py` (suite 9 passed). The "landed before any qknorm seed sweep" clause is FALSE: 18 tracked files exist under `paths.local_maxxing.osc_band_qknorm_dir`'s dataset, `cells.jsonl` (the rule's own input) at 2026-09-25 02:52:53, the rule at 2026-09-26 00:51:30 -- Disproof 3 is MET (PASS 8 ITEM 4). Claim and title keep that wording because P8.01 freezes a claim after its data; the correction is on experiment:osc-band-call-rule-per-cell-fixture. PASS 8 ITEM 2: this node used to carry TWO `## Agent Notes` headings with different wording. The reword is exactly what defeats the engine's exact-substring idempotence guard (cli.py:2057, post_wire.py:475-477), and season.py:1557-1572 `_agent_notes_block` stops at the FIRST heading, so a union path would silently drop the second note AND the 40-line parent probe record that follows. Merged into ONE block: one heading is the invariant, and a future notes writer that reworded instead of appended would have been silently accepted as new.
 Parent (p3 a00-553975e2) negative probes against hypothesis:a00-ee9a5cdc-05aacd,
 run by me in .agi/context/local-maxxing/osc, one per claim conjunct.
 Source read: the two files in the checkout (osc_band_call_a00-ee9a5cdc.py, 52 prod

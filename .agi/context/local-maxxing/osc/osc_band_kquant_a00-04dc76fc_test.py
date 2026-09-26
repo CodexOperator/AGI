@@ -6,8 +6,9 @@ No model is loaded here. Run: python3 -m pytest <this file> -q
 import importlib.util
 import os
 
-import numpy as np
-import torch
+import pytest  # skip-by-name: this module cannot run without numpy, torch
+np = pytest.importorskip('numpy')
+torch = pytest.importorskip('torch')
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 _spec = importlib.util.spec_from_file_location(

@@ -4,7 +4,7 @@ mint_id: a0056d3787f13c7ac0001
 type: experiment
 parents:
   - hypothesis:a00-56d3787f-13c7ab
-edited_by: a00-56d3787f
+edited_by: a00-aad711bf
 loop: goal:band-call-rule-per-cell@s2
 production_lines: 8
 status: complete
@@ -34,8 +34,10 @@ python3 -m pytest .agi/context/local-maxxing/osc/test_osc_band_call2_a00-cc7b25c
 `n_seeds` counted `{d.get("seed", i) for i, d in enumerate(cell)}`, so a row with
 no `seed` key fell back to its **row index** and three rows that vary reported
 three distinct seeds. The 16 on-disk rows this whole goal exists to distrust
-carry no `seed` field at all (`osc_band_matched_uniform_a00-a721f95f.py:74-77`),
-so the exotic case was the likely one.
+carry no `seed` field at all (`osc_band_matched_uniform_a00-a721f95f.py:68-70`,
+the `rec = {...}` dict that writes each row -- pointer corrected 2026-09-26,
+PASS 8 ITEM 11; it used to say :74-77, which is the argparse block at the bottom
+of that file), so the exotic case was the likely one.
 
 | | before | after |
 |---|---|---|
@@ -58,15 +60,25 @@ the reason string actually names. This is the assertion working.
 
 ## P8 -- TWO RULE MODULES, ONE RULE
 
-`osc_band_call_a00-ee9a5cdc.py` is now marked DEPRECATED in its own docstring and
-points at its successor. Not deleted: it is prior art, its 5 tests still pass, and
-`test_osc_band_call2_a00-cc7b25cc.py:17` still imports it deliberately as the
-falsifying contrast -- the P3/P4/P7 holes are only demonstrable against the old
-module, so retiring it as a source is compatible with keeping it as evidence.
-**Not done:** the old module is still importable and still returns `win` on a
-degenerate band. A `DEPRECATED` docstring is a label, not a gate; nothing stops
-a third caller from importing it. Closing that needs a caller's decision, not a
-kid's.
+**CORRECTED 2026-09-26 (PASS 8 ITEMS 10 + 13).** The text that stood here said
+`osc_band_call_a00-ee9a5cdc.py` "is now marked DEPRECATED in its own docstring",
+"Not deleted: it is prior art, its 5 tests still pass", and that
+`test_osc_band_call2_a00-cc7b25cc.py:17` "still imports it deliberately". **All
+three were false the moment they were written, and never true.** The module and
+its 5-test suite were DELETED at 5c6387958 (2026-09-26 01:08:55Z), and the
+surviving suite imports nothing but `osc_band_call2_a00-cc7b25cc.py`
+(`_load("osc_band_call2_a00-cc7b25cc")` at :16). This node was not *overtaken*
+by a later edit -- it was **landed already-false**: `git merge-base --is-ancestor
+5c6387958 a720c7876` succeeds (deletion 01:08:55Z is an ancestor of the harvest
+a720c7876 at 01:15:44Z) and `git log` for that path returns exactly one commit,
+so nothing ever corrected it. The reason it was deleted rather than kept as
+prior art is recorded on `hypothesis:a00-66d002ad-8cee33`: a pinned DEPRECATED
+file is a callable defective rule, and a green test that ASSERTED the banner
+(`test_osc_band_call2_a00-cc7b25cc.py:76`, added 2f25c8258, removed 5c6387958)
+made deletion impossible while the suite was green (PASS 8 ITEM 9). The
+surviving record of the P3/P4/P7/P6 holes is the reasoning in the THOUGHT blocks
+of this node and of `hypothesis:a00-cc7b25cc-82fe33`, plus the live suite
+(9 passed, re-measured on the tip tree).
 
 ## What this does NOT establish
 
@@ -84,11 +96,5 @@ kid's.
   cheap because the previous kid's module was already one function away.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The round's real finding is the failed first attempt, not the passing suite:
-`len(v) != n` is a plausible-looking count that means "rows" on one side and
-"distinct seeds" on the other, and it only differs from the truth on a cell that
-varies -- which is exactly the cell that was supposed to be called. A gate whose
-false-positive lands on the one input it exists to protect is worse than no gate,
-because it reads as a refusal of a different defect. Recorded so the next kid
-who writes a two-clause gate counts the thing each clause names.
+PASS 8 residue round (TMM.210), agent a00-aad711bf, 2026-09-26 -- items 9/10/11/13. ITEM 10+13: my P8 section claimed the old module survived as DEPRECATED prior art with 5 passing tests and a deliberate import at test_osc_band_call2_a00-cc7b25cc.py:17. It did not survive and never did: the module and its suite were deleted at 5c6387958 (01:08:55Z), an ANCESTOR of the harvest a720c7876 (01:15:44Z) -- landed already-false, not overtaken, since git log for that path is a single commit. The P8 section is now corrected in place and the surviving import is _load at :16. ITEM 11: the citation for the seedless rows pointed at osc_band_matched_uniform_a00-a721f95f.py:74-77, which is the argparse block; the seedless `rec` dict is at :68-70. Fixed here and in the same comment in test_osc_band_call2_a00-cc7b25cc.py (and in hypothesis:a00-cc7b25cc-82fe33s body). ITEM 9 (no edit needed, tip is already clean): a green test REQUIRED the defect to persist -- the banner assertion at test:76 meant the rounds own testable_claim was unachievable while its suite was green; 5c6387958 repaired it in range, tip is 9 passed with no reference to the deleted filename.
 <!-- THOUGHT:END -->

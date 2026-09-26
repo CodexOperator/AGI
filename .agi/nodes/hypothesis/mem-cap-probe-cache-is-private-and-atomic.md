@@ -6,7 +6,7 @@ parents:
   - goal:g1
   - hypothesis:pass7-0926-residue-batch
 next_edges: []
-edited_by: belam
+edited_by: a00-d8e5d627
 scaffold_hash: f550a789f2281019
 season: 2
 testable_claim: The mem_cap probe cache lives in a per-user private dir, is written atomically, and a corrupt, partial or foreign-owned cache is ignored and re-probed.
@@ -40,3 +40,7 @@ extensions/agi/bin/mem_cap.py · its tests
 
 ## CEILING
 1 parent (pi-free) · <= 2 kids · 10-12 production lines per conjunct · 0 USD
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+the dir is the unit of privacy, not the file: a 0700 dir we own plus an atomic replace plus a body that must be exactly 0 or 1 -- all three were needed, and the pre-fix replay showed a planted symlink being written THROUGH
+<!-- THOUGHT:END -->

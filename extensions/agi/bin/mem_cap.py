@@ -8,8 +8,10 @@ import os
 import pathlib
 import shutil
 import signal
+import stat
 import subprocess
 import sys
+import tempfile
 
 _PROBE: "bool | None" = None
 _SUFFIX = {"K": 1024, "M": 1024 ** 2, "G": 1024 ** 3, "T": 1024 ** 4}
@@ -20,6 +22,18 @@ _SUFFIX = {"K": 1024, "M": 1024 ** 2, "G": 1024 ** 3, "T": 1024 ** 4}
 #: measured 1422 failed `run-*.scope` units against 1784 cgroup OOM kills on
 #: encryption-town in 6 days, one pair per spawn.
 _PROBE_UNIT = "agi-memcap-probe"
+
+#: The cache lives in a dir of this name under the per-user runtime dir. Named
+#: because the DIR, not the file, is the unit of privacy:
+#: `hypothesis:mem-cap-probe-cache-is-private-and-atomic`.
+#: The two names are the DEFAULTS of the config cells `values.memcap.
+#: probe_cache_dir_name` / `probe_cache_file` (config-max, owner 2026-09-23) --
+#: a caller that HAS a config passes it, and a config that omits or mangles the
+#: cell lands here. They are names, not paths: the base dir is box-resolved
+#: (`$XDG_RUNTIME_DIR`, else the platform temp dir), so no box root is spelled
+#: in this file. A cell carrying a separator is REFUSED, never joined.
+_CACHE_DIR_NAME = "agi-memcap"
+_CACHE_FILE_NAME = "probe"
 
 
 def _normalise_cap(val) -> "str | None":
@@ -62,46 +76,109 @@ def _boot_id() -> str:
         return ""
 
 
-def _probe_cache_path() -> "pathlib.Path | None":
-    """Where the cross-process probe verdict lives. `AGI_MEMCAP_CACHE` wins;
-    else the per-user runtime dir (tmpfs, cleared on boot); else `/tmp`.
+def _private_dir(path: pathlib.Path) -> "pathlib.Path | None":
+    """A cache dir WE own, mode 0700, or None. A dir another user pre-created
+    at a predictable `/tmp` name is refused outright -- otherwise the file
+    checks below trust a verdict planted for us. An unwritable or foreign
+    cache costs a re-probe, never a wrong verdict."""
+    try:
+        path.mkdir(parents=True, exist_ok=True, mode=0o700)
+        if os.lstat(path).st_uid != os.geteuid():
+            return None
+        os.chmod(path, 0o700)
+    except OSError:
+        return None
+    return path
+
+
+def _cache_names(cfg: "dict | None") -> "tuple[str, str] | None":
+    """(dir name, file name) from `values.memcap`, or None if a cell is
+    unusable. A name with a path separator, `.`/`..` or a NUL could move the
+    cache somewhere `_private_dir` would happily trust, so it is refused."""
+    v = ((cfg or {}).get("values") or {}).get("memcap") or {}
+    d = str(v.get("probe_cache_dir_name") or _CACHE_DIR_NAME)
+    f = str(v.get("probe_cache_file") or _CACHE_FILE_NAME)
+    for name in (d, f):
+        if not name or name in (".", "..") or "/" in name or "\0" in name:
+            return None
+    return d, f
+
+
+def _probe_cache_path(cfg: "dict | None" = None) -> "pathlib.Path | None":
+    """Where the cross-process probe verdict lives. `AGI_MEMCAP_CACHE` (an
+    explicit file path, for tests) wins; else a private dir under the
+    per-user runtime dir (tmpfs, cleared on boot); else the platform temp
+    dir -- `tempfile.gettempdir()` ($TMPDIR, else the box's `/tmp`), NOT a
+    `/tmp` literal: the same base every other engine temp path resolves
+    through, so the box's own answer wins and this file spells no root.
     None means "no cache is writable" -- the probe then runs per process, the
     old behaviour, rather than failing."""
     env = os.environ.get("AGI_MEMCAP_CACHE")
     if env:
         return pathlib.Path(env)
+    names = _cache_names(cfg)
+    if names is None:
+        return None
     run = os.environ.get("XDG_RUNTIME_DIR")
-    base = pathlib.Path(run) if run else pathlib.Path("/tmp")
+    base = pathlib.Path(run) if run else pathlib.Path(tempfile.gettempdir())
+    d = _private_dir(base / names[0])
+    return None if d is None else d / names[1]
+
+
+def _trusted_cache_file(path: pathlib.Path) -> "pathlib.Path | None":
+    """The cache file only if it is a REGULAR file we own. A symlink at a
+    predictable path is not followed (a planted link would otherwise both
+    read a foreign verdict and redirect our write), and a file another user
+    owns is not trusted."""
     try:
-        base.mkdir(parents=True, exist_ok=True)
+        st = os.lstat(path)
     except OSError:
         return None
-    return base / ".agi-memcap-probe"
+    if not stat.S_ISREG(st.st_mode) or st.st_uid != os.geteuid():
+        return None
+    return path
 
 
-def _read_cached_probe() -> "bool | None":
-    """The verdict cached for THIS boot, or None (absent, stale or corrupt)."""
-    path = _probe_cache_path()
+def _read_cached_probe(cfg: "dict | None" = None) -> "bool | None":
+    """The verdict cached for THIS boot, or None (absent, stale, foreign,
+    partial or corrupt). A body that is not exactly `0` or `1` is a torn or
+    planted write and is re-probed, never read as a `False`."""
+    path = _probe_cache_path(cfg)
+    if path is None:
+        return None
+    path = _trusted_cache_file(path)
     if path is None:
         return None
     try:
         boot, _, val = path.read_text().strip().partition(" ")
     except OSError:
         return None
-    if not val or boot != _boot_id():
+    if val not in ("0", "1") or boot != _boot_id():
         return None
     return val == "1"
 
 
-def _write_cached_probe(val: bool) -> None:
-    """Best-effort: an unwritable cache costs a re-probe, never a failure."""
-    path = _probe_cache_path()
+def _write_cached_probe(val: bool, cfg: "dict | None" = None) -> None:
+    """Best-effort and ATOMIC: a temp file in the same dir (0600 by
+    construction) then `os.replace`, so a concurrent reader sees the old
+    verdict or the new one, never a half-written one. An unwritable cache
+    costs a re-probe, never a failure."""
+    path = _probe_cache_path(cfg)
     if path is None:
         return
     try:
-        path.write_text(f"{_boot_id()} {'1' if val else '0'}\n")
+        fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=path.name + ".")
     except OSError:
-        pass
+        return
+    try:
+        with os.fdopen(fd, "w") as fh:
+            fh.write(f"{_boot_id()} {'1' if val else '0'}\n")
+        os.replace(tmp, path)
+    except OSError:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
 
 
 def _reset_probe_unit() -> None:
@@ -117,7 +194,7 @@ def _reset_probe_unit() -> None:
         pass
 
 
-def systemd_run_usable() -> bool:
+def systemd_run_usable(cfg: "dict | None" = None) -> bool:
     """Launchability is not enforcement: launch a REAL allocation past a REAL
     tiny cap and require the observed SIGKILL -- on boxes whose swap absorbs
     the overage, or that swallow the property, the probe must say False so
@@ -134,7 +211,7 @@ def systemd_run_usable() -> bool:
     if forced is not None and forced.strip() != "":
         return forced.strip() not in ("0", "false", "False", "no")
     if _PROBE is None:
-        _PROBE = _read_cached_probe()
+        _PROBE = _read_cached_probe(cfg)
     if _PROBE is None:
         _PROBE = False
         if shutil.which("systemd-run"):
@@ -149,16 +226,19 @@ def systemd_run_usable() -> bool:
             except (OSError, subprocess.SubprocessError):
                 _PROBE = False
             _reset_probe_unit()
-        _write_cached_probe(_PROBE)
+        _write_cached_probe(_PROBE, cfg)
     return _PROBE
 
 
-def wrap_argv(argv: list, cap: "str | None") -> list:
+def wrap_argv(argv: list, cap: "str | None",
+              cfg: "dict | None" = None) -> list:
     """`cap is None` -> the SAME argv object, unwrapped; else systemd-run when
-    usable, else the prlimit fallback."""
+    usable, else the prlimit fallback. `cfg` is OPTIONAL and read only for the
+    cache's `values.memcap` cells -- a caller with no config on hand gets the
+    shipped defaults, so the hot path never has to resolve the graph itself."""
     if cap is None:
         return argv
-    if systemd_run_usable():
+    if systemd_run_usable(cfg):
         return ["systemd-run", "--user", "--scope", "-q",
                 f"--property=MemoryMax={cap}",
                 "--property=MemorySwapMax=0", "--", *argv]

@@ -886,3 +886,109 @@ def test_worktree_seat_recovery_launches_in_and_writes_main_only(graph, tmp_path
     wt_copy = _row(wt_dir / ".agi", "wt")
     assert wt_copy["pid"] == 987654 and wt_copy.get("window") == "@50", \
         "the worktree seats.md copy was never written (still pre-recovery)"
+
+
+# --- (a) NO INLINE PROMPT + (b) THE CARD RESOLVES IN THE SEAT'S OWN TREE -----
+# hypothesis:heal-lands-a-reseat-after-a-tmux-server-restart, conjuncts (a)+(b)
+# merged onto one tree: the launch file is written where tmux is actually
+# invoked (`_launch_recovered`), and the quorum card is read from the seat's
+# OWN geometry (`_seat_geometry_dir`), not MAIN's.
+
+def test_launch_recovered_never_hands_tmux_the_prompt_inline(tmp_path,
+                                                             monkeypatch):
+    """(a) A prompt far over tmux's 64 KiB argv limit (the 22:19Z
+    `command too long`) still launches: the shell line goes to a launch file
+    and tmux is handed `cd <tree> && sh <file>` — a tiny argv carrying no
+    prompt bytes at all. The file runs correctly and deletes itself."""
+    graph = tmp_path / ".agi"
+    graph.mkdir()
+    big = "echo start && " + ("P" * 100000)
+    captured: list = []
+
+    def fake_run(cmd, **kwargs):
+        captured.append(list(cmd))
+        return type("R", (), {"returncode": 0, "stdout": "@9\n",
+                              "stderr": ""})()
+
+    real_run = subprocess.run  # heal.subprocess IS subprocess: keep the real one
+    monkeypatch.setattr(heal.subprocess, "run", fake_run)
+    pid, wid = heal._launch_recovered(graph, "seat-wt", big, cwd=graph)
+    assert (pid, wid) == (None, "@9")
+    assert len(captured) == 1
+    tmux_argv = captured[0]
+    assert max(len(a) for a in tmux_argv) < 4096, \
+        f"argv still carries the prompt: {[len(a) for a in tmux_argv]}"
+    assert "P" * 1000 not in tmux_argv[-1], "the prompt reached tmux inline"
+    launch_file = tmux_argv[-1].split("&& sh ", 1)[1]
+    assert Path(launch_file).read_text(encoding="utf-8").startswith(big), \
+        "the launch file does not carry the whole shell line"
+    # it RUNS, and it leaves nothing behind
+    proc = real_run(["sh", launch_file], capture_output=True, text=True,
+                    cwd=str(graph), timeout=30)
+    assert proc.returncode == 0 and proc.stdout.startswith("start"), proc.stderr
+    assert not Path(launch_file).exists(), "the launch file did not clean up"
+
+
+def test_launch_recovered_refuses_loudly_when_no_launch_file(tmp_path,
+                                                             monkeypatch):
+    """(a) The gate: if the launch file cannot be written, tmux is NEVER
+    called and the launch reports not-spawned (0, "") — the recover records
+    `detected` and retries. Falling back to the inline prompt is the very bug
+    this conjunct removes, and pairing it with `respawned=True` would lie."""
+    graph = tmp_path / ".agi"
+    graph.mkdir()
+
+    def boom(*a, **k):
+        raise OSError(28, "No space left on device")
+
+    def never(cmd, **kwargs):  # pragma: no cover - the assertion is the point
+        raise AssertionError(f"tmux was called with {cmd!r}")
+
+    monkeypatch.setattr(heal.tempfile, "mkstemp", boom)
+    monkeypatch.setattr(heal.subprocess, "run", never)
+    assert heal._launch_recovered(graph, "seat-wt", "echo hi", cwd=graph) \
+        == (0, ""), "an unwritable launch file must read as not-spawned"
+
+
+def test_worktree_seat_card_resolves_in_its_own_worktree(tmp_path,
+                                                         monkeypatch):
+    """(b) A dead worktree seat resumes on the card in ITS OWN worktree: the
+    launch command carries the worktree's own card text and never MAIN's
+    stale copy (`_seat_geometry_dir`, the same live-first helper the rest of
+    the watch pass uses)."""
+    main, wt_dir = _git_repo_with_worktree(tmp_path)
+    gdir = main / ".agi"
+    (gdir / "config.json").write_text(json.dumps({"metric_primary": "x"}))
+    _write_seats(gdir, [{"name": "wt", "pid": 424242, "window": "@50",
+                         "role": "director", "model": "claude-sonnet-5",
+                         "generation": 2, "worktree": ".agi/worktrees/seat-wt"}])
+    wt_agi = wt_dir / ".agi"
+    (wt_agi / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    (wt_agi / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nid: config:seats\nseats:\n  - " + json.dumps(
+            {"name": "wt", "pid": 424242, "window": "@50", "role": "director",
+             "model": "claude-sonnet-5", "generation": 2,
+             "worktree": ".agi/worktrees/seat-wt"}) + "\n---\n")
+    for base, tag in ((gdir, "GEN-OLD-main"), (wt_agi, "GEN-NEW-worktree")):
+        card = base / "sessions" / "quorum" / "wt.md"
+        card.parent.mkdir(parents=True, exist_ok=True)
+        card.write_text(f"# SESSION HANDOFF wt\n{tag}\n", encoding="utf-8")
+    wf = gdir / "windows.txt"
+    wf.write_text("", encoding="utf-8")
+    seen: list = []
+    acted = heal._watch_seats(gdir, pid_alive=(lambda pid: False),
+                              window_path=str(wf),
+                              launcher=_recording_launcher(seen))
+    assert len(acted) == 1 and acted[0]["respawned"] is True
+    assert len(seen) == 1, seen
+    assert "GEN-NEW-worktree" in seen[0], \
+        "the worktree seat resumed on a card that is not its own"
+    assert "GEN-OLD-main" not in seen[0], \
+        "the worktree seat resumed on MAIN's stale card"
+
+
+def _recording_launcher(seen: list):
+    def launch(root, name, shell_cmd, window_path=None, cwd=None):
+        seen.append(shell_cmd)
+        return 515151, "@777"
+    return launch

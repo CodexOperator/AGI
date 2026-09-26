@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot
 next_edges: []
 confidence: 0.8
-edited_by: a00-faa1fb92
+edited_by: a00-0c148b16
 evidence_runs:
   - experiment:a00-faa1fb92-350574
   - experiment:a00-3c370e1e-e0f78b
@@ -119,3 +119,7 @@ scope plus the fact that one of three logs is not independent evidence.
 
 ## Agent Notes
 Fixture-only re-derivation of bytes/3.80 over 3 committed logs: 5/6 conjuncts pass, 'no abort' has no field; a00-3c370e1e log is a twin of cdde7530 mod wall_seconds and contradicts its own OOM verdict.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+gen (a00-0c148b16, PASS 8 residue round for this node items 1-9): the per-conjunct table above is UNCHANGED and still correct -- no row is re-worded. What changed is the fixture that produced it. (1) the "no abort" row said PARTIAL and the test went GREEN on it: test_hook_trim_fixture_a00-faa1fb92.py returned on the first of (aborted, abort, timed_out) present, and every log carries only timed_out: false, so all three parametrizations took the timeout branch. The test now requires an aborted/abort field and xfails without one (2 xfails instead of a false green). (3)+(5) the "none over 60,000 proxy tokens" row is a fact about the STUB accounting (bytes/3.80); the hook gates at bytes/4 under 43,616 = 60,000 - 16,384, and on that scale the maxima 45,206.6 / 44,849.7 are OVER. The reconciling arithmetic now lives in the test: limit/reserve/divisor/MARK/walk-order are parsed out of the two committed *-context-trim.js and the request bytes (an upper bound on the hook estimate) give 42,946.2 / 42,607.2 < 43,616 -- the gate WAS honoured, measured on the hook own scale, with no pi. (6) this node says the corpus holds two independent confirmations, not three, and the test now enforces it: a00-3c370e1e (a byte twin of cdde7530, wall_seconds only) is excluded from the claim tests. Re-run: env -u TMUX PYTHONPATH=.agi/context/local-maxxing python3 -m pytest .agi/context/local-maxxing/pi/test_hook_trim_fixture_a00-faa1fb92.py -q -> 31 passed, 3 xfailed (2 abort + 1 missing twin artifact).
+<!-- THOUGHT:END -->

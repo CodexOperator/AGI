@@ -1224,3 +1224,75 @@ def test_node_dirs_runs_at_rotation_and_full_never_quick(monkeypatch, tmp_path):
     assert "node-dirs" in [r.name for r in full]
     assert "node-dirs" not in [r.name for r in quick]
     assert rot[-1].name == "node-count", "node-count stays the closing check"
+
+
+# --- the DECLARED second suite (hypothesis:context-fixture-tests-run-in-a-
+# configured-suite) ---------------------------------------------------
+
+
+def _write_config(groot, cell_value):
+    (groot / "config.json").write_text(
+        json.dumps({"paths": {"core": {"suite_roots": cell_value}}}))
+
+
+def test_suite_roots_read_the_config_cell_never_a_literal(monkeypatch, tmp_path):
+    groot = tmp_path / ".agi"
+    (groot / "fixtures").mkdir(parents=True)
+    _write_config(groot, [".agi/fixtures"])
+    monkeypatch.setattr(locations, "load_config", lambda root: json.loads(
+        (Path(root) / "config.json").read_text()))
+    roots, cell = verification._declared_suite_roots(groot)
+    assert roots == [(tmp_path / ".agi" / "fixtures").resolve()], roots
+    assert cell == "paths.core.suite_roots"
+
+
+def test_extra_suite_skips_by_cell_name_when_undeclared(monkeypatch, tmp_path):
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    monkeypatch.setattr(locations, "load_config", lambda root: {})
+    r = verification.check_extra_suite(groot)
+    assert r.status == "SKIP", r.status
+    assert "paths.core.suite_roots" in r.note
+
+
+def test_unusable_cell_fails_where_an_absent_cell_skips(monkeypatch, tmp_path):
+    """A DECLARED-UNUSABLE cell is not an absent one: it FAILs and names the
+    value (parent probe C -- a string cell used to read as 'nothing declared')."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    for value, kind in (".agi/context", "str"), ([""], "list"), (42, "int"):
+        _write_config(groot, value)
+        monkeypatch.setattr(locations, "load_config", lambda root: json.loads(
+            (Path(root) / "config.json").read_text()))
+        r = verification.check_extra_suite(groot)
+        assert r.status == "FAIL", (kind, r.status, r.note)
+        assert "IS declared but unusable" in r.note, r.note
+        assert "paths.core.suite_roots" in r.note, r.note
+    # and the absent cell still SKIPs -- the two are not the same fact
+    monkeypatch.setattr(locations, "load_config", lambda root: {"paths": {"core": {}}})
+    assert verification.check_extra_suite(groot).status == "SKIP"
+
+
+def test_extra_suite_fails_on_a_collection_error(monkeypatch, tmp_path):
+    groot = tmp_path / ".agi"
+    (groot / "ctx").mkdir(parents=True)
+    (groot / "ctx" / "test_boom.py").write_text("import definitely_not_here\n")
+    _write_config(groot, [".agi/ctx"])
+    monkeypatch.setattr(locations, "load_config", lambda root: json.loads(
+        (Path(root) / "config.json").read_text()))
+    r = verification.check_extra_suite(groot)
+    assert r.status == "FAIL", r.status
+    assert "definitely_not_here" in r.note
+
+
+def test_extra_suite_runs_at_suite_only(monkeypatch, tmp_path):
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    monkeypatch.setattr(verification, "run_check",
+                        lambda g, n, v: verification.CheckResult(n, "PASS", 0.0, None))
+    monkeypatch.setattr(verification, "check_extra_suite", lambda g:
+                        verification.CheckResult("context-suite", "SKIP", 0.0, None))
+    off = verification.run_level(groot, "quick", suite=False, verbose=False)
+    on = verification.run_level(groot, "rotation", suite=True, verbose=False)
+    assert "context-suite" not in [r.name for r in off]
+    assert "context-suite" in [r.name for r in on]
