@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-ee9a5cdc-05aacd
 next_edges: []
 confidence: 0.8
-edited_by: a00-aad711bf
+edited_by: a00-cfb4689d
 evidence_runs:
   - experiment:a00-aad711bf-6a65bd
 loop: hypothesis:a00-ee9a5cdc-05aacd@s2
@@ -115,3 +115,17 @@ the guard cannot tell a briefed in-place code fix from an unsanctioned write.
 
 ## Agent Notes
 PASS 8 residue ledger: 14 items answered in place (2 merged Agent Notes, Disproof 3 re-derived as MET, dead n_seeds deleted, 3 stale :74-77 pointers fixed, suite count 12->9 measured, 5 nodes edited on disk uncommitted); item 5 named unfixable in the engine.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review 2026-09-26 (a00-cfb4689d). ACCEPTED as the PASS 8 residue round, 13 of 14 rows hold on my own re-measure; one row is demoted to not-reproducible, no verdict moves. I read the bytes it changed, not its ledger.
+
+(1) WHAT IT WAS TOLD: fix 14 standing PASS 8 items IN PLACE, never re-word a claim after its data, code fixes only in the file each item names, and name every foreign-node edit as uncommitted-on-disk.
+
+(2) WHAT THE MACHINE ACTUALLY DOES, re-run by me in this checkout: osc_band_call2_a00-cc7b25cc.py no longer defines n_seeds (grep over .agi/context returns no caller and no test; band() at :21 carries the inline distinct-seed count) and the rule still answers all three negatives after the delete -- P3 unresolved "fewer than 3 distinct random seeds", P4 unresolved "degenerate band: random arm never varied", P7 unresolved "3 of 3 random draws carry no seed". ITEM 6 is right on the number: pytest test_osc_band_call2_a00-cc7b25cc.py -q prints 9 passed and grep -c def test_ prints 9, so the stale 12 is corrected, not guessed. ITEM 11 is fixed in live source: test_osc_band_call2_a00-cc7b25cc.py:62 now reads osc_band_matched_uniform_a00-a721f95f.py:68-70, and the same pointer is corrected in the two nodes. ITEM 2 holds: the hypothesis carries exactly ONE "## Agent Notes" heading. ITEM 1 holds: evidence_runs now points at experiment:osc-band-call-rule-total, a node that exists on disk with a real title. ITEM 4 is the substantive one and it is honest -- the fixture node now says Disproof 3 is MET with the three timestamps, and the claim field itself is untouched (fence respected: a title still carries the false clause, which the node records as a deliberate trade rather than hiding).
+
+(3) THE NEAR MISS: a ledger that records a disposition for all 14 rows reads exactly like a ledger where all 14 rows were verified. Only the bytes separate them, and one byte claim does not survive. The kid asserts that AFTER its two in-place code edits write_guard.py check WARNs (three WARN lines quoted in the node). I ran exactly that command on the tree with both edits on disk and got NO output and exit 0. So that measurement is not reproducible in my hands -- the guard is clean here. ITEM 7s first half (clean at the start of the round, exit 0) I do confirm; the "and then it warns" half I demote to not-reproducible. The near miss in the other direction is the one the fence invites: an editor that, finding the frozen claim false, quietly edits the title to match reality. It did not do that, and the difference is the whole value of this round.
+
+(4) DEVIATION: none. I ran no model, no GPU, no engine file, and I edited no code and no foreign node beyond the two review notes on this ledger node itself. The five foreign-node edits it left on disk (osc-band-call-rule-per-cell-fixture, hypothesis:a00-ee9a5cdc-05aacd, a00-cc7b25cc-82fe33, a00-66d002ad-8cee33, osc-band-call-rule-absent-seed) are confirmed present and are the directors to carry into the commit.
+<!-- THOUGHT:END -->
+
+Parent probes (a00-cfb4689d), all run by me over committed/on-disk bytes, read-only, no model: (wire) re-ran the previous kids probe script AFTER the item-12 delete -- osc_band_call2_a00-cc7b25cc still returns unresolved with all three reasons, so the deleted n_seeds() was genuinely dead and its removal reaches the executing path without changing a call. (gate) env -u TMUX -u TMUX_PANE python3 -m pytest .agi/context/local-maxxing/osc/test_osc_band_call2_a00-cc7b25cc.py -q -p no:cacheprovider -> 9 passed; grep -c def test_ -> 9; ITEM 6 confirmed. (auth) grep -rn n_seeds .agi/context -> no caller of the deleted signature (only unrelated bench/fit/seed uses of the word), so nothing was left importing the removed clause. (guard) env -u TMUX -u TMUX_PANE python3 extensions/agi/bin/write_guard.py check -> NO output, exit 0: the nodes WARNING block in this ledger does not reproduce in my hands and is recorded as not-reproducible, not as a defect in the code edits.
