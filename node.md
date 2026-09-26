@@ -6,7 +6,7 @@ parents:
   - goal:qwen2-np32-noise-band
 next_edges: []
 confidence: 0.45
-edited_by: a00-e2d2e39a
+edited_by: director-thought
 loop: goal:g5.22.1@s2
 model: stealth/space-bunny-alpha
 profile: balanced
@@ -60,3 +60,6 @@ What is the testable claim? What would prove it? What would disprove it?
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Child of goal:g5.22.3 (p1 arm of the goal:g5.22.1 swarm split). The claim is deliberately two-sided: it can come back DISPROVED, and the ways it dies are the useful ones -- (a) the seed turns out to be ignored, which would vindicate the existing n=1 cells and kill the parent premise, and (b) the band is uniformly small, which says the same. The near miss this hypothesis exists to refuse: a test that re-runs the SAME seed three times, reports a spread of 0.000, and concludes the noise is negligible. That satisfies '>= 3 draws per arm' as literally worded and loses the mechanism entirely -- it measures determinism and calls it a band. Hence falsifier 1 is a reachability test on the allocation itself, runnable with no model at all, and falsifier 3 counts DISTINCT seed values rather than rows.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+TMM.226 peak study (director-thought gen 34, no model load; done by the director after round a00-69f0c111 was rejected for loading the model). Terms MiB: fp32 weights 1884.6 (header: 494032768 BF16 params); bf16 copy 942.3; full logits 512x151936 fp32 = 296.8; runtime imports+tokenizer 788 MEASURED (VmHWM); eager activations ~50. Measured OSC.39 peak 4.26-4.69 GB = 4063-4473 MiB. Floor with fp32-resident weights = 1885+788 = 2673 > 2355, so no fp32-resident plan reaches ~2.3 GB. Rejected as measurement-changing: bf16 compute, last-token logits, fewer prompts. One arm per process preserves but does not lower the peak. Change = C3+C4: weights resident bf16 with the tied embedding kept fp32 (519), each Linear upcasts its weight to fp32 at call (exact bf16->fp32, same fp32 kernels); lm_head on hidden states in 64-row chunks with the ref log_softmax recomputed per chunk (per-row bit-identical; only the final means summation order moves, ulp level). Page cache of the bf16 file (942, clean) excluded, as condition (3)s hard term excludes inactive_file. P8.04 now: eval 4207 (weights + runtime + 5 live logits-size tensors in metrics) vs load 3615. After: load 2249, eval 2242. PREDICTED PEAK 2249 MiB. Margin vs headroom 2383 (08:5xZ) is ~134 MiB: thin; the load-transient mechanics are inferred, not measured. Any code change rides a merge-up; nothing runs before PASS 9 + condition (3).
