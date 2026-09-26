@@ -541,17 +541,6 @@ def write_system_prompt(
     return out
 
 
-#: Brief parts this harness loads ITSELF, so `brief.render` must not inline a
-#: second copy of them. Claude Code reads `CLAUDE.md` from the project
-#: directory as project instructions BEFORE the first turn, so the rendered
-#: first turn re-sent 26 KB the seat already held (measured 2026-09-26,
-#: experiment:a00-4a01c17b-415791: 106,144 chars where the pre-DH.410
-#: static-file turn was 64,896). The harness declares the fact about itself;
-#: `brief.py` reads the attribute and never names a harness, and
-#: `config:brief`'s `harness_self_loads` cell can add more per harness.
-SELF_LOADED_BRIEF_PARTS = ("harness",)
-
-
 def build_command(
     *,
     harness: dict,
