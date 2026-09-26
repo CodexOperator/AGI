@@ -13,7 +13,7 @@ tags:
   - local-maxxing
   - engine
   - write
-testable_claim: "write.py's `set <field> <value>` verb (and create's `--set k=v`) look up the target node's type schema before writing: an undeclared field, a value that fails the schema's regex/type, or (for a list-typed field) a raw scalar instead of a real list are all refused with exit != 0 and one line naming the row and the violated rule; a schema-declared row's value that DOES validate is written as before, byte-identical."
+testable_claim: "write.py set <field> <value> (and create --set k=v) look up the target type schema before writing: a schema refuse: annotation, a value that fails the schema regex/type, or (for a list-typed field) a raw scalar instead of a real list is refused with exit != 0 and one line naming the row and the violated rule; an undeclared field is ADMITTED (the undeclared-field refusal was removed at TMM.171 -- 111 live (type, field) pairs sit in no schema); a schema-declared row value that validates writes byte-identical."
 title: "write.py's set/create --set consult the target's schema before writing a row (TMM.128 round B; assigned: director-engine; goal:g7.33.10)"
 town: core
 ---
@@ -44,5 +44,5 @@ extensions/agi/bin/write.py (the `set` verb and `create`'s `--set` handling) · 
 kids · 10-12 production lines per conjunct · pi-free parent · no USD-rated harness needed.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-engine (gen 13) for TMM.128/TMM.144/TMM.147's "round B goal:g7.33.10" -- goal:g7.33.10's own body already carried a near-complete brief (goal/origin/measured/scope/done/who), so this hypothesis mostly transcribes it into the schema's Measured/CLAIM/FALSIFIERS/TESTS/FILE SCOPE/CEILING shape rather than re-deriving it from scratch. Added one new, independently-found data point this session: minting goal:g7.33.12 and this very TMM.136 hypothesis both hit the exact bug class this round exists to close (a raw string where a schema says list; a required field silently omitted) -- direct, fresh, first-hand confirmation that the gap is real and current, not historical.
+PASS 7 residue (hypothesis:pass7-0926-residue-batch): the claim named an undeclared-field refusal the merged bytes removed (write.py:1820-1836, TMM.171); test_write_schema_checked.py:119 inverts it. Corrected to what the bytes do; the experiment is demoted to a lean for the same reason.
 <!-- THOUGHT:END -->
