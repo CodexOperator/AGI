@@ -39,7 +39,7 @@ ORDER     TMM.265 g7.33.18 box kit FIRST (dispatched) > TMM.262 residues + TMM.2
 CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_max 150 684a83a3a · paths.boxkit.* 3b42eb930
 ROUND  agent        what                         state (mur units agi-director-engine-murNNN; runs/mur-director-engine-N in MAIN)
 424    MERGED with 431 (mur-5 accept) into the post branch + verdict proved 390bab9da -- repro green on the post branch
-425    a00-22a191e9 agi-bin guard  -> 428 -> 435 a00-d3093e1b (175 green; node wording committed 0cde66ecf) -> mur-5 DH.435-k1 RUNNING
+425    -> 428 -> 435 (mur-5 accept_with_residue: node :47 citation; no test pins the 3 names, TMM.262 asked) -> 441 a00-b4ee33fe LIVE
 426    a00-8783b3d3 schema gate + parent hook    nbhd 401 · mur-4 DH.426-k1..k3 RUNNING (long)
 427    -> 436 a00-68d48a54 (incl 427): seam holds --noconftest (0 tmux calls), vacuous guard deleted, nbhd 310 -> mur-6 DH.436-k1/k2 RUNNING
 429    a00-abda526f resolve_tasks_max -> spawn.tasks_max   live 150, nbhd 168 · mur-5 DH.429-k1/k2 RUNNING
