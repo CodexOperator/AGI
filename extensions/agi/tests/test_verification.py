@@ -1285,6 +1285,50 @@ def test_extra_suite_fails_on_a_collection_error(monkeypatch, tmp_path):
     assert "definitely_not_here" in r.note
 
 
+def test_suite_fail_ids_names_every_id_past_a_ten_line_window():
+    """The unit claim: N>10 failures used to leave only a count in the tail."""
+    out = ("F\n" + "\n".join(f"long traceback line {i} of the failure body"
+                           for i in range(20)) +
+           "\n===== short test summary info =====\n" +
+           "\n".join(f"FAILED tests/test_x.py::test_{i} - AssertionError"
+                     for i in range(15)) +
+           "\n15 failed in 3.2s\n")
+    ids = verification._suite_fail_ids(out)
+    assert ids == [f"tests/test_x.py::test_{i}" for i in range(15)], ids
+    # the old report -- a ten line tail -- names at most one of them
+    assert len("\n".join(out.splitlines()[-10:]).split("FAILED ")) - 1 < len(ids)
+
+
+def test_extra_suite_note_names_each_failing_test_by_node_id(monkeypatch,
+                                                             tmp_path):
+    """Falsifiers 1-2: ONE and THREE forced failures both appear by node id."""
+    groot = tmp_path / ".agi"
+    (groot / "ctx").mkdir(parents=True)
+    body = "".join(f"def test_boom{i}():\n    assert False, 'boom {i}'\n\n"
+                   for i in (1, 2, 3))
+    (groot / "ctx" / "test_forced_fail.py").write_text(body)
+    _write_config(groot, [".agi/ctx"])
+    monkeypatch.setattr(locations, "load_config", lambda root: json.loads(
+        (Path(root) / "config.json").read_text()))
+    r = verification.check_extra_suite(groot)
+    assert r.status == "FAIL", r.status
+    for i in (1, 2, 3):
+        assert f"test_forced_fail.py::test_boom{i}" in r.note, (i, r.note)
+
+
+def test_extra_suite_pass_carries_no_failed_ids(monkeypatch, tmp_path):
+    """Falsifier 3: a PASSING declared suite names no failure."""
+    groot = tmp_path / ".agi"
+    (groot / "ctx").mkdir(parents=True)
+    (groot / "ctx" / "test_good.py").write_text("def test_ok():\n    assert True\n")
+    _write_config(groot, [".agi/ctx"])
+    monkeypatch.setattr(locations, "load_config", lambda root: json.loads(
+        (Path(root) / "config.json").read_text()))
+    r = verification.check_extra_suite(groot)
+    assert r.status == "PASS", (r.status, r.note)
+    assert "FAILED" not in (r.note or ""), r.note
+
+
 def test_extra_suite_runs_at_suite_only(monkeypatch, tmp_path):
     groot = tmp_path / ".agi"
     groot.mkdir(parents=True)

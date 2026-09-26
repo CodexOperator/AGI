@@ -161,6 +161,24 @@ _PYTEST_COUNT_PATTERNS = (
 )
 
 
+_PYTEST_ID_PATTERN = re.compile(r"^(?:FAILED|ERROR)\s+(\S+)", re.M)
+
+
+def _suite_fail_ids(output: str) -> list[str]:
+    """Every failing test of a run, by pytest node id, in first-seen order.
+
+    A WINDOW of the output is not a report: the short summary of N failures
+    is N+ lines long, so a fixed tail budget drops the first ids and can leave
+    only a bare count (hypothesis:a-declared-suite-fail-names-its-failing-
+    tests-and-the-context-flake-is-named). Read the `FAILED <nodeid>` lines
+    pytest already writes instead of guessing a line count.
+    """
+    seen: dict = {}
+    for m in _PYTEST_ID_PATTERN.finditer(output):
+        seen.setdefault(m.group(1), None)
+    return list(seen)
+
+
 def _parse_pytest_counts(output: str) -> dict:
     """Counts from pytest's own FINAL summary line, in whatever order pytest
     emits them.
@@ -1521,15 +1539,22 @@ def check_extra_suite(groot: Path) -> CheckResult:
             notes.append(f"{root}: not a directory")
             ok = False
             continue
+        # -rf as well as -rs: `-q` alone prints NO short summary, so the
+        # FAILED <nodeid> lines the reader needs were never in the output to
+        # be parsed out of it.
         proc = subprocess.run([sys.executable, "-m", "pytest", str(root),
-                               "-q", "-rs"], capture_output=True, text=True,
+                               "-q", "-rs", "-rf"], capture_output=True, text=True,
                               timeout=SUITE_TIMEOUT, cwd=groot)
         out = (proc.stdout or "") + (proc.stderr or "")
         counts.update(_parse_pytest_counts(out))
         if proc.returncode:
             ok = False
-            notes.append(f"{root.name}: exit {proc.returncode}\n" +
-                         "\n".join(out.splitlines()[-10:]))
+            ids = _suite_fail_ids(out)
+            named = "\n".join(f"  FAILED {i}" for i in ids)
+            notes.append(
+                f"{root.name}: exit {proc.returncode}\n"
+                f"{named or '  (no FAILED node id in the output)'}\n"
+                + "\n".join(out.splitlines()[-10:]))
     return CheckResult(EXTRA_SUITE_CMD, "PASS" if ok else "FAIL",
                        time.monotonic() - start, counts or None, "\n".join(notes))
 
