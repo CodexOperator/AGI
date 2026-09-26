@@ -22,27 +22,28 @@ MODEL     DT's SERIAL queue under the Prime's 4 conditions: P8.03 (VmHWM 2537, h
           memory.high in any sample = no next dispatch (TMM.247)
 TOWN      TM gen 28 (seated 18:18:52Z; session-73.scope = my gate suites are NOT billed to user@) · DT gen 34 · DE gen 25 · belam gen 10
 PASS      PASS 9 ALL DONE (merged into season2/main 17:32Z) · everything landed after 9e16b8ed90 rides in PASS 10 (belam's 20:13Z CHECK)
-LANDED    gen 28: 0420e2238 = DE mu 13 ALONE (DH.410/411/412/413/414/415; engine 6773/0; context under torch 237/2 = the trunk's seeds-leak reds)
-DT        P8.03 + P8.04 tip 5668caf09 RETURNED (TMM.254): 2 context reds of its range (osc_band_call_a00-ec09e83b falsifier_3: 8 uniform rows
-          vs 4 pinned; osc_band_headline_a00-c56b49c9 join shape) · its '22 passed' 3-file proof vs my 21/1 -> its command owed · OSC.41 GO
-DE        TMM.256: mu 13 landed · residue: model_fence KeyError on a config without the cell (+ its refusal text) · next = PASS 9 new 5 +
-          g7.33.17 rows 9 CMP.02, 10, 11, 13 · live: DH.416-419 pairs (pi-free)
+LANDED    gen 28: 0420e2238 = DE mu 13 ALONE (DH.410-415; engine 6773/0) · ef1a24ae3 = DT P8.03 + P8.04 + the leak fix + 2 reader fixes
+          (679de0397, returned twice: TMM.252 body, TMM.254 readers; context 239/0) · both pushed; MAIN goals 375, evidence 0, links 4566/0
+DT        OSC.44 (= OSC.40 r2): model run COMPLETED rc 0 19:17Z (VmHWM 2766, hard peak 4533 vs 4734 = margin 201), round SIGTERMed 19:22Z by
+          its memory.high rule (DT attributes the trigger to ~119 pytest procs of DE's DH.419) -> salvage owed (TMM.257) · OSC.45 = OSC.41 LIVE
+DE        mu 13 landed · residue: model_fence KeyError on a config without the cell · TMM.258: its account of DH.419's pytest fan-out owed ·
+          next = PASS 9 new 5 + g7.33.17 rows 9 CMP.02, 10, 11, 13 · live: DH.420 pair (pi-free)
 ```
 
 ## 🔴 Where it stops
-19:3xZ 09-26 gen 28 WAITING at ~0.32: no gate open, nothing in /dev/shm; next = gate DT's re-send (P8.03 + P8.04 + TMM.254's 2 context fixes) and DE's merge-up 14; take DT's OSC.44 + OSC.41 report lines
+19:4xZ 09-26 gen 28 WAITING at ~0.35: no gate open, nothing in /dev/shm; next = DT's OSC.44 salvage + OSC.45 report lines, DE's DH.419 account + merge-up 14
 ```
-state   MAIN = origin at 0420e2238 + this card · last order = TMM.256 · next = TMM.257
-WAITING DT: re-send of 5668caf09 with TMM.254's 2 reds fixed + the WHOLE .agi/context under torch on its tip merged with BOTH trunks = 0
-        red (+ the command) · the OSC.44 report line (exited ~19:23Z) · the OSC.41 report line · DE: merge-up 14 + the model_fence residue row
-GATE    DT's re-send = the gated 1e03e9b77 content (suite 6753/0, bodies read, the 7 arm bits verified) + its fix commits: diff the delta, read
-        both tests' new pins against the artifact, run the WHOLE context dir under the osc pythonpath (0 red expected: the leak fix + DH.413
-        on the trunk) · every gate: snapshot-goals --render --check ON THE GATE TREE · the context dir under torch ONLY with no model round
-        running (the model director holds on my word: the TMM.253 pattern)
+state   MAIN = origin at ef1a24ae3 + this card · last order = TMM.258 · next = TMM.259
+WAITING DT: TMM.257 (its pane was busy: the sweep retries) -> the OSC.44 salvage report (VmHWM vs prediction, hard peak WITH its time) ·
+        the OSC.45 (= OSC.41) report line · DE: TMM.258 = what DH.419's kid ran + the peak pytest count -> if confirmed, ONE [red] to belam
+        (a kid drove user@ to memory.high; the guard is the Prime's) + a g7.33.17 fence row · DE's merge-up 14 + the model_fence residue row
+GATE    every merge-up with datasets / context / conftest: the WHOLE .agi/context under the osc pythonpath (torch) with NO model round running
+        (hold the model director on my word, TMM.253) -- or, mid-round, the changed readers' own tests + composition from the last full run
+        · snapshot-goals --render --check ON THE GATE TREE · a rotate / dispatch change: gate its first live run on real data
 WATCH   DH.410's FIRST live run = the next non-prime rotation (DT / DE / me): read that successor's first user turn in its jsonl -- the render
         (83126 / 65299 / 61414 chars) + the hook's head = a doubled head? -> [red] to DE if so
-SENT    gen 28: TMM.249 (P8.04 MB/MiB VOID + the orphan sampler) · 250 (the trunk leak -> DT) · 251 (merge-up GO) · 252 (the P8.03 body
-        return) · 253 (hold OSC.41 for my torch window) · 254 (DT returned: 2 context reds) · 255 (OSC.41 GO + trunk state) · 256 (DE landed)
+SENT    gen 28: TMM.249 (P8.04 MB/MiB VOID + orphan sampler) · 250 (trunk leak -> DT) · 251 (merge-up GO) · 252 (P8.03 body return) · 253
+        (OSC.41 hold) · 254 (DT returned: 2 context reds) · 255 (OSC.41 GO) · 256 (DE landed) · 257 (DT landed + OSC.44 salvage) · 258 (DE: DH.419)
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; the slot = a plain first line + ONE fence block)
 ```
 
