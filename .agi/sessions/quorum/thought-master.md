@@ -11,7 +11,7 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (07:5xZ 09-26, gen 24 -- the where-it-stops block below is newer than these lines)
+## Live state (08:1xZ 09-26, gen 25 -- the where-it-stops block below is newer than these lines)
 ```
 LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66) · 04:3xZ: 6 leases, all pi-free
 GUARD     the Prime's [decision] 04:29Z (owner's order after the 03:20Z livelock + 03:56Z power cycle): user@1000.service capped 5829M
@@ -19,40 +19,40 @@ GUARD     the Prime's [decision] 04:29Z (owner's order after the 03:20Z livelock
           town-wide, pi rounds only · a model-loading kid waits for the Prime's go on a quiet town (or the brain container, 8G, HTTP) ·
           memory_alarm (20680940c) WARN -> hold new dispatches · SUPERSEDES the 02:1xZ concurrency-up (30) · relayed to DT in TMM.202
           · GAP [red] 04:4xZ: TM + DT (the heal's 04:28Z respawns) run in session-73.scope, OUTSIDE the cap (3531 MiB there at 04:4xZ)
+          · gen 25 (a NORMAL rotate from gen 24's pane, 07:53Z) is in session-73.scope too: the scope rides the pane, a rotation does not fix it
 OWNER     (standing) co-own the director docs via write.py + ONE dm per live director · dispatch = ONE parent per round (--tier parent
           --role parent --ladder-tier 0, no --harness) · NEVER the Agent tool · mini-swarm trial = hypothesis:a-parent-swarm-splits-its-
           goal-before-it-mints-a-hypothesis (goal:g7.16)
-TOWN      TM gen 24 @2 (heal respawn 04:28Z; ack 9ab0cf576, ref 7788f1) · DT gen 33 @3 (04:28Z, ref 01ca37) · DE live @1 =
-          post-director-engine-aa [a250f9], but its ROW = gen 22 / @14 / dead pid 156760 ([red] to belam 04:4xZ) · belam gen 8 @0 · SM gen 4
-PASS      PASS 8 at 05:47Z 09-26, delta 08a9cf60f8 -> trunk -- what lands before it rides in it
-LANDED    gen 24: 9ddc0fe23 (DT ccbfa862e: swarm 2 OSC.36-38 + OSC.39; verdicts corrected TMM.201/202) · 78c55c208 (DE 13131e488c: DH.368 +
-          DH.369, goal:g6.49) · pushed f52f62a32..78c55c208 · board 3a68abd86 (row 4 guard) + 66ab83cea (rows 6 + 7) · gate = suite on HEAD+DT+DE
-          6520 passed / 1 failed = the TRUNK's (test_commands_manifest: memory_alarm.py unlisted, 20680940c -> [red] to belam 04:5xZ)
-DT        TMM.205 (landed; pane busy at send, the sweep retries) · pi pair (hook-trim, pi-compacts) = GO · every model-loading round +
-          the OSC.40 r2 / OSC.41 salvage HELD for the Prime's go on a quiet town
-DE        TMM.204 (landed + 2 residues as their own rounds: rename-rotation vs the cron log's live writers heal.py 247942 + rotate.py
-          247946; kid a00-2fa1fab0's 2 real claude sessions) · owed next by DE's card: DH.367 [merge-up] -> TMM.190 (DH.371) -> PASS 7
-          code rounds · DE's branch is 36 commits past 13131e488c
+TOWN      TM gen 25 @5 (rotate 07:53Z, session agi-54, pid 2233088) · DT gen 33 @3 · DE / belam / SM rows not re-read by gen 25
+PASS      PASS 8 CLOSED 07:3xZ 09-26 (0 RED; 28 accept_with_residue, 2 demote) -- what lands before PASS 9 rides in it
+LANDED    gen 24: 9ddc0fe23 · 78c55c208 · 2dd64167d · d26cca923 · gen 25: none yet (1/3 returned) · the trunk's standing red =
+          test_commands_manifest (memory_alarm.py unlisted, 20680940c; [red] to belam 04:5xZ) -- still red at 08:09Z
+DT        TMM.213 (08:1xZ): PASS 8 residues 1/3 RETURNED for 3 TEXT fixes (code + asserts verified live) · 2/3 (P8.01/02/04/05) running,
+          then 3/3 (P8.09a/09b/10) · every model-loading round + the OSC.40 r2 / OSC.41 salvage HELD for the Prime's go on a quiet town
+DE        TMM.212 (08:0xZ): 3 engine items routed from DT's 1/3 (cli.py done leaves foreign nodes uncommitted, cli.py:2224 · test_model_slot
+          :31-45 takes MAIN's REAL model flock, model_slot.py:24-26 · .agi/context = 127 collected / 18 modules ERROR, SUITE_CMD 'tests'
+          verification.py:78) -- each its own goal:g7.33.N round, AFTER its PASS 8 code-defect hypotheses
 ```
 
 ## 🔴 Where it stops
-07:5xZ 09-26 gen 24 ROTATING at 0.42 (the gate below will not fit under 0.47): DT's [merge-up] PASS 8 residues 1/3 = local tip 617d7cb65 -- GATE IT FIRST
+08:1xZ 09-26 gen 25: DT's PASS 8 residues 1/3 RETURNED (TMM.213, 3 text fixes) -- when DT's [merge-up] 1/3r arrives, gate it as a text-only DELTA against the gated tree b0acf5d1b
 ````
-07:5xZ 09-26 gen 24 ROTATING at 0.42 (the gate below will not fit under 0.47): DT's [merge-up] PASS 8 residues 1/3 = local tip 617d7cb65 -- GATE IT FIRST
+08:1xZ 09-26 gen 25: DT's PASS 8 residues 1/3 RETURNED (TMM.213, 3 text fixes) -- when DT's [merge-up] 1/3r arrives, gate it as a text-only DELTA against the gated tree b0acf5d1b
 ```
-state   MAIN = origin at fe873490a (+ the watch's commits) · last order sent = TMM.210 · next = TMM.211 · landings gen 24: 9ddc0fe23 · 78c55c208 ·
-        2dd64167d · d26cca923 · PASS 8 CLOSED 07:3xZ (0 RED); d26cca923 rides in PASS 9
-OWED    DT 07:52Z [merge-up] PASS 8 residues 1/3 (TMM.210) -> tip 617d7cb65, 16 files, 0 model loads: P8.03 band-byte-audit (duplicate-rows fix
-        in code + regression test; the 528-row artifact WAITS-FOR-MODEL) · P8.06 hook-trim ('no abort' conjunct -> xfail/UNMEASURED; twin
-        excluded in code) · P8.07 pi-compacts (ordering assert LIVE -- DT's parent mutation turns the suite red) · P8.08 band-headline-
-        reproducer (DT REJECTED the kid's claim re-word; verdict proved -> inconclusive_lean_proved:80) · DT carried every in-place node edit
-        by hand (cli.py done commits only a kid's OWN node -> an engine look for DE, route it)
-GATE    per row: the PASS 8 finding is gone in the bytes (hypothesis:pass8-0926-residue-batch "Research residues"; the full reviews at
-        .agi/sessions/workflows/runs/mur-p8chunk{1..15}of15/verify_<round>.json) · each test RUN and its load-bearing assert shown live
-        (a deliberate break turns it red) · evidence dry-run ON .agi · anonymize · links · goals · the claim text UNCHANGED vs HEAD on every
-        hypothesis (git diff the testable_claim lines) · fixtures sit outside the engine suite -> run them from an export, PYTHONPATH empty
-NEXT    after 1/3: 2/3 (P8.01/02/04/05) + 3/3 (P8.09a/09b/10) · route to DE: "correct in place is uncommittable by the kid" (cli.py done)
-        + test_model_slot.py:31-45 contends for the REAL box-wide flock + 18 .agi/context modules fail collection tree-wide (DT's PASS 9 notes)
+state   MAIN = origin at 3f7c6943e (+ the watch's commits) · last order sent = TMM.213 · next = TMM.214 · gen 25 landings: none
+GATED   1/3 @617d7cb65 on HEAD 3f7c6943e -> M 17508c59b = tree b0acf5d1b: suite (tmpfs) 6563 passed / 4 failed = the trunk's manifest red + 3
+        launch artifacts (pass alone: 5 passed) · range touches 0 engine files · fixtures from a neutral cwd, PYTHONPATH empty 42 passed /
+        4 xfailed + bytes test 5 passed (osc pythonpath) · 5 deliberate breaks each red, restored · 11-arm table re-derived from the source ·
+        testable_claim unchanged (2 hypotheses) · evidence (.agi) 0 · links 0 · goals 372 · anonymize ok · 0 THOUGHT-marker doubles
+RETURNED  fix 1 experiment:a00-00e0f92a-bc5cdc:19 title 'the claim row count corrected' (DT REJECTED that edit) + :29 + :100-101 rows ·
+        fix 2 experiment:a00-62d1cae8-a4c75e:20 title '6 fixed + 3 out-of-scope' vs its ledger 7 + 2 (and :79) · fix 3
+        experiment:a00-6cbe5da1-6824ca:94-101 'printed by the test' table != the test's output (col 9 status/note, a00-3a7f8962 truncated)
+GATE 1/3r T2 = merge-tree(live HEAD, new tip), read its exit status · diff(b0acf5d1b, T2) = the 3 fixed nodes + newcomer files byte-equal to
+        HEAD, nothing else · read each fix in the bytes · test_thought_hygiene + test_node_writer on T2 · links · goals · evidence on .agi ·
+        anonymize the delta · then L = commit-tree T2 -p HEAD -p tip; ff-only; push (print the ref line only) · board row if any
+        · if 2/3 rides in the same tip -> the FULL gate (suite on tmpfs + per-row breaks) for 2/3's rows
+NEXT    2/3 (P8.01/02/04/05) + 3/3 (P8.09a/09b/10): per row the PASS 8 finding gone in the bytes (verify_<round>.json in
+        runs/mur-p8chunk*of15/) · each test run + a deliberate break in a 2nd tmpfs worktree · claims unchanged · titles/tables = the ledger
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 ````
@@ -123,7 +123,10 @@ verdicts     read the CONTROL arms before any verdict: a result FLAT across bit 
              · a TAG is not a budget: compute bits() of the widths yourself (weighted mean width + 16 bits of scale per class over the pairs) -- the '7.75' known cell was [13,13,10,10] = 11.75 (TMM.150/151's premise, corrected in TMM.154)
 fixtures     an experiment's own _test.py: PYTHONPATH=/data/ml/.venv/lib/python3.12/site-packages:/data/ml/scratch/osc03/pylib python3 -m pytest
              <test> (= paths.local_maxxing.osc_test_pythonpath; numpy lives in the osc03 pylib -- the venv's own python has no numpy) · a model
-             swap between arms = check the model dir each bench row loaded ('hf'), not the label
+             swap between arms = check the model dir each bench row loaded ('hf'), not the label · the config cell holds {ml_venv_dir}
+             placeholders: a python read of it is NOT a path (gen 25's first run: numpy missing) · a deliberate break runs in a SECOND
+             detached tmpfs worktree of M (158 MiB): paths.get_local resolves inside that tree (brain_swap_out_dir = <wt>/datasets/...),
+             so a mutated log / node / script never touches the gate tree its suite reads; restore with git checkout, status clean
 residues     accept_with_residue ≠ land (unified-director-brief:32) · NEVER waive a mur residue -- the owner's 09-19 rule gives each its own
              corrective round (my TMM.108 slip, corrected in TMM.110) · a director may land on the trunk itself (DT gen 19, 06:0xZ): compare
              HEAD with the director's claimed trunk sha before gating; the docs forbid it (unified-director-brief:64/73) · a director's
@@ -180,6 +183,8 @@ bodies       a node landed for ONE fix still carries the loop's OTHER known erro
              evidence_runs fix (8732c4dc8e) after checking only the evidence -- its body still printed bits([w]) = w + 1 and a wrong 4-class
              formula -> PASS 7 DEMOTE (00:06Z 09-26) -> before landing ANY node on a loop, grep its body for that loop's corrected errors
              (here 'w + 1' / 'w+1') and check every printed formula by RUNNING the source (fixed.bits: [5,5,5,5]@32 = 6.0, [4]@64 = 4.125)
+             · a director's REJECTION lands in the ledger rows but not the kid's TITLE / Files-touched table (a00-00e0f92a, gen 25: title
+             'the claim row count corrected' after DT rejected it) -> read every new node's title + tables against its own ledger rows
 evidence     the grid cron's evidence gate (evidence_gate.enforce_on_disk) DEMOTES a proved / disproved verdict without a resolvable
              evidence_runs (a JSON list of existing type:slug ids) IN MAIN'S WORKING TREE, uncommitted, 'caught at grid commit' -> gate
              every landing's range with it: my ae2276a95c carried a00-325d4c56-bedcc8 = disproved with no evidence_runs (22:4xZ)
