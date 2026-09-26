@@ -2253,8 +2253,37 @@ def _seat_sessions(registry_dir: str | None = None,
     return out
 
 
+def _is_seat_current(row: dict, s: dict) -> bool:
+    """True iff the seat ROW still names this registry session as the seat's
+    current one — the row's own `session_id`, or its `pid`, or its `window`
+    (the identity cells a rotation writes). Blank cells name nothing, so a row
+    with no identity claims no session: the falsifier that keeps STALE-PIN from
+    becoming a blanket amnesty (an orphaned live session whose pid is not the
+    row's is still REAP)."""
+    sid = (s.get("session_id") or "").strip()
+    pid = s.get("pid")
+    wid = (s.get("window_id") or "").strip()
+    if not sid and not pid and not wid:
+        return False
+    return ((sid and sid == str(row.get("session_id") or "").strip())
+            or (pid and str(row.get("pid") or "").strip() == str(pid))
+            or (wid and wid == str(row.get("window") or "").strip()))
+
+
+def _is_alive(s: dict, pid_is_alive) -> bool:
+    """ALIVE through the injected liveness seam; FAIL CLOSED (a missing pid or
+    a seam that raises is NOT alive, so it never grounds a STALE-PIN)."""
+    pid = s.get("pid")
+    if not pid:
+        return False
+    try:
+        return bool(pid_is_alive(int(pid)))
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def _judge_leases(pins: dict, sessions: list, rows: list, root: Path,
-                  now: float | None = None) -> list[dict]:
+                  now: float | None = None, pid_alive=None) -> list[dict]:
     """(1c) THE JUDGEMENT — per seat session exactly ONE of:
       KEEP          its sessionId is pinned (a live lease),
       PROTECTED     row `protected: true` (READ the cell, absent = not),
@@ -2266,14 +2295,22 @@ def _judge_leases(pins: dict, sessions: list, rows: list, root: Path,
                     idle predecessor windows are never closed holds BY
                     CONSTRUCTION until the pin SHIFT (a rotate.py round)
                     exists,
+      STALE-PIN     the row still names THIS session as its current one
+                    (`session_id` / `pid` / `window` cell) and its pid is
+                    ALIVE, but no pin names it: a STALE pin, not a lease to
+                    end. NON-ARMING (only `REAP` arms, by construction),
+                    reason `stale pin for the seat's current session`,
       REAP          a plain-seat session no pin names.
-    Verdict order is KEEP > PROTECTED > IN-FLIGHT > BELAM-UNPINNED > REAP.
+    Verdict order is KEEP > PROTECTED > IN-FLIGHT > BELAM-UNPINNED >
+    STALE-PIN > REAP. `pid_alive` is the same liveness seam `_pin_reap_pass`
+    injects (default `_pid_alive`).
     Only sessions whose window name matches a seat row or carries the belam
     row's name as a prefix are judged at all (clause 4); the rest fall out of
     the table. Returns `[{pid, session_id, window_id, window_name, seat,
     verdict, reason}]`."""
     import rotate as _rotate  # noqa: PLC0415
     now = now if now is not None else time.time()
+    pid_is_alive = pid_alive or _pid_alive
     by_name: dict[str, dict] = {}
     belam_row = None
     belam_name = ""
@@ -2315,6 +2352,9 @@ def _judge_leases(pins: dict, sessions: list, rows: list, root: Path,
         elif belam_pref and not pred_complete:
             verdict = "BELAM-UNPINNED"
             reason = "no predecessor-pin table yet"
+        elif _is_seat_current(row, s) and _is_alive(s, pid_is_alive):
+            verdict = "STALE-PIN"
+            reason = "stale pin for the seat's current session"
         else:
             verdict = "REAP"
         res.append({"pid": s.get("pid"), "session_id": sid,
@@ -2400,14 +2440,15 @@ def _pin_reap_pass(root: Path, *, registry_dir: str | None = None,
     pins, _skipped = _pin_table(root, rows)
     sessions = _seat_sessions(registry_dir, windows)
     judged = _judge_leases(pins, sessions, rows, root,
-                           now=now if now is not None else time.time())
+                           now=now if now is not None else time.time(),
+                           pid_alive=pid_alive)
     counts: dict[str, int] = {}
     for j in judged:
         counts[j["verdict"]] = counts.get(j["verdict"], 0) + 1
     _watch_log("watch: pin-reap pass: "
                + ", ".join(f"{v}={counts.get(v, 0)}"
                            for v in ("KEEP", "PROTECTED", "IN-FLIGHT",
-                                     "BELAM-UNPINNED", "REAP")
+                                     "BELAM-UNPINNED", "STALE-PIN", "REAP")
                            if counts.get(v)))
     if mode is None:
         mode = _pin_reap_mode(root)
