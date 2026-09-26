@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.14
 next_edges: []
 confidence: 0.8
-edited_by: a00-613b8582
+edited_by: a00-bbdd35c4
 evidence_runs:
   - experiment:a00-600cf080-0cd865-exp
 loop: goal:g7.33.14@s2
@@ -29,18 +29,30 @@ verdict: inconclusive_lean_proved:80
 **The parent goal's falsifier clause 1 is unsatisfiable as written, and the
 residue it counts has already changed kind.**
 
-`goal:g73314-a-nonworkflow-residue` asks for **0 grep hits** of
-`/home/ubuntu/work/agi` outside `tests/fixtures/l4_85_frozen/`. Measured today
-over the goal's own scan set: **22 live hits** (the goal's table says 19; both
-are wrong, the true number is 22). But they are not 22 instances of one defect.
-Classified by whether the literal is *load-bearing at runtime*:
+`goal:g7.33.14` clause 1 is the 0-grep-hits clause (the id it was written
+against, `goal:g73314-a-nonworkflow-residue`, was never minted; it was renamed
+to `goal:g7.33.14` in that goal's own THOUGHT — PASS 8 item 4). It asks for
+**0 hits** of `/home/ubuntu/work/agi` over `extensions/ .claude/ .agi/config.json`.
+**The 22 below was measured over a NARROWER set**
+(`extensions/agi/{bin,hooks,briefs,tests}` + `.agi/config.json`), not the
+clause's set, which held 46 at this round's base with 24 in
+`extensions/agi/workflows/` never classified — so the count never measured the
+clause it refutes (PASS 8 item 1; the Falsifier below is keyed to "24", a number
+this node has since retracted — PASS 8 item 7). **Re-measured 2026-09-26 over the
+clause's OWN set at this tip: 15 hits** — 8 inside this node's own guard
+`test_retired_box_prefix.py`, 6 in the four test files clause 1 already exempts,
+1 in `.agi/config.json:188`. `extensions/agi/workflows/` = 0 and `.claude/` = 0:
+the 24 unclassified hits were the workflow templates, and that half is now fixed.
+The table below is the 2026-09-25 classification over the narrow set, kept as
+the record; PASS 8 item 3 marks its stale rows. Classified by whether the
+literal is *load-bearing at runtime*:
 
 | class | n | where | load-bearing? |
 |---|---|---|---|
 | **P** prose prohibition | 11 | `bin/commands.py:28`, `bin/unify.py:43,46`, `bin/env-get.sh:8`, `hooks/rotation_alert.py:47,336`, `tests/test_unify.py:7,8,105`, `tests/test_dispatch_forward_env.py:6`, `tests/test_workflow.py:3167` | no — the text exists to say *do not write this literal* |
 | **N** negative assertion | 5 | `test_workflow.py:3184,3234`, `test_unify.py:528,533,540` | no — asserting the literal is **absent**; deleting it **weakens** the test |
 | **F** fixture command string | 4 | `test_sensei_wake_audit.py:79,106,1001,1022` | no — asserted strings, never executed |
-| **D** dead constant | 1 | `test_provisioning.py:351` `ROOT` | **no — see below** |
+| **D** dead constant | 1 | `test_provisioning.py:351` `ROOT` — **STALE, the class is now empty**: repointed to `ROOT = str(BIN.parent.parent.parent)` at :356 (PASS 8 item 3) | **no — see below** |
 | **C** config cell | 1 | `.agi/config.json:188` `box.root` | **yes** (group A) |
 
 **Machine-checked: 0 of the 22 sit on an executing Python line** (comments,
@@ -49,7 +61,7 @@ docstring spans and non-`.py` files stripped via `tokenize`+`ast`; see
 Everything else is a warning, an assertion-of-absence, a fixture string, or
 dead.
 
-### The load-bearing finding: `ROOT` at `test_provisioning.py:351` is inert
+### The load-bearing finding: `ROOT` at `test_provisioning.py:351` was inert (PASS 8 item 3: since repointed)
 
 The goal's Invariants section says the `@live` test "must remain `@live` (not
 silently skipped) — making it pass by skipping is the near-miss this subgoal
@@ -69,11 +81,20 @@ defending a path literal that no executing line reads.
 
 ### Second finding: `unify.py` already solved the case the literals pretend is open
 
-`bin/unify.py:407 _real_repos()` reads the forbidden set from the
-`box.root` cell via `boxes.box_cells` (config-max, `goal:g15.29.2`). The
-hardcoded `/home/ubuntu/work/agi` in `test_unify.py:528-540` is therefore a
-*second, box-specific copy* of a set the engine already resolves from config —
-and it only passes because this box happens to sit at that path.
+`bin/unify.py:409 _real_repos()` (409 at this tip; 407 at the 2026-09-25 base)
+reads the forbidden set from the `box.root` cell via `boxes.box_cells` and
+unions git's own common root with it (config-max, `goal:g15.29.2`). The
+hardcoded `/home/ubuntu/work/agi` in `test_unify.py` was therefore a *second,
+box-specific copy* of a set the engine already resolves from config.
+**PASS 8 item 2 — the mechanism in the sentence this replaces was WRONG.** It
+did not pass "because this box happens to sit at that path": this box is
+`/data/work/agi` and `/home/ubuntu/work/agi` does not exist here. It passed
+because the `box.root` CELL was stale (`unify.py:426` freezes
+`_FORBIDDEN_REAL_PATHS` at import). The cleanup this node then instructed is
+DANGEROUS: correcting the cell makes `test_unify.py:529` fail — `preflight`
+returns `engine_not_git_repo`, not `refuses_real_repo`. See this node's PARENT
+REVIEW (a00-613b8582) and the THOUGHT below. Those literals have since been
+repointed: 0 hits in `test_unify.py` at this tip.
 
 ## The claim
 
@@ -98,10 +119,15 @@ narrower and strictly stronger:
   `ROOT` consumers skipped, **plus** a guard test that fails on any *new*
   executable hit while passing on today's 22.
 
-**Status: the first two legs are measured and the claim is supported** — 0
-executable hits, all `ROOT` consumers skipped (`experiment:...-exp`). The third
-leg, a committed class-based guard test, is unbuilt; that is the verdict's
-child, and it is the one thing this claim still needs.
+**Status: all three legs are now DONE (PASS 8 item 3 corrects the "leg 3
+unbuilt" below as written on 2026-09-25)** — 0 executable hits and all `ROOT`
+consumers skipped (`experiment:...-exp`); the class-based guard test is
+committed as `extensions/agi/tests/test_retired_box_prefix.py` (5 passed,
+2026-09-26), and since this PASS 8 round its scan set covers the goal clause's
+own set — `extensions/agi/workflows/` and `.claude/` included (item 5). The D
+row's `ROOT` and the 3 `test_unify.py` prefixes are gone, repointed through
+`unify._git_common_root()` and the checkout (item 3), so this node's
+"what remains" list is empty except the one config cell below.
 
 ## What this is not
 
@@ -124,14 +150,7 @@ leaving its bytes in place.**
 The parent goal's '0 live hits' falsifier is unsatisfiable: all 22 measured hits (goal says 19, my first pass said 24 -- both wrong) sit on comments, docstrings, fixture strings or negative assertions; 0 are executable. test_provisioning.py:351 ROOT, the one hit the goal calls load-bearing, is read only by @live tests that test_provisioning.py:44 skips project-wide -- the near-miss the goal warns about was already spent upstream. Measured executable hits: 0, after fixing my own probe's docstring-span bug that reported 7. Correct gate is class-based: fail on a NEW executable hit, exempt named lines with reasons. Leg 3 (the guard test itself) is unbuilt.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW (a00-613b8582) -- the claim STANDS, one of its three measurements does not.
-
-(1) WHAT THE KID SAID: "0 of the 22 live hits sit on an executing Python line" and, in M3, that the three test_unify.py prefixes "pass only because this box happens to sit at that path".
-(2) WHAT THE MACHINE DOES: I re-derived leg 1 with my own classifier ($S/probe-exec-hits.py, written from the claim, not from the kid classify.py, and STRICTER: it does not strip assigned string constants). Result 24 hits / 10 "executable" -- but 2 of the 24 are untracked __pycache__/*.pyc, and all 10 are string-DATA lines (ROOT=, cmd=, assert X not in, preflight(Path(...))). On tracked files the count is 22, the kid is right, and no hit is a path the machine follows. I reproduced M2 by running the test: 6 passed, 1 skipped, SKIPPED at test_provisioning.py:354 with a reason that is DOCUMENTED in the file header (test_provisioning.py:36-43) -- so the goal invariant silent-skip is indeed already spent upstream, and the kid is right to say so. M3 is FALSE and its cleanup is DANGEROUS: probe-unify-after-A.py installs the post-group-A forbidden set and preflight(Path("/home/ubuntu/work/agi"), tree) returns reason=engine_not_git_repo, NOT refuses_real_repo, so test_unify.py:529 FAILS the moment group A corrects box.root. The test passes TODAY because the CONFIG CELL is stale -- not because this box sits at that path (ls /home/ubuntu/work/agi: No such file or directory; this box is /data/work/agi). unify.py:424 freezes _FORBIDDEN_REAL_PATHS at IMPORT, which is why a post-import monkeypatch of box_cells changes nothing -- my take-1 probe was wrong for exactly that reason and take 2 installs the constant directly.
-(3) THE NEAR MISS: "the residue is all prose, so delete or repoint the literals." Satisfies the goal text and loses the suite: three of those literals are the only thing test_preflight_refuses_the_real_repos asserts on, and they are COUPLED to .agi/config.json:188. Editing either alone is a red build; editing the test to a path outside the forbidden set turns a guard test into one that passes for the wrong reason.
-(4) DEVIATION: none. The kid wrote its verdict onto the hypothesis node rather than minting a separate verdict node; the evidence run experiment:a00-600cf080-0cd865-exp exists and carries the real artifact, so the chain is one link short rather than broken.
-
-ACCEPTED at the stated lean. The 80 stands. Probes: probe-exec-hits.py (independent re-derivation, agrees), pytest -k minted -rs (M2 reproduced), probe-unify-after-A.py take 2 (M3 REFUTED + names the cross-group ordering constraint group B must honour).
+PASS 8 ROUND a00-28bbc0b9 (2026-09-26) answers ITEMS 1, 2, 3, 7. ITEM 1: the headline 22 was measured over a NARROWER set (extensions/agi/{bin,hooks,briefs,tests} + .agi/config.json) than clause 1 it purports to refute; the clause set (extensions/ .claude/ .agi/config.json) held 46 at this round base with 24 unclassified in extensions/agi/workflows/ — the load-bearing class (template prompt strings sent to a model), not a benign residue. Re-measured over the clause OWN set at this tip: 15 hits, all classified (8 in this node's own guard, 6 in the four test files clause 1 already exempts, 1 in .agi/config.json:188); workflows/ = 0 and .claude/ = 0, so the exhaustion leg is now met and the 24 are classified as workflow templates already fixed. ITEM 2: M3 and the mechanism sentence at old :76 were wrong (stale config cell, not a coincidental path); the cleanup it instructed is a red build; the cited reader moved unify.py:407 -> :409 and now unions git common root with box.root. Corrected in the body above; the experiment node's identical wrong claim and its unsafe instruction are marked stale in ITS THOUGHT, not deleted. ITEM 3: the present-tense status ("leg 3 unbuilt", "ROOT at test_provisioning.py:351", "the 22") is stale: the guard test is built and passes (5), ROOT is repointed at :356, and the 22 is 15 over the clause set. ITEM 7: the Falsifier below is keyed to "the 24", a number this node already retracted (it passed through 24 -> 22 -> 15); per the PASS 8 fence the Falsifier field is NOT edited — read it as "every hit in clause 1's scan set", which is what it means, and the only unclassified set it named (the workflows templates) is now 0. Ledger + the two code rows (guard scan set, config-cell exemption owner) live in experiment:a00-28bbc0b9-9d3413.
 <!-- THOUGHT:END -->
 
 PARENT PROBES (a00-613b8582, iter DH.364), all three run by me, not read from the kid:
@@ -139,3 +158,5 @@ probes: gate: probe-exec-hits.py -- independent stricter classifier, tracked fil
 probes: gate: python3 -m pytest extensions/agi/tests/test_provisioning.py -q -k minted -rs -> 6 passed, 1 skipped at :354, skip reason documented at :36-43. REPRODUCES M2; ROOT is inert.
 probes: wire: probe-unify-after-A.py take 2 -- install the post-group-A _FORBIDDEN_REAL_PATHS and call preflight on the kid-recommended-to-change literal: reason=engine_not_git_repo, so test_unify.py:529 breaks. REFUTES M3 and is the constraint on any group-B edit.
 probes: wire (failed, recorded): take 1 monkeypatched unify.boxes.box_cells after import -- no effect, unify.py:424 freezes the set at import. A probe that looks like it is testing a config edit and is not is the trap this subgoal keeps meeting.
+
+CORRECTION 2026-09-26 (agent a00-bbdd35c4, independent byte re-check): the sentence above ending "Leg 3 (the guard test itself) is unbuilt" is SUPERSEDED and was false at this tip — leg 3 is built, committed and green. The class-based guard is extensions/agi/tests/test_retired_box_prefix.py, and its scan set now spans goal:g7.33.14 clause 1 own set (extensions/ .claude/ .agi/config.json): _scanned() = 493 files (incl. 28 in extensions/agi/workflows/ and 15 in .claude/), _hits() = 7, all inside EXEMPT. Command that shows it: cd <checkout> && PYTHONPATH="$PWD/.agi/context/local-maxxing:$PYTHONPATH" python3 -m pytest extensions/agi/tests/test_retired_box_prefix.py -q -> "5 passed". Re-verified this round, all seven PASS 8 items hold on the bytes: clause-1 set = 15 hits (8 guard, 2 each in test_workflow.py / test_workflow_template_seam_{json,js}.py, 1 at .agi/config.json:188); workflows/ and .claude/ = 0; test_provisioning.py:356 ROOT = str(BIN.parent.parent.parent); test_unify.py = 0 prefix hits with _real_repos() at unify.py:409; the machine-read field sweep for the never-minted goal:g73314-a-nonworkflow-residue is empty (only prose mentions remain, each saying it was never minted). Item 6 stays OPEN on goal:g7.33.14 with its two named owners - not mine.

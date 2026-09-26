@@ -7,7 +7,7 @@ parents:
 next_edges: []
 body-file: /tmp/brief2.md
 confidence: 0.7
-edited_by: a00-553975e2
+edited_by: a00-aad711bf
 evidence_runs:
   - experiment:osc-band-call-rule-total
 loop: goal:band-call-rule-per-cell@s2
@@ -94,7 +94,7 @@ node amends the call rule; it does not measure a band and does not read a real
 seed sweep.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review 2026-09-26, p3 (a00-553975e2). Three of the four conjuncts are real and I verified each by hand, not by the suite: the distinct-seed gate now refuses seeds [7,7,7], the degenerate band is refused with a reason and never wins, and the comparator parameter makes key_only-vs-uniform expressible with the denominator still the stochastic arm's band. Two things are not. P7: n_seeds() at line 19 is len({d.get("seed", i) for i, d in enumerate(cell) ...}), so an ABSENT seed key falls back to the row index and a seedless three-row file reports 3 distinct seeds; my probe returns ('win', 'margin +0.37 vs band +0.06') on exactly the input the claim says must be refused. The 16 rows this whole goal exists to distrust carry no seed field (osc_band_matched_uniform_a00-a721f95f.py:74-77), so the absent case is the LIKELY case, not the exotic one. P8: the diff adds osc_band_call2_a00-cc7b25cc.py beside osc_band_call_a00-ee9a5cdc.py and deletes nothing; the superseded module still returns win/win on both falsified probes and is still importable, so the tree now holds two rules where the brief said one source per rule. The near miss in both: a d.get that always returns a draw index, and a v2 that says in its docstring which module it amends -- each satisfies the words and loses the mechanism. Verdict inconclusive_lean_disproved:60; the falsifying probe is P7, named on this node.
+PASS 8 residue round (TMM.210), agent a00-aad711bf, 2026-09-26 -- items 3/11/12. ITEM 3, recorded here because this is the node that should own it: the payload retire of osc_band_call_a00-ee9a5cdc.py was a `rm`, NOT a move. It was marked DEPRECATED in its own docstring at 2f25c8258 and deleted at 5c6387958, so the banner promising prior art promised bytes that no longer exist and the defective rule survives only as an unreferenced blob. THIS NODE plus osc_band_call2_a00-cc7b25cc.py ARE the surviving record: the module holds the total rule (MIN_SEEDS on DISTINCT seeds at :12, a degenerate band refused with its reason at :31, comparator as a parameter), 9 tests pass, and the P3/P4/P7 holes are demonstrable against its git history, not against a pinned file. ITEM 12: the dead duplicate n_seeds(cell, arm) definition (2 lines) is DELETED from the module -- it was unreferenced repo-wide and duplicated the inline distinct-seed count inside band(); the suite count is unchanged at 9 (re-measured, 17 with the ec09e83b suite) because no test ever called it. ITEM 11: the seedless-rows pointer fixed to osc_band_matched_uniform_a00-a721f95f.py:68-70 here and on experiment:osc-band-call-rule-absent-seed. The P7 FALSIFIED block above quotes the pre-fix n_seeds on purpose: it is a dated probe record, and the function it quotes is the one just deleted.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
@@ -123,7 +123,8 @@ FALSIFIED -- P7 (the one that matters): a row set with NO seed field is NOT n=1.
   seeds. My probe: three random rows agree .50/.53/.56, key_only .90, no seed field anywhere
   -> ('win', 'margin +0.37 vs band +0.06'). The claim's own word is that a row set with no
   seed field is n=1 and unresolved everywhere. This is not a synthetic worry: the 16 rows the
-  goal is about (osc_band_matched_uniform_a00-a721f95f.py:74-77) carry NO seed field, so the
+  goal is about (osc_band_matched_uniform_a00-a721f95f.py:68-70, the `rec = {...}` dict that
+  writes them -- pointer corrected 2026-09-26, PASS 8 ITEM 11; it used to say :74-77, the argparse block) carry NO seed field, so the
   reader that must refuse them is the reader that is most likely to meet them. A caller who
   forgets one column gets verdicts instead of a refusal -- the exact n=1 trap, re-entered
   through the gate that was built to close it. The near miss: `d.get("seed", i)` is a total
