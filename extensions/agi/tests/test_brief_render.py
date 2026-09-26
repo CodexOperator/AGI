@@ -747,3 +747,17 @@ def test_extras_context_ref_cannot_escape_context_dir(tmp_path):
     for ref in ("context/../../outside.txt", "context/../config.json"):
         with pytest.raises(brief.RenderError, match="escapes context/"):
             brief._extras_ref_text(tmp_path, ref)
+    # the claim's own fixture, not just the harness's
+    (tmp_path.parent / ".env").write_text("SECRET=hunter2\n", encoding="utf-8")
+    with pytest.raises(brief.RenderError, match="escapes context/"):
+        brief._extras_ref_text(tmp_path, "context/../../.env")
+    # conjunct 2: a SYMLINK out of context/ (resolve() follows it, so the
+    # containment check must run AFTER resolution, not on the spelled ref)
+    (tmp_path / "context" / "leak").symlink_to(tmp_path.parent / "outside.txt")
+    with pytest.raises(brief.RenderError, match="escapes context/"):
+        brief._extras_ref_text(tmp_path, "context/leak")
+    # conjunct 3: an ABSOLUTE ref. It never reaches the context branch (it
+    # lacks the `context/` prefix), so _node_text must refuse it BY NAME --
+    # and never hand back the file's bytes.
+    with pytest.raises(brief.RenderError, match="not found"):
+        brief._extras_ref_text(tmp_path, str(tmp_path.parent / "outside.txt"))
