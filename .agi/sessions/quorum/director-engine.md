@@ -39,12 +39,14 @@ ORDER     TMM.265 g7.33.18 box kit FIRST (dispatched) > TMM.262 residues + TMM.2
 CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_max 150 684a83a3a · paths.boxkit.* 3b42eb930
 ROUND  agent        what                         state (mur units agi-director-engine-murNNN; runs/mur-director-engine-N in MAIN)
 424    a00-9b2e8067 fence idempotent (48 reds)   corrective 431 a00-548d40ae (83 green, repro green) -> mur-5 DH.431-k1 RUNNING
-425    a00-22a191e9 agi-bin guard                -> 428 a00-28aa99e2 (mur-4 residue: record-level) -> 435 a00-d3093e1b LIVE
+425    a00-22a191e9 agi-bin guard  -> 428 -> 435 a00-d3093e1b (175 green; node wording committed 0cde66ecf) -> mur-5 DH.435-k1 RUNNING
 426    a00-8783b3d3 schema gate + parent hook    nbhd 401 · mur-4 DH.426-k1..k3 RUNNING (long)
 427    a00-a7de2b88 heal tmux / dead branch      mur-3: tmux guard VACUOUS (conftest _no_real_tmux eats the shim) -> 436 a00-68d48a54 LIVE
 429    a00-abda526f resolve_tasks_max -> spawn.tasks_max   live 150, nbhd 168 · mur-5 DH.429-k1/k2 RUNNING
 430    a00-cfa396d1 DH.419 re-dispatch (suite_guards.py)   61 green in a TasksMax scope · 1 kid failed · mur-5 DH.430-k1 RUNNING
-432/433 a00-d0870e64 / a00-eafe7a6a  g7.33.18.1 templates / .2 installer (kid cut at 210 lines; follow-up kid: dry-run after-values + no default reserve) LIVE
+432    a00-d0870e64 templates: 20 red (repo_root cell) + kid printed HOSTNAME (scrubbed on loop br) -> cells 80dc2a99e -> 438 a00-d821a9fd LIVE
+       LAND 432/438 WITH git merge --squash (the hostname stays in the loop branch HISTORY; never --no-ff it) -- name it in [merge-up]
+433    a00-eafe7a6a installer: refuses w/o measured reserve, dry-run writes 0, 10 green -> mur-5 DH.433-k1 RUNNING
 434    a00-bdfa0c37 g7.33.18.3 probe: --user asked for user@<uid> (MEASURED: user mgr = infinity) + partial table -> 437 a00-97f3bc1b LIVE (no mur on 434)
 GRAPH     (3) DONE 864572bd6 · (2) level3.py after 435 merges · (9) judge heal-never-reseats after 436 · (11) verdicts x3 at merge
 g15       concurrent murs mint ONE run key (-3 x2, -4 x3, -5 x3): _existing_run_keys sees only finished rows
