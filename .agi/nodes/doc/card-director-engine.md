@@ -45,12 +45,12 @@ CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_ma
 429    -> 443 a00-169a5424 REBUILT standalone (live 150, both guards) -> mur-6 DH.443-k1 RUNNING; LAND: merge 429 (nodes) THEN 443 (-X theirs)
 430    -> 440 a00-c8389b84 (incl 430+431; ONE guard home, 0 dups; 229 green + repro) -> mur-6 DH.440-k1/k2 RUNNING
 432    SUPERSEDED (host in history) -> 438 -> 446 a00-20d4ab3d (cut from 438; 0/24 fixtures==tmpl, 177 green) -> mur-7 DONE:
-       accept_with_residue (sibling node a00-f787eff3 false; new_bytes 2 meanings; config_max YES) -> 451 a00-5712dd56 LIVE, cut from 446
+       accept_with_residue (sibling node a00-f787eff3 false; new_bytes 2 meanings; config_max YES) -> 451 a00-5712dd56 HARVESTED (proved; kid's sibling-node fix was UNCOMMITTED -> I committed it on the loop br 79bdb3490; 177 green) -> mur-8 DH.451-k1 RUNNING
 433    -> 444 -> 447 a00-7ba0cad2 (cut from 444; 19 green) -> mur-7 RUNNING; OPEN after 438/446 land: templates_dir is
        repo-relative + unresolved -> load_manifest traceback: resolve vs the repo root + refuse a missing manifest by name
 434    SUPERSEDED -> 437 -> 439 (mur-6 residue: mem_cap path WRITES cache; neg reserve=info; literals) -> 450 a00-f0f1a8b1 HARVESTED (proved; 34 green on loop br) -> mur-8 DH.450-k1 RUNNING (unit agi-director-engine-mur450)
        BOX DRIFT (for TM, not ours to fix): OOMPolicy unset on streamer-stub-watch.service · agi.slice drop-in FILE absent
-g15       concurrent murs mint ONE run key (-3 x2, -4 x3, -5 x3): _existing_run_keys sees only finished rows
+g15       concurrent murs mint ONE run key (-3 x2, -4 x3, -5 x3, -8 x2: 450+451): _existing_run_keys sees only finished rows
 g15       "merge the loop branch first" is NOT reliable: kids are forbidden git and get an EMPTY .git (no refs); 437/438/442/443
           did not merge (442 then built nothing useful). FIX: cut correctives FROM the loop branch: git worktree add <tmp> <loop br>,
           run dispatch.py there (it cuts from the spawner's branch); --allow-stale-base with the reason if it refuses
@@ -64,13 +64,13 @@ CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT
 
 ## 🔴 WHERE IT STOPS (rotated at f=0.43; capture chain rc=1 = g7.33.15; every round below survives rotation)
 ```
-FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur440 mur443 mur445 mur447 mur448 mur450 (mur446 DONE, above)
+FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur440 mur443 mur445 mur447 mur448 mur450 mur451 (mur446 DONE, above)
        mur446 (+ whatever finished). Verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{5,6,7,8}/verify_DH.4NN-kN.json
-       parents live: 449 a00-35a98fab · 451 a00-5712dd56
-THEN   harvest 449/451 as they land (each cut FROM its chain branch: diff vs that branch; tests; commit stray node edits there)
+       parents live: 449 a00-35a98fab
+THEN   harvest 449 when it lands (each cut FROM its chain branch: diff vs that branch; tests; commit stray node edits there)
 PATTERN corrective = dispatch FROM the loop branch's worktree (kids cannot merge); a clean mur = git merge --no-ff <final branch>
        LAND ORDER per chain: 425: 441 then 448 (+441's node commit) · 426: 445 (NEVER 442) · 427: 436 then 449 · 429: merge 429 (nodes) then 443
-       -X theirs · 430: 440 · 432: 438 then 446 then 451 (NEVER 432) · 433: 444 then 447 · 434: 439 then 450 (NEVER 434)
+       -X theirs · 430: 440 · 432: 438 then 446 then 451 @79bdb3490 (NEVER 432) · 433: 444 then 447 · 434: 439 then 450 (NEVER 434)
 THEN   graph acts (2) level3.py build:tests-test-agi-bin-absent · (9)(11) verdicts · full suite + ctx -> ONE [merge-up] 14+15 + g7.33.18
        (name: 442 discarded, stale-base overrides, the g15 lines, the 2 BOX DRIFTs, my stale 21:2xZ dm)
 ```
