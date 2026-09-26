@@ -32,9 +32,20 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ```
 
 ## 🔴 Where it stops
-20:3xZ 09-26: merge-up 14 RETURNED to DE (TMM.262, 11 verified mur residues); idle until a [merge-up] (DE's re-delivery, DT's model_slot lift) or a blocker; MODEL-LOADING ROUNDS HELD
+21:5xZ 09-26: the OWNER's other-box ask in flight (goal:g7.33.18) -- waiting on sanctuary's audit reply + DE's kit round; mu 14 RETURNED (TMM.262); MODEL-LOADING ROUNDS HELD
 ```
-state   MAIN = origin + this card · last order = TMM.262 (DE) · next = TMM.263 · UP sent 20:3xZ: [decision] spawn.memory_max 3G + mu 14 returned
+state   MAIN = origin + this card · last order = TMM.266 · next = TMM.267 · spawn.memory_max = 2G (f28493d5b: the OWNER's number via the Prime's
+        [decision] 20:13Z to DE; my 3G 10925dba7 VOID -- [decision] VOID line sent to belam)
+OWNER   20:4xZ (via belam 21:28:58Z), verbatim in goal:g7.33.18's mint THOUGHT: "Yeah sanctuary master may be not fully set up properly. Can we
+        have thought master make sure the other box is fully set up with all the proper updated memory watch fixes." -> ONE line to the Prime
+        when it holds
+OTHERBOX local-town has NO route to encryption-town (~/.ssh = authorized_keys + known_hosts only; ssh encryption-town / sanctuary rc 255) ->
+        (a) goal:g7.33.18 minted (aadf7979c): the kit spec = local-town's measured layer table + SIZING + acceptance on BOTH boxes · TMM.265 =
+        dispatch now to DE (fences: never run the installer for real here, dry-run + tmp root; anonymize the copied bytes) · (b) the audit (10
+        items, read-only) -> SendMessage 'sanctuary' 21:5xZ (msg da8604b5, Remote Control: unconfirmed, may await its user's approval) +
+        TMM.266 dm to sanctuary-master · NEXT on its reply: size user@ (MemTotal - budgets outside user@ - 2 GiB; High = 0.9 x Max; SwapMax =
+        0.5 x swap) + agi.slice (0.63 / 0.70 x user@ Max) -> send the values; it applies with before-values; its re-audit = the read-back
+        · silent > 1 h -> ask the Prime which route reaches that seat (the stream moved there: never ListAgents while it is live)
 RETURN  mu 14 (a65a283a7) = DH.416-418 accept_with_residue x3 (mur-director-engine-2, verify_*.json read): 416 (1) guard narrower than S1
         (2) stale BUILD-CONTRACT (3) kid-1 overclaim · 417 (4) CONFIG-MAX cli.py:2123 literal vs locations.schemas_root (5) silent exit-0
         no-commit (6) bracketed + broken-neighbour tests (7) parent tier unbound (pre-commit:98) · 418 (8) a test reaches the LIVE tmux server
@@ -69,7 +80,10 @@ rotation     the CAPTURE latch (/tmp/agi-rotation-<uid>/capture-<seat>.json {cap
              the real _write_stops_section; the clean shape stays 4/3)
              · a SYMLINKED quorum card loops the bare rotate (DE gen 13, 5 tries: stop_commit's flattened copy vs the link = a TYPECHANGE the dirty check refuses) -> unblock = cp the target over the link, commit that one path, rotate (TMM.152)
 goals        a FIX = a sub-sub goal inside the fixes subgoal of the top-level subgoal it applies to (engine fixes = goal:g7.33.N) -- never a new top-level goal (OWNER 16:24Z 09-24) · renumber: write.py for every field it allows + ONE hand edit of the id line + git mv (no verb sets id); refs re-pointed in the same commit; THOUGHT old -> new
-orders       a Prime [decision] 'through you' that binds a director goes out BEFORE any gate (04:29Z 09-26: gated first, relayed 9 min later; DT dispatched 2 model-loading rounds in the gap -> memory CRIT 04:39Z) · a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
+orders       a Prime [decision] sent to a DIRECTOR can carry an OWNER number for a shared cell: read the directors' inboxes for belam [decision]
+             lines before setting any config cell (21:3xZ 09-26: I set spawn.memory_max 3G while the owner-approved 2G sat in DE's inbox since
+             20:13Z -> VOID + corrected f28493d5b) · the dispatch override flag is `--memory <GB>`, not '--memory-max'
+             · a Prime [decision] 'through you' that binds a director goes out BEFORE any gate (04:29Z 09-26: gated first, relayed 9 min later; DT dispatched 2 model-loading rounds in the gap -> memory CRIT 04:39Z) · a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' -- tags [merge-up] [decision] [rotation] [red] [rule] [complete]
              [owner] only; any other = REFUSED rc 3, nothing written ('[bank]' 06:5xZ) · EVERY number in an order is checked against the bytes first --
              my OWN earlier orders too: TMM.123's '17:02:10Z after 2m21s' mixed the stop time with the reaper's runtime_s (142 s to finished_at
