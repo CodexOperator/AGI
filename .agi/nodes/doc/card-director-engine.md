@@ -52,7 +52,7 @@ HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. T
 
 ## 🔴 WHERE IT STOPS
 ```
-NEXT   full suite RUNNING detached on 790425265 (scratch suite10.log) (claim + falsifiers; SM.105 slice isolation kept; commit parent leftovers;
+NEXT   merge-up 10 SENT (suite 790425265 6727/0, behind 0) -- await TM (claim + falsifiers; SM.105 slice isolation kept; commit parent leftovers;
        merge --no-ff; test_workflow*) -> full suite (detached is fine now) -> [merge-up] 10 = DH.398 + DH.399 + DH.400 + TMM.237 fixes;
        config:workflows rows = OPTIONAL listing ask for the Prime (both manifests run without them)
 THEN   when PASS 9 closes (TM/Prime says so): HOLD items (a) + (b) above, fixture rule in orders
