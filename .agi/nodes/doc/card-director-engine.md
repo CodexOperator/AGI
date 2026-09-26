@@ -136,7 +136,9 @@ DH.369 gate (maint_gc = git gc, 04:41 daily, NOT in the live crontab until TM la
 
 ## 🔴 WHERE IT STOPS (gen 23, ~08:4xZ, meter 0.335/0.47)
 ```
-live     DH.386 MERGED d54e7e3aa-line (target/--parent node set commits; orders-TEXT ids not read, lean_proved:65 --
+live     DH.388 MERGED 77aa14faa: all 4 restart() via adapters.scrubbed_base() -> scrubbed_env(); explicit base scrubbed too; 295 green
+         (my earlier 'pi_adapter.py:326' cite was claude_code_adapter's line -- grep printed the first file; all 4 had it)
+         DH.386 MERGED d54e7e3aa-line (target/--parent node set commits; orders-TEXT ids not read, lean_proved:65 --
          parent's demote was only in the body, I set the field) -- OWED: test_cli.py after the suite lock frees
          DH.387 a00-9a906e4f (.agi/context suite) · DH.388 a00-301fe6aa (restart env)
 merge-up 5 SENT tip 2789f2a44 (behind 0, measured): DH.383-386; suite 6603/0 on 4b69308e4 + 199/199 after
