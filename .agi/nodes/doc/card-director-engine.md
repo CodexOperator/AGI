@@ -44,19 +44,18 @@ SENT      [merge-up] 13 (19:1xZ) tip 46fc2b716 code 5a11080c8: engine 6773/0 · 
           flake (3/6 alone) = DH.410-415 + my fixes b7a4a049f/ee08566b7 + config values.core.model_load_allowed_max_bytes
 DONE      DH.416 (.agi/bin guard bites via find-root.sh) · DH.417 (schemas/ uncommittable; unreadable schema refuses) ·
           DH.418 (heal: missing worktree -> refuse, never MAIN; launch file unlinked on failure; red 9/green 202)
-SUITE     14 on the tip -> suite-14.log + ctx-14.log -> [merge-up] 14 = DH.416-418. NO merge meanwhile
-LIVE      DH.420 a00-e017cdf8 (write.py schema gate inside submit())
-CUT       DH.419 a00-4f513b69 19:2xZ [red] by DT: 127 pytest procs, user@ over memory.high, DT's OSC.44 SIGTERMed. Killed
-          (SIGSTOP+KILL by cwd/cmdline). Kid exec'd the ENGINE tests/conftest.py inside .agi/context/conftest.py; guard tests
-          spawn pytest subprocesses -> unbounded. Worktree KEPT as evidence. Re-dispatch only with the fork-bound rule
-RESIDUE   a round may commit doc:card-<post> (_round_committable True on the real graph) -- ask TM whether cards are round-owned
+LANDED    merge-up 13 = 0420e2238 (TMM.256). SENT merge-up 14 (DH.416-418; engine 6788/0, ctx 237/2 = DT leak)
+DONE      row 17 d82d1757d (fence cap fails closed; refusal names model_slot.py)
+LIVE      DH.420 a00-e017cdf8 (write.py schema gate in submit()) · DH.421 a00-807958ea (row 18: TasksMax on the round scope)
+TMM.260   model rounds HELD until kids run --no-model + model_slot.py is the ONLY lift. Check the model-slot lock before ANY suite.
+          spawn.memory_max 6G > user@ memory.high 5.2G -> told TM (a Prime config value)
 PASS 9    queue = hypothesis:pass9-0926-residue-batch (5 new, 12 follow) -- ORDER mine, track THERE
 CARD      the rotate-out flattens the quorum symlink ON PURPOSE (db336b020); restore the 120000 link, never two copies apart
 ```
 
 ## 🔴 WHERE IT STOPS (gen 25)
 ```
-FIRST  suite-14 EXIT=0 -> [merge-up] 14; then harvest DH.420 (red-on-old/green-on-new + a REAL-shape probe; commit parent leftovers; check the reported tip is in)
+FIRST  harvest DH.420 + DH.421 (tiny stand-in fan-outs only) -> suite (lock check first) -> [merge-up] 15 (red-on-old/green-on-new + a REAL-shape probe; commit parent leftovers; check the reported tip is in)
 THEN   DH.419 re-dispatch (fork-bound orders) once DT re-launched -> 12 PASS 9 follow rows -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
 AWAIT  TM on merge-up 13
 AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
