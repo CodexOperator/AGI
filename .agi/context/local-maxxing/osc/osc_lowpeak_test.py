@@ -42,11 +42,13 @@ def test_chunked_head_matches_obp_metrics():
     assert lp.metrics(W, rh, ah, lp.rows()) == full               # measured 0.0 abs on this box (TMM.230)
 
 
-def test_load_path_matches_fp32_load_on_a_tiny_qwen2(tmp_path):
+def test_load_path_matches_fp32_load_on_a_tiny_qwen2(tmp_path, allow_model_load):
     from transformers import Qwen2Config, Qwen2ForCausalLM, AutoModelForCausalLM
     cfg = Qwen2Config(vocab_size=512, hidden_size=64, intermediate_size=128, num_hidden_layers=2,
                       num_attention_heads=4, num_key_value_heads=2, tie_word_embeddings=True)
     torch.manual_seed(2)
+    allow_model_load(tmp_path)   # a config-built checkpoint the test wrote itself: the ONE
+    # load the context suite allows (the guard refuses a path no test declared)
     Qwen2ForCausalLM(cfg).to(torch.bfloat16).save_pretrained(tmp_path)   # a bf16 checkpoint, like the real one
     ref = AutoModelForCausalLM.from_pretrained(tmp_path, dtype=torch.float32, attn_implementation="eager").eval()
     low, head_w = lp.load(str(tmp_path))
