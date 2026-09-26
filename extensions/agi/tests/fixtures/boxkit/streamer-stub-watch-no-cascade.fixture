@@ -1,0 +1,6 @@
+# sanctuary guard layer 2. Written by {{GUARD_SRC}}.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.
+# The no-cascade drop-in (goal:g7.33.18): OOM-killing streamer-stub-watch must not take the
+# session down with it, so the failure continues instead of cascading.
+[Service]
+OOMPolicy={{OOM_POLICY}}

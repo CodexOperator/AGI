@@ -10,7 +10,9 @@ Nine rows, one per clause of the claim:
    guard source) or a literal cgroup UID -- anonymize.py CANNOT do this job
    (its classes are hostname/ip/mac/board/secret; see experiment:a00-5e1ed113 P4);
 5. SIZING reproduces the measured knobs by TRUNCATION, never rounding;
-6. each template IS the committed ANONYMIZED copy of the live bytes;
+6. each template IS the committed ANONYMIZED copy of the live bytes (for a
+   new_bytes row -- no live file on any box yet -- the fixture is the template's
+   own self-render, so the row is pinned either way);
 7. the rendered bytes EQUAL the live bytes on a box that has the guard
    (skipped, not silently passed, where the live file is absent) -- with the
    identity tokens the KIT derives from the running engine checkout and the
@@ -22,7 +24,10 @@ Nine rows, one per clause of the claim:
 7c. every manifest dest_cell resolves against the COMMITTED config (the
    user_systemd_data_dir debt is closed: the director committed that cell);
 8. install() writes only under a tmp install_root, with the manifest mode;
-9. a row whose bytes do not exist on this box is flagged new_bytes.
+9. a row whose bytes do not exist on this box is flagged new_bytes;
+10. the manifest covers EVERY unit goal:g7.33.18's no-cascade row names, read from
+   the LIVE goal node (never a copied list), and a unit with no live drop-in on
+   this box is a NAMED skip, never a silent pass.
 
 Reads: config cells, the per-box measurement fixture, and the live files (read-only).
 Writes: tmp_path only.
@@ -149,7 +154,7 @@ def test_sizing_reproduces_the_measured_knobs():
 
 
 # 6 -- the template IS the committed anonymized copy of the live bytes
-@pytest.mark.parametrize("piece", LIVE, ids=[p["name"] for p in LIVE])
+@pytest.mark.parametrize("piece", PIECES, ids=[p["name"] for p in PIECES])
 def test_template_equals_the_anonymized_fixture(piece):
     fix = FIXTURES / (piece["name"] + ".fixture")
     assert fix.is_file(), fix
@@ -212,3 +217,49 @@ def test_new_bytes_row_is_flagged_and_has_no_live_counterpart():
     assert row["new_bytes"] is True
     assert not R.destination(row, CELLS, _v(), "/").exists()
     assert "OOMPolicy" in R.rendered(row, _v())
+
+
+# 10 -- the no-cascade coverage closure (kid a00-057a8121, probe 5 of the previous
+# round). The goal TABLE is the spec, read from the live node -- a copied list in
+# this file is the exact defect the probe found.
+GOAL = PROJECT / ".agi" / "nodes" / "goal" / "g7.33.18.md"
+
+
+def _no_cascade_units():
+    row = [ln for ln in GOAL.read_text(encoding="utf-8").splitlines()
+           if ln.strip().startswith("| no cascade")]
+    assert len(row) == 1, "goal:g7.33.18 must carry exactly one no-cascade row"
+    col = [c for c in row[0].split("|") if " on " in c]
+    assert len(col) == 1, col
+    tail = col[0].split(" on ", 1)[1]
+    return [u.strip().strip("`") for u in tail.split(",") if u.strip()]
+
+
+def _drop_ins_for(unit):
+    return [p for p in PIECES if p["dest_rel"].startswith(unit + ".service.d/")]
+
+
+@pytest.mark.parametrize("unit", _no_cascade_units())
+def test_manifest_covers_every_unit_the_goal_no_cascade_row_names(unit):
+    rows = _drop_ins_for(unit)
+    assert rows, ("goal:g7.33.18 names %s in its no-cascade row but no manifest "
+                  "row ships a drop-in for it" % unit)
+    v = _v()
+    rendered = [R.rendered(row, v) for row in rows]
+    # the unit's no-cascade layer rides the CONFIGURED OOM_POLICY, never a literal
+    assert any("OOMPolicy=" + CFG["values"]["boxkit"]["OOM_POLICY"] in out for out in rendered), rows
+    assert all(p["reload"] in ("system", "user") and p["mode"] == "0644" for p in rows)
+
+
+@pytest.mark.parametrize("unit", _no_cascade_units())
+def test_no_cascade_drop_in_matches_the_live_bytes_or_names_its_absence(unit):
+    rows = _drop_ins_for(unit)
+    v = R.values(CFG, MEASURED, R.host_tokens(CFG))
+    absent = [row["name"] for row in rows
+              if not R.destination(row, CELLS, v, "/").is_file()]
+    if absent:
+        pytest.skip("no live bytes on this box for the no-cascade drop-in(s) %s of unit %s "
+                    "(the unit carries no such drop-in here), so there is nothing to falsify "
+                    "against -- the kit is portable" % (", ".join(absent), unit))
+    for row in rows:
+        assert R.rendered(row, v) == R.destination(row, CELLS, v, "/").read_text(encoding="utf-8")
