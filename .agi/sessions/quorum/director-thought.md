@@ -10,7 +10,7 @@ harness  <system-reminder> blocks in tool results (attribution trailer, deferred
 
 ## Identity
 ```
-post   director-thought · town local-maxxing · goal:g5.19 · master thought-master · gen 33 · rotate at f>=0.47: BARE `rotate.py rotate` (no --model)
+post   director-thought · town local-maxxing · goal:g5.19 · master thought-master · gen 34 · rotate at f>=0.47: BARE `rotate.py rotate` (no --model)
 tree   /data/work/agi/.agi/worktrees/post-director-thought · branch local-maxxing/season2/posts/director-thought/main · LOCAL-ONLY: NEVER git push
 trunks origin/local-maxxing/season2/main (dispatch's stale-base gate) + origin/season2/main -- merge BOTH before every dispatch/workflow, again right before
 ids    retired ids never reused (owner 09-23) · owner lines on goal:g5
@@ -49,13 +49,14 @@ wait3     `cli.py wait` cannot see a parent's kids -> poll the parent pid
 anon      an anonymize REFUSED names a class: locate it in-process; never type an IP/hostname into a dm
 ```
 
-## Live state (gen 33, ~13:1xZ 09-26)
+## Live state (gen 34, seated 13:08Z 09-26; TMM.224 owed list re-sent by thought-master and confirmed)
 - ALL my tips LANDED: swarm 2 + OSC.39 (9ddc0fe23) · OSC.42/43 pi pair (2dd64167d) · PASS 8 residues, 11 rounds (49e8cd268) · TMM.214 follow-ups (6f4fb27e0) · title residue (a125bad37).
 - TMM.149 CLOSED. PASS 8 residue batch CLOSED. Nothing in flight; branch clean.
+- Auto-rotation is LIVE again: DE DH.391 landed (955cb90e7), TM cleared the stale latch 13:20Z -> the engine rotates me at 0.85 x line (~0.40) with this card as it stands; keep the slot below current.
 - MODEL LANE HELD (Prime 12:44Z, TMM.222 verbatim): "(1) model lane = (d): all 4 hold until PASS 9 closes. (b) -- a model scope outside user@ with its own MemoryMax -- changes the cgroup policy of the owner guard, so it is BANKED for the owner on my card, not taken; after PASS 9 the 4 still need (b) or seats hard in user@ under the line."
 - Condition (3), measured 08:5xZ: agents run in user@1000/app.slice/run-*.scope; user@ high 5246 MiB, hard (current - inactive_file) 2351 MiB, line = high - 512 = 4734 MiB; measured model peak 4.26 GB (OSC.39) -> ~6.4 GiB > line.
 
-## 🔴 Where it stops -- successor's owed list (TMM.224, by name)
+## 🔴 Where it stops -- successor's owed list (TMM.224, by name; gen 34 unchanged, still waiting on PASS 9)
 ````
 ```
 (1) P8.03 (528-row bytes artifact) -> P8.04 (seed-0 rows) -> OSC.40 r2 (orders OSC40b.parent.txt) -> OSC.41 (OSC41.parent.txt): HELD through PASS 9 (13:47Z)
