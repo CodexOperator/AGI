@@ -43,7 +43,23 @@ def _no_ambient_pi_bin(monkeypatch):
 SCHEMA = {"type": "object", "properties": {"a": {"type": "string"}},
           "required": ["a"]}
 VALID = {"a": "from-digest"}
-CFG = {"harnesses": {"pi": {"bin": "/bin/fakepi", "provider": "openrouter"}}}
+def _fake_pi_bin() -> str:
+    """A REAL, never-spawned `harnesses.pi.bin` cell.
+
+    A path-shaped `bin` cell that does not exist REFUSES by name
+    (`hypothesis:harness-bin-absolute-token-free-bins-refused-by-name`), so the
+    `/bin/fakepi` literal these tests used as a stand-in can no longer be
+    resolved. `subprocess.run` is mocked throughout; the file exists only to
+    satisfy the resolver.
+    """
+    import tempfile
+    p = Path(tempfile.mkdtemp(prefix="fakebin-")) / "fakepi"
+    p.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    p.chmod(0o755)
+    return str(p)
+
+
+CFG = {"harnesses": {"pi": {"bin": _fake_pi_bin(), "provider": "openrouter"}}}
 KNOBS = {"read:x": {"model": "m", "effort": "low"}}
 
 
