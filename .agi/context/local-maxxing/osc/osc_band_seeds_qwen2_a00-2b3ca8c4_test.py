@@ -2,7 +2,7 @@
 """No-model acceptance for the seed band: reachability, bit-match, and the row contract."""
 import importlib.util, json, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path[:0] = [os.path.join(os.getcwd(), ".agi/context/local-maxxing"), HERE]
+sys.path[:0] = [os.path.dirname(HERE), HERE]  # collect from any cwd
 import torch
 
 def _load(name, file):
