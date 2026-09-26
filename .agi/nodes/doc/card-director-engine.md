@@ -39,7 +39,7 @@ ORDER     TMM.265 g7.33.18 box kit FIRST (dispatched) > TMM.262 residues + TMM.2
 CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_max 150 684a83a3a · paths.boxkit.* 3b42eb930 · values.boxkit.* (54) + guard_dir/user_systemd_data_dir 80dc2a99e
 ROUND  agent        what                         state (mur units agi-director-engine-murNNN; runs/mur-director-engine-N in MAIN)
 424    MERGED with 431 (mur-5 accept) into the post branch + verdict proved 390bab9da -- repro green on the post branch
-425    -> 428 -> 435 -> 441 a00-b4ee33fe (3-name pin; node cites fixed, committed by me) 84 green -> mur-6 DH.441-k1 RUNNING (final)
+425    -> 428 -> 435 -> 441 (mur-6 residue: MY orders said S1 names 3 -- it names 2; guard(None) TypeError) -> 448 LIVE, CUT FROM 441
 426    a00-8783b3d3 schema gate  mur-4 residue x3 (cli.py: named-id hole, double ERR, stale comment) -> 442 FAILED TO BUILD ON IT (no
        merge; hook-only overlap) -> NEVER merge 442 -> 445 a00-5a2ac2fb LIVE, CUT FROM the 426 branch (dispatched in its worktree;
        stale-base "behind 1" overridden with reason -- quote the refusal line in [merge-up])
