@@ -46,7 +46,7 @@ ROUND  agent        what                         state (mur units agi-director-e
 430    a00-cfa396d1 suite_guards (DH.419 redo)  mur-5 accept_with_residue (2nd guard home, not ONE) -> 440 a00-c8389b84 LIVE (merges 430+431)
 432    SUPERSEDED (never merge: hostname in its history) -> 438 a00-d821a9fd REBUILT clean (125 green, anonymize ok, no host in history)
        -> mur-6 DH.438-k1 RUNNING; 438 lands with a normal --no-ff (its history is clean)
-433    a00-eafe7a6a installer: refuses w/o measured reserve, dry-run writes 0, 10 green -> mur-5 DH.433-k1 RUNNING
+433    a00-eafe7a6a installer  mur-5 residue (config-max: code fracs dup cells; graph root '.'; restore gap) -> 444 LIVE
 434    SUPERSEDED (never merge) -> 437 a00-97f3bc1b rebuilt probe, 12 green, live run 2 real DRIFTs -> 439 a00-58736bab LIVE
        BOX DRIFT (for TM, not ours to fix): OOMPolicy unset on streamer-stub-watch.service · agi.slice drop-in FILE absent
 GRAPH     (3) DONE 864572bd6 · (2) level3.py after 435 merges · (9) judge heal-never-reseats after 436 · (11) verdicts x3 at merge
