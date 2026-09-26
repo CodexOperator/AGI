@@ -633,6 +633,45 @@ def _no_openrouter(monkeypatch):
 _GUARD_OPTIN_ATTR = "NO_REAL_PROCESSES"
 
 
+def _make_guarded_kill(real_kill, own_pids):
+    """The `os.kill` leaf the opt-in process guard installs.
+
+    Module-level and parameterised on purpose: the guard's kill half is the
+    one that can reach a LIVE pid, so it must be unit-testable without
+    arming a syscall. A test drives this with a recording `real_kill` and
+    asserts the recorder stays EMPTY for every pid but the test's own.
+
+    `own_pids` is the caller's own pid and NOTHING else. The parent pid used
+    to be in that set, which meant an opted-in test could
+    `os.kill(os.getppid(), SIGKILL)` and really do it -- the parent is a pid
+    this test never spawned. signal 0 (the liveness probe) on the OWN pid is
+    the only traffic that reaches the real call.
+    """
+    def _guarded_kill(pid, sig, *a, **k):
+        if int(pid) not in own_pids:
+            raise AssertionError(
+                f"guard: a NO_REAL_PROCESSES test signalled pid {pid}; only "
+                "its own pid may be signalled, and only for a signal-0 "
+                "liveness probe")
+        return real_kill(pid, sig, *a, **k)
+    return _guarded_kill
+
+
+#: Module-level spawner bindings the guard must fence too. A hook on
+#: `subprocess` sees nothing when the engine BOUND the function at import
+#: time: `rotate.py:5097 _RUN = subprocess.run` and
+#: `workflow.py:66-67 _REAL_POPEN/_REAL_RUN` are real processes already
+#: captured, so an opted-in test calling `rot._place_windows({...},
+#: tool="wmctrl")` spawned one for real. Fencing the BOUND names closes
+#: that; the names are listed here (one source per rule) so a test can
+#: assert this list still covers what the engine binds.
+_FENCED_MODULE_RUNNERS = (
+    ("rotate", "_RUN"),
+    ("workflow", "_REAL_POPEN"),
+    ("workflow", "_REAL_RUN"),
+)
+
+
 @pytest.fixture(autouse=True)
 def _no_real_process_or_live_config(request, monkeypatch):
     """hypothesis:rotate-term-grace-tests-never-touch-a-real-process-or-the-
@@ -662,7 +701,7 @@ def _no_real_process_or_live_config(request, monkeypatch):
         yield
         return
     tmp = str(request.getfixturevalue("tmp_path"))
-    own = {os.getpid(), os.getppid()}
+    own = frozenset({os.getpid()})  # NOT the parent: see _make_guarded_kill
 
     def _check_path(path):
         try:
@@ -687,13 +726,6 @@ def _no_real_process_or_live_config(request, monkeypatch):
             "guard: a NO_REAL_PROCESSES test spawned a process; inject the "
             "seam (pid list, kill, liveness probe) instead")
 
-    def _guarded_kill(pid, sig, *a, **k):
-        if int(pid) not in own:
-            raise AssertionError(
-                f"guard: a NO_REAL_PROCESSES test signalled pid {pid}; only "
-                "its own pid may be signalled")
-        return real_kill(pid, sig, *a, **k)
-
     def _guarded_scandir(path=".", *a, **k):
         _check_path(path)
         return real_scandir(path, *a, **k)
@@ -717,8 +749,22 @@ def _no_real_process_or_live_config(request, monkeypatch):
         monkeypatch.setattr(subprocess, _name, _refuse_spawn)
     monkeypatch.setattr(os, "fork", _refuse_spawn)
     monkeypatch.setattr(os, "forkpty", _refuse_spawn)
-    monkeypatch.setattr(os, "kill", _guarded_kill)
+    monkeypatch.setattr(os, "kill", _make_guarded_kill(real_kill, own))
+    _fence_bound_runners(monkeypatch, _refuse_spawn)
     yield
+
+
+def _fence_bound_runners(monkeypatch, refuse):
+    """Fence the engine's import-time spawner bindings (see
+    `_FENCED_MODULE_RUNNERS`). Best effort: a module that is not importable
+    in this environment contributes nothing and raises nothing."""
+    for mod_name, attr in _FENCED_MODULE_RUNNERS:
+        try:
+            mod = __import__(mod_name)
+        except Exception:            # noqa: BLE001 -- absent here, no fence
+            continue
+        if hasattr(mod, attr):
+            monkeypatch.setattr(mod, attr, refuse)
 
 
 @pytest.fixture(autouse=True)

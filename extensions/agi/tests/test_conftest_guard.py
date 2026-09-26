@@ -18,9 +18,24 @@ from __future__ import annotations
 
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
+
+import pytest
+
+CONFTEST = os.path.join(os.path.dirname(__file__), "conftest.py")
+
+
+def _load_tests_conftest():
+    """`import conftest` would resolve to extensions/agi/conftest.py, so the
+    tests-dir conftest (the file that OWNS the guard) is loaded by path."""
+    import importlib.util  # noqa: PLC0415
+    spec = importlib.util.spec_from_file_location("_tests_conftest", CONFTEST)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 CONFTEST = os.path.join(os.path.dirname(__file__), "conftest.py")
 
@@ -143,7 +158,28 @@ OFFENDING_SRCS = {
     "kill": _OPTIN_HEAD + (
         "import os, signal\n"
         "def test_offender():\n"
-        "    os.kill(1, signal.SIGKILL)\n"),
+        "    # signal 0 is an EXISTENCE PROBE: it delivers nothing, so this\n"
+        "    # call is harmless even if the guard is deleted -- the test then\n"
+        "    # fails on 'guard did not fire', never on a dead pid 1.\n"
+        "    os.kill(1, 0)\n"),
+    "kill_parent": _OPTIN_HEAD + (
+        "import os, signal\n"
+        "def test_offender():\n"
+        "    # the parent pid is a pid this test never spawned; a signal-0\n"
+        "    # probe on it is harmless and must still be refused.\n"
+        "    os.kill(os.getppid(), 0)\n"),
+    "bound_run": _OPTIN_HEAD + (
+        "import rotate\n"
+        "def test_offender():\n"
+        "    # rotate._RUN was bound to subprocess.run AT IMPORT, so the\n"
+        "    # stdlib hooks never see this call.\n"
+        "    rotate._RUN(['true'])\n"),
+    "bound_popen": _OPTIN_HEAD + (
+        "import workflow\n"
+        "def test_offender():\n"
+        "    # workflow._REAL_POPEN IS the real class, captured at import:\n"
+        "    # no stdlib hook can see this call at all.\n"
+        "    workflow._REAL_POPEN(['true'])\n"),
     "live_config": _OPTIN_HEAD + (
         "import json, pathlib\n"
         "def test_offender():\n"
@@ -193,6 +229,56 @@ def test_process_config_guard_lets_a_test_inject_its_own_seams():
         "    subprocess.Popen(['true'])\n"))
     assert code == 0, f"guard blocked a test's own injected seams:\n{out}"
 
+
+# --- the kill leaf, unit-tested with a recorder instead of a live pid -----
+#
+# These three are the CONJUNCTIVE half: the guard above proves the fixture
+# fires end-to-end, and these prove the leaf itself still refuses. Delete
+# the parent-pid fix, or the bound-runner fence, and this file goes RED
+# rather than quietly weaker.
+
+
+def test_guarded_kill_refuses_parent_pid_and_arms_no_syscall():
+    """conftest._make_guarded_kill routes ONLY the caller's own pid to the
+    real `os.kill`, and the recorder proves no other pid ever reached it --
+    including the parent, which the guard used to exempt."""
+    calls = []
+    guarded = _load_tests_conftest()._make_guarded_kill(
+        lambda pid, sig, *a, **k: calls.append((pid, sig)), frozenset({4242}))
+
+    guarded(4242, 0)                       # own pid, liveness probe: allowed
+    for foreign in (os.getppid(), os.getpid(), 1, 4243):
+        with pytest.raises(AssertionError, match="NO_REAL_PROCESSES"):
+            guarded(foreign, signal.SIGKILL)
+    assert calls == [(4242, 0)], f"a real syscall was armed: {calls}"
+
+
+def test_the_guard_offender_table_arms_no_fatal_signal():
+    """The guard's own red-first proof is MOCKED, never armed: no entry in
+    OFFENDING_SRCS sends a fatal signal to a pid the test did not spawn, so
+    dropping the guard can only make this file red, never this box."""
+    for name, src in OFFENDING_SRCS.items():
+        assert "SIGKILL" not in src and "SIGTERM" not in src, (
+            f"offender {name!r} arms a real signal -- use signal 0")
+
+
+def test_fenced_module_runners_cover_the_engines_bound_names():
+    """The stdlib hooks are not enough: the engine BOUNDS subprocess.run at
+    import (`rotate._RUN`, `workflow._REAL_POPEN/_REAL_RUN`), so the fence
+    must name every binding. A new bound name the engine adds is a residue
+    this assertion surfaces as a failing import/name, not as a silent gap."""
+    fenced = set(_load_tests_conftest()._FENCED_MODULE_RUNNERS)
+    import rotate  # noqa: PLC0415
+    import workflow  # noqa: PLC0415
+    assert ("rotate", "_RUN") in fenced, "rotate._RUN is a real captured run"
+    for mod_name, attr in (("rotate", "_RUN"),
+                           ("workflow", "_REAL_POPEN"),
+                           ("workflow", "_REAL_RUN")):
+        bound = getattr({"rotate": rotate, "workflow": workflow}[mod_name], attr)
+        assert callable(bound), f"{mod_name}.{attr} vanished; update the fence"
+    assert getattr(rotate._RUN, "__module__", "") == "subprocess", (
+        "rotate._RUN is no longer the stdlib run captured at import -- the "
+        "fence premise changed and this list must be re-derived")
 
 def test_conftest_tmux_guard_is_in_force():
     """The autouse `_no_real_tmux` guard answers tmux with a safe rc-1
