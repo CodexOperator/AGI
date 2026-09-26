@@ -64,7 +64,12 @@ def _detached_pytest_ppid1() -> list[int]:
             if line.startswith("PPid:"):
                 ppid = int(line.split()[1])
                 break
-        if ppid == 1:
+        # The scanning suite ITSELF is never "the detached second suite": a
+        # suite launched with `setsid nohup ... & disown` (the DURABLE rule --
+        # long work runs detached) has ppid 1 and flagged its own pid, red x2
+        # on 267a6ef04 (director-engine gen 24; TMM.225 had no red on a
+        # launch whose parent stayed alive).
+        if ppid == 1 and int(p.name) != os.getpid():
             pids.append(int(p.name))
     return pids
 

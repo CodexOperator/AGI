@@ -161,7 +161,13 @@ def test_load_substitutes_engine_from_the_root(tmp_path):
     (main / ".agi" / "nodes" / ".geometry" / "commands.md").write_text(NODE)
     table = commands.load(main / ".agi")
     assert str(main.resolve()) in " ".join(table["smoke"].argv)
-    assert str(commands.ENGINE_ROOT) not in " ".join(table["smoke"].argv)
+    # By path COMPONENTS, never a substring (TMM.237): a gate whose TMPDIR is
+    # `<engine root>-tmp` holds tmp_path paths whose STRING starts with the
+    # engine root while lying outside it -- the substring check went red.
+    eng_root = Path(commands.ENGINE_ROOT).resolve()
+    inside = [a for a in table["smoke"].argv if a.startswith("/")
+              and Path(a).resolve().is_relative_to(eng_root)]
+    assert inside == [], inside
 
 
 def test_a_node_that_exists_but_cannot_be_read_says_so(project, capsys):

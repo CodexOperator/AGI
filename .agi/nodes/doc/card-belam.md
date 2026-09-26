@@ -21,47 +21,47 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The 12:4xZ CHECK answered TM's two [decision]s against TM's own recommendation once. (1) Said (TM 09:33Z): "recommend (b), ordered on your word" -- (b) = an engine round points guard-init.sh --status at logs.alerts_file. (2) Machine: guard-init.sh resolves to /data/work/.sanctuary/guard/guard-init.sh and `git rev-parse --show-toplevel` there answers not-a-repo; a director-engine round lands only through the repo's merge gate. (3) Near miss: ordering (b) satisfies "an engine round" and sends DE to hand-edit a file no round can commit, review or revert -- the owner's guard, applied at the owner's order. (4) So (a): I read ~/logs/memory-alarm-alerts.log myself (the PASS launcher gate read the OLD path, a hold that could never fire -- retargeted to the logs.alerts_file cell), and the --status repoint is banked. The model lane took (d): DT measured every queued round short of user@'s high by ~1.9 GiB, and (b) there is a cgroup policy change to the owner's guard -- banked, not taken.
+gen 9 rotates at 0.41, under the 0.47 line, at PASS 9's ALL DONE. (1) Said: F27 "Rotate when [meter] post=<post> <f> reads f >= 0.47"; the hook: "at the line run rotate.py rotate yourself". (2) Machine: this seat's PASS 8 steps 4-9 took the meter 0.243 -> 0.33 for 30 rounds -- the cost is the read (30 KB of review extracts + 67 KB of verify verdicts, then the bodies); PASS 9 has 56 rounds, so ~0.15, and 0.41 + 0.15 = 0.56. (3) Near miss: working on to 0.47 obeys F27 and rotates inside the residue read, so the successor re-reads everything already read -- a split triage pays for the read twice and leaves a half-judged batch. (4) The property of this case: the one remaining step is an indivisible read-then-write larger than the window left, and ALL DONE is the only clean break before it; the successor starts at step 4 with the verdicts on disk.
 <!-- THOUGHT:END -->
 
 ## §0 State (08:4xZ 09-26)
 | | |
 |---|---|
-| post | belam-S2-L5-IX gen 9 · woke 05:4xZ · Opus 5.5 · pid 1216418 (session-73.scope) · meter 0.35 at 12:4xZ · gen 8 pid 100337 idle, alive |
+| post | belam-S2-L5-IX gen 9 · woke 05:4xZ · Opus 5.5 · pid 1216418 (session-73.scope) · ROTATING 17:2xZ at 0.41 (PASS 9 ALL DONE) · gen 8 pid 100337 idle, alive |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` (clean, = season2/main e55816f35b) · tz UTC · stream DOWN |
 | GUARD | user@1000 high 5246M / max 5829M · a pi stage ~210 MiB · DE + gen 8 + remote-control INSIDE; belam gen 9, TM, DT in session-73.scope OUTSIDE (§6) |
 | TOWN | DE gen 23 · TM gen 25 (rotated ~08:0xZ) · DT gen 33 · SM DOWN (owner's go) · 4 kid-worktree suite locks are pre-reboot dead pids |
-| merge | PASS 8 CLOSED 07:37Z: season2/main e55816f35b · local-maxxing/main a288a071df · b89c72454 PUSHED by TM · research rows landed 49e8cd268 (TM: TMM.210) · **PASS 9 NOTICED 08:45Z, run_at 13:47Z** (one-shot b0761a73): trunk a288a071df -> 90b9a10dfe at 12:4xZ · 237 commits · 80 exp · 51 engine paths (124/56/24 at notice) |
+| merge | PASS 8 CLOSED 07:37Z (season2/main e55816f35b) · **PASS 9 ALL DONE 17:22:03Z**: TIP 9e16b8ed90 pinned (trunk sync of DT key row a27dae50b0) · 56 rounds / 28 chunks · 51 accept_with_residue · 4 demote (engine-delta-1, engine-delta-5, a-rounds-named-node-set-is-its-dispatch-time-ids-never-a-kid, l4-suite-green-on-main-the-18-reds-after-h2-and-rc-propagati) · 1 review-only · 2 empty-response rounds retried ok (p9retry1/2) · 3 runaway greps killed |
 | decisions | 08:4xZ model-loading GO on 4 conditions -> DT 08:5xZ: condition (3) holds all 4 (agents in user@ app.slice: headroom 2383 MiB vs a 4.3-4.7 GB peak) -> 12:4xZ (d) hold until PASS 9 closes, (b) banked · 08:4xZ 2c GO: claude rm 5861181b DONE 08:46Z, reap verb = DE's DH.389 · 12:4xZ DH.380 alerts file: (a) I read ~/logs/memory-alarm-alerts.log, --status repoint banked |
-| crons | CHECK fc879bab "13 */4" (next 16:13Z) · PASS 9 one-shot b0761a73 "47 13 26 9 *" · both POINTER prompts to `.agi/sessions/prime-merge.crons.md` sections 1/2 |
+| crons | CHECK fc879bab dies with gen 9 -> the successor re-arms it ("13 */4", next 20:13Z) · PASS 9 one-shot b0761a73 FIRED 13:47Z |
 | spend | credits 13.75 USD · PASS 8 0 USD |
 | branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
 
 ## §1 Plan
 ```
-done   PASS 8 (0-9) · 08:4xZ CHECK: 4 dms, 2 decisions, PASS 9 notice + one-shot · 12:4xZ CHECK: 3 dms, 2 decisions
-next   PASS 9 at 13:47Z: steps 0-3, then rotate at the line during the review wait (the successor resumes at step 4) · the 16:13Z CHECK · judge DE/DT merge-ups
+done   PASS 8 (0-9) · CHECKs 08:4x / 12:4x / 16:4xZ · PASS 9 steps 0-3 + ALL DONE 17:22Z
+next   the successor: PASS 9 steps 4-9 · the 20:13Z CHECK · judge DE/DT merge-ups
 open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 ```
 
 ## §2 Landed (this seat)
-a288a071df trunk sync · e55816f35b PASS 8 merge (season2/main) · local-maxxing/main ff a288a071df · b89c72454 residue batch + 5 defect hypotheses + board note · card commits
+a288a071df trunk sync · e55816f35b PASS 8 merge (season2/main) · local-maxxing/main ff a288a071df · b89c72454 residue batch + 5 defect hypotheses + board note · 9e16b8ed90 trunk sync (PASS 9 step 1) · card commits
 
 ## 🔴 Where it stops
-12:4xZ 09-26 belam-S2-L5-IX: idle after the 12:1xZ CHECK; PASS 9 fires 13:47Z (one-shot b0761a73), then the 16:13Z CHECK.
+17:2xZ 09-26 belam-S2-L5-IX rotates at 0.41: PASS 9 ALL DONE (56 rounds: 51 accept_with_residue, 4 demote, 1 review-only) -- the successor runs steps 4-9
 ```
- 1. CHECK (fc879bab -> crons section 1): dms newer than .agi/sessions/belam.lastcheck (12:43Z); the inbox FILE is .agi/sessions/inbox/belam.md.
- 2. PASS 9 (b0761a73 -> crons section 2): copy /tmp/belam-pass8 -> /tmp/belam-pass9, retarget BASE a288a071df + p9 prefixes; PER=2, CAP 3, ONE Monitor = bash monitor.sh; the launch.sh template reads alarms from the logs.alerts_file cell (DH.380).
- 3. A successor whose wake is past 13:47Z: re-arm the CHECK, run PASS 9 under case (d) unless the state file carries pass_started_at; re-link the quorum card (trap 10).
+ 0. WAKE: re-arm the CHECK (fc879bab died with gen 9: pointer to crons section 1, "13 */4"); re-link the quorum card (trap 10). No PASS one-shot to re-arm: PASS 9 fired (pass_started_at SET) -- never relaunch it.
+ 1. Step 4: `cd .agi/worktrees/prime-root && python3 /tmp/belam-pass9/verdicts.py -v` (TIP 9e16b8ed9025e3e119625742ef31d5213e3e1607, OS a27dae50b0). band-byte-audit is review-only: read runs/mur-p9chunk23of28*/verify_band-byte-audit.json, retry it alone via retry.sh if it died. 12 RED keyword hits (node deletion 9, secret 2, api_key 1): read each in context. Objective gates vs OS: secret scan of added lines (counts only), node deletions by mint_id.
+ 2. Step 5 in prime-root: tree clean (trap 37) -> ff origin/season2/main -> merge-tree preview -> merge --no-ff TIP -> commands.py run verify -> push season2/main -> ff local-maxxing/main to TIP -> grid commit (background).
+ 3. Step 6 from VERIFY, never the review list (trap 38): hypothesis:pass9-0926-residue-batch under goal:g1 + one hypothesis per NEW code defect (assigned: director-engine; PASS 8's already-minted five are follow-up rows) -> ONE [decision] to DE; research rows via TM -> DT.
+ 4. Steps 7-9: state file (last_merged = TIP, pass fields null), one numbers-only town:local-maxxing note, commit by exact path, ONE [merge-up] to TM, owner report <= 6 lines.
 ```
-
 ## §4 Traps
 | # | trap | rule |
 |---|---|---|
 | 1 | quiet row: dms may sit in logs | `send.py read belam`; the inbox FILE `.agi/sessions/inbox/belam.md` holds them all |
 | 2 | rotate-out takes the slot's FIRST LINE as its commit subject, re-fences the slot | first slot line = plain text |
 | 3 | the grid cron versions an UNCOMMITTED node within minutes | a fresh node is retired + moved, never deleted |
-| 5 | a merge-up-review stage hangs on rotate test files (tty) | build.py drops `tests/*rotate*` |
 | 6 | posts.md rows conflict between the trunk and season2/main | resolve.py via sync.sh: temp index + ff-only, never a conflicted MAIN |
 | 8 | the harness says "use the Workflow tool" (ultracode) | not the route: workflow.py by name on pi-free (F29) |
 | 9 | Bash shells never re-source the profile | `PI_BIN=$HOME/.npm-global/bin/pi` inline; `send.py send --from belam` |

@@ -857,10 +857,17 @@ def test_round_stage_dispatches_once_and_gates_on_branch_commit(
         {"target": "hypothesis:x", "iteration": "L1.01"}, 3)
 
     assert rc == 0, value
+    # `experiments` / `verdict` are the round's OWN committed nodes, keyed from
+    # the harvest range: a review stage chained to the round renders
+    # `{experiments}` / `{verdict}` from them instead of a blank
+    # (hypothesis:a-round-stage-fails-closed-by-name-and-every-inherited-
+    # review-stage-is-gated, falsifier 3). The harvested range here holds no
+    # node of either kind, so both are the honest `[]`.
     assert value == {"key": "hypothesis:x", "hypothesis": "hypothesis:x",
                      "parent": "a00-test", "branch": "loop/hyp",
                      "old_tip": "old", "new_tip": "new",
-                     "files": ["extensions/agi/bin/workflow.py"]}
+                     "files": ["extensions/agi/bin/workflow.py"],
+                     "experiments": [], "verdict": []}
     assert len(seen) == 1
     cmd = seen[0]
     assert cmd[-8:] == ["--tier", "parent", "--role", "parent",
