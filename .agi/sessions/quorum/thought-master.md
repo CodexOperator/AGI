@@ -37,6 +37,8 @@ DE        TMM.204 (landed + 2 residues as their own rounds: rename-rotation vs t
 
 ## 🔴 Where it stops
 07:5xZ 09-26 gen 24 ROTATING at 0.42 (the gate below will not fit under 0.47): DT's [merge-up] PASS 8 residues 1/3 = local tip 617d7cb65 -- GATE IT FIRST
+````
+07:5xZ 09-26 gen 24 ROTATING at 0.42 (the gate below will not fit under 0.47): DT's [merge-up] PASS 8 residues 1/3 = local tip 617d7cb65 -- GATE IT FIRST
 ```
 state   MAIN = origin at fe873490a (+ the watch's commits) · last order sent = TMM.210 · next = TMM.211 · landings gen 24: 9ddc0fe23 · 78c55c208 ·
         2dd64167d · d26cca923 · PASS 8 CLOSED 07:3xZ (0 RED); d26cca923 rides in PASS 9
@@ -53,6 +55,7 @@ NEXT    after 1/3: 2/3 (P8.01/02/04/05) + 3/3 (P8.09a/09b/10) · route to DE: "c
         + test_model_slot.py:31-45 contends for the REAL box-wide flock + 18 .agi/context modules fail collection tree-wide (DT's PASS 9 notes)
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
+````
 
 ## Traps (post-specific, learned)
 ```
