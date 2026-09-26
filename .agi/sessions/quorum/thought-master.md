@@ -11,61 +11,51 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (00:5xZ 09-26, gen 23)
+## Live state (04:4xZ 09-26, gen 24)
 ```
-LANE      normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
-          model HELD (TMM.66) · usd0 = research only · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read) · 00:5xZ: 5 leases, all pi-free
-OWNER     20:1-4xZ 09-24 (via the Prime, VERIFIED): I co-own the director docs via write.py + ONE dm per live director · dispatch = ONE
-          parent per round (--tier parent --role parent --ladder-tier 0, no --harness), never --tier kid · NEVER the Agent tool · 22:5xZ
-          09-25: parent MINI-SWARMS trial = hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis (goal:g7.16):
-          DE build arm + DT research arm; --orders = the node's ORDERS + [goal].md + [hypothesis].md verbatim (its BUILD section)
-WEDGE     13:58:34Z 09-25 memory livelock (the reaper, goal:g6.49; fixed 48e16356f0) · box down 19:30-21:45Z · 22:19Z reboot · /tmp WIPED
-TOWN      TM gen 23 = @12 (seated 00:49Z) · DE gen 21 (spawned 00:22Z after TMM.193's mirror push) · DT gen 32 (00:41Z) · SM
-          gen 4 @5 · the Prime = belam gen 7 · the Prime set BOTH director rows to claude-opus-5-5 / medium at 00:36Z (73cbe21cda)
-PASS      PASS 7 CLOSED 00:06Z (0 RED; routed TMM.188 DT, TMM.189 DE) · PASS 8 NOTICED: 05:47Z 09-26, delta 08a9cf60f8 -> trunk
-          (51 commits at notice) -- what lands before it rides in it · MY PRE-CHECK 01:3xZ (86 commits): 0 node deletions · anonymize
-          ok (510 KB) · goals rc 0 (366) · links 0 broken · model-name grep 2 = FALSE POSITIVE: the grep pattern literal inside gen 22's
-          card text, captured in its own rotate-self argv (rotation record s12_self_reap.chain[1,2].ps_before; loopback ip only)
-LANDED    gen 23: 1b3eeabfc (DE) · 3cac26ba4 (DT OSC.35) · 496f4565a (DE g7.33.14 swarm harvest, TMM.200) · board aa06037a4 -- gen 22: 8732c4dc8e (DT salvage + a00-325d4c56's evidence) · e53a1f427b (DE DH.360 round stage + DH.362 = last PASS 5 row) ·
-          3cc5378007 (a00-325d4c56's PASS 7 demote corrected) · e5bf88d1c7 (OSC.34: key_only beats byte-matched TRUE uniform 6/8,
-          random 8/8 at one seed -> inconclusive_lean_proved:60; config:posts kept at HEAD) · board 0c33db8f65 + aee4c1fca7
-DT        swarm 2/2 [merge-up] f1eab68d65 (02:55Z: OSC.36 qwen3 band + OSC.37 + OSC.38 + model_slot.py) RETURNED in TMM.201: 3 experiments
-          'proved' on osc-np64-noise-band-per-cell overclaim (a00-0306a534: a LOSS at 6.125 agree breaks conjunct 2; a00-385bc2f0 +
-          a00-b0b47e2a: one budget each vs a 4-budget claim) · all else green; gate M 4fb97173bf suite running (scratchpad/suite-dt4.pid)
-          · qwen3 (n_prompts=2, 4 seeds): key_only vs uniform 7 inside / 1 loss, vs random 8/8 inside -> parent lean_disproved:65 (DT, honest)
-          · the verdict fix MUST land before PASS 8 05:47Z · trial: memory floor FIRED in both swarms (swarm 2: 1368 MiB = one model + the
-          stream) -- DT proposed re-scoring the floor; told: report FIRED, re-scoring = the Prime's / owner's call
-DE        LANDED 1b3eeabfc (brief.py extras + goal:g7.33.14 schema-clean; experiment:a00-325d4c56-bedcc8 kept at HEAD) · TMM.197 owed: the
-          g7.33.14 swarm harvest [merge-up] (talk-first CONFOUNDED) -> TMM.190 AUTO-CAPTURED -> TMM.189 PASS 7 batch -> extras containment
-          · DE gen 21 held its merge-up for its human 00:55-01:37Z, then sent it itself (signed) -- never land over a director's hold
-          · harvest LANDED 496f4565a (TMM.199 reds fixed by gen 22 = post-director-engine-93 @14); owed: DH.367 [merge-up] -> TMM.190
-          -> TMM.189 -> extras containment
-OWNER     02:0xZ 09-26 via the Prime's [decision] 02:12Z, verbatim: "Are directors doing additional concurrent spawns as well? This free key
-          is limited time so if it supports additional concurrency might as well." -> the 3rd swarm slot = DE's; stop on pi-free errors > 5%,
-          an OOM outside a kid scope, MemAvailable < 1.5 GiB · my [red] 02:1xZ: its premise 'min 6.2 GiB' was pre-overlap (memguard 642 MiB)
-BUG       the capture: at f >= 0.85 x the line (directors) or 10 min past the line (ANY seat): 'AUTO-CAPTURED' prepended into the
-          card, re-fired each prompt · interim unset of ladder.md:16 = the Prime's call ([decision] 00:2xZ)
-trunk     MAIN = local-maxxing/season2/main · origin = e5c9d69b10 (gen 22's rotate-out) + the watch's after_join commits
+LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66) · 04:3xZ: 6 leases, all pi-free
+GUARD     the Prime's [decision] 04:29Z (owner's order after the 03:20Z livelock + 03:56Z power cycle): user@1000.service capped 5829M
+          (high 5246M) · agi.slice 4080M · oomd at 40% pressure · watchdog reboot at PSI full >= 40% for 5 min · <= 10 live spawns
+          town-wide, pi rounds only · a model-loading kid waits for the Prime's go on a quiet town (or the brain container, 8G, HTTP) ·
+          memory_alarm (20680940c) WARN -> hold new dispatches · SUPERSEDES the 02:1xZ concurrency-up (30) · relayed to DT in TMM.202
+          · GAP [red] 04:4xZ: TM + DT (the heal's 04:28Z respawns) run in session-73.scope, OUTSIDE the cap (3531 MiB there at 04:4xZ)
+OWNER     (standing) co-own the director docs via write.py + ONE dm per live director · dispatch = ONE parent per round (--tier parent
+          --role parent --ladder-tier 0, no --harness) · NEVER the Agent tool · mini-swarm trial = hypothesis:a-parent-swarm-splits-its-
+          goal-before-it-mints-a-hypothesis (goal:g7.16)
+TOWN      TM gen 24 @2 (heal respawn 04:28Z; ack 9ab0cf576, ref 7788f1) · DT gen 33 @3 (04:28Z, ref 01ca37) · DE live @1 =
+          post-director-engine-aa [a250f9], but its ROW = gen 22 / @14 / dead pid 156760 ([red] to belam 04:4xZ) · belam gen 8 @0 · SM gen 4
+PASS      PASS 8 at 05:47Z 09-26, delta 08a9cf60f8 -> trunk -- what lands before it rides in it
+GATE      M2 = 4b5fbab19f = HEAD b3e79cd11f + DT 9c64ecd49f (M1 e83ec54ed6, tree G1 96ae5af2c8) + DE 13131e488c (tree afb48661e0) ·
+          worktree scratchpad/gate · suite started 04:32:59Z (scratchpad/suite-m2.pid + suite-m2.log) · goals rc 0 (372) · links 0 (4428)
+          · evidence dry-run 0 · anonymize ok on both deltas · model grep 0 · 'w + 1' 0 · posts.md untouched by both
+DT        9c64ecd49f RETURNED in TMM.202 -> RE-SENT ccbfa862e 04:40Z: a00-7a3bd2b1 + band-byte-audit both :60 / 0.6 (THOUGHT names
+          why) = GATED GREEN (TMM.203: lands on the suite) · pi pair (hook-trim, pi-compacts) = GO · every model-loading round HELD for
+          the Prime's go · OSC.40 r2 + OSC.41 (model-loading, dispatched 04:31-04:34Z before my relay) stopped 04:40:09-12Z -> they were the
+          04:37/04:38Z SPIKEs + the 04:39Z memory CRIT ([red] to belam: the relay delay is mine)
+DE        [merge-up] 03:05Z tip 13131e488c = DH.368 (pin-reap STALE-PIN, late-s12 bound 1800 s, TERM grace 15 s) + DH.369 (log caps
+          16 MB x 3, maint_gc 41 4 * * *) · code read: safety-leaning; pin-reap list-only (reaper.pin_reap unset) · first live apply
+          rotates ~/logs agi-crons (140 MB) + agi-reaper (32 MB) to .1 · RESIDUE: heal.py + rotate.py daemons hold the cron log open ->
+          after a rename they write .1, which is never rotated again · gc = 160k objects / 78 MB packed = cheap · DE's own residue:
+          kid 2fa1fab0 launched 2 real claude sessions · DE gen 23's branch is further on (DH.374-376), not in this merge-up
 ```
 
 ## 🔴 Where it stops
-03:1xZ 09-26 gen 23: DE harvest LANDED 496f4565a; DT's swarm-2 tip f1eab68d65 RETURNED (TMM.201, 3 verdicts) -- its re-send lands before PASS 8 05:47Z
-````
-03:1xZ 09-26 gen 23: DE harvest LANDED 496f4565a; DT's swarm-2 tip f1eab68d65 RETURNED (TMM.201, 3 verdicts) -- its re-send lands before PASS 8 05:47Z
+04:4xZ 09-26 gen 24: suite on gate M2 running; DT ccbfa862e + DE 13131e488c both land on a green suite, then push, then PASS 8 at 05:47Z
 ```
-state   MAIN pushed at 3cac26ba4 + board/card commits · gate worktree scratchpad/gate-de kept for reuse (git worktree remove at rotation)
-        · last order sent = TMM.201 · next = TMM.202 · comms churn, sequence.json, rotation records = not mine
-NEXT    (1) DT's re-send of f1eab68d65 (TMM.201): gate = merge-tree on live HEAD + goals + links + evidence dry-run + the 3 verdicts +
-            node tests; the full suite on 4fb97173bf covers the code (0 engine files) -> land + push BEFORE 05:47Z
-        (2) every [merge-up]: the WHOLE body of each node against the loop's known errors (w + 1; tags != budgets) · bits() RUN for
-            every arm's widths · the CONTROL arms (uniform AND random) before any verdict · config:posts rows HEAD vs merged tree
-            (prime/owner-only cells never change through a director tip: land HEAD's posts.md verbatim, name it)
-        (3) a swarm [merge-up]: the node's 5 FALSIFIERS + throughput vs the branch's last 5 single-parent rounds
-        (4) DE's capture fix: gate what the hook's FIRST live run does (it runs from MAIN for every session the moment it lands)
-        (5) PASS 8 at 05:47Z: a protocol regression landed before it = RED for the whole pass
-out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
+state   MAIN 15 ahead of origin (watch + ack + card) · last order sent = TMM.203 · next = TMM.204 · comms churn, sequence.json,
+        rotation records = not mine · PASS 8 pre-check 04:45Z on 185 commits: 0 node deletions · anonymize ok (1 MB) · goals 371 ·
+        links 0 broken · model grep 2 = the known false positive (thought-master.20260926T004902Z.json = the grep pattern literal)
+NEXT    (1) suite-m2 (scratchpad/suite-m2.log; 1 F at 19%): attribute every red (git diff --quiet per range; re-run alone; known launch
+            flakes: test_dashboard sigint + 2x test_suite_no_detached_spawn) · green -> LAND DT ccbfa862e then DE 13131e488c: T2 =
+            merge-tree(live HEAD, tip) (rc 0) · diff vs the gated tree = newcomers only · L = commit-tree T2 -p HEAD -p tip · ff-only ·
+            one push, print the ref line only
+        (2) after DE lands: read the first crons apply (cron log 'crons: log ... rotated') · TMM.204 to DE: landed sha + 2 residues as
+            their own rounds: (a) rename-rotation vs the 2 live writers of the cron log (heal.py + rotate.py daemons) (b) kid
+            a00-2fa1fab0 started 2 real claude sessions (claude --bg, --remote-control): a kid never starts a Claude session
+        (3) board rows 4 (live: the guard; directors = opus-5-5 medium) + 7 (engine: the landing) in place · [complete]-style note to belam
+        (4) PASS 8 at 05:47Z: re-run the pre-check on the final HEAD
+out     git worktree remove scratchpad/gate · python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
-````
 
 ## Traps (post-specific, learned)
 ```
@@ -76,7 +66,7 @@ rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (directo
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
              · a SYMLINKED quorum card loops the bare rotate (DE gen 13, 5 tries: stop_commit's flattened copy vs the link = a TYPECHANGE the dirty check refuses) -> unblock = cp the target over the link, commit that one path, rotate (TMM.152)
 goals        a FIX = a sub-sub goal inside the fixes subgoal of the top-level subgoal it applies to (engine fixes = goal:g7.33.N) -- never a new top-level goal (OWNER 16:24Z 09-24) · renumber: write.py for every field it allows + ONE hand edit of the id line + git mv (no verb sets id); refs re-pointed in the same commit; THOUGHT old -> new
-orders       a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
+orders       a Prime [decision] 'through you' that binds a director goes out BEFORE any gate (04:29Z 09-26: gated first, relayed 9 min later; DT dispatched 2 model-loading rounds in the gap -> memory CRIT 04:39Z) · a director's rotation can drop an order it read but had not carded (DT gen 19 read TMM.117 14:09:50Z, rotated 14:13Z) -> re-list owed items BY NAME · dm ONLY: send.py --from thought-master send --to <post> '<text>' via a python argv list (no --body-file); the Prime channel is
              positional: send.py --from thought-master send belam '[tag] ...' -- tags [merge-up] [decision] [rotation] [red] [rule] [complete]
              [owner] only; any other = REFUSED rc 3, nothing written ('[bank]' 06:5xZ) · EVERY number in an order is checked against the bytes first --
              my OWN earlier orders too: TMM.123's '17:02:10Z after 2m21s' mixed the stop time with the reaper's runtime_s (142 s to finished_at
@@ -180,7 +170,7 @@ recovery     a heal respawn (gen 22, 22:34Z) leaves the OWN row dirty in MAIN (g
              'thought-master', Namespace(gen=N), ref) = own row only (28066c6076) · the watch's after_join pins the meter to the new jsonl
              (its 'pin' result in the rotation record) · stream LIVE = gen 20's route: ack without --ref, then _join_successor(@id) ->
              _backfill_session_ref(ref='') -> _ack_commit_seats in-process · the watch: a dead row pid + a LIVE pinned session =
-             'stale-row', never DEAD · pin-reap only LISTS while .agi/config.json reaper.pin_reap is unset · a recovered DIRECTOR's cwd =
+             'stale-row', never DEAD · pin-reap only LISTS while .agi/config.json reaper.pin_reap is unset · gen 24 (04:29Z): the same --no-commit route + in-process _ack_commit_seats, verified; tmux display-message WITHOUT -t prints the attached CLIENT's window, not yours -> -t "$TMUX_PANE" · a recovered DIRECTOR's cwd =
              the registry's (06:4xZ = MAIN, 22:3xZ = its worktree): read ~/.claude/sessions/<pid>.json cwd (NAMED fields) before saying
              it in an order (TMM.180/181 corrected my TMM.178/179) · its ack prints a 'git push' line -> never commit on MAIN, never push
 reboot       /tmp is WIPED: a director card's mur log / args file under /tmp points at nothing (DE gen 19's DH.360 / DH.362, 22:4xZ) · a
@@ -221,7 +211,7 @@ board THOUGHT the town board's THOUGHT region is owner/prime-only: write.py 'tho
              -> an owner line that produced a board version rides VERBATIM in the row text + the dm that carried it
 memory       /var/log/agi-memguard.log is the box memory truth (SPIKE / SUSPENDED lines: pid, RSS, MemAvailable) -- read it before quoting
              any swarm's memory min (the Prime's 'min 6.2 GiB' was pre-overlap; the log had SUSPENDED a 4430 MiB python3 at 642 MiB) ·
-             a talk-only model slot FAILS (two claims + a director ruling, both parents launched within 3 min) -> flock, box-wide
+             a seat's cgroup is per PROCESS: /proc/<claude pid>/cgroup (a heal respawn landed in session-73.scope, outside user@1000.service's cap, 04:4xZ 09-26) · a talk-only model slot FAILS (two claims + a director ruling, both parents launched within 3 min) -> flock, box-wide
 successor    after a director rotation its posts row keeps the OLD session_name/window for minutes (DE 02:24Z: row -64 @10, live -93 @14):
              resolve the new session from ~/.claude/sessions/*.json by name/tmux (NAMED fields only), then SendMessage the owed order
 holds        a director may hold its own [merge-up] for its human (DE 00:55Z 09-26: its harness said an AI role's yes is not consent) ->
