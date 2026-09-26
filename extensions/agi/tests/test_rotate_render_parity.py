@@ -1,37 +1,27 @@
 """`hypothesis:non-prime-rotate-self-renders-through-brief-render` — the
-comparison the claim asks for ("a committed test compares the two renders").
+comparison the claim asks for ("a committed test compares the two renders"),
+now as a PARITY pin (this file previously pinned the measured DIVERGENCE,
+before the round that built the fix).
 
-The claim has two clauses and this file measures BOTH on ONE fixture, so the
-answer is a byte diff rather than a reading of the source:
+CLAUSE (1): the non-prime rotate-self path assembles the successor's first
+turn through `brief.render`, exactly as the prime path does.
 
-  (1) the non-prime rotate-self path renders the successor's first turn
-      through `brief.render`, exactly as the prime path does; and
-  (2) a committed test compares the two renders.
+WHAT THE MACHINE ACTUALLY DOES NOW. `cmd_rotate_self` still resolves the
+template's `brief_file` cell — it IS the rotating post's own quorum card, and
+L5.11 requires it to resolve through the rename boundary — but it hands the
+result to `spawn_window` as `card_file`, NOT as `prompt_file`. `prompt_file`
+therefore stays None for EVERY role, so `spawn_window` takes the
+`_assembled_successor_command` branch for the prime AND the non-prime, and
+`brief.render(..., card_file=...)` puts the named card where the `card` part
+would otherwise read `doc:card-<post>` or the graph root's
+`sessions/quorum/<post>.md` — a copy that does not exist for a worktree post.
 
-WHAT THE MACHINE ACTUALLY DOES (rotate.py:19570-19590, the (3) prompt_file
-resolution): the `brief_file` cell is resolved for EVERY template EXCEPT
-`prime_director` —
-
-    if (not args.dry_run and prompt_file is None
-            and role != "prime_director"
-            and tmpl is not None and tmpl.get("brief_file")):
-        prompt_file = _resolve_brief_file(root, ..., tmpl["brief_file"])
-
-so a non-prime hands `spawn_window` a FILE and lands in `_successor_command`
-(file body + `brief.successor_prompt`), while the prime hands it `None` and
-lands in `_assembled_successor_command` (`brief.render`). The two renders are
-therefore NOT the same render, and the live `director` template DOES declare
-`brief_file: .agi/sessions/quorum/{seat}.md` (config:rotations), so this is
-the live path, not an edge case.
-
-The exemption is DELIBERATE and load-bearing (rotate.py:19574-19582, and the
-GATE `test_non_prime_rotate_self_still_resolves_its_template_brief`): a
-non-prime's successor must read the post's OWN quorum card at the path the
-rename boundary renamed, which `brief.render`'s `card` part cannot be trusted
-to reach (L5.11 `hypothesis:l5-rename-surfaces-and-the-successor-brief-
-resolve-from-the-rotating-worktree-root`). So this file pins the DIVERGENCE
-as measured, and pins the one place the two paths DO agree — the head bytes
-both prepend — rather than asserting a parity that does not exist.
+THE NEAR MISS: resolving the cell into a `prompt_file` again (the pre-fix
+shape) satisfies "the card reaches the successor" and loses "exactly as the
+prime path does" — the non-prime's body is then a file read plus
+`successor_prompt`, with no role template, no harness block, no trajectory.
+Dropping the cell entirely satisfies "renders" and loses the card, which is
+what `brief.render` cannot reach on its own for a worktree post.
 """
 import argparse
 import json
@@ -142,11 +132,14 @@ def _args(**over):
 
 
 
-def test_the_two_rotations_take_different_render_paths(tmp_path, monkeypatch):
-    """CLAUSE (1), MEASURED: the prime hands `spawn_window` no prompt file
-    (so it renders through `brief.render`), and a non-prime whose template
-    declares `brief_file` hands it a FILE (so it never renders). The claim as
-    written is FALSIFIED here, and this is the live `director` template."""
+def test_both_rotations_render_and_the_non_prime_keeps_its_own_card(
+        tmp_path, monkeypatch):
+    """CLAUSE (1), BUILT: the prime and the non-prime hand `spawn_window` the
+    SAME thing — no prompt file, so both render through `brief.render` — and
+    the non-prime additionally hands over the card it resolved through the
+    rename boundary. RED pre-fix: the non-prime's `prompt_file` was the
+    resolved FILE, so `spawn_window` took `_successor_command` and the
+    non-prime never rendered."""
     root = _root(tmp_path)
     prime_wt = tmp_path / "wt-prime"
     prime_wt.mkdir()
@@ -194,18 +187,25 @@ def test_the_two_rotations_take_different_render_paths(tmp_path, monkeypatch):
 
     assert prime.get("prompt_file") is None, (
         "the prime must leave prompt_file None so spawn_window renders")
-    assert director["prompt_file"] == str(
+    assert director["prompt_file"] is None, (
+        "a non-prime renders exactly as the prime does: the template cell is "
+        "a CARD, handed as card_file, never a prompt file")
+    assert prime.get("card_file") is None, (
+        "a prime's cell names a STATIC brief, not a card, so it is not fed "
+        "as one")
+    assert director["card_file"] == str(
         dir_wt / ".agi" / "sessions" / "quorum" / "director-row.md"), (
-        "a non-prime resolves its template brief_file instead of rendering")
+        "the non-prime still resolves its own card through the worktree root "
+        "(L5.11) — the render delivers it, it does not replace it")
 
 
-def test_a_non_prime_without_a_brief_file_cell_does_render(tmp_path,
-                                                           monkeypatch):
-    """THE NEAR MISS, stated as a counterfactual: the non-prime path DOES
-    reach `brief.render` — but only when the template declares no
-    `brief_file`. This is why the claim reads plausibly from the source: the
-    `role != "prime_director"` guard is the ONLY thing separating the two
-    renders, and a template with no `brief_file` cell removes it."""
+def test_a_non_prime_without_a_brief_file_cell_renders_with_no_card_file(
+        tmp_path, monkeypatch):
+    """THE NEAR MISS, still true after the fix: a non-prime whose template
+    declares NO `brief_file` renders too, with `card_file` None — then
+    `brief.render`'s own `card` part resolves the card (doc:card-<post>, else
+    the graph root's quorum file). The cell is a POINTER to the card, not the
+    switch between the two renderers."""
     root = _root(tmp_path)
     wt = tmp_path / "wt-nofile"
     wt.mkdir()
@@ -222,18 +222,21 @@ def test_a_non_prime_without_a_brief_file_cell_does_render(tmp_path,
     monkeypatch.setattr(rotate, "find_project_root", lambda: root)
     rotate.cmd_rotate_self(_args(name="director-nofile"), root)
     assert seen.get("prompt_file") is None
+    assert seen.get("card_file") is None
 
 
-def test_the_two_bodies_share_the_head_and_diverge_below_it(tmp_path,
-                                                            monkeypatch):
+def test_the_two_bodies_are_both_the_render_and_carry_their_own_cards(
+        tmp_path, monkeypatch):
     """CLAUSE (2), the COMPARISON: compose both successors' real first turns
-    and diff them. The head bytes are the ONE thing the two paths agree on —
-    `brief.render`'s `head` part and `brief.successor_prompt`'s
-    `render_head` are the same function — and everything below it is a
-    different render: the prime carries role template + card + harness block
-    + trajectory, the non-prime carries only its quorum card's bytes."""
+    and diff them. Post-fix BOTH go through `_assembled_successor_command`, so
+    both open with the same head bytes and both carry the config render's
+    parts (role template + harness block + trajectory); they differ only in
+    the CARD, and the non-prime's card is the one its own tree holds — the
+    file `brief.render` alone could not reach."""
     root = _root(tmp_path)
-    card = _write(root, "sessions/quorum/director-seat.md", QUORUM_CARD_SENTINEL + "\n")
+    _write(root, "sessions/quorum/director-seat.md", CARD_SENTINEL + "\n")
+    card = _write(root, "wt-director/.agi/sessions/quorum/director-seat.md",
+                  QUORUM_CARD_SENTINEL + "\n")
     seen = {}
 
     def _capture(harness, **kw):
@@ -242,18 +245,18 @@ def test_the_two_bodies_share_the_head_and_diverge_below_it(tmp_path,
 
     monkeypatch.setattr(rotate, "_build_harness_command", _capture)
 
-    # the prime's path: prompt_file None -> _assembled_successor_command
+    # the prime's path: no card cell -> brief.render's own card part
     seen["slot"] = "prime"
     rotate._assembled_successor_command(
         name="prime-seat", tier="prime_director", model=None, effort=None,
         settings=None, debug_file="/dev/null", harness="pi", project_root=root)
 
-    # the non-prime's path: a prompt file -> _successor_command
+    # the non-prime's path: the resolved card, THROUGH the same render
     seen["slot"] = "nonprime"
-    rotate._successor_command(
-        name="director-seat", tier="director", prompt_file=str(card),
-        model=None, effort=None, settings=None, debug_file="/dev/null",
-        harness="pi", project_root=root)
+    rotate._assembled_successor_command(
+        name="director-seat", tier="director", model=None, effort=None,
+        settings=None, debug_file="/dev/null", harness="pi",
+        project_root=root, card_file=str(card))
 
     prime, nonprime = seen["prime"], seen["nonprime"]
     head = brief.render_head(project_root=root)
@@ -261,14 +264,14 @@ def test_the_two_bodies_share_the_head_and_diverge_below_it(tmp_path,
     # AGREE: the same head bytes open both, from the same function.
     assert prime.startswith(head)
     assert nonprime.startswith(head)
-    # DIVERGE: only the prime's body carries the config render's parts.
-    assert TEMPLATE_SENTINEL in prime
-    assert TRAJECTORY_SENTINEL in prime
-    assert HARNESS_SENTINEL in prime
-    assert TEMPLATE_SENTINEL not in nonprime
-    assert TRAJECTORY_SENTINEL not in nonprime
-    assert HARNESS_SENTINEL not in nonprime
-    # and the non-prime's body is the quorum FILE, which `brief.render` would
-    # have replaced with its own `card` part.
+    # AGREE: both carry the config render's parts — the parity the claim asks
+    # for. Pre-fix the non-prime carried NONE of them.
+    for sentinel in (TEMPLATE_SENTINEL, TRAJECTORY_SENTINEL, HARNESS_SENTINEL):
+        assert sentinel in prime, sentinel
+        assert sentinel in nonprime, sentinel
+    # DIFFER: each successor reads ITS OWN card. The non-prime's is the file
+    # its worktree holds, which the graph root has no copy of.
+    assert CARD_SENTINEL in prime
+    assert CARD_SENTINEL not in nonprime
     assert QUORUM_CARD_SENTINEL in nonprime
     assert prime != nonprime
