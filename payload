@@ -35,12 +35,39 @@ _PROBE_UNIT = "agi-memcap-probe"
 _CACHE_DIR_NAME = "agi-memcap"
 _CACHE_FILE_NAME = "probe"
 
+#: `values.memcap.tasks_max` -- the PER-TREE process bound carried as
+#: `TasksMax` on the SAME scope that carries `MemoryMax`. Shipped default
+#: 96: one round's own tree is a round process plus its tools (a `pytest -n8`
+#: run is ~15 procs), so 96 is ~6x headroom on a normal round, while the
+#: DH.419 fan-out that pushed user@ over memory.high was 127 forks -- a
+#: default below that number, and far below the box's user@ `pids.max`
+#: (16384), so the SCOPE refuses the fork instead of the whole user slice
+#: growing. RLIMIT_NPROC cannot express this (it is per-USER, not per-tree),
+#: so the prlimit fallback carries NO process bound -- see `wrap_argv`.
+_DEFAULT_TASKS_MAX = 96
+
 
 def _normalise_cap(val) -> "str | None":
     """None / 'none' / 'null' / '' -> None; else the value verbatim."""
     if val is None or str(val).strip().lower() in ("", "none", "null"):
         return None
     return str(val)
+
+
+def resolve_tasks_max(cfg: "dict | None" = None) -> int:
+    """`values.memcap.tasks_max` -> an int >= 1, else the shipped default.
+
+    A cell that is absent, non-numeric, or below 1 falls back to
+    `_DEFAULT_TASKS_MAX` rather than to "no bound": an unreadable cell must
+    not silently un-cap the tree. `AGI_TASKS_MAX` overrides for tests."""
+    env = os.environ.get("AGI_TASKS_MAX")
+    raw = env if env not in (None, "") else (
+        ((cfg or {}).get("values") or {}).get("memcap") or {}).get("tasks_max")
+    try:
+        n = int(str(raw).strip())
+    except (TypeError, ValueError):
+        return _DEFAULT_TASKS_MAX
+    return n if n >= 1 else _DEFAULT_TASKS_MAX
 
 
 def resolve_memory_cap(cfg: dict, override: "str | None" = None) -> "str | None":
@@ -241,7 +268,13 @@ def wrap_argv(argv: list, cap: "str | None",
     if systemd_run_usable(cfg):
         return ["systemd-run", "--user", "--scope", "-q",
                 f"--property=MemoryMax={cap}",
+                f"--property=TasksMax={resolve_tasks_max(cfg)}",
                 "--property=MemorySwapMax=0", "--", *argv]
+    # NAMED RESIDUAL (DH.421): the prlimit fallback bounds ADDRESS SPACE per
+    # process and NOTHING about the tree's width -- RLIMIT_NPROC is per-USER,
+    # so a per-tree process cap has no prlimit spelling. A box without a
+    # usable systemd-run still fans out unbounded; the fix is the systemd
+    # path, not a second limit here.
     return ["prlimit", f"--as={_as_bytes(cap)}", "--", *argv]
 
 
