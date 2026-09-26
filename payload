@@ -8048,9 +8048,9 @@ WORLD-AFTER: every box that runs seats carries the SAME memory-watch stack, size
 | mem_cap probe | `mem_cap.systemd_run_usable(cfg)` is True | the read-back |
 | model gate | the `--no-model` fence (DH.415) + model_slot the only lift (director-thought, TMM.259) | rides director-thought's merge-up |
 
-SIZING, per box: user@ MemoryMax = MemTotal - every budget held outside user@ (container caps; the stream when it runs outside user@) - 2 GiB system reserve · MemoryHigh = 0.9 x MemoryMax · MemorySwapMax = 0.5 x swap · agi.slice MemoryHigh / MemoryMax = 0.63 / 0.70 x user@ MemoryMax (local-town's ratios).
+SIZING, per box: user@ MemoryMax = MemTotal - every budget held outside user@ (container caps; the stream when it runs outside user@) - the box's MEASURED system reserve (local-town ~1.9 GiB; encryption-town 942 MiB, its 09-25 install) · MemoryHigh = 0.9 x MemoryMax · MemorySwapMax = 0.5 x swap · agi.slice MemoryHigh / MemoryMax = 0.63 / 0.70 x user@ MemoryMax (local-town's ratios).
 
-ACCEPTANCE: one idempotent installer (dry-run by default; records every before-value; restores them on failure; sudo only for the system pieces) + one read-back probe that prints this table for the box it runs on -- green on local-town AND on encryption-town, the latter run by that box's own seat.
+ENCRYPTION-TOWN, audited 21:5xZ 09-26 by its sanctuary session (read-only): user@ 6220 / 6912 · oomd · slices · agi.slice 4354 / 4838 · watchdog PRESENT, ratio-sized on a 942 MiB reserve (7854 MiB RAM, nothing held outside user@) · MISSING agi-memguard, the memory_alarm cron, OOMPolicy=continue (claude-remote-control on stop), and the engine half (spawn.memory_max 6G; no model_fence.py; a 0-arg mem_cap probe on core/main b7bf08187) -> the exact bytes went to that session for the owner's go. ACCEPTANCE: one idempotent installer (dry-run by default; records every before-value; restores them on failure; sudo only for the system pieces) + one read-back probe that prints this table for the box it runs on -- green on local-town AND on encryption-town, the latter run by that box's own seat.
 
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
