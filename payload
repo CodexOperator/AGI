@@ -450,65 +450,6 @@ def _log_path(repo_root: Path) -> Path:
     return Path.home() / "logs" / f"agi-crons-{Path(repo_root).name}-{project_hash(repo_root)[:8]}.log"
 
 
-_ARCHIVE_RE = re.compile(r".+\.\d+$")
-_NESTED_RE = re.compile(r".*\.\d+\.\d+$")
-
-
-def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False) -> list[str]:
-    """Rotate every file in the box logs dir that is over the declared cap.
-
-    The cap is the `logs.cap_mb` / `logs.rotations` cells in
-    `.agi/config.json`, read at apply time -- never a literal here. An ABSENT
-    `logs` namespace is a no-op (nothing is declared to enforce); a PRESENT
-    but malformed one raises by name, because a cap that silently does not
-    apply is worse than no cap. The scope is the whole logs dir, not just
-    this project's cron log: the reaper log grows there too and shares it.
-    """
-    cells = locations.load_config(root).get("logs") or {}
-    if not cells:
-        return []
-    cap_mb, keep = cells.get("cap_mb"), cells.get("rotations")
-    if not (isinstance(cap_mb, int) and cap_mb > 0
-            and isinstance(keep, int) and keep >= 0):
-        raise CronsError(
-            f"config cells logs.cap_mb/logs.rotations: cap_mb must be a "
-            f"positive integer and rotations a non-negative one, got "
-            f"{cap_mb!r}/{keep!r} -- a cap that silently does not apply is "
-            f"worse than no cap")
-    cap, out, d = cap_mb * 1024 * 1024, [], _log_path(repo_root).parent
-    for p in sorted(d.glob("*")) if d.is_dir() else []:
-        if p.is_symlink() or not p.is_file():
-            continue
-        if _ARCHIVE_RE.match(p.name):
-            # An ARCHIVE is never a base: rotating it would rotate the
-            # enforcement itself (`x.log` -> `x.log.1` -> `x.log.1.1` -> ...,
-            # one more nesting level per apply, unbounded by `rotations`).
-            # It leaves the way the rotation shift of ITS base deletes it, or
-            # now, if it is residue of the pre-fix unbounded enforcement --
-            # the new one can never create a nested tail.
-            if _NESTED_RE.match(p.name):
-                out.append(f"{p.name} pruned (legacy rotation residue)"
-                           + (" (dry-run)" if dry_run else ""))
-                if not dry_run:
-                    p.unlink()
-            continue
-        if p.stat().st_size <= cap:  # over-cap is strictly `>`
-            continue
-        if dry_run:
-            out.append(f"{p.name} is over the {cap_mb} MB cap (dry-run)")
-            continue
-        if Path(f"{p}.{keep}").exists():
-            Path(f"{p}.{keep}").unlink()  # the oldest rotation leaves
-        for i in range(keep - 1, 0, -1):
-            if Path(f"{p}.{i}").exists():
-                Path(f"{p}.{i}").replace(f"{p}.{i + 1}")
-        if keep:
-            p.replace(f"{p}.1")
-        p.write_text("", encoding="utf-8")
-        out.append(f"{p.name} rotated (cap {cap_mb} MB, {keep} kept)")
-    return out
-
-
 def _on_this_box(job: dict, own: str) -> bool:
     """The job's `box` gate: absent = every box; a string/list restricts it.
 
@@ -1069,7 +1010,6 @@ def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool 
         write_crontab(new_lines, crontab_file)
 
     unit_actions = reconcile_units(root, repo_root, node, unit_dir, dry_run)
-    log_actions = enforce_log_caps(root, repo_root, dry_run)
 
     return {
         "root": root, "repo_root": repo_root, "engine_root": engine_root,
@@ -1077,7 +1017,6 @@ def cmd_apply(root: Path, crontab_file: Path | str | None = None, dry_run: bool 
         "previous_managed_lines": existing, "changed": changed,
         "crons_live": node["crons_live"],
         "unit_actions": unit_actions, "unit_dir": unit_dir,
-        "log_actions": log_actions,
     }
 
 
@@ -1220,16 +1159,13 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"crons: crons_live is false — {verb} 0 line(s) "
                       f"(kill switch; {len(result['previous_managed_lines'])} "
                       f"removed)")
-            elif result["changed"] or args.dry_run:
+            else:
                 print(f"crons: {verb} {len(result['managed_lines'])} line(s) "
                       f"for {result['repo_root']}:")
                 for line in result["managed_lines"]:
                     print(f"  {line}")
             if not result["changed"]:
-                print(f"crons: no-op — the crontab already matches the node "
-                      f"({len(result['managed_lines'])} line(s))")
-            for a in result.get("log_actions") or ():
-                print(f"crons: log {a}")
+                print("crons: crontab already matched (no-op)")
             if result.get("unit_actions"):
                 print(f"crons: units ({result['unit_dir']}):")
                 for a in result["unit_actions"]:
