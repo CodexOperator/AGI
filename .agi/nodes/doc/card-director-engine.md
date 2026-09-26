@@ -47,7 +47,7 @@ CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_ma
 429    -> 443 a00-169a5424 REBUILT standalone (live 150, both guards) -> mur-6 DH.443 accept_with_residue (real systemd-run in fan-out test; live-config rows pin literal 150) -> 453 a00-a5beb177 HARVESTED (proved; 21 green; stubbed runner, no literal) -> mur DH.453-k1 RUNNING; LAND: merge 429 (nodes) THEN 443 (-X theirs)
 430    -> 440 a00-c8389b84 (incl 430+431; ONE guard home, 0 dups; 229 green + repro) -> mur-6 DH.440 DONE accept_with_residue x2 (import-time kill leaf pid-only; context conftest no import fence; env= pinned by source string; _STRIPPED note) -> 452 a00-cbb9f70e (closed 1/3/4: one signal0 predicate, env-strip by behaviour, _STRIPPED gone; 67 green; kid a00-e734f35a FAILED empty) -> 457 a00-7ceac8c4 LIVE, cut from 452 (residue 2 context import fence + killpg); mur 440->457 ONCE after (stale-base overridden with reason, x all correctives)
 432    SUPERSEDED (host in history) -> 438 -> 446 a00-20d4ab3d (cut from 438; 0/24 fixtures==tmpl, 177 green) -> mur-7 DONE:
-       accept_with_residue (sibling node a00-f787eff3 false; new_bytes 2 meanings; config_max YES) -> 451 a00-5712dd56 HARVESTED (proved; kid's sibling-node fix was UNCOMMITTED -> I committed it on the loop br 79bdb3490; 177 green) -> mur-8 DH.451-k1 RUNNING
+       accept_with_residue (sibling node a00-f787eff3 false; new_bytes 2 meanings; config_max YES) -> 451 a00-5712dd56 -> mur-8 accept_with_residue (MY hand-land 79bdb3490 of a kid node = rule breach, unlogged; THOUGHT(3) not withdrawn; rebrief unanswered; tests read live user systemd files; green-requires-drift) -> 458 a00-78bd7f24 LIVE, cut from 451 tip d60386d84
 433    -> 444 -> 447 a00-7ba0cad2 (cut from 444; 19 green) -> mur-7 accept_with_residue (own renderer KeyError GUARD_DOC; dest_rel {{UID}} raw; no unlisted guard; templates_dir cwd; missing manifest traceback; vacuous privileged row; cfg+tmpl YES) -> 454 a00-2752c658 HARVESTED (2 kids proved; one renderer; 204 green) -> mur DH.454-k1 RUNNING, cut from branch de-base-454 (= 447 + 451 merged, worktree de-base-454); OPEN after 438/446 land: templates_dir is
        repo-relative + unresolved -> load_manifest traceback: resolve vs the repo root + refuse a missing manifest by name
 434    SUPERSEDED -> 437 -> 439 (mur-6 residue: mem_cap path WRITES cache; neg reserve=info; literals) -> 450 a00-f0f1a8b1 HARVESTED (proved; 34 green on loop br) -> mur-8 DH.450-k1 RUNNING (unit agi-director-engine-mur450)
@@ -67,13 +67,13 @@ CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT
 
 ## 🔴 WHERE IT STOPS (rotated at f=0.43; capture chain rc=1 = g7.33.15; every round below survives rotation)
 ```
-FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur449 mur450 mur451 mur453 mur454 (440->452 · 443->453 · 447->454 · 445->455 · 448->456) (mur446 DONE, above)
+FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur449 mur450 mur453 mur454 (451->458 · 440->452 · 443->453 · 447->454 · 445->455 · 448->456) (mur446 DONE, above)
        mur446 (+ whatever finished). Verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{5,6,7,8}/verify_DH.4NN-kN.json
-       parents live: 457 a00-7ceac8c4 · 455 a00-4d187f38 · 456 a00-f38de815
-THEN   harvest 454-457 as they land (each cut FROM its chain branch: diff vs that branch; tests; commit stray node edits there)
+       parents live: 457 a00-7ceac8c4 · 458 a00-78bd7f24 · 455 a00-4d187f38 · 456 a00-f38de815
+THEN   harvest 454-457 as they land (each cut FROM its chain branch: diff vs that branch; tests; a stray KID node edit is NEVER hand-landed -> a corrective re-lands it via write.py)
 PATTERN corrective = dispatch FROM the loop branch's worktree (kids cannot merge); a clean mur = git merge --no-ff <final branch>
        LAND ORDER per chain: 425: 441 then 448 then 456 · 426: 445 then 455 (NEVER 442) · 427: 436 then 449 @2cee3ba21 · 429: merge 429 (nodes) then 443
-       -X theirs then 453 · 430: 440 then 452 then 457 · 432: 438 then 446 then 451 @79bdb3490 (NEVER 432) · 433: 444 then 447 then 454 (454 CARRIES 451: land the 432 chain FIRST) · 434: 439 then 450 (NEVER 434)
+       -X theirs then 453 · 430: 440 then 452 then 457 · 432: 438 then 446 then 451 then 458 (NEVER 432) · 433: 444 then 447 then 454 (454 CARRIES 451: land the 432 chain FIRST) · 434: 439 then 450 (NEVER 434)
 THEN   graph acts (2) level3.py build:tests-test-agi-bin-absent · (9)(11) verdicts · full suite + ctx -> ONE [merge-up] 14+15 + g7.33.18
        (name: 442 discarded, stale-base overrides, the g15 lines, the 2 BOX DRIFTs, my stale 21:2xZ dm)
 ```
@@ -87,6 +87,7 @@ nproc       NEVER `prlimit --nproc` in orders: RLIMIT_NPROC is PER-USER (this ui
 fork-bound  every orders file: a test that spawns python/pytest runs it under `timeout` + a process cap, NEVER a pytest
             that can re-collect its own dir; a conftest never exec's another conftest (DH.419 fork bomb, 127 procs)
 torch-path  context tests: PYTHONPATH=paths.local_maxxing.osc_test_pythonpath + system python3 (the venv has no pytest)
+kid-node    NEVER hand-land a kid's uncommitted node edit (brief.py 'A KID'S AUTHORED NODE IS THE KID'S'): I did at 79bdb3490 (451) + 2cee3ba21 (449), mur-8 flagged it -> the corrective re-lands via write.py under the kid's actor
 suite-live  NEVER merge into this tree while a suite runs here: getsource tests read the moved file (12: 2 false reds)
 ```
 
