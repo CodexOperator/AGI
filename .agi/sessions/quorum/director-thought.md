@@ -134,6 +134,10 @@ bits-label   a tag NAME like "7.75" or "3p5" anywhere in this OSC line is histor
          bits() value) -- re-verify the number, do not just trust that a widths list "is" its tag name.
 posts    in a posts.md conflict NEVER keep your own values for model / effort / role / tier / harness / owning_goal / worktree / rotated_by --
          take the incoming side's, keep only your identity cells (TMM.194: gen 32's 'keep own row' reverted the Prime's 00:36Z model/effort edit).
+posts    in a posts.md conflict NEVER keep your own values for model / effort / role / tier / harness / owning_goal / worktree / rotated_by by
+         reflex -- take the side carrying the NEWER Prime/owner edit (`git log -- posts.md` on both trunks), keep only your identity cells
+         (TMM.194: gen 32's first 'keep own row' reverted the Prime's 00:36Z 73cbe21cda; the second conflict ran the other way --
+         season2/main's key-row commits carried the OLD sonnet/max, so the local-maxxing side was the right one).
 room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes an INBOX file named <room>, NOT the room -- the room verbs are
          `send.py send --room <r> --from <id> <text>` and `send.py read --room <r> --all` (gen 32, measured; erratum line appended to OSC.35's orders,
          flagged to thought-master for the node + DE's arm). And a bare-positional send test is a REAL send -- send.py has no --dry-run.
