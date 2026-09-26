@@ -451,6 +451,34 @@ def _log_path(repo_root: Path) -> Path:
 
 
 _ARCHIVE_RE = re.compile(r".+\.\d+$")
+# The rotation MODE is a declared `logs.mode` cell, never a literal here.
+_LOG_MODES = ("rename", "copytruncate")
+
+
+def _tail_copy(src: Path, dst: Path, cap: int) -> None:
+    """Copy the LAST `cap` bytes of `src` (the whole file when it is shorter)
+    into a FRESH `dst`.
+
+    The size is snapshotted once, so a writer still appending to `src` cannot
+    make this read chase a moving EOF: `shutil.copyfile` on a live base blocked
+    one apply for up to 127 s, and the copy-then-truncate race window is
+    `writer_rate x copy duration` (experiment:a00-e4ba316a-1f6748). Cost here is
+    a function of `cap` alone, and the archive is never over the cap, so no
+    second trimming pass is needed."""
+    with open(src, "rb") as fh:
+        fh.seek(0, os.SEEK_END)
+        size = fh.tell()
+        fh.seek(max(0, size - cap))
+        left = size - fh.tell()
+        with open(dst, "wb") as out:
+            while left > 0:
+                chunk = fh.read(min(left, 1 << 20))
+                if not chunk:      # the writer truncated under us; take what is there
+                    break
+                out.write(chunk)
+                left -= len(chunk)
+
+
 _NESTED_RE = re.compile(r".*\.\d+\.\d+$")
 
 
@@ -463,11 +491,21 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False) -> list
     but malformed one raises by name, because a cap that silently does not
     apply is worse than no cap. The scope is the whole logs dir, not just
     this project's cron log: the reaper log grows there too and shares it.
+    The MODE is the `logs.mode` cell: `rename` (the default) renames the base,
+    which strands a long-lived writer on an uncapped ARCHIVE; `copytruncate`
+    copies the newest `cap` bytes to `.1` and truncates the base IN PLACE, so an
+    `O_APPEND` writer keeps landing in a file the next apply still caps. The
+    copy reads a snapshotted size, so its cost is bounded by the cap and the
+    copy-then-truncate race costs only the bytes appended between the copy and
+    the truncate. A writer that is NOT `O_APPEND` still resumes at its stale
+    offset and leaves a NUL hole (falsifier 2): the cap holds, the file shape
+    does not.
     """
     cells = locations.load_config(root).get("logs") or {}
     if not cells:
         return []
     cap_mb, keep = cells.get("cap_mb"), cells.get("rotations")
+    mode = cells.get("mode", "rename")
     if not (isinstance(cap_mb, int) and cap_mb > 0
             and isinstance(keep, int) and keep >= 0):
         raise CronsError(
@@ -475,6 +513,11 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False) -> list
             f"positive integer and rotations a non-negative one, got "
             f"{cap_mb!r}/{keep!r} -- a cap that silently does not apply is "
             f"worse than no cap")
+    if mode not in _LOG_MODES:
+        raise CronsError(
+            f"config cell logs.mode: must be one of {sorted(_LOG_MODES)}, got "
+            f"{mode!r} -- a rotation mode this file does not implement would "
+            f"silently leave the cap unenforced")
     cap, out, d = cap_mb * 1024 * 1024, [], _log_path(repo_root).parent
     for p in sorted(d.glob("*")) if d.is_dir() else []:
         if p.is_symlink() or not p.is_file():
@@ -503,7 +546,20 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False) -> list
             if Path(f"{p}.{i}").exists():
                 Path(f"{p}.{i}").replace(f"{p}.{i + 1}")
         if keep:
-            p.replace(f"{p}.1")
+            if mode == "copytruncate":
+                # The writer's fd is the BASE INODE (every crontab line is a
+                # `>>` redirect), so COPY to `.1` and truncate the same inode
+                # in place: later bytes re-enter a file the cap still governs,
+                # never an ARCHIVE that `_ARCHIVE_RE` skips forever.
+                arch = Path(f"{p}.1")
+                _tail_copy(p, arch, cap)   # bounded, and <= cap by construction
+                if arch.stat().st_size > cap:
+                    # Only a live writer that SHRANK the base under us can land
+                    # here (a concurrent truncation mid-copy); the cap is a cap.
+                    with open(arch, "r+b") as fh:
+                        fh.truncate(cap)
+            else:
+                p.replace(f"{p}.1")
         p.write_text("", encoding="utf-8")
         out.append(f"{p.name} rotated (cap {cap_mb} MB, {keep} kept)")
     return out
