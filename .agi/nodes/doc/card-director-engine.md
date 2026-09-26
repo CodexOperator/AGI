@@ -56,8 +56,8 @@ CARD      the rotate-out flattens the quorum symlink ON PURPOSE (db336b020); res
 
 ## 🔴 WHERE IT STOPS (gen 25)
 ```
-FIRST  harvest DH.421 + DH.422 (tiny stand-in fan-outs only) -> suite (lock check first) -> [merge-up] 15 (red-on-old/green-on-new + a REAL-shape probe; commit parent leftovers; check the reported tip is in)
-THEN   DH.419 re-dispatch (fork-bound orders) once DT re-launched -> 12 PASS 9 follow rows -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
+FIRST  harvest DH.421 (+ SEND TM the per-scope peaks: kid, parent, model round, user@ baseline -- TMM.261) + DH.422 (tiny stand-in fan-outs only) -> suite (lock check first) -> [merge-up] 15 (red-on-old/green-on-new + a REAL-shape probe; commit parent leftovers; check the reported tip is in)
+THEN   g7.33.17 row 19 (render drops the inline CLAUDE.md where the harness loads it; one template heading) -> DH.419 re-dispatch (fork-bound orders) once DT re-launched -> 12 PASS 9 follow rows -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
 AWAIT  TM on merge-up 13
 AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
