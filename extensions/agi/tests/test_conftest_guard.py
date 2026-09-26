@@ -469,3 +469,78 @@ def test_conftest_tmux_guard_is_in_force():
     )
     assert real_ok.returncode == 0
     assert real_ok.stdout == "1\n"
+
+
+def test_the_kill_fence_is_idempotent_across_a_second_install(monkeypatch):
+    """RESIDUE 1 of verify_DH.424-k1: the `_FENCE_MARKER` skip in
+    `_install_spawn_fence`'s kill branch was UNTESTED -- only the leaf loop
+    had a row. Drop that one `continue` and this goes red.
+
+    (a) is the honest seam here: the kill branch reads `getattr(os, attr)`
+    from the module-global `os` of conftest, NOT from the caller's leaf list,
+    so the stub's leaves can only be the thing under test if conftest's own
+    `os` name IS the stub for the duration (monkeypatch restores it after).
+
+    The stub is a SimpleNamespace (house style) and NOTHING is signalled: the
+    fences are installed, compared by identity and uninstalled without ever
+    being called."""
+    conf = _load_tests_conftest()
+    real = lambda *a, **k: "real"  # noqa: E731 -- a stub, never a signal
+    stub = types.SimpleNamespace(kill=real, killpg=real)
+    monkeypatch.setattr(conf, "os", stub)   # (a): the branch's real source
+    first = conf._install_spawn_fence(leaves=(), kills=True)
+    fenced_kill, fenced_killpg = stub.kill, stub.killpg
+    assert fenced_kill is not real, "the kill fence was not installed at all"
+    second = conf._install_spawn_fence(leaves=(), kills=True)
+    try:
+        assert second == [], (
+            "a second exec re-fenced os.kill/os.killpg: "
+            f"{[getattr(m, a) for m, a, _ in second]}")
+        assert stub.kill is fenced_kill, "a fence went over the kill fence"
+        assert stub.killpg is fenced_killpg, "a fence went over the killpg fence"
+    finally:
+        conf._uninstall_spawn_fence(second)      # no-op when idempotent
+        conf._uninstall_spawn_fence(first)
+    assert stub.kill is real and stub.killpg is real, "uninstall did not restore"
+
+
+def test_a_second_install_over_live_leaves_changes_no_leaf():
+    """RESIDUE 2 of verify_DH.424-k1: the live half of the idempotence row
+    asserted ONE leaf (`subprocess.Popen`), so any OTHER entry of
+    `_FENCED_SPAWN_LEAVES` -- or the kill pair -- could lose the marker skip
+    and the row stayed green. This row covers EVERY leaf.
+
+    The live tree is not uniformly marked: autouse fixtures REPLACE
+    subprocess.run (the tmux `_guarded_run`) and os.kill/os.killpg
+    (`_make_guarded_kill`), and those replacements carry no marker. So the
+    honest live shape is "install once, then a SECOND install is a no-op",
+    which is exactly the hypothesis; the first install's undo list is what
+    puts the interpreter back exactly as it was found. No fence is ever
+    called, and no process is touched."""
+    conf = _load_tests_conftest()
+    live = conf._resolve_leaves()
+    before = [(m, a, getattr(m, a)) for m, a in live]
+    before += [(os, a, getattr(os, a)) for a in ("kill", "killpg")]
+    assert any(hasattr(o, conf._FENCE_MARKER) for _, _, o in before), (
+        "the session conftest has fenced nothing; this row's premise is that "
+        "a SECOND install meets leaves the first one already fenced")
+    first = conf._install_spawn_fence()      # fills whatever a fixture swapped
+    fenced = [(m, a, getattr(m, a)) for m, a, _real in first]
+    again = conf._install_spawn_fence()      # the second exec, under test
+    try:
+        assert again == [], (
+            "a second exec re-fenced: "
+            f"{[f'{m.__name__}.{a}' for m, a, _ in again]} -- every engine "
+            "`is _REAL_POPEN` check then fails")
+        for m, a, now in fenced:
+            assert getattr(m, a) is now, (
+                f"{m.__name__}.{a} changed identity across a second install: "
+                f"{getattr(m, a)} replaced {now}")
+    finally:
+        conf._uninstall_spawn_fence(again)   # no-op when idempotent
+        conf._uninstall_spawn_fence(first)   # back to exactly `before`
+    for m, a, was in before:
+        assert getattr(m, a) is was, (
+            f"{getattr(m, '__name__', m)}.{a} left the interpreter fenced "
+            "differently than the row found it")
+    assert fenced, "the first install fenced nothing; the row proved no idempotence"
