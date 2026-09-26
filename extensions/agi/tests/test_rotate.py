@@ -3431,6 +3431,69 @@ def test_rotate_self_stops_symlinked_card_converges_once(
     assert plain.read_bytes() == plain_bytes
 
 
+def test_write_stops_section_flattens_a_symlinked_card(tmp_path):
+    """hypothesis:rotate-flattens-a-symlinked-card-before-every-card-write --
+    `_write_stops_section` is the delegated `rotate --stops` pre-write
+    (rotate.py:21514-21515, called with NO flatten before this fix). Direct
+    unit call, no CLI/spawn machinery: a symlinked card converges to a
+    regular file carrying the new stops text, and the symlink's OLD target
+    is left byte-identical -- the write never followed the link through."""
+    node = tmp_path / "nodes" / "doc" / "card-adv-alive.md"
+    node.parent.mkdir(parents=True, exist_ok=True)
+    target_before = "# adv-alive card\n\n## 🔴 Where it stops\n```\nold cmd\n```\n"
+    node.write_text(target_before, encoding="utf-8")
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    card = quorum / "adv-alive.md"
+    card.symlink_to(os.path.relpath(node, card.parent))
+
+    full, slot = rotate._write_stops_section(card, "adv-alive", "new cmd")
+
+    assert slot == "replaced"
+    assert not card.is_symlink()
+    assert "new cmd" in card.read_text(encoding="utf-8")
+    assert node.read_text(encoding="utf-8") == target_before, (
+        "the write followed the symlink into the graph node")
+
+
+def test_closeout_apply_flattens_a_symlinked_card(tmp_path):
+    """hypothesis:rotate-flattens-a-symlinked-card-before-every-card-write --
+    `_closeout_apply` (rotate.py:8511, reached from `cmd_rotate_self
+    --closeout --form` via :18888) had the same gap. Direct unit call: a
+    symlinked card converges to a regular file carrying the filled slot,
+    and the old link target is untouched."""
+    node = tmp_path / "nodes" / "doc" / "card-adv-alive.md"
+    node.parent.mkdir(parents=True, exist_ok=True)
+    target_before = "# adv-alive card\n\n## §0 STATE\nold state\n"
+    node.write_text(target_before, encoding="utf-8")
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    card = quorum / "adv-alive.md"
+    card.symlink_to(os.path.relpath(node, card.parent))
+
+    full, s3_value, err = rotate._closeout_apply(
+        tmp_path, "adv-alive", "parent", {"s0": "new state from the form"},
+        None, write=True)
+
+    assert err is None, err
+    assert not card.is_symlink()
+    assert "new state from the form" in card.read_text(encoding="utf-8")
+    assert node.read_text(encoding="utf-8") == target_before, (
+        "the write followed the symlink into the graph node")
+
+    # Negative scope probe: --dry-run (write=False) touches nothing, same
+    # invariant test_rotate_self_closeout_dry_run_touches_no_card already
+    # covers at the CLI level -- pin it here too, at the unit boundary.
+    node2 = tmp_path / "nodes" / "doc" / "card-other.md"
+    node2.parent.mkdir(parents=True, exist_ok=True)
+    node2.write_text("# other\n", encoding="utf-8")
+    card2 = quorum / "other.md"
+    card2.symlink_to(os.path.relpath(node2, card2.parent))
+    rotate._closeout_apply(tmp_path, "other", "parent",
+                           {"s0": "would-be new state"}, None, write=False)
+    assert card2.is_symlink(), "a dry run flattened the card"
+
+
 def test_stops_replacer_keeps_prose_outside_fence_and_round_trips(tmp_path):
     """goal:g15.25 (a) FALSIFIER — the replacer writes the WHOLE slot block
     (fence + prose together) from ONE render function shared by create and
