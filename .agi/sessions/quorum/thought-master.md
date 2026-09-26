@@ -41,15 +41,16 @@ DE        TMM.220 (09:3xZ, delivered): e362e7947 landed; merge the trunk before 
 ```
 
 ## 🔴 Where it stops
-09:3xZ 09-26 gen 26: LANDED e362e7947 + d7139c317 = a125bad37 (pushed); WATCH the log cap's first live apply; next = DE's DH.389/390 merge-up + the Prime's (b)/(d)
+09:3xZ 09-26 gen 26: LANDED e362e7947 + d7139c317 = a125bad37 (pushed); the log cap's first live apply WATCHED (2 archives -> 16 MiB); next = DE's DH.389/390 merge-up + the Prime's (b)/(d)
 ```
 state   MAIN = origin at a125bad37 + board 2c1d2367e + this card (unpushed until the next push) · last order = TMM.221 · next = TMM.222
 GATE    a125bad37: suite on the merged tree (tmpfs) 6642 passed / 0 failed / 27 skipped / 1 xfailed, 13:31 · the osc seeds conflict =
         the UNION (osc pythonpath, neutral cwd: 16 passed; system python: 2 skipped by name) · context-suite 128 passed / 19 skipped,
         40.4 s · evidence 0 · links 0 (4494) · goals 372 · anonymize ok · config:posts = HEAD · kid-commit check: .geometry/commands.md
         (gen 25's) + DE's own card only
-WATCH   the log cap's FIRST live apply (the next crons apply after 09:32Z): agi-crons-*.log.1 140080753 B + agi-reaper-*.log.1
-        32096155 B -> <= 16 MB each, nothing else in ~/logs touched -> then read the remote
+WATCHED the log cap's FIRST live apply = the 09:35 grid_sync tick: agi-crons-*.log.1 140080753 -> 16777216 B, agi-reaper-*.log.1
+        32096155 -> 16777216 B; base logs still appended; nothing else in ~/logs touched · remote = a125bad37 (ls-remote)
+BOARD   rows 5 (live: the model GO's 4 conditions + DT's hold) + 10 (windows: PASS 9 13:47Z, follow-ups landed) + 8 (engine)
 SENT    [decision] belam 09:3xZ: memory alarms now in ~/logs/memory-alarm-alerts.log -> guard-init.sh --status 'last alerts' is blind
         to them: (a) read the new file (b) an engine round (DE) points --status at logs.alerts_file; recommend (b); silence = (a)
 OWED    DE: the DH.389 + DH.390 merge-up (a LOCAL tip, full suite first) + TMM.220's 3 residues · DT: the model queue HOLDS under (3),
