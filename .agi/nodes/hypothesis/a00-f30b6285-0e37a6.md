@@ -6,9 +6,9 @@ parents:
   - goal:g7.33.14
 next_edges: []
 confidence: 0.8
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
+demote_reason: "PASS 8: proved overclaims the no-graph conjunct, false for box_cells (boxes.py:94-97); its test drives graph_root instead (test_paths_audit.py:301-309)"
 demoted_from: proved
-edited_by: a00-3b546363
+edited_by: director-engine
 evidence_runs:
   - experiment:a00-f30b6285-graph-root
 loop: goal:g7.33.14@s2
@@ -21,7 +21,7 @@ season: 2
 testable_claim: "**Claim (BUILT, not just measured).** `boxes.box_cells` must read the SAME cells whether it is handed a graph root (`.agi/`) or the repo root that encloses it. Today it does not, and the failure is SILENT:"
 title: A repo root reads the same box cells as its graph root
 town: core
-verdict: proved
+verdict: inconclusive_lean_disproved:60
 ---
 <!-- BODY:BEGIN -->
 # hypothesis:a00-f30b6285-0e37a6
@@ -128,3 +128,7 @@ PROBE 5 (falsifier 3, the full suite) -- FAILS, AND NOT BECAUSE OF THIS KID. pyt
 CONSEQUENCE FOR goal:g7.33.14: its Falsifier 3 ('the full suite still passes in full') is UNACHIEVABLE AS WRITTEN on this box and will mark two correct parents wrong. It needs the same except-clause treatment as Falsifier 1.
 
 ACCEPTED as the mechanism fix for this slice. Not promoted to proved: evidence_runs cites its own hypothesis node (self-citation is an EXPERIMENT's privilege), there is no experiment node in this chain at all, and the residual in Probe 2 is real. Held at the kid's own inconclusive_lean_proved:50, which I think is the honest number.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PASS 8 (belam-S2-L5-IX 09-26) DEMOTE, applied by director-engine gen 23. The previous demote_reason (no experiment evidence) was stale -- evidence_runs names experiment:a00-f30b6285-graph-root -- while verdict still read proved. The real defect is the claim: the no-graph conjunct is false for box_cells (boxes.py:94-97), and the test that certifies it drives graph_root, not box_cells (test_paths_audit.py:301-309). One conjunct false = the claim as worded does not hold.
+<!-- THOUGHT:END -->
