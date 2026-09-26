@@ -11436,29 +11436,7 @@ def _reap_pid(pid: int) -> dict:
             "gone_after": gone, "ps_before": ps_before, "ps_after": ps_after}
 
 
-def _term_grace_s() -> float:
-    """`reaper.term_grace_s` from `.agi/config.json`; 15.0 is the RESOLVER for
-    a missing cell, not a second value. 15 s vs the MEASURED claude CLI
-    TERM->exit of 1.1 s (n=1 throwaway `claude --remote-control`, see
-    experiment:a00-2fa1fab0-b7d2a0) — 13x margin for a BUSY session's flush,
-    still bounded. A malformed cell must never raise; the reaper runs when
-    things are broken. heal.py's `_late_reap_wait_max_s` is the same STYLE but
-    is not importable: it is key-specific and heal.py imports rotate.py.
-    Never raises."""
-    try:
-        cfg_path = locations.config_path(find_project_root())
-        if cfg_path is not None:
-            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
-            v = (cfg.get("reaper") or {}).get("term_grace_s")
-            if isinstance(v, (int, float)) and not isinstance(v, bool) \
-                    and v > 0:
-                return float(v)
-    except (OSError, json.JSONDecodeError, TypeError, AttributeError):
-        pass
-    return 15.0
-
-
-def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
+def _reap_chain(pids: list[int], *, wait_secs: float = 5.0,
                 kill_survivors: bool = True) -> dict:
     """s12 — TERM a predecessor process chain DEEPEST-FIRST, verify each gone.
 
@@ -11468,8 +11446,7 @@ def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
     never orphans a live claude. Each pid's observation records was_alive,
     termd, gone_after and the `ps -p` reads around it.
 
-    Each pid gets up to `wait_secs` (`reaper.term_grace_s`, default 15 s) to
-    die after TERM; a survivor is SIGKILL'd
+    Each pid gets up to `wait_secs` to die after TERM; a survivor is SIGKILL'd
     when `kill_survivors` (L4.118/R2: "wait up to 5 s per pid, KILL what
     survives").
 
@@ -11479,8 +11456,6 @@ def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
     shell parent); this guard is the second, independent fence.
     """
     chain: list[dict] = []
-    if wait_secs is None:
-        wait_secs = _term_grace_s()  # reaper.term_grace_s, read at runtime
     for pid in reversed(pids):
         pid = int(pid)
         if pid <= 0 or pid == os.getpid():
