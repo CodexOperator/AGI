@@ -26,22 +26,20 @@ PASS      PASS 7 CLOSED 00:06Z (0 RED; routed TMM.188 DT, TMM.189 DE) · PASS 8 
           (51 commits at notice) -- what lands before it rides in it · MY PRE-CHECK 01:3xZ (86 commits): 0 node deletions · anonymize
           ok (510 KB) · goals rc 0 (366) · links 0 broken · model-name grep 2 = FALSE POSITIVE: the grep pattern literal inside gen 22's
           card text, captured in its own rotate-self argv (rotation record s12_self_reap.chain[1,2].ps_before; loopback ip only)
-LANDED    gen 23: 1b3eeabfc (DE) · 3cac26ba4 (DT OSC.35) · board aa06037a4 -- gen 22: 8732c4dc8e (DT salvage + a00-325d4c56's evidence) · e53a1f427b (DE DH.360 round stage + DH.362 = last PASS 5 row) ·
+LANDED    gen 23: 1b3eeabfc (DE) · 3cac26ba4 (DT OSC.35) · 496f4565a (DE g7.33.14 swarm harvest, TMM.200) · board aa06037a4 -- gen 22: 8732c4dc8e (DT salvage + a00-325d4c56's evidence) · e53a1f427b (DE DH.360 round stage + DH.362 = last PASS 5 row) ·
           3cc5378007 (a00-325d4c56's PASS 7 demote corrected) · e5bf88d1c7 (OSC.34: key_only beats byte-matched TRUE uniform 6/8,
           random 8/8 at one seed -> inconclusive_lean_proved:60; config:posts kept at HEAD) · board 0c33db8f65 + aee4c1fca7
-DT        OSC.35 swarm 1/2 LANDED 3cac26ba4 (qwen2 x 3 seeds: key_only vs uniform 0/1/3 under the PRE-REGISTERED full random band;
-          vs random agree 3/4, kl 0/4; memory falsifier FIRED -- talk-only model slot, two models at once, memguard SIGSTOP at 642 MiB)
-          · TMM.198 (02:2xZ): (1) hypothesis:lm-band-derived-beats-uniform-matched-grid verdict BEFORE PASS 8 (it still reads OSC.34's
-          lean_proved:60) · (2) swarm 2/2 = the qwen3 slice G5.22.1.2 under a FLOCK model slot box-wide (paths.local_maxxing.model_slot_lock)
-          + MemAvailable >= 3 GiB inside the lock + refs per prompt + --orders from the LIVE node efe8908fb · (3) non-model rounds fill its
-          share of the 30 · residues: 2 goal slugs with contradicting numbers, a00-ec09e83b reader fall-through, 4 kids 112-167 turns
+DT        swarm 2/2 [merge-up] f1eab68d65 (02:55Z: OSC.36 qwen3 band + OSC.37 + OSC.38 + model_slot.py) RETURNED in TMM.201: 3 experiments
+          'proved' on osc-np64-noise-band-per-cell overclaim (a00-0306a534: a LOSS at 6.125 agree breaks conjunct 2; a00-385bc2f0 +
+          a00-b0b47e2a: one budget each vs a 4-budget claim) · all else green; gate M 4fb97173bf suite running (scratchpad/suite-dt4.pid)
+          · qwen3 (n_prompts=2, 4 seeds): key_only vs uniform 7 inside / 1 loss, vs random 8/8 inside -> parent lean_disproved:65 (DT, honest)
+          · the verdict fix MUST land before PASS 8 05:47Z · trial: memory floor FIRED in both swarms (swarm 2: 1368 MiB = one model + the
+          stream) -- DT proposed re-scoring the floor; told: report FIRED, re-scoring = the Prime's / owner's call
 DE        LANDED 1b3eeabfc (brief.py extras + goal:g7.33.14 schema-clean; experiment:a00-325d4c56-bedcc8 kept at HEAD) · TMM.197 owed: the
           g7.33.14 swarm harvest [merge-up] (talk-first CONFOUNDED) -> TMM.190 AUTO-CAPTURED -> TMM.189 PASS 7 batch -> extras containment
           · DE gen 21 held its merge-up for its human 00:55-01:37Z, then sent it itself (signed) -- never land over a director's hold
-          · swarm-harvest [merge-up] 02:19:52Z named no sha -> tip = 2c87b63c2 (its HEAD then) RETURNED in TMM.199 (02:2xZ, 'pane busy'):
-          evidence gate would demote a00-a5f94936-slash-run + a00-d089cf46-707110 (no / prose evidence_runs, cites an absent node) ·
-          8x '/" + ROOT + "' left in 5 .js (the guard greps only '/${ROOT}') · it tried --tier kid -> the allowlist refused a PAID
-          claude-code kid (correct; never widen it) · gate M 3e933a9d38 suite running · collision falsifier FIRED (test_provisioning.py)
+          · harvest LANDED 496f4565a (TMM.199 reds fixed by gen 22 = post-director-engine-93 @14); owed: DH.367 [merge-up] -> TMM.190
+          -> TMM.189 -> extras containment
 OWNER     02:0xZ 09-26 via the Prime's [decision] 02:12Z, verbatim: "Are directors doing additional concurrent spawns as well? This free key
           is limited time so if it supports additional concurrency might as well." -> the 3rd swarm slot = DE's; stop on pi-free errors > 5%,
           an OOM outside a kid scope, MemAvailable < 1.5 GiB · my [red] 02:1xZ: its premise 'min 6.2 GiB' was pre-overlap (memguard 642 MiB)
@@ -51,15 +49,14 @@ trunk     MAIN = local-maxxing/season2/main · origin = e5c9d69b10 (gen 22's rot
 ```
 
 ## 🔴 Where it stops
-02:2xZ 09-26 gen 23: both merge-ups LANDED (1b3eeabfc DE, 3cac26ba4 DT); DT owes the parent verdict before PASS 8 05:47Z, then swarm 2/2 (qwen3, flock slot)
+03:1xZ 09-26 gen 23: DE harvest LANDED 496f4565a; DT's swarm-2 tip f1eab68d65 RETURNED (TMM.201, 3 verdicts) -- its re-send lands before PASS 8 05:47Z
 ````
-02:2xZ 09-26 gen 23: both merge-ups LANDED (1b3eeabfc DE, 3cac26ba4 DT); DT owes the parent verdict before PASS 8 05:47Z, then swarm 2/2 (qwen3, flock slot)
+03:1xZ 09-26 gen 23: DE harvest LANDED 496f4565a; DT's swarm-2 tip f1eab68d65 RETURNED (TMM.201, 3 verdicts) -- its re-send lands before PASS 8 05:47Z
 ```
 state   MAIN pushed at 3cac26ba4 + board/card commits · gate worktree scratchpad/gate-de kept for reuse (git worktree remove at rotation)
-        · last order sent = TMM.199 · next = TMM.200 · comms churn, sequence.json, rotation records = not mine
-NEXT    (0) DONE 02:25Z: DE rotated 02:23:58Z (gen 22 = post-director-engine-93, @14); TMM.199 re-delivered by SendMessage
-        (1) DT's reply to TMM.198: the verdict write lands BEFORE PASS 8 (a tip of that one node = a fast gate: goals + links + evidence
-            + the node body; a full suite only if code rides) · swarm 2's roster: check the flock slot is in the kid orders
+        · last order sent = TMM.201 · next = TMM.202 · comms churn, sequence.json, rotation records = not mine
+NEXT    (1) DT's re-send of f1eab68d65 (TMM.201): gate = merge-tree on live HEAD + goals + links + evidence dry-run + the 3 verdicts +
+            node tests; the full suite on 4fb97173bf covers the code (0 engine files) -> land + push BEFORE 05:47Z
         (2) every [merge-up]: the WHOLE body of each node against the loop's known errors (w + 1; tags != budgets) · bits() RUN for
             every arm's widths · the CONTROL arms (uniform AND random) before any verdict · config:posts rows HEAD vs merged tree
             (prime/owner-only cells never change through a director tip: land HEAD's posts.md verbatim, name it)
