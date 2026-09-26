@@ -5,18 +5,43 @@ Three claims, all zero model / zero GPU:
      and every row it prints is `unresolved` -- the honest state of that data today;
   2. a synthetic 3-distinct-seed cell turns the same runner GREEN (exit 0) with a word;
   3. a record schema the rule cannot read is a REASON, never a crash and never a word.
+  4. the ENTRY POINT is wire-live under a scrubbed interpreter: this file used to
+     seed sys.path for the runner, which is why a clean `python3 <runner>` died
+     with ModuleNotFoundError (exit 1) under a green suite. No global interpreter
+     state is set here any more; a subprocess cannot inherit the test's sys.path.
 """
 import importlib.util
 import json
 import os
+import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-_spec = importlib.util.spec_from_file_location(
-    "callrun", os.path.join(HERE, "osc_band_call_run_a00-66d002ad.py"))
+RUNNER = os.path.join(HERE, "osc_band_call_run_a00-66d002ad.py")
+_spec = importlib.util.spec_from_file_location("callrun", RUNNER)
 run = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(run)
-sys.path.insert(0, os.path.dirname(HERE))       # paths.py, for the config-resolved default
+
+
+def _clean_run(cwd):
+    """argv/env with no inherited path help: a shell, not this test process."""
+    return subprocess.run([sys.executable, RUNNER], cwd=cwd, env={"PATH": "/usr/bin:/bin"},
+                          capture_output=True, text=True)
+
+
+def test_entry_point_reaches_the_rule_from_a_neutral_cwd():
+    p = _clean_run("/")
+    out = p.stdout + p.stderr
+    assert p.returncode == 2, out                 # RED (unresolved), not DEAD (ModuleNotFound)
+    assert "ModuleNotFoundError" not in out and "Traceback" not in out, out
+    rows = [x for x in p.stdout.splitlines() if not x.startswith("TOTAL")]
+    assert rows and all(r.startswith("unresolved") for r in rows), out
+    assert "no cells.jsonl" not in out
+
+
+def test_reach_is_cwd_independent():
+    """A __file__-discovered import works from anywhere; a cwd literal would not."""
+    assert _clean_run("/tmp").returncode == _clean_run("/").returncode == 2
 
 
 def test_todays_own_data_is_total_and_calls_nothing(capsys):
