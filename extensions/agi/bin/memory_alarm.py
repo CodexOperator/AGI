@@ -36,6 +36,13 @@ import sys
 import time
 from pathlib import Path
 
+import locations
+
+#: The alarm's state file, a bare NAME inside the sessions room the ONE
+#: resolver (`locations.sessions_dir`) names -- never a `<root>/"sessions"`
+#: literal here, which a reader could not move with the room.
+STATE_FILE = "memory-alarm.state.json"
+
 LEVELS = {"ok": 0, "warn": 1, "crit": 2}
 
 
@@ -166,7 +173,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--cgroup", type=Path, default=None,
                     help="default: this uid's user@ service cgroup")
     ap.add_argument("--state", type=Path, default=None,
-                    help="default: <root>/sessions/memory-alarm.state.json")
+                    help="default: the sessions resolver + "
+                         "memory_alarm.STATE_FILE")
     ap.add_argument("--alerts-log", type=Path, default=None,
                     help="default: the `logs.alerts_file` cell inside the "
                          "box logs dir `crons.enforce_log_caps` bounds")
@@ -181,7 +189,7 @@ def main(argv: list[str] | None = None) -> int:
     alerts_log = a.alerts_log or crons.alerts_log(a.root)
     cg = a.cgroup or Path(f"/sys/fs/cgroup/user.slice/user-{uid}.slice/user@{uid}.service")
     level, reasons = decide(read_signals(cg if cg.is_dir() else None), a)
-    state_path = a.state or (a.root / "sessions" / "memory-alarm.state.json")
+    state_path = a.state or (locations.sessions_dir(a.root) / STATE_FILE)
     try:
         state = json.loads(state_path.read_text())
     except (OSError, ValueError):

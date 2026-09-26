@@ -462,8 +462,21 @@ def alerts_log(root: Path) -> Path:
     `logs_dir()`. A writer that re-derived its own path (the pre-fix
     `~/logs/sanctuary-guard/alerts.log`) wrote into a SUBDIRECTORY the
     non-recursive cap glob never reached, so it grew without bound."""
-    name = (locations.load_config(root).get("logs") or {}).get("alerts_file") or ALERTS_FILE
-    return logs_dir() / str(name)
+    raw = (locations.load_config(root).get("logs") or {}).get("alerts_file")
+    # A NAME, or nothing: an absolute path, a separator, a traversal or an
+    # empty value all put the log where the non-recursive cap glob cannot see
+    # it, so a malformed cell raises BY NAME exactly as a malformed
+    # `logs.cap_mb`/`logs.mode` does -- a cap that silently does not apply is
+    # worse than no cap. Only an ABSENT cell falls back to the default: an
+    # empty one is a declared-and-wrong value, not an undeclared one.
+    name = ALERTS_FILE if raw is None else str(raw).strip()
+    if (not name or "\\" in name or "/" in name or name in (".", "..")
+            or Path(name).name != name):
+        raise CronsError(
+            f"config cell logs.alerts_file: must be a bare file NAME inside "
+            f"{logs_dir()}, got {name!r} -- a path here would write where "
+            f"enforce_log_caps does not look")
+    return logs_dir() / name
 
 
 def _log_path(repo_root: Path) -> Path:
