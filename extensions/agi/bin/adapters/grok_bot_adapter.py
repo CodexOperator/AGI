@@ -63,11 +63,20 @@ def child_env(*, harness: dict, base: dict[str, str],
 
 def build_command(*, harness: dict, tier: str, context_file: str,
                   rendered_brief: str | None = None, **kwargs) -> list[str]:
-    """STUB argv: `<bin> [--model M] -p <context_file>`. `**kwargs` swallows
-    the channels dispatch.py passes every adapter, so a spawn cannot die on a
-    TypeError before the flags land."""
-    return [resolve_bin(harness), *model_args(harness, tier),
-            "-p", str(context_file)]
+    """argv: `<bin> [--model M] -p <prompt>`, the copilot spelling.
+
+    `<prompt>` is dispatch's ONE render when it handed one over
+    (`rendered_brief`), else the zoom-context path. The flag SHAPE is still a
+    stub (`<bin> --help` has not been read, goal:g17.14.1) -- but DISCARDING
+    the render was not a stub, it was a silent loss: `context_file` is the
+    agent's MAP, not its brief, so a grok-bot spawn would have started with no
+    first turn at all. Carrying the render is the one thing here that is
+    certain (hypothesis:grok-bot-adapter-uses-or-refuses-the-rendered-brief).
+
+    `**kwargs` swallows the channels dispatch.py passes every adapter, so a
+    spawn cannot die on a TypeError before the flags land."""
+    prompt = rendered_brief if rendered_brief else str(context_file)
+    return [resolve_bin(harness), *model_args(harness, tier), "-p", prompt]
 
 
 def is_alive(pid: int) -> bool:
