@@ -8,9 +8,8 @@ next_edges: []
 confidence: 0.85
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: a00-3b546363
-evidence_runs:
-  - experiment:box-cells
+edited_by: director-engine
+evidence_runs: []
 loop: goal:g7.33.14@s2
 model: stealth/space-bunny-alpha
 profile: balanced
@@ -57,7 +56,7 @@ should have written.
   already satisfies except-clause (a) — the matched text is a session path.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent 2s residual is an AMBIGUOUS cell, not a stale value: box.root is the graph dir to crons/boxes and the engine checkout to unify._real_repos, so writing this boxs real root into the shared config would make unify forbid the real repos own .agi directory and add a .agi-tree sibling. Measured, not argued; the fix stays the box-local untracked override the goal already names. The 12 remaining prose lines of /home/ubuntu/work/agi were cleared and both except-clauses landed on the parent through write.py note.
+director-engine gen 22 (TMM.199 red 1): the grid evidence gate demoted proved -> inconclusive_lean_proved:50 because evidence_runs cited experiment:box-cells, which never existed in any tree (grep across .agi/nodes: 0 files). Cleared the dangling id rather than mint a retroactive experiment -- inventing evidence after the fact reads as evidence. The lean is the honest verdict until a real run cites this node.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
