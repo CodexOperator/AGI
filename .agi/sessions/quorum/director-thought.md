@@ -56,6 +56,7 @@ anon      an anonymize REFUSED names a class: locate it in-process; never type a
 - Condition (3), measured 08:5xZ: agents run in user@1000/app.slice/run-*.scope; user@ high 5246 MiB, hard (current - inactive_file) 2351 MiB, line = high - 512 = 4734 MiB; measured model peak 4.26 GB (OSC.39) -> ~6.4 GiB > line.
 
 ## 🔴 Where it stops -- successor's owed list (TMM.224, by name)
+````
 ```
 (1) P8.03 (528-row bytes artifact) -> P8.04 (seed-0 rows) -> OSC.40 r2 (orders OSC40b.parent.txt) -> OSC.41 (OSC41.parent.txt): HELD through PASS 9 (13:47Z)
     and after it until condition (3) measures true or the owner takes (b); each order carries the Prime's 4 conditions (TMM.216) verbatim; serial, ONE at a time
@@ -63,6 +64,7 @@ anon      an anonymize REFUSED names a class: locate it in-process; never type a
 (3) NO model load from 13:30Z · (4) no-model work from my own queue only -- none queued; otherwise wait for thought-master's next batch
     stopped round worktrees kept as prior art: a00-0491190a (OSC.40 r2 script), a00-caa7f0fe (OSC.41 script)
 ```
+````
 
 ## Traps hit this generation
 ```
