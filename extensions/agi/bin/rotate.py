@@ -66,6 +66,7 @@ from types import SimpleNamespace
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
+import mem_cap  # noqa: E402 -- the ONE memory cap every launch seam rides
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import geometry_config  # noqa: E402
 import grid  # noqa: E402 -- the ONE ref-namespace resolver (goal:g14.14.7)
@@ -1549,6 +1550,27 @@ def _launch_wrapper_argv(seat: str, child_cmd: list[str]) -> list[str]:
             "launch-wrapper", "--seat", seat, "--", *child_cmd]
 
 
+def _launch_child_argv(child_cmd: list, root) -> list:
+    """The seat's own child under the ONE memory cap (SM.112), so the TOP of
+    the tree is bounded like every launch under it.
+
+    The cap costs this wrapper NOTHING: both seams `exec` their target IN
+    PLACE -- measured 2026-09-26, `systemd-run --user --scope` REPLACES itself
+    with the command (Popen pid == the child's own printed pid) exactly as
+    `prlimit` does -- so `child.pid` is still the AGENT, and the sigwaitinfo /
+    waitpid / forward-to-child contract below is byte-identical capped or not.
+    `spawn.seat_memory_max` wins when the config declares it ('none' leaves
+    the seat uncapped); absent, the seat rides `spawn.memory_max` like every
+    other launch. A root with no config reads `{}` -> the shipped 4G default.
+    """
+    cfg = locations.load_config(root or find_project_root() or Path.cwd())
+    spawn = cfg.get("spawn") or {}
+    return mem_cap.wrap_argv(
+        child_cmd,
+        mem_cap.resolve_memory_cap(cfg, override=spawn.get("seat_memory_max")),
+        cfg)
+
+
 # Signals the launch wrapper reserves onto itself so it can log and forward
 # them, plus SIGCHLD so a child's death is delivered to sigwaitinfo rather
 # than the default handler. SI_USER/SI_TKILL are the Linux siginfo si_code
@@ -1649,8 +1671,10 @@ def cmd_launch_wrapper(args, root) -> int:
             log_fh.flush()
 
         signal.pthread_sigmask(signal.SIG_BLOCK, _LAUNCH_WAIT_SIGS)
+        child_argv = _launch_child_argv(child_cmd, root)
+        _log(f"child launched under cap seam {child_argv[0]}")
         child = subprocess.Popen(
-            child_cmd,
+            child_argv,
             preexec_fn=_launch_child_preexec,
         )
         received: list[int] = []
