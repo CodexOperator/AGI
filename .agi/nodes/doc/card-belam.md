@@ -32,7 +32,8 @@ gen 9 runs PASS 8 at PER=2 x CAP 3, not gen 8's 5 x CAP 6. (1) Said: crons secti
 | GUARD | user@1000 high 5246M / max 5829M · 05:57Z hard 1478 MiB (anon 937) · DE + gen 8 + remote-control INSIDE; belam gen 9, TM 346048, DT 348635 in session-73.scope OUTSIDE (§6) |
 | alarm | memory_alarm cadence live · last WARN 05:29:43Z, cleared 05:32Z |
 | TOWN | DE gen 23 · TM gen 24 · DT gen 33 · SM DOWN (owner's go) · 4 kid-worktree suite locks are pre-reboot dead pids (a00-0c992f07, -3a39d410, -be4e901f, -f2ba10d3) |
-| merge | **PASS 8 RUNNING** · pass_started_at 05:51Z · trunk sync a288a071df (78a0d4b08b key row, clean) · TIP PINNED a288a071dfc0f23ab15085de5bf0a58a54f7fefb · BASE 08a9cf60f8 · 291 commits · 30 rounds (26 hyp/43 exp + 4 engine-delta/45 paths) · 15 chunks of 2 · CAP 3 live in `/tmp/belam-pass8/cap` · launched 05:56:46Z · Monitor bj8wc8odc (30 min, re-arm) |
+| merge | **PASS 8 RUNNING** · pass_started_at 05:51Z · trunk sync a288a071df (78a0d4b08b key row, clean) · TIP PINNED a288a071dfc0f23ab15085de5bf0a58a54f7fefb · BASE 08a9cf60f8 · 291 commits · 30 rounds (26 hyp/43 exp + 4 engine-delta/45 paths) · 15 chunks of 2 · CAP 3 live in `/tmp/belam-pass8/cap` · launched 05:56:46Z · chunk3 ok 06:18Z · Monitor bg1y0vrzy = `bash /tmp/belam-pass8/monitor.sh` (30 min, re-arm) · prime-root clean (gen 7's grid-commit demotion of a00-325d4c56 restored; patch in /tmp/belam-pass8) |
+| io | 06:2xZ chunk-1 reviewer's `grep -r .agi/` (101 worktrees) = 3.98 GiB scope, io60 36% -> killed; chunks 5-15 focus + build.py EF now say NEVER grep -r over .agi/; monitor.sh kills that shape at io60 >= 25; [red] to TM 06:2xZ |
 | crons | CHECK fc879bab "13 */4" (next 08:13Z), POINTER to `.agi/sessions/prime-merge.crons.md` section 1 · PASS 8 one-shot NOT re-armed (ran under case d) |
 | spend | credits 13.75 USD · pi-free route 0 USD |
 | branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
@@ -50,7 +51,7 @@ a288a071df trunk sync (origin/season2/main 78a0d4b08b into the trunk, PASS 8 ste
 ## 🔴 Where it stops
 05:5xZ 09-26 belam-S2-L5-IX: PASS 8 RUNNING (pass_started_at 05:51Z) -- 15 chunks x 2 rounds on pi-free, CAP 3, TIP a288a071df pinned; a successor resumes at step 4.
 ```
- 1. PASS 8 IN FLIGHT: pass_started_at is SET -- never relaunch. `tail /tmp/belam-pass8/events.log`; a successor re-arms ONE Monitor on it (the command is in this session's transcript 4ba9efb9: exits|ALL DONE|rc=[1-9]|ABORT + launcher death).
+ 1. PASS 8 IN FLIGHT: pass_started_at is SET -- never relaunch. `tail /tmp/belam-pass8/events.log`; a successor re-arms ONE Monitor: `bash /tmp/belam-pass8/monitor.sh` (exits, runaway-grep kills, launcher death).
  2. A stage that died on 'Provider returned an empty response': write /tmp/belam-pass8/p8retryN.json with ONLY the failed rounds (merge_up 'p8retryN ...'), `bash /tmp/belam-pass8/retry.sh p8retryN`.
  3. On ALL DONE: `cd .agi/worktrees/prime-root && python3 /tmp/belam-pass8/verdicts.py -v`, then crons section 2 steps (4)-(9) with TIP a288a071dfc0f23ab15085de5bf0a58a54f7fefb.
  4. Residue already known: test_commands_manifest fails on memory_alarm.py (gen 8's 20680940c; TM [red] 04:5xZ) -> a defect hypothesis (assigned: director-engine).
@@ -82,6 +83,8 @@ a288a071df trunk sync (origin/season2/main 78a0d4b08b into the trunk, PASS 8 ste
 | 33 | GUARD: pi stages land in user@ app.slice (~210 MiB each) | launch.sh CAP counts CHUNKS; PER x CAP <= 6 pi; gate on user@ hard, not MemAvailable |
 | 34 | `pgrep -f 'workflow.py run'` matches seat wrappers (their prompts carry it) | anchor: `pgrep -f '^(/usr/bin/)?python3 .*bin/workflow.py run'` |
 | 35 | foreground `sleep` is blocked in Bash | Monitor with an until-loop, or run_in_background |
+| 36 | a reviewer's `grep -r` over `.agi/` walks 101 worktrees: 4G of cache, the box io-stalls | focus says NEVER; monitor.sh kills it at io60 >= 25 |
+| 37 | `grid.py commit --all` in prime-root can leave an evidence-gate demotion dirty in the tree | step 5's merge refuses: save the patch, restore the file, merge |
 
 ## §5 Verification
 `links.py links` 0 broken · `snapshot-goals.py --render --check` · `commands.py run verify` (bin-suite-fresh FAIL known) · `~/work/.sanctuary/guard/guard-init.sh --status` · `memory_alarm.py` with the cadence's args + `--dry-run`
