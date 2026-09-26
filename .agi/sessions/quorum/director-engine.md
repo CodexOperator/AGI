@@ -35,23 +35,25 @@ Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW
 ## §0 STATE (live scratch · landed history = grid.py diff doc:card-director-engine)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238
-RETURNED  14 (TMM.262): 11 mur residues -> DH.425/426/427 live; (2)(3)(9)(11) = MY graph acts at harvest; doc:card- ruling DONE a73ecaa03
-          (in [doc].md round_commit, beside doc:unified- -- one source; probe: only 3 doc cards flip)
-UNSENT    15 = DH.420 · 421 · 422 (+dac01a6bd) · 423 · rows 17/18/19. SUITE RED 48/6783 at 472383a3f: conftest fence re-exec
-          (test_tier_gate.py:50 execs conftest again -> fence over fence -> workflow._REAL_POPEN identity breaks) -> DH.424 live
-LIVE      DH.424 a00-9b2e8067 · DH.425 a00-22a191e9 · DH.426 a00-8783b3d3 · DH.427 a00-a7de2b88 (all pi-free, parent cap 5 kids)
+RETURNED  14 (TMM.262): residues -> rounds; doc:card- ruling DONE a73ecaa03 ([doc].md, one source; 3 cards flip) · (3) DONE 864572bd6
+UNSENT    15 = DH.420/421/422(+dac01a6bd)/423 + rows 17-19. suite red 48 root-caused (test_tier_gate.py:50 re-execs conftest)
+ROUNDS (all harvested in place, NOT merged; mur = workflow.py run merge-up-review --harness pi, detached units agi-director-engine-mur4NN)
+  DH.424 a00-9b2e8067 fence idempotent  repro 2/2 green · nbhd 211 · mur-director-engine-4 (DH.424-k1) RUNNING
+  DH.425 a00-22a191e9 agi-bin guard     nbhd 173 · mur-3 = accept_with_residue x2 -> DH.428 a00-28aa99e2 LIVE (merges 425 first)
+  DH.426 a00-8783b3d3 schema gate+hook  nbhd 401 · mur-director-engine-4 (DH.426-k1..k3) RUNNING
+  DH.427 a00-a7de2b88 heal tmux/dead br nbhd 309 · kid1 lean_disproved (no stub; guard pytest lacks proc cap) · mur-3 (DH.427-k1/k2) RUNNING
+g15 FINDING  concurrent mur runs mint ONE run key (-3 twice, -4 twice): _existing_run_keys sees only finished rows
 PASS 10   the Prime merges the trunk 01:23Z 09-27: a clean 14 re-delivery (+15) before then rides it
-CARD      the quorum file is FLAT (100644), mirrored byte-identical to this node -- NOT re-linked: re-linking re-arms g7.33.15
+CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT re-linked (re-arms g7.33.15)
 ```
 
 ## 🔴 WHERE IT STOPS
 ```
-NEXT   harvest each live round IN PLACE on its loop branch (merge-base diff; touched tests + neighbourhood) -> mur per KID slice
-       DH.424 first: repro = pytest extensions/agi/tests/ -q -k test_stage_cap_death_is_named_memory_cap (full collect) must go green
-THEN   graph acts: (2) level3.py for build:tests-test-agi-bin-absent after DH.425 · (3) a00-729b9124 body+verdict to what shipped
-       (fixture = a00-e4a74ff1's) · (9) judge heal-never-reseats (acc60080 lean names conjunct 3 open; 793a5ab9 closed it) · (11) verdicts x3
+NEXT   read each mur verdict (.agi/sessions/workflows/runs/mur-director-engine-{3,4}/verify_DH.42N-kN.json, MAIN) -> residue = corrective
+       round whose ORDERS merge the loop branch first (see DH.428 orders pattern); clean = git merge --no-ff <loop branch>
+THEN   graph acts: (2) level3.py build:tests-test-agi-bin-absent after 425/428 merges · (9) judge heal-never-reseats · (11) verdicts x3
 THEN   full suite + ctx on the tip -> ONE [merge-up] 14+15 (measured behind count; GOALS.md --check)
-THEN   g7.33.15 capture-flatten red as ONE round · DH.419 re-dispatch (fork-bound) · PASS 9 follow rows · g7.33.17 rows 9/10/11/13
+THEN   g7.33.15 capture-flatten red · DH.419 re-dispatch (fork-bound) · PASS 9 follow rows · g7.33.17 rows 9/10/11/13
 ```
 
 ## §4 TRAPS
