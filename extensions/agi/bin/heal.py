@@ -46,6 +46,7 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 # script; the insert makes it so when it is imported as a module too.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+import mem_cap  # noqa: E402 -- SM.112: a healer is a launched agent too
 import adapters  # noqa: E402 -- the shared (tier, role, harness) resolver
 import spawn_gate  # noqa: E402
 import spawn_budget  # noqa: E402 -- liveness reader for the worktree sweep (hyp:l4-a-finished-rounds-worktree-is-removed-after-harvest)
@@ -3764,9 +3765,18 @@ Stay surgical. Don't refactor unrelated code.
         "--append-system-prompt", f"@{healer_ctx}",
         f"You are healer {healer_id}. Diagnose and patch.",
     ]
+    # SM.112 -- ONE cap for the healer. A healer is a launched agent that
+    # runs `pi` and can fan out, and this Popen was the one live agent spawn
+    # in the engine outside `mem_cap.wrap_argv` (dispatch's kid and
+    # workflow's stage were already wrapped). Same cell, same wrapper: the
+    # healer is capped exactly as the round it repairs.
+    # hypothesis:a00-d89b6c11-b6e73f
+    heal_cfg = locations.load_config(_main_graph_root(root))
+    heal_argv = mem_cap.wrap_argv(pi_args, mem_cap.resolve_memory_cap(heal_cfg),
+                                 heal_cfg)
     with open(healer_log, "wb") as logf:
         proc = subprocess.Popen(
-            pi_args,
+            heal_argv,
             stdout=logf,
             stderr=subprocess.STDOUT,
             stdin=subprocess.DEVNULL,
@@ -3781,7 +3791,7 @@ Stay surgical. Don't refactor unrelated code.
         "pid": proc.pid,
         "context_file": str(healer_ctx),
         "log_file": str(healer_log),
-        "command": " ".join(shlex.quote(a) for a in pi_args),
+        "command": " ".join(shlex.quote(a) for a in heal_argv),
     }
     rec["finished_at"] = int(time.time())
     (sess_dir / "agent.json").write_text(json.dumps(rec, indent=2))

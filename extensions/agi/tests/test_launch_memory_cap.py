@@ -148,12 +148,12 @@ def test_both_call_sites_share_the_one_helper():
     assert _dispatch.mem_cap is mem_cap
     assert _wf.mem_cap is mem_cap
     src = (BIN / "dispatch.py").read_text()
-    # dispatch passes the cfg it already holds (config-max of the probe
-    # cache); workflow's helper takes only the cap, so it reads the
-    # shipped defaults. Both route through the ONE helper.
+    # BOTH call sites now pass the cfg they already hold (config-max of the
+    # probe cache) -- hypothesis:a00-50b210d5-b85ee2 closed the stage seam's
+    # last cfg-less `wrap_argv`. Both route through the ONE helper.
     assert "mem_cap.wrap_argv(spawn_args, _mem_cap, cfg)" in src
     src = (BIN / "workflow.py").read_text()
-    assert "mem_cap.wrap_argv(cmd, cap)" in src
+    assert "mem_cap.wrap_argv(cmd, cap, cfg)" in src
 
 
 def test_workflow_stage_site_really_launches_under_a_cap(tmp_path):
