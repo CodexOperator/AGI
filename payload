@@ -210,13 +210,7 @@
     }
   },
   "reaper": {
-    "max_restarts": 0,
-    "late_reap_wait_max_s": 1800,
-    "term_grace_s": 15
-  },
-  "logs": {
-    "cap_mb": 16,
-    "rotations": 3
+    "max_restarts": 0
   },
   "grid": {
     "storage_trunk": "refs/grid/local-maxxing",
