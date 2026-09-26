@@ -16,7 +16,7 @@ profile: balanced
 role: kid
 scaffold_hash: ad7f1fb7c84aa391
 season: 2
-title: "Seed band on qwen2 np32: noise is real, containment is 1-of-4 not a majority"
+title: "Seed band on qwen2 np32: noise is real; containment by the claim's half-range is 2 of 4, a tie not a majority (3 of 4 under the later full-range rule)"
 town: local-maxxing
 verdict: inconclusive_lean_disproved:55
 ---
