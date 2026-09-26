@@ -2194,9 +2194,37 @@ def _run_round_stage(root: Path, stage: dict, args: dict, timeout_s: int):
             except (OSError, ValueError, subprocess.TimeoutExpired):
                 return 3, None
             return 0, {"key": target, "hypothesis": target, "parent": agent_id,
-                        "branch": rec.get("branch"), **harvest}
+                        "branch": rec.get("branch"), **harvest,
+                        **_round_findings(harvest.get("files") or [])}
         time.sleep(min(1, max(0, deadline - time.monotonic())))
     return 2, None
+
+
+#: The node kinds a round's review stages are handed by name. A review prompt
+#: that writes `{experiments}` or `{verdict}` must find the round's OWN
+#: committed nodes there.
+_ROUND_FINDING_KINDS = ("experiment", "verdict")
+
+
+def _round_findings(files: list) -> dict:
+    """The round's committed nodes, keyed by kind, for a chained review
+    stage's `{experiments}` / `{verdict}` placeholders. Measured pre-fix: the
+    round returned only `key/hypothesis/parent/branch/old_tip/new_tip/files`,
+    so both placeholders rendered `''` through `_SafeDict` and a review stage
+    was asked to judge a round that had produced no evidence — silently, since
+    a blank placeholder looks exactly like a short answer. The round's
+    committed range IS the evidence, so the harvest's own file list is the one
+    source; a key with no node of that kind is `[]` (an honest empty, not a
+    missing name) (hypothesis:a-round-stage-fails-closed-by-name-and-every-
+    inherited-review-stage-is-gated, falsifier 3)."""
+    found: dict[str, list[str]] = {}
+    for f in files:
+        m = re.search(r"nodes/(" + "|".join(_ROUND_FINDING_KINDS) + r")/([^/]+)\.md$",
+                      str(f))
+        if m:
+            found.setdefault(m.group(1), []).append(m.group(2))
+    return {"experiments": found.get("experiment", []),
+            "verdict": found.get("verdict", [])}
 
 
 def _failed_dependency(stage: dict, failed_keys: dict,
@@ -2293,6 +2321,23 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # wins, envelope — it is the per-run override the CLI exposes.
     if not harness:
         harness, _level = _resolve_default_harness(root, key, manifest, cfg_row)
+    # A `kind: round` stage is executed by `_run_round_stage`, which dispatches
+    # a detached parent through dispatch.py -- the pi path's own runner. A seam
+    # that cannot run it must REFUSE BY NAME, not ignore the stage: measured,
+    # the claude-code branch handed back the Workflow call, marked the round
+    # `resolved` and returned 0, so a run that dispatched NO parent reported
+    # every stage satisfied. Refused BEFORE the dry-run return, so `--dry-run`
+    # and the live run agree (rc 6: a seam/manifest mismatch, distinct from
+    # the rc 2 bad-args, rc 3 credential/stage and rc 5 budget refusals).
+    if harness != "pi":
+        _round_stages = [st["label"] for st in stages
+                         if st.get("kind") == "round"]
+        if _round_stages:
+            print(f"workflow.py: workflow={key} refused: stage(s) "
+                  f"{_round_stages} are kind=round, which harness "
+                  f"{harness!r} cannot run; a round stage needs `--harness pi`",
+                  file=sys.stderr)
+            return 6
     try:
         _harness_name, harness_cfg = adapters.resolve(cfg, harness)
     except adapters.AdapterError as exc:
