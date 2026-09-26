@@ -99,3 +99,29 @@ def test_latched_capture_still_prints_the_imperative(tmp_path, monkeypatch,
     out = capsys.readouterr().out
     assert EXPECTED in out, out
     assert out.strip().splitlines()[-1].startswith("[meter]"), out
+
+
+def test_a_capture_that_rotated_nothing_still_prints_the_imperative(
+        tmp_path, monkeypatch, capsys):
+    """DH.395 harvest: a capture that fails closed (`capture-no-log`: the ladder
+    declares no chain log) rotated nothing, so it must not go quiet either --
+    `_captive_rotate` returned True on every non-latched outcome."""
+    graph, cwd = _graph(tmp_path)
+    ladder = graph / "nodes" / ".geometry" / "ladder.md"
+    ladder.write_text(ladder.read_text().replace(
+        "capture_chain_log: capture-chain.log\n", ""))
+    monkeypatch.setenv("AGI_POST", "probe-director")
+    tp = tmp_path / "t.jsonl"
+    tp.write_text(json.dumps({"message": {"role": "assistant", "usage": {
+        "input_tokens": 45_000, "cache_read_input_tokens": 0,
+        "cache_creation_input_tokens": 0}}}) + "\n")
+    state = tmp_path / "state"
+    state.mkdir()
+    monkeypatch.setenv("AGI_ROTATION_STATE_DIR", str(state))
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps({
+        "hook_event_name": "UserPromptSubmit", "session_id": "s-2",
+        "transcript_path": str(tp), "cwd": str(cwd)})))
+    assert hook.main([]) == 0
+    out = capsys.readouterr().out
+    assert "fail-closed" in out, out
+    assert EXPECTED in out, out
