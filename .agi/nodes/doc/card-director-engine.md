@@ -75,8 +75,11 @@ rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing
   DH.381   MERGED ddd4dc245 (4): opt-in NO_REAL_PROCESSES conftest guard; baseline disproved (499 /proc reads, 17 kills), fix proved; 19 green
            conftest.py changed -> FULL SUITE owed before the next merge-up
   DH.382   a00-e447936e  (5) heal late-reap bound + stale-pin logs once
-  DH.380   a00-a52ef31c  (2) memory_alarm CLI declared + log capped (trunk's one red) -- (3) WAITS for it (both touch crons.py log-cap region)
-  (3)      fold my minted 07438507d log-cap-holds-at-each-apply into (3)'s round as extra orders, not a separate round
+  DH.380   MERGED 7448e90e3 (2): memory_alarm declared (trunk red GREEN), alerts log moved INTO capped ~/logs as logs.alerts_file (was ~/logs/
+           sanctuary-guard/alerts.log -- a behaviour change on the Prime's tool: SAY SO in the merge-up); residue commands.md + cell -> DE bfe212fd2; 333 green
+  DH.383   a00-ab53bb94  (3) crons log cap bounds archives + prunes only its own files -- my 07438507d FOLDED in via orders (not a separate round);
+           orders: 'own files' MUST include logs.alerts_file (DH.380)
+  suite    full suite running on 7448e90e3-line (conftest changed by DH.381) -> then merge-up 4 = DH.377-381 (+382/383 if in)
   rows     DONE 286272925: DEMOTE DH.369 exp a00-2a2760a8 + hypothesis:a00-f30b6285-0e37a6 (lean_disproved:60) + graph-root exp adopted mint_id
            OPEN: workflow.py a-round-stage fail-open rows · pin-reap chain deadline (rotate.py:11485) · retired-box-prefix guard scope ·
            3 node-text rows (a5f94936/f855c944/7c59d4d4) · key-row-publish experiment a00-14a8f7cc
