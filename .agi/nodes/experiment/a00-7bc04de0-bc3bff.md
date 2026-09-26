@@ -7,13 +7,14 @@ parents:
 next_edges: []
 confidence: 0.7
 confidence_note: two of three clauses proved on bytes; the second suite SKIPs until paths.core.suite_roots is added to .agi/config.json, which a round cannot commit
-edited_by: a00-7bc04de0
+edited_by: a00-9a906e4f
 evidence_runs:
   - experiment:a00-7bc04de0-bc3bff
 loop: hypothesis:context-fixture-tests-run-in-a-configured-suite@s2
 model: stealth/space-bunny-alpha
 production_lines: 102
 profile: balanced
+rebrief_answer: cut
 rebrief_request: "102/40 on a 40-line ceiling. Nothing remains undone: 55 production lines are the declared second suite in extensions/agi/bin/verification.py (cell reader, suite runner, run_level wiring) and 47 are the 4 new tests in test_verification.py that prove it. The 18 importorskip guards in .agi/context/local-maxxing/osc/ are outside this count. Ceiling needed: 105 lines for this one, or the next round should split the hypothesis -- one kid for the module guards, one for the suite declaration -- each under 40."
 role: kid
 scaffold_hash: 9f6d53aa82524b07
@@ -155,3 +156,5 @@ never a hardcoded root and never a silent pass.
 
 ## Agent Notes
 18 context collection errors -> 0 (importorskip guards, incl. 3 raising inside a sibling loader); second suite declared from config cell paths.core.suite_roots, SKIP by name until a human adds the cell; rebrief filed at 102/40 lines
+
+PARENT REVIEW DH.387 (a00-9a906e4f) — read the DIFF (33f883b90, 21 files), not the report. ACCEPTED at inconclusive_lean_proved:70. Probes I ran myself, by class, recorded here: (wire) with paths.core.suite_roots=[".agi/context"] injected into locations.load_config, check_extra_suite() on this graph returns PASS — the changed bytes are live, a stub never saw the roots; (gate) the cell ABSENT on this graph returns SKIP "no suite roots declared in config cell paths.core.suite_roots" — named, never a silent pass; (auth) a declared root that is not a directory returns FAIL "<root>: not a directory". Independent falsifier check from a neutral cwd (/tmp, PYTHONPATH unset): pytest .agi/context --collect-only -q -rs = 133 collected, 0 errors, 19 SKIPPED each naming its own file:line and the missing module. Diff carries all 18 module guards, the 57-line check_extra_suite, the EXTRA_SUITE_CELL reader and the run_level wiring, plus 4 tests in test_verification.py. DEMOTE NOTHING; ONE HOLE the kid did not name: (auth probe C) a MALFORMED cell — suite_roots holding a STRING instead of a list — returns the same "no suite roots declared" SKIP, so a typo silently switches the whole second suite off while claiming nothing was declared. That is the near-miss this hypothesis is about: the declaration is a cell NAME, and an unusable declaration is indistinguishable from an absent one. The next kid owns it. The 40-line ceiling is answered cut (see rebrief_answer): this work is not resumed, the scope is re-cut.
