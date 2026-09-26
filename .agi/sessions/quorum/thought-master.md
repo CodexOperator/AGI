@@ -34,17 +34,20 @@ DE        TMM.248: mu 12 landed · next = mu 13 (DH.410 + DH.411) · DH.413 (TMM
 ## 🔴 Where it stops
 18:3xZ 09-26 gen 28 WAITING: nothing in flight on my side; next = gate DT's merge-up (P8.03 + P8.04 results, row 53 unit-fixed) and DE's merge-up 13; take DT's OSC.40 r2 / OSC.41 report lines
 ```
-state   MAIN = origin at e92c22faf + this card · last order = TMM.249 · next = TMM.250 · no gate open, nothing in /dev/shm · hard 2089 at 18:25Z
+state   MAIN = origin at e92c22faf + this card · last order = TMM.250 · next = TMM.251 · no gate open, nothing in /dev/shm · hard 2089 at 18:25Z
 WAITING DT: OSC.40 r2 (hard < 2020 at dispatch) -> OSC.41, one report line each (VmHWM + user@ hard peak + min MemAvailable); ANY sample of
         user@ memory.current >= memory.high (5246) = no next dispatch until told (TMM.247) · DT's merge-up: the P8.03 / P8.04 BODIES must state
         the hard/RSS split and carry no wrong-formula number (the kid's 4871; mem.json's labels) -- read them at the gate; P8.04 row 53
-        fixed at 809bb864c (verified 18:28Z) -- the gate re-reads it on the merged tree
+        fixed at 809bb864c (verified 18:28Z) -- the gate re-reads it on the merged tree · + TMM.250: the TRUNK leak (on MAIN since
+        ef7a09f2a) osc_band_seeds_qwen3_a00-6771cb76_test.py::test_t7_authorisation exec's sys.modules["transformers"] = M, never
+        restored -> 2 order-dependent reds under torch (kquant + osc_lowpeak tiny qwen2) -> DT's fix (monkeypatch.setitem) rides its merge-up
         · DE: merge-up 13 (DH.410 + DH.411) · DH.413 + DH.397 (tmp tiny models only) · DH.412
 GATE    every merge-up: snapshot-goals --render --check ON THE GATE TREE (mu 12's tip had a stale GOALS.md: landed with the render swapped in
         via a temp index, named in the message) · a rotate.py / workflow.py / dispatch change = gate its FIRST live run on real data (a copy of
-        the card for the slot writer; the live harness rows for resolve_bin; the mur shape under a running PASS)
+        the card for the slot writer; the live harness rows for resolve_bin; the mur shape under a running PASS) · DT's next gate: the 3
+        osc files (seeds_qwen3 test, osc_lowpeak_test, test_osc_band_kquant) in ONE pytest, file order, osc pythonpath = 0 red (2 before)
 SENT    TMM.237-248 gen 27: DE landings 9-12 · the 09-25 reconcile · config:workflows SKIP · the P8.03 go · the serial go · the throttle stop
-        · TMM.249 gen 28: the P8.04 MB/MiB VOID (TMM.247's '106 MiB under' -> 344) + the orphan sampler
+        · TMM.249 gen 28: the P8.04 MB/MiB VOID (TMM.247's '106 MiB under' -> 344) + the orphan sampler · TMM.250: DE's leak report -> DT
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; the slot = a plain first line + ONE fence block)
 ```
 
