@@ -33,6 +33,7 @@ BIN = Path(__file__).resolve().parent.parent / "bin"
 sys.path.insert(0, str(BIN))
 
 import write  # noqa: E402
+import node_writer  # noqa: E402
 
 
 # A trimmed transcription of the real `.agi/context/schemas/[goal].md`
@@ -224,3 +225,52 @@ def test_an_undeclared_key_on_a_schema_less_type_gates_nothing(project):
     out, err, rc = _run(["doc:d1", "set anything_at_all 1",
                          "--root", str(project), "--actor", "test"])
     assert rc == 0, (out, err)
+
+
+# --------------------------------------------------------------------------
+# hypothesis:every-write-py-path-is-schema-checked-not-only-the-set-verb --
+# the LIBRARY path. The three probes above were CLI-only: `submit()` is what
+# every engine caller (rotate.py's list cells among them) writes through, and
+# it reached none of these refusals -- a raw scalar into `tags`, an
+# out-of-regex `goal_id` and a non-float `confidence` all landed, exit-free.
+# submit() now runs the SAME `_enforce_set_schema_gate`, so the API and the
+# CLI cannot disagree about what a legal row is.
+# --------------------------------------------------------------------------
+
+@pytest.mark.parametrize("key,value,rule", [
+    ("tags", "a,b,c", "list"),            # raw scalar into a list-typed field
+    ("goal_id", "X9", "match"),           # outside validation.regex
+    ("confidence", "notafloat", "float"),  # wrong declared type
+])
+def test_submit_refuses_what_the_cli_set_refuses(project, key, value, rule):
+    before = (project / "nodes" / "goal" / "g1.md").read_text()
+    with pytest.raises(write.EditError) as exc:
+        write.submit(str(project), write.Edit(node_id="goal:g1",
+                                             set_fm={key: value}),
+                     actor="test")
+    line = str(exc.value)
+    assert "\n" not in line, line          # ONE line, no traceback
+    assert key in line and rule in line, line   # names the row AND the rule
+    assert (project / "nodes" / "goal" / "g1.md").read_text() == before
+
+
+def test_submit_still_writes_a_schema_valid_row(project):
+    """No regression on the happy path: a list-typed value as a real list
+    lands through the library exactly as it did before."""
+    res = write.submit(str(project),
+                       write.Edit(node_id="goal:g1",
+                                  set_fm={"tags": ["sample", "other"]}),
+                       actor="test")
+    assert getattr(res, "status", "") != node_writer.REJECTED
+    text = (project / "nodes" / "goal" / "g1.md").read_text()
+    assert "sample" in text and "other" in text
+
+
+def test_submit_on_a_schema_less_type_gates_nothing(project):
+    (project / "nodes" / "doc").mkdir(parents=True)
+    (project / "nodes" / "doc" / "d1.md").write_text(
+        '---\nid: "doc:d1"\ntype: doc\nmint_id: "d1mint"\ntitle: "D"\n---\n\nbody\n')
+    write.submit(str(project),
+                 write.Edit(node_id="doc:d1", set_fm={"anything_at_all": "1"}),
+                 actor="test")
+    assert "anything_at_all" in (project / "nodes" / "doc" / "d1.md").read_text()
