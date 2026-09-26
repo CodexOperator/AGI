@@ -806,7 +806,7 @@ def _maybe_force_capture(root: Path, seat: str, card: Path, fraction: float,
         return False, None
     try:
         which = _force_capture(root, seat, card, fraction, minutes,
-                               state_dir or p.parent)
+                               state_dir or p.parent, session_id=session_id)
     except OSError:
         which = "capture-failed"
     return True, (None if which == "captured" else which)
@@ -854,18 +854,27 @@ def _chain_failure_note(state_dir: Path, seat: str) -> list[str]:
 
 
 def _force_capture(root: Path, seat: str, card: Path, fraction: float,
-                   minutes: int, state_dir: Path, line: str | None = None) -> str:
+                   minutes: int, state_dir: Path, line: str | None = None,
+                   session_id: str = "") -> str:
     """Capture the final card N min after the imperative first fired (driven
     §0 writer + AUTO-CAPTURED header + rotate-self --force); NO_SPAWN records.
-    `line` overrides the stops reason — the CAPTIVE path names its own ratio."""
+    `line` overrides the stops reason — the CAPTIVE path names its own ratio.
+
+    The latch is keyed by the SESSION that captured (EF.22's rule applied to
+    the `captured` stamp): a stamp naming a DIFFERENT session — or naming none
+    at all, a legacy stamp — reads as ABSENT, so a successor of a captured
+    seat is never latched from birth. Only the session that captured, or a
+    caller that names no session at all (once per seating), sees the latch."""
     if line is None:
         line = f"auto-captured at f={fraction:.4f} after {minutes} min without a self-rotate"
     stamp = state_dir / f"capture-{seat}.json"
     try:
-        if json.loads(stamp.read_text()).get("captured"):
-            return "capture-latched"      # once per seating (P7, never twice)
+        blob = json.loads(stamp.read_text())
     except (OSError, ValueError):
-        pass
+        blob = {}
+    stamp_session = str(blob.get("session") or "")
+    if blob.get("captured") and (not session_id or stamp_session == session_id):
+        return "capture-latched"      # once per SESSION (P7, never twice)
     # The chain's log NAME is a ladder config cell, never a literal joined on
     # here (config-max). Absent is fail-closed, NOT a silent default: a capture
     # whose output would land in an UNDECLARED file is the defect this cell was
@@ -899,11 +908,9 @@ def _force_capture(root: Path, seat: str, card: Path, fraction: float,
     chain_log = (state_dir / log_name).open("ab")   # never DEVNULL
     _spawn_capture_chain(state_dir / f"capture-{seat}.failed", chain_log,
                          handoff_argv, rotate_argv)
-    try:
-        blob = json.loads(stamp.read_text())
-    except (OSError, ValueError):
-        blob = {}
     blob["captured"] = int(time.time())
+    if session_id:
+        blob["session"] = session_id     # the latch is keyed by THIS session
     try:
         stamp.write_text(json.dumps(blob), encoding="utf-8")
     except OSError:
@@ -936,7 +943,8 @@ def _captive_rotate_eligible(root: Path, seat: str, masters: bool) -> bool:
 
 
 def _captive_rotate(root: Path, seat: str, fraction: float, threshold: float,
-                    ladder: dict, capture_minutes: int, state_dir: Path) -> bool:
+                    ladder: dict, capture_minutes: int, state_dir: Path,
+                    session_id: str = "") -> bool:
     """CAPTIVE AUTO-ROTATE, trigger (a) (owner 05:1xZ): at f >= the ladder's
     `captive_rotate_ratio` x the line a DIRECTOR is rotated by the engine
     ITSELF — the card as it stands, AUTO-CAPTURED, no consent asked and no
@@ -963,9 +971,17 @@ def _captive_rotate(root: Path, seat: str, fraction: float, threshold: float,
     line = (f"auto-captured at f={fraction:.4f} at the captive ratio "
             f"{ratio:g} x the line, no self-rotate")
     try:
-        _force_capture(root, seat, _card_path(root, seat), fraction,
-                       capture_minutes, state_dir, line=line)
+        which = _force_capture(root, seat, _card_path(root, seat), fraction,
+                               capture_minutes, state_dir, line=line,
+                               session_id=session_id)
     except OSError:
+        return False
+    if which == "capture-latched":
+        # This seating already captured. Say NOTHING that would swallow the
+        # imperative: return False so main() takes the over-line branch and
+        # PRINTS the rotate-now line, and the gate re-decides there
+        # (hypothesis:a-capture-latch-is-keyed-by-session-and-never-swallows-
+        # the-imperative). A latch is a memory, never a reason to go quiet.
         return False
     return True
 
@@ -1483,7 +1499,7 @@ def main(argv: list[str] | None = None) -> int:
     # engine ITSELF: the card as it stands, AUTO-CAPTURED, no consent asked,
     # no `card_capture_minutes` waited. Off by name with no captive cell.
     if _captive_rotate(root, seat, fraction, threshold, ladder,
-                       capture_minutes, state_dir):
+                       capture_minutes, state_dir, session_id or ""):
         _meter(used, threshold, fraction)
         return 0
 
