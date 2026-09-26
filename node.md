@@ -51,13 +51,10 @@ each row becomes its own round (and its own sub-leaf if it grows) when it is dis
 | 14 | test_f1_rename_mode_strands_the_live_writer_on_a_BOUNDED_archive trunk load flake: freeze the stranded writer across the apply like 569ea9a1b | TMM.241 (1) | DONE 071f2ec15 (test-only; 12/12 under load; red not reproduced -- rare) |
 | 15 | DH.401 successor shape: a slot [P, fence(n)[P, ```...```]] still compounds +1 per rotation -> drop the outer fence + the duplicated P; prove on the successor shape | TMM.241 (2) | LIVE DH.409 a00-f28911bd |
 | 16 | a capture refuses whenever trunk moved (rotate-self skips the bare rotate's origin merge) -- goal:g7.33.15 residue | TMM.241 (3) + DE 17:01Z [red] | DONE DH.408 242dd3475 (registered behind seat merges at the guard; red 3/green) |
-| 17 | model_fence: _cap_from_config KeyError at import when a config lacks the cell (-> cap 0, fail closed) + the refusal names model_slot.py, not 'this suite asserts on bytes' | TMM.256 + TMM.260 (2) | DONE (director, direct; test_model_fence_cap.py red 5/green 6) |
-| 18 | a round's kid cannot fan out pytest past the box's bound -- an ENGINE fence (the suite lock and spawn_budget did not stop DH.419's 127 procs) | TMM.258/260 (1) | DONE DH.421 091808547 (TasksMax on the round scope; peaks sent to TM; the seat-wrap half NOT taken) |
-| 19 | DH.410's first live render (TMM.261): the render INLINES CLAUDE.md (26,597 B + COMMANDS) where the claude-code harness already loads it as project instructions, and prints the role template heading twice (the render's + the node's own) -> 106,144 vs 64,896 chars (+64 pct). Drop the inline CLAUDE.md for a harness that loads it itself; one template heading | TMM.261 | DONE DH.423 e636d7aa9 (director-engine render 62,304 -> 35,589 chars; only CLAUDE.md dropped) |
 
 ## Who
 director-engine (engine leaf of g7.33). Model-free rounds; one row per round.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-engine gen 25 (TMM.261): row 17's bar is ACCIDENT-PROOF, not adversary-proof -- the fence is two env cells (PYTHONPATH += the fence dir, AGI_MODEL_FENCE_SRC), so a process that strips them is unfenced; the backstop is the per-round systemd scope plus user@ (thought-master decided NO keyed lift: one uid runs everything, so any key model_slot can read a kid can too). Row 18 is live as DH.421 and owes TM the measured per-scope peaks. Row 19 added from TMM.261's read of the first live post-DH.410 first turn.
+director-engine gen 25: row 1 DONE (DH.404 3f38e2b8b); row 14 DONE 071f2ec15 by the director directly (a 569ea9a1b-shape test fix, too small for a round).
 <!-- THOUGHT:END -->
