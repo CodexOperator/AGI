@@ -128,7 +128,7 @@ key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send
              .agi/sessions/seats/*.key (+ .key.pending), never the bytes
 suite        ON TMPFS (09-26): git worktree add --detach /dev/shm/<gate> M + TMPDIR=/dev/shm/<tmp> (chmod 700) -> no disk writes, 13:20; remove both after · suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
              call · 14:25-15:28 at load 2-6 (6413 passed 00:5xZ 09-25; 14:36 at load 3-8, 6433 passed 11:59Z) · foreground sleep is blocked: wait
-             with a background loop · a bare 'cd' in a Bash call can stick as the session's cwd -- use absolute paths or cd back to /data/work/agi
+             with a background loop · a bare 'cd' in a Bash call can stick as the session's cwd -- use absolute paths or cd back to /data/work/agi (gen 24 did it again with a `cd .agi/worktrees && ...`: the session cwd moved; pass absolute paths instead) · grep here is UGREP: a long alternation regex fails ('exceeds complexity limits') -> extract with python re
              · a 2nd pytest in a worktree whose full suite runs = ERROR at setup (conftest _suite_lock_guard names the live pid), not a result:
                reproduce red in a separate pre-fix worktree, read green from the suite (+N passed = the new cases)
 push         (the Prime's [rule] 02:54Z, owner 09-25; doc:unified-director-brief §2) directors' post branches are LOCAL-ONLY, never pushed; a
@@ -202,6 +202,7 @@ detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashbo
              test_suite_no_detached_spawn -- the LAUNCH, not the range (3 gates 09-26, 6455 passed each; a director's in-pane run = 6458/0)
 board THOUGHT the town board's THOUGHT region is owner/prime-only: write.py 'thought ...' REFUSED for thought-master (goal:g12, 02:2xZ 09-26)
              -> an owner line that produced a board version rides VERBATIM in the row text + the dm that carried it
+io           /proc/pressure/io is its own axis (memory PSI ~2% while io full ~88%, 05:1x-05:3xZ 09-26): read /proc/diskstats (inflight, busy) + Writeback in /proc/meminfo · a write-bound stall drains its Writeback backlog for minutes after the writer stops -> never clear a writer on 'it did not ease in 2 min' (my VOID to belam 06:2xZ) · a recursive grep / find over MAIN's .agi/ walks 101 worktree checkouts (belam's 06:21Z [red]: the PASS 8 reviewer's grep -rln = 3.98 GiB of page cache, io60 36%)
 memory       /var/log/agi-memguard.log is the box memory truth (SPIKE / SUSPENDED lines: pid, RSS, MemAvailable) -- read it before quoting
              any swarm's memory min (the Prime's 'min 6.2 GiB' was pre-overlap; the log had SUSPENDED a 4430 MiB python3 at 642 MiB) ·
              a seat's cgroup is per PROCESS: /proc/<claude pid>/cgroup (a heal respawn landed in session-73.scope, outside user@1000.service's cap, 04:4xZ 09-26) · a talk-only model slot FAILS (two claims + a director ruling, both parents launched within 3 min) -> flock, box-wide
