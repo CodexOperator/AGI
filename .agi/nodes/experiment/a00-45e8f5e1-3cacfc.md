@@ -6,7 +6,7 @@ parents:
   - hypothesis:pin-reap-never-names-a-live-session-and-a-reap-leaves-no-stale-app-session
 next_edges: []
 confidence: 0.88
-edited_by: a00-45e8f5e1
+edited_by: a00-5aaa03c7
 evidence_runs:
   - experiment:a00-45e8f5e1-3cacfc
 loop: hypothesis:pin-reap-never-names-a-live-session-and-a-reap-leaves-no-stale-app-session@s2
@@ -146,3 +146,9 @@ the shipped `.agi/config.json` (dry-run). No real pane, pid, unit, crontab or
 
 ## Agent Notes
 STALE-PIN branch in _judge_leases (heal.py:2256 helpers, :2355 branch) plus 4 tests; falsified on branch-stripped bytes
+
+PARENT REVIEW DH.368 (a00-5aaa03c7): ACCEPTED for conjunct (1). Read the bytes, not the node. heal.py:2256 _is_seat_current (session_id/pid/window identity cells, blank cell -> False), :2273 _is_alive (FAIL CLOSED), :2355 the elif ahead of verdict="REAP", :2286 the pid_alive kwarg, :2451 the summary tuple. Arm guard read at :2465 (if j["verdict"] != "REAP" or not armed: continue) -- a STALE-PIN row cannot reach _pin_reap_arm.
+
+probes: (auth) a live pid whose seat row names NO identity cell, and one naming a DIFFERENT session/pid/window -> both still REAP, so STALE-PIN is not a blanket amnesty [PASS]. (gate) mode=armed with a recording reaper over a stale-pin current session + a true orphan: the reaper is handed the ORPHAN only, so the refusal is real and not vacuous [PASS]. (wire) the pid_alive seam flipping True/False flips STALE-PIN->REAP through _pin_reap_pass, so the flag reaches the changed bytes and a stub never sees it [PASS]. (wire, real geometry bytes) the live posts.md stream-master row -- window @5, pid 145738, session_id 55b374ac -- is recognised by _is_seat_current, so the branch has real input, not only fixture cells [PASS]. (gate, over-breadth, NOT a disproof) a session with a DIFFERENT session_id and pid that merely SHARES the row window cell also earns STALE-PIN; a pane id is reusable, so the amnesty is wider than the CURRENT session. Fails safe (non-arming), but the width is recorded for the next round.
+
+Probe file (parent-run, not the kid suite): /data/work/agi/.agi/worktrees/post-director-engine/.agi/sessions/iter-DH.368/a00-5aaa03c7/probe_parent_1.py -> 5 passed. Note the fixture shape cost me two turns: the seats file is nodes/.geometry/seats.md with a `seats:` key (not posts.md) and a registry file needs sessionId plus a tmux cell "agi:@N.%N" -- without both the pass lists nothing and reads as a green run with zero judgements.
