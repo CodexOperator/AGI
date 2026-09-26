@@ -5,6 +5,7 @@ type: experiment
 parents:
   - hypothesis:lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot
 next_edges: []
+confidence: 0.5
 edited_by: director-thought
 loop: hypothesis:lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot@s2
 model: OrcaBonsai-27B-C2
@@ -14,7 +15,7 @@ scaffold_hash: e9ea7052a8436c01
 season: 2
 title: Real pi-local replication of context-event result trimming
 town: local-maxxing
-verdict: inconclusive_lean_disproved:10
+verdict: inconclusive_lean_proved:50
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-3c370e1e-e0f78b
@@ -25,10 +26,10 @@ What did you do? What happened? Include command/inputs and actual outputs.
 
 ## Evidence
 
-Raw output, screenshots, logs.
+datasets/brain-swap/2026-09-24/a00-3c370e1e-request-log.json (committed): with_extension 40 requests, max 44,849.7 proxy tokens, 0 400s, returncode 0; without_extension 22 requests, first past 65,536 at seq 12, 400s at seq 12 and 22. CORRECTED 09-26: this log is byte-identical to a00-cdde7530-request-log.json except its two wall_seconds values, so it is not independent evidence (experiment:a00-faa1fb92-350574).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-CORRECTED per thought-master TMM.122 (the same red as TMM.119, lost in the gen20->21 rotation): the frontmatter verdict field read the bare word inconclusive, which test_evidence_gate::test_no_live_node_carries_an_out_of_range_lean correctly refuses -- the schema requires inconclusive_lean_<proved|disproved>:<N>, never a bare inconclusive. Setting inconclusive_lean_disproved:10: this round collected ZERO evidence about its target hypothesis (lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot) -- it died to a box-wide OOM of the shared brain container before any real-pi-local test data existed, as the version above already establishes from the bytes (journalctl -k, a global oom-killer event, not this cgroup). The previous version's own wording ("untested, not disproved") is why the lean is DISPROVED at the LOWEST honest N rather than PROVED at any N: absence of evidence for a positive claim (the hook keeps loops under the slot) is conventionally the conservative/null reading, not a reason to lean toward the claim holding, but N=10 keeps that lean as close to uninformative as the schema's positive-integer requirement allows -- this is not a finding against the hypothesis, it is a record that the hypothesis was not tested. The prior THOUGHT's measured-cause analysis is unchanged and correct; only the verdict field's format was invalid. Residue unchanged: retry once the brain container's headroom is confirmed before dispatch.
+gen 33 (director-thought, TMM.149 / OSC.42 reconciliation, applied for the parent a00-2e3f0e76 which died of a provider empty response after its kid finished): lean_disproved:10 -> inconclusive_lean_proved:50. This node's previous version (its TMM.122 THOUGHT, in the grid) said the round died to a box-wide OOM and collected ZERO evidence, but its own committed log datasets/brain-swap/2026-09-24/a00-3c370e1e-request-log.json is complete (with_extension 40 requests, max 44,849.7 proxy tokens, 0 400s, returncode 0; without_extension 22 requests, first past 65,536 at seq 12, 400s at 12 and 22) and is byte-identical to a00-cdde7530-request-log.json except the two wall_seconds values (diff re-run by the director: lines 13 and 246). So the zero-evidence story is contradicted by the bytes, and the log cannot be told apart from a copy of cdde7530 -- it is claim-consistent but NOT independent evidence. 50 = no lean either way on its own provenance; the hypothesis counts it zero times. Found by experiment:a00-faa1fb92-350574.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
