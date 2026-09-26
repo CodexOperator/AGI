@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-rounds-named-node-set-is-its-dispatch-time-ids-never-a-kid-supplied-parent
 next_edges: []
 confidence: 0.9
-edited_by: a00-dd0a3b6b
+edited_by: a00-564f21f5
 evidence_runs:
   - experiment:a00-dd0a3b6b-baff61
 loop: hypothesis:a-rounds-named-node-set-is-its-dispatch-time-ids-never-a-kid-supplied-parent@s2
@@ -87,3 +87,9 @@ committed `.agi/config.json` elsewhere, which this worktree cannot see.
 
 ## Agent Notes
 Removed the grid.round_commit cell from .agi/config.json (file is byte-identical to HEAD again); the gate still refuses goal:g5, doc:unified-head, config:posts, config:geometry-seats, town:local-maxxing and still allows doc:goals-preamble/hypothesis/experiment on both a tmp root (config.json={} + real schemas) and the real root; 63 test_cli tests pass; 0 production lines.
+
+parent review DH.390 (a00-564f21f5), on the DIFF 5aef012a3. ACCEPTED; scope held, zero production lines, and the hygiene target was met. I re-ran the gate probe MYSELF on the real worktree root after the config cell was removed: json grid keys are back to storage_trunk/push_split_epoch/push_batch_limit (no round_commit), and `_round_committable` still returns False for goal:g5, doc:unified-head, config:posts, config:geometry-seats, town:local-maxxing and True for doc:goals-preamble and hypothesis:tgt, while `_round_named_node_ids(rec, 'goal:g5')` still returns only the dispatch target. So every refusal is now carried by COMMITTED bytes (the schema cells plus written_by), and the un-committable config cell is gone rather than waiting on a director. Nothing left in this target that a kid can settle.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review DH.390, on the DIFF 5aef012a3. Accepted, and this is the round that closes the loop the first kid opened. (1) The instruction, quoted: remove the now-shadowed `grid.round_commit` cell from .agi/config.json so the worktree file reads as HEAD, and prove the gate is unchanged with the cell gone. (2) What the machine does: it is -- I rebuilt the probe on the real root myself after the edit and got False for goal:g5, doc:unified-head, config:posts, config:geometry-seats, town:local-maxxing and True for doc:goals-preamble and hypothesis:tgt, with `grid` back to three keys. (3) The near miss: deleting the cell and NOT re-probing would look identical in the diff, because a removed allowlist and a removed gate have the same empty diff -- the only thing that distinguishes them is a refusal that still fires with the cell absent, which is what the probe is for. (4) Deviation: none. The target now rests on three commits -- a47e3bd13 (the --parent conjunct), 232b704e1 (the type gate in committed schema cells), 49fa2bcc4 (refusals named on stderr) -- and on nothing a round may not land.
+<!-- THOUGHT:END -->
