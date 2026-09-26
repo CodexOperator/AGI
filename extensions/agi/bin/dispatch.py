@@ -2756,7 +2756,7 @@ def main() -> int:
         def _open_round(mode: str):
             with open(log_file, mode) as logf:
                 return subprocess.Popen(
-                    mem_cap.wrap_argv(spawn_args, _mem_cap),
+                    mem_cap.wrap_argv(spawn_args, _mem_cap, cfg),
                     stdout=logf,
                     stderr=subprocess.STDOUT,
                     stdin=subprocess.DEVNULL,

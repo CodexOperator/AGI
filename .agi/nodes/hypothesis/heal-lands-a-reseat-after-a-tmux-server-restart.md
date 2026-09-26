@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g6.41
 next_edges: []
-edited_by: belam
+edited_by: a00-1b09cac6
 scaffold_hash: 2800953cdf77a566
 season: 2
 testable_claim: "After the tmux server restarts with every seat dead, the watcher alone re-seats every dead local seat within two passes, each in its own tree on its own quorum card: (a) the launch never hands tmux the prompt inline, (b) a worktree seat's card resolves in its own worktree, (c) liveness is never decided by an @id alone, (d) every local seat row carries box."
@@ -48,3 +48,36 @@ extensions/agi/bin/heal.py · the four test files above · .agi/nodes/.geometry/
 
 ## CEILING
 1 parent (pi-free: --tier parent --role parent --ladder-tier 0) · <= 3 kids · 10-12 production lines per conjunct · 0 USD
+
+## Agent Notes
+PARENT DH.373 (a00-1b09cac6) — round summary and what is still OWED.
+
+Accepted, both as leans on the evidence, neither promoted to proved:
+- (a) + (b): merged from the dead DH.370 parent a00-6c3524a8's accepted tree
+  e74c1b172, after that parent's own five probes. My own probes on the landed
+  bytes: a 200 KB prompt against a fake tmux that refuses argv > 65536 launches
+  with 111 bytes of argv and zero prompt bytes; an unwritable launch file
+  returns (0, "") with subprocess.run NEVER called; a worktree seat's card
+  resolves GEN-NEW-WORKTREE-CARD from its OWN worktree and MAIN's stale copy is
+  never read. All three HOLD.
+- (c): experiment:a00-ee653d52-2cdc8d (pane chain vouches for the @id) and
+  experiment:a00-dbf19007-631ef0 (ONE `list-panes` per pass, not one
+  `display-message` per row). My probes: the collision recovers; a healthy town
+  spawns nothing and pays exactly one call; a server that cannot report pane
+  pids loses the KEY and touches no live seat. All HOLD. The dead kid's bare
+  `pane_pid != row.pid` shape was rejected by measurement, not by taste: heal
+  launches `cd <tree> && sh <file>`, so a running seat's own pane is a wrapper
+  whose pid is nobody's row pid.
+
+OWED, and the reason this claim is a LEAN and not a proof:
+- (d) every local seat row carries `box`. stream-master's row has no `box`
+  cell, so `boxes.row_is_local` defaults and heal.py drops the row as foreign —
+  the seat is never recovered. The cell is SANCTUITY-MASTER's grant
+  ([config] schema actor_rows); `.agi/nodes/.geometry/posts.md` was NOT edited
+  by this round, by order.
+- (c) still open for a collision with a NON-SEAT window: a reused @id naming a
+  plain shell carries nobody's pid, nothing is proved, and the @id stands — the
+  corpse reads alive (measured by me, probe P6). The claim's other admissible
+  key, the tmux server's start time against the row, has NO cell to compare; it
+  needs the ONE identity writer (L4.291) to stamp the seats row, which is
+  another tree's file.

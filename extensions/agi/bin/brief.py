@@ -2369,7 +2369,10 @@ def _extras_ref_text(root: Path, ref: str) -> str:
     not only a node id (director-engine, goal:g7.33.14-adjacent: the owner
     wants the goal/hypothesis schemas reachable as brief guides)."""
     if ref.startswith("context/"):
-        path = root / ref
+        path = (root / ref).resolve()
+        # `context/../../x` must never leave .agi/context (TMM.200 item 4)
+        if not path.is_relative_to((root / "context").resolve()):
+            raise RenderError(f"brief extras ref escapes context/: {ref}")
         if not path.is_file():
             raise RenderError(f"brief extras file not found: {ref}")
         return path.read_text(encoding="utf-8")

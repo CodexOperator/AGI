@@ -819,6 +819,22 @@ def _force_capture(root: Path, seat: str, card: Path, fraction: float,
     `line` overrides the stops reason — the CAPTIVE path names its own ratio."""
     if line is None:
         line = f"auto-captured at f={fraction:.4f} after {minutes} min without a self-rotate"
+    stamp = state_dir / f"capture-{seat}.json"
+    try:
+        if json.loads(stamp.read_text()).get("captured"):
+            return "capture-latched"      # once per seating (P7, never twice)
+    except (OSError, ValueError):
+        pass
+    # The chain's log NAME is a ladder config cell, never a literal joined on
+    # here (config-max). Absent is fail-closed, NOT a silent default: a capture
+    # whose output would land in an UNDECLARED file is the defect this cell was
+    # minted for (verdict:a00-606bcf68-e43240 "Gap carried forward").
+    log_name = str(_load_ladder(root).get("capture_chain_log") or "")
+    if not log_name or "/" in log_name:
+        print("rotation-alert: fail-closed: ladder declares no "
+              f"`capture_chain_log` file name (got {log_name!r}); refusing to "
+              "capture rather than write the chain output to an unnamed file")
+        return "capture-no-log"
     s3 = state_dir / f"capture-{seat}.s3"
     s3.write_text(line + "\n", encoding="utf-8")
     b = Path(__file__).resolve().parents[1] / "bin"
@@ -829,19 +845,32 @@ def _force_capture(root: Path, seat: str, card: Path, fraction: float,
         _CAPTURE_LOGGED.extend(argvs)
         print(render("rotation_alert", "capture_declined", seat=seat))
         return "capture-no-spawn"
-    card.write_text(f"{AUTO_CAPTURED}\n" + card.read_text(encoding="utf-8"),
-                    encoding="utf-8")
+    # The marker is a SIBLING state file, never a write into the card: a live
+    # quorum card is a symlink into nodes/doc/<card>.md, and a prepend there
+    # lands above the node's `---` (TMM.190 gen 22, f 0.41/0.42/0.43).
+    (state_dir / f"capture-{seat}.captured").write_text(
+        f"{AUTO_CAPTURED}: {line}\n", encoding="utf-8")
     # ONE background child chains handoff THEN rotate-self with `&&`, so the
     # card write completes before rotate-self reads it (`--stops` is built
     # from the card). Both argvs are passed POSITIONALLY ($2.. = handoff argv,
     # then rotate-self argv; $1 = its length) so nothing is shell-interpolated;
     # P7 holds -- the hook itself never blocks, the child does the waiting.
     handoff_argv, rotate_argv = argvs
+    chain_log = (state_dir / log_name).open("ab")   # never DEVNULL
     _Popen(["bash", "-c",
             'n=$1; shift; a=("$@"); "${a[@]:0:$n}" && "${a[@]:$n}"',
             "bash", str(len(handoff_argv)), *handoff_argv, *rotate_argv],
-           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+           stdout=chain_log, stderr=chain_log,
            stdin=subprocess.DEVNULL, start_new_session=True)
+    try:
+        blob = json.loads(stamp.read_text())
+    except (OSError, ValueError):
+        blob = {}
+    blob["captured"] = int(time.time())
+    try:
+        stamp.write_text(json.dumps(blob), encoding="utf-8")
+    except OSError:
+        pass
     print(render("rotation_alert", "captured", seat=seat, minutes=minutes, line=line))
     return "captured"
 

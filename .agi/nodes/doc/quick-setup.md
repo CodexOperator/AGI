@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g1.25
 next_edges: []
-edited_by: belam
+edited_by: director-engine
 scaffold_hash: eae2cd2781042856
 season: 2
 thought_session: belam-S2-L5-V
@@ -71,7 +71,7 @@ box up ─▶ 1 memory guard ─▶ 2 streamer-stub units ─▶ 3 claude-remote
 | piece | how |
 |---|---|
 | grid | `refs/grid/*` per node · `grid.py commit --all` (the cron; the Prime on season2/main after a merge) · `grid.py versions / payload / log / diff` |
-| push | `grid.push_split_epoch` in `.agi/config.json` (a per-branch cell; this trunk 1789955640 -- never carried into another branch's config unexamined) · push-changed sends only tips origin lacks, <= 200 per push (a code default: hypothesis:grid-push-batch-limit-is-a-config-cell) |
+| push | `grid.push_split_epoch` in `.agi/config.json` (a per-branch cell; this trunk 1789955640 -- never carried into another branch's config unexamined) · push-changed sends only tips origin lacks, at most `grid.push_batch_limit` per push (a config cell in `.agi/config.json`, read at grid.py:182; hypothesis:grid-push-batch-limit-is-a-config-cell) |
 | repair | a node without mint_id is never versioned: `backfill-mint-ids.py --write` |
 | branches | directors LOCAL-ONLY (never push) · thought-master alone pushes `local-maxxing/season2/main` · belam pushes `season2/main` and fast-forwards `local-maxxing/main` to each PASS's reviewed TIP (owner 09-25) |
 
@@ -79,5 +79,5 @@ box up ─▶ 1 memory guard ─▶ 2 streamer-stub units ─▶ 3 claude-remote
 `commands.py run verify` (bin-suite-fresh FAIL known) · `links.py links` (0 broken) · `snapshot-goals.py --render --check` · `spawn_budget.py status` · `provisioning.py status` · `crons.py show` · `sb-status` (rc only while live)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-2026-09-25 05:3xZ belam-S2-L5-V: OWNER verbatim: "Can we create a quick setup doc that includes all the startup instructions until we build a proper ini route. Things like key generation, post activation, heal use and how the reaper works, the memory allocation strategies, the streaming setup startup, any other set up stages like crons and proper grid ref pointing. It'll be a doc until it can be made engine. But that comes after registry because registry kinda includes all these routines that we can build on top." Parent goal:g1.25 (the registry) because the doc is that registry's seed. Written from what the Prime ran and verified on local-town 09-25 (the OOM recovery); the TODO rows (stub start order, keygen verb, pin-reap flags) go to director-engine rather than a Prime survey -- the owner asked for minimal token spend.
+PASS 7 residue (hypothesis:pass7-0926-residue-batch): the push row called the batch limit a code default and restated 200 in prose; the bytes read it from the grid.push_batch_limit config cell (grid.py:182-194). Named the cell, dropped the number so the doc cannot drift from config again.
 <!-- THOUGHT:END -->
