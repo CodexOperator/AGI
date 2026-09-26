@@ -1,0 +1,12 @@
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@4.25@s7", "budget": "4.25", "arm": "random", "seed": 7, "n": 3, "arm_is_stochastic": true, "widths": [4, 4, 3, 3], "agree": 0.499755859, "kl": 1.685655542}
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@4.25@s21", "budget": "4.25", "arm": "random", "seed": 21, "n": 3, "arm_is_stochastic": true, "widths": [4, 4, 3, 3], "agree": 0.495849609, "kl": 1.715300471}
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@4.25@s99", "budget": "4.25", "arm": "random", "seed": 99, "n": 3, "arm_is_stochastic": true, "widths": [4, 4, 3, 3], "agree": 0.458740234, "kl": 2.044011652}
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@5.25@s7", "budget": "5.25", "arm": "random", "seed": 7, "n": 3, "arm_is_stochastic": true, "widths": [5, 5, 4, 4], "agree": 0.656982422, "kl": 0.927568132}
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@5.25@s21", "budget": "5.25", "arm": "random", "seed": 21, "n": 3, "arm_is_stochastic": true, "widths": [5, 5, 4, 4], "agree": 0.728759766, "kl": 0.565214662}
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@5.25@s99", "budget": "5.25", "arm": "random", "seed": 99, "n": 3, "arm_is_stochastic": true, "widths": [5, 5, 4, 4], "agree": 0.643798828, "kl": 1.064014293}
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@6.25@s7", "budget": "6.25", "arm": "random", "seed": 7, "n": 3, "arm_is_stochastic": true, "widths": [6, 6, 5, 5], "agree": 0.739013672, "kl": 0.579230808}
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@6.25@s21", "budget": "6.25", "arm": "random", "seed": 21, "n": 3, "arm_is_stochastic": true, "widths": [6, 6, 5, 5], "agree": 0.795898438, "kl": 0.331279738}
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@6.25@s99", "budget": "6.25", "arm": "random", "seed": 99, "n": 3, "arm_is_stochastic": true, "widths": [6, 6, 5, 5], "agree": 0.737548828, "kl": 0.629323337}
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@7.25@s7", "budget": "7.25", "arm": "random", "seed": 7, "n": 3, "arm_is_stochastic": true, "widths": [7, 7, 6, 6], "agree": 0.815917969, "kl": 0.294135168}
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@7.25@s21", "budget": "7.25", "arm": "random", "seed": 21, "n": 3, "arm_is_stochastic": true, "widths": [7, 7, 6, 6], "agree": 0.854003906, "kl": 0.173034504}
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@7.25@s99", "budget": "7.25", "arm": "random", "seed": 99, "n": 3, "arm_is_stochastic": true, "widths": [7, 7, 6, 6], "agree": 0.837402344, "kl": 0.2312657}
