@@ -72,7 +72,10 @@ def test_both_call_sites_share_the_one_helper():
     assert _dispatch.mem_cap is mem_cap
     assert _wf.mem_cap is mem_cap
     src = (BIN / "dispatch.py").read_text()
-    assert "mem_cap.wrap_argv(spawn_args, _mem_cap)" in src
+    # dispatch passes the cfg it already holds (config-max of the probe
+    # cache); workflow's helper takes only the cap, so it reads the
+    # shipped defaults. Both route through the ONE helper.
+    assert "mem_cap.wrap_argv(spawn_args, _mem_cap, cfg)" in src
     src = (BIN / "workflow.py").read_text()
     assert "mem_cap.wrap_argv(cmd, cap)" in src
 
@@ -106,7 +109,7 @@ def test_stage_cap_death_is_named_memory_cap(tmp_path):
 # ---- (5) systemd-run unusable -> prlimit fallback, same name --------------
 
 def test_prlimit_fallback_keeps_the_memory_cap_name(monkeypatch):
-    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda: False)
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: False)
     wrapped = mem_cap.wrap_argv(["echo", "x"], "256M")
     assert wrapped[:1] == ["prlimit"], wrapped
     assert wrapped[1] == f"--as={256 * 1024 ** 2}", wrapped
