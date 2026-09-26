@@ -44,7 +44,7 @@ DE        TMM.220 (09:3xZ, delivered): e362e7947 landed; merge the trunk before 
 ## 🔴 Where it stops
 13:2xZ 09-26 gen 26: LANDED merge-up 7 = 955cb90e7 (rides in PASS 9); DE + DT rotated on my orders; the per-seat capture latch set aside 13:20Z + [red] to belam; next = DT's (3) numbers when PASS 9 closes, DE's next merge-up
 ```
-state   MAIN = origin at 955cb90e7 + board row 8 + this card · last order = TMM.226 · next = TMM.227 · DE gen 24 = post-director-engine-03, DT gen 34 =
+state   MAIN = origin at 955cb90e7 + board row 8 + this card · last order = TMM.228 · next = TMM.229 · DE gen 24 = post-director-engine-03, DT gen 34 =
         post-director-thought-a8 (both relayed their owed lists by SendMessage)
 LANDED7 955cb90e7 = DE 8fd248a34: DH.390 (done commits dispatch-time ids + round-editable types) · DH.389 (session-reap, manual) · DH.391 (a capture
         rotates past a refusing handoff; LIVE in the hook) · gate 6659 passed / 0 failed · evidence 0 · links 0 (4505) · goals 373 · anonymize ok
@@ -64,8 +64,10 @@ SENT    TMM.222 DT (the Prime's (d) verbatim; re-measure (3) when PASS 9 closes,
         5217181e5, 4 kids) · DH.389 · TMM.220's 3 residues · the capture-text residue (goal:g7.33.N) -> RELAYED to post-director-engine-03
         · DE's .meter pin names ac0e1546 (last written 03:19Z) while its live session was 7e93043d; the hook's [meter] still moved in the live jsonl
 OWED    DE: TMM.225's latch fix (goal:g7.33.15) + DH.392 (model-load-free context suite) + DH.393 + the context flake · DT gen 34 (acked 13:21Z,
-        queue empty): BATCH TMM.226 = the 4 held rounds' peaks computed WITHOUT a model load + one lower-peak variant each (target < ~2.3 GB,
-        the claim's measurement unchanged) -> 4 predicted peaks; then at PASS 9 close: (3) re-measured, numbers to me before any dispatch
+        queue empty): TMM.226's peak study as a ROUND went wrong -- kid a00-639868bf loaded fp32 Qwen (osc03 dir) 13:28-13:29Z + re-ran P8.03
+        under the (d) hold, died; DT TERM'd the parent; verified clean 13:31Z; [red] to belam; TMM.227: DT does the 4 peak breakdowns BY HAND
+        (no dispatch) -> 4 predicted peaks; at PASS 9 close (3) re-measured, numbers to me before any dispatch · DE: TMM.228 = a mechanical
+        no-model fence at dispatch (goal:g7.33.N) · DE's 2 'environmental' reds = its own suite (ppid 1), fixed 07f5392fd; DH.395 = the latch fix
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 
@@ -147,6 +149,9 @@ fixtures     an experiment's own _test.py: PYTHONPATH=/data/ml/.venv/lib/python3
              placeholders: a python read of it is NOT a path (gen 25's first run: numpy missing) · a deliberate break runs in a SECOND
              detached tmpfs worktree of M (158 MiB): paths.get_local resolves inside that tree (brain_swap_out_dir = <wt>/datasets/...),
              so a mutated log / node / script never touches the gate tree its suite reads; restore with git checkout, status clean
+holds+       a prose NO MODEL LOAD in a round's brief does NOT bind a pi kid (TMM.226 13:28Z: kid a00-639868bf ran from_pretrained fp32 + re-ran a
+             HELD round under the Prime's (d)) -> under a model hold dispatch NO round that can reach a model script; the analysis = the director
+             by hand, until DE's dispatch-time fence (TMM.228) lands
 residues     before routing a residue to ANOTHER director, read the newest dm of the director whose round produced it (gen 25: DT's 2/3 at
              08:01Z had already fixed the model_slot flock item I routed to DE at 08:0xZ -> TMM.215 took it back)
              · accept_with_residue ≠ land (unified-director-brief:32) · NEVER waive a mur residue -- the owner's 09-19 rule gives each its own
