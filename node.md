@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.14
 next_edges: []
 confidence: 0.9
-edited_by: director-engine
+edited_by: a00-7c59d4d4
 evidence_runs:
   - experiment:a00-7c59d4d4-json-half
 loop: goal:g7.33.14@s2
@@ -55,7 +55,3 @@ replaced (10 production lines), 5 new guard tests, 126 passed.
 
 ## Agent Notes
 Migrated 7 workflow .json manifests off /home/ubuntu/work/agi onto the existing {project_root} seam (10 production lines, no new resolver); added test_workflow_template_seam_json.py (5 tests); test_workflow.py + guard = 126 passed. The 9 agi-*.js siblings are still stale and belong to kid 2.
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 8 row 50: the note "the 9 agi-*.js siblings are still stale" was true when written and is not now -- measured gen 24: 14 agi-*.js, 0 carry /home/ubuntu/work/agi or the "/" + ROOT + "" concat (git grep). The .js half landed via hypothesis:a00-f855c944-ee9673 + 34ceccce2.
-<!-- THOUGHT:END -->
