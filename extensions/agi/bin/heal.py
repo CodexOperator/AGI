@@ -22,6 +22,7 @@ import argparse
 import contextlib
 import datetime
 import importlib.util
+import inspect
 import io
 import json
 import os
@@ -2245,16 +2246,24 @@ def _parse_record_ts(s: str) -> float | None:
     return None
 
 
-def _seat_geometry_dir(root: Path, row: dict) -> Path:
+def _seat_worktree_gdir(root: Path, row: dict) -> Path | None:
+    """The `.agi` a row's `worktree` cell CLAIMS; None for a main-checkout seat."""
+    wt = (row.get("worktree") or "").strip()
+    return Path(root) / "worktrees" / Path(wt).name / ".agi" if wt else None
+
+
+def _seat_geometry_dir(root: Path, row: dict) -> Path | None:
     """The seat's own geometry root (the dir whose `nodes/` holds its seats
     file and whose `sessions/` holds its live session log). For a worktree
-    seat that is the worktree's own `.agi` (live-first, F2), else `root`."""
-    wt = (row.get("worktree") or "").strip()
-    if wt:
-        gdir = Path(root) / "worktrees" / Path(wt).name / ".agi"
-        if gdir.is_dir():
-            return gdir
-    return Path(root)
+    seat that is the worktree's own `.agi` (live-first, F2), else `root`.
+
+    None is a REFUSAL, not a fallback: a row claiming a worktree whose `.agi`
+    is gone must never be answered with MAIN's nodes/, sessions/ and card
+    (hypothesis:heal-never-reseats-a-worktree-post-into-main)."""
+    gdir = _seat_worktree_gdir(root, row)
+    if gdir is None:
+        return Path(root)
+    return gdir if gdir.is_dir() else None
 
 
 CRASH_LOOP_MAX_PER_HOUR = 3
@@ -2913,8 +2922,9 @@ def _read_seat_log_tail(root: Path, row: dict, _rotate,
         return ""
     cands: list[Path] = []
     gdir = _seat_geometry_dir(root, row)
-    own = _rotate._sessions_dir(gdir) / f"{seat}.log"
-    cands.append(own)
+    own = _rotate._sessions_dir(gdir) / f"{seat}.log" if gdir else None
+    if own is not None:
+        cands.append(own)
     main = _rotate._sessions_dir(root) / f"{seat}.log"
     if main != own:
         cands.append(main)
@@ -3034,8 +3044,13 @@ def _clean_stale_layout_locks(root: Path, row: dict) -> None:
     the dead seat is the only holder that could still be mid-suite, and a stale
     lock would wedge the next suite run forever). Live-first geometry tree;
     best-effort, never raises."""
-    gdir = _seat_geometry_dir(root, row) / "sessions"
-    lock = gdir / "verify-suite.lock"
+    gdir = _seat_geometry_dir(root, row)
+    if gdir is None:  # MAIN's lock is not a gone worktree's seat to remove
+        _watch_log(f"watch: dead seat {(row.get('name') or '')!r}: worktree "
+                   f"geometry {_seat_worktree_gdir(root, row)} missing; "
+                   f"stale-lock sweep skipped")
+        return
+    lock = gdir / "sessions" / "verify-suite.lock"
     if lock.is_file():
         try:
             lock.unlink()
@@ -3072,6 +3087,21 @@ def _dm_crash_recovery(root: Path, row: dict, old_pid: int, cause: str,
                   file=sys.stderr)
 
 
+def _is_pre_cwd_seam(launcher, exc: BaseException) -> bool:
+    """True ONLY when `exc` is the unexpected-`cwd`-keyword TypeError of a seam
+    written against the pre-cwd signature: no `cwd` (and no `**kwargs`) in the
+    callable's signature, and the message names `cwd`. A cwd-aware seam, an
+    un-introspectable callable, or a TypeError from INSIDE the launcher reads
+    False -> no no-cwd retry (the hypothesis, defect (2))."""
+    try:
+        params = inspect.signature(launcher).parameters
+    except (TypeError, ValueError):
+        return False
+    if "cwd" in params or any(p.kind is p.VAR_KEYWORD for p in params.values()):
+        return False
+    return "cwd" in str(exc)
+
+
 def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
                   windows: list[tuple[str, str]], window_path: str | None,
                   launcher, now: float) -> dict:
@@ -3093,6 +3123,20 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     settings = _rotate._normalize_settings(row.get("settings"))
     existing = [w for (_i, w) in windows]
     old_pid = int(row.get("pid", 0) or 0)
+
+    # REFUSE BY NAME: no geometry of its own -> a reseat would hand the
+    # successor MAIN's nodes/, sessions/ and quorum card (defect (1)). Nothing
+    # launches; `respawned: False` records `detected`, so a later pass retries
+    # once the worktree is back.
+    gdir = _seat_geometry_dir(root, row)
+    if gdir is None:
+        missing = _seat_worktree_gdir(root, row)
+        reason = (f"worktree geometry {missing} for seat {seat} is missing; "
+                  f"refusing to reseat into MAIN")
+        print(f"watch: {reason}", file=sys.stderr)
+        _watch_log(f"watch: {reason}")
+        return {"respawned": False, "name": "", "generation": 0,
+                "reason": reason, "row": "skipped"}
 
     is_chain = (role == "prime_director")
     if is_chain:
@@ -3169,7 +3213,7 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
         # by the L4.283 harvest's live proof (sanctuary-director 182119Z
         # 19:27Z): with prompt_file None, spawn_window assembled the generic
         # director brief. Absent card -> the assembled brief, as before.
-        card = _seat_geometry_dir(root, row) / "sessions" / "quorum" \
+        card = gdir / "sessions" / "quorum" \
             / f"{seat}.md"
         if card.is_file():
             prompt_file = str(card)
@@ -3196,11 +3240,25 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
     try:
         pid, window_id = launcher(root, spawn_name, shell_cmd, window_path,
                                   cwd=tree)
-    except TypeError:
-        # a launcher seam written against the pre-cwd signature has no
-        # `cwd`; fall back to it launching from its own default. Real
-        # recoveries run `_launch_recovered` (cwd-aware); only old seams land
-        # here.
+    except TypeError as exc:
+        # THE ONE SIGNATURE THIS RETRY WAS WRITTEN FOR: a seam written against
+        # the pre-cwd signature `launch(root, name, shell_cmd, window_path)`.
+        # `except TypeError` caught EVERY TypeError — including one raised
+        # INSIDE a correct launcher — and the retry DROPPED `cwd`, so the
+        # successor woke in MAIN (the same escape, second door). A WORKTREE
+        # post refuses; any other TypeError is the launcher's own bug.
+        if (row.get("worktree") or "").strip():
+            reason = (f"launcher rejected cwd for worktree seat {seat}; "
+                      f"refusing a no-cwd retry (would launch in MAIN): {exc}")
+        elif not _is_pre_cwd_seam(launcher, exc):
+            reason = f"launcher raised TypeError: {exc}"
+        else:
+            reason = ""
+        if reason:
+            print(f"watch: {reason}", file=sys.stderr)
+            _watch_log(f"watch: {reason}")
+            return {"respawned": False, "name": spawn_name,
+                    "generation": gen, "reason": reason, "row": "skipped"}
         pid, window_id = launcher(root, spawn_name, shell_cmd, window_path)
     if pid == 0:
         # spawn did not land -> the seat stays dead; record `detected` only so
@@ -3359,8 +3417,11 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
     if not seat:
         return {}
     # worktree seat -> re-read its row live-first from its own geometry.
+    # A row whose worktree geometry is GONE keeps the MAIN copy here; the
+    # refusal by name is `_recover_seat`'s (never a reseat into MAIN).
     gdir = _seat_geometry_dir(root, row)
-    row = _live_seat_row(gdir, seat, _rotate) or row
+    if gdir is not None:
+        row = _live_seat_row(gdir, seat, _rotate) or row
 
     pid = int(row.get("pid", 0) or 0)
     if pid <= 0:
