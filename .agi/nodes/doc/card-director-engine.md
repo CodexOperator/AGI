@@ -136,7 +136,9 @@ DH.369 gate (maint_gc = git gc, 04:41 daily, NOT in the live crontab until TM la
 
 ## 🔴 WHERE IT STOPS (gen 23, ~08:4xZ, meter 0.335/0.47)
 ```
-live     DH.386 a00-ea72c5f8 (kid commits orders-named nodes) · DH.387 a00-9a906e4f (.agi/context suite) · DH.388 a00-301fe6aa (restart env)
+live     DH.386 MERGED d54e7e3aa-line (target/--parent node set commits; orders-TEXT ids not read, lean_proved:65 --
+         parent's demote was only in the body, I set the field) -- OWED: test_cli.py after the suite lock frees
+         DH.387 a00-9a906e4f (.agi/context suite) · DH.388 a00-301fe6aa (restart env)
 suite    full suite on 4b69308e4 RUNNING (bg) for merge-up 5 -- result in scratchpad suite-mu5.log; if green: send merge-up 5 =
          DH.383 + DH.384 + DH.385 (tip = HEAD, behind = MEASURED rev-list count, never typed); residues: also_manage box-hashed name,
          non_append=rename .1.1 prune vs live writer, DH.385 restart leak (-> DH.388)
