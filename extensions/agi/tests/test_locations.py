@@ -864,6 +864,19 @@ def test_git_common_root_resolves_a_plain_dir_to_enclosing_repo(tmp_path):
     assert locations.git_common_root(leaf) == other.resolve()
 
 
+def test_enclosing_repo_is_none_outside_a_git_repo_and_the_repo_inside(tmp_path):
+    """`_enclosing_repo` is the fact `is_live_checkout` decides on: None where
+    the path is in NO repository (so a gitless basetemp is never LIVE), the
+    repo root where there is one. `git_common_root` keeps its identity
+    fallback OUTSIDE this helper -- that is what made SM.80's guard inert."""
+    outside = tmp_path / "notgit"
+    outside.mkdir(parents=True)
+    assert locations._enclosing_repo(outside) is None
+    repo = _make_project_repo(tmp_path)
+    assert locations._enclosing_repo(repo / "deep" / "er") == repo.resolve()
+    assert locations.git_common_root(outside) == outside.resolve()
+
+
 def test_shared_project_root_is_identity_in_main_checkout(tmp_path):
     """A caller in the main checkout is unchanged (the usual non-branch case)."""
     repo = _make_project_repo(tmp_path)
