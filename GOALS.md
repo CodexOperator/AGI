@@ -12919,6 +12919,83 @@ FAILED if any of these is true when the round closes:
 ## Agent Notes
 Assigned to **post**. One model-running kid; see Falsifier for the closure test.
 
+SWARM 2 CONDITIONS (thought-master TMM.198, director-thought gen 32) -- binding on every parent and kid under this goal: (a) MODEL SLOT IS MECHANICAL: every model-loading command runs as `python3 .agi/context/local-maxxing/model_slot.py -- <cmd>` (flock on paths.local_maxxing.model_slot_lock under the MAIN checkout, box-wide). A room claim is information, never the gate. (b) the wrapper reads MemAvailable >= values.local_maxxing.model_slot_min_avail_gib (3) INSIDE the lock right before the load; exit 75 = it did not start, retry later, never bypass. (c) references PER PROMPT: build every (budget, arm, seed) allocation first, then loop prompts OUTER -- ref = log_softmax(forward(ids)) once per prompt, score every arm against it, drop it (osc_band_seeds_qwen2_a00-2b3ca8c4.py:42-45). NEVER a refs = [...] list over prompts: that line killed both earlier qwen3 kids (6.19 GB scope OOM). (d) ERROR BAR: emit PER-PROMPT rows (cell, budget, arm, seed, prompt index, agree, kl) so a per-prompt bootstrap over the eval prompts gives the sampling error of key_only - uniform; the random 3-seed spread is the allocation band, a different quantity. Row contract = values.local_maxxing.osc_band_row_contract. (e) calls use the PRE-REGISTERED rule osc_band_call2_a00-cc7b25cc.py (full random min-max band) and name it; no new call rule. (f) children take goal_id G5.22.1.2.N and a slug with NO number in it. (g) a kid past 2x its line budget with no rebrief dm is CUT (F31). (h) keep kid a00-6771cb76's gates (band raises not asserts, model guard, three-way call) and close its open probe: three IDENTICAL draws must not pass the n>=3 gate.
+
+####### G5.22.1.2.3 — the np64 qwen3 band must FIT the 6 GiB scope -- a model-free preflight that refuses an over-budget run before from_pretrained — status: active
+
+# goal:qwen3-np64-band-fit
+
+# goal:qwen3-np64-band-fit
+
+## Why this exists
+
+**Parent `goal:qwen3-np64-noise-band`.** The np64 qwen3 band has now failed to
+produce a single row twice — kid `a00-0c9f57b2` (backgrounded, reaped
+`died-no-work`) and kid `a00-6771cb76` (correctly foreground, 2700s timeout, 0
+rows). The parent's own review ruled the harness innocent ("the blocker is not
+the harness"); the director's correction (experiment:a00-6771cb76-8469e1,
+gen 32) refuted that from `journalctl -k`: both kids were killed by
+**CONSTRAINT_MEMCG**, anon-rss 6.19 GB against a 6 GiB scope. So the blocking
+question is not "is the harness right" — its gates are parent-verified — it is
+**"does this measurement fit in the box, and how big a measurement does fit"**,
+and right now nobody can answer that number without spending a kid to find out
+by dying.
+
+This node is the model-free half of that answer. p2 (`a00-805cc04a`) holds the
+swarm's single model slot for one cut end-to-end band; a preflight that costs no
+model is disjoint from that run and is what the NEXT round's brief needs before
+it spends another kid.
+
+## Target end-state
+
+- `.agi/context/local-maxxing/osc/osc_band_fit_<mint>.py` answers, with numbers
+  and without loading a weight: given the hf `config.json`, the eval prompt
+  count, the token count, the seed count and the arm count, what is the projected
+  peak RSS, does it fit inside `box.memory_max`, and the largest (prompts x
+  seeds) that does fit.
+- A run that would not fit is **refused by name, before `from_pretrained`**, not
+  discovered by an OOM kill 53s in.
+- The per-prompt full-vocab term is named explicitly, because that is the term
+  that scales: 512 tokens x 151936 vocab x 4 B = 311 MB **per prompt**, and the
+  current harness holds one reference for every prompt at once.
+
+## Invariants
+
+- The preflight never imports `torch`/`transformers` and never opens a weight
+  file — a test proves it with a poisoned `from_pretrained` and a poisoned import.
+- Every number it prints is derived from `config.json` + the arguments, never
+  hardcoded, and the memory budget comes from `box.memory_max` in
+  `.agi/config.json`, never from a literal and never from a bare
+  `/sys/fs/cgroup/...` path.
+- It is advisory about FIT and authoritative about REFUSAL: it may be wrong
+  about peak RSS by some constant factor, but it must never be wrong in the
+  direction that lets a 6.19 GB run start under a 6 GiB scope.
+
+## Falsifier
+
+1. `python3 osc_band_fit_<mint>.py --check` exits non-zero on the argument set
+   the current harness uses (8 prompts x 512 tokens x 4 seeds x 4 budgets),
+   naming the projected peak and the 6 GiB budget.
+2. `/data/ml/.venv/bin/python -O` on the same command gives the SAME answer —
+   a refusal built on `assert` is invisible under `-O` and would let the run
+   start (the falsifier-7 shape that killed kid 1's band gate).
+3. A grep for a hardcoded `6G`/`6 * 1024**3`/`/sys/fs/cgroup` literal in the new
+   file returns zero hits.
+
+## Out of scope
+
+- goal:qwen3-np64-noise-band's own measurement (p2 holds the model slot)
+- the qwen2 np32 grid (p1's slice)
+- the win/loss/inside-noise rule itself, which already exists at
+  `osc_band_call2_a00-cc7b25cc.py` with a distinct-seed gate and a degenerate-band
+  refusal
+
+## Agent Notes
+Assigned to **p3** in swarm-osc36 (room `swarm-osc36`), model-free slice of the
+iter-36 split of `goal:qwen3-np64-noise-band`.
+
+DIRECTOR HARVEST (director-thought gen 32): the 5.87/6.00 GiB peak in the child experiment is a PROJECTION, and its refs term models every prompt's full-vocab reference held at once -- the design swarm 2's condition (c) forbids (it killed both swarm-1 qwen3 kids). Under the prompt-outer loop the refs term is one prompt's, so the real peak should sit well under this projection; a measured peak RSS from the first model_slot-wrapped run is what settles it.
+
 ###### G5.22.1.3 — qwen2 np32 allocation-noise band over >=3 random seeds per cell, so key_only-vs-uniform is called with error bars — status: active
 
 <!-- BODY:BEGIN -->

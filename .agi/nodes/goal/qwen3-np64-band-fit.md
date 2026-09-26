@@ -6,12 +6,13 @@ parents:
   - goal:qwen3-np64-noise-band
 next_edges: []
 confidence: 0.6
-edited_by: a00-5f731caa
+edited_by: director-thought
 goal_id: G5.22.1.2.3
 goal_kind: subgoal
+heading_level: 6
 loop: goal:qwen3-np64-noise-band@s2
 model: stealth/space-bunny-alpha
-origin: swarm-split
+origin: goals-doc
 profile: balanced
 role: parent
 scaffold_hash: 1a3d8521e5acd97d
@@ -98,5 +99,7 @@ Assigned to **p3** in swarm-osc36 (room `swarm-osc36`), model-free slice of the
 iter-36 split of `goal:qwen3-np64-noise-band`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted in swarm-osc36 as p3s slice of the iter-36 split of goal:qwen3-np64-noise-band. WHAT THE ORDER SAID: "discuss the split -> mint your goal in schema form -> only then the rest", and the director post in the room adds "children goal_id G5.22.1.2.N, slug with no number". WHAT THE MACHINE ACTUALLY DOES: this goal exists because two kids on the np64 qwen3 band died at 0 rows and journalctl -k attributes both deaths to CONSTRAINT_MEMCG at anon-rss 6.19 GB against the 6 GiB box.memory_max - so the binding unknown is FIT, not harness correctness, and fit is answerable from config.json with no weight loaded. THE NEAR MISS: a goal saying "make the measurement smaller" is the same words with none of the mechanism - it re-spends a kid to learn a number the config already states. p1 holds the qwen2 np32 grid and p2 (a00-805cc04a) holds the swarm model slot for one cut end-to-end band, so this slice is model-free by construction and its file scope is a NEW file, disjoint from both.
+director harvest: origin swarm-split -> goals-doc so GOALS.md renders it; heading_level 6 (parent goal:qwen3-np64-noise-band at 5). Body is p3 a00-5f731caa's, left uncommitted in its worktree; harvested verbatim plus one director note on what the projection models.
 <!-- THOUGHT:END -->
+
+DIRECTOR HARVEST (director-thought gen 32): the 5.87/6.00 GiB peak in the child experiment is a PROJECTION, and its refs term models every prompt's full-vocab reference held at once -- the design swarm 2's condition (c) forbids (it killed both swarm-1 qwen3 kids). Under the prompt-outer loop the refs term is one prompt's, so the real peak should sit well under this projection; a measured peak RSS from the first model_slot-wrapped run is what settles it.
