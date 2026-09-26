@@ -40,7 +40,7 @@ MERGED    DH.409 (row 15): red 7 on old proven; GREEN OWED once suite-12 frees t
 LIVE      DH.410 a00-a8ec9040 (row 5, non-prime render) · DH.411 a00-7c2ef778 (PASS 9 re-open: cli.py rec[parent] overwrite)
 PASS 9    belam 17:44Z: the queue = hypothesis:pass9-0926-residue-batch (5 new, 2 re-open, 12 follow) -- ORDER mine, track THERE.
           owed beside DH.411: [command]/[cron]/[ladder] lack written_by/round_commit -> cli.py:2196 passes 3 .geometry types
-SUITE     detached pid 1104658 on 0b2be9750 -> .agi/sessions/de-0926/suite-12.log (serial; no xdist on this box)
+SUITE     12 on 0b2be9750: 6744/2 = MY merge of DH.409 mid-run (2 getsource tests; 2/2 alone). 12b re-run -> suite-12b.log
 OWED      merge-up 12 = DH.404 3f38e2b8b + DH.405 fed9e93bb + DH.406 7a209c4e3 + DH.407 be6cf96c2 + row 14 + DH.408 (+ DH.409/410 if in time)
 TMM.241   rows 14 (test_f1 flake, freeze the writer like 569ea9a1b) · 15 (DH.401 successor-shape compounding) · 16 (DH.408)
           added to g7.33.17 eb946d4e0; row 12 EF.92 VOID (DONE c876dbf72). 3 unqueued residues, one line each when it fits:
@@ -68,6 +68,7 @@ torch-py    a guard that walks sys.modules must never getattr blind: torch.class
             test context guards under /data/ml/.venv PYTHONPATH from the TREE ROOT (a neutral cwd skips the conftest)
 refused==   a value threaded as "refused" but judged by the same gate as "named" is not refused: grep the loop, probe it
 behind      interpolate the MEASURED rev-list count into a merge-up, never type it
+suite-live  NEVER merge into this tree while a suite runs here: getsource tests read the moved file (12: 2 false reds)
 one-tree    a parent dispatching kid 2 before merging kid 1 gets overlapping ports: take ONE tree
 config      rounds CANNOT commit .agi/config.json (cli.py _round_scope_ok): the director commits named cells
 cat-literal grep 'cat /data' in harvested nodes · never grep -r over .agi/ (100+ worktrees)
