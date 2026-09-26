@@ -2,17 +2,21 @@
 """ONE cut np64 qwen3 cell, end to end, on this box's real ML stack.
 
 The stack EXISTS: numpy 2.5.3 / transformers 5.17.0 / torch 2.14.0 import fine from
-/data/ml/.venv/bin/python with PYTHONPATH=/data/ml/scratch/osc03/pylib. Two kids read
+the ML interpreter named by the cell paths.local_maxxing.ml_python, with the site
+dirs of paths.local_maxxing.osc_test_pythonpath on PYTHONPATH. Two kids read
 `import numpy` failing from $PATH's python3 as "no ML stack on this box"; the
-interpreter is the recipe, and the recipe is ENV, not code.
+interpreter is the recipe, and the recipe is ENV, not code -- and it is a CONFIG
+CELL, never a spelled-out path (item 8; a sibling committed test forbids the
+spelled-out scratch root in source).
 
 Nothing measured here is re-implemented: the reducer + band gate are
 osc_band_reduce_a00-4c09956d's, the three-way call is osc_band_call2_a00-cc7b25cc's,
 the GRID and check_table are a721f95f's. This file pins the output prefix, repairs
 ONE call convention, and says the cut out loud.
 
-Run (foreground, under the box slot; 299s, 10 rows):
-  PYTHONPATH=/data/ml/scratch/osc03/pylib /data/ml/.venv/bin/python \\
+Run (foreground, under the box slot; 299s, 10 rows) -- cells, never literals:
+  PYTHONPATH="$(python3 .agi/context/local-maxxing/paths.py osc_test_pythonpath)" \\
+    "$(python3 .agi/context/local-maxxing/paths.py ml_python)" \\
     .agi/context/local-maxxing/osc/osc_band_np64_one_a00-385bc2f0.py qwen3 \\
     --budgets 4.125 --prompts 2 --seeds 7,21,99
 """
@@ -61,8 +65,11 @@ def summarize(tags):
             bl = {"band": red.band(list(sm.values())), "band_why": "max-min over %d random seed means" % len(sm)}
         except ValueError as e:
             bl = {"band": None, "band_why": str(e)}
-        pk = {a: sorted(r["agree"] for r in raw if r["arm"] == a) for a in ("uniform", "key_only")}
-        pm = [round(k - u, 9) for u, k in zip(pk["uniform"], pk["key_only"])]
+        # Pair on the row's PROMPT INDEX, never by sorted position: sorting both arms and
+        # zipping pairs prompt 0 of one arm with whichever prompt happens to share its
+        # rank in the other (item 4). prompt_margins/sampling_spread are NOT pairing-invariant.
+        pk = {a: {r["prompt"]: r["agree"] for r in raw if r["arm"] == a} for a in ("uniform", "key_only")}
+        pm = [round(pk["key_only"][i] - pk["uniform"][i], 9) for i in sorted(pk["uniform"])]
         cells[b] = {"seed_means": sm, **bl, "n_prompts": len(pm),
                     "key_only_minus_uniform": round(sum(pm) / len(pm), 9), "prompt_margins": pm,
                     "sampling_spread": round(max(pm) - min(pm), 9),

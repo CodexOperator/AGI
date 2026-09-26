@@ -7,8 +7,22 @@ control moves agree by as much as key_only's margin over uniform, the
 """
 import importlib.util, os, sys
 os.environ["HF_HUB_OFFLINE"] = os.environ["TRANSFORMERS_OFFLINE"] = "1"
-HERE = "/data/work/agi/.agi/worktrees/a00-bcea484d/.agi/context/local-maxxing/osc"
-ROOT = "/data/work/agi/.agi/worktrees/a00-bcea484d"
+
+
+def _repo_root():
+    """Walk up from this file to the dir holding BOTH .agi/ and datasets/ (PASS 8 item 5)."""
+    p = os.path.dirname(os.path.abspath(__file__))
+    while True:
+        if os.path.isdir(os.path.join(p, ".agi")) and os.path.isdir(os.path.join(p, "datasets")):
+            return p
+        n = os.path.dirname(p)
+        if n == p:
+            raise SystemExit("no repo root (.agi/ + datasets/) above " + os.path.abspath(__file__))
+        p = n
+
+
+ROOT = _repo_root()
+HERE = os.path.join(ROOT, ".agi/context/local-maxxing/osc")
 sys.path[:0] = [os.path.join(ROOT, ".agi/context/local-maxxing"), HERE]
 import numpy as np, torch, paths, osc_band_prune as obp
 s = importlib.util.spec_from_file_location("fixed", HERE + "/osc_band_kquant_qknorm_a00-bcb6c85e.py")
@@ -43,8 +57,16 @@ for name, widths, (mode, seed) in runs:
     print(name, out[name], flush=True)
 
 rs = [out[n][0] for n in out if n.startswith("random_seed")]
-print("random agree spread: min %.6f max %.6f range %.6f" % (min(rs), max(rs), max(rs) - min(rs)))
+spread = max(rs) - min(rs)
+print("random agree spread: min %.6f max %.6f range %.6f" % (min(rs), max(rs), spread))
 print("key_only margin over uniform (agree): %+.6f  (kl): %+.6f"
       % (out["key_only"][0] - out["uniform"][0], out["key_only"][1] - out["uniform"][1]))
-print("VERDICT: win exceeds noise" if (out["key_only"][0] - out["uniform"][0]) > (max(rs) - min(rs))
-      else "VERDICT: win WITHIN single-sample noise")
+# PASS 8 item 6 (MECHANISM): that spread is the RANDOM arm's re-draw variance at ONE
+# budget. uniform and key_only are deterministic given E and the eval, so it is NOT
+# the error bar on the key_only-vs-uniform margin above; the applicable bar is
+# eval-prompt variance, which no committed run measures. The line below therefore
+# reports a comparison, not a verdict -- the old "VERDICT:" wording is withdrawn.
+print("WITHIN random-arm redraw spread (wrong variance source for this pair)"
+      if (out["key_only"][0] - out["uniform"][0]) <= spread
+      else "EXCEEDS random-arm redraw spread (also the wrong variance source for this pair)")
+print("UNMEASURED: eval-prompt variance for the key_only-vs-uniform margin")

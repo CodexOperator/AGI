@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Regression: the 64-pair key-only allocator must use all RoPE pairs."""
 import importlib.util, os
-import numpy as np
+import pytest  # skip-by-name: this module cannot run without numpy
+np = pytest.importorskip('numpy')
 
 HERE = os.path.dirname(__file__)
 spec = importlib.util.spec_from_file_location("sweep", os.path.join(HERE, "osc_band_sweep_a00-31ae16be.py"))

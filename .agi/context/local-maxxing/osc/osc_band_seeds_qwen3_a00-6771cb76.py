@@ -11,7 +11,7 @@ Run: osc_band_seeds_qwen3_a00-6771cb76.py qwen3 --seeds 7,21,99,45
 import argparse, importlib.util, json, os, sys
 os.environ["HF_HUB_OFFLINE"] = os.environ["TRANSFORMERS_OFFLINE"] = "1"
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path[:0] = [os.path.join(os.getcwd(), ".agi/context/local-maxxing"), HERE]
+sys.path[:0] = [os.path.dirname(HERE), HERE]  # collect from any cwd
 import numpy as np, torch, paths, osc_band_prune as obp
 _s = importlib.util.spec_from_file_location("m", os.path.join(HERE, "osc_band_matched_uniform_a00-a721f95f.py"))
 m = importlib.util.module_from_spec(_s); _s.loader.exec_module(m)
@@ -50,26 +50,34 @@ def run(which, seeds, budgets=None, n_prompts=None):
     prompts, emeta = obp.build_eval(tok)
     if n_prompts: prompts, emeta = prompts[:n_prompts], dict(emeta, n_prompts=len(prompts[:n_prompts]))
     E = m.profile(model, prompts)
-    refs = [torch.log_softmax(fixed.forward(model, i).float(), -1) for i in prompts]
     out = paths.get_local("osc_band_qknorm_dir") + "/" + OUT + which
     os.makedirs(out, exist_ok=True); cells = {}
     with open(out + "/cells.jsonl", "w") as fh:
-        def cell(budget, arm, seed, a, w):
-            ag = kl = 0.0
-            for r, i in zip(refs, prompts):
-                x, y = obp.metrics(r, fixed.forward(model, i, a, w)); ag += x / len(prompts); kl += y / len(prompts)
-            stoch = arm == "random"
-            rec = {"model": which, "np": fixed.SPEC["np"], "cell": "%s@%s" % (which, budget), "budget": budget,
-                   "arm": arm, "arm_is_stochastic": stoch, "seed": seed if stoch else 0,
-                   "n": len(seeds) if stoch else 1, "n_prompts": len(prompts), "widths": w,
-                   "agree": round(ag, 9), "kl": round(kl, 9)}
-            fh.write(json.dumps(rec) + "\n"); fh.flush(); print(rec, flush=True)
-            cells.setdefault(budget, {}).setdefault(arm, []).append(ag)
+        # PROMPTS OUTER, one ref per prompt, DROPPED before the next (item 3: the
+        # all-prompts refs list was ~0.58 GiB x n_prompts of full-vocab fp32 and is the
+        # CONSTRAINT_MEMCG kill a00-6771cb76's director correction named; prompts OUTER
+        # means at most ONE ref alive at a time). Arms are drawn per budget once, so
+        # the agree each row reports is still the mean over every prompt -- the ROW
+        # SHAPE is unchanged, only the order of the loops is.
         for tag, (un, mt) in GRID[fixed.SPEC["np"]].items():
             if budgets and tag not in budgets: continue
-            cell(tag, "uniform", 0, fixed.arm(E, un, "uniform"), un)
-            cell(tag, "key_only", 0, fixed.arm(E, mt, "energy", 1), mt)
-            for s in seeds: cell(tag, "random", s, fixed.arm(E, mt, "random", s), mt)
+            plan = [("uniform", 0, fixed.arm(E, un, "uniform"), un), ("key_only", 0, fixed.arm(E, mt, "energy", 1), mt)]
+            plan += [("random", s, fixed.arm(E, mt, "random", s), mt) for s in seeds]
+            tot = {(arm, seed): {"ag": 0.0, "kl": 0.0, "w": w} for arm, seed, a, w in plan}
+            for p in prompts:
+                ref = torch.log_softmax(fixed.forward(model, p).float(), -1)   # one ref, dropped per prompt
+                for arm, seed, a, w in plan:
+                    x, y = obp.metrics(ref, fixed.forward(model, p, a, w))
+                    tot[(arm, seed)]["ag"] += x / len(prompts); tot[(arm, seed)]["kl"] += y / len(prompts)
+                del ref
+            for arm, seed, a, w in plan:
+                t = tot[(arm, seed)]; st = arm == "random"
+                rec = {"model": which, "np": fixed.SPEC["np"], "cell": "%s@%s" % (which, tag), "budget": tag,
+                       "arm": arm, "arm_is_stochastic": st, "seed": seed if st else 0,
+                       "n": len(seeds) if st else 1, "n_prompts": len(prompts), "widths": t["w"],
+                       "agree": round(t["ag"], 9), "kl": round(t["kl"], 9)}
+                fh.write(json.dumps(rec) + "\n"); fh.flush(); print(rec, flush=True)
+                cells.setdefault(tag, {}).setdefault(arm, []).append(t["ag"])
     calls = {}
     for tag, arms in cells.items():
         b = band(arms["random"]); mg = round(arms["key_only"][0] - arms["uniform"][0], 9)

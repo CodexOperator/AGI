@@ -30,6 +30,7 @@ import shlex
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -136,6 +137,8 @@ def main() -> int:
         return _main_sweep()
     if len(sys.argv) > 1 and sys.argv[1] == "pin-reap":
         return _main_pin_reap()
+    if len(sys.argv) > 1 and sys.argv[1] == "session-reap":
+        return _main_session_reap()
     return _main_heal()
 
 
@@ -160,6 +163,98 @@ def _main_pin_reap() -> int:
     root = locations.find_project_root(given) or given
     _pin_reap_pass(root, registry_dir=args.registry_dir,
                    window_path=args.window_path, mode="dry-run")
+    return 0
+
+
+# --- session-reap (hyp:heal-reaps-only-exited-bg-sessions-in-kid-worktrees) --
+# Kid-worktree NAME grammar: `a00-` + 8 hex, anchored BOTH ends (no `a00x-`).
+_KID_WORKTREE_RE = re.compile(r"^a00-[0-9a-f]{8}$")
+_REAP_EXITED = frozenset({"done", "stopped", "exited", "completed", "finished"})
+
+def _reap_argv(claude_bin: str, sid: str) -> list[str]:
+    """THE ONE place a `claude rm` argv is built: bare `rm <id>`, NEVER
+    --discard-unpushed / --force-remove-worktree."""
+    return [claude_bin, "rm", sid]
+
+
+def _claude_agents(claude_bin: str) -> list[dict]:
+    """THE SEAM: the ONE place `claude` is spawned; fake on PATH only (TMM.202)."""
+    out = subprocess.run([claude_bin, "agents", "--json", "--all"],
+                         capture_output=True, text=True, timeout=60)
+    data = json.loads(out.stdout or "[]")
+    if isinstance(data, dict):
+        data = data.get("sessions") or data.get("agents") or []
+    return [r for r in data if isinstance(r, dict)]
+
+
+def _reap_worktrees_dir(graph: Path) -> Path:
+    """The MAIN checkout's `<main>/.agi/worktrees` (`graph` is the SHARED graph
+    dir). `paths.core.worktrees_dir` is authoritative; the literal is the FALLBACK
+    only (a round may not commit config.json) — the parent adds that cell."""
+    try:
+        cfg = json.loads(locations.config_path(graph).read_text())
+        v = ((cfg.get("paths") or {}).get("core") or {}).get("worktrees_dir")
+    except Exception:  # noqa: BLE001 — a missing cell is the fallback, not a crash
+        v = None
+    return locations.repo_root(graph) / (v or ".agi/worktrees")
+
+
+def _reap_worktree_component(p: Path, wt: Path) -> Path | None:
+    """THE WORKTREE COMPONENT of a cwd: the child of the worktrees dir on
+    `p`'s ancestry (`p` itself when it is a direct child). None when `p` is
+    not under the worktrees dir. The NAME GRAMMAR BELONGS TO THIS COMPONENT
+    only — never to the leaf (hyp:heal-reaps-only-exited-bg-sessions-in-kid-worktrees)."""
+    wt = wt.resolve()
+    for a in (p, *p.parents):
+        if a.parent == wt:
+            return a
+    return None
+
+
+def _reap_classify(row: dict, wt: Path, repo_root: Path) -> tuple[str, str | None]:
+    """ONE classification per row, for BOTH the print and the live loop (a
+    filter printed then re-read for the rm IS the bug); `None` == candidate."""
+    sid = str(row.get("id") or row.get("sessionId") or "")  # interactive rows carry only sessionId
+    kind = str(row.get("kind") or row.get("type") or "").lower()
+    state = str(row.get("state") or row.get("status") or "").lower()
+    p = Path(str(row.get("cwd") or "")).resolve() if row.get("cwd") else None
+    if kind != "background":
+        return sid, "not-interactive"          # interactive / remote-control
+    if state not in _REAP_EXITED:
+        return sid, "not-exited"
+    if p is not None and p == repo_root.resolve():
+        return sid, "repo-root"                # the owner's own row, never
+    comp = _reap_worktree_component(p, wt) if p is not None else None
+    if comp is None or not _KID_WORKTREE_RE.match(comp.name):
+        return sid, "not-a-kid-worktree"
+    if p != comp and _KID_WORKTREE_RE.match(p.name):
+        return sid, "not-a-kid-worktree"   # a NESTED name-shaped DECOY
+    return sid, None                       # p is the worktree, OR BELOW it
+
+
+def _main_session_reap() -> int:
+    """`heal.py session-reap [--live]` — one pass, one line per row. DEFAULT IS A
+    DRY RUN: no `--live`, no `claude rm` ever. THE MODE IS THE FLAG (not config)."""
+    ap = argparse.ArgumentParser(prog="heal.py session-reap")
+    ap.add_argument("--root", default=".", help="the graph root to resolve from")
+    ap.add_argument("--live", action="store_true", help="really run `claude rm`")
+    ap.add_argument("--claude-bin", default=None, help="claude override")
+    args = ap.parse_args(sys.argv[2:])
+    given = Path(args.root).resolve()
+    root = locations.find_project_root(given) or given
+    main_repo = locations.repo_root(locations.shared_project_root(root) or root)
+    wt = _reap_worktrees_dir(main_repo / locations.GRAPH_DIR_NAME)
+    bin_ = args.claude_bin or os.environ.get("AGI_CLAUDE_BIN") or "claude"
+    plan = [_reap_classify(r, wt, main_repo) for r in _claude_agents(bin_)]
+    for sid, reason in plan:
+        print(f"reap-candidate {sid}" if reason is None else f"skip {sid}: {reason}")
+    cands = [sid for sid, reason in plan if reason is None and sid]  # SAME plan
+    if not args.live:
+        print(f"dry-run: {len(cands)} candidate(s); pass --live to rm")
+        return 0
+    for sid in cands:
+        r = subprocess.run(_reap_argv(bin_, sid), capture_output=True, text=True)
+        print(f"rm {sid}: rc={r.returncode} {(r.stdout or '').strip()}")
     return 0
 
 
@@ -708,6 +803,43 @@ def _late_reap_wait_max_s(root) -> float:
     return 1800.0
 
 
+#: heal's PERSISTED reaper-state dir name under the shared sessions dir.
+REAPER_STATE_SUBDIR = "reaper"
+
+
+def _reaper_state_file(root, name: str) -> Path:
+    """The ONE reaper-state resolver: `AGI_REAPER_STATE` when set (tests
+    point it at a tmp dir), else `<shared sessions>/reaper/<name>` — shared
+    across processes and worktrees, so a one-shot marker survives exit."""
+    base = os.environ.get("AGI_REAPER_STATE") or str(
+        locations.shared_sessions_dir(root) / REAPER_STATE_SUBDIR)
+    return Path(base) / name
+
+
+def _state_load(root, name) -> dict:
+    """Read one reaper state file as {str: float}; {} on any miss. A corrupt
+    marker must never stop the healer."""
+    try:
+        doc = json.loads(_reaper_state_file(root, name).read_text("utf-8"))
+        if isinstance(doc, dict):
+            return {str(k): float(v) for k, v in doc.items()}
+    except (OSError, ValueError, TypeError, AttributeError):
+        pass
+    return {}
+
+
+def _state_save(root, name, seen) -> None:
+    """Write the state file atomically (tmp + replace), best-effort."""
+    p = _reaper_state_file(root, name)
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        tmp = p.with_suffix(".tmp")
+        tmp.write_text(json.dumps(seen), encoding="utf-8")
+        tmp.replace(p)
+    except OSError:
+        pass
+
+
 def _close_late_reap_abandoned(record, record_path, now, succ_id, waited,
                                bound) -> dict:
     """Close a record whose successor registry NEVER appeared, as
@@ -777,13 +909,34 @@ def _late_reap_for_skipped(root, record, *, record_path=None,
         # Age from the record's OWN `recorded_at` (written with the rotation),
         # never from an mtime a reboot can invalidate.
         ts = _parse_record_ts(str(record.get("recorded_at") or ""))
+        source = "recorded_at"
         if ts is None:
-            return {"action": "waiting", "window_id": succ_id,
-                    "reason": "no-recorded_at"}
+            # Unparsable: age from a PERSISTED first-seen stamp keyed by
+            # seat+successor, so the wait ACCUMULATES across passes and
+            # processes. Never `now` (it would reset the wait every pass and
+            # wait forever); the first sighting falls back to the file mtime
+            # (durable, written with the rotation), clamped to `now`.
+            name = "late-reap-first-seen.json"
+            key = f"late-reap|{record.get('seat')}|{succ_id}"
+            seen = _state_load(root, name)
+            source = "first-seen"
+            ts = seen.get(key)
+            if ts is None:
+                source = "first-pass"
+                try:
+                    ts = min(float(os.path.getmtime(record_path)), now) \
+                        if record_path else float(now)
+                    if record_path:
+                        source = "mtime"
+                except (OSError, TypeError, ValueError):
+                    ts = float(now)
+                seen[key] = ts
+                _state_save(root, name, seen)
         waited = max(0.0, now - ts)
         bound = _late_reap_wait_max_s(root)
         if waited <= bound:
             return {"action": "waiting", "window_id": succ_id,
+                    "ts_source": source,
                     "waited_s": round(waited, 1), "bound_s": bound}
         return _close_late_reap_abandoned(record, record_path, now, succ_id,
                                           waited, bound)
@@ -1949,8 +2102,77 @@ def _all_windows(window_path: str | None = None) -> list[tuple[str, str]]:
     return []
 
 
-def _window_present(row: dict,
-                    windows: list[tuple[str, str]]) -> tuple[bool, bool]:
+def _pane_pid_of(win_id: str, window_path: str | None = None) -> int:
+    """Pane pid of `win_id`, or 0 = UNKNOWN (never "the pane is dead"). The
+    `AGI_WINDOW_PATH` seam may carry a third field on its `@<N> <name>
+    <pane_pid>` line; else `tmux display-message -p -t <id> #{pane_pid}`.
+    A server that cannot answer yields 0, and 0 keeps the @id decision."""
+    if window_path is None:
+        window_path = os.environ.get(WINDOW_PATH_ENV)
+    if window_path:
+        p = Path(window_path)
+        if not p.exists():
+            return 0
+        for ln in p.read_text(encoding="utf-8").splitlines():
+            parts = ln.strip().partition(" ")[2].split()
+            if ln.strip().partition(" ")[0].strip() == win_id and len(parts) > 1 \
+                    and parts[1].isdigit():
+                return int(parts[1])
+        return 0
+    try:
+        res = subprocess.run(
+            ["tmux", "display-message", "-p", "-t", win_id, "#{pane_pid}"],
+            capture_output=True, text=True, timeout=5)
+        if res.returncode == 0 and res.stdout.strip().isdigit():
+            return int(res.stdout.strip())
+    except Exception:  # noqa: BLE001 — tmux absent/down: UNKNOWN
+        pass
+    return 0
+
+
+def _pane_pid_map(window_path: str | None = None) -> dict[str, int]:
+    """`{window_id: pane_pid}` for EVERY window in ONE call: the seam file's
+    third `@<N> <name> <pane_pid>` field, else one `tmux list-panes -a -F
+    '#{window_id} #{pane_pid}'`. Built ONCE per pass and read by
+    `_window_present`, because the per-row `_pane_pid_of` paid its own
+    `timeout=5` per row: measured 2.2 ms x 8 rows = 18 ms healthy, but
+    8 x 5 s = 40 s when the server cannot answer, against a 30 s poll
+    (heal.py:1706) and a two-pass claim. Absent / unanswerable / a two-field
+    seam line -> the id is simply not in the map = UNKNOWN, never a guess
+    (same rule `_pane_pid_of` reads per row)."""
+    if window_path is None:
+        window_path = os.environ.get(WINDOW_PATH_ENV)
+    if window_path:
+        p = Path(window_path)
+        if not p.exists():
+            return {}
+        out: dict[str, int] = {}
+        for ln in p.read_text(encoding="utf-8").splitlines():
+            wid, _, rest = ln.strip().partition(" ")
+            parts = rest.split()
+            if wid.startswith("@") and len(parts) > 1 and parts[1].isdigit():
+                out[wid.strip()] = int(parts[1])
+        return out
+    try:
+        res = subprocess.run(
+            ["tmux", "list-panes", "-a", "-F", "#{window_id} #{pane_pid}"],
+            capture_output=True, text=True, timeout=5)
+        if res.returncode == 0:
+            out = {}
+            for ln in res.stdout.splitlines():
+                wid, _, pid = ln.strip().partition(" ")
+                if wid.strip() and pid.strip().isdigit():
+                    out[wid.strip()] = int(pid.strip())
+            return out
+    except Exception:  # noqa: BLE001 — tmux absent/down: {} (all ids UNKNOWN)
+        pass
+    return {}
+
+
+def _window_present(row: dict, windows: list[tuple[str, str]], *,
+                    window_path: str | None = None, rows=None,
+                    _rotate=None, pane_pids: dict | None = None
+                    ) -> tuple[bool, bool]:
     """(1b) the row's `window` @id is present in tmux. Returns
     `(id_present, False)` — the second cell is the DELETED (1c) name-lineage
     check, kept in the tuple shape so callers/tests read unchanged.
@@ -1971,6 +2193,36 @@ def _window_present(row: dict,
     win_id = (row.get("window") or "").strip()
     id_present = bool(win_id) and any(
         w == win_id for (w, _n) in windows)
+    if not id_present:
+        return False, False
+    # (c) AN @id ALONE IS NOT LIVENESS. A tmux server restart re-issues window
+    # ids from @0, so a corpse's pre-reboot @id can name ANOTHER seat's live
+    # window (measured: director-thought @3 = director-engine's new @3). The
+    # @id must be VOUCHED by the window's PANE: whose registered pids run
+    # under it (`#{pane_pid}` + its descendants -- the same chain heal already
+    # uses for the reap). A chain carrying ANOTHER seat row's pid is a
+    # POSITIVE fact: that window is provably somebody else's. UNKNOWN pane (0)
+    # or an empty/unreadable chain KEEPS the @id decision, because a seat
+    # launched as `cd tree && sh file` is a DESCENDANT of the pane, so a chain
+    # holding no row pid proves nothing -- and killing a RUNNING seat whose row
+    # is stale (F2) is the worse error. PRIME XI still stands: no window-NAME
+    # test, ever.
+    row_pid = int(row.get("pid") or 0)
+    # ONE per-pass map when the caller built it (no per-row tmux call, no
+    # per-row timeout=5); fall back to the single-row probe for a direct call.
+    if pane_pids is None:
+        pane = _pane_pid_of(win_id, window_path)
+    else:
+        pane = pane_pids.get(win_id, 0)  # absent = UNKNOWN, never a guess
+    if pane <= 0 or _rotate is None:
+        return id_present, False
+    chain = set(_rotate._descendant_chain(pane) or [])
+    if not chain:
+        return id_present, False  # UNREADABLE process table: @id stands
+    others = {int(r.get("pid") or 0) for r in (rows or [])
+              if (r.get("name") or "").strip() != (row.get("name") or "").strip()}
+    if chain & (others - {row_pid}):
+        return False, False  # provably ANOTHER seat's window
     return id_present, False
 
 
@@ -2530,13 +2782,24 @@ def _pin_reap_pass(root: Path, *, registry_dir: str | None = None,
     armed = (mode == "armed")
     pid_is_alive = pid_alive or _pid_alive
     acted: list[dict] = []
+    # ONE line per row STATE, not per pass: the seen-set is keyed on the
+    # whole row state and lives in a state file, so a FRESH process still
+    # suppresses an unchanged row. Keys absent this pass are pruned, so a
+    # row that went GONE and came back logs again.
+    seen_name = "pin-reap-seen.json"
+    seen, fresh, stamp = _state_load(root, seen_name), {}, \
+        float(now if now is not None else time.time())
     for j in judged:
         if j["verdict"] == "KEEP":
             continue
-        _watch_log(f"watch: pin-reap {j['verdict']}: "
-                   f"seat={j['seat']} sid={j['session_id']} "
-                   f"pid={j['pid']} window={j['window_id']} "
-                   f"({j['reason']})")
+        key = "|".join(str(j.get(k)) for k in ("seat", "session_id", "pid",
+                                                "window_id", "verdict", "reason"))
+        fresh[key] = stamp
+        if key not in seen:
+            _watch_log(f"watch: pin-reap {j['verdict']}: "
+                       f"seat={j['seat']} sid={j['session_id']} "
+                       f"pid={j['pid']} window={j['window_id']} "
+                       f"({j['reason']})")
         if j["verdict"] != "REAP" or not armed:
             continue
         rec = {"seat": j["seat"], "session_id": j["session_id"],
@@ -2582,6 +2845,7 @@ def _pin_reap_pass(root: Path, *, registry_dir: str | None = None,
         _watch_log(f"watch: pin-reap REAP: seat={j['seat']} "
                    f"window={j['window_id']} pid={j['pid']} -> armed")
         acted.append(rec)
+    _state_save(root, seen_name, fresh)
     return acted
 
 
@@ -2706,7 +2970,29 @@ def _launch_recovered(root: Path, name: str, shell_cmd: str,
     import rotate as _rotate  # noqa: PLC0415 -- lazy, same bin dir
     tmux_session = _rotate.DEFAULT_TMUX_SESSION
     tree = Path(cwd) if cwd is not None else _seat_tree_dir(root, {})
-    launch_cmd = f"cd {shlex.quote(str(tree))} && {shell_cmd}"
+    # (a) the launch never hands tmux the prompt INLINE (hypothesis:heal-lands-
+    # a-reseat-after-a-tmux-server-restart, conjunct (a)): the whole shell line
+    # goes to a launch file and tmux is given `sh <file>`, so the argv stays
+    # small no matter how big the startup prompt is (the 22:19Z `command too
+    # long`). An unwritable file REFUSES LOUDLY and returns not-spawned --
+    # falling back to the inline prompt is the very bug this removes, and
+    # pairing it with a success record would lie to the next pass. The file
+    # deletes ITSELF on exit (`$0`), so a prompt file per recovery does not
+    # accumulate in /tmp forever; unlinking it here instead would race the
+    # pane's own `sh`.
+    try:
+        fd, launch_path = tempfile.mkstemp(prefix=f"agi-recover-{name}-",
+                                           suffix=".sh")
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            if not shell_cmd.endswith("\n"):
+                fh.write(shell_cmd + "\n")
+            fh.write('rm -f "$0" 2>/dev/null || true\n')
+    except OSError as exc:
+        print(f"warn: recovery launch file for {name!r} unwritable: {exc}; "
+              f"refusing to hand tmux the prompt inline", file=sys.stderr)
+        return 0, ""
+    launch_cmd = (f"cd {shlex.quote(str(tree))} && "
+                  f"sh {shlex.quote(launch_path)}")
     try:
         proc = subprocess.run(
             ["tmux", "new-window", "-t", tmux_session, "-n", name,
@@ -2883,7 +3169,8 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
         # by the L4.283 harvest's live proof (sanctuary-director 182119Z
         # 19:27Z): with prompt_file None, spawn_window assembled the generic
         # director brief. Absent card -> the assembled brief, as before.
-        card = _rotate._sessions_dir(root) / "quorum" / f"{seat}.md"
+        card = _seat_geometry_dir(root, row) / "sessions" / "quorum" \
+            / f"{seat}.md"
         if card.is_file():
             prompt_file = str(card)
     ack_gate = (
@@ -3058,7 +3345,8 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
                     _rotate, *, now: float | None = None,
                     pid_alive=None, window_path: str | None = None,
                     launcher=None, pin_table=None, seat_sessions=None,
-                    registry_dir: str | None = None) -> dict:
+                    rows=None, registry_dir: str | None = None,
+                    pane_pids: dict | None = None) -> dict:
     """Decide DEAD for one seat row; NAME it once; then, if the seat is
     recoverable, RESPAWN it through its existing spawn path, write its row, dm
     the holder + Sensei, and record the crash-recovery OUTCOME once. Returns an
@@ -3089,7 +3377,11 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
     # (1b) the LIVE-FIRST row's window @id is gone from tmux. (1c), the
     # window-name lineage, is DELETED (prime XI ruling 19:38Z: a name is not
     # an address; see _window_present).
-    id_present, _named = _window_present(row, windows)
+    # @id alone is not liveness (conjunct c): the pane chain must vouch.
+    id_present, _named = _window_present(row, windows,
+                                         window_path=window_path,
+                                         rows=rows, _rotate=_rotate,
+                                         pane_pids=pane_pids)
     if id_present:
         return {}
     # LIVENESS BEFORE DEATH (L4.292): a seat whose pin leases a live registry
@@ -3186,6 +3478,11 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
     except Exception:  # noqa: BLE001
         return []
     windows = _all_windows(window_path)
+    # (c)'s pane pids for the WHOLE pass in ONE tmux call, and only when some
+    # row's @id is actually present (no call where the key is not consulted).
+    pane_pids = (_pane_pid_map(window_path)
+                 if any((r.get("window") or "").strip() in {w for w, _n in windows}
+                        for r in rows) else {})
     launcher = _load_launcher(launcher)
     # LIVENESS tables (L4.292 kid 1 (5)): built ONCE so the dead-scan can tell
     # a STALE row from a corpse. `_pin_table` reads only tree meter files;
@@ -3209,7 +3506,8 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
         summary = _watch_one_seat(root, row, windows, _rotate,
                                   now=now, pid_alive=pid_alive,
                                   window_path=window_path, launcher=launcher,
-                                  pin_table=pins, seat_sessions=seat_sess)
+                                  pin_table=pins, seat_sessions=seat_sess,
+                                  rows=rows, pane_pids=pane_pids)
         if summary:
             acted.append(summary)
     _watch_log(f"watch: seat-dead scan over {len(pid_rows)} configured pid "

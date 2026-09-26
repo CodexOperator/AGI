@@ -8,7 +8,7 @@ comparators. No model, no GPU, no network.
 """
 import importlib.util, json, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path[:0] = [os.path.join(os.getcwd(), ".agi/context/local-maxxing"), HERE]
+sys.path[:0] = [os.path.dirname(HERE), HERE]   # paths.py, discovered -- cwd-independent
 import paths  # noqa: E402  dir comes from paths.local_maxxing.osc_band_qknorm_dir, not a literal
 GRID_RUN, SEEDS_RUN = "a00-a721f95f-qwen2", "a00-2b3ca8c4-582f1e-qwen2-seeds"
 STOCHASTIC, COMPARATORS = "random", ("uniform", "random")

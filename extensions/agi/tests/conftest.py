@@ -23,6 +23,8 @@ tell a bare directory run from a targeted one.
 """
 from __future__ import annotations
 
+import builtins
+import io
 import json
 import os
 import subprocess
@@ -621,6 +623,102 @@ def _no_openrouter(monkeypatch):
     if not _patched:
         # no rotate module importable here; nothing to stub, delenv stands.
         return
+
+
+#: Module attribute a test file sets to True to OPT IN to the process guard
+#: below. Opt-in, not blanket: the guard refuses EVERY subprocess spawn, and
+#: the wider suite legitimately runs real `git`/`python3` (the tmux guard's
+#: own negative half does too), so a suite-wide ban would red 178 files.
+#: A test file that promises "no real process, no live config" says so here.
+_GUARD_OPTIN_ATTR = "NO_REAL_PROCESSES"
+
+
+@pytest.fixture(autouse=True)
+def _no_real_process_or_live_config(request, monkeypatch):
+    """hypothesis:rotate-term-grace-tests-never-touch-a-real-process-or-the-
+    live-config -- PER-FILE OPT-IN process/config guard.
+
+    An opted-in module may not: spawn a process (subprocess.Popen/run/call/
+    check_output, os.fork, os.forkpty), read any `/proc` path, `os.kill` a
+    pid that is not its own, or open a real `.agi/config.json` outside
+    tmp_path. Measured on test_rotate_term_grace.py before this guard: a
+    double-fork + setsid + Popen launcher, 499 `/proc/<pid>/cmdline` reads,
+    17 real `os.kill` calls (14 of them signal-0 probes) and a live
+    `rot.ENGINE_ROOT/.agi/config.json` read -- in a file whose docstring
+    claimed "no real pane, pid, unit or crontab".
+
+    One patch point per resource, all at the stdlib leaf every caller
+    resolves through (the `_no_real_tmux` lesson): `builtins.open` and
+    `io.open` see `open()`, `io.open` and Path.read_text/read_bytes alike;
+    `os.scandir`/`os.listdir` see Path.iterdir/glob/listdir. So /proc and
+    the live config are caught in three hooks, NOT in os.open -- the C
+    `_io.open` never calls the Python-level `os.open`, so an `os.open` hook
+    alone catches nothing. A test that needs a real one
+    monkeypatches AFTER this fixture's setup and wins for the test's
+    duration (function-scoped monkeypatch, same ordering fact as
+    `_no_real_tmux`) -- which is exactly how the rewritten reap test injects
+    its own fake `os.kill`."""
+    if not getattr(getattr(request, "module", None), _GUARD_OPTIN_ATTR, False):
+        yield
+        return
+    tmp = str(request.getfixturevalue("tmp_path"))
+    own = {os.getpid(), os.getppid()}
+
+    def _check_path(path):
+        try:
+            s = os.fspath(path)
+        except TypeError:  # an int fd
+            return
+        if s.startswith("/proc"):
+            raise AssertionError(
+                "guard: a NO_REAL_PROCESSES test read /proc; stub the "
+                "process table, never the live one")
+        if s.endswith(".agi/config.json") and not s.startswith(tmp):
+            raise AssertionError(
+                f"guard: a NO_REAL_PROCESSES test opened the LIVE config {s!r}; "
+                "the live cell belongs to tests/test_live_config_cells.py")
+
+    def _guarded_open(path, *a, **k):
+        _check_path(path)
+        return real_open(path, *a, **k)
+
+    def _refuse_spawn(*a, **k):
+        raise AssertionError(
+            "guard: a NO_REAL_PROCESSES test spawned a process; inject the "
+            "seam (pid list, kill, liveness probe) instead")
+
+    def _guarded_kill(pid, sig, *a, **k):
+        if int(pid) not in own:
+            raise AssertionError(
+                f"guard: a NO_REAL_PROCESSES test signalled pid {pid}; only "
+                "its own pid may be signalled")
+        return real_kill(pid, sig, *a, **k)
+
+    def _guarded_scandir(path=".", *a, **k):
+        _check_path(path)
+        return real_scandir(path, *a, **k)
+
+    def _guarded_listdir(path=".", *a, **k):
+        _check_path(path)
+        return real_listdir(path, *a, **k)
+
+    real_open, real_kill = builtins.open, os.kill
+    real_scandir, real_listdir = os.scandir, os.listdir
+    # builtins.open AND io.open: they are two names, and only io.open is what
+    # Path.read_text/open resolves at call time (the C _io.open never calls
+    # the Python-level os.open, so an os.open hook alone catches nothing).
+    monkeypatch.setattr(builtins, "open", _guarded_open)
+    monkeypatch.setattr(io, "open", _guarded_open)
+    monkeypatch.setattr(os, "scandir", _guarded_scandir)
+    # A directory walk needs BOTH hooks: Path.iterdir/glob/listdir reach
+    # os.listdir, os.walk/scandir callers reach os.scandir.
+    monkeypatch.setattr(os, "listdir", _guarded_listdir)
+    for _name in ("Popen", "run", "call", "check_output"):
+        monkeypatch.setattr(subprocess, _name, _refuse_spawn)
+    monkeypatch.setattr(os, "fork", _refuse_spawn)
+    monkeypatch.setattr(os, "forkpty", _refuse_spawn)
+    monkeypatch.setattr(os, "kill", _guarded_kill)
+    yield
 
 
 @pytest.fixture(autouse=True)

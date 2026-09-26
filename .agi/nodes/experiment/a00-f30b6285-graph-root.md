@@ -1,9 +1,11 @@
 ---
 id: experiment:a00-f30b6285-graph-root
+mint_id: 17fd8a85d37b484eae7ea1ffb8bc1eee
 type: experiment
 parents:
   - hypothesis:a00-f30b6285-0e37a6
 edited_by: a00-f30b6285
+scaffold_hash: 9806c8fa58dec5c8
 title: "Experiment: a repo root reads the same box cells as its graph root"
 ---
 # experiment:a00-f30b6285-graph-root

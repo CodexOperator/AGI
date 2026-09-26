@@ -1,8 +1,12 @@
 """Acceptance tests for the band-call RUNNER (hypothesis:a00-66d002ad-8cee33).
 
 Three claims, all zero model / zero GPU:
-  1. on the tree's OWN qknorm data the runner is TOTAL (no traceback) and RED (exit 2),
-     and every row it prints is `unresolved` -- the honest state of that data today;
+  1. on the tree's OWN qknorm data the runner is TOTAL (no traceback) and its exit
+     code TRACKS the rows it printed: 2 while any row is `unresolved`, 0 when they
+     all resolved. No assertion here pins WHICH, because the dir is live and
+     committed: a suite that required exit 2 would require the producers to stay
+     unfixed, and one that required exit 0 would require them done. A DEAD run
+     (exit 1, ModuleNotFoundError) fails all of them;
   2. a synthetic 3-distinct-seed cell turns the same runner GREEN (exit 0) with a word;
   3. a record schema the rule cannot read is a REASON, never a crash and never a word.
   4. the ENTRY POINT is wire-live under a scrubbed interpreter: this file used to
@@ -34,7 +38,7 @@ def _clean_run(cwd):
 def test_entry_point_reaches_the_rule_from_a_neutral_cwd():
     p = _clean_run("/")
     out = p.stdout + p.stderr
-    assert p.returncode == 2, out                 # RED (unresolved), not DEAD (ModuleNotFound)
+    assert p.returncode in (0, 2), out            # 0 = every row resolved, 2 = some refused
     assert "ModuleNotFoundError" not in out and "Traceback" not in out, out
     rows = [x for x in p.stdout.splitlines() if not x.startswith("TOTAL")]
     assert rows and all(r.startswith(WORDS) for r in rows), out
@@ -43,7 +47,7 @@ def test_entry_point_reaches_the_rule_from_a_neutral_cwd():
 
 def test_reach_is_cwd_independent():
     """A __file__-discovered import works from anywhere; a cwd literal would not."""
-    assert _clean_run("/tmp").returncode == _clean_run("/").returncode == 2
+    assert _clean_run("/tmp").returncode == _clean_run("/").returncode in (0, 2)
 
 
 def test_todays_own_data_is_total_and_calls_nothing(capsys):
@@ -51,9 +55,19 @@ def test_todays_own_data_is_total_and_calls_nothing(capsys):
     out = capsys.readouterr().out
     rows = [x for x in out.splitlines() if not x.startswith("TOTAL")]
     assert rows, "no cells.jsonl found under the config dir"
-    assert all(r.startswith(WORDS) for r in rows) and any(r.startswith("unresolved") for r in rows), out
-    assert rc == 2, out                      # unresolved cells are a RED run
+    assert all(r.startswith(WORDS) for r in rows), out
+    # the gate is the DATA, not the calendar: 2 iff something is still unresolved
+    assert rc == (2 if any(r.startswith("unresolved") for r in rows) else 0), out
     assert "no cells.jsonl" not in out
+
+
+def test_row_vocabulary_comes_from_the_config_cell_not_a_script_literal():
+    """The budget carrier is read from values.local_maxxing.osc_band_row_contract."""
+    fields = set(run.row_contract()["fields"])
+    assert {"budget", "cell"} <= fields, sorted(fields)
+    assert run.budget_value({"cell": "c0", "budget": 5.25}, fields) == 5.25
+    assert run.budget_value({"cell": "c0"}, fields) == "c0"     # pre-contract producer
+    assert run.budget_value({"bits": 5.25}, fields) is None      # not declared -> not read
 
 
 def _write(tmp_path, name, rows):

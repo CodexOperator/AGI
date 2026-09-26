@@ -8,8 +8,9 @@ import importlib.util
 import os
 import sys
 
-import numpy as np
-import torch
+import pytest  # skip-by-name: this module cannot run without numpy, torch
+np = pytest.importorskip('numpy')
+torch = pytest.importorskip('torch')
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(HERE))

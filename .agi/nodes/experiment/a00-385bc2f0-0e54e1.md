@@ -60,13 +60,17 @@ FOREGROUND under the box slot, `MemAvailable 6.95 GiB >= 3.00`, **299s**, 10 row
 
 | budget | random seed means (agree) | ALLOCATION band | key_only − uniform | per-prompt margins | SAMPLING spread | call (agree) |
 |---|---|---|---|---|---|---|
-| 4.125 | 7→0.03320 · 21→0.02539 · 99→0.05176 | **0.02637** | **+0.02051** | +0.01953 · +0.02148 | **0.00195** | **inside-noise** (kl also inside-noise) |
+| 4.125 | 7→0.03320 · 21→0.02539 · 99→0.05176 | **0.02637** | **+0.02051** | +0.03906 · +0.00195 | **0.03711** | **inside-noise** (kl also inside-noise) |
 
 **inside-noise is the landing, not the failure** — the brief says so explicitly, and it
-is the one honest reading of a 0.0205 margin against a 0.0264 band. Note the two error
-bars differ by 13x: the 3-seed ALLOCATION band is 0.0264, the 2-prompt SAMPLING spread
-is 0.00195. Reporting either as the other is what the row contract exists to stop, and
-`summary.json` names both quantities separately.
+is the one honest reading of a 0.0205 margin against a 0.0264 band. CORRECTED (PASS 8,
+item 4): the two error bars are the SAME order of magnitude, and the sampling spread
+is the LARGER of the two — the 3-seed ALLOCATION band is 0.0264, the 2-prompt SAMPLING
+spread is **0.0371**. The 0.00195 originally published here came from zipping two
+SORTED arms by position instead of pairing on each row's prompt index. Two prompts
+cannot support a sampling error bar at all: report the PAIR (+0.03906, +0.00195), not
+a spread over a pair. Reporting either quantity as the other is what the row contract
+exists to stop, and `summary.json` names both separately.
 
 **This is a cut measurement and says so in its own meta**: 1 of 4 np64 budgets, 2 of 8
 eval prompts (first 2 of `build_eval`). Budgets 5.125 / 6.125 / 7.125 are NOT measured.
@@ -122,7 +126,7 @@ MEASURED spread.
 - `.../summary.json` — band, margin, both error bars, call2's verdict, and the `cut` line
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 32 (director-thought, TMM.201): proved -> inconclusive_lean_proved:55. SCOPE GAP: the claim needs a band at all four np64 budgets; this run measured ONE (4.125), 2 prompts, 3 seeds (7/21/99), per-prompt rows. At that one budget the margin sits inside the band, consistent with the claim, but one budget cannot prove a four-budget conjunction (and the sibling a00-0306a534 shows a loss at 6.125). Claim left as written.
+gen 33 (director-thought, PASS 8 residue round P8.01, items 4 + 7): item 4 FIXED -- osc_band_np64_one_a00-385bc2f0.py now pairs per-prompt margins on each row's prompt index instead of zipping two sorted lists, and summary.json is recomputed: the 2-prompt sampling spread is 0.0371 (pair +0.03906 / +0.00195), not the 0.00195 the sorted zip published; the conclusion (inside-noise against a 0.0264 allocation band) is unchanged. Item 7 (verdict field 55 vs a prose 75): RESOLVED THE OTHER WAY from the residue kid, which raised the field to 75. 55 is the gated verdict (TMM.201, thought-master green): ONE budget of a four-budget claim, 3 seeds, 2 prompts is a scope gap, and the 75 in the older parent-review prose predates that gate. The field stays 55; the prose is the stale part.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

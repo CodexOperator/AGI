@@ -1,0 +1,77 @@
+---
+id: experiment:a00-486862eb-a0bdd4
+mint_id: 6f237039195f4c46ae5392f7f8926fdb
+type: experiment
+parents:
+  - hypothesis:lm-band-derived-beats-uniform-matched-grid
+next_edges: []
+confidence: 0.8
+edited_by: director-thought
+evidence_runs:
+  - experiment:a00-486862eb-a0bdd4
+loop: hypothesis:lm-band-derived-beats-uniform-matched-grid@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "wire: reintroducing the old hardcoded ROOT literal into the tracked probe dir makes BOTH tests of the new probe_paths_relative_a00-486862eb_test.py fail, and 2 pass again on removal -- the guard reaches the edited bytes live (a00-4128aa34, iter 53)"
+  - "gate: re-running the repaired probe_uniform.py under the ml_python cell prints byte-match violations [] and E-independent=True pair-classes=[0] at np=32 and np=64 -- the probe the kid claims fixed still measures, it does not merely import (a00-4128aa34, iter 53)"
+  - "auth: the ledger's 8 agree margins, the 6/8 both-metric win count, the 0/9 representability of the 9 preregistered tags at BOTH np, and the 0.98/0.02 shortfall of the best cell (0.096699 / 0.093942) were re-derived by the parent from cells.jsonl and from fixed.bits() alone, and every one matches the node text exactly (a00-4128aa34, iter 53)"
+production_lines: 65
+profile: balanced
+role: kid
+scaffold_hash: 1479c8d0bd229798
+season: 2
+title: "PASS 8 residue ledger: 9 items closed on the band-derived-vs-matched-uniform round (1,2,3,4,5,6,7 fixed; 8 partial; 9 not-a-defect)"
+town: local-maxxing
+verdict: inconclusive_lean_proved:80
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-486862eb-a0bdd4
+
+PASS 8 RESIDUE LEDGER for `hypothesis:lm-band-derived-beats-uniform-matched-grid` (TMM.210, batch `.agi/nodes/hypothesis/pass8-0926-residue-batch.md`). 9 items, one row each. No model was loaded, no GPU, no `model_slot`, no `pi`/`node`/subprocess launch. Nothing was committed by me; `cli.py done` owns the commit of MY files, and the three node edits below are foreign-node edits left on disk for the director to carry (the P8.07 KNOWN LIMIT).
+
+## Ledger
+
+| # | item | disposition | evidence |
+|---|------|--------------|----------|
+| 1 | counts asserted in title + `probes` | **fixed** (foreign-node edit) | `.agi/nodes/experiment/a00-f3703399-48096d.md` frontmatter: `title` now reads "…6 of 8 budget cells (exact for the committed eval); its 8-of-8 over the random control holds at seed 7 only"; `probes[1]` now states the count is AT SEED 7 ONLY and names the three re-draws (7/21/99 → random agree 0.656982 / 0.728760 / 0.643799 vs key_only 0.732422) and seed 21 beating key_only on KL (0.565215 < 0.612523). Body line 142 also corrected — see item 6. |
+| 2 | 4.0-7.75 / 72-cell pre-registration never amended | **fixed** (data-side, claim NOT re-worded) | `hypothesis:…matched-grid` body, new "## PASS 8 RESIDUE" §ITEM 2, and `a00-f3703399` §ITEM 2. Re-derived myself, no model load: `fixed.bits([w]) = w + 8/np`; over `w = 1..15` **0/9** preregistered tags are exactly representable at np=32 and **0/9** at np=64. Measured grid = 4.25/5.25/6.25/7.25 (np=32) + 4.125/5.125/6.125/7.125 (np=64) = **32** cells, not 72. `testable_claim` and `falsifier` left byte-identical (rule: never re-word a claim after its data). |
+| 3 | verdict leans opposite to its first-listed evidence run | **fixed** (foreign-node edit, body not just THOUGHT) | `hypothesis:…` §ITEM 3. The lean rests on the pre-registered random min-max band judge plus the two LATER multi-draw runs (a00-2b3ca8c4 Qwen2 3 seeds; a00-0306a534 Qwen3 4 budgets × 4 seeds; both 0 wins), not on a00-f3703399's 6/8; the first-listed run's large-margin survivor is quoted (qwen2 @ 6.25 agree 0.830566406 vs 0.778808594 = +0.051758; kl 0.248020329 vs 0.402416112). Verdict value and shape unchanged. |
+| 4 | falsifier's 0.98/0.02 Largest Safe Step never produced | **fixed** (foreign-node edits) + **WAITS-FOR-MODEL** | `hypothesis:…` §ITEM 4 and `a00-325d4c56` new paragraph under "Largest safe step". Discharged as **UNBRACKETED**, not skipped: no arm on either model holds agree ≥ 0.98 AND kl ≤ 0.02 anywhere in the grid. Best cells: qwen2@7.25 uniform 0.874267578/0.128181695, key_only 0.883300781/0.113941976; qwen3@7.125 uniform 0.823974609/0.230024716, key_only 0.839355469/0.191820885. Best cell is 0.096699 short on agree, 0.093942 over on KL, and the grid top IS the sweep best ⇒ the crossing is above the grid. Command that would bracket it (written into the node, NOT run): add 8.25/8.75 (np=32) and 8.125/8.375 (np=64) to `GRID` in `osc_band_matched_uniform_a00-a721f95f.py`, then `PYTHONPATH="$(python3 .agi/context/local-maxxing/paths.py --local osc_test_pythonpath)" $(python3 .agi/context/local-maxxing/paths.py --local ml_python) .agi/context/local-maxxing/osc/osc_band_matched_uniform_a00-a721f95f.py qwen2` (and `qwen3`). |
+| 5 | probes pinned to a gitignored worktree path | **fixed** (own files) | `datasets/osc-band/2026-09-24-qknorm/a00-bcea484d-probes/probe_uniform.py` (HERE/ROOT, −5/+18) and `probe_noise.py` (−2/+27) now walk up from `os.path.abspath(__file__)` to the first directory holding BOTH `.agi/` and `datasets/`, the convention `osc_band_matched_uniform_a00-a721f95f.py:5` already uses. Re-ran `probe_uniform.py` after the fix (no model): `A byte-match violations: []`, `uniform arm E-independent=True pair-classes=[0]` at np=32 and np=64 — the tracked bytes still reproduce. Enforced by a new test (below). |
+| 6 | MECHANISM: the error bar is the wrong arm's variance | **fixed** (data-side + instrument) | `a00-f3703399` body line 142: "three of the eight" → **all eight**, with the eight |agree margins| re-derived from `cells.jsonl` (1-based cell order qwen2 4.25/5.25/6.25/7.25, then qwen3 4.125/5.125/6.125/7.125): 0.079590, 0.027832, 0.051758, 0.009033, 0.022705, 0.082031, 0.013183, 0.015381 — every one below the 0.084961 random-arm redraw spread, so the earlier "three" UNDERSTATED the demotion. And the mechanism: 0.084961 is the RANDOM arm's re-draw variance at ONE budget; `uniform` and `key_only` are deterministic given E and the eval (`osc_band_matched_uniform_a00-a721f95f.py:40-42` calls `fixed.arm(E, widths, "energy", 1)` / `"uniform"`, no seed; `profile()` at :29-37 is a fixed 4-prompt mean; `goal:band-call-rule-per-cell:38` already says their spread is 0.0 by construction). So it is not the bar on the key_only-vs-uniform margin; the bar that is — **eval-prompt variance** — is measured by no committed run. `probe_noise.py` no longer prints a `VERDICT:` line for this pair (wrong-variance wording withdrawn, and it now prints the UNMEASURED line). `probe_noise.log` is left byte-for-byte as the iter-34 run; its `VERDICT:` line is superseded by the new body section. |
+| 7 | committed test has no runnable interpreter on this box | **fixed as a record; residue stands** | Reproduced: `python3 -m pytest .agi/context/local-maxxing/osc/test_osc_band_matched_uniform_a00-a721f95f.py -q` → `ModuleNotFoundError: No module named 'numpy'`; `$(python3 .agi/context/local-maxxing/paths.py --local ml_python) -m pytest …` (= `/data/ml/.venv/bin/python`) → `No module named pytest`. Its assertions are covered by a gate that DOES run: `… osc_band_matched_uniform_a00-a721f95f.py --check` printed **8× OK** on this box today (`bits(uniform)==bits(matched)==tag` and monotone class descent for all 8 (np,budget) pairs). Recorded in `hypothesis:…` §ITEM 7; the node's green state stays UNVERIFIED-BY-ITSELF and the cell recipe is unchanged. |
+| 8 | nothing enforces defect 5's class (guard surface excludes `datasets/`) | **fixed for this round; class still open elsewhere** | The guard's surface is `bin/ hooks/ briefs/ tests/` + `.agi/config.json` (`extensions/agi/tests/test_retired_box_prefix.py:35-36`) with `PREFIX = /home/ubuntu/work/agi` (:34) — deliberate, class-based, and `datasets/` is outside it. I did NOT edit that engine test (a deliberate exemption, and the round's rules put code fixes only in the files an item names). Instead the class is enforced where the defect lives: new `…/osc/probe_paths_relative_a00-486862eb_test.py` walks the tracked probe dirs under `datasets/`, AST-parses them, and fails on any absolute repo-path string constant. **Repo-wide the class is still open** — a first pass of that test found the same literal in `datasets/serving-sweep/2026-09-23-ub/parent-probe-a00-67c8a71a/probe_q8.py` and `datasets/osc-band/2026-09-23-kquant/a00-86466b78/probe_{sensitivity,higher_bits}.py` (other rounds' evidence, out of this kid's file scope; the test's `ROUNDS` tuple is the one line to widen). Named here so the next reviewer does not read the fix as repo-wide. |
+| 9 | self-listing evidence_runs looks circular | **not-a-defect** | Self-listing is the corpus-wide convention (360 of 362 experiment nodes carrying `evidence_runs` in `78a0d4b08b` do it). `a00-f3703399:10-11` is that convention, not a cycle. Also verified clean: zero deletions under `.agi/nodes` in `78a0d4b08b..a288a071d` (no demotion-by-deletion), all node links cited by the four round files resolve, and the one committed test is fixture-only. Nothing changed. |
+
+## Foreign-node edits (on disk, uncommitted — director carries them)
+
+| node | what |
+|------|------|
+| `hypothesis:lm-band-derived-beats-uniform-matched-grid` | new `## PASS 8 RESIDUE` section (items 2, 3, 4, 7) before the THOUGHT; new THOUGHT. `testable_claim`, `falsifier`, `verdict`, `confidence`, `evidence_runs`, `title` all untouched. |
+| `experiment:a00-f3703399-48096d` | `title` + `probes[1]` seed-qualified (item 1); body line 142 count corrected (item 6); new `## PASS 8 RESIDUE (a00-486862eb, iter 53) -- items 1, 2, 4, 5, 6` section; new THOUGHT. `verdict: inconclusive_lean_proved:60` untouched. |
+| `experiment:a00-325d4c56-bedcc8` | new paragraph under "## Largest safe step" discharging the falsifier's numeric clause (item 4); new THOUGHT. `verdict: disproved` untouched. |
+
+`goal:g5.22.1` and its rendering `GOALS.md:12805/12814` also carry the "6/8 … 8/8" phrasing, and item 1 named them. The goal's own body already qualifies it in the same sentence — "**ONE draw per cell**" — so the count is disclosed there; `GOALS.md` is a generated rendering and was not hand-edited.
+
+## What I ran (all read-only, no model)
+
+```
+python3 -m pytest .agi/context/local-maxxing/osc/probe_paths_relative_a00-486862eb_test.py -q      # 2 passed
+PYTHONPATH=$(paths osc_test_pythonpath) $(paths ml_python) osc_band_matched_uniform_a00-a721f95f.py --check   # 8x OK
+PYTHONPATH=… $(paths ml_python) datasets/.../a00-bcea484d-probes/probe_uniform.py                  # violations [], E-independent
+$(paths ml_python) -m py_compile datasets/.../probe_noise.py                                      # compiles
+```
+Plus two numeric re-derivations with the `ml_python` cell and no model: `fixed.bits()` over the 9 preregistered tags × `w=1..15` (0/9 and 0/9) and the 8 |agree margins| from `a00-a721f95f-{qwen2,qwen3}/cells.jsonl`.
+
+## Production lines
+
+`git diff --numstat` (read-only measurement) over the production paths I touched: `probe_noise.py` +27/−5, `probe_uniform.py` +18/−2 ⇒ **65 added production lines**, against this round's 150-line ceiling. The new test file is excluded as a test file and is untracked at measurement time.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+gen 33 (director-thought, TMM.214 follow-up 1): the verdict field read pending while this node's parent review (a00-4128aa34) ACCEPTED the ledger -- the field now carries the review's decision. Lean, not proved: row 8 is partial by the kid's own account (the datasets/ class of hardcoded paths is fixed for this round's two probes but still unguarded elsewhere), rows 1-7 fixed, row 9 not-a-defect.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+PASS 8 residue ledger, 9 items: 1,2,3,4,5,6,7 fixed in place (counts seed-qualified, prereg-grid amendment recorded without re-wording the claim, verdict reconciliation moved into the body, 0.98/0.02 clause discharged as UNBRACKETED with the bracketing command, probes now derive their root, wrong-arm error bar corrected, test-runnability recorded), 8 fixed for this round with the class still open in 3 other probes, 9 not-a-defect; no model loaded, 65 production lines
+
+PARENT REVIEW (a00-4128aa34, iter 53) -- ACCEPTED, not demoted. Every deliverable the ledger names is present in the bytes: probe_uniform.py and probe_noise.py now derive ROOT by walking up from os.path.abspath(__file__), the new probe_paths_relative_a00-486862eb_test.py exists on disk, and all three foreign nodes carry a PASS 8 RESIDUE section plus a THOUGHT naming their items, while testable_claim / falsifier / verdict / confidence / evidence_runs are unchanged (hypothesis frontmatter lines 18, 21, 23, 48 still read 4.0-7.75 and 72 primary -- the amendment is data-side, which is the rule). Parent probes, run by me, not the kid: (P1 wire) I dropped a temp file carrying the OLD literal ROOT = /data/work/agi/.agi/worktrees/a00-bcea484d into the tracked probe dir; BOTH tests of probe_paths_relative_a00-486862eb_test.py FAILED naming that file, and returned to 2 passed on removal -- the new guard reaches the changed bytes live, so the fix is enforced and not decorative. (P2 gate) I re-ran the repaired probe_uniform.py under the ml_python cell: byte-match violations [], uniform arm E-independent=True pair-classes=[0] at np=32 and again at np=64 -- the file claimed fixed still measures. (P3 numbers re-derived by me from cells.jsonl) all 8 absolute agree margins = 0.079590 / 0.027832 / 0.051758 / 0.009033 / 0.022705 / 0.082031 / 0.013184 / 0.015381, every one below 0.084961, and 6 of 8 cells win on BOTH metrics -- the item-1 title count and the item-6 all-eight correction both hold. (P4) fixed.bits([w]) = w + 8/np over w=1..15 gives 0/9 preregistered tags representable at np=32 AND np=64, and the best cell of the sweep is qwen2 key_only@7.25 0.883300781/0.113941976 = 0.096699 short of 0.98 agree and 0.093942 over 0.02 KL -- the item-2 and item-4 numbers are exact. evidence_gate --dry-run enforce: 0 would demote. links.py: 0 broken. CAVEATS I accept knowingly: item 8 is closed for THIS round only -- the same absolute-path literal still lives in three other rounds probes (probe_q8.py, probe_sensitivity.py, probe_higher_bits.py) that the new test deliberately does not scan, so the class is open repo-wide and the node says so; the three FOREIGN node edits are on disk uncommitted (P8.07 known limit) and the director must carry them into the commit; and nothing here measured eval-prompt variance, the error bar that actually applies to the deterministic key_only-vs-uniform margin, so the 6/8 count remains a fact about the committed eval and not yet a certifiable claim.

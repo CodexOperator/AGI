@@ -735,3 +735,29 @@ def test_operating_mode_is_a_config_part_and_off_by_default(tmp_path):
     assert "─── OPERATING MODE (declared in .agi/config.json) ───" in out
     assert "ACTIVE: enhanced survival" in out
     assert "SOURCE: goal:g17.1" in out
+
+
+def test_extras_context_ref_cannot_escape_context_dir(tmp_path):
+    """TMM.200 item 4: a `context/...` extras ref is read live, so it must
+    stay under `.agi/context` -- `context/../../x` would otherwise hand any
+    readable file to a dispatched brief."""
+    _write(tmp_path, "context/schemas/[goal].md", "GOAL-SCHEMA\n")
+    (tmp_path.parent / "outside.txt").write_text("OUTSIDE\n", encoding="utf-8")
+    assert brief._extras_ref_text(tmp_path, "context/schemas/[goal].md") == "GOAL-SCHEMA\n"
+    for ref in ("context/../../outside.txt", "context/../config.json"):
+        with pytest.raises(brief.RenderError, match="escapes context/"):
+            brief._extras_ref_text(tmp_path, ref)
+    # the claim's own fixture, not just the harness's
+    (tmp_path.parent / ".env").write_text("SECRET=hunter2\n", encoding="utf-8")
+    with pytest.raises(brief.RenderError, match="escapes context/"):
+        brief._extras_ref_text(tmp_path, "context/../../.env")
+    # conjunct 2: a SYMLINK out of context/ (resolve() follows it, so the
+    # containment check must run AFTER resolution, not on the spelled ref)
+    (tmp_path / "context" / "leak").symlink_to(tmp_path.parent / "outside.txt")
+    with pytest.raises(brief.RenderError, match="escapes context/"):
+        brief._extras_ref_text(tmp_path, "context/leak")
+    # conjunct 3: an ABSOLUTE ref. It never reaches the context branch (it
+    # lacks the `context/` prefix), so _node_text must refuse it BY NAME --
+    # and never hand back the file's bytes.
+    with pytest.raises(brief.RenderError, match="not found"):
+        brief._extras_ref_text(tmp_path, str(tmp_path.parent / "outside.txt"))

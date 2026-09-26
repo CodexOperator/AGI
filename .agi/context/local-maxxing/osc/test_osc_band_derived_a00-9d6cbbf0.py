@@ -1,5 +1,7 @@
 import importlib.util, os
 import pytest
+import pytest  # skip-by-name: this module cannot run without numpy
+np = pytest.importorskip('numpy')
 p=os.path.join(os.path.dirname(__file__),'osc_band_derived_a00-9d6cbbf0.py')
 s=importlib.util.spec_from_file_location('derived',p); m=importlib.util.module_from_spec(s); s.loader.exec_module(m)
 @pytest.mark.parametrize('npv',[32,64])

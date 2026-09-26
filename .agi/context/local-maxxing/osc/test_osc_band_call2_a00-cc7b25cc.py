@@ -59,7 +59,7 @@ def test_p4_zero_band_on_one_metric_only():
 
 
 def test_p7_absent_seed_is_not_a_distinct_draw():
-    # the 16 on-disk rows carry NO seed field (osc_band_matched_uniform_a00-a721f95f.py:74-77):
+    # the 16 on-disk rows carry NO seed field (osc_band_matched_uniform_a00-a721f95f.py:68-70):
     # three rows that vary must NOT become three distinct seeds
     nos = [{k: v for k, v in d.items() if k != "seed"} for d in
            [rec("random", 1, .50, .10), rec("random", 2, .53, .11),
