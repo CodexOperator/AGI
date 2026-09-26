@@ -2056,3 +2056,43 @@ def test_auto_commit_lands_the_named_target_node_and_refuses_the_rest(tmp_path):
     assert "nodes/hypothesis/not-named.md" not in files, files
     assert ".agi/config.json" not in files, files
     assert foreign.read_text().count("not-named") == 1
+
+
+def test_every_refused_named_id_is_named_on_stderr(tmp_path, capsys):
+    """The last clause of the round-commit claim: a refused path is NAMED.
+    Pre-fix `_round_own_node_paths` dropped a non-committable id with a bare
+    `continue`, so `done --parent goal:g5` got silence -- the round could not
+    tell "I refuse that" from "I never saw it". Real schema bytes decide, so
+    only the committed `[goal].md` `round_commit: false` cell refuses."""
+    import shutil
+    from pathlib import Path
+    cli = _load_cli()
+    src = Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas"
+    if not src.is_dir():
+        pytest.skip("no .agi/context/schemas in this checkout")
+    root = tmp_path / ".agi"
+    shutil.copytree(src, root / "context" / "schemas")
+    (root / "config.json").write_text("{}")
+    for sub, nid in (("goal", "g5"), ("hypothesis", "tgt"),
+                     ("experiment", "a00-x-1")):
+        d = root / "nodes" / sub
+        d.mkdir(parents=True, exist_ok=True)
+        (d / f"{nid}.md").write_text(
+            f"---\nid: {sub}:{nid}\ntype: {sub}\n---\n\nbody\n")
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, "experiment:a00-x-1", None, ["hypothesis:tgt"],
+        refused=["goal:g5"])
+    err = capsys.readouterr().err
+    # Dropped from the sweep ...
+    assert paths == {"nodes/experiment/a00-x-1.md",
+                     "nodes/hypothesis/tgt.md"}, paths
+    # ... and NAMED on stderr, including the `--parent` id that
+    # `_round_named_node_ids` del()s out of the named set.
+    assert "goal:g5" in err, err
+    assert "refusing" in err, err
+    # A clean round names nothing.
+    capsys.readouterr()
+    cli._round_own_node_paths(root, root, "experiment:a00-x-1", None,
+                              ["hypothesis:tgt"])
+    assert capsys.readouterr().err == ""
