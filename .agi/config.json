@@ -242,7 +242,8 @@
       "user_systemd_dir": "{home}/.config/systemd/user",
       "watchdog_conf": "etc/watchdog.conf",
       "user_systemd_data_dir": "{home}/.local/share/systemd/user",
-      "guard_dir": "{repo_parent}/.sanctuary/guard"
+      "guard_dir": "{repo_parent}/.sanctuary/guard",
+      "fixtures_dir": "extensions/agi/tests/fixtures/boxkit"
     },
     "local_maxxing": {
       "worktree_a00_2f819956": ".agi/worktrees/a00-2f819956",
