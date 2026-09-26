@@ -2145,7 +2145,7 @@ def _round_named_node_ids(rec, parent) -> list:
 
 
 def _round_committable(root: Path, nid: str) -> bool:
-    """May a round's `done` commit sweep node id `nid`? Two DATA gates, no
+    """May a round's `done` commit sweep node id `nid`? Three DATA gates, no
     type list in code (hypothesis:a-rounds-named-node-set-is-its-dispatch-time-
     ids-never-a-kid-supplied-parent):
       1. `grid.round_commit` in `.agi/config.json` -- `node_types` (a type no
@@ -2212,10 +2212,20 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
     asked for, so it is judged (and named) where it is in hand."""
     out = set()
     seen = set()
-    for nid in [node_id, *(owns or []), *(named or []), *(refused or [])]:
+    asked = [node_id, *(owns or []), *(named or [])]
+    for nid in [*asked, *(refused or [])]:
         if not nid or nid in seen:
             continue
         seen.add(nid)
+        if nid not in asked:
+            # A kid-supplied id (`done --parent`) NEVER widens the set, even
+            # for a round-committable type -- judged by the type gate it let
+            # a foreign `hypothesis:` ride into this round's commit (DH.390
+            # harvest). Named, never swept.
+            print(f"round-commit gate: refusing {nid} — a kid-supplied "
+                  f"--parent never widens this round's done commit",
+                  file=sys.stderr)
+            continue
         if nid != node_id and not _round_committable(root, nid):
             print(f"round-commit gate: refusing {nid} — not "
                   f"round-committable, so it is left uncommitted by this "
