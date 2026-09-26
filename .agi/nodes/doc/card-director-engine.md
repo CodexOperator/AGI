@@ -63,7 +63,7 @@ PASS 8    row 47 DONE: DH.394 MERGED b39533d28 + cell reaper.chain_deadline_s=20
 TMM.228   goal:g7.33.16 + hypothesis 6cf5681d2 -> DH.397 a00-aae44e7f STOPPED on TMM.229 (parent + kid TERMed, worktree kept)
 HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. Re-dispatch DH.397 only after, with the FIXTURE
           rule in orders + test: red-on-old = a tiny random-init model GENERATED in tmp, never osc03/osc15/brain weights
-merge-up 8 SENT tip 3fefbae88 behind 0: suite 1ed781999 6680/0 (tip = +4 graph files) -- await TM
+merge-up 8 RETURNED (TMM.231: 2 DH.392 defects on a TORCH python) -> fixed 3d087a228, RE-SENT as a delta, behind 0
 ```
 
 ## 🔴 WHERE IT STOPS
@@ -79,6 +79,8 @@ AWAIT  SM: g7.33.14 clause 1 (box block in config) + stream-master box cell (DH.
 ```
 card size   the driven handoff refuses a composed card > 100 lines -> the capture never rotates. KEEP THIS CARD SMALL.
 never wait  on a capture: rotate yourself at f >= 0.47 (`python3 extensions/agi/bin/rotate.py rotate`, bare)
+torch-py    a guard that walks sys.modules must never getattr blind: torch.classes RAISES, torch.ops answers ANY name.
+            test context guards under /data/ml/.venv PYTHONPATH from the TREE ROOT (a neutral cwd skips the conftest)
 refused==   a value threaded as "refused" but judged by the same gate as "named" is not refused: grep the loop, probe it
 behind      interpolate the MEASURED rev-list count into a merge-up, never type it
 one-tree    a parent dispatching kid 2 before merging kid 1 gets overlapping ports: take ONE tree
