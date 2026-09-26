@@ -29,7 +29,8 @@ PASS      PASS 9 = the Prime merges the trunk at 13:47Z 09-26 (notice 08:45Z: a2
 MODEL     the Prime's GO 08:45Z (signed) on 4 conditions, relayed VERBATIM to DT in TMM.216: (1) floor = measured peak + 2 GiB (2) memory_alarm
           WARN/ALARM = no new load (3) the model process's user@ peak + user@ hard < memory.high - 512 MiB (4) none from 13:30Z ·
           DT [hold] 08:49Z under (3): headroom 2383 MiB vs a 4.26-4.69 GB peak -> ALL 4 queued rounds hold · [decision] to belam 08:5xZ:
-          (b) own scope + MemoryMax (the Prime's / owner's call) else (d) hold to PASS 9; silence = (d) -- NO ANSWER by 09:3xZ
+          (b) own scope + MemoryMax else (d) hold to PASS 9 -> the Prime 12:44Z (signed) = (d); (b) BANKED for the owner (it changes the owner
+          guard's cgroup policy); after PASS 9 the 4 still need (b) or seats hard in user@ under the line -> relayed VERBATIM in TMM.222
 LANDED    gen 26: a125bad37 (DE e362e7947 = DH.377-388 via ef7a09f2a, then DT d7139c317) · board 2c1d2367e (row 8) · gen 25: 49e8cd268 ·
           6f4fb27e0 · board 4c1f0e542 (row 10) · gen 24: 9ddc0fe23 · 78c55c208 · 2dd64167d · d26cca923
 DT        TMM.221 (09:3xZ, delivered): d7139c317 landed; the osc seeds union named · queue P8.03 -> P8.04 -> OSC.40 r2 -> OSC.41 (serial,
@@ -41,9 +42,9 @@ DE        TMM.220 (09:3xZ, delivered): e362e7947 landed; merge the trunk before 
 ```
 
 ## 🔴 Where it stops
-09:3xZ 09-26 gen 26: LANDED e362e7947 + d7139c317 = a125bad37 (pushed); the log cap's first live apply WATCHED (2 archives -> 16 MiB); next = DE's DH.389/390 merge-up + the Prime's (b)/(d)
+12:4xZ 09-26 gen 26: the Prime answered (d) + (a) at 12:44Z; DE ordered to ROTATE NOW (TMM.223, idle 3.5 h at 0.40 below its line) -> SendMessage its owed list to the NEW session once it seats
 ```
-state   MAIN = origin at a125bad37 + board 2c1d2367e + this card (unpushed until the next push) · last order = TMM.221 · next = TMM.222
+state   MAIN = origin at 90b9a10df + board rows 5 + this card · last order = TMM.223 · next = TMM.224
 GATE    a125bad37: suite on the merged tree (tmpfs) 6642 passed / 0 failed / 27 skipped / 1 xfailed, 13:31 · the osc seeds conflict =
         the UNION (osc pythonpath, neutral cwd: 16 passed; system python: 2 skipped by name) · context-suite 128 passed / 19 skipped,
         40.4 s · evidence 0 · links 0 (4494) · goals 372 · anonymize ok · config:posts = HEAD · kid-commit check: .geometry/commands.md
@@ -51,8 +52,12 @@ GATE    a125bad37: suite on the merged tree (tmpfs) 6642 passed / 0 failed / 27 
 WATCHED the log cap's FIRST live apply = the 09:35 grid_sync tick: agi-crons-*.log.1 140080753 -> 16777216 B, agi-reaper-*.log.1
         32096155 -> 16777216 B; base logs still appended; nothing else in ~/logs touched · remote = a125bad37 (ls-remote)
 BOARD   rows 5 (live: the model GO's 4 conditions + DT's hold) + 10 (windows: PASS 9 13:47Z, follow-ups landed) + 8 (engine)
-SENT    [decision] belam 09:3xZ: memory alarms now in ~/logs/memory-alarm-alerts.log -> guard-init.sh --status 'last alerts' is blind
-        to them: (a) read the new file (b) an engine round (DE) points --status at logs.alerts_file; recommend (b); silence = (a)
+ANSWERED the Prime 12:44Z: DH.380 alerts = (a) -- it reads logs.alerts_file itself + its PASS launcher gate moved there; (b) impossible as an
+        engine round (guard-init.sh lives outside every repo) -> banked for the owner · model lane = (d), (b) banked for the owner
+SENT    TMM.222 DT (the Prime's (d) verbatim; re-measure (3) when PASS 9 closes, numbers to me before any dispatch) · TMM.223 DE: ROTATE NOW
+        (idle 09:11-12:4xZ at 0.40 on a capture that promised a forced rotation) + the successor's owed list BY NAME: DH.390 harvest (tip
+        5217181e5, 4 kids) · DH.389 · TMM.220's 3 residues · the capture-text residue (goal:g7.33.N) -> after DE seats: SendMessage it
+        · DE's .meter pin names ac0e1546 (last written 03:19Z) while its live session was 7e93043d; the hook's [meter] still moved in the live jsonl
 OWED    DE: the DH.389 + DH.390 merge-up (a LOCAL tip, full suite first) + TMM.220's 3 residues · DT: the model queue HOLDS under (3),
         (d) on the Prime's silence · NO model load from 13:30Z · PASS 9 at 13:47Z
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)

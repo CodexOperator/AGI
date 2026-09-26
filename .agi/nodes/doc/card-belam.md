@@ -21,26 +21,26 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The 08:4xZ CHECK decided two asks. (A) DE's 2c: GO for `claude rm 5861181b` only. (1) Said: CLAUDE.md "authority never covers an irreversible or destructive operation outside the loop's own commits"; the owner's 2c (01:0xZ) "the app lists only live sessions". (2) Machine (DE, read-only `claude agents --json --all`): 5861181b is an exited --bg "throwaway probe" whose cwd is kid worktree a00-5aaa03c7 -- a session the loop created (TMM.202: kids never launch claude); `claude rm` works on exited --bg sessions only. (3) Near miss: banking all of 2c leaves the owner's own ask undone for the loop's own artifact; deleting 710907bf too meets "only live sessions" and destroys what is likely the owner's own session. (4) The rule guards the owner's things; this is the owner-requested end state applied to the loop's own artifact -- 710907bf + the app rows stay banked. (B) TM's model-loading GO carries a user@ condition: kid spawns land in user@ app.slice via systemd-run --user (workflow.py:1771-1772), high 5246M with DE's seat and the alarms inside; "quiet town" read as box MemAvailable 10.4 GiB says yes to a 4.7 GB load that crosses user@'s high.
+The 12:4xZ CHECK answered TM's two [decision]s against TM's own recommendation once. (1) Said (TM 09:33Z): "recommend (b), ordered on your word" -- (b) = an engine round points guard-init.sh --status at logs.alerts_file. (2) Machine: guard-init.sh resolves to /data/work/.sanctuary/guard/guard-init.sh and `git rev-parse --show-toplevel` there answers not-a-repo; a director-engine round lands only through the repo's merge gate. (3) Near miss: ordering (b) satisfies "an engine round" and sends DE to hand-edit a file no round can commit, review or revert -- the owner's guard, applied at the owner's order. (4) So (a): I read ~/logs/memory-alarm-alerts.log myself (the PASS launcher gate read the OLD path, a hold that could never fire -- retargeted to the logs.alerts_file cell), and the --status repoint is banked. The model lane took (d): DT measured every queued round short of user@'s high by ~1.9 GiB, and (b) there is a cgroup policy change to the owner's guard -- banked, not taken.
 <!-- THOUGHT:END -->
 
 ## §0 State (08:4xZ 09-26)
 | | |
 |---|---|
-| post | belam-S2-L5-IX gen 9 · woke 05:4xZ · Opus 5.5 · pid 1216418 (session-73.scope) · meter 0.33 at 08:4xZ · gen 8 pid 100337 idle, alive |
+| post | belam-S2-L5-IX gen 9 · woke 05:4xZ · Opus 5.5 · pid 1216418 (session-73.scope) · meter 0.35 at 12:4xZ · gen 8 pid 100337 idle, alive |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` (clean, = season2/main e55816f35b) · tz UTC · stream DOWN |
 | GUARD | user@1000 high 5246M / max 5829M · a pi stage ~210 MiB · DE + gen 8 + remote-control INSIDE; belam gen 9, TM, DT in session-73.scope OUTSIDE (§6) |
 | TOWN | DE gen 23 · TM gen 25 (rotated ~08:0xZ) · DT gen 33 · SM DOWN (owner's go) · 4 kid-worktree suite locks are pre-reboot dead pids |
-| merge | PASS 8 CLOSED 07:37Z: season2/main e55816f35b · local-maxxing/main a288a071df · b89c72454 PUSHED by TM · research rows landed 49e8cd268 (TM: TMM.210) · **PASS 9 NOTICED 08:45Z, run_at 13:47Z** (one-shot b0761a73): trunk a288a071df -> 052e8991c7 · 124 commits · 56 exp · 24 engine paths |
-| decisions 08:4xZ | TM: model-loading GO -- one at a time via model_slot, floor = peak + 2 GiB, WARN = stop, inside user@ peak + hard under high - 512 MiB, no new load 13:30Z until PASS 9 closes · DE 2c: GO claude rm 5861181b only + the kid-session reap verb (dry-run default) |
-| crons | CHECK fc879bab "13 */4" (next 12:13Z) · PASS 9 one-shot b0761a73 "47 13 26 9 *" · both POINTER prompts to `.agi/sessions/prime-merge.crons.md` sections 1/2 |
+| merge | PASS 8 CLOSED 07:37Z: season2/main e55816f35b · local-maxxing/main a288a071df · b89c72454 PUSHED by TM · research rows landed 49e8cd268 (TM: TMM.210) · **PASS 9 NOTICED 08:45Z, run_at 13:47Z** (one-shot b0761a73): trunk a288a071df -> 90b9a10dfe at 12:4xZ · 237 commits · 80 exp · 51 engine paths (124/56/24 at notice) |
+| decisions | 08:4xZ model-loading GO on 4 conditions -> DT 08:5xZ: condition (3) holds all 4 (agents in user@ app.slice: headroom 2383 MiB vs a 4.3-4.7 GB peak) -> 12:4xZ (d) hold until PASS 9 closes, (b) banked · 08:4xZ 2c GO: claude rm 5861181b DONE 08:46Z, reap verb = DE's DH.389 · 12:4xZ DH.380 alerts file: (a) I read ~/logs/memory-alarm-alerts.log, --status repoint banked |
+| crons | CHECK fc879bab "13 */4" (next 16:13Z) · PASS 9 one-shot b0761a73 "47 13 26 9 *" · both POINTER prompts to `.agi/sessions/prime-merge.crons.md` sections 1/2 |
 | spend | credits 13.75 USD · PASS 8 0 USD |
 | branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
 
 ## §1 Plan
 ```
-done   PASS 8 (0-9) · 08:4xZ CHECK: 4 dms, 2 decisions, PASS 9 notice + one-shot
-next   the 12:13Z CHECK · PASS 9 at 13:47Z (meter > 0.38 then: ROTATE FIRST, the successor runs it under case d) · judge DE/DT merge-ups
+done   PASS 8 (0-9) · 08:4xZ CHECK: 4 dms, 2 decisions, PASS 9 notice + one-shot · 12:4xZ CHECK: 3 dms, 2 decisions
+next   PASS 9 at 13:47Z: steps 0-3, then rotate at the line during the review wait (the successor resumes at step 4) · the 16:13Z CHECK · judge DE/DT merge-ups
 open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 ```
 
@@ -48,10 +48,10 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 a288a071df trunk sync · e55816f35b PASS 8 merge (season2/main) · local-maxxing/main ff a288a071df · b89c72454 residue batch + 5 defect hypotheses + board note · card commits
 
 ## 🔴 Where it stops
-08:4xZ 09-26 belam-S2-L5-IX: idle after the CHECK; PASS 9 noticed for 13:47Z (one-shot b0761a73); the 12:13Z CHECK is next.
+12:4xZ 09-26 belam-S2-L5-IX: idle after the 12:1xZ CHECK; PASS 9 fires 13:47Z (one-shot b0761a73), then the 16:13Z CHECK.
 ```
- 1. CHECK (fc879bab -> crons section 1): dms newer than .agi/sessions/belam.lastcheck (08:43Z); the inbox FILE is .agi/sessions/inbox/belam.md.
- 2. PASS 9 (b0761a73 -> crons section 2): copy /tmp/belam-pass8 -> /tmp/belam-pass9, retarget BASE a288a071df + p9 prefixes; PER=2, CAP 3, ONE Monitor = bash monitor.sh.
+ 1. CHECK (fc879bab -> crons section 1): dms newer than .agi/sessions/belam.lastcheck (12:43Z); the inbox FILE is .agi/sessions/inbox/belam.md.
+ 2. PASS 9 (b0761a73 -> crons section 2): copy /tmp/belam-pass8 -> /tmp/belam-pass9, retarget BASE a288a071df + p9 prefixes; PER=2, CAP 3, ONE Monitor = bash monitor.sh; the launch.sh template reads alarms from the logs.alerts_file cell (DH.380).
  3. A successor whose wake is past 13:47Z: re-arm the CHECK, run PASS 9 under case (d) unless the state file carries pass_started_at; re-link the quorum card (trap 10).
 ```
 
@@ -85,12 +85,13 @@ a288a071df trunk sync · e55816f35b PASS 8 merge (season2/main) · local-maxxing
 | 38 | verify `verdicts[]` rules on the FIRST reviewer's defects (refuted true/false) + `missed[]` | a residue table reads verify, never the review list alone (PASS 8: 59 of 153 refuted) |
 
 ## §5 Verification
-`links.py links` 0 broken · `snapshot-goals.py --render --check` · `commands.py run verify` (bin-suite-fresh FAIL known) · `~/work/.sanctuary/guard/guard-init.sh --status` · `memory_alarm.py` with the cadence's args + `--dry-run`
+`links.py links` 0 broken · `snapshot-goals.py --render --check` · `commands.py run verify` (bin-suite-fresh FAIL known) · `~/work/.sanctuary/guard/guard-init.sh --status` (its 'last alerts' reads the old path) + `tail ~/logs/memory-alarm-alerts.log` · `memory_alarm.py` with the cadence's args + `--dry-run`
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
 | 3 of 5 seats sit in session-73.scope, outside user@'s 5829M cap (measured 05:57Z) | spawn seats via `systemd-run --user --scope` (the tmux-spawn path), or cap user-1000.slice -- the owner's guard, the owner's call |
+| guard follow-ups (TM 08:49Z + 09:33Z): the 4 queued model rounds cannot fit user@'s high beside the seats; guard-init.sh 'last alerts' reads sanctuary-guard/alerts.log, empty of memory alarms since DH.380 | run model loads in their own scope outside user@ with a MemoryMax (~6G); repoint 'last alerts' at ~/logs/memory-alarm-alerts.log -- your guard files, outside git |
 | 2c leftovers (DE 07:39Z): exited session 710907bf "agi role orchestration setup" (cwd repo root, likely yours) + ~20 "Remote Control · offline" app rows (no CLI verb) | `claude rm 710907bf` if it is yours to drop; the app rows only from the app UI |
 | stream-master's seat after the power cycle | re-seat only on the owner's explicit go (stream down) |
 | the owner chain rule keeps an idle predecessor per rotation (~0.35 GiB each; gen 8 inside user@) | reap idle predecessors while the guard caps user@? the owner's call |
