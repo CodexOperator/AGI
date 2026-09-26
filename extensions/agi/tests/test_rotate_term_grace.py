@@ -204,7 +204,9 @@ def test_three_term_immune_members_cost_ONE_chain_deadline(fake_root,
     """The falsifier: N TERM-ignoring members must all be SIGKILLed inside ONE
     `chain_deadline_s` budget, never N x `term_grace_s`. term_grace 1.0 x 3 =
     3.0 s is what the old per-pid deadline would have cost; the chain deadline
-    of 1.2 s is what the whole chain may cost (+ settling)."""
+    of 1.2 s is what the whole chain may cost. The last `settle` = min(1.0,
+    budget/2) = 0.6 s of it is RESERVED for the post-KILL poll, so the wait
+    loop may only spend 0.6 s -- hence `>= 0.6`, not the old `>= 1.2`."""
     fake_root({"term_grace_s": 1.0, "chain_deadline_s": 1.2})
     state = _fake_reaper(monkeypatch, pids=[424242, 424243, 424244],
                          ignore_term=True)
@@ -216,7 +218,7 @@ def test_three_term_immune_members_cost_ONE_chain_deadline(fake_root,
     assert all(e["gone_after"] is True for e in out["chain"])
     assert [p for p, _s in state["signals"]] == \
         [424244, 424244, 424243, 424243, 424242, 424242]  # TERM+KILL each
-    assert elapsed >= 1.2, elapsed          # the whole chain really waited
+    assert elapsed >= 0.6, elapsed          # the first member really waited
     assert elapsed < 2.5, elapsed           # NOT 3 x term_grace_s
 
 
@@ -234,3 +236,38 @@ def test_chain_deadline_caps_an_oversized_term_grace(fake_root, monkeypatch):
     assert [s for _p, s in state["signals"]] == [signal.SIGTERM,
                                                  signal.SIGKILL]
     assert elapsed < 2.5, elapsed
+
+
+def test_settle_reserve_survives_an_exhausted_chain_budget(fake_root,
+                                                           monkeypatch):
+    """The post-SIGKILL settle poll must still RUN when the chain deadline is
+    spent: a member whose corpse is collected a beat after the KILL must be
+    RECORDED gone (L4.122's `gone_after` field), not False. On the pre-fix
+    bytes the poll shared the wait loop's clock, so on every chain that
+    exhausted the budget the reserve was ZERO and the record lied."""
+    fake_root({"term_grace_s": 30.0, "chain_deadline_s": 0.5})
+    state = _fake_reaper(monkeypatch, ignore_term=True)
+    killed_at = {}
+
+    def _kill(p, sig, *a, **k):
+        state["signals"].append((int(p), sig))
+        if sig == signal.SIGKILL:
+            killed_at[int(p)] = time.monotonic()   # corpse lingers 0.2 s
+
+    def _alive(p):   # alive until 0.2 s after the KILL, like an unreaped zombie
+        k = killed_at.get(int(p))
+        return k is None or (time.monotonic() - k) < 0.2
+
+    monkeypatch.setattr(rot.os, "kill", _kill)
+    monkeypatch.setattr(rot, "_pid_alive", _alive)
+
+    t0 = time.monotonic()
+    out = rot._reap_chain([424242])
+    elapsed = time.monotonic() - t0
+
+    rec = out["chain"][0]
+    assert [s for _p, s in state["signals"]] == [signal.SIGTERM,
+                                                 signal.SIGKILL]
+    assert rec["termd"] is True, rec
+    assert rec["gone_after"] is True, rec
+    assert elapsed < 2.5, elapsed   # still ONE chain budget, reserve inside
