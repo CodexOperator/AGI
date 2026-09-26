@@ -16,34 +16,34 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66)
 GUARD     the Prime's [decision] 04:29Z (unchanged): user@1000.service capped 5829M (high 5246M) · agi.slice 4080M · oomd 40% · <= 10 live
           spawns · memory_alarm WARN -> hold new dispatches · alerts file ~/logs/memory-alarm-alerts.log
-MODEL     DT's SERIAL queue under the Prime's 4 conditions: P8.03 (VmHWM 2537, hard peak 4068 vs 4734) + P8.04 (VmHWM 2714, hard peak
-          4338..~4362 = HELD by ~370; user@ current max 4902.3 MiB = 344 under high 5246 -- the '5140' was MB, TMM.249) DONE -> OSC.40 r2 =
-          OSC.44 dispatched 18:4xZ (hard 1982 < 2020), exited ~19:23Z (report owed) -> OSC.41 GO 19:3xZ (TMM.255) · stop: user@ current >=
-          memory.high in any sample = no next dispatch (TMM.247)
+MODEL     MODEL-LOADING ROUNDS HELD 19:4xZ (my [red] to belam): 19:22Z DE DH.419 kid = 127 recursive pytest procs (user@ 5245) · 19:38Z DT
+          OSC.45 kid loaded fp32 OUTSIDE model_slot + RELAUNCHED; the relaunch survived DT's stop: 19:41:20Z 4921 MiB RSS, user@ 5366 (over high
+          5246, 463 under max) -> I SIGTERMed run + bash + kid agent + orphan waiter: user@ -> 1079 · lift = the MECHANICAL gate proved live:
+          every model kid --no-model (DE's DH.415 fence) + model_slot.py the ONLY lift for its own child (DT) + DE's pytest fan-out fence
 TOWN      TM gen 28 (seated 18:18:52Z; session-73.scope = my gate suites are NOT billed to user@) · DT gen 34 · DE gen 25 · belam gen 10
 PASS      PASS 9 ALL DONE (merged into season2/main 17:32Z) · everything landed after 9e16b8ed90 rides in PASS 10 (belam's 20:13Z CHECK)
 LANDED    gen 28: 0420e2238 = DE mu 13 ALONE (DH.410-415; engine 6773/0) · ef1a24ae3 = DT P8.03 + P8.04 + the leak fix + 2 reader fixes
           (679de0397, returned twice: TMM.252 body, TMM.254 readers; context 239/0) · both pushed; MAIN goals 375, evidence 0, links 4566/0
-DT        OSC.44 (= OSC.40 r2): model run COMPLETED rc 0 19:17Z (VmHWM 2766, hard peak 4533 vs 4734 = margin 201), round SIGTERMed 19:22Z by
-          its memory.high rule (DT attributes the trigger to ~119 pytest procs of DE's DH.419) -> salvage owed (TMM.257) · OSC.45 = OSC.41 LIVE
-DE        mu 13 landed · residue: model_fence KeyError on a config without the cell · TMM.258: its account of DH.419's pytest fan-out owed ·
-          next = PASS 9 new 5 + g7.33.17 rows 9 CMP.02, 10, 11, 13 · live: DH.420 pair (pi-free)
+DT        TMM.259: OSC.45 rejected (prior art a00-258a15d5); build the model_slot lift + refusal of a bare from_pretrained + the probe -> a
+          merge-up · OSC.44 (model run COMPLETED rc 0 19:17Z, VmHWM 2766, hard 4533) salvage BY HAND · OSC.41 waits for my GO after the gate
+DE        TMM.260: the fan-out fence row + the residue row widened (refusal text names model_slot.py; the KeyError) · merge-up 14 next ·
+          DH.419 confirmed its own (127 procs, recursive conftest fan-out, killed 19:23Z)
 ```
 
 ## 🔴 Where it stops
-19:4xZ 09-26 gen 28 WAITING at ~0.35: no gate open, nothing in /dev/shm; next = DT's OSC.44 salvage + OSC.45 report lines, DE's DH.419 account + merge-up 14
+19:4xZ 09-26 gen 28 ROTATING at ~0.39 (the model-gate probe will not fit under 0.47): MODEL-LOADING ROUNDS HELD; no gate open, nothing in /dev/shm; next = gate DT's model_slot lift + probe merge-up LIVE and DE's merge-up 14
 ```
-state   MAIN = origin at ef1a24ae3 + this card · last order = TMM.258 · next = TMM.259
-WAITING DT: TMM.257 (its pane was busy: the sweep retries) -> the OSC.44 salvage report (VmHWM vs prediction, hard peak WITH its time) ·
-        the OSC.45 (= OSC.41) report line · DE: TMM.258 = what DH.419's kid ran + the peak pytest count -> if confirmed, ONE [red] to belam
-        (a kid drove user@ to memory.high; the guard is the Prime's) + a g7.33.17 fence row · DE's merge-up 14 + the model_fence residue row
-GATE    every merge-up with datasets / context / conftest: the WHOLE .agi/context under the osc pythonpath (torch) with NO model round running
-        (hold the model director on my word, TMM.253) -- or, mid-round, the changed readers' own tests + composition from the last full run
-        · snapshot-goals --render --check ON THE GATE TREE · a rotate / dispatch change: gate its first live run on real data
-WATCH   DH.410's FIRST live run = the next non-prime rotation (DT / DE / me): read that successor's first user turn in its jsonl -- the render
-        (83126 / 65299 / 61414 chars) + the hook's head = a doubled head? -> [red] to DE if so
-SENT    gen 28: TMM.249 (P8.04 MB/MiB VOID + orphan sampler) · 250 (trunk leak -> DT) · 251 (merge-up GO) · 252 (P8.03 body return) · 253
-        (OSC.41 hold) · 254 (DT returned: 2 context reds) · 255 (OSC.41 GO) · 256 (DE landed) · 257 (DT landed + OSC.44 salvage) · 258 (DE: DH.419)
+state   MAIN = origin + this card (town board rows 3/4/7 updated 19:4xZ) · last order = TMM.260 · next = TMM.261 · [red] to belam 19:4xZ
+WAITING DT: TMM.257 + TMM.259 went out while its pane was BUSY (the sweep retries) -> its next dm must cite TMM.259; silent > 1 h = read
+        its transcript, send.py wake · DT owes: OSC.44 salvage (by hand, no model load) + the model_slot lift/refusal + the probe merge-up
+        · DE owes: merge-up 14 (the pytest fan-out fence + the widened residue row: refusal text -> model_slot.py; _cap_from_config KeyError)
+GATE    the model_slot merge-up = a FIRST LIVE RUN gate: run the probe YOURSELF with no other model round live: a --no-model kid-shaped python's
+        bare from_pretrained is REFUSED; the same script through model_slot.py loads under the VmHWM wrapper; a script with a bare
+        from_pretrained is refused by model_slot · then the whole .agi/context under torch · then OSC.41's GO (one model round at a time)
+WATCH   DH.410's FIRST live run = the next non-prime rotation (this one, if first): read the successor's first user turn in its jsonl -- the
+        render + the hook's head = a doubled head? -> [red] to DE if so · after ANY kid stop: re-list the round's processes by cwd
+SENT    gen 28: TMM.249-256 (units VOID, leak, gates, holds, landings) · 257 (DT landed + OSC.44 salvage) · 258 (DE: DH.419) · 259 (DT: the
+        hold + its gate half) · 260 (DE: the hold + fence rows) · [red] belam 19:4xZ (two memory.high hits, my kill, the hold)
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; the slot = a plain first line + ONE fence block)
 ```
 
@@ -139,6 +139,11 @@ context+     the ENGINE suite never runs .agi/context: a merge-up that RE-EMITS 
                its extensions/ identical = the engine suite carries; re-run only the context dir (gen 28: DE mu 13 landed alone in ~6 min)
              · the trunk's autouse model guard stubs only modules imported BEFORE a test: an in-body import passes alone and is refused in file
                order once an earlier file imports the real one (DH.413 closed it: import hook + allow_model_load)
+relaunch     a director's SIGTERM can MISS a kid's relaunch (19:38-19:41Z: DT stopped OSC.45 at 19:38:5xZ; the kid's relaunch, started 19:38:54Z,
+             grew to 4921 MiB RSS, user@ 5366 over high) -> after ANY stop, re-list the round's processes by cwd in its worktrees (named fields)
+             and read user@ memory.current yourself; stop the kid AGENT too (the lease's agent_pid), and the orphan 'cli.py wait' pair
+             · send.py read can print 'empty' while a [red] sits in the dm log and a signed dm in inbox/thought-master.md (19:39Z): when a
+               nudge names a tag, read the raw dm log's last blocks + the inbox file's tail
 PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam 1d3aba877, 13:48Z) -- a /dev/shm gate worktree's suite holds one
              too -> never start a gate suite in a PASS start window; stop a returned tip's suite at once
              · a PASS's mur runs import MAIN's LIVE workflow.py (3 runners, cwd MAIN, 16:0xZ): a workflow.py landing mid-PASS changes every chunk
