@@ -367,7 +367,9 @@ def test_log_tail_prefers_own_copy_then_falls_back_to_main_exactly_once(
     (experiment:a00-416266d2-e77f31). The `if main != own` DEDUP is NOT pinned
     here: the read loop returns at the first readable candidate, so a
     duplicated MAIN candidate is never stat-ed or read and the guard has no
-    observable effect (probe MUT-B below, in my experiment node)."""
+    observable effect — EXCEPT on the MISS path, which
+    `test_log_tail_dedups_main_against_own_when_the_seat_room_is_shared`
+    pins by counting the `Path.exists` stats."""
     gdir, wt = _wt_graph(tmp_path, worktree=True)
     (gdir / "sessions").mkdir(parents=True, exist_ok=True)
     own_log = wt / "sessions" / "wt.log"
@@ -389,6 +391,63 @@ def test_log_tail_prefers_own_copy_then_falls_back_to_main_exactly_once(
         f"MAIN fallback copy not preferred after the worktree went: {tail!r}")
     assert spy.reads == [main_log], (
         f"MAIN copy is not the fallback of last resort: {spy.reads}")
+
+
+class _SharedRoomSpy:
+    """A `_rotate` stand-in that COLLAPSES every geometry root onto ONE
+    shared sessions room — the contract the real `rotate._sessions_dir` has
+    (all seats log into MAIN's room, hypothesis:l4-a-check-that-answers-a-
+    question-it-is-not-asking). So `own` and `main` are literally the same
+    Path and `if main != own:` is the only thing standing between a doubled
+    candidate and a doubled stat. Every `Path.exists` call is recorded."""
+
+    def __init__(self, room: Path):
+        self.room = room
+        self.stats: list[Path] = []
+
+    def _sessions_dir(self, gdir):
+        return self.room
+
+    def watch_stats(self, monkeypatch) -> "_SharedRoomSpy":
+        real_exists = Path.exists
+        stats = self.stats
+
+        def spy_exists(self, *a, **kw):
+            stats.append(Path(self))
+            return real_exists(self, *a, **kw)
+
+        monkeypatch.setattr(Path, "exists", spy_exists)
+        return self
+
+
+def test_log_tail_dedups_main_against_own_when_the_seat_room_is_shared(
+        tmp_path, monkeypatch):
+    """THE `if main != own:` DEDUP, and the gate the order row could not
+    build. With the real `_rotate` the worktree seat's own room and MAIN's
+    room are ONE path, so `cands` is a single entry by construction; drop the
+    dedup and the SAME path sits in the list twice.
+
+    The order row cannot see this: the read loop RETURNS at the first readable
+    candidate, so a duplicate is never read. The MISS path is where the
+    duplicate is observable — the loop's `if p.exists()` is then reached once
+    per candidate — so a missing seat log is counted, not read. Probe MUT-B in
+    experiment:a00-f3548040-e4e0c8: `if main != own:` -> `if True:` makes this
+    row red with 2 stats against the pinned 1. Without the dedup the tail is
+    still '' (the second stat is a harmless no-op), which is exactly why
+    asserting the tail alone would be a dead assertion.
+    """
+    gdir, _ = _wt_graph(tmp_path, worktree=True)
+    room = gdir / "sessions"
+    room.mkdir(parents=True, exist_ok=True)
+    log = room / "wt.log"
+    assert not log.exists(), "the miss path needs the log to be ABSENT"
+
+    spy = _SharedRoomSpy(room).watch_stats(monkeypatch)
+    assert heal._read_seat_log_tail(gdir, WT_ROW, spy) == ""
+    monkeypatch.undo()
+    assert spy.stats == [log], (
+        f"the shared seat room was stat-ed more than once: {spy.stats} "
+        "(a duplicate MAIN candidate; `if main != own:` did not dedup)")
 
 
 def test_stale_lock_skip_leaves_a_clean_sessions_dir_alone(tmp_path,
