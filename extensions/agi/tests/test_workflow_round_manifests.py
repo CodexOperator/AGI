@@ -248,3 +248,15 @@ def test_composed_manifests_do_not_alter_the_base_manifests():
             base, {}), name
         assert base["script"] in {"agi-merge-up-review.js",
                                   "agi-research-review.js"}
+
+
+@pytest.mark.parametrize("name", MANIFESTS)
+def test_a_bare_run_resolves_a_harness_that_can_run_the_round(name):
+    """TMM.237: with NO --harness, the harness the workflow's own resolution
+    chain picks must be one that can run a `kind: round` stage. Pre-fix,
+    round-research-review inherited research-review.json's manifest-level
+    `provider: claude-code` (a level-1 override that beats its type row) and a
+    bare run was refused: "harness 'claude-code' cannot run" the round."""
+    mf = _loaded(name)
+    harness, level = _wf._resolve_default_harness(REPO / ".agi", name, mf, {})
+    assert harness == "pi", (name, harness, level)
