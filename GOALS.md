@@ -7992,6 +7992,39 @@ NO MODEL LOAD. The box is memory-guarded (belam 04:29Z).
 ## Who
 director-engine (engine leaf of g7.33).
 
+#### G7.33.17 — THE 09-25 QUEUE RECONCILED -- every carried item (8 PASS 3 code defects with 0 experiments, CMP.02, E5, .14/.23/ML-3, EF.92, E6) held as a row here until DONE or VOID (TMM.238) — status: active
+
+# goal:g7.33.17
+
+# goal:g7.33.17
+
+## Why this exists
+**Parent `goal:g7.33`.** TMM.238 (thought-master, 2026-09-26): reconcile the 09-25 queue on board row 8. Items with
+no goal leaf and not on director-engine's card, reconciled 16:3xZ by the bytes (landing commits on
+local-maxxing/season2/main since 09-24; experiments per hypothesis in `.agi/nodes/experiment/`). The OWED ones are
+held HERE, one row each, so none lives only on a board row or a card. One leaf with rows rather than 14 leaves:
+each row becomes its own round (and its own sub-leaf if it grows) when it is dispatched.
+
+## Target end-state -- every row DONE (sha) or VOID (reason)
+| # | item | source | state 09-26 |
+|---|---|---|---|
+| 1 | hypothesis:harness-bin-absolute-token-free-bins-refused-by-name | PASS 3 (pass3-0924-residue-batch) | OWED: 0 experiments |
+| 2 | hypothesis:refused-authority-publish-defers-the-successor-key-swap | PASS 3 | OWED: 0 experiments |
+| 3 | hypothesis:grok-bot-adapter-uses-or-refuses-the-rendered-brief | PASS 3 | OWED: 0 experiments |
+| 4 | hypothesis:migrate-refuses-an-inadmissible-grant-before-worktree-and-spawn | PASS 3 | OWED: 0 experiments |
+| 5 | hypothesis:non-prime-rotate-self-renders-through-brief-render | PASS 3 | OWED: 0 experiments |
+| 6 | hypothesis:restart-admission-honours-the-per-harness-live-bound | PASS 3 (E3 rotation + restart) | OWED: 0 experiments |
+| 7 | hypothesis:required-any-diagnostic-names-the-declared-alternatives | PASS 3 (E4 harness + diagnostics) | OWED: 0 experiments |
+| 8 | hypothesis:rotate-out-stop-commit-keeps-the-where-it-stops-slot-unfenced | PASS 3 | OWED: 0 experiments |
+| 9 | CMP.02 cross-box reap guard (a reaper on one box revoking another box's live kid keys) | TMM.114/116; design pinned in .agi/sessions/de-0923/cmp02-pinned.md | OWED: never dispatched |
+| 10 | E5: the 31 non-lm demotes of PASS 3 (node text corrected in place, reason in THOUGHT) | TMM.112 | OWED: unverified which remain -- the round re-runs evidence_gate + reads each |
+| 11 | residue .14 (mkstemp + index cleanup) · .23 (the E2 test) · ML-3 (harness through every lease rewrite) | TMM.112 queue | OWED: content re-read from TMM.112 before dispatch |
+| 12 | EF.92 (LH-2) | held by TM (TMM.91 list) | OWED only on TM's GO; else VOID |
+| 13 | E6 the coalesced-nudge sweep | 09-25 queue | OWED: content re-read before dispatch |
+
+## Who
+director-engine (engine leaf of g7.33). Model-free rounds; one row per round.
+
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
 <!-- BODY:BEGIN -->
