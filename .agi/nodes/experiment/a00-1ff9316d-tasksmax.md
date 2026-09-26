@@ -4,9 +4,10 @@ type: experiment
 parents:
   - hypothesis:a00-1ff9316d-177aae
 next_edges: []
+edited_by: a00-1ff9316d
 loop: goal:g7.33.17@s2
+title: "TasksMax on the round scope: an 18-process fan-out is refused, the unwrapped path is not"
 town: core
-title: TasksMax on the round scope: an 18-process fan-out is refused, the unwrapped path is not
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-1ff9316d-tasksmax
