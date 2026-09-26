@@ -15,6 +15,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from agi.bin import rotate
 
 
+def _fake_bin(tmp_path, name):
+    """A REAL, never-spawned harness binary.
+
+    A path-shaped `bin` cell that does not exist now REFUSES by name
+    (`hypothesis:harness-bin-absolute-token-free-bins-refused-by-name`), so a
+    literal like `/fake/bin/copilot` can no longer stand in for a configured
+    cell. Every call site here is a dry run -- no binary is ever executed.
+    """
+    p = tmp_path / "fake" / "bin" / name
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    p.chmod(0o755)
+    return str(p)
+
+
 def _root_with_harnesses(tmp_path, copilot_models, claude_models=None):
     """A tmp graph root whose `config.json` declares the two harness rows."""
     root = tmp_path / "graph"
@@ -27,7 +42,7 @@ def _root_with_harnesses(tmp_path, copilot_models, claude_models=None):
             },
             "copilot-cli": {
                 "adapter": "copilot_cli",
-                "bin": "/fake/bin/copilot",
+                "bin": _fake_bin(tmp_path, "copilot"),
                 "models": copilot_models,
             },
         }
@@ -49,7 +64,7 @@ def test_copilot_spawn_builds_interactive_argv(tmp_path, capsys):
     out = capsys.readouterr().out
     assert rc == 0
     assert out.strip() == shell
-    assert "/fake/bin/copilot --model auto --allow-all --remote -i " in out
+    assert f"{_fake_bin(tmp_path, 'copilot')} --model auto --allow-all --remote -i " in out
     assert "You are cop-post" in out
     assert "--debug-file" not in out
     assert "claude " not in out
@@ -106,7 +121,7 @@ def test_copilot_model_comes_from_its_own_row_never_claude(tmp_path, capsys):
     assert rc == 0
     assert "--model gpt-copilot-x" in shell
     assert "claude-fable-5-1" not in shell
-    assert "/fake/bin/copilot" in shell
+    assert _fake_bin(tmp_path, "copilot") in shell
 
 
 def test_copilot_row_without_tier_falls_back_to_director(tmp_path, capsys):
@@ -319,8 +334,9 @@ def test_fourth_harness_resolves_from_its_own_row_with_no_rotate_edit(
     from its own `harnesses.<id>` config row; rotate.py is not touched."""
     td = tmp_path / "tmpl4"
     td.mkdir()
+    fake4 = _fake_bin(tmp_path, "fake4")
     (td / "fake4.toml").write_text(
-        'id = "fake4"\nbin = "/fake/bin/fake4"\n'
+        f'id = "fake4"\nbin = "{fake4}"\n'
         '[roles]\nsource = "row"\n'
         '[[argv]]\nflag = "--model"\nslot = "model"\n'
         '[[argv]]\nslot = "prompt"\n')
@@ -330,7 +346,7 @@ def test_fourth_harness_resolves_from_its_own_row_with_no_rotate_edit(
     root = tmp_path / "graph"
     root.mkdir()
     (root / "config.json").write_text(json.dumps({"harnesses": {
-        "fake4": {"adapter": "x", "bin": "/fake/bin/fake4",
+        "fake4": {"adapter": "x", "bin": fake4,
                   "models": {"director": "ROW4"}}}}))
 
     rc, shell = rotate.spawn_window(

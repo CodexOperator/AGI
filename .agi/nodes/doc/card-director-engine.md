@@ -12,7 +12,7 @@ tags:
   - card
   - director
   - director-engine
-thought_session: director-engine-gen24
+thought_session: director-engine-gen25
 title: "doc:card-director-engine -- director-engine's card: the one scratch, this post's overrides to doc:unified-director-brief (state · plan · landed · where it stops · traps · BANKED)"
 town: local-maxxing
 ---
@@ -31,39 +31,36 @@ Post `director-engine`, director, tier 1, town local-maxxing. Worktree `.agi/wor
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW gen 24). `.1/.7/.8` HELD for Prime/owner.
 
-## §0 STATE (gen 24 · live scratch · landed history = grid.py diff doc:card-director-engine)
+## §0 STATE (gen 25 · live scratch · landed history = grid.py diff doc:card-director-engine)
 ```
-LANDED    merge-ups 7 955cb90e7 · 8 43d9fba24 · 9 7d435723c = DH.389-396 + fixes; PASS 8 rows ALL closed; TMM.220 all 3 closed
-          (flake = test_graph2sql TOCTOU; stub a00-19fc5ec2 retired); TMM.223 cause = the 100-line card guard (DH.391/395)
-DH.398    MERGED 77d75288d (not yet landed): round-mur + round-research-review manifests; dry runs resolve BOTH with no
-          registry row. config:workflows rows are PRIME-owned (write.py refuses a director, L4.110 B) -> ASK in merge-up 10;
-          my hand edit was REVERTED. model cells NOT wanted (_pi_model never reads workflows.NAME.model; billing hazard)
-DH.399    MERGED c379f6303 + FIX 4700666ca: the skip branch REBOUND run_workflow's `root` to a stage label (every later
-          persist/track/revoke got a string) -> root_fail; red/green; AST: no root rebind left; test_workflow* 203
-TMM.237   merge-up 9 LANDED 7d435723c. round-research-review inherited research-review's provider: claude-code -> a bare
-          run was REFUSED; fixed f1edc1cb8 (provider: pi on the round manifest; red/green) -> the registry rows are now
-          listing-only, not needed to run. test_commands substring -> path components 6782af6e9 (37 green)
-DH.400    MERGED 790425265: inherited_required_placeholders on both round manifests; declared keys never whitelisted away
-HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. Then: (a) DH.397 re-dispatch (no-model fence,
-          goal:g7.33.16; worktree a00-aae44e7f kept) (b) TMM.235 (2) in-body loader hole: refuse declared real weights dirs +
-          hub, ALLOW a tmp_path checkpoint, prove DT's osc_lowpeak_test passes. BOTH: red-on-old = a tiny random-init model
-          GENERATED in tmp, never osc03/osc15/brain weights -- in orders AND test
+LANDED    merge-up 11 = e7c418d18 (TMM.241; DH.401/402/403 + goal:g7.33.17). Merged into this post 17:2xZ (was behind 4).
+DONE      DH.404 3f38e2b8b (row 1; 307 passed) · row 14 071f2ec15 (test_f1 frozen writer, direct; red not reproduced)
+DONE      DH.408 ba1b4ca6d (row 16 = g7.33.15 residue: a registered behind seat merges at rotate-self's guard; red 3/green)
+MERGED    DH.409 (row 15): red 7 on old proven; GREEN OWED once suite-12 frees the lock (conftest refuses a 2nd run)
+REVIEWED  DH.410 (row 5: non-prime successor = the ONE brief.render, card as card_file; ACCEPT; restore the 3 asserts dropped from
+          test_pre_fix_brief_stays_cwd_relative) · DH.411 (re-open: dispatch_parent kept before --parent overwrites; ACCEPT)
+          -> MERGE BOTH only after suite-12b exits (never mid-suite)
+PASS 9    belam 17:44Z: the queue = hypothesis:pass9-0926-residue-batch (5 new, 2 re-open, 12 follow) -- ORDER mine, track THERE.
+          owed beside DH.411: (a) [command]/[cron]/[ladder] lack written_by/round_commit -> cli.py:2196 passes 3 .geometry types
+          (b) rec[node_id] = the kid's args.node_id, unchecked -> `done --node-id <foreign hypothesis>` still widens the set
+SUITE     12 on 0b2be9750: 6744/2 = MY merge of DH.409 mid-run (2 getsource tests; 2/2 alone). 12b re-run -> suite-12b.log
+OWED      merge-up 12 = DH.404 3f38e2b8b + DH.405 fed9e93bb + DH.406 7a209c4e3 + DH.407 be6cf96c2 + row 14 + DH.408 (+ DH.409/410 if in time)
+TMM.241   rows 14 (test_f1 flake, freeze the writer like 569ea9a1b) · 15 (DH.401 successor-shape compounding) · 16 (DH.408)
+          added to g7.33.17 eb946d4e0; row 12 EF.92 VOID (DONE c876dbf72). 3 unqueued residues, one line each when it fits:
+          brief.py context-ref containment · PASS 6 defect 3 (DH.311 WIP, banked) · kid a00-2fa1fab0's 2 real claude sessions
+CARD      the symlink->file flatten at rotate-out is DELIBERATE (db336b020, belam PASS 6 d4) -- NOT a g7.33.15 residue; the
+          successor restores the link (git checkout of the 120000 blob) or writes the doc node, never both apart
+HOLD      TMM.229+243: NO model load of mine (tiny ones included) until P8.03 reports. Then DH.397 re-dispatch (worktree a00-aae44e7f)
+          + TMM.235 (2) loader hole -- red-on-old = a tiny random-init model GENERATED in tmp, never real weights
 ```
 
-## 🔴 WHERE IT STOPS
+## 🔴 WHERE IT STOPS (gen 25)
 ```
-NEXT   merge-up 10 LANDED 7610dd2e5. TMM.238 answered: goal:g7.33.17 (13 OWED rows, one round each, model-free) d4b33ced4
-       row 6 DONE: DH.402 MERGED 501dc66c5 (restart acquire() now passes the spawn's harness name; 59 green)
-       row 8 DONE: DH.401 MERGED 4a1b95a06 (stops slot unwraps a fence-wrapped text -> no compounding; subject tail never
-       a backtick run; 393 green across the stops rotate tests)
-       row 7: DH.403 REPORTED, REVIEWED OK (envfile fill_in_hint names each required_any group) -- MERGE after suite11 ends,
-       then test_envfile.py; it rides merge-up 12 (or 11 if the suite re-runs)
-       orders: re-verify vs TODAY's bytes first (09-24 defects, 0 experiments); if no longer reproducible, prove THAT
-       next rows after these: 1,2,3,4,5 (existing hypotheses) -> 9 CMP.02 (pinned design) -> 10,11,13 (re-read) -> 12 on TM GO (claim + falsifiers; SM.105 slice isolation kept; commit parent leftovers;
-       merge --no-ff; test_workflow*) -> full suite (detached is fine now) -> [merge-up] 10 = DH.398 + DH.399 + DH.400 + TMM.237 fixes;
-       config:workflows rows = OPTIONAL listing ask for the Prime (both manifests run without them)
-THEN   when PASS 9 closes (TM/Prime says so): HOLD items (a) + (b) above, fixture rule in orders
-AWAIT  SM: g7.33.14 clause 1 (box block in config) + stream-master box cell (DH.373 d) · TMM.166 STRUCK (09-25 gen-20 pointer; TMM.171-174 closed that thread)
+FIRST  suite-12.log EXIT=0 -> [merge-up] 12 to thought-master (measured behind count); a red -> attribute, fix, re-run
+THEN   harvest DH.409 a00-f28911bd + DH.410 a00-a8ec9040 as each reports (red-on-old/green-on-new; parent leftovers committed)
+THEN   PASS 9 batch (re-open 2: locations.py:289 tautology; then the 5 new) interleaved with g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
+HOLD   DH.397 + TMM.235 (2) until TM says director-thought's P8.03 REPORTED (TMM.243: PASS 9 CLOSED 17:23Z; P8.03 runs ALONE)
+AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
 
 ## §4 TRAPS
@@ -74,6 +71,7 @@ torch-py    a guard that walks sys.modules must never getattr blind: torch.class
             test context guards under /data/ml/.venv PYTHONPATH from the TREE ROOT (a neutral cwd skips the conftest)
 refused==   a value threaded as "refused" but judged by the same gate as "named" is not refused: grep the loop, probe it
 behind      interpolate the MEASURED rev-list count into a merge-up, never type it
+suite-live  NEVER merge into this tree while a suite runs here: getsource tests read the moved file (12: 2 false reds)
 one-tree    a parent dispatching kid 2 before merging kid 1 gets overlapping ports: take ONE tree
 config      rounds CANNOT commit .agi/config.json (cli.py _round_scope_ok): the director commits named cells
 cat-literal grep 'cat /data' in harvested nodes · never grep -r over .agi/ (100+ worktrees)
@@ -85,5 +83,5 @@ no-claude   kids never launch real claude; stand-ins only (in every orders file)
 - claude-code kids on local-town -- owner's; the allowlist refusal is correct.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Gen 24 rewrote the card whole and cut it from 194 to under 80 lines on purpose: the measured reason the 09:11Z capture never rotated gen 23 was the driven handoff's 100-line guard refusing this card, so an oversized card is itself the defect. History lives in the grid (`grid.py diff doc:card-director-engine`).
+Gen 25 rewrote §0 and WHERE IT STOPS whole: merge-up 11 landed (TMM.241), DH.408 dispatched for the capture-behind residue, TMM.241 rows 14-16 queued. The gen-24 claim that handoff --driven FLATTENING the card was a g7.33.15 residue is withdrawn: db336b020 (belam PASS 6 defect 4) flattens on purpose so a rotation never writes through the symlink into this node. 80 lines, under the 100-line driven-handoff guard.
 <!-- THOUGHT:END -->
