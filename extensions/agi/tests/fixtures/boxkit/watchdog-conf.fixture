@@ -1,17 +1,17 @@
-# sanctuary guard layer 4. Written by {{GUARD_SRC}}.
-# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.
+# sanctuary guard layer 4. Written by /box/.sanctuary/guard/guard-init.sh.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See GUARD.md.
 # realtime = mlockall + SCHED_RR: the daemon keeps running when nothing else can.
 # Every 10s it forks the test-binary and pets the device. A failing check (or a
 # check that cannot even start within test-timeout) is tolerated for
 # retry-timeout = 5 min, then the box reboots. If the daemon itself stops
 # petting, the kernel device resets the box after watchdog-timeout.
 watchdog-device = /dev/watchdog
-watchdog-timeout = {{WD_TIMEOUT}}
-interval = {{WD_INTERVAL}}
+watchdog-timeout = 60
+interval = 10
 realtime = yes
-priority = {{WD_PRIORITY}}
-test-binary = {{HEALTH_BIN}}
-test-timeout = {{WD_TEST_TIMEOUT}}
-retry-timeout = {{WD_RETRY_TIMEOUT}}
-repair-maximum = {{WD_REPAIR_MAX}}
-log-dir = {{WD_LOG_DIR}}
+priority = 1
+test-binary = /usr/local/sbin/sanctuary-health
+test-timeout = 60
+retry-timeout = 300
+repair-maximum = 1
+log-dir = /var/log/watchdog

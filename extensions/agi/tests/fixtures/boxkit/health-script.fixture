@@ -1,9 +1,9 @@
 #!/bin/bash
 # sanctuary-health — the watchdog daemon's test-binary (guard layer 4).
-# Installed to {{SBIN_ABS}} by guard-init.sh; see {{GUARD_DOC_ABS}}.
+# Installed to /usr/local/sbin by guard-init.sh; see ~/work/.sanctuary/GUARD.md.
 #
 # Exit 0 = healthy. Non-zero = unhealthy. One failure does nothing: watchdog
-# reboots only if failures persist for retry-timeout ({{WD_RETRY_TIMEOUT}}s in {{WATCHDOG_CONF}}).
+# reboots only if failures persist for retry-timeout (300s in /etc/watchdog.conf).
 # A check that cannot even START within test-timeout counts as a failure too,
 # which is the case this exists for: under a memory livelock, forking is the
 # thing that stalls. So after bash is running, everything here is a builtin:
@@ -16,16 +16,16 @@
 [ "${1:-test}" = repair ] && exit 0          # we never repair; the reboot is the repair
 
 # shellcheck disable=SC1090
-. "${HEALTH_ENV:-{{HEALTH_ENV}}}" 2>/dev/null
-LIMIT=${LIMIT:-{{HEALTH_LIMIT}}}
-GRACE=${GRACE:-{{HEALTH_GRACE}}}
+. "${HEALTH_ENV:-/etc/sanctuary-guard/health.env}" 2>/dev/null
+LIMIT=${LIMIT:-40}
+GRACE=${GRACE:-900}
 # A non-integer would make (( )) error out below, and an error reads as
 # "healthy": the watchdog would never fire. Fall back to the defaults instead.
-[[ $LIMIT =~ ^[0-9]+$ ]] || LIMIT={{HEALTH_LIMIT}}
-[[ $GRACE =~ ^[0-9]+$ ]] || GRACE={{HEALTH_GRACE}}
-LOG={{HEALTH_LOG}}
+[[ $LIMIT =~ ^[0-9]+$ ]] || LIMIT=40
+[[ $GRACE =~ ^[0-9]+$ ]] || GRACE=900
+LOG=/var/log/sanctuary-health.log
 
-[ -e {{HEALTH_DISABLE}} ] && exit 0   # the kill switch
+[ -e /etc/sanctuary-guard/watchdog.disable ] && exit 0   # the kill switch
 
 read -r up _ < /proc/uptime
 up=${up%.*}

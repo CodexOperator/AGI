@@ -273,11 +273,11 @@
   {
    "name": "streamer-stub-no-cascade",
    "template": "streamer-stub-no-cascade.tmpl",
-   "dest_cell": "systemd_system_dir",
-   "dest_rel": "streamer-stub.service.d/50-sanctuary-guard.conf",
+   "dest_cell": "user_systemd_dir",
+   "dest_rel": "streamer-stub.service.d/10-agi-survival.conf",
    "mode": "0644",
-   "sudo": true,
-   "reload": "system",
+   "sudo": false,
+   "reload": "user",
    "placeholders": [
     "GUARD_DOC",
     "GUARD_SRC",
@@ -288,11 +288,11 @@
   {
    "name": "streamer-stub-watch-no-cascade",
    "template": "streamer-stub-watch-no-cascade.tmpl",
-   "dest_cell": "systemd_system_dir",
-   "dest_rel": "streamer-stub-watch.service.d/50-sanctuary-guard.conf",
+   "dest_cell": "user_systemd_dir",
+   "dest_rel": "streamer-stub-watch.service.d/10-agi-survival.conf",
    "mode": "0644",
-   "sudo": true,
-   "reload": "system",
+   "sudo": false,
+   "reload": "user",
    "placeholders": [
     "GUARD_DOC",
     "GUARD_SRC",
@@ -303,8 +303,8 @@
   {
    "name": "claude-remote-control-no-cascade",
    "template": "claude-remote-control-no-cascade.tmpl",
-   "dest_cell": "user_systemd_data_dir",
-   "dest_rel": "claude-remote-control.service.d/60-agi-survival.conf",
+   "dest_cell": "user_systemd_dir",
+   "dest_rel": "claude-remote-control.service.d/10-agi-survival.conf",
    "mode": "0644",
    "sudo": false,
    "reload": "user",

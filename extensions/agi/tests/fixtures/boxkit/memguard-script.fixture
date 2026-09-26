@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""agi-memguard ({{OWNER_USER}}-S2-L5-V, owner 09-25 after the 04:00Z OOM took every seat down).
+"""agi-memguard (box-owner-S2-L5-V, owner 09-25 after the 04:00Z OOM took every seat down).
 Every 5 s: the 5 posts' Claude processes, tmux and the stream keep oom_score_adj -900 + nice -5; pi workers get +500
 (the kernel kills them first); any process over 70% of RAM, or the largest unprotected one when MemAvailable < 1 GiB,
-is SIGSTOPped (suspended, never killed); a drop of >= 3 GiB within 30 s alerts. Alerts: journal + {{MEMGUARD_LOG}}
-+ one [red] dm to {{OWNER_USER}} (rate-limited 10 min)."""
+is SIGSTOPped (suspended, never killed); a drop of >= 3 GiB within 30 s alerts. Alerts: journal + /var/log/agi-memguard.log
++ one [red] dm to box-owner (rate-limited 10 min)."""
 import os, re, time, signal, subprocess, collections
 PAGE = os.sysconf('SC_PAGE_SIZE'); ME = os.getpid()
 def meminfo(k): return int(re.search(rf'^{k}:\s+(\d+)', open('/proc/meminfo').read(), re.M).group(1)) * 1024
@@ -15,11 +15,11 @@ hist = collections.deque(); stopped = set(); last_alert = 0.0
 def log(msg, red=False):
     global last_alert
     line = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()) + ' ' + msg
-    open('{{MEMGUARD_LOG}}', 'a').write(line + '\n'); subprocess.run(['logger', '-t', 'agi-memguard', msg])
-    if red and time.time() - last_alert > {{ALERT_COOLDOWN_S}}:
+    open('/var/log/agi-memguard.log', 'a').write(line + '\n'); subprocess.run(['logger', '-t', 'agi-memguard', msg])
+    if red and time.time() - last_alert > 600:
         last_alert = time.time()
-        subprocess.run(['sudo', '-u', '{{OWNER_USER}}', '-H', 'python3', '{{REPO_ROOT}}/extensions/agi/bin/send.py', 'send', '--from', '{{OWNER_USER}}', '{{OWNER_USER}}', '[red] memguard: ' + msg],
-                       cwd='{{REPO_ROOT}}', timeout=60, capture_output=True)
+        subprocess.run(['sudo', '-u', 'box-owner', '-H', 'python3', '/box/agi/extensions/agi/bin/send.py', 'send', '--from', 'box-owner', 'box-owner', '[red] memguard: ' + msg],
+                       cwd='/box/agi', timeout=60, capture_output=True)
 def procs():
     for d in os.listdir('/proc'):
         if not d.isdigit() or int(d) in (1, ME): continue
@@ -35,24 +35,24 @@ def setadj(pid, v):
     except Exception: pass
 while True:
     now = time.time(); avail = meminfo('MemAvailable'); hist.append((now, avail))
-    while hist and now - hist[0][0] > {{HISTORY_S}}: hist.popleft()
+    while hist and now - hist[0][0] > 30: hist.popleft()
     peak = max(a for _, a in hist)
-    if peak - avail >= {{SPIKE_BYTES}} << 30: log(f'SPIKE: MemAvailable fell {(peak-avail)>>20} MiB in <=30 s, now {avail>>20} MiB', red=True); hist.clear(); hist.append((now, avail))
+    if peak - avail >= 3 << 30: log(f'SPIKE: MemAvailable fell {(peak-avail)>>20} MiB in <=30 s, now {avail>>20} MiB', red=True); hist.clear(); hist.append((now, avail))
     unprot = []
     for pid, comm, cmd, rss in procs():
         prot = comm in PROTECT_COMM or bool(PROTECT_CMD.search(cmd))
         if prot:
-            setadj(pid, {{PROTECT_OOM_ADJ}})
+            setadj(pid, -900)
             try:
-                if os.getpriority(os.PRIO_PROCESS, pid) > {{PROTECT_NICE}}: os.setpriority(os.PRIO_PROCESS, pid, {{PROTECT_NICE}})
+                if os.getpriority(os.PRIO_PROCESS, pid) > -5: os.setpriority(os.PRIO_PROCESS, pid, -5)
             except Exception: pass
-        elif PI_CMD.search(cmd): setadj(pid, {{PI_OOM_ADJ}})
+        elif PI_CMD.search(cmd): setadj(pid, 500)
         if not prot: unprot.append((rss, pid, comm))
-        if rss > {{SUSPEND_RATIO}} * TOTAL and pid not in stopped:
-            os.kill(pid, signal.SIGSTOP); stopped.add(pid); log(f'SUSPENDED pid {pid} ({comm}): RSS {rss>>20} MiB > {{SUSPEND_PCT}}% of {TOTAL>>20} MiB -- resume: kill -CONT {pid}', red=True)
-    if avail < {{LOW_AVAIL_BYTES}} << 30 and unprot:
+        if rss > 0.70 * TOTAL and pid not in stopped:
+            os.kill(pid, signal.SIGSTOP); stopped.add(pid); log(f'SUSPENDED pid {pid} ({comm}): RSS {rss>>20} MiB > 70% of {TOTAL>>20} MiB -- resume: kill -CONT {pid}', red=True)
+    if avail < 1 << 30 and unprot:
         rss, pid, comm = max(unprot)
         if pid not in stopped:
-            os.kill(pid, signal.SIGSTOP); stopped.add(pid); log(f'SUSPENDED pid {pid} ({comm}, RSS {rss>>20} MiB): MemAvailable {avail>>20} MiB < {{LOW_AVAIL_GIB}} GiB -- resume: kill -CONT {pid}', red=True)
+            os.kill(pid, signal.SIGSTOP); stopped.add(pid); log(f'SUSPENDED pid {pid} ({comm}, RSS {rss>>20} MiB): MemAvailable {avail>>20} MiB < 1 GiB -- resume: kill -CONT {pid}', red=True)
     stopped = {p for p in stopped if os.path.exists(f'/proc/{p}')}
-    time.sleep({{INTERVAL_S}})
+    time.sleep(5)

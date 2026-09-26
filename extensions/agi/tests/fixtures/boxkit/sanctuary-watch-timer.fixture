@@ -1,5 +1,5 @@
-# sanctuary guard layer 5. Written by {{GUARD_SRC}}.
-# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.
+# sanctuary guard layer 5. Written by /box/.sanctuary/guard/guard-init.sh.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See GUARD.md.
 [Unit]
 Description=sanctuary guard: run sanctuary-watch every 2 min
 [Timer]

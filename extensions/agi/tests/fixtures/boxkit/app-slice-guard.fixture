@@ -1,5 +1,5 @@
-# sanctuary guard layer 2. Written by {{GUARD_SRC}}.
-# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.
+# sanctuary guard layer 2. Written by /box/.sanctuary/guard/guard-init.sh.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See GUARD.md.
 # The last parent link above claude-remote-control.service in the user manager.
 [Slice]
-MemoryLow={{MEM_LOW}}
+MemoryLow=1024M

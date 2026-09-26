@@ -1,5 +1,5 @@
-# sanctuary guard layer 2. Written by {{GUARD_SRC}}.
-# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.
+# sanctuary guard layer 2. Written by /box/.sanctuary/guard/guard-init.sh.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See GUARD.md.
 # sshd must keep the pages it holds and win the CPU inside system.slice when
 # everything else is stalled. Being unkillable alone is what failed on
 # 2026-09-25: the listener lived, but forking a login stalled in reclaim.
@@ -8,5 +8,5 @@
 # would make every login shell, and anything run from it, unkillable.
 # NOT set here: IOWeight. No io controller is enabled, so it would do nothing.
 [Service]
-MemoryMin={{SSH_MIN}}
-CPUWeight={{SSH_CPU_WEIGHT}}
+MemoryMin=64M
+CPUWeight=1000

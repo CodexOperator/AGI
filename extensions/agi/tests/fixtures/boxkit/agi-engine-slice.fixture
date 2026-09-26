@@ -1,13 +1,13 @@
-# sanctuary guard layer 3. Written by {{GUARD_SRC}}.
-# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.
+# sanctuary guard layer 3. Written by /box/.sanctuary/guard/guard-init.sh.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See GUARD.md.
 # The little engine scripts: heal.py watch (the reaper), rotate.py alarms,
 # sanctuary-watch. The reaper runs at ~80M. If anything in here hits this cap,
 # something upstream went wrong: sanctuary-watch raises an ALARM for it.
 [Unit]
 Description=sanctuary guard: little engine scripts (reaper, alarms, watch)
 [Slice]
-MemoryHigh={{ENGINE_HIGH}}
-MemoryMax={{ENGINE_MAX}}
-MemorySwapMax={{ENGINE_SWAP}}
-TasksMax={{ENGINE_TASKS}}
-CPUWeight={{ENGINE_CPU_WEIGHT}}
+MemoryHigh=384M
+MemoryMax=512M
+MemorySwapMax=0
+TasksMax=128
+CPUWeight=20

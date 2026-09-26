@@ -1,9 +1,9 @@
-# sanctuary guard layer 1. Written by {{GUARD_SRC}}.
-# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.
+# sanctuary guard layer 1. Written by /box/.sanctuary/guard/guard-init.sh.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See GUARD.md.
 # Inside a user manager the root slice IS the user@UID.service cgroup. When this
 # manager reports its units to oomd (it does once agi.slice asks to be watched),
 # it reports this slice too, and the default "auto" makes oomd DROP the user@UID
 # entry PID1 registered. Saying kill here keeps the 50% backstop alive.
 [Slice]
 ManagedOOMMemoryPressure=kill
-ManagedOOMMemoryPressureLimit={{USER_OOM_PCT}}%
+ManagedOOMMemoryPressureLimit=50%

@@ -10,9 +10,11 @@ Nine rows, one per clause of the claim:
    guard source) or a literal cgroup UID -- anonymize.py CANNOT do this job
    (its classes are hostname/ip/mac/board/secret; see experiment:a00-5e1ed113 P4);
 5. SIZING reproduces the measured knobs by TRUNCATION, never rounding;
-6. each template IS the committed ANONYMIZED copy of the live bytes (for a
-   new_bytes row -- no live file on any box yet -- the fixture is the template's
-   own self-render, so the row is pinned either way);
+6. the FIXTURE is the ANONYMIZED RENDERED bytes, not a copy of the template: it is
+   the template rendered with the measured inputs and the fixed stand-ins, so a
+   changed template, a changed sized value or a changed stand-in MOVES it (the old
+   test asserted template == fixture, i.e. X == X); the three no-cascade rows
+   record the LIVE bytes and are compared on payload only -- a named drift;
 7. the rendered bytes EQUAL the live bytes on a box that has the guard
    (skipped, not silently passed, where the live file is absent) -- with the
    identity tokens the KIT derives from the running engine checkout and the
@@ -56,8 +58,14 @@ OWNER = pwd.getpwuid(os.getuid()).pw_name
 MEASURED = {k: v for k, v in
             json.loads((FIXTURES / "measurements.json").read_text(encoding="utf-8")).items()
             if not k.startswith("_") and k != "box"}
+# The fixed stand-ins a fixture is rendered with (fixtures/boxkit/standins.json): a
+# committed fixture must never carry a live host path, so every identity token is a
+# constant here. A second box with the same measurements gets exactly these bytes.
+STANDINS = {k: v for k, v in
+            json.loads((FIXTURES / "standins.json").read_text(encoding="utf-8")).items()
+            if not k.startswith("_")}
 CONTRACT_KEYS = {"name", "template", "dest_cell", "dest_rel", "mode", "sudo",
-                 "reload", "placeholders"}
+                 "reload", "placeholders", "new_bytes"}
 
 
 def _load():
@@ -71,7 +79,7 @@ R = _load()
 CFG = json.loads((PROJECT / ".agi" / "config.json").read_text(encoding="utf-8"))
 CELLS = dict(CFG["paths"]["boxkit"])
 MISSING_CELLS = sorted({p["dest_cell"] for p in R.manifest()["pieces"]} - set(CELLS))
-# only for the leak check (a template must not carry a literal root); never a token source
+# only for the leak checks (a template or a fixture must not carry a literal root)
 LEAK_ROOTS = sorted({str(p) for p in [PROJECT] + list(Path(PROJECT).parents[1:3])})
 
 # A probe identity: contract tests need SOME value for REPO_ROOT/GUARD_SRC to render
@@ -86,9 +94,32 @@ def _v(**over):
     return R.values(CFG, MEASURED, o)
 
 
+def _vs(**over):
+    """The values a committed fixture is rendered with: the measured inputs plus the
+    fixed stand-ins. This is the OFF-BOX comparison -- the bytes a second box gets."""
+    o = dict(STANDINS)
+    o.update(over)
+    return R.values(CFG, MEASURED, o)
+
+
+def _payload(text):
+    """The FUNCTIONAL bytes of a unit drop-in: everything that is not a comment header."""
+    return "\n".join(ln for ln in text.splitlines() if not ln.lstrip().startswith("#"))
+
+
+# The three no-cascade rows: the kit renders what SHOULD be installed (the guard
+# header), the live file carries the owner 09-25 survival header. NAMED DRIFT --
+# asserted by test 6 and by test 10b, never hidden by weakening either.
+DRIFT_ROWS = {"streamer-stub-no-cascade", "streamer-stub-watch-no-cascade",
+              "claude-remote-control-no-cascade"}
+
+
 PIECES = R.manifest()["pieces"]
 BY_NAME = {p["name"]: p for p in PIECES}
 LIVE = [p for p in PIECES if not p.get("new_bytes")]
+# the LIVE identity tokens, used only to assert a committed fixture does not carry them
+HOST_TOKENS = (OWNER, str(Path.home()), str(R.engine_checkout()),
+               str(R.expand(CELLS, CELLS["guard_dir"], R.engine_checkout())))
 
 
 # 1 -- manifest schema
@@ -153,12 +184,64 @@ def test_sizing_reproduces_the_measured_knobs():
     assert mib["AGI_MAX"] == int(0.70 * mib["USER_MAX"]) != round(0.70 * mib["USER_MAX"])
 
 
-# 6 -- the template IS the committed anonymized copy of the live bytes
+# 6 -- THE FIXTURE IS THE RENDER, NOT A COPY OF THE TEMPLATE. The previous version
+# of this test asserted template == fixture, i.e. X == X: it could never fail. A
+# fixture here is the ANONYMIZED RENDERED bytes -- template rendered with the
+# measured inputs and the fixed stand-ins -- so a changed template, a changed sized
+# value or a changed stand-in moves it. The three no-cascade rows record the LIVE
+# bytes instead (named drift, the header comment) and are compared on payload.
 @pytest.mark.parametrize("piece", PIECES, ids=[p["name"] for p in PIECES])
-def test_template_equals_the_anonymized_fixture(piece):
+def test_rendered_bytes_equal_the_anonymized_fixture(piece):
     fix = FIXTURES / (piece["name"] + ".fixture")
     assert fix.is_file(), fix
-    assert (TEMPLATES / piece["template"]).read_text(encoding="utf-8") == fix.read_text(encoding="utf-8")
+    got, want = R.rendered(piece, _vs()), fix.read_text(encoding="utf-8")
+    if piece["name"] in DRIFT_ROWS:
+        assert _payload(got) == _payload(want), _diff(_payload(want), _payload(got))
+        assert got != want, ("%s is listed as a DRIFT row but the template now renders the "
+                             "live bytes exactly -- drop it from DRIFT_ROWS" % piece["name"])
+    else:
+        assert got == want, _diff(want, got)
+
+
+def _diff(want, got):
+    import difflib
+    return "\n".join(difflib.unified_diff(want.splitlines(), got.splitlines(),
+                                          "fixture", "rendered", lineterm="", n=1))
+
+
+# 6b -- the anti-circular falsifier: the fixture is a RENDER, so it cannot be a copy
+# of the template byte-for-byte wherever an identity token is substituted, and a
+# changed measured input must move the rendered bytes away from the fixture.
+@pytest.mark.parametrize("piece", PIECES, ids=[p["name"] for p in PIECES])
+def test_the_fixture_is_a_render_and_not_a_copy_of_the_template(piece):
+    tmpl = (TEMPLATES / piece["template"]).read_text(encoding="utf-8")
+    fix = (FIXTURES / (piece["name"] + ".fixture")).read_text(encoding="utf-8")
+    if set(piece["placeholders"]) & set(STANDINS):
+        assert fix != tmpl, ("%s substitutes %s but its fixture is byte-identical to the "
+                             "template: the fixture is a copy, the test is X == X"
+                             % (piece["name"], sorted(set(piece["placeholders"]) & set(STANDINS))))
+    # a sized input moved by 1M changes every sized byte in the render
+    if any(k in piece["placeholders"] for k in ("MEM_TOTAL", "AGI_HIGH", "USER_MAX")):
+        moved = R.rendered(piece, _vs(MEM_TOTAL=MEASURED["MEM_TOTAL"] + 1))
+        assert moved != R.rendered(piece, _vs())
+
+
+# 6c -- no committed fixture may carry a live host token (anonymization is the whole
+# point of the stand-ins; a fixture built from a live read is a leak).
+@pytest.mark.parametrize("piece", PIECES, ids=[p["name"] for p in PIECES])
+def test_no_fixture_carries_a_live_host_token(piece):
+    fix = (FIXTURES / (piece["name"] + ".fixture")).read_text(encoding="utf-8")
+    assert not [t for t in HOST_TOKENS if t and t in fix], piece["name"]
+
+
+# 6d -- the stand-ins are constants, not this box: a fixture rendered with the LIVE
+# host tokens must not be the committed fixture (or the anonymization is a no-op).
+def test_the_stand_ins_are_constants_and_not_this_box():
+    assert STANDINS["UID"] != UID and STANDINS["OWNER_USER"] != OWNER
+    assert STANDINS["REPO_ROOT"] != str(R.engine_checkout())
+    piece = BY_NAME["user-slice-guard"]
+    assert R.rendered(piece, R.values(CFG, MEASURED, R.host_tokens(CFG))) != \
+        (FIXTURES / (piece["name"] + ".fixture")).read_text(encoding="utf-8")
 
 
 # 7 -- THE FALSIFIER: rendered bytes == the live bytes on this box, with the
@@ -249,17 +332,36 @@ def test_manifest_covers_every_unit_the_goal_no_cascade_row_names(unit):
     # the unit's no-cascade layer rides the CONFIGURED OOM_POLICY, never a literal
     assert any("OOMPolicy=" + CFG["values"]["boxkit"]["OOM_POLICY"] in out for out in rendered), rows
     assert all(p["reload"] in ("system", "user") and p["mode"] == "0644" for p in rows)
+    # the no-cascade drop-in lands in the USER unit dir as 10-agi-survival.conf --
+    # the name and the directory goal:g7.33.18's row carries, not 50- under /etc
+    for p in rows:
+        if not p.get("new_bytes"):
+            continue
+        assert p["dest_cell"] == "user_systemd_dir", (p["name"], p["dest_cell"])
+        assert p["dest_rel"] == unit + ".service.d/10-agi-survival.conf", (p["name"], p["dest_rel"])
+        assert p["reload"] == "user" and p["sudo"] is False, p["name"]
 
 
 @pytest.mark.parametrize("unit", _no_cascade_units())
 def test_no_cascade_drop_in_matches_the_live_bytes_or_names_its_absence(unit):
-    rows = _drop_ins_for(unit)
+    """The LIVE half of the falsifier, after the dest fix: the three drop-ins ARE on
+    this box, under the user_systemd_dir cell. For a new_bytes row the kit renders
+    what SHOULD be installed and the live file carries the owner survival header, so
+    the FUNCTIONAL bytes must be identical and the header difference is a NAMED,
+    DELIBERATE drift -- asserted here, never papered over."""
+    rows = [r for r in _drop_ins_for(unit) if r.get("new_bytes")]
+    if not rows:
+        pytest.skip("unit %s has no new_bytes no-cascade row in the kit" % unit)
     v = R.values(CFG, MEASURED, R.host_tokens(CFG))
-    absent = [row["name"] for row in rows
-              if not R.destination(row, CELLS, v, "/").is_file()]
+    absent = [r["name"] for r in rows if not R.destination(r, CELLS, v, "/").is_file()]
     if absent:
         pytest.skip("no live bytes on this box for the no-cascade drop-in(s) %s of unit %s "
-                    "(the unit carries no such drop-in here), so there is nothing to falsify "
-                    "against -- the kit is portable" % (", ".join(absent), unit))
+                    "(the kit is portable), so there is nothing to falsify against"
+                    % (", ".join(absent), unit))
     for row in rows:
-        assert R.rendered(row, v) == R.destination(row, CELLS, v, "/").read_text(encoding="utf-8")
+        live = R.destination(row, CELLS, v, "/").read_text(encoding="utf-8")
+        got = R.rendered(row, v)
+        assert row["name"] in DRIFT_ROWS, row["name"]
+        assert _payload(got) == _payload(live), _diff(_payload(live), _payload(got))
+        assert got != live, ("%s: the template now renders the live bytes exactly -- the "
+                             "named header drift is gone, drop the row from DRIFT_ROWS" % row["name"])

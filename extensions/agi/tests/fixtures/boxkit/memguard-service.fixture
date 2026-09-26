@@ -1,7 +1,7 @@
 [Unit]
 Description=agi memguard: protect the 5 posts + the stream, suspend runaway memory (owner 09-25)
 [Service]
-ExecStart={{PYTHON_BIN}} {{SBIN_ABS}}/agi-memguard.py
+ExecStart=/usr/bin/python3 /usr/local/sbin/agi-memguard.py
 Restart=always
 RestartSec=2
 OOMScoreAdjust=-1000

@@ -1,2 +1,2 @@
 [Service]
-OOMPolicy={{OOM_POLICY}}
+OOMPolicy=continue
