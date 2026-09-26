@@ -3,6 +3,7 @@
 The box is memory-guarded (belam 04:29Z). A stand-in `torch` that only RECORDS its
 `load` calls still trips this; no library is imported to install the guard.
 """
+import importlib.util
 import sys
 
 import pytest
@@ -83,6 +84,62 @@ def _patch_one(name, module):
 
 def _patch_all():
     return sum(_patch_one(n, m) for n, m in list(sys.modules.items()))
+
+
+class _Patching:
+    """Delegates every loader call to the real loader; patches the module the
+    INSTANT it is exec'd. `create_module` is reached only when the inner loader
+    has one (importlib getattr-swallows the AttributeError otherwise), so the
+    module-creation path is byte-for-byte the inner loader's."""
+
+    def __init__(self, inner, name):
+        self._inner, self._name = inner, name
+
+    def create_module(self, spec):
+        return self._inner.create_module(spec)
+
+    def exec_module(self, module):
+        self._inner.exec_module(module)
+        _patch_one(self._name, module)
+
+    def __getattr__(self, attr):
+        return getattr(self._inner, attr)
+
+
+class _RefuseOnLoad:
+    """Hole C, the import half: a refused module is guarded the moment it is
+    exec'd, so a module imported INSIDE a test body cannot outrun the guard. The
+    per-test re-scan is a SAMPLER, not a barrier -- the body's next line can run
+    before it. This hook is the barrier: it is consulted by `import` itself.
+    Delegates to the real finders via importlib.util.find_spec with itself
+    removed, so no finder's find_spec signature is ever guessed at."""
+
+    def find_spec(self, fullname, path=None, target=None):
+        if not _attrs_for(fullname):
+            return None                      # the common case: not a refused root
+        try:
+            sys.meta_path.remove(self)
+        except ValueError:
+            return None
+        try:
+            spec = importlib.util.find_spec(fullname)
+        except (ImportError, AttributeError, ValueError):
+            return None                      # absent: leave the ImportError to the caller
+        finally:
+            sys.meta_path.insert(0, self)
+        if spec is not None and spec.loader is not None:
+            spec.loader = _Patching(spec.loader, fullname)
+        return spec
+
+
+_LOAD_HOOK = _RefuseOnLoad()
+sys.meta_path.insert(0, _LOAD_HOOK)
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Removed at session end: the hook outlives neither the run nor the process."""
+    if _LOAD_HOOK in sys.meta_path:
+        sys.meta_path.remove(_LOAD_HOOK)
 
 
 @pytest.fixture(autouse=True)
