@@ -8,7 +8,9 @@ model's weights before it refuses.
 import importlib.util, json, os, subprocess, sys, textwrap
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [os.path.join(os.getcwd(), ".agi/context/local-maxxing"), HERE]
-import numpy as np, torch
+import pytest  # skip-by-name: this module cannot run without numpy, torch
+np = pytest.importorskip('numpy')
+torch = pytest.importorskip('torch')
 _s = importlib.util.spec_from_file_location("h", os.path.join(HERE, "osc_band_seeds_qwen3_a00-6771cb76.py"))
 h = importlib.util.module_from_spec(_s); _s.loader.exec_module(h)
 fixed, npv = h.fixed, 64
