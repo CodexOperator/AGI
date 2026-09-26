@@ -5,7 +5,7 @@ T6 and T7 are the two the previous artifact could not have passed: an `assert`
 gate is invisible under `python -O`, and an optional `which` loads the WRONG
 model's weights before it refuses.
 """
-import importlib.util, os, subprocess, sys, textwrap
+import importlib.util, json, os, subprocess, sys, textwrap
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [os.path.join(os.getcwd(), ".agi/context/local-maxxing"), HERE]
 import numpy as np, torch
@@ -104,8 +104,28 @@ def test_t10_row_contract():
     import inspect
     sig = inspect.signature(h.run)
     assert list(sig.parameters) == ["which", "seeds", "budgets", "n_prompts"], list(sig.parameters)
-    assert h.SEEDS_DEFAULT == "7,21,99", h.SEEDS_DEFAULT   # config values.local_maxxing.osc_band_seeds
+    # T10a: SEEDS_DEFAULT is the CELL read at import, never a frozen literal here --
+    # a test that pins "7,21,99" is green only while the cell is stale (item 2).
+    cell = json.load(open(h.paths.config_path()))["values"]["local_maxxing"]["osc_band_seeds"]
+    assert h.SEEDS_DEFAULT == ",".join(str(s) for s in cell), (h.SEEDS_DEFAULT, cell)
+    assert len(set(cell)) >= h.MINS, "cell seeds %r are not %d distinct" % (cell, h.MINS)
     assert h.MINS == 3 and h.NP64 == 64
+
+
+def test_t11_no_all_prompts_ref_list():
+    """T11 (item 3): the OOM mechanism is GONE -- no list comprehension materialises a
+    full-vocab fp32 log-softmax for every prompt at once.  151936 * 4 B = 0.58 GiB per
+    prompt; 8 prompts is the CONSTRAINT_MEMCG kill journalctl recorded. One ref, dropped
+    per prompt, in a prompt-outer loop -- asserted on the SOURCE, model-free."""
+    src = open(os.path.join(HERE, "osc_band_seeds_qwen3_a00-6771cb76.py")).read()
+    bad = [ln.strip() for ln in src.splitlines()
+           if "log_softmax" in ln and ln.strip().startswith("refs") and "[" in ln and "for" in ln]
+    assert not bad, "all-prompts ref list still present: %r" % bad
+    assert "refs = [torch.log_softmax" not in src, "all-prompts ref list still present"
+    # ... and the one that remains is INSIDE a per-prompt loop, not a comprehension
+    for ln in src.splitlines():
+        if "torch.log_softmax" in ln and "refs = [" not in ln:
+            assert ln.startswith(" "), "ref built at wrong indent (not per-prompt): %r" % ln
 
 
 if __name__ == "__main__":
