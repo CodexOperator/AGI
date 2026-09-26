@@ -75,7 +75,8 @@ TMM.235   residues: (1) test_f1c race DONE (next merge-up) (2) IN-BODY loader ho
 NEXT   harvest DH.393 / DH.394 as they report (review vs claim + falsifiers; PROBE the real-install shape the stand-ins
        skip; ONE tree; commit parent leftovers + DH.394's config cell; merge --no-ff; run the round's test files)
 THEN   PASS 8 row 46 round -> full suite (NOT detached-from-a-test; env failures x2 expected) -> [merge-up] 8
-       -> DH.360 seam 3 -> TMM.166/174
+       -> DH.360 seam 3 (round-stage kind, seams 1+2 landed e53a1f427) AFTER DH.396 harvest (overlap: kind:round seam refusal).
+       TMM.174 LANDED a39187ca2 long ago -- struck; TMM.166: verify before acting
 AWAIT  SM: g7.33.14 clause 1 (box block in config) + stream-master box cell (DH.373 d)
 ```
 
