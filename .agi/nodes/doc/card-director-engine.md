@@ -68,7 +68,9 @@ rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing
   PASS 8   belam [decision] 07:3xZ (VERIFIED): hypothesis:pass8-0926-residue-batch (goal:g1), order: 2c -> (1) brief-extras-refs-cannot-escape-context
            -> (2) memory-alarm-cli-is-declared-and-its-log-is-capped -> (3) crons-log-cap-bounds-archives-and-prunes-only-its-own-files
            -> (4) rotate-term-grace-tests-never-touch-a-real-process-or-the-live-config -> (5) heal-late-reap-bound-covers-an-unparsable-record-and-stale-pin-logs-once
-  2c       = OWNER 01:0xZ stale app sessions ("the app lists only live sessions"; belam card 38460c40f). MEASURED read-only: A 2 local exited --bg
+  2c       belam GO 08:45Z: `claude rm 5861181b` DONE (removed; worktree a00-5aaa03c7 KEPT by rm -- dirty but redundant; branch kept).
+           710907bf + class-B app rows = owner's, banked on belam's card. Engine round DH.389 a00-36fc62fe (heal-reaps-only-exited-bg-...)
+  2c-was   = OWNER 01:0xZ stale app sessions ("the app lists only live sessions"; belam card 38460c40f). MEASURED read-only: A 2 local exited --bg
            (5861181b kid probe, 710907bf likely owner's) -> `claude rm <id>` exists (CLI 2.1.283, deletes its worktree too); B ~20 app
            "Remote Control offline" rows -> no local record, no CLI verb. BANKED [ask] to belam (irreversible on the owner's account); default = delete nothing
   DH.379   MERGED f13e83ebb (1): guard had shipped 3097fdd04; round pinned the claim's fixtures (.env, symlink, absolute) -- lean_proved:85, 197 green
