@@ -39,11 +39,11 @@ DH.424    grid-commit gate demoted its hand-set proved (evidence_runs absent): L
 OWNER     21:1xZ via belam 23:12Z on goal:send-is-hub-only-...: QUIET row cell (nudge only for [red]) + READ-ON-LANDING (a visible, non-busy deposit IS the read); both verbatim in the node notes on the trunk. HOLD: no stream / encryption-town config / sanctuary activation until messaging is done  post branch since: ONLY DH.424+431 merged (clean mur); every other round waits on its loop branch
 CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_max 150 684a83a3a · paths.boxkit.* 3b42eb930 · values.boxkit.* (54) + guard_dir/user_systemd_data_dir 80dc2a99e
 424    MERGED with 431 (mur-5 accept) into the post branch + verdict proved 390bab9da -- repro green on the post branch
-425    -> 428 -> 435 -> 441 -> 448 a00-991dc2e8 -> mur-7 accept_with_residue (None-branch row missing; 'three S1 names' + 'EXISTS' wording in 3 nodes + chain root) -> 456 a00-f38de815 HARVESTED (None row + chain-root wording committed; 85 green; 3 experiment wording edits write.py-LOGGED but UNCOMMITTED -- held, [red] to TM 23:3xZ) -> mur DH.456-k1 RUNNING
+425    -> 428 -> 435 -> 441 -> 448 a00-991dc2e8 -> mur-7 accept_with_residue (None-branch row missing; 'three S1 names' + 'EXISTS' wording in 3 nodes + chain root) -> 456 a00-f38de815 HARVESTED (None row + chain-root wording committed; 85 green; 3 logged kid edits LANDED b3d381f5a under TMM.268(a), bytes == last write-log sha) -> mur-9 DH.456-k1 RUNNING (restarted on the landed tip)
 426    a00-8783b3d3 schema gate  mur-4 residue x3 (cli.py: named-id hole, double ERR, stale comment) -> 442 FAILED TO BUILD ON IT (no
        merge; hook-only overlap) -> NEVER merge 442 -> 445 a00-5a2ac2fb -> mur-7 accept_with_residue x7 (schemas resolver circular+global+2nd literal; green test encodes fail-open; done non-zero unmeasured; hook no timeout; scope; citations) -> 455 a00-4d187f38 LIVE, cut from 445 (worktree de-base-455)
        stale-base "behind 1" overridden with reason -- quote the refusal line in [merge-up])
-427    -> 436 (mur-6: restore None arm + say why) -> 449 a00-35a98fab HARVESTED (None arm restored, proved; a00-202077db demoted lean_disproved:70 -- tmux sweep skipped test_conftest_guard.py; stray a00-416266d2 correction committed 2cee3ba21; 96 green) -> mur-8 DH.449-k1 RUNNING
+427    -> 436 (mur-6: restore None arm + say why) -> 449 a00-35a98fab HARVESTED (None arm restored, proved; a00-202077db demoted lean_disproved:70 -- tmux sweep skipped test_conftest_guard.py; stray a00-416266d2 correction committed 2cee3ba21; 96 green) -> mur-8 DH.449-k1 RUNNING; its corrective ALSO re-lands a00-416266d2 via write.py (2cee3ba21 bytes match NO write-log row anywhere = unlogged, TMM.268)
 429    -> 443 a00-169a5424 REBUILT standalone (live 150, both guards) -> mur-6 DH.443 accept_with_residue (real systemd-run in fan-out test; live-config rows pin literal 150) -> 453 a00-a5beb177 HARVESTED (proved; 21 green; stubbed runner, no literal) -> mur DH.453-k1 RUNNING; LAND: merge 429 (nodes) THEN 443 (-X theirs)
 430    -> 440 a00-c8389b84 (incl 430+431; ONE guard home, 0 dups; 229 green + repro) -> mur-6 DH.440 DONE accept_with_residue x2 (import-time kill leaf pid-only; context conftest no import fence; env= pinned by source string; _STRIPPED note) -> 452 a00-cbb9f70e (closed 1/3/4: one signal0 predicate, env-strip by behaviour, _STRIPPED gone; 67 green; kid a00-e734f35a FAILED empty) -> 457 a00-7ceac8c4 LIVE, cut from 452 (residue 2 context import fence + killpg); mur 440->457 ONCE after (stale-base overridden with reason, x all correctives)
 432    SUPERSEDED (host in history) -> 438 -> 446 a00-20d4ab3d (cut from 438; 0/24 fixtures==tmpl, 177 green) -> mur-7 DONE:
@@ -87,12 +87,12 @@ nproc       NEVER `prlimit --nproc` in orders: RLIMIT_NPROC is PER-USER (this ui
 fork-bound  every orders file: a test that spawns python/pytest runs it under `timeout` + a process cap, NEVER a pytest
             that can re-collect its own dir; a conftest never exec's another conftest (DH.419 fork bomb, 127 procs)
 torch-path  context tests: PYTHONPATH=paths.local_maxxing.osc_test_pythonpath + system python3 (the venv has no pytest)
-kid-node    NEVER hand-land a kid's uncommitted node edit (brief.py 'A KID'S AUTHORED NODE IS THE KID'S'): I did at 79bdb3490 (451) + 2cee3ba21 (449), mur-8 flagged it -> the corrective re-lands via write.py under the kid's actor
+kid-node    TMM.268: land a kid's uncommitted node edit ONLY if write.py-LOGGED: bytes == its last write-log sha, exact paths, one commit/round, message names actors + row ids, it rides the mur. UNLOGGED -> never hand-land (brief.py 'A KID'S AUTHORED NODE IS THE KID'S'): I did at 79bdb3490 (451) + 2cee3ba21 (449), mur-8 flagged it -> the corrective re-lands via write.py under the kid's actor
 suite-live  NEVER merge into this tree while a suite runs here: getsource tests read the moved file (12: 2 false reds)
 ```
 
 ## BANKED
-- [red] to thought-master 23:3xZ: kid write.py-logged edits to FOREIGN nodes (ordered) cannot commit (done excludes foreign) and a director may not hand-land them -- DH.456's 3 edits held uncommitted in worktree a00-f38de815 until TM rules.
+- TMM.268 (b) durable fix = a g7.33.17 row (dispatch records the existing node ids the orders name; cli.py done admits exactly those) -- TM's to mint/assign.
 - config:brief `extras.parent` -- BLOCKED on prime/owner (L4.110 ring-gate).
 - claude-code kids on local-town -- owner's; the allowlist refusal is correct.
 
