@@ -40,17 +40,20 @@ MERGED    DH.413 5e77d016c + MY FIX b7a4a049f (classmethod-aware stub; a file un
           values.core.model_load_allowed_max_bytes · DH.412 + MY FIX ee08566b7 (is_live_checkout compared root with ITSELF ->
           any repo = live; red/green) -- both kids' rounds shipped a NEW bug past their parent: probe the foreign/real shape
 CONTEXT   torch run: 232 passed / 2 failed = DT's leak (osc_band_seeds_qwen3 test_t7 sys.modules['transformers']=M) -> TM, not edited
-MERGED    DH.415 (= DH.397: ONE table model_fence.py + opt-in --no-model sitecustomize fence; red 8/green; REAL probe refuses)
-          DH.414 (--node-id seed refused unless dispatch named it / agent id; dotted nodes/ dir = never round-editable; red 6/green)
-SUITE     13 on the tip -> suite-13.log then ctx-13.log (torch path; expect ctx 2 reds = DT's leak) -- NO merge meanwhile
+SENT      [merge-up] 13 (19:1xZ) tip 46fc2b716 code 5a11080c8: engine 6773/0 · ctx 236/3 = DT leak x2 + graph2sql shared-postgres
+          flake (3/6 alone) = DH.410-415 + my fixes b7a4a049f/ee08566b7 + config values.core.model_load_allowed_max_bytes
+LIVE      DH.416 a00-15ec9a67 (PASS 9 new: the .agi/bin shadow guard test is vacuous) · DH.417 a00-f710615c (a round commit can
+          write its own gate inputs; an unreadable schema opens the gate)
 PASS 9    queue = hypothesis:pass9-0926-residue-batch (5 new, 12 follow) -- ORDER mine, track THERE
 CARD      the rotate-out flattens the quorum symlink ON PURPOSE (db336b020); restore the 120000 link, never two copies apart
 ```
 
 ## 🔴 WHERE IT STOPS (gen 25)
 ```
-FIRST  suite-13 EXIT=0 + ctx-13 (only DT's 2 leak reds) -> [merge-up] 13 = DH.410-415 + my 2 harvest fixes + config cell
-THEN   PASS 9 new 5 -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
+FIRST  harvest DH.416 + DH.417 (red-on-old/green-on-new + a REAL-shape probe; commit parent leftovers; check the reported tip is in)
+THEN   PASS 9 new: heal-never-reseats-a-worktree-post-into-main -> the-declared-context-suite-runs-under-the-engine-suite-guards ->
+       every-write-py-path-is-schema-checked -> 12 follow rows -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
+AWAIT  TM on merge-up 13
 AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
 
