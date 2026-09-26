@@ -56,14 +56,18 @@ STANDS["transformers.models.llama"] = _tfl
 STANDS["huggingface_hub"] = _standin(
     "huggingface_hub", hf_hub_download=lambda *a, **k: "RECORDED",
     snapshot_download=lambda *a, **k: "RECORDED")
-sys.modules.update(STANDS)
 
 
-@pytest.fixture(scope="session", autouse=True)
-def _drop_standins():
+@pytest.fixture(autouse=True)
+def _standins(monkeypatch):
+    """Install the stand-ins PER TEST and restore sys.modules after it. At import
+    time (the old shape) they leaked into every module collected after this one:
+    a real torch test got the stand-in ('module torch has no attribute
+    set_num_threads', TMM.231). The conftest's pytest_runtest_call re-scan sees
+    them before the body runs."""
+    for name, mod in STANDS.items():
+        monkeypatch.setitem(sys.modules, name, mod)
     yield
-    for name in STANDS:
-        sys.modules.pop(name, None)
 
 
 def test_standin_torch_load_is_refused_not_recorded(model_load_refusal):
@@ -169,6 +173,40 @@ def test_a_real_install_shape_with_c_types_does_not_error_the_guard():
 def _no_model_load_owner():
     """The loaded .agi/context conftest module, found by the guard it defines."""
     for name, m in list(sys.modules.items()):
-        if getattr(m, "ModelLoadRefused", None) and hasattr(m, "_patch_one"):
+        # __dict__, never getattr: torch.ops (an _OpNamespace) answers ANY
+        # attribute, so a getattr probe picked it on a torch python (TMM.231)
+        d = m.__dict__ if isinstance(m, types.ModuleType) else {}
+        if "ModelLoadRefused" in d and "_patch_one" in d:
             return name
     pytest.skip("the .agi/context conftest is not loaded in this run")
+
+
+def test_a_proxy_whose_attribute_access_raises_is_skipped_not_fatal(monkeypatch):
+    """TMM.231 defect 1, without torch: `torch.classes` is a _ClassNamespace whose
+    getattr raises RuntimeError (not AttributeError), so getattr's default never
+    caught it and the autouse scan errored every test on a torch python."""
+    class _Namespace(types.ModuleType):
+        def __getattr__(self, attr):
+            raise RuntimeError(f"Tried to instantiate class {attr}")
+    monkeypatch.setitem(sys.modules, "torch.classes", _Namespace("torch.classes"))
+    conftest = sys.modules[_no_model_load_owner()]
+    conftest._patch_all()   # must not raise
+
+
+def test_standins_never_leak_into_a_later_module(tmp_path):
+    """TMM.231 defect 2: run this file, then a module collected AFTER it, in one
+    session; the later module must not see a stand-in torch."""
+    import os
+    import subprocess
+    if os.environ.get("AGI_GUARD_LEAK_CHILD"):
+        pytest.skip("inside the leak probe's own child run")
+    later = tmp_path / "test_zz_later.py"
+    later.write_text(
+        "import sys\n"
+        "def test_no_standin():\n"
+        "    t = sys.modules.get('torch')\n"
+        "    assert t is None or not hasattr(t, '_calls'), t\n")
+    r = subprocess.run([sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider",
+                        __file__, str(later)], capture_output=True, text=True, timeout=120,
+                       env=dict(os.environ, AGI_GUARD_LEAK_CHILD="1"))
+    assert r.returncode == 0, r.stdout[-2000:]
