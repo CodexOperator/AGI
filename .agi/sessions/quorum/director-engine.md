@@ -75,8 +75,6 @@ THEN   g7.33.15 capture-flatten red · send-hub goal leaves · PASS 9 follow row
 goals-md    EVERY goal-node edit: snapshot-goals.py --render + commit GOALS.md in the SAME commit, then --check (TMM.248)
 card size   the driven handoff refuses a composed card > 100 lines -> the capture never rotates. KEEP THIS CARD SMALL.
 never wait  on a capture: rotate yourself at f >= 0.47 (`python3 extensions/agi/bin/rotate.py rotate`, bare)
-torch-py    a guard that walks sys.modules must never getattr blind: torch.classes RAISES, torch.ops answers ANY name
-refused==   a value threaded as "refused" but judged by the same gate as "named" is not refused: grep the loop, probe it
 behind      interpolate the MEASURED rev-list count into a merge-up, never type it
 nproc       NEVER `prlimit --nproc` in orders: RLIMIT_NPROC is PER-USER (this uid runs >300) -> EAGAIN in unrelated tests;
             the per-tree bound is the round scope TasksMax (spawn.tasks_max). My orders DH.428-444 carried it: expect EAGAIN notes
@@ -85,7 +83,6 @@ fork-bound  every orders file: a test that spawns python/pytest runs it under `t
 basetemp    NEVER pytest --basetemp <dir in the repo>: pytest WIPES it (DH.412 parent lost engine bin/, 84 files)
 torch-path  context tests: PYTHONPATH=paths.local_maxxing.osc_test_pythonpath + system python3 (the venv has no pytest)
 suite-live  NEVER merge into this tree while a suite runs here: getsource tests read the moved file (12: 2 false reds)
-one-tree    a parent dispatching kid 2 before merging kid 1 gets overlapping ports: take ONE tree
 config      rounds CANNOT commit .agi/config.json (cli.py _round_scope_ok): the director commits named cells
 cat-literal grep 'cat /data' in harvested nodes · never grep -r over .agi/ (100+ worktrees)
 no-claude   kids never launch real claude; stand-ins only (in every orders file)
