@@ -285,3 +285,61 @@ def test_dispatch_still_has_zero_grok_hits():
     dispatch = _project_root() / "extensions" / "agi" / "bin" / "dispatch.py"
     assert "grok" not in dispatch.read_text(encoding="utf-8").lower()
 
+
+
+# ------------------------------------------------- the rendered brief (DH.406)
+def test_rendered_brief_reaches_argv_never_discarded():
+    """dispatch renders the brief ONCE and hands it to `build_command`; a
+    grok-bot spawn must CARRY it. Before this, the render was accepted and
+    dropped: argv carried only `context_file`, which is the agent's MAP, so a
+    grok-bot agent would have started with no first turn at all
+    (hypothesis:grok-bot-adapter-uses-or-refuses-the-rendered-brief)."""
+    argv = grok.build_command(
+        harness=HARNESS, tier="kid", context_file="/tmp/ctx.md",
+        rendered_brief="SENTINEL-RENDERED-BRIEF")
+    assert "SENTINEL-RENDERED-BRIEF" in argv
+    assert "/tmp/ctx.md" not in argv
+
+
+def test_no_rendered_brief_still_carries_the_context_path():
+    """Back-compat: with no render in hand the argv keeps its old shape
+    (`-p <context_file>`), so nothing that reads the stub argv moves."""
+    argv = grok.build_command(
+        harness=HARNESS, tier="kid", context_file="/tmp/ctx.md")
+    assert argv[-2:] == ["-p", "/tmp/ctx.md"]
+
+
+def test_empty_render_and_empty_context_refuse_by_name():
+    """The OTHER arm of the claim: refuse, don't accept and discard.
+
+    Parent probe P3 found `build_command(context_file="", rendered_brief="")`
+    emitting `-p ''` -- an EMPTY PROMPT. Neither arm held there: the render
+    was not used, and nothing named the refusal. An agent handed an empty
+    prompt starts with no first turn and no error anywhere, which is the same
+    silent loss as the discarded render, one layer down.
+    (hypothesis:grok-bot-adapter-uses-or-refuses-the-rendered-brief)
+    """
+    for ctx, render in (("", ""), ("", None), (None, "")):
+        with pytest.raises(ValueError) as exc:
+            grok.build_command(harness=HARNESS, tier="kid", context_file=ctx,
+                               rendered_brief=render)
+        msg = str(exc.value)
+        assert "grok-bot" in msg          # names the harness
+        assert "rendered_brief" in msg    # names the empty input
+        assert "context_file" in msg      # names the other empty input
+
+
+def test_restart_with_both_inputs_empty_degrades_to_none(monkeypatch, tmp_path):
+    """The named refusal must not escape `restart` into dispatch: the goal:g4.7
+    contract is a pid OR None. Copilot's missing-context refusal lands the same
+    way (FileNotFoundError is an OSError, caught). Popen is never reached."""
+    def boom(*a, **k):
+        raise AssertionError("Popen must not be reached on a refusal")
+
+    monkeypatch.setattr(grok.subprocess, "Popen", boom)
+    sess = tmp_path / "sess"
+    sess.mkdir()
+    pid = grok.restart(harness=RESTART_HARNESS, tier="kid", context_file="",
+                       agent_id="a00-test", iter_n=1, sess_dir=sess,
+                       scaffold=None, target="goal:g17.14.1")
+    assert pid is None
