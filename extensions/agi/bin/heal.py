@@ -3082,14 +3082,8 @@ def _clean_stale_layout_locks(root: Path, row: dict) -> None:
     best-effort, never raises.
 
     THE `gdir is None` ARM IS DEFENSIVE, NOT REACHABLE-BY-GEOMETRY: the ONE
-    current caller (`_recover_seat`) returns on the missing-worktree refusal
-    BEFORE this call (hypothesis:heal-worktree-refusal-tests-never-reach-live-
-    tmux-and-dead-branches-go), but that refusal is a DIFFERENT MOMENT than
-    this read — a worktree pruned between the check and the call leaves
-    `_seat_geometry_dir` refusing (None), and this module-level function is
-    called directly. Keeping the arm is what makes "best-effort, never
-    raises" true rather than aspirational (DIRECTOR RULING DH.449, restoring
-    the DH.436 deletion)."""
+    caller's missing-worktree refusal is a DIFFERENT MOMENT than this read, so
+    a between-check prune still lands here (DIRECTOR RULING DH.449)."""
     gdir = _seat_geometry_dir(root, row)
     if gdir is None:
         _watch_log(f"watch: no geometry for dead seat "

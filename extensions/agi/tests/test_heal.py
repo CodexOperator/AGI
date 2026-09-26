@@ -494,6 +494,20 @@ def test_stale_lock_clean_never_raises_on_a_pruned_worktree_geometry(
     the body did `None / "sessions"` and raised TypeError
     (DIRECTOR RULING DH.449, restoring the DH.436 deletion)."""
     gdir, wt = _wt_graph(tmp_path, worktree=False)
+
+    # (b) SCOPE, and NOT a restatement of the unlink spy below: a REAL
+    # sibling seat's REAL planted lock under a REAL geometry dir must
+    # SURVIVE this call. The `gdir is None` arm is a refusal for THIS
+    # row's geometry, never a sweep over the room; the old closing
+    # assertion (`not (gdir/"sessions"/"verify-suite.lock").exists()`)
+    # was VACUOUS -- nothing ever created that file, so it was true of any
+    # code at all. Delete the arm and this row dies red on the `None /`
+    # TypeError; widen the arm into a sweep and it is red on the message.
+    sib = gdir / "worktrees" / "seat-sibling" / ".agi" / "sessions"
+    sib.mkdir(parents=True, exist_ok=True)
+    sib_lock = sib / "verify-suite.lock"
+    sib_lock.write_text("LIVE-SIBLING-SEAT", encoding="utf-8")
+
     log = tmp_path / "reaper.log"
     monkeypatch.setenv("AGI_REAPER_LOG", str(log))
 
@@ -511,7 +525,9 @@ def test_stale_lock_clean_never_raises_on_a_pruned_worktree_geometry(
         monkeypatch.undo()
 
     assert not touched, f"touched something on a refusal: {touched}"
-    assert not (gdir / "sessions" / "verify-suite.lock").exists()
+    assert sib_lock.exists(), (
+        f"the refusal swept a sibling seat's REAL lock away: {sib_lock}")
+    assert sib_lock.read_text(encoding="utf-8") == "LIVE-SIBLING-SEAT"
     err = capsys.readouterr().err
     assert "could not remove stale lock" not in err, err
     text = log.read_text(encoding="utf-8") if log.exists() else ""

@@ -5,10 +5,10 @@ type: hypothesis
 parents:
   - hypothesis:heal-never-reseats-a-worktree-post-into-main
 next_edges: []
-edited_by: a00-68d48a54
+edited_by: a00-090e88e0
 scaffold_hash: 72a4be2646fdce38
 season: 2
-testable_claim: "no committed test in test_heal_worktree_refusal reaches the live tmux server (nudge stubbed or a test session passed, proven by a recording shim), the unreachable None branch of _clean_stale_layout_locks is deleted, and the log-tail guard + stale-lock skip each get a test (TMM.262 residues 8+10, assigned: director-engine)"
+testable_claim: "\"no committed test in test_heal_worktree_refusal reaches the live tmux server (nudge stubbed or a test session passed, proven by a recording shim), the unreachable None branch of _clean_stale_layout_locks is deleted, and the log-tail guard + stale-lock skip each get a test (TMM.262 residues 8+10, assigned: director-engine). CEILING: <=24 production lines across 2 kids\""
 title: Heal worktree refusal tests never reach live tmux and dead branches go
 town: core
 ---
