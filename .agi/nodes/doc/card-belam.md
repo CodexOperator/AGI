@@ -29,18 +29,18 @@ gen 10 closed PASS 9 (steps 4-9) at 49d2b6f6a and idles for the 20:13Z CHECK. Th
 |---|---|
 | post | belam-S2-L5-X gen 10 · woke 17:2xZ · Opus 5.5 · IDLE after PASS 9 closed 17:43Z · meter ~0.22 |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` (clean, = season2/main 49d2b6f6a) · tz UTC · stream DOWN |
-| GUARD | user@1000 high 5246M / max 5829M · a pi stage ~210 MiB |
+| GUARD | user@1000 high **6628M / max 7365M** (raised 19:5xZ on the owner's go: guard docker budget 8G -> 6.5G, guard.env.bak-20260926T1955Z; the model container keeps its own 8G cap, peak 6.8G at load) · a pi stage ~210 MiB |
 | TOWN | DE gen 25 (a live suite lock in post-director-engine at 17:3xZ) · TM gen 27 · SM DOWN (owner's go) · 4 kid-worktree suite locks are pre-reboot dead pids |
 | merge | **PASS 9 CLOSED 17:43Z**: season2/main 2c6e8953c -> 49d2b6f6a (merge --no-ff of TIP 9e16b8ed90, pushed) · local-maxxing/main -> 9e16b8ed9 (ff) · grid 28 versions · 56 rounds: 52 accept_with_residue, 4 demote, 0 RED · residues hypothesis:pass9-0926-residue-batch + 5 defect hypotheses (DE) · trunk c2724f841 unpushed (TM's) |
 | crons | CHECK 116eb21c ("13 */4", next 20:13Z; dies with gen 10) · no PASS one-shot armed (section 2 DONE) |
 | spend | credits 13.75 USD · PASS 9 0 USD |
-| dms | [decision] -> DE delivered 17:4xZ · [merge-up] -> TM queued 17:4xZ (pane busy; the sweep retries) |
+| dms | 17:4xZ PASS 9 [decision] -> DE, [merge-up] -> TM · 19:5xZ OWNER: [decision] per-spawn caps -> DE (memory_max 2G + TasksMax 150 + model --memory-max) · [owner] -> TM · [owner] stream -> sanctuary-master (dm file) |
 | branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
 
 ## §1 Plan
 ```
 done   PASS 8 · PASS 9 (0-3 gen 9; 4-9 gen 10, 17:2x-17:4xZ) · CHECKs 08:4x / 12:4x / 16:4xZ
-next   the 20:13Z CHECK (section 1) · judge DE/DT merge-ups as they land · PASS 10 when the CHECK finds landed experiments
+next   the 20:13Z CHECK (section 1) · judge DE/DT merge-ups · PASS 10 · owner 19:5xZ: per-spawn caps land (DE) · stream re-seated on encryption-town (sanctuary-master) · model rounds HELD (TM)
 open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 ```
 
@@ -94,7 +94,7 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 | guard follow-ups (TM 08:49Z + 09:33Z): model rounds cannot fit user@'s high beside the seats; guard-init.sh 'last alerts' reads sanctuary-guard/alerts.log | run model loads in their own scope with a MemoryMax (~6G); repoint 'last alerts' at ~/logs/memory-alarm-alerts.log -- your guard files, outside git |
 | 2c leftovers (DE 07:39Z): exited session 710907bf + ~20 "Remote Control · offline" app rows | `claude rm 710907bf` if it is yours to drop; the app rows only from the app UI |
 | stream-master's seat after the power cycle | re-seat only on the owner's explicit go (stream down) |
-| the owner chain rule keeps an idle predecessor per rotation (~0.35 GiB each) | reap idle predecessors while the guard caps user@? the owner's call |
+| the owner chain rule keeps an idle predecessor per rotation: belam gen 9 (session-73, 210M + 141M swap), gen 8 (user@, 287M) | reap on the owner's word (offered 19:5xZ); session-73's 6.3G of cache needs nothing: the kernel frees it on demand |
 | the origin remote moved (every push prints the new location) | `git remote set-url origin <new>` -- the owner's call |
 | engine-wide config/template maxxing pass (owner idea, 09-23) | opening it is the owner's call |
 | MIN_REMAINING_CREDITS hard-coded 1 USD (provisioning.py:103, :206) | a config cell (a director-engine round) |
