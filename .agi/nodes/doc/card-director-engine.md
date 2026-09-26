@@ -61,6 +61,9 @@ PASS 8    row 47 DONE: DH.394 MERGED b39533d28 + cell reaper.chain_deadline_s=20
           row 50 DONE 696e915e2 · row 51 DONE db5ac813f (publish runs in the shared main checkout, rotate.py:10461)
           row 46 DONE: DH.396 MERGED 2c69c8385 (3 kids; kid1 lean_disproved:60 on the run-record conjunct, closed by kid3;
           parent probe re-run: [x] round-parent rc=3, summary names it); test_workflow* 184. PASS 8 rows ALL CLOSED
+DH.398    a00-b9cd4f05 LIVE: DH.360 seam 3 = round-mur.json + round-research-review.json (extends+prelude, kind:round);
+          the config:workflows rows are MINE to commit after harvest (the round reports them)
+suite9    full suite RUNNING detached on b443336cb (DH.396 + f1c fix) -> merge-up 9
 TMM.228   goal:g7.33.16 + hypothesis 6cf5681d2 -> DH.397 a00-aae44e7f STOPPED on TMM.229 (parent + kid TERMed, worktree kept)
 HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. Re-dispatch DH.397 only after, with the FIXTURE
           rule in orders + test: red-on-old = a tiny random-init model GENERATED in tmp, never osc03/osc15/brain weights
@@ -76,7 +79,6 @@ TMM.235   residues: (1) test_f1c race DONE (next merge-up) (2) IN-BODY loader ho
 NEXT   harvest DH.393 / DH.394 as they report (review vs claim + falsifiers; PROBE the real-install shape the stand-ins
        skip; ONE tree; commit parent leftovers + DH.394's config cell; merge --no-ff; run the round's test files)
 THEN   PASS 8 row 46 round -> full suite (NOT detached-from-a-test; env failures x2 expected) -> [merge-up] 8
-       -> DH.360 seam 3 (round-stage kind, seams 1+2 landed e53a1f427) AFTER DH.396 harvest (overlap: kind:round seam refusal).
        TMM.174 LANDED a39187ca2 long ago -- struck; TMM.166: verify before acting
 AWAIT  SM: g7.33.14 clause 1 (box block in config) + stream-master box cell (DH.373 d)
 ```
