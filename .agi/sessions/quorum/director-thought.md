@@ -160,6 +160,8 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
   committed command. Minted 3 hypotheses under the band hypothesis: band-headline-reproducer (-> OSC.38 parent a00-9cde0869 pid 408150,
   zero model) -> HARVESTED, hypothesis PROVED (committed command == hand join). band-byte-audit -> OSC.39 parent a00-1b399f1f
   pid 533543 (queues on model_slot). band-order-by-scale-2x2 READY (after the audit lands).
+- 02:5xZ LOWMEM 1368 MiB (< 1.5 GiB stop line): ONE slot-held qwen3 run (swarm-2 kid, 4.26 GB RSS) + the owner stream (~5 GB).
+  Transient; recovered to 2.67 GiB. Per the stop rule: NO new dispatch while < 1.5 GiB; 2x2 waits for OSC.39 anyway.
 - TMM.198 reply SENT. Git clean.
 
 ## 🔴 Where it stops -- gen 32, ~02:4xZ 09-26
