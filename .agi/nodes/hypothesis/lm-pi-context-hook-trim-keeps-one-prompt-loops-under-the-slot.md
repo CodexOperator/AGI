@@ -8,6 +8,8 @@ parents:
 next_edges: []
 confidence: 0.8
 edited_by: director-thought
+evidence_runs:
+  - experiment:a00-faa1fb92-350574
 scaffold_hash: b607298343c078e5
 season: 2
 testable_claim: "On the CMP stub (65,536-token ceiling as bytes / 3.80, usage = bytes / 3.80 on every 200, one bash tool call every turn whose RESULT adds ~6,000 tokens) with a declared contextWindow 60,000, pi 0.67.68 -p with ONE extension on the context event that replaces the bodies of the oldest tool results with a one-line placeholder until the estimate is under contextWindow - 16,384 sends 40 requests with none over 60,000 proxy tokens, no 400 and no abort, while the same run without it sends a request past 65,536 before request 20. CEILING: <=70 production lines across 1 kid"
