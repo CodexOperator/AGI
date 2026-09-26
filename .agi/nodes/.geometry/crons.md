@@ -26,12 +26,24 @@ cadences:
   nudge_sweep:
     every_mins: 2
     enabled: true
+  maint_gc:
+    schedule: 41 4 * * *
+    enabled: true
+    box: local-town
+    why_box: the object store is the local box's; gc on any other box would repack a store this job does not own
+    cmd: git -C {repo_root} gc --quiet
   prime_merge:
     schedule: 13 */4 * * *
     enabled: true
     box: local-town
     why_box: the Prime's town->season2/main merge routine runs where the Prime and the town trunk live (owner 01:2xZ 09-21, goal:g5; every 4 hours, owner 09-23 15:0xZ); inert until extensions/agi/bin/prime_merge.py lands (director-engine round)
     cmd: test -f {repo_root}/extensions/agi/bin/prime_merge.py && PI_BIN=$HOME/.npm-global/bin/pi python3 {repo_root}/extensions/agi/bin/prime_merge.py tick --root {root}
+  memory_alarm:
+    every_mins: 1
+    enabled: true
+    box: local-town
+    why_box: "reads this box's own /proc and user@ cgroup (OWNER 04:0xZ 09-26, after the 03:20Z memory livelock: raise a climb toward exhaustion before the box wedges); every threshold lives here, none in code"
+    cmd: python3 {repo_root}/extensions/agi/bin/memory_alarm.py --root {root} --warn-avail-mib 2048 --crit-avail-mib 1024 --warn-psi-some-avg60 10 --crit-psi-full-avg60 20 --warn-cgroup-max-frac 0.95 --repeat-mins 15 --notify belam
 crons_live: true
 edited_by: belam
 season: 1
@@ -156,7 +168,8 @@ property" below for the one case where that stops being automatic.
 
 Setting the frontmatter boolean above to `true` reconciles the real crontab
 to match `cadences:` above: each job whose own `enabled` is also `true` gets
-installed (today: `grid_sync` and `branch_push`; `publish_engine` and
+installed (today: `grid_sync`, `branch_push` and the bounded-footprint jobs
+named at the end of this body; `publish_engine` and
 `engine_push` stay out regardless, because their own `enabled` is `false` —
 see "Two cadences the migration made meaningless" below). This is the
 opposite of the previous section: `false` overrides every job's own flag to
@@ -197,6 +210,19 @@ What survives is the pair that was never about the boundary: `grid_sync`
 The grid is not the publish pipeline — it versions node.md and its payload
 together as one atomic version, which plain git does not — so G11 does not
 touch it.
+
+## The two bounded-footprint jobs (conjuncts 1 and 2)
+
+`maint_gc` is the DECLARED object-store maintenance. It exists because the
+grid versions through plumbing, which never runs `gc --auto`, so nothing
+repacked `.git/objects` on its own — the store grew until a human ran one
+`git gc` by hand. Cadence, box scope and the command are all declared in
+this node's `cadences:`, not written into `crons.py`.
+
+Conjunct (2) — every file in the logs dir under a declared cap with a
+declared number of rotations — is not a cron line at all but two config
+cells, `logs.cap_mb` and `logs.rotations` in `.agi/config.json`, enforced by
+`crons.py` on every apply. The cron log and the reaper log share one cap.
 
 ## Why this is a node and not a comment in a crontab
 

@@ -690,6 +690,57 @@ def _late_reap_window_pids(rot, name, tmux_session, window_path, pids_for):
 
 
 
+def _late_reap_wait_max_s(root) -> float:
+    """`reaper.late_reap_wait_max_s` from `.agi/config.json`; the code default
+    (1800) is the RESOLVER for a missing cell, not a second value. A
+    malformed cell must never raise — the healer runs when things are broken.
+    Never raises."""
+    try:
+        cfg_path = locations.config_path(root)
+        if cfg_path is not None:
+            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+            v = (cfg.get("reaper") or {}).get("late_reap_wait_max_s")
+            if isinstance(v, (int, float)) and not isinstance(v, bool) \
+                    and v > 0:
+                return float(v)
+    except (OSError, json.JSONDecodeError, TypeError, AttributeError):
+        pass
+    return 1800.0
+
+
+def _close_late_reap_abandoned(record, record_path, now, succ_id, waited,
+                               bound) -> dict:
+    """Close a record whose successor registry NEVER appeared, as
+    `abandoned` in the SAME `s12_self_reap` shape the success path writes.
+    The log line is the pass driver's, not this function's. Never raises."""
+    out = {"action": "abandoned", "already": False, "window_id": succ_id,
+           "waited_s": round(waited, 1), "bound_s": bound}
+    doc = dict(record)
+    if record_path:
+        try:
+            loaded = json.loads(Path(record_path).read_text(encoding="utf-8"))
+            if isinstance(loaded, dict):
+                doc = loaded
+        except (OSError, ValueError):
+            pass
+    doc["s12_self_reap"] = {
+        "state": "abandoned",
+        "performer": "watch",
+        "abandoned_at": int(now),
+        "waited_s": round(waited, 1),
+        "bound_s": bound,
+        "successor_id": succ_id,
+        "reason": "successor-registry-never-appeared",
+    }
+    if record_path:
+        try:
+            Path(record_path).write_text(json.dumps(doc, indent=2) + "\n",
+                                         encoding="utf-8")
+        except OSError:
+            out["written"] = False
+    return out
+
+
 def _late_reap_for_skipped(root, record, *, record_path=None,
                            rows=None, tmux_session="", window_path=None,
                            registry_dir=None, pids_for=None, rot=None,
@@ -717,7 +768,25 @@ def _late_reap_for_skipped(root, record, *, record_path=None,
         now = time.time()
     reg_file = _registry_now_has(rot, succ_id, registry_dir)
     if reg_file is None:
-        return {"action": "waiting", "window_id": succ_id}
+        done = record.get("s12_self_reap")
+        if isinstance(done, dict) and done.get("state") == "abandoned":
+            # Idempotence: an earlier pass closed it. Never re-log, re-close.
+            return {"action": "abandoned", "already": True,
+                    "window_id": succ_id, "waited_s": done.get("waited_s"),
+                    "bound_s": done.get("bound_s")}
+        # Age from the record's OWN `recorded_at` (written with the rotation),
+        # never from an mtime a reboot can invalidate.
+        ts = _parse_record_ts(str(record.get("recorded_at") or ""))
+        if ts is None:
+            return {"action": "waiting", "window_id": succ_id,
+                    "reason": "no-recorded_at"}
+        waited = max(0.0, now - ts)
+        bound = _late_reap_wait_max_s(root)
+        if waited <= bound:
+            return {"action": "waiting", "window_id": succ_id,
+                    "waited_s": round(waited, 1), "bound_s": bound}
+        return _close_late_reap_abandoned(record, record_path, now, succ_id,
+                                          waited, bound)
 
 
     base, _own_line = rot._split_roman_suffix(own_name)
@@ -859,6 +928,12 @@ def _late_reap_skipped_pass(root, *, window_path=None,
         if outcome.get("action") == "waiting":
             _watch_log(f"late s12 reap waiting for {rec.get('seat')}: "
                        f"successor registry for @{succ.get('id')} still absent")
+        elif outcome.get("action") == "abandoned" \
+                and not outcome.get("already"):
+            _watch_log(f"late s12 reap ABANDONED for {rec.get('seat')}: "
+                       f"successor registry for @{succ.get('id')} still absent "
+                       f"after {outcome.get('waited_s')}s "
+                       f"(bound {outcome.get('bound_s')}s)")
         elif outcome.get("action") == "reaped":
             _watch_log(f"watch: LATE s12 reap for {rec.get('seat')} "
                        f"(role={outcome.get('role')}, "
@@ -2253,8 +2328,37 @@ def _seat_sessions(registry_dir: str | None = None,
     return out
 
 
+def _is_seat_current(row: dict, s: dict) -> bool:
+    """True iff the seat ROW still names this registry session as the seat's
+    current one — the row's own `session_id`, or its `pid`, or its `window`
+    (the identity cells a rotation writes). Blank cells name nothing, so a row
+    with no identity claims no session: the falsifier that keeps STALE-PIN from
+    becoming a blanket amnesty (an orphaned live session whose pid is not the
+    row's is still REAP)."""
+    sid = (s.get("session_id") or "").strip()
+    pid = s.get("pid")
+    wid = (s.get("window_id") or "").strip()
+    if not sid and not pid and not wid:
+        return False
+    return ((sid and sid == str(row.get("session_id") or "").strip())
+            or (pid and str(row.get("pid") or "").strip() == str(pid))
+            or (wid and wid == str(row.get("window") or "").strip()))
+
+
+def _is_alive(s: dict, pid_is_alive) -> bool:
+    """ALIVE through the injected liveness seam; FAIL CLOSED (a missing pid or
+    a seam that raises is NOT alive, so it never grounds a STALE-PIN)."""
+    pid = s.get("pid")
+    if not pid:
+        return False
+    try:
+        return bool(pid_is_alive(int(pid)))
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def _judge_leases(pins: dict, sessions: list, rows: list, root: Path,
-                  now: float | None = None) -> list[dict]:
+                  now: float | None = None, pid_alive=None) -> list[dict]:
     """(1c) THE JUDGEMENT — per seat session exactly ONE of:
       KEEP          its sessionId is pinned (a live lease),
       PROTECTED     row `protected: true` (READ the cell, absent = not),
@@ -2266,14 +2370,22 @@ def _judge_leases(pins: dict, sessions: list, rows: list, root: Path,
                     idle predecessor windows are never closed holds BY
                     CONSTRUCTION until the pin SHIFT (a rotate.py round)
                     exists,
+      STALE-PIN     the row still names THIS session as its current one
+                    (`session_id` / `pid` / `window` cell) and its pid is
+                    ALIVE, but no pin names it: a STALE pin, not a lease to
+                    end. NON-ARMING (only `REAP` arms, by construction),
+                    reason `stale pin for the seat's current session`,
       REAP          a plain-seat session no pin names.
-    Verdict order is KEEP > PROTECTED > IN-FLIGHT > BELAM-UNPINNED > REAP.
+    Verdict order is KEEP > PROTECTED > IN-FLIGHT > BELAM-UNPINNED >
+    STALE-PIN > REAP. `pid_alive` is the same liveness seam `_pin_reap_pass`
+    injects (default `_pid_alive`).
     Only sessions whose window name matches a seat row or carries the belam
     row's name as a prefix are judged at all (clause 4); the rest fall out of
     the table. Returns `[{pid, session_id, window_id, window_name, seat,
     verdict, reason}]`."""
     import rotate as _rotate  # noqa: PLC0415
     now = now if now is not None else time.time()
+    pid_is_alive = pid_alive or _pid_alive
     by_name: dict[str, dict] = {}
     belam_row = None
     belam_name = ""
@@ -2315,6 +2427,9 @@ def _judge_leases(pins: dict, sessions: list, rows: list, root: Path,
         elif belam_pref and not pred_complete:
             verdict = "BELAM-UNPINNED"
             reason = "no predecessor-pin table yet"
+        elif _is_seat_current(row, s) and _is_alive(s, pid_is_alive):
+            verdict = "STALE-PIN"
+            reason = "stale pin for the seat's current session"
         else:
             verdict = "REAP"
         res.append({"pid": s.get("pid"), "session_id": sid,
@@ -2400,14 +2515,15 @@ def _pin_reap_pass(root: Path, *, registry_dir: str | None = None,
     pins, _skipped = _pin_table(root, rows)
     sessions = _seat_sessions(registry_dir, windows)
     judged = _judge_leases(pins, sessions, rows, root,
-                           now=now if now is not None else time.time())
+                           now=now if now is not None else time.time(),
+                           pid_alive=pid_alive)
     counts: dict[str, int] = {}
     for j in judged:
         counts[j["verdict"]] = counts.get(j["verdict"], 0) + 1
     _watch_log("watch: pin-reap pass: "
                + ", ".join(f"{v}={counts.get(v, 0)}"
                            for v in ("KEEP", "PROTECTED", "IN-FLIGHT",
-                                     "BELAM-UNPINNED", "REAP")
+                                     "BELAM-UNPINNED", "STALE-PIN", "REAP")
                            if counts.get(v)))
     if mode is None:
         mode = _pin_reap_mode(root)
