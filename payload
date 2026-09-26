@@ -2156,8 +2156,21 @@ def _run_round_stage(root: Path, stage: dict, args: dict, timeout_s: int):
     cmd = [sys.executable, str(_THIS / "dispatch.py"), str(root), str(iteration),
            "--target", str(target), "--tier", "parent", "--role", "parent",
            "--ladder-tier", "0", "--branch", "--detach"]
-    proc = subprocess.run(cmd, capture_output=True, text=True,
-                          timeout=timeout_s)
+    # A dispatch that never returns inside its own budget is a HUNG round, and
+    # a hung round is a NAMED STAGE FAILURE (rc 3, same as a refused spawn) --
+    # not a run-level abort. Unwrapped, `TimeoutExpired` left `_run_round_stage`
+    # and `run_workflow` entirely: the per-stage try/except in the runner only
+    # wraps `_stage_context`, so the whole run died of a stage that had merely
+    # not finished, and every inherited review stage chained to it was never
+    # named at all. Caught HERE, the runner marks `round-parent` failed and
+    # `_failed_dependency` skips the whole inherited chain by name
+    # (hypothesis:a-round-stage-fails-closed-by-name-and-every-inherited-
+    # review-stage-is-gated, falsifier 2a).
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True,
+                              timeout=timeout_s)
+    except subprocess.TimeoutExpired:
+        return 3, None
     if proc.returncode:
         return 3, None
     match = re.search(r"^spawned\s+(\S+)", proc.stdout or "", re.M)
@@ -2181,21 +2194,96 @@ def _run_round_stage(root: Path, stage: dict, args: dict, timeout_s: int):
             except (OSError, ValueError, subprocess.TimeoutExpired):
                 return 3, None
             return 0, {"key": target, "hypothesis": target, "parent": agent_id,
-                        "branch": rec.get("branch"), **harvest}
+                        "branch": rec.get("branch"), **harvest,
+                        **_round_findings(harvest.get("files") or [])}
         time.sleep(min(1, max(0, deadline - time.monotonic())))
     return 2, None
 
 
-def _failed_dependency(stage: dict, failed_keys: dict) -> str | None:
+#: The node kinds a round's review stages are handed by name. A review prompt
+#: that writes `{experiments}` or `{verdict}` must find the round's OWN
+#: committed nodes there.
+_ROUND_FINDING_KINDS = ("experiment", "verdict")
+
+
+def _round_findings(files: list) -> dict:
+    """The round's committed nodes, keyed by kind, for a chained review
+    stage's `{experiments}` / `{verdict}` placeholders. Measured pre-fix: the
+    round returned only `key/hypothesis/parent/branch/old_tip/new_tip/files`,
+    so both placeholders rendered `''` through `_SafeDict` and a review stage
+    was asked to judge a round that had produced no evidence — silently, since
+    a blank placeholder looks exactly like a short answer. The round's
+    committed range IS the evidence, so the harvest's own file list is the one
+    source; a key with no node of that kind is `[]` (an honest empty, not a
+    missing name) (hypothesis:a-round-stage-fails-closed-by-name-and-every-
+    inherited-review-stage-is-gated, falsifier 3)."""
+    found: dict[str, list[str]] = {}
+    for f in files:
+        m = re.search(r"nodes/(" + "|".join(_ROUND_FINDING_KINDS) + r")/([^/]+)\.md$",
+                      str(f))
+        if m:
+            found.setdefault(m.group(1), []).append(m.group(2))
+    return {"experiments": found.get("experiment", []),
+            "verdict": found.get("verdict", [])}
+
+
+#: Keys a prior return can ALWAYS carry, whatever its stage declared: the
+#: `unstructured`/`violations` pair every non-validating return is recorded as,
+#: and the payload `_run_round_stage` builds (its identity, the git harvest
+#: range, and the finding kinds `_round_findings` keys).
+_STRUCTURED_RETURN_KEYS = frozenset({
+    "unstructured", "violations", "key", "hypothesis", "parent", "branch",
+    "old_tip", "new_tip", "files"} | set(_round_findings([])))
+
+
+def _chain_owed_keys(stage: dict, by_label: dict,
+                     run_args: dict) -> list[str]:
+    """The placeholders this stage's chain OWES it that nothing can supply.
+
+    A stage declares them in its manifest as `required_placeholders` (a
+    manifest value, never a per-workflow list in this code): the keys the
+    chain promised this stage — a round's `{experiments}`/`{verdict}`, a
+    prior's `{answer}`. One that no run arg, no repeat item and no field of
+    the prior return can supply renders as `''` through `_SafeDict` (which
+    exists so OPTIONAL args like `{scratch}` keep working), so the stage is
+    silently asked to judge nothing. Naming it here is the fail-closed
+    shape; an UNDECLARED placeholder is not judged, because from the
+    manifest and args alone an unsupplied optional arg is indistinguishable
+    from a typo (hypothesis:a-round-stage-fails-closed-by-name-and-every-
+    inherited-review-stage-is-gated, falsifier 3)."""
+    known = set(run_args or {})
+    known.update((stage.get("_repeat_item") or {}).keys())
+    known.update(_STRUCTURED_RETURN_KEYS)
+    base = stage.get("chained_from")
+    src = by_label.get(base) if isinstance(base, str) else None
+    schema = (src or {}).get("schema") or {}
+    known.update(schema.get("properties") or {})
+    known.update(schema.get("required") or [])
+    return sorted(k for k in (stage.get("required_placeholders") or [])
+                  if k not in known)
+
+
+def _failed_dependency(stage: dict, failed_keys: dict,
+                        simple_failed: frozenset[str] = frozenset()) -> str | None:
     """The base label this stage depends on that has a failed slice, or None.
     A repeated slice depends on the SAME `_repeat_key` of its base; a simple
     stage depends on the whole base. A repeated stage never consults its own
-    base label, so a failed slice never skips a sibling slice (SM.105)."""
+    base label, so a failed slice never skips a sibling slice (SM.105).
+
+    `simple_failed` names the bases that failed AS A WHOLE — a stage with no
+    `repeat` of its own, e.g. the prelude `kind: round` parent. It gates every
+    slice of the dependent: without it the containment check compared a
+    dependent slice's `_repeat_key` against `{None}` and let EVERY inherited
+    review slice RUN after the round had already failed
+    (hypothesis:a-round-stage-fails-closed-by-name-and-every-inherited-
+    review-stage-is-gated, falsifier 1)."""
     deps = stage.get("chained_from") or stage.get("depends_on")
     if not deps:
         return None
     deps = [deps] if isinstance(deps, str) else deps
     for d in deps:
+        if d in simple_failed:
+            return d
         keys = failed_keys.get(d)
         if keys and ("_repeat_key" not in stage
                      or stage["_repeat_key"] in keys):
@@ -2269,6 +2357,23 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # wins, envelope — it is the per-run override the CLI exposes.
     if not harness:
         harness, _level = _resolve_default_harness(root, key, manifest, cfg_row)
+    # A `kind: round` stage is executed by `_run_round_stage`, which dispatches
+    # a detached parent through dispatch.py -- the pi path's own runner. A seam
+    # that cannot run it must REFUSE BY NAME, not ignore the stage: measured,
+    # the claude-code branch handed back the Workflow call, marked the round
+    # `resolved` and returned 0, so a run that dispatched NO parent reported
+    # every stage satisfied. Refused BEFORE the dry-run return, so `--dry-run`
+    # and the live run agree (rc 6: a seam/manifest mismatch, distinct from
+    # the rc 2 bad-args, rc 3 credential/stage and rc 5 budget refusals).
+    if harness != "pi":
+        _round_stages = [st["label"] for st in stages
+                         if st.get("kind") == "round"]
+        if _round_stages:
+            print(f"workflow.py: workflow={key} refused: stage(s) "
+                  f"{_round_stages} are kind=round, which harness "
+                  f"{harness!r} cannot run; a round stage needs `--harness pi`",
+                  file=sys.stderr)
+            return 6
     try:
         _harness_name, harness_cfg = adapters.resolve(cfg, harness)
     except adapters.AdapterError as exc:
@@ -2400,9 +2505,20 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
         # on the first failure -- it marks THAT slice failed and continues,
         # skipping only stages that depend on a failed slice.
         failed_keys: dict[str, set] = {}
+        # the bases that failed AS A WHOLE (a stage with no `repeat`): they
+        # gate every slice of their dependents, unlike a failed single slice
+        simple_failed: set[str] = set()
+
+        def note_failed(stage: dict) -> None:
+            base = stage.get("_base_label", stage["label"])
+            failed_keys.setdefault(base, set()).add(stage.get("_repeat_key"))
+            if "_repeat_key" not in stage:
+                simple_failed.add(base)
+
         first_rc: int | None = None
+        by_label = {s.get("_base_label", s["label"]): s for s in stages}
         for st in stages:
-            dep = _failed_dependency(st, failed_keys)
+            dep = _failed_dependency(st, failed_keys, simple_failed)
             if dep is not None:
                 view.stage_skipped(st["label"], f"dependency {dep!r} failed")
                 print(f"workflow.py: workflow={key} skipped stage "
@@ -2412,6 +2528,24 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
             prior = None
             if st.get("chained_from"):
                 prior = prior_by_key.get((st["chained_from"], st.get("_repeat_key")))
+                # A placeholder the chain DECLARES it is owed, that nothing
+                # can supply, is a named stage failure and never a blank.
+                # A key the upstream return itself dropped is NOT this case
+                # -- that is already named on the upstream stage (its
+                # `unstructured` status and its schema violation).
+                gaps = (_chain_owed_keys(st, by_label, args)
+                        if prior is not None else [])
+                if gaps:
+                    reason = (f"required placeholder(s) {gaps} are owed by "
+                              f"nothing — no run arg, no repeat item and no "
+                              f"field of {st['chained_from']!r}'s return")
+                    view.stage_failed(st["label"], reason)
+                    print(f"workflow.py: workflow={key} stage "
+                          f"{st['label']} {reason}", file=sys.stderr)
+                    if first_rc is None:
+                        first_rc = 3
+                    note_failed(st)
+                    continue
             try:
                 if st.get("kind") == "round":
                     context_text = None
@@ -2428,9 +2562,7 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                       f"{reason}", file=sys.stderr)
                 if first_rc is None:
                     first_rc = 3
-                failed_keys.setdefault(
-                    st.get("_base_label", st["label"]), set()).add(
-                        st.get("_repeat_key"))
+                note_failed(st)
                 continue
             # The budget was resolved (declared, never truthy) before any
             # dispatch -- see `_resolve_stage_timeout` for `0` and the refusal.
@@ -2455,11 +2587,15 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
             if rc != 0:
                 # MARK AND CONTINUE: this slice failed; siblings and every
                 # independent stage still run. The run ends non-zero below.
+                # `_run_round_stage` returns a bare rc and never touches the
+                # view, so a failed round used to read `pending` in the
+                # summary and in the tracking row. Mark it here when the
+                # runner did not already (`_run_stage_pi` names its own).
+                if view.state.get(st["label"], {}).get("status") != "failed":
+                    view.stage_failed(st["label"], f"rc={rc}")
                 if first_rc is None:
                     first_rc = rc
-                failed_keys.setdefault(
-                    st.get("_base_label", st["label"]), set()).add(
-                        st.get("_repeat_key"))
+                note_failed(st)
                 print(f"workflow.py: workflow={key} stage {st['label']} "
                       f"failed (rc={rc}); continuing", file=sys.stderr)
                 continue
