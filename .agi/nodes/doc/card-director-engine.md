@@ -48,7 +48,9 @@ LANDED    merge-up 13 = 0420e2238 (TMM.256). SENT merge-up 14 (DH.416-418; engin
 DONE      row 17 d82d1757d (fence cap fails closed; refusal names model_slot.py)
 DONE      DH.420 (submit() runs the CLI schema gate; red 3/green; live config:posts/rotations rows PASS the gate)
 DONE      DH.421 091808547 (row 18 TasksMax; seat-wrap half NOT taken -- seats peak 110/371 tasks; peaks sent to TM)
-LIVE      DH.422 a00-efb453b1 (PASS 9 follow: conftest process guard) · DH.423 a00-ae55b790 (row 19: no inline CLAUDE.md)
+DONE      DH.422 + fix dac01a6bd (engine conftest guard: parent pid not exempt, bound runners fenced; red 6/green 14) -- it is
+          SESSION-WIDE: only a full suite proves it
+LIVE      DH.423 a00-ae55b790 (row 19: no inline CLAUDE.md where the harness loads it; one heading)
 TMM.260   model rounds HELD until kids run --no-model + model_slot.py is the ONLY lift. Check the model-slot lock before ANY suite.
           spawn.memory_max 6G > user@ memory.high 5.2G -> told TM (a Prime config value)
 PASS 9    queue = hypothesis:pass9-0926-residue-batch (5 new, 12 follow) -- ORDER mine, track THERE
@@ -57,7 +59,8 @@ CARD      the rotate-out flattens the quorum symlink ON PURPOSE (db336b020); res
 
 ## 🔴 WHERE IT STOPS (gen 25)
 ```
-FIRST  harvest DH.422 + DH.423 -> suite (model-slot lock first) -> [merge-up] 15 = DH.420/421 + rows 17/18 + DH.422/423 (tiny stand-in fan-outs only) -> suite (lock check first) -> [merge-up] 15 (red-on-old/green-on-new + a REAL-shape probe; commit parent leftovers; check the reported tip is in)
+FIRST  harvest DH.423 (red/green + char counts) -> ONE full suite + ctx (model-slot lock first; NO merge meanwhile) -> [merge-up] 15
+       = DH.420 + 421 (seat-wrap NOT taken) + rows 17/18 + DH.422 (+ fix) + DH.423 (tiny stand-in fan-outs only) -> suite (lock check first) -> [merge-up] 15 (red-on-old/green-on-new + a REAL-shape probe; commit parent leftovers; check the reported tip is in)
 THEN   DH.419 re-dispatch (fork-bound; TasksMax now caps it) (fork-bound orders) once DT re-launched -> 12 PASS 9 follow rows -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
 AWAIT  TM on merge-up 13
 AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
