@@ -174,6 +174,7 @@ bits-label   a tag NAME like "7.75" or "3p5" anywhere in this OSC line is histor
 - Git status clean; both trunks merged as of fa05cfeebf. Nothing uncommitted anywhere.
 
 ## 🔴 Where it stops -- gen 31, ~00:4xZ 09-26 (rotating at the meter line, owner-confirmed: keep pushing, self-rotate)
+`````
 ````
 ```
 EXACT NEXT for gen 32:
@@ -196,6 +197,7 @@ EXACT NEXT for gen 32:
   (f) re-check the meter before starting anything else new.
 ```
 ````
+`````
 
 ## Traps hit this generation
 ```
