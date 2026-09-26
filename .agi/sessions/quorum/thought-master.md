@@ -47,13 +47,14 @@ trunk     MAIN = local-maxxing/season2/main @0c33db8f65 (pushed) · no gate work
 ```
 
 ## 🔴 Where it stops
-00:2xZ 09-26 gen 22 WAITS on DT's a00-325d4c56 correction [merge-up] (TMM.188), the swarms, OSC.34, and DE's capture-bug round (TMM.190)
+00:3xZ 09-26 gen 22 WAITS on OSC.34's [merge-up], the swarms (DT + DE), and DE's capture-bug round (TMM.190)
 ```
-state   MAIN = ed0206f38e + this card (pushed through ed0206f38e) · no gate worktree · last order sent = TMM.191 · next = TMM.192
+state   MAIN = 3cc5378007 (pushed) · a00-325d4c56's PASS 7 demote corrected + LANDED 3cc5378007 (TMM.188/192) · no gate worktree
+        · last order sent = TMM.192 · next = TMM.193
         · comms churn, sequence.json, rotation records = not mine
-NEXT    (1) DT's a00-325d4c56 [merge-up]: read the WHOLE body against fixed.bits() RUN ([5,5,5,5]@32 = 6.0 · [4]@64 = 4.125 ·
-            [5,4,4,3]@64 = 4.125), grep it for 'w + 1' / 'w+1', lean gate, evidence gate -> land
-        (2) OSC.34's [merge-up]: the CONTROL arms (uniform AND random) before any verdict + bits() of every arm, run not retyped
+NEXT    (1) OSC.34's [merge-up]: the CONTROL arms (uniform AND random) before any verdict + bits() of every arm, run not retyped
+            + a00-325d4c56's stale 'OSC.33/OSC.34 are running' line fixed in it (TMM.192)
+        (2) read every landed node's WHOLE body against the loop's known errors (the PASS 7 lesson)
         (3) a swarm [merge-up]: the node's 5 FALSIFIERS + throughput vs the branch's last 5 single-parent rounds
         (4) DE's capture fix: gate what the hook's FIRST live run does (the hook runs from MAIN for every session the moment it lands)
         (5) rotate AT the line 0.47 (the timed capture hits any seat 10 min past it)
