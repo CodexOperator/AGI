@@ -1902,10 +1902,102 @@ def test_named_target_node_ids_come_from_the_record_and_the_parent():
            "node_id": "experiment:a00-x-1"}
     ids = cli._round_named_node_ids(rec, "hypothesis:tgt")
     assert ids == ["hypothesis:tgt", "goal:g1", "experiment:a00-x-1"]
-    # No record (a fixture, a dead tree) still yields the --parent alone.
-    assert cli._round_named_node_ids(None, "hypothesis:tgt") == ["hypothesis:tgt"]
+    # No record (a fixture, a dead tree) yields NOTHING -- a kid's --parent
+    # alone is not an order.
+    assert cli._round_named_node_ids(None, "hypothesis:tgt") == []
     # A non-id field never becomes a path.
     assert cli._round_named_node_ids({"target": "team/core"}, None) == []
+
+
+# --------------------------------------------------------------------------
+# hypothesis:a-rounds-named-node-set-is-its-dispatch-time-ids-never-a-kid-
+# supplied-parent -- the named set is dispatch's, and a type no round may edit
+# is never swept, whichever line named it.
+# --------------------------------------------------------------------------
+
+def test_kid_supplied_parent_never_widens_the_named_set():
+    cli = _load_cli()
+    rec = {"target": "hypothesis:tgt"}
+    assert cli._round_named_node_ids(rec, "hypothesis:tgt") == ["hypothesis:tgt"]
+    # The DH.386 widening: --parent named a prime/owner-only node.
+    assert cli._round_named_node_ids(rec, "config:posts") == ["hypothesis:tgt"]
+    assert cli._round_named_node_ids({"target": "hypothesis:tgt"},
+                                     "doc:unified-head") == ["hypothesis:tgt"]
+
+
+def test_round_committable_reads_the_config_cell_and_the_schema_written_by(tmp_path):
+    import json
+    cli = _load_cli()
+    root = tmp_path / ".agi"
+    (root / "context" / "schemas").mkdir(parents=True)
+    (root / "config.json").write_text(json.dumps({"grid": {"round_commit": {
+        "node_types": ["hypothesis", "experiment", "doc"],
+        "never_node_ids": ["doc:unified-"],
+    }}}))
+    (root / "context" / "schemas" / "[town].md").write_text(
+        "---\nname: town\nwritten_by: [prime_director, owner]\n---\n")
+    # In the declared set.
+    assert cli._round_committable(root, "hypothesis:tgt")
+    # Never declared as round-editable: a goal, a config row, a doc prefix.
+    assert not cli._round_committable(root, "goal:g5")
+    assert not cli._round_committable(root, "config:posts")
+    assert not cli._round_committable(root, "doc:unified-head")
+    assert cli._round_committable(root, "doc:goals-preamble")
+    # written_by in the type's OWN schema beats the cell's allowlist.
+    assert not cli._round_committable(root, "town:local-maxxing")
+    # An absent cell gates nothing: a fixture tree behaves as it did.
+    (root / "config.json").write_text("{}")
+    assert cli._round_committable(root, "goal:g5")
+    assert cli._round_committable(root, "doc:unified-head")
+    assert not cli._round_committable(root, "town:local-maxxing")
+
+
+def test_round_commit_policy_lives_in_the_committed_schemas_not_in_config(tmp_path):
+    """The cell that says which types a round's `done` commit may sweep must be
+    in a file this actor class CAN commit. `.agi/config.json` is refused by
+    `_round_scope_ok` (cli.py:2096), so a policy living there is fail-open in
+    every committed tree -- measured: goal:g5 and doc:unified-head passed the
+    gate with the cell absent. This test copies the REAL schema files and an
+    EMPTY config.json, so only committed bytes decide."""
+    import json
+    import shutil
+    from pathlib import Path
+    cli = _load_cli()
+    src = Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas"
+    if not src.is_dir():
+        pytest.skip("no .agi/context/schemas in this checkout")
+    root = tmp_path / ".agi"
+    shutil.copytree(src, root / "context" / "schemas")
+    (root / "config.json").write_text(json.dumps({}))
+    # Committed policy, no config: the two families the claim names are refused.
+    assert not cli._round_committable(root, "goal:g5")
+    assert not cli._round_committable(root, "doc:unified-head")
+    # Not swept up with them: a doc of another family, a hypothesis, a town row
+    # (its own schema's written_by still refuses it).
+    assert cli._round_committable(root, "doc:goals-preamble")
+    assert cli._round_committable(root, "hypothesis:tgt")
+    assert not cli._round_committable(root, "town:local-maxxing")
+
+
+def test_own_node_paths_drops_a_named_goal_and_keeps_the_target(tmp_path):
+    import json
+    cli = _load_cli()
+    root = tmp_path / ".agi"
+    (root / "context" / "schemas").mkdir(parents=True)
+    (root / "config.json").write_text(json.dumps({"grid": {"round_commit": {
+        "node_types": ["hypothesis", "experiment"],
+    }}}))
+    for sub, nid in (("goal", "g5"), ("hypothesis", "tgt"),
+                     ("experiment", "a00-x-1")):
+        d = root / "nodes" / sub
+        d.mkdir(parents=True, exist_ok=True)
+        (d / f"{nid}.md").write_text(
+            f"---\nid: {sub}:{nid}\ntype: {sub}\n---\n\nbody\n")
+    paths = cli._round_own_node_paths(
+        root, root, "experiment:a00-x-1", None,
+        ["hypothesis:tgt", "goal:g5"])
+    assert paths == {"nodes/experiment/a00-x-1.md",
+                     "nodes/hypothesis/tgt.md"}, paths
 
 
 def test_auto_commit_lands_the_named_target_node_and_refuses_the_rest(tmp_path):
@@ -1952,6 +2044,9 @@ def test_auto_commit_lands_the_named_target_node_and_refuses_the_rest(tmp_path):
     assert "nodes/hypothesis/a-kid-can-commit.md" not in pre, pre
 
     named = cli._round_named_node_ids(rec, "hypothesis:a-kid-can-commit")
+    # The kid's --parent carries the SAME id here (dispatch named it), so the
+    # target still lands; a --parent DISPATCH did not name lands nothing.
+    assert named == ["hypothesis:a-kid-can-commit"]
     root = cli._auto_commit_worktree(wt_graph, "a00-kid",
                                      "experiment:a00-kid-1", None,
                                      "pending", named)
@@ -1961,3 +2056,43 @@ def test_auto_commit_lands_the_named_target_node_and_refuses_the_rest(tmp_path):
     assert "nodes/hypothesis/not-named.md" not in files, files
     assert ".agi/config.json" not in files, files
     assert foreign.read_text().count("not-named") == 1
+
+
+def test_every_refused_named_id_is_named_on_stderr(tmp_path, capsys):
+    """The last clause of the round-commit claim: a refused path is NAMED.
+    Pre-fix `_round_own_node_paths` dropped a non-committable id with a bare
+    `continue`, so `done --parent goal:g5` got silence -- the round could not
+    tell "I refuse that" from "I never saw it". Real schema bytes decide, so
+    only the committed `[goal].md` `round_commit: false` cell refuses."""
+    import shutil
+    from pathlib import Path
+    cli = _load_cli()
+    src = Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas"
+    if not src.is_dir():
+        pytest.skip("no .agi/context/schemas in this checkout")
+    root = tmp_path / ".agi"
+    shutil.copytree(src, root / "context" / "schemas")
+    (root / "config.json").write_text("{}")
+    for sub, nid in (("goal", "g5"), ("hypothesis", "tgt"),
+                     ("experiment", "a00-x-1")):
+        d = root / "nodes" / sub
+        d.mkdir(parents=True, exist_ok=True)
+        (d / f"{nid}.md").write_text(
+            f"---\nid: {sub}:{nid}\ntype: {sub}\n---\n\nbody\n")
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, "experiment:a00-x-1", None, ["hypothesis:tgt"],
+        refused=["goal:g5"])
+    err = capsys.readouterr().err
+    # Dropped from the sweep ...
+    assert paths == {"nodes/experiment/a00-x-1.md",
+                     "nodes/hypothesis/tgt.md"}, paths
+    # ... and NAMED on stderr, including the `--parent` id that
+    # `_round_named_node_ids` del()s out of the named set.
+    assert "goal:g5" in err, err
+    assert "refusing" in err, err
+    # A clean round names nothing.
+    capsys.readouterr()
+    cli._round_own_node_paths(root, root, "experiment:a00-x-1", None,
+                              ["hypothesis:tgt"])
+    assert capsys.readouterr().err == ""
