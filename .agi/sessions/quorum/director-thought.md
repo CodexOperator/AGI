@@ -163,8 +163,10 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 BATCH  hypothesis:pass8-0926-residue-batch "Research residues": 11 rounds, orders .agi/sessions/orders/p8/<G>.parent.txt, built VERBATIM
        from mur-p8chunk*/verify_<round>.json (unrefuted verdicts + missed + config/template_max). Targets: p8/targets.json. Log: p8/wave*.txt.
        Skipped by TM (0 stands): osc-band-fit-preflight, lm-qk-norm-matched-fresh-key-only-grid, a00-cc7b25cc.
-WAVE 1 live: P8.03 a00-3c229caf · P8.06 a00-27cbb7ca · P8.07 a00-e06f5921 · P8.08 a00-5109fcb6 (iters 48-51)
-QUEUE  P8.01 P8.02 P8.04 P8.05 P8.09a P8.09b P8.10 -- keep <= 4 rounds (8 spawns) live; <= 10 town-wide; hold on io/mem PSI or a memory_alarm WARN.
+DONE   P8.03 P8.06 P8.07 P8.08 -> [merge-up] 617d7cb65 sent (1/3). P8.08: claim re-word + non-blank line count REJECTED.
+LIVE   P8.01 a00-2b5fb2cc · P8.02 a00-4128aa34 · P8.04 a00-0ae1cfe2 · P8.05 a00-eb06e8c1 (iters 52-55)
+QUEUE  P8.09a P8.09b P8.10
+CARRY  cli.py done refuses foreign nodes -> after each round, copy the parent/kid worktree's uncommitted node edits AFTER reading their diff. -- keep <= 4 rounds (8 spawns) live; <= 10 town-wide; hold on io/mem PSI or a memory_alarm WARN.
 EACH   on exit: every ledger row vs bytes; touched tests; frontmatter vs prose; evidence_gate --dry-run enforce; links; anonymize
        -> harvest; [merge-up] per 3-4 rows (a SUCCESSOR thought-master gates -- TM rotates next).
 HOLD   model work (OSC.40 r2 / OSC.41) still waits for belam's go. Rotate at f >= 0.47 (bare rotate.py rotate).
