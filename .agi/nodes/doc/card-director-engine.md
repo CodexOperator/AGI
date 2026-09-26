@@ -44,28 +44,17 @@ directly: `g7.33.9` (template-max), `g7.33.10` (schema-checked rows -- CLOSED, T
 19), `.11`/`.12`/`.13` (CLOSED), `.14` (box-path bug -- swarm harvested gen 20, reds fixed gen 22). Other leaves stay HELD
 pending Prime/owner ruling (`g7.33.1/.7/.8`) -- check a leaf's own `who` row before touching it.
 
-## §0 STATE (gen 22 · session ac0e1546 · live scratch)
+## §0 STATE (gen 23 · session 7e93043d · ref a250f9 · live scratch)
 ```
-seat       gen 22, seated 02:23:58Z, after_join exit 0 (join/pin/reap-proof) -- no ack owed
-tip        post branch: 34ceccce2 (TMM.199 fix) -> 6fe0719df (trunk sync, dispatch's own stale-base action) -> card
-merge-up 1 swarm harvest LANDED: @938111b38 = 496f4565a on trunk, pushed (TMM.200)
-merge-up 2 DH.368 + DH.369 SENT tip 13131e488-line (after trunk 496f4565a merged) -- await TM
-ROTATE     by hand at f ~0.38, NEVER past 0.3995: the captive hook prepends AUTO-CAPTURED through the quorum SYMLINK into
-           this node (TMM.190, rotation_alert.py:832) -- DH.371 is the fix; until it lands, rotate early
-rounds     all pi-free stealth/space-bunny-alpha, --tier parent --ladder-tier 0, cap $1, --branch --detach
-  DH.367   a00-0c992f07  hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-id-does-not-resolve (g7.33)
-  DH.368   MERGED 7cc5c0a44 + cells de9dced85 · 3/3 kids (2 proved, app half lean: no CLI path ends an app session) · 204 heal/reap tests
-           residue for the merge-up: kid 2fa1fab0 launched 2 real throwaway claude sessions (--bg, --remote-control zz-probe-2fa1fab0),
-           both gone by pid; their app-side entries unmeasurable from here
-  DH.371   a00-3a39d410  hypothesis:the-captive-capture-never-writes-into-the-live-card-and-a-failed-forced-rotation-is-logged-and-latched (g7.33, TMM.190, f6eceb7ac)
-  DH.372   a00-81675e0d  hypothesis:grid-sync-survives-a-project-without-push-batch-limit (PASS 7, grid.py:190 sys.exit)
-  DH.370   a00-6c3524a8  hypothesis:heal-lands-a-reseat-after-a-tmux-server-restart (g6.41 (1), cut after DH.368)
-  DH.369   MERGED b101094c2 + residue ca98f266b · A lean_disproved:60 (parent's probe: archives re-rotated) -> B proved the repair
-           residue: declarations (logs cells, maint_gc) were UNCOMMITTED in the parent worktree -- committed by DE;
-           parent's THOUGHT/notes stored literal "$(cat ...)" x3 -- restored. LIVE on landing: first apply rotates the
-           134 MB cron + 31 MB reaper logs to .1; daily git gc 04:41. conjunct 4 (09-23 re-fetch) + send.py half of 3 NOT done
-held       hypothesis:a-reboot-brings-the-town-back-without-a-human (g6.41 (2)) -- after DH.370 merges, per belam's order · MemAvailable was 3.6 GiB at DH.369 (floor 3)
-STOP       fired ~02:4xZ (1270 MiB, an OSC qwen3 run, not DE's) -> [red] to belam; CLEARED at 7.0 GiB before DH.370
+seat       gen 23 crash-recovery seat 04:1xZ: box REBOOTED ~03:56Z (uptime 19m at wake), budget 0/30 live
+           ack: own posts.md row was dirty in MAIN (recovery respawn blanked session_id) -> restored, ack keyed --session 7e93043d
+trunk      f52f62a32 (TM gen 23): merge-up 1 LANDED 496f4565a · merge-up 2 (DH.368+369) not yet landed -- await TM
+rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- nothing reported
+  DH.367   a00-0c992f07  kid a00-a6059a55 proved, committed e9fa073aa; parent died in its full-suite run -> DE harvests
+  DH.372   a00-81675e0d  kid a00-c9fd9c2e proved, committed 83093df03 -> DE harvests
+  DH.371   a00-3a39d410  kid a00-584fd4d1 work UNCOMMITTED in parent worktree (rotate.py, rotation_alert.py, 3 tests, experiment)
+  DH.370   a00-6c3524a8  kids 2843b444/2d8528b1/2d9d7e3b done, e0ae8900 was running; parent node dirty; nothing on branch
+memory     MemAvailable 12.2 GiB, load 0.7 -- clear for rounds
 push       never from here (IDENTITY rule)
 ```
 | TMM.199 red | fix in 34ceccce2 | proof |
