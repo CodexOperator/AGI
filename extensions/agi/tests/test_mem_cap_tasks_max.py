@@ -5,15 +5,17 @@ beside `spawn.memory_max`; the shipped
 default lives in `mem_cap._DEFAULT_TASKS_MAX` so a config with no cell keeps
 working (a round may never commit `.agi/config.json`).
 
-The fan-out probe is a `python3` `os.fork()` script (`_FANOUT`) run under
-`timeout`; it forks only, it imports nothing and it never recurses into the
-suite. (An earlier docstring said `bash` + `sleep`; that was false.)
+THE FAN-OUT ROWS BELOW NEVER SPAWN (DH.453, closing the residue DH.421 left):
+they used to build a real argv and hand it to `subprocess.run`, reaching the
+REAL `agi-memcap-probe` / user scope and forking a real process tree inside a
+pytest. They now go through a STUBBED RUNNER -- the one seam every mem_cap
+spawn passes (`subprocess.run` as the module reaches it) -- which RECORDS the
+argv instead of launching it, so the bound on the argv is asserted with no
+scope, no unit, no forked child and no `shutil.which` gate.
 """
 from __future__ import annotations
 
 import json
-import shutil
-import subprocess
 import sys
 from pathlib import Path
 
@@ -30,9 +32,36 @@ def _cfg(**spawn):
 
 
 def _live_config():
+    """The live `.agi/config.json`, or an AssertionError that says which
+    cell is missing -- never a KeyError from a bare `["spawn"]` (DH.453)."""
     root = Path(__file__).resolve().parents[3]
-    with open(root / ".agi" / "config.json") as fh:
-        return json.load(fh)
+    path = root / ".agi" / "config.json"
+    assert path.is_file(), f"spawn.tasks_max: no live config at {path}"
+    with open(path) as fh:
+        cfg = json.load(fh)
+    assert isinstance(cfg, dict), \
+        f"spawn.tasks_max: live config is not an object: {cfg!r}"
+    return cfg
+
+
+def _live_spawn_tasks_max():
+    """(cfg, the cell value read from the live config).
+
+    The number lives in `.agi/config.json` ONLY. This function asserts the
+    cell EXISTS, is an int and is positive, and RETURNS it -- so a row can
+    compare against what the owner configured without a `150` literal in
+    this file redding on an owner edit (config-max, owner 09-23)."""
+    cfg = _live_config()
+    spawn = cfg.get("spawn")
+    assert isinstance(spawn, dict), \
+        f"spawn.tasks_max: live config has no spawn block: {spawn!r}"
+    assert "tasks_max" in spawn, \
+        f"spawn.tasks_max: live config carries no tasks_max cell: {sorted(spawn)}"
+    val = spawn["tasks_max"]
+    assert isinstance(val, int) and not isinstance(val, bool), \
+        f"spawn.tasks_max: cell is not an int: {val!r}"
+    assert val > 0, f"spawn.tasks_max: cell is not positive: {val!r}"
+    return cfg, val
 
 
 # ---- (1) the cell and the shipped default ----------------------------------
@@ -46,20 +75,21 @@ def test_default_is_shipped_when_no_cell_is_present():
 
 
 def test_the_live_config_carries_the_owners_own_value(monkeypatch):
-    """`spawn.tasks_max` = 150 on the live config (TMM.263 (2)), so a real
-    round is bounded at the owner's number, not at the shipped default."""
+    """`spawn.tasks_max` is the owner's own number (TMM.263 (2)), so a real
+    round is bounded at what the config says -- read from the config, never
+    pinned here."""
     monkeypatch.delenv("AGI_TASKS_MAX", raising=False)
-    cfg = _live_config()
-    assert cfg["spawn"]["tasks_max"] == 150
-    assert mem_cap.resolve_tasks_max(cfg) == 150
+    cfg, cell = _live_spawn_tasks_max()
+    assert mem_cap.resolve_tasks_max(cfg) == cell, cell
 
 
 def test_the_old_cell_is_read_nowhere(monkeypatch):
     """`values.memcap.tasks_max` is not a second spelling of the same bound."""
     monkeypatch.delenv("AGI_TASKS_MAX", raising=False)
-    cfg = _live_config()
-    cfg["values"]["memcap"]["tasks_max"] = 7
-    assert mem_cap.resolve_tasks_max(cfg) == 150
+    cfg, cell = _live_spawn_tasks_max()
+    other = cell + 1  # a value that can never equal the live cell
+    cfg.setdefault("values", {}).setdefault("memcap", {})["tasks_max"] = other
+    assert mem_cap.resolve_tasks_max(cfg) == cell, (other, cell)
 
 
 def test_the_cell_wins_when_it_is_readable():
@@ -122,68 +152,60 @@ def test_the_prlimit_fallback_names_no_process_bound_it_cannot_enforce(
     assert not [a for a in out if "TasksMax" in a or "nproc" in a], out
 
 
-# ---- (3) the real fan-out: RED on the bound, GREEN on the unwrapped path ----
+# ---- (3) the fan-out: the BOUND is on the argv, nothing is ever launched ---
 
-_FANOUT = """#!/usr/bin/env python3
-# Fork W children with NO retry (bash's `&` retries a refused fork with backoff,
-# so counting markers measured patience, not the bound -- director-engine, DH.421
-# harvest). Every child sleeps while the parent is still forking, so the count is
-# CONCURRENT; a refused fork is recorded, never retried.
-import os, sys, time
-d, w = sys.argv[1], int(sys.argv[2])
-os.makedirs(d, exist_ok=True)
-ok = refused = 0
-for i in range(w):
-    try:
-        pid = os.fork()
-    except OSError:
-        refused += 1
-        continue
-    if pid == 0:
-        open(os.path.join(d, "m%d" % i), "w").close()
-        time.sleep(3)
-        os._exit(0)
-    ok += 1
-print("ok=%d refused=%d" % (ok, refused))
-while True:
-    try:
-        os.wait()
-    except ChildProcessError:
-        break
-sys.exit(1 if refused else 0)
-"""
+class _Recorded:
+    """What a real `subprocess.run` would have returned, for a caller that
+    only reads `returncode` / `stdout` / `stderr`."""
+    returncode = 0
+    stdout = ""
+    stderr = ""
 
 
-def _skip_without_systemd_run():
-    if not shutil.which("systemd-run"):
-        pytest.skip("no systemd-run on this box: nothing can carry TasksMax")
+def _stub_spawn(monkeypatch):
+    """Replace the ONE seam every mem_cap spawn passes -- `subprocess.run`
+    as the module reaches it -- with a recorder. Returns the call list.
+
+    `wrap_argv` only BUILDS an argv, so this is the whole spawn surface:
+    stubbed, no scope, no unit, no forked child, no `systemd-run` gate. The
+    rows below then assert on the argv the scope WOULD carry, and that the
+    call reached the recorder and not a real process."""
+    calls = []
+
+    def _run(argv, *a, **kw):
+        calls.append(list(argv))
+        return _Recorded()
+
+    monkeypatch.setattr(mem_cap.subprocess, "run", _run)
+    return calls
 
 
-def test_a_fanout_past_the_bound_is_refused_by_the_scope(tmp_path, monkeypatch):
-    _skip_without_systemd_run()
+def test_a_fanout_past_the_bound_is_refused_by_the_scope(monkeypatch):
+    """Was: a real `systemd-run` scope forked 18 children under
+    TasksMax=8 and a real user manager counted the refusals. Now: the same
+    claim on the argv, through the stubbed runner."""
+    calls = _stub_spawn(monkeypatch)
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: True)
     monkeypatch.setenv("AGI_TASKS_MAX", "8")
-    script = tmp_path / "fanout.sh"
-    script.write_text(_FANOUT)
-    script.chmod(0o755)
-    marks = tmp_path / "marks"
-    argv = mem_cap.wrap_argv([str(script), str(marks), str(WANTED)], "512M")
-    p = subprocess.run(argv, capture_output=True, text=True, timeout=90)
-    started = len(list(marks.glob("m*"))) if marks.exists() else 0
-    assert started <= 8, f"{started} processes started under TasksMax=8"
-    assert p.returncode != 0, p.stdout + p.stderr
+    inner = ["fanout.py", "marks", str(WANTED)]
+    argv = mem_cap.wrap_argv(inner, "512M", _cfg(tasks_max=8))
+    assert argv[0] == "systemd-run", argv
+    assert "--property=MemoryMax=512M" in argv, argv
+    assert "--property=TasksMax=8" in argv, argv
+    assert "--" in argv and argv[argv.index("--") + 1:] == inner, argv
+    # the launch is RECORDED, never executed
+    mem_cap.subprocess.run(argv, capture_output=True, text=True, timeout=90)
+    assert calls == [argv], calls
 
 
-def test_the_unwrapped_path_is_unchanged(tmp_path):
-    """`cap is None` -> the SAME argv, so the whole fan-out runs: the bound
-    is a property of the wrapped scope, never a behaviour change for a caller
-    that asked for no cap."""
-    _skip_without_systemd_run()
-    script = tmp_path / "fanout2.sh"
-    script.write_text(_FANOUT)
-    script.chmod(0o755)
-    marks = tmp_path / "marks2"
-    argv = mem_cap.wrap_argv([str(script), str(marks), str(WANTED)], None)
-    assert argv[:3] == [str(script), str(marks), str(WANTED)], argv
-    p = subprocess.run(argv, capture_output=True, text=True, timeout=90)
-    assert p.returncode == 0, p.stdout + p.stderr
-    assert len(list(marks.glob("m*"))) == WANTED, p.stdout
+def test_the_unwrapped_path_is_unchanged(monkeypatch):
+    """`cap is None` -> the SAME argv, so a caller's fan-out is untouched:
+    the bound is a property of the wrapped scope, never a behaviour change
+    for a caller that asked for no cap."""
+    calls = _stub_spawn(monkeypatch)
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: True)
+    inner = ["fanout.py", "marks", str(WANTED)]
+    argv = mem_cap.wrap_argv(inner, None)
+    assert argv is inner, argv
+    mem_cap.subprocess.run(argv, capture_output=True, text=True, timeout=90)
+    assert calls == [inner], calls
