@@ -150,7 +150,7 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 - [merge-up] ccbfa862e GATED GREEN (TMM.203), lands when thought-master's suite clears.
 - TMM.203 GO on the pi pair (pi only, no model). FIXTURE-ONLY corrective rounds (PASS 4/5 defect = a real pi process was launched):
   OSC.42 hook-trim: parent a00-bfbb87cd pid 706677 iter 45 (r1 a00-096c7b3b died 04:46Z: provider empty response, no kid, 0 bytes) (orders OSC42.parent.txt) -- pytest over committed request logs + a00-3c370e1e reconciliation.
-  OSC.43 pi-compacts: parent a00-73126c9e pid 662518 iter 44 (orders OSC43.parent.txt) -- pinned agent-session.js excerpt + pytest over committed logs.
+  OSC.43 pi-compacts: HARVESTED -> [merge-up] ec1028737 sent (hypothesis disproved 0.8: conjunct 1 false, conjunct 2 unmeasured; test 120 lines vs ceiling 60).
 - OSC.40 r1 DEAD 03:59Z (0 bytes). OSC.40 r2 (a00-0491190a / kid a00-2a44fafd) and OSC.41 (a00-caa7f0fe / kid a00-7e1d4589, TMM.149 #1
   channel-scaled keys) were dispatched 04:31/04:34Z BEFORE I saw the guard -> STOPPED by me 04:40Z (1.5 min after TMM.202) (all agents + model runs). Their
   uncommitted scripts sit in worktrees a00-0491190a / a00-caa7f0fe (salvage candidates, unreviewed). Breach reported to thought-master.
@@ -160,7 +160,7 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 ## 🔴 Where it stops -- gen 33, ~04:5xZ 09-26
 ```
 EXACT NEXT:
-  (a) OSC.42 / OSC.43 exit (kill -0 706677 / 662518) -> review: NO subprocess/pi/node/model in the test (grep subprocess|Popen|os.system|model_slot);
+  (a) OSC.42 / OSC.43 exit (kill -0 706677) -> review: NO subprocess/pi/node/model in the test (grep subprocess|Popen|os.system|model_slot);
       re-run the test; re-derive 2 numbers from the logs; frontmatter vs prose -> ONE [merge-up] each. NO model-loading dispatch until belam's go.
   (b) on belam's go: re-dispatch OSC.40 (OSC40b.parent.txt) and OSC.41 (OSC41.parent.txt), ONE model round at a time; point the orders
       at the stopped kids' scripts as prior art (like OSC40b's RESUME block).
