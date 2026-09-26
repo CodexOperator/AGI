@@ -17954,10 +17954,21 @@ def _slot_exterior_prose(lines: list[str]) -> set[str]:
     while i < n:
         r = _fence_run(lines[i])
         if r >= 3:
-            i += 1
-            while i < n and _fence_run(lines[i]) < r:
+            j = i + 1
+            while j < n and _fence_run(lines[j]) < r:
+                j += 1
+            if j >= n:
+                # an UNPAIRED run (no closer to the end) is a stray
+                # delimiter sitting in PROSE position, and it is the card's
+                # own exterior line -- treating it as an opener swallowed
+                # every line after it, so the sign-off below it stopped
+                # counting as exterior and the handback re-nested it (and
+                # the stray run with it) on EVERY rotation, +1 depth and one
+                # copied sign-off per round (probe: a00-a177f505).
+                out.append(lines[i].strip())
                 i += 1
-            i += 1
+                continue
+            i = j + 1
         else:
             out.append(lines[i].strip())
             i += 1
@@ -17980,7 +17991,19 @@ def _drop_slot_exterior_prose(stops_text: str, exterior: set[str]) -> str:
     runs = [i for i, ln in enumerate(lines) if _fence_run(ln) >= 3]
     if not runs:
         return stops_text
-    head, mid, tail = lines[:runs[0]], lines[runs[0]:runs[-1] + 1], lines[runs[-1] + 1:]
+    # the handback's block is its FIRST fence PAIR, not everything from the
+    # first run to the LAST one: an unpaired run below the pair (a stray
+    # delimiter in prose position) would otherwise be swallowed into `mid`
+    # and its sign-off with it, so neither was ever droppable.
+    opener = _fence_run(lines[runs[0]])
+    close = runs[0]
+    for i in runs[1:]:
+        if _fence_run(lines[i]) >= opener:
+            close = i
+            break
+    else:
+        return stops_text
+    head, mid, tail = lines[:runs[0]], lines[runs[0]:close + 1], lines[close + 1:]
 
     def _is_ours(rs: list[str]) -> bool:
         return all((not r.strip()) or r.strip() in exterior for r in rs)
