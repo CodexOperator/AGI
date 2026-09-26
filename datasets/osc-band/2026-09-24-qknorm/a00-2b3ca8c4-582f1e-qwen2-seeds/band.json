@@ -1,0 +1,182 @@
+{
+ "meta": {
+  "seeds": [
+   7,
+   21,
+   99
+  ],
+  "grid": {
+   "4.25": [
+    [
+     4
+    ],
+    [
+     4,
+     4,
+     3,
+     3
+    ]
+   ],
+   "5.25": [
+    [
+     5
+    ],
+    [
+     5,
+     5,
+     4,
+     4
+    ]
+   ],
+   "6.25": [
+    [
+     6
+    ],
+    [
+     6,
+     6,
+     5,
+     5
+    ]
+   ],
+   "7.25": [
+    [
+     7
+    ],
+    [
+     7,
+     7,
+     6,
+     6
+    ]
+   ]
+  },
+  "eval": {
+   "wiki_slice_starts": [
+    5000,
+    61000,
+    120000,
+    240000
+   ],
+   "wiki_span": 512,
+   "heval_task_ids": [
+    "HumanEval/107",
+    "HumanEval/108",
+    "HumanEval/109",
+    "HumanEval/11"
+   ],
+   "heval_padded_to": 512,
+   "n_prompts": 8,
+   "n_tokens": 4096,
+   "hop1_wiki_starts": [
+    0,
+    29875,
+    59751,
+    89627,
+    119503,
+    149379,
+    179254,
+    209130,
+    239006,
+    268882
+   ],
+   "hop1_heval_task_ids": [
+    "HumanEval/0",
+    "HumanEval/1",
+    "HumanEval/10",
+    "HumanEval/100",
+    "HumanEval/101",
+    "HumanEval/102",
+    "HumanEval/103",
+    "HumanEval/104",
+    "HumanEval/105",
+    "HumanEval/106"
+   ]
+  }
+ },
+ "cells": {
+  "4.25@s7": [
+   0.499755859375,
+   1.6856555417180061
+  ],
+  "4.25@s21": [
+   0.495849609375,
+   1.7153004705905914
+  ],
+  "4.25@s99": [
+   0.458740234375,
+   2.044011652469635
+  ],
+  "5.25@s7": [
+   0.656982421875,
+   0.927568132057786
+  ],
+  "5.25@s21": [
+   0.728759765625,
+   0.5652146618813276
+  ],
+  "5.25@s99": [
+   0.643798828125,
+   1.0640142932534218
+  ],
+  "6.25@s7": [
+   0.739013671875,
+   0.5792308077216148
+  ],
+  "6.25@s21": [
+   0.7958984375,
+   0.33127973787486553
+  ],
+  "6.25@s99": [
+   0.737548828125,
+   0.6293233372271061
+  ],
+  "7.25@s7": [
+   0.81591796875,
+   0.2941351681947708
+  ],
+  "7.25@s21": [
+   0.85400390625,
+   0.17303450359031558
+  ],
+  "7.25@s99": [
+   0.83740234375,
+   0.2312656999565661
+  ]
+ },
+ "band": {
+  "4.25": {
+   "agree_half_range": 0.020508,
+   "kl_half_range": 0.179178,
+   "key_only_minus_uniform_agree": -0.07959,
+   "uniform_minus_key_only_kl": -0.470127,
+   "inside_agree": false,
+   "inside_kl": false
+  },
+  "5.25": {
+   "agree_half_range": 0.04248,
+   "kl_half_range": 0.2494,
+   "key_only_minus_uniform_agree": 0.027832,
+   "uniform_minus_key_only_kl": 0.125137,
+   "inside_agree": false,
+   "inside_kl": true
+  },
+  "6.25": {
+   "agree_half_range": 0.029175,
+   "kl_half_range": 0.149022,
+   "key_only_minus_uniform_agree": 0.051758,
+   "uniform_minus_key_only_kl": 0.154396,
+   "inside_agree": false,
+   "inside_kl": false
+  },
+  "7.25": {
+   "agree_half_range": 0.019043,
+   "kl_half_range": 0.06055,
+   "key_only_minus_uniform_agree": 0.009033,
+   "uniform_minus_key_only_kl": 0.01424,
+   "inside_agree": false,
+   "inside_kl": false
+  }
+ },
+ "t_s": 745.0
+}
