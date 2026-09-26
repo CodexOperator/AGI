@@ -63,7 +63,7 @@ PASS 8    row 47 DONE: DH.394 MERGED b39533d28 + cell reaper.chain_deadline_s=20
           parent probe re-run: [x] round-parent rc=3, summary names it); test_workflow* 184. PASS 8 rows ALL CLOSED
 DH.398    a00-b9cd4f05 LIVE: DH.360 seam 3 = round-mur.json + round-research-review.json (extends+prelude, kind:round);
           the config:workflows rows are MINE to commit after harvest (the round reports them)
-suite9    full suite RUNNING detached on b443336cb (DH.396 + f1c fix) -> merge-up 9
+merge-up 9 SENT (DH.396 + f1c fix): suite b443336cb 6698/0, behind 0 -- await TM
 TMM.228   goal:g7.33.16 + hypothesis 6cf5681d2 -> DH.397 a00-aae44e7f STOPPED on TMM.229 (parent + kid TERMed, worktree kept)
 HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. Re-dispatch DH.397 only after, with the FIXTURE
           rule in orders + test: red-on-old = a tiny random-init model GENERATED in tmp, never osc03/osc15/brain weights
