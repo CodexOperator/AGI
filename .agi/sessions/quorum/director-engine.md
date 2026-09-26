@@ -40,10 +40,11 @@ CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_ma
 ROUND  agent        what                         state (mur units agi-director-engine-murNNN; runs/mur-director-engine-N in MAIN)
 424    MERGED with 431 (mur-5 accept) into the post branch + verdict proved 390bab9da -- repro green on the post branch
 425    -> 428 -> 435 -> 441 a00-b4ee33fe (3-name pin; node cites fixed, committed by me) 84 green -> mur-6 DH.441-k1 RUNNING (final)
-426    a00-8783b3d3 schema gate+hook  mur-4 residue x3 (named-id hole, double ERR, stale comment, cites) -> 442 LIVE
+426    a00-8783b3d3 schema gate  mur-4 residue x3 (cli.py: named-id hole, double ERR, stale comment) -> 442 FAILED TO BUILD ON IT (no
+       merge; hook-only overlap) -> NEVER merge 442; REDO as 445 dispatched FROM a worktree checked out on the 426 loop branch
 427    -> 436 a00-68d48a54 (incl 427): seam holds --noconftest (0 tmux calls), vacuous guard deleted, nbhd 310 -> mur-6 DH.436-k1/k2 RUNNING
 429    -> 443 a00-169a5424 REBUILT standalone (live 150, both guards) -> mur-6 DH.443-k1 RUNNING; LAND: merge 429 (nodes) THEN 443 (-X theirs)
-430    a00-cfa396d1 suite_guards (DH.419 redo)  mur-5 accept_with_residue (2nd guard home, not ONE) -> 440 a00-c8389b84 LIVE (merges 430+431)
+430    -> 440 a00-c8389b84 (incl 430+431; ONE guard home, 0 dups; 229 green + repro) -> mur-6 DH.440-k1/k2 RUNNING
 432    SUPERSEDED (never merge: hostname in its history) -> 438 a00-d821a9fd REBUILT clean (125 green, anonymize ok, no host in history)
        -> mur-6 DH.438-k1 RUNNING; 438 lands with a normal --no-ff (its history is clean)
 433    a00-eafe7a6a installer  mur-5 residue (config-max: code fracs dup cells; graph root '.'; restore gap) -> 444 LIVE
@@ -51,7 +52,9 @@ ROUND  agent        what                         state (mur units agi-director-e
        BOX DRIFT (for TM, not ours to fix): OOMPolicy unset on streamer-stub-watch.service · agi.slice drop-in FILE absent
 GRAPH     (3) DONE 864572bd6 · (2) level3.py after 435 merges · (9) judge heal-never-reseats after 436 · (11) verdicts x3 at merge
 g15       concurrent murs mint ONE run key (-3 x2, -4 x3, -5 x3): _existing_run_keys sees only finished rows
-g15       3 parents SKIPPED the mandatory first-act merge (437/438/443): each rebuilt blind -> chain provenance lost
+g15       "merge the loop branch first" is NOT reliable: kids are forbidden git and get an EMPTY .git (no refs); 437/438/442/443
+          did not merge (442 then built nothing useful). FIX: cut correctives FROM the loop branch: git worktree add <tmp> <loop br>,
+          run dispatch.py there (it cuts from the spawner's branch); --allow-stale-base with the reason if it refuses
 g15       a parent's harvest dm can be lost (DH.429 finished, no inbox line) -- reconcile by branch, never by inbox alone
 QUEUED    goal:send-is-hub-only-... (assigned DE 20:3xZ; owner routing in notes; OWNER 21:0xZ via belam 22:08Z: box id = env AGI_BOX label, set by init in environment.d + stamped by crons.py, engine refuses unset -- NOT yet on the node) after the re-delivery; my 21:2xZ dm to TM
           said "not on any ref" -- stale, correct it in the [merge-up] line
