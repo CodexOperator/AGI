@@ -715,6 +715,28 @@ def write_node(
         )
         return res
 
+    # hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-
+    # id-does-not-resolve -- the second CREATE-only refusal. A parent id that
+    # resolves to no node is UNVERIFIED, and fail-open is correct for anything
+    # ALIVE (never re-point a legacy edge, G7.1). But for a brand-new create
+    # there is nothing legitimate to preserve: the edge names a node that does
+    # not exist yet -- most often a subgoal the same round meant to mint and
+    # did not. Same REJECTED shape as the no-active-schema branch above. Only
+    # the unresolved-parent-id reason qualifies, and only when the file does
+    # not exist: an existing node keeps its fail-open edge untouched.
+    if (
+        gate.status == spawn_gate.UNVERIFIED
+        and gate.reason.startswith("parent id(s) resolve to no node")
+        and not node_file.exists()
+    ):
+        res.status = REJECTED
+        res.reason = (
+            f"{gate.reason}: a new {ntype} node cannot be created onto a "
+            f"parent that names no node. Create the parent first, or pass a "
+            f"parent id that exists in the graph."
+        )
+        return res
+
     scaffold_body = f"\n# {node_id}\n\n" if heading else "\n"
     if body is None:
         # hypothesis:l3-done-broken-frontmatter -- anchor the body start with
