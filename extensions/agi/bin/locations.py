@@ -223,6 +223,18 @@ def find_project_root(start: Path | str | None = None) -> Path | None:
     return _descend(d)
 
 
+def _enclosing_repo(root: Path) -> Path | None:
+    """The nearest ancestor of `root` carrying a `.git`, or None when the path
+    sits in NO repository at all (a plain dir under /tmp)."""
+    d = Path(root)
+    while True:
+        if (d / ".git").exists():
+            return d
+        if d.parent == d:
+            return None
+        d = d.parent
+
+
 def git_common_root(root: Path) -> Path:
     """The MAIN checkout root when `root` sits inside a linked git worktree.
 
@@ -245,13 +257,9 @@ def git_common_root(root: Path) -> Path:
     """
     root = Path(root).resolve()
 
-    d = root
-    while True:
-        if (d / ".git").exists():
-            break
-        if d.parent == d:
-            return root
-        d = d.parent
+    d = _enclosing_repo(root)
+    if d is None:
+        return root
 
     try:
         out = subprocess.run(
@@ -281,12 +289,17 @@ def git_common_root(root: Path) -> Path:
 def is_live_checkout(root: Path) -> bool:
     """True when `root` sits inside this engine copy's own live checkout
     (claim 1: a suite basetemp there makes git-escaping writers hit LIVE).
-    A path with no git common root (None) is never the live checkout.
+    A path in NO enclosing repository is never the live checkout -- decided by
+    that fact (SM.80's `is not None` pair was a tautology: git_common_root
+    never returns None), not by an identity fallback that merely happens to
+    differ.
     """
     try:
-        g = git_common_root(Path(root).resolve())
-        e = git_common_root(Path(__file__).resolve())
-        return g is not None and e is not None and g == e
+        g = _enclosing_repo(Path(root).resolve())
+        e = _enclosing_repo(Path(__file__).resolve())
+        if g is None or e is None:
+            return False
+        return git_common_root(root) == git_common_root(g)
     except Exception:
         return False
 
