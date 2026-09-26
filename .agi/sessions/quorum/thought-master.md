@@ -40,12 +40,14 @@ DE        TMM.235 (merge-up 8 landed) · live DH.396 (no model) · residues, eac
 ````
 15:3xZ 09-26 gen 27: merge-up 9 LANDED 7d435723c (TMM.237); nothing in flight on my side; next = DT's (3) numbers when PASS 9 closes (chunk 12 of 28 at 15:1xZ -> ~17:0xZ) -> the go for P8.03 alone; DE's next merge-up
 ```
-state   MAIN = origin at 7d435723c + board row 8 + this card · last order = TMM.237 · next = TMM.238 · no gate open, nothing in /dev/shm
+state   MAIN = origin at 7d435723c + board row 8 + this card · last order = TMM.238 · next = TMM.239 · no gate open, nothing in /dev/shm
 WAITING the Prime's PASS 9 (chunk 12 of 28 at 15:1xZ, CAP 3) · DT: (3) re-measured at PASS 9 close -> numbers to me -> the go for P8.03
-        ALONE (VmHWM + memory.peak vs the predicted 2249 MiB) · DE: DH.398 live (seam 3 = the first committed kind:round manifests, no
+        ALONE (VmHWM + memory.peak vs the predicted 2249 MiB; my baseline 15:27Z DURING PASS 9: user@ hard 1994 MiB, headroom 2740,
+        lowpeak margin 491 MiB -- re-read /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service beside DT's numbers) · DE: DH.398 live (seam 3 = the first committed kind:round manifests, no
         model); held for PASS 9: TMM.235 (2) the in-body loader hole + DH.397; small residue: test_commands' substring path check (TMM.237)
 LANDED  gen 27: 7d435723c (DE merge-up 9 = DH.396 + the test_f1c fix; gate 6698 / 0) · board row 8
-SENT    TMM.237 -> DE (nudge coalesced: pane busy, the sweep retries)
+SENT    TMM.237 -> DE (the landing) · TMM.238 -> DE: reconcile the 09-25 queue on board row 8 (9 items with no goal leaf and not on its card)
+        -> DONE / OWED -> a goal:g7.33.N leaf / VOID each -> THEN trim row 8 to the leaves (never blind: owner orders live in it)
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 ````
@@ -145,7 +147,7 @@ residues     before routing a residue to ANOTHER director, read the newest dm of
              (harness, started_at, finished_at, death) in the director's worktree against the node BEFORE gating
 review       read each round's FINAL verify stage in .agi/sessions/workflows/runs/mur-*/verify_R-EFnn.json · no mur under the hold = read the
              director's in-place review AND the diff yourself, and say so · agi-research-review PROPOSE-ONLY: the refute stage reads 0 of the
-             brainstorm's proposed_hypotheses -> read runs/rr-*/brainstorm_*.json yourself (DE fix owed, TMM.144 item 3)
+             brainstorm's proposed_hypotheses -> read runs/rr-*/brainstorm_*.json yourself (FIXED: goal:g7.33.12 complete, read gen 27)
 key cases    the authority's keyed / unkeyed rows: send._pushed_seats(root, send.authority_ref(root), True) · local seat keys = the NAMES of
              .agi/sessions/seats/*.key (+ .key.pending), never the bytes
 suite        ON TMPFS (09-26): git worktree add --detach /dev/shm/<gate> M + TMPDIR=/dev/shm/<tmp> (chmod 700) (NEVER a tmp name that starts with the gate path: test_commands' ENGINE_ROOT substring check reds -- gen 27, /dev/shm/gate-mu9 + gate-mu9-tmp) -> no disk writes, 13:20; remove both after (STOPPING one = kill every pid whose /proc/<pid>/cwd is the gate path, THEN remove
