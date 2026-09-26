@@ -48,10 +48,13 @@ pending Prime/owner ruling (`g7.33.1/.7/.8`) -- check a leaf's own `who` row bef
 ```
 seat       gen 22, seated 02:23:58Z, after_join exit 0 (join/pin/reap-proof) -- no ack owed
 tip        post branch: 34ceccce2 (TMM.199 fix) -> 6fe0719df (trunk sync, dispatch's own stale-base action) -> card
-merge-up   swarm harvest 2c87b63c2 RETURNED (TMM.199) -> both reds FIXED in 34ceccce2 -> RE-SEND pending the test slice
-round      DH.367 · parent a00-0c992f07 · pi-free stealth/space-bunny-alpha · cap $1 · detached
-           branch season2/loops/hypothesis-node-writer-create-re-a00-0c992f07
-           target hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-id-does-not-resolve
+merge-up   swarm harvest 2c87b63c2 RETURNED (TMM.199) -> reds FIXED 34ceccce2 -> RE-SENT tip 938111b38 [delivered] -- await TM
+rounds     all pi-free stealth/space-bunny-alpha, --tier parent --ladder-tier 0, cap $1, --branch --detach
+  DH.367   a00-0c992f07  hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-id-does-not-resolve (g7.33)
+  DH.368   a00-5aaa03c7  hypothesis:pin-reap-never-names-a-live-session-and-a-reap-leaves-no-stale-app-session (g6.49, 2c, minted aeaeceb23)
+  DH.369   a00-8cf344ba  hypothesis:cron-layer-keeps-its-disk-footprint-bounded (g6.49, 2d)
+held       goal:g6.41 pair (heal-lands-a-reseat..., a-reboot-brings-the-town-back...) -- heal.py = DH.368's file;
+           dispatch (1) once DH.368 merges, (2) after (1) per belam's order · MemAvailable was 3.6 GiB at DH.369 (floor 3)
 push       never from here (IDENTITY rule)
 ```
 | TMM.199 red | fix in 34ceccce2 | proof |
@@ -63,17 +66,17 @@ push       never from here (IDENTITY rule)
 ## §1 PLAN
 | # | item | status |
 |---|---|---|
-| 1 | re-send `[merge-up]` naming 34ceccce2 + tip | **NEXT** (after the test slice) |
-| 2 | DH.367 harvest: review the parent's kids against the claim; merge `--no-ff` | running |
-| 3 | owner's concurrency-up (belam 02:0xZ): 2c stale-sessions/registry FIRST -> goal:g6.41 pair -> 2d hygiene goal:g6.49 | not started; each = ONE pi-free parent round |
+| 1 | re-send `[merge-up]` naming 34ceccce2 + tip | SENT 938111b38 -- await TM verdict |
+| 2 | harvest DH.367 / .368 / .369: review kids against each claim + falsifiers; merge `--no-ff`; one merge-up | running |
+| 3 | goal:g6.41 pair | HELD on heal.py disjointness behind DH.368 |
 | 4 | DH.360 seam 3 (fresh mint) -> TMM.166/174 -> g1.14.1 -> PASS 6 defect 3 -> pass7-0926-residue-batch (read fully) | queued |
 
 ## 🔴 WHERE IT STOPS
 ```
 1  send.py read director-engine   -> TM's verdict on the re-sent merge-up; a red = fix + re-send with sha
-2  DH.367: cli.py status / the iter-DH.367 manifest; harvest when the parent reports
-3  §1 row 3, in order, each: write.py-mint or read the hypothesis -> dispatch.py . DH.<n> --target <id>
-   --tier parent --role parent --ladder-tier 0 --from director-engine --branch --detach (dry-run first)
+2  spawn_budget.py status + .agi/sessions/iter-DH.36{7,8,9}/ -> harvest each parent as it reports
+3  after DH.368 merges: dispatch.py . DH.<n> --target hypothesis:heal-lands-a-reseat-after-a-tmux-server-restart
+   --tier parent --role parent --ladder-tier 0 --from director-engine --branch --detach (MemAvailable >= 3 GiB first)
 ```
 
 ## §4 TRAPS (gen 22)
