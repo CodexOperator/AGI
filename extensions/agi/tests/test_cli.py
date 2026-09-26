@@ -2124,3 +2124,25 @@ def test_kid_parent_never_widens_even_for_a_committable_type(tmp_path, capsys):
         root, root, None, None, ["hypothesis:tgt"],
         refused=["hypothesis:tgt"])
     assert paths == {"nodes/hypothesis/tgt.md"}, paths
+
+
+def test_dispatch_parent_survives_the_done_parent_overwrite():
+    """DH.411: `cmd_done` wrote `rec["parent"] = args.parent` BEFORE the sweep
+    read it, so `del parent` in `_round_named_node_ids` killed only the
+    PARAMETER and the KID's id re-entered the named set through the record
+    key the fix meant to protect. Dispatch's value is now preserved under a
+    key nothing writes, before the overwrite; the kid's `--parent` never
+    widens the set, whatever its type."""
+    cli = _load_cli()
+    rec = {"target": "hypothesis:tgt", "parent": "hypothesis:dispatch-parent"}
+    # exactly what cmd_done does, in order
+    rec.setdefault("dispatch_parent", rec.get("parent") or "")
+    rec["parent"] = "doc:kid-supplied-foreign"
+    assert cli._round_named_node_ids(rec, "doc:kid-supplied-foreign") == [
+        "hypothesis:tgt", "hypothesis:dispatch-parent"]
+    # a pre-capture record (a fixture, an older dispatch) still reads parent
+    assert cli._round_named_node_ids(
+        {"target": "hypothesis:tgt", "parent": "hypothesis:dp"}, None) == [
+            "hypothesis:tgt", "hypothesis:dp"]
+    # and the set is the same whatever the kid typed on the command line
+    assert cli._round_named_node_ids(rec, "config:posts") == cli._round_named_node_ids(rec, None)
