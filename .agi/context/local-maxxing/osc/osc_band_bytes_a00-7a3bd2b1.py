@@ -16,7 +16,7 @@ import argparse, importlib.util, json, os, sys
 os.environ["HF_HUB_OFFLINE"] = os.environ["TRANSFORMERS_OFFLINE"] = "1"
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.getcwd()
 sys.path[:0] = [os.path.join(ROOT, ".agi/context/local-maxxing"), HERE]
-import numpy as np, torch, paths, osc_band_prune as obp
+import numpy as np, torch, paths, osc_band_prune as obp, osc_lowpeak
 _s = importlib.util.spec_from_file_location("fixed", os.path.join(HERE, "osc_band_kquant_qknorm_a00-bcb6c85e.py"))
 fixed = importlib.util.module_from_spec(_s); _s.loader.exec_module(fixed)
 STATE = {"arm": None, "rows": []}
@@ -92,11 +92,11 @@ def emit(f, which, arms, summary):
 
 
 def run(which):
-    from transformers import AutoTokenizer, AutoModelForCausalLM
+    from transformers import AutoTokenizer
     global MODEL, PROMPTS
     hf = paths.get("osc15_hf_dir" if which == "qwen3" else "osc03_hf_dir")
     tok = AutoTokenizer.from_pretrained(hf)
-    MODEL = [AutoModelForCausalLM.from_pretrained(hf, dtype=torch.float32, attn_implementation="eager").eval()]
+    MODEL = [osc_lowpeak.load(hf)[0]]  # bf16-resident, fp32 compute (TMM.230); logits are not read here
     fixed.install(MODEL[0]); instrument()
     PROMPTS, emeta = obp.build_eval(tok); E = profile(MODEL[0], PROMPTS)
     g = grid(); out = paths.get_local("osc_band_qknorm_dir") + "/bytes-a00-7a3bd2b1-" + which
