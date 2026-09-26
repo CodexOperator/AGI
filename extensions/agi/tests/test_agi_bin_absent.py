@@ -21,7 +21,6 @@ real shadow and green once it is gone.
 """
 from __future__ import annotations
 
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -30,12 +29,12 @@ import pytest
 
 PLUGIN_ROOT = Path(__file__).resolve().parents[1]
 BIN = PLUGIN_ROOT / "bin"
-FIND_ROOT = PLUGIN_ROOT / "lib" / "find-root.sh"
-#: The fixture builder, resolved from the session scratch dir's checkout.
-FIXTURE = (
-    PLUGIN_ROOT.parents[1] / ".agi" / "sessions"
-    / "iter-DH.416" / "a00-729b9124" / "make_shadow_fixture.sh"
-)
+#: The fixture builder, SHIPPED beside this test (tests/fixtures/) so the guard
+#: bites in a clean checkout: a fixture living in a per-round session scratch
+#: dir is gone next round and 3 of these 4 tests die with ENOENT (measured,
+#: experiment:a00-e4a74ff1-789283). It locates the engine from its own path,
+#: so no env var and no absolute path is threaded through.
+FIXTURE = Path(__file__).resolve().parent / "fixtures" / "make_shadow_fixture.sh"
 sys.path.insert(0, str(BIN))
 
 import locations  # noqa: E402
@@ -72,7 +71,6 @@ def _fixture(project: Path, script: str = "") -> tuple[Path, str]:
     res = subprocess.run(
         ["bash", str(FIXTURE), str(project), script],
         capture_output=True, text=True,
-        env={**os.environ, "AGI_PLUGIN_ROOT": str(PLUGIN_ROOT.parents[1])},
     )
     assert res.returncode == 0, f"fixture build failed:\n{res.stderr}"
     return Path(res.stdout.splitlines()[0]), res.stdout
