@@ -489,3 +489,82 @@ def test_pane_pid_seam_reads_the_third_field(graph, monkeypatch):
     assert heal._pane_pid_of("@7", str(wf)) == 900
     assert heal._pane_pid_of("@8", str(wf)) == 0
     assert heal._pane_pid_of("@9", str(wf)) == 0
+
+
+# ---------------------------------------------------------------------------
+# (c) PER-PASS COST: ONE `list-panes` for the whole pass, not one
+# `display-message` per row. Measured (session probe_cost.py, this box):
+# warm display-message 2.2 ms x 8 rows = 18 ms healthy (against a 30 s poll,
+# heal.py:1706) but 8 x timeout=5 = 40 s when the server cannot answer, vs
+# 5 s for the single batched call.
+# ---------------------------------------------------------------------------
+def test_f_a_healthy_town_batch_seam_reports_nothing_and_spawns_nothing(
+        graph, monkeypatch):
+    """F-A: a HEALTHY town -- every seat live in its OWN window, its own pane
+    chain holding its own row pid -- is still `nothing done` and spawns
+    nothing, read through the BATCHED per-pass map."""
+    rows = [{"name": f"seat-{i}", "pid": 900 + i, "window": f"@{i}",
+             "generation": 3} for i in range(1, 4)]
+    _write_seats(graph, rows)
+    wf = graph / "windows.healthy.txt"
+    wf.write_text("".join(f"@{i} seat-{i} {700 + i}\n" for i in range(1, 4)),
+                  encoding="utf-8")
+    _fake_chain(monkeypatch, {700 + i: [700 + i, 900 + i] for i in range(1, 4)})
+    spawns: list = []
+    # row pids gone (a stale row), every pane chain holding its OWN row pid
+    acted = heal._watch_seats(
+        graph, pid_alive=lambda pid: False, window_path=str(wf),
+        launcher=_fake_launcher(spawns))
+    assert spawns == [] and acted == [], \
+        "a healthy town is never re-seated (F-A, batched seam)"
+    assert heal._pane_pid_map(str(wf)) == {"@1": 701, "@2": 702, "@3": 703}
+
+
+def test_f_b_collision_still_recovers_through_the_batched_map(
+        graph, monkeypatch):
+    """F-B through the batched seam: the collision of F1 still recovers."""
+    _write_seats(graph, [{"name": "seat-a", "pid": 999999, "window": "@3",
+                          "generation": 3},
+                         {"name": "seat-b", "pid": 901, "window": "@5",
+                          "generation": 3}])
+    wf = graph / "windows.collide2.txt"
+    wf.write_text("@5 seat-b 900\n@3 reused 900\n", encoding="utf-8")
+    _fake_chain(monkeypatch, {900: [900, 901]})
+    spawns: list = []
+    acted = heal._watch_seats(
+        graph, pid_alive=lambda pid: pid == 901, window_path=str(wf),
+        launcher=_fake_launcher(spawns))
+    assert [s["name"] for s in spawns] == ["seat-a"], \
+        "the batched map does not weaken the (c) key (F-B)"
+
+
+def test_batched_map_never_adds_a_call_where_the_key_is_not_consulted(
+        graph, monkeypatch):
+    """No row's @id is present -> the (c) key is never consulted, so the pass
+    must not spend a tmux call on it."""
+    _write_seats(graph, [{"name": "seat-a", "pid": 999999, "window": "@50",
+                          "generation": 3}])
+    wf = graph / "windows.none.txt"
+    wf.write_text("@1 other 900\n", encoding="utf-8")
+
+    def _boom(*_a, **_k):
+        raise AssertionError("no tmux call where the (c) key is unused")
+    monkeypatch.setattr(heal, "_pane_pid_map", _boom)
+    spawns: list = []
+    acted = heal._watch_seats(
+        graph, pid_alive=lambda pid: False, window_path=str(wf),
+        launcher=_fake_launcher(spawns))
+    assert acted and acted[0].get("respawned") is True
+
+
+def test_pane_pid_map_two_field_lines_stay_unknown(graph):
+    """The batched map obeys `_pane_pid_of`'s rule: a two-field seam line
+    (every pre-existing fixture) and an absent id are UNKNOWN, never a guess."""
+    wf = graph / "windows.twofield.txt"
+    wf.write_text("@7 seat-a 900\n@8 seat-b\n", encoding="utf-8")
+    assert heal._pane_pid_map(str(wf)) == {"@7": 900}
+    assert heal._window_present(
+        {"name": "seat-a", "pid": 111, "window": "@8"},
+        [("@8", "seat-b")], rows=[], _rotate=object(),
+        pane_pids=heal._pane_pid_map(str(wf)))[0] is True
+    assert heal._pane_pid_map(str(graph / "absent.txt")) == {}
