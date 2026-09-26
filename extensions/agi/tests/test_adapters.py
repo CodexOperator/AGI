@@ -167,12 +167,20 @@ def test_absent_keys_pass_no_flags_so_pis_own_settings_win():
     assert adapters.load("pi").model_args({}, "kid") == []
 
 
-def test_pi_bin_env_var_wins_over_config(monkeypatch):
+def test_pi_bin_env_var_wins_over_config(tmp_path, monkeypatch):
     pi = adapters.load("pi")
     monkeypatch.delenv("PI_BIN", raising=False)
-    assert pi.resolve_bin({"bin": "/from/config"}) == "/from/config"
-    monkeypatch.setenv("PI_BIN", "/from/env")
-    assert pi.resolve_bin({"bin": "/from/config"}) == "/from/env"
+    # Real files: a path-shaped cell that does not exist refuses by name now
+    # (hypothesis:harness-bin-absolute-token-free-bins-refused-by-name), so
+    # precedence is pinned with paths that can actually be resolved.
+    cfg_bin = tmp_path / "config"
+    env_bin = tmp_path / "env"
+    for f in (cfg_bin, env_bin):
+        f.write_text("#!/bin/sh\n")
+        f.chmod(0o755)
+    assert pi.resolve_bin({"bin": str(cfg_bin)}) == str(cfg_bin)
+    monkeypatch.setenv("PI_BIN", str(env_bin))
+    assert pi.resolve_bin({"bin": str(cfg_bin)}) == str(env_bin)
 
 
 def test_child_env_passes_the_scrubbed_base_through():
@@ -470,10 +478,15 @@ def test_tilde_user_expands_to_that_users_home_not_the_current_home(
     assert got != str(tmp_path / "me" / "bob/.npm-global/bin/pi")
 
 
-def test_env_override_wins_over_the_config_cell(monkeypatch):
-    monkeypatch.setenv("PI_BIN", "/from/env")
+def test_env_override_wins_over_the_config_cell(tmp_path, monkeypatch):
+    cfg_bin = tmp_path / "config"
+    env_bin = tmp_path / "env"
+    for f in (cfg_bin, env_bin):
+        f.write_text("#!/bin/sh\n")
+        f.chmod(0o755)
+    monkeypatch.setenv("PI_BIN", str(env_bin))
     assert adapters.resolve_bin(
-        {"bin": "/from/config"}, "PI_BIN", "pi") == "/from/env"
+        {"bin": str(cfg_bin)}, "PI_BIN", "pi") == str(env_bin)
 
 
 def test_path_fallback_resolves_a_bare_name(tmp_path, monkeypatch):
@@ -545,3 +558,39 @@ def test_an_unresolvable_tilde_user_refuses_by_name(tmp_path, monkeypatch):
     assert "nosuchuser_xyz" in msg, msg
     assert "'nope'" in msg, msg
     assert "NOPE_BIN" in msg, msg
+
+
+def test_a_missing_token_free_absolute_bin_refuses_by_name(monkeypatch):
+    """`hypothesis:harness-bin-absolute-token-free-bins-refused-by-name`.
+
+    The last carry-unchanged hole in `resolve_bin`: a CONFIGURED path-shaped
+    cell that is already absolute and holds NO `~`/`{home}` token was returned
+    verbatim when the file was absent, so `Popen` died on a bare
+    `FileNotFoundError('/x/nope')` naming neither the harness nor the
+    `$ENV_VAR` that would fix it -- the same unnamed death the home-token
+    case was closed for. Precedence does not require carrying a value that
+    cannot be exec'd: a bare NAME is still carried (the synthetic-template
+    contract); a PATH is not.
+
+    The message owes the same three names as its siblings: the harness, the
+    path it tried, and the `$ENV_VAR` that would override it."""
+    monkeypatch.delenv("ZEPHYR_BIN", raising=False)
+    with pytest.raises(FileNotFoundError) as exc:
+        adapters.resolve_bin(
+            {"adapter": "zephyr", "bin": "/opt/zephyr/bin/zephyr-nope"},
+            "ZEPHYR_BIN", "zephyr")
+    msg = str(exc.value)
+    assert "'zephyr'" in msg, msg
+    assert "/opt/zephyr/bin/zephyr-nope" in msg, msg
+    assert "ZEPHYR_BIN" in msg, msg
+
+
+def test_an_EXISTING_absolute_bin_is_still_returned(tmp_path, monkeypatch):
+    """The negative probe: the new refusal must not fire on a file that is
+    there, or every live box with an absolute `bin` cell would fail closed."""
+    fake = tmp_path / "zephyr"
+    fake.write_text("#!/bin/sh\n", encoding="utf-8")
+    fake.chmod(0o755)
+    monkeypatch.delenv("ZEPHYR_BIN", raising=False)
+    assert adapters.resolve_bin(
+        {"adapter": "zephyr", "bin": str(fake)}, "ZEPHYR_BIN", "zephyr") == str(fake)
