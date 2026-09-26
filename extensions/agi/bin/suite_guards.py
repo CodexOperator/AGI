@@ -110,9 +110,6 @@ def make_suite_lock_fixture(root_resolver):
 suite_lock = make_suite_lock_fixture(graph_root)
 
 
-_STRIPPED: dict = {}
-
-
 def strip_dispatch_env(extra_keys=(), env=None, memo=None) -> dict:
     """Remove every AGI_*/AUTORESEARCH_* key, plus `extra_keys`, from `env`
     (default os.environ), remembering the values in the returned `memo` so a
@@ -142,18 +139,43 @@ def restore_dispatch_env(memo) -> None:
 def make_agi_env_stripped_fixture(extra_keys=()):
     """The dispatch-env strip as ONE body, plus whatever extra non-AGI channel
     the caller names: a suite is green or red on the same bytes whichever seat
-    spawned it."""
+    spawned it.
+
+    The memo is PER FIXTURE INSTANCE, held in the closure: it used to be the
+    module-global `_STRIPPED`, so two instances (the engine suite's
+    make_agi_env_stripped_fixture() and the declared suite's, in one process
+    where both conftests load) shared one dict and one's teardown restored
+    what the other had stripped -- note 1 of verify_DH.440-k1."""
     @pytest.fixture(scope="session", autouse=True)
     def agi_env_stripped():
-        _STRIPPED.update(strip_dispatch_env(extra_keys))
+        stripped = strip_dispatch_env(extra_keys)
         yield
-        restore_dispatch_env(_STRIPPED)
-        _STRIPPED.clear()
+        restore_dispatch_env(stripped)
+        stripped.clear()
     return agi_env_stripped
 
 
 #: The declared-suite policy: the AGI_*/AUTORESEARCH_* channel only.
 agi_env_stripped = make_agi_env_stripped_fixture()
+
+
+def own_pid_signal0_only(pid, sig, own_pids) -> bool:
+    """The ONE legality predicate for `os.kill` traffic under a
+    NO_REAL_PROCESSES guard: the OWN pid AND signal 0, nothing else. Signal 0
+    on our own pid is a liveness probe -- it delivers nothing -- so it is the
+    only signal a guarded leaf may pass through, and `own_pids` is the caller's
+    own pid and NOTHING else.
+
+    TWO leaves call it and neither may re-decide: the fixture leaf
+    (`no_real_process` -> `_make_guarded_kill`) and the IMPORT-time leaf
+    (extensions/agi/tests/conftest.py's `_make_import_time_fence`, which had
+    its own copy checking pid membership ALONE, so a module that
+    `os.kill(os.getpid(), SIGKILL)`ed at collection really killed the runner
+    -- residue 1 of verify_DH.440-k1)."""
+    try:
+        return int(pid) in own_pids and int(sig) == 0
+    except (TypeError, ValueError):
+        return False
 
 
 #: A test module opts in with `NO_REAL_PROCESSES = True`; the guard is opt-in
@@ -198,17 +220,17 @@ def _make_guarded_kill(real_kill, own_pids):
     real call -- residue 2 of verify_DH.430-k1: both copies of this guard
     claimed "signal-0 only" while the code checked pid membership alone."""
     def _guarded_kill(pid, sig, *a, **k):
+        if own_pid_signal0_only(pid, sig, own_pids):
+            return real_kill(pid, sig, *a, **k)
         if int(pid) not in own_pids:
             raise AssertionError(
                 f"guard: a NO_REAL_PROCESSES test signalled pid {pid}; only "
                 "its own pid may be signalled, and only for a signal-0 "
                 "liveness probe")
-        if int(sig) != 0:
-            raise AssertionError(
-                f"guard: a NO_REAL_PROCESSES test sent signal {int(sig)} to "
-                "its own pid; signal 0 (the liveness probe) is the only "
-                "signal a guarded test may send")
-        return real_kill(pid, sig, *a, **k)
+        raise AssertionError(
+            f"guard: a NO_REAL_PROCESSES test sent signal {sig} to its own "
+            "pid; signal 0 (the liveness probe) is the only signal a guarded "
+            "test may send")
     return _guarded_kill
 
 

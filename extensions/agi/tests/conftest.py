@@ -425,6 +425,7 @@ from suite_guards import (  # noqa: E402,F401 -- the guard, imported not copied
     _make_guarded_killpg,
     make_suite_lock_fixture,
     no_real_process as _no_real_process_or_live_config,
+    own_pid_signal0_only,
 )
 
 #: PROD `sessions_dir`, captured BEFORE the autouse fixture rebinds it under
@@ -626,6 +627,9 @@ _FENCE_MARKER = "__agi_spawn_fence__"
 #: A caller that set this module attribute opted in to the process guard.
 _GUARD_FLAG = _GUARD_OPTIN_ATTR
 
+#: The pids the kill leaves may touch: this process, and NOTHING else.
+_OWN_PIDS = frozenset({os.getpid()})
+
 
 def _resolve_leaves(leaves=_FENCED_SPAWN_LEAVES):
     """(module, attr) pairs that exist in THIS interpreter, in order. An
@@ -662,16 +666,23 @@ def _caller_opted_in():
 
 def _make_import_time_fence(real, label, kill=False):
     """Wrap ONE process leaf so an opted-in caller is refused even when the
-    call happens at IMPORT time -- before any fixture can exist."""
+    call happens at IMPORT time -- before any fixture can exist.
+
+    The kill leaves pass through ONLY what the fixture leaf passes through:
+    `suite_guards.own_pid_signal0_only`, the ONE predicate. This fence used to
+    check pid membership ALONE (`if kill and a and int(a[0]) ==
+    os.getpid(): pass`, the sig never read), so an opted-in module that called
+    `os.kill(os.getpid(), SIGKILL)` at collection REALLY killed the runner --
+    residue 1 of verify_DH.440-k1."""
     def _fence(*a, **k):
         if _caller_opted_in():
-            if kill and a and int(a[0]) == os.getpid():
-                pass                     # own-pid signal-0 liveness probe
-            else:
-                raise AssertionError(
-                    f"guard: a NO_REAL_PROCESSES module called {label} at "
-                    "IMPORT time (collection), where no fixture can guard it; "
-                    "move the call into a test body, or inject the seam")
+            if kill and a and own_pid_signal0_only(a[0], a[1] if len(a) > 1 else 0,
+                                                   _OWN_PIDS):
+                return real(*a, **k)   # own-pid signal-0 liveness probe
+            raise AssertionError(
+                f"guard: a NO_REAL_PROCESSES module called {label} at "
+                "IMPORT time (collection), where no fixture can guard it; "
+                "move the call into a test body, or inject the seam")
         return real(*a, **k)
     _fence.__name__ = f"_import_fence_{label.rsplit('.', 1)[-1]}"
     _fence.__module__ = "conftest"

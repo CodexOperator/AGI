@@ -177,6 +177,17 @@ OFFENDING_SRCS = {
         "    # the parent pid is a pid this test never spawned; a signal-0\n"
         "    # probe on it is harmless and must still be refused.\n"
         "    os.kill(os.getppid(), 0)\n"),
+    "import_time_kill": _OPTIN_HEAD + (
+        "import os, signal\n"
+        "# IMPORT time, where no fixture can guard it -- the hole of\n"
+        "# residue 1 of verify_DH.440-k1: the import fence checked pid\n"
+        "# membership alone, so this reached the real syscall. SIGCONT\n"
+        "# cannot kill anything (its default action is 'continue'), so the\n"
+        "# test is RED on the hole and harmless if the guard is deleted:\n"
+        "# it never dies, it only fails to be refused.\n"
+        "os.kill(os.getpid(), signal.SIGCONT)\n"
+        "def test_offender():\n"
+        "    raise SystemExit('guard did not fire')\n"),
     "bound_run": _OPTIN_HEAD + (
         "import rotate\n"
         "def test_offender():\n"

@@ -167,9 +167,42 @@ def test_the_real_context_conftest_installs_the_shared_guards():
     assert "from suite_guards import" in src
     assert "exec(" not in src
     assert verification.__file__.endswith("verification.py")
-    # and the engine spawns the declared suite with the stripped env
-    vsrc = Path(verification.__file__).read_text(encoding="utf-8")
-    assert "env=suite_guards.spawn_env()" in vsrc
+
+
+def test_the_engine_strips_the_caller_env_for_the_declared_suite(
+        tmp_path, monkeypatch):
+    """The declared-suite spawn's `env=` used to be pinned by a SOURCE STRING
+    (`assert "env=suite_guards.spawn_env()" in vsrc`), which any edit that kept
+    the words and dropped the behaviour would satisfy. Behavioural instead: the
+    env dict actually handed to the child LACKS a planted caller AGI_* var.
+
+    The spawn is RECORDED, not run: a real declared-suite run is a whole extra
+    pytest inside the caller's memory cap (this is how the previous kid on
+    this node died -- `died-no-work` at 129 s), and the claim is only about
+    the env dict, so nothing is spawned at all."""
+    monkeypatch.setenv("AGI_SEAT", "a00-deadbeef")
+    groot = _make_project(tmp_path, "ctx", """
+        def test_ok():
+            assert True
+        """)
+    seen = {}
+
+    def _recorded_run(argv, **kw):
+        seen["argv"], seen["env"] = list(argv), kw.get("env")
+        return subprocess.CompletedProcess(argv, 0, "1 passed in 0.01s", "")
+
+    monkeypatch.setattr(subprocess, "run", _recorded_run)
+    res = verification.check_extra_suite(groot)
+    assert res.status == "PASS", f"{res.status} {res.note} {res.message}"
+    child = seen.get("env")
+    assert isinstance(child, dict), (
+        f"the declared suite was spawned with no env= of its own: {child!r}; "
+        "it then inherits the caller's AGI_* wholesale")
+    assert not [k for k in child if k.startswith(("AGI_", "AUTORESEARCH_"))], (
+        f"caller AGI_* leaked into the declared-suite child: "
+        f"{[k for k in child if k.startswith('AGI_')]}")
+    # the parent's own environment is untouched by the strip
+    assert os.environ["AGI_SEAT"] == "a00-deadbeef"
 
 
 def test_the_shared_kill_leaf_allows_only_signal_zero_on_the_own_pid():
