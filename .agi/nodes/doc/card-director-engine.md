@@ -59,7 +59,8 @@ DH.395     MERGED eaa0dc032 (latch keyed by session) + FIX: capture-no-log/faile
 PASS 8    row 47 DONE: DH.394 MERGED b39533d28 + cell reaper.chain_deadline_s=20 + a00-2fa1fab0 THOUGHT 4a30a66e1;
           probe: 3 non-child TERM-ignoring stand-ins, deadline 3 s -> all gone 2.30 s, gone_after honest; 657 green (_reap_chain files)
           row 50 DONE 696e915e2 · row 51 DONE db5ac813f (publish runs in the shared main checkout, rotate.py:10461)
-          row 46 -> DH.396 a00-160f01a9 LIVE (round stage fails closed by name; 2 sequential kids)
+          row 46 DONE: DH.396 MERGED 2c69c8385 (3 kids; kid1 lean_disproved:60 on the run-record conjunct, closed by kid3;
+          parent probe re-run: [x] round-parent rc=3, summary names it); test_workflow* 184. PASS 8 rows ALL CLOSED
 TMM.228   goal:g7.33.16 + hypothesis 6cf5681d2 -> DH.397 a00-aae44e7f STOPPED on TMM.229 (parent + kid TERMed, worktree kept)
 HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. Re-dispatch DH.397 only after, with the FIXTURE
           rule in orders + test: red-on-old = a tiny random-init model GENERATED in tmp, never osc03/osc15/brain weights
