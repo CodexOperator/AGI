@@ -86,13 +86,6 @@ def project(tmp_path):
     nd2.mkdir(parents=True)
     (nd2 / "i1.md").write_text(
         "---\nid: idea:i1\ntype: idea\n---\n\nbody\n")
-    # hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-
-    # id-does-not-resolve -- a create onto an id that names no node is
-    # refused by name, so a fixture that CREATES a node must seed the parent
-    # it names. goal:g1 was already named here and never existed.
-    (nd / "goal").mkdir(parents=True, exist_ok=True)
-    (nd / "goal" / "g1.md").write_text(
-        "---\nid: goal:g1\ntype: goal\n---\n\nbody\n")
 
     # Initial commit
     subprocess.run(["git", "-C", str(tmp_path), "add", "-A"], check=True)
