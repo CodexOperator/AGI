@@ -1,5 +1,5 @@
 """model_slot.py: the one-model slot is exclusive box-wide and gates on MemAvailable inside the lock."""
-import os, subprocess, sys, time, unittest
+import json, os, subprocess, sys, time, unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -29,10 +29,21 @@ class ModelSlot(unittest.TestCase):
         self.assertGreater(model_slot.mem_available_gib(), 0.0)
 
     def test_two_holders_never_overlap(self):
-        """Two wrapped commands that each record start/end never interleave."""
+        """Two wrapped commands that each record start/end never interleave.
+
+        item 9: this used to contend for the PRODUCTION lock
+        (paths.local_maxxing.model_slot_lock, a BLOCKING flock with no timeout that
+        every model run in the swarm serialises on) and could therefore hang the whole
+        suite behind a long model run. It now runs against a lock file in TMPDIR via
+        model_slot.py's --lock seam: the same code path, the same exclusion, no shared
+        resource. The real lock is exercised by
+            python3 .agi/context/local-maxxing/model_slot.py -- <command>
+        under the box slot, never from a test.
+        """
         log = os.path.join(os.environ.get("TMPDIR", "/tmp"), "model-slot-test-%d.log" % os.getpid())
+        lock = log + ".lock"
         body = "import time,sys; open(sys.argv[1],'a').write('S\\n'); time.sleep(0.6); open(sys.argv[1],'a').write('E\\n')"
-        cmd = [sys.executable, SLOT, "--wait", "0", "--", sys.executable, "-c", body, log]
+        cmd = [sys.executable, SLOT, "--wait", "0", "--lock", lock, "--", sys.executable, "-c", body, log]
         try:
             ps = [subprocess.Popen(cmd, stderr=subprocess.DEVNULL) for _ in range(2)]
             codes = [p.wait(timeout=30) for p in ps]
@@ -41,8 +52,17 @@ class ModelSlot(unittest.TestCase):
             self.assertEqual(codes, [0, 0])
             self.assertEqual(open(log).read().split(), ["S", "E", "S", "E"])
         finally:
-            if os.path.exists(log):
-                os.remove(log)
+            for f in (log, lock):
+                if os.path.exists(f):
+                    os.remove(f)
+
+    def test_default_lock_is_still_the_production_cell(self):
+        """item 9: the seam is INERT by default -- with nothing injected, lock_path()
+        resolves the config cell against the main checkout, byte-for-byte as before."""
+        self.assertIsNone(model_slot.lock_path.injected)
+        self.assertEqual(model_slot.lock_path(),
+                         os.path.join(paths.main_checkout_root(),
+                                      json.load(open(paths.config_path()))["paths"]["local_maxxing"]["model_slot_lock"]))
 
 
 if __name__ == "__main__":

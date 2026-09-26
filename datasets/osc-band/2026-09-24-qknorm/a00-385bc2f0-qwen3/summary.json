@@ -31,10 +31,10 @@
    "n_prompts": 2,
    "key_only_minus_uniform": 0.020507812,
    "prompt_margins": [
-    0.01953125,
-    0.021484375
+    0.0390625,
+    0.001953125
    ],
-   "sampling_spread": 0.001953125,
+   "sampling_spread": 0.037109375,
    "calls": {
     "qwen3|64|4.125|key_only|uniform|agree": [
      "inside-noise",
@@ -44,7 +44,8 @@
      "inside-noise",
      "margin +0.1043 vs band +4.041"
     ]
-   }
+   },
+   "pairing_rule": "paired on the row's prompt index (per-prompt margins), NOT on sorted position"
   }
  }
 }

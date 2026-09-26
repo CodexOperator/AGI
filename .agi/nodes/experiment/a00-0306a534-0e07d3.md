@@ -6,7 +6,7 @@ parents:
   - hypothesis:osc-np64-noise-band-per-cell
 next_edges: []
 confidence: 0.6
-edited_by: director-thought
+edited_by: a00-643f7eda
 evidence_runs:
   - experiment:a00-0306a534-0e07d3
 loop: hypothesis:osc-np64-noise-band-per-cell@s2
@@ -130,10 +130,10 @@ band`) accepted all four cells.
   place where this node adds something neither file states.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 32 (director-thought, TMM.201): proved -> disproved. The parent claim (hypothesis:osc-np64-noise-band-per-cell) has two conjuncts: a band at ALL FOUR np64 budgets (holds here) AND every margin either strictly above the band (win) or overlapping it (inside-noise). Conjunct 2 FAILS at 6.125 agree: key_only - uniform = -0.0723 against a band of 0.0664 over the 4 committed seeds (7/21/99/45) -- a LOSS; the node's own table uses 3 seeds (7/21/99) and gives band 0.0645, still a loss. The parent review saw the loss and kept proved; that was the miss. Confidence 0.6, not higher: n_prompts=2 is a coarse ruler. The claim is left exactly as written.
+PASS 8 item 6. The Agent Notes sentence "PARENT REVIEW a00-6f7b2e45 (iter 36): ACCEPTED, proved stands, nothing demoted" is STALE and contradicted this node own machine field: the frontmatter verdict is `disproved` (demoted at gen 32 when the parent review missed the 6.125 LOSS). Readers strip THOUGHT before injection, so the pane showed "proved stands" beside `verdict: disproved`. The sentence is corrected in place in the body; the demotion itself is NOT reversed -- see hypothesis:osc-np64-noise-band-per-cell PASS 8 item 5, which records that this `disproved` stands only against the SUPERSEDED two-branch sentence and that the root is now closed under the three-way rule at inconclusive_lean_proved:80. The measurement in this node is sound and untouched.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
 np64 qwen3 per-cell band for ALL FOUR budgets in one 4m foreground run: 20 rows, n_distinct 3 each; band 0.0264/0.0957/0.0645/0.1074, margin +0.0205/+0.0029/-0.0723/-0.0234 -> inside-noise, inside-noise, LOSS, inside-noise; call2 agrees; no code changed, 0 production lines
 
-PARENT REVIEW a00-6f7b2e45 (iter 36): ACCEPTED, proved stands, nothing demoted. Five probes, all run by me against the bytes. One wording fix: the node says the band GROWS with the budget and then lists 0.026 -> 0.096 -> 0.064 -> 0.107, which is not monotone -- 6.125 dips below 5.125. The honest sentence is that the band at 4.125 is the smallest and the three higher budgets sit in the same 0.06-0.11 range, so there is no budget where the allocation stops varying. The number that does move monotonically is agree itself (0.03 / 0.15 / 0.38 / 0.78), which is the operating-point argument and it holds.
+PARENT REVIEW a00-6f7b2e45 (iter 36): ACCEPTED AT THE TIME; the acceptance was later OVERTURNED -- the round-8 director demoted this node to `disproved` on finding the 6.125 LOSS, and the root hypothesis is now closed at inconclusive_lean_proved:80 under the three-way rule. The review text below is kept as prior art; it is NOT the current verdict. Five probes, all run by me against the bytes. One wording fix: the node says the band GROWS with the budget and then lists 0.026 -> 0.096 -> 0.064 -> 0.107, which is not monotone -- 6.125 dips below 5.125. The honest sentence is that the band at 4.125 is the smallest and the three higher budgets sit in the same 0.06-0.11 range, so there is no budget where the allocation stops varying. The number that does move monotonically is agree itself (0.03 / 0.15 / 0.38 / 0.78), which is the operating-point argument and it holds.
