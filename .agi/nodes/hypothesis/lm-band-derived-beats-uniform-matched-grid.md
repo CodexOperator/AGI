@@ -8,11 +8,13 @@ parents:
 next_edges: []
 FILE SCOPE: .agi/context/local-maxxing/osc/ (repo-tracked; ONE new script + ONE new test, named by this kid's own agent id; osc_band_kquant_qknorm_a00-bcb6c85e.py, osc_band_prune.py, paths.py imported, never edited) and a fresh dated dir under datasets/osc-band/ (own subdirectory) only -- no router changes, no engine edits, no new downloads (both models already resident).
 ceiling: "kids: <=150 production lines, ONE kid. pi-free parent (--tier parent --role parent --ladder-tier 0, no --harness). $0 expected (CPU-only, both models resident); no live provider spend without a fresh owner yes; no new downloads. The 2x stop (300 lines) applies if exceeded without a recorded reason."
-confidence: 0.55
+confidence: 0.65
 edited_by: director-thought
 evidence_runs:
   - experiment:a00-f3703399-48096d
   - experiment:a00-2b3ca8c4-582f1e
+  - experiment:a00-c56b49c9-3d71b6
+  - experiment:a00-0306a534-0e07d3
 falsifier: No band-derived arm (key-only energy, inverse energy) beats uniform on both agreement and KL at any tested width on either model -> disproved; L3 closes as "uniform dominates the tested 4.0-7.75-bit range" and the ladder moves to L4 GEOMETRY (idea:lm-why-l3-precision-allocation-wall-is-8-12-bits). The round still names, per model, the lowest width at which uniform first holds 0.98/0.02 and the lowest width (if any) at which each band-derived arm first holds it, as the LARGEST SAFE STEP regardless of verdict direction. Any of the 72 primary cells (4 arms x 9 widths x 2 models) missing, inherited rather than measured fresh, or measured via osc_band_sweep_a00-31ae16be.py's per-tag allocator instead of fixed.arm()/fixed.bits(), invalidates that cell.
 scaffold_hash: a860573bc9c4d910
 season: 2
@@ -20,7 +22,7 @@ testable_claim: "On both resident models (Qwen2.5-0.5B-Instruct at paths.local_m
 tests: fixed.bits(widths) for each of the 9 derived width-lists within +/-0.1 bit of its target label, verified numerically first (no model load); inverse-energy mirror-symmetry test on synthetic E (fixed.arm(-E,...) class labels are the exact reverse of fixed.arm(E,...) sorted by descending energy); ONE reproduction cell (Qwen2.5 or Qwen3, key-only, 7.75 bits) matches the already-committed number at experiment:a00-6f40fad2-eca451 (0.991699/0.000489) or experiment:a00-72273745-0d44f3 (0.988281/0.001162) within float tolerance; run with PYTHONPATH="$(paths.py --local osc_test_pythonpath)".
 title: Does any band-derived key-bit allocator (energy or inverse-energy) beat uniform, on either resident model, across 4.0-7.75 bits?
 town: local-maxxing
-verdict: inconclusive_lean_disproved:55
+verdict: inconclusive_lean_disproved:65
 ---
 # hypothesis:lm-band-derived-beats-uniform-matched-grid
 
@@ -58,5 +60,5 @@ No band-derived arm (key-only energy, inverse energy) beats uniform on both agre
 kids: <=150 production lines, ONE kid. pi-free parent (--tier parent --role parent --ladder-tier 0, no --harness). $0 expected (CPU-only, both models resident); no live provider spend without a fresh owner yes; no new downloads. The 2x stop (300 lines) applies if exceeded without a recorded reason.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 32 (director-thought, TMM.198): verdict set from both runs, statistic NAMED. OSC.34 (experiment:a00-f3703399-48096d) measured key_only beating byte-matched true uniform on agree+KL in 6/8 cells at ONE random draw per cell. OSC.35 swarm p1 (experiment:a00-2b3ca8c4-582f1e) re-drew the random arm at seeds 7/21/99 on qwen2 (seed 7 reproduces OSC.34 exactly). Under the PRE-REGISTERED full random min-max band (osc_band_call2_a00-cc7b25cc.py, committed 00:55:47Z before the data at 01:13:45Z), qwen2 key_only vs uniform = 0 win / 1 loss (4.25) / 3 inside-noise on BOTH metrics -- no tested width on qwen2 supports the claim. Under the row contract's half-range statistic qwen2@6.25 would be a both-metric win (KL by 0.0054) -- named here, not applied, because it was not the pre-registered rule. qwen3 has only the n=1 OSC.34 cells (and qwen3@4.125 sits at a broken operating point, every arm agree <= 0.06), its seeded band is swarm 2 (goal:qwen3-np64-noise-band). inverse_energy loses 8/8 at n=1 and is not revisited. Hence lean disproved, 55, pending qwen3: if qwen3 also shows no full-band win, this closes disproved and L3 folds toward L4 per the FALSIFIER line.
+gen 32 (director-thought), second update: qwen3 now has a seeded band. experiment:a00-0306a534-0e07d3 (swarm 2, p1) measured qwen3 np64 at all 4 budgets, random seeds 7/21/99/45, n_prompts=2. Under the PRE-REGISTERED full random min-max band (osc_band_call2_a00-cc7b25cc.py) key_only vs uniform = 0 win / 1 loss (6.125 agree, margin -0.0723 vs band 0.0664) / 7 inside-noise; vs random 8/8 inside-noise -- director re-ran judge() on the committed cells and the parent's review reproduced the same words. qwen2's table now has a committed instrument (experiment:a00-c56b49c9-3d71b6, osc_band_headline_a00-c56b49c9.py). So NEITHER model shows a band-derived arm beating uniform on both metrics at any tested width under the pre-registered statistic. Not closed disproved because the qwen3 eval is 2 prompts (KL bands up to 4.0 -- a coarse ruler) and the 4.0-7.75 range in the claim was sampled at 4 budgets per model; lean raised 55 -> 65. The WHY is open in hypothesis:band-byte-audit (OSC.39 running) and hypothesis:band-order-by-scale-2x2 (the 4-class arm pays 0.75 payload bits/element to 3 extra scales).
 <!-- THOUGHT:END -->
