@@ -48,6 +48,24 @@ def test_no_git_path_is_never_the_live_checkout(tmp_path):
     assert locations.is_live_checkout(LIVE) is True
 
 
+def test_no_git_path_is_false_even_when_the_resolver_returns_one_root(
+        monkeypatch, tmp_path):
+    """The no-repo rule is DECIDED, not coincidental (SM.80 re-open).
+
+    `git_common_root` is annotated `-> Path` and every failure branch returns
+    `root` unchanged, so SM.80's `g is not None and e is not None` could never
+    be False. Here the resolver is pinned to a single value, so BOTH sides
+    resolve equal -- exactly the shape SM.80's tautology read as LIVE. The
+    predicate must still answer False for a path in no repository, because
+    `_enclosing_repo` is None there. On SM.80's bytes this assertion FAILS
+    (the identity fallback happened to differ; nothing decided it)."""
+    monkeypatch.setattr(locations, "git_common_root", lambda p: LIVE)
+    gitless = tmp_path / "no-repo"
+    gitless.mkdir()
+    assert locations.is_live_checkout(gitless) is False
+    assert locations.is_live_checkout(LIVE) is True
+
+
 def test_conftest_refusal_line_is_the_named_shared_line():
     """The SAME one-line refusal the conftest gate and verification --suite
     print: names both paths and the /tmp escape."""
