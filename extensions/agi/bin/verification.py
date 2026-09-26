@@ -1520,6 +1520,7 @@ def check_extra_suite(groot: Path) -> CheckResult:
     collection ERROR is a FAIL with the failing tail -- a context module that
     cannot import is skipped BY NAME (`pytest.importorskip`), not dropped."""
     start = time.monotonic()
+    import suite_guards  # noqa: PLC0415 -- lazy: suite_guards imports THIS module
     roots, cell = _declared_suite_roots(groot)
     if not roots:
         declared, value, _ = _suite_cell_state(groot)
@@ -1546,9 +1547,16 @@ def check_extra_suite(groot: Path) -> CheckResult:
         # one that is easy to leave out: a module that fails to IMPORT is a
         # collection ERROR and prints no `ERROR <file>` line without it
         # (experiment:a00-45ecb18d-d5a017).
+        # env=: the declared suite is spawned WITHOUT the caller's dispatch
+        # vars (AGI_SEAT/AGI_TIER/AGI_AGENT and the git-hook channel), so it
+        # sees the same bytes whichever seat started it
+        # (hypothesis:the-declared-context-suite-runs-under-the-engine-suite-
+        # guards). The suite lock marker is kept: this run happens INSIDE the
+        # window this runner already holds.
         proc = subprocess.run([sys.executable, "-m", "pytest", str(root),
                                "-q", "-rsEf"], capture_output=True, text=True,
-                              timeout=SUITE_TIMEOUT, cwd=groot)
+                              timeout=SUITE_TIMEOUT, cwd=groot,
+                              env=suite_guards.spawn_env())
         out = (proc.stdout or "") + (proc.stderr or "")
         counts.update(_parse_pytest_counts(out))
         if proc.returncode:
