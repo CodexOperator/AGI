@@ -73,8 +73,21 @@ def build_command(*, harness: dict, tier: str, context_file: str,
     first turn at all. Carrying the render is the one thing here that is
     certain (hypothesis:grok-bot-adapter-uses-or-refuses-the-rendered-brief).
 
+    Neither input present is the OTHER arm of the claim, and it is the arm
+    that used to be missing: a falsy `rendered_brief` plus an empty
+    `context_file` produced `-p ''` -- an EMPTY PROMPT, i.e. the same silent
+    loss as the discarded render, one layer down, and with nothing to name
+    it. So that state now refuses by name, the way copilot refuses a missing
+    context file.
+
     `**kwargs` swallows the channels dispatch.py passes every adapter, so a
     spawn cannot die on a TypeError before the flags land."""
+    if not rendered_brief and not context_file:
+        raise ValueError(
+            f"{NAME}: rendered_brief and context_file are both empty; refusing "
+            f"to spawn with an empty prompt (an agent with neither its brief "
+            f"nor its map is not a cheaper agent, it is a mute one)"
+        )
     prompt = rendered_brief if rendered_brief else str(context_file)
     return [resolve_bin(harness), *model_args(harness, tier), "-p", prompt]
 
@@ -141,18 +154,20 @@ def restart(
     identical argv through `build_command`, spawn detached in the same session
     directory appending to the existing log, and stamp the record.
     """
-    args = build_command(
-        harness=harness, tier=tier, context_file=context_file,
-        agent_id=agent_id, iter_n=iter_n, sess_dir=sess_dir,
-        scaffold=scaffold, cli_py=cli_py, skill_prompt=skill_prompt,
-        dispatch_py=dispatch_py, target=target, parallel=parallel,
-        max_live=max_live, brief_tier=brief_tier, role=role,
-        ladder_tier=ladder_tier,
-        rendered_brief=rendered_brief,
-    )
     log_file = sess_dir / "output.log"
     env = child_env(harness=harness, base=adapters.scrubbed_base(base_env), tier=tier)
     try:
+        # Inside the try: `build_command` may REFUSE by name (empty prompt),
+        # and a restart degrades to None rather than raising through dispatch.
+        args = build_command(
+            harness=harness, tier=tier, context_file=context_file,
+            agent_id=agent_id, iter_n=iter_n, sess_dir=sess_dir,
+            scaffold=scaffold, cli_py=cli_py, skill_prompt=skill_prompt,
+            dispatch_py=dispatch_py, target=target, parallel=parallel,
+            max_live=max_live, brief_tier=brief_tier, role=role,
+            ladder_tier=ladder_tier,
+            rendered_brief=rendered_brief,
+        )
         with open(log_file, "ab") as logf:
             proc = subprocess.Popen(
                 args,
@@ -163,7 +178,7 @@ def restart(
                 cwd=str(_restart_cwd(sess_dir, agent_record)),
                 env=env,
             )
-    except OSError as exc:
+    except (OSError, ValueError) as exc:
         print(f"restart failed for {agent_id}: {exc}", file=sys.stderr)
         return None
     new_pid = proc.pid
