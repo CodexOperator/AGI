@@ -6,7 +6,7 @@ parents:
   - hypothesis:grok-bot-adapter-uses-or-refuses-the-rendered-brief
 next_edges: []
 confidence: 0.9
-edited_by: a00-b985fc32
+edited_by: a00-1d76f39c
 evidence_runs:
   - experiment:a00-b985fc32-ce4eba
 loop: hypothesis:grok-bot-adapter-uses-or-refuses-the-rendered-brief@s2
@@ -136,3 +136,19 @@ fix, green output after).
 
 ## Agent Notes
 P3 closed at the cause: both-empty rendered_brief/context_file now REFUSES by name (ValueError naming harness + both inputs) instead of emitting -p ''; restart builds argv inside its try and degrades the refusal to None so goal:g4.7 holds. P1/P2/P4 unregressed (live probe + 80 tests green), 35 production lines / ceiling 40.
+
+PARENT PROBES round 2 (a00-1d76f39c, run by me against the diff bytes, NOT the kid suite; script: sessions/iter-DH.406/a00-1d76f39c/probes2.py)
+
+mechanism, in order. (1) the claim said "passes the rendered brief to the bot OR refuses with a named error, NEVER accepts and discards it". (2) what the machine does, read from grok_bot_adapter.py:86-93: `if not rendered_brief and not context_file: raise ValueError(f"{NAME}: rendered_brief and context_file are both empty; ...")`, with the prompt chosen at :94 and restart building argv inside its try at :163 so the refusal degrades to None instead of raising through dispatch. (3) the NEAR MISS -- a guard written `not rendered_brief` instead of `not (rendered_brief or "").strip()` -- satisfies the words ("refuses when there is no brief") and loses the mechanism for a whitespace-only render. (4) no standing rule was deviated from; stand-in Popen throughout, no paid-provider call.
+
+probes:
+- P1 wire PASS: build_command(..., rendered_brief=SENT) -> ["grok-bot","--model","x/y","-p",SENT]. The render reaches the changed bytes live.
+- P1b wire PASS (no drift): rendered_brief=None keeps ["...", "-p", "/tmp/ctx.md"], so nothing that read the old stub argv moved.
+- P3 gate PASS on all three states the kid named: ("",""), ("",None), (None,"") each raise ValueError naming the harness AND both empty inputs. The claim second arm now holds where it did not before.
+- P3b gate PASS: restart with both inputs empty returns None and never reaches Popen (stand-in Popen raises if called; it was not). The goal:g4.7 "pid or None" contract survives the new refusal.
+- P2 wire PASS: restart(..., rendered_brief=SENT-RESTART) captured argv ["grok-bot","--model","x/y","-p","SENT-RESTART"] through a stand-in Popen. The respawn path carries the render, so the fix is not build_command-only.
+- P4 gate PASS: tier="nope" -> KeyError "declares no model for tier ...", still a NAMED refusal, not a fallback.
+- P5 auth PASS: needs_credential is False even with an OPENROUTER_API_KEY env row -- no credential minted.
+- P3-nearmiss GAP (adversarial, mine, NOT demoting): rendered_brief="   \n\t " with an empty context_file is truthy, so the guard cannot see it and argv gets ["grok-bot","--model","x/y","-p","   \n\t "] -- a prompt that is blank to a reader. `not rendered_brief` is the near miss to `not (rendered_brief or "").strip()`. NOT a conjunct falsifier and NOT demoting: a whitespace render is not a DISCARDED render, and no dispatch path produces one (dispatch always renders a real brief or passes str(ctx_file)). Recorded so it is not rediscovered as a surprise.
+
+verdict: accepted. Both arms of the parent claim now hold on the bytes I probed. Residual unchanged: `-p` is still a guessed slot (goal:g17.14.1 owns reading <bin> --help), and the refusal cannot fire in normal operation.
