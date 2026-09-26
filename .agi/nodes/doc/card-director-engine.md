@@ -85,6 +85,8 @@ rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing
   DH.384   MERGED 4b69308e4: ONE _in_place_precondition guards all 3 in-place writes; 169 green. residue: non_append=rename moves a held
            archive to .1.1, which the next apply's prune unlinks -> a live non-append writer keeps a deleted inode (space freed only at its exit)
   NEXT     full suite RUNNING on 4b69308e4 -> merge-up 5 = DH.383 + DH.384 (quote the MEASURED behind count)
+  TMM.212/215 (goal:g7.33, minted 214f76cf1): DH.385 a00-09d1b5a8 scrub AGI_MODEL_SLOT_LOCK from spawns (my ruling: --lock ok, env = inherited hole)
+           DH.386 a00-ea72c5f8 kid commits orders-named nodes (#1) · DH.387 a00-9a906e4f .agi/context in a declared suite (#3) · #2 CLOSED by DT 49e8cd268
   suite    full suite GREEN on 7448e90e3: 6582 passed / 0 failed (conftest changed by DH.381); DH.382 after it 59/59
 merge-up 4 SENT tip 91177caa1: DH.377-382 + PASS 8 rows (first send claimed '0 behind' while 2 behind -> CORRECTED by dm)
   rows     DONE 286272925: DEMOTE DH.369 exp a00-2a2760a8 + hypothesis:a00-f30b6285-0e37a6 (lean_disproved:60) + graph-root exp adopted mint_id
