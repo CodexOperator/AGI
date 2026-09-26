@@ -1735,7 +1735,8 @@ def cmd_done(args: argparse.Namespace) -> int:
     # action, so it owns the worktree commit too. Commits the linked worktree
     # this parent runs in, if it holds uncommitted node writes; a no-op in
     # main (the loop owns main) and outside git. Never fatal.
-    _auto_commit_worktree(root, args.agent_id, args.node_id, args.owns, verdict)
+    _auto_commit_worktree(root, args.agent_id, args.node_id, args.owns, verdict,
+                          _round_named_node_ids(rec, args.parent))
 
     # hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- a round that
     # finishes alarms the seat that dispatched it: exactly ONE dm, sent with
@@ -2118,11 +2119,30 @@ def cmd_scope_check(args: argparse.Namespace) -> int:
     return 0 if all(_round_scope_ok(p, agent_id, own) for p in paths) else 1
 
 
+def _round_named_node_ids(rec, parent) -> list:
+    """hypothesis:a-kid-can-commit-the-existing-nodes-its-orders-name --
+    the node ids the round's ORDERS name: the target the record carries, the
+    parent it was given, and `--parent` on the command line. A kid ordered to
+    correct an EXISTING node in place cannot have that edit committed by any
+    other rule (its own node is its own; a foreign node is foreign), so the
+    round's own NAMED set is the target plus these. Ids only -- each is
+    resolved to an existing file by `_round_own_node_paths`."""
+    out = []
+    for v in (parent,
+              (rec or {}).get("target") if isinstance(rec, dict) else None,
+              (rec or {}).get("parent") if isinstance(rec, dict) else None,
+              (rec or {}).get("node_id") if isinstance(rec, dict) else None):
+        if isinstance(v, str) and ":" in v and v not in out:
+            out.append(v)
+    return out
+
+
 def _round_own_node_paths(root: Path, checkout_root: Path,
-                          node_id: str | None, owns: list | None) -> set:
+                          node_id: str | None, owns: list | None,
+                          named: list | None = None) -> set:
     """The round's own node files, relative to the checkout toplevel."""
     out = set()
-    for nid in [node_id, *(owns or [])]:
+    for nid in [node_id, *(owns or []), *(named or [])]:
         if not nid:
             continue
         nf = _find_node_file(root, nid)
@@ -2135,7 +2155,8 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
 
 
 def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
-                         owns: list | None, verdict: str) -> Path | None:
+                         owns: list | None, verdict: str,
+                         named: list | None = None) -> Path | None:
     """Give the commit to the parent at the moment it accepts its kid's node.
 
     hypothesis:l3w4-branch-parent-commits — a `--branch` parent runs inside a
@@ -2213,7 +2234,7 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
     # the round's OWN paths, never `add -A` (hypothesis:l4-the-round-done-
     # commit-scopes-to-the-round-own-paths-never-git-add-a). A foreign dirty
     # path is named on stderr and left where it is.
-    own = _round_own_node_paths(root, checkout_root, node_id, owns)
+    own = _round_own_node_paths(root, checkout_root, node_id, owns, named)
     in_scope, foreign = [], []
     for rec in status.stdout.split("\0"):
         if len(rec) < 4:

@@ -1888,3 +1888,76 @@ def test_reshuffle_refs_grid_reads_the_projects_storage_trunk(tmp_path, monkeypa
     out = cli._reshuffle_refs_grid(repo)
     assert out == "\n"
     assert seen and seen[0][-1] == "refs/grid/t9", seen
+
+
+# --------------------------------------------------------------------------
+# hypothesis:a-kid-can-commit-the-existing-nodes-its-orders-name -- the round
+# commits an EXISTING node its orders NAME (the target), and still refuses
+# every other foreign path, `.agi/config.json` included.
+# --------------------------------------------------------------------------
+
+def test_named_target_node_ids_come_from_the_record_and_the_parent():
+    cli = _load_cli()
+    rec = {"target": "hypothesis:tgt", "parent": "goal:g1",
+           "node_id": "experiment:a00-x-1"}
+    ids = cli._round_named_node_ids(rec, "hypothesis:tgt")
+    assert ids == ["hypothesis:tgt", "goal:g1", "experiment:a00-x-1"]
+    # No record (a fixture, a dead tree) still yields the --parent alone.
+    assert cli._round_named_node_ids(None, "hypothesis:tgt") == ["hypothesis:tgt"]
+    # A non-id field never becomes a path.
+    assert cli._round_named_node_ids({"target": "team/core"}, None) == []
+
+
+def test_auto_commit_lands_the_named_target_node_and_refuses_the_rest(tmp_path):
+    main = tmp_path / "main"
+    main.mkdir()
+    (main / ".agi" / "nodes" / "hypothesis").mkdir(parents=True)
+    (main / ".agi" / "config.json").write_text("{}")
+    _ggit(main, "init", "-q")
+    _ggit(main, "checkout", "-q", "-b", "season/s1")
+    _gitc(main, "base")
+
+    br = "loop/named-target@s2"
+    wt = tmp_path / "wt"
+    r = _ggit(main, "worktree", "add", "-b", br, str(wt), "season/s1")
+    assert r.returncode == 0, r.stderr
+    wt_graph = wt / ".agi"
+    (wt_graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (wt_graph / "config.json").write_text("{}")
+    # The node the round's ORDERS name: a human slug carrying no agent id, so
+    # `_round_scope_ok` alone refuses it -- it lands only via the named set.
+    target = wt_graph / "nodes" / "hypothesis" / "a-kid-can-commit.md"
+    target.write_text("---\nid: hypothesis:a-kid-can-commit\ntype: hypothesis\n"
+                      "---\n\nbody\n")
+    # A node nobody named, and the config cell: both must stay dirty.
+    foreign = wt_graph / "nodes" / "hypothesis" / "not-named.md"
+    foreign.write_text("---\nid: hypothesis:not-named\ntype: hypothesis\n"
+                       "---\n\nbody\n")
+    own = wt_graph / "nodes" / "experiment" / "a00-kid-1.md"
+    own.parent.mkdir(parents=True, exist_ok=True)
+    own.write_text("---\nid: experiment:a00-kid-1\ntype: experiment\n"
+                   "---\n\nbody\n")
+    (wt_graph / "config.json").write_text('{"paths": {}}')
+
+    cli = _load_cli()
+    rec = {"target": "hypothesis:a-kid-can-commit"}
+    # PRE-FIX state: the named set is empty, so the named target is left
+    # uncommitted and only the agent-id node lands. This is the measured
+    # defect (TMM.212 item 1) the named set removes.
+    assert cli._auto_commit_worktree(
+        wt_graph, "a00-kid", "experiment:a00-kid-1", None, "pending", []) \
+        is not None
+    pre = _ggit(wt, "show", "--name-only", "--format=", "HEAD").stdout
+    assert "nodes/experiment/a00-kid-1.md" in pre, pre
+    assert "nodes/hypothesis/a-kid-can-commit.md" not in pre, pre
+
+    named = cli._round_named_node_ids(rec, "hypothesis:a-kid-can-commit")
+    root = cli._auto_commit_worktree(wt_graph, "a00-kid",
+                                     "experiment:a00-kid-1", None,
+                                     "pending", named)
+    assert root is not None
+    files = _ggit(wt, "show", "--name-only", "--format=", "HEAD").stdout
+    assert "nodes/hypothesis/a-kid-can-commit.md" in files, files
+    assert "nodes/hypothesis/not-named.md" not in files, files
+    assert ".agi/config.json" not in files, files
+    assert foreign.read_text().count("not-named") == 1
