@@ -35,9 +35,10 @@ Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW
 ```
 LANDED    merge-up 11 = e7c418d18 (TMM.241; DH.401/402/403 + goal:g7.33.17). Merged into this post 17:2xZ (was behind 4).
 DONE      DH.404 3f38e2b8b (row 1; 307 passed) · row 14 071f2ec15 (test_f1 frozen writer, direct; red not reproduced)
-LIVE      DH.409 a00-f28911bd (row 15, DH.401 successor shape) · DH.408 a00-87714549 (row 16 = g7.33.15 residue: the capture
-          chain calls rotate-self directly and skips the bare rotate's origin merge -> refuses whenever trunk moved)
-OWED      merge-up 12 = DH.404 3f38e2b8b + DH.405 fed9e93bb + DH.406 7a209c4e3 + DH.407 be6cf96c2 + row 14 (+ DH.408/409)
+DONE      DH.408 ba1b4ca6d (row 16 = g7.33.15 residue: a registered behind seat merges at rotate-self's guard; red 3/green)
+LIVE      DH.409 a00-f28911bd (row 15, DH.401 successor shape) · DH.410 a00-a8ec9040 (row 5, non-prime render)
+SUITE     detached pid 1104658 on 0b2be9750 -> .agi/sessions/de-0926/suite-12.log (serial; no xdist on this box)
+OWED      merge-up 12 = DH.404 3f38e2b8b + DH.405 fed9e93bb + DH.406 7a209c4e3 + DH.407 be6cf96c2 + row 14 + DH.408 (+ DH.409/410 if in time)
 TMM.241   rows 14 (test_f1 flake, freeze the writer like 569ea9a1b) · 15 (DH.401 successor-shape compounding) · 16 (DH.408)
           added to g7.33.17 eb946d4e0; row 12 EF.92 VOID (DONE c876dbf72). 3 unqueued residues, one line each when it fits:
           brief.py context-ref containment · PASS 6 defect 3 (DH.311 WIP, banked) · kid a00-2fa1fab0's 2 real claude sessions
@@ -49,11 +50,10 @@ HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. T
 
 ## 🔴 WHERE IT STOPS (gen 25)
 ```
-FIRST  harvest DH.408 a00-87714549 + DH.409 a00-f28911bd as each reports: review vs claim, red-on-old/green-on-new, parent
-       leftovers committed, merge --no-ff, their tests (DH.408: tmp origin only; DH.409: 3 round-trips byte-identical)
-THEN   full suite (detached) -> [merge-up] 12 to thought-master; quote the MEASURED behind count
-THEN   row 5 -> 9 CMP.02 (.agi/sessions/de-0923/cmp02-pinned.md) -> 10, 11, 13 (re-read TMM.112). <= 2 live.
-HOLD   DH.397 + TMM.235 (2) until TM/Prime says PASS 9 CLOSED
+FIRST  suite-12.log EXIT=0 -> [merge-up] 12 to thought-master (measured behind count); a red -> attribute, fix, re-run
+THEN   harvest DH.409 a00-f28911bd + DH.410 a00-a8ec9040 as each reports (red-on-old/green-on-new; parent leftovers committed)
+THEN   9 CMP.02 (.agi/sessions/de-0923/cmp02-pinned.md) -> 10, 11, 13 (re-read TMM.112). <= 2 live.
+HOLD   DH.397 + TMM.235 (2) until TM/Prime says PASS 9 CLOSED (belam 17:2xZ: PASS 9 rounds ALL DONE, close steps 4-9 owed)
 AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
 
