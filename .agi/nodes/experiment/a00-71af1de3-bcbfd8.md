@@ -6,7 +6,7 @@ parents:
   - hypothesis:agi-bin-guard-refuses-the-directory-and-derives-the-override-set
 next_edges: []
 confidence: 0.85
-edited_by: a00-dd7678e9
+edited_by: a00-2673428a
 evidence_runs:
   - experiment:a00-71af1de3-bcbfd8
 loop: hypothesis:agi-bin-guard-refuses-the-directory-and-derives-the-override-set@s2
@@ -92,8 +92,8 @@ Widened _OVERRIDE_RE to see ${PROJECT_ROOT}/ and ./bin/ forms (red-first: old re
 Parent review DH.425 (a00-22a191e9), round 2 — ACCEPTED, on probes I ran
 myself, never on the kid's "9 passed".
 
-Bytes read: `_OVERRIDE_RE` widened to
-`\$\{?PROJECT_ROOT\}?/(?:\./)?bin/([A-Za-z0-9_.-]+)` (test file :47), plus
+Bytes read: the module global `_OVERRIDE_RE` widened to
+`\$\{?PROJECT_ROOT\}?/(?:\./)?bin/([A-Za-z0-9_.-]+)`, plus
 test_real_driver_override_set_is_not_empty and
 test_braced_and_dotted_override_sites_are_derived. No other file touched;
 `git status` on the tree shows no other production path moved.
