@@ -54,9 +54,8 @@ suite     full on 267a6ef04: 6653/3 = crons stranded-writer RACE (CAP+4096; fixe
 merge-up 7 LANDED 955cb90e7 (TMM.225; TM suite 6659/0). DH.392 + rows 50/51 + DH.393/394/395 ride merge-up 8
 re-attrib  my 2 'environmental' reds = the suite flagging ITSELF (setsid-detached -> ppid 1); watcher fixed 07f5392fd
            (old detached 2F/2P -> new 4P). Launch a detached suite freely now.
-DH.395     a00-ccaf64d0 LIVE (TMM.225: capture latch keyed per SEAT -> successors latched from birth + a latched capture
-           swallows the imperative; TM renamed both stamps by hand 13:20Z). 3rd live round = DEVIATION from my <=2 hold:
-           it silences every latched director's rotate-now line; town cap 10, load 1.2, io PSI 3.7
+DH.395     MERGED eaa0dc032 (latch keyed by session) + FIX: capture-no-log/failed also swallowed the imperative -> only
+           captured/no-spawn go quiet; red/green; rotation_alert* 104. 3rd-round deviation closed
 PASS 8    row 47 DONE: DH.394 MERGED b39533d28 + cell reaper.chain_deadline_s=20 + a00-2fa1fab0 THOUGHT 4a30a66e1;
           probe: 3 non-child TERM-ignoring stand-ins, deadline 3 s -> all gone 2.30 s, gone_after honest; 657 green (_reap_chain files)
           row 50 DONE 696e915e2 · row 51 DONE db5ac813f (publish runs in the shared main checkout, rotate.py:10461)
