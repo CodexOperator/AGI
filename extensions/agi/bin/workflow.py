@@ -2156,8 +2156,21 @@ def _run_round_stage(root: Path, stage: dict, args: dict, timeout_s: int):
     cmd = [sys.executable, str(_THIS / "dispatch.py"), str(root), str(iteration),
            "--target", str(target), "--tier", "parent", "--role", "parent",
            "--ladder-tier", "0", "--branch", "--detach"]
-    proc = subprocess.run(cmd, capture_output=True, text=True,
-                          timeout=timeout_s)
+    # A dispatch that never returns inside its own budget is a HUNG round, and
+    # a hung round is a NAMED STAGE FAILURE (rc 3, same as a refused spawn) --
+    # not a run-level abort. Unwrapped, `TimeoutExpired` left `_run_round_stage`
+    # and `run_workflow` entirely: the per-stage try/except in the runner only
+    # wraps `_stage_context`, so the whole run died of a stage that had merely
+    # not finished, and every inherited review stage chained to it was never
+    # named at all. Caught HERE, the runner marks `round-parent` failed and
+    # `_failed_dependency` skips the whole inherited chain by name
+    # (hypothesis:a-round-stage-fails-closed-by-name-and-every-inherited-
+    # review-stage-is-gated, falsifier 2a).
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True,
+                              timeout=timeout_s)
+    except subprocess.TimeoutExpired:
+        return 3, None
     if proc.returncode:
         return 3, None
     match = re.search(r"^spawned\s+(\S+)", proc.stdout or "", re.M)
@@ -2186,16 +2199,27 @@ def _run_round_stage(root: Path, stage: dict, args: dict, timeout_s: int):
     return 2, None
 
 
-def _failed_dependency(stage: dict, failed_keys: dict) -> str | None:
+def _failed_dependency(stage: dict, failed_keys: dict,
+                        simple_failed: frozenset[str] = frozenset()) -> str | None:
     """The base label this stage depends on that has a failed slice, or None.
     A repeated slice depends on the SAME `_repeat_key` of its base; a simple
     stage depends on the whole base. A repeated stage never consults its own
-    base label, so a failed slice never skips a sibling slice (SM.105)."""
+    base label, so a failed slice never skips a sibling slice (SM.105).
+
+    `simple_failed` names the bases that failed AS A WHOLE — a stage with no
+    `repeat` of its own, e.g. the prelude `kind: round` parent. It gates every
+    slice of the dependent: without it the containment check compared a
+    dependent slice's `_repeat_key` against `{None}` and let EVERY inherited
+    review slice RUN after the round had already failed
+    (hypothesis:a-round-stage-fails-closed-by-name-and-every-inherited-
+    review-stage-is-gated, falsifier 1)."""
     deps = stage.get("chained_from") or stage.get("depends_on")
     if not deps:
         return None
     deps = [deps] if isinstance(deps, str) else deps
     for d in deps:
+        if d in simple_failed:
+            return d
         keys = failed_keys.get(d)
         if keys and ("_repeat_key" not in stage
                      or stage["_repeat_key"] in keys):
@@ -2400,9 +2424,19 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
         # on the first failure -- it marks THAT slice failed and continues,
         # skipping only stages that depend on a failed slice.
         failed_keys: dict[str, set] = {}
+        # the bases that failed AS A WHOLE (a stage with no `repeat`): they
+        # gate every slice of their dependents, unlike a failed single slice
+        simple_failed: set[str] = set()
+
+        def note_failed(stage: dict) -> None:
+            base = stage.get("_base_label", stage["label"])
+            failed_keys.setdefault(base, set()).add(stage.get("_repeat_key"))
+            if "_repeat_key" not in stage:
+                simple_failed.add(base)
+
         first_rc: int | None = None
         for st in stages:
-            dep = _failed_dependency(st, failed_keys)
+            dep = _failed_dependency(st, failed_keys, simple_failed)
             if dep is not None:
                 view.stage_skipped(st["label"], f"dependency {dep!r} failed")
                 print(f"workflow.py: workflow={key} skipped stage "
@@ -2428,9 +2462,7 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                       f"{reason}", file=sys.stderr)
                 if first_rc is None:
                     first_rc = 3
-                failed_keys.setdefault(
-                    st.get("_base_label", st["label"]), set()).add(
-                        st.get("_repeat_key"))
+                note_failed(st)
                 continue
             # The budget was resolved (declared, never truthy) before any
             # dispatch -- see `_resolve_stage_timeout` for `0` and the refusal.
@@ -2457,9 +2489,7 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                 # independent stage still run. The run ends non-zero below.
                 if first_rc is None:
                     first_rc = rc
-                failed_keys.setdefault(
-                    st.get("_base_label", st["label"]), set()).add(
-                        st.get("_repeat_key"))
+                note_failed(st)
                 print(f"workflow.py: workflow={key} stage {st['label']} "
                       f"failed (rc={rc}); continuing", file=sys.stderr)
                 continue
