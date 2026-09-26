@@ -168,8 +168,8 @@ def own_pid_signal0_only(pid, sig, own_pids) -> bool:
 
     TWO leaves call it and neither may re-decide: the fixture leaf
     (`no_real_process` -> `_make_guarded_kill`) and the IMPORT-time leaf
-    (extensions/agi/tests/conftest.py's `_make_import_time_fence`, which had
-    its own copy checking pid membership ALONE, so a module that
+    (`make_import_fence` below, which had its own copy in the engine conftest
+    checking pid membership ALONE, so a module that
     `os.kill(os.getpid(), SIGKILL)`ed at collection really killed the runner
     -- residue 1 of verify_DH.440-k1)."""
     try:
@@ -211,6 +211,95 @@ def _fence_bound_runners(setattr_, refuse):
             continue
         if hasattr(mod, attr):
             setattr_(mod, attr, refuse)
+
+
+#: The import-time fence, ONE body, imported by BOTH conftests. A fixture does
+#: not exist at collection, so a spawn AT IMPORT is covered only here (2026-09-26
+#: a00-6e17df77: a function- and a session-scoped fixture are both too late), and
+#: the marker IS the idempotence contract -- a leaf already carrying it is alone.
+FENCE_MARKER = "__agi_spawn_fence__"
+
+
+def resolve_leaves(leaves=_FENCED_SPAWN_LEAVES):
+    """(module, attr) pairs present in THIS interpreter, in order; the first
+    element is a NAME to import or a module OBJECT (a test's stub). An absent
+    leaf contributes nothing and raises nothing."""
+    out = []
+    for mod, attr in leaves:
+        if isinstance(mod, str):
+            name = mod
+            mod = sys.modules.get(name)
+            if mod is None:
+                try:
+                    mod = __import__(name)
+                except Exception:  # noqa: BLE001 -- absent here, no fence
+                    continue
+        if hasattr(mod, attr):
+            out.append((mod, attr))
+    return out
+
+
+def make_import_fence(real, label, guard_flag, own_pids, kill=False):
+    """Wrap ONE process leaf so an opted-in caller is refused even at IMPORT
+    time. `kill=True` (os.kill ONLY) passes through exactly what the fixture
+    leaf passes -- `own_pid_signal0_only`, the ONE predicate; os.killpg is
+    wrapped `kill=False` and refused OUTRIGHT, the fixture leaf's rule."""
+    def _opted_in():
+        # ANY frame in a module that set `guard_flag`, so a spawn through
+        # engine code (heal.py's os.execv) is seen as the caller that asked.
+        frame = sys._getframe(1)  # noqa: SLF001 -- the only way up
+        while frame is not None:
+            if frame.f_globals.get(guard_flag):
+                return True
+            frame = frame.f_back
+        return False
+
+    def _fence(*a, **k):
+        if not _opted_in():
+            return real(*a, **k)
+        if kill and a and own_pid_signal0_only(
+                a[0], a[1] if len(a) > 1 else 0, own_pids):
+            return real(*a, **k)   # own-pid signal-0 liveness probe
+        raise AssertionError(
+            f"guard: a NO_REAL_PROCESSES module called {label} at IMPORT time "
+            "(collection), where no fixture can guard it; move the call into "
+            "a test body, or inject the seam")
+    _fence.__name__ = f"_import_fence_{label.rsplit('.', 1)[-1]}"
+    _fence.__module__ = "conftest"
+    setattr(_fence, FENCE_MARKER, real)   # the idempotence marker
+    return _fence
+
+
+def install_import_fence(leaves=_FENCED_SPAWN_LEAVES, guard_flag=OPT_IN_ATTR,
+                         own_pids=None, kills=True, os_module=None):
+    """Install the import-time fence NOW; return the undo list. The POLICY is
+    the caller's: leaf tuple, opt-in flag name, killable pids, whether the kill
+    leaves are fenced, and the namespace they are read from (`os_module`, so a
+    unit test can point that branch at a stub and signal nothing)."""
+    own = frozenset({os.getpid()}) if own_pids is None else own_pids
+    killmod = os if os_module is None else os_module
+    saved = []
+    for mod, attr in resolve_leaves(leaves):
+        real = getattr(mod, attr)
+        if hasattr(real, FENCE_MARKER):
+            continue                    # a second exec: leave the fence alone
+        saved.append((mod, attr, real))
+        label = f"{getattr(mod, '__name__', mod.__class__.__name__)}.{attr}"
+        setattr(mod, attr, make_import_fence(real, label, guard_flag, own))
+    for attr, kill in ((("kill", True), ("killpg", False)) if kills else ()):
+        real = getattr(killmod, attr)
+        if hasattr(real, FENCE_MARKER):
+            continue
+        saved.append((killmod, attr, real))
+        setattr(killmod, attr, make_import_fence(
+            real, f"os.{attr}", guard_flag, own, kill=kill))
+    return saved
+
+
+def uninstall_import_fence(saved):
+    """Undo exactly what `install_import_fence` replaced, in reverse order."""
+    for mod, attr, real in reversed(saved or []):
+        setattr(mod, attr, real)
 
 
 def _make_guarded_kill(real_kill, own_pids):

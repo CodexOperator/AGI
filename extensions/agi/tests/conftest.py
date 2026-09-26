@@ -423,9 +423,14 @@ from suite_guards import (  # noqa: E402,F401 -- the guard, imported not copied
     _fence_bound_runners,
     _make_guarded_kill,
     _make_guarded_killpg,
+    FENCE_MARKER as _FENCE_MARKER,
+    install_import_fence,
+    make_import_fence as _make_import_time_fence,
     make_suite_lock_fixture,
     no_real_process as _no_real_process_or_live_config,
     own_pid_signal0_only,
+    resolve_leaves as _resolve_leaves,
+    uninstall_import_fence as _uninstall_spawn_fence,
 )
 
 #: PROD `sessions_dir`, captured BEFORE the autouse fixture rebinds it under
@@ -617,12 +622,11 @@ _GUARD_OPTIN_ATTR = "NO_REAL_PROCESSES"
 # `os.kill` / `os.killpg` / the fenced leaves / the bound engine runners all
 # live in `suite_guards` now: signal 0 on the OWN pid is the only traffic the
 # kill leaf passes through, and the leaf list is ONE shared tuple.
-#: Every fence carries the real leaf it wraps under this attribute, and
-#: `_install_spawn_fence` SKIPS a leaf already carrying it: conftest.py is
-#: exec'd twice in one interpreter (test_tier_gate.py), and a fence over a
-#: fence made `subprocess.Popen is _REAL_POPEN` false for 48 tests (measured
-#: 2026-09-26 a00-585205f4).
-_FENCE_MARKER = "__agi_spawn_fence__"
+#: Every fence carries the real leaf it wraps under `_FENCE_MARKER` (imported
+#: from suite_guards, the ONE body) and `install_import_fence` SKIPS a leaf
+#: already carrying it: conftest.py is exec'd twice in one interpreter
+#: (test_tier_gate.py), and a fence over a fence made `subprocess.Popen is
+#: _REAL_POPEN` false for 48 tests (measured 2026-09-26 a00-585205f4).
 
 #: A caller that set this module attribute opted in to the process guard.
 _GUARD_FLAG = _GUARD_OPTIN_ATTR
@@ -631,103 +635,29 @@ _GUARD_FLAG = _GUARD_OPTIN_ATTR
 _OWN_PIDS = frozenset({os.getpid()})
 
 
-def _resolve_leaves(leaves=_FENCED_SPAWN_LEAVES):
-    """(module, attr) pairs that exist in THIS interpreter, in order. An
-    entry's first element may be a module OBJECT (a unit test passes a stub
-    so it can drive install/uninstall without touching os/subprocess) or a
-    module NAME to import."""
-    out = []
-    for mod_name, attr in leaves:
-        mod = mod_name
-        if isinstance(mod, str):
-            mod = sys.modules.get(mod)
-            if mod is None:
-                try:                   # noqa: PLC0415 -- lazy on purpose
-                    mod = __import__(mod_name)
-                except Exception:       # noqa: BLE001 -- absent here, no fence
-                    continue
-        if hasattr(mod, attr):
-            out.append((mod, attr))
-    return out
-
-
-def _caller_opted_in():
-    """True when ANY frame on the stack belongs to a module that set
-    `NO_REAL_PROCESSES = True`. Walking the whole stack (not just the
-    innermost frame) is what makes the import-time fence see an opted-in test
-    module that spawns through engine code, e.g. heal.py's os.execv."""
-    frame = sys._getframe(1)  # noqa: SLF001 -- the only way to see the caller
-    while frame is not None:
-        if frame.f_globals.get(_GUARD_FLAG):
-            return True
-        frame = frame.f_back
-    return False
-
-
-def _make_import_time_fence(real, label, kill=False):
-    """Wrap ONE process leaf so an opted-in caller is refused even when the
-    call happens at IMPORT time -- before any fixture can exist.
-
-    The kill leaves pass through ONLY what the fixture leaf passes through:
-    `suite_guards.own_pid_signal0_only`, the ONE predicate. This fence used to
-    check pid membership ALONE (`if kill and a and int(a[0]) ==
-    os.getpid(): pass`, the sig never read), so an opted-in module that called
-    `os.kill(os.getpid(), SIGKILL)` at collection REALLY killed the runner --
-    residue 1 of verify_DH.440-k1."""
-    def _fence(*a, **k):
-        if _caller_opted_in():
-            if kill and a and own_pid_signal0_only(a[0], a[1] if len(a) > 1 else 0,
-                                                   _OWN_PIDS):
-                return real(*a, **k)   # own-pid signal-0 liveness probe
-            raise AssertionError(
-                f"guard: a NO_REAL_PROCESSES module called {label} at "
-                "IMPORT time (collection), where no fixture can guard it; "
-                "move the call into a test body, or inject the seam")
-        return real(*a, **k)
-    _fence.__name__ = f"_import_fence_{label.rsplit('.', 1)[-1]}"
-    _fence.__module__ = "conftest"
-    setattr(_fence, _FENCE_MARKER, real)   # the idempotence marker
-    return _fence
-
-
-def _install_spawn_fence(leaves=_FENCED_SPAWN_LEAVES, kills=True):
-    """Install the import-time fence NOW (conftest import, which pytest does
-    before it imports any test module in this dir) and return the undo list.
-
-    Measured 2026-09-26 a00-6e17df77: a function-scoped fixture is too late
-    (a module-level `subprocess.run` really ran `echo`) and a SESSION-scoped
-    fixture is exactly as late (measured, same escape) -- pytest imports test
-    modules during collection, after session setup. The conftest module itself
-    is imported before those modules, so conftest-import-time is the only
-    ordering that covers it; that is why this is a plain import-time install
-    and not a hook."""
-    saved = []
-    for mod, attr in _resolve_leaves(leaves):
-        real = getattr(mod, attr)
-        if hasattr(real, _FENCE_MARKER):
-            continue                    # a second exec: leave the fence alone
-        saved.append((mod, attr, real))
-        label = f"{getattr(mod, '__name__', mod.__class__.__name__)}.{attr}"
-        setattr(mod, attr, _make_import_time_fence(real, label))
-    for attr in (("kill", "killpg") if kills else ()):
-        real = getattr(os, attr)
-        if hasattr(real, _FENCE_MARKER):
-            continue
-        saved.append((os, attr, real))
-        setattr(os, attr, _make_import_time_fence(real, f"os.{attr}", kill=True))
-    return saved
-
-
-def _uninstall_spawn_fence(saved):
-    for mod, attr, real in reversed(saved or []):
-        setattr(mod, attr, real)
-
-
 #: Set by a test that loads this conftest BY PATH to unit-test one of its
 #: leaves: the unit load must not install (and then remove) the session-wide
 #: import-time fence under the running suite's feet.
 _UNIT_LOAD_ENV = "AGI_TESTS_CONFTEST_UNIT_LOAD"
 
+#: This suite's NAME for the one install entry point. The BODY is
+#: `suite_guards.install_import_fence` (the same one the declared context
+#: suite installs at ITS import time); this wrapper carries this suite's
+#: POLICY -- its leaf tuple, its opt-in flag name, its own-pid set -- and
+#: reads `os` from THIS module's globals at CALL time, so an in-process unit
+#: test can point the kill branch at a stub instead of the real os module
+#: (test_conftest_guard's kill-branch rows).
+def _install_spawn_fence(leaves=_FENCED_SPAWN_LEAVES, kills=True, **kwargs):
+    kwargs.setdefault("guard_flag", _GUARD_FLAG)
+    kwargs.setdefault("own_pids", _OWN_PIDS)
+    return install_import_fence(leaves=leaves, kills=kills, os_module=os,
+                                **kwargs)
+
+
+#: The import-time fence is installed at CONFTEST import, which pytest does
+#: before it imports any test module in this dir: the only ordering that
+#: covers a module that spawns AT IMPORT (measured 2026-09-26 a00-6e17df77 --
+#: both a function-scoped and a session-scoped fixture are too late).
 _IMPORT_FENCE_SAVED = None
 if os.environ.get(_UNIT_LOAD_ENV) != "1":
     _IMPORT_FENCE_SAVED = _install_spawn_fence()

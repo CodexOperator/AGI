@@ -44,7 +44,15 @@ import verification  # noqa: E402
 CONTEXT_CONFTEST = '''
 import pathlib, sys
 sys.path.insert(0, {bin!r})
-from suite_guards import agi_env_stripped, no_real_process, suite_lock  # noqa
+from suite_guards import (  # noqa
+    agi_env_stripped, install_import_fence, no_real_process, suite_lock,
+    uninstall_import_fence)
+
+_IMPORT_FENCE_SAVED = install_import_fence()
+
+
+def pytest_unconfigure(config):
+    uninstall_import_fence(_IMPORT_FENCE_SAVED)
 '''
 
 
@@ -159,6 +167,86 @@ def test_the_child_sees_no_caller_agi_env(tmp_path, monkeypatch):
     assert os.environ["AGI_SEAT"] == "a00-deadbeef"
 
 
+def test_an_opted_in_context_module_that_spawns_at_import_is_refused(
+        tmp_path, monkeypatch):
+    """(d) The collection-time hole is closed in the DECLARED suite too. The
+    three FIXTURES cannot cover this: fixtures do not exist yet while pytest
+    imports a test module, so `os.system` at module scope in an opted-in
+    context test really forked a shell until this conftest installed the
+    import-time fence at ITS import.
+
+    The refusal must arrive DURING collection, by name -- not as a later test
+    failure. Red-first: drop the `install_import_fence()` call from
+    CONTEXT_CONFTEST (and from .agi/context/conftest.py) and this suite is
+    green again, with a REAL `os.system` shell at collection."""
+    groot = _make_project(tmp_path, "ctx", '''
+        import os
+        NO_REAL_PROCESSES = True
+
+        # NOT inside a test body: collection imports this module before any
+        # fixture exists, so the function-scoped guard cannot see it.
+        os.system("true")
+        ''')
+    res = _run(groot, tmp_path / "proj" / "ctx", monkeypatch)
+    out = (res.stdout or "") + (res.stderr or "")
+    assert res.returncode != 0, out
+    assert ("guard: a NO_REAL_PROCESSES module called os.system at IMPORT time"
+            in out), out
+    assert "error" in out and "test_ctx" in out, out   # refused AT COLLECTION
+
+
+def test_an_opted_in_context_module_that_killpgs_at_import_is_refused(
+        tmp_path, monkeypatch):
+    """(e) ONE call, ONE rule: `os.killpg` is refused OUTRIGHT in BOTH leaves.
+    The fixture leaf already was (`_make_guarded_killpg`); the import-time
+    fence routed it through the own-pid signal-0 predicate, so a group the
+    test never spawned was signalled during collection.
+
+    SIGCONT is the offending signal: its default action is 'continue', so the
+    row is harmless if the guard ever goes missing -- it would only fail to be
+    refused. The second half proves, with a RECORDER rather than a syscall,
+    that the refusal arms no real `killpg` at all: the opted-in call is driven
+    through a stub leaf, from a frame that carries the opt-in flag."""
+    import types  # noqa: PLC0415
+    groot = _make_project(tmp_path, "ctx", '''
+        import os, signal
+        NO_REAL_PROCESSES = True
+
+        os.killpg(os.getpgid(0), signal.SIGCONT)
+        ''')
+    res = _run(groot, tmp_path / "proj" / "ctx", monkeypatch)
+    out = (res.stdout or "") + (res.stderr or "")
+    assert res.returncode != 0, out
+    assert ("guard: a NO_REAL_PROCESSES module called os.killpg at IMPORT time"
+            in out), out
+
+    # recorder half, and the TRUE red-first for the divergence: the old
+    # import-time fence routed os.killpg through the own-pid signal-0
+    # predicate, so a group LEADER (pgid == own pid) signalling its OWN group
+    # with signal 0 at collection PASSED THROUGH to the real killpg, while the
+    # fixture leaf refused it outright. Driven on a stub leaf from an opted-in
+    # frame: the refusal arms no syscall at all.
+    calls = []
+    stub = types.SimpleNamespace(
+        kill=lambda *a, **k: calls.append(("kill", a)),
+        killpg=lambda *a, **k: calls.append(("killpg", a)))
+    saved = suite_guards.install_import_fence(
+        leaves=(), kills=True, os_module=stub)
+    try:
+        ns = {"NO_REAL_PROCESSES": True, "stub": stub, "own": os.getpid()}
+        # os.kill(own pid, 0) -- the liveness probe: still passes through,
+        # so the fix NARROWED killpg rather than moving the divergence.
+        exec("stub.kill(own, 0)", ns)          # noqa: S102 -- opted-in frame
+        # os.killpg(own pgid, 0) -- a GROUP, refused outright in BOTH leaves.
+        with pytest.raises(AssertionError, match="killpg at IMPORT time"):
+            exec("stub.killpg(own, 0)", ns)     # noqa: S102
+    finally:
+        suite_guards.uninstall_import_fence(saved)
+    assert calls == [("kill", (os.getpid(), 0))], (
+        f"the killpg refusal armed a real syscall (or kill stopped "
+        f"passing the own-pid probe): {calls}")
+
+
 def test_the_real_context_conftest_installs_the_shared_guards():
     """Wiring pin: the DECLARED root on this box imports the one shared guard
     module rather than carrying its own (or exec'ing the engine conftest)."""
@@ -166,6 +254,11 @@ def test_the_real_context_conftest_installs_the_shared_guards():
            / "conftest.py").read_text(encoding="utf-8")
     assert "from suite_guards import" in src
     assert "exec(" not in src
+    # the collection-time fence is installed by the DECLARED conftest too:
+    # the fixtures alone cannot cover a module that spawns at import.
+    assert "install_import_fence()" in src, (
+        "the declared suite has no collection-time fence: an opted-in module "
+        "that spawns AT IMPORT is unfenced")
     assert verification.__file__.endswith("verification.py")
 
 
