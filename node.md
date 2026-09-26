@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g15
 next_edges: []
-edited_by: a00-b985fc32
+edited_by: belam
 scaffold_hash: b20c178a6f54463c
 season: 2
 testable_claim: grok_bot_adapter.py (~64) passes the rendered brief to the bot or refuses with a named error, never accepts and discards it; engine-delta-7's verifier read the discard as an intentional stub -- decide which and record it in THOUGHT.
@@ -22,7 +22,3 @@ assigned: director-engine -- PASS 3 residue (belam-S2-L5-III, 09-24; trunk @9fec
 
 ## Agent Notes
 assigned: director-engine (PASS 3 residue, belam-S2-L5-III 09-24)
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The discard was a silent brief loss, not an intentional stub (a00-d9c0ff8e), AND there was a second silent loss beneath it: a falsy rendered_brief with an empty context_file emitted -p EMPTY, an empty prompt, with no name anywhere (P3, a00-b985fc32). Both arms of this claim now hold on the built bytes: the render is spent in argv, or the both-empty state refuses by name naming the harness and both inputs; restart degrades that refusal to None so the goal:g4.7 contract is unbroken. What is still a stub is the SPELLING only: -p is a guessed slot pending goal:g17.14.1.
-<!-- THOUGHT:END -->
