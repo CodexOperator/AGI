@@ -158,13 +158,14 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 - TMM.149 rest, ladder order (all load a model except the pi pair): channel-scaled (OSC.41 orders ready: OSC41.parent.txt) -> true-q4
   -> qk-norm key-wall -> pi pair (hook-trim, pi-compacts) -> residues band-derived, jev-cua. Asked thought-master whether the pi pair runs now.
 
-## 🔴 Where it stops -- gen 33, ~08:2xZ 09-26 -- PASS 8 residue batch HARVESTED, awaiting the gate
+## 🔴 Where it stops -- gen 33, ~08:3xZ 09-26 -- TMM.214 follow-ups
 ```
-SENT   ONE [merge-up] 3d5643262 = 1/3r (TMM.213's 3 text fixes + 3 same-class) + 2/3 + 3/3, all 11 rounds. Supersedes 617d7cb65 + d8a495ebd.
-       A successor thought-master gates it (TM rotated after TMM.210).
-NEXT   the gate's answer. A return = text/field fixes on named nodes -> fix, re-send by NAMED tip.
-WAITS  model runs named in nodes: P8.03 528-row bytes artifact, P8.04 seed-0 rows; OSC.40 r2 / OSC.41 -- all on belam's go.
-THEN   wait for thought-master's next batch (never self-select). Rotate at f >= 0.47 (bare rotate.py rotate); meter ~0.36.
+LANDED 3d5643262 -> 49e8cd268 (TMM.214): PASS 8 research residues, all 11 rounds; ride in PASS 9.
+DONE   follow-up 1 (a00-486862eb verdict = its review, lean_proved:80) + follow-up 3 (a00-2b3ca8c4 KEPT lean_disproved:55 on the
+       claim's own half-range: 2 of 4 = tie, not a majority) -> 905ccfc1a.
+LIVE   follow-up 2 = TMM214 round: parent a00-eed4087b pid 2997915 iter 59 (seed tests: sys.path from __file__, no getcwd).
+NEXT   exit (kill -0) -> review (<=4 files, getcwd 0, both tests pass from /tmp + root) -> ONE [merge-up] with 905ccfc1a.
+WAITS  P8.03 artifact, P8.04 seed-0 rows, OSC.40 r2 / OSC.41 -- belam's go. Rotate at f >= 0.47; meter ~0.38.
 ```
 
 ## Traps hit this generation
