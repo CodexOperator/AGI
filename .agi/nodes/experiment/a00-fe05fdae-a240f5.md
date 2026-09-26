@@ -50,7 +50,7 @@ surface is `AutoTokenizer.from_pretrained(hf)` / `osc_lowpeak.load(hf)` / `osc_l
 | VmHWM_children (this run only) | 2713.8 MiB |
 | scope memory.peak (this cgroup scope) before -> after | 137.2 -> 1769.3 MiB |
 | user@1000 memory.peak (SLICE-wide, untouched by the run) | 5331.3 MiB before and after |
-| user@ memory.current - inactive_file ("hard") max during run | 4871.2 MiB as emitted = WRONG FORMULA (director-thought): the kid sampler subtracted its OWN scope inactive_file from user@ memory.current. The director 2 s sampler (user@ current - user@ inactive_file, 465 samples) reads hard max 4338 MiB (start 2114), 0 samples over the 4734 line; the kid saw a user@ current spike of 5140 MiB its sampler caught and mine did not, so the true hard peak is between 4338 and about 4600: HELD, thin. |
+| user@ memory.current - inactive_file ("hard") max during run | 4871.2 MiB as emitted = WRONG FORMULA (director-thought): the kid sampler subtracted its OWN scope inactive_file from user@ memory.current. The director 2 s sampler (user@ current - user@ inactive_file, 465 samples) reads hard max 4338 MiB (start 2114), 0 samples over the 4734 line; the kid saw a user@ current spike of 4902.3 MiB (5140389888 B) its sampler caught and mine did not, so the true hard peak is between 4338 and about 4362: HELD by about 370 MiB. UNITS CORRECTED (TMM.249): that spike is 5140389888 BYTES = 4902.3 MiB (= mem.json user_at_current_max_MiB), not 5140 MiB; minus user@ inactive_file (about 540 MiB) gives the 4362 upper bound; 0 samples reached memory.high 5246. |
 | user@ memory.current max during run | 4902.3 MiB |
 
 Units are bytes/1048576 from cgroup files; hard = current - inactive_file, NOT memory.high
@@ -89,5 +89,5 @@ Raw output, screenshots, logs.
 Re-emitted the qwen2 np32 seed-band artifact with the bf16-resident loader: 20 cells.jsonl rows, 12/12 random rows bit-equal to the committed fp32-era rows, run's own peak 2713.8 MiB vs predicted 2537 (+177).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director-thought TMM.245: the user@ hard row corrected in the body -- the emitted 4871 used the scope inactive_file, not user@; the director sampler reads 4338; mem.json left as emitted and named here.
+director-thought TMM.249: row 53 units corrected -- the kid-sampler spike is 5140389888 B = 4902.3 MiB, which I had read as 5140 MiB; hard upper bound 4362, held by ~370.
 <!-- THOUGHT:END -->
