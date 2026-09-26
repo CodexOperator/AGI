@@ -2239,3 +2239,108 @@ def test_own_node_id_is_type_gated_too(tmp_path, capsys):
     paths = cli._round_own_node_paths(root, root, "goal:g5", None, [])
     assert paths == set(), paths
     assert "goal:g5" in capsys.readouterr().err
+
+
+def test_node_id_seed_needs_dispatch_or_the_agent_id_in_the_filename(tmp_path, capsys):
+    """DH.414 residue (a): the `--node-id` SEED. `cmd_done` hands
+    `node_id=args.node_id` to `_auto_commit_worktree`; the seed is `asked[0]`
+    and once it is in `own_paths` it short-circuits `_round_scope_ok`, the
+    only rule that requires a node filename to carry this round's agent id.
+    So `done --node-id hypothesis:<foreign>` swept a FOREIGN hypothesis into
+    the round's loop-branch commit, with the type gate (a hypothesis IS
+    round-committable) passing it and stderr empty. Measured pre-fix on these
+    bytes: `{nodes/hypothesis/foreign.md, nodes/experiment/a00-me-1.md}`, no
+    stderr. Now the seed lands only when DISPATCH named the id, or the node
+    file's basename carries this round's agent id -- and is NAMED when refused.
+    The three cases everyone fears stay GREEN: a parent's own human-slug node
+    dispatch named, a kid's own minted scaffolded experiment, and a hypothesis
+    round editing its own dispatch target in place."""
+    from pathlib import Path
+    cli = _load_cli()
+    root = tmp_path / ".agi"
+    (root / "context" / "schemas").mkdir(parents=True)
+    (root / "config.json").write_text("{}")
+    (root / "nodes" / "hypothesis").mkdir(parents=True)
+    (root / "nodes" / "experiment").mkdir(parents=True)
+    for sub, nid in (("hypothesis", "foreign"),
+                     ("hypothesis", "a-rounds-named-node-set"),
+                     ("hypothesis", "foreign-slug"),
+                     ("experiment", "a00-me-1")):
+        (root / "nodes" / sub / f"{nid}.md").write_text(
+            f"---\nid: {sub}:{nid}\ntype: {sub}\n---\n\nbody\n")
+
+    # 1. a FOREIGN id on --node-id: refused, and NAMED.
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, "hypothesis:foreign", None,
+        ["experiment:a00-me-1"], agent_id="a00-me")
+    assert paths == {"nodes/experiment/a00-me-1.md"}, paths
+    err = capsys.readouterr().err
+    assert "hypothesis:foreign" in err and "refusing" in err, err
+
+    # 2. the round's OWN minted scaffold (basename carries the agent id) lands
+    #    even when dispatch named nothing at all.
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(root, root, "experiment:a00-me-1", None,
+                                      [], agent_id="a00-me")
+    assert paths == {"nodes/experiment/a00-me-1.md"}, paths
+    assert capsys.readouterr().err == ""
+
+    # 3. a PARENT whose own node is a human slug, named by DISPATCH: lands
+    #    (its filename carries no agent id -- the named set is the rule).
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, "hypothesis:a-rounds-named-node-set", None,
+        ["hypothesis:a-rounds-named-node-set"], agent_id="a00-me")
+    assert paths == {"nodes/hypothesis/a-rounds-named-node-set.md"}, paths
+    assert capsys.readouterr().err == ""
+
+    # 4. a hypothesis round editing its own DISPATCH TARGET in place, passed on
+    #    --node-id while dispatch named a DIFFERENT id: still lands, because
+    #    dispatch named it.
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, "hypothesis:foreign-slug", None,
+        ["hypothesis:foreign-slug"], agent_id="a00-me")
+    assert paths == {"nodes/hypothesis/foreign-slug.md"}, paths
+    assert capsys.readouterr().err == ""
+
+
+def test_a_node_under_a_dotted_nodes_dir_is_never_round_committable(tmp_path, capsys):
+    """DH.414 residue (b): the structural rule joined the dotted dir to the id
+    by a NAME GUESS -- a file whose stem equals the id's type or slug. The real
+    seat table `doc:geometry-towns-core` lives at
+    `nodes/.geometry/towns/core.md` (type `doc`, stem `core`, TWO levels down),
+    so nothing matched: `_round_committable` was True and the seat table was
+    swept by a round commit, in silence. The join is now the real one --
+    resolve the node FILE BY ID (`_find_node_file`) and refuse when the
+    resolved path runs under a dotted directory of `nodes/`. The `structural:
+    true` schema cell and the stem fallback both stay."""
+    import shutil
+    from pathlib import Path
+    cli = _load_cli()
+    src = Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas"
+    if not src.is_dir():
+        pytest.skip("no .agi/context/schemas in this checkout")
+    root = tmp_path / ".agi"
+    shutil.copytree(src, root / "context" / "schemas")
+    (root / "config.json").write_text("{}")
+    g = root / "nodes" / ".geometry" / "towns"
+    g.mkdir(parents=True)
+    (g / "core.md").write_text("---\nid: doc:geometry-towns-core\ntype: doc\n"
+                               "---\n\ntowns:\n  - core\n")
+    # the id's own type (`doc`) is a perfectly committable type
+    assert cli._round_committable(root, "doc:goals-preamble")
+    # ...but the file's HOME under a dotted dir of nodes/ denies it, by id.
+    assert not cli._round_committable(root, "doc:geometry-towns-core")
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, "doc:geometry-towns-core", None,
+        ["doc:geometry-towns-core"], agent_id="a00-me")
+    assert paths == set(), paths
+    assert "doc:geometry-towns-core" in capsys.readouterr().err
+    # a structural type with NO resolvable file still lands on the stem
+    # fallback (the guess can over-refuse; it can never under-refuse).
+    (root / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nid: seats:cadence\ntype: seats\n---\n\nseats:\n  - a\n")
+    assert not cli._round_committable(root, "seats:cadence")

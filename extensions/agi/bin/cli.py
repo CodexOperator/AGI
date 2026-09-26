@@ -2226,18 +2226,34 @@ def _round_committable(root: Path, nid: str) -> bool:
     except Exception:  # noqa: BLE001 -- an unreadable schema gates nothing
         pass
     # The node's own home: a structural directory (`nodes/.geometry/`) holds the
-    # graph's furniture, not a round's work, and its single instance is named
-    # by its TYPE (`crons.md` is `cron:crons`). Dotted dir = structural, so a
-    # new geometry type is denied by WHERE it lives, with no name in this
-    # function and no dependence on the id index (which goes stale mid-run).
+    # graph's furniture, not a round's work. Dotted dir = structural, so a new
+    # geometry type is denied by WHERE it LIVES, with no name in this function.
+    # DH.414 residue (b): the rule was a NAME GUESS -- a dotted dir holding a
+    # file whose stem equals the id's type or slug -- so `doc:geometry-towns-
+    # core` at `nodes/.geometry/towns/core.md` matched nothing and the seat
+    # table was swept in silence. The JOIN is the real one: resolve the node
+    # FILE BY ID (`_find_node_file`, the reader already in hand) and refuse
+    # when the resolved path runs under a dotted directory of `nodes/`. The
+    # stem guess is kept only as the fallback for an id no file resolves
+    # (a fixture, a type minted this run) -- it can over-refuse, never
+    # under-refuse.
     try:
         nodes = Path(root) / "nodes"
-        slug = nid.split(":", 1)[1]
-        for d in nodes.iterdir():
-            if not (d.is_dir() and d.name.startswith(".")):
-                continue
-            if any(f.stem in (ntype, slug) for f in d.glob("*.md")):
-                return False
+        nf = _find_node_file(root, nid)
+        if nf is not None:
+            try:
+                if any(part.startswith(".")
+                       for part in Path(nf).relative_to(nodes).parts[:-1]):
+                    return False
+            except ValueError:
+                pass
+        else:
+            slug = nid.split(":", 1)[1]
+            for d in nodes.iterdir():
+                if not (d.is_dir() and d.name.startswith(".")):
+                    continue
+                if any(f.stem in (ntype, slug) for f in d.glob("*.md")):
+                    return False
     except OSError:
         pass
     try:
@@ -2255,7 +2271,8 @@ def _round_committable(root: Path, nid: str) -> bool:
 def _round_own_node_paths(root: Path, checkout_root: Path,
                           node_id: str | None, owns: list | None,
                           named: list | None = None,
-                          refused: list | None = None) -> set:
+                          refused: list | None = None,
+                          agent_id: str | None = None) -> set:
     """The round's own node files, relative to the checkout toplevel. The
     round's OWN node is always its own; every other id -- `--owns`, the
     dispatch-time named set, and the kid's own `--parent` -- must be
@@ -2273,6 +2290,25 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
         if not nid or nid in seen:
             continue
         seen.add(nid)
+        if nid == node_id and agent_id and nid not in (named or []):
+            # DH.414 residue (a): the `--node-id` SEED. `node_id` is the
+            # KID's line, and the type gate alone let `done --node-id
+            # hypothesis:<foreign>` ride a foreign node into this round's
+            # commit: `_round_scope_ok` short-circuits on `own_paths`, so the
+            # agent-id rule that is the ONLY thing requiring a node file to
+            # carry this round's id was skipped. It seeds the sweep only if
+            # DISPATCH named this id (`named`) or the node file's basename
+            # carries this round's agent id -- the same agent-id rule
+            # `_round_scope_ok` applies. With no agent id in hand (a direct
+            # call, a test fixture) the pre-existing behaviour stands and the
+            # type gate still applies.
+            base = Path(_find_node_file(root, nid) or "").name
+            if not (agent_id and agent_id in base):
+                print(f"round-commit gate: refusing {nid} — a --node-id "
+                      f"seeds this round's commit only if dispatch named it "
+                      f"or its filename carries {agent_id or 'this round'}'s "
+                      f"agent id", file=sys.stderr)
+                continue
         if nid not in asked:
             # A kid-supplied id (`done --parent`) NEVER widens the set, even
             # for a round-committable type -- judged by the type gate it let
@@ -2378,7 +2414,7 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
     # commit-scopes-to-the-round-own-paths-never-git-add-a). A foreign dirty
     # path is named on stderr and left where it is.
     own = _round_own_node_paths(root, checkout_root, node_id, owns, named,
-                                refused)
+                                refused, agent_id=agent_id)
     in_scope, foreign = [], []
     for rec in status.stdout.split("\0"):
         if len(rec) < 4:
