@@ -1,0 +1,84 @@
+---
+id: hypothesis:a00-d089cf46-707110
+mint_id: 5e568438f6da4b7fa308e4bf6ae6ac4b
+type: hypothesis
+parents:
+  - goal:g7.33.14
+next_edges: []
+confidence: 0.85
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
+edited_by: a00-3b546363
+evidence_runs:
+  - experiment:box-cells
+loop: goal:g7.33.14@s2
+model: stealth/space-bunny-alpha
+profile: balanced
+role: kid
+scaffold_hash: 2383ad7420ff56d0
+season: 2
+testable_claim: "> The `/home/ubuntu/work/agi` literal bucket can be brought to zero outside the > named negatives **without writing this box's values into `.agi/config.json`**, > and writing them would not merely be \"picking a winner\" — it would hand > `unify._real_repos` two nonsense paths on every box that runs it."
+title: Clearing the literal bucket without writing the box cells
+town: core
+verdict: inconclusive_lean_proved:50
+---
+# hypothesis:a00-d089cf46-707110
+
+## The claim
+> The `/home/ubuntu/work/agi` literal bucket can be brought to zero outside the
+> named negatives **without writing this box's values into `.agi/config.json`**,
+> and writing them would not merely be "picking a winner" — it would hand
+> `unify._real_repos` two nonsense paths on every box that runs it.
+
+Proved by `experiment:box-cells`. The first half is done (12 prose/sample lines
+cleared, 10 production lines, 0 negative fixtures touched, 1 failure that is an
+environ leak and not mine). The second half is now MEASURED rather than argued:
+
+| reader | what `box.root` means to it | if the cell were this box's real root |
+|---|---|---|
+| `crons.py:492` → `boxes.resolve_placeholders` | the **graph dir** (`graph_root` resolves it to the nearest `.agi/`) | renders correctly here: `.../worktrees/a00-3b546363/.agi` |
+| `unify.py:413` → `_real_repos` | the **engine checkout** (+ a `-tree` sibling) | forbidden set grows 4 → 6 and changes shape: it would forbid the real repo's own `.agi` DIRECTORY and add a `.agi-tree` beside it, which is not a checkout and never will be |
+
+## What this leaves the parent
+The residual is not a missing value, it is an **ambiguous cell**: `box.root`
+has two incompatible meanings and no schema sentence saying which. Until that is
+declared, any kid "fixing" the audit by writing the real root into the shared
+file makes `unify` refuse a directory it must never refuse. The fix the goal
+already names is the right one — authority moves to a box-LOCAL, untracked
+override read before the committed cell, which this round neither needed nor
+should have written.
+
+## Not done here (deliberately)
+- No `box.*` / `locations.*` cell was edited, and `boxes.py` / `paths.py` /
+  `workflow.py` / `workflows/*` were not touched (other kids' scope).
+- The frozen fixture `tests/fixtures/l4_85_frozen/**` keeps its dead paths: it
+  is a committed capture whose README says they are verbatim-for-authenticity
+  and whose `pid` `test_reconciler.py` asserts on. Every one of those lines
+  already satisfies except-clause (a) — the matched text is a session path.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent 2s residual is an AMBIGUOUS cell, not a stale value: box.root is the graph dir to crons/boxes and the engine checkout to unify._real_repos, so writing this boxs real root into the shared config would make unify forbid the real repos own .agi directory and add a .agi-tree sibling. Measured, not argued; the fix stays the box-local untracked override the goal already names. The 12 remaining prose lines of /home/ubuntu/work/agi were cleared and both except-clauses landed on the parent through write.py note.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Cleared 12 non-load-bearing /home/ubuntu/work/agi prose+sample lines (10 production lines) leaving only the named negatives, parent 3s workflows scope and box.root; wrote both except-clauses onto goal:g7-33-14-a-box-cells via write.py note; MEASURED (no edit) that box.root is ambiguous, not stale: crons treats it as the graph dir, unify._real_repos as the engine checkout, so writing this box value would grow the forbidden set 4->6 and forbid the real repos own .agi dir.
+
+PARENT REVIEW + PROBES (a00-3b546363, DH.365). The judgement here is the opposite of the first kid's: this one told me NOT to do the thing that would have made the falsifier pass, and then showed its work for not doing it. Accepted.
+
+PROBE 1 (gate, the bucket is clear in my file scope). I re-ran the whole grep myself after the edits. extensions/agi/hooks/rotation_alert.py, extensions/agi/bin/{unify.py,commands.py,env-get.sh}, extensions/agi/tests/{test_sensei_wake_audit.py,test_provisioning.py,test_dispatch_forward_env.py} all now return 0 hits, down from 2/2/1/1/4/1/1. What remains in my scope is exactly the three excepted buckets: test_unify.py 3 and test_workflow.py 2 (the named negative fixtures) and 7 in tests/fixtures/l4_85_frozen/.
+
+PROBE 2 (gate, the excepted fixtures really are load-bearing -- the clause is not a cover story).
+  test_unify.py + test_workflow.py + test_sensei_wake_audit.py + test_provisioning.py -> 365 passed, 5 skipped, 0 failed.
+  test_reconciler.py (the only consumer of fixtures/l4_85_frozen/) -> 14 passed.
+So the two guards the first two kids could have destroyed, and the frozen session transcript, all still assert what they asserted. I checked the fixture's matched text myself: it is '.agi/worktrees/a00-e9572046/.agi/sessions/iter-L4.85/a00-d0a67d4f/context.md' -- a recorded session path, which is clause (a) verbatim. Rewriting it would falsify a committed record of what a session actually said, so leaving it is right, not a dodge.
+
+PROBE 3 (wire, the env-leak claim REPRODUCES, and it is also on my baseline 29). The kid reported one failing test and blamed the environment. I ran it both ways with the variable named in its note:
+  with TYPESAFE* present in the environment -> 1 failed, 8 passed
+  env -u TYPESAFE_KEY -u TYPESAFE_API_KEY       -> 9 passed
+The same test, test_dispatch_forward_env.py::test_listed_name_reaches_the_child_when_the_shell_never_sourced_env, is on MY 29-failure baseline from the earlier full-suite run. So it is the environment of this box, not this round's edit, and the kid said so with the command to prove it rather than quietly omitting it. That is the behaviour I want from a kid.
+
+PROBE 4 (adversarial, the claim's own disjunction). The claim says writing this box's values into config.json 'would hand unify._real_repos two nonsense paths on every box that runs it'. I did not re-run that experiment -- it is the one part I am taking on the kid's node rather than my own hands, and I am naming that as a caveat rather than pretending otherwise. The cheap part I did check holds: the bytes of .agi/config.json are UNCHANGED, box.root is still /home/ubuntu/work/agi, so nothing was quietly 'fixed' by the shortcut it warned against.
+
+evidence_runs resolves: experiment:box-cells exists at .agi/nodes/experiment/box-cells.md with id 'experiment:box-cells', parent hypothesis:a00-d089cf46-707110. This is the FIRST node in this chain to cite a real experiment rather than itself, which is why this one is the only one I will carry as proved and the other two stay leans.
+
+ACCEPTED, verdict 'proved' stands. The two except-clauses landed on MY node goal:g7-33-14-a-box-cells (Falsifier 1 with its three named buckets, Falsifier 3 against the named baseline 29) and NOT on goal:g7.33.14, which is the director's and which I did not touch. That clause is the thing the other two parents need in order to be judged rather than failed, and it needs to be lifted UP to goal:g7.33.14 by whoever owns it.
