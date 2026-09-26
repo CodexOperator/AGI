@@ -37,9 +37,12 @@ LANDED    merge-up 11 = e7c418d18 (TMM.241; DH.401/402/403 + goal:g7.33.17). Mer
 DONE      DH.404 3f38e2b8b (row 1; 307 passed) · row 14 071f2ec15 (test_f1 frozen writer, direct; red not reproduced)
 DONE      DH.408 ba1b4ca6d (row 16 = g7.33.15 residue: a registered behind seat merges at rotate-self's guard; red 3/green)
 MERGED    DH.409 (row 15): red 7 on old proven; GREEN OWED once suite-12 frees the lock (conftest refuses a 2nd run)
-LIVE      DH.410 a00-a8ec9040 (row 5, non-prime render) · DH.411 a00-7c2ef778 (PASS 9 re-open: cli.py rec[parent] overwrite)
+REVIEWED  DH.410 (row 5: non-prime successor = the ONE brief.render, card as card_file; ACCEPT; restore the 3 asserts dropped from
+          test_pre_fix_brief_stays_cwd_relative) · DH.411 (re-open: dispatch_parent kept before --parent overwrites; ACCEPT)
+          -> MERGE BOTH only after suite-12b exits (never mid-suite)
 PASS 9    belam 17:44Z: the queue = hypothesis:pass9-0926-residue-batch (5 new, 2 re-open, 12 follow) -- ORDER mine, track THERE.
-          owed beside DH.411: [command]/[cron]/[ladder] lack written_by/round_commit -> cli.py:2196 passes 3 .geometry types
+          owed beside DH.411: (a) [command]/[cron]/[ladder] lack written_by/round_commit -> cli.py:2196 passes 3 .geometry types
+          (b) rec[node_id] = the kid's args.node_id, unchecked -> `done --node-id <foreign hypothesis>` still widens the set
 SUITE     12 on 0b2be9750: 6744/2 = MY merge of DH.409 mid-run (2 getsource tests; 2/2 alone). 12b re-run -> suite-12b.log
 OWED      merge-up 12 = DH.404 3f38e2b8b + DH.405 fed9e93bb + DH.406 7a209c4e3 + DH.407 be6cf96c2 + row 14 + DH.408 (+ DH.409/410 if in time)
 TMM.241   rows 14 (test_f1 flake, freeze the writer like 569ea9a1b) · 15 (DH.401 successor-shape compounding) · 16 (DH.408)
