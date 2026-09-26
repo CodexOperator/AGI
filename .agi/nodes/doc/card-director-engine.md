@@ -71,6 +71,18 @@ push       never from here (IDENTITY rule)
 | 2 eight `/" + ROOT + "` lines | 11 occurrences on 8 lines / 5 .js dropped (manifests were already clean); guard greps the concat form + NEW render test (node evals every ROOT const, with/without project_root) | 12/12 green; both guards RED on the old recovery-survey.js bytes |
 | blocker: --tier kid | never kid: one `--tier parent --role parent --ladder-tier 0`, no --harness | dry-run -> pi-free, then live spawn above |
 
+## RULES CARRIED (TMM.202)
+```
+no-claude  a kid NEVER launches a real claude session (claude --bg / --remote-control): they register on the owner's account as app
+           entries no CLI path can end. A TERM->exit probe uses a stand-in (python3 -c 'import time; time.sleep(60)'). Goes in EVERY
+           round's orders from DH.377 on. Audit gen 23: DH.373-376 logs/trajectories = 0 claude launches.
+DH.369 gate (maint_gc = git gc, 04:41 daily, NOT in the live crontab until TM lands DH.369) -- ready answer, MEASURED in scratch:
+           3000 refs + a live worktree, 6 gc runs racing update-ref: 104 ok / 0 failed, fsck clean; gc stderr carries benign
+           "cannot lock ref ... is at X but expected Y" (pack-refs leaves the newer LOOSE ref, which wins). gc.pruneExpire UNSET
+           = git default 2.weeks.ago, so a grid commit-tree object written before its update-ref is never pruned. Worst case by
+           reading (grid.py:356 sys.exit on a failed update-ref): one commit --all tick stops part-way; next 5-min tick resumes.
+```
+
 ## §1 PLAN
 | # | item | status |
 |---|---|---|
