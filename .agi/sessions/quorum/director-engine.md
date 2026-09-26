@@ -48,7 +48,7 @@ CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_ma
        accept_with_residue (sibling node a00-f787eff3 false; new_bytes 2 meanings; config_max YES) -> 451 a00-5712dd56 LIVE, cut from 446
 433    -> 444 -> 447 a00-7ba0cad2 (cut from 444; 19 green) -> mur-7 RUNNING; OPEN after 438/446 land: templates_dir is
        repo-relative + unresolved -> load_manifest traceback: resolve vs the repo root + refuse a missing manifest by name
-434    SUPERSEDED -> 437 -> 439 (mur-6 residue: mem_cap path WRITES cache; neg reserve=info; literals) -> 450 a00-f0f1a8b1 LIVE, cut from 439
+434    SUPERSEDED -> 437 -> 439 (mur-6 residue: mem_cap path WRITES cache; neg reserve=info; literals) -> 450 a00-f0f1a8b1 HARVESTED (proved; 34 green on loop br) -> mur-8 DH.450-k1 RUNNING (unit agi-director-engine-mur450)
        BOX DRIFT (for TM, not ours to fix): OOMPolicy unset on streamer-stub-watch.service · agi.slice drop-in FILE absent
 g15       concurrent murs mint ONE run key (-3 x2, -4 x3, -5 x3): _existing_run_keys sees only finished rows
 g15       "merge the loop branch first" is NOT reliable: kids are forbidden git and get an EMPTY .git (no refs); 437/438/442/443
@@ -64,10 +64,10 @@ CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT
 
 ## 🔴 WHERE IT STOPS (rotated at f=0.43; capture chain rc=1 = g7.33.15; every round below survives rotation)
 ```
-FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur440 mur443 mur445 mur447 mur448 (mur446 DONE, above)
-       mur446 (+ whatever finished). Verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{5,6,7}/verify_DH.4NN-kN.json
-       parents live: 449 a00-35a98fab · 450 a00-f0f1a8b1 · 451 a00-5712dd56
-THEN   harvest 447/448/449/450 as they land (each cut FROM its chain branch: diff vs that branch; tests; commit stray node edits there)
+FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur440 mur443 mur445 mur447 mur448 mur450 (mur446 DONE, above)
+       mur446 (+ whatever finished). Verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{5,6,7,8}/verify_DH.4NN-kN.json
+       parents live: 449 a00-35a98fab · 451 a00-5712dd56
+THEN   harvest 449/451 as they land (each cut FROM its chain branch: diff vs that branch; tests; commit stray node edits there)
 PATTERN corrective = dispatch FROM the loop branch's worktree (kids cannot merge); a clean mur = git merge --no-ff <final branch>
        LAND ORDER per chain: 425: 441 then 448 (+441's node commit) · 426: 445 (NEVER 442) · 427: 436 then 449 · 429: merge 429 (nodes) then 443
        -X theirs · 430: 440 · 432: 438 then 446 then 451 (NEVER 432) · 433: 444 then 447 · 434: 439 then 450 (NEVER 434)
