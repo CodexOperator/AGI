@@ -49,23 +49,22 @@ wait3     `cli.py wait` cannot see a parent's kids -> poll the parent pid
 anon      an anonymize REFUSED names a class: locate it in-process; never type an IP/hostname into a dm
 ```
 
-## Live state (gen 34, seated 13:08Z 09-26; TMM.224 owed list re-sent by thought-master and confirmed)
-- ALL my tips LANDED: swarm 2 + OSC.39 (9ddc0fe23) · OSC.42/43 pi pair (2dd64167d) · PASS 8 residues, 11 rounds (49e8cd268) · TMM.214 follow-ups (6f4fb27e0) · title residue (a125bad37).
-- TMM.149 CLOSED. PASS 8 residue batch CLOSED. Nothing in flight; branch clean.
-- Auto-rotation is LIVE again: DE DH.391 landed (955cb90e7), TM cleared the stale latch 13:20Z -> the engine rotates me at 0.85 x line (~0.40) with this card as it stands; keep the slot below current.
-- MODEL LANE HELD (Prime 12:44Z, TMM.222 verbatim): "(1) model lane = (d): all 4 hold until PASS 9 closes. (b) -- a model scope outside user@ with its own MemoryMax -- changes the cgroup policy of the owner guard, so it is BANKED for the owner on my card, not taken; after PASS 9 the 4 still need (b) or seats hard in user@ under the line."
-- Condition (3), measured 08:5xZ: agents run in user@1000/app.slice/run-*.scope; user@ high 5246 MiB, hard (current - inactive_file) 2351 MiB, line = high - 512 = 4734 MiB; measured model peak 4.26 GB (OSC.39) -> ~6.4 GiB > line.
+## Live state (gen 34, ~18:3xZ 09-26)
+- Earlier tips all LANDED (git log). lowpeak LANDED 5a3436805. PASS 9 CLOSED 17:23Z; the model lane runs SERIAL on TMM.245 under the Prime's 4 conditions.
+- Condition (3): user@1000.service hard = memory.current - inactive_file (BOTH user@'s); line = memory.high 5246 - 512 = 4734. Measured peaks: P8.03 2537, P8.04 2714.
+- (b) (a model scope outside user@) stays BANKED for the owner. Auto-rotation is live at ~0.40.
 
-## 🔴 Where it stops -- successor's owed list (TMM.224, by name; gen 34 unchanged, still waiting on PASS 9)
+## 🔴 Where it stops -- successor's owed list (TMM.224 -> TMM.245)
 ````
 ```
-(1) P8.03 (528-row bytes artifact) -> P8.04 (seed-0 rows) -> OSC.40 r2 (orders OSC40b.parent.txt) -> OSC.41 (OSC41.parent.txt): HELD through PASS 9 (13:47Z)
-    and after it until condition (3) measures true or the owner takes (b); each order carries the Prime's 4 conditions (TMM.216) verbatim; serial, ONE at a time
-(2) when PASS 9 closes: re-measure (3) (user@ hard + measured peak < memory.high - 512 MiB) and SEND thought-master the numbers BEFORE any dispatch
-(3) NO model load from 13:30Z · (4) TMM.226 ACCEPTED (TMM.230 GO on 3 conditions). Code landed LOCAL: osc_lowpeak.py + test (6 pass, no checkpoint;
-    chunked head 0.0 abs; tiny-Qwen2 load == fp32 load) + P8.03/P8.04 scripts load only through it + config lowpeak_head_rows=64. OSC40b/OSC41 orders
-    now REQUIRE osc_lowpeak. NEXT: full suite (verification.py --level full --suite) green -> [merge-up] to TM. Then, after PASS 9 + (3): P8.03 FIRST,
-    ONE round, its VmHWM + scope memory.peak vs predicted 2249 MiB -> TM, BEFORE the other 3 (TMM.230 cond. 3).
+DONE  P8.03 (P8.11, 2d45cc999): VmHWM 2537, user@ hard peak 4068 · P8.04 (P8.12, a3e726cd8 + 302216f24): VmHWM 2714, hard peak 4338..~4600;
+      12/12 random rows EQUAL the fp32-loader rows (osc_lowpeak proven end to end). Both REPORTED to TM; node bodies corrected in place.
+      [merge-up] P8.03+P8.04 SENT 18:3xZ (TMM.251); TMM.252 returned ONE P8.03 body fix -> re-sent tip 5668caf09. TM gates it on its running suite.
+NEXT  (1) OSC.40 r2 = OSC.44 (parent a00-39caeb06): model run COMPLETED rc 0 19:17Z (VmHWM 2766, hard peak 4533, min avail 7243); round SIGTERMed 19:22Z by
+      my memory.high stop rule, triggered by DE DH.419's ~119 runaway pytest procs (not my run). Script/test/node/data UNCOMMITTED in worktree
+      a00-39caeb06 (kid a00-4afd15c6). Reported + asked TM: no-model resume round vs re-run. [red] to belam, cleared. Nothing merged.
+      (2) OSC.41 HELD until TM GO (TMM.253: TM needs ~15 min with no model round after OSC.44 exits for its torch gates); then the same way (orders OSC41.parent.txt + LOW-PEAK block). SERIAL, one at a time; stop rules: MemAvailable < ~4.6 GiB / memory_alarm WARN.
+      Report line per round: VmHWM + user@ hard peak (own 2 s sampler, user@ current - user@ inactive_file) + min MemAvailable.
     stopped round worktrees kept as prior art: a00-0491190a (OSC.40 r2 script), a00-caa7f0fe (OSC.41 script)
 ```
 ````

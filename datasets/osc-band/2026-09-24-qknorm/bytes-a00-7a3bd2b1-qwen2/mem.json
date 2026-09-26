@@ -1,0 +1,23 @@
+{
+ "VmHWM_children_MiB": 2536.77,
+ "scope_peak_MiB": {
+  "before": 151.06,
+  "after": 2385.62
+ },
+ "user_at_peak_MiB": {
+  "before": 5331.25,
+  "after": 5331.25
+ },
+ "user_at_current_max_during_run_MiB": 4653.89,
+ "user_at_hard_before_MiB": 5246.0,
+ "user_at_inactive_file_kB": {
+  "before": 229007360,
+  "after": 619114496
+ },
+ "predicted_MiB": 2249,
+ "delta_MiB": 287.77,
+ "threshold_MiB": 2473.9,
+ "verdict_line": "peak prediction MISSED (by 287.77 MiB; 2536.77 > 2473.9)",
+ "sampler_lines": 118,
+ "note": "cgroup memory.peak/current are BYTES; VmHWM ru_maxrss is KiB. scope_peak.before/after are the SAME cgroup scope (this shell + the run's python children, which are the only big process inside it). user@1000.service peak did not move (pre-existing 5331.5 MiB from other work on the box) and is already above its own memory.high 5246.0 MiB, so the user@ numbers are context, NOT this run's footprint; the run's own footprint is VmHWM_children and the scope peak."
+}
