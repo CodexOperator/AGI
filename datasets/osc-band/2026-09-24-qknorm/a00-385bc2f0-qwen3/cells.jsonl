@@ -1,0 +1,10 @@
+{"model": "qwen3", "np": 64, "cell": "4.125/uniform/None", "budget": "4.125", "arm": "uniform", "seed": 0, "n": 1, "arm_is_stochastic": false, "prompt": 0, "widths": [4], "agree": 0.0234375, "kl": 9.870326996}
+{"model": "qwen3", "np": 64, "cell": "4.125/key_only/None", "budget": "4.125", "arm": "key_only", "seed": 0, "n": 1, "arm_is_stochastic": false, "prompt": 0, "widths": [5, 4, 4, 3], "agree": 0.0625, "kl": 8.891373634}
+{"model": "qwen3", "np": 64, "cell": "4.125/random/7", "budget": "4.125", "arm": "random", "seed": 7, "n": 3, "arm_is_stochastic": true, "prompt": 0, "widths": [5, 4, 4, 3], "agree": 0.025390625, "kl": 12.178537369}
+{"model": "qwen3", "np": 64, "cell": "4.125/random/21", "budget": "4.125", "arm": "random", "seed": 21, "n": 3, "arm_is_stochastic": true, "prompt": 0, "widths": [5, 4, 4, 3], "agree": 0.01953125, "kl": 10.560328484}
+{"model": "qwen3", "np": 64, "cell": "4.125/random/99", "budget": "4.125", "arm": "random", "seed": 99, "n": 3, "arm_is_stochastic": true, "prompt": 0, "widths": [5, 4, 4, 3], "agree": 0.05078125, "kl": 7.263272285}
+{"model": "qwen3", "np": 64, "cell": "4.125/uniform/None", "budget": "4.125", "arm": "uniform", "seed": 0, "n": 1, "arm_is_stochastic": false, "prompt": 1, "widths": [4], "agree": 0.041015625, "kl": 8.588200569}
+{"model": "qwen3", "np": 64, "cell": "4.125/key_only/None", "budget": "4.125", "arm": "key_only", "seed": 0, "n": 1, "arm_is_stochastic": false, "prompt": 1, "widths": [5, 4, 4, 3], "agree": 0.04296875, "kl": 9.358644485}
+{"model": "qwen3", "np": 64, "cell": "4.125/random/7", "budget": "4.125", "arm": "random", "seed": 7, "n": 3, "arm_is_stochastic": true, "prompt": 1, "widths": [5, 4, 4, 3], "agree": 0.041015625, "kl": 11.741738319}
+{"model": "qwen3", "np": 64, "cell": "4.125/random/21", "budget": "4.125", "arm": "random", "seed": 21, "n": 3, "arm_is_stochastic": true, "prompt": 1, "widths": [5, 4, 4, 3], "agree": 0.03125, "kl": 9.062175751}
+{"model": "qwen3", "np": 64, "cell": "4.125/random/99", "budget": "4.125", "arm": "random", "seed": 99, "n": 3, "arm_is_stochastic": true, "prompt": 1, "widths": [5, 4, 4, 3], "agree": 0.052734375, "kl": 8.574533463}
