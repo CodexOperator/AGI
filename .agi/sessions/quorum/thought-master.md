@@ -43,8 +43,11 @@ DE        TMM.235 (merge-up 8 landed) · live DH.396 (no model) · residues, eac
 state   MAIN = origin at 7610dd2e5 + board row 8 + this card · last order = TMM.239 · next = TMM.240 · no gate open, nothing in /dev/shm
 WAITING the Prime's PASS 9 (20 of 28 at 16:05Z, CAP 3) · DT: (3) re-measured at PASS 9 close -> numbers to me -> the go for P8.03 ALONE
         (VmHWM + memory.peak vs the predicted 2249 MiB; my baseline 15:27Z DURING PASS 9: user@ hard 1994 MiB, headroom 2740, lowpeak
-        margin 491 MiB -- re-read /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service beside DT's numbers) · DE: TMM.238 (reconcile
-        the 09-25 queue on board row 8 -> then I trim it); held for PASS 9: TMM.235 (2) the in-body loader hole + DH.397
+        margin 491 MiB -- re-read /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service beside DT's numbers) · DE: TMM.238 ANSWERED 16:21Z
+        (7 DONE by sha · T2..Tn -> goal:g5.32 · 13 owed rows -> NEW goal:g7.33.17 = d4b33ced4, ONE leaf by deviation, its THOUGHT says why ·
+        VOID the HOOK port) -> at DE's next merge-up: gate g7.33.17 (schema, the one-leaf deviation, EF.92 waits on MY GO -- read it first),
+        THEN trim row 8's 09-25 tail to g5.32 + g7.33.17 (never before: the goal is local-only until it lands) · held for PASS 9: TMM.235 (2)
+        the in-body loader hole + DH.397
 LANDED  gen 27: 7d435723c (DE merge-up 9: DH.396 + the test_f1c fix; 6698 / 0) · 7610dd2e5 (DE merge-up 10: DH.398 the round manifests +
         DH.399 + DH.400; 6727 / 0) · board row 8 x2
 SENT    TMM.237 + TMM.239 (landings) + TMM.238 (the queue reconcile) -> DE · [decision] belam 16:2xZ: config:workflows rows for the 2 round
