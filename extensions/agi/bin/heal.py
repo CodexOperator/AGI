@@ -199,6 +199,18 @@ def _reap_worktrees_dir(graph: Path) -> Path:
     return locations.repo_root(graph) / (v or ".agi/worktrees")
 
 
+def _reap_worktree_component(p: Path, wt: Path) -> Path | None:
+    """THE WORKTREE COMPONENT of a cwd: the child of the worktrees dir on
+    `p`'s ancestry (`p` itself when it is a direct child). None when `p` is
+    not under the worktrees dir. The NAME GRAMMAR BELONGS TO THIS COMPONENT
+    only — never to the leaf (hyp:heal-reaps-only-exited-bg-sessions-in-kid-worktrees)."""
+    wt = wt.resolve()
+    for a in (p, *p.parents):
+        if a.parent == wt:
+            return a
+    return None
+
+
 def _reap_classify(row: dict, wt: Path, repo_root: Path) -> tuple[str, str | None]:
     """ONE classification per row, for BOTH the print and the live loop (a
     filter printed then re-read for the rm IS the bug); `None` == candidate."""
@@ -212,10 +224,12 @@ def _reap_classify(row: dict, wt: Path, repo_root: Path) -> tuple[str, str | Non
         return sid, "not-exited"
     if p is not None and p == repo_root.resolve():
         return sid, "repo-root"                # the owner's own row, never
-    if p is None or wt.resolve() not in p.parents \
-            or not _KID_WORKTREE_RE.match(p.name):
+    comp = _reap_worktree_component(p, wt) if p is not None else None
+    if comp is None or not _KID_WORKTREE_RE.match(comp.name):
         return sid, "not-a-kid-worktree"
-    return sid, None
+    if p != comp and _KID_WORKTREE_RE.match(p.name):
+        return sid, "not-a-kid-worktree"   # a NESTED name-shaped DECOY
+    return sid, None                       # p is the worktree, OR BELOW it
 
 
 def _main_session_reap() -> int:
