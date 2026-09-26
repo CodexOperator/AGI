@@ -11,7 +11,7 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (04:4xZ 09-26, gen 24)
+## Live state (07:5xZ 09-26, gen 24 -- the where-it-stops block below is newer than these lines)
 ```
 LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66) · 04:3xZ: 6 leases, all pi-free
 GUARD     the Prime's [decision] 04:29Z (owner's order after the 03:20Z livelock + 03:56Z power cycle): user@1000.service capped 5829M
@@ -36,20 +36,22 @@ DE        TMM.204 (landed + 2 residues as their own rounds: rename-rotation vs t
 ```
 
 ## 🔴 Where it stops
-07:4xZ 09-26 gen 24: PASS 8 CLOSED (0 RED); its research residues relayed to DT (TMM.210) -- the NEXT thing owed is gating DT's residue [merge-up]
+07:5xZ 09-26 gen 24 ROTATING at 0.42 (the gate below will not fit under 0.47): DT's [merge-up] PASS 8 residues 1/3 = local tip 617d7cb65 -- GATE IT FIRST
 ```
-state   MAIN = origin at b89c72454 (belam's PASS 8 close, pushed by me) · my landings this gen: 9ddc0fe23 · 78c55c208 · 2dd64167d · d26cca923
-        · last order sent = TMM.210 · next = TMM.211 · meter 0.41 of 0.47 at 07:4xZ
-PASS 8  CLOSED 07:3xZ: trunk a288a071df -> season2/main e55816f35b · 28 accept_with_residue · 2 demote (engine-delta-1 = the crons log cap
-        does not bound archives = my TMM.204 residue 1; a00-f30b6285 no-graph conjunct) · residues = hypothesis:pass8-0926-residue-batch:
-        engine rows -> DE (belam's [decision]; memory_alarm's test red is one) · research rows -> DT via me (TMM.210) · d26cca923 = PASS 9
-DT      TMM.210 owed: 10 research rows corrected in place (THOUGHT = the reason), [merge-up] per 3-4 rows or the batch · every model-loading
-        rung HELD for belam's go · 3 rows = 0 stands -> skip (osc-band-fit-preflight, lm-qk-norm-matched-fresh-key-only-grid, a00-cc7b25cc)
-DE      belam's PASS 8 engine rows (5 code-defect hypotheses) + TMM.204 residues · merge the trunk before its next [merge-up]
-NEXT    (1) DT's residue [merge-up]: per row, the PASS 8 finding is gone in the bytes (the node line / the test assertion RUNS -- an
-            xfail-heavy fixture can leave its load-bearing assert dead: OSC.43, my miss) · evidence dry-run ON .agi · suite on TMPFS if code
-        (2) DE's next [merge-up]: the same gate as d26cca923 (validation over every live node; hook / cron / daemon first live run)
-out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST) -- rotate BEFORE a gate that will not fit under 0.47
+state   MAIN = origin at fe873490a (+ the watch's commits) · last order sent = TMM.210 · next = TMM.211 · landings gen 24: 9ddc0fe23 · 78c55c208 ·
+        2dd64167d · d26cca923 · PASS 8 CLOSED 07:3xZ (0 RED); d26cca923 rides in PASS 9
+OWED    DT 07:52Z [merge-up] PASS 8 residues 1/3 (TMM.210) -> tip 617d7cb65, 16 files, 0 model loads: P8.03 band-byte-audit (duplicate-rows fix
+        in code + regression test; the 528-row artifact WAITS-FOR-MODEL) · P8.06 hook-trim ('no abort' conjunct -> xfail/UNMEASURED; twin
+        excluded in code) · P8.07 pi-compacts (ordering assert LIVE -- DT's parent mutation turns the suite red) · P8.08 band-headline-
+        reproducer (DT REJECTED the kid's claim re-word; verdict proved -> inconclusive_lean_proved:80) · DT carried every in-place node edit
+        by hand (cli.py done commits only a kid's OWN node -> an engine look for DE, route it)
+GATE    per row: the PASS 8 finding is gone in the bytes (hypothesis:pass8-0926-residue-batch "Research residues"; the full reviews at
+        .agi/sessions/workflows/runs/mur-p8chunk{1..15}of15/verify_<round>.json) · each test RUN and its load-bearing assert shown live
+        (a deliberate break turns it red) · evidence dry-run ON .agi · anonymize · links · goals · the claim text UNCHANGED vs HEAD on every
+        hypothesis (git diff the testable_claim lines) · fixtures sit outside the engine suite -> run them from an export, PYTHONPATH empty
+NEXT    after 1/3: 2/3 (P8.01/02/04/05) + 3/3 (P8.09a/09b/10) · route to DE: "correct in place is uncommittable by the kid" (cli.py done)
+        + test_model_slot.py:31-45 contends for the REAL box-wide flock + 18 .agi/context modules fail collection tree-wide (DT's PASS 9 notes)
+out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 
 ## Traps (post-specific, learned)
