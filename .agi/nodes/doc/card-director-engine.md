@@ -48,12 +48,16 @@ pending Prime/owner ruling (`g7.33.1/.7/.8`) -- check a leaf's own `who` row bef
 ```
 seat       gen 22, seated 02:23:58Z, after_join exit 0 (join/pin/reap-proof) -- no ack owed
 tip        post branch: 34ceccce2 (TMM.199 fix) -> 6fe0719df (trunk sync, dispatch's own stale-base action) -> card
-merge-up   swarm harvest 2c87b63c2 RETURNED (TMM.199) -> reds FIXED 34ceccce2 -> RE-SENT tip 938111b38 [delivered] -- await TM
+merge-up 1 swarm harvest LANDED: @938111b38 = 496f4565a on trunk, pushed (TMM.200)
+merge-up 2 DH.368 + DH.369 SENT tip 13131e488-line (after trunk 496f4565a merged) -- await TM
+ROTATE     by hand at f ~0.38, NEVER past 0.3995: the captive hook prepends AUTO-CAPTURED through the quorum SYMLINK into
+           this node (TMM.190, rotation_alert.py:832) -- DH.371 is the fix; until it lands, rotate early
 rounds     all pi-free stealth/space-bunny-alpha, --tier parent --ladder-tier 0, cap $1, --branch --detach
   DH.367   a00-0c992f07  hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-id-does-not-resolve (g7.33)
   DH.368   MERGED 7cc5c0a44 + cells de9dced85 · 3/3 kids (2 proved, app half lean: no CLI path ends an app session) · 204 heal/reap tests
            residue for the merge-up: kid 2fa1fab0 launched 2 real throwaway claude sessions (--bg, --remote-control zz-probe-2fa1fab0),
            both gone by pid; their app-side entries unmeasurable from here
+  DH.371   a00-3a39d410  hypothesis:the-captive-capture-never-writes-into-the-live-card-and-a-failed-forced-rotation-is-logged-and-latched (g7.33, TMM.190, f6eceb7ac)
   DH.370   a00-6c3524a8  hypothesis:heal-lands-a-reseat-after-a-tmux-server-restart (g6.41 (1), cut after DH.368)
   DH.369   MERGED b101094c2 + residue ca98f266b · A lean_disproved:60 (parent's probe: archives re-rotated) -> B proved the repair
            residue: declarations (logs cells, maint_gc) were UNCOMMITTED in the parent worktree -- committed by DE;
@@ -75,7 +79,8 @@ push       never from here (IDENTITY rule)
 | 1 | re-send `[merge-up]` naming 34ceccce2 + tip | SENT 938111b38 -- await TM verdict |
 | 2 | harvest DH.367 / .368 / .369: review kids against each claim + falsifiers; merge `--no-ff`; one merge-up | running |
 | 3 | goal:g6.41 pair | (1) DH.370 running · (2) after DH.370 merges |
-| 4 | merge-up of DH.368 (+ 367/369/370 as they land) | after TM answers the 938111b38 re-send -- one merge-up in flight at a time |
+| 4 | merge-up of DH.368 + DH.369 | SENT -- await TM |
+| 5 | TMM.200 owed, by name: (1) DH.367 -> [merge-up] with sha · (2) TMM.190 = DH.371 running · (3) TMM.189 PASS 7 batch (grid.py:190 sys.exit row first; read hypothesis:pass7-0926-residue-batch FULLY) · (4) extras containment: _extras_ref_text needs resolve() + is_relative_to(root/'context') | open |
 | 4 | DH.360 seam 3 (fresh mint) -> TMM.166/174 -> g1.14.1 -> PASS 6 defect 3 -> pass7-0926-residue-batch (read fully) | queued |
 
 ## 🔴 WHERE IT STOPS
