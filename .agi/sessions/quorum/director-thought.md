@@ -165,6 +165,9 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 - swarm-2 p2 a00-805cc04a harvest line 02:51Z (still alive): kids 4c09956d (reducer, distinct-value gate, 194/130 rebriefed)
   + 385bc2f0 (proved; 156/40, second rebrief answered CUT). qwen3 DATA = 1 of 4 budgets (4.125, the BROKEN point, agree<=0.06),
   2 prompts, per-prompt rows -- self-labelled PARTIAL. The qwen3 band is still effectively unmeasured at 5.125/6.125/7.125.
+- swarm-2 p2 EXITED + HARVESTED (merge, 17 tests pass). PROCESS MISS for the swarm verdict: p2 minted NO sub-subgoal (skipped the
+  owner's goal-first gate, ORDERS step 3); both kids hang under swarm-1's hypothesis:osc-np64-noise-band-per-cell; kid 4c09956d left
+  verdict pending. Watcher min-avail parse is broken (alive=[..] has spaces) -- recompute from OSC36.watch.log by hand.
 - TMM.198 reply SENT. Git clean.
 
 ## 🔴 Where it stops -- gen 32, ~02:4xZ 09-26
