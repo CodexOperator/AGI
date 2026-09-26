@@ -214,7 +214,7 @@ def _reap_worktree_component(p: Path, wt: Path) -> Path | None:
 def _reap_classify(row: dict, wt: Path, repo_root: Path) -> tuple[str, str | None]:
     """ONE classification per row, for BOTH the print and the live loop (a
     filter printed then re-read for the rm IS the bug); `None` == candidate."""
-    sid = str(row.get("id") or "")
+    sid = str(row.get("id") or row.get("sessionId") or "")  # interactive rows carry only sessionId
     kind = str(row.get("kind") or row.get("type") or "").lower()
     state = str(row.get("state") or row.get("status") or "").lower()
     p = Path(str(row.get("cwd") or "")).resolve() if row.get("cwd") else None

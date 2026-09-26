@@ -67,7 +67,8 @@ def _rows(main: Path) -> list[dict]:
 def _run_rows(tmp_path: Path, main: Path, rows: list[dict],
               *extra: str) -> tuple[str, list[list[str]]]:
     bindir, rec = _fake_claude(tmp_path, rows)
-    env = dict(os.environ, PATH=bindir + os.pathsep + os.environ["PATH"],
+    env = dict({k: v for k, v in os.environ.items() if k != "AGI_CLAUDE_BIN"},  # an inherited override beats the fake
+               PATH=bindir + os.pathsep + os.environ["PATH"],
                CLAUDE_FAKE_ARGV=str(rec),
                CLAUDE_FAKE_FIXTURE=str(tmp_path / "fixture.json"))
     r = subprocess.run([sys.executable, str(HEAL), "session-reap",
@@ -137,7 +138,8 @@ def test_a_worktree_shaped_but_not_a_kid_name_is_refused(tmp_path):
     odd.mkdir(parents=True)
     bindir, rec = _fake_claude(tmp_path, [
         {"id": "odd", "kind": "background", "state": "done", "cwd": str(odd)}])
-    env = dict(os.environ, PATH=bindir + os.pathsep + os.environ["PATH"],
+    env = dict({k: v for k, v in os.environ.items() if k != "AGI_CLAUDE_BIN"},  # an inherited override beats the fake
+               PATH=bindir + os.pathsep + os.environ["PATH"],
                CLAUDE_FAKE_ARGV=str(rec),
                CLAUDE_FAKE_FIXTURE=str(tmp_path / "fixture.json"))
     r = subprocess.run([sys.executable, str(HEAL), "session-reap",
