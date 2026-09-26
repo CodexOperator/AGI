@@ -314,3 +314,73 @@ def test_a_rename_stranded_writer_is_bounded_in_its_own_inode(tmp_path):
         kid.wait(timeout=5)
     assert any("rotated" in o for o in out), out
     assert all(p.stat().st_size <= CAP for p in logs().iterdir() if p.is_file())
+
+
+# --- (6) EVERY in-place write runs the same refusal --------------------------
+#
+# hypothesis:every-in-place-log-trim-refuses-a-non-append-holder. The guard
+# used to be gated on `mode == copytruncate`, so the rename arm's archive trim
+# -- also an in-place write -- cut under a `>` writer with no refusal.
+
+
+def test_f1_rename_mode_refuses_to_trim_a_non_append_stranded_archive(tmp_path):
+    """FALSIFIER 1: a `python3 -c` stand-in holds the base open WITHOUT
+    `O_APPEND`; `rename` moves that inode to `.1` and the SAME apply used to
+    trim it -- a NUL hole at the stale offset. It must refuse BY NAME."""
+    root = make_project(tmp_path, mode="rename")
+    log = crons._log_path(root)
+    log.write_bytes(OVER)
+    kid = _writer(log)
+    try:
+        time.sleep(0.2)
+        out = crons.enforce_log_caps(root, root, dry_run=False)
+    finally:
+        kid.terminate()
+        kid.wait(timeout=5)
+    arch = logs() / f"{log.name}.1"
+    refusals = [o for o in out if "refused" in o]
+    assert len(refusals) == 1 and refusals[0].startswith(
+        f"{arch.name} refused: held without O_APPEND by pid"), out
+    assert arch.exists() and arch.read_bytes().count(b"\0") == 0
+
+
+def test_f1b_an_over_cap_archive_with_a_non_append_holder_is_refused(tmp_path):
+    """The OTHER in-place arm: a pre-existing over-cap archive, held open by a
+    `>` writer. The bounding loop must refuse it, not trim under it."""
+    root = make_project(tmp_path, mode="copytruncate")
+    log = crons._log_path(root)
+    arch = logs() / f"{log.name}.1"
+    arch.write_bytes(b"z" * (CAP + 4096 + 512 * 1024))
+    kid = _writer(arch)
+    try:
+        time.sleep(0.2)
+        out = crons.enforce_log_caps(root, root, dry_run=False)
+    finally:
+        kid.terminate()
+        kid.wait(timeout=5)
+    refusals = [o for o in out if "refused" in o]
+    assert len(refusals) == 1 and refusals[0].startswith(
+        f"{arch.name} refused: held without O_APPEND by pid"), out
+    assert arch.read_bytes().count(b"\0") == 0
+    assert arch.stat().st_size > CAP, "a refused archive is left WHOLE, not cut"
+
+
+def test_f1c_an_append_writer_is_still_trimmed_in_both_arms(tmp_path):
+    """The guard must not cost the CAP: an `O_APPEND` writer of an over-cap
+    archive is still bounded in place, in rename mode and copytruncate."""
+    root = make_project(tmp_path, mode="rename")
+    log = crons._log_path(root)
+    arch = logs() / f"{log.name}.1"
+    arch.write_bytes(b"z" * (CAP + 4096 + 512 * 1024))
+    inode = arch.stat().st_ino
+    kid = subprocess.Popen(
+        [sys.executable, "-c", APPEND_WRITER, str(arch), "1500"],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        time.sleep(0.2)
+        out = crons.enforce_log_caps(root, root, dry_run=False)
+    finally:
+        kid.terminate()
+        kid.wait(timeout=5)
+    assert arch.stat().st_ino == inode and arch.stat().st_size <= CAP, out
+    assert not any("refused" in o for o in out), out
