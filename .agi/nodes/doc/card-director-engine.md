@@ -44,7 +44,7 @@ CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_ma
        merge; hook-only overlap) -> NEVER merge 442 -> 445 a00-5a2ac2fb -> mur-7 accept_with_residue x7 (schemas resolver circular+global+2nd literal; green test encodes fail-open; done non-zero unmeasured; hook no timeout; scope; citations) -> 455 a00-4d187f38 LIVE, cut from 445 (worktree de-base-455)
        stale-base "behind 1" overridden with reason -- quote the refusal line in [merge-up])
 427    -> 436 (mur-6: restore None arm + say why) -> 449 a00-35a98fab HARVESTED (None arm restored, proved; a00-202077db demoted lean_disproved:70 -- tmux sweep skipped test_conftest_guard.py; stray a00-416266d2 correction committed 2cee3ba21; 96 green) -> mur-8 DH.449-k1 RUNNING
-429    -> 443 a00-169a5424 REBUILT standalone (live 150, both guards) -> mur-6 DH.443 accept_with_residue (real systemd-run in fan-out test; live-config rows pin literal 150) -> 453 a00-a5beb177 LIVE, cut from 443; LAND: merge 429 (nodes) THEN 443 (-X theirs)
+429    -> 443 a00-169a5424 REBUILT standalone (live 150, both guards) -> mur-6 DH.443 accept_with_residue (real systemd-run in fan-out test; live-config rows pin literal 150) -> 453 a00-a5beb177 HARVESTED (proved; 21 green; stubbed runner, no literal) -> mur DH.453-k1 RUNNING; LAND: merge 429 (nodes) THEN 443 (-X theirs)
 430    -> 440 a00-c8389b84 (incl 430+431; ONE guard home, 0 dups; 229 green + repro) -> mur-6 DH.440 DONE accept_with_residue x2 (import-time kill leaf pid-only; context conftest no import fence; env= pinned by source string; _STRIPPED note) -> 452 a00-cbb9f70e LIVE, cut from 440 in its worktree (stale-base behind 2 overridden with reason)
 432    SUPERSEDED (host in history) -> 438 -> 446 a00-20d4ab3d (cut from 438; 0/24 fixtures==tmpl, 177 green) -> mur-7 DONE:
        accept_with_residue (sibling node a00-f787eff3 false; new_bytes 2 meanings; config_max YES) -> 451 a00-5712dd56 HARVESTED (proved; kid's sibling-node fix was UNCOMMITTED -> I committed it on the loop br 79bdb3490; 177 green) -> mur-8 DH.451-k1 RUNNING
@@ -66,9 +66,9 @@ CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT
 
 ## 🔴 WHERE IT STOPS (rotated at f=0.43; capture chain rc=1 = g7.33.15; every round below survives rotation)
 ```
-FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur449 mur450 mur451 (440->452 · 443->453 · 447->454 · 445->455 · 448->456) (mur446 DONE, above)
+FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur449 mur450 mur451 mur453 (440->452 · 443->453 · 447->454 · 445->455 · 448->456) (mur446 DONE, above)
        mur446 (+ whatever finished). Verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{5,6,7,8}/verify_DH.4NN-kN.json
-       parents live: 452 a00-cbb9f70e · 453 a00-a5beb177 · 454 a00-2752c658 · 455 a00-4d187f38 · 456 a00-f38de815
+       parents live: 452 a00-cbb9f70e · 454 a00-2752c658 · 455 a00-4d187f38 · 456 a00-f38de815
 THEN   harvest 452-456 as they land (each cut FROM its chain branch: diff vs that branch; tests; commit stray node edits there)
 PATTERN corrective = dispatch FROM the loop branch's worktree (kids cannot merge); a clean mur = git merge --no-ff <final branch>
        LAND ORDER per chain: 425: 441 then 448 then 456 · 426: 445 then 455 (NEVER 442) · 427: 436 then 449 @2cee3ba21 · 429: merge 429 (nodes) then 443
