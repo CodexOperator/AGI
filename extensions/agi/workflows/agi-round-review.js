@@ -5,7 +5,8 @@ export const meta = {
 }
 const iter = args.iter
 const targets = args.targets
-const RULES = `HARD RULES: you are READ-ONLY on this repo. Never run git commit/push/add/stash/checkout/reset, never run grid.py, never edit or create any file under .agi/nodes or anywhere in the repo, never run write.py. You may only READ files and run read-only inspection commands named below. Work from /home/ubuntu/work/agi. Return raw structured data via the StructuredOutput tool; no prose report.`
+const ROOT = (args && args.project_root) || '.'
+const RULES = `HARD RULES: you are READ-ONLY on this repo. Never run git commit/push/add/stash/checkout/reset, never run grid.py, never edit or create any file under .agi/nodes or anywhere in the repo, never run write.py. You may only READ files and run read-only inspection commands named below. Work from ${ROOT}. Return raw structured data via the StructuredOutput tool; no prose report.`
 const TARGET_SCHEMA = {
   type: 'object',
   properties: {
@@ -57,7 +58,7 @@ You review the agi graph round iter-${iter}, target ${t.hyp} (tmux window ${t.wi
 5. List overclaims (claims not reproduced) and open_gaps (what the brief asked for that is still not built).
 Be exact and terse. Verbatim lines trimmed to 200 chars.`
 const globalPrompt = `${RULES}
-Global checks for agi round iter-${iter}, in this order, from /home/ubuntu/work/agi (each is read-only or writes only derived files the round loop expects):
+Global checks for agi round iter-${iter}, in this order, from ${ROOT} (each is read-only or writes only derived files the round loop expects):
 1. git status --short  (all lines) and git diff --stat | tail -1
 2. python3 extensions/agi/bin/links.py links   -> the line with 'resolved' and 'broken'; broken count
 3. python3 extensions/agi/bin/snapshot-goals.py --render --check  -> exit code 0 means ok; capture the last line
