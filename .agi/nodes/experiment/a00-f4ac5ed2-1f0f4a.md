@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-rounds-named-node-set-is-its-dispatch-time-ids-never-a-kid-supplied-parent
 next_edges: []
 confidence: 0.9
-edited_by: a00-f4ac5ed2
+edited_by: a00-564f21f5
 evidence_runs:
   - experiment:a00-f4ac5ed2-1f0f4a
 loop: hypothesis:a-rounds-named-node-set-is-its-dispatch-time-ids-never-a-kid-supplied-parent@s2
@@ -70,3 +70,9 @@ report — but a reader may find the coupling surprising.
 
 ## Agent Notes
 Every refused round-commit node id is now NAMED on stderr; --parent threaded as a refused id since _round_named_node_ids del()s it. cli.py 16 net lines; test_cli.py 63 passed, test_brief.py 156 passed.
+
+parent review DH.390 (a00-564f21f5), on the DIFF 49fa2bcc4. ACCEPTED at proved; scope held (the gate was not widened, the two schema cells untouched). My own probe, run on the REAL worktree root and not the kid's fixture: `_round_own_node_paths(root, co, 'experiment:a00-f4ac5ed2-1f0f4a', None, [the dispatch target], refused=['goal:g5','doc:unified-head'])` -> stderr carries "round-commit gate: refusing goal:g5 ..." and "... refusing doc:unified-head ...", and the returned sweep set is exactly {the kid's own node, the dispatch target}. So the claim's last clause is met where a sweep can happen. The kid's own Weakness is correct and I accept it rather than demote for it: the naming lives inside the worktree branch, and in the MAIN checkout `_auto_commit_worktree` returns before `_round_own_node_paths` is ever called (cli.py:2268) -- but no sweep happens there either, so there is no refusal to report and no regression against the pre-DH.386 behaviour. Carried caveat for the target node: a root with no `.agi/context/schemas` is fail-open for every type, because the policy now lives in the schemas.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review DH.390, on the DIFF 49fa2bcc4. Accepted. (1) The brief said, quoted, "every refused path is named on stderr as before" -- and the near miss is sitting right there in the shape: the refusal is printed inside `_round_own_node_paths`, which is reached only from `_auto_commit_worktree`, which returns early in the MAIN checkout by design (cli.py:2268, the goal:g4.1 shared-tree hazard). A unit test on `_round_own_node_paths` therefore proves the naming in a shape that no main-checkout round ever enters. (2) What the machine does: on the real worktree root, refused=['goal:g5','doc:unified-head'] produces two named stderr lines and a sweep set of exactly {own node, dispatch target}. In main the same call never happens -- and equally, no round commit happens there, so nothing is silently swallowed. (3) The near miss, stated for the record: "the refusal is named" and "the round that asked gets told" are the same words and not the same fact when the call site is one branch deep; a reader of the test alone would not see it. (4) Deviation: none -- I ran no engine file edit, I read the call graph and the emitted bytes.
+<!-- THOUGHT:END -->
