@@ -30,6 +30,7 @@ import shlex
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -2706,7 +2707,29 @@ def _launch_recovered(root: Path, name: str, shell_cmd: str,
     import rotate as _rotate  # noqa: PLC0415 -- lazy, same bin dir
     tmux_session = _rotate.DEFAULT_TMUX_SESSION
     tree = Path(cwd) if cwd is not None else _seat_tree_dir(root, {})
-    launch_cmd = f"cd {shlex.quote(str(tree))} && {shell_cmd}"
+    # (a) the launch never hands tmux the prompt INLINE (hypothesis:heal-lands-
+    # a-reseat-after-a-tmux-server-restart, conjunct (a)): the whole shell line
+    # goes to a launch file and tmux is given `sh <file>`, so the argv stays
+    # small no matter how big the startup prompt is (the 22:19Z `command too
+    # long`). An unwritable file REFUSES LOUDLY and returns not-spawned --
+    # falling back to the inline prompt is the very bug this removes, and
+    # pairing it with a success record would lie to the next pass. The file
+    # deletes ITSELF on exit (`$0`), so a prompt file per recovery does not
+    # accumulate in /tmp forever; unlinking it here instead would race the
+    # pane's own `sh`.
+    try:
+        fd, launch_path = tempfile.mkstemp(prefix=f"agi-recover-{name}-",
+                                           suffix=".sh")
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            if not shell_cmd.endswith("\n"):
+                fh.write(shell_cmd + "\n")
+            fh.write('rm -f "$0" 2>/dev/null || true\n')
+    except OSError as exc:
+        print(f"warn: recovery launch file for {name!r} unwritable: {exc}; "
+              f"refusing to hand tmux the prompt inline", file=sys.stderr)
+        return 0, ""
+    launch_cmd = (f"cd {shlex.quote(str(tree))} && "
+                  f"sh {shlex.quote(launch_path)}")
     try:
         proc = subprocess.run(
             ["tmux", "new-window", "-t", tmux_session, "-n", name,
@@ -2883,7 +2906,8 @@ def _recover_seat(root: Path, row: dict, cause: str, _rotate, *,
         # by the L4.283 harvest's live proof (sanctuary-director 182119Z
         # 19:27Z): with prompt_file None, spawn_window assembled the generic
         # director brief. Absent card -> the assembled brief, as before.
-        card = _rotate._sessions_dir(root) / "quorum" / f"{seat}.md"
+        card = _seat_geometry_dir(root, row) / "sessions" / "quorum" \
+            / f"{seat}.md"
         if card.is_file():
             prompt_file = str(card)
     ack_gate = (
