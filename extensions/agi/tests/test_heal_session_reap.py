@@ -64,8 +64,9 @@ def _rows(main: Path) -> list[dict]:
     ]
 
 
-def _run(tmp_path: Path, main: Path, *extra: str) -> tuple[str, list[list[str]]]:
-    bindir, rec = _fake_claude(tmp_path, _rows(main))
+def _run_rows(tmp_path: Path, main: Path, rows: list[dict],
+              *extra: str) -> tuple[str, list[list[str]]]:
+    bindir, rec = _fake_claude(tmp_path, rows)
     env = dict(os.environ, PATH=bindir + os.pathsep + os.environ["PATH"],
                CLAUDE_FAKE_ARGV=str(rec),
                CLAUDE_FAKE_FIXTURE=str(tmp_path / "fixture.json"))
@@ -76,6 +77,10 @@ def _run(tmp_path: Path, main: Path, *extra: str) -> tuple[str, list[list[str]]]
     recorded = ([json.loads(line) for line in rec.read_text().splitlines()]
                 if rec.exists() else [])
     return r.stdout, recorded
+
+
+def _run(tmp_path: Path, main: Path, *extra: str) -> tuple[str, list[list[str]]]:
+    return _run_rows(tmp_path, main, _rows(main), *extra)
 
 
 def test_only_the_exited_kid_worktree_row_is_a_candidate(tmp_path):
@@ -141,3 +146,34 @@ def test_a_worktree_shaped_but_not_a_kid_name_is_refused(tmp_path):
     assert r.returncode == 0, r.stderr
     assert "skip odd: not-a-kid-worktree" in r.stdout
     assert ["rm", "odd"] not in [json.loads(l) for l in rec.read_text().splitlines()]
+
+
+def test_a_nested_name_shaped_dir_is_never_reaped(tmp_path):
+    """OVER-REACH: a LEAF that merely LOOKS like a kid worktree is not one."""
+    main = _project(tmp_path)
+    wt = main / ".agi" / "worktrees" / "a00-4a925479"
+    (wt / "src" / "a00-99999999").mkdir(parents=True)
+    odd = main / ".agi" / "worktrees" / "a00x-nope" / "src" / "a00-99999999"
+    odd.mkdir(parents=True)
+    out, recorded = _run_rows(tmp_path, main, [
+        {"id": "nested-kid", "kind": "background", "state": "done",
+         "cwd": str(wt / "src" / "a00-99999999")},
+        {"id": "nested-odd", "kind": "background", "state": "done",
+         "cwd": str(odd)},
+    ], "--live")
+    for sid in ("nested-kid", "nested-odd"):
+        assert f"skip {sid}: not-a-kid-worktree" in out
+        assert ["rm", sid] not in recorded
+
+
+def test_a_cwd_below_a_kid_worktree_root_is_reaped(tmp_path):
+    """UNDER-REACH: 'inside a kid worktree' is the COMPONENT, not the leaf."""
+    main = _project(tmp_path)
+    below = main / ".agi" / "worktrees" / "a00-4a925479" / "extensions" / "agi" / "bin"
+    below.mkdir(parents=True)
+    out, recorded = _run_rows(tmp_path, main, [
+        {"id": "kid-below", "kind": "background", "state": "done",
+         "cwd": str(below)},
+    ], "--live")
+    assert "reap-candidate kid-below" in out
+    assert recorded[1:] == [["rm", "kid-below"]]
