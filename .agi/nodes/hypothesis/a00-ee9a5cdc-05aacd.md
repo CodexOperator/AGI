@@ -94,3 +94,6 @@ word. The >=3-draw gate applies to the STOCHASTIC arm only, per p2 AMEND-2.
 
 ## Agent Notes
 Stochastic-arm min-max band + sign-corrected margin + 3-draw gate implemented and fixture-tested (5 passed); landed before any qknorm seed sweep.
+
+## Agent Notes
+Stochastic-arm min-max band + sign-corrected margin + 3-draw gate, fixture-tested 5 passed; landed before any qknorm seed sweep.
