@@ -36,13 +36,13 @@ each row becomes its own round (and its own sub-leaf if it grows) when it is dis
 | # | item | source | state 09-26 |
 |---|---|---|---|
 | 1 | hypothesis:harness-bin-absolute-token-free-bins-refused-by-name | PASS 3 (pass3-0924-residue-batch) | OWED: 0 experiments |
-| 2 | hypothesis:refused-authority-publish-defers-the-successor-key-swap | PASS 3 | VOID (disproved by design) fed9e93bb: SKIPPED/REFUSED completes the swap, FAILED/HELD defers; EF.56 tests pin it |
-| 3 | hypothesis:grok-bot-adapter-uses-or-refuses-the-rendered-brief | PASS 3 | DONE DH.406 7a209c4e3 (the adapter dropped the rendered brief; empty prompt now refused by name) |
-| 4 | hypothesis:migrate-refuses-an-inadmissible-grant-before-worktree-and-spawn | PASS 3 | DONE DH.407 (test-only: the refusal holds on today\'s bytes; pinned through the real grant reader) |
+| 2 | hypothesis:refused-authority-publish-defers-the-successor-key-swap | PASS 3 | OWED: 0 experiments |
+| 3 | hypothesis:grok-bot-adapter-uses-or-refuses-the-rendered-brief | PASS 3 | OWED: 0 experiments |
+| 4 | hypothesis:migrate-refuses-an-inadmissible-grant-before-worktree-and-spawn | PASS 3 | OWED: 0 experiments |
 | 5 | hypothesis:non-prime-rotate-self-renders-through-brief-render | PASS 3 | OWED: 0 experiments |
-| 6 | hypothesis:restart-admission-honours-the-per-harness-live-bound | PASS 3 (E3 rotation + restart) | DONE DH.402 501dc66c5 |
-| 7 | hypothesis:required-any-diagnostic-names-the-declared-alternatives | PASS 3 (E4 harness + diagnostics) | DONE DH.403 718773bfe |
-| 8 | hypothesis:rotate-out-stop-commit-keeps-the-where-it-stops-slot-unfenced | PASS 3 | DONE DH.401 4a1b95a06 |
+| 6 | hypothesis:restart-admission-honours-the-per-harness-live-bound | PASS 3 (E3 rotation + restart) | OWED: 0 experiments |
+| 7 | hypothesis:required-any-diagnostic-names-the-declared-alternatives | PASS 3 (E4 harness + diagnostics) | OWED: 0 experiments |
+| 8 | hypothesis:rotate-out-stop-commit-keeps-the-where-it-stops-slot-unfenced | PASS 3 | OWED: 0 experiments |
 | 9 | CMP.02 cross-box reap guard (a reaper on one box revoking another box's live kid keys) | TMM.114/116; design pinned in .agi/sessions/de-0923/cmp02-pinned.md | OWED: never dispatched |
 | 10 | E5: the 31 non-lm demotes of PASS 3 (node text corrected in place, reason in THOUGHT) | TMM.112 | OWED: unverified which remain -- the round re-runs evidence_gate + reads each |
 | 11 | residue .14 (mkstemp + index cleanup) · .23 (the E2 test) · ML-3 (harness through every lease rewrite) | TMM.112 queue | OWED: content re-read from TMM.112 before dispatch |
