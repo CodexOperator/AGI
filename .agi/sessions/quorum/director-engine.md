@@ -46,8 +46,8 @@ ROUND  agent        what                         state (mur units agi-director-e
 427    -> 436 a00-68d48a54 (incl 427): seam holds --noconftest (0 tmux calls), vacuous guard deleted, nbhd 310 -> mur-6 DH.436-k1/k2 RUNNING
 429    -> 443 a00-169a5424 REBUILT standalone (live 150, both guards) -> mur-6 DH.443-k1 RUNNING; LAND: merge 429 (nodes) THEN 443 (-X theirs)
 430    -> 440 a00-c8389b84 (incl 430+431; ONE guard home, 0 dups; 229 green + repro) -> mur-6 DH.440-k1/k2 RUNNING
-432    SUPERSEDED (never merge: hostname in its history) -> 438 a00-d821a9fd REBUILT clean (125 green, anonymize ok, no host in history)
-       -> mur-6 DH.438-k1 RUNNING; 438 lands with a normal --no-ff (its history is clean)
+432    SUPERSEDED (hostname in history) -> 438 a00-d821a9fd clean -> mur-6 residue (24 fixtures == templates: circular; no-cascade
+       dest wrong) -> 446 a00-20d4ab3d LIVE, CUT FROM the 438 branch (stale-base overridden w/ reason)
 433    -> 444 a00-9cf89293 (incl 433; restore fixed; STILL OPEN: DEFAULT_FRACS code copy, --graph "." refuses) -> mur-6 DH.444-k1 RUNNING
 434    SUPERSEDED -> 437 -> 439 a00-58736bab (incl 437; reserve 1911 correct w/ --held flag; 20 green) -> mur-6 DH.439-k1 RUNNING
        BOX DRIFT (for TM, not ours to fix): OOMPolicy unset on streamer-stub-watch.service · agi.slice drop-in FILE absent
