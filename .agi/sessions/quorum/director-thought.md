@@ -162,6 +162,9 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
   pid 533543 (queues on model_slot). band-order-by-scale-2x2 READY (after the audit lands).
 - 02:5xZ LOWMEM 1368 MiB (< 1.5 GiB stop line): ONE slot-held qwen3 run (swarm-2 kid, 4.26 GB RSS) + the owner stream (~5 GB).
   Transient; recovered to 2.67 GiB. Per the stop rule: NO new dispatch while < 1.5 GiB; 2x2 waits for OSC.39 anyway.
+- swarm-2 p2 a00-805cc04a harvest line 02:51Z (still alive): kids 4c09956d (reducer, distinct-value gate, 194/130 rebriefed)
+  + 385bc2f0 (proved; 156/40, second rebrief answered CUT). qwen3 DATA = 1 of 4 budgets (4.125, the BROKEN point, agree<=0.06),
+  2 prompts, per-prompt rows -- self-labelled PARTIAL. The qwen3 band is still effectively unmeasured at 5.125/6.125/7.125.
 - TMM.198 reply SENT. Git clean.
 
 ## 🔴 Where it stops -- gen 32, ~02:4xZ 09-26
