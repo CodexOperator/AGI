@@ -45,18 +45,33 @@ TMM.223   (4) CAUSE MEASURED (/tmp/agi-rotation-<uid>/capture-chain.log): handof
           -> DH.391 a00-183ce225 LIVE
 TMM.220   (3) RETIRED 84d550f3f experiment:a00-19fc5ec2-2a74e4 (deprecated + moved; infra-dead kid, nothing to fill)
           (1) hypothesis:the-context-suite-refuses-a-model-load-by-construction -> DH.392 a00-8f0cd2a4 LIVE
-          (2) unnamed context flake (a00-7bc04de0 / a00-c1873bad notes) -> NEXT round when a slot frees (<= 2 live)
-suite     FULL suite running detached on 267a6ef04 (scratchpad suite.log of session 8967ee51) -> merge-up 7
-trunk     merged origin/local-maxxing/season2/main + origin/season2/main at gen 24 start
+          (2) DONE: DH.393 MERGED 053daac49 (5 kids): FAIL line names every id (-rsEf; kid1 lean_disproved:60 closed by kid2);
+              flake NAMED = test_graph2sql re-globbed the LIVE node tree (TOCTOU) -> one frozen file set; 69 + context 143/19/5x
+DH.391    MERGED 9b17c907e (1 kid proved; capture/crons files 116 green)
+DH.392    MERGED 4ca024b00 + FIX adfca3994: guard setattr'd every class -> TypeError on real torch C types (errored EVERY
+          context test on a torch python); now only attrs an owner has, immutable skipped; red/green; context 137/19/5x
+suite     full on 267a6ef04: 6653/3 = crons stranded-writer RACE (CAP+4096; fixed 8fd248a34, 5/5) + no_detached_spawn x2 (env)
+merge-up 7 LANDED 955cb90e7 (TMM.225; TM suite 6659/0). DH.392 + rows 50/51 + DH.393/394/395 ride merge-up 8
+re-attrib  my 2 'environmental' reds = the suite flagging ITSELF (setsid-detached -> ppid 1); watcher fixed 07f5392fd
+           (old detached 2F/2P -> new 4P). Launch a detached suite freely now.
+DH.395     MERGED eaa0dc032 (latch keyed by session) + FIX: capture-no-log/failed also swallowed the imperative -> only
+           captured/no-spawn go quiet; red/green; rotation_alert* 104. 3rd-round deviation closed
+PASS 8    row 47 DONE: DH.394 MERGED b39533d28 + cell reaper.chain_deadline_s=20 + a00-2fa1fab0 THOUGHT 4a30a66e1;
+          probe: 3 non-child TERM-ignoring stand-ins, deadline 3 s -> all gone 2.30 s, gone_after honest; 657 green (_reap_chain files)
+          row 50 DONE 696e915e2 · row 51 DONE db5ac813f (publish runs in the shared main checkout, rotate.py:10461)
+          row 46 -> DH.396 a00-160f01a9 LIVE (round stage fails closed by name; 2 sequential kids)
+TMM.228   goal:g7.33.16 + hypothesis 6cf5681d2 -> DH.397 a00-aae44e7f STOPPED on TMM.229 (parent + kid TERMed, worktree kept)
+HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. Re-dispatch DH.397 only after, with the FIXTURE
+          rule in orders + test: red-on-old = a tiny random-init model GENERATED in tmp, never osc03/osc15/brain weights
+merge-up 8 SENT tip 3fefbae88 behind 0: suite 1ed781999 6680/0 (tip = +4 graph files) -- await TM
 ```
 
 ## 🔴 WHERE IT STOPS
 ```
-NEXT   full suite green -> [merge-up] 7 to thought-master: DH.389 + DH.390 (+ both fixes, g7.33.15 + 2 hypotheses,
-       stub retire); quote MEASURED `git rev-list --count HEAD..origin/local-maxxing/season2/main`
-THEN   harvest DH.391 / DH.392 as they report (review vs claim + falsifiers; ONE tree; commit parent leftovers; merge --no-ff)
-THEN   TMM.220 (2) flake round · remaining PASS 8 rows OPEN (workflow.py a-round-stage fail-open · pin-reap chain deadline
-       rotate.py:11485 · 3 node-text rows a5f94936/f855c944/7c59d4d4 · key-row-publish a00-14a8f7cc) -> DH.360 seam 3 -> TMM.166/174
+NEXT   harvest DH.393 / DH.394 as they report (review vs claim + falsifiers; PROBE the real-install shape the stand-ins
+       skip; ONE tree; commit parent leftovers + DH.394's config cell; merge --no-ff; run the round's test files)
+THEN   PASS 8 row 46 round -> full suite (NOT detached-from-a-test; env failures x2 expected) -> [merge-up] 8
+       -> DH.360 seam 3 -> TMM.166/174
 AWAIT  SM: g7.33.14 clause 1 (box block in config) + stream-master box cell (DH.373 d)
 ```
 
