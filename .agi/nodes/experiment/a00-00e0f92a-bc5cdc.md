@@ -16,7 +16,7 @@ profile: balanced
 role: kid
 scaffold_hash: 719082dbe2b7ad1f
 season: 2
-title: Eight PASS 8 residue rows settled — the reproducer is cwd-independent, the claim row count corrected, the line count settled on one convention
+title: PASS 8 residue rows for band-headline-reproducer -- the reproducer is cwd-independent; the claim re-word and the non-blank line count were REJECTED by the director
 town: local-maxxing
 verdict: inconclusive_lean_proved:70
 ---
@@ -26,7 +26,7 @@ verdict: inconclusive_lean_proved:70
 ## What I did
 
 One pass over the 8 PASS 8 ITEMS on the qwen2 band reproducer. Two code edits (both
-cwd-independence), three node edits, every one of the four measurement commands run for real
+cwd-independence), node edits of which ONLY the THOUGHT rewrite landed (the claim re-word and the counting-rule edit were rejected by the director), every one of the four measurement commands run for real
 from a foreign cwd. No model, no GPU, no network.
 
 ## LEDGER — one row per ITEM
@@ -97,8 +97,8 @@ and that number is settled once, in a00-c56b49c9-3d71b6, not re-litigated here.
 |---|---|
 | `.agi/context/local-maxxing/osc/osc_band_headline_a00-c56b49c9.py` | :11 sys.path entry (ITEM 3,4) |
 | `.agi/context/local-maxxing/osc/test_osc_band_headline_a00-c56b49c9.py` | own sys.path seed (ITEM 6) |
-| `.agi/nodes/hypothesis/band-headline-reproducer.md` | claim count (ITEM 1) + THOUGHT rewrite (ITEM 5) |
-| `.agi/nodes/experiment/a00-c56b49c9-3d71b6.md` | counting rule settled (ITEM 2,7) |
+| `.agi/nodes/hypothesis/band-headline-reproducer.md` | THOUGHT rewrite (ITEM 5) LANDED; the claim count re-word (ITEM 1) was REJECTED -- the claim stands as written and the verdict carries the mismatch |
+| `.agi/nodes/experiment/a00-c56b49c9-3d71b6.md` | counting rule (ITEM 2,7) REJECTED -- the node states 45 by the engine unit (git diff --numstat) |
 | `.agi/nodes/experiment/a00-00e0f92a-bc5cdc.md` | this ledger |
 
 No engine file, no `config.json`, no `paths.py`, no bare-directory pytest run.
