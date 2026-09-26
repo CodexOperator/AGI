@@ -147,3 +147,41 @@ def _no_model_load_owner():
         if "ModelLoadRefused" in d and "_patch_one" in d:
             return name
     pytest.skip("the .agi/context conftest is not loaded in this run")
+
+
+def test_an_inherited_classmethod_loader_keeps_the_subclass_and_reads_files_under_the_dir(
+        tmp_path, monkeypatch, allow_model_load, model_load_refusal):
+    """The REAL transformers shape the stand-in above does not have: from_pretrained
+    is a classmethod DEFINED on a base (`_BaseAutoModelClass`) and CALLED on a
+    subclass, and the loader then opens `<dir>/model.safetensors` -- a FILE under
+    the declared dir. DH.413 harvest (director-engine): the stub read a[0] -- the
+    CLASS -- as the path, so osc_lowpeak_test.py's declared tmp checkpoint was
+    refused; delegating would also have re-bound the base. Both halves pinned."""
+    pkg = tmp_path / "shim"
+    (pkg / "transformers").mkdir(parents=True)
+    (pkg / "transformers" / "__init__.py").write_text(
+        "class _Base:\n"
+        "    SEEN = []\n"
+        "    @classmethod\n"
+        "    def from_pretrained(cls, name, **kw):\n"
+        "        cls.SEEN.append((cls.__name__, str(name)))\n"
+        "        return cls\n"
+        "class AutoModelForCausalLM(_Base):\n"
+        "    pass\n")
+    monkeypatch.syspath_prepend(str(pkg))
+    monkeypatch.delitem(sys.modules, "transformers", raising=False)
+    try:
+        import transformers as t  # noqa: PLC0415 -- the in-body import IS the shape
+        ckpt = tmp_path / "tiny"
+        ckpt.mkdir()
+        (ckpt / "model.safetensors").write_bytes(b"\x00" * 16)
+        allow_model_load(ckpt)
+        assert t.AutoModelForCausalLM.from_pretrained(ckpt) is t.AutoModelForCausalLM
+        assert t.AutoModelForCausalLM.from_pretrained(ckpt / "model.safetensors") \
+            is t.AutoModelForCausalLM
+        assert t._Base.SEEN == [("AutoModelForCausalLM", str(ckpt)),
+                                ("AutoModelForCausalLM", str(ckpt / "model.safetensors"))]
+        with pytest.raises(model_load_refusal):
+            t.AutoModelForCausalLM.from_pretrained(tmp_path / "tiny-8b" / "model.safetensors")
+    finally:
+        sys.modules.pop("transformers", None)
