@@ -814,6 +814,16 @@ def _load_manifest(root: Path, name: str, _seen: set[str] | None = None) -> dict
         st["depends_on"] = list(dict.fromkeys(([deps] if isinstance(deps, str) else deps) + rounds))
         if rounds and not st.get("chained_from"):
             st["chained_from"] = rounds[0]
+        # What the INHERITED stages of THIS round are owed, declared by the
+        # round manifest rather than by the base: a base's review stages are
+        # shared by bare runs (which owe no range at all), so the range keys
+        # belong to the round that gathers one. Composition -- never the base
+        # bytes -- is where they are declared (a manifest cell, not a list in
+        # this file, so a reader can see WHICH round owes what).
+        owed = raw.get("inherited_required_placeholders")
+        if owed:
+            st["required_placeholders"] = list(dict.fromkeys(
+                list(st.get("required_placeholders") or []) + list(owed)))
         reviews.append(st)
     merged["stages"] = raw.get("prelude", []) + reviews + raw.get("stages", [])
     return merged
@@ -2272,16 +2282,22 @@ def _chain_owed_keys(stage: dict, by_label: dict,
     manifest and args alone an unsupplied optional arg is indistinguishable
     from a typo (hypothesis:a-round-stage-fails-closed-by-name-and-every-
     inherited-review-stage-is-gated, falsifier 3)."""
+    declared = list(stage.get("required_placeholders") or [])
     known = set(run_args or {})
     known.update((stage.get("_repeat_item") or {}).keys())
-    known.update(_STRUCTURED_RETURN_KEYS)
+    # A DECLARED key is judged only by what can actually supply it here. It
+    # is NOT excused by the blanket structured-return whitelist: that
+    # whitelist is a description of what a round BUILDS, and a round whose
+    # harvest dropped the key builds nothing of it -- so a declared
+    # `old_tip`/`new_tip`/`files` is owed until the round's own return (or an
+    # explicit run arg) puts it in `args`.
+    known.update(_STRUCTURED_RETURN_KEYS - set(declared))
     base = stage.get("chained_from")
     src = by_label.get(base) if isinstance(base, str) else None
     schema = (src or {}).get("schema") or {}
     known.update(schema.get("properties") or {})
     known.update(schema.get("required") or [])
-    return sorted(k for k in (stage.get("required_placeholders") or [])
-                  if k not in known)
+    return sorted(k for k in declared if k not in known)
 
 
 def _failed_dependency(stage: dict, failed_keys: dict,

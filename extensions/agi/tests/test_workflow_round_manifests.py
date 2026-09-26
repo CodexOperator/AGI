@@ -92,9 +92,11 @@ def test_every_inherited_review_stage_is_gated_on_the_round(name):
 
 # ---------- the two seam helpers the probes use ---------------------------
 
-def _drive(tmp_path, monkeypatch, name, round_rc, harvest_files):
+def _drive(tmp_path, monkeypatch, name, round_rc, harvest_files, drop=()):
     """Run the real composed manifest with stand-in seams. Returns
-    (rc, ran, prompts, buffer, record)."""
+    (rc, ran, prompts, buffer, record). `drop` REMOVES a harvest key the
+    round would otherwise have built -- the falsifier-2 case of a round whose
+    harvest is missing what the review stages are owed."""
     pool, item = POOL[name]
     mf = _loaded(name)
     monkeypatch.setattr(_wf, "_load_manifest", lambda _r, _k: mf)
@@ -120,8 +122,9 @@ def _drive(tmp_path, monkeypatch, name, round_rc, harvest_files):
     monkeypatch.setattr(_wf.subprocess, "run", lambda cmd, **kw: (
         subprocess.CompletedProcess(cmd, round_rc, "spawned a00-test\n", "")))
     monkeypatch.setattr(_wf.time, "sleep", lambda _s: None)
-    monkeypatch.setattr(_wf, "_round_git_harvest", lambda *a, **k: {
-        "old_tip": "0ldt1p", "new_tip": "n3wt1p", "files": harvest_files})
+    monkeypatch.setattr(_wf, "_round_git_harvest", lambda *a, **kw: {
+        k: v for k, v in {"old_tip": "0ldt1p", "new_tip": "n3wt1p",
+                          "files": harvest_files}.items() if k not in drop})
     import dispatch
     monkeypatch.setattr(dispatch, "_branch_has_done_commit",
                         lambda _r, rec, _a: rec.get("branch") == "loop/hyp")
@@ -260,3 +263,102 @@ def test_a_bare_run_resolves_a_harness_that_can_run_the_round(name):
     mf = _loaded(name)
     harness, level = _wf._resolve_default_harness(REPO / ".agi", name, mf, {})
     assert harness == "pi", (name, harness, level)
+
+
+# ===================================================================
+# hypothesis:a-round-manifest-declares-what-its-reviews-are-owed-and-a-
+# missing-one-names-itself -- the DECLARATION, on the REAL committed bytes
+# ===================================================================
+
+#: what each ROUND manifest declares its inherited stages are owed -- read
+#: from the manifests themselves, never restated here (a restated list would
+#: make the test pass against a manifest that declared nothing).
+OWED = {name: _loaded(name).get("inherited_required_placeholders") or []
+        for name in MANIFESTS}
+
+
+def _inherited_reviews(name):
+    """(manifest, [inherited stage dicts]) as the REAL loader materializes them."""
+    mf = _loaded(name)
+    pool, item = POOL[name]
+    stages = _wf._expand_stages(mf, {pool: [_item(item["key"], item)]})
+    return mf, [st for st in stages if st.get("kind") != "round"]
+
+
+@pytest.mark.parametrize("name", MANIFESTS)
+def test_every_inherited_stage_declares_what_the_round_owes_it(name):
+    """FALSIFIER 1 — the ROUND manifest, not the base, declares the range keys
+    its inherited stages render. Through the REAL loader: an inherited stage
+    whose prompt names one of {old_tip}/{new_tip}/{files} must list it in
+    `required_placeholders`."""
+    _mf, reviews = _inherited_reviews(name)
+    templates = _templates(name)
+    assert _loaded(name).get("inherited_required_placeholders"), name
+    declared = 0
+    for st in reviews:
+        ph = st.get("required_placeholders") or []
+        for key in OWED[name]:
+            if "{" + key + "}" in templates[st["label"].split(":")[0]]:
+                assert key in ph, (name, st["label"], key, ph)
+                declared += 1
+    assert declared >= 2, (name, declared)
+
+
+@pytest.mark.parametrize("name", MANIFESTS)
+@pytest.mark.parametrize("key", sorted({k for v in OWED.values() for k in v}))
+def test_a_missing_owed_key_names_itself_on_the_real_manifest(
+        tmp_path, monkeypatch, capsys, name, key):
+    if key not in OWED[name]:
+        pytest.skip(f"{name} renders no {{{key}}}")
+    """FALSIFIER 2 — a round whose harvest LACKS an owed key fails the FIRST
+    review stage that renders it, BY NAME, naming the key. It must not render
+    "" (the silent 'asked to compare nothing' failure) and must not run.
+
+    KNOWN, NOT MINE: a stage further down the chain whose immediate parent was
+    SKIPPED (rather than failed) still runs -- a cascade hole in the skip
+    branch, present identically when a review simply returns rc 3 (probe
+    .agi/sessions/iter-DH.400/a00-8f7029e5/probe_skip_cascade.py). The
+    assertion is on the FIRST stage that renders the key, which is the claim.
+    """
+    _done_record(tmp_path)
+    files = [".agi/nodes/experiment/a00-abc123-11aa22.md"]
+    _mf, reviews = _inherited_reviews(name)
+    templates = _templates(name)
+    first = next(st["label"] for st in reviews
+                 if "{" + key + "}" in templates[st["label"].split(":")[0]])
+    rc, ran, prompts, out, rows = _drive(tmp_path, monkeypatch, name, 0, files,
+                                         drop=(key,))
+    err = capsys.readouterr().err
+    assert first not in ran, f"{name}: {first} ran without {key}: {ran}"
+    assert f"stage {first} required placeholder(s) ['{key}']" in err, err
+    assert rc != 0, out
+    failed = {lb: st for lb, st in (rows[-1]["stages"] if rows else {}).items()
+              if st == "failed"}
+    assert first in failed, (name, rows[-1]["stages"] if rows else None)
+
+
+@pytest.mark.parametrize("name", MANIFESTS)
+def test_a_complete_harvest_still_runs_every_review(tmp_path, monkeypatch,
+                                                    capsys, name):
+    """FALSIFIER 3 — the happy path is untouched: with all three keys present
+    the reviews RUN (the guard must not be a blanket one that also fires when
+    the round DID return the key)."""
+    _done_record(tmp_path)
+    files = [".agi/nodes/experiment/a00-abc123-11aa22.md"]
+    rc, ran, _prompts, out, rows = _drive(tmp_path, monkeypatch, name, 0, files)
+    err = capsys.readouterr().err
+    assert rc == 0, (out, err)
+    assert ran, (name, err)
+    assert "required placeholder" not in err, err
+    assert rows[-1]["failed"] == 0, rows[-1]["stages"]
+
+
+@pytest.mark.parametrize("name", ["merge-up-review", "research-review"])
+def test_the_base_manifests_gain_nothing(name):
+    """FALSIFIER 4 — the bases are byte-untouched by the composition: run
+    alone, they owe no range and declare no owed placeholders, so a bare
+    `merge-up-review` run is not newly failed."""
+    mf = _loaded(name)
+    assert "inherited_required_placeholders" not in mf, name
+    for st in mf["stages"]:
+        assert not st.get("required_placeholders"), (name, st["label"])
