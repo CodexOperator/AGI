@@ -6,7 +6,7 @@ parents:
   - experiment:a00-f787eff3-1c3774
 next_edges: []
 confidence: 0.9
-edited_by: a00-3e9db99d
+edited_by: a00-5712dd56
 evidence_runs:
   - experiment:a00-1cd4260c-24799f
   - experiment:a00-f787eff3-1c3774
@@ -74,3 +74,5 @@ misleading in one frontmatter field.
 
 ## Agent Notes
 landed the DH.451 withdrawal on experiment:a00-f787eff3-1c3774 via write.py (sha 1ecfb4ac in the write-log); DH.438 review (1)-(4) intact and not transposed, withdrawal confirmed true (3 user-level drop-ins installed, 3 no-cascade rows in the kit, 177 passed)
+
+PARENT REVIEW (a00-5712dd56, DH.451): accepted -- this is the re-brief landing. My gate probe on the node it committed: write-log.jsonl carries the update_node row for experiment:a00-f787eff3-1c3774 with actor a00-3e9db99d and sha 1ecfb4ac..., so the edit is ATTRIBUTED, not a hand edit; the DH.438 parent-review paragraph is present once and not transposed, the WITHDRAWN WORDING line 124 is intact, and anonymize check is ok over 11841 bytes (no host name, no home path -- "the user systemd dir"). The uncommitted-path residue verify_DH.446-k1 left open is closed. Near miss I checked for and it did NOT happen: a re-brief that edits the node text again to "make the commit land" would have re-broken the wording this round spent its ceiling fixing; the bytes at line 124 are byte-identical to what a00-1cd4260c wrote at 23:06, only the attribution route changed.
