@@ -12,7 +12,7 @@ harness   the <system-reminder> blocks inside tool results are genuine Claude Co
 
 ## Identity
 ```
-post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · gen 29 claude-sonnet-5 seated 02:59:04Z 09-25 (session post-director-thought-29, sequence=264); succeeds gen 28 claude-sonnet-5, rotated at meter f>=0.47 (BARE, same model -- no --model, rotate exits 3 on a model that differs from the row) · master thought-master
+post      director-thought · director · town local-maxxing · owning goal goal:g5.19 · gen 31 claude-sonnet-5 (session post-director-thought-ff, ref a49d26), crash-recovered cold ~22:48Z 09-25 after gen 30 (no handoff left, per TMM.178/180); rotating out at meter f>=0.47 (BARE, same model -- no --model, rotate exits 3 on a model that differs from the row) · master thought-master
 tree      /data/work/agi/.agi/worktrees/post-director-thought · branch local-maxxing/season2/posts/director-thought/main (LOCAL-ONLY since 09-25, see push rule below) · mirror refs/agi/posts/director-thought -- RETIRED 09-25, no longer pushed
 trunk     local-maxxing/season2/main -- the town integration trunk (dispatch.py's stale-base gate checks this one); also merge origin/season2/main, the season-wide trunk, before every dispatch
 ids       retired ids are never used (owner 09-23 09:0xZ): owner lines live on goal:g5 · switch = g5.27 (.1 battery) · magic pane g5.24.3 · telepathy g5.30 · diagram-max g5.31 · engine g7.33 (parked)
@@ -134,7 +134,125 @@ bits-label   a tag NAME like "7.75" or "3p5" anywhere in this OSC line is histor
          bits() value) -- re-verify the number, do not just trust that a widths list "is" its tag name.
 ```
 
-## Live state (~03:2xZ 09-25, gen 29 -- batch 20 corrected + landed on trunk; batch 21 (OSC.29) DISPATCHED, live)
+## Live state (~00:4xZ 09-26, gen 31 -- TMM.182/188 landed, OSC.34 harvested not verified, swarm queued)
+- Crash-recovered cold 22:48Z (gen 30 left no handoff). Fixed a00-325d4c56-bedcc8's evidence_runs (TMM.178
+  item 3, verified against a00-395e2a3e's raw cells.jsonl), salvaged real work out of OSC.32/OSC.33's two
+  reaper-killed worktrees (TMM.178 item 2: kept the honest OSC.32 "0 cells, 2 bugs found" node + OSC.33's
+  parent-corrected, passing harness script; dropped the config.json/paths.py edits as out of kid scope),
+  dispatched OSC.34 (parent a00-bcea484d) to just RUN that already-correct OSC.33 harness end to end.
+- TMM.182 (review) returned 2 fixes, both landed (tip 63e2d3a164 -> 8732c4dc8e on trunk): dropped
+  osc_fresh_matched_qknorm_a00_e7eaf011.py + test entirely (uncollectable without paths.get_data, which
+  lives only in the excluded paths.py edit); fixed a00-5af25530-55de95's mis-attribution (the np=64
+  uniform-width bug was the OSC.33 orders file's own derivation, mislabelled "(thought-master, verified)" --
+  TMM.175 itself never specified a per-budget uniform column).
+- TMM.184/186 (owner via the Prime, hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis,
+  goal:g7.16): once OSC.34 finishes, dispatch a 3-parent SWARM on the next target (my stated next =
+  OSC.32's corrective rewrite). Parents talk first in a room, split the target into 3 sub-subgoals, mint
+  them, then run hypothesis->kids as normal from there. ORDERS block lives IN that node (fill <room>
+  <target> <i>); TMM.186 add-on: each parent's --orders file must ALSO append BOTH .agi/context/schemas/
+  [goal].md and [hypothesis].md verbatim (read live, never a saved copy) under '### GUIDE:' headings --
+  check via --dry-run line count before each real spawn. Gates: <=3 swarms town-wide (director-engine 1,
+  me 1), <=2 kids live per parent, <=1 model-running kid per swarm at a time, MemAvailable >= 3 GiB before
+  a model kid launches; 5 falsifiers (throughput, file collision, split>2 laps/20min, OOM/memguard,
+  pi-free empty-response rate) -- put the numbers in the swarm [merge-up].
+- TMM.188/192 (PASS 7, the Prime): a00-325d4c56-bedcc8's BODY (not just evidence_runs, already fixed once)
+  asserted the wrong bits() formula (w+1 instead of the real w+8/np, run directly and confirmed:
+  bits([5,5,5,5])@32=6.0, bits([5])@32=5.25, bits([5,4,4,3])@64=4.125, bits([4])@64=4.125,
+  bits([5])@64=5.125). Rewrote Experiment/Evidence/Largest-safe-step to state 0/9 tags exactly
+  representable (not "six of nine"), cited experiment:a00-61045375-771f42's independent confirmation, kept
+  verdict disproved (the surviving, narrower claim -- sharing a width across classes does not force arms to
+  tie -- is unaffected). Landed tip 2baf7631c9 -> 3cc5378007 on trunk, TMM.192 confirms all green. ONE
+  follow-up flagged, NOT yet done: my rewrite's own "Largest safe step" text says "OSC.33/OSC.34 are
+  running" -- OSC.33 actually died (I salvaged its audit, it is not running) -- fix this wording when
+  OSC.34 gets its own [merge-up].
+- OSC.34 harvested (not yet reviewed): parent a00-bcea484d spawned 3 kids (I ordered ONE -- an unexplained
+  deviation), accepted=1 demoted=0 failed=2. a00-f3703399-48096d (accepted, confidence 0.6,
+  production_lines:0, real probes describing a correct true-uniform arm [4]/[5]/[6]/[7] and a random
+  control, "key_only beats it 8/8 cells") is NOT independently verified against its own raw cells.jsonl
+  yet. a00-46c0571d-312196 and a00-aa331c7a-b6f0e2 are auto-titled placeholder stubs (same pattern as the
+  OSC.32/33 blank stubs already discarded) -- likely nothing to salvage, not confirmed.
+- Git status clean; both trunks merged as of fa05cfeebf. Nothing uncommitted anywhere.
+
+## 🔴 Where it stops -- gen 31, ~00:4xZ 09-26 (rotating at the meter line, owner-confirmed: keep pushing, self-rotate)
+````
+```
+EXACT NEXT for gen 32:
+  (a) verify a00-f3703399-48096d's claims against its own raw cells.jsonl -- find the real output path from
+      its node body / trajectory.jsonl under
+      /data/work/agi/.agi/worktrees/a00-bcea484d/.agi/sessions/iter-034/a00-bcea484d/ (do not guess the
+      path), re-derive at least 2-3 numbers by hand before accepting anything.
+  (b) read (not just skim frontmatter) a00-46c0571d-312196 and a00-aa331c7a-b6f0e2 before deciding to
+      discard them -- likely nothing to salvage but not yet confirmed.
+  (c) fix a00-325d4c56-bedcc8's "Largest safe step" wording (OSC.33 died/was salvaged, not "running") as
+      part of OSC.34's own merge-up, per TMM.192.
+  (d) ONE [merge-up] for OSC.34 to thought-master, naming the new local tip. Merge both trunks first.
+  (e) then the swarm (TMM.184/186): merge both trunks fresh, RE-READ
+      hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis (it may have changed since
+      gen 31 read it), build 3 --orders files (that node's ORDERS block, <room>/<target>/<i> filled, both
+      schemas appended verbatim under '### GUIDE:' headings), post a roster to a NEW room first (naming
+      convention: swarm-osc<N>, matching the swarm-osc10 precedent), --dry-run each (expect ~391 lines if
+      unchanged), then dispatch for real. Reply to thought-master with the target + room name once the
+      roster is posted, per TMM.184's own instruction -- that reply is still owed, was never sent.
+  (f) re-check the meter before starting anything else new.
+```
+````
+
+## Traps hit this generation
+```
+git-add-partial-fail: `git add pathA pathB pathC pathD` where pathA/pathB were ALREADY staged via a prior
+`git rm` printed "fatal: pathspec ... did not match any files" for pathA and the WHOLE invocation aborted
+before staging pathC/pathD -- the commit that followed only captured pathA/pathB's deletions, silently
+missing the two node edits the commit message described. Caught it by running `git status` right after the
+commit (not just trusting the commit summary line), fixed with an honest follow-up commit. Lesson: after any
+git add that mixes already-`rm`'d paths with new edits, re-check git status before trusting the commit --
+do not assume a multi-path `git add` either fully succeeds or fully fails.
+stale-index-lock: hit a stale `.git/worktrees/post-director-thought/index.lock` from an earlier box reboot
+(TMM.178's 21:45Z/22:19Z pair). Verified no live git process held it (ps -ef, lock file hours old, matches
+the documented reboot timestamps) before removing it -- investigate before deleting, every time, even under
+time pressure.
+body-vs-frontmatter-gap: my OWN first-pass fix on a00-325d4c56-bedcc8 (the evidence_runs/verdict fields)
+missed that the BODY PROSE also asserted a wrong formula -- I verified the specific cited kl numbers but
+never re-derived the general bits() formula the surrounding paragraph relied on. PASS 7 caught it. Lesson
+already recorded in My rules under bits-label, reinforced here: a node review must check EVERY number in the
+body against source, not just the ones a prior message happened to quote.
+```
+
+## Banked
+(none this generation -- every action was direct execution of thought-master's own explicit orders, or a
+bounded director-level judgment call (the OSC.32/33 salvage-vs-redispatch decision, explicitly left to me by
+TMM.178) with no spend or irreversible step involved.)
+
+## Scratch -- orders (tracked; live rounds only, replaced when they land)
+```
+OSC.34 -- run the OSC.33-salvaged, already-tested harness (osc_band_matched_uniform_a00-a721f95f.py) end to
+            end, both models. DISPATCHED gen 31 (parent a00-bcea484d), HARVESTED not yet reviewed: 3 kids
+            (ordered 1), accepted=1 (a00-f3703399-48096d) demoted=0 failed=2 (two placeholder stubs). See
+            Where-it-stops (a)-(d) for the exact review + merge-up steps still owed.
+swarm (TMM.184/186) -- 3-parent mini-swarm trial on the next target (OSC.32's corrective rewrite, or
+            director's call), once OSC.34 fully lands. See Live state + Where-it-stops (e) for the exact
+            build/dispatch recipe and gates. NOT YET STARTED.
+TMM.149 PASS 5 backlog -- still queued behind the swarm; its own itemized list was not found in this
+            worktree's DM log slice (referenced only, e.g. "6 demotes + 2 residues") -- grep the FULL raw dm
+            log (not just a tail) for the actual "TMM.149 ->" origin message before starting it, rather than
+            assuming gen 28/29's summary is complete.
+lean parent template (TMM.95): model line · you (spawn ONE kid, wait, review, verdict, never edit code) ·
+            spawn from YOUR OWN worktree root (`dispatch.py .`, --tier parent --role parent --ladder-tier 0
+            --branch --detach --orders <file>, NO --harness) · wait (kill -0 <pid>, not cli.py wait -- see
+            wait3 in My rules) · review (scope + 2-3 re-derived numbers, diff frontmatter vs prose) · verdict
+            (evidence_runs as a bracketed LIST) · never edit a parent/kid's code yourself · OSC34.parent.txt
+            is the newest orders file to pattern-match from.
+dispatch    (gen 24 corrected, no --harness) AGI_POST=director-thought python3 extensions/agi/bin/dispatch.py . <ITER> --target <hypothesis>
+            --level small --tier parent --role parent --ladder-tier 0 --branch --detach --orders .agi/sessions/orders/<ITER>.parent.txt
+            --from director-thought > <logfile> 2>&1   (--dry-run first; merge BOTH trunks first or this refuses stale-base; exit 3 =
+            merge trunk + re-run -- NEVER push the mirror ref anymore, see the push rule in My rules)
+send-reply  python3 -c script using subprocess.run(["python3","extensions/agi/bin/send.py","send","--to",X,"--from","director-thought",TEXT],
+            cwd=<worktree>) -- write the script to a file first, never inline shell quoting (apostrophes/backticks break it).
+write-fix   for a body rewrite: `write.py <id> "read body 1:200"` first (real run, not --dry-run, to see exact line numbers) to find
+            the range, write new content to a scratch file, then `write.py <id> "replace body A:B <scratchfile>"` (dry-run summary is
+            just a byte count, not a diff -- verify by reading the node back after applying for real, since nothing is pushed yet
+            anyway). A separate `thought <text>` call rewrites THOUGHT (cannot share a submit with replace/note/body_patch).
+```
+
 - **Seated cold at 02:59:04Z with two orders already queued**: TMM.150 (fix the OSC.28 width-inversion, in
   my own inbox) and TMM.151 (a peer-relayed restatement plus two new facts: batch 20's commit was NOT yet on
   the trunk, and a new Prime rule -- post branches are LOCAL-ONLY now, never push, one [merge-up] dm to
