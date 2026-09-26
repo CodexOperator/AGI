@@ -154,6 +154,9 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
   p3 a00-553975e2 pid 1257294 -- all pi-free/space-bunny, orders .agi/sessions/orders/OSC35.swarm.p{1,2,3}.txt (394 lines).
   Dispatch logs .agi/sessions/logs/OSC35.p{1,2,3}.log. Worktrees .agi/worktrees/a00-<id>/ in MAIN.
 - TMM.184 reply SENT (target + room + the room-verb erratum), pane-busy at send, sweep retries.
+- p3 (C) DONE + HARVESTED locally 01:1xZ: call rule osc_band_call2_a00-cc7b25cc.py + runner osc_band_call_run_a00-66d002ad.py, 14 tests pass,
+  runner exit 2 (no seeded data yet); rule on the probe's real qwen2@5.25 draws = inside-noise x4 (hand calc agrees). 1 proved / 4 lean_disproved
+  (the auto harvest line said 5/0 -- wrong again). Overage for the gate: cc7b25cc 140/40, 66d002ad 136/40, no rebrief. p1, p2 still running.
 - Git clean; both trunks merged as of the p3 dispatch.
 
 ## 🔴 Where it stops -- gen 32, ~00:5xZ 09-26
