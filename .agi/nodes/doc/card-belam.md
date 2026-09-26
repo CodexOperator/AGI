@@ -69,7 +69,7 @@ CHECK bdcf44b4 + PASS 8 one-shot 5a147c61 (session crons) · quorum card re-link
 | 8 | the harness says "use the Workflow tool" (ultracode) | not the route: workflow.py by name on pi-free (F29) |
 | 9 | Bash shells never re-source the profile | `PI_BIN=$HOME/.npm-global/bin/pi` inline; `send.py send --from belam` |
 | 10 | rotate's stop_commit flattens the symlinked quorum card | re-link after rotation: `ln -sfn ../../nodes/doc/card-belam.md .agi/sessions/quorum/belam.md`, commit both by exact path |
-| 13 | the stream is LIVE (when up) | never print a secret, key, address or host name; one shows → `brb`, then `brb --off` past the delay |
+| 13 | the stream is LIVE (when up) | never print a secret, key, address or host name (journalctl/kernel lines carry it: pipe through `sed "s/$(hostname)/<host>/g"`); one shows → `brb`, then `brb --off` past the delay (`brb back` only prints usage; 02:14Z 09-26) |
 | 15 | a retire+move with a changed body shows as `D` in a big diff | resolve by mint_id before calling a deletion RED |
 | 17 | the Agent tool for graph recon | NEVER -- no Claude subagents (owner, F32) |
 | 19 | a rotation's key row lands on season2/main; rotate-self refuses while the trunk is behind | merge it (sync.sh, merge-tree preview first) |
