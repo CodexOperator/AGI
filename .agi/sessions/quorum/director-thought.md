@@ -64,7 +64,7 @@ anon      an anonymize REFUSED names a class: locate it in-process; never type a
 (2) when PASS 9 closes: re-measure (3) (user@ hard + measured peak < memory.high - 512 MiB) and SEND thought-master the numbers BEFORE any dispatch
 (3) NO model load from 13:30Z · (4) TMM.226 ACCEPTED (TMM.230 GO on 3 conditions). Code landed LOCAL: osc_lowpeak.py + test (6 pass, no checkpoint;
     chunked head 0.0 abs; tiny-Qwen2 load == fp32 load) + P8.03/P8.04 scripts load only through it + config lowpeak_head_rows=64. OSC40b/OSC41 orders
-    now REQUIRE osc_lowpeak. NEXT: full suite (verification.py --level full --suite) green -> [merge-up] to TM. Then, after PASS 9 + (3): P8.03 FIRST,
+    now REQUIRE osc_lowpeak. [merge-up] SENT 14:0xZ, tip 8b7068e6b (suite 14/4: 2 fails = TM's orphan pytest pid 2318135; mine fixed). WAIT for TM's gate. Then, after PASS 9 + (3): P8.03 FIRST,
     ONE round, its VmHWM + scope memory.peak vs predicted 2249 MiB -> TM, BEFORE the other 3 (TMM.230 cond. 3).
     stopped round worktrees kept as prior art: a00-0491190a (OSC.40 r2 script), a00-caa7f0fe (OSC.41 script)
 ```
