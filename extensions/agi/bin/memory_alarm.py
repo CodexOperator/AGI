@@ -167,13 +167,18 @@ def main(argv: list[str] | None = None) -> int:
                     help="default: this uid's user@ service cgroup")
     ap.add_argument("--state", type=Path, default=None,
                     help="default: <root>/sessions/memory-alarm.state.json")
-    ap.add_argument("--alerts-log", type=Path,
-                    default=Path.home() / "logs" / "sanctuary-guard" / "alerts.log")
+    ap.add_argument("--alerts-log", type=Path, default=None,
+                    help="default: the `logs.alerts_file` cell inside the "
+                         "box logs dir `crons.enforce_log_caps` bounds")
     ap.add_argument("--dry-run", action="store_true",
                     help="print the reading and the decision; write and send nothing")
     a = ap.parse_args(argv)
 
     uid = os.getuid()
+    # The alert log is resolved through crons, the ONE owner of the capped
+    # logs dir: a path derived here is a path the cap may never reach.
+    import crons  # noqa: PLC0415 -- after the parser, so a probe never pays for it
+    alerts_log = a.alerts_log or crons.alerts_log(a.root)
     cg = a.cgroup or Path(f"/sys/fs/cgroup/user.slice/user-{uid}.slice/user@{uid}.service")
     level, reasons = decide(read_signals(cg if cg.is_dir() else None), a)
     state_path = a.state or (a.root / "sessions" / "memory-alarm.state.json")
@@ -201,7 +206,7 @@ def main(argv: list[str] | None = None) -> int:
         msg = f"{'ALARM' if level == 'crit' else 'WARN'} memory {level}: " + "; ".join(reasons)
         tail = (" -- hold new dispatches; guard's watchdog reboots at PSI full "
                 ">= 40% for 5 min")
-    _append_alert(a.alerts_log, ts, msg)
+    _append_alert(alerts_log, ts, msg)
     for post in a.notify:
         _dm(a.root.parent, post, f"[red] {ts} {msg}{tail}")
     if state.get("level", "ok") != level:
