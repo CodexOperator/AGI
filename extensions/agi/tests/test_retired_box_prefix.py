@@ -44,25 +44,20 @@ SELF = "extensions/agi/tests/test_retired_box_prefix.py"
 
 # (relpath, exact stripped line text) -> (class, one-line reason)
 EXEMPT = {
-    ("extensions/agi/bin/commands.py", "A table full of `/home/ubuntu/work/agi/...` would be a table that stops"): ("P", "prose: the warning that paths belong in config"),
-    ("extensions/agi/bin/unify.py", "happens to keep at `/home/ubuntu/work/agi` and `/home/ubuntu/work/agi-tree`."): ("P", "prose: the guard exists precisely because a box can"),
-    ("extensions/agi/bin/unify.py", "repos — the thing that must never be `/home/ubuntu/work/agi` is the"): ("P", "prose: the guard exists precisely because a box can"),
-    ("extensions/agi/bin/env-get.sh", '#                   "key": "!/home/ubuntu/work/agi/extensions/agi/bin/env-get.sh OPENROUTER_API_KEY" }'): ("P", "prose: example of the !command indirection shape"),
-    ("extensions/agi/hooks/rotation_alert.py", '#          "command": "python3 /home/ubuntu/work/agi/extensions/agi/hooks/rotation_alert.py",'): ("P", "prose: sample unit file shown in a docstring"),
-    ("extensions/agi/hooks/rotation_alert.py", "`/home/ubuntu/work/agi/.agi/sessions/` (where every reader looks) and"): ("P", "prose: sample unit file shown in a docstring"),
-    ("extensions/agi/tests/test_unify.py", "**Never point this test file at `/home/ubuntu/work/agi` or"): ("P", "prose: the isolation rule these fixtures implement"),
-    ("extensions/agi/tests/test_unify.py", "`/home/ubuntu/work/agi-tree`.** Every fixture builds its own tiny repos under"): ("P", "prose: the isolation rule these fixtures implement"),
-    ("extensions/agi/tests/test_unify.py", "# symlink to CLAUDE.md, same directory, same as `/home/ubuntu/work/agi-tree`."): ("P", "prose: comment on the fixture's shape"),
-    ("extensions/agi/tests/test_dispatch_forward_env.py", "`TYPESAFE_KEY` sits in `/home/ubuntu/work/agi/.env`."): ("P", "prose: names the file the env cell points at"),
-    ("extensions/agi/tests/test_workflow.py", "# used to `cd /home/ubuntu/work/agi`, so a run started in a git worktree"): ("P", "prose: why the cwd knob exists"),
     ("extensions/agi/tests/test_workflow.py", 'assert "/home/ubuntu/work/agi" not in out, (st["label"], out)'): ("F", "inert data: negative assertion, the string is never a path"),
     ("extensions/agi/tests/test_workflow.py", 'assert all("/home/ubuntu/work/agi &&" not in c or f"cd {REPO} &&" in c'): ("F", "inert data: negative assertion, the string is never a path"),
-    ("extensions/agi/tests/test_sensei_wake_audit.py", 'cmd = "git -C /home/ubuntu/work/agi status -sb | head -3"'): ("F", "inert data: classified by sensei.classify_call, never shelled out"),
-    ("extensions/agi/tests/test_sensei_wake_audit.py", 'cmd = "ls -la /home/ubuntu/work/agi/.agi/sessions/rotations | tail -5"'): ("F", "inert data: classified by sensei.classify_call, never shelled out"),
-    ("extensions/agi/tests/test_sensei_wake_audit.py", '"ls -la /home/ubuntu/work/agi/.agi/sessions/rotations | tail -5",'): ("F", "inert data: fixture entry passed to the classifier, never run"),
-    ("extensions/agi/tests/test_sensei_wake_audit.py", '("Bash", "ls -la /home/ubuntu/work/agi/.agi/sessions/rotations "'): ("F", "inert data: fixture entry passed to the classifier, never run"),
+    ("extensions/agi/tests/test_workflow_template_seam_js.py", "named the `/home/ubuntu/work/agi` checkout literal in 14 lines across 9 files"): ("P", "prose: docstring naming the bug this test guards against"),
+    ("extensions/agi/tests/test_workflow_template_seam_js.py", 'STALE = "/home/ubuntu/work/agi"'): ("F", "inert data: negative-fixture constant, asserted absent from rendered .js output"),
+    ("extensions/agi/tests/test_workflow_template_seam_json.py", "used to name `/home/ubuntu/work/agi` in their stage prompts, so a run started"): ("P", "prose: docstring naming the bug this test guards against"),
+    ("extensions/agi/tests/test_workflow_template_seam_json.py", 'STALE = "/home/ubuntu/work/agi"'): ("F", "inert data: negative-fixture constant, asserted absent from rendered .json output"),
     (".agi/config.json", '"root": "/home/ubuntu/work/agi",'): ("B", "the one code-level exemption left: the box.root CELL, owned by group a00-3b546363; correcting the cell removes the hit and this entry with it (T2)"),
 }
+# 15 entries retired here (P/F class, all in extensions/agi/bin/{commands,unify}.py,
+# env-get.sh, hooks/rotation_alert.py, test_unify.py, test_dispatch_forward_env.py,
+# test_workflow.py's cwd-knob comment, test_sensei_wake_audit.py): DH.365 (group
+# a00-3b546363) independently cleaned the literal out of these exact lines as part of
+# its own scope. Confirmed each is fully gone, not reworded-and-still-present, via
+# _hits() against the merged tree before removing -- T2 doing its job, not a defect.
 # Class B only: a hit on a line that EXECUTES. DERIVED from EXEMPT, never
 # hand-listed, and never TALLIED: a count in a gate breaks when a coupled
 # literal is repointed, for a reason that is not a defect. Today this is the
