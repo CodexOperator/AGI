@@ -155,7 +155,13 @@ def iter_files(nodes_dir: Path):
     return sorted(p for p in nodes_dir.rglob("*.md") if p.is_file())
 
 
-def build(root: Path, nodes_dir: Path, db_path: Path, quiet: bool = False):
+def build(root: Path, nodes_dir: Path, db_path: Path, quiet: bool = False,
+          files: list[Path] | None = None):
+    """`files` freezes the file set ONCE: on a live graph other agents write nodes
+    while a mirror is being built, and a re-glob afterwards compares the db against a
+    tree that moved (the DH.387 `FAIL 127 passed, 1 failed` flake, cause measured in
+    .agi/sessions/iter-DH.393/a00-6f88eaa5/probe_toctou.py). Pass one snapshot to
+    build/verify/file_sets to compare a set with itself."""
     ddl = SCHEMA.read_text(encoding="utf-8")
     if db_path.exists():
         db_path.unlink()
@@ -164,7 +170,7 @@ def build(root: Path, nodes_dir: Path, db_path: Path, quiet: bool = False):
         con.executescript(ddl)
         n_nodes = n_edges = n_files = 0
         placeholders = ",".join("?" for _ in NODE_COLS)
-        for path in iter_files(nodes_dir):
+        for path in (iter_files(nodes_dir) if files is None else files):
             parsed = read_node(path, root)
             if parsed is None:
                 continue
@@ -191,9 +197,9 @@ def build(root: Path, nodes_dir: Path, db_path: Path, quiet: bool = False):
         con.close()
 
 
-def file_sets(root: Path, nodes_dir: Path):
+def file_sets(root: Path, nodes_dir: Path, files: list[Path] | None = None):
     ids, edges = set(), set()
-    for path in iter_files(nodes_dir):
+    for path in (iter_files(nodes_dir) if files is None else files):
         parsed = read_node(path, root)
         if parsed is None:
             continue
@@ -202,12 +208,12 @@ def file_sets(root: Path, nodes_dir: Path):
     return ids, edges
 
 
-def verify(root: Path, nodes_dir: Path, db_path: Path) -> int:
+def verify(root: Path, nodes_dir: Path, db_path: Path, files: list[Path] | None = None) -> int:
     """Set equality: every file id/edge is in the db and nothing else. 0 on match."""
     if not db_path.exists():
         print(f"verify: {db_path} absent -- building it first")
-        build(root, nodes_dir, db_path, quiet=True)
-    want_ids, want_edges = file_sets(root, nodes_dir)
+        build(root, nodes_dir, db_path, quiet=True, files=files)
+    want_ids, want_edges = file_sets(root, nodes_dir, files=files)
     con = sqlite3.connect(db_path)
     try:
         got_ids = {r[0] for r in con.execute("SELECT id FROM nodes")}
