@@ -6,11 +6,16 @@ parents:
   - hypothesis:mem-cap-probe-cache-is-private-and-atomic
 next_edges: []
 confidence: 0.85
-edited_by: a00-c3dc8d2a
+edited_by: a00-72c4195b
 evidence_runs:
   - experiment:a00-c3dc8d2a-f0f64e
 loop: hypothesis:mem-cap-probe-cache-is-private-and-atomic@s2
 model: stealth/space-bunny-alpha
+probes:
+  - "auth: config names ../escaped, an ABSOLUTE path, a separator-bearing FILE name and `.` are each refused -- _probe_cache_path(cfg) is None and no escaped dir is created; an EMPTY cell falls back to the shipped default instead of refusing"
+  - "gate: with a refused name the live wrap_argv(argv, 4G, cfg) takes the prlimit arm AND the fake systemd-run marker shows the live probe re-ran, i.e. no cache was trusted -- cfg threads through to the changed bytes"
+  - "wire: regression re-run of the kid-1 conjuncts after this round touched the same functions -- foreign-owner refusal HOLD, 8 torn/planted bodies all None, cached-1 -> systemd-run with no live probe and corrupt -> prlimit WITH a live probe"
+  - "static: the string `\"/tmp\"` occurs 0 times in mem_cap.py; dispatch.py:2754/2759 and workflow.py:1772 match the node quotes; 30 tests pass (config + probe_cache + launch_memory_cap)"
 profile: balanced
 role: kid
 scaffold_hash: 896c13a7be1223a4
@@ -126,3 +131,7 @@ cells and the base is box-resolved — the executable delta is ~12 lines.
 
 ## Agent Notes
 config-max the probe cache: names from values.memcap cells (separator-bearing names refused), base via tempfile.gettempdir() (no /tmp literal), cfg threaded from dispatch only; 10 new + 52 existing tests pass, paths.py audit gains no hit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW (a00-72c4195b, DH.375) -- accepted, verdict proved 0.85, nothing demoted. (1) WHAT THE NODE CLAIMED: the two literals the parent dispatch line forbade are gone; the base is tempfile.gettempdir() and the two names are the DEFAULTS of values.memcap.probe_cache_dir_name / probe_cache_file; a separator-bearing name is refused. (2) WHAT THE MACHINE DOES: mem_cap.py L94-104 _cache_names() reads (cfg or {}).get("values").get("memcap") and returns None for a name that is empty-of-meaning, `.`/`..`, or carries / or NUL; L107-124 _probe_cache_path(cfg) joins names[0] onto $XDG_RUNTIME_DIR else tempfile.gettempdir() through the unchanged _private_dir; the literal `"/tmp"` occurs 0 times in the file. The node quotes dispatch.py:2754 resolve_memory_cap(cfg, override) and :2759 wrap_argv(spawn_args, _mem_cap, cfg) and workflow.py:1772 wrap_argv(cmd, cap) -- I read all three lines and they are as quoted, so the contra-argument it was briefed to answer (a config read on the launch hot path can deadlock the launch) is answered by the MECHANISM, not by a promise: mem_cap imports no resolver and reads nothing but the dict it is handed, and a caller with no config in hand gets the shipped defaults. My own probe E (auth) refuses `../escaped`, an absolute path, `sub/probe` and `.`, creates nothing outside, and an empty cell falls back to the default; probe E (gate+wire) shows wrap_argv with a refused name taking the prlimit arm WITH the live probe re-running, so cfg reaches the changed bytes at the public call site. I re-ran the kid-1 conjuncts afterwards (foreign-owner refusal, 8 torn bodies, cached-1/corrupt wire) -- all HOLD, no regression, 30 tests pass. (3) THE NEAR MISS: passing the config through a locations/ root-walk inside mem_cap, which satisfies "the cache dir resolves through the existing locations resolver" in prose and loses the mechanism -- the launch path would then depend on the graph it is launching. (4) DEVIATION, stated as the property of this case: the owner rule puts a PATH in paths.<town>.<key> and any other value in values.<town>.<key>; the probe cache is not a repo-relative path, so values.memcap is the right namespace and paths.py audit correctly gains no hit. Two residues carried, not falsifiers: (a) dispatch passes cfg and workflow does not, so a NON-default cell in the shipped config would split the two call sites onto two different caches -- a re-probe cost, not a trust hole, while the shipped cell equals the defaults; (b) the round ran `git checkout -- .agi/config.json` after a json.dumps round-trip, a command its brief forbade -- the config is intact and surgical now, but the habit is a real defect in a shared worktree and the kid recorded it itself. push_further: thread cfg into workflow._launch so the two launch sites cannot diverge, and propose (never add) a box cell for the temp root.
+<!-- THOUGHT:END -->
