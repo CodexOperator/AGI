@@ -48,7 +48,8 @@ LANDED  DT 3d5643262 (1/3 + 1/3r + 2/3 + 3/3) on HEAD 5929b7b4c, pushed 87e2027b
 OWED    DT: ONE follow-up round (a00-486862eb verdict · the 2 seeds tests' os.getcwd() import · a00-2b3ca8c4's RE-OPENED verdict) ·
         DE: TMM.212 items 1 + 3 (cli.py done foreign nodes · 18 .agi/context modules fail collection), after its PASS 8 code-defect
         hypotheses · item 2 CLOSED in TMM.215 (DT's P8.01 put the test on a temp lock: model_slot --lock / AGI_MODEL_SLOT_LOCK) ·
-        the WAITS-FOR-MODEL pair: held for the Prime's go
+        the WAITS-FOR-MODEL pair + OSC.40 r2 / OSC.41: held -- [decision] to belam 08:3xZ asked the GO (one model round at a time via
+        model_slot; silence = the hold stands)
 GATE    per row: the PASS 8 / TMM finding gone in the bytes · every touched fixture from a neutral cwd (PYTHONPATH empty; the osc path for
         numpy/torch) · one deliberate break per test-level fix in a 2nd tmpfs worktree · claims unchanged (python over every changed
         node) · titles / tables / verdict fields vs the node's own ledger + review · regenerated data = rerun the committed script
