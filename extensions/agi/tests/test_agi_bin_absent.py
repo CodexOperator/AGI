@@ -103,8 +103,20 @@ def guard(project_root: Path) -> None:
 
 
 def test_agi_bin_directory_does_not_exist() -> None:
-    """No project-local shadow of an engine script exists in this project."""
-    guard(locations.find_project_root(Path(__file__).resolve()))
+    """No project-local shadow of an engine script exists in this project.
+
+    `find_project_root` returns `Path | None`, so `None / "bin"` would raise
+    TypeError -- an unnamed failure that reads as a broken test, not as a
+    missing project root. Refuse BY NAME instead.
+    """
+    start = Path(__file__).resolve()
+    project_root = locations.find_project_root(start)
+    if project_root is None:
+        pytest.fail(
+            f"no project root resolved from {start}: the guard would raise "
+            "TypeError, not refuse the directory"
+        )
+    guard(project_root)
 
 
 def _fixture(project: Path, script: str = "") -> tuple[Path, str]:
@@ -233,14 +245,27 @@ def test_real_driver_override_set_is_not_empty() -> None:
         assert name and "/" not in name, f"derived a path, not a name: {name!r}"
 
 
-def test_override_set_is_exactly_the_three_s1_names() -> None:
-    """The PIN: the derived set is exactly the three names CLAUDE.md S1 names.
+def test_override_set_is_exactly_driver_sh_three_sites() -> None:
+    """The PIN: the derived set is exactly driver.sh's three override SITES.
+
+    NOT "the three names S1 names". CLAUDE.md S1, verbatim, is the first of
+    "The two rules this project has already paid for":
+
+        **NEVER create `.agi/bin/snapshot-build-site.py` or
+        `.agi/bin/render-context.py`.**
+
+    -- so S1 names TWO of the three, plus the ban on the directory itself
+    ("Don't recreate a `bin/` directory there (S1)."). The third, `inject.py`,
+    is the other half of driver.sh's `RENDER_PY` site (beside
+    `render-context.py`); S1 never names it. The pinned SET of three is right;
+    the WORDING of this test was the defect, and the wording of the guard
+    message is not touched -- "CLAUDE.md S1 forbids the directory" is correct,
+    because S1 does forbid the directory.
 
     A derivation that only ever grows (or shrinks) is unfalsifiable against the
     spec -- `test_override_set_moves_with_driver_bytes` proves it MOVES, not
     that it lands on the right three. An added site in driver.sh and a deleted
-    one both go red here; the set is pinned to the S1 names and the set itself
-    is what the refusal message quotes.
+    one both go red here; the set is what the refusal message quotes.
     """
     assert set(driver_override_scripts()) == {
         "snapshot-build-site.py", "render-context.py", "inject.py",
