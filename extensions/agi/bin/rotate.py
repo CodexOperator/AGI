@@ -18910,24 +18910,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if guard:
         print(guard, file=sys.stderr)
         return 1
-    # (geometry guard, mechanism 3): a worktree whose own .agi/nodes/.geometry/
-    # is BEHIND the shared geometry branch would spawn its successor on a
-    # stale config:rotations / config:seats. Resolve WHICH tree the geometry
-    # comes from once, up front — the integration tree when the worktree's own
-    # is behind but the integration tree's is current; else refuse BY NAME with
-    # the behind-count and the sync command. `cfg_root` feeds seat + template
-    # resolution; every other rotate-self path keeps the worktree `root`.
-    cfg_root, geom_src = _geometry_resolution_root(root)
-    if cfg_root is None:
-        print(geom_src, file=sys.stderr)
-        return 1
     seat = args.name
-    # goal:g15.14 P1-c — the registry gate runs BEFORE the prepare/perform
-    # step. The only-behind merge `_prepare_checks(perform=)` performs is a
-    # SIDE EFFECT; on a behind worktree an unregistered `--name` would
-    # otherwise MERGE a commit before the "no seat" refusal. So the seat must
-    # exist in the registry FIRST, and an unregistered name refuses with NO
-    # merge performed. A THROWAWAY seat (hypothesis:l3-rotate-self-successor-
+    # goal:g15.14 P1-c — the registry gate runs FIRST: before the geometry
+    # resolution below, and so before the only-behind merge that resolution
+    # may now PERFORM (a SIDE EFFECT). An unregistered `--name` must reach
+    # nothing that fetches, pushes or merges; it refuses with `no seat` and
+    # no merge. A THROWAWAY seat (hypothesis:l3-rotate-self-successor-
     # override) is a rehearsal-only registration that NEVER writes seats.md:
     # it skips this registry gate and builds a default row instead (role from
     # --role, default parent; model/effort/settings resolved from the ladder
@@ -18942,6 +18930,32 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             return 1
     else:
         row = {}  # default row; never consulted against seats.md
+    # (geometry guard, mechanism 3): a worktree whose own .agi/nodes/.geometry/
+    # is BEHIND the shared geometry branch would spawn its successor on a
+    # stale config:rotations / config:seats. Resolve WHICH tree the geometry
+    # comes from once, up front — the integration tree when the worktree's own
+    # is behind but the integration tree's is current; else ONE free
+    # mechanical merge before the refusal (see below). `cfg_root` feeds seat +
+    # template resolution; every other rotate-self path keeps the worktree
+    # `root`.
+    cfg_root, geom_src = _geometry_resolution_root(root)
+    if cfg_root is None and not getattr(args, "dry_run", False):
+        # A REGISTERED seat on a behind CLEAN worktree is the COMMON case, not
+        # an error: every other seat's commits land on the geometry branch, so
+        # a seat that waited long enough to be due was almost always behind,
+        # and it refused instead of rotating. So the refusal is preceded by ONE
+        # attempt at the merge rotate-self ALREADY performs by default: the
+        # SAME `_prepare_checks(perform=True)` the captive gate runs below
+        # (fetch + merge, never rebase; only on a clean tree and only when the
+        # merge applies clean — no second implementation). Only a merge that
+        # brings the geometry to 0 behind re-resolves; a conflicting, dirty or
+        # failing merge leaves the BY-NAME refusal exactly as it was.
+        _prepare_checks(root, seat, perform=True)
+        if _geometry_behind_count(root) == 0:
+            cfg_root, geom_src = _geometry_resolution_root(root)
+    if cfg_root is None:
+        print(geom_src, file=sys.stderr)
+        return 1
 
     # re-cut (Prime XIX 07:28Z): the row is the ONE launch source -- a
     # differing flag refuses here (exit 3); equal = no-op; throwaway left alone.
