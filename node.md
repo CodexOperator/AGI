@@ -21,7 +21,7 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 10 closed PASS 9 (steps 4-9) at 49d2b6f6a and idles for the 20:13Z CHECK. The one judgement call -- engine-delta-5's demote is a live regression at TIP (the capture latch), and the PASS rule says "protocol regression -> no merge" -- is argued in full in hypothesis:pass9-0926-residue-batch's THOUGHT: the only registered hook runs MAIN's trunk file, which carries the fix b6438bd7e, so the merge introduced no running regression, and holding it would have kept the capture_chain_log cell from 92 of 134 seat worktrees. Two traps added (39, 40), both measured this seat.
+gen 10 rotates at 0.45 because the owner ordered it at 21:1xZ ('report ... then rotate'); F27's 0.47 would have landed mid-exchange. It closed PASS 9 (steps 4-9) at 49d2b6f6a and noticed PASS 10. The one judgement call -- engine-delta-5's demote is a live regression at TIP (the capture latch), and the PASS rule says "protocol regression -> no merge" -- is argued in full in hypothesis:pass9-0926-residue-batch's THOUGHT: the only registered hook runs MAIN's trunk file, which carries the fix b6438bd7e, so the merge introduced no running regression, and holding it would have kept the capture_chain_log cell from 92 of 134 seat worktrees. Two traps added (39, 40), both measured this seat.
 <!-- THOUGHT:END -->
 
 ## §0 State (17:4xZ 09-26)
@@ -48,12 +48,12 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 49d2b6f6a PASS 9 merge (season2/main, pushed) · local-maxxing/main ff 9e16b8ed9 · grid 28 versions · c2724f841 residue batch + 5 defect hypotheses + the board's PASS line + quorum re-link (trunk; TM pushes) · card commit
 
 ## 🔴 Where it stops
-20:2xZ 09-26 belam-S2-L5-X: the CHECK noticed PASS 10 for 01:23Z 09-27 (section 2) -- next: the 00:13Z CHECK, then PASS 10
+21:1xZ 09-26 belam-S2-L5-X rotates at 0.45 on the owner's order: PASS 10 armed for 01:23Z, owner HOLD on stream/encryption-town/sanctuary, send redesign with DE
 ```
 0. WAKE (a successor): re-arm the CHECK -- CronCreate "13 */4 * * *", the POINTER prompt to section 1 of .agi/sessions/prime-merge.crons.md (transcript 64d3d99e has the exact text); re-link the quorum card (trap 10). Re-arm the PASS 10 one-shot too (CronCreate "23 1 27 9 *", recurring false, the POINTER prompt to section 2) unless the state file carries pass_started_at.
 1. PASS 10 is armed: section 2 rewritten (BASE 9e16b8ed90, p10 keys, /tmp/belam-pass10/ from /tmp/belam-pass9/); the 00:13Z CHECK finds the notice pending (case c) -- nothing to do until 01:23Z.
 2. PASS 10 must re-review b6438bd7e (the capture latch fix): PASS 9's engine-delta-5 demote rests on it.
-3. Owner 20:3xZ: send goes hub-only -> goal:send-is-hub-only-dm-file-versions-synced-every-30s (under g7.32) + [decision] to DE; sanctuary's row session_name is now 'sanctuary'; 20:4xZ: routing by post row + cron 1-3 min added (DE); TM verifies encryption-town's memory-watch setup. If the PASS 10 one-shot fires into a window past ~0.44, rotate first: the successor runs it (CHECK case d).
+3. Owner 20:3xZ: send goes hub-only -> goal:send-is-hub-only-dm-file-versions-synced-every-30s (under g7.32) + [decision] to DE; sanctuary's row session_name is now 'sanctuary'; 21:1xZ: + AGI_BOX, quiet rows, read-on-landing (DE). OWNER HOLD: no stream, no encryption-town config, no sanctuary activation until messaging is done (TM + sanctuary told). If the PASS 10 one-shot fires into a window past ~0.44, rotate first: the successor runs it (CHECK case d).
 ```
 ## §4 Traps
 | # | trap | rule |
