@@ -1,7 +1,8 @@
 """Regression tests for the corrected actual Qwen3 RoPE call site."""
 import importlib.util, os
-import numpy as np
-import torch
+import pytest  # skip-by-name: this module cannot run without numpy, torch
+np = pytest.importorskip('numpy')
+torch = pytest.importorskip('torch')
 
 P=os.path.dirname(__file__)
 S=importlib.util.spec_from_file_location("corrected",os.path.join(P,"osc_band_kquant_qknorm_a00-bcb6c85e.py"))
