@@ -493,6 +493,28 @@ excluded:
     reason: "library module: which box a checkout is; its __main__ builds a bare parser and does no work -- not a choice"
     side_effects: read
     proposable: false
+  memory_alarm.py::
+    cli: memory_alarm.py
+    verb: ""
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/memory_alarm.py
+    args:
+      - {"name": "root", "type": "str", "required": true, "choices": []}
+      - {"name": "warn_avail_mib", "type": "float", "required": true, "choices": []}
+      - {"name": "crit_avail_mib", "type": "float", "required": true, "choices": []}
+      - {"name": "warn_psi_some_avg60", "type": "float", "required": true, "choices": []}
+      - {"name": "crit_psi_full_avg60", "type": "float", "required": true, "choices": []}
+      - {"name": "warn_cgroup_max_frac", "type": "float", "required": true, "choices": []}
+      - {"name": "repeat_mins", "type": "float", "required": true, "choices": []}
+      - {"name": "notify", "type": "str", "required": false, "choices": []}
+      - {"name": "cgroup", "type": "str", "required": false, "choices": []}
+      - {"name": "state", "type": "str", "required": false, "choices": []}
+      - {"name": "alerts_log", "type": "str", "required": false, "choices": []}
+      - {"name": "dry_run", "type": "bool", "required": false, "choices": []}
+    reason: "cron reader, not an operator verb: every threshold is a `config:crons` cell, so a bare invocation has nothing to read; its alerts log is the `logs.alerts_file` cell inside the dir crons.py's cap bounds"
+    side_effects: comms
+    proposable: false
   mem_cap.py::
     cli: mem_cap.py
     verb: ""
