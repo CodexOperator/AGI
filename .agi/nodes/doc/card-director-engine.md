@@ -146,7 +146,11 @@ live     DH.388 MERGED 77aa14faa: all 4 restart() via adapters.scrubbed_base() -
          was 18 errors). residue: falsifier 3 (no model load) holds INCIDENTALLY -- torch/numpy absent for this python; 2 test files
          import torch at top level. merge-up 6 = DH.387 + DH.388 (+DH.389 if in), full suite first
          DH.387 a00-9a906e4f (.agi/context suite) · DH.388 a00-301fe6aa (restart env)
-merge-up 5 SENT tip 2789f2a44 (behind 0, measured): DH.383-386; suite 6603/0 on 4b69308e4 + 199/199 after
+merge-up 5 RETURNED (TMM.217) for ONE red: test_model_slot_lock_scrub order-dependent (engine paths.py cached as sys.modules['paths'] by
+         test_paths_audit -> model_slot's bare `import paths` got it). FIX written (isolate+restore sys.modules['paths']) -- UNCOMMITTED until
+         reproduced red-on-old / green-on-new AFTER the mu6 suite frees the lock; then RE-SEND tip (delta gate). everything else judged GREEN.
+         my miss: 199/199 was a targeted run -- a merge-up's post-suite delta needs the full suite when a test imports by bare name
+         DH.390 a00-564f21f5: named set = dispatch-time ids + round-editable types (TMM.217: done --parent admitted config:posts, goal:g5...)
 awaiting TM verdicts on merge-up 4 (tip 91177caa1) + 5 (tip 2789f2a44) · belam on 2c ([ask] 07:4xZ) · SM on box cells (g7.33.14 clause 1) + stream-master box (DH.373 d)
 harvest  per round: review diff vs claim + parent probes; commit the parent worktree's leftover files (rounds CANNOT commit .agi/config.json);
          take ONE tree when kids overlap; cat-literal grep; merge --no-ff; run the round's test files
