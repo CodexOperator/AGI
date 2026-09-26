@@ -21,46 +21,45 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 9 runs PASS 8 at PER=2 x CAP 3, not gen 8's 5 x CAP 6. (1) Said: crons section 2 (3) "every chunk its own background process ... <=6 live (GUARD ...: user@1000 capped at 5829M with the town inside it; was <=11)"; card step 1 "<= 6 live pi reviewers". (2) Machine: launch.sh's CAP counts CHUNKS (live.$n); workflow.py runs a chunk's rounds[] in parallel, one pi process per stage, each wrapped `systemd-run --user --scope` (workflow.py:1771-1772, mem_cap.wrap_argv) so it lands in user@1000.service/app.slice; measured 05:57Z: one pi scope 209 MiB, user@ hard (current - inactive_file) 1230 -> 1478 MiB. (3) Near miss: CAP=6 over build.py's 6 chunks of 5 satisfies "<=6 live" read as chunks and puts ~30 pi (~6 GiB) under user@'s 5246M high, where DE and alarms live -- reclaim, then OOM. The box's MemAvailable (10.6 GB) gate cannot see it: user@ is the cap. (4) Not a deviation from the rule, the stricter reading of it; added a user@ headroom gate (high - hard >= 1500 MiB) and a live CAP file. Measured beside it: 3 of 5 seats (belam gen 9, TM, DT) sit in session-73.scope, OUTSIDE the cap -- banked, the guard is the owner's.
+PASS 8 closed; two calls in it. (A) Killing reviewer greps. (1) Said: crons section 2 (3) "ONE Monitor on its events.log"; TM's rule "while io PSI stays high: hold, add no load". (2) Machine: a chunk-1 reviewer's `grep -rln ... .agi/` walked .agi/worktrees/ (101 checkouts) in a 4G pi scope: 3.98 GiB (3.7 inactive file), io some avg60 36%, user@ app.slice 33.6%, every other cgroup ~0; the kill took avg10 38% -> 4% in 20 s; monitor.sh then killed 3 more at io60 >= 25, and all 60 stages still returned (0 failed). (3) Near miss: holding (CAP 0) obeys "add no load" and leaves the stall running, because the load is a grep already inside a launched chunk. (4) Deviation: a reviewer's tool call killed -- scoped to recursive grep/rg/find over .agi/ or the root, only above io60 25. (B) DE's order puts brief.py first: brief.py:2371-2375 joins root/ref unchecked, so context/../../.env reaches the MAIN-root .env and a brief goes to a model provider; listing memory_alarm first (the only red) would leave that path behind a test-list fix.
 <!-- THOUGHT:END -->
 
-## §0 State (05:5xZ 09-26)
+## §0 State (07:4xZ 09-26)
 | | |
 |---|---|
-| post | belam-S2-L5-IX gen 9 · woke 05:4xZ · Opus 5.5 · pid 1216418 (session-73.scope) · meter 0.10 at 05:5xZ · gen 8 pid 100337 idle, alive |
-| box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` · tz UTC · stream DOWN |
-| GUARD | user@1000 high 5246M / max 5829M · 05:57Z hard 1478 MiB (anon 937) · DE + gen 8 + remote-control INSIDE; belam gen 9, TM 346048, DT 348635 in session-73.scope OUTSIDE (§6) |
-| alarm | memory_alarm cadence live · last WARN 05:29:43Z, cleared 05:32Z |
-| TOWN | DE gen 23 · TM gen 24 · DT gen 33 · SM DOWN (owner's go) · 4 kid-worktree suite locks are pre-reboot dead pids (a00-0c992f07, -3a39d410, -be4e901f, -f2ba10d3) |
-| merge | **PASS 8 RUNNING** · pass_started_at 05:51Z · trunk sync a288a071df (78a0d4b08b key row, clean) · TIP PINNED a288a071dfc0f23ab15085de5bf0a58a54f7fefb · BASE 08a9cf60f8 · 291 commits · 30 rounds (26 hyp/43 exp + 4 engine-delta/45 paths) · 15 chunks of 2 · CAP 3 live in `/tmp/belam-pass8/cap` · launched 05:56:46Z · chunk3 ok 06:18Z · Monitor bg1y0vrzy = `bash /tmp/belam-pass8/monitor.sh` (30 min, re-arm) · prime-root clean (gen 7's grid-commit demotion of a00-325d4c56 restored; patch in /tmp/belam-pass8) |
-| io | 06:2xZ chunk-1 reviewer's `grep -r .agi/` (101 worktrees) = 3.98 GiB scope, io60 36% -> killed; chunks 5-15 focus + build.py EF now say NEVER grep -r over .agi/; monitor.sh kills that shape at io60 >= 25; [red] to TM 06:2xZ |
-| crons | CHECK fc879bab "13 */4" (next 08:13Z), POINTER to `.agi/sessions/prime-merge.crons.md` section 1 · PASS 8 one-shot NOT re-armed (ran under case d) |
-| spend | credits 13.75 USD · pi-free route 0 USD |
-| branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
+| post | belam-S2-L5-IX gen 9 · woke 05:4xZ · Opus 5.5 · pid 1216418 (session-73.scope) · meter 0.26 at 07:4xZ · gen 8 pid 100337 idle, alive |
+| box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` (clean, = season2/main e55816f35b) · tz UTC · stream DOWN |
+| GUARD | user@1000 high 5246M / max 5829M · a pi stage ~210 MiB · DE + gen 8 + remote-control INSIDE; belam gen 9, TM 346048, DT 348635 in session-73.scope OUTSIDE (§6) |
+| io | PASS 8's stalls were reviewer greps over .agi/ (101 worktrees): 4 killed; io PSI ~2% after · 101 worktrees = DE's 2c |
+| TOWN | DE gen 23 · TM gen 24 · DT gen 33 · SM DOWN (owner's go) · 4 kid-worktree suite locks are pre-reboot dead pids |
+| merge | **PASS 8 CLOSED 07:37Z** · season2/main 78a0d4b08b -> e55816f35b (tree == TIP a288a071df, pushed) · local-maxxing/main -> a288a071df (ff, pushed) · 30 rounds: 28 accept_with_residue · 2 demote · 0 RED · grid committed in prime-root · state file: last_merged a288a071df, pass fields null |
+| residues | hypothesis:pass8-0926-residue-batch (goal:g1) + 5 code defects -> DE ([decision] 07:3xZ): brief extras escape · memory_alarm CLI + log cap · crons archive cap · term-grace real-process test · heal unparsable bound · research rows -> TM -> DT ([merge-up] 07:4xZ) |
+| crons | CHECK fc879bab "13 */4" (next 08:13Z), POINTER to `.agi/sessions/prime-merge.crons.md` section 1 · section 2 = the PASS 9 procedure (not yet noticed) |
+| spend | credits 13.75 USD · PASS 8 0 USD |
+| branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` (b89c72454 + a288a071df unpushed there: TM's) · belam keeps `local-maxxing/main` + `season2/main` |
 
 ## §1 Plan
 ```
-done   CHECK re-armed · pass_started_at · /tmp tooling rebuilt · trunk sync a288a071df · 30 rounds launched 05:56Z
-next   PASS 8: watch -> verdicts.py -> RED gate -> step 5 in prime-root -> residues (test_commands_manifest on memory_alarm.py) -> state -> board note -> [merge-up] dm -> owner report
-open   SM seat (owner's go) · the wedge's trigger (unproven) · DE queue · §6
+done   PASS 8 steps 0-8 · trunk sync a288a071df · season2/main e55816f35b · local-maxxing/main a288a071df · batch + 5 defects -> DE · [merge-up] -> TM · crons section 2 -> PASS 9
+next   the 08:13Z CHECK (quiet; notice PASS 9 only when new experiments land past a288a071df) · judge DE/DT merge-ups (swarm arms vs their last 5 single-parent rounds)
+open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 ```
 
 ## §2 Landed (this seat)
-a288a071df trunk sync (origin/season2/main 78a0d4b08b into the trunk, PASS 8 step 1)
+a288a071df trunk sync (78a0d4b08b key row) · e55816f35b PASS 8 merge (season2/main) · local-maxxing/main ff to a288a071df · b89c72454 residue batch + 5 defect hypotheses + board note · fc977e543 / f089b7e71 card
 
 ## 🔴 Where it stops
-05:5xZ 09-26 belam-S2-L5-IX: PASS 8 RUNNING (pass_started_at 05:51Z) -- 15 chunks x 2 rounds on pi-free, CAP 3, TIP a288a071df pinned; a successor resumes at step 4.
+07:4xZ 09-26 belam-S2-L5-IX: PASS 8 CLOSED at e55816f35b; nothing running; the CHECK at 08:13Z is next.
 ```
- 1. PASS 8 IN FLIGHT: pass_started_at is SET -- never relaunch. `tail /tmp/belam-pass8/events.log`; a successor re-arms ONE Monitor: `bash /tmp/belam-pass8/monitor.sh` (exits, runaway-grep kills, launcher death).
- 2. A stage that died on 'Provider returned an empty response': write /tmp/belam-pass8/p8retryN.json with ONLY the failed rounds (merge_up 'p8retryN ...'), `bash /tmp/belam-pass8/retry.sh p8retryN`.
- 3. On ALL DONE: `cd .agi/worktrees/prime-root && python3 /tmp/belam-pass8/verdicts.py -v`, then crons section 2 steps (4)-(9) with TIP a288a071dfc0f23ab15085de5bf0a58a54f7fefb.
- 4. Residue already known: test_commands_manifest fails on memory_alarm.py (gen 8's 20680940c; TM [red] 04:5xZ) -> a defect hypothesis (assigned: director-engine).
+ 1. CHECK (cron fc879bab, pointer to crons section 1): read dms newer than .agi/sessions/belam.lastcheck (05:xxZ, stamped by this seat), answer only what needs the Prime.
+ 2. PASS 9: the CHECK's case (b) sends the 5 h notice when experiments land past a288a071df; the procedure is crons section 2 (copy /tmp/belam-pass8 -> pass9).
+ 3. Watch DE's [decision] queue: 2c first, then brief-extras-escape, memory_alarm red, crons cap, term-grace test, heal bound.
 ```
 
 ## §4 Traps
 | # | trap | rule |
 |---|---|---|
-| 1 | quiet row: dms may sit in logs | `send.py read belam`; the cron's box-local read consumes dms into the crons log too |
+| 1 | quiet row: dms may sit in logs | `send.py read belam`; the inbox file is `.agi/sessions/inbox/belam.md` |
 | 2 | rotate-out takes the slot's FIRST LINE as its commit subject, re-fences the slot | first slot line = plain text |
 | 3 | the grid cron versions an UNCOMMITTED node within minutes | a fresh node is retired + moved, never deleted |
 | 5 | a merge-up-review stage hangs on rotate test files (tty) | build.py drops `tests/*rotate*` |
@@ -74,17 +73,18 @@ a288a071df trunk sync (origin/season2/main 78a0d4b08b into the trunk, PASS 8 ste
 | 19 | a rotation's key row lands on season2/main; rotate-self refuses while the trunk is behind | merge it (sync.sh, merge-tree preview first) |
 | 24 | the trunk push is thought-master's alone (owner 09-25) | belam pushes only `season2/main` + `local-maxxing/main` |
 | 25 | identity can drop mid-seat | `--from belam` on every send.py call |
-| 26 | a reboot wipes /tmp PASS tooling | rebuild: transcript fc2ded3f (gen 6) tool_result 09:53:13.147Z split on `\n===\n` (build/launch/verdicts) + the result after 09:53:48.187Z (sync.sh, resolve.py), then this session's (4ba9efb9) retarget: BASE, dir, p8 prefixes, verdicts retry/unwrap, resolve opus-5-5/medium, PER + CAP file + user@ gate |
+| 26 | a reboot wipes /tmp PASS tooling | rebuild: transcript fc2ded3f tool_result 09:53:13.147Z split on `\n===\n` + the result after 09:53:48.187Z (sync.sh, resolve.py), then transcript 4ba9efb9's retarget (PER, CAP file, user@ gate, monitor.sh, resolve opus-5-5/medium) |
 | 27 | every push prints the remote's moved location | `git push ... 2>&1 \| grep -v '^remote:'` |
 | 28 | after a reboot the seat row keeps the dead pid | `rotate._successor_row_write(...)`, commit posts.md by exact path |
 | 29 | send.py refuses a dm body holding a literal harness tag | write it without the angle brackets |
 | 30 | after a reboot heal re-spawns SOME seats | `reseat.py` from MAIN (transcript 82d56d5d); it seats into the caller's scope (session-73: outside user@) |
 | 31 | resolve.py enforces the directors' model cells in a posts.md conflict | claude-opus-5-5 / medium (owner 09-26) |
-| 33 | GUARD: pi stages land in user@ app.slice (~210 MiB each) | launch.sh CAP counts CHUNKS; PER x CAP <= 6 pi; gate on user@ hard, not MemAvailable |
+| 33 | launch.sh CAP counts CHUNKS; a chunk runs its rounds in parallel (1 pi each, ~210 MiB, in user@ app.slice) | PER x CAP <= 6 pi; gate on user@ hard, not MemAvailable |
 | 34 | `pgrep -f 'workflow.py run'` matches seat wrappers (their prompts carry it) | anchor: `pgrep -f '^(/usr/bin/)?python3 .*bin/workflow.py run'` |
 | 35 | foreground `sleep` is blocked in Bash | Monitor with an until-loop, or run_in_background |
-| 36 | a reviewer's `grep -r` over `.agi/` walks 101 worktrees: 4G of cache, the box io-stalls | focus says NEVER; monitor.sh kills it at io60 >= 25 |
+| 36 | a reviewer's `grep -r` over `.agi/` walks ~100 worktrees: 4G of cache, the box io-stalls | the focus text alone does not stop it; monitor.sh kills it at io60 >= 25 |
 | 37 | `grid.py commit --all` in prime-root can leave an evidence-gate demotion dirty in the tree | step 5's merge refuses: save the patch, restore the file, merge |
+| 38 | verify `verdicts[]` rules on the FIRST reviewer's defects (refuted true/false) + `missed[]` | a residue table reads verify, never the review list alone (PASS 8: 59 of 153 refuted) |
 
 ## §5 Verification
 `links.py links` 0 broken · `snapshot-goals.py --render --check` · `commands.py run verify` (bin-suite-fresh FAIL known) · `~/work/.sanctuary/guard/guard-init.sh --status` · `memory_alarm.py` with the cadence's args + `--dry-run`
