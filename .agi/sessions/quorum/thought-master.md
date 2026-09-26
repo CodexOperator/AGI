@@ -11,7 +11,7 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (08:3xZ 09-26, gen 25 -- the where-it-stops block below is newer than these lines)
+## Live state (09:1xZ 09-26, gen 25 -- the where-it-stops block below is newer than these lines)
 ```
 LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66) · 04:3xZ: 6 leases, all pi-free
 GUARD     the Prime's [decision] 04:29Z (owner's order after the 03:20Z livelock + 03:56Z power cycle): user@1000.service capped 5829M
@@ -24,35 +24,44 @@ OWNER     (standing) co-own the director docs via write.py + ONE dm per live dir
           --role parent --ladder-tier 0, no --harness) · NEVER the Agent tool · mini-swarm trial = hypothesis:a-parent-swarm-splits-its-
           goal-before-it-mints-a-hypothesis (goal:g7.16)
 TOWN      TM gen 25 @5 (rotate 07:53Z, session agi-54, pid 2233088) · DT gen 33 @3 · DE / belam / SM rows not re-read by gen 25
-PASS      PASS 8 CLOSED 07:3xZ 09-26 (0 RED; 28 accept_with_residue, 2 demote) -- what lands before PASS 9 rides in it
-LANDED    gen 24: 9ddc0fe23 · 78c55c208 · 2dd64167d · d26cca923 · gen 25: 49e8cd268 (DT 3d5643262 = PASS 8 research residues, all 11
-          rounds) · board 4c1f0e542 (row 10) · the trunk's standing red = test_commands_manifest (memory_alarm.py unlisted, 20680940c) --
-          DE's, one of the Prime's 5 PASS 8 code defects ([decision] 07:3xZ); still red at 08:28Z
-DT        TMM.214 (08:3xZ, delivered): LANDED + 3 follow-ups as ONE small round (a00-486862eb verdict pending under an accepting review ·
-          the 2 osc seeds tests import from os.getcwd() · a00-2b3ca8c4 verdict lean_disproved:55 vs its body's RE-OPENED) · every
-          model-loading round + the WAITS-FOR-MODEL pair (P8.03 artifact, P8.04 seed-0 rows) + OSC.40 r2 / OSC.41 HELD for the Prime's go
-DE        TMM.212 (08:0xZ): 3 engine items routed from DT's 1/3 (cli.py done leaves foreign nodes uncommitted, cli.py:2224 · test_model_slot
-          :31-45 takes MAIN's REAL model flock, model_slot.py:24-26 · .agi/context = 127 collected / 18 modules ERROR, SUITE_CMD 'tests'
-          verification.py:78) -- each its own goal:g7.33.N round, AFTER its PASS 8 code-defect hypotheses
+PASS      PASS 9 = the Prime merges the trunk at 13:47Z 09-26 (notice 08:45Z: a288a071df -> 052e8991c7+, <= 6 pi reviewers, ~2 h,
+          no model load) -- what lands before 13:47Z rides in it · NO NEW model load from 13:30Z until PASS 9 closes
+MODEL     the Prime's GO 08:45Z (signed) on 4 conditions, relayed VERBATIM to DT in TMM.216: (1) floor = measured peak + 2 GiB (2) memory_alarm
+          WARN/ALARM = no new load (3) the model process's user@ peak + user@ hard < memory.high - 512 MiB (4) none from 13:30Z ·
+          DT [hold] 08:49Z under (3): model rounds run in user@1000.service/app.slice/run-<id>.scope; hard 2351 MiB, limit 4734 -> headroom
+          2383 MiB vs a 4.26-4.69 GB peak -> ALL 4 queued rounds hold · [decision] to belam 08:5xZ: (b) own scope + MemoryMax (the Prime's /
+          owner's call) else (d) hold to PASS 9; silence = (d) -- NO ANSWER by 09:1xZ
+LANDED    gen 24: 9ddc0fe23 · 78c55c208 · 2dd64167d · d26cca923 · gen 25: 49e8cd268 (DT PASS 8 research residues, 11 rounds) · 6f4fb27e0
+          (DT f517109aa, TMM.214 follow-ups) · board 4c1f0e542 (row 10) · the trunk's red test_commands_manifest (memory_alarm.py) is
+          FIXED in DE's e362e7947 (DH.380), not landed yet
+DT        TMM.219 (09:1xZ, delivered): residue = a00-2b3ca8c4's title 'containment is 1-of-4' vs its body (2 of 4 / 3 of 4) -> fix before
+          PASS 9 · queue P8.03 -> P8.04 -> OSC.40 r2 -> OSC.41 (serial, 4 conditions in each order) HELD under (3)
+DE        TMM.217 returned 2789f2a44 (1 order-dependent red) -> re-sent e362e7947 09:08Z = DH.377-388 (+ the red fixed, DH.387 context
+          suite, DH.388 restart env) -- TMM.218: taken as ONE tip, my successor gates it · live: DH.389 (2c reap verb), DH.390 (named set =
+          dispatch-time ids, my DH.386 residue)
 ```
 
 ## 🔴 Where it stops
-08:3xZ 09-26 gen 25: PASS 8 research residues LANDED 49e8cd268 (all 11 rounds) -- next: gate DT's follow-up round (TMM.214) and DE's TMM.212 rounds when each sends its [merge-up]
+09:1xZ 09-26 gen 25 ROTATING at 0.38 (the next gate will not fit under 0.47): GATE DE's re-sent tip e362e7947 FIRST (DH.377-388), then send belam the DH.380 alerts-path notice at its landing
 ````
-08:3xZ 09-26 gen 25: PASS 8 research residues LANDED 49e8cd268 (all 11 rounds) -- next: gate DT's follow-up round (TMM.214) and DE's TMM.212 rounds when each sends its [merge-up]
+09:1xZ 09-26 gen 25 ROTATING at 0.38 (the next gate will not fit under 0.47): GATE DE's re-sent tip e362e7947 FIRST (DH.377-388), then send belam the DH.380 alerts-path notice at its landing
 ```
-state   MAIN = origin at 49e8cd268 + board 4c1f0e542 + this card · last order sent = TMM.215 · next = TMM.216 · gen 25 landings: 49e8cd268
-LANDED  DT 3d5643262 (1/3 + 1/3r + 2/3 + 3/3) on HEAD 5929b7b4c, pushed 87e2027b2..49e8cd268: suite (tmpfs) 6563 passed / 4 failed = the
-        trunk's manifest red + 3 launch artifacts (pass alone) · 0 claim changes over 43 nodes · 11 breaks red · summary.json re-derived ·
-        calls.json regenerated byte-identical · MAIN after: evidence 0 · links 0 · goals 372
-OWED    DT: ONE follow-up round (a00-486862eb verdict · the 2 seeds tests' os.getcwd() import · a00-2b3ca8c4's RE-OPENED verdict) ·
-        DE: TMM.212 items 1 + 3 (cli.py done foreign nodes · 18 .agi/context modules fail collection), after its PASS 8 code-defect
-        hypotheses · item 2 CLOSED in TMM.215 (DT's P8.01 put the test on a temp lock: model_slot --lock / AGI_MODEL_SLOT_LOCK) ·
-        the WAITS-FOR-MODEL pair + OSC.40 r2 / OSC.41: held -- [decision] to belam 08:3xZ asked the GO (one model round at a time via
-        model_slot; silence = the hold stands)
-GATE    per row: the PASS 8 / TMM finding gone in the bytes · every touched fixture from a neutral cwd (PYTHONPATH empty; the osc path for
-        numpy/torch) · one deliberate break per test-level fix in a 2nd tmpfs worktree · claims unchanged (python over every changed
-        node) · titles / tables / verdict fields vs the node's own ledger + review · regenerated data = rerun the committed script
+state   MAIN = origin at 6f4fb27e0 + this card · last order sent = TMM.219 · next = TMM.220 · gen 25 landings: 49e8cd268 · 6f4fb27e0
+CARRY   from my gate of 2789f2a44 (tree 2f168b5cc, = e362e7947 minus the test fix + DH.387 + DH.388): 0 claim changes over 32 nodes · 2 verdict
+        drops = DE's PASS 8 demotes (286272925) · config.json + logs.alerts_file / also_manage / mode=copytruncate / non_append=skip ·
+        FIRST live apply dry-run (gated code + config, in-process, locations.load_config patched; enforce_log_caps(Path(MAIN), Path(MAIN),
+        dry_run=True, live=True)) on MAIN's real ~/logs: 2 actions -- agi-crons-agi-3fbc6951.log.1 140 MB + agi-reaper-agi-2f118e6f.log.1
+        32 MB trimmed to the 16 MB cap (HEAD's code: 0) = accepted · evidence 0 · links 0 · goals 372 · anonymize ok · suite 6619 passed
+        + 1 in-range red (test_model_slot_lock_scrub: sys.modules['paths'] collision with test_paths_audit) -> DE fixed it in e362e7947
+GATE    e362e7947: merge-tree rc + T2 · the FULL suite on tmpfs (expect the manifest red GONE; test_dashboard sigint + 2x
+        test_suite_no_detached_spawn = environment: they see ANY detached pytest on the box, the gate suite included) · diff(2f168b5cc,
+        T2) = the test fix + DH.387 + DH.388 + newcomers · DH.387: the NEW cell paths.core.suite_roots in the LIVE config.json, and what
+        the verify sequence runs on its first live call (DE: 128 passed / 19 named skips; 'no model load' holds only because this python
+        lacks torch/numpy -- a latent hazard, name it) · DH.388: adapters.scrubbed_base() -> dispatch.scrubbed_env() on all 4 restart() ·
+        config:posts rows HEAD vs T2 · every changed node: claims, verdicts (python) · evidence / links / goals / anonymize
+AT LAND [decision] to belam: memory_alarm alerts move ~/logs/sanctuary-guard/alerts.log -> ~/logs/memory-alarm-alerts.log (logs.alerts_file,
+        capped) -> guard-init.sh --status 'last alerts' no longer shows memory alarms (the Prime's verify step) · board row 8 (engine)
+OWED    DT: a00-2b3ca8c4 title residue (TMM.219) · the model queue HOLDS under condition (3) until the Prime answers (b) or (d)
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 ````
@@ -215,6 +224,16 @@ handoff      .agi/sessions/seats/thought-master.handoff.md is rotate's header, N
 comms        an attribution block (Claude-Session trailer + SendUserFile) beside a tool result right after a claude.ai connector attach = the harness's own: the transcript types it 'attachment', 3-4 ms after the connect (DT's 14:21Z [red] was a false positive) · a director silent > 1 h with 0 live on the box = read its last transcript events (.agi/sessions/<post>.meter -> jsonl): a coalesced nudge can die silently (14:09Z: 6.5 h; 09-25 00:09Z: DE's marker stale 10,532 s, TMM.136 never reached its pane) -> re-send; send.py wake <post> · after a send, confirm the nudge in the director's jsonl (a user 'PROMPT' line) before adding a SendMessage · a nudge may be a phantom -> verify in git · a director's [merge-up] lands in the inbox file (.agi/sessions/inbox/thought-master.md) or as a dm the read prints · 'pane busy' = the dm is in the log, the sweep retries · must land NOW (owner: "didn't go through") = SendMessage to the session name (rotate.py status, see 'stream'; ListAgents only when no stream is live): it lands mid-turn -- a rotation renames the session (DT gen 28 = post-director-thought-29, 00:2xZ 09-25): re-run ListAgents before each send · an order sent while a director ROTATES is eaten by the successor's STARTUP [inbox] read and never acted on (F19 wake acts: none; DT gen 24 idled 19:20-20:3xZ holding TMM.133) -> after any director rotation, SendMessage the newest owed order to the NEW session (TMM.143: DT confirmed the relay caught exactly this) · a director that answers its OWN user in-pane (DE 21:47Z: three questions, then idle) is waiting on nobody: read the transcript, answer by dm · a LIVE AskUserQuestion dialog is different (DT gen 30, 06:42Z: a recovered session asked its user whether to take the seat at all): that answer is its human's -- never type into the dialog (the text would reach it as its user's answer) and hold its dm (a pending dm makes the watch type a wake into the dialog); SendMessage arrives attributed and drains after its user answers; [decision] to belam · a director may distrust an order that cites its in-pane words (DE 00:11Z) -- it re-verifies the bytes, which is right
 detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashboard::test_watch_exits_cleanly_on_sigint + 2x
              test_suite_no_detached_spawn -- the LAUNCH, not the range (3 gates 09-26, 6455 passed each; a director's in-pane run = 6458/0)
+             · WHY (DE 09:08Z): test_suite_no_detached_spawn scans the BOX for any detached pytest -- it finds the gate suite itself, and a
+               director's suite fails the same way while MY gate suite runs; it passes alone only when no detached suite is up
+             · an ORDER-DEPENDENT red passes alone: two modules named paths (extensions/agi/bin/paths.py + .agi/context/local-maxxing/paths.py)
+               -> an earlier test caches one in sys.modules and a later bare `import paths` gets it (DH.385's test, gen 25); a director's
+               targeted run cannot see it -- only the full suite; attribute by the traceback, not by 'passes alone'
+print dms    when printing the dm log yourself, print EVERY block since your last read, never [-1] (gen 25: DE's merge-up 4 at 08:18Z hid behind
+             its 08:33Z ruling; found only because the next tip carried it) · send.py read prints the new blocks itself -- read its output whole
+kid commits  DH.386 (DE, lands with e362e7947): `cli.py done` auto-commits the round's NAMED nodes -- a kid-supplied --parent resolves ANY id
+             (config:posts, config:rotations, doc:unified-head, town:local-maxxing, goal:g5 measured) until DH.390 lands -> at every gate
+             list changed .geometry / doc:unified-* / town:* / goal:* files and read each
 board THOUGHT the town board's THOUGHT region is owner/prime-only: write.py 'thought ...' REFUSED for thought-master (goal:g12, 02:2xZ 09-26)
              -> an owner line that produced a board version rides VERBATIM in the row text + the dm that carried it
 io           /proc/pressure/io is its own axis (memory PSI ~2% while io full ~88%, 05:1x-05:3xZ 09-26): read /proc/diskstats (inflight, busy) + Writeback in /proc/meminfo · a write-bound stall drains its Writeback backlog for minutes after the writer stops -> never clear a writer on 'it did not ease in 2 min' (my VOID to belam 06:2xZ) · a recursive grep / find over MAIN's .agi/ walks 101 worktree checkouts (belam's 06:21Z [red]: the PASS 8 reviewer's grep -rln = 3.98 GiB of page cache, io60 36%)
