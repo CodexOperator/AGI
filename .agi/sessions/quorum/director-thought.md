@@ -172,6 +172,8 @@ EXACT NEXT:
 
 ## Traps hit this generation
 ```
+swarm-oom (falsifier 4 FIRED, 00:53:11Z): p2 kid a00-0c9f57b2 scope-OOM 6.19 GB -- script cached all prompts' full-vocab ref
+log-probs (seeds_qwen3 :30) instead of per-prompt like a721f95f:61-62. Box MemAvailable min 6.2 GiB. Told the room; p2 respawns.
 send-room: my probe `send.py send swarm-osc35 "x"` really sent (no --dry-run exists) to MAIN inbox/swarm-osc35.md;
 checked the file held only that line, then removed it. The ORDERS block's own verb has the same flaw (rule `room`).
 stale-base x2: p3 refused behind 1 twice in ~2 min; a tight fetch+merge+dispatch in one call cleared it.
