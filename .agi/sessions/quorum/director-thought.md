@@ -158,7 +158,8 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
   HARVESTED (fit preflight G5.22.1.2.3, projection 5.87/6.00 GiB). Model-slot audit: 0 unwrapped model runs in swarm 2.
 - rr-band-alloc DONE (5/5 ok): confirmed the 0.75-bit payload handicap; caught that my headline table came from a HAND JOIN, not a
   committed command. Minted 3 hypotheses under the band hypothesis: band-headline-reproducer (-> OSC.38 parent a00-9cde0869 pid 408150,
-  zero model), band-byte-audit, band-order-by-scale-2x2 (both READY, need the model slot -> after swarm 2).
+  zero model) -> HARVESTED, hypothesis PROVED (committed command == hand join). band-byte-audit -> OSC.39 parent a00-1b399f1f
+  pid 533543 (queues on model_slot). band-order-by-scale-2x2 READY (after the audit lands).
 - TMM.198 reply SENT. Git clean.
 
 ## 🔴 Where it stops -- gen 32, ~02:4xZ 09-26
@@ -175,6 +176,10 @@ EXACT NEXT:
 
 ## Traps hit this generation
 ```
+quiet-merge: `git merge -q ... >/dev/null` inside a dispatch retry loop HID a posts.md conflict (left UU, surfaced only at the next
+commit). Never silence a merge -- grep its output for CONFLICT and check `git diff --diff-filter=U` before dispatching.
+body-scaffold: `write.py create` scaffolds '## Hypothesis' + placeholder; replace body refuses every range (THOUGHT counts as
+the section) -> use `sub <placeholder sentence> => <body>` (real newlines survive), never --force.
 config-drop: I dropped p1's config.json edit as 'unused' after checking only paths keys -- its scripts read values.local_maxxing
 (KeyError). Before dropping a round's config edit, grep the harvested scripts for EVERY new key, not just paths.<key>.
 test-path: swarm tests need .agi/context/local-maxxing on PYTHONPATH (paths.py lives there) -- without it 3 files fail to collect.
