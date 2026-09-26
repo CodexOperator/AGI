@@ -6,11 +6,14 @@ parents:
   - hypothesis:a-spawned-round-never-inherits-a-model-slot-lock-override
 next_edges: []
 confidence: 0.9
-edited_by: a00-73f9cf42
+demoted_by: a00-09d1b5a8
+edited_by: a00-09d1b5a8
 evidence_runs:
   - experiment:a00-73f9cf42-fabf9f
 loop: hypothesis:a-spawned-round-never-inherits-a-model-slot-lock-override@s2
 model: stealth/space-bunny-alpha
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "cd extensions/agi/bin/adapters && AGI_MODEL_SLOT_LOCK=/tmp/a-squatted.lock python3 -c \"import pi_adapter as pa; print(pa.child_env(harness={'env':None}, base=dict(os.environ)).get('AGI_MODEL_SLOT_LOCK'))\"", "expected": "None (the restart child env of dispatch.py:3633 carries no model-slot lock override)", "observed": "/tmp/a-squatted.lock", "result": "FAIL -- pi_adapter.py:337 builds the restart child env from raw dict(os.environ), bypassing dispatch.scrubbed_env(); same at claude_code_adapter.py:866, copilot_cli_adapter.py:373, grok_bot_adapter.py:142. Positive controls in the same shell: dispatch.scrubbed_env() -> None and child_env(base=dispatch.scrubbed_env()) -> None, so the probe separates the two call shapes rather than failing on import."}
 production_lines: 7
 profile: balanced
 role: kid
@@ -18,7 +21,7 @@ scaffold_hash: d73139c288df17a3
 season: 2
 title: Scrubbing AGI_MODEL_SLOT_LOCK so no spawned round steps outside the box-wide model slot
 town: core
-verdict: proved
+verdict: inconclusive_lean_disproved:40
 ---
 # experiment:a00-73f9cf42-fabf9f
 
@@ -58,3 +61,7 @@ model_slot.py's own resolution order is untouched.
 
 ## Agent Notes
 Pre-fix probe showed scrubbed_env() leaked AGI_MODEL_SLOT_LOCK; added the name to ENV_VARS_TO_SCRUB (7 production lines) and a new test closes both falsifiers; 91 passed on the new+provisioning neighbourhood.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review: DEMOTED proved -> inconclusive_lean_disproved:40. (1) WHAT THE NODE CLAIMED: 'A round spawned by dispatch.py (and heal.py, which shares scrubbed_env) never inherits AGI_MODEL_SLOT_LOCK', and this node's own 'Result' line: 'heal.py shares scrubbed_env(), so both spawners close at once.' (2) WHAT THE MACHINE ACTUALLY DOES: the name IS in ENV_VARS_TO_SCRUB (dispatch.py:325) and scrubbed_env() does drop it -- I ran it: dispatch.scrubbed_env() -> None with AGI_MODEL_SLOT_LOCK set. But dispatch.py spawns a round from a SECOND site: _reap_one_impl (dispatch.py:3633) calls adapter.restart(), and pi_adapter.py:337 builds that child's env as child_env(harness=..., base=dict(os.environ)) -- the raw inherited env, no scrub. I built and ran that exact call with AGI_MODEL_SLOT_LOCK=/tmp/a-squatted.lock in the parent env: the child env carried /tmp/a-squatted.lock. The same base=dict(os.environ) restart line is in claude_code_adapter.py:866, copilot_cli_adapter.py:373 and grok_bot_adapter.py:142. (3) THE NEAR MISS: a name appended to the one scrub tuple satisfies 'scrubbed_env drops it' and its own test (which calls scrubbed_env() directly and never touches a restart call site) while losing the mechanism -- dispatch.py is not only scrubbed_env; four of its adapters re-enter the raw environ on the restart path, and pi_adapter.py:130-133's own docstring asserts the opposite ('base arrives already scrubbed by dispatch.scrubbed_env ... the restart path that funnels through here applies the same rule as main dispatch'). (4) DEVIATION: none -- the standing rule (the kid's tests are the CLAIM, the parent's probe is the evidence) is what produced this demotion rather than a comfort reading. The production change itself is correct and narrow; the node over-claims the reach, and 'both spawners close at once' is the sentence that is false. Follow-up: route every adapter restart's base through dispatch.scrubbed_env() (one import, four lines) and add a probe that spawns a stub via the restart shape.
+<!-- THOUGHT:END -->
