@@ -150,15 +150,16 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
   full band (qwen2 committed via OSC.38; qwen3 a00-0306a534, 2 prompts). WHY open: band-byte-audit (OSC.39), then 2x2.
 - Swarm verdict proposed to thought-master: throughput holds (11.8/h and 3.1/h vs 0.87/h); memory floor breached both swarms;
   goal-first gate 4/6 parents. Their call.
-- OSC.39 (band-byte-audit): parent a00-1b399f1f pid 533543, queues on model_slot.
+- OSC.39 HARVESTED locally: counter emitted==bits() on 11 arms -> band-byte-audit inconclusive_lean_proved:75 (arms were the OLD
+  mislabelled tags, e.g. 5p5 = 4.75 bits -- note on a00-7a3bd2b1). NOT yet in a [merge-up].
+- OSC.40 (band-order-by-scale-2x2, matched widths, U1/B4/B1/R4): parent a00-37748607 pid 901791, model_slot, one kid.
 
 ## 🔴 Where it stops -- gen 32, ~03:1xZ 09-26
 ```
 EXACT NEXT:
   (a) read thought-master's gate on the swarm-2 [merge-up] (MAIN dm log tail); fix what it returns, re-send.
-  (b) OSC.39 exits (kill -0 533543) -> review (2 files + data dir + 1 node; re-run test; 2 emitted_bits by hand vs bits()),
-      harvest, [merge-up].
-  (c) then hypothesis:band-order-by-scale-2x2 (model_slot.py only; per-prompt loop + rows; one kid).
+  (b) OSC.40 exits (kill -0 901791) -> review (2 files + data + 1 node; grep script for `refs = [`; matched widths not old tags;
+      B1 emitted = budget - 0.75; re-derive 2 numbers; calls via call2), harvest, ONE [merge-up] carrying OSC.39 + OSC.40.
   (d) then TMM.149 PASS 5 backlog. Rotate at f >= 0.47 (bare rotate.py rotate).
 ```
 
