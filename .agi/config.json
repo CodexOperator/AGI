@@ -216,7 +216,8 @@
   },
   "logs": {
     "cap_mb": 16,
-    "rotations": 3
+    "rotations": 3,
+    "mode": "copytruncate"
   },
   "grid": {
     "storage_trunk": "refs/grid/local-maxxing",
