@@ -6,6 +6,7 @@ that is exactly one fence-wrapped block, so render -> re-render is
 idempotent; a text that genuinely carries a fence AS ONE PART still nests in
 a longer outer fence."""
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -81,3 +82,89 @@ def test_subject_tail_is_never_a_fence_run():
     assert rotate._stops_subject_tail(
         "```\n" + "x" * 200 + "\n```") .startswith("x")
     assert len(rotate._stops_subject_tail("x" * 200)) == 80
+
+
+# ── the LIVE WRITE SEAM (DH.409) ───────────────────────────────────────────
+# The render seam is a fixed point, but the SEAM THAT WRITES was not: the
+# card is the prompt, so a handback of the slot carries the slot's OWN
+# exterior prose as well as its block, and the rewrite writes that prose back
+# from the card -- leaving the copy inside the block re-nested it, one deeper
+# per rotation. Measured live before the fix: a genuine inner ``` block went
+# 4 -> 5 -> 6 over three rotations and a plain slot gained one copy of its
+# lead-in line per rotation (experiment:a00-a066dc22-5cb6c8).
+
+CARD = "# belam\n\n## 🔴 Where it stops\n{seed}\n"
+
+
+def _rotate_n(seed: str, n: int = 4) -> list[str]:
+    """Drive the LIVE write seam N times, feeding back exactly what the model
+    would copy out of the slot: the whole slot region of the card."""
+    out = []
+    for _ in range(n):
+        with tempfile.TemporaryDirectory() as d:
+            card = Path(d) / "card.md"
+            card.write_text(CARD.format(seed=seed), encoding="utf-8")
+            full, slot = rotate._write_stops_section(card, "belam", seed)
+            assert full is not None and slot == "replaced", (full, slot)
+            seed = full.split("stops\n", 1)[1].strip("\n")
+            out.append(seed)
+    return out
+
+
+def _max_run(region: str) -> int:
+    return max((rotate._fence_run(l) for l in region.splitlines()), default=0)
+
+
+def test_write_seam_is_a_fixed_point_with_exterior_prose():
+    for seed in (
+            "card edit landed; waiting on the suite\n```\n"
+            "prior edit done\nnext: run suite\n```",              # lead-in
+            "card edit landed\n```\npytest -q\n```\n"
+            "next: rotate out",                                  # both sides
+            "```\nprior edit done\nnext: run suite\n```",        # no prose
+    ):
+        cards = _rotate_n(seed)
+        assert len(set(cards)) == 1, cards          # byte-identical
+        assert _max_run(cards[0]) == 3, cards
+
+
+def test_write_seam_does_not_grow_a_real_pre_fix_residue_card():
+    """A card an EARLIER broken rotation already duplicated is left alone --
+    it stops growing, and the ambiguous duplicate is not silently deleted."""
+    seed = ("card edit landed; waiting on the suite\n```\n"
+            "card edit landed; waiting on the suite\n"
+            "card edit landed; waiting on the suite\n"
+            "prior edit done\nnext: run suite\n```")
+    cards = _rotate_n(seed)
+    assert len(set(cards)) == 1, cards
+    assert _max_run(cards[0]) == 3, cards
+
+
+def test_empty_handback_falls_back_instead_of_dropping_the_slot_body():
+    cards = _rotate_n("```\n```")
+    assert len(set(cards)) == 1, cards
+    assert rotate.STOPS_SUBJECT_FALLBACK in cards[0], cards
+    assert _body_lines(cards[0]) == [rotate.STOPS_SUBJECT_FALLBACK]
+
+
+def test_drop_exterior_prose_touches_only_the_cards_own_prose():
+    ext = {"lead-in", "sign-off"}
+    # a FOREIGN line outside the fence is the model's own: never dropped
+    foreign = "not the card's line\n```\nbody\n```\nsign-off"
+    assert rotate._drop_slot_exterior_prose(foreign, ext) == foreign
+    # ours, on both sides: dropped, the block kept whole
+    ours = "lead-in\n```\nbody\n```\nsign-off"
+    assert rotate._drop_slot_exterior_prose(ours, ext) == "```\nbody\n```"
+    # a line INSIDE the block that repeats the prose is the model's content
+    inside = "lead-in\n```\nlead-in\nbody\n```\nsign-off"
+    assert rotate._drop_slot_exterior_prose(inside, ext) == \
+        "```\nlead-in\nbody\n```"
+    # no fence at all, or no exterior prose: untouched
+    assert rotate._drop_slot_exterior_prose("just prose", ext) == "just prose"
+    assert rotate._drop_slot_exterior_prose(ours, set()) == ours
+
+
+def test_slot_exterior_prose_reads_only_outside_the_fence():
+    lines = ["lead-in", "```", "body", "lead-in", "```", "sign-off"]
+    assert rotate._slot_exterior_prose(lines) == {"lead-in", "sign-off"}
+    assert rotate._slot_exterior_prose(["```", "body", "```"]) == set()
