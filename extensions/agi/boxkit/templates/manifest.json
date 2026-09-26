@@ -1,0 +1,362 @@
+{
+ "pieces": [
+  {
+   "name": "user-at-service-guard",
+   "template": "user-at-service-guard.tmpl",
+   "dest_cell": "systemd_system_dir",
+   "dest_rel": "user@{{UID}}.service.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "HELD_OUT",
+    "MEM_LOW",
+    "MEM_TOTAL",
+    "OWNER_USER",
+    "SYS_RESERVE",
+    "UID",
+    "USER_HIGH",
+    "USER_MAX",
+    "USER_OOM_PCT",
+    "USER_SWAP",
+    "USER_TASKS"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "user-slice-guard",
+   "template": "user-slice-guard.tmpl",
+   "dest_cell": "systemd_system_dir",
+   "dest_rel": "user.slice.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "MEM_LOW"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "user-uid-slice-guard",
+   "template": "user-uid-slice-guard.tmpl",
+   "dest_cell": "systemd_system_dir",
+   "dest_rel": "user-{{UID}}.slice.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "MEM_LOW"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "system-slice-guard",
+   "template": "system-slice-guard.tmpl",
+   "dest_cell": "systemd_system_dir",
+   "dest_rel": "system.slice.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "SYSTEM_MIN"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "ssh-service-guard",
+   "template": "ssh-service-guard.tmpl",
+   "dest_cell": "systemd_system_dir",
+   "dest_rel": "ssh.service.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "SSH_CPU_WEIGHT",
+    "SSH_MIN"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "oomd-guard",
+   "template": "oomd-guard.tmpl",
+   "dest_cell": "systemd_conf_dir",
+   "dest_rel": "oomd.conf.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "OOMD_PRESSURE_PCT",
+    "OOMD_PRESSURE_SEC",
+    "OOMD_SWAP_PCT"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "watchdog-conf",
+   "template": "watchdog-conf.tmpl",
+   "dest_cell": "watchdog_conf",
+   "dest_rel": "",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "none",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "HEALTH_BIN",
+    "WD_INTERVAL",
+    "WD_LOG_DIR",
+    "WD_PRIORITY",
+    "WD_REPAIR_MAX",
+    "WD_RETRY_TIMEOUT",
+    "WD_TEST_TIMEOUT",
+    "WD_TIMEOUT"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "memguard-service",
+   "template": "memguard-service.tmpl",
+   "dest_cell": "systemd_system_dir",
+   "dest_rel": "agi-memguard.service",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "PYTHON_BIN",
+    "SBIN_ABS"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "agi-slice",
+   "template": "agi-slice.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "agi.slice",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "AGI_CPU_WEIGHT",
+    "AGI_HIGH",
+    "AGI_MAX",
+    "AGI_OOM_PCT",
+    "AGI_TASKS",
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "USER_SWAP"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "agi-engine-slice",
+   "template": "agi-engine-slice.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "agi-engine.slice",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "ENGINE_CPU_WEIGHT",
+    "ENGINE_HIGH",
+    "ENGINE_MAX",
+    "ENGINE_SWAP",
+    "ENGINE_TASKS",
+    "GUARD_DOC",
+    "GUARD_SRC"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "agi-work-slice",
+   "template": "agi-work-slice.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "agi-work.slice",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "WORK_CPU_WEIGHT",
+    "WORK_HIGH",
+    "WORK_MAX",
+    "WORK_TASKS"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "agi-service-guard",
+   "template": "agi-service-guard.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "agi-.service.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "agi-agi-service-guard",
+   "template": "agi-agi-service-guard.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "agi-agi-.service.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "user-root-slice-guard",
+   "template": "user-root-slice-guard.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "-.slice.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "USER_OOM_PCT"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "app-slice-guard",
+   "template": "app-slice-guard.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "app.slice.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "MEM_LOW"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "claude-remote-control-guard",
+   "template": "claude-remote-control-guard.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "claude-remote-control.service.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "CRC_CPU_WEIGHT",
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "MEM_LOW"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "sanctuary-watch-service",
+   "template": "sanctuary-watch-service.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "sanctuary-watch.service",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "sanctuary-watch-timer",
+   "template": "sanctuary-watch-timer.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "sanctuary-watch.timer",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "memguard-script",
+   "template": "memguard-script.tmpl",
+   "dest_cell": "sbin_dir",
+   "dest_rel": "agi-memguard.py",
+   "mode": "0755",
+   "sudo": false,
+   "reload": "none",
+   "placeholders": [
+    "ALERT_COOLDOWN_S",
+    "HISTORY_S",
+    "INTERVAL_S",
+    "LOW_AVAIL_BYTES",
+    "LOW_AVAIL_GIB",
+    "MEMGUARD_LOG",
+    "OWNER_USER",
+    "PI_OOM_ADJ",
+    "PROTECT_NICE",
+    "PROTECT_OOM_ADJ",
+    "REPO_ROOT",
+    "SPIKE_BYTES",
+    "SUSPEND_PCT",
+    "SUSPEND_RATIO"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "health-script",
+   "template": "health-script.tmpl",
+   "dest_cell": "sbin_dir",
+   "dest_rel": "sanctuary-health",
+   "mode": "0755",
+   "sudo": false,
+   "reload": "none",
+   "placeholders": [
+    "GUARD_DOC_ABS",
+    "HEALTH_DISABLE",
+    "HEALTH_ENV",
+    "HEALTH_GRACE",
+    "HEALTH_LIMIT",
+    "HEALTH_LOG",
+    "SBIN_ABS",
+    "WATCHDOG_CONF",
+    "WD_RETRY_TIMEOUT"
+   ],
+   "new_bytes": false
+  },
+  {
+   "name": "agi-survival-conf",
+   "template": "agi-survival-conf.tmpl",
+   "dest_cell": "systemd_system_dir",
+   "dest_rel": "10-agi-survival.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "OOM_POLICY"
+   ],
+   "new_bytes": true
+  }
+ ]
+}

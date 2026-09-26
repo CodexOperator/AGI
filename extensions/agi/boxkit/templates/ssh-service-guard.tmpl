@@ -1,0 +1,12 @@
+# sanctuary guard layer 2. Written by {{GUARD_SRC}}.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.
+# sshd must keep the pages it holds and win the CPU inside system.slice when
+# everything else is stalled. Being unkillable alone is what failed on
+# 2026-09-25: the listener lived, but forking a login stalled in reclaim.
+# NOT set here: OOMScoreAdjust. sshd already puts its listener at -1000 itself
+# and restores its starting value in every login child. Starting it at -1000
+# would make every login shell, and anything run from it, unkillable.
+# NOT set here: IOWeight. No io controller is enabled, so it would do nothing.
+[Service]
+MemoryMin={{SSH_MIN}}
+CPUWeight={{SSH_CPU_WEIGHT}}
