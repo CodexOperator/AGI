@@ -12835,7 +12835,7 @@ Assigned to **post**. goal:band-call-rule-per-cell is the (C) DECIDE LAYER slice
 
 ###### G5.22.1.2 — qwen3 np64 noise band -- >=3 seeds per cell so the np64 grid has a denominator at all (swarm split (B), p2) — status: active
 
-# goal:g5.22.2-qwen3-np64-noise-band
+# goal:qwen3-np64-noise-band
 
 # goal:g5.22.2
 
@@ -12922,7 +12922,7 @@ Assigned to **post**. One model-running kid; see Falsifier for the closure test.
 ###### G5.22.1.3 — qwen2 np32 allocation-noise band over >=3 random seeds per cell, so key_only-vs-uniform is called with error bars — status: active
 
 <!-- BODY:BEGIN -->
-# goal:g5.22.3-qwen2-np32-noise-band
+# goal:qwen2-np32-noise-band
 
 ## Why this exists
 **Parent `goal:g5.22.1`** — its Agent Names says the blocker is n=1: every one of the 16 matched-grid cells was produced by a single hardcoded random draw, while the parent probe (a00-bcea484d) re-drew the random arm at seeds 7/21/99 on qwen2@5.25 and got an agree spread of 0.085 — 3x the key_only margin of 0.028 — with seed 21 beating key_only on KL outright. A verdict cannot be built on a denominator nobody has measured, so this subgoal measures the denominator on one of the two models while p2 measures the other and p3 writes the decision rule against it.

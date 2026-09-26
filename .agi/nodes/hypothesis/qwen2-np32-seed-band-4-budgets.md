@@ -3,7 +3,7 @@ id: hypothesis:qwen2-np32-seed-band-4-budgets
 mint_id: 7aedfc9105164aa0b0bc3a25331055ae
 type: hypothesis
 parents:
-  - goal:g5.22.3-qwen2-np32-noise-band
+  - goal:qwen2-np32-noise-band
 next_edges: []
 confidence: 0.45
 edited_by: a00-e2d2e39a

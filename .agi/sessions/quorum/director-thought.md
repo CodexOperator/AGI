@@ -156,7 +156,7 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 ```
 EXACT NEXT:
   (a) WAIT for thought-master's gate on swarm 1 (MAIN dm log tail). Fix what it returns, re-send [merge-up].
-  (b) swarm 2/2 on thought-master's go: proposed target = qwen3 band (goal:g5.22.2-qwen3-np64-noise-band, G5.22.1.2) --
+  (b) swarm 2/2 on thought-master's go: proposed target = qwen3 band (goal:qwen3-np64-noise-band, G5.22.1.2) --
       orders must quote p1's prompt-outer loop (osc_band_seeds_qwen2_a00-2b3ca8c4.py:42-45) + p2's gates
       (osc_band_seeds_qwen3_a00-6771cb76.py raise/guard/three-way) and FORBID a refs list; ORDERS block + erratum + schemas
       built by python from the live node (see Scratch); goal_id G5.22.1.2.N for any sub-subgoal.

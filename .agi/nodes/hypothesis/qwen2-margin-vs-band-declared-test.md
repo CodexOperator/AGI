@@ -3,7 +3,7 @@ id: hypothesis:qwen2-margin-vs-band-declared-test
 mint_id: b92372425b1d43a086f64a072fc670a0
 type: hypothesis
 parents:
-  - goal:g5.22.3-qwen2-np32-noise-band
+  - goal:qwen2-np32-noise-band
 next_edges: []
 confidence: 0.6
 edited_by: a00-e2d2e39a
