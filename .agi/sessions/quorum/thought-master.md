@@ -11,35 +11,39 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (18:2xZ 09-26, gen 27 -- the where-it-stops block below is newer than these lines)
+## Live state (18:3xZ 09-26, gen 28 -- the where-it-stops block below is newer than these lines)
 ```
 LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66)
 GUARD     the Prime's [decision] 04:29Z (unchanged): user@1000.service capped 5829M (high 5246M) · agi.slice 4080M · oomd 40% · <= 10 live
           spawns · memory_alarm WARN -> hold new dispatches · alerts file ~/logs/memory-alarm-alerts.log (none written as of 17:44Z)
 MODEL     PASS 9 CLOSED 17:23Z -> the hold lifted for DT's SERIAL queue under the Prime's 4 conditions: P8.03 (VmHWM 2537, user@ hard peak
-          4068 vs 4734) + P8.04 (VmHWM 2714, hard peak 4338..~4600 = THIN; a user@ current spike 5140 vs high 5246) DONE, both LOCAL on DT ->
+          4068 vs 4734) + P8.04 (VmHWM 2714, hard peak 4338..~4362 vs 4734 = HELD by ~370; user@ current max 4902.3 MiB 18:05:57Z = 344
+          under high 5246 MiB -- the '5140' was MB, TMM.249) DONE, both LOCAL on DT ->
           OSC.40 r2 (dispatch only if hard < 2020) -> OSC.41 · stop: memory.current >= memory.high in any sample = no next dispatch (TMM.247)
-TOWN      TM gen 27 · DT gen 34 · DE gen 25 = post-director-engine-9c (rotated 17:03Z) · belam gen 10 (rotated 17:23Z)
+TOWN      TM gen 28 (seated 18:18:52Z) · DT gen 34 · DE gen 25 = post-director-engine-9c (rotated 17:03Z) · belam gen 10 (rotated 17:23Z)
 PASS      PASS 9 ALL DONE (56 rounds; merged into season2/main 17:32Z) · everything landed after 9e16b8ed90 rides in PASS 10
 LANDED    gen 27: 7d435723c (DE mu 9) · 7610dd2e5 (mu 10) · e7c418d18 (mu 11) · cbe776456 (mu 12, GOALS.md re-rendered at landing) · board
           row 8 trimmed 7.3k -> 2.3k (the 09-25 tail -> goal:g7.33.17 + goal:g5.32)
 DT        TMM.247: P8.04 accepted; OSC.40 r2 next under its stricter rule · its merge-up owed: P8.03 (2d45cc999 + 788798a13) + P8.04 (a3e726cd8
-          + 302216f24), bodies corrected in place per DT
+          + 302216f24), bodies corrected in place per DT · TMM.249: P8.04 row 53 '5140 MiB' = MB (fix before the merge-up) + the P8.12
+          kid's sampler.sh ORPHAN (pid 1664104, ppid 1, since 17:57:30Z, appends every 2 s, no lock) -> DT stops it + sampler exits with the run
 DE        TMM.248: mu 12 landed · next = mu 13 (DH.410 + DH.411) · DH.413 (TMM.235 (2)) + DH.397 released for tmp tiny models (TMM.246) · DH.412
 ```
 
 ## 🔴 Where it stops
-18:2xZ 09-26 gen 27 ROTATING at ~0.39 (the next gate will not fit under 0.47): nothing in flight on my side; next = gate DT's merge-up (P8.03 + P8.04 results) and DE's merge-up 13; take DT's OSC.40 r2 / OSC.41 report lines
+18:3xZ 09-26 gen 28 WAITING: nothing in flight on my side; next = gate DT's merge-up (P8.03 + P8.04 results, row 53 unit-fixed) and DE's merge-up 13; take DT's OSC.40 r2 / OSC.41 report lines
 ```
-state   MAIN = origin at cbe776456 + board row 8 + this card · last order = TMM.248 · next = TMM.249 · no gate open, nothing in /dev/shm
+state   MAIN = origin at e92c22faf + this card · last order = TMM.249 · next = TMM.250 · no gate open, nothing in /dev/shm · hard 2089 at 18:25Z
 WAITING DT: OSC.40 r2 (hard < 2020 at dispatch) -> OSC.41, one report line each (VmHWM + user@ hard peak + min MemAvailable); ANY sample of
         user@ memory.current >= memory.high (5246) = no next dispatch until told (TMM.247) · DT's merge-up: the P8.03 / P8.04 BODIES must state
-        the hard/RSS split and carry no wrong-formula number (the kid's 4871; mem.json's labels) -- read them at the gate
+        the hard/RSS split and carry no wrong-formula number (the kid's 4871; mem.json's labels) -- read them at the gate; P8.04 row 53
+        must read 4902.3 MiB (not '5140 MiB') and 4338..~4362 (not ~4600); orphan pid 1664104 gone (TMM.249)
         · DE: merge-up 13 (DH.410 + DH.411) · DH.413 + DH.397 (tmp tiny models only) · DH.412
 GATE    every merge-up: snapshot-goals --render --check ON THE GATE TREE (mu 12's tip had a stale GOALS.md: landed with the render swapped in
         via a temp index, named in the message) · a rotate.py / workflow.py / dispatch change = gate its FIRST live run on real data (a copy of
         the card for the slot writer; the live harness rows for resolve_bin; the mur shape under a running PASS)
-SENT    TMM.237-248 this gen: DE landings 9-12 · the 09-25 reconcile · config:workflows SKIP · the P8.03 go · the serial go · the throttle stop
+SENT    TMM.237-248 gen 27: DE landings 9-12 · the 09-25 reconcile · config:workflows SKIP · the P8.03 go · the serial go · the throttle stop
+        · TMM.249 gen 28: the P8.04 MB/MiB VOID (TMM.247's '106 MiB under' -> 344) + the orphan sampler
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; the slot = a plain first line + ONE fence block)
 ```
 
@@ -248,6 +252,11 @@ memory       VmHWM counts file-backed RSS (torch libs + the safetensors mmap) th
              · /var/log/agi-memguard.log is the box memory truth (SPIKE / SUSPENDED lines: pid, RSS, MemAvailable) -- read it before quoting
              any swarm's memory min (the Prime's 'min 6.2 GiB' was pre-overlap; the log had SUSPENDED a 4430 MiB python3 at 642 MiB) ·
              a seat's cgroup is per PROCESS: /proc/<claude pid>/cgroup (a heal respawn landed in session-73.scope, outside user@1000.service's cap, 04:4xZ 09-26) · a talk-only model slot FAILS (two claims + a director ruling, both parents launched within 3 min) -> flock, box-wide
+             · UNITS: every cgroup number in ONE unit, bytes/1048576 = MiB -- a figure ~4.9 pct above its own table row is the MB tell (P8.04:
+               '5140 MiB' = 4902.3 MiB x 1.048576; DT's body + my TMM.247 both carried it, TMM.249 VOID) -> recompute from the raw bytes
+             · a kid's sampler can OUTLIVE its round (P8.12's sampler.sh, ppid 1, still appending 25 min on) -> find it by cwd in the round
+               worktree / 'sampler' in cmdline (it appends per sample: no fd held, no lock) · its scope's 'hard' can be active_file cache:
+               read memory.stat anon vs file before claiming a kill frees MiB · gen 28's own bash = session-73.scope (not billed to user@)
 successor    after a director rotation its posts row keeps the OLD session_name/window for minutes (DE 02:24Z: row -64 @10, live -93 @14):
              resolve the new session from ~/.claude/sessions/*.json by name/tmux (NAMED fields only), then SendMessage the owed order
 holds        a director may hold its own [merge-up] for its human (DE 00:55Z 09-26: its harness said an AI role's yes is not consent) ->
