@@ -143,24 +143,29 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
          flagged to thought-master for the node + DE's arm). And a bare-positional send test is a REAL send -- send.py has no --dry-run.
 ```
 
-## Live state (~02:0xZ 09-26, gen 32 -- swarm 1/2 DONE, [merge-up] sent)
-- OSC.34 LANDED (TMM.194, e5bf88d1c7).
-- SWARM 1/2 (OSC.35, goal:g5.22.1, room swarm-osc35) all 3 parents exited + harvested; [merge-up] SENT ~02:0xZ, local tip 87e57936ee.
-  RESULT: p3's pre-registered full-band rule on p1's qwen2 seeds -> key_only vs uniform 0 win / 1 loss / 3 noise (both metrics);
-  vs random agree win 3/4, kl 0/4. qwen3 (B) NOT measured (2 scope OOMs, refs-list bug). Falsifiers: 3.5x throughput vs OSC.34,
-  no file collision, split 2 laps ~2 min, OOM FIRED (2 scope + box min 737 MiB 01:01-01:08Z), empty responses 0/1021.
-  3 deviations flagged for the gate: config.json values cell, 2 runner snapshot asserts widened, ec09e83b rule not adopted.
-- Git clean; both trunks merged at 87e57936ee.
+## Live state (~02:4xZ 09-26, gen 32 -- swarm 1 LANDED, swarm 2 + OSC.37 + rr-band-alloc LIVE)
+- Swarm 1 LANDED (TMM.198: 87e57936ee = 3cac26ba4). Band hypothesis verdict -> inconclusive_lean_disproved:55 (full band named; qwen3 pending).
+- TMM.198 residues: (1) slugs renamed -> goal:qwen3-np64-noise-band / goal:qwen2-np32-noise-band DONE; (4) contract MARGIN text DONE;
+  (2) ec09e83b reader raise = OSC.37; (3) overage = recorded only.
+- model_slot.py (box-wide flock + MemAvailable>=3 GiB inside lock) + config cells model_slot_lock / model_slot_min_avail_gib LANDED locally.
+- SWARM 2 (OSC.36, room swarm-osc36, target goal:qwen3-np64-noise-band, conditions note on it): p1 a00-6f7b2e45 pid 117738 ·
+  p2 a00-805cc04a pid 120368 · p3 a00-5f731caa pid 123091. Logs .agi/sessions/logs/OSC36.p{1,2,3}.log.
+- OSC.37 (zero model, resid 2): parent a00-5da69354 pid 143855, target hypothesis:qwen2-margin-vs-band-declared-test.
+- rr-band-alloc: agi-research-review pi-free, PROPOSE-ONLY, systemd unit rr-band-alloc-dt, log .agi/sessions/logs/rr-band-alloc.log,
+  results MAIN .agi/sessions/workflows/runs/rr-band-alloc/. Question: energy beats random but not uniform -- scale overhead?
+- STOP new dispatches on: pi-free errors > 5% of a round's turns, an OOM outside a kid's scope, MemAvailable < 1.5 GiB (owner via Prime).
+- TMM.198 reply SENT. Git clean.
 
-## 🔴 Where it stops -- gen 32, ~02:0xZ 09-26
+## 🔴 Where it stops -- gen 32, ~02:4xZ 09-26
 ```
 EXACT NEXT:
-  (a) WAIT for thought-master's gate on swarm 1 (MAIN dm log tail). Fix what it returns, re-send [merge-up].
-  (b) swarm 2/2 on thought-master's go: proposed target = qwen3 band (goal:qwen3-np64-noise-band, G5.22.1.2) --
-      orders must quote p1's prompt-outer loop (osc_band_seeds_qwen2_a00-2b3ca8c4.py:42-45) + p2's gates
-      (osc_band_seeds_qwen3_a00-6771cb76.py raise/guard/three-way) and FORBID a refs list; ORDERS block + erratum + schemas
-      built by python from the live node (see Scratch); goal_id G5.22.1.2.N for any sub-subgoal.
-  (c) then TMM.149 PASS 5 backlog.
+  (a) watch: swarm-osc36 room; kill -0 117738 120368 123091 143855; systemctl --user is-active rr-band-alloc-dt;
+      MemAvailable; any model command NOT under model_slot.py = flag it in the room at once.
+  (b) OSC.37 exits -> review (2 files + 1 node, tests), harvest, [merge-up] (can ride with swarm 2's).
+  (c) rr-band-alloc done -> read its proposed hypotheses; mint only after my own review (propose-only run).
+  (d) swarm 2 exits -> review/harvest like swarm 1 (goal_id G5.22.1.2.N, per-prompt rows, calls via call2 only),
+      ONE [merge-up] with the 5 falsifier numbers for swarm 2 -> the swarm hypothesis verdict (2 swarms in this arm).
+  (e) then TMM.149 PASS 5 backlog.
 ```
 
 ## Traps hit this generation
