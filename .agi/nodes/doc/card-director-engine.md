@@ -43,8 +43,10 @@ CONTEXT   torch run: 232 passed / 2 failed = DT's leak (osc_band_seeds_qwen3 tes
 SENT      [merge-up] 13 (19:1xZ) tip 46fc2b716 code 5a11080c8: engine 6773/0 · ctx 236/3 = DT leak x2 + graph2sql shared-postgres
           flake (3/6 alone) = DH.410-415 + my fixes b7a4a049f/ee08566b7 + config values.core.model_load_allowed_max_bytes
 DONE      DH.416 (.agi/bin guard bites via find-root.sh) · DH.417 (schemas/ uncommittable; unreadable schema refuses)
-LIVE      DH.418 a00-e9c99855 (heal never reseats a worktree post into MAIN; 2 kids seq) · DH.419 a00-4f513b69 (context suite
-          under the engine suite guards)
+LIVE      DH.418 a00-e9c99855 (heal never reseats a worktree post into MAIN; 2 kids seq)
+CUT       DH.419 a00-4f513b69 19:2xZ [red] by DT: 127 pytest procs, user@ over memory.high, DT's OSC.44 SIGTERMed. Killed
+          (SIGSTOP+KILL by cwd/cmdline). Kid exec'd the ENGINE tests/conftest.py inside .agi/context/conftest.py; guard tests
+          spawn pytest subprocesses -> unbounded. Worktree KEPT as evidence. Re-dispatch only with the fork-bound rule
 RESIDUE   a round may commit doc:card-<post> (_round_committable True on the real graph) -- ask TM whether cards are round-owned
 PASS 9    queue = hypothesis:pass9-0926-residue-batch (5 new, 12 follow) -- ORDER mine, track THERE
 CARD      the rotate-out flattens the quorum symlink ON PURPOSE (db336b020); restore the 120000 link, never two copies apart
@@ -66,6 +68,8 @@ never wait  on a capture: rotate yourself at f >= 0.47 (`python3 extensions/agi/
 torch-py    a guard that walks sys.modules must never getattr blind: torch.classes RAISES, torch.ops answers ANY name
 refused==   a value threaded as "refused" but judged by the same gate as "named" is not refused: grep the loop, probe it
 behind      interpolate the MEASURED rev-list count into a merge-up, never type it
+fork-bound  every orders file: a test that spawns python/pytest runs it under `timeout` + a process cap, NEVER a pytest
+            that can re-collect its own dir; a conftest never exec's another conftest (DH.419 fork bomb, 127 procs)
 basetemp    NEVER pytest --basetemp <dir in the repo>: pytest WIPES it (DH.412 parent lost engine bin/, 84 files)
 torch-path  context tests: PYTHONPATH=paths.local_maxxing.osc_test_pythonpath + system python3 (the venv has no pytest)
 suite-live  NEVER merge into this tree while a suite runs here: getsource tests read the moved file (12: 2 false reds)
