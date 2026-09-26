@@ -36,21 +36,20 @@ Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW
 LANDED    merge-up 12 = cbe776456 (TMM.248; 6753/0 on M; GOALS.md was STALE at my tip -- TM re-rendered it)
 MERGED    after 12 (-> merge-up 13): DH.410 c11128889 (row 5; red 2/green) · DH.411 320b4450c (PASS 9 re-open; red 1/green);
           650 passed over the touched files. (DH.410 dropped NO asserts -- my diff grep misread it)
-LIVE      DH.413 a00-aa4554be (TMM.235 (2): in-body loader hole, allow-list under basetemp; tiny tmp models only)
-          DH.412 a00-7485004d (PASS 9 re-open 2: locations.py:289 tautology + a test that cannot fail)
-RELEASED  TMM.246 17:55Z: model hold lifted (tmp-built tiny models ONLY). DH.397 re-dispatch AFTER DH.413 merges (one table)
-PASS 9    queue = hypothesis:pass9-0926-residue-batch (5 new, 12 follow) -- ORDER mine, track THERE. Owed on DH.411's node:
-          (a) [command]/[cron]/[ladder] lack written_by/round_commit -> cli.py:2196 passes 3 .geometry types
-          (b) rec[node_id] = the kid's args.node_id, unchecked -> `done --node-id <foreign hypothesis>` still widens the set
+MERGED    DH.413 5e77d016c + MY FIX b7a4a049f (classmethod-aware stub; a file under a declared dir; red/green) + config cell
+          values.core.model_load_allowed_max_bytes · DH.412 + MY FIX ee08566b7 (is_live_checkout compared root with ITSELF ->
+          any repo = live; red/green) -- both kids' rounds shipped a NEW bug past their parent: probe the foreign/real shape
+CONTEXT   torch run: 232 passed / 2 failed = DT's leak (osc_band_seeds_qwen3 test_t7 sys.modules['transformers']=M) -> TM, not edited
+LIVE      DH.415 a00-cc3f676b (= DH.397 no-model fence, on DH.413's ONE table) · DH.414 a00-d74c1e04 (DH.411 residues a+b)
+PASS 9    queue = hypothesis:pass9-0926-residue-batch (5 new, 12 follow) -- ORDER mine, track THERE
 CARD      the rotate-out flattens the quorum symlink ON PURPOSE (db336b020); restore the 120000 link, never two copies apart
 ```
 
 ## 🔴 WHERE IT STOPS (gen 25)
 ```
-FIRST  harvest DH.413 + DH.412 as each reports (red-on-old/green-on-new; parent leftovers; DH.413: osc_lowpeak_test green)
-THEN   DH.397 re-dispatch on DH.413's table (orders: .agi/sessions/iter-DH.397/orders.a00-aae44e7f.md + the tiny-tmp rule)
-THEN   DH.411 residues (a)+(b) as ONE round -> PASS 9 new 5 -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
-THEN   full suite (NO merge into this tree while it runs) -> [merge-up] 13
+FIRST  harvest DH.415 + DH.414 as each reports: red-on-old/green-on-new AND a probe of the shape the kids did not stand in
+THEN   full suite + torch context suite (NO merge into this tree meanwhile) -> [merge-up] 13 = DH.410-414 (+415 if in)
+THEN   PASS 9 new 5 -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
 AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
 
@@ -59,10 +58,11 @@ AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 goals-md    EVERY goal-node edit: snapshot-goals.py --render + commit GOALS.md in the SAME commit, then --check (TMM.248)
 card size   the driven handoff refuses a composed card > 100 lines -> the capture never rotates. KEEP THIS CARD SMALL.
 never wait  on a capture: rotate yourself at f >= 0.47 (`python3 extensions/agi/bin/rotate.py rotate`, bare)
-torch-py    a guard that walks sys.modules must never getattr blind: torch.classes RAISES, torch.ops answers ANY name.
-            test context guards under /data/ml/.venv PYTHONPATH from the TREE ROOT (a neutral cwd skips the conftest)
+torch-py    a guard that walks sys.modules must never getattr blind: torch.classes RAISES, torch.ops answers ANY name
 refused==   a value threaded as "refused" but judged by the same gate as "named" is not refused: grep the loop, probe it
 behind      interpolate the MEASURED rev-list count into a merge-up, never type it
+basetemp    NEVER pytest --basetemp <dir in the repo>: pytest WIPES it (DH.412 parent lost engine bin/, 84 files)
+torch-path  context tests: PYTHONPATH=paths.local_maxxing.osc_test_pythonpath + system python3 (the venv has no pytest)
 suite-live  NEVER merge into this tree while a suite runs here: getsource tests read the moved file (12: 2 false reds)
 one-tree    a parent dispatching kid 2 before merging kid 1 gets overlapping ports: take ONE tree
 config      rounds CANNOT commit .agi/config.json (cli.py _round_scope_ok): the director commits named cells
