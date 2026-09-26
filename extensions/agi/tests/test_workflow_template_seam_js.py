@@ -61,8 +61,58 @@ def test_no_absolute_slash_is_left_in_front_of_root():
     """
     hits = [(p.name, i) for p in sorted(WF.glob("*.js"))
             for i, l in enumerate(p.read_text(encoding="utf-8").split("\n"), 1)
-            if "/${ROOT}" in l]
+            if "/${ROOT}" in l or '/" + ROOT' in l]
     assert hits == [], hits
+
+
+def test_rendered_templates_carry_root_without_a_leading_slash():
+    """TMM.199 red 2: the grep above once saw only the template form and missed
+    8 lines of `/" + ROOT + "`. Grep proves presence, only a RENDER proves shape:
+    evaluate every one-line `const ... = "..."`/backtick string that uses ROOT,
+    with and without an injected project_root, and read the rendered text."""
+    node = shutil.which("node")
+    if not node:  # pragma: no cover - box without node
+        return
+    root = "/tmp/fake-worktree"
+    for name in MIGRATED:
+        lines = (WF / f"{name}.js").read_text(encoding="utf-8").split("\n")
+        consts, i = [], 0
+        while i < len(lines):  # a backtick template may span lines: take it whole
+            l = lines[i]
+            if re.match(r"const \w+ = `", l) and len(re.findall(r"(?<!\\)`", l)) % 2:
+                j = i + 1
+                while len(re.findall(r"(?<!\\)`", lines[j])) % 2 == 0:
+                    j += 1
+                l = "\n".join(lines[i:j + 1])
+                i = j
+            if re.match(r"const \w+ = [\"`]", l) and re.search(r"\$\{ROOT\}|ROOT \+", l):
+                consts.append(l)
+            i += 1
+        if not consts:  # ROOT only inside object literals: the grep above covers it
+            continue
+        for injected in (root, None):
+            js = (f"const args = {{project_root: {injected!r}}};\n" if injected
+                  else "const args = {};\n")
+            js += next(l for l in lines if l.startswith(SEAM)) + "\n"
+            js += "const out = [];\n"
+            names = {v for l in consts
+                     for v in re.findall(r"\$\{([A-Za-z_]\w*)\}|\" \+ ([A-Za-z_]\w*) \+ \"", l)
+                     for v in v if v}
+            defined = {l.split()[1] for l in consts} | {"ROOT", "args"}
+            for v in sorted(names - defined):  # other seams render as a visible stub
+                js += f"var {v} = '<{v}>';\n"
+            for l in consts:
+                var = l.split()[1]
+                js += l + f"\nout.push({var});\n"
+            js += "process.stdout.write(out.join('\\n'));\n"
+            proc = subprocess.run([node, "-e", js], text=True, capture_output=True)
+            assert proc.returncode == 0, (name, proc.stderr[:400])
+            if injected:
+                assert root in proc.stdout, name
+                assert "/" + root not in proc.stdout, (name, "//" + root)
+            else:  # the fallback '.' behind a '/' is the FILESYSTEM root
+                m = re.search(r"(?:^|[\s`(])/\.(?=[\s,/)`]|$)", proc.stdout, re.M)
+                assert m is None, (name, proc.stdout[max(0, m.start() - 40):m.end() + 40])
 
 
 def test_root_is_declared_before_it_is_used():
