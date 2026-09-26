@@ -4,7 +4,10 @@ import importlib.util
 import os
 from collections import Counter
 
+import sys
+
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path[:0] = [os.path.dirname(HERE), HERE]   # collect from any cwd
 
 
 def _load(name):
