@@ -110,7 +110,14 @@ def test_f1_rename_mode_strands_the_live_writer_on_a_BOUNDED_archive(tmp_path):
                                    "cap_bytes": CAP_MB * 1024 * 1024}, indent=1))
     archives = {n for n in grew if crons._ARCHIVE_RE.match(n)}
     assert archives, "rename mode is no longer stranding the writer -- update this test"
-    assert outs[0] == [f"{archives.pop()} bounded to the {CAP_MB} MB cap (archive)"], outs
+    # DH.384: the archive trim now runs the SAME non-O_APPEND precondition as
+    # the base, so an apply whose /proc scan was incomplete ALSO says UNKNOWN --
+    # once per apply, and never as a refusal.
+    unknown = [o for o in outs[0] if "UNKNOWN" in o]
+    assert len(unknown) <= 1, outs[0]
+    assert [f"{archives.pop()} bounded to the {CAP_MB} MB cap (archive)"] == [
+        o for o in outs[0] if "UNKNOWN" not in o], outs[0]
+    assert not any("refused" in o for o in outs[0]), outs[0]
     assert outs[1:] == [[], []], outs
     cap = CAP_MB * 1024 * 1024
     assert all(v <= cap for v in recheck.values()), recheck

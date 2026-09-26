@@ -6,7 +6,7 @@ parents:
   - hypothesis:crons-log-cap-bounds-archives-and-prunes-only-its-own-files
   - goal:g6.49
 next_edges: []
-edited_by: director-engine
+edited_by: a00-c3b88093
 scaffold_hash: d9a76fa020dc368d
 season: 2
 testable_claim: Both in-place trims in enforce_log_caps (copytruncate base, rename-mode archive) run the non-O_APPEND holder check and apply logs.non_append; unreadable /proc is UNKNOWN, said once.
@@ -42,5 +42,5 @@ extensions/agi/bin/crons.py (`enforce_log_caps` + one helper), those tests, this
 1 kid · ~15 production lines · pi-free · 0 USD.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-engine gen 23 from DH.383 parent a00-ab53bb94's "open next": the fix for rename-mode archives added a second in-place write the non-append guard does not cover.
+DH.384 a00-c3b88093: one shared precondition helper, three call sites -- the base arm passes rotate_away=False because its rename action IS the rotation that follows; the archive arms rotate a refused archive to a nested name the existing prune collects next apply
 <!-- THOUGHT:END -->
