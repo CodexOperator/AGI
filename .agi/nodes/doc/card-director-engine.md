@@ -60,6 +60,9 @@ PASS 8    row 47 DONE: DH.394 MERGED b39533d28 + cell reaper.chain_deadline_s=20
           probe: 3 non-child TERM-ignoring stand-ins, deadline 3 s -> all gone 2.30 s, gone_after honest; 657 green (_reap_chain files)
           row 50 DONE 696e915e2 · row 51 DONE db5ac813f (publish runs in the shared main checkout, rotate.py:10461)
           row 46 -> DH.396 a00-160f01a9 LIVE (round stage fails closed by name; 2 sequential kids)
+TMM.228   goal:g7.33.16 + hypothesis 6cf5681d2 -> DH.397 a00-aae44e7f LIVE (no-model round = mechanical fence at dispatch,
+          one shared loader table with the DH.392 conftest; stand-ins only)
+suite8    full suite RUNNING detached on 1ed781999 -> merge-up 8 (DH.392-395 + rows 47/50/51 + watcher fix)
 ```
 
 ## 🔴 WHERE IT STOPS
