@@ -9,6 +9,7 @@ test still has its seam, in argv where it is visible.
 import importlib.util
 import json
 import os
+import sys
 from pathlib import Path
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
@@ -23,9 +24,23 @@ def _dispatch():
 
 
 def _model_slot():
-    spec = importlib.util.spec_from_file_location("ms_scrub", CTX / "model_slot.py")
-    m = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(m)
+    # model_slot.py does a bare `import paths` meaning ITS sibling
+    # (.agi/context/local-maxxing/paths.py). In a full suite another test may
+    # already have cached the ENGINE's bin/paths.py as sys.modules['paths']
+    # (test_paths_audit.py), and the bare import would take that one -- an
+    # order-dependent red (TMM.217). Load with the sibling first on sys.path and
+    # no cached 'paths', then restore both exactly, so neither module leaks.
+    saved = sys.modules.pop("paths", None)
+    sys.path.insert(0, str(CTX))
+    try:
+        spec = importlib.util.spec_from_file_location("ms_scrub", CTX / "model_slot.py")
+        m = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(m)
+    finally:
+        sys.path.remove(str(CTX))
+        sys.modules.pop("paths", None)
+        if saved is not None:
+            sys.modules["paths"] = saved
     return m
 
 
