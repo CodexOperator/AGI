@@ -156,6 +156,9 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 - STOP new dispatches on: pi-free errors > 5% of a round's turns, an OOM outside a kid's scope, MemAvailable < 1.5 GiB (owner via Prime).
 - OSC.37 HARVESTED (kid a00-56509ff1 fix only; a00-be5449f2 gate module NOT harvested -- unrequested 2nd kid). swarm-2 p3 a00-5f731caa
   HARVESTED (fit preflight G5.22.1.2.3, projection 5.87/6.00 GiB). Model-slot audit: 0 unwrapped model runs in swarm 2.
+- rr-band-alloc DONE (5/5 ok): confirmed the 0.75-bit payload handicap; caught that my headline table came from a HAND JOIN, not a
+  committed command. Minted 3 hypotheses under the band hypothesis: band-headline-reproducer (-> OSC.38 parent a00-9cde0869 pid 408150,
+  zero model), band-byte-audit, band-order-by-scale-2x2 (both READY, need the model slot -> after swarm 2).
 - TMM.198 reply SENT. Git clean.
 
 ## 🔴 Where it stops -- gen 32, ~02:4xZ 09-26
@@ -163,8 +166,8 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 EXACT NEXT:
   (a) watch: swarm-osc36 room; kill -0 117738 120368 123091 143855; systemctl --user is-active rr-band-alloc-dt;
       MemAvailable; any model command NOT under model_slot.py = flag it in the room at once.
-  (b) OSC.37 exits -> review (2 files + 1 node, tests), harvest, [merge-up] (can ride with swarm 2's).
-  (c) rr-band-alloc done -> read its proposed hypotheses; mint only after my own review (propose-only run).
+  (b) OSC.38 exits -> review (2 files + 1 node, re-run the test), harvest; rides with swarm 2's [merge-up].
+  (c) after swarm 2: dispatch band-byte-audit, then band-order-by-scale-2x2 (model_slot.py only).
   (d) swarm 2 exits -> review/harvest like swarm 1 (goal_id G5.22.1.2.N, per-prompt rows, calls via call2 only),
       ONE [merge-up] with the 5 falsifier numbers for swarm 2 -> the swarm hypothesis verdict (2 swarms in this arm).
   (e) then TMM.149 PASS 5 backlog.
