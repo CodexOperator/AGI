@@ -1,5 +1,12 @@
 ---
 name: goal
+# hypothesis:a-rounds-named-node-set-is-its-dispatch-time-ids-never-a-kid-supplied-parent
+# -- a round's `cli.py done` commit may never sweep a goal node. Declared HERE,
+# in a file a round may itself commit, because the equivalent `grid.round_commit`
+# cell in .agi/config.json is a path no round can ever commit (cli.py
+# `_round_scope_ok`), so in main that allowlist is fail-open. Read by
+# cli.py `_round_committable`.
+round_commit: false
 derived_from: corpus-survey-2026-08-25 (n=75, 100% field coverage on every required field)
 fields:
   title: {type: str}
