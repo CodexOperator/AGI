@@ -1,0 +1,39 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "thought-master",
+  "recorded_at": "2026-09-26T04:28:05.293925Z",
+  "result": "respawned",
+  "probable_cause": "unknown",
+  "succ_name": "thought-master",
+  "gen": 24,
+  "gen_after": 24,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "@2",
+  "pred_pids": [
+    1265192
+  ],
+  "row": {
+    "name": "thought-master",
+    "role": "director",
+    "model": "claude-opus-5-5",
+    "pid": 1265192,
+    "window": "@12",
+    "session_id": "2eee4f7e-a1f9-4df7-9b83-a2b5d216c178",
+    "generation": 23,
+    "worktree": ""
+  },
+  "respawn_outcome": {
+    "name": "thought-master",
+    "generation": 24,
+    "pid": null,
+    "window": "@2",
+    "reason": "",
+    "row": "config:seats row 'thought-master': session_ref= session_name= session_label=thought-master session_id= pid=None generation=24 window='@2' source=registry"
+  },
+  "after_join": {
+    "claimed_at": "2026-09-26T04:29:37.549546+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-26T04:28:05.293925Z"
+  }
+}
