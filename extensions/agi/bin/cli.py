@@ -2191,6 +2191,15 @@ def _round_committable(root: Path, nid: str) -> bool:
          (`_round_scope_ok` only refuses `.agi/config.json`, the quorum dir and
          foreign node files), so unlike (1) it survives into main; an explicit
          cell WINS over the config allowlist either way.
+      4. STRUCTURAL geometry, default DENY: a type whose own schema declares
+         `structural: true`, or whose node file resolves under a DOTTED
+         directory of `nodes/` (`.geometry/` and whatever sibling is minted
+         next), is never round-editable. This is the structural half of
+         (2)+(3) -- the seat table, the cadence table and the ladder live
+         there -- and it generalises: a NEW geometry type is denied by its
+         home and by its schema cell, with no name in this function
+         (DH.414 residue (b): `command:cmd-a`, `cron:crons`, `ladder:ladder`
+         all passed before this line).
     """
     ntype = nid.split(":", 1)[0]
     try:
@@ -2199,6 +2208,8 @@ def _round_committable(root: Path, nid: str) -> bool:
         if sdir.is_dir():
             sch = load_schemas_from_dir(sdir).get(ntype)
             if sch is not None:
+                if sch.frontmatter.get("structural") is True:
+                    return False
                 wb = links.parse_written_by(sch.frontmatter.get("written_by"))
                 if wb and not (wb - {"owner", "prime_director"}):
                     return False
@@ -2213,6 +2224,21 @@ def _round_committable(root: Path, nid: str) -> bool:
                     else:
                         return bool(cell)
     except Exception:  # noqa: BLE001 -- an unreadable schema gates nothing
+        pass
+    # The node's own home: a structural directory (`nodes/.geometry/`) holds the
+    # graph's furniture, not a round's work, and its single instance is named
+    # by its TYPE (`crons.md` is `cron:crons`). Dotted dir = structural, so a
+    # new geometry type is denied by WHERE it lives, with no name in this
+    # function and no dependence on the id index (which goes stale mid-run).
+    try:
+        nodes = Path(root) / "nodes"
+        slug = nid.split(":", 1)[1]
+        for d in nodes.iterdir():
+            if not (d.is_dir() and d.name.startswith(".")):
+                continue
+            if any(f.stem in (ntype, slug) for f in d.glob("*.md")):
+                return False
+    except OSError:
         pass
     try:
         cfg = json.loads((Path(root) / "config.json").read_text(encoding="utf-8"))

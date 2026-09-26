@@ -1979,6 +1979,44 @@ def test_round_commit_policy_lives_in_the_committed_schemas_not_in_config(tmp_pa
     assert not cli._round_committable(root, "town:local-maxxing")
 
 
+def test_geometry_types_are_never_round_committable(tmp_path):
+    """DH.414 residue (b): `[command]`, `[cron]` and `[ladder]` carry neither
+    `written_by` nor `round_commit`, so a round's `done` commit swept
+    `command:cmd-a`, `cron:crons` and `ladder:ladder` -- the seat table, the
+    cadence table and the ladder. STRUCTURAL, no type list in code: a type
+    whose own schema declares `structural: true`, OR whose node lives under a
+    dotted structural directory (`nodes/.geometry/`), is never round-editable
+    -- so a NEW geometry type minted with no cell is still denied."""
+    import json
+    import shutil
+    from pathlib import Path
+    cli = _load_cli()
+    src = Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas"
+    if not src.is_dir():
+        pytest.skip("no .agi/context/schemas in this checkout")
+    root = tmp_path / ".agi"
+    shutil.copytree(src, root / "context" / "schemas")
+    (root / "config.json").write_text(json.dumps({}))
+    # The measured residue, on the LIVE bytes.
+    assert not cli._round_committable(root, "command:cmd-a")
+    assert not cli._round_committable(root, "cron:crons")
+    assert not cli._round_committable(root, "ladder:ladder")
+    # Ordinary graph nodes are untouched.
+    assert cli._round_committable(root, "hypothesis:tgt")
+    assert cli._round_committable(root, "doc:goals-preamble")
+    # A NEW geometry type, no schema cell at all: denied by its DIRECTORY.
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nid: seats:cadence\ntype: seats\n---\n\nseats:\n  - a\n")
+    assert not cli._round_committable(root, "seats:cadence")
+    # ...and a NON-structural id under the same dir tree is not denied by the
+    # directory rule: it falls through to the ordinary gates.
+    (root / "nodes" / "experiment").mkdir(parents=True)
+    (root / "nodes" / "experiment" / "ok.md").write_text(
+        "---\nid: experiment:ok\ntype: experiment\n---\n\nbody\n")
+    assert cli._round_committable(root, "experiment:ok")
+
+
 def test_own_node_paths_drops_a_named_goal_and_keeps_the_target(tmp_path):
     import json
     cli = _load_cli()
