@@ -53,7 +53,9 @@ HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. T
 ## 🔴 WHERE IT STOPS
 ```
 NEXT   merge-up 10 LANDED 7610dd2e5. TMM.238 answered: goal:g7.33.17 (13 OWED rows, one round each, model-free) d4b33ced4
-       -> dispatch row by row (<= 2 live) while PASS 9 holds the model work (claim + falsifiers; SM.105 slice isolation kept; commit parent leftovers;
+       LIVE: DH.401 a00-defed990 (row 8, stops-slot fence) · DH.402 a00-93f85735 (row 6, restart admission bound).
+       orders: re-verify vs TODAY's bytes first (09-24 defects, 0 experiments); if no longer reproducible, prove THAT
+       next rows after these: 1,2,3,4,5,7 (existing hypotheses) -> 9 CMP.02 (pinned design) -> 10,11,13 (re-read) -> 12 on TM GO (claim + falsifiers; SM.105 slice isolation kept; commit parent leftovers;
        merge --no-ff; test_workflow*) -> full suite (detached is fine now) -> [merge-up] 10 = DH.398 + DH.399 + DH.400 + TMM.237 fixes;
        config:workflows rows = OPTIONAL listing ask for the Prime (both manifests run without them)
 THEN   when PASS 9 closes (TM/Prime says so): HOLD items (a) + (b) above, fixture rule in orders
