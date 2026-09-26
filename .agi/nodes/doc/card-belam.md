@@ -21,45 +21,44 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 8 closed; two calls in it. (A) Killing reviewer greps. (1) Said: crons section 2 (3) "ONE Monitor on its events.log"; TM's rule "while io PSI stays high: hold, add no load". (2) Machine: a chunk-1 reviewer's `grep -rln ... .agi/` walked .agi/worktrees/ (101 checkouts) in a 4G pi scope: 3.98 GiB (3.7 inactive file), io some avg60 36%, user@ app.slice 33.6%, every other cgroup ~0; the kill took avg10 38% -> 4% in 20 s; monitor.sh then killed 3 more at io60 >= 25, and all 60 stages still returned (0 failed). (3) Near miss: holding (CAP 0) obeys "add no load" and leaves the stall running, because the load is a grep already inside a launched chunk. (4) Deviation: a reviewer's tool call killed -- scoped to recursive grep/rg/find over .agi/ or the root, only above io60 25. (B) DE's order puts brief.py first: brief.py:2371-2375 joins root/ref unchecked, so context/../../.env reaches the MAIN-root .env and a brief goes to a model provider; listing memory_alarm first (the only red) would leave that path behind a test-list fix.
+The 08:4xZ CHECK decided two asks. (A) DE's 2c: GO for `claude rm 5861181b` only. (1) Said: CLAUDE.md "authority never covers an irreversible or destructive operation outside the loop's own commits"; the owner's 2c (01:0xZ) "the app lists only live sessions". (2) Machine (DE, read-only `claude agents --json --all`): 5861181b is an exited --bg "throwaway probe" whose cwd is kid worktree a00-5aaa03c7 -- a session the loop created (TMM.202: kids never launch claude); `claude rm` works on exited --bg sessions only. (3) Near miss: banking all of 2c leaves the owner's own ask undone for the loop's own artifact; deleting 710907bf too meets "only live sessions" and destroys what is likely the owner's own session. (4) The rule guards the owner's things; this is the owner-requested end state applied to the loop's own artifact -- 710907bf + the app rows stay banked. (B) TM's model-loading GO carries a user@ condition: kid spawns land in user@ app.slice via systemd-run --user (workflow.py:1771-1772), high 5246M with DE's seat and the alarms inside; "quiet town" read as box MemAvailable 10.4 GiB says yes to a 4.7 GB load that crosses user@'s high.
 <!-- THOUGHT:END -->
 
-## §0 State (07:4xZ 09-26)
+## §0 State (08:4xZ 09-26)
 | | |
 |---|---|
-| post | belam-S2-L5-IX gen 9 · woke 05:4xZ · Opus 5.5 · pid 1216418 (session-73.scope) · meter 0.26 at 07:4xZ · gen 8 pid 100337 idle, alive |
+| post | belam-S2-L5-IX gen 9 · woke 05:4xZ · Opus 5.5 · pid 1216418 (session-73.scope) · meter 0.33 at 08:4xZ · gen 8 pid 100337 idle, alive |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` (clean, = season2/main e55816f35b) · tz UTC · stream DOWN |
-| GUARD | user@1000 high 5246M / max 5829M · a pi stage ~210 MiB · DE + gen 8 + remote-control INSIDE; belam gen 9, TM 346048, DT 348635 in session-73.scope OUTSIDE (§6) |
-| io | PASS 8's stalls were reviewer greps over .agi/ (101 worktrees): 4 killed; io PSI ~2% after · 101 worktrees = DE's 2c |
-| TOWN | DE gen 23 · TM gen 24 · DT gen 33 · SM DOWN (owner's go) · 4 kid-worktree suite locks are pre-reboot dead pids |
-| merge | **PASS 8 CLOSED 07:37Z** · season2/main 78a0d4b08b -> e55816f35b (tree == TIP a288a071df, pushed) · local-maxxing/main -> a288a071df (ff, pushed) · 30 rounds: 28 accept_with_residue · 2 demote · 0 RED · grid committed in prime-root · state file: last_merged a288a071df, pass fields null |
-| residues | hypothesis:pass8-0926-residue-batch (goal:g1) + 5 code defects -> DE ([decision] 07:3xZ): brief extras escape · memory_alarm CLI + log cap · crons archive cap · term-grace real-process test · heal unparsable bound · research rows -> TM -> DT ([merge-up] 07:4xZ) |
-| crons | CHECK fc879bab "13 */4" (next 08:13Z), POINTER to `.agi/sessions/prime-merge.crons.md` section 1 · section 2 = the PASS 9 procedure (not yet noticed) |
+| GUARD | user@1000 high 5246M / max 5829M · a pi stage ~210 MiB · DE + gen 8 + remote-control INSIDE; belam gen 9, TM, DT in session-73.scope OUTSIDE (§6) |
+| TOWN | DE gen 23 · TM gen 25 (rotated ~08:0xZ) · DT gen 33 · SM DOWN (owner's go) · 4 kid-worktree suite locks are pre-reboot dead pids |
+| merge | PASS 8 CLOSED 07:37Z: season2/main e55816f35b · local-maxxing/main a288a071df · b89c72454 PUSHED by TM · research rows landed 49e8cd268 (TM: TMM.210) · **PASS 9 NOTICED 08:45Z, run_at 13:47Z** (one-shot b0761a73): trunk a288a071df -> 052e8991c7 · 124 commits · 56 exp · 24 engine paths |
+| decisions 08:4xZ | TM: model-loading GO -- one at a time via model_slot, floor = peak + 2 GiB, WARN = stop, inside user@ peak + hard under high - 512 MiB, no new load 13:30Z until PASS 9 closes · DE 2c: GO claude rm 5861181b only + the kid-session reap verb (dry-run default) |
+| crons | CHECK fc879bab "13 */4" (next 12:13Z) · PASS 9 one-shot b0761a73 "47 13 26 9 *" · both POINTER prompts to `.agi/sessions/prime-merge.crons.md` sections 1/2 |
 | spend | credits 13.75 USD · PASS 8 0 USD |
-| branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` (b89c72454 + a288a071df unpushed there: TM's) · belam keeps `local-maxxing/main` + `season2/main` |
+| branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
 
 ## §1 Plan
 ```
-done   PASS 8 steps 0-8 · trunk sync a288a071df · season2/main e55816f35b · local-maxxing/main a288a071df · batch + 5 defects -> DE · [merge-up] -> TM · crons section 2 -> PASS 9
-next   the 08:13Z CHECK (quiet; notice PASS 9 only when new experiments land past a288a071df) · judge DE/DT merge-ups (swarm arms vs their last 5 single-parent rounds)
+done   PASS 8 (0-9) · 08:4xZ CHECK: 4 dms, 2 decisions, PASS 9 notice + one-shot
+next   the 12:13Z CHECK · PASS 9 at 13:47Z (meter > 0.38 then: ROTATE FIRST, the successor runs it under case d) · judge DE/DT merge-ups
 open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 ```
 
 ## §2 Landed (this seat)
-a288a071df trunk sync (78a0d4b08b key row) · e55816f35b PASS 8 merge (season2/main) · local-maxxing/main ff to a288a071df · b89c72454 residue batch + 5 defect hypotheses + board note · fc977e543 / f089b7e71 card
+a288a071df trunk sync · e55816f35b PASS 8 merge (season2/main) · local-maxxing/main ff a288a071df · b89c72454 residue batch + 5 defect hypotheses + board note · card commits
 
 ## 🔴 Where it stops
-07:4xZ 09-26 belam-S2-L5-IX: PASS 8 CLOSED at e55816f35b; nothing running; the CHECK at 08:13Z is next.
+08:4xZ 09-26 belam-S2-L5-IX: idle after the CHECK; PASS 9 noticed for 13:47Z (one-shot b0761a73); the 12:13Z CHECK is next.
 ```
- 1. CHECK (cron fc879bab, pointer to crons section 1): read dms newer than .agi/sessions/belam.lastcheck (05:xxZ, stamped by this seat), answer only what needs the Prime.
- 2. PASS 9: the CHECK's case (b) sends the 5 h notice when experiments land past a288a071df; the procedure is crons section 2 (copy /tmp/belam-pass8 -> pass9).
- 3. Watch DE's [decision] queue: 2c first, then brief-extras-escape, memory_alarm red, crons cap, term-grace test, heal bound.
+ 1. CHECK (fc879bab -> crons section 1): dms newer than .agi/sessions/belam.lastcheck (08:43Z); the inbox FILE is .agi/sessions/inbox/belam.md.
+ 2. PASS 9 (b0761a73 -> crons section 2): copy /tmp/belam-pass8 -> /tmp/belam-pass9, retarget BASE a288a071df + p9 prefixes; PER=2, CAP 3, ONE Monitor = bash monitor.sh.
+ 3. A successor whose wake is past 13:47Z: re-arm the CHECK, run PASS 9 under case (d) unless the state file carries pass_started_at; re-link the quorum card (trap 10).
 ```
 
 ## §4 Traps
 | # | trap | rule |
 |---|---|---|
-| 1 | quiet row: dms may sit in logs | `send.py read belam`; the inbox file is `.agi/sessions/inbox/belam.md` |
+| 1 | quiet row: dms may sit in logs | `send.py read belam`; the inbox FILE `.agi/sessions/inbox/belam.md` holds them all |
 | 2 | rotate-out takes the slot's FIRST LINE as its commit subject, re-fences the slot | first slot line = plain text |
 | 3 | the grid cron versions an UNCOMMITTED node within minutes | a fresh node is retired + moved, never deleted |
 | 5 | a merge-up-review stage hangs on rotate test files (tty) | build.py drops `tests/*rotate*` |
@@ -80,8 +79,7 @@ a288a071df trunk sync (78a0d4b08b key row) · e55816f35b PASS 8 merge (season2/m
 | 30 | after a reboot heal re-spawns SOME seats | `reseat.py` from MAIN (transcript 82d56d5d); it seats into the caller's scope (session-73: outside user@) |
 | 31 | resolve.py enforces the directors' model cells in a posts.md conflict | claude-opus-5-5 / medium (owner 09-26) |
 | 33 | launch.sh CAP counts CHUNKS; a chunk runs its rounds in parallel (1 pi each, ~210 MiB, in user@ app.slice) | PER x CAP <= 6 pi; gate on user@ hard, not MemAvailable |
-| 34 | `pgrep -f 'workflow.py run'` matches seat wrappers (their prompts carry it) | anchor: `pgrep -f '^(/usr/bin/)?python3 .*bin/workflow.py run'` |
-| 35 | foreground `sleep` is blocked in Bash | Monitor with an until-loop, or run_in_background |
+| 34 | `pgrep -f 'workflow.py run'` matches seat wrappers; foreground `sleep` is blocked | anchor the pattern; wait with Monitor / run_in_background |
 | 36 | a reviewer's `grep -r` over `.agi/` walks ~100 worktrees: 4G of cache, the box io-stalls | the focus text alone does not stop it; monitor.sh kills it at io60 >= 25 |
 | 37 | `grid.py commit --all` in prime-root can leave an evidence-gate demotion dirty in the tree | step 5's merge refuses: save the patch, restore the file, merge |
 | 38 | verify `verdicts[]` rules on the FIRST reviewer's defects (refuted true/false) + `missed[]` | a residue table reads verify, never the review list alone (PASS 8: 59 of 153 refuted) |
@@ -93,6 +91,7 @@ a288a071df trunk sync (78a0d4b08b key row) · e55816f35b PASS 8 merge (season2/m
 | item | recommendation |
 |---|---|
 | 3 of 5 seats sit in session-73.scope, outside user@'s 5829M cap (measured 05:57Z) | spawn seats via `systemd-run --user --scope` (the tmux-spawn path), or cap user-1000.slice -- the owner's guard, the owner's call |
+| 2c leftovers (DE 07:39Z): exited session 710907bf "agi role orchestration setup" (cwd repo root, likely yours) + ~20 "Remote Control · offline" app rows (no CLI verb) | `claude rm 710907bf` if it is yours to drop; the app rows only from the app UI |
 | stream-master's seat after the power cycle | re-seat only on the owner's explicit go (stream down) |
 | the owner chain rule keeps an idle predecessor per rotation (~0.35 GiB each; gen 8 inside user@) | reap idle predecessors while the guard caps user@? the owner's call |
 | the origin remote moved (every push prints the new location) | `git remote set-url origin <new>` -- the owner's call |
