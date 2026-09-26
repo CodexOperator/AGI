@@ -7915,18 +7915,12 @@ the same absence (TMM.183, 2026-09-25 23:0xZ) and named this the right home for 
   (config.json's `root`, or the `.json` templates it feeds), not scattered N times.
 
 ## Falsifier
-1. `grep -rn '/home/ubuntu/work/agi' extensions/ .claude/ .agi/config.json` returns 0 hits,
-   EXCEPT lines in test_workflow.py, test_unify.py, test_workflow_template_seam_js.py and
-   test_workflow_template_seam_json.py that assert the literal's ABSENCE as a negative fixture
-   -- those files must keep the string to test for it. A hit anywhere else is real; a hit only
-   in these files, only as an asserted-absent string, is the guard working, not a miss.
+1. `grep -rn '/home/ubuntu/work/agi' extensions/ .claude/ .agi/config.json` returns 0 hits (or
+   only hits inside a historical comment/changelog explicitly marked as such).
 2. A fresh `workflow.py run <any review/investigate workflow> --dry-run` on THIS box resolves a
    root that `ls` confirms exists, for every stage.
-3. `env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/ -q` passes with no NEW
-   failure attributable to this goal's own changes (no template or config change should touch
-   dispatch.py's own root resolution). Run from a dispatched agent shell specifically,
-   `test_dispatch_forward_env.py` can fail on an inherited `TYPESAFE_KEY` -- environmental, not
-   this goal's; run with that var absent, as this repo's own suite invocation already does.
+3. `python3 -m pytest extensions/agi/tests/ -q` still passes in full after the fix (no template
+   or config change should touch dispatch.py's own root resolution).
 
 ## Out of scope
 - Actually re-running either DH.360's or DH.362's merge-up-review mur -- owed after this lands,
