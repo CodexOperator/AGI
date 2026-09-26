@@ -8028,7 +8028,7 @@ each row becomes its own round (and its own sub-leaf if it grows) when it is dis
 ## Who
 director-engine (engine leaf of g7.33). Model-free rounds; one row per round.
 
-#### G7.33.18 — ONE BOX MEMORY-GUARD KIT -- every box that runs seats carries local-town's memory-watch stack, sized to its own RAM, installed from the repo (the owner's other-box ask; assigned director-engine) — status: active
+#### G7.33.18 — HELD (OWNER 21:1xZ via the Prime): ONE BOX MEMORY-GUARD KIT -- every box that runs seats carries local-town's memory-watch stack, sized to its own RAM, installed from the repo (assigned director-engine) — status: active
 
 # goal:g7.33.18
 
