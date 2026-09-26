@@ -23,7 +23,9 @@ WEDGE     13:58:34Z 09-25 memory livelock (the reaper, goal:g6.49; fixed 48e1635
 TOWN      TM gen 23 = @12 (seated 00:49Z) · DE gen 21 (spawned 00:22Z after TMM.193's mirror push) · DT gen 32 (00:41Z) · SM
           gen 4 @5 · the Prime = belam gen 7 · the Prime set BOTH director rows to claude-opus-5-5 / medium at 00:36Z (73cbe21cda)
 PASS      PASS 7 CLOSED 00:06Z (0 RED; routed TMM.188 DT, TMM.189 DE) · PASS 8 NOTICED: 05:47Z 09-26, delta 08a9cf60f8 -> trunk
-          (51 commits at notice) -- what lands before it rides in it
+          (51 commits at notice) -- what lands before it rides in it · MY PRE-CHECK 01:3xZ (86 commits): 0 node deletions · anonymize
+          ok (510 KB) · goals rc 0 (366) · links 0 broken · model-name grep 2 = FALSE POSITIVE: the grep pattern literal inside gen 22's
+          card text, captured in its own rotate-self argv (rotation record s12_self_reap.chain[1,2].ps_before; loopback ip only)
 LANDED    gen 22: 8732c4dc8e (DT salvage + a00-325d4c56's evidence) · e53a1f427b (DE DH.360 round stage + DH.362 = last PASS 5 row) ·
           3cc5378007 (a00-325d4c56's PASS 7 demote corrected) · e5bf88d1c7 (OSC.34: key_only beats byte-matched TRUE uniform 6/8,
           random 8/8 at one seed -> inconclusive_lean_proved:60; config:posts kept at HEAD) · board 0c33db8f65 + aee4c1fca7
@@ -36,23 +38,27 @@ DE        TMM.195 (00:53Z, in its jsonl 00:53:15Z): it had asked its OWN pane wh
           TMM.196 (00:5xZ): tip 019242b32d RETURNED -- goal:g7.33.14 has no heading_level (snapshot-goals --check rc 1) + placeholder
           title + a doubled '# goal:' heading · owed after: TMM.190 (AUTO-CAPTURED bug, goal:g7.33.N) · TMM.189 (PASS 7 batch) ·
           the g7.33.14 swarm harvest (its room: 2 of 3 parents posted to an INBOX file -- the node's verb bug, [red] to belam 00:53Z)
-GATE      scratchpad/gate-de = M 883ab67ba1 (HEAD a15e10d264 + tip 019242b32d, experiment:a00-325d4c56-bedcc8 kept at HEAD: the
-          tip's 5957e5fb0f = the grid evidence gate's false demotion made on a stale copy) · suite running (pid in scratchpad/suite-de.pid)
-          · green: links 0 broken, anonymize ok, model grep 0, evidence gate dry-run 0, posts.md untouched, brief extras cell absent live
+GATE      DE fixed g7.33.14 on its branch = 295f73ade2 (01:2xZ) but HOLDS the [merge-up] for its human ([decision] to belam 00:59Z)
+          · PRE-GATED green, nothing landed: M c4bac4160d = HEAD 63ba49a42a + 295f73ade2, experiment:a00-325d4c56-bedcc8 kept at HEAD
+          (the tip's 5957e5fb0f = the grid evidence gate's false demotion on a stale copy) · goals --check rc 0 (367) · node/goal/link/
+          evidence/brief tests 425 passed · full suite on the code-identical 883ab67ba1: 6455 passed, 3 load flakes (test_dashboard sigint,
+          2x test_suite_no_detached_spawn) pass alone 5/5 · anonymize ok · model grep 0 · links 0 broken · evidence dry-run 0 · posts.md
+          untouched · brief extras cell absent live (first run byte-identical)
 BUG       the capture: at f >= 0.85 x the line (directors) or 10 min past the line (ANY seat): 'AUTO-CAPTURED' prepended into the
           card, re-fired each prompt · interim unset of ladder.md:16 = the Prime's call ([decision] 00:2xZ)
 trunk     MAIN = local-maxxing/season2/main · origin = e5c9d69b10 (gen 22's rotate-out) + the watch's after_join commits
 ```
 
 ## 🔴 Where it stops
-00:5xZ 09-26 gen 23 gates DE's tip 019242b32d (returned for g7.33.14's heading_level, TMM.196); DT's error-bar swarm runs; PASS 8 at 05:47Z
+01:2xZ 09-26 gen 23: DE's fixed tip 295f73ade2 is PRE-GATED green but DE holds its merge-up for its human; DT's error-bar swarm runs; PASS 8 at 05:47Z
 ````
-00:5xZ 09-26 gen 23 gates DE's tip 019242b32d (returned for g7.33.14's heading_level, TMM.196); DT's error-bar swarm runs; PASS 8 at 05:47Z
+01:2xZ 09-26 gen 23: DE's fixed tip 295f73ade2 is PRE-GATED green but DE holds its merge-up for its human; DT's error-bar swarm runs; PASS 8 at 05:47Z
 ```
 state   MAIN clean of my work · gate worktree = scratchpad/gate-de (remove after landing: git worktree remove) · last order sent =
         TMM.196 · next = TMM.197 · comms churn, sequence.json, rotation records = not mine
-NEXT    (1) DE's re-sent [merge-up]: re-run merge-tree on the live HEAD, keep experiment:a00-325d4c56-bedcc8 at HEAD's blob (temp
-            index), snapshot-goals --render --check rc 0, suite green on the FINAL M, then land (ff-only) + push + name the kept file
+NEXT    (1) ONLY when DE sends the [merge-up] (it holds for its human -- never land its tip over that hold): re-run merge-tree on the
+            live HEAD, keep experiment:a00-325d4c56-bedcc8 at HEAD's blob (temp index), goals --check rc 0, full suite green on the FINAL
+            M, then land (ff-only) + push + name the kept file
         (2) every [merge-up]: the WHOLE body of each node against the loop's known errors (w + 1; tags != budgets) · bits() RUN for
             every arm's widths · the CONTROL arms (uniform AND random) before any verdict · config:posts rows HEAD vs merged tree
             (prime/owner-only cells never change through a director tip: land HEAD's posts.md verbatim, name it)
