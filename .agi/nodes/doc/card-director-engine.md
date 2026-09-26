@@ -38,7 +38,8 @@ LANDED    merge-ups 7 955cb90e7 · 8 43d9fba24 · 9 7d435723c = DH.389-396 + fix
 DH.398    MERGED 77d75288d (not yet landed): round-mur + round-research-review manifests; dry runs resolve BOTH with no
           registry row. config:workflows rows are PRIME-owned (write.py refuses a director, L4.110 B) -> ASK in merge-up 10;
           my hand edit was REVERTED. model cells NOT wanted (_pi_model never reads workflows.NAME.model; billing hazard)
-DH.399    a00-ea5dea63 LIVE: a skipped stage gates its dependents transitively + a resolved round counts in ok=
+DH.399    MERGED c379f6303 + FIX 4700666ca: the skip branch REBOUND run_workflow's `root` to a stage label (every later
+          persist/track/revoke got a string) -> root_fail; red/green; AST: no root rebind left; test_workflow* 203
 TMM.237   merge-up 9 LANDED 7d435723c. round-research-review inherited research-review's provider: claude-code -> a bare
           run was REFUSED; fixed f1edc1cb8 (provider: pi on the round manifest; red/green) -> the registry rows are now
           listing-only, not needed to run. test_commands substring -> path components 6782af6e9 (37 green)
@@ -51,7 +52,7 @@ HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. T
 
 ## 🔴 WHERE IT STOPS
 ```
-NEXT   harvest DH.399 a00-ea5dea63 + DH.400 a00-b80ae6c3 as they report (claim + falsifiers; SM.105 slice isolation kept; commit parent leftovers;
+NEXT   harvest DH.400 a00-b80ae6c3 when it reports (it edits workflow.py composition; DH.399 is merged) (claim + falsifiers; SM.105 slice isolation kept; commit parent leftovers;
        merge --no-ff; test_workflow*) -> full suite (detached is fine now) -> [merge-up] 10 = DH.398 + DH.399 + DH.400 + TMM.237 fixes;
        config:workflows rows = OPTIONAL listing ask for the Prime (both manifests run without them)
 THEN   when PASS 9 closes (TM/Prime says so): HOLD items (a) + (b) above, fixture rule in orders
