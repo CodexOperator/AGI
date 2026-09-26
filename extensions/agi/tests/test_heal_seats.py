@@ -411,3 +411,81 @@ def test_pinned_session_pid_gone_still_dead_respawns(graph):
     assert len(acted) == 1 and acted[0]["respawned"] is True
     assert len(spawns) == 1, "a genuinely dead seat is still respawned"
     assert _crash_records(graph, "seat-a"), "recorded as respawned"
+
+
+# ---------------------------------------------------------------------------
+# (c) AN @id ALONE IS NOT LIVENESS (hypothesis:heal-lands-a-reseat-after-a-
+# tmux-server-restart). A tmux server restart re-issues window ids from @0, so
+# a corpse's pre-reboot @id can name ANOTHER seat's live window. F1: that
+# collision must read DEAD. F2: a LIVE seat must never be recovered -- the
+# discriminating test, because the seat's own pane is a `sh` wrapper whose
+# pid is nobody's row pid and whose chain holds no OTHER row's pid.
+# ---------------------------------------------------------------------------
+def _fake_chain(monkeypatch, mapping):
+    """Patch rotate's `_descendant_chain` to a fixed {pane_pid: [pids]} map."""
+    import rotate as _rot
+    orig = _rot._descendant_chain
+    monkeypatch.setattr(
+        _rot, "_descendant_chain",
+        lambda pane_pid: list(mapping.get(int(pane_pid), [])))
+    return orig
+
+
+def test_f1_collision_id_names_another_seats_window_reads_dead(
+        graph, monkeypatch):
+    """F1: corpse seat-a's row @3 is now seat-b's LIVE window (its agent 901
+    runs under that pane). The @id cannot vouch for seat-a: it is recovered."""
+    _write_seats(graph, [{"name": "seat-a", "pid": 999999, "window": "@3",
+                          "generation": 3},
+                         {"name": "seat-b", "pid": 901, "window": "@5",
+                          "generation": 3}])
+    wf = graph / "windows.collide.txt"
+    wf.write_text("@5 seat-b 900\n@3 reused 900\n", encoding="utf-8")
+    _fake_chain(monkeypatch, {900: [900, 901]})
+    spawns: list = []
+    acted = heal._watch_seats(
+        graph, pid_alive=lambda pid: pid == 901, window_path=str(wf),
+        launcher=_fake_launcher(spawns))
+    assert [s["name"] for s in spawns] == ["seat-a"], \
+        "the colliding @id does not vouch for the corpse (F1)"
+    assert acted and acted[0].get("respawned") is True
+
+
+def test_f2_live_seat_under_a_wrapper_pane_is_never_recovered(
+        graph, monkeypatch):
+    """F2: seat-a IS RUNNING -- its window's pane is a `sh` wrapper (900) whose
+    chain holds the live agent 777, which is NO row's pid, while the row's own
+    pid is stale and gone. Nothing is proved, so nothing is killed."""
+    _write_seats(graph, [{"name": "seat-a", "pid": 999999, "window": "@7",
+                          "generation": 3},
+                         {"name": "seat-b", "pid": 901, "window": "@5",
+                          "generation": 3}])
+    wf = graph / "windows.live2.txt"
+    wf.write_text("@5 seat-b 800\n@7 seat-a 900\n", encoding="utf-8")
+    _fake_chain(monkeypatch, {800: [800, 901], 900: [900, 777]})
+    spawns: list = []
+    acted = heal._watch_seats(
+        graph, pid_alive=lambda pid: pid in (777, 901), window_path=str(wf),
+        launcher=_fake_launcher(spawns))
+    assert spawns == [], "a LIVE seat is never re-seated (F2)"
+    assert acted == [], "nothing done: the chain proves nothing"
+
+
+def test_unknown_pane_keeps_the_id_decision(graph, monkeypatch):
+    """A pane pid the server cannot report (0) is UNKNOWN, not a corpse: the
+    @id decision stands, so a silent tmux never costs a live seat."""
+    row = {"name": "seat-a", "pid": 111, "window": "@7"}
+    monkeypatch.setattr(heal, "_pane_pid_of", lambda wid, wp=None: 0)
+    import rotate as _rot
+    assert heal._window_present(row, [("@7", "seat-a")], window_path="x",
+                                rows=[row], _rotate=_rot)[0] is True
+
+
+def test_pane_pid_seam_reads_the_third_field(graph, monkeypatch):
+    """The AGI_WINDOW_PATH seam carries `@<N> <name> <pane_pid>`; a two-field
+    line (every pre-existing fixture) reads UNKNOWN, never a guess."""
+    wf = graph / "windows.seam.txt"
+    wf.write_text("@7 seat-a 900\n@8 seat-b\n", encoding="utf-8")
+    assert heal._pane_pid_of("@7", str(wf)) == 900
+    assert heal._pane_pid_of("@8", str(wf)) == 0
+    assert heal._pane_pid_of("@9", str(wf)) == 0

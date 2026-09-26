@@ -1950,8 +1950,37 @@ def _all_windows(window_path: str | None = None) -> list[tuple[str, str]]:
     return []
 
 
-def _window_present(row: dict,
-                    windows: list[tuple[str, str]]) -> tuple[bool, bool]:
+def _pane_pid_of(win_id: str, window_path: str | None = None) -> int:
+    """Pane pid of `win_id`, or 0 = UNKNOWN (never "the pane is dead"). The
+    `AGI_WINDOW_PATH` seam may carry a third field on its `@<N> <name>
+    <pane_pid>` line; else `tmux display-message -p -t <id> #{pane_pid}`.
+    A server that cannot answer yields 0, and 0 keeps the @id decision."""
+    if window_path is None:
+        window_path = os.environ.get(WINDOW_PATH_ENV)
+    if window_path:
+        p = Path(window_path)
+        if not p.exists():
+            return 0
+        for ln in p.read_text(encoding="utf-8").splitlines():
+            parts = ln.strip().partition(" ")[2].split()
+            if ln.strip().partition(" ")[0].strip() == win_id and len(parts) > 1 \
+                    and parts[1].isdigit():
+                return int(parts[1])
+        return 0
+    try:
+        res = subprocess.run(
+            ["tmux", "display-message", "-p", "-t", win_id, "#{pane_pid}"],
+            capture_output=True, text=True, timeout=5)
+        if res.returncode == 0 and res.stdout.strip().isdigit():
+            return int(res.stdout.strip())
+    except Exception:  # noqa: BLE001 — tmux absent/down: UNKNOWN
+        pass
+    return 0
+
+
+def _window_present(row: dict, windows: list[tuple[str, str]], *,
+                    window_path: str | None = None, rows=None,
+                    _rotate=None) -> tuple[bool, bool]:
     """(1b) the row's `window` @id is present in tmux. Returns
     `(id_present, False)` — the second cell is the DELETED (1c) name-lineage
     check, kept in the tuple shape so callers/tests read unchanged.
@@ -1972,6 +2001,31 @@ def _window_present(row: dict,
     win_id = (row.get("window") or "").strip()
     id_present = bool(win_id) and any(
         w == win_id for (w, _n) in windows)
+    if not id_present:
+        return False, False
+    # (c) AN @id ALONE IS NOT LIVENESS. A tmux server restart re-issues window
+    # ids from @0, so a corpse's pre-reboot @id can name ANOTHER seat's live
+    # window (measured: director-thought @3 = director-engine's new @3). The
+    # @id must be VOUCHED by the window's PANE: whose registered pids run
+    # under it (`#{pane_pid}` + its descendants -- the same chain heal already
+    # uses for the reap). A chain carrying ANOTHER seat row's pid is a
+    # POSITIVE fact: that window is provably somebody else's. UNKNOWN pane (0)
+    # or an empty/unreadable chain KEEPS the @id decision, because a seat
+    # launched as `cd tree && sh file` is a DESCENDANT of the pane, so a chain
+    # holding no row pid proves nothing -- and killing a RUNNING seat whose row
+    # is stale (F2) is the worse error. PRIME XI still stands: no window-NAME
+    # test, ever.
+    row_pid = int(row.get("pid") or 0)
+    pane = _pane_pid_of(win_id, window_path)
+    if pane <= 0 or _rotate is None:
+        return id_present, False
+    chain = set(_rotate._descendant_chain(pane) or [])
+    if not chain:
+        return id_present, False  # UNREADABLE process table: @id stands
+    others = {int(r.get("pid") or 0) for r in (rows or [])
+              if (r.get("name") or "").strip() != (row.get("name") or "").strip()}
+    if chain & (others - {row_pid}):
+        return False, False  # provably ANOTHER seat's window
     return id_present, False
 
 
@@ -3082,7 +3136,7 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
                     _rotate, *, now: float | None = None,
                     pid_alive=None, window_path: str | None = None,
                     launcher=None, pin_table=None, seat_sessions=None,
-                    registry_dir: str | None = None) -> dict:
+                    rows=None, registry_dir: str | None = None) -> dict:
     """Decide DEAD for one seat row; NAME it once; then, if the seat is
     recoverable, RESPAWN it through its existing spawn path, write its row, dm
     the holder + Sensei, and record the crash-recovery OUTCOME once. Returns an
@@ -3113,7 +3167,10 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
     # (1b) the LIVE-FIRST row's window @id is gone from tmux. (1c), the
     # window-name lineage, is DELETED (prime XI ruling 19:38Z: a name is not
     # an address; see _window_present).
-    id_present, _named = _window_present(row, windows)
+    # @id alone is not liveness (conjunct c): the pane chain must vouch.
+    id_present, _named = _window_present(row, windows,
+                                         window_path=window_path,
+                                         rows=rows, _rotate=_rotate)
     if id_present:
         return {}
     # LIVENESS BEFORE DEATH (L4.292): a seat whose pin leases a live registry
@@ -3233,7 +3290,8 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
         summary = _watch_one_seat(root, row, windows, _rotate,
                                   now=now, pid_alive=pid_alive,
                                   window_path=window_path, launcher=launcher,
-                                  pin_table=pins, seat_sessions=seat_sess)
+                                  pin_table=pins, seat_sessions=seat_sess,
+                                  rows=rows)
         if summary:
             acted.append(summary)
     _watch_log(f"watch: seat-dead scan over {len(pid_rows)} configured pid "
