@@ -78,8 +78,12 @@ rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing
            merged kid 1 before dispatching kid 2 -- same trap as DH.370/376). OWED: its 3 test files after the suite frees the lock
   DH.380   MERGED 7448e90e3 (2): memory_alarm declared (trunk red GREEN), alerts log moved INTO capped ~/logs as logs.alerts_file (was ~/logs/
            sanctuary-guard/alerts.log -- a behaviour change on the Prime's tool: SAY SO in the merge-up); residue commands.md + cell -> DE bfe212fd2; 333 green
-  DH.383   a00-ab53bb94  (3) crons log cap bounds archives + prunes only its own files -- my 07438507d FOLDED in via orders (not a separate round);
-           orders: 'own files' MUST include logs.alerts_file (DH.380)
+  DH.383   MERGED 5631482ee (3) + my 07438507d fold: archives bounded in BOTH modes, declared names only (cron log, alerts_file, also_manage),
+           non_append=skip; kid1 597143ad lean_disproved:70 (rename archive 2 MB > cap), kid2 945d7ae4 lean_proved:80; 166 green.
+           config cells committed by DE (rounds CANNOT commit .agi/config.json: cli.py:2094 by design -- the cause of every 'uncommitted config' residue).
+           residue: also_manage names agi-reaper-agi-2f118e6f.log = a box-hashed name in git-shared config (same SM.125 per-box question)
+  DH.384   a00-3b8cfcdc  hypothesis:every-in-place-log-trim-refuses-a-non-append-holder (DH.383 open-next: rename-arm trim unguarded)
+  NEXT     after DH.384: merge-up 5 = DH.383 + DH.384 (suite first) -- NOT YET SENT
   suite    full suite GREEN on 7448e90e3: 6582 passed / 0 failed (conftest changed by DH.381); DH.382 after it 59/59
 merge-up 4 SENT tip 91177caa1: DH.377-382 + PASS 8 rows (first send claimed '0 behind' while 2 behind -> CORRECTED by dm)
   rows     DONE 286272925: DEMOTE DH.369 exp a00-2a2760a8 + hypothesis:a00-f30b6285-0e37a6 (lean_disproved:60) + graph-root exp adopted mint_id
