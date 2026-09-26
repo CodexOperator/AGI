@@ -5,10 +5,17 @@ the WORD, or `unresolved` + the reason. Exit 2 while ANY cell is unresolved, so
 paths.local_maxxing.osc_band_qknorm_dir (4 of 6 real cells.jsonl have no `arm`/`budget`
 key and made the rule raise KeyError; the other 2 hold one unseeded random draw per
 cell). Both land as a REASON. Neither ever becomes a word.
+
+The default dir is read through `paths` (paths.local_maxxing.osc_band_qknorm_dir),
+and that module is DISCOVERED from __file__ -- one dirname up, never a literal,
+never cwd (paths.py's own rule; hypothesis:a00-95b6cd1c-6f642c). Before this a
+clean interpreter died here with ModuleNotFoundError: exit 1, no cell read, while
+the suite stayed green because the TEST seeded sys.path.
 """
 import glob, importlib.util, json, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path[:0] = [os.path.dirname(HERE)]   # paths.py, discovered -- cwd-independent
 RULE = "osc_band_call2_a00-cc7b25cc"            # the rule module; this file adds no rule
 CELL_KEYS = ("budget", "bits", "cell")          # the qknorm producers disagree; first wins
 
@@ -47,7 +54,7 @@ def main(argv=None):
     if argv:                                    # an explicit dir beats the config default
         root = argv[0]
     else:
-        import paths                            # repo-relative dir lives in config, not here
+        import paths                            # on sys.path by discovery, above
         root = paths.get_local("osc_band_qknorm_dir")
     files = sorted(glob.glob(os.path.join(root, "**", "cells.jsonl"), recursive=True))
     if not files:
