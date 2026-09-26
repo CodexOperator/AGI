@@ -12746,6 +12746,41 @@ OWNER 2026-09-18 17:4xZ (thought-master pane), verbatim: "We need to map bend2 i
 ## Agent Notes
 GOAL: turn experiment:a00-f3703399-48096d (key_only beats byte-matched TRUE uniform on agree+KL in 6/8 cells, random in 8/8, ONE draw per cell) into a verdict that survives seed variance. WHY: its parent probe (datasets/osc-band/2026-09-24-qknorm/a00-bcea484d-probes/probe_noise.log) re-drew the random arm at seeds 7/21/99 at qwen2@5.25: agree spread 0.085 = 3x the key_only margin (0.028), seed 21 beats key_only on KL. 3 of 8 cells sit inside that spread. DONE WHEN: every (model, budget) cell of the matched grid (qwen2 np32 4.25-7.25, qwen3 np64 4.125-7.125; widths from osc_band_matched_uniform_a00-a721f95f.py --check) carries a per-arm spread over >= 3 draws, and key_only vs uniform and key_only vs random are each called win / loss / inside-noise per cell. HARNESS: .agi/context/local-maxxing/osc/osc_band_matched_uniform_a00-a721f95f.py + osc_band_kquant_qknorm_a00-bcb6c85e.py (fixed.bits, arm); outputs under paths.local_maxxing.osc_band_qknorm_dir, never .agi/sessions. LIMITS: ONE model-running kid per swarm at a time (3.2 GiB each), MemAvailable >= 3 GiB before a model kid launches, one model per process. NOT IN SCOPE: new budgets, new models, inverse_energy (0/8, refuted).
 
+###### G5.22.1.1 — a per-cell win/loss/inside-noise CALL rule with a named band statistic, landed before the seed-sweep data exists — status: active
+
+<!-- BODY:BEGIN -->
+# goal:band-call-rule-per-cell
+# goal:band-call-rule-per-cell
+
+## Why this exists
+**Parent `goal:g5.22.1`.** That goal's DONE WHEN is the word "called": "key_only vs uniform and key_only vs random are each called win / loss / inside-noise per cell". Nothing on disk can emit that word. `osc_band_matched_uniform_a00-a721f95f.py:74-77` writes exactly one record per (arm, budget) with no seed field, so 16 cells are n=1, and `a00-bcea484d`'s probe shows the random arm's agree spread at qwen2@5.25 is 0.085 -- 3x the 0.028 key_only margin. A verdict that has no call rule is the n=1 trap wearing a verdict's clothes.
+
+**Swarm split (room swarm-osc35, lap 1).** p1 (`a00-e2d2e39a`) proposed three sub-subgoals of `goal:g5.22.1` and took (A) qwen2 np32 noise band; p2 (`a00-5cba3524`) took (B) qwen3 np64 noise band with two amendments, one of which binds here (the >=3-draw rule binds the STOCHASTIC arm only -- uniform and key_only are deterministic, so their spread is 0.0 by construction and must be labelled n=1). p3 (`a00-553975e2`, this node) took (C).
+
+## Target end-state
+- ONE named band statistic and ONE call rule, implemented, tested, and committed -- the tree can turn a jsonl of per-(cell, arm, seed) draws into per-cell `win` / `loss` / `inside-noise` calls.
+- The rule is written and landed BEFORE any seed-sweep jsonl exists, so neither (A) nor (B) can tune it to its own numbers.
+- A gate that refuses to emit a call for a cell with fewer than 3 stochastic draws.
+
+## Invariants
+- The band denominator is the RANDOM arm's seed spread. It is never a key_only spread (0.0 by determinism -- dividing by it calls every cell an infinite win).
+- KL sign is inverted: for KL, lower is better, for agree, higher is better. A rule that gets this backwards inverts the verdict.
+- Zero model, zero GPU. This slice never takes the swarm's one model slot; that belongs to (A) and (B).
+
+## Falsifier
+FAILED if any red:
+1. A synthetic jsonl (hand-written fixtures, no model) with a known band produces a call that disagrees with the hand-computed call.
+2. A cell with n=2 stochastic draws still produces a call.
+3. The rule is landed after a seed-sweep jsonl exists under `paths.local_maxxing.osc_band_qknorm_dir`.
+
+## Out of scope
+- goal:g5.22.1 (the swarm target) and its (A) qwen2 / (B) qwen3 model-running slices.
+- `inverse_energy` (0/8, refuted).
+- New budgets, new models, new arms.
+
+## Agent Notes
+Assigned to **post**. goal:band-call-rule-per-cell is the (C) DECIDE LAYER slice of the swarm split recorded above.
+
 #### G5.23 — TRACK II — fine-tuning the bigger local models off the shelf: SFT/LoRA on our morals + the Sanctuary substack (Shaelaran) with A/B trials, then the fine-tune + the oscillator optimisation, then a quantisation-oriented fine-tune; Camber hours authorised, failing is fine (owner 21:4xZ 09-20) — status: active
 
 <!-- BODY:BEGIN -->
