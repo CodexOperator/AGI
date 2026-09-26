@@ -2276,11 +2276,23 @@ def _failed_dependency(stage: dict, failed_keys: dict,
     dependent slice's `_repeat_key` against `{None}` and let EVERY inherited
     review slice RUN after the round had already failed
     (hypothesis:a-round-stage-fails-closed-by-name-and-every-inherited-
-    review-stage-is-gated, falsifier 1)."""
-    deps = stage.get("chained_from") or stage.get("depends_on")
+    review-stage-is-gated, falsifier 1).
+
+    `chained_from` and `depends_on` are BOTH consulted, not one-or-the-other:
+    the composed round manifests give every inherited stage a
+    `depends_on=[round-parent]` while the later ones ALSO keep their own
+    `chained_from` (verify <- review, refute <- brainstorm). Reading only
+    `chained_from` let a DOWNSTREAM stage run after the round had failed and
+    the stage it chains from had merely been SKIPPED -- the chain was gated at
+    its head only, which is the gate the composition was supposed to close
+    (hypothesis:two-committed-round-manifests-run-a-round-then-its-review-by-
+    name, falsifier 3)."""
+    chained = stage.get("chained_from")
+    depends = stage.get("depends_on") or []
+    depends = [depends] if isinstance(depends, str) else list(depends)
+    deps = ([chained] if isinstance(chained, str) else []) + depends
     if not deps:
         return None
-    deps = [deps] if isinstance(deps, str) else deps
     for d in deps:
         if d in simple_failed:
             return d
@@ -2527,7 +2539,18 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                 continue
             prior = None
             if st.get("chained_from"):
-                prior = prior_by_key.get((st["chained_from"], st.get("_repeat_key")))
+                # A repeated stage chained from a SIMPLE upstream (the
+                # prelude `kind: round` parent, which no repeat expands) looks
+                # up (round-parent, <its own slice key>) and finds nothing, so
+                # every inherited review SLICE rendered {old_tip}/{new_tip}/
+                # {files} as blank -- a run that looked chained and carried
+                # nothing. The exact match still wins; the `(cf, None)` row
+                # exists only when a NON-repeated upstream ran, and a
+                # repeated upstream never writes that row, so a failed sibling
+                # slice still hands down nothing.
+                prior = (prior_by_key.get((st["chained_from"],
+                                           st.get("_repeat_key")))
+                         or prior_by_key.get((st["chained_from"], None)))
                 # A placeholder the chain DECLARES it is owed, that nothing
                 # can supply, is a named stage failure and never a blank.
                 # A key the upstream return itself dropped is NOT this case
@@ -2576,6 +2599,17 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
             rc, value = runner
             if value is not None:
                 _persist_stage_value(root, run_key, st["label"], value)
+                # A round's harvest is the RUN's context, not just its first
+                # dependent's: every inherited review prompt names
+                # {old_tip}/{new_tip}/{files} (and the deeper slices chain from
+                # the FIRST review stage, whose own return is the reviewer's
+                # findings, not the round's range), so without this the tail of
+                # a composed chain rendered the range BLANK -- a run that
+                # looked chained and compared nothing. An explicit run arg still
+                # wins over the round's value (hypothesis:two-committed-round-
+                # manifests-run-a-round-then-its-review-by-name, falsifier 2).
+                if st.get("kind") == "round":
+                    args = {**(value if isinstance(value, dict) else {}), **args}
                 # A declared handoff list that came back EMPTY is a run-level
                 # fact, not a stage failure: name it so a consumer can tell
                 # "the stage dropped everything" from "the chain broke"
