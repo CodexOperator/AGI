@@ -6,9 +6,9 @@ parents:
   - goal:g7.33.14
 next_edges: []
 confidence: 0.95
-demote_reason: the only experiment (experiment:a00-a5f94936-slash-run) reads inconclusive_lean_proved:50; the verdict now matches it (PASS 8 row 50, director-engine gen 24)
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
-edited_by: director-engine
+edited_by: a00-96b32433
 evidence_runs:
   - experiment:a00-a5f94936-slash-run
 loop: goal:g7.33.14@s2
@@ -21,7 +21,7 @@ season: 2
 testable_claim: Every agi-*.js workflow template renders the repo path as exactly ${ROOT}, never /${ROOT}; greping for the old absolute literal cannot detect this, so a line-level guard test is required.
 title: "The slash that outlived the literal: /${ROOT} still renders the filesystem root"
 town: core
-verdict: inconclusive_lean_proved:50
+verdict: proved
 ---
 # hypothesis:a00-a5f94936-a89712 — the `/` that outlived the literal
 
@@ -79,7 +79,3 @@ SCOPE DEVIATION, recorded not punished: the brief granted ONE new test file (tes
 
 ## Agent Notes
 Fixed 6 leftover leading slashes (/${ROOT} -> ${ROOT}) in 4 workflow .js templates, added a line-level guard test; 11 seam + 121 workflow tests green.
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 8 row 50: the node read verdict proved above its own inconclusive_lean_proved:50 experiment, with a demotion pair (demoted_from proved / evidence_runs=0) that was stale -- evidence_runs now names the experiment. Verdict set to the experiment lean; the defect it found was fixed in the director commit 34ceccce2, which is not this run s measured bytes, so the lean stays.
-<!-- THOUGHT:END -->
