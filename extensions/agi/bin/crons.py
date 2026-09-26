@@ -558,6 +558,44 @@ def _non_append_holders(path: Path) -> tuple[bool | None, list[str]]:
     return (None, []) if unseeable else (True, [])
 
 
+def _in_place_precondition(path: Path, label: str, non_append: str,
+                           out: list[str], state: dict,
+                           rotate_away: bool = True) -> bool:
+    """Whether `path` may be trimmed IN PLACE, per the `logs.non_append` cell.
+
+    ONE precondition for EVERY in-place write `enforce_log_caps` performs -- the
+    copytruncate base truncate AND the two archive trims (the bounding loop and
+    the archive the rename arm just made). A writer that did NOT open
+    `O_APPEND` resumes at a stale offset over the shifted bytes (the NUL hole),
+    so `skip` REFUSES it by name and leaves the file whole; `rename` cannot
+    rewrite an inode, so the file is rotated to a NESTED name that the prune
+    above collects on the next apply. An unreadable /proc is UNKNOWN and said
+    ONCE per apply (`state["unknown_said"]`), never a silent pass.
+    `rotate_away=False` on the copytruncate BASE, whose `rename` action IS the
+    rotation that follows: nothing is left to rotate an archive away from.
+    """
+    clean, holders = _non_append_holders(path)
+    if clean is None:
+        if not state["unknown_said"]:
+            state["unknown_said"] = True
+            out.append(f"{label} writer check UNKNOWN (/proc not fully readable: "
+                       f"hidepid) -- the O_APPEND contract is assumed, not proven")
+        return True
+    if clean is False:
+        if non_append == "skip":
+            out.append(f"{label} refused: held without O_APPEND by "
+                       f"{', '.join(holders)} (logs.non_append: skip)")
+            return False
+        if not rotate_away:
+            return True
+        nested = Path(f"{path}.1")     # `d+.d+` tail -- pruned next apply
+        path.replace(nested)
+        out.append(f"{label} rotated to {nested.name} (logs.non_append: rename) "
+                   f"-- held without O_APPEND by {', '.join(holders)}")
+        return False
+    return True
+
+
 def _tail_copy(src: Path, dst: Path, cap: int) -> None:
     """Copy the LAST `cap` bytes of `src` (the whole file when it is shorter)
     into a FRESH `dst`.
@@ -632,8 +670,9 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False,
     `O_APPEND` writer keeps landing in a file the next apply still caps. The
     copy reads a snapshotted size, so its cost is bounded by the cap and the
     copy-then-truncate race costs only the bytes appended between the copy and
-    the truncate. A writer that is NOT `O_APPEND` is REFUSED by name before the
-    in-place truncate (falsifier 2): the cap holds, the file shape does not.
+    the truncate. A writer that is NOT `O_APPEND` is REFUSED by name before
+    EVERY in-place write -- the copytruncate base AND either archive trim
+    (falsifier 2): the cap holds, the file shape does not.
     """
     cells = locations.load_config(root).get("logs") or {}
     if not cells:
@@ -666,7 +705,7 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False,
         return []
     names = _managed_names(root, repo_root)
     entries = sorted(d.iterdir())
-    unknown_said = False
+    unknown = {"unknown_said": False}
     for name in names:
         p = d / name
         # (1) EVERY archive of a declared name is bounded, not just the base:
@@ -689,6 +728,8 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False,
             if dry_run:
                 out.append(f"{q.name} is over the {cap_mb} MB cap (dry-run)")
                 continue
+            if not _in_place_precondition(q, q.name, non_append, out, unknown):
+                continue
             _trim_in_place(q, cap)
             out.append(f"{q.name} bounded to the {cap_mb} MB cap (archive)")
         if p.is_symlink() or not p.is_file():
@@ -702,15 +743,8 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False,
             # Truncating IN PLACE under a writer that did NOT open O_APPEND
             # leaves a NUL hole at its stale offset: the cap holds, the file
             # shape does not. UNKNOWN is said, never assumed.
-            clean, holders = _non_append_holders(p)
-            if clean is None and not unknown_said:
-                unknown_said = True
-                out.append(f"{name} writer check UNKNOWN (/proc not fully "
-                           f"readable: hidepid) -- the O_APPEND contract is "
-                           f"assumed, not proven")
-            elif clean is False and non_append == "skip":
-                out.append(f"{name} refused: held without O_APPEND by "
-                           f"{', '.join(holders)} (logs.non_append: skip)")
+            if not _in_place_precondition(p, name, non_append, out, unknown,
+                                          rotate_away=False):
                 continue
         if Path(f"{p}.{keep}").exists():
             Path(f"{p}.{keep}").unlink()  # the oldest rotation leaves
@@ -741,7 +775,9 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False,
                 # Bounded IN PLACE, in the same inode the stranded writer
                 # still holds: a `replace()` here would strand it on a
                 # deleted inode (experiment:a00-945d7ae4-8974f4).
-                if arch.stat().st_size > cap:
+                if (arch.stat().st_size > cap
+                        and _in_place_precondition(arch, arch.name, non_append,
+                                                   out, unknown)):
                     _trim_in_place(arch, cap)
                     out.append(f"{arch.name} bounded to the {cap_mb} MB cap "
                                f"(new archive)")
