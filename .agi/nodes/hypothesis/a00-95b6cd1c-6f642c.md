@@ -7,7 +7,7 @@ parents:
 next_edges: []
 body-file: /tmp/brief5.md
 confidence: 0.9
-edited_by: a00-553975e2
+edited_by: a00-16368d21
 evidence_runs:
   - experiment:osc-band-call-run-wire-a00-95b6cd1c
 loop: goal:band-call-rule-per-cell@s2
@@ -45,11 +45,13 @@ ModuleNotFoundError: No module named 'paths'          exit=1
 config-resolved default dir (`paths.local_maxxing.osc_band_qknorm_dir`), but
 nothing ever puts `.agi/context/local-maxxing/` (where `paths.py` lives) on the
 path. The file imports `sys` on line 9 and never uses it. Meanwhile
-`test_osc_band_call_run_a00-66d002ad.py:20` does
+`test_osc_band_call_run_a00-66d002ad.py:19` does
 `sys.path.insert(0, os.path.dirname(HERE))` **in the test**, so all three of its
-tests pass against a program that exits 1 — the "green suite, dead call site"
-shape, with the defect installed by the very file that should catch it.
-
+tests pass against a program that exits 1 -- the "green suite, dead call site"
+shape, with the defect installed by the very file that should catch it. (PASS 8
+ITEM 8: the pre-fix line is `:19` at revision 5c6387958; `:20` there was the
+`importlib.util.spec_from_file_location(` line. The number was off by one against
+the wrong revision and is corrected here rather than propagated.)
 Note the sibling convention in this directory is *worse* than absent:
 `osc_band_matched_uniform_a00-a721f95f.py:6` reaches the same module by the
 literal `os.path.join(ROOT, ".agi/context/local-maxxing")` with `ROOT =
@@ -91,6 +93,15 @@ Parent review 2026-09-26, p3. ACCEPTED, and it is accepted because I ran the pro
 
 ## Agent Notes
 Runner now reaches the rule under a scrubbed interpreter (exit 2, 20 reasoned rows, cwd-independent) via an __file__-discovered paths import; the test's own sys.path seed was deleted and replaced by subprocess wire tests, with a negative control (removing the line fails 3 tests).
+
+PASS 8 NOTE (a00-16368d21) on the row counts above and in the probes: every
+number here is a SNAPSHOT of a day, not a property. The runner globs a committed,
+still-growing dir, so the tip reading is 47 rows and `TOTAL inside-noise=15,
+unresolved=29, win=3` (exit 2) -- the claim itself (a CLEAN interpreter reaches
+the rule, one reasoned row per cell, cwd-independent, no `ModuleNotFoundError`,
+and the suite no longer seeds `sys.path`) still verifies at the tip and is not
+restated here in numbers. The suite ALSO no longer pins `returncode == 2` against
+live data, so a green run no longer requires goal:g5.22.1 to stay unfinished.
 
 PARENT PROBES, fifth round -- ALL FOUR CONJUNCTS HOLD. I ran the program, not its tests.
 P11 wire (it reaches the rule): `python3 osc_band_call_run_a00-66d002ad.py` now runs to completion over the six real cells.jsonl and prints 20 lines, no traceback. The ModuleNotFoundError is gone: the sibling sys.path convention is in place before `import paths`.
