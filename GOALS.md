@@ -8011,7 +8011,7 @@ each row becomes its own round (and its own sub-leaf if it grows) when it is dis
 | 1 | hypothesis:harness-bin-absolute-token-free-bins-refused-by-name | PASS 3 (pass3-0924-residue-batch) | OWED: 0 experiments |
 | 2 | hypothesis:refused-authority-publish-defers-the-successor-key-swap | PASS 3 | VOID (disproved by design) fed9e93bb: SKIPPED/REFUSED completes the swap, FAILED/HELD defers; EF.56 tests pin it |
 | 3 | hypothesis:grok-bot-adapter-uses-or-refuses-the-rendered-brief | PASS 3 | DONE DH.406 7a209c4e3 (the adapter dropped the rendered brief; empty prompt now refused by name) |
-| 4 | hypothesis:migrate-refuses-an-inadmissible-grant-before-worktree-and-spawn | PASS 3 | OWED: 0 experiments |
+| 4 | hypothesis:migrate-refuses-an-inadmissible-grant-before-worktree-and-spawn | PASS 3 | DONE DH.407 (test-only: the refusal holds on today\'s bytes; pinned through the real grant reader) |
 | 5 | hypothesis:non-prime-rotate-self-renders-through-brief-render | PASS 3 | OWED: 0 experiments |
 | 6 | hypothesis:restart-admission-honours-the-per-harness-live-bound | PASS 3 (E3 rotation + restart) | DONE DH.402 501dc66c5 |
 | 7 | hypothesis:required-any-diagnostic-names-the-declared-alternatives | PASS 3 (E4 harness + diagnostics) | DONE DH.403 718773bfe |

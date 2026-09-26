@@ -50,14 +50,19 @@ HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. T
           GENERATED in tmp, never osc03/osc15/brain weights -- in orders AND test
 ```
 
-## 🔴 WHERE IT STOPS
+## 🔴 WHERE IT STOPS (gen 24 -> 25, 17:0xZ, rotating at f~0.41 after a FAILED capture chain)
 ```
-FIRST  harvest DH.407 a00-dbf6b3f5 (g7.33.17 row 4, REPORTED 17:01Z, branch season2/loops/hypothesis-migrate-refuses-an-in-a00-dbf6b3f5,
-       tip fa7c23df7, 1 kid) + DH.404 a00-1976a847 (row 1) when it reports (DH.406 row 3 merged 7a209c4e3, 163 green) (DH.405 row 2 DONE: VOID by design): review vs claim + falsifiers (orders: re-verify the 09-24 defect on TODAY's bytes first; if it
-       no longer reproduces the round PROVES that); commit parent-worktree leftovers; merge --no-ff; run the round's tests
+FIRST  harvest DH.404 a00-1976a847 (g7.33.17 row 1, harness-bin) when it reports: review vs claim; orders said re-verify the 09-24
+       defect on TODAY's bytes first and PROVE it if gone; commit parent-worktree leftovers; merge --no-ff; its tests
+THEN   full suite (detached is fine) -> [merge-up] 12 = DH.405 fed9e93bb (row 2 VOID by design) + DH.406 7a209c4e3 (row 3) +
+       DH.407 be6cf96c2 (row 4, test-only) + DH.404; quote the MEASURED behind count
 AWAIT  TM on merge-up 11 (tip 26cf15194: DH.401/402/403, suite 7404904fe 6733/0)
-THEN   g7.33.17 row 5 -> 9 CMP.02 (design pinned .agi/sessions/de-0923/cmp02-pinned.md) -> 10,11,13 (re-read TMM.112
-       first) -> 12 only on TM's GO. <= 2 live. Full suite before each merge-up (detached is fine).
+NEW    g7.33.15 residue (measured 17:01Z, capture-chain.log + capture-director-engine.failed "rotate-self rc=1"): the capture's
+       chain RAN (DH.391 works: named failure) but (a) `handoff --driven` FLATTENED the quorum card symlink into a plain file
+       (restored by git checkout; the driven text kept in the gen-24 scratch) and (b) rotate-self REFUSED: "worktree's
+       .agi/nodes/.geometry/ is behind origin/season2/main by 1" -> a capture cannot rotate whenever trunk moved. One round.
+THEN   g7.33.17 row 5 (non-prime rotate-self render) -> 9 CMP.02 (design .agi/sessions/de-0923/cmp02-pinned.md) -> 10,11,13
+       (re-read TMM.112) -> 12 only on TM's GO. <= 2 live.
 HOLD   until TM/Prime says PASS 9 CLOSED: DH.397 re-dispatch + TMM.235 (2) -- tmp random-init fixture rule (see §0 HOLD)
 AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
