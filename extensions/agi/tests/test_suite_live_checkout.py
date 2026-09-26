@@ -138,3 +138,14 @@ def test_locations_sibling_resolvers_refuse_live(tmp_path, monkeypatch):
                             lambda root: LIVE)
         with pytest.raises(RuntimeError, match="resolves to the live checkout"):
             fn(_given_tmp(tmp_path))
+
+def test_a_foreign_git_repo_is_not_the_live_checkout(tmp_path):
+    """DH.412 harvest (director-engine): the no-repo fix compared `root`'s common
+    root with that of `root`'s OWN enclosing repo -- equal for every repo -- so any
+    git repo read as this engine's live checkout. The comparand is the engine's."""
+    import subprocess
+    foreign = tmp_path / "foreign"
+    (foreign / "sub").mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", str(foreign)], check=True)
+    assert locations.is_live_checkout(foreign / "sub") is False
+    assert locations.is_live_checkout(Path(locations.__file__).parent) is True
