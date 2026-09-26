@@ -62,7 +62,7 @@ DONE  P8.03 (P8.11, 2d45cc999): VmHWM 2537, user@ hard peak 4068 · P8.04 (P8.12
       [merge-up] P8.03+P8.04 SENT 18:3xZ (TMM.251); TMM.252 returned ONE P8.03 body fix -> re-sent tip 5668caf09. TM gates it on its running suite.
 NEXT  (1) OSC.40 r2 IN FLIGHT: iter OSC.44, parent a00-39caeb06 pid 2328038 (dispatched 18:4xZ, hard 1982 < 2020), orders OSC40b.parent.txt, watcher
       (scratchpad watch_round.sh osc44 ... osc_band_2x2_). Then: kill -0 until gone -> review scope (new script + test + data + node) -> merge -> ONE report line.
-      (2) OSC.41 the same way (orders OSC41.parent.txt + LOW-PEAK block). SERIAL, one at a time; stop rules: MemAvailable < ~4.6 GiB / memory_alarm WARN.
+      (2) OSC.41 HELD until TM GO (TMM.253: TM needs ~15 min with no model round after OSC.44 exits for its torch gates); then the same way (orders OSC41.parent.txt + LOW-PEAK block). SERIAL, one at a time; stop rules: MemAvailable < ~4.6 GiB / memory_alarm WARN.
       Report line per round: VmHWM + user@ hard peak (own 2 s sampler, user@ current - user@ inactive_file) + min MemAvailable.
     stopped round worktrees kept as prior art: a00-0491190a (OSC.40 r2 script), a00-caa7f0fe (OSC.41 script)
 ```
