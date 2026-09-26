@@ -2096,3 +2096,31 @@ def test_every_refused_named_id_is_named_on_stderr(tmp_path, capsys):
     cli._round_own_node_paths(root, root, "experiment:a00-x-1", None,
                               ["hypothesis:tgt"])
     assert capsys.readouterr().err == ""
+
+
+def test_kid_parent_never_widens_even_for_a_committable_type(tmp_path, capsys):
+    """DH.390 harvest: `refused=[args.parent]` ran the kid's `--parent`
+    through the TYPE gate, so `done --parent hypothesis:<foreign>` -- a
+    round-committable type -- was swept into the round's commit again. The
+    kid's --parent is named on stderr and never swept, whatever its type."""
+    from pathlib import Path
+    cli = _load_cli()
+    root = tmp_path / ".agi"
+    (root / "context" / "schemas").mkdir(parents=True)
+    (root / "config.json").write_text("{}")
+    d = root / "nodes" / "hypothesis"
+    d.mkdir(parents=True)
+    for nid in ("tgt", "foreign"):
+        (d / f"{nid}.md").write_text(
+            f"---\nid: hypothesis:{nid}\ntype: hypothesis\n---\n\nbody\n")
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, None, None, ["hypothesis:tgt"],
+        refused=["hypothesis:foreign"])
+    assert paths == {"nodes/hypothesis/tgt.md"}, paths
+    assert "hypothesis:foreign" in capsys.readouterr().err
+    # the same id named by DISPATCH is the round's own -- still lands
+    paths = cli._round_own_node_paths(
+        root, root, None, None, ["hypothesis:tgt"],
+        refused=["hypothesis:tgt"])
+    assert paths == {"nodes/hypothesis/tgt.md"}, paths
