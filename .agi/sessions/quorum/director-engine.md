@@ -41,7 +41,7 @@ ROUND  agent        what                         state (mur units agi-director-e
 424    MERGED with 431 (mur-5 accept) into the post branch + verdict proved 390bab9da -- repro green on the post branch
 425    a00-22a191e9 agi-bin guard  -> 428 -> 435 a00-d3093e1b (175 green; node wording committed 0cde66ecf) -> mur-5 DH.435-k1 RUNNING
 426    a00-8783b3d3 schema gate + parent hook    nbhd 401 · mur-4 DH.426-k1..k3 RUNNING (long)
-427    a00-a7de2b88 heal tmux / dead branch      mur-3: tmux guard VACUOUS (conftest _no_real_tmux eats the shim) -> 436 a00-68d48a54 LIVE
+427    -> 436 a00-68d48a54 (incl 427): seam holds --noconftest (0 tmux calls), vacuous guard deleted, nbhd 310 -> mur-6 DH.436-k1/k2 RUNNING
 429    a00-abda526f resolve_tasks_max -> spawn.tasks_max   live 150, nbhd 168 · mur-5 DH.429-k1/k2 RUNNING
 430    a00-cfa396d1 suite_guards (DH.419 redo)  mur-5 accept_with_residue (2nd guard home, not ONE) -> 440 a00-c8389b84 LIVE (merges 430+431)
 432    SUPERSEDED (never merge: hostname in its history) -> 438 a00-d821a9fd REBUILT clean (125 green, anonymize ok, no host in history)
