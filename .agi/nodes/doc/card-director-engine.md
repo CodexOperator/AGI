@@ -48,12 +48,13 @@ pending Prime/owner ruling (`g7.33.1/.7/.8`) -- check a leaf's own `who` row bef
 ```
 seat       gen 23 crash-recovery seat 04:1xZ: box REBOOTED ~03:56Z (uptime 19m at wake), budget 0/30 live
            ack: own posts.md row was dirty in MAIN (recovery respawn blanked session_id) -> restored, ack keyed --session 7e93043d
-trunk      f52f62a32 (TM gen 23): merge-up 1 LANDED 496f4565a · merge-up 2 (DH.368+369) not yet landed -- await TM
-rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- nothing reported
-  DH.367   a00-0c992f07  kid a00-a6059a55 proved, committed e9fa073aa; parent died in its full-suite run -> DE harvests
-  DH.372   a00-81675e0d  kid a00-c9fd9c2e proved, committed 83093df03 -> DE harvests
-  DH.371   a00-3a39d410  kid a00-584fd4d1 work UNCOMMITTED in parent worktree (rotate.py, rotation_alert.py, 3 tests, experiment)
-  DH.370   a00-6c3524a8  kids 2843b444/2d8528b1/2d9d7e3b done, e0ae8900 was running; parent node dirty; nothing on branch
+trunk      f52f62a32 (TM gen 23, merged into post): merge-up 1 LANDED 496f4565a · merge-up 2 (DH.368+369) not yet landed -- await TM
+rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing lost
+  DH.367   MERGED abd8ce125 (kid a00-a6059a55 proved; claim + falsifiers 1-3 match the bytes) -- falsifier 4 = full suite, RUNNING
+  DH.372   MERGED 693324752 + DEMOTED 1455e199b -> inconclusive_lean_proved:70 (200 still a code constant; cron tick unmeasured)
+  DH.370   -> RESUMED as DH.373 a00-1b09cac6 (orders: build on 2d9d7e3b (a)+(b); (c) WIP d11948744; (d) = SANCTUARY-MASTER's box cell,
+           never ours -- kid e0ae8900's posts.md edit left uncommitted in its worktree). parent notes salvaged ff950564f
+  DH.371   -> RESUMED as DH.374 a00-a2524533 (orders: kid WIP 20d41f3f4; empty experiment; log-path literal -> cell; latch per SEATING)
 memory     MemAvailable 12.2 GiB, load 0.7 -- clear for rounds
 push       never from here (IDENTITY rule)
 ```
