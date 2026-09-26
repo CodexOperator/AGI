@@ -61,9 +61,11 @@ PASS 8    row 47 DONE: DH.394 MERGED b39533d28 + cell reaper.chain_deadline_s=20
           row 50 DONE 696e915e2 · row 51 DONE db5ac813f (publish runs in the shared main checkout, rotate.py:10461)
           row 46 DONE: DH.396 MERGED 2c69c8385 (3 kids; kid1 lean_disproved:60 on the run-record conjunct, closed by kid3;
           parent probe re-run: [x] round-parent rc=3, summary names it); test_workflow* 184. PASS 8 rows ALL CLOSED
-DH.398    a00-b9cd4f05 LIVE: DH.360 seam 3 = round-mur.json + round-research-review.json (extends+prelude, kind:round);
-          the config:workflows rows are MINE to commit after harvest (the round reports them)
-merge-up 9 SENT (DH.396 + f1c fix): suite b443336cb 6698/0, behind 0 -- await TM
+DH.398    MERGED 77d75288d: round-mur.json + round-research-review.json; dry runs resolve BOTH without a registry row.
+          config:workflows rows are PRIME-owned (write.py refuses a director, L4.110 B) -> hand up in merge-up 10; my hand
+          edit was REVERTED. model cells NOT wanted (_pi_model never reads workflows.NAME.model; billing hazard)
+DH.399    a00-ea5dea63 LIVE: a skipped stage gates its dependents transitively + resolved counts in ok=
+merge-up 9 LANDED 7d435723c (DH.396 + f1c fix). merge-up 10 = DH.398 + DH.399 (+ config:workflows ask for the Prime)
 TMM.228   goal:g7.33.16 + hypothesis 6cf5681d2 -> DH.397 a00-aae44e7f STOPPED on TMM.229 (parent + kid TERMed, worktree kept)
 HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. Re-dispatch DH.397 only after, with the FIXTURE
           rule in orders + test: red-on-old = a tiny random-init model GENERATED in tmp, never osc03/osc15/brain weights
