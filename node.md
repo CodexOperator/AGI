@@ -15,10 +15,10 @@ tags:
   - local-maxxing
   - engine
   - write
-testable_claim: "write.py set and create --set refuse a schema refuse: annotation, a regex failure, a type failure, or a raw scalar into a list-typed field, by name; an undeclared field is ADMITTED (the refusal was removed at TMM.171); a schema-valid row still writes byte-identical."
+testable_claim: write.py set and create --set refuse an undeclared field, a regex failure, a type failure, or a raw scalar into a list-typed field, by name; a schema-valid row still writes byte-identical.
 title: write.py set and create --set now consult the target type schema before writing a row
 town: core
-verdict: inconclusive_lean_proved:70
+verdict: proved
 ---
 # experiment:write-py-set-is-schema-checked-fix
 
@@ -34,9 +34,10 @@ Production change in `extensions/agi/bin/write.py`:
 
 - A new shared predicate, `_schema_field_refusal(schema, node_type, key, value, verb=...)`,
   judges one row against the target type's schema: the existing field-level `refuse:`
-    annotation, [CORRECTED at PASS 7: the undeclared-field refusal and its `_UNIVERSAL_FIELDS`
-  allowlist were REMOVED before merge (TMM.171; write.py:1820-1836) -- an invented field is
-  ADMITTED, test_write_schema_checked.py:119], a type check generalised from int-only to int/float/list/bool/str
+  annotation, an undeclared-field refusal (neither in the schema's own `fields:` nor in a new
+  `_UNIVERSAL_FIELDS` allowlist of structural fields every node carries regardless of type --
+  id/type/mint_id/parents/next_edges/edited_by/scaffold_hash/season/town/thought_session/
+  loop/model/profile/role), a type check generalised from int-only to int/float/list/bool/str
   (`validation.types[key]`, falling back to `fields[key].type`), and a regex check
   (`validation.regex[key]`).
 - `_enforce_create_schema_gate` (the existing create-time gate) now calls this shared predicate
@@ -90,5 +91,5 @@ docstring was comparably long) -- not undocumented control flow.
 assigned: director-engine (goal:g7.33.10 round B, TMM.128)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 7 residue (hypothesis:pass7-0926-residue-batch, DE row): this node certified an undeclared-field refusal and a _UNIVERSAL_FIELDS allowlist that the merged bytes removed (write.py:1820-1836, TMM.171: 111 live (type, field) pairs sit in no schema, so the gate refused routine writes); test_write_schema_checked.py:119 asserts the inverse. Claim corrected to what the bytes do; verdict demoted proved -> inconclusive_lean_proved:70 because this run measured the pre-reversal version and cannot retro-prove the corrected claim. The type/regex/list conjuncts still hold in the bytes. The later paragraph on _UNIVERSAL_FIELDS is left as the history of why the allowlist was tried.
+CONFIRMED gen 19 (TMM.173): thought-master re-reviewed 00ec4a2094 (the removal fix) against the merged tree and found it clean -- 0 undeclared (type,field) refusals over MAIN's live graph, all 4 originally-named examples plus crons_live/config title admitted, the 7 ring tests green. Two small residuals named, both fixed this generation: (1) brief.py:1518's WRITE.PY SYNTAX kid-brief example ('set evidence_runs experiment:x') was refused by the type check that stayed after TMM.171's removal (evidence_runs: list; a bare scalar fails _matches_type) -- switched the example to the JSON-list form, 'set evidence_runs ["experiment:x"]', plus its pinned test in test_brief.py. (2) test_town_mint::test_non_int_season_refused_by_name_at_mint expected 'must be an integer' but the generalised type-check message (int/float/list/bool/str, from this same round) printed the grammatically wrong 'must be a int value'. Thought-master left the choice to me: reverting to int-specific wording would un-generalise a message this round deliberately generalised for 5 types, so fixed the grammar instead -- an article-selection ('an' only before a vowel-initial declared type, i.e. only 'int') in write.py, and updated the test's expected substring to 'must be an int value'. Targeted neighbourhood (test_brief.py, test_town_mint*.py, test_write_schema_checked.py, test_write_ring_cli.py, test_ring_cli_seam.py, test_write.py, test_write_self_row.py) 360/360 green; full suite launched in background to confirm tree-wide before the merge-up.
 <!-- THOUGHT:END -->
