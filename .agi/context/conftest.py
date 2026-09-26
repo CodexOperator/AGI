@@ -51,9 +51,18 @@ def _patch_one(name, module):
     n = 0
     for owner in owners:
         for attr in attrs:
-            if getattr(getattr(owner, attr, None), "_model_load_stub", False) is not True:
+            cur = getattr(owner, attr, None)
+            # Only an attr the owner HAS is a loader; adding one to every class
+            # is noise, and a real install holds immutable C types (torch.dtype,
+            # torch.Size) where setattr raises TypeError -- which errored EVERY
+            # test on a python with torch (DH.392 harvest, director-engine gen 24).
+            if cur is None or getattr(cur, "_model_load_stub", False) is True:
+                continue
+            try:
                 setattr(owner, attr, _stub(owner.__name__, attr))
-                n += 1
+            except (TypeError, AttributeError):
+                continue
+            n += 1
     return n
 
 

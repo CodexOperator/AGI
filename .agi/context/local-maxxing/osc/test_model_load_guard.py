@@ -144,3 +144,31 @@ def test_ordinary_suite_work_is_unaffected():
     plain = types.ModuleType("plainmod")
     plain.value = 41
     assert plain.value + 1 == 42
+
+
+def test_a_real_install_shape_with_c_types_does_not_error_the_guard():
+    """DH.392 harvest: a real torch holds immutable C types (torch.dtype,
+    torch.Size). The guard set the refused attrs on EVERY class the module held,
+    so setattr raised TypeError and the autouse fixture errored every test on a
+    python with torch installed. Only an attr the owner HAS is patched, and an
+    immutable owner is skipped -- the module's own loader is still refused."""
+    conftest = sys.modules[_no_model_load_owner()]
+    mod = _standin("torch_ctypes_shape", load=None)
+    mod.dtype, mod.Size = int, tuple
+
+    class Tensor:
+        pass
+
+    mod.Tensor = Tensor
+    conftest._patch_one("torch", mod)          # must not raise
+    assert not hasattr(Tensor, "load")         # nothing added to a non-loader
+    with pytest.raises(conftest.ModelLoadRefused):
+        mod.load("w.pt")
+
+
+def _no_model_load_owner():
+    """The loaded .agi/context conftest module, found by the guard it defines."""
+    for name, m in list(sys.modules.items()):
+        if getattr(m, "ModelLoadRefused", None) and hasattr(m, "_patch_one"):
+            return name
+    pytest.skip("the .agi/context conftest is not loaded in this run")
