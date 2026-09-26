@@ -58,6 +58,7 @@ rounds     all pi-free stealth/space-bunny-alpha, --tier parent --ladder-tier 0,
            residue for the merge-up: kid 2fa1fab0 launched 2 real throwaway claude sessions (--bg, --remote-control zz-probe-2fa1fab0),
            both gone by pid; their app-side entries unmeasurable from here
   DH.371   a00-3a39d410  hypothesis:the-captive-capture-never-writes-into-the-live-card-and-a-failed-forced-rotation-is-logged-and-latched (g7.33, TMM.190, f6eceb7ac)
+  DH.372   a00-81675e0d  hypothesis:grid-sync-survives-a-project-without-push-batch-limit (PASS 7, grid.py:190 sys.exit)
   DH.370   a00-6c3524a8  hypothesis:heal-lands-a-reseat-after-a-tmux-server-restart (g6.41 (1), cut after DH.368)
   DH.369   MERGED b101094c2 + residue ca98f266b · A lean_disproved:60 (parent's probe: archives re-rotated) -> B proved the repair
            residue: declarations (logs cells, maint_gc) were UNCOMMITTED in the parent worktree -- committed by DE;
@@ -80,7 +81,8 @@ push       never from here (IDENTITY rule)
 | 2 | harvest DH.367 / .368 / .369: review kids against each claim + falsifiers; merge `--no-ff`; one merge-up | running |
 | 3 | goal:g6.41 pair | (1) DH.370 running · (2) after DH.370 merges |
 | 4 | merge-up of DH.368 + DH.369 | SENT -- await TM |
-| 5 | TMM.200 owed, by name: (1) DH.367 -> [merge-up] with sha · (2) TMM.190 = DH.371 running · (3) TMM.189 PASS 7 batch (grid.py:190 sys.exit row first; read hypothesis:pass7-0926-residue-batch FULLY) · (4) extras containment: _extras_ref_text needs resolve() + is_relative_to(root/'context') | open |
+| 5 | TMM.200 owed: (1) DH.367 -> [merge-up] · (2) TMM.190 = DH.371 · (3) PASS 7: 6 node rows CLOSED (cb8022760, 03603d739, 0f1f3fd78; progress note 9572aa03d), grid.py = DH.372, rotate.py handoff folded into DH.371, [goal] title regex HELD (18/371 titles lack the prefix) · (4) extras containment DONE 3097fdd04 | open: DH.367 |
+| 6 | PASS 7 code rounds NEXT, one per parent exit (memory 3.1 GiB + load 24/16 at 03:2xZ -> held): mem-cap-probe-cache-is-private-and-atomic -> launch-memory-cap-tests-never-touch-real-systemd -> brainstorm-manifest-route (workflow.py:2175) -> brainstorm contracts | queued |
 | 4 | DH.360 seam 3 (fresh mint) -> TMM.166/174 -> g1.14.1 -> PASS 6 defect 3 -> pass7-0926-residue-batch (read fully) | queued |
 
 ## 🔴 WHERE IT STOPS
