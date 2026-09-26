@@ -157,6 +157,10 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 - p3 (C) DONE + HARVESTED locally 01:1xZ: call rule osc_band_call2_a00-cc7b25cc.py + runner osc_band_call_run_a00-66d002ad.py, 14 tests pass,
   runner exit 2 (no seeded data yet); rule on the probe's real qwen2@5.25 draws = inside-noise x4 (hand calc agrees). 1 proved / 4 lean_disproved
   (the auto harvest line said 5/0 -- wrong again). Overage for the gate: cc7b25cc 140/40, 66d002ad 136/40, no rebrief. p1, p2 still running.
+- p1 (A) harvest line 01:21Z (p1 still alive, its goal g5.22.3-qwen2-np32-noise-band + 3 hypotheses UNCOMMITTED, config.json edited):
+  qwen2 seeds 7/21/99 x 4 budgets; seed 7 == OSC.34 exactly. p3's pre-registered rule on it: key_only vs uniform 0 win / 1 loss / 3 noise
+  (both metrics); vs random agree win 3/4, kl 0/4. HEADLINE: OSC.34's 6/8 does not survive on qwen2. Kid ec09e83b wrote a competing
+  half-range rule (calls 6.25 a win) -- flag, do not adopt. Overage: 2b3ca8c4 112/40, ec09e83b 167/40, no rebrief. p1 goal_id G5.22.3 -> renumber G5.22.1.3.
 - Git clean; both trunks merged as of the p3 dispatch.
 
 ## 🔴 Where it stops -- gen 32, ~00:5xZ 09-26
