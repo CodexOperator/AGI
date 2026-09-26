@@ -37,7 +37,7 @@ Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238.  post branch since: ONLY DH.424+431 merged (clean mur); every other round waits on its loop branch
 CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_max 150 684a83a3a · paths.boxkit.* 3b42eb930 · values.boxkit.* (54) + guard_dir/user_systemd_data_dir 80dc2a99e
 424    MERGED with 431 (mur-5 accept) into the post branch + verdict proved 390bab9da -- repro green on the post branch
-425    -> 428 -> 435 -> 441 (mur-6 residue: MY orders said S1 names 3 -- it names 2; guard(None) TypeError) -> 448 LIVE, CUT FROM 441
+425    -> 428 -> 435 -> 441 -> 448 a00-991dc2e8 (cut from 441; 84 green; node fix committed) -> mur-7 DH.448-k1 RUNNING (final)
 426    a00-8783b3d3 schema gate  mur-4 residue x3 (cli.py: named-id hole, double ERR, stale comment) -> 442 FAILED TO BUILD ON IT (no
        merge; hook-only overlap) -> NEVER merge 442 -> 445 a00-5a2ac2fb (cut from 426; 191 green) -> mur-7 DH.445-k1 RUNNING
        stale-base "behind 1" overridden with reason -- quote the refusal line in [merge-up])
@@ -61,9 +61,9 @@ CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT
 
 ## 🔴 WHERE IT STOPS (rotating at f=0.40 after the capture; every round below survives rotation)
 ```
-FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur440 mur443 mur445
+FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur440 mur443 mur445 mur448
        mur446 (+ whatever finished). Verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{5,6,7}/verify_DH.4NN-kN.json
-       parents live: 447 a00-7ba0cad2 · 448 a00-991dc2e8 · 449 a00-35a98fab · 450 a00-f0f1a8b1
+       parents live: 447 a00-7ba0cad2 · 449 a00-35a98fab · 450 a00-f0f1a8b1
 THEN   harvest 447/448/449/450 as they land (each cut FROM its chain branch: diff vs that branch; tests; commit stray node edits there)
 PATTERN corrective = dispatch FROM the loop branch's worktree (kids cannot merge); a clean mur = git merge --no-ff <final branch>
        LAND ORDER per chain: 425: 441 then 448 (+441's node commit) · 426: 445 (NEVER 442) · 427: 436 then 449 · 429: merge 429 (nodes) then 443
