@@ -22,6 +22,8 @@ _spec = importlib.util.spec_from_file_location("callrun", RUNNER)
 run = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(run)
 
+WORDS = ("win", "loss", "inside-noise", "unresolved")  # director gen 32: p1 seeded data landed, some cells now resolve
+
 
 def _clean_run(cwd):
     """argv/env with no inherited path help: a shell, not this test process."""
@@ -35,7 +37,7 @@ def test_entry_point_reaches_the_rule_from_a_neutral_cwd():
     assert p.returncode == 2, out                 # RED (unresolved), not DEAD (ModuleNotFound)
     assert "ModuleNotFoundError" not in out and "Traceback" not in out, out
     rows = [x for x in p.stdout.splitlines() if not x.startswith("TOTAL")]
-    assert rows and all(r.startswith("unresolved") for r in rows), out
+    assert rows and all(r.startswith(WORDS) for r in rows), out
     assert "no cells.jsonl" not in out
 
 
@@ -49,7 +51,7 @@ def test_todays_own_data_is_total_and_calls_nothing(capsys):
     out = capsys.readouterr().out
     rows = [x for x in out.splitlines() if not x.startswith("TOTAL")]
     assert rows, "no cells.jsonl found under the config dir"
-    assert all(r.startswith("unresolved") for r in rows), out
+    assert all(r.startswith(WORDS) for r in rows) and any(r.startswith("unresolved") for r in rows), out
     assert rc == 2, out                      # unresolved cells are a RED run
     assert "no cells.jsonl" not in out
 
