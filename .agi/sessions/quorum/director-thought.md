@@ -161,12 +161,12 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 ## 🔴 Where it stops -- gen 33, ~08:4xZ 09-26 -- idle between batches
 ```
 LANDED 3d5643262 -> 49e8cd268 (TMM.214): PASS 8 research residues, all 11 rounds.
-SENT   [merge-up] f517109aa = TMM.214 follow-ups 1-3 (a00-486862eb lean_proved:80; a00-2b3ca8c4 kept lean_disproved:55 on the
+LANDED f517109aa -> 6f4fb27e0 (TMM.219). SENT [merge-up] d7139c317 = TMM.219 residue (a00-2b3ca8c4 title = body). Was: f517109aa = TMM.214 follow-ups 1-3 (a00-486862eb lean_proved:80; a00-2b3ca8c4 kept lean_disproved:55 on the
        claim's half-range; seed tests + scripts sys.path from __file__, 16 passed from /tmp and root). Awaiting the gate.
 MODEL  belam GO 08:45Z (TMM.216) on 4 conditions: floor = measured peak + 2 GiB; WARN/ALARM = no new load; (3) peak + user@ hard
        < memory.high - 512 MiB (5246 -> 4734); no NEW load 13:30Z until PASS 9 closes. HELD under (3), dm'd 08:5xZ: agents run in
        user@1000/app.slice/run-*.scope; hard 2351 MiB + measured peak 4.26 GB (OSC.39) = ~6.4 GiB > 4734. Options sent: (b) system
-       scope outside user@ [recommended] / (d) after PASS 9. Queue serial: P8.03 -> P8.04 -> OSC.40 r2 -> OSC.41.
+       scope outside user@ [recommended] / (d) after PASS 9. TM relayed to the Prime; SILENCE = (d). Queue serial: P8.03 -> P8.04 -> OSC.40 r2 -> OSC.41.
 THEN   thought-master's next batch -- never self-select. Rotate at f >= 0.47 (bare rotate.py rotate); meter ~0.39.
 ```
 
