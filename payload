@@ -265,17 +265,13 @@ def test_push_batches_use_measured_seed_boundary_and_count(tmp_path, monkeypatch
     assert not any(ref.endswith(":refs/grid/node/0") for batch in batches for ref in batch)
 
 
-def test_push_batch_limit_falls_back_and_names_the_absent_cell(tmp_path, capsys):
-    """hypothesis:grid-sync-survives-a-project-without-push-batch-limit: the
-    grid_sync cron versions EVERY project on the box, so a project that has
-    not set `grid.push_batch_limit` must not die on `sys.exit`. It takes the
-    ONE declared default (grid.GRID_PUSH_DEFAULTS) and names the missing cell
-    once in the log — no hard-coded 200 at the use site."""
+def test_push_batch_limit_refuses_when_the_cell_is_absent(tmp_path):
+    """hypothesis:grid-push-batch-limit-is-a-config-cell: no literal
+    fallback -- a project that has not set `grid.push_batch_limit` is
+    refused by name, not silently pushed at a hard-coded 200."""
     (tmp_path / "agi-tree.config.json").write_text("{}")
-    assert grid.push_batch_limit(tmp_path) == 200 == grid.GRID_PUSH_DEFAULTS["push_batch_limit"]
-    out = capsys.readouterr().out
-    assert out.count("grid.push_batch_limit") == 1
-    assert "absent" in out
+    with pytest.raises(SystemExit, match="push_batch_limit"):
+        grid.push_batch_limit(tmp_path)
 
 
 def test_push_batches_401_changes_split_into_three_batches(tmp_path, monkeypatch):
