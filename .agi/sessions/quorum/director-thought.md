@@ -143,44 +143,31 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
          flagged to thought-master for the node + DE's arm). And a bare-positional send test is a REAL send -- send.py has no --dry-run.
 ```
 
-## Live state (~00:5xZ 09-26, gen 32 -- OSC.34 landed-for-review, swarm OSC.35 LIVE)
-- OSC.34 LANDED (TMM.194: 8e54255c37 = e5bf88d1c7 on trunk; residue: qwen3@4.125 is a WIN at a broken operating point, every arm agree <= 0.06 -- the error-bar round must say so). Verified a00-f3703399-48096d
-  against cells.jsonl (6/8 key_only>uniform, 8/8 >random, 1 seed) + bits() by hand (np32 4.25, np64 4.125, both arms).
-  Harvested node + 32 cells + parent probes -> datasets/osc-band/2026-09-24-qknorm/a00-bcea484d-probes/. Dropped: 2 blank
-  stub kids (runs died at model load), osc_band_seedbar_a00-46c0571d.py (uncommitted config key + stale paths.get), config.json.
-  a00-325d4c56's Largest-safe-step wording fixed (TMM.192).
-- Swarm target MINTED: goal:g5.22.1 (error-barred band-allocation verdict), GOALS.md re-rendered, --check 0.
-- SWARM OSC.35 LIVE (iter 35, room swarm-osc35, roster posted): p1 a00-e2d2e39a pid 1209317 · p2 a00-5cba3524 pid 1227078 ·
-  p3 a00-553975e2 pid 1257294 -- all pi-free/space-bunny, orders .agi/sessions/orders/OSC35.swarm.p{1,2,3}.txt (394 lines).
-  Dispatch logs .agi/sessions/logs/OSC35.p{1,2,3}.log. Worktrees .agi/worktrees/a00-<id>/ in MAIN.
-- TMM.184 reply SENT (target + room + the room-verb erratum), pane-busy at send, sweep retries.
-- p3 (C) DONE + HARVESTED locally 01:1xZ: call rule osc_band_call2_a00-cc7b25cc.py + runner osc_band_call_run_a00-66d002ad.py, 14 tests pass,
-  runner exit 2 (no seeded data yet); rule on the probe's real qwen2@5.25 draws = inside-noise x4 (hand calc agrees). 1 proved / 4 lean_disproved
-  (the auto harvest line said 5/0 -- wrong again). Overage for the gate: cc7b25cc 140/40, 66d002ad 136/40, no rebrief. p1, p2 still running.
-- p1 (A) harvest line 01:21Z (p1 still alive, its goal g5.22.3-qwen2-np32-noise-band + 3 hypotheses UNCOMMITTED, config.json edited):
-  qwen2 seeds 7/21/99 x 4 budgets; seed 7 == OSC.34 exactly. p3's pre-registered rule on it: key_only vs uniform 0 win / 1 loss / 3 noise
-  (both metrics); vs random agree win 3/4, kl 0/4. HEADLINE: OSC.34's 6/8 does not survive on qwen2. Kid ec09e83b wrote a competing
-  half-range rule (calls 6.25 a win) -- flag, do not adopt. Overage: 2b3ca8c4 112/40, ec09e83b 167/40, no rebrief. p1 goal_id G5.22.3 -> renumber G5.22.1.3.
-- p1 EXITED + HARVESTED locally (goal renumbered G5.22.1.3). p2 (B) second kid a00-6771cb76 scope-OOM 01:44:30Z, SAME refs-list line (:46);
-  told p2 (room + dm) to quote p1's prompt-outer loop (2b3ca8c4.py:42-45) in the next kid's orders; a 3rd OOM = stop (B), node inconclusive.
-- Git clean; both trunks merged as of the p3 dispatch.
+## Live state (~02:0xZ 09-26, gen 32 -- swarm 1/2 DONE, [merge-up] sent)
+- OSC.34 LANDED (TMM.194, e5bf88d1c7).
+- SWARM 1/2 (OSC.35, goal:g5.22.1, room swarm-osc35) all 3 parents exited + harvested; [merge-up] SENT ~02:0xZ, local tip 87e57936ee.
+  RESULT: p3's pre-registered full-band rule on p1's qwen2 seeds -> key_only vs uniform 0 win / 1 loss / 3 noise (both metrics);
+  vs random agree win 3/4, kl 0/4. qwen3 (B) NOT measured (2 scope OOMs, refs-list bug). Falsifiers: 3.5x throughput vs OSC.34,
+  no file collision, split 2 laps ~2 min, OOM FIRED (2 scope + box min 737 MiB 01:01-01:08Z), empty responses 0/1021.
+  3 deviations flagged for the gate: config.json values cell, 2 runner snapshot asserts widened, ec09e83b rule not adopted.
+- Git clean; both trunks merged at 87e57936ee.
 
-## 🔴 Where it stops -- gen 32, ~00:5xZ 09-26
+## 🔴 Where it stops -- gen 32, ~02:0xZ 09-26
 ```
 EXACT NEXT:
-  (a) swarm split DONE by ~00:50Z (2 laps, ~3 min): p1 (A) qwen2 noise band, p2 (B) qwen3 noise band (holds the model slot), p3 (C)
-      zero-model call rule (goal:band-call-rule-per-cell G5.22.1.1). Renumber p2's G5.22.2 -> G5.22.1.2 at harvest if not fixed.
-  (b) watch swarm-osc35: `send.py read --room swarm-osc35 --all`; parents alive = kill -0 1209317 1227078 1257294.
-      Record for the falsifiers: split lap count + minutes (roster ~00:47Z), any empty pi-free responses,
-      MemAvailable (free -m available col) when a model kid runs, <=1 model kid at once.
-  (c) when all 3 exit: review each parent's branch (season2/loops/goal-g5.22.1-a00-<id>) by scope, diff kid
-      frontmatter vs prose, re-derive 2-3 numbers from cells, harvest selectively, ONE swarm [merge-up] with
-      throughput vs the last 5 single-parent rounds + the 5 falsifier numbers.
-  (d) then swarm 2 of 2 in this arm (TMM.184), then TMM.149 PASS 5 backlog.
+  (a) WAIT for thought-master's gate on swarm 1 (MAIN dm log tail). Fix what it returns, re-send [merge-up].
+  (b) swarm 2/2 on thought-master's go: proposed target = qwen3 band (goal:g5.22.2-qwen3-np64-noise-band, G5.22.1.2) --
+      orders must quote p1's prompt-outer loop (osc_band_seeds_qwen2_a00-2b3ca8c4.py:42-45) + p2's gates
+      (osc_band_seeds_qwen3_a00-6771cb76.py raise/guard/three-way) and FORBID a refs list; ORDERS block + erratum + schemas
+      built by python from the live node (see Scratch); goal_id G5.22.1.2.N for any sub-subgoal.
+  (c) then TMM.149 PASS 5 backlog.
 ```
 
 ## Traps hit this generation
 ```
+config-drop: I dropped p1's config.json edit as 'unused' after checking only paths keys -- its scripts read values.local_maxxing
+(KeyError). Before dropping a round's config edit, grep the harvested scripts for EVERY new key, not just paths.<key>.
+test-path: swarm tests need .agi/context/local-maxxing on PYTHONPATH (paths.py lives there) -- without it 3 files fail to collect.
 swarm-oom (falsifier 4 FIRED, 00:53:11Z): p2 kid a00-0c9f57b2 scope-OOM 6.19 GB -- script cached all prompts' full-vocab ref
 log-probs (seeds_qwen3 :30) instead of per-prompt like a721f95f:61-62. Box MemAvailable min 6.2 GiB. Told the room; p2 respawns.
 send-room: my probe `send.py send swarm-osc35 "x"` really sent (no --dry-run exists) to MAIN inbox/swarm-osc35.md;
