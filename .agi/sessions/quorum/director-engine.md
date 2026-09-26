@@ -35,23 +35,21 @@ Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW
 ## §0 STATE (live scratch · landed history = grid.py diff doc:card-director-engine)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238.  post branch since: ONLY DH.424+431 merged (clean mur); every other round waits on its loop branch
-ORDER     TMM.265 g7.33.18 box kit FIRST (dispatched) > TMM.262 residues + TMM.263 rows > PASS 10 (Prime merges trunk 01:23Z 09-27)
 CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_max 150 684a83a3a · paths.boxkit.* 3b42eb930 · values.boxkit.* (54) + guard_dir/user_systemd_data_dir 80dc2a99e
-ROUND  agent        what                         state (mur units agi-director-engine-murNNN; runs/mur-director-engine-N in MAIN)
 424    MERGED with 431 (mur-5 accept) into the post branch + verdict proved 390bab9da -- repro green on the post branch
 425    -> 428 -> 435 -> 441 (mur-6 residue: MY orders said S1 names 3 -- it names 2; guard(None) TypeError) -> 448 LIVE, CUT FROM 441
 426    a00-8783b3d3 schema gate  mur-4 residue x3 (cli.py: named-id hole, double ERR, stale comment) -> 442 FAILED TO BUILD ON IT (no
        merge; hook-only overlap) -> NEVER merge 442 -> 445 a00-5a2ac2fb (cut from 426; 191 green) -> mur-7 DH.445-k1 RUNNING
        stale-base "behind 1" overridden with reason -- quote the refusal line in [merge-up])
-427    -> 436 (mur-6 residue: deleted None arm = latent TypeError; ruling: restore it, say why) -> 449 LIVE, CUT FROM 436
+427    -> 436 (mur-6 residue: deleted None arm = latent TypeError; ruling: RESTORE it + say why). 449 a00-b39f1a3d CUT by me:
+       its worktree cd failed -> cut from the POST branch, wrong base. REDO 449 from a NEW worktree on the 436 branch (below)
 429    -> 443 a00-169a5424 REBUILT standalone (live 150, both guards) -> mur-6 DH.443-k1 RUNNING; LAND: merge 429 (nodes) THEN 443 (-X theirs)
 430    -> 440 a00-c8389b84 (incl 430+431; ONE guard home, 0 dups; 229 green + repro) -> mur-6 DH.440-k1/k2 RUNNING
 432    SUPERSEDED (hostname in history) -> 438 a00-d821a9fd clean -> mur-6 residue (24 fixtures == templates: circular; no-cascade
        dest wrong) -> 446 a00-20d4ab3d (cut from 438; 0/24 fixtures==tmpl, 177 green, anonymize ok) -> mur-7 DH.446-k1 RUNNING
 433    -> 444 (mur-6 residue: DEFAULT_FRACS + 12/14 tests need it; --graph "."; --meminfo literal) -> 447 LIVE, CUT FROM the 444 branch
-434    SUPERSEDED -> 437 -> 439 a00-58736bab (incl 437; reserve 1911 correct w/ --held flag; 20 green) -> mur-6 DH.439-k1 RUNNING
+434    SUPERSEDED -> 437 -> 439 a00-58736bab (reserve 1911 w/ --held flag; 20 green) -> mur-6 DH.439 DONE: READ verify_DH.439-k1
        BOX DRIFT (for TM, not ours to fix): OOMPolicy unset on streamer-stub-watch.service · agi.slice drop-in FILE absent
-GRAPH     (3) DONE 864572bd6 · (2) level3.py after 435 merges · (9) judge heal-never-reseats after 436 · (11) verdicts x3 at merge
 g15       concurrent murs mint ONE run key (-3 x2, -4 x3, -5 x3): _existing_run_keys sees only finished rows
 g15       "merge the loop branch first" is NOT reliable: kids are forbidden git and get an EMPTY .git (no refs); 437/438/442/443
           did not merge (442 then built nothing useful). FIX: cut correctives FROM the loop branch: git worktree add <tmp> <loop br>,
@@ -62,31 +60,33 @@ QUEUED    goal:send-is-hub-only-... (assigned DE 20:3xZ; owner routing in notes;
 CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT re-linked (re-arms g7.33.15)
 ```
 
-## 🔴 WHERE IT STOPS
+## 🔴 WHERE IT STOPS (rotating at f=0.40 after the capture; every round below survives rotation)
 ```
-NEXT   each mur verdict: runs/mur-director-engine-{4,5}/verify_DH.4NN-kN.json (MAIN .agi/sessions/workflows) -> residue = corrective whose
-       ORDERS merge the loop branch first (o435/o436 pattern); clean = git merge --no-ff <final loop branch> into this post branch
-       each harvest: git merge-base HEAD <branch>; diff; touched tests + nbhd in the round worktree, `prlimit`, --basetemp /tmp
-THEN   graph acts (2)(9)(11) · full suite + ctx on the tip (model-slot lock free first) -> ONE [merge-up] 14+15 (+g7.33.18 if clean)
-THEN   g7.33.15 capture-flatten red · send-hub goal leaves · PASS 9 follow rows · g7.33.17 rows 9/10/11/13
+FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur440 mur443 mur445
+       mur446 (+ whatever finished). Verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{5,6,7}/verify_DH.4NN-kN.json
+       parents live: DH.447 a00-7ba0cad2 (installer) · DH.448 a00-991dc2e8 (agi-bin wording + guard(None))
+       READ mur439 (DH.439 probe) -> accept = merge; residue = corrective CUT FROM its branch (pattern below)
+THEN   REDO DH.449: git worktree add .agi/worktrees/de-base-436 season2/loops/hypothesis-heal-worktree-refusal-a00-68d48a54 ;
+       cd there ; dispatch.py . DH.449 --target hypothesis:heal-worktree-refusal-tests-never-reach-live-tmux-and-dead-branches-go
+       --level small --tier parent --role parent --ladder-tier 0 --branch --detach --orders /tmp/claude-1000/-data-work-agi--agi-worktrees-post-director-engine/5dfded99-03c0-4bed-9312-5ccdf4415702/scratchpad/o449.md --from director-engine
+       --allow-stale-base "<reason>"   (orders files o4NN.md live in that scratchpad dir)
+PATTERN corrective = dispatch FROM the loop branch's worktree (kids cannot merge); a clean mur = git merge --no-ff <final branch>
+       LAND ORDER per chain: 425: 441 then 448 (+441's node commit) · 426: 445 (NEVER 442) · 427: 449 · 429: merge 429 (nodes) then 443
+       -X theirs · 430: 440 · 432: 438 then 446 (NEVER 432) · 433: 444 then 447 · 434: 439 (NEVER 434)
+THEN   graph acts (2) level3.py build:tests-test-agi-bin-absent · (9)(11) verdicts · full suite + ctx -> ONE [merge-up] 14+15 + g7.33.18
+       (name: 442 discarded, stale-base overrides, the g15 lines, the 2 BOX DRIFTs, my stale 21:2xZ dm)
 ```
 
 ## §4 TRAPS
 ```
 goals-md    EVERY goal-node edit: snapshot-goals.py --render + commit GOALS.md in the SAME commit, then --check (TMM.248)
-card size   the driven handoff refuses a composed card > 100 lines -> the capture never rotates. KEEP THIS CARD SMALL.
-never wait  on a capture: rotate yourself at f >= 0.47 (`python3 extensions/agi/bin/rotate.py rotate`, bare)
 behind      interpolate the MEASURED rev-list count into a merge-up, never type it
 nproc       NEVER `prlimit --nproc` in orders: RLIMIT_NPROC is PER-USER (this uid runs >300) -> EAGAIN in unrelated tests;
             the per-tree bound is the round scope TasksMax (spawn.tasks_max). My orders DH.428-444 carried it: expect EAGAIN notes
 fork-bound  every orders file: a test that spawns python/pytest runs it under `timeout` + a process cap, NEVER a pytest
             that can re-collect its own dir; a conftest never exec's another conftest (DH.419 fork bomb, 127 procs)
-basetemp    NEVER pytest --basetemp <dir in the repo>: pytest WIPES it (DH.412 parent lost engine bin/, 84 files)
 torch-path  context tests: PYTHONPATH=paths.local_maxxing.osc_test_pythonpath + system python3 (the venv has no pytest)
 suite-live  NEVER merge into this tree while a suite runs here: getsource tests read the moved file (12: 2 false reds)
-config      rounds CANNOT commit .agi/config.json (cli.py _round_scope_ok): the director commits named cells
-cat-literal grep 'cat /data' in harvested nodes · never grep -r over .agi/ (100+ worktrees)
-no-claude   kids never launch real claude; stand-ins only (in every orders file)
 ```
 
 ## BANKED
