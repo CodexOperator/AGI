@@ -1780,6 +1780,83 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
     return
 
 
+def _matches_type(value, declared: str) -> bool:
+    """`declared` is one `validation.types` spelling; `value` is already
+    `_coerce`d. An unrecognised spelling gates nothing — only a caller that
+    already knows `declared` is truthy calls this."""
+    if declared == "int":
+        return isinstance(value, int) and not isinstance(value, bool)
+    if declared == "float":
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    if declared == "bool":
+        return isinstance(value, bool)
+    if declared == "list":
+        return isinstance(value, list)
+    if declared == "str":
+        return isinstance(value, str)
+    return True
+
+
+def _schema_field_refusal(schema, node_type: str, key, value, *,
+                          verb: str) -> str | None:
+    """One row's schema check — the predicate `create --set` and `set` both
+    call, so the two verbs judge a row identically instead of by two
+    hand-kept copies (goal:g7.33.10 round B,
+    hypothesis:write-py-set-is-schema-checked). Refuses BY NAME, never a
+    traceback, on the first violation:
+
+      1. the schema's field-level `refuse:` annotation;
+      2. `validation.types[key]` (or, absent that, `fields[key].type`) is
+         declared and `value`'s coerced Python type does not match it —
+         int/float/list/bool/str, not just int;
+      3. `validation.regex[key]` is declared and `value` does not fully
+         match it.
+
+    Required-ness is a separate concern this predicate does not own
+    (create's own `required_nonempty` loop and `links.py schema` do) — a
+    field the schema simply does not mention gates nothing.
+
+    NO "undeclared field is refused" check — REMOVED (thought-master TMM.171,
+    returned merge-up @0f08a9d3d8): a first version refused any `key` not in
+    `fields:` or a hand-picked `_UNIVERSAL_FIELDS` allowlist, and TMM.171's
+    measurement (a scratch-worktree --dry-run sweep) found 111 (type, field)
+    pairs across 2,273 live node-fields sit in no schema's `fields:` at all —
+    `experiment.production_lines` (461 live uses), `experiment.line_ceiling`
+    (362), `goal.heading_level` (362), `hypothesis.verdict` (150),
+    `hypothesis.ceiling` (98), `experiment.rebrief_answer`/`rebrief_request`
+    (brief.py's own re-brief protocol, cli.py:842) among them — every one of
+    which the gate refused on trunk's live graph. The schemas' `fields:`
+    blocks are far less complete than the corpus's actual field usage; an
+    allowlist maintained by hand cannot keep up with that gap, and refusing
+    on it breaks routine protocol writes rather than catching typos. Dropped
+    entirely rather than patched wider — the type/regex checks below stay,
+    because those only fire on a field a schema explicitly typed or
+    regex'd, a far smaller and more deliberate set.
+    """
+    fields = schema.fields or {}
+    field = fields.get(key)
+    if isinstance(field, dict) and field.get("refuse"):
+        ground = str(field.get("refuse"))
+        return (f"{verb} {node_type} refused by name: {key!r} is not a "
+                f"settable cell — {ground} (schema field-level `refuse:`, "
+                f"enforced generically)")
+    validation = schema.frontmatter.get("validation") or {}
+    declared = (validation.get("types") or {}).get(key)
+    if declared is None and isinstance(field, dict):
+        declared = field.get("type")
+    if declared and not _matches_type(value, declared):
+        article = "an" if declared[0] in "aeiou" else "a"
+        return (f"{verb} {node_type} refused by name: {key!r} must be "
+                f"{article} {declared} value, got {value!r} (schema declares "
+                f"{key}: {declared})")
+    pattern = (validation.get("regex") or {}).get(key)
+    if pattern and (not isinstance(value, str)
+                    or re.fullmatch(pattern, value) is None):
+        return (f"{verb} {node_type} refused by name: {key!r} must match "
+                f"{pattern!r}, got {value!r} (schema validation.regex)")
+    return None
+
+
 def _enforce_create_schema_gate(root, node_type: str, set_fm: dict) -> str | None:
     """The CREATE half of a schema's field-level refusal annotations.
 
@@ -1828,26 +1905,13 @@ def _enforce_create_schema_gate(root, node_type: str, set_fm: dict) -> str | Non
         return None
     if schema is None:
         return None
-    fields = schema.fields or {}
-    vt = (schema.frontmatter.get("validation") or {}).get("types") or {}
     required_nonempty = ((schema.frontmatter.get("validation") or {})
                          .get("required_nonempty") or [])
-    for key in set_fm:
-        field = fields.get(key)
-        if isinstance(field, dict) and field.get("refuse"):
-            ground = str(field.get("refuse"))
-            return (f"create {node_type} refused by name: {key!r} is not a "
-                    f"settable cell — {ground}"
-                    f" (schema field-level `refuse:`, enforced generically "
-                    f"at mint)")
-        declared_int = (vt.get(key) == "int"
-                        or (isinstance(field, dict) and field.get("type") == "int"))
-        if declared_int:
-            v = set_fm[key]
-            if isinstance(v, bool) or not isinstance(v, int):
-                return (f"create {node_type} refused by name: {key!r} must "
-                        f"be an integer at mint, got {v!r}"
-                        f" (schema declares {key}: int)")
+    for key, value in set_fm.items():
+        refusal = _schema_field_refusal(schema, node_type, key, value,
+                                        verb="create")
+        if refusal:
+            return refusal
     for key in required_nonempty:
         if key not in set_fm:
             return (f"create {node_type} refused by name: {key!r} is required "
@@ -1860,6 +1924,38 @@ def _enforce_create_schema_gate(root, node_type: str, set_fm: dict) -> str | Non
                     f"non-empty at mint, got {v!r} (empty) — a node born with "
                     f"an empty {key} would be refused at read (schema "
                     f"validation.required_nonempty)")
+    return None
+
+
+def _enforce_set_schema_gate(root, node_type: str, set_fm: dict) -> str | None:
+    """The SET half of goal:g7.33.10 round B — `create --set` has run
+    `_enforce_create_schema_gate` since the town gate landed; an existing
+    node's `set` consulted no schema at all until now (measured: an invented
+    field, an out-of-regex `goal_id`/`status`, a non-float `confidence` and
+    a raw string into a list-typed field all wrote clean, exit 0). Shares
+    `_schema_field_refusal` with `create` so the two verbs judge a row
+    identically. Returns a ONE-LINE refusal or None; a schema or key this
+    predicate does not recognise gates nothing, exactly like the create
+    gate — required-ness stays out of scope here too.
+    """
+    try:
+        from schema_registry import load_schemas_from_dir
+    except Exception:  # noqa: BLE001
+        return None
+    schemas_dir = Path(root) / "context" / "schemas"
+    if not schemas_dir.is_dir():
+        return None
+    try:
+        schema = load_schemas_from_dir(schemas_dir).get(node_type)
+    except Exception:  # noqa: BLE001
+        return None
+    if schema is None:
+        return None
+    for key, value in set_fm.items():
+        refusal = _schema_field_refusal(schema, node_type, key, value,
+                                        verb="set")
+        if refusal:
+            return refusal
     return None
 
 
@@ -3014,6 +3110,18 @@ def main(argv: list[str] | None = None) -> int:
     except EditError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
+
+    # goal:g7.33.10 round B -- the SET half of the schema-checked-rows gate.
+    # `edit.set_fm` is fully accumulated now (every `set` in the script has
+    # landed), so one pass here judges every row before anything reaches
+    # submit(). node_type is the node id's own prefix convention
+    # (`goal:g7.2` -> `goal`), the same shortcut node_writer already uses.
+    if edit.set_fm and ":" in args.node_id:
+        node_type = args.node_id.split(":", 1)[0]
+        refusal = _enforce_set_schema_gate(root, node_type, edit.set_fm)
+        if refusal:
+            print(f"ERR: {refusal}", file=sys.stderr)
+            return 2
 
     # hypothesis:write-py-inline-replace-verb -- resolve `sub`/`sub!` once,
     # here, so the `--dry-run` preview shows the real diff and a 0/2+ match
