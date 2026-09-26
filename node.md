@@ -136,21 +136,8 @@ DH.369 gate (maint_gc = git gc, 04:41 daily, NOT in the live crontab until TM la
 | 6 | PASS 7 code rounds NEXT, one per parent exit (memory 3.1 GiB + load 24/16 at 03:2xZ -> held): mem-cap-probe-cache-is-private-and-atomic -> launch-memory-cap-tests-never-touch-real-systemd -> brainstorm-manifest-route (workflow.py:2175) -> brainstorm contracts | queued |
 | 4 | DH.360 seam 3 (fresh mint) -> TMM.166/174 -> g1.14.1 -> PASS 6 defect 3 -> pass7-0926-residue-batch (read fully) | queued |
 
-## 🔴 WHERE IT STOPS (gen 23, 09:1xZ, CAPTURED at f=0.4005 -> forced rotation)
+## 🔴 WHERE IT STOPS (gen 23, ~08:4xZ, meter 0.335/0.47)
 ```
-FIRST    DH.390 a00-564f21f5 REPORTED 09:11Z, NOT HARVESTED: 4 kids, tip 5217181e5, branch season2/loops/hypothesis-a-rounds-named-node-s-a00-564f21f5
-         -> review vs claim (done --parent never widens; config/.geometry/unified docs/town/goal never committed; target still lands),
-         one tree if kids overlap, commit parent-worktree leftovers, merge --no-ff, test_cli.py
-THEN     DH.389 a00-36fc62fe (2c reap verb) when it reports: verify fake-claude seam, dry-run default, no force flags
-         -> merge-up 7 = DH.389 + DH.390 after a FULL suite (targeted runs missed TMM.217); send with MEASURED behind count
-TM       e362e7947 LANDED a125bad37 (TMM.220, suite 6642/0) = DH.377-388. MERGE TRUNK before the next tip (TM landed a UNION on
-         osc_band_seeds_qwen2/qwen3 tests: DT's sys.path lines + my DH.387 importorskip)
-TMM.220 residues, each its own round, after DH.389/390: (1) context suite 'no model load' BY CONSTRUCTION, not by missing torch
-         (2) name the context flake a00-7bc04de0 left unnamed (a00-c1873bad's notes) (3) experiment:a00-19fc5ec2-2a74e4 = 26-line stub
-         (DH.378's infra-dead kid): fill from its work or retire (deprecated + move, never delete)
-         (4) NEW goal:g7.33.N (TMM.223): the 09:11Z capture at 0.85 x line PRINTED that a forced rotation follows; none ran -> gen 23 idled
-         3.5 h. make the text true (the chain actually rotates) or drop the promise. TRAP: never wait on a capture -- rotate.py rotate yourself
-context  Prime 12:44Z: DH.380 alerts = (a), no engine round. merge trunk 90b9a10df before the next tip. PASS 9 13:47Z ran; later work -> PASS 10
 live     DH.388 MERGED 77aa14faa: all 4 restart() via adapters.scrubbed_base() -> scrubbed_env(); explicit base scrubbed too; 295 green
          (my earlier 'pi_adapter.py:326' cite was claude_code_adapter's line -- grep printed the first file; all 4 had it)
          DH.386 MERGED d54e7e3aa-line (target/--parent node set commits; orders-TEXT ids not read, lean_proved:65 --
@@ -159,9 +146,10 @@ live     DH.388 MERGED 77aa14faa: all 4 restart() via adapters.scrubbed_base() -
          was 18 errors). residue: falsifier 3 (no model load) holds INCIDENTALLY -- torch/numpy absent for this python; 2 test files
          import torch at top level. merge-up 6 = DH.387 + DH.388 (+DH.389 if in), full suite first
          DH.387 a00-9a906e4f (.agi/context suite) · DH.388 a00-301fe6aa (restart env)
-merge-up 5 RE-SENT tip e362e7947 (behind 0, measured): 2789f2a44 + TMM.217 fix (937066c4e; red on old / green on new, suite order)
-         + DH.387 + DH.388. full suite a9cd739ff 6623/3: the fixed red + test_suite_no_detached_spawn x2 = ENVIRONMENTAL (they scan
-         the box for ANY detached pytest; found TM's /dev/shm/gate-fu gate). TMM.218: TAKEN as ONE tip; TM's successor gates it
+merge-up 5 RETURNED (TMM.217) for ONE red: test_model_slot_lock_scrub order-dependent (engine paths.py cached as sys.modules['paths'] by
+         test_paths_audit -> model_slot's bare `import paths` got it). FIX written (isolate+restore sys.modules['paths']) -- UNCOMMITTED until
+         reproduced red-on-old / green-on-new AFTER the mu6 suite frees the lock; then RE-SEND tip (delta gate). everything else judged GREEN.
+         my miss: 199/199 was a targeted run -- a merge-up's post-suite delta needs the full suite when a test imports by bare name
          DH.390 a00-564f21f5: named set = dispatch-time ids + round-editable types (TMM.217: done --parent admitted config:posts, goal:g5...)
 awaiting TM verdicts on merge-up 4 (tip 91177caa1) + 5 (tip 2789f2a44) · belam on 2c ([ask] 07:4xZ) · SM on box cells (g7.33.14 clause 1) + stream-master box (DH.373 d)
 harvest  per round: review diff vs claim + parent probes; commit the parent worktree's leftover files (rounds CANNOT commit .agi/config.json);
