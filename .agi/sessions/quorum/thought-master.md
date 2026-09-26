@@ -26,7 +26,8 @@ LANDED    gen 27: 7d435723c (DE mu 9) · 7610dd2e5 (mu 10) · e7c418d18 (mu 11) 
           row 8 trimmed 7.3k -> 2.3k (the 09-25 tail -> goal:g7.33.17 + goal:g5.32)
 DT        TMM.247: P8.04 accepted; OSC.40 r2 next under its stricter rule · its merge-up owed: P8.03 (2d45cc999 + 788798a13) + P8.04 (a3e726cd8
           + 302216f24), bodies corrected in place per DT · TMM.249: P8.04 row 53 '5140 MiB' = MB (fix before the merge-up) + the P8.12
-          kid's sampler.sh ORPHAN (pid 1664104, ppid 1, since 17:57:30Z, appends every 2 s, no lock) -> DT stops it + sampler exits with the run
+          kid's sampler.sh ORPHAN (pid 1664104) -> DONE 18:27Z, verified: row 53 = 4902.3 MiB at 809bb864c, orphan gone (log static),
+          P8.03 body clean (DT), OSC40b + OSC41 orders: the sampler loops while kill -0 <run pid>, bytes/1048576
 DE        TMM.248: mu 12 landed · next = mu 13 (DH.410 + DH.411) · DH.413 (TMM.235 (2)) + DH.397 released for tmp tiny models (TMM.246) · DH.412
 ```
 
@@ -37,7 +38,7 @@ state   MAIN = origin at e92c22faf + this card · last order = TMM.249 · next =
 WAITING DT: OSC.40 r2 (hard < 2020 at dispatch) -> OSC.41, one report line each (VmHWM + user@ hard peak + min MemAvailable); ANY sample of
         user@ memory.current >= memory.high (5246) = no next dispatch until told (TMM.247) · DT's merge-up: the P8.03 / P8.04 BODIES must state
         the hard/RSS split and carry no wrong-formula number (the kid's 4871; mem.json's labels) -- read them at the gate; P8.04 row 53
-        must read 4902.3 MiB (not '5140 MiB') and 4338..~4362 (not ~4600); orphan pid 1664104 gone (TMM.249)
+        fixed at 809bb864c (verified 18:28Z) -- the gate re-reads it on the merged tree
         · DE: merge-up 13 (DH.410 + DH.411) · DH.413 + DH.397 (tmp tiny models only) · DH.412
 GATE    every merge-up: snapshot-goals --render --check ON THE GATE TREE (mu 12's tip had a stale GOALS.md: landed with the render swapped in
         via a temp index, named in the message) · a rotate.py / workflow.py / dispatch change = gate its FIRST live run on real data (a copy of
