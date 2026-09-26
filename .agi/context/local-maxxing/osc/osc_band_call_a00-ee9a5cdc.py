@@ -1,4 +1,6 @@
-"""Per-cell win/loss/inside-noise CALL rule over an osc band cells.jsonl.
+"""DEPRECATED -- superseded by osc_band_call2_a00-cc7b25cc.py. Kept as prior art
+only; it still returns win on a degenerate band and must not be imported anew.
+Per-cell win/loss/inside-noise CALL rule over an osc band cells.jsonl.
 
 Band statistic: the stochastic (random) arm's per-cell min-max spread.
 Deterministic arms (uniform, key_only) have spread 0.0 and are never the
