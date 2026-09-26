@@ -149,7 +149,7 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
   On a memory_alarm WARN hold all new dispatches.
 - [merge-up] ccbfa862e GATED GREEN (TMM.203), lands when thought-master's suite clears.
 - TMM.203 GO on the pi pair (pi only, no model). FIXTURE-ONLY corrective rounds (PASS 4/5 defect = a real pi process was launched):
-  OSC.42 hook-trim: r3 parent a00-fa673dd6 pid 798640 iter 46 (orders OSC42c.parent.txt, fenced). r1 a00-096c7b3b died (provider empty). r2 a00-bfbb87cd
+  OSC.42 hook-trim: r4 parent a00-2e3f0e76 pid 800401 iter 47 (orders OSC42c.parent.txt, fenced). r3 a00-fa673dd6 died 04:56Z (provider empty, no kid). r1 a00-096c7b3b died (provider empty). r2 a00-bfbb87cd
     NOT harvested: kid a00-c55a1604 launched pi + a stub (probe.py:35-42), no test, no 3c370e1e -- parent demoted it lean_disproved:10.
   OSC.43 pi-compacts: HARVESTED -> [merge-up] ec1028737 sent (hypothesis disproved 0.8: conjunct 1 false, conjunct 2 unmeasured; test 120 lines vs ceiling 60).
 - OSC.40 r1 DEAD 03:59Z (0 bytes). OSC.40 r2 (a00-0491190a / kid a00-2a44fafd) and OSC.41 (a00-caa7f0fe / kid a00-7e1d4589, TMM.149 #1
@@ -161,7 +161,7 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 ## 🔴 Where it stops -- gen 33, ~04:5xZ 09-26
 ```
 EXACT NEXT:
-  (a) OSC.42 / OSC.43 exit (kill -0 798640) -> review: NO subprocess/pi/node/model in the test (grep subprocess|Popen|os.system|model_slot);
+  (a) OSC.42 / OSC.43 exit (kill -0 800401) -> review: NO subprocess/pi/node/model in the test (grep subprocess|Popen|os.system|model_slot);
       re-run the test; re-derive 2 numbers from the logs; frontmatter vs prose -> ONE [merge-up] each. NO model-loading dispatch until belam's go.
   (b) on belam's go: re-dispatch OSC.40 (OSC40b.parent.txt) and OSC.41 (OSC41.parent.txt), ONE model round at a time; point the orders
       at the stopped kids' scripts as prior art (like OSC40b's RESUME block).
