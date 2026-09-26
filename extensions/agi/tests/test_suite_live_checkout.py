@@ -37,17 +37,6 @@ def test_conftest_gate_is_live_checkout(tmp_path):
     assert locations.is_live_checkout(_given_tmp(tmp_path)) is False
 
 
-def test_no_git_path_is_never_the_live_checkout(tmp_path):
-    """The claim's dedicated no-repo predicate test: a path with NO enclosing
-    git repo must read FALSE (never LIVE), while the real engine checkout
-    reads True. Covers the regression that could label a gitless /tmp basetemp
-    LIVE and trip the H2 refusal."""
-    import tempfile
-    gitless = Path(tempfile.mkdtemp())  # fresh dir under /tmp, no repo
-    assert locations.is_live_checkout(gitless) is False
-    assert locations.is_live_checkout(LIVE) is True
-
-
 def test_no_git_path_is_false_even_when_the_resolver_returns_one_root(
         monkeypatch, tmp_path):
     """The no-repo rule is DECIDED, not coincidental (SM.80 re-open).
@@ -58,10 +47,23 @@ def test_no_git_path_is_false_even_when_the_resolver_returns_one_root(
     resolve equal -- exactly the shape SM.80's tautology read as LIVE. The
     predicate must still answer False for a path in no repository, because
     `_enclosing_repo` is None there. On SM.80's bytes this assertion FAILS
-    (the identity fallback happened to differ; nothing decided it)."""
-    monkeypatch.setattr(locations, "git_common_root", lambda p: LIVE)
+    (the identity fallback happened to differ; nothing decided it).
+
+    This is the claim's ONE dedicated no-repo predicate test. The earlier
+    `test_no_git_path_is_never_the_live_checkout` (a00-9608da10) created a real
+    `tempfile.mkdtemp()` on EVERY run -- one /tmp entry per run, forbidden by
+    the standing order -- and asserted a strict SUBSET of what this test
+    asserts, so it is DELETED rather than re-homed: nothing is lost, and no
+    third overlapping no-repo test is left behind."""
     gitless = tmp_path / "no-repo"
     gitless.mkdir()
+    # The PREMISE, asserted: tmp_path stands in for a gitless path only while
+    # pytest's basetemp sits outside every repository (the standing
+    # --basetemp-under-/tmp rule; the conftest gate refuses a basetemp inside
+    # the live checkout). A runner that ever roots the basetemp in a repo
+    # FAILS LOUDLY here rather than passing for the wrong reason.
+    assert locations._enclosing_repo(gitless) is None
+    monkeypatch.setattr(locations, "git_common_root", lambda p: LIVE)
     assert locations.is_live_checkout(gitless) is False
     assert locations.is_live_checkout(LIVE) is True
 
