@@ -41,7 +41,8 @@ ROUND  agent        what                         state (mur units agi-director-e
 424    MERGED with 431 (mur-5 accept) into the post branch + verdict proved 390bab9da -- repro green on the post branch
 425    -> 428 -> 435 -> 441 a00-b4ee33fe (3-name pin; node cites fixed, committed by me) 84 green -> mur-6 DH.441-k1 RUNNING (final)
 426    a00-8783b3d3 schema gate  mur-4 residue x3 (cli.py: named-id hole, double ERR, stale comment) -> 442 FAILED TO BUILD ON IT (no
-       merge; hook-only overlap) -> NEVER merge 442; REDO as 445 dispatched FROM a worktree checked out on the 426 loop branch
+       merge; hook-only overlap) -> NEVER merge 442 -> 445 a00-5a2ac2fb LIVE, CUT FROM the 426 branch (dispatched in its worktree;
+       stale-base "behind 1" overridden with reason -- quote the refusal line in [merge-up])
 427    -> 436 a00-68d48a54 (incl 427): seam holds --noconftest (0 tmux calls), vacuous guard deleted, nbhd 310 -> mur-6 DH.436-k1/k2 RUNNING
 429    -> 443 a00-169a5424 REBUILT standalone (live 150, both guards) -> mur-6 DH.443-k1 RUNNING; LAND: merge 429 (nodes) THEN 443 (-X theirs)
 430    -> 440 a00-c8389b84 (incl 430+431; ONE guard home, 0 dups; 229 green + repro) -> mur-6 DH.440-k1/k2 RUNNING
