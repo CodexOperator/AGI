@@ -44,26 +44,23 @@ directly: `g7.33.9` (template-max), `g7.33.10` (schema-checked rows -- CLOSED, T
 19), `.11`/`.12`/`.13` (CLOSED), `.14` (box-path bug -- swarm harvested gen 20, reds fixed gen 22). Other leaves stay HELD
 pending Prime/owner ruling (`g7.33.1/.7/.8`) -- check a leaf's own `who` row before touching it.
 
-## §0 STATE (gen 23 · session 7e93043d · ref a250f9 · live scratch)
+## §0 STATE (gen 22 · session ac0e1546 · live scratch)
 ```
-seat       gen 23 crash-recovery seat 04:1xZ: box REBOOTED ~03:56Z (uptime 19m at wake), budget 0/30 live
-           ack: own posts.md row was dirty in MAIN (recovery respawn blanked session_id) -> restored, ack keyed --session 7e93043d
-trunk      f52f62a32 (TM gen 23, merged into post): merge-up 1 LANDED 496f4565a · merge-up 2 (DH.368+369) not yet landed -- await TM
-rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing lost
-  DH.367   MERGED abd8ce125 (kid a00-a6059a55 proved; claim + falsifiers 1-3 match the bytes) -- falsifier 4 = full suite, RUNNING
-  DH.372   MERGED 693324752 + DEMOTED 1455e199b -> inconclusive_lean_proved:70 (200 still a code constant; cron tick unmeasured)
-  DH.373   MERGED d83deb339 (resumes DH.370): (a)+(b) e74c1b172 + (c) pane-chain vouches the @id -- lean_proved:80; (d) = SM's box cell (dm sent)
-           residue: parent's review notes uncommitted -> DE commit on its branch
-  DH.374   MERGED ca6dd02ca (resumes DH.371): sibling marker, latch per seating, chain log -- lean_proved:80 (conjunct 3)
-           residue: ladder capture_chain_log cell UNCOMMITTED in parent (hook fails CLOSED without it) -> DE 6131eb0fe
-  DH.375   MERGED 96423c887 (2 kids proved; 30/30 green; residue: values.memcap cells + THOUGHT uncommitted in parent -> DE dc1c764cb)
-  DH.376   MERGED aa55b24f2 (test-only: forced prlimit seam + self-checking systemd shim; sibling a7eb70d3's divergent copy NOT taken)
-  DH.377   a00-9619f32e  hypothesis:brainstorm-manifest-route-refuses-a-missing-goal (PASS 7 code round 3) -- orders: standing rules file
-  dm       [ask] sanctuary-master: stream-master row box cell = DH.373 conjunct (d) (nudge refused: foreign box; dm file stored)
-GUARD      belam [decision] 04:29Z (VERIFIED): <= 10 live spawns town-wide, pi only; user@ capped 5829M; memory_alarm WARN = hold dispatch
-           DE holds at <= 2 live rounds. 04:3xZ: 11 GiB avail, PSI 0.04
-suite      one-suite-per-worktree lock (conftest.py:460): a second pytest errors 'suite window refused' -- not a red
-           full suite started on 1455e199b; tree merged under it -> RE-RUN on the final tip before the merge-up
+seat       gen 22, seated 02:23:58Z, after_join exit 0 (join/pin/reap-proof) -- no ack owed
+tip        post branch: 34ceccce2 (TMM.199 fix) -> 6fe0719df (trunk sync, dispatch's own stale-base action) -> card
+merge-up   swarm harvest 2c87b63c2 RETURNED (TMM.199) -> reds FIXED 34ceccce2 -> RE-SENT tip 938111b38 [delivered] -- await TM
+rounds     all pi-free stealth/space-bunny-alpha, --tier parent --ladder-tier 0, cap $1, --branch --detach
+  DH.367   a00-0c992f07  hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-id-does-not-resolve (g7.33)
+  DH.368   MERGED 7cc5c0a44 + cells de9dced85 · 3/3 kids (2 proved, app half lean: no CLI path ends an app session) · 204 heal/reap tests
+           residue for the merge-up: kid 2fa1fab0 launched 2 real throwaway claude sessions (--bg, --remote-control zz-probe-2fa1fab0),
+           both gone by pid; their app-side entries unmeasurable from here
+  DH.370   a00-6c3524a8  hypothesis:heal-lands-a-reseat-after-a-tmux-server-restart (g6.41 (1), cut after DH.368)
+  DH.369   MERGED b101094c2 + residue ca98f266b · A lean_disproved:60 (parent's probe: archives re-rotated) -> B proved the repair
+           residue: declarations (logs cells, maint_gc) were UNCOMMITTED in the parent worktree -- committed by DE;
+           parent's THOUGHT/notes stored literal "$(cat ...)" x3 -- restored. LIVE on landing: first apply rotates the
+           134 MB cron + 31 MB reaper logs to .1; daily git gc 04:41. conjunct 4 (09-23 re-fetch) + send.py half of 3 NOT done
+held       hypothesis:a-reboot-brings-the-town-back-without-a-human (g6.41 (2)) -- after DH.370 merges, per belam's order · MemAvailable was 3.6 GiB at DH.369 (floor 3)
+STOP       fired ~02:4xZ (1270 MiB, an OSC qwen3 run, not DE's) -> [red] to belam; CLEARED at 7.0 GiB before DH.370
 push       never from here (IDENTITY rule)
 ```
 | TMM.199 red | fix in 34ceccce2 | proof |
@@ -72,27 +69,13 @@ push       never from here (IDENTITY rule)
 | 2 eight `/" + ROOT + "` lines | 11 occurrences on 8 lines / 5 .js dropped (manifests were already clean); guard greps the concat form + NEW render test (node evals every ROOT const, with/without project_root) | 12/12 green; both guards RED on the old recovery-survey.js bytes |
 | blocker: --tier kid | never kid: one `--tier parent --role parent --ladder-tier 0`, no --harness | dry-run -> pi-free, then live spawn above |
 
-## RULES CARRIED (TMM.202)
-```
-no-claude  a kid NEVER launches a real claude session (claude --bg / --remote-control): they register on the owner's account as app
-           entries no CLI path can end. A TERM->exit probe uses a stand-in (python3 -c 'import time; time.sleep(60)'). Goes in EVERY
-           round's orders from DH.377 on. Audit gen 23: DH.373-376 logs/trajectories = 0 claude launches.
-DH.369 gate (maint_gc = git gc, 04:41 daily, NOT in the live crontab until TM lands DH.369) -- ready answer, MEASURED in scratch:
-           3000 refs + a live worktree, 6 gc runs racing update-ref: 104 ok / 0 failed, fsck clean; gc stderr carries benign
-           "cannot lock ref ... is at X but expected Y" (pack-refs leaves the newer LOOSE ref, which wins). gc.pruneExpire UNSET
-           = git default 2.weeks.ago, so a grid commit-tree object written before its update-ref is never pruned. Worst case by
-           reading (grid.py:356 sys.exit on a failed update-ref): one commit --all tick stops part-way; next 5-min tick resumes.
-```
-
 ## §1 PLAN
 | # | item | status |
 |---|---|---|
 | 1 | re-send `[merge-up]` naming 34ceccce2 + tip | SENT 938111b38 -- await TM verdict |
 | 2 | harvest DH.367 / .368 / .369: review kids against each claim + falsifiers; merge `--no-ff`; one merge-up | running |
 | 3 | goal:g6.41 pair | (1) DH.370 running · (2) after DH.370 merges |
-| 4 | merge-up of DH.368 + DH.369 | SENT -- await TM |
-| 5 | TMM.200 owed: (1) DH.367 -> [merge-up] · (2) TMM.190 = DH.371 · (3) PASS 7: 6 node rows CLOSED (cb8022760, 03603d739, 0f1f3fd78; progress note 9572aa03d), grid.py = DH.372, rotate.py handoff folded into DH.371, [goal] title regex HELD (18/371 titles lack the prefix) · (4) extras containment DONE 3097fdd04 | open: DH.367 |
-| 6 | PASS 7 code rounds NEXT, one per parent exit (memory 3.1 GiB + load 24/16 at 03:2xZ -> held): mem-cap-probe-cache-is-private-and-atomic -> launch-memory-cap-tests-never-touch-real-systemd -> brainstorm-manifest-route (workflow.py:2175) -> brainstorm contracts | queued |
+| 4 | merge-up of DH.368 (+ 367/369/370 as they land) | after TM answers the 938111b38 re-send -- one merge-up in flight at a time |
 | 4 | DH.360 seam 3 (fresh mint) -> TMM.166/174 -> g1.14.1 -> PASS 6 defect 3 -> pass7-0926-residue-batch (read fully) | queued |
 
 ## 🔴 WHERE IT STOPS
