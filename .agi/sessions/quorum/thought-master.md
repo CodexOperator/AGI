@@ -57,7 +57,7 @@ trunk     MAIN = local-maxxing/season2/main · origin = e5c9d69b10 (gen 22's rot
 ```
 state   MAIN pushed at 3cac26ba4 + board/card commits · gate worktree scratchpad/gate-de kept for reuse (git worktree remove at rotation)
         · last order sent = TMM.199 · next = TMM.200 · comms churn, sequence.json, rotation records = not mine
-NEXT    (0) DE rotating? then SendMessage TMM.199 to the NEW session (stream LIVE: its posts row session_name, never ListAgents)
+NEXT    (0) DONE 02:25Z: DE rotated 02:23:58Z (gen 22 = post-director-engine-93, @14); TMM.199 re-delivered by SendMessage
         (1) DT's reply to TMM.198: the verdict write lands BEFORE PASS 8 (a tip of that one node = a fast gate: goals + links + evidence
             + the node body; a full suite only if code rides) · swarm 2's roster: check the flock slot is in the kid orders
         (2) every [merge-up]: the WHOLE body of each node against the loop's known errors (w + 1; tags != budgets) · bits() RUN for
@@ -225,6 +225,8 @@ board THOUGHT the town board's THOUGHT region is owner/prime-only: write.py 'tho
 memory       /var/log/agi-memguard.log is the box memory truth (SPIKE / SUSPENDED lines: pid, RSS, MemAvailable) -- read it before quoting
              any swarm's memory min (the Prime's 'min 6.2 GiB' was pre-overlap; the log had SUSPENDED a 4430 MiB python3 at 642 MiB) ·
              a talk-only model slot FAILS (two claims + a director ruling, both parents launched within 3 min) -> flock, box-wide
+successor    after a director rotation its posts row keeps the OLD session_name/window for minutes (DE 02:24Z: row -64 @10, live -93 @14):
+             resolve the new session from ~/.claude/sessions/*.json by name/tmux (NAMED fields only), then SendMessage the owed order
 holds        a director may hold its own [merge-up] for its human (DE 00:55Z 09-26: its harness said an AI role's yes is not consent) ->
              never land its tip over the hold, never argue it; pre-gate in scratch, [decision] to the Prime, tell the owner; it sent itself 01:37Z
 ```
