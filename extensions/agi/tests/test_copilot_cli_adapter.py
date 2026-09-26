@@ -36,8 +36,14 @@ import adapters  # noqa: E402
 
 cp = adapters.load("copilot_cli")
 
+#: The `bin` cell is a BARE PATH NAME, not a literal absolute path: a
+#: configured path-shaped cell that does not exist now refuses by name
+#: (`hypothesis:harness-bin-absolute-token-free-bins-refused-by-name`), and
+#: these tests are about argv SHAPE, not about bin resolution. A bare name is
+#: still carried unchanged, so every `argv[0] == HARNESS["bin"]` assert below
+#: means the same thing it meant against the old `/home/ubuntu/...` literal.
 HARNESS = {"adapter": "copilot_cli",
-           "bin": "/home/ubuntu/.npm-global/bin/copilot",
+           "bin": "copilot",
            "models": {"kid": "auto", "parent": "auto"}}
 
 SCAFFOLD = {"path": "/x/nodes/hypothesis/h.md", "node_type": "hypothesis",
@@ -232,11 +238,20 @@ def test_fake_copilot_on_path_is_the_built_argv_head(monkeypatch, rig,
     assert "--model" in recorded and "auto" in recorded
 
 
-def test_resolve_bin_precedence(monkeypatch):
-    monkeypatch.setenv("COPILOT_BIN", "/env/copilot")
-    assert cp.resolve_bin({"bin": "/cfg/copilot"}) == "/env/copilot"
+def test_resolve_bin_precedence(tmp_path, monkeypatch):
+    # Real files: a path-shaped cell that does not exist REFUSES by name now
+    # (hypothesis:harness-bin-absolute-token-free-bins-refused-by-name), so a
+    # precedence test can no longer use `/env/copilot` as a stand-in value.
+    env_bin = tmp_path / "env" / "copilot"
+    cfg_bin = tmp_path / "cfg" / "copilot"
+    for f in (env_bin, cfg_bin):
+        f.parent.mkdir(parents=True)
+        f.write_text("#!/bin/sh\n")
+        f.chmod(0o755)
+    monkeypatch.setenv("COPILOT_BIN", str(env_bin))
+    assert cp.resolve_bin({"bin": str(cfg_bin)}) == str(env_bin)
     monkeypatch.delenv("COPILOT_BIN")
-    assert cp.resolve_bin({"bin": "/cfg/copilot"}) == "/cfg/copilot"
+    assert cp.resolve_bin({"bin": str(cfg_bin)}) == str(cfg_bin)
     assert cp.resolve_bin({}) == cp.DEFAULT_BIN
 
 
