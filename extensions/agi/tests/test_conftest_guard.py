@@ -24,6 +24,13 @@ import tempfile
 
 CONFTEST = os.path.join(os.path.dirname(__file__), "conftest.py")
 
+#: The LIVE config the `live_config` offender below tries to read — the same
+#: file test_live_config_cells.py is allowed to read and an opted-in module
+#: is not. Computed from THIS file (never a literal), so the offender fails
+#: on the GUARD, not on a missing path.
+LIVE_CONFIG = (os.path.join(os.path.dirname(__file__), "..", "..", "..",
+                            ".agi", "config.json"))
+
 
 def _run_identity_pop_subprocess(test_src, env_extra):
     """Run pytest against a throwaway dir that symlinks the real conftest,
@@ -93,6 +100,98 @@ def test_runner_identity_pop_leaves_monkeypatch_setenv_working():
     code, err = _run_identity_pop_subprocess(
         src, {"AGI_AGENT_ID": "z", "AGI_SEAT": "x", "AGI_POST": "y"})
     assert code == 0, f"monkeypatch.setenv blocked after pop; stderr:\n{err}"
+
+
+def _run_guarded_subprocess(test_src):
+    """Run pytest against a throwaway dir that symlinks the real conftest and
+    returns (rc, output). No identity env: the guard under test is opt-in by
+    module attribute, not by env."""
+    d = tempfile.mkdtemp()
+    try:
+        os.symlink(CONFTEST, os.path.join(d, "conftest.py"))
+        with open(os.path.join(d, "test_a.py"), "w") as f:
+            f.write(test_src)
+        env = dict(os.environ)
+        for _k in ("AGI_TIER", "AGI_AGENT_ID", "AGI_SEAT", "AGI_POST"):
+            env.pop(_k, None)
+        proc = subprocess.run(
+            [sys.executable, "-m", "pytest", os.path.join(d, "test_a.py"), "-q"],
+            capture_output=True, text=True, env=env)
+        return proc.returncode, proc.stdout + proc.stderr
+    finally:
+        shutil.rmtree(d)
+
+
+_OPTIN_HEAD = "NO_REAL_PROCESSES = True\n"
+
+#: One offending module per fenced resource, each the shape the pre-fix
+#: test_rotate_term_grace.py actually had (a spawn, a /proc scan, a real
+#: os.kill, a live config read).
+OFFENDING_SRCS = {
+    "spawn": _OPTIN_HEAD + (
+        "import subprocess\n"
+        "def test_offender():\n"
+        "    subprocess.Popen(['true'])\n"),
+    "fork": _OPTIN_HEAD + (
+        "import os\n"
+        "def test_offender():\n"
+        "    os.fork()\n"),
+    "proc": _OPTIN_HEAD + (
+        "import pathlib\n"
+        "def test_offender():\n"
+        "    [p for p in pathlib.Path('/proc').iterdir()]\n"),
+    "kill": _OPTIN_HEAD + (
+        "import os, signal\n"
+        "def test_offender():\n"
+        "    os.kill(1, signal.SIGKILL)\n"),
+    "live_config": _OPTIN_HEAD + (
+        "import json, pathlib\n"
+        "def test_offender():\n"
+        f"    json.loads(pathlib.Path({str(LIVE_CONFIG)!r}).read_text())\n"),
+}
+
+
+def test_process_config_guard_fires_on_every_fenced_resource():
+    """conftest's `_no_real_process_or_live_config` is IN FORCE, not merely
+    documented: for each fenced resource a deliberately offending test in an
+    opted-in module FAILS, and the guard's own message is the reason.
+
+    Red-first: drop the fixture (or its opt-in read) and all five nested
+    suites report rc 0 — the offenders would then really fork, really scan
+    /proc and really signal pid 1."""
+    for name, src in OFFENDING_SRCS.items():
+        code, out = _run_guarded_subprocess(src)
+        assert code != 0, f"guard did not fire on {name}:\n{out}"
+        assert "NO_REAL_PROCESSES" in out, out
+
+
+def test_process_config_guard_is_opt_in_not_blanket():
+    """A module that does NOT opt in is untouched: the identical spawn, /proc
+    scan and os.kill run, which is how the wider suite's legitimate `git`
+    fixtures keep working."""
+    code, out = _run_guarded_subprocess(
+        "import os, signal, subprocess, pathlib\n"
+        "def test_real_calls():\n"
+        "    assert subprocess.run(['echo', 'ok'], capture_output=True)"
+        ".stdout == b'ok\\n'\n"
+        "    assert any(pathlib.Path('/proc').iterdir())\n"
+        "    os.kill(os.getpid(), 0)\n")
+    assert code == 0, f"guard over-reached a non-opted-in module:\n{out}"
+
+
+def test_process_config_guard_lets_a_test_inject_its_own_seams():
+    """The guard is a floor, not a wall: a test that monkeypatches AFTER the
+    autouse fixture's setup wins for the test's duration (same ordering fact
+    as `_no_real_tmux`). This is what makes the rewritten reap test's fake
+    `os.kill` legal."""
+    code, out = _run_guarded_subprocess(_OPTIN_HEAD + (
+        "import os, signal, subprocess\n"
+        "def test_injected(monkeypatch):\n"
+        "    monkeypatch.setattr(os, 'kill', lambda p, s: None)\n"
+        "    monkeypatch.setattr(subprocess, 'Popen', lambda *a, **k: None)\n"
+        "    os.kill(424242, signal.SIGKILL)\n"
+        "    subprocess.Popen(['true'])\n"))
+    assert code == 0, f"guard blocked a test's own injected seams:\n{out}"
 
 
 def test_conftest_tmux_guard_is_in_force():
