@@ -48,7 +48,7 @@ ROUND  agent        what                         state (mur units agi-director-e
 430    -> 440 a00-c8389b84 (incl 430+431; ONE guard home, 0 dups; 229 green + repro) -> mur-6 DH.440-k1/k2 RUNNING
 432    SUPERSEDED (never merge: hostname in its history) -> 438 a00-d821a9fd REBUILT clean (125 green, anonymize ok, no host in history)
        -> mur-6 DH.438-k1 RUNNING; 438 lands with a normal --no-ff (its history is clean)
-433    a00-eafe7a6a installer  mur-5 residue (config-max: code fracs dup cells; graph root '.'; restore gap) -> 444 LIVE
+433    -> 444 a00-9cf89293 (incl 433; restore fixed; STILL OPEN: DEFAULT_FRACS code copy, --graph "." refuses) -> mur-? DH.444-k1 RUNNING
 434    SUPERSEDED -> 437 -> 439 a00-58736bab (incl 437; reserve 1911 correct w/ --held flag; 20 green) -> mur-6 DH.439-k1 RUNNING
        BOX DRIFT (for TM, not ours to fix): OOMPolicy unset on streamer-stub-watch.service · agi.slice drop-in FILE absent
 GRAPH     (3) DONE 864572bd6 · (2) level3.py after 435 merges · (9) judge heal-never-reseats after 436 · (11) verdicts x3 at merge
