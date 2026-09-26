@@ -1,0 +1,151 @@
+{
+ "meta": {
+  "k_id": "a00-ec09e83b-8786a9",
+  "runs": [
+   "a00-2b3ca8c4-582f1e-qwen2-seeds",
+   "a00-a721f95f-qwen2"
+  ],
+  "contract_fields": [
+   "cell",
+   "budget",
+   "arm",
+   "seed",
+   "n",
+   "arm_is_stochastic",
+   "widths",
+   "agree",
+   "kl"
+  ]
+ },
+ "margin_call": {
+  "4.25|agree": {
+   "call": "margin",
+   "margin": -0.07959,
+   "half_range": 0.020508,
+   "verdict": "loss"
+  },
+  "4.25|kl": {
+   "call": "margin",
+   "margin": -0.470127,
+   "half_range": 0.179178,
+   "verdict": "loss"
+  },
+  "5.25|agree": {
+   "call": "margin",
+   "margin": 0.027832,
+   "half_range": 0.04248,
+   "verdict": "inside-noise"
+  },
+  "5.25|kl": {
+   "call": "margin",
+   "margin": 0.125137,
+   "half_range": 0.2494,
+   "verdict": "inside-noise"
+  },
+  "6.25|agree": {
+   "call": "margin",
+   "margin": 0.051758,
+   "half_range": 0.029175,
+   "verdict": "win"
+  },
+  "6.25|kl": {
+   "call": "margin",
+   "margin": 0.154396,
+   "half_range": 0.149022,
+   "verdict": "win"
+  },
+  "7.25|agree": {
+   "call": "margin",
+   "margin": 0.009033,
+   "half_range": 0.019043,
+   "verdict": "inside-noise"
+  },
+  "7.25|kl": {
+   "call": "margin",
+   "margin": 0.01424,
+   "half_range": 0.06055,
+   "verdict": "inside-noise"
+  }
+ },
+ "range_call": {
+  "4.25|agree": {
+   "call": "range",
+   "key_only": 0.528564453,
+   "min": 0.458740234,
+   "max": 0.499755859,
+   "verdict": "above-peer"
+  },
+  "4.25|kl": {
+   "call": "range",
+   "key_only": 1.570819303,
+   "min": 1.685655542,
+   "max": 2.044011652,
+   "verdict": "below-peer"
+  },
+  "5.25|agree": {
+   "call": "range",
+   "key_only": 0.732421875,
+   "min": 0.643798828,
+   "max": 0.728759766,
+   "verdict": "above-peer"
+  },
+  "5.25|kl": {
+   "call": "range",
+   "key_only": 0.612523086,
+   "min": 0.565214662,
+   "max": 1.064014293,
+   "verdict": "inside-noise"
+  },
+  "6.25|agree": {
+   "call": "range",
+   "key_only": 0.830566406,
+   "min": 0.737548828,
+   "max": 0.795898438,
+   "verdict": "above-peer"
+  },
+  "6.25|kl": {
+   "call": "range",
+   "key_only": 0.248020329,
+   "min": 0.331279738,
+   "max": 0.629323337,
+   "verdict": "below-peer"
+  },
+  "7.25|agree": {
+   "call": "range",
+   "key_only": 0.883300781,
+   "min": 0.815917969,
+   "max": 0.854003906,
+   "verdict": "above-peer"
+  },
+  "7.25|kl": {
+   "call": "range",
+   "key_only": 0.113941976,
+   "min": 0.173034504,
+   "max": 0.294135168,
+   "verdict": "below-peer"
+  }
+ },
+ "summary": {
+  "margin_inside_budgets": [
+   "5.25",
+   "7.25"
+  ],
+  "range_inside_cells": [
+   "5.25|kl"
+  ],
+  "disagree": [
+   "5.25|agree",
+   "7.25|agree",
+   "7.25|kl"
+  ],
+  "key_only_beats_every_draw": [
+   "4.25|agree",
+   "4.25|kl",
+   "5.25|agree",
+   "6.25|agree",
+   "6.25|kl",
+   "7.25|agree",
+   "7.25|kl"
+  ]
+ }
+}
