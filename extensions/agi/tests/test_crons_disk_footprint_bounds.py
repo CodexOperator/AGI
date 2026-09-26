@@ -202,10 +202,20 @@ def test_over_cap_log_is_rotated_and_older_copies_leave(tmp_path,
     # alone whether it is over the cap or not. See also_manage above.
 
     out = crons.enforce_log_caps(root, root, dry_run=False)
-    assert len(out) == 2, out
+    # RESTATED (DH.383 kid 2, experiment:a00-945d7ae4-8974f4): the count was
+    # `2`, one `rotated` line per over-cap base. It is now one EXTRA line per
+    # base whose archive the SAME apply had to bound -- `rename` (the default
+    # when `logs.mode` is absent) moves the whole over-cap base into `.1`, and
+    # the archive-bounding loop runs BEFORE the rotation, so without that line
+    # the apply returned holding a 2 MB archive under a 1 MB cap. Nothing was
+    # deleted: the count assertion became "one rotated per declared base, and
+    # every managed file under the cap".
+    assert len([o for o in out if "rotated" in o]) == 2, out
     for name in (big.name, reap.name):
         assert (logs / name).stat().st_size == 0
-        assert (logs / f"{name}.1").stat().st_size == 2 * 1024 * 1024
+        assert (logs / f"{name}.1").stat().st_size == 1024 * 1024
+    assert not [p.name for p in logs.iterdir()
+                if p.is_file() and p.stat().st_size > 1024 * 1024]
     assert small.read_text() == "one line\n"
     assert not (logs / f"{small.name}.1").exists()
 
@@ -417,4 +427,10 @@ def test_a_legitimately_named_log_with_a_digit_suffix_is_still_a_base(
     out = crons.enforce_log_caps(root, root, dry_run=False)
     assert [o for o in out if base.name in o], out
     assert base.stat().st_size == 0
-    assert (logs / f"{base.name}.1").stat().st_size == 2 * 1024 * 1024
+    # RESTATED (DH.383 kid 2, experiment:a00-945d7ae4-8974f4): this asserted
+    # the archive equals the FULL 2 MB base, which IS the defect this round
+    # fixed -- in `rename` mode the base is renamed, not copied, so the archive
+    # the apply creates must be bounded in that same apply. The claim the test
+    # is about (a `<stem>.<digits>.log` name is a BASE, not an archive) is
+    # unchanged and is still asserted by the two lines above.
+    assert (logs / f"{base.name}.1").stat().st_size == 1024 * 1024

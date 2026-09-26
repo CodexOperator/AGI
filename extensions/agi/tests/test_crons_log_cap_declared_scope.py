@@ -249,3 +249,68 @@ def test_a_malformed_non_append_cell_raises_by_name(tmp_path):
     bad = make_project(tmp_path / "b", non_append="maybe")
     with pytest.raises(crons.CronsError, match="logs.non_append"):
         crons.enforce_log_caps(bad, bad, dry_run=False)
+
+
+# --- (5) the archive the SAME apply creates is bounded too -------------------
+#
+# The archive-bounding loop runs BEFORE the base rotation, so on its own it
+# bounds what EXISTED at entry and says nothing about the `.1` the rotation
+# makes. `copytruncate` hid that (its `_tail_copy` is bounded by
+# construction); `rename` -- the DEFAULT when `logs.mode` is absent -- moved
+# the whole over-cap base into `.1` and returned holding 172 MB.
+
+
+@pytest.mark.parametrize("mode", ["rename", "copytruncate"])
+def test_no_managed_file_is_over_the_cap_after_one_apply_in_either_mode(
+        tmp_path, mode):
+    """Falsifier 1, both modes over ONE fixture: a 2 MB declared base and one
+    apply, then no managed file above the cap when the call returns."""
+    root = make_project(tmp_path, mode=mode)
+    log = crons._log_path(root)
+    log.write_bytes(OVER)
+    out = crons.enforce_log_caps(root, root, dry_run=False)
+    over = {p.name: p.stat().st_size for p in logs().iterdir()
+            if p.is_file() and p.stat().st_size > CAP}
+    assert over == {}, (mode, over, out)
+    assert (logs() / f"{log.name}.1").exists(), (mode, out)
+
+
+APPEND_WRITER = """
+import os, sys, time
+log, ms = sys.argv[1], int(sys.argv[2])
+fd = os.open(log, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o644)
+blob = b"A" * 4096
+end = time.time() + ms / 1000.0
+while time.time() < end:
+    os.write(fd, blob)
+    time.sleep(0.005)
+"""
+
+
+def test_a_rename_stranded_writer_is_bounded_in_its_own_inode(tmp_path):
+    """Falsifier 2: `rename` moves the BASE's inode to `.1`, so the live
+    `O_APPEND` writer now writes into the ARCHIVE. The same apply must bring
+    that archive under the cap IN THAT INODE -- a `replace()` would leave the
+    writer appending to a deleted file the cap never looks at again."""
+    root = make_project(tmp_path, mode="rename")
+    log = crons._log_path(root)
+    log.write_bytes(OVER)
+    inode = log.stat().st_ino
+    kid = subprocess.Popen(
+        [sys.executable, "-c", APPEND_WRITER, str(log), "2500"],
+        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        time.sleep(0.3)
+        out = crons.enforce_log_caps(root, root, dry_run=False)
+        arch = logs() / f"{log.name}.1"
+        assert arch.stat().st_ino == inode, "the archive must be the SAME inode"
+        assert arch.stat().st_size <= CAP, arch.stat().st_size
+        # the writer's own fd still points AT that inode, not at a deleted one
+        fds = os.listdir(f"/proc/{kid.pid}/fd")
+        assert any(os.readlink(f"/proc/{kid.pid}/fd/{fd}") == str(arch)
+                   for fd in fds), "the writer was stranded on a deleted inode"
+    finally:
+        kid.terminate()
+        kid.wait(timeout=5)
+    assert any("rotated" in o for o in out), out
+    assert all(p.stat().st_size <= CAP for p in logs().iterdir() if p.is_file())
