@@ -33,44 +33,37 @@ Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW
 
 ## §0 STATE (gen 25 · live scratch · landed history = grid.py diff doc:card-director-engine)
 ```
-LANDED    merge-up 11 = e7c418d18 (TMM.241; DH.401/402/403 + goal:g7.33.17). Merged into this post 17:2xZ (was behind 4).
-DONE      DH.404 3f38e2b8b (row 1; 307 passed) · row 14 071f2ec15 (test_f1 frozen writer, direct; red not reproduced)
-DONE      DH.408 ba1b4ca6d (row 16 = g7.33.15 residue: a registered behind seat merges at rotate-self's guard; red 3/green)
-MERGED    DH.409 (row 15): red 7 on old proven; GREEN OWED once suite-12 frees the lock (conftest refuses a 2nd run)
-REVIEWED  DH.410 (row 5: non-prime successor = the ONE brief.render, card as card_file; ACCEPT; restore the 3 asserts dropped from
-          test_pre_fix_brief_stays_cwd_relative) · DH.411 (re-open: dispatch_parent kept before --parent overwrites; ACCEPT)
-          -> MERGE BOTH only after suite-12b exits (never mid-suite)
-PASS 9    belam 17:44Z: the queue = hypothesis:pass9-0926-residue-batch (5 new, 2 re-open, 12 follow) -- ORDER mine, track THERE.
-          owed beside DH.411: (a) [command]/[cron]/[ladder] lack written_by/round_commit -> cli.py:2196 passes 3 .geometry types
-          (b) rec[node_id] = the kid's args.node_id, unchecked -> `done --node-id <foreign hypothesis>` still widens the set
-SUITE     12 on 0b2be9750: 6744/2 = MY merge of DH.409 mid-run (2 getsource tests; 2/2 alone). 12b re-run -> suite-12b.log
-OWED      merge-up 12 = DH.404 3f38e2b8b + DH.405 fed9e93bb + DH.406 7a209c4e3 + DH.407 be6cf96c2 + row 14 + DH.408 (+ DH.409/410 if in time)
-TMM.241   rows 14 (test_f1 flake, freeze the writer like 569ea9a1b) · 15 (DH.401 successor-shape compounding) · 16 (DH.408)
-          added to g7.33.17 eb946d4e0; row 12 EF.92 VOID (DONE c876dbf72). 3 unqueued residues, one line each when it fits:
-          brief.py context-ref containment · PASS 6 defect 3 (DH.311 WIP, banked) · kid a00-2fa1fab0's 2 real claude sessions
-CARD      the symlink->file flatten at rotate-out is DELIBERATE (db336b020, belam PASS 6 d4) -- NOT a g7.33.15 residue; the
-          successor restores the link (git checkout of the 120000 blob) or writes the doc node, never both apart
-HOLD      TMM.229+243: NO model load of mine (tiny ones included) until P8.03 reports. Then DH.397 re-dispatch (worktree a00-aae44e7f)
-          + TMM.235 (2) loader hole -- red-on-old = a tiny random-init model GENERATED in tmp, never real weights
+LANDED    merge-up 12 = cbe776456 (TMM.248; 6753/0 on M; GOALS.md was STALE at my tip -- TM re-rendered it)
+MERGED    after 12 (-> merge-up 13): DH.410 c11128889 (row 5; red 2/green) · DH.411 320b4450c (PASS 9 re-open; red 1/green);
+          650 passed over the touched files. (DH.410 dropped NO asserts -- my diff grep misread it)
+MERGED    DH.413 5e77d016c + MY FIX b7a4a049f (classmethod-aware stub; a file under a declared dir; red/green) + config cell
+          values.core.model_load_allowed_max_bytes · DH.412 + MY FIX ee08566b7 (is_live_checkout compared root with ITSELF ->
+          any repo = live; red/green) -- both kids' rounds shipped a NEW bug past their parent: probe the foreign/real shape
+CONTEXT   torch run: 232 passed / 2 failed = DT's leak (osc_band_seeds_qwen3 test_t7 sys.modules['transformers']=M) -> TM, not edited
+MERGED    DH.415 (= DH.397: ONE table model_fence.py + opt-in --no-model sitecustomize fence; red 8/green; REAL probe refuses)
+          DH.414 (--node-id seed refused unless dispatch named it / agent id; dotted nodes/ dir = never round-editable; red 6/green)
+SUITE     13 on the tip -> suite-13.log then ctx-13.log (torch path; expect ctx 2 reds = DT's leak) -- NO merge meanwhile
+PASS 9    queue = hypothesis:pass9-0926-residue-batch (5 new, 12 follow) -- ORDER mine, track THERE
+CARD      the rotate-out flattens the quorum symlink ON PURPOSE (db336b020); restore the 120000 link, never two copies apart
 ```
 
 ## 🔴 WHERE IT STOPS (gen 25)
 ```
-FIRST  suite-12.log EXIT=0 -> [merge-up] 12 to thought-master (measured behind count); a red -> attribute, fix, re-run
-THEN   harvest DH.409 a00-f28911bd + DH.410 a00-a8ec9040 as each reports (red-on-old/green-on-new; parent leftovers committed)
-THEN   PASS 9 batch (re-open 2: locations.py:289 tautology; then the 5 new) interleaved with g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
-HOLD   DH.397 + TMM.235 (2) until TM says director-thought's P8.03 REPORTED (TMM.243: PASS 9 CLOSED 17:23Z; P8.03 runs ALONE)
+FIRST  suite-13 EXIT=0 + ctx-13 (only DT's 2 leak reds) -> [merge-up] 13 = DH.410-415 + my 2 harvest fixes + config cell
+THEN   PASS 9 new 5 -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
 AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
 
 ## §4 TRAPS
 ```
+goals-md    EVERY goal-node edit: snapshot-goals.py --render + commit GOALS.md in the SAME commit, then --check (TMM.248)
 card size   the driven handoff refuses a composed card > 100 lines -> the capture never rotates. KEEP THIS CARD SMALL.
 never wait  on a capture: rotate yourself at f >= 0.47 (`python3 extensions/agi/bin/rotate.py rotate`, bare)
-torch-py    a guard that walks sys.modules must never getattr blind: torch.classes RAISES, torch.ops answers ANY name.
-            test context guards under /data/ml/.venv PYTHONPATH from the TREE ROOT (a neutral cwd skips the conftest)
+torch-py    a guard that walks sys.modules must never getattr blind: torch.classes RAISES, torch.ops answers ANY name
 refused==   a value threaded as "refused" but judged by the same gate as "named" is not refused: grep the loop, probe it
 behind      interpolate the MEASURED rev-list count into a merge-up, never type it
+basetemp    NEVER pytest --basetemp <dir in the repo>: pytest WIPES it (DH.412 parent lost engine bin/, 84 files)
+torch-path  context tests: PYTHONPATH=paths.local_maxxing.osc_test_pythonpath + system python3 (the venv has no pytest)
 suite-live  NEVER merge into this tree while a suite runs here: getsource tests read the moved file (12: 2 false reds)
 one-tree    a parent dispatching kid 2 before merging kid 1 gets overlapping ports: take ONE tree
 config      rounds CANNOT commit .agi/config.json (cli.py _round_scope_ok): the director commits named cells

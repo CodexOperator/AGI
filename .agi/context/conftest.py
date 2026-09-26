@@ -1,88 +1,60 @@
 """No model load by construction: every weights-loading entry point REFUSES, by name.
 
-The box is memory-guarded (belam 04:29Z). A stand-in `torch` that only RECORDS its
-`load` calls still trips this; no library is imported to install the guard.
+A thin pytest shell around ONE shared fence, `extensions/agi/model_fence.py` --
+the same table the inherited-env `sitecustomize` installs in a non-pytest process
+of a no-model round (falsifier 3: one definition, never two). The box is
+memory-guarded (belam 04:29Z): a stand-in `torch` that only RECORDS its `load`
+calls still trips this; no library is imported to install the guard.
+
+This file keeps only what pytest needs: the re-exported names the guard tests
+reach through `sys.modules[conftest]`, the import-time hook's lifetime, and the
+per-test declaration clear.
 """
+import importlib.util
+import os
+import pathlib
 import sys
 
 import pytest
 
-# loader module -> the attributes that would read weights off disk or the hub
-REFUSED = {
-    "torch": ("load", "jit_load", "load_file", "safe_open", "from_pretrained"),
-    "torch.jit": ("load",), "safetensors": ("safe_open",),
-    "safetensors.torch": ("load_file", "load"), "gguf": ("GGUFReader",),
-    "transformers": ("from_pretrained",), "llama_cpp": ("Llama", "LlamaModel"),
-    "vllm": ("LLM",),
-    "huggingface_hub": ("hf_hub_download", "snapshot_download"),
-}
+# `AGI_MODEL_FENCE_SRC` names the file (or the dir holding it) so the guard
+# resolves from an env, not from a literal path; the sibling of this conftest
+# under `extensions/agi/` is the default.
+_SRC = os.environ.get("AGI_MODEL_FENCE_SRC") or str(
+    pathlib.Path(__file__).resolve().parents[2] / "extensions" / "agi" / "model_fence.py")
+_spec = importlib.util.spec_from_file_location("model_fence", _SRC)
+# NOT registered in sys.modules: a guard test finds "the module that owns the
+# guard" by scanning sys.modules for ModelLoadRefused/_patch_one, and it must
+# land on this conftest, not on the shared module it imported.
+model_fence = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(model_fence)
+
+# One table, re-exported (NOT copied) so a test that reaches it through
+# `sys.modules[conftest]` sees the same objects the fence installed.
+REFUSED = model_fence.REFUSED
+_ALLOWED = model_fence._ALLOWED
+ModelLoadRefused = model_fence.ModelLoadRefused
+_patch_one = model_fence._patch_one
+_patch_all = model_fence.patch_all
+
+# The pytest-visible cap cell. `_cap` below reads THIS global, so
+# `monkeypatch.setattr(conftest, "MAX_ALLOWED_LOAD_BYTES", 0)` still bites
+# without the shared module keeping a second copy of the number.
+MAX_ALLOWED_LOAD_BYTES = model_fence.MAX_ALLOWED_LOAD_BYTES
+model_fence.set_cap_source(lambda: globals()["MAX_ALLOWED_LOAD_BYTES"])
+
+_LOAD_HOOK = model_fence.install()   # hole C, the import half: `import` itself
 
 
-def _attrs_for(name):
-    """Refused attrs for a module name: its OWN row plus its refused ROOT's.
-    `transformers.models.llama.AutoModelForCausalLM` is the dominant real shape and
-    the class lives on a SUBMODULE, so the root's row has to reach it."""
-    return frozenset(REFUSED.get(name, ())) | frozenset(REFUSED.get(name.split(".")[0], ()))
+def pytest_sessionfinish(session, exitstatus):
+    """Removed at session end: the hook outlives neither the run nor the process."""
+    model_fence.uninstall(_LOAD_HOOK)
 
 
-class ModelLoadRefused(RuntimeError):
-    """A test in this suite tried to load model weights."""
-
-
-def _why(owner, attr):
-    return (f"model load refused by construction: {owner}.{attr}() may read "
-            "weights; this suite asserts on bytes, never on a model")
-
-
-def _stub(owner, attr):
-    def _refuse(*_a, **_kw):
-        raise ModelLoadRefused(_why(owner, attr))
-    _refuse.__name__, _refuse._model_load_stub = attr, True
-    return _refuse
-
-
-def _safe_get(obj, attr):
-    """`getattr` that never raises: a real install holds PROXIES whose attribute
-    access raises something other than AttributeError -- `torch.classes` (a
-    `_ClassNamespace`) raises RuntimeError("Tried to instantiate class ..."),
-    which `getattr`'s default does not catch, and the autouse scan errored EVERY
-    test on a torch python (TMM.231, director-engine gen 24)."""
-    try:
-        return getattr(obj, attr, None)
-    except Exception:  # noqa: BLE001 -- an unreadable attr is not a loader
-        return None
-
-
-def _patch_one(name, module):
-    """Patch a loader's refused attrs on the module AND on the classes it holds:
-    AutoModel.from_pretrained is a method on the class, not a module attribute."""
-    attrs = _attrs_for(name)
-    if module is None or not attrs:
-        return 0
-    try:
-        held = list(vars(module).values())
-    except TypeError:  # a sys.modules entry with no __dict__ (a proxy)
-        held = []
-    owners = [module] + [o for o in held if isinstance(o, type)]
-    n = 0
-    for owner in owners:
-        for attr in attrs:
-            cur = _safe_get(owner, attr)
-            # Only an attr the owner HAS is a loader; adding one to every class
-            # is noise, and a real install holds immutable C types (torch.dtype,
-            # torch.Size) where setattr raises TypeError (DH.392 harvest).
-            if cur is None or _safe_get(cur, "_model_load_stub") is True:
-                continue
-            try:
-                setattr(owner, attr, _stub(_safe_get(owner, "__name__") or name, attr))
-            except Exception:  # noqa: BLE001 -- immutable / proxy owner: skip
-                continue
-            n += 1
-    return n
-
-
-def _patch_all():
-    return sum(_patch_one(n, m) for n, m in list(sys.modules.items()))
+@pytest.fixture
+def allow_model_load():
+    """Declare the one dir this test BUILT itself, so it may be read back."""
+    return model_fence.allow_model_load
 
 
 @pytest.fixture(autouse=True)
@@ -90,6 +62,7 @@ def _no_model_load():
     """Re-scan per test: a module imported since the last scan is caught too."""
     _patch_all()
     yield
+    model_fence.clear_allowed()   # a declaration never outlives its test
 
 
 @pytest.hookimpl(tryfirst=True)

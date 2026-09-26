@@ -6,6 +6,7 @@ fakes `torch` and then calls `torch.load`. The conftest's per-test scan has to s
 them before any test body runs.
 """
 
+import importlib
 import sys
 import types
 
@@ -110,14 +111,60 @@ def test_hf_hub_download_is_refused(model_load_refusal):
     assert hub._calls == []
 
 
-@pytest.mark.xfail(strict=False, reason="OPEN HOLE: the conftest scans at setup only, so a stand-in "
-                                       "installed mid-body is unguarded. sys.modules cannot be wrapped "
-                                       "(CPython caches the dict; the swap broke collection with "
-                                       "KeyError: zoneinfo._tzpath) and types.ModuleType is immutable, "
-                                       "so no attribute-access hook exists. Close it, and this XPASSes.")
-def test_body_installed_standin_hole_is_named_not_closed(model_load_refusal):
-    """Hole C, still open: the per-test autouse scan runs BEFORE the body, so a stand-in
-    the body itself installs is never seen. This test is the canary, not a proof."""
+def test_a_module_imported_inside_the_body_is_refused_not_recorded(
+        tmp_path, monkeypatch, model_load_refusal):
+    """Hole C, the import half -- CLOSED by the sys.meta_path hook in the conftest.
+    A refused root is imported from a real path (FileFinder + SourceFileLoader, so
+    the loader wrapping is exercised, not just a dict stand-in), INSIDE the body:
+    `import` itself consults the hook, so there is no re-scan to outrun. This is
+    the shape of osc_lowpeak_test.py:46, which imports transformers in a body."""
+    (tmp_path / "vllm.py").write_text(
+        "CALLS = []\n"
+        "def LLM(*a, **k):\n"
+        "    CALLS.append(a)\n"
+        "    return 'RECORDED'\n")
+    monkeypatch.syspath_prepend(str(tmp_path))
+    monkeypatch.delitem(sys.modules, "vllm", raising=False)
+    try:
+        import vllm  # noqa: PLC0415 -- the import IS the falsifier
+        assert vllm.__name__ == "vllm"       # the inner loader still ran in full
+        with pytest.raises(model_load_refusal):
+            vllm.LLM(model="/models/8b.gguf")
+        assert vllm.CALLS == []               # the REAL function was never reached
+    finally:
+        sys.modules.pop("vllm", None)
+
+
+def test_the_hook_does_not_invent_an_absent_refused_module():
+    """A refused root that is not installed must still raise the ImportError the
+    interpreter would raise -- the hook must not answer for a module it cannot find."""
+    with pytest.raises(ImportError):
+        importlib.import_module("vllm")
+
+
+def test_the_hook_is_removed_at_session_end():
+    """The conftest is a guard on THIS run's interpreter, not on the process: the
+    hook is uninstalled by pytest_sessionfinish, so a caller outside the suite
+    (a build script, a REPL) keeps its own import semantics."""
+    conftest = sys.modules[_no_model_load_owner()]
+    assert conftest._LOAD_HOOK in sys.meta_path
+    try:
+        conftest.pytest_sessionfinish(None, 0)
+        assert conftest._LOAD_HOOK not in sys.meta_path
+    finally:
+        sys.meta_path.insert(0, conftest._LOAD_HOOK)   # restore for the rest of the run
+
+
+@pytest.mark.xfail(strict=False, reason="RESIDUAL HOLE, named not closed: a module written DIRECTLY "
+                                       "into sys.modules by the body (`sys.modules['vllm'] = mod`) "
+                                       "bypasses `import` entirely, so the meta_path hook never sees "
+                                       "it. Unclosable without wrapping the dict: CPython caches it "
+                                       "(the swap broke collection with KeyError: zoneinfo._tzpath) and "
+                                       "types.ModuleType is immutable. The import half of hole C is "
+                                       "closed by experiment:a00-18859cb2-820ca3; this half is not.")
+def test_body_written_into_sys_modules_directly_is_still_unseen(model_load_refusal):
+    """Hole C, the dict half: still open. A body that ASSIGNS sys.modules is not
+    importing anything. The canary, not a proof."""
     late = types.ModuleType("vllm")
     late.LLM = lambda *a, **k: "RECORDED"
     sys.modules["vllm"] = late
