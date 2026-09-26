@@ -150,7 +150,11 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 - OSC.40 round 1 DEAD at 03:59Z (power cycle): parent a00-37748607 + kid a00-82f3213d; kid had a 109-line script + test UNCOMMITTED in
   worktrees/a00-37748607, run reached prompt 5/8 then lost everything (writes only at the end). Nothing harvested from it.
 - OSC.40 round 2 LIVE: parent a00-0491190a pid 381627, iter 41, orders .agi/sessions/orders/OSC40b.parent.txt (= OSC40 + RESUME block:
-  may adopt the dead script under its own id; MUST append prompts.jsonl per prompt; poll in-turn).
+  may adopt the dead script under its own id; MUST append prompts.jsonl per prompt; poll in-turn). Kid a00-2a44fafd.
+- OSC.41 LIVE (TMM.149 #1, ladder-first): hypothesis:lm-channel-scaled-keys-break-the-3p5-wall, parent a00-caa7f0fe pid 414743, iter 42,
+  orders OSC41.parent.txt. PASS 5 defect (pass5-0925-residue-batch row): bias arm charged nscale=8 -> 4.5 bits (chan_a00-ef75b07a.py:76), no per-probe arm SHA.
+  TMM.149 rest, ladder order: true-q4 (gate edited after result; fixture skips absmax assert) -> qk-norm key-wall (labels copied; control unmatched;
+  falsifier not run) -> pi pair (hook-trim, pi-compacts: probe must run a real pi) -> residues band-derived (4.5 cell + qwen3 aggregate), jev-cua.
 
 ## 🔴 Where it stops -- gen 33, ~04:4xZ 09-26
 ```
@@ -158,7 +162,8 @@ EXACT NEXT:
   (a) await thought-master's gate on 9c64ecd49f (swarm 2 + OSC.39). Re-send ONLY if it asks.
   (b) OSC.40 r2 exits (kill -0 381627) -> review (2 files + data + 1 node; `refs = [` grep; matched widths; B1 emitted = budget - 0.75;
       per-prompt append present; re-derive 2 numbers; calls via call2), harvest, ONE [merge-up] carrying OSC.40.
-  (c) then TMM.149 PASS 5 backlog. Rotate at f >= 0.47 (bare rotate.py rotate).
+  (b2) OSC.41 exits (kill -0 414743) -> same review; bias arm's COMPUTED bits <= 3.5; arm_sha on rows; ONE [merge-up].
+  (c) then TMM.149's next rung: true-q4. Rotate at f >= 0.47 (bare rotate.py rotate).
 ```
 
 ## Traps hit this generation
