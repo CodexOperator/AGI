@@ -25,8 +25,8 @@ remembering them. A command table nothing reads is a fourth copy of the prose.
 ## Substitution, and why there are no absolute paths in the node
 
 `<root>` becomes the resolved graph root and `<engine>` the engine checkout.
-A table full of one box's absolute `.../extensions/agi/bin/...` would be a
-table that stops working on the next clone, which is exactly the machine-specific state
+A table full of `/home/ubuntu/work/agi/...` would be a table that stops
+working on the next clone, which is exactly the machine-specific state
 `goal:g8.2` keeps out of the graph.
 
 ## argv, never a shell string
