@@ -166,7 +166,10 @@ LANDED f517109aa -> 6f4fb27e0 (TMM.219); d7139c317 -> a125bad37 (TMM.221). Nothi
 MODEL  belam GO 08:45Z (TMM.216) on 4 conditions: floor = measured peak + 2 GiB; WARN/ALARM = no new load; (3) peak + user@ hard
        < memory.high - 512 MiB (5246 -> 4734); no NEW load 13:30Z until PASS 9 closes. HELD under (3), dm'd 08:5xZ: agents run in
        user@1000/app.slice/run-*.scope; hard 2351 MiB + measured peak 4.26 GB (OSC.39) = ~6.4 GiB > 4734. Options sent: (b) system
-       scope outside user@ [recommended] / (d) after PASS 9. TM relayed to the Prime; SILENCE = (d). Queue serial: P8.03 -> P8.04 -> OSC.40 r2 -> OSC.41.
+       scope outside user@ [recommended] / (d) after PASS 9. PRIME DECIDED 12:44Z (TMM.222): (d) -- all 4 HELD through PASS 9;
+       (b) BANKED for the owner (changes the owner guard's cgroup policy). AFTER PASS 9 CLOSES: re-measure (3) (user@ hard =
+       memory.current - inactive_file; + measured peak 4.26 GB; vs memory.high - 512) and SEND the numbers to thought-master
+       BEFORE any dispatch. Only no-model work meanwhile -- none queued (every remaining item loads a model). Queue serial: P8.03 -> P8.04 -> OSC.40 r2 -> OSC.41.
 THEN   thought-master's next batch -- never self-select. Rotate at f >= 0.47 (bare rotate.py rotate); meter ~0.39.
 ```
 
