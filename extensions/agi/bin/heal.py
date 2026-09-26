@@ -1978,9 +1978,49 @@ def _pane_pid_of(win_id: str, window_path: str | None = None) -> int:
     return 0
 
 
+def _pane_pid_map(window_path: str | None = None) -> dict[str, int]:
+    """`{window_id: pane_pid}` for EVERY window in ONE call: the seam file's
+    third `@<N> <name> <pane_pid>` field, else one `tmux list-panes -a -F
+    '#{window_id} #{pane_pid}'`. Built ONCE per pass and read by
+    `_window_present`, because the per-row `_pane_pid_of` paid its own
+    `timeout=5` per row: measured 2.2 ms x 8 rows = 18 ms healthy, but
+    8 x 5 s = 40 s when the server cannot answer, against a 30 s poll
+    (heal.py:1706) and a two-pass claim. Absent / unanswerable / a two-field
+    seam line -> the id is simply not in the map = UNKNOWN, never a guess
+    (same rule `_pane_pid_of` reads per row)."""
+    if window_path is None:
+        window_path = os.environ.get(WINDOW_PATH_ENV)
+    if window_path:
+        p = Path(window_path)
+        if not p.exists():
+            return {}
+        out: dict[str, int] = {}
+        for ln in p.read_text(encoding="utf-8").splitlines():
+            wid, _, rest = ln.strip().partition(" ")
+            parts = rest.split()
+            if wid.startswith("@") and len(parts) > 1 and parts[1].isdigit():
+                out[wid.strip()] = int(parts[1])
+        return out
+    try:
+        res = subprocess.run(
+            ["tmux", "list-panes", "-a", "-F", "#{window_id} #{pane_pid}"],
+            capture_output=True, text=True, timeout=5)
+        if res.returncode == 0:
+            out = {}
+            for ln in res.stdout.splitlines():
+                wid, _, pid = ln.strip().partition(" ")
+                if wid.strip() and pid.strip().isdigit():
+                    out[wid.strip()] = int(pid.strip())
+            return out
+    except Exception:  # noqa: BLE001 — tmux absent/down: {} (all ids UNKNOWN)
+        pass
+    return {}
+
+
 def _window_present(row: dict, windows: list[tuple[str, str]], *,
                     window_path: str | None = None, rows=None,
-                    _rotate=None) -> tuple[bool, bool]:
+                    _rotate=None, pane_pids: dict | None = None
+                    ) -> tuple[bool, bool]:
     """(1b) the row's `window` @id is present in tmux. Returns
     `(id_present, False)` — the second cell is the DELETED (1c) name-lineage
     check, kept in the tuple shape so callers/tests read unchanged.
@@ -2016,7 +2056,12 @@ def _window_present(row: dict, windows: list[tuple[str, str]], *,
     # is stale (F2) is the worse error. PRIME XI still stands: no window-NAME
     # test, ever.
     row_pid = int(row.get("pid") or 0)
-    pane = _pane_pid_of(win_id, window_path)
+    # ONE per-pass map when the caller built it (no per-row tmux call, no
+    # per-row timeout=5); fall back to the single-row probe for a direct call.
+    if pane_pids is None:
+        pane = _pane_pid_of(win_id, window_path)
+    else:
+        pane = pane_pids.get(win_id, 0)  # absent = UNKNOWN, never a guess
     if pane <= 0 or _rotate is None:
         return id_present, False
     chain = set(_rotate._descendant_chain(pane) or [])
@@ -3136,7 +3181,8 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
                     _rotate, *, now: float | None = None,
                     pid_alive=None, window_path: str | None = None,
                     launcher=None, pin_table=None, seat_sessions=None,
-                    rows=None, registry_dir: str | None = None) -> dict:
+                    rows=None, registry_dir: str | None = None,
+                    pane_pids: dict | None = None) -> dict:
     """Decide DEAD for one seat row; NAME it once; then, if the seat is
     recoverable, RESPAWN it through its existing spawn path, write its row, dm
     the holder + Sensei, and record the crash-recovery OUTCOME once. Returns an
@@ -3170,7 +3216,8 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
     # @id alone is not liveness (conjunct c): the pane chain must vouch.
     id_present, _named = _window_present(row, windows,
                                          window_path=window_path,
-                                         rows=rows, _rotate=_rotate)
+                                         rows=rows, _rotate=_rotate,
+                                         pane_pids=pane_pids)
     if id_present:
         return {}
     # LIVENESS BEFORE DEATH (L4.292): a seat whose pin leases a live registry
@@ -3267,6 +3314,11 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
     except Exception:  # noqa: BLE001
         return []
     windows = _all_windows(window_path)
+    # (c)'s pane pids for the WHOLE pass in ONE tmux call, and only when some
+    # row's @id is actually present (no call where the key is not consulted).
+    pane_pids = (_pane_pid_map(window_path)
+                 if any((r.get("window") or "").strip() in {w for w, _n in windows}
+                        for r in rows) else {})
     launcher = _load_launcher(launcher)
     # LIVENESS tables (L4.292 kid 1 (5)): built ONCE so the dead-scan can tell
     # a STALE row from a corpse. `_pin_table` reads only tree meter files;
@@ -3291,7 +3343,7 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
                                   now=now, pid_alive=pid_alive,
                                   window_path=window_path, launcher=launcher,
                                   pin_table=pins, seat_sessions=seat_sess,
-                                  rows=rows)
+                                  rows=rows, pane_pids=pane_pids)
         if summary:
             acted.append(summary)
     _watch_log(f"watch: seat-dead scan over {len(pid_rows)} configured pid "
