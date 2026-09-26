@@ -2563,14 +2563,18 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                 # holds through the WHOLE chain and not only one hop: without
                 # this a stage that depends on the SKIPPED one found nothing
                 # to fail on and ran (falsifier 1, the plain A->B->C chain)
-                root = root_failed.get(dep, dep)
-                why = (f"dependency {dep!r} failed" if root == dep else
-                       f"dependency {root!r} failed (via {dep!r})")
+                # NOT `root`: that name is run_workflow's project root, and
+                # rebinding it sent every later _run_round_stage /
+                # _persist_stage_value / _track_run / _revoke_run_credential a
+                # stage LABEL (DH.399 harvest, director-engine gen 24)
+                root_fail = root_failed.get(dep, dep)
+                why = (f"dependency {dep!r} failed" if root_fail == dep else
+                       f"dependency {root_fail!r} failed (via {dep!r})")
                 view.stage_skipped(st["label"], why)
                 print(f"workflow.py: workflow={key} skipped stage "
                       f"{st['label']} ({why})",
                       file=sys.stderr)
-                note_failed(st, root)
+                note_failed(st, root_fail)
                 continue
             prior = None
             if st.get("chained_from"):

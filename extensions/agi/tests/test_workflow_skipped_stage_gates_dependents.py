@@ -213,3 +213,24 @@ def test_failed_slice_still_lets_a_sibling_slice_run(tmp_path, monkeypatch):
     assert "B:b" in ran, f"a sibling slice stopped running: {ran}"
     assert "C:b" in ran, f"a sibling dependent stopped running: {ran}"
     assert "C:a" not in ran, ran
+
+
+def test_a_skip_never_rebinds_the_project_root(tmp_path, monkeypatch, capsys):
+    """DH.399 harvest: the skip branch assigned `root = root_failed.get(...)`
+    inside run_workflow, whose own `root` is the PROJECT root -- after any skip,
+    every later _persist_stage_value / _track_run / _revoke_run_credential got a
+    stage LABEL. A later independent stage must still persist under the real root."""
+    manifest = _write_manifest(tmp_path, [
+        _stage("A"),
+        _stage("B", depends_on=["A"]),
+        _stage("D"),
+    ])
+    seen: list = []
+    monkeypatch.setattr(_wf, "_persist_stage_value",
+                        lambda r, *a, **k: seen.append(("persist", r)))
+    monkeypatch.setattr(_wf, "_track_run",
+                        lambda r, *a, **k: seen.append(("track", r)))
+    rc, ran, _buf = _drive(tmp_path, monkeypatch, manifest, {"A": 1})
+    capsys.readouterr()
+    assert "D" in ran and "B" not in ran, ran
+    assert seen and all(r == REPO / ".agi" for _k, r in seen), seen
