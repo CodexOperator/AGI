@@ -116,6 +116,35 @@ def test_write_failure_leaves_no_launch_file(monkeypatch, tmp_path):
     assert _orphans(d) == []
 
 
+def test_non_oserror_write_neither_raises_nor_orphans(monkeypatch, tmp_path):
+    """The LIFETIME bug: a NON-OSError out of the write used to escape
+    `_launch_recovered` (its docstring promises "Never raises into the watch
+    pass" — a dead watch pass kills heal for every seat) AND leave the prompt
+    on disk, because the orphan unlink hung off an `except OSError` list."""
+    d = _mine_tmpdir(monkeypatch, tmp_path)
+
+    class _GremlinWrite:
+        def __init__(self, fd):
+            self.fd = fd
+
+        def write(self, _s):
+            raise ValueError("disk gremlin, not an OSError")
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *e):
+            import os as _os
+            _os.close(self.fd)
+            return False
+
+    monkeypatch.setattr(heal.os, "fdopen",
+                        lambda fd, *a, **k: _GremlinWrite(fd))
+    pid, wid = heal._launch_recovered(tmp_path, "wt", PROMPT, cwd=tmp_path)
+    assert (pid, wid) == (0, "")
+    assert _orphans(d) == []
+
+
 def test_success_leaves_the_file_for_the_pane(monkeypatch, tmp_path):
     """The `rm -f "$0"` self-unlink still owns the success case: the file must
     SURVIVE here, or the pane's own `sh` would race the writer."""

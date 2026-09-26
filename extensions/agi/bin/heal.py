@@ -2975,7 +2975,7 @@ def _unlink_launch_file(launch_path: str | None, name: str) -> None:
         return
     try:
         os.unlink(launch_path)
-    except OSError as exc:
+    except Exception as exc:  # noqa: BLE001 -- never raise into the watch pass
         print(f"warn: orphan recovery launch file {launch_path} for {name!r} "
               f"not removed: {exc}", file=sys.stderr)
 
@@ -3009,38 +3009,50 @@ def _launch_recovered(root: Path, name: str, shell_cmd: str,
     # accumulate in /tmp forever; unlinking it on the SUCCESS path here would
     # race the pane's own `sh`. `$0` cannot run at all on a FAILED launch, so
     # `_unlink_launch_file` owns those paths (defect (3)).
+    # LIFETIME, not an except list: whatever raises or returns out of the
+    # write+launch region, the file dies with it UNLESS tmux already took it
+    # (`handed_off`; there the pane's own `sh` owns the `rm -f "$0"`). A
+    # non-OSError from the write used to escape AND orphan the prompt, killing
+    # the heal loop for every other seat.
     launch_path: str | None = None
+    handed_off = False
     try:
-        fd, launch_path = tempfile.mkstemp(prefix=f"agi-recover-{name}-",
-                                           suffix=".sh")
-        with os.fdopen(fd, "w", encoding="utf-8") as fh:
-            if not shell_cmd.endswith("\n"):
-                fh.write(shell_cmd + "\n")
-            fh.write('rm -f "$0" 2>/dev/null || true\n')
-    except OSError as exc:
-        _unlink_launch_file(launch_path, name)
-        print(f"warn: recovery launch file for {name!r} unwritable: {exc}; "
-              f"refusing to hand tmux the prompt inline", file=sys.stderr)
-        return 0, ""
-    launch_cmd = (f"cd {shlex.quote(str(tree))} && "
-                  f"sh {shlex.quote(launch_path)}")
-    try:
-        proc = subprocess.run(
-            ["tmux", "new-window", "-t", tmux_session, "-n", name,
-             "-P", "-F", "#{window_id}", launch_cmd],
-            capture_output=True, text=True, timeout=10)
-    except Exception:  # noqa: BLE001 — tmux absent/down counts as not-spawned
-        _unlink_launch_file(launch_path, name)
-        return 0, ""
-    if proc.returncode != 0:
-        detail = (proc.stderr or proc.stdout or "").strip() or "<no output>"
-        print(f"warn: recovered spawn of {name!r} failed: {detail}",
+        try:
+            fd, launch_path = tempfile.mkstemp(prefix=f"agi-recover-{name}-",
+                                               suffix=".sh")
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                if not shell_cmd.endswith("\n"):
+                    fh.write(shell_cmd + "\n")
+                fh.write('rm -f "$0" 2>/dev/null || true\n')
+        except Exception as exc:  # noqa: BLE001 -- any failure refuses loudly
+            print(f"warn: recovery launch file for {name!r} unwritable: {exc}; "
+                  f"refusing to hand tmux the prompt inline", file=sys.stderr)
+            return 0, ""
+        launch_cmd = (f"cd {shlex.quote(str(tree))} && "
+                      f"sh {shlex.quote(launch_path)}")
+        try:
+            proc = subprocess.run(
+                ["tmux", "new-window", "-t", tmux_session, "-n", name,
+                 "-P", "-F", "#{window_id}", launch_cmd],
+                capture_output=True, text=True, timeout=10)
+        except Exception:  # noqa: BLE001 — tmux absent/down counts as not-spawned
+            return 0, ""
+        if proc.returncode != 0:
+            detail = (proc.stderr or proc.stdout or "").strip() or "<no output>"
+            print(f"warn: recovered spawn of {name!r} failed: {detail}",
+                  file=sys.stderr)
+            return 0, ""
+        handed_off = True
+        wid = (proc.stdout.strip().splitlines()[-1]
+               if proc.stdout.strip() else "")
+        return None, wid
+    except Exception as exc:  # noqa: BLE001 -- "Never raises into the watch pass"
+        print(f"warn: recovery launch of {name!r} failed: {exc}",
               file=sys.stderr)
-        _unlink_launch_file(launch_path, name)
         return 0, ""
-    wid = (proc.stdout.strip().splitlines()[-1]
-           if proc.stdout.strip() else "")
-    return None, wid
+    finally:
+        if not handed_off:
+            _unlink_launch_file(launch_path, name)
 
 
 def _load_launcher(launcher) -> callable | None:
