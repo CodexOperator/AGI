@@ -8,9 +8,8 @@ next_edges: []
 confidence: 0.9
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: director-engine
-evidence_runs:
-  - experiment:a00-04a84edc-b01d36
+edited_by: sanctuary-director
+evidence_runs: experiment:a00-04a84edc-b01d36
 loop: hypothesis:l3-partial-write-adoption@s2
 model: ~deepseek/deepseek-v4-flash-latest
 profile: balanced
@@ -134,7 +133,7 @@ fail-closed apply. The namespace guard in dispatch.py, kid_ceiling threading
 and the --prompt-file channel were not touched.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 7 residue (hypothesis:pass7-0926-residue-batch, test_brief.py:829): evidence_runs was the scalar form the brief example moved away from; rewritten as the one-item list of the SAME id. No evidence added or removed, verdict unchanged.
+this version fixes the body_patch path-form ordering bug in submit(); two red-first tests, then the path-read moved before the apply; live proof via body_patch <PATH> on this node
 <!-- THOUGHT:END -->
 
 ## Agent Notes
