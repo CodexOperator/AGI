@@ -1,0 +1,16 @@
+{
+ "name": "round-research-review",
+ "extends": "research-review",
+ "script": "agi-research-review.js",
+ "type": "research",
+ "description": "A research round, then the chained research review (review -> verify -> why -> brainstorm -> refute) of what it committed. Composed ONLY by manifest: all five review stages are inherited unchanged from research-review.json (no prompt, schema or stage is copied here), and the prelude's single `kind: round` stage is what spawns the detached parent (--tier parent --role parent --ladder-tier 0 --branch --detach) and waits on its own status plus the loop branch's done commit. Every inherited stage gains depends_on=[round-parent], so a failed round gates the WHOLE review chain by name. Requires --harness pi: the round is dispatched by workflow.py itself, which the claude-code seam cannot run (rc 6, refused by name). Args: target (the hypothesis id the parent works on), iteration, plus the review's own repeat pool `targets` ([{key, hypothesis, experiments, files, focus, verdict}]).",
+ "required_args": ["target", "iteration"],
+ "prelude": [
+  {
+   "kind": "round",
+   "label": "round-parent",
+   "timeout_s": 7200
+  }
+ ],
+ "stages": []
+}

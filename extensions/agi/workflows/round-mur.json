@@ -1,0 +1,16 @@
+{
+ "name": "round-mur",
+ "extends": "merge-up-review",
+ "script": "agi-merge-up-review.js",
+ "type": "merge-up-review",
+ "description": "A research round, then the merge-up review of what it committed. Composed ONLY by manifest: the review stages are inherited unchanged from merge-up-review.json (no prompt, schema or stage is copied here), and the prelude's single `kind: round` stage is what spawns the detached parent (--tier parent --role parent --ladder-tier 0 --branch --detach) and waits on its own status plus the loop branch's done commit. The loader therefore prepends the round, then every inherited review stage carries depends_on=[round-parent] (and chained_from=round-parent for the ones with no chain of their own), so a failed round gates the WHOLE review chain by name. Requires --harness pi: the round is dispatched by workflow.py itself, which the claude-code seam cannot run (rc 6, refused by name). Args: target (the hypothesis id the parent works on), iteration, plus the review's own repeat pool `rounds` ([{key, merge_up}]).",
+ "required_args": ["target", "iteration"],
+ "prelude": [
+  {
+   "kind": "round",
+   "label": "round-parent",
+   "timeout_s": 7200
+  }
+ ],
+ "stages": []
+}
