@@ -119,6 +119,14 @@ def test_agi_bin_directory_does_not_exist() -> None:
     guard(project_root)
 
 
+def test_missing_project_root_is_refused_by_name(monkeypatch) -> None:
+    """The fail-closed None branch is EXERCISED, not only asserted in prose."""
+    monkeypatch.setattr(locations, "find_project_root", lambda start: None)
+    with pytest.raises(pytest.fail.Exception) as exc:
+        test_agi_bin_directory_does_not_exist()
+    assert "no project root" in str(exc.value), "the refusal must be named"
+
+
 def _fixture(project: Path, script: str = "") -> tuple[Path, str]:
     """Build the fixture and return (driver.sh's PROJECT_ROOT, bash stdout)."""
     res = subprocess.run(
