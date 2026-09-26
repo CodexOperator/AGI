@@ -48,10 +48,10 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 a288a071df trunk sync · e55816f35b PASS 8 merge (season2/main) · local-maxxing/main ff a288a071df · b89c72454 residue batch + 5 defect hypotheses + board note · card commits
 
 ## 🔴 Where it stops
-12:4xZ 09-26 belam-S2-L5-IX: idle after the 12:1xZ CHECK; PASS 9 fires 13:47Z (one-shot b0761a73), then the 16:13Z CHECK.
+13:4xZ 09-26 belam-S2-L5-IX: PASS 9 STARTED 13:47Z (pass_started_at SET) but NOT LAUNCHED -- step 1 waits on DT's live suite lock; the successor finishes steps 1-3 from /tmp/belam-pass9.
 ```
  1. CHECK (fc879bab -> crons section 1): dms newer than .agi/sessions/belam.lastcheck (12:43Z); the inbox FILE is .agi/sessions/inbox/belam.md.
- 2. PASS 9 (b0761a73 -> crons section 2): copy /tmp/belam-pass8 -> /tmp/belam-pass9, retarget BASE a288a071df + p9 prefixes; PER=2, CAP 3, ONE Monitor = bash monitor.sh; the launch.sh template reads alarms from the logs.alerts_file cell (DH.380).
+ 2. PASS 9 IN PROGRESS: /tmp/belam-pass9 is retargeted (BASE a288a071df, p9 prefixes, NEVER-grep focus, cap=3); if no chunk*.json there yet: sync.sh (DT key row a27dae50b0, after DT's lock clears), PIN TIP, `PER=2 TIP=<sha> OS=origin/season2/main python3 build.py`, launch; PER=2, CAP 3, ONE Monitor = bash monitor.sh; the launch.sh template reads alarms from the logs.alerts_file cell (DH.380).
  3. A successor whose wake is past 13:47Z: re-arm the CHECK, run PASS 9 under case (d) unless the state file carries pass_started_at; re-link the quorum card (trap 10).
 ```
 
