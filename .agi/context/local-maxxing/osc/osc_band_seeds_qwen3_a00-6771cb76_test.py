@@ -7,7 +7,7 @@ model's weights before it refuses.
 """
 import importlib.util, json, os, subprocess, sys, textwrap
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path[:0] = [os.path.join(os.getcwd(), ".agi/context/local-maxxing"), HERE]
+sys.path[:0] = [os.path.dirname(HERE), HERE]  # collect from any cwd
 import numpy as np, torch
 _s = importlib.util.spec_from_file_location("h", os.path.join(HERE, "osc_band_seeds_qwen3_a00-6771cb76.py"))
 h = importlib.util.module_from_spec(_s); _s.loader.exec_module(h)
@@ -49,7 +49,7 @@ def test_t6_gate_survives_O():
     src = textwrap.dedent("""
         import importlib.util, os, sys
         HERE = %r
-        sys.path[:0] = [os.path.join(os.getcwd(), ".agi/context/local-maxxing"), HERE]
+        sys.path[:0] = [os.path.dirname(HERE), HERE]
         s = importlib.util.spec_from_file_location("h", os.path.join(HERE, "osc_band_seeds_qwen3_a00-6771cb76.py"))
         h = importlib.util.module_from_spec(s); s.loader.exec_module(h)
         print(h.band([0.1]))

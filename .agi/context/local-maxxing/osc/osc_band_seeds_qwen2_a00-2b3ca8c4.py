@@ -7,8 +7,8 @@ literal here). The ROW CONTRACT and the TWO calls -- (a) MARGIN, the adopted rul
 Cite that CELL, not this script: no second copy of the contract lives here (PASS 8 item 5)."""
 import importlib.util, json, os, sys, time
 os.environ["HF_HUB_OFFLINE"] = os.environ["TRANSFORMERS_OFFLINE"] = "1"
-HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.getcwd()
-sys.path[:0] = [os.path.join(ROOT, ".agi/context/local-maxxing"), HERE]
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path[:0] = [os.path.dirname(HERE), HERE]  # collect from any cwd
 import numpy as np, torch, paths, osc_band_prune as obp
 
 _s = importlib.util.spec_from_file_location("grid", os.path.join(HERE, "osc_band_matched_uniform_a00-a721f95f.py"))
