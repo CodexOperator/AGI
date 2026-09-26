@@ -4,7 +4,8 @@
  "seeds": [
   7,
   21,
-  99
+  99,
+  45
  ],
  "min_seeds": 3,
  "band": "max-min of random agree",
@@ -99,14 +100,15 @@
  "calls": {
   "4.125": {
    "band": 0.026367188,
-   "n_seeds": 3,
-   "n_distinct": 3,
+   "n_seeds": 4,
+   "n_distinct": 4,
    "key_only_minus_uniform": 0.020507812,
    "call": "inside-noise",
    "random_agree": [
     0.033203125,
     0.025390625,
-    0.051757812
+    0.051757812,
+    0.043945312
    ],
    "uniform_agree": 0.032226562,
    "key_only_agree": 0.052734375,
@@ -114,15 +116,16 @@
    "key_only_n": 1
   },
   "5.125": {
-   "band": 0.095703125,
-   "n_seeds": 3,
-   "n_distinct": 3,
+   "band": 0.100585938,
+   "n_seeds": 4,
+   "n_distinct": 4,
    "key_only_minus_uniform": 0.002929688,
    "call": "inside-noise",
    "random_agree": [
     0.046875,
     0.04296875,
-    0.138671875
+    0.138671875,
+    0.143554688
    ],
    "uniform_agree": 0.153320312,
    "key_only_agree": 0.15625,
@@ -130,15 +133,16 @@
    "key_only_n": 1
   },
   "6.125": {
-   "band": 0.064453125,
-   "n_seeds": 3,
-   "n_distinct": 3,
+   "band": 0.06640625,
+   "n_seeds": 4,
+   "n_distinct": 4,
    "key_only_minus_uniform": -0.072265625,
    "call": "loss",
    "random_agree": [
     0.280273438,
     0.3359375,
-    0.344726562
+    0.344726562,
+    0.346679688
    ],
    "uniform_agree": 0.37890625,
    "key_only_agree": 0.306640625,
@@ -146,15 +150,16 @@
    "key_only_n": 1
   },
   "7.125": {
-   "band": 0.107421875,
-   "n_seeds": 3,
-   "n_distinct": 3,
+   "band": 0.123046875,
+   "n_seeds": 4,
+   "n_distinct": 4,
    "key_only_minus_uniform": -0.0234375,
    "call": "inside-noise",
    "random_agree": [
     0.6796875,
     0.602539062,
-    0.709960938
+    0.709960938,
+    0.725585938
    ],
    "uniform_agree": 0.776367188,
    "key_only_agree": 0.752929688,
