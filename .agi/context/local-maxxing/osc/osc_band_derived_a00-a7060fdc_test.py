@@ -1,4 +1,6 @@
 import importlib.util, os
+import pytest  # skip-by-name: this module cannot run without numpy
+np = pytest.importorskip('numpy')
 HERE=os.path.dirname(__file__)
 def load(name,file):
  s=importlib.util.spec_from_file_location(name,os.path.join(HERE,file)); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); return m

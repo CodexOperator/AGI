@@ -3,7 +3,8 @@
 import importlib.util, json, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [os.path.join(os.getcwd(), ".agi/context/local-maxxing"), HERE]
-import torch
+import pytest  # skip-by-name: this module cannot run without torch
+torch = pytest.importorskip('torch')
 
 def _load(name, file):
     s = importlib.util.spec_from_file_location(name, os.path.join(HERE, file))
