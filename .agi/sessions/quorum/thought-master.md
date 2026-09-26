@@ -42,9 +42,14 @@ DE        TMM.220 (09:3xZ, delivered): e362e7947 landed; merge the trunk before 
 ```
 
 ## 🔴 Where it stops
-12:4xZ 09-26 gen 26: the Prime answered (d) + (a) at 12:44Z; DE ROTATED itself 12:46:32Z on TMM.223 -> post-director-engine-03 (seated 12:46:59Z), owed list relayed by SendMessage 12:4xZ; next = DE's DH.390 harvest merge-up, DT's (3) numbers after PASS 9 (13:47Z)
+13:2xZ 09-26 gen 26: LANDED merge-up 7 = 955cb90e7 (rides in PASS 9); DE + DT rotated on my orders; the per-seat capture latch set aside 13:20Z + [red] to belam; next = DT's (3) numbers when PASS 9 closes, DE's next merge-up
 ```
-state   MAIN = origin at 90b9a10df + board rows 5 + this card · last order = TMM.223 · next = TMM.224
+state   MAIN = origin at 955cb90e7 + board row 8 + this card · last order = TMM.225 · next = TMM.226 · DE gen 24 = post-director-engine-03, DT gen 34 =
+        post-director-thought-a8 (both relayed their owed lists by SendMessage)
+LANDED7 955cb90e7 = DE 8fd248a34: DH.390 (done commits dispatch-time ids + round-editable types) · DH.389 (session-reap, manual) · DH.391 (a capture
+        rotates past a refusing handoff; LIVE in the hook) · gate 6659 passed / 0 failed · evidence 0 · links 0 (4505) · goals 373 · anonymize ok
+LATCH   capture-director-{engine,thought}.{json,captured,s3} in /tmp/agi-rotation-<uid> renamed *.stale-20260926T1320Z (reversible): per-seat
+        latch, no session -> successors latched from birth AND the latched return swallows the over-line imperative -> DE fix owed (TMM.225)
 GATE    a125bad37: suite on the merged tree (tmpfs) 6642 passed / 0 failed / 27 skipped / 1 xfailed, 13:31 · the osc seeds conflict =
         the UNION (osc pythonpath, neutral cwd: 16 passed; system python: 2 skipped by name) · context-suite 128 passed / 19 skipped,
         40.4 s · evidence 0 · links 0 (4494) · goals 372 · anonymize ok · config:posts = HEAD · kid-commit check: .geometry/commands.md
@@ -66,7 +71,10 @@ out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write
 ## Traps (post-specific, learned)
 ```
 meter        the prompt hook runs from MAIN (~/.claude/settings.json: python3 /data/work/agi/extensions/agi/hooks/rotation_alert.py): a hook change is live for every session the moment it lands on the trunk · a director idle below the line is NEVER rotated for it (DE 14:10-16:16Z at 0.40): the fix = an order to work to 0.47 and rotate itself (OWNER 16:14Z rule) · the prompt hook prints [meter] on a REAL prompt (a nudge, a task notification) -- not on the startup injection; rotate at f 0.47
-rotation     rotate.py rotate --post <director> is REFUSED ('equal rank (director = director)') -> order the director's own bare rotate ·
+rotation     the CAPTURE latch (/tmp/agi-rotation-<uid>/capture-<seat>.json {captured}) is per SEAT, not per seating: a captured director's successors
+             are latched from birth and, above 0.85 x the line, see ONLY [meter] -- the latched return swallows the imperative (gen 26, 13:1xZ) -> after
+             a director's capture + rotation, set its stale latch aside (rename .stale-<ts>) until goal:g7.33.15's per-seating fix lands
+             · rotate.py rotate --post <director> is REFUSED ('equal rank (director = director)') -> order the director's own bare rotate ·
              rotate --model/--effort that differs from the row is REFUSED (exit 3): the row changes first · config:posts model / effort /
              role / tier / harness / owning_goal / worktree / rotated_by = prime/owner-only cells · a pin is verified = .agi/sessions/<post>.meter
              names the new session's jsonl AND that jsonl shows a [meter] line · the where-it-stops slot's FIRST LINE is plain text, never a fence
