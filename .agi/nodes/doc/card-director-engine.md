@@ -31,26 +31,27 @@ Post `director-engine`, director, tier 1, town local-maxxing. Worktree `.agi/wor
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW gen 24). `.1/.7/.8` HELD for Prime/owner.
 
-## §0 STATE (gen 25 -> 26 · live scratch · landed history = grid.py diff doc:card-director-engine)
+
+## §0 STATE (live scratch · landed history = grid.py diff doc:card-director-engine)
 ```
-LANDED    merge-ups 12 cbe776456 · 13 0420e2238. SENT 14 (DH.416-418) -- AWAIT TM's landing line
-UNSENT    merge-up 15 = DH.420 (submit() schema gate) + DH.421 091808547 (TasksMax; seat-wrap NOT taken) + rows 17/18/19 +
-          DH.422 + fix dac01a6bd (engine conftest guard, SESSION-WIDE) + DH.423 e636d7aa9 (no inline CLAUDE.md). NO suite yet
-CUT       DH.419 (127-proc fan-out, DT's [red]); worktree a00-4f513b69 kept. Re-dispatch only with fork-bound orders
-TMM.260   model rounds HELD; check the model-slot lock before ANY suite; bar = accident-proof (row 17 THOUGHT)
-PASS 9    queue = hypothesis:pass9-0926-residue-batch: new 5 all handled but DH.419; 11 follow rows left (DH.422 was one)
-NEW RED   g7.33.15 residue (20:2xZ, capture-chain.log): the capture's OWN driven handoff flattens the card symlink -> the tree
-          is DIRTY -> DH.408's merge (clean tree only) cannot run -> rotate-self refused "behind origin/season2/main by 1" again
+LANDED    merge-ups 12 cbe776456 · 13 0420e2238
+RETURNED  14 (TMM.262): 11 mur residues -> DH.425/426/427 live; (2)(3)(9)(11) = MY graph acts at harvest; doc:card- ruling DONE a73ecaa03
+          (in [doc].md round_commit, beside doc:unified- -- one source; probe: only 3 doc cards flip)
+UNSENT    15 = DH.420 · 421 · 422 (+dac01a6bd) · 423 · rows 17/18/19. SUITE RED 48/6783 at 472383a3f: conftest fence re-exec
+          (test_tier_gate.py:50 execs conftest again -> fence over fence -> workflow._REAL_POPEN identity breaks) -> DH.424 live
+LIVE      DH.424 a00-9b2e8067 · DH.425 a00-22a191e9 · DH.426 a00-8783b3d3 · DH.427 a00-a7de2b88 (all pi-free, parent cap 5 kids)
+PASS 10   the Prime merges the trunk 01:23Z 09-27: a clean 14 re-delivery (+15) before then rides it
+CARD      the quorum file is FLAT (100644), mirrored byte-identical to this node -- NOT re-linked: re-linking re-arms g7.33.15
 ```
 
-## 🔴 WHERE IT STOPS (gen 25 -> 26)
+## 🔴 WHERE IT STOPS
 ```
-FIRST  ONE full engine suite + ctx on the tip (model-slot lock first; NO merge meanwhile; ctx expects only DT's 2 leak reds)
-       -> [merge-up] 15 with the list in §0 (quote the MEASURED behind count; GOALS.md --check)
-THEN   g7.33.15 NEW RED as ONE round: the capture flattens the card, then rotate-self sees a dirty tree and cannot merge ->
-       exclude the seat's own card from the dirty check, or merge BEFORE the handoff writes it (never a second merge path)
-THEN   DH.419 re-dispatch (fork-bound; TasksMax now caps a round) -> PASS 9 follow rows -> g7.33.17 rows 9 CMP.02, 10, 11, 13
-AWAIT  TM on merge-up 14 + spawn.memory_max (peaks sent) · SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
+NEXT   harvest each live round IN PLACE on its loop branch (merge-base diff; touched tests + neighbourhood) -> mur per KID slice
+       DH.424 first: repro = pytest extensions/agi/tests/ -q -k test_stage_cap_death_is_named_memory_cap (full collect) must go green
+THEN   graph acts: (2) level3.py for build:tests-test-agi-bin-absent after DH.425 · (3) a00-729b9124 body+verdict to what shipped
+       (fixture = a00-e4a74ff1's) · (9) judge heal-never-reseats (acc60080 lean names conjunct 3 open; 793a5ab9 closed it) · (11) verdicts x3
+THEN   full suite + ctx on the tip -> ONE [merge-up] 14+15 (measured behind count; GOALS.md --check)
+THEN   g7.33.15 capture-flatten red as ONE round · DH.419 re-dispatch (fork-bound) · PASS 9 follow rows · g7.33.17 rows 9/10/11/13
 ```
 
 ## §4 TRAPS
