@@ -3164,7 +3164,7 @@ def test_help_names_root_and_still_exits_0():
 # ---------- R1: the runner resolves {project_root}, never a literal --------
 # hypothesis:lm-chained-research-review-cuts-director-glue-calls, residues
 # from outcome:a00-cc347774-096d54. The why/brainstorm/refute/review prompts
-# used to `cd` a hard-coded absolute repo path, so a run started in a git worktree
+# used to `cd /home/ubuntu/work/agi`, so a run started in a git worktree
 # minted into the MAIN checkout's graph. The runner now injects the resolved
 # project root as a run arg and each prompt carries `{project_root}`.
 
@@ -3356,7 +3356,7 @@ def test_pi_prompt_without_schema_is_byte_identical():
 
 # ---------- round 3: _pi_harness_cfg reads the ONE shared resolver ----------
 # hypothesis:harness-bin-paths-resolve-per-box. The reader used to be
-# config-BEFORE-env and fell back to a hard-coded absolute literal, so a per-box
+# config-BEFORE-env and fell back to a /home/ubuntu literal, so a per-box
 # `~/.npm-global/bin/pi` cell never expanded and every merge-up-review stage
 # died at once with `pi exited rc=1`.
 
