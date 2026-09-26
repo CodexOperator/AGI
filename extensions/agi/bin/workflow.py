@@ -1186,6 +1186,9 @@ class RunView:
         # own run-level fact (never a failure), rendered by `summary` and
         # recorded in the tracking row as `batch_empty`.
         self.empty_handoffs: list = []
+        # the `resolved` stages this run OBSERVED succeed (today: a
+        # `kind: round` stage that returned 0) and therefore counts in `ok=`
+        self.ok_resolved: set = set()
 
     def _tree(self) -> None:
         o = self.out
@@ -1214,11 +1217,23 @@ class RunView:
     def run_started(self) -> None:
         self._tree()
 
-    def stage_resolved(self, label: str, detail: str = "") -> None:
+    def stage_resolved(self, label: str, detail: str = "",
+                       counts_ok: bool = False) -> None:
         """claude-code path: the script is the runner there, so a stage can
         only be RESOLVED here, never observed to completion. Also the pi
         path's digest fallback: a stage with no schema-valid stdout whose
-        declared `result_file` validates is resolved from that file."""
+        declared `result_file` validates is resolved from that file.
+
+        `counts_ok` marks the ONE case where `resolved` is a SUCCESS the run
+        itself observed — a `kind: round` stage `_run_round_stage` returned 0
+        for. It is FALSE for the claude-code path, where `resolved` only
+        means "handed to the Workflow tool", and for the digest fallback,
+        where it is a recovery: folding either into `ok=` would change the
+        summary bytes two certificates in test_workflow.py pin
+        (hypothesis:a-skipped-stage-gates-its-dependents-like-a-failed-one,
+        falsifier 4 vs falsifier 5)."""
+        if counts_ok:
+            self.ok_resolved.add(label)
         self._set(label, "resolved", detail)
 
     def stage_started(self, label: str, detail: str = "") -> None:
@@ -1297,12 +1312,18 @@ class RunView:
         counts: dict[str, int] = {}
         for s in self.state.values():
             counts[s["status"]] = counts.get(s["status"], 0) + 1
+        # a `resolved` round stage SUCCEEDED: a stand-in round stage that
+        # never touched this view left itself `pending` and a fully
+        # successful run under-counted ok by one
+        # (hypothesis:a-skipped-stage-gates-its-dependents-like-a-failed-one,
+        # falsifier 4). Only the round marks itself this way.
+        resolved = len(self.ok_resolved)
         for e in self.empty_handoffs:
             o.write(f"[warn] {e['stage']}: handoff {e['field']} is empty — "
                     "the stage ran and kept nothing (batch_empty=true); "
                     "this is not a chain failure\n")
         o.write(f"[summary] workflow={self.key} stages={len(self.order)} "
-                f"ok={counts.get('ok', 0)} "
+                f"ok={counts.get('ok', 0) + resolved} "
                 f"unstructured={counts.get('unstructured', 0)} "
                 f"failed={counts.get('failed', 0)}\n")
 
@@ -2520,22 +2541,36 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
         # the bases that failed AS A WHOLE (a stage with no `repeat`): they
         # gate every slice of their dependents, unlike a failed single slice
         simple_failed: set[str] = set()
+        # the ROOT failure behind each gated base, so a stage skipped for a
+        # SKIPPED dependency names the stage that actually failed, not the
+        # intermediate that never ran (hypothesis:a-skipped-stage-gates-its-
+        # dependents-like-a-failed-one, falsifier 3)
+        root_failed: dict[str, str] = {}
 
-        def note_failed(stage: dict) -> None:
+        def note_failed(stage: dict, root: str | None = None) -> None:
             base = stage.get("_base_label", stage["label"])
             failed_keys.setdefault(base, set()).add(stage.get("_repeat_key"))
             if "_repeat_key" not in stage:
                 simple_failed.add(base)
+            root_failed.setdefault(base, root or base)
 
         first_rc: int | None = None
         by_label = {s.get("_base_label", s["label"]): s for s in stages}
         for st in stages:
             dep = _failed_dependency(st, failed_keys, simple_failed)
             if dep is not None:
-                view.stage_skipped(st["label"], f"dependency {dep!r} failed")
+                # a SKIPPED stage is not-succeeded for gating, so the gate
+                # holds through the WHOLE chain and not only one hop: without
+                # this a stage that depends on the SKIPPED one found nothing
+                # to fail on and ran (falsifier 1, the plain A->B->C chain)
+                root = root_failed.get(dep, dep)
+                why = (f"dependency {dep!r} failed" if root == dep else
+                       f"dependency {root!r} failed (via {dep!r})")
+                view.stage_skipped(st["label"], why)
                 print(f"workflow.py: workflow={key} skipped stage "
-                      f"{st['label']} (dependency {dep!r} failed)",
+                      f"{st['label']} ({why})",
                       file=sys.stderr)
+                note_failed(st, root)
                 continue
             prior = None
             if st.get("chained_from"):
@@ -2614,7 +2649,7 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                         st["label"],
                         f"round resolved: {v.get('old_tip')}..{v.get('new_tip')}"
                         f" ({len(v.get('files') or [])} files,"
-                        f" parent {v.get('parent')})")
+                        f" parent {v.get('parent')})", counts_ok=True)
             if value is not None:
                 _persist_stage_value(root, run_key, st["label"], value)
                 # A round's harvest is the RUN's context, not just its first
