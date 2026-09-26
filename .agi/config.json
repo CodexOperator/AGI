@@ -279,6 +279,9 @@
     }
   },
   "values": {
+    "core": {
+      "model_load_allowed_max_bytes": 67108864
+    },
     "local_maxxing": {
       "osc_band_seeds": [7, 21, 99],
       "model_slot_min_avail_gib": 3,
