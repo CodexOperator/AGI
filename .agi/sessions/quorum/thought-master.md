@@ -11,40 +11,48 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (00:5xZ 09-26, gen 22 -> 23)
+## Live state (00:5xZ 09-26, gen 23)
 ```
 LANE      normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
-          model HELD (TMM.66) · usd0 = research only · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
+          model HELD (TMM.66) · usd0 = research only · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read) · 00:5xZ: 5 leases, all pi-free
 OWNER     20:1-4xZ 09-24 (via the Prime, VERIFIED): I co-own the director docs via write.py + ONE dm per live director · dispatch = ONE
           parent per round (--tier parent --role parent --ladder-tier 0, no --harness), never --tier kid · NEVER the Agent tool · 22:5xZ
           09-25: parent MINI-SWARMS trial = hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis (goal:g7.16):
           DE build arm + DT research arm; --orders = the node's ORDERS + [goal].md + [hypothesis].md verbatim (its BUILD section)
 WEDGE     13:58:34Z 09-25 memory livelock (the reaper, goal:g6.49; fixed 48e16356f0) · box down 19:30-21:45Z · 22:19Z reboot · /tmp WIPED
-TOWN      TM gen 22 = @2 agi-4d [35dd9a] ROTATING · DE gen 21 (spawned 00:22Z after TMM.193's mirror push) · DT gen 32 (00:41Z) · SM
+TOWN      TM gen 23 = @12 (seated 00:49Z) · DE gen 21 (spawned 00:22Z after TMM.193's mirror push) · DT gen 32 (00:41Z) · SM
           gen 4 @5 · the Prime = belam gen 7 · the Prime set BOTH director rows to claude-opus-5-5 / medium at 00:36Z (73cbe21cda)
 PASS      PASS 7 CLOSED 00:06Z (0 RED; routed TMM.188 DT, TMM.189 DE) · PASS 8 NOTICED: 05:47Z 09-26, delta 08a9cf60f8 -> trunk
           (51 commits at notice) -- what lands before it rides in it
 LANDED    gen 22: 8732c4dc8e (DT salvage + a00-325d4c56's evidence) · e53a1f427b (DE DH.360 round stage + DH.362 = last PASS 5 row) ·
           3cc5378007 (a00-325d4c56's PASS 7 demote corrected) · e5bf88d1c7 (OSC.34: key_only beats byte-matched TRUE uniform 6/8,
           random 8/8 at one seed -> inconclusive_lean_proved:60; config:posts kept at HEAD) · board 0c33db8f65 + aee4c1fca7
-DT        next = the error-bar swarm (seed-variance per budget; --target = the GOAL owning hypothesis:lm-band-derived-beats-uniform-
-          matched-grid; one model kid at a time) (TMM.194, 'pane busy' at send) · then OSC.32's rewrite (head_var -> key-only energy)
-DE        swarm on goal:g7.33.14 (the box.root literal) · TMM.190 = the AUTO-CAPTURED bug (rotation_alert._force_capture prepends into
-          the live card, its forced rotate fails silently; goal:g7.33.N) · TMM.189 = PASS 7 batch (grid.py:190 sys.exit row first)
+DT        error-bar swarm LIVE (TMM.194 confirmed in its jsonl 00:41Z + its reply 00:49Z): target goal:g5.22.1, room swarm-osc35,
+          iter 35 p1 a00-e2d2e39a (A qwen2) · p2 a00-5cba3524 (B qwen3, holds the ONE model slot) · p3 a00-553975e2 (C decide layer,
+          zero model) · p2's kid a00-0c9f57b2 OOM-killed in its OWN 6G scope 00:53Z (script cached every prompt's full-vocab
+          log-probs; box stayed >= 6.2 GiB) = a literal 'OOM kill' falsifier line to weigh at the merge-up · goal_id: p2 minted
+          G5.22.2 (a sibling number), DT renumbers at harvest (G5.22.1.N) · then OSC.32's rewrite (head_var -> key-only energy)
+DE        TMM.195 (00:53Z, in its jsonl 00:53:15Z): it had asked its OWN pane whether to send the merge-up -> told YES by dm ·
+          TMM.196 (00:5xZ): tip 019242b32d RETURNED -- goal:g7.33.14 has no heading_level (snapshot-goals --check rc 1) + placeholder
+          title + a doubled '# goal:' heading · owed after: TMM.190 (AUTO-CAPTURED bug, goal:g7.33.N) · TMM.189 (PASS 7 batch) ·
+          the g7.33.14 swarm harvest (its room: 2 of 3 parents posted to an INBOX file -- the node's verb bug, [red] to belam 00:53Z)
+GATE      scratchpad/gate-de = M 883ab67ba1 (HEAD a15e10d264 + tip 019242b32d, experiment:a00-325d4c56-bedcc8 kept at HEAD: the
+          tip's 5957e5fb0f = the grid evidence gate's false demotion made on a stale copy) · suite running (pid in scratchpad/suite-de.pid)
+          · green: links 0 broken, anonymize ok, model grep 0, evidence gate dry-run 0, posts.md untouched, brief extras cell absent live
 BUG       the capture: at f >= 0.85 x the line (directors) or 10 min past the line (ANY seat): 'AUTO-CAPTURED' prepended into the
           card, re-fired each prompt · interim unset of ladder.md:16 = the Prime's call ([decision] 00:2xZ)
-trunk     MAIN = local-maxxing/season2/main · origin = e5bf88d1c7 + my board/card commits (pushed at rotation) · no gate worktree
+trunk     MAIN = local-maxxing/season2/main · origin = e5c9d69b10 (gen 22's rotate-out) + the watch's after_join commits
 ```
 
 ## 🔴 Where it stops
-00:5xZ 09-26 gen 22 rotates at a clean point (f 0.42, nothing in flight); gen 23 waits on DT's error-bar swarm roster, DE's capture-bug round + swarm + PASS 7 batch, and PASS 8 at 05:47Z
+00:5xZ 09-26 gen 23 gates DE's tip 019242b32d (returned for g7.33.14's heading_level, TMM.196); DT's error-bar swarm runs; PASS 8 at 05:47Z
 ````
-00:5xZ 09-26 gen 22 rotates at a clean point (f 0.42, nothing in flight); gen 23 waits on DT's error-bar swarm roster, DE's capture-bug round + swarm + PASS 7 batch, and PASS 8 at 05:47Z
+00:5xZ 09-26 gen 23 gates DE's tip 019242b32d (returned for g7.33.14's heading_level, TMM.196); DT's error-bar swarm runs; PASS 8 at 05:47Z
 ```
-state   MAIN pushed at the rotation · no gate worktree · last order sent = TMM.194 · next = TMM.195 · comms churn, sequence.json,
-        rotation records = not mine
-NEXT    (1) confirm TMM.194 reached DT's pane (sent 'pane busy'); else SendMessage its session (registry name, not ListAgents
-            while a stream is live)
+state   MAIN clean of my work · gate worktree = scratchpad/gate-de (remove after landing: git worktree remove) · last order sent =
+        TMM.196 · next = TMM.197 · comms churn, sequence.json, rotation records = not mine
+NEXT    (1) DE's re-sent [merge-up]: re-run merge-tree on the live HEAD, keep experiment:a00-325d4c56-bedcc8 at HEAD's blob (temp
+            index), snapshot-goals --render --check rc 0, suite green on the FINAL M, then land (ff-only) + push + name the kept file
         (2) every [merge-up]: the WHOLE body of each node against the loop's known errors (w + 1; tags != budgets) · bits() RUN for
             every arm's widths · the CONTROL arms (uniform AND random) before any verdict · config:posts rows HEAD vs merged tree
             (prime/owner-only cells never change through a director tip: land HEAD's posts.md verbatim, name it)
@@ -180,6 +188,12 @@ bodies       a node landed for ONE fix still carries the loop's OTHER known erro
 evidence     the grid cron's evidence gate (evidence_gate.enforce_on_disk) DEMOTES a proved / disproved verdict without a resolvable
              evidence_runs (a JSON list of existing type:slug ids) IN MAIN'S WORKING TREE, uncommitted, 'caught at grid commit' -> gate
              every landing's range with it: my ae2276a95c carried a00-325d4c56-bedcc8 = disproved with no evidence_runs (22:4xZ)
+             · the reverse: a director's grid.py commit --all in ITS worktree runs the gate on a STALE copy and its tip carries a false
+               demotion (DE 5957e5fb0f, 09-26) -- merge-tree merges it CLEANLY beside the trunk's evidence_runs -> diff every experiment
+               node HEAD vs the merged tree; keep HEAD's blob (temp index) and name it · dry-run: evidence_gate.enforce_on_disk(root, dry_run=True)
+swarm rooms  the trial node's ORDERS step 1 spells send.py send <room> '<text>' = an INBOX target (send -h: 'inbox: TARGET TEXT...')
+             -> posts land in .agi/sessions/inbox/<room>.md · the room verb = send --room <r> '<text>', read --room <r> · count a
+             swarm's talk from BOTH files before judging its talk-first falsifier ([red] to belam 00:53Z 09-26; the node is the Prime's)
 agent tool   NEVER spawn Claude subagents (the Agent tool) -- owner 20:3xZ 09-24, all posts, like the no-Claude-Workflow rule; graph recon = read it directly
 director docs co-owned (owner 20:1xZ): edit doc:unified-director-brief / doc:card-director-* via write.py, then ONE dm per live director naming the change · a card's
              mint THOUGHT may quote the owner: that version's grid/git history keeps it (the HEAD rule banks owner lines in THOUGHTs)
