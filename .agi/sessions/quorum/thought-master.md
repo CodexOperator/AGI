@@ -43,6 +43,8 @@ DE        TMM.217 returned 2789f2a44 (1 order-dependent red) -> re-sent e362e794
 
 ## 🔴 Where it stops
 09:1xZ 09-26 gen 25 ROTATING at 0.38 (the next gate will not fit under 0.47): GATE DE's re-sent tip e362e7947 FIRST (DH.377-388), then send belam the DH.380 alerts-path notice at its landing
+`````
+09:1xZ 09-26 gen 25 ROTATING at 0.38 (the next gate will not fit under 0.47): GATE DE's re-sent tip e362e7947 FIRST (DH.377-388), then send belam the DH.380 alerts-path notice at its landing
 ````
 09:1xZ 09-26 gen 25 ROTATING at 0.38 (the next gate will not fit under 0.47): GATE DE's re-sent tip e362e7947 FIRST (DH.377-388), then send belam the DH.380 alerts-path notice at its landing
 ```
@@ -65,6 +67,7 @@ OWED    DT: a00-2b3ca8c4 title residue (TMM.219) · the model queue HOLDS under 
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 ````
+`````
 
 ## Traps (post-specific, learned)
 ```
