@@ -2962,6 +2962,24 @@ def _seat_tree_dir(root: Path, row: dict) -> Path:
     return base / wt
 
 
+def _unlink_launch_file(launch_path: str | None, name: str) -> None:
+    """WRITER-side unlink for the recovery launch file. Every path where the
+    pane's own `sh` never got to run the file (write failed mid-way, tmux
+    absent/down, `new-window` non-zero, timeout) otherwise leaves the file --
+    and the whole startup PROMPT it carries -- in /tmp for any process to
+    read, one per failed recovery. The SUCCESS case still deletes ITSELF
+    (`rm -f "$0"`, unlinked by the very shell running it, which is why this
+    does not fire there: unlinking from here would race the pane). Best-effort,
+    never raises."""
+    if not launch_path:
+        return
+    try:
+        os.unlink(launch_path)
+    except OSError as exc:
+        print(f"warn: orphan recovery launch file {launch_path} for {name!r} "
+              f"not removed: {exc}", file=sys.stderr)
+
+
 def _launch_recovered(root: Path, name: str, shell_cmd: str,
                       window_path: str | None = None,
                       cwd: Path | str | None = None) -> tuple[int | None, str]:
@@ -2987,9 +3005,11 @@ def _launch_recovered(root: Path, name: str, shell_cmd: str,
     # long`). An unwritable file REFUSES LOUDLY and returns not-spawned --
     # falling back to the inline prompt is the very bug this removes, and
     # pairing it with a success record would lie to the next pass. The file
-    # deletes ITSELF on exit (`$0`), so a prompt file per recovery does not
-    # accumulate in /tmp forever; unlinking it here instead would race the
-    # pane's own `sh`.
+    # delete ITSELF on exit (`$0`), so a prompt file per recovery does not
+    # accumulate in /tmp forever; unlinking it on the SUCCESS path here would
+    # race the pane's own `sh`. `$0` cannot run at all on a FAILED launch, so
+    # `_unlink_launch_file` owns those paths (defect (3)).
+    launch_path: str | None = None
     try:
         fd, launch_path = tempfile.mkstemp(prefix=f"agi-recover-{name}-",
                                            suffix=".sh")
@@ -2998,6 +3018,7 @@ def _launch_recovered(root: Path, name: str, shell_cmd: str,
                 fh.write(shell_cmd + "\n")
             fh.write('rm -f "$0" 2>/dev/null || true\n')
     except OSError as exc:
+        _unlink_launch_file(launch_path, name)
         print(f"warn: recovery launch file for {name!r} unwritable: {exc}; "
               f"refusing to hand tmux the prompt inline", file=sys.stderr)
         return 0, ""
@@ -3009,11 +3030,13 @@ def _launch_recovered(root: Path, name: str, shell_cmd: str,
              "-P", "-F", "#{window_id}", launch_cmd],
             capture_output=True, text=True, timeout=10)
     except Exception:  # noqa: BLE001 — tmux absent/down counts as not-spawned
+        _unlink_launch_file(launch_path, name)
         return 0, ""
     if proc.returncode != 0:
         detail = (proc.stderr or proc.stdout or "").strip() or "<no output>"
         print(f"warn: recovered spawn of {name!r} failed: {detail}",
               file=sys.stderr)
+        _unlink_launch_file(launch_path, name)
         return 0, ""
     wid = (proc.stdout.strip().splitlines()[-1]
            if proc.stdout.strip() else "")
