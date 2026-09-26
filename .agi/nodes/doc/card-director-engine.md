@@ -48,10 +48,19 @@ pending Prime/owner ruling (`g7.33.1/.7/.8`) -- check a leaf's own `who` row bef
 ```
 seat       gen 22, seated 02:23:58Z, after_join exit 0 (join/pin/reap-proof) -- no ack owed
 tip        post branch: 34ceccce2 (TMM.199 fix) -> 6fe0719df (trunk sync, dispatch's own stale-base action) -> card
-merge-up   swarm harvest 2c87b63c2 RETURNED (TMM.199) -> both reds FIXED in 34ceccce2 -> RE-SEND pending the test slice
-round      DH.367 · parent a00-0c992f07 · pi-free stealth/space-bunny-alpha · cap $1 · detached
-           branch season2/loops/hypothesis-node-writer-create-re-a00-0c992f07
-           target hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-id-does-not-resolve
+merge-up   swarm harvest 2c87b63c2 RETURNED (TMM.199) -> reds FIXED 34ceccce2 -> RE-SENT tip 938111b38 [delivered] -- await TM
+rounds     all pi-free stealth/space-bunny-alpha, --tier parent --ladder-tier 0, cap $1, --branch --detach
+  DH.367   a00-0c992f07  hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-id-does-not-resolve (g7.33)
+  DH.368   MERGED 7cc5c0a44 + cells de9dced85 · 3/3 kids (2 proved, app half lean: no CLI path ends an app session) · 204 heal/reap tests
+           residue for the merge-up: kid 2fa1fab0 launched 2 real throwaway claude sessions (--bg, --remote-control zz-probe-2fa1fab0),
+           both gone by pid; their app-side entries unmeasurable from here
+  DH.370   a00-6c3524a8  hypothesis:heal-lands-a-reseat-after-a-tmux-server-restart (g6.41 (1), cut after DH.368)
+  DH.369   MERGED b101094c2 + residue ca98f266b · A lean_disproved:60 (parent's probe: archives re-rotated) -> B proved the repair
+           residue: declarations (logs cells, maint_gc) were UNCOMMITTED in the parent worktree -- committed by DE;
+           parent's THOUGHT/notes stored literal "$(cat ...)" x3 -- restored. LIVE on landing: first apply rotates the
+           134 MB cron + 31 MB reaper logs to .1; daily git gc 04:41. conjunct 4 (09-23 re-fetch) + send.py half of 3 NOT done
+held       hypothesis:a-reboot-brings-the-town-back-without-a-human (g6.41 (2)) -- after DH.370 merges, per belam's order · MemAvailable was 3.6 GiB at DH.369 (floor 3)
+STOP       fired ~02:4xZ (1270 MiB, an OSC qwen3 run, not DE's) -> [red] to belam; CLEARED at 7.0 GiB before DH.370
 push       never from here (IDENTITY rule)
 ```
 | TMM.199 red | fix in 34ceccce2 | proof |
@@ -63,17 +72,18 @@ push       never from here (IDENTITY rule)
 ## §1 PLAN
 | # | item | status |
 |---|---|---|
-| 1 | re-send `[merge-up]` naming 34ceccce2 + tip | **NEXT** (after the test slice) |
-| 2 | DH.367 harvest: review the parent's kids against the claim; merge `--no-ff` | running |
-| 3 | owner's concurrency-up (belam 02:0xZ): 2c stale-sessions/registry FIRST -> goal:g6.41 pair -> 2d hygiene goal:g6.49 | not started; each = ONE pi-free parent round |
+| 1 | re-send `[merge-up]` naming 34ceccce2 + tip | SENT 938111b38 -- await TM verdict |
+| 2 | harvest DH.367 / .368 / .369: review kids against each claim + falsifiers; merge `--no-ff`; one merge-up | running |
+| 3 | goal:g6.41 pair | (1) DH.370 running · (2) after DH.370 merges |
+| 4 | merge-up of DH.368 (+ 367/369/370 as they land) | after TM answers the 938111b38 re-send -- one merge-up in flight at a time |
 | 4 | DH.360 seam 3 (fresh mint) -> TMM.166/174 -> g1.14.1 -> PASS 6 defect 3 -> pass7-0926-residue-batch (read fully) | queued |
 
 ## 🔴 WHERE IT STOPS
 ```
 1  send.py read director-engine   -> TM's verdict on the re-sent merge-up; a red = fix + re-send with sha
-2  DH.367: cli.py status / the iter-DH.367 manifest; harvest when the parent reports
-3  §1 row 3, in order, each: write.py-mint or read the hypothesis -> dispatch.py . DH.<n> --target <id>
-   --tier parent --role parent --ladder-tier 0 --from director-engine --branch --detach (dry-run first)
+2  spawn_budget.py status + .agi/sessions/iter-DH.36{7,8,9}/ -> harvest each parent as it reports
+3  after DH.368 merges: dispatch.py . DH.<n> --target hypothesis:heal-lands-a-reseat-after-a-tmux-server-restart
+   --tier parent --role parent --ladder-tier 0 --from director-engine --branch --detach (MemAvailable >= 3 GiB first)
 ```
 
 ## §4 TRAPS (gen 22)
@@ -81,6 +91,10 @@ push       never from here (IDENTITY rule)
 stale-base   dispatch --branch refuses (prints JSON, rc 0 through a pipe) when 1+ behind trunk: read for
              "spawned a00-..." before assuming it went; sync = git merge origin/local-maxxing/season2/main
 card link    the quorum card was a flat file at wake (rotation flattens it) -- re-linked to the doc node
+cat-literal  a pi parent passing a file to write.py as "$(cat f)" inside a quoted script stores the LITERAL:
+             grep 'cat /data' in every harvested node before merging
+uncommitted  a kid's .agi/config.json / .geometry edits can stay uncommitted in the parent worktree:
+             `git -C ../<parent> status -s` before trusting an experiment's 'where it lives' table
 render test  backtick templates span lines and reference other seams (${SCRATCH}); agi-trove-survey
              uses ROOT only inside an object literal -- the render test stubs / skips those, by design
 ```
