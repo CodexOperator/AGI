@@ -299,7 +299,10 @@ def is_live_checkout(root: Path) -> bool:
         e = _enclosing_repo(Path(__file__).resolve())
         if g is None or e is None:
             return False
-        return git_common_root(root) == git_common_root(g)
+        # the ENGINE's own repo is the comparand: comparing `root`'s common
+        # root with its own enclosing repo's is equal for ANY repo (DH.412
+        # harvest: a foreign repo read as the live checkout)
+        return git_common_root(g) == git_common_root(e)
     except Exception:
         return False
 
