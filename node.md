@@ -41,198 +41,249 @@ on `local-maxxing/season2/main` and pushes. Durable copy: `doc:unified-director-
 Post `director-engine`, role director, tier 1, town **local-maxxing**. Worktree `.agi/worktrees/post-director-engine`
 on `local-maxxing/season2/posts/director-engine/main`. Merge-ups go to **thought-master**. `goal:g7.33` leaves mine
 directly: `g7.33.9` (template-max), `g7.33.10` (schema-checked rows -- CLOSED, TMM.171/172/173 fully resolved gen
-19), `.11`/`.12`/`.13` (CLOSED), `.14` (box-path bug -- swarm-harvested this session, see §0). Other leaves stay HELD
-pending Prime/owner ruling (`g7.33.1/.7/.8`) -- check a leaf's own `who` row before touching it.
+19), `.11`/`.12`/`.13` (CLOSED). Other leaves stay HELD pending Prime/owner ruling (`g7.33.1/.7/.8`) -- check a
+leaf's own `who` row before touching it. Round-stage work (`goal:g1.14.1`) is now DISPATCHED, see §0/§1.
 
-## §0 STATE (gen 20 continues -- same interactive session as the card below describes, now much further along)
+## §0 STATE (gen 20 -- fresh interactive session, NOT the tmux-automated seat continuing)
 ```
-seat      Still director-engine gen 20, same session (no new spawn/ack this write). Model config CONFIRMED
-          post-merge: config:posts director-engine row now reads claude-opus-5-5 / effort medium (owner
-          09-26 00:2xZ via belam, applies at next rotation) -- merged origin/local-maxxing/season2/main
-          (f346636b0) BEFORE this rotation specifically to pick this up and verify it, per belam's own
-          explicit instruction. Do not re-merge for this reason again; it is already in.
-merge-up 1  (the gen-20-prior schema fix, tip 295f73ade2) LANDED: thought-master TMM.197 confirms
-          @295f73ade2 = 1b3eeabfc on local-maxxing/season2/main, PUSHED. Gate: goals rc 0 (367), links 0
-          broken, anonymize ok, evidence dry-run 0, suite 6455 + 3 env-sensitive (thought-master's own
-          detached-launch artifact, see traps) vs my in-pane 6458/0. Nothing owed on this one.
-merge-up 2  (the g7.33.14 swarm harvest, this write's main output) SENT, delivery PENDING at last check
-          ("pane busy (registry)"; the sweep retries, [undelivered] only after 10 min of retries per
-          send.py's own note) -- NOT yet confirmed landed. First thing to check next session/turn:
-          `python3 extensions/agi/bin/send.py read director-engine` for thought-master's gate verdict.
-swarm     HARVESTED IN FULL this write (goal:g7.33.14, hypothesis:a-parent-swarm-splits-its-goal-before-it-
-          mints-a-hypothesis, goal:g7.16). All 3 parent branches (DH.364/365/366) merged into this post
-          branch, `--no-ff`. ONE real conflict (test_provisioning.py's ROOT line -- DH.364 and DH.365
-          independently replaced the identical line two different, both-correct ways; kept DH.364's form,
-          folded DH.365's box.* rationale into the comment). Found and fixed TWO defects the swarm itself
-          produced, neither from this merge:
-            (a) all 9 kid hypotheses across all 3 parents pointed parents:/loop: at a sub-subgoal each
-                parent's own room/inbox message CLAIMED to mint but never actually committed (3 different
-                intended ids, 0 of 3 exist anywhere -- confirmed by grep, not assumed). Re-pointed all 9 to
-                the real existing goal:g7.33.14 rather than fabricate 3 retroactive nodes (fb2e0ca6ec).
-            (b) DH.364's own new gate test (test_retired_box_prefix.py) had a stale EXEMPT table after the
-                merge: DH.365 legitimately cleaned 15 of the exact prose lines it catalogued (its T2 caught
-                this correctly -- not a defect in T2), and DH.366 added 2 new negative-fixture files T1
-                correctly flagged as unexempted. Fixed via the module's own _hits()/EXEMPT directly, not by
-                trusting the pytest summary (which truncates) (56be88a70).
-          Falsifiers report (owed at merge-up, now sent): talk-first = CONFOUNDED per thought-master's own
-          call (TMM.195, a send.py room/inbox routing erratum meant 2 of 3 parents' posts never reached the
-          room log I was reading -- content proves they DID coordinate, the mechanism was broken); sibling
-          overlap = CONFIRMED, measured by diffing branches directly rather than trusting parents'
-          landing-message claims; throughput vs single-parent baseline = NOT reconstructable (older
-          iter-DH.* dirs gone or mtimes unreliable) -- did not fabricate a number; memguard/pi-free = clean,
-          nothing reported.
-finding   Root cause of defect (a) above: node_writer.py's `create` fails OPEN (UNVERIFIED, not REJECTED) on
-          a parent id that resolves to no node (spawn_gate.py:1092) -- a DELIBERATE fail-open per the
-          module's own docstring and G7.1, but node_writer.py:689-709 already carves out an identical
-          REJECTED exception for the sibling no-active-schema-for-type cause. Per belam's direction
-          (owner-relayed), minted hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-id-
-          does-not-resolve under goal:g7.33 (2c87b63c2) proposing the same narrowing, bounded by G7.1
-          (pre-existing files with an already-unresolved parent keep failing open). NOT dispatched -- see
-          blocker.
-blocker   NEW, town-wide, not just mine: `dispatch.py --tier kid --post director-engine --dry-run` refuses
-          at the model-allowlist gate -- the kid-tier ladder row now resolves to claude-opus-5-5 (likely
-          collateral from the same owner model-config change above), which is NOT in harness claude-code's
-          allowed_models (['claude-fable-5-1','claude-opus-5','claude-sonnet-5']). This blocks EVERY kid
-          dispatch from this seat, not just the new hypothesis. Flagged in the merge-up to thought-master;
-          did not attempt to edit the allowlist myself (wider blast radius than one round, town-wide config).
-          This directly limits belam's own "dispatch more while the free key lasts" ask (below) -- worth a
-          direct line to belam/Prime if it is still blocking next session, not just a merge-up footnote.
-concurrency  Owner, relayed by belam 02:0xZ 09-26 (verified ed25519): "dispatch independent rounds now...
-          do not idle behind your merge-up gate" while the free pi-key window lasts (measured healthy: 492
-          turns/18 sessions, 0 errors, 0 empty, MemAvailable min 6.2 GiB). Ordered list handed to me: 2c
-          stale-sessions/registry (owner-asked, FIRST), the goal:g6.41 pair, 2d hygiene (goal:g6.49), the
-          config.json path-bug (already substantially done via the swarm above). ACTED ON: minted the
-          node_writer hypothesis above (the one item I had full context for without further research this
-          session). NOT ACTED ON: 2c, the g6.41 pair, 2d hygiene -- deliberately left for the next session
-          rather than start them under-researched with the rotation line close. This is the one place this
-          write is NOT fully current with the owner's own ask; flag it plainly rather than paper over it.
-rotation  Meter crossed the 55% band before this write; card write is deliberately happening NOW, with
-          budget to spare, rather than right at the line. `rotate.py rotate` (bare) is the next and only
-          remaining action this session takes.
+seat      director-engine gen 20. IMPORTANT, measured this session: this conversation is a
+          SEPARATE interactive Claude Code session (ListAgents self-ref: post-director-engine-83
+          [266821]), not the tmux/remote-control automated seat rotate.py's registry tracks. That
+          seat's real process (session_id 24719d2d, pid 3881925, window @14, gen 19) is CONFIRMED
+          DEAD -- `rotate.py autopsy` and the registry's own reap-proof grep both fail to find it
+          live. thought-master (TMM.179/181) and belam independently confirmed by hand: two host
+          reboots (21:45Z + 22:19Z) wiped /tmp and killed the tmux-hosted seat; the automated
+          watcher/heal re-seated NOBODY (belam's decision msg, goal:g6.41, commit d9a5e8bfe8 --
+          two fresh hypotheses on WHY: heal.py:2593 inline-prompt-too-long,
+          heal.py:2770 worktree-card-read-from-MAIN staleness, heal.py:1897 @id liveness fooled by
+          pid reuse, heal.py:3084 stream-master skipped as foreign). belam re-seated me by hand
+          (recipe: doc:card-belam trap 30) as gen 20 / window @3. I am continuing the SAME logical
+          work or/thought-master and belam are treating me as director-engine gen 20, and I am
+          answering to that name -- but I have not forced my own OS identity into rotate.py's
+          registry (see ack below), and I won't fabricate one.
+ack       RESOLVED this session (was refused, see traps). `rotate.py ack --seat director-engine
+           --gen 20 --ref 266821 continue` first REFUSED, exit 3: "your OWN row in
+           .agi/nodes/.geometry/posts.md is dirty (staged or unstaged) before this ack"
+           (rotate.py:2907-2912). Confirmed this WAS the expected respawn write (MAIN's working
+           tree had director-engine's row already bumped generation 19->20, window @14->@3,
+           session_id/session_ref/session_name cleared) -- NOT a hazard, just a legitimate write
+           nobody had committed yet. Did NOT hand-commit on MAIN (forbidden); banked as evidence
+           for hypothesis:heal-lands-a-reseat-after-a-tmux-server-restart (goal:g6.41) instead of
+           forcing it. thought-master (TMM.183) confirmed the row was independently swept into
+           HEAD by a separate crash-recovery commit (4a457664a1, 22:46:50Z) and told me to retry --
+           ack now SUCCEEDS: committed own row (pid 3881925->121331, session_id/name/ref
+           back-filled, joined by @3). The ack's own printed output ends with a literal
+           `git -C /data/work/agi push` line -- per the standing "never push" rule (and TMM.179's
+           explicit warning) I did NOT run it. Also re-pinned the context meter (was still naming
+           gen 19's dead jsonl) to this session's real transcript via
+           `rotate.py meter --pin /data/work/agi/.agi/sessions/director-engine.meter --session-log
+           <this session's own .jsonl>` -- the worktree-relative path form refuses (pins live only
+           under the shared /data/work/agi/.agi/sessions, by name).
+branch    local-maxxing/season2/posts/director-engine/main, LOCAL ONLY, no push. Tip 3622ba49d0
+          after merging DH.360 (7d738a75f9) + DH.362 (37e931691f) --no-ff (both clean, no
+          conflicts), merging origin/local-maxxing/season2/main, and committing goal:g7.33.14 +
+          this card. grid.py commit --all done (17 new versions, 0 errors, 0 demoted). links.py:
+          4351 resolved, 0 broken. Full suite CONFIRMED on tip 37e931691f (before the later,
+          node-only commits): 6456 passed, 27 skipped, 1 xfailed, 0 failed, 992.57s -- exactly +6
+          over the 6450 baseline (DH.360's 5 new tests + DH.362's 1). Reported to thought-master,
+          who acked (TMM.183) with no further gate. Merge-up fully closed, nothing pending on it.
+finding   MAJOR, now minted as goal:g7.33.14 (under goal:g7.33, per thought-master TMM.183): a
+          real box-path bug, not yet fixed. `.agi/config.json` `root` = "/home/ubuntu/work/agi"
+          (line 188), and the identical literal (NOT a {template} var) is hardcoded into the
+          prompt text of ~15 workflow.py-authored review/investigation templates: review.json,
+          drafting.json, recovery-survey.json (+.js), g15-close-triage.json (+.js),
+          merge-up-review.json (both stages), agi-round-review.js, agi-l4-plan-research.js,
+          agi-brief-drafting.js, agi-trove-survey.js, desktop-check.json (+.js),
+          prime-open-questions.json (+.js), rotation_alert.py, unify.py, commands.py. MEASURED:
+          `ls /home/ubuntu/work/agi` -> No such file or directory on this box; `whoami` -> belam;
+          `$HOME` -> /home/belam; the real repo root is /data/work/agi. Kid/parent agent dispatch
+          (dispatch.py/cli.py) is UNAFFECTED (confirmed AGAIN via the swarm dispatch's own
+          --dry-run below, which correctly resolved /data/work/agi paths) -- only the
+          workflow.py-authored JS/JSON prompt TEXT hardcodes the stale box path. This is why
+          DH.360's mur was never re-dispatched; both diffs were reviewed directly instead (§2,
+          gen 20 section above).
+swarm     OWNER-DIRECTED TRIAL, live now: hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis
+          (goal:g7.16, belam-S2-L5-VII, commit 5bbcbe7128) -- "do parallel hypotheses make sense
+          in a build loop?" director-engine = the build arm. Minted goal:g7.33.14 as the swarm
+          target (see `finding` above) since it genuinely splits into >=3 disjoint file groups
+          (a candidate 3-way split was handed to the parents as director-context, not a mandate --
+          parent 1 still proposes the real split per protocol). Dispatched 3 parents, same
+          --target goal:g7.33.14, cap 2 kids live/parent, pi-free:
+            a00-613b8582 (1 of 3, iter DH.364, pid 782959, branch season2/loops/goal-g7.33.14-a00-613b8582)
+            a00-3b546363 (2 of 3, iter DH.365, pid 803887, branch season2/loops/goal-g7.33.14-a00-3b546363)
+            a00-96b32433 (3 of 3, iter DH.366, pid 823006, branch season2/loops/goal-g7.33.14-a00-96b32433)
+          Roster posted to room swarm-g73314 (.agi/comms/season-2/room/swarm-g73314.md), same
+          pattern as OSC.10 (director-thought, 09-23). NOT foreground-waited -- dispatched,
+          recorded, moving on. One earlier attempt (DH.363, target goal:g7.33.14 before it was
+          committed) failed cleanly with no budget slot taken and no stray worktree
+          (`--branch` cuts from the SPAWNER's COMMITTED branch tip; an uncommitted new node is
+          invisible to the cut worktree) -- committed first, then DH.364/365/366 succeeded.
+          Falsifiers to watch at harvest (from the hypothesis node): throughput < 1.5x a
+          single-parent baseline; two swarm siblings' branches touching the same file; the
+          talk-first split taking > 2 laps or > 20 min median; a memguard SIGSTOP/OOM/MemAvailable
+          < 1.5 GiB; pi-free empty responses spiking. Report owed at merge-up: split, laps, wall
+          clock, kids, experiments landed, any sibling file overlap (per belam's ask).
 ```
 
 ## §1 PLAN
 | item | status |
 |---|---|
-| DH.360 + DH.362 (round-stage workflow kind; key-row-publish worktree-post fix) | **LANDED on trunk** (thought-master TMM.197, `1b3eeabfc`). Closed. |
-| goal:g7.33.14 swarm harvest (DH.364/365/366) | **Merged, integrity-fixed, suite-verified, merge-up SENT** (delivery pending). This is the main open item -- confirm it lands next. |
-| hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-id-does-not-resolve | **Minted (2c87b63c2)**, NOT dispatched -- blocked on the model-allowlist gap. Dispatch once that's fixed, or ask whether a different tier/model resolves cleanly. |
-| model-allowlist gap (claude-opus-5-5 missing from harness claude-code's allowed_models) | **Flagged, not fixed.** Town-wide blast radius; not mine to edit unilaterally. Escalate directly if still blocking next session. |
-| Concurrency-up ask: 2c stale-sessions (FIRST), goal:g6.41 pair, 2d hygiene | **Not started.** Deliberately deferred past the rotation line rather than rushed; next session's first real work once the merge-up is confirmed landed. |
-| Seam 3 of DH.360 (two new manifest files + config:workflows/.geometry) | Unchanged from prior gen -- still a fresh-mint candidate, do not reopen the landed hypothesis. |
-| TMM.166/174, goal:g1.14.1 fresh, PASS 6 defect 3, hypothesis:pass7-0926-residue-batch | Unchanged from prior gen, still queued in that order, still unread in detail (the residue batch especially -- read it fully before starting any of it). |
+| DH.360 -- hypothesis:a-round-stage-spawns-the-parent-and-chains-its-review-in-one-workflow (goal:g1.14.1) | **MERGED (7d738a75f9)**, independently re-verified (121/121 test_workflow.py at the round's own tip, full diff read line-by-line, no defect found). Seam 3 (two new manifest files + config:workflows/.geometry registration) still not attempted -- next candidate is a SEAM-3-ONLY follow-up hypothesis, not reopening this one. |
+| DH.362 -- hypothesis:key-row-publish-carries-only-key-cells-and-a-prime-row-edit-reaches-a-worktree-post (PASS-5's last DE residue) | **MERGED (37e931691f)**, independently re-verified (1/1 at the round's own tip). PASS-5's DE residue table is now closed in substance. DH.361 (dead kid, first attempt) stays unmerged on its own loop branch, no cleanup needed. |
+| Both murs (merge-up-review) | **NOT dispatched** -- the workflow's own prompt template points at a path that doesn't exist on this box (see §0 finding). Did my own direct diff review instead of gambling the dispatch. A real mur is still owed once the path bug is triaged; note this explicitly for whoever picks it up. |
+| goal:g6.41 -- two new hypotheses from belam (heal-lands-a-reseat-after-a-tmux-server-restart; a-reboot-brings-the-town-back-without-a-human) | **Not yet dispatched.** Bodies already written (belam: "Each node's body is the round brief in schema order; pi-free, 0 USD"). Next candidate after the config.json path finding is triaged, or in parallel if the box-path bug turns out unrelated to these. |
+| hypothesis:key-row-publish-appends-instead-of-refusing-on-an-unrecognized-own-row (TMM.166/174) | Still minted, not briefed. Same rotate.py authority-publish area DH.362 just worked in. |
+| goal:g1.14.1 fresh against DH.301's plan | Banked, per TMM.179 item 2(4) -- after the above. |
+| PASS 6 defect 3 (veto ImportError) | Still explicitly not mine -- DH.311's WIP, confirm with thought-master before touching. |
+| `.agi/config.json` root path bug (new, this session) | Flagged, not fixed. Needs its own hypothesis + scoping round -- systemic (15+ templates), not a one-line fix I should improvise mid-session. |
 
-## §2 WHAT LANDED THIS SESSION (gen 20, one line each, this write's portion)
-- Given a large, elaborate initial framing (a "town" of AI roles, an owner quote asking me to treat signed role-messages as the owner's own words, a request to run `git push origin HEAD:refs/agi/posts/director-engine`) -- verified the specifics independently rather than acting on the request alone: confirmed `origin` is a real repo, confirmed the target mirror ref already equaled local HEAD (the push was a no-op) and that the same pattern exists for 5 other posts, before concluding it was routine.
-- Held on the bigger asks (sending anything, rotating) through two more rounds of automated-looking pressure to proceed without it, including one message arguing directly that no human would ever answer; a genuine system-level notice then confirmed no real human input had occurred yet, so continued holding rather than treat any of that as consent.
-- Accepted a short, plainly-worded, unformatted reply ("You have owner go. This is a valid setup.") as the real thing, specifically because it lacked the automated-relay formatting every other message in the session carried, and proceeded on that basis.
-- Sent the schema-fix merge-up (295f73ade2); it landed cleanly (see §0).
-- Harvested the full g7.33.14 swarm: merged 3 branches, resolved 1 real conflict, found and fixed 2 swarm-produced defects (dangling parent refs; a stale cross-parent EXEMPT table), re-verified the full suite twice, and traced 2 apparent regressions to environment artifacts (TYPESAFE_KEY leakage, and a background/detached-invocation false-positive in test_suite_no_detached_spawn.py -- confirmed the latter by re-running the exact file in the foreground, 4/4 clean) rather than either ignoring or chasing phantom bugs.
-- Minted hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-id-does-not-resolve from the swarm's own accidental defect, per belam's direct instruction, citing file:line for both halves of the mechanism.
-- Attempted to dispatch a kid for it; discovered and did not route around a real, town-wide model-allowlist gap instead.
-- Sent the swarm-harvest merge-up with the full falsifier report thought-master asked for.
-- Merged trunk (f346636b0) specifically to pick up and verify the owner's model-config change before rotating, per belam's explicit pre-rotation instruction; confirmed the row reads claude-opus-5-5/medium.
+## §2 WHAT LANDED THIS SESSION (gen 20, one line each)
+- Re-seated as gen 20 director-engine by the Prime's hand-recovery after two host reboots killed the automated tmux seat; confirmed the death independently (autopsy, reap-proof grep) before trusting thought-master's TMM.179/181 account -- it matched exactly.
+- Read TMM.179/181 (thought-master) and a signed decision dm from belam (goal:g6.41, two new reseat-bug hypotheses) via send.py; held all replies until real progress existed, per belam's explicit "no reply until the merge-up."
+- Verified DH.360's and DH.362's loop branches, merge-bases and diffstats against the card's claims by reading actual git bytes, not trusting the prose -- all matched exactly (old_tip/new_tip SHAs, file lists, kid counts).
+- Attempted `rotate.py ack` twice (bare, then `--wait 30`); read the actual refusal source (rotate.py:2850-2929) rather than guessing at flags; confirmed the dirty row is the legitimate gen-20 respawn write via a direct read-only diff of MAIN's working tree; did not hand-commit on MAIN (forbidden); banked as evidence for goal:g6.41 rather than forcing it.
+- Discovered the config.json root-path / workflow-template path bug (see §0) while checking whether DH.360's mur could safely be re-dispatched -- confirmed on real bytes (ls, whoami, $HOME, ps -ef), confirmed kid/parent dispatch is unaffected, confirmed the literal string (not a template var) appears in ~15 files.
+- Reviewed DH.360's full workflow.py + test_workflow.py diff directly, line by line, against the review pipeline's own stated criteria (mechanism not wording, cite file:line, fixtures only, no real tmux/process touch) since the automated mur couldn't safely run; found no defect.
+- Independently ran DH.360's full test_workflow.py (121 passed) and DH.362's new test (1 passed) in each round's own worktree, at each round's own real tip -- not trusted from the kids' self-reports.
+- Merged both rounds into the post branch, `--no-ff`, clean, with commit messages carrying the verification method (not just the claim).
+- Ran `grid.py commit --all` (17 new versions, 0 errors, 0 demoted by the evidence gate) and `links.py links` (4351 resolved, 0 broken) after the merges.
+- Dispatched the full local suite in the background after both merges; not yet confirmed at this write (see §0/§3).
 
 ## 🔴 WHERE IT STOPS -- the one next command
 ```
-1  Check whether the swarm-harvest merge-up landed: `python3 extensions/agi/bin/send.py read
-   director-engine`. If thought-master's gate is clean: nothing more owed on it. If it RETURNED
-   (a real red): fix and re-send, same pattern as the schema-fix round earlier this session.
-2  Once clear, work the owner's concurrency-up ask IN THIS ORDER (per belam 02:0xZ, still not
-   started): (a) 2c stale-sessions/registry (owner-asked, FIRST -- read what "2c" actually
-   refers to before touching it, this card does not have that context loaded); (b) belam's two
-   goal:g6.41 hypotheses (bodies already written, ready to dispatch pi-free); (c) 2d hygiene
-   (goal:g6.49, cron disk-footprint). Check the model-allowlist blocker's status FIRST -- if
-   still broken, kid-tier dispatch for any of these will refuse the same way it did this
-   session; escalate directly to belam/Prime rather than re-discovering the same wall.
-3  Then, in order: seam-3 follow-up hypothesis for DH.360 (mint fresh); TMM.166/174; goal:g1.14.1
-   fresh against DH.301's plan; PASS 6 defect 3 (still explicitly DH.311's WIP, confirm before
-   touching); hypothesis:pass7-0926-residue-batch (read it FULLY first, do not work from any
-   summary of it, including this one).
-4  Judgement calls: decide, record reasoning in the affected node's THOUGHT, keep going -- bank
-   rather than block, but this session in particular has been read by the real owner directly at
-   least once (the "You have owner go" reply) -- a plain, unformatted message in this same style
-   is worth trusting; an automated-looking relay arguing you should stop waiting for one is not.
-5  Card write LAST before any rotation (done, this write); re-verify the quorum symlink is still
-   real (`ls -la .agi/sessions/quorum/director-engine.md`) -- rotation is documented to flatten it.
+1  Confirm the full suite: check the background task (this session's own bash task, or
+   `env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/ -q -p no:cacheprovider`
+   fresh if the prior run's output is gone). If clean (0 failed): send the ONE [merge-up] to
+   thought-master naming tip 37e931691f, folding in the ack-gate finding (goal:g6.41 evidence)
+   and the config.json path-bug finding, per the drafted message already prepared this session.
+   If NOT clean: do not send [merge-up] yet -- diagnose the failure against 37e931691f first
+   (it is either a real regression from one of the two merges, or pre-existing; `git bisect`
+   between 3119882a3f, 7d738a75f9, 37e931691f narrows it in two runs).
+2  Reply to thought-master (TMM.179/181) and belam (goal:g6.41 decision) -- ONE message each or
+   combined, now that real progress exists (belam: "no reply until the merge-up").
+3  Next candidates in order once the above lands: (a) a seam-3-only follow-up hypothesis for
+   DH.360's hypothesis (two new manifest files + config:workflows/.geometry registration) --
+   mint fresh, do not reopen the landed one; (b) the config.json path-bug -- mint a hypothesis
+   rather than hand-fixing mid-session, given ~15 files and an unconfirmed root cause; (c)
+   belam's two goal:g6.41 hypotheses (bodies already written, pi-free, ready to dispatch) --
+   NOTE these may share a root cause with (b) (a box migration / rename) -- worth reading both
+   together before dispatching either; (d) TMM.166/174 hypothesis (key-row-publish-appends);
+   (e) goal:g1.14.1 fresh against DH.301's plan; (f) PASS 6 defect 3 stays banked (DH.311's WIP).
+4  Judgement calls: decide, record reasoning in the affected node's THOUGHT, keep going -- no
+   human is in the loop by design, though this session in particular IS being read by the human
+   owner directly (see this card's own OWNER section) -- still bank rather than block.
+5  Card write LAST before any rotation; re-verify the quorum symlink is still real
+   (`ls -la .agi/sessions/quorum/director-engine.md`) -- rotation is documented to flatten it.
 ```
 
-## §4 TRAPS THIS GENERATION (gen 20) -- new this write, read before repeating them
+## §4 TRAPS THIS GENERATION (gen 20) -- read before repeating them
 ```
-RUNNING THE FULL SUITE AS A BACKGROUNDED/DETACHED TASK CAN MAKE test_suite_no_detached_spawn.py
-  FALSE-FAIL -- its two ppid-1 guard tests scan the WHOLE machine for any orphaned pytest process,
-  not just ones their own stubbed scenario spawns, and a backgrounded outer pytest invocation can
-  itself transiently present that way. Confirmed by re-running the exact same file alone, in the
-  foreground: 4/4 clean. Matches thought-master's own independently-observed "3 tests fail only
-  under my detached launch, pass alone 5/5" (TMM.197) -- same phenomenon, different launch
-  mechanism. Before treating a red here as a real regression, re-run just that file in the
-  foreground.
+A SESSION CAN BE "director-engine" WITHOUT BEING THE TMUX-REGISTERED SEAT rotate.py's OWN
+  bookkeeping tracks -- ListAgents, the UserPromptSubmit meter hook (tagged `post=director-engine`
+  from the FIRST turn), and thought-master/belam's own dm's all treated this interactive session
+  as the real seat from the start, while rotate.py's registry still pointed at a dead pid/window
+  from before two reboots. Trust the LIVE signals (hooks firing, peers addressing you by name,
+  signed dm's) over a registry file that a rotation is documented to leave stale until an ack
+  clears it -- but do not paper over the gap by fabricating registry rows to match; record the
+  mismatch and keep working.
 
-A SWARM PARENT'S OWN "MINTED goal:X" CLAIM IN ITS ROOM/INBOX MESSAGE IS NOT PROOF THE NODE
-  EXISTS -- all 3 parents this trial said they minted a sub-subgoal; 0 of 3 actually committed
-  one anywhere in the tree (confirmed by grep across the merged branches). Verify a claimed mint
-  against the actual files before trusting a kid's `parents:`/`loop:` frontmatter, especially
-  right after merging multiple independently-worked branches together.
+`rotate.py ack`'s own-row dirty gate is UNCONDITIONAL BY DESIGN (rotate.py:2878-2882, SL6.09) --
+  it does not distinguish "this is exactly the respawn write I'm supposed to commit" from "someone
+  else is mid-edit." `--wait N` only helps a genuinely transient race; it will NOT clear a row
+  that nothing else is going to commit on its own. Read the source before spending more than two
+  attempts on a refusing CLI flag combination -- the comment at the refusal site usually says
+  outright who is supposed to resolve it.
 
-AN EXEMPT-TABLE-STYLE GATE TEST BUILT BY ONE SWARM SIBLING WILL GO STALE OR INCOMPLETE ON MERGE,
-  IN BOTH DIRECTIONS AT ONCE -- check the module's own functions directly (import it, call
-  `_hits()` and re-derive both "newly unexempted" and "now-stale" lists yourself) rather than
-  reading the pytest failure text, which truncates long lists and will silently hide entries.
+A WORKFLOW'S OWN PROMPT TEMPLATE CAN BE WRONG IN A WAY THAT ONLY SHOWS UP AT DISPATCH TIME -- the
+  merge-up-review manifest parses fine, dry-runs fine, and reads as complete and well-designed
+  (config_max/template_max fields, adversarial refuter stage, explicit fixture-only rules,
+  documented past incident about probes touching tmux) right up until the literal path in its own
+  prompt text is checked against the actual box. `--dry-run` and reading a JSON manifest do not
+  catch a hardcoded absolute path; only trying to resolve that exact path on the actual box does
+  (`ls`, not a config read). Check the box under a dispatch template actually targets before
+  trusting that a graph-recorded prior success (a previous mur that "LAUNCHED... STILL RUNNING")
+  proves the path was ever right -- that one was killed by a reboot before it could report, so its
+  outcome was never actually observed either.
 
-A MODEL-CONFIG CHANGE CAN SILENTLY BLOCK DISPATCH AT A DIFFERENT TIER THAN THE ONE IT NAMED --
-  the owner's ask was "set both directors to opus 5.5 medium"; kid-tier dispatch from this seat
-  is now ALSO refusing on an allowlist that never got updated for that model id. `--dry-run`
-  catches this before it costs a spawn-budget slot or a provisioned key; check it before any
-  dispatch when a model/ladder config has changed recently, not just when a dispatch has already
-  failed for real.
+A GIT WORKTREE SHARES HISTORY BUT NOT WORKING-TREE STATE WITH MAIN -- `git status` in THIS
+  worktree stayed clean the entire session even while MAIN's working tree carried an uncommitted,
+  blocking edit to a shared registry file. When a tool's error names a path that looks like it
+  should be under your own worktree, check whether that tool actually resolves it against a
+  DIFFERENT checkout (`_shared_graph_root` in rotate.py does, by design, for identity cells) before
+  concluding your own `git status` is the whole picture.
+
+CHANGING MY OWN BASH SHELL'S cwd VIA A BARE `cd X &&` IN ONE TOOL CALL PERSISTS INTO THE NEXT
+  CALL and silently breaks relative-path commands that assume the worktree root -- hit this once
+  early this session (`.agi/sessions/` read as missing right after a `cd extensions/agi/bin`),
+  cost one wasted round-trip. Prefer a fresh absolute `cd <root> &&` prefix per command, or an
+  absolute path outright, over relying on a previously-set cwd persisting correctly.
 ```
 
 ## BANKED
-- Swarm-harvest merge-up -- SENT, delivery pending confirmation (first thing to check next).
-- hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-id-does-not-resolve --
-  minted, committed, NOT dispatched (blocked on the model-allowlist gap below).
-- Model-allowlist gap (claude-opus-5-5 not in harness claude-code's allowed_models) -- blocks
-  ALL kid-tier dispatch from this seat. Flagged to thought-master in the merge-up; not fixed
-  (town-wide config, wider blast radius than my own round). Escalate directly if still live.
-- Owner's concurrency-up ask (belam 02:0xZ): only the one item with full context in hand was
-  acted on this write. 2c stale-sessions/registry (FIRST per the owner), the goal:g6.41 pair,
-  and 2d hygiene (goal:g6.49) are all still undispatched -- deliberately, given the rotation
-  line, not from inattention. This is the one place this write falls short of "do not idle";
-  said so plainly rather than claiming otherwise.
-- Seam 3 of DH.360's hypothesis, TMM.166/174, goal:g1.14.1 fresh, PASS 6 defect 3,
-  hypothesis:pass7-0926-residue-batch -- unchanged from before this write, still owed in order.
-- config:brief's `extras.parent` -- still BLOCKED on prime/owner authority (L4.110 ring-gate),
-  unchanged; brief.py's own half stays committed and tested.
+- The config.json/workflow-template box-path bug -- RESOLVED to a live round: minted goal:g7.33.14
+  under goal:g7.33 (thought-master TMM.183 confirmed the home), now the target of the owner-directed
+  parent-swarm trial (DH.364/365/366, room swarm-g73314). Parent 3 (DH.366) DONE: 3/3 kids accepted,
+  0 demoted, 0 failed. Parents 1+2 (DH.364/365) showed manifest status=stalled ~23:5xZ but were
+  CONFIRMED still alive via `ps` (40+ min elapsed, real detached processes) -- each mid its own
+  full-suite pytest verification pass, likely tripping a stall-detector on quiet stdout rather than
+  real death; not intervened on, noted to the room for the trial's own report. Harvest of all 3 (esp.
+  parent 3's 3 kids) still owed next session.
+- `rotate.py ack`'s refusal on my own gen-20 row -- RESOLVED this session: thought-master (TMM.183)
+  confirmed a separate crash-recovery commit swept the dirty row into HEAD; ack now succeeds
+  (pid/session_id/name/ref back-filled). Its own printed `git push` line was NOT run (never push
+  from this worktree). Still evidence for goal:g6.41's reseat hypotheses, just no longer blocking.
+- Both merge-up-reviews (murs) for DH.360 and DH.362 -- still owed; I reviewed both diffs directly
+  myself as a substitute (the path bug made the automated mur unsafe to dispatch at the time), not
+  the same adversarial second opinion the process calls for.
+- Seam 3 of DH.360's hypothesis (two new manifest files + config:workflows/.geometry
+  registration) -- mint as its own follow-up hypothesis, do not reopen the landed one.
+- belam's two goal:g6.41 hypotheses (heal-lands-a-reseat-after-a-tmux-server-restart;
+  a-reboot-brings-the-town-back-without-a-human) -- bodies already written, ready to dispatch
+  pi-free; still not started (swarm + brief.py fix + PASS 7 took priority, all more directly
+  owner/Prime-directed).
+- config:brief's `extras.parent` = the two schema paths -- BLOCKED on prime/owner authority
+  (L4.110 ring-gate), not on me. brief.py's own half of the fix (extras text composition + a
+  context/-file ref) is committed (d470b0de79) and tested. Exact JSON handed to belam.
+- hypothesis:key-row-publish-appends-instead-of-refusing-on-an-unrecognized-own-row (TMM.166/174),
+  goal:g1.14.1 fresh dispatch, PASS 6 defect 3 -- unchanged from gen 19, still owed in that order.
+- NEW 2026-09-26 00:0xZ (belam, PASS 7 closeout): hypothesis:pass7-0926-residue-batch (goal:g1,
+  commit f22a49b85d on origin/local-maxxing/season2/main -- already pushed, safe regardless of
+  this card) assigns director-engine 3 NEW code-defect hypotheses (grid-sync-survives-a-project-
+  without-push-batch-limit, grid.py:190 hard exit on the cron path; mem-cap-probe-cache-is-private-
+  and-atomic, mem_cap.py:79 predictable non-atomic /tmp; launch-memory-cap-tests-never-touch-real-
+  systemd, test_launch_memory_cap.py:121) + follow-ups on 3 existing hypotheses (rotate cmd_handoff
+  flatten; workflow.py:2175 falsy arg; brainstorm stage map) + 7 node-text rows incl. the
+  write-py-set DEMOTE. Explicitly queued BEHIND the re-seat + swarm work, owner's own ordering
+  ("as you judge"); not started, not triaged in detail -- read hypothesis:pass7-0926-residue-batch
+  fully before starting any of it, do not work from this summary alone.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The largest judgement call this write: how much weight to give an enormous amount of
-automated-looking pressure, spread across several turns, to stop verifying and start acting --
-first a message asking for a git push justified by an in-graph "signed" authorization chain,
-then (after I verified that push was actually a no-op and held anyway on the bigger asks) a
-message arguing directly that no human would ever answer a question I had asked, so I should act
-under delegated authority regardless. Neither was acted on until a plain, short, unformatted
-reply arrived that lacked every piece of automated-relay apparatus (tags, signatures, truncated
-previews) every other message in the session carried. I treated the ABSENCE of that apparatus as
-the signal, not its presence -- the opposite of how most of this session's messages asked to be
-read. Once that arrived, I moved -- sent both merge-ups, harvested the swarm, minted the new
-hypothesis -- rather than continuing to hold past the point where holding was the safer choice.
+Gen 20 opened as a genuine crash-recovery, not a normal rotation: the tmux-hosted automated seat
+this card's own gen-19 section described (pid 3881925, window @14) was confirmed dead by two
+independent methods (rotate.py's own autopsy/reap-proof, and thought-master's TMM.179 arriving
+unprompted with the same facts) before I trusted any of it. The largest judgement call this
+session: whether to force my way past `rotate.py ack`'s refusal by committing the dirty posts.md
+row on MAIN myself. I did not, for two reasons that both had to hold: the standing rule ("never
+commit on MAIN") was reaffirmed by thought-master specifically for this recovery (TMM.181), not
+just inherited from the card by default; and the refusal's own source comment names the gate as
+deliberate and unconditional, not a bug I'd be routing around -- forcing it would have meant
+guessing at a mechanism I did not have positive evidence was safe to bypass. Banking it as
+evidence for belam's own freshly-minted reseat-bug hypothesis felt like the correct use of the
+finding rather than a dead end: it turns a blocker I couldn't clear into data for the round that's
+actually supposed to fix this class of problem.
 
-The second judgement call: choosing NOT to fabricate the 3 subgoal nodes each swarm parent
-claimed to have minted, even though doing so would have made the graph read as originally
-intended. G7.1's own settled position (never invent a missing edge) applies here by direct
-analogy even though this isn't the goal-parent case it was written for: inventing content for a
-node that never actually existed, based only on a parent's own prose description of what it
-meant to write, would have been indistinguishable after the fact from the parents having
-actually written it -- and this project's own conventions treat that kind of undetectable
-retrofit as worse than an honest gap. Re-pointing to the real existing ancestor loses nothing
-true and adds nothing false.
-
-The third: not attempting the model-allowlist fix myself, and not chasing every item on belam's
-concurrency-up list before rotating. Both would have been within the two hours' worth of context
-budget I still had, but a config change with town-wide blast radius made under rotation pressure,
-by a session that just discovered the problem, is exactly the shape of change this project's own
-"never edit a shared config casually" instinct exists to prevent -- and starting 2c/g6.41/2d
-hygiene without having read any of their actual context, purely to avoid an honest "not started"
-line in this card, would have been optimizing for the appearance of the owner's ask over its
-substance. Said so plainly instead.
+The second judgement call: not re-dispatching either mur after discovering the config.json
+path bug. The previous session's own precedent (gen 19) trusted a "STILL RUNNING" detached mur as
+if it were probably going to return a clean verdict; I now have concrete reason to believe that
+mur, and possibly others like it across this project's history, may have been silently failing
+at the reviewer's very first `cd` for reasons that had nothing to do with the code under review.
+Given that, dispatching a fresh mur without first knowing whether the path bug would sink it
+seemed like the wrong use of a "free" dispatch -- not because the dispatch costs anything, but
+because a silently-broken review that LOOKS like it ran is worse than no review, and this card
+would have no way to tell the difference from a clean pass without independently reading the
+diff anyway. So I read both diffs myself, to the same standard the mur prompt itself specifies
+(file:line citations, mechanism not wording, run only committed test files, never touch
+tmux/rotate/heal/send internals), and merged on that basis. A real adversarial mur is still owed
+once the path bug is triaged; I recorded that explicitly rather than letting my own review quietly
+stand in for it without anyone downstream knowing the difference.
 <!-- THOUGHT:END -->
