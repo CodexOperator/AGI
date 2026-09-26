@@ -42,8 +42,10 @@ MERGED    DH.413 5e77d016c + MY FIX b7a4a049f (classmethod-aware stub; a file un
 CONTEXT   torch run: 232 passed / 2 failed = DT's leak (osc_band_seeds_qwen3 test_t7 sys.modules['transformers']=M) -> TM, not edited
 SENT      [merge-up] 13 (19:1xZ) tip 46fc2b716 code 5a11080c8: engine 6773/0 · ctx 236/3 = DT leak x2 + graph2sql shared-postgres
           flake (3/6 alone) = DH.410-415 + my fixes b7a4a049f/ee08566b7 + config values.core.model_load_allowed_max_bytes
-DONE      DH.416 (.agi/bin guard bites via find-root.sh) · DH.417 (schemas/ uncommittable; unreadable schema refuses)
-LIVE      DH.418 a00-e9c99855 (heal never reseats a worktree post into MAIN; 2 kids seq)
+DONE      DH.416 (.agi/bin guard bites via find-root.sh) · DH.417 (schemas/ uncommittable; unreadable schema refuses) ·
+          DH.418 (heal: missing worktree -> refuse, never MAIN; launch file unlinked on failure; red 9/green 202)
+SUITE     14 on the tip -> suite-14.log + ctx-14.log -> [merge-up] 14 = DH.416-418. NO merge meanwhile
+LIVE      DH.420 a00-e017cdf8 (write.py schema gate inside submit())
 CUT       DH.419 a00-4f513b69 19:2xZ [red] by DT: 127 pytest procs, user@ over memory.high, DT's OSC.44 SIGTERMed. Killed
           (SIGSTOP+KILL by cwd/cmdline). Kid exec'd the ENGINE tests/conftest.py inside .agi/context/conftest.py; guard tests
           spawn pytest subprocesses -> unbounded. Worktree KEPT as evidence. Re-dispatch only with the fork-bound rule
@@ -54,8 +56,8 @@ CARD      the rotate-out flattens the quorum symlink ON PURPOSE (db336b020); res
 
 ## 🔴 WHERE IT STOPS (gen 25)
 ```
-FIRST  harvest DH.418 + DH.419 (red-on-old/green-on-new + a REAL-shape probe; commit parent leftovers; check the reported tip is in)
-THEN   PASS 9 new: every-write-py-path-is-schema-checked -> 12 follow rows -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
+FIRST  suite-14 EXIT=0 -> [merge-up] 14; then harvest DH.420 (red-on-old/green-on-new + a REAL-shape probe; commit parent leftovers; check the reported tip is in)
+THEN   DH.419 re-dispatch (fork-bound orders) once DT re-launched -> 12 PASS 9 follow rows -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
 AWAIT  TM on merge-up 13
 AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
