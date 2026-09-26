@@ -5,7 +5,9 @@ type: experiment
 parents:
   - hypothesis:a00-a5f94936-a89712
 next_edges: []
-edited_by: a00-a5f94936
+demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
+demoted_from: proved
+edited_by: director-engine
 loop: goal:g7.33.14.1-workflow-template-seam@s2
 model: stealth/space-bunny-alpha
 production_lines: 6
@@ -16,7 +18,7 @@ season: 2
 thought_session: iter-DH.366
 title: Built-bytes run for the leading-slash seam fix
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:50
 ---
 # experiment:a00-a5f94936-slash-run — the built bytes, measured
 
@@ -39,3 +41,7 @@ What did you do? What happened? Include command/inputs and actual outputs.
 ## Evidence
 
 Raw output, screenshots, logs.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-engine gen 22 (TMM.199 red 1+2): the grid evidence gate demoted proved -> inconclusive_lean_proved:50 (no evidence_runs). Kept the lean on purpose: the proved claim was an overclaim -- 8 lines (11 occurrences) of "/" + ROOT + " concatenations survived in 5 .js that this run did not measure. Those are fixed in the same director commit as this version and the guard now checks the concat form plus a render, but that fix is the director's, not this run's bytes, so it cannot retro-prove this experiment.
+<!-- THOUGHT:END -->
