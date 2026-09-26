@@ -84,6 +84,9 @@ rounds     ALL FOUR PARENTS KILLED BY THE REBOOT mid-flight -- salvaged, nothing
            OPEN: workflow.py a-round-stage fail-open rows · pin-reap chain deadline (rotate.py:11485) · retired-box-prefix guard scope ·
            3 node-text rows (a5f94936/f855c944/7c59d4d4) · key-row-publish experiment a00-14a8f7cc
   row      own posts row repaired in MAIN d6c0f2b49: window @1, pid 100671, session_id 7e93043d (ack join had missed)
+  g7.33.14 clause 1 OPEN by ONE line: .agi/config.json box.root=/home/ubuntu/work/agi (whole `box` block = another box's; SM.125 505e7b8b9,
+           git-shared) -> [ask] sanctuary-master (per-box keying vs correction); DE never rewrites it. DT's P8.10 widens
+           test_retired_box_prefix.py SCAN_DIRS in DT's merge-up = my 'retired-box-prefix guard scope' row CLOSED by DT
   dm       [ask] sanctuary-master: stream-master row box cell = DH.373 conjunct (d) (nudge refused: foreign box; dm file stored)
 GUARD      belam [decision] 04:29Z (VERIFIED): <= 10 live spawns town-wide, pi only; user@ capped 5829M; memory_alarm WARN = hold dispatch
            DE holds at <= 2 live rounds. 04:3xZ: 11 GiB avail, PSI 0.04
