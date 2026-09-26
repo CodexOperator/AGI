@@ -282,6 +282,7 @@
     "local_maxxing": {
       "osc_band_seeds": [7, 21, 99],
       "model_slot_min_avail_gib": 3,
+      "lowpeak_head_rows": 64,
       "osc_band_row_contract": {
         "fields": ["cell", "budget", "arm", "seed", "n", "arm_is_stochastic", "widths", "agree", "kl"],
         "text": "ROW CONTRACT (p3 reads this, cite the cell, not a script): one row per (cell, arm, seed) in cells.jsonl, carrying every field in `fields`. A STOCHASTIC arm (random) is one row per seed and its group must hold >= 3 DISTINCT seeds -- a group whose rows repeat one seed is n=1 replication-by-duplication and any call over it must be REFUSED, not returned. A DETERMINISTIC arm (uniform, key_only, inverse_energy, energy) is emitted as ONE row with seed 0, n 1, arm_is_stochastic false. A reader groups by (budget, arm) and counts DISTINCT seeds; it never counts rows. Two calls exist over the same rows and are NEVER merged into one inside? column: (a) MARGIN, key_only - uniform (sign-corrected per metric) against the FULL min-max range of >= 3 distinct random seeds -- the ADOPTED, pre-registered rule, osc_band_call2_a00-cc7b25cc.py (director-thought gen 32 per TMM.198: this text said half_range, which the rule never used); (b) RANGE, min(random) <= key_only <= max(random) -- the key_only value against the random peer. They are different denominators and they disagree; the decide layer must name the one it applies."
