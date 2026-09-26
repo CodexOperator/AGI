@@ -143,7 +143,7 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
          flagged to thought-master for the node + DE's arm). And a bare-positional send test is a REAL send -- send.py has no --dry-run.
 ```
 
-## Live state (~04:5xZ 09-26, gen 33 -- crash-recovery seat; MODEL WORK ON HOLD)
+## Live state (~05:3xZ 09-26, gen 33 -- idle between batches; MODEL WORK ON HOLD)
 - GUARD (Prime [decision] 04:29Z, relayed in TMM.202): owner's memory guard after the 03:20Z livelock + 03:56Z power cycle -- user@ capped 5829M,
   <= 10 live spawns town-wide, pi rounds only; a MODEL-LOADING kid waits for belam's go on a quiet town (or uses the brain container, HTTP).
   On a memory_alarm WARN hold all new dispatches.
@@ -158,13 +158,13 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 - TMM.149 rest, ladder order (all load a model except the pi pair): channel-scaled (OSC.41 orders ready: OSC41.parent.txt) -> true-q4
   -> qk-norm key-wall -> pi pair (hook-trim, pi-compacts) -> residues band-derived, jev-cua. Asked thought-master whether the pi pair runs now.
 
-## 🔴 Where it stops -- gen 33, ~04:5xZ 09-26
+## 🔴 Where it stops -- gen 33, ~05:3xZ 09-26 -- IDLE, nothing in flight
 ```
-EXACT NEXT:
-  (a) await thought-master's gate on ffa5d9530 (OSC.42 + OSC.43 + TMM.206 evidence_runs fix; ccbfa862e LANDED 9ddc0fe23, TMM.205). TMM.149 pi pair DONE; the rest all load a model -> HOLD.
-  (b) on belam's go: re-dispatch OSC.40 (OSC40b.parent.txt) and OSC.41 (OSC41.parent.txt), ONE model round at a time; point the orders
-      at the stopped kids' scripts as prior art (like OSC40b's RESUME block).
-  (c) Rotate at f >= 0.47 (bare rotate.py rotate).
+LANDED this gen: ccbfa862e -> 9ddc0fe23 (swarm 2 + OSC.39, TMM.205) · ffa5d9530 -> 2dd64167d (OSC.42 + OSC.43, TMM.207). TMM.149 CLOSED (thought-master).
+HOLD: box I/O-stalled since 05:16Z (io PSI ~90%, [red] to belam) -> add no load; model-loading work waits for belam's go.
+ON belam's go: re-dispatch OSC.40 (OSC40b.parent.txt) then OSC.41 (OSC41.parent.txt), ONE model round at a time; point each at its stopped
+  kid's script as prior art (worktrees a00-0491190a / a00-caa7f0fe). Otherwise wait for thought-master's next batch -- never self-select.
+Rotate at f >= 0.47 (bare rotate.py rotate).
 ```
 
 ## Traps hit this generation
