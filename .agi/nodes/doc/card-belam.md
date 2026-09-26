@@ -33,7 +33,7 @@ gen 7 re-seated the town BY HAND through heal's own recovery path with three sea
 | fixes | hot patch 48e16356f0 on the trunk (goal:g6.49: per-boot mem_cap probe, memoized sweep, liveness backstop) · reaper + alarms restarted 22:24Z |
 | merge | **PASS 7 CLOSED 00:06Z 09-26** → season2/main f6afb0c7c7 (pushed; merge --no-ff of trunk @08a9cf60f8, tree == TIP) · local-maxxing/main → 08a9cf60f8 (ff) · grid on season2/main 8 versions 0 errors · 9 rounds / 2 chunks pi-free 22:49-00:00Z 0 USD: 1 accept · 6 awr · 2 demote · 0 RED · residues f22a49b85d (hypothesis:pass7-0926-residue-batch + 3 code defects → DE; lm demote → TM) · state reset (last_merged_town_sha 08a9cf60f8; notice/run_at/pass_started_at null) · tooling /tmp/belam-pass7 + /tmp/belam-trunk-sync (rebuilt from gen 6's transcript fc2ded3f; retarget for PASS 8) |
 | owner | 13:5xZ: the owner's words open doc:unified-head + both director cards · directors stay Sonnet · 22:0xZ: the hot patch "light chain" |
-| directors | director-engine + director-thought, claude-sonnet-5 max · dispatches FREE (ladder.md:42-43 pi-free) · `doc:unified-director-brief` §1 |
+| directors | director-engine + director-thought: rows -> **claude-opus-5-5 / medium** (owner 00:2xZ 09-26, trunk 73cbe21cda; supersedes "sonnet on max"); live sessions stay Sonnet until each rotates ([owner] dm x2: merge the trunk first, rotate at a clean stop; a key-row publish splices the worktree row -- the 09-24 revert 6d38b9742e: re-check both rows after each rotation) · dispatches FREE (pi-free) · `doc:unified-director-brief` §1 |
 | branches | owner 09-25: directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
 | crons | CHECK d88c4dcb "13 */4 * * *" re-armed 22:3xZ (session-only, 7-day) · no PASS one-shot (PASS 7 runs under case d) |
 
@@ -77,6 +77,8 @@ town re-seat (rows by heal: TM 22 · DE 20 · DT 31 · SM 4) · CHECK d88c4dcb �
 | 27 | every push prints the remote's moved location (`remote:` lines) | `git push ... 2>&1 \| grep -v '^remote:'` |
 | 28 | after a reboot the seat row keeps the dead pid, so heal's crash-recovery tries to seat gen N+1 over a live Prime | re-pin via `rotate._successor_row_write(root, actor=, seat=, role='prime_director', session_ref='', generation=, window=, pid=)`, commit posts.md by exact path |
 | 29 | send.py refuses a dm body holding a literal harness tag | write it without the angle brackets |
+| 31 | /tmp/belam-trunk-sync/resolve.py enforces the directors' model cells in a posts.md conflict | it now writes claude-opus-5-5 / medium (owner 09-26); change it with the owner's next model call |
+| 32 | a one-off `geometry_config.load_rows` reads 0 rows without graph_core on sys.path (it swallows the ImportError) | `import rotate` first, then load |
 | 30 | the watcher cannot re-seat after a reboot (THOUGHT: inline prompt, shared card, reused @id, box-less SM) | per seat, from MAIN: `heal._watch_one_seat(Path('.agi'), row, windows, rot, launcher=L, pin_table=, seat_sessions=)` with L = write the command to /tmp/agi-recover-<seat>.sh + `heal._launch_recovered(..., cwd=cwd)`; rot = rotate whose spawn_window prompt_file = `<worktree>/.agi/sessions/quorum/<seat>.md`; drop from `windows` only an @id that equals the row's window AND is named for another seat; 30 s + MemAvailable >= 3 GiB between seats |
 
 ## §5 Verification
