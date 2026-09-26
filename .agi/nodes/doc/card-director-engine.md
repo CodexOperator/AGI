@@ -50,7 +50,12 @@ DH.391    MERGED 9b17c907e (1 kid proved; capture/crons files 116 green)
 DH.392    MERGED 4ca024b00 + FIX adfca3994: guard setattr'd every class -> TypeError on real torch C types (errored EVERY
           context test on a torch python); now only attrs an owner has, immutable skipped; red/green; context 137/19/5x
 suite     full on 267a6ef04: 6653/3 = crons stranded-writer RACE (CAP+4096; fixed 8fd248a34, 5/5) + no_detached_spawn x2 (env)
-merge-up 7 SENT tip 8fd248a34, behind 0 measured -- await TM. DH.392 + rows 50/51 + DH.393/394 ride merge-up 8
+merge-up 7 LANDED 955cb90e7 (TMM.225; TM suite 6659/0). DH.392 + rows 50/51 + DH.393/394/395 ride merge-up 8
+re-attrib  my 2 'environmental' reds = the suite flagging ITSELF (setsid-detached -> ppid 1); watcher fixed 07f5392fd
+           (old detached 2F/2P -> new 4P). Launch a detached suite freely now.
+DH.395     a00-ccaf64d0 LIVE (TMM.225: capture latch keyed per SEAT -> successors latched from birth + a latched capture
+           swallows the imperative; TM renamed both stamps by hand 13:20Z). 3rd live round = DEVIATION from my <=2 hold:
+           it silences every latched director's rotate-now line; town cap 10, load 1.2, io PSI 3.7
 PASS 8    row 47 -> DH.394 a00-ba7c9fba LIVE (one chain deadline; cell reaper.chain_deadline_s = DE commits it)
           row 50 DONE 696e915e2 · row 51 DONE db5ac813f (publish runs in the shared main checkout, rotate.py:10461)
           row 46 (workflow.py a-round-stage fail-open) OPEN -> next free slot
