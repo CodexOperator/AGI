@@ -87,7 +87,8 @@ def call(g, kind):
 
 def merged():  # the twelve measured random rows PLUS the deterministic arms as ROWS, per the contract
     c = contract()
-    out = [dict(r, cell="%s:random@%s@s%d" % (r["model"], r["budget"], r["seed"])) for r in rows(SEEDS_RUN)]
+    out = [dict(r, cell="%s:random@%s@s%d" % (r["model"], r["budget"], r["seed"])) for r in rows(SEEDS_RUN)
+           if r["arm"] == "random"]  # the seeds run also carries its seed-0 deterministic rows since P8.04 (TMM.254)
     out += [dict(r, seed=0, n=1, arm_is_stochastic=False) for r in rows(DET_RUN) if r["arm"] in ("uniform", "key_only")]
     for r in out:
         assert not [f for f in c["fields"] if f not in r], "row contract violated on %s" % r["cell"]
