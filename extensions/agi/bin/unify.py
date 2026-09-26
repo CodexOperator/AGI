@@ -40,10 +40,12 @@ assumption, not something to "fix" by adding node-rewriting code here.
 `agi` and `agi-tree` to `/tmp/...` and pass those paths. `preflight()` refuses
 outright, unconditionally, before any other check and regardless of
 `--force`, if either path resolves to the two real checkouts this machine
-happens to keep at `/home/ubuntu/work/agi` and `/home/ubuntu/work/agi-tree`.
-That is a literal path comparison, not a remote-URL check, because a
+happens to keep. Which two those are is NEVER a literal here: `_real_repos()`
+names them per box, from the `box.root` cell and from git's own common dir (see
+its docstring) — so the guard holds on a box whose cells name another box.
+That is a path comparison, not a remote-URL check, because a
 legitimate throwaway clone's own `origin` can point at the very same GitHub
-repos — the thing that must never be `/home/ubuntu/work/agi` is the
+repos — the thing that must never be the real engine checkout is the
 *directory this script writes into*, and a clone under `/tmp` is a different
 directory regardless of what it was cloned from.
 

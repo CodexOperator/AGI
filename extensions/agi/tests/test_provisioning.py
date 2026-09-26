@@ -348,7 +348,10 @@ def test_live_can_fund_passes_with_sufficient_balance():
 # Live — against the real API
 # --------------------------------------------------------------------------
 
-ROOT = "/home/ubuntu/work/agi"
+# The live key-store root is THIS box's engine checkout, resolved from this
+# file -- never a hard-coded absolute path, which on any other box names a
+# directory that does not exist (the whole point of the `box.*` cells).
+ROOT = str(Path(__file__).resolve().parents[3])
 
 
 @live
