@@ -36,7 +36,16 @@ def _cap_from_config():
         for name in (".agi/config.json", "agi-tree.config.json"):
             cfg = parent / name
             if cfg.is_file():
-                return json.loads(cfg.read_text())["values"]["core"]["model_load_allowed_max_bytes"]
+                # the NEAREST config decides, and a config that lacks the cell (or
+                # does not parse) is a cap of 0 -- fail closed, never a KeyError at
+                # import that errors every context test at collection (TMM.256)
+                try:
+                    doc = json.loads(cfg.read_text())
+                except (OSError, ValueError):
+                    return 0
+                v = (((doc if isinstance(doc, dict) else {}).get("values") or {})
+                     .get("core") or {}).get("model_load_allowed_max_bytes")
+                return int(v) if isinstance(v, (int, float)) and v > 0 else 0
     return 0
 
 
@@ -71,7 +80,7 @@ class ModelLoadRefused(RuntimeError):
 
 def _why(owner, attr):
     return (f"model load refused by construction: {owner}.{attr}() may read "
-            "weights; this suite asserts on bytes, never on a model")
+            "weights; load a model ONLY through model_slot.py (TMM.260)")
 
 
 def allow_model_load(*paths):
