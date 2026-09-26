@@ -1,6 +1,6 @@
 """The retired box prefix must never come back as a LIVE executable path.
 
-`goal:g73314-a-nonworkflow-residue` asked for "0 grep hits outside the frozen
+`goal:g7.33.14` (the loop id it was drafted under, `goal:g73314-a-nonworkflow-residue`, was never minted) asked for "0 grep hits outside the frozen
 fixture" and measured 22 live hits. `experiment:a00-600cf080-0cd865-exp` then
 measured that **0 of the 22 sit on an executing line**: 11 are prose
 prohibitions, 5 are negative assertions, 4 are inert fixture command strings,
