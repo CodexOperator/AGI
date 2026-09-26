@@ -8,8 +8,10 @@ import os
 import pathlib
 import shutil
 import signal
+import stat
 import subprocess
 import sys
+import tempfile
 
 _PROBE: "bool | None" = None
 _SUFFIX = {"K": 1024, "M": 1024 ** 2, "G": 1024 ** 3, "T": 1024 ** 4}
@@ -20,6 +22,11 @@ _SUFFIX = {"K": 1024, "M": 1024 ** 2, "G": 1024 ** 3, "T": 1024 ** 4}
 #: measured 1422 failed `run-*.scope` units against 1784 cgroup OOM kills on
 #: encryption-town in 6 days, one pair per spawn.
 _PROBE_UNIT = "agi-memcap-probe"
+
+#: The cache lives in a dir of this name under the per-user runtime dir. Named
+#: because the DIR, not the file, is the unit of privacy:
+#: `hypothesis:mem-cap-probe-cache-is-private-and-atomic`.
+_CACHE_DIR_NAME = "agi-memcap"
 
 
 def _normalise_cap(val) -> "str | None":
@@ -62,9 +69,25 @@ def _boot_id() -> str:
         return ""
 
 
+def _private_dir(path: pathlib.Path) -> "pathlib.Path | None":
+    """A cache dir WE own, mode 0700, or None. A dir another user pre-created
+    at a predictable `/tmp` name is refused outright -- otherwise the file
+    checks below trust a verdict planted for us. An unwritable or foreign
+    cache costs a re-probe, never a wrong verdict."""
+    try:
+        path.mkdir(parents=True, exist_ok=True, mode=0o700)
+        if os.lstat(path).st_uid != os.geteuid():
+            return None
+        os.chmod(path, 0o700)
+    except OSError:
+        return None
+    return path
+
+
 def _probe_cache_path() -> "pathlib.Path | None":
-    """Where the cross-process probe verdict lives. `AGI_MEMCAP_CACHE` wins;
-    else the per-user runtime dir (tmpfs, cleared on boot); else `/tmp`.
+    """Where the cross-process probe verdict lives. `AGI_MEMCAP_CACHE` (an
+    explicit file path, for tests) wins; else a private dir under the
+    per-user runtime dir (tmpfs, cleared on boot); else `/tmp`.
     None means "no cache is writable" -- the probe then runs per process, the
     old behaviour, rather than failing."""
     env = os.environ.get("AGI_MEMCAP_CACHE")
@@ -72,36 +95,64 @@ def _probe_cache_path() -> "pathlib.Path | None":
         return pathlib.Path(env)
     run = os.environ.get("XDG_RUNTIME_DIR")
     base = pathlib.Path(run) if run else pathlib.Path("/tmp")
+    d = _private_dir(base / _CACHE_DIR_NAME)
+    return None if d is None else d / "probe"
+
+
+def _trusted_cache_file(path: pathlib.Path) -> "pathlib.Path | None":
+    """The cache file only if it is a REGULAR file we own. A symlink at a
+    predictable path is not followed (a planted link would otherwise both
+    read a foreign verdict and redirect our write), and a file another user
+    owns is not trusted."""
     try:
-        base.mkdir(parents=True, exist_ok=True)
+        st = os.lstat(path)
     except OSError:
         return None
-    return base / ".agi-memcap-probe"
+    if not stat.S_ISREG(st.st_mode) or st.st_uid != os.geteuid():
+        return None
+    return path
 
 
 def _read_cached_probe() -> "bool | None":
-    """The verdict cached for THIS boot, or None (absent, stale or corrupt)."""
+    """The verdict cached for THIS boot, or None (absent, stale, foreign,
+    partial or corrupt). A body that is not exactly `0` or `1` is a torn or
+    planted write and is re-probed, never read as a `False`."""
     path = _probe_cache_path()
+    if path is None:
+        return None
+    path = _trusted_cache_file(path)
     if path is None:
         return None
     try:
         boot, _, val = path.read_text().strip().partition(" ")
     except OSError:
         return None
-    if not val or boot != _boot_id():
+    if val not in ("0", "1") or boot != _boot_id():
         return None
     return val == "1"
 
 
 def _write_cached_probe(val: bool) -> None:
-    """Best-effort: an unwritable cache costs a re-probe, never a failure."""
+    """Best-effort and ATOMIC: a temp file in the same dir (0600 by
+    construction) then `os.replace`, so a concurrent reader sees the old
+    verdict or the new one, never a half-written one. An unwritable cache
+    costs a re-probe, never a failure."""
     path = _probe_cache_path()
     if path is None:
         return
     try:
-        path.write_text(f"{_boot_id()} {'1' if val else '0'}\n")
+        fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=path.name + ".")
     except OSError:
-        pass
+        return
+    try:
+        with os.fdopen(fd, "w") as fh:
+            fh.write(f"{_boot_id()} {'1' if val else '0'}\n")
+        os.replace(tmp, path)
+    except OSError:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
 
 
 def _reset_probe_unit() -> None:
