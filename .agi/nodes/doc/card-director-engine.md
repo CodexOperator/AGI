@@ -148,6 +148,9 @@ TM       e362e7947 LANDED a125bad37 (TMM.220, suite 6642/0) = DH.377-388. MERGE 
 TMM.220 residues, each its own round, after DH.389/390: (1) context suite 'no model load' BY CONSTRUCTION, not by missing torch
          (2) name the context flake a00-7bc04de0 left unnamed (a00-c1873bad's notes) (3) experiment:a00-19fc5ec2-2a74e4 = 26-line stub
          (DH.378's infra-dead kid): fill from its work or retire (deprecated + move, never delete)
+         (4) NEW goal:g7.33.N (TMM.223): the 09:11Z capture at 0.85 x line PRINTED that a forced rotation follows; none ran -> gen 23 idled
+         3.5 h. make the text true (the chain actually rotates) or drop the promise. TRAP: never wait on a capture -- rotate.py rotate yourself
+context  Prime 12:44Z: DH.380 alerts = (a), no engine round. merge trunk 90b9a10df before the next tip. PASS 9 13:47Z ran; later work -> PASS 10
 live     DH.388 MERGED 77aa14faa: all 4 restart() via adapters.scrubbed_base() -> scrubbed_env(); explicit base scrubbed too; 295 green
          (my earlier 'pi_adapter.py:326' cite was claude_code_adapter's line -- grep printed the first file; all 4 had it)
          DH.386 MERGED d54e7e3aa-line (target/--parent node set commits; orders-TEXT ids not read, lean_proved:65 --
