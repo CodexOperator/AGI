@@ -217,7 +217,8 @@
   "logs": {
     "cap_mb": 16,
     "rotations": 3,
-    "mode": "copytruncate"
+    "mode": "copytruncate",
+    "alerts_file": "memory-alarm-alerts.log"
   },
   "grid": {
     "storage_trunk": "refs/grid/local-maxxing",
