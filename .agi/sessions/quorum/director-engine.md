@@ -39,9 +39,9 @@ DH.424    grid-commit gate demoted its hand-set proved (evidence_runs absent): L
 OWNER     21:1xZ via belam 23:12Z on goal:send-is-hub-only-...: QUIET row cell (nudge only for [red]) + READ-ON-LANDING (a visible, non-busy deposit IS the read); both verbatim in the node notes on the trunk. HOLD: no stream / encryption-town config / sanctuary activation until messaging is done  post branch since: ONLY DH.424+431 merged (clean mur); every other round waits on its loop branch
 CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_max 150 684a83a3a · paths.boxkit.* 3b42eb930 · values.boxkit.* (54) + guard_dir/user_systemd_data_dir 80dc2a99e
 424    MERGED with 431 (mur-5 accept) into the post branch + verdict proved 390bab9da -- repro green on the post branch
-425    -> 428 -> 435 -> 441 -> 448 a00-991dc2e8 (cut from 441; 84 green; node fix committed) -> mur-7 DH.448-k1 RUNNING (final)
+425    -> 428 -> 435 -> 441 -> 448 a00-991dc2e8 -> mur-7 accept_with_residue (None-branch row missing; 'three S1 names' + 'EXISTS' wording in 3 nodes + chain root) -> 456 a00-f38de815 LIVE, cut from 448
 426    a00-8783b3d3 schema gate  mur-4 residue x3 (cli.py: named-id hole, double ERR, stale comment) -> 442 FAILED TO BUILD ON IT (no
-       merge; hook-only overlap) -> NEVER merge 442 -> 445 a00-5a2ac2fb (cut from 426; 191 green) -> mur-7 DH.445-k1 RUNNING
+       merge; hook-only overlap) -> NEVER merge 442 -> 445 a00-5a2ac2fb -> mur-7 accept_with_residue x7 (schemas resolver circular+global+2nd literal; green test encodes fail-open; done non-zero unmeasured; hook no timeout; scope; citations) -> 455 a00-4d187f38 LIVE, cut from 445 (worktree de-base-455)
        stale-base "behind 1" overridden with reason -- quote the refusal line in [merge-up])
 427    -> 436 (mur-6: restore None arm + say why) -> 449 a00-35a98fab HARVESTED (None arm restored, proved; a00-202077db demoted lean_disproved:70 -- tmux sweep skipped test_conftest_guard.py; stray a00-416266d2 correction committed 2cee3ba21; 96 green) -> mur-8 DH.449-k1 RUNNING
 429    -> 443 a00-169a5424 REBUILT standalone (live 150, both guards) -> mur-6 DH.443 accept_with_residue (real systemd-run in fan-out test; live-config rows pin literal 150) -> 453 a00-a5beb177 LIVE, cut from 443; LAND: merge 429 (nodes) THEN 443 (-X theirs)
@@ -66,12 +66,12 @@ CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT
 
 ## 🔴 WHERE IT STOPS (rotated at f=0.43; capture chain rc=1 = g7.33.15; every round below survives rotation)
 ```
-FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur445 mur448 mur449 mur450 mur451 (440 -> 452 · 443 -> 453 · 447 -> 454) (mur446 DONE, above)
+FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur449 mur450 mur451 (440->452 · 443->453 · 447->454 · 445->455 · 448->456) (mur446 DONE, above)
        mur446 (+ whatever finished). Verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{5,6,7,8}/verify_DH.4NN-kN.json
-       parents live: 452 a00-cbb9f70e · 453 a00-a5beb177 · 454 a00-2752c658
-THEN   harvest 452/453/454 as they land (each cut FROM its chain branch: diff vs that branch; tests; commit stray node edits there)
+       parents live: 452 a00-cbb9f70e · 453 a00-a5beb177 · 454 a00-2752c658 · 455 a00-4d187f38 · 456 a00-f38de815
+THEN   harvest 452-456 as they land (each cut FROM its chain branch: diff vs that branch; tests; commit stray node edits there)
 PATTERN corrective = dispatch FROM the loop branch's worktree (kids cannot merge); a clean mur = git merge --no-ff <final branch>
-       LAND ORDER per chain: 425: 441 then 448 (+441's node commit) · 426: 445 (NEVER 442) · 427: 436 then 449 @2cee3ba21 · 429: merge 429 (nodes) then 443
+       LAND ORDER per chain: 425: 441 then 448 then 456 · 426: 445 then 455 (NEVER 442) · 427: 436 then 449 @2cee3ba21 · 429: merge 429 (nodes) then 443
        -X theirs then 453 · 430: 440 then 452 · 432: 438 then 446 then 451 @79bdb3490 (NEVER 432) · 433: 444 then 447 then 454 (454 CARRIES 451: land the 432 chain FIRST) · 434: 439 then 450 (NEVER 434)
 THEN   graph acts (2) level3.py build:tests-test-agi-bin-absent · (9)(11) verdicts · full suite + ctx -> ONE [merge-up] 14+15 + g7.33.18
        (name: 442 discarded, stale-base overrides, the g15 lines, the 2 BOX DRIFTs, my stale 21:2xZ dm)
