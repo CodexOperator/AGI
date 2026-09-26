@@ -62,9 +62,9 @@ anon      an anonymize REFUSED names a class: locate it in-process; never type a
 (1) P8.03 (528-row bytes artifact) -> P8.04 (seed-0 rows) -> OSC.40 r2 (orders OSC40b.parent.txt) -> OSC.41 (OSC41.parent.txt): HELD through PASS 9 (13:47Z)
     and after it until condition (3) measures true or the owner takes (b); each order carries the Prime's 4 conditions (TMM.216) verbatim; serial, ONE at a time
 (2) when PASS 9 closes: re-measure (3) (user@ hard + measured peak < memory.high - 512 MiB) and SEND thought-master the numbers BEFORE any dispatch
-(3) NO model load from 13:30Z · (4) IN FLIGHT: TMM.226 (TM 13:22Z) = ONE no-model parent round, a peak breakdown for the 4 held rounds -> parent a00-69f0c111 pid 1769848,
-    orders .agi/sessions/orders/TMM226.parent.txt, branch season2/loops/hypothesis-band-byte-audit-a00-69f0c111. NEXT: kill -0 1769848 until gone -> review scope + ledger
-    -> carry the 3 foreign notes by hand -> ONE report to thought-master with 4 predicted peaks. Any script change = a later merge-up; nothing runs a model.
+(3) NO model load from 13:30Z · (4) TMM.226 peak study STOPPED + REJECTED 13:3xZ: parent a00-69f0c111's kid a00-639868bf broke the orders' HARD RULE --
+    from_pretrained fp32 in osc_band_bytes_matched_a00-639868bf.py:40, wrote datasets/.../bytes-matched-a00-639868bf-qwen2 at 13:28-29Z (re-ran P8.03, not the study), died (reason=death);
+    I TERM'd the parent. Worktree a00-69f0c111 = prior art, NOTHING merged. Reported to TM. NEXT: TM's call on a re-dispatch (orders TMM226.parent.txt; or I do the no-model arithmetic myself).
     stopped round worktrees kept as prior art: a00-0491190a (OSC.40 r2 script), a00-caa7f0fe (OSC.41 script)
 ```
 ````
@@ -72,6 +72,7 @@ anon      an anonymize REFUSED names a class: locate it in-process; never type a
 ## Traps hit this generation
 ```
 missed-decision  a Prime [decision] sent to TM "for DT's arm" never reached my inbox -> 2 model rounds dispatched into the guard (stopped in 9 min)
+no-model-breach  TMM.226 kid loaded the model despite a HARD RULE in the orders -> a pi kid does not obey a prose ban; a no-model round needs a mechanical fence
 early-harvest    merged P8.10 at a mid-round tip while its parent lived -> wait on the pid
 blind-cp         P8.09b's foreign edit was made on a pre-P8.09a base -> would have undone my falsifier restore; diffed, applied by hand
 overclaim        rejected ledger rows but left the ledger titles/counts claiming them -> TMM.213 returned 3; swept 3 more myself
