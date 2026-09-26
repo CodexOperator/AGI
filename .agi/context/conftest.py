@@ -4,6 +4,7 @@ The box is memory-guarded (belam 04:29Z). A stand-in `torch` that only RECORDS i
 `load` calls still trips this; no library is imported to install the guard.
 """
 import importlib.util
+import inspect
 import json
 import os
 import pathlib
@@ -44,20 +45,29 @@ def _why(owner, attr):
             "weights; this suite asserts on bytes, never on a model")
 
 
-def _stub(owner, attr, real):
+def _stub(owner, attr, real, bound=False):
     """Refuse, unless the call names a dir THIS test DECLARED (allow_model_load)
     whose bytes are still under the cap -- then delegate to the real loader, so a
     test that built a tiny config-built checkpoint in its own tmp dir can read it
     back (osc_lowpeak_test.py:46-51). Declaration, not tmp-ness, is the key: a
     from_pretrained on a dir under tmp_path that the test did not declare is
-    still refused, so the allow-list is not a general tmp_path hole."""
+    still refused, so the allow-list is not a general tmp_path hole.
+
+    `bound=True` is a CLASSMETHOD loader (`AutoModel*.from_pretrained`): the call
+    arrives as (cls, path, ...), so the path is a[1], and `real` is the raw
+    function, re-bound to the CALLING class -- never the class it was found on,
+    which would drop the subclass (DH.413 harvest: a[0] was the class, so a
+    declared tmp checkpoint was refused)."""
     def _refuse(*a, **kw):
-        if _declared_ok(a[0] if a else None):
+        path = a[1] if bound and len(a) > 1 else (a[0] if a and not bound else None)
+        if path is None:
+            path = kw.get("pretrained_model_name_or_path")
+        if _declared_ok(path):
             return real(*a, **kw)
         raise ModelLoadRefused(_why(owner, attr))
     _refuse.__name__, _refuse._model_load_stub = attr, True
     _refuse._real_loader = real
-    return _refuse
+    return classmethod(_refuse) if bound else _refuse
 
 
 def _declared_ok(obj):
@@ -66,10 +76,15 @@ def _declared_ok(obj):
         return False
     try:
         real = os.path.realpath(obj)
-        if real not in _ALLOWED:
+        # the declared dir OR a file under it: a from_pretrained on the dir opens
+        # <dir>/model.safetensors through safe_open (DH.413 harvest); the cap is
+        # measured on the DECLARED root, so a file cannot dodge it
+        root = next((d for d in _ALLOWED
+                     if real == d or real.startswith(d.rstrip(os.sep) + os.sep)), None)
+        if root is None:
             return False
         return sum(os.path.getsize(os.path.join(r, f))
-                   for r, _, fs in os.walk(real) for f in fs) <= MAX_ALLOWED_LOAD_BYTES
+                   for r, _, fs in os.walk(root) for f in fs) <= MAX_ALLOWED_LOAD_BYTES
     except (OSError, TypeError, ValueError):
         return False
 
@@ -109,8 +124,17 @@ def _patch_one(name, module):
             try:
                 # the real loader is kept for the declared-dir delegation, and the
                 # stub is never wrapped by itself if the module is patched twice
-                setattr(owner, attr, _stub(_safe_get(owner, "__name__") or name, attr,
-                                           _safe_get(cur, "_real_loader") or cur))
+                raw = vars(owner).get(attr) if isinstance(owner, type) else None
+                if isinstance(raw, classmethod):
+                    # a classmethod DEFINED here: patch it as one, delegating to
+                    # its raw function so the calling subclass stays `cls`
+                    setattr(owner, attr, _stub(_safe_get(owner, "__name__") or name,
+                                               attr, raw.__func__, bound=True))
+                elif isinstance(owner, type) and inspect.ismethod(cur):
+                    continue   # an INHERITED classmethod: its defining class is patched
+                else:
+                    setattr(owner, attr, _stub(_safe_get(owner, "__name__") or name, attr,
+                                               _safe_get(cur, "_real_loader") or cur))
             except Exception:  # noqa: BLE001 -- immutable / proxy owner: skip
                 continue
             n += 1
