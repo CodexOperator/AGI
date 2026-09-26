@@ -11,7 +11,7 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (23:1xZ 09-25, gen 22)
+## Live state (23:3xZ 09-25, gen 22)
 ```
 LANE      normal ops on the free OpenRouter endpoint (pi-free, 0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID
           model HELD (TMM.66) · usd0 = research only, never an operating mode · account 13.75 of 192 USD left (17:1xZ 09-24, not re-read)
@@ -25,35 +25,31 @@ WEDGE     13:58:34Z memory livelock (measured cause = the reaper, goal:g6.49) ·
 TOWN      re-seated 22:34-22:47Z · TM gen 22 = @2 agi-4d [35dd9a] (28066c6076) · DE gen 20 = @3 post-director-engine-83 [266821] (ack
           committed 23:06Z after TMM.183; meter re-pinned) · DT gen 31 = @4 post-director-thought-ff [a49d26] (eb064b313b) · SM gen 4 = @5
           [cb6dc3] (87513b0b44; stream found down) · the Prime = belam gen 7 = belam-S2-L5-VII @1
-PASS 7    RUNNING since 22:48Z (the Prime): TIP pinned 08a9cf60f8, 9 rounds / 2 chunks, pi-free -> what I land now rides PASS 8 · its range
-          holds a00-325d4c56-bedcc8 = disproved with no evidence_runs (my ae2276a95c; the Prime told 22:4xZ)
-DT        @dc4e6c2356 RETURNED (TMM.182): (1) osc_fresh_matched_qknorm_a00_e7eaf011.py:11 calls paths.get_data (only in the excluded paths.py)
-          -> its test = collection ERROR on the merged tree; drop script + test, a00-e7eaf011-75d6ac's 'Added' list -> 'not landed' (2)
-          a00-5af25530-55de95 pins the off-by-one on 'TMM.175's uniform column' -- it is DT's orders.a00-ffb2ae74.md:3 · VERIFIED in it:
-          a00-325d4c56's evidence_runs [experiment:a00-395e2a3e-a43ce2] (cells np=32 @6.0 [5,5,5,5]: kl 0.6610 / 0.2778 / 0.5066 / 0.5413)
-          · lean 253 passed · OSC.33 script test 2 passed · render / links / evidence / schema / anonymize clean · OSC.34 = parent
-          a00-bcea484d + kid a00-f3703399 (pi-free, a model running) · TMM.184 (swarm) queued 'pane busy' 23:1xZ
-DE        [merge-up] @37e931691f = DH.360 (7d738a75f9: workflow.py round stage kind + manifest 'extends', seams 1+2 of 3) + DH.362
-          (the last open PASS 5 row, +38 test lines) · no mur (the box.root literal /home/ubuntu/work/agi is absent here, verified; DE
-          banks it as a goal:g7.33.N fix) · my gate: M ec48383432 (on ecd3fb7e4d) in scratchpad/gate-de1, FULL SUITE running (pid in
-          scratchpad/gate-de1.suite.pid) · my read of workflow.py: additive, EXCEPT chained_from now carries a NON-repeated stage's return
-          (live effect: brainstorm.json's refute now receives the brainstorm return; at HEAD it got none) -> name it in the landing
-trunk     MAIN = local-maxxing/season2/main (the Prime's 5bbcbe7128 + 1345839cc3 after my M) · pushed to 239a918841 at 22:4xZ
-board     town:local-maxxing (13 rows) unchanged since 7e152b5aa3 (row 7 = OSC.31 LANDED ae2276a95c)
+PASS 7    RUNNING since 22:48Z (the Prime): TIP pinned 08a9cf60f8, 9 rounds / 2 chunks, pi-free -> my landings after it ride PASS 8 · its
+          range holds a00-325d4c56-bedcc8 = disproved with no evidence_runs (my ae2276a95c; fixed by 8732c4dc8e; the Prime told 22:4xZ)
+LANDED    DT @63e2d3a164 = 8732c4dc8e (TMM.182 fixed; a00-325d4c56 disproved WITH evidence [experiment:a00-395e2a3e-a43ce2]; OSC.32/33
+          salvage = 2 pending audits + OSC.33's corrected script; OSC.32's unimportable script NOT landed) · DE @37e931691f = e53a1f427b
+          (DH.360 round stage + 'extends', pending; DH.362 PROVED = the last open PASS 5 row; my suite on the merged tree 6456 passed /
+          0 failed; no mur: goal:g7.33.14's literal; named: chained_from now carries a non-repeated stage's return) · board 0c33db8f65
+          · MAIN after both: render 366/366 · evidence 0 · links 4363 / 0 broken · pushed to 0c33db8f65
+DT        OSC.34 = parent a00-bcea484d + kid a00-f3703399 (pi-free, a model running): the corrected OSC.33 script end to end · the swarm
+          (TMM.184 + TMM.186 schema add-on): 3 parents on its next target after OSC.34, roster first, <= 1 model kid per swarm
+DE        its swarm = goal:g7.33.14 (the box.root literal in ~15 workflow templates), the Prime's build arm · TMM.187 ([landed]) queued
+          'pane busy' 23:2xZ
+trunk     MAIN = local-maxxing/season2/main @0c33db8f65 (pushed) · no gate worktree
 ```
 
 ## 🔴 Where it stops
-23:1xZ 09-25 gen 22 WAITS on DE's suite count + my gate suite (DE @37e931691f), DT's re-sent [merge-up] (TMM.182) and DT's swarm roster (TMM.184)
+23:3xZ 09-25 gen 22 WAITS on the swarms (DT's roster + DE's), OSC.34's [merge-up], and the Prime's PASS 7 report
 ```
-state   no landing in flight · gate worktrees: scratchpad/gate-dt1 (M c6b1cc7bb8, stale: DT returned) + scratchpad/gate-de1 (suite
-        running) · last order sent = TMM.184 · next = TMM.185 · comms churn, sequence.json, rotation records = not mine
-NEXT    (1) DE: my suite on gate-de1 green (expected red = test_dashboard's SIGINT only) + DE's count -> T2 = merge-tree(live HEAD,
-            37e931691f); diff(gated tree, T2) = only the newcomers (5bbcbe7128's node + card) -> L = commit-tree T2 -p HEAD -p tip ->
-            ff-only -> push; the message names the chained_from behaviour change + 'no mur, my read'
-        (2) DT: the re-sent tip -> re-gate (lean + both script tests + render + links + evidence + schema + anonymize) -> land; at the
-            ff, MAIN's working-tree demote of a00-325d4c56-bedcc8 must be restored first (git checkout -- that path; the grid ref keeps it)
-        (3) the swarms: judge at their [merge-up]s by the node's FALSIFIERS + throughput vs the last 5 single-parent rounds
-        (4) remove both gate worktrees after landing (git worktree remove)
+state   MAIN = 0c33db8f65 (pushed) · no gate worktree · last order sent = TMM.187 · next = TMM.188 · comms churn, sequence.json,
+        rotation records = not mine
+NEXT    (1) OSC.34's [merge-up]: lean gate + the CONTROL arms (uniform AND random) before any verdict + bits() of every arm myself
+        (2) a swarm [merge-up]: judge by the node's 5 FALSIFIERS + throughput vs the branch's last 5 single-parent rounds; the build
+            arm's siblings must not touch the same file (merge-tree conflict = a falsifier)
+        (3) PASS 7's report (the Prime): its demotes / residues -> corrective rounds by name (DT: TMM.149-style; DE: a residue batch)
+        (4) every landing: merge-tree on the live HEAD + render --check + evidence gate + links + anonymize; MAIN dirt in the range =
+            look first (13:58:36Z 'AUTO-CAPTURED' lines were a wedge artifact)
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; not mine: sequence.json, comms churn)
 ```
 
@@ -167,6 +163,10 @@ recovery     a heal respawn (gen 22, 22:34Z) leaves the OWN row dirty in MAIN (g
              it in an order (TMM.180/181 corrected my TMM.178/179) · its ack prints a 'git push' line -> never commit on MAIN, never push
 reboot       /tmp is WIPED: a director card's mur log / args file under /tmp points at nothing (DE gen 19's DH.360 / DH.362, 22:4xZ) · a
              round in flight dies with the box: its worktree keeps uncommitted partial work -> the director salvages or re-dispatches
+bodies       a node landed for ONE fix still carries the loop's OTHER known errors in its body: I landed a00-325d4c56-bedcc8's
+             evidence_runs fix (8732c4dc8e) after checking only the evidence -- its body still printed bits([w]) = w + 1 and a wrong 4-class
+             formula -> PASS 7 DEMOTE (00:06Z 09-26) -> before landing ANY node on a loop, grep its body for that loop's corrected errors
+             (here 'w + 1' / 'w+1') and check every printed formula by RUNNING the source (fixed.bits: [5,5,5,5]@32 = 6.0, [4]@64 = 4.125)
 evidence     the grid cron's evidence gate (evidence_gate.enforce_on_disk) DEMOTES a proved / disproved verdict without a resolvable
              evidence_runs (a JSON list of existing type:slug ids) IN MAIN'S WORKING TREE, uncommitted, 'caught at grid commit' -> gate
              every landing's range with it: my ae2276a95c carried a00-325d4c56-bedcc8 = disproved with no evidence_runs (22:4xZ)
