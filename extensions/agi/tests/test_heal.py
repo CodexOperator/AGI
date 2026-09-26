@@ -289,3 +289,50 @@ def test_healer_pi_bin_resolves_through_the_shared_resolver(tmp_path, monkeypatc
     assert heal._pi_bin(graph) == "/resolved/pi"
     assert seen["env"] == "PI_BIN"
     assert seen["raw"] == "pi"
+
+
+# --- the log-tail guard + the stale-lock skip (TMM.262 residues 8+10) ------
+#
+# Both guards fire on a BAD day only (a dead seat, a gone worktree), so both
+# survived untested. `heal-worktree-refusal-tests-never-reach-live-tmux-and-
+# dead-branches-go` gives each its own row.
+
+WT_ROW = {"name": "wt", "role": "director", "pid": 424242, "window": "@50",
+          "worktree": ".agi/worktrees/seat-wt"}
+
+
+def _wt_graph(tmp_path: Path, *, worktree: bool) -> tuple[Path, Path]:
+    """A worktree-shaped graph root; `worktree=False` is it after the
+    worktree dir is pruned (what a dead seat leaves behind)."""
+    gdir = make_project(tmp_path)
+    wt = gdir / "worktrees" / "seat-wt" / ".agi"
+    if worktree:
+        (wt / "sessions").mkdir(parents=True, exist_ok=True)
+    return gdir, wt
+
+
+def test_log_tail_falls_back_to_main_when_the_worktree_log_is_gone(
+        tmp_path, monkeypatch):
+    """THE LOG-TAIL GUARD: a row claiming a worktree whose `.agi` is GONE
+    resolves no own log, so the tail must come from MAIN's copy — not be
+    ''. An empty tail classifies the death wrong (every dead seat reads as
+    'no evidence'), which is the day this path exists for."""
+    import rotate
+    gdir, _ = _wt_graph(tmp_path, worktree=False)
+    (gdir / "sessions").mkdir(parents=True, exist_ok=True)
+    (gdir / "sessions" / "wt.log").write_text("MAIN-COPY", encoding="utf-8")
+    assert heal._read_seat_log_tail(gdir, WT_ROW, rotate) == "MAIN-COPY"
+
+
+def test_stale_lock_skip_leaves_a_clean_sessions_dir_alone(tmp_path,
+                                                          monkeypatch):
+    """THE STALE-LOCK SKIP: a dead seat with NO verify-suite.lock under its
+    own sessions/ is a no-op — nothing unlinked, no raise, no log claim that
+    a lock was removed. The sweep must not invent a lock to delete."""
+    gdir, wt = _wt_graph(tmp_path, worktree=True)
+    log = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    heal._clean_stale_layout_locks(gdir, WT_ROW)
+    assert not (wt / "sessions" / "verify-suite.lock").exists()
+    text = log.read_text(encoding="utf-8") if log.exists() else ""
+    assert "removed stale verify-suite.lock" not in text, text
