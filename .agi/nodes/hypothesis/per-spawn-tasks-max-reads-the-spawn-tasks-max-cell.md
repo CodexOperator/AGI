@@ -30,10 +30,14 @@ config-max: the value is the cell spawn.tasks_max (already committed; READ it, n
 - a cfg with spawn.tasks_max absent returns anything but 96.
 
 ## TESTS
-extensions/agi/tests/test_mem_cap_tasks_max.py (rows moved onto spawn.tasks_max + a live-config row = 150) + neighbourhood test_launch_memory_cap.py test_heal_mem_cap.py test_dispatch.py. Every pytest under `timeout 600`, --basetemp under /tmp. No test launches a real systemd scope.
+extensions/agi/tests/test_mem_cap_tasks_max.py (rows moved onto spawn.tasks_max + a live-config row = 150) + neighbourhood test_launch_memory_cap.py test_heal_mem_cap.py test_dispatch.py. Every pytest under `timeout 600`, --basetemp under /tmp. No NEW test launches a real systemd scope (the pre-existing DH.421 row in test_mem_cap_tasks_max.py does, under its own cap -- mur-director-engine-5 DH.429-k2 caught the director brief overstating this).
 
 ## FILE SCOPE
 extensions/agi/bin/mem_cap.py · extensions/agi/tests/test_mem_cap_tasks_max.py. Never .agi/config.json.
 
 ## CEILING
 1 kid · <= 12 production lines · pi-free tier-0 · 0 USD. No test spawns pytest; kids never launch real claude.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+mur-director-engine-5 DH.429-k2: the director-authored TESTS line claimed no test launches a real systemd scope; test_mem_cap_tasks_max.py already does (DH.421). Corrected the brief text by the director; the code residues ride DH.443.
+<!-- THOUGHT:END -->
