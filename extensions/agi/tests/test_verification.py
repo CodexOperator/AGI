@@ -1316,6 +1316,25 @@ def test_extra_suite_note_names_each_failing_test_by_node_id(monkeypatch,
         assert f"test_forced_fail.py::test_boom{i}" in r.note, (i, r.note)
 
 
+def test_extra_suite_names_a_module_that_fails_to_import(monkeypatch,
+                                                          tmp_path):
+    """experiment:a00-45ecb18d-d5a017: a COLLECTION error is an `ERROR`
+    short-summary line, which `-rf` alone never asks pytest to print."""
+    groot = tmp_path / ".agi"
+    (groot / "ctx").mkdir(parents=True)
+    (groot / "ctx" / "test_bad_import.py").write_text(
+        "import module_that_does_not_exist\n\n\ndef test_never_runs():\n    pass\n")
+    (groot / "ctx" / "test_fail.py").write_text(
+        "def test_boom():\n    assert False\n")
+    _write_config(groot, [".agi/ctx"])
+    monkeypatch.setattr(locations, "load_config", lambda root: json.loads(
+        (Path(root) / "config.json").read_text()))
+    r = verification.check_extra_suite(groot)
+    assert r.status == "FAIL", (r.status, r.note)
+    assert "test_bad_import.py" in r.note, r.note
+    assert "no FAILED" not in r.note, r.note
+
+
 def test_extra_suite_pass_carries_no_failed_ids(monkeypatch, tmp_path):
     """Falsifier 3: a PASSING declared suite names no failure."""
     groot = tmp_path / ".agi"
