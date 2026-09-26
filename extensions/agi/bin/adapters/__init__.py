@@ -82,14 +82,17 @@ def resolve_bin(harness: dict, env_var: str, default: str) -> str:
     explicit override naming anything but the default that resolves nowhere
     refuses BY NAME -- never a bare `Popen` FileNotFoundError.
 
-    A path-shaped cell that needed a home token and whose expanded file does
-    not exist refuses BY NAME too, naming the harness, the EXPANDED path that
-    was tried and the `$env_var` that would override it. Returning the raw
-    `~/...` cell instead is what made `Popen` die on a bare
-    `FileNotFoundError('~/...')` that names nothing (round 2 of this
-    hypothesis). A concrete absolute path with no token is still carried
-    unchanged, because `$env_var`/config precedence must not start refusing
-    values the caller spelled out in full -- several live tests pin that.
+    A path-shaped cell that does not exist refuses BY NAME -- naming the
+    harness, the path that was tried and the `$env_var` that would override
+    it -- WHETHER OR NOT it needed a home token. Returning the raw
+    `~/...` (or a raw absolute) cell instead is what made `Popen` die on a
+    bare `FileNotFoundError('~/...')` that names nothing (round 2 of this
+    hypothesis), then on `FileNotFoundError('/x/nope')` once the token-free
+    absolute was found to be the same unnamed death wearing a fuller path
+    (`hypothesis:harness-bin-absolute-token-free-bins-refused-by-name`).
+    Precedence never required carrying an unexecable value; a bare NAME is
+    still carried unchanged, which is what a synthetic template with no
+    adapter module renders.
     """
     explicit = os.environ.get(env_var) or harness.get("bin")
     raw = explicit or default
@@ -114,11 +117,13 @@ def resolve_bin(harness: dict, env_var: str, default: str) -> str:
         if os.path.exists(path):
             return path
         if path != raw:
-            raise FileNotFoundError(
-                f"harness {harness.get('adapter') or '?'!r}: cannot resolve binary "
-                f"{raw!r}: expanded to {path!r}, which does not exist; "
-                f"set ${env_var} to override")
-        return raw
+            why = f"expanded to {path!r}, which does not exist"
+        else:
+            why = "does not exist"
+        raise FileNotFoundError(
+            f"harness {harness.get('adapter') or '?'!r}: cannot resolve binary "
+            f"{raw!r}: {why}; "
+            f"set ${env_var} to override")
     if shutil.which(path):
         return path
     if override:

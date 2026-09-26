@@ -251,16 +251,25 @@ def test_live_config_grok_row_resolves(live_cfg, monkeypatch, tmp_path):
     assert argv[0] == str(fake)
 
 
-def test_live_bin_cell_threads_through_to_argv(live_cfg, monkeypatch):
+def test_live_bin_cell_threads_through_to_argv(live_cfg, tmp_path, monkeypatch):
     """A sentinel in a COPY's `bin` cell reaches argv[0] unchanged, so no
     constant and no fallback can mask the config cell. The live config is
     never mutated -- the sentinel is written to the resolved dict, which
-    `adapters.resolve` copied out of the loaded config."""
+    `adapters.resolve` copied out of the loaded config.
+
+    The sentinel is a REAL file: a path-shaped cell that does not exist now
+    refuses by name (`hypothesis:harness-bin-absolute-token-free-bins-refused-by-name`),
+    and carrying a path that cannot be exec'd is exactly the hole that closed.
+    The `!= DEFAULT_BIN` assert still keeps the test non-vacuous."""
     monkeypatch.delenv("GROK_BOT_BIN", raising=False)
+    sentinel = tmp_path / "SENTINEL" / "grok-bot"
+    sentinel.parent.mkdir(parents=True)
+    sentinel.write_text("#!/bin/sh\n")
+    sentinel.chmod(0o755)
     _, row = adapters.resolve(live_cfg, "grok-bot")
-    row["bin"] = "/SENTINEL/grok-bot"
+    row["bin"] = str(sentinel)
     argv = grok.build_command(harness=row, tier="kid", context_file="/tmp/x")
-    assert argv[0] == "/SENTINEL/grok-bot"
+    assert argv[0] == str(sentinel)
     assert argv[0] != grok.DEFAULT_BIN
 
 

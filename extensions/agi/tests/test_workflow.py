@@ -29,6 +29,25 @@ import workflow  # noqa: E402
 from workflow import _resolve_knobs, validate_return  # noqa: E402
 
 
+def _fake_bin(name: str) -> str:
+    """A real, never-executed `harnesses.<h>.bin` cell.
+
+    A path-shaped `bin` cell that does not exist now REFUSES by name
+    (`hypothesis:harness-bin-absolute-token-free-bins-refused-by-name`), so a
+    test cannot stand in for a harness binary with a literal like
+    `/bin/fakepi`. `subprocess.run` is mocked in every test that uses this --
+    the file exists to satisfy the resolver, never to be spawned.
+    """
+    import tempfile
+    d = Path(tempfile.mkdtemp(prefix="fakebin-")) / name
+    d.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    d.chmod(0o755)
+    return str(d)
+
+
+FAKE_PI = _fake_bin("fakepi")
+
+
 @pytest.fixture(autouse=True)
 def _no_ambient_pi_bin(monkeypatch):
     """`_pi_harness_cfg` now resolves through the ONE shared resolver, where
@@ -260,7 +279,7 @@ def test_run_stage_pi_passes_resolved_model_and_rendered_prompt():
           "_repeat_item": {"slug": "a"},
           "schema": {"type": "object", "properties": {"slug": {"type": "string"}},
                       "required": ["slug"]}}
-    cfg = {"harnesses": {"pi": {"bin": "/bin/fakepi", "provider": "openrouter",
+    cfg = {"harnesses": {"pi": {"bin": FAKE_PI, "provider": "openrouter",
                                 "thinking": "medium"}}}
     with mock.patch("subprocess.run", side_effect=fake_run):
         rc, value = _run_stage_pi(cfg, st, {"draft:a": {"model": "glm",
@@ -268,7 +287,7 @@ def test_run_stage_pi_passes_resolved_model_and_rendered_prompt():
                                   {"scratch": "/tmp/S"})
     assert rc == 0 and value == {"slug": "a", "v": 1}
     cmd = captured["cmd"]
-    assert "/bin/fakepi" in cmd, cmd
+    assert FAKE_PI in cmd, cmd
     assert "--provider" in cmd and "openrouter" in cmd, cmd
     assert "--model" in cmd and "glm" in cmd, cmd
     assert "--thinking" in cmd and "high" in cmd, cmd  # effort max -> high
@@ -415,7 +434,7 @@ def test_transient_5xx_retries_bounded_and_named(monkeypatch, capsys):
 
     sleeps: list[float] = []
     monkeypatch.setattr(_wf, "_RETRY_SLEEP", sleeps.append)
-    cfg = {"harnesses": {"pi": {"bin": "/bin/fakepi", "provider": "openrouter"}}}
+    cfg = {"harnesses": {"pi": {"bin": FAKE_PI, "provider": "openrouter"}}}
     view = _wf.RunView("k", [_retry_stage()], "pi", out=io.StringIO())
     with mock.patch("subprocess.run", side_effect=fake_run):
         rc, value = _run_stage_pi(
@@ -3322,7 +3341,7 @@ def _capture_pi_prompt(stage, run_args):
         return _sp.CompletedProcess(cmd, 0,
                                     stdout='{"a": "x"}', stderr="")
 
-    cfg = {"harnesses": {"pi": {"bin": "/bin/fakepi",
+    cfg = {"harnesses": {"pi": {"bin": FAKE_PI,
                                 "provider": "openrouter"}}}
     st = dict(stage)
     label = st["label"]
@@ -3367,12 +3386,21 @@ def test_pi_prompt_without_schema_is_byte_identical():
 # `~/.npm-global/bin/pi` cell never expanded and every merge-up-review stage
 # died at once with `pi exited rc=1`.
 
-def test_pi_harness_cfg_env_override_wins_over_the_config_cell(monkeypatch):
-    """The claim's precedence: $PI_BIN FIRST, config cell second."""
-    monkeypatch.setenv("PI_BIN", "/from/PI_BIN")
-    cfg = {"harnesses": {"pi": {"bin": "/from/config",
+def test_pi_harness_cfg_env_override_wins_over_the_config_cell(tmp_path,
+                                                               monkeypatch):
+    """The claim's precedence: $PI_BIN FIRST, config cell second. Both cells
+    are REAL files: a path-shaped cell that does not exist refuses by name
+    now (`hypothesis:harness-bin-absolute-token-free-bins-refused-by-name`),
+    so a sentinel path is no longer a usable stand-in for either side."""
+    from_bin = tmp_path / "PI_BIN"
+    cfg_bin = tmp_path / "config"
+    for f in (from_bin, cfg_bin):
+        f.write_text("#!/bin/sh\n")
+        f.chmod(0o755)
+    monkeypatch.setenv("PI_BIN", str(from_bin))
+    cfg = {"harnesses": {"pi": {"bin": str(cfg_bin),
                                 "provider": "openrouter"}}}
-    assert workflow._pi_harness_cfg(cfg)["bin"] == "/from/PI_BIN"
+    assert workflow._pi_harness_cfg(cfg)["bin"] == str(from_bin)
 
 
 def test_pi_harness_cfg_expands_a_home_token_against_the_box_home(
