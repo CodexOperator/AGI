@@ -482,3 +482,37 @@ def test_stale_lock_skip_leaves_a_clean_sessions_dir_alone(tmp_path,
     assert "could not remove stale lock" not in err, err
     text = log.read_text(encoding="utf-8") if log.exists() else ""
     assert "removed stale verify-suite.lock" not in text, text
+
+
+def test_stale_lock_clean_never_raises_on_a_pruned_worktree_geometry(
+        tmp_path, monkeypatch, capsys):
+    """THE DEFENSIVE `gdir is None` ARM, as a real gate: `_seat_geometry_dir`
+    REFUSES a row whose worktree `.agi` is gone (None is a refusal, never a
+    fallback to MAIN), so a direct call on such a row must return without
+    raising and touch nothing. `_clean_stale_layout_locks` is module-level and
+    its docstring promises "best-effort, never raises"; with the arm deleted
+    the body did `None / "sessions"` and raised TypeError
+    (DIRECTOR RULING DH.449, restoring the DH.436 deletion)."""
+    gdir, wt = _wt_graph(tmp_path, worktree=False)
+    log = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+
+    real_unlink = Path.unlink
+    touched: list[Path] = []
+
+    def spy_unlink(self, *a, **kw):
+        touched.append(Path(self))
+        return real_unlink(self, *a, **kw)
+
+    monkeypatch.setattr(Path, "unlink", spy_unlink)
+    try:
+        heal._clean_stale_layout_locks(gdir, WT_ROW)  # must not raise
+    finally:
+        monkeypatch.undo()
+
+    assert not touched, f"touched something on a refusal: {touched}"
+    assert not (gdir / "sessions" / "verify-suite.lock").exists()
+    err = capsys.readouterr().err
+    assert "could not remove stale lock" not in err, err
+    text = log.read_text(encoding="utf-8") if log.exists() else ""
+    assert "removed stale verify-suite.lock" not in text, text

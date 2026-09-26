@@ -3081,11 +3081,20 @@ def _clean_stale_layout_locks(root: Path, row: dict) -> None:
     lock would wedge the next suite run forever). Live-first geometry tree;
     best-effort, never raises.
 
-    NO `gdir is None` BRANCH, BY GEOMETRY: the ONE caller (`_recover_seat`)
-    returns on the missing-worktree refusal BEFORE reaching this call, so a
-    refusal cannot arrive here (hypothesis:heal-worktree-refusal-tests-never-
-    reach-live-tmux-and-dead-branches-go). The refusal is logged there."""
+    THE `gdir is None` ARM IS DEFENSIVE, NOT REACHABLE-BY-GEOMETRY: the ONE
+    current caller (`_recover_seat`) returns on the missing-worktree refusal
+    BEFORE this call (hypothesis:heal-worktree-refusal-tests-never-reach-live-
+    tmux-and-dead-branches-go), but that refusal is a DIFFERENT MOMENT than
+    this read — a worktree pruned between the check and the call leaves
+    `_seat_geometry_dir` refusing (None), and this module-level function is
+    called directly. Keeping the arm is what makes "best-effort, never
+    raises" true rather than aspirational (DIRECTOR RULING DH.449, restoring
+    the DH.436 deletion)."""
     gdir = _seat_geometry_dir(root, row)
+    if gdir is None:
+        _watch_log(f"watch: no geometry for dead seat "
+                   f"{(row.get('name') or '')!r}; stale-lock clean skipped")
+        return
     lock = gdir / "sessions" / "verify-suite.lock"
     if lock.is_file():
         try:
