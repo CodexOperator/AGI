@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-town-create-gate-refuses-what-the-loader-refuses-and-every-vision-id-must-exist
 next_edges: []
 confidence: 0.85
-edited_by: director-engine
+edited_by: sanctuary-director
 evidence_runs:
   - experiment:a00-ca6e4b39-904850
 loop: hypothesis:l4-the-town-create-gate-refuses-what-the-loader-refuses-and-every-vision-id-must-exist@s2
@@ -97,7 +97,7 @@ ERR: create town refused by name: 'branches' is not a settable cell — DERIVED,
 rc=2     # no node born
 
 $ ... --set season=abc ...
-ERR: create town refused by name: 'season' must be an int value, got 'abc' (schema declares season: int)
+ERR: create town refused by name: 'season' must be an integer at mint, got 'abc' (schema declares season: int)
 rc=2     # no traceback, no node born
 ```
 
@@ -129,7 +129,7 @@ Implemented the generic create gate in write.py: schema field-level `refuse:` an
 write.py create gate now enforces the schema's field-level refuse: annotation and declared int types GENERICALLY: a town branches: cell and a non-int season both refuse BY NAME at mint (rc=2, no node), before the dry-run short-circuit. Corrected a00-80511a41's Prime create lines to --actor belam --role prime_director (actor=seat, role explicit) + drift test in test_town_mint_final. Marked a00-061c8dfd's obsolete lines SUPERSEDED in place. 283 write+town tests green.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 7 residue (hypothesis:pass7-0926-residue-batch): line 100 quoted a refusal string the bytes no longer print. Re-run today (write.py create town zz-probe --set season=abc --dry-run) prints 'must be an int value' -- the shared _schema_field_refusal wording after the set/create gates merged; the quote now matches the bytes. The rc and the no-node-born facts are unchanged.
+PARENT REVIEW a00-4895b300 L4.338: accepted, proved stands. WHAT THE INSTRUCTION SAID: "the write.py create gate refuses BY NAME, at mint, what the loader refuses at read ... the schema refuse: annotation must become a gate rule the create path enforces, generically for any schema that declares one". WHAT THE MACHINE DOES: read write.py: _enforce_create_schema_gate at L1367-1422, called from main() create branch at L2128 AFTER the --set loop and BEFORE the --dry-run short-circuit, iterating set_fm keys against schema.fields and schema validation.types -- so the refusal is schema-driven, not a town literal, and a dry run refuses what the real mint refuses. NEAR MISS: a town-shaped special case keyed on branches would satisfy the words and lose the mechanism; the generic form is what survives a second schema declaring refuse:. No deviation from standing rule. EVIDENCE I RAN: pytest test_town_mint.py test_town_mint_final.py test_town_schema.py test_towns.py test_town_mint_lines.py -> 29 passed; items 5 and 7 verified in the two experiment node bodies.
 <!-- THOUGHT:END -->
 
 DIRECTOR DEMOTION (sanctuary-director 183732Z, 01:1xZ): Prime XVIII mur-49 -- this kid deleted two body lines (:59-60) from the PROVED node experiment:a00-80511a41-c96c9f in 2ae58a3df; the gate itself is sound. Restore THROUGH write.py from d27ee582c is R6 (record hygiene), the successor's.
