@@ -444,10 +444,32 @@ def block_markers(repo_root: Path) -> tuple[str, str]:
     return begin, end
 
 
+#: The alerts file the memory alarm appends to when a graph declares no
+#: `logs.alerts_file` cell: a bare NAME, never a path — the directory is
+#: `logs_dir()` below, the same dir `enforce_log_caps` bounds.
+ALERTS_FILE = "memory-alarm-alerts.log"
+
+
+def logs_dir() -> Path:
+    """The box logs dir — the ONE place `enforce_log_caps` looks, so any
+    writer that resolves its log through this directory is capped by
+    construction rather than by coincidence."""
+    return Path.home() / "logs"
+
+
+def alerts_log(root: Path) -> Path:
+    """The memory alarm's log: a declared `logs.alerts_file` NAME inside
+    `logs_dir()`. A writer that re-derived its own path (the pre-fix
+    `~/logs/sanctuary-guard/alerts.log`) wrote into a SUBDIRECTORY the
+    non-recursive cap glob never reached, so it grew without bound."""
+    name = (locations.load_config(root).get("logs") or {}).get("alerts_file") or ALERTS_FILE
+    return logs_dir() / str(name)
+
+
 def _log_path(repo_root: Path) -> Path:
     # One log for every job in this project's block — matches grid.py's own
     # convention of one file per project rather than one per cadence.
-    return Path.home() / "logs" / f"agi-crons-{Path(repo_root).name}-{project_hash(repo_root)[:8]}.log"
+    return logs_dir() / f"agi-crons-{Path(repo_root).name}-{project_hash(repo_root)[:8]}.log"
 
 
 _ARCHIVE_RE = re.compile(r".+\.\d+$")
@@ -518,7 +540,7 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False) -> list
             f"config cell logs.mode: must be one of {sorted(_LOG_MODES)}, got "
             f"{mode!r} -- a rotation mode this file does not implement would "
             f"silently leave the cap unenforced")
-    cap, out, d = cap_mb * 1024 * 1024, [], _log_path(repo_root).parent
+    cap, out, d = cap_mb * 1024 * 1024, [], logs_dir()
     for p in sorted(d.glob("*")) if d.is_dir() else []:
         if p.is_symlink() or not p.is_file():
             continue

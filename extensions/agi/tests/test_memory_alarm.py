@@ -1,9 +1,11 @@
 """memory_alarm.py: the owner's 09-26 memory alarm (raise before the box wedges)."""
 import argparse
+import json
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+import crons  # noqa: E402
 import memory_alarm as m  # noqa: E402
 
 TH = argparse.Namespace(warn_avail_mib=2048, crit_avail_mib=1024,
@@ -82,3 +84,52 @@ def test_a_raise_logs_once_dms_once_then_stays_quiet(tmp_path, monkeypatch):
     assert len(sent) == 1 and sent[0][0] == "belam" and sent[0][1].startswith("[red] ")
     assert m.main(argv) == 0  # same level inside the repeat window: silent
     assert len((tmp_path / "alerts.log").read_text().splitlines()) == 1 and len(sent) == 1
+
+
+# --- the claim: the alarm's log is UNDER the cap -------------------------
+#
+# Falsifier, pre-fix: the default was a literal
+# `~/logs/sanctuary-guard/alerts.log`, and `crons.enforce_log_caps` globs the
+# logs dir NON-recursively, so a 17 MB alert log in that subdirectory drew an
+# empty action list and grew without bound.
+
+def test_the_default_alerts_log_lands_where_the_cap_looks(tmp_path, monkeypatch):
+    """No `--alerts-log` means: the `logs.alerts_file` cell, a bare NAME in
+    `crons.logs_dir()` -- the one dir `enforce_log_caps` bounds. A default that
+    re-derives a path (or nests one under a subdir) is a path the cap misses."""
+    home = tmp_path / "home"
+    (home / "logs").mkdir(parents=True)
+    monkeypatch.setenv("HOME", str(home))
+    root = tmp_path / "proj"
+    root.mkdir()
+    (root / "agi-tree.config.json").write_text(json.dumps(
+        {"logs": {"cap_mb": 1, "rotations": 3, "mode": "copytruncate",
+                  "alerts_file": "memory-alarm-alerts.log"}}))
+    monkeypatch.setattr(m, "_dm", lambda *a: None)
+    argv = ["--root", str(root), "--warn-avail-mib", "1e12",
+            "--crit-avail-mib", "0", "--warn-psi-some-avg60", "1000",
+            "--crit-psi-full-avg60", "1000", "--warn-cgroup-max-frac", "1000",
+            "--repeat-mins", "15", "--cgroup", str(tmp_path / "no-cgroup"),
+            "--state", str(tmp_path / "st.json"), "--notify", "belam"]
+    assert m.main(argv) == 0
+    written = crons.alerts_log(root)
+    assert written == home / "logs" / "memory-alarm-alerts.log", written
+    assert written.is_file() and written.read_text().strip()
+
+    # the falsifier proper: the cap now REACHES that file
+    written.write_bytes(b"x" * (2 * 1024 * 1024))   # 2 MB over a 1 MB cap
+    out = crons.enforce_log_caps(root, root, dry_run=False)
+    assert any("memory-alarm-alerts.log" in line for line in out), out
+    assert written.stat().st_size == 0
+
+
+def test_the_alerts_log_name_is_a_cell_not_a_path(tmp_path, monkeypatch):
+    """The cell carries a NAME. A path in it would re-open the subdirectory
+    hole the cap's non-recursive glob cannot see."""
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    root = tmp_path / "proj"
+    root.mkdir()
+    (root / "agi-tree.config.json").write_text(json.dumps(
+        {"logs": {"alerts_file": "sanctuary/alerts.log"}}))
+    assert crons.alerts_log(root) == crons.logs_dir() / "sanctuary" / "alerts.log"
+    assert crons.alerts_log(root).parent != crons.logs_dir()  # the shape the fix removed
