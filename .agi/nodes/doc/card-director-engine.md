@@ -39,6 +39,10 @@ DH.398    MERGED 77d75288d (not yet landed): round-mur + round-research-review m
           registry row. config:workflows rows are PRIME-owned (write.py refuses a director, L4.110 B) -> ASK in merge-up 10;
           my hand edit was REVERTED. model cells NOT wanted (_pi_model never reads workflows.NAME.model; billing hazard)
 DH.399    a00-ea5dea63 LIVE: a skipped stage gates its dependents transitively + a resolved round counts in ok=
+TMM.237   merge-up 9 LANDED 7d435723c. round-research-review inherited research-review's provider: claude-code -> a bare
+          run was REFUSED; fixed f1edc1cb8 (provider: pi on the round manifest; red/green) -> the registry rows are now
+          listing-only, not needed to run. test_commands substring -> path components 6782af6e9 (37 green)
+DH.400    a00-b80ae6c3 LIVE: round manifests declare {old_tip,new_tip,files} required via composition (guard live on a REAL manifest)
 HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. Then: (a) DH.397 re-dispatch (no-model fence,
           goal:g7.33.16; worktree a00-aae44e7f kept) (b) TMM.235 (2) in-body loader hole: refuse declared real weights dirs +
           hub, ALLOW a tmp_path checkpoint, prove DT's osc_lowpeak_test passes. BOTH: red-on-old = a tiny random-init model
@@ -47,9 +51,9 @@ HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. T
 
 ## 🔴 WHERE IT STOPS
 ```
-NEXT   harvest DH.399 a00-ea5dea63 when it reports (claim + falsifiers; SM.105 slice isolation kept; commit parent leftovers;
-       merge --no-ff; test_workflow*) -> full suite (detached is fine now) -> [merge-up] 10 = DH.398 + DH.399, WITH the
-       config:workflows ask: rows {round-mur, type merge-up-review} + {round-research-review, type research} for the Prime
+NEXT   harvest DH.399 a00-ea5dea63 + DH.400 a00-b80ae6c3 as they report (claim + falsifiers; SM.105 slice isolation kept; commit parent leftovers;
+       merge --no-ff; test_workflow*) -> full suite (detached is fine now) -> [merge-up] 10 = DH.398 + DH.399 + DH.400 + TMM.237 fixes;
+       config:workflows rows = OPTIONAL listing ask for the Prime (both manifests run without them)
 THEN   when PASS 9 closes (TM/Prime says so): HOLD items (a) + (b) above, fixture rule in orders
 AWAIT  SM: g7.33.14 clause 1 (box block in config) + stream-master box cell (DH.373 d) · TMM.166: verify before acting
 ```
