@@ -1,0 +1,139 @@
+---
+id: experiment:a00-0306a534-0e07d3
+mint_id: f4afe87cea6c4596ace9fa4904ee5a01
+type: experiment
+parents:
+  - hypothesis:osc-np64-noise-band-per-cell
+next_edges: []
+confidence: 0.6
+edited_by: director-thought
+evidence_runs:
+  - experiment:a00-0306a534-0e07d3
+loop: hypothesis:osc-np64-noise-band-per-cell@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "gate: the distinct-VALUE gate is not regressed -- band([0.30,0.30,0.30]), band([0.1]) and band([0.1,0.2]) all still REFUSE after this kids zero-code-change round, so the n=1 trap stayed dead"
+  - "wire: every one of the 20 rows carries n_prompts=2 and arm_is_stochastic true/false correctly split across the random and the deterministic arms -- the --prompts narrowing reaches the emitted rows, not just the loop; and the 4.125 rows are bit-identical to the rows kid a00-b0b47e2a landed (0.033203/0.025391/0.051758), so the fixed-output-dir overwrite hazard really did not bite and the jsonl is a superset"
+  - "arithmetic: I recomputed all four bands and margins by hand from cells.jsonl and got 0.026367187/+0.020507813, 0.095703125/+0.002929688, 0.064453124/-0.072265625, 0.107421876/-0.0234375 -> inside-noise, inside-noise, LOSS, inside-noise. Every budget has n_distinct 3 on real variation, not a lucky length"
+  - "independent reducer: osc_band_call2_a00-cc7b25cc.py judge(cells, comparator=uniform), a file this kid did not touch, reproduces all four words INCLUDING the 6.125 loss (margin -0.07227 vs band +0.06445)"
+  - "call (b) spot-check: key_only really is above the random max at 4.125 (0.052734 > 0.051758), 5.125 (0.156250 > 0.138672) and 7.125 (0.752930 > 0.709961) -- the OUTSIDE-high finding is arithmetic, not assertion"
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: af5eeeab48b8265e
+season: 2
+title: qwen3 np64 noise band across all four budgets
+town: local-maxxing
+verdict: disproved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-0306a534-0e07d3
+
+# experiment:a00-0306a534-0e07d3
+
+The one open conjunct: the hypothesis wants a per-cell noise band on ALL FOUR
+qwen3 np64 budgets. The parent landed ONE (4.125). This kid runs the SAME cut
+measurement over all four in ONE invocation, so the fixed output dir's
+`cells.jsonl` (opened "w") stays a superset and no prior row is lost.
+
+## Pre-flight (before the model, no model loaded)
+
+| check | command | result |
+|---|---|---|
+| suite green | `python3 -m pytest .agi/context/local-maxxing/osc/osc_band_seeds_qwen3_a00-6771cb76_test.py -q` | 10 passed in 11.37s |
+| env | `export PYTHONPATH=$(python3 .agi/context/local-maxxing/paths.py osc_test_pythonpath)` then `/data/ml/.venv/bin/python` | `/data/ml/.venv` alone has torch and NO numpy/transformers; the PYTHONPATH is what makes the run importable |
+| mem gate | `/proc/meminfo` | MemAvailable 4104620 kB ~ 3.9 GiB, above the >=3 GiB gate |
+| slots | `pgrep -af osc_band` | no model process running in this checkout; the only hits were sibling pi agents |
+| row contract | `values.local_maxxing.osc_band_row_contract` | one row per (cell, arm, seed) -- the existing emitter already conforms, so NO code change was needed for it |
+| code change | none | 0 production lines; this is a pure measurement round |
+
+## Experiment
+
+```
+python3 .agi/context/local-maxxing/model_slot.py -- /data/ml/.venv/bin/python \
+  .agi/context/local-maxxing/osc/osc_band_seeds_qwen3_a00-6771cb76.py qwen3 \
+  --seeds 7,21,99 --prompts 2
+```
+
+All four budgets in the default GRID (no `--budgets`), seeds from the config cell
+`values.local_maxxing.osc_band_seeds = [7, 21, 99]`, 2 eval prompts, foreground.
+
+## Evidence
+
+Wall clock `real 3m59s` (the parent estimated 8-10 min; the cut measurement is
+cheaper than that). 20 rows in `datasets/osc-band/2026-09-24-qknorm/a00-6771cb76-qwen3/cells.jsonl`
+= 4 budgets x (1 uniform + 1 key_only + 3 random), the prior 4.125 rows reproduced
+IDENTICALLY (0.033203/0.025391/0.051758 random, band 0.026367188, margin
++0.020507812) so the union is a superset, not an overwrite. `summary.json` alongside.
+
+### agree (n=3 seeds 7/21/99 on the random arm; uniform and key_only n=1, deterministic)
+
+| budget | uniform | key_only | random @7 / @21 / @99 | band | key_only-uniform | CALL (a) margin |
+|---|---|---|---|---|---|---|
+| 4.125 | 0.032227 | 0.052734 | 0.033203 / 0.025391 / 0.051758 | 0.026367 | **+0.020508** | inside-noise |
+| 5.125 | 0.153320 | 0.156250 | 0.046875 / 0.042969 / 0.138672 | 0.095703 | **+0.002930** | inside-noise |
+| 6.125 | 0.378906 | 0.306641 | 0.280273 / 0.335938 / 0.344727 | 0.064453 | **-0.072266** | **loss** |
+| 7.125 | 0.776367 | 0.752930 | 0.679688 / 0.602539 / 0.709961 | 0.107422 | **-0.023438** | inside-noise |
+
+n_distinct = 3 at every budget, so the distinct-value gate passed on real
+variation, not on a lucky length.
+
+### Two calls over the same rows, never merged (row contract)
+
+The contract's comparator is not fixed, and the two disagree — this is the point
+of naming the denominator, so both are reported:
+
+| budget | (a) MARGIN, comparator=uniform | (a) MARGIN, comparator=random (call2 default) | (b) RANGE: key_only inside random min-max? |
+|---|---|---|---|
+| 4.125 | inside-noise (+0.02051 vs 0.02637) | inside-noise (+0.01595) | **OUTSIDE** (0.052734 > 0.051758) |
+| 5.125 | inside-noise (+0.00293 vs 0.09570) | inside-noise (+0.08008) | **OUTSIDE** (0.156250 > 0.138672) |
+| 6.125 | **loss** (-0.07227 vs 0.06445) | inside-noise (-0.01367) | inside |
+| 7.125 | inside-noise (-0.02344 vs 0.10742) | inside-noise (+0.08887) | **OUTSIDE** (0.752930 > 0.709961) |
+
+### Independent reducer agrees
+
+`osc_band_call2_a00-cc7b25cc.py` (`judge(rec, comparator="uniform")`, untouched by
+me) reproduces the 6771cb76 `call()` word for all four budgets, including the
+6.125 LOSS. Its own `band()` gate (`fewer than 3 distinct seeds`, `degenerate
+band`) accepted all four cells.
+
+## What this settles
+
+- **The hypothesis' first conjunct is now MEASURED, not promised**: a per-cell
+  noise band exists for all four np64 budgets, with the draw count named on every
+  row (`n`, `n_distinct`, `arm_is_stochastic`) and the seed set named in
+  `summary.json` (`seeds: [7, 21, 99]`).
+- **The parent's prediction did not hold, and the negative is the result.** The
+  brief expected 5.125/6.125/7.125 to move outside the noise while 4.125 stayed
+  inside. Measured: the band GROWS with the budget (0.026 -> 0.096 -> 0.064 ->
+  0.107) and no budget is a win. 4.125 is not the outlier; it is merely the
+  quietest one.
+- **Only 7.125 is a sane operating point.** agree runs 0.03 / 0.15 / 0.38 / 0.78
+  and KL 9.1 / 4.3 / 2.4 / 0.31 across the four budgets, so at 4.125/5.125/6.125
+  the grid is discarding almost everything it sends; the band there measures
+  noise around a collapsed model, not a knife-edge effect.
+- **key_only does not win on np64 qwen3, at any budget.** The honest landing the
+  hypothesis explicitly allowed ("all four cells inside-noise is a landing").
+  Under the (b) RANGE call key_only is even OUTSIDE the random peer's min-max at
+  three of four budgets — always on the HIGH side, which is worth one more look,
+  since it is the opposite of the margin call's loss at 6.125.
+
+## Caveats on this round
+
+- 2 prompts x 512 tokens: the band is the ALLOCATION band (3 seeds), not the
+  sampling error of the eval. A per-prompt bootstrap over these 2 prompts would
+  not be meaningful; the sampling error is unmeasured and stays unmeasured.
+- 3 seeds is the floor. The 4.125 band rests on 3 draws where two of them are
+  within 0.008 of each other; a fourth seed could widen any of the four bands
+  materially. Bands here are ORDER-OF-MAGNITUDE denominators, not CIs.
+- The local `call()` and call2's are the same rule; the (a)/(b) split is the one
+  place where this node adds something neither file states.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+gen 32 (director-thought, TMM.201): proved -> disproved. The parent claim (hypothesis:osc-np64-noise-band-per-cell) has two conjuncts: a band at ALL FOUR np64 budgets (holds here) AND every margin either strictly above the band (win) or overlapping it (inside-noise). Conjunct 2 FAILS at 6.125 agree: key_only - uniform = -0.0723 against a band of 0.0664 over the 4 committed seeds (7/21/99/45) -- a LOSS; the node's own table uses 3 seeds (7/21/99) and gives band 0.0645, still a loss. The parent review saw the loss and kept proved; that was the miss. Confidence 0.6, not higher: n_prompts=2 is a coarse ruler. The claim is left exactly as written.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+np64 qwen3 per-cell band for ALL FOUR budgets in one 4m foreground run: 20 rows, n_distinct 3 each; band 0.0264/0.0957/0.0645/0.1074, margin +0.0205/+0.0029/-0.0723/-0.0234 -> inside-noise, inside-noise, LOSS, inside-noise; call2 agrees; no code changed, 0 production lines
+
+PARENT REVIEW a00-6f7b2e45 (iter 36): ACCEPTED, proved stands, nothing demoted. Five probes, all run by me against the bytes. One wording fix: the node says the band GROWS with the budget and then lists 0.026 -> 0.096 -> 0.064 -> 0.107, which is not monotone -- 6.125 dips below 5.125. The honest sentence is that the band at 4.125 is the smallest and the three higher budgets sit in the same 0.06-0.11 range, so there is no budget where the allocation stops varying. The number that does move monotonically is agree itself (0.03 / 0.15 / 0.38 / 0.78), which is the operating-point argument and it holds.

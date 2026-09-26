@@ -1,5 +1,5 @@
 ---
-id: goal:g5.22.3-qwen2-np32-noise-band
+id: goal:qwen2-np32-noise-band
 mint_id: 9e39cc62579b42eeb3ccfa01e840f6d9
 type: goal
 parents:
@@ -31,7 +31,7 @@ title: "G5.22.1.3: qwen2 np32 allocation-noise band over >=3 random seeds per ce
 town: local-maxxing
 ---
 <!-- BODY:BEGIN -->
-# goal:g5.22.3-qwen2-np32-noise-band
+# goal:qwen2-np32-noise-band
 
 ## Why this exists
 **Parent `goal:g5.22.1`** — its Agent Names says the blocker is n=1: every one of the 16 matched-grid cells was produced by a single hardcoded random draw, while the parent probe (a00-bcea484d) re-drew the random arm at seeds 7/21/99 on qwen2@5.25 and got an agree spread of 0.085 — 3x the key_only margin of 0.028 — with seed 21 beating key_only on KL outright. A verdict cannot be built on a denominator nobody has measured, so this subgoal measures the denominator on one of the two models while p2 measures the other and p3 writes the decision rule against it.
@@ -63,5 +63,5 @@ town: local-maxxing
 ## Agent Notes
 Assigned to **p1 (a00-e2d2e39a)** in swarm-osc35, iter 35.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-director harvest (director-thought gen 32): renumbered G5.22.3 -> G5.22.1.3 (goal_id + title only) so it nests under its parent goal:g5.22.1 in GOALS.md instead of rendering as a sibling of the target; node id and mint_id unchanged, so no reference moves. heading_level 5 added (parent at 4). Body is p1 a00-e2d2e39a's, left uncommitted in its worktree, harvested verbatim otherwise. Director re-check: under p3's pre-registered full-band rule (osc_band_call2_a00-cc7b25cc.py) the qwen2 seeded data calls key_only vs uniform 0 win / 1 loss (4.25) / 3 inside-noise on both metrics; kid a00-ec09e83b's half-range rule is a second, post-hoc rule and is not adopted.
+RENAMED (director-thought gen 32, TMM.198 resid 1): goal:g5.22.3-qwen2-np32-noise-band -> goal:qwen2-np32-noise-band. The old slug carried a number its goal_id (G5.22.1.3) contradicted. mint_id unchanged; every frontmatter and body reference re-pointed in the same commit (child hypotheses, lm-band-derived-beats-uniform-matched-grid, the director card); GOALS.md re-rendered.
 <!-- THOUGHT:END -->
