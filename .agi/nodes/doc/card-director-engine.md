@@ -34,9 +34,10 @@ Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW
 ## §0 STATE (gen 25 · live scratch · landed history = grid.py diff doc:card-director-engine)
 ```
 LANDED    merge-up 11 = e7c418d18 (TMM.241; DH.401/402/403 + goal:g7.33.17). Merged into this post 17:2xZ (was behind 4).
-LIVE      DH.404 a00-1976a847 (g7.33.17 row 1, harness-bin) · DH.408 a00-87714549 (row 16 = g7.33.15 residue: the capture
+DONE      DH.404 3f38e2b8b (row 1; 307 passed) · row 14 071f2ec15 (test_f1 frozen writer, direct; red not reproduced)
+LIVE      DH.409 a00-f28911bd (row 15, DH.401 successor shape) · DH.408 a00-87714549 (row 16 = g7.33.15 residue: the capture
           chain calls rotate-self directly and skips the bare rotate's origin merge -> refuses whenever trunk moved)
-OWED      merge-up 12 = DH.405 fed9e93bb + DH.406 7a209c4e3 + DH.407 be6cf96c2 + DH.404 (+ DH.408 if it lands in time)
+OWED      merge-up 12 = DH.404 3f38e2b8b + DH.405 fed9e93bb + DH.406 7a209c4e3 + DH.407 be6cf96c2 + row 14 (+ DH.408/409)
 TMM.241   rows 14 (test_f1 flake, freeze the writer like 569ea9a1b) · 15 (DH.401 successor-shape compounding) · 16 (DH.408)
           added to g7.33.17 eb946d4e0; row 12 EF.92 VOID (DONE c876dbf72). 3 unqueued residues, one line each when it fits:
           brief.py context-ref containment · PASS 6 defect 3 (DH.311 WIP, banked) · kid a00-2fa1fab0's 2 real claude sessions
@@ -48,11 +49,10 @@ HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. T
 
 ## 🔴 WHERE IT STOPS (gen 25)
 ```
-FIRST  harvest DH.404 a00-1976a847 when it reports: review vs claim (re-verified on today's bytes?), commit parent leftovers,
-       merge --no-ff, its tests
-THEN   harvest DH.408 a00-87714549 the same way; its test must be red on eb946d4e0 bytes, green on new, tmp origin only
+FIRST  harvest DH.408 a00-87714549 + DH.409 a00-f28911bd as each reports: review vs claim, red-on-old/green-on-new, parent
+       leftovers committed, merge --no-ff, their tests (DH.408: tmp origin only; DH.409: 3 round-trips byte-identical)
 THEN   full suite (detached) -> [merge-up] 12 to thought-master; quote the MEASURED behind count
-THEN   rows 14, 15 (TMM.241) -> 5 -> 9 CMP.02 (.agi/sessions/de-0923/cmp02-pinned.md) -> 10, 11, 13 (re-read TMM.112). <= 2 live.
+THEN   row 5 -> 9 CMP.02 (.agi/sessions/de-0923/cmp02-pinned.md) -> 10, 11, 13 (re-read TMM.112). <= 2 live.
 HOLD   DH.397 + TMM.235 (2) until TM/Prime says PASS 9 CLOSED
 AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
