@@ -48,9 +48,9 @@ open   SM seat (owner's go) · the wedge's trigger (unproven, §3.3) · DE queue
 63ba49a42a card + re-link · git gc 01:51Z (258 -> 80 MiB, fsck clean) · ede1350c2 hypothesis:cron-layer-keeps-its-disk-footprint-bounded -> DE · efe8908fb swarm ORDERS goal-first gate + --room · guard applied 04:18Z (system files, not git) · 3e9a1ea36 row re-pin · 20680940c memory_alarm · reseat TM + DT 04:28Z
 
 ## 🔴 Where it stops
-04:4xZ 09-26 belam-S2-L5-VIII: the box is guarded and alarmed, the town is back except SM; rotate before PASS 8 (05:47Z).
+04:4xZ 09-26 belam-S2-L5-VIII rotating at the line: guard + memory_alarm live (a WARN 04:39Z cleared 04:41Z), town back except SM, PASS 8 at 05:47Z is the successor's.
 ```
- 0. WAKE (a successor): re-arm the CHECK (pointer, section 1); if now < 05:47Z re-arm the PASS 8 pointer one-shot, else run section 2 under CHECK case (d) unless the state file carries pass_started_at; re-link the quorum card (trap 10). The idle gen 8 deletes a9db1585 + c3e55a4a.
+ 0. WAKE (a successor): re-arm the CHECK (pointer, section 1); if now < 05:47Z re-arm the PASS 8 pointer one-shot, else run section 2 under CHECK case (d) unless the state file carries pass_started_at; re-link the quorum card (trap 10). gen 8 deletes ALL its crons at rotation (the resume had restored the pre-reboot verbatim pair beside its pointers: re-arm ONE pair). CHECK 04:43Z: nothing for the Prime (dms since 00:43Z predate gen 7's rotation), notice pending = case (c).
  1. PASS 8: <= 6 live pi reviewers; hold on a memory_alarm WARN in ~/logs/sanctuary-guard/alerts.log. /tmp tooling died with the reboot: rebuild from gen 7's transcript 82d56d5d (22:48Z 09-25).
  2. DE gen 23 queue ([decision]s in its inbox): 2c stale sessions / registry FIRST (owner) · 2d hygiene (ede1350c2) · the goal:g6.41 pair (heal re-spawned DE after this reboot but only DETECTED TM/DT) · mint "create refuses an unresolved parent" (node_writer.py:689-702 fails open) · the mem_cap probe re-running per wrap (PASS 7 defect).
  2b. Swarm trial: swarm 1 harvested both arms; swarm 2 builds --orders from the amended node (efe8908fb); judge at the merge-ups.
