@@ -11459,6 +11459,36 @@ def _term_grace_s() -> float:
     return 15.0
 
 
+#: Reserved OUT of the ONE chain budget for the post-SIGKILL settle poll
+#: (L4.122): the TERM wait may not eat it, or a chain that exhausts the
+#: deadline -- exactly the chains the deadline exists for -- records
+#: gone_after=False on every member it did KILL.
+_SIGKILL_SETTLE_S = 1.0
+
+
+def _chain_deadline_s() -> float:
+    """`reaper.chain_deadline_s` from `.agi/config.json`; 20.0 is the RESOLVER
+    for a missing cell, not a second value. It bounds the WHOLE reap chain
+    (hypothesis:a-reap-chain-is-bounded-by-one-chain-deadline-not-per-pid-
+    grace): N TERM-ignoring members are all gone inside this ONE budget,
+    never N x `reaper.term_grace_s`. The LAST `_SIGKILL_SETTLE_S` of that
+    budget is RESERVED for the post-KILL poll, so a chain that exhausts the
+    deadline still records an honest `gone_after`. The default
+    exceeds the 15.0 term grace so a single-member chain is unchanged by it.
+    Same never-raises shape as `_term_grace_s`."""
+    try:
+        cfg_path = locations.config_path(find_project_root())
+        if cfg_path is not None:
+            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+            v = (cfg.get("reaper") or {}).get("chain_deadline_s")
+            if isinstance(v, (int, float)) and not isinstance(v, bool) \
+                    and v > 0:
+                return float(v)
+    except (OSError, json.JSONDecodeError, TypeError, AttributeError):
+        pass
+    return 20.0
+
+
 def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
                 kill_survivors: bool = True) -> dict:
     """s12 — TERM a predecessor process chain DEEPEST-FIRST, verify each gone.
@@ -11470,8 +11500,14 @@ def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
     termd, gone_after and the `ps -p` reads around it.
 
     Each pid gets up to `wait_secs` (`reaper.term_grace_s`, default 15 s) to
-    die after TERM; a survivor is SIGKILL'd
-    when `kill_survivors` (L4.118/R2: "wait up to 5 s per pid, KILL what
+    die after TERM, but the WHOLE chain is bounded by ONE deadline
+    (`reaper.chain_deadline_s`, default 20 s): a member's wait is
+    `min(now + wait_secs, chain_deadline - settle)`, so N TERM-ignoring
+    members cost one chain deadline, never N x term_grace_s. `settle` is
+    `min(_SIGKILL_SETTLE_S, half the chain budget)`: the post-SIGKILL poll
+    needs a reserve INSIDE the budget, or an exhausted chain records a KILLed
+    member as still alive. A survivor is SIGKILL'd
+    when `kill_survivors` (L4.118/R2: "wait up to the grace, KILL what
     survives").
 
     Refuses the caller's OWN pid and any pid <= 0 (like `_reap_pid`):
@@ -11482,6 +11518,11 @@ def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
     chain: list[dict] = []
     if wait_secs is None:
         wait_secs = _term_grace_s()  # reaper.term_grace_s, read at runtime
+    chain_budget = _chain_deadline_s()
+    chain_deadline = time.time() + chain_budget  # ONE budget, all pids
+    # the settle reserve is CARVED OUT of it, never added on top, and never
+    # more than half of it, so a tiny chain_deadline_s still gets a TERM wait
+    settle = min(_SIGKILL_SETTLE_S, chain_budget / 2.0)
     for pid in reversed(pids):
         pid = int(pid)
         if pid <= 0 or pid == os.getpid():
@@ -11500,7 +11541,8 @@ def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
                 os.kill(pid, signal.SIGTERM)
             except OSError:
                 pass
-            deadline = time.time() + wait_secs
+            deadline = min(time.time() + wait_secs,
+                           max(time.time(), chain_deadline - settle))
             while time.time() < deadline and _pid_alive(pid):
                 # L4.122 criterion 2 (merge-up 23): bind `wpid` BEFORE the
                 # `if`. A pid that is NOT our child (an ancestor pane bash /
@@ -11536,7 +11578,7 @@ def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
                 # briefly so the recorded gone_after reflects the eventual
                 # state, not the reaping race.
                 if not termd:
-                    deadline_t = time.time() + 1.0
+                    deadline_t = min(time.time() + settle, chain_deadline)
                     while time.time() < deadline_t and _pid_alive(pid):
                         time.sleep(0.05)
                     termd = not _pid_alive(pid)
