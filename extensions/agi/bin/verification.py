@@ -1462,16 +1462,34 @@ def render_window(groot: Path, grant: str | None = None) -> str:
 # --- the runner ------------------------------------------------------------
 
 
-def _declared_suite_roots(groot: Path) -> tuple[list[Path], str]:
-    """(roots, cell-name) from the config cell; repo-relative, never a
-    literal. An absent/empty cell -> ([], cell): the caller SKIPs by name."""
+def _suite_cell_state(groot: Path) -> tuple[bool, object, str]:
+    """(declared, value, cell) from the config cell.
+
+    The ABSENCE of a cell and an UNUSABLE cell are different facts. A string
+    where a list belongs, or a list of objects, used to read as "nothing was
+    declared" -- a typo silently switched the whole second suite off while
+    claiming no declaration existed (parent probe C, DH.387). The distinction
+    is the caller's to act on, so this returns the raw value and a declared
+    flag; a cell that resolves to null is ABSENT, not unusable."""
     cell = ".".join(EXTRA_SUITE_CELL)
     node = locations.load_config(groot)
     for part in EXTRA_SUITE_CELL:
-        node = node.get(part) if isinstance(node, dict) else None
-        if node is None:
-            return [], cell
-    if not isinstance(node, list):
+        if not isinstance(node, dict) or part not in node:
+            return False, None, cell
+        node = node[part]
+    if node is None:
+        return False, None, cell
+    return True, node, cell
+
+
+def _declared_suite_roots(groot: Path) -> tuple[list[Path], str]:
+    """(roots, cell-name) from the config cell; repo-relative, never a
+    literal. An absent/empty cell -> ([], cell): the caller SKIPs by name."""
+    declared, node, cell = _suite_cell_state(groot)
+    # a non-string entry would be str()-coerced into a nonsense PATH; leave it
+    # to the caller, which FAILs it as an unusable declaration naming the value
+    if not declared or not isinstance(node, list) or any(
+            not isinstance(r, str) for r in node):
         return [], cell
     # cell values are REPO-RELATIVE (owner 09-23); the repo is the parent of
     # the `.agi/` graph dir in the G11 layout.
@@ -1486,6 +1504,13 @@ def check_extra_suite(groot: Path) -> CheckResult:
     start = time.monotonic()
     roots, cell = _declared_suite_roots(groot)
     if not roots:
+        declared, value, _ = _suite_cell_state(groot)
+        if declared:
+            return CheckResult(EXTRA_SUITE_CMD, "FAIL", time.monotonic() - start,
+                               note=f"cell {cell} IS declared but unusable: "
+                                    f"expected a non-empty list of repo-relative "
+                                    f"paths, got {type(value).__name__} "
+                                    f"{value!r:.80}")
         return CheckResult(EXTRA_SUITE_CMD, "SKIP", time.monotonic() - start,
                            note=f"no suite roots declared in config cell {cell}")
     counts: dict = {}

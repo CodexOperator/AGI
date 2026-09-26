@@ -1255,6 +1255,24 @@ def test_extra_suite_skips_by_cell_name_when_undeclared(monkeypatch, tmp_path):
     assert "paths.core.suite_roots" in r.note
 
 
+def test_unusable_cell_fails_where_an_absent_cell_skips(monkeypatch, tmp_path):
+    """A DECLARED-UNUSABLE cell is not an absent one: it FAILs and names the
+    value (parent probe C -- a string cell used to read as 'nothing declared')."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    for value, kind in (".agi/context", "str"), ([""], "list"), (42, "int"):
+        _write_config(groot, value)
+        monkeypatch.setattr(locations, "load_config", lambda root: json.loads(
+            (Path(root) / "config.json").read_text()))
+        r = verification.check_extra_suite(groot)
+        assert r.status == "FAIL", (kind, r.status, r.note)
+        assert "IS declared but unusable" in r.note, r.note
+        assert "paths.core.suite_roots" in r.note, r.note
+    # and the absent cell still SKIPs -- the two are not the same fact
+    monkeypatch.setattr(locations, "load_config", lambda root: {"paths": {"core": {}}})
+    assert verification.check_extra_suite(groot).status == "SKIP"
+
+
 def test_extra_suite_fails_on_a_collection_error(monkeypatch, tmp_path):
     groot = tmp_path / ".agi"
     (groot / "ctx").mkdir(parents=True)
