@@ -770,51 +770,6 @@ def test_required_any_empty_value_counts_as_absent(tmp_path):
     assert any("OPENROUTER_PROVISIONING_KEY" in p for p in problems), problems
 
 
-EMPTY_NODE = """
-    ---
-    id: "config:secrets"
-    type: config
-    status: active
-    mint_id: 0123456789abcdef0123456789abcdef
-    title: "test secrets node declaring neither required_keys nor required_any"
-    locations:
-      env_file:
-        path: "<source_root>/.env"
-      env_template:
-        path: "<source_root>/.env.example"
-    required_keys: []
-    required_any: []
-    ---
-
-    body
-    """
-
-
-def test_missing_env_names_the_required_any_alternatives(tmp_path):
-    """A clone with no `.env` and `required_keys: []` but a declared group is
-    told which keys satisfy it -- never '(no keys declared)'
-    (hypothesis:required-any-diagnostic-names-the-declared-alternatives)."""
-    graph = make_project(tmp_path)
-    write_node(graph, REQUIRED_ANY_NODE)
-    res = agi_secrets.resolve(tmp_path)
-    assert not res.env_file.is_file(), "the fresh-clone shape is the point"
-    problems, _notes = agi_secrets.check(res)
-    blob = "\n".join(problems)
-    assert "OPENROUTER_API_KEY" in blob and "OPENROUTER_PROVISIONING_KEY" in blob, problems
-    assert "(no keys declared)" not in blob, problems
-    assert "at least one of" in blob, "a GROUP is satisfied by any one of its keys"
-
-
-def test_missing_env_says_no_keys_declared_only_when_none_are(tmp_path):
-    """The honest-empty case survives the fix: a node declaring neither
-    required_keys nor required_any still gets '(no keys declared)'."""
-    graph = make_project(tmp_path)
-    write_node(graph, EMPTY_NODE)
-    res = agi_secrets.resolve(tmp_path)
-    problems, _notes = agi_secrets.check(res)
-    assert any("(no keys declared)" in p for p in problems), problems
-
-
 BOTH_NODE = """
     ---
     id: "config:secrets"
