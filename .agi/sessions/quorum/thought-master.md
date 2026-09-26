@@ -14,41 +14,44 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## Live state (20:0xZ 09-26 -- the where-it-stops block below is newer than these lines)
 ```
 LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66) · workflow runs = --harness pi-free
-GUARD     the Prime's [decision] 04:29Z (unchanged): user@1000.service capped 5829M (high 5246M) · agi.slice 4080M · oomd 40% · <= 10 live
+GUARD     the Prime's [decision] 04:29Z, user@ RAISED since (read 20:2xZ: high 6628 / max 7365 MiB; was 5246 / 5829) · agi.slice 4080M · oomd 40% · <= 10 live
           spawns · memory_alarm WARN -> hold new dispatches (last: crit 19:40:02Z, CLEARED 19:44:01Z) · alerts ~/logs/memory-alarm-alerts.log
 MODEL     MODEL-LOADING ROUNDS HELD since 19:4xZ ([red] to belam) · lift = the MECHANICAL gate proved live: every model kid --no-model (DE's
           DH.415 fence) + model_slot.py the ONLY lift for its own child (DT) + DE's pytest fan-out fence
-CAP       spawn.memory_max = 6G per spawn scope (mem_cap.wrap_argv = systemd-run --user --scope MemoryMax + SwapMax 0) > user@ high 5246 ->
+CAP       SET 3G (10925dba7, 20:1xZ): was 6G per spawn scope (mem_cap.wrap_argv = systemd-run --user --scope MemoryMax + SwapMax 0) > user@ high 5246 ->
           a round's own cap never binds first (DE 19:48Z: why DH.419 hit DT, not its own scope) -> MINE to set from DH.421's measured
           numbers (TMM.261), then ONE line to the Prime
 TOWN      TM seated 19:44:37Z (session 222db851, cgroup session-73.scope = my gate suites are NOT billed to user@) · DT gen 34 · DE gen 25
 PASS      PASS 9 ALL DONE · everything landed after 9e16b8ed90 rides in PASS 10 (belam's 20:13Z CHECK)
 DT        has TMM.259 (its jsonl, 19:44:12Z) · owes: the model_slot lift + refusal + the probe merge-up · OSC.44 SALVAGED local 14b336809
           (TMM.257 report 19:43Z: VmHWM 2766 vs 2537 / 2714 predicted; inconclusive_lean_proved:55) -> rides its next merge-up with OSC.41
-DE        merge-up 14 GATING (below) · row 17 DONE d82d1757d (after the tip -> merge-up 15) · row 18 = DH.421 live (TasksMax on the same
+DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): TMM.262 reached it as a REAL prompt 20:28:58Z (not eaten)
+          · merge-up 14 RETURNED 20:3xZ (TMM.262, below) · row 17 DONE d82d1757d (after the tip -> merge-up 15) · row 18 = DH.421 live (TasksMax on the same
           per-spawn scope; reports the memory numbers read-only) · TMM.261 19:59Z: keyed lift = NO row (one uid: a key model_slot can read,
           a kid can read; the boundary is the cgroup) + name the strip gap in row 17's THOUGHT · DH.410 CLAUDE.md x2 -> one g7.33.17 row
 ```
 
 ## 🔴 Where it stops
-20:0xZ 09-26: GATING DE's merge-up 14 (tip a65a283a7) -- engine suite + pi-free mur running; land when both are green; MODEL-LOADING ROUNDS HELD
+20:3xZ 09-26: merge-up 14 RETURNED to DE (TMM.262, 11 verified mur residues); idle until a [merge-up] (DE's re-delivery, DT's model_slot lift) or a blocker; MODEL-LOADING ROUNDS HELD
 ```
-state   MAIN = origin + this card · last order = TMM.261 (DE) · next = TMM.262
-GATE14  M = a9aede280 (tree de0c1c1b6 = merge-tree(6df32b6ad, a65a283a7), rc 0) in /dev/shm/gate-mu14 (+ /dev/shm/tmp-mu14) · engine suite
-        pid 3200656 from 19:53:51Z -> /dev/shm/tmp-mu14/eng.log · mur-director-engine-2 (pi-free, 3 review + 3 verify) pid 3284367 from
-        19:58:50Z -> scratchpad mur14.log + .agi/sessions/workflows/runs/mur-director-engine-2/ (read each FINAL verify_*.json)
-        GREEN so far: goals 375 · links 4573/0 · evidence 0 · anonymize ok · 0 hw-name hits · 0 deletions · range files untouched on HEAD since
-        MB 46fc2b716 · DH.417 _round_committable HEAD == M on all 4364 live nodes · DH.418: local rows resolve as before (the 4 rows now
-        refused = sanctuary rows, foreign-box, skipped before _watch_one_seat) · no context/datasets/conftest in range = no torch run owed
-LAND    T2 = merge-tree(live HEAD, a65a283a7) == de0c1c1b6 (else diff = the newcomer files only) -> L = commit-tree T2 -p HEAD -p a65a283a7 ->
-        ff-only -> push (ref-update line only) -> kill procs by cwd, then remove gate-mu14 + tmp-mu14 · a red = attribute it (alone / on
-        MAIN) before returning the tip · a mur residue = DE's corrective round (never waive) · UP one line: merge-up numbers
-WAITING DT: the model_slot lift + probe merge-up (TMM.259) · DE: DH.421's numbers (spawn.memory_max) + merge-up 15 (row 17 + DH.420/421)
+state   MAIN = origin + this card · last order = TMM.262 (DE) · next = TMM.263 · UP sent 20:3xZ: [decision] spawn.memory_max 3G + mu 14 returned
+RETURN  mu 14 (a65a283a7) = DH.416-418 accept_with_residue x3 (mur-director-engine-2, verify_*.json read): 416 (1) guard narrower than S1
+        (2) stale BUILD-CONTRACT (3) kid-1 overclaim · 417 (4) CONFIG-MAX cli.py:2123 literal vs locations.schemas_root (5) silent exit-0
+        no-commit (6) bracketed + broken-neighbour tests (7) parent tier unbound (pre-commit:98) · 418 (8) a test reaches the LIVE tmux server
+        (send.py:2208 default session; fixture @777 absent, live max @14 = no pane hit) (9) unjudged hypothesis + stale lean reason (10) the
+        unreachable None branch · all (11) 3 hypotheses carry no verdict · rulings: cards NOT round-owned (doc:card- -> never_node_ids) ·
+        the seat wrap stays out (the Prime's) · gate-mu14 REMOVED -> the re-delivery gets a fresh M
+REGATE  = the same sequence on the new tip: merge-tree rc + --name-only · M in /dev/shm/gate-* · the ENGINE suite with cwd INSIDE the gate
+        tree · goals --check · links · evidence dry-run on <gate>/.agi · anonymize · live-data probes for any gate/heal change · the mur
+        (workflow.py run agi-merge-up-review --harness pi-free --args <rounds json>; detached) -> each residue CLOSED by name
+        + TMM.261's two asks rode? row 17's THOUGHT names the env-strip gap · ONE g7.33.17 row for DH.410's CLAUDE.md x2 (else re-list them)
+WAITING DT: the model_slot lift + probe merge-up (TMM.259) · DE: the re-delivery (+ row 17 d82d1757d, DH.420, DH.421 091808547)
 GATE+   the model_slot merge-up = a FIRST LIVE RUN gate: run the probe YOURSELF with no other model round live: a --no-model kid-shaped python's
         bare from_pretrained is REFUSED; the same script through model_slot.py loads under the VmHWM wrapper; a script with a bare
-        from_pretrained is refused by model_slot · the env-strip gap is KNOWN (TMM.261), not a red · then the whole .agi/context under torch
-        · then OSC.41's GO (one model round at a time)
-WATCH   DH.410's first live run = DONE (this seating): head x1 PASS · CLAUDE.md x2 -> DE's row (TMM.261)
+        from_pretrained is refused by model_slot · the env-strip gap is KNOWN (TMM.261), not a red · the model round must fit the 3G
+        per-spawn scope (OSC.44 VmHWM 2766 + pi ~170) · then the whole .agi/context under torch · then OSC.41's GO (one model round at a time)
+WATCH   spawn.memory_max 3G first live run: the next dispatched round's scope memory.max = 3072 MiB (/sys/fs/cgroup/.../user@1000.service/
+        **/run-*.scope) · PASS 10 = the Prime merges the trunk from 01:23Z 09-27 (<= 6 pi-free, ~3-4 h): no gate suite live at 01:23Z
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; the slot = a plain first line + ONE fence block)
 ```
 
@@ -172,6 +175,9 @@ suite        ON TMPFS (09-26): git worktree add --detach /dev/shm/<gate> M + TMP
              it: a test spawns pytest in its OWN session -- gen 26's orphan 2318135 reddened DT's test_suite_no_detached_spawn) · suite        env -u TMUX -u TMUX_PANE, setsid nohup in a ( subshell & ) + a pid waiter (run_in_background) · create the worktree in ITS OWN
              call · 14:25-15:28 at load 2-6 (6413 passed 00:5xZ 09-25; 14:36 at load 3-8, 6433 passed 11:59Z) · foreground sleep is blocked: wait
              with a background loop · a bare 'cd' in a Bash call can stick as the session's cwd -- use absolute paths or cd back to /data/work/agi (gen 24 did it again with a `cd .agi/worktrees && ...`: the session cwd moved; pass absolute paths instead) · grep here is UGREP: a long alternation regex fails ('exceeds complexity limits') -> extract with python re
+             · the ENGINE suite's cwd = INSIDE the gate tree (tests resolve the project root from the pytest cwd): a neutral cwd (/dev/shm/tmp-*)
+               = 33 failed + 3 errors, every one 'no .agi project root' / 'record root must resolve' (20:06Z 09-26); the neutral cwd is for
+               the osc / context runs only -> ( cd /dev/shm/<gate> && env ... setsid nohup python3 -m pytest -q -p no:cacheprovider -rf extensions/agi/tests/ )
              · pgrep -f pytest matches the claude + rotate-wrapper processes (their argv carries the startup prompt): find a live suite by
                comm + cwd (python3 in a worktree), never by the pattern count
              · a 2nd pytest in a worktree whose full suite runs = ERROR at setup (conftest _suite_lock_guard names the live pid), not a result:
