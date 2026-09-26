@@ -1115,6 +1115,7 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
                                  harness: str | None = None,
                                  bin_path: str | None = None,
                                  project_root: Path | None = None,
+                                 card_file: str | None = None,
                                  dispatch_py: str =
                                  "extensions/agi/bin/dispatch.py",
                                  cli_py: str =
@@ -1133,7 +1134,7 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
     try:
         body = brief.render(post=name, role=tier,
                             harness=harness or "claude-code",
-                            project_root=project_root)
+                            project_root=project_root, card_file=card_file)
     except (brief.RenderError, brief.FaithRefError) as exc:
         # NEVER silent (hypothesis:brief-py-assembles-every-first-turn-from-
         # config): a rotation that fell back to the legacy brief must say so.
@@ -1805,7 +1806,8 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                  rc_name: str | None = None,
                  successor_argv: str | None = None,
                  harness: str | None = None,
-                 cwd: str | None = None) -> tuple[int, str]:
+                 cwd: str | None = None,
+                 card_file: str | None = None) -> tuple[int, str]:
     """THE one launch path shared by `cmd_spawn` and `cmd_loop`
     (hypothesis:l3w4-seat-transport).
 
@@ -1912,6 +1914,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                 effort=effort,
                 settings=settings, debug_file=dbg, extra=extra,
                 harness=harness, bin_path=_bin, project_root=root,
+                card_file=card_file,
             )
         else:
             pf = Path(prompt_file).expanduser().resolve()
@@ -19559,25 +19562,26 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
               f"command(s) resolved; {mode}")
 
     # (3) spawn the successor under the SAME plain name - never a Roman numeral
-    # L4.112 (C): the template is consumed on the existing call path -- when
-    # --prompt-file is NOT given, the successor prompt is the template's
-    # brief_file with `{seat}` substituted (the director's brief is the seat's
-    # QUORUM scratchpad, .agi/sessions/quorum/{seat}.md); --prompt-file still
-    # overrides. The consume-path applies on a REAL spawn: a dry-run is a
+    # L4.112 (C): the template is consumed on the existing call path. The
+    # template's `brief_file` is the rotating post's OWN quorum card, resolved
+    # through the rename boundary (L5.11) and handed to the successor as
+    # `card_file` -- a CARD, not a prompt file -- so the successor's first turn
+    # is the ONE render (head + role template + card + harness block +
+    # trajectory) for EVERY role, prime included
+    # (hypothesis:non-prime-rotate-self-renders-through-brief-render). A prime
+    # is excluded here for a different reason than before: its cell points at a
+    # STATIC brief (extensions/agi/briefs/prime-director-successor.md), not a
+    # card, so it must not be fed as one. `--prompt-file` still overrides.
+    # The consume-path applies on a REAL spawn: a dry-run is a
     # refusal/planning check (the top print already shows brief=), and the
     # template tests are hermetic -- their brief paths are not materialised.
     # The real spawn is where the file-existence gate in spawn_window lives.
     prompt_file = args.prompt_file
+    card_file = None
     if (not args.dry_run and prompt_file is None
             and role != "prime_director"
             and tmpl is not None and tmpl.get("brief_file")):
-        # A prime seat is DELIBERATELY excluded: its body is the assembled
-        # render (head + the role template + doc:card-<post> + the town
-        # trajectory), selected by spawn_window's no-prompt-file branch, so
-        # resolving the template's static brief_file here would bypass the
-        # render AND lose the card once the [handoff-head] first_turn entry
-        # is gone (hypothesis:brief-py-assembles-every-first-turn-from-config).
-        # L5.11: resolve the template brief through the post's OWN tree, so
+        # L5.11: resolve the template card through the post's OWN tree, so
         # the successor reads the same card the boundary renames -- never a
         # CWD coincidence. At a rename boundary the card was renamed under
         # the PRE-rename row's tree (`_applied_rename["old"]`); the `{seat}`
@@ -19585,7 +19589,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # disk. `--prompt-file` still overrides (it never enters this branch)
         # and is not re-rooted.
         _brief_root_seat = (_applied_rename or {}).get("old") or seat
-        prompt_file = _resolve_brief_file(
+        card_file = _resolve_brief_file(
             root, _brief_root_seat,
             str(tmpl["brief_file"]).replace("{seat}", seat))
     if ask_diff:
@@ -19703,7 +19707,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _rc_label = _session_label(row, gen)
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
-        prompt_file=prompt_file,
+        prompt_file=prompt_file, card_file=card_file,
         model=args.model or ((row.get("model") if row else None) or None),
         effort=args.effort or ((row.get("effort") if row else None) or None),
         settings=(json.loads(args.settings) if args.settings
