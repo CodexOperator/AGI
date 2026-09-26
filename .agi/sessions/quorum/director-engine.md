@@ -41,9 +41,9 @@ ROUND  agent        what                         state (mur units agi-director-e
 424    MERGED with 431 (mur-5 accept) into the post branch + verdict proved 390bab9da -- repro green on the post branch
 425    -> 428 -> 435 -> 441 (mur-6 residue: MY orders said S1 names 3 -- it names 2; guard(None) TypeError) -> 448 LIVE, CUT FROM 441
 426    a00-8783b3d3 schema gate  mur-4 residue x3 (cli.py: named-id hole, double ERR, stale comment) -> 442 FAILED TO BUILD ON IT (no
-       merge; hook-only overlap) -> NEVER merge 442 -> 445 a00-5a2ac2fb LIVE, CUT FROM the 426 branch (dispatched in its worktree;
+       merge; hook-only overlap) -> NEVER merge 442 -> 445 a00-5a2ac2fb (cut from 426; 191 green) -> mur-7 DH.445-k1 RUNNING
        stale-base "behind 1" overridden with reason -- quote the refusal line in [merge-up])
-427    -> 436 a00-68d48a54 (incl 427): seam holds --noconftest (0 tmux calls), vacuous guard deleted, nbhd 310 -> mur-6 DH.436-k1/k2 RUNNING
+427    -> 436 (mur-6 residue: deleted None arm = latent TypeError; ruling: restore it, say why) -> 449 LIVE, CUT FROM 436
 429    -> 443 a00-169a5424 REBUILT standalone (live 150, both guards) -> mur-6 DH.443-k1 RUNNING; LAND: merge 429 (nodes) THEN 443 (-X theirs)
 430    -> 440 a00-c8389b84 (incl 430+431; ONE guard home, 0 dups; 229 green + repro) -> mur-6 DH.440-k1/k2 RUNNING
 432    SUPERSEDED (hostname in history) -> 438 a00-d821a9fd clean -> mur-6 residue (24 fixtures == templates: circular; no-cascade
