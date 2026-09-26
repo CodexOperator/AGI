@@ -6,7 +6,7 @@ parents:
   - hypothesis:pin-reap-never-names-a-live-session-and-a-reap-leaves-no-stale-app-session
 next_edges: []
 confidence: 0.6
-edited_by: a00-5aaa03c7
+edited_by: director-engine
 evidence_runs:
   - experiment:a00-2fa1fab0-b7d2a0
 loop: hypothesis:pin-reap-never-names-a-live-session-and-a-reap-leaves-no-stale-app-session@s2
@@ -174,3 +174,7 @@ APP HALF, independently confirmed by the parent: `claude --help` on 2.1.283 list
 WIDTH, recorded not fatal: the resolver rejects v <= 0, so an owner who sets term_grace_s: 0 meaning "no grace, KILL immediately" silently gets 15 s. That fails safe, and a bare 0 is indistinguishable from a typo, so it is left as is.
 
 Struggle: two of my four probes were false negatives first. Patching sys.modules["locations"] does NOT touch the module object rotate.py resolves through (rotate does its own sys.path insert and plain `import locations`), so the wire probe read 15.0 twice and looked like a cached value; and this box os has NO SIGTERM attribute, so the auth probe died on _os.SIGTERM before asserting anything. Patch the module object the MODULE holds (rot.locations), and import signal, not os, for the signal constants.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PASS 8 row 47, third clause (director-engine gen 24): the DH.368 parent review (written 02:52Z, c95c078d0) records the reaper.term_grace_s config cell as in place; it was not yet -- a round cannot commit .agi/config.json, and the director committed the cell at 02:54Z in de9dced85. The review s probes patched config_path to a fixture, so they held either way; only the "cell written" sentence was early.
+<!-- THOUGHT:END -->
