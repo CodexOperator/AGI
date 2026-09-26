@@ -68,7 +68,10 @@ anon      an anonymize REFUSED names a class: locate it in-process; never type a
     DE's guard closing the tmp_path hole (TMM.235), not a defect. PASS 9 CLOSED 17:23Z (TMM.242). (3) re-measured 17:42Z: hard 1859 + 2249 = 4108 < 4734,
     P8.03 DONE (P8.11, merged 2d45cc999 + ledger carry 788798a13): VmHWM 2537 vs predicted 2249 (+288, MISSED 10 pct in RSS; held in cgroup-hard),
     run-scope peak 2386, user@ peak 5331 unmoved, user@ hard at peak 4068 < 4734. Artifact 11x48 own rows. REPORTED to TM 17:5xZ.
-    NEXT: TM's order for P8.04 / OSC.40 r2 / OSC.41 -- ONE at a time, each re-reads (3) before dispatch; use 2537 as the RSS peak. Then, after PASS 9 + (3): P8.03 FIRST,
+    TMM.245 GO: SERIAL P8.04 -> OSC.40 r2 -> OSC.41; before EACH dispatch hard < 2197 (hard + 2537 < 4734) else hold + tell TM; stop rules
+    MemAvailable < ~4.6 GiB or a memory_alarm WARN; ONE report line per round (VmHWM + user@ hard peak + min MemAvailable). P8.03 node body fixed 38174110c.
+    P8.04 IN FLIGHT: iter P8.12, parent a00-a0e8250e pid 1653216, orders P8.04b.parent.txt (hard 1945 at dispatch). Its 12 random rows must EQUAL the
+    committed fp32 ones (end-to-end loader proof). NEXT: kill -0 until gone -> review -> merge -> report -> OSC.40 r2 (orders OSC40b + LOW-PEAK block). Then, after PASS 9 + (3): P8.03 FIRST,
     ONE round, its VmHWM + scope memory.peak vs predicted 2249 MiB -> TM, BEFORE the other 3 (TMM.230 cond. 3).
     stopped round worktrees kept as prior art: a00-0491190a (OSC.40 r2 script), a00-caa7f0fe (OSC.41 script)
 ```
