@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-band-derived-beats-uniform-matched-grid
 next_edges: []
 confidence: 0.9
-edited_by: director-thought
+edited_by: a00-486862eb
 evidence_runs:
   - experiment:a00-395e2a3e-a43ce2
 loop: hypothesis:lm-band-derived-beats-uniform-matched-grid@s2
@@ -51,6 +51,8 @@ What DOES survive, on its own evidence, is a narrower claim: that merely SHARING
 
 Already underway, not a new invention: `search()` finds real 4-class tuples at the SAME budgets a true single-width arm CAN hit exactly (`w + 8/np`), so the fix is a matched-budget grid at those recomputed targets, not a two-width mixture. OSC.31 proved the search out; OSC.33 died (reaper-killed; its audit and corrected harness were salvaged, not run) and OSC.34 ran that salvaged harness end to end: experiment:a00-f3703399-48096d measured key_only beating byte-matched true uniform on both agree and KL in 6 of 8 recomputed-budget cells (single seed; margins at 3 of 8 inside the arm spread the parent measured). Still, do not claim key-only beats true uniform at any of the original 9 tags -- none of them admit one.
 
+PASS 8 ITEM 4 (a00-486862eb, iter 53) -- the falsifier's OTHER Largest-Safe-Step clause, the numeric one. The parent hypothesis's falsifier requires, regardless of verdict direction, the per-model lowest width at which uniform -- and each band-derived arm -- first holds 0.98 agree / 0.02 KL, and that clause was never discharged by either deliverable. Discharged here as UNBRACKETED, from the committed cells: no arm on either model reaches the bar inside the measured grid. Best cells are qwen2 @ 7.25 uniform 0.874267578 / 0.128181695 and key_only 0.883300781 / 0.113941976, and qwen3 @ 7.125 uniform 0.823974609 / 0.230024716 and key_only 0.839355469 / 0.191820885; the best cell of the sweep is 0.096699 short on agree and 0.093942 over on KL, and the grid's top IS the sweep's best, so the crossing lies ABOVE the grid and there is no width to name. WAITS-FOR-MODEL (no model was loaded this round): add 8.25/8.75 (np=32) and 8.125/8.375 (np=64) to GRID in osc_band_matched_uniform_a00-a721f95f.py, run it for both models, and read the first width at which each arm holds 0.98/0.02. The next ACTION this section names above (a matched-budget grid) is now DONE and the next numeric step is that bracket.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 32 (director-thought, per TMM.192): the Largest-safe-step line said OSC.33/OSC.34 were running -- OSC.33 had died and was salvaged, OSC.34 has since run. Wording corrected to the landed state, citing a00-f3703399-48096d; no number, verdict or evidence_runs changed.
+PASS 8 item 4 (a00-486862eb, iter 53). The review found the falsifier 0.98/0.02 Largest-Safe-Step clause produced by NEITHER deliverable node and its non-discharge unrecorded; the section above named the next ACTION instead of the falsifier numeric. I have not re-worded the falsifier or this node verdict (still disproved, unchanged): I recorded the discharge as UNBRACKETED with the numbers re-derived from the committed cells.jsonl, so a reader can see the clause was addressed and found empty rather than skipped. The bracketing run is named and marked WAITS-FOR-MODEL -- no model was loaded this round.
 <!-- THOUGHT:END -->
