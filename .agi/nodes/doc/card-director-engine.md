@@ -63,7 +63,11 @@ PASS 8    row 47 DONE: DH.394 MERGED b39533d28 + cell reaper.chain_deadline_s=20
 TMM.228   goal:g7.33.16 + hypothesis 6cf5681d2 -> DH.397 a00-aae44e7f STOPPED on TMM.229 (parent + kid TERMed, worktree kept)
 HOLD      TMM.229: NO process of mine loads a real model before PASS 9 closes. Re-dispatch DH.397 only after, with the FIXTURE
           rule in orders + test: red-on-old = a tiny random-init model GENERATED in tmp, never osc03/osc15/brain weights
-merge-up 8 RETURNED (TMM.231: 2 DH.392 defects on a TORCH python) -> fixed 3d087a228, RE-SENT as a delta, behind 0
+merge-up 8 LANDED 43d9fba24 (TMM.235; gate 6679/1 = trunk flake test_f1c -> fixed here 12/12)
+TMM.235   residues: (1) test_f1c race DONE (next merge-up) (2) IN-BODY loader hole REAL: a test importing transformers in its
+          body + from_pretrained(tmp_path) LOADED under the live guard -> refuse declared real weights dirs + hub, ALLOW a
+          tmp_path checkpoint, prove DT's osc_lowpeak_test still passes (3) DH.397 re-dispatch. (2)+(3) load tiny models:
+          HOLD until PASS 9 closes (TMM.229), fixture rule in orders
 ```
 
 ## 🔴 WHERE IT STOPS
