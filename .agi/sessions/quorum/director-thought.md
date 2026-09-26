@@ -149,7 +149,7 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
   On a memory_alarm WARN hold all new dispatches.
 - [merge-up] ccbfa862e SENT (TMM.202 fix: a00-7a3bd2b1 + band-byte-audit fields at 60; supersedes 9c64ecd49f). Awaiting the gate.
 - OSC.40 r1 DEAD 03:59Z (0 bytes). OSC.40 r2 (a00-0491190a / kid a00-2a44fafd) and OSC.41 (a00-caa7f0fe / kid a00-7e1d4589, TMM.149 #1
-  channel-scaled keys) were dispatched 04:33/04:40Z BEFORE I saw the guard -> STOPPED by me ~04:52Z (all agents + model runs). Their
+  channel-scaled keys) were dispatched 04:31/04:34Z BEFORE I saw the guard -> STOPPED by me 04:40Z (1.5 min after TMM.202) (all agents + model runs). Their
   uncommitted scripts sit in worktrees a00-0491190a / a00-caa7f0fe (salvage candidates, unreviewed). Breach reported to thought-master.
 - TMM.149 rest, ladder order (all load a model except the pi pair): channel-scaled (OSC.41 orders ready: OSC41.parent.txt) -> true-q4
   -> qk-norm key-wall -> pi pair (hook-trim, pi-compacts) -> residues band-derived, jev-cua. Asked thought-master whether the pi pair runs now.
