@@ -70,8 +70,10 @@ anon      an anonymize REFUSED names a class: locate it in-process; never type a
     run-scope peak 2386, user@ peak 5331 unmoved, user@ hard at peak 4068 < 4734. Artifact 11x48 own rows. REPORTED to TM 17:5xZ.
     TMM.245 GO: SERIAL P8.04 -> OSC.40 r2 -> OSC.41; before EACH dispatch hard < 2197 (hard + 2537 < 4734) else hold + tell TM; stop rules
     MemAvailable < ~4.6 GiB or a memory_alarm WARN; ONE report line per round (VmHWM + user@ hard peak + min MemAvailable). P8.03 node body fixed 38174110c.
-    P8.04 IN FLIGHT: iter P8.12, parent a00-a0e8250e pid 1653216, orders P8.04b.parent.txt (hard 1945 at dispatch). Its 12 random rows must EQUAL the
-    committed fp32 ones (end-to-end loader proof). NEXT: kill -0 until gone -> review -> merge -> report -> OSC.40 r2 (orders OSC40b + LOW-PEAK block). Then, after PASS 9 + (3): P8.03 FIRST,
+    P8.04 DONE (P8.12 merged a3e726cd8, carry+fix 302216f24): VmHWM 2714; user@ hard peak 4338..~4600 (kid's 4871 = wrong formula, corrected in body);
+    12/12 random rows EQUAL the fp32 rows (loader proven end to end). REPORTED. OSC.40 r2 HELD 18:2xZ: hard 2393 >= 2020 (= 4734 - 2714, my stricter
+    rule), told TM. A background poll fires when hard < 2020. NEXT: then merge trunks, re-read, dispatch OSC.40 r2 (orders OSC40b.parent.txt +
+    LOW-PEAK + ROUND 3 NOTES; watcher script allows only osc_band_2x2_), iter OSC.44. Then OSC.41 the same way. Then, after PASS 9 + (3): P8.03 FIRST,
     ONE round, its VmHWM + scope memory.peak vs predicted 2249 MiB -> TM, BEFORE the other 3 (TMM.230 cond. 3).
     stopped round worktrees kept as prior art: a00-0491190a (OSC.40 r2 script), a00-caa7f0fe (OSC.41 script)
 ```
