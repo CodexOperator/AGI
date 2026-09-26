@@ -222,9 +222,12 @@ CHANGING MY OWN BASH SHELL'S cwd VIA A BARE `cd X &&` IN ONE TOOL CALL PERSISTS 
 ## BANKED
 - The config.json/workflow-template box-path bug -- RESOLVED to a live round: minted goal:g7.33.14
   under goal:g7.33 (thought-master TMM.183 confirmed the home), now the target of the owner-directed
-  parent-swarm trial (DH.364/365/366, room swarm-g73314). The swarm's own LAP0/1 already found the
-  real fix mechanism ({project_root}, already wired in render_stage_prompt) and a paths.py audit
-  blindspot -- ahead of my own survey. Report owed at the swarm's merge-up.
+  parent-swarm trial (DH.364/365/366, room swarm-g73314). Parent 3 (DH.366) DONE: 3/3 kids accepted,
+  0 demoted, 0 failed. Parents 1+2 (DH.364/365) showed manifest status=stalled ~23:5xZ but were
+  CONFIRMED still alive via `ps` (40+ min elapsed, real detached processes) -- each mid its own
+  full-suite pytest verification pass, likely tripping a stall-detector on quiet stdout rather than
+  real death; not intervened on, noted to the room for the trial's own report. Harvest of all 3 (esp.
+  parent 3's 3 kids) still owed next session.
 - `rotate.py ack`'s refusal on my own gen-20 row -- RESOLVED this session: thought-master (TMM.183)
   confirmed a separate crash-recovery commit swept the dirty row into HEAD; ack now succeeds
   (pid/session_id/name/ref back-filled). Its own printed `git push` line was NOT run (never push
@@ -236,14 +239,23 @@ CHANGING MY OWN BASH SHELL'S cwd VIA A BARE `cd X &&` IN ONE TOOL CALL PERSISTS 
   registration) -- mint as its own follow-up hypothesis, do not reopen the landed one.
 - belam's two goal:g6.41 hypotheses (heal-lands-a-reseat-after-a-tmux-server-restart;
   a-reboot-brings-the-town-back-without-a-human) -- bodies already written, ready to dispatch
-  pi-free; still not started this session (the swarm trial + the brief.py fix took priority as
-  more directly owner-directed and time-sensitive).
+  pi-free; still not started (swarm + brief.py fix + PASS 7 took priority, all more directly
+  owner/Prime-directed).
 - config:brief's `extras.parent` = the two schema paths -- BLOCKED on prime/owner authority
   (L4.110 ring-gate), not on me. brief.py's own half of the fix (extras text composition + a
   context/-file ref) is committed (d470b0de79) and tested. Exact JSON handed to belam.
 - hypothesis:key-row-publish-appends-instead-of-refusing-on-an-unrecognized-own-row (TMM.166/174),
   goal:g1.14.1 fresh dispatch, PASS 6 defect 3 -- unchanged from gen 19, still owed in that order.
-
+- NEW 2026-09-26 00:0xZ (belam, PASS 7 closeout): hypothesis:pass7-0926-residue-batch (goal:g1,
+  commit f22a49b85d on origin/local-maxxing/season2/main -- already pushed, safe regardless of
+  this card) assigns director-engine 3 NEW code-defect hypotheses (grid-sync-survives-a-project-
+  without-push-batch-limit, grid.py:190 hard exit on the cron path; mem-cap-probe-cache-is-private-
+  and-atomic, mem_cap.py:79 predictable non-atomic /tmp; launch-memory-cap-tests-never-touch-real-
+  systemd, test_launch_memory_cap.py:121) + follow-ups on 3 existing hypotheses (rotate cmd_handoff
+  flatten; workflow.py:2175 falsy arg; brainstorm stage map) + 7 node-text rows incl. the
+  write-py-set DEMOTE. Explicitly queued BEHIND the re-seat + swarm work, owner's own ordering
+  ("as you judge"); not started, not triaged in detail -- read hypothesis:pass7-0926-residue-batch
+  fully before starting any of it, do not work from this summary alone.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Gen 20 opened as a genuine crash-recovery, not a normal rotation: the tmux-hosted automated seat
