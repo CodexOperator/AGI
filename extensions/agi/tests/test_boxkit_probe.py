@@ -20,6 +20,14 @@ import fake_systemctl  # noqa: E402
 CELLS = {"install_root": "/", "sbin_dir": "usr/local/sbin",
          "systemd_system_dir": "etc/systemd/system", "systemd_conf_dir": "etc/systemd",
          "user_systemd_dir": "{home}/.config/systemd/user", "watchdog_conf": "etc/watchdog.conf"}
+# the SIZING cells the probe judges against, read at runtime and UNIT-NORMALISED
+# ("1024M" parses; it never string-compares against a parsed value)
+VALUES = {"user_high_ratio": 0.9, "swap_ratio": 0.5, "agi_high_ratio": 0.63,
+          "agi_max_ratio": 0.7, "MEM_LOW": "1024M", "USER_TASKS": "16384",
+          "SYSTEM_MIN": "128M", "OOM_POLICY": "continue", "OOMD_SWAP_PCT": "90",
+          "OOMD_PRESSURE_PCT": "60", "OOMD_PRESSURE_SEC": "20s"}
+HELD = 0.0                  # MiB held outside user@ on the fixture box
+HELD_FLAG = ["--held-outside-user-mib", str(HELD)]
 BASE = 7365.0                 # MiB, the INSTALLED user@ MemoryMax the stub reports
 MEMTOTAL = BASE + 1911.0      # MiB, MemTotal the fixture /proc carries
 SWAP = 4095.0                 # MiB
@@ -74,6 +82,7 @@ def _fixture(tmp: pathlib.Path, monkeypatch, factory=None, base=BASE, memtotal=M
     (agi / "nodes" / ".geometry").mkdir(parents=True)
     (agi / "config.json").write_text(json.dumps({
         "paths": {"boxkit": dict(CELLS, templates_dir="templates")},
+        "values": {"boxkit": dict(VALUES), "memcap": {"tasks_max": 150}},
         "spawn": {"memory_max": "2G", "tasks_max": 150}}))
     (agi / "nodes" / ".geometry" / "crons.md").write_text(
         "---\nid: cron:crons\ntype: cron\ncadences:\n  memory_alarm:\n"
@@ -138,9 +147,16 @@ def _verb(argv):
     return argv[argv.index("--user") + 1] if "--user" in argv else argv[0]
 
 
+def _run(agi, root, shim, extra=()):
+    """The one way the tests call the probe: the held-outside flag is passed
+    explicitly, so a missing one is a test's own doing and never a default."""
+    return probe.main(["--root", str(agi), "--install-root", str(root),
+                       "--systemctl", str(shim)] + HELD_FLAG + list(extra))
+
+
 def test_clean_table_exits_zero(tmp_path, monkeypatch, capsys):
     agi, root, shim = _fixture(tmp_path, monkeypatch)
-    assert probe.main(["--root", str(agi), "--install-root", str(root), "--systemctl", shim]) == 0
+    assert _run(agi, root, shim) == 0
     out = capsys.readouterr().out
     assert "DRIFT" not in out and "UNKNOWN" not in out, out
     assert "user@ MemoryHigh" in out and "oomd SwapUsedLimit" in out
@@ -152,14 +168,14 @@ def test_one_drift_exits_one_naming_the_row(tmp_path, monkeypatch, capsys):
     fact = json.loads(os.environ["PROBE_FACTORY"])
     fact["system"][f"user@{os.getuid()}.service"]["MemoryHigh"] = f"{int(BASE * 0.9) + 1}M"
     os.environ["PROBE_FACTORY"] = json.dumps(fact)
-    assert probe.main(["--root", str(agi), "--install-root", str(root), "--systemctl", shim]) == 1
+    assert _run(agi, root, shim) == 1
     assert "DRIFT: user@ MemoryHigh" in capsys.readouterr().out
 
 
 def test_a_drifted_drop_in_file_is_its_own_row(tmp_path, monkeypatch, capsys):
     agi, root, shim = _fixture(tmp_path, monkeypatch)
     (root / f"etc/systemd/system/user@{os.getuid()}.service.d/50-sanctuary-guard.conf").write_text("")
-    assert probe.main(["--root", str(agi), "--install-root", str(root), "--systemctl", shim]) == 1
+    assert _run(agi, root, shim) == 1
     assert "DRIFT: user@ drop-in" in capsys.readouterr().out
 
 
@@ -171,7 +187,7 @@ def test_user_at_is_asked_of_the_system_manager(tmp_path, monkeypatch):
     unit = f"user@{os.getuid()}.service"
     asks = [c for c in _calls(tmp_path) if c[-1] == unit and _verb(c) == "show"]
     assert asks and all("--user" not in c for c in asks), asks
-    assert probe.main(["--root", str(agi), "--install-root", str(root), "--systemctl", shim]) == 0
+    assert _run(agi, root, shim) == 0
 
 
 def test_agi_slice_is_asked_of_the_user_manager(tmp_path, monkeypatch):
@@ -187,7 +203,7 @@ def test_a_wrong_manager_answer_can_never_read_ok(tmp_path, monkeypatch):
     agi, root, shim = _fixture(tmp_path, monkeypatch)
     monkeypatch.setattr(probe, "run", lambda systemctl, argv: (
         "infinity\n" if "--user" in argv else "infinity\n"))
-    table = _by_name(probe.rows(agi, root, shim))
+    table = _by_name(probe.rows(agi, root, shim, HELD))
     assert table["user@ MemoryHigh"][1] is None
     assert table["user@ MemoryHigh"][2] != "ok"
 
@@ -208,8 +224,8 @@ def test_judging_uses_the_installed_max_not_a_constant(tmp_path, monkeypatch):
         fact["system"][f"user@{os.getuid()}.service"][prop] = f"{int(BASE * frac)}M"
     fact["system"][f"user@{os.getuid()}.service"]["MemoryMax"] = f"{int(6912.0)}M"
     os.environ["PROBE_FACTORY"] = json.dumps(fact)
-    assert probe.main(["--root", str(agi), "--install-root", str(root), "--systemctl", shim]) == 1
-    table = _by_name(probe.rows(agi, root, shim))
+    assert _run(agi, root, shim) == 1
+    table = _by_name(probe.rows(agi, root, shim, HELD))
     assert table["reserve (derived, informational)"][0] == pytest.approx(942.0)
     assert probe.as_mib(table["user@ MemoryMax"][0]) == pytest.approx(6912.0)
 
@@ -224,7 +240,7 @@ def test_only_read_verbs_reach_systemctl_and_nothing_is_written(tmp_path, monkey
         return h.hexdigest()
 
     before = tree_hash(root)
-    probe.main(["--root", str(agi), "--install-root", str(root), "--systemctl", shim])
+    _run(agi, root, shim)
     calls = _calls(tmp_path)
     assert calls and all(_verb(c) in ("show", "is-active") for c in calls), calls
     assert tree_hash(root) == before, "the probe wrote under install_root"
@@ -237,17 +253,17 @@ def test_no_finite_base_is_not_ok(tmp_path, monkeypatch, capsys):
     fact = json.loads(os.environ["PROBE_FACTORY"])
     fact["system"][f"user@{os.getuid()}.service"].pop("MemoryMax")
     os.environ["PROBE_FACTORY"] = json.dumps(fact)
-    assert probe.main(["--root", str(agi), "--install-root", str(root), "--systemctl", shim]) == 1
-    table = _by_name(probe.rows(agi, root, shim))
+    assert _run(agi, root, shim) == 1
+    table = _by_name(probe.rows(agi, root, shim, HELD))
     assert table["user@ MemoryHigh"][1] is None
     assert table["user@ MemoryHigh"][2] in ("DRIFT", "UNKNOWN")
-    assert table["reserve (derived, informational)"][0] is None
+    assert table["reserve (derived, informational)"][0] == "UNKNOWN"
 
 
 def test_missing_drop_in_is_a_drift(tmp_path, monkeypatch):
     agi, root, shim = _fixture(tmp_path, monkeypatch)
     (root / f"etc/systemd/system/user@{os.getuid()}.service.d/50-sanctuary-guard.conf").unlink()
-    table = _by_name(probe.rows(agi, root, shim))
+    table = _by_name(probe.rows(agi, root, shim, HELD))
     assert table["user@ drop-in"][2] == "DRIFT"
 
 
@@ -255,5 +271,113 @@ def test_mem_cap_row_comes_from_the_cache_not_a_spawn(tmp_path, monkeypatch):
     monkeypatch.delenv("AGI_MEMCAP_SYSTEMD_RUN", raising=False)
     monkeypatch.setattr(probe.mem_cap, "_read_cached_probe", lambda cfg: True)
     agi, root, shim = _fixture(tmp_path, monkeypatch)
-    table = _by_name(probe.rows(agi, root, shim))
+    table = _by_name(probe.rows(agi, root, shim, HELD))
     assert table["mem_cap.systemd_run_usable"] == (True, True, "ok")
+
+
+# --- the four closes of DH.439 --------------------------------------------
+
+def test_reserve_is_unknown_without_the_flag_and_never_passes(tmp_path, monkeypatch, capsys):
+    """`held_outside_user_mib` is a PER-BOX INPUT with no config cell, so it is a
+    required flag: absent -> the row is UNKNOWN, prints no number, exits 3."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    rc = probe.main(["--root", str(agi), "--install-root", str(root), "--systemctl", str(shim)])
+    out = capsys.readouterr().out
+    assert rc == 3, out
+    assert "reserve (derived, informational)" in out and "UNKNOWN" in out
+    got = _by_name(probe.rows(agi, root, shim))["reserve (derived, informational)"]
+    assert got == ("UNKNOWN", "UNKNOWN", "UNKNOWN"), got
+
+
+def test_the_reserve_is_memtotal_minus_held_minus_the_installed_max(tmp_path, monkeypatch):
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    table = _by_name(probe.rows(agi, root, shim, 2000.0))
+    assert table["reserve (derived, informational)"][0] == pytest.approx(MEMTOTAL - 2000.0 - BASE)
+
+
+def test_a_target_cell_is_read_from_the_config_and_unit_normalised(tmp_path, monkeypatch):
+    """The same value in BYTES and in "1024M" is the same target: a string cell
+    PARSES.  Change the cell and the row's want moves with it."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    want = _by_name(probe.rows(agi, root, shim, HELD))["user@ MemoryLow"][1]
+    assert probe.as_mib(want) == pytest.approx(1024.0), want
+    cfg = json.loads((agi / "config.json").read_text())
+    cfg["values"]["boxkit"]["MEM_LOW"] = str(1024 * 1024 * 1024)      # bytes, not "1024M"
+    (agi / "config.json").write_text(json.dumps(cfg))
+    assert _by_name(probe.rows(agi, root, shim, HELD))["user@ MemoryLow"][2] == "ok"
+    cfg["values"]["boxkit"]["MEM_LOW"] = "2048M"
+    (agi / "config.json").write_text(json.dumps(cfg))
+    assert _by_name(probe.rows(agi, root, shim, HELD))["user@ MemoryLow"][2] == "DRIFT"
+
+
+def test_a_percent_cell_and_a_percent_drop_in_are_the_same_target(tmp_path, monkeypatch):
+    """The live box's finding: the cell is '90', the drop-in writes '90%'.  A
+    string compare drifts on the '%' and that drift is noise, not a fact."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    assert _by_name(probe.rows(agi, root, shim, HELD))["oomd SwapUsedLimit"][2] == "ok"
+    cfg = json.loads((agi / "config.json").read_text())
+    cfg["values"]["boxkit"]["OOMD_SWAP_PCT"] = "90%"      # the other spelling
+    (agi / "config.json").write_text(json.dumps(cfg))
+    assert _by_name(probe.rows(agi, root, shim, HELD))["oomd SwapUsedLimit"][2] == "ok"
+    cfg["values"]["boxkit"]["OOMD_SWAP_PCT"] = "80"       # a real difference
+    (agi / "config.json").write_text(json.dumps(cfg))
+    assert _by_name(probe.rows(agi, root, shim, HELD))["oomd SwapUsedLimit"][2] == "DRIFT"
+
+
+def test_a_row_with_no_target_cell_is_info_and_never_ok(tmp_path, monkeypatch, capsys):
+    """A cell the kit does not carry is INFORMATION.  It may not read `ok`."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    cfg = json.loads((agi / "config.json").read_text())
+    cfg["values"]["boxkit"].pop("SYSTEM_MIN")
+    (agi / "config.json").write_text(json.dumps(cfg))
+    assert _run(agi, root, shim) == 0             # info does not fail the table
+    table = _by_name(probe.rows(agi, root, shim, HELD))
+    assert table["system.slice MemoryMin"][1] is None
+    assert table["system.slice MemoryMin"][2] == "info"
+    line = [ln for ln in capsys.readouterr().out.splitlines()
+            if ln.startswith("system.slice MemoryMin ")][0]
+    assert not line.endswith(" ok"), line
+
+
+def test_spawn_rows_target_the_config_and_the_resolvers_not_a_literal(tmp_path, monkeypatch):
+    """No "2G" / 150 literal here: the row is declared cell vs mem_cap's
+    resolver, so a config the resolvers do not honour is DRIFT."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    assert _by_name(probe.rows(agi, root, shim, HELD))["spawn.memory_max"][2] == "ok"
+    cfg = json.loads((agi / "config.json").read_text())
+    cfg["spawn"]["memory_max"] = "3G"             # the cell IS the target: still ok
+    (agi / "config.json").write_text(json.dumps(cfg))
+    assert _by_name(probe.rows(agi, root, shim, HELD))["spawn.memory_max"][2] == "ok"
+    cfg["values"]["memcap"]["tasks_max"] = 96     # the resolver disagrees with the cell
+    (agi / "config.json").write_text(json.dumps(cfg))
+    table = _by_name(probe.rows(agi, root, shim, HELD))
+    assert table["spawn.tasks_max"] == (150, 96, "DRIFT"), table["spawn.tasks_max"]
+    assert _run(agi, root, shim) == 1
+
+
+def test_a_write_shaped_answer_is_data_never_executed(tmp_path, monkeypatch, capsys):
+    """The hostile systemctl: it answers a string cell with a command.  The
+    probe must print it, judge it, and never run it -- the canary survives."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    canary = tmp_path / "CANARY"
+    payload = f"systemctl stop agi-memguard.service; touch {canary}"
+    fact = json.loads(os.environ["PROBE_FACTORY"])
+    fact["user"]["streamer-stub.service"]["OOMPolicy"] = payload
+    os.environ["PROBE_FACTORY"] = json.dumps(fact)
+    rc = _run(agi, root, shim)
+    out = capsys.readouterr().out
+    assert rc == 1 and "DRIFT: OOMPolicy streamer-stub" in out, out
+    assert payload in out                      # printed as a value ...
+    assert not canary.exists()                 # ... and never as a command
+
+
+def test_a_mutation_verb_never_reaches_the_box():
+    """Fail-closed in code: probe.run refuses any verb outside READ_VERBS, so a
+    future row cannot smuggle a write through the one systemctl door.  No
+    fixture: the guard fires BEFORE any subprocess, and on a box where fork is
+    unavailable _fixture replaces probe.run with the in-process stub."""
+    for bad in (["restart", "agi.slice"], ["--user", "set-property", "agi.slice", "x=y"],
+                ["daemon-reload"], ["enable", "agi-memguard"], ["stop", "agi-memguard"]):
+        with pytest.raises(ValueError):
+            probe.run("/bin/false", bad)      # a verb that would fail if it ran
+    assert probe.READ_VERBS == ("show", "is-active")
