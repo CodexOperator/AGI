@@ -38,3 +38,12 @@ def test_live_config_declares_the_term_grace_cell():
     cfg = json.loads((ENGINE_ROOT / ".agi" / "config.json").read_text(
         encoding="utf-8"))
     assert cfg["reaper"]["term_grace_s"] == 15.0
+
+
+def test_live_config_declares_the_chain_deadline_cell():
+    """`reaper.chain_deadline_s` is in the REAL .agi/config.json: the whole
+    reap chain is bounded by one cell an operator can move, not by N x the
+    per-pid term grace."""
+    cfg = json.loads((ENGINE_ROOT / ".agi" / "config.json").read_text(
+        encoding="utf-8"))
+    assert cfg["reaper"]["chain_deadline_s"] == 20.0
