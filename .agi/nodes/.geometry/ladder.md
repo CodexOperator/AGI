@@ -14,6 +14,7 @@ caps_apply_from_season: 2
 caps_vision_scope: town
 captive_rotate_masters: false
 captive_rotate_ratio: 0.85
+capture_chain_log: capture-chain.log
 card_capture_minutes: 10
 current_loop: 5
 current_season: 2
