@@ -137,6 +137,8 @@ def main() -> int:
         return _main_sweep()
     if len(sys.argv) > 1 and sys.argv[1] == "pin-reap":
         return _main_pin_reap()
+    if len(sys.argv) > 1 and sys.argv[1] == "session-reap":
+        return _main_session_reap()
     return _main_heal()
 
 
@@ -161,6 +163,98 @@ def _main_pin_reap() -> int:
     root = locations.find_project_root(given) or given
     _pin_reap_pass(root, registry_dir=args.registry_dir,
                    window_path=args.window_path, mode="dry-run")
+    return 0
+
+
+# --- session-reap (hyp:heal-reaps-only-exited-bg-sessions-in-kid-worktrees) --
+# Kid-worktree NAME grammar: `a00-` + 8 hex, anchored BOTH ends (no `a00x-`).
+_KID_WORKTREE_RE = re.compile(r"^a00-[0-9a-f]{8}$")
+_REAP_EXITED = frozenset({"done", "stopped", "exited", "completed", "finished"})
+
+def _reap_argv(claude_bin: str, sid: str) -> list[str]:
+    """THE ONE place a `claude rm` argv is built: bare `rm <id>`, NEVER
+    --discard-unpushed / --force-remove-worktree."""
+    return [claude_bin, "rm", sid]
+
+
+def _claude_agents(claude_bin: str) -> list[dict]:
+    """THE SEAM: the ONE place `claude` is spawned; fake on PATH only (TMM.202)."""
+    out = subprocess.run([claude_bin, "agents", "--json", "--all"],
+                         capture_output=True, text=True, timeout=60)
+    data = json.loads(out.stdout or "[]")
+    if isinstance(data, dict):
+        data = data.get("sessions") or data.get("agents") or []
+    return [r for r in data if isinstance(r, dict)]
+
+
+def _reap_worktrees_dir(graph: Path) -> Path:
+    """The MAIN checkout's `<main>/.agi/worktrees` (`graph` is the SHARED graph
+    dir). `paths.core.worktrees_dir` is authoritative; the literal is the FALLBACK
+    only (a round may not commit config.json) — the parent adds that cell."""
+    try:
+        cfg = json.loads(locations.config_path(graph).read_text())
+        v = ((cfg.get("paths") or {}).get("core") or {}).get("worktrees_dir")
+    except Exception:  # noqa: BLE001 — a missing cell is the fallback, not a crash
+        v = None
+    return locations.repo_root(graph) / (v or ".agi/worktrees")
+
+
+def _reap_worktree_component(p: Path, wt: Path) -> Path | None:
+    """THE WORKTREE COMPONENT of a cwd: the child of the worktrees dir on
+    `p`'s ancestry (`p` itself when it is a direct child). None when `p` is
+    not under the worktrees dir. The NAME GRAMMAR BELONGS TO THIS COMPONENT
+    only — never to the leaf (hyp:heal-reaps-only-exited-bg-sessions-in-kid-worktrees)."""
+    wt = wt.resolve()
+    for a in (p, *p.parents):
+        if a.parent == wt:
+            return a
+    return None
+
+
+def _reap_classify(row: dict, wt: Path, repo_root: Path) -> tuple[str, str | None]:
+    """ONE classification per row, for BOTH the print and the live loop (a
+    filter printed then re-read for the rm IS the bug); `None` == candidate."""
+    sid = str(row.get("id") or "")
+    kind = str(row.get("kind") or row.get("type") or "").lower()
+    state = str(row.get("state") or row.get("status") or "").lower()
+    p = Path(str(row.get("cwd") or "")).resolve() if row.get("cwd") else None
+    if kind != "background":
+        return sid, "not-interactive"          # interactive / remote-control
+    if state not in _REAP_EXITED:
+        return sid, "not-exited"
+    if p is not None and p == repo_root.resolve():
+        return sid, "repo-root"                # the owner's own row, never
+    comp = _reap_worktree_component(p, wt) if p is not None else None
+    if comp is None or not _KID_WORKTREE_RE.match(comp.name):
+        return sid, "not-a-kid-worktree"
+    if p != comp and _KID_WORKTREE_RE.match(p.name):
+        return sid, "not-a-kid-worktree"   # a NESTED name-shaped DECOY
+    return sid, None                       # p is the worktree, OR BELOW it
+
+
+def _main_session_reap() -> int:
+    """`heal.py session-reap [--live]` — one pass, one line per row. DEFAULT IS A
+    DRY RUN: no `--live`, no `claude rm` ever. THE MODE IS THE FLAG (not config)."""
+    ap = argparse.ArgumentParser(prog="heal.py session-reap")
+    ap.add_argument("--root", default=".", help="the graph root to resolve from")
+    ap.add_argument("--live", action="store_true", help="really run `claude rm`")
+    ap.add_argument("--claude-bin", default=None, help="claude override")
+    args = ap.parse_args(sys.argv[2:])
+    given = Path(args.root).resolve()
+    root = locations.find_project_root(given) or given
+    main_repo = locations.repo_root(locations.shared_project_root(root) or root)
+    wt = _reap_worktrees_dir(main_repo / locations.GRAPH_DIR_NAME)
+    bin_ = args.claude_bin or os.environ.get("AGI_CLAUDE_BIN") or "claude"
+    plan = [_reap_classify(r, wt, main_repo) for r in _claude_agents(bin_)]
+    for sid, reason in plan:
+        print(f"reap-candidate {sid}" if reason is None else f"skip {sid}: {reason}")
+    cands = [sid for sid, reason in plan if reason is None and sid]  # SAME plan
+    if not args.live:
+        print(f"dry-run: {len(cands)} candidate(s); pass --live to rm")
+        return 0
+    for sid in cands:
+        r = subprocess.run(_reap_argv(bin_, sid), capture_output=True, text=True)
+        print(f"rm {sid}: rc={r.returncode} {(r.stdout or '').strip()}")
     return 0
 
 
