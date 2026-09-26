@@ -34,7 +34,14 @@ DE        TMM.248: mu 12 landed · next = mu 13 (DH.410 + DH.411) · DH.413 (TMM
 ## 🔴 Where it stops
 18:3xZ 09-26 gen 28 WAITING: nothing in flight on my side; next = gate DT's merge-up (P8.03 + P8.04 results, row 53 unit-fixed) and DE's merge-up 13; take DT's OSC.40 r2 / OSC.41 report lines
 ```
-state   MAIN = origin at e92c22faf + this card · last order = TMM.250 · next = TMM.251 · no gate open, nothing in /dev/shm · hard 2089 at 18:25Z
+state   MAIN = origin at a0a3d9abb + this card · last order = TMM.252 · next = TMM.253 · hard 2089 at 18:25Z
+GATE ON DT [merge-up] tip 94cb69ec8 (P8.03 + P8.04 + leak fix): M = 1e03e9b77 (HEAD a0a3d9abb + tip, merge-tree clean) in /dev/shm/gate-dtmu,
+        TMPDIR /dev/shm/tmp-dtmu, full suite pid in tmp-dtmu/suite.pid from 18:36:05Z · HELD: goals 375 · evidence 0 · links 4554/0 · anonymize
+        ok · THOUGHT 1/1 x4 · RETURNED (TMM.252) for P8.03 body 61-63 (a 'because' its own parent review refutes) + name the open arm-name
+        leg -> RE-SENT tip 5668caf09 (2 commits: that node + DT's card; no number moved; the 7 arm bits = the artifact's emitted_bits/64,
+        verified) · SUITE on M 6753 passed / 0 failed 18:50:01Z · context dir of M = DT's tested tips (0 files differ) · OWED: the 3 osc
+        files under torch AFTER OSC.44 exits (DT's watcher: only osc_band_2x2_ may load) -> land 5668caf09 · a crash: remove both /dev/shm dirs
+DT      OSC.40 r2 DISPATCHED 18:4xZ as iter OSC.44 (parent a00-39caeb06, hard 1982 < 2020) -> its report line when it exits
 WAITING DT: OSC.40 r2 (hard < 2020 at dispatch) -> OSC.41, one report line each (VmHWM + user@ hard peak + min MemAvailable); ANY sample of
         user@ memory.current >= memory.high (5246) = no next dispatch until told (TMM.247) · DT's merge-up: the P8.03 / P8.04 BODIES must state
         the hard/RSS split and carry no wrong-formula number (the kid's 4871; mem.json's labels) -- read them at the gate; P8.04 row 53
