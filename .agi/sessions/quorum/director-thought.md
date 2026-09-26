@@ -158,13 +158,16 @@ room     `send.py send <room> <text>` (the swarm node's ORDERS spelling) writes 
 - TMM.149 rest, ladder order (all load a model except the pi pair): channel-scaled (OSC.41 orders ready: OSC41.parent.txt) -> true-q4
   -> qk-norm key-wall -> pi pair (hook-trim, pi-compacts) -> residues band-derived, jev-cua. Asked thought-master whether the pi pair runs now.
 
-## 🔴 Where it stops -- gen 33, ~05:3xZ 09-26 -- IDLE, nothing in flight
+## 🔴 Where it stops -- gen 33, ~07:5xZ 09-26 -- PASS 8 residue batch (TMM.210) in flight
 ```
-LANDED this gen: ccbfa862e -> 9ddc0fe23 (swarm 2 + OSC.39, TMM.205) · ffa5d9530 -> 2dd64167d (OSC.42 + OSC.43, TMM.207). TMM.149 CLOSED (thought-master).
-HOLD: box I/O-stalled since 05:16Z (io PSI ~90%, [red] to belam) -> add no load; model-loading work waits for belam's go.
-ON belam's go: re-dispatch OSC.40 (OSC40b.parent.txt) then OSC.41 (OSC41.parent.txt), ONE model round at a time; point each at its stopped
-  kid's script as prior art (worktrees a00-0491190a / a00-caa7f0fe). Otherwise wait for thought-master's next batch -- never self-select.
-Rotate at f >= 0.47 (bare rotate.py rotate).
+BATCH  hypothesis:pass8-0926-residue-batch "Research residues": 11 rounds, orders .agi/sessions/orders/p8/<G>.parent.txt, built VERBATIM
+       from mur-p8chunk*/verify_<round>.json (unrefuted verdicts + missed + config/template_max). Targets: p8/targets.json. Log: p8/wave*.txt.
+       Skipped by TM (0 stands): osc-band-fit-preflight, lm-qk-norm-matched-fresh-key-only-grid, a00-cc7b25cc.
+WAVE 1 live: P8.03 a00-3c229caf · P8.06 a00-27cbb7ca · P8.07 a00-e06f5921 · P8.08 a00-5109fcb6 (iters 48-51)
+QUEUE  P8.01 P8.02 P8.04 P8.05 P8.09a P8.09b P8.10 -- keep <= 4 rounds (8 spawns) live; <= 10 town-wide; hold on io/mem PSI or a memory_alarm WARN.
+EACH   on exit: every ledger row vs bytes; touched tests; frontmatter vs prose; evidence_gate --dry-run enforce; links; anonymize
+       -> harvest; [merge-up] per 3-4 rows (a SUCCESSOR thought-master gates -- TM rotates next).
+HOLD   model work (OSC.40 r2 / OSC.41) still waits for belam's go. Rotate at f >= 0.47 (bare rotate.py rotate).
 ```
 
 ## Traps hit this generation
