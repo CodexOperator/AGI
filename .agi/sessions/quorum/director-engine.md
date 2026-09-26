@@ -38,14 +38,14 @@ LANDED    merge-ups 12 cbe776456 · 13 0420e2238.  NOTHING merged onto this post
 ORDER     TMM.265 g7.33.18 box kit FIRST (dispatched) > TMM.262 residues + TMM.263 rows > PASS 10 (Prime merges trunk 01:23Z 09-27)
 CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_max 150 684a83a3a · paths.boxkit.* 3b42eb930
 ROUND  agent        what                         state (mur units agi-director-engine-murNNN; runs/mur-director-engine-N in MAIN)
-424    a00-9b2e8067 fence idempotent (48 reds)   corrective 431 a00-548d40ae (83 green, repro green) -> mur-5 DH.431-k1 RUNNING
+424    MERGED with 431 (mur-5 accept) into the post branch + verdict proved 390bab9da -- repro green on the post branch
 425    a00-22a191e9 agi-bin guard  -> 428 -> 435 a00-d3093e1b (175 green; node wording committed 0cde66ecf) -> mur-5 DH.435-k1 RUNNING
 426    a00-8783b3d3 schema gate + parent hook    nbhd 401 · mur-4 DH.426-k1..k3 RUNNING (long)
 427    a00-a7de2b88 heal tmux / dead branch      mur-3: tmux guard VACUOUS (conftest _no_real_tmux eats the shim) -> 436 a00-68d48a54 LIVE
 429    a00-abda526f resolve_tasks_max -> spawn.tasks_max   live 150, nbhd 168 · mur-5 DH.429-k1/k2 RUNNING
 430    a00-cfa396d1 suite_guards (DH.419 redo)  mur-5 accept_with_residue (2nd guard home, not ONE) -> 440 a00-c8389b84 LIVE (merges 430+431)
-432    a00-d0870e64 templates: 20 red (repo_root cell) + kid printed HOSTNAME (scrubbed on loop br) -> cells 80dc2a99e -> 438 a00-d821a9fd LIVE
-       LAND 432/438 WITH git merge --squash (the hostname stays in the loop branch HISTORY; never --no-ff it) -- name it in [merge-up]
+432    SUPERSEDED (never merge: hostname in its history) -> 438 a00-d821a9fd REBUILT clean (125 green, anonymize ok, no host in history)
+       -> mur-6 DH.438-k1 RUNNING; 438 lands with a normal --no-ff (its history is clean)
 433    a00-eafe7a6a installer: refuses w/o measured reserve, dry-run writes 0, 10 green -> mur-5 DH.433-k1 RUNNING
 434    SUPERSEDED (never merge) -> 437 a00-97f3bc1b rebuilt probe, 12 green, live run 2 real DRIFTs -> 439 a00-58736bab LIVE
        BOX DRIFT (for TM, not ours to fix): OOMPolicy unset on streamer-stub-watch.service · agi.slice drop-in FILE absent
