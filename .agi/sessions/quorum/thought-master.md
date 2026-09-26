@@ -36,19 +36,18 @@ DE        TMM.204 (landed + 2 residues as their own rounds: rename-rotation vs t
 ```
 
 ## 🔴 Where it stops
-05:2xZ 09-26 gen 24: the box is I/O-STALLED ([red] to belam 05:2xZ); my M4 suite TERM'd 05:18:21Z at 63%; DE e82778bb2 HELD for the disk; DT ffa5d9530 gated green, landing
+05:3xZ 09-26 gen 24: DT ffa5d9530 LANDED 2dd64167d; DE e82778bb2 HELD for the disk (judged green but the suite); box I/O-stalled ([red] to belam 05:2xZ)
 ```
-state   MAIN = origin at d884189d8 + my card commits · landed 9ddc0fe23 (DT) + 78c55c208 (DE) · last order sent = TMM.206 · next = TMM.207
-        · io PSI some 96% / full ~88% (05:20Z); disk 99% busy at 0.4 MiB/s; dm-1 (/ -> /tmp) in flight 2381; Writeback 665 MB; memory PSI ~2%
-        · the gate worktree sits on /tmp = the stalled volume; MAIN is on /data (dm-2, 5 in flight)
-DE      e82778bb2 (DH.367 + DH.372-376) judged green on every item but the suite (M4 at 63%: 1 F = test_commands_manifest, the trunk's)
-        -> re-run the suite on the merged tree once io PSI falls; DH.376 held live: 0 OOM kills during M4 (9 during M2 with the old tests)
-DT      ffa5d9530 (OSC.43 fixed + OSC.42): tests 3/3x + 31/1x · numbers re-derived · excerpt sha256 = installed 0.67.68 · evidence 0 (.agi)
-        · anonymize ok · 0 engine files -> land on links/schema/goals of gate5 (scratchpad/gate5-ids.txt) · TMM.149 pi pair DONE; every
-        model-loading rung HELD for belam's go · DT flags the free route: 3 'empty response' parent deaths in 5 today
-NEXT    (1) gate5 checks (links, schema, goals, evidence) -> land DT ffa5d9530 (T2 on live HEAD, ff-only, push the ref line) -> TMM.207
-        (2) io PSI < ~20% -> re-run the suite on HEAD + DE e82778bb2 -> land -> TMM.208 to DE
-        (3) PASS 8 at 05:47Z: the pre-check on the final HEAD (evidence ON .agi)
+state   MAIN = origin at 2dd64167d · landed this gen: 9ddc0fe23 (DT swarm 2 + OSC.39) · 78c55c208 (DE DH.368/369) · 2dd64167d (DT OSC.42/43)
+        · last order sent = TMM.208 · next = TMM.209 · no reply owed to anyone
+PASS 8  pre-check 05:3xZ on 2dd64167d (280 commits from 08a9cf60f8): 0 node deletions · anonymize ok (1.5 MB) · goals 372 · links 0 ·
+        evidence (.agi) 0 · model grep 2 = the known false positive only · the trunk's one red = test_commands_manifest (memory_alarm.py,
+        belam's 20680940c; [red] sent 04:5xZ) · schema gaps (verdict 2, build 1, experiment 1) exist on MAIN, none added by my landings
+DISK    io PSI some ~90% since at least 05:16Z; the disk 87-99% busy at 0.4-8 MiB/s; memory PSI ~2% -> the guard's watchdog does not see it
+DE      e82778bb2: judged green on DH.367 / 372-376 (card lines above, TMM.208) · owed = one full suite on HEAD + the tip, then land
+NEXT    (1) io PSI < ~20% -> gate M = HEAD + e82778bb2 (fresh merge-tree; its contribution must equal diff(G3, G4) in gate2-ids.txt) ->
+            the suite -> land -> TMM.209 to DE · while io PSI stays high: hold, add no load
+        (2) new [merge-up]s: the same gate; evidence dry-run ON .agi; a validation gate = judged over every live node
 out     git worktree remove scratchpad/gate · python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 
