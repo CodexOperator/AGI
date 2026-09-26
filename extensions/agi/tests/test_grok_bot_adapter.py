@@ -285,3 +285,25 @@ def test_dispatch_still_has_zero_grok_hits():
     dispatch = _project_root() / "extensions" / "agi" / "bin" / "dispatch.py"
     assert "grok" not in dispatch.read_text(encoding="utf-8").lower()
 
+
+
+# ------------------------------------------------- the rendered brief (DH.406)
+def test_rendered_brief_reaches_argv_never_discarded():
+    """dispatch renders the brief ONCE and hands it to `build_command`; a
+    grok-bot spawn must CARRY it. Before this, the render was accepted and
+    dropped: argv carried only `context_file`, which is the agent's MAP, so a
+    grok-bot agent would have started with no first turn at all
+    (hypothesis:grok-bot-adapter-uses-or-refuses-the-rendered-brief)."""
+    argv = grok.build_command(
+        harness=HARNESS, tier="kid", context_file="/tmp/ctx.md",
+        rendered_brief="SENTINEL-RENDERED-BRIEF")
+    assert "SENTINEL-RENDERED-BRIEF" in argv
+    assert "/tmp/ctx.md" not in argv
+
+
+def test_no_rendered_brief_still_carries_the_context_path():
+    """Back-compat: with no render in hand the argv keeps its old shape
+    (`-p <context_file>`), so nothing that reads the stub argv moves."""
+    argv = grok.build_command(
+        harness=HARNESS, tier="kid", context_file="/tmp/ctx.md")
+    assert argv[-2:] == ["-p", "/tmp/ctx.md"]
