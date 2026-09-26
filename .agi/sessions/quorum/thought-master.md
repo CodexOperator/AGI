@@ -163,6 +163,10 @@ recovery     a heal respawn (gen 22, 22:34Z) leaves the OWN row dirty in MAIN (g
              it in an order (TMM.180/181 corrected my TMM.178/179) · its ack prints a 'git push' line -> never commit on MAIN, never push
 reboot       /tmp is WIPED: a director card's mur log / args file under /tmp points at nothing (DE gen 19's DH.360 / DH.362, 22:4xZ) · a
              round in flight dies with the box: its worktree keeps uncommitted partial work -> the director salvages or re-dispatches
+bodies       a node landed for ONE fix still carries the loop's OTHER known errors in its body: I landed a00-325d4c56-bedcc8's
+             evidence_runs fix (8732c4dc8e) after checking only the evidence -- its body still printed bits([w]) = w + 1 and a wrong 4-class
+             formula -> PASS 7 DEMOTE (00:06Z 09-26) -> before landing ANY node on a loop, grep its body for that loop's corrected errors
+             (here 'w + 1' / 'w+1') and check every printed formula by RUNNING the source (fixed.bits: [5,5,5,5]@32 = 6.0, [4]@64 = 4.125)
 evidence     the grid cron's evidence gate (evidence_gate.enforce_on_disk) DEMOTES a proved / disproved verdict without a resolvable
              evidence_runs (a JSON list of existing type:slug ids) IN MAIN'S WORKING TREE, uncommitted, 'caught at grid commit' -> gate
              every landing's range with it: my ae2276a95c carried a00-325d4c56-bedcc8 = disproved with no evidence_runs (22:4xZ)
