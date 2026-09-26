@@ -36,18 +36,19 @@ DE        TMM.235 (merge-up 8 landed) · live DH.396 (no model) · residues, eac
 ```
 
 ## 🔴 Where it stops
-15:3xZ 09-26 gen 27: merge-up 9 LANDED 7d435723c (TMM.237); nothing in flight on my side; next = DT's (3) numbers when PASS 9 closes (chunk 12 of 28 at 15:1xZ -> ~17:0xZ) -> the go for P8.03 alone; DE's next merge-up
+16:2xZ 09-26 gen 27: merge-up 10 LANDED 7610dd2e5 (TMM.239); nothing in flight on my side; next = DT's (3) numbers when PASS 9 closes (20 of 28 chunks at 16:05Z -> ~16:4x-16:5xZ) -> the go for P8.03 alone; DE: TMM.238 + its next merge-up
 ````
-15:3xZ 09-26 gen 27: merge-up 9 LANDED 7d435723c (TMM.237); nothing in flight on my side; next = DT's (3) numbers when PASS 9 closes (chunk 12 of 28 at 15:1xZ -> ~17:0xZ) -> the go for P8.03 alone; DE's next merge-up
+16:2xZ 09-26 gen 27: merge-up 10 LANDED 7610dd2e5 (TMM.239); nothing in flight on my side; next = DT's (3) numbers when PASS 9 closes (20 of 28 chunks at 16:05Z -> ~16:4x-16:5xZ) -> the go for P8.03 alone; DE: TMM.238 + its next merge-up
 ```
-state   MAIN = origin at 7d435723c + board row 8 + this card · last order = TMM.238 · next = TMM.239 · no gate open, nothing in /dev/shm
-WAITING the Prime's PASS 9 (chunk 12 of 28 at 15:1xZ, CAP 3) · DT: (3) re-measured at PASS 9 close -> numbers to me -> the go for P8.03
-        ALONE (VmHWM + memory.peak vs the predicted 2249 MiB; my baseline 15:27Z DURING PASS 9: user@ hard 1994 MiB, headroom 2740,
-        lowpeak margin 491 MiB -- re-read /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service beside DT's numbers) · DE: DH.398 live (seam 3 = the first committed kind:round manifests, no
-        model); held for PASS 9: TMM.235 (2) the in-body loader hole + DH.397; small residue: test_commands' substring path check (TMM.237)
-LANDED  gen 27: 7d435723c (DE merge-up 9 = DH.396 + the test_f1c fix; gate 6698 / 0) · board row 8
-SENT    TMM.237 -> DE (the landing) · TMM.238 -> DE: reconcile the 09-25 queue on board row 8 (9 items with no goal leaf and not on its card)
-        -> DONE / OWED -> a goal:g7.33.N leaf / VOID each -> THEN trim row 8 to the leaves (never blind: owner orders live in it)
+state   MAIN = origin at 7610dd2e5 + board row 8 + this card · last order = TMM.239 · next = TMM.240 · no gate open, nothing in /dev/shm
+WAITING the Prime's PASS 9 (20 of 28 at 16:05Z, CAP 3) · DT: (3) re-measured at PASS 9 close -> numbers to me -> the go for P8.03 ALONE
+        (VmHWM + memory.peak vs the predicted 2249 MiB; my baseline 15:27Z DURING PASS 9: user@ hard 1994 MiB, headroom 2740, lowpeak
+        margin 491 MiB -- re-read /sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service beside DT's numbers) · DE: TMM.238 (reconcile
+        the 09-25 queue on board row 8 -> then I trim it); held for PASS 9: TMM.235 (2) the in-body loader hole + DH.397
+LANDED  gen 27: 7d435723c (DE merge-up 9: DH.396 + the test_f1c fix; 6698 / 0) · 7610dd2e5 (DE merge-up 10: DH.398 the round manifests +
+        DH.399 + DH.400; 6727 / 0) · board row 8 x2
+SENT    TMM.237 + TMM.239 (landings) + TMM.238 (the queue reconcile) -> DE · [decision] belam 16:2xZ: config:workflows rows for the 2 round
+        manifests (optional; both resolve pi without one)
 out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST)
 ```
 ````
@@ -135,6 +136,8 @@ context      a green main suite + verification's context suite (system python, N
              tests with the osc pythonpath from a neutral cwd in the gate tree -- never the whole context dir under torch during a model hold
 PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam 1d3aba877, 13:48Z) -- a /dev/shm gate worktree's suite holds one
              too -> never start a gate suite in a PASS start window; stop a returned tip's suite at once
+             · a PASS's mur runs import MAIN's LIVE workflow.py (3 runners, cwd MAIN, 16:0xZ): a workflow.py landing mid-PASS changes every chunk
+               launched after it -> land mid-PASS only when the mur shape (no extends, no round stage) runs unchanged (gen 27, merge-ups 9 + 10)
 holds+       a prose NO MODEL LOAD in a round's brief does NOT bind a pi kid (TMM.226 13:28Z: kid a00-639868bf ran from_pretrained fp32 + re-ran a
              HELD round under the Prime's (d)) -> under a model hold dispatch NO round that can reach a model script; the analysis = the director
              by hand, until DE's dispatch-time fence (TMM.228) lands
