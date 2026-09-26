@@ -36,10 +36,10 @@ DE        TMM.235 (merge-up 8 landed) · live DH.396 (no model) · residues, eac
 ```
 
 ## 🔴 Where it stops
-17:4xZ 09-26 gen 27: PASS 9 CLOSED (the Prime's rotate-out 17:23Z, ALL DONE) -> TMM.242 ordered DT to re-measure (3), numbers to me BEFORE any dispatch -> on matching numbers my go for P8.03 ALONE; TMM.243 holds DE's tiny-model rounds until P8.03 reports
+17:4xZ 09-26 gen 27: GO for P8.03 ALONE given 17:44Z (TMM.244; (3) held on 3 reads, margin 544-659 MiB, hard creeping) -> WAITING DT's P8.03 report (VmHWM + scope memory.peak vs 2249 MiB, user@ peak delta vs 5331) -> I card the first measured peak + cgroup, order the other 3, release DE's tiny-model rounds (TMM.243)
 ```
-state   MAIN = e7c418d18 + board + this card (+ the Prime's local commits) · last order = TMM.243 · next = TMM.244 · no gate open
-WAITING DT's (3) numbers (TMM.242). MINE 17:40:43Z, PASS 9 closed: user@ current 2141 · inactive_file 315 · hard 1826 · headroom 2908 ->
+state   MAIN = e7c418d18 + board + this card (+ the Prime's local commits) · last order = TMM.244 · next = TMM.245 · no gate open
+DT'S (3) 17:42:18Z: hard 1859, margin 626 = matches -> GO TMM.244 17:44Z. MINE 17:40:43Z, PASS 9 closed: user@ current 2141 · inactive_file 315 · hard 1826 · headroom 2908 ->
         margin 659 MiB over the predicted 2249 · MemAvailable 10.4 GiB · 2/30 live · no alerts file in ~/logs · memguard 0 events since 16:00Z
         -> the go = P8.03 ALONE, model_slot flock, ONE script in its brief, report VmHWM + scope memory.peak + user@ memory.peak vs 2249 MiB
         BEFORE P8.04 / OSC.40 r2 / OSC.41 · DE: merge-up 12 (DH.404-407) not held; TMM.235 (2) + DH.397 wait for P8.03's report (TMM.243)
