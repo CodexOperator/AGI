@@ -172,5 +172,51 @@ def test_the_real_context_conftest_installs_the_shared_guards():
     assert "env=suite_guards.spawn_env()" in vsrc
 
 
+def test_the_shared_kill_leaf_allows_only_signal_zero_on_the_own_pid():
+    """Residue 2 of verify_DH.430-k1: the guard's docstring said os.kill was
+    fenced "signal-0 only" while the code checked pid membership alone, so an
+    opted-in module could really `os.kill(os.getpid(), SIGKILL)`. The CODE now
+    enforces what the docstring said. Driven with a RECORDER, so no syscall is
+    ever armed: signal 0 on the own pid passes through and nothing else does."""
+    import signal  # noqa: PLC0415
+    calls = []
+    guarded = suite_guards._make_guarded_kill(
+        lambda pid, sig, *a, **k: calls.append((pid, sig)),
+        frozenset({os.getpid()}))
+    guarded(os.getpid(), 0)                       # the liveness probe: allowed
+    with pytest.raises(AssertionError, match="signal 0"):
+        guarded(os.getpid(), signal.SIGKILL)
+    assert calls == [(os.getpid(), 0)], f"a real syscall was armed: {calls}"
+
+
+def test_the_engine_conftest_imports_the_guard_instead_of_copying_it(
+        monkeypatch):
+    """Residue 1: suite_guards claims to be the ONE home, so the engine
+    conftest must IMPORT the pieces, not carry a second body of each. Wired
+    by NAME (a plain import, never exec -- DH.419's 127-process fork), and
+    the historical spellings the leaf tests read by path are still there."""
+    conf_path = Path(__file__).resolve().parent / "conftest.py"
+    src = conf_path.read_text(encoding="utf-8")
+    assert "from suite_guards import" in src
+    assert "exec(" not in src
+    assert "_FENCED_SPAWN_LEAVES = (" not in src, (
+        "the engine conftest re-spells the leaf list; there is ONE list and "
+        "it lives in suite_guards")
+    # the names ARE the shared objects: the leaf list, the bound runners, the
+    # kill leaves and the fixture itself, under its historical name.
+    monkeypatch.setenv("AGI_TESTS_CONFTEST_UNIT_LOAD", "1")   # no session fence
+    import importlib.util  # noqa: PLC0415
+    spec = importlib.util.spec_from_file_location("engine_conftest_probe",
+                                                  conf_path)
+    conf = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(conf)                             # noqa: S102
+    assert conf._FENCED_SPAWN_LEAVES is suite_guards._FENCED_SPAWN_LEAVES
+    assert conf._FENCED_MODULE_RUNNERS is suite_guards._FENCED_MODULE_RUNNERS
+    assert conf._make_guarded_kill is suite_guards._make_guarded_kill
+    assert conf._make_guarded_killpg is suite_guards._make_guarded_killpg
+    assert (getattr(conf, "_no_real_process_or_live_config", None)
+            is suite_guards.no_real_process)
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))

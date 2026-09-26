@@ -121,16 +121,70 @@ def agi_env_stripped():
 #: A test module opts in with `NO_REAL_PROCESSES = True`; the guard is opt-in
 #: because a suite-wide spawn ban would red every test that runs real `git`.
 OPT_IN_ATTR = "NO_REAL_PROCESSES"
-#: (module-name, attr) process-creating stdlib leaves. One list, applied by the
-#: fixture, and NOT a copy of the engine conftest's list of a different thing:
-#: same leaves, same order (extensions/agi/tests/conftest.py:_FENCED_SPAWN_LEAVES).
-_SPAWN_LEAVES = (
+#: (module-name, attr) process-creating stdlib leaves. ONE list for the whole
+#: repo: the engine conftest IMPORTS this name from here instead of keeping a
+#: copy that could drift from it, so a leaf added in one place is fenced in
+#: both suites.
+_FENCED_SPAWN_LEAVES = (
     ("subprocess", "Popen"), ("subprocess", "run"), ("subprocess", "call"),
     ("subprocess", "check_output"), ("os", "fork"), ("os", "forkpty"),
     ("os", "execv"), ("os", "execve"), ("os", "execvp"), ("os", "execvpe"),
     ("os", "posix_spawn"), ("os", "posix_spawnp"), ("os", "system"),
     ("pty", "spawn"),
 )
+#: The engine BOUNDS the stdlib spawners at import time (`rotate._RUN`,
+#: `workflow._REAL_POPEN/_REAL_RUN`), so a stdlib hook alone misses them.
+_FENCED_MODULE_RUNNERS = (
+    ("rotate", "_RUN"),
+    ("workflow", "_REAL_POPEN"),
+    ("workflow", "_REAL_RUN"),
+)
+
+
+def _fence_bound_runners(setattr_, refuse):
+    """Fence the engine's import-time spawner bindings. Best effort: a module
+    that is not importable here contributes nothing and raises nothing."""
+    for mod_name, attr in _FENCED_MODULE_RUNNERS:
+        try:
+            mod = __import__(mod_name)
+        except Exception:            # noqa: BLE001 -- absent here, no fence
+            continue
+        if hasattr(mod, attr):
+            setattr_(mod, attr, refuse)
+
+
+def _make_guarded_kill(real_kill, own_pids):
+    """The `os.kill` leaf the guard installs, parameterised so a test can unit
+    it with a recorder and never arm a syscall. `own_pids` is the caller's own
+    pid and NOTHING else, and signal 0 is the ONLY traffic that reaches the
+    real call -- residue 2 of verify_DH.430-k1: both copies of this guard
+    claimed "signal-0 only" while the code checked pid membership alone."""
+    def _guarded_kill(pid, sig, *a, **k):
+        if int(pid) not in own_pids:
+            raise AssertionError(
+                f"guard: a NO_REAL_PROCESSES test signalled pid {pid}; only "
+                "its own pid may be signalled, and only for a signal-0 "
+                "liveness probe")
+        if int(sig) != 0:
+            raise AssertionError(
+                f"guard: a NO_REAL_PROCESSES test sent signal {int(sig)} to "
+                "its own pid; signal 0 (the liveness probe) is the only "
+                "signal a guarded test may send")
+        return real_kill(pid, sig, *a, **k)
+    return _guarded_kill
+
+
+def _make_guarded_killpg(real_killpg):
+    """`os.killpg` is refused OUTRIGHT: a group leader the test spawned may sit
+    in a group that also holds a shell the test never spawned, so "own pid" is
+    not a sound exemption for a GROUP. `real_killpg` is a parameter so a test
+    can prove with a RECORDER that no syscall is armed."""
+    def _guarded_killpg(pgid, sig, *a, **k):
+        raise AssertionError(
+            f"guard: a NO_REAL_PROCESSES test signalled process GROUP {pgid}; "
+            "a group is refused outright -- a group leader this test spawned "
+            "can share a group with a shell it did not")
+    return _guarded_killpg
 
 
 @pytest.fixture(autouse=True)
@@ -186,27 +240,13 @@ def no_real_process(request, monkeypatch):
         _check(path)
         return real_listdir(path, *a, **k)
 
-    def _kill(pid, sig, *a, **k):
-        if int(pid) not in own:
-            raise AssertionError(
-                f"guard: a NO_REAL_PROCESSES test signalled pid {pid}; only "
-                "its own pid may be signalled, and only for a signal-0 "
-                "liveness probe")
-        return real_kill(pid, sig, *a, **k)
-
-    def _killpg(pgid, *a, **k):
-        raise AssertionError(
-            f"guard: a NO_REAL_PROCESSES test signalled process GROUP {pgid}; "
-            "a group is refused outright -- a leader it spawned can share a "
-            "group with a shell it did not")
-
     monkeypatch.setattr(builtins, "open", _open)
     monkeypatch.setattr(io, "open", _open)
     monkeypatch.setattr(os, "scandir", _scandir)
     monkeypatch.setattr(os, "listdir", _listdir)
-    monkeypatch.setattr(os, "kill", _kill)
-    monkeypatch.setattr(os, "killpg", _killpg)
-    for mod_name, attr in _SPAWN_LEAVES:
+    monkeypatch.setattr(os, "kill", _make_guarded_kill(real_kill, own))
+    monkeypatch.setattr(os, "killpg", _make_guarded_killpg(real_killpg))
+    for mod_name, attr in _FENCED_SPAWN_LEAVES:
         mod = sys.modules.get(mod_name)
         if mod is None:
             try:                     # noqa: PLC0415 -- lazy on purpose
@@ -215,4 +255,5 @@ def no_real_process(request, monkeypatch):
                 continue
         if hasattr(mod, attr):
             monkeypatch.setattr(mod, attr, _refuse_spawn)
+    _fence_bound_runners(monkeypatch.setattr, _refuse_spawn)
     yield
