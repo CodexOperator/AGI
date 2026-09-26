@@ -7,6 +7,8 @@ parents:
 next_edges: []
 confidence: 0.8
 edited_by: director-thought
+evidence_runs:
+  - experiment:a00-6cbe5da1-6824ca
 scaffold_hash: 05e1db870013599d
 season: 2
 testable_claim: "With a model entry that declares the served window (contextWindow W <= 60,000 under the 65,536 slot), pi 0.67.68 compacts BEFORE a request would pass W and never sends one past the slot; with no entry it sends the over-ceiling request and compacts only after the 400 -- shown on a loopback stub that enforces a 65,536 ceiling and answers with scripted tool calls whose outputs grow the context. CEILING: <=60 production lines across 1 kid"
