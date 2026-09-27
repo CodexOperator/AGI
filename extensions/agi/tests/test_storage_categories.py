@@ -131,9 +131,16 @@ def test_custom_path_is_flagged_never_raised():
 
 
 def test_pick_outside_the_table_is_flagged_custom_not_raised():
-    for pick in ("99", "no_such_category"):
-        row = locations.resolve_storage_category(pick, None, _seeded())
-        assert row["custom"] is True, pick
+    row = locations.resolve_storage_category("no_such_category", None, _seeded())
+    assert row["custom"] is True
+    assert row["payload_ref"] == "no_such_category"
+
+
+def test_a_number_naming_no_cell_drops_the_digits_and_keeps_the_tail():
+    row = locations.resolve_storage_category("99", "mvp-x.md", _seeded())
+    assert row["custom"] is True
+    assert row["payload_ref"] == "mvp-x.md"
+    assert row["location"] == locations.DEFAULT_PAYLOAD_LOCATION
 
 
 def test_resolver_carries_no_storage_path_literal():
