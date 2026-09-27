@@ -503,7 +503,16 @@ def known_payload_locations(config: dict | None = None) -> list[str]:
     return known
 
 
-def storage_categories(config: dict | None = None) -> list[dict]:
+def storage_category_target(root: Path, row: dict,
+                            config: dict | None = None) -> Path:
+    """Where one picker row actually points, base + prefix. Raises on a name
+    `payload_base` refuses, exactly as the write path would."""
+    base = payload_base(root, row["location"], config)
+    return (base / row["prefix"]) if row["prefix"] else base
+
+
+def storage_categories(config: dict | None = None,
+                       root: Path | None = None) -> list[dict]:
     """The numbered storage-category picker, in config CELL order.
 
     `hypothesis:mint-offers-storage-categories-from-config-cells`. The
@@ -511,6 +520,13 @@ def storage_categories(config: dict | None = None) -> list[dict]:
     `mint.storage_categories.<key> = {location, prefix, label}` and this is
     only its reader. Insertion order is the numbering order: a new cell is a
     new option and nothing else changes.
+
+    Given `root`, each row also carries `target_exists`: whether the directory
+    it points at is on disk NOW. `location_ok` says the NAME is one
+    `payload_base` accepts; only this says the target is real, and a cell can
+    pass the first and fail the second (a mistyped prefix, a tree not created
+    yet). `None` when no root was given -- a table read without a checkout
+    cannot claim anything about the disk.
     """
     cfg = config or {}
     known = known_payload_locations(cfg)
@@ -528,12 +544,17 @@ def storage_categories(config: dict | None = None) -> list[dict]:
             "location_ok": name in known,
             "prefix": str(cell.get("prefix") or "").strip("/"),
             "custom": False,
+            "target_exists": None,
         })
+        if root is not None and rows[-1]["location_ok"]:
+            rows[-1]["target_exists"] = storage_category_target(
+                root, rows[-1], cfg).is_dir()
     return rows
 
 
 def resolve_storage_category(pick, tail: str | None = None,
-                             config: dict | None = None) -> dict:
+                             config: dict | None = None,
+                             root: Path | None = None) -> dict:
     """(pick, tail) -> one row carrying `(location, payload_ref)`.
 
     `pick` is a NUMBER or a KEY from the table. A pick naming no cell is read
@@ -545,7 +566,7 @@ def resolve_storage_category(pick, tail: str | None = None,
     error, not a pick, and it is refused HERE by name: the row is never
     returned, so no caller can carry a name the write path will reject.
     """
-    rows = storage_categories(config)
+    rows = storage_categories(config, root)
     text = str(pick).strip()
     hit = None
     for row in rows:
@@ -564,6 +585,7 @@ def resolve_storage_category(pick, tail: str | None = None,
                 else hit["prefix"]}
     return {"n": 0, "key": "custom", "label": "custom", "custom": True,
             "location": DEFAULT_PAYLOAD_LOCATION, "location_ok": True,
+            "target_exists": None,
             "prefix": "", "payload_ref": text or str(tail or "").strip()}
 
 
@@ -1046,15 +1068,18 @@ def main(argv: list[str] | None = None) -> int:
     cfg = load_config(root)
 
     if args.storage_categories:
-        rows = storage_categories(cfg)
+        rows = storage_categories(cfg, root)
         if args.storage_pick is not None:
-            row = resolve_storage_category(args.storage_pick, args.tail, cfg)
+            row = resolve_storage_category(args.storage_pick, args.tail, cfg,
+                                           root)
             print(f"{row['custom'] and 'custom' or row['key']}\t"
                   f"{row['location']}\t{row['payload_ref']}")
         else:
             for row in rows:
                 print(f"{row['n']}  {row['key']}  {row['location']}  "
-                      f"{row['prefix']}  ({row['label']})")
+                      f"{row['prefix']}  ({row['label']})"
+                      f"{'' if row['target_exists'] is not False else '  MISSING'}"
+                      f"{'' if row['location_ok'] else '  BAD LOCATION'}")
         return 0
 
     resolved = {

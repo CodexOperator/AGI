@@ -30,7 +30,7 @@ def _seeded() -> dict:
         "engine_code": _cell("source_root", "extensions/agi/bin", "engine code"),
         "tests": _cell("source_root", "extensions/agi/tests", "tests"),
         "skills": _cell("source_root", "skills", "skills"),
-        "geometry": _cell("source_root", ".geometry", ".geometry config"),
+        "geometry": _cell("graph_root", "nodes/.geometry", ".geometry config"),
         "schemas": _cell("graph_root", "context/schemas", "schemas"),
         "context_templates": _cell("graph_root", "context", "context templates"),
     }}}
@@ -197,3 +197,71 @@ def test_a_declared_locations_cell_makes_a_bad_cell_acceptable(tmp_path):
     assert row["location"] == "docset" and row["custom"] is False
     assert (locations.payload_base(_project(tmp_path, cfg), "docset", cfg)
             / row["payload_ref"]).name == "a.md"
+
+
+# --- the target, not just the name -------------------------------------------
+
+def test_target_exists_is_none_without_a_root_and_a_bool_with_one(tmp_path):
+    cfg = _seeded()
+    assert all(r["target_exists"] is None
+               for r in locations.storage_categories(cfg))
+    root = _project(tmp_path, cfg)
+    for row in locations.storage_categories(cfg, root):
+        assert isinstance(row["target_exists"], bool)
+        assert row["target_exists"] == (
+            locations.storage_category_target(root, row, cfg).is_dir())
+
+
+def test_a_good_name_with_a_mistyped_prefix_is_stamped_missing(tmp_path):
+    """The residue: `location_ok` is a NAME check, so a cell can pass it and
+    still point nowhere. A temp project creates only the two directories."""
+    cfg = _seeded()
+    root = _project(tmp_path, cfg)
+    (root / "extensions" / "agi" / "bin").mkdir(parents=True)
+    rows = {r["key"]: r for r in locations.storage_categories(cfg, root)}
+    assert rows["engine_code"]["location_ok"] is True
+    assert rows["engine_code"]["target_exists"] is True
+    missing = [k for k, r in rows.items() if not r["target_exists"]]
+    assert "engine_code" not in missing and len(missing) == 5, missing
+
+
+def test_the_cli_marks_a_row_whose_target_is_missing(tmp_path):
+    # the CLI resolves the graph root itself, so the graph-located prefixes
+    # live under <proj>/.agi here, not under <proj>.
+    cfg = _seeded()
+    root = _project(tmp_path, cfg)
+    (root / ".agi" / "context").mkdir(parents=True)
+    out = _cli(root)
+    for line in out:
+        assert ("MISSING" in line) == (line.split()[1] != "context_templates"), line
+
+
+def test_a_resolved_pick_carries_the_stamp_and_a_custom_row_does_not_claim_one(
+        tmp_path):
+    cfg = _seeded()
+    root = _project(tmp_path, cfg)
+    (root / "context").mkdir(parents=True)
+    hit = locations.resolve_storage_category("context_templates", "a.md", cfg,
+                                             root)
+    assert hit["target_exists"] is True
+    assert locations.resolve_storage_category(
+        "nowhere/at/all.md", config=cfg, root=root)["target_exists"] is None
+
+
+def test_live_seeded_cells_all_point_at_a_directory_that_exists():
+    """Every option the live picker offers is usable in THIS checkout."""
+    root = locations.find_project_root(REPO)
+    cfg = locations.load_config(root)
+    rows = locations.storage_categories(cfg, root)
+    assert rows and all(r["target_exists"] for r in rows), [
+        (r["key"], r["location"], r["prefix"])
+        for r in rows if not r["target_exists"]]
+
+
+def test_storage_category_target_agrees_with_the_write_path(tmp_path):
+    cfg = _seeded()
+    root = _project(tmp_path, cfg)
+    row = locations.storage_categories(cfg)[1]
+    want = locations.resolve_payload_path(root, row["prefix"], row["location"],
+                                          cfg)
+    assert locations.storage_category_target(root, row, cfg) == want
