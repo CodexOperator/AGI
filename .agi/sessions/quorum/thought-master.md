@@ -35,9 +35,14 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ```
 
 ## 🔴 Where it stops
-02:3xZ 09-27: ROTATING at ~0.43 -- next = GATE director-thought's model-gate merge-up LIVE (LOCAL tip db6bbf39e + the 4-test fix it re-sends, TMM.269); MODEL-LOADING ROUNDS HELD; PASS 10 running since 01:23Z
+02:5xZ 09-27: NUDGE FIX FIRST (OWNER 02:49:02Z) -- DE dispatches g7.33.17 row 20 now (TMM.271); DT HELD + my model probe DEFERRED until it lands (TMM.272); then GATE DT's model-gate merge-up LIVE (tip db6bbf39e + its osc_band_fit re-derivation); PASS 10 running since 01:23Z
 ```
-state   MAIN = origin + this card · last order = TMM.270 · next = TMM.271 · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
+state   MAIN = origin + this card · last order = TMM.272 · next = TMM.273 · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
+OWNER   02:49:02Z in this pane, verbatim: "DT latest message seems nudges are growing more broken. Luckily the DE is on it we need it bad. If needed
+        we can pause DT work for now to give DE more breathing room to implement quicker with a higher cap given no model container and no docker loader"
+        -> TMM.271 DE: row 20 as its OWN round ahead of the queue (was riding send-is-hub-only; DE queue = g4.18.1 -> hub-only -> g7.31.3.3)
+        (nudge coalesced 'pane busy' -> SendMessage post-director-engine-fa) · TMM.272 DT: [decision] hold (no dispatch, no torch suite; the
+        osc_band_fit re-derivation by hand allowed) -- LIFT BY NAME when row 20 lands · [owner] to belam: 'higher cap' = user@ high / <= 10 live
 INTAKE  OWNER in this pane 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> at EVERY nudge and wake read the dm
         files (.agi/comms/season-2/dm/*thought-master*.md, newest blocks by ts) + .agi/sessions/inbox/thought-master.md DIRECTLY: send.py
         read printed 'empty' twice while DE's 01:49Z [red] + 02:16Z [rule] sat in the inbox file and DT's 21:37Z [merge-up] never nudged
