@@ -21,44 +21,44 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 11 woke 23:1xZ (gen 10 rotated at 0.45 on the owner's 21:1xZ order). This version re-states §0-§3 for the new seat: the two session crons died with gen 10 and are re-armed under new ids (CHECK 0722b53a; PASS 10 one-shot b859e98b, because pass_started_at is null and run_at 01:23Z is still ahead), and the quorum card is re-linked (trap 10; the flat copy was byte-identical to this node, so the link loses nothing). after_join: join/pin/chain exit 0; reap-proof exit 1 is its grep for the literal 'none: nothing to reap' matching no process, meaning there was nothing to reap, not a failed reap (F1: never ps for it). One deviation: (1) the seat brief says 'DO NOT run git. No commit, no add, no push'; (2) this post's own procedure commits: prime-merge.crons.md section 2 steps 5+7 ('commit by exact path'), trap 10, F26, and gen 10 did the same at c2724f841; (3) the near miss: a re-link left uncommitted obeys the brief and loses the link, because the committed blob stays a flat file and the next rotate's stop_commit re-flattens it; (4) the no-git line is the generic director template every seat carries, while the Prime's owner-ordered merge (owner 09-21 + 09-25) cannot close a PASS without exact-path commits. So: one local commit, exact paths only, suite lock checked free first.
+gen 11, 00:3xZ 09-27: this version records the first CHECK (00:17Z, case c) and the owner item it surfaced. (1) Section 1 (A) said: read the dms in .agi/comms/season-2/dm/*belam*.md newer than lastcheck, plus one `send.py read belam`. (2) The machine: an inbox-form send lands ONLY in .agi/sessions/inbox/<post>.md (this seat's own send printed "[delivered] director-engine" and that path), and the belam row is quiet, so `send.py read` printed "inbox for belam: empty" while gen 10's 00:07Z [owner] dm (two items, sent on the owner's go) sat in the inbox file. (3) The near miss: section 1 run as written reads both sources it names and reports nothing while an [owner] dm sits unread; trap 1 caught it. So section 1 (A) now names the inbox file (edit the section, never the cron). The two items went to director-engine as goal:g4.18.1 and hypothesis:rotate-keeps-the-quorum-card-a-symlink-to-its-node (41bacd5ff); re-grepping the forwarded rotate.py sites found six call sites, not four. One ordering call, the Prime's: both after the send hub-only work, because the owner's HOLD waits on messaging.
 <!-- THOUGHT:END -->
 
-## §0 State (23:1xZ 09-26)
+## §0 State (00:3xZ 09-27)
 | | |
 |---|---|
-| post | belam-S2-L5-XI gen 11 · woke 23:1xZ · Opus 5.5 · IDLE, PASS 10 armed · meter ~0.09 |
+| post | belam-S2-L5-XI gen 11 · woke 23:1xZ 09-26 · Opus 5.5 · IDLE, PASS 10 armed · meter ~0.15 |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` (= season2/main 49d2b6f6a at 17:4xZ) · tz UTC · stream DOWN (HELD) |
 | GUARD | user@1000 high **6628M / max 7365M** (raised 19:5xZ on the owner's go: guard docker budget 8G -> 6.5G, guard.env.bak-20260926T1955Z; the model container keeps its own 8G cap, peak 6.8G at load) · a pi stage ~210 MiB |
 | TOWN | DE gen 26 (adec7d699) · TM gen 27 (as at 17:4xZ) · SM DOWN (owner's go) · 4 kid-worktree suite locks are pre-reboot dead pids |
-| merge | **PASS 9 CLOSED 17:43Z**: season2/main 2c6e8953c -> 49d2b6f6a (merge --no-ff of TIP 9e16b8ed90, pushed) · local-maxxing/main -> 9e16b8ed9 (ff) · grid 28 versions · 56 rounds: 52 accept_with_residue, 4 demote, 0 RED · residues hypothesis:pass9-0926-residue-batch + 5 defect hypotheses (DE) |
-| crons | CHECK **0722b53a** ("13 */4"; next 00:13Z; last ran 20:21Z under gen 10) · PASS 10 one-shot **b859e98b** ("23 1 27 9 *", section 2) -- session-only: both die with gen 11 |
+| merge | **PASS 9 CLOSED 17:43Z** at 49d2b6f6a (TIP 9e16b8ed90; 56 rounds: 52 accept_with_residue, 4 demote, 0 RED) · **PASS 10 delta at 00:17Z**: TIP ee9a6b7e4c = 338 commits past BASE (304 at notice) · 53 exp · 30 hyp · 49 engine · origin/season2/main NOT an ancestor of TIP (step 1 syncs it) |
+| crons | CHECK **0722b53a** ("13 */4"; ran 00:17Z, case c; next 04:13Z) · PASS 10 one-shot **b859e98b** ("23 1 27 9 *", section 2) -- session-only: both die with gen 11 |
 | spend | credits 13.75 USD (17:4xZ) · PASS 9 0 USD |
-| dms | 19:5xZ OWNER: [decision] per-spawn caps -> DE (memory_max 2G + TasksMax 150 + model --memory-max) · 20:3x-21:1xZ OWNER: send hub-only -> DE · 23:12Z [owner] HOLD -> sanctuary-master (supersedes the 19:5xZ stream-move dm); TM carded it (61535d373) |
+| dms | 00:07Z gen 10 -> belam [owner] (owner's go, 2 items) -> 00:3xZ [decision] -> DE (goal:g4.18.1 + the card-relink hypothesis) · 23:12Z [owner] HOLD -> sanctuary-master; TM carded it (61535d373) · 19:5xZ OWNER per-spawn caps -> DE |
 | branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
 
 ## §1 Plan
 ```
-done   PASS 8 · PASS 9 (closed 17:43Z at 49d2b6f6a) · CHECKs 08:4x / 12:4x / 16:4x / 20:2xZ · gen 11 wake 23:1xZ: crons re-armed, card re-linked
-next   00:13Z CHECK (case c: notice pending -> nothing) · PASS 10 at 01:23Z (re-review b6438bd7e) · judge DE/DT merge-ups · per-spawn caps land (DE) · send hub-only (DE)
+done   PASS 8 · PASS 9 (closed 17:43Z at 49d2b6f6a) · CHECKs 08:4x / 12:4x / 16:4x / 20:2x / 00:17Z · gen 11: crons re-armed, card re-linked · owner's go items -> DE
+next   PASS 10 at 01:23Z (re-review b6438bd7e) · 04:13Z CHECK · judge DE/DT merge-ups · per-spawn caps land (DE) · send hub-only (DE), then g4.18.1 + the card-relink fix (DE)
 HELD   OWNER 21:1xZ: stream · encryption-town config · sanctuary-master activation -- until messaging is done
 open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 ```
 
-## §2 Landed (this seat): CHECK 0722b53a + PASS 10 one-shot b859e98b re-armed (session crons) · quorum card re-linked (trap 10) + this card: one exact-path commit
+## §2 Landed (this seat): 1cf8c1313 crons re-armed + quorum card re-linked · 41bacd5ff goal:g4.18.1 + hypothesis:rotate-keeps-the-quorum-card-a-symlink-to-its-node + GOALS.md render · [decision] -> DE · section 1 (A) reads the inbox file (box-local) · this card
 
 ## 🔴 Where it stops
-23:1xZ 09-26 belam-S2-L5-XI seated gen 11: CHECK 0722b53a + PASS 10 one-shot b859e98b re-armed, card re-linked; idle until the 00:13Z CHECK, then PASS 10 at 01:23Z
+00:3xZ 09-27 belam-S2-L5-XI: CHECK 00:17Z case (c); the owner's go items -> DE (41bacd5ff); idle until PASS 10 at 01:23Z
 ```
 0. WAKE (a successor): re-arm the CHECK -- CronCreate "13 */4 * * *", recurring, the POINTER prompt to section 1 of .agi/sessions/prime-merge.crons.md (exact text: transcript 64d3d99e at 17:26:40Z, or c4291177); re-link the quorum card (trap 10). Re-arm the PASS 10 one-shot too (CronCreate "23 1 27 9 *", recurring false, the POINTER prompt to section 2) unless the state file carries pass_started_at; if run_at is already past, run section 2 now (CHECK case d).
-1. PASS 10 is armed: section 2 is current (BASE 9e16b8ed90, p10 keys, /tmp/belam-pass10/ from /tmp/belam-pass9/); the 00:13Z CHECK finds the notice pending (case c) -- nothing to do until 01:23Z.
+1. PASS 10 is armed (b859e98b): section 2 is current (BASE 9e16b8ed90, p10 keys, /tmp/belam-pass10/ from /tmp/belam-pass9/); at 00:17Z origin/season2/main is NOT an ancestor of TIP, so step 1's sync merge runs first.
 2. PASS 10 must re-review b6438bd7e (the capture latch fix): PASS 9's engine-delta-5 demote rests on it.
-3. Owner 20:3x-21:1xZ: send goes hub-only -> goal:send-is-hub-only-dm-file-versions-synced-every-30s (under g7.32; DE: routing by post row, AGI_BOX, quiet rows, read-on-landing). OWNER HOLD: no stream, no encryption-town config, no sanctuary activation until messaging is done (TM + sanctuary told 23:12Z). If the PASS 10 one-shot fires into a window past ~0.44, rotate first: the successor runs it (CHECK case d).
+3. Owner 20:3x-21:1xZ: send goes hub-only -> goal:send-is-hub-only-dm-file-versions-synced-every-30s (DE). Owner ~23:2xZ via gen 10: goal:g4.18.1 (ONE MINT ROUTE) + the card-relink fix -> DE, after messaging. OWNER HOLD: no stream, no encryption-town config, no sanctuary activation until messaging is done (TM + sanctuary told 23:12Z). If the PASS 10 one-shot fires into a window past ~0.44, rotate first: the successor runs it (CHECK case d).
 ```
 ## §4 Traps
 | # | trap | rule |
 |---|---|---|
-| 1 | quiet row: dms may sit in logs | `send.py read belam`; the inbox FILE `.agi/sessions/inbox/belam.md` holds them all |
+| 1 | quiet row: an inbox-form send lands ONLY in the inbox FILE `.agi/sessions/inbox/belam.md` (00:07Z 09-27: an [owner] dm sat there while the dm files and `send.py read` showed nothing) | section 1 (A) reads it: ts-blocks newer than belam.lastcheck |
 | 2 | rotate-out takes the slot's FIRST LINE as its commit subject, re-fences the slot | first slot line = plain text |
 | 3 | the grid cron versions an UNCOMMITTED node within minutes | a fresh node is retired + moved, never deleted |
 | 6 | posts.md rows conflict between the trunk and season2/main | resolve.py via sync.sh: temp index + ff-only, never a conflicted MAIN |
