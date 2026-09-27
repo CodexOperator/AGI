@@ -66,6 +66,39 @@ def test_a_node_with_an_unnumbered_field_falls_back_to_the_body(tmp_path):
     assert cli._claim_conjunct_numbers(nf) == [1, 2]
 
 
+def _gate(tmp_path, n_probes):
+    """Call the REAL gate (cli._parent_probe_gate) the way `done` does at
+    cli.py:1554, on a temp graph whose target hypothesis is FIELD_NODE, with
+    a six-field probe for each of conjuncts 1..n_probes."""
+    import json
+    from types import SimpleNamespace
+    cli = _load_cli()
+    root = tmp_path / "graph"
+    (root / "nodes" / "hypothesis").mkdir(parents=True)
+    (root / "nodes" / "hypothesis" / "target.md").write_text(FIELD_NODE)
+    probes = [{"conjunct": n, "class": "gate", "cmd": "true",
+               "expected": "refuse", "observed": "refuse", "result": "pass"}
+              for n in range(1, n_probes + 1)]
+    args = SimpleNamespace(parent="hypothesis:target",
+                           node_id="experiment:kid", probes=json.dumps(probes))
+    return cli._parent_probe_gate(root, {"tier": "parent"}, args, "proved")
+
+
+def test_gate_through_the_wire_ignores_the_phantom_conjunct(tmp_path):
+    """The WIRE test: a field-only 3-conjunct claim whose body review cites
+    (1)..(4) is PASSED by the real gate on probes for 1..3 -- nobody demands
+    a negative probe for the review's 4th to-do item."""
+    err, active, covered = _gate(tmp_path, 3)
+    assert (err, active, covered) == (None, True, [1, 2, 3])
+
+
+def test_gate_still_bites_on_a_conjunct_with_no_probe(tmp_path):
+    """Negative control (unchanged shape, claim 3): drop the conjunct-3 probe
+    and the same gate must REFUSE by name. A pass alone would be vacuous."""
+    err, active, covered = _gate(tmp_path, 2)
+    assert active and "conjunct(s): 3" in err and covered == [1, 2]
+
+
 def test_a_node_with_no_numbers_anywhere_yields_no_conjuncts(tmp_path):
     """Unchanged shape: the gate stays inactive (empty set) rather than
     inventing numbers."""
