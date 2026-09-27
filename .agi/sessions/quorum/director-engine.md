@@ -34,17 +34,17 @@ Skills: agi-dispatch · agi-workflow · agi-node-write · agi-goal · agi-send �
 ## §0 STATE (03:3xZ 09-27 · compacted: per-chain history = `git log` of this node before 061923b03)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br holds DH.424+431, 434, 430 chain (4af305171), 425 chain (3e327cf66) · trunk a6d04759c
-          RED ON POST BR: test_bin_help_smoke[suite_guards.py] (430 chain's new library module) -> DH.511 orders ready (/tmp/claude-1000/-data-work-agi--agi-worktrees-post-director-engine/68c98329-2d26-4c01-a7ad-ac1ebbb6c93e/scratchpad/o511.md) = NEXT FREE SLOT; no [merge-up] until green
+          RED ON POST BR: test_bin_help_smoke[suite_guards.py] (430 chain's new library module) -> DH.511 a00-bc1424df LIVE 04:36Z (orders (/tmp/claude-1000/-data-work-agi--agi-worktrees-post-director-engine/68c98329-2d26-4c01-a7ad-ac1ebbb6c93e/scratchpad/o511.md) = NEXT FREE SLOT; no [merge-up] until green
 LIVE      parents (cap 10 = cell values.local_maxxing.de_live_parents arm): 492 cfed6d3f · 497 263a936b · 499 42c4f9a2 · 501 759e6b60 · 504 e20a597b
           · 506 907d12c6 · 507 fa4269d4 · 508 f957a4d9 · 509 df266356 · 510 a77d4234   (all a00-)
-          murs (systemd agi-director-engine-mur<N>): 483 485r 498 500(500+502) · 471 lost 2/4 verify stages (k1,k3) -> re-run · swarm-sampler2
+          murs (systemd agi-director-engine-mur<N>): 471r(k1,k3) 483 485r 498 500(500+502) 504 · swarm-sampler2
 CHAIN     tip / state                                                                          land note
  425 bin-guard   MERGED 3e327cf66 (mur-16 DH.494 AWR, note residue demoted with reason)
  426 schema-gate 483 @663cd21e2 -> mur483 3 slices (reviews in, verifies pending)                NEVER 442
  427 heal-refuse 485 @ac2b2a4c3 (484+485) -> mur485 running                                     NEVER 476 (its cli.py = cand. for DH.492)
  429 tasks-max   495 @03ac46eea mur-15 AWR: hypothesis ## TESTS names no test (list moved to ## Measured) -> tiny corrective OR demote; LAND: 429 nodes branch first, then 495 tip -X theirs (read the conflict first)
  430 ctx-suite   MERGED 4af305171 (mur-15 DH.489 accept)
- 432 guard-piece 479 @e22d6c6cf mur-13 AWR x3 (overrun ACCEPTED as disclosed) -> 504 LIVE (de-base-479)     NEVER 432 itself · 13 nodes carry /home/<user> = a finding for TM
+ 432 guard-piece 504 @(a00-e20a597b tip) 191 green; 4 kids vs 1, test +246 vs 30 -> mur504 (4 slices); ANON RESIDUE: a kid node row cites the repo path value (checkout root) -> scrub in the next corrective, write <user>/<repo> in patterns   NEVER 432 itself
  433 guard-inst  471 @07f7fdf01 -> mur471 running                                                land 432's chain FIRST
  434 memcap      MERGED 262107e12
  g4.18.1.1       502 @5d92fc78d (de-m502) 315 green -> mur500 slice DH.502-k1
