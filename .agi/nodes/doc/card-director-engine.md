@@ -34,13 +34,14 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ## §0 STATE (17:1xZ 09-27 · per-chain history = git log of this node)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 merged 32ff79e53 · 429 chain MERGED 1ee2340c3 · DH.515 MERGED 64130e4ec
-          (post br NOT suite-run; nothing handed to TM since merge-up 13)
+          (post br NOT suite-run; nothing handed to TM since merge-up 13) · 01fc645d6 agi-dispatch §5 worktree-sweep row (owner via belam
+          17:1xZ) is ON the post br: it rides the SAME merge-up as the kid-worktrees chain -- never hand TM a batch with it but without that chain
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<run key> [NOEX=1] [EXTRA=f,g] gen2.py N murq<Q>.json tip label [R4] -> orders<N>.md · place2.sh N
           (orders on node + base cut + dispatch) · mkmur.py/runmur.sh · harvest.sh N agent tests      D=<scratchpad 4cf27ed6-...>: verd.py Q[@key]
           (verdict digest) · harvest-all.sh N.. (stale-lock clear + harvest) · murall.py --run (one mur per green harvall round) · watch.sh
-MURS      running murq38 45 47(re-run 4G) 52 54 55 56 57 (key map: T/murq<Q>.json) · every ENDED unit is triaged into 584-596
+MURS      running murq38 47(re-run 4G) 52 54 55 56 57 (key map: T/murq<Q>.json) · every ENDED unit is triaged into 584-596
 LIVE      parents 584-588 (spawn_budget.py) · drainers (WAITFOR chain, arm-cell): drainq1 589 590 591 · drainq2 594 592 ·
-          drainq3 596 595 · drainq4 600 598 599 597 (T/drainq<N>.log) · 565's 2 small residues FOLD into 572's next corrective (572 is cut from 565's tip)
+          drainq3 596 595 · drainq4 600 598 599 597 · drainq5 601 (T/drainq<N>.log) · 565's 2 small residues FOLD into 572's next corrective (572 is cut from 565's tip)
 GATE      OWNER GO (belam 16:25Z, TMM.300): step values.local_maxxing.de_live_parents.arm up ONE arm (10 -> 15) only while loadavg1 < 16 AND io
           PSI some avg60 < 50 AND key cap x live spawns < balance; re-read at each step, step back on any fail. 17:0xZ: load 23.5 = HOLD.
           Then the RAM worktree disk (kid-worktrees chain). Drainers hardcode -lt 10: a new drainer reads the cell + the gates
@@ -58,7 +59,7 @@ CHAIN     tips (last)                                                           
  PASS 10 515 MERGED · 516 → 549 → 567 → 584 (wires pi_adapter) · 509 → 550 → 569 → 599 · 507 → 575 → 596 · 512 → 551 → 568 → 585 (round-mur.json STILL paid pi: 585 item 0) · 514 → 552 → 557 → 578 murq55
          · belam-cap-reap HELD until 507 lands
  g4.18.1.x 521 → 555 → 570 → 587 · 510/519 → 553 → 576 → 588 · 520 → 574 murq47 · 497 → 579 murq54
- thought-verb 522 → 554 → 583 murq56 · wake-facts 501 → 556 → 571 murq45 (merge BLOCKED until belam trims F13: 2009 > 2000)
+ thought-verb 522 → 554 → 583 murq56 · wake-facts 501 → 556 → 571 → 601 (merge BLOCKED until belam trims F13: 2009 > 2000)
  guard-piece 530 → 580 → 591 (NEVER 432 itself) · guard-inst 471 AFTER 432 · send-hub 525 → 577 → 586 (HELD: decision) · run-key 531 → 581 → 600 · skills 526 → 573 → 595
 ```
 
@@ -100,5 +101,5 @@ kid commits (the stale-lock chain's own mechanism, live).
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-17:1xZ: DH.572 harvested (ladder paid row closed) + murq57; 597-600 queued; the HARVEST conjunct split out of 598.
+belam 17:1xZ owner ask landed as the agi-dispatch §5 sweep row 01fc645d6, bound to the kid-worktrees merge-up; 601 queued.
 <!-- THOUGHT:END -->
