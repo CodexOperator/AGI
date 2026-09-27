@@ -45,16 +45,18 @@ def _project(tmp_path: Path, cfg: dict) -> Path:
     return root
 
 
-def _run_cli(root: Path, *extra: str) -> tuple[list[str], str]:
-    """`locations.py --storage-categories` as (stdout lines, stderr), rc NOT
-    asserted: the non-zero rc is half of what the table now has to say."""
+def _run_cli(root: Path, *extra: str) -> tuple[list[str], str, int]:
+    """`locations.py --storage-categories` as (stdout lines, stderr, rc).
+
+    The rc is RETURNED and every caller asserts it: a caller that discards it
+    leaves the exit code with no test at all."""
     import contextlib
     import io
     out, err = io.StringIO(), io.StringIO()
     with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
-        locations.main([str(root), "--storage-categories", *extra])
+        rc = locations.main([str(root), "--storage-categories", *extra])
     return ([ln for ln in out.getvalue().splitlines() if ln.strip()],
-            err.getvalue())
+            err.getvalue(), rc)
 
 
 def _cli(root: Path, *extra: str) -> list[str]:
@@ -262,22 +264,37 @@ def test_a_resolved_pick_carries_the_stamp_and_a_custom_row_does_not_claim_one(
         "nowhere/at/all.md", config=cfg, root=root)["target_exists"] is None
 
 
-def test_live_seeded_cells_all_point_at_a_directory_that_exists(tmp_path):
-    """Every option the live table offers, over a checkout THIS test built.
+def test_live_seeded_cells_all_point_at_a_directory_that_exists():
+    """The live table, read off the real disk; this test creates NOTHING.
 
-    It used to assert the paths exist on the LIVE disk, so a partial clone
-    turned the suite red about the clone, not about the code.
-    """
+    It used to `mkdir` every target and then assert the targets exist -- an
+    assertion that could not fail, so a typo in a live cell passed. A missing
+    BASE root means a partial checkout, so that SKIPS naming the path."""
     live = json.loads((REPO / ".agi" / "config.json").read_text(encoding="utf-8"))
-    cfg = {"mint": {"storage_categories": live["mint"]["storage_categories"]}}
+    for row in locations.storage_categories(live, REPO / ".agi"):
+        base = locations.payload_base(REPO / ".agi", row["location"], live)
+        if base is None or not base.is_dir():
+            pytest.skip(f"partial checkout: {base} is not a directory")
+        target = base / row["prefix"]
+        assert target.is_dir(), (
+            f"live cell mint.storage_categories.{row['key']}.prefix names "
+            f"{row['prefix']!r}, which does not exist at {target}")
+
+
+def test_a_typo_in_a_cell_value_is_reported_missing_not_created(tmp_path):
+    """The check above has teeth only if a wrong prefix shows up as MISSING.
+    The good target is created BY the test, the typo target is not."""
+    cfg = {"mint": {"storage_categories": {
+        "good": _cell("source_root", "extensions/agi/bin", "good"),
+        "typo": _cell("source_root", "nodes/.TYPO-does-not-exist", "typo")}}}
     root = _project(tmp_path, cfg)
-    for row in locations.storage_categories(cfg, root):
-        locations.storage_category_target(root, row, cfg).mkdir(
-            parents=True, exist_ok=True)
-    rows = locations.storage_categories(cfg, root)
-    assert rows and all(r["target_exists"] for r in rows), [
-        (r["key"], r["location"], r["prefix"])
-        for r in rows if not r["target_exists"]]
+    (root / "extensions" / "agi" / "bin").mkdir(parents=True)
+    rows = {r["key"]: r for r in locations.storage_categories(cfg, root)}
+    assert rows["good"]["target_exists"] is True
+    assert rows["typo"]["target_exists"] is False
+    out = _cli(root)
+    assert any("typo" in ln and "MISSING" in ln for ln in out), out
+    assert not any(ln.split()[1] == "good" and "MISSING" in ln for ln in out)
 
 
 def test_a_pick_without_the_list_flag_still_resolves(tmp_path):
@@ -332,15 +349,16 @@ def test_a_mistyped_block_is_an_empty_table_the_cli_names(tmp_path):
     for bad in (["a", "b"], "engine code", 7, None):
         cfg = {"mint": {"storage_categories": bad}}
         assert locations.storage_categories(cfg) == []
-        out, err = _run_cli(_project(tmp_path / str(bad), cfg))
+        out, err, rc = _run_cli(_project(tmp_path / str(bad), cfg))
+        assert rc == 1, f"a mistyped block exited {rc}, not 1"
         assert out == []
         assert "mint.storage_categories" in err, err
         assert "not a table" in err, err
     # a mistyped `mint` is the same failure one level up
     cfg = {"mint": "not a table"}
     assert locations.storage_categories(cfg) == []
-    out, err = _run_cli(_project(tmp_path / "mint", cfg))
-    assert out == [] and err.startswith("ERR: mint is"), err
+    out, err, rc = _run_cli(_project(tmp_path / "mint", cfg))
+    assert rc == 1 and out == [] and err.startswith("ERR: mint is"), err
 
 
 def test_the_cli_reports_a_broken_cell_and_still_prints_the_table(tmp_path):
@@ -348,11 +366,13 @@ def test_the_cli_reports_a_broken_cell_and_still_prints_the_table(tmp_path):
     learn the config is broken -- it used to report SUCCESS there."""
     cfg = _seeded()
     cfg["mint"]["storage_categories"]["typo"] = _cell("nope_not_a_base", "", "t")
-    out, err = _run_cli(_project(tmp_path, cfg))
+    out, err, rc = _run_cli(_project(tmp_path, cfg))
+    assert rc == 1, "a broken cell reported success to the shell"
     assert any("typo" in ln and "BAD LOCATION" in ln for ln in out), out
     assert err.startswith("ERR: ") and "typo" in err and "nope_not_a_base" in err
     # a well-formed table keeps rc 0 and a silent stderr
-    out_g, err_g = _run_cli(_project(tmp_path / "good", _seeded()))
+    out_g, err_g, rc_g = _run_cli(_project(tmp_path / "good", _seeded()))
+    assert rc_g == 0, f"a well-formed table exited {rc_g}, not 0"
     assert err_g == "" and len(out_g) == 6, (out_g, err_g)
 
 
