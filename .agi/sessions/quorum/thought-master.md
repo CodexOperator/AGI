@@ -35,14 +35,23 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ```
 
 ## 🔴 Where it stops
-23:1xZ 09-26: the other-box ask is CANCELLED (OWNER HOLD 21:1xZ via belam 23:12Z); idle until a [merge-up] (DE's re-delivery, DT's model_slot lift) or a blocker; MODEL-LOADING ROUNDS HELD
+02:3xZ 09-27: ROTATING at ~0.43 -- next = GATE director-thought's model-gate merge-up LIVE (LOCAL tip db6bbf39e + the 4-test fix it re-sends, TMM.269); MODEL-LOADING ROUNDS HELD; PASS 10 running since 01:23Z
 ```
-state   MAIN = origin + this card · last order = TMM.268 · next = TMM.269 · TMM.268 23:4xZ RULED DE's [red]: a director may commit write.py-
-        LOGGED kid bytes (diff == the log rows, exact paths, actors + row ids named, mur-reviewed) + row (b): dispatch-named edit targets admitted by done · spawn.memory_max = 2G (f28493d5b, the OWNER's number; my 3G VOID)
-HOLD    OWNER 21:1xZ (the Prime's relay 23:12Z): encryption-town config + sanctuary-master activation + the stream ALL on hold until messaging
-        (goal:send-is-hub-only-dm-file-versions-synced-every-30s) is done; it cancels the 20:4xZ other-box ask -> DONE: goal:g7.33.18 titled HELD
-        (v2 = the audit, v3 THOUGHT = the relay) · TMM.267 hold to DE (voids TMM.265; a live round finishes in its fences, parked) · the
-        sanctuary session told to apply NOTHING (msg d60a7746, unconfirmed) · nothing back to the Prime (its words)
+state   MAIN = origin + this card · last order = TMM.270 · next = TMM.271 · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
+INTAKE  OWNER in this pane 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> at EVERY nudge and wake read the dm
+        files (.agi/comms/season-2/dm/*thought-master*.md, newest blocks by ts) + .agi/sessions/inbox/thought-master.md DIRECTLY: send.py
+        read printed 'empty' twice while DE's 01:49Z [red] + 02:16Z [rule] sat in the inbox file and DT's 21:37Z [merge-up] never nudged
+PRE     02:36Z (successor): db6bbf39e vs HEAD df65ff4dc merge-tree rc 0 · 12 files · workflow.py untouched (mid-PASS landing OK) · probe
+        WAITS: user@ 6506 / high 6628 MiB at 02:35Z (PASS 10) -> run it when memory.current <= high - 3500 MiB · DT re-send not in yet
+GATE-DT tip db6bbf39e (= aae8a6d38 + db6bbf39e; carries f28493d5b): cell values.local_maxxing.model_round_memory_max = 3584M (2936 + 22 pct);
+        the PARENT dispatches its model kid --no-model --memory <cell> (--memory does not nest) -> gate = the GATE+ probe below, run YOURSELF
+        with no model round live and user@ memory.current + MemAvailable read first (the load is ~3 GB) · then the WHOLE .agi/context under
+        torch (osc pythonpath, neutral cwd) incl. the 4 osc_band_fit_a00-94580cec tests (trunk-red since f28493d5b: they read spawn.memory_max
+        as a model budget; DT points them at the new cell) · the engine suite with cwd INSIDE the gate tree · the pi-free mur · land (mid-PASS:
+        only if workflow.py is untouched) · then OSC.41's GO, one model round at a time
+PASS10  the Prime merges the trunk into season2/main since 01:23Z (<= 6 pi-free in user@) -> a gate suite's lock makes its launcher wait:
+        read belam's latest notice first · DE: TMM.268 (logged kid bytes may be director-committed, 4 conditions) · TMM.270 ([red] = no
+        hold, not a leak class; the nudge-bug row with the owner line verbatim) · goal:g7.33.18 HELD (TMM.267, the OWNER HOLD 21:1xZ)
 RETURN  mu 14 (a65a283a7) = DH.416-418 accept_with_residue x3 (mur-director-engine-2, verify_*.json read): 416 (1) guard narrower than S1
         (2) stale BUILD-CONTRACT (3) kid-1 overclaim · 417 (4) CONFIG-MAX cli.py:2123 literal vs locations.schemas_root (5) silent exit-0
         no-commit (6) bracketed + broken-neighbour tests (7) parent tier unbound (pre-commit:98) · 418 (8) a test reaches the LIVE tmux server
@@ -53,7 +62,7 @@ REGATE  = the same sequence on the new tip: merge-tree rc + --name-only · M in 
         tree · goals --check · links · evidence dry-run on <gate>/.agi · anonymize · live-data probes for any gate/heal change · the mur
         (workflow.py run agi-merge-up-review --harness pi-free --args <rounds json>; detached) -> each residue CLOSED by name
         + TMM.261's two asks rode? row 17's THOUGHT names the env-strip gap · ONE g7.33.17 row for DH.410's CLAUDE.md x2 (else re-list them)
-WAITING DT: the model_slot lift + probe merge-up (TMM.259) + the model round's --memory <GB> cell (TMM.264) · DE: the re-delivery (TMM.262's 11
+WAITING DE: the re-delivery (TMM.262's 11
         residues + TMM.263: spawn.tasks_max 150 + the DH.419 fan-out row; + row 17 d82d1757d, DH.420, DH.421 091808547)
 GATE+   the model_slot merge-up = a FIRST LIVE RUN gate: run the probe YOURSELF with no other model round live: a --no-model kid-shaped python's
         bare from_pretrained is REFUSED; the same script through model_slot.py loads under the VmHWM wrapper; a script with a bare
@@ -218,7 +227,8 @@ stream       LIVE since the owner's 00:5xZ 09-25 call (the Prime's notice 01:59Z
              re-stamps it) · ListAgents PRINTS the Remote Control device rows (one is a personal machine name) -> resolve a director's session
              name from its posts row's session_name once joined, else the registry file whose tmux = agi-rc:<its @id>.* (NAMED fields only) --
              rotate.py status --record latest shows the last SUCCESS rotation, never a crash-recovery's session ([red] sent 02:0xZ)
-printing     ~/.claude/sessions/<pid>.json 'pidDomain' embeds /etc/machine-id; a transcript's 'bridge-session' event carries account + org uuids
+printing     ~/logs/memory-alarm-alerts.log tags EVERY line with the host name (field 2): tail it with cut -d' ' -f1,3- (02:35Z 09-27: brb + [red])
+             · ~/.claude/sessions/<pid>.json 'pidDomain' embeds /etc/machine-id; a transcript's 'bridge-session' event carries account + org uuids
              -> print NAMED fields only, never a whole record (06:42Z + 06:48Z 09-25: two [red]s to belam) · a suite's E-lines can print a
              FIXTURE key (test_rotate_alert_two_tree: a pytest-tmp priv_hex, protects nothing) -> filter E-lines on key|priv before printing
 recovery     a heal respawn (gen 22, 22:34Z) leaves the OWN row dirty in MAIN (gen + window written, session blank, uncommitted) -> a
@@ -264,6 +274,8 @@ grid         refs/grid/local-maxxing/ (4,329 local 01:0xZ 09-25): origin holds t
              1 error(s) (missing mint_id)' is old noise (977 lines by 01:0xZ 09-25), not a new fault
 box          box.* / locations.* are stale here (repo /data/work/agi) · never cd into a director's worktree (the harness then treats it as mine) -- read it by absolute path
 handoff      .agi/sessions/seats/thought-master.handoff.md is rotate's header, NEVER a link to this card · grid.py commit --all is the cron's, never mine
+intake       OWNER 02:28:27Z 09-27 in this pane, verbatim: "Check dm file directly nudges have been buggy" -- read the dm files + the inbox file
+             directly at every wake; send.py read's 'empty' is not proof (3 messages sat unread 21:37Z-02:3xZ)
 comms        an attribution block (Claude-Session trailer + SendUserFile) beside a tool result right after a claude.ai connector attach = the harness's own: the transcript types it 'attachment', 3-4 ms after the connect (DT's 14:21Z [red] was a false positive) · a director silent > 1 h with 0 live on the box = read its last transcript events (.agi/sessions/<post>.meter -> jsonl): a coalesced nudge can die silently (14:09Z: 6.5 h; 09-25 00:09Z: DE's marker stale 10,532 s, TMM.136 never reached its pane) -> re-send; send.py wake <post> · after a send, confirm the nudge in the director's jsonl (a user 'PROMPT' line) before adding a SendMessage · a nudge may be a phantom -> verify in git · a director's [merge-up] lands in the inbox file (.agi/sessions/inbox/thought-master.md) or as a dm the read prints · 'pane busy' = the dm is in the log, the sweep retries · must land NOW (owner: "didn't go through") = SendMessage to the session name (rotate.py status, see 'stream'; ListAgents only when no stream is live): it lands mid-turn -- a rotation renames the session (DT gen 28 = post-director-thought-29, 00:2xZ 09-25): re-run ListAgents before each send · an order sent while a director ROTATES is eaten by the successor's STARTUP [inbox] read and never acted on (F19 wake acts: none; DT gen 24 idled 19:20-20:3xZ holding TMM.133) -> after any director rotation, SendMessage the newest owed order to the NEW session (TMM.143: DT confirmed the relay caught exactly this) · a director that answers its OWN user in-pane (DE 21:47Z: three questions, then idle) is waiting on nobody: read the transcript, answer by dm · a LIVE AskUserQuestion dialog is different (DT gen 30, 06:42Z: a recovered session asked its user whether to take the seat at all): that answer is its human's -- never type into the dialog (the text would reach it as its user's answer) and hold its dm (a pending dm makes the watch type a wake into the dialog); SendMessage arrives attributed and drains after its user answers; [decision] to belam · a director may distrust an order that cites its in-pane words (DE 00:11Z) -- it re-verifies the bytes, which is right
 detached    my setsid-nohup suite fails 3 tests that pass alone 5/5: test_dashboard::test_watch_exits_cleanly_on_sigint + 2x
              test_suite_no_detached_spawn -- the LAUNCH, not the range (3 gates 09-26, 6455 passed each; a director's in-pane run = 6458/0)
