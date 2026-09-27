@@ -51,6 +51,19 @@ FILE SCOPE extensions/agi/lib/agent-prompt.md · extensions/agi/tests/test_agent
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over f575aa5b8 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.595 -- closes mur-director-engine-30 DH.573-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-parents-and-kids-are--a00-534bd08e tip 8b9d627f8 (branch de-base-595; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Missed instance of the same stale count, not covered even by the node's own CAVEAT: .agi/nodes/experiment/a00-5c1c3862-c36247.md:157 (Agent Notes) still says 'corrected 4 places from 10-non-blank to a measured 7 non-blank / 11 total', while its own CAVEAT at :171 establishes that there were three real sites. Same wording class as defect 1, but the CAVEAT does not name :157, so nothing in the committed bytes corrects it.
+2. Stale derived block nobody checked: .agi/nodes/build/lib-agent-prompt.md.md:30 carries content_sha256: eb52cb7c… while the payload's raw bytes hash to 83dc1526fa0dcd4a8bce068c0cd2997e9fb98dd2e656194ed0a05fc8d9b08740 at every commit in 7b248fd88..8b9d627f8, and extensions/agi/bin/level3.py:763-770 / :831 defines that field as sha256 of the payload's bytes. The BUILD-CONTRACT is harness-owned and must not be hand-edited, and no reader outside level3.py compares it (grep: no hits), so no gate fails — pre-existing residue for the next level3 scan, not this round's doing.
+3. UNVERIFIED, probe I would run but did not: the '136 passed, 7 skipped' regression figure (a00-5c1c3862-c36247.md:110-118) — I ran only the single committed test file (3 passed, /tmp extract of 8b9d627f8, env -u TMUX -u TMUX_PANE). The other 133 would need `env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_claude_code_adapter.py -q -p no:cacheprovider`, then test_decompose_engine.py, then test_bin_help_smoke.py, one file at a time; this stage forbids the multi-file run.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_agent_prompt_skills.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_agent_prompt_skills.py · .agi/nodes/build/lib-agent-prompt.md.md · .agi/nodes/experiment/a00-5c1c3862-c36247.md · .agi/nodes/experiment/a00-66409a1e-c5adee.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 8b9d627f8 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.573: mur-director-engine-24 DH.526-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.595: mur-director-engine-30 DH.573-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
