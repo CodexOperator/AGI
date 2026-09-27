@@ -153,21 +153,27 @@ def _load_locations():
     return _load_module("agi_loc_own", "locations.py")
 
 
-def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None, iter_n=999):
+def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None, iter_n=999,
+           absent_key=False):
     """A spawn record under the CANONICAL iteration dir for `iter_n`.
 
-    `dispatch_node_id=""` writes the record PRODUCTION writes: the key is
-    PRESENT, carrying `""` when there is no dispatch id. DH.632 reverted
-    DH.617's `if dispatch_node_id:` guard, which made the key ABSENT -- a
-    record shape no real seat's agent.json ever has, since production's own
-    writer of the key is the `setdefault(..., rec.get("node_id") or "")` line
-    in the `done` path, and a `setdefault` always leaves the key present. The
-    ABSENT shape is the WEAKER fixture: `r.get()` reads `None` for it, so a
-    cli.py that guards on `v is not None` sails through, and only a
-    fallback-style mutant (`r.get("dispatch_node_id", r.get("node_id"))`) is
-    caught. With the key PRESENT and `""` it refuses, so a `v is not None`
-    mutant now fails the pin too -- the fixture measures the code it is a
-    fixture for, in both directions. DH.604: the `sessions` segment is `locations.sessions_dir`'s to spell -- a
+    TWO shapes, because PRODUCTION HAS TWO (DH.652, after reading the writer
+    rather than inferring it):
+      * `absent_key=True` -- NO `dispatch_node_id` key at all. This is what
+        dispatch.py:3035-3036 writes at SPAWN (`node_id`/`parent`, nothing
+        else) and what the reaper rewrites at :3329, and it stays that way
+        until a kid's OWN `done` runs the `setdefault` at cli.py:1607. So a
+        LIVE kid, and permanently any kid that timed out or was healed, is
+        exactly this shape. DH.632's docstring called it "a record shape no
+        real seat's agent.json ever has"; that premise was UNREAD -- the
+        whole `dispatch_node_id` key is grep-absent from dispatch.py.
+      * the default -- the key PRESENT, `""` when there is no dispatch id:
+        the shape a record carries once `done` has stamped it.
+    Neither is stronger alone. The ABSENT shape alone is read as `None`, so a
+    cli.py guarding on `v is not None` sails through it, and the `try` at
+    cli.py:2219-2221 wraps only `json.loads`, so a guard reaching `":" in v`
+    raises TypeError straight out of the loop. The PRESENT-`""` shape alone
+    misses both. Both are pinned, each by the mutant only it can kill. DH.604: the `sessions` segment is `locations.sessions_dir`'s to spell -- a
     hand-written `root / "sessions"` was a second copy that can drift, and a
     wrong `root` (repo root, not the `.agi` dir) reads as an empty set for the
     WRONG reason. Per-worktree `sessions_dir`, never `shared_sessions_dir`:
@@ -189,13 +195,9 @@ def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None, iter_n=999):
     d.mkdir(parents=True, exist_ok=True)
     if dispatch_node_id is None:
         dispatch_node_id = node_id
-    # DH.632: the key is ALWAYS present, "" when empty -- exactly what
-    # production's `rec.setdefault("dispatch_node_id", rec.get("node_id") or
-    # "")` leaves on a real seat's agent.json. Same drift class DH.617 fixed
-    # for the DIR: a fixture whose spelling drifts from the code's means the
-    # fixture, not the bound, is what the pin measures.
-    rec = {"spawned_by_agent": spawned_by, "node_id": node_id,
-           "dispatch_node_id": dispatch_node_id or ""}
+    rec = {"spawned_by_agent": spawned_by, "node_id": node_id}
+    if not absent_key:
+        rec["dispatch_node_id"] = dispatch_node_id or ""
     (d / "agent.json").write_text(json.dumps(rec) + "\n")
     return d
 
@@ -204,16 +206,38 @@ def test_only_dispatch_node_id_widens_the_set_never_the_node_id_line(tmp_path):
     """DH.552 bound leg 1, unpinned until now: `dispatch_node_id` ONLY -- a
     record carrying NONE contributes nothing, its `node_id` line is not a
     fallback, so a kid-writable id never leaks. Carrying one, it lands.
-    DH.632: "carrying NONE" is production's SHAPE -- the key present with
-    `""` -- not an absent key; see `_spawn`. A mutant that swaps the
-    `isinstance(v, str) and ":" in v` guard for `v is not None` must FAIL
-    this, which it cannot do against an absent-key fixture."""
+    DH.632/652: "carrying NONE" has TWO production shapes, not one -- the key
+    present with `""`, and the key ABSENT (dispatch.py never writes it; see
+    `_spawn`). A mutant that swaps the `isinstance(v, str) and ":" in v` guard
+    for `v is not None` must FAIL this, which it cannot do against an
+    absent-key fixture alone."""
     cli = _load_cli()
     root = _graph(tmp_path)
     kid = "hypothesis:kid-writable"
     _spawn(root, "a00-kid-3", "a00-me", kid, dispatch_node_id="")
     assert cli._round_spawned_node_ids(root, "a00-me", 999) == []
     _spawn(root, "a00-kid-3", "a00-me", kid)  # that leg is the ONLY way in
+    assert cli._round_spawned_node_ids(root, "a00-me", 999) == [kid]
+
+
+def test_a_dispatch_shaped_record_with_no_dispatch_key_contributes_nothing(
+        tmp_path):
+    """DH.652, the shape the round's premise called impossible. dispatch.py
+    writes a seat's `agent.json` with `node_id`/`parent` and NO
+    `dispatch_node_id` (:3035-3036), and the reaper rewrites the same record
+    at :3329 without adding it; the `setdefault` that adds the key is
+    cli.py:1607, in a kid's OWN `done`. So a live kid -- and permanently any
+    kid that timed out or was healed -- carries the ABSENT shape, and it must
+    contribute nothing WITHOUT RAISING: the `try` at cli.py:2219-2221 wraps
+    only `json.loads`, so a guard that reaches `":" in v` on a `None` escapes
+    the loop as a TypeError instead of refusing. The second half keeps the
+    present-key leg green in the same breath: two shapes, one bound."""
+    cli = _load_cli()
+    root = _graph(tmp_path)
+    kid = "hypothesis:kid-writable"
+    _spawn(root, "a00-kid-3", "a00-me", kid, absent_key=True)
+    assert cli._round_spawned_node_ids(root, "a00-me", 999) == []
+    _spawn(root, "a00-kid-4", "a00-me", kid)
     assert cli._round_spawned_node_ids(root, "a00-me", 999) == [kid]
 
 
