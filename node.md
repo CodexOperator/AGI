@@ -62,7 +62,9 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hu
 01:4xZ 09-27 belam-S2-L5-XII: PASS 10 chunks running (1-3 live, 4 held on a cleared 01:38Z WARN); g4.18.2 skills + CLAUDE.md trim landed
 ```
 1. PASS 10: wait on the Monitor (monitor.sh; re-arm on expiry after reading events.log). Every exit -> python3 /tmp/belam-pass10/verdicts.py.
-   Read the rereview-b6438bd7e-capture-latch round FIRST (PASS 9's engine-delta-5 demote rests on it). Then steps 4-9 (skill agi-merge-pass).
+   02:0xZ: chunks 1-3 in (6 rounds, all accept_with_residue, 0 RED; RED? flags = keyword FPs). b6438bd7e CONFIRMED by the re-review.
+   Residue table so far: /tmp/belam-pass10/residues.md. DE defect hypotheses owed at step 6: workflow.py:2417 harness-name gate refuses pi-free rounds ·
+   rotation_alert false "capture-latched ... holds" deferral · model_fence.py:29-36 KeyError. Then steps 4-9 (skill agi-merge-pass).
 2. g4.18.2 remainder: trim extensions/agi/briefs/prime-director-successor.md (10,470 bytes; its §0 wake + comms now live in agi-rotate / agi-send)
    via write.py build:briefs-prime-director-successor 'replace payload N:M <file>'; measure the next wake's first meter read vs 0.092.
 3. DE owns: the redesigns (mint g4.18.1 -> send hub-only + g7.32.5 -> spawn/rotate g7.31.3.3) then the facts trim hypothesis.
