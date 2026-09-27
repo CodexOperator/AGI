@@ -77,10 +77,11 @@ _OVERRIDE_CARRIERS = (
 )
 
 
-#: Subtrees that are NOT engine entry points: this test's own fixture plants
-#: `"$PROJECT_ROOT/bin/$NAME"` by design, so scanning it would report a
-#: carrier that never runs at hook time.
-_NOT_CARRIERS = ("tests/",)
+#: Subtrees that are NOT engine entry points: a `.sh` under `tests/` never runs
+#: at hook time, so a LITERAL site in a fixture is not a carrier the refusal
+#: message must name. (`Path.parts` never carries a trailing slash, so the
+#: entry is the bare directory name -- see the falsifier test below.)
+_NOT_CARRIERS = ("tests",)
 
 
 def override_carriers(root: Path | None = None) -> tuple[str, ...]:
@@ -372,6 +373,27 @@ def test_override_carriers_are_discovered_not_retyped(tmp_path) -> None:
     assert "hooks/rotation-alert.sh" in override_carriers(tree), (
         "the walk cannot see a carrier that is not already in the pinned tuple"
     )
+
+
+def test_the_tests_subtree_exclusion_bites_and_is_not_a_dead_constant(tmp_path) -> None:
+    """FALSIFIER: `_NOT_CARRIERS` was `("tests/",)`, which no path part can match.
+
+    `Path.relative_to().parts` are bare names -- "tests", never "tests/" -- so
+    the predicate was false for every file in the tree: the exclusion excluded
+    NOTHING, measured over all 9 `*.sh` under PLUGIN_ROOT (0 hits). It was
+    also unjustified: the shipped fixture plants `"$PROJECT_ROOT/bin/$NAME"`,
+    whose `$NAME` the regex does not match, so the fixture never carried a
+    site to exclude. RED before the fix: the literal site in `tests/` was
+    reported as a carrier. A retyped exclusion that never fires is the same
+    defect as the SHADOW_SCRIPTS constant this file was born to kill.
+    """
+    site = '[[ -x "$PROJECT_ROOT/bin/fixture-site.py" ]] && X=1\n'
+    tree = tmp_path / "ext"
+    (tree / "tests" / "fixtures").mkdir(parents=True)
+    (tree / "hooks").mkdir(parents=True)
+    (tree / "tests" / "fixtures" / "fake.sh").write_text(site)
+    (tree / "hooks" / "real.sh").write_text(site)
+    assert override_carriers(tree) == ("hooks/real.sh",)
 
 
 def test_braced_and_dotted_override_sites_are_derived(tmp_path) -> None:
