@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - hypothesis:a00-1ff9316d-177aae
 next_edges: []
-edited_by: a00-394a4440
+edited_by: director-engine
 scaffold_hash: 2b76fd5380d914b6
 season: 2
 testable_claim: "mem_cap.resolve_tasks_max reads spawn.tasks_max (150 on the live config, TMM.263 (2)) and values.memcap.tasks_max is read nowhere; absent or bad cell falls back to the fail-closed 96; AGI_TASKS_MAX still overrides (assigned: director-engine)"
@@ -31,7 +31,7 @@ config-max: the value is the cell spawn.tasks_max (already committed; READ it, n
 - a cfg with spawn.tasks_max absent returns anything but 96.
 
 ## TESTS
-- PRE-FIX STATE, measured before this hypothesis's kid (still the text as of 2026-09-27's DH.488 re-read; the reader itself is now correct): extensions/agi/bin/mem_cap.py `resolve_tasks_max` read `values.memcap.tasks_max` (absent on the live config) -> the shipped default 96 applied, not the owner's 150. The reader now reads `spawn.tasks_max`; DH.488 touched NO production line and did not re-measure this row.
+extensions/agi/tests/test_mem_cap_tasks_max.py (rows moved onto spawn.tasks_max + a live-config row = 150) + neighbourhood test_launch_memory_cap.py test_heal_mem_cap.py test_dispatch.py. Every pytest under `timeout 600`, --basetemp under /tmp. No NEW test launches a real systemd scope (the pre-existing DH.421 row in test_mem_cap_tasks_max.py does, under its own cap -- mur-director-engine-5 DH.429-k2 caught the director brief overstating this).
 
 ## FILE SCOPE
 extensions/agi/bin/mem_cap.py · extensions/agi/tests/test_mem_cap_tasks_max.py. Never .agi/config.json.
@@ -40,5 +40,5 @@ extensions/agi/bin/mem_cap.py · extensions/agi/tests/test_mem_cap_tasks_max.py.
 1 kid · <= 12 production lines · pi-free tier-0 · 0 USD. No test spawns pytest; kids never launch real claude.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-mur-director-engine-5 DH.429-k2: the director-authored TESTS line claimed no test launches a real systemd scope; test_mem_cap_tasks_max.py already does (DH.421). Corrected the brief text by the director; the code residues ride DH.443.
+mur-director-engine-15 DH.495-k1 (review + verify, accept_with_residue): the ## TESTS section held a duplicate of the Measured PRE-FIX paragraph and named no test -> restored the director-authored test list from the post branch (as of a37e21cc9); the PRE-FIX paragraph stays once, in ## Measured. Node update by the director (brief text, precedent a37e21cc9), no kid round.
 <!-- THOUGHT:END -->
