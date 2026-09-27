@@ -44,3 +44,18 @@ extensions/agi/bin/cli.py (`_claim_conjunct_numbers` only) · extensions/agi/tes
 
 ## CEILING
 1 kid · <= 12 production lines · pi-free tier-0 · 0 USD.
+
+## CORRECTIVE DH.523 -- closes mur-director-engine-17 DH.492-k1 (verify: accept_with_residue)
+BASE      CUT FROM season2/loops/hypothesis-probe-gate-counts-cla-a00-cfed6d3f tip cd17ab80c (worktree a00-cfed6d3f). No merge. Never rebase.
+1. No committed test reaches cli._parent_probe_gate (test_cli_claim_conjunct_scope.py:37,46,56,69 call only _claim_conjunct_numbers) -> ONE test through _parent_probe_gate for a field-only claim and one for the unchanged shape (claim 3).
+2. experiment:a00-a041cdef-3b79fa carries its five probes only as body prose (:82-86) -> set its probes field with write.py (the [experiment] schema declares it).
+3. Corpus effect unquantified: RE-COUNT the live hypothesis nodes whose numbered testable_claim differs from the body's (n) set (the reviewer measured 43), paste the command + number on the kid node, and name two whose demanded set shrinks.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_cli_claim_conjunct_scope.py + test_cli.py -k probe + test_bin_help_smoke.py once (timeout 600, --basetemp under /tmp)
+FILE SCOPE extensions/agi/tests/test_cli_claim_conjunct_scope.py · experiment:a00-a041cdef-3b79fa (write.py) · the kid's own node. 0 production lines.
+CEILING   HARD CAP: 1 kid · 0 production lines · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.523: mur-17 DH.492-k1 accept_with_residue -- no committed test reaches _parent_probe_gate, probes only in prose, corpus effect uncounted. 0 production lines.
+<!-- THOUGHT:END -->
