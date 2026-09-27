@@ -2199,6 +2199,22 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         else:
             edit.payload_bytes = _spliced
 
+    # hypothesis:every-write-py-path-is-schema-checked-not-only-the-set-verb
+    # -- the schema gate for the LIBRARY path. main() runs the same predicate
+    # (line ~3121) on the CLI, but submit() did not, so every engine caller
+    # (rotate.py's list cells among them) wrote a value the schema refuses by
+    # name: a `refuse:` annotation, a wrong type, a raw scalar into a
+    # list-typed field, an out-of-regex value. The SAME one-line refusal, the
+    # SAME row-and-rule naming, raised as an EditError before anything is
+    # written -- so the API and the CLI cannot disagree about what a legal row
+    # is. Only the caller's own `set_fm` is judged, exactly as on the CLI: the
+    # provenance/ring cells submit() adds afterwards are its own bookkeeping.
+    if edit.set_fm and ":" in edit.node_id:
+        _refusal = _enforce_set_schema_gate(
+            root, edit.node_id.split(":", 1)[0], edit.set_fm)
+        if _refusal:
+            raise EditError(_refusal)
+
     # A `location` set in this same edit wins over the one on disk: naming the
     # new base and moving the bytes is one intention, not two.
     if "location" in set_fm:
