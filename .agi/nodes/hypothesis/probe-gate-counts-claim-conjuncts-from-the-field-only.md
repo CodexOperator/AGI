@@ -109,6 +109,18 @@ FILE SCOPE extensions/agi/tests/test_cli_claim_conjunct_scope.py · .agi/nodes/e
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 4e82ecf3f · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.626 -- closes mur-director-engine-35 DH.589-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-probe-gate-counts-cla-a00-f364d7a3 tip 15bc46e00 (branch de-base-626; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. ITEM 4 section duplicated verbatim in the landed node (the class this round exists to kill) -- .agi/nodes/experiment/a00-ea0222b3-4ed78e.md:111 -- Lines 79-110 and 111-143 are the same 32 lines plus one blank (diff of the two ranges is empty apart from that blank): '## ITEM 4 (DH.589 a00-bc9448e3) -- the negative control now DISCRIMINATES under mutation' appears twice, ending in the same '150 passed, 6 skipped' paste. The parent (a00-f364d7a3, a00-bc9448e3-61e351.md:209 charge (b)) saw it and correctly refused to hand-fix a kid's bytes; director commit 15bc46e00 landed it as-is. One write.py body edit on this node removes 33 duplicated lines.
+2. Stale line-number paste: the corrected THOUGHT:END measurement is a pre-merge instant -- .agi/nodes/experiment/a00-9f9aaacd-303434.md:194 -- a00-9f9aaacd-303434.md:15 and :181-196 (and the same paste at a00-bc9448e3-61e351.md:54-66) assert 'FULL SET {194, 213} ... the real closing marker at this tip is :213'. At 15bc46e00 the same grep returns 281 (prose mention) and 300 (marker), BEGIN :261, CAVEAT :279 -- shifted by the duplicate block that landed with this round. The order claim still holds (retraction is inside the THOUGHT, after the corrected CAVEAT), so this is a stale measurement, not a wrong conclusion; it is the round's own subject matter, a number pasted as a line number.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_cli_claim_conjunct_scope.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_cli_claim_conjunct_scope.py · .agi/nodes/experiment/a00-0f446ede-c1a870.md · .agi/nodes/experiment/a00-9f9aaacd-303434.md · .agi/nodes/experiment/a00-bc9448e3-61e351.md · .agi/nodes/experiment/a00-ea0222b3-4ed78e.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 15bc46e00 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.589: mur-director-engine-30 DH.560-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.626: mur-director-engine-35 DH.589-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
