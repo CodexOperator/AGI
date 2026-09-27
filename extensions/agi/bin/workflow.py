@@ -231,17 +231,68 @@ def _existing_run_keys(root: Path, key: str) -> set[str]:
         return set()
 
 
+# How many names the mint will try before giving up on a reservation and
+# returning the next candidate anyway. Bounded, so a stale marker (or an
+# unwritable marker dir) can NEVER hang or crash the mint.
+RUN_KEY_MINT_ATTEMPTS = 64
+
+# The reservation namespace, relative to the shared project root (the same
+# root `_existing_run_keys` reads `<key>.jsonl` from). A sibling of
+# `sessions/`, so reserving a name never creates or writes into the tracked-run
+# tree.
+RUN_KEY_MARKER_DIR = "run-keys"
+
+
+def _reserve_run_key(root: Path, run_key: str) -> bool:
+    """RESERVE `run_key` for this process with an EXCLUSIVE create — the
+    atomic step hypothesis:a-run-key-is-reserved-atomically-so-concurrent-runs-
+    never-share-one asks for. The marker is an O_CREAT|O_EXCL file under
+    `<sessions>/workflows/keys/`, resolvable from the SAME root the tracked
+    rows live under (`_loc.shared_project_root(root) or root`, exactly as
+    `_existing_run_keys` does). The namespace is a SIBLING of `sessions/`,
+    not a subdir of it: `sessions/` is the tracked-run record and a `--dry-run`
+    must not create it (extensions/agi/tests/test_workflow.py
+    `test_dry_run_writes_no_row` asserts exactly that), and minting a name is
+    not tracking a run. It is likewise NOT inside the live
+    `.agi/sessions/workflows/runs` tree.
+
+    False means "this name is taken, or reservation is impossible here" — the
+    caller advances to the next candidate either way. It NEVER raises: a
+    de-collided name is a nicety, not a gate (same contract as
+    `_existing_run_keys`).
+
+    Stale markers are SKIPPED, never reaped: reaping needs a row-vs-marker
+    reconciliation pass that costs more production lines than this round has,
+    and a skipped name is a wasted suffix, never a wrong key."""
+    try:
+        sess = _loc.shared_project_root(root) or root
+        d = Path(sess) / RUN_KEY_MARKER_DIR
+        d.mkdir(parents=True, exist_ok=True)
+        fd = os.open(str(d / f"{run_key}.lock"),
+                     os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+        os.close(fd)
+        return True
+    except Exception:
+        return False
+
+
 def _mint_run_key(root: Path, key: str, args: dict) -> str:
     """The descriptive run key for this run: workflow-type abbreviation joined
     to the slugged run args, de-collided against the rows already tracked for
-    this workflow."""
+    this workflow AND RESERVED atomically at mint, so N concurrent launches
+    get N distinct keys. A single launch's key is unchanged: the first
+    candidate is taken whenever it is free, and the reservation is invisible
+    to the caller — the reserved name and the name written into the row are
+    the SAME string, because `run_workflow` binds this return value once."""
     base = _run_key_abbrev(key)
     toks = _run_arg_tokens(args)
     if toks:
         base = f"{base}-" + "-".join(toks)
     used = _existing_run_keys(root, key)
     candidate, i = base, 2
-    while candidate in used:
+    for _ in range(RUN_KEY_MINT_ATTEMPTS):
+        if candidate not in used and _reserve_run_key(root, candidate):
+            return candidate
         candidate = f"{base}-{i}"
         i += 1
     return candidate
