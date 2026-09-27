@@ -314,13 +314,16 @@ def test_a_negative_reserve_is_drift_and_reaches_the_exit_code(tmp_path, monkeyp
 # --- the four closes of DH.450 --------------------------------------------
 
 class _Spy:
-    """Every write-shaped call a READ-ONLY probe must not make.  Recorded, not
-    asserted by prose: `open(..., w|a|x|+)`, `Path.write_*`, `os.mkdir`,
-    `os.chmod`, `os.replace`, `os.unlink`."""
+    """Every write-shaped call a READ-ONLY probe must not make, INSTALLED AND
+    RECORDED (never raised on -- a spy observes, a gate blocks; the read-only
+    path is proved by the empty list, never by a crash).  Exactly what is
+    installed: `builtins.open(..., w|a|x|+)`, `Path.write_text`,
+    `Path.write_bytes`, `os.mkdir`, `os.chmod`, `os.replace`, `os.rename`,
+    `os.unlink`, `os.remove`, `tempfile.mkstemp`, `tempfile.NamedTemporaryFile`."""
 
     def __init__(self, monkeypatch):
         self.calls = []
-        import builtins
+        import builtins, tempfile as _tf
         real_open, real_mkdir, real_chmod = builtins.open, os.mkdir, os.chmod
         real_write_text, real_write_bytes = pathlib.Path.write_text, pathlib.Path.write_bytes
         monkeypatch.setattr(builtins, "open", self._open(real_open))
@@ -328,6 +331,17 @@ class _Spy:
         monkeypatch.setattr(os, "chmod", self._wrap(real_chmod, "os.chmod"))
         monkeypatch.setattr(pathlib.Path, "write_text", self._wrap(real_write_text, "write_text"))
         monkeypatch.setattr(pathlib.Path, "write_bytes", self._wrap(real_write_bytes, "write_bytes"))
+        # the atomic-write family: a read-only probe that "only" replaced a file
+        # wrote exactly as much as one that created it.
+        for name in ("replace", "rename", "unlink", "remove"):
+            if hasattr(os, name):
+                monkeypatch.setattr(os, name, self._wrap(getattr(os, name), f"os.{name}"))
+        for name in ("mkstemp", "NamedTemporaryFile"):
+            if hasattr(_tf, name):
+                monkeypatch.setattr(_tf, name, self._wrap(getattr(_tf, name), f"tempfile.{name}"))
+        self._mkstemp = _tf.mkstemp
+        if hasattr(_tf, "TemporaryFile"):
+            monkeypatch.setattr(_tf, "TemporaryFile", self._wrap(_tf.TemporaryFile, "tempfile.TemporaryFile"))
 
     def _wrap(self, real, what):
         def call(*a, **k):
@@ -376,6 +390,29 @@ def test_the_real_cached_probe_path_creates_nothing_and_reports_unknown(tmp_path
     assert list(rt.iterdir()) == [], "the probe CREATED something under $XDG_RUNTIME_DIR"
 
 
+def test_one_pure_resolver_and_the_writer_never_drift(tmp_path, monkeypatch):
+    """RESIDUE 1: the cache path is computed in ONE place.  mem_cap's WRITER
+    still creates its private dir; the PURE resolver the probe uses creates
+    nothing and returns the same file -- with and without XDG_RUNTIME_DIR, and
+    with the AGI_MEMCAP_CACHE override."""
+    cfg = {"values": {"memcap": {"probe_cache_dir_name": "capdir",
+                                 "probe_cache_file": "verdict"}}}
+    for override in (None, str(tmp_path / "fixed-cache")):
+        for use_runtime in (True, False):
+            monkeypatch.delenv("AGI_MEMCAP_CACHE", raising=False)
+            monkeypatch.delenv("XDG_RUNTIME_DIR", raising=False)
+            if override:
+                monkeypatch.setenv("AGI_MEMCAP_CACHE", override)
+            fresh = tmp_path / f"rt-{bool(override)}-{use_runtime}"
+            if use_runtime:                      # a dir that DOES NOT EXIST yet
+                monkeypatch.setenv("XDG_RUNTIME_DIR", str(fresh))
+            pure = probe.mem_cap._cache_path_pure(cfg)
+            assert pure is not None
+            if use_runtime and not override:
+                assert not fresh.exists(), "the PURE resolver created a directory"
+            assert pure == probe.mem_cap._probe_cache_path(cfg), "the two resolvers drifted"
+
+
 def test_the_real_cached_probe_path_reads_a_planted_verdict_and_writes_nothing(tmp_path, monkeypatch):
     """Same path with a trusted cache FILE present: the row is ok, the dir is
     untouched (no mkdir, no chmod), and the memcap cells drive WHERE it reads."""
@@ -413,23 +450,33 @@ def test_a_cache_file_from_another_boot_is_unknown_not_false(tmp_path, monkeypat
 
 def test_the_only_dest_literals_left_live_in_one_table():
     """KIT CONTRACT: dest_rel belongs to the manifest; until g7.33.18.1 lands
-    every one of them sits in ONE module-level table (FILES), not scattered."""
+    every one of them sits in ONE module-level table (FILES), not scattered.
+    The shape of a dest literal is its SUFFIX, and the suffix set is READ FROM
+    THE TABLE ITSELF (FILES+UNITS), so a new `.service`/`.timer`/`.slice` row is
+    covered the day it is added -- no hand-kept list to rot.  A slashless
+    `agi-memguard.py` outside the table is as much a defect as a `/usr/...`."""
     import ast
     tree = ast.parse(pathlib.Path(probe.__file__).read_text())
-    lits = set()
-    for node in ast.walk(tree):
-        if (isinstance(node, ast.Constant) and isinstance(node.value, str)
-                and (node.value.endswith(".conf") or node.value.endswith(".py"))
-                and "/" in node.value):
-            lits.add((node.lineno, node.value))
     tables = {getattr(n, "targets", None) and n.targets[0].id for n in tree.body
               if isinstance(n, ast.Assign)}
     assert "FILES" in tables and "UNITS" in tables
+    suffixes = {pathlib.PurePosixPath(v).suffix for v in FILES_SRC if pathlib.PurePosixPath(v).suffix}
+    assert {".conf", ".py", ".service"} <= suffixes, suffixes   # the shapes the kit ships today
+    # prose and the tables' own docstrings are not dest literals
+    skip = {ast.get_docstring(n, clean=False) for n in ast.walk(tree)
+            if isinstance(n, (ast.Module, ast.FunctionDef, ast.ClassDef, ast.AsyncFunctionDef))}
+    lits = set()
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Constant) and isinstance(node.value, str)
+                and pathlib.PurePosixPath(node.value).suffix in suffixes
+                and node.value not in skip
+                and node.value != pathlib.Path(probe.__file__).name):   # argparse `prog=`
+            lits.add((node.lineno, node.value))
     for lineno, val in lits:
         assert val in FILES_SRC, f"line {lineno}: {val!r} is a dest literal outside the table"
 
 
-FILES_SRC = {r[2] for r in probe.FILES} | {r[2] for r in probe.UNITS}
+FILES_SRC = {r[2] for r in probe.FILES} | {r[1] for r in probe.UNITS}   # dest_rel | unit
 
 
 

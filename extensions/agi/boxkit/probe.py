@@ -12,7 +12,7 @@ The USER manager owns agi.slice and the other per-user units.  Every row carries
 its manager; nothing is asked of the wrong one.
 """
 from __future__ import annotations
-import argparse, json, os, pathlib, re, subprocess, sys, tempfile
+import argparse, json, os, pathlib, re, subprocess, sys
 
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "bin"))
@@ -183,25 +183,17 @@ def judge(got, want, kind, tol: float = OK_TOL, info: bool = False) -> str:
 def cached_usable(cfg: "dict | None" = None):
     """mem_cap's boot-cached verdict, READ WITHOUT TOUCHING THE BOX.
 
-    mem_cap._read_cached_probe() is NOT read-only: _probe_cache_path ->
-    _private_dir does `path.mkdir(parents=True, mode=0o700)` and
-    `os.chmod(path, 0o700)` under $XDG_RUNTIME_DIR before any read, so a
-    read-only caller CREATED a directory on the box.  This re-implements only
-    the READ half -- the same cells mem_cap names
-    (`values.memcap.probe_cache_dir_name` / `probe_cache_file`, or the
-    AGI_MEMCAP_CACHE file path), the same $XDG_RUNTIME_DIR-then-tempdir base,
-    and the same trust test (regular file, our uid, THIS boot id) -- and
-    reports UNKNOWN when there is nothing trustworthy to read.  No mkdir, no
-    chmod, no write, no spawn."""
-    env = os.environ.get("AGI_MEMCAP_CACHE")
-    if env:
-        path = pathlib.Path(env)
-    else:
-        names = mem_cap._cache_names(cfg)
-        if names is None:
-            return None
-        base = os.environ.get("XDG_RUNTIME_DIR") or tempfile.gettempdir()
-        path = pathlib.Path(base) / names[0] / names[1]
+    mem_cap._read_cached_probe() is NOT read-only: it goes through
+    _probe_cache_path -> _private_dir, which `mkdir(parents=True, mode=0o700)`
+    and `os.chmod(0o700)`s under $XDG_RUNTIME_DIR before any read, so a
+    read-only caller CREATED a directory on the box.  This takes the path from
+    mem_cap._cache_path_pure -- ONE place computes it, and that function
+    creates nothing -- and then only READS: `_trusted_cache_file` (a regular
+    file we own; a symlink or a foreign file is not followed), the boot-id
+    check, and the value parse.  No mkdir, no chmod, no write, no spawn."""
+    path = mem_cap._cache_path_pure(cfg)
+    if path is None:
+        return None
     path = mem_cap._trusted_cache_file(path)      # a symlink or a foreign file is not read
     if path is None:
         return None
