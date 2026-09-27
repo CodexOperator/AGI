@@ -2358,6 +2358,32 @@ def _strip_thought(text: str) -> str:
     return _THOUGHT_RE.sub("", text).strip()
 
 
+def _self_loaded_parts(harness: str | None, cell: dict) -> set[str]:
+    """The brief parts `harness` loads ITSELF, from two named sources.
+
+    The config cell `harness_self_loads.<harness>` (config:brief) is
+    AUTHORITATIVE when the harness has an entry -- a project that reuses a
+    harness name for a block that harness does not load itself can say so in
+    the cell. Otherwise the harness adapter's module-level
+    `SELF_LOADED_BRIEF_PARTS` is the default: the harness declaring the fact
+    about itself. The adapter name comes from the harness name with `-` read as
+    `_` -- the SPELLING `adapters.load` already requires -- so no harness is
+    named here. A harness that declares neither gets every part it asks for.
+    """
+    declared = (cell.get("harness_self_loads") or {}).get(harness or "")
+    if declared is not None:
+        return set(declared or ())
+    declared: set[str] = set()
+    if harness:
+        try:
+            import adapters
+            mod = adapters.load(str(harness).replace("-", "_"))
+            declared |= set(getattr(mod, "SELF_LOADED_BRIEF_PARTS", ()) or ())
+        except Exception:  # a harness nobody wrote an adapter for
+            pass
+    return declared
+
+
 class RenderError(BriefError):
     """A render cannot be assembled -- a bad part, a missing card or node."""
 
@@ -2419,6 +2445,26 @@ def _node_text(root: Path, ref: str) -> str:
     return _strip_thought(body)
 
 
+def _one_heading(text: str) -> str:
+    """A template part prints EXACTLY ONE heading.
+
+    A scaffolded node body opens with its own id line (`# doc:x`) and a human
+    title then opens again (`# doc:x — THE MASTER TEMPLATE: ...`), so a render
+    emitted BOTH and a first turn carried its template heading twice
+    (experiment:a00-4a01c17b-415791, measured on `thought-master`). Keep the
+    longer, human one; a template that opens with a single heading, or with
+    none, is untouched.
+    """
+    lines = text.splitlines()
+    while (len(lines) >= 3 and lines[0].startswith("# ")
+           and not lines[1].strip() and lines[2].startswith("# ")):
+        first, second = lines[0][2:].strip().rstrip(":"), lines[2][2:].strip()
+        if not (second == first or second.startswith(first + " ")):
+            break
+        lines = lines[2:]
+    return "\n".join(lines).strip()
+
+
 def _template_text(root: Path, ref: str) -> str:
     """A ROLE template by node ref: a build node's PAYLOAD file, else its body.
     A missing node still refuses BY NAME through `_node_text`."""
@@ -2430,8 +2476,8 @@ def _template_text(root: Path, ref: str) -> str:
         pay = pay if pay.is_absolute() else root.parent / pay
         if not pay.is_file():
             raise RenderError(f"brief template payload not found: {fm['payload_ref']}")
-        return _strip_thought(pay.read_text(encoding="utf-8"))
-    return _node_text(root, ref)
+        return _one_heading(_strip_thought(pay.read_text(encoding="utf-8")))
+    return _one_heading(_node_text(root, ref))
 
 
 def _part(name: str, root: Path, role: str, post: str | None, harness: str | None,
@@ -2529,6 +2575,19 @@ def render(*, post: str | None = None, role: str | None = None,
     cell = _brief_cell(root)
     parts = list((cell.get("parts") or {}).get(role) or (cell.get("parts") or {}).get("*") or [])
     parts += [p for p in (cell.get("harnesses") or {}).get(harness or "") or [] if p not in parts]
+    # A harness that loads a block ITSELF gets NO inline copy of it: claude-code
+    # reads CLAUDE.md as project instructions before the first turn, so the
+    # `harness` part only re-sent 26 KB the seat already had
+    # (experiment:a00-4a01c17b-415791: 106,144 chars where the pre-DH.410
+    # static-file turn was 64,896). WHERE THE DECISION LIVES, both named, and
+    # neither a harness-name literal in code:
+    #   * the config cell `harness_self_loads.<harness>` = the parts that
+    #     harness loads itself (config:brief; owner/prime_director write it --
+    #     a kid is refused by the written_by gate, so a kid must NOT);
+    #   * the HARNESS ADAPTER's own `SELF_LOADED_BRIEF_PARTS`, which is the
+    #     harness declaring the fact about itself.
+    # A harness that declares neither still gets its block, unchanged.
+    parts = [p for p in parts if p not in _self_loaded_parts(harness, cell)]
     bad = [p for p in parts if p not in BRIEF_PARTS] or (["<none>"] if not parts else [])
     if bad:
         raise RenderError(f"bad brief part {bad[0]!r} for role {role!r}; known: {', '.join(BRIEF_PARTS)}")
