@@ -43,6 +43,22 @@ FILE SCOPE extensions/agi/bin/adapters/__init__.py · extensions/agi/tests/test_
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 7cabf1f8f · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.567 -- closes mur-director-engine-26 DH.549-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-a-path-shaped-bin-res-a00-60e5d07e tip dab79e47c (branch de-base-567; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Absolute-cell refusal now claims a cwd was consulted (adapters/__init__.py:139)
+2. 2. cwd= parameter has no production caller after two rounds (adapters/__init__.py:75)
+3. 3. build:bin-adapters-init v2 row 2 misdescribes the payload this round changed (.agi/nodes/build/bin-adapters-init.md:88)
+4. 5. Superseded node retains a false RED tally and line count in its body, corrected only by an appended note (a00-8bbde2ea-933463.md:246)
+5. adapters/__init__.py:124 `here = os.getcwd() if os.path.isdir('.') else None` — the guard does not guard: with the resolver's cwd deleted, os.path.isdir('.') is still True (measured, os-only snippet) and os.getcwd() raises FileNotFoundError, which propagates out of resolve_bin uncaught, naming no harness, no cell and no $env_var — the exact unnamed death the docstring at :86-93 says this function exists to prevent. It also falsifies the reviewing parent's own probe note that 'the os.path.isdir(".") guard holds' (a00-96302aef:17, :231-232). Pre-existing: :124 is a context line, unchanged by this diff, so it is residue, not a demotion. Probe I would run and did NOT: a committed test that chdirs into a tmp_path dir, rmdir's it, and asserts the refusal names the harness and $PI_BIN (needs no engine CLI, only tmp_path); the pre-fix comparison would need a /tmp checkout of payload a947f5a73, which I did not do.
+6. adapters/__init__.py:118-119 — the shipped comment says a relative cell is judged against the SPAWN's cwd 'not this process's', but :125 keeps `here` as the live second candidate and the shipped test test_adapters_spawn_cwd.py:77-90 pins that a cell valid only in the RESOLVER's cwd is returned as an absolute join. Comment contradicts code and its own test; wording-level, low.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_adapters_spawn_cwd.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/adapters/__init__.py · extensions/agi/tests/test_adapters_spawn_cwd.py · .agi/nodes/experiment/a00-8bbde2ea-933463.md · .agi/nodes/experiment/a00-96302aef-adf2d5.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over dab79e47c · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.549: mur-director-engine-23 DH.516-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.567: mur-director-engine-26 DH.549-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
