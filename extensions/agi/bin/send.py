@@ -1681,12 +1681,13 @@ def _deferred_blob(root: Path, seat: str) -> str | None:
     try:
         p = _nudge_deferred_path(root, seat)
         return p.read_text() if p.is_file() else None
-    except OSError:
+    except Exception:                                    # noqa: BLE001
         return None
 
 
 def _register_unresolved(root: Path, seat: str, before_pending: int,
-                         before_deferred: str | None) -> None:
+                         before_deferred: str | None,
+                         sender: str | None = None) -> None:
     """TMM.283: a message that landed in the FILE but whose nudge never
     resolved (no pane target) left NO pending mark. Register it at the
     SENDER unless the nudge path already accounted for it -- a window
@@ -1697,6 +1698,11 @@ def _register_unresolved(root: Path, seat: str, before_pending: int,
     very nudge WROTE (bytes changed) accounts for this message, which is the
     same before/after discipline the pending snapshot already uses."""
     if _row_is_quiet(root, seat):
+        return
+    # A self-copy (sender == seat) or a service sender types no nudge ever, so
+    # an unresolved mark would sit in the SENDER'S OWN inbox counting a
+    # message nobody but the sender will read (TMM.283 follow-up).
+    if _sender_class(root, sender, seat) == "service":
         return
     if _deferred_blob(root, seat) != before_deferred:
         return
@@ -3022,7 +3028,8 @@ def send(root: Path, to: str, text: str, sender: str | None,
         # box lands either way, so an inbox block whose wake never resolved
         # must be countable, exactly as a `--to` dm is.
         if not ok:
-            _register_unresolved(root, to, p_before, d_before)
+            _register_unresolved(root, to, p_before, d_before,
+                                 sender if sender is not None else from_id)
         _announce_nudge(root, to, ok)
 
     print(inbox.resolve())
@@ -4077,7 +4084,8 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     # coalesce bumps the count itself; a busy pane stores the deferred body)
     # or the row is quiet (a quiet row types nothing BY CHOICE).
     if not ok:
-        _register_unresolved(root, other, before, d_before)
+        _register_unresolved(root, other, before, d_before,
+                             _detect_sender(sender))
     # `_announce_nudge` reads the SEATS row and the comms config, both of
     # which live under the GRAPH root -- the same root `_nudge_window` is
     # handed one line above. Handing it the raw `croot` (the comms root)

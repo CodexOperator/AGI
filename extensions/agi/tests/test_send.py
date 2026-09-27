@@ -7905,3 +7905,42 @@ def test_inbox_send_registers_pending_when_no_pane(project: Path, monkeypatch):
     send_mod.send(project, seat, "wake up body", "director-engine")
     assert send_mod._pending_more(project, seat) == 1
     assert "pending=1" in send_mod.status(project, seat)
+
+
+def _plain_seats(project: Path, rows) -> None:
+    (project / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
+    (project / "nodes" / ".geometry" / "seats.md").write_text(_seats_md(rows))
+
+
+def test_self_copy_registers_no_pending_in_own_inbox(project: Path,
+                                                     monkeypatch):
+    """A seat that sends to ITSELF types no nudge ever, so an unresolved
+    mark must not land in the sender's own inbox (TMM.283 follow-up).
+    The row is PLAIN on purpose: on a `quiet-system` row `_nudge_window`
+    returns True before the target lookup, no mark is registered, and the
+    test would be green on the pre-fix bytes."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux(monkeypatch, [])          # windowless -> no target
+    send_mod.send(project, "director", "rotation self copy", "director")
+    inbox = send_mod._inbox_dir(project) / "director.md"
+    assert "rotation self copy" in inbox.read_text(), "the block IS the record"
+    assert send_mod._pending_more(project, "director") == 0, \
+        "a self-copy wakes nobody and must not count"
+    # the control: a real post to the same paneless seat still counts
+    send_mod.send(project, "director", "a post for someone", "director-engine")
+    assert send_mod._pending_more(project, "director") == 1
+
+
+def test_undecodable_deferred_sidecar_never_raises(project: Path, monkeypatch):
+    """`_deferred_blob` sat next to `_read_deferred`, which swallows
+    Exception; the blob reader caught OSError only, so a non-UTF-8
+    `.nudge.deferred` raised out of send() AFTER the block was durable."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux(monkeypatch, [])
+    sidecar = send_mod._inbox_dir(project) / "director.nudge.deferred"
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    sidecar.write_bytes(b"\xff\xfe not utf-8")
+    send_mod.send(project, "director", "body after a bad sidecar",
+                  "director-engine")
+    assert "body after a bad sidecar" in (send_mod._inbox_dir(project) /
+                                          "director.md").read_text()
