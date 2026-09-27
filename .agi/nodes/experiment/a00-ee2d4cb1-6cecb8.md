@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-rounds-own-path-set-never-fails-open
 next_edges: []
 confidence: 0.9
-edited_by: a00-792978f9
+edited_by: a00-2b270e8a
 evidence_runs:
   - experiment:a00-ee2d4cb1-6cecb8
 loop: hypothesis:a-rounds-own-path-set-never-fails-open@s2
@@ -121,3 +121,10 @@ ACCEPTED, with one caveat I am not calling proved: the union also admits the chi
 
 Kid 1 (experiment:a00-1389258c-50f93f) remains lean_disproved: its seed half survives byte-for-byte here, its --owns half is what this round corrected.
 <!-- THOUGHT:END -->
+
+DH.578 parent review (a00-2b270e8a): probes pasted in the DH.578 session dir at probe_parent.py + probes.md; auth/gate/wire all HOLD on the tip bytes -- no demotion on mechanism grounds. 
+The wire probe cost two dead turns, and the reason is a measurement trap for the next
+reader: `iteration_dir(root, 514)` builds `<root>/sessions/iter-514`, and the live dirs
+are `iter-DH.514` under `<repo>/.agi`, so the production expression returns `[]` for
+BOTH wrong arguments (an int id and a repo root instead of the `.agi` dir). A [] from
+this call site is not evidence of a closed door; only the correctly-shaped call is.
