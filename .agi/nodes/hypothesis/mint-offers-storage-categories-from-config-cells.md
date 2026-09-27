@@ -148,6 +148,26 @@ FILE SCOPE extensions/agi/tests/test_storage_categories.py · .agi/nodes/experim
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over efd244974 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.618 -- closes mur-director-engine-35 DH.611-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-mint-offers-storage-c-a00-f9b54704 tip 28fc8b66c (branch de-base-618; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Truncated body in the node the round was correcting — .agi/nodes/experiment/a00-efff0209-c9ca88.md:165
+2. 2. Verbatim-class verdict drift in the corrective's own new node — .agi/nodes/experiment/a00-d1efc345-f70244.md:21
+3. 3. Orphan fragment under the sentence order 6 fixed — .agi/nodes/experiment/a00-ca575be5-db8af5.md:131
+4. 4. Numeric pick drops its tail — extensions/agi/bin/locations.py:642
+5. 5. Empty `## Agent Notes` — .agi/nodes/experiment/a00-efff0209-c9ca88.md:143
+6. 6. Post-THOUGHT prose in the new node — .agi/nodes/experiment/a00-d1efc345-f70244.md:125
+7. The first reviewer's finding 4 is understated: a committed test DOES reach the same branch. test_storage_categories.py:133-137 `test_pick_outside_the_table_is_flagged_custom_not_raised` loops `for pick in ("99", "no_such_category")` and asserts only `row["custom"] is True`, with tail=None. So the tail-drop at locations.py:642 is not merely unpinned — a green test sits beside it that treats the digit '99' as a legitimate custom path, which is the premise that makes the hole reachable. Contract violated: locations.py:612-613.
+8. Finding 5 has a reader the first reviewer never named: season.py:1569-1571 breaks `_agent_notes_block` on the first line starting with '#', and brief.py:1774/:1817 tells a merge-up parent to resolve a node conflict by UNION of `## Agent Notes` blocks. a00-efff0209's notes are under a nested `## DH.611` heading, so the union is empty — a reader-level loss, not a formatting nit.
+9. Finding 2's drift is already durable in history, not just in the frontmatter: commits e840d8ba2 and e7abb4114 both carry the subject 'a00-f9b54704 done: experiment:a00-d1efc345-f70244 verdict=inconclusive_lean_proved:85' while the node's THOUGHT at a00-d1efc345:122 says 70. The wrong number therefore survives in the commit subjects and the grid regardless of what a follow-up node does to the frontmatter.
+10. Provenance note the first reviewer did not raise: the tip commit 28fc8b66c is authored by local-town ('director-engine: land DH.611's logged node edits left uncommitted in the parent worktree') while all three edited nodes carry `edited_by: a00-d1efc345` (a00-efff0209:9, a00-ca575be5:9, a00-7440fe20:9). The commit reconciles against the write-log sha (TMM.268), so it is provenance recovery rather than a gate fix — but the commit author and the node's authorship field disagree, and every frontmatter in this diff was set by a commit that did not author it.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_storage_categories.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/locations.py · extensions/agi/tests/test_storage_categories.py · .agi/nodes/experiment/a00-7440fe20-e60013.md · .agi/nodes/experiment/a00-ca575be5-db8af5.md · .agi/nodes/experiment/a00-d1efc345-f70244.md · .agi/nodes/experiment/a00-efff0209-c9ca88.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 28fc8b66c · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.611: mur-director-engine-33 DH.588-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.618: mur-director-engine-35 DH.611-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
