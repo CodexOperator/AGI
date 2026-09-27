@@ -31,7 +31,7 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (21:2xZ 09-27 · this seat woke 20:33Z · per-chain history = git log of this node)
+## §0 STATE (21:3xZ 09-27 · this seat woke 20:33Z · per-chain history = git log of this node)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 merged 32ff79e53 · 429 chain MERGED 1ee2340c3 · DH.515 MERGED 64130e4ec · 427 heal-refuse chain MERGED c2f528ed8 (this seat;
           post br heal+cli+dispatch+zero-usd neighbourhood at c2f528ed8 = 389 passed 7 skipped 0 failed)
@@ -41,11 +41,12 @@ TOOLS     T=<scratchpad 96494ce7-...>: MURK=<run key> [NOEX=1] [EXTRA=f,g] gen2.
           (orders on node + base cut + dispatch) · redispatch.sh N.. (re-fire a placed round; gates / >= 5G + live < arm) · drainqw.sh + WAITFOR
           (queue) · mkmur.py/runmur.sh (runmur4.sh = 4G) · harvest.sh      D=<scratchpad 4cf27ed6-...>: verd.py Q[@key] (verdict digest; run key =
           line 1 of T/murq<Q>.log) · harvest-all.sh N.. > D/harvallN.log · harvest-kid.sh · murall.py --run (HLOG= Q0=; KNOWN = accepted old-base reds)
-MURS      running murq70 77 83 84 86 87 89 90 91 = DH.608 607 602 612 615 616 626 618 625 · next murq 92, next DH 634 · ENDED this seat:
-          67 69 71-73 75 81 -> correctives 624-630 · 82 -> heal-refuse MERGED · 85 -> 633 · 88 (demote) -> 632 · harvest reds = the known sg only
-LIVE      parents per spawn_budget.py · harvest queue (D/harvall<N>.log, one unit each, chained): 16 = 619 622 · 17 = 627 · 18 = 628 ·
-          drainq21 632 · drainq22 633 · redisp6 621 (load-gated < 24; the redisp5 fire timed out rc=124, orphan wt a00-4cc66a6a) ·
-          614's kid left 2 node edits UNLOGGED in wt a00-8a82adaf -> 631 re-applies via write.py, 614 murs AFTER 631 ·
+MURS      running murq89 91-96 = DH.626 625 618(re-mur) 597(orphan kid) 619 622 628 · next murq 97, next DH 640 · ENDED this seat:
+          67 69 71-73 75 81 83-88 90 70 77 -> correctives 624-639 · 82 -> heal-refuse MERGED · harvest reds = the known sg only
+LIVE      parents per spawn_budget.py · harvall19 = 623 631 (D/harvall19.log) · 627 harvested (1 red at 3076682d7, re-run h627 -> S/h627.log) ·
+          drainq26 638 · drainq27 639 · redisp6 621 (load-gated < 24; orphan wt a00-4cc66a6a) · 614 murs AFTER 631's harvest ·
+          618: kid's 4 LOGGED node edits landed dab046d52 (loop br fast-forwarded by update-ref; parent wt gone) -> re-mur 92 ·
+          597: parent FAILED (its kid's worktree was removed), kid tip 9bf67143e murred directly (93) ·
           617's parent worktree is GONE (branch intact) · 612 cell term_grace_max_s landed 0271068e7 (ordered, disclosed) ·
           608's ordered ladder revert (prime_director settings ultracode -> "") is UNCOMMITTED + unlogged in worktree a00-22577533:
           never hand-land it -- the next 608 corrective re-applies it via write.py (its red test_ladder_node_declares_roles_table waits on it)
@@ -58,18 +59,18 @@ QUEUED    kid-worktrees round AFTER 598 (TMM.303 + the 598 split): (a) the HARVE
 DECISION  out to TM 16:1xZ: DH.577 cron policy (AGI_BOX unset -> the fail-closed gate drops mail_poll maint_gc prime_merge memory_alarm) --
           send-hub chain HELD from merge until answered
 CHAIN     last round (→ = corrective)                                                               land note
- 426 schema-gate 527 → 543 → 559 → 597 LIVE · 427 heal-refuse 528 → 544 → 558 → 592 MERGED c2f528ed8           NEVER 442 · NEVER 476
- probe-gate 523 → 541 → 560 → 589 → 626 m89 (541 demote = merge order: e12a57722 rides the tip) · row 20 nudge 524 → 542 → 561 → 602 m83
- trunk reds 538 → 545 → 562 → 582 → 606 → 623 LIVE · zero-usd 537 → 546 → 565 → 572 → 608 m70 (ladder revert unlanded, see LIVE)
- stale-lock 532 → 534 → 547 → 564 → 594 → 627                                                        532 NEVER merges alone
+ 426 schema-gate 527 → 543 → 559 → 597 m93 · 427 heal-refuse 528 → 544 → 558 → 592 MERGED c2f528ed8           NEVER 442 · NEVER 476
+ probe-gate 523 → 541 → 560 → 589 → 626 m89 (541 demote = merge order: e12a57722 rides the tip) · row 20 nudge 524 → 542 → 561 → 602 → 637
+ trunk reds 538 → 545 → 562 → 582 → 606 → 623 LIVE · zero-usd 537 → 546 → 565 → 572 → 608 → 638 (ladder revert unlanded, see LIVE)
+ stale-lock 532 → 534 → 547 → 564 → 594 → 627 HARV                                                        532 NEVER merges alone
  model-fence 508 → 517 → 536 → 539 → 548 → 566 → 590 → 613 → 633                                      R4 NEVER run (row 22)
  kid-worktrees 529 → 533 → 540 → 563 → 598 → 624 (B7 cells landed 0b9921e2d)
- PASS 10 515 MERGED · 516 → 549 → 567 → 584 → 616 m87 · 509 → 550 → 569 → 599 → 630 · 507 → 575 → 596 → 612 m84 (never run test_rotate_selfreap
+ PASS 10 515 MERGED · 516 → 549 → 567 → 584 → 616 → 636 · 509 → 550 → 569 → 599 → 630 · 507 → 575 → 596 → 612 → 635 (never run test_rotate_selfreap
          whole: OOMs 5G) · 512 → 551 → 568 → 585 → 614 → 631 (round manifests pi-free) · 514 → 552 → 557 → 578 → 604 → 617 → 632 · belam-cap-reap HELD until 507
- g4.18.1.x 521 → 555 → 570 → 587 → 610 → 621 REDISP · 510/519 → 553 → 576 → 588 → 611 → 618 m90 · 520 → 574 → 605 → 625 m91 · 497 → 579 → 603 → 619 LIVE
- thought-verb 522 → 554 → 583 → 607 m77 · wake-facts 501 → 556 → 571 → 601 → 629 (merge BLOCKED until belam trims F13: 2009 > 2000)
- guard-piece 530 → 580 → 591 → 615 m86 (NEVER 432) · guard-inst 471 AFTER 432 · send-hub 525 → 577 → 586 → 609 → 622 LIVE (HELD) · run-key 531 → 581 → 600 → 620 LIVE
- skills 526 → 573 → 595 → 628
+ g4.18.1.x 521 → 555 → 570 → 587 → 610 → 621 REDISP · 510/519 → 553 → 576 → 588 → 611 → 618 m92 · 520 → 574 → 605 → 625 m91 · 497 → 579 → 603 → 619 m94
+ thought-verb 522 → 554 → 583 → 607 → 639 · wake-facts 501 → 556 → 571 → 601 → 629 (merge BLOCKED until belam trims F13: 2009 > 2000)
+ guard-piece 530 → 580 → 591 → 615 → 634 (NEVER 432) · guard-inst 471 AFTER 432 · send-hub 525 → 577 → 586 → 609 → 622 m95 (HELD) · run-key 531 → 581 → 600 → 620 LIVE
+ skills 526 → 573 → 595 → 628 m96
 ```
 
 ## §1 PLAN
@@ -82,7 +83,7 @@ next   (1) per ENDED mur: D/verd.py Q -> CLEAN = git merge --no-ff the chain's l
 ```
 
 ## 🔴 WHERE IT STOPS
-heal-refuse MERGED; 9 murs running; harvests 619 622 627 628 chained; 632 633 draining; 621 load-gated redispatch.
+heal-refuse MERGED; murs 89 91-96 running; correctives 624-639 placed/queued; 621 load-gated; 627 red being named.
 ```
 FIRST   spawn_budget.py status ; systemctl --user list-units 'agi-director-engine-*' --all ; python3 D/verd.py <Q> per ended murq
 THEN    clean -> git merge --no-ff <loop branch> (card order) · residue -> MURK=.. T/gen2.py + T/place2.sh (queue: T/drainqw.sh + WAITFOR)
@@ -105,7 +106,7 @@ commits · parents strand non-node edits · the 09-26 lograce test burst left 17
 commit scopes git add to the round's own node paths (cli.py:2443, 4th occurrence) · kid brief forbids git while orders demand a commit
 (brief.py:1488) · write_guard misses a raw python splice on a node · plan_move renames the BODY-linked file on a link-only row
 (write.py:2322 via :2904) and node_writer.replace_payload never creates (node_writer.py:643) (DH.619 parent) · a parent worktree vanished
-with its round unharvested (DH.617) · dispatch.py exceeded 300 s at load 32 and the parent died (DH.621) · ceilings: DH.599 +57 test, DH.622 +58.
+with its round unharvested (DH.617, DH.618) and a KID worktree vanished under a live parent, failing it (DH.597) · dispatch.py exceeded 300 s at load 32 and the parent died (DH.621) · ceilings: DH.599 +57 test, DH.622 +58.
 
 ## BANKED
 - TMM.268 (b) durable fix = a g7.33.17 row -- TM's to mint. · config:brief `extras.parent` -- BLOCKED on prime/owner. · claude-code kids on local-town -- owner's.
