@@ -3228,6 +3228,26 @@ def main(argv: list[str] | None = None) -> int:
         if refusal:
             print(f"ERR: {refusal}", file=sys.stderr)
             return 2
+        # The ceiling guard lives ABOVE the dry-run short-circuit: one guard,
+        # one message, one exit code, on BOTH paths (a dry run simulates the
+        # mint, so it refuses what the real mint refuses -- the same rule the
+        # answers row validator above follows, and the hole `--dry-run` used
+        # to open around it).
+        # INHERITED FAIL-OPEN, stated here so a later reader sees it is policy
+        # and not an oversight: an actor with no seat row (or a seat role off
+        # the ladder) makes `_ceiling_refusal` return None, so an unseated
+        # `--actor` -- or none at all -- still mints an elevated `role` here.
+        # That is the SAME policy the `--role`/`AGI_ROLE` routes carry
+        # (`_ceiling_refusal`); changing it would make `--answers` STRICTER
+        # than `--role` on identical facts. A ladder decision, not this
+        # call site's: named for the director, not fixed here.
+        if post_rows.get("role"):
+            refusal = _ceiling_refusal(
+                str(post_rows["role"]), _resolve_seats_role(root, args.actor),
+                args.actor or "-", "--answers")
+            if refusal:
+                print(f"ERR: {refusal}", file=sys.stderr)
+                return 2
         if args.dry_run:
             print(f"create {script}:{slug}")
             print(f"  parents  {parents or '(none)'}")
@@ -3249,13 +3269,6 @@ def main(argv: list[str] | None = None) -> int:
         # -- which is exactly why the ceiling guard has to be applied to the
         # SURVIVING row HERE: an elevation that survives the precedence would
         # otherwise never be compared with the actor's seat at all.
-        if post_rows.get("role"):
-            refusal = _ceiling_refusal(
-                str(post_rows["role"]), _resolve_seats_role(root, args.actor),
-                args.actor or "-", "--answers")
-            if refusal:
-                print(f"ERR: {refusal}", file=sys.stderr)
-                return 2
         body = None
         if args.body_file is not None:
             try:

@@ -569,6 +569,46 @@ def test_a_role_the_seat_HOLDS_or_a_LOWER_one_still_lands(project, tmp_path):
     assert "role: kid" in _frontmatter_of(project)
 
 
+def test_the_ceiling_guard_refuses_a_dry_run_EXACTLY_as_the_real_mint(
+        project, tmp_path):
+    """Hole 7 (DH.555). The guard sat AFTER the `--dry-run` short-circuit, so
+    `--dry-run` PRINTED `set role = 'owner'` and exited 0 while the real mint
+    refused with exit 2 -- a dry run that green-lights the refusal it
+    simulates. One guard, one message, one exit code, on both paths.
+
+    The PRECONDITION is asserted first on purpose: a fail-open guard behind a
+    fail-open loader (`_load_seats` swallows a malformed/unimportable config
+    and returns []) cannot tell "the guard fired" from "the guard was never
+    fed". A test that does not prove the seat RESOLVED is not a test of the
+    guard."""
+    f = _write_answers(tmp_path, _answers())
+    _geometry(project)
+    assert write._resolve_seats_role(project, "post-a") == "parent", \
+        "PRECONDITION: the temp config:posts row must feed the seat table, " \
+        "else the guard is unexercised and this test proves nothing"
+    dry_out, dry_err, dry_rc = _mint(project, f, "--actor", "post-a",
+                                     "--set", "role=owner", "--dry-run")
+    real_out, real_err, real_rc = _mint(project, f, "--actor", "post-a",
+                                        "--set", "role=owner")
+    assert dry_rc == 2, f"a dry run must refuse what the real mint refuses: {dry_out}"
+    assert real_rc == 2, real_out
+    assert dry_err == real_err, "one guard, ONE message, both paths"
+    assert "role = 'owner'" not in dry_out, "no elevated row is echoed"
+    assert not (project / "nodes" / "goal" / "g9.9.9.md").exists()
+
+
+def test_a_role_the_seat_HOLDS_or_a_LOWER_one_still_lands_on_a_dry_run(
+        project, tmp_path):
+    """The move must not turn the dry run into a blanket refusal: the seat's
+    own role and a lower one still SIMULATE, byte-identically to before."""
+    f = _write_answers(tmp_path, _answers())
+    _geometry(project)
+    out, err, rc = _mint(project, f, "--actor", "post-a",
+                         "--set", "role=kid", "--dry-run")
+    assert rc == 0, err
+    assert "create goal:g9.9.9" in out and "set      role = 'kid'" in out
+
+
 @pytest.mark.parametrize("bad", ["5", 5, True, {"a": 1}, ["goal:g1", 7]])
 def test_a_parents_row_that_is_not_a_list_of_ids_refuses_by_name(
         project, tmp_path, bad):
@@ -589,8 +629,19 @@ def test_the_minted_row_set_is_DEFINED_ONCE_in_node_writer():
     single tuple, and the builder asserts it really builds every row named."""
     import node_writer
     assert write._ANSWERS_IDENTITY == frozenset(node_writer.MINTED_IDENTITY)
-    src = (BIN / "write.py").read_text(encoding="utf-8")
-    assert "_ANSWERS_IDENTITY = frozenset(node_writer.MINTED_IDENTITY)" in src, \
-        "the refusal must DERIVE its rows from the builder"
     assert 'MINTED_IDENTITY' in (BIN / "node_writer.py").read_text(
         encoding="utf-8")
+    # "defined once" is a MECHANISM, so assert the mechanism and not a
+    # spelling: mutating the builder's single tuple must be reflected in the
+    # derived set. A literal-source assertion (DH.555 item 2) made an
+    # equally-one-source wrap, alias or different frozenset spelling fail
+    # green -- the test required the WORDING, not the derivation.
+    import importlib
+    saved = node_writer.MINTED_IDENTITY
+    try:
+        node_writer.MINTED_IDENTITY = saved + ("row_from_the_builder",)
+        reloaded = importlib.reload(write)
+        assert "row_from_the_builder" in reloaded._ANSWERS_IDENTITY
+    finally:
+        node_writer.MINTED_IDENTITY = saved
+        importlib.reload(write)
