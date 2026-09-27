@@ -90,7 +90,8 @@ harvests under load flake 1 test: re-run before a corrective · `pgrep -f place2
 `git merge -F -` does not read stdin · worktrees VANISH (617 618 597 parents/kids): harvest from the branch, update-ref to fast-forward ·
 done-time commits skip foreign nodes: check the KID worktree too (618) · parents end WITHOUT a harvest dm: reconcile · stale index.lock
 (no holder) refuses kid commits · murall/harvest greps match 'failed' in slugs · only / fills: /tmp basetemps. · a PARENT-DEMOTED round's uncommitted config
-stays for its corrective: never land it at harvest (mur-44 DH.650 V4: "hand-landed gate").
+stays for its corrective: never land it at harvest (mur-44 DH.650 V4: "hand-landed gate"). · NEXT TRUNK MERGE (TMM.310):
+skills/agi-send/SKILL.md §2 -> keep BOTH the trunk's two rows (1461add6d, owner 23:44Z) and 0463850fb's lines.
 
 ## ENGINE FINDINGS
 Rows on goal:g7.33.19 (1-23). Propose with the next [merge-up]: CEILING has no home cell ([hypothesis].md:49) · ceilings breached (row 17;
