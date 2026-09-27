@@ -104,6 +104,23 @@ FILE SCOPE extensions/agi/tests/test_ladder_node.py · extensions/agi/tests/test
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 03d409c39 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.623 -- closes mur-director-engine-35 DH.606-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-trunk-tests-follow-th-a00-260b23f1 tip 5ba733a8f (branch de-base-623; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Label mirroring still couples the suite to the fact's numbering (test_sensei_wake_audit.py:911); the round's own green used F9x, a label the regex cannot see
+2. 2. Item 5's withdrawal of a00-0c4185c9's false F3 sentences is absent from the merge (a00-0c4185c9-db5ff2.md:144 still says the test file carries NO hand copy of F3)
+3. 4. CEILING breach - net +48 test lines against '<= 40 test lines' (test_sensei_wake_audit.py:889), with a falsified explanation
+4. The round withdrew OTHER nodes' body claims but never its own. a00-0b6ab889-dbe5e6.md:43 still reads 'Done', :61-63 still pastes the P2 green (F9x, graph-impossible), :74-76 still reads 'A renumber applied to both is now green ... so the last F3 string left the file'. Only the frontmatter verdict (:25,:27) and the THOUGHT (:190,:202) carry the refutation. The same withdrawal discipline the round applied to a00-ea11b587 (:48-69) and claimed for a00-0c4185c9 was not applied to the selling text of its own node, so a reader of the body alone still finds the falsified proof standing.
+5. The ceiling breach is unrecorded in the graph: nothing in a00-0b6ab889-dbe5e6.md or its THOUGHT says the round went 8 lines over a HARD CAP that the order says cuts the round; the node instead misattributes the delta to a predecessor (see verdict 4). This is the one confirmed defect in the merge that the in-graph demotion does not cover, alongside the missing item-4 edit.
+6. a00-0c4185c9-db5ff2.md carries THREE false copy-claims (:47, :144, :162), not the two the first reviewer counted; the round's own table (a00-0b6ab889-dbe5e6.md:133) names 'both sentences' and so would leave :47 standing even if the withdrawal landed as described.
+7. Minor, verified sound but coupled: the new M4 fixture test (test_ladder_node.py:104-111) hardcodes the banned value 'ultracode' at :53 as a second copy of [ladder].md:99, and reads neither the schema nor config - so while it is a real wire (I deleted the isinstance branch in a /tmp copy and it REDs at :107, confirmed), it cannot catch the M1 disagreement between the schema and .geometry/ladder.md:101-102, which is the same two-copies-of-one-rule shape the round was correcting.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_ladder_node.py test_sensei_wake_audit.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_ladder_node.py · extensions/agi/tests/test_sensei_wake_audit.py · .agi/nodes/.geometry/ladder.md · .agi/nodes/experiment/a00-0b6ab889-dbe5e6.md · .agi/nodes/experiment/a00-ea11b587-6ad475.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 5ba733a8f · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.606: mur-director-engine-30 DH.582-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.623: mur-director-engine-35 DH.606-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
