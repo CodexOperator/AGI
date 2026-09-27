@@ -243,7 +243,10 @@ def test_withheld_forged_block_between_two_printed_blocks(project, croot,
     out = capsys.readouterr().out
     assert "REFUSED FORGED" in out, "the fixture missed the refusing path: " + out
     for b in ("a1", "a3"):
-        assert out.count(b) == 1, f"the VALID block {b} did not print: " + out
+        # the BODY LINE, not the bare string: a random pubkey hex in the
+        # keygen output can contain "a1" and flake this assertion
+        assert out.count("\n%s\n" % b) == 1, (
+            "the VALID block %s did not print: " % b) + out
     after = inbox.read_text()
     marker = after.index(send_mod.READ_MARKER)
     for b in ("a1", "a3"):
@@ -281,6 +284,79 @@ def test_marker_never_advances_past_a_block_read_did_not_print(project,
     after = inbox.read_text()
     assert after.find(send_mod.READ_MARKER) < after.find("unprinted-block-xyz"), (
         "the marker passed a VALID block nothing printed: " + repr(after))
+
+
+def _partial_printer(monkeypatch, n: int):
+    """A printer that walks only the FIRST `n` blocks of the region and
+    answers the index of the last one it printed -- the P3 shape: a printer
+    that DID run (its answer is an int) but did not walk the whole region."""
+    real = send_mod._print_blocks_with_labels
+
+    def partial(root, me, blocks, **kw):
+        return real(root, me, list(blocks)[:n], **kw)
+
+    monkeypatch.setattr(send_mod, "_print_blocks_with_labels", partial)
+    return partial
+
+
+def test_partial_printer_does_not_retire_the_blocks_it_never_walked(project,
+                                                                   monkeypatch,
+                                                                   capsys):
+    """P3: a printer that printed only the FIRST of three VALID blocks still
+    answers an int, so `read` knows a printer ran -- but the two blocks it
+    never walked were never SEEN, and the marker must not pass them."""
+    inbox = _three_blocks(project)
+    monkeypatch.setattr(send_mod, "_project_root", lambda: project)
+    monkeypatch.setattr(send_mod, "_nudge_window", lambda *a, **k: True)
+    _partial_printer(monkeypatch, 1)
+    assert send_mod.main(["--from", ME, "read", ME]) == 0
+    first = capsys.readouterr().out
+    assert "a1" in first, first
+    assert "a2" not in first and "a3" not in first, first
+    after = inbox.read_text()
+    at = after.index(send_mod.READ_MARKER)
+    assert at > after.index("a1"), ("the marker ate the one printed block: "
+                                   + repr(after))
+    for b in ("a2", "a3"):
+        assert at < after.index(b), (
+            "the marker retired the VALID block %s the printer never "
+            "walked: %r" % (b, after))
+    # and the blocks the printer never walked are still unread: the second
+    # read (same partial printer) reaches a2, and never repeats a1
+    assert send_mod.main(["--from", ME, "read", ME]) == 0
+    second = capsys.readouterr().out
+    assert second.count("a2") == 1, second
+    assert "a1" not in second, "a1 re-printed: " + second
+    assert "a3" not in second, ("a3 printed although the partial printer "
+                                "never walked it: " + second)
+
+
+def test_partial_printer_with_a_marker_already_in_the_file(project,
+                                                           monkeypatch, capsys):
+    """P3, with the marker PRESENT: the unread region is the slice behind the
+    marker, so a partial printer must cut inside that slice, not at its end."""
+    inbox = _inbox(project)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text(
+        send_mod._block("2020-01-01T00:00:00Z", PEER, ME, "a1")
+        + send_mod.READ_MARKER                       # a1 already read
+        + send_mod._block("2020-01-01T00:00:00Z", PEER, ME, "a2")
+        + send_mod._block("2020-01-01T00:00:00Z", PEER, ME, "a3"))
+    monkeypatch.setattr(send_mod, "_project_root", lambda: project)
+    monkeypatch.setattr(send_mod, "_nudge_window", lambda *a, **k: True)
+    _partial_printer(monkeypatch, 1)
+    assert send_mod.main(["--from", ME, "read", ME]) == 0
+    first = capsys.readouterr().out
+    assert "a1" not in first, "a1 was already read: " + first
+    assert "a2" in first and "a3" not in first, first
+    after = inbox.read_text()
+    at = after.index(send_mod.READ_MARKER)
+    for b in ("a1", "a2"):
+        assert at > after.index(b), (
+            "the marker un-read the printed block %s: %r" % (b, after))
+    assert at < after.index("a3"), (
+        "the marker retired a3, which the partial printer never walked: %r"
+        % after)
 
 def _signing_seat(project: Path, seat: str) -> None:
     """One seat row + a real key, so a block it signs can be FORGED."""

@@ -3734,7 +3734,9 @@ def _print_blocks_with_labels(root: Path, me: str, blocks: list[str],
     read marker are untouched). `wrap <= 0` prints today's byte-for-byte
     output. Returns the INDEX (into `blocks`) of the last block it printed,
     -1 when it printed none; `read` reads a non-int answer as "no printer
-    ran", so the marker then cannot advance.
+    ran" (the marker then cannot advance at all) and an int that is not the
+    last block as "the printer stopped there" (the marker advances only to
+    that block's end).
 
     Under comms.verify == "enforcing" AND ONLY THEN, a block whose label is
     EXACTLY `FORGED` (never RETIRED/UNSIGNED/VERIFIED) is refused: one
@@ -3817,6 +3819,22 @@ def _own_inbox_or_refuse(target: str, me: str) -> bool:
     return False
 
 
+def _block_end_offsets(region: str) -> list[int]:
+    """End offset (into `region`) of every block `_scan_messages` returns
+    from it, in the same order and under the same drop-empty rule. The i-th
+    offset is the end of the i-th block the printer walked -- ONE index
+    space, never a second list of offsets free to drift from the blocks
+    actually printed (the DH.490 defect)."""
+    ends, pos = [], 0
+    for m in _MSG_BOUNDARY_RE.finditer(region):
+        if region[pos:m.start()].strip():
+            ends.append(m.start())
+        pos = m.end()
+    if region[pos:].strip():
+        ends.append(len(region))
+    return ends
+
+
 def read(root: Path, me: str, sender: str | None,
          wrap: int = 160, *, quiet_empty: bool = False) -> int:
     """Print unread blocks (bodies wrapped at `wrap` columns, display-only)
@@ -3825,10 +3843,13 @@ def read(root: Path, me: str, sender: str | None,
     them), so a caller that also sweeps dm channels (`read_dms`) decides the
     `empty` verdict only when BOTH are empty -- it used to be printed in
     here, before the dm sweep ran. `quiet_empty=True` withholds it. The read
-    marker follows the unread REGION the printer walked: a VALID block the
-    printer never printed cannot pass the marker (conjunct 2), while a FORGED
-    block it quarantined IS consumed -- the inbox drains so the same bytes are
-    never re-refused, and the quarantine keeps the one durable copy."""
+    marker follows the BLOCKS the printer walked, not the region it was
+    handed: it advances past every block the printer printed AND past a
+    FORGED block it quarantined (narrowed conjunct 2 -- it never passes an
+    unread VALID block that was not printed, so a printer that ran and
+    stopped short retires nothing behind it), while the inbox still drains
+    so the same refused bytes are never re-refused and the quarantine keeps
+    the copy."""
     _lockdown_warn(root)
     inbox = _inbox_path(root, me)
     blocks, marker_index = _scan_messages(inbox)
@@ -3856,12 +3877,15 @@ def read(root: Path, me: str, sender: str | None,
         _clear_deferred(root, me)
 
     # Print inbox blocks, each prefixed by its verification label. The printer
-    # reports the LAST BLOCK IT PRINTED; a stub printing nothing answers None,
-    # which counts as "no printer ran", so the marker cannot advance.
-    walked = False
+    # reports the LAST BLOCK IT PRINTED; a stub printing nothing answers None
+    # ("no printer ran", the marker cannot advance), and an int that is not
+    # the last block is the partial printer: it ran and stopped short, so the
+    # blocks behind it were never seen.
+    walked = -2                      # -2 = no printer ran at all
     if blocks:
-        walked = isinstance(_print_blocks_with_labels(root, me, blocks,
-                                                      wrap=wrap), int)
+        ans = _print_blocks_with_labels(root, me, blocks, wrap=wrap)
+        if isinstance(ans, int):
+            walked = max(-1, min(ans, len(blocks) - 1))
 
     # Mark read: the marker is placed in the SAME index space the blocks were
     # printed from (see `cut` below), so it can never sit past a VALID block
@@ -3879,20 +3903,25 @@ def read(root: Path, me: str, sender: str | None,
         lines = [l for l in raw_lines if l != READ_MARKER]
         # Strip trailing whitespace, then add marker + trailing newline.
         content = "".join(lines).rstrip("\n")
-        # ONE INDEX SPACE: both `region` and `head` are derived from the lines
-        # `_scan_messages` scanned, so the cut is an offset in the SAME
-        # coordinate the printed blocks came from -- never a second, parallel
-        # list of offsets that can drift one block off the blocks printed.
+        # ONE INDEX SPACE: `region`, `head` and `ends` all come from the lines
+        # `_scan_messages` scanned, so `cut` resolves from the block list the
+        # printer walked -- never a second list of offsets free to drift.
         head = len(content) - len(region.rstrip("\n"))
-        # `read` walks EVERY block it was handed: a VALID one prints, and a
-        # FORGED one it refused is consumed anyway -- the inbox drains so the
-        # same bytes are never re-refused, and the quarantine keeps the one
-        # durable copy (test_send.py::
-        # test_read_advances_cursor_past_withheld_block_copy_remains). So the
-        # marker lands at the END of the unread region. A printer that walked
-        # nothing (a stub answering None) leaves the marker where it stood:
-        # no VALID block passes unprinted (conjunct 2).
-        cut = len(content) if walked else head
+        ends = _block_end_offsets(region)
+        # The marker consumes the longest PREFIX of the unread blocks holding
+        # no VALID block the printer did not print: every block it walked
+        # (printed, or refused and quarantined -- the inbox drains so the same
+        # bytes are never re-refused), then any FORGED block behind the last
+        # one it printed, which was also seen. No printer at all (`-2`)
+        # consumes nothing: the marker stays put.
+        if walked == -2:
+            cut = head
+        else:
+            labels = _labels_for_blocks(root, blocks)
+            m = walked + 1
+            while m < len(blocks) and labels[m] == "FORGED":
+                m += 1
+            cut = min(head + ends[m - 1], len(content)) if m else head
         inbox.write_text(content[:cut].rstrip("\n") + "\n" + READ_MARKER
                          + content[cut:].lstrip("\n"))
     # The seat just consumed its unread (clause (1) of hypothesis:l4-wake-
