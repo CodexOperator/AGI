@@ -51,7 +51,7 @@ CHAIN     next act                                                         land 
  g4.18.1.3       519 harvested 185 green (a00-4bf392d4 landed 36f928c7d) -> mur-20
  g4.18.1.4       497 -> mur510 slices
    send-hub box    525 harvested 538 green (+74 prod vs 25, config cell NOT landed: out of scope) -> mur525; TMM.289 CLEARED: belam backfilled 22/22 rows (91f9e1236, trunk merged 012c7b4bb; my branch adds no posts row) -> merge after 525 clears
-  kid-worktrees   mur499 k1-k3 AWR (cm YES x3) -> 529 a00-34bf42d0 LIVE (slice 1: one cell + 16 literals + nodes) -> slice 2 from its tip: prune ancestry gate + OWNER dirty-kid sweep
+   kid-worktrees   529 harvested: literals 16 -> 0, prod net +2, config line + 2 kid nodes landed c93decfda, 396 green -> mur529 (mur-21) · slice 2 = hypothesis:clean-kid-worktrees-prune-and-dirty-ones-harvest-or-list, orders ready, base branch de-base-533 in wt de-h529 (87af5740e) -> DISPATCH REFUSED: key mint (credits $0.95 < $1.00 min vs cell -50) -> [red] 06:4xZ to TM; re-run the d533 dispatch line when a mint passes
   row 20 nudge    524 harvested 468 green (node landed 5c9c4120a) -> mur524 (run key mur-20 again: row 19 x2)
  thought-verb    522 harvested 242 green -> mur-20
   probe-gate      523 harvested 78+7 green (node landed) -> mur523
@@ -72,7 +72,7 @@ done   session 06:0xZ: skill agi-corrective + build node; 11 correctives/rounds 
 next   harvest each parent on exit -> mur -> skill agi-corrective on every residue -> merge cleared chains -> suite window -> ONE [merge-up]
 queue  (1) the skills adapter-seam round after 526 (2) 499 corrective + sweep round 2 (3) 471 after 432 (4) 429 tiny corrective
        (5) PASS 10 (5) after 507 (6) g4.18.1.2/.5 after .1 lands
-blocked  501 merge (belam: F13 trim)
+blocked  EVERY new dispatch (key mint: credits) · 501 merge (belam: F13 trim)
 ```
 
 ## 🔴 WHERE IT STOPS
