@@ -13,18 +13,28 @@ Two routes into a round's own-path set used to FAIL OPEN in silence:
 """
 
 
-def _load_cli():
-    """The engine's cli.py, or the copy `AGI_CLI_PY` names -- the RED proof on
-    the base tip extracts one with `git show` and points this at it."""
-    import importlib.util
+def _cli_py():
+    """The cli.py under test, or the copy `AGI_CLI_PY` names. MEASURED
+    DH.578: a RED proof must NOT be run from inside `extensions/agi/tests` --
+    that conftest strips every `AGI_*` key session-wide, so the var is
+    invisible and the LIVE cli.py loads whatever you name. Run the file from a
+    copy outside that tree, with PYTHONPATH=<engine>/bin (cli.py:29)."""
     import os
     from pathlib import Path
-    src = Path(os.environ.get("AGI_CLI_PY")
-               or (Path(__file__).resolve().parents[1] / "bin" / "cli.py"))
-    spec = importlib.util.spec_from_file_location("agi_cli_own", src)
-    cli = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(cli)
-    return cli
+    return Path(os.environ.get("AGI_CLI_PY")
+                or (Path(__file__).resolve().parents[1] / "bin" / "cli.py"))
+
+
+def _load_module(name, filename):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(name, _cli_py().parent / filename)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _load_cli():
+    return _load_module("agi_cli_own", "cli.py")
 
 
 def _graph(tmp_path, ids=(("hypothesis", "foreign"),
@@ -112,23 +122,15 @@ def test_the_own_minted_scaffold_still_lands_with_its_agent_id(tmp_path,
 
 def _load_locations():
     """The engine's locations.py, next to the cli.py under test -- the ONE
-    place the iteration-dirname spelling lives (rule: never re-spell a path
-    in a test either)."""
-    import importlib.util
-    import os
-    from pathlib import Path
-    src = Path(os.environ.get("AGI_CLI_PY")
-               or (Path(__file__).resolve().parents[1] / "bin" / "cli.py"))
-    spec = importlib.util.spec_from_file_location(
-        "agi_loc_own", src.parent / "locations.py")
-    loc = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(loc)
-    return loc
+    place the iteration-dirname spelling lives (never re-spell a path)."""
+    return _load_module("agi_loc_own", "locations.py")
 
 
 def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None, iter_n=999):
     """A spawn record under the CANONICAL iteration dir for `iter_n`.
 
+    `dispatch_node_id=""` writes a record carrying NONE, never silently
+    defaulted -- so the DH.552 leg-1 pin below can say what it means.
     DH.557: this used to write `sessions/iter-DH.999/`, which is not the
     dirname `locations.iteration_dirname` emits, and the callers called the
     helper with NO iteration in hand -- so the DH.552 bound (this round's own
@@ -139,10 +141,25 @@ def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None, iter_n=999):
     d = (root / "sessions" / _load_locations().iteration_dirname(iter_n)
          / agent)
     d.mkdir(parents=True, exist_ok=True)
+    if dispatch_node_id is None:
+        dispatch_node_id = node_id
     (d / "agent.json").write_text(
         '{"spawned_by_agent": "%s", "node_id": "%s", "dispatch_node_id": '
-        '"%s"}\n' % (spawned_by, node_id, dispatch_node_id or node_id))
+        '"%s"}\n' % (spawned_by, node_id, dispatch_node_id))
     return d
+
+
+def test_only_dispatch_node_id_widens_the_set_never_the_node_id_line(tmp_path):
+    """DH.552 bound leg 1, unpinned until now: `dispatch_node_id` ONLY -- a
+    record carrying NONE contributes nothing, its `node_id` line is not a
+    fallback, so a kid-writable id never leaks. Carrying one, it lands."""
+    cli = _load_cli()
+    root = _graph(tmp_path)
+    kid = "hypothesis:kid-writable"
+    _spawn(root, "a00-kid-3", "a00-me", kid, dispatch_node_id="")
+    assert cli._round_spawned_node_ids(root, "a00-me", 999) == []
+    _spawn(root, "a00-kid-3", "a00-me", kid)  # that leg is the ONLY way in
+    assert cli._round_spawned_node_ids(root, "a00-me", 999) == [kid]
 
 
 def test_owns_reaches_the_nodes_of_the_agents_this_round_spawned(tmp_path,
