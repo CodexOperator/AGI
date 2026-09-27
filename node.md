@@ -44,3 +44,19 @@ extensions/agi/bin/locations.py (the new resolver + CLI only) · .agi/config.jso
 
 ## CEILING
 1 kid · <= 40 production lines · pi-free tier-0 · 0 USD. No test spawns pytest; kids never launch real claude.
+
+## CORRECTIVE DH.519 -- closes mur-director-engine-18 DH.510-k1 + k2 (accept_with_residue, verify died before returning)
+BASE      CUT FROM season2/loops/hypothesis-mint-offers-storage-c-a00-a77d4234 tip 0c3d7766a. No merge. Never rebase.
+1. locations.py:541-543 -- a non-dict storage category cell is skipped with `continue` and vanishes from the numbering -> refuse it BY NAME (a BAD row naming the cell, or a ValueError naming it), plus one test with a mistyped cell (DH.510 order 4, still NOT_MET).
+2. locations.py:502 -- known_payload_locations admits every str KEY under locations: without checking its value, while payload_base:479-491 accepts only a non-empty str value -> admit only the names payload_base accepts; one test: a cell naming such a location is refused by name.
+3. locations.py:1084-1088 -- main does not catch the ValueError raised at 583-588, so --storage-pick with a bad-location cell prints a traceback -> print the same ERR: line the other branches use and exit non-zero; one test through main.
+4. experiment:a00-4bf392d4-1e7c8c is stale: verdict inconclusive_lean_disproved:45, probe-C (:18) and Still-open bullet 1 (:117-119) call the --storage-pick fall-through open, but 9f5816bdb fixed it -> RE-RUN the probe at the base, paste the output, set the verdict and bullets to what it shows (write.py only; never the thought verb over its THOUGHT).
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_storage_categories.py test_locations.py test_bin_help_smoke.py once (timeout 600, --basetemp under /tmp)
+FILE SCOPE extensions/agi/bin/locations.py (storage functions + their CLI branch only) · extensions/agi/tests/test_storage_categories.py · experiment:a00-4bf392d4-1e7c8c (write.py) · the kid's own node. NOT .agi/config.json.
+CEILING   HARD CAP: 1 kid · net <= 15 production lines · <= 60 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.519: mur-director-engine-18 DH.510-k1+k2 accept_with_residue (verify stage never returned): non-dict cell still silent (NOT_MET), location_ok over-accepts, CLI traceback, stale kid node a00-4bf392d4. Demoted as notes: two copies of the root names (by construction), parent prose in a kid THOUGHT. Ceiling breach (4 kids vs 1) and the round gate refusing config.json = findings rows, not corrective items.
+<!-- THOUGHT:END -->
