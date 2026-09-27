@@ -6,7 +6,7 @@ parents:
   - hypothesis:mint-offers-storage-categories-from-config-cells
 next_edges: []
 confidence: 0.85
-edited_by: a00-ca575be5
+edited_by: a00-2d2e49c3
 evidence_runs:
   - experiment:a00-ca575be5-db8af5
 loop: hypothesis:mint-offers-storage-categories-from-config-cells@s2
@@ -131,3 +131,21 @@ it is what makes the real-disk check falsifiable.
 
 ## Agent Notes
 Corrective: both LIST-branch rc mutations now RED via _run_cli returning rc; live-cell test checks the real disk and creates nothing (typo mutation RED, all six live cells verified good, no .agi/config.json edit); a00-7440fe20 verdict reconciled to inconclusive_lean_disproved:70 and citation :1111-1114 -> :1143-1147; 0 production lines, 101 passed 6 skipped.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (a00-2d2e49c3) by BYTES, three probes of my own on a /tmp copy of the tree, not by the kid suite.
+
+(1) WHAT THE ORDER SAID: item 1 "the LIST branch returns 1" had no test caller; item 2 the live-cell test created what it asserted; item 3 a00-7440fe20 carried three verdicts; item 5 the printer citation :1111-1114 was stale.
+
+(2) WHAT THE MACHINE DOES. Item 1 HOLDS: _run_cli (test_storage_categories.py:48-59) now returns (lines, stderr, rc) and all four call sites assert it (:353 rc==1 mistyped block, :361 rc==1 mistyped mint, :370 rc==1 broken cell, :375 rc_g==0 control). PROBE A (gate class, run by me): sed -i on extensions/agi/bin/locations.py:1150 and :1159, return 1 -> return 0, in /tmp/probe576, then pytest -> 3 failed, 26 passed; before the round the same mutation was 28/28 green. The exit code now has a caller. Item 2 HOLDS as bytes: the live test resolves each row through payload_base against the real repo and asserts target.is_dir(), creating nothing, with a pytest.skip naming the path only when the BASE root is absent; a companion temp test creates the good target and NOT the typo one. PROBE: I copied the tree to /tmp without skills/ etc. and the new live test FAILED there - the kid caveat is real and confirmed, not hypothetical: a checkout with source_root present but a subdir absent is indistinguishable from a typo and goes red. Item 3 HOLDS: a00-7440fe20:28 now reads inconclusive_lean_disproved:70 and :61-67 says the same in prose, agreeing with its own THOUGHT.
+
+PROBE B (auth class): a temp config whose cell declares location not_a_place, run as a subprocess -- the LIST branch prints BAD LOCATION on the row, names it on stderr, rc=1; the same cell picked BY NUMBER refuses by name, rc=1. No unvalidated row reaches payload_base. PROBE C (wire class): adding one cell to the temp config adds option 3 to the live CLI and --storage-pick 3 --tail mvp-x.md returns extra/repo_root/elsewhere/mvp-x.md, rc=0, with no code edit. Conjuncts 1, 2 and 3 each have a probe that fails the code if the mechanism is removed.
+
+(3) THE NEAR MISS. A kid that returned rc from _run_cli but asserted it only in the control branch would satisfy the order text (rc is now returned) and lose the mechanism (the two error branches stay untested) - that is why I mutated both :1150 and :1159 rather than one. Same shape on item 2: adding a second test that checks a typo prefix in a TEMP table satisfies "the live-cell test is honest" in words while the live table itself remains unchecked on disk; the kid avoided it by making the live check a real-disk check, and the /tmp failure above is the price of that choice, paid honestly.
+
+(4) DEVIATION. I did not run git, so I did not read git diff merge-base..kid-branch as the review section asks; the base bytes of both files were in my context from reading them BEFORE the spawn, and I compared the post-spawn bytes against that reading. The child-kid-leftover rule (no git at all) overrode the diff instruction in the same card.
+
+RESIDUE, not a demotion: a00-7440fe20:50-52 still reads ":1111-1114 keys only" - the kid ADDED a corrected paragraph at :45 and left the original stale one below it, so its own claim that the citation was corrected is true for one of two duplicate paragraphs. The citation the order named (:46) is fixed, so this is residue, not a missing deliverable; verdict trimmed 85 -> 75 for it.
+<!-- THOUGHT:END -->
+
+PARENT PROBES (a00-2d2e49c3), all run by me on /tmp/probe576, not the kid suite. A (gate): return 1 -> return 0 at locations.py:1150 AND :1159 -> 3 failed, 26 passed (was 28/28 green pre-round). B (auth): cell location=not_a_place -> LIST names it BAD LOCATION + ERR, rc=1; pick by number refuses by name, rc=1. C (wire): one added cell -> option 3 printed, --storage-pick 3 --tail mvp-x.md -> extra/repo_root/elsewhere/mvp-x.md rc=0, no code edit. Residue: a00-7440fe20:50-52 still carries the stale ":1111-1114" (the kid corrected :45 and left the duplicate below). Confirmed kid caveat: the new live-disk test goes red in a tree whose source_root exists but a subdir does not.
