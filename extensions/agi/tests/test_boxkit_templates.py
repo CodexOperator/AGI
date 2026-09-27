@@ -592,3 +592,109 @@ def test_no_cascade_drop_in_matches_the_recorded_live_bytes_or_names_its_absence
         # live_only lines, so a new unexplained comment in the live file is RED.
         comments = [ln for ln in live.splitlines() if ln.lstrip().startswith("#")]
         assert comments == _declared(row, "live_only_lines", v), (row["name"], comments)
+
+
+# 11 -- THE WHOLE-TABLE COVERAGE CLOSURE. Row 10 closes the no-cascade layer alone
+# (the one row the previous probe found). The CLAIM is wider: "every piece of
+# goal:g7.33.18's table is a template + manifest entry". Nothing in the suite made that
+# true for the OTHER rows: the manifest lists itself, so DELETING a manifest row simply
+# removes the piece and every other row stays green -- a coverage hole of the exact shape
+# the claim is about. This row reads the goal TABLE (the same live node row 10 reads, never
+# a copied list), takes the file-shaped artifacts each shipping row names, normalises the
+# goal's literal uid to the kit's {{UID}}, and requires a manifest row to ship each one.
+# A row that ships a FILE but names no artifact is red here: a parser that quietly
+# extracts nothing would otherwise make the closure vacuously true.
+GOAL_TABLE = re.compile(r"^\|\s*([^|]+?)\s*\|")
+
+
+def _goal_rows():
+    body = [ln for ln in (PROJECT / ".agi" / "nodes" / "goal" / "g7.33.18.md")
+            .read_text(encoding="utf-8").splitlines() if ln.strip().startswith("|")]
+    assert body and "---" in body[1], "goal:g7.33.18 must carry a markdown table"
+    return [[c.strip() for c in ln.split("|")[1:-1]] for ln in body[2:]
+            if ln.count("|") >= 4]
+
+
+# a file or unit a table row can name: an absolute live path, a drop-in under a slice/
+# unit dir, a bare unit, or one of the two files this layer ships by name
+ARTIFACT = re.compile(
+    r"/[\w.@/-]+"                                              # /usr/local/sbin/agi-memguard.py
+    r"|(?:[\w@.-]+/)*[\w.@*-]+\.(?:service|slice|conf|py|sh)"  # oomd.conf.d/50-...conf, user.slice
+)
+# the layers the goal itself records as NOT files the kit installs
+NOT_A_FILE = ("already graph-declared", "config cells", "the read-back", "rides ")
+
+
+def _norm(art):
+    """The goal writes the local-town uid literally; the kit carries it as {{UID}}."""
+    return re.sub(r"(user[@-])\d+", r"\1{{UID}}", art)
+
+
+def _required_artifacts():
+    """[(row label, artifact)] for every table row that claims the kit ships a FILE."""
+    out = []
+    for cells in _goal_rows():
+        if any(s in cells[2].lower() for s in NOT_A_FILE):
+            continue
+        for art in ARTIFACT.findall(cells[0] + " " + cells[1]):
+            out.append((cells[0], _norm(art.rstrip(".,"))))
+    return out
+
+
+def _shipped_paths(pieces):
+    """Every manifest row's LIVE destination, repo-relative and cell-joined: the path a
+    rendered piece lands on, which is the only thing the goal table names. The goal
+    writes the live ABSOLUTE path, the cell is repo-relative with a leading / -- both
+    forms of the same destination, so both are compared."""
+    out = []
+    for p in pieces:
+        rel = p["dest_rel"]
+        cell = str(CELLS[p["dest_cell"]]).lstrip("/")
+        out.append((p, rel, "/".join(x for x in (cell, rel) if x)))
+    return out
+
+
+def _uncovered(required, pieces):
+    """The artifacts no manifest row ships, as (row label, artifact).
+
+    A unit/slice name ships its drop-in DIRECTORY for it (user.slice ->
+    user.slice.d/...); a file ships the destination that IS or ENDS with it."""
+    out = []
+    for label, art in required:
+        a = art.lstrip("/")
+        if any(art == rel or rel.startswith((art + "/", art + "."))
+               or a == live or live.endswith("/" + a)
+               for _p, rel, live in _shipped_paths(pieces)):
+            continue
+        out.append((label, art))
+    return out
+
+
+def test_manifest_covers_every_file_the_goal_table_names():
+    required = _required_artifacts()
+    # the extractor is not vacuous: the table names more files than one row, and more
+    # than the no-cascade row alone (a parser that found nothing would be green above)
+    assert len({a for _, a in required}) >= 10, sorted(a for _, a in required)
+    assert {a for _, a in required} >= {
+        "user@{{UID}}.service.d/50-sanctuary-guard.conf", "oomd.conf.d/50-sanctuary-guard.conf",
+        "user.slice", "user-{{UID}}.slice", "system.slice", "agi.slice",
+        "/usr/local/sbin/agi-memguard.py", "agi-memguard.service",
+        "10-agi-survival.conf", "/etc/watchdog.conf", "/usr/local/sbin/sanctuary-health"}, \
+        sorted(a for _, a in required)
+    missing = _uncovered(required, PIECES)
+    assert not missing, (
+        "goal:g7.33.18's table names %s and no manifest row ships it: the kit does not "
+        "cover the whole table the claim names" % missing)
+
+
+def test_the_whole_table_closure_is_red_when_a_piece_is_removed():
+    """The anti-circular proof the closure needs: coverage asserted over a manifest that
+    lists ITSELF is green by construction, so the closure must go RED on the manifest it
+    would have to read. Dropping every row uncovers every artifact; dropping ONE row
+    uncovers exactly what that row carried and nothing else."""
+    required = _required_artifacts()
+    assert {a for _, a in _uncovered(required, [])} == {a for _, a in required}
+    rest = [p for p in PIECES if p["name"] != "oomd-guard"]
+    gone = [a for _, a in _uncovered(required, rest)]
+    assert gone == ["oomd.conf.d/50-sanctuary-guard.conf"], gone
+    assert len(rest) == len(PIECES) - 1
