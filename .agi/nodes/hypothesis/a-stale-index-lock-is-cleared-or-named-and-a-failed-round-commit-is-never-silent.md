@@ -35,6 +35,18 @@ extensions/agi/bin/cli.py (the round commit + cmd_done's exit only) · .agi/conf
 ## CEILING
 HARD CAP: 1 kid · <= 20 production lines · <= 70 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut. No test touches a live worktree.
 
+## CORRECTIVE DH.534 -- closes the DH.532 parent review (a00-354f1396 demoted experiment:a00-e399b2d0-597da7 proved -> inconclusive_lean_disproved:35)
+BASE      CUT FROM season2/loops/hypothesis-a-stale-index-lock-is-a00-354f1396 tip 4eb9be948 (worktree a00-354f1396; the director landed the config cell there). No merge. Never rebase.
+1. HELD LOCK REMOVED (the parent's probe: a live `git update-index --index-info` with cwd = the checkout and no path in argv held .git/index.lock; `_clear_stale_index_lock` printed 'no git holder' and unlinked it) -- the holder test `pgrep -f git.*<checkout>` sees only argv -> a lock is HELD when any process has an open fd on that lock path (/proc/*/fd) OR any git process's cwd resolves inside the checkout; held = never removed, refused by name. One test that reproduces the parent's shape (a git child with cwd = the checkout, path NOT in argv) and asserts the lock survives.
+2. The threshold is the literal 900.0 at cli.py:2380 -> read values.core.stale_index_lock_s (now in .agi/config.json at the base); a missing cell = never clear, refuse by name. No literal left.
+3. cli.py is +70/-16 vs a 20-line cap -> trim to the mechanism; record the measured net on the kid node.
+4. Exercise conjunct 2 end to end once: a real linked worktree (tmp) whose commit fails -> the done path exits non-zero and the harvest line carries `commit FAILED: <reason>`.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_stale_index_lock.py test_cli.py test_dispatch.py test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp); tmp repos only, never a live worktree
+FILE SCOPE extensions/agi/bin/cli.py (the stale-lock check + the commit/exit path only) · extensions/agi/tests/test_stale_index_lock.py · the kid's own node
+CEILING   HARD CAP: 1 kid · cli.py net <= 30 over the post branch (the base is +54: trimming pays) · <= 60 more test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version (director-engine): g7.33.19 row 18 (DH.503, 04:01Z), fixed in-loop per the director template findings rule; the threshold is a cell (config-max).
+corrective DH.534 QUEUED (dispatch blocked: key mint, credits): the DH.532 parent probe removed a HELD lock (pgrep sees argv only; a git with cwd = the checkout is invisible), the threshold is still a literal 900.0 (the cell was refused in-round; director landed it 4eb9be948), cli.py +54 vs 20, conjunct 2 never run end to end. This round must not merge until 534 clears: a gate that deletes a held lock is worse than none.
 <!-- THOUGHT:END -->
