@@ -107,10 +107,15 @@ class _Minted:
 
 
 def _zero_usd_dispatch(tmp_path, monkeypatch, *extra, rtk=(True, None),
-                       key_floor=(False, "drained key below floor")):
+                       key_floor=(False, "drained key below floor"),
+                       balance=None, keys=(), real_rtk=False):
     """Run one zero-USD kid round with provisioning + Popen stubbed. The
     key floor is REFUSING by default: a lane that skips it must still spawn,
-    a lane that runs it must not."""
+    a lane that runs it must not. `balance`/`keys` put the lane on the
+    MEASURED `cap_headroom` path (a readable credit_balance + key listing)
+    instead of its fail-open one; `real_rtk` keeps the REAL
+    `check_runtime_key_usable` with provisioning ABSENT, so the pre-flight
+    under test is the function, not a stub."""
     import sys as _sys
     project = _cap_project(tmp_path)
     cfgp = project / ".agi" / "config.json"
@@ -119,17 +124,22 @@ def _zero_usd_dispatch(tmp_path, monkeypatch, *extra, rtk=(True, None),
     cfg["provisioning"]["zero_usd_key_limit_usd"] = 0.01
     cfgp.write_text(json.dumps(cfg))
     prov, calls = dispatch.provisioning, []
-    monkeypatch.setattr(prov, "available", lambda root=None: True)
+    monkeypatch.setattr(prov, "available", lambda root=None: not real_rtk)
     monkeypatch.setattr(prov, "mint",
                         lambda **kw: (calls.append(kw), _Minted())[1])
-    monkeypatch.setattr(prov, "check_runtime_key_usable",
-                        lambda cfg, root=None: rtk)
+    if real_rtk:  # the REAL pre-flight: absent provisioning, a 401 runtime key
+        monkeypatch.setattr(prov.envfile, "_verify_provider_key",
+                            lambda key: ("dead", "HTTP 401 unauthorized"))
+        monkeypatch.setenv(prov.RUNTIME_KEY_VAR, "sk-or-v1-" + "0" * 40)
+    else:
+        monkeypatch.setattr(prov, "check_runtime_key_usable",
+                            lambda cfg, root=None: rtk)
     monkeypatch.setattr(prov, "check_key_floor",
                         lambda cfg, root=None, iter_n=None: key_floor)
     monkeypatch.setattr(prov, "check_account_floor",
                         lambda cfg, root=None: (False, "account drained"))
-    monkeypatch.setattr(prov, "credit_balance", lambda root=None: None)
-    monkeypatch.setattr(prov, "list_all_keys", lambda root=None: [])
+    monkeypatch.setattr(prov, "credit_balance", lambda root=None: balance)
+    monkeypatch.setattr(prov, "list_all_keys", lambda root=None: list(keys))
     monkeypatch.setattr(dispatch.subprocess, "Popen", lambda *a, **k: _StubProc())
     monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
     for k in ("AGI_TREE_PROJECT_ROOT", "AGI_PROJECT_ROOT", "AGI_AGENT_ID",
@@ -174,6 +184,36 @@ def test_zero_usd_lane_runs_the_runtime_key_gate_and_the_cap_guard(
 def test_zero_usd_lane_skips_the_two_dollar_floors(tmp_path, monkeypatch):
     """The refusing key floor and the refusing account floor (both stubbed
     above) must not stop a zero-USD lane: it minted, and the round spawned."""
-    code, mints = _zero_usd_dispatch(tmp_path, monkeypatch)
+    code, mints = _zero_usd_dispatch(tmp_path, monkeypatch, "--cap", "2.00")
     assert code == 0
     assert len(mints) == 1, mints
+    # discriminating vs the pre-image (it minted the flag's 2.00, not 0.01)
+    assert mints[0]["limit_usd"] == 0.01, mints
+
+
+def test_zero_usd_cap_guard_measures_the_cap_the_lane_can_spend(
+        tmp_path, monkeypatch, capsys):
+    """A READABLE balance puts this lane on the MEASURED `cap_headroom` path
+    (the helper's fail-open `credit_balance -> None` covered no such case, so
+    the near-miss survived). Pool $0.606, account floor $1.00, `--cap 1.00`:
+    the floor alone makes that cap unfit, yet the key this lane mints is hard
+    capped at $0.01, which fits. The guard must price what is MINTED, and must
+    not charge a lane the account floor it is exempt from at check_account_floor.
+    MEASURED pre-fix: `ERR: round cap $1.00 exceeds pool headroom $-0.39
+    (pool $0.61 - floor $1.00 - live $0.00)`, exit 1, no mint."""
+    code, mints = _zero_usd_dispatch(tmp_path, monkeypatch, "--cap", "1.00",
+                                    balance=(10.0, 9.394, 0.606))
+    err = capsys.readouterr().err
+    assert code == 0, err
+    assert [m["limit_usd"] for m in mints] == [0.01], mints
+
+
+def test_zero_usd_lane_refuses_a_dead_runtime_key_with_provisioning_absent(
+        tmp_path, monkeypatch, capsys):
+    """Item 5: the REAL `check_runtime_key_usable` (provisioning ABSENT, a 401
+    runtime key), not a stub that merely proves the call ran. FALSIFIER: the
+    pre-flight passes, or a key is minted anyway."""
+    code, mints = _zero_usd_dispatch(tmp_path, monkeypatch, real_rtk=True)
+    err = capsys.readouterr().err
+    assert code == 1 and mints == [], (code, mints, err)
+    assert "is present but NOT USABLE" in err, err

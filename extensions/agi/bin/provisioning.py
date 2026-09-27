@@ -598,7 +598,8 @@ def _live_key_headroom(rec: dict) -> float:
 
 
 def cap_headroom(cfg: dict, root: Path | str | None,
-                 cap: float, slots: int = 1) -> tuple[bool, str | None]:
+                 cap: float, slots: int = 1,
+                 exempt_floor: bool = False) -> tuple[bool, str | None]:
     """(ok, msg): does `cap` fit pool minus floor minus live caps?
     Fail-open on an absent key or a network error (check_account_floor idiom).
 
@@ -609,6 +610,16 @@ def cap_headroom(cfg: dict, root: Path | str | None,
 
     `slots` prices the round at `cap * slots` (one minted key per slot,
     `spawn.parallel`); the refusal names the multiplier when it is > 1.
+
+    🔴 `exempt_floor` is the ZERO-USD lane's exemption (hypothesis:a-zero-usd-
+    lane-prints-the-cap-it-mints): such a lane is EXEMPT from the account
+    floor at `check_account_floor`, so charging it `min_account_remaining_
+    floor` here re-introduces through a side door the very floor it was
+    exempted from -- and since its minted keys are hard-capped at
+    `zero_usd_key_limit_usd`, the floor is the only term that can refuse a cap
+    the round physically cannot overspend. The floor term is then 0.0 and the
+    refusal NAMES that, so a zero-USD lane is visibly priced without it.
+    `live` still counts: another lane's minted key does draw on this pool.
 
     🔴 Every fail-open carries a MARKER, never `(True, None)` (the
     `check_key_floor` idiom): `(True, <marker>)` names what could not be read
@@ -629,7 +640,7 @@ def cap_headroom(cfg: dict, root: Path | str | None,
             f"cap not measured: the account/key listing was unreadable "
             f"(provisioning API error); round cap ${cap:.2f} proceeds "
             f"unmeasured")
-    floor = min_account_remaining_floor(cfg) or 0.0
+    floor = 0.0 if exempt_floor else (min_account_remaining_floor(cfg) or 0.0)
     live = sum(_live_key_headroom(r) for r in keys)
     avail = bal[2] - floor - live
     if cap > avail:

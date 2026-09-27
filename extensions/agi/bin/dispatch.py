@@ -2406,8 +2406,17 @@ def main() -> int:
             # item 13: the slot loop mints ONE key per slot, so price the
             # round at cap x slots -- n read from THIS resolved cfg.
             _slots = max(1, adapters.parallelism(cfg))
+            # hypothesis:a-zero-usd-lane-prints-the-cap-it-mints -- price the
+            # guard at the cap this round will MINT (`cred_limit`, which for a
+            # zero_usd lane is already the zero_usd_key_limit cell, resolved
+            # above), never at the pre-override `--cap`: a zero_usd lane
+            # provably cannot spend 1.00, so a guard measuring 1.00 refuses a
+            # cap the round cannot overspend. `exempt_floor` keeps the account
+            # floor out of the price for exactly the lane that is exempt from
+            # it at check_account_floor (side door, not a floor).
             _cap_ok, _cap_msg = provisioning.cap_headroom(
-                cfg, root, float(args.cap) * _slots, slots=_slots)
+                cfg, root, cred_limit * _slots, slots=_slots,
+                exempt_floor=dispatch_harness.get("zero_usd") is True)
             if not _cap_ok:
                 print(f"ERR: {_cap_msg}", file=sys.stderr)
                 return 1
