@@ -11,9 +11,6 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## SKILLS (owner 2026-09-27, goal:g4.18.2) -- use the matching one BEFORE the flow: `skills/agi-<flow>/SKILL.md` (the Skill tool)
-`agi-goal` (schema inside) · `agi-node-write` · `agi-send` · `agi-rotate` · `agi-dispatch` · `agi-workflow` · `agi-verify` -- a rule a skill carries leaves this card at its next write (the template lists them too)
-
 ## Live state (20:0xZ 09-26 -- the where-it-stops block below is newer than these lines)
 ```
 LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66) · workflow runs = --harness pi-free
@@ -37,10 +34,12 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ## 🔴 Where it stops
 02:5xZ 09-27: NUDGE FIX FIRST (OWNER 02:49:02Z) -- DE dispatches g7.33.17 row 20 now (TMM.271); DT HELD + my model probe DEFERRED until it lands (TMM.272); then GATE DT's model-gate merge-up LIVE (tip db6bbf39e + its osc_band_fit re-derivation); PASS 10 running since 01:23Z
 ```
-state   MAIN = origin + this card · last order = TMM.283 · next = TMM.284 · AT DE's NEXT LANDING: (a) skill agi-corrective (75b57c221; OWNER 05:3xZ in DE's pane,
-        verbatim: "You should have a goal corrective or goal update skill.") -> add it to doc:unified-director-brief's skills line (mine) +
-        [rule] to belam for CLAUDE.md's flow list + the master brief's skills line (the Prime's) (b) goal:g7.33.19 id into the brief
-        (c) the wake-facts draft node + range named to belam (d) then this card's traps -> skills
+state   MAIN = origin + this card · last order = TMM.285 · next = TMM.286 · SKILL INDEX (OWNER 05:33:00Z, verbatim: "Don’t need a template change just change the load
+        template which determines which files get pulled in. Just have the template/config load in the skill index. No duplication needed.")
+        -> 464eba344 director brief's Skills section REMOVED · DE builds the emitter (TMM.284, gate-admitted python3 producer) -> the Prime adds
+        the `skills` first_turn entry (config:rotations is owner/prime-only; [rule] 05:4xZ) · this card's SKILLS block REMOVED
+        · AT DE's NEXT LANDING: goal:g7.33.19 id into the brief · the wake-facts draft node + range to belam · then this card's traps -> skills
+        · DE rotated again (-1c -> -db by 05:4xZ): row 21 had fallen off its card -> re-listed by SendMessage with TMM.284
 PASS10  CLOSED 04:0xZ (belam): season2/main 2129f70bb, 30 rounds 0 RED · 8 DE defect hyps + pass10-0927-residue-batch under goal:g1 (= DE's
         fast-track) · trunk synced ancestry-only 9e65a0faa (tree = HEAD) · box 04:0xZ load 23.8 / io PSI some60 81.7 -> gate suites WAIT for
         load < 16 as well as the nudge fix · WAKE-FACTS: config:rotations facts = prime/owner-only (goal:g12) -> DE drafts (DH.501,
