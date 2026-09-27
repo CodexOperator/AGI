@@ -1,0 +1,69 @@
+---
+id: goal:g7.33.19
+mint_id: e309dd5b8d734d2eb92f11e3fd459b7f
+type: goal
+parents:
+  - goal:g7.33
+next_edges: []
+confidence: 0.7
+edited_by: director-engine
+goal_id: G7.33.19
+goal_kind: subgoal
+heading_level: 4
+origin: goals-doc
+scaffold_hash: 53dfe065dc5f119a
+season: 2
+seeds: []
+status: active
+tags:
+  - local-maxxing
+  - engine
+title: "G7.33.19: ENGINE FINDINGS FROM director-engine ROUNDS -- the 16 ex-card g15 lines (g15 retired) held as rows until DONE, VOID or MOVED; each row its own sub-leaf when dispatched (OWNER 09-27 03:3xZ)"
+town: core
+---
+# goal:g7.33.19
+
+## OWNER 2026-09-27 03:3xZ, verbatim (in director-engine's pane)
+"Also g15 lines belong in a new goal g15 is retired. And they could potentially be moved under a relevant new goal themselves. Contact prime if you have issues doing the changes."
+
+## Why this exists
+**Parent `goal:g7.33`** (engine fixes surfaced by the town, each a pi round of its own, run by the engine director). director-engine's card carried 16 engine findings as "g15" lines -- a retired id (g15 -> g20 -> goal:g1, skill agi-goal §5), on a card, which is not a tracker. They are held HERE, one row each, the goal:g7.33.17 pattern: a row becomes its own sub-leaf (or moves under the goal it fits) when it is dispatched.
+
+## Target end-state -- every row DONE (sha) · VOID (reason) · MOVED (goal id)
+| # | finding (measured) | source | state 09-27 |
+|---|---|---|---|
+| 1 | concurrent merge-up-review runs mint ONE run key: `_existing_run_keys` sees only finished rows, so live murs overwrite each other's key (mur-director-engine-3 x2, -4 x3, -5 x3, -8 x3, -14 x7) | DE rounds 09-26/27 | OWED |
+| 2 | a kid gets an EMPTY `.git` (no refs): an order to "merge the loop branch first" can never run -- 437/438/442/443 built on the wrong base | DH.437-443 | OWED (workaround in skill agi-dispatch §2: cut correctives from the loop tip) |
+| 3 | dms "iter=iter-001 agent=... reason=death" reached a live inbox with no agent record: likely a kid TEST writing the live inbox | DE inbox 09-26 23:01Z | OWED (find the test) |
+| 4 | a parent's harvest line is blind to kids registered via `--owns` (DH.454 kids=[] while 2 ran) and to its own demotes (DH.460 demoted=0 vs a00-fcb5f3fb lean_disproved:70) | DH.454, DH.460 | OWED |
+| 5 | `cli.py done` writes node rows with NO actor in the write-log | DH.459 rows 16-17 | OWED |
+| 6 | ~12 engine readers hard-code `<graph>/context/schemas`; only cli + spawn_gate read the cell `paths.core.schemas_dir` | mur-9 DH.455 | OWED (an engine-wide migration) |
+| 7 | the mur verify stage times out at 3600 s under load (loadavg 10-12 / 16 cores) | DH.450, 467, 469 | OWED (smaller slices or the timeout cell) |
+| 8 | the mur verify stage can return its JSON inside `unstructured`: the verdict parses only by hand | DH.466 mur-11 | OWED |
+| 9 | rotation-alert reports 'capture-chain step FAILED: rotate-self rc=1' AFTER the successor seated | 09-27 01:2xZ | OWED |
+| 10 | `cli._claim_conjunct_numbers` unions testable_claim with every (n) in the body: quoted review prose inflates the conjunct count | mur-10 DH.465 | DISPATCHED DH.492 (hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only) |
+| 11 | after_join output delivered twice (pane input + a self-signed inbox dm) | 09-27 01:27Z | OWED |
+| 12 | a dispatch stale-base refusal prints the JSON then 'aimed: 1 slot' with no spawn -- reads as success | DE dispatches 09-26 | OWED |
+| 13 | a parent can harvest and exit leaving its kid's (DH.486, 488, 495) or its own (DH.489) node edits UNCOMMITTED | DH.486-495 | OWED (director lands logged bytes, TMM.268; skill agi-dispatch §5) |
+| 14 | a parent's harvest dm can be lost (DH.429 finished, no inbox line) | DH.429 | OWED |
+| 15 | write.py `thought` rewrites the FIRST THOUGHT pair anywhere, a QUOTED pair included (node_writer.py `_THOUGHT_RE`); same regex in snapshot-goals.py, metrics.py, brief.py | mur-13 DH.481, mur-14 DH.486 | DISPATCHED DH.487 (hypothesis:thought-verb-edits-only-the-top-level-thought-block) |
+| 16 | the reaper skips REFUSED rounds (R3b) | mur-12 DH.470 | OWED |
+| 17 | parents ignore the round CEILING: DH.479, 504, 510 spawned 3-4 kids vs a 1-kid ceiling; DH.497, 506, 510 shipped 2-3x the production-line cap (108 vs 45, 79 net vs 36, +100 vs 40) -- the ceiling is prose the parent reads, never a fence (and spawn_budget._ceiling_clause reads nothing when the number sits on the next line, mur-15 DH.493) | DE rounds 09-27 | OWED |
+| 18 | a stale `index.lock` in a round worktree makes the parent's commit fail and the parent exits SILENT (DH.503: lock 04:01:16Z, 0 bytes, no holder; kid work left uncommitted and unreviewed); 4 more kid worktrees held one at 04:24Z | DH.503 | OWED |
+
+## Invariants
+- A finding lives in exactly one place: a row here, or the node a row MOVED to -- never a card line or a retired goal id.
+
+## Falsifier
+1. Every row's state cell reads DONE <sha> · VOID <reason> · MOVED <goal id>: `grep -cE '\| (OWED|DISPATCHED)' ` over this node = 0.
+2. Negative: `grep -c 'g15' ` over doc:card-director-engine = 0.
+
+## Out of scope
+goal:g7.33.17 (the 09-25 queue) · goal:g7.33.15 · goal:g7.33.16 · goal:g7.33.18
+
+## Agent Notes
+Assigned to **director-engine**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+First version. The owner in director-engine pane 03:3xZ: "g15 lines belong in a new goal g15 is retired." The card held 16 engine findings under the retired id g15 (skill agi-goal §5: g15 -> g20 -> goal:g1); a card is not a tracker. Minted under goal:g7.33 because g7.33 is the town engine-fix goal this post was seated for (owner 09-21 "a second director seat just for engine fixes"), not under goal:g1 (config-maxxing): most rows are defects, not config moves. Near miss: 16 separate leaves now -- rows follow the goal:g7.33.17 pattern and become sub-leaves only when dispatched, so no leaf exists without a round to drive it. Rows 10 and 15 are already carried by DH.492 and DH.487; box drift (OOMPolicy, agi.slice drop-in) is not an engine finding and stays with thought-master.
+<!-- THOUGHT:END -->
