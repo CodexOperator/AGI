@@ -613,7 +613,10 @@ def resolve_storage_category(pick, tail: str | None = None,
     `pick` is a NUMBER or a KEY from the table. A pick naming no cell is read
     as a path and returned FLAGGED `custom` against the default base -- an
     accepted answer, never an exception: a pane that types a path it knows is
-    not in the table must not be told it may not.
+    not in the table must not be told it may not. A pick that is a NUMBER
+    naming no cell is not a path but a stale list index: the tail carries the
+    whole answer and the digits are dropped, so `--storage-pick 99 --tail x`
+    never yields a payload named `99`.
 
     A cell whose `location` is NOT a name `payload_base` accepts is a config
     error, not a pick, and it is refused HERE by name: the row is never
@@ -636,10 +639,11 @@ def resolve_storage_category(pick, tail: str | None = None,
         rest = str(tail or "").strip().lstrip("/")
         return {**hit, "payload_ref": f"{hit['prefix']}/{rest}" if rest
                 else hit["prefix"]}
+    ref = str(tail or "").strip() if text.isdigit() else text
     return {"n": 0, "key": "custom", "label": "custom", "custom": True,
             "location": DEFAULT_PAYLOAD_LOCATION, "location_ok": True,
             "target_exists": None,
-            "prefix": "", "payload_ref": text or str(tail or "").strip()}
+            "prefix": "", "payload_ref": ref or str(tail or "").strip()}
 
 
 def resolve_payload_path(root: Path, ref: str, location: str | None = None,
