@@ -43,7 +43,7 @@ MURS      systemd agi-director-engine-<unit>, verdicts MAIN .agi/sessions/workfl
           mur499 (k1 review: 2 cells for one root, 16 literals, node contradiction) · mur504 · mur510 (497 slices) -- older, still running
 CHAIN     next act                                                         land note
   426 schema-gate 527 harvested: 6 node edits landed 4871efc3d (6/6 == write-log, THOUGHT 1/1) -> mur527                                                        NEVER 442
- 427 heal-refuse 528 LIVE                                                        NEVER 476
+  427 heal-refuse 528 harvested (verdict edit landed, 0 user-name hits) -> mur528                                                        NEVER 476
  429 tasks-max   495 mur-15 AWR: ## TESTS names no test -> tiny corrective or demote; LAND 429 nodes br first, then 495 -X theirs
  432 guard-piece 504 -> mur504; ANON: a kid node row prints the repo path value -> scrub      NEVER 432 itself
  433 guard-inst  471 mur-17 k1 unstructured AWR, k3 AWR (3 missed) -> corrective AFTER 432 lands
