@@ -463,3 +463,63 @@ def test_roles_report_marks_unrecorded_without_guessing(project, capsys):
     out = capsys.readouterr().out
     assert "UNRECORDED" in out
     assert "hypothesis:h-unnamed" in out
+
+
+# --------------------------------------------------------------------------
+# The writer's shape, asked of the writer — refused BY NAME on the read path
+# --------------------------------------------------------------------------
+GLUED = 'probes=["wire: (parent a00-a0e8250e, RAN) - one, two'
+
+
+def test_the_writer_owns_the_field_shape():
+    """One definition: `set k=v` is not `set`'s grammar, a structured key is
+    not a bare `key:` line, a plain key is."""
+    assert not node_writer.writer_key_shape('probes=["wire')
+    assert not node_writer.writer_key_shape("FILE SCOPE")
+    assert not node_writer.writer_key_shape("a b")
+    for key in ("id", "type", "parents", "next_edges", "testable_claim",
+                "a00-1556127c-9fb395"):
+        assert node_writer.writer_key_shape(key), key
+
+
+def test_links_refuses_a_glued_key_by_name(project):
+    """The claim's second conjunct: refused at links, not silently defaulted."""
+    path = _node(project, "hypothesis:h-glued",
+                 ['id: "hypothesis:h-glued"', "type: hypothesis",
+                  "mint_id: abc123", 'title: "t"', 'testable_claim: "c"',
+                  GLUED], "b\n")
+    from graph_core.persistence import frontmatter as fm_reader
+
+    fm = fm_reader.load_node_file(path).frontmatter
+    with pytest.raises(links.MalformedNode) as exc:
+        links.resolve(project, "hypothesis:h-glued", fm, "b\n")
+    assert "hypothesis:h-glued" in str(exc.value)      # node id AND field
+    assert "probes=[" in str(exc.value)
+    assert any("h-glued" in n for n in links.off_shape_nodes(project))
+    assert all(nid != "hypothesis:h-glued" for nid, _fm, _b in
+               links._iter_corpus(project))
+    assert links.count_broken_links(project) == 0      # not link damage
+
+
+def test_the_gate_and_links_ask_the_same_definition(project):
+    """cli.py no longer restates the shape: one owner, two callers."""
+    import cli
+
+    path = _node(project, "hypothesis:h-glued",
+                 ['id: "hypothesis:h-glued"', "type: hypothesis",
+                  "mint_id: abc123", 'title: "t"', GLUED], "b\n")
+    ok, _fm, defect = cli._load_frontmatter(path.read_text())
+    assert not ok and "probes=[" in defect
+    assert cli._off_shape_keys({"probes": 1, "id": "x"}) == []
+
+
+def test_the_repaired_live_artifact_loads_clean():
+    """The named artifact carries a real `probes` list and no glued key."""
+    import cli
+    import locations
+
+    root = locations.find_project_root(Path(__file__).resolve())
+    ok, fm, defect = cli._load_frontmatter(
+        (root / "nodes/experiment/a00-fe05fdae-a240f5.md").read_text())
+    assert ok, defect
+    assert len(fm["probes"]) == 3

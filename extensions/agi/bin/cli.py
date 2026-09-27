@@ -265,20 +265,15 @@ _BODY_BEGIN = "<!-- BODY:BEGIN -->"
 _FM_REQUIRED = ("id", "type", "parents")
 #: write-log operation for a sanctioned frontmatter repair.
 _FM_REPAIR_OP = "repair-frontmatter"
-#: The ONLY frontmatter key shape the sanctioned writer can produce. Every
-#: field arrives through `write.py <node> 'set <key> <value>'`, so the key is
-#: a bare token; `node_writer._render_value` then writes it as `key:`. A parsed
-#: key carrying `=`, `[`, a quote or a space could not have come from that
-#: path -- it is a raw hand-appended line that YAML folded into the mapping
-#: (`probes=["wire: ...` became a key). PASS 10 c15 measured 14 such nodes
-#: live, every one of them passed every gate (hypothesis:a-node-frontmatter-
-#: that-is-not-the-writers-shape-is-refused).
-_FM_KEY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*$")
-
-
+#: A key the sanctioned writer could never have written is refused BY NAME.
+#: The rule itself is `node_writer.writer_key_shape` — the writer owns it and
+#: this file only asks, so the shape cannot drift from the renderer it checks
+#: (hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused).
+#: PASS 10 c15 measured 14 such nodes live (a hand-appended `probes=["wire:
+#: ...` line YAML folded into the mapping); every one passed every gate here.
 def _off_shape_keys(fm: dict) -> list[str]:
     """Keys of `fm` the sanctioned writer could never have written."""
-    return [str(k) for k in fm if not _FM_KEY_RE.match(str(k))]
+    return [str(k) for k in fm if not node_writer.writer_key_shape(k)]
 
 
 def _load_frontmatter(text: str) -> tuple[bool, dict | None, str]:

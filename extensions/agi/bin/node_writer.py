@@ -422,6 +422,30 @@ def _render_value(key: str, v, indent: str = "") -> list[str]:
     return [f"{indent}{key}: {_scalar(v)}"]
 
 
+def writer_key_shape(key) -> bool:
+    """True iff the sanctioned writer could have written `key` as a field.
+
+    🔴 **THE one definition of the field shape** — readers ASK it (cli.py,
+    links.py) instead of restating it, because a second copy drifts from the
+    writer it claims to check (hypothesis:a-node-frontmatter-that-is-not-the-
+    writers-shape-is-refused). Two writer facts: a field arrives as
+    `write.py <node> 'set <key> <value>'` (one whitespace token; `set k=v` is
+    explicitly NOT that grammar), and `_render_value` above writes keys BARE,
+    so a key carrying structure is a line no `set` could produce. The second
+    test is the writer's own `yaml` round-trip, not a second character class.
+    """
+    import yaml
+
+    k = str(key)
+    if not k or "=" in k or len(k.split()) != 1:
+        return False
+    try:
+        back = yaml.safe_load("".join(l + "\n" for l in _render_value(k, "x")))
+    except Exception:
+        return False
+    return isinstance(back, dict) and list(back) == [k] and back[k] == "x"
+
+
 def render_frontmatter(fm: dict) -> list[str]:
     """`fm` -> the lines between the `---` markers. Deterministic."""
     ordered = [k for k in LEADING_KEYS if k in fm]
