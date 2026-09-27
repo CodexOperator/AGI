@@ -59,7 +59,7 @@ CHAIN     tip / state                                                           
  reap-chain      503 kid work committed by me b3e476aea (stale index.lock) UNREVIEWED -> 507 LIVE (review + belam-cap record test)
  model-fence     505 died -> 508 d6ccb1f7b: 3 REGRESSIONS in the context fence suite (1f/25p on post br -> 4f/22p) -> 517 LIVE (fix the module, no test edits)
  capture         493 AWR -> 509 LIVE (unfenced ## + ### rows; belam's card is ## unfenced)
- HARVESTED 05:2xZ 509 (219 green) 512 514 515 (181: only the inherited help-smoke row) 516 (node edits landed 7cabf1f8f) -> tests unit agi-director-engine-harvest1, log /tmp/de-harvest1.log -> murs next\n PASS 10         512 round-stages · 514 own-path-set (parent authorised a 2nd kid + edits 3 legacy test_cli.py fixtures OUTSIDE scope: at review check they do not
+ HARVESTED 05:2xZ 509 (219 green) 512 514 515 (181: only the inherited help-smoke row) 516 (node edits landed 7cabf1f8f) -> tests unit agi-director-engine-harvest1, log /tmp/de-harvest1.log -> murs next; PASS 10: 512 round-stages · 514 own-path-set (parent authorised a 2nd kid + edits 3 legacy test_cli.py fixtures OUTSIDE scope: at review check they do not
                  mask the parent-owns-kid refusal) · 515 capture-latch · 516 path-bin · 518 frontmatter-shape (all LIVE) · (5) belam-cap-reap HELD until 507 lands
 OWNER     04:4xZ asked 'How is the 92 unharvested worktree sweep going': answered 78 dirty non-live (58 node-only, 20 code), nobody sweeps; plan = round 2 of
           kid-worktrees (harvest-or-deprecate: logged node edits -> commit on the kid branch naming the owner; unlogged/code -> listed per owner; dry-run) after mur499,
