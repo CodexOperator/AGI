@@ -111,7 +111,9 @@ from pathlib import Path
 sys.path.insert(0, sys.argv[1])
 import send
 root, gate, real = Path(sys.argv[2]), Path(sys.argv[3]), os.replace
-send._OS_REPLACE = lambda s, d: (gate.write_text("held"), time.sleep(2.0),
+send._OS_REPLACE = lambda s, d: (gate.write_text("held"),
+                                 time.sleep(float(sys.argv[4])
+                                            if len(sys.argv) > 4 else 2.0),
                                  real(s, d))[2]
 send._forget_refusals("far-seat", root)
 print("SWAPPED")
@@ -122,9 +124,31 @@ import sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
 import send
+root = Path(sys.argv[2])
+if len(sys.argv) > 3:        # an UNLOCKED pre-1f19e160c writer: bare append
+    with send._foreign_memo_path(root).open("a", encoding="utf-8") as fh:
+        fh.write("old-seat\tcore-town\n")
+    print("APPENDED")
+    sys.exit(0)
 print("SAID" if send._foreign_refusal_said(
-    Path(sys.argv[2]), "late-seat", "core-town") else "QUIET")
+    root, "late-seat", "core-town") else "QUIET")
 '''
+
+
+def _raced_swap(tmp_path: Path, root: Path, sleep_s: str = "2.0"):
+    """A real rewrite process, held open inside its swap window."""
+    gate = tmp_path / "held"
+    w = subprocess.Popen(
+        [sys.executable, "-c", _STALL, str(BIN), str(root), str(gate),
+         sleep_s],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        cwd=str(tmp_path))
+    for _ in range(200):                      # 20s, then fail loudly
+        if gate.exists():
+            break
+        time.sleep(0.1)
+    assert gate.exists(), "the rewrite never reached its swap window"
+    return w
 
 
 def _said(res: subprocess.CompletedProcess) -> list[str]:
@@ -246,17 +270,8 @@ def test_a_naming_racing_the_rewrite_is_merged_not_discarded(tmp_path):
     memo = tmp_path / ".agi" / "sessions" / "foreign_refusals.tsv"
     memo.parent.mkdir(parents=True, exist_ok=True)
     memo.write_text("far-seat\tsanctuary\nother\tcore-town\n", encoding="utf-8")
-    gate = tmp_path / "held"
-    writer = subprocess.Popen(
-        [sys.executable, "-c", _STALL, str(BIN), str(root), str(gate)],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-        cwd=str(tmp_path))
+    writer = _raced_swap(tmp_path, root)
     try:
-        for _ in range(200):                      # 20s, then fail loudly
-            if gate.exists():
-                break
-            time.sleep(0.1)
-        assert gate.exists(), "the rewrite never reached its swap window"
         namer = subprocess.run(
             [sys.executable, "-c", _NAMER, str(BIN), str(root)],
             capture_output=True, text=True, timeout=120, cwd=str(tmp_path))
@@ -266,3 +281,46 @@ def test_a_naming_racing_the_rewrite_is_merged_not_discarded(tmp_path):
     assert "SWAPPED" in out, err
     assert memo.read_text(encoding="utf-8").splitlines() == [
         "other\tcore-town", "late-seat\tcore-town"]
+
+
+def test_both_writer_classes_in_the_swap_window_merge_and_lose(tmp_path):
+    """The writer-class comment (`_foreign_memo_lock`): inside the swap window a
+    LOCK-TAKING naming is MERGED and an UNLOCKED one is LOST (it appended to
+    the inode the swap discards). FALSIFIER: drop the flock, `old-seat` too."""
+    root = _graph(tmp_path, [FOREIGN])
+    memo = tmp_path / ".agi" / "sessions" / "foreign_refusals.tsv"
+    memo.parent.mkdir(parents=True, exist_ok=True)
+    memo.write_text("far-seat\tsanctuary\nother\tcore-town\n", encoding="utf-8")
+    writer = _raced_swap(tmp_path, root, "8.0")
+    try:
+        for extra, want in ((["unlocked"], "APPENDED"), ([], "SAID")):
+            r = subprocess.run([sys.executable, "-c", _NAMER, str(BIN),
+                                str(root)] + extra, capture_output=True,
+                               text=True, timeout=120, cwd=str(tmp_path))
+            assert want in r.stdout, r
+    finally:
+        out, err = writer.communicate(timeout=60)
+    assert "SWAPPED" in out, err
+    assert memo.read_text(encoding="utf-8").splitlines() == [
+        "other\tcore-town", "late-seat\tcore-town"]
+
+
+def test_a_swapped_tmp_is_a_consumed_distinct_name(tmp_path, monkeypatch):
+    """The `if not swapped` guard is cosmetic: after `_OS_REPLACE` the tmp ENTRY
+    IS CONSUMED, the names are distinct, and a stale unlink of the tmp name
+    leaves the memo INTACT. FALSIFIER: swap INTO the tmp name."""
+    import send
+    root = _graph(tmp_path, [FOREIGN])
+    memo = tmp_path / ".agi" / "sessions" / "foreign_refusals.tsv"
+    memo.parent.mkdir(parents=True, exist_ok=True)
+    memo.write_text("far-seat\tsanctuary\nother\tcore-town\n", encoding="utf-8")
+    seen: list[tuple[Path, Path]] = []
+    real = send._OS_REPLACE
+    monkeypatch.setattr(send, "_OS_REPLACE", lambda s, d: (
+        real(s, d), seen.append((Path(s), Path(d))))[0])
+    send._forget_refusals("far-seat", root)
+    assert seen, "no swap: the rewrite is not atomic"
+    src, dst = seen[0]
+    assert not src.exists() and src != dst, (src, dst)
+    src.unlink(missing_ok=True)               # the stale unlink, in full
+    assert memo.read_text(encoding="utf-8").splitlines() == ["other\tcore-town"]
