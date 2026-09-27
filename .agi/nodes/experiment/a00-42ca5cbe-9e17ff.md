@@ -6,7 +6,7 @@ parents:
   - hypothesis:captive-capture-keeps-the-slot-and-banked-and-appends-its-line
 next_edges: []
 confidence: 0.82
-edited_by: a00-98e396bb
+edited_by: a00-ffaf1904
 evidence_runs:
   - experiment:a00-42ca5cbe-9e17ff
 loop: hypothesis:captive-capture-keeps-the-slot-and-banked-and-appends-its-line@s2
@@ -29,9 +29,22 @@ verdict: proved
 
 CORRECTIVE for DH.599 (kid a00-b52ef351, node `experiment:a00-b52ef351-44c66a`),
 items 1-8, in the bytes. Branch `de-base-630` @ `fc4fa8132`. **Production lines
-changed: 0** (`git diff --numstat -- extensions/agi/bin extensions/agi/hooks` is
-empty) — every fix is in `extensions/agi/tests/test_rotation_alert_capture.py`
-(+31/-22), well inside the 40-test-line cap.
+changed: 0** — every fix is in
+`extensions/agi/tests/test_rotation_alert_capture.py`, **+30/-25** (CORRECTED by
+DH.649, kid a00-ffaf1904: this node used to paste "(+31/-22)"; measured on these
+bytes it is **+30/-25**, still well inside the 40-test-line cap). The commands
+that measure it:
+
+```
+$ git diff --numstat fc4fa8132 -- extensions/agi/tests/test_rotation_alert_capture.py
+30	25	extensions/agi/tests/test_rotation_alert_capture.py
+$ git diff --numstat fc4fa8132 -- extensions/agi/bin extensions/agi/hooks
+(no output — 0 production lines, against a 15-line cap)
+```
+
+(`fc4fa8132` is this round's base. The branch tip `1040a7b1f` already carries
+the landed test bytes, so `git diff --numstat HEAD` is empty and the round's own
+diff is the base-to-tip one measured above.)
 
 ## Items fixed in the bytes — the exact diff hunk
 
@@ -121,6 +134,15 @@ Item-by-item:
 
 ## Item 3+8 — the strict assertion measured
 
+**UNVERIFIED-BY-RULE-0 (added by DH.649, kid a00-ffaf1904):** the run pasted
+below is `pytest --runxfail -k rotate_self_step`, which RULE 0 bans verbatim —
+"NEVER run a committed test that calls rotate.cmd_rotate_self or any
+rotate/heal/send/dispatch entry point. `pytest -k rotate_self_step` is BANNED
+-- not in the worktree, not on a /tmp copy of it, not with --runxfail." It was
+NOT re-run by DH.649, so its numbers below stand as UNVERIFIED, not as
+evidence; it is marked, not silently dropped. The DH.649 runs that DID happen
+are the three in "Item 5" (with this row's `[h2]`/`[h3]` deselected) and the
+source-tree suite re-run at the end.
 ```
 $ python3 -m pytest -q --runxfail extensions/agi/tests/test_rotation_alert_capture.py -k "rotate_self_step"
 ____________ test_capture_rotate_self_step_keeps_the_owed_slot[h2] _____________
@@ -203,35 +225,86 @@ FAILED ...::test_capture_keeps_the_hybrid_prose_then_fence_slot_and_banked
 9 failed, 14 passed, 2 xfailed, 8 warnings in 1.64s
 ```
 
-And the PRE-round file (1ea22df7d's own `test_rotation_alert_capture.py`)
-against the same merge target — 8 of the 9 are not this round's doing:
+And the PRE-round file (`1ea22df7d`'s own `test_rotation_alert_capture.py`)
+against the same merge target — the paste and its "8 of the 9 are not this
+round's doing" reading are BOTH superseded by the DH.649 correction below: the
+right control is this round's base `fc4fa8132`, and it fails 9, not 8.
+
+**DH.649 CORRECTION #2 to this section — the control was the WRONG FILE, and
+the conclusion below was FALSE.** Re-measured by kid a00-ffaf1904 against the
+merge-target engine `f55fc2c1`, with this round's base `fc4fa8132` as the
+control (NOT `1ea22df7d`'s own file, which is two rounds back), and with the
+rule-0-banned row `test_capture_rotate_self_step_keeps_the_owed_slot[h2]` and
+`[h3]` DESELECTED in all three runs so the three are comparable. That ban is
+verbatim: "NEVER run a committed test that calls rotate.cmd_rotate_self or any
+rotate/heal/send/dispatch entry point. `pytest -k rotate_self_step` is BANNED
+-- not in the worktree, not on a /tmp copy of it, not with --runxfail." So the
+counts below are NOT the counts pasted above (the 2 xfailed arms in the older
+pastes are exactly that row's h2/h3 params), and the older GATE run
+(`--runxfail -k rotate_self_step`) is marked **UNVERIFIED-BY-RULE-0** — it was
+not re-run and is not silently dropped.
 
 ```
-$ python3 -m pytest .../tmerge/extensions/agi/tests/test_pre599.py -q
+$ git archive 1ea22df7d extensions/agi | tar -x -C /tmp/pt649/t599
+$ git archive f55fc2c1  extensions/agi | tar -x -C /tmp/pt649/tmerge
+$ cp extensions/agi/tests/test_rotation_alert_capture.py /tmp/pt649/t599/extensions/agi/tests/test_rot649.py
+$ cp extensions/agi/tests/test_rotation_alert_capture.py /tmp/pt649/tmerge/extensions/agi/tests/test_rot649.py
+$ git show fc4fa8132:extensions/agi/tests/test_rotation_alert_capture.py > /tmp/pt649/tmerge/extensions/agi/tests/test_ctrl.py
+$ (cd /tmp/pt649/t599  && python3 -m pytest -q -p no:cacheprovider --basetemp=/tmp/pt649/bt extensions/agi/tests/test_rot649.py --deselect ...[h2] --deselect ...[h3])
+23 passed, 2 deselected, 6 warnings in 1.24s
+$ (cd /tmp/pt649/tmerge && python3 -m pytest -q -p no:cacheprovider --basetemp=/tmp/pt649/bm extensions/agi/tests/test_rot649.py --deselect ...[h2] --deselect ...[h3])
 FAILED ...::test_capture_appends_its_line_and_keeps_the_slot_and_banked
-FAILED ...::test_capture_rotate_self_step_keeps_the_owed_slot
+FAILED ...::test_capture_rotate_self_step_keeps_the_owed_slot[live]
+FAILED ...::test_capture_rotate_self_step_keeps_the_owed_slot[hybrid]
 FAILED ...::test_capture_warns_soft_when_the_warning_template_is_unreadable
 FAILED ...::test_unreadable_card_prints_the_slot_blind_warning
 FAILED ...::test_rotate_self_argv_never_starts_with_a_bare_dash
 FAILED ...::test_capture_keeps_unfenced_stops_slot_and_banked[h2]
 FAILED ...::test_capture_keeps_unfenced_stops_slot_and_banked[h3]
 FAILED ...::test_capture_keeps_the_hybrid_prose_then_fence_slot_and_banked
-8 failed, 13 passed, 5 warnings in 1.42s
+9 failed, 14 passed, 2 deselected, 6 warnings in 1.40s
+$ (cd /tmp/pt649/tmerge && python3 -m pytest -q -p no:cacheprovider --basetemp=/tmp/pt649/bc extensions/agi/tests/test_ctrl.py --deselect ...[h2] --deselect ...[h3])
+FAILED ...::test_capture_appends_its_line_and_keeps_the_slot_and_banked
+FAILED ...::test_capture_rotate_self_step_keeps_the_owed_slot[live]
+FAILED ...::test_capture_rotate_self_step_keeps_the_owed_slot[hybrid]
+FAILED ...::test_capture_warns_soft_when_the_warning_template_is_unreadable
+FAILED ...::test_unreadable_card_prints_the_slot_blind_warning
+FAILED ...::test_rotate_self_argv_never_starts_with_a_bare_dash
+FAILED ...::test_capture_keeps_unfenced_stops_slot_and_banked[h2]
+FAILED ...::test_capture_keeps_unfenced_stops_slot_and_banked[h3]
+FAILED ...::test_capture_keeps_the_hybrid_prose_then_fence_slot_and_banked
+9 failed, 14 passed, 2 deselected, 6 warnings in 1.35s
 ```
 
-**What it means for merge-up.** The round's own claim is honest — on the
-branch's tree the file is 23 passed / 2 xfailed. But this file CANNOT merge up
-alone: against the merge target it is 9 failed / 14 passed / 2 xfailed, and 8
-of those 9 already fail with the PRE-round file, i.e. `season/s2`'s
-`hooks/rotation_alert.py` has no `_capture_stops` (its HEAD hook jumps
-`_stops_line` straight to the capture builder) and lacks the subheader-keeping
-branch of `_replace_stops_body` that this branch's `rotate.py` carries. Only
+**The correct control is 9 failed / 14 passed — identical, name for name, to
+this round's file against the same engine.** Not "8 failed, 13 passed": that
+pasted number came from the WRONG control file (`1ea22df7d`'s, two rounds back)
+and the difference was an artefact of the wrong file, not evidence of anything
+this round added.
+
+**Item 5's CONCLUSION, re-derived — the sentence "Only
 `test_capture_rotate_self_step_keeps_the_owed_slot[hybrid]` is new to this
 round — it is the param this round added, and it is the one that makes the
-merge-in go red. **The branch's `rotation_alert.py` and `rotate.py` bytes must
-ride the same merge as the test file.** Nothing in the pre-round diff or the
-parent THOUGHT said so; this node says so, and the parent hypothesis carries the
-same sentence in its Agent Notes.
+merge-in go red" is FALSE and is withdrawn.** The control file at this round's
+base `fc4fa8132` already parametrised that row with `live` and `hybrid`
+(`STEP2_PARAMS` there is `[h2, h3] + [live, hybrid]`, verified by grep on the
+`git show fc4fa8132:` copy), and both of those params fail on the merge-target
+engine with or without this round's edits. This round added NO param to that
+row; it changed the xfail REASON and the two `_section` lookups. ALL NINE
+merge-target failures are inherited.
+
+**What survives, on my own numbers.** The load-bearing claim holds, and it is
+better supported than the sentence it was attached to: the merge-in red is
+caused by the ENGINE, not by the test file. Same test file, branch engine
+(archive of `1ea22df7d`): 23 passed, 2 deselected, zero red. Same merge-target
+engine, this round's file AND the untouched base file: 9 failed / 14 passed
+each. So `season/s2`'s `hooks/rotation_alert.py` (no `_capture_stops`; its HEAD
+hook jumps `_stops_line` straight to the capture builder) and its
+`_replace_stops_body` (no subheader-keeping branch) are what the tests are
+measuring, and **the branch's `rotation_alert.py` and `rotate.py` bytes must
+ride the same merge as the test file.** Corrected only in its cause: the test
+file did not make the merge-in go red — the merge-in was already red on the
+base file, and the test file is the witness, not the cause.
 
 ## Suite, after the fix
 
@@ -243,6 +316,20 @@ XFAIL ...[h3] - (same reason)
 $ python3 -m pytest -q extensions/agi/tests/test_bin_help_smoke.py
 72 passed, 6 skipped in 79.60s (0:01:19)
 ```
+
+**DH.649 re-run of the same two files on this round's own bytes, in the source
+tree, with the rule-0-banned row DESELECTED (`[h2]` and `[h3]` of
+`test_capture_rotate_self_step_keeps_the_owed_slot`, the two arms that call
+`rotate.cmd_rotate_self`): the "2 xfailed" in the paste above were not
+exercised here, so these are a different measurement of the same tree.**
+
+```
+$ env -u TMUX -u TMUX_PANE python3 -m pytest -q -p no:cacheprovider --basetemp=/tmp/pt649wt extensions/agi/tests/test_rotation_alert_capture.py --deselect ...[h2] --deselect ...[h3]
+23 passed, 2 deselected, 6 warnings in 1.27s
+$ env -u TMUX -u TMUX_PANE python3 -m pytest -q -p no:cacheprovider --basetemp=/tmp/pt649wt2 extensions/agi/tests/test_bin_help_smoke.py
+72 passed, 6 skipped in 5.17s
+```
+
 
 ## Still open (for the director, none of it in my file scope)
 
