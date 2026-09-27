@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - hypothesis:heal-never-reseats-a-worktree-post-into-main
 next_edges: []
-edited_by: a00-3f96a9a0
+edited_by: a00-651ab5e8
 scaffold_hash: 72a4be2646fdce38
 season: 2
 testable_claim: "No committed test in test_heal_worktree_refusal reaches the live tmux server (nudge stubbed or a test session passed, proven by a recording shim) (1); the unreachable None branch of _clean_stale_layout_locks is deleted, or a comment states why it stays with the caller line (2); the log-tail guard and the stale-lock skip each get a test (3). TMM.262 residues 8 and 10, assigned: director-engine. CEILING: <=24 production lines across 2 kids"
@@ -15,8 +15,8 @@ town: core
 # hypothesis:heal-worktree-refusal-tests-never-reach-live-tmux-and-dead-branches-go
 
 ## Measured
-- TMM.262 residue 8: extensions/agi/tests/test_heal_worktree_refusal.py:186-192 reaches the LIVE tmux server: send.py:2208-2209 defaults the session to rotate.DEFAULT_TMUX_SESSION (the test root governs rows + inbox only). Its fixture window @777 is absent today, so no pane was hit -- by luck.
-- TMM.262 residue 10: heal.py:3082-3087, the None branch of _clean_stale_layout_locks, is UNREACHABLE: its caller at :3221 runs after the early return at :3166-3174. The log-tail guard and the stale-lock skip have no test of their own.
+
+- TMM.262 residue 10 AS MEASURED, not as standing fact: at the time of that reading heal.py:3082-3087, the None branch of _clean_stale_layout_locks, was UNREACHABLE -- its caller at :3221 ran after the early return at :3166-3174. That reading is dated, not permanent. DH.449 REVERSED the deletion and RESTORED the defensive `gdir is None` arm, because a pruned-worktree geometry can reach it in the field even when the current caller cannot, and the arm is the only guard between a live sweep and a TypeError. The branch is therefore LIVE again and is now covered red-first by a planted sibling-seat lock row in test_heal.py. The log-tail guard and the stale-lock skip each got a test of their own in the same round.
 
 ## CLAIM
 The frontmatter field `testable_claim` carries three numbered conjuncts, and the body names the SAME three here without parenthesised digits, so a review cannot manufacture a fourth: `cli._CLAIM_ITEM_RE` is `re.compile(r"\(\s*(\d+)\s*\)")` and `_claim_conjunct_numbers` unions the field with EVERY match in the body (cli.py:1169-1184).
@@ -28,7 +28,7 @@ CONJUNCT 2 -- the unreachable None branch of _clean_stale_layout_locks is delete
 CONJUNCT 3 -- the log-tail guard and the stale-lock skip each get a test.
 
 ## Dispatch line
-config-max: none / template-max: none / code: the stub/test-session seam, the branch deletion, 2 tests.
+config-max: none / template-max: none / code, AS SHIPPED: the stub/test-session seam in the refusal file (an in-file autouse recorder plus the `window_path` seam, the nudge's `send.send` stubbed), the `gdir is None` arm RESTORED and not deleted (DH.449 reversed the deletion; the restored arm is gated red-first by the planted sibling-seat lock row), and 2 gated tests for the log-tail guard and the stale-lock skip.
 
 ## FALSIFIERS
 - running the file with a recording `tmux` shim on PATH shows any call carrying the default session name;
@@ -70,7 +70,7 @@ DEMOTED 1/3 — a00-58262dca, experiment:a00-58262dca-450bbc, verdict=proved -> 
 - The mechanism for the demotion, measured: its committed guard is RED on a loaded box and green on a quiet one. Same two rows, same bytes, minutes apart: `2 failed in 0.31s` under prlimit with the whole suite's fork pressure, then `2 passed in 1.53s` three times on an idle box — the failure is `BlockingIOError: [Errno 11] Resource temporarily unavailable` raised inside its own `subprocess.run([sys.executable, "-m", pytest ...])` at test_heal_worktree_tmux_guard.py:103, propagated through conftest.py:366. A committed test whose result depends on how loaded the box is cannot be a gate. Slice A's in-process recorder has no fork, so it has no such failure mode.
 - CREDIT WHERE MEASURED: its central FINDING is correct and I reproduced it independently — the DH.427 subprocess guard was structurally blind because conftest's autouse `_no_real_tmux` answers every ["tmux", ...] call with rc=1 without exec'ing it, so a PATH shim can never witness it. Its rewritten guard is non-vacuous: with its seam removed it goes RED naming `list-windows -t agi-rc -F #{window_name}`, and its synthetic control row passes. The finding is already recorded in the ACCEPTED slice-A node, so the finding survives; the conflicting implementation does not.
 
-RESIDUE I COULD NOT CLOSE (named, not patched): the DH.427 node rewrite (orders item 4) sits uncommitted in /data/work/agi/.agi/worktrees/a00-f2f7b6bf/.agi/nodes/experiment/a00-416266d2-e77f31.md. dispatch.py has no resume path into an existing kid worktree, so a re-brief cuts a NEW worktree that cannot see those bytes, and a parent may not land a kid's authored region by hand. This needs a director-side commit of that worktree, or a kid re-dispatched INTO that worktree. The same trap caught MY review edits: the notes and THOUGHT blocks I wrote into both accepted kids' nodes are uncommitted in those worktrees for the same reason.
+RESIDUE I COULD NOT CLOSE (named, not patched, DH.436 review): the DH.427 node rewrite (its fourth order) sat uncommitted in the sibling kid worktree, at the repo-relative path .agi/worktrees/<kid-agent-id>/.agi/nodes/experiment/a00-416266d2-e77f31.md. dispatch.py has no resume path into an existing kid worktree, so a re-brief cuts a NEW worktree that cannot see those bytes, and a parent may not land a kid's authored region by hand. This needs a director-side commit of that worktree, or a kid re-dispatched INTO that worktree. The same trap caught the reviewer's own edits: the notes and THOUGHT blocks written into both accepted kids' nodes were uncommitted in those worktrees for the same reason. Later rounds closed the byte loss by passing --owns for both experiment nodes (commit b23b13c12, clean `git status --porcelain -- .agi/nodes`), which is the shape of the fix, not the words above.
 
 FALSIFIERS THIS ROUND BEAT, in the target's own words: a recording tmux shim over the refusal file under --noconftest records nothing naming the default session (with the same shim proven to resolve); deleting the MAIN fallback branch leaves the log-tail row red for the MAIN reason; deleting the stale-lock skip leaves its row red. NOT BEAT, and named: the `if main != own` dedup is un-gateable, and the `--noconftest` blindness that the slice-A gate fixes for ONE file still holds for every other test file in the suite.
 
