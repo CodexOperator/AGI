@@ -21,18 +21,18 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 11, 01:0xZ 09-27: step 3 now puts g4.18.1 FIRST (owner 01:0xZ: send depends on mint, rotate on send; the board carries the order). Before that, at 00:5xZ, this card followed the owner's order -- every new active goal and the three graph redesigns (messaging+nudge, spawn/rotate, node spawn/mint) now live on the town:local-maxxing board (531ab30f3: GOAL BUNDLE tree, goal-id rows, a redesigns line and a HELD line), so directors find the work there; this card keeps only a pointer. The near miss: a board line naming the redesigns satisfies 'on the board' and loses what a director needs to act -- the goal ids, the assignee and the order -- so each goal has its own row. write.py refuses a replace that starts mid-paragraph, so each insert replaced its whole block, byte-identical plus the new lines (diff: 11 body lines added; only write.py's two provenance stamps changed). Why g7.31.3.3 and g7.32.5 are split is argued in their own THOUGHT blocks (5c3538f94).
+gen 11 rotates at 0.40, not F27's 0.47, and that is the one deviation. (1) F27: rotate when f >= 0.47. (2) PASS 10's run_at (01:23Z) passed mid-turn, and a PASS is hours of chunk launches and verdict reads; goal:g4.18.2 (the owner's skills + doc trim, assigned to the Prime) is a multi-skill authoring job; 0.07 of window holds neither. (3) The near miss: starting PASS 10 at 0.40 obeys 'run it now' and strands it mid-step at the line. (4) So the successor runs PASS 10 whole from step 0 (case d) with g4.18.2 beside its background chunks. The session crons are deleted before the rotate, so the idle predecessor cannot fire PASS 10 beside its successor. Owner orders tonight, all landed: the three graph redesigns to DE in dependency order (mint -> send -> spawn/rotate) and on the town board; ultracode dropped, effort high on every row (c72b01fb5); g4.18.2 (20283d21b).
 <!-- THOUGHT:END -->
 
 ## §0 State (00:5xZ 09-27)
 | | |
 |---|---|
-| post | belam-S2-L5-XI gen 11 · woke 23:1xZ 09-26 · Opus 5.5 · IDLE, PASS 10 armed · meter ~0.33 |
+| post | belam-S2-L5-XI gen 11 · woke 23:1xZ 09-26 · Opus 5.5 · ROTATING at 0.40 (see THOUGHT) |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` (= season2/main 49d2b6f6a at 17:4xZ) · tz UTC · stream DOWN (HELD) |
 | GUARD | user@1000 high **6628M / max 7365M** (raised 19:5xZ on the owner's go: guard docker budget 8G -> 6.5G, guard.env.bak-20260926T1955Z; the model container keeps its own 8G cap, peak 6.8G at load) · a pi stage ~210 MiB |
 | TOWN | DE gen 26 (adec7d699) · DT gen 34 (386.8k tokens at 21:37Z, "rotate me soon"; TM rotates it) · TM gen 29 · SM DOWN (owner's go) · 4 kid-worktree suite locks are pre-reboot dead pids |
 | merge | **PASS 9 CLOSED 17:43Z** at 49d2b6f6a (TIP 9e16b8ed90; 56 rounds: 52 accept_with_residue, 4 demote, 0 RED) · **PASS 10 delta at 00:17Z**: TIP ee9a6b7e4c = 338 commits past BASE (304 at notice) · 53 exp · 30 hyp · 49 engine · origin/season2/main NOT an ancestor of TIP (step 1 syncs it) |
-| crons | CHECK **0722b53a** ("13 */4"; ran 00:17Z, case c; next 04:13Z) · PASS 10 one-shot **b859e98b** ("23 1 27 9 *", section 2) -- session-only: both die with gen 11 |
+| crons | CHECK 0722b53a + PASS 10 one-shot b859e98b DELETED before the rotate (the idle predecessor must not fire them); the successor re-arms the CHECK (step 0) |
 | spend | credits 13.75 USD (17:4xZ) · PASS 9 0 USD |
 | dms | 01:0xZ [decision] -> DE: g7.31.3.3 + g7.32.5 + the owner's formatting reminder (5c3538f94; [undelivered-yet]: DE pane busy, the sweep retries) · 00:4xZ [decision] -> DE: the (default)-box refusal (46d1d17e1) · 00:3xZ [decision] -> DE: goal:g4.18.1 + the card-relink hypothesis (41bacd5ff) · 00:07Z gen 10 -> belam [owner] (owner's go) · 23:12Z [owner] HOLD -> sanctuary-master |
 | branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
@@ -40,20 +40,20 @@ gen 11, 01:0xZ 09-27: step 3 now puts g4.18.1 FIRST (owner 01:0xZ: send depends 
 ## §1 Plan
 ```
 done   PASS 8 · PASS 9 (closed 17:43Z at 49d2b6f6a) · CHECKs 08:4x / 12:4x / 16:4x / 20:2x / 00:17Z · gen 11: crons re-armed, card re-linked · owner's go items -> DE · DT row checked (no change) + (default) refusal -> DE · spawn/rotate g7.31.3.3 + push grant g7.32.5 -> DE · all of it on the town board
-next   PASS 10 at 01:23Z (re-review b6438bd7e) · 04:13Z CHECK · judge DE/DT merge-ups · per-spawn caps land (DE) · the graph redesigns (DE): goals + order on the town:local-maxxing board
+next   PASS 10 NOW (case d; re-review b6438bd7e) · goal:g4.18.2 skills + doc trim (the Prime's, owner 01:1xZ) · 04:13Z CHECK · judge DE/DT merge-ups · per-spawn caps land (DE) · the graph redesigns (DE): goals + order on the town:local-maxxing board
 HELD   OWNER 21:1xZ: stream · encryption-town config · sanctuary-master activation -- until messaging is done
 open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hub-only-... (gen 10's mint) has no goal_id/goal_kind: fixing it is a renumber, on the owner's word · §6
 ```
 
-## §2 Landed (this seat): 1cf8c1313 crons re-armed + quorum card re-linked · 41bacd5ff goal:g4.18.1 + hypothesis:rotate-keeps-the-quorum-card-a-symlink-to-its-node + GOALS.md render · 46d1d17e1 the (default)-box note on goal:send-is-hub-only-... · 7bf8b8437 + 5c3538f94 goal:g7.31.3.3 + goal:g7.32.5 (owner's words verbatim) + H1 fixes · 531ab30f3 the redesigns on the town board · 3 [decision]s -> DE · section 1 (A) reads the inbox file (box-local) · this card
+## §2 Landed (this seat): 1cf8c1313 crons re-armed + quorum card re-linked · 41bacd5ff goal:g4.18.1 + hypothesis:rotate-keeps-the-quorum-card-a-symlink-to-its-node + GOALS.md render · 46d1d17e1 the (default)-box note on goal:send-is-hub-only-... · 7bf8b8437 + 5c3538f94 goal:g7.31.3.3 + goal:g7.32.5 (owner's words verbatim) + H1 fixes · 531ab30f3 the redesigns on the town board · c72b01fb5 ultracode dropped + effort high on every row · 20283d21b goal:g4.18.2 + board row + ladder · 3 [decision]s -> DE · section 1 (A) reads the inbox file (box-local) · this card
 
 ## 🔴 Where it stops
-00:5xZ 09-27 belam-S2-L5-XI: the three graph redesigns + every new active goal are on the town:local-maxxing board (531ab30f3); idle until PASS 10 at 01:23Z
+01:2xZ 09-27 belam-S2-L5-XI rotates at 0.40: PASS 10 is due NOW (case d), then goal:g4.18.2 (skills + doc trim, the Prime's own)
 ```
-0. WAKE (a successor): re-arm the CHECK -- CronCreate "13 */4 * * *", recurring, the POINTER prompt to section 1 of .agi/sessions/prime-merge.crons.md (exact text: transcript 64d3d99e at 17:26:40Z, or c4291177); re-link the quorum card (trap 10). Re-arm the PASS 10 one-shot too (CronCreate "23 1 27 9 *", recurring false, the POINTER prompt to section 2) unless the state file carries pass_started_at; if run_at is already past, run section 2 now (CHECK case d).
-1. PASS 10 is armed (b859e98b): section 2 is current (BASE 9e16b8ed90, p10 keys, /tmp/belam-pass10/ from /tmp/belam-pass9/); at 00:17Z origin/season2/main is NOT an ancestor of TIP, so step 1's sync merge runs first.
-2. PASS 10 must re-review b6438bd7e (the capture latch fix): PASS 9's engine-delta-5 demote rests on it.
-3. Owner 20:3x-21:1xZ: send goes hub-only -> goal:send-is-hub-only-dm-file-versions-synced-every-30s (DE; + the (default)-box refusal, 46d1d17e1; + g7.32.5, the parents' push grant). Owner 00:38-00:5xZ via gen 10: goal:g7.31.3.3 SPAWN AND ROTATE ARE ONE GRAPH WRITE -> DE, after messaging. Owner ~23:2xZ via gen 10: goal:g4.18.1 (ONE MINT ROUTE) -> DE, FIRST (owner 01:0xZ: send depends on mint, rotate on send); the card-relink fix -> DE. OWNER HOLD: no stream, no encryption-town config, no sanctuary activation until messaging is done (TM + sanctuary told 23:12Z). If the PASS 10 one-shot fires into a window past ~0.44, rotate first: the successor runs it (CHECK case d).
+0. WAKE (a successor): re-arm the CHECK -- CronCreate "13 */4 * * *", recurring, the POINTER prompt to section 1 of .agi/sessions/prime-merge.crons.md (exact text: transcript 64d3d99e at 17:26:40Z, or c4291177); re-link the quorum card (trap 10). PASS 10's run_at (01:23Z 09-27) is PAST: if the state file's pass_started_at is null, run section 2 NOW (CHECK case d) -- no one-shot.
+1. PASS 10: section 2 as written (BASE 9e16b8ed90, p10 keys, /tmp/belam-pass10/ from /tmp/belam-pass9/; resolve.py now enforces directors high). origin/season2/main is NOT an ancestor of TIP (00:17Z), so step 1's sync merge runs first. Re-review b6438bd7e (the capture latch fix PASS 9's engine-delta-5 demote rests on).
+2. goal:g4.18.2 (OWNER 01:1x-01:2xZ, assigned to the Prime): one skill per engine flow (goal creation carries its schema), as skill build nodes with an existing build node + the goal as parents (or an idea node); cards list skills instead of rules; the doc trim to a byte budget (numbers in the node). Interleave with PASS 10's background chunks.
+3. DE owns the three graph redesigns in dependency order (mint g4.18.1 -> send hub-only + g7.32.5 -> spawn/rotate g7.31.3.3), all on the town:local-maxxing board. Effort high + no ultracode apply at each post's next rotation. OWNER HOLD: no stream, no encryption-town config, no sanctuary activation until messaging is done.
 ```
 ## §4 Traps
 | # | trap | rule |
@@ -75,7 +75,7 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hu
 | 28 | after a reboot the seat row keeps the dead pid | `rotate._successor_row_write(...)`, commit posts.md by exact path |
 | 29 | send.py refuses a dm body holding a literal harness tag | write it without the angle brackets |
 | 30 | after a reboot heal re-spawns SOME seats | `reseat.py` from MAIN (transcript 82d56d5d); it seats into the caller's scope (session-73: outside user@) |
-| 31 | resolve.py enforces the directors' model cells in a posts.md conflict | claude-opus-5-5 / medium (owner 09-26) |
+| 31 | resolve.py enforces the directors' model cells in a posts.md conflict | claude-opus-5-5 / high (owner 09-27: everyone high; /tmp resolve.py updated) |
 | 33 | launch.sh CAP counts CHUNKS; a chunk runs its rounds in parallel (1 pi each, ~210 MiB, in user@ app.slice) | PER x CAP <= 6 pi; gate on user@ hard, not MemAvailable |
 | 34 | `pgrep -f 'workflow.py run'` matches seat wrappers; foreground `sleep` is blocked | anchor the pattern; wait with Monitor / run_in_background |
 | 36 | a reviewer's `grep -r` over `.agi/` walks ~100 worktrees: 4G of cache, the box io-stalls | the focus text alone does not stop it; monitor.sh kills it at io60 >= 25 |
