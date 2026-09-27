@@ -7908,6 +7908,10 @@ def test_inbox_send_registers_pending_when_no_pane(project: Path, monkeypatch):
 
 
 def _plain_seats(project: Path, rows) -> None:
+    # TWO ROOTS, the standing trap: this writes `project/nodes/...` while the
+    # seats reader `_locally_loaded_rows` -> `_shared_seats_path` resolves
+    # `<project>/.agi/nodes/...` in a fixture project. A guard on loaded rows
+    # is therefore INERT in every test that uses this helper.
     (project / "nodes" / ".geometry").mkdir(parents=True, exist_ok=True)
     (project / "nodes" / ".geometry" / "seats.md").write_text(_seats_md(rows))
 
@@ -7976,6 +7980,8 @@ def test_service_sender_unresolved_dm_still_counts(project: Path,
 def test_unlisted_recipient_registers_no_pending(project: Path, monkeypatch):
     """DH.542 ITEM 3: `send_dm` writes a file for ANY name, so a recipient
     with no seats row gained a `.nudge.pending` nobody reads."""
+    # TWO ROOTS: the table must sit under `<project>/.agi/nodes/...`, the root
+    # the reader loads -- `_plain_seats`' `project/nodes/...` is a different one.
     seats = project / ".agi" / "nodes" / ".geometry" / "seats.md"
     seats.parent.mkdir(parents=True, exist_ok=True)
     seats.write_text(_seats_md([{"name": "director", "role": "director"}]))
@@ -7984,3 +7990,49 @@ def test_unlisted_recipient_registers_no_pending(project: Path, monkeypatch):
     assert send_mod._pending_more(project, "stranger") == 0
     pend = send_mod._inbox_dir(project) / "stranger.nudge.pending"
     assert not pend.exists()
+
+
+def test_listed_recipient_still_registers_pending(project: Path, monkeypatch):
+    """The POSITIVE half of the DH.542 rows guard, which no committed test
+    covered: a seat named in the table the reader LOADS keeps its mark. The
+    assert on the loader is the precondition -- without it this test would be
+    green for the wrong reason again (see `_plain_seats`)."""
+    seats = project / ".agi" / "nodes" / ".geometry" / "seats.md"
+    seats.parent.mkdir(parents=True, exist_ok=True)
+    seats.write_text(_seats_md([{"name": "director", "role": "director"}]))
+    assert send_mod._seat_row_by_name(
+        send_mod._locally_loaded_rows(project), "director") is not None
+    _fake_tmux(monkeypatch, [])
+    send_mod.send_dm(project, "ki", "director", "a listed dm", "ki")
+    assert send_mod._pending_more(project, "director") == 1
+
+
+def test_bodyless_deferred_shell_is_taken_over(project: Path, monkeypatch,
+                                               capsys):
+    """DH.637: a PARSEABLE but BODYLESS sidecar strands nothing, and keeping
+    it called it 'unreadable' -- the seat stayed count-only for ever."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux_pane(monkeypatch, ["director"], _FixturePane(busy=True))
+    sidecar = send_mod._inbox_dir(project) / "director.nudge.deferred"
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    sidecar.write_text(json.dumps({"sender": "ki", "body": ""}))
+    send_mod.send_dm(project, "ki", "director", "busy dm body", "ki")
+    assert send_mod._read_deferred(project, "director")["body"] == "busy dm body"
+    assert "unreadable" not in capsys.readouterr().err
+
+
+def test_bodyless_sidecar_with_queued_dms_is_kept(project: Path, monkeypatch,
+                                                  capsys):
+    """The middle shape: no readable body, but `others` still holds dm bodies
+    -- those ARE stranded, so keep the bytes, count this dm, say why."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux_pane(monkeypatch, ["director"], _FixturePane(busy=True))
+    sidecar = send_mod._inbox_dir(project) / "director.nudge.deferred"
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    seed = json.dumps({"sender": "ki", "body": "",
+                       "others": [{"sender": "x", "body": "queued"}]})
+    sidecar.write_text(seed)
+    send_mod.send_dm(project, "ki", "director", "busy dm body", "ki")
+    assert sidecar.read_text() == seed, "queued dm bytes must survive"
+    assert send_mod._pending_more(project, "director") == 1
+    assert "carrying queued dms" in capsys.readouterr().err

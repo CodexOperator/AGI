@@ -1803,6 +1803,25 @@ def _record_deferred_render(root: Path, seat: str, more: int) -> None:
         pass
 
 
+def _deferred_keep_reason(p: Path) -> str | None:
+    """Why an existing `.nudge.deferred` must be KEPT instead of taken over,
+    or None when the file is a legal EMPTY shell. `_read_deferred` collapses
+    UNPARSEABLE and PARSEABLE-BUT-BODYLESS into one None, so a sidecar that
+    holds nothing was kept -- and called 'unreadable' -- for ever, pinning
+    that seat to count-only. `others` is the only field that carries an
+    undelivered dm; a bare sender/`more` shell strands nothing."""
+    try:
+        raw = p.read_text()
+        d = json.loads(raw)
+    except (OSError, UnicodeDecodeError, ValueError):
+        return "unreadable"
+    if not isinstance(d, dict):
+        return "unreadable"
+    if isinstance(d.get("others"), list) and d["others"]:
+        return "bodyless but carrying queued dms"
+    return None
+
+
 def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
     """Persist the FIRST deferred dm body for a seat; a later dm in the
     same batch is COUNTED (pending) and appended to `others` so the sender
@@ -1812,13 +1831,19 @@ def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
     is the first deferred body), False if one was already pending.
     Best-effort, never raises."""
     existing = _read_deferred(root, seat)
-    if existing is None and _nudge_deferred_path(root, seat).is_file():
-        # An UNDECODABLE sidecar holds a stranded body: KEEP those bytes (a
-        # fresh json.dumps would discard a body nobody can read back), COUNT
-        # this dm instead, and say so. Loud, never a silent loss.
-        print(f"nudge: deferred sidecar for {seat} unreadable; kept it",
-              file=sys.stderr)
-        return False
+    sidecar = _nudge_deferred_path(root, seat)
+    if existing is None and sidecar.is_file():
+        # A sidecar that reads as bodyless is only worth KEEPING if it still
+        # HOLDS something (undecodable bytes, or queued `others`): a fresh
+        # json.dumps would discard it and nobody could read it back. A legal
+        # EMPTY shell is no loss -- take it over and store the new body.
+        reason = _deferred_keep_reason(sidecar)
+        if reason:
+            # COUNT this dm instead (the call sites read False as "not the
+            # first body") and name the TRUE reason. Loud, never silent.
+            print(f"nudge: deferred sidecar for {seat} {reason}; kept it",
+                  file=sys.stderr)
+            return False
     if existing is not None:
         others = existing.get("others")
         if not isinstance(others, list):
