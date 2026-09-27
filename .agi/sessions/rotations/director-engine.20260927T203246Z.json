@@ -1,0 +1,124 @@
+{
+  "rotation": "rotate-self",
+  "seat": "director-engine",
+  "recorded_at": "2026-09-27T20:36:30.629298Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": true,
+      "window": "director-engine",
+      "windows": [
+        "thought-master",
+        "director-thought",
+        "belam-S2-L5-XII",
+        "belam-S2-L5-XIII",
+        "belam-S2-L5-IX",
+        "belam-S2-L5-X",
+        "belam-S2-L5-XI",
+        "director-engine.prev",
+        "director-engine"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/director-engine.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 3495060,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "director-engine.prev",
+      "windows": [
+        "thought-master",
+        "director-thought",
+        "belam-S2-L5-XII",
+        "belam-S2-L5-XIII",
+        "belam-S2-L5-IX",
+        "belam-S2-L5-X",
+        "belam-S2-L5-XI",
+        "director-engine.prev",
+        "director-engine"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -129.583
+  },
+  "seated_at": "2026-09-27T20:36:30.629298Z",
+  "window": "director-engine",
+  "session_id": "5dce2239-989d-4c1a-88f6-50a44b961e22",
+  "pid": 2541398,
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "director-engine.prev",
+      "id": "@25"
+    },
+    "successor_window": {
+      "name": "director-engine",
+      "id": "@26"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@26",
+      "pid": 2541398,
+      "session_id": "5dce2239-989d-4c1a-88f6-50a44b961e22",
+      "transcript": "/home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/5dce2239-989d-4c1a-88f6-50a44b961e22.jsonl",
+      "name": "post-director-engine-de",
+      "path": "/home/belam/.claude/sessions/2541398.json",
+      "note": "joined by @26 in registry file 2541398.json"
+    },
+    "successor_row": "config:seats row 'director-engine': session_ref= session_name=post-director-engine-de session_label=director-engine session_id=5dce2239-989d-4c1a-88f6-50a44b961e22 pid=2541398 generation=32 window='@26' source=registry pubkey=3110246806bae992... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha a1763c4dc, retried 0) -- own-row only: director-engine spawn row: gen 32, session_id 5dce2239-989d-4c1a-88f6-50a44b961e22, window @26, pid 2541398\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- f707800ae -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/director-engine.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/director-engine.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/director-engine.ack.5dce2239.json",
+    "own_authority_released": "generation 31 of seat 'director-engine' retired; successor generation 32 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "button_down": "FAILED: Command '['/usr/bin/python3', '/data/work/agi/.agi/worktrees/post-director-engine/extensions/agi/bin/grid.py', 'commit', '--all']' timed out after 60 seconds",
+    "livestream_repoint": {
+      "session": "view-director-engine",
+      "target": "@26",
+      "skipped": "view session view-director-engine absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {
+        "model": "claude-opus-5-5"
+      },
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "ok",
+      "confirm_at": "rotate-self"
+    },
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/director-engine.bootstrap.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "889b691a9feea360c71a879bb98b95d55f0b3b0914b56cff11f88d8f7d13b98d",
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "chain": [
+      430622,
+      430623,
+      430632
+    ],
+    "reap_source": "derived from own window @id @25 pane 430622: chain [430622, 430623, 430632] (deepest-first; authority row pid 430632)"
+  },
+  "after_join": {
+    "claimed_at": "2026-09-27T20:38:30.560537+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-27T20:36:30.629298Z"
+  }
+}
