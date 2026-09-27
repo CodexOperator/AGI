@@ -3003,28 +3003,6 @@ mur-SL2.25 residue (g) 20:55Z: SL7.108 brief hypothesis:l4-an-empty-string-list-
 
 SL7.108 HARVESTED 21:09Z on the sensei-director post: an empty-string list item (and a top-level '') round-trips as '' — None stays null; live-tree fixpoint over 2860 nodes: value drift 0, 91 nodes named as the pending one-time representation change from SL7.81; kid proved 0.9; node_writer + write + frontmatter tests green. Rides SL2#26
 
-#### G4.18.1 — ONE MINT ROUTE -- the node and its raw file through one captive write flow, row by row, format-checked, stamped from the calling post; a storage picker; a location row renames the file (assigned: director-engine) — status: active
-
-# goal:g4.18.1
-
-## OWNER 2026-09-26 ~23:2xZ (belam-S2-L5-X's pane; forwarded to the successor on the owner's go, 00:07Z 09-27), verbatim
-"Another thing is that why do we write files and mint nodes separately. Why can't minting just use the write function one step at a time as a captive flow the models follow? Each row filled out and format checked. Heck have skills for each major engine function to explain how it works as stand in for future MCP that show how to chain the needed inputs but recommending doing it manually one at a time to avoid backtick and quote confusion errors. The mint uses the calling posts info to stamp info appropriately. Only needs a template showing where each major storage category is at and have the model pick from options listed during flow for things like extension code, template storage in .geometry, etc. and can add a custom path on top. The template pick in the flow just populates it into the pane verbatim and you can then emit the rest of the pathname before sending submit or just submit. Then also modifying an existing node with a new version could also use the same shared mint route as a brand new node with a fresh file. And each build node contains a reference to the location of its actual file. But basically mint is unified into a common route to both mint the node and the corresponding raw file, and write is used for both or at least the node part and raw file is just written to disk. Then the node automatically gains the file name as well, and the file can be renamed via a node write/mint by using the location row change. It just checks and confirms if you literally ask to move the file to a new location not just a rename."
-
-## The predecessor's reading (the owner saw it before the go; the owner's words above win)
-Most of the plumbing exists: `write.py create`'s spawn gate, `--payload` (links a source file, created if absent), `payload_ref` on build nodes, and a new version = an in-place edit + `grid.py commit`. So this is a new front door plus a location row. Five refinements:
-- (a) a batch twin: the captive flow for models, one answers file for crons and scripts, the same validator behind both;
-- (b) the storage picker is built from the config paths and the schemas, never a hand list;
-- (c) the location row = the file path; the mint id never changes (G2.5); a rename is one commit (move + ref); a directory move asks first;
-- (d) the per-function skills are generated from each script's argparse + schema, so they cannot drift;
-- (e) the role templates that teach `create` / `--body-file` / `--set` change with it.
-
-## Evidence (09-26)
-- The predecessor had to drop the apostrophes from an owner quote to get it through `write.py`'s single-quoted script; this node's quote came in through `--body-file` for the same reason.
-- The swarm parents struggled with node creation.
-
-## Routing
-assigned: director-engine. FIRST of the three graph redesigns (OWNER 01:0xZ 09-27, verbatim: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): the hub-only send is written through write.py, so it builds on this route; spawn/rotate (goal:g7.31.3.3) comes after send.
-
 ### G4.19 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
 
 <!-- BODY:BEGIN -->
@@ -7440,33 +7418,6 @@ Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-head
 
 **Related:** `goal:g1.14`, `command:commands`, `goal:g7.31.3.1`.
 
-##### G7.31.3.3 — SPAWN AND ROTATE ARE ONE GRAPH WRITE -- parent slots pre-set under each post in .geometry, kid rows dynamic under their parent slot, rotate a spawn option (needs-rotate: true), the reaper/heal loop carries out what the graph says (assigned: director-engine) — status: active
-
-# goal:g7.31.3.3
-
-## OWNER 2026-09-27 00:38Z + 00:45Z (belam-S2-L5-X's pane), verbatim -- the spawn/rotate part
-"One thing that bothered me is that parents get a different spawn route than posts. I want parents and posts to share the same spawn route so spawn/rotate becomes one and uses individual post info and/or generic templates to decide who gets what messages. And also it creates the parent seats in-graph under the post seat that spawned them in the .geometry directory, and get removed as part of the reaper routine. So the concurrency limit and the parallel limit together become the amount of pre-set parent post slots each post has under it, and each kid also becomes a row entry in the parent slot “kid*” row. Rows added dynamically on each kid spawn and removed on kid exit. All using the unified spawn route. Rotate just becomes an option for spawn and parents can be rotated in place instead of re dispatched. Everything is still just a unified write/mint of nodes with a new version. The reaper/heal routine just then executes actions as put into the graph via post updates and linked templates. If a post needs rotation  just set the needs-rotate: true and wait on the loop to do it. So everything becomes a graph write even spawn/rotation commands. Parents just spawn kids but all it does is write the rows and points to where in the graph that kid needs to put its next node."
-
-"One addition to 3: a refusal also activated the message send reply route to update the relevant sending post which can be found via graph of what failed and for whom."
-
-(The same 00:38Z message opens with the parents-on-the-message-system question; that half is goal:g7.32.5.)
-
-## The design as the owner confirmed it (gen 10's reading, pasted into the Prime's pane, confirmed 00:5xZ 09-27; the owner's words above win)
-Unify spawn and rotate as graph writes. Parents become rows under the post that spawned them in .geometry, with pre-set parent slots per post. Kids become dynamic kid rows under their parent's slot. Rotate becomes a spawn option (needs-rotate: true), and the reaper/heal loop carries out whatever the graph says. Refinements:
-1. Slot definitions are committed; live occupancy lives in a local runtime file.
-2. Only the box hosting the post acts (checked via AGI_BOX), and the loop clears the flag.
-3. A refusal is written into the row by name AND sent to the requesting post through the reply route, found via the graph. Cap it at one reply per failed request.
-4. Gate who may write which rows: parents write only their own kid rows, kids write none.
-
-## Relations
-- parent goal:g7.31.3 -- the rotate|spawn route of the five unified engine routes; this makes it one graph write.
-- goal:g7.32.5 -- the parents' dm-append push grant, the messaging half of the same owner message.
-- goal:g4.18.1 -- one mint route: slot and kid rows go through the same write flow.
-- goal:send-is-hub-only-dm-file-versions-synced-every-30s -- the reply route refinement 3 uses; its (default)-box note (46d1d17e1): refinement 2 acts only on the box a row names.
-
-## Routing
-assigned: director-engine. THIRD of the three graph redesigns, after node spawn/mint (goal:g4.18.1) and the send hub-only work (OWNER 01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): refinement 3's refusal rides send's reply route.
-
 #### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: active
 
 # goal:g7.31.4
@@ -7817,30 +7768,6 @@ g7.31.3 lists `send` among five pane-facing routes; this child owns the **router
 
 **Extends:** `goal:g7.31.3` (send as a route). **Used by:** `goal:g7.32.2`. Session: `owner-ask-2026-09-21`.
 
-#### G7.32.5 — PARENTS SEND ON THE HUB ROUTE BY DEFAULT -- one narrow push grant: a parent may append to dm files on any post head, so post to parent, parent to post and parent to parent all land (assigned: director-engine) — status: active
-
-# goal:g7.32.5
-
-## OWNER 2026-09-27 00:38Z (belam-S2-L5-X's pane), verbatim -- the messaging part
-"Okay btw will parents be able to use the new message system by default since the message send route is a separate set of push permissions from the post itself. And will it work in the other direction from a post to a parent, and also parent to parent? "
-
-(The rest of that message -- spawn and rotate as one graph write -- is goal:g7.31.3.3.)
-
-## The answer as the owner confirmed it (gen 10's reading, pasted into the Prime's pane, confirmed 00:5xZ 09-27)
-Parents need one narrow push grant: they may append to dm files on any post's head.
-
-## Done when
-- a parent uses the hub send route by default, without the post's own push permissions;
-- all three directions the owner asked about land: post -> parent, parent -> post, parent -> parent;
-- the grant stays narrow: dm files on a post's head, nothing else.
-
-## Relations
-- sibling: goal:send-is-hub-only-dm-file-versions-synced-every-30s -- the hub route this grant opens to parents.
-- goal:g7.31.3.3 -- parents become rows under the post that spawned them; the grant belongs to those rows.
-
-## Routing
-assigned: director-engine, with the send hub-only work.
-
 ### G7.33 — ENGINE FIXES SURFACED BY THE TOWN — every engine trap the rounds hit becomes a pi round itself, run alongside the research rounds under a second (Sonnet) director; plus the two dispatch upgrades the owner named: one workflow that chains parent dispatch → drain → mur, and a batch workflow that runs rounds serially or in parallel by memory allocation and closes with a whole-batch MUR over the sub-goal that parents them — status: horizon
 
 <!-- BODY:BEGIN -->
@@ -8097,11 +8024,14 @@ each row becomes its own round (and its own sub-leaf if it grows) when it is dis
 | 14 | test_f1_rename_mode_strands_the_live_writer_on_a_BOUNDED_archive trunk load flake: freeze the stranded writer across the apply like 569ea9a1b | TMM.241 (1) | DONE 071f2ec15 (test-only; 12/12 under load; red not reproduced -- rare) |
 | 15 | DH.401 successor shape: a slot [P, fence(n)[P, ```...```]] still compounds +1 per rotation -> drop the outer fence + the duplicated P; prove on the successor shape | TMM.241 (2) | LIVE DH.409 a00-f28911bd |
 | 16 | a capture refuses whenever trunk moved (rotate-self skips the bare rotate's origin merge) -- goal:g7.33.15 residue | TMM.241 (3) + DE 17:01Z [red] | DONE DH.408 242dd3475 (registered behind seat merges at the guard; red 3/green) |
+| 17 | model_fence: _cap_from_config KeyError at import when a config lacks the cell (-> cap 0, fail closed) + the refusal names model_slot.py, not 'this suite asserts on bytes' | TMM.256 + TMM.260 (2) | DONE (director, direct; test_model_fence_cap.py red 5/green 6) |
+| 18 | a round's kid cannot fan out pytest past the box's bound -- an ENGINE fence (the suite lock and spawn_budget did not stop DH.419's 127 procs) | TMM.258/260 (1) | DONE DH.421 091808547 (TasksMax on the round scope; peaks sent to TM; the seat-wrap half NOT taken) |
+| 19 | DH.410's first live render (TMM.261): the render INLINES CLAUDE.md (26,597 B + COMMANDS) where the claude-code harness already loads it as project instructions, and prints the role template heading twice (the render's + the node's own) -> 106,144 vs 64,896 chars (+64 pct). Drop the inline CLAUDE.md for a harness that loads it itself; one template heading | TMM.261 | DONE DH.423 e636d7aa9 (director-engine render 62,304 -> 35,589 chars; only CLAUDE.md dropped) |
 
 ## Who
 director-engine (engine leaf of g7.33). Model-free rounds; one row per round.
 
-#### G7.33.18 — HELD (OWNER 21:1xZ via the Prime): ONE BOX MEMORY-GUARD KIT -- every box that runs seats carries local-town's memory-watch stack, sized to its own RAM, installed from the repo (assigned director-engine) — status: active
+#### G7.33.18 — ONE BOX MEMORY-GUARD KIT -- every box that runs seats carries local-town's memory-watch stack, sized to its own RAM, installed from the repo (the owner's other-box ask; assigned director-engine) — status: active
 
 # goal:g7.33.18
 
@@ -8124,6 +8054,36 @@ WORLD-AFTER: every box that runs seats carries the SAME memory-watch stack, size
 SIZING, per box: user@ MemoryMax = MemTotal - every budget held outside user@ (container caps; the stream when it runs outside user@) - the box's MEASURED system reserve (local-town ~1.9 GiB; encryption-town 942 MiB, its 09-25 install) · MemoryHigh = 0.9 x MemoryMax · MemorySwapMax = 0.5 x swap · agi.slice MemoryHigh / MemoryMax = 0.63 / 0.70 x user@ MemoryMax (local-town's ratios).
 
 ENCRYPTION-TOWN, audited 21:5xZ 09-26 by its sanctuary session (read-only): user@ 6220 / 6912 · oomd · slices · agi.slice 4354 / 4838 · watchdog PRESENT, ratio-sized on a 942 MiB reserve (7854 MiB RAM, nothing held outside user@) · MISSING agi-memguard, the memory_alarm cron, OOMPolicy=continue (claude-remote-control on stop), and the engine half (spawn.memory_max 6G; no model_fence.py; a 0-arg mem_cap probe on core/main b7bf08187) -> the exact bytes went to that session for the owner's go. ACCEPTANCE: one idempotent installer (dry-run by default; records every before-value; restores them on failure; sudo only for the system pieces) + one read-back probe that prints this table for the box it runs on -- green on local-town AND on encryption-town, the latter run by that box's own seat.
+
+##### G7.33.18.1 — the memory-watch stack as repo TEMPLATES -- every live piece, sized values as placeholders, paths as config cells, anonymize-clean (assigned: director-engine) — status: active
+
+# goal:g7.33.18.1
+
+# goal:g7.33.18.1
+
+WORLD-AFTER: every box-level piece of local-town's memory-watch stack (goal:g7.33.18's table: the user@ / oomd / slice drop-ins, agi.slice, agi-memguard.py + its unit, the 10-agi-survival no-cascade drop-ins, watchdog.conf + sanctuary-health) lives in the repo as a TEMPLATE whose sized values are placeholders and whose paths come from config cells (paths.*), never literals; the copied bytes pass `anonymize.py check` (a host name / address inside a script becomes a config cell).
+
+ACCEPTANCE: one template per live piece, byte-equal to the live file once rendered with local-town's measured values (a committed test renders each against a fixture of the live values and diffs); no template carries a literal path, host, address or hardware name; anonymize clean.
+
+##### G7.33.18.2 — ONE idempotent installer -- dry-run by default, sized from the box's MemTotal/swap, every before-value recorded and restored on failure (assigned: director-engine) — status: active
+
+# goal:g7.33.18.2
+
+# goal:g7.33.18.2
+
+WORLD-AFTER: ONE idempotent installer renders goal:g7.33.18.1's templates sized by goal:g7.33.18's SIZING from the box's own MemTotal/swap, and installs them: DRY-RUN BY DEFAULT (prints the plan: path, before-value, after-value), records every before-value, restores them all on any failure, needs sudo only for the system pieces, and a second run changes nothing.
+
+ACCEPTANCE: in a tmp-root fixture (never the live box): dry-run writes nothing; a real run against the tmp root writes every piece; a second run is a no-op; an injected failure mid-install restores every before-value byte-for-byte; the sizing rows reproduce local-town's measured numbers from its MemTotal/swap.
+
+##### G7.33.18.3 — ONE read-only read-back probe -- prints g7.33.18's table for the box it runs on, ok/drift per row (assigned: director-engine) — status: active
+
+# goal:g7.33.18.3
+
+# goal:g7.33.18.3
+
+WORLD-AFTER: ONE read-only read-back probe prints goal:g7.33.18's table (layer · the value on THIS box · the value SIZING wants · ok/drift) for the box it runs on, from the box's own files and `systemctl show` reads -- no write, no sudo, no unit change.
+
+ACCEPTANCE: a committed test drives it over a tmp-root fixture + a stubbed `systemctl show` and gets the table; run read-only on local-town it prints every row with no drift against the measured values; exits non-zero on any drift, naming the row.
 
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
