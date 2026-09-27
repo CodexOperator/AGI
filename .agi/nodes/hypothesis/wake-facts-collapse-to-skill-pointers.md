@@ -103,6 +103,21 @@ FILE SCOPE extensions/agi/tests/test_rotate_templates.py · .agi/nodes/experimen
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over f949be73f · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.648 -- closes mur-director-engine-39 DH.629-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-wake-facts-collapse-t-a00-21bb4765 tip e859eacf2 (branch de-base-648; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+NOTE      the facts-region cap (FACTS_POINTER_TARGET_BYTES, test_rotate_templates.py:1455) and the region's size live in config:rotations -- NEVER edit config:rotations (belam's); the director escalates that half. Fix only the test-predicate items below.
+1. 2. Docstring predicate over-matches any block — test_rotate_templates.py:1536 (_docstring_lines) so a cap copy in an if/try banner is invisible
+2. 4. Docstring test is by START LINE, so any other string constant on a docstring's physical line is blanked too — test_rotate_templates.py:1556
+3. The round's DISCLOSED residual has no committed test pinning it: the new decoys at test_rotate_templates.py:1610-1614 are all module-level assignments, so the block-first-Expr hole (my verdict 2) is unguarded by any test — a future cap copy parked in an `if`/`try`/`for` body stays green with nothing to catch it. The probe that WOULD pin it is `assert len(_target_literal_hits(src + '\n\nif True:\n "the target is %s bytes"\n' % us) == 2` appended to the shipped test; not run here (reported, not authored-and-run).
+4. The disclosure UNDERSTATES the hole it names: a00-2e87c10e-3792d2.md:171-175 says the risk is 'a bare-Expr-statement at module top level in non-docstring position (an `if TYPE_CHECKING:` banner)', but the predicate at :1531-1537 exempts the first string statement of ANY block — I measured if/try/for/with/class all returning 1 hit. The disclosed text is narrower than the disclosed mechanism, which is how a next round under-sizes the fix.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_rotate_templates.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_rotate_templates.py · .agi/nodes/experiment/a00-28b13689-cfe1f5.md · .agi/nodes/experiment/a00-2e87c10e-3792d2.md · .agi/nodes/experiment/a00-dcfa7b0b-3fe045.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over e859eacf2 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.629: mur-director-engine-35 DH.601-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.648: mur-director-engine-39 DH.629-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
