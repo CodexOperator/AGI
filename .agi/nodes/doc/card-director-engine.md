@@ -38,14 +38,14 @@ LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: 425/430 chains + DH
 LIVE      parents (cap 10, arm 10): 507 fa4269d4 reap-chain · 517 aae293b3 model-fence · 520 e5892662 (518) · 523 966d7899 (492) · 524 16f0ec5d (506+TMM.283)
           · 525 3a9014b2 (498) · 526 758cddc2 skills-in-agent-prompt · 527 42bba71a (513) · 528 14d81706 (485)   (all a00-; every corrective's orders = the
           ## CORRECTIVE DH.<N> section ON its hypothesis node)
-MURS      systemd agi-director-engine-<unit>, verdicts MAIN .agi/sessions/workflows/runs/<key>/{review,verify}_<label>.json
+MURS      ALL STOPPED 06:4xZ (TMM.291: bare --harness pi = the PAID lane, 74 paid runs, account 0.95 USD). RE-RUN every one below with EXPLICIT --harness pi-free once a key mint passes; args files kept in the session scratchpad (mur-b1/b2/b3, mur510/525/529.json). OLD: systemd agi-director-engine-<unit>, verdicts MAIN .agi/sessions/workflows/runs/<key>/{review,verify}_<label>.json
           murb1 = mur-19: 509 k1k2 · 512 · 514 k1k2 · 515 · 516 (all green but the old help-smoke row, now fixed)   murb2 = mur-20: 519 · 522 · 521 · 501
           mur499 (k1 review: 2 cells for one root, 16 literals, node contradiction) · mur504 · mur510 (497 slices) -- older, still running
 CHAIN     next act                                                         land note
   426 schema-gate 527 harvested: 6 node edits landed 4871efc3d (6/6 == write-log, THOUGHT 1/1) -> mur527                                                        NEVER 442
   427 heal-refuse 528 harvested (verdict edit landed, 0 user-name hits) -> mur528                                                        NEVER 476
  429 tasks-max   495 mur-15 AWR: ## TESTS names no test -> tiny corrective or demote; LAND 429 nodes br first, then 495 -X theirs
-  432 guard-piece mur504 AWR x4 (row 14 vacuous, cell-blind branch, import pollution, ANON path at a00-0acacf93:67) -> 530 a00-d3d5ead8 LIVE   NEVER 432 itself
+   432 guard-piece 530 harvested b32e952ea: 277 green, 0 user hits, ANON fixed; test file 243/243 = whole-file REFLOW to hit net 0 -> the mur must judge the churn   NEVER 432 itself
  433 guard-inst  471 mur-17 k1 unstructured AWR, k3 AWR (3 missed) -> corrective AFTER 432 lands
  g4.18.1.1       521 harvested 486 green; item 4 (a00-9086ec16) UNLANDABLE (bytes != write-log, row 21) -> mur-20
  g4.18.1.3       519 harvested 185 green (a00-4bf392d4 landed 36f928c7d) -> mur-20
