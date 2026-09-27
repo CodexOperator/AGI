@@ -593,6 +593,9 @@ def _user_unit_dir_cell():
     tail = m.group(0).lstrip("~/")
     cells = [c for c, v in CELLS.items() if str(v).endswith(tail)]
     assert cells, "no committed paths.boxkit cell resolves to %s" % tail
+    assert len(cells) == 1, ("%s resolves to more than one committed cell (%s); picking "
+                             "one silently would check the no-cascade artifacts against a "
+                             "dir the goal does not name" % (tail, cells))
     return cells[0]
 
 
@@ -712,7 +715,14 @@ def _uncovered(required, pieces):
     filename the goal names PER UNIT (10-agi-survival.conf) ships as a drop-in for one
     of that row's units, in the unit dir the goal NAMES: a top-level file of the same
     name, or the same drop-in rel under another dest_cell, is a different piece and
-    does not satisfy the artifact (probe P1)."""
+    does not satisfy the artifact (probe P1).
+
+    The GENERAL branch checks the DESTINATION, not a suffix of it (probe P5): the
+    artifact is a path RELATIVE to one dir, so a piece satisfies it only when its
+    dest_rel IS that path (or ships something under it); the old `live.endswith("/" + a)`
+    admitted any dest_cell and any deeper rel, and the artifact's dir was never
+    checked. The cell side of the destination is joined from the committed
+    paths.boxkit cells by _shipped_paths, never a literal here."""
     out = []
     units = _no_cascade_units()
     for label, art in required:
@@ -723,8 +733,11 @@ def _uncovered(required, pieces):
             hit = any(rel == "%s.service.d/%s" % (u, a) and p["dest_cell"] == cell
                       for p, rel, live in paths for u in units)
         else:
+            # a live path the goal writes absolutely is the destination itself; a
+            # relative one is the dest_rel, in whatever cell that rel belongs to --
+            # a suffix match across cells is what P5 was.
             hit = any(art == rel or rel.startswith((art + "/", art + "."))
-                      or a == live or live.endswith("/" + a)
+                      or a == live
                       for _p, rel, live in paths)
         if hit:
             continue
@@ -792,6 +805,38 @@ def test_a_drop_in_in_the_wrong_unit_dir_does_not_satisfy_a_no_cascade_artifact(
     assert _uncovered([("no cascade", artifact)], [decoy]), (
         "a drop-in for %s in the SYSTEM unit dir satisfied the no-cascade artifact, "
         "which the goal names for the user unit dir (%s)" % (unit, cell))
+
+
+# 11d -- THE GENERAL BRANCH'S WRONG-CELL / DEEPER-REL DECOY (probe P5). 11b/11c tightened
+# the PER-UNIT branch; the general branch -- the one the whole-table closure leans on --
+# still matched on `live.endswith("/" + a)`, which admits ANY dest_cell and any deeper
+# rel. The goal names a drop-in path RELATIVE to one directory; a piece that lands under
+# a different cell, and deeper, is a DIFFERENT piece. The decoy's cell is a committed
+# one read from config, never a literal in this file.
+def test_a_deeper_rel_in_another_dest_cell_does_not_satisfy_a_table_artifact():
+    artifact = "oomd.conf.d/50-sanctuary-guard.conf"
+    decoy = dict(BY_NAME["oomd-guard"], dest_cell="systemd_system_dir")
+    decoy["dest_rel"] = "deep/dir/" + decoy["dest_rel"]
+    assert decoy["dest_rel"] != BY_NAME["oomd-guard"]["dest_rel"], decoy["dest_rel"]
+    assert _uncovered([("oomd row", artifact)], [decoy]), (
+        "the same drop-in under a deeper rel in another dest_cell satisfied the table "
+        "artifact the goal names under one directory")
+    # the row that DOES ship it, exactly where the goal names it
+    assert _uncovered([("oomd row", artifact)], [BY_NAME["oomd-guard"]]) == []
+
+
+# 11e -- THE cells[0] TIE. _user_unit_dir_cell returned the FIRST committed cell whose
+# value ends in the goal's unit dir, so a second cell with the same tail would have
+# silently changed which dir the no-cascade artifacts are checked against. It must
+# refuse BY NAME. The refusal is planted here, not assumed.
+def test_the_user_unit_dir_cell_refuses_when_two_committed_cells_share_a_tail(monkeypatch):
+    # a config that declares the same dir twice: two cells, one tail
+    tied = dict(CELLS)
+    tied["shadow_user_unit_dir"] = CELLS[_user_unit_dir_cell()]
+    assert len([c for c, v in tied.items() if v == tied["shadow_user_unit_dir"]]) == 2
+    monkeypatch.setitem(globals(), "CELLS", tied)
+    with pytest.raises(AssertionError):
+        _user_unit_dir_cell()
 
 
 # 12 -- LEAK_ROOTS EXCLUDES SHARED ROOTS BY NAME, NOT BY DEPTH (residue M2). The old
