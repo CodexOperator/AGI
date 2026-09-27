@@ -56,7 +56,7 @@ HELD   OWNER 21:1xZ: stream · encryption-town config · sanctuary-master activa
 open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hub-only-... has no goal_id/goal_kind (a renumber, on the owner's word) · §6
 ```
 
-## §2 Landed (this seat): 045d1aab3 wake re-link · 6c403aeb4 trunk sync (belam gen 12 key row) · 3 commits for g4.18.2: skills (8 files + 8 build nodes [goal:g4.18.2, idea:engine-skill-doc] + .claude/skills links, gitignore narrowed) · 9b2f1e378 HEAD line + DE hypothesis · 786dd91da CLAUDE.md 26,597 -> 10,123 bytes
+## §2 Landed (this seat): 045d1aab3 wake re-link · 6c403aeb4 trunk sync (belam gen 12 key row) · 3 commits for g4.18.2: skills (8 files + 8 build nodes [goal:g4.18.2, idea:engine-skill-doc] + .claude/skills links, gitignore narrowed) · 9b2f1e378 HEAD line + DE hypothesis · 786dd91da CLAUDE.md 26,597 -> 10,123 bytes · d11cfc027 Prime template 10,470 -> 7,698 · d94a59fca g4.18.2 byte budget · OWNER 01:5xZ: monitor.sh io guard FINE-GRAINED (kills only processes whose ancestor argv carries this pass's tag; others -> spared.log) · sshd lane verified live (ssh.service MemoryMin=64M CPUWeight=1000, system.slice MemoryMin=128M, guard: chain live) · skills block -> doc:unified-director-brief, doc:unified-master-brief, 3 duty briefs, the DE/DT/TM/SM cards
 
 ## 🔴 Where it stops
 01:4xZ 09-27 belam-S2-L5-XII: PASS 10 chunks running (1-3 live, 4 held on a cleared 01:38Z WARN); g4.18.2 skills + CLAUDE.md trim landed
@@ -92,4 +92,3 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hu
 | the origin remote moved (every push prints the new location) | `git remote set-url origin <new>` -- the owner's call |
 | engine-wide config/template maxxing pass (owner idea, 09-23) | opening it is the owner's call |
 | MIN_REMAINING_CREDITS hard-coded 1 USD (provisioning.py:103, :206) | a config cell (a director-engine round) |
-| monitor.sh's io guard is box-wide: at io60 >= 25 it kills recursive greps in ANY app.slice scope, director-engine's mur reviewers included (12 kills by 01:47Z) | keep (the box stalls otherwise); a reviewer-side fix = every focus text forbids the walk (skill agi-workflow §2) |
