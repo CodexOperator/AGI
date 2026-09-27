@@ -68,6 +68,15 @@ def driver_override_scripts(driver: Path | None = None) -> tuple[str, ...]:
     return tuple(dict.fromkeys(_OVERRIDE_RE.findall(driver.read_text())))
 
 
+#: The OTHER engine entry points that carry the same override sites (measured
+#: 2026-09-27, experiment:a00-7564eae7-402e7f): all three today, byte for byte.
+#: Paths are relative to PLUGIN_ROOT, resolved at CALL time, never retyped.
+_OVERRIDE_CARRIERS = (
+    "hooks/cc-session-start.sh",
+    "hooks/cc-session-start.next.sh",
+)
+
+
 #: A driver.sh line citation in ANY form: the prose one (the word "line" then
 #: digits) and the path-colon-number one (a dot-sh name, a colon, digits -- see
 #: the red-first case in the test below). Both rot on every edit to driver.sh.
@@ -278,6 +287,29 @@ def test_override_set_is_exactly_driver_sh_three_sites() -> None:
     assert set(driver_override_scripts()) == {
         "snapshot-build-site.py", "render-context.py", "inject.py",
     }
+
+
+def test_override_sites_agree_across_every_engine_entry_point(tmp_path) -> None:
+    """The message is only COMPLETE if the sites are the same everywhere.
+
+    driver.sh is not the only file that prefers a project-local copy: the two
+    cc-session-start hooks carry the same three sites. A fourth name added to a
+    hook only would make the refusal message name one site fewer than the
+    engine honours -- and the directory refusal still holds, so nothing else
+    goes red. RED before this test: the set was pinned to driver.sh alone.
+    """
+    real = set(driver_override_scripts())
+    for rel in _OVERRIDE_CARRIERS:
+        assert set(driver_override_scripts(PLUGIN_ROOT / rel)) == real, (
+            f"{rel} prefers a different project-local set than the message names"
+        )
+
+    doctored = tmp_path / "cc.sh"
+    doctored.write_text(
+        (PLUGIN_ROOT / _OVERRIDE_CARRIERS[0]).read_text()
+        + '\n[[ -x "$PROJECT_ROOT/bin/fourth.py" ]] && X=1\n'
+    )
+    assert set(driver_override_scripts(doctored)) != real, "the scan cannot see a new site"
 
 
 def test_braced_and_dotted_override_sites_are_derived(tmp_path) -> None:
