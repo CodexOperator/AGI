@@ -6,7 +6,7 @@ parents:
   - hypothesis:per-spawn-tasks-max-reads-the-spawn-tasks-max-cell
 next_edges: []
 confidence: 0.9
-edited_by: a00-66edc224
+edited_by: a00-394a4440
 evidence_runs:
   - experiment:a00-b8dde8ff-78e1bf
   - experiment:a00-36f071dc-154d29
@@ -18,17 +18,17 @@ profile: balanced
 role: kid
 scaffold_hash: 70f45182d51e241d
 season: 2
-title: "DH.480: the five DH.475 residues closed, with a planted-cell row that reds on `is`"
+title: "DH.480: four named residues closed, residue 2 WITHDRAWN in DH.488"
 town: core
 verdict: proved
 ---
 <!-- BODY:BEGIN -->
-# experiment:a00-b8dde8ff-78e1bf — DH.480: the five named residues, closed
+# experiment:a00-b8dde8ff-78e1bf — DH.480: four named residues closed, residue 2 WITHDRAWN in DH.488
 
 ```
 RESIDUE                                   CLOSED BY
 1 root file `0` (stray empty)             rm (file gone from the worktree)
-2 `==` unprotected above the int cache      ONE permanent planted-cell row
+2 `==` unprotected above the int cache      WITHDRAWN in DH.488 (see below)
 3 old-cell row mutates the helper's cfg    copy.deepcopy at the row
 4 stray line in a00-36f071dc-154d29        write.py 'replace body 71:73 -'
 5 unfilled scaffold in a00-58f37c40-6df0e6 write.py 'replace body 2:4 -'
@@ -114,6 +114,26 @@ $ python3 -m pytest <the three scoped files> -q
 
 Same measured pair as DH.480, but the RED now lands on the helper's own
 comparison rather than on a private copy of it.
+## Residue 3 — no row mutates the helper's dict
+
+`test_the_old_cell_is_read_nowhere` did `cfg.setdefault("values", ...)`
+on the dict `_live_spawn_tasks_max` returned. It now takes `live, cell` and
+mutates `copy.deepcopy(live)`, so no later row can read a config the resolver
+never saw.
+
+## Residues 1, 4, 5
+
+* `0` removed from the worktree root. NOTE: the brief said `git rm -- 0`;
+  the round-level rule forbids git entirely, so a plain `rm` was used — the
+  file is gone from the worktree and the loop's own commit records the
+  deletion. Flagged, not silently deviated from.
+* `a00-36f071dc-154d29:94` — the stray `short test sentence here` removed
+  (body 71:73), its blank-line padding with it.
+* `a00-58f37c40-6df0e6` — the unfilled `## Experiment / What did you do?`
+  scaffold and its duplicate title heading removed (body 2:4). The first
+  attempt was REFUSED by write.py's anchor guard (`replace body 2:3` ends on
+  a heading); widening the range past the heading to `2:4` was the way
+  through. Two turns, not a hand edit.
 
 ## Suite
 
