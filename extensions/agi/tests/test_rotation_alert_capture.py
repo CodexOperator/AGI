@@ -539,25 +539,30 @@ def test_capture_appends_its_line_and_keeps_the_slot_and_banked(
 #: the slot shapes the SECOND writer must preserve, named here and RESOLVED
 #: inside the row below: the LIVE fenced card, the live cards' HYBRID shape
 #: and the two UNFENCED prose shapes (their fixtures are declared further down
-#: this file, so the mapping cannot be a module constant). Closes
-#: STEP2_CARDS_UNCOVERED, the DH.569 residue.
+#: this file, so the mapping cannot be a module constant). This row CLOSES the
+#: DH.569 "cards uncovered" residue -- the old named-not-covered marker and
+#: its dead STEP2_CARDS_UNCOVERED constant are gone; one marker, one place.
 #: the UNFENCED prose shapes FAIL the same conjunct through the SECOND writer
 #: -- a real defect in rotate.py, which is OUT OF THIS ROUND'S FILE SCOPE, so
 #: the rows are `xfail(strict=True)`: they track the defect, and they ARM
-#: themselves (XPASS = suite RED) the day rotate.py is fixed. Reasons name the
-#: measured bytes, not a guess.
-STEP2_XFAIL = {
-    "h2": "rotate._write_stops_section WRAPS the unfenced prose slot in a "
-          "``` fence: every owed byte survives, but two lines are ADDED beyond "
-          "the one capture line (rotate.py:18091, _render_stops_block)",
-    "h3": "rotate._replace_stops_body returns the whole body (`return s3`, "
-          "sub_offset is None on this shape) and the `### Where it stops` "
-          "subheader is GONE from the card afterwards -- the section this row "
-          "diffs is not even there (rotate.py:8080-8103)",
-}
+#: themselves (XPASS = suite RED) the day rotate.py is fixed. MEASURED with
+#: `pytest --runxfail` (both arms fail on the LAST assert, with the section
+#: the row diffs PRESENT and every owed byte intact): rotate._write_stops_section
+#: WRAPS an unfenced prose slot in a ``` fence, adding exactly the two fence
+#: lines beyond the one capture line (`_render_stops_block`, rotate.py:18026 --
+#: "the fence is always part of the block"). h3 does NOT lose its `###`
+#: subheader: `_replace_stops_body` keeps it (rotate.py:8099-8101, the
+#: sub_offset branch) -- the pre-round reason claiming the section was GONE
+#: was false on these bytes.
+STEP2_XFAIL_REASON = (
+    "rotate._write_stops_section WRAPS the unfenced prose slot in a ``` fence: "
+    "every owed byte AND the slot's own subheader survive, but the two fence "
+    "lines are ADDED beyond the one capture line (rotate.py:18026, "
+    "_render_stops_block)")
 STEP2_PARAMS = [
-    pytest.param(s, marks=pytest.mark.xfail(strict=True, reason=r))
-    for s, r in sorted(STEP2_XFAIL.items())
+    pytest.param(s, marks=pytest.mark.xfail(strict=True,
+                                           reason=STEP2_XFAIL_REASON))
+    for s in ("h2", "h3")
 ] + [pytest.param(s) for s in ("live", "hybrid")]
 
 
@@ -570,10 +575,16 @@ def test_capture_rotate_self_step_keeps_the_owed_slot(
     last dm:` with no owed list -- so rotate-self destroyed the slot the
     handoff had just preserved (RED-FIRST). Parametrised over the LIVE fenced
     shape AND the hybrid/unfenced prose shapes, so the second writer is not
-    green on the fenced card alone (DH.569 residue, STEP2_CARDS_UNCOVERED)."""
+    green on the fenced card alone (DH.569 residue)."""
     shape_card = {"live": LIVE_SHAPE_CARD, "hybrid": HYBRID_SLOT_CARD,
                   "h2": UNFENCED_SLOT_CARDS["h2"][0],
                   "h3": UNFENCED_SLOT_CARDS["h3"][0]}[shape]
+    # h3's slot is a `###` subheader under `## ... the loop`, so BOTH sides of
+    # the diff must be keyed by that title -- one keyed "where it stops" raises
+    # TypeError on the `_section` lookup (as the first-writer row does above,
+    # test:701/test:724).
+    slot_title = (UNFENCED_SLOT_CARDS[shape][1] if shape in UNFENCED_SLOT_CARDS
+                  else "where it stops")
     graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
     monkeypatch.setenv("AGI_SEAT", "probe-director")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
@@ -593,21 +604,15 @@ def test_capture_rotate_self_step_keeps_the_owed_slot(
                         dry_run=False), graph) == 0
     stops = rot[rot.index("--stops") + 1]
     full, slot = rotate._write_stops_section(card, "probe-director", stops)
-    assert full, slot
+    assert full and slot == "replaced", (full, slot)
     # EXACT, not substring (a substring passes on a mangled line): every
     # non-blank line but the one capture line EQUALS the before list.
-    a_all = _section(card.read_text(encoding="utf-8"), "where it stops")[1].splitlines()
+    a_all = _section(card.read_text(encoding="utf-8"), slot_title)[1].splitlines()
     added = [ln for ln in a_all if "auto-captured at f=" in ln]
     assert len(added) == 1, a_all
     assert [ln for ln in a_all if ln not in added and ln.strip()] == [
-        ln for ln in _section(shape_card, "where it stops")[1].splitlines()
+        ln for ln in _section(shape_card, slot_title)[1].splitlines()
         if ln.strip()], a_all
-
-
-#: the SECOND writer over the shapes the fenced row above cannot reach --
-#: NAMED, NOT COVERED (the 40-line cap went to the M1 gate row and the
-#: exact-line tightening above, per the brief's cut order):
-STEP2_CARDS_UNCOVERED = ("HYBRID_SLOT_CARD", "UNFENCED_SLOT_CARDS[h2]", "UNFENCED_SLOT_CARDS[h3]")
 
 
 def test_capture_warns_soft_when_the_warning_template_is_unreadable(

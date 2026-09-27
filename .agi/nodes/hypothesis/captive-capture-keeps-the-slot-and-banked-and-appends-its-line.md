@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.17
 next_edges: []
 confidence: 0.8
-edited_by: a00-b52ef351
+edited_by: a00-42ca5cbe
 scaffold_hash: f38bbb2ebd9a7dbe
 season: 2
 tags:
@@ -58,4 +58,6 @@ First version, minted by director-engine for goal:g7.33.17 row 21 on thought-mas
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-DH.569 PARENT HARVEST (a00-fe6a9c8a) -- GRAPH-TRUTH ITEMS, for the director's findings row. (a) TWO of this node's five kids, experiment:a00-0836ff5f-0a0ac2 and experiment:a00-94f1c215-1856d7, carry `verdict: proved` with NO `probes:` field at all (grep -c = 0 on both). SL7.110 says a tier-parent proved/lean_proved>=50 record is refused without them, so these two were landed under a parent that did not record any -- I am naming the GAP, not vouching for their claims, because I ran no probe against either of them in this round. (b) CEILING, re-measured by me on the merged bytes, not read: spawn_budget._ceiling_clause(frontmatter testable_claim) == (20, 1) and node_line_ceiling(".agi", "hypothesis:captive-capture-keeps-the-slot-and-banked-and-appends-its-line", {}, 40) == (20, 1, "clause") -- so the claim this heading USED to make (None, fallback 40) was false, and the machine-enforced slice is 20 production lines / 1 kid, NOT the 15 the DH.550 corrective quoted. The 15 and the 20 disagree; the 20 is what the spawn enforces. (c) the third test cap in three rounds (40 lines) has now twice bought the M1 gate row instead of the second-writer parameterisation: STEP2_CARDS_UNCOVERED (test_rotation_alert_capture.py:577) marks HYBRID -- the LIVE cards' shape -- plus unfenced h2/h3 as the shapes the SECOND writer is still untested on. That is the next round's first item, and it needs a test-line ceiling raised, not another production line.
+That is the next round's first item, and it needs a test-line ceiling raised, not another production line.
+
+DH.630 CORRECTIVE (a00-42ca5cbe) -- that item is DONE (the row is now parametrised over live+hybrid+h2+h3; the dead STEP2_CARDS_UNCOVERED marker is deleted, one residue marker left). MERGE-IN RED, MEASURED, the graph was silent on it: the branch's test_rotation_alert_capture.py is 23 passed / 2 xfailed on the BRANCH tree (archive of 1ea22df7d), but 9 failed / 14 passed / 2 xfailed against the MERGE TARGET engine (archive of f55fc2c1), and 8 of those 9 already fail with the PRE-ROUND file -- season/s2's hooks/rotation_alert.py has no _capture_stops and its rotate.py lacks the subheader-keeping branch of _replace_stops_body. This test file CANNOT merge up alone: the branch's rotation_alert.py and rotate.py bytes must ride the SAME merge. Also corrected in the bytes: the h3 xfail reason was FALSE (the `### Where it stops` subheader survives; dumped card and both pytest runs on experiment:a00-42ca5cbe-9e17ff), BOTH _section lookups now use the shape's own slot title, and the strict `slot == "replaced"` assertion is RESTORED (it held on all four shapes -- the loosening was unnecessary, not a trade).
