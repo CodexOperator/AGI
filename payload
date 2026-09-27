@@ -1522,8 +1522,7 @@ def _resolve_workflow_spawn_env(root, cfg: dict, run_key: str, harness: str,
             iter_n=run_key, agent_id=f"workflow:{run_key}",
             tier=_workflow_credential_tier(stages),
             limit_usd=limit_usd, ttl_minutes=ttl_minutes,
-            workspace_id=provisioning.workspace(cfg), root=root,
-            zero_usd=((cfg.get("harnesses") or {}).get(harness) or {}).get("zero_usd") is True)
+            workspace_id=provisioning.workspace(cfg), root=root)
     except provisioning.ProvisioningError as exc:
         print(f"ERR: could not mint a workflow credential: {exc}",
               file=sys.stderr)
@@ -1786,7 +1785,7 @@ def _stage_is_producing(stage: dict) -> bool:
 
 def _run_stage_proc(cmd, *, budget: float, stage: dict,
                     spawn_env: dict | None, view: "RunView | None",
-                    cap: "str | None" = None, cfg: "dict | None" = None):
+                    cap: "str | None" = None):
     """Run ONE stage command with the SM.105 optional wall extension, on a
     live `Popen` so an extension is the SAME process and the SAME output file.
 
@@ -1799,13 +1798,9 @@ def _run_stage_proc(cmd, *, budget: float, stage: dict,
     it gets the single deadline it was given."""
     env = spawn_env if spawn_env is not None else _pi_env()
     # SM.112 -- one cap for the stage child. Only on a REAL launch: a test
-    # that injected the Popen seam owns its own child. `cfg` is the graph the
-    # CALLER already holds, passed so the seam reads the declared
-    # `values.memcap.*` cells (hypothesis:a00-50b210d5-b85ee2) exactly as
-    # `dispatch.py` does; None keeps the shipped defaults, so a caller with
-    # no config in hand is byte-unchanged.
+    # that injected the Popen seam owns its own child.
     if cap is not None and subprocess.Popen is _REAL_POPEN:
-        cmd = mem_cap.wrap_argv(cmd, cap, cfg)
+        cmd = mem_cap.wrap_argv(cmd, cap)
     if subprocess.Popen is _REAL_POPEN and subprocess.run is not _REAL_RUN:
         return subprocess.run(cmd, capture_output=True, text=True, env=env,
                               timeout=budget)
@@ -1892,7 +1887,7 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
         try:
             proc = _run_stage_proc(
                 cmd, budget=budget, stage=stage, spawn_env=spawn_env,
-                view=view, cap=cap, cfg=cfg)
+                view=view, cap=cap)
         except subprocess.TimeoutExpired:
             # A timeout is reported as ELAPSED TIME FIRST, never as "could not
             # start": TimeoutExpired IS a SubprocessError and the string it
