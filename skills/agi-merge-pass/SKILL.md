@@ -42,8 +42,9 @@ RED = secrets (scan ADDED lines, counts only, never print) · a node deletion (r
 
 ## 3 · Tooling (/tmp/belam-passN/, rebuilt from the previous pass)
 build.py (BASE hard-coded; TIP/OS/PER from env) · launch.sh (CAP from ./cap; holds on user@ headroom < 1500 MiB and on memory_alarm
-WARN/ALARM in 15 min) · monitor.sh (exits, launcher death; kills a recursive grep/rg/find over .agi/ or the repo root at io60 ≥ 25 —
-box-wide, it reaches other posts' reviewers too) · verdicts.py (newest run per round wins; unwraps an unstructured return leniently) ·
+WARN/ALARM in 15 min) · monitor.sh (exits, launcher death; kills a recursive grep/rg/find over .agi/ or the repo root at io60 ≥ 25 ONLY
+when an ancestor's argv carries this pass's tag (`p10chunk`/`p10retry`) — other posts' processes are spared, logged to
+spared.log; owner 2026-09-27 01:5xZ: fine-grained reach) · verdicts.py (newest run per round wins; unwraps an unstructured return leniently) ·
 retry.sh. Trunk sync: /tmp/belam-trunk-sync/{sync.sh, resolve.py} — merge-tree preview, a posts.md-only conflict resolved as
 trunk rows + the directors' model cells (pubkeys must agree), temp index + ff-only, never a conflicted MAIN. A reboot wipes /tmp: rebuild per card trap 26.
 

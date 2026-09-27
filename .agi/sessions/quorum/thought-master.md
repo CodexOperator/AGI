@@ -11,6 +11,9 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
+## SKILLS (owner 2026-09-27, goal:g4.18.2) -- use the matching one BEFORE the flow: `skills/agi-<flow>/SKILL.md` (the Skill tool)
+`agi-goal` (schema inside) · `agi-node-write` · `agi-send` · `agi-rotate` · `agi-dispatch` · `agi-workflow` · `agi-verify` -- a rule a skill carries leaves this card at its next write (the template lists them too)
+
 ## Live state (20:0xZ 09-26 -- the where-it-stops block below is newer than these lines)
 ```
 LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66) · workflow runs = --harness pi-free
