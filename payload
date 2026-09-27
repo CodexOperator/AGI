@@ -25,11 +25,7 @@ __pycache__/
 .claude/worktrees/
 sessions/
 experiments/
-.claude/skills/*
-# goal:g4.18.2 -- the agi flow skills are committed symlinks into skills/ (like
-# .claude/workflows/ -> extensions/agi/workflows/), so every checkout carries them.
-!.claude/skills/agi
-!.claude/skills/agi-*
+.claude/skills/
 
 # Staged payload checkout (GOALS.md G6.3/G6.1, `grid.py checkout`). The
 # committed home of these bytes is the node's own grid ref — this directory is
