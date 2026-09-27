@@ -34,20 +34,20 @@ Skills: agi-dispatch · agi-workflow · agi-node-write · agi-goal · agi-send �
 ## §0 STATE (03:3xZ 09-27 · compacted: per-chain history = `git log` of this node before 061923b03)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br holds DH.424+431, 434 (262107e12), 430 chain (4af305171, 702 green) · trunk synced c62bfe387
-LIVE      parents (cap = cell values.local_maxxing.de_live_parents, arm 10): 492 a00-cfed6d3f · 496 a00-eb0c2ac5 · 497 a00-263a936b
+LIVE      parents (cap = cell values.local_maxxing.de_live_parents, arm 10): 492 a00-cfed6d3f · 504 a00-e20a597b · 497 a00-263a936b
           · 498 a00-efb7f2a8 · 499 a00-42c4f9a2 · 500 a00-616b9d6c · 501 a00-759e6b60 · 502 a00-06858031 · 503 a00-310da84b
-          murs (systemd agi-director-engine-mur<N>): 471 479 483 485 490 493(+495) 494 · swarm-sampler2
+          murs (systemd agi-director-engine-mur<N>): 471 483 485r(verify timed out, re-run) 490 493(+495) 494 496 · swarm-sampler2
 CHAIN     tip / state                                                                          land note
  425 bin-guard   494 @11707134d (parent left edits uncommitted; landed TMM.268) -> mur494 running
  426 schema-gate 483 @663cd21e2 -> mur483 3 slices (reviews in, verifies pending)                NEVER 442
  427 heal-refuse 485 @ac2b2a4c3 (484+485) -> mur485 running                                     NEVER 476 (its cli.py = cand. for DH.492)
  429 tasks-max   495 @03ac46eea (kid logged edits landed) -> mur493 running   merge 429 nodes, then 443 -X theirs
  430 ctx-suite   MERGED 4af305171 (mur-15 DH.489 accept)
- 432 guard-piece 479 @e22d6c6cf -> mur479 running                                                NEVER 432 itself · 13 nodes carry /home/<user> = a finding for TM
+ 432 guard-piece 479 @e22d6c6cf mur-13 AWR x3 (overrun ACCEPTED as disclosed) -> 504 LIVE (de-base-479)     NEVER 432 itself · 13 nodes carry /home/<user> = a finding for TM
  433 guard-inst  471 @07f7fdf01 -> mur471 running                                                land 432's chain FIRST
  434 memcap      MERGED 262107e12
  g4.18.1.1       482 mur-14 k1+k2 AWR (id/mint_id spoof, stamp precedence, dry-run bytes, parents char-split, SystemExit) -> 502 LIVE (de-h482)
- g4.18.1.3/.4    496 / 497 LIVE (hyps minted 061923b03)
+ g4.18.1.3/.4    496 @3d470e290 (parent left config cell + node uncommitted; landed) -> mur496 (DEFECT: cell geometry -> source_root/.geometry, real = graph_root nodes/.geometry) · 497 LIVE
  send-hub box    498 LIVE: every-live-row-carries-its-own-box (belam 00:35Z + OWNER 21:0xZ); parent goal has no goal_id (belam's node: flag in [merge-up])
  kid-worktrees   499 LIVE: claims 1+2 (prune tool dry-run default + worktrees_root cell); claims 3 (tmpfs) + 4 (reboot prune) = next round; I run --apply only after review
  row 20 nudge    490: RED test_send.py::test_read_advances_cursor_past_withheld_block_copy_remains -> corrective FROM 490 tip after mur490
