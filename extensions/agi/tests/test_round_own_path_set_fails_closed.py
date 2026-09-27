@@ -156,13 +156,18 @@ def _load_locations():
 def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None, iter_n=999):
     """A spawn record under the CANONICAL iteration dir for `iter_n`.
 
-    `dispatch_node_id=""` writes a record carrying NONE -- an ABSENT key, not
-    an empty string -- never silently defaulted, so the DH.552 leg-1 pin below
-    can say what it means. DH.617 closed the DH.578 caveat: the old fixture
-    wrote `"dispatch_node_id": ""`, which `r.get()` reads as `""` rather than
-    `None`; a cli.py that special-cased the empty string would have passed this
-    pin while the docstring claimed it was reading NONE.
-    DH.604: the `sessions` segment is `locations.sessions_dir`'s to spell -- a
+    `dispatch_node_id=""` writes the record PRODUCTION writes: the key is
+    PRESENT, carrying `""` when there is no dispatch id. DH.632 reverted
+    DH.617's `if dispatch_node_id:` guard, which made the key ABSENT -- a
+    record shape no real seat's agent.json ever has, since production's own
+    writer of the key is the `setdefault(..., rec.get("node_id") or "")` line
+    in the `done` path, and a `setdefault` always leaves the key present. The
+    ABSENT shape is the WEAKER fixture: `r.get()` reads `None` for it, so a
+    cli.py that guards on `v is not None` sails through, and only a
+    fallback-style mutant (`r.get("dispatch_node_id", r.get("node_id"))`) is
+    caught. With the key PRESENT and `""` it refuses, so a `v is not None`
+    mutant now fails the pin too -- the fixture measures the code it is a
+    fixture for, in both directions. DH.604: the `sessions` segment is `locations.sessions_dir`'s to spell -- a
     hand-written `root / "sessions"` was a second copy that can drift, and a
     wrong `root` (repo root, not the `.agi` dir) reads as an empty set for the
     WRONG reason. Per-worktree `sessions_dir`, never `shared_sessions_dir`:
@@ -184,9 +189,13 @@ def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None, iter_n=999):
     d.mkdir(parents=True, exist_ok=True)
     if dispatch_node_id is None:
         dispatch_node_id = node_id
-    rec = {"spawned_by_agent": spawned_by, "node_id": node_id}
-    if dispatch_node_id:  # "" -> the key is ABSENT: a record carrying NONE
-        rec["dispatch_node_id"] = dispatch_node_id
+    # DH.632: the key is ALWAYS present, "" when empty -- exactly what
+    # production's `rec.setdefault("dispatch_node_id", rec.get("node_id") or
+    # "")` leaves on a real seat's agent.json. Same drift class DH.617 fixed
+    # for the DIR: a fixture whose spelling drifts from the code's means the
+    # fixture, not the bound, is what the pin measures.
+    rec = {"spawned_by_agent": spawned_by, "node_id": node_id,
+           "dispatch_node_id": dispatch_node_id or ""}
     (d / "agent.json").write_text(json.dumps(rec) + "\n")
     return d
 
@@ -194,7 +203,11 @@ def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None, iter_n=999):
 def test_only_dispatch_node_id_widens_the_set_never_the_node_id_line(tmp_path):
     """DH.552 bound leg 1, unpinned until now: `dispatch_node_id` ONLY -- a
     record carrying NONE contributes nothing, its `node_id` line is not a
-    fallback, so a kid-writable id never leaks. Carrying one, it lands."""
+    fallback, so a kid-writable id never leaks. Carrying one, it lands.
+    DH.632: "carrying NONE" is production's SHAPE -- the key present with
+    `""` -- not an absent key; see `_spawn`. A mutant that swaps the
+    `isinstance(v, str) and ":" in v` guard for `v is not None` must FAIL
+    this, which it cannot do against an absent-key fixture."""
     cli = _load_cli()
     root = _graph(tmp_path)
     kid = "hypothesis:kid-writable"
