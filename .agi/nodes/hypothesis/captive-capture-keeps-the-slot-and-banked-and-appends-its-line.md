@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.17
 next_edges: []
 confidence: 0.8
-edited_by: a00-5632e757
+edited_by: a00-fe6a9c8a
 scaffold_hash: f38bbb2ebd9a7dbe
 season: 2
 tags:
@@ -56,3 +56,6 @@ The resolved ceiling is 20 production lines / 1 kid, read from the clause, not t
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 First version, minted by director-engine for goal:g7.33.17 row 21 on thought-master's TMM.277 (03:04Z 09-27): FAST-TRACK right after the nudge fix (row 20). From director-thought's 03:02Z [engine] report.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+DH.569 PARENT HARVEST (a00-fe6a9c8a) -- GRAPH-TRUTH ITEMS, for the director's findings row. (a) TWO of this node's five kids, experiment:a00-0836ff5f-0a0ac2 and experiment:a00-94f1c215-1856d7, carry `verdict: proved` with NO `probes:` field at all (grep -c = 0 on both). SL7.110 says a tier-parent proved/lean_proved>=50 record is refused without them, so these two were landed under a parent that did not record any -- I am naming the GAP, not vouching for their claims, because I ran no probe against either of them in this round. (b) CEILING, re-measured by me on the merged bytes, not read: spawn_budget._ceiling_clause(frontmatter testable_claim) == (20, 1) and node_line_ceiling(".agi", "hypothesis:captive-capture-keeps-the-slot-and-banked-and-appends-its-line", {}, 40) == (20, 1, "clause") -- so the claim this heading USED to make (None, fallback 40) was false, and the machine-enforced slice is 20 production lines / 1 kid, NOT the 15 the DH.550 corrective quoted. The 15 and the 20 disagree; the 20 is what the spawn enforces. (c) the third test cap in three rounds (40 lines) has now twice bought the M1 gate row instead of the second-writer parameterisation: STEP2_CARDS_UNCOVERED (test_rotation_alert_capture.py:577) marks HYBRID -- the LIVE cards' shape -- plus unfenced h2/h3 as the shapes the SECOND writer is still untested on. That is the next round's first item, and it needs a test-line ceiling raised, not another production line.
