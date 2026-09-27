@@ -58,7 +58,7 @@ g15       "merge the loop branch first" is NOT reliable: kids are forbidden git 
           run dispatch.py there (it cuts from the spawner's branch); --allow-stale-base with the reason if it refuses
 g15       dms "iter=iter-001 agent=a00-b74398d0/2fff1dcd/10f8818c reason=death" hit MY inbox 23:01Z with no agent record:
           likely a kid TEST writing the live inbox -- find the test (never grep -r .agi/)
-g15       DH.454 parent harvest dm said kids=[] accepted=0 while 2 kids ran + proved (reporter blind to kids registered via --owns)
+g15       DH.454 parent harvest dm said kids=[] accepted=0 while 2 kids ran + proved (reporter blind to kids registered via --owns); DH.460 engine line said demoted=0 while the parent demoted a00-fcb5f3fb (node verdict lean_disproved:70 at tip b04dedbd2)
 g15       cli.py done writes node rows with NO actor in write-log (DH.459 rows 16-17, 23:56:10Z)
 g15       a parent's harvest dm can be lost (DH.429 finished, no inbox line) -- reconcile by branch, never by inbox alone
 QUEUED    goal:send-is-hub-only-... (assigned DE 20:3xZ; owner routing in notes; OWNER 21:0xZ via belam 22:08Z: box id = env AGI_BOX label, set by init in environment.d + stamped by crons.py, engine refuses unset -- NOT yet on the node) after the re-delivery; my 21:2xZ dm to TM
