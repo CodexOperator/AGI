@@ -31,35 +31,36 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (14:0xZ 09-27 · per-chain history = git log of this node)
+## §0 STATE (14:2xZ 09-27 · per-chain history = git log of this node)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 (mint fix) merged 32ff79e53 · 429 chain MERGED 1ee2340c3 (242 green)
 FALSIFIER MET (DH.533 pi-free: keys 0.01 used 0, credits 0.6063 = before) -> TM 13:3xZ
-MURS      units agi-director-engine-<unit> (harvest helper: <scratchpad>/harvest.sh N agent tests); args + logs <scratchpad 96494ce7-...>/<unit>.{json,log}; verdicts MAIN runs/<key>/{review,verify}_<label>.json
-          murl1..3 = 3 LANES claiming batches murq1..7 (mkdir claims/b<N>; a pi-free run is SERIAL per stage ~7 min), key mur-23:
-            1 509k1 509k2 512 514k1 · 2 514k2 515 516 510k4 · 3 519 522 521 501 · 4 526 520 507k1 507k2 · 5 525k1 525k2 529k1 529k2
-            6 497k1 497k2 530 531 · 7 532      (510k1-k3 cleared earlier, mur-18)
-          murq11 DH.538 · murq12 DH.508-k1 + DH.539-k1 · murq13 DH.537 · murq14 DH.534   (all harvested green; numbers in each round's focus)
-LIVE      DH.540 a00-c6a30652 (533 corrective) · DH.541-544 (the mur-20 correctives; bases = loop tip + cherry-pick 6f9b9a1d9,
-          which the node BASE lines omit -- the --orders files in the scratchpad carry it); wt de-base-<N>
+TOOLS     <scratchpad 96494ce7-...>: harvest.sh N agent tests (diff, lands write-log-matching dirty nodes, tests on de-h<N>) · murq<N>.json args
+          · orders<N>.md + c<N>.json (generated from verdict files) · verdicts MAIN .agi/sessions/workflows/runs/mur-director-engine-23/
+          · a base older than 91ae33672 needs `cherry-pick -x 6f9b9a1d9` before dispatch (else the mint refuses at 0.61)
+MURS      murl1..3 = 3 LANES over batches murq1..7 (mkdir claims/b<N>; pi-free = SERIAL per stage ~7 min): 1 509k1 509k2 512 514k1 ·
+          2 514k2 515 516 510k4 · 3 519 522 521 501 · 4 526 520 507k1 507k2 · 5 525k1 525k2 529k1 529k2 · 6 497k1 497k2 530 531 · 7 532
+          single units: murq15 DH.544 · murq16 DH.543 · murq17 DH.541 · murq18 DH.542   (a unit that ENDS = read its verdicts, triage)
+LIVE      DH.540 a00-c6a30652 · DH.545 a00-000b4375 · DH.546 a00-d470d22c · DH.547 a00-0a868326 · DH.548 a00-366fb511   (wt de-base-<N>)
 QUEUED    skills adapter round (hypothesis:skills-load-per-harness-per-tier-from-one-config-cell) cut from 526's cleared tip · 471 after 530
-CHAIN     loop tip (last)   state                                                            land note
- 426 schema-gate  527 → 543   DH.543 harvested 117b61216 (4 nodes landed == write-log, 153p) -> murq16   NEVER 442
- 427 heal-refuse  528 → 544   DH.544 harvested feeff05ac (3 nodes landed == write-log, 101p) -> murq15   NEVER 476
- 432 guard-piece  530     lane 6                                                               NEVER 432 itself
- 433 guard-inst   471     corrective AFTER 432 lands (mur-17 k1 unstructured, k3 AWR)
- g4.18.1.1        521     lane 3 (item 4 a00-9086ec16 UNLANDABLE, row 21)
- g4.18.1.3        519     lane 3 (510 k1-k3 cleared, k4 lane 2)
- g4.18.1.4        497     lane 6
- send-hub box     525     lane 5 (TMM.289 cleared: rows backfilled 91f9e1236)
- kid-worktrees    529 → 533 → 540   lane 5 (529) · 533 DEMOTE -> DH.540 LIVE
- row 20 nudge     524 → 542   mur-20 AWR -> DH.542 LIVE a00-e7cea940
- thought-verb     522     lane 3 · probe-gate 523 → 541: harvested 98b2b99e5 (150p) -> murq17
- wake-facts       501     lane 3; BLOCKED: trunk region 2009 > 2000 until belam trims F13
- model-fence      508 → 517 → 536 → 539   murq12 (R4 test NEVER run: row 22)
+CHAIN     tips (last)                 state                                                          land note
+ 426 schema-gate  527 → 543           harvested 117b61216 (4 nodes landed, 153p) -> murq16           NEVER 442
+ 427 heal-refuse  528 → 544           harvested feeff05ac (3 nodes landed, 101p) -> murq15           NEVER 476
+ probe-gate       523 → 541           harvested 98b2b99e5 (150p) -> murq17
+ row 20 nudge     524 → 542           harvested 7502fa786 (470p; send.py net 38 vs 15, row 17) -> murq18
+ trunk reds       538 → 545           mur-23 AWR -> DH.545 LIVE
+ zero-usd         537 → 546           mur-23 AWR (cap guard charged the floor it is exempt from) -> DH.546 LIVE
+ stale-lock       532 → 534 → 547     mur-23 DH.534 DEMOTE -> DH.547 LIVE; 532 review in lane 7; 532 NEVER merges alone
+ model-fence      508 → 517 → 536 → 539 → 548   mur-23 508 demote + 539 AWR (verify died: memory-cap, R4) -> DH.548 LIVE
+ kid-worktrees    529 → 533 → 540     529 lane 5 · 533 DEMOTE -> DH.540 LIVE
+ 432 guard-piece  530                 lane 6                                                         NEVER 432 itself
+ 433 guard-inst   471                 corrective AFTER 432 lands (mur-17 k1 unstructured, k3 AWR)
+ g4.18.1.1/.3/.4  521 · 519 · 497     lane 3 · lane 3 (510 k1-k3 cleared, k4 lane 2) · lane 6; 521 item 4 UNLANDABLE (row 21)
+ send-hub box     525                 lane 5 (TMM.289 cleared)
+ thought-verb     522                 lane 3
+ wake-facts       501                 lane 3; BLOCKED: trunk region 2009 > 2000 until belam trims F13
  PASS 10          509 512 514 515 516 lanes 1-2 · 507 reap-chain lane 4 · belam-cap-reap HELD until 507 lands
- run-key          531     lane 6 · stale-lock 532 → 534 murq14 (532 NEVER merges before 534)
- zero-usd         537 murq13 · trunk reds 538 murq11 · skills 526 lane 4
+ run-key          531                 lane 6 · skills 526 lane 4
 ```
 
 ## §1 PLAN
