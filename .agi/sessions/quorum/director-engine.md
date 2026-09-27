@@ -35,7 +35,7 @@ Skills: agi-dispatch · agi-workflow · agi-node-write · agi-goal · agi-send �
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br holds DH.424+431, 434 (262107e12) · trunk synced f6bd22040
 LIVE      parents (cap = cell values.local_maxxing.de_live_parents, arm 10): 487 a00-47284405 · 491 a00-7a06e8e4 · 492 a00-cfed6d3f
-          · 494 a00-102da14e · 496 a00-eb0c2ac5 · 497 a00-263a936b
+          · 494 a00-102da14e · 498 a00-efb7f2a8 · 499 a00-42c4f9a2 · 496 a00-eb0c2ac5 · 497 a00-263a936b
           murs (systemd agi-director-engine-mur<N>): 471 479 482 483 485 489 490 493 · swarm-sampler2
 CHAIN     tip / state                                                                          land note
  425 bin-guard   486 @8b8c492b0 -> mur-14 AWR (blank line lost in a review span; count 3 vs 4) -> 494 LIVE (de-base-486)
@@ -48,6 +48,8 @@ CHAIN     tip / state                                                           
  434 memcap      MERGED 262107e12
  g4.18.1.1       482 (answers file) mur-14 k1 AWR: id/mint_id not in _ANSWERS_RESERVED (write.py:1861); --set loses to post stamp (:3160); string parents char-split (:3131) -- k2 verify pending -> ONE corrective
  g4.18.1.3/.4    496 / 497 LIVE (hyps minted 061923b03)
+ send-hub box    498 LIVE: every-live-row-carries-its-own-box (belam 00:35Z + OWNER 21:0xZ); parent goal has no goal_id (belam's node: flag in [merge-up])
+ kid-worktrees   499 LIVE: claims 1+2 (prune tool dry-run default + worktrees_root cell); claims 3 (tmpfs) + 4 (reboot prune) = next round; I run --apply only after review
  row 20 nudge    490: RED test_send.py::test_read_advances_cursor_past_withheld_block_copy_remains -> corrective FROM 490 tip after mur490
  thought-verb    487 LIVE -- at its review ADD: same first-pair regex in snapshot-goals.py:285, metrics.py:262, brief.py:2352 (mur-14 DH.486 missed)
 OWNER     21:1xZ via belam: send QUIET row cell + READ-ON-LANDING; HOLD stream / encryption-town / sanctuary activation until messaging done
@@ -59,8 +61,7 @@ OWNER     21:1xZ via belam: send QUIET row cell + READ-ON-LANDING; HOLD stream /
 done   489 harvested + mur · 494/495 correctives · g4.18.1.3/.4 minted + dispatched · trunk sync
 next   harvest each parent on exit (kid worktrees too) -> mur -> close residues -> merge cleared chains -> suite window -> ONE [merge-up]
 queue  (1) 490 corrective after mur490 · mur493 (493+495) running (2) FAST-TRACK: PASS 10's 3 DE defect hyps (Prime mints at step 6, not yet) + 491 · 493 @b187dabd0 lean_proved:75 (unfenced ### slot loses its header = a rotate.py round) -> mur493
-       (3) g4.18.1: .2/.5 wait on .1's bytes -> send-is-hub-only (+ '(default) box is always foreign' refusal) + g7.32.5 -> g7.31.3.3
-          (incl. hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram, belam 3713b83b5) · R3b reaper gap (goal:g1, not minted)
+       (3) g4.18.1: .2/.5 wait on .1's bytes -> send-is-hub-only rest (after .1) + g7.32.5 -> g7.31.3.3 · R3b reaper gap (goal:g1, not minted)
           · g7.33.17 row 21 TABLE LINE owed on the node · rotate-keeps-the-quorum-card-a-symlink (g6.38) · goal:g7.33.19 rows (OWED)
 blocked  none
 ```
