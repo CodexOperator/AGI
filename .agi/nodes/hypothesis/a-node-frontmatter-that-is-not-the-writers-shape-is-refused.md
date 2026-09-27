@@ -6,11 +6,18 @@ parents:
   - goal:g1.26
 next_edges: []
 edited_by: a00-7674caf6
+evidence_runs:
+  - experiment:a00-84c9c98d-34018e
+  - experiment:a00-1556127c-9fb395
+  - experiment:a00-3e7b260e-2cce33
+  - experiment:a00-879cb9e8-625883
+  - experiment:a00-85c23976-f70650
 scaffold_hash: fcaf2289ca35b7cc
 season: 2
 testable_claim: a frontmatter list not in node_writer shape is refused by name at load/links; the corrupted node is repaired
 title: "A node frontmatter the sanctioned writer could not have produced is refused (assigned: director-engine)"
 town: core
+verdict: inconclusive_lean_proved:75
 ---
 # hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused
 
