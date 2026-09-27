@@ -15,7 +15,9 @@ Nine rows, one per clause of the claim:
    changed template, a changed sized value or a changed stand-in MOVES it (the old
    test asserted template == fixture, i.e. X == X); the three no-cascade rows
    record the LIVE bytes and are compared by the drift cell each manifest row
-   carries -- the EXACT set of differing lines, not merely "they differ";
+   carries -- the EXACT set of differing lines, not merely "they differ". Every fixture
+   comparison goes through _assert_piece_matches_fixture: a row with no drift cell gets
+   an EMPTY delta, so an undeclared difference is red;
 7. the rendered bytes EQUAL the RECORDED LIVE bytes -- recorded once into an anonymized
    fixture, never read from ~/.config at test time: a committed test that reads a live
    unit is a probe wearing a test's name, green here and red or skipped on every other
@@ -29,6 +31,10 @@ Nine rows, one per clause of the claim:
    refused BY NAME when absent;
 7c. every manifest dest_cell resolves against the COMMITTED config (the
    user_systemd_data_dir debt is closed: the director committed that cell);
+7d. FIXTURE PROVENANCE: every manifest row carries the fixture_sha256 of its committed
+   fixture, and the file on disk still hashes to it -- the strongest tie a committed test
+   can make between a fixture and the live bytes it claims to record (UNCHANGED is all it
+   can say; the live comparison stays the parent's probe);
 8. install() writes only under a tmp install_root, with the manifest mode;
 9. a row whose bytes are NEW TO THE KIT -- authored here, not copied from an
    installed file -- is flagged new_bytes, and is therefore excluded from the
@@ -49,6 +55,7 @@ Writes: tmp_path only.
 from __future__ import annotations
 
 import collections
+import hashlib
 import importlib.util
 import json
 import os
@@ -82,7 +89,7 @@ STANDINS = {k: v for k, v in
             json.loads((FIXTURES / "standins.json").read_text(encoding="utf-8")).items()
             if not k.startswith("_")}
 CONTRACT_KEYS = {"name", "template", "dest_cell", "dest_rel", "mode", "sudo",
-                 "reload", "placeholders", "new_bytes"}
+                 "reload", "placeholders", "new_bytes", "fixture_sha256"}
 
 
 def _load():
@@ -229,11 +236,20 @@ def test_sizing_reproduces_the_measured_knobs():
 def test_rendered_bytes_equal_the_anonymized_fixture(piece):
     fix = FIXTURES / (piece["name"] + ".fixture")
     assert fix.is_file(), fix
-    got, want = R.rendered(piece, _vs()), fix.read_text(encoding="utf-8")
+    _assert_piece_matches_fixture(piece, R.rendered(piece, _vs()),
+                                  fix.read_text(encoding="utf-8"), _vs())
+
+
+def _assert_piece_matches_fixture(piece, got, recorded, v):
+    """The ONE fixture comparison, shared by every row that reads a fixture: outside the
+    manifest-declared drift delta the kit render must EQUAL the recorded bytes exactly.
+    A row with no drift cell gets an EMPTY delta, so an undeclared difference is red; a
+    drift row goes through _assert_declared_drift, which also keeps the converged and
+    differently-drifted rules (both probed, both correct)."""
     if piece["name"] in DRIFT_ROWS:
-        _assert_declared_drift(piece, got, want, _vs())
+        _assert_declared_drift(piece, got, recorded, v)
     else:
-        assert got == want, _diff(want, got)
+        assert got == recorded, _diff(recorded, got)
 
 
 def _assert_declared_drift(piece, got, recorded, v):
@@ -317,36 +333,99 @@ def test_the_stand_ins_are_constants_and_not_this_box():
         (FIXTURES / (piece["name"] + ".fixture")).read_text(encoding="utf-8")
 
 
-# 7 -- THE FALSIFIER, OFF-BOX: rendered bytes == the RECORDED LIVE bytes, up to the
-# identity tokens. A committed test that reads ~/.config/systemd/user/... is not a
-# test, it is a probe wearing a test's name: green here, red or skipped on every
-# other box. So the live bytes are RECORDED once into the anonymized fixture, and the
-# live comparison itself is a PROBE (the parent's to run; see the node body). What is
-# left here, and is not test 6, is the claim that the fixture is a faithful record of
-# a LIVE render: render this box's own derived host tokens, swap each identity token
-# for the stand-in that anonymized it, and the bytes must be the committed fixture.
+# 7 -- THE FALSIFIER: the RECORDED fixture IS what this box renders. The previous
+# version of this test never touched the fixture: it rendered twice, once with this
+# box's host tokens and once with the stand-ins, masked the four identity placeholders
+# on both sides and asserted the two renders were equal -- X == X for every sized
+# value, green forever (perturb MEM_TOTAL, delete a template line, it stays green).
+# It now READS the committed fixture, like test 6, and it is NOT the same assertion:
+# test 6 pins the STAND-IN side (a changed stand-in, a changed sized value or a changed
+# template moves the render off the fixture), test 7 pins the DERIVED-HOST side --
+# this box's own R.host_tokens() must be non-empty and must land EXACTLY at the identity
+# placeholder sites, no more and no fewer times, and the bytes that leaves must be the
+# recorded ones. That occurrence count is the part test 6 cannot make: it is red when a
+# token is empty or fails to reach the render, where test 6 is green. (It is NOT red for
+# every malformation: a token of the right arity but the wrong shape -- REPO_ROOT with a
+# trailing slash -- is substituted back into the stand-in and stays green. Do not read
+# this row as a shape check; it is an arity-and-bytes check. The shape lives in 7b.)
+# A committed test that reads ~/.config/systemd/user/... is still forbidden: the live
+# UNIT is the parent's probe, run by hand. This test reads the committed fixture, and
+# the fixture is tied to the recorded live bytes by its manifest fixture_sha256 cell
+# (test 7d) plus that probe.
 @pytest.mark.parametrize("piece", LIVE, ids=[p["name"] for p in LIVE])
 def test_rendered_bytes_equal_the_recorded_live_bytes(piece):
-    live, standin = _masked(piece, R.host_tokens(CFG)), _masked(piece, STANDINS)
-    assert live == standin, (
-        "%s differs between the live box render and the stand-in render OUTSIDE its "
-        "identity placeholders -- the committed fixture is not a faithful anonymized "
-        "record of the live bytes:\n%s" % (piece["name"], _diff(standin, live)))
+    fix = FIXTURES / (piece["name"] + ".fixture")
+    assert fix.is_file(), fix
+    got = _anonymized_live_render(piece)
+    _assert_piece_matches_fixture(piece, got, fix.read_text(encoding="utf-8"), _vs())
 
 
-def _masked(piece, tokens):
-    """Render the template with every IDENTITY placeholder replaced by a marker, on both
-    sides. Swapping the bytes instead would be wrong: a template may legitimately carry
-    a literal that happens to equal this box's uid (memguard ships a hard -1000), and a
-    blind string replace would corrupt it. Masking at the placeholder site is exact."""
-    ident = [k for k in IDENTITY if ("{{%s}}" % k) in
-             (TEMPLATES / piece["template"]).read_text(encoding="utf-8")]
-    marked = {"\x00%s\x00" % k: "\x00%s\x00" % k for k in ident}
-    body = re.sub(r"\{\{(%s)\}\}" % "|".join(IDENTITY),
-                  lambda m: marked["\x00%s\x00" % m.group(1)],
-                  (TEMPLATES / piece["template"]).read_text(encoding="utf-8"))
-    return R.render(body, {**_v(**{k: tokens[k] for k in ident}), **marked},
-                    piece["name"] + "[identity-masked]")
+def _anonymized_live_render(piece):
+    """This box's own render of the piece, with the stand-in put back where each derived
+    identity token landed. Substitution is BY VALUE, not by a marker: a marker replaces
+    the token before the render, so a token that never reaches the render would be
+    masked away and the comparison would be X == X again. Hence the occurrence count --
+    each derived token must appear in the render exactly as many times as the template
+    declares {{K}} sites, never fewer. The one fallback is a token that ALSO occurs
+    outside its sites (a template literal colliding with this box's uid, e.g. memguard's
+    hard -1000): that key is re-rendered with the stand-in, which degrades to the weaker
+    test-6 comparison for that key alone rather than corrupting the bytes with a blind
+    replace. On this box no key needs the fallback (uid 1000 appears only at its sites);
+    the branch exists for a box whose uid collides."""
+    tokens = R.host_tokens(CFG)
+    body = (TEMPLATES / piece["template"]).read_text(encoding="utf-8")
+    live = R.rendered(piece, R.values(CFG, MEASURED, tokens))
+    out, masked = live, []
+    for k in IDENTITY:
+        sites = len(re.findall(r"\{\{%s\}\}" % k, body))
+        if not sites:
+            continue
+        assert tokens[k], (piece["name"], k, "the derived identity token is empty")
+        seen = live.count(tokens[k])
+        assert seen >= sites, (
+            "%s declares %d {{%s}} sites but this box's derived token %r appears %d "
+            "time(s) in the render -- the host token does not reach the render"
+            % (piece["name"], sites, k, tokens[k], seen))
+        if seen > sites:
+            masked.append((k, seen, sites))   # ambiguous: a literal collides with it
+            continue
+        out = out.replace(tokens[k], STANDINS[k])
+    if masked:
+        over = {k: STANDINS[k] for k, _, _ in masked}
+        out = R.rendered(piece, R.values(CFG, MEASURED, {**tokens, **over}))
+    return out
+
+
+# 7d -- FIXTURE PROVENANCE. By design no committed test may read a live unit, so nothing
+# in this suite ties a committed fixture to the bytes it claims to record: the parent
+# probe is the only witness, and a probe is not a gate. So every manifest row carries the
+# fixture_sha256 of the fixture FILE BYTES AS COMMITTED, and this row says whether the
+# file on disk is still those bytes. A hand-typed or computed digest lives in neither
+# code nor node: the hash is computed here, over the committed file, and compared with
+# the cell. A fixture edited in place -- or a template re-rendered into one without the
+# record being redone -- is RED, naming the piece and both digests. This row can only
+# say the file is UNCHANGED: the claim that the unchanged file records a live unit stays
+# a probe, and pretending otherwise here would be the same defect one layer down.
+def test_every_committed_fixture_still_hashes_to_its_manifest_cell():
+    rows = {p["name"] for p in PIECES}
+    stray = sorted(f.stem for f in FIXTURES.glob("*.fixture") if f.stem not in rows)
+    assert not stray, ("a fixture on disk with no manifest row carries no declared "
+                       "delta and no provenance cell: %s" % stray)
+    bad = []
+    for piece in PIECES:
+        fix = FIXTURES / (piece["name"] + ".fixture")
+        assert fix.is_file(), "%s: manifest row names a fixture that is not there" % fix
+        got = hashlib.sha256(fix.read_bytes()).hexdigest()
+        want = piece["fixture_sha256"]
+        if got != want:
+            bad.append((piece["name"], want, got))
+    assert not bad, "\n".join(
+        "%s: manifest fixture_sha256 %s but the committed file hashes to %s -- the "
+        "fixture is not the bytes the manifest records; re-record it with the parent "
+        "probe or restore the file" % (n, w, g) for n, w, g in bad)
+    # a cell that is not a sha256 digest is a lie about the file, not a hash mismatch
+    for piece in PIECES:
+        assert re.fullmatch(r"[0-9a-f]{64}", piece["fixture_sha256"]), piece["name"]
 
 
 # 7b -- the identity roots are DERIVED (director rules 2 and 3), never cells: the repo
