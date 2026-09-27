@@ -53,6 +53,19 @@ FILE SCOPE extensions/agi/bin/locations.py (worktrees_root) · cli.py · heal.py
 CEILING   HARD CAP: 2 kids (1: items 1-2 code, 2: item 3 nodes) · net <= 20 production lines (16 sites are one-token swaps) · <= 60 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
 
+## ROUND DH.650 -- conjunct 3 (repo half) + 4 + 5 (spawn refusal): kid and loop worktrees on their own root (TMM.306: the first freed slot)
+BASE      CUT FROM season2/loops/hypothesis-clean-kid-worktrees-p-a00-2a47eced tip 4cb4a8808 (branch de-base-650: the ONE-cell resolver locations.worktrees_root lives here). No merge. Never rebase.
+FIRST ACT config-max: every value below is a CELL in .agi/config.json (paths.<town>.* / reaper.*), never a literal; code only for the resolver and the two triggers.
+1. KID ROOT CELL: paths.<town>.kid_worktrees_dir (then paths.core.kid_worktrees_dir; absent = the worktrees_dir answer, so today's behaviour is byte-unchanged). locations.kid_worktrees_root(root, config, town) resolves it the way worktrees_root does. Spawn of a KID and of a LOOP (mur/review) worktree reads it; a POST worktree keeps worktrees_dir (cards and uncommitted edits must survive a power cut). One committed test pins all three (absent -> worktrees_dir; set -> the kid root; post -> never the kid root).
+2. REBOOT (conjunct 4): when the kid root exists and holds no worktree dirs, spawn runs git worktree prune ONCE before it adds the new worktree, and names it in one line. Test in a tmp repo only.
+3. HARD-WATER (conjunct 5, spawn half): reaper.kid_root_hardwater_pct (95): at or over it, spawn REFUSES the new kid worktree by name (the fill, the cell) instead of deleting anything. The guard's 80 pct high-water trigger is the guard's, not this round's.
+OUTSIDE   the tmpfs itself (GUARD_WORKTREE_TMPFS in guard.env + the guard-init mount + the user@ budget subtraction) is the box keeper's, off-repo: NAME it on your node for the director, never touch it. NEVER mount, create a tmpfs, or run sudo; tmp_path only.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_locations.py test_dispatch.py + one new test file + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/locations.py · extensions/agi/bin/dispatch.py (the spawn site only) · .agi/config.json (the cells) · one new test file · the kid's own node
+CEILING   HARD CAP: 2 kids (1: items 1-2, 2: item 3) · <= 30 production lines net over 4cb4a8808 · <= 60 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit AND every config/node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.529 (slice 1 of 2): mur-18 DH.499-k1..k3 accept_with_residue, config_max YES in all three verifies -- two cells for one worktree root, 16 literals left (claim-2 falsifier false), core-only cell vs the per-town claim, stale and mis-based node numbers. Slice 2 (the prune ancestry gate refusing every clean kid as unmerged + the owner's dirty-kid sweep, 04:4xZ) is its own round from this tip: both touch heal.py:1524.
+corrective DH.650: mur-director-engine-39 TMM.306-RAM-round residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
