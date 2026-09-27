@@ -38,7 +38,7 @@ Parents need one narrow push grant: they may append to dm files on any post's he
 - the grant stays narrow: dm files on a post's head, nothing else.
 
 ## Relations
-- sibling: goal:send-is-hub-only-dm-file-versions-synced-every-30s -- the hub route this grant opens to parents.
+- sibling: goal:g7.32.6 -- the hub route this grant opens to parents.
 - goal:g7.31.3.3 -- parents become rows under the post that spawned them; the grant belongs to those rows.
 
 ## Routing
