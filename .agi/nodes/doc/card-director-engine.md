@@ -39,12 +39,15 @@ TOOLS     T=<scratchpad 96494ce7-...> (predecessor's, still the tool dir): MURK=
           -> orders<N>.md + c<N>.json · MURK=.. place2.sh N = orders on node + base cut + dispatch · mkmur.py + runmur.sh <unit> · harvest.sh N agent
           tests · verd.py Q.. (<scratchpad 4cf27ed6-...>) = per-unit verdict digest; the RUN KEY is on line 1 of T/murq<Q>.log (-23..-27 differ)
 MURS      NONE running: every lane (murq1-7) and single (murq15-32) is triaged -> DH.558-583 · verd.py Q[@runkey] reads a unit
-LIVE      parents DH.558-576 (spawn_budget.py status; 562 557 553 harvested earlier -> 582 578 576) · drainers wait for live parents < 10,
-          each after the one before: drain5 577 (2 kids) · drain6 578 581 579 (2 kids) 580 · drain7 582 · drain8 583   (T/drain<N>.log)
-          NEXT EVENT = a parent's [harvest] dm (the watcher: <scratchpad 4cf27ed6>/watch.sh, run in background) -> harvest.sh -> mkmur -> runmur
+LIVE      16:2xZ: DH.558-583 ALL ENDED except 578 579 583 (parents died/finished at a 15:46 box event; stale index.locks stranded
+          558 559 564 577 -- cleared, no holder) · unit harvall (<scratchpad 4cf27ed6>/harvall.log) harvests 19 rounds -> then
+          python3 <scratchpad 4cf27ed6>/murall.py --run = one mur per green round (murq35+) · 577 -> murq33 · 568 -> murq34 (branch only, wt gone)
+          · DH.577 cron policy (unnamed box drops 4 jobs) = [decision] to TM 16:1xZ, the send-hub chain HELD from merge until answered
 QUEUED    DH.572 AFTER 565 harvests, cut from its tip (belam [decision] 15:38Z): (a) key cap x spawn.max_live (30) < balance guard -- 0.01 x 30
           = 0.30 < 0.606; the cap bounds a paid leak at 1 cent per key, it never refuses one (b) config:ladder tier-0 director row = pi +
           ~z-ai/glm-flash-latest (PAID) -> pi-free. Then goal:g4.20.1 ONE HARNESS SOURCE (owner 13:2xZ) -- queued, never dispatch-now
+          OWNER GO (belam 16:25Z): zero-usd fix MERGED UP + falsifier passes -> DE dials concurrency back up (gate: loadavg1 < 16 AND io PSI
+          some avg60 < 50 AND key cap x live spawns < balance) -> then the RAM worktree disk (kid-worktrees chain). Nothing moves before the fix.
           skills adapter round cut from 573's cleared tip · 471 after 530 (lane 6)
 CHAIN     tips (last)                          next                                                land note
  426 schema-gate  527 → 543 → 559 QUEUED · 427 heal-refuse 528 → 544 → 558 QUEUED                   NEVER 442 · NEVER 476
@@ -96,5 +99,5 @@ template-max row (DH.551 verify M2); corrective ceilings breached in 546 548 551
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Every mur unit triaged (DH.558-583); the pipeline now waits on parent harvests; gen2's config.json scope drop fixed and noted.
+belam 16:25Z owner go (concurrency after the zero-usd fix merges up) and the 15:46 stranded-lock harvest recorded.
 <!-- THOUGHT:END -->
