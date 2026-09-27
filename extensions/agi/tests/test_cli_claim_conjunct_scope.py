@@ -76,9 +76,8 @@ def _gate(tmp_path, n_probes):
     root = tmp_path / "graph"
     (root / "nodes" / "hypothesis").mkdir(parents=True)
     (root / "nodes" / "hypothesis" / "target.md").write_text(FIELD_NODE)
-    probes = [{"conjunct": n, "class": "gate", "cmd": "true",
-               "expected": "refuse", "observed": "refuse", "result": "pass"}
-              for n in range(1, n_probes + 1)]
+    probes = [{"conjunct": n, "class": "gate", "cmd": "true", "expected": "refuse",
+               "observed": "refuse", "result": "pass"} for n in range(1, n_probes + 1)]
     args = SimpleNamespace(parent="hypothesis:target",
                            node_id="experiment:kid", probes=json.dumps(probes))
     return cli._parent_probe_gate(root, {"tier": "parent"}, args, "proved")
@@ -109,3 +108,41 @@ def test_a_node_with_no_numbers_anywhere_yields_no_conjuncts(tmp_path):
         'testable_claim: "no numbering here"\n---\n\n# hypothesis:target\n\nprose\n'
     )
     assert cli._claim_conjunct_numbers(nf) == []
+
+
+def _done_project(tmp_path, n_probes):
+    import argparse, json
+    g = tmp_path / ".agi"
+    for d in ("hypothesis", "experiment"):
+        (g / "nodes" / d).mkdir(parents=True)
+    (g / "config.json").write_text("{}")
+    (g / "nodes" / "hypothesis" / "target.md").write_text(FIELD_NODE)
+    (g / "nodes" / "experiment" / "backer.md").write_text(
+        "---\nid: experiment:backer\ntype: experiment\ntitle: Backer\n"
+        "mint_id: backermint\nparents:\n- hypothesis:target\n---\n\nbody\n")
+    (g / "sessions" / "iter-001" / "a00-p").mkdir(parents=True)
+    rec = g / "sessions" / "iter-001" / "a00-p" / "agent.json"
+    rec.write_text(json.dumps({"id": "a00-p", "tier": "parent", "status": "running"}))
+    (g / "sessions" / "iter-001" / "manifest.json").write_text(
+        json.dumps({"agents": [{"id": "a00-p", "status": "running"}]}))
+    probes = [{"conjunct": n, "class": "gate", "cmd": "true", "expected": "refuse",
+               "observed": "refuse", "result": "pass"} for n in range(1, n_probes + 1)]
+    return rec, argparse.Namespace(
+        iter_n=1, agent_id="a00-p", verdict="proved", confidence=0.9,
+        node_id="experiment:backer", parent="hypothesis:target", notes="",
+        next_edge=None, evidence_runs=["experiment:backer"],
+        no_evidence_gate=False, owns=None, no_spawn_gate=False,
+        probes=json.dumps(probes))
+
+
+def test_done_call_site_ignores_the_body_review_conjunct(tmp_path, monkeypatch,
+                                                        capsys):
+    """cmd_done CALL SITE: field (1)(2)(3) + body review citing (1)..(4)."""
+    cli = _load_cli()
+    rec, args = _done_project(tmp_path, 3)
+    rec2, args2 = _done_project(tmp_path / "second", 2)
+    monkeypatch.setattr(cli, "_find_root", lambda: rec.parents[3])
+    assert cli.cmd_done(args) == 0 and '"status": "done"' in rec.read_text()
+    monkeypatch.setattr(cli, "_find_root", lambda: rec2.parents[3])
+    assert cli.cmd_done(args2) == 2 and "conjunct(s): 3" in capsys.readouterr().err
+    assert '"status": "running"' in rec2.read_text()  # refusal wrote nothing
