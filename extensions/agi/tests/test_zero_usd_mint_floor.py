@@ -208,6 +208,30 @@ def test_zero_usd_cap_guard_measures_the_cap_the_lane_can_spend(
     assert [m["limit_usd"] for m in mints] == [0.01], mints
 
 
+def test_zero_usd_cap_guard_runs_and_names_a_live_sibling_key(
+        tmp_path, monkeypatch, capsys):
+    """THE VACUITY FALSIFIER, now pinned. Every other test here stays green
+    if `cap_headroom` is never CALLED on a zero-USD lane (only `code == 0`
+    and `limit_usd == 0.01` hold, and `mint` forces the cap on its own).
+    GATE PROBE: pool $0.606, a live `agi-` sibling at limit 5.0 / usage 4.0
+    (spendable $1.00), floor EXEMPT, `--cap 1.00` — the guard must RUN,
+    refuse on the live headroom, and NAME it. FALSIFIER: exit 0, a mint, or
+    an ERR without the live term (i.e. the guard de-indented into the
+    `zero_usd` skip at dispatch.py:2372)."""
+    sibling = {"name": "agi-iter9-kid-a", "limit": 5.0, "usage": 4.0,
+               "disabled": False, "expires_at": "2999-01-01T00:00:00Z"}
+    code, mints = _zero_usd_dispatch(tmp_path, monkeypatch, "--cap", "1.00",
+                                     balance=(10.0, 9.394, 0.606),
+                                     keys=[sibling])
+    err = capsys.readouterr().err
+    assert code == 1 and mints == [], (code, mints, err)
+    assert "pool headroom $-0.39" in err, err
+    assert "live $1.00" in err, err
+    # ITEM 4: the exempt floor is MARKED, so this refusal cannot be read as a
+    # project that never declared one (paid path unchanged: see probeB).
+    assert "floor $0.00 (exempt)" in err, err
+
+
 def test_zero_usd_lane_refuses_a_dead_runtime_key_with_provisioning_absent(
         tmp_path, monkeypatch, capsys):
     """Item 5: the REAL `check_runtime_key_usable` (provisioning ABSENT, a 401

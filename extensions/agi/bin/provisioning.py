@@ -646,9 +646,13 @@ def cap_headroom(cfg: dict, root: Path | str | None,
     if cap > avail:
         _head = (f"round cap ${cap / slots:.2f} x {slots} slots = ${cap:.2f}"
                  if slots > 1 else f"round cap ${cap:.2f}")
+        # the MARKER a floorless pool cannot supply: an exempt lane's $0.00 is
+        # a DECLARED exemption, and the refusal must say so.
+        _floor_txt = (f"floor ${floor:.2f} (exempt)" if exempt_floor
+                      else f"floor ${floor:.2f}")
         return False, (
             f"{_head} exceeds pool headroom ${avail:.2f} "
-            f"(pool ${bal[2]:.2f} - floor ${floor:.2f} - live ${live:.2f}) "
+            f"(pool ${bal[2]:.2f} - {_floor_txt} - live ${live:.2f}) "
             f"(live counts each un-expired {NAME_PREFIX}- key's limit minus "
             f"usage; disabled and expired keys are free)")
     return True, None
