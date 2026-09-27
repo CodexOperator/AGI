@@ -1877,6 +1877,32 @@ def _read_answers_file(path: str):
     return data, None
 
 
+def _post_stamp(root, actor: str) -> dict:
+    """The CALLING post's `config:posts` row as frontmatter rows (claim 3).
+
+    The row is selected by EXACT name equality with the actor that is running
+    the mint (or, with no `--actor`, the post the environment names) — never
+    by prefix, never "the last row", so another post's row can never stamp.
+    Every value is READ from the row / the ladder cell; none is transcribed.
+    An empty dict when no row matches: an unstamped node beats a wrong one.
+    """
+    name = (actor or "").strip() or (geometry_config.resolved_seat_env() or "")
+    row = next((r for r in _load_seats(root) if r.get("name") == name), None)
+    if not row:
+        return {}
+    import season
+    try:
+        current = int(season._get_current_season(root))
+    except (TypeError, ValueError):
+        current = None  # a corrupt ladder cell stamps nothing, never a bad row
+    values = {"edited_by": str(row["name"]), "role": row.get("role"),
+              "town": row.get("town"),
+              "season": current,
+              "thought_session": row.get("session_name")
+              or row.get("session_id")}
+    return {k: v for k, v in values.items() if v not in (None, "")}
+
+
 def _answers_row_refusal(root, node_type: str, node_id: str, slug: str,
                          parents: list[str], set_fm: dict) -> str | None:
     """The ONE row validator the answers route runs — a thin WRAPPER, never a
@@ -2911,7 +2937,7 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
            set_fm: dict | None = None, payload: str | None = None,
            body: str | None = None,
            actor: str = "", session: str = "", role: str = "",
-           bypass: bool = False):
+           bypass: bool = False, post_rows: dict | None = None):
     """Mint a node — and, for a build node, the file it points at.
 
     **This is `write.py`'s other half, and its absence was the hole that made
@@ -2966,12 +2992,19 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
 
     # Provenance goes on through the same routine every other edit uses, so a
     # created node is not a node with a weaker record than an edited one.
-    if actor or session:
+    # `post_rows` (the answers route ONLY) is re-stamped HERE because
+    # `node_writer._stamp_env_fields` OWNS `season` and `role` at mint and
+    # overwrites whatever the file asked for, from the ENVIRONMENT; the post
+    # row is the authority the claim names, so it lands last. Absent (the
+    # argv route) this is a no-op and `create()` stays byte-identical.
+    stamp_rows = dict(post_rows or {})
+    if stamp_rows or actor or session:
         stamp = Edit(node_id=res.node_id)
         if actor:
             stamp.set_fm[PROVENANCE_ACTOR] = actor
         if session:
             stamp.set_fm[PROVENANCE_SESSION] = session
+        stamp.set_fm.update(stamp_rows)
         node_writer.update_node(root, res.node_id, set_fm=stamp.set_fm,
                                 log_extra=_log_provenance(actor))
     return res, created_file
@@ -3087,6 +3120,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
             return 1
         answers: dict = {}
+        post_rows: dict = {}
         if args.answers:
             answers, refusal = _read_answers_file(args.answers)
             if refusal:
@@ -3119,6 +3153,13 @@ def main(argv: list[str] | None = None) -> int:
         # claim 2: the answers route runs ONE row validator BEFORE the
         # dry-run short-circuit, so a bad row refuses on a dry run too.
         if answers:
+            # claim 3: the calling post's row fills the rows the answers file
+            # is SILENT on, BEFORE the validator — so a stamp goes through the
+            # same row rules and can satisfy a REQUIRED row. A row the file
+            # SETS wins; the stamp never overwrites an authored row.
+            post_rows = {k: v for k, v in _post_stamp(root, args.actor).items()
+                         if k not in answers}
+            set_fm.update(post_rows)
             refusal = _answers_row_refusal(root, script, f"{script}:{slug}",
                                            slug, parents, set_fm)
             if refusal:
@@ -3165,7 +3206,8 @@ def main(argv: list[str] | None = None) -> int:
                            set_fm=set_fm,
                            payload=args.payload or answers.get("payload"),
                            body=body, actor=args.actor, session=args.session,
-                           role=args.role, bypass=args.no_spawn_gate)
+                           role=args.role, bypass=args.no_spawn_gate,
+                           post_rows=post_rows)
         if res.rejected:
             print(f"ERR: spawn rejected for {res.node_id}: {res.reason}. "
                   f"Fix: {res.gate.fix} (--no-spawn-gate bypasses this, loudly.)",

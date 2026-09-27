@@ -100,6 +100,45 @@ def project(tmp_path: Path) -> Path:
     return graph
 
 
+#: A temp `config:posts` geometry with TWO posts, so "whose row" is testable:
+#: post-a is the caller, post-b must never stamp. Plus the ladder cell the
+#: `season` row is read from (config:ladder, never a literal here either).
+POSTS_MD = """---
+id: "config:posts"
+type: config
+posts:
+  - name: post-a
+    role: parent
+    town: local-maxxing
+    session_name: agi-a1
+  - name: post-b
+    role: council
+    town: sanctuary
+    session_name: agi-b1
+---
+
+# config:posts
+"""
+
+LADDER_MD = """---
+id: "config:ladder"
+type: config
+current_season: 7
+---
+
+# config:ladder
+"""
+
+
+def _geometry(project: Path, season: int = 7) -> None:
+    geo = project / "nodes" / ".geometry"
+    geo.mkdir(parents=True, exist_ok=True)
+    (geo / "posts.md").write_text(POSTS_MD, encoding="utf-8")
+    (geo / "ladder.md").write_text(
+        LADDER_MD.replace("current_season: 7",
+                          f"current_season: {season}"), encoding="utf-8")
+
+
 def _write_answers(tmp_path: Path, data) -> Path:
     path = tmp_path / "answers.json"
     path.write_text(json.dumps(data), encoding="utf-8")
@@ -209,6 +248,158 @@ def test_the_answers_route_adds_no_second_schema_rule_table():
 # --------------------------------------------------------------------------
 # KEEP BYTE-IDENTICAL — the existing routes do not move
 # --------------------------------------------------------------------------
+
+def _frontmatter_of(project: Path, name: str = "g9.9.9.md") -> str:
+    return (project / "nodes" / "goal" / name).read_text(encoding="utf-8")
+
+
+# --------------------------------------------------------------------------
+# claim 3 — the CALLING post's config:posts row stamps the rows the file omits
+# --------------------------------------------------------------------------
+
+def test_the_calling_posts_row_stamps_the_rows_the_answers_file_omits(
+        project, tmp_path):
+    f = _write_answers(tmp_path, _answers())
+    _geometry(project)
+    out, err, rc = _mint(project, f, "--actor", "post-a")
+    assert rc == 0, err
+    node = _frontmatter_of(project)
+    for row in ("edited_by: post-a", "role: parent", "town: local-maxxing",
+                "season: 7", "thought_session: agi-a1"):
+        assert row in node, f"the stamp is missing {row!r}:\n{node}"
+
+
+def test_the_stamp_comes_from_the_CALLING_posts_row_only(project, tmp_path):
+    """Falsifier 1: a post row that is not the caller's must not stamp — the
+    stamp is the POST's, never the environment's, argv's, or last-row's."""
+    f = _write_answers(tmp_path, _answers())
+    _geometry(project)
+    out, err, rc = _mint(project, f, "--actor", "post-a")
+    assert rc == 0, err
+    node = _frontmatter_of(project)
+    for other in ("post-b", "council", "sanctuary", "agi-b1"):
+        assert other not in node, f"another post's row stamped {other!r}"
+
+
+def test_an_unseated_caller_stamps_nothing_rather_than_a_wrong_row(
+        project, tmp_path):
+    f = _write_answers(tmp_path, _answers())
+    _geometry(project)
+    out, err, rc = _mint(project, f, "--actor", "post-nobody")
+    assert rc == 0, err
+    node = _frontmatter_of(project)
+    for row in ("role:", "thought_session:"):
+        assert row not in node, f"an unseated caller stamped {row!r}"
+    assert "town: core" in node, \
+        "town here is node_writer's pre-existing DERIVED town (its own "\
+        "setdefault), not the config:posts stamp"
+    # `edited_by` here is create()'s OWN provenance stamp from --actor, which
+    # every route has always carried -- not the config:posts row.
+    assert "edited_by: post-nobody" in node
+
+
+def test_a_row_the_answers_file_sets_wins_over_the_stamp(project, tmp_path):
+    """Falsifier 2: the stamp fills what the file is SILENT on, never an
+    authored row."""
+    f = _write_answers(tmp_path, _answers(role="kid", town="streaming-suite",
+                                          thought_session="authored-session"))
+    _geometry(project)
+    out, err, rc = _mint(project, f, "--actor", "post-a")
+    assert rc == 0, err
+    node = _frontmatter_of(project)
+    assert "role: kid" in node and "role: parent" not in node
+    assert "town: streaming-suite" in node and "local-maxxing" not in node
+    assert "thought_session: authored-session" in node and "agi-a1" not in node
+
+
+def test_season_is_owned_by_the_writers_env_stamp_on_both_routes(
+        project, tmp_path, monkeypatch):
+    """MEASURED, pre-existing, and the reason the post-row stamp is re-applied
+    after the mint: `node_writer._stamp_env_fields` OWNS `season` at mint and
+    overwrites whatever the mint carried with `AGI_SEASON`. The CONTROL below
+    is the pre-existing `--set` route, which loses its `season` row the same
+    way — so this is create()'s behaviour, not this round's."""
+    monkeypatch.setenv("AGI_SEASON", "5")
+    f = _write_answers(tmp_path, _answers())
+    _geometry(project)
+    out, err, rc = _mint(project, f, "--actor", "post-a")
+    assert rc == 0, err
+    node = _frontmatter_of(project)
+    assert "season: 7" in node and "season: 5" not in node, \
+        "the post row is the authority the claim names, so it lands LAST"
+    control = _run(["create", "goal", "g8.8.6", "--parent", "goal:g1",
+                    "--set", "goal_kind=subgoal", "--set", "status=active",
+                    "--set", "goal_id=G8.8.6", "--set", "origin=goals-doc",
+                    "--set", "tags=[core]", "--set", "confidence=0.5",
+                    "--set", "season=1", "--no-spawn-gate", "--root",
+                    str(project)])
+    assert control[2] == 0, control[1]
+    assert "season: 5" in (project / "nodes" / "goal" / "g8.8.6.md").read_text(
+        encoding="utf-8"), "the argv route already behaved this way"
+
+
+def test_the_stamp_lands_BEFORE_the_required_row_check(project, tmp_path):
+    """Falsifier 3: a stamp landing after `seed_required` would refuse a
+    required row the stamp was about to supply. The temp schema copy (the
+    LIVE [goal].md, read not transcribed) declares `town` required, and the
+    answers file omits it."""
+    schema = project / "context" / "schemas" / "[goal].md"
+    schema.write_text(
+        schema.read_text(encoding="utf-8").replace(
+            "  required: [id, type, mint_id, title, goal_id, goal_kind, "
+            "status, origin, seeds, confidence, tags]",
+            "  required: [id, type, mint_id, title, goal_id, goal_kind, "
+            "status, origin, seeds, confidence, tags, town]"),
+        encoding="utf-8")
+    f = _write_answers(tmp_path, _answers())
+    _geometry(project)
+    out, err, rc = _mint(project, f, "--actor", "post-a")
+    assert rc == 0, f"the stamp was refused as a missing required row: {err}"
+    assert "town: local-maxxing" in _frontmatter_of(project)
+
+
+def test_a_stamp_value_is_validated_by_the_SAME_row_validator(project,
+                                                               tmp_path):
+    """Falsifier 4: the stamp must go THROUGH the row validator, not around
+    it. The temp schema copy declares `town` a bool, so the post row's own
+    string value is a bad row and must be refused BY NAME."""
+    schema = project / "context" / "schemas" / "[goal].md"
+    text = schema.read_text(encoding="utf-8")
+    text = text.replace("  tags: {type: list}",
+                        "  tags: {type: list}\n  town: {type: str}")
+    text = text.replace("  types:\n    seeds: list",
+                        "  types:\n    seeds: list\n    town: bool")
+    schema.write_text(text, encoding="utf-8")
+    f = _write_answers(tmp_path, _answers())
+    _geometry(project)
+    out, err, rc = _mint(project, f, "--actor", "post-a")
+    assert rc == 2, out
+    assert "town" in err
+    assert not (project / "nodes" / "goal" / "g9.9.9.md").exists(), \
+        "an unvalidated stamp value must not reach disk"
+
+
+def test_a_corrupt_ladder_cell_stamps_no_season_row(project, tmp_path):
+    f = _write_answers(tmp_path, _answers())
+    _geometry(project)
+    (project / "nodes" / ".geometry" / "ladder.md").write_text(
+        LADDER_MD.replace("current_season: 7", 'current_season: "seven"'),
+        encoding="utf-8")
+    out, err, rc = _mint(project, f, "--actor", "post-a")
+    assert rc == 0, err
+    assert "seven" not in _frontmatter_of(project), \
+        "a non-int ladder cell must stamp nothing, not a bad row"
+
+
+def test_the_answers_route_mentions_no_transcribed_stamp_value():
+    """Every stamped value is READ from `config:posts` / `config:ladder`;
+    none of a row's own values is typed into write.py."""
+    src = (BIN / "write.py").read_text(encoding="utf-8")
+    body = src.split("def _post_stamp(", 1)[1].split("\ndef ", 1)[0]
+    for literal in ("local-maxxing", "sanctuary", "agi-", "current_season:"):
+        assert literal not in body, \
+            f"_post_stamp transcribed {literal!r} instead of reading the cell"
+
 
 def test_set_and_body_file_are_unchanged_without_answers(project, tmp_path):
     body = tmp_path / "body.md"
