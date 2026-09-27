@@ -46,6 +46,8 @@ QUEUED    DH.534 (532 held-lock fix; orders ON hypothesis:a-stale-index-lock-is-
           dispatch from wt a00-354f1396 AFTER cherry-picking 6f9b9a1d9) · 517 re-cut (model-fence; kid nodes + parent root-cause probe at 360b0f0a1)
           · the skills adapter round (hypothesis:skills-load-per-harness-per-tier-from-one-config-cell) after 526 clears · 429 tiny corrective · 471 after 530
 BLOCKED   501 merge (belam F13 trim: region 2009 > 2000)
+RESIDUES  of 6f9b9a1d9 (TMM.297, TM gates it on the targeted suite; not blocking): (c) dispatch.py:2196 prints limit=$1.0 while a zero_usd mint makes 0.01
+          (d) the outer `if` also skips check_runtime_key_usable + the --cap guard for zero_usd lanes -> ONE small corrective round (pi-free) after it lands
 ```
 
 ## §1 PLAN
