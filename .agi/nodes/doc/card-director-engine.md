@@ -50,7 +50,7 @@ CHAIN     next act                                                         land 
  g4.18.1.1       521 harvested 486 green; item 4 (a00-9086ec16) UNLANDABLE (bytes != write-log, row 21) -> mur-20
  g4.18.1.3       519 harvested 185 green (a00-4bf392d4 landed 36f928c7d) -> mur-20
  g4.18.1.4       497 -> mur510 slices
-  send-hub box    525 LIVE; TMM.289 CLEARED: belam backfilled 22/22 rows (91f9e1236, trunk merged 012c7b4bb; my branch adds no posts row) -> merge after 525 clears
+   send-hub box    525 harvested 538 green (+74 prod vs 25, config cell NOT landed: out of scope) -> mur525; TMM.289 CLEARED: belam backfilled 22/22 rows (91f9e1236, trunk merged 012c7b4bb; my branch adds no posts row) -> merge after 525 clears
   kid-worktrees   mur499 k1-k3 AWR (cm YES x3) -> 529 a00-34bf42d0 LIVE (slice 1: one cell + 16 literals + nodes) -> slice 2 from its tip: prune ancestry gate + OWNER dirty-kid sweep
   row 20 nudge    524 harvested 468 green (node landed 5c9c4120a) -> mur524 (run key mur-20 again: row 19 x2)
  thought-verb    522 harvested 242 green -> mur-20
