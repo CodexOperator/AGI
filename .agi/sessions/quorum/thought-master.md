@@ -8,6 +8,7 @@ formation   doc:formation-local-town: research-focused; no point / helper (direc
 trunk       MAIN /data/work/agi = local-maxxing/season2/main (no worktree) · tmux agi-rc window thought-master
 directors   BATCHES from me (owner 09-24, the formation): director-thought = research batches (reports when every hypothesis + leaf is built) · director-engine = engine-fix batches (reports when complete, no residue)
 rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · sudo works
+skills      agi-send · agi-node-write · agi-goal · agi-workflow · agi-verify · agi-rotate · agi-dispatch (read) · agi-memory-guard
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
@@ -178,22 +179,10 @@ context+     the ENGINE suite never runs .agi/context: a merge-up that RE-EMITS 
                its extensions/ identical = the engine suite carries; re-run only the context dir (gen 28: DE mu 13 landed alone in ~6 min)
              · the trunk's autouse model guard stubs only modules imported BEFORE a test: an in-body import passes alone and is refused in file
                order once an earlier file imports the real one (DH.413 closed it: import hook + allow_model_load)
-stages       a mur's pi STAGES run in their OWN systemd-run scopes (ppid systemd), outside the runner unit: stopping the unit leaves them
-             billing (06:4xZ 09-27) -> list /sys/fs/cgroup/user.slice/user-<uid>.slice/user@<uid>.service/app.slice/run-*.scope/cgroup.procs
-             by member cwd + comm, stop the stage scopes too; a Description holds the argv -> never print it · a scope whose ppid is systemd
-             and whose tool call died = an orphan (a 03:08Z recursive grep over MAIN read 25.7 GB, D state, io PSI ~60)
-relaunch     a director's SIGTERM can MISS a kid's relaunch (19:38-19:41Z: DT stopped OSC.45 at 19:38:5xZ; the kid's relaunch, started 19:38:54Z,
-             grew to 4921 MiB RSS, user@ 5366 over high) -> after ANY stop, re-list the round's processes by cwd in its worktrees (named fields)
-             and read user@ memory.current yourself; stop the kid AGENT too (the lease's agent_pid), and the orphan 'cli.py wait' pair
-             · send.py read can print 'empty' while a [red] sits in the dm log and a signed dm in inbox/thought-master.md (19:39Z): when a
-               nudge names a tag, read the raw dm log's last blocks + the inbox file's tail
 PASS         the Prime's PASS launcher WAITS while any suite lock is live (belam 1d3aba877, 13:48Z) -- a /dev/shm gate worktree's suite holds one
              too -> never start a gate suite in a PASS start window; stop a returned tip's suite at once
              · a PASS's mur runs import MAIN's LIVE workflow.py (3 runners, cwd MAIN, 16:0xZ): a workflow.py landing mid-PASS changes every chunk
                launched after it -> land mid-PASS only when the mur shape (no extends, no round stage) runs unchanged (gen 27, merge-ups 9 + 10)
-holds+       a prose NO MODEL LOAD in a round's brief does NOT bind a pi kid (TMM.226 13:28Z: kid a00-639868bf ran from_pretrained fp32 + re-ran a
-             HELD round under the Prime's (d)) -> under a model hold dispatch NO round that can reach a model script; the analysis = the director
-             by hand, until DE's dispatch-time fence (TMM.228) lands
 residues     before routing a residue to ANOTHER director, read the newest dm of the director whose round produced it (gen 25: DT's 2/3 at
              08:01Z had already fixed the model_slot flock item I routed to DE at 08:0xZ -> TMM.215 took it back)
              · accept_with_residue ≠ land (unified-director-brief:32) · NEVER waive a mur residue -- the owner's 09-19 rule gives each its own
@@ -239,10 +228,6 @@ stream       LIVE since the owner's 00:5xZ 09-25 call (the Prime's notice 01:59Z
              re-stamps it) · ListAgents PRINTS the Remote Control device rows (one is a personal machine name) -> resolve a director's session
              name from its posts row's session_name once joined, else the registry file whose tmux = agi-rc:<its @id>.* (NAMED fields only) --
              rotate.py status --record latest shows the last SUCCESS rotation, never a crash-recovery's session ([red] sent 02:0xZ)
-printing     ~/logs/memory-alarm-alerts.log tags EVERY line with the host name (field 2): tail it with cut -d' ' -f1,3- (02:35Z 09-27: brb + [red])
-             · ~/.claude/sessions/<pid>.json 'pidDomain' embeds /etc/machine-id; a transcript's 'bridge-session' event carries account + org uuids
-             -> print NAMED fields only, never a whole record (06:42Z + 06:48Z 09-25: two [red]s to belam) · a suite's E-lines can print a
-             FIXTURE key (test_rotate_alert_two_tree: a pytest-tmp priv_hex, protects nothing) -> filter E-lines on key|priv before printing
 recovery     a heal respawn (gen 22, 22:34Z) leaves the OWN row dirty in MAIN (gen + window written, session blank, uncommitted) -> a
              committing ack REFUSES · route (verified 22:37Z) = brb --status (relay down) -> ListAgents: the bare [ref] beside 'This session
              is' -> rotate.py ack --seat thought-master --gen N --ref <ref> --no-commit continue (the JOIN by @id back-fills pid + session_id
@@ -309,22 +294,7 @@ kid commits  DH.386 (DE, lands with e362e7947): `cli.py done` auto-commits the r
              list changed .geometry / doc:unified-* / town:* / goal:* files and read each
 board THOUGHT the town board's THOUGHT region is owner/prime-only: write.py 'thought ...' REFUSED for thought-master (goal:g12, 02:2xZ 09-26)
              -> an owner line that produced a board version rides VERBATIM in the row text + the dm that carried it
-disk         df -B1M <the path> FIRST: / (root: /tmp, /home) and /data (repo, worktrees) are DIFFERENT filesystems (18:3xZ 09-27: 45 worktree
-             removals freed /data while / stayed full) · a du over /tmp times out (6k entries): a `du -xm --max-depth=1` in the background
-             · my run_in_background jobs sit in run-*.scope units that systemd-oomd kills under a memory spike (18:07Z: census gone, no
-             output) -> a long job runs in foreground chunks (timeout 540) and is resumable · journalctl lines carry the HOST NAME (field 4):
-             never print them raw -- cut to the message
-io           /proc/pressure/io is its own axis (memory PSI ~2% while io full ~88%, 05:1x-05:3xZ 09-26): read /proc/diskstats (inflight, busy) + Writeback in /proc/meminfo · a write-bound stall drains its Writeback backlog for minutes after the writer stops -> never clear a writer on 'it did not ease in 2 min' (my VOID to belam 06:2xZ) · a recursive grep / find over MAIN's .agi/ walks 101 worktree checkouts (belam's 06:21Z [red]: the PASS 8 reviewer's grep -rln = 3.98 GiB of page cache, io60 36%)
-memory       VmHWM counts file-backed RSS (torch libs + the safetensors mmap) that the cgroup books as page cache: P8.03 VmHWM 2537 vs a
-             hard rise of 1805 -> read BOTH; gate (3) on the literal rule with VmHWM as the peak (the conservative reading, gen 27)
-             · /var/log/agi-memguard.log is the box memory truth (SPIKE / SUSPENDED lines: pid, RSS, MemAvailable) -- read it before quoting
-             any swarm's memory min (the Prime's 'min 6.2 GiB' was pre-overlap; the log had SUSPENDED a 4430 MiB python3 at 642 MiB) ·
-             a seat's cgroup is per PROCESS: /proc/<claude pid>/cgroup (a heal respawn landed in session-73.scope, outside user@1000.service's cap, 04:4xZ 09-26) · a talk-only model slot FAILS (two claims + a director ruling, both parents launched within 3 min) -> flock, box-wide
-             · UNITS: every cgroup number in ONE unit, bytes/1048576 = MiB -- a figure ~4.9 pct above its own table row is the MB tell (P8.04:
-               '5140 MiB' = 4902.3 MiB x 1.048576; DT's body + my TMM.247 both carried it, TMM.249 VOID) -> recompute from the raw bytes
-             · a kid's sampler can OUTLIVE its round (P8.12's sampler.sh, ppid 1, still appending 25 min on) -> find it by cwd in the round
-               worktree / 'sampler' in cmdline (it appends per sample: no fd held, no lock) · its scope's 'hard' can be active_file cache:
-               read memory.stat anon vs file before claiming a kill frees MiB · gen 28's own bash = session-73.scope (not billed to user@)
+box          -> skill agi-memory-guard (OWNER 19:22Z 09-27): memory · io · disk · stage + orphan scopes · relaunch · model holds · never-print
 successor    after a director rotation its posts row keeps the OLD session_name/window for minutes (DE 02:24Z: row -64 @10, live -93 @14):
              resolve the new session from ~/.claude/sessions/*.json by name/tmux (NAMED fields only), then SendMessage the owed order
 holds        a director may hold its own [merge-up] for its human (DE 00:55Z 09-26: its harness said an AI role's yes is not consent) ->
