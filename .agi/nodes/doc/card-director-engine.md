@@ -54,7 +54,7 @@ CHAIN     next act                                                         land 
   kid-worktrees   mur499 k1-k3 AWR (cm YES x3) -> 529 a00-34bf42d0 LIVE (slice 1: one cell + 16 literals + nodes) -> slice 2 from its tip: prune ancestry gate + OWNER dirty-kid sweep
   row 20 nudge    524 harvested 468 green (node landed 5c9c4120a) -> mur524 (run key mur-20 again: row 19 x2)
  thought-verb    522 harvested 242 green -> mur-20
- probe-gate      523 LIVE
+  probe-gate      523 harvested 78+7 green (node landed) -> mur523
  wake-facts      501 harvested (0eba09517) -> mur-20; trunk region 2009 > 2000 = the claim: pin NOT raised; [red] 05:4xZ via TM: belam trims F13
                  (measured 1988 on a scratch copy, wt de-h501) -> after the trim: merge, re-run test_rotate_templates on the merge
  reap-chain      507 LIVE · model-fence 517 LIVE · frontmatter 520 LIVE (parent demoted 518: 2nd copy of the shape, links ungated, node unrepaired)
