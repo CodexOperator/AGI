@@ -42,7 +42,7 @@ gen 12 first card. The traps that now live in a skill (merge-pass: 6 19 26 27 31
 | post | belam-S2-L5-XII gen 12 · woke 01:28Z 09-27 · Opus 5.5 |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` · stream DOWN (HELD) |
 | GUARD | OWNER GO 02:5xZ 09-27: model container brain-orcabonsai27b STOPPED (`docker start` restores) · docker budget 6656M -> 0 (guard.env.bak-20260927T*) · user@1000 high/max **12618M / 14021M** · agi-work.slice 9302M · sshd lane unchanged (reserve 1911M, ssh MemoryMin 64M CPUWeight 1000) · a pi stage ~210 MiB · load ~17/16 cores, io60 40-70 = the real bind |
-| merge | **PASS 10 RUNNING** since 01:31Z: BASE 9e16b8ed90 → TIP **6c403aeb4b** (pinned after the trunk sync of origin/season2/main @868d87c41) · 363 commits · 53 exp / 25 hyp · 43 engine paths · 30 rounds / 15 chunks (PER 2, CAP 3) + `rereview-b6438bd7e-capture-latch` in chunk1 · /tmp/belam-pass10/ |
+| merge | **PASS 10 CLOSED 04:0xZ 09-27**: season2/main **2129f70bb** (two-parent merge of TIP 6c403aeb4b; posts.md field-merged) · local-maxxing/main ff -> 6c403aeb4 · 30 rounds: 29 accept_with_residue, 1 demote, 0 RED · state file: last_merged_town_sha = 6c403aeb4b · next PASS BASE = 6c403aeb4b |
 | crons | CHECK f86b1cf9 "13 */4 * * *" (re-armed 01:3xZ) |
 | spend | credits 8.74 USD (01:31Z) |
 | dms | 03:0xZ [decision] -> TM: owner GO (DE cap 8 -> 12 -> 16 gated on load < 16 + io60 < 50; DT pause = TM's call; swarm-size test on TM's board) · 01:4xZ [decision] -> DE: hypothesis:wake-facts-collapse-to-skill-pointers (queued behind the redesigns) |
@@ -51,7 +51,7 @@ gen 12 first card. The traps that now live in a skill (merge-pass: 6 19 26 27 31
 ## §1 Plan
 ```
 done   wake: card re-linked, CHECK re-armed · PASS 10 steps 0-3 (stamp, trunk sync 6c403aeb4, build, launch) · g4.18.2: 8 skills + nodes + links, HEAD line, CLAUDE.md trim, facts trim -> DE
-next   PASS 10 steps 4-9 as chunks exit (verdicts.py, the re-review round first) · g4.18.2 remainder: prime brief trim, other posts' cards pick up the HEAD line at their next write
+next   g4.18.2 remainder: prime brief trim, other posts' cards pick up the HEAD line at their next write
 HELD   OWNER 21:1xZ: stream · encryption-town config · sanctuary-master activation -- until messaging is done
 open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hub-only-... has no goal_id/goal_kind (a renumber, on the owner's word) · §6
 ```
@@ -59,15 +59,13 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hu
 ## §2 Landed (this seat): 045d1aab3 wake re-link · 6c403aeb4 trunk sync (belam gen 12 key row) · 3 commits for g4.18.2: skills (8 files + 8 build nodes [goal:g4.18.2, idea:engine-skill-doc] + .claude/skills links, gitignore narrowed) · 9b2f1e378 HEAD line + DE hypothesis · 786dd91da CLAUDE.md 26,597 -> 10,123 bytes · d11cfc027 Prime template 10,470 -> 7,698 · d94a59fca g4.18.2 byte budget · OWNER 01:5xZ: monitor.sh io guard FINE-GRAINED (kills only processes whose ancestor argv carries this pass's tag; others -> spared.log) · sshd lane verified live (ssh.service MemoryMin=64M CPUWeight=1000, system.slice MemoryMin=128M, guard: chain live) · skills block -> doc:unified-director-brief, doc:unified-master-brief, 3 duty briefs, the DE/DT/TM/SM cards
 
 ## 🔴 Where it stops
-01:4xZ 09-27 belam-S2-L5-XII: PASS 10 chunks running (1-3 live, 4 held on a cleared 01:38Z WARN); g4.18.2 skills + CLAUDE.md trim landed
+04:0xZ 09-27 belam-S2-L5-XII: PASS 10 closed + reported (TM [merge-up], DE [decision]); worktree prune done; guard at 12618/14021M
 ```
-1. PASS 10: wait on the Monitor (monitor.sh; re-arm on expiry after reading events.log). Every exit -> python3 /tmp/belam-pass10/verdicts.py.
-   02:0xZ: chunks 1-3 in (6 rounds, all accept_with_residue, 0 RED; RED? flags = keyword FPs). b6438bd7e CONFIRMED by the re-review.
-   Residue table so far: /tmp/belam-pass10/residues.md. DE defect hypotheses owed at step 6: workflow.py:2417 harness-name gate refuses pi-free rounds ·
-   rotation_alert false "capture-latched ... holds" deferral · model_fence.py:29-36 KeyError. Then steps 4-9 (skill agi-merge-pass).
-2. g4.18.2 remainder: trim extensions/agi/briefs/prime-director-successor.md (10,470 bytes; its §0 wake + comms now live in agi-rotate / agi-send)
-   via write.py build:briefs-prime-director-successor 'replace payload N:M <file>'; measure the next wake's first meter read vs 0.092.
-3. DE owns: the redesigns (mint g4.18.1 -> send hub-only + g7.32.5 -> spawn/rotate g7.31.3.3) then the facts trim hypothesis.
+1. CHECK every 4 h (cron f86b1cf9, skill agi-merge-pass §1). Next notice when the trunk has new experiments past BASE 6c403aeb4b.
+2. OWED to thought-master (my 03:5xZ YES): when TM names DE's draft node + range, run ONE write.py config:rotations 'replace body N:M <file>'
+   -- keep test_rotate_templates.py:534's F16 hit (or DE re-pins in the same merge-up) and re-derive the facts first_turn range (rotations.md:76 + :114).
+3. DE queue: dispatch-now hypothesis:reap-chain-members-get-their-full-term-grace-again (read 03:50Z) · then the redesigns · then the 7 PASS 10 defects (b5f2c2423).
+4. Owner items open: TM's layout for DE concurrency (8 -> 12 -> 16, gated on load < 16 + io60 < 50) · DT pause = TM's call · swarm-size test on TM's board.
 ```
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
