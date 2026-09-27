@@ -2208,7 +2208,9 @@ def _foreign_memo_lock(path: Path):
     """Exclusive lock on a LOCK SIBLING, never on the memo itself: the rewrite
     swaps the memo's INODE, so a lock held on the old one excludes nobody. The
     read-filter-swap rewrite and the append that can race it take the SAME
-    lock, so a naming that lands inside the window is merged, not discarded."""
+    lock, so a naming that lands inside the window is merged, not discarded --
+    for writers that TAKE the lock (every checkout from 1f19e160c on). An
+    unlocked pre-1f19e160c writer appends to the OLD inode and loses the line."""
     lock = path.with_name(path.name + ".lock")
     lock.parent.mkdir(parents=True, exist_ok=True)
     with lock.open("a+", encoding="utf-8") as fh:
@@ -2263,7 +2265,9 @@ def _forget_refusals(to: str | None = None, root: Path | None = None) -> None:
         # and re-name a refusal already named. The read that builds the new
         # content happens INSIDE the lock, so an append that lands between it
         # and the swap is merged, never discarded (a discarded naming would be
-        # re-named forever, since the memo no longer holds it).
+        # re-named forever, since the memo no longer holds it) -- fleet-
+        # uniformly, i.e. for lock-taking writers: an UNLOCKED pre-1f19e160c
+        # checkout appends to the old inode and its line is still lost.
         with _foreign_memo_lock(path):
             lines = path.read_text(encoding="utf-8").splitlines()
             keep = [ln for ln in lines
@@ -2279,9 +2283,11 @@ def _forget_refusals(to: str | None = None, root: Path | None = None) -> None:
                 swapped = True
             finally:
                 # A temp that never BECAME the target is a stray in
-                # `.agi/sessions` -- remove it. After a successful replace
-                # `tmp` IS the live memo's name: unlinking it then would
-                # delete the memo itself, so the flag guards that arm.
+                # `.agi/sessions` -- remove it. After a successful
+                # os.replace(tmp, path) the tmp ENTRY IS CONSUMED and `tmp`
+                # is still a distinct name from `path`, so the guard is
+                # harmless, not load-bearing (measured: tmp.exists() False
+                # after replace, memo intact).
                 if not swapped:
                     tmp.unlink(missing_ok=True)
     except OSError:  # noqa: BLE001 -- an unwritable memo never blocks a sweep
