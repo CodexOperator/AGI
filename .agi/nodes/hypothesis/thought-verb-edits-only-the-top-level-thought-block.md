@@ -88,6 +88,18 @@ FILE SCOPE extensions/agi/tests/test_thought_hygiene.py · .agi/nodes/experiment
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 5b79c031b · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.607 -- closes mur-director-engine-31 DH.583-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-thought-verb-edits-on-a00-138c1736 tip ad54638d4 (branch de-base-607; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. The worktree skip is a post-walk filter, so the canonical row still walks 397 sibling checkouts -- extensions/agi/tests/test_thought_hygiene.py:292 -- `repo.rglob('*.py')` is unconditional; _SKIP_DIRS is applied per file at :294, so the rows are silenced but the cost is untouched: _marker_offenders(/data/work/agi/.agi) hit exit=124 at 600s and a bare rglob capped at 60k .py hit exit=124 at 180s. Prune dirnames in an os.walk walk (or bound the scan root) or the canonical verify inherits a 10+ minute row.
+2. Round overran the corrective's HARD CAP of 40 test lines -- extensions/agi/tests/test_thought_hygiene.py:240 -- `git diff --numstat 5b79c031b ad54638d4` = 63 added / 8 deleted (net +55) against the DH.583 order (commit 8875a46b8): '<= 40 test lines ... a byte or kid over it = the round is cut'. 0 production lines and all three items verifiably fixed; the overrun ruling is the Prime's.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_thought_hygiene.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_thought_hygiene.py · .agi/nodes/experiment/a00-3d6addb5-35610c.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over ad54638d4 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.583: mur-director-engine-27 DH.554-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.607: mur-director-engine-31 DH.583-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
