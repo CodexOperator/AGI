@@ -45,3 +45,21 @@ extensions/agi/bin/node_writer.py · extensions/agi/bin/write.py · extensions/a
 
 ## CEILING
 1 kid · <= 15 production lines · pi-free tier-0 · 0 USD. No test writes the live graph.
+
+## CORRECTIVE DH.522 -- closes mur-director-engine-17 DH.500-k1 (verify: DEMOTE)
+BASE      CUT FROM season2/loops/hypothesis-thought-verb-edits-on-a00-616b9d6c tip dffe6de60 (worktree de-m500). No merge. Never rebase.
+FIRST ACT template-max: ONE THOUGHT-marker definition lives in node_writer.py; every other reader CALLS it.
+1. node_writer.py:918-919 _THOUGHT_RE (old unanchored DOTALL regex) has zero references -> delete it.
+2. links.py:318 (re.search THOUGHT:BEGIN(.*?)THOUGHT:END) and :344 (bare substring test) read a quoted pair as a region -> call node_writer's fence-aware span.
+3. .agi/context/local-maxxing/sql/graph2sql.py:127 carries a third unanchored copy -> the same call (or a one-line import of node_writer's extractor).
+4. Restore the dropped falsifier-3 test test_no_thought_marker_regex_outside_node_writer (a00-5abd0370-fbda2f.md:57,70): it greps bin/ + that sql file for a THOUGHT-marker regex outside node_writer.py; its allowlist names only write.py:2807 and brief.py:2048 if they stay, each with a one-line reason in the test.
+5. The round's own new nodes carrying a raw marker (a00-4d2f632a-608d9d.md:171 and the rest the corpus gate names at base) -> escape the quoted marker with write.py so the corpus gate passes under the BASE definition too.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_thought_hygiene.py + test_links*.py + test_bin_help_smoke.py once (timeout 600, --basetemp under /tmp)
+FILE SCOPE extensions/agi/bin/node_writer.py · extensions/agi/bin/links.py (the THOUGHT readers only) · .agi/context/local-maxxing/sql/graph2sql.py (:127 only) · extensions/agi/tests/test_thought_hygiene.py · the round's own experiment nodes (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · net <= 10 production lines (deletions pay) · <= 50 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.522: mur-17 DH.500-k1 DEMOTE -- dead _THOUGHT_RE left in node_writer, fence-blind copies in links.py and graph2sql.py, the falsifier-3 test dropped, the corpus gate changed to pass the round's own raw-marker nodes. Demoted as notes: a balanced fence disqualifying a real END (no live case), brief.py routing outside scope (disclosed).
+<!-- THOUGHT:END -->
