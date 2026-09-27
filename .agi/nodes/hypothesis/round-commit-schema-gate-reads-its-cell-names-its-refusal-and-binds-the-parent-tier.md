@@ -44,5 +44,5 @@ extensions/agi/bin/cli.py · extensions/agi/hooks/agent-git/pre-commit · extens
 BASE      CUT FROM season2/loops/hypothesis-round-commit-schema-g-a00-5a917eb9 tip 73a3d5003 (worktree a00-5a917eb9). No merge. Never rebase. NEVER DH.442.
 0 production lines, 0 test lines: node wording only, EVERY edit through write.py (never a scripted rewrite: the write-log must attest each one).
 1. experiment:a00-cb8fae55-9c5f9e -- DH.513 added a stray fence (:145), a SECOND <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.559: mur-director-engine-24 DH.543-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.597: mur-director-engine-30 DH.559-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
