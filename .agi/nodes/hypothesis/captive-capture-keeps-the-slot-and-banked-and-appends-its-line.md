@@ -125,6 +125,20 @@ FILE SCOPE extensions/agi/tests/test_rotation_alert_capture.py · .agi/nodes/exp
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over fc4fa8132 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.649 -- closes mur-director-engine-39 DH.630-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-captive-capture-keeps-a00-98e396bb tip 1040a7b1f (branch de-base-649; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+0. NEVER run a committed test that calls rotate.cmd_rotate_self or any rotate/heal/send/dispatch entry (e.g. pytest -k rotate_self_step), not even on a /tmp copy: that shape TERM'd the prime (goal:g15.20). Readers and fixtures only.
+1. 4. Node body numstat wrong -- pastes '+31/-22', measured +30/-25.
+2. 5. Item-5 control count wrong -- pastes 8 failed/13 passed from 1ea22df7d's file; the real pre-round file at fc4fa8132 gives 9 failed/14 passed, so all nine are inherited.
+3. UNVERIFIED -- the node's pasted runs (23p/2x branch, 9F/14P/2X merge target, 8F/13P control, 2-failed/2-passed --runxfail gate) could NOT be reproduced by this reviewer: the sanctioned command runs the WORKTREE copy of the test file, which is the 13-test s2 version, not the range's 833-line file, because 1040a7b1f lives on a loop branch. I read the mechanism statically instead and it checks out (rotate.py:18036 fence-always; :18163-18167 subheader kept + whole slot replaced; the test's after-side assert at test:610-613 is exact-line list equality, so two '```' lines fail it). PROBE I WOULD RUN, NOT RUN: `git worktree add /tmp/dh630 season2/loops/hypothesis-captive-capture-keeps-a00-98e396bb` then `cd /tmp/dh630 && env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_rotation_alert_capture.py -q -p no:cacheprovider` (expect 23 passed, 2 xfailed), then the same file against `git archive 78c6354d9 extensions/agi` (expect 9F/14P/2X) and against `git archive fc4fa8132 extensions/agi` carrying the fc4fa8132 test file (expect 9F/14P/2X, NOT the 8F/13P pasted at node:219) -- which would settle defect 5's corrected control to the digit.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_rotation_alert_capture.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_rotation_alert_capture.py · .agi/nodes/experiment/a00-42ca5cbe-9e17ff.md · .agi/nodes/hypothesis/captive-capture-keeps-the-slot-and-banked-and-appends-its-line.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 1040a7b1f · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.630: mur-director-engine-35 DH.599-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.649: mur-director-engine-39 DH.630-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
