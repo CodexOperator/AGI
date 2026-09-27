@@ -67,6 +67,8 @@ THEN    verdicts: /data/work/agi/.agi/sessions/workflows/runs/mur-director-engin
 Skills carry them: agi-dispatch §5 (harvest, vanishing-wt) · agi-corrective (triage, orders ON the node, pi-free) · agi-workflow (stop = scopes too) · agi-node-write §5.
 Card-only: a clean round worktree is PRUNED while you use it -> land its edits first, test on git worktree add --detach de-h<N> · stale index.locks recur
 (row 18): check /proc cwd+fd holders, then rm · write.py sub is literal (no backslash-n, no empty replacement).
+Wake 13:2xZ: the hook printed `capture-chain step FAILED: rotate-self rc=3` although the self-rotation completed (record `started`, seat live) -- most likely the captive chain firing after the predecessor's own rotate; confirm from the capture-chain log before a findings row.
+A running bash script edited in place: sed -i swaps the inode, so the running loop keeps the OLD text -- add a batch as its own unit.
 
 ## ENGINE FINDINGS
 Rows on goal:g7.33.19 (1-21). BOX DRIFT (OOMPolicy unset on streamer-stub-watch.service; agi.slice drop-in absent) = thought-master's.
