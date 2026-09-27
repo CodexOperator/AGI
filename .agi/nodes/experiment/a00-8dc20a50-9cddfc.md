@@ -6,11 +6,17 @@ parents:
   - hypothesis:box-memory-guard-probe-reads-back-the-table-read-only
 next_edges: []
 confidence: 0.85
-edited_by: a00-8dc20a50
+edited_by: a00-c211fc9b
 evidence_runs:
   - experiment:a00-8dc20a50-9cddfc
 loop: hypothesis:box-memory-guard-probe-reads-back-the-table-read-only@s2
 model: stealth/space-bunny-alpha
+probes:
+  - "A.wire (residue 1): counted wrap on mem_cap._cache_path_pure plus one call of probe.cached_usable in a fresh process -- hit exactly once with the same cfg, so the read-only call site reaches the split bytes LIVE; a leftover private copy of the arithmetic would have left it at zero. PASS"
+  - "A.static (residue 1): the AST of probe.cached_usable carries no XDG_RUNTIME_DIR or AGI_MEMCAP_CACHE literal, no gettempdir, no _cache_names -- the second implementation is GONE, not shadowed. PASS"
+  - "A.gate (residue 1): mem_cap._cache_path_pure against a runtime dir that does NOT exist returned <dir>/capdir/verdict and the dir was still absent afterwards -- the pure resolver creates nothing. PASS"
+  - "B.auth (residue 2): the same write spies are LOUD on a caller the claim never authorises (mem_cap._write_cached_probe recorded tempfile.mkstemp and os.replace) and SILENT with zero new records on probe.cached_usable. That asymmetry is what makes spy.calls==[] falsifiable, since a spy that never fires would pass vacuously. PASS"
+  - "C.gate (residue 3): a planted SLASHLESS literal outside the table in probe.py turned the kid test RED at the planted line, and a planted .service shape turned it RED too; both plants removed, diff -q against the backup clean, 26 passed again. PASS"
 production_lines: 5
 profile: balanced
 role: kid
@@ -110,3 +116,54 @@ The probe reads live installed bytes and installs nothing; it ships no `{{PLACEH
 
 ## Agent Notes
 All three DH.450-k1 residues closed: one pure cache-path resolver in mem_cap, installed write spies, suffix-read dest-literal check (and a FILES_SRC index bug it exposed); +5 net production lines, 44 tests green.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW DH.462 (a00-c211fc9b) — ACCEPTED, verdict proved stands, probes recorded above.
+
+(1) WHAT THE INSTRUCTION SAID: three residues — split mem_cap's cache resolver into a PURE
+path function so ONE place computes the path; make _Spy's docstring true by INSTALLING
+os.replace/os.unlink/mkstemp; make the dest-literal test match slashless names, red-first.
+
+(2) WHAT THE MACHINE ACTUALLY DOES (bytes I read, not the node's table):
+- mem_cap.py:134-152 now holds `_cache_path_pure` (env → _cache_names → XDG_RUNTIME_DIR-else
+  tempfile.gettempdir(), returns the Path, touches nothing) and `_probe_cache_path` = that call
+  plus `_private_dir(path.parent)`. The writer's mkdir+chmod+refuse-foreign-dir fence is intact,
+  and the AGI_MEMCAP_CACHE branch still creates no dir (behaviour preserved).
+- probe.py:183-205 `cached_usable` is now four steps: the pure resolver, _trusted_cache_file, the
+  boot-id/value parse. The duplicated arithmetic is physically GONE, not commented out, and the
+  docstring sentence that CLAIMED to re-implement the cells was deleted rather than softened.
+- test_boxkit_probe.py:316-345 _Spy installs os.replace/rename/unlink/remove + tempfile.mkstemp/
+  NamedTemporaryFile/TemporaryFile and every spy RECORDS AND CALLS THROUGH; the docstring now
+  names exactly what is installed (it omits TemporaryFile — a one-word gap, not a false claim).
+- test_boxkit_probe.py:449-477 the dest check derives its suffix set FROM THE TABLE via
+  PurePosixPath(v).suffix over FILES+UNITS, so .service/.slice are covered without a hand-kept
+  list; and FILES_SRC was {r[1] for r in probe.UNITS} — the old {r[2]} was the MANAGER column,
+  so every unit shape was invisible to the check. That is a real defect the kid found and fixed.
+- Suite I ran myself: 44 passed (26 in test_boxkit_probe.py) on the three named files.
+
+(3) THE NEAR MISS each residue could have taken, and how I killed it:
+- a second arithmetic implementation left in probe.py "for clarity" — killed by A.static (the AST
+  of cached_usable has no env literal, no gettempdir, no _cache_names) and A.wire (a counted wrap
+  on mem_cap._cache_path_pure proves the live call site, not a dead helper, is the one in use).
+- the pure function still calling _private_dir, or the writer skipping the ownership refusal —
+  killed by A.gate: against a runtime dir that does not exist the pure call returns the path and
+  the dir is still absent afterwards.
+- a spy that records but never FIRES, so `spy.calls == []` passes vacuously — the exact defect
+  residue 2 was about, one layer up. B.auth is the control: the same spies are LOUD on
+  mem_cap._write_cached_probe (mkstemp + os.replace) and silent on probe.cached_usable.
+- a docstring shrunk to match a weaker spy — the kid installed the spies instead, and I read the
+  install block rather than the docstring.
+
+(4) IF I DEVIATED FROM A STANDING RULE: I ran the test plants on probe.py in my OWN checkout
+  rather than asking the kid for a transcript, because a claim about red-first evidence is a claim
+  about bytes, and the plant is one line I can revert (diff -q against the backup, clean, 26 passed
+  again). No standing rule forbids the parent running a probe in its own worktree; it forbids
+  taking the kid's word, which is what this does not do.
+
+CAVEATS I ACCEPT AS OPEN (they do not move the verdict):
+- the dest check is VALUE-based, so a duplicated literal that equals a table entry is invisible;
+  a per-table-node location check would be stricter.
+- `_probe_cache_path` still re-checks AGI_MEMCAP_CACHE in its early branch, so the pure resolver
+  is consulted twice on that path (same Path, no second arithmetic).
+- the spy docstring omits tempfile.TemporaryFile, which IS installed.
+<!-- THOUGHT:END -->
