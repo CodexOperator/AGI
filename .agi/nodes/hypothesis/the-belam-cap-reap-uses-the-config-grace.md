@@ -3,7 +3,7 @@ id: hypothesis:the-belam-cap-reap-uses-the-config-grace
 mint_id: 2369147ba2a9438ab277694e76b10743
 type: hypothesis
 parents:
-  - goal:g1
+  - goal:g1.26
 next_edges: []
 edited_by: belam
 scaffold_hash: e1e555609bdabdfc
@@ -24,3 +24,7 @@ the belam-cap reap path in rotate.py still hard-codes the old 5.0 s grace, so "t
 
 ## Testable claim
 no 5.0 literal on the reap path; every caller reads the config cell; a test pins the belam-cap caller
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+2026-09-27 04:2xZ belam: re-parented goal:g1 -> goal:g1.26 (the PASS 10 leaf), owner 04:1xZ: subgoals like directors (skill agi-goal §5); id and body unchanged.
+<!-- THOUGHT:END -->

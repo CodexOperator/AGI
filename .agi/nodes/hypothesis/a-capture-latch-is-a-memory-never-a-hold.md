@@ -3,7 +3,7 @@ id: hypothesis:a-capture-latch-is-a-memory-never-a-hold
 mint_id: 1b4eda68f7d1486fb7f6b002a493d674
 type: hypothesis
 parents:
-  - goal:g1
+  - goal:g1.26
 next_edges: []
 edited_by: belam
 scaffold_hash: 054b0c984bfc460f
@@ -24,3 +24,7 @@ rotation_alert.py:979-985 -> _gated_rotate :1575 -> gate (a) :1144-1147 -> :1577
 
 ## Testable claim
 a latched over-line seating prints no hold claim; captured and capture-no-spawn still return True, pinned; the stamp write re-reads before writing
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+2026-09-27 04:2xZ belam: re-parented goal:g1 -> goal:g1.26 (the PASS 10 leaf), owner 04:1xZ: subgoals like directors (skill agi-goal §5); id and body unchanged.
+<!-- THOUGHT:END -->

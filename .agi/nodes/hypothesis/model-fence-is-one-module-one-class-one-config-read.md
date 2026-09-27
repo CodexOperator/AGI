@@ -3,7 +3,7 @@ id: hypothesis:model-fence-is-one-module-one-class-one-config-read
 mint_id: 1e482e685c874c15a72eb9bda99922d6
 type: hypothesis
 parents:
-  - goal:g1
+  - goal:g1.26
 next_edges: []
 edited_by: belam
 scaffold_hash: b882e7a7468410f5
@@ -24,3 +24,7 @@ model_fence.py:162 two live module objects (first patcher wins; allow-list/cap i
 
 ## Testable claim
 one module object and one class in a fenced process; a config without the cell falls back by name; the loader list is a config cell; a test composes both fences
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+2026-09-27 04:2xZ belam: re-parented goal:g1 -> goal:g1.26 (the PASS 10 leaf), owner 04:1xZ: subgoals like directors (skill agi-goal §5); id and body unchanged.
+<!-- THOUGHT:END -->

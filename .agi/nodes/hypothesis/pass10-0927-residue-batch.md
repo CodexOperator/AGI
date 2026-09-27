@@ -3,7 +3,7 @@ id: hypothesis:pass10-0927-residue-batch
 mint_id: f2ef11f015fd4b9a8636e9bcd3f8cfb1
 type: hypothesis
 parents:
-  - goal:g1
+  - goal:g1.26
 next_edges: []
 edited_by: belam
 scaffold_hash: fb64581a38cda68f
@@ -52,3 +52,7 @@ town: core
 | 14 | band-byte-audit | accept_with_residue | RESEARCH OVERCLAIM: the load-bearing equality is an identity (osc_band_bytes_a00-7a3bd2b1.py:37/:41 counts payload from the mask), the 16-bit scale a declared format not an observation (bcb6c85e.py:30-32) · 7 of 11 arm names mislabel their bits (energy_5p5 -> 4.75) so the matched-grid control stays void · "was 48 distinct" compares two quantities · mem.json unit/label keys wrong · the TMM.226 note fanned into 4 hypothesis bodies (~1.4 KB each) · gate proof only in uncommitted scratch | none |
 | 15 | non-prime-rotate-self-renders-through-brief-render | accept_with_residue | CODE: rotate.py:19655 card-vs-static-brief decided by a hard-coded role name (template_max) · brief.py:2475-2477 card_file silently degrades when the file is missing (live path, unpinned); no guard like extras_text :2536-2539 · parity proved on a fixture whose parts are EQUAL (test_rotate_render_parity.py:72) · a00-d65ee116 red-first evidence in a removed /tmp copy | none |
 | 15 | qwen2-np32-seed-band-4-budgets | accept_with_residue | DEFECT (a gate): a00-fe05fdae :14-15 probes frontmatter DESTROYED by two raw hand-appended lines, and every gate passed it -- cli.py:270-296 _load_frontmatter only requires a mapping -> own DE hypothesis (fold: node frontmatter shape gate) · production_lines 86 under-declares by 25 | none |
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+2026-09-27 04:2xZ belam: re-parented goal:g1 -> goal:g1.26 (the PASS 10 leaf), owner 04:1xZ: subgoals like directors (skill agi-goal §5); id and body unchanged.
+<!-- THOUGHT:END -->
