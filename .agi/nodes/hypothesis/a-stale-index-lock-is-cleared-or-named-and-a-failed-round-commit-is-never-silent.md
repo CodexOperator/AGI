@@ -67,6 +67,24 @@ FILE SCOPE extensions/agi/bin/cli.py · extensions/agi/tests/test_stale_index_lo
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over e6e678bf2 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.564 -- closes mur-director-engine-25 DH.547-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-a-stale-index-lock-is-a00-0a868326 tip 62b036f4d (branch de-base-564; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. A held lock is still unlinked when the holder's /proc/<pid>/fd DIRECTORY is unlistable (cli.py:2384) — 'except OSError: fds = []' drops the whole pid, the same bug one level up
+2. 2. The exit-3 hop is still a read, never a test (test_stale_index_lock.py:189); cli.py:1775-1778 is never executed by any test
+3. 6. Test-line cap exceeded and disclosed rather than the round cut — net +41 vs the 40-line corrective CEILING
+4. §2's pasted PRE-FIX evidence does not correspond to the committed test: a00-ae90c756-c1bf84.md:96 '1 failed, 9 passed' is arithmetically impossible — the file has 9 tests (:101-200), so at most 8 pass when 1 fails — and the pasted path at :93 lacks the 'a dir with spaces' component the committed test creates at :106-108. My base-bytes run gives '1 failed, 8 passed' with the spaced path. The falsifier itself is real and reproduces (reason None, lock unlinked); the paste is from a draft — exactly the 'never type a number' clause the parent quotes at :225.
+5. The parent's three probes are cited by path (.agi/sessions/iter-DH.547/a00-0a868326/probe_fd.py, probe_cwd.py, probe_listdir.py) but `git ls-files` has no such file and .gitignore:42 ignores .agi/sessions/ — P1/P2/P3, the sole evidence for the demote to 80, are unreproducible from the tree, and unlike the kid's §2 no output is pasted for any of them.
+6. The parent's THOUGHT names the new test 'test_a_lock_held_above_an_unreadable_fd_is_never_never_removed' (doubled 'never', :225) — a citation that resolves to no symbol; the real name is test_stale_index_lock.py:101.
+7. _hold_lock_open (test_stale_index_lock.py:45-52) leaks a real process when its line-51 assert fires: the Popen at :45-46 is outside the try/finally the callers use (:95-96, :122-123), so a lost race orphans `sh`/`sleep 30` for 30s. Otherwise fixtures-only holds — every repo is under tmp_path and no tmux pane, systemd unit, crontab or engine process is touched anywhere in the file.
+8. A second unretracted claim of the same class the new CORRECTION exists to fix: a00-ae5fd524-8630cf.md:72 still says 'The exit-3 hop is PROBED live (P5), not in the test file' and :77 '-> rc 3 with commit FAILED:', while DH.534's own THOUGHT (:80) says 'my P8 (cmd_done -> rc 3) is a READ of the committed bytes, not a live rc'. The DH.547 correction (:85) fixes the cell claim and leaves the rc-3 claim standing; merge-up freezes it.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_stale_index_lock.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/cli.py · extensions/agi/tests/test_stale_index_lock.py · .agi/nodes/experiment/a00-ae5fd524-8630cf.md · .agi/nodes/experiment/a00-ae90c756-c1bf84.md · .agi/nodes/hypothesis/a-stale-index-lock-is-cleared-or-named-and-a-failed-round-commit-is-never-silent.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 62b036f4d · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.547: mur-director-engine-23 DH.534-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.564: mur-director-engine-25 DH.547-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
