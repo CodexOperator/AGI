@@ -34,7 +34,7 @@ Skills: agi-dispatch · agi-corrective · agi-workflow · agi-node-write · agi-
 ## §0 STATE (05:1xZ 09-27 · per-chain history = git log of this node)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br holds DH.424+431, 434, 430 chain (4af305171), 425 chain (3e327cf66) · trunk d6b893037
-RED       post br: test_bin_help_smoke[suite_guards.py] (430 chain's library module) -> DH.511 a00-bc1424df LIVE (1 exemption line) -> NO [merge-up] until green
+RED       post br: test_bin_help_smoke[suite_guards.py] (430 chain's library module) -> DH.511 harvested (2 lines, help smoke 72 green) -> mur511 running -> merge FIRST, then re-run help smoke on every chain (515 fails only this row)
 LIVE      parents (cap 10 = cell values.local_maxxing.de_live_parents arm): 501 759e6b60 · 507 fa4269d4 · 509 df266356 · 511 bc1424df · 512 256e7631
           · 514 792978f9 · 515 97ddb37e · 516 42e99d0a · 517 aae293b3 · 518 07292877   (all a00-)
           murs (systemd agi-director-engine-mur<N>; verdicts MAIN .agi/sessions/workflows/runs/mur-director-engine-1{3..9}/verify_DH.NNN-kN.json)
@@ -46,7 +46,7 @@ CHAIN     tip / state                                                           
  432 guard-piece 504 191 green, 4 kids vs 1, +246 test lines -> mur504; ANON: a kid node row prints the repo path value -> scrub next     NEVER 432 itself
  433 guard-inst  471 @07f7fdf01 -> mur471r (k1,k3 re-run)                                      land 432's chain FIRST
  g4.18.1.1       502 @5d92fc78d 315 green -> mur500 DH.502-k1
- g4.18.1.3       510 182 green (4 kids vs 1; geometry cell fix landed by me) -> mur510
+  g4.18.1.3       510 mur-18 k1+k2 AWR -> CORRECTIVE DH.519 section on the hypothesis node (76b1b31da) -> 519 a00-01725b8e LIVE
  g4.18.1.4       497 300 green (108 prod vs 45) -> mur510
  send-hub box    498 1593 green -> mur498 (k1 AWR in, k2 pending); parent goal has no goal_id (belam's node: flag in [merge-up])
  kid-worktrees   499 447 green: claim 2 built (worktrees_root cell + resolver); claim 1 NOT built -- kid found 'the prune already runs and removes
@@ -59,7 +59,7 @@ CHAIN     tip / state                                                           
  reap-chain      503 kid work committed by me b3e476aea (stale index.lock) UNREVIEWED -> 507 LIVE (review + belam-cap record test)
  model-fence     505 died -> 508 d6ccb1f7b: 3 REGRESSIONS in the context fence suite (1f/25p on post br -> 4f/22p) -> 517 LIVE (fix the module, no test edits)
  capture         493 AWR -> 509 LIVE (unfenced ## + ### rows; belam's card is ## unfenced)
- PASS 10         512 round-stages · 514 own-path-set (parent authorised a 2nd kid + edits 3 legacy test_cli.py fixtures OUTSIDE scope: at review check they do not
+ HARVESTED 05:2xZ 509 (219 green) 512 514 515 (181: only the inherited help-smoke row) 516 (node edits landed 7cabf1f8f) -> tests unit agi-director-engine-harvest1, log /tmp/de-harvest1.log -> murs next\n PASS 10         512 round-stages · 514 own-path-set (parent authorised a 2nd kid + edits 3 legacy test_cli.py fixtures OUTSIDE scope: at review check they do not
                  mask the parent-owns-kid refusal) · 515 capture-latch · 516 path-bin · 518 frontmatter-shape (all LIVE) · (5) belam-cap-reap HELD until 507 lands
 OWNER     04:4xZ asked 'How is the 92 unharvested worktree sweep going': answered 78 dirty non-live (58 node-only, 20 code), nobody sweeps; plan = round 2 of
           kid-worktrees (harvest-or-deprecate: logged node edits -> commit on the kid branch naming the owner; unlogged/code -> listed per owner; dry-run) after mur499,
