@@ -44,7 +44,7 @@ LIVE      DH.540 a00-c6a30652 (533 corrective) · DH.541-544 (the mur-20 correct
           which the node BASE lines omit -- the --orders files in the scratchpad carry it); wt de-base-<N>
 QUEUED    skills adapter round (hypothesis:skills-load-per-harness-per-tier-from-one-config-cell) cut from 526's cleared tip · 471 after 530
 CHAIN     loop tip (last)   state                                                            land note
- 426 schema-gate  527 → 543   mur-20 AWR -> DH.543 LIVE a00-51a6effb                            NEVER 442
+ 426 schema-gate  527 → 543   DH.543 harvested 117b61216 (4 nodes landed == write-log, 153p) -> murq16   NEVER 442
  427 heal-refuse  528 → 544   DH.544 harvested feeff05ac (3 nodes landed == write-log, 101p) -> murq15   NEVER 476
  432 guard-piece  530     lane 6                                                               NEVER 432 itself
  433 guard-inst   471     corrective AFTER 432 lands (mur-17 k1 unstructured, k3 AWR)
