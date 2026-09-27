@@ -37,12 +37,12 @@ LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: 429 chain 1ee2340c3
           (heal+cli+dispatch+zero-usd = 389 passed 0 failed) · skills eb3369efe (285 passed 0 failed) · nothing handed to TM since merge-up 13 ·
           01fc645d6 (agi-dispatch §5 sweep row) rides the SAME merge-up as the kid-worktrees chain, never without it
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [NOEX=1] [EXTRA=f,g] gen2.py N murq<Q>.json tip label [R4] -> orders<N>.md (check TESTS/FILE
-          SCOPE: empty when the diff has no code) · place2.sh N · drainqg.sh N:K.. (TMM.306-gated queue) · redispatch.sh · mkmur.py + runmur.sh
+          SCOPE: empty when the diff has no code) · place2.sh N (de-base-N in /dev/shm, removed after dispatch: TMM.308) · drainqg.sh N:K.. (TMM.306-gated queue) · redispatch.sh · mkmur.py + runmur.sh
           D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N.. > D/harvallN.log (chain units with a while-is-active wait)
 GATE      TMM.306 (TM 21:59Z): NO parent slot refilled until load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, then ONE step at a time
           (drainqg1 enforces it); stop nothing live · first freed slot = DH.650 RAM round (repo half) · arm 10 unchanged
 MURS      running murq119 = DH.638 · ENDED+TRIAGED: 97 106 108 112 114-118 -> DH.668 661 662 666 663 664 660 665 669 · next murq 120 · next DH 675
-LIVE      parents 650 a00-7e724480 (placed 22:46Z) · 645 harvested 1300bd8c9 · 638 harvested 568f0b68d (ladder red INHERITED) · gated queue (T/drainqg<N>.log, chained): qg1 [650 667 placed] 647 648 649 (T/drainqgf.sh: N:F = fresh round via T/placef.sh + T/h<N>.txt) ·
+LIVE      parents 650 a00-7e724480 (placed 22:46Z) · 645 harvested 1300bd8c9 · 638 harvested 568f0b68d (ladder red INHERITED) · gated queue (T/drainqg<N>.log, chained): qg1 [650 a00-7e724480 · 667 a00-8f91136c placed] 647 648 649 (T/drainqgf.sh: N:F = fresh round via T/placef.sh + T/h<N>.txt) ·
           qg2 651 652 653 · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660 661 662 663 664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 -- io avg60 ~61 > 50 · 640 assembled 1bf1dbf6c
 DEMOTED   (not correctives) 660/661/663 'checked CLEAR / not a defect' verify notes · 662: kid ran git diff --numstat (process note) · 665: V1 done-gate + V7 write-log = findings rows already, UNVERIFIED worktree-gone probe · 668: +76 test-line breach = row, timing note
 LOGS      belam [decision] 22:2xZ (owner): logs + sequential scratch -> the new flash mount, TM owns the move; DE owns the
@@ -105,6 +105,7 @@ does not flag an in-scope experiment with no verdict and no evidence_runs (mur-3
   (mur-37 DH.626, 4x in probe-gate) (b) skills/agi/SKILL.md:528 has no home for the structural-count rule (mur-38 DH.597).
 - TMM.268 (b) durable fix = a g7.33.17 row -- TM's. · config:brief `extras.parent` -- prime/owner. · claude-code kids on local-town -- owner's.
 - findings rows 22 13 17 unowned: TM to rank · residue-severity floor (node-text pointers -> demote) -- rule-changing, TM to judge.
+- 130 idle de-base-* worktrees = 19 GiB on the internal disk (TMM.308 reply 22:5xZ): prune ONLY on thought-master's go (delete burst = io).
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
