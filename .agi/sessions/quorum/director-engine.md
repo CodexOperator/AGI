@@ -35,9 +35,9 @@ Skills: agi-dispatch · agi-workflow · agi-node-write · agi-goal · agi-send �
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br holds DH.424+431, 434, 430 chain (4af305171), 425 chain (3e327cf66) · trunk a6d04759c
           RED ON POST BR: test_bin_help_smoke[suite_guards.py] (430 chain's new library module) -> DH.511 a00-bc1424df LIVE 04:36Z (orders (/tmp/claude-1000/-data-work-agi--agi-worktrees-post-director-engine/68c98329-2d26-4c01-a7ad-ac1ebbb6c93e/scratchpad/o511.md) = NEXT FREE SLOT; no [merge-up] until green
-LIVE      parents (cap 10): 497 263a936b · 499 42c4f9a2 · 501 759e6b60 · 507 fa4269d4 · 508 f957a4d9 · 509 df266356 · 510 a77d4234
-          · 511 bc1424df · 512 256e7631 · 513 5a917eb9   (all a00-)
-          murs (systemd agi-director-engine-mur<N>): 471r(k1,k3) 485r 492 498(k2 pending) 500(500+502) 504 506 · swarm-sampler2
+LIVE      parents (cap 10): 499 42c4f9a2 · 501 759e6b60 · 507 fa4269d4 · 508 f957a4d9 · 509 df266356 · 511 bc1424df · 512 256e7631
+          · 513 5a917eb9 · 514 792978f9 · 515 97ddb37e   (all a00-)
+          murs (systemd agi-director-engine-mur<N>): 471r(k1,k3) 485r 492 498 500(500+502) 504 506 510(510x4+497x2, key 18) · swarm-sampler2
 CHAIN     tip / state                                                                          land note
  425 bin-guard   MERGED 3e327cf66 (mur-16 DH.494 AWR, note residue demoted with reason)
  426 schema-gate 483 @663cd21e2 mur-14 k1+k3 DEMOTE (node wording: verdict vs THOUGHT, non-reproducing counts, dead test name, stale cites; k2 verify missing) -> 513 LIVE   NEVER 442
@@ -48,7 +48,7 @@ CHAIN     tip / state                                                           
  433 guard-inst  471 @07f7fdf01 -> mur471 running                                                land 432's chain FIRST
  434 memcap      MERGED 262107e12
  g4.18.1.1       502 @5d92fc78d (de-m502) 315 green -> mur500 slice DH.502-k1
- g4.18.1.3/.4    496 mur-16 AWR (geometry cell wrong dir, unvalidated location, silent skips, +70 vs 40) -> 510 LIVE · 497 LIVE
+ g4.18.1.3/.4    510 @(config fix landed by me) 182 green, 4 kids vs 1 · 497 300 green, 108 prod vs 45 -> both in mur510
  send-hub box    498 @69958a4a9 1593 green -> mur498 (2 slices); parent goal has no goal_id (belam's node: flag in [merge-up])
  kid-worktrees   499 LIVE: claims 1+2 (prune tool dry-run default + worktrees_root cell); claims 3 (tmpfs) + 4 (reboot prune) = next round; I run --apply only after review
  row 20 nudge    490+506 @5cf6b511e 480 green (test_send.py:5775 GREEN again); send.py +100/-21 vs post br (79 net) vs ceiling 36 -> mur506 (2 slices)
@@ -67,11 +67,11 @@ OWNER     21:1xZ via belam: send QUIET row cell + READ-ON-LANDING; HOLD stream /
 
 ## §1 PLAN
 ```
-done   489 harvested + mur · 494/495 correctives · g4.18.1.3/.4    496 mur-16 AWR (geometry cell wrong dir, unvalidated location, silent skips, +70 vs 40) -> 510 LIVE · 497 LIVE
+done   489 harvested + mur · 494/495 correctives · g4.18.1.3/.4    510 @(config fix landed by me) 182 green, 4 kids vs 1 · 497 300 green, 108 prod vs 45 -> both in mur510
 next   harvest each parent on exit (kid worktrees too) -> mur -> close residues -> merge cleared chains -> suite window -> ONE [merge-up]
 queue  (1) 490 corrective after mur490 · 501 harvest vs TMM.282's 3 conditions · (493 corrective = DH.509 LIVE; was: (mur-15 AWR: unfenced slot loses its header -- belam's LIVE card is ##-level UNFENCED (measured), so rows for ## + ### unfenced, rotate.py _replace_stops_body ~8094 if red; ceiling clause unread: spawn_budget._ceiling_clause cuts at the newline = a g7.33.19 row)
        (2) belam [decision] 04:03Z PASS 10 defects (goal:g1), in order, when a slot frees and no redesign piece is dispatchable:
-           model-fence = DH.508 LIVE · round-stages = DH.512 LIVE · NEXT: a-rounds-own-path-set-never-fails-open
+           model-fence = DH.508 LIVE · round-stages = DH.512 · own-path-set = DH.514 · capture-latch = DH.515 (all LIVE) · NEXT: the-belam-cap-reap-uses-the-config-grace
            · a-capture-latch-is-a-memory-never-a-hold · the-belam-cap-reap-uses-the-config-grace · a-path-shaped-bin-resolves-in-the-spawns-cwd
            · a-node-frontmatter-that-is-not-the-writers-shape-is-refused · then hypothesis:pass10-0927-residue-batch (30-round table)
        (3) g4.18.1: .2/.5 wait on .1's bytes -> send-is-hub-only rest (after .1) + g7.32.5 -> g7.31.3.3 rest (499 claims 3+4)
@@ -98,6 +98,7 @@ Traps live in the skills now (OWNER 03:3xZ): harvest + orders = agi-dispatch §5
 Card-only: `behind` -- interpolate the MEASURED rev-list count into a merge-up, never type it.
 
 ## ENGINE FINDINGS
+OWNER 04:4xZ asked about the 92 dirty kid worktrees (belam 690cdd781): measured 78 dirty non-live (58 node-only, 20 code); nobody sweeps them. My answer: round 2 of hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram (conjunct 5, harvest-or-deprecate: logged node edits -> commit on the kid branch naming the owning post; unlogged/code -> listed per owner, never touched; dry-run default) RIGHT AFTER DH.499 harvests (same tool file); offered to jump the PASS 10 queue -- no answer yet.
 Held as rows on goal:g7.33.19 (OWNER 03:3xZ; minted this session) -- never on this card. BOX DRIFT (OOMPolicy unset on streamer-stub-watch.service; agi.slice drop-in absent) = thought-master's, carried in the [merge-up].
 
 ## BANKED
