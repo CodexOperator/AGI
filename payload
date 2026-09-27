@@ -284,7 +284,6 @@
     },
     "local_maxxing": {
       "osc_band_seeds": [7, 21, 99],
-      "de_live_parents": {"arm": 10, "arms": [10, 5, 15], "ceiling": 16, "ceiling_if": {"loadavg1_lt": 16, "io_psi_some_avg60_lt": 50}, "hypothesis": "hypothesis:swarm-size-5-10-15-parents-fixes-per-hour"},
       "model_slot_min_avail_gib": 3,
       "lowpeak_head_rows": 64,
       "osc_band_row_contract": {
