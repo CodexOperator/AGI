@@ -2389,3 +2389,76 @@ def test_a_node_under_a_dotted_nodes_dir_is_never_round_committable(tmp_path, ca
     (root / "nodes" / ".geometry" / "seats.md").write_text(
         "---\nid: seats:cadence\ntype: seats\n---\n\nseats:\n  - a\n")
     assert not cli._round_committable(root, "seats:cadence")
+
+
+# --------------------------------------------------------------------------
+# hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused
+# --------------------------------------------------------------------------
+
+#: The PASS 10 c15 corruption, verbatim in shape: two raw hand-appended lines
+#: that YAML folds into the mapping as keys named `probes=["wire` and
+#: `probes=["wire:`. Every gate passed it, and `probes` itself is GONE.
+_GLUED_PROBES_NODE = (
+    "---\n"
+    "id: experiment:a00-fe05fdae-a240f5\n"
+    "type: experiment\n"
+    "parents:\n"
+    "  - hypothesis:h1\n"
+    'probes=["wire: (parent a00-a0e8250e, RAN) - recomputed both calls from band.json independently - MARGIN full range (adopted) 3/4, RANGE 1/4, HALF-RANGE 2/4; the node table reproduces exactly", "gate (parent, RAN) - sampler.log shows ONE 1.4 GiB weight-load step at 17:57:37Z and ONE compute window to 18:06:17Z, so VmHWM_children 2713.8 MiB is the successful run max, not a max over the disclosed double launch", "gate (parent, RAN) - mem.json scope_peak after 1769.3 MiB is BELOW this run own VmHWM 2713.8 MiB, so the cell note claiming the model_slot child chain shares that scope is FALSE and the scope figure does not bound the run; the headline peak is unaffected"]\n'
+    "\n"
+    'probes=["wire:: "recomputed both calls from band.json independently \\\\u2014 MARGIN(full range, adopted) 3/4, RANGE 1/4, HALF-RANGE 2/4; the node\'s table reproduces exactly\\", \\"gate: sampler.log shows ONE 1.4 GiB weight-load step (17:57:37Z) and one compute window to 18:06:17Z, so VmHWM_children 2713.8 MiB is the successful run\'s max, not a max over the disclosed double launch\\", \\"gate: mem.json scope_peak after 1769.3 MiB is BELOW this run\'s own VmHWM 2713.8 MiB, so its note \'model_slot child chain shares it\' is false and the scope figure does not bound the run; the headline peak is unaffected\\"]"\n'
+    "\n"
+    "season: 2\n"
+    "---\n"
+    "<!-- BODY:BEGIN -->\n"
+    "# experiment:e1\n\nThe kid wrote this body.\n"
+)
+
+
+def test_load_frontmatter_refuses_a_key_the_writer_could_not_have_written(tmp_path):
+    """A parsed mapping is NOT enough. A key carrying `=`/`[` is a raw
+    hand-appended line, and the writer only ever sets bare-token fields, so
+    `_load_frontmatter` names the defect instead of returning a mapping whose
+    real `probes` field has been silently destroyed."""
+    cli = _load_cli()
+    ok, fm, defect = cli._load_frontmatter(_GLUED_PROBES_NODE)
+    assert not ok
+    assert "sanctioned writer" in defect
+    assert 'probes=["wire' in defect
+    # The block DID parse -- which is exactly why the mapping check alone
+    # (cli.py:270-296 pre-fix) passed it.
+    assert isinstance(fm, dict) and fm.get("season") == 2
+
+
+def test_ensure_frontmatter_repairs_a_glued_probes_field(tmp_path):
+    """Refused at load, then REPAIRED: the two glued keys are gone, `probes`
+    is a real list of strings again, identity is intact, and the body below
+    the marker is untouched."""
+    cli = _load_cli()
+    node_file = tmp_path / "e1.md"
+    node_file.write_text(_GLUED_PROBES_NODE)
+    ap = tmp_path / "agent.json"
+    ap.write_text('{"node_id": "experiment:e1", "parent": "hypothesis:h1"}')
+
+    ok, msg = cli._ensure_frontmatter(tmp_path, node_file, ap, "experiment:e1")
+    assert ok, msg
+    text = node_file.read_text()
+    assert 'probes=["wire' not in text
+    ok2, fm, defect = cli._load_frontmatter(text)
+    assert ok2, defect
+    assert isinstance(fm["probes"], list), fm.get("probes")
+    assert any("reproduces exactly" in p for p in fm["probes"])
+    assert fm["id"] == "experiment:e1" and fm["type"] == "experiment"
+    assert "The kid wrote this body." in text
+
+
+def test_a_written_shape_key_is_never_refused(tmp_path):
+    """The gate is scoped to the writer's shape, not to a list of keys: a node
+    whose fields are all bare tokens loads exactly as before (fail-closed must
+    not become fail-everything)."""
+    cli = _load_cli()
+    text = ("---\nid: experiment:e1\ntype: experiment\nparents:\n  - hypothesis:h1\n"
+            "probes:\n  - one\n  - two\nproduction_lines: 12\nfoo.bar-baz: ok\n---\n\nbody\n")
+    ok, fm, defect = cli._load_frontmatter(text)
+    assert ok, defect
+    assert fm["probes"] == ["one", "two"]

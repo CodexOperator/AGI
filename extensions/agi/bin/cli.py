@@ -265,6 +265,20 @@ _BODY_BEGIN = "<!-- BODY:BEGIN -->"
 _FM_REQUIRED = ("id", "type", "parents")
 #: write-log operation for a sanctioned frontmatter repair.
 _FM_REPAIR_OP = "repair-frontmatter"
+#: The ONLY frontmatter key shape the sanctioned writer can produce. Every
+#: field arrives through `write.py <node> 'set <key> <value>'`, so the key is
+#: a bare token; `node_writer._render_value` then writes it as `key:`. A parsed
+#: key carrying `=`, `[`, a quote or a space could not have come from that
+#: path -- it is a raw hand-appended line that YAML folded into the mapping
+#: (`probes=["wire: ...` became a key). PASS 10 c15 measured 14 such nodes
+#: live, every one of them passed every gate (hypothesis:a-node-frontmatter-
+#: that-is-not-the-writers-shape-is-refused).
+_FM_KEY_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*$")
+
+
+def _off_shape_keys(fm: dict) -> list[str]:
+    """Keys of `fm` the sanctioned writer could never have written."""
+    return [str(k) for k in fm if not _FM_KEY_RE.match(str(k))]
 
 
 def _load_frontmatter(text: str) -> tuple[bool, dict | None, str]:
@@ -291,6 +305,11 @@ def _load_frontmatter(text: str) -> tuple[bool, dict | None, str]:
         return False, None, f"frontmatter YAML parse failure: {exc}"
     if not isinstance(fm, dict):
         return False, None, "frontmatter is not a YAML mapping"
+    off = _off_shape_keys(fm)
+    if off:
+        return False, fm, ("frontmatter key(s) not in the sanctioned writer's "
+                           "shape (a hand-appended line, not a `set` field): "
+                           + ", ".join(k[:60] for k in off))
     missing = [k for k in _FM_REQUIRED if not fm.get(k)]
     if missing:
         return False, fm, "frontmatter missing required field(s): " + ", ".join(missing)
@@ -333,6 +352,19 @@ def _salvage_frontmatter(header: str) -> dict:
     """
     out: dict = {}
     for line in header.splitlines():
+        # A raw append glued the value onto the key with `=` (`probes=["wire:
+        # ...`); the writer never spells a field that way, but the value is
+        # intact and recoverable, so salvage it under the real key rather than
+        # dropping the kid's evidence.
+        m = re.match(r"^([A-Za-z_][\w\-.]*)=(.*)$", line)
+        if m:
+            key, raw = m.group(1), m.group(2)
+            # FIRST wins, not last: a repeated glued append is the lossy
+            # one (its quotes are already doubled), so the intact list
+            # earlier in the block is the value worth keeping.
+            if raw.strip() and key not in out:
+                out[key] = _coerce_fm_value(raw)
+            continue
         m = re.match(r"^([A-Za-z][\w\-]*):\s*(.*?)\s*$", line)
         if not m:
             continue
@@ -395,6 +427,16 @@ def _ensure_frontmatter(root: Path, node_file: Path, ap: Path,
     # Preserve a block that parsed (it may just be missing fields); salvage
     # line-by-line only when it did not parse at all.
     new_fm = dict(_fm) if isinstance(_fm, dict) else _salvage_frontmatter(header or "")
+    # A parsed block can still carry keys the writer could not have produced
+    # (the `probes=["wire` append). Re-salvaging the header drops them and
+    # recovers the glued value under its real key; the render below would
+    # otherwise write the same garbage back out.
+    if _off_shape_keys(new_fm):
+        salvaged = _salvage_frontmatter(header or "")
+        for k in _off_shape_keys(new_fm):
+            new_fm.pop(k, None)
+        for k, v in salvaged.items():
+            new_fm.setdefault(k, v)
     nid = manifest.get("node_id") or node_id or new_fm.get("id") or ""
     ntype = manifest.get("scaffolded_node_type") or (_fm or {}).get("type") or new_fm.get("type")
     if ":" in str(nid) and not ntype:
