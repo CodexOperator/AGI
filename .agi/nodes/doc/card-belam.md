@@ -21,13 +21,13 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 11, 01:0xZ 09-27: this version records the owner's spawn/rotate design (pasted from gen 10's pane, confirmed 00:5xZ). (1) The paste said: "Parents need one narrow push grant: they may append to dm files on any post's head. Mint it as a sibling goal to goal:send-is-hub-only-...". (2) Gen 11 first read "it" as the whole design and minted it all under g7.32 (7bf8b8437); the owner then asked "It probably goes under the rotate/spawn goal doesn't it?" -- goal:g7.31.3 is the route goal naming rotate|spawn. (3) The near miss: the whole design as g7.32's sibling satisfies the paste's words and loses the owner's placement. So the design is goal:g7.31.3.3 and g7.32.5 was re-versioned in place as the push grant (the messaging half), each quoting its own half of the owner's 00:38Z words byte for byte from transcript 64d3d99e (5c3538f94). The owner's formatting reminder went to DE with both goals; this seat's own formatting slip (a body file carrying its own H1, so create doubled it) is fixed on g4.18.1, g7.32.5 and the card-relink hypothesis. The DE dm reads [undelivered-yet] (pane busy): it is in DE's inbox file and the sweep retries.
+gen 11, 01:1xZ 09-27: this version follows the owner's 01:0xZ order -- every new active goal and the three graph redesigns (messaging+nudge, spawn/rotate, node spawn/mint) now live on the town:local-maxxing board (531ab30f3: GOAL BUNDLE tree, goal-id rows, a redesigns line and a HELD line), so directors find the work there; this card keeps only a pointer. The near miss: a board line naming the redesigns satisfies 'on the board' and loses what a director needs to act -- the goal ids, the assignee and the order -- so each goal has its own row. write.py refuses a replace that starts mid-paragraph, so each insert replaced its whole block, byte-identical plus the new lines (diff: 11 body lines added; only write.py's two provenance stamps changed). Why g7.31.3.3 and g7.32.5 are split is argued in their own THOUGHT blocks (5c3538f94).
 <!-- THOUGHT:END -->
 
-## §0 State (01:0xZ 09-27)
+## §0 State (01:1xZ 09-27)
 | | |
 |---|---|
-| post | belam-S2-L5-XI gen 11 · woke 23:1xZ 09-26 · Opus 5.5 · IDLE, PASS 10 armed · meter ~0.31 |
+| post | belam-S2-L5-XI gen 11 · woke 23:1xZ 09-26 · Opus 5.5 · IDLE, PASS 10 armed · meter ~0.33 |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` (= season2/main 49d2b6f6a at 17:4xZ) · tz UTC · stream DOWN (HELD) |
 | GUARD | user@1000 high **6628M / max 7365M** (raised 19:5xZ on the owner's go: guard docker budget 8G -> 6.5G, guard.env.bak-20260926T1955Z; the model container keeps its own 8G cap, peak 6.8G at load) · a pi stage ~210 MiB |
 | TOWN | DE gen 26 (adec7d699) · DT gen 34 (386.8k tokens at 21:37Z, "rotate me soon"; TM rotates it) · TM gen 29 · SM DOWN (owner's go) · 4 kid-worktree suite locks are pre-reboot dead pids |
@@ -39,16 +39,16 @@ gen 11, 01:0xZ 09-27: this version records the owner's spawn/rotate design (past
 
 ## §1 Plan
 ```
-done   PASS 8 · PASS 9 (closed 17:43Z at 49d2b6f6a) · CHECKs 08:4x / 12:4x / 16:4x / 20:2x / 00:17Z · gen 11: crons re-armed, card re-linked · owner's go items -> DE · DT row checked (no change) + (default) refusal -> DE · spawn/rotate g7.31.3.3 + push grant g7.32.5 -> DE
-next   PASS 10 at 01:23Z (re-review b6438bd7e) · 04:13Z CHECK · judge DE/DT merge-ups · per-spawn caps land (DE) · send hub-only incl. the (default) refusal + g7.32.5 (DE), then g7.31.3.3 + g4.18.1 + the card-relink fix (DE)
+done   PASS 8 · PASS 9 (closed 17:43Z at 49d2b6f6a) · CHECKs 08:4x / 12:4x / 16:4x / 20:2x / 00:17Z · gen 11: crons re-armed, card re-linked · owner's go items -> DE · DT row checked (no change) + (default) refusal -> DE · spawn/rotate g7.31.3.3 + push grant g7.32.5 -> DE · all of it on the town board
+next   PASS 10 at 01:23Z (re-review b6438bd7e) · 04:13Z CHECK · judge DE/DT merge-ups · per-spawn caps land (DE) · the graph redesigns (DE): goals + order on the town:local-maxxing board
 HELD   OWNER 21:1xZ: stream · encryption-town config · sanctuary-master activation -- until messaging is done
 open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hub-only-... (gen 10's mint) has no goal_id/goal_kind: fixing it is a renumber, on the owner's word · §6
 ```
 
-## §2 Landed (this seat): 1cf8c1313 crons re-armed + quorum card re-linked · 41bacd5ff goal:g4.18.1 + hypothesis:rotate-keeps-the-quorum-card-a-symlink-to-its-node + GOALS.md render · 46d1d17e1 the (default)-box note on goal:send-is-hub-only-... · 7bf8b8437 + 5c3538f94 goal:g7.31.3.3 + goal:g7.32.5 (owner's words verbatim) + H1 fixes · 3 [decision]s -> DE · section 1 (A) reads the inbox file (box-local) · this card
+## §2 Landed (this seat): 1cf8c1313 crons re-armed + quorum card re-linked · 41bacd5ff goal:g4.18.1 + hypothesis:rotate-keeps-the-quorum-card-a-symlink-to-its-node + GOALS.md render · 46d1d17e1 the (default)-box note on goal:send-is-hub-only-... · 7bf8b8437 + 5c3538f94 goal:g7.31.3.3 + goal:g7.32.5 (owner's words verbatim) + H1 fixes · 531ab30f3 the redesigns on the town board · 3 [decision]s -> DE · section 1 (A) reads the inbox file (box-local) · this card
 
 ## 🔴 Where it stops
-01:0xZ 09-27 belam-S2-L5-XI: the owner's spawn/rotate design is goal:g7.31.3.3 + the push grant goal:g7.32.5, both to DE with the formatting reminder (5c3538f94); idle until PASS 10 at 01:23Z
+01:1xZ 09-27 belam-S2-L5-XI: the three graph redesigns + every new active goal are on the town:local-maxxing board (531ab30f3); idle until PASS 10 at 01:23Z
 ```
 0. WAKE (a successor): re-arm the CHECK -- CronCreate "13 */4 * * *", recurring, the POINTER prompt to section 1 of .agi/sessions/prime-merge.crons.md (exact text: transcript 64d3d99e at 17:26:40Z, or c4291177); re-link the quorum card (trap 10). Re-arm the PASS 10 one-shot too (CronCreate "23 1 27 9 *", recurring false, the POINTER prompt to section 2) unless the state file carries pass_started_at; if run_at is already past, run section 2 now (CHECK case d).
 1. PASS 10 is armed (b859e98b): section 2 is current (BASE 9e16b8ed90, p10 keys, /tmp/belam-pass10/ from /tmp/belam-pass9/); at 00:17Z origin/season2/main is NOT an ancestor of TIP, so step 1's sync merge runs first.
