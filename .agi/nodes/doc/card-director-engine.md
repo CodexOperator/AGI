@@ -31,7 +31,7 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (20:3xZ 09-27 · per-chain history = git log of this node)
+## §0 STATE (20:3xZ 09-27 · rotated at f=0.45 · per-chain history = git log of this node)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 merged 32ff79e53 · 429 chain MERGED 1ee2340c3 · DH.515 MERGED 64130e4ec
           (post br NOT suite-run; nothing handed to TM since merge-up 13) · 01fc645d6 agi-dispatch §5 worktree-sweep row (owner via belam
@@ -40,9 +40,9 @@ TOOLS     T=<scratchpad 96494ce7-...>: MURK=<run key> [NOEX=1] [EXTRA=f,g] gen2.
           (orders on node + base cut + dispatch) · redispatch.sh N.. (re-fire a placed round; gates / >= 5G + live < arm) · drainqw.sh + WAITFOR
           (queue) · mkmur.py/runmur.sh (runmur4.sh = 4G) · harvest.sh      D=<scratchpad 4cf27ed6-...>: verd.py Q[@key] (verdict digest; run key =
           line 1 of T/murq<Q>.log) · harvest-all.sh N.. > D/harvallN.log · harvest-kid.sh · murall.py --run (HLOG= Q0=; KNOWN = accepted old-base reds)
-MURS      running murq67 69-73 75-77 81 = DH.598 605 608 589 594 595 601 606 607 599 (map: T/murq<Q>.json key) · next murq 82, next DH 623
+MURS      running murq67 69-73 75 77 81 = DH.598 605 608 589 594 595 601 607 599 (map: T/murq<Q>.json key) · next murq 82, next DH 624
 LIVE      parents 592 602 612 613 614 616 617 (spawn_budget.py) · queued: redisp3 615 (kid fixed nothing) · redisp4 597 (ended EMPTY) ·
-          drainq14 618 · drainq15 619 620 621 · drainq16 622 (T/drainq<N>.log) · 621 re-applies DH.610's 4 node edits left UNLOGGED in wt a00-52167e83 · 608's ordered ladder revert (prime_director settings ultracode -> "") is UNCOMMITTED + unlogged in worktree a00-22577533:
+          drainq14 618 · drainq15 619 620 621 · drainq16 622 · drainq17 623 (T/drainq<N>.log) · 621 re-applies DH.610's 4 node edits left UNLOGGED in wt a00-52167e83 · 608's ordered ladder revert (prime_director settings ultracode -> "") is UNCOMMITTED + unlogged in worktree a00-22577533:
           never hand-land it -- the next 608 corrective re-applies it via write.py (its red test_ladder_node_declares_roles_table waits on it)
 GATE      OWNER GO (belam 16:25Z, TMM.300): step values.local_maxxing.de_live_parents.arm up ONE arm (10 -> 15) only while loadavg1 < 16 AND io
           PSI some avg60 < 50 AND key cap x live spawns < balance AND / free >= 5G (TMM.303); re-read each step, step back on any fail. HOLD all day
@@ -55,7 +55,7 @@ DECISION  out to TM 16:1xZ: DH.577 cron policy (AGI_BOX unset -> the fail-closed
 CHAIN     last round (→ = corrective)                                                               land note
  426 schema-gate 527 → 543 → 559 → 597 REDISP · 427 heal-refuse 528 → 544 → 558 → 592 LIVE           NEVER 442 · NEVER 476
  probe-gate 523 → 541 → 560 → 589 m71 (541 demote = merge order: e12a57722 rides the tip) · row 20 nudge 524 → 542 → 561 → 602 LIVE
- trunk reds 538 → 545 → 562 → 582 → 606 m76 · zero-usd 537 → 546 → 565 → 572 → 608 m70 (ladder revert unlanded, see LIVE)
+ trunk reds 538 → 545 → 562 → 582 → 606 → 623 · zero-usd 537 → 546 → 565 → 572 → 608 m70 (ladder revert unlanded, see LIVE)
  stale-lock 532 → 534 → 547 → 564 → 594 m72                                                        532 NEVER merges alone
  model-fence 508 → 517 → 536 → 539 → 548 → 566 → 590 → 613 LIVE                                      R4 NEVER run (row 22)
  kid-worktrees 529 → 533 → 540 → 563 → 598 m67 (B7 cells landed 0b9921e2d)
@@ -77,7 +77,7 @@ next   (1) per ENDED mur: D/verd.py Q -> CLEAN = git merge --no-ff the chain's l
 ```
 
 ## 🔴 WHERE IT STOPS
-Rotated at the line: 10 murs + 7 parents running, 615 597 618-622 queued on drainers; nothing merged this seat; cron-policy decision out to TM.
+Rotated at the line: 9 murs + 7 parents running, 615 597 618-623 queued on drainers; nothing merged this seat; cron-policy decision out to TM.
 ```
 FIRST   spawn_budget.py status ; systemctl --user list-units 'agi-director-engine-*' --all ; python3 D/verd.py <Q> per ended murq
 THEN    clean -> git merge --no-ff <loop branch> (card order) · residue -> MURK=.. T/gen2.py + T/place2.sh (queue: T/drainqw.sh + WAITFOR)
@@ -105,5 +105,5 @@ commits · parents strand non-node edits · the 09-26 lograce test burst left 17
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Final card at the rotation line (20:3xZ): 11 murs + 7 parents running, 615 597 618-621 queued; 610's and 608's unlogged node edits routed to correctives, never hand-landed.
+Final card, rotated at f=0.45 so no step straddles the line: 9 murs + 7 parents running, 615 597 618-623 queued on drainers; nothing merged this seat; the cron-policy decision is out to TM.
 <!-- THOUGHT:END -->
