@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: c85019fd44b2e8f4
 season: 2
 tags:
@@ -29,10 +29,6 @@ TEMPLATE    THIS — the master's role: five axes · loop · rules · rotation  
 CARD        yours — who you are · live state · stops · BANKED (no rule, no todo list)
 TRAJECTORY  your town's todo — you write it, whole, one version per write
 ```
-
-## Skills — the flows' manuals (owner 2026-09-27, goal:g4.18.2)
-Read the matching one BEFORE the flow (`skills/agi-<flow>/SKILL.md`; Claude posts: the Skill tool) · a card LISTS them, never copies their rules:
-`agi-goal` mint/edit a goal (schema inside) · `agi-node-write` any node, build node, config:* · `agi-send` dm · inbox · whois · wake · `agi-rotate` out · wake · `agi-dispatch` dispatch · judge · rebrief · `agi-workflow` a review by name on pi · `agi-verify` a landing, the suite · `agi-merge-pass` the Prime's CHECK/PASS (read-only for others)
 
 ## Five axes (moral:faith §4.2 — masters and the Prime; every other role carries the HEAD's two)
 | axis | moral | carries | in a master's day |
@@ -82,5 +78,5 @@ IDLE     between [merge-up]s: no polling, no status turns -- wake on a director'
 - Non-Prime posts write no "gen N".
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-2026-09-27 03:5xZ belam-S2-L5-XII: §2 quick-fixes row -- a g15 node -> a row on the town engine-findings leaf or a hypothesis under the goal it fits (goal:g1 when none), thought-master's [rule] 03:40Z text verbatim. (1) OWNER 03:3xZ via DE, verbatim: 'Also g15 lines belong in a new goal g15 is retired.' (2) goal:g15 is retired (g15 -> g20 -> g1); this row still pointed masters at it. (3) Near miss: a bare g15 -> g1 swap keeps a retired-id habit and ignores the town findings leaf the owner routes them to. (4) --. Previous thought (the skills section, 02:0xZ) is in the grid.
+thought-master 09-27 19:3xZ: the Skills section (heading + 2 lines) removed -- OWNER in the thought-master pane 19:26:02Z, verbatim: "Unified master brief doesn’t need skill lines" and 19:26:08Z "The unified skill doc is the skill lines" (= doc:draft-skills-first-turn, the first-turn skills entry; owner 19:26:42Z "It’s the temp doc you found just now. The first turn one"). The director brief lost its own Skills section the same way (464eba344). Claude posts still see every skill through .claude/skills; the first-turn entry lists them for all harnesses.
 <!-- THOUGHT:END -->
