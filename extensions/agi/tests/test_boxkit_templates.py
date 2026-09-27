@@ -583,6 +583,19 @@ def _no_cascade_units():
     return [u.strip().strip("`") for u in tail.split(",") if u.strip()]
 
 
+def _user_unit_dir_cell():
+    """The committed paths.boxkit cell that resolves to the USER unit dir the goal's own
+    world-after line names. The no-cascade row rides USER units, so a no-cascade drop-in
+    artifact means a file under that dir -- the cell is read from config, and the dir is
+    read from the live goal node, never a literal in this file."""
+    m = re.search(r"[\w./~-]*systemd/user\b", GOAL.read_text(encoding="utf-8"))
+    assert m, "the goal must name the user unit dir its no-cascade row rides"
+    tail = m.group(0).lstrip("~/")
+    cells = [c for c, v in CELLS.items() if str(v).endswith(tail)]
+    assert cells, "no committed paths.boxkit cell resolves to %s" % tail
+    return cells[0]
+
+
 def _drop_ins_for(unit):
     return [p for p in PIECES if p["dest_rel"].startswith(unit + ".service.d/")]
 
@@ -697,16 +710,18 @@ def _uncovered(required, pieces):
     A unit/slice name ships its drop-in DIRECTORY for it (user.slice ->
     user.slice.d/...); a file ships the destination that IS or ENDS with it. A BARE
     filename the goal names PER UNIT (10-agi-survival.conf) ships as a drop-in for one
-    of that row's units: a top-level file of the same name, in ANY dest_cell, is a
-    different piece and does not satisfy the artifact."""
+    of that row's units, in the unit dir the goal NAMES: a top-level file of the same
+    name, or the same drop-in rel under another dest_cell, is a different piece and
+    does not satisfy the artifact (probe P1)."""
     out = []
     units = _no_cascade_units()
     for label, art in required:
         a = art.lstrip("/")
         paths = _shipped_paths(pieces)
         if "/" not in a and label.strip().lower().startswith("no cascade"):
-            hit = any(rel == "%s.service.d/%s" % (u, a)
-                      for _p, rel, live in paths for u in units)
+            cell = _user_unit_dir_cell()
+            hit = any(rel == "%s.service.d/%s" % (u, a) and p["dest_cell"] == cell
+                      for p, rel, live in paths for u in units)
         else:
             hit = any(art == rel or rel.startswith((art + "/", art + "."))
                       or a == live or live.endswith("/" + a)
@@ -760,6 +775,23 @@ def test_a_same_named_file_in_another_dest_cell_does_not_satisfy_a_no_cascade_ar
     # the row that DOES ship it: the drop-in for a unit the goal names
     assert _uncovered([("no cascade", artifact)],
                       [BY_NAME["claude-remote-control-no-cascade"]]) == []
+
+
+# 11c -- THE WRONG-CELL DROP-IN DECOY (probe P1). 11b only rejected a TOP-LEVEL
+# same-named file in another cell. The surviving shape is a piece whose dest_rel IS the
+# per-unit drop-in path while its dest_cell points at the SYSTEM unit dir: the relative
+# name alone satisfied an artifact the goal names for the USER unit dir. The destination
+# is the cell the goal's own world-after line names, resolved from the live node.
+def test_a_drop_in_in_the_wrong_unit_dir_does_not_satisfy_a_no_cascade_artifact():
+    artifact = "10-agi-survival.conf"
+    unit = _no_cascade_units()[0]
+    cell = _user_unit_dir_cell()
+    decoy = dict(BY_NAME["claude-remote-control-no-cascade"], dest_cell="systemd_system_dir")
+    assert decoy["dest_rel"] == "%s.service.d/%s" % (unit, artifact), decoy["dest_rel"]
+    assert cell != "systemd_system_dir", cell
+    assert _uncovered([("no cascade", artifact)], [decoy]), (
+        "a drop-in for %s in the SYSTEM unit dir satisfied the no-cascade artifact, "
+        "which the goal names for the user unit dir (%s)" % (unit, cell))
 
 
 # 12 -- LEAK_ROOTS EXCLUDES SHARED ROOTS BY NAME, NOT BY DEPTH (residue M2). The old
