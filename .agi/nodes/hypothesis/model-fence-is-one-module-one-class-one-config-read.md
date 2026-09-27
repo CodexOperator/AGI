@@ -146,6 +146,27 @@ FILE SCOPE 13 · extensions/agi/model_fence.py · extensions/agi/tests/test_mode
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 9a6cc9855 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.590 -- closes mur-director-engine-30 DH.566-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-model-fence-is-one-mo-a00-2a137da1 tip 545b0988d (branch de-base-590; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+0. NEVER run .agi/context/local-maxxing/osc/test_model_load_guard.py::test_standins_never_leak_into_a_later_module (g7.33.19 row 22): -k 'not test_standins_never_leak_into_a_later_module', from the worktree root.
+1. 1. Falsified suite-wide order claim -- .agi/nodes/experiment/a00-506da71a-befecb.md:177 -- 'the suite no longer pins an order ... the two redundant conftest lines are free to be deleted'
+2. 2. Test docstring claims suite-wide order-freedom its sibling contradicts -- extensions/agi/tests/test_model_fence_guard_owner.py:88
+3. 3. Drift-alarm docstring still states the replaced pre-DH.566 semantics -- extensions/agi/tests/test_model_fence_one_module.py:172
+4. 5. The new node's own UNCOMMITTED CAVEAT is false in the commit carrying it -- .agi/nodes/experiment/a00-506da71a-befecb.md:157
+5. A SECOND stale 'the cell WINS over the built-in' docstring the round left standing, in the sibling it edited: extensions/agi/tests/test_model_fence_one_module.py:158 (test_a_partial_bad_cell_loses_no_row). Same class as verdict 3, a different line the first reviewer did not cite; both should be corrected in the same pass.
+6. Independent corroboration the first reviewer did not run: the two other fence test files the node names but never ran in this span are green -- extensions/agi/tests/test_model_fence_cap.py + test_dispatch_model_fence.py = 15 passed on the 545b0988d bytes, so 14+15 = 29, the node's count at :68-69. No fence consumer outside model_fence.py and its tests reads REFUSED (grep over extensions + .agi/context finds only the word REFUSED in unrelated sensei/rotate prose).
+7. The node's unverified-sounding claim at :57-58 ('Live cell == live built-in exactly, so this is not a behaviour change on this box') CHECKS OUT: .agi/config.json values.core.model_load_refused at 545b0988d is the same 9 rows with the same attribute lists as the built-in literal at extensions/agi/model_fence.py:20-28. The union is therefore behaviour-neutral on this box and the 29-green is not masking a live-config regression.
+8. No real-resource touch in the diff's tests: grep for tmux/TMUX/systemctl/crontab/subprocess.Popen/os.kill in test_model_fence_one_module.py and test_model_fence_guard_owner.py returns nothing; both build their shapes from tmp_path stand-ins and short-lived child processes, and the children exec the conftest file, never a pane, unit or crontab. The parent's near-miss (a union that mutates the built-in in place) is genuinely closed: model_fence.py:79 copies and :83 returns `dict(builtin)`.
+9. The stray `13` deleted by this diff is a 0-byte file at the repo root, NOT under .agi/nodes -- so it is not a demotion, and it ships in the reviewed span rather than as an unlogged hand removal. No grid ref is affected.
+10. OUT OF SPAN, flagged not judged: worktree HEAD (2d43e74dc) has since removed the pop+re-set from .agi/context/conftest.py and deleted both fence test files, i.e. the direction the falsified claim at node:177 pointed at was eventually taken by deleting the tests rather than migrating the reader. That later state is not part of 9a6cc9855..545b0988d and I did not judge it.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_model_fence_guard_owner.py test_model_fence_one_module.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE 13 · extensions/agi/model_fence.py · extensions/agi/tests/test_model_fence_guard_owner.py · extensions/agi/tests/test_model_fence_one_module.py · .agi/nodes/experiment/a00-506da71a-befecb.md · .agi/nodes/experiment/a00-848f7004-05d571.md · .agi/nodes/experiment/a00-c6290fe1-1ca6af.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 545b0988d · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.566: mur-director-engine-25 DH.548-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.590: mur-director-engine-30 DH.566-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
