@@ -39,7 +39,6 @@ STARTUP OUTPUT printed below the card (rotate-self ran it for you)
  └─ STARTUP prints an `ack … diff` line ─▶ that line is your ONE act
 NO STARTUP block (rotate.py spawn = recovery) ─▶ ListAgents ▸ rotate.py ack --seat <post> --gen <N> --ref <ref> continue|diff ▸ commit the row
 ```
-- PRIME ONLY, the one act "NONE" does not cover: re-arm the CHECK cron (skill agi-merge-pass §1). It is session-only and dies with the predecessor, so the card's cron id is always stale at wake (gen 13 skipped 09:13-21:13Z 09-27).
 - A successor NEVER commits rotation records, `sequence.json` or `.agi/comms/**` at wake (F20).
 - The after_join `[reap-proof]` line proves the reap — never `ps`/`tmux` for it; the record reads `started` by construction (F1).
 - `posts row dirty before this ack` = someone else's row change: commit or drop THAT, never bundle.
