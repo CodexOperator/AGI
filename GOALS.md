@@ -3003,6 +3003,51 @@ mur-SL2.25 residue (g) 20:55Z: SL7.108 brief hypothesis:l4-an-empty-string-list-
 
 SL7.108 HARVESTED 21:09Z on the sensei-director post: an empty-string list item (and a top-level '') round-trips as '' — None stays null; live-tree fixpoint over 2860 nodes: value drift 0, 91 nodes named as the pending one-time representation change from SL7.81; kid proved 0.9; node_writer + write + frontmatter tests green. Rides SL2#26
 
+#### G4.18.1 — ONE MINT ROUTE -- the node and its raw file through one captive write flow, row by row, format-checked, stamped from the calling post; a storage picker; a location row renames the file (assigned: director-engine) — status: active
+
+# goal:g4.18.1
+
+## OWNER 2026-09-26 ~23:2xZ (belam-S2-L5-X's pane; forwarded to the successor on the owner's go, 00:07Z 09-27), verbatim
+"Another thing is that why do we write files and mint nodes separately. Why can't minting just use the write function one step at a time as a captive flow the models follow? Each row filled out and format checked. Heck have skills for each major engine function to explain how it works as stand in for future MCP that show how to chain the needed inputs but recommending doing it manually one at a time to avoid backtick and quote confusion errors. The mint uses the calling posts info to stamp info appropriately. Only needs a template showing where each major storage category is at and have the model pick from options listed during flow for things like extension code, template storage in .geometry, etc. and can add a custom path on top. The template pick in the flow just populates it into the pane verbatim and you can then emit the rest of the pathname before sending submit or just submit. Then also modifying an existing node with a new version could also use the same shared mint route as a brand new node with a fresh file. And each build node contains a reference to the location of its actual file. But basically mint is unified into a common route to both mint the node and the corresponding raw file, and write is used for both or at least the node part and raw file is just written to disk. Then the node automatically gains the file name as well, and the file can be renamed via a node write/mint by using the location row change. It just checks and confirms if you literally ask to move the file to a new location not just a rename."
+
+## The predecessor's reading (the owner saw it before the go; the owner's words above win)
+Most of the plumbing exists: `write.py create`'s spawn gate, `--payload` (links a source file, created if absent), `payload_ref` on build nodes, and a new version = an in-place edit + `grid.py commit`. So this is a new front door plus a location row. Five refinements:
+- (a) a batch twin: the captive flow for models, one answers file for crons and scripts, the same validator behind both;
+- (b) the storage picker is built from the config paths and the schemas, never a hand list;
+- (c) the location row = the file path; the mint id never changes (G2.5); a rename is one commit (move + ref); a directory move asks first;
+- (d) the per-function skills are generated from each script's argparse + schema, so they cannot drift;
+- (e) the role templates that teach `create` / `--body-file` / `--set` change with it.
+
+## Evidence (09-26)
+- The predecessor had to drop the apostrophes from an owner quote to get it through `write.py`'s single-quoted script; this node's quote came in through `--body-file` for the same reason.
+- The swarm parents struggled with node creation.
+
+## Routing
+assigned: director-engine. FIRST of the three graph redesigns (OWNER 01:0xZ 09-27, verbatim: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): the hub-only send is written through write.py, so it builds on this route; spawn/rotate (goal:g7.31.3.3) comes after send.
+
+#### G4.18.2 — SKILLS FOR EVERY ENGINE FLOW + THE DOC TRIM -- one skill per flow (goal creation carries its schema), skill build nodes under this goal, cards list skills instead of rules, wake docs trimmed to a byte budget (assigned: belam) — status: active
+
+# goal:g4.18.2
+
+## OWNER 2026-09-27 01:1xZ + 01:2xZ (the Prime's pane, belam-S2-L5-XI), verbatim
+"Drop ultracode from everyone and do the trim yourself to keep director focused. The skills will also trim a lot of it if you wanna do those yourself in my permission. Maybe also set everyone to high thinking level. Then a lot of your And other posts card f rules go into those and everyone’s card just lists all the relevant skills and asks everybody to use the appropriate one whenever doing the appropriate flow or operation. the skills could also be included in the doc as build nodes the same way extension build nodes are which just go straight from goal into skill build nodes since they aren't really much code to speak of and again I authorize the direct graph intervention by you because I want to go ahead and get it done and it is just skills. then things like goal creation would automatically include the schema in the skill instead of having to like hunt for it or load it separately. It could just be included in the skill."
+
+"use existing build node parents as co-parents for the new build nodes because if you check the build node schema it has several different sets that can be used as valid parents straight from goal into build node Alternatively, you can also use an idea  node that you spawn in instead."
+
+## Scope (the Prime's; the owner's words above win)
+1. ultracode dropped from everyone + effort high on every post row -- DONE c72b01fb5 (config:posts) + the config:ladder tier-3 rows; residue: rotate.py:120 DEFAULT_CC_ROLES fallback still names ultracode (used only when neither the ladder nor config.json has the role).
+2. SKILLS: one skill per engine flow or operation -- goal creation carrying the goal schema inside it; write.py verbs; send/read/nudge; rotate; dispatch; merge-up / PASS / CHECK -- each a skill build node under this goal. Legal parents per the build schema (owner 01:2xZ): an existing build node as co-parent with this goal ([build, goal]), or an idea node spawned for them.
+3. CARDS list the relevant skills and ask each post to use the matching one; card F-rules and traps move into the skills. Cards stay in-process state; goal tracking lives on the town board.
+4. THE TRIM, measured 01:0xZ 09-27 (bytes): CLAUDE.md 26,597 (every session and kid) · extensions/agi/briefs/prime-director-successor.md 10,470 · doc:unified-head 7,547 · config:rotations facts 7,164 of 8,000 · thought-master card 301 lines / 46,431 (belam 100 / 12,595 · director-engine 106 / 16,730 · director-thought 83 / 9,437 · stream-master 80 / 12,241) · the Prime's first meter read 0.092 of the window. BUDGET (belam-S2-L5-XII 01:5xZ 09-27; measured value in brackets): CLAUDE.md <= 12,000 [10,123] · Prime template <= 8,000 [7,698] · HEAD region <= 5,500 [4,844] · config:rotations facts region <= 2,000 [7,164 -- hypothesis:wake-facts-collapse-to-skill-pointers, DE] · every card <= 100 lines [belam 95 · DE 80 · DT node 184 · TM 301 at 01:0xZ]. CLAUDE.md line 1 sends every agent to GOALS.md, 1.5 MB.
+
+## Done when
+- every post card is at most 100 lines and lists its skills; no card carries goal tracking;
+- a skill exists for each flow above, reachable from every post, goal creation included with its schema;
+- the wake-injected docs have a byte budget and sit under it, measured, and the Prime's first meter read drops below its 01:0xZ 09-27 value.
+
+## Routing
+assigned: belam (the Prime; the owner: "do the trim yourself to keep director focused").
+
 ### G4.19 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
 
 <!-- BODY:BEGIN -->
@@ -7418,6 +7463,33 @@ Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-head
 
 **Related:** `goal:g1.14`, `command:commands`, `goal:g7.31.3.1`.
 
+##### G7.31.3.3 — SPAWN AND ROTATE ARE ONE GRAPH WRITE -- parent slots pre-set under each post in .geometry, kid rows dynamic under their parent slot, rotate a spawn option (needs-rotate: true), the reaper/heal loop carries out what the graph says (assigned: director-engine) — status: active
+
+# goal:g7.31.3.3
+
+## OWNER 2026-09-27 00:38Z + 00:45Z (belam-S2-L5-X's pane), verbatim -- the spawn/rotate part
+"One thing that bothered me is that parents get a different spawn route than posts. I want parents and posts to share the same spawn route so spawn/rotate becomes one and uses individual post info and/or generic templates to decide who gets what messages. And also it creates the parent seats in-graph under the post seat that spawned them in the .geometry directory, and get removed as part of the reaper routine. So the concurrency limit and the parallel limit together become the amount of pre-set parent post slots each post has under it, and each kid also becomes a row entry in the parent slot “kid*” row. Rows added dynamically on each kid spawn and removed on kid exit. All using the unified spawn route. Rotate just becomes an option for spawn and parents can be rotated in place instead of re dispatched. Everything is still just a unified write/mint of nodes with a new version. The reaper/heal routine just then executes actions as put into the graph via post updates and linked templates. If a post needs rotation  just set the needs-rotate: true and wait on the loop to do it. So everything becomes a graph write even spawn/rotation commands. Parents just spawn kids but all it does is write the rows and points to where in the graph that kid needs to put its next node."
+
+"One addition to 3: a refusal also activated the message send reply route to update the relevant sending post which can be found via graph of what failed and for whom."
+
+(The same 00:38Z message opens with the parents-on-the-message-system question; that half is goal:g7.32.5.)
+
+## The design as the owner confirmed it (gen 10's reading, pasted into the Prime's pane, confirmed 00:5xZ 09-27; the owner's words above win)
+Unify spawn and rotate as graph writes. Parents become rows under the post that spawned them in .geometry, with pre-set parent slots per post. Kids become dynamic kid rows under their parent's slot. Rotate becomes a spawn option (needs-rotate: true), and the reaper/heal loop carries out whatever the graph says. Refinements:
+1. Slot definitions are committed; live occupancy lives in a local runtime file.
+2. Only the box hosting the post acts (checked via AGI_BOX), and the loop clears the flag.
+3. A refusal is written into the row by name AND sent to the requesting post through the reply route, found via the graph. Cap it at one reply per failed request.
+4. Gate who may write which rows: parents write only their own kid rows, kids write none.
+
+## Relations
+- parent goal:g7.31.3 -- the rotate|spawn route of the five unified engine routes; this makes it one graph write.
+- goal:g7.32.5 -- the parents' dm-append push grant, the messaging half of the same owner message.
+- goal:g4.18.1 -- one mint route: slot and kid rows go through the same write flow.
+- goal:send-is-hub-only-dm-file-versions-synced-every-30s -- the reply route refinement 3 uses; its (default)-box note (46d1d17e1): refinement 2 acts only on the box a row names.
+
+## Routing
+assigned: director-engine. THIRD of the three graph redesigns, after node spawn/mint (goal:g4.18.1) and the send hub-only work (OWNER 01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): refinement 3's refusal rides send's reply route.
+
 #### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: active
 
 # goal:g7.31.4
@@ -7768,6 +7840,30 @@ g7.31.3 lists `send` among five pane-facing routes; this child owns the **router
 
 **Extends:** `goal:g7.31.3` (send as a route). **Used by:** `goal:g7.32.2`. Session: `owner-ask-2026-09-21`.
 
+#### G7.32.5 — PARENTS SEND ON THE HUB ROUTE BY DEFAULT -- one narrow push grant: a parent may append to dm files on any post head, so post to parent, parent to post and parent to parent all land (assigned: director-engine) — status: active
+
+# goal:g7.32.5
+
+## OWNER 2026-09-27 00:38Z (belam-S2-L5-X's pane), verbatim -- the messaging part
+"Okay btw will parents be able to use the new message system by default since the message send route is a separate set of push permissions from the post itself. And will it work in the other direction from a post to a parent, and also parent to parent? "
+
+(The rest of that message -- spawn and rotate as one graph write -- is goal:g7.31.3.3.)
+
+## The answer as the owner confirmed it (gen 10's reading, pasted into the Prime's pane, confirmed 00:5xZ 09-27)
+Parents need one narrow push grant: they may append to dm files on any post's head.
+
+## Done when
+- a parent uses the hub send route by default, without the post's own push permissions;
+- all three directions the owner asked about land: post -> parent, parent -> post, parent -> parent;
+- the grant stays narrow: dm files on a post's head, nothing else.
+
+## Relations
+- sibling: goal:send-is-hub-only-dm-file-versions-synced-every-30s -- the hub route this grant opens to parents.
+- goal:g7.31.3.3 -- parents become rows under the post that spawned them; the grant belongs to those rows.
+
+## Routing
+assigned: director-engine, with the send hub-only work.
+
 ### G7.33 — ENGINE FIXES SURFACED BY THE TOWN — every engine trap the rounds hit becomes a pi round itself, run alongside the research rounds under a second (Sonnet) director; plus the two dispatch upgrades the owner named: one workflow that chains parent dispatch → drain → mur, and a batch workflow that runs rounds serially or in parallel by memory allocation and closes with a whole-batch MUR over the sub-goal that parents them — status: horizon
 
 <!-- BODY:BEGIN -->
@@ -8031,7 +8127,7 @@ each row becomes its own round (and its own sub-leaf if it grows) when it is dis
 ## Who
 director-engine (engine leaf of g7.33). Model-free rounds; one row per round.
 
-#### G7.33.18 — ONE BOX MEMORY-GUARD KIT -- every box that runs seats carries local-town's memory-watch stack, sized to its own RAM, installed from the repo (the owner's other-box ask; assigned director-engine) — status: active
+#### G7.33.18 — HELD (OWNER 21:1xZ via the Prime): ONE BOX MEMORY-GUARD KIT -- every box that runs seats carries local-town's memory-watch stack, sized to its own RAM, installed from the repo (assigned director-engine) — status: active
 
 # goal:g7.33.18
 

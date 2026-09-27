@@ -12,89 +12,83 @@ tags:
   - card
   - prime
   - belam
-thought_session: belam-S2-L5-X
+thought_session: belam-S2-L5-XII
 title: "doc:card-belam -- the Prime's card: the one scratch (state · plan · landed · where it stops · traps · verification · BANKED)"
 town: core
 ---
 # doc:card-belam — the Prime's card (local-town): the ONE scratch
 
-Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
+Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 10 rotates at 0.45 because the owner ordered it at 21:1xZ ('report ... then rotate'); F27's 0.47 would have landed mid-exchange. It closed PASS 9 (steps 4-9) at 49d2b6f6a and noticed PASS 10. The one judgement call -- engine-delta-5's demote is a live regression at TIP (the capture latch), and the PASS rule says "protocol regression -> no merge" -- is argued in full in hypothesis:pass9-0926-residue-batch's THOUGHT: the only registered hook runs MAIN's trunk file, which carries the fix b6438bd7e, so the merge introduced no running regression, and holding it would have kept the capture_chain_log cell from 92 of 134 seat worktrees. Two traps added (39, 40), both measured this seat.
+gen 12 first card. The traps that now live in a skill (merge-pass: 6 19 26 27 31 33 34 36 37 38 39; send: 1 25 29 41; rotate: 2 10; workflow: 8 9) are listed as skills instead of rows -- owner 01:1xZ 09-27: "everyone's card just lists all the relevant skills". Traps no skill carries (3 13 15 24 28 30 40 + the new 42) stay.
 <!-- THOUGHT:END -->
 
-## §0 State (17:4xZ 09-26)
+## SKILLS — use the matching one BEFORE the flow (skills/agi-<flow>/SKILL.md; the Skill tool)
+| flow | skill |
+|---|---|
+| CHECK · notice · PASS · trunk sync | `agi-merge-pass` |
+| mint/edit a goal (schema inside) | `agi-goal` |
+| any other node, build node, config:* | `agi-node-write` |
+| dm · inbox · whois · wake | `agi-send` |
+| rotate out · wake | `agi-rotate` |
+| dispatch · judge | `agi-dispatch` |
+| a review/research workflow | `agi-workflow` |
+| verify a landing | `agi-verify` |
+
+## §0 State (01:4xZ 09-27)
 | | |
 |---|---|
-| post | belam-S2-L5-X gen 10 · woke 17:2xZ · Opus 5.5 · IDLE after PASS 9 closed 17:43Z · meter ~0.22 |
-| box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` (clean, = season2/main 49d2b6f6a) · tz UTC · stream DOWN |
-| GUARD | user@1000 high **6628M / max 7365M** (raised 19:5xZ on the owner's go: guard docker budget 8G -> 6.5G, guard.env.bak-20260926T1955Z; the model container keeps its own 8G cap, peak 6.8G at load) · a pi stage ~210 MiB |
-| TOWN | DE gen 25 (a live suite lock in post-director-engine at 17:3xZ) · TM gen 27 · SM DOWN (owner's go) · 4 kid-worktree suite locks are pre-reboot dead pids |
-| merge | **PASS 9 CLOSED 17:43Z**: season2/main 2c6e8953c -> 49d2b6f6a (merge --no-ff of TIP 9e16b8ed90, pushed) · local-maxxing/main -> 9e16b8ed9 (ff) · grid 28 versions · 56 rounds: 52 accept_with_residue, 4 demote, 0 RED · residues hypothesis:pass9-0926-residue-batch + 5 defect hypotheses (DE) · trunk c2724f841 unpushed (TM's) |
-| crons | CHECK 116eb21c ("13 */4"; ran 20:21Z) · PASS 10 one-shot "23 1 27 9 *" (section 2, noticed 20:2xZ) -- both die with gen 10 |
-| spend | credits 13.75 USD · PASS 9 0 USD |
-| dms | 17:4xZ PASS 9 [decision] -> DE, [merge-up] -> TM · 19:5xZ OWNER: [decision] per-spawn caps -> DE (memory_max 2G + TasksMax 150 + model --memory-max) · [owner] -> TM · [owner] stream -> sanctuary-master (dm file) |
+| post | belam-S2-L5-XII gen 12 · woke 01:28Z 09-27 · Opus 5.5 |
+| box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` · stream DOWN (HELD) |
+| GUARD | user@1000 high 6628M / max 7365M · a pi stage ~210 MiB · io PSI avg60 40-68 during the PASS |
+| merge | **PASS 10 RUNNING** since 01:31Z: BASE 9e16b8ed90 → TIP **6c403aeb4b** (pinned after the trunk sync of origin/season2/main @868d87c41) · 363 commits · 53 exp / 25 hyp · 43 engine paths · 30 rounds / 15 chunks (PER 2, CAP 3) + `rereview-b6438bd7e-capture-latch` in chunk1 · /tmp/belam-pass10/ |
+| crons | CHECK f86b1cf9 "13 */4 * * *" (re-armed 01:3xZ) |
+| spend | credits 8.74 USD (01:31Z) |
+| dms | 01:4xZ [decision] -> DE: hypothesis:wake-facts-collapse-to-skill-pointers (queued behind the redesigns) |
 | branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
 
 ## §1 Plan
 ```
-done   PASS 8 · PASS 9 (0-3 gen 9; 4-9 gen 10, 17:2x-17:4xZ) · CHECKs 08:4x / 12:4x / 16:4xZ
-next   the 20:13Z CHECK (section 1) · judge DE/DT merge-ups · PASS 10 · owner 19:5xZ: per-spawn caps land (DE) · stream re-seated on encryption-town (sanctuary-master) · model rounds HELD (TM)
-open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
+done   wake: card re-linked, CHECK re-armed · PASS 10 steps 0-3 (stamp, trunk sync 6c403aeb4, build, launch) · g4.18.2: 8 skills + nodes + links, HEAD line, CLAUDE.md trim, facts trim -> DE
+next   PASS 10 steps 4-9 as chunks exit (verdicts.py, the re-review round first) · g4.18.2 remainder: prime brief trim, other posts' cards pick up the HEAD line at their next write
+HELD   OWNER 21:1xZ: stream · encryption-town config · sanctuary-master activation -- until messaging is done
+open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hub-only-... has no goal_id/goal_kind (a renumber, on the owner's word) · §6
 ```
 
-## §2 Landed (this seat)
-49d2b6f6a PASS 9 merge (season2/main, pushed) · local-maxxing/main ff 9e16b8ed9 · grid 28 versions · c2724f841 residue batch + 5 defect hypotheses + the board's PASS line + quorum re-link (trunk; TM pushes) · card commit
+## §2 Landed (this seat): 045d1aab3 wake re-link · 6c403aeb4 trunk sync (belam gen 12 key row) · 3 commits for g4.18.2: skills (8 files + 8 build nodes [goal:g4.18.2, idea:engine-skill-doc] + .claude/skills links, gitignore narrowed) · 9b2f1e378 HEAD line + DE hypothesis · 786dd91da CLAUDE.md 26,597 -> 10,123 bytes · d11cfc027 Prime template 10,470 -> 7,698 · d94a59fca g4.18.2 byte budget · OWNER 01:5xZ: monitor.sh io guard FINE-GRAINED (kills only processes whose ancestor argv carries this pass's tag; others -> spared.log) · sshd lane verified live (ssh.service MemoryMin=64M CPUWeight=1000, system.slice MemoryMin=128M, guard: chain live) · skills block -> doc:unified-director-brief, doc:unified-master-brief, 3 duty briefs, the DE/DT/TM/SM cards
 
 ## 🔴 Where it stops
-21:1xZ 09-26 belam-S2-L5-X rotates at 0.45 on the owner's order: PASS 10 armed for 01:23Z, owner HOLD on stream/encryption-town/sanctuary, send redesign with DE
+01:4xZ 09-27 belam-S2-L5-XII: PASS 10 chunks running (1-3 live, 4 held on a cleared 01:38Z WARN); g4.18.2 skills + CLAUDE.md trim landed
 ```
-0. WAKE (a successor): re-arm the CHECK -- CronCreate "13 */4 * * *", the POINTER prompt to section 1 of .agi/sessions/prime-merge.crons.md (transcript 64d3d99e has the exact text); re-link the quorum card (trap 10). Re-arm the PASS 10 one-shot too (CronCreate "23 1 27 9 *", recurring false, the POINTER prompt to section 2) unless the state file carries pass_started_at.
-1. PASS 10 is armed: section 2 rewritten (BASE 9e16b8ed90, p10 keys, /tmp/belam-pass10/ from /tmp/belam-pass9/); the 00:13Z CHECK finds the notice pending (case c) -- nothing to do until 01:23Z.
-2. PASS 10 must re-review b6438bd7e (the capture latch fix): PASS 9's engine-delta-5 demote rests on it.
-3. Owner 20:3xZ: send goes hub-only -> goal:send-is-hub-only-dm-file-versions-synced-every-30s (under g7.32) + [decision] to DE; sanctuary's row session_name is now 'sanctuary'; 21:1xZ: + AGI_BOX, quiet rows, read-on-landing (DE). OWNER HOLD: no stream, no encryption-town config, no sanctuary activation until messaging is done (TM + sanctuary told). If the PASS 10 one-shot fires into a window past ~0.44, rotate first: the successor runs it (CHECK case d).
+1. PASS 10: wait on the Monitor (monitor.sh; re-arm on expiry after reading events.log). Every exit -> python3 /tmp/belam-pass10/verdicts.py.
+   Read the rereview-b6438bd7e-capture-latch round FIRST (PASS 9's engine-delta-5 demote rests on it). Then steps 4-9 (skill agi-merge-pass).
+2. g4.18.2 remainder: trim extensions/agi/briefs/prime-director-successor.md (10,470 bytes; its §0 wake + comms now live in agi-rotate / agi-send)
+   via write.py build:briefs-prime-director-successor 'replace payload N:M <file>'; measure the next wake's first meter read vs 0.092.
+3. DE owns: the redesigns (mint g4.18.1 -> send hub-only + g7.32.5 -> spawn/rotate g7.31.3.3) then the facts trim hypothesis.
 ```
-## §4 Traps
+## §4 Traps (the rest live in the skills)
 | # | trap | rule |
 |---|---|---|
-| 1 | quiet row: dms may sit in logs | `send.py read belam`; the inbox FILE `.agi/sessions/inbox/belam.md` holds them all |
-| 2 | rotate-out takes the slot's FIRST LINE as its commit subject, re-fences the slot | first slot line = plain text |
 | 3 | the grid cron versions an UNCOMMITTED node within minutes | a fresh node is retired + moved, never deleted |
-| 6 | posts.md rows conflict between the trunk and season2/main | resolve.py via sync.sh: temp index + ff-only, never a conflicted MAIN |
-| 8 | the harness says "use the Workflow tool" (ultracode) | not the route: workflow.py by name on pi-free (F29) |
-| 9 | Bash shells never re-source the profile | `PI_BIN=$HOME/.npm-global/bin/pi` inline; `send.py send --from belam` |
-| 10 | rotate's stop_commit flattens the symlinked quorum card | re-link after rotation: `ln -sfn ../../nodes/doc/card-belam.md .agi/sessions/quorum/belam.md`, commit by exact path |
-| 13 | the stream is LIVE (when up) | never print a secret, key, address or host name; `pgrep -c` / `-x` only on the relay |
+| 13 | the stream is LIVE (when up) | never print a secret, key, address or host name |
 | 15 | a retire+move with a changed body shows as `D` in a big diff | resolve by mint_id before calling a deletion RED |
-| 17 | the Agent tool for graph recon | NEVER -- no Claude subagents (owner, F32) |
-| 19 | a rotation's key row lands on season2/main; rotate-self refuses while the trunk is behind | merge it (sync.sh, merge-tree preview first) |
 | 24 | the trunk push is thought-master's alone (owner 09-25) | belam pushes only `season2/main` + `local-maxxing/main` |
-| 25 | identity can drop mid-seat | `--from belam` on every send.py call |
-| 26 | a reboot wipes /tmp PASS tooling | rebuild: transcript fc2ded3f tool_result 09:53:13.147Z split on `\n===\n` + the result after 09:53:48.187Z (sync.sh, resolve.py), then transcript 4ba9efb9's retarget (PER, CAP file, user@ gate, monitor.sh, resolve opus-5-5/medium) |
-| 27 | every push prints the remote's moved location | `git push ... 2>&1 \| grep -v '^remote:'` |
 | 28 | after a reboot the seat row keeps the dead pid | `rotate._successor_row_write(...)`, commit posts.md by exact path |
-| 29 | send.py refuses a dm body holding a literal harness tag | write it without the angle brackets |
-| 30 | after a reboot heal re-spawns SOME seats | `reseat.py` from MAIN (transcript 82d56d5d); it seats into the caller's scope (session-73: outside user@) |
-| 31 | resolve.py enforces the directors' model cells in a posts.md conflict | claude-opus-5-5 / medium (owner 09-26) |
-| 33 | launch.sh CAP counts CHUNKS; a chunk runs its rounds in parallel (1 pi each, ~210 MiB, in user@ app.slice) | PER x CAP <= 6 pi; gate on user@ hard, not MemAvailable |
-| 34 | `pgrep -f 'workflow.py run'` matches seat wrappers; foreground `sleep` is blocked | anchor the pattern; wait with Monitor / run_in_background |
-| 36 | a reviewer's `grep -r` over `.agi/` walks ~100 worktrees: 4G of cache, the box io-stalls | the focus text alone does not stop it; monitor.sh kills it at io60 >= 25 |
-| 37 | `grid.py commit --all` in prime-root can leave an evidence-gate demotion dirty in the tree | step 5's merge refuses: save the patch, restore the file, merge |
-| 38 | verify `verdicts[]` rules on the FIRST reviewer's defects (refuted true/false) + `missed[]` | a residue table reads verify, never the review list alone (PASS 9: 107 of 289 refuted, +218 missed) |
-| 39 | verdicts.py reads a verify whose unstructured return embeds a json block with a stray quote as verdict None ("review-only") | parse the block leniently before retrying (PASS 9 band-byte-audit: accept_with_residue, no retry) |
-| 40 | F13's `/home/ubuntu/work/agi/.env` does not exist on local-town | the MAIN .env is `/data/work/agi/.env` (the credits check and the secret scan read it there) |
+| 30 | after a reboot heal re-spawns SOME seats | `reseat.py` from MAIN (transcript 82d56d5d) |
+| 40 | F13's `/home/ubuntu/work/agi/.env` does not exist on local-town | the MAIN .env is `/data/work/agi/.env` |
+| 42 | `write.py … 'replace body N:M'` refuses a range with no blank line around it (the HEAD's five diagram blocks are one "paragraph") | `--force` rides the SOURCE argument: `replace body N:M --force <file>`, after asserting the range; a refused replace in a chain still lets a later `thought` land -- check each line's result |
 
-## §5 Verification: `links.py links` 0 broken · `snapshot-goals.py --render --check` · `commands.py run verify` (bin-suite-fresh FAIL known) · `~/work/.sanctuary/guard/guard-init.sh --status` (its 'last alerts' reads the old path) + `tail ~/logs/memory-alarm-alerts.log`
+## §5 Verification: `links.py links` 0 broken · `snapshot-goals.py --render --check` · `commands.py run verify` (bin-suite-fresh FAIL known) · `~/work/.sanctuary/guard/guard-init.sh --status` + `tail ~/logs/memory-alarm-alerts.log`
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
-| 3 of 5 seats sit in session-73.scope, outside user@'s 5829M cap (measured 05:57Z) | spawn seats via `systemd-run --user --scope` (the tmux-spawn path), or cap user-1000.slice -- the owner's guard, the owner's call |
-| guard follow-ups (TM 08:49Z + 09:33Z): model rounds cannot fit user@'s high beside the seats; guard-init.sh 'last alerts' reads sanctuary-guard/alerts.log | run model loads in their own scope with a MemoryMax (~6G); repoint 'last alerts' at ~/logs/memory-alarm-alerts.log -- your guard files, outside git |
-| 2c leftovers (DE 07:39Z): exited session 710907bf + ~20 "Remote Control · offline" app rows | `claude rm 710907bf` if it is yours to drop; the app rows only from the app UI |
-| stream-master's seat after the power cycle | re-seat only on the owner's explicit go (stream down) |
-| the owner chain rule keeps an idle predecessor per rotation: belam gen 9 (session-73, 210M + 141M swap), gen 8 (user@, 287M) | reap on the owner's word (offered 19:5xZ); session-73's 6.3G of cache needs nothing: the kernel frees it on demand |
+| 3 of 5 seats sit in session-73.scope, outside user@'s cap | spawn seats via `systemd-run --user --scope`, or cap user-1000.slice -- the owner's guard |
+| guard follow-ups (TM 09-26): model rounds cannot fit user@'s high beside the seats; guard-init.sh 'last alerts' reads the old path | model loads in their own scope with MemoryMax (~6G); repoint 'last alerts' at ~/logs/memory-alarm-alerts.log |
+| 2c leftovers (DE 07:39Z 09-26): exited session 710907bf + ~20 "Remote Control · offline" app rows | `claude rm 710907bf` if yours; app rows only from the app UI |
+| stream-master's seat after the power cycle | re-seat only on the owner's explicit go (HELD 21:1xZ) |
+| idle predecessors per rotation (owner chain rule) | reap on the owner's word |
 | the origin remote moved (every push prints the new location) | `git remote set-url origin <new>` -- the owner's call |
 | engine-wide config/template maxxing pass (owner idea, 09-23) | opening it is the owner's call |
 | MIN_REMAINING_CREDITS hard-coded 1 USD (provisioning.py:103, :206) | a config cell (a director-engine round) |

@@ -11,6 +11,9 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
+## SKILLS (owner 2026-09-27, goal:g4.18.2) -- use the matching one BEFORE the flow: `skills/agi-<flow>/SKILL.md` (the Skill tool)
+`agi-goal` (schema inside) · `agi-node-write` · `agi-send` · `agi-rotate` · `agi-dispatch` · `agi-workflow` · `agi-verify` -- a rule a skill carries leaves this card at its next write (the template lists them too)
+
 ## Live state (20:0xZ 09-26 -- the where-it-stops block below is newer than these lines)
 ```
 LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66) · workflow runs = --harness pi-free
@@ -32,20 +35,33 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ```
 
 ## 🔴 Where it stops
-21:5xZ 09-26: the OWNER's other-box ask in flight (goal:g7.33.18) -- waiting on sanctuary's audit reply + DE's kit round; mu 14 RETURNED (TMM.262); MODEL-LOADING ROUNDS HELD
+23:1xZ 09-26: the other-box ask is CANCELLED (OWNER HOLD 21:1xZ via belam 23:12Z); idle until a [merge-up] (DE's re-delivery, DT's model_slot lift) or a blocker; MODEL-LOADING ROUNDS HELD
 ```
-state   MAIN = origin + this card · last order = TMM.266 · next = TMM.267 · spawn.memory_max = 2G (f28493d5b: the OWNER's number via the Prime's
-        [decision] 20:13Z to DE; my 3G 10925dba7 VOID -- [decision] VOID line sent to belam)
-OWNER   20:4xZ (via belam 21:28:58Z), verbatim in goal:g7.33.18's mint THOUGHT: "Yeah sanctuary master may be not fully set up properly. Can we
-        have thought master make sure the other box is fully set up with all the proper updated memory watch fixes." -> ONE line to the Prime
-        when it holds
-OTHERBOX local-town has NO route to encryption-town (~/.ssh = authorized_keys + known_hosts; ssh rc 255) -> goal:g7.33.18 (aadf7979c, v2 21:5xZ)
-        + TMM.265 dispatch now to DE (the repo kit) · AUDIT back 21:5xZ from its sanctuary session (bridge session, Remote Control): caps /
-        oomd / slices / agi.slice / watchdog PRESENT, ratio-sized on a 942 MiB reserve (7854 MiB RAM) · MISSING memguard, memory_alarm cron,
-        OOMPolicy=continue, the engine half (6G, no model_fence, core/main b7bf08187, 267 dirty) -> I SENT the exact bytes (memguard unit +
-        script with 2 edits: its checkout path in the [red] call, SPIKE 3<<29; the survival drop-in; the cron line) 21:5xZ msg 39dea99a; it
-        puts them to the OWNER before applying · [red] to belam: the ~5.3 GiB stream (doc 09-25) + seats do not fit that box
-        · NEXT: its read-back (items 6/7/8 + is-active agi-memguard) -> ONE 'holds' line to the Prime · the session is NOT an agi seat (no card)
+state   MAIN = origin + this card · last order = TMM.268 · next = TMM.269 · TMM.268 23:4xZ RULED DE's [red]: a director may commit write.py-
+        LOGGED kid bytes (diff == the log rows, exact paths, actors + row ids named, mur-reviewed) + row (b): dispatch-named edit targets admitted by done · spawn.memory_max = 2G (f28493d5b, the OWNER's number; my 3G VOID)
+HOLD    OWNER 21:1xZ (the Prime's relay 23:12Z): encryption-town config + sanctuary-master activation + the stream ALL on hold until messaging
+        (goal:send-is-hub-only-dm-file-versions-synced-every-30s) is done; it cancels the 20:4xZ other-box ask -> DONE: goal:g7.33.18 titled HELD
+        (v2 = the audit, v3 THOUGHT = the relay) · TMM.267 hold to DE (voids TMM.265; a live round finishes in its fences, parked) · the
+        sanctuary session told to apply NOTHING (msg d60a7746, unconfirmed) · nothing back to the Prime (its words)
+RETURN  mu 14 (a65a283a7) = DH.416-418 accept_with_residue x3 (mur-director-engine-2, verify_*.json read): 416 (1) guard narrower than S1
+        (2) stale BUILD-CONTRACT (3) kid-1 overclaim · 417 (4) CONFIG-MAX cli.py:2123 literal vs locations.schemas_root (5) silent exit-0
+        no-commit (6) bracketed + broken-neighbour tests (7) parent tier unbound (pre-commit:98) · 418 (8) a test reaches the LIVE tmux server
+        (send.py:2208 default session; fixture @777 absent, live max @14 = no pane hit) (9) unjudged hypothesis + stale lean reason (10) the
+        unreachable None branch · all (11) 3 hypotheses carry no verdict · rulings: cards NOT round-owned (doc:card- -> never_node_ids) ·
+        the seat wrap stays out (the Prime's) · gate-mu14 REMOVED -> the re-delivery gets a fresh M
+REGATE  = the same sequence on the new tip: merge-tree rc + --name-only · M in /dev/shm/gate-* · the ENGINE suite with cwd INSIDE the gate
+        tree · goals --check · links · evidence dry-run on <gate>/.agi · anonymize · live-data probes for any gate/heal change · the mur
+        (workflow.py run agi-merge-up-review --harness pi-free --args <rounds json>; detached) -> each residue CLOSED by name
+        + TMM.261's two asks rode? row 17's THOUGHT names the env-strip gap · ONE g7.33.17 row for DH.410's CLAUDE.md x2 (else re-list them)
+WAITING DT: the model_slot lift + probe merge-up (TMM.259) + the model round's --memory <GB> cell (TMM.264) · DE: the re-delivery (TMM.262's 11
+        residues + TMM.263: spawn.tasks_max 150 + the DH.419 fan-out row; + row 17 d82d1757d, DH.420, DH.421 091808547)
+GATE+   the model_slot merge-up = a FIRST LIVE RUN gate: run the probe YOURSELF with no other model round live: a --no-model kid-shaped python's
+        bare from_pretrained is REFUSED; the same script through model_slot.py loads under the VmHWM wrapper; a script with a bare
+        from_pretrained is refused by model_slot · the env-strip gap is KNOWN (TMM.261), not a red · the model round must fit the 3G
+        per-spawn scope (OSC.44 VmHWM 2766 + pi ~170) · then the whole .agi/context under torch · then OSC.41's GO (one model round at a time)
+WATCH   spawn.memory_max 2G first live run: the next dispatched round's scope memory.max = 2048 MiB (/sys/fs/cgroup/.../user@1000.service/
+        **/run-*.scope) · PASS 10 = the Prime merges the trunk from 01:23Z 09-27 (<= 6 pi-free, ~3-4 h): no gate suite live at 01:23Z
+out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; the slot = a plain first line + ONE fence block)
 ```
 
 ## Traps (post-specific, learned)
@@ -75,6 +91,8 @@ owner lines  (HEAD rule, OWNER 21:3xZ 09-24 via the Prime) an owner line banks V
              quote that must live on AS the quote goes into a role doc, the town board or its subgoal's body · doc:l5-owner-decisions is OUTDATED (nothing
              banks there) · the board has 13 rows: the LAST is the Prime's parent-decision owner verbatim -- keep it in every whole write · the stamp = the jsonl's own timestamp for the owner's message
              (.agi/sessions/thought-master.meter names the jsonl), never a guess · a one-line replace inside a fence = 'replace body N:N --force <file>'
+card         a splice's END anchor must be LOCAL + unique: t.index('```', a) from a line INSIDE a fence finds the fence's CLOSE, so my 21:5xZ
+             splice deleted RETURN..out (restored from df742bcb1, 23:2xZ) -> anchor on the next line's own tag, assert the kept lines' counts
 board        edit rows in place, never retype 29k chars: yaml.safe_load the frontmatter -> replace ONE anchored substring per row (assert count 1) ->
              write.py town:local-maxxing 'set trajectory_standin <json.dumps(rows)>' --actor thought-master via an argv list, --dry-run first (the
              ring-gate preview) · assert 13 rows + no ' && ' before the write · a wrong claim of mine on the board = replace it, say VOID and why

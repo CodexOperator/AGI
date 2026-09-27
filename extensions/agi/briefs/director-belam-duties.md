@@ -1,5 +1,9 @@
 # director-belam — standing duties (the ROLE; your card is only the STATE)
 
+## Skills — the flows' manuals (owner 2026-09-27, goal:g4.18.2)
+Read the matching one BEFORE the flow (`skills/agi-<flow>/SKILL.md`; Claude posts: the Skill tool) · a card LISTS them, never copies their rules:
+`agi-goal` mint/edit a goal (schema inside) · `agi-node-write` any node, build node, config:* · `agi-send` dm · inbox · whois · wake · `agi-rotate` out · wake · `agi-dispatch` dispatch · judge · rebrief · `agi-workflow` a review by name on pi · `agi-verify` a landing, the suite · `agi-merge-pass` the Prime's CHECK/PASS (read-only for others)
+
 
 ## Standing LLM ops (owner 2026-09-20/21)
 

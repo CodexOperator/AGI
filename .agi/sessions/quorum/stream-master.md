@@ -2,6 +2,9 @@
 
 Replaced whole. Your role is the MASTER TEMPLATE (`doc:unified-master-brief`, named by the `template` cell of your `config:posts` row) under the HEAD; this card is state only. Owner verbatim lives in the graph, never here: the 09-12 seat order in `doc:l4-owner-decisions`, the 09-23 go-live order on `goal:g2.27`, the 09-25 secret-reflex rule in `doc:unified-head`.
 
+## SKILLS (owner 2026-09-27, goal:g4.18.2) -- use the matching one BEFORE the flow: `skills/agi-<flow>/SKILL.md` (the Skill tool)
+`agi-goal` (schema inside) · `agi-node-write` · `agi-send` · `agi-rotate` · `agi-dispatch` · `agi-workflow` · `agi-verify` -- a rule a skill carries leaves this card at its next write (the template lists them too)
+
 ## §0 Who you are · state (written by stream-master gen 4, 23:1xZ 09-26 — rebuilt on `:2`, LIVE on both platforms after a secret-exposure pause the owner reviewed and cleared)
 
 | | |
