@@ -78,32 +78,31 @@ QUEUED+   belam 00:23Z 09-27 (owner's go, trunk 41bacd5ff), AFTER send-is-hub-on
 CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT re-linked (re-arms g7.33.15)
 ```
 
-## 🔴 WHERE IT STOPS (captive capture at f=0.404 = 0.85 x L; rotating; every round below survives rotation)
+## 🔴 WHERE IT STOPS (written for rotation at f~0.36, BEFORE the 0.85xL captive capture: TMM.277 row 21 = a capture REPLACES this slot + BANKED -> if it did, restore from git log of this node)
 ```
-FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*'
-       reviews live (at 02:2xZ): mur471 mur479 mur482 mur483 mur485 mur486 mur488 -- verdicts in MAIN .agi/sessions/workflows/runs/mur-director-engine-{9..13}/verify_DH.4NN-kN.json
-         (a verdict may be JSON INSIDE 'unstructured': parse from '"round"' to the last '}')
-       parents live: 491 a00-7a06e8e4 (wake-facts) · 490 a00-5bde5739 (NUDGE BUG, TMM.271 dispatch now) · 487 a00-47284405 (thought regex) · 489 a00-38ff3304 · 482 a00-1bab2a86 (g4.18.1.1 answers file)
-NEXT   434 chain MERGED 262107e12. Each mur: accept -> merge its final branch; residue -> corrective from that loop tip
-         = the whole 434 chain (434 NOT an ancestor: verified; merge-tree clean at 33585683f); run test_boxkit_probe + test_mem_cap_tasks_max after
-       each other mur: accept (no residue) -> merge its final branch; residue -> corrective cut FROM that loop branch's worktree
-HARVEST recipe: wait for the parent pid to EXIT (it keeps writing after its harvest dm) -> diff vs the chain's previous tip -> touched tests
-       -> uncommitted kid/parent node edits: land ONLY if bytes == last write-log sha (TMM.268), commit msg names actors + rows
-       -> anonymize grep (user name, /home/, IPs) on every changed node BEFORE its mur
-LAND ORDER per chain (final = the last branch): 425: ...456 @b3d381f5a -> 461 @9ec5ae631 -> 467 @9afa1d525 -> 481 @990c79cd7 -> 486 · 426: ...455 @fa9b0d957 -> 470 @6aeba62ff -> 483 (NEVER 442)
-       · 427: ...459 @5922c27d9 -> 465 @0b4cd0c0e -> 477 -> 484 -> 485 (NEVER 476) · 429: 443 -> 453 -> 464 -> 475 @cb6991d69 -> 480 @24e16666d -> 488 (merge 429 nodes first, 443 -X theirs) · 430: ...457 @4dd3e60b2 -> 469 @1efb6c6ea
-       · 432: ...458 @de33ea1fe -> 463 @b8d59da7b -> 473 @11954681c -> 479 (NEVER 432) · 433: ...460 -> 466 -> 471 (carries 451+458: land 432's chain FIRST)
-       · 434: ...468 -> 472 @bf5e0cbf0 -> 474 @2d648bf26 -> 478 (NEVER 434)
-OPEN   R3b: dispatch._reap_pass never re-admits a schema-refused done (_is_death dispatch.py:255 needs a death class) -> OWN g15 hypothesis after the merge-up, propose in [merge-up]
-THEN   all chains clean + merged -> full suite in a granted window -> ONE [merge-up] to thought-master (name: 442 discarded, stale-base overrides
-       x all correctives, the g15 lines, the BOX DRIFT, TMM.268 landings, my stale 21:2xZ dm, the ~12 schemas-dir readers)
-SWARM  TMM.275 (OWNER GO via belam 02:59Z): live-parent cap = cell values.local_maxxing.de_live_parents (READ it; arm 10 now; ceiling 16 only while loadavg1<16 AND io PSI some avg60<50) · hypothesis:swarm-size-5-10-15-parents-fixes-per-hour: arms 10 -> 5 -> 15, each >= 2 h AND >= 6 finished rounds; move the arm ONLY by editing the cell (one commit, timestamped)
-       ARM 10 START 2026-09-27T03:02:43Z · sampler unit agi-director-engine-swarm-sampler -> datasets/swarm-size/samples.log (60 s; `live` = ALL parents box-wide) · at arm end: ONE experiment node under the hypothesis (per arm: start/end, merged round ids, final verify verdicts, samples, the rule arithmetic)
-       QUEUE (TMM.275): (1) nudge fix DH.490 (2) FAST-TRACK: PASS 10 code defects (the Prime mints them) + wake-facts (belam's node 9b2f1e378) -> DH.491 a00-7a06e8e4 LIVE (3) g4.18.1 -> send-is-hub-only (+ g7.32.5) -> g7.31.3.3 · DT minimal lane
-NUDGE  TMM.271 (02:50Z, owner 02:49Z verbatim in the node THOUGHT): goal:g7.33.17 row 20 = OWN round AHEAD of the queue -> hypothesis:send-read-prints-every-unread-block-and-every-dm-send-nudges 8e5ac6288 -> DH.490 LIVE (kid1 reds first, kid2 smallest fix); DT on hold, its share is ours; [merge-up] when clean (TM reads my dm file directly)
-G4181  goal:g4.18.1 SPLIT into 5 leaves 2b72ee8fa (.1 validator+answers file · .2 captive flow · .3 storage picker · .4 location row · .5 new version); post br synced to trunk e1328c8a4; hypothesis:one-mint-route-answers-file-validated-row-by-row minted 665af91c4 -> DH.482 a00-1bab2a86 HARVESTED (write.py +125/-13 vs 36 ceiling -- reuses the create gate + seed_required, JSON answers; tests +447; 441 green + 6 skip) -> mur DH.482-k1/k2 RUNNING; .2-.5 wait on .1's bytes; [rule] to TM: agi-goal skill mint omits confidence/origin/seeds/tags/heading_level
-QUEUE  after g4.18.1: then send-is-hub-only (+ (default)-box refusal) + g7.32.5, then g7.31.3.3 (OWNER order 01:0xZ)
-       then goal:g4.18.2 hypothesis:wake-facts-collapse-to-skill-pointers (belam [decision] 01:45Z, owner 01:1xZ; NOT minted on any ref at 01:4xZ -> mint at its turn): config:rotations facts -> one pointer line per F-number to skills/agi-*/SKILL.md, <= 2000 B (from 7164), first_turn range re-derived, test_rotate_templates re-pinned SAME commit, rotate.py DEFAULT_CC_ROLES drops ultracode/max
+FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (murs + swarm-sampler)
+       CHECK THE DM FILE DIRECTLY (.agi/comms/season-2/dm/director-engine--thought-master.md): send.py read prints 'empty' past dm blocks (DH.490 fixes it)
+       verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{9..13}/{review,verify}_DH.4NN-kN.json (a verdict may be JSON inside 'unstructured')
+MURS   471 (433 chain, 4 slices) · 479 (432, 3 slices) · 482 (g4.18.1.1 answers file, 2 slices) · 483 (426, 3 slices) · 485 (427: 484+485) · 486 (425) · 488 (429)
+PARENTS (cap = cell values.local_maxxing.de_live_parents, arm 10)
+       487 a00-47284405 thought-verb fix (goal:g1) · 489 a00-38ff3304 (430 chain) · 490 a00-5bde5739 NUDGE BUG (g7.33.17 r20, TMM.271)
+       491 a00-7a06e8e4 wake-facts (fast-track) · 492 a00-cfed6d3f probe-gate claim field only (goal:g1) · 493 a00-7af19a42 CAPTURE BUG (g7.33.17 r21, TMM.277)
+HARVEST wait for the parent pid to EXIT -> diff vs chain's previous tip -> CHECK THE KID WORKTREES TOO (486 + 488: the parent left kid edits uncommitted there)
+       -> land node edits ONLY if bytes == last write-log sha (TMM.268): commit on the kid branch, merge it into the loop branch -> touched tests + neighbourhood
+       -> anonymize grep (/home/<name>, /data/work, IPs; the user name = the Prime's public post name, TMM.270) -> mur (one slice per kid, detached systemd-run)
+       NEVER use write.py `thought` (node_writer.py:918 hits quoted pairs) until DH.487 lands: THOUGHT edits = replace body
+LAND ORDER (final branch per chain): 425 ...481 @990c79cd7 -> 486 @8b8c492b0 · 426 ...470 @6aeba62ff -> 483 @663cd21e2 (NEVER 442)
+       · 427 ...465 @0b4cd0c0e -> 477 @e1774344 -> 484 -> 485 (NEVER 476) · 429 ...475 @cb6991d69 -> 480 @24e16666d -> 488 @cf3f5f382 (merge 429 nodes first, 443 -X theirs)
+       · 430 ...457 -> 469 @1efb6c6ea -> 489 · 432 ...473 @11954681c -> 479 @e22d6c6cf (NEVER 432) · 433 ...466 -> 471 (land 432's chain FIRST)
+       · 434 MERGED 262107e12 (35 green)
+MERGE  a chain whose final mur is accept (residues demoted with a measured reason in the merge msg) -> git merge --no-ff into THIS post branch
+THEN   all chains merged -> full suite in a granted window -> ONE [merge-up] to thought-master (442 discarded; stale-base overrides; TMM.268 landings
+       incl. kid-worktree collections; g15 lines; BOX DRIFT; R3b reaper gap; the ~12 schemas-dir readers; 2 demotes 480/481 closed by 486/488)
+SWARM  arm 10 from 2026-09-27T03:02:43Z (sampler agi-director-engine-swarm-sampler -> datasets/swarm-size/samples.log, uncommitted; `live` = ALL parents box-wide)
+       arm ends at >= 2 h AND >= 6 finished rounds -> ONE experiment node under hypothesis:swarm-size-5-10-15-parents-fixes-per-hour, then edit the cell arm -> 5 (one commit)
+QUEUE  (1) nudge DH.490 (2) FAST-TRACK: PASS 10 code defects (the Prime mints) + wake-facts DH.491 + capture bug DH.493
+       (3) g4.18.1: .1 = DH.482 under review; .2/.5 wait on .1's bytes; .3 storage picker + .4 location row = independent, NOT minted
+       -> send-is-hub-only (+ (default)-box refusal) + g7.32.5 -> g7.31.3.3 · R3b reaper gap (goal:g1, not minted) · g7.33.17 row 21 TABLE LINE owed on the node
 ```
 
 ## §4 TRAPS
