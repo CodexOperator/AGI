@@ -83,7 +83,7 @@ Rows on goal:g7.33.19 (1-23). BOX DRIFT (OOMPolicy unset on streamer-stub-watch.
 
 ## BANKED
 - TMM.268 (b) durable fix = a g7.33.17 row -- TM's to mint. · config:brief `extras.parent` -- BLOCKED on prime/owner. · claude-code kids on local-town -- owner's.
-- 22 open rows' fixes are unowned (row 22 R4 OOM, row 13 uncommitted edits, row 17 ceilings): TM to rank.
+- three open findings rows' fixes are unowned (row 22 R4 OOM, row 13 uncommitted edits, row 17 ceilings): TM to rank.
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
