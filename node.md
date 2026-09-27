@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.31.3.3
 next_edges: []
-edited_by: director-engine
+edited_by: belam
 scaffold_hash: 99f721ebee0a9eb8
 season: 2
 testable_claim: prune clean non-live kid worktrees; spawn reads paths.<town>.worktrees_root via locations.py (no literal at dispatch.py:754); guard.env GUARD_WORKTREE_TMPFS_<host>=4G mounted and charged to user@; post worktrees stay on disk; worktree prune on reboot
@@ -40,19 +40,6 @@ town: core
 ## Agent Notes
 2026-09-27 03:3xZ belam-S2-L5-XII ONE-SHOT PRUNE (owner 03:1xZ: 'Let's trim the worktrees yourself'), the conjunct-5 predicate by hand: 201 kid worktrees -> 52 removed (git worktree remove, never --force, 0 refused), /data avail 161827M -> 170620M (~8.8 GB), git worktree list 210 at 03:0xZ -> 170 at 03:3xZ (52 removed; ~12 spawned meanwhile). KEPT: 92 DIRTY (uncommitted/untracked kid NODE files: experiment, hypothesis, goal, build, 2x .agi/config.json) · 47 recent (< 6 h) · 9 live · 1 cwd-in-use; 15 de-base-* (DE's) + posts + prime-root untouched. FINDING for this round: the 92 dirty ones are UNHARVESTED kid output -- the reaper must harvest-or-deprecate uncommitted kid nodes (write.py adopt + commit, or a retire) BEFORE it may reclaim such a worktree; never --force. Decision log: /tmp/belam-pass10/wt-decisions.log (box-local).
 
-## CORRECTIVE DH.529 -- closes mur-director-engine-18 DH.499-k1+k2+k3 (verify: accept_with_residue x3, config_max YES) -- slice 1 of 2: ONE cell
-BASE      CUT FROM season2/loops/hypothesis-kid-worktrees-resolve-a00-42c4f9a2 tip 358a60839 (worktree de-h499). No merge. Never rebase.
-SLICE 2 (NOT this round): the prune's ancestry gate + the dirty non-live kid sweep -> its own round, cut from this round's tip.
-FIRST ACT config-max: the worktrees root is ONE cell. paths.core.worktrees_dir already exists and is authoritative (heal.py:194,198, _reap_worktrees_dir); the round added a SECOND name, paths.core.worktrees_root (.agi/config.json:235, read at locations.py:573).
-1. Collapse to ONE name: locations.worktrees_root reads paths.<town>.worktrees_dir then paths.core.worktrees_dir (the claim says per-town), default .agi/worktrees; heal.py _reap_worktrees_dir calls locations.worktrees_root; drop the worktrees_root key from .agi/config.json (if the round commit gate refuses .agi/config.json, write the exact one-line diff on the kid node and the director lands it by name).
-2. Route the 16 remaining literals through locations.worktrees_root -- cli.py:158,209,219,1305,3090,4565 · heal.py:464,1524,2253 · rotate.py:16986,16989,20878,20945,21115,21468 · verification.py:1366 -- and add ONE test: `git grep -n '"worktrees"' -- extensions/agi/bin/*.py` minus locations.py = 0, plus one test that a non-default cell moves the sweep's base (heal.py:1524) and the spawn path together.
-3. Node wording (write.py): experiment:a00-011e4b8f-aa1da2 :17 rebrief_request and :123 say the cell is NOT in the branch (9ac4bcc2b landed it) and :36 points at a DIVERGENCE that is about other keys -> correct all three; experiment:a00-f7651b92-a75840 :42 measured '0 of 48 merged' against the post branch while _sweep_worktree_base resolves origin/season2/main -> re-measure against the engine's base, paste; experiment:a00-24f30600-a10da9 '169 of 181 prunable ~23.7 GB' is an UPPER bound (the unmerged gate passes 0 of 48) -> say so.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-TESTS     test_locations.py test_heal*.py test_cli.py test_dispatch.py test_rotate*.py -k worktree test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp)
-FILE SCOPE extensions/agi/bin/locations.py (worktrees_root) · cli.py · heal.py · rotate.py · verification.py (the 16 literal sites only) · .agi/config.json (the one key) · one new test file · experiment:a00-011e4b8f-aa1da2 · a00-f7651b92-a75840 · a00-24f30600-a10da9 (write.py) · the kid's own node. NEVER paths.local_maxxing.worktree_* (live readers in .agi/context/local-maxxing).
-CEILING   HARD CAP: 2 kids (1: items 1-2 code, 2: item 3 nodes) · net <= 20 production lines (16 sites are one-token swaps) · <= 60 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
-PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+OWNER 16:2xZ 09-27 to belam, verbatim: "Sweet. Once that works DE can dial up concurrency and parallelism again as warranted. Then enable RAM disk when ready" -- the owner's GO for the RAM disk, AFTER the zero-usd mint fix works and DE's concurrency is back up. Sequence unchanged (belam card): claim 3 (tmpfs) merges up and is judged; guard.env GUARD_WORKTREE_TMPFS_belam_gpu=4G (backup first); guard-init.sh then --status green; only then paths.<town>.worktrees_root -> the mount; post worktrees + prime-root stay on disk; dirty kid worktrees harvested before any reclaim.
 
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.529 (slice 1 of 2): mur-18 DH.499-k1..k3 accept_with_residue, config_max YES in all three verifies -- two cells for one worktree root, 16 literals left (claim-2 falsifier false), core-only cell vs the per-town claim, stale and mis-based node numbers. Slice 2 (the prune ancestry gate refusing every clean kid as unmerged + the owner's dirty-kid sweep, 04:4xZ) is its own round from this tip: both touch heal.py:1524.
-<!-- THOUGHT:END -->
+OWNER 17:0xZ 09-27 to belam, verbatim: "Yeah he's using the drain and harvest tools we just built to get those 92 or some worktrees cleaned up. I was wondering if we could add that tool and its use to the round harvest skill if there is one. Or if it's a part of a round start skill. Assuming it works good enough today and residues will get fixed alongside other things" -- the tool is heal.py sweep (hypothesis:clean-kid-worktrees-prune-and-dirty-ones-harvest-or-list, on its loop branch); belam [decision] 17:1xZ: DE adds its row to agi-dispatch §5 Orders and harvest in the SAME merge-up as the sweep code.
