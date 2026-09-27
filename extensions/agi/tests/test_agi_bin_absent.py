@@ -77,6 +77,38 @@ _OVERRIDE_CARRIERS = (
 )
 
 
+#: Subtrees that are NOT engine entry points: this test's own fixture plants
+#: `"$PROJECT_ROOT/bin/$NAME"` by design, so scanning it would report a
+#: carrier that never runs at hook time.
+_NOT_CARRIERS = ("tests/",)
+
+
+def override_carriers(root: Path | None = None) -> tuple[str, ...]:
+    """Every engine file that carries a project-local override site, DISCOVERED.
+
+    `_OVERRIDE_CARRIERS` is a retyped tuple, so it only ever checks the files
+    somebody remembered. A FOURTH engine entry point that prefers a
+    project-local copy -- a new hook, a new driver -- would be invisible to
+    the agreement test while the refusal message still named only
+    driver.sh's sites: the directory refusal holds, so nothing goes red.
+
+    This is the DERIVED counterpart, the same move as `driver_override_scripts`
+    one level up: walk the tree, keep the files whose bytes carry a site, and
+    let the caller compare that set against the pinned one. `root` is resolved
+    at CALL time so a doctored copy of the tree is a valid argument.
+    """
+    if root is None:
+        root = PLUGIN_ROOT
+    found = []
+    for path in sorted(root.rglob("*.sh")):
+        rel = path.relative_to(root)
+        if any(part in _NOT_CARRIERS for part in rel.parts):
+            continue
+        if driver_override_scripts(path):
+            found.append(str(rel))
+    return tuple(found)
+
+
 #: A driver.sh line citation in ANY form: the prose one (the word "line" then
 #: digits) and the path-colon-number one (a dot-sh name, a colon, digits -- see
 #: the red-first case in the test below). Both rot on every edit to driver.sh.
@@ -310,6 +342,36 @@ def test_override_sites_agree_across_every_engine_entry_point(tmp_path) -> None:
         + '\n[[ -x "$PROJECT_ROOT/bin/fourth.py" ]] && X=1\n'
     )
     assert set(driver_override_scripts(doctored)) != real, "the scan cannot see a new site"
+
+
+def test_override_carriers_are_discovered_not_retyped(tmp_path) -> None:
+    """FALSIFIER: the agreement test above can only see the files it names.
+
+    RED before this test: `_OVERRIDE_CARRIERS` is a hand-typed tuple, so a
+    fourth engine entry point carrying a project-local site -- and the
+    directory refusal still holds, so every other row is still green --
+    went unnoticed and the refusal message under-named the shadow sites.
+    """
+    discovered = set(override_carriers())
+    assert discovered, "the carrier scan found nothing -- the walk is broken"
+    assert "driver.sh" in discovered, "driver.sh is an entry point and carries a site"
+    assert discovered == {"driver.sh", *_OVERRIDE_CARRIERS}, (
+        "an engine file carries a project-local override site but is not in "
+        f"_OVERRIDE_CARRIERS, so the agreement test cannot check it: {discovered}"
+    )
+
+    # ...and the walk is a walk, not a filter over the same two names.
+    tree = tmp_path / "ext"
+    for rel in ("driver.sh", *_OVERRIDE_CARRIERS):
+        dest = tree / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_bytes((PLUGIN_ROOT / rel).read_bytes())
+    (tree / "hooks" / "rotation-alert.sh").write_text(
+        '[[ -x "$PROJECT_ROOT/bin/fourth-carrier.py" ]] && X=1\n'
+    )
+    assert "hooks/rotation-alert.sh" in override_carriers(tree), (
+        "the walk cannot see a carrier that is not already in the pinned tuple"
+    )
 
 
 def test_braced_and_dotted_override_sites_are_derived(tmp_path) -> None:
