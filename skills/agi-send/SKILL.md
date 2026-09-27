@@ -28,6 +28,7 @@ send.py wake <post>                                   # re-submit a stranded nud
 |---|---|
 | `read` once, NEVER `peek` before it | peek never flips the marker, so the nudge re-fires (F25: 8 of 8 nudges) |
 | `read` returns empty → phantom: nothing else | one read is the whole act |
+| a `--to` dm-file send can register `pending=0` and NEVER nudge (thought-master 03:5x-04:0xZ 09-27: two dms unread for 40 min; `wake` said nothing-pending) | after any send that matters: `send.py status <post>` -- the `marker` must reset to seconds; if not, resend INBOX-form (`send.py send <post> '<text>'`) and wait for `lastread` to drop |
 | a quiet row: read the inbox FILE too | an inbox-form send sits only in `.agi/sessions/inbox/<post>.md`; dm files + `read` can show nothing (trap 1) |
 | a body goes in a FILE, never a shell string with a backtick or `$(` | owner 09-17 |
 | a literal harness tag (angle brackets) in a body is REFUSED | write it without the brackets (trap 29), or `--quote-harness` |
