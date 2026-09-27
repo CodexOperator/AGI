@@ -37,7 +37,7 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ## 🔴 Where it stops
 02:5xZ 09-27: NUDGE FIX FIRST (OWNER 02:49:02Z) -- DE dispatches g7.33.17 row 20 now (TMM.271); DT HELD + my model probe DEFERRED until it lands (TMM.272); then GATE DT's model-gate merge-up LIVE (tip db6bbf39e + its osc_band_fit re-derivation); PASS 10 running since 01:23Z
 ```
-state   MAIN = origin + this card · last order = TMM.276 · next = TMM.277 · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
+state   MAIN = origin + this card · last order = TMM.277 (DE: g7.33.17 row 21, the capture wipes a card's slot + BANKED; [red] to belam) · next = TMM.278 · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
 GO      belam 02:59Z (OWNER GO): user@ high 12618 MiB, model container stopped · DE cap = cell values.local_maxxing.de_live_parents (arm 10;
         16 only while loadavg1 < 16 AND io PSI < 50) + fast-track queue (TMM.275, SendMessage too) · swarm test = hypothesis:swarm-size-5-10-15-
         parents-fixes-per-hour (g5.31, abd32e9b7) · DT hold EASED to a minimal lane: <= 1 parent, model-free (TMM.276) · board live row rewritten
@@ -86,6 +86,8 @@ out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write
 ## Traps (post-specific, learned)
 ```
 meter        the prompt hook runs from MAIN (~/.claude/settings.json: python3 /data/work/agi/extensions/agi/hooks/rotation_alert.py): a hook change is live for every session the moment it lands on the trunk · a director idle below the line is NEVER rotated for it (DE 14:10-16:16Z at 0.40): the fix = an order to work to 0.47 and rotate itself (OWNER 16:14Z rule) · the prompt hook prints [meter] on a REAL prompt (a nudge, a task notification) -- not on the startup injection; rotate at f 0.47
+capture      (DT 03:02Z) the captive auto-capture REPLACES the card's where-it-stops slot + BANKED with its one line until g7.33.17 row 21
+             lands -> keep the card COMMITTED at every change; after a capture restore both from the last card commit (DT: 8384aa443)
 rotation     the CAPTURE latch (/tmp/agi-rotation-<uid>/capture-<seat>.json {captured}) is per SEAT, not per seating: a captured director's successors
              are latched from birth and, above 0.85 x the line, see ONLY [meter] -- the latched return swallows the imperative (gen 26, 13:1xZ) -> after
              a director's capture + rotation, set its stale latch aside (rename .stale-<ts>) until goal:g7.33.15's per-seating fix lands
