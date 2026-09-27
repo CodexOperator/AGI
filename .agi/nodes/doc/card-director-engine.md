@@ -31,7 +31,7 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (17:4xZ 09-27 · per-chain history = git log of this node)
+## §0 STATE (17:5xZ 09-27 · per-chain history = git log of this node)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 merged 32ff79e53 · 429 chain MERGED 1ee2340c3 · DH.515 MERGED 64130e4ec
           (post br NOT suite-run; nothing handed to TM since merge-up 13) · 01fc645d6 agi-dispatch §5 worktree-sweep row (owner via belam
@@ -39,9 +39,11 @@ LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 mer
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<run key> [NOEX=1] [EXTRA=f,g] gen2.py N murq<Q>.json tip label [R4] -> orders<N>.md · place2.sh N
           (orders on node + base cut + dispatch) · mkmur.py/runmur.sh · harvest.sh N agent tests      D=<scratchpad 4cf27ed6-...>: verd.py Q[@key]
           (verdict digest) · harvest-all.sh N.. (stale-lock clear + harvest) · murall.py --run (one mur per green harvall round) · watch.sh
+DISK      [red] to TM 17:5xZ: root fs FULL (20M free) -> HOLD every dispatch + harvest until free > 5G (df -h /); my /tmp/de<N> pytest
+          basetemps are being deleted (unit/loop in the background); the bulk is likely the ~170 kid worktrees (TM/Prime: sweep or RAM disk)
 MURS      running murq52 56 57 58 59 60 61 (key map: T/murq<Q>.json) · every ENDED unit is triaged (latest correctives 601-605)
-LIVE      parents 588-596 (spawn_budget.py) · drainers, ALL on T/drainqw.sh + WAITFOR (the old drainq.sh deadlocks): drainq3 596 595 ·
-          drainq4 600 598 599 597 · drainq5 601 · drainq6 603 602 · drainq7 604 · drainq8 605 (T/drainq<N>.log)
+LIVE      every corrective 588-605 is PLACED (drainers done; T/drainqw.sh + WAITFOR, never the old drainq.sh) · to harvest when the disk
+          is back: 591 (a00-36e29ed9; kid edit a00-19870cd0 uncommitted -- D/harvest-kid.sh) · 596 · and every parent spawn_budget no longer lists
 GATE      OWNER GO (belam 16:25Z, TMM.300): step values.local_maxxing.de_live_parents.arm up ONE arm (10 -> 15) only while loadavg1 < 16 AND io
           PSI some avg60 < 50 AND key cap x live spawns < balance; re-read at each step, step back on any fail. 17:0xZ: load 23.5 = HOLD.
           Then the RAM worktree disk (kid-worktrees chain). Drainers hardcode -lt 10: a new drainer reads the cell + the gates
