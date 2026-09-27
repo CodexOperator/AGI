@@ -8,17 +8,17 @@ substitution order; both were residues of an earlier probe):
 2. every piece renders with no {{UNFILLED}} surviving;
 3. render() refuses an unfilled placeholder BY NAME;
 4. no template byte carries a literal host token (owner user, home, repo root,
-   guard source) or a literal cgroup UID -- anonymize.py CANNOT do this job
-   (its classes are hostname/ip/mac/board/secret; see experiment:a00-5e1ed113 P4);
+   guard source) or a literal cgroup UID -- anonymize.py CANNOT do this job (its
+   classes are hostname/ip/mac/board/secret; see experiment:a00-5e1ed113 P4);
 5. SIZING reproduces the measured knobs by TRUNCATION, never rounding;
-6. the FIXTURE is the ANONYMIZED RENDERED bytes, not a copy of the template: it is
-   the template rendered with the measured inputs and the fixed stand-ins, so a
-   changed template, a changed sized value or a changed stand-in MOVES it (the old
-   test asserted template == fixture, i.e. X == X); the three no-cascade rows
-   record the LIVE bytes and are compared by the drift cell each manifest row
-   carries -- the EXACT set of differing lines, not merely "they differ". Every fixture
-   comparison goes through _assert_piece_matches_fixture: a row with no drift cell gets
-   an EMPTY delta, so an undeclared difference is red;
+6. the FIXTURE is the ANONYMIZED RENDERED bytes, not a copy of the template: the
+   template rendered with the measured inputs and the fixed stand-ins, so a changed
+   template, sized value or stand-in MOVES it (the old test asserted template ==
+   fixture, i.e. X == X); the three no-cascade rows record the LIVE bytes and are
+   compared by the drift cell each manifest row carries -- the EXACT set of differing
+   lines, not merely "they differ". Every fixture comparison goes through
+   _assert_piece_matches_fixture: a row with no drift cell gets an EMPTY delta, so an
+   undeclared difference is red;
 7. the rendered bytes EQUAL the RECORDED LIVE bytes -- recorded once into an anonymized
    fixture, never read from ~/.config at test time: a committed test that reads a live
    unit is a probe wearing a test's name, green here and red or skipped on every other
@@ -26,36 +26,34 @@ substitution order; both were residues of an earlier probe):
    derives from the running engine checkout and the committed paths.boxkit.guard_dir
    cell, each token swapped for the stand-in that anonymized it, never tokens the test
    injects. The live comparison itself is a probe the PARENT runs;
-7b. the identity roots are DERIVED, not cells: repo_root comes from the engine's
-   own __file__ (through a linked worktree's .git FILE, no git subprocess) and
-   guard_dir from the committed cell -- and the per-box inputs are ARGUMENTS,
-   refused BY NAME when absent;
+7b. the identity roots are DERIVED, not cells: repo_root from the engine's own
+   __file__ (through a linked worktree's .git FILE, no git subprocess), guard_dir from
+   the committed cell -- and the per-box inputs are ARGUMENTS, refused BY NAME;
 7c. every manifest dest_cell resolves against the COMMITTED config (the
    user_systemd_data_dir debt is closed: the director committed that cell);
 7d. FIXTURE PROVENANCE: every manifest row carries the fixture_sha256 of its committed
-   fixture, and the file on disk still hashes to it -- the strongest tie a committed test
-   can make between a fixture and the live bytes it claims to record (UNCHANGED is all it
-   can say; the live comparison stays the parent's probe);
+   fixture, and the file on disk still hashes to it -- the strongest tie a committed
+   test can make between a fixture and the live bytes it claims to record;
 8. install() writes only under a tmp install_root, with the manifest mode;
 9. a row whose bytes are NEW TO THE KIT -- authored here, not copied from an
    installed file -- is flagged new_bytes, and is therefore excluded from the
-   rendered==live comparison. new_bytes says NOTHING about whether this box
-   carries the file: the three no-cascade drop-ins are new to the kit AND have
-   live counterparts (test 10b), and agi-survival-conf is new to the kit and has
-   none. Whether the kit or the box is first is a SEPARATE question, asked in 10b;
-10. the manifest covers EVERY unit goal:g7.33.18's no-cascade row names, read from
+   rendered==live comparison. new_bytes says NOTHING about whether this box carries
+   the file: the three no-cascade drop-ins are new to the kit AND have live
+   counterparts (test 10b), and agi-survival-conf is new to the kit and has none;
+10: the manifest covers EVERY unit goal:g7.33.18's no-cascade row names, read from
     the LIVE goal node (never a copied list), and each no-cascade drop-in is compared
-    against its RECORDED LIVE bytes by the DELTA the manifest declares, line for
-    line: a converging render and a differently-drifting render are both RED, and a
-    row with no recorded live bytes is a NAMED skip, never a silent pass.
+    against its RECORDED LIVE bytes by the DECLARED delta, line for line: a converging
+    and a differently-drifting render are both RED, and a row with no recorded live
+    bytes is a NAMED skip, never a silent pass.
 14: THE ENGINE'S OWN GUARD over the kit's bytes. Row 4 is a BESPOKE denylist
     (checkout roots, home, owner, cgroup uid) because anonymize.py's classes
-    (hostname/ip/mac/board/secret) do not cover those -- which made the two
-    DISJOINT: a template naming this box's hostname, a NIC address, a board serial
-    or a key id passes row 4 CLEAN. Row 14 runs anonymize.scan itself over every
-    template byte and every committed fixture, against a FAKE box denylist (this
-    box's values are never read into the test), and plants one token of each class
-    so the row is shown able to go red.
+    (hostname/ip/mac/board/secret) do not cover those -- which made the two DISJOINT: a
+    template naming this box's hostname, a NIC address, a board serial or a key id
+    passes row 4 CLEAN. ONE row runs anonymize.scan -- the guard's own function,
+    MIN_TOKEN and CLASSES -- against a FAKE box denylist (this box's values are never
+    read into the test): it plants one FAKE_BOX value in a COPY of one template and
+    asserts scan names the CLASS, and asserts the UNPLANTED kit bytes stay clean. It
+    guards a PLANTED COPY: the kit's own bytes could only go red on a real denylist.
 
 Reads: config cells, the goal node, and the committed fixtures. It reads NO live unit
 file and calls no systemd: the live-bytes comparison is a probe, run by the parent.
@@ -89,13 +87,13 @@ OWNER = pwd.getpwuid(os.getuid()).pw_name
 
 # The per-box inputs are ARGUMENTS, never cells (director rule 5): local-town's
 # measured /proc/meminfo, from a fixture, so the suite pins the sizing arithmetic
-# without reading a live box. A box with no guard passes its own measurements.
+# without reading a live box.
 MEASURED = {k: v for k, v in
             json.loads((FIXTURES / "measurements.json").read_text(encoding="utf-8")).items()
             if not k.startswith("_") and k != "box"}
 # The fixed stand-ins a fixture is rendered with (fixtures/boxkit/standins.json): a
 # committed fixture must never carry a live host path, so every identity token is a
-# constant here. A second box with the same measurements gets exactly these bytes.
+# constant here -- a second box with the same measurements gets exactly these bytes.
 STANDINS = {k: v for k, v in
             json.loads((FIXTURES / "standins.json").read_text(encoding="utf-8")).items()
             if not k.startswith("_")}
@@ -125,10 +123,9 @@ def _load_bin(name):
 R = _load()
 MISSING_CELLS = sorted({p["dest_cell"] for p in R.manifest()["pieces"]} - set(CELLS))
 # only for the leak checks (a template or a fixture must not carry a literal root)
-# a SHARED root: a bare top-level system directory. It is shared with every unrelated
-# path and prefixes ordinary command lines, so admitting it makes every leak row match
-# every string (the empty-prefix false red, measured as 6). Excluded BY NAME, never by
-# depth: a depth rule also drops the checkout's OWN root on a shallow extract.
+# a SHARED root: a bare top-level system directory, shared with every unrelated path and
+# a prefix of ordinary command lines, so admitting it makes every leak row match every
+# string (the empty-prefix false red, measured as 6). Excluded BY NAME, never by depth.
 SHARED_ROOTS = frozenset(("/", "/bin", "/boot", "/data", "/dev", "/etc", "/home", "/lib",
                           "/media", "/mnt", "/opt", "/proc", "/root", "/run", "/sbin",
                           "/srv", "/sys", "/tmp", "/usr", "/var"))
@@ -138,8 +135,8 @@ def _leak_roots(project):
     """The host roots a template must not carry literally: the checkout, plus the parents
     that still NAME a directory of their own (residue M2). The checkout root is kept
     UNCONDITIONALLY: the old `len(p.parts) >= 3` rule threw it away on a shallow extract
-    ('/a/b') and made the set EMPTY at top level, so a template naming the checkout --
-    the one leak this row exists for -- was not a leak at all."""
+    ('/a') and made the set EMPTY at top level, so the one leak this row exists for --
+    a template naming the checkout -- was not a leak at all."""
     return sorted({str(p) for p in [project] + list(Path(project).parents[1:3])
                    if str(p) not in SHARED_ROOTS})
 
@@ -153,8 +150,8 @@ def _leaks(text, roots=LEAK_ROOTS):
 
 # A probe identity: contract tests need SOME value for REPO_ROOT/GUARD_SRC to render
 # at all, and a probe is not the answer -- the wire test below supplies nothing.
-PROBE = {"OWNER_USER": "probe", "UID": "4242",
-         "REPO_ROOT": "/probe/repo", "GUARD_SRC": "/probe/.sanctuary/guard/guard-init.sh"}
+PROBE = {"OWNER_USER": "probe", "UID": "4242", "REPO_ROOT": "/probe/repo",
+         "GUARD_SRC": "/probe/.sanctuary/guard/guard-init.sh"}
 
 
 def _v(**over):
@@ -186,25 +183,25 @@ DRIFT_ROWS = {p["name"] for p in PIECES if p.get("drift")}
 def _declared(piece, key, v):
     """A declared drift line, resolved through the SAME renderer as the template, so
     an identity token in the declaration comes from values/stand-ins, not a literal."""
-    return R.render("\n".join(piece["drift"][key]), v, piece["name"] + ".drift." + key).splitlines()
+    name = piece["name"] + ".drift." + key
+    return R.render("\n".join(piece["drift"][key]), v, name).splitlines()
 
 
 # the identity placeholders a stand-in stands in for: the only values a committed
-# fixture is allowed to differ from a live box on.
+# fixture may differ from a live box on.
 IDENTITY = ("OWNER_USER", "UID", "REPO_ROOT", "GUARD_SRC")
 
 
 def _delta(rendered, recorded):
     """(lines only in the render, lines only in the recorded live bytes), as exact
     multisets -- a duplicated or dropped line is a delta, not a no-op."""
-    a, b = collections.Counter(rendered.splitlines()), collections.Counter(recorded.splitlines())
+    a, b = (collections.Counter(x.splitlines()) for x in (rendered, recorded))
     return sorted((a - b).elements()), sorted((b - a).elements())
 
 BY_NAME = {p["name"]: p for p in PIECES}
-# LIVE = the pieces copied from an INSTALLED file, i.e. the ones the kit can
-# falsify byte-for-byte against this box. A new_bytes row is new TO THE KIT (it was
-# authored here, not read off a box), so it is excluded -- whether a live
-# counterpart happens to exist is question 10b, not a property of the flag.
+# LIVE = the pieces copied from an INSTALLED file, the ones the kit can falsify
+# byte-for-byte against this box. A new_bytes row is new TO THE KIT, so it is excluded;
+# whether a live counterpart happens to exist is question 10b, not a property of the flag.
 LIVE = [p for p in PIECES if not p.get("new_bytes")]
 # the LIVE identity tokens, used only to assert a committed fixture does not carry them
 HOST_TOKENS = (OWNER, str(Path.home()), str(R.engine_checkout()),
@@ -273,11 +270,10 @@ def test_sizing_reproduces_the_measured_knobs():
 
 
 # 6 -- THE FIXTURE IS THE RENDER, NOT A COPY OF THE TEMPLATE. The previous version
-# of this test asserted template == fixture, i.e. X == X: it could never fail. A
-# fixture here is the ANONYMIZED RENDERED bytes -- template rendered with the
-# measured inputs and the fixed stand-ins -- so a changed template, a changed sized
-# value or a changed stand-in moves it. The three no-cascade rows record the LIVE
-# bytes instead (named drift, the header comment) and are compared on payload.
+# asserted template == fixture, i.e. X == X: it could never fail. A fixture here is the
+# ANONYMIZED RENDERED bytes -- template rendered with the measured inputs and the fixed
+# stand-ins -- so a changed template, sized value or stand-in moves it. The three
+# no-cascade rows record the LIVE bytes (named drift) and are compared on payload.
 @pytest.mark.parametrize("piece", PIECES, ids=[p["name"] for p in PIECES])
 def test_rendered_bytes_equal_the_anonymized_fixture(piece):
     fix = FIXTURES / (piece["name"] + ".fixture")
@@ -289,9 +285,8 @@ def test_rendered_bytes_equal_the_anonymized_fixture(piece):
 def _assert_piece_matches_fixture(piece, got, recorded, v):
     """The ONE fixture comparison, shared by every row that reads a fixture: outside the
     manifest-declared drift delta the kit render must EQUAL the recorded bytes exactly.
-    A row with no drift cell gets an EMPTY delta, so an undeclared difference is red; a
-    drift row goes through _assert_declared_drift, which also keeps the converged and
-    differently-drifted rules (both probed, both correct)."""
+    A row with no drift cell gets an EMPTY delta, so an undeclared difference is red;
+    a drift row goes through _assert_declared_drift."""
     if piece["name"] in DRIFT_ROWS:
         _assert_declared_drift(piece, got, recorded, v)
     else:
@@ -302,22 +297,18 @@ def _assert_declared_drift(piece, got, recorded, v):
     """The EXACT-DELTA falsifier for a drift row. "They differ" is not a falsifier: a
     template that lost a whole section still differs, and would keep a `got != want`
     green. So: the payload is equal, and the full multiset of differing lines EQUALS
-    the set the manifest declares. A render that CONVERGES (no delta at all) is RED
-    here, not an improvement: the live file carries the owner's 09-25 survival header
-    and the drift cell is the record of that difference -- a kit that adopts the
-    header silently drops the declaration, and a row whose declared delta no longer
-    describes reality is a lie in the manifest. A render that drifts DIFFERENTLY is
-    RED too, printing the ACTUAL differing lines."""
+    the set the manifest declares. A render that CONVERGES (no delta at all) is RED,
+    not an improvement: the live file carries the owner's 09-25 survival header and the
+    drift cell is the record of that difference. A DIFFERENT drift is RED too."""
     name = piece["name"]
     assert _payload(got) == _payload(recorded), _diff(_payload(recorded), _payload(got))
     extra, missing = _delta(got, recorded)
     want_extra = sorted(_declared(piece, "render_only_lines", v))
     want_missing = sorted(_declared(piece, "live_only_lines", v))
     assert not (not extra and not missing), (
-        "%s CONVERGED: the render now equals the recorded live bytes exactly, so the drift "
-        "cell in the manifest describes nothing. The live file carries the owner 09-25 "
-        "survival header on purpose (see drift_means): a converging render is a lost "
-        "declaration, not an improvement." % name)
+        "%s CONVERGED: the render now equals the recorded live bytes exactly, so the "
+        "drift cell describes nothing. The live file carries the owner 09-25 survival "
+        "header on purpose: a converging render is a lost declaration." % name)
     assert (extra, missing) == (want_extra, want_missing), (
         "%s drifted DIFFERENTLY than the manifest declares.\n  actual render-only:   %s\n"
         "  declared render-only: %s\n  actual live-only:    %s\n  declared live-only:  %s\n"
@@ -347,8 +338,8 @@ def test_the_fixture_is_a_render_and_not_a_copy_of_the_template(piece):
         assert moved != R.rendered(piece, _vs())
 
 
-# 6c -- no committed fixture may carry a live host token (anonymization is the whole
-# point of the stand-ins; a fixture built from a live read is a leak).
+# 6c -- no committed fixture may carry a live host token (a fixture built from a live
+# read is a leak, which is the whole point of the stand-ins).
 @pytest.mark.parametrize("piece", PIECES, ids=[p["name"] for p in PIECES])
 def test_no_fixture_carries_a_live_host_token(piece):
     fix = (FIXTURES / (piece["name"] + ".fixture")).read_text(encoding="utf-8")
@@ -356,9 +347,8 @@ def test_no_fixture_carries_a_live_host_token(piece):
 
 
 # 6e -- ANONYMIZATION IS A PROPERTY OF THE BYTES, checked over EVERY committed fixture
-# (including the recorded live ones), not only the rendered ones: no home path, no repo
-# root, no box user, no absolute path outside the kit's own destination cells. A
-# fixture built by copying a live file is the leak this forbids.
+# (including the recorded live ones): no home path, no repo root, no box user, no
+# absolute path outside the kit's own destination cells.
 def test_every_committed_fixture_is_anonymized():
     forbidden = {str(Path.home()), OWNER, "/data/work", "/root/"}
     for fix in sorted(FIXTURES.glob("*.fixture")):
@@ -380,24 +370,19 @@ def test_the_stand_ins_are_constants_and_not_this_box():
 
 
 # 7 -- THE FALSIFIER: the RECORDED fixture IS what this box renders. The previous
-# version of this test never touched the fixture: it rendered twice, once with this
-# box's host tokens and once with the stand-ins, masked the four identity placeholders
-# on both sides and asserted the two renders were equal -- X == X for every sized
-# value, green forever (perturb MEM_TOTAL, delete a template line, it stays green).
-# It now READS the committed fixture, like test 6, and it is NOT the same assertion:
-# test 6 pins the STAND-IN side (a changed stand-in, a changed sized value or a changed
-# template moves the render off the fixture), test 7 pins the DERIVED-HOST side --
-# this box's own R.host_tokens() must be non-empty and must land EXACTLY at the identity
-# placeholder sites, no more and no fewer times, and the bytes that leaves must be the
-# recorded ones. That occurrence count is the part test 6 cannot make: it is red when a
-# token is empty or fails to reach the render, where test 6 is green. (It is NOT red for
-# every malformation: a token of the right arity but the wrong shape -- REPO_ROOT with a
-# trailing slash -- is substituted back into the stand-in and stays green. Do not read
-# this row as a shape check; it is an arity-and-bytes check. The shape lives in 7b.)
-# A committed test that reads ~/.config/systemd/user/... is still forbidden: the live
-# UNIT is the parent's probe, run by hand. This test reads the committed fixture, and
-# the fixture is tied to the recorded live bytes by its manifest fixture_sha256 cell
-# (test 7d) plus that probe.
+# version never touched the fixture: it rendered twice (host tokens, then stand-ins),
+# masked the four identity placeholders on both sides and asserted the renders were
+# equal -- X == X for every sized value, green forever. It now READS the committed
+# fixture, and it is NOT test 6: test 6 pins the STAND-IN side (a changed stand-in,
+# sized value or template moves the render off the fixture), test 7 pins the
+# DERIVED-HOST side -- this box's own R.host_tokens() must be non-empty and land EXACTLY
+# at the identity placeholder sites, no more and no fewer times, and the bytes that
+# leaves must be the recorded ones. That occurrence count is what test 6 cannot make:
+# red when a token is empty or fails to reach the render, where test 6 is green. (NOT a
+# shape check: a token of the right arity but the wrong shape -- REPO_ROOT with a
+# trailing slash -- is substituted back and stays green. Shape: 7b.) Reading a live unit
+# is still forbidden; the fixture is tied to the recorded live bytes by its manifest
+# fixture_sha256 cell (7d) plus the parent's probe.
 @pytest.mark.parametrize("piece", LIVE, ids=[p["name"] for p in LIVE])
 def test_rendered_bytes_equal_the_recorded_live_bytes(piece):
     fix = FIXTURES / (piece["name"] + ".fixture")
@@ -408,12 +393,11 @@ def test_rendered_bytes_equal_the_recorded_live_bytes(piece):
 
 def _with_the_whole_stand_in_set(piece, tokens):
     """The bytes a committed fixture IS: this box's values with the stand-in put back
-    for EVERY identity key -- one mapping, no partial override, no per-key set. The
-    fixture was rendered with all of them, so a comparison may only ever be made
-    against a render that carries all of them. The clean path reaches the same bytes by
-    substitution BY VALUE (which is what the occurrence count is for); the collision
-    fallback reaches them by re-rendering through here. A key with no {{K}} site is
-    harmless in this mapping: a value no placeholder consumes never reaches the render."""
+    for EVERY identity key -- one mapping, no partial override. The fixture was rendered
+    with all of them, so a comparison may only be made against a render carrying all of
+    them. The clean path reaches these bytes by substitution BY VALUE (what the
+    occurrence count is for); the collision fallback reaches them by re-rendering here.
+    A key with no {{K}} site is harmless: a value no placeholder consumes never lands."""
     return R.rendered(piece, R.values(CFG, MEASURED,
                                       {**tokens, **{k: STANDINS[k] for k in IDENTITY}}))
 
@@ -428,13 +412,8 @@ def _anonymized_live_render(piece, tokens=None):
     outside its sites (a template literal colliding with this box's uid, e.g. memguard's
     hard -1000): BY-VALUE substitution cannot tell the two apart there, so the whole
     render is redone through _with_the_whole_stand_in_set -- the FULL stand-in set,
-    every identity key, because the fixture was recorded with all of them. The previous
-    version overrode ONLY the masked keys and left the rest at their HOST values: mixed
-    host/stand-in bytes compared against all-stand-in fixture bytes -- red for a reason
-    that has nothing to do with the claim, and green by accident wherever a host value
-    happened to equal its stand-in. On this box no key needs the fallback (uid 1000
-    appears only at its sites); row 7f walks the branch with a synthetic collision, so
-    the branch is compared on some box rather than merely existing."""
+    because the fixture was recorded with all of them. No key needs the fallback here;
+    row 7f walks it."""
     tokens = R.host_tokens(CFG) if tokens is None else dict(tokens)
     body = (TEMPLATES / piece["template"]).read_text(encoding="utf-8")
     live = R.rendered(piece, R.values(CFG, MEASURED, tokens))
@@ -463,11 +442,11 @@ def _substitute_longest_first(text, mapping):
     """Put the stand-in back for every derived token, LONGEST TOKEN FIRST (residue N1).
     Two identity tokens on one box can overlap: OWNER_USER=/box/agi and
     REPO_ROOT=/box/agi/extensions, where the shorter is a PREFIX of the longer. In
-    identity order the short token is replaced first and eats the longer token's
-    prefix, so the {{REPO_ROOT}} site is corrupted into a stand-in path that carries
-    the short stand-in's home segment -- a fixture comparison red for a reason that has
-    nothing to do with the claim. Longest first, every site lands on the stand-in of
-    the token that owns it; ties break on the key so the bytes are deterministic."""
+    identity order the short token is replaced first and eats the longer token's prefix,
+    so the {{REPO_ROOT}} site is corrupted into a stand-in path carrying the short
+    stand-in's home segment -- a fixture comparison red for a reason unrelated to the
+    claim. Longest first, every site lands on the stand-in of the token that owns it;
+    ties break on the key, so the bytes are deterministic."""
     for k in sorted(mapping, key=lambda k: (-len(mapping[k] or ""), k)):
         if mapping[k]:
             text = text.replace(mapping[k], STANDINS[k])
@@ -475,20 +454,16 @@ def _substitute_longest_first(text, mapping):
 
 
 # 7f -- THE COLLISION FALLBACK RE-RENDERS WITH THE WHOLE STAND-IN SET (a00-fc6bf436).
-# On this box no host token collides with a template literal, so the fallback branch is
-# never taken and its bytes were never compared by any row: a branch that no test walks
-# is a branch nobody has read. This row WALKS it -- tmp only, no live box needed -- by
-# injecting a synthetic identity token whose value is a template LITERAL ("python3",
-# which memguard-script uses outside every {{OWNER_USER}} site), so the token occurs
-# more often in the render than the template declares sites, which is exactly the
-# ambiguity the fallback exists for. The bytes it must produce are the FIXTURE's: the
-# fixture was rendered with the stand-in for EVERY identity key, so a fallback that
-# re-renders only the masked key leaves the others at their HOST values and compares
-# mixed host/stand-in bytes against all-stand-in bytes -- red for a reason that has
-# nothing to do with the claim, and green by accident on a box whose host values happen
-# to equal the stand-ins. The pre-fix failure is therefore not "a collision is
-# mishandled": it is that the collision path and the clean path disagree about what the
-# fixture is.
+# No host token collides with a template literal on this box, so the fallback branch is
+# never taken and its bytes were never compared: a branch no test walks is a branch
+# nobody has read. This row WALKS it -- tmp only -- by injecting a synthetic identity
+# token whose value is a template LITERAL ("python3", which memguard-script uses outside
+# every {{OWNER_USER}} site), so the token occurs more often in the render than the
+# template declares sites: the ambiguity the fallback exists for. The bytes it must
+# produce are the FIXTURE's -- rendered with the stand-in for EVERY identity key -- so a
+# fallback re-rendering only the masked key compares mixed host/stand-in bytes against
+# all-stand-in bytes: red for a reason unrelated to the claim, green by accident on a box
+# whose host values happen to equal the stand-ins.
 def test_the_collision_fallback_re_renders_with_the_whole_stand_in_set():
     piece = BY_NAME["memguard-script"]
     collides = "python3"          # a literal in the template, outside every {{OWNER_USER}} site
@@ -508,15 +483,12 @@ def test_the_collision_fallback_re_renders_with_the_whole_stand_in_set():
 
 
 # 7d -- FIXTURE PROVENANCE. By design no committed test may read a live unit, so nothing
-# in this suite ties a committed fixture to the bytes it claims to record: the parent
-# probe is the only witness, and a probe is not a gate. So every manifest row carries the
+# here ties a committed fixture to the bytes it claims to record: the parent probe is the
+# only witness, and a probe is not a gate. So every manifest row carries the
 # fixture_sha256 of the fixture FILE BYTES AS COMMITTED, and this row says whether the
-# file on disk is still those bytes. A hand-typed or computed digest lives in neither
-# code nor node: the hash is computed here, over the committed file, and compared with
-# the cell. A fixture edited in place -- or a template re-rendered into one without the
-# record being redone -- is RED, naming the piece and both digests. This row can only
-# say the file is UNCHANGED: the claim that the unchanged file records a live unit stays
-# a probe, and pretending otherwise here would be the same defect one layer down.
+# file on disk is still those bytes -- computed here, never hand-typed. A fixture edited
+# in place is RED. It can only say the file is UNCHANGED: that the unchanged file records
+# a live unit stays a probe.
 def test_every_committed_fixture_still_hashes_to_its_manifest_cell():
     rows = {p["name"] for p in PIECES}
     stray = sorted(f.stem for f in FIXTURES.glob("*.fixture") if f.stem not in rows)
@@ -540,9 +512,8 @@ def test_every_committed_fixture_still_hashes_to_its_manifest_cell():
 
 
 # 7b -- the identity roots are DERIVED (director rules 2 and 3), never cells: the repo
-# is the running engine's checkout (resolved through a linked worktree's .git FILE,
-# with no git subprocess) and the guard directory is the committed paths.boxkit.guard_dir
-# cell, expanded at read time.
+# is the running engine's checkout (through a linked worktree's .git FILE, no git
+# subprocess) and the guard dir is the committed paths.boxkit.guard_dir cell.
 def test_host_tokens_derives_the_engine_checkout_and_the_guard_dir_cell():
     t = R.host_tokens(CFG)
     assert t["REPO_ROOT"] == str(R.engine_checkout())
@@ -589,9 +560,8 @@ def test_new_bytes_rows_are_flagged_and_excluded_from_the_live_comparison():
         assert "OOMPolicy=" in R.rendered(p, _v()), p["name"]
 
 
-# 10 -- the no-cascade coverage closure (kid a00-057a8121, probe 5 of the previous
-# round). The goal TABLE is the spec, read from the live node -- a copied list in
-# this file is the exact defect the probe found.
+# 10 -- the no-cascade coverage closure (kid a00-057a8121). The goal TABLE is the spec,
+# read from the live node -- a copied list in this file is the exact defect found.
 GOAL = PROJECT / ".agi" / "nodes" / "goal" / "g7.33.18.md"
 
 
@@ -607,9 +577,8 @@ def _no_cascade_units():
 
 def _user_unit_dir_cell():
     """The committed paths.boxkit cell that resolves to the USER unit dir the goal's own
-    world-after line names. The no-cascade row rides USER units, so a no-cascade drop-in
-    artifact means a file under that dir -- the cell is read from config, and the dir is
-    read from the live goal node, never a literal in this file."""
+    world-after line names. A no-cascade drop-in artifact means a file under that dir;
+    both the cell and the dir are read, never a literal in this file."""
     m = re.search(r"[\w./~-]*systemd/user\b", GOAL.read_text(encoding="utf-8"))
     assert m, "the goal must name the user unit dir its no-cascade row rides"
     tail = m.group(0).lstrip("~/")
@@ -628,15 +597,15 @@ def _drop_ins_for(unit):
 @pytest.mark.parametrize("unit", _no_cascade_units())
 def test_manifest_covers_every_unit_the_goal_no_cascade_row_names(unit):
     rows = _drop_ins_for(unit)
-    assert rows, ("goal:g7.33.18 names %s in its no-cascade row but no manifest "
-                  "row ships a drop-in for it" % unit)
+    assert rows, ("goal:g7.33.18 names %s in its no-cascade row but no manifest row "
+                  "ships a drop-in for it" % unit)
     v = _v()
     rendered = [R.rendered(row, v) for row in rows]
     # the unit's no-cascade layer rides the CONFIGURED OOM_POLICY, never a literal
     assert any("OOMPolicy=" + CFG["values"]["boxkit"]["OOM_POLICY"] in out for out in rendered), rows
     assert all(p["reload"] in ("system", "user") and p["mode"] == "0644" for p in rows)
     # the no-cascade drop-in lands in the USER unit dir as 10-agi-survival.conf --
-    # the name and the directory goal:g7.33.18's row carries, not 50- under /etc
+    # the name and dir goal:g7.33.18's row carries, not 50- under /etc
     for p in rows:
         if not p.get("new_bytes"):
             continue
@@ -672,16 +641,13 @@ def test_no_cascade_drop_in_matches_the_recorded_live_bytes_or_names_its_absence
         assert comments == _declared(row, "live_only_lines", v), (row["name"], comments)
 
 
-# 11 -- THE WHOLE-TABLE COVERAGE CLOSURE. Row 10 closes the no-cascade layer alone
-# (the one row the previous probe found). The CLAIM is wider: "every piece of
-# goal:g7.33.18's table is a template + manifest entry". Nothing in the suite made that
-# true for the OTHER rows: the manifest lists itself, so DELETING a manifest row simply
-# removes the piece and every other row stays green -- a coverage hole of the exact shape
-# the claim is about. This row reads the goal TABLE (the same live node row 10 reads, never
-# a copied list), takes the file-shaped artifacts each shipping row names, normalises the
-# goal's literal uid to the kit's {{UID}}, and requires a manifest row to ship each one.
-# A row that ships a FILE but names no artifact is red here: a parser that quietly
-# extracts nothing would otherwise make the closure vacuously true.
+# 11 -- THE WHOLE-TABLE COVERAGE CLOSURE. Row 10 closes the no-cascade layer alone. The
+# CLAIM is wider: "every piece of goal:g7.33.18's table is a template + manifest entry".
+# Nothing made that true for the OTHER rows: the manifest lists itself, so DELETING a
+# manifest row removes the piece and every other row stays green -- a coverage hole of the
+# exact shape the claim is about. This row reads the goal TABLE (the live node row 10
+# reads, never a copied list), takes the file-shaped artifacts each shipping row names,
+# normalises the goal's literal uid to {{UID}}, and requires a manifest row for each.
 def _goal_rows():
     body = [ln for ln in GOAL.read_text(encoding="utf-8").splitlines()
             if ln.strip().startswith("|")]
@@ -690,8 +656,8 @@ def _goal_rows():
             if ln.count("|") >= 4]
 
 
-# a file or unit a table row can name: an absolute live path, a drop-in under a slice/
-# unit dir, a bare unit, or one of the two files this layer ships by name
+# a file or unit a table row can name: an absolute live path, a drop-in under a
+# slice/unit dir, a bare unit, or one of the two files this layer ships by name
 ARTIFACT = re.compile(
     r"/[\w.@/-]+"                                              # /usr/local/sbin/agi-memguard.py
     r"|(?:[\w@.-]+/)*[\w.@*-]+\.(?:service|slice|conf|py|sh)"  # oomd.conf.d/50-...conf, user.slice
@@ -718,9 +684,9 @@ def _required_artifacts():
 
 def _shipped_paths(pieces):
     """Every manifest row's LIVE destination, repo-relative and cell-joined: the path a
-    rendered piece lands on, which is the only thing the goal table names. The goal
-    writes the live ABSOLUTE path, the cell is repo-relative with a leading / -- both
-    forms of the same destination, so both are compared."""
+    rendered piece lands on, the only thing the goal table names. The goal writes the live
+    ABSOLUTE path, the cell is repo-relative with a leading /: both forms of one
+    destination, so both are compared."""
     out = []
     for p in pieces:
         rel = p["dest_rel"]
@@ -729,22 +695,35 @@ def _shipped_paths(pieces):
     return out
 
 
+# a systemd UNIT drop-in dir (`foo.service.d`, `user.slice.d`, `agi-.slice.d`) and a
+# systemd unit dir cell. A `*.conf.d` dir (oomd.conf.d) is neither: it lives under a
+# config dir -- what the general branch could not see, comparing dest_rel alone.
+UNIT_DROPIN = re.compile(r"[\w@{}%.-]+\.(service|slice|timer|scope|mount|socket|target)\.d$")
+UNIT_DIRS = ("systemd/system", "systemd/user")
+
+
+def _cell_fits_dir(p, art):
+    """The CELL side of a relative artifact: a `UNIT.d` dir is shipped under a systemd
+    unit dir, any other dir under a config dir. A BARE artifact names no dir."""
+    rel = art.lstrip("/")
+    return True if "/" not in rel else \
+        bool(UNIT_DROPIN.search(rel.split("/")[0])) == \
+        str(CELLS[p["dest_cell"]]).lstrip("/").endswith(UNIT_DIRS)
+
+
 def _uncovered(required, pieces):
     """The artifacts no manifest row ships, as (row label, artifact).
 
     A unit/slice name ships its drop-in DIRECTORY for it (user.slice ->
     user.slice.d/...); a file ships the destination that IS or ENDS with it. A BARE
     filename the goal names PER UNIT (10-agi-survival.conf) ships as a drop-in for one
-    of that row's units, in the unit dir the goal NAMES: a top-level file of the same
-    name, or the same drop-in rel under another dest_cell, is a different piece and
-    does not satisfy the artifact (probe P1).
+    of that row's units, in the unit dir the goal NAMES (probe P1).
 
-    The GENERAL branch checks the DESTINATION, not a suffix of it (probe P5): the
-    artifact is a path RELATIVE to one dir, so a piece satisfies it only when its
-    dest_rel IS that path (or ships something under it); the old `live.endswith("/" + a)`
-    admitted any dest_cell and any deeper rel, and the artifact's dir was never
-    checked. The cell side of the destination is joined from the committed
-    paths.boxkit cells by _shipped_paths, never a literal here."""
+    The GENERAL branch checks the DESTINATION, not a suffix of it (probe P5), and BOTH
+    halves: the artifact is a path RELATIVE to one dir, so a piece satisfies it only
+    when its dest_rel IS that path AND its dest_cell is that dir's cell
+    (_cell_fits_dir); the old `live.endswith("/" + a)` admitted any dest_cell and any
+    deeper rel, and never read the cell. Cells come from _shipped_paths, not literals."""
     out = []
     units = _no_cascade_units()
     for label, art in required:
@@ -758,9 +737,10 @@ def _uncovered(required, pieces):
             # a live path the goal writes absolutely is the destination itself; a
             # relative one is the dest_rel, in whatever cell that rel belongs to --
             # a suffix match across cells is what P5 was.
-            hit = any(art == rel or rel.startswith((art + "/", art + "."))
-                      or a == live
-                      for _p, rel, live in paths)
+            hit = any(a == live
+                      or ((art == rel or rel.startswith((art + "/", art + ".")))
+                          and _cell_fits_dir(p, art))
+                      for p, rel, live in paths)
         if hit:
             continue
         out.append((label, art))
@@ -800,8 +780,7 @@ def test_the_whole_table_closure_is_red_when_a_piece_is_removed():
 # 11b -- THE PER-UNIT NO-CASCADE CASE: a same-named file under ANOTHER dest_cell must
 # not satisfy a bare-filename artifact. The goal names 10-agi-survival.conf PER UNIT (as
 # <unit>.service.d/10-agi-survival.conf); a top-level file of that name in any cell is a
-# different piece. The suffix match admitted it (the looseness experiment:a00-b90527fa
-# recorded as accepted); this row pins it red.
+# different piece. The suffix match admitted it (experiment:a00-b90527fa, accepted).
 def test_a_same_named_file_in_another_dest_cell_does_not_satisfy_a_no_cascade_artifact():
     artifact = "10-agi-survival.conf"
     elsewhere = dict(BY_NAME["agi-survival-conf"], dest_cell="systemd_system_dir")
@@ -812,11 +791,9 @@ def test_a_same_named_file_in_another_dest_cell_does_not_satisfy_a_no_cascade_ar
                       [BY_NAME["claude-remote-control-no-cascade"]]) == []
 
 
-# 11c -- THE WRONG-CELL DROP-IN DECOY (probe P1). 11b only rejected a TOP-LEVEL
+# 11c -- THE WRONG-CELL DROP-IN DECOY (probe P1). 11b rejected only a TOP-LEVEL
 # same-named file in another cell. The surviving shape is a piece whose dest_rel IS the
-# per-unit drop-in path while its dest_cell points at the SYSTEM unit dir: the relative
-# name alone satisfied an artifact the goal names for the USER unit dir. The destination
-# is the cell the goal's own world-after line names, resolved from the live node.
+# per-unit drop-in path while its dest_cell points at the SYSTEM unit dir.
 def test_a_drop_in_in_the_wrong_unit_dir_does_not_satisfy_a_no_cascade_artifact():
     artifact = "10-agi-survival.conf"
     unit = _no_cascade_units()[0]
@@ -829,12 +806,10 @@ def test_a_drop_in_in_the_wrong_unit_dir_does_not_satisfy_a_no_cascade_artifact(
         "which the goal names for the user unit dir (%s)" % (unit, cell))
 
 
-# 11d -- THE GENERAL BRANCH'S WRONG-CELL / DEEPER-REL DECOY (probe P5). 11b/11c tightened
-# the PER-UNIT branch; the general branch -- the one the whole-table closure leans on --
-# still matched on `live.endswith("/" + a)`, which admits ANY dest_cell and any deeper
-# rel. The goal names a drop-in path RELATIVE to one directory; a piece that lands under
-# a different cell, and deeper, is a DIFFERENT piece. The decoy's cell is a committed
-# one read from config, never a literal in this file.
+# 11d -- THE GENERAL BRANCH'S WRONG-CELL / DEEPER-REL DECOY (probe P5). The general
+# branch -- the one the whole-table closure leans on -- matched on
+# `live.endswith("/" + a)`, admitting ANY dest_cell and any deeper rel: the goal names a
+# drop-in path RELATIVE to one directory. The decoy's cell is a committed one from config.
 def test_a_deeper_rel_in_another_dest_cell_does_not_satisfy_a_table_artifact():
     artifact = "oomd.conf.d/50-sanctuary-guard.conf"
     decoy = dict(BY_NAME["oomd-guard"], dest_cell="systemd_system_dir")
@@ -847,10 +822,27 @@ def test_a_deeper_rel_in_another_dest_cell_does_not_satisfy_a_table_artifact():
     assert _uncovered([("oomd row", artifact)], [BY_NAME["oomd-guard"]]) == []
 
 
+# 11f -- THE GENERAL BRANCH'S CELL SIDE. 11d moved the REL; this row holds the rel
+# EXACTLY as the goal names it and moves only dest_cell: RED against the branch as it
+# stood (checked by restoring it), green now that the branch reads the cell.
+def test_the_right_dest_rel_in_the_wrong_dest_cell_does_not_cover_a_table_artifact():
+    artifact = "oomd.conf.d/50-sanctuary-guard.conf"
+    decoy = dict(BY_NAME["oomd-guard"], dest_cell="systemd_system_dir")
+    assert decoy["dest_rel"] == artifact, decoy["dest_rel"]  # the REL is not the variable
+    assert _uncovered([("oomd row", artifact)], [decoy]), \
+        "the right rel in a systemd UNIT dir covered an artifact of the CONFIG dir"
+    assert _uncovered([("oomd row", artifact)], [BY_NAME["oomd-guard"]]) == []
+    # the other polarity of the same rule: a UNIT.d dir under a bare config dir
+    unit_art = "user.slice.d/50-sanctuary-guard.conf"
+    assert _uncovered([("slices row", unit_art)],
+                      [dict(BY_NAME["user-slice-guard"], dest_cell="systemd_conf_dir")])
+    assert _uncovered([("slices row", unit_art)], [BY_NAME["user-slice-guard"]]) == []
+
+
 # 11e -- THE cells[0] TIE. _user_unit_dir_cell returned the FIRST committed cell whose
-# value ends in the goal's unit dir, so a second cell with the same tail would have
-# silently changed which dir the no-cascade artifacts are checked against. It must
-# refuse BY NAME. The refusal is planted here, not assumed.
+# value ends in the goal's unit dir, so a second cell with the same tail would silently
+# change which dir the no-cascade artifacts are checked against. It must refuse BY NAME,
+# and the refusal is planted here, not assumed.
 def test_the_user_unit_dir_cell_refuses_when_two_committed_cells_share_a_tail(monkeypatch):
     # a config that declares the same dir twice: two cells, one tail
     tied = dict(CELLS)
@@ -861,19 +853,29 @@ def test_the_user_unit_dir_cell_refuses_when_two_committed_cells_share_a_tail(mo
         _user_unit_dir_cell()
 
 
+def _leak_roots_by_depth(project):
+    """The OLD `len(p.parts) >= 3` rule, inline: row 12 pins a shape the rules DISAGREE on."""
+    return sorted({str(p) for p in [project] + list(Path(project).parents[1:3])
+                   if str(p) not in SHARED_ROOTS and len(p.parts) >= 3})
+
+
 # 12 -- LEAK_ROOTS EXCLUDES SHARED ROOTS BY NAME, NOT BY DEPTH (residue M2). The old
-# `len(p.parts) >= 3` rule dropped the CHECKOUT'S OWN root on a shallow extract, so the
-# row reported no leak in a template that names the checkout. The deep checkout it was
-# written on never exposed it, so every shallow shape is planted here, and so is the
-# empty-prefix false red the shared-root exclusion is really for.
+# rule dropped the CHECKOUT'S OWN root on a shallow extract, so the row reported no leak
+# in a template that names the checkout. The DISCRIMINATING shape is a ONE-COMPONENT
+# checkout (Path("/a").parts == ("/", "a")).
 def test_leak_roots_keep_a_shallow_checkout_and_exclude_only_shared_roots():
-    for shallow, keep in ((Path("/a"), "/a"), (Path("/a/b"), "/a/b"),
-                          (Path("/tmp/extract/agi"), "/tmp/extract/agi")):
-        roots = _leak_roots(shallow)
-        assert keep in roots, (str(shallow), roots)
-        assert not [r for r in roots if r in SHARED_ROOTS], roots
-        # a template naming this checkout IS a leak, at every depth
-        assert _leaks("cd %s and ls\n" % keep, roots) == [keep]
+    shallow, keep = Path("/a"), "/a"
+    roots, old = _leak_roots(shallow), _leak_roots_by_depth(shallow)
+    assert set(old) != set(roots), (old, roots)
+    assert keep in roots and keep not in old, (roots, old)
+    # a template naming this checkout IS a leak under the new rule, invisible to the old
+    assert _leaks("cd %s and ls\n" % keep, roots) == [keep]
+    assert _leaks("cd %s and ls\n" % keep, old) == [], "the old rule's wrong answer"
+    for deeper, kept in ((Path("/a/b"), "/a/b"), (Path("/b"), "/b"),
+                         (Path("/tmp/extract/agi"), "/tmp/extract/agi")):
+        r = _leak_roots(deeper)
+        assert kept in r and not [x for x in r if x in SHARED_ROOTS], (str(deeper), r)
+        assert _leaks("cd %s and ls\n" % kept, r) == [kept]
     # the empty-prefix false red the shared-root exclusion is for: a bare top-level dir
     # is a prefix of every absolute path, so admitting it makes every template a leak
     benign = "ExecStart=/usr/local/bin/agi-slice start\n"
@@ -885,8 +887,7 @@ def test_leak_roots_keep_a_shallow_checkout_and_exclude_only_shared_roots():
 
 # 13 -- STAND-IN SUBSTITUTION IS LONGEST-FIRST (residue N1). Two identity tokens can
 # overlap on one box; the shorter must not eat the longer's prefix. No planted
-# overlapping pair existed in this file, so the order was never compared: this row
-# plants one and asserts the RESULT the fixture comparison depends on.
+# overlapping pair existed here, so this row plants one and asserts the RESULT.
 def test_stand_in_substitution_is_longest_first_over_overlapping_tokens():
     # two OVERLAPPING derived tokens, neither of which collides with a stand-in
     mapping = {"OWNER_USER": "/srv/owner", "REPO_ROOT": "/srv/owner/ext"}
@@ -901,17 +902,16 @@ def test_stand_in_substitution_is_longest_first_over_overlapping_tokens():
         naive = naive.replace(mapping[k], STANDINS[k])
     assert naive != got, naive
     assert STANDINS["REPO_ROOT"] not in naive and mapping["REPO_ROOT"] not in naive
-    # the stand-ins themselves must not overlap the tokens, or NO order saves the
-    # comparison: this row plants the one shape longest-first cannot fix, so a future
-    # standin edit that collides is red here rather than a red fixture on a live box
+    # the shape longest-first cannot fix: a stand-in that collides with a token, which
+    # would be a red fixture on a live box rather than a red edit here
     assert not [k for k in mapping if any(mapping[j] in STANDINS[k]
                                           for j in mapping if j != k)], STANDINS
     # the empty/derived token is skipped, never replaced into every string
     assert _substitute_longest_first("unchanged", {"OWNER_USER": ""}) == "unchanged"
 
 
-# 13b -- N1 AT THE CALL SITE, not only in the helper (row 13 walks the helper in
-# isolation, so a call site reverted to the naive identity order stayed GREEN).
+# 13b -- N1 AT THE CALL SITE: row 13 walks the helper in isolation, so a call site
+# reverted to the naive identity order stayed GREEN.
 def test_the_anonymized_live_render_substitutes_through_the_longest_first_helper(monkeypatch):
     seen, real = [], _substitute_longest_first
     monkeypatch.setitem(globals(), "_substitute_longest_first",
@@ -925,22 +925,33 @@ def test_the_anonymized_live_render_substitutes_through_the_longest_first_helper
     _assert_piece_matches_fixture(piece, got, fix, _vs())
 
 
-# 14 -- THE ENGINE'S OWN PHYSICAL-TOKEN GUARD over the kit's bytes.
-# Row 4 checks a BESPOKE denylist because anonymize.py's classes (hostname/ip/mac/
-# board/secret) cannot express "the checkout root" or "the cgroup uid". The cost of
-# that split, measured: the two denylists are DISJOINT. A template or a committed
-# fixture naming this box's hostname, a NIC address, a board serial or a key id
-# passes row 4 CLEAN, and row 4 is the only leak row the kit had. The hypothesis
-# names anonymize.py as a FALSIFIER of the whole claim; nothing ran it over the kit.
-# This row runs anonymize.scan -- the guard's own function, its own MIN_TOKEN and its
-# own CLASSES -- over every template byte and every committed fixture. The denylist
-# is a FAKE box written to tmp_path and reached through anonymize's own
-# AGI_ANONYMIZE_FIXTURE seam, exactly as tests/test_anonymize_guard.py does it, so
-# this row reads no physical value of this box and prints none.
-ANONYMIZE = _load_bin("anonymize")
+# 14 -- THE ENGINE'S OWN PHYSICAL-TOKEN GUARD over the kit's bytes. Row 4 checks a
+# BESPOKE denylist because anonymize.py's classes (hostname/ip/mac/board/secret) cannot
+# express "the checkout root" or "the cgroup uid": the two denylists are DISJOINT, so a
+# template naming this box's hostname, a NIC address, a board serial or a key id passes
+# row 4 CLEAN. This row runs anonymize.scan -- the guard's own function, MIN_TOKEN and
+# CLASSES -- against a FAKE box denylist reached through anonymize's own
+# AGI_ANONYMIZE_FIXTURE seam, so it reads no physical value of this box and prints none.
 FAKE_BOX = {"hostname": ["boxkit-fake-host"], "ip": ["198.51.100.7"],
             "mac": ["02:00:5e:10:00:01"], "board": ["BOXKIT-FAKE-BOARD"],
             "secret": ["sk-boxkit-fake-key"]}
+
+
+@pytest.fixture
+def anonymize():
+    """bin/anonymize.py, loaded INSIDE a fixture, not at import: _load_bin inserts bin/
+    on sys.path and binds sys.modules["anonymize"], and at import time that leaked into
+    every later test of the session. Both are restored on teardown."""
+    saved_path, had = list(sys.path), "anonymize" in sys.modules
+    saved_mod = sys.modules.get("anonymize")
+    try:
+        yield _load_bin("anonymize")
+    finally:
+        sys.path[:] = saved_path
+        if had:
+            sys.modules["anonymize"] = saved_mod
+        else:
+            sys.modules.pop("anonymize", None)
 
 
 @pytest.fixture
@@ -961,32 +972,21 @@ def _kit_bytes():
     return out
 
 
-def test_no_kit_byte_carries_a_physical_token_of_any_box(fake_box):
-    toks = ANONYMIZE.box_tokens(PROJECT)
-    assert sorted({c for c, _ in toks}) == sorted(ANONYMIZE.CLASSES), \
+def test_one_planted_kit_copy_goes_red_and_the_kits_own_bytes_stay_clean(
+        fake_box, anonymize, tmp_path):
+    """Both directions in ONE row. The kit's OWN bytes can only go red on a real box's
+    denylist, unreadable here, so ability-to-go-red is shown on a PLANTED COPY of one
+    template (one FAKE_BOX value, one class) and the clean half on the kit's own bytes."""
+    toks = anonymize.box_tokens(PROJECT)
+    assert sorted({c for c, _ in toks}) == sorted(anonymize.CLASSES), \
         "the fake denylist did not reach every class; the row would be vacuous"
-    for path, text in _kit_bytes():
-        assert ANONYMIZE.scan(text, toks) == [], \
-            "%s carries a %s token" % (path.name, ANONYMIZE.scan(text, toks))
-
-
-def test_row_14_sees_what_row_4_cannot_and_is_not_a_restatement_of_it(fake_box):
-    """The falsifier for row 14 itself: if the two rows agreed, this could not fail.
-
-    Each planted token of a class anonymize.py owns is INVISIBLE to the bespoke
-    row-4 denylist -- that is the measured gap, asserted here so a future merge of
-    the two denylists is a red edit, not a silent no-op."""
-    toks = ANONYMIZE.box_tokens(PROJECT)
-    for cls, value in (("hostname", FAKE_BOX["hostname"][0]),
-                       ("ip", FAKE_BOX["ip"][0]),
-                       ("mac", FAKE_BOX["mac"][0]),
-                       ("board", FAKE_BOX["board"][0]),
-                       ("secret", FAKE_BOX["secret"][0])):
-        text = "# a planted %s token: %s\n" % (cls, value)
-        assert ANONYMIZE.scan(text, toks) == [cls], cls
-        assert _leaks(text) == [], (cls, "row 4 would have caught it; row 14 is redundant")
-    # and row 4's own class stays row 4's: the checkout root is a leak, and
-    # anonymize.py -- whose classes are hostname/ip/mac/board/secret -- cannot say so.
-    root = LEAK_ROOTS[0]
-    assert _leaks("ExecStart=%s/boxkit/run.sh\n" % root) == [root]
-    assert ANONYMIZE.scan("ExecStart=%s/boxkit/run.sh\n" % root, toks) == []
+    cls, value = "ip", FAKE_BOX["ip"][0]
+    src = TEMPLATES / BY_NAME["oomd-guard"]["template"]
+    clean = src.read_text(encoding="utf-8")
+    planted = tmp_path / "planted" / src.name
+    planted.parent.mkdir(parents=True)
+    planted.write_text(clean + "\n# a planted %s token: %s\n" % (cls, value),
+                       encoding="utf-8")
+    assert anonymize.scan(planted.read_text(encoding="utf-8"), toks) == [cls], cls
+    for path, text in _kit_bytes():   # the kit's OWN bytes, incl. the clean src
+        assert anonymize.scan(text, toks) == [], path.name
