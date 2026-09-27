@@ -27,7 +27,7 @@ gen 12 first card. The traps that now live in a skill (merge-pass: 6 19 26 27 31
 ## SKILLS — the matching one BEFORE the flow (skills/agi-<flow>/SKILL.md; the Skill tool)
 `agi-merge-pass` CHECK/PASS/trunk sync · `agi-goal` goals + nested subgoals (schema inside) · `agi-node-write` · `agi-send` · `agi-rotate` · `agi-dispatch` · `agi-workflow` · `agi-verify`
 
-## §0 State (05:5xZ 09-27)
+## §0 State (13:1xZ 09-27)
 | | |
 |---|---|
 | post | belam-S2-L5-XIII gen 13 · woke 05:4xZ 09-27 · Opus 5.5 |
@@ -35,7 +35,7 @@ gen 12 first card. The traps that now live in a skill (merge-pass: 6 19 26 27 31
 | GUARD | OWNER GO 02:5xZ 09-27: model container brain-orcabonsai27b STOPPED (`docker start` restores) · docker budget 6656M -> 0 (guard.env.bak-20260927T*) · user@1000 high/max **12618M / 14021M** · agi-work.slice 9302M · sshd lane unchanged (reserve 1911M, ssh MemoryMin 64M CPUWeight 1000) · a pi stage ~210 MiB · load ~17/16 cores, io60 40-70 = the real bind |
 | merge | **PASS 10 CLOSED 04:0xZ 09-27**: season2/main **2129f70bb** (two-parent merge of TIP 6c403aeb4b; posts.md field-merged) · local-maxxing/main ff -> 6c403aeb4 · 30 rounds: 29 accept_with_residue, 1 demote, 0 RED · state file: last_merged_town_sha = 6c403aeb4b · next PASS BASE = 6c403aeb4b |
 | crons | CHECK f86b1cf9 "13 */4 * * *" (re-armed 01:3xZ) |
-| spend | credits **3.00 USD (05:5xZ)**, 8.74 at 01:31Z = ~1.3 USD/h; the 1 USD floor (provisioning.py:103) at this burn ~07:30Z -- §6 |
+| spend | **DRAINED: 0.606 USD** (flat 06:52Z -> 13:0xZ; owner 13:0xZ: no top-up funds). Cause (TM 06:42Z): config:workflows default + type rows = paid `pi` (deepseek) -> ~12.8 USD of murs. Paid paths CLOSED 56c1156ab. Resume = DE's zero-usd mint fix (§🔴 0) |
 | dms | 03:0xZ [decision] -> TM: owner GO (DE cap 8 -> 12 -> 16 gated on load < 16 + io60 < 50; DT pause = TM's call; swarm-size test on TM's board) · 01:4xZ [decision] -> DE: hypothesis:wake-facts-collapse-to-skill-pointers (queued behind the redesigns) |
 | branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
 
@@ -50,12 +50,12 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 ## §2 Landed (gen 13): cdcfe5c0b wake re-link + facts region 37:57 · RENAME (owner 06:1xZ) goal:send-is-hub-only-... -> goal:g7.32.6 (post-branch address; mint kept, 6 refs) · 91f9e1236 TMM.288 box backfill, 18 posts rows = core-town (row_is_local unchanged; DH.498 unblocked) · (gen 12): 045d1aab3 wake re-link · 6c403aeb4 trunk sync (belam gen 12 key row) · 3 commits for g4.18.2: skills (8 files + 8 build nodes [goal:g4.18.2, idea:engine-skill-doc] + .claude/skills links, gitignore narrowed) · 9b2f1e378 HEAD line + DE hypothesis · 786dd91da CLAUDE.md 26,597 -> 10,123 bytes · d11cfc027 Prime template 10,470 -> 7,698 · d94a59fca g4.18.2 byte budget · OWNER 01:5xZ: monitor.sh io guard FINE-GRAINED (kills only processes whose ancestor argv carries this pass's tag; others -> spared.log) · sshd lane verified live (ssh.service MemoryMin=64M CPUWeight=1000, system.slice MemoryMin=128M, guard: chain live) · skills block -> doc:unified-director-brief, doc:unified-master-brief, 3 duty briefs, the DE/DT/TM/SM cards
 
 ## 🔴 Where it stops
-05:5xZ 09-27 belam-S2-L5-XIII: facts region landed (cdcfe5c0b); CHECK cadence, skills index waits on DE's producer, credits 3.00 USD banked
+13:1xZ 09-27 belam-S2-L5-XIII: account drained, paid mur paths closed (56c1156ab); resume waits on DE's zero-usd mint fix
 ```
+0. RESUME (OWNER 13:0xZ, no funds): DE [decision] 13:1xZ -- zero_usd lanes mint below provisioning.py:206's 1.00 floor with a 0.01 USD key cap; paid lanes keep a config floor; the account never goes negative. Judge its merge-up: falsifier = one pi-free kid at 0.606 USD, key limit 0.01, credits unchanged after.
+   OWED after DH.501 merges up: F13 'Spend checked by hand, one command, from any worktree:' -> 'Spend by hand, from any worktree:' (1988 B; HEAD's older classifier fails it before the merge -- measured 13:1xZ).
+   OWED (TM 05:49Z, OWNER 05:48Z): `skills` first_turn entry in config:rotations (director + prime_director) from DE's doc:draft-skills-first-turn (DE post branch 40dd3bdc7).
 1. CHECK every 4 h (cron f86b1cf9, skill agi-merge-pass §1). Next notice when the trunk has new experiments past BASE 6c403aeb4b.
-0. DONE 04:2xZ: PASS 10 leaf goal:g1.26 minted; its 9 nodes re-parented (ids unchanged); town board tree + row; GOALS.md 381 byte-identical.
-2. DONE 05:5xZ cdcfe5c0b: facts region 37:64 -> 37:57 from DE's draft (a00-d698eaaa @3fb4c6199); F13's box.root fixed (THOUGHT on config:rotations);
-   :534 green (36 passed). DE told [decision] 05:5xZ: at DH.501's merge-up run the branch guard + live-region test on these bytes (~1920 B < 2000).
 5. RAM WORKTREES (owner 04:2xZ: "handle transition to ram worktrees once the time comes ... it'll ease pressure for tests"): hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram
    (under goal:g7.31.3.3). DE at 04:2xZ: DH.499 LIVE on claims 1+2 (prune tool, dry-run default + paths.<town>.worktrees_root cell); claims 3 (tmpfs) + 4 (reboot prune) = its next round.
    WHEN claim 3 merges up (judge it like any merge-up): (a) guard.env += GUARD_WORKTREE_TMPFS_belam_gpu=4G (backup first; owner GO 02:5xZ covers the guard)
@@ -67,7 +67,6 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
    TM removed the director brief's Skills section (464eba344). YOURS: (a) a `skills` first_turn entry in config:rotations (director + prime_director) once DE's
    python producer lands (TMM.284 -- a leading grep is REFUSED by rotate._producing_refusal); (b) remove doc:unified-master-brief's Skills section + this card's
    SKILLS lines; (c) HEAD B·FORM line -> "the skill index loads at startup; a card never lists or copies skills" (TM's wording).
-7. DONE 05:4xZ: DE parent a00-42c4f9a2's decision -- drop gate (2) HEAD-ancestor-of-base, use branch-reachability; paths.core.worktrees_root landed e84bf0272.
 3. DE queue: dispatch-now hypothesis:reap-chain-members-get-their-full-term-grace-again (read 03:50Z) · then the redesigns · then the 7 PASS 10 defects (b5f2c2423).
 4. Owner items open: TM's layout for DE concurrency (8 -> 12 -> 16, gated on load < 16 + io60 < 50) · DT pause = TM's call · swarm-size test on TM's board.
 ```
@@ -83,6 +82,8 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 | 40 | F13's `/home/ubuntu/work/agi/.env` does not exist on local-town | the MAIN .env is `/data/work/agi/.env` |
 | 42 | `write.py … 'replace body N:M'` refuses a range with no blank line around it (the HEAD's five diagram blocks are one "paragraph") | `--force` rides the SOURCE argument: `replace body N:M --force <file>`, after asserting the range; a refused replace in a chain still lets a later `thought` land -- check each line's result |
 
+| 43 | `send.py read belam \| tail -N` cuts earlier messages, and a later read shows none (TM 05:47 + 05:49Z reached this seat only via the inbox FILE, 13:0xZ) | read with no tail; on an empty read with a [red] expected, grep the inbox file |
+
 ## §5 Verification: `links.py links` 0 broken · `snapshot-goals.py --render --check` · `commands.py run verify` (bin-suite-fresh FAIL known) · `~/work/.sanctuary/guard/guard-init.sh --status` + `tail ~/logs/memory-alarm-alerts.log | cut -d" " -f1,3-` (drop column 2: every line carries the host name, TM [red] 02:36Z 09-27)
 
 ## §6 BANKED (owner-only)
@@ -96,5 +97,3 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 | idle predecessors per rotation (owner chain rule) | reap on the owner's word |
 | the origin remote moved (every push prints the new location) | `git remote set-url origin <new>` -- the owner's call |
 | engine-wide config/template maxxing pass (owner idea, 09-23) | opening it is the owner's call |
-| credits 3.00 USD 05:5xZ 09-27, burn ~1.3 USD/h since 01:31Z: ALL paid spend is deepseek-v4.1-flash (paid `pi` harness) on the one long-lived `agi` key; the free stealth/space-bunny-alpha still serves at $0 (16,328 req 09-26) and every live spawn runs it -- today's deepseek caller not yet attributed (activity = closed days only): the 1 USD floor refuses new keys ~07:30Z | top up, or cap DE concurrency at 8 until then -- the owner's spend |
-| MIN_REMAINING_CREDITS hard-coded 1 USD (provisioning.py:103, :206) | a config cell (a director-engine round) |
