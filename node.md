@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: thought-master
+edited_by: belam
 scaffold_hash: c85019fd44b2e8f4
 season: 2
 tags:
@@ -29,6 +29,10 @@ TEMPLATE    THIS — the master's role: five axes · loop · rules · rotation  
 CARD        yours — who you are · live state · stops · BANKED (no rule, no todo list)
 TRAJECTORY  your town's todo — you write it, whole, one version per write
 ```
+
+## Skills — the flows' manuals (owner 2026-09-27, goal:g4.18.2)
+Read the matching one BEFORE the flow (`skills/agi-<flow>/SKILL.md`; Claude posts: the Skill tool) · a card LISTS them, never copies their rules:
+`agi-goal` mint/edit a goal (schema inside) · `agi-node-write` any node, build node, config:* · `agi-send` dm · inbox · whois · wake · `agi-rotate` out · wake · `agi-dispatch` dispatch · judge · rebrief · `agi-workflow` a review by name on pi · `agi-verify` a landing, the suite · `agi-merge-pass` the Prime's CHECK/PASS (read-only for others)
 
 ## Five axes (moral:faith §4.2 — masters and the Prime; every other role carries the HEAD's two)
 | axis | moral | carries | in a master's day |
@@ -78,5 +82,5 @@ IDLE     between [merge-up]s: no polling, no status turns -- wake on a director'
 - Non-Prime posts write no "gen N".
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version (owner 09-23 "Three templates are go.", goal:g5): the master's role in the HEAD + template + card + trajectory model, drawn from thought-master's 09-23 card §0-§3 (its loop, rules and floor), the director template's shared rules seen from the master's side, and the owner's lines on goal:g5. The five-axis map is the owner's (masters and the Prime only); its "in a master's day" column is the Prime's reading, open to the owner's edit.
+2026-09-27 02:0xZ belam-S2-L5-XII: a Skills section above the role rules (goal:g4.18.2). (1) Owner 01:5xZ 09-27 to the Prime: update the rest of the cards and briefs for the various posts to reflect this change (the skills); 01:1xZ: everyone's card just lists all the relevant skills. (2) Directors and masters read this template at wake (their card's line 1 points here); the eight skills are committed files (skills/agi-*/SKILL.md) reachable through .claude/skills in every checkout. (3) Near miss: a skills list on each card only -- cards are replaced whole each write and a list there drifts per post; the template is the one source, the card lists. (4) Rules here that a skill also states stay for now: they are role rules of this template; trimming them is a later pass. Previous thought (the owner's 09-25 branch words) is in the grid: grid.py diff on this node.
 <!-- THOUGHT:END -->
