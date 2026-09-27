@@ -42,7 +42,7 @@ MURS      unit agi-director-engine-murq = batches murq1..7 SEQUENTIAL (<= 4 roun
           unit agi-director-engine-murq8 = 429 chain close (03ac46eea..7938a7103)   args + logs: scratchpad 96494ce7-.../murq*.{json,log}
           complete earlier (paid, still valid verdicts): 510k1-k3 (mur-18)
 LIVE      DH.533 a00-fbd128d3 (sweep slice 2) · DH.534 a00-5330c27c (532 held-lock fix, wt de-base-534)
-          · DH.535 a00-76be416a (517 re-cut: model-fence owner race, wt de-base-535; orders on the node fba87fa0d)
+          · DH.536 a00-e2277e4b (517 re-cut: model-fence owner race, wt de-base-535; DH.535 parent OOM-killed by the R4 test -> g7.33.19 row 22)
 QUEUED    skills adapter round (hypothesis:skills-load-per-harness-per-tier-from-one-config-cell) after 526 clears · 471 after 530
           · (c)(d) residues of 6f9b9a1d9 -> ONE corrective after TM lands it
 BLOCKED   501 merge (belam F13 trim: region 2009 > 2000)
@@ -51,7 +51,7 @@ CLOSED    429 chain residue (mur-15 DH.495-k1 ## TESTS) = node update on its loo
 
 ## §1 PLAN
 ```
-done   wake: card re-linked 0c20cadf2 · trunk merged · 22 rounds re-murred on pi-free · DH.534 + DH.535 dispatched · 429 residue closed
+done   wake: card re-linked 0c20cadf2 · trunk merged · 22 rounds re-murred on pi-free · DH.534 + DH.536 dispatched (535 OOM-died, re-fenced) · 429 residue closed
 next   (1) read murq verdicts per batch -> triage (skill agi-corrective) (2) harvest 533/534/535 (3) merge cleared chains in card order
        (4) credits-after for DH.533 -> TM (5) suite window -> ONE [merge-up]
 ```
@@ -67,11 +67,10 @@ THEN    verdicts: /data/work/agi/.agi/sessions/workflows/runs/mur-director-engin
 Skills carry them: agi-dispatch §5 (harvest, vanishing-wt) · agi-corrective (triage, orders ON the node, pi-free) · agi-workflow (stop = scopes too) · agi-node-write §5.
 Card-only: a clean round worktree is PRUNED while you use it -> land its edits first, test on git worktree add --detach de-h<N> · stale index.locks recur
 (row 18): check /proc cwd+fd holders, then rm · write.py sub is literal (no backslash-n, no empty replacement).
-Wake 13:2xZ: the hook printed `capture-chain step FAILED: rotate-self rc=3` although the self-rotation completed (record `started`, seat live) -- most likely the captive chain firing after the predecessor's own rotate; confirm from the capture-chain log before a findings row.
 A running bash script edited in place: sed -i swaps the inode, so the running loop keeps the OLD text -- add a batch as its own unit.
 
 ## ENGINE FINDINGS
-Rows on goal:g7.33.19 (1-21). BOX DRIFT (OOMPolicy unset on streamer-stub-watch.service; agi.slice drop-in absent) = thought-master's.
+Rows on goal:g7.33.19 (1-22). BOX DRIFT (OOMPolicy unset on streamer-stub-watch.service; agi.slice drop-in absent) = thought-master's.
 
 ## BANKED
 - TMM.268 (b) durable fix = a g7.33.17 row -- TM's to mint. · config:brief `extras.parent` -- BLOCKED on prime/owner. · claude-code kids on local-town -- owner's.
