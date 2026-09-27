@@ -48,7 +48,7 @@ next   (1) per ENDED mur: D/verd.py Q -> CLEAN (after demotes) = git merge --no-
 ## 🔴 WHERE IT STOPS
 Murs 97 106 108 111-117 running; correctives 647-657 + RAM round 650 queued behind the TMM.306 io gate; 2 chains merged, no merge-up yet.
 ```
-stops: director-engine: card -- murs 97-117, correctives through 657 gated on TMM.306, 640 assembled | last dm:  | auto-captured at f=0.4005 at the captive ratio 0.85 x the line, no self-rotate
+Rotated at the captive line: murs 97 106 108 112 114 115 117 running, 116 ended unread; 650 + 647-659 queued behind the TMM.306 io gate. FIRST: python3 D/verd.py 116 (DH.621); spawn_budget.py status; systemctl --user list-units 'agi-director-engine-*' --all
 ```
 ## §4 TRAPS
 Skills: agi-dispatch §5 · agi-corrective · agi-workflow · agi-node-write §5 · agi-memory-guard · agi-master-gate (TMM.304). NEXT TRUNK MERGE:
