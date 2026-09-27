@@ -439,8 +439,9 @@ def writer_key_shape(key) -> bool:
     boolean/null word into a Python `bool`/`None`, so the line this function
     emits for `on` reads back as `{True: "x"}`; `list(back) == [k]` then
     refused a field `set on <v>` legally writes and `_ensure_frontmatter`
-    blocked the node on it. Only the resolver's collapse is forgiven, and only
-    to a scalar it cannot spell (experiment:a00-3e7b260e-2cce33).
+    blocked the node on it. Every such collapse is forgiven, not just
+    bool/None: `2024`/`1.5`/`2024-01-01` are equally legal under `set` (no key
+    character class) and equally refused by a bool-only set (DH.605 ITEMS 1/2/8).
     """
     import yaml
 
@@ -454,15 +455,29 @@ def writer_key_shape(key) -> bool:
     if not isinstance(back, dict) or list(back.values()) != ["x"]:
         return False
     got = next(iter(back))
-    if got == k:
-        return True
-    return isinstance(got, (bool, type(None))) and not isinstance(k, (bool, type(None)))
+    # The collapse is forgiven whenever the RESOLVER invented a type the
+    # writer never spells: `_render_value` writes a key bare, so YAML 1.1 is
+    # free to hand back bool/int/float/date/None and the field is still one
+    # `set <key> <value>` could have produced. A `str` back is the only
+    # spelling that must match exactly. ITEM 7: the check belongs on the
+    # RESOLVER's output, not on the input -- `k = str(key)` above makes any
+    # isinstance test on `k` dead, since the raw bool key is already spelled.
+    return got == k or not isinstance(got, str)
 
 
 def render_frontmatter(fm: dict) -> list[str]:
-    """`fm` -> the lines between the `---` markers. Deterministic."""
+    """`fm` -> the lines between the `---` markers. Deterministic.
+
+    🔴 Keys order by their RENDERED spelling, never by their Python type
+    (DH.605 ITEM 2). A `set on yes` field comes back from `yaml` as the bool
+    key `True`, and `sorted()` then raised `TypeError: '<' not supported
+    between 'bool' and 'str'` -- killing `done` on a legal write the moment
+    the block carried one other non-leading key. A collapsed key still renders
+    BARE (`True: v`), which re-reads to the same collapsed type: the field
+    round-trips, it is merely re-spelled.
+    """
     ordered = [k for k in LEADING_KEYS if k in fm]
-    ordered += sorted(k for k in fm if k not in LEADING_KEYS)
+    ordered += sorted((k for k in fm if k not in LEADING_KEYS), key=str)
     lines = []
     for k in ordered:
         lines.extend(_render_value(k, fm[k]))

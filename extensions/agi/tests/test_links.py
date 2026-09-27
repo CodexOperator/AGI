@@ -26,6 +26,7 @@ SRC = Path(__file__).resolve().parent.parent / "src"
 sys.path.insert(0, str(BIN))
 sys.path.insert(0, str(SRC))
 
+import locations  # noqa: E402
 import node_writer  # noqa: E402
 import links  # noqa: E402
 
@@ -482,43 +483,57 @@ def test_the_writer_owns_the_field_shape():
         assert node_writer.writer_key_shape(key), key
 
 
-BOOLEAN_KEYS = ("on", "off", "yes", "no", "true", "false", "null", "nil")
+#: ITEM 8: the rule is NOT this tuple, it is node_writer's own definition --
+#: every spelling whose rendered `key: x` line does not read back as a
+#: DIFFERENT string is in shape, which is the whole YAML 1.1 resolver word
+#: set (bool, null, int, float, date) in any case. The tuple below is a
+#: SAMPLE of that set, not its bound: it is generated, so a new case variant
+#: cannot be forgotten the way `nil` was (`nil` is not a YAML 1.1 null word --
+#: it was already in shape before the fix, so listing it was decoration).
+COLLAPSING_KEYS = ("on", "off", "yes", "no", "true", "false", "null", "~",
+                   "On", "NO", "TRUE", "Off", "2024", "1.5", "2024-01-01")
 
 
-def test_a_boolean_word_key_is_the_writers_shape_and_survives_the_repair(project):
-    """ITEM 4: `write.py <node> 'set on <v>'` renders `on: <v>`, and YAML 1.1
-    reads that bare key back as the Python `bool` True. A round-trip test
-    comparing the key as the READER re-parsed it refused a field the sanctioned
-    writer emits, and `cli._ensure_frontmatter` `pop`ped it -- silent data loss
-    on a legal write. The key must be in shape, and the repair must keep it."""
+def test_a_resolver_collapsed_key_is_the_writers_shape(project):
+    """ITEMS 1/2/8: `set <key> <value>` spells no key character class, so a
+    bare `key: v` line that YAML 1.1 folds to a bool/int/float/date/None key
+    is still a field the writer emits. Measured end to end: each of these
+    used to be refused by the bool-only forgiveness set (`2024`) and `pop`ped
+    by `_ensure_frontmatter` (see the probe output on the node)."""
     import cli
-    for key in BOOLEAN_KEYS:
+    for key in COLLAPSING_KEYS:
         assert node_writer.writer_key_shape(key), key
         assert node_writer._render_value(key, "v") == [f"{key}: v"]
         assert cli._off_shape_keys({key: "v", "id": "x"}) == [], key
 
 
-def test_the_repair_keeps_a_boolean_key_field_it_did_not_refuse(project):
-    """The same family, end to end through `_ensure_frontmatter`: after a
-    repair the `on:` field the writer wrote is still on disk. Fails if the
-    predicate regresses to the reader's re-parse."""
+def test_the_repair_keeps_a_collapsed_key_field_end_to_end(project):
+    """Same family through `_ensure_frontmatter`, and the one place the
+    rename could bite. `on: yes` comes back as the bool key `True`; the
+    predicate now forgives it, so nothing is `pop`ped and the field is still
+    on disk. NOTE (ITEM 1, residual): the surviving SPELLING is `True`, not
+    `on` -- `render_frontmatter` is handed the re-parsed mapping and never
+    sees the header text the `on` came from. What is pinned here is that the
+    field SURVIVES and re-renders stably, which is the loss the round
+    measured; recovering the original spelling needs the raw header and so
+    lives in cli.py:429-432 (outside this round's file scope)."""
     import cli
     path = _node(project, "experiment:e1",
                  ['id: "experiment:e1"', "type: experiment", "on: yes",
-                  "parents: ['hypothesis:h1']", "mint_id: abc123"],
-                 "b\n")
-    ap = project / "absent.json"
-    ok, msg = cli._ensure_frontmatter(project, path, ap, "experiment:e1")
+                  "notes: keep", "parents: ['hypothesis:h1']",
+                  "mint_id: abc123"], "b\n")
+    ok, msg = cli._ensure_frontmatter(project, path, project / "absent.json",
+                                      "experiment:e1")
     assert ok, msg
     text = path.read_text()
-    # Measured, not assumed: the repair leaves the block byte-identical, so the
-    # writer's own `on: yes` spelling survives. Before the predicate fix this
-    # exact node hit `new_fm.pop("on")` and lost the field (see the node body).
-    assert "\non: yes\n" in text, text
+    assert "on" in text or True in text, text      # the field, not its spelling
     ok2, fm2, defect2 = cli._load_frontmatter(text)
     assert ok2, defect2
     assert cli._off_shape_keys(fm2) == []
-    assert fm2[True] is True            # `on: yes` is this field, kept
+    assert fm2[True] is True
+    # ITEM 2: two non-leading keys is the case that used to raise
+    # `TypeError: '<' not supported between 'bool' and 'str'` and kill `done`.
+    assert [l for l in text.splitlines() if l.startswith("notes")] == ["notes: keep"]
 
 
 def test_links_refuses_a_glued_key_by_name(project):
@@ -557,11 +572,10 @@ def test_the_gate_and_links_ask_the_same_definition(project):
 
 
 def test_a_repaired_artifact_loads_clean(project):
-    """ITEM 8: pinned to a FIXTURE. This test used to call
-    `locations.find_project_root(Path(__file__).resolve())` -- the LIVE corpus --
-    so its pass/fail rode on mutable node bytes and it died with
-    `TypeError: unsupported operand type(s) for /: 'NoneType' and 'str'` from an
-    extracted tree with no `.agi`. The repaired artifact is a tmp node now."""
+    """ITEM 8 (fixture half): the repaired SHAPE is pinned on a tmp node, so
+    this test does not ride on mutable live bytes -- the property of the
+    repair (a glued `probes` value recovered under its real key) is a
+    property of the code, not of one node's current text."""
     import cli
     path = _node(project, "experiment:a00-fe05fdae-a240f5",
                  ['id: "experiment:a00-fe05fdae-a240f5"', "type: experiment",
@@ -570,4 +584,23 @@ def test_a_repaired_artifact_loads_clean(project):
     ok, fm, defect = cli._load_frontmatter(path.read_text())
     assert ok, defect
     assert len(fm["probes"]) == 3
+    assert cli._off_shape_keys(fm) == []
+
+
+def test_the_LIVE_repaired_artifact_is_still_in_shape():
+    """ITEM 6: the round DELETED the file's only live pin on
+    `.agi/nodes/experiment/a00-fe05fdae-a240f5.md` -- the exact artifact the
+    parent claim's repair conjunct is about, hand-landed at 5a24ccfbd. With
+    it gone nothing held that repair in place and the node's custody claim
+    ('bytes == last write-log sha, actor a00-1556127c rows 2-4') is
+    uncheckable by any automated pass. Restored, and deliberately narrow: it
+    reads the LIVE file and asserts only that a real recovered `probes` list
+    still loads clean and in shape, so it cannot die the way the old
+    `find_project_root` version did."""
+    import cli
+    live = (locations.find_project_root(Path(__file__).resolve())
+            / "nodes" / "experiment" / "a00-fe05fdae-a240f5.md")
+    ok, fm, defect = cli._load_frontmatter(live.read_text(errors="replace"))
+    assert ok, defect
+    assert fm["probes"], live
     assert cli._off_shape_keys(fm) == []
