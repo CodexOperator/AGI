@@ -41,9 +41,9 @@ TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [NOEX=1] [EXTRA=f,g] gen2.py N
           D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N.. > D/harvallN.log (chain units with a while-is-active wait)
 GATE      TMM.306 (TM 21:59Z): NO parent slot refilled until load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, then ONE step at a time
           (drainqg1 enforces it); stop nothing live · first freed slot = DH.650 RAM round (repo half) · arm 10 unchanged
-MURS      running murq119 120 = DH.638 667 · ENDED+TRIAGED: 97 106 108 112 114-118 -> DH.668 661 662 666 663 664 660 665 669 · next murq 121 · next DH 675
+MURS      running murq120 = DH.667 · ENDED+TRIAGED: 97 106 108 112 114-119 -> DH.668 661 662 666 663 664 660 665 669 675 · next murq 121 · next DH 676
 LIVE      parents 650 a00-7e724480 (placed 22:46Z) · 645 harvested 1300bd8c9 · 638 harvested 568f0b68d (ladder red INHERITED) · gated queue (T/drainqg<N>.log, chained): qg1 [650 a00-7e724480 · 667 harvested c0ba1f156 · 647 a00-68890139 placed] 648 648 649 (T/drainqgf.sh: N:F = fresh round via T/placef.sh + T/h<N>.txt) ·
-          qg2 651 652 653 · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660 661 662 663 664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 -- io avg60 ~61 > 50 · 640 assembled 1bf1dbf6c
+          qg2 651 652 653 · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660 661 662 663 664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 · qg13 675 670 671 672 673 674 (drainqgf.sh) -- io avg60 ~61 > 50 · 640 assembled 1bf1dbf6c
 DEMOTED   (not correctives) 660/661/663 'checked CLEAR / not a defect' verify notes · 662: kid ran git diff --numstat (process note) · 665: V1 done-gate + V7 write-log = findings rows already, UNVERIFIED worktree-gone probe · 668: +76 test-line breach = row, timing note
 PRUNE     TMM.309 GO: unit prune-debase (idle io, 1 per 30 s, io<50, lossless, log on the flash harvest dir) over the 130 old de-base-*
           647: its RAM checkout was removed at dispatch (lost output.log): unit log647 tails the fd back; at harvest copy it + rm the stray dir
@@ -51,12 +51,12 @@ LOGS      belam [decision] 22:2xZ (owner): logs + sequential scratch -> the new 
           log-path cells -> DH.667 hypothesis:box-logs-dir-resolves-from-one-config-cell (g6.49), cell VALUE unchanged by the round
 G1.27     belam [decision] 23:0xZ, QUEUED not dispatch-now, AFTER the zero-usd follow-ups: briefs written b5ef95e6c ->
           DH.670 pass11 batch (ROW 3 first) · 671 zero-usd scope · 672 banner · 673 import route · 674 e2e tests (last) -- T/h67N.txt set,
-          queue them as N:F in ONE qg unit right after murq119 decides the zero-usd follow-up (that goes first)
+          QUEUED as qg13 behind the zero-usd follow-up DH.675
 DECISION  out to TM: DH.577 cron policy (send-hub chain HELD from merge) · DE.1 22:0xZ: who mounts the tmpfs (off-repo) · wake-facts MAJOR
 CHAIN     last round (→ = corrective, mN = murq N running)                                           land note
  schema-gate 527 → 543 → 559 → 597 → 644 → 665 q · heal-refuse 528 → 544 → 558 → 592 MERGED c2f528ed8     NEVER 442 · NEVER 476
  probe-gate 523 → 541 → 560 → 589 → 626 → 641 → 666 q · row 20 nudge 524 → 542 → 561 → 602 → 637 → 657
- trunk reds 538 → 545 → 562 → 582 → 606 → 623 → 646 → 664 q · zero-usd 537 → 546 → 565 → 572 → 608 → 638 m119 (ladder test red inherited from base)
+ trunk reds 538 → 545 → 562 → 582 → 606 → 623 → 646 → 664 q · zero-usd 537 → 546 → 565 → 572 → 608 → 638 → 675 q (ladder red: MET as honest, not relied on)
  stale-lock 532 → 534 → 547 → 564 → 594 → 627 → 668 q                                                   532 NEVER merges alone
  model-fence 508 → … → 590 → 613 → 633 → 654                                                         R4 NEVER run (row 22)
  kid-worktrees 529 → 533 → 540 → 563 → 598 → 624 → 655 → RAM round 650 (hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram)
@@ -76,9 +76,9 @@ next   (1) per ENDED mur: D/verd.py Q -> CLEAN (after demotes) = git merge --no-
 ```
 
 ## 🔴 WHERE IT STOPS
-All ended murs triaged: correctives 660-666 668 669 queued (qg8-qg12); DH.667 (logs.dir cell, owner via belam) queued 2nd in qg1 after 650.
+Murs 97 106 108 112 114-119 triaged -> correctives queued qg8-qg13 (+ g1.27 670-674 in qg13); 650 + 647 live, 667 in review (murq120); prune-debase running (TMM.309).
 ```
-FIRST   D/verd.py 119 (DH.638 zero-usd) -> its follow-up (if any) + the g1.27 block 670-674 as ONE qg unit (N:F, drainqgf.sh) ; placements in T/drainqg<N>.log
+FIRST   D/verd.py 120 (DH.667 logs.dir; the parent already demoted: relative cell, silent fallback, 19>15, cell not minted, crons.py:474) -> corrective ; harvest each placed parent (650 667-done 647) ; T/drainqg<N>.log
 THEN    clean -> git merge --no-ff <tip> -F <msgfile> · residue -> MURK=.. T/gen2.py, trim non-defects, queue on T/drainqg.sh
 ```
 
@@ -107,6 +107,8 @@ does not flag an in-scope experiment with no verdict and no evidence_runs (mur-3
   (mur-37 DH.626, 4x in probe-gate) (b) skills/agi/SKILL.md:528 has no home for the structural-count rule (mur-38 DH.597).
 - TMM.268 (b) durable fix = a g7.33.17 row -- TM's. · config:brief `extras.parent` -- prime/owner. · claude-code kids on local-town -- owner's.
 - findings rows 22 13 17 unowned: TM to rank · residue-severity floor (node-text pointers -> demote) -- rule-changing, TM to judge.
+- [rule] (c) template_max, mur-43 DH.638: the four-part review scaffold (orders said / machine does / near miss / deviation) is restated per node
+  (a00-05c36cc7:152-158, a00-6273b184:163-166) -> ONE config:rotations review-brief template line, THOUGHT cites it (belam's cell).
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
