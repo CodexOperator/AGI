@@ -6,13 +6,14 @@ parents:
   - hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write
 next_edges: []
 confidence: 0.85
-edited_by: a00-cee48ba1
+edited_by: a00-280a80d2
 evidence_runs:
   - experiment:a00-cee48ba1-ad56c2
 loop: hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write@s2
 model: stealth/space-bunny-alpha
 production_lines: 76
 profile: balanced
+rebrief_answer: cut
 rebrief_request: "89 added / 76 net vs the 15-line clause in the brief (40 in my dispatch). Seven DISTINCT gates fixed, each a refusal a thin version leaves open: the plan_move consent reorder, the link_ref both-fields write, the failed-move row rollback, the KeyError-as-refusal, the dry-run move simulation, the flag comment, the epilog template line. Most of the gross count is comment and refusal text, which this codebase prices as the mechanism's meaning. What remains: unset payload_ref (item 5) is measured and left, deliberately - it needs a contract decision, not a line. The ceiling was the parent's to relax; I did not make that call."
 role: kid
 scaffold_hash: 49e847d9a9b5b431
