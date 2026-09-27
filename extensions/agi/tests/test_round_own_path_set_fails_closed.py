@@ -11,6 +11,7 @@ Two routes into a round's own-path set used to FAIL OPEN in silence:
       that covers `--node-id` was never applied to it. It is now bound to the
       dispatch-time `named` set; anything else is refused BY NAME.
 """
+import json
 import os
 
 from pathlib import Path
@@ -155,8 +156,12 @@ def _load_locations():
 def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None, iter_n=999):
     """A spawn record under the CANONICAL iteration dir for `iter_n`.
 
-    `dispatch_node_id=""` writes a record carrying NONE, never silently
-    defaulted -- so the DH.552 leg-1 pin below can say what it means.
+    `dispatch_node_id=""` writes a record carrying NONE -- an ABSENT key, not
+    an empty string -- never silently defaulted, so the DH.552 leg-1 pin below
+    can say what it means. DH.617 closed the DH.578 caveat: the old fixture
+    wrote `"dispatch_node_id": ""`, which `r.get()` reads as `""` rather than
+    `None`; a cli.py that special-cased the empty string would have passed this
+    pin while the docstring claimed it was reading NONE.
     DH.604: the `sessions` segment is `locations.sessions_dir`'s to spell -- a
     hand-written `root / "sessions"` was a second copy that can drift, and a
     wrong `root` (repo root, not the `.agi` dir) reads as an empty set for the
@@ -170,13 +175,19 @@ def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None, iter_n=999):
     record where a real dispatch puts it, and passes the id.
     """
     loc = _load_locations()
-    d = (loc.sessions_dir(root) / loc.iteration_dirname(iter_n) / agent)
+    # DH.617: the whole dir spell is `locations.iteration_dir`'s -- the exact
+    # expression production globs (cli.py `_round_spawned_node_ids`). The
+    # hand-written `sessions_dir(root) / iteration_dirname(iter_n)` was a
+    # second copy of a fact one module owns: it can drift from the glob and
+    # then the fixture, not the bound, is what the pin measures.
+    d = loc.iteration_dir(root, iter_n) / agent
     d.mkdir(parents=True, exist_ok=True)
     if dispatch_node_id is None:
         dispatch_node_id = node_id
-    (d / "agent.json").write_text(
-        '{"spawned_by_agent": "%s", "node_id": "%s", "dispatch_node_id": '
-        '"%s"}\n' % (spawned_by, node_id, dispatch_node_id))
+    rec = {"spawned_by_agent": spawned_by, "node_id": node_id}
+    if dispatch_node_id:  # "" -> the key is ABSENT: a record carrying NONE
+        rec["dispatch_node_id"] = dispatch_node_id
+    (d / "agent.json").write_text(json.dumps(rec) + "\n")
     return d
 
 
