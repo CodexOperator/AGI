@@ -73,6 +73,18 @@ def test_ladder_node_declares_roles_table(engine_on_path):
     assert {"kid", "parent", "director", "prime_director"} <= roles
 
 
+def test_tier0_rows_resolve_a_zero_usd_harness(engine_on_path):
+    """Tier-0 rows must RESOLVE 0-USD, not merely look free in the yaml.
+    Path: read_ladder_roles -> resolve_role_spec -> harnesses.<h>.zero_usd."""
+    import json, locations, spawn_gate
+    from dispatch import resolve_role_spec
+    root = locations.find_project_root(Path(__file__))
+    roles = spawn_gate.read_ladder_roles(root / "nodes") or []
+    cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    for row in [r for r in roles if r.get("tier") == 0]:
+        name = resolve_role_spec(cfg, roles, 0, row["role"])["harness"]
+        assert cfg["harnesses"].get(name, {}).get("zero_usd") is True, (
+            f"tier-0 {row['role']} resolves harness {name!r}, not a 0-USD lane")
 def test_ladder_node_declares_season_names(engine_on_path):
     """hypothesis:l3w0-ladder-roles-table — season 1 is named 'genesis' on
 the ladder (written at rollover, looking back)."""
