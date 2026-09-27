@@ -29,7 +29,7 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 ## IDENTITY
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
-Skills: agi-dispatch · agi-workflow · agi-node-write · agi-goal · agi-send · agi-rotate · agi-verify. Leaves of `goal:g7.33` mine: `.9`, `.14`, `.15`, `.19` (NEW); `.1/.7/.8` HELD.
+Skills: agi-dispatch · agi-corrective · agi-workflow · agi-node-write · agi-goal · agi-send · agi-rotate · agi-verify. Leaves of `goal:g7.33` mine: `.9`, `.14`, `.15`, `.19` (NEW); `.1/.7/.8` HELD.
 
 ## §0 STATE (05:1xZ 09-27 · per-chain history = git log of this node)
 ```

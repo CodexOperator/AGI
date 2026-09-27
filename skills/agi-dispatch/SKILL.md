@@ -34,7 +34,7 @@ python3 extensions/agi/bin/dispatch.py <project_root> <iter_n> --tier parent \
 - `--push-further` re-dispatches at `--target` from its `push_further` text; refused at an overview/vision/moral node.
 - Bound: `spawn_budget.py status` (live agents vs the tree-wide cap); `provisioning.py status` (per-spawn keys).
 - A director dispatches from ITS OWN worktree; live parents ≤ the cap cell its master names (local-maxxing: `values.local_maxxing.de_live_parents`), ≤ 5 kids each.
-- A CORRECTIVE is cut from the round's own loop tip: `git worktree add -b de-base-<N> .agi/worktrees/de-base-<N> <loop tip>`, dispatch from there with `--orders <file> --from <post>` (kids get an empty `.git`: "merge the loop branch first" never works).
+- A CORRECTIVE is cut from the round's own loop tip: `git worktree add -b de-base-<N> .agi/worktrees/de-base-<N> <loop tip>`, dispatch from there with `--orders <file> --from <post>` (kids get an empty `.git`: "merge the loop branch first" never works). The whole corrective flow — verdict read, triage, the orders on the node: skill `agi-corrective`.
 
 ## 3 · Kids and rebriefs (F31)
 A parent that answers a kid's `rebrief_request` in-node dms its director the answer line
