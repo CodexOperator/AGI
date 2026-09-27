@@ -40,9 +40,9 @@ TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [NOEX=1] [EXTRA=f,g] gen2.py N
           D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N.. > D/harvallN.log (chain units with a while-is-active wait)
 GATE      TMM.306 (TM 21:59Z): NO parent slot refilled until load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, then ONE step at a time
           (drainqg1 enforces it); stop nothing live · first freed slot = DH.650 RAM round (repo half) · arm 10 unchanged
-MURS      running murq118 = DH.645 · ENDED+TRIAGED: 97 106 108 112 114-117 -> DH.668 661 662 666 663 664 660 665 · next murq 119 · next DH 669
+MURS      running none · ENDED+TRIAGED: 97 106 108 112 114-118 -> DH.668 661 662 666 663 664 660 665 669 · next murq 119 · next DH 670
 LIVE      parents 638 (spawn_budget.py) · 645 harvested 1300bd8c9 (79 passed) · gated queue (T/drainqg<N>.log, chained): qg1 650 667 647 648 649 (T/drainqgf.sh: N:F = fresh round via T/placef.sh + T/h<N>.txt) ·
-          qg2 651 652 653 · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660 661 662 663 664 · qg9 665 · qg10 666 · qg11 668 -- io avg60 ~61 > 50 · 640 assembled 1bf1dbf6c
+          qg2 651 652 653 · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660 661 662 663 664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 -- io avg60 ~61 > 50 · 640 assembled 1bf1dbf6c
 DEMOTED   (not correctives) 660/661/663 'checked CLEAR / not a defect' verify notes · 662: kid ran git diff --numstat (process note) · 665: V1 done-gate + V7 write-log = findings rows already, UNVERIFIED worktree-gone probe · 668: +76 test-line breach = row, timing note
 LOGS      belam [decision] 22:2xZ (owner): logs + sequential scratch -> the new flash mount, TM owns the move; DE owns the
           log-path cells -> DH.667 hypothesis:box-logs-dir-resolves-from-one-config-cell (g6.49), cell VALUE unchanged by the round
@@ -58,7 +58,7 @@ CHAIN     last round (→ = corrective, mN = murq N running)                    
          512 → … → 585 → 614 → 631 → 651 · 514 → … → 604 → 617 → 632 → 652 · belam-cap-reap HELD until 507
  g4.18.1.x 521 → … → 610 → 621 → 660 q · 510/519 → … → 611 → 618 → 642 → 659 · 520 → … → 605 → 625 → 640 → 656 · 497 → … → 603 → 619 → 643 → 663 q
  thought-verb 522 → 554 → 583 → 607 → 639 → 658 · wake-facts 501 → 556 → 571 → 601 → 629 → 648 (BLOCKED: config:rotations, belam's -- DE.1)
- guard-piece 530 → 580 → 591 → 615 → 634 → 653 (NEVER 432) · guard-inst 471 AFTER 432 · send-hub 525 → … → 609 → 622 → 645 m118 (HELD)
+ guard-piece 530 → 580 → 591 → 615 → 634 → 653 (NEVER 432) · guard-inst 471 AFTER 432 · send-hub 525 → … → 609 → 622 → 645 → 669 q (HELD)
  run-key 531 → 581 → 600 → 620 → 661 q · skills 526 → 573 → 595 → 628 MERGED eb3369efe
 ```
 
@@ -70,9 +70,9 @@ next   (1) per ENDED mur: D/verd.py Q -> CLEAN (after demotes) = git merge --no-
 ```
 
 ## 🔴 WHERE IT STOPS
-All ended murs triaged: correctives 660-666 + 668 queued (qg8-qg11); DH.667 (logs.dir cell, owner via belam) queued 2nd in qg1 after 650.
+All ended murs triaged: correctives 660-666 668 669 queued (qg8-qg12); DH.667 (logs.dir cell, owner via belam) queued 2nd in qg1 after 650.
 ```
-FIRST   D/verd.py 118 when murq118 ends (DH.645, send-hub HELD) ; T/drainqg<N>.log placements (qg1..qg11 chained, io gate closed)
+FIRST   T/drainqg<N>.log placements (qg1..qg12 chained, io gate closed) ; harvest each placed parent when it ends (D/harvest-all.sh N)
 THEN    clean -> git merge --no-ff <tip> -F <msgfile> · residue -> MURK=.. T/gen2.py, trim non-defects, queue on T/drainqg.sh
 ```
 
