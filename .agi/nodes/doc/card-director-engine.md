@@ -44,9 +44,10 @@ MURS      units agi-director-engine-murl1..3 = 3 LANES claiming batches murq1..7
           unit murq11 = DH.538 over 123e0a487..aa383f9f8 (harvested: 184 passed 7 skipped, both retargets PASS)
           unit murq10 = DH.533 k1+k2 over f71d1915b..dedc18720 (harvested: config cell landed dedc18720; 38 touched + 281 heal/help-smoke green)   args + logs: scratchpad 96494ce7-.../murq*.{json,log}
           complete earlier (paid, still valid verdicts): 510k1-k3 (mur-18)
-LIVE      DH.534 a00-5330c27c (532 held-lock fix, wt de-base-534)
-          · DH.539 a00-06dc44da (model-fence: land DH.536's verified patch k536 + flip guard_owner.py:109; wt de-base-539; 535/536 OOM-died on R4, row 22)
-          · DH.537 a00-6d2a74c4 (zero-USD residues 1+2, TMM.298) (DH.539 kid a00-c6290fe1 OOM-died on a cwd-relative deselect; parent told -k 13:4xZ)
+LIVE      NO parents. Harvested green, murs running (unit: round, range, harvest numbers):
+          murq11 DH.538 123e0a487..aa383f9f8 184p/7s · murq13 DH.537 123e0a487..f109db023 363p/7s
+          murq12 model-fence chain: DH.508-k1 cc35dcc43..360b0f0a1 + DH.539-k1 1faef6315..7d9cc0202 (context 25p, fence 10p)
+          murq14 DH.534 5892ec137..e6e678bf2 290p/7s (chain 532 -> 534; 532 itself in murq7)
 QUEUED    skills adapter round (hypothesis:skills-load-per-harness-per-tier-from-one-config-cell) after 526 clears · 471 after 530
 BLOCKED   501 merge (belam F13 trim: region 2009 > 2000)
 CLOSED    429 chain residues = node updates on its loop branch 7938a7103 + 4eb08ee4e (brief text, no kid; wt de-h429)
