@@ -89,5 +89,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over 7502fa786 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.561: mur-director-engine-24 DH.542-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.602: mur-director-engine-30 DH.561-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
