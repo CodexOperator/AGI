@@ -3,7 +3,7 @@ id: hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused
 mint_id: 812b7aa1f51f4fb881bc9a69df812b74
 type: hypothesis
 parents:
-  - goal:send-is-hub-only-dm-file-versions-synced-every-30s
+  - goal:g7.32.6
 next_edges: []
 confidence: 0.75
 edited_by: director-engine
