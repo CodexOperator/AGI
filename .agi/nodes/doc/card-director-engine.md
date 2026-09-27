@@ -35,7 +35,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 (mint fix) merged 32ff79e53 · 429 chain MERGED 1ee2340c3 (242 green)
 FALSIFIER MET (DH.533 pi-free: keys 0.01 used 0, credits 0.6063 = before) -> TM 13:3xZ
-MURS      units agi-director-engine-<unit>; args + logs <scratchpad 96494ce7-...>/<unit>.{json,log}; verdicts MAIN runs/<key>/{review,verify}_<label>.json
+MURS      units agi-director-engine-<unit> (harvest helper: <scratchpad>/harvest.sh N agent tests); args + logs <scratchpad 96494ce7-...>/<unit>.{json,log}; verdicts MAIN runs/<key>/{review,verify}_<label>.json
           murl1..3 = 3 LANES claiming batches murq1..7 (mkdir claims/b<N>; a pi-free run is SERIAL per stage ~7 min), key mur-23:
             1 509k1 509k2 512 514k1 · 2 514k2 515 516 510k4 · 3 519 522 521 501 · 4 526 520 507k1 507k2 · 5 525k1 525k2 529k1 529k2
             6 497k1 497k2 530 531 · 7 532      (510k1-k3 cleared earlier, mur-18)
@@ -54,7 +54,7 @@ CHAIN     loop tip (last)   state                                               
  send-hub box     525     lane 5 (TMM.289 cleared: rows backfilled 91f9e1236)
  kid-worktrees    529 → 533 → 540   lane 5 (529) · 533 DEMOTE -> DH.540 LIVE
  row 20 nudge     524 → 542   mur-20 AWR -> DH.542 LIVE a00-e7cea940
- thought-verb     522     lane 3 · probe-gate 523 → 541: mur-20 AWR -> DH.541 LIVE a00-1362856d
+ thought-verb     522     lane 3 · probe-gate 523 → 541: harvested 98b2b99e5 (150p) -> murq17
  wake-facts       501     lane 3; BLOCKED: trunk region 2009 > 2000 until belam trims F13
  model-fence      508 → 517 → 536 → 539   murq12 (R4 test NEVER run: row 22)
  PASS 10          509 512 514 515 516 lanes 1-2 · 507 reap-chain lane 4 · belam-cap-reap HELD until 507 lands
