@@ -66,13 +66,14 @@ def test_a_node_with_an_unnumbered_field_falls_back_to_the_body(tmp_path):
     assert cli._claim_conjunct_numbers(nf) == [1, 2]
 
 
-def _gate(tmp_path, n_probes):
+def _gate(tmp_path, n_probes, cli=None):
     """Call the REAL gate (cli._parent_probe_gate) the way `done` does at
     cli.py:1554, on a temp graph whose target hypothesis is FIELD_NODE, with
-    a six-field probe for each of conjuncts 1..n_probes."""
+    a six-field probe for each of conjuncts 1..n_probes. `cli` lets a caller
+    drive the SAME module object after monkeypatching a function on it."""
     import json
     from types import SimpleNamespace
-    cli = _load_cli()
+    cli = cli or _load_cli()
     root = tmp_path / "graph"
     (root / "nodes" / "hypothesis").mkdir(parents=True)
     (root / "nodes" / "hypothesis" / "target.md").write_text(FIELD_NODE)
@@ -91,11 +92,38 @@ def test_gate_through_the_wire_ignores_the_phantom_conjunct(tmp_path):
     assert (err, active, covered) == (None, True, [1, 2, 3])
 
 
-def test_gate_still_bites_on_a_conjunct_with_no_probe(tmp_path):
-    """Negative control (unchanged shape, claim 3): drop the conjunct-3 probe
-    and the same gate must REFUSE by name. A pass alone would be vacuous."""
-    err, active, covered = _gate(tmp_path, 2)
-    assert active and "conjunct(s): 3" in err and covered == [1, 2]
+def _pre_fix_union(node_file):
+    """The PRE-FIX reading of a node's conjunct set: every `(n)` in the
+    `testable_claim` FIELD unioned with every `(n)` in the BODY, recomputed
+    here with the shipped `_CLAIM_ITEM_RE` so the mutation is the real old code
+    path and not a paraphrase of it."""
+    cli = _load_cli()
+    text = node_file.read_text()
+    tc = (cli.frontmatter.read_frontmatter(text) or {}).get("testable_claim") or ""
+    body = cli.frontmatter.split_frontmatter(text)[1]
+    return sorted({int(m) for m in cli._CLAIM_ITEM_RE.findall(tc)} |
+                  {int(m) for m in cli._CLAIM_ITEM_RE.findall(body)})
+
+
+def _named(err):
+    """The conjunct numbers a refusal NAMES -- the span a mutation moves."""
+    return err.split("claim conjunct(s): ")[1].split(".")[0] if err else None
+
+
+def test_gate_still_bites_on_a_conjunct_with_no_probe(tmp_path, monkeypatch):
+    """Negative control that DISCRIMINATES (probes 1..2, SAME graph): the
+    shipped function refuses naming exactly `3`, while the pre-fix field|body
+    union refuses naming `3, 4`. The two refusals DIFFER, so a substring test
+    on "conjunct(s): 3" -- which also passes under the union -- is not what
+    carries this control."""
+    cli = _load_cli()
+    err, active, covered = _gate(tmp_path, 2, cli)
+    assert active and covered == [1, 2] and _named(err) == "3"
+    nf = tmp_path / "graph" / "nodes" / "hypothesis" / "target.md"
+    assert _pre_fix_union(nf) == [1, 2, 3, 4]  # the phantom the fix drops
+    monkeypatch.setattr(cli, "_claim_conjunct_numbers", _pre_fix_union)
+    err2, active2, covered2 = _gate(tmp_path / "under-union", 2, cli)
+    assert active2 and covered2 == [1, 2] and _named(err2) == "3, 4"
 
 
 def test_a_node_with_no_numbers_anywhere_yields_no_conjuncts(tmp_path):
