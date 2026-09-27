@@ -6,7 +6,7 @@ parents:
   - hypothesis:per-spawn-tasks-max-reads-the-spawn-tasks-max-cell
 next_edges: []
 confidence: 0.9
-edited_by: a00-1bb0f2cb
+edited_by: a00-66edc224
 evidence_runs:
   - experiment:a00-b8dde8ff-78e1bf
   - experiment:a00-36f071dc-154d29
@@ -58,36 +58,62 @@ tautology if CPython's cache ever widens.
 RED-FIRST, measured (not asserted): a copy of the file with the planted row's
 `==` flipped to `is` was dropped in as a scratch test, run, and removed.
 
+## Residue 2 — the planted-cell row — CLAIM WITHDRAWN IN DH.488
+
+WITHDRAWN (DH.488, experiment:a00-66edc224-491bdf): "residue 2 closed",
+and with it "the last assertion is the load-bearing one". Both were false.
+
+`_live_spawn_tasks_max` compares `resolved == parsed` because the resolver
+REBUILDS the number (`int(str(raw).strip())`). The live cell is 150, inside
+CPython's -5..256 small-int cache, where `is` and `==` agree — so the
+shipped suite could not tell the fix from the bug (the parent review's own
+caveat on a00-36f071dc-154d29). But the row DH.480 shipped re-implemented
+that comparison as a SECOND COPY of one rule:
+
 ```
-$ python3 -m pytest <scratch copy> -q -k planted
-E   AssertionError: spawn.tasks_max: resolver disagrees with the planted cell: 1000
-E   assert 1000 is 1000
+SHIPPED BY DH.480 (superseded)
+NEW  test_the_comparison_holds_for_a_planted_cell_above_the_int_cache
+     @pytest.mark.parametrize("planted", [1000, "1000"])
+     cfg = copy.deepcopy(_live_config())   # a COPY; the live file is read-only
+     resolved = mem_cap.resolve_tasks_max(cfg)
+     assert resolved == parsed                    <-- a COPY of the rule
+     assert resolved is not parsed or planted in range(-5, 257)
+```
+
+The last line was NOT the load-bearing one; it was a tautology guard
+(`resolved is parsed` is false above the cache, so the row passes either
+way). The load-bearing comparison was the row's OWN copy — and the copy
+under test, `_check_tasks_max`'s `==`, was never run. Regress the helper's
+`==` back to `is` and this row stayed GREEN: two copies of one rule, and
+the wrong one is the one exercised.
+
+DH.488 (the fix, tests + node text only, 0 production lines): the helper
+SPLIT so the ONE comparison takes a GIVEN cfg.
+
+```
+_check_tasks_max(cfg)     parse + compare + assert   <-- the ONE copy
+                         -> assert resolved == parsed
+_live_spawn_tasks_max()   = (_live_config(), _check_tasks_max(_live_config()))
+planted row              = _check_tasks_max(planted_cfg)   # no comparison of its own
+```
+
+
+RED-FIRST, measured twice, in DH.488 (the row now fails THROUGH the helper,
+so the flip of the helper's `==` to `is` is what reds it):
+
+```
+$ python3 -m pytest <scratch copy, helper '==' -> 'is'> -q -k planted
+E       AssertionError: spawn.tasks_max: resolver disagrees with the cell: 1000
+E       assert 1000 is 1000
+extensions/agi/tests/test_zz_scratch_red_is.py:130: AssertionError
 FAILED ...[1000_0]
 FAILED ...[1000_1]            2 failed
+$ python3 -m pytest <the three scoped files> -q
+27 passed in 0.77s            # with '=='
 ```
-With `==` the same two cases are GREEN. That is the difference between "the
-words were obeyed" and "the mechanism is protected".
 
-## Residue 3 — no row mutates the helper's dict
-
-`test_the_old_cell_is_read_nowhere` did `cfg.setdefault("values", ...)`
-on the dict `_live_spawn_tasks_max` returned. It now takes `live, cell` and
-mutates `copy.deepcopy(live)`, so no later row can read a config the resolver
-never saw.
-
-## Residues 1, 4, 5
-
-* `0` removed from the worktree root. NOTE: the brief said `git rm -- 0`;
-  the round-level rule forbids git entirely, so a plain `rm` was used — the
-  file is gone from the worktree and the loop's own commit records the
-  deletion. Flagged, not silently deviated from.
-* `a00-36f071dc-154d29:94` — the stray `short test sentence here` removed
-  (body 71:73), its blank-line padding with it.
-* `a00-58f37c40-6df0e6` — the unfilled `## Experiment / What did you do?`
-  scaffold and its duplicate title heading removed (body 2:4). The first
-  attempt was REFUSED by write.py's anchor guard (`replace body 2:3` ends on
-  a heading); widening the range past the heading to `2:4` was the way
-  through. Two turns, not a hand edit.
+Same measured pair as DH.480, but the RED now lands on the helper's own
+comparison rather than on a private copy of it.
 
 ## Suite
 
