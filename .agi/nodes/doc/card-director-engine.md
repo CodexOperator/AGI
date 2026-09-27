@@ -50,7 +50,7 @@ CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_ma
        accept_with_residue (sibling node a00-f787eff3 false; new_bytes 2 meanings; config_max YES) -> 451 a00-5712dd56 -> mur-8 accept_with_residue (MY hand-land 79bdb3490 of a kid node = rule breach, unlogged; THOUGHT(3) not withdrawn; rebrief unanswered; tests read live user systemd files; green-requires-drift) -> 458 a00-78bd7f24 HARVESTED (re-land logged; fixtures only; exact drift delta; 178 green; logged nodes + fixtures_dir cell LANDED de33ea1fe under TMM.268; a00-ef130285 untitled + rebrief unanswered = known residue) -> mur DH.458-k1 RUNNING
 433    -> 444 -> 447 a00-7ba0cad2 (cut from 444; 19 green) -> mur-7 accept_with_residue (own renderer KeyError GUARD_DOC; dest_rel {{UID}} raw; no unlisted guard; templates_dir cwd; missing manifest traceback; vacuous privileged row; cfg+tmpl YES) -> 454 a00-2752c658 -> mur-8 accept_with_residue (real kit has no sudo piece; dest/manifest duplicated; restore leaves empty dirs; dead docstring) -> 460 a00-3344ebd1 HARVESTED (11 sudo pieces; install delegates to render; created dirs restored; 211 green; a00-fcb5f3fb demoted lean_disproved:70 by parent) -> mur DH.460-k1 RUNNING, cut from de-base-460 (= 454 + 458) (= 447 + 451 merged, worktree de-base-454); OPEN after 438/446 land: templates_dir is
        repo-relative + unresolved -> load_manifest traceback: resolve vs the repo root + refuse a missing manifest by name
-434    SUPERSEDED -> 437 -> 439 (mur-6 residue: mem_cap path WRITES cache; neg reserve=info; literals) -> 450 a00-f0f1a8b1 HARVESTED (proved; 34 green on loop br) -> mur-8 DH.450-k1 RUNNING (unit agi-director-engine-mur450)
+434    SUPERSEDED -> 437 -> 439 (mur-6 residue: mem_cap path WRITES cache; neg reserve=info; literals) -> 450 a00-f0f1a8b1 -> mur-8 review stage 3 defects (cache-path arithmetic duplicated; spy docstring overclaims; slashless dest literal), verify TIMED OUT 3600 s -> 462 a00-c211fc9b LIVE, cut from 450
        BOX DRIFT (for TM, not ours to fix): OOMPolicy unset on streamer-stub-watch.service · agi.slice drop-in FILE absent
 g15       concurrent murs mint ONE run key (-3 x2, -4 x3, -5 x3, -8 x3: 449+450+451): _existing_run_keys sees only finished rows
 g15       "merge the loop branch first" is NOT reliable: kids are forbidden git and get an EMPTY .git (no refs); 437/438/442/443
@@ -68,13 +68,13 @@ CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT
 
 ## 🔴 WHERE IT STOPS (rotated at f=0.43; capture chain rc=1 = g7.33.15; every round below survives rotation)
 ```
-FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur450 mur453 mur455 mur457 mur458 mur459 mur460 (456->461 · 454->460 · 449->459 · 451->458 · 440->452 · 443->453 · 447->454 · 445->455 · 448->456) (mur446 DONE, above)
+FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur453 mur455 mur457 mur458 mur459 mur460 (450->462 · 456->461 · 454->460 · 449->459 · 451->458 · 440->452 · 443->453 · 447->454 · 445->455 · 448->456) (mur446 DONE, above)
        mur446 (+ whatever finished). Verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{5,6,7,8}/verify_DH.4NN-kN.json
-       parents live: 461 a00-a38fd4ce
+       parents live: 461 a00-a38fd4ce · 462 a00-c211fc9b
 THEN   harvest 454-457 as they land (each cut FROM its chain branch: diff vs that branch; tests; a stray KID node edit is NEVER hand-landed -> a corrective re-lands it via write.py)
 PATTERN corrective = dispatch FROM the loop branch's worktree (kids cannot merge); a clean mur = git merge --no-ff <final branch>
        LAND ORDER per chain: 425: 441 then 448 then 456 @b3d381f5a then 461 · 426: 445 then 455 @fa9b0d957 (NEVER 442) · 427: 436 then 449 @2cee3ba21 then 459 · 429: merge 429 (nodes) then 443
-       -X theirs then 453 · 430: 440 then 452 then 457 · 432: 438 then 446 then 451 then 458 (NEVER 432) · 433: 444 then 447 then 454 then 460 (454 CARRIES 451, 460 CARRIES 458: land the 432 chain FIRST) · 434: 439 then 450 (NEVER 434)
+       -X theirs then 453 · 430: 440 then 452 then 457 · 432: 438 then 446 then 451 then 458 (NEVER 432) · 433: 444 then 447 then 454 then 460 (454 CARRIES 451, 460 CARRIES 458: land the 432 chain FIRST) · 434: 439 then 450 then 462 (NEVER 434)
 THEN   graph acts (2) level3.py build:tests-test-agi-bin-absent · (9)(11) verdicts · full suite + ctx -> ONE [merge-up] 14+15 + g7.33.18
        (name: 442 discarded, stale-base overrides, the g15 lines, the 2 BOX DRIFTs, my stale 21:2xZ dm)
 ```
