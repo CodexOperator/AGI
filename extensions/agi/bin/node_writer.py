@@ -562,15 +562,17 @@ def plan_move(root, old_ref, new_ref, *, old_location=None, new_location=None,
 
     src = _loc.resolve_payload_path(Path(root), old_ref, old_location)
     dest = _loc.resolve_payload_path(Path(root), new_ref, new_location)
-    if src == dest or not src.is_file():
+    if src == dest:
         return _MovePlan(None, dest)
-    if dest.exists() or dest.is_symlink():
-        raise MoveRefused(f"refusing to move {src} onto {dest}: the "
-                          f"destination exists and is never overwritten.")
     if src.parent != dest.parent and not confirm:
         raise MoveRefused(f"refusing to move the payload across directories: "
                           f"{src} -> {dest}. Re-issue the same write with "
                           f"`--confirm-move`.")
+    if not src.is_file():
+        return _MovePlan(None, dest)
+    if dest.exists() or dest.is_symlink():
+        raise MoveRefused(f"refusing to move {src} onto {dest}: the "
+                          f"destination exists and is never overwritten.")
     return _MovePlan(src, dest)
 
 

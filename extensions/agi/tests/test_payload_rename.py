@@ -42,6 +42,25 @@ def _graph(tmp_path: Path):
     return graph, payload, node
 
 
+def _link_graph(tmp_path: Path):
+    """The shape `create --payload` actually mints: `link_ref` and NO
+    `payload_ref` (write.py:2950). links.py resolves `link_ref` FIRST, so a
+    repoint that only writes `payload_ref` moves the file links.py reads and
+    leaves the link dangling."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text('{"locations": {"vendor": "vendor"}}')
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text(ORIG)
+    node = graph / "nodes" / "build" / "b1.md"
+    node.write_text(
+        '---\nid: build:b1\ntype: build\nmint_id: abc123\n'
+        'title: "t"\nscaffold_hash: deadbeef\n'
+        'link_ref: lib/mod.py\n---\n\nbody\n\n')
+    return graph, payload, node
+
+
 def _submit_set(graph, node_id, key, value):
     edit = write.Edit(node_id=node_id)
     write.verb_set(edit, key, value)
@@ -166,3 +185,86 @@ def test_a_failed_row_write_leaves_the_bytes_where_they_were(tmp_path, monkeypat
     assert payload.is_file() and payload.read_text() == ORIG
     assert not (tmp_path / "lib" / "renamed.py").exists()
     assert _row_ref(node) == "lib/mod.py"
+
+
+def test_a_link_ref_only_row_repoints_without_dangling(tmp_path):
+    """The inversion: links.py reads `link_ref` FIRST, the mover sourced
+    `payload_ref` first. A `create --payload` row names its file in
+    `link_ref` alone, so the old mover moved the file links.py reads and left
+    `link_ref` pointing at a path that was gone -- `broken_links` 1, a
+    standing red with no committed test in the shape."""
+    import links as _links
+    graph, payload, node = _link_graph(tmp_path)
+    assert _links.count_broken_links(graph) == 0
+    res = _submit_set(graph, "build:b1", "payload_ref", "lib/new.py")
+    assert res.status != node_writer.REJECTED
+    assert not payload.exists() and (tmp_path / "lib" / "new.py").is_file()
+    assert "link_ref: lib/new.py" in node.read_text(), \
+        "the field links.py reads must carry the new path too"
+    assert _links.count_broken_links(graph) == 0, \
+        "a move must never leave the link broken"
+
+
+def test_an_absent_source_still_asks_for_consent_cross_directory(tmp_path):
+    """The consent gate is about the ROW, which outlives the checkout. A
+    deleted payload must not turn a cross-directory repoint into a silent
+    one: the plan used to return early on the absent source, ahead of the
+    refusal (node_writer.plan_move)."""
+    graph, payload, node = _graph(tmp_path)
+    payload.unlink()
+    with pytest.raises(write.EditError) as refused:
+        _submit_set(graph, "build:b1", "payload_ref", "sub/moved.py")
+    assert "lib/mod.py" in str(refused.value) and "sub/moved.py" in str(refused.value)
+    assert _row_ref(node) == "lib/mod.py", "a refused write touches neither"
+    # same-directory still lands: nothing to move, and nothing to refuse
+    res = _submit_set(graph, "build:b1", "payload_ref", "lib/elsewhere.py")
+    assert res.status != node_writer.REJECTED and _row_ref(node) == "lib/elsewhere.py"
+
+
+def test_an_undeclared_location_is_a_refusal_not_a_traceback(tmp_path):
+    """locations.payload_base raises KeyError for an unknown NAME, and neither
+    submit nor main caught it -- the write that used to land a row died on a
+    stack trace."""
+    graph, payload, node = _graph(tmp_path)
+    with pytest.raises(write.EditError) as refused:
+        _submit_set(graph, "build:b1", "location", "nosuchbase")
+    assert "nosuchbase" in str(refused.value)
+    assert payload.is_file() and _row_ref(node) == "lib/mod.py"
+
+
+def test_a_failed_move_rolls_the_row_back_onto_the_bytes(tmp_path, monkeypatch):
+    """The rename runs after the row write, guarded only by status. An
+    os.replace that raises left the ROW on the new path and the BYTES on the
+    old one -- the dangling row conjunct 3 forbids."""
+    graph, payload, node = _graph(tmp_path)
+
+    def boom(*a, **kw):
+        raise OSError("disk full")
+    monkeypatch.setattr(node_writer, "move_payload", boom)
+    with pytest.raises(write.EditError) as failed:
+        _submit_set(graph, "build:b1", "payload_ref", "lib/renamed.py")
+    assert "rolled back" in str(failed.value)
+    assert payload.is_file() and payload.read_text() == ORIG, "the bytes stayed"
+    assert _row_ref(node) == "lib/mod.py", "the row must resolve to the bytes"
+
+
+def test_the_dry_run_preview_refuses_what_the_land_refuses(tmp_path):
+    """A dry run simulates (create's schema gate runs PRE-dry-run on
+    purpose), so the move plan has to run in the preview too. It did not:
+    the preview exited 0 on a write the real submit() refused with exit 2."""
+    import subprocess
+    import sys as _sys
+    graph, payload, _node = _graph(tmp_path)
+    bin_dir = Path(__file__).resolve().parents[1] / "bin"
+    env = {k: v for k, v in __import__("os").environ.items()
+           if k not in ("TMUX", "TMUX_PANE")}
+    run = lambda extra: subprocess.run(  # noqa: E731
+        [_sys.executable, str(bin_dir / "write.py"), "build:b1",
+         "set payload_ref sub/moved.py"] + extra,
+        cwd=tmp_path, capture_output=True, text=True, env=env)
+    preview = run(["--dry-run"])
+    real = run([])
+    assert preview.returncode == real.returncode == 2, (
+        f"preview exit {preview.returncode}, land exit {real.returncode}")
+    assert "MOVE PREVIEW" in preview.stdout
+    assert payload.is_file() and _row_ref(Path(str(_node))) == "lib/mod.py"
