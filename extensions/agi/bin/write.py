@@ -1857,6 +1857,50 @@ def _schema_field_refusal(schema, node_type: str, key, value, *,
     return None
 
 
+#: Rows an answers FILE names for the mint itself, not as frontmatter.
+_ANSWERS_RESERVED = frozenset({"type", "slug", "parents", "body", "payload"})
+
+
+def _read_answers_file(path: str):
+    """ONE answers file -> (data, refusal). JSON, so an apostrophe, a backtick
+    and `$(` need no shell quoting: no field value on this route passes
+    through a shell-quoted argv (claim 1)."""
+    import json
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        return None, f"--answers {path}: {exc}"
+    if not isinstance(data, dict):
+        return None, f"--answers {path}: wants ONE JSON object, got {data!r}"
+    if not isinstance(data.get("body", ""), str):
+        return None, f"--answers {path}: 'body' must be a string"
+    return data, None
+
+
+def _answers_row_refusal(root, node_type: str, node_id: str, slug: str,
+                         parents: list[str], set_fm: dict) -> str | None:
+    """The ONE row validator the answers route runs — a thin WRAPPER, never a
+    second copy: `_refuse_marker_value` + `_enforce_create_schema_gate` (which
+    is `_schema_field_refusal` over every row) + the REQUIRED rows
+    `node_writer.seed_required` cannot derive. Every name is read through the
+    schema registry; a refusal writes NOTHING (claim 2)."""
+    for key, value in set_fm.items():
+        refusal = _refuse_marker_value(key, value)
+        if refusal:
+            return refusal
+    refusal = _enforce_create_schema_gate(root, node_type, set_fm)
+    if refusal:
+        return refusal
+    preview = dict(set_fm, id=node_id, type=node_type, mint_id="0" * 32,
+                   parents=list(parents))
+    missing = node_writer.seed_required(root, node_type, preview, slug)
+    if missing:
+        return (f"create --answers {node_id} refused by name: "
+                + ", ".join(repr(k) for k in missing) + " required at mint "
+                "and NOT in the answers file (schema validation.required)")
+    return None
+
+
 def _enforce_create_schema_gate(root, node_type: str, set_fm: dict) -> str | None:
     """The CREATE half of a schema's field-level refusal annotations.
 
@@ -3002,6 +3046,10 @@ def main(argv: list[str] | None = None) -> int:
                          "placeholder scaffold")
     ap.add_argument("--set", dest="sets", action="append", default=[],
                     help="with `create`: extra frontmatter, k=v, repeatable")
+    ap.add_argument("--answers", default=None, metavar="PATH",
+                    help="with `create`: mint the node from ONE JSON answers "
+                         "file (type, slug, parents, every row, body) — an "
+                         "alternative to --set/--body-file, not a new verb")
     ap.add_argument("--no-spawn-gate", action="store_true",
                     help="bypass the spawn gate, loudly")
     ap.add_argument("--root", default=".", help="any path inside the project")
@@ -3038,11 +3086,21 @@ def main(argv: list[str] | None = None) -> int:
         if root is None:
             print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
             return 1
-        if not args.script or not args.slug:
+        answers: dict = {}
+        if args.answers:
+            answers, refusal = _read_answers_file(args.answers)
+            if refusal:
+                print(f"ERR: {refusal}", file=sys.stderr)
+                return 2
+        script = args.script or answers.get("type") or ""
+        slug = args.slug or answers.get("slug") or ""
+        parents = list(args.parents or answers.get("parents") or [])
+        set_fm = {k: v for k, v in answers.items()
+                  if k not in _ANSWERS_RESERVED}
+        if not script or not slug:
             print("ERR: create needs a type and a slug: "
                   'write.py create <type> <slug> --parent <id>', file=sys.stderr)
             return 2
-        set_fm = {}
         for pair in args.sets:
             if "=" not in pair:
                 print(f"ERR: --set expects k=v, got {pair!r}", file=sys.stderr)
@@ -3058,6 +3116,14 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERR: {refusal}", file=sys.stderr)
                 return 2
             set_fm[k] = v
+        # claim 2: the answers route runs ONE row validator BEFORE the
+        # dry-run short-circuit, so a bad row refuses on a dry run too.
+        if answers:
+            refusal = _answers_row_refusal(root, script, f"{script}:{slug}",
+                                           slug, parents, set_fm)
+            if refusal:
+                print(f"ERR: {refusal}", file=sys.stderr)
+                return 2
         # hypothesis:l4-the-town-create-gate-refuses-what-the-loader-refuses-
         # and-every-vision-id-must-exist — the schema's field-level `refuse:`/
         # declared-`int` rules are a GATE the create path enforces GENERICALLY,
@@ -3065,17 +3131,18 @@ def main(argv: list[str] | None = None) -> int:
         # refuses what the real mint would refuse). A town `branches:` cell and
         # a non-int `season` both refuse BY NAME by exit 2 here — never a
         # traceback, never a node born only for a later reader to reject.
-        refusal = _enforce_create_schema_gate(root, args.script, set_fm)
+        refusal = _enforce_create_schema_gate(root, script, set_fm)
         if refusal:
             print(f"ERR: {refusal}", file=sys.stderr)
             return 2
         if args.dry_run:
-            print(f"create {args.script}:{args.slug}")
-            print(f"  parents  {args.parents or '(none)'}")
-            if args.payload:
-                print(f"  payload  {args.payload}")
+            print(f"create {script}:{slug}")
+            print(f"  parents  {parents or '(none)'}")
+            print(f"  payload  {args.payload or answers.get('payload') or ''}")
             if args.body_file is not None:
                 print(f"  body-file {args.body_file}")
+            elif answers.get("body") is not None:
+                print("  body     (from --answers)")
             for k, v in set_fm.items():
                 print(f"  set      {k} = {v!r}")
             return 0
@@ -3092,10 +3159,13 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERR: --body-file {args.body_file}: {exc}",
                       file=sys.stderr)
                 return 2
-        res, made = create(root, args.script, args.slug, args.parents,
-                           set_fm=set_fm, payload=args.payload, body=body,
-                           actor=args.actor, session=args.session, role=args.role,
-                           bypass=args.no_spawn_gate)
+        elif answers.get("body") is not None:
+            body = answers["body"]
+        res, made = create(root, script, slug, parents,
+                           set_fm=set_fm,
+                           payload=args.payload or answers.get("payload"),
+                           body=body, actor=args.actor, session=args.session,
+                           role=args.role, bypass=args.no_spawn_gate)
         if res.rejected:
             print(f"ERR: spawn rejected for {res.node_id}: {res.reason}. "
                   f"Fix: {res.gate.fix} (--no-spawn-gate bypasses this, loudly.)",
