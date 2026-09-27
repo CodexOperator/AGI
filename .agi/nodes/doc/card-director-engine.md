@@ -31,39 +31,36 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (13:2xZ 09-27 · per-chain history = git log of this node)
+## §0 STATE (13:3xZ 09-27 · per-chain history = git log of this node)
 ```
-LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br tip f6bf73919 (trunk merged, 366 ahead, merge-tree clean, NOT suite-run)
-URGENT    zero-USD mint fix 6f9b9a1d9 (belam 13:1xZ, owner: account DRAINED 0.606 USD) -> [merge-up] sent 13:2xZ asking to land THAT commit alone;
-          falsifier LIVE: DH.533 a00-fbd128d3 pi-free minted at 0.606, key limit=0.01 -> READ credits after it exits (must stay 0.606) -> one line to TM
-MINTS     pass again for zero_usd lanes ONLY via 6f9b9a1d9: a dispatch/mur from a tree WITHOUT it still refuses -> cherry-pick it into any base first
-MURS      ALL STOPPED 06:4xZ (TMM.291/295: bare --harness pi = PAID). Re-run EVERY one with EXPLICIT --harness pi-free, from THIS worktree (has the fix);
-          stop = runner + its run-*.scope stages (skill agi-workflow). args: scratchpad a030396e-.../{mur-b1,mur-b2,mur-b3,mur525,mur529}.json,
-          predecessor 68c98329-.../mur510.json; UNREVIEWED rounds: 509 512 514 515 516 (b1) · 519 521 522 501 (b2) · 526 520 507k1k2 (b3) · 525 · 529 · 497
-          · 530 (b32e952ea, 243/243 reflow) · 531 (84bfb3bd0) · 532 (4eb9be948 -- NEVER merge before 534)
-LIVE      DH.533 a00-fbd128d3 (sweep slice 2, owner question) only
-QUEUED    DH.534 (532 held-lock fix; orders ON hypothesis:a-stale-index-lock-is-cleared-or-named-and-a-failed-round-commit-is-never-silent,
-          dispatch from wt a00-354f1396 AFTER cherry-picking 6f9b9a1d9) · 517 re-cut (model-fence; kid nodes + parent root-cause probe at 360b0f0a1)
-          · the skills adapter round (hypothesis:skills-load-per-harness-per-tier-from-one-config-cell) after 526 clears · 429 tiny corrective · 471 after 530
+LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br = trunk 45bf4f16f merged (NOT suite-run)
+MINT FIX  6f9b9a1d9 in TM's gate (TMM.297), NOT yet on the trunk -> every corrective base cherry-picks it (de-base-534/535 do)
+FALSIFIER DH.533/534/535 keys all limit 0.01 used 0; credits 0.6063 at 13:2xZ -> read again when DH.533 exits -> one line to TM
+MURS      unit agi-director-engine-murq = batches murq1..7 SEQUENTIAL (<= 4 rounds each, pi-free, from this worktree):
+            1 509k1 509k2 512 514k1 · 2 514k2 515 516 510k4 · 3 519 522 521 501 · 4 526 520 507k1 507k2
+            5 525k1 525k2 529k1 529k2 · 6 497k1 497k2 530 531 · 7 532 (review only; NEVER merge before 534)
+          unit agi-director-engine-murq8 = 429 chain close (03ac46eea..7938a7103)   args + logs: scratchpad 96494ce7-.../murq*.{json,log}
+          complete earlier (paid, still valid verdicts): 510k1-k3 (mur-18)
+LIVE      DH.533 a00-fbd128d3 (sweep slice 2) · DH.534 a00-5330c27c (532 held-lock fix, wt de-base-534)
+          · DH.535 a00-76be416a (517 re-cut: model-fence owner race, wt de-base-535; orders on the node fba87fa0d)
+QUEUED    skills adapter round (hypothesis:skills-load-per-harness-per-tier-from-one-config-cell) after 526 clears · 471 after 530
+          · (c)(d) residues of 6f9b9a1d9 -> ONE corrective after TM lands it
 BLOCKED   501 merge (belam F13 trim: region 2009 > 2000)
-RESIDUES  of 6f9b9a1d9 (TMM.297, TM gates it on the targeted suite; not blocking): (c) dispatch.py:2196 prints limit=$1.0 while a zero_usd mint makes 0.01
-          (d) the outer `if` also skips check_runtime_key_usable + the --cap guard for zero_usd lanes -> ONE small corrective round (pi-free) after it lands
+CLOSED    429 chain residue (mur-15 DH.495-k1 ## TESTS) = node update on its loop branch 7938a7103 (brief text, no kid)
 ```
 
 ## §1 PLAN
 ```
-done   this seat: skill agi-corrective (owner ask) + traps in agi-dispatch/agi-workflow; 20+ rounds harvested/corrected (519-534); 511 merged;
-       g7.33.19 rows 19-21 (+18/19 dispatched); draft skills entry; paid murs stopped; zero-USD mint fix + live falsifier
-next   (1) credits-after for DH.533 (2) murs on pi-free, batch by 3-4 slices (3) close residues via agi-corrective (4) merge cleared chains
-       (5) suite window -> ONE [merge-up]
+done   wake: card re-linked 0c20cadf2 · trunk merged · 22 rounds re-murred on pi-free · DH.534 + DH.535 dispatched · 429 residue closed
+next   (1) read murq verdicts per batch -> triage (skill agi-corrective) (2) harvest 533/534/535 (3) merge cleared chains in card order
+       (4) credits-after for DH.533 -> TM (5) suite window -> ONE [merge-up]
 ```
 
 ## 🔴 WHERE IT STOPS
-Rotated at the line (f~0.47) mid-drain; nothing merged since 511; one parent live.
+Murs draining in unit murq; three parents live; nothing merged since 511.
 ```
-FIRST   spawn_budget.py status ; systemctl --user list-units 'agi-director-engine-*' ; read the dm files DIRECTLY (director-engine--thought-master.md,
-        belam--director-engine.md) ; python3 extensions/agi/bin/provisioning.py list | grep DH.533
-THEN    re-run murs: systemd-run ... workflow.py run merge-up-review --harness pi-free --root <this worktree> --args "$(cat <args>.json)"
+FIRST   systemctl --user list-units 'agi-director-engine-*' ; grep === <scratchpad>/murq.log ; spawn_budget.py status
+THEN    verdicts: /data/work/agi/.agi/sessions/workflows/runs/mur-director-engine-2*/{review,verify}_<label>.json
 ```
 
 ## §4 TRAPS
