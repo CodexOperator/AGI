@@ -31,26 +31,35 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (13:3xZ 09-27 · per-chain history = git log of this node)
+## §0 STATE (14:0xZ 09-27 · per-chain history = git log of this node)
 ```
-LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br = trunk 45bf4f16f merged (NOT suite-run)
-MINT FIX  LANDED on the trunk 91ae33672 (TMM.298), post br merged 32ff79e53 -- a base older than that still needs the cherry-pick
-FALSIFIER MET: DH.533 ran + exited pi-free, keys 0.01 used 0, credits 0.6063 before = after -> [merge-up] line to TM 13:3xZ (inbox; nudge coalesced, sweep retries)
-MURS      units agi-director-engine-murl1..3 = 3 LANES claiming batches murq1..7 by mkdir <scratchpad>/claims/b<N> (a pi-free run is
-          SERIAL per stage, ~7 min each: one lane = ~5 h); run key mur-director-engine-23 shared (row 19), labels disjoint:
-            1 509k1 509k2 512 514k1 · 2 514k2 515 516 510k4 · 3 519 522 521 501 · 4 526 520 507k1 507k2
-            5 525k1 525k2 529k1 529k2 · 6 497k1 497k2 530 531 · 7 532 (review only; NEVER merge before 534)
-          murq8 (mur-21) 429 close: verify AWR (my restore re-imported a stale clause) -> fixed 4eb08ee4e -> unit murq9 re-mur 7938a7103..4eb08ee4e
-          unit murq11 = DH.538 over 123e0a487..aa383f9f8 (harvested: 184 passed 7 skipped, both retargets PASS)
-          unit murq10 = DH.533 k1+k2 over f71d1915b..dedc18720 (harvested: config cell landed dedc18720; 38 touched + 281 heal/help-smoke green)   args + logs: scratchpad 96494ce7-.../murq*.{json,log}
-          complete earlier (paid, still valid verdicts): 510k1-k3 (mur-18)
-LIVE      NO parents. Harvested green, murs running (unit: round, range, harvest numbers):
-          murq11 DH.538 123e0a487..aa383f9f8 184p/7s · murq13 DH.537 123e0a487..f109db023 363p/7s
-          murq12 model-fence chain: DH.508-k1 cc35dcc43..360b0f0a1 + DH.539-k1 1faef6315..7d9cc0202 (context 25p, fence 10p)
-          murq14 DH.534 5892ec137..e6e678bf2 290p/7s (chain 532 -> 534; 532 itself in murq7)
-QUEUED    skills adapter round (hypothesis:skills-load-per-harness-per-tier-from-one-config-cell) after 526 clears · 471 after 530
-BLOCKED   501 merge (belam F13 trim: region 2009 > 2000)
-CLOSED    429 chain residues = node updates on its loop branch 7938a7103 + 4eb08ee4e (brief text, no kid; wt de-h429)
+LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 (mint fix) merged 32ff79e53 · 429 chain MERGED 1ee2340c3 (242 green)
+FALSIFIER MET (DH.533 pi-free: keys 0.01 used 0, credits 0.6063 = before) -> TM 13:3xZ
+MURS      units agi-director-engine-<unit>; args + logs <scratchpad 96494ce7-...>/<unit>.{json,log}; verdicts MAIN runs/<key>/{review,verify}_<label>.json
+          murl1..3 = 3 LANES claiming batches murq1..7 (mkdir claims/b<N>; a pi-free run is SERIAL per stage ~7 min), key mur-23:
+            1 509k1 509k2 512 514k1 · 2 514k2 515 516 510k4 · 3 519 522 521 501 · 4 526 520 507k1 507k2 · 5 525k1 525k2 529k1 529k2
+            6 497k1 497k2 530 531 · 7 532      (510k1-k3 cleared earlier, mur-18)
+          murq11 DH.538 · murq12 DH.508-k1 + DH.539-k1 · murq13 DH.537 · murq14 DH.534   (all harvested green; numbers in each round's focus)
+LIVE      DH.540 a00-c6a30652 (533 corrective) · DH.541-544 (the mur-20 correctives; bases = loop tip + cherry-pick 6f9b9a1d9,
+          which the node BASE lines omit -- the --orders files in the scratchpad carry it); wt de-base-<N>
+QUEUED    skills adapter round (hypothesis:skills-load-per-harness-per-tier-from-one-config-cell) cut from 526's cleared tip · 471 after 530
+CHAIN     loop tip (last)   state                                                            land note
+ 426 schema-gate  527 → 543   mur-20 AWR -> DH.543 LIVE a00-51a6effb                            NEVER 442
+ 427 heal-refuse  528 → 544   mur-20 DEMOTE -> DH.544 LIVE a00-c7aa5f71                         NEVER 476
+ 432 guard-piece  530     lane 6                                                               NEVER 432 itself
+ 433 guard-inst   471     corrective AFTER 432 lands (mur-17 k1 unstructured, k3 AWR)
+ g4.18.1.1        521     lane 3 (item 4 a00-9086ec16 UNLANDABLE, row 21)
+ g4.18.1.3        519     lane 3 (510 k1-k3 cleared, k4 lane 2)
+ g4.18.1.4        497     lane 6
+ send-hub box     525     lane 5 (TMM.289 cleared: rows backfilled 91f9e1236)
+ kid-worktrees    529 → 533 → 540   lane 5 (529) · 533 DEMOTE -> DH.540 LIVE
+ row 20 nudge     524 → 542   mur-20 AWR -> DH.542 LIVE a00-e7cea940
+ thought-verb     522     lane 3 · probe-gate 523 → 541: mur-20 AWR -> DH.541 LIVE a00-1362856d
+ wake-facts       501     lane 3; BLOCKED: trunk region 2009 > 2000 until belam trims F13
+ model-fence      508 → 517 → 536 → 539   murq12 (R4 test NEVER run: row 22)
+ PASS 10          509 512 514 515 516 lanes 1-2 · 507 reap-chain lane 4 · belam-cap-reap HELD until 507 lands
+ run-key          531     lane 6 · stale-lock 532 → 534 murq14 (532 NEVER merges before 534)
+ zero-usd         537 murq13 · trunk reds 538 murq11 · skills 526 lane 4
 ```
 
 ## §1 PLAN
