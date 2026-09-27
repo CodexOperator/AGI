@@ -41,16 +41,18 @@ TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [NOEX=1] [EXTRA=f,g] gen2.py N
           D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N.. > D/harvallN.log (chain units with a while-is-active wait)
 GATE      TMM.306 (TM 21:59Z): NO parent slot refilled until load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, then ONE step at a time
           (drainqg1 enforces it); stop nothing live · first freed slot = DH.650 RAM round (repo half) · arm 10 unchanged
-MURS      running murq97 118 = DH.627 645 · ENDED+TRIAGED: 106 108 112 114-117 -> DH.661 662 666 663 664 660 665 · next murq 119 · next DH 667
-LIVE      parents 638 (spawn_budget.py) · 645 harvested 1300bd8c9 (79 passed) · gated queue (T/drainqg<N>.log, chained): qg1 650 647 648 649 ·
-          qg2 651 652 653 · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660 661 662 663 664 · qg9 665 · qg10 666 -- io avg60 ~61 > 50 · 640 assembled 1bf1dbf6c
-DEMOTED   (not correctives) 660/661/663 'checked CLEAR / not a defect' verify notes · 662: kid ran git diff --numstat (process note) · 665: V1 done-gate + V7 write-log = findings rows already, UNVERIFIED worktree-gone probe
+MURS      running murq118 = DH.645 · ENDED+TRIAGED: 97 106 108 112 114-117 -> DH.668 661 662 666 663 664 660 665 · next murq 119 · next DH 669
+LIVE      parents 638 (spawn_budget.py) · 645 harvested 1300bd8c9 (79 passed) · gated queue (T/drainqg<N>.log, chained): qg1 650 667 647 648 649 (T/drainqgf.sh: N:F = fresh round via T/placef.sh + T/h<N>.txt) ·
+          qg2 651 652 653 · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660 661 662 663 664 · qg9 665 · qg10 666 · qg11 668 -- io avg60 ~61 > 50 · 640 assembled 1bf1dbf6c
+DEMOTED   (not correctives) 660/661/663 'checked CLEAR / not a defect' verify notes · 662: kid ran git diff --numstat (process note) · 665: V1 done-gate + V7 write-log = findings rows already, UNVERIFIED worktree-gone probe · 668: +76 test-line breach = row, timing note
+LOGS      belam [decision] 22:2xZ (owner): logs + sequential scratch -> the new flash mount, TM owns the move; DE owns the
+          log-path cells -> DH.667 hypothesis:box-logs-dir-resolves-from-one-config-cell (g6.49), cell VALUE unchanged by the round
 DECISION  out to TM: DH.577 cron policy (send-hub chain HELD from merge) · DE.1 22:0xZ: who mounts the tmpfs (off-repo) · wake-facts MAJOR
 CHAIN     last round (→ = corrective, mN = murq N running)                                           land note
  schema-gate 527 → 543 → 559 → 597 → 644 → 665 q · heal-refuse 528 → 544 → 558 → 592 MERGED c2f528ed8     NEVER 442 · NEVER 476
  probe-gate 523 → 541 → 560 → 589 → 626 → 641 → 666 q · row 20 nudge 524 → 542 → 561 → 602 → 637 → 657
  trunk reds 538 → 545 → 562 → 582 → 606 → 623 → 646 → 664 q · zero-usd 537 → 546 → 565 → 572 → 608 → 638 (638 re-applies the ladder revert)
- stale-lock 532 → 534 → 547 → 564 → 594 → 627 m97                                                   532 NEVER merges alone
+ stale-lock 532 → 534 → 547 → 564 → 594 → 627 → 668 q                                                   532 NEVER merges alone
  model-fence 508 → … → 590 → 613 → 633 → 654                                                         R4 NEVER run (row 22)
  kid-worktrees 529 → 533 → 540 → 563 → 598 → 624 → 655 → RAM round 650 (hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram)
  PASS 10 516 → … → 616 → 636 → 647 · 509 → … → 599 → 630 → 649 · 507 → … → 612 → 635 → 662 q (never run test_rotate_selfreap whole)
@@ -70,9 +72,9 @@ next   (1) per ENDED mur: D/verd.py Q -> CLEAN (after demotes) = git merge --no-
 ```
 
 ## 🔴 WHERE IT STOPS
-Woke 22:3xZ: murs 106 108 112 114-117 read, all residue -> correctives 660-666 queued (qg8-qg10) behind the io gate; 645 harvested, murq118 reviewing it.
+All ended murs triaged: correctives 660-666 + 668 queued (qg8-qg11); DH.667 (logs.dir cell, owner via belam) queued 2nd in qg1 after 650.
 ```
-FIRST   D/verd.py 97 118 as each murq unit ends ; T/drainqg<N>.log for gate placements (qg1..qg10 chained)
+FIRST   D/verd.py 118 when murq118 ends (DH.645, send-hub HELD) ; T/drainqg<N>.log placements (qg1..qg11 chained, io gate closed)
 THEN    clean -> git merge --no-ff <tip> -F <msgfile> · residue -> MURK=.. T/gen2.py, trim non-defects, queue on T/drainqg.sh
 ```
 
@@ -93,7 +95,8 @@ file on a link-only row (write.py:2322) + replace_payload never creates (node_wr
 (write.py:2504-2535 vs :448) · season.py:1639 nested-heading reader trap · worktrees removed under live/unharvested rounds (597 617 618) ·
 dispatch.py > 300 s at load 32 killed a parent (621) · write-log is a per-root literal sessions/write-log.jsonl (node_writer.py:127), not
 locations.shared_sessions_dir: a worktree kid's writes are invisible to the MAIN log (DH.644 parent). · verb_thought first-match splice
-(write.py:291 via node_writer.py:922 extract_thought) has no committed test composing a body with a pasted BEGIN/END (mur-41 DH.641-k1).
+(write.py:291 via node_writer.py:922 extract_thought) has no committed test composing a body with a pasted BEGIN/END (mur-41 DH.641-k1). · links.py schema
+does not flag an in-scope experiment with no verdict and no evidence_runs (mur-38 DH.627-k1).
 
 ## BANKED
 - [rule] to ride the next [merge-up]: (a) skills/agi-merge-pass: every pasted measurement names its base commit + a re-runnable command
