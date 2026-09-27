@@ -41,9 +41,9 @@ TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [NOEX=1] [EXTRA=f,g] gen2.py N
           D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N.. > D/harvallN.log (chain units with a while-is-active wait)
 GATE      TMM.306 (TM 21:59Z): NO parent slot refilled until load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, then ONE step at a time
           (drainqg1 enforces it); stop nothing live · first freed slot = DH.650 RAM round (repo half) · arm 10 unchanged
-MURS      running murq122 123 = DH.647 649 · ENDED+TRIAGED: 97 106 108 112 114-121 -> DH.677 676 668 661 662 666 663 664 660 665 669 675 · next murq 124 · next DH 678
+MURS      running murq123 = DH.649 · ENDED+TRIAGED: 97 106 108 112 114-122 -> DH.677 676 678 668 661 662 666 663 664 660 665 669 675 · next murq 124 · next DH 679
 LIVE      parents 648 676 (a00-a6dd3d2f) 651 (a00-19fc9ca3) · harvested: 645 1300bd8c9 · 638 568f0b68d · 649 f993eadf7 (95 passed) · gated queue (T/drainqg<N>.log, chained): qg1 DONE (650 harvested b57ec4b90 · 667 c0ba1f156 · 647 a8fcf1574 · 648 a00-9a0d6077 · 649 a00-448409f6 live) · 648 649 (T/drainqgf.sh: N:F = fresh round via T/placef.sh + T/h<N>.txt) ·
-          qg2 [676 651 placed] 677 652 653 (677 swapped front: RAM round, TMM.306 priority) · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660 661 662 663 664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 · qg13 675 670 671 672 673 674 (drainqgf.sh) -- io avg60 ~61 > 50 · 640 assembled 1bf1dbf6c
+          qg2 [676 651 placed] 677 652 653 (677 swapped front: RAM round, TMM.306 priority) · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660 661 662 663 664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 · qg13 675 670 671 672 673 674 (drainqgf.sh) · qg14 678 -- io avg60 ~61 > 50 · 640 assembled 1bf1dbf6c
 DEMOTED   (not correctives) 660/661/663 'checked CLEAR / not a defect' verify notes · 662: kid ran git diff --numstat (process note) · 665: V1 done-gate + V7 write-log = findings rows already, UNVERIFIED worktree-gone probe · 668: +76 test-line breach = row, timing note
 PRUNE     TMM.309 GO: unit prune-debase (idle io, 1 per 30 s, io<50, lossless, log on the flash harvest dir) over the 130 old de-base-*
           647 output.log recovered (fd tail) and kept on the flash harvest dir; stray RAM dir removed
@@ -61,7 +61,7 @@ CHAIN     last round (→ = corrective, mN = murq N running)                    
  stale-lock 532 → 534 → 547 → 564 → 594 → 627 → 668 q                                                   532 NEVER merges alone
  model-fence 508 → … → 590 → 613 → 633 → 654                                                         R4 NEVER run (row 22)
  kid-worktrees 529 → 533 → 540 → 563 → 598 → 624 → 655 → RAM round 650 → 677 q (mur-44 demote: tier scope inverted, 17 consumers = its own round later) (hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram)
- PASS 10 516 → … → 616 → 636 → 647 m122 · 509 → … → 599 → 630 → 649 m123 · 507 → … → 612 → 635 → 662 q (never run test_rotate_selfreap whole)
+ PASS 10 516 → … → 616 → 636 → 647 → 678 q · 509 → … → 599 → 630 → 649 m123 · 507 → … → 612 → 635 → 662 q (never run test_rotate_selfreap whole)
          512 → … → 585 → 614 → 631 → 651 · 514 → … → 604 → 617 → 632 → 652 · belam-cap-reap HELD until 507
  g4.18.1.x 521 → … → 610 → 621 → 660 q · 510/519 → … → 611 → 618 → 642 → 659 · 520 → … → 605 → 625 → 640 → 656 · 497 → … → 603 → 619 → 643 → 663 q
  thought-verb 522 → 554 → 583 → 607 → 639 → 658 · wake-facts 501 → 556 → 571 → 601 → 629 → 648 (BLOCKED: config:rotations, belam's -- DE.1)
