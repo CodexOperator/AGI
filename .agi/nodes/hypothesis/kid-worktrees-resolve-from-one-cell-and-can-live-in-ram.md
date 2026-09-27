@@ -70,6 +70,25 @@ OWNER 16:2xZ 09-27 to belam, verbatim: "Sweet. Once that works DE can dial up co
 
 OWNER 17:0xZ 09-27 to belam, verbatim: "Yeah he's using the drain and harvest tools we just built to get those 92 or some worktrees cleaned up. I was wondering if we could add that tool and its use to the round harvest skill if there is one. Or if it's a part of a round start skill. Assuming it works good enough today and residues will get fixed alongside other things" -- the tool is heal.py sweep (hypothesis:clean-kid-worktrees-prune-and-dirty-ones-harvest-or-list, on its loop branch); belam [decision] 17:1xZ: DE adds its row to agi-dispatch §5 Orders and harvest in the SAME merge-up as the sweep code.
 
+## CORRECTIVE DH.677 -- closes mur-director-engine-44 DH.650-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-kid-worktrees-resolve-a00-7e724480 tip b57ec4b90 (branch de-base-677; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. POST guard is dead code (dispatch.py:759 `tier == "post"`)
+2. Over-reach: the unconditional else sends every non-post tier to the kid root (dispatch.py:759-760)
+3. One reader, seventeen untouched consumers (locations.py:584) -- THIS round: NAME the 17 consumers on your node (file:line each) and add ONE test that fails if kid_worktrees_dir differs from worktrees_dir while any consumer still reads worktrees_dir; routing them is its OWN round (the director mints it), never here.
+4. Hand-landed gate (.agi/config.json:238)
+5. Node/bytes drift (hypothesis node names paths.<town>.worktrees_root)
+6. Prune gate sits after the tier split and mislabels the post path
+7. Prune note printed on a swallowed failure (dispatch.py:788)
+8. THE TOWN CELL IS DEAD IN PRODUCTION, and it is green-tested. `git grep -n kid_worktrees_root` returns exactly one production hit, dispatch.py:760, which passes NO town argument; locations.kid_worktrees_root's town parameter (locations.py:585) is therefore never exercised outside test_kid_worktrees_root.py:44-48, so `paths.<town>.kid_worktrees_dir` -- the cell the order names FIRST -- can never be read, and a per-town RAM lane is impossible. Same 'green test pins a branch no production caller reaches' shape as the post guard, unflagged by the reader sweep.
+9. SCOPE IS INVERTED, not merely over-broad: the only production caller of the changed function is workflow.py:2189-2194, a `--tier parent --branch` round stage; the order's authorised half (KID and LOOP/mur spawns reading the cell) has no production caller that reaches it, because the only other agent-tree creator in the tree, rotate.py:21468-21471, cuts post seats on worktrees_root directly. The test file's own docstring (test_kid_worktrees_root.py:5-7) asserts 'a set cell moves only KID and LOOP spawns' -- no line in the diff or the tests supports that sentence for parent/director.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_kid_worktrees_root.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/dispatch.py · extensions/agi/bin/locations.py · extensions/agi/bin/workflow.py · extensions/agi/tests/test_kid_worktrees_root.py · .agi/config.json · .agi/nodes/experiment/a00-42481a40-6d204c.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net (NET: this round should SHRINK the 55 added) over b57ec4b90 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.650: mur-director-engine-39 TMM.306-RAM-round residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.677: mur-director-engine-44 DH.650-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
