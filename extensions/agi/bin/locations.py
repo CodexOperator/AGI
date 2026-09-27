@@ -499,8 +499,14 @@ def known_payload_locations(config: dict | None = None) -> list[str]:
     option, instead of far downstream as a KeyError naming a config value.
     """
     known = ["source_root", "graph_root", "repo_root"]
-    known += [k for k in ((config or {}).get("locations") or {})
-              if isinstance(k, str) and k not in known]
+    declared = (config or {}).get("locations") or {}
+    # A name is offered only if `payload_base` would ACCEPT its value: it takes
+    # a non-empty str and refuses everything else. Offering a key whose value is
+    # a dict or a blank string would stamp `location_ok: True` on a category
+    # the write path then refuses by name.
+    known += [k for k, v in declared.items()
+              if isinstance(k, str) and k not in known
+              and isinstance(v, str) and v.strip()]
     return known
 
 
@@ -540,6 +546,16 @@ def storage_categories(config: dict | None = None,
     rows: list[dict] = []
     for key, cell in block.items():
         if not isinstance(cell, dict):
+            # A cell that is not a mapping KEEPS ITS NUMBER as a BAD row: a
+            # silent `continue` renumbered every row below it, so "pick 3"
+            # would name a different category than the list a pane was shown.
+            # Visible and refused by name beats gone.
+            rows.append({
+                "n": len(rows) + 1, "key": str(key), "label": str(key),
+                "location": f"<not a mapping: {cell!r}>",
+                "location_ok": False, "prefix": "", "custom": False,
+                "target_exists": None,
+            })
             continue
         name = str(cell.get("location") or DEFAULT_PAYLOAD_LOCATION)
         rows.append({
@@ -1082,8 +1098,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.storage_categories or args.storage_pick is not None:
         rows = storage_categories(cfg, root)
         if args.storage_pick is not None:
-            row = resolve_storage_category(args.storage_pick, args.tail, cfg,
-                                           root)
+            try:
+                row = resolve_storage_category(args.storage_pick, args.tail,
+                                               cfg, root)
+            except ValueError as exc:
+                print(f"ERR: {exc}", file=sys.stderr, flush=True)
+                return 1
             print(f"{row['custom'] and 'custom' or row['key']}\t"
                   f"{row['location']}\t{row['payload_ref']}")
         else:

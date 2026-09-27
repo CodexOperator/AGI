@@ -327,3 +327,68 @@ def test_the_two_accepted_name_lists_are_one():
     named = ei.value.args[0].split("use one of: ")[1].rstrip(".")
     assert [n.strip() for n in named.split(",")] == shared
     assert shared == ["source_root", "graph_root", "repo_root", "zeta", "alpha"]
+
+
+def test_a_mistyped_cell_keeps_its_number_instead_of_vanishing():
+    """A cell that is not a mapping used to be `continue`d, so every row below
+    it renumbered: "pick 3" then named a different category than the list a
+    pane was shown. The bad cell is VISIBLE, keeps its number, and is refused
+    by name."""
+    cfg = {"mint": {"storage_categories": {
+        "engine_code": _cell("source_root", "extensions/agi/bin", "engine"),
+        "geometry_typo": "nodes/.geometry",          # not a mapping
+        "schemas": _cell("graph_root", "context/schemas", "schemas"),
+    }}}
+    rows = locations.storage_categories(cfg)
+    assert [r["key"] for r in rows] == ["engine_code", "geometry_typo",
+                                       "schemas"]
+    assert [r["n"] for r in rows] == [1, 2, 3], "a dropped cell renumbers"
+    bad = rows[1]
+    assert bad["location_ok"] is False
+    assert "nodes/.geometry" in bad["location"]
+    assert rows[2]["location_ok"] is True
+    # and it is refused by name, not resolved to something
+    with pytest.raises(ValueError) as ei:
+        locations.resolve_storage_category("2", "a.md", cfg)
+    assert "geometry_typo" in str(ei.value)
+
+
+def test_a_location_name_whose_value_payload_base_refuses_is_not_offered():
+    """`payload_base` takes a non-empty str and refuses the rest, so the
+    picker's name list must too -- otherwise a category gets
+    `location_ok: True` and is refused downstream by the write path."""
+    cfg = {"locations": {"good": "/g", "blank": "   ", "as_list": ["/l"],
+                         "as_dict": {"root": "/d"}},
+           "mint": {"storage_categories": {
+               "a": _cell("blank", "p", "blank"),
+               "b": _cell("as_list", "p", "list"),
+               "c": _cell("as_dict", "p", "dict"),
+               "d": _cell("good", "p", "good")}}}
+    known = locations.known_payload_locations(cfg)
+    assert "good" in known
+    for refused in ("blank", "as_list", "as_dict"):
+        assert refused not in known, f"{refused!r} is not a location"
+        with pytest.raises(KeyError):
+            locations.payload_base(REPO, refused, cfg)
+    ok = {r["key"]: r["location_ok"] for r in locations.storage_categories(cfg)}
+    assert ok == {"a": False, "b": False, "c": False, "d": True}
+
+
+def test_the_cli_prints_err_not_a_traceback_for_a_bad_location_pick(tmp_path):
+    """The ValueError `resolve_storage_category` raises used to escape
+    `main()`: a pane typing a mistyped cell got a Python traceback instead of
+    the `ERR: ...` line every other branch prints."""
+    import contextlib
+    import io
+    cfg = _seeded()
+    cfg["mint"]["storage_categories"]["schemas"] = _cell("nope", "p", "bad")
+    root = _project(tmp_path, cfg)
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        rc = locations.main([str(root), "--storage-pick", "schemas", "--tail",
+                             "a.md"])
+    assert rc == 1
+    assert "Traceback" not in err.getvalue()
+    assert err.getvalue().startswith("ERR: ")
+    assert "schemas" in err.getvalue() and "nope" in err.getvalue()
+    assert out.getvalue().strip() == ""
