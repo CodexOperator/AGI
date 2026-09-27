@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.17
 next_edges: []
 confidence: 0.8
-edited_by: a00-606aa96b
+edited_by: a00-94f1c215
 scaffold_hash: f38bbb2ebd9a7dbe
 season: 2
 tags:
@@ -41,7 +41,7 @@ config-max: none (the capture ratio is already a ladder cell). template-max: non
 test_rotation_alert_capture.py (the before/after diff row). Neighbourhood (hook): test_rotation_alert*.py test_session_start_bootstrap.py test_bin_help_smoke.py. tmp cards only -- never a live card, never a live seat.
 
 ## FILE SCOPE
-extensions/agi/hooks/rotation_alert.py (`_force_capture` and the slot writer only) · extensions/agi/tests/test_rotation_alert_capture.py
+extensions/agi/hooks/rotation_alert.py (`_force_capture` + `_capture_stops`) · extensions/agi/bin/rotate.py (READ-ONLY for these rounds: its shared `_write_stops_section` is WHAT makes the second writer destructive; a round that needs a line there names it rather than taking it) · extensions/agi/templates/rotation_alert/ (the capture-cluster prose templates) · extensions/agi/tests/test_rotation_alert_capture.py · .agi/nodes/experiment/a00-05314567-1e363a.md (read-only record) · .agi/nodes/experiment/a00-606aa96b-3b1e5c.md (read-only record) · this hypothesis node itself (write.py).
 
 ## CEILING
 1 kid · <= 20 production lines · pi-free tier-0 · 0 USD. The MACHINE-READABLE clause is the `CEILING:` sentence on the `testable_claim` line above -- `spawn_budget._ceiling_clause` truncates its segment at the first newline, so a clause under this heading is INERT (measured: `_ceiling_clause(<node>) == None`, parsed ceiling fell back to the config default 40).
