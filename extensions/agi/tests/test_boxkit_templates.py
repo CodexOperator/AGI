@@ -48,6 +48,14 @@ substitution order; both were residues of an earlier probe):
     against its RECORDED LIVE bytes by the DELTA the manifest declares, line for
     line: a converging render and a differently-drifting render are both RED, and a
     row with no recorded live bytes is a NAMED skip, never a silent pass.
+14: THE ENGINE'S OWN GUARD over the kit's bytes. Row 4 is a BESPOKE denylist
+    (checkout roots, home, owner, cgroup uid) because anonymize.py's classes
+    (hostname/ip/mac/board/secret) do not cover those -- which made the two
+    DISJOINT: a template naming this box's hostname, a NIC address, a board serial
+    or a key id passes row 4 CLEAN. Row 14 runs anonymize.scan itself over every
+    template byte and every committed fixture, against a FAKE box denylist (this
+    box's values are never read into the test), and plants one token of each class
+    so the row is shown able to go red.
 
 Reads: config cells, the goal node, and the committed fixtures. It reads NO live unit
 file and calls no systemd: the live-bytes comparison is a probe, run by the parent.
@@ -62,11 +70,13 @@ import json
 import os
 import pwd
 import re
+import sys
 from pathlib import Path
 
 import pytest
 
 KIT = Path(__file__).resolve().parents[1] / "boxkit"
+BIN_DIR = Path(__file__).resolve().parents[1] / "bin"
 PROJECT = Path(__file__).resolve().parents[3]
 UID = str(os.getuid())
 
@@ -96,6 +106,18 @@ CONTRACT_KEYS = {"name", "template", "dest_cell", "dest_rel", "mode", "sudo",
 def _load():
     spec = importlib.util.spec_from_file_location("boxkit_render", KIT / "render.py")
     mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _load_bin(name):
+    """A bin/ module (anonymize.py), loaded the way test_anonymize_guard.py loads
+    it: bin/ first on sys.path, because it imports its own siblings."""
+    if str(BIN_DIR) not in sys.path:
+        sys.path.insert(0, str(BIN_DIR))
+    spec = importlib.util.spec_from_file_location(name, BIN_DIR / (name + ".py"))
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules[name] = mod
     spec.loader.exec_module(mod)
     return mod
 
@@ -901,3 +923,70 @@ def test_the_anonymized_live_render_substitutes_through_the_longest_first_helper
                   "identity order corrupts an overlapping token (row 13)")
     fix = (FIXTURES / (piece["name"] + ".fixture")).read_text(encoding="utf-8")
     _assert_piece_matches_fixture(piece, got, fix, _vs())
+
+
+# 14 -- THE ENGINE'S OWN PHYSICAL-TOKEN GUARD over the kit's bytes.
+# Row 4 checks a BESPOKE denylist because anonymize.py's classes (hostname/ip/mac/
+# board/secret) cannot express "the checkout root" or "the cgroup uid". The cost of
+# that split, measured: the two denylists are DISJOINT. A template or a committed
+# fixture naming this box's hostname, a NIC address, a board serial or a key id
+# passes row 4 CLEAN, and row 4 is the only leak row the kit had. The hypothesis
+# names anonymize.py as a FALSIFIER of the whole claim; nothing ran it over the kit.
+# This row runs anonymize.scan -- the guard's own function, its own MIN_TOKEN and its
+# own CLASSES -- over every template byte and every committed fixture. The denylist
+# is a FAKE box written to tmp_path and reached through anonymize's own
+# AGI_ANONYMIZE_FIXTURE seam, exactly as tests/test_anonymize_guard.py does it, so
+# this row reads no physical value of this box and prints none.
+ANONYMIZE = _load_bin("anonymize")
+FAKE_BOX = {"hostname": ["boxkit-fake-host"], "ip": ["198.51.100.7"],
+            "mac": ["02:00:5e:10:00:01"], "board": ["BOXKIT-FAKE-BOARD"],
+            "secret": ["sk-boxkit-fake-key"]}
+
+
+@pytest.fixture
+def fake_box(tmp_path, monkeypatch):
+    p = tmp_path / "boxkit-fake-box.json"
+    p.write_text(json.dumps(FAKE_BOX), encoding="utf-8")
+    monkeypatch.setenv("AGI_ANONYMIZE_FIXTURE", str(p))
+    return p
+
+
+def _kit_bytes():
+    """Every byte the kit ships: the templates, the manifest, and the committed
+    fixtures -- the surfaces a box's identity could ride into another box."""
+    out = [(TEMPLATES / p.name, (TEMPLATES / p.name).read_text(encoding="utf-8"))
+           for p in sorted(TEMPLATES.iterdir()) if p.is_file()]
+    out += [(f, f.read_text(encoding="utf-8"))
+            for f in sorted(FIXTURES.rglob("*")) if f.is_file()]
+    return out
+
+
+def test_no_kit_byte_carries_a_physical_token_of_any_box(fake_box):
+    toks = ANONYMIZE.box_tokens(PROJECT)
+    assert sorted({c for c, _ in toks}) == sorted(ANONYMIZE.CLASSES), \
+        "the fake denylist did not reach every class; the row would be vacuous"
+    for path, text in _kit_bytes():
+        assert ANONYMIZE.scan(text, toks) == [], \
+            "%s carries a %s token" % (path.name, ANONYMIZE.scan(text, toks))
+
+
+def test_row_14_sees_what_row_4_cannot_and_is_not_a_restatement_of_it(fake_box):
+    """The falsifier for row 14 itself: if the two rows agreed, this could not fail.
+
+    Each planted token of a class anonymize.py owns is INVISIBLE to the bespoke
+    row-4 denylist -- that is the measured gap, asserted here so a future merge of
+    the two denylists is a red edit, not a silent no-op."""
+    toks = ANONYMIZE.box_tokens(PROJECT)
+    for cls, value in (("hostname", FAKE_BOX["hostname"][0]),
+                       ("ip", FAKE_BOX["ip"][0]),
+                       ("mac", FAKE_BOX["mac"][0]),
+                       ("board", FAKE_BOX["board"][0]),
+                       ("secret", FAKE_BOX["secret"][0])):
+        text = "# a planted %s token: %s\n" % (cls, value)
+        assert ANONYMIZE.scan(text, toks) == [cls], cls
+        assert _leaks(text) == [], (cls, "row 4 would have caught it; row 14 is redundant")
+    # and row 4's own class stays row 4's: the checkout root is a leak, and
+    # anonymize.py -- whose classes are hostname/ip/mac/board/secret -- cannot say so.
+    root = LEAK_ROOTS[0]
+    assert _leaks("ExecStart=%s/boxkit/run.sh\n" % root) == [root]
+    assert ANONYMIZE.scan("ExecStart=%s/boxkit/run.sh\n" % root, toks) == []
