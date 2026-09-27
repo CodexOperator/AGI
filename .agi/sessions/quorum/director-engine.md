@@ -35,7 +35,7 @@ Skills: agi-dispatch · agi-workflow · agi-node-write · agi-goal · agi-send �
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br holds DH.424+431, 434 (262107e12), 430 chain (4af305171, 702 green) · trunk synced c62bfe387
 LIVE      parents (cap = cell values.local_maxxing.de_live_parents, arm 10): 492 a00-cfed6d3f · 504 a00-e20a597b · 497 a00-263a936b
-          · 498 a00-efb7f2a8 · 499 a00-42c4f9a2 · 500 a00-616b9d6c · 501 a00-759e6b60 · 502 a00-06858031 · 503 a00-310da84b
+          · 498 a00-efb7f2a8 · 499 a00-42c4f9a2 · 500 a00-616b9d6c · 501 a00-759e6b60 · 502 a00-06858031 · 503 a00-310da84b · 505 a00-baf55e7f (= cap 10)
           murs (systemd agi-director-engine-mur<N>): 471 483 485r(verify timed out, re-run) 490 493(+495) 494 496 · swarm-sampler2
 CHAIN     tip / state                                                                          land note
  425 bin-guard   494 @11707134d (parent left edits uncommitted; landed TMM.268) -> mur494 running
