@@ -135,7 +135,7 @@ memory     15 GB box · memory_max 6G · ONE model-loading host kid · GPU = one
 live       see doc:lm-town-trajectory board for tip ids (folded snapshot 2026-09-21)
 research   MP.01 -> TEL.01 -> SWR.02 -> FT.00 -> … (tracks on g5.22–.29, .30–.31)
 engine     goal:g7.33 (+ G7.33.*) → MOVED town:core (parked unassigned)
-redesigns  director-engine, in order: messaging+nudge (hub-only goal + g7.32.5) -> spawn/rotate (g7.31.3.3) -> node spawn/mint (g4.18.1) · the goals live HERE, not on cards (owner 01:0xZ 09-27)
+redesigns  director-engine, in order: messaging+nudge (hub-only goal + g7.32.5) -> spawn/rotate (g7.31.3.3) -> node spawn/mint (g4.18.1) · the goals live HERE, not on cards (owner 00:5xZ 09-27)
 HELD       until messaging lands (owner 21:1xZ): the stream, encryption-town config, sanctuary-master activation, g7.33.18
 geometry   goal:g7.34* → town:core parked (trajectory type + .geometry/towns)
 comms      magic pane (G5.24 / g7.32 messaging on core) = future unified messaging layer

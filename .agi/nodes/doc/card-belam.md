@@ -21,10 +21,10 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 11, 01:1xZ 09-27: this version follows the owner's 01:0xZ order -- every new active goal and the three graph redesigns (messaging+nudge, spawn/rotate, node spawn/mint) now live on the town:local-maxxing board (531ab30f3: GOAL BUNDLE tree, goal-id rows, a redesigns line and a HELD line), so directors find the work there; this card keeps only a pointer. The near miss: a board line naming the redesigns satisfies 'on the board' and loses what a director needs to act -- the goal ids, the assignee and the order -- so each goal has its own row. write.py refuses a replace that starts mid-paragraph, so each insert replaced its whole block, byte-identical plus the new lines (diff: 11 body lines added; only write.py's two provenance stamps changed). Why g7.31.3.3 and g7.32.5 are split is argued in their own THOUGHT blocks (5c3538f94).
+gen 11, 00:5xZ 09-27: this version follows the owner's 00:5xZ order -- every new active goal and the three graph redesigns (messaging+nudge, spawn/rotate, node spawn/mint) now live on the town:local-maxxing board (531ab30f3: GOAL BUNDLE tree, goal-id rows, a redesigns line and a HELD line), so directors find the work there; this card keeps only a pointer. The near miss: a board line naming the redesigns satisfies 'on the board' and loses what a director needs to act -- the goal ids, the assignee and the order -- so each goal has its own row. write.py refuses a replace that starts mid-paragraph, so each insert replaced its whole block, byte-identical plus the new lines (diff: 11 body lines added; only write.py's two provenance stamps changed). Why g7.31.3.3 and g7.32.5 are split is argued in their own THOUGHT blocks (5c3538f94).
 <!-- THOUGHT:END -->
 
-## §0 State (01:1xZ 09-27)
+## §0 State (00:5xZ 09-27)
 | | |
 |---|---|
 | post | belam-S2-L5-XI gen 11 · woke 23:1xZ 09-26 · Opus 5.5 · IDLE, PASS 10 armed · meter ~0.33 |
@@ -48,7 +48,7 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hu
 ## §2 Landed (this seat): 1cf8c1313 crons re-armed + quorum card re-linked · 41bacd5ff goal:g4.18.1 + hypothesis:rotate-keeps-the-quorum-card-a-symlink-to-its-node + GOALS.md render · 46d1d17e1 the (default)-box note on goal:send-is-hub-only-... · 7bf8b8437 + 5c3538f94 goal:g7.31.3.3 + goal:g7.32.5 (owner's words verbatim) + H1 fixes · 531ab30f3 the redesigns on the town board · 3 [decision]s -> DE · section 1 (A) reads the inbox file (box-local) · this card
 
 ## 🔴 Where it stops
-01:1xZ 09-27 belam-S2-L5-XI: the three graph redesigns + every new active goal are on the town:local-maxxing board (531ab30f3); idle until PASS 10 at 01:23Z
+00:5xZ 09-27 belam-S2-L5-XI: the three graph redesigns + every new active goal are on the town:local-maxxing board (531ab30f3); idle until PASS 10 at 01:23Z
 ```
 0. WAKE (a successor): re-arm the CHECK -- CronCreate "13 */4 * * *", recurring, the POINTER prompt to section 1 of .agi/sessions/prime-merge.crons.md (exact text: transcript 64d3d99e at 17:26:40Z, or c4291177); re-link the quorum card (trap 10). Re-arm the PASS 10 one-shot too (CronCreate "23 1 27 9 *", recurring false, the POINTER prompt to section 2) unless the state file carries pass_started_at; if run_at is already past, run section 2 now (CHECK case d).
 1. PASS 10 is armed (b859e98b): section 2 is current (BASE 9e16b8ed90, p10 keys, /tmp/belam-pass10/ from /tmp/belam-pass9/); at 00:17Z origin/season2/main is NOT an ancestor of TIP, so step 1's sync merge runs first.
