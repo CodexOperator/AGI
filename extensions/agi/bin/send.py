@@ -2176,13 +2176,70 @@ def _window_id_listed(tmux_session: str, wid: str) -> bool:
 _FOREIGN_REFUSALS: set[tuple[str, str]] = set()
 
 
-def _forget_refusals(to: str | None = None) -> None:
-    """Drop the once-only memo for one row (or all of it, when `to` is None)."""
+#: The DURABLE half of (3): the sweep cron is a NEW PROCESS every tick
+#: (crons.py `nudge_sweep`), so a process-local memo is empty on every tick and
+#: the refusal is re-printed forever. `paths.core.foreign_refusal_memo`,
+#: repo-relative; one `row<TAB>cause` line per naming.
+_FOREIGN_MEMO_CELL = "foreign_refusal_memo"
+_FOREIGN_MEMO_DEFAULT = ".agi/sessions/foreign_refusals.tsv"
+
+
+def _foreign_memo_path(root: Path) -> Path:
+    graph = _graph_root(root)
+    try:
+        cfg = locations.load_config(graph)
+        v = ((cfg.get("paths") or {}).get("core") or {}).get(_FOREIGN_MEMO_CELL)
+    except Exception:  # noqa: BLE001 -- a config problem never blocks a refusal
+        v = None
+    return locations.repo_root(graph) / str(v or _FOREIGN_MEMO_DEFAULT)
+
+
+def _foreign_refusal_said(root: Path, to: str, label: str) -> bool:
+    """True when this (row, cause) has never been NAMED, in THIS process or any
+    earlier one -> say it now, and record it where the next tick will read it."""
+    if (to, label) in _FOREIGN_REFUSALS:
+        return False
+    try:
+        said = f"{to}\t{label}" in _foreign_memo_path(root).read_text(
+            encoding="utf-8").splitlines()
+    except OSError:  # noqa: BLE001 -- no memo yet is not an error
+        said = False
+    if said:
+        _FOREIGN_REFUSALS.add((to, label))
+        return False
+    try:
+        path = _foreign_memo_path(root)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as fh:
+            fh.write(f"{to}\t{label}\n")
+    except OSError:  # noqa: BLE001 -- an unwritable memo never blocks the naming
+        pass
+    _FOREIGN_REFUSALS.add((to, label))
+    return True
+
+
+def _forget_refusals(to: str | None = None, root: Path | None = None) -> None:
+    """Drop the once-only memo for one row (or all of it, when `to` is None).
+    With `root`, the DURABLE memo is rewritten without that row's lines, so a
+    later foreign cause on the same row is named again in a LATER process."""
     if to is None:
         _FOREIGN_REFUSALS.clear()
     else:
         _FOREIGN_REFUSALS.difference_update({k for k in _FOREIGN_REFUSALS
                                              if k[0] == to})
+    if to is None or root is None:
+        return
+    try:
+        path = _foreign_memo_path(root)
+        lines = path.read_text(encoding="utf-8").splitlines()
+        keep = [ln for ln in lines
+                if ln and ln.split("\t", 1)[0] != to]
+        if len(keep) == len([ln for ln in lines if ln]):
+            return  # nothing of that row is memoized: never rewrite
+        path.write_text("\n".join(keep) + ("\n" if keep else ""),
+                        encoding="utf-8")
+    except OSError:  # noqa: BLE001 -- an unwritable memo never blocks a sweep
+        pass
 
 
 def _nudge_target(root: Path, to: str, tmux_session: str | None,
@@ -2219,14 +2276,16 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
         # refusal silent is a stuck loop, not news. No send-keys is ever issued
         # into that row's window; the return below is the whole refusal.
         label = str(row.get("box") or "(unset)")
-        if (to, label) not in _FOREIGN_REFUSALS:
-            _FOREIGN_REFUSALS.add((to, label))
+        if _foreign_refusal_said(root, to, label):
             print(f"nudge: {to} is a FOREIGN box row "
                   f"(box {label}); refusing as a target", file=sys.stderr)
         return None
     # The row is addressable (or was never refused): forget any old refusal so a
-    # LATER foreign cause on the same row is named again.
-    if any(k[0] == to for k in _FOREIGN_REFUSALS):
+    # LATER foreign cause on the same row is named again -- the DURABLE memo
+    # too, and in THIS tick's process, which may not be the one that named it.
+    if root is not None:
+        _forget_refusals(to, root)
+    elif any(k[0] == to for k in _FOREIGN_REFUSALS):
         _forget_refusals(to)
     window_ref = (row or {}).get("window")      # e.g. "@267", a NAME, or None
     pid = (row or {}).get("pid")
