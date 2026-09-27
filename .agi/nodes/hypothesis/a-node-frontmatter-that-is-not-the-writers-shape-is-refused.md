@@ -77,6 +77,20 @@ FILE SCOPE extensions/agi/bin/node_writer.py · extensions/agi/tests/test_links.
 CEILING   HARD CAP: 2 kids (k1 = node_writer.py key-shape + repair path + tests, k2 = links.py exit code on off-shape nodes) · <= 15 production lines net over 17d7c3dbe · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.625 -- closes mur-director-engine-35 DH.605-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-a-node-frontmatter-th-a00-49582ae0 tip d7ead8841 (branch de-base-625; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 281k-line duplicate engine tree swept into the round's commit outside FILE SCOPE (commit 176f100b2 added 582 files under nopin/) -- the PARENT removes the whole nopin/ tree from the loop branch in ONE commit (git rm -r -q nopin; commit by that path only) and pastes `git diff --stat <base> HEAD -- nopin | tail -1` (must print nothing) on its node; never git add -A.
+2. The restored live pin hard-codes one mutable node's address and ERRORS when it is retired or renamed -- extensions/agi/tests/test_links.py:606 -- `live = root/'nodes'/'experiment'/'a00-fe05fdae-a240f5.md'` then `read_text` at :607 — measured: with a .agi present and that file absent the test FAILS with FileNotFoundError, and the repo's own convention is retire = move to .agi/nodes/deprecated/<type>/ (renames are routine: test_rename_post/test_post_rename/test_rotate_boundary_rename), so a legal graph event turns the engine suite red; the skip guard only covers the no-.agi case, which is not the death mode the base round documented.
+3. Verdict node cites itself as its own evidence run -- .agi/nodes/verdict/a00-35cc6f8f-a593c7.md:11 -- evidence_runs[0] = `verdict:a00-35cc6f8f-a593c7`; evidence_gate.py:316-319 states a verdict may not cite itself (normalize_evidence_runs:299 discards it), so the entry is decoration that flatters the row without backing it.
+4. Parent experiment still carries the pre-corrective demotion after the corrective was accepted -- .agi/nodes/experiment/a00-879cb9e8-625883.md:22 -- verdict: inconclusive_lean_disproved:40 stands while its child verdict:a00-35cc6f8f-a593c7 (inconclusive_lean_proved:75) closed both refuted items and the parent hypothesis still has no verdict field at all, so the loop will keep re-dispatching a conjunct set this round closed; no node write is needed for the code half, only this re-raise, and it must go through write.py.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_links.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE nopin/ (REMOVAL only, by the parent) · extensions/agi/bin/node_writer.py · extensions/agi/tests/test_links.py · .agi/nodes/experiment/a00-879cb9e8-625883.md · .agi/nodes/verdict/a00-35cc6f8f-a593c7.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over d7ead8841 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.605: mur-director-engine-31 DH.574-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.625: mur-director-engine-35 DH.605-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
