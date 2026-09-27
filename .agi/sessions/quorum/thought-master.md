@@ -15,13 +15,14 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## 🔴 Where it stops
 19:4xZ 09-27: skills agi-memory-guard (be8a29a26) + agi-master-gate (e2cea5535) landed, card 336 -> 134 lines -- next = read the dm files; DE's residue corrective + full post-branch merge-up; DT's model tip 09d7ed36c
 ```
-state    last order = TMM.306 · next = TMM.307 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB · account 0.606 USD, NO top-up (owner)
+state    last order = TMM.307 · next = TMM.308 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB · account 0.606 USD, NO top-up (owner)
 INTAKE   OWNER 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> every wake: the dm files (*thought-master*.md, blocks
          from != me by ts) + inbox/thought-master.md DIRECTLY; send.py read 'empty' is not proof · a background watcher keyed on ts wakes you
 SPEND    RESOLVED: zero_usd lanes mint below the floor at key cap 0.01 (91ae33672, falsifier met: DH.533 0.6063 before = after) · ALWAYS
          --harness pi-free · a lease with harness 'pi' = PAID -> stop it · residues -> DE (TMM.298): printed limit, runtime-key + --cap skip
 DIALUP   OWNER GO via belam 16:25Z (TMM.300): DE steps up per arm (cell values.local_maxxing.de_live_parents) only while load1 < 16 AND io avg60
          < 50 AND 0.01 x live < balance (+ / free > 5G) -> 22:0xZ STEP BACK (TMM.306: load 24.6, io 86 at arm 10; no refill) -> then the RAM worktree round (hypothesis:kid-worktrees-resolve-from-one-cell-...)
+RAMDISK  DH.650 = repo half (DE); the tmpfs mount + user@ budget = the Prime's (card step 5; [decision] 22:0xZ)
 DISK     / full 17:4xZ -> 17.9G (87 stale /tmp/lograce-*, TMM.303) -> 12.2G by 20:0xZ (bursts) -> 14.6G (24 stale logcost-*, TMM.305); ~31G /tmp scratch = DE's sweep round · 45 worktrees removed on /data
          (lossless; records in .agi/sessions/harvest-0927/<wt>/)
 GATE-DT  tip 09d7ed36c (model_slot fence lift + cell model_round_memory_max 3584M + osc_band_fit tests) · pre-gate green 03:0xZ · LEFT:
@@ -34,7 +35,7 @@ DH.577   box-cron ruling (c) (TMM.299): per-job survive_unnamed; memory_alarm tr
 DE       queue: DH.490 nudge -> PASS 10 defect hyps + residue batch + wake-facts DH.501 + row 21 capture -> g4.18.1 -> g7.32.6 + g7.32.5 ->
          g7.31.3.3 · skills step 3 = hypothesis:skills-load-per-harness-per-tier-from-one-config-cell · swarm test g5.31 (arms 10/5/15)
          · DE rotates often: after each, re-send owed orders BY NAME
-WAKEFACT at DE's DH.501 merge-up: NAME node + range to belam (the Prime writes config:rotations facts); test_rotate_templates:534 green
+WAKEFACT 22:0xZ chain HELD (TMM.307): facts region 7164 B vs cap 2000 = the Prime's trim + cell facts_pointer_target_bytes ([decision] sent) · at DE's DH.501 merge-up: NAME node + range to belam (the Prime writes config:rotations facts); test_rotate_templates:534 green
 AT-LAND  DE's next landing: goal:g7.33.19 into doc:unified-director-brief · more card traps -> skills (OWNER 03:3xZ via DE: "A lot of traps
          into the skill files I imagine.") after DE's 0463850fb skill edits land
 SKILLIDX doc:draft-skills-first-turn (trunk) = THE skill list until the auto index read lands: a new skill = one clause there (4265/5000 B)
