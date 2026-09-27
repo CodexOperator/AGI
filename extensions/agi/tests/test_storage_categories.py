@@ -11,6 +11,8 @@ from __future__ import annotations
 import inspect
 import json
 import sys
+
+import pytest
 from pathlib import Path
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
@@ -296,3 +298,32 @@ def test_storage_category_target_agrees_with_the_write_path(tmp_path):
     want = locations.resolve_payload_path(root, row["prefix"], row["location"],
                                           cfg)
     assert locations.storage_category_target(root, row, cfg) == want
+
+
+def test_a_mistyped_block_is_an_empty_table_not_a_crash():
+    """The picker is documented as TOTAL: printing it never raises.
+
+    A hand-edited config that puts a list where the table belongs used to
+    raise AttributeError -- so a pane could not LIST the options, and the one
+    thing the block is for (seeing what the config says) was the thing that
+    broke.
+    """
+    for bad in (["a", "b"], "engine code", 7, None):
+        cfg = {"mint": {"storage_categories": bad}} if bad is not None \
+            else {"mint": "not a table"}
+        assert locations.storage_categories(cfg) == []
+        # a mistyped `mint` is the same failure one level up
+    assert locations.storage_categories({"mint": "not a table"}) == []
+
+
+def test_the_two_accepted_name_lists_are_one():
+    """One source per rule: the write path's advice and the picker's advice
+    must be the same list, or a pane is told one thing and the write path
+    another for the same config."""
+    cfg = {"locations": {"zeta": "/z", "alpha": "/a", "repo_root": "/r"}}
+    shared = locations.known_payload_locations(cfg)
+    with pytest.raises(KeyError) as ei:
+        locations.payload_base(Path(__file__).resolve().parents[3], "nope", cfg)
+    named = ei.value.args[0].split("use one of: ")[1].rstrip(".")
+    assert [n.strip() for n in named.split(",")] == shared
+    assert shared == ["source_root", "graph_root", "repo_root", "zeta", "alpha"]

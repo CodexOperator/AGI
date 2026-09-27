@@ -481,12 +481,13 @@ def payload_base(root: Path, location: str | None = None,
         p = Path(declared.strip()).expanduser()
         return p.resolve() if p.is_absolute() else (root / p).resolve()
 
-    known = ["source_root", "graph_root", "repo_root"]
-    known += sorted(k for k in (cfg.get("locations") or {})
-                    if isinstance(k, str) and k not in known)
+    # ONE list of accepted names, shared with the picker (`known_payload_locations`):
+    # two copies of this list drift, and the advice a pane gives then differs
+    # from the advice the write path gives for the same config.
     raise KeyError(
         f"unknown payload location {name!r}. Declare it under `locations:` in "
-        f"the project config, or use one of: {', '.join(known)}."
+        f"the project config, or use one of: "
+        f"{', '.join(known_payload_locations(cfg))}."
     )
 
 
@@ -530,7 +531,12 @@ def storage_categories(config: dict | None = None,
     """
     cfg = config or {}
     known = known_payload_locations(cfg)
-    block = ((cfg.get("mint") or {}).get("storage_categories") or {})
+    mint = cfg.get("mint")
+    block = mint.get("storage_categories") if isinstance(mint, dict) else None
+    if not isinstance(block, dict):          # a mistyped block is an EMPTY table
+        block = {}                           # -- never a crash: the picker must
+                                            # still print, so the config can be
+                                            # read and the typo seen.
     rows: list[dict] = []
     for key, cell in block.items():
         if not isinstance(cell, dict):
