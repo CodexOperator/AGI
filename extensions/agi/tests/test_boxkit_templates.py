@@ -1,10 +1,11 @@
 """The boxkit acceptance suite for
 hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes.
 
-Rows 1-13, one per clause of the claim, plus lettered SUB-ROWS (7b-7d, 11a-11g, 14b) --
-each sub-row is named by the comment above its own test, not listed here, so this
-inventory cannot drift from the file. (12 = the leak-root floor, 13 = the stand-in
-substitution order; both were residues of an earlier probe):
+Rows 1-14, one per clause of the claim, plus lettered sub-rows. THE RULE, not an
+inventory: a row is named ONLY by the comment above its own test, and no list of row
+names is kept anywhere -- every enumeration here was a second copy that went stale on
+arrival (a range that cited a row that does not exist, a sub-row that was never
+written). To add a row, write its comment; nothing else to update.
 
 1. every manifest row carries the KIT CONTRACT keys and a known dest_cell;
 2. every piece renders with no {{UNFILLED}} surviving;
@@ -41,7 +42,7 @@ substitution order; both were residues of an earlier probe):
    installed file -- is flagged new_bytes, and is therefore excluded from the
    rendered==live comparison. new_bytes says NOTHING about whether this box carries
    the file: the three no-cascade drop-ins are new to the kit AND have live
-   counterparts (test 10b), and agi-survival-conf is new to the kit and has none;
+   counterparts (row 10 compares them), and agi-survival-conf is new to the kit and has none;
 10: the manifest covers EVERY unit goal:g7.33.18's no-cascade row names, read from
     the LIVE goal node (never a copied list), and each no-cascade drop-in is compared
     against its RECORDED LIVE bytes by the DECLARED delta, line for line: a converging
@@ -203,7 +204,7 @@ def _delta(rendered, recorded):
 BY_NAME = {p["name"]: p for p in PIECES}
 # LIVE = the pieces copied from an INSTALLED file, the ones the kit can falsify
 # byte-for-byte against this box. A new_bytes row is new TO THE KIT, so it is excluded;
-# whether a live counterpart happens to exist is question 10b, not a property of the flag.
+# whether a live counterpart happens to exist is question 10, not a property of the flag.
 LIVE = [p for p in PIECES if not p.get("new_bytes")]
 # the LIVE identity tokens, used only to assert a committed fixture does not carry them
 HOST_TOKENS = (OWNER, str(Path.home()), str(R.engine_checkout()),
@@ -1023,19 +1024,25 @@ def test_one_planted_kit_copy_goes_red_and_the_kits_own_bytes_stay_clean(
 
 
 # 14b -- THE DISJOINTNESS itself, BOTH directions, EVERY class. Direction 1 is per class.
-# Direction 2 is NOT: the planted value must be one the KIT denylist can see, so it is a
-# LEAK_ROOT (in LEAK_ROOTS by construction, not this box's owner or home), never a
-# FAKE_BOX value -- a planted FAKE_BOX value is invisible to every kit rule by definition,
-# so `assert _leaks(planted) == []` could never go red (DH.591 item 1). The kit SEES the
-# root; the engine's denylist does NOT. RED if merged: adding the kit's roots to
-# anonymize.box_tokens makes `scan` name `secret` here (probe C, DH.591).
+# Direction 2 is NOT: the value must be one the KIT denylist can see and NOT a member of
+# LEAK_ROOTS -- naming a leak root made the kit half a TAUTOLOGY (roots are in _leaks by
+# construction, so no state could make it false, DH.615 item 1). KIT_TOKEN is drawn from
+# the kit rule's OTHER tokens (home, /.sanctuary/), which _leaks consults independently
+# of LEAK_ROOTS, so the assert is falsifiable. Never a FAKE_BOX value either: a planted
+# FAKE_BOX value is invisible to every kit rule by definition, so `assert _leaks(planted)
+# == []` could never go red (DH.591 item 1). The kit SEES the token; the engine's denylist
+# does NOT. RED if merged: adding the kit's roots to anonymize.box_tokens makes `scan`
+# name a class here (probe C, DH.591).
+KIT_TOKEN = next(t for t in (str(Path.home()), "/.sanctuary/")
+                 if t and t not in LEAK_ROOTS)
 @pytest.mark.parametrize("cls", ["hostname", "ip", "mac", "board", "secret"])
 def test_the_kit_denylist_and_the_engine_denylist_are_disjoint_in_both_directions(
         cls, fake_box, anonymize):
     toks = anonymize.box_tokens(PROJECT)
-    value, root = FAKE_BOX[cls][0], LEAK_ROOTS[0]
+    value, kit = FAKE_BOX[cls][0], KIT_TOKEN
     clean = (TEMPLATES / BY_NAME["oomd-guard"]["template"]).read_text(encoding="utf-8")
     planted = clean + "\n# a planted %s token: %s\n" % (cls, value)
     assert anonymize.scan(planted, toks) == [cls], cls
-    assert _leaks("cd %s\n" % root), "row 4 does not see its own leak root"
-    assert anonymize.scan("cd %s\n" % root, toks) == [], "the guard now sees the root"
+    assert kit not in LEAK_ROOTS, "tautology: _leaks carries every leak root by rule"
+    assert _leaks("cd %s\n" % kit), "row 4 does not see its own denylist token"
+    assert anonymize.scan("cd %s\n" % kit, toks) == [], "the guard now sees a kit token"
