@@ -3,7 +3,7 @@ id: hypothesis:round-stages-gate-on-the-adapter-not-the-harness-name
 mint_id: 302bbb6500a5433fbd5618b54e9f485a
 type: hypothesis
 parents:
-  - goal:g1
+  - goal:g1.26
 next_edges: []
 edited_by: belam
 scaffold_hash: b2723fffc940da7a
@@ -24,3 +24,7 @@ workflow.py:2417 (range :2409-2421) `if harness != "pi"` refuses every kind:roun
 
 ## Testable claim
 round-mur/round-research-review run under --harness pi-free; a claude-code seam still refuses by name; the gate reads harnesses.<h>.adapter; a test fails on 6c403aeb4b
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+2026-09-27 04:2xZ belam: re-parented goal:g1 -> goal:g1.26 (the PASS 10 leaf), owner 04:1xZ: subgoals like directors (skill agi-goal §5); id and body unchanged.
+<!-- THOUGHT:END -->
