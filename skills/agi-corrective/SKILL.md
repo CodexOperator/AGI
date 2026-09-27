@@ -51,8 +51,11 @@ Write the orders ONCE to a scratch file, then append it to the hypothesis node's
 ```bash
 N=$(python3 extensions/agi/bin/write.py hypothesis:<id> 'read body 1:9999' | wc -l)   # body length L
 # file = line L verbatim, a blank line, then the section below  (append = replace body L:L; there is no END keyword)
+# body ENDS in a THOUGHT block (L = '<!-- THOUGHT:END -->')? the paragraph guard refuses L:L -> N = the last one-line
+# paragraph ABOVE THOUGHT:BEGIN (read the body numbered first); the section goes before the block, never inside it
 python3 extensions/agi/bin/write.py hypothesis:<id> "replace body $N:$N <file>" --actor <post> --role director
 python3 extensions/agi/bin/write.py hypothesis:<id> 'thought corrective DH.<N>: <mur key> <labels>: <residues in one line>' --actor <post> --role director
+# order: node section FIRST, verify it landed (read the range), THEN dispatch -- a refused write does not stop a chained dispatch
 git commit <exact node path>      # a real commit before dispatch (grid history)
 ```
 Section shape, every line explicit:
