@@ -247,9 +247,10 @@ def _reserve_run_key(root: Path, run_key: str) -> bool | None:
     """RESERVE `run_key` for this process with an EXCLUSIVE create — the
     atomic step hypothesis:a-run-key-is-reserved-atomically-so-concurrent-runs-
     never-share-one asks for. The marker is an O_CREAT|O_EXCL file under
-    `<sessions>/workflows/keys/`, resolvable from the SAME root the tracked
-    rows live under (`_loc.shared_project_root(root) or root`, exactly as
-    `_existing_run_keys` does). The namespace is a SIBLING of `sessions/`,
+    `<sess>/run-keys/` (RUN_KEY_MARKER_DIR), resolvable from the SAME root
+    the tracked rows live under (`_loc.shared_project_root(root) or root`,
+    exactly as `_existing_run_keys` does). The namespace is a SIBLING of
+    `sessions/`,
     not a subdir of it: `sessions/` is the tracked-run record and a `--dry-run`
     must not create it (extensions/agi/tests/test_workflow.py
     `test_dry_run_writes_no_row` asserts exactly that), and minting a name is
