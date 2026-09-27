@@ -1091,6 +1091,34 @@ extends it through a full iteration.
 ## Agent Notes
 Assigned to **director-engine**.
 
+### G1.27 — PASS 11 residues -- 4 engine defects (zero-usd pre-flight width, key-cap banner, provisioning import route, missing end-to-end tests) + the doc/skill batch closed by reviewed rounds (assigned: director-engine) — status: active
+
+# goal:g1.27
+
+# goal:g1.27
+
+## Why this exists
+goal:g1: PASS 11 (OWNER 21:4xZ 09-27, "do a pass anyway as it's a lot of modifications that could use a look over") reviewed the trunk @707d8dbbea on pi-free -- 0 experiments since PASS 10, so two engine-delta rounds over 24 files (907+/136-): the zero-usd mint fix, the paid-mur closure, the facts + skills first_turn entries, ten flow skills, the duty briefs. Both rounds accept_with_residue (run mur-p11chunk1of1), merged 739969f48. Every verify verdict upheld its defect; this leaf closes them.
+
+## Target end-state
+- The zero-usd path is exactly as wide as its claim, its banner states the real key cap, and provisioning keeps one import route.
+- The free-lane mint on a drained account and the `skills` first_turn entry each have a committed end-to-end test.
+- No brief, skill, manifest description or config note names the paid `pi` harness as the route, points past its block, cites a wrong file:line, or hand-copies the skill index.
+
+## Invariants
+- No default or instructed route reaches a paid harness (goal:g4.20.1 carries the structural half).
+- A residue is closed by a reviewed round, never by a note.
+
+## Falsifier
+1. `git grep -nE "on pi\b|--harness pi\b|read body 37:64" -- extensions/agi/briefs skills extensions/agi/workflows .agi/config.json` = 0 hits, and the tests named in each child hypothesis pass.
+2. Negative: a dispatch dry-run on pi-free with a drained balance still runs check_runtime_key_usable (it is not skipped).
+
+## Out of scope
+goal:g4.20.1 (one harness source) · goal:g1.26 (PASS 10 residues).
+
+## Agent Notes
+Assigned to **director-engine**.
+
 ### G2.1 — Level 3 first: code nodes that stitch back into a running tree — status: horizon
 
 **Build level 3 before any other level.** It is the one that makes the graph an
@@ -3262,6 +3290,40 @@ Parent `goal:g13` (one read/write path). Owner 2026-09-19: everything is a node 
 
 - `goal:g7.165`, `goal:s35` (schemas are nodes), `goal:g7.11`.
 # goal:g4.20
+
+#### G4.20.1 — ONE HARNESS SOURCE -- one .geometry catalog names every harness and the default (bare pi = the free lane, paid = pi-paid by explicit flag only); routes name a harness, never a model; eleven setting places become three (assigned: director-engine) — status: active
+
+# goal:g4.20.1
+
+# goal:g4.20.1
+
+## OWNER 2026-09-27 15:3xZ (belam's pane), verbatim
+"Also can we simplify how many places harnesses are set? The separate config.json could be moved into .geometry to unify it with the rest but it just feels like there's too many places. Like the fallback in workflow seems unneeded, and the default pi harness should already be pi free. Just feels like 8 places is excessive. I know to config and template max but couldn't some be unified?"
+
+## Why this exists
+goal:g4.20 (everything is a node, configs included): the config.json `harnesses` block is a config with no node. On 2026-09-27 the account drained (192 USD bought, 0.606 left) because ONE of the places that name a harness still said the paid `pi` after the ladder moved to `pi-free` -- config:workflows default + type rows (thought-master [red] 06:42Z, ~12.8 USD of murs). Measured by the Prime 15:3xZ, a harness or model is set in ELEVEN places: (1) .agi/config.json harnesses.* (the catalog, a model per role) (2) config.json spawn.harness (3) config.json agent_dispatch.provider/model (adapters/__init__.py:222 synthesizes a hidden paid-deepseek harness from it) (4) config.json workflows.<name>.provider/model (5) workflow manifest provider (6) config:workflows workflows[].harness (7) config:workflows types[].harness (8) config:workflows default_harness (9) config:ladder rows harness AND model (the model a second time) (10) config:posts rows harness + model (11) --harness / AGI_HARNESS at run time. workflow.py resolves through five levels (config row, manifest, per-workflow, type, prime default; workflow.py:345-374).
+
+## Target end-state
+- ONE catalog node under .agi/nodes/.geometry/ (the config.json `harnesses` block moves there): each harness = adapter, bin, model per role, and `paid: true` only on a paid one; ONE `default` cell in it.
+- The bare name `pi` IS the free lane (today's pi-free); the paid lane is named `pi-paid` and is reachable only by an explicit --harness (plus thought-master's explicit-ask guard while the default lane is zero_usd).
+- Routing names a harness, never a model: the ladder keeps its harness column and drops its model column (the model comes from the catalog); config:workflows keeps `types[].harness` ONLY for a type that deviates from the default (trove-survey -> claude-code).
+- Deleted: spawn.harness, agent_dispatch (and its synthesized legacy harness), config.json workflows.*.provider/model, manifest-level provider, config:workflows workflows[].harness and default_harness. Workflow resolution = --harness > type row > catalog default: three levels, one code path shared with dispatch.
+- config:posts seat rows keep their identity cells (a live seat's harness + model are facts about that seat, written by rotate).
+
+## Invariants
+- No bare or defaulted resolution ever lands on a paid harness.
+- Every harness a route names exists in the catalog; an unknown name refuses by name, never falls back.
+- Rows are retired or moved, never deleted (the deprecated/ rule); config.json keeps only non-harness tuning.
+
+## Falsifier
+1. `git grep -nE '"(provider|harness|default_harness)"' -- .agi/config.json extensions/agi/workflows/*.json` = 0 hits, and `git grep -n agent_dispatch -- extensions/agi/bin` = 0 live readers; `workflow.py list` and a `dispatch.py --dry-run` per ladder row both print the harness the catalog default or the one deviating type row names.
+2. Negative: a test resolves every workflow and every ladder row with no --harness and asserts none has `paid: true`; a manifest or config row that re-adds a provider fails the suite.
+
+## Out of scope
+goal:g7.32.6 (messaging) · the zero-usd mint floor fix (belam [decision] to director-engine 13:1xZ, lands FIRST: resume before redesign) · goal:g4.18.1 (the mint route).
+
+## Agent Notes
+Assigned to **director-engine**.
 
 ### G5.1 — Legacy direct links absorbed from old top-level roots — status: retired
 

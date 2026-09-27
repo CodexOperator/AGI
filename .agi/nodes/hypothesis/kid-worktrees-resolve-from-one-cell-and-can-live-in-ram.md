@@ -66,6 +66,10 @@ FILE SCOPE extensions/agi/bin/locations.py · extensions/agi/bin/dispatch.py (th
 CEILING   HARD CAP: 2 kids (1: items 1-2, 2: item 3) · <= 30 production lines net over 4cb4a8808 · <= 60 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit AND every config/node edit on the loop branch before you exit (g7.33.19 row 13)
 
+OWNER 16:2xZ 09-27 to belam, verbatim: "Sweet. Once that works DE can dial up concurrency and parallelism again as warranted. Then enable RAM disk when ready" -- the owner's GO for the RAM disk, AFTER the zero-usd mint fix works and DE's concurrency is back up. Sequence unchanged (belam card): claim 3 (tmpfs) merges up and is judged; guard.env GUARD_WORKTREE_TMPFS_belam_gpu=4G (backup first); guard-init.sh then --status green; only then paths.<town>.worktrees_root -> the mount; post worktrees + prime-root stay on disk; dirty kid worktrees harvested before any reclaim.
+
+OWNER 17:0xZ 09-27 to belam, verbatim: "Yeah he's using the drain and harvest tools we just built to get those 92 or some worktrees cleaned up. I was wondering if we could add that tool and its use to the round harvest skill if there is one. Or if it's a part of a round start skill. Assuming it works good enough today and residues will get fixed alongside other things" -- the tool is heal.py sweep (hypothesis:clean-kid-worktrees-prune-and-dirty-ones-harvest-or-list, on its loop branch); belam [decision] 17:1xZ: DE adds its row to agi-dispatch §5 Orders and harvest in the SAME merge-up as the sweep code.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.650: mur-director-engine-39 TMM.306-RAM-round residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
