@@ -8367,6 +8367,8 @@ ACCEPTANCE: a committed test drives it over a tmp-root fixture + a stubbed `syst
 | 14 | a parent's harvest dm can be lost (DH.429 finished, no inbox line) | DH.429 | OWED |
 | 15 | write.py `thought` rewrites the FIRST THOUGHT pair anywhere, a QUOTED pair included (node_writer.py `_THOUGHT_RE`); same regex in snapshot-goals.py, metrics.py, brief.py | mur-13 DH.481, mur-14 DH.486 | DISPATCHED DH.487 (hypothesis:thought-verb-edits-only-the-top-level-thought-block) |
 | 16 | the reaper skips REFUSED rounds (R3b) | mur-12 DH.470 | OWED |
+| 17 | parents ignore the round CEILING: DH.479, 504, 510 spawned 3-4 kids vs a 1-kid ceiling; DH.497, 506, 510 shipped 2-3x the production-line cap (108 vs 45, 79 net vs 36, +100 vs 40) -- the ceiling is prose the parent reads, never a fence (and spawn_budget._ceiling_clause reads nothing when the number sits on the next line, mur-15 DH.493) | DE rounds 09-27 | OWED |
+| 18 | a stale `index.lock` in a round worktree makes the parent's commit fail and the parent exits SILENT (DH.503: lock 04:01:16Z, 0 bytes, no holder; kid work left uncommitted and unreviewed); 4 more kid worktrees held one at 04:24Z | DH.503 | OWED |
 
 ## Invariants
 - A finding lives in exactly one place: a row here, or the node a row MOVED to -- never a card line or a retired goal id.
