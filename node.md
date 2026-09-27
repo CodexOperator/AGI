@@ -24,9 +24,6 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 gen 12 first card. The traps that now live in a skill (merge-pass: 6 19 26 27 31 33 34 36 37 38 39; send: 1 25 29 41; rotate: 2 10; workflow: 8 9) are listed as skills instead of rows -- owner 01:1xZ 09-27: "everyone's card just lists all the relevant skills". Traps no skill carries (3 13 15 24 28 30 40 + the new 42) stay.
 <!-- THOUGHT:END -->
 
-## SKILLS — the matching one BEFORE the flow (skills/agi-<flow>/SKILL.md; the Skill tool)
-`agi-merge-pass` CHECK/PASS/trunk sync · `agi-goal` goals + nested subgoals (schema inside) · `agi-node-write` · `agi-send` · `agi-rotate` · `agi-dispatch` · `agi-workflow` · `agi-verify`
-
 ## §0 State (13:1xZ 09-27)
 | | |
 |---|---|
@@ -34,7 +31,7 @@ gen 12 first card. The traps that now live in a skill (merge-pass: 6 19 26 27 31
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` · stream DOWN (HELD) |
 | GUARD | OWNER GO 02:5xZ 09-27: model container brain-orcabonsai27b STOPPED (`docker start` restores) · docker budget 6656M -> 0 (guard.env.bak-20260927T*) · user@1000 high/max **12618M / 14021M** · agi-work.slice 9302M · sshd lane unchanged (reserve 1911M, ssh MemoryMin 64M CPUWeight 1000) · a pi stage ~210 MiB · load ~17/16 cores, io60 40-70 = the real bind |
 | merge | **PASS 10 CLOSED 04:0xZ 09-27**: season2/main **2129f70bb** (two-parent merge of TIP 6c403aeb4b; posts.md field-merged) · local-maxxing/main ff -> 6c403aeb4 · 30 rounds: 29 accept_with_residue, 1 demote, 0 RED · state file: last_merged_town_sha = 6c403aeb4b · next PASS BASE = 6c403aeb4b |
-| crons | CHECK f86b1cf9 "13 */4 * * *" (re-armed 01:3xZ) |
+| crons | CHECK **a8bd064d** "13 */4 * * *" (re-armed 21:4xZ 09-27 -- gen 13 missed it at wake: a session-only cron dies with its session; 09:13-21:13Z unchecked). 21:4xZ CHECK: 127 commits past BASE 6c403aeb4b, 0 experiments -> no PASS |
 | spend | **DRAINED: 0.606 USD** (flat 06:52Z -> 13:0xZ; owner 13:0xZ: no top-up funds). Cause (TM 06:42Z): config:workflows default + type rows = paid `pi` (deepseek) -> ~12.8 USD of murs. Paid paths CLOSED 56c1156ab. Resume = DE's zero-usd mint fix (§🔴 0) |
 | dms | 03:0xZ [decision] -> TM: owner GO (DE cap 8 -> 12 -> 16 gated on load < 16 + io60 < 50; DT pause = TM's call; swarm-size test on TM's board) · 01:4xZ [decision] -> DE: hypothesis:wake-facts-collapse-to-skill-pointers (queued behind the redesigns) |
 | branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
@@ -50,9 +47,11 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 ## §2 Landed (gen 13): cdcfe5c0b wake re-link + facts region 37:57 · RENAME (owner 06:1xZ) goal:send-is-hub-only-... -> goal:g7.32.6 (post-branch address; mint kept, 6 refs) · 91f9e1236 TMM.288 box backfill, 18 posts rows = core-town (row_is_local unchanged; DH.498 unblocked) · (gen 12): 045d1aab3 wake re-link · 6c403aeb4 trunk sync (belam gen 12 key row) · 3 commits for g4.18.2: skills (8 files + 8 build nodes [goal:g4.18.2, idea:engine-skill-doc] + .claude/skills links, gitignore narrowed) · 9b2f1e378 HEAD line + DE hypothesis · 786dd91da CLAUDE.md 26,597 -> 10,123 bytes · d11cfc027 Prime template 10,470 -> 7,698 · d94a59fca g4.18.2 byte budget · OWNER 01:5xZ: monitor.sh io guard FINE-GRAINED (kills only processes whose ancestor argv carries this pass's tag; others -> spared.log) · sshd lane verified live (ssh.service MemoryMin=64M CPUWeight=1000, system.slice MemoryMin=128M, guard: chain live) · skills block -> doc:unified-director-brief, doc:unified-master-brief, 3 duty briefs, the DE/DT/TM/SM cards
 
 ## 🔴 Where it stops
-13:1xZ 09-27 belam-S2-L5-XIII: account drained, paid mur paths closed (56c1156ab); resume waits on DE's zero-usd mint fix
+22:1xZ 09-27 belam-S2-L5-XIII: PASS 11 (OWNER 21:4xZ: a pass anyway) steps 0-3 done, chunk1 reviewing; next = step 4 verdicts
 ```
-0. RESUME (OWNER 13:0xZ, no funds): DE [decision] 13:1xZ -- zero_usd lanes mint below provisioning.py:206's 1.00 floor with a 0.01 USD key cap; paid lanes keep a config floor; the account never goes negative. Judge its merge-up: falsifier = one pi-free kid at 0.606 USD, key limit 0.01, credits unchanged after.
+P. PASS 11 IN FLIGHT (/tmp/belam-pass11, tag p11chunk): 0 stamped 22:10:58Z · 1 trunk sync 707d8dbbe (clean; season2/main f707800ae now an ancestor), TIP PINNED 707d8dbbe, BASE 6c403aeb4b · 2 build: 0 experiments -> 2 engine-delta rounds (24 files, 907+/136-), 1 chunk · 3 launched 22:11:42Z on pi-free, Monitor bvidnapkd (monitor.sh)
+   NEXT: python3 /tmp/belam-pass11/verdicts.py -> step 5 (prime-root: pull --ff-only, merge --no-ff 707d8dbbe, verify, push season2/main, ff local-maxxing/main) -> 6-9 per skill agi-merge-pass §2
+0. DONE 17:1xZ: DE's zero-usd fix 91ae33672 is in the trunk -- live: can_fund free lane (True), paid lane refused at 0.61 (floor = cell provisioning.min_mint_remaining_usd); 8/30 live spawns on keys used=0; balance 0.6062; test_zero_usd_mint_floor 5 passed. Items 4 -> 5 now OPEN (owner GO 16:2xZ).
    OWED after DH.501 merges up: F13 'Spend checked by hand, one command, from any worktree:' -> 'Spend by hand, from any worktree:' (1988 B; HEAD's older classifier fails it before the merge -- measured 13:1xZ).
    OWED (TM 05:49Z, OWNER 05:48Z): `skills` first_turn entry in config:rotations (director + prime_director) from DE's doc:draft-skills-first-turn (DE post branch 40dd3bdc7).
 1. CHECK every 4 h (cron f86b1cf9, skill agi-merge-pass §1). Next notice when the trunk has new experiments past BASE 6c403aeb4b.
@@ -62,13 +61,11 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
    (b) sudo -n ~/work/.sanctuary/guard/guard-init.sh, then --status: sshd chain live, reserve 1911M unchanged, user@ high/max recomputed (4G comes out of the 12618/14021M)
    (c) set paths.<town>.worktrees_root to the mount ONLY after (b) is green; POST worktrees + prime-root stay on disk (cards, uncommitted edits)
    (d) prove one kid lands there, commits to its branch, survives `git worktree prune`; watch io60 through the next PASS (target < 25)
+   (e) sweep = heal.py sweep; its row -> DE's agi-dispatch §5 in the sweep's merge-up (OWNER 17:0xZ, [decision] 17:1xZ) -- check it at that judge
    (e) 92 DIRTY kid worktrees hold unharvested kid nodes (wt-decisions.log): the reaper harvests-or-deprecates before it may reclaim them -- never --force
-6. SKILLS = ONE INDEX LOADED AT STARTUP (OWNER 05:33Z via TM, verbatim: "Don't need a template change just change the load template which determines which files get pulled in. Just have the template/config load in the skill index. No duplication needed.")
-   TM removed the director brief's Skills section (464eba344). YOURS: (a) a `skills` first_turn entry in config:rotations (director + prime_director) once DE's
-   python producer lands (TMM.284 -- a leading grep is REFUSED by rotate._producing_refusal); (b) remove doc:unified-master-brief's Skills section + this card's
-   SKILLS lines; (c) HEAD B·FORM line -> "the skill index loads at startup; a card never lists or copies skills" (TM's wording).
+6. SKILLS index: DONE 21:5xZ (config:rotations `skills` entry, both templates, cap 6000); card SKILLS block removed. OWED: re-add the agi-corrective clause when build:skills-agi-corrective-SKILL.md reaches the trunk (DE merge-up); HEAD B·FORM line -> 'the skill index loads at startup; a card never lists or copies skills'.
 3. DE queue: dispatch-now hypothesis:reap-chain-members-get-their-full-term-grace-again (read 03:50Z) · then the redesigns · then the 7 PASS 10 defects (b5f2c2423).
-4. Owner items open: TM's layout for DE concurrency (8 -> 12 -> 16, gated on load < 16 + io60 < 50) · DT pause = TM's call · swarm-size test on TM's board.
+4. AFTER 0 passes (OWNER GO 16:2xZ, verbatim on town:local-maxxing), then 5. Owner items open: TM's layout for DE concurrency (8 -> 12 -> 16, gated on load < 16 + io60 < 50) · DT pause = TM's call · swarm-size test on TM's board.
 ```
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
@@ -82,7 +79,6 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 | 40 | F13's `/home/ubuntu/work/agi/.env` does not exist on local-town | the MAIN .env is `/data/work/agi/.env` |
 | 42 | `write.py … 'replace body N:M'` refuses a range with no blank line around it (the HEAD's five diagram blocks are one "paragraph") | `--force` rides the SOURCE argument: `replace body N:M --force <file>`, after asserting the range; a refused replace in a chain still lets a later `thought` land -- check each line's result |
 
-| 43 | `send.py read belam \| tail -N` cuts earlier messages, and a later read shows none (TM 05:47 + 05:49Z reached this seat only via the inbox FILE, 13:0xZ) | read with no tail; on an empty read with a [red] expected, grep the inbox file |
 
 ## §5 Verification: `links.py links` 0 broken · `snapshot-goals.py --render --check` · `commands.py run verify` (bin-suite-fresh FAIL known) · `~/work/.sanctuary/guard/guard-init.sh --status` + `tail ~/logs/memory-alarm-alerts.log | cut -d" " -f1,3-` (drop column 2: every line carries the host name, TM [red] 02:36Z 09-27)
 
