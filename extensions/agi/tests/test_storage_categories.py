@@ -2,9 +2,14 @@
 
 `hypothesis:mint-offers-storage-categories-from-config-cells` (goal:g4.18.1.3).
 
-Every test here builds its own temp project under `tmp_path` and writes a temp
-config. The live config is never written by a test, and never read as a list:
-the live table is a *shape* check, the behaviour check is the temp one.
+Most tests here build their own temp project under `tmp_path` and write a temp
+config. No test ever WRITES the live config. It is READ in two places:
+`test_live_config_seeds_the_named_categories` reads the live table as a *shape*
+check, and `test_live_seeded_cells_all_point_at_a_directory_that_exists` reads
+it as a BEHAVIOUR check -- a real-disk `is_dir()` over the live rows that
+creates nothing, writes nothing, and skips only on a partial checkout (see its
+docstring). The behaviour checks that need a filesystem the test can SHAPE --
+good, missing, typo -- use the temp project.
 """
 from __future__ import annotations
 
@@ -271,10 +276,16 @@ def test_live_seeded_cells_all_point_at_a_directory_that_exists():
     assertion that could not fail, so a typo in a live cell passed. A missing
     BASE root means a partial checkout, so that SKIPS naming the path."""
     live = json.loads((REPO / ".agi" / "config.json").read_text(encoding="utf-8"))
-    for row in locations.storage_categories(live, REPO / ".agi"):
-        base = locations.payload_base(REPO / ".agi", row["location"], live)
-        if base is None or not base.is_dir():
-            pytest.skip(f"partial checkout: {base} is not a directory")
+    rows = locations.storage_categories(live, REPO / ".agi")
+    bases = [locations.payload_base(REPO / ".agi", r["location"], live)
+             for r in rows]
+    # Decide the partial-checkout SKIP for the WHOLE table BEFORE checking any
+    # row: a skip raised inside the loop silently covers every row after it.
+    absent = [str(b) for b in bases if b is None or not b.is_dir()]
+    if absent:
+        pytest.skip("partial checkout, nothing about the live cells can be "
+                    f"judged here; these bases are absent: {', '.join(absent)}")
+    for row, base in zip(rows, bases):
         target = base / row["prefix"]
         assert target.is_dir(), (
             f"live cell mint.storage_categories.{row['key']}.prefix names "
