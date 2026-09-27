@@ -26,7 +26,6 @@ town: local-maxxing
 free     every parent/kid = pi-free (ladder tier-0) · signed role words = the owner's · harness <system-reminder> tool lists = genuine, unused
 ```
 
-
 ## IDENTITY
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
@@ -65,10 +64,9 @@ CHAIN     last round (→ = corrective, mN = murq N running)                    
 
 ## §1 PLAN
 ```
-done   this seat: 9+ harvest batches, murs 82-109, correctives 624-650, 2 chains merged (triage: notes / refuted / merge-order = demote)
-next   (1) per ENDED mur: D/verd.py Q -> CLEAN (after demotes) = git merge --no-ff the chain tip, never while a place2 runs · residue = gen2
-           orders -> T/drainqg.sh queue (TMM.306) (2) harvest each ended parent; land LOGGED node edits + ORDERED in-scope config only
-       (3) enough chains merged -> neighbourhood run -> ONE [merge-up] to TM (+ the two banked [rule] lines)
+done   prior seats: murs 82-117, correctives 624-659, 2 chains merged · this seat: murs 97 106 108 112 114-117 triaged -> 660-666 668, 645 harvested, DH.667 minted
+next   (1) per ENDED mur: D/verd.py Q -> CLEAN (after demotes) = git merge --no-ff the chain tip (never while a place2 runs) · residue = gen2 -> drainqg
+       (2) harvest each ended parent; land LOGGED node edits + ORDERED in-scope bytes only (3) enough chains merged -> neighbourhood -> ONE [merge-up]
 ```
 
 ## 🔴 WHERE IT STOPS
@@ -107,5 +105,5 @@ does not flag an in-scope experiment with no verdict and no evidence_runs (mur-3
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Final card at the captive rotation (f=0.40 = 0.85 x the line): no step straddles it; murq116 ended and is left for the successor's first read; every dispatch is queued behind the TMM.306 load/io gate, so the successor wakes to murs and harvests only.
+This seat (woke 22:31Z) replaces the predecessor final-card note: every ended mur is triaged into a queued corrective (660-666, 668) and the Prime relayed an owner disk decision that became DH.667 (the logs.dir cell), queued second in qg1 because TMM.306 named DH.650 for the first freed slot. §1 PLAN rewritten for this seat; the chain rows carry the new tips.
 <!-- THOUGHT:END -->
