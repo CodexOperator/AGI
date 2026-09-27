@@ -7872,3 +7872,36 @@ def test_dm_send_registers_pending_when_no_pane_ever_nudged(
     assert dm.is_file() and "merge-up body" in dm.read_text()
     assert send_mod._pending_more(project, seat) == 1
     assert "pending=1" in send_mod.status(project, seat)
+
+
+def test_dm_pending_survives_a_stale_deferred_body(project: Path, monkeypatch):
+    """TMM.283 STALE-DEFERRED RESIDUE: a deferred body left by an EARLIER,
+    unrelated send must not suppress the pending mark of a NEW dm whose own
+    nudge never resolved. Old bytes asked `_read_deferred(...) is None`, so a
+    seat that already carried a stale sidecar read pending=0 with a fresh
+    unread dm in the file -- the exact symptom the TMM.283 guard was cut for.
+    The guard must judge the sidecar BEFORE/AFTER this nudge, not its mere
+    existence."""
+    _fake_tmux(monkeypatch, [])          # no window -> no target
+    seat = "thought-master"
+    assert send_mod._store_deferred(project, seat, "director-thought",
+                                    "an older stranded dm")
+    send_mod.send_dm(project, "director-thought", seat, "a brand new dm",
+                     "director-thought")
+    assert send_mod._pending_more(project, seat) == 1
+    assert "pending=1" in send_mod.status(project, seat)
+    # the stale body is untouched: the new dm is COUNTED, never merged into it
+    d = send_mod._read_deferred(project, seat)
+    assert d["body"] == "an older stranded dm", d
+
+
+def test_inbox_send_registers_pending_when_no_pane(project: Path, monkeypatch):
+    """TMM.283 INBOX HALF: the sibling sender path registers the SAME mark.
+    Old bytes only patched `send_dm`, so inside one fixture a `--to` dm read
+    pending=1 while an inbox send to the same paneless seat read pending=0
+    with an unread block in its inbox file."""
+    _fake_tmux(monkeypatch, [])          # no window -> no target
+    seat = "thought-master"
+    send_mod.send(project, seat, "wake up body", "director-engine")
+    assert send_mod._pending_more(project, seat) == 1
+    assert "pending=1" in send_mod.status(project, seat)

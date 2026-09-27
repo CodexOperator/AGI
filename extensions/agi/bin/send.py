@@ -1674,6 +1674,37 @@ class _PendingLock:
         return False
 
 
+def _deferred_blob(root: Path, seat: str) -> str | None:
+    """The raw deferred sidecar bytes, or None when no file exists. Used to
+    tell a deferred body THIS nudge wrote from one an EARLIER send left
+    behind (TMM.283 stale-deferred residue)."""
+    try:
+        p = _nudge_deferred_path(root, seat)
+        return p.read_text() if p.is_file() else None
+    except OSError:
+        return None
+
+
+def _register_unresolved(root: Path, seat: str, before_pending: int,
+                         before_deferred: str | None) -> None:
+    """TMM.283: a message that landed in the FILE but whose nudge never
+    resolved (no pane target) left NO pending mark. Register it at the
+    SENDER unless the nudge path already accounted for it -- a window
+    coalesce bumps the count itself, a busy pane writes the deferred body
+    (appending this message to `others` and counting it) -- or the row is
+    quiet (a quiet row types nothing BY CHOICE). A deferred body left by an
+    EARLIER, unrelated send does NOT suppress the mark: only a sidecar this
+    very nudge WROTE (bytes changed) accounts for this message, which is the
+    same before/after discipline the pending snapshot already uses."""
+    if _row_is_quiet(root, seat):
+        return
+    if _deferred_blob(root, seat) != before_deferred:
+        return
+    if _pending_more(root, seat) != before_pending:
+        return
+    _bump_pending(root, seat)
+
+
 def _bump_pending(root: Path, seat: str) -> None:
     """Increment the pending-coalesced count; a dm coalesced inside the
     per-seat window is counted here so a LATER delivered nudge carries it.
@@ -2983,8 +3014,16 @@ def send(root: Path, to: str, text: str, sender: str | None,
     # input-is-typed-into-the-successors-pane...). The inbox write is
     # unaffected — the dm is still the durable, signed record.
     if nudge and not _row_is_quiet(root, to):
-        _announce_nudge(root, to, _nudge_window(
-            root, to, sender=sender if sender is not None else from_id))
+        p_before = _pending_more(root, to)
+        d_before = _deferred_blob(root, to)
+        ok = _nudge_window(
+            root, to, sender=sender if sender is not None else from_id)
+        # TMM.283 INBOX HALF: the sibling sender path owns the SAME mark. The
+        # box lands either way, so an inbox block whose wake never resolved
+        # must be countable, exactly as a `--to` dm is.
+        if not ok:
+            _register_unresolved(root, to, p_before, d_before)
+        _announce_nudge(root, to, ok)
 
     print(inbox.resolve())
     return (from_id, sig_line is not None)
@@ -4028,6 +4067,7 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     # delivery, the file is the record.
     root = locations.find_project_root(croot) or croot
     before = _pending_more(root, other)
+    d_before = _deferred_blob(root, other)
     ok = _nudge_window(root, other,
                        sender=_detect_sender(sender), body=text)
     # TMM.283: a dm that landed in the FILE but whose nudge never resolved
@@ -4036,10 +4076,8 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     # the sender, unless the nudge path already accounted for it (a window
     # coalesce bumps the count itself; a busy pane stores the deferred body)
     # or the row is quiet (a quiet row types nothing BY CHOICE).
-    if not ok and not _row_is_quiet(root, other) \
-            and not _read_deferred(root, other) \
-            and _pending_more(root, other) == before:
-        _bump_pending(root, other)
+    if not ok:
+        _register_unresolved(root, other, before, d_before)
     # `_announce_nudge` reads the SEATS row and the comms config, both of
     # which live under the GRAPH root -- the same root `_nudge_window` is
     # handed one line above. Handing it the raw `croot` (the comms root)
