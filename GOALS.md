@@ -1065,6 +1065,32 @@ agi-tree — should reach a rendered map and a first chain with no engine change
 at all. L18 already proved the goals-only stage works on a bare project; this
 extends it through a full iteration.
 
+### G1.26 — PASS 10 residues -- 8 confirmed engine defects + the 30-round residue table closed by reviewed rounds (assigned: director-engine) — status: active
+
+# goal:g1.26
+
+# goal:g1.26
+
+## Why this exists
+**Parent `goal:g1`.** PASS 10 (belam-S2-L5-XII, 09-27: BASE 9e16b8ed90 -> TIP 6c403aeb4b, 30 rounds on pi-free, 29 accept_with_residue, 1 demote, 0 RED, merged into season2/main at 2129f70bb) confirmed eight code defects and a residue table too big for one round. They were first minted flat under goal:g1; the owner (04:1xZ 09-27): "should we be spawning hypotheses or subgoals like we tell directors to spawn?" -- so they nest under this leaf (skill agi-goal §5).
+
+## Target end-state
+- every PASS 10 defect hypothesis below is closed by a merged, reviewed round (red-first test on 6c403aeb4b, green on the fix)
+- every row of hypothesis:pass10-0927-residue-batch is closed by a corrective round or demoted with its measured reason
+
+## Invariants
+- the defect ids never change; a split nests a smaller leaf under this one (goal:g1.26.N)
+
+## Falsifier
+1. every hypothesis whose parent is goal:g1.26 carries a verdict, and its round's mur run key is on its node
+2. negative: zero PASS 10 defect hypotheses parented directly on goal:g1
+
+## Out of scope
+- goal:g7.31.3.3 (spawn/rotate redesign), goal:g4.18.2 (skills + trim)
+
+## Agent Notes
+Assigned to **director-engine**.
+
 ### G2.1 — Level 3 first: code nodes that stitch back into a running tree — status: horizon
 
 **Build level 3 before any other level.** It is the one that makes the graph an
@@ -3038,7 +3064,7 @@ assigned: director-engine. FIRST of the three graph redesigns (OWNER 01:0xZ 09-2
 1. ultracode dropped from everyone + effort high on every post row -- DONE c72b01fb5 (config:posts) + the config:ladder tier-3 rows; residue: rotate.py:120 DEFAULT_CC_ROLES fallback still names ultracode (used only when neither the ladder nor config.json has the role).
 2. SKILLS: one skill per engine flow or operation -- goal creation carrying the goal schema inside it; write.py verbs; send/read/nudge; rotate; dispatch; merge-up / PASS / CHECK -- each a skill build node under this goal. Legal parents per the build schema (owner 01:2xZ): an existing build node as co-parent with this goal ([build, goal]), or an idea node spawned for them.
 3. CARDS list the relevant skills and ask each post to use the matching one; card F-rules and traps move into the skills. Cards stay in-process state; goal tracking lives on the town board.
-4. THE TRIM, measured 01:0xZ 09-27 (bytes): CLAUDE.md 26,597 (every session and kid) · extensions/agi/briefs/prime-director-successor.md 10,470 · doc:unified-head 7,547 · config:rotations facts 7,164 of 8,000 · thought-master card 301 lines / 46,431 (belam 100 / 12,595 · director-engine 106 / 16,730 · director-thought 83 / 9,437 · stream-master 80 / 12,241) · the Prime's first meter read 0.092 of the window. CLAUDE.md line 1 sends every agent to GOALS.md, 1.5 MB.
+4. THE TRIM, measured 01:0xZ 09-27 (bytes): CLAUDE.md 26,597 (every session and kid) · extensions/agi/briefs/prime-director-successor.md 10,470 · doc:unified-head 7,547 · config:rotations facts 7,164 of 8,000 · thought-master card 301 lines / 46,431 (belam 100 / 12,595 · director-engine 106 / 16,730 · director-thought 83 / 9,437 · stream-master 80 / 12,241) · the Prime's first meter read 0.092 of the window. BUDGET (belam-S2-L5-XII 01:5xZ 09-27; measured value in brackets): CLAUDE.md <= 12,000 [10,123] · Prime template <= 8,000 [7,698] · HEAD region <= 5,500 [4,844] · config:rotations facts region <= 2,000 [7,164 -- hypothesis:wake-facts-collapse-to-skill-pointers, DE] · every card <= 100 lines [belam 95 · DE 80 · DT node 184 · TM 301 at 01:0xZ]. CLAUDE.md line 1 sends every agent to GOALS.md, 1.5 MB.
 
 ## Done when
 - every post card is at most 100 lines and lists its skills; no card carries goal tracking;
@@ -3086,6 +3112,40 @@ Parent `goal:g13` (one read/write path). Owner 2026-09-19: everything is a node 
 
 - `goal:g7.165`, `goal:s35` (schemas are nodes), `goal:g7.11`.
 # goal:g4.20
+
+#### G4.20.1 — ONE HARNESS SOURCE -- one .geometry catalog names every harness and the default (bare pi = the free lane, paid = pi-paid by explicit flag only); routes name a harness, never a model; eleven setting places become three (assigned: director-engine) — status: active
+
+# goal:g4.20.1
+
+# goal:g4.20.1
+
+## OWNER 2026-09-27 15:3xZ (belam's pane), verbatim
+"Also can we simplify how many places harnesses are set? The separate config.json could be moved into .geometry to unify it with the rest but it just feels like there's too many places. Like the fallback in workflow seems unneeded, and the default pi harness should already be pi free. Just feels like 8 places is excessive. I know to config and template max but couldn't some be unified?"
+
+## Why this exists
+goal:g4.20 (everything is a node, configs included): the config.json `harnesses` block is a config with no node. On 2026-09-27 the account drained (192 USD bought, 0.606 left) because ONE of the places that name a harness still said the paid `pi` after the ladder moved to `pi-free` -- config:workflows default + type rows (thought-master [red] 06:42Z, ~12.8 USD of murs). Measured by the Prime 15:3xZ, a harness or model is set in ELEVEN places: (1) .agi/config.json harnesses.* (the catalog, a model per role) (2) config.json spawn.harness (3) config.json agent_dispatch.provider/model (adapters/__init__.py:222 synthesizes a hidden paid-deepseek harness from it) (4) config.json workflows.<name>.provider/model (5) workflow manifest provider (6) config:workflows workflows[].harness (7) config:workflows types[].harness (8) config:workflows default_harness (9) config:ladder rows harness AND model (the model a second time) (10) config:posts rows harness + model (11) --harness / AGI_HARNESS at run time. workflow.py resolves through five levels (config row, manifest, per-workflow, type, prime default; workflow.py:345-374).
+
+## Target end-state
+- ONE catalog node under .agi/nodes/.geometry/ (the config.json `harnesses` block moves there): each harness = adapter, bin, model per role, and `paid: true` only on a paid one; ONE `default` cell in it.
+- The bare name `pi` IS the free lane (today's pi-free); the paid lane is named `pi-paid` and is reachable only by an explicit --harness (plus thought-master's explicit-ask guard while the default lane is zero_usd).
+- Routing names a harness, never a model: the ladder keeps its harness column and drops its model column (the model comes from the catalog); config:workflows keeps `types[].harness` ONLY for a type that deviates from the default (trove-survey -> claude-code).
+- Deleted: spawn.harness, agent_dispatch (and its synthesized legacy harness), config.json workflows.*.provider/model, manifest-level provider, config:workflows workflows[].harness and default_harness. Workflow resolution = --harness > type row > catalog default: three levels, one code path shared with dispatch.
+- config:posts seat rows keep their identity cells (a live seat's harness + model are facts about that seat, written by rotate).
+
+## Invariants
+- No bare or defaulted resolution ever lands on a paid harness.
+- Every harness a route names exists in the catalog; an unknown name refuses by name, never falls back.
+- Rows are retired or moved, never deleted (the deprecated/ rule); config.json keeps only non-harness tuning.
+
+## Falsifier
+1. `git grep -nE '"(provider|harness|default_harness)"' -- .agi/config.json extensions/agi/workflows/*.json` = 0 hits, and `git grep -n agent_dispatch -- extensions/agi/bin` = 0 live readers; `workflow.py list` and a `dispatch.py --dry-run` per ladder row both print the harness the catalog default or the one deviating type row names.
+2. Negative: a test resolves every workflow and every ladder row with no --harness and asserts none has `paid: true`; a manifest or config row that re-adds a provider fails the suite.
+
+## Out of scope
+goal:g7.32.6 (messaging) · the zero-usd mint floor fix (belam [decision] to director-engine 13:1xZ, lands FIRST: resume before redesign) · goal:g4.18.1 (the mint route).
+
+## Agent Notes
+Assigned to **director-engine**.
 
 ### G5.1 — Legacy direct links absorbed from old top-level roots — status: retired
 
@@ -7481,11 +7541,16 @@ Unify spawn and rotate as graph writes. Parents become rows under the post that 
 3. A refusal is written into the row by name AND sent to the requesting post through the reply route, found via the graph. Cap it at one reply per failed request.
 4. Gate who may write which rows: parents write only their own kid rows, kids write none.
 
+## Invariants
+- GUARD BY PLACEMENT (Prime 03:2xZ 09-27, on the owner's question 'Will the guard work with the new spawn/rotate unified redesign?'): every spawn -- post, parent, kid, and rotate as a spawn option -- is a `systemd-run --user` transient SERVICE named `agi-<town>-<post>[-<slot>]`; tmux is only a view attached to it. The sanctuary guard caps by systemd placement (user@1000 high/max 12618/14021M; `agi-*.service` -> agi-work.slice 9302M), so a unit so named is guarded with no guard change. Measured 03:2xZ: 25 claude processes of the tmux-spawned seats sit in session-73.scope, OUTSIDE user@1000 (uncapped); dispatch.py parents are --scope units in app.slice (user@ cap only).
+- Near miss: unifying on today's post route (tmux) would move parents OUT of the cap too -- a silent regression nothing refuses.
+- Kid worktrees follow hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram (paths.<town>.worktrees_root; the guard-owned RAM disk; reaper eviction).
+
 ## Relations
 - parent goal:g7.31.3 -- the rotate|spawn route of the five unified engine routes; this makes it one graph write.
 - goal:g7.32.5 -- the parents' dm-append push grant, the messaging half of the same owner message.
 - goal:g4.18.1 -- one mint route: slot and kid rows go through the same write flow.
-- goal:send-is-hub-only-dm-file-versions-synced-every-30s -- the reply route refinement 3 uses; its (default)-box note (46d1d17e1): refinement 2 acts only on the box a row names.
+- goal:g7.32.6 -- the reply route refinement 3 uses; its (default)-box note (46d1d17e1): refinement 2 acts only on the box a row names.
 
 ## Routing
 assigned: director-engine. THIRD of the three graph redesigns, after node spawn/mint (goal:g4.18.1) and the send hub-only work (OWNER 01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): refinement 3's refusal rides send's reply route.
@@ -7858,11 +7923,49 @@ Parents need one narrow push grant: they may append to dm files on any post's he
 - the grant stays narrow: dm files on a post's head, nothing else.
 
 ## Relations
-- sibling: goal:send-is-hub-only-dm-file-versions-synced-every-30s -- the hub route this grant opens to parents.
+- sibling: goal:g7.32.6 -- the hub route this grant opens to parents.
 - goal:g7.31.3.3 -- parents become rows under the post that spawned them; the grant belongs to those rows.
 
 ## Routing
 assigned: director-engine, with the send hub-only work.
+
+#### G7.32.6 — SEND ROUTES BY POST-BRANCH ADDRESS -- every dm is a new dm-file node version pushed to the addressee post's own remote head (else the nearest, lowest-level remote branch); one per-box sync cron (1-3 min cell) syncs the local posts' dms and nudges; read pushes a read-flag version to the sender; no inbox (assigned: director-engine) — status: active
+
+# goal:g7.32.6
+
+## OWNER 2026-09-27 06:1xZ (belam's pane), verbatim -- the rename
+"But also the goal may need renaming because DMs aren't hub only anymore but get sent according to post branch address in send redesign."
+
+## OWNER 2026-09-26 20:3xZ (Prime pane), verbatim
+"Okay I was thinking of simplifying send to only use the hub route. Send automatically pushes a single dm push to the correct dm file on-chain, as a new dm file node version, always "overwriting" the existing dm file with a fresh version and setting the read row to false. Then every box with an active post has a cron that runs every 30 seconds to sync DM files only directly for the active posts on that box. Nudge only fires as part dm file sync, matter of fact the nudge script can be the local box sync script activated by the cron. No separate inbox system. Reading inbox is reading the dm file and setting the read row to true and pushing that back to remote. Other seats then get read status via graph on their next 30s cron.
+
+So send calls write.py, and nudge calls both write.py and read.py. All DMs across all boxes local. Or not share the 30 second delay which is useful for sending corrections anyway. Can fine tune the delay via config to see how different values perform. I guess cron can just check all active seats across all boxes on every box for now to keep it simpler. It's a cheap call at our current roster size."
+
+## The design, one line per part (the Prime's reading; the owner's words win -- 20:3xZ above, 20:4xZ + 20:5xZ in the notes)
+1. send = write.py: ONE commit + push per dm -- a new version of the pairwise dm file node, its read row = false.
+2. ADDRESS = the addressee's post row: its own box + its designated remote head (its "inbox" destination); no remote head -> the nearest, lowest-level remote branch (owner 20:4xZ, 20:5xZ). Same-box dms take the same route; the hub-only reading of 20:3xZ is superseded (owner 06:1xZ 09-27).
+3. ONE cron per box, a config cell at 1-3 min (start at 3; owner 20:4xZ supersedes the 30 s): it finds which posts are local (row box == AGI_BOX) and syncs only their dms from each post's remote head down through the worktrees.
+4. nudge = that box sync: it fires only from the sync, on an unread dm for a post local to this box; it shows only the inserted body text, tagged post dm or post reply.
+5. read = a new dm node version with the read flag true, pushed to the SENDER's remote head (a reply appends; a fresh dm writes a new version); other posts learn read status on their next sync.
+6. no separate inbox system: .agi/sessions/inbox/* retires once 1-5 hold.
+
+## Done when
+A dm between two posts on different boxes and one between two posts on the same box both arrive by the same post-branch route (the addressee row's remote head) within one sync interval of the push; the read row flips and is visible to the sender's box on its next sync; no inbox file is written; the interval is a config cell.
+
+## Agent Notes
+OWNER 20:4xZ 09-26 (Prime pane), verbatim: "Also is the hub a separate branch or using the master branch or something? I was thinking between all DMs going straight into the correct town branch, or into season2/main and every nudge check is from that branch. But as you said in a db sense a lot of messages on one branch could pile up weirdly. So my thought was to expand each post node under .geometry with its assigned town which includes both the physical box and the repo branch they own and repo location so local worktree only or remote (which implies a local worktree of course). Send pushes message dm node to the correct branch for that post only, or the nearest, lowest-level remote branch available if there is no remote. Then the cron reads the active posts and sync only their messages from the appropriate branch via the post rows containing the config info. Each post also gets an local: true/false row to show that that post is active on that box or not. The town branching design of the repo handles the rest so no towns cross-contaminate each others local status. Small config extension and barely any code change. And less hardcoding now. Does it make sense? Also the 1 min delay is fine. We can even do 3 to see how it does. Keep it a cron." -- supersedes the 30 s of the title: the sync is a cron at 1-3 min (start at 3), a config cell. Prime refinement sent to DE: derive local at read time (row box == this box) rather than commit it.
+
+OWNER 20:5xZ 09-26 (Prime pane), verbatim: "How does it check local box? Does it use the local worktree of the town GitHub branch box value? If so thats fine, but I wanna rework that to be able to let one town work across multiple boxes if needed. So really each post just has its own box value and the town has no box values, only a remote head to push to. Even more so, if each post has a designated remote head that is their “inbox” destination recorded, the nudge can pull from either that remote head and sync to local worktree or first sync just the dm to the local worktree of that remote head and then sync the post branch worktree with the local worktree then send nudge. (the send pushes to the appropriate remote head via post reference, the cron checks which box it’s on, which posts are local, and how the remote DM node version should be cascaded down through the worktrees via syncs. Also when send resd is used, it writes a new node version with the read flag set to true and pushes that node to the sender post remote, and uses write to do a DM node push to the sender’s DM file node appending, not rewriting the fact that message was read. The cron dm file check then also automatically returns read status by using a “reply” route in send.py. Or could even make it so the nudge automatically inserts the node file ‘add’ diffs or whatever to only show new insertions to save tokens on displaying the append, no separate read needed if key check comes back verified. Then the dm node files could naturally be appended via “reply” so a single conversation can stay grounded, but otherwise the “reply” would write a fresh one causing a bigger insertion diff than an append only. And again only append body text insertions as part of nudge and tag it clearly in the nudge as a post reply or post DM if not a reply. I think that covers the whole loop in an LLM friendly way that is config and template maxxed. We may need template updates for this. Does this simplification for elegance make sense?"
+
+OWNER 21:0xZ 09-26 (Prime pane), verbatim: "Can we not have the local box name be a global env variable that gets set as part of the ini routine somehow? Like the box label in the network or something. Then just check that." -- replaces refinement (1): the box identity is AGI_BOX, set by the box init routine to a LOGICAL label (local-town, encryption-town), never the raw host name; unset -> refuse by name, never guess.
+
+OWNER 21:1xZ 09-26 (Prime pane), verbatim: "Will this send and read redesign complicate things? It is overall reducing functions not increasing them so I think it will be fine. Also will the quiet flag still work with this system? Each post has a quiet row true or false and the cron does not fire nudge unless a [red] item comes through. Also if nudge deposits whole message body due to valid key, it should mark the message as read as well. Assuming it fully posted into the tmux pane and was not blocked. Not read until pane not busy and message is in pane." (apostrophes dropped for the write.py quoting)
+
+belam-S2-L5-XI 00:4xZ 09-27, on the OWNER's go (an owner-pasted line from belam-S2-L5-X): ADD the "(default) box is always foreign" refusal to this redesign. MEASURED on local-town: a row with no box cell takes the posts node's default_box = core-town for locality (boxes.row_is_local, boxes.py:168-182), while this_box = local-town (AGI_BOX from the MAIN .env, which every worktree root resolves), so the six no-box rows (director-belam, director-sanctuary, sanctuary-master, sanctuary-helper, master-sensei, stream-master) are FOREIGN here and every sweep refuses them again (send.py:2198-2204; 72 lines in agi-crons-agi-3fbc6951.log), labelled "(box (default))" rather than the box they resolved to. DONE WHEN: (1) every live row carries its OWN box cell, written at seating from AGI_BOX -- default_box never decides locality; (2) a row whose box is empty or matches no live box is refused as a nudge target on EVERY box (the (default) box is always foreign), ONCE per row and cause, naming the resolved box -- not once per sweep; (3) no send-keys ever lands in a window addressed by such a row. Not the cause of the director-thought report: its row (post-director-thought-a8 / 88bad1aa / @8 / pid 1530011 / box local-town) matches its live session, and wake reads idle nothing-pending @8.
+
+belam-S2-L5-XI 01:0xZ 09-27, OWNER verbatim: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send" -- ORDER of the three graph redesigns: (1) goal:g4.18.1, the mint/write route; (2) this goal + goal:g7.32.5 (send = write.py, so it builds on (1)); (3) goal:g7.31.3.3 spawn/rotate (its refusals ride this goal's reply route). The owner's 21:1xZ HOLD items wait on (2).
+
+OWNER 06:0xZ 09-27 to belam, verbatim: "It's because pids rotate but tmux panes stay the same. We shifted to PIDs for messaging at some point and it broke things. I think the redesign is also doing it but if PIDs get updated auto as part of rotate it also fixes it" -- belam measured 06:0xZ: the four seats rotating on local-town (belam, thought-master, director-thought, director-engine) carry a LIVE pid in their row; rotate's successor row write stamps it (rotate.py:6695). Stale pids sit on rows of seats not seated on this box.
 
 ### G7.33 — ENGINE FIXES SURFACED BY THE TOWN — every engine trap the rounds hit becomes a pi round itself, run alongside the research rounds under a second (Sonnet) director; plus the two dispatch upgrades the owner named: one workflow that chains parent dispatch → drain → mur, and a batch workflow that runs rounds serially or in parallel by memory allocation and closes with a whole-batch MUR over the sub-goal that parents them — status: horizon
 

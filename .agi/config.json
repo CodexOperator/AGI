@@ -149,7 +149,9 @@
   },
   "provisioning": {
     "min_key_remaining_usd": 1.0,
-    "min_account_remaining_usd": -50
+    "min_account_remaining_usd": -50,
+    "min_mint_remaining_usd": 1.0,
+    "zero_usd_key_limit_usd": 0.01
   },
   "agent_dispatch": {
     "claude_max_parallel": 1,
@@ -194,18 +196,17 @@
   "workflows": {
     "review": {
       "effort": "medium",
-      "provider": "pi",
+      "provider": "pi-free",
       "note": "defaults for the round-review workflow; resolved by workflow.py run review --harness pi with --args overriding; config-maxxed so it can run on any harness (hypothesis:l3w4-workflows-config-maxxed), 2026-09-07. No 'model' here on purpose: provider is pi, and the pi harness resolves its model from harnesses.pi.models by role, never from this row \u2014 a shared model field across disjoint namespaces (Claude Code aliases vs OpenRouter slugs) is what billed Anthropic Sonnet on an OpenRouter key (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
     },
     "drafting": {
-      "model": "deepseek/deepseek-v4.1-flash",
       "effort": "max",
-      "provider": "pi",
+      "provider": "pi-free",
       "note": "defaults for the brief-drafting workflow; override per run with Workflow args {model, effort}; the drafter seat (hypothesis:l3w4-drafter-seat) reads this row and passes it through \u2014 owner quote (6), 2026-09-07. 'sonnet' is correct HERE because provider is claude-code, whose model namespace is subscription aliases, not OpenRouter slugs (hypothesis:l3-workflow-model-crosses-harness-namespace)."
     },
     "deep-search": {
       "effort": "high",
-      "provider": "pi",
+      "provider": "pi-free",
       "note": "defaults for the deep-search workflow; question, facts, lenses and refute_n arrive via --args, never here or in either workflow file (hypothesis:l3-deep-search-workflow-harness-agnostic), 2026-09-07. No 'model' here on purpose, same reason as workflows.review: provider is pi, model comes from harnesses.pi.models by role (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
     }
   },
@@ -230,6 +231,7 @@
   },
   "paths": {
     "core": {
+      "worktrees_root": ".agi/worktrees",
       "suite_roots": [".agi/context"]
     },
     "local_maxxing": {
@@ -284,6 +286,7 @@
     },
     "local_maxxing": {
       "osc_band_seeds": [7, 21, 99],
+      "de_live_parents": {"arm": 10, "arms": [10, 5, 15], "ceiling": 16, "ceiling_if": {"loadavg1_lt": 16, "io_psi_some_avg60_lt": 50}, "hypothesis": "hypothesis:swarm-size-5-10-15-parents-fixes-per-hour"},
       "model_slot_min_avail_gib": 3,
       "lowpeak_head_rows": 64,
       "osc_band_row_contract": {

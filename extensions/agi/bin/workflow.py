@@ -1522,7 +1522,8 @@ def _resolve_workflow_spawn_env(root, cfg: dict, run_key: str, harness: str,
             iter_n=run_key, agent_id=f"workflow:{run_key}",
             tier=_workflow_credential_tier(stages),
             limit_usd=limit_usd, ttl_minutes=ttl_minutes,
-            workspace_id=provisioning.workspace(cfg), root=root)
+            workspace_id=provisioning.workspace(cfg), root=root,
+            zero_usd=((cfg.get("harnesses") or {}).get(harness) or {}).get("zero_usd") is True)
     except provisioning.ProvisioningError as exc:
         print(f"ERR: could not mint a workflow credential: {exc}",
               file=sys.stderr)
@@ -2414,13 +2415,20 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # every stage satisfied. Refused BEFORE the dry-run return, so `--dry-run`
     # and the live run agree (rc 6: a seam/manifest mismatch, distinct from
     # the rc 2 bad-args, rc 3 credential/stage and rc 5 budget refusals).
-    if harness != "pi":
+    # Gate on the ADAPTER, not the harness name: `pi-free` runs the same pi
+    # runner, and a name check left round stages runnable only on the PAID
+    # `pi` harness (the ~12.8 USD mur leak, TMM.295, 2026-09-27).
+    try:
+        _round_adapter = adapters.resolve(cfg, harness)[1].get("adapter")
+    except adapters.AdapterError:
+        _round_adapter = None
+    if _round_adapter != "pi":
         _round_stages = [st["label"] for st in stages
                          if st.get("kind") == "round"]
         if _round_stages:
             print(f"workflow.py: workflow={key} refused: stage(s) "
                   f"{_round_stages} are kind=round, which harness "
-                  f"{harness!r} cannot run; a round stage needs `--harness pi`",
+                  f"{harness!r} cannot run; a round stage needs a pi-adapter harness (`--harness pi-free`)",
                   file=sys.stderr)
             return 6
     try:
