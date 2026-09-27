@@ -26,6 +26,8 @@ FLASH    Prime [decision] 22:38Z (OWNER): /mnt/agi-flash = logs + write-once scr
          the Prime's go) + ~40% DE's base checkouts in the drain unit (NOT the poll; now /dev/shm, TMM.308) · de-base prune GO paced (TMM.309)
          · logs cell = box.logs_dir (engine ignores it today; its value is a missing path -> would turn the log cap OFF): until DE's DH.676 lands
            move logs by SYMLINK only, never by flipping that cell (DE 23:12Z) + logs 0.1% -> step 2 logs one at a time (tidiness) · never worktrees
+SWEEP    [red] 00:0xZ: heal sweep removes a finished 0-commit branch's worktree (uncommitted work lost: DH.648, recovered) -> DE findings row
+         -> fix under goal:g7.33 · DE's /dev/shm base-checkout fix REVERTED (placements on disk again, ~145 MiB each until DH.650)
 RAMDISK  DH.650 = repo half (DE); the tmpfs mount + user@ budget = the Prime's (card step 5; [decision] 22:0xZ)
 DISK     / full 17:4xZ -> 17.9G (87 stale /tmp/lograce-*, TMM.303) -> 12.2G by 20:0xZ (bursts) -> 14.6G (24 stale logcost-*, TMM.305); ~31G /tmp scratch = DE's sweep round · 45 worktrees removed on /data
          (lossless; records in .agi/sessions/harvest-0927/<wt>/)
