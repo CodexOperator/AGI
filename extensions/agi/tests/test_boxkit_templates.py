@@ -360,7 +360,19 @@ def test_rendered_bytes_equal_the_recorded_live_bytes(piece):
     _assert_piece_matches_fixture(piece, got, fix.read_text(encoding="utf-8"), _vs())
 
 
-def _anonymized_live_render(piece):
+def _with_the_whole_stand_in_set(piece, tokens):
+    """The bytes a committed fixture IS: this box's values with the stand-in put back
+    for EVERY identity key -- one mapping, no partial override, no per-key set. The
+    fixture was rendered with all of them, so a comparison may only ever be made
+    against a render that carries all of them. The clean path reaches the same bytes by
+    substitution BY VALUE (which is what the occurrence count is for); the collision
+    fallback reaches them by re-rendering through here. A key with no {{K}} site is
+    harmless in this mapping: a value no placeholder consumes never reaches the render."""
+    return R.rendered(piece, R.values(CFG, MEASURED,
+                                      {**tokens, **{k: STANDINS[k] for k in IDENTITY}}))
+
+
+def _anonymized_live_render(piece, tokens=None):
     """This box's own render of the piece, with the stand-in put back where each derived
     identity token landed. Substitution is BY VALUE, not by a marker: a marker replaces
     the token before the render, so a token that never reaches the render would be
@@ -368,11 +380,16 @@ def _anonymized_live_render(piece):
     each derived token must appear in the render exactly as many times as the template
     declares {{K}} sites, never fewer. The one fallback is a token that ALSO occurs
     outside its sites (a template literal colliding with this box's uid, e.g. memguard's
-    hard -1000): that key is re-rendered with the stand-in, which degrades to the weaker
-    test-6 comparison for that key alone rather than corrupting the bytes with a blind
-    replace. On this box no key needs the fallback (uid 1000 appears only at its sites);
-    the branch exists for a box whose uid collides."""
-    tokens = R.host_tokens(CFG)
+    hard -1000): BY-VALUE substitution cannot tell the two apart there, so the whole
+    render is redone through _with_the_whole_stand_in_set -- the FULL stand-in set,
+    every identity key, because the fixture was recorded with all of them. The previous
+    version overrode ONLY the masked keys and left the rest at their HOST values: mixed
+    host/stand-in bytes compared against all-stand-in fixture bytes -- red for a reason
+    that has nothing to do with the claim, and green by accident wherever a host value
+    happened to equal its stand-in. On this box no key needs the fallback (uid 1000
+    appears only at its sites); row 7f walks the branch with a synthetic collision, so
+    the branch is compared on some box rather than merely existing."""
+    tokens = R.host_tokens(CFG) if tokens is None else dict(tokens)
     body = (TEMPLATES / piece["template"]).read_text(encoding="utf-8")
     live = R.rendered(piece, R.values(CFG, MEASURED, tokens))
     out, masked = live, []
@@ -391,9 +408,41 @@ def _anonymized_live_render(piece):
             continue
         out = out.replace(tokens[k], STANDINS[k])
     if masked:
-        over = {k: STANDINS[k] for k, _, _ in masked}
-        out = R.rendered(piece, R.values(CFG, MEASURED, {**tokens, **over}))
+        out = _with_the_whole_stand_in_set(piece, tokens)
     return out
+
+
+# 7f -- THE COLLISION FALLBACK RE-RENDERS WITH THE WHOLE STAND-IN SET (a00-fc6bf436).
+# On this box no host token collides with a template literal, so the fallback branch is
+# never taken and its bytes were never compared by any row: a branch that no test walks
+# is a branch nobody has read. This row WALKS it -- tmp only, no live box needed -- by
+# injecting a synthetic identity token whose value is a template LITERAL ("python3",
+# which memguard-script uses outside every {{OWNER_USER}} site), so the token occurs
+# more often in the render than the template declares sites, which is exactly the
+# ambiguity the fallback exists for. The bytes it must produce are the FIXTURE's: the
+# fixture was rendered with the stand-in for EVERY identity key, so a fallback that
+# re-renders only the masked key leaves the others at their HOST values and compares
+# mixed host/stand-in bytes against all-stand-in bytes -- red for a reason that has
+# nothing to do with the claim, and green by accident on a box whose host values happen
+# to equal the stand-ins. The pre-fix failure is therefore not "a collision is
+# mishandled": it is that the collision path and the clean path disagree about what the
+# fixture is.
+def test_the_collision_fallback_re_renders_with_the_whole_stand_in_set():
+    piece = BY_NAME["memguard-script"]
+    collides = "python3"          # a literal in the template, outside every {{OWNER_USER}} site
+    tokens = dict(R.host_tokens(CFG))
+    tokens["OWNER_USER"] = collides
+    body = (TEMPLATES / piece["template"]).read_text(encoding="utf-8")
+    sites = len(re.findall(r"\{\{OWNER_USER\}\}", body))
+    live = R.rendered(piece, R.values(CFG, MEASURED, tokens))
+    assert live.count(collides) > sites, (
+        "the synthetic collision did not force the fallback: %d occurrence(s) of %r, "
+        "%d site(s)" % (live.count(collides), collides, sites))
+    got = _anonymized_live_render(piece, tokens)
+    fix = (FIXTURES / (piece["name"] + ".fixture")).read_text(encoding="utf-8")
+    _assert_piece_matches_fixture(piece, got, fix, _vs())
+    # and the render is anonymized end to end: no host identity root survives it
+    assert not [t for t in HOST_TOKENS if t and t in got], piece["name"]
 
 
 # 7d -- FIXTURE PROVENANCE. By design no committed test may read a live unit, so nothing
