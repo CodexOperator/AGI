@@ -231,6 +231,7 @@
   },
   "paths": {
     "core": {
+      "worktrees_root": ".agi/worktrees",
       "suite_roots": [".agi/context"]
     },
     "boxkit": {
