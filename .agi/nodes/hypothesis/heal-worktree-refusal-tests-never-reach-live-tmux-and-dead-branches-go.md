@@ -5,18 +5,18 @@ type: hypothesis
 parents:
   - hypothesis:heal-never-reseats-a-worktree-post-into-main
 next_edges: []
-edited_by: a00-6fcb56cd
+edited_by: a00-02784673
 scaffold_hash: 72a4be2646fdce38
 season: 2
-testable_claim: "\"no committed test in test_heal_worktree_refusal reaches the live tmux server (nudge stubbed or a test session passed, proven by a recording shim), the unreachable None branch of _clean_stale_layout_locks is deleted, and the log-tail guard + stale-lock skip each get a test (TMM.262 residues 8+10, assigned: director-engine). CEILING: <=24 production lines across 2 kids\""
+testable_claim: "No committed test in test_heal_worktree_refusal reaches the live tmux server (nudge stubbed or a test session passed, proven by a recording shim) (1); the unreachable None branch of _clean_stale_layout_locks is deleted, or a comment states why it stays with the caller line (2); the log-tail guard and the stale-lock skip each get a test (3). TMM.262 residues 8 and 10, assigned: director-engine. CEILING: <=24 production lines across 2 kids"
 title: Heal worktree refusal tests never reach live tmux and dead branches go
 town: core
 ---
 # hypothesis:heal-worktree-refusal-tests-never-reach-live-tmux-and-dead-branches-go
 
 ## Measured
-- TMM.262 (8): extensions/agi/tests/test_heal_worktree_refusal.py:186-192 reaches the LIVE tmux server: send.py:2208-2209 defaults the session to rotate.DEFAULT_TMUX_SESSION (the test root governs rows + inbox only). Its fixture window @777 is absent today, so no pane was hit -- by luck.
-- (10) heal.py:3082-3087, the None branch of _clean_stale_layout_locks, is UNREACHABLE: its caller at :3221 runs after the early return at :3166-3174. The log-tail guard and the stale-lock skip have no test of their own.
+- TMM.262 residue 8: extensions/agi/tests/test_heal_worktree_refusal.py:186-192 reaches the LIVE tmux server: send.py:2208-2209 defaults the session to rotate.DEFAULT_TMUX_SESSION (the test root governs rows + inbox only). Its fixture window @777 is absent today, so no pane was hit -- by luck.
+- TMM.262 residue 10: heal.py:3082-3087, the None branch of _clean_stale_layout_locks, is UNREACHABLE: its caller at :3221 runs after the early return at :3166-3174. The log-tail guard and the stale-lock skip have no test of their own.
 
 ## CLAIM
 (a) No committed test in test_heal_worktree_refusal.py reaches the live tmux server: the nudge is stubbed or a test session is passed, and a guard test proves it (tmux invocations recorded, none targets the default session); (b) the unreachable None branch is deleted (or a comment states why it stays, with the caller line), and the log-tail guard and the stale-lock skip each get their own test.
