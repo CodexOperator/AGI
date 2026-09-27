@@ -100,6 +100,18 @@ FILE SCOPE extensions/agi/tests/test_thought_hygiene.py · .agi/nodes/experiment
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over ad54638d4 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.639 -- closes mur-director-engine-35 DH.607-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-thought-verb-edits-on-a00-1c58fd1c tip 0140d122b (branch de-base-639; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. The live guard row is checkout-dependent and only passes post-merge by side selection, not by the fix -- extensions/agi/tests/test_thought_hygiene.py:316 -- Measured on the pre-merge season/s2 tree (/data/work/agi/.agi/worktrees/post-director-engine) the guard reports 5 real offenders (graph2sql.py:127, brief.py:2353, links.py:318, metrics.py:263, snapshot-goals.py:286); it passes at 0140d122b only because those five paths are untouched on the season/s2 side since base 027a215ae, so the branch's clean versions merge in (git merge-tree: no conflict). Any later edit to those files in season/s2 turns this row red and it is not this round's fix that keeps it green.
+2. Pasted evidence number 136 canonical .py files is not reproducible on the named root -- .agi/nodes/experiment/a00-a18b675c-1e6a45.md:16 -- The probe (and the parent review's '136 canonical .py files') does not match the committed _SKIP_DIRS: I count 658 .py under the loop worktree and 648 under /data/work/agi on the same walk. The TIME claim does reproduce (0.31-0.32 s warm; 18.2 s cold on the canonical tree), so the cost conclusion stands, but the file count in the evidence is wrong.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_thought_hygiene.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_thought_hygiene.py · .agi/nodes/experiment/a00-3d6addb5-35610c.md · .agi/nodes/experiment/a00-a18b675c-1e6a45.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 0140d122b · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.607: mur-director-engine-31 DH.583-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.639: mur-director-engine-35 DH.607-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
