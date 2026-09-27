@@ -121,6 +121,21 @@ FILE SCOPE extensions/agi/tests/test_ladder_node.py · extensions/agi/tests/test
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 5ba733a8f · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.646 -- closes mur-director-engine-38 DH.623-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-trunk-tests-follow-th-a00-07c6eeb2 tip ac326aec4 (branch de-base-646; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Dangling `cmd_lines` in an assert message — extensions/agi/tests/test_sensei_wake_audit.py:941
+2. Ceiling restated on a citation that does not exist — .agi/nodes/experiment/a00-0b6ab889-dbe5e6.md:183
+3. Unescaped `\d` in a new non-raw docstring — extensions/agi/tests/test_sensei_wake_audit.py:574
+4. Undisclosed deletion of a LIVE assertion: pre-image extensions/agi/tests/test_sensei_wake_audit.py:915 `assert pointer_labels, f"pointer clause must name a label: {pointers[0]}"` is gone with no replacement, and `grep 'pointer_labels|must name a label'` over the tip blobs of a00-06149ffe-15c57b.md, a00-0b6ab889-dbe5e6.md and a00-0c4185c9-db5ff2.md returns 0 hits — the round discloses the mirror's removal but not this. Consequence on the bytes: tip :932 computes pointer_labels and only feeds the prose-shadow guard at :959, so if the live clause at .agi/nodes/.geometry/rotations.md:181 lost its F-labels the whole tail runs vacuously and the suite stays green, where the pre-image REDed at :915. A suite that got greener by losing a live RED, undocumented.
+5. Wrong file:line in the parent THOUGHT that a reviewer is sent to by: .agi/nodes/experiment/a00-0b6ab889-dbe5e6.md:214 names the cmd_lines residue as 'test_sensei_wake_audit.py:920'; in the tip that assert is at :941 (21 lines off). The graph is the memory, and this citation points a reader at the wrong line.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_sensei_wake_audit.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_sensei_wake_audit.py · .agi/nodes/experiment/a00-06149ffe-15c57b.md · .agi/nodes/experiment/a00-0b6ab889-dbe5e6.md · .agi/nodes/experiment/a00-0c4185c9-db5ff2.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over ac326aec4 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.623: mur-director-engine-35 DH.606-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.646: mur-director-engine-38 DH.623-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
