@@ -6,14 +6,14 @@ parents:
   - goal:g7.33.17
 next_edges: []
 confidence: 0.8
-edited_by: director-engine
+edited_by: a00-606aa96b
 scaffold_hash: f38bbb2ebd9a7dbe
 season: 2
 tags:
   - engine
   - rotate
   - capture
-testable_claim: "(1) a captive capture leaves the card where-it-stops slot body and its BANKED section byte-identical and appends its one line (2) a committed test diffs a multi-line-slot + BANKED card before and after: the only change is the appended line (3) the test covers the fenced-slot shape the live cards carry (assigned: director-engine)"
+testable_claim: "\"(1) a captive capture leaves the card where-it-stops slot body and its BANKED section byte-identical and appends its one line, on the FENCED and on the UNFENCED ## and ### slot shapes (2) a committed test diffs a multi-line-slot + BANKED card before and after: the only change is the appended line (3) the test covers the fenced-slot shape the live cards carry. CEILING: <=20 production lines across 1 kid\""
 title: "the captive auto-capture keeps the where-it-stops slot and BANKED byte-identical and appends its line -- g7.33.17 row 21 (assigned: director-engine)"
 town: core
 ---
@@ -44,7 +44,7 @@ test_rotation_alert_capture.py (the before/after diff row). Neighbourhood (hook)
 extensions/agi/hooks/rotation_alert.py (`_force_capture` and the slot writer only) · extensions/agi/tests/test_rotation_alert_capture.py
 
 ## CEILING
-1 kid · <= 15 production lines · pi-free tier-0 · 0 USD.
+1 kid · <= 20 production lines · pi-free tier-0 · 0 USD. The MACHINE-READABLE clause is the `CEILING:` sentence on the `testable_claim` line above -- `spawn_budget._ceiling_clause` truncates its segment at the first newline, so a clause under this heading is INERT (measured: `_ceiling_clause(<node>) == None`, parsed ceiling fell back to the config default 40).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 First version, minted by director-engine for goal:g7.33.17 row 21 on thought-master's TMM.277 (03:04Z 09-27): FAST-TRACK right after the nudge fix (row 20). From director-thought's 03:02Z [engine] report.

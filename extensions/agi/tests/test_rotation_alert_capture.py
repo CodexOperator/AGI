@@ -534,3 +534,88 @@ def test_capture_appends_its_line_and_keeps_the_slot_and_banked(
 
     # (3) BANKED is byte-identical -- nothing appended, nothing replaced
     assert _section(after, "banked") == _section(before, "banked"), after
+
+
+#: the two UNFENCED slot shapes. `##`-level (doc:card-belam's own: a `##` heading
+#: with a plain prose body) and `###`-level (a subheader inside a `##` section,
+#: unfenced prose below it). Parent PROBE C lost the `###` header byte here:
+#: `rotate._replace_stops_body` fell through to `return s3`, the WHOLE body
+#: subheader included, so the prose survived and the heading did not.
+UNFENCED_SLOT_CARDS = {
+    "h2": ("""# probe-director card
+
+## 🔴 STATE
+- gen 4->5, f 0.41
+
+## 🔴 Where it stops -- successor's owed list
+DONE  one landed thing; a second line of the same entry
+NEXT  (1) first owed step
+      (2) second owed step, continued on this very line
+
+## Banked
+(b) a model scope outside the owner -- the owner's call.
+(b) a second banked option, kept byte for byte.
+""", "where it stops"),
+    "h3": ("""# probe-director card
+
+## 🔴 STATE
+- gen 4->5, f 0.41
+
+## 🔴 §5 The loop
+### 🔴 Where it stops
+DONE  one landed thing; a second line of the same entry
+NEXT  (1) first owed step
+      (2) second owed step, continued on this very line
+
+## Banked
+(b) a model scope outside the owner -- the owner's call.
+(b) a second banked option, kept byte for byte.
+""", "the loop"),
+}
+
+
+@pytest.mark.parametrize("shape", sorted(UNFENCED_SLOT_CARDS))
+def test_capture_keeps_unfenced_stops_slot_and_banked(
+        shape, tmp_path, run_hook, monkeypatch, capsys):
+    """The same conjunct-1 claim on the UNFENCED slot shapes: the `##`-level
+    prose slot and the `###`-level prose subheader. The capture still APPENDS
+    its one line, and every other byte of the slot -- the heading line above
+    all -- and of BANKED survives verbatim (RED-FIRST on `h3`: the
+    `### 🔴 Where it stops` header was gone from the card afterwards)."""
+    card_text, slot_title = UNFENCED_SLOT_CARDS[shape]
+    graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
+    monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
+    state_dir = tmp_path / f"state-unfenced-{shape}"
+    card = _stale_state(tmp_path, graph, state_dir)
+    card.write_text(card_text, encoding="utf-8")
+    before = card.read_text(encoding="utf-8")
+    tp = tmp_path / f"unfenced-{shape}.jsonl"
+    _transcript(tp, 45_000)                     # over the line
+    code, out, err = run_hook(_payload(graph, tp, f"s-{shape}", cwd), state_dir,
+                              monkeypatch, capsys)
+    assert code == 0, err
+    assert len(hook._CAPTURE_LOGGED) == 2, hook._CAPTURE_LOGGED
+    rc = rotate.cmd_handoff(
+        SimpleNamespace(driven=True, seat="probe-director",
+                        field=_fields_of(hook._CAPTURE_LOGGED[0]), dry_run=False),
+        graph)
+    assert rc == 0, capsys.readouterr().err
+    after = card.read_text(encoding="utf-8")
+
+    # (1) the heading line of the slot survives VERBATIM
+    before_head, stop_before = _section(before, slot_title)
+    after_head, stop_after = _section(after, slot_title)
+    assert after_head == before_head, (before_head, after_head)
+
+    # (2) the only change in the slot is the appended capture line
+    a_all = stop_after.splitlines()
+    added = [ln for ln in a_all if "auto-captured at f=" in ln]
+    assert len(added) == 1, a_all
+    keep = [ln for ln in a_all if ln not in added and ln.strip()]
+    assert keep == [ln for ln in stop_before.splitlines() if ln.strip()], (
+        stop_before, stop_after)
+
+    # (3) BANKED is byte-identical
+    assert _section(after, "banked") == _section(before, "banked"), after
