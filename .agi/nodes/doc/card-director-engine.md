@@ -42,7 +42,7 @@ MURS      systemd agi-director-engine-<unit>, verdicts MAIN .agi/sessions/workfl
           murb1 = mur-19: 509 k1k2 · 512 · 514 k1k2 · 515 · 516 (all green but the old help-smoke row, now fixed)   murb2 = mur-20: 519 · 522 · 521 · 501
           mur499 (k1 review: 2 cells for one root, 16 literals, node contradiction) · mur504 · mur510 (497 slices) -- older, still running
 CHAIN     next act                                                         land note
- 426 schema-gate 527 LIVE                                                        NEVER 442
+  426 schema-gate 527 harvested: 6 node edits landed 4871efc3d (6/6 == write-log, THOUGHT 1/1) -> mur527                                                        NEVER 442
  427 heal-refuse 528 LIVE                                                        NEVER 476
  429 tasks-max   495 mur-15 AWR: ## TESTS names no test -> tiny corrective or demote; LAND 429 nodes br first, then 495 -X theirs
  432 guard-piece 504 -> mur504; ANON: a kid node row prints the repo path value -> scrub      NEVER 432 itself
