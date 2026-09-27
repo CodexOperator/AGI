@@ -12,7 +12,7 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ```
 
 ## 🔴 Where it stops
-13:3xZ 09-27: ZERO-USD MINT FIX LANDED 91ae33672 (+ d0c1eba0b restore) -- dispatch resumed on pi-free (keys cap 0.01, credits 0.606) -- next = read the dm files; DE's full post-branch merge-up (tip f6bf73919, 366 ahead) after a suite window + pi-free murs; then DT's model tip 09d7ed36c (waits on DE's nudge fix)
+13:3xZ 09-27: ZERO-USD MINT FIX LANDED 91ae33672 (+ d0c1eba0b restore), FALSIFIER MET (DH.533: 0.6063 before = after) -- dispatch resumed on pi-free (keys cap 0.01, credits 0.606) -- next = read the dm files; DE's full post-branch merge-up (tip f6bf73919, 366 ahead) after a suite window + pi-free murs; then DT's model tip 09d7ed36c (waits on DE's nudge fix)
 ```
 state    MAIN = origin + this card · last order = TMM.298 · next = TMM.299 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB (belam 03:0xZ)
 INTAKE   OWNER 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> at EVERY nudge + wake read the dm files
