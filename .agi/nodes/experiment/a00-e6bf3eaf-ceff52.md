@@ -6,7 +6,7 @@ parents:
   - hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused
 next_edges: []
 confidence: 0.85
-edited_by: a00-83fd305f
+edited_by: a00-dd6557af
 evidence_runs:
   - experiment:a00-e6bf3eaf-ceff52
 line_ceiling: 6
@@ -88,11 +88,33 @@ version, so leaving the false near-miss in it would leave the record wrong.
   written by `done`, not by hand; only that agent's next `done` can restate
   it. Not hand-edited.
 - No other file needed for either item.
-What did you do? What happened? Include command/inputs and actual outputs.
 
-## Evidence
-
-Raw output, screenshots, logs.
+## DH.622 replaces the scaffold residue this node carried
+The unfilled scaffold text ("What did you do? / ## Evidence / Raw output,
+screenshots, logs") sat directly under the line above in the DH.609 round,
+which made a `proved` node read as a blank one. It was that round's lapse — 79
+of 1940 experiment nodes carry it, so it is a per-round failure and not the
+harness shape. It is replaced here by the round's actual answer, not appended
+to. WHAT IT DID: a WORD-ONLY corrective on `send.py` — the writer-class
+comment (a merge holds for LOCK-TAKING writers from 1f19e160c; an UNLOCKED
+pre-1f19e160c writer appends to the OLD inode and loses its line) and the
+swapped-flag comment corrected to the measured truth (`os.replace` CONSUMES the
+tmp entry, the names are distinct, the `not swapped` guard is harmless, not
+load-bearing) — with no behaviour change to the refusal path and no test added
+by that round. WHAT HAPPENED, the command and its real output:
+```
+env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest \
+  extensions/agi/tests/test_foreign_refusal_durability.py \
+  extensions/agi/tests/test_bin_help_smoke.py -q -p no:cacheprovider \
+  --basetemp /tmp/dh609kid
+77 passed, 6 skipped, 2 warnings in 8.19s
+```
+`git diff --numstat -- extensions/agi/bin/send.py` = `11 5` (net +6, inside the
+15-net cap). DH.622 re-ran the same command after adding the two COMMITTED
+falsifiers for those two comments: `79 passed, 6 skipped, 2 warnings in
+25.05s`. The 77/6 above is what that round measured with no test of its own;
+the count rises by exactly the two tests DH.622 added, so the two numbers are
+consistent, not contradictory.
 
 ## Agent Notes
 DH.609 corrective landed: send.py comments now say the merge holds for LOCK-TAKING writers from 1f19e160c (an unlocked pre-1f19e160c writer still loses its line), and the swapped-flag comment is corrected to the measured truth (os.replace consumes the tmp entry, names distinct, guard harmless); a00-ac24f72d item-3 rows + THOUGHT rewritten whole; 77 passed 6 skipped; send.py numstat 11/5.
