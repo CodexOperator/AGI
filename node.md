@@ -8,12 +8,12 @@ parents:
   - goal:g26.towns
 next_edges: []
 council: council-local-maxxing
-edited_by: thought-master
+edited_by: belam
 location: local-town
 master: thought-master
 scaffold_hash: 3876620b4bc4f88e
 season: 1
-thought_session: belam-S2-L5-X
+thought_session: belam-S2-L5-XI
 town: core
 trajectory_standin:
   - "formation (doc:formation-local-town, owner 09-24): thought-master (MAIN = the trunk local-maxxing/season2/main) BATCHES -- small research batches to director-thought, small engine-fix batches to director-engine -- keeps this board's research trajectory current and picks the next batch; the directors work ONLY their batches (director-thought: one results report once every hypothesis and leaf is built out; director-engine: one report when the batch is complete, no residue) -> pi-free parents and kids; the town master is interim ruler over its branch while the Prime stays quiet · every director works to f >= the line (0.47) and rotates ITSELF (bare rotate.py rotate) -- the meter's bands are not a stop (OWNER 16:14Z 09-24, verbatim in doc:lm-director-brief-customizations)"
@@ -69,6 +69,10 @@ town:local-maxxing
 │  ├─ goal:g1.25 …… CLI GRAMMAR (G1 umbrella: the jev choice surface; owner 09-23)
 │  └─ town:local-maxxing tagged goals (same set ∩)
 │  └─ goal:g7.33 …… MOVED → town:core (engine; parked unassigned)
+├─ GRAPH REDESIGNS — engine goals on town:core, assigned director-engine; messaging FIRST (owner 09-26/27)
+│  ├─ messaging + nudge … goal:send-is-hub-only-dm-file-versions-synced-every-30s · goal:g7.32.5
+│  ├─ spawn/rotate ……… goal:g7.31.3.3
+│  └─ node spawn/mint … goal:g4.18.1 (may be mostly done)
 └─ TRAJECTORY STAND-IN ← folded from doc:lm-town-trajectory
    (TEMP pending trajectory:* — g7.34.1/.2; doc kept, deprecated pointer)
 ```
@@ -98,6 +102,11 @@ town:local-maxxing
 | goal:g5.19 | Thought Master post (remap) |
 | goal:g5.20 | secrets hub banked (remap) |
 | goal:g5.21 | Bend2/HVM map (remap) |
+| goal:send-is-hub-only-dm-file-versions-synced-every-30s | REDESIGN messaging + nudge around the graph: send = one dm-file version through the hub, one 30 s box sync that also nudges, no inbox; + routing by post row, AGI_BOX box identity, quiet rows, read-on-landing, the (default)-box refusal (director-engine; owner 09-26 20:3x-21:1xZ) |
+| goal:g7.32.5 | REDESIGN messaging: parents send on the hub route by default -- one narrow dm-append push grant (director-engine; owner 00:38Z 09-27) |
+| goal:g7.31.3.3 | REDESIGN spawn/rotate around the graph: parent slots per post in .geometry, dynamic kid rows, rotate = needs-rotate: true, the reaper/heal loop carries out what the graph says (director-engine; owner 00:38-00:45Z 09-27) |
+| goal:g4.18.1 | REDESIGN node spawn/mint: one mint route, the node and its raw file through one captive write flow; may be mostly done -- write.py create, its spawn gate and --payload exist (director-engine; owner ~23:2xZ 09-26) |
+| goal:g7.33.18 | HELD until messaging lands (owner 21:1xZ): one box memory-guard kit per box (director-engine) |
 
 Town schema parents = ladder only → **linking is Agent Notes / this body**, not `parents:` to goals.
 
@@ -126,6 +135,8 @@ memory     15 GB box · memory_max 6G · ONE model-loading host kid · GPU = one
 live       see doc:lm-town-trajectory board for tip ids (folded snapshot 2026-09-21)
 research   MP.01 -> TEL.01 -> SWR.02 -> FT.00 -> … (tracks on g5.22–.29, .30–.31)
 engine     goal:g7.33 (+ G7.33.*) → MOVED town:core (parked unassigned)
+redesigns  director-engine, in order: messaging+nudge (hub-only goal + g7.32.5) -> spawn/rotate (g7.31.3.3) -> node spawn/mint (g4.18.1) · the goals live HERE, not on cards (owner 00:5xZ 09-27)
+HELD       until messaging lands (owner 21:1xZ): the stream, encryption-town config, sanctuary-master activation, g7.33.18
 geometry   goal:g7.34* → town:core parked (trajectory type + .geometry/towns)
 comms      magic pane (G5.24 / g7.32 messaging on core) = future unified messaging layer
 ```
