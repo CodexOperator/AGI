@@ -40,6 +40,9 @@ state   MAIN = origin + this card · last order = TMM.285 · next = TMM.286 · S
         the `skills` first_turn entry (config:rotations is owner/prime-only; [rule] 05:4xZ) · this card's SKILLS block REMOVED
         · AT DE's NEXT LANDING: goal:g7.33.19 id into the brief · the wake-facts draft node + range to belam · then this card's traps -> skills
         · DE rotated again (-1c -> -db by 05:4xZ): row 21 had fallen off its card -> re-listed by SendMessage with TMM.284
+        · DE 05:45Z: TMM.284 HELD by DE -- OWNER 05:4xZ in DE's pane asked if template edits ALONE can load the index, "will inform" me ->
+          WAIT for the owner's word; DE's answer = doc:draft-skills-first-turn (DE 40dd3bdc7: 10 write.py read-payload clauses, gate None,
+          4294 B, per-skill upkeep = what the emitter removes) · row 21 = DH.509 harvested (219 green), mur-director-engine-19
 PASS10  CLOSED 04:0xZ (belam): season2/main 2129f70bb, 30 rounds 0 RED · 8 DE defect hyps + pass10-0927-residue-batch under goal:g1 (= DE's
         fast-track) · trunk synced ancestry-only 9e65a0faa (tree = HEAD) · box 04:0xZ load 23.8 / io PSI some60 81.7 -> gate suites WAIT for
         load < 16 as well as the nudge fix · WAKE-FACTS: config:rotations facts = prime/owner-only (goal:g12) -> DE drafts (DH.501,
