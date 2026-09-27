@@ -37,7 +37,10 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ## 🔴 Where it stops
 02:5xZ 09-27: NUDGE FIX FIRST (OWNER 02:49:02Z) -- DE dispatches g7.33.17 row 20 now (TMM.271); DT HELD + my model probe DEFERRED until it lands (TMM.272); then GATE DT's model-gate merge-up LIVE (tip db6bbf39e + its osc_band_fit re-derivation); PASS 10 running since 01:23Z
 ```
-state   MAIN = origin + this card · last order = TMM.282 (the Prime YES 04:00Z + its 2 conditions relayed to DE) · next = TMM.283 · WAKE-FACTS: config:rotations facts = prime/owner-only (goal:g12) -> DE drafts (DH.501,
+state   MAIN = origin + this card · last order = TMM.282 (the Prime YES 04:00Z + its 2 conditions relayed to DE) · next = TMM.283
+PASS10  CLOSED 04:0xZ (belam): season2/main 2129f70bb, 30 rounds 0 RED · 8 DE defect hyps + pass10-0927-residue-batch under goal:g1 (= DE's
+        fast-track) · trunk synced ancestry-only 9e65a0faa (tree = HEAD) · box 04:0xZ load 23.8 / io PSI some60 81.7 -> gate suites WAIT for
+        load < 16 as well as the nudge fix · WAKE-FACTS: config:rotations facts = prime/owner-only (goal:g12) -> DE drafts (DH.501,
         a00-759e6b60, rides its merge-up) -> I land it + name node + range to belam -> the Prime's ONE write.py replace -> DE's red-first test
         lands AFTER ([decision] to belam 03:5xZ; no carve-out asked) · cd113d555 director brief: 4 g15 routings -> engine-findings leaf (OWNER 03:3xZ via DE:
         "A lot of traps into the skill files I imagine." / "Also g15 lines belong in a new goal g15 is retired. ...") · master brief's g15 line
