@@ -2315,7 +2315,7 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
         if not nid or nid in seen:
             continue
         seen.add(nid)
-        if nid == node_id and agent_id and nid not in (named or []):
+        if nid == node_id and nid not in (named or []):
             # DH.414 residue (a): the `--node-id` SEED. `node_id` is the
             # KID's line, and the type gate alone let `done --node-id
             # hypothesis:<foreign>` ride a foreign node into this round's
@@ -2324,9 +2324,11 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
             # carry this round's id was skipped. It seeds the sweep only if
             # DISPATCH named this id (`named`) or the node file's basename
             # carries this round's agent id -- the same agent-id rule
-            # `_round_scope_ok` applies. With no agent id in hand (a direct
-            # call, a test fixture) the pre-existing behaviour stands and the
-            # type gate still applies.
+            # `_round_scope_ok` applies. DH.514: with no agent id in hand (a
+            # direct call, a test fixture) the guard REFUSES BY NAME too --
+            # an absent agent id used to skip the guard entirely, which is a
+            # silent FAIL-OPEN (measured: a foreign `hypothesis:` swept in,
+            # stderr empty).
             base = Path(_find_node_file(root, nid) or "").name
             if not (agent_id and agent_id in base):
                 print(f"round-commit gate: refusing {nid} — a --node-id "
@@ -2334,6 +2336,14 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
                       f"or its filename carries {agent_id or 'this round'}'s "
                       f"agent id", file=sys.stderr)
                 continue
+        if nid != node_id and nid not in (named or []):
+            # DH.514: `--owns` is a THIRD kid-supplied route into the set and
+            # the agent-id-in-basename rule above cannot cover it (one parent
+            # commit carries 4 kid files). It is bound to the dispatch-time
+            # `named` set: named elsewhere, never swept.
+            print(f"round-commit gate: refusing {nid} — --owns is bound to "
+                  f"the ids dispatch named for this round", file=sys.stderr)
+            continue
         if nid not in asked:
             # A kid-supplied id (`done --parent`) NEVER widens the set, even
             # for a round-committable type -- judged by the type gate it let
