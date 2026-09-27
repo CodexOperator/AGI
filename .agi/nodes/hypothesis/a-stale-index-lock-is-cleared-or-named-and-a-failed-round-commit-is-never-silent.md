@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.33.19
 next_edges: []
-edited_by: a00-ae5fd524
+edited_by: a00-0a868326
 scaffold_hash: 22edeb67ab7bcbef
 season: 2
 testable_claim: a stale index.lock (older than values.core.stale_index_lock_s, no live git holder) is removed with a named line before the round commit; a fresh or held one refuses by name; a failed round commit exits non-zero and the harvest dm names it
@@ -36,5 +36,5 @@ extensions/agi/bin/cli.py (the round commit + cmd_done's exit only) · .agi/conf
 HARD CAP: 1 kid · <= 20 production lines · <= 70 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut. No test touches a live worktree.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DH.534 kid: the holder test now reads /proc (fd + cwd + comm) instead of argv, so a git running with cwd=the checkout is seen; a MISSING cell refuses by name instead of defaulting to 900. The cell itself is still uncommittable by the round-scope gate -- named on the experiment, not papered over.
+DH.547 parent (a00-0a868326), CORRECTIVE item 1 -- this THOUGHT block was last written by the DH.534 KID (a00-ae5fd524), which was NOT given this node in its FILE SCOPE: its scope named cli.py, one new test file, .agi/config.json and its OWN node. The out-of-scope node edit is therefore recorded here, by the parent that owns this node, and the kid byte stays in the kid node. Superseded state: (1) the prior kid's "Not done" bullet on experiment:a00-ae5fd524-8630cf -- "every OTHER checkout runs the gate with NO cell" -- is FALSE on this base: `git show e6e678bf2:.agi/config.json | grep -n stale_index_lock_s` -> 355: "stale_index_lock_s": 900, so the cell is committed and the missing-cell refusal is a fallback, not the standing state. (2) CONJUNCT 1 IS FALSIFIED IN ONE SHAPE, by my own probe against the committed bytes (.agi/sessions/iter-DH.547/a00-0a868326/probe_fd.py, tmp repo): one live process holds the lock at fd 9 and its fd 0 is unreadable -> holder fd table [0 1 2 9], then "cleared stale index.lock .../index.lock: age=3600s > 60s, no git holder", "reason: None", "lock still exists: False". MECHANISM (2 WHAT THE MACHINE DOES, cli.py _lock_is_held): the fd scan is ONE try/except wrapped around an any() over a generator; the first unreadable fd raises, any() propagates it, `except OSError: pass` swallows it, and the WHOLE pid is skipped including its later readable fds -- a held lock is unlinked. (3) THE NEAR MISS: widening the per-PID except, or catching only PermissionError per fd, satisfies the existing suite -- whose only fd test puts the holder at fd 9 of a process with a fully readable table, behind an unguarded time.sleep(0.5) -- and still unlinks a lock held above one unreadable fd. (4) DEVIATION: I did not restore the prior kid's THOUGHT and I did not revert its edit; the authored region is a record, and the correction belongs in the block that describes the CURRENT state, which is this one. STILL TRUE, still unverified: the exit-3 hop is a READ of cmd_done's `if commit_fail: return 3` and no test reaches it.
 <!-- THOUGHT:END -->

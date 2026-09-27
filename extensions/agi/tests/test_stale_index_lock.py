@@ -6,6 +6,7 @@ TMP GIT REPOS ONLY. No test here touches a live worktree.
 import importlib.util
 import json
 import os
+import shlex
 import subprocess
 import time
 from pathlib import Path
@@ -36,6 +37,19 @@ def _repo(tmp_path, stale_s=900):
     (root / "config.json").write_text(json.dumps(
         {"values": {"core": {"stale_index_lock_s": stale_s}}}))
     return root, repo
+
+
+def _hold_lock_open(lock):
+    """A live process holding `lock` open on fd 9 -- PATH QUOTED (item 5) and
+    NO bare sleep for liveness: poll for the fd so a lost race FAILS."""
+    holder = subprocess.Popen(
+        ["sh", "-c", f"exec 9<{shlex.quote(str(lock))}; exec sleep 30"])
+    fddir = Path(f"/proc/{holder.pid}/fd")
+    deadline = time.time() + 10
+    while time.time() < deadline and not (fddir / "9").exists():
+        time.sleep(0.05)
+    assert (fddir / "9").exists(), "the holder never opened the lock on fd 9"
+    return holder, lock
 
 
 def _lock_path(repo):
@@ -75,16 +89,40 @@ def test_a_fresh_lock_is_refused_by_name_and_left_untouched(tmp_path):
 def test_a_lock_open_in_some_process_fds_is_never_removed(tmp_path):
     cli = _cli()
     root, repo = _repo(tmp_path, stale_s=60)
-    lock = _mklock(repo, 3600)           # old, but a live process holds it open
-    holder = subprocess.Popen(["sh", "-c", f"exec 9<{lock}; sleep 30"])
+    holder, lock = _hold_lock_open(_mklock(repo, 3600))
     try:
-        time.sleep(0.5)
         reason = cli._clear_stale_index_lock(root, repo)
     finally:
-        holder.kill()
-        holder.wait()
+        holder.kill(); holder.wait()
     assert reason and "held=yes" in reason, reason
     assert lock.exists(), "a lock open in an fd is never removed"
+
+
+def test_a_lock_held_above_an_unreadable_fd_is_never_removed(tmp_path, monkeypatch):
+    # The DH.547 falsifier: ONE OSError on ONE fd must skip that fd only, never
+    # the rest of the pid's table. Pre-fix, any() propagates the raise and the
+    # whole pid is SKIPPED -- a HELD lock is unlinked.
+    cli = _cli()
+    spaced = tmp_path / "a dir with spaces"   # quoted-path case in the SAME
+    spaced.mkdir()                           # test: an unquoted holder dies here
+    root, repo = _repo(spaced, stale_s=60)
+    holder, lock = _hold_lock_open(_mklock(repo, 3600))
+
+    real = os.readlink
+
+    def fake_readlink(p, *a, **k):
+        tail = str(p).rsplit("/", 1)[-1]
+        if "/fd/" in str(p) and tail.isdigit() and int(tail) < 9:
+            raise PermissionError(f"fd {tail} is not readable by this user")
+        return real(p, *a, **k)
+
+    try:
+        monkeypatch.setattr(os, "readlink", fake_readlink)
+        reason = cli._clear_stale_index_lock(root, repo)
+    finally:
+        holder.kill(); holder.wait()
+    assert reason and "held=yes" in reason, reason
+    assert lock.exists(), "a lock HELD above an unreadable fd is never removed"
 
 
 def test_a_lock_held_by_a_git_with_cwd_in_the_checkout_is_never_removed(tmp_path):
@@ -98,6 +136,9 @@ def test_a_lock_held_by_a_git_with_cwd_in_the_checkout_is_never_removed(tmp_path
         assert holder.poll() is None, "the holder must be ALIVE"
         argv = Path(f"/proc/{holder.pid}/cmdline").read_bytes().decode()
         assert str(repo) not in argv, f"the path must not be in argv: {argv}"
+        assert not any(str(lock) in str(p) for p in
+                       Path(f"/proc/{holder.pid}/fd").iterdir()), \
+            "this test must exercise the cwd+comm branch, not the fd branch"
         reason = cli._clear_stale_index_lock(root, repo)
     finally:
         holder.stdin.close()

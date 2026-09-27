@@ -2381,11 +2381,18 @@ def _lock_is_held(lock: Path, checkout: Path) -> bool:
             continue
         base = f"/proc/{pid}"
         try:
-            if any(os.readlink(f"{base}/fd/{fd}") == lp
-                   for fd in os.listdir(f"{base}/fd")):
-                return True
+            fds = os.listdir(f"{base}/fd")
         except OSError:
-            pass
+            fds = []
+        for fd in fds:
+            # ONE unreadable fd (EPERM on /proc/<pid>/fd/N of another user)
+            # must skip THAT fd only -- never the rest of the pid's table:
+            # a raised any() aborts the pid and a HELD lock gets unlinked.
+            try:
+                if os.readlink(f"{base}/fd/{fd}") == lp:
+                    return True
+            except OSError:
+                continue
         try:
             cwd = os.readlink(f"{base}/cwd")
             if ((cwd == ck or cwd.startswith(ck + os.sep))
