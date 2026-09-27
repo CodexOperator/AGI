@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.17
 next_edges: []
 confidence: 0.8
-edited_by: a00-42ca5cbe
+edited_by: a00-ffaf1904
 scaffold_hash: f38bbb2ebd9a7dbe
 season: 2
 tags:
@@ -54,7 +54,7 @@ ceiling_clause(claim)= (20, 1)
 The resolved ceiling is 20 production lines / 1 kid, read from the clause, not the default. (K=1, so the 20 is the ONE admitted kid's whole slice, not a per-kid share: `_ceiling_clause` reads K out of the same sentence (spawn_budget.py:280-302) and `node_line_ceiling` hands K=1 back, so there is no second slice for DH.569's second kid to have run OVER -- it ran OUTSIDE the K=1 clause. CORRECTED by a00-b52ef351, DH.599: the earlier "the second ran over" was false.)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version, minted by director-engine for goal:g7.33.17 row 21 on thought-master's TMM.277 (03:04Z 09-27): FAST-TRACK right after the nudge fix (row 20). From director-thought's 03:02Z [engine] report.
+DH.649 CORRECTION #2 (a00-ffaf1904) to the DH.630 line above: the CONTROL was the wrong file. Re-measured against the merge-target engine f55fc2c1 with THIS round base fc4fa8132 own test file as the control, and with the rule-0-banned row test_capture_rotate_self_step_keeps_the_owed_slot[h2]/[h3] DESELECTED in all three runs: branch tree 23 passed / 2 deselected; merge target with this round file 9 failed / 14 passed; merge target with the UNTOUCHED base file 9 failed / 14 passed, the same nine names. So ALL NINE merge-target failures are inherited, and the old "8 failed, 13 passed" control (taken from 1ea22df7d own file) was a wrong-file artefact. The sentence on experiment:a00-42ca5cbe-9e17ff claiming test_capture_rotate_self_step_keeps_the_owed_slot[hybrid] is new to this round and makes the merge-in go red is WITHDRAWN: fc4fa8132 already parametrised that row [h2,h3]+[live,hybrid], and this round added no param, only the xfail reason and the two _section lookups. The LOAD-BEARING claim survives, re-grounded: the merge-in red is caused by the ENGINE, not by the test file -- the branch rotation_alert.py and rotate.py bytes must ride the SAME merge as the test file. Numbers measured: git diff --numstat fc4fa8132 -- extensions/agi/tests/test_rotation_alert_capture.py = 30/25 (the node said +31/-22), 0 production lines. The --runxfail -k rotate_self_step GATE run on that node is marked UNVERIFIED-BY-RULE-0 and was not re-run.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
