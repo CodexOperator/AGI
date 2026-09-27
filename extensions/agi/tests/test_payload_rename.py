@@ -308,10 +308,14 @@ def test_a_payload_verb_lands_on_the_new_name_when_the_old_file_is_absent(tmp_pa
     edit = write.Edit(node_id="build:b1")
     write.verb_set(edit, "payload_ref", "lib/renamed.py")
     edit.payload_bytes = "# caller's new bytes\n"
-    res = write.submit(graph, edit, actor="kid", session="s1")
-    assert res.status != node_writer.REJECTED
-    assert (tmp_path / "lib" / "renamed.py").read_text() == "# caller's new bytes\n"
-    assert _row_ref(node) == "lib/renamed.py", "the row must resolve to it"
+    # DH.643 M1: this half used to PIN the overwrite as intended. It was
+    # pinning the hole -- an absent source short-circuited the plan, so the
+    # re-aim wrote OVER the file already sitting at the destination.
+    with pytest.raises(write.EditError) as onto:
+        write.submit(graph, edit, actor="kid", session="s1")
+    assert "renamed.py" in str(onto.value), "the refusal names the destination"
+    assert (tmp_path / "lib" / "renamed.py").read_text() == "# already here\n"
+    assert _row_ref(node) == "lib/mod.py", "a refused write does not touch the row"
     where = tmp_path / "b"
     g2, p2, n2 = _graph(where)
     p2.unlink()
@@ -322,6 +326,21 @@ def test_a_payload_verb_lands_on_the_new_name_when_the_old_file_is_absent(tmp_pa
         write.submit(g2, edit2, actor="kid", session="s1")
     assert "lib/renamed.py" in str(refused.value) and "lib/mod.py" not in str(refused.value)
     assert _row_ref(n2) == "lib/renamed.py"
+
+
+def test_nothing_to_move_does_not_buy_an_overwrite_of_the_destination(tmp_path):
+    """DH.643 M1, without the payload verb: the plan was `src=None` on an
+    absent source, the mover returned None, and nothing anywhere said the
+    destination was taken. The refusal is now unconditional and runs FIRST."""
+    graph, payload, node = _graph(tmp_path)
+    payload.unlink()  # absent source: nothing to move
+    taken = tmp_path / "lib" / "renamed.py"
+    taken.write_text("# somebody else's bytes\n")
+    with pytest.raises(write.EditError) as refused:
+        _submit_set(graph, "build:b1", "payload_ref", "lib/renamed.py")
+    assert "renamed.py" in str(refused.value), "the refusal must name the destination"
+    assert taken.read_text() == "# somebody else's bytes\n", "never overwritten"
+    assert _row_ref(node) == "lib/mod.py", "a refused write does not touch the row"
 
 
 def test_a_location_only_write_does_not_clobber_the_body_link(tmp_path):
@@ -336,6 +355,40 @@ def test_a_location_only_write_does_not_clobber_the_body_link(tmp_path):
     assert res.status != node_writer.REJECTED
     assert "link_ref: docs/notes.py" in node.read_text()
     assert _row_ref(node) == "lib/mod.py"
+    import locations as _loc
+    assert _loc.resolve_payload_path(graph, "lib/mod.py", "vendor").is_file(), \
+        "the bytes really moved, they were not copied"
+    assert not _loc.resolve_payload_path(graph, "lib/mod.py", None).exists(), \
+        "the old path is gone"
+
+
+def test_a_both_fields_row_keeps_its_hand_written_body_link(tmp_path):
+    """DH.643 M2: the mirror fired on every write NAMING `payload_ref` and
+    wrote the new name into `link_ref` too, so a hand-written body link was
+    repointed as collateral. The mirror maintains ONE name across two fields;
+    it is not a licence to rewrite a second, separately declared one."""
+    graph, payload, node = _graph(tmp_path)
+    node.write_text(node.read_text().replace(
+        "payload_ref: lib/mod.py", "payload_ref: lib/mod.py\nlink_ref: docs/notes.py"))
+    res = _submit_set(graph, "build:b1", "payload_ref", "lib/renamed.py")
+    assert res.status != node_writer.REJECTED
+    assert _row_ref(node) == "lib/renamed.py", "the write aimed at payload_ref"
+    assert "link_ref: docs/notes.py" in node.read_text(), \
+        "a body link the author wrote by hand is not this write's business"
+    assert not payload.exists() and (tmp_path / "lib" / "renamed.py").is_file()
+
+
+def test_unset_payload_ref_refuses_by_name(tmp_path):
+    """DH.643 M3: the mover's trigger keys on `set_fm` and `verb_unset` writes
+    `edit.unset_fm`, so `unset payload_ref` repointed nothing, moved nothing,
+    and left the row naming nothing."""
+    graph, payload, node = _graph(tmp_path)
+    edit = write.Edit(node_id="build:b1")
+    write.verb_unset(edit, "payload_ref")
+    with pytest.raises(write.EditError) as refused:
+        write.submit(graph, edit, actor="kid", session="s1")
+    assert "set payload_ref" in str(refused.value), "the refusal must name the way out"
+    assert _row_ref(node) == "lib/mod.py" and payload.is_file()
 
 
 def test_a_failed_move_rolls_the_location_back_too(tmp_path, monkeypatch):

@@ -568,11 +568,18 @@ def plan_move(root, old_ref, new_ref, *, old_location=None, new_location=None,
         raise MoveRefused(f"refusing to move the payload across directories: "
                           f"{src} -> {dest}. Re-issue the same write with "
                           f"`--confirm-move`.")
-    if not src.is_file():
-        return _MovePlan(None, dest)
+    # The destination refusal is UNCONDITIONAL and runs BEFORE the
+    # "nothing here to move" answer: with an absent source the plan was
+    # `src=None`, the mover returned None (nothing moved, nothing logged) and
+    # the caller's widened re-aim then wrote the payload OVER the file that was
+    # sitting there -- the one overwrite this module's docstring forbids
+    # (measured DH.643 a00-caba36a1, M1). Nothing to move is not a licence to
+    # overwrite: the destination is named, refused, the row untouched.
     if dest.exists() or dest.is_symlink():
         raise MoveRefused(f"refusing to move {src} onto {dest}: the "
                           f"destination exists and is never overwritten.")
+    if not src.is_file():
+        return _MovePlan(None, dest)
     return _MovePlan(src, dest)
 
 

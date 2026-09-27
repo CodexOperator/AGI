@@ -2297,6 +2297,14 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     _old_ref = ""
     _old_loc = None
     _after = None
+    # `unset payload_ref` never reaches the mover: the trigger below keys on
+    # `set_fm`, and verb_unset writes `edit.unset_fm` (write.py:288-293). So
+    # the row would stop naming the bytes while they stayed on disk -- a
+    # dangling name, silently. Refuse BY NAME (measured DH.643 a00-caba36a1,
+    # M3): the row loses its name, and the bytes have nowhere to go.
+    if "payload_ref" in edit.unset_fm or links.LINK_FIELD in edit.unset_fm:
+        raise EditError("unsetting a payload_ref names nothing to move; "
+                        "re-point it with `set payload_ref`.")
     if "payload_ref" in set_fm or "location" in set_fm:
         try:
             _old_ref, _old_loc = _payload_ref(root, edit)
@@ -2314,7 +2322,15 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         # `_old_ref` is the `payload_ref` value first -- so a row carrying
         # BOTH fields had its body link's target silently overwritten
         # (measured DH.619 probe P-B).
-        if "payload_ref" in set_fm and _link_ref(root, edit.node_id):
+        # ... and only when `link_ref` IS the file being repointed
+        # (`link_ref == _old_ref`). A BOTH-fields row carries a body link the
+        # author wrote by hand; the write AIMS at `payload_ref`, and mirroring
+        # into `link_ref` anyway rewrote the body link's own target (measured
+        # DH.643 a00-caba36a1, M2). A `create --payload` row names its file in
+        # `link_ref` ALONE, so `link_ref == _old_ref` there and the mirror
+        # still fires.
+        if ("payload_ref" in set_fm and _old_ref
+                and _link_ref(root, edit.node_id) == _old_ref):
             set_fm[links.LINK_FIELD] = str(set_fm["payload_ref"])
         if _old_ref:
             try:
