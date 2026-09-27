@@ -7,9 +7,12 @@ re-run's key keeps the `-2, -3, ...` shape. No test touches the live
 """
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
@@ -53,12 +56,37 @@ def test_sequential_rerun_decollides_and_stale_marker_is_skipped(tmp_path):
     assert _mint(tmp_path) == "mp-4"  # crashed holder: skipped, never hung
 
 
-def test_unwritable_marker_dir_never_raises(tmp_path):
+@pytest.mark.skipif(os.geteuid() == 0,
+                    reason="root ignores directory write bits (director 5)")
+def test_unwritable_marker_dir_mints_unique_keys_not_one_shared_name(tmp_path):
+    """Director item 8 / MISS-2: losing the lock must NOT collapse N peers
+    onto one unreserved candidate. On the pre-fix bytes this returned
+    ['mp-65'] x8, distinct = 1, with no log line."""
     keys = tmp_path / "run-keys"
     keys.mkdir(parents=True)
     keys.chmod(0o500)
     try:
-        got = _wf._mint_run_key(tmp_path, "mur-probe", {})
-        assert got.startswith("mp-") and got != "mp", got
+        procs = [subprocess.Popen([sys.executable, "-c", _CHILD, str(tmp_path),
+                                   "mur-probe"], stdout=subprocess.PIPE,
+                                  text=True) for _ in range(4)]
+        got = [p.communicate(timeout=120)[0].strip() for p in procs]
     finally:
         keys.chmod(0o700)
+    assert len(set(got)) == 4, got
+    assert all(k.startswith("mp-x") for k in got), got
+
+
+def test_dry_run_reserves_nothing(tmp_path, monkeypatch, capsys):
+    """Director item 6 / MISS-1: `--dry-run` tracks no row, so it must write
+    no marker either — honoured in the mint, not by moving the write."""
+    import workflow as wf
+    from workflow import run_workflow
+    repo = Path(__file__).resolve().parents[3] / ".agi"
+    monkeypatch.setattr(wf._loc, "shared_project_root", lambda root: tmp_path)
+    import io
+    buf = io.StringIO()
+    rc = run_workflow(repo, "review", "claude-code",
+                      {"targets": [{"window": "t1"}]}, True, out=buf)
+    assert rc == 0
+    assert not (tmp_path / "run-keys").exists(), sorted(tmp_path.iterdir())
+    assert "[run-key] " in buf.getvalue()

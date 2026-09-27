@@ -243,7 +243,7 @@ RUN_KEY_MINT_ATTEMPTS = 64
 RUN_KEY_MARKER_DIR = "run-keys"
 
 
-def _reserve_run_key(root: Path, run_key: str) -> bool:
+def _reserve_run_key(root: Path, run_key: str) -> bool | None:
     """RESERVE `run_key` for this process with an EXCLUSIVE create — the
     atomic step hypothesis:a-run-key-is-reserved-atomically-so-concurrent-runs-
     never-share-one asks for. The marker is an O_CREAT|O_EXCL file under
@@ -256,10 +256,11 @@ def _reserve_run_key(root: Path, run_key: str) -> bool:
     not tracking a run. It is likewise NOT inside the live
     `.agi/sessions/workflows/runs` tree.
 
-    False means "this name is taken, or reservation is impossible here" — the
-    caller advances to the next candidate either way. It NEVER raises: a
-    de-collided name is a nicety, not a gate (same contract as
-    `_existing_run_keys`).
+    False = "a peer holds this name" (advance); None = "reservation is
+    IMPOSSIBLE here" (EACCES/EROFS/ENOSPC) — a DIFFERENT failure, and
+    conflating the two let N peers fall through to one unreserved name with
+    no log line (director item 8). NEVER raises: a de-collided name is a
+    nicety, not a gate (same contract as `_existing_run_keys`).
 
     Stale markers are SKIPPED, never reaped: reaping needs a row-vs-marker
     reconciliation pass that costs more production lines than this round has,
@@ -272,11 +273,22 @@ def _reserve_run_key(root: Path, run_key: str) -> bool:
                      os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
         os.close(fd)
         return True
-    except Exception:
+    except FileExistsError:
         return False
+    except Exception as exc:
+        print(f"[workflow] run-key reservation unavailable ({exc}); "
+              "minting a unique key instead", file=sys.stderr)
+        return None
 
 
-def _mint_run_key(root: Path, key: str, args: dict) -> str:
+def _unique_run_key(base: str) -> str:
+    """A key NO sibling can hold — for when the namespace cannot be reserved
+    (unwritable dir, exhausted suffix space): pid + random bytes. An
+    UNRESERVED plain candidate is what two peers collide on."""
+    return f"{base}-x{os.getpid()}-{os.urandom(3).hex()}"
+
+
+def _mint_run_key(root: Path, key: str, args: dict, reserve: bool = True) -> str:
     """The descriptive run key for this run: workflow-type abbreviation joined
     to the slugged run args, de-collided against the rows already tracked for
     this workflow AND RESERVED atomically at mint, so N concurrent launches
@@ -291,11 +303,20 @@ def _mint_run_key(root: Path, key: str, args: dict) -> str:
     used = _existing_run_keys(root, key)
     candidate, i = base, 2
     for _ in range(RUN_KEY_MINT_ATTEMPTS):
-        if candidate not in used and _reserve_run_key(root, candidate):
-            return candidate
+        if candidate not in used:
+            if not reserve:
+                # A `--dry-run` tracks no row, so it reserves nothing: the
+                # dry-run-writes-nothing contract is HONOURED, not satisfied
+                # by moving the write (director item 6 / MISS-1).
+                return candidate
+            got = _reserve_run_key(root, candidate)
+            if got:
+                return candidate
+            if got is None:
+                return _unique_run_key(base)
         candidate = f"{base}-{i}"
         i += 1
-    return candidate
+    return _unique_run_key(base) if reserve else candidate
 
 
 class WorkflowsNodeError(Exception):
@@ -2426,7 +2447,7 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # by a DESCRIPTIVE key minted from this workflow's type + run args
     # (`mur-39`, `mur-sl1-2`), printed FIRST, never by the harness id. The
     # mint reads existing tracked rows so a re-run de-collides (-2, -3).
-    run_key = _mint_run_key(root, key, args)
+    run_key = _mint_run_key(root, key, args, reserve=not dry_run)
     # The RUNNER resolves the project root and hands it to every stage prompt
     # as `{project_root}` — no prompt hardcodes a checkout path, so a run
     # started in a git worktree mints into THAT worktree's graph. Added AFTER
