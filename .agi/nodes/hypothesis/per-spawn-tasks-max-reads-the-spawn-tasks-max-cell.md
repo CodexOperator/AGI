@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - hypothesis:a00-1ff9316d-177aae
 next_edges: []
-edited_by: a00-66edc224
+edited_by: a00-394a4440
 scaffold_hash: 2b76fd5380d914b6
 season: 2
 testable_claim: "mem_cap.resolve_tasks_max reads spawn.tasks_max (150 on the live config, TMM.263 (2)) and values.memcap.tasks_max is read nowhere; absent or bad cell falls back to the fail-closed 96; AGI_TASKS_MAX still overrides (assigned: director-engine)"
@@ -16,7 +16,8 @@ town: core
 
 ## Measured
 - TMM.263 (2), OWNER 19:5xZ via the Prime 20:13Z: the per-spawn scope's TasksMax is the cell `spawn.tasks_max` = 150, beside `spawn.memory_max` (2G). Committed by the director at 684a83a3a (.agi/config.json spawn.tasks_max: 150).
-- extensions/agi/bin/mem_cap.py `resolve_tasks_max` reads `values.memcap.tasks_max` (absent on the live config) -> the shipped default 96 applies today, not the owner's 150.
+- PRE-FIX STATE, measured before this hypothesis's kid (DH.495 re-dates this row from the bytes: the reader itself is now correct): extensions/agi/bin/mem_cap.py `resolve_tasks_max` read `values.memcap.tasks_max` (absent on the live config) -> the shipped default 96 applied, not the owner's 150. The reader now reads `spawn.tasks_max`; DH.488 touched NO production line and did not re-measure this row.
+- TEST ROW LIST AS OF 24e16666d (restored by DH.495 from the bytes into `## Measured`, not `## TESTS`: it records the pre-fix measurement, not a plan). extensions/agi/tests/test_mem_cap_tasks_max.py (rows moved onto spawn.tasks_max + a live-config row = 150) + neighbourhood test_launch_memory_cap.py test_heal_mem_cap.py test_dispatch.py. Every pytest under `timeout 600`, --basetemp under /tmp. DROPPED CLAUSE: the original ended "No NEW test launches a real systemd scope (the pre-existing DH.421 row in test_mem_cap_tasks_max.py does, under its own cap -- mur-director-engine-5 DH.429-k2 caught the director brief overstating this)" — withdrawn, the fan-out rows NEVER SPAWN since DH.453.
 
 ## CLAIM
 `resolve_tasks_max(cfg)` reads `spawn.tasks_max` (one cell, the one `resolve_memory_cap` sits beside), so on the live config every per-spawn scope carries TasksMax=150; `values.memcap.tasks_max` is read nowhere; an absent/non-numeric/<1 cell still falls back to the fail-closed default 96; AGI_TASKS_MAX still overrides for tests.
