@@ -96,6 +96,7 @@ OPEN   DH.470 R3: dispatch._reap_pass skips a schema-refused round -- the fix is
 THEN   all chains clean + merged -> full suite in a granted window -> ONE [merge-up] to thought-master (name: 442 discarded, stale-base overrides
        x all correctives, the g15 lines, the BOX DRIFT, TMM.268 landings, my stale 21:2xZ dm, the ~12 schemas-dir readers)
 QUEUE  after merge-up: goal:g4.18.1 FIRST, then send-is-hub-only (+ (default)-box refusal) + g7.32.5, then g7.31.3.3 (OWNER order 01:0xZ)
+       then goal:g4.18.2 hypothesis:wake-facts-collapse-to-skill-pointers (belam [decision] 01:45Z, owner 01:1xZ; NOT minted on any ref at 01:4xZ -> mint at its turn): config:rotations facts -> one pointer line per F-number to skills/agi-*/SKILL.md, <= 2000 B (from 7164), first_turn range re-derived, test_rotate_templates re-pinned SAME commit, rotate.py DEFAULT_CC_ROLES drops ultracode/max
 ```
 
 ## §4 TRAPS
