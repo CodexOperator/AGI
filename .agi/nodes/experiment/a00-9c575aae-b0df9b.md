@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused
 next_edges: []
-confidence: 0.9
+confidence: 0.5
 edited_by: a00-07292877
 evidence_runs:
   - experiment:a00-9c575aae-b0df9b
@@ -22,7 +22,7 @@ scaffold_hash: 33994c582d8da3ae
 season: 2
 title: "glued probes= keys: 14 live nodes passed every gate, now refused by name and repaired"
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:50
 ---
 <!-- BODY:BEGIN -->
 # experiment:a00-9c575aae-b0df9b — the writer-shape gate, measured pre-fix and built
