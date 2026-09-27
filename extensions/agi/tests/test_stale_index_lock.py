@@ -320,7 +320,18 @@ def test_a_kids_failed_commit_is_named_in_the_dm_its_parent_receives(tmp_path, m
     assert "a00-par" in sent["a"], sent["a"]
     assert "commit FAILED:" in sent["a"][2], sent["a"]
     # item 4: the record must not read `done` after a failed commit
-    assert json.loads((rec / "agent.json").read_text())["status"] == "failed"
+    rec_after = json.loads((rec / "agent.json").read_text())
+    assert rec_after["status"] == "failed"
+    # MISS 1: the restamp is of the AGENT RECORD. The manifest entry
+    # DELIBERATELY stays `done`: `_mirror_terminal_into_manifest` ranks
+    # failed(3) BELOW done(5) and the `rec_rank >= _merge_status_rank(entry)`
+    # guard leaves its target None, so a manifest reading `failed` would send
+    # workflow.py's round-wait into its FIRST branch and DROP the whole
+    # harvest. The rank guard is load-bearing; the reason lives in the record.
+    mrow = next(e for e in json.loads((rec.parent / "manifest.json").read_text())["agents"]
+                if e["id"] == "a00-t")
+    assert mrow["status"] == "done", mrow
+    assert "commit FAILED:" in rec_after["fail_reason"]
 
 
 def test_a_pid_that_exited_mid_walk_is_not_a_holder(tmp_path, monkeypatch):
@@ -348,6 +359,71 @@ def test_a_comm_that_cannot_be_read_still_names_the_refusal(tmp_path, monkeypatc
     monkeypatch.setattr(Path, "read_text", fake_read)
     assert cli._uninspectable(f"/proc/{os.getpid()}",
                               PermissionError(13, "denied")) == "?"
+
+
+def _a_live_same_uid_pid_not_us():
+    """A REAL, live, same-uid pid that is not this process -- read out of THIS
+    process's own /proc table, never invented, and never a `git`."""
+    for p in sorted(os.listdir("/proc"), key=lambda x: int(x) if x.isdigit() else 0):
+        if not p.isdigit() or int(p) == os.getpid():
+            continue
+        try:
+            if os.stat(f"/proc/{p}").st_uid != os.getuid():
+                continue
+            if Path(f"/proc/{p}/comm").read_text().strip() == "git":
+                continue
+        except OSError:
+            continue
+        return p
+    raise AssertionError("no live same-uid non-git pid in this process's /proc")
+
+
+def test_a_pid_that_exits_between_the_fd_listing_and_the_stat_is_not_a_holder(tmp_path, monkeypatch):
+    # MISS 2: the ENOENT arm only covered the exc raised BY the listdir. A pid
+    # whose fd table came back dark and that then EXITED before the stat was
+    # returned as an UNKNOWN HOLDER ("?"), refusing every commit on a host that
+    # spawns and reaps agents. No test covered the stat arm; this one drives
+    # both halves on a REAL same-uid pid out of this process's own /proc.
+    cli = _cli()
+    root, repo = _repo(tmp_path, stale_s=60)
+    lock = _mklock(repo, 3600)
+    pid = int(_a_live_same_uid_pid_not_us())
+    _unlistable(monkeypatch, pid, PermissionError, 13)   # the fd table is dark
+    real = os.stat
+
+    def fake_stat(p, *a, **k):                            # ... and the pid is
+        if str(p).startswith(f"/proc/{pid}"):            # GONE by the stat
+            raise FileNotFoundError(2, "No such file or directory", str(p))
+        return real(p, *a, **k)
+
+    monkeypatch.setattr(os, "stat", fake_stat)
+    assert cli._uninspectable(f"/proc/{pid}", PermissionError(13, "denied")) == ""
+    assert cli._clear_stale_index_lock(root, repo) is None, \
+        "a pid that exited mid-walk must not refuse the whole commit"
+    assert not lock.exists(), "a stale unheld lock must still clear"
+
+
+def test_a_stat_that_fails_with_anything_but_ENOENT_still_refuses(tmp_path, monkeypatch):
+    # The other half of MISS 2: the fix is NARROW. EACCES on the stat is not
+    # an exit and must keep returning the "?" UNKNOWN-HOLDER refusal, and the
+    # gate must still refuse BY NAME on it.
+    cli = _cli()
+    root, repo = _repo(tmp_path, stale_s=60)
+    lock = _mklock(repo, 3600)
+    pid = int(_a_live_same_uid_pid_not_us())
+    _unlistable(monkeypatch, pid, PermissionError, 13)
+    real = os.stat
+
+    def fake_stat(p, *a, **k):
+        if str(p).startswith(f"/proc/{pid}"):
+            raise PermissionError(13, "Permission denied", str(p))
+        return real(p, *a, **k)
+
+    monkeypatch.setattr(os, "stat", fake_stat)
+    assert cli._uninspectable(f"/proc/{pid}", PermissionError(13, "denied")) == "?"
+    reason = cli._clear_stale_index_lock(root, repo)
+    assert reason and "NOT removed" in reason, reason
+    assert lock.exists(), "an unreadable stat is never a licence to unlink"
 
 
 def test_a_malformed_config_refuses_by_name_and_never_unlinks(tmp_path):

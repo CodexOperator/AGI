@@ -2395,7 +2395,8 @@ def _uninspectable(base: str, exc: OSError) -> str:
     hold a file in our worktree. 3) NON-DUMPABLE: an fd dir the KERNEL owns
     (st_uid 0 for a same-uid pid) is a session daemon (ssh-agent, gpg-agent,
     sd-pam -- three permanent ones on the measured host), not a writer of our
-    index; refusing on those refuses every commit on every desktop. What is
+    index; refusing on those refuses every commit on every desktop. A stat
+    ENOENT takes the listing's exit: the pid EXITED mid-walk. What is
     left -- our uid, our own fd dir, still unreadable -- is an UNKNOWN holder
     and refuses, whatever its comm: an editor or a backup daemon included."""
     if exc.errno == errno.ENOENT:
@@ -2405,8 +2406,11 @@ def _uninspectable(base: str, exc: OSError) -> str:
             return ""
         if os.getuid() and os.stat(f"{base}/fd").st_uid == 0:
             return ""
-    except OSError:
-        return "?"
+    except OSError as sexc:
+        # a pid that EXITED between the listing above and this stat is
+        # provably no holder -- the same exit as the ENOENT arm above. Every
+        # OTHER errno (EACCES, EPERM, ...) stays an UNKNOWN holder.
+        return "" if sexc.errno == errno.ENOENT else "?"
     try:
         return Path(base, "comm").read_text().strip() or "?"
     except OSError:
