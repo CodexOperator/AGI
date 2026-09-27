@@ -477,7 +477,7 @@ def payload_base(root: Path, location: str | None = None,
         return repo_root(root)
 
     declared = (cfg.get("locations") or {}).get(name)
-    if isinstance(declared, str) and declared.strip():
+    if _is_usable_location_value(name, declared):
         p = Path(declared.strip()).expanduser()
         return p.resolve() if p.is_absolute() else (root / p).resolve()
 
@@ -489,6 +489,17 @@ def payload_base(root: Path, location: str | None = None,
         f"the project config, or use one of: "
         f"{', '.join(known_payload_locations(cfg))}."
     )
+
+
+def _is_usable_location_value(name, value) -> bool:
+    """Whether a `locations:` cell is a value `payload_base` accepts.
+
+    ONE predicate, both call sites (the write path here, the picker in
+    `known_payload_locations`): two copies drift, and the drift shows up as a
+    name the picker offers and the write path refuses.
+    """
+    return (isinstance(name, str) and isinstance(value, str)
+            and bool(value.strip()))
 
 
 def known_payload_locations(config: dict | None = None) -> list[str]:
@@ -505,9 +516,29 @@ def known_payload_locations(config: dict | None = None) -> list[str]:
     # a dict or a blank string would stamp `location_ok: True` on a category
     # the write path then refuses by name.
     known += [k for k, v in declared.items()
-              if isinstance(k, str) and k not in known
-              and isinstance(v, str) and v.strip()]
+              if k not in known and _is_usable_location_value(k, v)]
     return known
+
+
+def storage_category_block_error(config: dict | None = None) -> str | None:
+    """Name the config cell that leaves the table unreadable, or None.
+
+    The READER stays TOTAL (a mistyped block is an empty table, never a
+    crash) -- but an empty table PRINTS NOTHING, so the typo would be
+    invisible. This is where that silence becomes a name the CLI can report.
+    """
+    cfg = config or {}
+    mint = cfg.get("mint")
+    if "mint" in cfg and not isinstance(mint, dict):
+        return (f"mint is {type(mint).__name__}, not a table -- "
+                f"mint.storage_categories cannot be read")
+    if not isinstance(mint, dict) or "storage_categories" not in mint:
+        return None
+    block = mint["storage_categories"]
+    if isinstance(block, dict):
+        return None
+    return (f"mint.storage_categories is {type(block).__name__}, not a table "
+            f"-- the picker has no options to offer")
 
 
 def storage_category_target(root: Path, row: dict,
@@ -1096,8 +1127,8 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     if args.storage_categories or args.storage_pick is not None:
-        rows = storage_categories(cfg, root)
         if args.storage_pick is not None:
+            # the table is built once, inside the resolver -- not here too
             try:
                 row = resolve_storage_category(args.storage_pick, args.tail,
                                                cfg, root)
@@ -1106,12 +1137,26 @@ def main(argv: list[str] | None = None) -> int:
                 return 1
             print(f"{row['custom'] and 'custom' or row['key']}\t"
                   f"{row['location']}\t{row['payload_ref']}")
-        else:
-            for row in rows:
-                print(f"{row['n']}  {row['key']}  {row['location']}  "
-                      f"{row['prefix']}  ({row['label']})"
-                      f"{'' if row['target_exists'] is not False else '  MISSING'}"
-                      f"{'' if row['location_ok'] else '  BAD LOCATION'}")
+            return 0
+        bad_block = storage_category_block_error(cfg)
+        rows = storage_categories(cfg, root)
+        for row in rows:
+            print(f"{row['n']}  {row['key']}  {row['location']}  "
+                  f"{row['prefix']}  ({row['label']})"
+                  f"{'' if row['target_exists'] is not False else '  MISSING'}"
+                  f"{'' if row['location_ok'] else '  BAD LOCATION'}")
+        if bad_block:
+            print(f"ERR: {bad_block}", file=sys.stderr, flush=True)
+            return 1
+        broken = [f"{r['key']}={r['location']!r}" for r in rows
+                  if not r["location_ok"]]
+        if broken:
+            print(f"ERR: mint.storage_categories declares "
+                  f"{', '.join(broken)}, a location payload_base does not "
+                  f"accept. Use one of: "
+                  f"{', '.join(known_payload_locations(cfg))}.",
+                  file=sys.stderr, flush=True)
+            return 1
         return 0
 
     resolved = {

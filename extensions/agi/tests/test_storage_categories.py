@@ -45,6 +45,18 @@ def _project(tmp_path: Path, cfg: dict) -> Path:
     return root
 
 
+def _run_cli(root: Path, *extra: str) -> tuple[list[str], str]:
+    """`locations.py --storage-categories` as (stdout lines, stderr), rc NOT
+    asserted: the non-zero rc is half of what the table now has to say."""
+    import contextlib
+    import io
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        locations.main([str(root), "--storage-categories", *extra])
+    return ([ln for ln in out.getvalue().splitlines() if ln.strip()],
+            err.getvalue())
+
+
 def _cli(root: Path, *extra: str) -> list[str]:
     import contextlib
     import io
@@ -66,7 +78,7 @@ def test_live_config_seeds_the_named_categories():
         assert want in keys, f"live config is missing category {want!r}: {keys}"
 
 
-def test_every_live_location_is_a_name_payload_base_accepts(tmp_path):
+def test_every_live_location_is_a_name_payload_base_accepts():
     cfg = json.loads((REPO / ".agi" / "config.json").read_text(encoding="utf-8"))
     root = REPO / ".agi"
     for row in locations.storage_categories(cfg):
@@ -250,10 +262,18 @@ def test_a_resolved_pick_carries_the_stamp_and_a_custom_row_does_not_claim_one(
         "nowhere/at/all.md", config=cfg, root=root)["target_exists"] is None
 
 
-def test_live_seeded_cells_all_point_at_a_directory_that_exists():
-    """Every option the live picker offers is usable in THIS checkout."""
-    root = locations.find_project_root(REPO)
-    cfg = locations.load_config(root)
+def test_live_seeded_cells_all_point_at_a_directory_that_exists(tmp_path):
+    """Every option the live table offers, over a checkout THIS test built.
+
+    It used to assert the paths exist on the LIVE disk, so a partial clone
+    turned the suite red about the clone, not about the code.
+    """
+    live = json.loads((REPO / ".agi" / "config.json").read_text(encoding="utf-8"))
+    cfg = {"mint": {"storage_categories": live["mint"]["storage_categories"]}}
+    root = _project(tmp_path, cfg)
+    for row in locations.storage_categories(cfg, root):
+        locations.storage_category_target(root, row, cfg).mkdir(
+            parents=True, exist_ok=True)
     rows = locations.storage_categories(cfg, root)
     assert rows and all(r["target_exists"] for r in rows), [
         (r["key"], r["location"], r["prefix"])
@@ -300,20 +320,40 @@ def test_storage_category_target_agrees_with_the_write_path(tmp_path):
     assert locations.storage_category_target(root, row, cfg) == want
 
 
-def test_a_mistyped_block_is_an_empty_table_not_a_crash():
-    """The picker is documented as TOTAL: printing it never raises.
+def test_a_mistyped_block_is_an_empty_table_the_cli_names(tmp_path):
+    """The READER stays TOTAL: printing it never raises.
 
     A hand-edited config that puts a list where the table belongs used to
     raise AttributeError -- so a pane could not LIST the options, and the one
     thing the block is for (seeing what the config says) was the thing that
-    broke.
+    broke. But an empty table PRINTS NOTHING and exited 0: the very silence
+    the round set out to remove. So: total reader, NAMED cell, non-zero rc.
     """
     for bad in (["a", "b"], "engine code", 7, None):
-        cfg = {"mint": {"storage_categories": bad}} if bad is not None \
-            else {"mint": "not a table"}
+        cfg = {"mint": {"storage_categories": bad}}
         assert locations.storage_categories(cfg) == []
-        # a mistyped `mint` is the same failure one level up
-    assert locations.storage_categories({"mint": "not a table"}) == []
+        out, err = _run_cli(_project(tmp_path / str(bad), cfg))
+        assert out == []
+        assert "mint.storage_categories" in err, err
+        assert "not a table" in err, err
+    # a mistyped `mint` is the same failure one level up
+    cfg = {"mint": "not a table"}
+    assert locations.storage_categories(cfg) == []
+    out, err = _run_cli(_project(tmp_path / "mint", cfg))
+    assert out == [] and err.startswith("ERR: mint is"), err
+
+
+def test_the_cli_reports_a_broken_cell_and_still_prints_the_table(tmp_path):
+    """A table with a row `location_ok is False` is the one place a pane can
+    learn the config is broken -- it used to report SUCCESS there."""
+    cfg = _seeded()
+    cfg["mint"]["storage_categories"]["typo"] = _cell("nope_not_a_base", "", "t")
+    out, err = _run_cli(_project(tmp_path, cfg))
+    assert any("typo" in ln and "BAD LOCATION" in ln for ln in out), out
+    assert err.startswith("ERR: ") and "typo" in err and "nope_not_a_base" in err
+    # a well-formed table keeps rc 0 and a silent stderr
+    out_g, err_g = _run_cli(_project(tmp_path / "good", _seeded()))
+    assert err_g == "" and len(out_g) == 6, (out_g, err_g)
 
 
 def test_the_two_accepted_name_lists_are_one():
