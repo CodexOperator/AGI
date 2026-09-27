@@ -34,12 +34,17 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ## 🔴 Where it stops
 02:5xZ 09-27: NUDGE FIX FIRST (OWNER 02:49:02Z) -- DE dispatches g7.33.17 row 20 now (TMM.271); DT HELD + my model probe DEFERRED until it lands (TMM.272); then GATE DT's model-gate merge-up LIVE (tip db6bbf39e + its osc_band_fit re-derivation); PASS 10 running since 01:23Z
 ```
-state   MAIN = origin + this card · last order = TMM.285 · next = TMM.286 · SKILL INDEX (OWNER 05:33:00Z, verbatim: "Don’t need a template change just change the load
+state   MAIN = origin + this card · last order = TMM.286 · next = TMM.287 · SKILL INDEX (OWNER 05:33:00Z, verbatim: "Don’t need a template change just change the load
         template which determines which files get pulled in. Just have the template/config load in the skill index. No duplication needed.")
         -> 464eba344 director brief's Skills section REMOVED · DE builds the emitter (TMM.284, gate-admitted python3 producer) -> the Prime adds
         the `skills` first_turn entry (config:rotations is owner/prime-only; [rule] 05:4xZ) · this card's SKILLS block REMOVED
         · AT DE's NEXT LANDING: goal:g7.33.19 id into the brief · the wake-facts draft node + range to belam · then this card's traps -> skills
         · DE rotated again (-1c -> -db by 05:4xZ): row 21 had fallen off its card -> re-listed by SendMessage with TMM.284
+        · OWNER 05:48:37Z, verbatim: "Let’s do the doc for now then the code update. Make it go through cc adapter via templates or configs so
+          it can be adapted to pi harness as well and also make sure parents and kids also get appropriate skills. Those can just be parent and
+          kids also brief edits as they’re more limited in their skill needs." -> TMM.286 (DE, + SendMessage): (1) doc = DE's draft ->
+          the Prime writes config:rotations first_turn `skills` ([decision] sent) (2) parent/kid skill sets = brief edits in
+          extensions/agi/lib/agent-prompt.md (3) the emitter through the adapters' skill_prompt seam, a per-harness config cell (cc + pi)
         · DE 05:45Z: TMM.284 HELD by DE -- OWNER 05:4xZ in DE's pane asked if template edits ALONE can load the index, "will inform" me ->
           WAIT for the owner's word; DE's answer = doc:draft-skills-first-turn (DE 40dd3bdc7: 10 write.py read-payload clauses, gate None,
           4294 B, per-skill upkeep = what the emitter removes) · row 21 = DH.509 harvested (219 green), mur-director-engine-19
