@@ -90,6 +90,24 @@ FILE SCOPE extensions/agi/bin/rotate.py · extensions/agi/tests/test_rotate_self
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 0d76c2858 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.635 -- closes mur-director-engine-36 DH.612-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-reap-chain-members-ge-a00-25a9cb99 tip 0271068e7 (branch de-base-635; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+0. NEVER run extensions/agi/tests/test_rotate_selfreap.py WHOLE (it OOMs a 5G unit); the TESTS below only.
+1. 1. New live config cell reaper.term_grace_max_s has no declaration in the file that owns live-config cell declarations (.agi/config.json:219; test_live_config_cells.py:34-49)
+2. 2. Hypothesis evidence_runs omits the experiment its own testable_claim cites (.agi/nodes/hypothesis/reap-chain-members-get-their-full-term-grace-again.md:10)
+3. 3. The stale 'no upper bound / suspenders are missing' sentence was reported fixed but survives verbatim (hypothesis node:47, and the THOUGHT at :43)
+4. 4. A non-finite max cell disables the clamp (rotate.py:11476 in _num_or admits inf; the committed malformed-max parametrisation at test_rotate_term_grace.py:415 does not cover it)
+5. CITATION DRIFT THE ROUND'S OWN ITEM 3 SWEEP MISSED, on an in-scope file the director itself edited in 1e013e4fd: .agi/nodes/experiment/a00-07b7004a-d5dafb.md:40 and :105 still cite 'rotate.py:11617-11627' for _chain_reaped and ':11747' for the _reap_belam_oldest call, while today's bytes are :11633 (def) and :11763 (call); :45 still cites ':11532-11534' for chain_budget, today's :11548-11549. The same file's rows :37 and :102 WERE shifted to POST-EDIT, so one table now carries pre-edit and post-edit numbers side by side -- a reader cannot tell which is live.
+6. OPERATOR-FACING DOCSTRING OF THE NEW MECHANISM IS WRONG IN ONE WORD: extensions/agi/bin/rotate.py:11455 says '60 s is 4x the live 15 and far under a minute' while the cell and the resolver are exactly 60.0 s (:219, :11458, :11464, :11471). Wording, not mechanism, but it sits in the docstring an operator reads before moving the cell.
+7. NOT COVERED BY ANY COMMITTED TEST, and the gap is the round's own never-raises promise: the malformed-max parametrisation (test_rotate_term_grace.py:414-419) exercises only 'abc', True, -1, 0, None, []. The probe I WOULD add to that parametrisation is the JSON NUMBER form -- parametrise [1e999, float('inf')] alongside the strings, asserting _term_grace_s() == 60.0; on today's bytes it returns 600.0 (I measured this on a /tmp copy of the round's tree with the resolver directly, no forbidden rotate/heal/send/dispatch function, no live config, no real resource).
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_live_config_cells.py test_rotate_term_grace.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/rotate.py · extensions/agi/tests/test_live_config_cells.py · extensions/agi/tests/test_rotate_term_grace.py · .agi/config.json · .agi/nodes/experiment/a00-01cb5d99-ce477f.md · .agi/nodes/experiment/a00-07b7004a-d5dafb.md · .agi/nodes/hypothesis/reap-chain-members-get-their-full-term-grace-again.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 0271068e7 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.612: mur-director-engine-33 DH.596-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.635: mur-director-engine-36 DH.612-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
