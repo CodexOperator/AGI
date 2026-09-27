@@ -31,7 +31,7 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (17:5xZ 09-27 · per-chain history = git log of this node)
+## §0 STATE (19:0xZ 09-27 · per-chain history = git log of this node)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 merged 32ff79e53 · 429 chain MERGED 1ee2340c3 · DH.515 MERGED 64130e4ec
           (post br NOT suite-run; nothing handed to TM since merge-up 13) · 01fc645d6 agi-dispatch §5 worktree-sweep row (owner via belam
@@ -39,16 +39,17 @@ LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 mer
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<run key> [NOEX=1] [EXTRA=f,g] gen2.py N murq<Q>.json tip label [R4] -> orders<N>.md · place2.sh N
           (orders on node + base cut + dispatch) · mkmur.py/runmur.sh · harvest.sh N agent tests      D=<scratchpad 4cf27ed6-...>: verd.py Q[@key]
           (verdict digest) · harvest-all.sh N.. (stale-lock clear + harvest) · murall.py --run (one mur per green harvall round) · watch.sh
-DISK      [red] to TM 17:5xZ: root fs FULL (20M free) -> HOLD every dispatch + harvest until free > 5G (df -h /); my /tmp/de<N> pytest
-          basetemps are being deleted (unit/loop in the background); the bulk is likely the ~170 kid worktrees (TM/Prime: sweep or RAM disk)
+DISK      RESOLVED 18:57Z (TM deleted 87 /tmp/lograce-* = 17G; / has 18G). Only / was full, /data has 142G: never prune worktrees for /.
+          TM also removed 45 lossless a00-* worktrees: their round records are in .agi/sessions/harvest-0927/<wt>/
 MURS      running murq52 56 57 58 59 60 61 (key map: T/murq<Q>.json) · every ENDED unit is triaged (latest correctives 601-605)
-LIVE      every corrective 588-605 is PLACED (drainers done; T/drainqw.sh + WAITFOR, never the old drainq.sh) · to harvest when the disk
-          is back: 591 (a00-36e29ed9; kid edit a00-19870cd0 uncommitted -- D/harvest-kid.sh) · 596 · and every parent spawn_budget no longer lists
+LIVE      parents 592 594 599 600 + T/redispatch.sh (unit redisp1, T/redisp1.log) re-firing 598 603 605 589 595 597 601 602 -- the disk
+          event killed those parents with no commit / before spawn; gates: / free >= 5G AND live < arm cell · harvest unit harvall7
+          (D/harvall7.log): 590 591 596 604 -> then HLOG=D/harvall7.log Q0=63 D/murall.py --run · 588 -> murq62 (branch only)
 GATE      OWNER GO (belam 16:25Z, TMM.300): step values.local_maxxing.de_live_parents.arm up ONE arm (10 -> 15) only while loadavg1 < 16 AND io
           PSI some avg60 < 50 AND key cap x live spawns < balance; re-read at each step, step back on any fail. 17:0xZ: load 23.5 = HOLD.
           Then the RAM worktree disk (kid-worktrees chain). Drainers hardcode -lt 10: a new drainer reads the cell + the gates
-QUEUED    kid-worktrees HARVEST conjunct (58/78 dirty trees, --apply; split out of 598) = its own round: mint a goal leaf under the
-          kid-worktrees goal (skill agi-goal) · goal:g4.20.1 ONE HARNESS SOURCE (owner 13:2xZ) -- after 572, never dispatch-now · skills adapter round from 573's cleared tip · 471 after 580
+QUEUED    kid-worktrees round AFTER 598 (TMM.303 + the 598 split): (a) the HARVEST conjunct (58/78 dirty trees, --apply) (b) /tmp basetemps
+          older than 24 h with no live cwd/fd into the sweep's scope (c) a disk_free gate on / (a config cell) beside load + io before each dispatch · goal:g4.20.1 ONE HARNESS SOURCE (owner 13:2xZ) -- after 572, never dispatch-now · skills adapter round from 573's cleared tip · 471 after 580
 DECISION  sent TM 16:1xZ: DH.577 cron policy (AGI_BOX unset -> the fail-closed gate drops mail_poll maint_gc prime_merge memory_alarm) --
           send-hub chain HELD from merge until answered
 CHAIN     tips (last)                                                                               land note
@@ -74,7 +75,7 @@ next   (1) per ENDED mur: verd.py Q -> clean = merge the chain at its last tip (
 ```
 
 ## 🔴 WHERE IT STOPS
-7 murs + 8 parents running, 10 correctives queued; nothing merged this seat yet; cron-policy decision out to TM.
+disk event over; 8 dead rounds re-dispatching, 4 rounds harvesting; nothing merged this seat yet; cron-policy decision out to TM.
 ```
 FIRST   spawn_budget.py status ; systemctl --user list-units 'agi-director-engine-*' --all ; python3 D/verd.py <Q> per ended murq
 THEN    clean -> git merge --no-ff <loop branch> (card order) · residue -> MURK=.. T/gen2.py + T/place2.sh (a drainer when slots are full)
@@ -103,5 +104,5 @@ kid commits (the stale-lock chain's own mechanism, live).
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-17:4xZ: 584/585/586/587 harvested + murred; drainq1 deadlock fixed (drainqw.sh); 601-605 queued.
+19:0xZ: disk event resolved by TM; 8 killed rounds re-dispatching behind a disk+arm gate; TMM.303's sweep-scope + disk_free gate queued on the kid-worktrees chain.
 <!-- THOUGHT:END -->
