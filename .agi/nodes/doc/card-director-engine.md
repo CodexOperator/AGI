@@ -35,12 +35,12 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 (mint fix) merged 32ff79e53 · 429 chain MERGED 1ee2340c3 (242 green) · DH.515 MERGED 64130e4ec (185 green)
 FALSIFIER MET (DH.533 pi-free: keys 0.01 used 0, credits 0.6063 = before) -> TM 13:3xZ
-TOOLS     <scratchpad 96494ce7-...>: harvest.sh N agent tests (diff, lands write-log-matching dirty nodes, tests on de-h<N>) · murq<N>.json args
+TOOLS     <scratchpad 96494ce7-...>: gen.py N args tip labels [R4] + place.sh N (corrective) · mkmur.py + runmur.sh unit (mur) · harvest.sh N agent tests (diff, lands write-log-matching dirty nodes, tests on de-h<N>) · murq<N>.json args
           · orders<N>.md + c<N>.json (generated from verdict files) · verdicts MAIN .agi/sessions/workflows/runs/mur-director-engine-23/
           · a base older than 91ae33672 needs `cherry-pick -x 6f9b9a1d9` before dispatch (else the mint refuses at 0.61)
 MURS      murl1..3 = 3 LANES over batches murq1..7 (mkdir claims/b<N>; pi-free = SERIAL per stage ~7 min): 1 509k1 509k2 512 514k1 ·
           2 514k2 515 516 510k4 · 3 519 522 521 501 · 4 526 520 507k1 507k2 · 5 525k1 525k2 529k1 529k2 · 6 497k1 497k2 530 531 · 7 532
-          single units: murq15 DH.544 · murq16 DH.543 · murq17 DH.541 · murq18 DH.542   (a unit that ENDS = read its verdicts, triage)
+          single units: murq15 DH.544 · murq16 DH.543 · murq17 DH.541 · murq18 DH.542 · murq19 DH.545   (a unit that ENDS = read its verdicts, triage)
 LIVE      DH.549 a00-60e5d07e (516) · DH.540 a00-c6a30652 · DH.545 a00-000b4375 · DH.546 a00-d470d22c · DH.547 a00-0a868326 · DH.548 a00-366fb511   (wt de-base-<N>)
 QUEUED    skills adapter round (hypothesis:skills-load-per-harness-per-tier-from-one-config-cell) cut from 526's cleared tip · 471 after 530
 CHAIN     tips (last)                 state                                                          land note
@@ -48,7 +48,7 @@ CHAIN     tips (last)                 state                                     
  427 heal-refuse  528 → 544           harvested feeff05ac (3 nodes landed, 101p) -> murq15           NEVER 476
  probe-gate       523 → 541           harvested 98b2b99e5 (150p) -> murq17
  row 20 nudge     524 → 542           harvested 7502fa786 (470p; send.py net 38 vs 15, row 17) -> murq18
- trunk reds       538 → 545           mur-23 AWR -> DH.545 LIVE
+ trunk reds       538 → 545           harvested e4f039c8d (184p, 2 nodes landed) -> murq19
  zero-usd         537 → 546           mur-23 AWR (cap guard charged the floor it is exempt from) -> DH.546 LIVE
  stale-lock       532 → 534 → 547     mur-23 DH.534 DEMOTE -> DH.547 LIVE; 532 review in lane 7; 532 NEVER merges alone
  model-fence      508 → 517 → 536 → 539 → 548   mur-23 508 demote + 539 AWR (verify died: memory-cap, R4) -> DH.548 LIVE
