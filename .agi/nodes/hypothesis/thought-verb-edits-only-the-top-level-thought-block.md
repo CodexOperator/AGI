@@ -75,6 +75,19 @@ FILE SCOPE extensions/agi/bin/links.py · extensions/agi/bin/node_writer.py · e
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 5c88edf53 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.583 -- closes mur-director-engine-27 DH.554-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-thought-verb-edits-on-a00-4469ceda tip 5b79c031b (branch de-base-583; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Tree-wide marker guard scans sibling agent worktrees and goes red in the canonical checkout -- extensions/agi/tests/test_thought_hygiene.py:257 -- _SKIP_DIRS omits 'worktrees' while :272 rglobs every *.py under repo_root(root); from /data/work/agi that is 278 real worktrees each holding a test_links_retired_refs.py:191 re-spelling at a rel the allowlist (:249) does not key, so the declared `pytest extensions/agi/tests/ -q` fails on the owner's own tree. One-line fix in the same merge: add 'worktrees' to _SKIP_DIRS (or key the allowlist by basename); until then this is a merge-up blocker for a green canonical suite.
+2. Guard exempts the definition by FILE NAME anywhere, so a second definition under another dir is invisible -- extensions/agi/tests/test_thought_hygiene.py:256 -- _DEFINITIONS = {"node_writer.py", Path(__file__).name} combined with `path.name in _DEFINITIONS` at :274 exempts every basename match in the tree; lib/node_writer.py carrying its own marker regex would not be reported, so the falsifier 'no THOUGHT-marker regex literal outside node_writer.py' is enforced by basename, not by path.
+3. Single-line marker matcher: a re-spelling split across lines, or built from a variable, escapes the guard -- extensions/agi/tests/test_thought_hygiene.py:240 -- _MARKER_RE requires re.compile/search/match( and the marker on ONE line; `re.compile(\n r"THOUGHT:BEGIN..."\n)` or a pattern held in a constant is not an offender, so the instrument is partial against its own falsifier. The DH.481-class defect it exists for (a single-line unanchored regex) IS caught.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_thought_hygiene.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_thought_hygiene.py · .agi/nodes/experiment/a00-3e57de38-2acdcd.md · .agi/nodes/experiment/a00-4d2f632a-608d9d.md · .agi/nodes/experiment/a00-e7c14870-a5bf8e.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 5b79c031b · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.554: mur-director-engine-23 DH.522-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.583: mur-director-engine-27 DH.554-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
