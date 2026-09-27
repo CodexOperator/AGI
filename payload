@@ -3038,7 +3038,7 @@ assigned: director-engine. FIRST of the three graph redesigns (OWNER 01:0xZ 09-2
 1. ultracode dropped from everyone + effort high on every post row -- DONE c72b01fb5 (config:posts) + the config:ladder tier-3 rows; residue: rotate.py:120 DEFAULT_CC_ROLES fallback still names ultracode (used only when neither the ladder nor config.json has the role).
 2. SKILLS: one skill per engine flow or operation -- goal creation carrying the goal schema inside it; write.py verbs; send/read/nudge; rotate; dispatch; merge-up / PASS / CHECK -- each a skill build node under this goal. Legal parents per the build schema (owner 01:2xZ): an existing build node as co-parent with this goal ([build, goal]), or an idea node spawned for them.
 3. CARDS list the relevant skills and ask each post to use the matching one; card F-rules and traps move into the skills. Cards stay in-process state; goal tracking lives on the town board.
-4. THE TRIM, measured 01:0xZ 09-27 (bytes): CLAUDE.md 26,597 (every session and kid) · extensions/agi/briefs/prime-director-successor.md 10,470 · doc:unified-head 7,547 · config:rotations facts 7,164 of 8,000 · thought-master card 301 lines / 46,431 (belam 100 / 12,595 · director-engine 106 / 16,730 · director-thought 83 / 9,437 · stream-master 80 / 12,241) · the Prime's first meter read 0.092 of the window. BUDGET (belam-S2-L5-XII 01:5xZ 09-27; measured value in brackets): CLAUDE.md <= 12,000 [10,123] · Prime template <= 8,000 [7,698] · HEAD region <= 5,500 [4,844] · config:rotations facts region <= 2,000 [7,164 -- hypothesis:wake-facts-collapse-to-skill-pointers, DE] · every card <= 100 lines [belam 95 · DE 80 · DT node 184 · TM 301 at 01:0xZ]. CLAUDE.md line 1 sends every agent to GOALS.md, 1.5 MB.
+4. THE TRIM, measured 01:0xZ 09-27 (bytes): CLAUDE.md 26,597 (every session and kid) · extensions/agi/briefs/prime-director-successor.md 10,470 · doc:unified-head 7,547 · config:rotations facts 7,164 of 8,000 · thought-master card 301 lines / 46,431 (belam 100 / 12,595 · director-engine 106 / 16,730 · director-thought 83 / 9,437 · stream-master 80 / 12,241) · the Prime's first meter read 0.092 of the window. CLAUDE.md line 1 sends every agent to GOALS.md, 1.5 MB.
 
 ## Done when
 - every post card is at most 100 lines and lists its skills; no card carries goal tracking;
@@ -7480,11 +7480,6 @@ Unify spawn and rotate as graph writes. Parents become rows under the post that 
 2. Only the box hosting the post acts (checked via AGI_BOX), and the loop clears the flag.
 3. A refusal is written into the row by name AND sent to the requesting post through the reply route, found via the graph. Cap it at one reply per failed request.
 4. Gate who may write which rows: parents write only their own kid rows, kids write none.
-
-## Invariants
-- GUARD BY PLACEMENT (Prime 03:2xZ 09-27, on the owner's question 'Will the guard work with the new spawn/rotate unified redesign?'): every spawn -- post, parent, kid, and rotate as a spawn option -- is a `systemd-run --user` transient SERVICE named `agi-<town>-<post>[-<slot>]`; tmux is only a view attached to it. The sanctuary guard caps by systemd placement (user@1000 high/max 12618/14021M; `agi-*.service` -> agi-work.slice 9302M), so a unit so named is guarded with no guard change. Measured 03:2xZ: 25 claude processes of the tmux-spawned seats sit in session-73.scope, OUTSIDE user@1000 (uncapped); dispatch.py parents are --scope units in app.slice (user@ cap only).
-- Near miss: unifying on today's post route (tmux) would move parents OUT of the cap too -- a silent regression nothing refuses.
-- Kid worktrees follow hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram (paths.<town>.worktrees_root; the guard-owned RAM disk; reaper eviction).
 
 ## Relations
 - parent goal:g7.31.3 -- the rotate|spawn route of the five unified engine routes; this makes it one graph write.
