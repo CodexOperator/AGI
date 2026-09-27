@@ -74,6 +74,21 @@ FILE SCOPE extensions/agi/tests/test_boxkit_templates.py · .agi/nodes/experimen
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over b32e952ea · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.591 -- closes mur-director-engine-30 DH.580-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-box-memory-guard-piec-a00-58431684 tip 88415ed96 (branch de-base-591; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Direction-2 disjointness assertion is unfalsifiable under the fake denylist (extensions/agi/tests/test_boxkit_templates.py:1032)
+2. The new session-state assertion is true by construction of the fixture it runs inside (extensions/agi/tests/test_boxkit_templates.py:1016)
+3. The node's OWN red-first for direction 2 is self-referential, not a merge: .agi/nodes/experiment/a00-19870cd0-134fe5.md:85-93 reports 'probe C (the guard's "sees the root" assertion flipped) 5 failed, 1 passed' -- flipping the asserted expression, and the parent's THOUGHT at :165 and :175 states the property as 'the engine stays blind to the checkout root', which is the tautology, not a falsification. My production-branch merge (anonymize.py:49) leaves row 14b green, so the test comment 'RED if merged' (test:1021-1022) is unsupported by the round's own evidence. Same defect class the parent already recorded on this hypothesis at experiment:a00-0acacf93 probes P8/P9 ('a node whose title promises a check that its bytes cannot perform').
+4. Hand-kept row index drifted in the same commit: the file header (test:1-61, 'Rows 1-13, one per clause ... 14:') never lists 11g or 14b, while the file's own comments cite them by number (test:704 'row 11g', test:864, test:1021) and the node cites ':866' and ':1024'. One source per rule: the inventory is a second copy of what the file already says, and it was already wrong one commit after being written.
+5. Undisclosed widening in the derived rule: UNIT_DIR_CELL (test:705) matches ANY cell value ending /systemd/<component>, so a future *drop-in* dir cell (e.g. etc/systemd/system.conf.d) would be read as a UNIT dir and _cell_fits_dir (test:713-719) would ACCEPT a piece the old literal pair rejected -- a loosening, the opposite of the caveat the node discloses (a00-19870cd0:147-149 names only the missing-coverage direction). Harmless today: I recomputed the committed cells and _unit_dir_tails() == {'systemd/system','systemd/user'}, identical to the removed UNIT_DIRS, so 0 manifest rows change verdict; and row 11g is genuinely falsifiable (reverting _unit_dir_tails to the literal red at test:873, matching the node's red-first claim).
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_boxkit_templates.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_boxkit_templates.py · .agi/nodes/experiment/a00-0acacf93-aa4632.md · .agi/nodes/experiment/a00-19870cd0-134fe5.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 88415ed96 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.580: mur-director-engine-26 DH.530-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.591: mur-director-engine-30 DH.580-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
