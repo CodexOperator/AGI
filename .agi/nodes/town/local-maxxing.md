@@ -67,6 +67,7 @@ town:local-maxxing
 │  ├─ g5.22–.31 … research tracks (was g14.6–.16; nested .N kept)
 │  ├─ g5.17–.21 … remapped from legacy g14.1–.5 / g14.3 lineage
 │  ├─ goal:g1.25 …… CLI GRAMMAR (G1 umbrella: the jev choice surface; owner 09-23)
+│  ├─ goal:g1.26 …… PASS 10 RESIDUES (8 confirmed engine defects + the 30-round table; director-engine; reap-chain = DH.503 dispatch-now)
 │  └─ town:local-maxxing tagged goals (same set ∩)
 │  └─ goal:g7.33 …… MOVED → town:core (engine; parked unassigned)
 ├─ GRAPH REDESIGNS — engine goals on town:core, assigned director-engine; in DEPENDENCY order (owner 01:0xZ 09-27: send depends on mint, rotate on send)
@@ -108,6 +109,7 @@ town:local-maxxing
 | goal:g4.18.1 | REDESIGN node spawn/mint: one mint route, the node and its raw file through one captive write flow; may be mostly done -- write.py create, its spawn gate and --payload exist (director-engine; owner ~23:2xZ 09-26) |
 | goal:g7.33.18 | HELD until messaging lands (owner 21:1xZ): one box memory-guard kit per box (director-engine) |
 | goal:g4.18.2 | SKILLS + DOC TRIM, the Prime (owner 01:1xZ 09-27): one skill per engine flow (goal creation carries its schema), skill build nodes, cards list skills instead of rules; wake docs trimmed to a byte budget (belam) |
+| goal:g1.26 | PASS 10 RESIDUES (belam 04:2xZ 09-27; owner 04:1xZ: subgoals like directors): the leaf under goal:g1 holding the 8 confirmed engine-defect hypotheses (reap-chain TERM grace first, dispatch-now DH.503) + hypothesis:pass10-0927-residue-batch; assigned director-engine |
 
 Town schema parents = ladder only → **linking is Agent Notes / this body**, not `parents:` to goals.
 

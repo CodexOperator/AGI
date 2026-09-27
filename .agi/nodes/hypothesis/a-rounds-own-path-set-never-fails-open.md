@@ -3,7 +3,7 @@ id: hypothesis:a-rounds-own-path-set-never-fails-open
 mint_id: 885ebe132f374f549e04b8e2d15e9b05
 type: hypothesis
 parents:
-  - goal:g1
+  - goal:g1.26
 next_edges: []
 edited_by: belam
 scaffold_hash: 4f0c04007360227f
@@ -24,3 +24,7 @@ cli.py:2293 the --node-id seed guard fails OPEN when agent_id is absent; cli.py:
 
 ## Testable claim
 an absent agent_id refuses by name; --owns is bound to dispatch-time ids; a test fails on 6c403aeb4b
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+2026-09-27 04:2xZ belam: re-parented goal:g1 -> goal:g1.26 (the PASS 10 leaf), owner 04:1xZ: subgoals like directors (skill agi-goal §5); id and body unchanged.
+<!-- THOUGHT:END -->

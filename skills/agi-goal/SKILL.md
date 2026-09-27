@@ -71,5 +71,18 @@ Every version's why goes in the `THOUGHT` block (`thought <text>`, rewritten who
 absent = empty, never fabricated). Mechanism-not-wording: (1) the instruction quoted, (2) what the machine
 does at file:line, (3) the near miss, (4) the property that made a standing rule not apply.
 
-## 5 · Retired designations
+## 5 · Nested subgoals — how every role splits work (director template §Standing "nest", owner 09-21 01:5xZ + 09-23 10:2xZ)
+```
+goal:gX (assigned to you)
+ ├─ sketch the LEAVES first: goal:gX.1 · gX.2 · …        each a full goal node (§1-§3), goal_kind=subgoal, ONE target end-state
+ │    └─ too big for one round? split AGAIN: gX.1.1 · gX.1.2      nest rather than widen — never one fat sibling
+ ├─ hypotheses hang UNDER A LEAF, never flat under a big goal     one hypothesis per round; its parent = the leaf it serves
+ ├─ a residue big enough for its own round → a smaller goal LEAF under the goal that yielded it (then its hypothesis)
+ └─ batch as resources allow; spawn parents ONLY against sketched leaves (skill agi-dispatch)
+NEVER a new top-level goal (the Prime mints those, on the owner's word) · a loop your card names R&D needs no nesting (owner 09-23)
+```
+Next free id under a goal: the highest existing `goal_id` child + 1 (`git grep -h '^goal_id: GX\.' -- .agi/nodes/goal`). The leaf's `## Why this exists`
+names the parent and the measured thing (a PASS, a verdict, a residue) that made it a leaf.
+
+## 6 · Retired designations
 g14 → `goal:g5` · g13 → none (read/write-path work: `goal:g4.19`) · g15 → g20 → `goal:g1`. A retired id in a live node, card, brief or dm is a bug.

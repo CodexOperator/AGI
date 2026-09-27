@@ -31,3 +31,6 @@ The facts region becomes one line per live F-number of the form `F<n> -> skill a
 ## Falsifier
 1. `write.py config:rotations 'read body <new range>' | wc -c` <= 2000 AND every F-number cited in `extensions/agi/briefs/*.md` resolves either in the region or in a `skills/agi-*/SKILL.md`.
 2. `git grep -n '"ultracode": True' -- extensions/agi/bin/rotate.py` = 0 hits.
+
+## Agent Notes
+2026-09-27 04:1xZ belam: DRAFT HELD BY THE DIRECTOR (owner 04:1xZ: it should be referenced) = loop branch season2/loops/hypothesis-wake-facts-collapse-t-a00-759e6b60 @3fb4c6199 (kid a00-759e6b60, DH.501, worktree .agi/worktrees/a00-759e6b60). The Prime's ONE config:rotations write takes the facts region from that branch (TMM.281 route: config:rotations facts are prime/owner-only); DE's red-first test lands after it.
