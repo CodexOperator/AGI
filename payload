@@ -3023,7 +3023,7 @@ Most of the plumbing exists: `write.py create`'s spawn gate, `--payload` (links 
 - The swarm parents struggled with node creation.
 
 ## Routing
-assigned: director-engine. After the send hub-only work (`goal:send-is-hub-only-dm-file-versions-synced-every-30s`): the owner's 21:1xZ HOLD waits on messaging. The owner may re-order.
+assigned: director-engine. FIRST of the three graph redesigns (OWNER 01:0xZ 09-27, verbatim: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): the hub-only send is written through write.py, so it builds on this route; spawn/rotate (goal:g7.31.3.3) comes after send.
 
 ### G4.19 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
 
@@ -7465,7 +7465,7 @@ Unify spawn and rotate as graph writes. Parents become rows under the post that 
 - goal:send-is-hub-only-dm-file-versions-synced-every-30s -- the reply route refinement 3 uses; its (default)-box note (46d1d17e1): refinement 2 acts only on the box a row names.
 
 ## Routing
-assigned: director-engine. After the send hub-only work (messaging first: the owner's 21:1xZ HOLD waits on it); the owner may re-order.
+assigned: director-engine. THIRD of the three graph redesigns, after node spawn/mint (goal:g4.18.1) and the send hub-only work (OWNER 01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): refinement 3's refusal rides send's reply route.
 
 #### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: active
 
