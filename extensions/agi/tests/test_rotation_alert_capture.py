@@ -619,3 +619,94 @@ def test_capture_keeps_unfenced_stops_slot_and_banked(
 
     # (3) BANKED is byte-identical
     assert _section(after, "banked") == _section(before, "banked"), after
+
+
+#: the LIVE cards' HYBRID slot shape (doc:card-belam's own bytes): a `##`
+#: heading, then a PROSE line carrying the timestamp+one-line state, then the
+#: fenced owed list. NEITHER committed fixture has it -- `LIVE_SHAPE_CARD` is
+#: fence-immediately-after-the-heading, the two `UNFENCED_SLOT_CARDS` have no
+#: fence at all -- so the shape the live cards actually carry was covered by a
+#: PARENT PROBE and by no committed row. Here the prose line is the byte at
+#: risk: `_fenced_payload` starts at the fence, so the payload it builds carries
+#: no prose, and only the WRITER keeping everything above the fence saves it.
+HYBRID_SLOT_CARD = """# probe-director card
+
+## State (13:1xZ 09-27)
+| | |
+|---|---|
+| post | probe-S2-L5-XIII gen 13 |
+
+## Where it stops -- successor's owed list
+13:1xZ 09-27 probe-S2-L5-XIII: account drained, paid mur paths closed; resume waits on the zero-usd fix
+```
+0. RESUME (OWNER 13:0xZ, no funds): DE [decision] 13:1xZ -- zero_usd lanes mint below the floor.
+   OWED after DH.501 merges up: F13 'Spend checked by hand' -> 'Spend by hand'.
+1. CHECK every 4 h (cron f86b1cf9, skill agi-merge-pass).
+```
+
+## Banked
+(b) a model scope outside the owner -- the owner's call.
+(b) a second banked option, kept byte for byte.
+"""
+
+
+def test_capture_keeps_the_hybrid_prose_then_fence_slot_and_banked(
+        tmp_path, run_hook, monkeypatch, capsys):
+    """The same conjunct-1 claim on the LIVE card's HYBRID shape: a PROSE
+    line between the heading and the fence. The capture still APPENDS its one
+    line, and the heading AND the prose line AND every owed byte survive
+    verbatim, with the fence neither broken nor doubled. This row is
+    LOAD-BEARING, not a green duplicate: with `hook._capture_stops` swapped
+    back to its pre-fix bare-line form on this same card, 3 of the 4 owed
+    lines are gone (the prose line above the fence survives only because the
+    writer keeps everything above it) -- the appended line is then the whole
+    slot, and the successor inherits nothing (RED-FIRST)."""
+    graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
+    monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
+    state_dir = tmp_path / "state-hybrid"
+    card = _stale_state(tmp_path, graph, state_dir)
+    card.write_text(HYBRID_SLOT_CARD, encoding="utf-8")
+    before = card.read_text(encoding="utf-8")
+    tp = tmp_path / "hybrid.jsonl"
+    _transcript(tp, 45_000)                     # over the line
+    code, out, err = run_hook(_payload(graph, tp, "s-hybrid", cwd), state_dir,
+                              monkeypatch, capsys)
+    assert code == 0, err
+    assert len(hook._CAPTURE_LOGGED) == 2, hook._CAPTURE_LOGGED
+    rc = rotate.cmd_handoff(
+        SimpleNamespace(driven=True, seat="probe-director",
+                        field=_fields_of(hook._CAPTURE_LOGGED[0]), dry_run=False),
+        graph)
+    assert rc == 0, capsys.readouterr().err
+    after = card.read_text(encoding="utf-8")
+
+    # (1) the heading AND the prose line above the fence survive VERBATIM
+    before_head, stop_before = _section(before, "where it stops")
+    after_head, stop_after = _section(after, "where it stops")
+    assert after_head == before_head, (before_head, after_head)
+    prose = stop_before.splitlines()[0]
+    assert prose, stop_before
+    assert prose in stop_after.splitlines(), (prose, stop_after)
+
+    # (2) the owed list survives and the fence is neither broken nor doubled
+    for owed in ("0. RESUME (OWNER 13:0xZ, no funds)",
+                 "   OWED after DH.501 merges up",
+                 "1. CHECK every 4 h (cron f86b1cf9, skill agi-merge-pass)."):
+        assert owed in stop_after, owed
+    assert after.count("\n```\n") == before.count("\n```\n") == 2, after
+
+    # (3) the ONLY change in the slot is the appended capture line, and it
+    # lands INSIDE the fence, after the last owed step
+    a_all = stop_after.splitlines()
+    added = [ln for ln in a_all if "auto-captured at f=" in ln]
+    assert len(added) == 1, a_all
+    assert a_all.index(added[0]) > a_all.index(
+        "1. CHECK every 4 h (cron f86b1cf9, skill agi-merge-pass).")
+    keep = [ln for ln in a_all if ln not in added and ln.strip()]
+    assert keep == [ln for ln in stop_before.splitlines() if ln.strip()], (
+        stop_before, stop_after)
+
+    # (4) BANKED is byte-identical -- nothing appended, nothing replaced
+    assert _section(after, "banked") == _section(before, "banked"), after
