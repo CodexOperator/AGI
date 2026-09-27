@@ -123,6 +123,31 @@ FILE SCOPE extensions/agi/tests/test_storage_categories.py · .agi/nodes/experim
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 23885323a · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.611 -- closes mur-director-engine-33 DH.588-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-mint-offers-storage-c-a00-4558ff34 tip efd244974 (branch de-base-611; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+0. The DH.588 parent died in the 09-27 disk-full event before its edits committed: EVERY order of CORRECTIVE DH.588 is still open -- deliver them all in the bytes (the review lists them as undelivered).
+1. 1. Six ordered node-text fixes asserted but absent from the diff (.agi/nodes/experiment/a00-efff0209-c9ca88.md:33)
+2. 2. verdict: proved unsupported (a00-efff0209-c9ca88.md:20)
+3. 3. Order 1 undelivered -- confidence 0.85 / inconclusive_lean_proved:85 survive (a00-ca575be5-db8af5.md:21)
+4. 4. Order 2 undelivered -- stale '(:1111-1114 keys only)' paragraph survives (a00-7440fe20-e60013.md:50)
+5. 5. Order 3 undelivered -- item-11 row still describes a tmp_path rebuild (a00-7440fe20-e60013.md:44)
+6. 6. Order 4 undelivered -- 'net 20, over a 40-line cap' survives (a00-ca575be5-db8af5.md:120)
+7. 7. Order 6 undelivered -- 'all five call sites' survives against four (a00-ca575be5-db8af5.md:36)
+8. 8. Order 8 undelivered -- delta prose still after THOUGHT:END (a00-ca575be5-db8af5.md:151, also a00-7440fe20-e60013.md:165)
+9. 9. New docstring miscounts live-config readers -- says two, bytes have three (test_storage_categories.py:7)
+10. 11. Test docstring stale vs the new whole-table skip (test_storage_categories.py:277)
+11. MECHANISM, and the cause of defects 1-8: node:133-134 claims 'There is no `--force` flag despite the guard's own error message telling you to pass one'. That is false in the same tree -- extensions/agi/bin/write.py:448 `if source.startswith("--force "): edit.replace_force = True`, and the very guard the node names offers it in its own message at write.py:2514, :2520 and :2527 ('Widen the range to a blank line or a heading, or pass --force'), with write.py:443-447 documenting the prefix form and write.py:2393 ('--force plus the node id, so the refusal is an instruction, not a wall'). The refusal text quoted at node:120 ('inside a paragraph') is write.py:2513. So the six undelivered items are exactly the write.py node edits that the guard refused, and the kid attributed them to a flag that exists and that the error message had just named. The correct cause is recorded nowhere in the node; the wrong cause is recorded as a Struggling.
+12. MITIGATION the first reviewer did not check, and it cuts FOR the round: item 9's evidence reproduces exactly. In a throwaway `git archive efd244974` tree, `sed -i '1150s/return 1/return 0/; 1159s/return 1/return 0/' extensions/agi/bin/locations.py` then the single committed test file gives `2 failed, 27 passed` -- the two named failures and NOT test_live_seeded_cells_all_point_at_a_directory_that_exists, which calls locations.storage_categories directly (:279) and never sees a return code, exactly as node:81-86 diagnoses. The file holds 29 `def test_` functions, matching the node's 29-test caveat at :123-124. DH.576's 3/26 is therefore proven wrong, and the round's single strongest contribution is real.
+13. No real-resource touch: grep over the tip's test file finds no tmux, systemctl, crontab, subprocess, Popen, os.system or kill; every mkdir/write_text (:48, :241, :254, :264, :302) is under a tmp_path root, and the live config is only read (:80, :89, :278). `env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_storage_categories.py -q` in the archived tip: 29 passed. No green test here requires a defect, and the round is not a hand-landed fix to a gate it must pass through.
+14. The new test is environment-coupled by design and this round kept it: test_live_seeded_cells_all_point_at_a_directory_that_exists (:272-292) asserts real repo directories, so a worktree missing a base directory skips rather than fails. That is a00-ca575be5's own recorded caveat (:126-128) and the order's stated choice, not a new defect -- but it is the one place where the delivered code can go silently green, and with defect 12's whole-table skip it now skips MORE of the table than before, not less.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_storage_categories.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_storage_categories.py · .agi/nodes/experiment/a00-7440fe20-e60013.md · .agi/nodes/experiment/a00-ca575be5-db8af5.md · .agi/nodes/experiment/a00-efff0209-c9ca88.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over efd244974 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.588: mur-director-engine-30 DH.576-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.611: mur-director-engine-33 DH.588-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
