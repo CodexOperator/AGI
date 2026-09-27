@@ -54,7 +54,7 @@ CHAIN     tip / state                                                           
  row 20 nudge    490+506 @5cf6b511e 480 green (test_send.py:5775 green again); send.py 79 net vs 36 -> mur506
  thought-verb    487+500 @dffe6de60 563 green, render --check OK -> mur500 DH.500-k1
  probe-gate      492 287 green -> mur492
- wake-facts      491 lean_disproved:60 -> 501 LIVE. TMM.282: the PRIME writes the range from 501's node once on trunk IF the node carries (1) test_rotate_templates.py:534
+  wake-facts      05:4xZ belam LANDED the Prime half (cdcfe5c0b) -> 501 tip 3fb4c6199 + trunk in scratch wt de-h501: 38 green, facts region 2009 > 2000 (the claim itself; pin NOT raised) -> [red] to TM for belam with a measured 21-byte F13 trim (1988) -> parent a00-759e6b60 still live (overdue 113m but writing at 05:45Z: extended). OLD: TMM.282: the PRIME writes the range from 501's node once on trunk IF the node carries (1) test_rotate_templates.py:534
                  green vs the DRAFT (F16 hit kept or re-pin in the SAME merge-up) (2) the new 'read body N:M' for rotations.md:76+:114 (3) red-first test OFF my branch
  reap-chain      503 kid work committed by me b3e476aea (stale index.lock) UNREVIEWED -> 507 LIVE (review + belam-cap record test)
  model-fence     505 died -> 508 d6ccb1f7b: 3 REGRESSIONS in the context fence suite (1f/25p on post br -> 4f/22p) -> 517 LIVE (fix the module, no test edits)
