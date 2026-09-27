@@ -268,3 +268,89 @@ def test_the_dry_run_preview_refuses_what_the_land_refuses(tmp_path):
         f"preview exit {preview.returncode}, land exit {real.returncode}")
     assert "MOVE PREVIEW" in preview.stdout
     assert payload.is_file() and _row_ref(Path(str(_node))) == "lib/mod.py"
+
+
+def test_a_second_repoint_keeps_link_ref_on_the_new_name(tmp_path):
+    """P1: the mirror keyed on `payload_ref` being ABSENT, so the SECOND
+    `set payload_ref` of a renamed row moved the file and left `link_ref` on
+    the first name (`broken_links` 1)."""
+    import links as _links
+    graph, payload, node = _link_graph(tmp_path)
+    _submit_set(graph, "build:b1", "payload_ref", "lib/one.py")
+    res = _submit_set(graph, "build:b1", "payload_ref", "lib/two.py")
+    assert res.status != node_writer.REJECTED
+    assert (tmp_path / "lib" / "two.py").is_file() and not (tmp_path / "lib" / "one.py").exists()
+    assert "link_ref: lib/two.py" in node.read_text(), "the field links.py reads must follow EVERY repoint"
+    assert _links.count_broken_links(graph) == 0
+
+
+def test_a_payload_verb_in_the_rename_write_lands_on_the_new_name(tmp_path):
+    """P2: the pair was read BEFORE the move, so `replace_payload` aimed at
+    the old name and the caller's bytes were written NOWHERE."""
+    graph, payload, node = _graph(tmp_path)
+    edit = write.Edit(node_id="build:b1")
+    write.verb_set(edit, "payload_ref", "lib/renamed.py")
+    edit.payload_bytes = "# caller's new bytes\n"
+    res = write.submit(graph, edit, actor="kid", session="s1")
+    assert res.status != node_writer.REJECTED
+    assert not payload.exists()
+    assert (tmp_path / "lib" / "renamed.py").read_text() == "# caller's new bytes\n"
+    assert _row_ref(node) == "lib/renamed.py"
+
+
+def test_a_failed_move_rolls_the_location_back_too(tmp_path, monkeypatch):
+    """P7: the rollback restored the ref under the NEW `location` the same
+    write had rebound -- a row that names nothing."""
+    graph, payload, node = _graph(tmp_path)
+
+    def boom(*a, **kw):
+        raise OSError("disk full")
+    monkeypatch.setattr(node_writer, "move_payload", boom)
+    edit = write.Edit(node_id="build:b1")
+    write.verb_set(edit, "location", "--confirm-move vendor")
+    write.verb_set(edit, "payload_ref", "lib/renamed.py")
+    with pytest.raises(write.EditError):
+        write.submit(graph, edit, actor="kid", session="s1")
+    import locations as _loc
+    row = node.read_text()
+    assert "location:" not in row, "the base must roll back with the ref"
+    assert _loc.resolve_payload_path(graph, "lib/mod.py", None).is_file() \
+        and _row_ref(node) == "lib/mod.py"
+
+
+def _cli(graph, args, tmp_path):
+    """write.py as a CALLER runs it: argv, exit code, stdout+stderr."""
+    import os
+    import subprocess
+    import sys as _sys
+    env = {k: v for k, v in os.environ.items()
+           if k not in ("TMUX", "TMUX_PANE")}
+    return subprocess.run(
+        [_sys.executable, str(Path(__file__).resolve().parents[1] / "bin"
+                              / "write.py")] + list(args),
+        cwd=tmp_path, capture_output=True, text=True, env=env)
+
+
+def test_the_confirm_flag_renames_end_to_end_from_argv(tmp_path):
+    """The epilog teaches `set payload_ref --confirm-move <new/dir/f.txt>`;
+    nothing ran that sentence through argv. No test line in the repo did."""
+    graph, payload, node = _graph(tmp_path)
+    run = _cli(graph, ["build:b1", "set payload_ref --confirm-move sub/new.py",
+                       "--root", str(graph)], tmp_path)
+    assert run.returncode == 0, run.stdout + run.stderr
+    assert not payload.exists() and (tmp_path / "sub" / "new.py").is_file()
+    assert _row_ref(node) == "sub/new.py"
+
+
+def test_the_dry_run_refuses_an_outside_ref_the_land_refuses(tmp_path):
+    """The outside-repo gate lived only inside submit(), so a `--confirm-move`
+    past the MOVE PREVIEW previewed rc 0 for a write the land refuses rc 2."""
+    graph, payload, node = _graph(tmp_path)
+    args = ["build:b1", "set payload_ref --confirm-move ../escape.py",
+            "--root", str(graph)]
+    preview = _cli(graph, args + ["--dry-run"], tmp_path)
+    land = _cli(graph, args, tmp_path)
+    assert preview.returncode == land.returncode == 2, (
+        f"preview {preview.returncode}, land {land.returncode}")
+    assert "outside the repo tree" in (preview.stdout + preview.stderr)
+    assert not Path(str(payload).replace("/lib/mod.py", "/../escape.py")).exists()
