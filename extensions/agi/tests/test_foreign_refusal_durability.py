@@ -286,7 +286,17 @@ def test_a_naming_racing_the_rewrite_is_merged_not_discarded(tmp_path):
 def test_both_writer_classes_in_the_swap_window_merge_and_lose(tmp_path):
     """The writer-class comment (`_foreign_memo_lock`): inside the swap window a
     LOCK-TAKING naming is MERGED and an UNLOCKED one is LOST (it appended to
-    the inode the swap discards). FALSIFIER: drop the flock, `old-seat` too."""
+    the inode the swap discards). FALSIFIER: drop the flock, `old-seat` too.
+
+    THIS IS A GREEN TEST PINNED TO A KNOWN DEFECT, not a clean side. The
+    `unlocked` arm passes ONLY while the durability hole this node's
+    hypothesis is about is open: an unlocked writer's refusal naming is
+    discarded by the inode swap and re-named forever (send.py:2266-2268).
+    If that hole is fixed -- e.g. the pre-lock fleet is retired, or the
+    rewrite merges instead of swapping -- `old-seat\tcore-town` will survive
+    and this assertion WILL FAIL, correctly. That failure is the signal to
+    delete this arm, not a regression. Nothing here is weakened to keep it
+    green; what it measures is unchanged."""
     root = _graph(tmp_path, [FOREIGN])
     memo = tmp_path / ".agi" / "sessions" / "foreign_refusals.tsv"
     memo.parent.mkdir(parents=True, exist_ok=True)
