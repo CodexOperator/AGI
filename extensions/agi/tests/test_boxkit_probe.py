@@ -6,7 +6,7 @@ USER manager is a red test, not a silent blank row.  It RECORDS every argv, so
 "only read verbs are ever called" is checked on bytes, not prose.
 """
 from __future__ import annotations
-import hashlib, json, os, pathlib, subprocess, sys
+import hashlib, json, os, pathlib, subprocess, sys, tempfile
 
 import pytest
 
@@ -394,9 +394,19 @@ def test_one_pure_resolver_and_the_writer_never_drift(tmp_path, monkeypatch):
     """RESIDUE 1: the cache path is computed in ONE place.  mem_cap's WRITER
     still creates its private dir; the PURE resolver the probe uses creates
     nothing and returns the same file -- with and without XDG_RUNTIME_DIR, and
-    with the AGI_MEMCAP_CACHE override."""
+    with the AGI_MEMCAP_CACHE override.
+
+    RESIDUE (DH.468): the (override=None, use_runtime=False) case falls
+    through to tempfile.gettempdir() -- the REAL $TMPDIR -- so the WRITER half
+    mkdirs + chmods <real tmp>/capdir OUTSIDE tmp_path.  A read-only guarantee
+    was tested by a test that writes outside its own sandbox.  So the
+    gettempdir() base BOTH resolvers can reach is pointed INSIDE tmp_path, and
+    the proof is a per-case `is_relative_to(tmp_path)` on every value either
+    resolver returns -- checked on bytes, not claimed in a comment."""
     cfg = {"values": {"memcap": {"probe_cache_dir_name": "capdir",
                                  "probe_cache_file": "verdict"}}}
+    fake_tmp = tmp_path / "faketmp"          # stands in for the box's $TMPDIR
+    monkeypatch.setattr(tempfile, "gettempdir", lambda: str(fake_tmp))
     for override in (None, str(tmp_path / "fixed-cache")):
         for use_runtime in (True, False):
             monkeypatch.delenv("AGI_MEMCAP_CACHE", raising=False)
@@ -410,7 +420,11 @@ def test_one_pure_resolver_and_the_writer_never_drift(tmp_path, monkeypatch):
             assert pure is not None
             if use_runtime and not override:
                 assert not fresh.exists(), "the PURE resolver created a directory"
-            assert pure == probe.mem_cap._probe_cache_path(cfg), "the two resolvers drifted"
+            writer = probe.mem_cap._probe_cache_path(cfg)
+            assert pure == writer, "the two resolvers drifted"
+            for label, path in (("pure", pure), ("writer", writer)):
+                assert pathlib.Path(path).is_relative_to(tmp_path), (
+                    f"the {label} resolver reached OUTSIDE tmp_path: {path}")
 
 
 def test_the_real_cached_probe_path_reads_a_planted_verdict_and_writes_nothing(tmp_path, monkeypatch):
