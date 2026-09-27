@@ -23,8 +23,11 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
@@ -76,6 +79,67 @@ def _worktree_root(tmp_path: Path, *, worktree: bool) -> tuple[Path, Path]:
         import shutil
         shutil.rmtree(gdir / "worktrees" / "seat-wt")
     return gdir, wt_agi
+
+
+# --- THE SEAM: no test in THIS FILE may reach a live tmux server ---------
+# conftest's autouse `_no_real_tmux` is dropped by `--noconftest`, and the
+# landing path (`_recover_seat` -> `_dm_crash_recovery` -> `send.send` ->
+# `send._nudge_target`) defaults the session to rotate.DEFAULT_TMUX_SESSION
+# (send.py:2208-2209). The gate therefore lives HERE: every ["tmux", ...] argv
+# is RECORDED and answered rc=1 (conftest's own answer, so the assertions
+# below read the same either way) and the fixture refuses at teardown.
+
+
+def _tmux_recorder(monkeypatch) -> list[list[str]]:
+    calls: list[list[str]] = []
+    real_run = subprocess.run
+
+    def _run(cmd, *a, **k):
+        if isinstance(cmd, list) and cmd[:1] == ["tmux"]:
+            calls.append([str(x) for x in cmd])
+            return subprocess.CompletedProcess(cmd, 1)
+        return real_run(cmd, *a, **k)
+
+    monkeypatch.setattr(subprocess, "run", _run)
+    return calls
+
+
+def _live_calls(calls, session: str) -> list[list[str]]:
+    return [c for c in calls if session in " ".join(c)]
+
+
+@pytest.fixture(autouse=True)
+def _no_live_tmux(monkeypatch):
+    """FILE-LOCAL seam: holds even under --noconftest, which is the whole
+    point. Every tmux argv is recorded; none may name the live session."""
+    rotate = _load("rotate")
+    calls = _tmux_recorder(monkeypatch)
+    yield calls
+    live = _live_calls(calls, rotate.DEFAULT_TMUX_SESSION)
+    assert not live, (
+        "a test in this file reached the LIVE tmux server: "
+        f"{live} (recorded: {calls})")
+
+
+def test_the_recorder_gate_is_not_vacuous():
+    """NEGATIVE CONTROL, in-process: the SAME checker the autouse fixture runs
+    is fed one live argv and MUST flag it. A gate that cannot go red is not a
+    gate (the DH.427 guard file died of exactly this)."""
+    rotate = _load("rotate")
+    live_argv = ["tmux", "send-keys", "-t",
+                 f"{rotate.DEFAULT_TMUX_SESSION}:0.0", "hello", "Enter"]
+    assert _live_calls([live_argv], rotate.DEFAULT_TMUX_SESSION) == [live_argv]
+    assert _live_calls([["tmux", "list-windows", "-t", "test-sess"]],
+                       rotate.DEFAULT_TMUX_SESSION) == []
+
+
+def _window_file(tmp_path) -> str:
+    """The EXISTING window-list seam (heal.WINDOW_PATH_ENV / the explicit
+    `window_path` argument), so `spawn_window` -> `rotate._existing_windows`
+    never touches the real tmux binary. NO production line was added."""
+    p = tmp_path / "windows.txt"
+    p.write_text("", encoding="utf-8")
+    return str(p)
 
 
 def _never_launcher(seen):
@@ -145,8 +209,8 @@ def test_typeerror_inside_a_cwd_aware_launcher_is_never_retried(tmp_path,
     out = heal._recover_seat(gdir, {"name": "mainseat", "role": "director",
                                     "pid": 111, "worktree": ""},
                              "pid gone", _load("rotate"),
-                             windows=[], window_path=None, launcher=launch,
-                             now=0.0)
+                             windows=[], window_path=_window_file(tmp_path),
+                             launcher=launch, now=0.0)
     assert calls == [heal._seat_tree_dir(gdir, {"worktree": ""})], \
         f"the launcher was called again (calls={calls})"
     assert out["respawned"] is False and "TypeError" in out["reason"], out
@@ -165,18 +229,35 @@ def test_worktree_post_refuses_a_no_cwd_retry(tmp_path, monkeypatch):
             "launch() got an unexpected keyword argument 'cwd'")
 
     out = heal._recover_seat(gdir, dict(ROW), "pid gone", _load("rotate"),
-                             windows=[], window_path=None,
+                             windows=[], window_path=_window_file(tmp_path),
                              launcher=precwd_launch, now=0.0)
     assert calls == [], f"the no-cwd retry ran for a worktree seat: {calls}"
     assert out["respawned"] is False and "cwd" in out["reason"], out
 
 
-def test_pre_cwd_seam_still_lands_for_a_main_checkout_seat(tmp_path):
+def test_pre_cwd_seam_still_lands_for_a_main_checkout_seat(tmp_path,
+                                                          monkeypatch):
     """The retry SURVIVES for the signature it was written for: a main-checkout
     seat (no `worktree` cell) + a pre-cwd seam is retried once, without cwd,
-    and the recovery lands. Deleting the retry outright would break this."""
+    and the recovery lands. Deleting the retry outright would break this.
+
+    This is the ONE test that reaches the nudge: a landing recovery calls
+    `_dm_crash_recovery` -> `send.send` -> `send._nudge_target`, and send.py
+    defaults the session to `rotate.DEFAULT_TMUX_SESSION` (send.py:2208-2209).
+    The nudge entry point is STUBBED to a recorder (that path takes no session
+    parameter to pass a test one into); the autouse `_no_live_tmux` gate is
+    the independent second line."""
     gdir = tmp_path / "main" / ".agi"
     gdir.mkdir(parents=True)
+    # heal does `import send as _send` INSIDE `_dm_crash_recovery`, so the
+    # module object it gets is the one in `sys.modules` -- register this
+    # instance there (monkeypatch restores it) or the stub patches a different
+    # module object than the one heal resolves.
+    send = _load("send")
+    monkeypatch.setitem(sys.modules, "send", send)
+    dms: list = []
+    monkeypatch.setattr(send, "send",
+                        lambda *a, **k: dms.append((a, k)))
     calls: list = []
 
     def precwd_launch(root, name, shell_cmd, window_path=None):
@@ -186,7 +267,10 @@ def test_pre_cwd_seam_still_lands_for_a_main_checkout_seat(tmp_path):
     out = heal._recover_seat(gdir, {"name": "mainseat", "role": "director",
                                     "pid": 111, "worktree": ""},
                              "pid gone", _load("rotate"), windows=[],
-                             window_path=None, launcher=precwd_launch,
+                             window_path=_window_file(tmp_path),
+                             launcher=precwd_launch,
                              now=0.0)
     assert calls == ["no-cwd"], calls
     assert out["respawned"] is True, out
+    assert dms and "mainseat" in json.dumps(dms, default=str), \
+        "the landing recovery should record its crash-recovery dm to the recorder"

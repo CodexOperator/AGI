@@ -3079,12 +3079,17 @@ def _clean_stale_layout_locks(root: Path, row: dict) -> None:
     removed with a log line (verification.py holds it under `<groot>/sessions/`;
     the dead seat is the only holder that could still be mid-suite, and a stale
     lock would wedge the next suite run forever). Live-first geometry tree;
-    best-effort, never raises."""
+    best-effort, never raises.
+
+    THE `gdir is None` ARM IS DEFENSIVE, NOT REACHABLE-BY-GEOMETRY: the ONE
+    caller -- the watch loop's `_clean_stale_layout_locks(root, row)`, after its
+    own missing-worktree refusal -- is a DIFFERENT MOMENT
+    than this read, so a between-check prune still lands here (DIRECTOR RULING
+    DH.449)."""
     gdir = _seat_geometry_dir(root, row)
-    if gdir is None:  # MAIN's lock is not a gone worktree's seat to remove
-        _watch_log(f"watch: dead seat {(row.get('name') or '')!r}: worktree "
-                   f"geometry {_seat_worktree_gdir(root, row)} missing; "
-                   f"stale-lock sweep skipped")
+    if gdir is None:
+        _watch_log(f"watch: no geometry for dead seat "
+                   f"{(row.get('name') or '')!r}; stale-lock clean skipped")
         return
     lock = gdir / "sessions" / "verify-suite.lock"
     if lock.is_file():
