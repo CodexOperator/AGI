@@ -64,3 +64,116 @@ def test_zero_usd_mint_forces_the_hard_key_cap(tmp_path, drained, monkeypatch):
         provisioning.mint(iter_n=1, agent_id="a00-test", limit_usd=1.0,
                           root=root, zero_usd=True)
     assert sent.get("limit") == 0.01
+
+
+# --- hypothesis:a-zero-usd-lane-prints-the-cap-it-mints --------------------
+# The banner resolved one cap and the mint forced another (0.01), so every
+# zero-USD key on DH.533-536 was capped BELOW what the round was told. Driven
+# through dispatch.main() with the network stubbed; the graph skeleton is
+# test_dispatch's (its own openrouter kid project), nothing here mints for real.
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from test_dispatch import _cap_project, dispatch, BIN  # noqa: E402
+
+
+class _StubProc:
+    pid = 7777
+    args = ["stub"]
+
+    def poll(self):
+        return None
+
+    def wait(self, timeout=None):
+        return 0
+
+    def kill(self):
+        pass
+
+    def communicate(self, *a, **k):
+        return ("ctx\n", "")
+
+    terminate = send_signal = kill
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *a):
+        return False
+
+
+class _Minted:
+    secret, key_hash, name, expires_at = "sk-x", "h", "n", "Z"
+    limit_usd = 0.01
+
+
+def _zero_usd_dispatch(tmp_path, monkeypatch, *extra, rtk=(True, None),
+                       key_floor=(False, "drained key below floor")):
+    """Run one zero-USD kid round with provisioning + Popen stubbed. The
+    key floor is REFUSING by default: a lane that skips it must still spawn,
+    a lane that runs it must not."""
+    import sys as _sys
+    project = _cap_project(tmp_path)
+    cfgp = project / ".agi" / "config.json"
+    cfg = json.loads(cfgp.read_text())
+    cfg["harnesses"]["pi"]["zero_usd"] = True
+    cfg["provisioning"]["zero_usd_key_limit_usd"] = 0.01
+    cfgp.write_text(json.dumps(cfg))
+    prov, calls = dispatch.provisioning, []
+    monkeypatch.setattr(prov, "available", lambda root=None: True)
+    monkeypatch.setattr(prov, "mint",
+                        lambda **kw: (calls.append(kw), _Minted())[1])
+    monkeypatch.setattr(prov, "check_runtime_key_usable",
+                        lambda cfg, root=None: rtk)
+    monkeypatch.setattr(prov, "check_key_floor",
+                        lambda cfg, root=None, iter_n=None: key_floor)
+    monkeypatch.setattr(prov, "check_account_floor",
+                        lambda cfg, root=None: (False, "account drained"))
+    monkeypatch.setattr(prov, "credit_balance", lambda root=None: None)
+    monkeypatch.setattr(prov, "list_all_keys", lambda root=None: [])
+    monkeypatch.setattr(dispatch.subprocess, "Popen", lambda *a, **k: _StubProc())
+    monkeypatch.setattr(dispatch, "_GRACE_SLEEP", lambda s: None)
+    for k in ("AGI_TREE_PROJECT_ROOT", "AGI_PROJECT_ROOT", "AGI_AGENT_ID",
+              "AGI_ACTOR", "AGI_HARNESS", "AGI_SEAT"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setattr(_sys, "argv", [
+        str(BIN / "dispatch.py"), str(project), "1", "--level", "small",
+        "--harness", "pi", "--tier", "kid", "--target", "hypothesis:x",
+        *extra])
+    return dispatch.main(), calls
+
+
+def test_zero_usd_banner_prints_the_cap_the_mint_forces(tmp_path, monkeypatch,
+                                                        capsys):
+    """The standing limit is 1.5 and `--cap 2` says 2.0; the minted key is
+    capped at the cell (0.01). The banner must name 0.01 -- the cap the key
+    carries -- not the number the resolution happened to land on."""
+    code, mints = _zero_usd_dispatch(tmp_path, monkeypatch, "--cap", "2.00")
+    out = capsys.readouterr().out
+    assert code == 0
+    assert "limit=$0.01" in out, out
+    assert [m["limit_usd"] for m in mints] == [0.01], mints
+
+
+def test_zero_usd_lane_runs_the_runtime_key_gate_and_the_cap_guard(
+        tmp_path, monkeypatch, capsys):
+    """The two gates a zero-USD lane must NOT skip: the runtime-key
+    pre-flight (a 401 refuses before a slot is taken) and the `--cap` guard
+    (a non-positive cap never reaches headroom). FALSIFIERS: `--cap 0` is
+    accepted, or a dead runtime key spawns anyway."""
+    code, mints = _zero_usd_dispatch(tmp_path, monkeypatch, "--cap", "0")
+    err = capsys.readouterr().err
+    assert code == 1 and mints == [], (code, mints, err)
+    assert "ERR: --cap must be > 0, got 0" in err, err
+    code2, mints2 = _zero_usd_dispatch(tmp_path / "dead", monkeypatch,
+                                       rtk=(False, "runtime key rejected: 401"))
+    err2 = capsys.readouterr().err
+    assert code2 == 1 and mints2 == [], (code2, mints2, err2)
+    assert "runtime key rejected: 401" in err2, err2
+
+
+def test_zero_usd_lane_skips_the_two_dollar_floors(tmp_path, monkeypatch):
+    """The refusing key floor and the refusing account floor (both stubbed
+    above) must not stop a zero-USD lane: it minted, and the round spawned."""
+    code, mints = _zero_usd_dispatch(tmp_path, monkeypatch)
+    assert code == 0
+    assert len(mints) == 1, mints
