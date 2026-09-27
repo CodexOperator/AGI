@@ -35,6 +35,7 @@ call `wrap_argv`; what this file asserts is the bound ON THE ARGV.
 """
 from __future__ import annotations
 
+import copy
 import json
 import sys
 from pathlib import Path
@@ -145,9 +146,34 @@ def test_the_live_config_carries_the_owners_own_value():
     assert mem_cap.resolve_tasks_max(cfg) == cell, cell
 
 
+@pytest.mark.parametrize("planted", [1000, "1000"])
+def test_the_comparison_holds_for_a_planted_cell_above_the_int_cache(
+        planted):
+    """`==`, NOT `is` (DH.480, closing the DH.475 parent-review caveat).
+
+    `_live_spawn_tasks_max` compares with `==` because the resolver REBUILDS
+    the number with `int(str(raw).strip())`. On the live cell (150) the two
+    spellings agree -- CPython caches small ints in -5..256 -- so a live-only
+    suite cannot tell the fix from the bug. This row plants a cell ABOVE that
+    cache in a COPY of the config (the live config is never written) and
+    asserts the helper's own comparison, so a regression back to `is` reds
+    here. Red-first, measured: with `is` this row fails
+    `assert mem_cap.resolve_tasks_max(planted_cfg) == int(str(planted).strip())`
+    at 1000 and at "1000"; with `==` it is green at both.
+    """
+    cfg = copy.deepcopy(_live_config())        # a COPY: the live file is read-only
+    cfg["spawn"]["tasks_max"] = planted
+    parsed = int(str(planted).strip())         # the resolver's own spelling
+    resolved = mem_cap.resolve_tasks_max(cfg)
+    assert resolved == parsed, \
+        f"spawn.tasks_max: resolver disagrees with the planted cell: {resolved!r}"
+    assert resolved is not parsed or planted in range(-5, 257), planted
+
+
 def test_the_old_cell_is_read_nowhere():
     """`values.memcap.tasks_max` is not a second spelling of the same bound."""
-    cfg, cell = _live_spawn_tasks_max()
+    live, cell = _live_spawn_tasks_max()
+    cfg = copy.deepcopy(live)    # a COPY: never mutate what the helper returned
     other = cell + 1  # a value that can never equal the live cell
     cfg.setdefault("values", {}).setdefault("memcap", {})["tasks_max"] = other
     assert mem_cap.resolve_tasks_max(cfg) == cell, (other, cell)
