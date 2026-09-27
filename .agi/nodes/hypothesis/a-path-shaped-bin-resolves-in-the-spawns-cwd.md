@@ -78,6 +78,21 @@ FILE SCOPE extensions/agi/bin/adapters/__init__.py · extensions/agi/bin/adapter
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 1363f84d8 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.616 -- closes mur-director-engine-34 DH.584-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-a-path-shaped-bin-res-a00-e1062d49 tip c2705d94b (branch de-base-616; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Build nodes not versioned with their changed payloads — .agi/nodes/build/bin-adapters-init.md:75
+2. 2. Experiment node's item table reports node edits as CARRIED that are absent from the diff — .agi/nodes/experiment/a00-45ec831e-e513a5.md:38
+3. STALE DOCSTRING THE ROUND LEFT BEHIND — extensions/agi/tests/test_adapters_spawn_cwd.py:13 (at c2705d94b) still reads 'Present, a RELATIVE path-shaped bin is tried against that spawn cwd FIRST, because that is the cwd Popen will use.' That is the OLD contract: 'FIRST' presupposes a resolver-cwd fallback, which this round deleted at adapters/__init__.py:151-152. Same 'a comment that lies about the mechanism' class the round fixed as item 1 in __init__.py, left in the very test file the round rewrote (115 changed lines). The first reviewer did not cite it.
+4. THE SECOND CHANGED PAYLOAD IS UNVERSIONED ENTIRELY, not merely late — .agi/nodes/build/bin-adapters-pi-adapter.md is 120 lines with only the level3-generated BUILD-CONTRACT and no v2 section at all (grep for 'v2 |spawn_cwd|restart' finds only the contract's `restart` entry at :79-80), while extensions/agi/bin/adapters/pi_adapter.py gained spawn_cwd, build_command(spawn_cwd=...) and the one-derivation restart wiring. The node's OUTSIDE table names it as a Findings row, so the round knew; the merge still lands a changed payload with a canonical node that describes only the pre-change contract.
+5. MERGE SHAPE, not a round defect but blocking for the merge: the destination branch does not contain this round's bytes. HEAD 0705c0ead (local-maxxing/season2/posts/director-engine/main) has NO extensions/agi/tests/test_adapters_spawn_cwd.py and a different adapters/__init__.py (`git diff c2705d94b HEAD -- extensions/agi/bin/adapters/ ...` = 378 deletions), 1363f84d8 is NOT an ancestor of HEAD, and .agi/nodes/experiment/a00-45ec831e-e513a5.md exists at c2705d94b but not at HEAD. The four files must be re-based onto the destination, not fast-forwarded.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_adapters_spawn_cwd.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/adapters/__init__.py · extensions/agi/bin/adapters/pi_adapter.py · extensions/agi/bin/dispatch.py · extensions/agi/tests/test_adapters_spawn_cwd.py · .agi/nodes/experiment/a00-45ec831e-e513a5.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over c2705d94b · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.584: mur-director-engine-30 DH.567-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.616: mur-director-engine-34 DH.584-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
