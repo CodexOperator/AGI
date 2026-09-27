@@ -45,7 +45,7 @@ CHAIN     next act                                                         land 
   426 schema-gate 527 harvested: 6 node edits landed 4871efc3d (6/6 == write-log, THOUGHT 1/1) -> mur527                                                        NEVER 442
   427 heal-refuse 528 harvested (verdict edit landed, 0 user-name hits) -> mur528                                                        NEVER 476
  429 tasks-max   495 mur-15 AWR: ## TESTS names no test -> tiny corrective or demote; LAND 429 nodes br first, then 495 -X theirs
- 432 guard-piece 504 -> mur504; ANON: a kid node row prints the repo path value -> scrub      NEVER 432 itself
+  432 guard-piece mur504 AWR x4 (row 14 vacuous, cell-blind branch, import pollution, ANON path at a00-0acacf93:67) -> 530 a00-d3d5ead8 LIVE   NEVER 432 itself
  433 guard-inst  471 mur-17 k1 unstructured AWR, k3 AWR (3 missed) -> corrective AFTER 432 lands
  g4.18.1.1       521 harvested 486 green; item 4 (a00-9086ec16) UNLANDABLE (bytes != write-log, row 21) -> mur-20
  g4.18.1.3       519 harvested 185 green (a00-4bf392d4 landed 36f928c7d) -> mur-20
@@ -57,10 +57,10 @@ CHAIN     next act                                                         land 
   probe-gate      523 harvested 78+7 green (node landed) -> mur523
  wake-facts      501 harvested (0eba09517) -> mur-20; trunk region 2009 > 2000 = the claim: pin NOT raised; [red] 05:4xZ via TM: belam trims F13
                  (measured 1988 on a scratch copy, wt de-h501) -> after the trim: merge, re-run test_rotate_templates on the merge
- reap-chain      507 LIVE · model-fence 517 LIVE · frontmatter 520 LIVE (parent demoted 518: 2nd copy of the shape, links ungated, node unrepaired)
+  reap-chain      507 harvested (kid a13fa3fd fixed the EPERM half; 134 green on de-h507) -> murb3 · frontmatter 520 harvested 280 green (node landed 5a24ccfbd) -> murb3 · model-fence 517 LIVE (no commit 80 min)
  PASS 10         509 512 514 515 516 -> mur-19 · (5) belam-cap-reap HELD until 507 lands
  skills          doc:draft-skills-first-turn (40dd3bdc7) rides the next [merge-up]; the Prime writes it into config:rotations (TMM.286) ·
-                 526 LIVE (parent/kid tier sets in agent-prompt.md) -> THEN hypothesis:skills-load-per-harness-per-tier-from-one-config-cell,
+                                  526 harvested 136 green (11 lines) -> murb3 -> THEN hypothesis:skills-load-per-harness-per-tier-from-one-config-cell,
                  cut from 526's cleared tip (TMM.287: pi parents + kids load their limited set from the cell; 526's lines retire)
 ```
 

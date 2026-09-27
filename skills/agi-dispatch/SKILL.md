@@ -56,3 +56,4 @@ Reviews of a round run BY NAME on pi (skill `agi-workflow`), never inline.
 | uncommitted | a parent can exit leaving edits uncommitted in a KID worktree or its OWN (DH.486/488/489/495): `git status -s` in both at every harvest |
 | kid-node | land such an edit ONLY if its bytes == its last write-log sha (`.agi/sessions/write-log.jsonl` in that worktree): commit on the kid branch, merge into the loop branch, name actors + rows; unlogged = never hand-land (TMM.268) |
 | no-dm | a parent's harvest dm can be lost or blind to `--owns` kids: reconcile by branch + `spawn_budget.py status`, never by inbox alone |
+| vanishing-wt | a CLEAN round worktree is pruned while you test in it (06:25Z 09-27: 58 phantom help-smoke failures, then "file or directory not found"): land its uncommitted edits FIRST, then test on `git worktree add --detach .agi/worktrees/de-h<N> <tip>` |
