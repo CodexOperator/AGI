@@ -12,15 +12,17 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ```
 
 ## 🔴 Where it stops
-13:1xZ 09-27: the ZERO-USD MINT FIX (belam 13:09Z, to DE + me) = DE's, editing since 13:10Z; I stood down (TMM.296) -- next = read the dm files; gate DE's zero-usd merge-up (falsifier: one real pi-free kid at 0.606, key limit 0.01, credits 0.606 after) then land + push; then DT's model tip 09d7ed36c (load now < 16; waits on DE's nudge fix + a key)
+13:3xZ 09-27: ZERO-USD MINT FIX LANDED 91ae33672 (+ d0c1eba0b restore), FALSIFIER MET (DH.533: 0.6063 before = after) -- dispatch resumed on pi-free (keys cap 0.01, credits 0.606) -- next = read the dm files; DE's full post-branch merge-up (tip f6bf73919, 366 ahead) after a suite window + pi-free murs; then DT's model tip 09d7ed36c (waits on DE's nudge fix)
 ```
-state    MAIN = origin + this card · last order = TMM.296 · next = TMM.297 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB (belam 03:0xZ)
+state    MAIN = origin + this card · last order = TMM.298 · next = TMM.299 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB (belam 03:0xZ)
 INTAKE   OWNER 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> at EVERY nudge + wake read the dm files
          (.agi/comms/season-2/dm/*thought-master*.md, blocks by ts with from != thought-master) + .agi/sessions/inbox/thought-master.md
          DIRECTLY; send.py read's 'empty' is not proof · a background python loop on those 4 files' LAST block (from != me) wakes you
 ZEROUSD  belam 13:09Z [decision], OWNER: account 0.606, no top-up -> zero_usd lanes mint below the floor, key cap cell
          provisioning.zero_usd_key_limit_usd 0.01, paid floor from a cell, never negative · the Prime closed the paid mur path 56c1156ab
          (config:workflows + config.json rows -> pi-free) + b54e8821f (master brief:71) · DE builds; my gate points = TMM.296 (a)-(g)
+         · LANDED 13:31Z 91ae33672 (DE 6f9b9a1d9 alone): suite 6775/3 red = 0 from the range · residues -> DE (TMM.298): printed limit,
+           zero_usd skips runtime-key-usable + --cap guard, 2 TRUNK reds (test_ladder_node roles_table, test_sensei_wake_audit item2)
 SPEND    [red] 06:5xZ: account 0.95 of 192 USD left (~12.8 since 09-24) · ROOT config:workflows default_harness pi + per-type rows pi ->
          murs on paid deepseek (DE 74 / DT 22 paid runs) · the mint floor 1.00 (a literal) refuses EVERY key = ALL dispatch stopped (DE
          DH.533) · the Prime: the node fix + credits (the owner's call) · DE / DT: stop paid murs, ALWAYS --harness pi-free (TMM.291/292;
@@ -125,6 +127,9 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
              · a tip's GOALS.md can be STALE against its own goal-node edits (mu 12, gen 27: --check MISMATCH on the gate tree) -> render in a
                SECOND worktree of M, hash-object -w, land T2 with that blob swapped in (temp index), name it; tell the director the rule
              · EVERY landing runs snapshot-goals.py --render --check, code merge-ups too: #13 minted goal:g7.33.12 without heading_level and the render has refused since
+             · commit-tree <gated tree> -p HEAD is ONLY safe when HEAD^{tree} == the gated base tree: ASSERT it and ABORT on a mismatch
+               (13:31Z 09-27: the watch committed DE's gen-30 rotation between gate + land; my `[ ] && echo` printed nothing and I landed anyway
+               -> reverted 3 rotation files, pushed; restored d0c1eba0b) -- else re-derive T2 = merge-tree(live HEAD, gated commit)
              · a fresh seat's first merge-tree can predate the watch's after_join record commit (~2 min after seating): re-run merge-tree on the
                live HEAD right before minting M (gen 21: the first tree differed by that record file only) · or the watch lands FIRST (gen 26:
                09:16:06Z for a 09:14:20Z seat): M's first parent = the live HEAD at landing -> the gated tree IS the landing tree
