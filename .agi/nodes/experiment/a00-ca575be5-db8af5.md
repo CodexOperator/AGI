@@ -6,7 +6,7 @@ parents:
   - hypothesis:mint-offers-storage-categories-from-config-cells
 next_edges: []
 confidence: 0.75
-edited_by: a00-d1efc345
+edited_by: a00-eea0b2c4
 evidence_runs:
   - experiment:a00-ca575be5-db8af5
 loop: hypothesis:mint-offers-storage-categories-from-config-cells@s2
@@ -128,8 +128,6 @@ $ git diff --numstat -- extensions/agi/bin/locations.py \
 Test-line accounting: 43 added / 23 removed = net 20, UNDER the 40-line test
 cap; the extra added lines are the companion typo test's assertions, kept
 because they are what makes the real-disk check falsifiable.
-overage of 3 added lines is the companion typo test's assertions, kept because
-it is what makes the real-disk check falsifiable.
 
 ## Caveats
 
