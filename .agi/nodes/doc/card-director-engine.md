@@ -35,7 +35,7 @@ Skills: agi-dispatch · agi-corrective · agi-workflow · agi-node-write · agi-
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br holds DH.424+431, 434, 430 chain (4af305171), 425 chain (3e327cf66) · trunk d6b893037
 RED       post br: test_bin_help_smoke[suite_guards.py] (430 chain's library module) -> DH.511 harvested (2 lines, help smoke 72 green) -> mur511 running -> merge FIRST, then re-run help smoke on every chain (515 fails only this row)
-LIVE      parents (cap 10 = cell values.local_maxxing.de_live_parents arm): 501 759e6b60 · 507 fa4269d4 · 509 df266356 · 511 bc1424df · 512 256e7631
+LIVE 05:4xZ  correctives (skill agi-corrective, orders ON each hypothesis node): 519 a00-01725b8e (510 chain) · 520 a00-e5892662 (518) · 521 a00-11b193da (502, seat-ceiling bypass) · 522 a00-ba767330 (500) · 523 a00-966d7899 (492) · murs 511 + b1 (mur-19: 509 512 514 515 516) · 518 HARVESTED (parent demoted to lean_proved:50 -> 520) || LIVE      parents (cap 10 = cell values.local_maxxing.de_live_parents arm): 501 759e6b60 · 507 fa4269d4 · 509 df266356 · 511 bc1424df · 512 256e7631
           · 514 792978f9 · 515 97ddb37e · 516 42e99d0a · 517 aae293b3 · 518 07292877   (all a00-)
           murs (systemd agi-director-engine-mur<N>; verdicts MAIN .agi/sessions/workflows/runs/mur-director-engine-1{3..9}/verify_DH.NNN-kN.json)
           471r(k1,k3) 485r 492 498 499 500(500+502) 504 506 510(510x4+497x2) 513 · swarm-sampler2 (arm 10 since 03:02:43Z)
@@ -61,7 +61,7 @@ CHAIN     tip / state                                                           
  capture         493 AWR -> 509 LIVE (unfenced ## + ### rows; belam's card is ## unfenced)
  HARVESTED 05:2xZ 509 (219 green) 512 514 515 (181: only the inherited help-smoke row) 516 (node edits landed 7cabf1f8f) -> tests unit agi-director-engine-harvest1, log /tmp/de-harvest1.log -> murs next; PASS 10: 512 round-stages · 514 own-path-set (parent authorised a 2nd kid + edits 3 legacy test_cli.py fixtures OUTSIDE scope: at review check they do not
                  mask the parent-owns-kid refusal) · 515 capture-latch · 516 path-bin · 518 frontmatter-shape (all LIVE) · (5) belam-cap-reap HELD until 507 lands
-OWNER     04:4xZ asked 'How is the 92 unharvested worktree sweep going': answered 78 dirty non-live (58 node-only, 20 code), nobody sweeps; plan = round 2 of
+OWNER     05:4xZ: skill index by TEMPLATE EDIT ONLY -> DRAFT doc:draft-skills-first-turn (40dd3bdc7, one gate-admitted skills entry for both templates); owner informs TM. TMM.284 (emitter code round) HELD until TM answers on the draft || 04:4xZ asked 'How is the 92 unharvested worktree sweep going': answered 78 dirty non-live (58 node-only, 20 code), nobody sweeps; plan = round 2 of
           kid-worktrees (harvest-or-deprecate: logged node edits -> commit on the kid branch naming the owner; unlogged/code -> listed per owner; dry-run) after mur499,
           informed by the 'refused unmerged' finding; offered to jump the PASS 10 queue -- NO ANSWER yet
           21:1xZ via belam: send QUIET row + READ-ON-LANDING; HOLD stream / encryption-town / sanctuary until messaging done
