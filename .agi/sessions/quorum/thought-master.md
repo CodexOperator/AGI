@@ -41,6 +41,8 @@ state   MAIN = origin + this card · last order = TMM.270 · next = TMM.271 · s
 INTAKE  OWNER in this pane 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> at EVERY nudge and wake read the dm
         files (.agi/comms/season-2/dm/*thought-master*.md, newest blocks by ts) + .agi/sessions/inbox/thought-master.md DIRECTLY: send.py
         read printed 'empty' twice while DE's 01:49Z [red] + 02:16Z [rule] sat in the inbox file and DT's 21:37Z [merge-up] never nudged
+PRE     02:36Z (successor): db6bbf39e vs HEAD df65ff4dc merge-tree rc 0 · 12 files · workflow.py untouched (mid-PASS landing OK) · probe
+        WAITS: user@ 6506 / high 6628 MiB at 02:35Z (PASS 10) -> run it when memory.current <= high - 3500 MiB · DT re-send not in yet
 GATE-DT tip db6bbf39e (= aae8a6d38 + db6bbf39e; carries f28493d5b): cell values.local_maxxing.model_round_memory_max = 3584M (2936 + 22 pct);
         the PARENT dispatches its model kid --no-model --memory <cell> (--memory does not nest) -> gate = the GATE+ probe below, run YOURSELF
         with no model round live and user@ memory.current + MemAvailable read first (the load is ~3 GB) · then the WHOLE .agi/context under
@@ -225,7 +227,8 @@ stream       LIVE since the owner's 00:5xZ 09-25 call (the Prime's notice 01:59Z
              re-stamps it) · ListAgents PRINTS the Remote Control device rows (one is a personal machine name) -> resolve a director's session
              name from its posts row's session_name once joined, else the registry file whose tmux = agi-rc:<its @id>.* (NAMED fields only) --
              rotate.py status --record latest shows the last SUCCESS rotation, never a crash-recovery's session ([red] sent 02:0xZ)
-printing     ~/.claude/sessions/<pid>.json 'pidDomain' embeds /etc/machine-id; a transcript's 'bridge-session' event carries account + org uuids
+printing     ~/logs/memory-alarm-alerts.log tags EVERY line with the host name (field 2): tail it with cut -d' ' -f1,3- (02:35Z 09-27: brb + [red])
+             · ~/.claude/sessions/<pid>.json 'pidDomain' embeds /etc/machine-id; a transcript's 'bridge-session' event carries account + org uuids
              -> print NAMED fields only, never a whole record (06:42Z + 06:48Z 09-25: two [red]s to belam) · a suite's E-lines can print a
              FIXTURE key (test_rotate_alert_two_tree: a pytest-tmp priv_hex, protects nothing) -> filter E-lines on key|priv before printing
 recovery     a heal respawn (gen 22, 22:34Z) leaves the OWN row dirty in MAIN (gen + window written, session blank, uncommitted) -> a
