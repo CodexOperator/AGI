@@ -2343,7 +2343,11 @@ def main() -> int:
     # Both checks are fail-open on absence or a network error — an unreachable
     # API must never block a round — and both apply only to an openrouter
     # harness, whose keys carry their own dollar caps.
-    if dispatch_harness.get("provider") == "openrouter":
+    # belam 09-27 13:1xZ (owner, account drained): a ZERO-USD lane skips the
+    # key and account floors -- its minted key is hard-capped instead
+    # (provisioning.zero_usd_key_limit_usd); paid lanes keep every gate.
+    if (dispatch_harness.get("provider") == "openrouter"
+            and dispatch_harness.get("zero_usd") is not True):
         # this round's REQUIRED (d)/(e): the provisioning-ABSENT gate. With
         # provisioning LIVE this short-circuits True (the spawn mints its own
         # key, so a dead runtime key must not block -- L4.98). With it ABSENT,
@@ -2790,7 +2794,8 @@ def main() -> int:
                 minted = provisioning.mint(
                     iter_n=args.iter_n, agent_id=agent_id, tier=args.tier,
                     limit_usd=cred_limit, ttl_minutes=cred_ttl,
-                    workspace_id=cred_ws, root=root)
+                    workspace_id=cred_ws, root=root,
+                    zero_usd=dispatch_harness.get("zero_usd") is True)
                 if minted is not None:
                     spawn_env[provisioning.RUNTIME_KEY_VAR] = minted.secret
                     spawn_budget.attach_credential(lease, minted.key_hash)
