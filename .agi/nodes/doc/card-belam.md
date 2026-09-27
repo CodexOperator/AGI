@@ -21,39 +21,39 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in role docs, never here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 11, 00:5xZ 09-27: this version records the owner-pasted line from gen 10. (1) It said: fix director-thought's row identity (session_ref / session_name), checked against its live window and what the nudge matches on; verify with `send.py whois director-thought`; re-deliver its queued inbox; add the "(default) box is always foreign" refusal to DE's redesign. (2) The machine: the nudge addresses the row's `window` @id and falls back to a window NAMED as the post (send.py:2171-2247), never session_name or session_ref; whois matches session_ref, session_name or a session_id prefix, and `--post` the post name. Measured: window @8 is DT's live window (named director-thought), pid 1530011 its live claude, session_name its live registry name, session_id its live transcript; `wake` reads idle nothing-pending @8; the one dm newer than DT's 19:44 read (TMM.264) was acted on at 21:37 (adbdf5a2b). (3) The near miss: renaming session_name to director-thought makes the bare `whois director-thought` answer, and breaks the registry join and every whois by the live name. (4) The deviation: no row write and no re-delivery, because the check the line itself required found the row correct and nothing queued; `whois --post director-thought` and `whois post-director-thought-a8 --claim director-thought` both verify it. The (default) refusal went onto the hub-only goal as a note with measured facts (46d1d17e1) + a [decision] to DE. Trap 17 folded into 8 to hold the 100-line cap; trap 41 added.
+gen 11, 01:0xZ 09-27: this version records the owner's spawn/rotate design (pasted from gen 10's pane, confirmed 00:5xZ). (1) The paste said: "Parents need one narrow push grant: they may append to dm files on any post's head. Mint it as a sibling goal to goal:send-is-hub-only-...". (2) Gen 11 first read "it" as the whole design and minted it all under g7.32 (7bf8b8437); the owner then asked "It probably goes under the rotate/spawn goal doesn't it?" -- goal:g7.31.3 is the route goal naming rotate|spawn. (3) The near miss: the whole design as g7.32's sibling satisfies the paste's words and loses the owner's placement. So the design is goal:g7.31.3.3 and g7.32.5 was re-versioned in place as the push grant (the messaging half), each quoting its own half of the owner's 00:38Z words byte for byte from transcript 64d3d99e (5c3538f94). The owner's formatting reminder went to DE with both goals; this seat's own formatting slip (a body file carrying its own H1, so create doubled it) is fixed on g4.18.1, g7.32.5 and the card-relink hypothesis. The DE dm reads [undelivered-yet] (pane busy): it is in DE's inbox file and the sweep retries.
 <!-- THOUGHT:END -->
 
-## §0 State (00:5xZ 09-27)
+## §0 State (01:0xZ 09-27)
 | | |
 |---|---|
-| post | belam-S2-L5-XI gen 11 · woke 23:1xZ 09-26 · Opus 5.5 · IDLE, PASS 10 armed · meter ~0.25 |
+| post | belam-S2-L5-XI gen 11 · woke 23:1xZ 09-26 · Opus 5.5 · IDLE, PASS 10 armed · meter ~0.31 |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` (= season2/main 49d2b6f6a at 17:4xZ) · tz UTC · stream DOWN (HELD) |
 | GUARD | user@1000 high **6628M / max 7365M** (raised 19:5xZ on the owner's go: guard docker budget 8G -> 6.5G, guard.env.bak-20260926T1955Z; the model container keeps its own 8G cap, peak 6.8G at load) · a pi stage ~210 MiB |
 | TOWN | DE gen 26 (adec7d699) · DT gen 34 (386.8k tokens at 21:37Z, "rotate me soon"; TM rotates it) · TM gen 29 · SM DOWN (owner's go) · 4 kid-worktree suite locks are pre-reboot dead pids |
 | merge | **PASS 9 CLOSED 17:43Z** at 49d2b6f6a (TIP 9e16b8ed90; 56 rounds: 52 accept_with_residue, 4 demote, 0 RED) · **PASS 10 delta at 00:17Z**: TIP ee9a6b7e4c = 338 commits past BASE (304 at notice) · 53 exp · 30 hyp · 49 engine · origin/season2/main NOT an ancestor of TIP (step 1 syncs it) |
 | crons | CHECK **0722b53a** ("13 */4"; ran 00:17Z, case c; next 04:13Z) · PASS 10 one-shot **b859e98b** ("23 1 27 9 *", section 2) -- session-only: both die with gen 11 |
 | spend | credits 13.75 USD (17:4xZ) · PASS 9 0 USD |
-| dms | 00:4xZ [decision] -> DE: the (default)-box refusal (46d1d17e1) · 00:3xZ [decision] -> DE: goal:g4.18.1 + the card-relink hypothesis (41bacd5ff) · 00:07Z gen 10 -> belam [owner] (owner's go) · 23:12Z [owner] HOLD -> sanctuary-master |
+| dms | 01:0xZ [decision] -> DE: g7.31.3.3 + g7.32.5 + the owner's formatting reminder (5c3538f94; [undelivered-yet]: DE pane busy, the sweep retries) · 00:4xZ [decision] -> DE: the (default)-box refusal (46d1d17e1) · 00:3xZ [decision] -> DE: goal:g4.18.1 + the card-relink hypothesis (41bacd5ff) · 00:07Z gen 10 -> belam [owner] (owner's go) · 23:12Z [owner] HOLD -> sanctuary-master |
 | branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
 
 ## §1 Plan
 ```
-done   PASS 8 · PASS 9 (closed 17:43Z at 49d2b6f6a) · CHECKs 08:4x / 12:4x / 16:4x / 20:2x / 00:17Z · gen 11: crons re-armed, card re-linked · owner's go items -> DE · DT row checked (no change) + (default) refusal -> DE
-next   PASS 10 at 01:23Z (re-review b6438bd7e) · 04:13Z CHECK · judge DE/DT merge-ups · per-spawn caps land (DE) · send hub-only incl. the (default) refusal (DE), then g4.18.1 + the card-relink fix (DE)
+done   PASS 8 · PASS 9 (closed 17:43Z at 49d2b6f6a) · CHECKs 08:4x / 12:4x / 16:4x / 20:2x / 00:17Z · gen 11: crons re-armed, card re-linked · owner's go items -> DE · DT row checked (no change) + (default) refusal -> DE · spawn/rotate g7.31.3.3 + push grant g7.32.5 -> DE
+next   PASS 10 at 01:23Z (re-review b6438bd7e) · 04:13Z CHECK · judge DE/DT merge-ups · per-spawn caps land (DE) · send hub-only incl. the (default) refusal + g7.32.5 (DE), then g7.31.3.3 + g4.18.1 + the card-relink fix (DE)
 HELD   OWNER 21:1xZ: stream · encryption-town config · sanctuary-master activation -- until messaging is done
-open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
+open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hub-only-... (gen 10's mint) has no goal_id/goal_kind: fixing it is a renumber, on the owner's word · §6
 ```
 
-## §2 Landed (this seat): 1cf8c1313 crons re-armed + quorum card re-linked · 41bacd5ff goal:g4.18.1 + hypothesis:rotate-keeps-the-quorum-card-a-symlink-to-its-node + GOALS.md render · 46d1d17e1 the (default)-box note on goal:send-is-hub-only-... · 2 [decision]s -> DE · section 1 (A) reads the inbox file (box-local) · this card
+## §2 Landed (this seat): 1cf8c1313 crons re-armed + quorum card re-linked · 41bacd5ff goal:g4.18.1 + hypothesis:rotate-keeps-the-quorum-card-a-symlink-to-its-node + GOALS.md render · 46d1d17e1 the (default)-box note on goal:send-is-hub-only-... · 7bf8b8437 + 5c3538f94 goal:g7.31.3.3 + goal:g7.32.5 (owner's words verbatim) + H1 fixes · 3 [decision]s -> DE · section 1 (A) reads the inbox file (box-local) · this card
 
 ## 🔴 Where it stops
-00:5xZ 09-27 belam-S2-L5-XI: owner-pasted items done (DT row matches its live session, nothing queued; (default)-box refusal -> DE at 46d1d17e1); idle until PASS 10 at 01:23Z
+01:0xZ 09-27 belam-S2-L5-XI: the owner's spawn/rotate design is goal:g7.31.3.3 + the push grant goal:g7.32.5, both to DE with the formatting reminder (5c3538f94); idle until PASS 10 at 01:23Z
 ```
 0. WAKE (a successor): re-arm the CHECK -- CronCreate "13 */4 * * *", recurring, the POINTER prompt to section 1 of .agi/sessions/prime-merge.crons.md (exact text: transcript 64d3d99e at 17:26:40Z, or c4291177); re-link the quorum card (trap 10). Re-arm the PASS 10 one-shot too (CronCreate "23 1 27 9 *", recurring false, the POINTER prompt to section 2) unless the state file carries pass_started_at; if run_at is already past, run section 2 now (CHECK case d).
 1. PASS 10 is armed (b859e98b): section 2 is current (BASE 9e16b8ed90, p10 keys, /tmp/belam-pass10/ from /tmp/belam-pass9/); at 00:17Z origin/season2/main is NOT an ancestor of TIP, so step 1's sync merge runs first.
 2. PASS 10 must re-review b6438bd7e (the capture latch fix): PASS 9's engine-delta-5 demote rests on it.
-3. Owner 20:3x-21:1xZ: send goes hub-only -> goal:send-is-hub-only-dm-file-versions-synced-every-30s (DE; + the (default)-box refusal, 46d1d17e1). Owner ~23:2xZ via gen 10: goal:g4.18.1 (ONE MINT ROUTE) + the card-relink fix -> DE, after messaging. OWNER HOLD: no stream, no encryption-town config, no sanctuary activation until messaging is done (TM + sanctuary told 23:12Z). If the PASS 10 one-shot fires into a window past ~0.44, rotate first: the successor runs it (CHECK case d).
+3. Owner 20:3x-21:1xZ: send goes hub-only -> goal:send-is-hub-only-dm-file-versions-synced-every-30s (DE; + the (default)-box refusal, 46d1d17e1; + g7.32.5, the parents' push grant). Owner 00:38-00:5xZ via gen 10: goal:g7.31.3.3 SPAWN AND ROTATE ARE ONE GRAPH WRITE -> DE, after messaging. Owner ~23:2xZ via gen 10: goal:g4.18.1 (ONE MINT ROUTE) + the card-relink fix -> DE, after messaging. OWNER HOLD: no stream, no encryption-town config, no sanctuary activation until messaging is done (TM + sanctuary told 23:12Z). If the PASS 10 one-shot fires into a window past ~0.44, rotate first: the successor runs it (CHECK case d).
 ```
 ## §4 Traps
 | # | trap | rule |
