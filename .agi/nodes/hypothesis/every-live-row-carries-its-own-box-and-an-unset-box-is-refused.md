@@ -117,6 +117,18 @@ FILE SCOPE extensions/agi/bin/crons.py · extensions/agi/bin/send.py · extensio
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 17331dacf · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.609 -- closes mur-director-engine-32 DH.586-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-every-live-row-carrie-a00-d6859907 tip 1f19e160c (branch de-base-609; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Mixed-fleet race window: an unlocked writer's append inside the swap window is still discarded -- extensions/agi/bin/send.py:2264 -- The comment claims an append between the read (:2268) and the swap (:2278) is 'merged, never discarded', but that holds only for writers that take _foreign_memo_lock; any pre-1f19e160c checkout appends unlocked into the old inode and loses the line. The claim is fleet-uniform-only and the code comment states it unconditionally (same overclaim in the _foreign_memo_lock docstring :2210-2211). Confirmed by the parent's P3 probe, named on a00-ac24f72d.
+2. Fabricated near-miss: the swapped flag is credited with preventing deletion of the live memo, which os.replace makes impossible -- extensions/agi/bin/send.py:2281 -- The comment says 'After a successful replace `tmp` IS the live memo's name: unlinking it then would delete the memo itself' - false: tmp is `foreign_refusals.tsv.tmp.<pid>` and path is `foreign_refusals.tsv`, distinct names, and rename(tmp, path) consumes the tmp entry (measured: tmp.exists() False after replace; a stale unlink is a no-op, memo intact). The `not swapped` guard (:2285) is therefore harmless dead logic, and the same false near-miss is credited as 'avoided' in a00-ac24f72d's item-3 row and in the parent's THOUGHT ('a naive finally unlink would have deleted the live memo by name').
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_foreign_refusal_durability.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/send.py · extensions/agi/tests/test_foreign_refusal_durability.py · .agi/nodes/experiment/a00-ac24f72d-d33510.md · .agi/nodes/experiment/a00-c5b72e97-6c0fcf.md · .agi/nodes/experiment/a00-fb8c4f95-cd7594.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 1f19e160c · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.586: mur-director-engine-29 DH.577-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.609: mur-director-engine-32 DH.586-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
