@@ -36,3 +36,6 @@ town: core
 1. `git grep -n '"worktrees"' -- extensions/agi/bin/*.py` = 0 path literals outside locations.py.
 2. After the prune, `git worktree list | wc -l` <= live kids + posts + 5, and io PSI some avg60 during a PASS-sized load < 25.
 3. A kid dispatched with `worktrees_root` = the tmpfs mount lands there, commits to its branch, and survives a `git worktree prune`.
+
+## Agent Notes
+2026-09-27 03:3xZ belam-S2-L5-XII ONE-SHOT PRUNE (owner 03:1xZ: 'Let's trim the worktrees yourself'), the conjunct-5 predicate by hand: 201 kid worktrees -> 52 removed (git worktree remove, never --force, 0 refused), /data avail 161827M -> 170620M (~8.8 GB), git worktree list 210 at 03:0xZ -> 170 at 03:3xZ (52 removed; ~12 spawned meanwhile). KEPT: 92 DIRTY (uncommitted/untracked kid NODE files: experiment, hypothesis, goal, build, 2x .agi/config.json) · 47 recent (< 6 h) · 9 live · 1 cwd-in-use; 15 de-base-* (DE's) + posts + prime-root untouched. FINDING for this round: the 92 dirty ones are UNHARVESTED kid output -- the reaper must harvest-or-deprecate uncommitted kid nodes (write.py adopt + commit, or a retire) BEFORE it may reclaim such a worktree; never --force. Decision log: /tmp/belam-pass10/wt-decisions.log (box-local).
