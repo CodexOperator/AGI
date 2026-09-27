@@ -1751,9 +1751,17 @@ def cmd_done(args: argparse.Namespace) -> int:
     # action, so it owns the worktree commit too. Commits the linked worktree
     # this parent runs in, if it holds uncommitted node writes; a no-op in
     # main (the loop owns main) and outside git. Never fatal.
+    # DH.552: the spawned union is computed ONLY on the route that needs it --
+    # a round that passed no `--owns` asked for nothing, and the union used to
+    # be spliced into `named` on EVERY done, where `named` also exempts an id
+    # from the `--node-id` SEED guard. Bound to `--owns`, it no longer arms
+    # that exemption for a round that never asked.
+    _named = _round_named_node_ids(rec, args.parent)
+    if args.owns:
+        _named = _named + _round_spawned_node_ids(root, args.agent_id,
+                                                  args.iter_n)
     _auto_commit_worktree(root, args.agent_id, args.node_id, args.owns, verdict,
-                          _round_named_node_ids(rec, args.parent)
-                          + _round_spawned_node_ids(root, args.agent_id),
+                          _named,
                           refused=[args.parent] if args.parent else None)
 
     # hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- a round that
@@ -2184,7 +2192,8 @@ def _round_named_node_ids(rec, parent) -> list:
     return out
 
 
-def _round_spawned_node_ids(root: Path, agent_id: str | None) -> list:
+def _round_spawned_node_ids(root: Path, agent_id: str | None,
+                            iter_n: int | str | None = None) -> list:
     """DH.514 correction: the ids of the agents THIS round spawned. A parent
     round's `--owns <kid node id>` is the flow the commit exists for (one
     parent commit carries 4 kid files), and binding `--owns` to the parent's
@@ -2193,20 +2202,29 @@ def _round_spawned_node_ids(root: Path, agent_id: str | None) -> list:
     with `spawned_by_agent` -- the same manifest the parent already reads for
     the owned-branch merge. Only records THIS agent spawned widen the set; an
     id no dispatch record names is still refused by name. Ids only, no path
-    literal, no config cell."""
+    literal, no config cell.
+
+    DH.552, two bounds the DH.514 form lacked (both measured on the bytes,
+    probe pasted on the node): `dispatch_node_id` ONLY -- the `rec["node_id"]`
+    leg read a KID's line and returned `hypothesis:kid-writable`; and THIS
+    round's iteration dir, not `iter-*` -- a seat's `spawned_by_agent` is the
+    SEAT NAME, so the unbounded glob handed back an old iteration's kid id.
+    `iter_n` is already in `cmd_done` (an id, not a path): no new literal, no
+    new config cell. NO iteration in hand -> empty, i.e. it refuses by name.
+    """
     out: list = []
-    if not agent_id:
+    if not agent_id or iter_n is None:
         return out
-    for ap in sorted((root / "sessions").glob("iter-*/*/agent.json")):
+    for ap in sorted(locations.iteration_dir(root, iter_n).glob("*/agent.json")):
         try:
             r = json.loads(ap.read_text())
         except (OSError, ValueError):
             continue
         if not isinstance(r, dict) or r.get("spawned_by_agent") != agent_id:
             continue
-        for v in (r.get("dispatch_node_id"), r.get("node_id")):
-            if isinstance(v, str) and ":" in v and v not in out:
-                out.append(v)
+        v = r.get("dispatch_node_id")
+        if isinstance(v, str) and ":" in v and v not in out:
+            out.append(v)
     return out
 
 
