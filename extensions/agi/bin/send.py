@@ -2199,7 +2199,7 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
         # A foreign box's row window/pid are NOT addressable here. Refuse by
         # name, exactly like the stale-@id and name-window refusals below.
         print(f"nudge: {to} is a FOREIGN box row "
-              f"(box {row.get('box') or '(default)'}); refusing as a target",
+              f"(box {row.get('box') or '(unset)'}); refusing as a target",
               file=sys.stderr)
         return None
     window_ref = (row or {}).get("window")      # e.g. "@267", a NAME, or None
