@@ -38,5 +38,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines · 0 test lines · pi-free t
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief, with item 1's FIX sentence VERBATIM as the kid's ONLY task; COMMIT every kid edit on the loop branch before you exit
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.535: re-cut of DH.517 (both kids failed with 0 production bytes; parent probe in a00-90db84df pins the owner race) -- the fix is now an ORDER with no open question, because 517 lost its budget to an R4 question
+corrective DH.536: DH.535 parent OOM-killed (its 2G scope) running the context tests as a baseline; the director measured the culprit in a 1G scope = R4 test_standins_never_leak_into_a_later_module (child pytest); item 0 fences it (deselect + ulimit -v) and keeps R4 out of the claim. Fix order unchanged.
 <!-- THOUGHT:END -->
