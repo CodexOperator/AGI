@@ -142,7 +142,145 @@ def test_read_dm_block_is_printed_once_and_the_dm_cursor_advances(project,
         "advance: " + second)
 
 
-# ── (b) the read marker must never pass an unprinted block ────────────────
+# ── (b) the read marker never passes an unread VALID block read did not print
+
+def _three_blocks(project: Path, bodies=("a1", "a2", "a3")) -> Path:
+    """An inbox file holding `len(bodies)` unsigned blocks, in order."""
+    inbox = _inbox(project)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text("".join(
+        send_mod._block("2020-01-01T00:00:00Z", PEER, ME, b) for b in bodies))
+    return inbox
+
+
+def _read_twice(project, croot, monkeypatch, capsys):
+    """Two `read <me>` calls, returning (first stdout, second stdout)."""
+    assert _read_cli(project, croot, monkeypatch=monkeypatch) == 0
+    first = capsys.readouterr().out
+    assert _read_cli(project, croot, monkeypatch=monkeypatch) == 0
+    return first, capsys.readouterr().out
+
+
+def test_every_block_prints_exactly_once_across_two_reads(project, croot,
+                                                          monkeypatch, capsys):
+    """D1: a multi-block inbox prints each block ONCE, in order, across two
+    reads. The marker's cut offset used to be computed from the WHOLE
+    marker-stripped file while the printer indexed the UNREAD SLICE, so with
+    a marker present `starts[last + 1]` landed one block EARLY and the block
+    just printed re-printed on the next read."""
+    _three_blocks(project)
+    first, second = _read_twice(project, croot, monkeypatch, capsys)
+    order = [b for b in ("a1", "a2", "a3") if b in first]
+    assert order == ["a1", "a2", "a3"], "blocks must print in order: " + first
+    for b in ("a1", "a2", "a3"):
+        assert first.count(b) == 1, f"{b} printed {first.count(b)}x: " + first
+        assert b not in second, f"{b} re-printed on the second read: " + second
+
+
+def test_each_block_prints_once_with_no_marker_present(project, croot,
+                                                       monkeypatch, capsys):
+    """D1, the no-marker case: with NO marker in the file the unread region is
+    the whole file, and the same once-each property must hold."""
+    inbox = _three_blocks(project)
+    assert send_mod.READ_MARKER not in inbox.read_text(), "fixture precondition"
+    first, second = _read_twice(project, croot, monkeypatch, capsys)
+    for b in ("a1", "a2", "a3"):
+        assert first.count(b) == 1, f"{b} printed {first.count(b)}x: " + first
+        assert b not in second, f"{b} re-printed on the second read: " + second
+    assert send_mod.READ_MARKER in inbox.read_text(), (
+        "the read wrote no marker at all: " + repr(inbox.read_text()))
+
+
+def test_marker_stays_put_when_no_printer_ran(project, croot, monkeypatch,
+                                              capsys):
+    """D2: when nothing printed (the printer is stubbed to print nothing),
+    the marker must stay WHERE IT WAS -- the old `last < 0 -> cut = 0` branch
+    rewrote it at the top of the file, destroying its position and un-reading
+    the mail behind it."""
+    inbox = _three_blocks(project)
+    _read_cli(project, croot, monkeypatch=monkeypatch)
+    capsys.readouterr()
+    with open(inbox, "a") as f:      # a new arrival BEHIND the marker
+        f.write(send_mod._block("2020-01-01T00:00:00Z", PEER, ME, "a4"))
+    before = inbox.read_text()
+    at = before.index(send_mod.READ_MARKER)
+    monkeypatch.setattr(send_mod, "_print_blocks_with_labels",
+                        lambda *a, **k: None)   # prints nothing at all
+    assert _read_cli(project, croot, monkeypatch=monkeypatch) == 0
+    after = inbox.read_text()
+    assert after.index(send_mod.READ_MARKER) == at, (
+        "the marker moved although nothing printed:\n%r\n---\n%r"
+        % (before, after))
+    assert after.index("a4") > after.index(send_mod.READ_MARKER), (
+        "the marker passed a VALID block nothing printed: " + repr(after))
+    assert after.index("a1") < after.index(send_mod.READ_MARKER), (
+        "the marker jumped to the top of the file: " + repr(after))
+
+
+def test_withheld_forged_block_between_two_printed_blocks(project, croot,
+                                                         monkeypatch, capsys):
+    """D3 + D4: a FORGED block withheld BETWEEN two VALID blocks must not
+    retire unread VALID mail, and it IS consumed (the committed rule at
+    test_send.py:5757/5775 -- the inbox drains so the same bytes are never
+    re-refused; the quarantine keeps the one copy). The narrowed conjunct 2 is
+    `the marker never passes an unread VALID block that was not printed`."""
+    (project / ".agi" / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage",
+         "comms": {"verify": "enforcing"}}))
+    _signing_seat(project, PEER)
+    monkeypatch.setattr(send_mod, "_project_root", lambda: project)
+    monkeypatch.setattr(send_mod, "_nudge_window", lambda *a, **k: True)
+    _three_blocks(project, ("a1",))
+    inbox = _inbox(project)
+    send_mod.send(project, ME, "forged-block", PEER)   # the signed middle one
+    with open(inbox, "a") as f:
+        f.write(send_mod._block("2020-01-01T00:00:00Z", PEER, ME, "a3"))
+    text = inbox.read_text()
+    assert text.count("sig:") == 1, "exactly one block must be signed"
+    # Tamper the MIDDLE body only: its canonical message no longer matches.
+    inbox.write_text(text.replace("forged-block", "forged-tampered"))
+    assert send_mod.main(["--from", ME, "read", ME]) == 0
+    out = capsys.readouterr().out
+    assert "REFUSED FORGED" in out, "the fixture missed the refusing path: " + out
+    for b in ("a1", "a3"):
+        assert out.count(b) == 1, f"the VALID block {b} did not print: " + out
+    after = inbox.read_text()
+    marker = after.index(send_mod.READ_MARKER)
+    for b in ("a1", "a3"):
+        assert marker > after.index(b), (
+            "the marker retired the VALID block %s that read printed" % b)
+    # the withheld block is consumed (committed rule), not re-refused forever
+    assert send_mod.main(["--from", ME, "read", ME]) == 0
+    out2 = capsys.readouterr().out
+    assert "REFUSED FORGED" not in out2, (
+        "the withheld block was never consumed: " + out2)
+    q = _inbox(project).parent / "quarantine" / f"{ME}.md"
+    assert q.read_text().count("forged-tampered") == 1, (
+        "the quarantine must keep exactly one durable copy: " + q.read_text())
+
+
+def test_marker_never_advances_past_a_block_read_did_not_print(project,
+                                                              monkeypatch,
+                                                              capsys):
+    """NARROWED CONJUNCT 2: the marker never passes an unread VALID block the
+    read did not print. The withheld-FORGED case is NOT this conjunct -- it is
+    the committed rule at test_send.py:5757/5775 (`read` advances past a
+    withheld block, the quarantine keeps the copy), now pinned by
+    `test_withheld_forged_block_between_two_printed_blocks` above. The probe
+    that decides this conjunct is a printer that walks NOTHING."""
+    inbox = _inbox(project)
+    inbox.parent.mkdir(parents=True, exist_ok=True)
+    inbox.write_text(send_mod._block("2020-01-01T00:00:00Z", PEER, ME,
+                                     "unprinted-block-xyz"))
+    monkeypatch.setattr(send_mod, "_project_root", lambda: project)
+    monkeypatch.setattr(send_mod, "_nudge_window", lambda *a, **k: True)
+    monkeypatch.setattr(send_mod, "_print_blocks_with_labels",
+                        lambda *a, **k: None)   # walks nothing, prints nothing
+    assert send_mod.main(["--from", ME, "read", ME]) == 0
+    assert capsys.readouterr().out == ""
+    after = inbox.read_text()
+    assert after.find(send_mod.READ_MARKER) < after.find("unprinted-block-xyz"), (
+        "the marker passed a VALID block nothing printed: " + repr(after))
 
 def _signing_seat(project: Path, seat: str) -> None:
     """One seat row + a real key, so a block it signs can be FORGED."""
@@ -155,52 +293,13 @@ def _signing_seat(project: Path, seat: str) -> None:
         (base / "nodes" / ".geometry" / "seats.md").write_text(text)
 
 
-def test_marker_never_advances_past_a_block_read_did_not_print(project,
-                                                              monkeypatch,
-                                                              capsys):
-    """CONJUNCT 2: with a FORGED block withheld by the enforcing verifier
-    (the one path where `read` deliberately does NOT print a block's bytes),
-    the `# read up to here` marker must not come to sit after it.
-
-    `read` writes the marker at END-OF-FILE regardless of how many blocks it
-    printed (send.py `read`, the `inbox.write_text(content + READ_MARKER)`
-    tail), so this is the probe that decides the conjunct.
-    """
-    (project / ".agi" / "config.json").write_text(json.dumps(
-        {"metric_primary": "outcome_coverage",
-         "comms": {"verify": "enforcing"}}))
-    _signing_seat(project, PEER)
-    monkeypatch.setattr(send_mod, "_project_root", lambda: project)
-    monkeypatch.setattr(send_mod, "_nudge_window", lambda *a, **k: True)
-    send_mod.send(project, ME, "forged-block-body-xyz", PEER)
-    inbox = _inbox(project)
-    text = inbox.read_text()
-    assert "sig:" in text, "the fixture block must be signed to be forgeable"
-    # Tamper the BODY: the canonical message no longer matches the sig.
-    inbox.write_text(text.replace("forged-block-body-xyz",
-                                  "forged-block-body-xyz-tampered"))
-    assert send_mod.main(["--from", ME, "read", ME]) == 0
-    out = capsys.readouterr().out
-    assert "REFUSED FORGED" in out, (
-        "the fixture did not reach the refusing path: " + out)
-    assert "forged-block-body-xyz-tampered" not in out, out
-    after = inbox.read_text()
-    marker = after.find(send_mod.READ_MARKER)
-    body_at = after.find("forged-block-body-xyz-tampered")
-    assert marker >= 0, "no read marker was written at all: " + repr(after)
-    assert marker < body_at, (
-        "the read marker sits AFTER a block read refused to print "
-        "(marker at %d, withheld block at %d):\n%s\n---\n%s"
-        % (marker, body_at, out, after))
-
-
 def test_marker_write_is_independent_of_what_the_reader_printed(project,
                                                                monkeypatch,
                                                                capsys):
     """CONJUNCT 2, structural probe: `read` reaches the marker write with no
-    dependence on the printing step at all. Stub the printer to print NOTHING
-    and the marker still lands at end-of-file -- the file:line that rules out
-    any "the marker follows what was printed" implementation."""
+    dependence on the printing step's RETURN VALUE beyond "did a printer
+    run". A stub printing nothing leaves the marker before the block; the
+    read is still fully consumed (sidecars, counts) either way."""
     inbox = _inbox(project)
     inbox.parent.mkdir(parents=True, exist_ok=True)
     inbox.write_text(send_mod._block("2020-01-01T00:00:00Z", PEER, ME,
@@ -214,6 +313,34 @@ def test_marker_write_is_independent_of_what_the_reader_printed(project,
     after = inbox.read_text()
     assert after.find(send_mod.READ_MARKER) < after.find("unprinted-block-xyz"), (
         "the marker passed a block nothing printed: " + repr(after))
+
+
+def test_box_local_row_does_not_print_empty_before_the_dm_sweep(project, croot,
+                                                               monkeypatch,
+                                                               capsys):
+    """D5: the `--box-local` mail_poll branch read each local row WITHOUT
+    `quiet_empty=True`, so `inbox for <nm>: empty` printed BEFORE the row's dm
+    channels were swept -- a false `empty` line per row. The row's own verdict
+    is decided after `read_dms`, exactly as the positional path does."""
+    _write_dm_block(croot, PEER, ME, ME, "dm-only-body-xyz")
+    rows = [{"name": ME, "role": "director", "window": "@9", "pid": 424242,
+             "box": "local"}]
+    monkeypatch.setattr(send_mod, "_locally_loaded_rows", lambda r: rows)
+    monkeypatch.setattr(send_mod, "_project_root", lambda: project)
+    monkeypatch.setattr(send_mod, "_nudge_window", lambda *a, **k: True)
+    rc = send_mod.main(["--from", ME, "--comms-root", str(croot),
+                        "read", "--box-local"])
+    out = capsys.readouterr().out
+    assert rc == 0, out
+    assert "dm-only-body-xyz" in out, "the row's dm block never printed: " + out
+    assert "inbox for" not in out, (
+        "the box-local branch declared the row EMPTY before the sweep: " + out)
+    # a row with nothing at all still gets its (post-sweep) empty verdict
+    monkeypatch.setattr(send_mod, "_locally_loaded_rows",
+                        lambda r: [{"name": "seat-c", "box": "local"}])
+    assert send_mod.main(["--from", ME, "--comms-root", str(croot),
+                          "read", "--box-local"]) == 0
+    assert "inbox for seat-c: empty" in capsys.readouterr().out
 
 
 # ── (c) a dm-file send fires the recipient nudge, same path as inbox ──────

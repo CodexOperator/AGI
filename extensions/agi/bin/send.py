@@ -3728,11 +3728,13 @@ def _quarantine_block(root: Path, me: str, block: str) -> Path:
 
 
 def _print_blocks_with_labels(root: Path, me: str, blocks: list[str],
-                              wrap: int = 160) -> None:
+                              wrap: int = 160) -> int:
     """Print one label line before each block, then the block in FULL, its
     message body wrapped at `wrap` columns (display-only; the inbox file and
     read marker are untouched). `wrap <= 0` prints today's byte-for-byte
-    output.
+    output. Returns the INDEX (into `blocks`) of the last block it printed,
+    -1 when it printed none; `read` reads a non-int answer as "no printer
+    ran", so the marker then cannot advance.
 
     Under comms.verify == "enforcing" AND ONLY THEN, a block whose label is
     EXACTLY `FORGED` (never RETIRED/UNSIGNED/VERIFIED) is refused: one
@@ -3823,8 +3825,10 @@ def read(root: Path, me: str, sender: str | None,
     them), so a caller that also sweeps dm channels (`read_dms`) decides the
     `empty` verdict only when BOTH are empty -- it used to be printed in
     here, before the dm sweep ran. `quiet_empty=True` withholds it. The read
-    marker follows the LAST BLOCK PRINTED: a block `read` refused to print
-    (FORGED, quarantined) stays unread (conjunct 2)."""
+    marker follows the unread REGION the printer walked: a VALID block the
+    printer never printed cannot pass the marker (conjunct 2), while a FORGED
+    block it quarantined IS consumed -- the inbox drains so the same bytes are
+    never re-refused, and the quarantine keeps the one durable copy."""
     _lockdown_warn(root)
     inbox = _inbox_path(root, me)
     blocks, marker_index = _scan_messages(inbox)
@@ -3853,36 +3857,42 @@ def read(root: Path, me: str, sender: str | None,
 
     # Print inbox blocks, each prefixed by its verification label. The printer
     # reports the LAST BLOCK IT PRINTED; a stub printing nothing answers None,
-    # which counts as "printed nothing" so the marker cannot advance.
-    last = -1
+    # which counts as "no printer ran", so the marker cannot advance.
+    walked = False
     if blocks:
-        last = _print_blocks_with_labels(root, me, blocks, wrap=wrap)
-        last = last if isinstance(last, int) else -1
+        walked = isinstance(_print_blocks_with_labels(root, me, blocks,
+                                                      wrap=wrap), int)
 
-    # Mark read: the marker sits immediately AFTER THE LAST BLOCK PRINTED --
-    # never end-of-file past a block `read` withheld, which would retire mail
-    # nobody ever saw (conjunct 2). Before that block stays read, after it
-    # unread.
+    # Mark read: the marker is placed in the SAME index space the blocks were
+    # printed from (see `cut` below), so it can never sit past a VALID block
+    # nobody saw (conjunct 2) nor re-print what it already printed.
     if inbox.is_file():
         # newline="" too: a rewrite here must not be the thing that strips the
         # CR the writer preserved (mur-39 order (d)).
         text = inbox.open("r", newline="").read()
-        lines = text.splitlines(keepends=True)
-        if marker_index >= 0:
-            lines = [l for l in lines if l != READ_MARKER]
+        raw_lines = text.splitlines(keepends=True)
+        # The unread REGION, taken from the lines AS SCANNED (marker_index
+        # indexes the unfiltered list) -- slicing the marker-stripped list at
+        # the same index would drop the first line of the first unread block.
+        region = ("".join(raw_lines[marker_index + 1:]) if marker_index >= 0
+                  else "".join(raw_lines))
+        lines = [l for l in raw_lines if l != READ_MARKER]
         # Strip trailing whitespace, then add marker + trailing newline.
         content = "".join(lines).rstrip("\n")
-        # `_MSG_BOUNDARY_RE` matches the separator each block carries at its own
-        # head, so `starts[i]` is where block `i` begins and the first WITHHELD
-        # block is `last + 1`; nothing printed at all puts the marker at the
-        # very top (the file header counts as read).
-        starts = [m.start() for m in _MSG_BOUNDARY_RE.finditer(content)]
-        if last < 0:
-            cut = 0
-        elif last + 1 < len(starts):
-            cut = starts[last + 1]
-        else:
-            cut = len(content)
+        # ONE INDEX SPACE: both `region` and `head` are derived from the lines
+        # `_scan_messages` scanned, so the cut is an offset in the SAME
+        # coordinate the printed blocks came from -- never a second, parallel
+        # list of offsets that can drift one block off the blocks printed.
+        head = len(content) - len(region.rstrip("\n"))
+        # `read` walks EVERY block it was handed: a VALID one prints, and a
+        # FORGED one it refused is consumed anyway -- the inbox drains so the
+        # same bytes are never re-refused, and the quarantine keeps the one
+        # durable copy (test_send.py::
+        # test_read_advances_cursor_past_withheld_block_copy_remains). So the
+        # marker lands at the END of the unread region. A printer that walked
+        # nothing (a stub answering None) leaves the marker where it stood:
+        # no VALID block passes unprinted (conjunct 2).
+        cut = len(content) if walked else head
         inbox.write_text(content[:cut].rstrip("\n") + "\n" + READ_MARKER
                          + content[cut:].lstrip("\n"))
     # The seat just consumed its unread (clause (1) of hypothesis:l4-wake-
@@ -5547,13 +5557,18 @@ def main(argv: list[str] | None = None) -> int:
                 if not nm:
                     continue
                 if boxes.row_is_local(root, r):
-                    read(root, nm, sender, wrap=wrap)
+                    shown = read(root, nm, sender, wrap=wrap,
+                                 quiet_empty=True)
                     # clause (1) for the SERVICE reader too: mail_poll must
                     # sweep the same row's dm channels, or a dm pushed from
                     # another box lands in a file this reader never opens
                     # (hypothesis:l4-one-read-returns-everything-addressed-
-                    # to-a-post...). Same per-row loop, same box gate.
-                    read_dms(croot, nm, wrap=wrap)
+                    # to-a-post...). Same per-row loop, same box gate -- and
+                    # the SAME `empty` verdict the positional path decides
+                    # after the sweep, never inside `read` before it.
+                    shown += read_dms(croot, nm, wrap=wrap)
+                    if not shown:
+                        print(f"inbox for {nm}: empty")
                 else:
                     print(f"mail_poll: skipped foreign-box post {nm} "
                           f"(box {r.get('box') or '(default)'})",
