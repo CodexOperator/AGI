@@ -24,17 +24,8 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 gen 12 first card. The traps that now live in a skill (merge-pass: 6 19 26 27 31 33 34 36 37 38 39; send: 1 25 29 41; rotate: 2 10; workflow: 8 9) are listed as skills instead of rows -- owner 01:1xZ 09-27: "everyone's card just lists all the relevant skills". Traps no skill carries (3 13 15 24 28 30 40 + the new 42) stay.
 <!-- THOUGHT:END -->
 
-## SKILLS — use the matching one BEFORE the flow (skills/agi-<flow>/SKILL.md; the Skill tool)
-| flow | skill |
-|---|---|
-| CHECK · notice · PASS · trunk sync | `agi-merge-pass` |
-| mint/edit a goal (schema inside) | `agi-goal` |
-| any other node, build node, config:* | `agi-node-write` |
-| dm · inbox · whois · wake | `agi-send` |
-| rotate out · wake | `agi-rotate` |
-| dispatch · judge | `agi-dispatch` |
-| a review/research workflow | `agi-workflow` |
-| verify a landing | `agi-verify` |
+## SKILLS — the matching one BEFORE the flow (skills/agi-<flow>/SKILL.md; the Skill tool)
+`agi-merge-pass` CHECK/PASS/trunk sync · `agi-goal` goals + nested subgoals (schema inside) · `agi-node-write` · `agi-send` · `agi-rotate` · `agi-dispatch` · `agi-workflow` · `agi-verify`
 
 ## §0 State (01:4xZ 09-27)
 | | |
