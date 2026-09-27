@@ -37,7 +37,10 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ## 🔴 Where it stops
 02:5xZ 09-27: NUDGE FIX FIRST (OWNER 02:49:02Z) -- DE dispatches g7.33.17 row 20 now (TMM.271); DT HELD + my model probe DEFERRED until it lands (TMM.272); then GATE DT's model-gate merge-up LIVE (tip db6bbf39e + its osc_band_fit re-derivation); PASS 10 running since 01:23Z
 ```
-state   MAIN = origin + this card · last order = TMM.274 (DT: pre-gate green, rest after the nudge fix) · next = TMM.275 · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
+state   MAIN = origin + this card · last order = TMM.276 · next = TMM.277 · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
+GO      belam 02:59Z (OWNER GO): user@ high 12618 MiB, model container stopped · DE cap = cell values.local_maxxing.de_live_parents (arm 10;
+        16 only while loadavg1 < 16 AND io PSI < 50) + fast-track queue (TMM.275, SendMessage too) · swarm test = hypothesis:swarm-size-5-10-15-
+        parents-fixes-per-hour (g5.31, abd32e9b7) · DT hold EASED to a minimal lane: <= 1 parent, model-free (TMM.276) · board live row rewritten
 OWNER   02:49:02Z in this pane, verbatim: "DT latest message seems nudges are growing more broken. Luckily the DE is on it we need it bad. If needed
         we can pause DT work for now to give DE more breathing room to implement quicker with a higher cap given no model container and no docker loader"
         -> TMM.271 DE: row 20 as its OWN round ahead of the queue (was riding send-is-hub-only; DE queue = g4.18.1 -> hub-only -> g7.31.3.3)
