@@ -41,14 +41,15 @@ TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [NOEX=1] [EXTRA=f,g] gen2.py N
           D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N.. > D/harvallN.log (chain units with a while-is-active wait)
 GATE      TMM.306 (TM 21:59Z): NO parent slot refilled until load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, then ONE step at a time
           (drainqg1 enforces it); stop nothing live · first freed slot = DH.650 RAM round (repo half) · arm 10 unchanged
-MURS      running murq120 121 122 = DH.667 650 647 · ENDED+TRIAGED: 97 106 108 112 114-119 -> DH.668 661 662 666 663 664 660 665 669 675 · next murq 123 · next DH 676
+MURS      running murq121 122 = DH.650 647 · ENDED+TRIAGED: 97 106 108 112 114-120 -> DH.676 668 661 662 666 663 664 660 665 669 675 · next murq 123 · next DH 677
 LIVE      parents 648 649 · harvested: 645 1300bd8c9 · 638 568f0b68d · gated queue (T/drainqg<N>.log, chained): qg1 DONE (650 harvested b57ec4b90 · 667 c0ba1f156 · 647 a8fcf1574 · 648 a00-9a0d6077 · 649 a00-448409f6 live) · 648 649 (T/drainqgf.sh: N:F = fresh round via T/placef.sh + T/h<N>.txt) ·
-          qg2 651 652 653 · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660 661 662 663 664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 · qg13 675 670 671 672 673 674 (drainqgf.sh) -- io avg60 ~61 > 50 · 640 assembled 1bf1dbf6c
+          qg2 676 651 652 653 (676 swapped to the front 23:1xZ) · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660 661 662 663 664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 · qg13 675 670 671 672 673 674 (drainqgf.sh) -- io avg60 ~61 > 50 · 640 assembled 1bf1dbf6c
 DEMOTED   (not correctives) 660/661/663 'checked CLEAR / not a defect' verify notes · 662: kid ran git diff --numstat (process note) · 665: V1 done-gate + V7 write-log = findings rows already, UNVERIFIED worktree-gone probe · 668: +76 test-line breach = row, timing note
 PRUNE     TMM.309 GO: unit prune-debase (idle io, 1 per 30 s, io<50, lossless, log on the flash harvest dir) over the 130 old de-base-*
           647 output.log recovered (fd tail) and kept on the flash harvest dir; stray RAM dir removed
 LOGS      belam [decision] 22:2xZ (owner): logs + sequential scratch -> the new flash mount, TM owns the move; DE owns the
-          log-path cells -> DH.667 hypothesis:box-logs-dir-resolves-from-one-config-cell (g6.49), cell VALUE unchanged by the round
+          log-path cells -> DH.667 (g6.49) DEMOTED mur-44: the one cell is the EXISTING box.logs_dir (my brief missed it); its literal
+          value would switch the log cap off -> corrective DH.676 FRONT of qg2; TM told: symlink, never flip the cell, until 676 lands
 G1.27     belam [decision] 23:0xZ, QUEUED not dispatch-now, AFTER the zero-usd follow-ups: briefs written b5ef95e6c ->
           DH.670 pass11 batch (ROW 3 first) · 671 zero-usd scope · 672 banner · 673 import route · 674 e2e tests (last) -- T/h67N.txt set,
           QUEUED as qg13 behind the zero-usd follow-up DH.675
