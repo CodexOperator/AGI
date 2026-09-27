@@ -2187,6 +2187,11 @@ _FOREIGN_REFUSALS: set[tuple[str, str]] = set()
 _FOREIGN_MEMO_CELL = "foreign_refusal_memo"
 _FOREIGN_MEMO_DEFAULT = ".agi/sessions/foreign_refusals.tsv"
 
+#: Module-level alias so a TEST can interpose on the swap without patching the
+#: process-wide `os` module (`send.os IS os`): a monkeypatched `os.replace`
+#: blocks every other thread in the interpreter for the test's duration.
+_OS_REPLACE = os.replace
+
 
 def _foreign_memo_path(root: Path) -> Path:
     graph = _graph_root(root)
@@ -2198,28 +2203,45 @@ def _foreign_memo_path(root: Path) -> Path:
     return locations.repo_root(graph) / str(v or _FOREIGN_MEMO_DEFAULT)
 
 
+@contextlib.contextmanager
+def _foreign_memo_lock(path: Path):
+    """Exclusive lock on a LOCK SIBLING, never on the memo itself: the rewrite
+    swaps the memo's INODE, so a lock held on the old one excludes nobody. The
+    read-filter-swap rewrite and the append that can race it take the SAME
+    lock, so a naming that lands inside the window is merged, not discarded."""
+    lock = path.with_name(path.name + ".lock")
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    with lock.open("a+", encoding="utf-8") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(fh, fcntl.LOCK_UN)
+
+
 def _foreign_refusal_said(root: Path, to: str, label: str) -> bool:
     """True when this (row, cause) has never been NAMED, in THIS process or any
     earlier one -> say it now, and record it where the next tick will read it."""
     if (to, label) in _FOREIGN_REFUSALS:
         return False
-    try:
-        said = f"{to}\t{label}" in _foreign_memo_path(root).read_text(
-            encoding="utf-8").splitlines()
-    except OSError:  # noqa: BLE001 -- no memo yet is not an error
-        said = False
-    if said:
-        _FOREIGN_REFUSALS.add((to, label))
-        return False
+    said = False
     try:
         path = _foreign_memo_path(root)
         path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("a", encoding="utf-8") as fh:
-            fh.write(f"{to}\t{label}\n")
-    except OSError:  # noqa: BLE001 -- an unwritable memo never blocks the naming
+        with _foreign_memo_lock(path):   # ONE lock over read AND append, so a
+            # `exists()` guard, not a bare read_text: a missing memo is NOT an
+            # error here -- it is the EMPTY memo, and the append must still run
+            # (a bare read_text raised FileNotFoundError and skipped it).
+            lines = (path.read_text(encoding="utf-8").splitlines()
+                     if path.exists() else [])
+            said = f"{to}\t{label}" in lines
+            if not said:                  # a rewrite in flight cannot lose it
+                with path.open("a", encoding="utf-8") as fh:
+                    fh.write(f"{to}\t{label}\n")
+    except OSError:  # noqa: BLE001 -- an unwritable memo never blocks a refusal
         pass
     _FOREIGN_REFUSALS.add((to, label))
-    return True
+    return not said
 
 
 def _forget_refusals(to: str | None = None, root: Path | None = None) -> None:
@@ -2235,19 +2257,33 @@ def _forget_refusals(to: str | None = None, root: Path | None = None) -> None:
         return
     try:
         path = _foreign_memo_path(root)
-        lines = path.read_text(encoding="utf-8").splitlines()
-        keep = [ln for ln in lines
-                if ln and ln.split("\t", 1)[0] != to]
-        if len(keep) == len([ln for ln in lines if ln]):
-            return  # nothing of that row is memoized: never rewrite
         # ATOMIC: a temp SIBLING then os.replace, never a truncating
         # write_text -- `_foreign_refusal_said` reads this same file, and a
         # reader landing in a truncate/write window would see a partial memo
-        # and re-name a refusal already named.
-        tmp = path.with_name(path.name + ".tmp.%d" % os.getpid())
-        tmp.write_text("\n".join(keep) + ("\n" if keep else ""),
-                       encoding="utf-8")
-        os.replace(tmp, path)
+        # and re-name a refusal already named. The read that builds the new
+        # content happens INSIDE the lock, so an append that lands between it
+        # and the swap is merged, never discarded (a discarded naming would be
+        # re-named forever, since the memo no longer holds it).
+        with _foreign_memo_lock(path):
+            lines = path.read_text(encoding="utf-8").splitlines()
+            keep = [ln for ln in lines
+                    if ln and ln.split("\t", 1)[0] != to]
+            if len(keep) == len([ln for ln in lines if ln]):
+                return
+            tmp = path.with_name(path.name + ".tmp.%d" % os.getpid())
+            swapped = False
+            try:
+                tmp.write_text("\n".join(keep) + ("\n" if keep else ""),
+                               encoding="utf-8")
+                _OS_REPLACE(tmp, path)
+                swapped = True
+            finally:
+                # A temp that never BECAME the target is a stray in
+                # `.agi/sessions` -- remove it. After a successful replace
+                # `tmp` IS the live memo's name: unlinking it then would
+                # delete the memo itself, so the flag guards that arm.
+                if not swapped:
+                    tmp.unlink(missing_ok=True)
     except OSError:  # noqa: BLE001 -- an unwritable memo never blocks a sweep
         pass
 
