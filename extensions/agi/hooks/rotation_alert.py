@@ -853,6 +853,44 @@ def _chain_failure_note(state_dir: Path, seat: str) -> list[str]:
     return lines
 
 
+def _fenced_payload(rotate, body: str, sub: int) -> str:
+    """The EXACT text a slot write would REPLACE: inside the first fence at/after
+    the slot subheader, else the slot body — `rotate._replace_stops_body`'s own
+    rule, so appending here keeps every other byte."""
+    lines = body.splitlines()
+    start = 0 if sub < 0 else sub + 1
+    for i in range(start, len(lines)):
+        opener = rotate._fence_run(lines[i])
+        if opener < 3:
+            continue
+        for j in range(i + 1, len(lines)):
+            if rotate._fence_run(lines[j]) >= opener:
+                return "\n".join(lines[i + 1:j])
+        return "\n".join(lines[i + 1:])
+    return "\n".join(lines[start:])
+
+
+def _capture_stops(card: Path, line: str) -> str:
+    """The `s3` a CAPTIVE capture hands the driven handoff: the card's OWN
+    where-it-stops payload with the capture line APPENDED, never replacing it (a
+    bare line DESTROYED the successor's owed list; rotate.py is out of scope, so
+    the capture hands it a payload carrying what it overwrites). rotate's own
+    locator finds the slot; an unreadable card degrades to the bare line."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import rotate  # noqa: PLC0415 — lazy, engine-optional (P7).
+        sections = rotate._split_card_sections(
+            card.read_text(encoding="utf-8"))[1]
+        loc = rotate._locate_where_it_stops(sections)
+        if isinstance(loc, tuple):
+            keep = _fenced_payload(rotate, sections[loc[0]][1], loc[1])
+            if keep:
+                return f"{keep}\n{line}"
+    except Exception:  # noqa: BLE001 (P7: an unreadable card keeps the line)
+        pass
+    return line
+
+
 def _force_capture(root: Path, seat: str, card: Path, fraction: float,
                    minutes: int, state_dir: Path, line: str | None = None,
                    session_id: str = "") -> str:
@@ -886,10 +924,14 @@ def _force_capture(root: Path, seat: str, card: Path, fraction: float,
               "capture rather than write the chain output to an unnamed file")
         return "capture-no-log"
     s3 = state_dir / f"capture-{seat}.s3"
-    s3.write_text(line + "\n", encoding="utf-8")
+    s3.write_text(_capture_stops(card, line) + "\n", encoding="utf-8")
+    # s6 is EMPTY on purpose: a capture banks nothing and BOTH of the writer's
+    # BANKED branches no-op on an empty field, so the options survive intact.
+    s6 = state_dir / f"capture-{seat}.s6"
+    s6.write_text("", encoding="utf-8")
     b = Path(__file__).resolve().parents[1] / "bin"
     argvs = [["python3", str(b / "rotate.py"), "handoff", "--driven", "--seat", seat,
-              "--field", "s3", str(s3), "--field", "s6", str(s3)],
+              "--field", "s3", str(s3), "--field", "s6", str(s6)],
              _rotate_self_argv(b, seat, f"{_stops_line(root, seat)} | {line}")]
     if os.environ.get("AGI_HOOK_NO_SPAWN"):
         _CAPTURE_LOGGED.extend(argvs)

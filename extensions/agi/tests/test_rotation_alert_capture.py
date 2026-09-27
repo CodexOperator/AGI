@@ -16,6 +16,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -23,6 +24,12 @@ HOOK = Path(__file__).resolve().parents[1] / "hooks" / "rotation_alert.py"
 spec = importlib.util.spec_from_file_location("rotation_alert_cap", HOOK)
 hook = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(hook)
+
+# the REAL handoff writer, imported once so the capture's field files are
+# driven through exactly the argv the capture would spawn (tmp card only)
+_REPO = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(_REPO / "extensions" / "agi" / "bin"))
+import rotate  # noqa: E402  (the module the hook itself lazily imports)
 
 #: every argv the capture WOULD run through the ONE `_Popen` seam.
 _SPAWNS: list[list[str]] = []
@@ -431,3 +438,99 @@ def test_below_line_holder_rotate_now_forces_capture(tmp_path, run_hook,
     assert handoff[2:5] == ["handoff", "--driven", "--seat"], handoff
     assert "rotate-self" in rot and "--force" in rot, rot
     assert "auto-captured at f=" in rot[rot.index("--stops") + 1]
+
+
+#: the LIVE card shape a director card carries: a `## ... Where it stops`
+#: section whose slot is a FOUR-backtick fence wrapping a THREE-backtick
+#: block, a `## Banked` section, and a state section (so the driven §0 has
+#: somewhere declared to land and the diff is about the two slots only).
+LIVE_SHAPE_CARD = """# probe-director card
+
+## 🔴 STATE
+- gen 4->5, f 0.41
+
+## 🔴 Where it stops -- successor's owed list
+````
+```
+DONE  one landed thing; a second line of the same entry
+NEXT  (1) first owed step
+      (2) second owed step, continued on this very line
+```
+````
+
+## Banked
+(b) a model scope outside the owner -- the owner's call.
+"""
+
+
+def _section(text, title):
+    for header, body in rotate._split_card_sections(text)[1]:
+        if title in header.lower():
+            return header, body
+    return None
+
+
+def _fields_of(argv):
+    out = []
+    for i, a in enumerate(argv):
+        if a == "--field":
+            out.append([argv[i + 1], argv[i + 2]])
+    return out
+
+
+def test_capture_appends_its_line_and_keeps_the_slot_and_banked(
+        tmp_path, run_hook, monkeypatch, capsys):
+    """hypothesis:captive-capture-keeps-the-slot-and-banked-and-appends-its-
+    line: the driven handoff the capture spawns must APPEND its one capture
+    line to the card's own where-it-stops slot and leave BANKED byte-
+    identical. The pre-fix bytes passed the SAME one-line file as both s3 and
+    s6, so the writer REPLACED the fenced slot payload (the successor's whole
+    owed list) and the whole BANKED section -- and the old test only asserted
+    the line was PRESENT, so the destruction was green (RED-FIRST)."""
+    graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
+    monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
+    state_dir = tmp_path / "state-keep"
+    card = _stale_state(tmp_path, graph, state_dir)
+    card.write_text(LIVE_SHAPE_CARD, encoding="utf-8")   # the LIVE shape
+    before = card.read_text(encoding="utf-8")
+    tp = tmp_path / "keep.jsonl"
+    _transcript(tp, 45_000)                     # over the line
+    code, out, err = run_hook(_payload(graph, tp, "s-keep", cwd), state_dir,
+                              monkeypatch, capsys)
+    assert code == 0, err
+    assert len(hook._CAPTURE_LOGGED) == 2, hook._CAPTURE_LOGGED
+    rc = rotate.cmd_handoff(
+        SimpleNamespace(driven=True, seat="probe-director",
+                        field=_fields_of(hook._CAPTURE_LOGGED[0]), dry_run=False),
+        graph)
+    assert rc == 0, capsys.readouterr().err
+    after = card.read_text(encoding="utf-8")
+
+    # (1) the owed list survives, and the fences are neither broken nor doubled
+    stop_head, stop_after = _section(after, "where it stops")
+    _stop_head, stop_before = _section(before, "where it stops")
+    for owed in ("DONE  one landed thing; a second line of the same entry",
+                 "NEXT  (1) first owed step",
+                 "      (2) second owed step, continued on this very line"):
+        assert owed in stop_after, owed
+    assert after.count("````") == before.count("````") == 2, after
+    assert after.count("\n```\n") == before.count("\n```\n"), after
+
+    # (2) the ONLY change in the slot is the appended capture line (the
+    # writer's own trailing-blank normalisation is not a content change)
+    def _content(lines):
+        return [ln for ln in lines if ln.strip()]
+
+    b_lines = _content(stop_before.splitlines())
+    a_all = stop_after.splitlines()
+    a_lines = _content(a_all)
+    added = [ln for ln in a_all if "auto-captured at f=" in ln]
+    assert len(added) == 1, a_all
+    assert a_all.index(added[0]) > a_all.index("NEXT  (1) first owed step")
+    assert [ln for ln in a_lines if ln not in added] == b_lines, (
+        b_lines, a_lines)
+
+    # (3) BANKED is byte-identical -- nothing appended, nothing replaced
+    assert _section(after, "banked") == _section(before, "banked"), after
