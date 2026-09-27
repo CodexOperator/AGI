@@ -34,7 +34,10 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ## 🔴 Where it stops
 02:5xZ 09-27: NUDGE FIX FIRST (OWNER 02:49:02Z) -- DE dispatches g7.33.17 row 20 now (TMM.271); DT HELD + my model probe DEFERRED until it lands (TMM.272); then GATE DT's model-gate merge-up LIVE (tip db6bbf39e + its osc_band_fit re-derivation); PASS 10 running since 01:23Z
 ```
-state   MAIN = origin + this card · last order = TMM.290 (goal rename send-is-hub-only -> goal:g7.32.6: board row 4 done; body lines 106 + 141 = the Prime's, asked; DE re-points 2 hyps at merge-up) · next = TMM.291 · BOX GUARD: the Prime's backfill LANDED 91f9e1236 (22/22 rows boxed, 18 = core-town) -> DH.498
+state   MAIN = origin + this card · last order = TMM.292 · next = TMM.293 · SPEND [red] 06:5xZ: account 0.95 of 192 left (~12.8 USD since 09-24); ROOT = config:workflows
+        default_harness pi + every review row pi (paid deepseek via harnesses.pi.models) -- DE 74 / DT 22 paid mur runs -> mint floor 1.00
+        (literal) refuses EVERY key = ALL dispatch stopped (DE DH.533) · the Prime owns the node fix + credits · DE/DT: stop paid murs, always
+        --harness pi-free (TMM.291/292); engine guard = DE row 22 · BOX GUARD: the Prime's backfill LANDED 91f9e1236 (22/22 rows boxed, 18 = core-town) -> DH.498
         CLEARED after DE syncs (TMM.289; my '13 of 17' VOID: a parse miss of the council-* rows) · DH.525 = its code residues · DH.526 = parent/kid
         skill lines (step 2) · hypothesis:skills-load-per-harness-per-tier-from-one-config-cell = step 3 (queued behind 526) · SKILL INDEX (OWNER 05:33:00Z, verbatim: "Don’t need a template change just change the load
         template which determines which files get pulled in. Just have the template/config load in the skill index. No duplication needed.")
@@ -299,6 +302,8 @@ swarm rooms  the trial node's ORDERS step 1 spells send.py send <room> '<text>' 
 agent tool   NEVER spawn Claude subagents (the Agent tool) -- owner 20:3xZ 09-24, all posts, like the no-Claude-Workflow rule; graph recon = read it directly
 director docs co-owned (owner 20:1xZ): edit doc:unified-director-brief / doc:card-director-* via write.py, then ONE dm per live director naming the change · a card's
              mint THOUGHT may quote the owner: that version's grid/git history keeps it (the HEAD rule banks owner lines in THOUGHTs)
+paid wf      config:workflows default_harness = pi and its per-type rows = pi: a workflow.py run WITHOUT --harness pi-free PAYS
+             (stage role reviewer/refuter -> harnesses.pi.models deepseek) -- read .agi/sessions/workflows/*.jsonl harness counts per post
 paid lane    since 431b8edc32 (the Prime, OWNER 16:5xZ) the ladder's parent + kid rows = pi-free: never pass --harness pi or pi-local for a parent or kid; a live lease with harness 'pi' = someone passed it explicitly = PAID -> read .agi/sessions/.spawn-budget/*.lease harness on every check; stop a paid kid under the hold (SIGTERM agent_pid) and tell its director
 account      python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');import provisioning as p;print(p.credit_balance('.'))" = (total, used, left); prints no key
 allowlist    the account-wide allowed providers (dashboard Settings > Privacy) have NO API route -- the management key cannot set them
