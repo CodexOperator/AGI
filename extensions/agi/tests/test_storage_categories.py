@@ -143,6 +143,25 @@ def test_a_number_naming_no_cell_drops_the_digits_and_keeps_the_tail():
     assert row["location"] == locations.DEFAULT_PAYLOAD_LOCATION
 
 
+def test_a_number_naming_no_cell_and_no_tail_answers_nothing_and_says_so(
+        tmp_path):
+    """The no-tail digit path, which the custom-row test above no longer covers.
+
+    Contract, at both the resolver and the CLI: the digits are dropped, so the
+    row is custom, the base is the default, and `payload_ref` is EMPTY -- rc 0,
+    no file named. This is the cost the docstring now states; nothing here
+    means a payload called `99` still works, because it does not.
+    """
+    row = locations.resolve_storage_category("99", None, _seeded())
+    assert row["custom"] is True
+    assert row["payload_ref"] == ""
+    assert row["location"] == locations.DEFAULT_PAYLOAD_LOCATION
+    root = _project(tmp_path, _seeded())
+    out, err, rc = _run_cli(root, "--storage-pick", "99")
+    assert rc == 0, err
+    assert out == ["custom\tsource_root\t"], out
+
+
 def test_resolver_carries_no_storage_path_literal():
     src = inspect.getsource(locations.storage_categories) + \
         inspect.getsource(locations.resolve_storage_category)

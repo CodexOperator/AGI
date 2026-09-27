@@ -618,6 +618,15 @@ def resolve_storage_category(pick, tail: str | None = None,
     whole answer and the digits are dropped, so `--storage-pick 99 --tail x`
     never yields a payload named `99`.
 
+    THE COST, stated here because the call site reads this and not the round's
+    Caveats: a caller who genuinely means a FILE NAMED `99` now loses that
+    name -- there is no way to spell it, because the reading is by digits, not
+    by table membership. The degenerate case is the other half: a digit naming
+    no cell AND carrying NO tail drops to an EMPTY `payload_ref` under the
+    default base and still exits 0 (`--storage-pick 99` -> `custom\tsource_root\t`).
+    That is a refusal to guess, not a name: no file is named, and a caller
+    that wants a payload must pass `--tail`.
+
     A cell whose `location` is NOT a name `payload_base` accepts is a config
     error, not a pick, and it is refused HERE by name: the row is never
     returned, so no caller can carry a name the write path will reject.
