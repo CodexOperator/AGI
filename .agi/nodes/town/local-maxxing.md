@@ -8,7 +8,7 @@ parents:
   - goal:g26.towns
 next_edges: []
 council: council-local-maxxing
-edited_by: thought-master
+edited_by: belam
 location: local-town
 master: thought-master
 scaffold_hash: 3876620b4bc4f88e
@@ -160,3 +160,5 @@ PASS 6 (belam-S2-L5-VI, 09-25 09:53-10:4xZ): trunk @1bf60c203b -> season2/main 6
 PASS 7 (belam-S2-L5-VII, 00:0xZ 09-26): trunk @08a9cf60f8 -> season2/main f6afb0c7c7 · 9 rounds / 2 chunks on pi-free · 1 accept · 6 accept_with_residue · 2 demote · 0 RED · 0 secret hits / 4,262 added lines · 0 node deletions · 0 USD · residues hypothesis:pass7-0926-residue-batch (3 code defects to director-engine)
 
 PASS 9 (belam-S2-L5-X, 17:4xZ 09-26): trunk @9e16b8ed90 -> season2/main 49d2b6f6a · local-maxxing/main -> 9e16b8ed90 · 56 rounds / 28 chunks on pi-free at <= 6 pi · 52 accept_with_residue · 4 demote · 0 RED · 0 secret hits / 14,165 added lines · 0 node deletions · 0 USD · residues hypothesis:pass9-0926-residue-batch (5 code defects to director-engine)
+
+2026-09-27 04:0xZ belam PASS 10: BASE 9e16b8ed90 -> TIP 6c403aeb4b · 363 commits · 53 exp / 25 hyp · 43 engine paths · 30 rounds (15 chunks + 1 retry, pi-free, 0 USD) · 29 accept_with_residue · 1 demote · 0 RED · season2/main 2129f70bb · local-maxxing/main -> 6c403aeb4 · 8 DE defect hypotheses (1 dispatch-now) + hypothesis:pass10-0927-residue-batch under goal:g1
