@@ -1,0 +1,168 @@
+"""A payload_ref change renames the file in the SAME write.
+
+hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write. Before
+this, `set payload_ref <new>` rewrote the row and left the file at the old
+name: the row dangled until a hand `git mv`. Same directory -> the file moves
+with the row, mint_id untouched. Another directory or another `location` base
+-> REFUSED, naming both paths, unless the write carries `--confirm-move`. An
+existing destination is never overwritten, confirmed or not.
+
+Everything here runs on a temp graph under tmp_path. No user name, home path,
+repo path value, host or IP appears in this file.
+"""
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+import pytest
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+import node_writer  # noqa: E402
+import write  # noqa: E402
+
+ORIG = "# original bytes\n"
+
+
+def _graph(tmp_path: Path):
+    """A temp graph under G11 (graph at `<tmp>/.agi`, source at `<tmp>`), one
+    build node whose `payload_ref` is RELATIVE so the `location` base is
+    exercised, plus a second declared base for the cross-location case."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text('{"locations": {"vendor": "vendor"}}')
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text(ORIG)
+    node = graph / "nodes" / "build" / "b1.md"
+    node.write_text(
+        '---\nid: build:b1\ntype: build\nmint_id: abc123\n'
+        'title: "t"\nscaffold_hash: deadbeef\n'
+        'payload_ref: lib/mod.py\n---\n\nbody\n\n')
+    return graph, payload, node
+
+
+def _submit_set(graph, node_id, key, value):
+    edit = write.Edit(node_id=node_id)
+    write.verb_set(edit, key, value)
+    return write.submit(graph, edit, actor="kid", session="s1")
+
+
+def _row_ref(node: Path) -> str:
+    from graph_core.persistence import frontmatter as fm_reader
+    return str(fm_reader.load_node_file(node, body=False).frontmatter
+               .get("payload_ref") or "")
+
+
+def test_same_directory_rename_moves_the_file_and_keeps_the_mint(tmp_path):
+    graph, payload, node = _graph(tmp_path)
+    res = _submit_set(graph, "build:b1", "payload_ref", "lib/renamed.py")
+    assert res.status != node_writer.REJECTED
+    assert not payload.exists(), "the old path must no longer exist"
+    renamed = tmp_path / "lib" / "renamed.py"
+    assert renamed.is_file() and renamed.read_text() == ORIG
+    assert _row_ref(node) == "lib/renamed.py", "the row must resolve to the new file"
+    assert node.read_text().count("mint_id: abc123") == 1, \
+        "the rename is not a re-mint: mint_id must be unchanged"
+
+
+def test_cross_directory_rename_is_refused_and_moves_nothing(tmp_path):
+    graph, payload, node = _graph(tmp_path)
+    with pytest.raises(write.EditError) as refused:
+        _submit_set(graph, "build:b1", "payload_ref", "sub/moved.py")
+    message = str(refused.value)
+    assert "lib/mod.py" in message and "sub/moved.py" in message, \
+        "the refusal must name BOTH paths"
+    assert payload.is_file() and payload.read_text() == ORIG, \
+        "a refused move must not touch the bytes"
+    assert not (tmp_path / "sub" / "moved.py").exists()
+    assert _row_ref(node) == "lib/mod.py", "a refused move must not touch the row"
+
+
+def test_cross_location_change_is_refused_unless_confirmed(tmp_path):
+    graph, payload, node = _graph(tmp_path)
+    with pytest.raises(write.EditError) as refused:
+        _submit_set(graph, "build:b1", "location", "vendor")
+    assert "lib/mod.py" in str(refused.value) and "vendor" in str(refused.value)
+    assert payload.is_file() and _row_ref(node) == "lib/mod.py"
+
+    res = _submit_set(graph, "build:b1", "location", "--confirm-move vendor")
+    assert res.status != node_writer.REJECTED
+    assert not payload.exists()
+    # a declared base is relative to the GRAPH root (locations.payload_base),
+    # and the whole ref resolves under it, so the path gains the `lib/` part
+    moved = graph / "vendor" / "lib" / "mod.py"
+    assert moved.is_file() and moved.read_text() == ORIG
+    assert _row_ref(node) == "lib/mod.py" and "location: vendor" in node.read_text()
+    import locations as _loc
+    assert _loc.resolve_payload_path(graph, _row_ref(node),
+                                     "vendor") == moved, \
+        "the row must resolve to an existing file after the move"
+
+
+def test_existing_destination_is_never_overwritten(tmp_path):
+    graph, payload, node = _graph(tmp_path)
+    other = tmp_path / "lib" / "taken.py"
+    other.write_text("# somebody else's bytes\n")
+    with pytest.raises(write.EditError) as refused:
+        _submit_set(graph, "build:b1", "payload_ref", "lib/taken.py")
+    assert "taken.py" in str(refused.value)
+    assert other.read_text() == "# somebody else's bytes\n"
+    assert payload.read_text() == ORIG and _row_ref(node) == "lib/mod.py"
+
+    # even WITH the confirm flag a same-directory clash is refused
+    with pytest.raises(write.EditError):
+        _submit_set(graph, "build:b1", "payload_ref", "--confirm-move lib/taken.py")
+    assert other.read_text() == "# somebody else's bytes\n"
+    assert payload.read_text() == ORIG and _row_ref(node) == "lib/mod.py"
+
+
+def test_confirm_flag_is_a_prefix_and_only_on_the_two_naming_keys(tmp_path):
+    graph, payload, node = _graph(tmp_path)
+    edit = write.Edit(node_id="build:b1")
+    write.verb_set(edit, "payload_ref", "--confirm-move lib/other.py")
+    assert edit.confirm_location_move is True
+    assert edit.set_fm["payload_ref"] == "lib/other.py"
+    plain = write.Edit(node_id="build:b1")
+    write.verb_set(plain, "title", "--confirm-move x")
+    assert plain.confirm_location_move is False, \
+        "the flag is not a general prefix: on another key it stays part of the value"
+
+
+def test_mover_is_a_no_op_when_the_path_does_not_change(tmp_path):
+    graph, payload, _ = _graph(tmp_path)
+    before = payload.read_text()
+    res = _submit_set(graph, "build:b1", "title", "still the same file")
+    assert res.status != node_writer.REJECTED
+    assert payload.is_file() and payload.read_text() == before
+
+
+def test_a_declared_ref_with_no_file_here_is_not_a_refusal(tmp_path):
+    """P4 (experiment:a00-6cb920d2-f30271): a row may name a file that is not
+    in this checkout. There is nothing to move, so the write proceeds and the
+    ROW is repointed — the mover's contract is 'bytes, when they are here,
+    move with the row'."""
+    graph, payload, node = _graph(tmp_path)
+    payload.unlink()
+    res = _submit_set(graph, "build:b1", "payload_ref", "lib/elsewhere.py")
+    assert res.status != node_writer.REJECTED
+    assert _row_ref(node) == "lib/elsewhere.py", "the row must still be written"
+    assert not (tmp_path / "lib" / "elsewhere.py").exists(), \
+        "no file is invented where there were none"
+    log = (graph / "sessions" / "write-log.jsonl").read_text()
+    assert "move_payload" not in log, "nothing moved, so nothing is logged"
+
+
+def test_a_failed_row_write_leaves_the_bytes_where_they_were(tmp_path, monkeypatch):
+    """The rename happens AFTER update_node, so a row that refuses to land
+    cannot leave the bytes already moved and the row still old."""
+    graph, payload, node = _graph(tmp_path)
+
+    def refuse(root, node_id, **kw):
+        raise RuntimeError("row refused")
+    monkeypatch.setattr(node_writer, "update_node", refuse)
+    with pytest.raises(RuntimeError):
+        _submit_set(graph, "build:b1", "payload_ref", "lib/renamed.py")
+    assert payload.is_file() and payload.read_text() == ORIG
+    assert not (tmp_path / "lib" / "renamed.py").exists()
+    assert _row_ref(node) == "lib/mod.py"

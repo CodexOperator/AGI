@@ -152,6 +152,15 @@ class Edit:
     # the source argument (`replace body 4:9 --force -`), so the positional
     # range/source grammar is unchanged; an API caller sets the field.
     replace_force: bool = False
+    # hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write --
+    # the explicit consent that admits a payload move ACROSS directories (or
+    # across `location` bases) when `set payload_ref`/`set location` names a
+    # new file. A same-directory rename needs none: the row and the file keep
+    # naming one thing. Spelled as a PREFIX on the value
+    # (`set payload_ref new/dir/f.txt --confirm-move`), like `replace ... --
+    # force`, so an old script parses identically; an API caller sets the
+    # field. Per-call intent, NOT a box setting: no config cell carries it.
+    confirm_location_move: bool = False
     # hypothesis:write-py-inline-replace-verb -- `sub`/`sub!`: the FIRST
     # ` => ` splits `<old>` from `<new>`; plain `sub` demands exactly ONE
     # literal match, `sub!` replaces every one. `sub_target` is `payload` or
@@ -261,6 +270,13 @@ def verb_set(edit: Edit, key: str, value: str) -> Edit:
             f"A mint id is assigned once (goal:g2.5); scaffold_hash is how "
             f"completion is detected, and edit mode is not a loophole in the "
             f"rule the kid brief already follows.")
+    # hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write --
+    # `--confirm-move` rides the value as a PREFIX on the two keys that name
+    # where a node's file lives, so the `set <key> <value>` grammar is
+    # unchanged and every other key still refuses the spelling as a value.
+    if key in ("payload_ref", "location") and value.startswith("--confirm-move "):
+        edit.confirm_location_move = True
+        value = value[len("--confirm-move "):].strip()
     coerced = _coerce(value)
     refusal = _refuse_marker_value(key, coerced)
     if refusal:
@@ -2227,9 +2243,36 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # the body-only path and this gate is the load-bearing confinement.
     _enforce_master_sensei_facts_body(root, edit.node_id, actor, body)
 
+    # hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write --
+    # naming a file is ONE intention, so the bytes move with the row, in this
+    # same write. Every refusal is raised in the PLAN, BEFORE update_node, so a
+    # refused move leaves the row AND the bytes untouched; the rename itself is
+    # the first thing AFTER the row lands, so a row that fails to write cannot
+    # leave the bytes moved (experiment:a00-6cb920d2-f30271). A declared ref
+    # with no file here is nothing to move, not a refusal.
+    _plan = None
+    if "payload_ref" in set_fm or "location" in set_fm:
+        try:
+            _old_ref, _old_loc = _payload_ref(root, edit)
+        except EditError:
+            _old_ref = ""
+        if _old_ref:
+            try:
+                _plan = node_writer.plan_move(
+                    root, _old_ref, str(set_fm.get("payload_ref", _old_ref)),
+                    old_location=_old_loc,
+                    new_location=set_fm.get("location", _old_loc),
+                    confirm=edit.confirm_location_move)
+            except node_writer.MoveRefused as _mv:
+                raise EditError(str(_mv))
+
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
                                   log_extra=_log_provenance(actor))
+    if _plan is not None and _plan.src is not None and res.status != node_writer.REJECTED:
+        node_writer.move_payload(
+            root, plan=_plan, mint_id=_node_mint_id(root, edit.node_id),
+            log_extra=_log_provenance(actor))
     if payload_ref and res.status != node_writer.REJECTED:
         # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes re-log
         # is still a sanction. Hand the owning node's mint_id to

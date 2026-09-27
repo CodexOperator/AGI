@@ -51,6 +51,7 @@ of them had been fixed.
 """
 from __future__ import annotations
 
+import collections
 import datetime
 import hashlib
 import json
@@ -536,6 +537,70 @@ def ensure_payload(root, ref: str, location: str | None = None) -> Path | None:
                extra={"sha256": hashlib.sha256(b"").hexdigest(),
                        "payload_ref": ref, "location": str(location)})
     return src
+
+
+class MoveRefused(RuntimeError):
+    """A payload move no write may perform — see `move_payload`."""
+
+
+_MovePlan = collections.namedtuple("_MovePlan", "src dest")
+
+
+def plan_move(root, old_ref, new_ref, *, old_location=None, new_location=None,
+              confirm=False):
+    """Decide a move and touch NO bytes: a `_MovePlan`, or raise.
+
+    `src is None` is the honest answer "there is nothing here to move" — a
+    declared `payload_ref` may name a file this checkout does not hold (never
+    created, deleted, or not in this worktree). That is not a refusal: the row
+    is still repointed, and the mover's contract becomes "bytes, WHEN THEY ARE
+    HERE, move with the row". Split out from `move_payload` so a caller can
+    raise every refusal BEFORE it writes the row and perform the rename
+    AFTER the row lands.
+    """
+    import locations as _loc
+
+    src = _loc.resolve_payload_path(Path(root), old_ref, old_location)
+    dest = _loc.resolve_payload_path(Path(root), new_ref, new_location)
+    if src == dest or not src.is_file():
+        return _MovePlan(None, dest)
+    if dest.exists() or dest.is_symlink():
+        raise MoveRefused(f"refusing to move {src} onto {dest}: the "
+                          f"destination exists and is never overwritten.")
+    if src.parent != dest.parent and not confirm:
+        raise MoveRefused(f"refusing to move the payload across directories: "
+                          f"{src} -> {dest}. Re-issue the same write with "
+                          f"`--confirm-move`.")
+    return _MovePlan(src, dest)
+
+
+def move_payload(root, old_ref=None, new_ref=None, *, old_location=None,
+                 new_location=None, confirm=False, mint_id="", log_extra=None,
+                 plan=None) -> Path | None:
+    """Carry the file a node names from one path to another, in ONE write.
+
+    hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write. Naming
+    a different file is one intention, so the bytes and the row move together;
+    a `set payload_ref` that left the file behind left a dangling row until a
+    hand `git mv`. Same directory: a rename, no consent asked. A different
+    directory or a different `location` base moves bytes across trees and is
+    REFUSED by name (both paths) unless the caller passed `confirm=True`
+    (write.py's `--confirm-move` prefix). An existing destination is NEVER
+    overwritten, confirmed or not. Same path in, same path out; a source that
+    is not a file here is nothing to move, not a refusal (see `plan_move`).
+    """
+    if plan is None:
+        plan = plan_move(root, old_ref, new_ref, old_location=old_location,
+                         new_location=new_location, confirm=confirm)
+    src, dest = plan
+    if src is None:
+        return None
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    os.replace(src, dest)
+    _log_write(root, "move_payload", str(new_ref), dest, mint_id=mint_id,
+               extra={"payload_ref": str(new_ref), "moved_from": str(src),
+                      **(log_extra or {})})
+    return dest
 
 
 def replace_payload(root, ref: str, source=None, *, location: str | None = None,
