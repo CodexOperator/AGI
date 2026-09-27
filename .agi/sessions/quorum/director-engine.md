@@ -33,6 +33,7 @@ Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW
 
 
 ## §0 STATE (live scratch · landed history = grid.py diff doc:card-director-engine)
+METER 0.404 at capture · account remaining $8.91 of $192 (per the capture) · post branch behind season2/main 2 (measured by the capture)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238.  town trunk synced into post br ea496d6c5 (23:1xZ)
 DH.424    grid-commit gate demoted its hand-set proved (evidence_runs absent): LINKED its 2 proved kid runs via write.py -> proved stands (gate counts 2)
@@ -71,17 +72,26 @@ QUEUED+   belam 00:23Z 09-27 (owner's go, trunk 41bacd5ff), AFTER send-is-hub-on
 CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT re-linked (re-arms g7.33.15)
 ```
 
-## 🔴 WHERE IT STOPS (rotated at f=0.43; capture chain rc=1 = g7.33.15; every round below survives rotation)
+## 🔴 WHERE IT STOPS (captive capture at f=0.404 = 0.85 x L; rotating; every round below survives rotation)
 ```
-FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur474 mur465 mur467 mur469 mur470 (464->475 · 461->467 · 462->468 · 460->466 · 453->464 · 459->465 · 458->463 · 450->462 · 456->461 · 454->460 · 449->459 · 451->458 · 440->452 · 443->453 · 447->454 · 445->455 · 448->456) (mur446 DONE, above)
-       mur446 (+ whatever finished). Verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{5,6,7,8}/verify_DH.4NN-kN.json
-       parents live: 471 a00-c4b0c5c3 · 473 a00-e5014ec9 · 475 a00-b7bd6b5c
-THEN   harvest 454-457 as they land (each cut FROM its chain branch: diff vs that branch; tests; a stray KID node edit is NEVER hand-landed -> a corrective re-lands it via write.py)
-PATTERN corrective = dispatch FROM the loop branch's worktree (kids cannot merge); a clean mur = git merge --no-ff <final branch>
-       LAND ORDER per chain: 425: 441 then 448 then 456 @b3d381f5a then 461 then 467 · 426: 445 then 455 @fa9b0d957 then 470 (NEVER 442) · 427: 436 then 449 @2cee3ba21 then 459 then 465 · 429: merge 429 (nodes) then 443
-       -X theirs then 453 then 464 then 475 · 430: 440 then 452 then 457 then 469 · 432: 438 then 446 then 451 then 458 then 463 then 473 (NEVER 432) · 433: 444 then 447 then 454 then 460 then 466 then 471 (454 CARRIES 451, 460 CARRIES 458: land the 432 chain FIRST) · 434: 439 then 450 then 462 then 468 then 472 then 474 = merge 474's branch ONCE (carries the chain) (NEVER 434)
-THEN   graph acts (2) level3.py build:tests-test-agi-bin-absent · (9)(11) verdicts · full suite + ctx -> ONE [merge-up] 14+15 + g7.33.18
-       (name: 442 discarded, stale-base overrides, the g15 lines, the 2 BOX DRIFTs, my stale 21:2xZ dm)
+FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*'
+       reviews live (at 01:22Z): mur465 mur467 mur469 mur470 mur474 -- verdicts in MAIN .agi/sessions/workflows/runs/mur-director-engine-{9,10,11,12}/verify_DH.4NN-kN.json
+         (a verdict may be JSON INSIDE 'unstructured': parse from '"round"' to the last '}')
+       parents live: 471 a00-c4b0c5c3 (installer: parent-symlink containment, <=25 prod) · 473 a00-e5014ec9 (templates: collision fallback) · 475 a00-b7bd6b5c (tasks_max: is -> ==)
+NEXT   mur474 clean -> git merge --no-ff season2/loops/hypothesis-box-memory-guard-prob-a00-1e9d044a into THIS post branch
+         = the whole 434 chain (434 NOT an ancestor: verified; merge-tree clean at 33585683f); run test_boxkit_probe + test_mem_cap_tasks_max after
+       each other mur: accept (no residue) -> merge its final branch; residue -> corrective cut FROM that loop branch's worktree
+HARVEST recipe: wait for the parent pid to EXIT (it keeps writing after its harvest dm) -> diff vs the chain's previous tip -> touched tests
+       -> uncommitted kid/parent node edits: land ONLY if bytes == last write-log sha (TMM.268), commit msg names actors + rows
+       -> anonymize grep (user name, /home/, IPs) on every changed node BEFORE its mur
+LAND ORDER per chain (final = the last branch): 425: ...456 @b3d381f5a -> 461 @9ec5ae631 -> 467 @9afa1d525 · 426: ...455 @fa9b0d957 -> 470 @6aeba62ff (NEVER 442)
+       · 427: ...459 @5922c27d9 -> 465 @0b4cd0c0e · 429: 443 -> 453 -> 464 -> 475 (merge 429 nodes first, 443 -X theirs) · 430: ...457 @4dd3e60b2 -> 469 @1efb6c6ea
+       · 432: ...458 @de33ea1fe -> 463 @b8d59da7b -> 473 (NEVER 432) · 433: ...460 -> 466 -> 471 (carries 451+458: land 432's chain FIRST)
+       · 434: ...468 -> 472 @bf5e0cbf0 -> 474 @2d648bf26 (NEVER 434)
+OPEN   DH.470 R3: dispatch._reap_pass skips a schema-refused round -- the fix is in dispatch.py (outside the node's scope): mur470 names it -> own round or [red]
+THEN   all chains clean + merged -> full suite in a granted window -> ONE [merge-up] to thought-master (name: 442 discarded, stale-base overrides
+       x all correctives, the g15 lines, the BOX DRIFT, TMM.268 landings, my stale 21:2xZ dm, the ~12 schemas-dir readers)
+QUEUE  after merge-up: goal:g4.18.1 FIRST, then send-is-hub-only (+ (default)-box refusal) + g7.32.5, then g7.31.3.3 (OWNER order 01:0xZ)
 ```
 
 ## §4 TRAPS
