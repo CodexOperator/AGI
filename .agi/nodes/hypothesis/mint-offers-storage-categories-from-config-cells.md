@@ -168,6 +168,23 @@ FILE SCOPE extensions/agi/bin/locations.py · extensions/agi/tests/test_storage_
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 28fc8b66c · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.642 -- closes mur-director-engine-38 DH.618-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-mint-offers-storage-c-a00-a58a3f08 tip dab046d52 (branch de-base-642; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Order 1 not closed: a00-efff0209 is STILL truncated — the round's completion ends mid-sentence at :173 `so a nested heading returns`
+2. 2. The round's own claim is falsified by its bytes: title:19 and Agent Notes:215 assert the four truncated texts are finished
+3. 3. A digit pick with NO tail now answers nothing: rc=0, payload_ref empty, docstring silent on the case (locations.py:642)
+4. 4. The `"99"` case removed from test_pick_outside_the_table_is_flagged_custom_not_raised still passes, so it was not a blocker, and it removed the only coverage of the no-tail digit path
+5. A SECOND, STRICTLY WORSE copy of the reader trap the round names, in the same file it cited: `extensions/agi/bin/season.py:1639` inside `_resolve_node_conflict` (defined :1603) repeats `if lines[j].startswith('#'): end = j; break`, and then `lines[i+1:end] = [new_block]` (:1646) or `= []` (:1648) — so on merge resolution a node that nests a heading under `## Agent Notes` has that heading AND everything up to it DELETED from the body, not merely handed an empty block. The round's OUTSIDE (:164-171) names only the reader `_agent_notes_block` at :1569-1571 and calls it 'the reader that made order 5 a reader-level loss'; the writer at :1639 is the same trap with a worse outcome and was never read by the round. season.py is byte-identical between dab046d52 and the review tree, so the citation holds for the reviewed commit.
+6. title:19's count is unverifiable from this diff: only THREE node files are edited here (ca575be5, d1efc345, efff0209); the fourth text, `a00-7440fe20-e60013.md`, appears nowhere in `git diff 28fc8b66c dab046d52`, so "the four truncated node texts are finished in the bytes" asserts a closure of a file this round never opened.
+7. The reader-of-record for the behaviour change omits the judgement's cost: the new docstring `extensions/agi/bin/locations.py:616-619` states the digit-drop as contract with no mention that a caller genuinely meaning a file named `99` now loses it; that caveat lives only in `a00-eea0b2c4-0b4709.md:183-186` (Caveats). A caller reading the docstring at the call site cannot see what the fix costs — the test at :139-143 then ratifies the narrowed contract as the only truth.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_storage_categories.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/locations.py · extensions/agi/tests/test_storage_categories.py · .agi/nodes/experiment/a00-ca575be5-db8af5.md · .agi/nodes/experiment/a00-d1efc345-f70244.md · .agi/nodes/experiment/a00-eea0b2c4-0b4709.md · .agi/nodes/experiment/a00-efff0209-c9ca88.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over dab046d52 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.618: mur-director-engine-35 DH.611-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.642: mur-director-engine-38 DH.618-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
