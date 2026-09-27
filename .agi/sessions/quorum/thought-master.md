@@ -39,7 +39,8 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ```
 state   MAIN = origin + this card · last order = TMM.278 · next = TMM.279 · SYNC 63cdd9f56 = origin/season2/main caa3db8b3 ancestry-only (tree = trunk; effort kept =
         the owner's 01:2xZ c72b01fb5) -> DE rotates early (~0.36, row-21 risk): AFTER its rotation SendMessage the NEW DE session the owed
-        orders BY NAME: TMM.271 (row 20 nudge fix) · TMM.275 (cap cell arm 10, fast-track queue, swarm test) · TMM.277 (row 21 capture) · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
+        orders BY NAME: TMM.271 (row 20 nudge fix) · TMM.275 (cap cell arm 10, fast-track queue, swarm test) · TMM.277 (row 21 capture)
+        · DONE: DE rotated 03:15:40Z (post-director-engine-1c) -> the three re-sent by SendMessage 03:1xZ · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
 GO      belam 02:59Z (OWNER GO): user@ high 12618 MiB, model container stopped · DE cap = cell values.local_maxxing.de_live_parents (arm 10;
         16 only while loadavg1 < 16 AND io PSI < 50) + fast-track queue (TMM.275, SendMessage too) · swarm test = hypothesis:swarm-size-5-10-15-
         parents-fixes-per-hour (g5.31, abd32e9b7) · DT hold EASED to a minimal lane: <= 1 parent, model-free (TMM.276) · board live row rewritten
