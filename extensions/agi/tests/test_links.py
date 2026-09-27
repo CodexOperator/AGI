@@ -17,6 +17,7 @@ content and nobody notices for 8,034 fields.
 from __future__ import annotations
 
 import sys
+import json
 from pathlib import Path
 
 import pytest
@@ -508,29 +509,30 @@ def test_a_resolver_collapsed_key_is_the_writers_shape(project):
 
 
 def test_the_repair_keeps_a_collapsed_key_field_end_to_end(project):
-    """Same family through `_ensure_frontmatter`, and the one place the
-    rename could bite. `on: yes` comes back as the bool key `True`; the
-    predicate now forgives it, so nothing is `pop`ped and the field is still
-    on disk. NOTE (ITEM 1, residual): the surviving SPELLING is `True`, not
-    `on` -- `render_frontmatter` is handed the re-parsed mapping and never
-    sees the header text the `on` came from. What is pinned here is that the
-    field SURVIVES and re-renders stably, which is the loss the round
-    measured; recovering the original spelling needs the raw header and so
-    lives in cli.py:429-432 (outside this round's file scope)."""
+    """Same family through `_ensure_frontmatter`, the one place the rename
+    bites. `on: yes` comes back as the bool key `True`: the surviving SPELLING
+    is `True` because `render_frontmatter` is handed the re-parsed mapping and
+    never sees the header (ITEM 1 residual, outside scope, cli.py:429-432).
+    Pinned: the field SURVIVES the repair, on a PARSED key, never a substring."""
     import cli
+    # NO `parents`/`mint_id`: either keeps `_ensure_frontmatter` out of its
+    # re-salvage branch (`frontmatter ok`, nothing rewritten). The manifest
+    # supplies the parent the repair needs.
     path = _node(project, "experiment:e1",
                  ['id: "experiment:e1"', "type: experiment", "on: yes",
-                  "notes: keep", "parents: ['hypothesis:h1']",
-                  "mint_id: abc123"], "b\n")
-    ok, msg = cli._ensure_frontmatter(project, path, project / "absent.json",
-                                      "experiment:e1")
+                  "notes: keep"], "b\n")
+    ap = project / "agent.json"
+    ap.write_text(json.dumps({"node_id": "experiment:e1", "parent": "hypothesis:h1"}))
+    ok, msg = cli._ensure_frontmatter(project, path, ap, "experiment:e1")
     assert ok, msg
     text = path.read_text()
-    assert "on" in text or True in text, text      # the field, not its spelling
     ok2, fm2, defect2 = cli._load_frontmatter(text)
     assert ok2, defect2
     assert cli._off_shape_keys(fm2) == []
-    assert fm2[True] is True
+    assert fm2["parents"] == ["hypothesis:h1"]   # the repair really ran
+    # A KEY on the PARSED mapping: `"on" in text` passes whether or not the
+    # repair ran; `True in text` is a TypeError.
+    assert True in fm2, sorted(map(str, fm2))
     # ITEM 2: two non-leading keys is the case that used to raise
     # `TypeError: '<' not supported between 'bool' and 'str'` and kill `done`.
     assert [l for l in text.splitlines() if l.startswith("notes")] == ["notes: keep"]
@@ -591,15 +593,17 @@ def test_the_LIVE_repaired_artifact_is_still_in_shape():
     """ITEM 6: the round DELETED the file's only live pin on
     `.agi/nodes/experiment/a00-fe05fdae-a240f5.md` -- the exact artifact the
     parent claim's repair conjunct is about, hand-landed at 5a24ccfbd. With
-    it gone nothing held that repair in place and the node's custody claim
-    ('bytes == last write-log sha, actor a00-1556127c rows 2-4') is
-    uncheckable by any automated pass. Restored, and deliberately narrow: it
+    it gone nothing held that repair in place. Restored, and narrow: it
     reads the LIVE file and asserts only that a real recovered `probes` list
-    still loads clean and in shape, so it cannot die the way the old
-    `find_project_root` version did."""
+    still loads clean and in shape. It SKIPS rather than divides when there
+    is no `.agi` to pin -- the one way the old `find_project_root` version
+    died (`TypeError: ... for /: 'NoneType' and 'str'`, reproduced by the
+    parent; fixed by the guard below)."""
     import cli
-    live = (locations.find_project_root(Path(__file__).resolve())
-            / "nodes" / "experiment" / "a00-fe05fdae-a240f5.md")
+    root = locations.find_project_root(Path(__file__).resolve())
+    if root is None:                      # plugin-only tree: nothing to pin
+        pytest.skip("no .agi above this checkout; the live pin has no subject")
+    live = root / "nodes" / "experiment" / "a00-fe05fdae-a240f5.md"
     ok, fm, defect = cli._load_frontmatter(live.read_text(errors="replace"))
     assert ok, defect
     assert fm["probes"], live

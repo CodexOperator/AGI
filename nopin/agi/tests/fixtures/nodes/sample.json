@@ -1,0 +1,14 @@
+{
+  "body": "Experiment run on iter 47 with 1665 nodes and 1700 edges. Build time 0.04ms.",
+  "frontmatter": {
+    "evidence_runs": [
+      "run-046",
+      "run-047"
+    ],
+    "id": "exp:run-047-bench",
+    "parents": [
+      "hyp:lru-saturates-warm-load"
+    ],
+    "type": "experiment"
+  }
+}

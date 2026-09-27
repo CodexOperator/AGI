@@ -1,0 +1,47 @@
+#!/bin/bash
+# agi: refuse git push for automated agent tiers — only in the project repo
+# hypothesis:l2-commit-guard-scope — same scoping as pre-commit.
+# Compare git rev-parse --show-toplevel with AGI_PROJECT_ROOT; exit 0
+# when they differ or when AGI_PROJECT_ROOT is unset. Refusal only for
+# a push whose toplevel is the project repo.
+if [ -z "${AGI_TIER:-}" ]; then
+    exit 0
+fi
+if [ "${AGI_TIER}" != "kid" ] && [ "${AGI_TIER}" != "parent" ]; then
+    exit 0
+fi
+if [ -z "${AGI_PROJECT_ROOT:-}" ]; then
+    exit 0
+fi
+# Under goal:g11 AGI_PROJECT_ROOT is the GRAPH root (<repo>/.agi), a child
+# of the git toplevel, so take ITS git toplevel to get the repo root.
+TOPLEVEL=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+REAL_TOPLEVEL=$(cd "$TOPLEVEL" && pwd -P 2>/dev/null) || exit 0
+PROJECT_TOPLEVEL=$(git -C "$AGI_PROJECT_ROOT" rev-parse --show-toplevel 2>/dev/null)
+if [ -z "${PROJECT_TOPLEVEL:-}" ]; then
+    REAL_PROJECT=$(cd "$AGI_PROJECT_ROOT" && pwd -P 2>/dev/null) || exit 0
+else
+    REAL_PROJECT=$(cd "$PROJECT_TOPLEVEL" && pwd -P 2>/dev/null) || exit 0
+fi
+if [ "$REAL_TOPLEVEL" != "$REAL_PROJECT" ]; then
+    # hypothesis:l4-commit-guard-worktree-toplevel-bypass -- same shared-
+    # checkout refusal as pre-commit: under --branch AGI_PROJECT_ROOT is the
+    # kid's own WORKTREE, so a process whose CWD sits in the MAIN checkout
+    # gets REAL_TOPLEVEL (main) != REAL_PROJECT (worktree) and the old
+    # `different => allow` rule let it push from the shared main checkout.
+    # Refuse when both toplevels share one git-common-dir (same project,
+    # different checkout); allow only a genuinely foreign repo.
+    CWD_COMMON=$(cd "$REAL_TOPLEVEL" && git rev-parse --git-common-dir 2>/dev/null)
+    PROJ_COMMON=$(cd "$REAL_PROJECT" && git rev-parse --git-common-dir 2>/dev/null)
+    if [ -n "${CWD_COMMON:-}" ] && [ -n "${PROJ_COMMON:-}" ]; then
+        CWD_COMMON=$(cd "$REAL_TOPLEVEL" && cd "$CWD_COMMON" 2>/dev/null && pwd -P 2>/dev/null)
+        PROJ_COMMON=$(cd "$REAL_PROJECT" && cd "$PROJ_COMMON" 2>/dev/null && pwd -P 2>/dev/null)
+        if [ -n "${CWD_COMMON:-}" ] && [ "$CWD_COMMON" = "$PROJ_COMMON" ]; then
+            echo "agi: tier ${AGI_TIER} may not push -- automation owns git (goal:s27)" >&2
+            exit 1
+        fi
+    fi
+    exit 0
+fi
+echo "agi: tier ${AGI_TIER} may not push — automation owns git (goal:s27)" >&2
+exit 1

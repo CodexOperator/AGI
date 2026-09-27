@@ -1,0 +1,2480 @@
+"""Tests for hypothesis:l4-the-reaper-is-one-persistent-service part 2.
+
+The persistent watcher (`heal.py watch`) discovers every live round under a
+main checkout, runs the SAME `_reap_pass` dispatch.py's inline reaper uses,
+and — for any agent still `running` past its manifest `timeout_seconds`
+whose pid is genuinely DEAD — records the death (`failed`). A LIVE pid past
+its deadline is never written a terminal word: it is marked `overdue`
+(hypothesis:l4-a-timeout-mark-on-a-live-agent-is-not-terminal) — status stays
+`running`, `overdue_since`/`overdue_reason` set, EXACTLY ONE `overdue` dm
+through the L4.113 path, never a second dm on a later pass.
+
+The claim fixture (in the hypothesis): a main checkout with TWO rounds whose
+parents outlive their nominal timeout -> BOTH marked `overdue` (status still
+`running`), BOTH dispatchers get exactly ONE dm, the watcher process pid
+unchanged across both, and `heal.py watch --once` runs one pass and exits.
+
+Test-side safety, matching the merge-up traps: `AGI_REAPER_LOG` is pointed at
+a tmp file so no test ever touches ~/logs; a second `--once` pass is proven
+idempotent (still exactly one dm each) so the watcher never double-sends.
+"""
+from __future__ import annotations
+
+import importlib.util
+import json
+import os
+import sys
+import time
+from pathlib import Path
+
+import pytest
+
+BIN = Path(__file__).resolve().parents[1] / "bin"
+sys.path.insert(0, str(BIN))
+
+
+def _load(name):
+    spec = importlib.util.spec_from_file_location(name, BIN / f"{name}.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+cli = _load("cli")
+heal = _load("heal")
+
+
+@pytest.fixture
+def graph_project(tmp_path: Path) -> Path:
+    """A project whose graph root (repo/.agi) carries nodes + config so the
+    shared-inbox resolver lands dms in graph/sessions/inbox."""
+    graph = tmp_path / "repo" / ".agi"
+    (graph / "nodes").mkdir(parents=True, exist_ok=True)
+    (graph / "config.json").write_text(json.dumps(
+        {"metric_primary": "outcome_coverage"}))
+    return graph
+
+
+def _round(graph: Path, name: str, agent_id: str, timeout_s: int) -> None:
+    """Two rounds whose owner outlives the nominal timeout."""
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": timeout_s,
+        "agents": [{"id": agent_id, "status": "running",
+                    "dispatched_by": "director"}],
+    }, indent=2))
+    adir = it / agent_id
+    adir.mkdir(parents=True, exist_ok=True)
+    (adir / "agent.json").write_text(json.dumps({
+        "id": agent_id, "status": "running", "dispatched_by": "director",
+        "started_at": int(time.time()) - 5,  # already past the 1s timeout
+        "pid": 0,  # 0 -> no death-reap path; isolate the timeout mark
+    }, indent=2))
+
+
+def _inbox(graph: Path, who: str) -> Path:
+    return cli.locations.shared_sessions_dir(graph) / "inbox" / f"{who}.md"
+
+
+def _manifest_status(graph: Path, name: str, agent_id: str) -> str:
+    m = json.loads((graph / "sessions" / f"iter-{name}" / "manifest.json")
+                   .read_text())
+    for e in m["agents"]:
+        if e["id"] == agent_id:
+            return e["status"]
+    return "absent"
+
+
+def test_watch_once_marks_two_timeouts_two_dms_one_log_event_each(
+        graph_project, monkeypatch):
+    """Two rounds whose owners outlived the deadline: BOTH marked `overdue`
+    (status stays `running`), both dispatchers get exactly ONE dm, one log
+    line per event, and the watcher's pid is unchanged across both rounds."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _round(graph_project, "A", "kid-a", 1)
+    _round(graph_project, "B", "kid-b", 1)
+
+    pid_before = os.getpid()
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    rc = heal.main()
+    assert rc == 0  # --once runs one pass and exits
+    assert os.getpid() == pid_before  # the SAME watcher did both rounds
+
+    assert _manifest_status(graph_project, "A", "kid-a") == "running"
+    assert _manifest_status(graph_project, "B", "kid-b") == "running"
+
+    # each agent gained the overdue mark, never a terminal word.
+    for nm, aid in (("A", "kid-a"), ("B", "kid-b")):
+        rec = json.loads((graph_project / "sessions" / f"iter-{nm}" / aid
+                          / "agent.json").read_text())
+        assert rec["status"] == "running", rec["status"]
+        assert rec.get("overdue_since"), "overdue_since must be set"
+
+    inbox_a = _inbox(graph_project, "director")
+    text = inbox_a.read_text()
+    # ONE dm per round, both to the same stamped dispatcher, in ONE inbox.
+    assert text.count("from:") == 2, "exactly one dm per overdue round"
+    assert text.count("reason=overdue") == 2
+    assert "iter=iter-A agent=kid-a" in text
+    assert "iter=iter-B agent=kid-b" in text
+
+    log_text = log.read_text()
+    assert "marked OVERDUE" in log_text
+    assert log_text.count("marked OVERDUE") == 2  # ONE log line per event
+    assert "iter-iter-A" in log_text or "iter-A" in log_text
+
+
+def test_watch_second_pass_is_idempotent_no_double_dm(graph_project, monkeypatch):
+    """A second `--once` pass over an already-marked round must not mark again
+    nor re-send the dm — exactly one dm survives both passes."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _round(graph_project, "C", "kid-c", 1)
+
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    assert heal.main() == 0  # second pass
+
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("from:") == 1, "second pass must not re-send the dm"
+
+
+def test_watch_round_with_no_dispatcher_still_marks_and_logs(
+        graph_project, monkeypatch, capsys):
+    """A round with NO `dispatched_by` stamp that is past deadline and has a
+    live (unknown — pid 0) pid is marked OVERDUE and logs the mark; the dm is
+    skipped but there is never silence."""
+    it = graph_project / "sessions" / "iter-D"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": 1,
+        "agents": [{"id": "kid-d", "status": "running"}],
+    }, indent=2))
+    adir = it / "kid-d"
+    adir.mkdir(parents=True, exist_ok=True)
+    (adir / "agent.json").write_text(json.dumps({
+        "id": "kid-d", "status": "running",
+        "started_at": int(time.time()) - 5, "pid": 0,
+    }, indent=2))
+
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "r2.log"))
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+
+    rec = json.loads((graph_project / "sessions" / "iter-D" / "kid-d"
+                      / "agent.json").read_text())
+    assert rec["status"] == "running"
+    assert rec.get("overdue_since"), "overdue mark set without a stamp"
+    assert _manifest_status(graph_project, "D", "kid-d") == "running"
+    # dm goes nowhere (no stamp) but a warn line is emitted — never silence
+    assert "no dispatcher stamp" in capsys.readouterr().err
+
+def _dead_pid() -> int:
+    """A genuinely-dead pid (a short-lived process that has already exited)."""
+    import subprocess
+    p = subprocess.Popen([sys.executable, "-c", "pass"])
+    p.wait()
+    return p.pid
+
+
+def _round_dead(graph: Path, name: str, agent_id: str, timeout_s: int,
+                started_ago: int, pid: int) -> None:
+    """A round whose agent pid is DEAD — the service DEATH path."""
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": timeout_s,
+        "agents": [{"id": agent_id, "status": "running",
+                    "dispatched_by": "director", "pid": pid}],
+    }, indent=2))
+    adir = it / agent_id
+    adir.mkdir(parents=True, exist_ok=True)
+    (adir / "agent.json").write_text(json.dumps({
+        "id": agent_id, "status": "running", "dispatched_by": "director",
+        "started_at": int(time.time()) - started_ago, "pid": pid,
+    }, indent=2))
+
+
+def test_watch_dead_pid_within_deadline_is_a_death_with_one_dm(
+        graph_project, monkeypatch):
+    """Residue (a): a dead pid WITHIN its deadline is recorded as a DEATH
+    (status failed, honest 'pid N died' reason — NOT the bogus 'restart
+    unavailable') with exactly ONE death dm, one log line."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _round_dead(graph_project, "E", "kid-e", timeout_s=1000, started_ago=5,
+                pid=_dead_pid())
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+
+    assert _manifest_status(graph_project, "E", "kid-e") == "failed"
+    rec = json.loads((graph_project / "sessions" / "iter-E" / "kid-e"
+                      / "agent.json").read_text())
+    assert rec["status"] == "failed"
+    assert "died" in rec["fail_reason"], rec["fail_reason"]
+    assert "restart unavailable" not in rec["fail_reason"]
+
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("from:") == 1, "exactly one death dm"
+    assert "reason=death" in text
+    assert "reason=timeout" not in text
+    assert _manifest_status(graph_project, "E", "kid-e") == "failed"
+
+
+def test_watch_dead_pid_past_deadline_is_a_death_not_timeout(
+        graph_project, monkeypatch):
+    """Residue (a): a dead pid PAST its deadline is a DEATH, never overwritten
+    to `timeout` — one status, one dm, distinguishable in the dm text."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _round_dead(graph_project, "F", "kid-f", timeout_s=1, started_ago=5,
+                pid=_dead_pid())
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+
+    assert _manifest_status(graph_project, "F", "kid-f") == "failed"
+    rec = json.loads((graph_project / "sessions" / "iter-F" / "kid-f"
+                      / "agent.json").read_text())
+    assert rec["status"] == "failed"
+    assert "died" in rec["fail_reason"]
+    assert "past manifest timeout_seconds" not in rec["fail_reason"]
+
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("from:") == 1, "exactly one death dm, not a timeout dm"
+    assert "reason=death" in text
+    assert "reason=timeout" not in text
+
+
+def _round_raw_pid(graph: Path, name: str, agent_id: str, timeout_s: int,
+                   started_ago: int, pid) -> None:
+    """A round whose record carries whatever `pid` is handed (null, "abc")."""
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": timeout_s,
+        "agents": [{"id": agent_id, "status": "running",
+                    "dispatched_by": "director", "pid": pid}],
+    }, indent=2))
+    adir = it / agent_id
+    adir.mkdir(parents=True, exist_ok=True)
+    (adir / "agent.json").write_text(json.dumps({
+        "id": agent_id, "status": "running", "dispatched_by": "director",
+        "started_at": int(time.time()) - started_ago, "pid": pid,
+    }, indent=2))
+
+
+def test_watch_tolerates_null_and_non_int_pid_records(
+        graph_project, monkeypatch):
+    """hypothesis:l4-the-reaper-tolerates-a-null-pid… — a committed record
+    with `"pid": null` and one with a non-int pid must flow through the watch
+    / reap loop without raising, and read as pid 0/unknown (here: overdue,
+    not a death). Before the fix `int(None)` raised TypeError and took the
+    whole pass down."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _round_raw_pid(graph_project, "N", "kid-null", timeout_s=1,
+                   started_ago=5, pid=None)
+    _round_raw_pid(graph_project, "X", "kid-abc", timeout_s=1,
+                   started_ago=5, pid="abc")
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0  # no TypeError from either record
+
+    for nm, aid in (("N", "kid-null"), ("X", "kid-abc")):
+        rec = json.loads((graph_project / "sessions" / f"iter-{nm}" / aid
+                          / "agent.json").read_text())
+        assert rec["status"] == "running", rec["status"]
+        assert rec.get("overdue_since"), "pid 0 = unknown, so overdue"
+
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("reason=overdue") == 2
+    assert "reason=death" not in text
+
+
+def _round_stalled(graph: Path, name: str, agent_id: str, timeout_s: int,
+                   started_ago: int, pid: int) -> None:
+    """A round whose agent.json is `stalled` and whose pid is DEAD."""
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": timeout_s,
+        "agents": [{"id": agent_id, "status": "stalled",
+                    "dispatched_by": "director", "pid": pid}],
+    }, indent=2))
+    adir = it / agent_id
+    adir.mkdir(parents=True, exist_ok=True)
+    (adir / "agent.json").write_text(json.dumps({
+        "id": agent_id, "status": "stalled", "dispatched_by": "director",
+        "started_at": int(time.time()) - started_ago, "pid": pid,
+    }, indent=2))
+
+
+def test_watch_stalled_dead_alarms_through_the_shared_death_predicate(
+        graph_project, monkeypatch):
+    """The stalled-dead branch must produce the SAME dm + reaper-log line the
+    dead-running branch does, driven by the shared `_is_death` predicate
+    rather than a `fail_reason` string match. Before the fix its
+    `"stalled; pid N disappeared…"` reason never matched `startswith("pid N
+    died")`, so no dm and no log line were ever emitted."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _round_stalled(graph_project, "S", "kid-s", timeout_s=1000,
+                   started_ago=5, pid=_dead_pid())
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+
+    rec = json.loads((graph_project / "sessions" / "iter-S" / "kid-s"
+                      / "agent.json").read_text())
+    assert rec["status"] == "failed"
+    assert rec["fail_reason"].startswith("stalled;"), rec["fail_reason"]
+    assert "death" in rec, "the stalled-dead record must carry the death class"
+
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("from:") == 1, "exactly one death dm"
+    assert "reason=death" in text
+    log_text = log.read_text()
+    assert "marked DEAD" in log_text, log_text
+    assert "kid-s" in log_text
+
+
+def test_watch_death_not_double_dm_on_second_pass(graph_project, monkeypatch):
+    """A second `--once` pass over an already-recorded death must not re-send
+    the death dm — the watcher stays idempotent across passes."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _round_dead(graph_project, "G", "kid-g", timeout_s=1000, started_ago=5,
+                pid=_dead_pid())
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    assert heal.main() == 0  # second pass
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("from:") == 1, "second pass must not re-send the dm"
+
+
+def test_watch_repairs_a_stranded_seat_wake_in_one_pass(
+        graph_project, monkeypatch):
+    """hypothesis:l4-a-stranded-nudge-is-resubmitted-by-typing-not-enter:
+    the watch pass calls `send.wake` for every configured live seat row, with
+    no operator, so a stranded rotation-alert wake is repaired within ONE
+    `--once` pass. A row with no name is skipped; `send.wake` itself is a
+    read-only no-op when there is nothing to deliver, so polling every row
+    is safe."""
+    import send as _send
+    woke = []
+
+    def _fake_wake(root, to, tmux_session=None):
+        woke.append(to)
+        return True
+
+    monkeypatch.setattr(_send, "wake", _fake_wake)
+    monkeypatch.setattr(
+        _send, "_locally_loaded_rows",
+        lambda root: [{"name": "sanctuary-director"},
+                      {"name": "sanctuary-helper"},
+                      {"name": ""}])          # the "" row is skipped
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    assert sorted(woke) == ["sanctuary-director", "sanctuary-helper"]
+
+
+class _FlipFlopAdapter:
+    """Exercises EXACTLY the transition the other dead-pid tests never reach
+    (hypothesis:l4-heal-death-past-deadline-branch-has-a-test). is_alive
+    returns True on the FIRST call for a pid — so `_reap_pass` sees the agent
+    alive and leaves it in `outcome["still"]` — and False on every call after
+    — so the watcher's own timeout check (heal.py:320) sees it dead and
+    records a DEATH, not a timeout."""
+
+    def __init__(self):
+        self._calls = {}
+
+    def is_alive(self, pid: int) -> bool:
+        n = self._calls.get(pid, 0)
+        self._calls[pid] = n + 1
+        return n == 0
+
+
+def _round_alive_then_dead(graph: Path, name: str, agent_id: str,
+                           timeout_s: int, started_ago: int, pid: int) -> None:
+    """A round whose agent is ALIVE at the reap pass and DEAD by the watcher's
+    own deadline check — the death-past-deadline transition under test."""
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": timeout_s,
+        "agents": [{"id": agent_id, "status": "running",
+                    "dispatched_by": "director", "pid": pid}],
+    }, indent=2))
+    adir = it / agent_id
+    adir.mkdir(parents=True, exist_ok=True)
+    (adir / "agent.json").write_text(json.dumps({
+        "id": agent_id, "status": "running", "dispatched_by": "director",
+        "started_at": int(time.time()) - started_ago, "pid": pid,
+    }, indent=2))
+
+
+def test_watch_dead_past_deadline_alive_at_reap_then_dead(graph_project,
+                                                          monkeypatch):
+    """The transition: pid ALIVE at the reap pass (left in `still`), DEAD by
+    the timeout check -> a DEATH is recorded (never a timeout): agent.json
+    status failed + 'pid N died (detected by reaper)' + finished_at set, the
+    manifest updated, EXACTLY ONE death dm, NO timeout dm, and the watch log
+    carries 'marked DEAD past deadline'."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _FlipFlopAdapter)
+    _round_alive_then_dead(graph_project, "H", "kid-h", timeout_s=1,
+                           started_ago=5, pid=424242)
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+
+    # agent.json: honest death, NOT a timeout overwrite.
+    rec = json.loads((graph_project / "sessions" / "iter-H" / "kid-h"
+                      / "agent.json").read_text())
+    assert rec["status"] == "failed", rec["status"]
+    assert rec["fail_reason"] == "pid 424242 died (detected by reaper)", \
+        rec["fail_reason"]
+    assert rec.get("finished_at"), "finished_at must be set"
+    assert "timeout_reason" not in rec
+
+    # manifest entry updated in lockstep.
+    man = json.loads((graph_project / "sessions" / "iter-H"
+                      / "manifest.json").read_text())
+    entry = next(e for e in man["agents"] if e["id"] == "kid-h")
+    assert entry["status"] == "failed"
+    assert entry["finished_at"] == rec["finished_at"]
+    assert entry["fail_reason"] == rec["fail_reason"]
+
+    # EXACTLY ONE dm, reason=death, never timeout.
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("from:") == 1, "exactly one death dm"
+    assert "reason=death" in text
+    assert "reason=timeout" not in text
+
+    # watch log line for the death-past-deadline mark.
+    ltext = log.read_text()
+    assert "marked DEAD past deadline" in ltext
+    assert "marked timeout" not in ltext
+
+
+def test_death_class_stream_error_names_its_evidence_line(tmp_path: Path):
+    """A provider/stream error in the agent's output.log -> class
+    infra-stream-error with the matching log line as evidence; fail_reason
+    text is never touched by the classifier."""
+    wt = tmp_path / "wt"
+    adir = wt / "sessions" / "iter-X" / "kid-s"
+    adir.mkdir(parents=True)
+    lines = [f"chatter {i}" for i in range(60)]
+    lines.append("Upstream error from Together: Stream error: h2 protocol "
+                 "error: error reading a body from connection")
+    (adir / "output.log").write_text("\n".join(lines) + "\n")
+    d = heal._death_class(str(wt), "kid-s", 97.5, agent_dir=adir)
+    assert d["class"] == "infra-stream-error", d
+    assert "h2 protocol error" in d["evidence"], d
+    assert d["runtime_s"] == 97.5
+
+
+def test_death_class_kid_verdict_means_died_after_work(tmp_path: Path):
+    """A kid experiment node with a verdict -> died-after-work, and the
+    verdict cell is reported in `kids` (the salvage precondition).
+
+    PROBE A fix: the fixture uses `spawned_by_agent`, the field
+    dispatch.py:2360-2368 ACTUALLY writes for the spawning agent. The first
+    cut matched only `dispatched_by` (the seat to alarm), so on a real
+    record the kid list came back empty."""
+    wt = tmp_path / "wt"
+    adir = wt / "sessions" / "iter-Y" / "parent-p"
+    kid = wt / "sessions" / "iter-Y" / "kid-k"
+    for d in (adir, kid, wt / ".agi" / "nodes" / "experiment"):
+        d.mkdir(parents=True)
+    (kid / "agent.json").write_text(json.dumps(
+        {"id": "kid-k", "spawned_by_agent": "parent-p",
+         "dispatched_by": "sensei-director",
+         "node_id": "experiment:kid-1"}))
+    (wt / ".agi" / "nodes" / "experiment" / "exp-kid-1.md").write_text(
+        "---\nid: experiment:kid-1\ntype: experiment\nverdict: proved\n---\n")
+    d = heal._death_class(str(wt), "parent-p", 12, agent_dir=adir)
+    assert d["class"] == "died-after-work", d
+    assert d["kids"] == [{"id": "experiment:kid-1", "verdict": "proved"}], d
+
+
+def test_death_class_http_1_1_5xx_is_infra(tmp_path: Path):
+    """PROBE B fix: the canonical provider line
+    'HTTP/1.1 500 Internal Server Error' is infra-stream-error, not
+    died-no-work. The first regex required the digit straight after `http`."""
+    wt = tmp_path / "wt"
+    adir = wt / "sessions" / "iter-H" / "kid-h"
+    adir.mkdir(parents=True)
+    (adir / "output.log").write_text(
+        "working\n< HTTP/1.1 500 Internal Server Error\n")
+    for line in ("< HTTP/1.1 500 Internal Server Error", "HTTP 500 err",
+                 "http500 oops", "HTTP/1.1 503 Service Unavailable"):
+        (adir / "output.log").write_text("working\n" + line + "\n")
+        d = heal._death_class(str(wt), "kid-h", 3, agent_dir=adir)
+        assert d["class"] == "infra-stream-error", (line, d)
+        assert d["evidence"] == line, (line, d)
+
+
+def test_death_class_empty_round_is_died_no_work(tmp_path: Path):
+    """Nothing staged, no error line -> died-no-work; no evidence."""
+    wt = tmp_path / "wt"
+    adir = wt / "sessions" / "iter-Z" / "kid-e"
+    adir.mkdir(parents=True)
+    (adir / "output.log").write_text("starting\nworking\n")
+    d = heal._death_class(str(wt), "kid-e", 5, agent_dir=adir)
+    assert d["class"] == "died-no-work", d
+    assert d["evidence"] is None
+
+
+def test_watch_death_record_carries_death_class(graph_project, monkeypatch):
+    """The death-past-deadline writer attaches the class BESIDE fail_reason
+    (fail_reason text unchanged) on BOTH agent.json and the manifest."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _FlipFlopAdapter)
+    _round_alive_then_dead(graph_project, "J", "kid-j", timeout_s=1,
+                           started_ago=5, pid=424244)
+    adir = graph_project / "sessions" / "iter-J" / "kid-j"
+    (adir / "output.log").write_text(
+        "work\nUpstream error from Together: Stream error: h2 protocol "
+        "error: error reading a body from connection\n")
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    rec = json.loads((adir / "agent.json").read_text())
+    assert rec["fail_reason"] == "pid 424244 died (detected by reaper)", rec
+    assert rec["death"]["class"] == "infra-stream-error", rec["death"]
+    man = json.loads((graph_project / "sessions" / "iter-J"
+                      / "manifest.json").read_text())
+    entry = next(e for e in man["agents"] if e["id"] == "kid-j")
+    assert entry["death"]["class"] == "infra-stream-error", entry
+
+
+def test_watch_dead_past_deadline_no_double_dm_on_second_pass(
+        graph_project, monkeypatch):
+    """A second pass over the already-recorded death-past-deadline must not
+    re-dm — the L4.123 double-dm guard holds for this branch too."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _FlipFlopAdapter)
+    _round_alive_then_dead(graph_project, "I", "kid-i", timeout_s=1,
+                           started_ago=5, pid=424243)
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    assert heal.main() == 0  # second pass
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("from:") == 1, "second pass must not re-send the dm"
+
+
+class _AlwaysAliveAdapter:
+    """is_alive always True — the sibling path: a live pid past its deadline
+    is STILL a timeout, not a death. Guards the :320 branch's condition, so
+    an over-eager death detector here is caught."""
+    def is_alive(self, pid: int) -> bool:
+        return True
+
+
+def test_watch_alive_past_deadline_is_overdue_not_timeout_not_death(
+        graph_project, monkeypatch):
+    """Sibling path: pid alive at BOTH checks records an OVERDUE, never a
+    death and never a terminal timeout — status stays running, overdue_since
+    is set, exactly one overdue dm. The death branch must not fire when
+    is_alive is true (hypothesis:l4-a-timeout-mark-on-a-live-agent-is-
+    not-terminal)."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _AlwaysAliveAdapter)
+    _round_alive_then_dead(graph_project, "J", "kid-j", timeout_s=1,
+                           started_ago=5, pid=424244)
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+
+    assert _manifest_status(graph_project, "J", "kid-j") == "running"
+    rec = json.loads((graph_project / "sessions" / "iter-J" / "kid-j"
+                      / "agent.json").read_text())
+    assert rec["status"] == "running", rec["status"]
+    assert rec.get("overdue_since"), "overdue_since must be set for a live pid"
+    assert rec.get("overdue_reason"), "overdue_reason must be set"
+    assert "timeout_reason" not in rec, "never a terminal timeout for a live pid"
+    assert "overdue_since" in _entry(graph_project, "J", "kid-j"), \
+        "manifest entry carries the overdue mark"
+    text = _inbox(graph_project, "director").read_text()
+    assert "reason=overdue" in text
+    assert "reason=death" not in text
+    assert "reason=timeout" not in text
+    assert "marked OVERDUE" in log.read_text()
+
+
+# --- hypothesis:l5-the-overdue-alarm-re-fires-every-thirty-minutes --------
+# The FIRST overdue dm is one per EVENT (hyp:l4-a-round-alarms-its-dispatcher-
+# by-default); a REPEAT is a NEW event on its own `comms.overdue_repeat_min`
+# cadence (default 30). A live pid that is STILL overdue past that window gets
+# ONE more dm, each repeat naming elapsed MINUTES and the pid, status never
+# leaving `running`; a repeat inside the window is silent and never double-sends.
+def _live_overdue_round(graph: Path, name: str, agent_id: str,
+                        started_ago_s: int) -> None:
+    """A round past its 1s deadline whose pid is genuinely LIVE and nonzero,
+    so the overdue branch (not the death branch) is exercised and the repeat
+    log line has a real pid to name."""
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": 1,
+        "agents": [{"id": agent_id, "status": "running",
+                    "dispatched_by": "director"}],
+    }, indent=2))
+    adir = it / agent_id
+    adir.mkdir(parents=True, exist_ok=True)
+    (adir / "agent.json").write_text(json.dumps({
+        "id": agent_id, "status": "running", "dispatched_by": "director",
+        "started_at": int(time.time()) - started_ago_s, "pid": 424242,
+    }, indent=2))
+
+
+def _backdate_overdue(graph: Path, name: str, agent_id: str,
+                     seconds: int) -> None:
+    """Move the overdue stamps back in time by `seconds` in BOTH the agent
+    record and the manifest entry, so the next pass sees a live agent whose
+    last firing is older than the configured repeat window."""
+    for path in (graph / "sessions" / f"iter-{name}" / agent_id / "agent.json",
+                 graph / "sessions" / f"iter-{name}" / "manifest.json"):
+        data = json.loads(path.read_text())
+        entries = data.get("agents", [data])
+        for e in entries:
+            if e.get("id") != agent_id:
+                continue
+            for key in ("overdue_since", "overdue_last_alarm"):
+                if e.get(key):
+                    e[key] = int(e[key]) - seconds
+        path.write_text(json.dumps(data, indent=2))
+
+
+def _set_comms(graph: Path, **comms) -> None:
+    cfg = json.loads((graph / "config.json").read_text())
+    cfg["comms"] = comms
+    (graph / "config.json").write_text(json.dumps(cfg))
+
+
+def test_overdue_alarm_re_fires_past_default_window_naming_minutes_and_pid(
+        graph_project, monkeypatch):
+    """DEFAULT (no config key) = 30 minutes: after the first overdue dm, an
+    agent still alive with its stamp moved 31 minutes back gets a SECOND dm;
+    the repeat log line names elapsed minutes and the pid; status stays
+    `running`; a third pass inside the fresh window sends nothing."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _AlwaysAliveAdapter)
+    _live_overdue_round(graph_project, "R", "kid-r", 31 * 60 + 10)
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0                       # first firing
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("reason=overdue") == 1
+
+    _backdate_overdue(graph_project, "R", "kid-r", 31 * 60)
+    assert heal.main() == 0                       # repeat firing
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("reason=overdue") == 2, "a second event earns a second dm"
+
+    rec = json.loads((graph_project / "sessions" / "iter-R" / "kid-r"
+                      / "agent.json").read_text())
+    assert rec["status"] == "running", "a live pid never gets a terminal word"
+    assert rec.get("overdue_last_alarm"), "the repeat firing is stamped"
+    assert _manifest_status(graph_project, "R", "kid-r") == "running"
+    repeat_lines = [ln for ln in log.read_text().splitlines()
+                    if "STILL OVERDUE repeat" in ln]
+    assert len(repeat_lines) == 1
+    assert "31m" in repeat_lines[0], repeat_lines[0]
+    assert "pid 424242" in repeat_lines[0], repeat_lines[0]
+
+    assert heal.main() == 0                       # third pass, inside window
+    assert _inbox(graph_project, "director").read_text().count(
+        "reason=overdue") == 2, "no second dm inside the repeat window"
+
+
+def test_overdue_alarm_quiet_inside_the_repeat_window(graph_project, monkeypatch):
+    """A pass whose overdue stamp is only 5 minutes old (inside the default
+    30) sends no repeat dm and writes no repeat log line."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _AlwaysAliveAdapter)
+    _live_overdue_round(graph_project, "S", "kid-s", 40 * 60)
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    _backdate_overdue(graph_project, "S", "kid-s", 5 * 60)
+    assert heal.main() == 0
+    assert _inbox(graph_project, "director").read_text().count(
+        "reason=overdue") == 1
+    assert "STILL OVERDUE repeat" not in log.read_text()
+
+
+def test_overdue_repeat_min_config_override_wins(graph_project, monkeypatch):
+    """`comms.overdue_repeat_min` overrides the default BOTH ways: 60 holds a
+    40-minute-old stamp silent, and 5 re-fires a 10-minute-old one."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _AlwaysAliveAdapter)
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    _set_comms(graph_project, overdue_repeat_min=60)
+    _live_overdue_round(graph_project, "T", "kid-t", 40 * 60)
+    assert heal.main() == 0
+    _backdate_overdue(graph_project, "T", "kid-t", 40 * 60)
+    assert heal.main() == 0
+    assert _inbox(graph_project, "director").read_text().count(
+        "reason=overdue") == 1, "60m window holds a 40m-old stamp silent"
+
+    _set_comms(graph_project, overdue_repeat_min=5)
+    _backdate_overdue(graph_project, "T", "kid-t", 10 * 60)
+    assert heal.main() == 0
+    assert _inbox(graph_project, "director").read_text().count(
+        "reason=overdue") == 2, "5m window re-fires a 10m-old stamp"
+    assert "STILL OVERDUE repeat" in log.read_text()
+
+
+def _dm_bodies(graph: Path, who: str) -> list[str]:
+    """The BODY text of each dm block in an inbox (`---\nts:/from:/to:/\n\n"
+    body`), so an assertion can land on what the RECIPIENT reads rather than
+    on the header or the reaper log line."""
+    bodies = []
+    for block in _inbox(graph, who).read_text().split("---\n"):
+        parts = block.split("\n\n", 1)
+        if len(parts) == 2 and parts[1].strip():
+            bodies.append(parts[1].strip())
+    return bodies
+
+
+def test_overdue_repeat_dm_body_names_minutes_and_pid(
+        graph_project, monkeypatch):
+    """hypothesis:l5-the-overdue-alarm-re-fires-every-thirty-minutes-after-
+    the-first, C2: the REPEAT dm the recipient reads — not the log line —
+    names elapsed minutes and the pid, so a repeat is distinguishable from
+    the first firing. FAILS on the pre-fix bytes, where both dm bodies were
+    byte-identical `iter=... agent=... reason=overdue`; the FIRST firing's
+    body stays exactly that (negative control), and a third pass inside the
+    fresh window still sends nothing (one dm per window)."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _AlwaysAliveAdapter)
+    _live_overdue_round(graph_project, "U", "kid-u", 31 * 60 + 10)
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0                       # first firing
+    _backdate_overdue(graph_project, "U", "kid-u", 31 * 60)
+    assert heal.main() == 0                       # repeat firing
+
+    bodies = _dm_bodies(graph_project, "director")
+    assert len(bodies) == 2, bodies
+    # negative control: the first firing is untouched.
+    assert bodies[0] == "iter=iter-U agent=kid-u reason=overdue", bodies[0]
+    # the repeat names elapsed minutes + pid, keeping reason=overdue.
+    assert "reason=overdue" in bodies[1], bodies[1]
+    assert "elapsed_m=31" in bodies[1], bodies[1]
+    assert "pid=424242" in bodies[1], bodies[1]
+
+    assert heal.main() == 0                       # third pass, inside window
+    assert len(_dm_bodies(graph_project, "director")) == 2, \
+        "still exactly one repeat dm per window"
+
+
+def test_overdue_repeat_stamp_is_mirrored_onto_the_manifest(
+        graph_project, monkeypatch):
+    """A manifest-only reader must be able to see the repeat happened: the
+    `overdue_last_alarm` the repeat writes onto agent.json is mirrored onto
+    the manifest entry (pre-fix it was written to agent.json only), while the
+    live pid still never gets a terminal word."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _AlwaysAliveAdapter)
+    _live_overdue_round(graph_project, "V", "kid-v", 31 * 60 + 10)
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0                       # first firing
+    assert not _entry(graph_project, "V", "kid-v").get("overdue_last_alarm")
+    _backdate_overdue(graph_project, "V", "kid-v", 31 * 60)
+    assert heal.main() == 0                       # repeat firing
+
+    rec = json.loads((graph_project / "sessions" / "iter-V" / "kid-v"
+                      / "agent.json").read_text())
+    assert rec["status"] == "running"
+    assert rec.get("overdue_last_alarm")
+    entry = _entry(graph_project, "V", "kid-v")
+    assert entry.get("overdue_last_alarm") == rec["overdue_last_alarm"], \
+        "manifest mirrors the repeat stamp"
+    assert entry.get("status") == "running"
+
+
+# --- hypothesis:l4-the-manifest-mirrors-terminal-agent-status --------------
+# A TERMINAL agent.json (done/failed/timeout) whose manifest entry still reads
+# `running` — an agent that finished its work and exited but whose manifest was
+# never updated — must have the terminal truth MIRRORED onto the manifest entry
+# by a clean `_watch_round`, with exactly ONE log line and NO dm (a clean `done`
+# is not an alarm). This is a MIRROR, not a reap: the id never lands in
+# `marked`/`still`/`died`, and a still-running agent is left untouched.
+def _mirror_round(graph: Path, name: str, agent_id: str,
+                  rec_status: str, rec_extra=None) -> None:
+    """A round whose agent.json is TERMINAL (rec_status) but whose manifest
+    entry still says `running` — the clean-mirror gap."""
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": 600,
+        "agents": [{"id": agent_id, "status": "running",
+                    "dispatched_by": "director"}],
+    }, indent=2))
+    adir = it / agent_id
+    adir.mkdir(parents=True, exist_ok=True)
+    rec = {"id": agent_id, "status": rec_status,
+           "dispatched_by": "director", "finished_at": 1234567890}
+    if rec_extra:
+        rec.update(rec_extra)
+    (adir / "agent.json").write_text(json.dumps(rec, indent=2))
+
+
+def _entry(graph: Path, name: str, agent_id: str):
+    m = json.loads((graph / "sessions" / f"iter-{name}" / "manifest.json")
+                   .read_text())
+    for e in m["agents"]:
+        if e["id"] == agent_id:
+            return e
+    return {}
+
+
+def test_watch_mirrors_a_clean_done_onto_the_manifest(graph_project, monkeypatch):
+    """agent.json `done` + manifest `running` -> after one `_watch_round` pass
+    the manifest entry reads `done` with `finished_at` mirrored; ONE log line,
+    NO dm."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _mirror_round(graph_project, "M", "kid-m", "done")
+
+    iter_dir = graph_project / "sessions" / "iter-M"
+    heal._watch_round(graph_project, iter_dir, heal._WatcherAdapter())
+
+    assert _entry(graph_project, "M", "kid-m")["status"] == "done"
+    assert _entry(graph_project, "M", "kid-m")["finished_at"] == 1234567890
+    assert not _inbox(graph_project, "director").exists(), \
+        "a clean done must NOT send a dm"
+
+    log_text = log.read_text()
+    assert log_text.count("MIRRORED") == 1, "exactly ONE log line per mirror"
+
+
+def test_watch_mirror_is_idempotent_no_repeat_log_or_write(graph_project,
+                                                           monkeypatch):
+    """A second `_watch_round` pass over an already-mirrored entry adds no new
+    log line and no new write (the manifest mtime is unchanged)."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _mirror_round(graph_project, "N", "kid-n", "done")
+    iter_dir = graph_project / "sessions" / "iter-N"
+
+    heal._watch_round(graph_project, iter_dir, heal._WatcherAdapter())
+    mp = graph_project / "sessions" / "iter-N" / "manifest.json"
+    mtime = mp.stat().st_mtime_ns
+    log_len = len(log.read_text())
+
+    heal._watch_round(graph_project, iter_dir, heal._WatcherAdapter())
+
+    assert mp.stat().st_mtime_ns == mtime, "no rewrite on an already-consistent entry"
+    assert len(log.read_text()) == log_len, "no new log line on a second pass"
+    assert log.read_text().count("MIRRORED") == 1
+
+
+def test_watch_mirror_and_running_agent_untouched(graph_project, monkeypatch):
+    """Inside ONE pass: a terminal done is mirrored while a still-running
+    agent (agent.json `running` + manifest `running`) is left exactly as-is —
+    no finished_at, entry unchanged."""
+    it = graph_project / "sessions" / "iter-O"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": 600,
+        "agents": [
+            {"id": "done-a", "status": "running", "dispatched_by": "director"},
+            {"id": "live-b", "status": "running", "dispatched_by": "director"},
+        ],
+    }, indent=2))
+    for aid in ("done-a", "live-b"):
+        (it / aid).mkdir(parents=True, exist_ok=True)
+    (it / "done-a" / "agent.json").write_text(json.dumps(
+        {"id": "done-a", "status": "done", "dispatched_by": "director",
+         "finished_at": 999}, indent=2))
+    (it / "live-b" / "agent.json").write_text(json.dumps(
+        {"id": "live-b", "status": "running", "dispatched_by": "director",
+         "started_at": int(time.time())}, indent=2))
+
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    heal._watch_round(graph_project, it, heal._WatcherAdapter())
+
+    assert _entry(graph_project, "O", "done-a")["status"] == "done"
+    assert _entry(graph_project, "O", "live-b")["status"] == "running"
+    assert _entry(graph_project, "O", "live-b").get("finished_at") is None, \
+        "a live agent must not gain finished_at"
+    assert "live-b" not in _entry(graph_project, "O", "done-a")
+
+
+def test_watch_mirrors_failed_and_timeout_agent_json_too(graph_project,
+                                                         monkeypatch):
+    """The mirror branch is not done-only: a `failed` and a `timeout`
+    agent.json mirror onto the manifest the same way (with fail_reason)."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _mirror_round(graph_project, "P", "kid-p", "failed",
+                  {"fail_reason": "boom"})
+    _mirror_round(graph_project, "Q", "kid-q", "timeout",
+                  {"timeout_reason": "past deadline"})
+
+    for it in (graph_project / "sessions" / "iter-P",
+               graph_project / "sessions" / "iter-Q"):
+        heal._watch_round(graph_project, it, heal._WatcherAdapter())
+
+    assert _entry(graph_project, "P", "kid-p")["status"] == "failed"
+    assert _entry(graph_project, "P", "kid-p")["fail_reason"] == "boom"
+    assert _entry(graph_project, "Q", "kid-q")["status"] == "timeout"
+    assert _entry(graph_project, "Q", "kid-q")["finished_at"] == 1234567890
+
+
+def test_watch_mirror_falsifier_no_terminal_behind_running(graph_project,
+                                                           monkeypatch):
+    """FALSIFIER: after one pass over every mirror fixture, no manifest entry
+    reads `running` whose own agent.json is terminal."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    _mirror_round(graph_project, "R", "done-z", "done")
+    _mirror_round(graph_project, "S", "fail-z", "failed", {"fail_reason": "x"})
+    it = graph_project / "sessions" / "iter-T"
+    it.mkdir(parents=True, exist_ok=True)
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": 600,
+        "agents": [{"id": "run-z", "status": "running",
+                    "dispatched_by": "director"}],
+    }, indent=2))
+    (it / "run-z").mkdir(parents=True, exist_ok=True)
+    (it / "run-z" / "agent.json").write_text(json.dumps(
+        {"id": "run-z", "status": "running"}, indent=2))
+
+    for nm in ("R", "S", "T"):
+        heal._watch_round(graph_project, graph_project / "sessions" / f"iter-{nm}",
+                          heal._WatcherAdapter())
+
+    for nm in ("R", "S"):
+        e = _entry(graph_project, nm, {"R": "done-z", "S": "fail-z"}[nm])
+        assert e["status"] != "running", \
+            f"iter-{nm} entry must not read running after one pass"
+
+
+# --------------------------------------------------------------------------
+# Round SL5.09 — clause 3 of hypothesis:l4-a-rotation-alert-lands-in-the-
+# inbox-a-coalesced-nudge-still-wakes-and-detected-records-dedupe:
+# crash-recovery `detected` records DEDUPE per death (one record per
+# seating, later polls update it IN PLACE — never a fresh stamp file per
+# poll). The measured defect: a still-dead-and-unrecoverable seat, re-scanned
+# every ~30 s, accumulated nine `result=detected` records for one death.
+# A real-rotate shim stands in so the write path and the dedupe read both use
+# the genuine record format.
+# --------------------------------------------------------------------------
+
+def _rot_shim(tmp_rot, rows=None):
+    """A minimal `_rotate` stand-in whose records are real rotate.py-shape
+    JSON under `tmp_rot`, exercising heal's own dedupe read + the same
+    `.seating.json`-style naming the real writer uses. `rows`, when given, is
+    the `_load_seats` result amplified out of the shim so `_watch_one_seat`
+    re-reads the seat row it needs without a real geometry seats.md."""
+    import datetime as _dt
+    _ROWS = rows if rows is not None else []
+    _LOAD = _ROWS if callable(_ROWS) else (lambda root: _ROWS)
+    class _R:
+        # SL2#10 seam: `_write_crash_recovery` reads the module constant for
+        # the record's `tmux_session` cell (heal.py, landed by a00-a4f9327b
+        # after this shim was written) -- the shim carries it so the record
+        # shape stays the real writer's; nothing under test reads the value.
+        DEFAULT_TMUX_SESSION = "agi-rc"
+        @staticmethod
+        def _load_seats(root):
+            return _LOAD(root)
+        @staticmethod
+        def _sessions_dir(root):
+            return Path(str(root)) / "sessions"
+        @staticmethod
+        def _rotations_dir(root):
+            return tmp_rot
+        @staticmethod
+        def _rotation_record_files(root, seat):
+            rot = _R._rotations_dir(root)
+            if not rot.is_dir():
+                return []
+            out = []
+            for p in sorted(rot.glob(f"{seat}.*.json"), key=lambda p: p.name):
+                try:
+                    rec = json.loads(p.read_text(encoding="utf-8"))
+                except (OSError, ValueError):
+                    out.append(p)
+                    continue
+                if isinstance(rec, dict) and rec.get("rotation") == "crash-recovery":
+                    continue
+                out.append(p)
+            return out
+        @staticmethod
+        def _latest_rotation_record(root, seat):
+            files = _R._rotation_record_files(root, seat)
+            if not files:
+                return None
+            try:
+                return json.loads(files[-1].read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                return None
+        @staticmethod
+        def _write_rotation_record(root, rec, path=None):
+            tmp_rot.mkdir(parents=True, exist_ok=True)
+            if path is None:
+                # ns suffix: distinct fresh files even within one wall-clock
+                # second, isolating the DEDUPE behaviour under test.
+                stamp = _dt.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+                stamp += f"{time.time_ns() % 10**6:06d}"
+                path = tmp_rot / f"{rec['seat']}.{stamp}.json"
+            path.write_text(json.dumps(rec) + "\n", encoding="utf-8")
+            return path
+    return _R
+
+
+def test_detected_recovery_records_dedupe_one_per_death(graph_project,
+                                                        tmp_path, monkeypatch):
+    """A death whose recovery never lands (outcome respawned=False) is
+    re-scanned by the watcher every poll; each `detected` write must update
+    the SAME record file in place, never mint a fresh stamp file. Three
+    polls -> exactly ONE detected record. (The nine-record defect.)"""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    shim = _rot_shim(rot)
+    now = time.time()
+    cells = {"name": "solo", "role": "director", "pid": 4242,
+             "window": "@9", "generation": 3}
+    outcome = {"respawned": False, "name": "solo", "generation": 3,
+               "reason": "launcher reported no successor process"}
+    try:
+        for _ in range(3):
+            heal._write_crash_recovery(graph_project, "solo", "dead-pid",
+                                       cells, shim, now, outcome)
+    finally:
+        pass
+    detected = [p for p in rot.glob("solo.*.json")]
+    assert len(detected) == 1, \
+        f"expected ONE deduped detected record, got {len(detected)}: {detected}"
+    rec = json.loads(detected[0].read_text())
+    assert rec["result"] == "detected"
+    assert rec["rotation"] == "crash-recovery"
+
+
+def test_respawned_recovery_writes_fresh_file_per_outcome(graph_project,
+                                                          tmp_path,
+                                                          monkeypatch):
+    """A `respawned` outcome is a distinct, terminal recovery: it is NEVER
+    deduped. Two respawned recoveries -> two records (the dedupe key is the
+    still-open death, so it must not suppress distinct healed recoveries)."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    shim = _rot_shim(rot)
+    cells = {"name": "twice", "role": "director", "pid": 1,
+             "window": "@1", "generation": 1}
+    outcome = {"respawned": True, "name": "twice", "generation": 2,
+               "pid": 55, "window": "@2", "reason": "", "row": "ok"}
+    heal._write_crash_recovery(graph_project, "twice", "boom", cells,
+                               shim, time.time(), outcome)
+    heal._write_crash_recovery(graph_project, "twice", "boom", cells,
+                               shim, time.time(), outcome)
+    files = sorted(rot.glob("twice.*.json"))
+    assert len(files) == 2, f"fresh respawned record expected, got {files}"
+    for p in files:
+        rec = json.loads(p.read_text())
+        assert rec["result"] == "respawned"
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-the-watcher-reads-mains-row-and-the-latest-rotation-record-
+# before-declaring-a-crash, clauses (2)/(3): a rotation that just FINISHED
+# must not read as a crash. A SUCCESS rotation record newer than the row
+# (gen_after > row generation, or landed inside SEAT_DEAD_WINDOW_S while the
+# row pid is dead) means the row's pid/@id belong to the RETIRED predecessor
+# -- the seat ROTATED, never DEAD. No crash-recovery record, no launcher,
+# {} returned. The guard is never lowered: a genuinely dead seat with no
+# newer success record is still detected.
+# --------------------------------------------------------------------------
+
+SEAT_DEAD_PLUS = heal.SEAT_DEAD_WINDOW_S + 60
+
+
+def _write_started_record(rot: Path, seat: str, age_s: int) -> None:
+    """A real rotate.py-shape `started` rotate-self record, `age_s` old."""
+    rot.mkdir(parents=True, exist_ok=True)
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(time.time() - age_s))
+    rec = {"rotation": "rotate-self", "seat": seat, "result": "started",
+           "recorded_at": time.strftime(
+               "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - age_s)),
+           "steps_reached": ["spawn"]}
+    (rot / f"{seat}.{stamp}.json").write_text(
+        json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+
+
+def _mk_dead_row(name: str, gen: int, pid: int = 31337,
+                 window: str = "@306") -> dict:
+    """A pre-rotation row: dead pid, gone window @id, dead generation.
+    `recover: False` keeps the counter-falsifier assertions at the DEAD-NAMING
+    seam without pulling `_recover_seat` (and its rotate shim surface) in."""
+    return {"name": name, "role": "director", "model": "x", "pid": pid,
+            "window": window, "session_id": "sess-1", "generation": gen,
+            "recover": False}
+
+
+def _write_success_record(rot: Path, seat: str, gen_before: int,
+                          gen_after: int, age_s: int) -> None:
+    """A real rotate.py-shape `success` rotate-self record, `age_s` old."""
+    rot.mkdir(parents=True, exist_ok=True)
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(time.time() - age_s))
+    rec = {"rotation": "rotate-self", "seat": seat, "result": "success",
+           "gen_before": gen_before, "gen_after": gen_after,
+           "recorded_at": time.strftime(
+               "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - age_s))}
+    (rot / f"{seat}.{stamp}.json").write_text(
+        json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+
+
+def _write_success_record_nested(rot: Path, seat: str, before: int,
+                                 after: int, age_s: int) -> None:
+    """A `success` record in the REAL INCIDENT shape: top-level gen fields
+    absent/null, generation carried ONLY nested under
+    `observations.b_generation.before/after` (cf.
+    sensei-director.20260912T000346Z.json)."""
+    rot.mkdir(parents=True, exist_ok=True)
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(time.time() - age_s))
+    rec = {"rotation": "rotate-self", "seat": seat, "result": "success",
+           "gen_before": None, "gen_after": None,
+           "observations": {"b_generation": {"before": before,
+                                               "after": after}},
+           "recorded_at": time.strftime(
+               "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - age_s))}
+    (rot / f"{seat}.{stamp}.json").write_text(
+        json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+
+
+def _write_success_record_identity(rot: Path, seat: str, *,
+                                   chain_pids, own_window, join_pid,
+                                   join_window, succ_window,
+                                   gen_before, gen_after, age_s) -> None:
+    """A real-rotate shape `success` record carrying the identity the dead-
+    seat watcher decides by: `s12_self_reap.chain[*].pid` (the RETIRED
+    predecessor's process chain) plus `handover.own_window.id` (the
+    predecessor's window), `handover.join.{pid,window_id}` and
+    `handover.successor_window.id` (the successor the rotate-self spawned and
+    joined). `age_s` old."""
+    rot.mkdir(parents=True, exist_ok=True)
+    stamp = time.strftime("%Y%m%dT%H%M%SZ", time.gmtime(time.time() - age_s))
+    rec = {"rotation": "rotate-self", "seat": seat, "result": "success",
+           "gen_before": gen_before, "gen_after": gen_after,
+           "recorded_at": time.strftime(
+               "%Y-%m-%dT%H:%M:%SZ", time.gmtime(time.time() - age_s)),
+           "handover": {
+               "own_window": {"name": f"{seat}.genX", "id": own_window},
+               "successor_window": {"name": seat, "id": succ_window},
+               "join": {"found": True, "window_id": join_window,
+                          "pid": join_pid}},
+           "s12_self_reap": {"order": "deepest-first", "planned": True,
+                              "chain": [{"pid": p, "was_alive": True,
+                                           "termd": True, "gone_after": True}
+                                          for p in chain_pids]}}
+    (rot / f"{seat}.{stamp}.json").write_text(
+        json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+
+
+def test_success_rotation_suppresses_false_dead(graph_project, tmp_path,
+                                                monkeypatch):
+    """THE falsifier: a gen-4 row with a DEAD predecessor pid and gone @306,
+    plus a success record gen 4 -> 5 inside the dead window, must NOT read as
+    a crash. `_watch_one_seat` returns {} -- NAMED once as rotated, NO
+    crash-recovery record written, launcher NEVER invoked."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("sensei-director", gen=4)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record(rot, "sensei-director", 4, 5, age_s=21)
+    launched: list = []
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: launched.append(a) or {},
+        pin_table={}, seat_sessions=[], registry_dir=None)
+    assert summary == {}, f"rotated seat must return {{}}, got {summary}"
+    assert launched == [], "launcher must never be called for a rotated seat"
+    crash = [p for p in rot.glob("sensei-director.*.json")]
+    assert len(crash) == 1, \
+        f"no crash-recovery may be written for a rotated seat, got: {crash}"
+
+
+def test_dead_without_newer_success_still_dead(graph_project, tmp_path,
+                                               monkeypatch):
+    """COUNTER-falsifier: a genuinely dead seat (dead pid, gone @id) whose
+    only success record is OLDER than the window with the SAME generation as
+    the row must STILL be detected as DEAD -- the guard is never lowered."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("helo", gen=4)
+    shim = _rot_shim(rot, rows=[row])
+    # same generation as the row, OLDER than the window -> not rotated
+    _write_success_record(rot, "helo", 3, 4, age_s=SEAT_DEAD_PLUS)
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: {}, pin_table={}, seat_sessions=[],
+        registry_dir=None)
+    assert summary != {}, "a genuinely dead seat must still be DEAD"
+    assert summary.get("probable_cause") is not None
+
+
+def test_dead_with_no_success_record_still_dead(graph_project, tmp_path,
+                                                monkeypatch):
+    """COUNTER-falsifier: no success record at all -> still DEAD."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("helo2", gen=4)
+    shim = _rot_shim(rot, rows=[row])
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: {}, pin_table={}, seat_sessions=[],
+        registry_dir=None)
+    assert summary != {}, "no success record -> seat is still DEAD"
+
+
+def test_old_success_new_gen_still_suppresses(graph_project, tmp_path,
+                                              monkeypatch):
+    """A success record whose gen_after EXCEEDS the row generation still
+    proves the row is the RETIRED predecessor -- but ONLY through the record's
+    IDENTITY. The pred-identity arm has NO age bound, so a lagging row
+    carrying the predecessor's chain pid is still rotated even an hour later,
+    never DEAD. A no-identity record that old has no identity to prove
+    anything and must NOT suppress (unit case `d`)."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("oldrot", gen=2, pid=9001)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record_identity(rot, "oldrot", chain_pids=[9001],
+                                   own_window="@9", join_pid=9002,
+                                   join_window="@10", succ_window="@10",
+                                   gen_before=1, gen_after=5,
+                                   age_s=SEAT_DEAD_PLUS)
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: {}, pin_table={}, seat_sessions=[],
+        registry_dir=None)
+    assert summary == {}, "pred-identity suppresses even outside the window"
+
+
+def test_nested_generation_record_names_4_to_5(graph_project, tmp_path,
+                                               monkeypatch):
+    """BUGFIX (parent a00-fcdbdec1): the REAL INCIDENT shape -- a success
+    record whose gen_before/gen_after are TOP-LEVEL NULL and whose generation
+    lives ONLY nested under observations.b_generation -- must both suppress
+    the false DEAD ({} returned) AND name "4 -> 5", not "None -> 5". The
+    `_watch_one_seat` naming branch must read BEFORE and AFTER through the
+    SAME nested-aware extraction as `_success_record_rotated`."""
+    reaper = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("sensei-director", gen=4)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record_nested(rot, "sensei-director", 4, 5, age_s=21)
+    launched: list = []
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: launched.append(a) or {},
+        pin_table={}, seat_sessions=[], registry_dir=None)
+    assert summary == {}, f"nested-shape rotated seat must return {{}}, got {summary}"
+    assert launched == [], "launcher must never be called for a rotated seat"
+    log = reaper.read_text() if reaper.exists() else ""
+    assert "4 -> 5" in log, \
+        f"nested-shape record must name '4 -> 5', not 'None -> 5'; reaper:\n{log}"
+    assert "None -> 5" not in log, \
+        f"nested-shape record must NOT name 'None -> 5'; reaper:\n{log}"
+
+
+def test_rotation_before_after_extraction(tmp_path):
+    """Shared extraction prefers top-level gens and falls back to the nested
+    incident shape; the two agree on the real record."""
+    top = {"gen_before": 4, "gen_after": 5}
+    assert heal._rotation_before_after(top) == (4, 5)
+    nested = {"gen_before": None, "gen_after": None,
+              "observations": {"b_generation": {"before": 4,
+                                                  "after": 5}}}
+    assert heal._rotation_before_after(nested) == (4, 5)
+    mixed = {"gen_after": 5, "gen_before": None,
+             "observations": {"b_generation": {"before": 4}}}
+    assert heal._rotation_before_after(mixed) == (4, 5)
+
+
+def test_success_record_rotated_unit(tmp_path):
+    """`_success_record_rotated` decides by the record's IDENTITY first:
+    pred-identity returns the record with NO age bound; succ-dead returns
+    None so the successor's death is never masked; the gen/age fallbacks
+    fire ONLY for records with no identity fields and ONLY inside the
+    window. Returns `(record, arm)` -- arm names the deciding proof."""
+    rot = tmp_path / "rotations"
+    shim = _rot_shim(rot)
+
+    def _mk(name, gen, pid=31337, window="@306"):
+        return _mk_dead_row(name, gen, pid=pid, window=window)
+
+    # pred-identity by CHAIN PID, record an HOUR old -> rotated, no age bound
+    _write_success_record_identity(rot, "a", chain_pids=[111], own_window="@5",
+                                   join_pid=222, join_window="@6",
+                                   succ_window="@6", gen_before=3, gen_after=4,
+                                   age_s=SEAT_DEAD_PLUS)
+    got, arm = heal._success_record_rotated(tmp_path, "a",
+                                            _mk("a", gen=3, pid=111), shim,
+                                            time.time())
+    assert got is not None and arm == "pred-identity" \
+        and got.get("gen_after") == 4
+    # pred-identity by own WINDOW, hour-old record -> rotated
+    _write_success_record_identity(rot, "aw", chain_pids=[999], own_window="@5",
+                                   join_pid=222, join_window="@6",
+                                   succ_window="@6", gen_before=3, gen_after=4,
+                                   age_s=SEAT_DEAD_PLUS)
+    got, arm = heal._success_record_rotated(tmp_path, "aw",
+                                            _mk("aw", gen=3, window="@5"),
+                                            shim, time.time())
+    assert got is not None and arm == "pred-identity"
+    # succ-dead: row IS the successor (join pid), 60 s old -> None, never masked
+    _write_success_record_identity(rot, "s", chain_pids=[111], own_window="@5",
+                                   join_pid=222, join_window="@6",
+                                   succ_window="@6", gen_before=3, gen_after=4,
+                                   age_s=60)
+    got, arm = heal._success_record_rotated(tmp_path, "s",
+                                            _mk("s", gen=4, pid=222), shim,
+                                            time.time())
+    assert got is None and arm == "succ-dead"
+    # succ-dead by successor WINDOW (60 s old) -> None
+    _write_success_record_identity(rot, "sw", chain_pids=[111], own_window="@5",
+                                   join_pid=222, join_window="@6",
+                                   succ_window="@6", gen_before=3, gen_after=4,
+                                   age_s=60)
+    got, arm = heal._success_record_rotated(tmp_path, "sw",
+                                            _mk("sw", gen=4, window="@6"),
+                                            shim, time.time())
+    assert got is None and arm == "succ-dead"
+    # identity record matching NEITHER -> None (guard never lowered)
+    _write_success_record_identity(rot, "u", chain_pids=[111], own_window="@5",
+                                   join_pid=222, join_window="@6",
+                                   succ_window="@6", gen_before=3, gen_after=4,
+                                   age_s=21)
+    got, arm = heal._success_record_rotated(tmp_path, "u",
+                                            _mk("u", gen=4, pid=777), shim,
+                                            time.time())
+    assert got is None and arm is None
+    # NO identity -> gen-fallback INSIDE the window (gen_after > row gen)
+    _write_success_record(rot, "g", 4, 5, age_s=21)
+    got, arm = heal._success_record_rotated(tmp_path, "g",
+                                            _mk("g", gen=4), shim,
+                                            time.time())
+    assert got is not None and arm == "gen-fallback"
+    # NO identity -> age-fallback INSIDE the window (any/same generation)
+    _write_success_record(rot, "b", 4, 4, age_s=21)
+    got, arm = heal._success_record_rotated(tmp_path, "b",
+                                            _mk("b", gen=4), shim,
+                                            time.time())
+    assert got is not None and arm == "age-fallback"
+    # NO identity, OLDER than window -> None even when gen_after > row gen
+    _write_success_record(rot, "d", 3, 4, age_s=SEAT_DEAD_PLUS)
+    got, arm = heal._success_record_rotated(tmp_path, "d",
+                                            _mk("d", gen=4), shim,
+                                            time.time())
+    assert got is None and arm is None
+    # a `started` record is never a success -> None
+    _write_started_record(rot, "c", age_s=21)
+    got, arm = heal._success_record_rotated(tmp_path, "c",
+                                            _mk("c", gen=4), shim,
+                                            time.time())
+    assert got is None and arm is None
+    # a record MISSING handover / s12_self_reap never raises (fallback path)
+    _write_success_record(rot, "e", 4, 5, age_s=21)
+    got, arm = heal._success_record_rotated(tmp_path, "e",
+                                            _mk("e", gen=4), shim,
+                                            time.time())
+    assert got is not None and arm == "gen-fallback"
+
+
+def test_rotation_in_flight_honours_success(graph_project, tmp_path):
+    """Clause (3): `_rotation_in_flight` honours a SUCCESS rotation record as
+    a rotation in flight (the seat already rotated), shared helper."""
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("flightsucc", gen=4)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record(rot, "flightsucc", 4, 5, age_s=21)
+    assert heal._rotation_in_flight(graph_project, "flightsucc", shim,
+                                    time.time(), row=row) is True
+
+
+def test_live_seat_row_takes_identity_from_main(monkeypatch, tmp_path):
+    """Clause (1): `_live_seat_row` takes the IDENTITY cells (generation /
+    pid etc.) from the MAIN checkout's copy, keeping non-identity cells
+    live-first. Two geometry dirs that DIFFER: the worktree copy says gen 4,
+    MAIN says gen 5 -- the row reads gen 5 (the ONE writer's file)."""
+    main_dir = tmp_path / "main"
+    wt_dir = tmp_path / "wt"
+    wt_dir.mkdir(parents=True, exist_ok=True)
+    main_dir.mkdir(parents=True, exist_ok=True)
+    def _rows(root):
+        if str(root) == str(main_dir):
+            return [{"name": "dir", "generation": 5, "role": "director",
+                     "session_ref": "main-sess"}]
+        return [{"name": "dir", "generation": 4, "role": "director"}]
+    shim = _rot_shim(tmp_path / "rotations", rows=_rows)
+    monkeypatch.setattr(heal, "_main_graph_root", lambda gdir: main_dir)
+    row = heal._live_seat_row(wt_dir, "dir", shim)
+    assert row["generation"] == 5, \
+        "IDENTITY cells must come from MAIN, not the worktree copy"
+
+
+# --------------------------------------------------------------------------
+# hypothesis:l4-the-watcher-proves-a-rotation-by-the-records-identity-never-
+# by-gen-order-or-age (goal:g15.23 fix-only #4): the dead-seat watcher proves
+# a rotation by the record's IDENTITY fields (predecessor chain pid / own
+# window; successor join pid / successor window), never by gen ordering or
+# record age alone. FALSIFIERS below.
+# --------------------------------------------------------------------------
+
+def test_successor_pid_dead_never_masked(graph_project, tmp_path, monkeypatch):
+    """FALSE-preventer (the SL2.11 P2 residue): a seat that ROTATED cleanly
+    and whose SUCCESSOR then died must be detected DEAD, not masked by the
+    600 s window. A row carrying the record's SUCCESSOR pid -- dead, with a
+    60 s old success record -- must STILL read DEAD (the record's succ-dead
+    arm returns None; the 600 s window never masks the successor's death)."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("sensei-director", gen=5, pid=222)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record_identity(rot, "sensei-director", chain_pids=[111],
+                                   own_window="@5", join_pid=222,
+                                   join_window="@6", succ_window="@6",
+                                   gen_before=4, gen_after=5, age_s=60)
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: {}, pin_table={}, seat_sessions=[],
+        registry_dir=None)
+    assert summary != {}, \
+        "successor death must NOT be masked by the 600 s window"
+    assert summary.get("probable_cause") is not None
+
+
+def test_successor_window_dead_never_masked(graph_project, tmp_path,
+                                            monkeypatch):
+    """Same false-preventer by WINDOW: a dead successor row carrying the
+    record's successor window @id reads DEAD even with a 60 s old success
+    record (succ-dead arm)."""
+    monkeypatch.setenv("AGI_REAPER_LOG", str(graph_project / "reaper.log"))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("sensei-director", gen=5, window="@6")
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record_identity(rot, "sensei-director", chain_pids=[111],
+                                   own_window="@5", join_pid=222,
+                                   join_window="@6", succ_window="@6",
+                                   gen_before=4, gen_after=5, age_s=60)
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: {}, pin_table={}, seat_sessions=[],
+        registry_dir=None)
+    assert summary != {}, \
+        "successor-window death must NOT be masked by the 600 s window"
+    assert summary.get("probable_cause") is not None
+
+
+def test_lagging_chain_pid_row_still_rotated(graph_project, tmp_path,
+                                             monkeypatch):
+    """THE lagging-row protect: a stale row still carrying the RETIRED
+    predecessor's chain pid, with a record AN HOUR OLD, must read ROTATED
+    (pred-identity arm has NO age bound -- a lagging row is exactly what it
+    protects), never DEAD."""
+    reaper = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("sensei-director", gen=4, pid=111)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record_identity(rot, "sensei-director", chain_pids=[111],
+                                   own_window="@5", join_pid=222,
+                                   join_window="@6", succ_window="@6",
+                                   gen_before=3, gen_after=4,
+                                   age_s=SEAT_DEAD_PLUS)
+    launched: list = []
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: launched.append(a) or {},
+        pin_table={}, seat_sessions=[], registry_dir=None)
+    assert summary == {}, \
+        "a lagging predecessor chain-pid row must read ROTATED, not DEAD"
+    # not vacuous: observe WHAT the path did -- the pred-identity arm decided
+    # (a row an hour old, protected by the identity arm, never the gen fallback).
+    log = reaper.read_text() if reaper.exists() else ""
+    assert "arm=pred-identity" in log, \
+        f"lagging chain-pid row must name arm=pred-identity; reaper:\n{log}"
+    # and the rotated seat never spawned (a counting fake proves no launcher).
+    assert launched == []
+
+
+def test_watch_log_names_deciding_arm(graph_project, tmp_path, monkeypatch):
+    """Clause (4): the `rotated seat` reaper line names the DECIDING ARM
+    (`arm=pred-identity|gen-fallback|age-fallback`), one word, so a reaper log
+    reads which proof was used."""
+    reaper = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("sensei-director", gen=4, pid=111)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record_identity(rot, "sensei-director", chain_pids=[111],
+                                   own_window="@5", join_pid=222,
+                                   join_window="@6", succ_window="@6",
+                                   gen_before=3, gen_after=4, age_s=21)
+    heal._watch_one_seat(graph_project, row, [], shim, now=time.time(),
+                         pid_alive=lambda p: False, window_path=None,
+                         launcher=lambda *a, **k: {}, pin_table={},
+                         seat_sessions=[], registry_dir=None)
+    log = reaper.read_text() if reaper.exists() else ""
+    assert "arm=pred-identity" in log, \
+        f"rotate-seat line must name arm=pred-identity; reaper:\n{log}"
+
+
+def test_record_join_reads_both_record_shapes():
+    """Claim (1): `_rotation_identity` reads BOTH record shapes through ONE
+    accessor (`_record_join`) -- the rotate-self nesting (`handover.join` /
+    `handover.successor_window`) AND a crash-recovery record's TOP-LEVEL
+    `window_id` -- so a crash-recovery-shaped record yields identity (what
+    the producer actually writes) instead of falling to the identity-less
+    gen/age fallback. A crash-recovery record emits NO top-level `pid` /
+    `session_id` (dead-pred token), so succ_pids stays empty there."""
+    # rotate-self shape: identity under handover.join / successor_window.
+    rs = {"rotation": "rotate-self",
+          "handover": {"join": {"pid": 222, "window_id": "@6"},
+                       "successor_window": {"id": "@6"}},
+          "s12_self_reap": {"chain": [{"pid": 111}]}}
+    pred_pids, pred_windows, succ_pids, succ_windows = heal._rotation_identity(rs)
+    assert pred_pids == ["111"], f"chain pid must be read, got {pred_pids}"
+    assert succ_pids == ["222"], f"join pid must be read, got {succ_pids}"
+    assert succ_windows == ["@6"], f"join window_id read, got {succ_windows}"
+    # crash-recovery shape: top-level `window_id` only (real producer shape);
+    # NO top-level pid/session_id exist, so succ_pids stays empty.
+    cr = {"rotation": "crash-recovery", "window_id": "@9"}
+    pred_pids, pred_windows, succ_pids, succ_windows = heal._rotation_identity(cr)
+    assert succ_pids == [], \
+        f"producer emits no top-level pid; must stay empty, got {succ_pids}"
+    assert succ_windows == ["@9"], \
+        f"top-level window_id must be read as identity, got {succ_windows}"
+    # absent identity -> empty (an OLDER record falls to gen/age fallback).
+    _, _, succ_pids, succ_windows = heal._rotation_identity({"rotation": "x"})
+    assert succ_pids == [] and succ_windows == []
+
+
+def test_crash_recovery_record_roundtrip_real_producer(graph_project, tmp_path):
+    """Claim (A): a crash-recovery record built by the REAL producer
+    (`_write_crash_recovery`), loaded back the way a reader would load it,
+    yields the recovery-target WINDOW as successor identity through
+    `_rotation_identity`. Top-level `window_id` is the ONE identity field
+    the producer emits; top-level `pid` / `session_id` do NOT exist. This is
+    the round-trip the earlier test missed: it asserted against a hand-rolled
+    dict carrying top-level pid/session_id no real record has."""
+    rot = tmp_path / "rotations"
+    shim = _rot_shim(rot)
+    now = time.time()
+    cells = {"name": "solo", "role": "director", "model": "m",
+             "pid": 4242, "window": "@9", "session_id": "sess-1",
+             "generation": 3, "worktree": ""}
+    outcome = {"respawned": True, "name": "solo", "generation": 4,
+               "pid": 9999, "window": "@10", "reason": "", "row": ""}
+    path = heal._write_crash_recovery(graph_project, "solo", "dead", cells,
+                                      shim, now, outcome)
+    rec = json.loads(path.read_text(encoding="utf-8"))
+    assert rec["rotation"] == "crash-recovery"
+    assert rec["result"] == "respawned"
+    # the producer's real top-level identity surface:
+    assert rec["window_id"] == "@10"
+    assert "pid" not in rec, "producer emits NO top-level pid"
+    assert "session_id" not in rec, "producer emits NO top-level session_id"
+    assert rec["succ_name"] == "solo"
+    # round-trip through the accessor on the WRITTEN bytes:
+    pred_pids, pred_windows, succ_pids, succ_windows = heal._rotation_identity(rec)
+    assert succ_pids == [], \
+        f"no top-level pid on a real record; succ_pids must stay empty, got {succ_pids}"
+    assert succ_windows == ["@10"], \
+        f"recovery-target window must be read as succ identity, got {succ_windows}"
+
+
+def test_crash_recovery_record_unreachable_from_watcher(graph_project, tmp_path):
+    """Claim (B): a crash-recovery record does NOT reach the identity accessor
+    from the watcher path. rotate's `_rotation_record_files` EXCLUDES
+    `rotation: crash-recovery` records, so `_latest_rotation_record` returns
+    None for a seat whose ONLY record is a crash one, and `_success_record_rotated`
+    / `_rotation_in_flight` never see it. This is the honest negative finding:
+    the crash-recovery branch of `_record_join` is UNREACHABLE from
+    `_watch_one_seat` (decorative for the watcher); do NOT lower the guard."""
+    rot = tmp_path / "rotations"
+    shim = _rot_shim(rot)
+    now = time.time()
+    cells = {"name": "solo", "role": "director", "pid": 4242,
+             "window": "@9", "generation": 3}
+    outcome = {"respawned": True, "name": "solo", "generation": 4,
+               "pid": 9999, "window": "@10", "reason": "", "row": ""}
+    heal._write_crash_recovery(graph_project, "solo", "dead", cells, shim,
+                               now, outcome)
+    # only the crash-recovery record exists for this seat:
+    assert len(list(rot.glob("solo.*.json"))) == 1
+    # the record is excluded by discovery, so the watcher's helper sees None:
+    row = {"name": "solo", "pid": 4242, "window": "@9", "generation": 3}
+    rec, arm = heal._success_record_rotated(graph_project, "solo", row, shim, now)
+    assert rec is None and arm is None, \
+        f"crash-recovery record must be excluded; got rec={rec} arm={arm}"
+    assert heal._rotation_in_flight(graph_project, "solo", shim, now, row=row) is False, \
+        "crash-recovery record must not look like a rotation in flight"
+    # the accessor itself CAN read a crash-recovery record when handed it
+    # directly (round-trip), but no watcher path feeds it one:
+    _, _, _, succ_windows = heal._rotation_identity(
+        {"rotation": "crash-recovery", "window_id": "@10"})
+    assert succ_windows == ["@10"]
+
+
+def test_succ_dead_arm_reaches_log(graph_project, tmp_path, monkeypatch):
+    """Claim (2): when the succ-dead arm decides (the row IS the successor the
+    record joined, and it is gone), the DEAD path logs ONE line naming
+    `arm=succ-dead` -- every arm that decides reaches the log (SL7.01 left the
+    succ-dead `None` return invisible, falling straight to the DEAD path)."""
+    reaper = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    rot = tmp_path / "rotations"
+    row = _mk_dead_row("sensei-director", gen=5, pid=222)
+    shim = _rot_shim(rot, rows=[row])
+    _write_success_record_identity(rot, "sensei-director", chain_pids=[111],
+                                   own_window="@5", join_pid=222,
+                                   join_window="@6", succ_window="@6",
+                                   gen_before=4, gen_after=5, age_s=60)
+    summary = heal._watch_one_seat(
+        graph_project, row, [], shim, now=time.time(),
+        pid_alive=lambda p: False, window_path=None,
+        launcher=lambda *a, **k: {}, pin_table={}, seat_sessions=[],
+        registry_dir=None)
+    assert summary != {}, "successor death must still read DEAD"
+    log = reaper.read_text() if reaper.exists() else ""
+    assert "arm=succ-dead" in log, \
+        f"succ-dead arm must name itself in the reaper log; reaper:\n{log}"
+
+
+def test_heartbeat_lands_in_shared_room_across_worktrees(tmp_path, monkeypatch):
+    """SL7.72 regression: the heal-watch heartbeat must land where EVERY
+    rotation seat reads it — the SHARED room (`shared_sessions_dir`, routed
+    through `git_common_root` to the main checkout) — not the per-worktree
+    join. Pre-fix heal wrote via `locations.sessions_dir` (the worktree-local
+    fork), so a watch rooted in a LINKED worktree left its heartbeat in the
+    worktree's `sessions/` while `rotate._watch_alive` read the main
+    checkout's — `_watch_alive` then went False with the watch fully alive,
+    and the tail performed (`performer: "tail"`) exactly the layout seats run
+    in. Claim (b) of hypothesis:l4-after-join-is-performed-live-by-a-... died
+    silently.
+
+    Fails on the pre-fix resolver, passes after: the stub below points the
+    two graph roots at DIFFERENT rooms (a worktree and its main checkout), and
+    `_watch_alive` must still find the heartbeat the worktree-rooted watch
+    wrote."""
+    import rotate  # noqa: E402
+    locations = cli.locations
+
+    main_graph = tmp_path / "main-graph"          # the main checkout's graph
+    (main_graph / "nodes").mkdir(parents=True, exist_ok=True)
+    wt_graph = tmp_path / "wt-graph"              # a linked worktree's graph
+    (wt_graph / "nodes").mkdir(parents=True, exist_ok=True)
+
+    def fake_find_project_root(root):
+        # identity for a dir that already carries nodes/ (a resolved graph root)
+        r = Path(root)
+        return r if (r / "nodes").is_dir() else None
+
+    def fake_git_common_root(root):
+        # a worktree graph re-routes to the main checkout; main is identity
+        return main_graph if Path(root).resolve() == wt_graph.resolve() else None
+
+    monkeypatch.setattr(locations, "find_project_root", fake_find_project_root)
+    monkeypatch.setattr(locations, "git_common_root", fake_git_common_root)
+
+    # the SAME root both halves play: a rotation seat's graph root inside the
+    # worktree — heal/watch and rotate resolve the shared room from it.
+    shared = locations.shared_sessions_dir(wt_graph)
+    assert not shared.resolve().is_relative_to(wt_graph.resolve()), \
+        "seam must fork the rooms or this test is vacuous"
+
+    heal._write_watch_heartbeat(wt_graph)
+
+    # the heartbeat is where the shared resolver points...
+    hb = shared / "reaper.watch.json"
+    assert hb.exists(), \
+        f"heartbeat must land in the SHARED room {shared}, not a worktree fork"
+    # ...NOT in the per-worktree fork (pre-fix it landed here and went lost)
+    assert not (wt_graph / "sessions" / "reaper.watch.json").exists(), \
+        "heartbeat must never land in the per-worktree sessions fork"
+
+    # and the main-checkout reader finds it ALIVE
+    assert rotate._watch_alive(wt_graph) is True, \
+        "main-checkout rotation seat must read the worktree-rooted watch as ALIVE"
+
+
+# --- hypothesis:l4-the-heal-watch-re-execs-itself-when-the-engine-code-it-
+# runs-changes-and-every-after-join-result-carries-code-head ---
+# A long-lived reaper process caches rotate in sys.modules, so code changes
+# were dead in the process until a restart. The watch now re-reads a CODE
+# IDENTITY (engine HEAD sha7 + heal.py/rotate.py mtime+size) every pass and
+# re-execs itself on a clean-tree change (same pid). --once never execs. And
+# every after_join result carries `code_head` so a record names which bytes
+# performed it.
+
+
+def test_watch_once_prints_code_identity_exactly_once(graph_project,
+                                                     tmp_path, monkeypatch):
+    reaper = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    heal._watch(graph_project, once=True, poll_s=0)
+    log = reaper.read_text() if reaper.exists() else ""
+    lines = [ln for ln in log.splitlines() if "watch: code " in ln]
+    assert len(lines) == 1, \
+        f"identity must be printed exactly once; reaper:\n{log}"
+    assert "heal.py" in lines[0] and "rotate.py" in lines[0], lines[0]
+
+
+def test_watch_code_change_clean_tree_reexecs_once(monkeypatch, tmp_path):
+    calls = []
+
+    def fake_reexec(argv):
+        calls.append(list(argv))
+
+    id_a = {"head": "aaaaaaa", "files": {}}
+    id_b = {"head": "bbbbbbb", "files": {}}
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: id_b)   # every read sees the NEW head
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(
+        heal, "_head_touches_engine", lambda root, o, n: True)
+    monkeypatch.setattr(heal, "_reexec", fake_reexec)
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+
+    returned = heal._check_code_change(tmp_path, id_a, once=False)
+
+    assert len(calls) == 1, f"clean-tree HEAD change must re-exec once: {calls}"
+    assert calls[0] == sys.argv, \
+        "_reexec must be handed the real sys.argv so execv re-runs the watch"
+    assert returned == id_b
+    log = reaper.read_text()
+    assert "code changed aaaaaaa->bbbbbbb: re-exec" in log, log
+
+
+def test_watch_code_change_dirty_tree_waiting_no_reexec(monkeypatch, tmp_path):
+    calls = []
+
+    def fake_reexec(argv):
+        calls.append(list(argv))
+
+    heal._WAITING_LOGGED.clear()
+    id_a = {"head": "aaaaaaa", "files": {}}
+    id_b = {"head": "bbbbbbb", "files": {}}
+    monkeypatch.setattr(heal, "_code_identity", lambda root: id_b)
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: False)
+    monkeypatch.setattr(
+        heal, "_head_touches_engine", lambda root, o, n: True)
+    monkeypatch.setattr(heal, "_reexec", fake_reexec)
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+
+    returned = heal._check_code_change(tmp_path, id_a, once=False)
+
+    assert calls == [], f"dirty tree must NEVER re-exec: {calls}"
+    assert returned == id_a, "dirty wait must keep the OLD identity (no adopt)"
+    log = reaper.read_text()
+    assert "code changed aaaaaaa->bbbbbbb: waiting (dirty)" in log, log
+
+
+def test_watch_once_never_reexecs_on_identity_change(monkeypatch, tmp_path):
+    calls = []
+    monkeypatch.setattr(heal, "_reexec",
+                        lambda argv: calls.append(list(argv)))
+    monkeypatch.setattr(heal, "_code_identity", lambda root: {"head": "z", "files": {}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+
+    heal._check_code_change(tmp_path, {"head": "a", "files": {}}, once=True)
+
+    assert calls == [], "--once must never re-exec: {calls}"
+
+
+def test_after_join_result_carries_code_head(monkeypatch, tmp_path):
+    """A performed after_join result is stamped `code_head` (the engine HEAD
+    sha7) by run_after_join_for_seat, so a record names which bytes ran it."""
+    import rotate  # noqa: E402
+    seat = "sensei-director"
+    rec_path = tmp_path / "rotation.json"
+    rec_path.write_text(json.dumps({"gen_after": 4, "seat": seat}), "utf-8")
+
+    monkeypatch.setattr(rotate, "_latest_rotate_record",
+                        lambda root, s: ({"gen_after": 4}, rec_path))
+    monkeypatch.setattr(rotate, "_prime_rows_fetch_clear", lambda: None)
+    monkeypatch.setattr(rotate, "_find_seat",
+                        lambda root, s: {"role": "parent", "name": s})
+    monkeypatch.setattr(rotate, "_resolve_template",
+                        lambda root, role, explicit: ({"startup": {}}, "n", "s"))
+    monkeypatch.setattr(rotate, "_resolve_join_gen",
+                        lambda rec, row, seat_: ("4", None))
+    monkeypatch.setattr(rotate, "_first_turn_values",
+                        lambda root, **kw: {"gen": "4"})
+    monkeypatch.setattr(rotate, "_record_join", lambda rec: {})
+    monkeypatch.setattr(rotate, "_seat_has_live_session", lambda row, j: True)
+    monkeypatch.setattr(rotate, "run_after_join",
+                        lambda root, **kw: {"results": [], "appended": True,
+                                            "sent": False})
+    monkeypatch.setattr(rotate, "_code_head", lambda root: "deadbeef")
+
+    result = rotate.run_after_join_for_seat(tmp_path, seat)
+    assert result is not None
+    assert result.get("code_head") == "deadbeef", \
+        f"performed after_join result must carry code_head: {result}"
+
+
+# --- goal:g15.25 SL7.105 residue (b): the performed WATCH LINE names the
+# code_head, execv OSError is caught and the loop continues, and re-exec is
+# keyed on a CHANGED HEAD only (a file-only mtime/size touch never execs). ---
+
+def test_watch_performed_line_names_code_head(monkeypatch, tmp_path):
+    """The heal watch's `after_join performed for <seat>` line names the
+    engine HEAD that ran it, so an operator reading the reaper log can tell
+    which bytes performed the record (claim 1 part b)."""
+    import rotate as hrot  # noqa: E402
+    lines = []
+    monkeypatch.setattr(hrot, "_inline_reaper_enabled", lambda root: False)
+    monkeypatch.setattr(hrot, "_load_seats",
+                        lambda root: [{"name": "seat-a"}])
+    monkeypatch.setattr(hrot, "run_after_join_for_seat",
+                        lambda root, seat, **kw: {
+                            "results": [{"label": "x"}],
+                            "appended": True, "sent": False,
+                            "code_head": "c0debeef"})
+    monkeypatch.setattr(heal, "_watch_log", lines.append)
+    heal._run_pending_after_joins(tmp_path)
+    assert any("after_join performed" in ln and "code_head=c0debeef" in ln
+               for ln in lines), f"performed line must name code_head:\n{lines}"
+
+
+def test_watch_reexec_oserror_is_caught_loop_continues(monkeypatch, tmp_path):
+    """An `os.execv` that raises OSError (missing interpreter / EACCES /
+    ENOMEM) must NOT end the watch loop: it is logged by name + errno and the
+    fresh identity is adopted, so the next re-exec attempt waits for the
+    NEXT clean-tree HEAD change (claim 2; no retry storm)."""
+    def boom(argv):
+        raise OSError(13, "Permission denied")
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "bbbbbbb", "files": {}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(
+        heal, "_head_touches_engine", lambda root, o, n: True)
+    monkeypatch.setattr(heal, "_reexec", boom)
+    ret = heal._check_code_change(
+        tmp_path, {"head": "aaaaaaa", "files": {}}, once=False)
+    assert ret == {"head": "bbbbbbb", "files": {}}, \
+        "the fresh identity is adopted so next pass does NOT re-attempt"
+    log = reaper.read_text()
+    assert "re-exec error" in log and "errno 13" in log, log
+    assert "re-exec error" in log and "PermissionError" in log, log
+    assert "continuing on running bytes" in log, log
+    assert log.count("re-exec error") == 1, \
+        f"one error line, no retry storm:\n{log}"
+
+
+def test_watch_unchanged_head_never_reexecs(monkeypatch, tmp_path):
+    """Claim 3 falsifier: a file-only identity change — mtime/size touched,
+    HEAD UNCHANGED, clean tree — must NEVER re-exec (the watchdog keeps
+    running the bytes it is actually running)."""
+    calls = []
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "aaaaaaa",
+                                      "files": {"heal.py": (1, 200)}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(heal, "_reexec",
+                        lambda argv: calls.append(list(argv)))
+    ret = heal._check_code_change(
+        tmp_path, {"head": "aaaaaaa", "files": {"heal.py": (0, 200)}},
+        once=False)
+    assert calls == [], f"unchanged HEAD must never exec: {calls}"
+    assert ret["head"] == "aaaaaaa"
+    log = reaper.read_text() if reaper.exists() else ""
+    assert "re-exec" not in log, f"no re-exec line for a file-only change:\n{log}"
+
+
+# --- goal:g15.25 SL7.105 RE-CUT (mur-SL2.26): exec ONLY when a HEAD move
+# touches extensions/agi/bin/**, and a dirty wait keeps the OLD identity. A
+# prose-only commit (nodes/, cards, comms) must never restart the watcher;
+# a dirty wait must still be acted on once the tree is clean. `_git` is
+# monkeypatched exactly as the pre-existing tests do (never touches git). ---
+
+def test_watch_prose_head_move_no_exec_adopts_one_line(monkeypatch, tmp_path):
+    """FALSIFIER (the core claim): a HEAD change whose diff touches NOTHING
+    under extensions/agi/bin/ (a prose commit) must NOT re-exec, must ADOPT
+    the fresh identity, and must log exactly ONE 'no engine change' line."""
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    calls = []
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "bbbbbbb", "files": {}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(heal, "_reexec",
+                        lambda argv: calls.append(list(argv)))
+    monkeypatch.setattr(heal, "_head_touches_engine",
+                        lambda root, o, n: False)
+    ret = heal._check_code_change(
+        tmp_path, {"head": "aaaaaaa", "files": {}}, once=False)
+    assert calls == [], f"prose-only HEAD move must never exec: {calls}"
+    assert ret == {"head": "bbbbbbb", "files": {}}, \
+        "no-engine-change adopt the fresh identity"
+    log = reaper.read_text()
+    assert "head moved aaaaaaa->bbbbbbb: no engine change" in log, log
+    assert "waiting (dirty)" not in log, \
+        "a prose move must not wait — it is not a wait, it is an adopt"
+
+
+def test_watch_code_head_touching_engine_reexecs(monkeypatch, tmp_path):
+    """A HEAD move whose two-dot diff NAMES extensions/agi/bin/rotate.py,
+    clean tree -> exactly one re-exec, fresh identity adopted."""
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    calls = []
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "bbbbbbb", "files": {}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(heal, "_reexec",
+                        lambda argv: calls.append(list(argv)))
+    monkeypatch.setattr(
+        heal, "_head_touches_engine", lambda root, o, n: True)
+    ret = heal._check_code_change(
+        tmp_path, {"head": "aaaaaaa", "files": {}}, once=False)
+    assert len(calls) == 1, f"engine-touching clean move must exec: {calls}"
+    assert ret == {"head": "bbbbbbb", "files": {}}
+    assert "code changed aaaaaaa->bbbbbbb: re-exec" in reaper.read_text()
+
+
+def test_watch_dirty_wait_keeps_old_then_clean_execs(monkeypatch, tmp_path):
+    """CLAIM (3) + FALSIFIER: a dirty wait returns the OLD identity; a
+    subsequent CLEAN pass (same head pair) then execs — the change is never
+    silently dropped because the tree transiently dirtied."""
+    heal._WAITING_LOGGED.clear()
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    calls = []
+    monkeypatch.setattr(heal, "_reexec",
+                        lambda argv: calls.append(list(argv)))
+    monkeypatch.setattr(heal, "_head_touches_engine",
+                        lambda root, o, n: True)
+    # PASS 1: dirty -> old identity, no exec.
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "bbbbbbb", "files": {}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: False)
+    old = {"head": "aaaaaaa", "files": {}}
+    ret = heal._check_code_change(tmp_path, old, once=False)
+    assert ret == old, "dirty wait must keep the OLD identity (never adopt)"
+    assert calls == [], "dirty pass must not exec"
+    # PASS 2: same head pair, now CLEAN -> exec.
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    ret2 = heal._check_code_change(tmp_path, ret, once=False)
+    assert len(calls) == 1, "clean pass after a dirty wait must exec: {calls}"
+    assert ret2 == {"head": "bbbbbbb", "files": {}}
+    log = reaper.read_text()
+    assert "waiting (dirty)" in log
+    assert "re-exec" in log
+
+
+def test_watch_dirty_wait_logged_once_per_pair(monkeypatch, tmp_path):
+    """FALSIFIER (no spam): a persistent dirty tree across MANY passes logs
+    the 'waiting (dirty)' line at most ONCE for the same (old,new) pair —
+    the 30 s loop must not spam."""
+    heal._WAITING_LOGGED.clear()
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    calls = []
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "bbbbbbb", "files": {}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: False)
+    monkeypatch.setattr(heal, "_head_touches_engine",
+                        lambda root, o, n: True)
+    monkeypatch.setattr(heal, "_reexec",
+                        lambda argv: calls.append(list(argv)))
+    old = {"head": "aaaaaaa", "files": {}}
+    for _ in range(4):  # four passes, still dirty
+        ret = heal._check_code_change(tmp_path, old, once=False)
+        assert ret == old
+    log = reaper.read_text()
+    assert log.count("waiting (dirty)") == 1, \
+        f"waiting must be logged once per pair, not 4x:\n{log}"
+    assert calls == []
+
+
+def test_watch_git_diff_refusal_is_fail_open_touches(monkeypatch, tmp_path):
+    """FALSIFIER (claim 1): `_git` REFUSING the diff (nonzero rc, broken repo)
+    must be treated as TOUCHES (fail-open), so a real code change is never
+    silenced by a git failure — a clean tree then execs."""
+    reaper = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(reaper))
+    calls = []
+    monkeypatch.setattr(heal, "_code_identity",
+                        lambda root: {"head": "bbbbbbb", "files": {}})
+    monkeypatch.setattr(heal, "_code_files_clean", lambda root: True)
+    monkeypatch.setattr(heal, "_reexec",
+                        lambda argv: calls.append(list(argv)))
+    monkeypatch.setattr(
+        heal, "_git", lambda args, cwd: (["dummy"], 128))
+    ret = heal._check_code_change(
+        tmp_path, {"head": "aaaaaaa", "files": {}}, once=False)
+    assert len(calls) == 1, \
+        f"git refusal must stay fail-open => exec on clean tree: {calls}"
+    assert ret == {"head": "bbbbbbb", "files": {}}
+    assert "re-exec" in reaper.read_text()
+
+
+def test_head_touches_engine_directly(monkeypatch):
+    """Unit: `_head_touches_engine` returns False for an empty diff, True for
+    a diff naming extensions/agi/bin/, True on a git refusal, True on an
+    empty old_head (non-repo / first pass — no ancestry to prove prose)."""
+    probe = [([], 0)]
+    monkeypatch.setattr(heal, "_git",
+                        lambda args, cwd: probe[0])
+    probe[0] = ([], 0)          # empty diff -> no touch
+    assert heal._head_touches_engine(None, "aaaaaaa", "bbbbbbb") is False
+    probe[0] = (["extensions/agi/bin/rotate.py"], 0)
+    assert heal._head_touches_engine(None, "aaaaaaa", "bbbbbbb") is True
+    probe[0] = ([], 128)        # git refusal -> fail-open touches
+    assert heal._head_touches_engine(None, "aaaaaaa", "bbbbbbb") is True
+    probe[0] = ([], 0)          # empty old_head (first pass) -> touches
+    assert heal._head_touches_engine(None, "", "bbbbbbb") is True
+
+
+def test_head_touches_engine_uses_absolute_bin_dir_pathspec(tmp_path, monkeypatch):
+    """(a) SM.71 regression: `_head_touches_engine` diffs with an ABSOLUTE
+    pathspec (bin_dir), not the repo-relative `extensions/agi/bin/`. Under a
+    root that is an `.agi` subdir (git `-C <root>` resolves pathspecs against
+    that cwd), the relative spelling silently misses every engine file, so a
+    genuine engine commit would be reported as prose-only and the watch would
+    NOT re-exec. This passes a `.agi`-style root and proves the pathspec sent
+    to git is the absolute bin_dir AND that an engine-file diff -> True."""
+    captured = {}
+    probe = [(["extensions/agi/bin/heal.py"], 0)]
+    def _fake_git(args, cwd):
+        captured["args"] = list(args)
+        captured["cwd"] = cwd
+        return probe[0]
+    monkeypatch.setattr(heal, "_git", _fake_git)
+    root = tmp_path / "grid" / ".agi"  # a .agi subdir, not the repo toplevel
+    root.mkdir(parents=True)
+    assert heal._head_touches_engine(root, "aaaaaaa", "bbbbbbb") is True
+    joined = " ".join(captured["args"])
+    want = str(Path(heal.__file__).resolve().parent)
+    assert want in joined.lstrip("-"), \
+        f"pathspec must be the ABSOLUTE bin_dir ({want!r}): {captured}"
+    assert "extensions/agi/bin/" != want
+    assert captured["cwd"] == root, f"git must run in the .agi root: {captured}"
+
+# --- hypothesis:l4-the-heal-watch-performs-the-late-s12-reap --------------
+def _mk_skipped(seat, own_name, own_id, succ_name, succ_id, role="director",
+                recorded_at="2026-09-13T01:00:00Z"):
+    return {
+        "rotation": "rotate-self",
+        "seat": seat,
+        "recorded_at": recorded_at,
+        "result": "skipped",
+        "refusal_reason": ("registry file for @" + succ_id.lstrip("@")
+                           + " not found in X within the bounded join poll"),
+        "handover": {
+            "own_window": {"name": own_name, "id": own_id},
+            "successor_window": {"name": succ_name, "id": succ_id},
+        },
+        "observations": {},
+        "_rows_role": role,
+    }
+
+
+def _write_winpath(tmp_path, names):
+    p = tmp_path / "windows.txt"
+    lines = []
+    for i, nm in enumerate(names, 1):
+        lines.append("@" + str(i) + " " + nm)
+    p.write_text("\n".join(lines) + "\n")
+    return str(p)
+
+
+def _reg_file(reg_dir, succ_id, pid="424242"):
+    reg_dir.mkdir(parents=True, exist_ok=True)
+    fp = reg_dir / (pid + ".json")
+    fp.write_text('{"window_id":"' + succ_id + '","session_id":"s1"}\n')
+    return fp
+
+
+def _reap_recorder():
+    calls = []
+
+    def _fake(pids, **kw):
+        calls.append(list(pids))
+        return {"order": "deepest-first",
+                "chain": [{"pid": p, "paired": True} for p in pids]}
+    return calls, _fake
+
+
+def _role_rows(record):
+    return [{"name": record["seat"], "role": record["_rows_role"],
+             "pid": 31337}]
+
+
+
+def test_late_reap_registry_absent_no_reap_waiting(graph_project, tmp_path,
+                                                   monkeypatch):
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    rec = _mk_skipped("belam", "belam-S1-L4-V", "@5",
+                      "belam-S1-L4-VI", "@6")
+    out = heal._late_reap_for_skipped(
+        graph_project, rec,
+        rows=_role_rows(rec), tmux_session="",
+        window_path=_write_winpath(tmp_path,
+                                   ["belam-S1-L4-V", "belam-S1-L4-VI"]),
+        registry_dir=str(tmp_path / "no-reg-dir"),
+        pids_for=lambda n: [1], rot=rot, now=1234)
+    assert out.get("action") == "waiting", out
+    assert calls == [], "no reap may fire for an absent registry"
+
+
+def test_late_reap_non_prime_reaps_all_older_and_flips(graph_project,
+                                                       tmp_path, monkeypatch):
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    reg_dir = tmp_path / "reg"
+    _reg_file(reg_dir, "@6")
+    rec = _mk_skipped("belam", "belam-S1-L4-V", "@5",
+                      "belam-S1-L4-VI", "@6")
+    rec_path = tmp_path / "belam.rec.json"
+    rec_path.write_text(json.dumps(rec) + "\n")
+    base = "belam-S1-L4-"
+    winpath = _write_winpath(tmp_path, [
+        base + "I", base + "II", base + "III",
+        base + "IV", base + "V", base + "VI"])
+    asked = []
+    pmap = {base + "I": [101], base + "II": [102], base + "III": [103],
+            base + "IV": [104], base + "V": [105], base + "VI": [999]}
+    def _pidfor(name):
+        asked.append(name)
+        return pmap.get(name, [])
+    out = heal._late_reap_for_skipped(
+        graph_project, rec, record_path=rec_path,
+        rows=_role_rows(rec), tmux_session="", window_path=winpath,
+        registry_dir=str(reg_dir), pids_for=_pidfor, rot=rot, now=1234)
+    assert out.get("action") == "reaped", out
+    assert calls == [[101, 102, 103, 104, 105]], calls
+    assert base + "VI" not in asked, "successor window must never be reaped"
+    doc = json.loads(rec_path.read_text())
+    assert doc["result"] == "success_late", doc["result"]
+    assert doc["s12_self_reap"]["performer"] == "watch"
+    assert doc["s12_self_reap"]["reaped_late_at"] == 1234
+    assert doc["s12_self_reap"]["pids"] == [101, 102, 103, 104, 105]
+    assert "spawn_to_registry_s" in doc["observations"]
+    assert "loadavg_1_5_15" in doc["observations"]
+
+
+def test_late_reap_successor_own_pid_never_in_reap(graph_project, tmp_path,
+                                                   monkeypatch):
+    """FALSIFIER: the successor's own pid is never in a reap -- even when the
+    successor name shares the base, its line is not OLDER than itself."""
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    reg_dir = tmp_path / "reg"
+    _reg_file(reg_dir, "@6")
+    rec = _mk_skipped("belam", "belam-S1-L4-V", "@5",
+                      "belam-S1-L4-VI", "@6")
+    winpath = _write_winpath(tmp_path, ["belam-S1-L4-V", "belam-S1-L4-VI"])
+    out = heal._late_reap_for_skipped(
+        graph_project, rec,
+        rows=_role_rows(rec), tmux_session="", window_path=winpath,
+        registry_dir=str(reg_dir),
+        pids_for=lambda n: {"belam-S1-L4-V": [7], "belam-S1-L4-VI": [8]}[n],
+        rot=rot, now=1)
+    assert out.get("action") == "reaped", out
+    assert all(8 not in c for c in calls), "successor pid must never be reaped"
+    assert all(7 in c for c in calls)
+
+
+def test_late_reap_driver_second_pass_no_second_reap(graph_project, tmp_path,
+                                                     monkeypatch):
+    """FALSIFIER: a second pass over an already success_late record reaps
+    nothing -- the driver scans, the result is no longer `skipped`."""
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    reg_dir = tmp_path / "reg"
+    _reg_file(reg_dir, "@6")
+    rec = _mk_skipped("belam", "belam-S1-L4-V", "@5",
+                      "belam-S1-L4-VI", "@6")
+    rot_dir = rot._rotations_dir(graph_project)
+    rot_dir.mkdir(parents=True, exist_ok=True)
+    (rot_dir / "belam.t1.json").write_text(json.dumps(rec) + "\n")
+    base = "belam-S1-L4-"
+    winpath = _write_winpath(tmp_path, [
+        base + "I", base + "II", base + "III",
+        base + "IV", base + "V", base + "VI"])
+    pmap = {base + "I": [1], base + "II": [2], base + "III": [3],
+            base + "IV": [4], base + "V": [5], base + "VI": [6]}
+    def _pidfor(name):
+        return pmap.get(name, [])
+    for _ in range(2):
+        heal._late_reap_skipped_pass(
+            graph_project, window_path=winpath, registry_dir=str(reg_dir),
+            rot=rot, pids_for=_pidfor)
+    assert len(calls) == 1, "exactly ONE reap across two driver passes"
+
+
+def test_late_reap_prime_six_reaps_only_oldest(graph_project, tmp_path,
+                                               monkeypatch):
+    """FALSIFIER: a prime_director record with SIX older chain windows reaps
+    exactly the OLDEST one (oldest beyond the five newest survivors)."""
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    reg_dir = tmp_path / "reg"
+    _reg_file(reg_dir, "@7")
+    rec = _mk_skipped("belam", "belam-S1-L4-VI", "@6",
+                      "belam-S1-L4-VII", "@7", role="prime_director")
+    base = "belam-S1-L4-"
+    winpath = _write_winpath(tmp_path, [
+        base + "I", base + "II", base + "III", base + "IV",
+        base + "V", base + "VI", base + "VII"])
+    pmap = {base + "I": [101], base + "II": [102], base + "III": [103],
+            base + "IV": [104], base + "V": [105],
+            base + "VI": [106], base + "VII": [107]}
+    out = heal._late_reap_for_skipped(
+        graph_project, rec,
+        rows=_role_rows(rec), tmux_session="", window_path=winpath,
+        registry_dir=str(reg_dir), pids_for=lambda n: pmap.get(n, []),
+        rot=rot, now=1)
+    assert out.get("action") == "reaped", out
+    assert calls == [[101]], calls
+
+
+def test_late_reap_prime_five_reaps_none(graph_project, tmp_path,
+                                         monkeypatch):
+    """FALSIFIER: a prime_director record with FIVE or fewer older chain
+    windows reaps NONE of them (the five newest stay alive to answer)."""
+    rot = _load("rotate")
+    calls, fake = _reap_recorder()
+    monkeypatch.setattr(rot, "_reap_chain", fake)
+    reg_dir = tmp_path / "reg"
+    _reg_file(reg_dir, "@6")
+    rec = _mk_skipped("belam", "belam-S1-L4-V", "@5",
+                      "belam-S1-L4-VI", "@6", role="prime_director")
+    base = "belam-S1-L4-"
+    winpath = _write_winpath(tmp_path, [
+        base + "I", base + "II", base + "III",
+        base + "IV", base + "V", base + "VI"])
+    out = heal._late_reap_for_skipped(
+        graph_project, rec,
+        rows=_role_rows(rec), tmux_session="", window_path=winpath,
+        registry_dir=str(reg_dir),
+        pids_for=lambda n: [1], rot=rot, now=1)
+    assert out.get("action") == "nothing-to-reap", out
+    assert calls == [], "a five-or-fewer prime chain must reap NOTHING"
+
+
+def _round_stalled_and_dead(graph: Path, name: str, timeout_s: int,
+                            stalled_id: str, dead_id: str) -> None:
+    """ONE iter dir with a stalled-dead record AND a running-dead record.
+
+    The legacy inline lane `_main_heal` (heal.py positional CLI, driven by
+    driver.sh) carries its own copy of both terminal branches. The stalled
+    branch must alarm through the SAME `_is_death` predicate the dead-running
+    branch uses — before the fix it resolved silently, producing no dm.
+    """
+    it = graph / "sessions" / f"iter-{name}"
+    it.mkdir(parents=True, exist_ok=True)
+    now = int(time.time())
+    agents = []
+    for aid, status in ((stalled_id, "stalled"), (dead_id, "running")):
+        agents.append({"id": aid, "status": status,
+                       "dispatched_by": "director", "pid": _dead_pid(),
+                       "started_at": now})
+    (it / "manifest.json").write_text(json.dumps({
+        "timeout_seconds": timeout_s, "agents": agents}, indent=2))
+    for aid, status in ((stalled_id, "stalled"), (dead_id, "running")):
+        adir = it / aid
+        adir.mkdir(parents=True, exist_ok=True)
+        (adir / "agent.json").write_text(json.dumps({
+            "id": aid, "status": status, "dispatched_by": "director",
+            "started_at": now, "pid": _dead_pid()}, indent=2))
+
+
+def test_main_heal_stalled_dead_alarms_once_via_shared_predicate(
+        graph_project, monkeypatch):
+    """FALSIFIER for the legacy lane: `_main_heal` over a manifest carrying
+    BOTH a stalled-dead record and a running-dead record must dm `reason=death`
+    exactly ONCE for EACH — the stalled-dead resolution shares `_is_death`
+    with the dead-running branch and is never double-counted. Probe D measured
+    the pre-fix state: only `('kid-dead','death')` was alarmed."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    _round_stalled_and_dead(graph_project, "L4.99", timeout_s=10 ** 6,
+                            stalled_id="kid-stl", dead_id="kid-dead")
+    monkeypatch.setattr(sys, "argv", [
+        "heal.py", str(graph_project), "L4.99",
+        "--max-wait-mins", "1", "--poll-interval-s", "1"])
+    assert heal._main_heal() == 0
+
+    stl = json.loads((graph_project / "sessions" / "iter-L4.99" / "kid-stl"
+                      / "agent.json").read_text())
+    assert stl["status"] == "failed"
+    assert stl["fail_reason"].startswith("stalled;"), stl["fail_reason"]
+    assert "death" in stl, "stalled-dead must carry the death class"
+
+    text = _inbox(graph_project, "director").read_text()
+    assert text.count("reason=death") == 2, text
+    assert "agent=kid-stl" in text
+    assert "agent=kid-dead" in text
+
+
+def test_wake_repair_runs_on_its_own_hourly_cadence_not_the_poll(tmp_path, monkeypatch):
+    """owner 2026-09-17 14:1xZ: the stranded-wake repair re-nudged a busy
+    director every 30 s poll; it now runs `comms.wake_repair_every_s` apart
+    (default 3600) -- first pass due, then quiet until the interval elapses."""
+    import heal
+    monkeypatch.setattr(heal, "_LAST_WAKE_REPAIR_AT", None)
+    root = tmp_path  # no config.json -> the send.py default (3600) applies
+    assert heal._wake_repair_due(root, 1_000.0) is True
+    assert heal._wake_repair_due(root, 1_000.0 + 30) is False
+    assert heal._wake_repair_due(root, 1_000.0 + 3599) is False
+    assert heal._wake_repair_due(root, 1_000.0 + 3600) is True
+    assert heal._wake_repair_due(root, 1_000.0 + 3630) is False
+
+
+# --- hypothesis:l5-a-parent-waits-for-its-kid-in-the-foreground-and-a-turn-end
+# with-a-live-kid-is-named-not-a-death, conjunct 3 (heal's past-deadline path)
+
+
+def _turn_end_round(graph: Path, name: str, parent: str, timeout_s: int,
+                    pid: int, kid_pid: int, log: str) -> None:
+    """A parent alive at the reap pass, dead by the deadline check, whose log
+    carries `log`; one live kid stamped `spawned_by_agent=<parent>`."""
+    _round_alive_then_dead(graph, name, parent, timeout_s=timeout_s,
+                           started_ago=5, pid=pid)
+    it = graph / "sessions" / f"iter-{name}"
+    (it / parent / "output.log").write_text(log)
+    kid = it / "kid-k"
+    kid.mkdir(parents=True, exist_ok=True)
+    (kid / "agent.json").write_text(json.dumps(
+        {"id": "kid-k", "status": "running", "pid": kid_pid,
+         "spawned_by_agent": parent, "node_id": "experiment:kid-1"}))
+
+
+def test_heal_success_tail_with_live_kid_names_the_turn_end(graph_project,
+                                                           monkeypatch):
+    """The watcher's own past-deadline death path labels a success tail with a
+    live kid a turn-end, and sets death.evidence=turn-end."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _FlipFlopAdapter)
+    _turn_end_round(graph_project, "T", "parent-p", 1, 424246, 424247,
+                    json.dumps({"type": "turn_end"}) + "\n")
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    rec = json.loads((graph_project / "sessions" / "iter-T" / "parent-p"
+                      / "agent.json").read_text())
+    assert rec["fail_reason"] == (
+        "turn-end with live kid experiment:kid-1 (headless exit, not a death)")
+    assert rec["death"]["evidence"] == "turn-end"
+    man = json.loads((graph_project / "sessions" / "iter-T"
+                      / "manifest.json").read_text())
+    entry = next(e for e in man["agents"] if e["id"] == "parent-p")
+    assert entry["fail_reason"] == rec["fail_reason"]
+
+
+def test_heal_truncated_log_keeps_the_died_label(graph_project, monkeypatch):
+    """A killed-mid-turn parent keeps 'pid N died (detected by reaper)' and no
+    turn-end evidence."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _FlipFlopAdapter)
+    _turn_end_round(graph_project, "U", "parent-q", 1, 424248, 424249,
+                    "starting\nworking on it\n")
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    rec = json.loads((graph_project / "sessions" / "iter-U" / "parent-q"
+                      / "agent.json").read_text())
+    assert rec["fail_reason"] == "pid 424248 died (detected by reaper)"
+    assert rec["death"]["evidence"] != "turn-end"
+
+
+def test_heal_turn_end_keeps_the_stream_error_evidence(graph_project,
+                                                      monkeypatch):
+    """A turn-end whose log ALSO carries a provider/stream error keeps that
+    exact line in `death.evidence`; the turn-end fact rides in `turn_end_kid`.
+    Before the fix the watcher's turn-end write blinded the evidence."""
+    log = graph_project / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+    monkeypatch.setattr(heal, "_WatcherAdapter", _FlipFlopAdapter)
+    _turn_end_round(
+        graph_project, "V", "parent-r", 1, 424250, 424251,
+        "Upstream error from Together: Stream error: h2 protocol error\n"
+        + json.dumps({"type": "turn_end"}) + "\n")
+    monkeypatch.setattr(sys, "argv",
+                        ["heal.py", "watch", "--root", str(graph_project),
+                         "--once"])
+    assert heal.main() == 0
+    rec = json.loads((graph_project / "sessions" / "iter-V" / "parent-r"
+                      / "agent.json").read_text())
+    assert rec["death"]["class"] == "infra-stream-error"
+    assert "h2 protocol error" in rec["death"]["evidence"]
+    assert rec["death"]["evidence"] != "turn-end"
+    assert rec["death"]["turn_end_kid"] == "experiment:kid-1"

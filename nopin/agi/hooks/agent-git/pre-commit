@@ -1,0 +1,102 @@
+#!/bin/bash
+# agi: refuse git commit for automated agent tiers — only in the project repo
+# hypothesis:l2-commit-guard-scope — the hook was refusing ALL commits under
+# AGI_TIER=kid|parent, including test repos under /tmp. Now it compares
+# git rev-parse --show-toplevel (real path) with AGI_PROJECT_ROOT and exits
+# 0 (allows) when they differ or when AGI_PROJECT_ROOT is unset. The refusal
+# with the existing one-line message stays only for a commit whose toplevel
+# is the project repo.
+if [ -z "${AGI_TIER:-}" ]; then
+    exit 0
+fi
+if [ "${AGI_TIER}" != "kid" ] && [ "${AGI_TIER}" != "parent" ]; then
+    exit 0
+fi
+# AGI_PROJECT_ROOT unset → cannot scope the guard, allow all
+if [ -z "${AGI_PROJECT_ROOT:-}" ]; then
+    exit 0
+fi
+# Resolve toplevel of the repo a kid would commit in, then derive the
+# project's REPO root from AGI_PROJECT_ROOT. Under goal:g11 AGI_PROJECT_ROOT
+# is the GRAPH root (<repo>/.agi), a child of the git toplevel, so we take
+# ITS git toplevel to get back to the repo root. If AGI_PROJECT_ROOT is not
+# inside a git repo (legacy layout / non-repo), fall back to using it raw.
+TOPLEVEL=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+REAL_TOPLEVEL=$(cd "$TOPLEVEL" && pwd -P 2>/dev/null) || exit 0
+PROJECT_TOPLEVEL=$(git -C "$AGI_PROJECT_ROOT" rev-parse --show-toplevel 2>/dev/null)
+if [ -z "${PROJECT_TOPLEVEL:-}" ]; then
+    REAL_PROJECT=$(cd "$AGI_PROJECT_ROOT" && pwd -P 2>/dev/null) || exit 0
+else
+    REAL_PROJECT=$(cd "$PROJECT_TOPLEVEL" && pwd -P 2>/dev/null) || exit 0
+fi
+if [ "$REAL_TOPLEVEL" != "$REAL_PROJECT" ]; then
+    # hypothesis:l4-commit-guard-worktree-toplevel-bypass -- under --branch
+    # dispatch AGI_PROJECT_ROOT is the kid's OWN WORKTREE, so a process whose
+    # CWD sits in the MAIN checkout would get REAL_TOPLEVEL (main) !=
+    # REAL_PROJECT (worktree) and the old `different => allow` rule let it
+    # commit into the SHARED main checkout -- the exact sweep-up hazard the
+    # guard exists to stop (goal:g4.1). Distinguish a FOREIGN repo (a test or
+    # scratch repo: own git-common-dir, allow) from a DIFFERENT CHECKOUT of
+    # the SAME project (share one git-common-dir, refuse).
+    CWD_COMMON=$(cd "$REAL_TOPLEVEL" && git rev-parse --git-common-dir 2>/dev/null)
+    PROJ_COMMON=$(cd "$REAL_PROJECT" && git rev-parse --git-common-dir 2>/dev/null)
+    if [ -n "${CWD_COMMON:-}" ] && [ -n "${PROJ_COMMON:-}" ]; then
+        CWD_COMMON=$(cd "$REAL_TOPLEVEL" && cd "$CWD_COMMON" 2>/dev/null && pwd -P 2>/dev/null)
+        PROJ_COMMON=$(cd "$REAL_PROJECT" && cd "$PROJ_COMMON" 2>/dev/null && pwd -P 2>/dev/null)
+        if [ -n "${CWD_COMMON:-}" ] && [ "$CWD_COMMON" = "$PROJ_COMMON" ]; then
+            # same underlying project, different checkout -- a shared checkout
+            echo "agi: tier ${AGI_TIER} may not commit -- automation owns git (goal:s27)" >&2
+            exit 1
+        fi
+    fi
+    exit 0
+fi
+# hypothesis:l4-a-branch-kid-commits-its-own-bytes-under-the-agent-git-hook —
+# a --branch KID owns an ISOLATED worktree (dispatch exports
+# AGI_TREE_PROJECT_ROOT only under --branch, and it equals its own toplevel),
+# so it may commit its OWN bytes there; the parent no longer adopts them by
+# hand and kid authorship is kept. A plain kid in the shared MAIN checkout
+# still refuses (goal:g4.1). In scope: everything in this checkout EXCEPT
+# .agi/config.json, another author's node, or a post's quorum card.
+if [ "${AGI_TIER}" = "kid" ] && [ -n "${AGI_TREE_PROJECT_ROOT:-}" ] && [ -n "${AGI_AGENT_ID:-}" ]; then
+    REAL_TREE=$(cd "$AGI_TREE_PROJECT_ROOT" && pwd -P 2>/dev/null)
+    if [ -n "${REAL_TREE:-}" ] && [ "$REAL_TREE" = "$REAL_TOPLEVEL" ]; then
+        # hypothesis:l4-sm36-...-one-scope-rule -- ONE rule, ONE implementation:
+        # delegate to the SAME predicate cli.py uses (`cli._round_scope_ok`), so
+        # the two can no longer diverge on a round's OWN human-slug node. The
+        # round's explicit own node paths travel in AGI_ROUND_OWN_PATHS
+        # (newline-separated), exported by cli.py's worktree commit and read by
+        # `scope-check`; empty for a direct kid commit, where the rule reduces
+        # to "a node basename carrying this agent id". The INDEX is read
+        # NUL-separated (`-z`) so git neither C-quotes a non-ASCII path nor
+        # splits one containing whitespace; `--no-renames` lists a rename as D
+        # old + A new so BOTH paths are judged, and no `--diff-filter` keeps a
+        # `T` typechange judged too.
+        HOOK_BIN=$(cd "$(dirname "$0")/../../bin" && pwd -P)
+        if git diff --cached --name-only -z --no-renames \
+            | python3 "$HOOK_BIN/cli.py" scope-check --agent-id "$AGI_AGENT_ID"; then
+            exit 0
+        fi
+    fi
+fi
+# The ONE authorised commit: a --branch PARENT committing onto its own
+# loop branch. hypothesis:l3-parent-brief-forbids-the-only-commit — the
+# loop branch is the only route a parent's kids' work has to the season
+# branch, and dispatch authorises exactly that single gamble of a commit.
+# No other parent commit, and NO kid commit ever, in the project repo.
+#
+# Two spellings, because dispatch.py now EMITS the canonical season name
+# through branches.loop_branch() (season<n>/loops/<slug>-<agent>) while a
+# live tree may still carry the legacy loop/<slug>-<agent>@s<n> name
+# (hypothesis:l4-branches-follow-the-season-grammar). This case pattern is a
+# MIRROR of branches.py's loop grammar, not the source of truth — the
+# grammar module (extensions/agi/bin/branches.py) is the sole owner of
+# branch names; keep this mirror in lockstep with it.
+if [ "${AGI_TIER}" = "parent" ]; then
+    CUR_BRANCH=$(git branch --show-current 2>/dev/null)
+    case "$CUR_BRANCH" in
+        season*/loops/*|loop/*) exit 0 ;;
+    esac
+fi
+echo "agi: tier ${AGI_TIER} may not commit — automation owns git (goal:s27)" >&2
+exit 1
