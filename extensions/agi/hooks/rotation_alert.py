@@ -870,6 +870,17 @@ def _fenced_payload(rotate, body: str, sub: int) -> str:
     return "\n".join(lines[start:])
 
 
+def _blind_warning(seat: str) -> str:
+    """The warning a BLIND capture prints, fail-SOFT down to a bare line:
+    `render` is fail-HARD (missing file or unmatched `{field}` RAISES), and a
+    warning that raises out of `_capture_stops` -> `_force_capture` -> the
+    every-prompt hook turns a degrade into a crash."""
+    try:
+        return render("rotation_alert", "capture_slot_blind", seat=seat)
+    except Exception:  # noqa: BLE001 (the warning is never what raises)
+        return f"rotation: warning: {seat} unreadable — capture carries NO owed list"
+
+
 def _capture_stops(card: Path, line: str) -> str:
     """The `s3` a CAPTIVE capture hands the driven handoff: the card's OWN
     where-it-stops payload with the capture line APPENDED, never replacing it (a
@@ -885,12 +896,14 @@ def _capture_stops(card: Path, line: str) -> str:
         sections = rotate._split_card_sections(
             card.read_text(encoding="utf-8"))[1]
         loc = rotate._locate_where_it_stops(sections)
+        # A NON-tuple `loc` is NOT a degradation: the card carries NO
+        # where-it-stops slot, so nothing is owed and the bare line loses none.
         if isinstance(loc, tuple):
             keep = _fenced_payload(rotate, sections[loc[0]][1], loc[1])
             if keep:
                 return f"{keep}\n{line}"
     except Exception:  # noqa: BLE001 (P7: an unreadable card keeps the line)
-        print(render("rotation_alert", "capture_slot_blind", seat=card.name))
+        print(_blind_warning(card.name))
     return line
 
 
@@ -932,7 +945,7 @@ def _force_capture(root: Path, seat: str, card: Path, fraction: float,
     # NO owed list) destroyed the very slot the handoff had preserved
     # (hypothesis:captive-capture-keeps-the-slot-and-banked-and-appends-its-
     # line). The capture line is already the payload's tail; `_stops_line` and
-    # the threshold path that owns it (`:1276`) are untouched.
+    # the threshold path that owns it are untouched.
     slot = _capture_stops(card, line)
     s3 = state_dir / f"capture-{seat}.s3"
     s3.write_text(slot + "\n", encoding="utf-8")
@@ -1134,6 +1147,10 @@ def _rotate_self_argv(bin_dir: Path, seat: str, stops: str) -> list[str]:
     """The full argv of the background rotate-self the hook spawns at threshold
     (rotate-out ZERO calls — the hook IS the rotate-out). One builder, shared by
     the production spawn and the test seam so the two can never disagree."""
+    # MEASURED (probe pasted on the node): a `--stops` value whose first line
+    # starts with a BARE `-` is an OPTION to argparse (exit 2, no rotation).
+    if stops.startswith("-"):
+        stops = "\n" + stops
     return ["python3", str(bin_dir / "rotate.py"), "rotate-self",
             "--name", seat, "--role", "director", "--timeout", "900",
             "--force", "--stops", stops]

@@ -563,11 +563,46 @@ def test_capture_rotate_self_step_keeps_the_owed_slot(tmp_path, run_hook,
     stops = rot[rot.index("--stops") + 1]
     full, slot = rotate._write_stops_section(card, "probe-director", stops)
     assert full and slot == "replaced", slot
-    _head, body = _section(card.read_text(encoding="utf-8"), "where it stops")
-    for owed in ("DONE  one landed thing", "NEXT  (1) first owed step",
-                 "      (2) second owed step"):
-        assert owed in body, owed
-    assert "auto-captured at f=" in body, body
+    # EXACT, not substring (a substring passes on a mangled line): every
+    # non-blank line but the one capture line EQUALS the before list.
+    a_all = _section(card.read_text(encoding="utf-8"), "where it stops")[1].splitlines()
+    added = [ln for ln in a_all if "auto-captured at f=" in ln]
+    assert len(added) == 1, a_all
+    assert [ln for ln in a_all if ln not in added and ln.strip()] == [
+        ln for ln in _section(LIVE_SHAPE_CARD, "where it stops")[1].splitlines()
+        if ln.strip()], a_all
+#: the SECOND writer over the shapes the fenced row above cannot reach --
+#: NAMED, NOT COVERED (the 40-line cap went to the M1 gate row and the
+#: exact-line tightening above, per the brief's cut order):
+STEP2_CARDS_UNCOVERED = ("HYBRID_SLOT_CARD", "UNFENCED_SLOT_CARDS[h2]", "UNFENCED_SLOT_CARDS[h3]")
+
+
+def test_capture_warns_soft_when_the_warning_template_is_unreadable(
+        tmp_path, monkeypatch, capsys):
+    """M1 GATE ROW: `render` is fail-HARD and the warning used to print INSIDE
+    `_capture_stops`' except-block, so a typo'd template name raised out of the
+    every-prompt hook. Unreadable template: bare line back, nothing raised."""
+    import prose_templates
+    monkeypatch.setattr(prose_templates, "_TEMPLATE_ROOT", tmp_path / "gone")
+    line = hook._capture_stops(tmp_path / "absent.md", "auto-captured at f=0.5")
+    assert line == "auto-captured at f=0.5", line
+    assert "absent.md" in capsys.readouterr().out
+
+
+def test_unreadable_card_prints_the_slot_blind_warning(tmp_path, capsys):
+    """ITEM 2a: the stdout warning is not silent — a card that cannot be read
+    degrades to the bare line AND says so on stdout (the capture is the only
+    warning channel the seat ever sees)."""
+    line = hook._capture_stops(tmp_path / "absent.md", "auto-captured at f=0.5")
+    assert line == "auto-captured at f=0.5", line
+    assert "carries NO owed list" in capsys.readouterr().out
+
+
+def test_rotate_self_argv_never_starts_with_a_bare_dash(tmp_path):
+    """M3 GATE: a `--stops` value starting with a BARE `-` is an OPTION to
+    argparse and exits 2 (measured -- the seat would not rotate)."""
+    argv = hook._rotate_self_argv(tmp_path, "probe-director", "-dash\nsecond")
+    assert argv[argv.index("--stops") + 1].startswith("\n"), argv
 
 
 #: the two UNFENCED slot shapes. `##`-level (doc:card-belam's own: a `##` heading
