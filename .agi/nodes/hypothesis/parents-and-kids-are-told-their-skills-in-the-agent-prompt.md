@@ -64,6 +64,25 @@ FILE SCOPE extensions/agi/tests/test_agent_prompt_skills.py · .agi/nodes/build/
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 8b9d627f8 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.628 -- closes mur-director-engine-35 DH.595-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-parents-and-kids-are--a00-c1c69bf9 tip a2067d49b (branch de-base-628; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Machine verdict contradicts the authored review on the same node
+2. 2. Decisive judgement recorded as prose, no verdict node
+3. 3. Same-class stale count left inside FILE SCOPE
+4. 5. production_lines over-counts the round by 2
+5. 6. Parent review cites the wrong lines for its key quotation
+6. a00-49d7323d-197aca.md:100-105 -- the parenthetical 'the only non-level3 hits anywhere are this round's own brief text echoed into .agi/sessions/iter-DH.595/*/spawn.json and manifest.json' cannot be produced by the command pasted at :100, which is --include=*.py and is therefore blind to .json. A claim about 'anywhere' resting on a *.py-only grep is the exact class this corrective round exists to eliminate, and it sits in the same paragraph as the grep. I could neither corroborate nor contradict it: .agi/sessions/iter-DH.595/ is absent from this checkout. The narrower conclusion (0 non-level3 READERS) is sound and I confirmed it separately.
+7. a00-49d7323d-197aca.md:19 -- the frontmatter title is a second machine-read field asserting completion the body contradicts: 'DH.595 residue: stale-count fix, sha256 measurement, 136-passed figure settled', while :147-152 of the same node proves the stale-count class survives at a00-5c1c3862-c36247.md:32 and :21 reads proved. extensions/agi/bin/cli.py:755-762 (_auto_titled) shows title is read as a first-class node field, so a reader taking frontmatter alone sees 'settled' + 'proved' on a round whose residue is open. The first reviewer flagged only the verdict field.
+8. UNVERIFIED (probe I would run, readers only, no dispatch/rotate/heal/send): whether links.py would have flagged this node. a2067d49b is NOT an ancestor of HEAD (git merge-base --is-ancestor -> NO); the node lives only on season2/loops/hypothesis-parents-and-kids-are--a00-c1c69bf9, and a worktree add or checkout is forbidden here. I would run: git archive a2067d49b | tar -x -C /tmp/dh595 && cd /tmp/dh595 && python3 extensions/agi/bin/links.py schema && python3 extensions/agi/bin/links.py links, then read metrics.evidence_stats over /tmp/dh595/.agi/nodes to see whether the self-cited proved lands in decisive_evidence_fraction.
+9. a00-49d7323d-197aca.md:112-137 -- item 3 pastes four RESULT tails but never pastes the command it ran, while the standing order it quotes at :183 is 'run the one command that settles it and PASTE its output on your node (never type a number)'. Not false: I ran the three files that still exist on this line (env -u TMUX -u TMUX_PANE, -p no:cacheprovider) and got 43 passed, 18 passed, and 72 passed / 7 skipped = 133 passed / 7 skipped, exactly the round's 133. The remaining +3 comes from test_agent_prompt_skills.py, added at d620134f8 and absent from this checkout, so that term is not independently confirmable here.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-49d7323d-197aca.md · .agi/nodes/experiment/a00-5c1c3862-c36247.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over a2067d49b · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.595: mur-director-engine-30 DH.573-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.628: mur-director-engine-35 DH.595-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
