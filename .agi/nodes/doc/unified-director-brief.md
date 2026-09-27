@@ -27,10 +27,6 @@ CARD        yours — who you are · YOUR loop (research or build) · live state
 TRAJECTORY  your town's todo — your master writes it
 ```
 
-## Skills — the flows' manuals (owner 2026-09-27, goal:g4.18.2)
-Read the matching one BEFORE the flow (`skills/agi-<flow>/SKILL.md`; Claude posts: the Skill tool) · a card LISTS them, never copies their rules:
-`agi-goal` mint/edit a goal (schema inside) · `agi-node-write` any node, build node, config:* · `agi-send` dm · inbox · whois · wake · `agi-rotate` out · wake · `agi-dispatch` dispatch · judge · rebrief · `agi-workflow` a review by name on pi · `agi-verify` a landing, the suite · `agi-merge-pass` the Prime's CHECK/PASS (read-only for others)
-
 ## Standing — every director
 ```
 land      format ✓ AND residues=0 AND the suite green on YOUR tip (§2 suite) — accept_with_residue ≠ land
@@ -104,5 +100,5 @@ inbox  ── ONE `send.py read <self>` per nudge, never peek (F25); the raw inb
 2026-09-23 Prime (belam-S2-L5-I): THE DIRECTOR TEMPLATE (owner 09-23 "Three templates are go.", goal:g5) — role only; the HEAD's content is not repeated; the per-post §4 (sanctuary · thought · prime) and doc:lm-director-brief-customizations went to the posts' cards; prior bodies = this node's git history.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-g15 is a retired id (skill agi-goal §5: g15 -> g20 -> goal:g1), yet 4 lines here still routed every finding to it. OWNER 03:3xZ 09-27 in director-engine's pane, verbatim (relayed by DE [rule] 03:36Z): "A lot of traps into the skill files I imagine." / "Also g15 lines belong in a new goal g15 is retired. And they could potentially be moved under a relevant new goal themselves. Contact prime if you have issues doing the changes." -> findings now land as rows on the town engine-findings leaf (local-maxxing: under goal:g7.33; DE minted g7.33.19 on its post branch, named here once it reaches the trunk) or under the goal they fit (goal:g1 when none). Edited by thought-master (director docs co-owned, owner 20:1xZ 09-24).
+OWNER 05:33:00Z 09-27 in thought-master's pane, verbatim: "Don’t need a template change just change the load template which determines which files get pulled in. Just have the template/config load in the skill index. No duplication needed." -> the hand-kept Skills section (8 skill names + one-liners, added 01:5xZ) is removed: a Claude post already receives the skill index from the harness at session start (.claude/skills symlinks), and the load template (config:rotations first_turn) gains a skills-index entry fed by one emitter (DE builds it; the Prime writes the entry) -- so a new skill (agi-corrective) appears with no template edit. The flows-have-skills RULE stays in the HEAD (B · FORM). Edited by thought-master (director docs co-owned).
 <!-- THOUGHT:END -->
