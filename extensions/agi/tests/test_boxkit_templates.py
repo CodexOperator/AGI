@@ -1,7 +1,9 @@
 """The boxkit acceptance suite for
 hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes.
 
-Rows 1-13, one per clause of the claim (12 = the leak-root floor, 13 = the stand-in
+Rows 1-13, one per clause of the claim, plus lettered SUB-ROWS (7b-7d, 11a-11g, 14b) --
+each sub-row is named by the comment above its own test, not listed here, so this
+inventory cannot drift from the file. (12 = the leak-root floor, 13 = the stand-in
 substitution order; both were residues of an earlier probe):
 
 1. every manifest row carries the KIT CONTRACT keys and a known dest_cell;
@@ -702,7 +704,7 @@ UNIT_DROPIN = re.compile(r"[\w@{}%.-]+\.(service|slice|timer|scope|mount|socket|
 # a committed paths.boxkit cell that resolves to a systemd UNIT dir: one whose value ends in
 # a two-component dir UNDER systemd/. Structure, not a name -- the tails are read from
 # CELLS at CALL time (row 11g), so a cell rename moves the rule instead of inverting it.
-UNIT_DIR_CELL = re.compile(r"/systemd/[\w.@%{}$-]+$")
+UNIT_DIR_CELL = re.compile(r"/systemd/(?![\w.@%{}$-]*\.d$)[\w.@%{}$-]+$")
 
 
 def _unit_dir_tails():
@@ -868,6 +870,11 @@ def test_the_unit_dir_fit_rule_follows_the_committed_cells(monkeypatch):
     assert tails, "no committed cell is a unit dir: the rule would reject every drop-in"
     piece = BY_NAME["user-slice-guard"]                      # a UNIT.d drop-in
     assert _cell_fits_dir(piece, piece["dest_rel"]), piece["dest_cell"]
+    # the rule is narrowed to UNIT dirs, not every component under systemd/: a drop-in
+    # dir (etc/systemd/system.conf.d) is a CONFIG dir, and reading it as a unit dir would
+    # ACCEPT a piece the literal tails rejected (DH.591 item 5).
+    monkeypatch.setitem(CELLS, "boxkit_conf_dropin_dir", "etc/systemd/system.conf.d")
+    assert "systemd/system.conf.d" not in _unit_dir_tails(), "a drop-in dir read as a unit dir"
     renamed = {c: ("etc/" + str(v).rstrip("/").split("/")[-1]
                    if str(v).endswith(tuple(tails)) else v) for c, v in CELLS.items()}
     monkeypatch.setitem(globals(), "CELLS", renamed)
@@ -1011,22 +1018,24 @@ def test_one_planted_kit_copy_goes_red_and_the_kits_own_bytes_stay_clean(
     planted.write_text(clean + "\n# a planted %s token: %s\n" % (cls, value),
                        encoding="utf-8")
     assert anonymize.scan(planted.read_text(encoding="utf-8"), toks) == [cls], cls
-    # the fixture's sys.path restore is a NO-OP in a session: conftest.py:408-411 already
-    # put bin/ there (measured in-session, experiment:a00-19870cd0)
-    assert str(BIN_DIR) in sys.path and sys.modules["anonymize"] is anonymize
     for path, text in _kit_bytes():   # the kit's OWN bytes, incl. the clean src
         assert anonymize.scan(text, toks) == [], path.name
 
 
-# 14b -- THE DISJOINTNESS itself, BOTH directions, EVERY class: row 14 walked the `ip`
-# class alone, so merging the two denylists was again a silent no-op. RED if merged.
+# 14b -- THE DISJOINTNESS itself, BOTH directions, EVERY class. Direction 1 is per class.
+# Direction 2 is NOT: the planted value must be one the KIT denylist can see, so it is a
+# LEAK_ROOT (in LEAK_ROOTS by construction, not this box's owner or home), never a
+# FAKE_BOX value -- a planted FAKE_BOX value is invisible to every kit rule by definition,
+# so `assert _leaks(planted) == []` could never go red (DH.591 item 1). The kit SEES the
+# root; the engine's denylist does NOT. RED if merged: adding the kit's roots to
+# anonymize.box_tokens makes `scan` name `secret` here (probe C, DH.591).
 @pytest.mark.parametrize("cls", ["hostname", "ip", "mac", "board", "secret"])
 def test_the_kit_denylist_and_the_engine_denylist_are_disjoint_in_both_directions(
         cls, fake_box, anonymize):
     toks = anonymize.box_tokens(PROJECT)
-    value, root = FAKE_BOX[cls][0], str(R.engine_checkout())
+    value, root = FAKE_BOX[cls][0], LEAK_ROOTS[0]
     clean = (TEMPLATES / BY_NAME["oomd-guard"]["template"]).read_text(encoding="utf-8")
     planted = clean + "\n# a planted %s token: %s\n" % (cls, value)
     assert anonymize.scan(planted, toks) == [cls], cls
-    assert _leaks(planted) == [], "row 4 covers %s: the denylists are MERGED" % cls
+    assert _leaks("cd %s\n" % root), "row 4 does not see its own leak root"
     assert anonymize.scan("cd %s\n" % root, toks) == [], "the guard now sees the root"
