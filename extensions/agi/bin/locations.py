@@ -1023,8 +1023,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--storage-categories", action="store_true",
                     help="print the numbered storage-category picker")
     ap.add_argument("--storage-pick", default=None,
-                    help="with --storage-categories: resolve one pick "
-                         "(number or key) to location + payload_ref")
+                    help="resolve one pick (number or key) to location + "
+                         "payload_ref; implies --storage-categories")
     ap.add_argument("--tail", default=None,
                     help="with --storage-pick: the tail under the prefix")
     ap.add_argument("--claim-iter", action="store_true",
@@ -1067,7 +1067,13 @@ def main(argv: list[str] | None = None) -> int:
 
     cfg = load_config(root)
 
-    if args.storage_categories:
+    if args.tail is not None and args.storage_pick is None:
+        print("ERR: --tail names the file under a category, so it needs "
+              "--storage-pick; the category is the part the tail hangs from.",
+              file=sys.stderr, flush=True)
+        return 1
+
+    if args.storage_categories or args.storage_pick is not None:
         rows = storage_categories(cfg, root)
         if args.storage_pick is not None:
             row = resolve_storage_category(args.storage_pick, args.tail, cfg,

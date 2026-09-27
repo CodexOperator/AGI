@@ -258,6 +258,37 @@ def test_live_seeded_cells_all_point_at_a_directory_that_exists():
         for r in rows if not r["target_exists"]]
 
 
+def test_a_pick_without_the_list_flag_still_resolves(tmp_path):
+    """The residue: --storage-pick used to print the default layout, exit 0,
+    and resolve nothing. It implies the list flag now."""
+    import contextlib
+    import io
+    cfg = _seeded()
+    root = _project(tmp_path, cfg)
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        rc = locations.main([str(root), "--storage-pick", "2", "--tail",
+                             "x.py"])
+    assert rc == 0
+    line = buf.getvalue().strip()
+    assert line.split("\t") == ["tests", "source_root",
+                                "extensions/agi/tests/x.py"], line
+    assert "layout:" not in line
+
+
+def test_a_tail_without_a_pick_is_refused_with_a_reason(tmp_path):
+    import contextlib
+    import io
+    cfg = _seeded()
+    root = _project(tmp_path, cfg)
+    out, err = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        rc = locations.main([str(root), "--tail", "x.py"])
+    assert rc == 1
+    assert "--storage-pick" in err.getvalue()
+    assert out.getvalue().strip() == ""
+
+
 def test_storage_category_target_agrees_with_the_write_path(tmp_path):
     cfg = _seeded()
     root = _project(tmp_path, cfg)
