@@ -40,9 +40,9 @@ TOOLS     T=<scratchpad 96494ce7-...>: MURK=<run key> [NOEX=1] [EXTRA=f,g] gen2.
           (orders on node + base cut + dispatch) · redispatch.sh N.. (re-fire a placed round; gates / >= 5G + live < arm) · drainqw.sh + WAITFOR
           (queue) · mkmur.py/runmur.sh (runmur4.sh = 4G) · harvest.sh      D=<scratchpad 4cf27ed6-...>: verd.py Q[@key] (verdict digest; run key =
           line 1 of T/murq<Q>.log) · harvest-all.sh N.. > D/harvallN.log · harvest-kid.sh · murall.py --run (HLOG= Q0=; KNOWN = accepted old-base reds)
-MURS      running murq67 69-73 75-78 81 = DH.598 605 608 589 594 595 601 606 607 609 599 (map: T/murq<Q>.json key) · next murq 82, next DH 622
+MURS      running murq67 69-73 75-77 81 = DH.598 605 608 589 594 595 601 606 607 599 (map: T/murq<Q>.json key) · next murq 82, next DH 623
 LIVE      parents 592 602 612 613 614 616 617 (spawn_budget.py) · queued: redisp3 615 (kid fixed nothing) · redisp4 597 (ended EMPTY) ·
-          drainq14 618 · drainq15 619 620 621 (T/drainq<N>.log) · 621 re-applies DH.610's 4 node edits left UNLOGGED in wt a00-52167e83 · 608's ordered ladder revert (prime_director settings ultracode -> "") is UNCOMMITTED + unlogged in worktree a00-22577533:
+          drainq14 618 · drainq15 619 620 621 · drainq16 622 (T/drainq<N>.log) · 621 re-applies DH.610's 4 node edits left UNLOGGED in wt a00-52167e83 · 608's ordered ladder revert (prime_director settings ultracode -> "") is UNCOMMITTED + unlogged in worktree a00-22577533:
           never hand-land it -- the next 608 corrective re-applies it via write.py (its red test_ladder_node_declares_roles_table waits on it)
 GATE      OWNER GO (belam 16:25Z, TMM.300): step values.local_maxxing.de_live_parents.arm up ONE arm (10 -> 15) only while loadavg1 < 16 AND io
           PSI some avg60 < 50 AND key cap x live spawns < balance AND / free >= 5G (TMM.303); re-read each step, step back on any fail. HOLD all day
@@ -63,7 +63,7 @@ CHAIN     last round (→ = corrective)                                         
          whole: OOMs 5G) · 512 → 551 → 568 → 585 → 614 LIVE (round manifests pi-free) · 514 → 552 → 557 → 578 → 604 → 617 LIVE · belam-cap-reap HELD until 507
  g4.18.1.x 521 → 555 → 570 → 587 → 610 → 621 · 510/519 → 553 → 576 → 588 → 611 → 618 · 520 → 574 → 605 m69 · 497 → 579 → 603 → 619
  thought-verb 522 → 554 → 583 → 607 m77 · wake-facts 501 → 556 → 571 → 601 m75 (merge BLOCKED until belam trims F13: 2009 > 2000)
- guard-piece 530 → 580 → 591 → 615 REDISP (NEVER 432) · guard-inst 471 AFTER 432 · send-hub 525 → 577 → 586 → 609 m78 (HELD) · run-key 531 → 581 → 600 → 620
+ guard-piece 530 → 580 → 591 → 615 REDISP (NEVER 432) · guard-inst 471 AFTER 432 · send-hub 525 → 577 → 586 → 609 → 622 (HELD) · run-key 531 → 581 → 600 → 620
  skills 526 → 573 → 595 m73
 ```
 
@@ -77,7 +77,7 @@ next   (1) per ENDED mur: D/verd.py Q -> CLEAN = git merge --no-ff the chain's l
 ```
 
 ## 🔴 WHERE IT STOPS
-Rotated at the line: 11 murs + 7 parents running, 615 597 618-621 queued on drainers; nothing merged this seat; cron-policy decision out to TM.
+Rotated at the line: 10 murs + 7 parents running, 615 597 618-622 queued on drainers; nothing merged this seat; cron-policy decision out to TM.
 ```
 FIRST   spawn_budget.py status ; systemctl --user list-units 'agi-director-engine-*' --all ; python3 D/verd.py <Q> per ended murq
 THEN    clean -> git merge --no-ff <loop branch> (card order) · residue -> MURK=.. T/gen2.py + T/place2.sh (queue: T/drainqw.sh + WAITFOR)
