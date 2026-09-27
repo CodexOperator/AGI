@@ -35,18 +35,19 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br = trunk 45bf4f16f merged (NOT suite-run)
 MINT FIX  6f9b9a1d9 in TM's gate (TMM.297), NOT yet on the trunk -> every corrective base cherry-picks it (de-base-534/535 do)
-FALSIFIER DH.533/534/535 keys all limit 0.01 used 0; credits 0.6063 at 13:2xZ -> read again when DH.533 exits -> one line to TM
+FALSIFIER MET: DH.533 ran + exited pi-free, keys 0.01 used 0, credits 0.6063 before = after -> [merge-up] line to TM 13:3xZ (inbox; nudge coalesced, sweep retries)
 MURS      unit agi-director-engine-murq = batches murq1..7 SEQUENTIAL (<= 4 rounds each, pi-free, from this worktree):
             1 509k1 509k2 512 514k1 · 2 514k2 515 516 510k4 · 3 519 522 521 501 · 4 526 520 507k1 507k2
             5 525k1 525k2 529k1 529k2 · 6 497k1 497k2 530 531 · 7 532 (review only; NEVER merge before 534)
-          unit agi-director-engine-murq8 = 429 chain close (03ac46eea..7938a7103)   args + logs: scratchpad 96494ce7-.../murq*.{json,log}
+          murq8 (mur-21) 429 close: verify AWR (my restore re-imported a stale clause) -> fixed 4eb08ee4e -> unit murq9 re-mur 7938a7103..4eb08ee4e
+          unit murq10 = DH.533 k1+k2 over f71d1915b..dedc18720 (harvested: config cell landed dedc18720; 38 touched + 281 heal/help-smoke green)   args + logs: scratchpad 96494ce7-.../murq*.{json,log}
           complete earlier (paid, still valid verdicts): 510k1-k3 (mur-18)
-LIVE      DH.533 a00-fbd128d3 (sweep slice 2) · DH.534 a00-5330c27c (532 held-lock fix, wt de-base-534)
+LIVE      DH.534 a00-5330c27c (532 held-lock fix, wt de-base-534)
           · DH.536 a00-e2277e4b (517 re-cut: model-fence owner race, wt de-base-535; DH.535 parent OOM-killed by the R4 test -> g7.33.19 row 22)
 QUEUED    skills adapter round (hypothesis:skills-load-per-harness-per-tier-from-one-config-cell) after 526 clears · 471 after 530
           · (c)(d) residues of 6f9b9a1d9 -> ONE corrective after TM lands it
 BLOCKED   501 merge (belam F13 trim: region 2009 > 2000)
-CLOSED    429 chain residue (mur-15 DH.495-k1 ## TESTS) = node update on its loop branch 7938a7103 (brief text, no kid)
+CLOSED    429 chain residues = node updates on its loop branch 7938a7103 + 4eb08ee4e (brief text, no kid; wt de-h429)
 ```
 
 ## §1 PLAN
