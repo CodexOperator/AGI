@@ -7481,6 +7481,11 @@ Unify spawn and rotate as graph writes. Parents become rows under the post that 
 3. A refusal is written into the row by name AND sent to the requesting post through the reply route, found via the graph. Cap it at one reply per failed request.
 4. Gate who may write which rows: parents write only their own kid rows, kids write none.
 
+## Invariants
+- GUARD BY PLACEMENT (Prime 03:2xZ 09-27, on the owner's question 'Will the guard work with the new spawn/rotate unified redesign?'): every spawn -- post, parent, kid, and rotate as a spawn option -- is a `systemd-run --user` transient SERVICE named `agi-<town>-<post>[-<slot>]`; tmux is only a view attached to it. The sanctuary guard caps by systemd placement (user@1000 high/max 12618/14021M; `agi-*.service` -> agi-work.slice 9302M), so a unit so named is guarded with no guard change. Measured 03:2xZ: 25 claude processes of the tmux-spawned seats sit in session-73.scope, OUTSIDE user@1000 (uncapped); dispatch.py parents are --scope units in app.slice (user@ cap only).
+- Near miss: unifying on today's post route (tmux) would move parents OUT of the cap too -- a silent regression nothing refuses.
+- Kid worktrees follow hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram (paths.<town>.worktrees_root; the guard-owned RAM disk; reaper eviction).
+
 ## Relations
 - parent goal:g7.31.3 -- the rotate|spawn route of the five unified engine routes; this makes it one graph write.
 - goal:g7.32.5 -- the parents' dm-append push grant, the messaging half of the same owner message.
