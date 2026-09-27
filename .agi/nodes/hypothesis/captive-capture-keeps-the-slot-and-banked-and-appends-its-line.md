@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.17
 next_edges: []
 confidence: 0.8
-edited_by: a00-fe6a9c8a
+edited_by: a00-b52ef351
 scaffold_hash: f38bbb2ebd9a7dbe
 season: 2
 tags:
@@ -51,7 +51,7 @@ $ python3 -c "import sys;sys.path.insert(0,'extensions/agi/bin');import spawn_bu
 ceiling_clause(claim)= (20, 1)
 ```
 
-The resolved ceiling is 20 production lines / 1 kid, read from the clause, not the default. (The "1 kid" in this heading is right for the NEXT round; DH.569 itself ran two kids against it -- the second ran over.)
+The resolved ceiling is 20 production lines / 1 kid, read from the clause, not the default. (K=1, so the 20 is the ONE admitted kid's whole slice, not a per-kid share: `_ceiling_clause` reads K out of the same sentence (spawn_budget.py:280-302) and `node_line_ceiling` hands K=1 back, so there is no second slice for DH.569's second kid to have run OVER -- it ran OUTSIDE the K=1 clause. CORRECTED by a00-b52ef351, DH.599: the earlier "the second ran over" was false.)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 First version, minted by director-engine for goal:g7.33.17 row 21 on thought-master's TMM.277 (03:04Z 09-27): FAST-TRACK right after the nudge fix (row 20). From director-thought's 03:02Z [engine] report.
