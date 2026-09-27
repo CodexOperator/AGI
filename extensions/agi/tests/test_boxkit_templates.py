@@ -1,7 +1,8 @@
 """The boxkit acceptance suite for
 hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes.
 
-Nine rows, one per clause of the claim:
+Rows 1-13, one per clause of the claim (12 = the leak-root floor, 13 = the stand-in
+substitution order; both were residues of an earlier probe):
 
 1. every manifest row carries the KIT CONTRACT keys and a known dest_cell;
 2. every piece renders with no {{UNFILLED}} surviving;
@@ -102,7 +103,24 @@ def _load():
 R = _load()
 MISSING_CELLS = sorted({p["dest_cell"] for p in R.manifest()["pieces"]} - set(CELLS))
 # only for the leak checks (a template or a fixture must not carry a literal root)
-LEAK_ROOTS = sorted({str(p) for p in [PROJECT] + list(Path(PROJECT).parents[1:3])})
+def _leak_roots(project):
+    """The host roots a template must not carry literally: the checkout and the parents
+    that still NAME a directory of their own (residue M2). A root with fewer than two
+    components below the filesystem root ('/', '/tmp', '/home') is shared with every
+    unrelated system path and is a prefix of ordinary command lines: admitting it makes
+    every leak row match every string -- the empty-prefix false red, measured as 6 -- and
+    it says nothing about THIS checkout, so it is dropped. A deep checkout never carried
+    one, which is why the defect stayed invisible until a shallow extract."""
+    return sorted({str(p) for p in [project] + list(Path(project).parents[1:3])
+                   if len(p.parts) >= 3})
+
+
+LEAK_ROOTS = _leak_roots(PROJECT)
+
+
+def _leaks(text, roots=LEAK_ROOTS):
+    return [t for t in (OWNER, str(Path.home()), *roots, "/.sanctuary/")
+            if t and t in text]
 
 # A probe identity: contract tests need SOME value for REPO_ROOT/GUARD_SRC to render
 # at all, and a probe is not the answer -- the wire test below supplies nothing.
@@ -205,8 +223,7 @@ def test_render_refuses_an_unfilled_placeholder_by_name():
 @pytest.mark.parametrize("piece", PIECES, ids=[p["name"] for p in PIECES])
 def test_template_carries_no_literal_host_token(piece):
     text = (TEMPLATES / piece["template"]).read_text(encoding="utf-8")
-    leaks = [t for t in (OWNER, str(Path.home()), *LEAK_ROOTS, "/.sanctuary/")
-             if t and t in text]
+    leaks = _leaks(text)
     assert not leaks, "%s leaks %s" % (piece["name"], leaks)
     # the UID may only arrive as a placeholder: no literal cgroup identity.
     assert not re.search(r"(user[@-]|UID=)%s\b" % UID, text), piece["name"]
@@ -392,7 +409,7 @@ def _anonymized_live_render(piece, tokens=None):
     tokens = R.host_tokens(CFG) if tokens is None else dict(tokens)
     body = (TEMPLATES / piece["template"]).read_text(encoding="utf-8")
     live = R.rendered(piece, R.values(CFG, MEASURED, tokens))
-    out, masked = live, []
+    masked, clean = [], {}
     for k in IDENTITY:
         sites = len(re.findall(r"\{\{%s\}\}" % k, body))
         if not sites:
@@ -406,10 +423,26 @@ def _anonymized_live_render(piece, tokens=None):
         if seen > sites:
             masked.append((k, seen, sites))   # ambiguous: a literal collides with it
             continue
-        out = out.replace(tokens[k], STANDINS[k])
+        clean[k] = tokens[k]
+    out = _substitute_longest_first(live, clean)
     if masked:
         out = _with_the_whole_stand_in_set(piece, tokens)
     return out
+
+
+def _substitute_longest_first(text, mapping):
+    """Put the stand-in back for every derived token, LONGEST TOKEN FIRST (residue N1).
+    Two identity tokens on one box can overlap: OWNER_USER=/box/agi and
+    REPO_ROOT=/box/agi/extensions, where the shorter is a PREFIX of the longer. In
+    identity order the short token is replaced first and eats the longer token's
+    prefix, so the {{REPO_ROOT}} site is corrupted into a stand-in path that carries
+    the short stand-in's home segment -- a fixture comparison red for a reason that has
+    nothing to do with the claim. Longest first, every site lands on the stand-in of
+    the token that owns it; ties break on the key so the bytes are deterministic."""
+    for k in sorted(mapping, key=lambda k: (-len(mapping[k] or ""), k)):
+        if mapping[k]:
+            text = text.replace(mapping[k], STANDINS[k])
+    return text
 
 
 # 7f -- THE COLLISION FALLBACK RE-RENDERS WITH THE WHOLE STAND-IN SET (a00-fc6bf436).
@@ -698,3 +731,50 @@ def test_the_whole_table_closure_is_red_when_a_piece_is_removed():
     gone = [a for _, a in _uncovered(required, rest)]
     assert gone == ["oomd.conf.d/50-sanctuary-guard.conf"], gone
     assert len(rest) == len(PIECES) - 1
+
+
+# 12 -- LEAK_ROOTS MUST NOT ADMIT A ROOT SHALLOWER THAN TWO COMPONENTS (residue M2).
+# The leak row above asks "does any template carry a literal host root"; a root of ONE
+# component ('/', '/tmp') is a prefix of every absolute path, so on a shallow checkout
+# the row reports a leak in every template -- measured 6 false reds -- and says nothing
+# about the checkout it was asked about. The deep checkout the row was written on never
+# exposed it, so the row is exercised here against a SHALLOW checkout it does not have.
+def test_leak_roots_admit_no_root_that_prefixes_the_whole_filesystem():
+    shallow = Path("/tmp/extract/agi")
+    roots = _leak_roots(shallow)
+    assert roots == ["/tmp/extract/agi"], roots
+    assert not [r for r in roots if len(Path(r).parts) < 3], roots
+    # the empty-prefix leak it removes, stated as the pre-fix behaviour: a benign
+    # template is a leak on every line under a root that is a prefix of it
+    benign = "ExecStart=/usr/local/bin/agi-slice start\n"
+    assert _leaks(benign, roots) == []
+    assert _leaks(benign, [str(shallow), "/tmp", "/"]) != []
+    # and the live set for THIS box is free of the same roots
+    assert not [r for r in LEAK_ROOTS if len(Path(r).parts) < 3], LEAK_ROOTS
+
+
+# 13 -- STAND-IN SUBSTITUTION IS LONGEST-FIRST (residue N1). Two identity tokens can
+# overlap on one box; the shorter must not eat the longer's prefix. No planted
+# overlapping pair existed in this file, so the order was never compared: this row
+# plants one and asserts the RESULT the fixture comparison depends on.
+def test_stand_in_substitution_is_longest_first_over_overlapping_tokens():
+    # two OVERLAPPING derived tokens, neither of which collides with a stand-in
+    mapping = {"OWNER_USER": "/srv/owner", "REPO_ROOT": "/srv/owner/ext"}
+    text = "prefix /srv/owner/ext/send.py and /srv/owner/home"
+    got = _substitute_longest_first(text, mapping)
+    assert got == "prefix %s/send.py and %s/home" % (STANDINS["REPO_ROOT"],
+                                                      STANDINS["OWNER_USER"]), got
+    # the identity order this replaced corrupts the long site -- a falsifier, not a
+    # restatement of the helper: if the two orders agreed, this row could not fail
+    naive = text
+    for k in sorted(mapping):
+        naive = naive.replace(mapping[k], STANDINS[k])
+    assert naive != got, naive
+    assert STANDINS["REPO_ROOT"] not in naive and mapping["REPO_ROOT"] not in naive
+    # the stand-ins themselves must not overlap the tokens, or NO order saves the
+    # comparison: this row plants the one shape longest-first cannot fix, so a future
+    # standin edit that collides is red here rather than a red fixture on a live box
+    assert not [k for k in mapping if any(mapping[j] in STANDINS[k]
+                                          for j in mapping if j != k)], STANDINS
+    # the empty/derived token is skipped, never replaced into every string
+    assert _substitute_longest_first("unchanged", {"OWNER_USER": ""}) == "unchanged"
