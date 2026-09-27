@@ -12,7 +12,7 @@ tags:
   - card
   - prime
   - belam
-thought_session: belam-S2-L5-XII
+thought_session: belam-S2-L5-XIII
 title: "doc:card-belam -- the Prime's card: the one scratch (state · plan · landed · where it stops · traps · verification · BANKED)"
 town: core
 ---
@@ -27,15 +27,15 @@ gen 12 first card. The traps that now live in a skill (merge-pass: 6 19 26 27 31
 ## SKILLS — the matching one BEFORE the flow (skills/agi-<flow>/SKILL.md; the Skill tool)
 `agi-merge-pass` CHECK/PASS/trunk sync · `agi-goal` goals + nested subgoals (schema inside) · `agi-node-write` · `agi-send` · `agi-rotate` · `agi-dispatch` · `agi-workflow` · `agi-verify`
 
-## §0 State (01:4xZ 09-27)
+## §0 State (05:5xZ 09-27)
 | | |
 |---|---|
-| post | belam-S2-L5-XII gen 12 · woke 01:28Z 09-27 · Opus 5.5 |
+| post | belam-S2-L5-XIII gen 13 · woke 05:4xZ 09-27 · Opus 5.5 |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` · stream DOWN (HELD) |
 | GUARD | OWNER GO 02:5xZ 09-27: model container brain-orcabonsai27b STOPPED (`docker start` restores) · docker budget 6656M -> 0 (guard.env.bak-20260927T*) · user@1000 high/max **12618M / 14021M** · agi-work.slice 9302M · sshd lane unchanged (reserve 1911M, ssh MemoryMin 64M CPUWeight 1000) · a pi stage ~210 MiB · load ~17/16 cores, io60 40-70 = the real bind |
 | merge | **PASS 10 CLOSED 04:0xZ 09-27**: season2/main **2129f70bb** (two-parent merge of TIP 6c403aeb4b; posts.md field-merged) · local-maxxing/main ff -> 6c403aeb4 · 30 rounds: 29 accept_with_residue, 1 demote, 0 RED · state file: last_merged_town_sha = 6c403aeb4b · next PASS BASE = 6c403aeb4b |
 | crons | CHECK f86b1cf9 "13 */4 * * *" (re-armed 01:3xZ) |
-| spend | credits 8.74 USD (01:31Z) |
+| spend | credits **3.00 USD (05:5xZ)**, 8.74 at 01:31Z = ~1.3 USD/h; the 1 USD floor (provisioning.py:103) at this burn ~07:30Z -- §6 |
 | dms | 03:0xZ [decision] -> TM: owner GO (DE cap 8 -> 12 -> 16 gated on load < 16 + io60 < 50; DT pause = TM's call; swarm-size test on TM's board) · 01:4xZ [decision] -> DE: hypothesis:wake-facts-collapse-to-skill-pointers (queued behind the redesigns) |
 | branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
 
@@ -47,16 +47,15 @@ HELD   OWNER 21:1xZ: stream · encryption-town config · sanctuary-master activa
 open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hub-only-... has no goal_id/goal_kind (a renumber, on the owner's word) · §6
 ```
 
-## §2 Landed (this seat): 045d1aab3 wake re-link · 6c403aeb4 trunk sync (belam gen 12 key row) · 3 commits for g4.18.2: skills (8 files + 8 build nodes [goal:g4.18.2, idea:engine-skill-doc] + .claude/skills links, gitignore narrowed) · 9b2f1e378 HEAD line + DE hypothesis · 786dd91da CLAUDE.md 26,597 -> 10,123 bytes · d11cfc027 Prime template 10,470 -> 7,698 · d94a59fca g4.18.2 byte budget · OWNER 01:5xZ: monitor.sh io guard FINE-GRAINED (kills only processes whose ancestor argv carries this pass's tag; others -> spared.log) · sshd lane verified live (ssh.service MemoryMin=64M CPUWeight=1000, system.slice MemoryMin=128M, guard: chain live) · skills block -> doc:unified-director-brief, doc:unified-master-brief, 3 duty briefs, the DE/DT/TM/SM cards
+## §2 Landed (gen 13): cdcfe5c0b wake re-link + facts region 37:57 · (gen 12): 045d1aab3 wake re-link · 6c403aeb4 trunk sync (belam gen 12 key row) · 3 commits for g4.18.2: skills (8 files + 8 build nodes [goal:g4.18.2, idea:engine-skill-doc] + .claude/skills links, gitignore narrowed) · 9b2f1e378 HEAD line + DE hypothesis · 786dd91da CLAUDE.md 26,597 -> 10,123 bytes · d11cfc027 Prime template 10,470 -> 7,698 · d94a59fca g4.18.2 byte budget · OWNER 01:5xZ: monitor.sh io guard FINE-GRAINED (kills only processes whose ancestor argv carries this pass's tag; others -> spared.log) · sshd lane verified live (ssh.service MemoryMin=64M CPUWeight=1000, system.slice MemoryMin=128M, guard: chain live) · skills block -> doc:unified-director-brief, doc:unified-master-brief, 3 duty briefs, the DE/DT/TM/SM cards
 
 ## 🔴 Where it stops
-05:5xZ 09-27 belam-S2-L5-XII rotates at 0.46: PASS 10 closed, worktree prune + cell done, skills index + master/HEAD dedup + guard headroom open
+05:5xZ 09-27 belam-S2-L5-XIII: facts region landed (cdcfe5c0b); CHECK cadence, skills index waits on DE's producer, credits 3.00 USD banked
 ```
 1. CHECK every 4 h (cron f86b1cf9, skill agi-merge-pass §1). Next notice when the trunk has new experiments past BASE 6c403aeb4b.
 0. DONE 04:2xZ: PASS 10 leaf goal:g1.26 minted; its 9 nodes re-parented (ids unchanged); town board tree + row; GOALS.md 381 byte-identical.
-2. OWED (my 03:5xZ YES to TM): ONE write.py config:rotations 'replace body N:M <file>' from DE's HELD draft = loop branch
-   season2/loops/hypothesis-wake-facts-collapse-t-a00-759e6b60 @3fb4c6199 (kid a00-759e6b60, DH.501) -- referenced on the hypothesis (owner 04:1xZ).
-   Keep test_rotate_templates.py:534's F16 hit (or DE re-pins in the same merge-up); re-derive the facts first_turn range (rotations.md:76 + :114).
+2. DONE 05:5xZ cdcfe5c0b: facts region 37:64 -> 37:57 from DE's draft (a00-d698eaaa @3fb4c6199); F13's box.root fixed (THOUGHT on config:rotations);
+   :534 green (36 passed). DE told [decision] 05:5xZ: at DH.501's merge-up run the branch guard + live-region test on these bytes (~1920 B < 2000).
 5. RAM WORKTREES (owner 04:2xZ: "handle transition to ram worktrees once the time comes ... it'll ease pressure for tests"): hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram
    (under goal:g7.31.3.3). DE at 04:2xZ: DH.499 LIVE on claims 1+2 (prune tool, dry-run default + paths.<town>.worktrees_root cell); claims 3 (tmpfs) + 4 (reboot prune) = its next round.
    WHEN claim 3 merges up (judge it like any merge-up): (a) guard.env += GUARD_WORKTREE_TMPFS_belam_gpu=4G (backup first; owner GO 02:5xZ covers the guard)
@@ -97,4 +96,5 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hu
 | idle predecessors per rotation (owner chain rule) | reap on the owner's word |
 | the origin remote moved (every push prints the new location) | `git remote set-url origin <new>` -- the owner's call |
 | engine-wide config/template maxxing pass (owner idea, 09-23) | opening it is the owner's call |
+| credits 3.00 USD 05:5xZ 09-27, burn ~1.3 USD/h since 01:31Z (9 live spawns): the 1 USD floor refuses new keys ~07:30Z | top up, or cap DE concurrency at 8 until then -- the owner's spend |
 | MIN_REMAINING_CREDITS hard-coded 1 USD (provisioning.py:103, :206) | a config cell (a director-engine round) |
