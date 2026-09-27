@@ -106,6 +106,23 @@ FILE SCOPE extensions/agi/tests/test_write_answers_file.py · .agi/nodes/experim
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 4b007ebab · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.610 -- closes mur-director-engine-32 DH.587-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-one-mint-route-answer-a00-21eb7514 tip 697247787 (branch de-base-610; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Strike order cites a fifth copy that does not exist (.agi/nodes/experiment/a00-ff788172-12084f.md:255, mirrored at a00-b0bf124f-4b8eb4.md:108)
+2. 3. Site-count arithmetic wrong in both directions (.agi/nodes/experiment/a00-b0bf124f-4b8eb4.md:105 and a00-ff788172-12084f.md:250)
+3. 4. No grid version for any of the four changed nodes (.agi/nodes/experiment/a00-62dbecb1-6ed405.md:1)
+4. 62dbecb1:137-139 asserts a READER behaviour about a copy that does not exist: 'the fifth copy of the unseated fail-open rule, and the copy a reader reaches FIRST, since it is the hypothesis this whole chain hangs from'. The hypothesis node is 48 lines with zero matches for the rule (verified at 697247787), so this is a claim about a reader of a file that was never read -- and it sits in 'Findings for the director', the section the director reads first.
+5. The wrong count is carried in the two regions a reader reaches FIRST: the What-I-did table row at 62dbecb1:37 ('recounted: FIVE live copies, all named') and the Agent Notes at 62dbecb1:179 ('TWO->FIVE call sites'), both presenting the count as re-derived evidence, while its refutation sits 160 lines below at 62dbecb1:196. A reader who takes the summary as the round's answer gets five.
+6. ff788172:250 counts 'this node's Caveats bullet' among the places the rule is recorded, but that bullet is the pointer performing the count and states none of the mechanism; the node's other 'unseated/fail-open' hits (:80, :296) are a grep transcript and a THOUGHT, not a statement of the rule. So even the surviving 'four' is one too many counted as copies.
+7. No demotion and no hand-landed gate: git diff --name-status 4b007ebab 697247787 = 1 A + 3 M, all under .agi/nodes/experiment/ -- nothing under extensions/ or skills/, so the round could not have fixed the gate it passes through, and no node file was deleted.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS      + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE  · .agi/nodes/experiment/a00-62dbecb1-6ed405.md · .agi/nodes/experiment/a00-949eaa34-76f733.md · .agi/nodes/experiment/a00-b0bf124f-4b8eb4.md · .agi/nodes/experiment/a00-ff788172-12084f.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 697247787 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.587: mur-director-engine-30 DH.570-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.610: mur-director-engine-32 DH.587-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
