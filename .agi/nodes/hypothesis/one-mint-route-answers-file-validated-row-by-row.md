@@ -123,6 +123,28 @@ FILE SCOPE  · .agi/nodes/experiment/a00-62dbecb1-6ed405.md · .agi/nodes/experi
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 697247787 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.621 -- closes mur-director-engine-35 DH.610-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-one-mint-route-answer-a00-52167e83 tip df5fe19b0 (branch de-base-621; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+NOTE      DH.610's four node edits never committed: its parent left them unlogged in its own worktree (never hand-landed, TMM.268). Re-apply every ordered node edit THROUGH write.py on this branch and commit.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Corrective claims four node edits landed; none of the four in-scope nodes changed at this tip (items 2/4/5/6 written as done while the diff is 1 A)
+2. 2. PARENT PROBES gate probe quotes a sentence that does not exist ('DH.587 read FIVE, DH.610 corrected it to THREE' has 0 hits)
+3. 3. Decisive verdict 'proved' on claims the bytes refute; needs inconclusive_lean_proved:N
+4. 4. Evidence numstat not reproducible from any commit; omits the node its own name-status shows as M
+5. 5. Two ranges pasted as one; DH.587's landing commit presented as this round's delta
+6. 6. Item 6's rule has no home at this tip (reading correct, destination write unlanded)
+7. The dead citation the round exists to refute is STILL LIVE in the graph at the tip. `hypothesis:one-mint-route-answers-file-validated-row-by-row.md` is 48 lines with 0 `_ceiling_refusal` hits, yet it is cited as site #4 at a00-ff788172-12084f.md:254, and a `row-by-row.md:67` citation survives in a00-62dbecb1-6ed405.md and a00-b0bf124f-4b8eb4.md (1 hit each, measured at df5fe19b0). The node's own thesis at :77-78 — 'the strike order that sent a later striker there had a fifth site that does not exist' — is therefore still true of the graph, and the strikers are still being sent.
+8. The gate probe's count under-reports by one even on its own search string: a00-2e615bb5-234c16.md:186 says 'returns ONE hit, 62dbecb1:37'; `grep -n 'all five\|FIVE live'` over the four in-scope nodes returns TWO (a00-62dbecb1-6ed405.md:37 'all named, the strike order rewritten to "all five"' and a00-b0bf124f-4b8eb4.md:110 'strike all five'). A gate that miscounts the survivors it is clearing is the same defect class as the five-vs-three arithmetic it is certifying.
+9. Self-contradiction on 949eaa34 inside the node: :97 pastes it as `M` in the name-status, :39 and :60 treat it as a live third copy needing no edit, and :153 states '949eaa34 is unmodified' — while the node's own name-status says it was modified. A reader cannot tell whether the file is in scope and unchanged or out of the delta.
+10. An unread reader: .agi/context/schemas/[experiment].md says 'the decisive judgement belongs in a child `verdict` node'. a00-2e615bb5-234c16.md:23 carries a decisive `verdict: proved` inline with `next_edges: []` (:7) and no child verdict node. The viewport rule that proved/disproved need `evidence_runs >= 1` is satisfied only by the self-reference at :10-11, so no gate in the chain could have caught this round.
+11. template_max: the counting rule authored at a00-2e615bb5-234c16.md:47-51 ('A copy is a place that states the mechanism ... a mention, a count, a grep transcript and a THOUGHT do not state it') is a standing rule for every future reviewer, written on a single experiment node with no home in a template or schema (`git grep -ln 'one source per rule' df5fe19b0 -- skills/` returns nothing), and the node's claim that it landed on the ff788172 Caveats (:137-138) is false (ff788172:250 still reads FOUR). The next kid re-derives it from a node instead of reading a rule.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS      + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE  · .agi/nodes/experiment/a00-2e615bb5-234c16.md · .agi/nodes/experiment/a00-62dbecb1-6ed405.md · .agi/nodes/experiment/a00-b0bf124f-4b8eb4.md · .agi/nodes/experiment/a00-ff788172-12084f.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over df5fe19b0 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.610: mur-director-engine-32 DH.587-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.621: mur-director-engine-35 DH.610-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
