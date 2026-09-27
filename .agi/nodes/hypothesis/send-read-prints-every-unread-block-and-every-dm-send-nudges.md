@@ -58,6 +58,20 @@ FILE SCOPE extensions/agi/bin/send.py (the read-marker write + the dm-file send'
 CEILING   HARD CAP: 1 kid · net <= 12 production lines · <= 60 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
 
+## CORRECTIVE DH.542 -- closes mur-director-engine-20 DH.524-k1 (verify: accept_with_residue; every unrefuted defect + missed item below)
+BASE      CUT FROM season2/loops/hypothesis-send-read-prints-ever-a00-16f0ec5d tip 5c9c4120a (branch de-base-542). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Stale deferred sidecar suppresses the pending mark for a new no-pane dm — extensions/agi/bin/send.py:4040 — `not _read_deferred(root, other)` tests for ANY deferred body, so when a seat has a stale deferred body and its pane is gone the new unresolved dm is neither counted nor deferred (TMM.283 symptom returns for that seat).
+2. Inbox half of TMM.283 (an unread sender-side record): an inbox `send()` to a seat with no resolvable pane still leaves pending=0 — send.py:2986 calls `_nudge_window(body=None)` and the no-target return at send.py:2288-2289 registers nothing; only send_dm was patched, so the sibling sender path keeps the same hole. The parent records it in experiment:a00-a46d3b83's THOUGHT as residue (a)/next-round target, but the first reviewer did not list it.
+3. `_bump_pending` at send.py:4042 accrues a `.nudge.pending` sidecar for a seat that has no config:seats row at all (`_row_is_quiet` returns False for a missing row), so a recipient the graph never listed is counted. Parent probe P2 residue (b); a note, not a falsification.
+4. a00-a46d3b83 `production_lines: 21` is `git diff --numstat` and counts the diff's comment/prose lines as production lines (the node itself admits this, residue (c)); note only.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_send.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat or worktree
+FILE SCOPE extensions/agi/bin/send.py · extensions/agi/tests/test_send.py · .agi/nodes/experiment/a00-a46d3b83-8fc296.md · .agi/nodes/experiment/a00-db001065-4d153e.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over the ROUND BASE (git diff --numstat <tip above>) · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit on the loop branch before you exit
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.524: mur-17 DH.506-k1+k2 (verify failed on k1, unstructured on k2; the review residues stand) -- trailing newline lost on a mid-file marker write, a node verdict contradicting its own demotion; plus TMM.283: the dm-file sender skips the pending mark.
+corrective DH.542: mur-director-engine-20 DH.524-k1 verify residues + missed items, batched into one corrective (orders above, generated from the verify file; each item fixed or settled by a pasted command).
 <!-- THOUGHT:END -->

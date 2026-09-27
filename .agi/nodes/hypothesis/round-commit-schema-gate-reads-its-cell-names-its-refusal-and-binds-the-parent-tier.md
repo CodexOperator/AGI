@@ -43,15 +43,6 @@ extensions/agi/bin/cli.py · extensions/agi/hooks/agent-git/pre-commit · extens
 ## CORRECTIVE DH.527 -- closes mur-director-engine-18 DH.513-k1 (review accept_with_residue; verify killed by memory-cap rc=-9, review residues stand)
 BASE      CUT FROM season2/loops/hypothesis-round-commit-schema-g-a00-5a917eb9 tip 73a3d5003 (worktree a00-5a917eb9). No merge. Never rebase. NEVER DH.442.
 0 production lines, 0 test lines: node wording only, EVERY edit through write.py (never a scripted rewrite: the write-log must attest each one).
-1. experiment:a00-cb8fae55-9c5f9e -- DH.513 added a stray fence (:145), a SECOND <!-- THOUGHT:BEGIN --> (:147) and a byte-identical copy of the DH.470 paragraph (:148): old_tip had BEGIN=1/END=1 -> restore exactly one THOUGHT pair and one copy of the paragraph; paste `grep -c 'THOUGHT:BEGIN'` on that one file (= 1).
-2. the DH.513 kid applied two edits by scripted exact-string rewrite, so no write-log row attests them -> re-apply the six DH.513 node edits' final bytes through write.py so each node's last write-log sha equals its bytes; paste the per-node check.
-3. experiment:a00-212ee37a-73fc13 stays inconclusive_lean_disproved:55 on a premise that no longer reproduces (test_cli.py:2755 reads VISIBLE ONCE; grep -c revisited test_cli.py = 0) -> RE-RUN both, paste, and set the verdict the measurement supports, reason in its THOUGHT.
-4. experiment:a00-47615c4e-006a39:155 says the a00-cb8fae55 duplicate is a DH.483 miss; old_tip had BEGIN=1, so DH.513 introduced it -> correct the sentence.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-FILE SCOPE experiment:a00-cb8fae55-9c5f9e · a00-212ee37a-73fc13 · a00-47615c4e-006a39 · a00-58f9c0e5-af6502 · a00-7087b01c-a4999d · a00-d596cc8b-bea4b5 (write.py only) · the kid's own node
-CEILING   HARD CAP: 1 kid · 0 production lines · 0 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
-PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
-
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.527: mur-18 DH.513-k1 accept_with_residue (verify memory-capped) -- DH.513 itself malformed a00-cb8fae55 (2 BEGIN, stray fence, duplicate paragraph), two edits bypassed write.py so no write-log attests them, a00-212ee37a demoted on a premise that no longer reproduces, a false provenance sentence. Node wording only.
+1. experiment:a00-cb8fae55-9c5f9e -- DH.513 added a stray fence (:145), a SECOND <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.543: mur-director-engine-20 DH.527-k1 verify residues + missed items, batched into one corrective (orders above, generated from the verify file; each item fixed or settled by a pasted command).
 <!-- THOUGHT:END -->
