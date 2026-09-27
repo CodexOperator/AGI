@@ -39,7 +39,7 @@ DH.424    grid-commit gate demoted its hand-set proved (evidence_runs absent): L
 OWNER     21:1xZ via belam 23:12Z on goal:send-is-hub-only-...: QUIET row cell (nudge only for [red]) + READ-ON-LANDING (a visible, non-busy deposit IS the read); both verbatim in the node notes on the trunk. HOLD: no stream / encryption-town config / sanctuary activation until messaging is done  post branch since: ONLY DH.424+431 merged (clean mur); every other round waits on its loop branch
 CELLS     done by me: [doc] never_node_ids doc:card- a73ecaa03 · spawn.tasks_max 150 684a83a3a · paths.boxkit.* 3b42eb930 · values.boxkit.* (54) + guard_dir/user_systemd_data_dir 80dc2a99e
 424    MERGED with 431 (mur-5 accept) into the post branch + verdict proved 390bab9da -- repro green on the post branch
-425    -> 428 -> 435 -> 441 -> 448 a00-991dc2e8 -> mur-7 accept_with_residue (None-branch row missing; 'three S1 names' + 'EXISTS' wording in 3 nodes + chain root) -> 456 a00-f38de815 (landed b3d381f5a TMM.268) -> mur-9 accept_with_residue (wording: a00-8ef610c6 title pre-merge; a00-129e36cb THOUGHT 'Residue 4 DID NOT LAND') -> 461 a00-a38fd4ce LIVE, wording only
+425    -> 428 -> 435 -> 441 -> 448 a00-991dc2e8 -> mur-7 accept_with_residue (None-branch row missing; 'three S1 names' + 'EXISTS' wording in 3 nodes + chain root) -> 456 a00-f38de815 (landed b3d381f5a TMM.268) -> mur-9 accept_with_residue (wording: a00-8ef610c6 title pre-merge; a00-129e36cb THOUGHT 'Residue 4 DID NOT LAND') -> 461 a00-a38fd4ce HARVESTED (wording fixed; SCOPE OVERRUN: 3 kids + 94 test lines on a new 'override set in 3 engine files' finding; logged nodes landed 9ec5ae631) -> mur DH.461-k1 RUNNING (judges the overrun)
 426    a00-8783b3d3 schema gate  mur-4 residue x3 (cli.py: named-id hole, double ERR, stale comment) -> 442 FAILED TO BUILD ON IT (no
        merge; hook-only overlap) -> NEVER merge 442 -> 445 a00-5a2ac2fb -> mur-7 accept_with_residue x7 (schemas resolver circular+global+2nd literal; green test encodes fail-open; done non-zero unmeasured; hook no timeout; scope; citations) -> 455 a00-4d187f38 HARVESTED (one resolver in locations.py on cell paths.core.schemas_dir; refused done measured; 276 green; logged nodes + cell LANDED fa9b0d957 TMM.268) -> mur DH.455-k1/k2 RUNNING
        stale-base "behind 1" overridden with reason -- quote the refusal line in [merge-up])
@@ -68,9 +68,9 @@ CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT
 
 ## 🔴 WHERE IT STOPS (rotated at f=0.43; capture chain rc=1 = g7.33.15; every round below survives rotation)
 ```
-FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur453 mur455 mur457 mur458 mur459 mur460 (450->462 · 456->461 · 454->460 · 449->459 · 451->458 · 440->452 · 443->453 · 447->454 · 445->455 · 448->456) (mur446 DONE, above)
+FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*' ; reviews live: mur461 mur453 mur455 mur457 mur458 mur459 mur460 (450->462 · 456->461 · 454->460 · 449->459 · 451->458 · 440->452 · 443->453 · 447->454 · 445->455 · 448->456) (mur446 DONE, above)
        mur446 (+ whatever finished). Verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{5,6,7,8}/verify_DH.4NN-kN.json
-       parents live: 461 a00-a38fd4ce · 462 a00-c211fc9b
+       parents live: 462 a00-c211fc9b
 THEN   harvest 454-457 as they land (each cut FROM its chain branch: diff vs that branch; tests; a stray KID node edit is NEVER hand-landed -> a corrective re-lands it via write.py)
 PATTERN corrective = dispatch FROM the loop branch's worktree (kids cannot merge); a clean mur = git merge --no-ff <final branch>
        LAND ORDER per chain: 425: 441 then 448 then 456 @b3d381f5a then 461 · 426: 445 then 455 @fa9b0d957 (NEVER 442) · 427: 436 then 449 @2cee3ba21 then 459 · 429: merge 429 (nodes) then 443
