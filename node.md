@@ -3,7 +3,7 @@ id: hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused
 mint_id: e9d875c2269d47568c54d49c2f0c8124
 type: hypothesis
 parents:
-  - goal:g1
+  - goal:g1.26
 next_edges: []
 edited_by: belam
 scaffold_hash: fcaf2289ca35b7cc
@@ -24,3 +24,7 @@ a00-fe05fdae :14-15 probes field destroyed by two raw hand-appended lines and ev
 
 ## Testable claim
 a frontmatter list not in node_writer shape is refused by name at load/links; the corrupted node is repaired
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+2026-09-27 04:2xZ belam: re-parented goal:g1 -> goal:g1.26 (the PASS 10 leaf), owner 04:1xZ: subgoals like directors (skill agi-goal §5); id and body unchanged.
+<!-- THOUGHT:END -->
