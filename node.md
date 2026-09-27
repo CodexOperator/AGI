@@ -26,81 +26,55 @@ town: local-maxxing
 free     every parent/kid = pi-free (ladder tier-0) · signed role words = the owner's · harness <system-reminder> tool lists = genuine, unused
 ```
 
-
 ## IDENTITY
-Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
+Post `director-engine`, director, tier 1, town local-maxxing. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
+Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW gen 24). `.1/.7/.8` HELD for Prime/owner.
 
-## §0 STATE (22:3xZ 09-27 · rotated at the captive line f=0.40 · this seat woke 20:33Z · per-chain history = git log of this node)
+## §0 STATE (gen 25 · live scratch · landed history = grid.py diff doc:card-director-engine)
 ```
-LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: 429 chain 1ee2340c3 · DH.515 64130e4ec · THIS SEAT: 427 heal-refuse c2f528ed8
-          (heal+cli+dispatch+zero-usd = 389 passed 0 failed) · skills eb3369efe (285 passed 0 failed) · nothing handed to TM since merge-up 13 ·
-          01fc645d6 (agi-dispatch §5 sweep row) rides the SAME merge-up as the kid-worktrees chain, never without it
-TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [NOEX=1] [EXTRA=f,g] gen2.py N murq<Q>.json tip label [R4] -> orders<N>.md (check TESTS/FILE
-          SCOPE: empty when the diff has no code) · place2.sh N · drainqg.sh N:K.. (TMM.306-gated queue) · redispatch.sh · mkmur.py + runmur.sh
-          D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N.. > D/harvallN.log (chain units with a while-is-active wait)
-GATE      TMM.306 (TM 21:59Z): NO parent slot refilled until load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, then ONE step at a time
-          (drainqg1 enforces it); stop nothing live · first freed slot = DH.650 RAM round (repo half) · arm 10 unchanged
-MURS      running murq97 106 108 112 114 115 117 = DH.627 620 635 641 643 646 644 · ENDED UNREAD: murq116 (DH.621) · next murq 118 · next DH 660
-LIVE      parents 638 645 (spawn_budget.py) · gated queue (T/drainqg<N>.log, chained): qg1 650 647 648 649 · qg2 651 652 653 · qg3 654 ·
-          qg4 655 656 · qg5 657 · qg6 658 · qg7 659 -- NOTHING placed since TMM.306 (io avg60 ~60 > 50) · 640 assembled 1bf1dbf6c
-DECISION  out to TM: DH.577 cron policy (send-hub chain HELD from merge) · DE.1 22:0xZ: who mounts the tmpfs (off-repo) · wake-facts MAJOR
-CHAIN     last round (→ = corrective, mN = murq N running)                                           land note
- schema-gate 527 → 543 → 559 → 597 → 644 m117 · heal-refuse 528 → 544 → 558 → 592 MERGED c2f528ed8     NEVER 442 · NEVER 476
- probe-gate 523 → 541 → 560 → 589 → 626 → 641 m112 · row 20 nudge 524 → 542 → 561 → 602 → 637 → 657
- trunk reds 538 → 545 → 562 → 582 → 606 → 623 → 646 m115 · zero-usd 537 → 546 → 565 → 572 → 608 → 638 (638 re-applies the ladder revert)
- stale-lock 532 → 534 → 547 → 564 → 594 → 627 m97                                                   532 NEVER merges alone
- model-fence 508 → … → 590 → 613 → 633 → 654                                                         R4 NEVER run (row 22)
- kid-worktrees 529 → 533 → 540 → 563 → 598 → 624 → 655 → RAM round 650 (hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram)
- PASS 10 516 → … → 616 → 636 → 647 · 509 → … → 599 → 630 → 649 · 507 → … → 612 → 635 m108 (never run test_rotate_selfreap whole)
-         512 → … → 585 → 614 → 631 → 651 · 514 → … → 604 → 617 → 632 → 652 · belam-cap-reap HELD until 507
- g4.18.1.x 521 → … → 610 → 621 m116 ENDED · 510/519 → … → 611 → 618 → 642 → 659 · 520 → … → 605 → 625 → 640 → 656 · 497 → … → 603 → 619 → 643 m114
- thought-verb 522 → 554 → 583 → 607 → 639 → 658 · wake-facts 501 → 556 → 571 → 601 → 629 → 648 (BLOCKED: config:rotations, belam's -- DE.1)
- guard-piece 530 → 580 → 591 → 615 → 634 → 653 (NEVER 432) · guard-inst 471 AFTER 432 · send-hub 525 → … → 609 → 622 → 645 (HELD)
- run-key 531 → 581 → 600 → 620 m106 · skills 526 → 573 → 595 → 628 MERGED eb3369efe
+LANDED    merge-up 12 = cbe776456 (TMM.248; 6753/0 on M; GOALS.md was STALE at my tip -- TM re-rendered it)
+MERGED    after 12 (-> merge-up 13): DH.410 c11128889 (row 5; red 2/green) · DH.411 320b4450c (PASS 9 re-open; red 1/green);
+          650 passed over the touched files. (DH.410 dropped NO asserts -- my diff grep misread it)
+MERGED    DH.413 5e77d016c + MY FIX b7a4a049f (classmethod-aware stub; a file under a declared dir; red/green) + config cell
+          values.core.model_load_allowed_max_bytes · DH.412 + MY FIX ee08566b7 (is_live_checkout compared root with ITSELF ->
+          any repo = live; red/green) -- both kids' rounds shipped a NEW bug past their parent: probe the foreign/real shape
+CONTEXT   torch run: 232 passed / 2 failed = DT's leak (osc_band_seeds_qwen3 test_t7 sys.modules['transformers']=M) -> TM, not edited
+MERGED    DH.415 (= DH.397: ONE table model_fence.py + opt-in --no-model sitecustomize fence; red 8/green; REAL probe refuses)
+          DH.414 (--node-id seed refused unless dispatch named it / agent id; dotted nodes/ dir = never round-editable; red 6/green)
+SUITE     13 on the tip -> suite-13.log then ctx-13.log (torch path; expect ctx 2 reds = DT's leak) -- NO merge meanwhile
+PASS 9    queue = hypothesis:pass9-0926-residue-batch (5 new, 12 follow) -- ORDER mine, track THERE
+CARD      the rotate-out flattens the quorum symlink ON PURPOSE (db336b020); restore the 120000 link, never two copies apart
 ```
 
-## §1 PLAN
+## 🔴 WHERE IT STOPS (gen 25)
 ```
-done   this seat: 9+ harvest batches, murs 82-109, correctives 624-650, 2 chains merged (triage: notes / refuted / merge-order = demote)
-next   (1) per ENDED mur: D/verd.py Q -> CLEAN (after demotes) = git merge --no-ff the chain tip, never while a place2 runs · residue = gen2
-           orders -> T/drainqg.sh queue (TMM.306) (2) harvest each ended parent; land LOGGED node edits + ORDERED in-scope config only
-       (3) enough chains merged -> neighbourhood run -> ONE [merge-up] to TM (+ the two banked [rule] lines)
-```
-
-## 🔴 WHERE IT STOPS
-Rotated at the captive line: murs 97 106 108 112 114 115 117 running, 116 ended unread; 650 + 647-659 queued behind the TMM.306 io gate.
-```
-FIRST   python3 D/verd.py 116 (DH.621) ; spawn_budget.py status ; systemctl --user list-units 'agi-director-engine-*' --all
-THEN    clean -> git merge --no-ff <tip> -F <msgfile> · residue -> MURK=.. T/gen2.py, trim non-defects, queue on T/drainqg.sh
+FIRST  suite-13 EXIT=0 + ctx-13 (only DT's 2 leak reds) -> [merge-up] 13 = DH.410-415 + my 2 harvest fixes + config cell
+THEN   PASS 9 new 5 -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
+AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
 
 ## §4 TRAPS
-Skills: agi-dispatch §5 · agi-corrective · agi-workflow · agi-node-write §5 · agi-memory-guard · agi-master-gate (TMM.304). NEXT TRUNK MERGE:
-add/add on doc:draft-skills-first-turn -> TAKE THE TRUNK'S version. Card-only: pi-free murs ~7 min/stage, verify can die (review stands) ·
-harvests under load flake 1 test: re-run before a corrective · `pgrep -f place2` matches your own shell: list /proc cmdlines instead ·
-`git merge -F -` does not read stdin · worktrees VANISH (617 618 597 parents/kids): harvest from the branch, update-ref to fast-forward ·
-done-time commits skip foreign nodes: check the KID worktree too (618) · parents end WITHOUT a harvest dm: reconcile · stale index.lock
-(no holder) refuses kid commits · murall/harvest greps match 'failed' in slugs · only / fills: /tmp basetemps.
-
-## ENGINE FINDINGS
-Rows on goal:g7.33.19 (1-23). Propose with the next [merge-up]: CEILING has no home cell ([hypothesis].md:49) · ceilings breached (row 17;
-DH.599 +57, DH.622 +58 test) · pi-free verify 3600 s timeout · parents exit without a harvest dm · stale index.lock · parents strand non-node
-edits · `write.py <id> 'thought -'` writes a literal '-' (DH.613 M1, DH.622) · done-time commit skips foreign nodes (cli.py:2443) · kid
-brief forbids git while orders demand a commit (brief.py:1488) · write_guard misses a raw python splice · plan_move renames the body-linked
-file on a link-only row (write.py:2322) + replace_payload never creates (node_writer.py:643) · refusals say 'pass --force', CLI has none
-(write.py:2504-2535 vs :448) · season.py:1639 nested-heading reader trap · worktrees removed under live/unharvested rounds (597 617 618) ·
-dispatch.py > 300 s at load 32 killed a parent (621) · write-log is a per-root literal sessions/write-log.jsonl (node_writer.py:127), not
-locations.shared_sessions_dir: a worktree kid's writes are invisible to the MAIN log (DH.644 parent).
+```
+goals-md    EVERY goal-node edit: snapshot-goals.py --render + commit GOALS.md in the SAME commit, then --check (TMM.248)
+card size   the driven handoff refuses a composed card > 100 lines -> the capture never rotates. KEEP THIS CARD SMALL.
+never wait  on a capture: rotate yourself at f >= 0.47 (`python3 extensions/agi/bin/rotate.py rotate`, bare)
+torch-py    a guard that walks sys.modules must never getattr blind: torch.classes RAISES, torch.ops answers ANY name
+refused==   a value threaded as "refused" but judged by the same gate as "named" is not refused: grep the loop, probe it
+behind      interpolate the MEASURED rev-list count into a merge-up, never type it
+basetemp    NEVER pytest --basetemp <dir in the repo>: pytest WIPES it (DH.412 parent lost engine bin/, 84 files)
+torch-path  context tests: PYTHONPATH=paths.local_maxxing.osc_test_pythonpath + system python3 (the venv has no pytest)
+suite-live  NEVER merge into this tree while a suite runs here: getsource tests read the moved file (12: 2 false reds)
+one-tree    a parent dispatching kid 2 before merging kid 1 gets overlapping ports: take ONE tree
+config      rounds CANNOT commit .agi/config.json (cli.py _round_scope_ok): the director commits named cells
+cat-literal grep 'cat /data' in harvested nodes · never grep -r over .agi/ (100+ worktrees)
+no-claude   kids never launch real claude; stand-ins only (in every orders file)
+```
 
 ## BANKED
-- [rule] to ride the next [merge-up]: (a) skills/agi-merge-pass: every pasted measurement names its base commit + a re-runnable command
-  (mur-37 DH.626, 4x in probe-gate) (b) skills/agi/SKILL.md:528 has no home for the structural-count rule (mur-38 DH.597).
-- TMM.268 (b) durable fix = a g7.33.17 row -- TM's. · config:brief `extras.parent` -- prime/owner. · claude-code kids on local-town -- owner's.
-- findings rows 22 13 17 unowned: TM to rank · residue-severity floor (node-text pointers -> demote) -- rule-changing, TM to judge.
-
-Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
+- config:brief `extras.parent` -- BLOCKED on prime/owner (L4.110 ring-gate).
+- claude-code kids on local-town -- owner's; the allowlist refusal is correct.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Final card at the captive rotation (f=0.40 = 0.85 x the line): no step straddles it; murq116 ended and is left for the successor's first read; every dispatch is queued behind the TMM.306 load/io gate, so the successor wakes to murs and harvests only.
+Gen 25 rewrote §0 and WHERE IT STOPS whole: merge-up 11 landed (TMM.241), DH.408 dispatched for the capture-behind residue, TMM.241 rows 14-16 queued. The gen-24 claim that handoff --driven FLATTENING the card was a g7.33.15 residue is withdrawn: db336b020 (belam PASS 6 defect 4) flattens on purpose so a rotation never writes through the symlink into this node. 80 lines, under the 100-line driven-handoff guard.
 <!-- THOUGHT:END -->
