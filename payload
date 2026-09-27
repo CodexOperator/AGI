@@ -2113,6 +2113,15 @@ def _round_scope_ok(rel: str, agent_id: str, own_paths: set) -> bool:
         return False
     if p.startswith(".agi/sessions/quorum/"):
         return False
+    # The gate's OWN inputs, refused like `config.json` above
+    # (hypothesis:a-rounds-commit-never-writes-its-own-gate-inputs-and-an-
+    # unreadable-schema-refuses): `_round_committable` reads
+    # `.agi/context/schemas/[<type>].md` for `written_by` / `round_commit` /
+    # `structural`, so a round that could commit a schema could widen its own
+    # type gate. Absent `kits/` here on purpose -- no cli.py reader makes a
+    # kit a gate input, and refusing it would strand rounds' own kit work.
+    if p.startswith(".agi/context/schemas/"):
+        return False
     if p.startswith(".agi/nodes/"):
         return bool(agent_id) and agent_id in p.rsplit("/", 1)[-1]
     return True
@@ -2188,8 +2197,9 @@ def _round_committable(root: Path, nid: str) -> bool:
       3. the type's schema `round_commit` cell -- `false` refuses the type,
          `true` allows it, a map allows it and may add `never_node_ids`. This
          cell is read from a COMMITTED file a round may itself commit
-         (`_round_scope_ok` only refuses `.agi/config.json`, the quorum dir and
-         foreign node files), so unlike (1) it survives into main; an explicit
+         (`_round_scope_ok` only refuses `.agi/config.json`, `.agi/context/
+         schemas/`, the quorum dir and foreign node files), so unlike (1) it
+         survives into main; an explicit
          cell WINS over the config allowlist either way.
       4. STRUCTURAL geometry, default DENY: a type whose own schema declares
          `structural: true`, or whose node file resolves under a DOTTED
@@ -2206,7 +2216,20 @@ def _round_committable(root: Path, nid: str) -> bool:
         from schema_registry import load_schemas_from_dir
         sdir = Path(root) / "context" / "schemas"
         if sdir.is_dir():
-            sch = load_schemas_from_dir(sdir).get(ntype)
+            reg = load_schemas_from_dir(sdir)
+            # An UNREADABLE schema refuses, BY NAME. The loader records the
+            # file and the reason in `registry.errors` and carries on, so a
+            # truncated or frontmatter-less `[<type>].md` was indistinguishable
+            # from an absent one and the type gate went OPEN in silence
+            # (hypothesis:a-rounds-commit-never-writes-its-own-gate-inputs-and-
+            # an-unreadable-schema-refuses). Only THIS type's own error
+            # refuses; a broken neighbour's schema still gates nothing.
+            for path, reason in reg.errors:
+                if Path(path).stem.strip("[]") == ntype:
+                    print(f"refuse: round commit: schema {Path(path).name} "
+                          f"unreadable ({reason})", file=sys.stderr)
+                    return False
+            sch = reg.get(ntype)
             if sch is not None:
                 if sch.frontmatter.get("structural") is True:
                     return False
@@ -2223,8 +2246,10 @@ def _round_committable(root: Path, nid: str) -> bool:
                             return False
                     else:
                         return bool(cell)
-    except Exception:  # noqa: BLE001 -- an unreadable schema gates nothing
-        pass
+    except Exception as exc:  # noqa: BLE001 -- an unreadable schema REFUSES
+        print(f"refuse: round commit: schema gate failed for {nid}: "
+              f"{type(exc).__name__}: {exc}", file=sys.stderr)
+        return False
     # The node's own home: a structural directory (`nodes/.geometry/`) holds the
     # graph's furniture, not a round's work. Dotted dir = structural, so a new
     # geometry type is denied by WHERE it LIVES, with no name in this function.
