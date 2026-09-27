@@ -68,7 +68,7 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
    python producer lands (TMM.284 -- a leading grep is REFUSED by rotate._producing_refusal); (b) remove doc:unified-master-brief's Skills section + this card's
    SKILLS lines; (c) HEAD B·FORM line -> "the skill index loads at startup; a card never lists or copies skills" (TM's wording).
 3. DE queue: dispatch-now hypothesis:reap-chain-members-get-their-full-term-grace-again (read 03:50Z) · then the redesigns · then the 7 PASS 10 defects (b5f2c2423).
-4. Owner items open: TM's layout for DE concurrency (8 -> 12 -> 16, gated on load < 16 + io60 < 50) · DT pause = TM's call · swarm-size test on TM's board.
+4. AFTER 0 passes (OWNER GO 13:3xZ, verbatim on town:local-maxxing), then 5. Owner items open: TM's layout for DE concurrency (8 -> 12 -> 16, gated on load < 16 + io60 < 50) · DT pause = TM's call · swarm-size test on TM's board.
 ```
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
