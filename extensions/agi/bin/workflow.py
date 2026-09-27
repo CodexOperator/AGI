@@ -1573,7 +1573,8 @@ def _resolve_workflow_spawn_env(root, cfg: dict, run_key: str, harness: str,
             iter_n=run_key, agent_id=f"workflow:{run_key}",
             tier=_workflow_credential_tier(stages),
             limit_usd=limit_usd, ttl_minutes=ttl_minutes,
-            workspace_id=provisioning.workspace(cfg), root=root)
+            workspace_id=provisioning.workspace(cfg), root=root,
+            zero_usd=((cfg.get("harnesses") or {}).get(harness) or {}).get("zero_usd") is True)
     except provisioning.ProvisioningError as exc:
         print(f"ERR: could not mint a workflow credential: {exc}",
               file=sys.stderr)
