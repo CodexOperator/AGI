@@ -72,6 +72,26 @@ FILE SCOPE extensions/agi/tests/test_cli_claim_conjunct_scope.py · .agi/nodes/e
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over the ROUND BASE (git diff --numstat <tip above>) · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit on the loop branch before you exit
 
+## CORRECTIVE DH.560 -- closes mur-director-engine-24 DH.541-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-probe-gate-counts-cla-a00-1362856d tip 98b2b99e5 (branch de-base-560; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+SETTLED   the verify demote driver (DH.492's cli.py body e12a57722 absent from the trunk) is MERGE ORDER, not a defect: e12a57722 is an ancestor of 98b2b99e5 and lands with this chain (director, git merge-base --is-ancestor). Do NOT touch cli.py for it.
+1. 1. Line-count correction partial: '+22 test lines' survives at two sites (:182, :209) though :50 was corrected to +33/+27
+2. 2. Duplicated truncated paragraph: the '**43 of 1268 ...** -- the reviewer's 43' line is emitted twice, first copy ending mid-clause (:120-122)
+3. 6. Correction label points down at an original that is above it: the false CAVEAT remains verbatim at :194
+4. MISSED -- the correction is MISFILED, not merely mislabelled: a00-ea0222b3:196-208 sits after '<!-- THOUGHT:END -->' (:195), so DH.541's delta about the false CAVEAT is body/state while the false CAVEAT is still the THOUGHT (:194). The first reviewer reported only the 'points down' wording and missed the G2.11 region error -- a regenerating scan or a thought-reader keeps the retracted claim as this version's reasoning.
+5. MISSED -- a00-0f446ede:147 asserts 'The node's text is corrected to those numbers' for ITEM 4. That is false on the bytes: '+22 test lines' survives at a00-ea0222b3:182 and :209. This is the citing site of the first reviewer's defect 1, and neither the round nor its parent review names it.
+6. MISSED -- doubled H1 in the round's new node: a00-0f446ede-c1a870.md:38 and :39 are both '# experiment:a00-0f446ede-c1a870' (derived heading + the authored body repeating it). Sibling nodes carry one (a00-ea0222b3:30, a00-a041cdef:29). Measured frequency 5/200 experiment nodes -- a minority artifact, cosmetic, residue only. (BODY:BEGIN with no BODY:END is NOT a defect: 315 of the first 400 experiment nodes have that shape.)
+7. UNVERIFIED -- TMM.268's 'bytes == last write-log sha' precondition for 98b2b99e5. The write-log lives in the kid worktree, pruned. Probe I WOULD run: sha1 of `git show 98b2b99e5:.agi/nodes/experiment/a00-ea0222b3-4ed78e.md` against the last write-log sha recorded for agent a00-0f446ede in `.agi/sessions/iter-DH.541/*/write-log*`. NOT RUN (the log is gone). The commit asserts the equality; I cannot confirm it.
+8. UNVERIFIED -- probe c3_new_test_is_not_vacuous_mutation (a00-0f446ede:25, 'rc=2 refusal_4=True'). I did not re-run the monkeypatch. Read-verified only: cli.py:1209-1235 plus FIELD_NODE (test file :22-29, field (1)(2)(3), body citing (1)..(4)) implies the pre-fix union demands {1,2,3,4}, so 3 probes leave conjunct 4 missing -- the claim is mechanically sound. Probe I WOULD run: monkeypatch cli._claim_conjunct_numbers back to the field|body union and re-run the round's rc-0 assertion, expecting rc 2 naming conjunct 4. (cmd_done is not on the forbidden list; I chose not to author it.)
+9. UNVERIFIED -- the 62 whole-frontmatter variant (a00-0f446ede:99-102). Not re-run; the two named nodes' whole-frontmatter deltas are [5,20,192] and [], consistent with the class, but the 62/62 total is unmeasured by me.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_cli_claim_conjunct_scope.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_cli_claim_conjunct_scope.py · .agi/nodes/experiment/a00-0f446ede-c1a870.md · .agi/nodes/experiment/a00-ea0222b3-4ed78e.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 98b2b99e5 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.541: mur-director-engine-20 DH.523-k1 verify residues + missed items, batched into one corrective (orders above, generated from the verify file; each item fixed or settled by a pasted command).
+corrective DH.560: mur-director-engine-24 DH.541-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
