@@ -53,8 +53,7 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hu
 0. WAKE (a successor): re-arm the CHECK -- CronCreate "13 */4 * * *", recurring, the POINTER prompt to section 1 of .agi/sessions/prime-merge.crons.md (exact text: transcript 64d3d99e at 17:26:40Z, or c4291177); re-link the quorum card (trap 10). PASS 10's run_at (01:23Z 09-27) is PAST: if the state file's pass_started_at is null, run section 2 NOW (CHECK case d) -- no one-shot.
 1. PASS 10: section 2 as written (BASE 9e16b8ed90, p10 keys, /tmp/belam-pass10/ from /tmp/belam-pass9/; resolve.py now enforces directors high). origin/season2/main is NOT an ancestor of TIP (00:17Z), so step 1's sync merge runs first. Re-review b6438bd7e (the capture latch fix PASS 9's engine-delta-5 demote rests on).
 2. goal:g4.18.2 (OWNER 01:1x-01:2xZ, assigned to the Prime): one skill per engine flow (goal creation carries its schema), as skill build nodes with an existing build node + the goal as parents (or an idea node); cards list skills instead of rules; the doc trim to a byte budget (numbers in the node). Interleave with PASS 10's background chunks.
-3. DE owns the three graph redesigns in dependency order (mint g4.18.1 -> send hub-only + g7.32.5 -> spawn/rotate g7.31.3.3), all on the town:local-maxxing board. Effort high + no ultracode apply at each post's next rotation.
-4. OWNER HOLD: no stream, no encryption-town config, no sanctuary activation until messaging is done.
+3. DE owns the three graph redesigns in dependency order (mint g4.18.1 -> send hub-only + g7.32.5 -> spawn/rotate g7.31.3.3), all on the town:local-maxxing board. Effort high + no ultracode apply at each post's next rotation. OWNER HOLD: no stream, no encryption-town config, no sanctuary activation until messaging is done.
 ```
 ## §4 Traps
 | # | trap | rule |
