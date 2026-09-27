@@ -31,33 +31,34 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (16:4xZ 09-27 · per-chain history = git log of this node)
+## §0 STATE (17:0xZ 09-27 · per-chain history = git log of this node)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 merged 32ff79e53 · 429 chain MERGED 1ee2340c3 · DH.515 MERGED 64130e4ec
           (post br NOT suite-run; nothing handed to TM since merge-up 13)
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<run key> [NOEX=1] [EXTRA=f,g] gen2.py N murq<Q>.json tip label [R4] -> orders<N>.md · place2.sh N
           (orders on node + base cut + dispatch) · mkmur.py/runmur.sh · harvest.sh N agent tests      D=<scratchpad 4cf27ed6-...>: verd.py Q[@key]
           (verdict digest) · harvest-all.sh N.. (stale-lock clear + harvest) · murall.py --run (one mur per green harvall round) · watch.sh
-MURS      running murq33-53 = DH.577 568 558 559 560 561 563 565 566 567 569 570 571 573 574 575 576 580 581 582 564 (map: T/murq<Q>.json key)
-LIVE      parents DH.572 a00-14bec45e (belam's zero-usd follow-up: sizing guard + paid tier-0 director ladder row) · 578 579 583
+MURS      running murq36 38 39 43 45 47(re-run 4G) 51 52 54 55 56 (key map: T/murq<Q>.json) · every ENDED unit is triaged into 584-596
+LIVE      parents 572 584 585 586 587 588 (spawn_budget.py) · drainers (WAITFOR chain, arm-cell): drainq1 589 590 591 · drainq2 594 592 ·
+          drainq3 596 595 (T/drainq<N>.log) · 565's 2 small residues FOLD into 572's next corrective (572 is cut from 565's tip)
 GATE      OWNER GO (belam 16:25Z, TMM.300): step values.local_maxxing.de_live_parents.arm up ONE arm (10 -> 15) only while loadavg1 < 16 AND io
-          PSI some avg60 < 50 AND key cap x live spawns < balance; re-read at each step, step back on any fail. 16:4xZ: io 67, load 29 = HOLD.
+          PSI some avg60 < 50 AND key cap x live spawns < balance; re-read at each step, step back on any fail. 17:0xZ: load 23.5 = HOLD.
           Then the RAM worktree disk (kid-worktrees chain). Drainers hardcode -lt 10: a new drainer reads the cell + the gates
 QUEUED    goal:g4.20.1 ONE HARNESS SOURCE (owner 13:2xZ) -- after 572, never dispatch-now · skills adapter round from 573's cleared tip · 471 after 580
 DECISION  sent TM 16:1xZ: DH.577 cron policy (AGI_BOX unset -> the fail-closed gate drops mail_poll maint_gc prime_merge memory_alarm) --
           send-hub chain HELD from merge until answered
 CHAIN     tips (last)                                                                               land note
- 426 schema-gate 527 → 543 → 559 · 427 heal-refuse 528 → 544 → 558                                  NEVER 442 · NEVER 476
- probe-gate 523 → 541 → 560 (541 demote = merge order: e12a57722 rides the tip) · row 20 nudge 524 → 542 → 561
- trunk reds 538 → 545 → 562 → 582 · zero-usd 537 → 546 → 565 → 572 LIVE
- stale-lock 532 → 534 → 547 → 564 (532 lane re-mur folded into 564's mur)                             532 NEVER merges alone
- model-fence 508 → 517 → 536 → 539 → 548 → 566                                                      R4 NEVER run (row 22)
- kid-worktrees 529 → 533 → 540 → 563 (529 lane re-mur folded into 563's mur; B7 config cell maybe OUTSIDE)
- PASS 10 515 MERGED · 516 → 549 → 567 · 509 → 550 → 569 · 507 → 575 · 512 → 551 → 568 (paid-pi cost fixed: provider pi-free) · 514 → 552 → 557 → 578 LIVE
+ 426 schema-gate 527 → 543 → 559 murq36 · 427 heal-refuse 528 → 544 → 558 → 592                                  NEVER 442 · NEVER 476
+ probe-gate 523 → 541 → 560 → 589 (541 demote = merge order: e12a57722 rides the tip) · row 20 nudge 524 → 542 → 561 murq38
+ trunk reds 538 → 545 → 562 → 582 murq52 · zero-usd 537 → 546 → 565 → 572 LIVE
+ stale-lock 532 → 534 → 547 → 564 → 594 (532 lane re-mur folded into 564's mur)                             532 NEVER merges alone
+ model-fence 508 → 517 → 536 → 539 → 548 → 566 → 590                                                    R4 NEVER run (row 22)
+ kid-worktrees 529 → 533 → 540 → 563 murq39 (529 lane re-mur folded into 563's mur; B7 config cell maybe OUTSIDE)
+ PASS 10 515 MERGED · 516 → 549 → 567 → 584 (wires pi_adapter) · 509 → 550 → 569 murq43 · 507 → 575 → 596 · 512 → 551 → 568 → 585 (round-mur.json STILL paid pi: 585 item 0) · 514 → 552 → 557 → 578 murq55
          · belam-cap-reap HELD until 507 lands
- g4.18.1.x 521 → 555 → 570 · 510/519 → 553 → 576 · 520 → 574 · 497 → 579 LIVE
- thought-verb 522 → 554 → 583 LIVE · wake-facts 501 → 556 → 571 (merge BLOCKED until belam trims F13: 2009 > 2000)
- guard-piece 530 → 580 (NEVER 432 itself) · guard-inst 471 AFTER 432 · send-hub 525 → 577 (HELD: decision) · run-key 531 → 581 · skills 526 → 573
+ g4.18.1.x 521 → 555 → 570 → 587 · 510/519 → 553 → 576 → 588 · 520 → 574 murq47 · 497 → 579 murq54
+ thought-verb 522 → 554 → 583 murq56 · wake-facts 501 → 556 → 571 murq45 (merge BLOCKED until belam trims F13: 2009 > 2000)
+ guard-piece 530 → 580 → 591 (NEVER 432 itself) · guard-inst 471 AFTER 432 · send-hub 525 → 577 → 586 (HELD: decision) · run-key 531 → 581 murq51 · skills 526 → 573 → 595
 ```
 
 ## §1 PLAN
@@ -65,11 +66,11 @@ CHAIN     tips (last)                                                           
 done   this seat: card re-linked · murq15-32 + lanes 1-7 triaged -> DH.558-583 · 26 correctives dispatched · 21 harvested green (5 known
        old-base/F13 reds) + murred · stale locks cleared (558 559 564 577) · 572 dispatched on belam's decision
 next   (1) per ENDED mur: verd.py Q -> clean = merge the chain at its last tip (land notes, --no-ff, card order) · residue = gen2 + place2
-       (2) harvest 572 578 579 583 (3) clean chains merged -> suite window -> ONE [merge-up] to TM (4) gate re-read -> arm step
+       (2) harvest each ended parent: D/harvest-all.sh N.. > D/harvallN.log, then HLOG=.. Q0=<next> D/murall.py --run (3) clean chains merged -> suite window -> ONE [merge-up] to TM (4) gate re-read -> arm step
 ```
 
 ## 🔴 WHERE IT STOPS
-21 murs (murq33-53) + 4 parents running; nothing merged this seat yet; cron-policy decision out to TM.
+11 murs + 6 parents running, 7 correctives queued; nothing merged this seat yet; cron-policy decision out to TM.
 ```
 FIRST   spawn_budget.py status ; systemctl --user list-units 'agi-director-engine-*' --all ; python3 D/verd.py <Q> per ended murq
 THEN    clean -> git merge --no-ff <loop branch> (card order) · residue -> MURK=.. T/gen2.py + T/place2.sh (a drainer when slots are full)
@@ -81,7 +82,7 @@ out at 3600 s) · a running script edited with sed -i keeps its OLD text · the 
 gen.py (old) reads only run -23 and drops workflow/provisioning from scope -> gen2.py · a node-only diff -> pass code files via EXTRA ·
 parents end WITHOUT a harvest dm: reconcile by spawn_budget + the parent worktree's done commit · a stale .git/worktrees/<a>/index.lock
 (15:46 box event) silently refuses every kid commit: /proc fd+cwd scan, then rm · place2's node commit can lose a race to a card commit
-(561's orders landed late): git status after each placement batch · harvest.sh's pass/fail grep matches 'failed' inside a node slug.
+(561's orders landed late): git status after each placement batch · harvest.sh's pass/fail grep matches 'failed' inside a node slug · two drainers that each wait for 'any other' deadlock: drainqw.sh + WAITFOR.
 
 ## ENGINE FINDINGS
 Rows on goal:g7.33.19 (1-23). BOX DRIFT (OOMPolicy unset on streamer-stub-watch.service; agi.slice drop-in absent) = thought-master's.
@@ -98,5 +99,5 @@ kid commits (the stale-lock chain's own mechanism, live).
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Compact rewrite at 16:4xZ: 21 murs + 4 parents live, belam's zero-usd follow-up dispatched as DH.572, the owner's concurrency gate recorded as HOLD.
+17:0xZ: second wave triaged (584-596), 578/579/583 harvested and murred; 565 residues fold into 572.
 <!-- THOUGHT:END -->
