@@ -241,3 +241,51 @@ def test_zero_usd_lane_refuses_a_dead_runtime_key_with_provisioning_absent(
     err = capsys.readouterr().err
     assert code == 1 and mints == [], (code, mints, err)
     assert "is present but NOT USABLE" in err, err
+
+
+# --- hypothesis:a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-
+# and-cap-guards · ITEM 1 SIZING GUARD -------------------------------------
+# The cap BOUNDS a leak, it never refuses one (a paid model is served through
+# the same key), so the sized leak is cap x spawn.max_live and it must stay
+# under the live account balance. Fixtures only: balance read is stubbed, no
+# network and no mint.
+
+def _sized(tmp_path, cap, max_live, remaining):
+    root = tmp_path / ".agi"
+    root.mkdir(exist_ok=True)
+    (root / "config.json").write_text(json.dumps(
+        {"provisioning": {"zero_usd_key_limit_usd": cap},
+         "spawn": {"max_live": max_live}}))
+    return tmp_path
+
+
+def test_sizing_admits_when_cap_times_live_sits_under_the_balance(tmp_path,
+                                                                 monkeypatch):
+    root = _sized(tmp_path, 0.01, 30, 0.606)   # 0.30 < 0.606 -- today's box
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda r=None: (10.0, 9.394, 0.606))
+    assert provisioning.zero_usd_sizing_ok(root) == (True, None)
+
+
+def test_sizing_refuses_by_name_when_the_product_reaches_the_balance(tmp_path,
+                                                                    monkeypatch):
+    root = _sized(tmp_path, 0.01, 100, 0.5)   # 1.00 >= 0.50 -- a leak
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda r=None: (10.0, 9.5, 0.5))
+    ok, why = provisioning.zero_usd_sizing_ok(root)
+    assert not ok
+    for number in ("0.0100", "100", "0.5000", "1.0000"):
+        assert number in why
+
+
+def test_sizing_refuses_the_zero_usd_mint_itself(tmp_path, monkeypatch):
+    root = _sized(tmp_path, 0.01, 100, 0.5)
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda r=None: (10.0, 9.5, 0.5))
+    monkeypatch.setattr(provisioning, "_read_provisioning_key", lambda r=None: "pk")
+    monkeypatch.setattr(provisioning, "_mutation_guard", lambda op: None)
+    monkeypatch.setattr(provisioning, "_call",
+                        lambda *a, **k: pytest.fail("no call may leave the guard"))
+    with pytest.raises(provisioning.ProvisioningError) as err:
+        provisioning.mint(iter_n=1, agent_id="a00-test", root=root, zero_usd=True)
+    assert "sizing" in str(err.value)

@@ -66,6 +66,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import envfile  # noqa: E402
+import spawn_budget  # noqa: E402
 
 #: OpenRouter's key-management endpoint.
 API_BASE = "https://openrouter.ai/api/v1/keys"
@@ -197,18 +198,46 @@ def credit_balance(root: Path | str | None = None) -> tuple[float, float, float]
     return total, used, remaining
 
 
-def _prov_cell(root, name: str, default: float) -> float:
-    """One `provisioning.<name>` dollar cell from the project config."""
+def _cfg(root) -> dict:
+    """The project config dict, or {} — never raises, never a literal path."""
     if root is None:
-        return default
+        return {}
     try:
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         import locations  # noqa: E402
         graph = locations.find_project_root(Path(root).resolve()) or Path(root)
-        cfg = locations.load_config(graph)
-        return float((cfg.get("provisioning") or {}).get(name, default))
-    except Exception:  # noqa: BLE001 -- an unreadable config keeps the default
+        return locations.load_config(graph)
+    except Exception:  # noqa: BLE001 -- an unreadable config reads as empty
+        return {}
+
+
+def _prov_cell(root, name: str, default: float) -> float:
+    """One `provisioning.<name>` dollar cell from the project config."""
+    try:
+        return float((_cfg(root).get("provisioning") or {}).get(name, default))
+    except Exception:  # noqa: BLE001 -- an unreadable value keeps the default
         return default
+
+
+def zero_usd_sizing_ok(root: Path | str | None = None,
+                       cap: float | None = None) -> tuple[bool, str | None]:
+    """(ok, reason) — the sizing invariant: cap x spawn.max_live < balance.
+
+    A zero-USD cap BOUNDS a leak, it never refuses one (a paid model is served
+    through the same key), so the sized leak is `cap x live spawns`.
+    """
+    cap = zero_usd_key_limit(root) if cap is None else cap
+    bal = credit_balance(root)
+    if bal is None:
+        return True, None  # no balance to compare against: today's behaviour
+    live = spawn_budget.max_live(_cfg(root))
+    product = cap * live
+    if product >= bal[2]:
+        return False, (
+            f"zero-USD sizing: key cap ${cap:.4f} x spawn.max_live {live} = "
+            f"${product:.4f} >= account balance ${bal[2]:.4f} — a paid model "
+            f"through these keys drains the account")
+    return True, None
 
 
 def zero_usd_key_limit(root: Path | str | None = None) -> float:
@@ -903,6 +932,10 @@ def mint(*, iter_n: int | str, agent_id: str, tier: str = "kid",
     if not ok:
         raise ProvisioningError(
             f"mint refused for {name}: {reason}")
+    if zero_usd:
+        ok, reason = zero_usd_sizing_ok(root, limit_usd)
+        if not ok:
+            raise ProvisioningError(f"mint refused for {name}: {reason}")
 
     # goal:g1.11 / 2026-09-03 — `workspace_id` is honoured on create, asserted
     # against the live API before this line was written (201, and the returned
