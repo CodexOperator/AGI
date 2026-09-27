@@ -640,7 +640,8 @@ def _node_declared_deliverables(root, node_file) -> list:
     return []
 
 
-def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
+def _parent_harvest_body(root, manifest, iter_n, agent_id, row,
+                         commit_failed: str = "") -> str:
     """hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-
     per-round, clause 2 -- the ONE seat dm a parent sends at harvest. Counts
     and node ids derive from the agent records of kids whose `spawned_by_agent`
@@ -672,6 +673,10 @@ def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
     tip = _branch_tip(root, branch)
     notes = _kid_budget_notes(root, kids)
     tail = (" " + " ".join(notes)) if notes else ""
+    # hypothesis:a-stale-index-lock-is-cleared-or-named-...-never-silent: a
+    # round commit that failed is NAMED in the one harvest dm, never silent.
+    if commit_failed:
+        tail += f" commit FAILED: {commit_failed}"
     return (f"{_completion_line(iter_n, agent_id, None, 'harvest')} "
             f"accepted={accepted} demoted={demoted} failed={failed} "
             f"kids=[{', '.join(node_ids)}] "
@@ -940,7 +945,7 @@ def _write_kid_report(holders: list[Path], agent_id: str, line: str) -> None:
 
 
 def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict,
-                              record_path=None):
+                              record_path=None, commit_failed: str = ""):
     """hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- the round's
     ONE completion dm, sent with NO flag: the dispatcher was stamped into the
     manifest at spawn (`dispatched_by`), and a round that finishes alarms
@@ -1037,7 +1042,7 @@ def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict,
             import send as _send
             _send.send(root, dispatcher,
                        _parent_harvest_body(root, manifest, iter_n,
-                                            agent_id, row),
+                                            agent_id, row, commit_failed),
                        agent_id)
             return
 
@@ -1751,19 +1756,26 @@ def cmd_done(args: argparse.Namespace) -> int:
     # action, so it owns the worktree commit too. Commits the linked worktree
     # this parent runs in, if it holds uncommitted node writes; a no-op in
     # main (the loop owns main) and outside git. Never fatal.
-    _auto_commit_worktree(root, args.agent_id, args.node_id, args.owns, verdict,
-                          _round_named_node_ids(rec, args.parent),
-                          refused=[args.parent] if args.parent else None)
+    _commit_out = _auto_commit_worktree(root, args.agent_id, args.node_id,
+                                        args.owns, verdict,
+                                        _round_named_node_ids(rec, args.parent),
+                                        refused=[args.parent] if args.parent else None)
+    commit_fail = _commit_out if isinstance(_commit_out, str) else None
 
     # hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- a round that
     # finishes alarms the seat that dispatched it: exactly ONE dm, sent with
     # no flag, right after the done: commit. Never fatal to the done path.
     _alarm_rc = _alarm_dispatcher_on_done(root, args.iter_n, args.agent_id,
-                                          args.node_id, verdict, ap)
+                                          args.node_id, verdict, ap,
+                                          commit_failed=commit_fail or "")
 
     print(f"agent {args.agent_id} status=done verdict={verdict}")
     # SM.67 C2: a silent dm (no holder -> alarm returned 1) surfaces as the
     # exit code AFTER the verdict is recorded; a clean round exits 0.
+    if commit_fail:
+        # the round commit FAILED: the seat must never read this as landed
+        print(f"ERR: round commit FAILED: {commit_fail}", file=sys.stderr)
+        return 3
     return _alarm_rc if _alarm_rc else 0
 
 
@@ -2357,6 +2369,40 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
     return out
 
 
+def _clear_stale_index_lock(root: Path, checkout: Path) -> str | None:
+    """hypothesis:a-stale-index-lock-is-cleared-or-named-...-never-silent --
+    the pre-commit gate: a STALE `.git/index.lock` (older than the cell
+    `values.core.stale_index_lock_s`, no live git holder in this checkout) is
+    removed with ONE named line; a FRESH or HELD one is never touched and the
+    commit refuses BY NAME. Returns the refusal reason, or None when clear."""
+    try:
+        cfg = json.loads((Path(root) / "config.json").read_text(encoding="utf-8"))
+        cell = ((cfg.get("values") or {}).get("core") or {}).get("stale_index_lock_s")
+        stale_s = float(cell) if cell else 900.0
+        rel = subprocess.run(["git", "-C", str(checkout), "rev-parse",
+                              "--git-path", "index.lock"],
+                             capture_output=True, text=True).stdout.strip()
+        # git resolves `--git-path` against the PROCESS cwd, not -C: rebase it.
+        lock = Path(rel) if rel else None
+        if lock is not None and not lock.is_absolute():
+            lock = checkout / lock
+        if lock is None or not lock.is_file():
+            return None
+        age = time.time() - lock.stat().st_mtime
+        held = subprocess.run(["pgrep", "-f", f"git.*{checkout}"],
+                              capture_output=True).returncode == 0
+        if age < stale_s or held:
+            return (f"index.lock {lock} age={int(age)}s "
+                    f"stale_after={int(stale_s)}s held={'yes' if held else 'no'}"
+                    " -- NOT removed")
+        lock.unlink()
+        print(f"cleared stale index.lock {lock}: age={int(age)}s > "
+              f"{int(stale_s)}s, no git holder")
+        return None
+    except (OSError, ValueError, AttributeError, subprocess.SubprocessError) as exc:
+        return f"index.lock check failed: {exc}"
+
+
 def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
                          owns: list | None, verdict: str,
                          named: list | None = None,
@@ -2380,7 +2426,9 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
     DIFFERENT repo than the project's common-dir, i.e.
     `locations.git_common_root(root)` != this checkout's own toplevel.
 
-    Returns the committed checkout root on success, None otherwise. A commit
+    Returns the committed checkout root on success, None otherwise, and the
+    FAILURE REASON as a string when the commit was refused or failed, so
+    `cmd_done` can exit non-zero and the harvest dm can name it. A commit
     failure prints a loud named ERR to stderr but NEVER discards the verdict
     already recorded — the same principle `cmd_done` applies a few lines above
     when the schema-fill step fails: the kid's work is on disk and is worth
@@ -2483,14 +2531,20 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
                 subject_verdict = stored
     subject = f"{agent_id} done: {ref} verdict={subject_verdict}"
 
+    # the stale-lock gate, BEFORE the commit: a clear path commits, a fresh or
+    # held lock refuses by name and leaves the lock exactly as it found it.
+    refused_lock = _clear_stale_index_lock(root, checkout_root)
+    if refused_lock:
+        print(f"ERR: worktree commit refused in {checkout_root}: {refused_lock}",
+              file=sys.stderr)
+        return refused_lock
     add = subprocess.run(["git", "-C", str(checkout_root), "add", "--",
                           *in_scope],
                          capture_output=True, text=True)
     if add.returncode != 0:
-        print(f"ERR: worktree commit add failed in {checkout_root}: "
-              f"{add.stderr.strip() or '(no stderr from git)'}",
-              file=sys.stderr)
-        return None
+        reason = (f"add failed: {add.stderr.strip() or '(no stderr from git)'}")
+        print(f"ERR: worktree commit {reason} in {checkout_root}", file=sys.stderr)
+        return reason
 
     commit_env = dict(os.environ)
     # Item (5): dispatch exports AGI_PROJECT_ROOT as the GRAPH dir (<wt>/.agi),
@@ -2511,10 +2565,10 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
          "commit", "-qm", subject],
         capture_output=True, text=True, env=commit_env)
     if commit.returncode != 0:
-        print(f"ERR: worktree commit failed in {checkout_root}: "
-              f"{commit.stderr.strip() or '(no stderr from git)'}",
-              file=sys.stderr)
-        return None
+        reason = (f"commit failed: "
+                  f"{commit.stderr.strip() or '(no stderr from git)'}")
+        print(f"ERR: worktree {reason} in {checkout_root}", file=sys.stderr)
+        return reason
 
     print(f"committed worktree {checkout_root}: {subject}")
     return checkout_root
