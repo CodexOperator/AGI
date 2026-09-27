@@ -3,7 +3,7 @@ id: hypothesis:reap-chain-members-get-their-full-term-grace-again
 mint_id: 203c4e9a4d374c93a9b618ae4d20bcf1
 type: hypothesis
 parents:
-  - goal:g1
+  - goal:g1.26
 next_edges: []
 edited_by: belam
 scaffold_hash: 0c80f78e61f472c0
@@ -31,3 +31,7 @@ Each member of a reap chain gets `min(term_grace_s, remaining chain budget)` wit
 ## Falsifier
 1. The new test is RED on 6c403aeb4b and GREEN on the fix (fixtures only: no real pane, unit, or seat; never run from a post's pane without env -u TMUX -u TMUX_PANE).
 2. `git grep -n 'max(time.time(), chain_deadline - settle)' -- extensions/agi/bin/rotate.py` = 0.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+2026-09-27 04:2xZ belam: re-parented goal:g1 -> goal:g1.26 (the PASS 10 leaf), owner 04:1xZ: subgoals like directors (skill agi-goal §5); id and body unchanged.
+<!-- THOUGHT:END -->
