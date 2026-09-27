@@ -32,6 +32,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 
 ## §0 STATE (22:4xZ 09-27 · this seat woke 22:31Z · per-chain history = git log of this node)
 ```
+SYNC      trunk merged 92c114d5f (3 conflicts, see commit) + GOALS.md re-render f99c68394
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: 429 chain 1ee2340c3 · DH.515 64130e4ec · THIS SEAT: 427 heal-refuse c2f528ed8
           (heal+cli+dispatch+zero-usd = 389 passed 0 failed) · skills eb3369efe (285 passed 0 failed) · nothing handed to TM since merge-up 13 ·
           01fc645d6 (agi-dispatch §5 sweep row) rides the SAME merge-up as the kid-worktrees chain, never without it
@@ -40,12 +41,15 @@ TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [NOEX=1] [EXTRA=f,g] gen2.py N
           D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N.. > D/harvallN.log (chain units with a while-is-active wait)
 GATE      TMM.306 (TM 21:59Z): NO parent slot refilled until load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, then ONE step at a time
           (drainqg1 enforces it); stop nothing live · first freed slot = DH.650 RAM round (repo half) · arm 10 unchanged
-MURS      running murq119 = DH.638 · ENDED+TRIAGED: 97 106 108 112 114-118 -> DH.668 661 662 666 663 664 660 665 669 · next murq 120 · next DH 670
-LIVE      parents 650 a00-7e724480 (placed 22:46Z) · 645 harvested 1300bd8c9 · 638 harvested 568f0b68d (ladder red INHERITED) · gated queue (T/drainqg<N>.log, chained): qg1 [650 placed] 667 647 648 649 (T/drainqgf.sh: N:F = fresh round via T/placef.sh + T/h<N>.txt) ·
+MURS      running murq119 = DH.638 · ENDED+TRIAGED: 97 106 108 112 114-118 -> DH.668 661 662 666 663 664 660 665 669 · next murq 120 · next DH 675
+LIVE      parents 650 a00-7e724480 (placed 22:46Z) · 645 harvested 1300bd8c9 · 638 harvested 568f0b68d (ladder red INHERITED) · gated queue (T/drainqg<N>.log, chained): qg1 [650 667 placed] 647 648 649 (T/drainqgf.sh: N:F = fresh round via T/placef.sh + T/h<N>.txt) ·
           qg2 651 652 653 · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660 661 662 663 664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 -- io avg60 ~61 > 50 · 640 assembled 1bf1dbf6c
 DEMOTED   (not correctives) 660/661/663 'checked CLEAR / not a defect' verify notes · 662: kid ran git diff --numstat (process note) · 665: V1 done-gate + V7 write-log = findings rows already, UNVERIFIED worktree-gone probe · 668: +76 test-line breach = row, timing note
 LOGS      belam [decision] 22:2xZ (owner): logs + sequential scratch -> the new flash mount, TM owns the move; DE owns the
           log-path cells -> DH.667 hypothesis:box-logs-dir-resolves-from-one-config-cell (g6.49), cell VALUE unchanged by the round
+G1.27     belam [decision] 23:0xZ, QUEUED not dispatch-now, AFTER the zero-usd follow-ups: briefs written b5ef95e6c ->
+          DH.670 pass11 batch (ROW 3 first) · 671 zero-usd scope · 672 banner · 673 import route · 674 e2e tests (last) -- T/h67N.txt set,
+          queue them as N:F in ONE qg unit right after murq119 decides the zero-usd follow-up (that goes first)
 DECISION  out to TM: DH.577 cron policy (send-hub chain HELD from merge) · DE.1 22:0xZ: who mounts the tmpfs (off-repo) · wake-facts MAJOR
 CHAIN     last round (→ = corrective, mN = murq N running)                                           land note
  schema-gate 527 → 543 → 559 → 597 → 644 → 665 q · heal-refuse 528 → 544 → 558 → 592 MERGED c2f528ed8     NEVER 442 · NEVER 476
@@ -72,7 +76,7 @@ next   (1) per ENDED mur: D/verd.py Q -> CLEAN (after demotes) = git merge --no-
 ## 🔴 WHERE IT STOPS
 All ended murs triaged: correctives 660-666 668 669 queued (qg8-qg12); DH.667 (logs.dir cell, owner via belam) queued 2nd in qg1 after 650.
 ```
-FIRST   T/drainqg<N>.log placements (qg1..qg12 chained, io gate closed) ; harvest each placed parent when it ends (D/harvest-all.sh N)
+FIRST   D/verd.py 119 (DH.638 zero-usd) -> its follow-up (if any) + the g1.27 block 670-674 as ONE qg unit (N:F, drainqgf.sh) ; placements in T/drainqg<N>.log
 THEN    clean -> git merge --no-ff <tip> -F <msgfile> · residue -> MURK=.. T/gen2.py, trim non-defects, queue on T/drainqg.sh
 ```
 
