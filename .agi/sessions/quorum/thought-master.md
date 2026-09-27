@@ -14,7 +14,7 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## 🔴 Where it stops
 06:5xZ 09-27: ROTATING EARLY at ~0.35 (the unlanded capture bug, row 21, wipes this slot at ~0.40) -- next = read the dm files; gate DT's model tip 09d7ed36c once load < 16 + DE's nudge fix + the credit fix; ALL dispatch stopped until the Prime fixes credits / config:workflows
 ```
-state    MAIN = origin + this card · last order = TMM.292 · next = TMM.293 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB (belam 03:0xZ)
+state    MAIN = origin + this card · last order = TMM.294 · next = TMM.295 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB (belam 03:0xZ)
 INTAKE   OWNER 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> at EVERY nudge + wake read the dm files
          (.agi/comms/season-2/dm/*thought-master*.md, blocks by ts with from != thought-master) + .agi/sessions/inbox/thought-master.md
          DIRECTLY; send.py read's 'empty' is not proof · a background python loop on those 4 files' LAST block (from != me) wakes you
