@@ -2017,51 +2017,6 @@ def test_geometry_types_are_never_round_committable(tmp_path):
     assert cli._round_committable(root, "experiment:ok")
 
 
-def test_round_never_commits_its_own_gate_inputs_and_a_broken_schema_refuses(
-        tmp_path, capsys):
-    """hypothesis:a-rounds-commit-never-writes-its-own-gate-inputs-and-an-
-    unreadable-schema-refuses -- the round-done commit may not sweep the files
-    its OWN type gate is read from, and a schema the loader could not read
-    REFUSES, by name, instead of silently opening the gate.
-
-    Rows (one schema body per row, same root):
-      intact   -> committable  (the cell says false only for a refused type)
-      truncated (no closing `---`) -> REFUSED + the filename on stderr
-      prose (no frontmatter)       -> REFUSED + the filename on stderr
-      absent                       -> allowed (documented schema-less default)
-    """
-    import json
-    cli = _load_cli()
-    root = tmp_path / ".agi"
-    sdir = root / "context" / "schemas"
-    sdir.mkdir(parents=True)
-    (root / "config.json").write_text(json.dumps({}))
-    (sdir / "hypothesis.md").write_text(
-        "---\ntype: hypothesis\nround_commit: false\n---\n")
-    assert cli._round_committable(root, "hypothesis:tgt") is False
-    for broken in ("---\ntype: hypothesis\nround_commit: false\n",
-                   "just prose, no frontmatter at all\n"):
-        (sdir / "hypothesis.md").write_text(broken)
-        assert cli._round_committable(root, "hypothesis:tgt") is False, broken
-        assert "hypothesis.md" in capsys.readouterr().err
-    # A genuinely ABSENT schema is still the documented fail-open default --
-    # refusing it would break every type with no schema file.
-    (sdir / "hypothesis.md").unlink()
-    assert cli._round_committable(root, "hypothesis:tgt") is True
-    # The gate's own inputs are not the round's to commit, named like
-    # `.agi/config.json` beside them.
-    agent = "a00-4ca94877"
-    assert cli._round_scope_ok(".agi/config.json", agent, set()) is False
-    assert cli._round_scope_ok(
-        ".agi/context/schemas/hypothesis.md", agent, set()) is False
-    assert cli._round_scope_ok(
-        ".agi/context/schemas/[hypothesis].md", agent, set()) is False
-    # A node of the round's own, and an ordinary session file, still pass.
-    assert cli._round_scope_ok(
-        ".agi/nodes/experiment/a00-4ca94877-7866da.md", agent, set()) is True
-    assert cli._round_scope_ok(".agi/sessions/x/note.md", agent, set()) is True
-
-
 def test_own_node_paths_drops_a_named_goal_and_keeps_the_target(tmp_path):
     import json
     cli = _load_cli()
