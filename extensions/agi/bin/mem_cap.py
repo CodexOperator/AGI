@@ -131,15 +131,16 @@ def _cache_names(cfg: "dict | None") -> "tuple[str, str] | None":
     return d, f
 
 
-def _probe_cache_path(cfg: "dict | None" = None) -> "pathlib.Path | None":
-    """Where the cross-process probe verdict lives. `AGI_MEMCAP_CACHE` (an
-    explicit file path, for tests) wins; else a private dir under the
-    per-user runtime dir (tmpfs, cleared on boot); else the platform temp
-    dir -- `tempfile.gettempdir()` ($TMPDIR, else the box's `/tmp`), NOT a
-    `/tmp` literal: the same base every other engine temp path resolves
-    through, so the box's own answer wins and this file spells no root.
-    None means "no cache is writable" -- the probe then runs per process, the
-    old behaviour, rather than failing."""
+def _cache_path_pure(cfg: "dict | None" = None) -> "pathlib.Path | None":
+    """WHERE the cross-process probe verdict lives, and nothing else -- no
+    mkdir, no chmod, no lstat, so a read-only caller resolves the same path
+    this module writes without touching the box.  `_probe_cache_path` is this
+    plus the private-dir creation, so ONE place does the arithmetic.
+    `AGI_MEMCAP_CACHE` (an explicit file path, for tests) wins; else the
+    per-user runtime dir (tmpfs, cleared on boot); else `tempfile.gettempdir()`
+    ($TMPDIR, else the box's `/tmp`), NOT a `/tmp` literal: the same base every
+    other engine temp path resolves through, so the box's own answer wins and
+    this file spells no root."""
     env = os.environ.get("AGI_MEMCAP_CACHE")
     if env:
         return pathlib.Path(env)
@@ -148,8 +149,20 @@ def _probe_cache_path(cfg: "dict | None" = None) -> "pathlib.Path | None":
         return None
     run = os.environ.get("XDG_RUNTIME_DIR")
     base = pathlib.Path(run) if run else pathlib.Path(tempfile.gettempdir())
-    d = _private_dir(base / names[0])
-    return None if d is None else d / names[1]
+    return base / names[0] / names[1]
+
+
+def _probe_cache_path(cfg: "dict | None" = None) -> "pathlib.Path | None":
+    """The WRITER's path: the pure resolution above, then the dir WE own made
+    private.  None means "no cache is writable" -- the probe then runs per
+    process, the old behaviour, rather than failing."""
+    if os.environ.get("AGI_MEMCAP_CACHE"):
+        return _cache_path_pure(cfg)     # the caller named the file; its dir is its own
+    path = _cache_path_pure(cfg)
+    if path is None:
+        return None
+    d = _private_dir(path.parent)
+    return None if d is None else path
 
 
 def _trusted_cache_file(path: pathlib.Path) -> "pathlib.Path | None":
