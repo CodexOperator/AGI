@@ -2304,13 +2304,18 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
             _old_ref = ""
         # links.py reads `link_ref` FIRST (links.py:126-142); a
         # `create --payload` row carries `link_ref` and no `payload_ref`
-        # (write.py:2950). The new ref is written to BOTH fields on that
+        # (write.py:3059). The new ref is written to BOTH fields on that
         # shape -- and on EVERY later repoint too: the old rule keyed on
         # `payload_ref` being ABSENT, so the SECOND `set payload_ref` of a
         # renamed row moved the file and left `link_ref` on the first name
-        # (`broken_links` 1, measured P1).
-        if _link_ref(root, edit.node_id):
-            set_fm[links.LINK_FIELD] = str(set_fm.get("payload_ref", _old_ref))
+        # (`broken_links` 1, measured P1). The mirror fires only when this
+        # write actually AIMS at the ref: a write naming only `location`
+        # used to write the `_old_ref` default back over `link_ref`, and
+        # `_old_ref` is the `payload_ref` value first -- so a row carrying
+        # BOTH fields had its body link's target silently overwritten
+        # (measured DH.619 probe P-B).
+        if "payload_ref" in set_fm and _link_ref(root, edit.node_id):
+            set_fm[links.LINK_FIELD] = str(set_fm["payload_ref"])
         if _old_ref:
             try:
                 _plan = node_writer.plan_move(
@@ -2362,7 +2367,14 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         # name, the write raised FileNotFoundError, and the caller's bytes
         # were written NOWHERE (measured P2). One intention, one destination:
         # aim at the EFFECTIVE pair, the one the move just created.
-        if _after is not None and _plan is not None and _plan.src is not None:
+        # `_after is not None` ALONE: the effective pair is the right
+        # destination whether or not there were bytes here to move. The
+        # `_plan.src is not None` conjunct was False exactly when the
+        # declared file is absent from this checkout, and then the payload
+        # verb aimed at the OLD ref and raised FileNotFoundError with the
+        # row already repointed and the caller's bytes written NOWHERE
+        # (measured DH.619 probe P-A', re-measured by a00-0b87822c).
+        if _after is not None:
             payload_ref, location = _after
         # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes re-log
         # is still a sanction. Hand the owning node's mint_id to

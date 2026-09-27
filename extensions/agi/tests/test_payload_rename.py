@@ -298,6 +298,46 @@ def test_a_payload_verb_in_the_rename_write_lands_on_the_new_name(tmp_path):
     assert _row_ref(node) == "lib/renamed.py"
 
 
+def test_a_payload_verb_lands_on_the_new_name_when_the_old_file_is_absent(tmp_path):
+    """DH.619 P-A': the re-aim was guarded on `_plan.src`, False exactly when the
+    declared file is NOT here, so the payload verb aimed at the OLD ref and the
+    caller's bytes landed NOWHERE. The effective pair is right either way."""
+    graph, payload, node = _graph(tmp_path)
+    payload.unlink()  # absent-source shape: lib/mod.py is never created
+    (tmp_path / "lib" / "renamed.py").write_text("# already here\n")
+    edit = write.Edit(node_id="build:b1")
+    write.verb_set(edit, "payload_ref", "lib/renamed.py")
+    edit.payload_bytes = "# caller's new bytes\n"
+    res = write.submit(graph, edit, actor="kid", session="s1")
+    assert res.status != node_writer.REJECTED
+    assert (tmp_path / "lib" / "renamed.py").read_text() == "# caller's new bytes\n"
+    assert _row_ref(node) == "lib/renamed.py", "the row must resolve to it"
+    where = tmp_path / "b"
+    g2, p2, n2 = _graph(where)
+    p2.unlink()
+    edit2 = write.Edit(node_id="build:b1")
+    write.verb_set(edit2, "payload_ref", "lib/renamed.py")
+    edit2.payload_bytes = "# caller's new bytes\n"
+    with pytest.raises(FileNotFoundError) as refused:
+        write.submit(g2, edit2, actor="kid", session="s1")
+    assert "lib/renamed.py" in str(refused.value) and "lib/mod.py" not in str(refused.value)
+    assert _row_ref(n2) == "lib/renamed.py"
+
+
+def test_a_location_only_write_does_not_clobber_the_body_link(tmp_path):
+    """DH.619 P-B: the mirror fired on every write naming `payload_ref` OR
+    `location` and wrote the `_old_ref` default back over `link_ref`; on a
+    BOTH-fields row `_old_ref` is the `payload_ref` value first, so a
+    `location` move overwrote the body link's own target."""
+    graph, _payload, node = _graph(tmp_path)
+    node.write_text(node.read_text().replace(
+        "payload_ref: lib/mod.py", "payload_ref: lib/mod.py\nlink_ref: docs/notes.py"))
+    res = _submit_set(graph, "build:b1", "location", "--confirm-move vendor")
+    assert res.status != node_writer.REJECTED
+    assert "link_ref: docs/notes.py" in node.read_text()
+    assert _row_ref(node) == "lib/mod.py"
+
+
 def test_a_failed_move_rolls_the_location_back_too(tmp_path, monkeypatch):
     """P7: the rollback restored the ref under the NEW `location` the same
     write had rebound -- a row that names nothing."""
