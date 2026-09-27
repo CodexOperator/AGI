@@ -15,7 +15,7 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## 🔴 Where it stops
 19:4xZ 09-27: skills agi-memory-guard (be8a29a26) + agi-master-gate (e2cea5535) landed, card 336 -> 134 lines -- next = read the dm files; DE's residue corrective + full post-branch merge-up; DT's model tip 09d7ed36c
 ```
-state    last order = TMM.307 · next = TMM.308 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB · account 0.606 USD, NO top-up (owner)
+state    last order = TMM.308 · next = TMM.309 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB · account 0.606 USD, NO top-up (owner)
 INTAKE   OWNER 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> every wake: the dm files (*thought-master*.md, blocks
          from != me by ts) + inbox/thought-master.md DIRECTLY; send.py read 'empty' is not proof · a background watcher keyed on ts wakes you
 SPEND    RESOLVED: zero_usd lanes mint below the floor at key cap 0.01 (91ae33672, falsifier met: DH.533 0.6063 before = after) · ALWAYS
@@ -23,8 +23,8 @@ SPEND    RESOLVED: zero_usd lanes mint below the floor at key cap 0.01 (91ae3367
 DIALUP   OWNER GO via belam 16:25Z (TMM.300): DE steps up per arm (cell values.local_maxxing.de_live_parents) only while load1 < 16 AND io avg60
          < 50 AND 0.01 x live < balance (+ / free > 5G) -> 22:0xZ STEP BACK (TMM.306: load 24.6, io 86 at arm 10; no refill) -> then the RAM worktree round (hypothesis:kid-worktrees-resolve-from-one-cell-...)
 FLASH    Prime [decision] 22:38Z (OWNER): /mnt/agi-flash = logs + write-once scratch ONLY -> plan = hypothesis:logs-and-write-once-scratch-
-         live-on-the-flash-disk (goal:g1) · step 0 DONE (harvest-0927 -> flash, symlinked) · step 1 census running detached 22:43Z (10 min,
-         scratchpad census2.json) -> then step 2 one writer at a time; DE = engine log-path cells · never worktrees / test tmp / the other stick
+         live-on-the-flash-disk (goal:g1) · step 0 DONE (harvest-0927 on flash) · census: disk 139 MiB/min = ~50% worktree git/pytest (-> tmpfs,
+         the Prime's go) + ~40% DE's drain-gate loop (TMM.308: fix the writer) + logs 0.1% -> step 2 logs one at a time (tidiness) · never worktrees
 RAMDISK  DH.650 = repo half (DE); the tmpfs mount + user@ budget = the Prime's (card step 5; [decision] 22:0xZ)
 DISK     / full 17:4xZ -> 17.9G (87 stale /tmp/lograce-*, TMM.303) -> 12.2G by 20:0xZ (bursts) -> 14.6G (24 stale logcost-*, TMM.305); ~31G /tmp scratch = DE's sweep round · 45 worktrees removed on /data
          (lossless; records in .agi/sessions/harvest-0927/<wt>/)
