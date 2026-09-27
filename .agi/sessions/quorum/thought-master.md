@@ -11,105 +11,56 @@ rig         the GPU2070S class: 8 GB GPU · 16 threads (2 CCX) · 15 GB RAM · s
 pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-10 pct of the recorded baseline · NO per-round spending cap · per-key cap 1 USD KEPT (owner via the Prime 19:08Z)
 ```
 
-## Live state (20:0xZ 09-26 -- the where-it-stops block below is newer than these lines)
-```
-LANE      pi-free (0 USD) since 03:17Z 09-24 (OWNER 02:3xZ, verbatim on goal:g5) · every PAID model HELD (TMM.66) · workflow runs = --harness pi-free
-GUARD     the Prime's [decision] 04:29Z, user@ RAISED since (read 20:2xZ: high 6628 / max 7365 MiB; was 5246 / 5829) · agi.slice 4080M · oomd 40% · <= 10 live
-          spawns · memory_alarm WARN -> hold new dispatches (last: crit 19:40:02Z, CLEARED 19:44:01Z) · alerts ~/logs/memory-alarm-alerts.log
-MODEL     MODEL-LOADING ROUNDS HELD since 19:4xZ ([red] to belam) · lift = the MECHANICAL gate proved live: every model kid --no-model (DE's
-          DH.415 fence) + model_slot.py the ONLY lift for its own child (DT) + DE's pytest fan-out fence
-CAP       SET 3G (10925dba7, 20:1xZ): was 6G per spawn scope (mem_cap.wrap_argv = systemd-run --user --scope MemoryMax + SwapMax 0) > user@ high 5246 ->
-          a round's own cap never binds first (DE 19:48Z: why DH.419 hit DT, not its own scope) -> MINE to set from DH.421's measured
-          numbers (TMM.261), then ONE line to the Prime
-TOWN      TM seated 19:44:37Z (session 222db851, cgroup session-73.scope = my gate suites are NOT billed to user@) · DT gen 34 · DE gen 25
-PASS      PASS 9 ALL DONE · everything landed after 9e16b8ed90 rides in PASS 10 (belam's 20:13Z CHECK)
-DT        has TMM.259 (its jsonl, 19:44:12Z) · owes: the model_slot lift + refusal + the probe merge-up · OSC.44 SALVAGED local 14b336809
-          (TMM.257 report 19:43Z: VmHWM 2766 vs 2537 / 2714 predicted; inconclusive_lean_proved:55) -> rides its next merge-up with OSC.41
-DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): TMM.262 reached it as a REAL prompt 20:28:58Z (not eaten)
-          · merge-up 14 RETURNED 20:3xZ (TMM.262, below) · row 17 DONE d82d1757d (after the tip -> merge-up 15) · row 18 = DH.421 live (TasksMax on the same
-          per-spawn scope; reports the memory numbers read-only) · TMM.261 19:59Z: keyed lift = NO row (one uid: a key model_slot can read,
-          a kid can read; the boundary is the cgroup) + name the strip gap in row 17's THOUGHT · DH.410 CLAUDE.md x2 -> one g7.33.17 row
-```
-
 ## 🔴 Where it stops
-02:5xZ 09-27: NUDGE FIX FIRST (OWNER 02:49:02Z) -- DE dispatches g7.33.17 row 20 now (TMM.271); DT HELD + my model probe DEFERRED until it lands (TMM.272); then GATE DT's model-gate merge-up LIVE (tip db6bbf39e + its osc_band_fit re-derivation); PASS 10 running since 01:23Z
+06:5xZ 09-27: ROTATING EARLY at ~0.35 (the unlanded capture bug, row 21, wipes this slot at ~0.40) -- next = read the dm files; gate DT's model tip 09d7ed36c once load < 16 + DE's nudge fix + the credit fix; ALL dispatch stopped until the Prime fixes credits / config:workflows
 ```
-state   MAIN = origin + this card · last order = TMM.292 · next = TMM.293 · SPEND [red] 06:5xZ: account 0.95 of 192 left (~12.8 USD since 09-24); ROOT = config:workflows
-        default_harness pi + every review row pi (paid deepseek via harnesses.pi.models) -- DE 74 / DT 22 paid mur runs -> mint floor 1.00
-        (literal) refuses EVERY key = ALL dispatch stopped (DE DH.533) · the Prime owns the node fix + credits · DE/DT: stop paid murs, always
-        --harness pi-free (TMM.291/292); engine guard = DE row 22 · BOX GUARD: the Prime's backfill LANDED 91f9e1236 (22/22 rows boxed, 18 = core-town) -> DH.498
-        CLEARED after DE syncs (TMM.289; my '13 of 17' VOID: a parse miss of the council-* rows) · DH.525 = its code residues · DH.526 = parent/kid
-        skill lines (step 2) · hypothesis:skills-load-per-harness-per-tier-from-one-config-cell = step 3 (queued behind 526) · SKILL INDEX (OWNER 05:33:00Z, verbatim: "Don’t need a template change just change the load
-        template which determines which files get pulled in. Just have the template/config load in the skill index. No duplication needed.")
-        -> 464eba344 director brief's Skills section REMOVED · DE builds the emitter (TMM.284, gate-admitted python3 producer) -> the Prime adds
-        the `skills` first_turn entry (config:rotations is owner/prime-only; [rule] 05:4xZ) · this card's SKILLS block REMOVED
-        · AT DE's NEXT LANDING: goal:g7.33.19 id into the brief · the wake-facts draft node + range to belam · then this card's traps -> skills
-        · DE rotated again (-1c -> -db by 05:4xZ): row 21 had fallen off its card -> re-listed by SendMessage with TMM.284
-        · OWNER 05:48:37Z, verbatim: "Let’s do the doc for now then the code update. Make it go through cc adapter via templates or configs so
-          it can be adapted to pi harness as well and also make sure parents and kids also get appropriate skills. Those can just be parent and
-          kids also brief edits as they’re more limited in their skill needs." -> TMM.286 (DE, + SendMessage): (1) doc = DE's draft ->
-          the Prime writes config:rotations first_turn `skills` ([decision] sent) (2) parent/kid skill sets = brief edits in
-          extensions/agi/lib/agent-prompt.md (3) the emitter through the adapters' skill_prompt seam, a per-harness config cell (cc + pi)
-        · OWNER 05:53:36Z, verbatim: "Once the code is live make the pi parents and kids use it as well instead with their more limited set of
-          commands." -> TMM.287: step (3) = pi parents + kids load their tier set via the adapter cell; step (2)'s brief lines retire then
-        · DE 05:45Z: TMM.284 HELD by DE -- OWNER 05:4xZ in DE's pane asked if template edits ALONE can load the index, "will inform" me ->
-          WAIT for the owner's word; DE's answer = doc:draft-skills-first-turn (DE 40dd3bdc7: 10 write.py read-payload clauses, gate None,
-          4294 B, per-skill upkeep = what the emitter removes) · row 21 = DH.509 harvested (219 green), mur-director-engine-19
-PASS10  CLOSED 04:0xZ (belam): season2/main 2129f70bb, 30 rounds 0 RED · 8 DE defect hyps + pass10-0927-residue-batch under goal:g1 (= DE's
-        fast-track) · trunk synced ancestry-only 9e65a0faa (tree = HEAD) · box 04:0xZ load 23.8 / io PSI some60 81.7 -> gate suites WAIT for
-        load < 16 as well as the nudge fix · WAKE-FACTS: config:rotations facts = prime/owner-only (goal:g12) -> DE drafts (DH.501,
-        a00-759e6b60, rides its merge-up) -> I land it + name node + range to belam -> the Prime's ONE write.py replace -> DE's red-first test
-        lands AFTER ([decision] to belam 03:5xZ; no carve-out asked) · cd113d555 director brief: 4 g15 routings -> engine-findings leaf (OWNER 03:3xZ via DE:
-        "A lot of traps into the skill files I imagine." / "Also g15 lines belong in a new goal g15 is retired. ...") · master brief's g15 line
-        proposed to belam ([rule]) · OWED ME: this card's traps -> skills, AFTER DE's 0463850fb (dispatch/node-write/verify skill edits)
-        lands on the trunk (same files: no conflict) · swap 'under goal:g7.33' -> goal:g7.33.19 in the brief once DE lands it
-        · DE 03:4xZ: row 20 nudge = DH.490 (a RED test -> corrective after mur490) · row 21 = table line only · 8 parents live (arm 10) · SYNC 63cdd9f56 = origin/season2/main caa3db8b3 ancestry-only (tree = trunk; effort kept =
-        the owner's 01:2xZ c72b01fb5) -> DE rotates early (~0.36, row-21 risk): AFTER its rotation SendMessage the NEW DE session the owed
-        orders BY NAME: TMM.271 (row 20 nudge fix) · TMM.275 (cap cell arm 10, fast-track queue, swarm test) · TMM.277 (row 21 capture)
-        · DONE: DE rotated 03:15:40Z (post-director-engine-1c) -> the three re-sent by SendMessage 03:1xZ · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
-GO      belam 02:59Z (OWNER GO): user@ high 12618 MiB, model container stopped · DE cap = cell values.local_maxxing.de_live_parents (arm 10;
-        16 only while loadavg1 < 16 AND io PSI < 50) + fast-track queue (TMM.275, SendMessage too) · swarm test = hypothesis:swarm-size-5-10-15-
-        parents-fixes-per-hour (g5.31, abd32e9b7) · DT hold EASED to a minimal lane: <= 1 parent, model-free (TMM.276) · board live row rewritten
-OWNER   02:49:02Z in this pane, verbatim: "DT latest message seems nudges are growing more broken. Luckily the DE is on it we need it bad. If needed
-        we can pause DT work for now to give DE more breathing room to implement quicker with a higher cap given no model container and no docker loader"
-        -> TMM.271 DE: row 20 as its OWN round ahead of the queue (was riding send-is-hub-only; DE queue = g4.18.1 -> hub-only -> g7.31.3.3)
-        (nudge coalesced 'pane busy' -> SendMessage post-director-engine-fa) · TMM.272 DT: [decision] hold (no dispatch, no torch suite; the
-        osc_band_fit re-derivation by hand allowed) -- LIFT BY NAME when row 20 lands · [owner] to belam: 'higher cap' = user@ high / <= 10 live
-INTAKE  OWNER in this pane 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> at EVERY nudge and wake read the dm
-        files (.agi/comms/season-2/dm/*thought-master*.md, newest blocks by ts) + .agi/sessions/inbox/thought-master.md DIRECTLY: send.py
-        read printed 'empty' twice while DE's 01:49Z [red] + 02:16Z [rule] sat in the inbox file and DT's 21:37Z [merge-up] never nudged
-PRE     03:0xZ: DT tip 09d7ed36c (= db6bbf39e + 3ecce30e7 osc_band_fit fixture fix) vs HEAD bbc4d171d: merge-tree rc 0 · workflow.py + geometry
-        untouched · CHEAP GATE GREEN: 3 touched test files 24 passed (0 skip/xfail) · goals 380 · links 0 broken · evidence 0 · anonymize ok ·
-        diff read (model_slot fence lift = own child only; the regex refusal is belt behind DE's fence) · gate-mg1 REMOVED -> re-mint M
-        LEFT (after DE's nudge fix, TMM.272 hold): engine suite (cwd in gate) · whole .agi/context under torch · the pi-free mur · GATE+ probe
-GATE-DT tip db6bbf39e (= aae8a6d38 + db6bbf39e; carries f28493d5b): cell values.local_maxxing.model_round_memory_max = 3584M (2936 + 22 pct);
-        the PARENT dispatches its model kid --no-model --memory <cell> (--memory does not nest) -> gate = the GATE+ probe below, run YOURSELF
-        with no model round live and user@ memory.current + MemAvailable read first (the load is ~3 GB) · then the WHOLE .agi/context under
-        torch (osc pythonpath, neutral cwd) incl. the 4 osc_band_fit_a00-94580cec tests (trunk-red since f28493d5b: they read spawn.memory_max
-        as a model budget; DT points them at the new cell) · the engine suite with cwd INSIDE the gate tree · the pi-free mur · land (mid-PASS:
-        only if workflow.py is untouched) · then OSC.41's GO, one model round at a time
-PASS10  the Prime merges the trunk into season2/main since 01:23Z (<= 6 pi-free in user@) -> a gate suite's lock makes its launcher wait:
-        read belam's latest notice first · DE: TMM.268 (logged kid bytes may be director-committed, 4 conditions) · TMM.270 ([red] = no
-        hold, not a leak class; the nudge-bug row with the owner line verbatim) · goal:g7.33.18 HELD (TMM.267, the OWNER HOLD 21:1xZ)
-RETURN  mu 14 (a65a283a7) = DH.416-418 accept_with_residue x3 (mur-director-engine-2, verify_*.json read): 416 (1) guard narrower than S1
-        (2) stale BUILD-CONTRACT (3) kid-1 overclaim · 417 (4) CONFIG-MAX cli.py:2123 literal vs locations.schemas_root (5) silent exit-0
-        no-commit (6) bracketed + broken-neighbour tests (7) parent tier unbound (pre-commit:98) · 418 (8) a test reaches the LIVE tmux server
-        (send.py:2208 default session; fixture @777 absent, live max @14 = no pane hit) (9) unjudged hypothesis + stale lean reason (10) the
-        unreachable None branch · all (11) 3 hypotheses carry no verdict · rulings: cards NOT round-owned (doc:card- -> never_node_ids) ·
-        the seat wrap stays out (the Prime's) · gate-mu14 REMOVED -> the re-delivery gets a fresh M
-REGATE  = the same sequence on the new tip: merge-tree rc + --name-only · M in /dev/shm/gate-* · the ENGINE suite with cwd INSIDE the gate
-        tree · goals --check · links · evidence dry-run on <gate>/.agi · anonymize · live-data probes for any gate/heal change · the mur
-        (workflow.py run agi-merge-up-review --harness pi-free --args <rounds json>; detached) -> each residue CLOSED by name
-        + TMM.261's two asks rode? row 17's THOUGHT names the env-strip gap · ONE g7.33.17 row for DH.410's CLAUDE.md x2 (else re-list them)
-WAITING DE: the re-delivery (TMM.262's 11
-        residues + TMM.263: spawn.tasks_max 150 + the DH.419 fan-out row; + row 17 d82d1757d, DH.420, DH.421 091808547)
-GATE+   the model_slot merge-up = a FIRST LIVE RUN gate: run the probe YOURSELF with no other model round live: a --no-model kid-shaped python's
-        bare from_pretrained is REFUSED; the same script through model_slot.py loads under the VmHWM wrapper; a script with a bare
-        from_pretrained is refused by model_slot · the env-strip gap is KNOWN (TMM.261), not a red · the model round must fit the 3G
-        per-spawn scope (OSC.44 VmHWM 2766 + pi ~170) · then the whole .agi/context under torch · then OSC.41's GO (one model round at a time)
-WATCH   spawn.memory_max 2G first live run: the next dispatched round's scope memory.max = 2048 MiB (/sys/fs/cgroup/.../user@1000.service/
-        **/run-*.scope) · PASS 10 = the Prime merges the trunk from 01:23Z 09-27 (<= 6 pi-free, ~3-4 h): no gate suite live at 01:23Z
-out     python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; card write LAST; the slot = a plain first line + ONE fence block)
+state    MAIN = origin + this card · last order = TMM.292 · next = TMM.293 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB (belam 03:0xZ)
+INTAKE   OWNER 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> at EVERY nudge + wake read the dm files
+         (.agi/comms/season-2/dm/*thought-master*.md, blocks by ts with from != thought-master) + .agi/sessions/inbox/thought-master.md
+         DIRECTLY; send.py read's 'empty' is not proof · a background python loop on those 4 files' LAST block (from != me) wakes you
+SPEND    [red] 06:5xZ: account 0.95 of 192 USD left (~12.8 since 09-24) · ROOT config:workflows default_harness pi + per-type rows pi ->
+         murs on paid deepseek (DE 74 / DT 22 paid runs) · the mint floor 1.00 (a literal) refuses EVERY key = ALL dispatch stopped (DE
+         DH.533) · the Prime: the node fix + credits (the owner's call) · DE / DT: stop paid murs, ALWAYS --harness pi-free (TMM.291/292;
+         DT ack 06:44Z: none live) · DE row 22 = the engine guard (a paid harness needs an explicit ask while the lane is zero_usd)
+         · DE STOPPED 6 live paid murs (0 active, 07:0xZ) · cause #2 = the director brief §1 said --harness pi -> FIXED (pi-free); the
+         master brief:71 same line = the Prime's ([rule] sent)
+GATE-DT  tip 09d7ed36c = db6bbf39e (model_slot the ONLY fence lift + cell values.local_maxxing.model_round_memory_max 3584M) + 3ecce30e7
+         (osc_band_fit tests on a 6G FIXTURE, module unchanged) · PRE-GATE GREEN 03:0xZ: merge-tree rc 0, 24 passed, goals 380, links 0,
+         evidence 0, anonymize ok · LEFT: re-mint M on the live HEAD · engine suite (cwd INSIDE the gate tree) · whole .agi/context under
+         torch · the mur (--harness pi-free) · GATE+ live probe (no model round live; read user@ memory.current + MemAvailable first) ->
+         WAITS for load < 16 (06:0xZ 17-24, io PSI 70-80) + DE's nudge fix (row 20 = DH.490 + its corrective) + the credit fix (the mur
+         needs a key) · after landing: DT retires hypothesis:osc-band-fit-preflight (superseded) · then OSC.41's GO, one model round at a time
+DT       minimal lane: <= 1 parent, model-free (TMM.276; OWNER via belam 02:59Z, verbatim: "TM is set on pausing DT but idk for sure. He
+         could still retain minimal memory and cpu for smaller or slower experiments")
+DE       queue: row 20 nudge (DH.490) -> FAST-TRACK: PASS 10's 8 defect hyps (goal:g1) + pass10-0927-residue-batch + wake-facts (DH.501)
+         + row 21 capture (DH.509 harvested, mur-19) -> g4.18.1 -> goal:g7.32.6 (renamed from send-is-hub-only 06:1xZ) + g7.32.5 ->
+         g7.31.3.3 · cap = cell values.local_maxxing.de_live_parents (arm 10; ceiling 16 only while loadavg1 < 16 AND io PSI < 50) ·
+         SWARM TEST hypothesis:swarm-size-5-10-15-parents-fixes-per-hour (g5.31; arms 10 -> 5 -> 15) · DH.498 box guard CLEARED (the
+         Prime backfilled 22/22 rows, 91f9e1236) once DE syncs + DH.525 closes · DE re-points 2 hyps to goal:g7.32.6 at its merge-up ·
+         session post-director-engine-db (DE rotates often: after each, SendMessage the newest owed orders BY NAME; row 21 fell off once)
+SKILLS   OWNER 05:33:00Z: "Don’t need a template change just change the load template which determines which files get pulled in. Just
+         have the template/config load in the skill index. No duplication needed." · 05:48:37Z: "Let’s do the doc for now then the code
+         update. Make it go through cc adapter via templates or configs so it can be adapted to pi harness as well and also make sure
+         parents and kids also get appropriate skills. Those can just be parent and kids also brief edits as they’re more limited in their
+         skill needs." · 05:53:36Z: "Once the code is live make the pi parents and kids use it as well instead with their more limited set
+         of commands." -> done 464eba344 (the director brief's Skills section removed) · (1) DE's doc:draft-skills-first-turn
+         (40dd3bdc7) -> the Prime writes the config:rotations first_turn `skills` entry ([decision] sent) (2) DH.526: parent / kid sets in
+         extensions/agi/lib/agent-prompt.md (3) hypothesis:skills-load-per-harness-per-tier-from-one-config-cell (the adapters'
+         skill_prompt seam, a per-harness cell; pi parents + kids load their tier set; step 2's lines retire) -- TMM.284/286/287
+WAKEFACT config:rotations facts = the Prime's write (YES 04:00Z) from DE's DH.501 draft (loop
+         season2/loops/hypothesis-wake-facts-collapse-t-a00-759e6b60 @3fb4c6199) -> at DE's merge-up NAME node + range to belam · its
+         conditions: test_rotate_templates.py:534 green (or re-pinned in that merge-up) + the facts first_turn read range re-derived ·
+         2009 B vs the 2000 cap -> the Prime's F13 wording fix (1988 B, measured by DE) relayed 05:4xZ
+AT-LAND  at DE's next landing: goal:g7.33.19 into doc:unified-director-brief (now 'under goal:g7.33') · the wake-facts node + range to
+         belam · then THIS card's traps -> skills (OWNER 03:3xZ via DE: "A lot of traps into the skill files I imagine.") AFTER DE's
+         0463850fb skill edits land (the same files)
+BOARD    town:local-maxxing body lines 106 + 141 still say 'hub' -> the Prime's (body = owner / prime only); proposed text sent 06:1xZ
+SYNC     when season2/main moves: merge it into the trunk ancestry-only (tree = HEAD, verified: 63cdd9f56, 9e65a0faa) -- else rotations
+         refuse '.geometry behind'
+STREAM   brb since 02:35:51Z (my hostname slip from the memory-alarm log; the relay was down under the owner's hold) -- retract / back =
+         the Prime's, reported
+PASS     PASS 10 CLOSED 04:0xZ (season2/main 2129f70bb, 30 rounds, 0 RED)
+out      python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; the card committed first)
 ```
 
 ## Traps (post-specific, learned)
