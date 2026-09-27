@@ -22,6 +22,9 @@ SPEND    RESOLVED: zero_usd lanes mint below the floor at key cap 0.01 (91ae3367
          --harness pi-free · a lease with harness 'pi' = PAID -> stop it · residues -> DE (TMM.298): printed limit, runtime-key + --cap skip
 DIALUP   OWNER GO via belam 16:25Z (TMM.300): DE steps up per arm (cell values.local_maxxing.de_live_parents) only while load1 < 16 AND io avg60
          < 50 AND 0.01 x live < balance (+ / free > 5G) -> 22:0xZ STEP BACK (TMM.306: load 24.6, io 86 at arm 10; no refill) -> then the RAM worktree round (hypothesis:kid-worktrees-resolve-from-one-cell-...)
+FLASH    Prime [decision] 22:38Z (OWNER): /mnt/agi-flash = logs + write-once scratch ONLY -> plan = hypothesis:logs-and-write-once-scratch-
+         live-on-the-flash-disk (goal:g1) · step 0 DONE (harvest-0927 -> flash, symlinked) · step 1 census running detached 22:43Z (10 min,
+         scratchpad census2.json) -> then step 2 one writer at a time; DE = engine log-path cells · never worktrees / test tmp / the other stick
 RAMDISK  DH.650 = repo half (DE); the tmpfs mount + user@ budget = the Prime's (card step 5; [decision] 22:0xZ)
 DISK     / full 17:4xZ -> 17.9G (87 stale /tmp/lograce-*, TMM.303) -> 12.2G by 20:0xZ (bursts) -> 14.6G (24 stale logcost-*, TMM.305); ~31G /tmp scratch = DE's sweep round · 45 worktrees removed on /data
          (lossless; records in .agi/sessions/harvest-0927/<wt>/)
