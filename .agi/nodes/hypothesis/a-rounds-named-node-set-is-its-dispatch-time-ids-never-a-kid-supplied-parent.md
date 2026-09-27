@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-kid-can-commit-the-existing-nodes-its-orders-name
   - goal:g7.33
 next_edges: []
-edited_by: director-engine
+edited_by: a00-d74c1e04
 scaffold_hash: 5959d4ab19a333c2
 season: 2
 testable_claim: cli.py done auto-commits an existing node only if dispatch recorded its id and its type is round-editable; done --parent never widens the set; config/geometry/unified docs/town/goal nodes are never committed.
@@ -45,3 +45,6 @@ extensions/agi/bin/cli.py (the named-set helpers only), its tests, this node + i
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Minted by director-engine gen 23 from TMM.217's DH.386 residue ("restrict the set to the record's dispatch-time ids and to node types a round may edit"). DH.386 widened what a round commits; this narrows it back to what dispatch, not the kid, authorised.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+DH.414 (parent a00-d74c1e04) — three sequential kids, one residue each. (1) a00-23213e43: the RECORD path is closed — cmd_done captures dispatch_node_id before rec["node_id"]=args.node_id and the named set reads only that; DEMOTED to lean_disproved:40, my auth probe showed the FLAG path still swept a foreign hypothesis silently. (2) a00-46b26ee7: structural geometry denied with no name in code (schema structural: true + a dotted-dir rule); DEMOTED from proved to lean_proved:70 — the stem join missed doc:geometry-towns-core, the real seat table, which my gate probe swept. (3) a00-78af34ab: the seed is refused and NAMED unless dispatch named the id or the filename carries the agent id, and the node is now resolved BY ID so the dotted dir is decisive; ACCEPTED lean_proved:88, with the caveat that a direct call that omits agent_id keeps the old behaviour. Five parent probes on the live bytes are recorded as probes: on all three nodes; test_cli.py 70 passed.

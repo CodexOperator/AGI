@@ -9,6 +9,10 @@
 # structural: a `.agi/sessions`-prefixed relative brief re-roots on
 # `_own_sessions_dir`, an absolute path and any other relative path pass
 # through.
+# UPDATE (hypothesis:non-prime-rotate-self-renders-through-brief-render): the
+# resolved cell now reaches `spawn_window` as `card_file`, not `prompt_file`,
+# so a non-prime's successor also gets the ONE render. The RESOLUTION these
+# tests pin is unchanged -- only its seat in the argv moved.
 import argparse
 import json
 import subprocess
@@ -76,10 +80,12 @@ def test_worktree_post_brief_reroots_on_its_own_card(tmp_path, monkeypatch):
     seen["root"] = root
 
     rotate.cmd_rotate_self(_args(), root)
-    assert "prompt_file" in seen
-    assert Path(seen["prompt_file"]) == (
+    assert seen["prompt_file"] is None, (
+        "a non-prime rotation renders too now; the template brief arrives as "
+        "card_file, not as a prompt file")
+    assert Path(seen["card_file"]) == (
         rotate._own_sessions_dir(root, "old") / "quorum" / "old.md")
-    assert seen["prompt_file"] == str(
+    assert seen["card_file"] == str(
         wt / ".agi" / "sessions" / "quorum" / "old.md")
 
 
@@ -94,8 +100,8 @@ def test_main_post_brief_stays_main_rooted(tmp_path, monkeypatch):
     seen["root"] = root
 
     rotate.cmd_rotate_self(_args(), root)
-    assert "prompt_file" in seen
-    assert seen["prompt_file"] == str(
+    assert "card_file" in seen
+    assert seen["card_file"] == str(
         root / "sessions" / "quorum" / "old.md")
 
 
@@ -220,10 +226,10 @@ def test_rename_boundary_brief_resolves_on_the_old_rows_tree(
 
     _stage(root, "old", "new")
     rotate.cmd_rotate_self(_args(), root)
-    assert "prompt_file" in seen
+    assert "card_file" in seen
     boundary = rotate._own_sessions_dir(root, "old") / "quorum" / "new.md"
-    assert Path(seen["prompt_file"]) == boundary
-    assert Path(seen["prompt_file"]).exists(), seen["prompt_file"]
+    assert Path(seen["card_file"]) == boundary
+    assert Path(seen["card_file"]).exists(), seen["card_file"]
 
 
 def test_no_rename_brief_still_resolves_the_own_card(tmp_path, monkeypatch):
@@ -241,8 +247,8 @@ def test_no_rename_brief_still_resolves_the_own_card(tmp_path, monkeypatch):
     seen["root"] = root
 
     rotate.cmd_rotate_self(_args(), root)
-    assert "prompt_file" in seen
-    assert seen["prompt_file"] == str(
+    assert "card_file" in seen
+    assert seen["card_file"] == str(
         wt / ".agi" / "sessions" / "quorum" / "old.md")
 
 
@@ -261,10 +267,10 @@ def test_rename_boundary_main_resident_row_stays_main_rooted(
 
     _stage(root, "old", "new")
     rotate.cmd_rotate_self(_args(), root)
-    assert "prompt_file" in seen
-    assert seen["prompt_file"] == str(
+    assert "card_file" in seen
+    assert seen["card_file"] == str(
         root / "sessions" / "quorum" / "new.md")
-    assert Path(seen["prompt_file"]).exists()
+    assert Path(seen["card_file"]).exists()
 
 
 def test_pre_fix_brief_stays_cwd_relative(tmp_path, monkeypatch):
@@ -286,10 +292,10 @@ def test_pre_fix_brief_stays_cwd_relative(tmp_path, monkeypatch):
     seen["root"] = root
 
     rotate.cmd_rotate_self(_args(), root)
-    assert "prompt_file" in seen
-    assert seen["prompt_file"] == ".agi/sessions/quorum/old.md"
-    assert Path(seen["prompt_file"]).is_absolute() is False
-    assert (elsewhere / seen["prompt_file"]).exists() is False
+    assert "card_file" in seen
+    assert seen["card_file"] == ".agi/sessions/quorum/old.md"
+    assert Path(seen["card_file"]).is_absolute() is False
+    assert (elsewhere / seen["card_file"]).exists() is False
 
 # --- EF.25 items 2+3: the prime's successor body is the assembled render ----
 
@@ -339,7 +345,12 @@ def test_non_prime_rotate_self_still_resolves_its_template_brief(tmp_path,
     seen["root"] = root
 
     rotate.cmd_rotate_self(_args(), root)
-    assert seen["prompt_file"] == str(card)
+    assert seen["prompt_file"] is None, (
+        "the template card reaches the successor as card_file, so the "
+        "successor still gets the ONE render (this test's old docstring: "
+        "\"a parent still resolves its quorum card\" -- the resolution is "
+        "unchanged, only its SEAT in the argv is)")
+    assert seen["card_file"] == str(card)
 
 
 def test_faith_ref_error_in_render_falls_back_loudly(monkeypatch, capsys):

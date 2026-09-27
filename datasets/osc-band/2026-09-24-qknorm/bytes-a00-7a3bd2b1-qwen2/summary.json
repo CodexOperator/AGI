@@ -56,7 +56,7 @@
    "n_scales": 4,
    "bits_per_pair": 224.0,
    "emitted_bits": 224,
-   "payload_bits": 160.0,
+   "payload_bits": 160,
    "overhead_pct": 40.0,
    "narrow_class": {
     "w": 4,
@@ -84,7 +84,7 @@
    "n_scales": 4,
    "bits_per_pair": 288.0,
    "emitted_bits": 288,
-   "payload_bits": 224.0,
+   "payload_bits": 224,
    "overhead_pct": 28.5714,
    "narrow_class": {
     "w": 5,
@@ -112,7 +112,7 @@
    "n_scales": 4,
    "bits_per_pair": 304.0,
    "emitted_bits": 304,
-   "payload_bits": 240.0,
+   "payload_bits": 240,
    "overhead_pct": 26.6667,
    "narrow_class": {
     "w": 6,
@@ -140,7 +140,7 @@
    "n_scales": 4,
    "bits_per_pair": 368.0,
    "emitted_bits": 368,
-   "payload_bits": 304.0,
+   "payload_bits": 304,
    "overhead_pct": 21.0526,
    "narrow_class": {
     "w": 7,
@@ -168,7 +168,7 @@
    "n_scales": 4,
    "bits_per_pair": 432.0,
    "emitted_bits": 432,
-   "payload_bits": 368.0,
+   "payload_bits": 368,
    "overhead_pct": 17.3913,
    "narrow_class": {
     "w": 8,
@@ -196,7 +196,7 @@
    "n_scales": 4,
    "bits_per_pair": 496.0,
    "emitted_bits": 496,
-   "payload_bits": 432.0,
+   "payload_bits": 432,
    "overhead_pct": 14.8148,
    "narrow_class": {
     "w": 9,
@@ -224,7 +224,7 @@
    "n_scales": 4,
    "bits_per_pair": 576.0,
    "emitted_bits": 576,
-   "payload_bits": 512.0,
+   "payload_bits": 512,
    "overhead_pct": 12.5,
    "narrow_class": {
     "w": 10,
@@ -252,7 +252,7 @@
    "n_scales": 4,
    "bits_per_pair": 688.0,
    "emitted_bits": 688,
-   "payload_bits": 624.0,
+   "payload_bits": 624,
    "overhead_pct": 10.2564,
    "narrow_class": {
     "w": 11,
@@ -277,7 +277,7 @@
    "n_scales": 1,
    "bits_per_pair": 208.0,
    "emitted_bits": 208,
-   "payload_bits": 192.0,
+   "payload_bits": 192,
    "overhead_pct": 8.3333,
    "narrow_class": {
     "w": 3,
@@ -299,7 +299,7 @@
    "n_scales": 1,
    "bits_per_pair": 144.0,
    "emitted_bits": 144,
-   "payload_bits": 128.0,
+   "payload_bits": 128,
    "overhead_pct": 12.5,
    "narrow_class": {
     "w": 2,
@@ -324,7 +324,7 @@
    "n_scales": 4,
    "bits_per_pair": 288.0,
    "emitted_bits": 288,
-   "payload_bits": 224.0,
+   "payload_bits": 224,
    "overhead_pct": 28.5714,
    "narrow_class": {
     "w": 5,

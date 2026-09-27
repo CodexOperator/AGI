@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.14
 next_edges: []
 confidence: 0.85
-edited_by: a00-f855c944
+edited_by: director-engine
 evidence_runs:
   - experiment:a00-f855c944-js-half
 loop: goal:g7.33.14@s2
@@ -65,3 +65,7 @@ Experiment: `experiment:a00-f855c944-js-half`.
 
 ## Agent Notes
 Migrated the 9 stale agi-*.js workflow scripts (14 literal lines) onto the args.project_root seam; 0 literals left in workflows/, 37 production lines, new test_workflow_template_seam_js.py (5 tests) + 136 workflow tests green.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PASS 8 row 50: hypothesis:a00-a5f94936-a89712 (DH.366) is the round that found this node s render wrong -- 11 occurrences of the "/" + ROOT + "" concat on 8 lines across 5 .js survived this migration; fixed by director commit 34ceccce2 with a render test. verdict proved stands for the literal migration it claimed; the concat form was outside its test.
+<!-- THOUGHT:END -->

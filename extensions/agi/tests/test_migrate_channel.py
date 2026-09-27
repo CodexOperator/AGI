@@ -876,3 +876,49 @@ def test_transcript_scp_argv_is_tilde_relative_never_literal_dollar_home(
     assert str(dest).startswith(str(fixture_projects))
     assert (fixture_projects / dest.parent.name).is_dir()
     assert dest.parent.is_dir()
+
+
+def test_a_real_grant_without_both_seating_cells_cuts_no_worktree_and_spawns(
+        tmp_path, monkeypatch, capsys):
+    """The gate is the REAL resolver, not a mock. `test_receive_without_a_
+    grant_never_seats...` stubs `_migrate_seating_actor`, so it proves the
+    ORDER but not that the real grant reader refuses. Here the live
+    `[config].md` is copied into a real repo and its `actor_rows` entry keeps
+    `box` but loses `worktree` -- an INADMISSIBLE grant -- and neither
+    `_migrate_seating_actor` nor `_migrate_seat` is patched: the worktree add
+    and the spawn are the genuine subprocesses, intercepted only to be
+    recorded. Nothing may run, and the tick must still live."""
+    repo = _real_repo(tmp_path)
+    schema = repo / ".agi" / "context" / "schemas" / "[config].md"
+    text = schema.read_text(encoding="utf-8")
+    assert ", worktree]" in text, "the live grant must carry worktree to drop"
+    schema.write_text(text.replace(", worktree]", "]"), encoding="utf-8")
+    monkeypatch.setenv("AGI_BOX", "boxB")
+    live, fake = _fake_comms(tmp_path, monkeypatch)
+    _p, pub = live._mint_seat_key(tmp_path, "p", "ed25519")
+    path, rec_text = _place(fake, _request(), signer="p", root=tmp_path)
+    monkeypatch.setattr(rotate, "_migrate_row", lambda root, post: {
+        "name": "p", "role": "director", "pubkey": pub.hex()})
+    real_run = subprocess.run
+    ran = []
+
+    def fake_run(argv, **kw):
+        ran.append(list(argv))
+        return real_run(argv, **kw)
+
+    monkeypatch.setattr(rotate.subprocess, "run", fake_run)
+    writes = []
+    monkeypatch.setattr(rotate, "_write_identity_cells",
+                        lambda root, **kw: writes.append(kw) or "ok")
+    # the REAL resolver answers -- and refuses, on the real schema bytes
+    assert rotate._migrate_seating_actor(repo) == ""
+    rc = rotate.cmd_migrate_receive(_rns(), repo)
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert not [a for a in ran if "worktree" in a]        # no worktree add
+    assert not [a for a in ran if a and a[0] == "scp"]    # no fork copy
+    assert not (repo / ".agi" / "worktrees" / "post-p").exists()
+    assert writes == []                                     # no cell at all
+    assert "no actor_rows grant covers box/worktree for p" in out
+    assert path.read_text(encoding="utf-8") == rec_text    # byte-identical
+    assert _acks(fake) == []                                # nothing seated

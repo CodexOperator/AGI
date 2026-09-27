@@ -1115,6 +1115,7 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
                                  harness: str | None = None,
                                  bin_path: str | None = None,
                                  project_root: Path | None = None,
+                                 card_file: str | None = None,
                                  dispatch_py: str =
                                  "extensions/agi/bin/dispatch.py",
                                  cli_py: str =
@@ -1133,7 +1134,7 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
     try:
         body = brief.render(post=name, role=tier,
                             harness=harness or "claude-code",
-                            project_root=project_root)
+                            project_root=project_root, card_file=card_file)
     except (brief.RenderError, brief.FaithRefError) as exc:
         # NEVER silent (hypothesis:brief-py-assembles-every-first-turn-from-
         # config): a rotation that fell back to the legacy brief must say so.
@@ -1805,7 +1806,8 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                  rc_name: str | None = None,
                  successor_argv: str | None = None,
                  harness: str | None = None,
-                 cwd: str | None = None) -> tuple[int, str]:
+                 cwd: str | None = None,
+                 card_file: str | None = None) -> tuple[int, str]:
     """THE one launch path shared by `cmd_spawn` and `cmd_loop`
     (hypothesis:l3w4-seat-transport).
 
@@ -1912,6 +1914,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                 effort=effort,
                 settings=settings, debug_file=dbg, extra=extra,
                 harness=harness, bin_path=_bin, project_root=root,
+                card_file=card_file,
             )
         else:
             pf = Path(prompt_file).expanduser().resolve()
@@ -11459,6 +11462,36 @@ def _term_grace_s() -> float:
     return 15.0
 
 
+#: Reserved OUT of the ONE chain budget for the post-SIGKILL settle poll
+#: (L4.122): the TERM wait may not eat it, or a chain that exhausts the
+#: deadline -- exactly the chains the deadline exists for -- records
+#: gone_after=False on every member it did KILL.
+_SIGKILL_SETTLE_S = 1.0
+
+
+def _chain_deadline_s() -> float:
+    """`reaper.chain_deadline_s` from `.agi/config.json`; 20.0 is the RESOLVER
+    for a missing cell, not a second value. It bounds the WHOLE reap chain
+    (hypothesis:a-reap-chain-is-bounded-by-one-chain-deadline-not-per-pid-
+    grace): N TERM-ignoring members are all gone inside this ONE budget,
+    never N x `reaper.term_grace_s`. The LAST `_SIGKILL_SETTLE_S` of that
+    budget is RESERVED for the post-KILL poll, so a chain that exhausts the
+    deadline still records an honest `gone_after`. The default
+    exceeds the 15.0 term grace so a single-member chain is unchanged by it.
+    Same never-raises shape as `_term_grace_s`."""
+    try:
+        cfg_path = locations.config_path(find_project_root())
+        if cfg_path is not None:
+            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+            v = (cfg.get("reaper") or {}).get("chain_deadline_s")
+            if isinstance(v, (int, float)) and not isinstance(v, bool) \
+                    and v > 0:
+                return float(v)
+    except (OSError, json.JSONDecodeError, TypeError, AttributeError):
+        pass
+    return 20.0
+
+
 def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
                 kill_survivors: bool = True) -> dict:
     """s12 — TERM a predecessor process chain DEEPEST-FIRST, verify each gone.
@@ -11470,8 +11503,14 @@ def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
     termd, gone_after and the `ps -p` reads around it.
 
     Each pid gets up to `wait_secs` (`reaper.term_grace_s`, default 15 s) to
-    die after TERM; a survivor is SIGKILL'd
-    when `kill_survivors` (L4.118/R2: "wait up to 5 s per pid, KILL what
+    die after TERM, but the WHOLE chain is bounded by ONE deadline
+    (`reaper.chain_deadline_s`, default 20 s): a member's wait is
+    `min(now + wait_secs, chain_deadline - settle)`, so N TERM-ignoring
+    members cost one chain deadline, never N x term_grace_s. `settle` is
+    `min(_SIGKILL_SETTLE_S, half the chain budget)`: the post-SIGKILL poll
+    needs a reserve INSIDE the budget, or an exhausted chain records a KILLed
+    member as still alive. A survivor is SIGKILL'd
+    when `kill_survivors` (L4.118/R2: "wait up to the grace, KILL what
     survives").
 
     Refuses the caller's OWN pid and any pid <= 0 (like `_reap_pid`):
@@ -11482,6 +11521,11 @@ def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
     chain: list[dict] = []
     if wait_secs is None:
         wait_secs = _term_grace_s()  # reaper.term_grace_s, read at runtime
+    chain_budget = _chain_deadline_s()
+    chain_deadline = time.time() + chain_budget  # ONE budget, all pids
+    # the settle reserve is CARVED OUT of it, never added on top, and never
+    # more than half of it, so a tiny chain_deadline_s still gets a TERM wait
+    settle = min(_SIGKILL_SETTLE_S, chain_budget / 2.0)
     for pid in reversed(pids):
         pid = int(pid)
         if pid <= 0 or pid == os.getpid():
@@ -11500,7 +11544,8 @@ def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
                 os.kill(pid, signal.SIGTERM)
             except OSError:
                 pass
-            deadline = time.time() + wait_secs
+            deadline = min(time.time() + wait_secs,
+                           max(time.time(), chain_deadline - settle))
             while time.time() < deadline and _pid_alive(pid):
                 # L4.122 criterion 2 (merge-up 23): bind `wpid` BEFORE the
                 # `if`. A pid that is NOT our child (an ancestor pane bash /
@@ -11536,7 +11581,7 @@ def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
                 # briefly so the recorded gone_after reflects the eventual
                 # state, not the reaping race.
                 if not termd:
-                    deadline_t = time.time() + 1.0
+                    deadline_t = min(time.time() + settle, chain_deadline)
                     while time.time() < deadline_t and _pid_alive(pid):
                         time.sleep(0.05)
                     termd = not _pid_alive(pid)
@@ -17846,6 +17891,22 @@ def _fence_run(ln: str) -> int:
     return n if n >= 3 else 0
 
 
+STOPS_SUBJECT_FALLBACK = "(no prose outside the fences -- see the card)"
+
+
+def _stops_subject_tail(stops_text: str, limit: int = 80) -> str:
+    """The rotate-out commit subject TAIL: the first line of the stops text
+    that is NOT a fence delimiter (`_fence_run == 0`), stripped and
+    truncated to `limit` chars; `STOPS_SUBJECT_FALLBACK` (a named,
+    non-empty constant) when every line is a fence line or the text carries
+    no prose. Never a backtick run, whatever the model hands back."""
+    for ln in stops_text.splitlines():
+        s = ln.strip()
+        if s and _fence_run(s) == 0:
+            return s[:limit]
+    return STOPS_SUBJECT_FALLBACK
+
+
 def _fence_for(stops_text: str) -> str:
     """The fence string that wraps `stops_text`: a run of backticks LONGER
     than every code fence already inside it, three by default. CommonMark
@@ -17861,6 +17922,99 @@ def _fence_for(stops_text: str) -> str:
     return "`" * inner
 
 
+def _unwrap_fence_block(text: str) -> str:
+    """If `text` is ITSELF exactly one fence-wrapped block -- the first
+    non-blank line opens a fence of run n, the last non-blank line is that
+    same run and nothing else, and no line inside carries a run >= n --
+    return the CONTENT between the pair. That is the shape a card slot has
+    when the model hands the slot back as it reads it in the card (the card
+    IS the prompt), so unwrapping here keeps the slot's fence depth IDEMPOTENT
+    across N rotations instead of compounding +1 per rotation (belam 09-24:
+    commit subjects that were literally a backtick run, 95b4f0a21 / 11e170950
+    / 1c69c9e81). Anything else -- a fence as ONE part among others, an
+    unpaired opener, a lone line -- is returned UNCHANGED, so a genuine
+    inner ``` block still nests in a longer outer fence (`_fence_for`)."""
+    lines = text.split("\n")
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    if len(lines) < 2:
+        return text
+    n = _fence_run(lines[0])
+    if n < 3 or lines[-1].strip() != "`" * n:
+        return text
+    inner = lines[1:-1]
+    if any(_fence_run(ln) >= n for ln in inner):
+        return text
+    return "\n".join(inner)
+
+
+def _slot_exterior_prose(lines: list[str]) -> set[str]:
+    """The slot body's non-blank lines OUTSIDE its fence -- the prose a
+    rewrite carries back verbatim."""
+    out, i, n = [], 0, len(lines)
+    while i < n:
+        r = _fence_run(lines[i])
+        if r >= 3:
+            j = i + 1
+            while j < n and _fence_run(lines[j]) < r:
+                j += 1
+            if j >= n:
+                # an UNPAIRED run (no closer to the end) is a stray
+                # delimiter sitting in PROSE position, and it is the card's
+                # own exterior line -- treating it as an opener swallowed
+                # every line after it, so the sign-off below it stopped
+                # counting as exterior and the handback re-nested it (and
+                # the stray run with it) on EVERY rotation, +1 depth and one
+                # copied sign-off per round (probe: a00-a177f505).
+                out.append(lines[i].strip())
+                i += 1
+                continue
+            i = j + 1
+        else:
+            out.append(lines[i].strip())
+            i += 1
+    return {ln for ln in out if ln}
+
+
+def _drop_slot_exterior_prose(stops_text: str, exterior: set[str]) -> str:
+    """The card IS the prompt, so a handback of the where-it-stops slot carries
+    the slot's OWN exterior prose as well as its block, and the rewrite writes
+    that prose back from the card -- so a copy left inside the stops text is
+    re-nested inside the block every rotation (measured live: a genuine inner
+    ``` block went 4 -> 5 -> 6 over three rotations, experiment
+    a00-a066dc22-5cb6c8). Drop the runs OUTSIDE the handback's outermost fence
+    that are the card's own prose, and nothing else: a line the handback holds
+    outside the fence that the card does not, or any line inside the fence, is
+    the model's own."""
+    if not exterior:
+        return stops_text
+    lines = stops_text.split("\n")
+    runs = [i for i, ln in enumerate(lines) if _fence_run(ln) >= 3]
+    if not runs:
+        return stops_text
+    # the handback's block is its FIRST fence PAIR, not everything from the
+    # first run to the LAST one: an unpaired run below the pair (a stray
+    # delimiter in prose position) would otherwise be swallowed into `mid`
+    # and its sign-off with it, so neither was ever droppable.
+    opener = _fence_run(lines[runs[0]])
+    close = runs[0]
+    for i in runs[1:]:
+        if _fence_run(lines[i]) >= opener:
+            close = i
+            break
+    else:
+        return stops_text
+    head, mid, tail = lines[:runs[0]], lines[runs[0]:close + 1], lines[close + 1:]
+
+    def _is_ours(rs: list[str]) -> bool:
+        return all((not r.strip()) or r.strip() in exterior for r in rs)
+    if not (_is_ours(head) and _is_ours(tail)):
+        return stops_text
+    return "\n".join(mid)
+
+
 def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
     """Render the where-it-stops SLOT BLOCK -- the ```-fenced code block
     holding the stops text, plus the optional `diff requested:` line AFTER
@@ -17873,6 +18027,11 @@ def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
     fence is wrapped in a LONGER outer fence (`_fence_for`, the CommonMark
     rule) so the inner fence is content, never a delimiter (goal:g15.25
     line (3), residue (iii))."""
+    stops_text = _unwrap_fence_block(stops_text)
+    if not stops_text.strip():
+        # an empty fence pair would render a block with an EMPTY body: the
+        # slot's prose is dropped and the next subject is a bare constant.
+        stops_text = STOPS_SUBJECT_FALLBACK
     fence = _fence_for(stops_text)
     out = fence + "\n" + stops_text.rstrip("\n") + "\n" + fence
     if diff_gap:
@@ -17991,12 +18150,16 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
                 end = j
                 break
         tail = lines[end:] if end < len(lines) else []
+        stops_text = _drop_slot_exterior_prose(
+            stops_text, _slot_exterior_prose(lines[sub + 1:end]))
         block = _render_stops_block(stops_text, diff_gap)
         new_region = _stops_replace_fenced_region(lines[sub + 1:end], block)
         if new_region is None:
             new_region = block.splitlines()   # no fence: whole slot replaced
         new_body = _join_body(keep + [sub_header] + new_region + tail)
     else:
+        stops_text = _drop_slot_exterior_prose(
+            stops_text, _slot_exterior_prose(body.splitlines()))
         block = _render_stops_block(stops_text, diff_gap)
         new_region = _stops_replace_fenced_region(body.splitlines(), block)
         new_body = block if new_region is None else _join_body(new_region)
@@ -18823,24 +18986,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if guard:
         print(guard, file=sys.stderr)
         return 1
-    # (geometry guard, mechanism 3): a worktree whose own .agi/nodes/.geometry/
-    # is BEHIND the shared geometry branch would spawn its successor on a
-    # stale config:rotations / config:seats. Resolve WHICH tree the geometry
-    # comes from once, up front — the integration tree when the worktree's own
-    # is behind but the integration tree's is current; else refuse BY NAME with
-    # the behind-count and the sync command. `cfg_root` feeds seat + template
-    # resolution; every other rotate-self path keeps the worktree `root`.
-    cfg_root, geom_src = _geometry_resolution_root(root)
-    if cfg_root is None:
-        print(geom_src, file=sys.stderr)
-        return 1
     seat = args.name
-    # goal:g15.14 P1-c — the registry gate runs BEFORE the prepare/perform
-    # step. The only-behind merge `_prepare_checks(perform=)` performs is a
-    # SIDE EFFECT; on a behind worktree an unregistered `--name` would
-    # otherwise MERGE a commit before the "no seat" refusal. So the seat must
-    # exist in the registry FIRST, and an unregistered name refuses with NO
-    # merge performed. A THROWAWAY seat (hypothesis:l3-rotate-self-successor-
+    # goal:g15.14 P1-c — the registry gate runs FIRST: before the geometry
+    # resolution below, and so before the only-behind merge that resolution
+    # may now PERFORM (a SIDE EFFECT). An unregistered `--name` must reach
+    # nothing that fetches, pushes or merges; it refuses with `no seat` and
+    # no merge. A THROWAWAY seat (hypothesis:l3-rotate-self-successor-
     # override) is a rehearsal-only registration that NEVER writes seats.md:
     # it skips this registry gate and builds a default row instead (role from
     # --role, default parent; model/effort/settings resolved from the ladder
@@ -18855,6 +19006,32 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             return 1
     else:
         row = {}  # default row; never consulted against seats.md
+    # (geometry guard, mechanism 3): a worktree whose own .agi/nodes/.geometry/
+    # is BEHIND the shared geometry branch would spawn its successor on a
+    # stale config:rotations / config:seats. Resolve WHICH tree the geometry
+    # comes from once, up front — the integration tree when the worktree's own
+    # is behind but the integration tree's is current; else ONE free
+    # mechanical merge before the refusal (see below). `cfg_root` feeds seat +
+    # template resolution; every other rotate-self path keeps the worktree
+    # `root`.
+    cfg_root, geom_src = _geometry_resolution_root(root)
+    if cfg_root is None and not getattr(args, "dry_run", False):
+        # A REGISTERED seat on a behind CLEAN worktree is the COMMON case, not
+        # an error: every other seat's commits land on the geometry branch, so
+        # a seat that waited long enough to be due was almost always behind,
+        # and it refused instead of rotating. So the refusal is preceded by ONE
+        # attempt at the merge rotate-self ALREADY performs by default: the
+        # SAME `_prepare_checks(perform=True)` the captive gate runs below
+        # (fetch + merge, never rebase; only on a clean tree and only when the
+        # merge applies clean — no second implementation). Only a merge that
+        # brings the geometry to 0 behind re-resolves; a conflicting, dirty or
+        # failing merge leaves the BY-NAME refusal exactly as it was.
+        _prepare_checks(root, seat, perform=True)
+        if _geometry_behind_count(root) == 0:
+            cfg_root, geom_src = _geometry_resolution_root(root)
+    if cfg_root is None:
+        print(geom_src, file=sys.stderr)
+        return 1
 
     # re-cut (Prime XIX 07:28Z): the row is the ONE launch source -- a
     # differing flag refuses here (exit 3); equal = no-op; throwaway left alone.
@@ -18956,7 +19133,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _stops_gap = getattr(args, "ask_diff", False)
         _gap = _stops_gap if isinstance(_stops_gap, str) and _stops_gap \
             else None
-        _first = _stops_text.strip().splitlines()[0][:80]
+        _first = _stops_subject_tail(_stops_text)
         _msg = (f"{seat} rotate-out gen {_gb}->{_gb + 1}: {_first}")
         _card = _own_card_path(root, seat)
         if args.dry_run:
@@ -19458,25 +19635,26 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
               f"command(s) resolved; {mode}")
 
     # (3) spawn the successor under the SAME plain name - never a Roman numeral
-    # L4.112 (C): the template is consumed on the existing call path -- when
-    # --prompt-file is NOT given, the successor prompt is the template's
-    # brief_file with `{seat}` substituted (the director's brief is the seat's
-    # QUORUM scratchpad, .agi/sessions/quorum/{seat}.md); --prompt-file still
-    # overrides. The consume-path applies on a REAL spawn: a dry-run is a
+    # L4.112 (C): the template is consumed on the existing call path. The
+    # template's `brief_file` is the rotating post's OWN quorum card, resolved
+    # through the rename boundary (L5.11) and handed to the successor as
+    # `card_file` -- a CARD, not a prompt file -- so the successor's first turn
+    # is the ONE render (head + role template + card + harness block +
+    # trajectory) for EVERY role, prime included
+    # (hypothesis:non-prime-rotate-self-renders-through-brief-render). A prime
+    # is excluded here for a different reason than before: its cell points at a
+    # STATIC brief (extensions/agi/briefs/prime-director-successor.md), not a
+    # card, so it must not be fed as one. `--prompt-file` still overrides.
+    # The consume-path applies on a REAL spawn: a dry-run is a
     # refusal/planning check (the top print already shows brief=), and the
     # template tests are hermetic -- their brief paths are not materialised.
     # The real spawn is where the file-existence gate in spawn_window lives.
     prompt_file = args.prompt_file
+    card_file = None
     if (not args.dry_run and prompt_file is None
             and role != "prime_director"
             and tmpl is not None and tmpl.get("brief_file")):
-        # A prime seat is DELIBERATELY excluded: its body is the assembled
-        # render (head + the role template + doc:card-<post> + the town
-        # trajectory), selected by spawn_window's no-prompt-file branch, so
-        # resolving the template's static brief_file here would bypass the
-        # render AND lose the card once the [handoff-head] first_turn entry
-        # is gone (hypothesis:brief-py-assembles-every-first-turn-from-config).
-        # L5.11: resolve the template brief through the post's OWN tree, so
+        # L5.11: resolve the template card through the post's OWN tree, so
         # the successor reads the same card the boundary renames -- never a
         # CWD coincidence. At a rename boundary the card was renamed under
         # the PRE-rename row's tree (`_applied_rename["old"]`); the `{seat}`
@@ -19484,7 +19662,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # disk. `--prompt-file` still overrides (it never enters this branch)
         # and is not re-rooted.
         _brief_root_seat = (_applied_rename or {}).get("old") or seat
-        prompt_file = _resolve_brief_file(
+        card_file = _resolve_brief_file(
             root, _brief_root_seat,
             str(tmpl["brief_file"]).replace("{seat}", seat))
     if ask_diff:
@@ -19602,7 +19780,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _rc_label = _session_label(row, gen)
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
-        prompt_file=prompt_file,
+        prompt_file=prompt_file, card_file=card_file,
         model=args.model or ((row.get("model") if row else None) or None),
         effort=args.effort or ((row.get("effort") if row else None) or None),
         settings=(json.loads(args.settings) if args.settings

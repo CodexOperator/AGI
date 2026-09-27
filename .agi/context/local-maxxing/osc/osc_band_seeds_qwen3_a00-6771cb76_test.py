@@ -59,7 +59,7 @@ def test_t6_gate_survives_O():
     r = subprocess.run([sys.executable, "-O", "-c", src], capture_output=True, text=True)
     assert r.returncode != 0 and "refuse" in r.stderr, ("-O stripped the gate", r.stdout, r.stderr)
 
-def test_t7_authorisation():
+def test_t7_authorisation(monkeypatch):
     """T7: refuse a non-np64 `which`, and bare invocation, BEFORE from_pretrained."""
     for which in (None, "qwen2", ""):
         try: h.guard(which); assert False, "guard authorised %r" % (which,)
@@ -72,9 +72,9 @@ def test_t7_authorisation():
         class M:
             AutoTokenizer = type("T", (), {"from_pretrained": staticmethod(boom)})
             AutoModelForCausalLM = type("C", (), {"from_pretrained": staticmethod(boom)})
-        sys.modules["transformers"] = M
     """)
     ns = {}; exec(boom, ns)
+    monkeypatch.setitem(sys.modules, "transformers", ns["M"])  # restored after the test (TMM.250: the bare assignment leaked into later tests)
     try: h.run("qwen2", [7, 21, 99])
     except ValueError as e: assert "np64" in str(e), e
     else: assert False, "run('qwen2') reached the model"

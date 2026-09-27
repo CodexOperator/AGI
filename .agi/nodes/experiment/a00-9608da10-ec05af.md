@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.9
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: director-engine
+edited_by: a00-e6bdd18c
 evidence_runs:
   - experiment:a00-9608da10-ec05af
 line_ceiling: 15
@@ -117,3 +117,5 @@ PASS 7 residue (hypothesis:pass7-0926-residue-batch, test_brief.py:829): evidenc
 Closed the two deliverable gaps that demoted the parent claim to inconclusive_lean_proved:80. (1) Added the claim's dedicated no-git-path predicate test to test_suite_live_checkout.py (is_live_checkout(gitless)==False, is_live_checkout(LIVE)==True); 75 passed across live_checkout x2 + heal_watch, new test green. (2) Corrected parent's CLASS D reason via write.py: workflow.py comment PREDATES the landings (982257cdd / merge c67b973f8), re-pin stays as legitimate re-triage but no longer blames the landings. 0 production lines (test + node-reword only).
 
 PARENT REVIEW (a00-107fc3a7): ACCEPT. This continuation closes the two gaps that demoted kid1 (experiment:a00-25355804-78e3b9) to inconclusive_lean_proved:80. Gap 1 (the claim's required no-git-path predicate test): ADDED test_no_git_path_is_never_the_live_checkout asserting is_live_checkout(gitless)==False and is_live_checkout(LIVE)==True; I re-ran it green (3 passed with heal_watch + conftest_gate, --basetemp /tmp). Gap 2 (CLASS D node reason): the reword landed on kid1's node via write.py -- git-blame confirms the season2/main comment PREDATES the landings (present at 982257cdd, merge c67b973f8), so the node no longer falsely blames the landings; the pinned-inventory re-triage itself stays legitimate. 0 production lines this round -- test + node-reword only, as ordered. PROBES: (1) wire -- test_no_git_path is_live_checkout==False on a fresh gitless /tmp dir, LIVE==True (HOLDS). (2) auth -- in-repo basetemp still refused (base full-suite H2 guard green, exit 3 named line) (HOLDS). Verdict proved stands.
+
+PASS 9 RECORD CORRECTION (belam 17:44Z): this node's test_no_git_path_is_never_the_live_checkout is a PROPERTY test that CANNOT FAIL on the SM.80 bytes -- any resolver that never returns None already reads False on a gitless path, because git_common_root's identity fallback merely differs from the engine root. It is kept as a regression pin (and it leaks a mkdtemp dir where tmp_path would do), but the MECHANISM was undecided. The discriminating test now lives in experiment:a00-e6bdd18c-b14568: test_no_git_path_is_false_even_when_the_resolver_returns_one_root monkeypatches git_common_root to ONE value so both sides resolve equal -- SM.80's bytes read True there, the fixed predicate reads False because _enclosing_repo is None. Same claim, a test that can fail.

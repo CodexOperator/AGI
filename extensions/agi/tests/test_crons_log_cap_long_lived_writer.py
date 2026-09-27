@@ -9,6 +9,7 @@ proposal: they state what the CURRENT code does to such a writer.
 import json
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -98,12 +99,19 @@ def test_f1_rename_mode_strands_the_live_writer_on_a_BOUNDED_archive(tmp_path):
         before = sizes(d)
         time.sleep(0.4)                      # the writer keeps writing, unrotated
         after = sizes(d)
+        # Frozen across the applies, as in test_f1c (569ea9a1b): a live writer
+        # appending between the bound and the recheck is the same race at this
+        # site (TMM.241: a trunk-load red, 5/5 alone). It still HOLDS its
+        # O_APPEND fd on the archive -- the property under test.
+        os.kill(kid.pid, signal.SIGSTOP)
         # 3 further applies: the first BOUNDS the over-cap archive, the rest
         # are no-ops -- the cap now holds on the archive too.
         outs = [crons.enforce_log_caps(root, root, dry_run=False) for _ in range(3)]
         recheck = sizes(d)
     finally:
-        kid.terminate(); kid.wait(timeout=5)
+        kid.terminate()                       # pending while stopped ...
+        os.kill(kid.pid, signal.SIGCONT)      # ... fatal before it writes again
+        kid.wait(timeout=5)
     grew = {n: after[n] - before.get(n, 0) for n in after if after[n] > before.get(n, 0)}
     print("\nLOG DIR", json.dumps({"before": before, "after": after, "grew": grew,
                                    "3_more_applies": outs, "recheck": recheck,

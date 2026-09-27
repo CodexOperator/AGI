@@ -6931,12 +6931,18 @@ def test_rotate_self_missing_rotations_node_refuses_before_side_effects(
 
 def test_rotate_self_consumes_template_brief_as_successor_prompt(
         fake_ladder, tmp_path, monkeypatch, capsys):
-    """L4.112 (C), updated L5.11: when --prompt-file is NOT given, rotate-self
-    hands the template's brief_file (with `{seat}` substituted) to the
-    successor as its prompt. The director's brief is the seat's quorum
-    scratchpad, so `.agi/sessions/quorum/{seat}.md` becomes the post's OWN
-    quorum card -- resolved through `_own_sessions_dir`, never CWD. This
-    MAIN-resident seat resolves to MAIN's absolute path."""
+    """L4.112 (C), updated L5.11, updated by
+    hypothesis:non-prime-rotate-self-renders-through-brief-render: when
+    --prompt-file is NOT given, rotate-self hands the template's brief_file
+    (with `{seat}` substituted) to the successor as its CARD. The director's
+    brief_file is the seat's quorum scratchpad, so
+    `.agi/sessions/quorum/{seat}.md` is the post's OWN quorum card --
+    resolved through `_own_sessions_dir`, never CWD -- and it arrives as
+    `card_file`, so the successor's first turn is the ONE render (as the
+    prime's already was) rather than a file read. This MAIN-resident seat
+    resolves to MAIN's absolute path. SUPERSEDED: the old assertion was
+    `seen["prompt_file"] == <that path>`, i.e. the cell was the successor's
+    PROMPT."""
     tmpls = {"director": {"brief_file": ".agi/sessions/quorum/{seat}.md",
                           "steps": ["handoff", "spawn", "join"],
                           "telemetry": ["seed", "model"]}}
@@ -6946,6 +6952,7 @@ def test_rotate_self_consumes_template_brief_as_successor_prompt(
     seen = {}
     def fake_spawn(**kw):
         seen["prompt_file"] = kw.get("prompt_file")
+        seen["card_file"] = kw.get("card_file")
         with open(win, "a", encoding="utf-8") as fh:
             fh.write("adv-alive\n")
         return 0, "echo hi"
@@ -6956,7 +6963,9 @@ def test_rotate_self_consumes_template_brief_as_successor_prompt(
     args = _rotate_self_args(tmp_path, window_path=str(win))
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0
-    assert seen["prompt_file"] == str(
+    assert seen["prompt_file"] is None, (
+        "the cell is a card, so spawn_window renders for this role too")
+    assert seen["card_file"] == str(
         rotate._own_sessions_dir(tmp_path, "adv-alive")
         / "quorum" / "adv-alive.md")
 

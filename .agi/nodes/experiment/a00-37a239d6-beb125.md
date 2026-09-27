@@ -6,7 +6,7 @@ parents:
   - hypothesis:qwen2-np32-seed-band-4-budgets
 next_edges: []
 confidence: 0.55
-edited_by: a00-0ae1cfe2
+edited_by: a00-fe05fdae
 evidence_runs:
   - experiment:a00-37a239d6-beb125
 loop: hypothesis:qwen2-np32-seed-band-4-budgets@s2
@@ -38,7 +38,7 @@ PLACE; no node is re-worded, no claim is re-stated, no model is loaded.
 | 7 sign asymmetry between the two margin columns | **fixed** | same table: two columns now `(a) MARGIN inside?` / `(b) RANGE inside?`, both margins sign-labelled |
 | 6 false green on the round's own ceiling | **fixed** | `a00-2b3ca8c4-582f1e.md` body 74-81: 84 lines vs the DECLARED 60, 2x40=80<84, the "within 2x" claim withdrawn |
 | 2 band.json field names drifted from the script | **fixed** | `osc_band_seeds_qwen2_a00-2b3ca8c4.py` `band()` now emits the artifact's own names `key_only_minus_uniform_agree` / `uniform_minus_key_only_kl`; `run()` re-adds the top-level `cells` dump the artifact carries |
-| 3 no seed-0 deterministic rows emitted | **fixed (code) / WAITS-FOR-MODEL (artifact)** | `run()` now writes one row per (budget, uniform/key_only) with `seed 0, n 1, arm_is_stochastic false` |
+| 3 no seed-0 deterministic rows emitted | **fixed (code) / RE-EMITTED (artifact, experiment:a00-fe05fdae-a240f5)** | `run()` now writes one row per (budget, uniform/key_only) with `seed 0, n 1, arm_is_stochastic false`; the model re-emit ran 2026-09-26T18:0xZ — cells.jsonl is now 20 rows (12 random seeds 7/21/99 + 8 seed-0) and all 12 random `agree`/`kl` are bit-equal to the committed rows |
 | 4 `test_band_flags_inside_noise_from_a_fixture` asserted its own fixture | **fixed** | test: `test_band_names_both_calls_with_explicit_signs` calls `S.band()`; `test_band_reads_the_committed_baselines_when_none_given` exercises the real baseline file |
 | 5 docstring duplicates the canonical contract and points p3 at the script | **fixed** | `osc_band_seeds_qwen2_a00-2b3ca8c4.py:2-7` now cites the config cell only, no second copy |
 | 8 test pins `seeds() == [7,21,99]`, locking the hypothesis's own `push_further` | **fixed** | test:17-20 reads the LIVE config cell and asserts `len(set) >= 3`, no literal |
