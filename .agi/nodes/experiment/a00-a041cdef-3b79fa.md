@@ -6,11 +6,17 @@ parents:
   - hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only
 next_edges: []
 confidence: 0.9
-edited_by: a00-cfed6d3f
+edited_by: a00-ea0222b3
 evidence_runs:
   - experiment:a00-a041cdef-3b79fa
 loop: hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only@s2
 model: stealth/space-bunny-alpha
+probes:
+  - {"conjunct": 1, "name": "c1_field_wins_over_body", "class": "gate", "cmd": "node w/ field testable_claim '(1)(2)(3)' + body review citing (1)..(4); cli._claim_conjunct_numbers", "expected": "[1, 2, 3]", "observed": "[1, 2, 3] (pre-fix [1, 2, 3, 4])", "result": "pass"}
+  - {"conjunct": 2, "name": "c2_body_read_when_no_field", "class": "gate", "cmd": "node with no testable_claim field and body CLAIM (1)(2); cli._claim_conjunct_numbers", "expected": "[1, 2]", "observed": "[1, 2]", "result": "pass"}
+  - {"conjunct": 2, "name": "c2_body_read_when_field_unnumbered", "class": "gate", "cmd": "node with PROSE testable_claim + numbered body CLAIM (1)(2); cli._claim_conjunct_numbers", "expected": "[1, 2]", "observed": "[1, 2]", "result": "pass"}
+  - {"conjunct": 3, "name": "c2_empty_everywhere", "class": "gate", "cmd": "node with no numbers in field or body; cli._claim_conjunct_numbers", "expected": "[] and an inactive gate (no invented conjunct)", "observed": "[], active=False", "result": "pass"}
+  - {"conjunct": 3, "name": "live_gate_through_the_changed_bytes", "class": "wire", "cmd": "cli._parent_probe_gate(root, rec, args, verdict) on a temp graph, field (1)(2)(3) + body review (1)..(4), probes for 1..3; then the negative control with the conjunct-3 probe dropped", "expected": "error=None, active=True, covered=[1,2,3]; control refuses naming conjunct 3", "observed": "(None, True, [1,2,3]); control: 'missing ... conjunct(s): 3'", "result": "pass"}
 production_lines: 9
 profile: balanced
 role: kid
