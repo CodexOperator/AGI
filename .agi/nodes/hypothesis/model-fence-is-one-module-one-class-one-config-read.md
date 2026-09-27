@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: belam
+edited_by: director-engine
 scaffold_hash: b882e7a7468410f5
 season: 2
 testable_claim: one module object and one class in a fenced process; a config without the cell falls back by name; the loader list is a config cell; a test composes both fences
@@ -25,6 +25,18 @@ model_fence.py:162 two live module objects (first patcher wins; allow-list/cap i
 ## Testable claim
 one module object and one class in a fenced process; a config without the cell falls back by name; the loader list is a config cell; a test composes both fences
 
+## CORRECTIVE DH.535 -- re-cut of DH.517 (both kids died-no-work / dropped the edit; the three context reds R1-R3 stand; the parent probe in experiment:a00-90db84df-bdf86c pins the fix)
+BASE      CUT FROM season2/loops/hypothesis-model-fence-is-one-mo-a00-aae293b3 tip 360b0f0a1 + cherry-pick of 6f9b9a1d9 (the zero-USD mint fix; no other change) on branch de-base-535. No merge. Never rebase.
+1. OWNER RACE -- extensions/agi/model_fence.py -- the guard tests pick the owner by first-match over sys.modules for a module whose __dict__ holds BOTH ModelLoadRefused AND _patch_one; the table (model_fence) registers before the conftest in every pytest run, so R1-R3 read the table. FIX (do exactly this, no investigation): remove _patch_one from the module globals and re-serve it through a module-level PEP 562 __getattr__ (dict membership does not consult __getattr__, so the table answers NO in any insertion order). Every in-module caller of _patch_one keeps working. True when fixed: PYTHONPATH=.agi/context/local-maxxing/osc python3 -m pytest .agi/context/local-maxxing/osc/test_model_load_guard.py .agi/context/local-maxxing/osc/test_model_load_allowlist.py .agi/context/local-maxxing/osc/test_model_fence_env.py = 0 failed (paste the summary line; never type a number).
+2. NO EDIT to any test file or conftest: the context tests are the contract.
+3. Run the neighbourhood once after the edit: extensions/agi/tests/test_model_fence_one_module.py extensions/agi/tests/test_model_fence_guard_owner.py test_bin_help_smoke.py -- paste the summary line; a new red = revert and record it.
+4. There is NO question to answer in this round. A kid that reaches its budget without the edit committed has failed; the edit is the first act after the dispatch line.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     item 1 + item 3, timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE
+FILE SCOPE extensions/agi/model_fence.py · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines · 0 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief, with item 1's FIX sentence VERBATIM as the kid's ONLY task; COMMIT every kid edit on the loop branch before you exit
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-2026-09-27 04:2xZ belam: re-parented goal:g1 -> goal:g1.26 (the PASS 10 leaf), owner 04:1xZ: subgoals like directors (skill agi-goal §5); id and body unchanged.
+corrective DH.535: re-cut of DH.517 (both kids failed with 0 production bytes; parent probe in a00-90db84df pins the owner race) -- the fix is now an ORDER with no open question, because 517 lost its budget to an R4 question
 <!-- THOUGHT:END -->
