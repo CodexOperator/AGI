@@ -89,6 +89,24 @@ FILE SCOPE extensions/agi/bin/node_writer.py · extensions/agi/bin/write.py · e
 CEILING   HARD CAP: 2 kids (k1 = the write.py data-loss paths + tests, k2 = node text + testable_claim) · <= 15 production lines net over 1876dfc83 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.619 -- closes mur-director-engine-35 DH.603-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-a-payload-ref-change--a00-241566a5 tip 1d01c0b5b (branch de-base-619; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. P-A half-fix: effective-pair re-aim guarded on _plan.src (write.py:2365)
+2. The test for that fix cannot fail for it (test_payload_rename.py:287)
+3. link_ref clobbered on every repoint (write.py:2313)
+4. Citation drift on the mirror line (hypothesis node cites write.py:2310-2311, bytes are :2312-2313)
+5. Three MORE drifted citations in the sibling experiment's fix table, same class as defect 4 and not reported: a00-6761ec8a:81 cites `write.py:2311` for the mirror (actual :2312-2313) and `write.py:2864` for `_link_ref` (`def _link_ref` is at write.py:2860; :2864 is a docstring line); a00-6761ec8a:82 cites `write.py:2325` + `2363` for the effective pair (actual: `_after` assigned at :2323-2324, guard and aim at :2365-2366). The round's own citation discipline is its deliverable (a00-06ed089b:81, 'Every line the node cites is the line that holds'), so these belong in the findings row with defect 4.
+6. The chain never names the WORSE consequence of the widened mirror: at write.py:2316-2320 `plan_move` is then handed `_old_ref`, which for a link-only row is the `link <ref>` target (write.py:2892 falls back to `link_ref`), so a `set payload_ref X` on such a row RENAMES the file the node's body link named, not merely overwriting the field. The read-ORDER falsifier (hypothesis:39) describes the field disagreement and stops there; the file move is unreported and untested.
+7. The frontmatter `testable_claim` (hypothesis:17) was deliberately moved into the field by this round — the claim a reader meets FIRST — and it still contains NO conjunct for the payload verb in the same write, which is the round's own top OPEN residual (hypothesis:40). A reader who reads only the field cannot see that the title's second half ('renames the file in the same write') is PARTIALLY closed; the kid fixed the field-vs-test drift and left the field-vs-residual drift in place.
+8. Unread-reader check, reported clean rather than as a defect: no test in the diff touches a real tmux pane, systemd unit, crontab or process — `_cli` (test_payload_rename.py:322-332) drops TMUX/TMUX_PANE from the child env and execs only `write.py` against a graph under `tmp_path`, with `--root` given explicitly; every other case is a `tmp_path` fixture. No node file is deleted or demoted in the diff (numstat shows 0 deletions under `.agi/nodes`). The round did not loosen the gate it passes through: the outside-ref gate got STRICTER and its new test asserts rc 2 on BOTH the preview and the land (test_payload_rename.py:345).
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_payload_rename.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/write.py · extensions/agi/tests/test_payload_rename.py · .agi/nodes/experiment/a00-06ed089b-7c4e55.md · .agi/nodes/experiment/a00-6761ec8a-99af24.md · .agi/nodes/hypothesis/a-payload-ref-change-renames-the-file-in-the-same-write.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 1d01c0b5b · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.603: mur-director-engine-31 DH.579-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.619: mur-director-engine-35 DH.603-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
