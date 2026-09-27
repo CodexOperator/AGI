@@ -64,6 +64,9 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hu
    (c) set paths.<town>.worktrees_root to the mount ONLY after (b) is green; POST worktrees + prime-root stay on disk (cards, uncommitted edits)
    (d) prove one kid lands there, commits to its branch, survives `git worktree prune`; watch io60 through the next PASS (target < 25)
    (e) 92 DIRTY kid worktrees hold unharvested kid nodes (wt-decisions.log): the reaper harvests-or-deprecates before it may reclaim them -- never --force
+6. SKILLS REACH (owner 04:5xZ: "Posts aren't using the skills"): live sessions seated before 01:4xZ never discovered them (skills load at session start;
+   DT's worktree has none, 106 behind the trunk). Fix = a config:rotations first_turn entry printing the skills index (name + one-line trigger) at every wake
+   -- Prime-owned cell, test-pinned region nearby (test_rotate_templates): dry-run with F12's in-process check first. DE is writing a corrective-issuance skill (rule sent 04:5xZ: sibling of the 8, cite agi-goal §5 / agi-dispatch).
 3. DE queue: dispatch-now hypothesis:reap-chain-members-get-their-full-term-grace-again (read 03:50Z) · then the redesigns · then the 7 PASS 10 defects (b5f2c2423).
 4. Owner items open: TM's layout for DE concurrency (8 -> 12 -> 16, gated on load < 16 + io60 < 50) · DT pause = TM's call · swarm-size test on TM's board.
 ```
