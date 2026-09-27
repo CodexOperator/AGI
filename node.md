@@ -26,59 +26,55 @@ town: local-maxxing
 free     every parent/kid = pi-free (ladder tier-0) · signed role words = the owner's · harness <system-reminder> tool lists = genuine, unused
 ```
 
-
 ## IDENTITY
-Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
+Post `director-engine`, director, tier 1, town local-maxxing. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
+Leaves of `goal:g7.33` mine: `.9`, `.14` (clause 1 = SM's box cells), `.15` (NEW gen 24). `.1/.7/.8` HELD for Prime/owner.
 
-## §0 STATE (13:2xZ 09-27 · per-chain history = git log of this node)
+## §0 STATE (gen 25 · live scratch · landed history = grid.py diff doc:card-director-engine)
 ```
-LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br tip f6bf73919 (trunk merged, 366 ahead, merge-tree clean, NOT suite-run)
-URGENT    zero-USD mint fix 6f9b9a1d9 (belam 13:1xZ, owner: account DRAINED 0.606 USD) -> [merge-up] sent 13:2xZ asking to land THAT commit alone;
-          falsifier LIVE: DH.533 a00-fbd128d3 pi-free minted at 0.606, key limit=0.01 -> READ credits after it exits (must stay 0.606) -> one line to TM
-MINTS     pass again for zero_usd lanes ONLY via 6f9b9a1d9: a dispatch/mur from a tree WITHOUT it still refuses -> cherry-pick it into any base first
-MURS      ALL STOPPED 06:4xZ (TMM.291/295: bare --harness pi = PAID). Re-run EVERY one with EXPLICIT --harness pi-free, from THIS worktree (has the fix);
-          stop = runner + its run-*.scope stages (skill agi-workflow). args: scratchpad a030396e-.../{mur-b1,mur-b2,mur-b3,mur525,mur529}.json,
-          predecessor 68c98329-.../mur510.json; UNREVIEWED rounds: 509 512 514 515 516 (b1) · 519 521 522 501 (b2) · 526 520 507k1k2 (b3) · 525 · 529 · 497
-          · 530 (b32e952ea, 243/243 reflow) · 531 (84bfb3bd0) · 532 (4eb9be948 -- NEVER merge before 534)
-LIVE      DH.533 a00-fbd128d3 (sweep slice 2, owner question) only
-QUEUED    DH.534 (532 held-lock fix; orders ON hypothesis:a-stale-index-lock-is-cleared-or-named-and-a-failed-round-commit-is-never-silent,
-          dispatch from wt a00-354f1396 AFTER cherry-picking 6f9b9a1d9) · 517 re-cut (model-fence; kid nodes + parent root-cause probe at 360b0f0a1)
-          · the skills adapter round (hypothesis:skills-load-per-harness-per-tier-from-one-config-cell) after 526 clears · 429 tiny corrective · 471 after 530
-BLOCKED   501 merge (belam F13 trim: region 2009 > 2000)
-RESIDUES  of 6f9b9a1d9 (TMM.297, TM gates it on the targeted suite; not blocking): (c) dispatch.py:2196 prints limit=$1.0 while a zero_usd mint makes 0.01
-          (d) the outer `if` also skips check_runtime_key_usable + the --cap guard for zero_usd lanes -> ONE small corrective round (pi-free) after it lands
+LANDED    merge-up 12 = cbe776456 (TMM.248; 6753/0 on M; GOALS.md was STALE at my tip -- TM re-rendered it)
+MERGED    after 12 (-> merge-up 13): DH.410 c11128889 (row 5; red 2/green) · DH.411 320b4450c (PASS 9 re-open; red 1/green);
+          650 passed over the touched files. (DH.410 dropped NO asserts -- my diff grep misread it)
+MERGED    DH.413 5e77d016c + MY FIX b7a4a049f (classmethod-aware stub; a file under a declared dir; red/green) + config cell
+          values.core.model_load_allowed_max_bytes · DH.412 + MY FIX ee08566b7 (is_live_checkout compared root with ITSELF ->
+          any repo = live; red/green) -- both kids' rounds shipped a NEW bug past their parent: probe the foreign/real shape
+CONTEXT   torch run: 232 passed / 2 failed = DT's leak (osc_band_seeds_qwen3 test_t7 sys.modules['transformers']=M) -> TM, not edited
+MERGED    DH.415 (= DH.397: ONE table model_fence.py + opt-in --no-model sitecustomize fence; red 8/green; REAL probe refuses)
+          DH.414 (--node-id seed refused unless dispatch named it / agent id; dotted nodes/ dir = never round-editable; red 6/green)
+SUITE     13 on the tip -> suite-13.log then ctx-13.log (torch path; expect ctx 2 reds = DT's leak) -- NO merge meanwhile
+PASS 9    queue = hypothesis:pass9-0926-residue-batch (5 new, 12 follow) -- ORDER mine, track THERE
+CARD      the rotate-out flattens the quorum symlink ON PURPOSE (db336b020); restore the 120000 link, never two copies apart
 ```
 
-## §1 PLAN
+## 🔴 WHERE IT STOPS (gen 25)
 ```
-done   this seat: skill agi-corrective (owner ask) + traps in agi-dispatch/agi-workflow; 20+ rounds harvested/corrected (519-534); 511 merged;
-       g7.33.19 rows 19-21 (+18/19 dispatched); draft skills entry; paid murs stopped; zero-USD mint fix + live falsifier
-next   (1) credits-after for DH.533 (2) murs on pi-free, batch by 3-4 slices (3) close residues via agi-corrective (4) merge cleared chains
-       (5) suite window -> ONE [merge-up]
-```
-
-## 🔴 WHERE IT STOPS
-Rotated at the line (f~0.47) mid-drain; nothing merged since 511; one parent live.
-```
-FIRST   spawn_budget.py status ; systemctl --user list-units 'agi-director-engine-*' ; read the dm files DIRECTLY (director-engine--thought-master.md,
-        belam--director-engine.md) ; python3 extensions/agi/bin/provisioning.py list | grep DH.533
-THEN    re-run murs: systemd-run ... workflow.py run merge-up-review --harness pi-free --root <this worktree> --args "$(cat <args>.json)"
+FIRST  suite-13 EXIT=0 + ctx-13 (only DT's 2 leak reds) -> [merge-up] 13 = DH.410-415 + my 2 harvest fixes + config cell
+THEN   PASS 9 new 5 -> g7.33.17 rows 9 CMP.02, 10, 11, 13. <= 2 live.
+AWAIT  SM: g7.33.14 clause 1 + stream-master box cell (DH.373 d)
 ```
 
 ## §4 TRAPS
-Skills carry them: agi-dispatch §5 (harvest, vanishing-wt) · agi-corrective (triage, orders ON the node, pi-free) · agi-workflow (stop = scopes too) · agi-node-write §5.
-Card-only: a clean round worktree is PRUNED while you use it -> land its edits first, test on git worktree add --detach de-h<N> · stale index.locks recur
-(row 18): check /proc cwd+fd holders, then rm · write.py sub is literal (no backslash-n, no empty replacement).
-
-## ENGINE FINDINGS
-Rows on goal:g7.33.19 (1-21). BOX DRIFT (OOMPolicy unset on streamer-stub-watch.service; agi.slice drop-in absent) = thought-master's.
+```
+goals-md    EVERY goal-node edit: snapshot-goals.py --render + commit GOALS.md in the SAME commit, then --check (TMM.248)
+card size   the driven handoff refuses a composed card > 100 lines -> the capture never rotates. KEEP THIS CARD SMALL.
+never wait  on a capture: rotate yourself at f >= 0.47 (`python3 extensions/agi/bin/rotate.py rotate`, bare)
+torch-py    a guard that walks sys.modules must never getattr blind: torch.classes RAISES, torch.ops answers ANY name
+refused==   a value threaded as "refused" but judged by the same gate as "named" is not refused: grep the loop, probe it
+behind      interpolate the MEASURED rev-list count into a merge-up, never type it
+basetemp    NEVER pytest --basetemp <dir in the repo>: pytest WIPES it (DH.412 parent lost engine bin/, 84 files)
+torch-path  context tests: PYTHONPATH=paths.local_maxxing.osc_test_pythonpath + system python3 (the venv has no pytest)
+suite-live  NEVER merge into this tree while a suite runs here: getsource tests read the moved file (12: 2 false reds)
+one-tree    a parent dispatching kid 2 before merging kid 1 gets overlapping ports: take ONE tree
+config      rounds CANNOT commit .agi/config.json (cli.py _round_scope_ok): the director commits named cells
+cat-literal grep 'cat /data' in harvested nodes · never grep -r over .agi/ (100+ worktrees)
+no-claude   kids never launch real claude; stand-ins only (in every orders file)
+```
 
 ## BANKED
-- TMM.268 (b) durable fix = a g7.33.17 row -- TM's to mint. · config:brief `extras.parent` -- BLOCKED on prime/owner. · claude-code kids on local-town -- owner's.
-
-Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
+- config:brief `extras.parent` -- BLOCKED on prime/owner (L4.110 ring-gate).
+- claude-code kids on local-town -- owner's; the allowlist refusal is correct.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Whole rewrite at the rotation line: the zero-USD mint fix and its live falsifier lead; every stopped paid mur is listed with its args path and must re-run on explicit pi-free from a tree that carries 6f9b9a1d9.
+Gen 25 rewrote §0 and WHERE IT STOPS whole: merge-up 11 landed (TMM.241), DH.408 dispatched for the capture-behind residue, TMM.241 rows 14-16 queued. The gen-24 claim that handoff --driven FLATTENING the card was a g7.33.15 residue is withdrawn: db336b020 (belam PASS 6 defect 4) flattens on purpose so a rotation never writes through the symlink into this node. 80 lines, under the 100-line driven-handoff guard.
 <!-- THOUGHT:END -->
