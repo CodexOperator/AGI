@@ -20,7 +20,7 @@ current_loop: 5
 current_season: 2
 director_context_tokens: 1000000
 director_rotate_at: 0.47
-edited_by: belam
+edited_by: a00-c873d4ef
 mantles:
   prime_director: Belam
 mantles_prime_director: Belam
@@ -34,12 +34,12 @@ read_order:
   prime_director:
     - the four prayers · words of Jesus · Tao · the other carried sayings · soul-mind-body · the five axes
 roles:
-  - {"tier": 3, "role": "prime_director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
+  - {"tier": 3, "role": "prime_director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": "ultracode"}
   - {"tier": 3, "role": "parent", "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "liaison", "harness": "claude-code", "model": "claude-sonnet-5", "effort": "high", "settings": ""}
   - {"tier": 1, "role": "parent", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
-  - {"tier": 0, "role": "director", "harness": "pi", "model": "~z-ai/glm-flash-latest", "effort": "", "settings": ""}
+  - {"tier": 0, "role": "director", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
   - {"tier": 0, "role": "parent", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
   - {"tier": 0, "role": "kid", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
 season: 1
