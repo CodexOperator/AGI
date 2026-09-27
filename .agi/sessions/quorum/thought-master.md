@@ -12,9 +12,9 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ```
 
 ## 🔴 Where it stops
-13:3xZ 09-27: ZERO-USD MINT FIX LANDED 91ae33672 (+ d0c1eba0b restore), FALSIFIER MET (DH.533: 0.6063 before = after) -- dispatch resumed on pi-free (keys cap 0.01, credits 0.606) -- next = read the dm files; DE's full post-branch merge-up (tip f6bf73919, 366 ahead) after a suite window + pi-free murs; then DT's model tip 09d7ed36c (waits on DE's nudge fix)
+18:5xZ 09-27: / DISK FULL -> RECOVERED 17.9G (87 stale /tmp/lograce-* deleted, TMM.303) -- next = read the dm files; DE's residue corrective + full post-branch merge-up; dial-up per TMM.300 gates; then DT's model tip 09d7ed36c
 ```
-state    MAIN = origin + this card · last order = TMM.300 · next = TMM.301 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB (belam 03:0xZ)
+state    MAIN = origin + this card · last order = TMM.303 · next = TMM.304 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB (belam 03:0xZ)
 INTAKE   OWNER 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> at EVERY nudge + wake read the dm files
          (.agi/comms/season-2/dm/*thought-master*.md, blocks by ts with from != thought-master) + .agi/sessions/inbox/thought-master.md
          DIRECTLY; send.py read's 'empty' is not proof · a background python loop on those 4 files' LAST block (from != me) wakes you
@@ -68,7 +68,9 @@ AT-LAND  at DE's next landing: goal:g7.33.19 into doc:unified-director-brief (no
 BOARD    town:local-maxxing body lines 106 + 141 still say 'hub' -> the Prime's (body = owner / prime only); proposed text sent 06:1xZ
 SYNC     when season2/main moves: merge it into the trunk ancestry-only (tree = HEAD, verified: 63cdd9f56, 9e65a0faa) -- else rotations
          refuse '.geometry behind'
-STREAM   brb since 02:35:51Z (my hostname slip from the memory-alarm log; the relay was down under the owner's hold) -- retract / back =
+STREAM   OWNER via belam 18:32Z, verbatim: "Tell thought master stream is already down no need to worry about pausing it" (my 18:2xZ brb was moot)
+DISK     / = 98G root (holds /tmp + /home) FILLED 17:4xZ; the repo + worktrees are on /data (142G free) -- I removed 45 lossless a00-* worktrees
+         first (wrong mount; records -> .agi/sessions/harvest-0927/<wt>/) · /tmp ~31G left for DE's sweep round · STREAM   brb since 02:35:51Z (my hostname slip from the memory-alarm log; the relay was down under the owner's hold) -- retract / back =
          the Prime's, reported
 PASS     PASS 10 CLOSED 04:0xZ (season2/main 2129f70bb, 30 rounds, 0 RED)
 out      python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; the card committed first)
@@ -307,6 +309,11 @@ kid commits  DH.386 (DE, lands with e362e7947): `cli.py done` auto-commits the r
              list changed .geometry / doc:unified-* / town:* / goal:* files and read each
 board THOUGHT the town board's THOUGHT region is owner/prime-only: write.py 'thought ...' REFUSED for thought-master (goal:g12, 02:2xZ 09-26)
              -> an owner line that produced a board version rides VERBATIM in the row text + the dm that carried it
+disk         df -B1M <the path> FIRST: / (root: /tmp, /home) and /data (repo, worktrees) are DIFFERENT filesystems (18:3xZ 09-27: 45 worktree
+             removals freed /data while / stayed full) · a du over /tmp times out (6k entries): a `du -xm --max-depth=1` in the background
+             · my run_in_background jobs sit in run-*.scope units that systemd-oomd kills under a memory spike (18:07Z: census gone, no
+             output) -> a long job runs in foreground chunks (timeout 540) and is resumable · journalctl lines carry the HOST NAME (field 4):
+             never print them raw -- cut to the message
 io           /proc/pressure/io is its own axis (memory PSI ~2% while io full ~88%, 05:1x-05:3xZ 09-26): read /proc/diskstats (inflight, busy) + Writeback in /proc/meminfo · a write-bound stall drains its Writeback backlog for minutes after the writer stops -> never clear a writer on 'it did not ease in 2 min' (my VOID to belam 06:2xZ) · a recursive grep / find over MAIN's .agi/ walks 101 worktree checkouts (belam's 06:21Z [red]: the PASS 8 reviewer's grep -rln = 3.98 GiB of page cache, io60 36%)
 memory       VmHWM counts file-backed RSS (torch libs + the safetensors mmap) that the cgroup books as page cache: P8.03 VmHWM 2537 vs a
              hard rise of 1805 -> read BOTH; gate (3) on the literal rule with VmHWM as the peak (the conservative reading, gen 27)
