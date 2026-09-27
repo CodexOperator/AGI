@@ -131,16 +131,29 @@ def guard(project_root: Path) -> None:
     that exists, (b) the files found under it, `(empty)` when there are none,
     (c) the override set driver.sh would prefer, derived from driver.sh bytes
     at call time. A reader can tell WHICH check fired from the message alone.
+
+    Clause (c) is FAIL-CLOSED: a derivation that finds nothing says so, in
+    those words, instead of ending the sentence after a dangling colon. The
+    directory refusal is independent of the derivation and still holds, so a
+    blind regex would otherwise produce a refusal that reads like a complete
+    check while naming ZERO shadow sites -- the retyped-constant defect one
+    level up, wearing a derived coat.
     """
     bin_dir = project_root / "bin"
     if not bin_dir.is_dir():
         return
     found = sorted(p.name for p in bin_dir.rglob("*") if p.is_file())
+    sites = driver_override_scripts()
+    override = ", ".join(sites) if sites else (
+        "NONE DERIVED -- this driver.sh's bytes match no override site, so no "
+        "site can be named; the directory refusal still holds, treat the name "
+        "list as UNVERIFIED (not as 'no site is preferred')"
+    )
     raise AssertionError(
         f"CLAUDE.md S1 forbids the directory {bin_dir} at all, and it is a directory. "
         "files found under it: " + (", ".join(found) if found else "(empty)") + ". "
         "driver.sh prefers a project-local copy over the engine's own for: "
-        + ", ".join(driver_override_scripts())
+        + override
     )
 
 
@@ -411,6 +424,44 @@ def test_braced_and_dotted_override_sites_are_derived(tmp_path) -> None:
             f"the derivation is blind to the site form {site!r}"
         )
         assert site.rsplit("/", 1)[1] in driver_override_scripts(doctored)
+
+
+def test_message_is_fail_closed_when_the_derivation_is_blind(monkeypatch, tmp_path) -> None:
+    """FALSIFIER: a blind regex must not produce a refusal that names NOTHING.
+
+    Clause (c) is derived, so it can be EMPTY where the refusal still fires --
+    driver.sh edited to a site form `_OVERRIDE_RE` does not match, or a root
+    var renamed under the guard's nose. The directory refusal is independent of
+    it, so nothing about conjunct 1 catches this, and a message ending
+    `... the engine's own for: ` reads like a complete check that found
+    nothing to report -- the exact confusion the derivation was built to kill.
+    `test_real_driver_override_set_is_not_empty` catches the same blindness in
+    a sibling row; this row makes the REFUSAL ITSELF say so.
+
+    RED before the fix, against the shipped guard, on a doctored driver:
+
+        ... driver.sh prefers a project-local copy over the engine's own for: 
+    """
+    blind = tmp_path / "driver.sh"
+    blind.write_text("# a site this regex cannot see: $AGI_ROOT/bin/inject.py\n")
+    monkeypatch.setattr(sys.modules[__name__], "DRIVER", blind)
+    assert driver_override_scripts() == (), "the fixture is meant to be blind"
+
+    project_root, _ = _fixture(tmp_path / "proj")
+    with pytest.raises(AssertionError) as exc:
+        guard(project_root)
+    message = str(exc.value)
+    assert "NONE DERIVED" in message, "the refusal must admit it named no site"
+    assert not message.rstrip().endswith("for:"), (
+        "the refusal still ends on a dangling colon -- it reads as a check that found nothing"
+    )
+    assert "UNVERIFIED" in message, "'no site preferred' and 'no site derivable' are not the same claim"
+
+    # ...and the live bytes keep the named, non-fail-closed form.
+    monkeypatch.undo()
+    with pytest.raises(AssertionError) as exc:
+        guard(project_root)
+    assert "for: snapshot-build-site.py" in str(exc.value)
 
 
 def test_no_driver_line_number_is_cited() -> None:
