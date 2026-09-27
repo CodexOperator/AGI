@@ -37,3 +37,18 @@ extensions/agi/bin/heal.py · extensions/agi/tests/test_heal_worktree_refusal.py
 
 ## CEILING
 <= 2 kids · <= 12 production lines per conjunct · pi parents (tier-0) · 0 USD. Every test that spawns python/pytest runs under `timeout` + a process cap; never a pytest that re-collects its own dir; kids never launch real claude or touch a live tmux pane.
+
+## CORRECTIVE DH.528 -- closes mur-director-engine-16 DH.485-k1 (review accept_with_residue; verify timed out twice at 3600 s, review residues stand)
+BASE      CUT FROM season2/loops/hypothesis-heal-worktree-refusal-a00-bffe8866 tip ac2b2a4c3 (worktree a00-bffe8866). No merge. Never rebase. NEVER DH.476.
+0 production lines, 0 test lines: node wording only, write.py only.
+1. verdict:a00-033193ed-599c69 keeps demote_reason 'no experiment evidence (evidence_runs=0) for proved' (:9) and demoted_from: proved (:10) while verdict: proved (:23) -> clear both stale stamps (write.py set/unset), reason in its THOUGHT.
+2. the same verdict's evidence_runs cites experiment:a00-651ab5e8-e70670 -- the node the DH.485 scrub edited, the OBJECT of the verdict, not independent backing (evidence_gate._is_self_citation accepts it, evidence_gate.py:322-340) -> cite the committed test run that proves the claim (test_heal_worktree_refusal.py, 6 passed at the base: RE-RUN, paste) or lower the verdict with the reason.
+3. experiment:a00-651ab5e8-e70670 :80 and :99 record grep probes whose PATTERN contains the strings it searches for, so run over the node they match their own lines (rc=0), not 'no match' -> record a probe that cannot self-match (build the pattern from pieces at run time, or run it over the scrubbed files only), RE-RUN, paste the real output; the recorded pattern writes <user>, never the name.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+FILE SCOPE verdict:a00-033193ed-599c69 · experiment:a00-651ab5e8-e70670 (write.py only) · the kid's own node
+CEILING   HARD CAP: 1 kid · 0 production lines · 0 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.528: mur-16 DH.485-k1 accept_with_residue (verify timed out twice) -- stale demote stamps on a proved verdict, circular evidence (the verdict cites its own object), self-matching grep probes recorded as no match. Demoted as notes: cli.py body-union (carried, goal:g7.33.19 row scope), the <user> literal (named on the verdict).
+<!-- THOUGHT:END -->
