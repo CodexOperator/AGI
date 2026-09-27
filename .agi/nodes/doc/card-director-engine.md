@@ -37,10 +37,11 @@ LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 mer
 TOOLS     <scratchpad 96494ce7-...>: gen.py N args tip labels [R4] + place.sh N = a corrective from verdict files (orders on the node, base cut,
           cherry-pick 6f9b9a1d9 when older than 91ae33672, dispatch) · mkmur.py + runmur.sh <unit> = one-round mur · harvest.sh N agent tests
           · verdicts MAIN .agi/sessions/workflows/runs/mur-director-engine-23/{review,verify}_<label>.json (all runs share key -23: row 19)
-MURS      lanes murl1..3 over batches murq1..7: DONE 1 2 · running 3 (519 522 521 501) · then 4 (526 520 507k1k2) 5 (525k1k2 529k1k2) 6 (497k1k2 530 531) 7 (532)
-          single units murq15-24 = DH.544 543 541 542 545 540 547 546 548 549 (each: harvested green; a unit that ENDS = read verdicts, triage)
-LIVE      DH.550 a00-36e398c8 (509 k1 demote + k2) · DH.551 a00-9d1f795c (512) · DH.552 a00-98233a26 (514 k1+k2)   (wt de-base-<N>)
-QUEUED    skills adapter round cut from 526's cleared tip (lane 4) · 471 after 530 (lane 6) · 510-k4 DEMOTE corrective cut from 519's tip after lane 3
+MURS      lanes murl1..3 over batches murq1..7: DONE 1 2 3 · then 4 (526 520 507k1k2) 5 (525k1k2 529k1k2) 6 (497k1k2 530 531) 7 (532)
+          single units murq15-25 = DH.544 543 541 542 545 540 547 546 548 549 551 (each: harvested green; a unit that ENDS = read verdicts, triage)
+LIVE      DH.550 a00-36e398c8 (509) · DH.552 a00-98233a26 (514) · DH.553 a00-0430cc67 (510-k4+519) · DH.554 a00-4469ceda (522)
+          · DH.555 a00-0cdc4614 (521) · DH.556 a00-e887f21f (501)   (wt de-base-<N>)
+QUEUED    skills adapter round cut from 526's cleared tip (lane 4) · 471 after 530 (lane 6)
 CHAIN     tips (last)                          state                                               land note
  426 schema-gate  527 → 543                    murq16                                              NEVER 442
  427 heal-refuse  528 → 544                    murq15                                              NEVER 476
@@ -48,10 +49,10 @@ CHAIN     tips (last)                          state                            
  stale-lock       532 → 534 → 547              murq21 + lane 7 (532)                               532 NEVER merges alone
  model-fence      508 → 517 → 536 → 539 → 548  murq23 (R4 NEVER run: row 22)
  kid-worktrees    529 → 533 → 540              lane 5 (529) + murq20; B7 (report_line_note, sample_n) = director at landing
- PASS 10          515 MERGED · 516 → 549 murq24 · 509 → 550 · 512 → 551 · 514 → 552 LIVE · 507 lane 4 · belam-cap-reap HELD until 507
- g4.18.1.x        521 · 519 (+510-k4 demote) · 497   lanes 3 · 3 · 6; 521 item 4 UNLANDABLE (row 21)
- 432 guard-piece 530 lane 6 (NEVER 432 itself) · 433 guard-inst 471 corrective AFTER 432 · send-hub 525 lane 5 · thought-verb 522 lane 3
- wake-facts 501 lane 3, BLOCKED until belam trims F13 (2009 > 2000) · run-key 531 lane 6 · skills 526 lane 4
+ PASS 10          515 MERGED · 516 → 549 murq24 · 509 → 550 · 514 → 552 LIVE · 512 → 551 murq25 · 507 lane 4 · belam-cap-reap HELD until 507
+ g4.18.1.x        521 → 555 · 510/519 → 553 · 497 lane 6; 521 item 4 UNLANDABLE (row 21)
+ 432 guard-piece 530 lane 6 (NEVER 432 itself) · 433 guard-inst 471 corrective AFTER 432 · send-hub 525 lane 5 · thought-verb 522 → 554
+ wake-facts 501 → 556, merge BLOCKED until belam trims F13 (2009 > 2000) · run-key 531 lane 6 · skills 526 lane 4
 ```
 
 ## §1 PLAN
