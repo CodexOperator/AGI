@@ -490,6 +490,56 @@ def payload_base(root: Path, location: str | None = None,
     )
 
 
+def storage_categories(config: dict | None = None) -> list[dict]:
+    """The numbered storage-category picker, in config CELL order.
+
+    `hypothesis:mint-offers-storage-categories-from-config-cells`. The
+    directory a new payload files under is data, so it lives in
+    `mint.storage_categories.<key> = {location, prefix, label}` and this is
+    only its reader. Insertion order is the numbering order: a new cell is a
+    new option and nothing else changes.
+    """
+    block = ((config or {}).get("mint") or {}).get("storage_categories") or {}
+    rows: list[dict] = []
+    for i, (key, cell) in enumerate(block.items(), 1):
+        if not isinstance(cell, dict):
+            continue
+        rows.append({
+            "n": len(rows) + 1,
+            "key": str(key),
+            "label": str(cell.get("label") or key),
+            "location": str(cell.get("location") or DEFAULT_PAYLOAD_LOCATION),
+            "prefix": str(cell.get("prefix") or "").strip("/"),
+            "custom": False,
+        })
+    return rows
+
+
+def resolve_storage_category(pick, tail: str | None = None,
+                             config: dict | None = None) -> dict:
+    """(pick, tail) -> one row carrying `(location, payload_ref)`.
+
+    `pick` is a NUMBER or a KEY from the table. A pick naming no cell is read
+    as a path and returned FLAGGED `custom` against the default base -- an
+    accepted answer, never an exception: a pane that types a path it knows is
+    not in the table must not be told it may not.
+    """
+    rows = storage_categories(config)
+    text = str(pick).strip()
+    hit = None
+    for row in rows:
+        if text == row["key"] or (text.isdigit() and int(text) == row["n"]):
+            hit = row
+            break
+    if hit is not None:
+        rest = str(tail or "").strip().lstrip("/")
+        return {**hit, "payload_ref": f"{hit['prefix']}/{rest}" if rest
+                else hit["prefix"]}
+    return {"n": 0, "key": "custom", "label": "custom", "custom": True,
+            "location": DEFAULT_PAYLOAD_LOCATION, "prefix": "",
+            "payload_ref": text or str(tail or "").strip()}
+
+
 def resolve_payload_path(root: Path, ref: str, location: str | None = None,
                          config: dict | None = None) -> Path:
     """One node's payload, as an absolute path. The single place this is done.
@@ -921,6 +971,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--json", action="store_true", help="emit JSON")
     ap.add_argument("--what", choices=["root", "source", "goals", "repo"],
                     help="print one path and nothing else")
+    ap.add_argument("--storage-categories", action="store_true",
+                    help="print the numbered storage-category picker")
+    ap.add_argument("--storage-pick", default=None,
+                    help="with --storage-categories: resolve one pick "
+                         "(number or key) to location + payload_ref")
+    ap.add_argument("--tail", default=None,
+                    help="with --storage-pick: the tail under the prefix")
     ap.add_argument("--claim-iter", action="store_true",
                     help="allocate the next free iteration id, reserve its "
                          "sessions dir, print the id")
@@ -960,6 +1017,19 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     cfg = load_config(root)
+
+    if args.storage_categories:
+        rows = storage_categories(cfg)
+        if args.storage_pick is not None:
+            row = resolve_storage_category(args.storage_pick, args.tail, cfg)
+            print(f"{row['custom'] and 'custom' or row['key']}\t"
+                  f"{row['location']}\t{row['payload_ref']}")
+        else:
+            for row in rows:
+                print(f"{row['n']}  {row['key']}  {row['location']}  "
+                      f"{row['prefix']}  ({row['label']})")
+        return 0
+
     resolved = {
         "root": str(root),
         "repo": str(repo_root(root)),
