@@ -31,55 +31,59 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (14:3xZ 09-27 · per-chain history = git log of this node)
+## §0 STATE (15:0xZ 09-27 · per-chain history = git log of this node)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 merged 32ff79e53 · 429 chain MERGED 1ee2340c3 · DH.515 MERGED 64130e4ec
-TOOLS     <scratchpad 96494ce7-...>: gen.py N args tip labels [R4] + place.sh N = a corrective from verdict files (orders on the node, base cut,
-          cherry-pick 6f9b9a1d9 when older than 91ae33672, dispatch) · mkmur.py + runmur.sh <unit> = one-round mur · harvest.sh N agent tests
-          · verdicts MAIN .agi/sessions/workflows/runs/mur-director-engine-23/{review,verify}_<label>.json (all runs share key -23: row 19)
-MURS      lanes murl1..3 over batches murq1..7: DONE 1 2 3 · then 4 (526 520 507k1k2) 5 (525k1k2 529k1k2) 6 (497k1k2 530 531) 7 (532)
-          single units murq15-28 = DH.544 543 541 542 545 540 547 546 548 549 551 550 554 555 (each: harvested green; a unit that ENDS = read verdicts, triage)
-LIVE      DH.552 a00-98233a26 (514) · DH.553 a00-0430cc67 (510-k4+519) · DH.556 a00-e887f21f (501)   (wt de-base-<N>)
-QUEUED    skills adapter round cut from 526's cleared tip (lane 4) · 471 after 530 (lane 6)
-CHAIN     tips (last)                          state                                               land note
- 426 schema-gate  527 → 543                    murq16                                              NEVER 442
- 427 heal-refuse  528 → 544                    murq15                                              NEVER 476
+          (post br NOT suite-run; nothing handed to TM since merge-up 13)
+TOOLS     <scratchpad 96494ce7-...>: gen.py N args tip labels [R4] + place.sh N = corrective from verdict files (orders on node, base cut,
+          cherry-pick 6f9b9a1d9 if older than 91ae33672, dispatch) · mkmur.py + runmur.sh <unit> = one-round mur · harvest.sh N agent tests
+          (a glob naming a file absent on an old base -> 'no tests ran': rerun with existing files) · verdicts MAIN .agi/sessions/workflows/
+          runs/mur-director-engine-23/{review,verify}_<label>.json (every run shares key -23: row 19) · murq<N>.json = each unit's args
+MURS      lanes murl1..3 over murq1..7: DONE 1 2 3 · pending 4 (526 520 507k1k2) 5 (525k1k2 529k1k2) 6 (497k1k2 530 531) 7 (532)
+          single units, each = a harvested green corrective: murq15 544 · 16 543 · 17 541 · 18 542 · 19 545 · 20 540 · 21 547 · 22 546
+          · 23 548 · 24 549 · 25 551 · 26 550 · 27 554 · 28 555 · 29 556      a unit that ENDS = read verdicts, triage
+LIVE      DH.553 a00-0430cc67 (510-k4 + 519, 2 kids) · DH.557 a00-9efbf5ef (552's harvest red + its failed kids' items)   wt de-base-<N>
+QUEUED    skills adapter round cut from 526's cleared tip (lane 4) · 471 after 530 (lane 6) · B7 of DH.540 (director: report_line_note
+          = the verdicts the code emits; drop unread sample_n) at landing
+CHAIN     tips (last)                          next                                                land note
+ 426 schema-gate  527 → 543 murq16  · 427 heal-refuse 528 → 544 murq15                             NEVER 442 · NEVER 476
  probe-gate 523 → 541 murq17 · row 20 nudge 524 → 542 murq18 · trunk reds 538 → 545 murq19 · zero-usd 537 → 546 murq22
- stale-lock       532 → 534 → 547              murq21 + lane 7 (532)                               532 NEVER merges alone
- model-fence      508 → 517 → 536 → 539 → 548  murq23 (R4 NEVER run: row 22)
- kid-worktrees    529 → 533 → 540              lane 5 (529) + murq20; B7 (report_line_note, sample_n) = director at landing
- PASS 10          515 MERGED · 516 → 549 murq24 · 509 → 550 murq26 · 514 → 552 LIVE · 512 → 551 murq25 · 507 lane 4 · belam-cap-reap HELD until 507
- g4.18.1.x        521 → 555 murq28 (a00-b0bf124f edit NOT landed: row 21) · 510/519 → 553 · 497 lane 6; 521 item 4 UNLANDABLE (row 21)
- 432 guard-piece 530 lane 6 (NEVER 432 itself) · 433 guard-inst 471 corrective AFTER 432 · send-hub 525 lane 5 · thought-verb 522 → 554 murq27
- wake-facts 501 → 556, merge BLOCKED until belam trims F13 (2009 > 2000) · run-key 531 lane 6 · skills 526 lane 4
+ stale-lock       532 → 534 → 547 murq21 + lane 7 (532)                                             532 NEVER merges alone
+ model-fence      508 → 517 → 536 → 539 → 548 murq23                                               R4 NEVER run (row 22)
+ kid-worktrees    529 (lane 5) → 533 → 540 murq20
+ PASS 10          515 MERGED · 516 → 549 murq24 · 509 → 550 murq26 · 512 → 551 murq25 · 514 → 552 → 557 LIVE · 507 lane 4
+                  · belam-cap-reap HELD until 507 lands
+ g4.18.1.x        521 → 555 murq28 (a00-b0bf124f edit NOT landed, row 21) · 510/519 → 553 LIVE · 497 lane 6
+ thought-verb 522 → 554 murq27 · wake-facts 501 → 556 murq29 (merge BLOCKED until belam trims F13: 2009 > 2000)
+ 432 guard-piece 530 lane 6 (NEVER 432 itself) · 433 guard-inst 471 corrective AFTER 432 · send-hub 525 lane 5 · run-key 531 lane 6 · skills 526 lane 4
 ```
 
 ## §1 PLAN
 ```
-done   wake: card re-linked · trunk + mint fix merged · falsifier MET -> TM · 22 rounds re-murred (3 lanes) · 13 correctives (534-552)
-       dispatched, 10 harvested · 429 chain + DH.515 merged · rows 9 13 17 19 22 23
-next   (1) each ending mur unit -> triage: clean = merge the chain at its last tip (card order, land notes) · residue = gen.py/place.sh
-       (2) harvest DH.550-552 (harvest.sh) -> mkmur/runmur (3) lanes 3-7 verdicts (4) suite window -> ONE [merge-up] to TM
+done   this seat: card re-linked · trunk + mint fix merged · falsifier MET -> TM · 22 rounds re-murred on 3 pi-free lanes · 24 correctives
+       dispatched (534-557), 17 harvested green + murred · 429 chain + DH.515 merged · rows 9 13 17 19 21 22 23
+next   (1) per ENDED unit: verdicts -> clean = merge the chain at its last tip (land notes) · residue = gen.py + place.sh
+       (2) harvest DH.553 + DH.557 (harvest.sh) -> mkmur/runmur (3) lanes 4-7 (4) suite window -> ONE [merge-up] to TM
 ```
 
 ## 🔴 WHERE IT STOPS
-Draining: 3 parents live, 10 single murs + 3 lanes running; nothing new merged since DH.515.
+Rotated at the line mid-drain: 2 parents live, 15 single murs + 3 lanes running; DH.515 + the 429 chain merged, nothing handed to TM yet.
 ```
 FIRST   spawn_budget.py status ; systemctl --user list-units 'agi-director-engine-*' --all ; grep -h === <scratchpad>/murl*.log
-THEN    per ENDED unit: read MAIN runs/mur-director-engine-23/{review,verify}_<label>.json -> merge or gen.py+place.sh
+THEN    per ENDED unit: MAIN runs/mur-director-engine-23/{review,verify}_<label>.json -> merge (card order) or gen.py + place.sh
 ```
 
 ## §4 TRAPS
-Skills carry them: agi-dispatch §5 (harvest, vanishing-wt) · agi-corrective (triage, orders ON the node, pi-free) · agi-workflow (stop = scopes too) · agi-node-write §5.
-Card-only: a clean round worktree is PRUNED while you use it -> land its edits first, test on git worktree add --detach de-h<N> · stale index.locks recur
-(row 18): check /proc cwd+fd holders, then rm · write.py sub is literal (no backslash-n, no empty replacement).
-A running bash script edited in place: sed -i swaps the inode, so the running loop keeps the OLD text -- add a batch as its own unit.
+Skills carry them: agi-dispatch §5 (harvest, vanishing-wt, uncommitted) · agi-corrective · agi-workflow (stop = scopes too) · agi-node-write §5.
+Card-only: a pi-free mur runs its stages SERIALLY (~7 min each) -> lanes, never one long queue · a --deselect path is cwd-relative
+(use -k) · a running script edited with sed -i keeps its OLD text · the captive capture flattens the quorum link: git checkout it back.
 
 ## ENGINE FINDINGS
-Rows on goal:g7.33.19 (1-22). BOX DRIFT (OOMPolicy unset on streamer-stub-watch.service; agi.slice drop-in absent) = thought-master's.
+Rows on goal:g7.33.19 (1-23). BOX DRIFT (OOMPolicy unset on streamer-stub-watch.service; agi.slice drop-in absent) = thought-master's.
 
 ## BANKED
 - TMM.268 (b) durable fix = a g7.33.17 row -- TM's to mint. · config:brief `extras.parent` -- BLOCKED on prime/owner. · claude-code kids on local-town -- owner's.
+- 22 open rows' fixes are unowned (row 22 R4 OOM, row 13 uncommitted edits, row 17 ceilings): TM to rank.
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
