@@ -94,10 +94,20 @@ def _live_spawn_tasks_max():
     asserted `isinstance(val, int)`, so an owner editing the cell from `150`
     to `"150"` -- which the resolver reads as 150 -- reddened this file with
     "cell is not an int" while production was fine. So: parse the cell the
-    way the resolver does, assert `resolve_tasks_max(cfg) IS` that parsed
+    way the resolver does, assert `resolve_tasks_max(cfg) ==` that parsed
     value and that it is a positive int. A cell that does not parse, or
     parses below 1, fails HERE BY NAME -- never a KeyError, and never a
-    silent disagreement between the row and the resolver."""
+    silent disagreement between the row and the resolver.
+
+    IDENTITY IS NOT EQUALITY (DH.475, residue 1). The comparison was `is`,
+    which holds only because CPython interns small ints in -5..256: the
+    resolver REBUILDS the number with `int(str(raw).strip())`, so every
+    planted cell above 256 -- and an owner editing `spawn.tasks_max` to a
+    real value like 1000 -- reddened a green test with "resolver disagrees
+    with the cell: 1000" while production was right. `==` is what this row
+    means. Red-first proof: a planted cfg dict of 1000 reds the `is` form
+    and greens the `==` form (measured, recorded in
+    experiment:a00-36f071dc-154d29)."""
     cfg = _live_config()
     spawn = cfg.get("spawn")
     assert isinstance(spawn, dict), \
@@ -112,7 +122,7 @@ def _live_spawn_tasks_max():
             f"spawn.tasks_max: cell does not parse as a number: {raw!r}")
     assert parsed >= 1, f"spawn.tasks_max: cell is below 1: {raw!r}"
     resolved = mem_cap.resolve_tasks_max(cfg)
-    assert resolved is parsed, \
+    assert resolved == parsed, \
         f"spawn.tasks_max: resolver disagrees with the cell: {resolved!r}"
     return cfg, parsed
 
