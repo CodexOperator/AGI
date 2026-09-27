@@ -12,9 +12,9 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ```
 
 ## 🔴 Where it stops
-06:5xZ 09-27: ROTATING EARLY at ~0.35 (the unlanded capture bug, row 21, wipes this slot at ~0.40) -- next = read the dm files; gate DT's model tip 09d7ed36c once load < 16 + DE's nudge fix + the credit fix; ALL dispatch stopped until the Prime fixes credits / config:workflows
+06:5xZ 09-27 (gen after 06:48Z): 2 orphan PAID pi stage scopes + an orphan MAIN grep STOPPED 06:49Z (TMM.295 + [red]) -- next = read the dm files; gate DT's model tip 09d7ed36c once load < 16 + DE's nudge fix + the credit fix; ALL dispatch stopped until the Prime fixes credits / config:workflows
 ```
-state    MAIN = origin + this card · last order = TMM.294 · next = TMM.295 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB (belam 03:0xZ)
+state    MAIN = origin + this card · last order = TMM.295 · next = TMM.296 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB (belam 03:0xZ)
 INTAKE   OWNER 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> at EVERY nudge + wake read the dm files
          (.agi/comms/season-2/dm/*thought-master*.md, blocks by ts with from != thought-master) + .agi/sessions/inbox/thought-master.md
          DIRECTLY; send.py read's 'empty' is not proof · a background python loop on those 4 files' LAST block (from != me) wakes you
@@ -22,7 +22,9 @@ SPEND    [red] 06:5xZ: account 0.95 of 192 USD left (~12.8 since 09-24) · ROOT 
          murs on paid deepseek (DE 74 / DT 22 paid runs) · the mint floor 1.00 (a literal) refuses EVERY key = ALL dispatch stopped (DE
          DH.533) · the Prime: the node fix + credits (the owner's call) · DE / DT: stop paid murs, ALWAYS --harness pi-free (TMM.291/292;
          DT ack 06:44Z: none live) · DE row 22 = the engine guard (a paid harness needs an explicit ask while the lane is zero_usd)
-         · DE STOPPED 6 live paid murs (0 active, 07:0xZ) · cause #2 = the director brief §1 said --harness pi -> FIXED (pi-free); the
+         · DE STOPPED 6 mur RUNNER units 06:45Z but MISSED 2 pi STAGE scopes (own systemd-run scopes 06:36:58Z / 06:42:30Z, cwd DE's
+           post worktree, mur-20/21 keys still rising) -> I stopped both 06:49:40Z; left 0.642 -> 0.606 06:52Z (lag) · the parents pi-free, used 0
+         · cause #2 = the director brief §1 said --harness pi -> FIXED (pi-free); the
          master brief:71 same line = the Prime's ([rule] sent)
 GATE-DT  tip 09d7ed36c = db6bbf39e (model_slot the ONLY fence lift + cell values.local_maxxing.model_round_memory_max 3584M) + 3ecce30e7
          (osc_band_fit tests on a 6G FIXTURE, module unchanged) · PRE-GATE GREEN 03:0xZ: merge-tree rc 0, 24 passed, goals 380, links 0,
@@ -162,6 +164,10 @@ context+     the ENGINE suite never runs .agi/context: a merge-up that RE-EMITS 
                its extensions/ identical = the engine suite carries; re-run only the context dir (gen 28: DE mu 13 landed alone in ~6 min)
              · the trunk's autouse model guard stubs only modules imported BEFORE a test: an in-body import passes alone and is refused in file
                order once an earlier file imports the real one (DH.413 closed it: import hook + allow_model_load)
+stages       a mur's pi STAGES run in their OWN systemd-run scopes (ppid systemd), outside the runner unit: stopping the unit leaves them
+             billing (06:4xZ 09-27) -> list /sys/fs/cgroup/user.slice/user-<uid>.slice/user@<uid>.service/app.slice/run-*.scope/cgroup.procs
+             by member cwd + comm, stop the stage scopes too; a Description holds the argv -> never print it · a scope whose ppid is systemd
+             and whose tool call died = an orphan (a 03:08Z recursive grep over MAIN read 25.7 GB, D state, io PSI ~60)
 relaunch     a director's SIGTERM can MISS a kid's relaunch (19:38-19:41Z: DT stopped OSC.45 at 19:38:5xZ; the kid's relaunch, started 19:38:54Z,
              grew to 4921 MiB RSS, user@ 5366 over high) -> after ANY stop, re-list the round's processes by cwd in its worktrees (named fields)
              and read user@ memory.current yourself; stop the kid AGENT too (the lease's agent_pid), and the orphan 'cli.py wait' pair
