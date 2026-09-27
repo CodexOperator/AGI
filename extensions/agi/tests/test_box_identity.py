@@ -161,3 +161,155 @@ def test_seating_writes_no_box_when_the_graph_names_none(tmp_path):
                                 row={"name": "director-belam"})
     assert "undeclared" in out
     assert all("box" not in r for r in write._load_seats(root))
+
+
+# ------------------------------------------------- claim (3): the refusal line
+#
+# (3a) said ONCE per (row, cause) -- two sweeps over one foreign row print it
+#      ONCE in total; (3b) it NAMES the box (or `(unset)`); (3c) it sends NO
+#      send-keys into that row's window. FAKED tmux only -- the fake SCREAMS.
+
+import send  # noqa: E402
+
+FOREIGN = {"name": "far-seat", "role": "director", "model": "m",
+           "session_ref": "", "generation": 1, "window": "@9", "pid": 4242,
+           "box": "sanctuary"}
+LOCAL = {"name": "near-seat", "role": "director", "model": "m",
+         "session_ref": "", "generation": 2, "window": "@1", "pid": 7,
+         "box": "local-town"}
+
+
+def _boxed_graph(tmp_path: Path, rows: list[dict]) -> Path:
+    root = _graph(tmp_path)
+    head = ("---\nid: config:posts\nmint_id: 3e88873e3c204c5088f6ab81322a26de\n"
+            "type: config\nparents:\n  - goal:g17\n")
+    body = "\n".join("  - " + json.dumps(r) for r in rows)
+    (root / "nodes" / ".geometry" / "posts.md").write_text(
+        head + "posts:\n" + body + "\n---\n\n# config:posts\n\nfixture\n")
+    return root
+
+
+class _FakeTmux:
+    """Every tmux call, and a SCREAM on any `send-keys`."""
+
+    def __init__(self, listed: tuple[str, ...] = ("@1", "@9", "far-seat")):
+        self.listed = listed
+        self.calls: list[list[str]] = []
+        self.send_keys: list[list[str]] = []
+
+    def __call__(self, argv, **kw):
+        argv = list(argv)
+        self.calls.append(argv)
+        if "send-keys" in argv:
+            self.send_keys.append(argv)
+            raise AssertionError(f"send-keys issued into a foreign row: {argv}")
+        out = ""
+        if "list-windows" in argv:
+            out = "\n".join(self.listed)
+        class _R:
+            returncode = 0
+            stdout = out
+            stderr = ""
+        return _R()
+
+    def into(self, target: str) -> str:
+        return " ".join(" ".join(c) for c in self.calls if target in " ".join(c))
+
+
+@pytest.fixture
+def fake_tmux(monkeypatch):
+    send._forget_refusals()
+    fake = _FakeTmux()
+    monkeypatch.setattr(send.subprocess, "run", fake)
+    yield fake
+    send._forget_refusals()
+
+
+def _refusals(capsys):
+    return [ln for ln in capsys.readouterr().err.splitlines()
+            if "FOREIGN box row" in ln]
+
+
+def test_falsifier_two_sweeps_print_the_refusal_once(tmp_path, monkeypatch,
+                                                     capsys, fake_tmux):
+    """FALSIFIER 4: pre-fix every sweep shouted. One line, then silence."""
+    monkeypatch.setenv("AGI_BOX", "local-town")
+    root = _boxed_graph(tmp_path, [FOREIGN, LOCAL])
+    for _ in range(2):
+        assert send._nudge_target(root, "far-seat", None) is None
+    lines = _refusals(capsys)
+    assert len(lines) == 1, lines
+    assert "far-seat" in lines[0] and "sanctuary" in lines[0]  # (3b) named
+
+
+def test_falsifier_refusal_names_an_unset_box_as_unset(tmp_path, monkeypatch,
+                                                       capsys, fake_tmux):
+    monkeypatch.setenv("AGI_BOX", "local-town")
+    row = dict(FOREIGN)
+    row.pop("box")
+    root = _boxed_graph(tmp_path, [row, LOCAL])
+    assert send._nudge_target(root, "far-seat", None) is None
+    lines = _refusals(capsys)
+    assert len(lines) == 1 and "(unset)" in lines[0]
+
+
+def test_falsifier_cause_change_on_one_row_is_named_again(
+        tmp_path, monkeypatch, capsys, fake_tmux):
+    """FALSIFIER 5: the memo keyed on the ROW ALONE would swallow this.
+
+    far-seat is foreign -> refused once; it becomes addressable (its own box,
+    swept clean) -> then foreign again under a DIFFERENT cause. It must be
+    NAMED again, not silenced by the earlier refusal.
+    """
+    monkeypatch.setenv("AGI_BOX", "local-town")
+    p = root = _boxed_graph(tmp_path, [FOREIGN, LOCAL])
+    posts = p / "nodes" / ".geometry" / "posts.md"
+    assert send._nudge_target(root, "far-seat", None) is None
+    assert len(_refusals(capsys)) == 1
+    said: list[str] = []
+
+    def _write(row: dict):
+        body = "\n".join("  - " + json.dumps(r) for r in [row, LOCAL])
+        posts.write_text(posts.read_text().rsplit("posts:\n", 1)[0]
+                         + "posts:\n" + body + "\n---\n\n# config:posts\n\nf\n")
+
+    _write(dict(FOREIGN, box="local-town"))          # now addressable
+    resolved = send._nudge_target(root, "far-seat", None)
+    assert resolved is not None                       # swept clean
+    _write(FOREIGN)                                  # foreign again
+    assert send._nudge_target(root, "far-seat", None) is None
+    said += _refusals(capsys)
+    assert len(said) == 1, said                      # named AGAIN
+
+
+def test_falsifier_no_send_keys_reaches_the_foreign_window(
+        tmp_path, monkeypatch, capsys, fake_tmux):
+    """(3c) the whole wake path, not just the resolver: keys never typed."""
+    monkeypatch.setenv("AGI_BOX", "local-town")
+    root = _boxed_graph(tmp_path, [FOREIGN, LOCAL])
+    assert send._nudge_window(root, "far-seat") is False
+    assert fake_tmux.send_keys == []
+    assert fake_tmux.into("@9") == ""                 # @9 never even addressed
+    assert len(_refusals(capsys)) == 1
+
+
+def test_falsifier_two_foreign_causes_on_one_row_both_named(
+        tmp_path, monkeypatch, capsys, fake_tmux):
+    """FALSIFIER 6: the memo keyed on the ROW ALONE silences this.
+
+    One row, two different causes (two foreign boxes), no clean sweep between
+    them: the cause is part of the key, so the SECOND cause is named too.
+    """
+    monkeypatch.setenv("AGI_BOX", "local-town")
+    root = _boxed_graph(tmp_path, [FOREIGN, LOCAL])
+    posts = root / "nodes" / ".geometry" / "posts.md"
+    assert send._nudge_target(root, "far-seat", None) is None
+    said = _refusals(capsys)
+    body = posts.read_text().rsplit("posts:\n", 1)[0]
+    posts.write_text(body + "posts:\n  - "
+                     + json.dumps(dict(FOREIGN, box="streaming-suite"))
+                     + "\n  - " + json.dumps(LOCAL) + "\n---\n\n# config:posts\n\nf\n")
+    assert send._nudge_target(root, "far-seat", None) is None
+    said += _refusals(capsys)
+    assert len(said) == 2, said
+    assert "streaming-suite" in said[1]

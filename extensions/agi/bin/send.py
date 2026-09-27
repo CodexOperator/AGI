@@ -2168,6 +2168,23 @@ def _window_id_listed(tmux_session: str, wid: str) -> bool:
         return False
 
 
+# (3) of hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-
+# refused -- the foreign-row refusal is said ONCE per (row, CAUSE), never on
+# every sweep. Keying on the row ALONE would swallow a genuine CHANGE of cause
+# (a row that becomes addressable, then foreign again, must be named again), so
+# the cause is part of the key and a now-local row FORGETS its own entry below.
+_FOREIGN_REFUSALS: set[tuple[str, str]] = set()
+
+
+def _forget_refusals(to: str | None = None) -> None:
+    """Drop the once-only memo for one row (or all of it, when `to` is None)."""
+    if to is None:
+        _FOREIGN_REFUSALS.clear()
+    else:
+        _FOREIGN_REFUSALS.difference_update({k for k in _FOREIGN_REFUSALS
+                                             if k[0] == to})
+
+
 def _nudge_target(root: Path, to: str, tmux_session: str | None,
                   repair_stale_id: bool = True,
                   ) -> tuple[str, object, str] | None:
@@ -2197,11 +2214,20 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     row = _seat_row_by_name(rows, to)
     if row is not None and not boxes.row_is_local(root, row):
         # A foreign box's row window/pid are NOT addressable here. Refuse by
-        # name, exactly like the stale-@id and name-window refusals below.
-        print(f"nudge: {to} is a FOREIGN box row "
-              f"(box {row.get('box') or '(unset)'}); refusing as a target",
-              file=sys.stderr)
+        # name, exactly like the stale-@id and name-window refusals below -- and
+        # say it ONCE per (row, cause): a later sweep that finds the same
+        # refusal silent is a stuck loop, not news. No send-keys is ever issued
+        # into that row's window; the return below is the whole refusal.
+        label = str(row.get("box") or "(unset)")
+        if (to, label) not in _FOREIGN_REFUSALS:
+            _FOREIGN_REFUSALS.add((to, label))
+            print(f"nudge: {to} is a FOREIGN box row "
+                  f"(box {label}); refusing as a target", file=sys.stderr)
         return None
+    # The row is addressable (or was never refused): forget any old refusal so a
+    # LATER foreign cause on the same row is named again.
+    if any(k[0] == to for k in _FOREIGN_REFUSALS):
+        _forget_refusals(to)
     window_ref = (row or {}).get("window")      # e.g. "@267", a NAME, or None
     pid = (row or {}).get("pid")
     if tmux_session is None:
