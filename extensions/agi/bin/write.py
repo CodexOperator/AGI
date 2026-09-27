@@ -1860,11 +1860,39 @@ def _schema_field_refusal(schema, node_type: str, key, value, *,
 #: Rows an answers FILE names for the mint itself, not as frontmatter.
 _ANSWERS_RESERVED = frozenset({"type", "slug", "parents", "body", "payload"})
 
+#: Rows the WRITER mints: `node_writer.write_node` builds id/mint_id/
+#: next_edges/scaffold_hash and THEN `fm.update(extra_fm)` runs, so an answers
+#: row or a `--set` naming one would overwrite the node's own identity.
+_ANSWERS_IDENTITY = frozenset({"id", "mint_id", "next_edges", "scaffold_hash"})
+
+#: THE PRECEDENCE, ONCE, for the rows the environment also stamps: an explicit
+#: `--set` > the answers file > the calling post's config:posts row > the
+#: environment (`node_writer._stamp_env_fields`). The surviving choice is
+#: re-stamped AFTER the mint, so nothing above the env rank is silently lost.
+#: `edited_by` is absent: that row is create()'s own `--actor` provenance and
+#: the post row has always lost to it.
+_STAMP_ROWS = ("role", "town", "season", "thought_session")
+
+
+def _refuse_authored_identity(key: str, source: str) -> str | None:
+    """ONE check for BOTH create routes (an answers row and an argv `--set`):
+    a row the writer MINTS is refused BY NAME, never overwritten."""
+    if key in _ANSWERS_IDENTITY:
+        return (f"create --{source} refused by name: {key!r} is MINTED by "
+                f"node_writer ({', '.join(sorted(_ANSWERS_IDENTITY))}) and is "
+                "never authorable")
+    return None
+
 
 def _read_answers_file(path: str):
     """ONE answers file -> (data, refusal). JSON, so an apostrophe, a backtick
     and `$(` need no shell quoting: no field value on this route passes
-    through a shell-quoted argv (claim 1)."""
+    through a shell-quoted argv (claim 1).
+
+    PRECEDENCE (see `_STAMP_ROWS`): an explicit `--set` beats the file, the
+    file beats the calling post's `config:posts` row, and that row beats the
+    environment. A row NO caller may choose (`_ANSWERS_IDENTITY`) refuses by
+    name here, not silently."""
     import json
     try:
         data = json.loads(Path(path).read_text(encoding="utf-8"))
@@ -3131,6 +3159,11 @@ def main(argv: list[str] | None = None) -> int:
         parents = list(args.parents or answers.get("parents") or [])
         set_fm = {k: v for k, v in answers.items()
                   if k not in _ANSWERS_RESERVED}
+        for k in sorted(set_fm):
+            refusal = _refuse_authored_identity(k, "answers")
+            if refusal:
+                print(f"ERR: {refusal}", file=sys.stderr)
+                return 2
         if not script or not slug:
             print("ERR: create needs a type and a slug: "
                   'write.py create <type> <slug> --parent <id>', file=sys.stderr)
@@ -3145,7 +3178,8 @@ def main(argv: list[str] | None = None) -> int:
             # a value the shared reader would split on is refused here too
             # (exit 2, one line naming the key), never landed into the
             # frontmatter for the reader to mis-split.
-            refusal = _refuse_marker_value(k, v)
+            refusal = (_refuse_authored_identity(k, "set")
+                       or _refuse_marker_value(k, v))
             if refusal:
                 print(f"ERR: {refusal}", file=sys.stderr)
                 return 2
@@ -3158,8 +3192,13 @@ def main(argv: list[str] | None = None) -> int:
             # same row rules and can satisfy a REQUIRED row. A row the file
             # SETS wins; the stamp never overwrites an authored row.
             post_rows = {k: v for k, v in _post_stamp(root, args.actor).items()
-                         if k not in answers}
+                         if k not in set_fm}
             set_fm.update(post_rows)
+            # THE PRECEDENCE, executed: an explicit `--set` and the file's own
+            # row now outrank the post row, so the SURVIVING choice is what
+            # create() re-stamps after `node_writer`'s environment stamp.
+            post_rows.update({k: set_fm[k] for k in _STAMP_ROWS
+                              if k in set_fm})
             refusal = _answers_row_refusal(root, script, f"{script}:{slug}",
                                            slug, parents, set_fm)
             if refusal:

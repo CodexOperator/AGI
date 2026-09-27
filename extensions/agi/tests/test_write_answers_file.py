@@ -445,3 +445,82 @@ def test_set_flags_may_still_add_a_row_on_top_of_the_answers_file(
     node = (project / "nodes" / "goal" / "g9.9.9.md").read_text(
         encoding="utf-8")
     assert "answers-file" in node
+
+
+# --------------------------------------------------------------------------
+# KID 1 (DH.502) — the three holes: identity rows, `--set` vs the post stamp,
+# and the precedence stated ONCE
+# --------------------------------------------------------------------------
+
+@pytest.mark.parametrize("row", ["id", "mint_id", "next_edges", "scaffold_hash"])
+def test_an_answers_row_naming_a_MINTED_row_refuses_by_name(project, tmp_path,
+                                                             row):
+    """Hole 1. `node_writer.write_node` builds id/mint_id/next_edges/
+    scaffold_hash and only THEN runs `fm.update(extra_fm)`, so an answers row
+    naming one used to overwrite the node's own identity silently."""
+    f = _write_answers(tmp_path, _answers(**{row: "goal:g-stolen"
+                                             if row == "id" else "x"}))
+    out, err, rc = _mint(project, f)
+    assert rc == 2, out
+    assert row in err and "MINTED" in err
+    assert not (project / "nodes" / "goal" / "g9.9.9.md").exists()
+
+
+def test_the_argv_set_route_refuses_a_MINTED_row_by_the_same_check(project,
+                                                                   tmp_path):
+    """Hole 1, the second copy of the hole: the argv `--set` route had it too.
+    ONE shared check, so the two routes cannot drift apart."""
+    _out, err, rc = _run(["create", "goal", "g8.8.5", "--parent", "goal:g1",
+                          "--set", "mint_id=0000", "--root", str(project)])
+    assert rc == 2 and "mint_id" in err and "MINTED" in err
+    assert not (project / "nodes" / "goal" / "g8.8.5.md").exists()
+
+
+def test_an_explicit_set_BEATS_the_calling_posts_stamp(project, tmp_path):
+    """Hole 2. `post_rows` was filtered on `answers` alone, so an explicit
+    `--set role=...` was overwritten by the post's row. THE RULE CHOSEN: the
+    explicit `--set` WINS (rank 1 of the precedence)."""
+    f = _write_answers(tmp_path, _answers())
+    _geometry(project)
+    out, err, rc = _mint(project, f, "--actor", "post-a",
+                         "--set", "role=council")
+    assert rc == 0, err
+    node = _frontmatter_of(project)
+    assert "role: council" in node and "role: parent" not in node, \
+        "an explicit --set outranks the calling post's row"
+
+
+def test_an_explicit_set_BEATS_the_answers_file_row_too(project, tmp_path):
+    """Rank 1 over rank 2, same rule, no second copy of the check."""
+    f = _write_answers(tmp_path, _answers(role="kid"))
+    _geometry(project)
+    out, err, rc = _mint(project, f, "--actor", "post-a",
+                         "--set", "role=council")
+    assert rc == 0, err
+    assert "role: council" in _frontmatter_of(project)
+
+
+def test_the_answers_files_own_row_beats_the_ENVIRONMENT(project, tmp_path,
+                                                          monkeypatch):
+    """Ranks 2 and 4 of the precedence, executed: the mint's environment stamp
+    (`node_writer._stamp_env_fields`) must not silently replace what the file
+    asked for. Without a matching post row, too — the re-stamp is not gated
+    on the post stamp existing."""
+    monkeypatch.setenv("AGI_ROLE", "director")
+    monkeypatch.setenv("AGI_SEASON", "5")
+    f = _write_answers(tmp_path, _answers(role="kid", season=7))
+    out, err, rc = _mint(project, f)
+    assert rc == 0, err
+    node = _frontmatter_of(project)
+    assert "role: kid" in node and "role: director" not in node
+    assert "season: 7" in node and "season: 5" not in node
+
+
+def test_the_precedence_is_STATED_ONCE_and_the_routes_follow_it():
+    """Hole 3. The order lives in ONE place (`_STAMP_ROWS` + the answers-file
+    docstring), and the argv route is untouched by it: without `--answers`
+    nothing is re-stamped, so `--set season` still loses to `AGI_SEASON`."""
+    src = (BIN / "write.py").read_text(encoding="utf-8")
+    assert src.count("_STAMP_ROWS = (") == 1, "one source for the order"
+    doc = src.split("def _read_answers_file(", 1)[1].split('"""', 2)[2]
+    assert "`--set`" in doc and "answers file" in doc and "environment" in doc
