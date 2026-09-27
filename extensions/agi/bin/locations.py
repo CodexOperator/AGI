@@ -490,6 +490,19 @@ def payload_base(root: Path, location: str | None = None,
     )
 
 
+def known_payload_locations(config: dict | None = None) -> list[str]:
+    """The location NAMES `payload_base` accepts, in resolution order.
+
+    The one list both the picker and `payload_base` read, so a cell that
+    declares a name the write path would refuse is recognisable HERE, at the
+    option, instead of far downstream as a KeyError naming a config value.
+    """
+    known = ["source_root", "graph_root", "repo_root"]
+    known += [k for k in ((config or {}).get("locations") or {})
+              if isinstance(k, str) and k not in known]
+    return known
+
+
 def storage_categories(config: dict | None = None) -> list[dict]:
     """The numbered storage-category picker, in config CELL order.
 
@@ -499,16 +512,20 @@ def storage_categories(config: dict | None = None) -> list[dict]:
     only its reader. Insertion order is the numbering order: a new cell is a
     new option and nothing else changes.
     """
-    block = ((config or {}).get("mint") or {}).get("storage_categories") or {}
+    cfg = config or {}
+    known = known_payload_locations(cfg)
+    block = ((cfg.get("mint") or {}).get("storage_categories") or {})
     rows: list[dict] = []
-    for i, (key, cell) in enumerate(block.items(), 1):
+    for key, cell in block.items():
         if not isinstance(cell, dict):
             continue
+        name = str(cell.get("location") or DEFAULT_PAYLOAD_LOCATION)
         rows.append({
             "n": len(rows) + 1,
             "key": str(key),
             "label": str(cell.get("label") or key),
-            "location": str(cell.get("location") or DEFAULT_PAYLOAD_LOCATION),
+            "location": name,
+            "location_ok": name in known,
             "prefix": str(cell.get("prefix") or "").strip("/"),
             "custom": False,
         })
@@ -523,6 +540,10 @@ def resolve_storage_category(pick, tail: str | None = None,
     as a path and returned FLAGGED `custom` against the default base -- an
     accepted answer, never an exception: a pane that types a path it knows is
     not in the table must not be told it may not.
+
+    A cell whose `location` is NOT a name `payload_base` accepts is a config
+    error, not a pick, and it is refused HERE by name: the row is never
+    returned, so no caller can carry a name the write path will reject.
     """
     rows = storage_categories(config)
     text = str(pick).strip()
@@ -532,12 +553,18 @@ def resolve_storage_category(pick, tail: str | None = None,
             hit = row
             break
     if hit is not None:
+        if not hit.get("location_ok", True):
+            raise ValueError(
+                f"storage category {hit['key']!r} declares location "
+                f"{hit['location']!r}, which payload_base does not accept. "
+                f"Use one of: {', '.join(known_payload_locations(config))}."
+            )
         rest = str(tail or "").strip().lstrip("/")
         return {**hit, "payload_ref": f"{hit['prefix']}/{rest}" if rest
                 else hit["prefix"]}
     return {"n": 0, "key": "custom", "label": "custom", "custom": True,
-            "location": DEFAULT_PAYLOAD_LOCATION, "prefix": "",
-            "payload_ref": text or str(tail or "").strip()}
+            "location": DEFAULT_PAYLOAD_LOCATION, "location_ok": True,
+            "prefix": "", "payload_ref": text or str(tail or "").strip()}
 
 
 def resolve_payload_path(root: Path, ref: str, location: str | None = None,

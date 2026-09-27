@@ -150,3 +150,50 @@ def test_cli_resolver_location_is_accepted_by_payload_base(tmp_path):
     root = _project(tmp_path, cfg)
     for row in locations.storage_categories(cfg):
         assert locations.payload_base(root, row["location"], cfg) is not None
+
+
+# --- falsifier 4: the resolver never returns a name payload_base refuses ---
+
+def test_bad_cell_location_is_refused_by_name_not_passed_through():
+    """The falsifier the parent review said FIRES, closed."""
+    cfg = {"mint": {"storage_categories": {
+        "tests": _cell("source_root", "t", "tests"),
+        "typo": _cell("no_such_place", "b", "typo"),
+    }}}
+    try:
+        row = locations.resolve_storage_category("typo", "x.py", cfg)
+    except ValueError as exc:
+        msg = str(exc)
+        assert "typo" in msg and "no_such_place" in msg, msg
+    else:
+        raise AssertionError(f"resolver returned an unvalidatable row: {row}")
+
+
+def test_no_row_of_any_table_carries_a_name_payload_base_refuses(tmp_path):
+    """The property, over the bad cell AND a pick by number."""
+    cfg = {"mint": {"storage_categories": {
+        "ok": _cell("source_root", "a", "ok"),
+        "typo": _cell("no_such_place", "b", "typo"),
+    }}, "locations": {"extra_root": "rel/dir"}}
+    root = _project(tmp_path, cfg)
+    known = locations.known_payload_locations(cfg)
+    assert known[-1] == "extra_root"
+    for row in locations.storage_categories(cfg):
+        assert row["location_ok"] is (row["location"] in known)
+    for pick in ("typo", "2"):
+        try:
+            row = locations.resolve_storage_category(pick, "x.py", cfg)
+        except ValueError:
+            continue
+        assert locations.payload_base(root, row["location"], cfg)
+
+
+def test_a_declared_locations_cell_makes_a_bad_cell_acceptable(tmp_path):
+    """Fix the config, not the code: the option becomes resolvable."""
+    cfg = {"mint": {"storage_categories": {
+        "docs": _cell("docset", "notes", "docs")}},
+        "locations": {"docset": "notes"}}
+    row = locations.resolve_storage_category("docs", "a.md", cfg)
+    assert row["location"] == "docset" and row["custom"] is False
+    assert (locations.payload_base(_project(tmp_path, cfg), "docset", cfg)
+            / row["payload_ref"]).name == "a.md"
