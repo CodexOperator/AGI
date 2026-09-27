@@ -393,8 +393,10 @@ def test_the_tests_subtree_exclusion_bites_and_is_not_a_dead_constant(tmp_path) 
 
     `Path.relative_to().parts` are bare names -- "tests", never "tests/" -- so
     the predicate was false for every file in the tree: the exclusion excluded
-    NOTHING, measured over all 9 `*.sh` under PLUGIN_ROOT (0 hits). It was
-    also unjustified: the shipped fixture plants `"$PROJECT_ROOT/bin/$NAME"`,
+    NOTHING, measured over all 8 `*.sh` under PLUGIN_ROOT (0 hits; DH.481
+    re-measured -- the 9 this docstring once claimed counts a file the tree no
+    longer holds). It was also unjustified: the shipped fixture plants
+    `"$PROJECT_ROOT/bin/$NAME"`,
     whose `$NAME` the regex does not match, so the fixture never carried a
     site to exclude. RED before the fix: the literal site in `tests/` was
     reported as a carrier. A retyped exclusion that never fires is the same

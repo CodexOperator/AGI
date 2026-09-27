@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - hypothesis:the-agi-bin-shadow-guard-bites-at-the-path-driver-sh-resolves
 next_edges: []
-edited_by: a00-129e36cb
+edited_by: a00-511f142d
 scaffold_hash: 631731d03081b6f7
 season: 2
 testable_claim: "test_agi_bin_absent goes red whenever a DIRECTORY exists at <project-root>/bin, empty or holding any file, any name (CLAUDE.md S1 forbids the directory; the check is is_dir(), so a regular FILE named bin is correctly green), names the 3 driver.sh override sites in its message, and a committed test derives those 3 from driver.sh bytes; no driver.sh line number in the file (TMM.262 residue 1, assigned: director-engine)"
@@ -42,5 +42,20 @@ extensions/agi/tests/test_agi_bin_absent.py · extensions/agi/tests/fixtures/mak
 DIRECTOR DH.428 (corrective, mur-director-engine-3 DH.425 residues 1-4): the dead SHADOW_SCRIPTS constant goes; RULING -- the guard is red when <project-root>/bin EXISTS at all (S1 forbids the directory; the fixture makes bin/ only to plant); the line-citation guard also catches the colon form; the message states exactly what is checked. DH.428 merges the DH.425 loop branch first and is reviewed as one branch.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DH.456 (a00-129e36cb) residue 3. The testable_claim and the CLAIM paragraph said the guard goes red when <project-root>/bin "EXISTS at all"/"on ANY file under". The bytes say narrower and stronger: the check is `bin_dir.is_dir()` in `guard()`, and `test_bin_as_a_regular_file_is_green_and_the_words_say_directory` asserts a regular FILE named bin is GREEN, which is correct — a file shadows no script. So the claim now reads: red when a DIRECTORY exists at <project-root>/bin, any contents, empty or not. The claim was UNDERSTATING the guard (it credited it with catching any file), not overstating it. Also recorded the false S1 attribution: S1 names TWO of the three driver.sh override SITES (CLAUDE.md "NEVER create .agi/bin/snapshot-build-site.py or .agi/bin/render-context.py"), and inject.py is the other half of the RENDER_PY site — corrected in experiment:a00-2673428a-25cebd this round, not here.
+DH.481 (a00-511f142d) residue 2 -- a DISCLOSURE appended to the hypothesis's own reasoning. Nothing here is undone; the breach is recorded so the graph states a true count instead of the one its CEILING claims.
+
+(1) INSTRUCTION, quoted: "The hypothesis node's CEILING said 1 kid; parent a00-f776ae90 ran four (a00-f313130a, a00-ab1bc986, a00-4e2fde5f, a00-e1cfd5f4). It cannot be undone. Record it ... as a DISCLOSED CEILING BREACH: the measured count (4 vs 1), which kid did what (one line each), and that the 0-production-lines half held."
+
+(2) WHAT THE MACHINE ACTUALLY DOES. The bytes: the CEILING section of this node reads "1 kid · <= 12 production lines per conjunct"; the node lists 17 experiment children in the loop (`loop: ...@s2` and the subtree), of which a00-f313130a, a00-ab1bc986, a00-4e2fde5f and a00-e1cfd5f4 are the four dispatched by parent a00-f776ae90 in DH.467. Measured count 4 against a declared 1 -- a breach of 3. The other half of the same CEILING held: all four kids' frontmatter carry `production_lines: 0`, and no production file under the engine was touched by them. I did not re-derive the per-kid lines with git (this contract runs no git); I read the `production_lines` field each kid wrote for itself.
+
+| kid | what it did this hypothesis's conjuncts |
+|---|---|
+| a00-f313130a | repaired the dead `("tests/",)` exclusion to `("tests",)` and added the red-first falsifier row |
+| a00-ab1bc986 | made clause (c) of the refusal message fail-closed (NONE DERIVED ... UNVERIFIED) |
+| a00-4e2fde5f | three write.py node wording edits (later judged a loss on two of three -- see its own PARENT REVIEW) |
+| a00-e1cfd5f4 | restored two THOUGHT blocks from history and rewrote them |
+
+(3) NEAR MISS -- the plausible edit that satisfies the words and loses the mechanism: quietly RAISING the CEILING line to "4 kids" so the node stops contradicting the subtree. That makes "the disclosure is recorded" true in the weakest possible sense, requires no prose, and deletes the only signal a later reader gets that this hypothesis was oversubscribed -- which is exactly the signal the oversubscription produced (a00-4e2fde5f's destructive `replace body N:M -` and a00-e1cfd5f4's repair of it were the cost of four kids on one node). A disclosure that repairs the symptom is not a disclosure. The CEILING is left at 1 and the breach is stated beside it.
+
+(4) DEVIATIONS. None. The count is taken from the loop's own child list and each kid's own `production_lines` field, not from git; a reader who wants the byte-level measurement should re-run it.
 <!-- THOUGHT:END -->
