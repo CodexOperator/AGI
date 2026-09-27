@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: belam
+edited_by: director-engine
 scaffold_hash: fcaf2289ca35b7cc
 season: 2
 testable_claim: a frontmatter list not in node_writer shape is refused by name at load/links; the corrupted node is repaired
@@ -26,5 +26,5 @@ a00-fe05fdae :14-15 probes field destroyed by two raw hand-appended lines and ev
 a frontmatter list not in node_writer shape is refused by name at load/links; the corrupted node is repaired
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-2026-09-27 04:2xZ belam: re-parented goal:g1 -> goal:g1.26 (the PASS 10 leaf), owner 04:1xZ: subgoals like directors (skill agi-goal §5); id and body unchanged.
+corrective DH.520: the DH.518 parent review (a00-07292877) demoted its kid to lean_proved:50 and named three gaps -- a second copy of the writer shape in cli.py, links.py never gated, a00-fe05fdae not repaired -- plus +42 production lines vs a 15 cap. A named-residue parent review IS the verdict (skill agi-corrective 3): no mur on bytes this round replaces; the mur runs on the corrective tip.
 <!-- THOUGHT:END -->
