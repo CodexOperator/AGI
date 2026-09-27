@@ -37,7 +37,7 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ## 🔴 Where it stops
 02:5xZ 09-27: NUDGE FIX FIRST (OWNER 02:49:02Z) -- DE dispatches g7.33.17 row 20 now (TMM.271); DT HELD + my model probe DEFERRED until it lands (TMM.272); then GATE DT's model-gate merge-up LIVE (tip db6bbf39e + its osc_band_fit re-derivation); PASS 10 running since 01:23Z
 ```
-state   MAIN = origin + this card · last order = TMM.273 (DT: osc_band_fit tests take the 6.00G budget as a FIXTURE; preflight RETIRED as superseded) · next = TMM.274 · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
+state   MAIN = origin + this card · last order = TMM.274 (DT: pre-gate green, rest after the nudge fix) · next = TMM.275 · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
 OWNER   02:49:02Z in this pane, verbatim: "DT latest message seems nudges are growing more broken. Luckily the DE is on it we need it bad. If needed
         we can pause DT work for now to give DE more breathing room to implement quicker with a higher cap given no model container and no docker loader"
         -> TMM.271 DE: row 20 as its OWN round ahead of the queue (was riding send-is-hub-only; DE queue = g4.18.1 -> hub-only -> g7.31.3.3)
@@ -46,8 +46,10 @@ OWNER   02:49:02Z in this pane, verbatim: "DT latest message seems nudges are gr
 INTAKE  OWNER in this pane 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> at EVERY nudge and wake read the dm
         files (.agi/comms/season-2/dm/*thought-master*.md, newest blocks by ts) + .agi/sessions/inbox/thought-master.md DIRECTLY: send.py
         read printed 'empty' twice while DE's 01:49Z [red] + 02:16Z [rule] sat in the inbox file and DT's 21:37Z [merge-up] never nudged
-PRE     02:36Z (successor): db6bbf39e vs HEAD df65ff4dc merge-tree rc 0 · 12 files · workflow.py untouched (mid-PASS landing OK) · probe
-        WAITS: user@ 6506 / high 6628 MiB at 02:35Z (PASS 10) -> run it when memory.current <= high - 3500 MiB · DT re-send not in yet
+PRE     03:0xZ: DT tip 09d7ed36c (= db6bbf39e + 3ecce30e7 osc_band_fit fixture fix) vs HEAD bbc4d171d: merge-tree rc 0 · workflow.py + geometry
+        untouched · CHEAP GATE GREEN: 3 touched test files 24 passed (0 skip/xfail) · goals 380 · links 0 broken · evidence 0 · anonymize ok ·
+        diff read (model_slot fence lift = own child only; the regex refusal is belt behind DE's fence) · gate-mg1 REMOVED -> re-mint M
+        LEFT (after DE's nudge fix, TMM.272 hold): engine suite (cwd in gate) · whole .agi/context under torch · the pi-free mur · GATE+ probe
 GATE-DT tip db6bbf39e (= aae8a6d38 + db6bbf39e; carries f28493d5b): cell values.local_maxxing.model_round_memory_max = 3584M (2936 + 22 pct);
         the PARENT dispatches its model kid --no-model --memory <cell> (--memory does not nest) -> gate = the GATE+ probe below, run YOURSELF
         with no model round live and user@ memory.current + MemAvailable read first (the load is ~3 GB) · then the WHOLE .agi/context under
