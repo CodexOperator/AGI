@@ -40,8 +40,8 @@ TOOLS     <scratchpad 96494ce7-...>: gen.py N args tip labels [R4] + place.sh N 
           · a base older than 91ae33672 needs `cherry-pick -x 6f9b9a1d9` before dispatch (else the mint refuses at 0.61)
 MURS      murl1..3 = 3 LANES over batches murq1..7 (mkdir claims/b<N>; pi-free = SERIAL per stage ~7 min): 1 509k1 509k2 512 514k1 ·
           2 514k2 515 516 510k4 · 3 519 522 521 501 · 4 526 520 507k1 507k2 · 5 525k1 525k2 529k1 529k2 · 6 497k1 497k2 530 531 · 7 532
-          single units: murq15 DH.544 · murq16 DH.543 · murq17 DH.541 · murq18 DH.542 · murq19 DH.545   (a unit that ENDS = read its verdicts, triage)
-LIVE      DH.549 a00-60e5d07e (516) · DH.540 a00-c6a30652 · DH.545 a00-000b4375 · DH.546 a00-d470d22c · DH.547 a00-0a868326 · DH.548 a00-366fb511   (wt de-base-<N>)
+          single units: murq15 DH.544 · murq16 DH.543 · murq17 DH.541 · murq18 DH.542 · murq19 DH.545 · murq20 DH.540 · murq21 DH.547   (a unit that ENDS = read its verdicts, triage)
+LIVE      DH.549 a00-60e5d07e (516) · DH.546 a00-d470d22c · DH.548 a00-366fb511   (wt de-base-<N>)
 QUEUED    skills adapter round (hypothesis:skills-load-per-harness-per-tier-from-one-config-cell) cut from 526's cleared tip · 471 after 530
 CHAIN     tips (last)                 state                                                          land note
  426 schema-gate  527 → 543           harvested 117b61216 (4 nodes landed, 153p) -> murq16           NEVER 442
@@ -50,9 +50,10 @@ CHAIN     tips (last)                 state                                     
  row 20 nudge     524 → 542           harvested 7502fa786 (470p; send.py net 38 vs 15, row 17) -> murq18
  trunk reds       538 → 545           harvested e4f039c8d (184p, 2 nodes landed) -> murq19
  zero-usd         537 → 546           mur-23 AWR (cap guard charged the floor it is exempt from) -> DH.546 LIVE
- stale-lock       532 → 534 → 547     mur-23 DH.534 DEMOTE -> DH.547 LIVE; 532 review in lane 7; 532 NEVER merges alone
+ stale-lock       532 → 534 → 547     DH.547 harvested 62b036f4d (291p) -> murq21; 532 review in lane 7; 532 NEVER merges alone
  model-fence      508 → 517 → 536 → 539 → 548   mur-23 508 demote + 539 AWR (verify died: memory-cap, R4) -> DH.548 LIVE
- kid-worktrees    529 → 533 → 540     529 lane 5 · 533 DEMOTE -> DH.540 LIVE
+ kid-worktrees    529 → 533 → 540     529 lane 5 · DH.540 harvested 357c4b4f2 (287p; parent falsified A1/A2/A4, regenerable set is a LITERAL
+                                      -> config_max; B7 note/sample_n = director at landing) -> murq20
  432 guard-piece  530                 lane 6                                                         NEVER 432 itself
  433 guard-inst   471                 corrective AFTER 432 lands (mur-17 k1 unstructured, k3 AWR)
  g4.18.1.1/.3/.4  521 · 519 · 497     lane 3 · 519 lane 3, 510-k4 DEMOTE: corrective cut from 519's tip AFTER 519's verdict · lane 6; 521 item 4 UNLANDABLE (row 21)
