@@ -33,25 +33,27 @@ Skills: agi-dispatch · agi-workflow · agi-node-write · agi-goal · agi-send �
 
 ## §0 STATE (03:3xZ 09-27 · compacted: per-chain history = `git log` of this node before 061923b03)
 ```
-LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br holds DH.424+431, 434 (262107e12) · trunk synced f6bd22040
-LIVE      parents (cap = cell values.local_maxxing.de_live_parents, arm 10): 487 a00-47284405 · 491 a00-7a06e8e4 · 492 a00-cfed6d3f
-          · 494 a00-102da14e · 498 a00-efb7f2a8 · 499 a00-42c4f9a2 · 496 a00-eb0c2ac5 · 497 a00-263a936b
-          murs (systemd agi-director-engine-mur<N>): 471 479 482 483 485 489 490 493 · swarm-sampler2
+LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br holds DH.424+431, 434 (262107e12), 430 chain (4af305171, 702 green) · trunk synced c62bfe387
+LIVE      parents (cap = cell values.local_maxxing.de_live_parents, arm 10): 492 a00-cfed6d3f · 496 a00-eb0c2ac5 · 497 a00-263a936b
+          · 498 a00-efb7f2a8 · 499 a00-42c4f9a2 · 500 a00-616b9d6c · 501 a00-759e6b60 · 502 a00-06858031 · 503 a00-310da84b
+          murs (systemd agi-director-engine-mur<N>): 471 479 483 485 490 493(+495) 494 · swarm-sampler2
 CHAIN     tip / state                                                                          land note
- 425 bin-guard   486 @8b8c492b0 -> mur-14 AWR (blank line lost in a review span; count 3 vs 4) -> 494 LIVE (de-base-486)
+ 425 bin-guard   494 @11707134d (parent left edits uncommitted; landed TMM.268) -> mur494 running
  426 schema-gate 483 @663cd21e2 -> mur483 3 slices (reviews in, verifies pending)                NEVER 442
  427 heal-refuse 485 @ac2b2a4c3 (484+485) -> mur485 running                                     NEVER 476 (its cli.py = cand. for DH.492)
  429 tasks-max   495 @03ac46eea (kid logged edits landed) -> mur493 running   merge 429 nodes, then 443 -X theirs
- 430 ctx-suite   489 @6b21bbf53 (kid logged edit landed by me, TMM.268) -> mur489 running
+ 430 ctx-suite   MERGED 4af305171 (mur-15 DH.489 accept)
  432 guard-piece 479 @e22d6c6cf -> mur479 running                                                NEVER 432 itself · 13 nodes carry /home/<user> = a finding for TM
  433 guard-inst  471 @07f7fdf01 -> mur471 running                                                land 432's chain FIRST
  434 memcap      MERGED 262107e12
- g4.18.1.1       482 (answers file) mur-14 k1 AWR: id/mint_id not in _ANSWERS_RESERVED (write.py:1861); --set loses to post stamp (:3160); string parents char-split (:3131) -- k2 verify pending -> ONE corrective
+ g4.18.1.1       482 mur-14 k1+k2 AWR (id/mint_id spoof, stamp precedence, dry-run bytes, parents char-split, SystemExit) -> 502 LIVE (de-h482)
  g4.18.1.3/.4    496 / 497 LIVE (hyps minted 061923b03)
  send-hub box    498 LIVE: every-live-row-carries-its-own-box (belam 00:35Z + OWNER 21:0xZ); parent goal has no goal_id (belam's node: flag in [merge-up])
  kid-worktrees   499 LIVE: claims 1+2 (prune tool dry-run default + worktrees_root cell); claims 3 (tmpfs) + 4 (reboot prune) = next round; I run --apply only after review
  row 20 nudge    490: RED test_send.py::test_read_advances_cursor_past_withheld_block_copy_remains -> corrective FROM 490 tip after mur490
- thought-verb    487 LIVE -- at its review ADD: same first-pair regex in snapshot-goals.py:285, metrics.py:262, brief.py:2352 (mur-14 DH.486 missed)
+ thought-verb    487 @24a568ba5 (kid 3 chosen; kids 1-2 demoted, their nodes landed) 2 REDS: render --check MISMATCH 242 (strip_thought newline) + corpus test counts quoted markers -> 500 LIVE (de-h487) (+ brief.py:2352 copy)
+ wake-facts      491 @3d2e74719 lean_disproved:60: config:rotations facts = PRIME writes it (TMM.281) -> 501 LIVE: draft INTO a node -> rides [merge-up]; red-first test lands only AFTER the Prime's write is on the trunk
+ reap-chain      503 LIVE (belam [decision] 03:48Z dispatch now: PASS 10 c14 live regression)
 OWNER     21:1xZ via belam: send QUIET row cell + READ-ON-LANDING; HOLD stream / encryption-town / sanctuary activation until messaging done
           box id = env AGI_BOX (init via environment.d, stamped by crons.py, engine refuses unset) -- NOT yet on send-is-hub-only
 ```
@@ -70,7 +72,7 @@ blocked  none
 ```
 FIRST  spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' ; read the dm file DIRECTLY
        (.agi/comms/season-2/dm/director-engine--thought-master.md) -- send.py read says 'empty' past dm blocks until DH.490 lands
-VERDICTS  MAIN .agi/sessions/workflows/runs/mur-director-engine-14/{review,verify}_DH.4NN-kN.json (concurrent murs share ONE key)
+VERDICTS  MAIN .agi/sessions/workflows/runs/mur-director-engine-1{4,5,6}/{review,verify}_DH.4NN-kN.json (concurrent murs share ONE key)
 HARVEST   parent pid gone -> git diff <chain prev tip> <loop br> -> CHECK THE KID + PARENT WORKTREES for uncommitted edits
           -> land only write-log-matched bytes (TMM.268) -> touched tests + neighbourhood -> anonymize grep -> mur (1 slice/kid, systemd-run)
 CORRECTIVE  git worktree add -b de-base-<N> .agi/worktrees/de-base-<N> <loop tip> ; dispatch.py from THERE with --orders
