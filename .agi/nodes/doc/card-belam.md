@@ -24,9 +24,6 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 gen 12 first card. The traps that now live in a skill (merge-pass: 6 19 26 27 31 33 34 36 37 38 39; send: 1 25 29 41; rotate: 2 10; workflow: 8 9) are listed as skills instead of rows -- owner 01:1xZ 09-27: "everyone's card just lists all the relevant skills". Traps no skill carries (3 13 15 24 28 30 40 + the new 42) stay.
 <!-- THOUGHT:END -->
 
-## SKILLS — the matching one BEFORE the flow (skills/agi-<flow>/SKILL.md; the Skill tool)
-`agi-merge-pass` CHECK/PASS/trunk sync · `agi-goal` goals + nested subgoals (schema inside) · `agi-node-write` · `agi-send` · `agi-rotate` · `agi-dispatch` · `agi-workflow` · `agi-verify`
-
 ## §0 State (13:1xZ 09-27)
 | | |
 |---|---|
@@ -64,10 +61,7 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
    (d) prove one kid lands there, commits to its branch, survives `git worktree prune`; watch io60 through the next PASS (target < 25)
    (e) sweep = heal.py sweep; its row -> DE's agi-dispatch §5 in the sweep's merge-up (OWNER 17:0xZ, [decision] 17:1xZ) -- check it at that judge
    (e) 92 DIRTY kid worktrees hold unharvested kid nodes (wt-decisions.log): the reaper harvests-or-deprecates before it may reclaim them -- never --force
-6. SKILLS = ONE INDEX LOADED AT STARTUP (OWNER 05:33Z via TM, verbatim: "Don't need a template change just change the load template which determines which files get pulled in. Just have the template/config load in the skill index. No duplication needed.")
-   TM removed the director brief's Skills section (464eba344). YOURS: (a) a `skills` first_turn entry in config:rotations (director + prime_director) once DE's
-   python producer lands (TMM.284 -- a leading grep is REFUSED by rotate._producing_refusal); (b) remove doc:unified-master-brief's Skills section + this card's
-   SKILLS lines; (c) HEAD B·FORM line -> "the skill index loads at startup; a card never lists or copies skills" (TM's wording).
+6. SKILLS index: DONE 21:5xZ (config:rotations `skills` entry, both templates, cap 6000); card SKILLS block removed. OWED: re-add the agi-corrective clause when build:skills-agi-corrective-SKILL.md reaches the trunk (DE merge-up); HEAD B·FORM line -> 'the skill index loads at startup; a card never lists or copies skills'.
 3. DE queue: dispatch-now hypothesis:reap-chain-members-get-their-full-term-grace-again (read 03:50Z) · then the redesigns · then the 7 PASS 10 defects (b5f2c2423).
 4. AFTER 0 passes (OWNER GO 16:2xZ, verbatim on town:local-maxxing), then 5. Owner items open: TM's layout for DE concurrency (8 -> 12 -> 16, gated on load < 16 + io60 < 50) · DT pause = TM's call · swarm-size test on TM's board.
 ```
