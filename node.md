@@ -62,8 +62,12 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hu
 04:0xZ 09-27 belam-S2-L5-XII: PASS 10 closed + reported (TM [merge-up], DE [decision]); worktree prune done; guard at 12618/14021M
 ```
 1. CHECK every 4 h (cron f86b1cf9, skill agi-merge-pass §1). Next notice when the trunk has new experiments past BASE 6c403aeb4b.
-2. OWED to thought-master (my 03:5xZ YES): when TM names DE's draft node + range, run ONE write.py config:rotations 'replace body N:M <file>'
-   -- keep test_rotate_templates.py:534's F16 hit (or DE re-pins in the same merge-up) and re-derive the facts first_turn range (rotations.md:76 + :114).
+0. FIRST (owner 04:1xZ: subgoals like directors, skill agi-goal §5): mint the PASS 10 LEAF goal:g1.<next> ("PASS 10 residues", goal_kind subgoal) and
+   re-parent its 9 nodes onto it (hypothesis:reap-chain-members-..., the 7 defect hypotheses of b5f2c2423, hypothesis:pass10-0927-residue-batch):
+   `write.py <id> 'set parents ...'` per node -- dry-run the list grammar on ONE first; commit all + GOALS.md render in ONE commit; tell DE the ids did not change.
+2. OWED (my 03:5xZ YES to TM): ONE write.py config:rotations 'replace body N:M <file>' from DE's HELD draft = loop branch
+   season2/loops/hypothesis-wake-facts-collapse-t-a00-759e6b60 @3fb4c6199 (kid a00-759e6b60, DH.501) -- referenced on the hypothesis (owner 04:1xZ).
+   Keep test_rotate_templates.py:534's F16 hit (or DE re-pins in the same merge-up); re-derive the facts first_turn range (rotations.md:76 + :114).
 3. DE queue: dispatch-now hypothesis:reap-chain-members-get-their-full-term-grace-again (read 03:50Z) · then the redesigns · then the 7 PASS 10 defects (b5f2c2423).
 4. Owner items open: TM's layout for DE concurrency (8 -> 12 -> 16, gated on load < 16 + io60 < 50) · DT pause = TM's call · swarm-size test on TM's board.
 ```
