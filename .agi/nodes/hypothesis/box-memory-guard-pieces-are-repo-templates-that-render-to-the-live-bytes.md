@@ -103,6 +103,23 @@ FILE SCOPE extensions/agi/tests/test_boxkit_templates.py · .agi/nodes/experimen
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 1247ad570 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.634 -- closes mur-director-engine-36 DH.615-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-box-memory-guard-piec-a00-0899a246 tip d0c4c43ca (branch de-base-634; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 2. Corrected node's own opening still says all four items closed (contradicts its corrected tally)
+2. 3. Body section 2 still names direction 2's token the checkout root and pastes the withdrawn probe C
+3. 4. Universal negative 'no state of the merge flips anything the suite asserts' is false
+4. ONE-SOURCE, NEW: test:1036 hand-copies the literal '/.sanctuary/' that the same file already hard-codes in _leaks at test:151, while the new comment at test:1029-1030 claims 'KIT_TOKEN is drawn from the kit rule's OTHER tokens (home, /.sanctuary/)'. It is a second copy, not a draw: if the guard root changes at :151 the candidate silently diverges and the row keeps passing on a token the rule no longer denies -- the same copy-vs-rule defect the round exists to remove, reintroduced in the fix.
+5. NODE-vs-BYTES, MISSED: .agi/nodes/experiment/a00-2efa683b-cd698b.md:31 (item 3 row) claims 'the comment names the mutation precisely instead of "RED if merged"', but the comment DH.615 rewrote at test:1034-1035 still ends with the literal sentence 'RED if merged: adding the kit's roots to anonymize.box_tokens makes `scan` name a class here (probe C, DH.591)'. The row the round says it corrected still asserts a fix the bytes do not carry.
+6. STALE POINTER, MISSED: a00-2efa683b-cd698b.md:122 still ends 'RESIDUE: item 4 (test:4 inventory) open, see the note above' although DH.615 closed item 4 (a00-77817316:47-54, and `grep -n "10b\|SUB-ROWS"` on the d0c4c43ca bytes returns nothing, rc=1). The node this round edited still points a reader at an open residue that is closed.
+7. (director measured at harvest: test_boxkit_templates.py + smoke = 269 passed, 6 skipped at d0c4c43ca; re-run at your tip and paste) UNVERIFIED: I did not run the suite at d0c4c43ca (the file does not exist at worktree HEAD d64923cd8, deleted after this range), so '269 passed, 6 skipped' (a00-77817316:77-79) and the parent's '197-test -k subset passes' (:119) remain claims, not evidence. Probe I WOULD run: cd <checkout of d0c4c43ca> && env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_boxkit_templates.py -q -k both_directions -p no:cacheprovider. Static substitute I did run: `grep -c '^def test'` is 32 at both 1247ad570 and d0c4c43ca, so the diff dropped and added no test; row 14b writes nothing, reads only repo templates and the fake_box/anonymize fixtures, and introduces no tmux/systemd/crontab/process call -- no real-resource touch found in the diff.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_boxkit_templates.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_boxkit_templates.py · .agi/nodes/experiment/a00-19870cd0-134fe5.md · .agi/nodes/experiment/a00-2efa683b-cd698b.md · .agi/nodes/experiment/a00-77817316-57d27a.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over d0c4c43ca · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.615: mur-director-engine-33 DH.591-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.634: mur-director-engine-36 DH.615-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
