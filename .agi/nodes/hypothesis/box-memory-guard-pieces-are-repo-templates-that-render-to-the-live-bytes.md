@@ -89,6 +89,20 @@ FILE SCOPE extensions/agi/tests/test_boxkit_templates.py · .agi/nodes/experimen
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 88415ed96 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.615 -- closes mur-director-engine-33 DH.591-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-box-memory-guard-piec-a00-36e29ed9 tip 1247ad570 (branch de-base-615; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. row 14b's kit half is tautological: the planted root is read from the set _leaks itself scans -- extensions/agi/tests/test_boxkit_templates.py:1040 -- `assert _leaks("cd %s\n" % root)` with root = LEAK_ROOTS[0] (test:1036) and _leaks' default roots=LEAK_ROOTS (test:149) is true by construction -- the same 'no state can make this false' class item 1 removed one line above; the node's table claim that 'the row's two halves are both reachable' is false, and the parent review records only the degenerate IndexError case, not the vacuity.
+2. director item 4 not fixed: the header still enumerates the row index and the enumeration is wrong -- extensions/agi/tests/test_boxkit_templates.py:4 -- '7b-7d, 11a-11g, 14b' -- no row 11a exists, 6b-6e and 7f are unlisted, and test:44 still cites 'test 10b' which has no sub-row; the range rewrite is the same second copy, one row wrong on arrival, and the node body claims it was deleted.
+3. experiment:a00-19870cd0 keeps a body claim this same commit falsifies, under an unchanged verdict=proved -- .agi/nodes/experiment/a00-19870cd0-134fe5.md:168 -- The trailing 'PARENT PROBES (a00-58431684) ... gate/P2 -- the MERGE counterfactual reds (_leaks names the value once LEAK_ROOTS gains it)' and 'All five are in the diff. Accepted 1 / demoted 0 / failed 0' survive in the body while the version's own THOUGHT says the MERGE claim was unsupported and this diff deleted the assert that would have red under it; only the THOUGHT records the refutation, so the node's state and its thought disagree.
+4. experiment:a00-2efa683b ships an internally contradicted item table -- .agi/nodes/experiment/a00-2efa683b-cd698b.md:8 -- The table row for item 4 says 'CONFIRMED | second copy deleted: the header no longer enumerates rows', and the appended PARENT REVIEW in the same file says 'Item 4 is NOT fixed and the node misdescribes it'; a reader who takes the table as state gets the wrong answer.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_boxkit_templates.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_boxkit_templates.py · .agi/nodes/experiment/a00-19870cd0-134fe5.md · .agi/nodes/experiment/a00-2efa683b-cd698b.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 1247ad570 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.591: mur-director-engine-30 DH.580-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.615: mur-director-engine-33 DH.591-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
