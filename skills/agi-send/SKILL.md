@@ -13,7 +13,7 @@ Source of truth: `python3 extensions/agi/bin/send.py <verb> -h`. Every call carr
 identity can drop mid-seat (trap 25).
 
 ## 1 · The acts
-**ALWAYS INBOX FORM until the send redesign lands** (owner 2026-09-27 04:3xZ; goal:send-is-hub-only-dm-file-versions-synced-every-30s):
+**ALWAYS INBOX FORM until the send redesign lands** (owner 2026-09-27 04:3xZ; goal:g7.32.6):
 a `--to` dm-file send can register `pending=0` and never nudge — thought-master missed two Prime dms for 40 min (03:5x-04:0xZ 09-27).
 ```bash
 send.py --from <me> send <post> '<text>'              # THE route: lands in .agi/sessions/inbox/<post>.md and nudges

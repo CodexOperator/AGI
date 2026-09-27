@@ -26,4 +26,4 @@ OWNER 2026-09-26 19:5xZ (Prime pane), verbatim: "Oh btw I wanna move the stream 
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-HOLD (OWNER 21:1xZ 09-26): no stream, no encryption-town config, no sanctuary-master activation until messaging (goal:send-is-hub-only-dm-file-versions-synced-every-30s) is done.
+HOLD (OWNER 21:1xZ 09-26): no stream, no encryption-town config, no sanctuary-master activation until messaging (goal:g7.32.6) is done.
