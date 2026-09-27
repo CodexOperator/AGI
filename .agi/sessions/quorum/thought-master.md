@@ -37,7 +37,7 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ## 🔴 Where it stops
 02:5xZ 09-27: NUDGE FIX FIRST (OWNER 02:49:02Z) -- DE dispatches g7.33.17 row 20 now (TMM.271); DT HELD + my model probe DEFERRED until it lands (TMM.272); then GATE DT's model-gate merge-up LIVE (tip db6bbf39e + its osc_band_fit re-derivation); PASS 10 running since 01:23Z
 ```
-state   MAIN = origin + this card · last order = TMM.272 · next = TMM.273 · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
+state   MAIN = origin + this card · last order = TMM.273 (DT: osc_band_fit tests take the 6.00G budget as a FIXTURE; preflight RETIRED as superseded) · next = TMM.274 · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
 OWNER   02:49:02Z in this pane, verbatim: "DT latest message seems nudges are growing more broken. Luckily the DE is on it we need it bad. If needed
         we can pause DT work for now to give DE more breathing room to implement quicker with a higher cap given no model container and no docker loader"
         -> TMM.271 DE: row 20 as its OWN round ahead of the queue (was riding send-is-hub-only; DE queue = g4.18.1 -> hub-only -> g7.31.3.3)
