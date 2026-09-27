@@ -63,6 +63,7 @@ g15       cli.py done writes node rows with NO actor in write-log (DH.459 rows 1
 g15       a parent's harvest dm can be lost (DH.429 finished, no inbox line) -- reconcile by branch, never by inbox alone
 QUEUED    goal:send-is-hub-only-... (assigned DE 20:3xZ; owner routing in notes; OWNER 21:0xZ via belam 22:08Z: box id = env AGI_BOX label, set by init in environment.d + stamped by crons.py, engine refuses unset -- NOT yet on the node) after the re-delivery; my 21:2xZ dm to TM
           said "not on any ref" -- stale, correct it in the [merge-up] line
+QUEUED+   belam 00:23Z 09-27 (owner's go, trunk 41bacd5ff), AFTER send-is-hub-only: (1) goal:g4.18.1 one mint route (under g4.18) · (2) hypothesis:rotate-keeps-the-quorum-card-a-symlink-to-its-node (g6.38; 6 _flatten_card_symlink call sites) -- owner may re-order
 CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT re-linked (re-arms g7.33.15)
 ```
 
