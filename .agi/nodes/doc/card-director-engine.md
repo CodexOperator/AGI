@@ -34,7 +34,7 @@ Skills: agi-dispatch · agi-workflow · agi-node-write · agi-goal · agi-send �
 ## §0 STATE (03:3xZ 09-27 · compacted: per-chain history = `git log` of this node before 061923b03)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br holds DH.424+431, 434, 430 chain (4af305171), 425 chain (3e327cf66) · trunk a6d04759c
-          RED ON POST BR: test_bin_help_smoke[suite_guards.py] (430 chain's new library module) -> DH.511 orders ready (scratchpad o511.md) = NEXT FREE SLOT; no [merge-up] until green
+          RED ON POST BR: test_bin_help_smoke[suite_guards.py] (430 chain's new library module) -> DH.511 orders ready (/tmp/claude-1000/-data-work-agi--agi-worktrees-post-director-engine/68c98329-2d26-4c01-a7ad-ac1ebbb6c93e/scratchpad/o511.md) = NEXT FREE SLOT; no [merge-up] until green
 LIVE      parents (cap 10 = cell values.local_maxxing.de_live_parents arm): 492 cfed6d3f · 497 263a936b · 499 42c4f9a2 · 501 759e6b60 · 504 e20a597b
           · 506 907d12c6 · 507 fa4269d4 · 508 f957a4d9 · 509 df266356 · 510 a77d4234   (all a00-)
           murs (systemd agi-director-engine-mur<N>): 483 485r 498 500(500+502) · 471 lost 2/4 verify stages (k1,k3) -> re-run · swarm-sampler2
