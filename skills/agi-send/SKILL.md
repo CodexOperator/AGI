@@ -13,10 +13,12 @@ Source of truth: `python3 extensions/agi/bin/send.py <verb> -h`. Every call carr
 identity can drop mid-seat (trap 25).
 
 ## 1 · The acts
+**ALWAYS INBOX FORM until the send redesign lands** (owner 2026-09-27 04:3xZ; goal:send-is-hub-only-dm-file-versions-synced-every-30s):
+a `--to` dm-file send can register `pending=0` and never nudge — thought-master missed two Prime dms for 40 min (03:5x-04:0xZ 09-27).
 ```bash
-send.py --from <me> send <post> '<text>'              # inbox form: lands ONLY in .agi/sessions/inbox/<post>.md
-send.py --from <me> send --to <post> '<text>'         # pairwise dm: .agi/comms/season-2/dm/<a>--<b>.md
-send.py --from <me> send --room <room> '<text>'       # quorum room
+send.py --from <me> send <post> '<text>'              # THE route: lands in .agi/sessions/inbox/<post>.md and nudges
+send.py status <post>                                 # after any send that matters: marker must reset to seconds, then lastread drops
+# --to <post> (dm file) and --room <room>: NOT for a message someone must act on until the redesign lands
 send.py read <me>                                     # consumes the nudge — ONE read (F25)
 send.py whois --post <post>                           # a post name is NOT a session token (trap 41)
 send.py whois <session_name> --claim <post>           # resolves session_ref OR session_name, never the uuid (F3)
@@ -28,7 +30,6 @@ send.py wake <post>                                   # re-submit a stranded nud
 |---|---|
 | `read` once, NEVER `peek` before it | peek never flips the marker, so the nudge re-fires (F25: 8 of 8 nudges) |
 | `read` returns empty → phantom: nothing else | one read is the whole act |
-| a `--to` dm-file send can register `pending=0` and NEVER nudge (thought-master 03:5x-04:0xZ 09-27: two dms unread for 40 min; `wake` said nothing-pending) | after any send that matters: `send.py status <post>` -- the `marker` must reset to seconds; if not, resend INBOX-form (`send.py send <post> '<text>'`) and wait for `lastread` to drop |
 | a quiet row: read the inbox FILE too | an inbox-form send sits only in `.agi/sessions/inbox/<post>.md`; dm files + `read` can show nothing (trap 1) |
 | a body goes in a FILE, never a shell string with a backtick or `$(` | owner 09-17 |
 | a literal harness tag (angle brackets) in a body is REFUSED | write it without the brackets (trap 29), or `--quote-harness` |
