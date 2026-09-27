@@ -31,7 +31,7 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (19:2xZ 09-27 · per-chain history = git log of this node)
+## §0 STATE (19:3xZ 09-27 · per-chain history = git log of this node)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 merged 32ff79e53 · 429 chain MERGED 1ee2340c3 · DH.515 MERGED 64130e4ec
           (post br NOT suite-run; nothing handed to TM since merge-up 13) · 01fc645d6 agi-dispatch §5 worktree-sweep row (owner via belam
@@ -41,11 +41,11 @@ TOOLS     T=<scratchpad 96494ce7-...>: MURK=<run key> [NOEX=1] [EXTRA=f,g] gen2.
           (verdict digest) · harvest-all.sh N.. (stale-lock clear + harvest) · murall.py --run (one mur per green harvall round) · watch.sh
 DISK      RESOLVED 18:57Z (TM deleted 87 /tmp/lograce-* = 17G; / has 18G). Only / was full, /data has 142G: never prune worktrees for /.
           TM also removed 45 lossless a00-* worktrees: their round records are in .agi/sessions/harvest-0927/<wt>/
-MURS      running murq59 60 (re-run 4G: the disk event killed their stages) 63 590 · 64 591 · 65 596 · 66 604 (map: T/murq<Q>.json)
-LIVE      parents 592 594 599 600 + unit redisp1 (T/redisp1.log) re-firing 598 603 605 589 595 597 601 602 (killed by the disk event)
-          then unit redisp2 (T/place3.log) places 608 611 606 607 609 610 -- both gate on / free >= 5G AND live < arm cell
-          harvest recipe: D/harvest-all.sh N.. > D/harvallN.log (kid edits in a separate wt: D/harvest-kid.sh) -> HLOG=.. Q0=<next> D/murall.py --run
-          (add old-base reds to murall KNOWN; a block with no tests: line crashes it -> mkmur by hand) · next free murq = 67, next DH = 612
+MURS      running murq59 584 · 66 604 (map: T/murq<Q>.json; run key = line 1 of T/murq<Q>.log) · next free murq = 67, next DH = 616
+LIVE      parents: 592 594 599 600 + REDISPATCHED 598 603 605 589 595 597 601 602 (spawn_budget.py; T/d<N>.log) · placing (unit redisp2,
+          T/place3.log) 608 611 606 607 609 610 -> drainq9 612 -> drainq10 613 -> drainq11 614 615 (WAITFOR chain; gates / >= 5G AND live < arm)
+          harvest recipe: D/harvest-all.sh N.. > D/harvallN.log (edits in a kid wt: D/harvest-kid.sh) -> HLOG=.. Q0=<next> D/murall.py --run
+          (old-base suite_guards red -> add N to murall KNOWN; a block with no tests: line crashes it -> T/mkmur.py by hand)
 GATE      OWNER GO (belam 16:25Z, TMM.300): step values.local_maxxing.de_live_parents.arm up ONE arm (10 -> 15) only while loadavg1 < 16 AND io
           PSI some avg60 < 50 AND key cap x live spawns < balance; re-read at each step, step back on any fail. 17:0xZ: load 23.5 = HOLD.
           Then the RAM worktree disk (kid-worktrees chain). Drainers hardcode -lt 10: a new drainer reads the cell + the gates
@@ -58,13 +58,13 @@ CHAIN     tips (last)                                                           
  probe-gate 523 → 541 → 560 → 589 REDISP (541 demote = merge order: e12a57722 rides the tip) · row 20 nudge 524 → 542 → 561 → 602 REDISP
  trunk reds 538 → 545 → 562 → 582 → 606 · zero-usd 537 → 546 → 565 → 572 → 608 (572 demote: it restored an out-of-scope ladder cell -- 608 item 0 reverts it)
  stale-lock 532 → 534 → 547 → 564 → 594 LIVE (532 lane re-mur folded into 564's mur)                             532 NEVER merges alone
- model-fence 508 → 517 → 536 → 539 → 548 → 566 → 590 murq63                                                    R4 NEVER run (row 22)
+ model-fence 508 → 517 → 536 → 539 → 548 → 566 → 590 → 613                                                    R4 NEVER run (row 22)
  kid-worktrees 529 → 533 → 540 → 563 → 598 REDISP (529 lane re-mur folded into 563's mur; B7 config cell maybe OUTSIDE)
- PASS 10 515 MERGED · 516 → 549 → 567 → 584 murq59 (wires pi_adapter) · 509 → 550 → 569 → 599 · 507 → 575 → 596 murq65 (never run test_rotate_selfreap.py: it OOMs a 5G unit) · 512 → 551 → 568 → 585 murq60 (both round manifests pi-free at 2b73f2d84) · 514 → 552 → 557 → 578 → 604 murq66
+ PASS 10 515 MERGED · 516 → 549 → 567 → 584 murq59 (wires pi_adapter) · 509 → 550 → 569 → 599 · 507 → 575 → 596 → 612 (term_grace_s bound, 3rd try; never run test_rotate_selfreap.py whole: it OOMs 5G) · 512 → 551 → 568 → 585 → 614 (585 demote; both round manifests pi-free at 2b73f2d84) · 514 → 552 → 557 → 578 → 604 murq66
          · belam-cap-reap HELD until 507 lands
  g4.18.1.x 521 → 555 → 570 → 587 → 610 · 510/519 → 553 → 576 → 588 → 611 (588's parent died: every order open) · 520 → 574 → 605 REDISP · 497 → 579 → 603 REDISP
  thought-verb 522 → 554 → 583 → 607 · wake-facts 501 → 556 → 571 → 601 REDISP (merge BLOCKED until belam trims F13: 2009 > 2000)
- guard-piece 530 → 580 → 591 murq64 (NEVER 432 itself) · guard-inst 471 AFTER 432 · send-hub 525 → 577 → 586 → 609 (HELD: decision) · run-key 531 → 581 → 600 · skills 526 → 573 → 595 REDISP
+ guard-piece 530 → 580 → 591 → 615 (NEVER 432 itself) · guard-inst 471 AFTER 432 · send-hub 525 → 577 → 586 → 609 (HELD: decision) · run-key 531 → 581 → 600 · skills 526 → 573 → 595 REDISP
 ```
 
 ## §1 PLAN
@@ -76,7 +76,7 @@ next   (1) per ENDED mur: verd.py Q -> clean = merge the chain at its last tip (
 ```
 
 ## 🔴 WHERE IT STOPS
-8 killed rounds re-dispatching + 6 new correctives queued, 6 murs running; nothing merged this seat yet; cron-policy decision out to TM.
+12 parents live, 10 correctives queued (606-615), 2 murs running; nothing merged this seat yet; cron-policy decision out to TM.
 ```
 FIRST   spawn_budget.py status ; systemctl --user list-units 'agi-director-engine-*' --all ; python3 D/verd.py <Q> per ended murq
 THEN    clean -> git merge --no-ff <loop branch> (card order) · residue -> MURK=.. T/gen2.py + T/place2.sh (a drainer when slots are full)
@@ -105,5 +105,5 @@ kid commits (the stale-lock chain's own mechanism, live).
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-19:2xZ: 8 murs triaged into 606-611; 590/591/596/604 harvested + murred; 572 demoted for an out-of-scope ladder cell.
+19:3xZ: the 8 killed rounds re-dispatched; 612-615 queued (596's term_grace bound first).
 <!-- THOUGHT:END -->
