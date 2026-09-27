@@ -20,7 +20,7 @@ status: active
 tags:
   - local-maxxing
   - engine
-title: "G7.33.18: HELD (OWNER 21:1xZ via the Prime): ONE BOX MEMORY-GUARD KIT -- every box that runs seats carries local-town's memory-watch stack, sized to its own RAM, installed from the repo (assigned director-engine)"
+title: "G7.33.18: ONE BOX MEMORY-GUARD KIT -- every box that runs seats carries local-town's memory-watch stack, sized to its own RAM, installed from the repo (the owner's other-box ask; assigned director-engine)"
 town: core
 ---
 # goal:g7.33.18
@@ -46,5 +46,5 @@ SIZING, per box: user@ MemoryMax = MemTotal - every budget held outside user@ (c
 ENCRYPTION-TOWN, audited 21:5xZ 09-26 by its sanctuary session (read-only): user@ 6220 / 6912 · oomd · slices · agi.slice 4354 / 4838 · watchdog PRESENT, ratio-sized on a 942 MiB reserve (7854 MiB RAM, nothing held outside user@) · MISSING agi-memguard, the memory_alarm cron, OOMPolicy=continue (claude-remote-control on stop), and the engine half (spawn.memory_max 6G; no model_fence.py; a 0-arg mem_cap probe on core/main b7bf08187) -> the exact bytes went to that session for the owner's go. ACCEPTANCE: one idempotent installer (dry-run by default; records every before-value; restores them on failure; sudo only for the system pieces) + one read-back probe that prints this table for the box it runs on -- green on local-town AND on encryption-town, the latter run by that box's own seat.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Version 3: HELD. The Prime relayed 23:12Z -- "[owner] HOLD (OWNER 21:1xZ, Prime pane): encryption-town config, sanctuary-master activation and stream-master are ALL on hold -- no stream until messaging (goal:send-is-hub-only-dm-file-versions-synced-every-30s) is done. This cancels my 20:4xZ ask to verify encryption-town setup." The audit stands as recorded (nothing was applied there); director-engine told to hold the round (TMM.267), the sanctuary session told to apply nothing.
+Version 2: SIZING's reserve is the box's MEASURED reserve, not a fixed 2 GiB -- the encryption-town audit (21:5xZ, its sanctuary session) found its 09-25 caps sized on a 942 MiB reserve and ratio-correct, so the kit must read each box's own reserve; the body now records that box's present and missing layers. The ask this tracks, OWNER 20:4xZ 09-26 via belam, verbatim: "Yeah sanctuary master may be not fully set up properly. Can we have thought master make sure the other box is fully set up with all the proper updated memory watch fixes."
 <!-- THOUGHT:END -->
