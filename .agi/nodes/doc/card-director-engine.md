@@ -37,12 +37,13 @@ LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: 429 chain 1ee2340c3
           (heal+cli+dispatch+zero-usd = 389 passed 0 failed) · skills eb3369efe (285 passed 0 failed) · nothing handed to TM since merge-up 13 ·
           01fc645d6 (agi-dispatch §5 sweep row) rides the SAME merge-up as the kid-worktrees chain, never without it
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [NOEX=1] [EXTRA=f,g] gen2.py N murq<Q>.json tip label [R4] -> orders<N>.md (check TESTS/FILE
-          SCOPE: empty when the diff has no code) · place2.sh N (de-base-N in /dev/shm, removed at HARVEST by D/harvest-all.sh with its .agi/sessions copied to the flash harvest dir: TMM.308) · drainqg.sh N:K.. (TMM.306-gated queue) · redispatch.sh · mkmur.py + runmur.sh
+          SCOPE: empty when the diff has no code) · place2.sh N (de-base-N ON DISK: /dev/shm broke parent done, reverted 00:0xZ; RAM ones removed at harvest) · drainqg.sh N:K.. (TMM.306-gated queue) · redispatch.sh · mkmur.py + runmur.sh
           D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N.. > D/harvallN.log (chain units with a while-is-active wait)
 GATE      TMM.306 (TM 21:59Z): NO parent slot refilled until load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, then ONE step at a time
           (drainqg1 enforces it); stop nothing live · first freed slot = DH.650 RAM round (repo half) · arm 10 unchanged
-MURS      running none · ENDED+TRIAGED: 97 106 108 112 114-124 -> DH.680 676 678 679 668 661 662 666 663 664 660 665 669 675 · next murq 125 · next DH 681
-LIVE      parents 648 676 651 652 · 677 harvested a2db4a317 (79 passed) · harvested: 645 1300bd8c9 · 638 568f0b68d · 649 f993eadf7 (95 passed) · gated queue (T/drainqg<N>.log, chained): qg1 DONE (650 harvested b57ec4b90 · 667 c0ba1f156 · 647 a8fcf1574 · 648 a00-9a0d6077 · 649 a00-448409f6 live) · 648 649 (T/drainqgf.sh: N:F = fresh round via T/placef.sh + T/h<N>.txt) ·
+MURS      running murq125 126 = DH.676 648(kid branch) · ENDED+TRIAGED: 97 106 108 112 114-124 -> DH.680 676 678 679 668 661 662 666 663 664 660 665 669 675 · next murq 127 · next DH 681
+LIVE      parents 651 652 (RAM checkouts symlinked into .agi/worktrees) · harvested: 677 a2db4a317 · 676 d22b6f2d1 (99 passed) ·
+          648: parent worktree SWEPT (0 commits), kid branch 45344fb04 -> murq126 · harvested: 645 1300bd8c9 · 638 568f0b68d · 649 f993eadf7 (95 passed) · gated queue (T/drainqg<N>.log, chained): qg1 DONE (650 harvested b57ec4b90 · 667 c0ba1f156 · 647 a8fcf1574 · 648 a00-9a0d6077 · 649 a00-448409f6 live) · 648 649 (T/drainqgf.sh: N:F = fresh round via T/placef.sh + T/h<N>.txt) ·
           qg2 680 653 (RAM chain keeps the front: TMM.306) · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660 661 662 663 664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 · qg13 675 670 671 672 673 674 (drainqgf.sh) · qg14 678 · qg15 679 -- io avg60 ~61 > 50 · 640 assembled 1bf1dbf6c
 DEMOTED   (not correctives) 660/661/663 'checked CLEAR / not a defect' verify notes · 662: kid ran git diff --numstat (process note) · 665: V1 done-gate + V7 write-log = findings rows already, UNVERIFIED worktree-gone probe · 668: +76 test-line breach = row, timing note
 PRUNE     TMM.309 GO: unit prune-debase (idle io, 1 per 30 s, io<50, lossless, log on the flash harvest dir) over the 130 old de-base-*
@@ -65,7 +66,7 @@ CHAIN     last round (→ = corrective, mN = murq N running)                    
  PASS 10 516 → … → 616 → 636 → 647 → 678 q · 509 → … → 599 → 630 → 649 → 679 q (merge-order hazard: merge the chain TIP, code rides along) · 507 → … → 612 → 635 → 662 q (never run test_rotate_selfreap whole)
          512 → … → 585 → 614 → 631 → 651 · 514 → … → 604 → 617 → 632 → 652 · belam-cap-reap HELD until 507
  g4.18.1.x 521 → … → 610 → 621 → 660 q · 510/519 → … → 611 → 618 → 642 → 659 · 520 → … → 605 → 625 → 640 → 656 · 497 → … → 603 → 619 → 643 → 663 q
- thought-verb 522 → 554 → 583 → 607 → 639 → 658 · wake-facts 501 → 556 → 571 → 601 → 629 → 648 (BLOCKED: config:rotations, belam's -- DE.1)
+ thought-verb 522 → 554 → 583 → 607 → 639 → 658 · wake-facts 501 → 556 → 571 → 601 → 629 → 648 m126 kid-branch (BLOCKED: config:rotations, belam's -- DE.1)
  guard-piece 530 → 580 → 591 → 615 → 634 → 653 (NEVER 432) · guard-inst 471 AFTER 432 · send-hub 525 → … → 609 → 622 → 645 → 669 q (HELD)
  run-key 531 → 581 → 600 → 620 → 661 q · skills 526 → 573 → 595 → 628 MERGED eb3369efe
 ```
@@ -78,9 +79,9 @@ next   (1) per ENDED mur: D/verd.py Q -> CLEAN (after demotes) = git merge --no-
 ```
 
 ## 🔴 WHERE IT STOPS
-Murs 97 106 108 112 114-119 triaged -> correctives queued qg8-qg13 (+ g1.27 670-674 in qg13); 650 + 647 live, 667 in review (murq120); prune-debase running (TMM.309).
+Murs through 124 triaged; 125 126 running; the /dev/shm dispatch checkout was REVERTED (broke parent done, DH.648 swept); 680 heads qg2; prune running.
 ```
-FIRST   D/verd.py 120 (DH.667 logs.dir; the parent already demoted: relative cell, silent fallback, 19>15, cell not minted, crons.py:474) -> corrective ; harvest each placed parent (650 667-done 647) ; T/drainqg<N>.log
+FIRST   D/verd.py 125 (DH.676 logs cell) 126 (DH.648 from the kid branch) ; harvest each ended parent (651 652) ; T/drainqg<N>.log
 THEN    clean -> git merge --no-ff <tip> -F <msgfile> · residue -> MURK=.. T/gen2.py, trim non-defects, queue on T/drainqg.sh
 ```
 
@@ -104,7 +105,8 @@ file on a link-only row (write.py:2322) + replace_payload never creates (node_wr
 dispatch.py > 300 s at load 32 killed a parent (621) · write-log is a per-root literal sessions/write-log.jsonl (node_writer.py:127), not
 locations.shared_sessions_dir: a worktree kid's writes are invisible to the MAIN log (DH.644 parent). · verb_thought first-match splice
 (write.py:291 via node_writer.py:922 extract_thought) has no committed test composing a body with a pasted BEGIN/END (mur-41 DH.641-k1). · links.py schema
-does not flag an in-scope experiment with no verdict and no evidence_runs (mur-38 DH.627-k1).
+does not flag an in-scope experiment with no verdict and no evidence_runs (mur-38 DH.627-k1). · heal sweep (heal.py:1502-1516)
+treats a finished 0-commit branch as landed and removes its worktree with uncommitted work (DH.648); cli.py:149-160 sibling lookup finds records only under <main>/.agi/worktrees.
 
 ## BANKED
 - [rule] to ride the next [merge-up]: (a) skills/agi-merge-pass: every pasted measurement names its base commit + a re-runnable command
