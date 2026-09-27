@@ -3082,8 +3082,10 @@ def _clean_stale_layout_locks(root: Path, row: dict) -> None:
     best-effort, never raises.
 
     THE `gdir is None` ARM IS DEFENSIVE, NOT REACHABLE-BY-GEOMETRY: the ONE
-    caller's missing-worktree refusal is a DIFFERENT MOMENT than this read, so
-    a between-check prune still lands here (DIRECTOR RULING DH.449)."""
+    caller -- `_clean_stale_layout_locks(root, row)` at heal.py:3225, inside the
+    watch loop, after its own missing-worktree refusal -- is a DIFFERENT MOMENT
+    than this read, so a between-check prune still lands here (DIRECTOR RULING
+    DH.449)."""
     gdir = _seat_geometry_dir(root, row)
     if gdir is None:
         _watch_log(f"watch: no geometry for dead seat "
