@@ -82,7 +82,6 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 | 40 | F13's `/home/ubuntu/work/agi/.env` does not exist on local-town | the MAIN .env is `/data/work/agi/.env` |
 | 42 | `write.py … 'replace body N:M'` refuses a range with no blank line around it (the HEAD's five diagram blocks are one "paragraph") | `--force` rides the SOURCE argument: `replace body N:M --force <file>`, after asserting the range; a refused replace in a chain still lets a later `thought` land -- check each line's result |
 
-| 43 | `send.py read belam \| tail -N` cuts earlier messages, and a later read shows none (TM 05:47 + 05:49Z reached this seat only via the inbox FILE, 13:0xZ) | read with no tail; on an empty read with a [red] expected, grep the inbox file |
 
 ## §5 Verification: `links.py links` 0 broken · `snapshot-goals.py --render --check` · `commands.py run verify` (bin-suite-fresh FAIL known) · `~/work/.sanctuary/guard/guard-init.sh --status` + `tail ~/logs/memory-alarm-alerts.log | cut -d" " -f1,3-` (drop column 2: every line carries the host name, TM [red] 02:36Z 09-27)
 

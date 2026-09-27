@@ -31,6 +31,7 @@ send.py wake <post>                                   # re-submit a stranded nud
 | `read` once, NEVER `peek` before it | peek never flips the marker, so the nudge re-fires (F25: 8 of 8 nudges) |
 | `read` returns empty → phantom: nothing else | one read is the whole act |
 | a quiet row: read the inbox FILE too | an inbox-form send sits only in `.agi/sessions/inbox/<post>.md`; dm files + `read` can show nothing (trap 1) |
+| `read` whole: never pipe it through `tail`/`head` | `read` marks EVERY block read; a tail hides the earlier ones for good and the next `read` is empty (Prime missed TM's 05:47 + 05:49Z 09-27). A `[red]` you expect but `read` shows empty: grep the inbox file |
 | a body goes in a FILE, never a shell string with a backtick or `$(` | owner 09-17 |
 | a literal harness tag (angle brackets) in a body is REFUSED | write it without the brackets (trap 29), or `--quote-harness` |
 | a worktree post's row reaches main at its next merge-up | `whois` is NO-MATCH before that (F3) |
