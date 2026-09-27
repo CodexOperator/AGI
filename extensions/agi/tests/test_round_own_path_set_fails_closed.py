@@ -108,3 +108,73 @@ def test_the_own_minted_scaffold_still_lands_with_its_agent_id(tmp_path,
         agent_id="a00-me")
     assert paths == {"nodes/experiment/a00-me-1.md"}, paths
     assert "hypothesis:foreign" in capsys.readouterr().err
+
+
+def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None):
+    d = root / "sessions" / "iter-DH.999" / agent
+    d.mkdir(parents=True, exist_ok=True)
+    (d / "agent.json").write_text(
+        '{"spawned_by_agent": "%s", "node_id": "%s", "dispatch_node_id": '
+        '"%s"}\n' % (spawned_by, node_id, dispatch_node_id or node_id))
+    return d
+
+
+def test_owns_reaches_the_nodes_of_the_agents_this_round_spawned(tmp_path,
+                                                                 capsys):
+    """DH.514 correction. A PARENT round finishing with `done --owns <its kid's
+    node id>` is the flow the commit exists for (one parent commit carries 4
+    kid files), and binding `--owns` to the parent's OWN dispatch record
+    alone refused it. The binding is the union: this round's own dispatch
+    ids PLUS the ids of the agents this round spawned."""
+    cli = _load_cli()
+    root = _graph(tmp_path, ids=(("hypothesis", "tgt"),
+                                 ("experiment", "a00-kid-1")))
+    _spawn(root, "a00-kid-1", "a00-me", "experiment:a00-kid-1")
+    assert cli._round_spawned_node_ids(root, "a00-me") == ["experiment:a00-kid-1"]
+    assert cli._round_spawned_node_ids(root, "a00-somebody-else") == []
+    assert cli._round_spawned_node_ids(root, None) == []
+    named = cli._round_named_node_ids({"target": "hypothesis:tgt"}, None)
+    named += cli._round_spawned_node_ids(root, "a00-me")
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, None, ["experiment:a00-kid-1"], named, agent_id="a00-me")
+    assert paths == {"nodes/hypothesis/tgt.md",
+                     "nodes/experiment/a00-kid-1.md"}, paths
+    assert capsys.readouterr().err == ""
+
+
+def test_owns_of_a_kid_another_agent_spawned_is_still_refused(tmp_path,
+                                                              capsys):
+    """The union is scoped to THIS round's spawns: a kid record another agent
+    spawned never widens the set, so an id with no dispatch record on this
+    round stays refused by name."""
+    cli = _load_cli()
+    root = _graph(tmp_path, ids=(("hypothesis", "tgt"),
+                                 ("experiment", "a00-kid-2")))
+    _spawn(root, "a00-kid-2", "a00-other-parent", "experiment:a00-kid-2")
+    named = (cli._round_named_node_ids({"target": "hypothesis:tgt"}, None)
+             + cli._round_spawned_node_ids(root, "a00-me"))
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, None, ["experiment:a00-kid-2"], named, agent_id="a00-me")
+    assert paths == {"nodes/hypothesis/tgt.md"}, paths
+    err = capsys.readouterr().err
+    assert "experiment:a00-kid-2" in err and "--owns is bound" in err, err
+
+
+def test_a_refused_parent_is_named_for_the_parent_route(tmp_path, capsys):
+    """DH.514: the `--owns` guard sat BEFORE the `--parent` guard, so a
+    refused `--parent` id printed the `--owns` sentence and the `--parent
+    never widens` print was dead code. Each id is named for the route it
+    actually took."""
+    cli = _load_cli()
+    root = _graph(tmp_path, ids=(("hypothesis", "tgt"),
+                                 ("hypothesis", "dp-parent")))
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, None, None, ["hypothesis:tgt"],
+        refused=["hypothesis:dp-parent"], agent_id="a00-me")
+    assert paths == {"nodes/hypothesis/tgt.md"}, paths
+    err = capsys.readouterr().err
+    assert "a kid-supplied --parent never widens" in err, err
+    assert "--owns is bound" not in err, err

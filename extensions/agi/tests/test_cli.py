@@ -2078,7 +2078,7 @@ def test_own_node_paths_drops_a_named_goal_and_keeps_the_target(tmp_path):
             f"---\nid: {sub}:{nid}\ntype: {sub}\n---\n\nbody\n")
     paths = cli._round_own_node_paths(
         root, root, "experiment:a00-x-1", None,
-        ["hypothesis:tgt", "goal:g5"])
+        ["hypothesis:tgt", "goal:g5"], agent_id="a00-x")
     assert paths == {"nodes/experiment/a00-x-1.md",
                      "nodes/hypothesis/tgt.md"}, paths
 
@@ -2165,7 +2165,7 @@ def test_every_refused_named_id_is_named_on_stderr(tmp_path, capsys):
     capsys.readouterr()
     paths = cli._round_own_node_paths(
         root, root, "experiment:a00-x-1", None, ["hypothesis:tgt"],
-        refused=["goal:g5"])
+        refused=["goal:g5"], agent_id="a00-x")
     err = capsys.readouterr().err
     # Dropped from the sweep ...
     assert paths == {"nodes/experiment/a00-x-1.md",
@@ -2177,7 +2177,7 @@ def test_every_refused_named_id_is_named_on_stderr(tmp_path, capsys):
     # A clean round names nothing.
     capsys.readouterr()
     cli._round_own_node_paths(root, root, "experiment:a00-x-1", None,
-                              ["hypothesis:tgt"])
+                              ["hypothesis:tgt"], agent_id="a00-x")
     assert capsys.readouterr().err == ""
 
 
@@ -2276,12 +2276,15 @@ def test_own_node_id_is_type_gated_too(tmp_path, capsys):
         "---\ntype: goal\nround_commit: false\n---\n\nbody\n")
     capsys.readouterr()
     paths = cli._round_own_node_paths(
-        root, root, "experiment:a00-x-1", None, [], refused=["goal:g5"])
+        root, root, "experiment:a00-x-1", None, [], refused=["goal:g5"],
+        agent_id="a00-x")
     assert paths == {"nodes/experiment/a00-x-1.md"}, paths
     assert "goal:g5" in capsys.readouterr().err
-    # the round's OWN node named on --node-id, but of a refused TYPE
+    # the round's OWN node named on --node-id, but of a refused TYPE.
+    # DH.514: named by dispatch (`named`), so the `--node-id` SEED guard is
+    # satisfied and the assertion below is the TYPE gate, not the seed.
     capsys.readouterr()
-    paths = cli._round_own_node_paths(root, root, "goal:g5", None, [])
+    paths = cli._round_own_node_paths(root, root, "goal:g5", None, ["goal:g5"])
     assert paths == set(), paths
     assert "goal:g5" in capsys.readouterr().err
 

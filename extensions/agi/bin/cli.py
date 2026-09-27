@@ -1752,7 +1752,8 @@ def cmd_done(args: argparse.Namespace) -> int:
     # this parent runs in, if it holds uncommitted node writes; a no-op in
     # main (the loop owns main) and outside git. Never fatal.
     _auto_commit_worktree(root, args.agent_id, args.node_id, args.owns, verdict,
-                          _round_named_node_ids(rec, args.parent),
+                          _round_named_node_ids(rec, args.parent)
+                          + _round_spawned_node_ids(root, args.agent_id),
                           refused=[args.parent] if args.parent else None)
 
     # hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- a round that
@@ -2183,6 +2184,32 @@ def _round_named_node_ids(rec, parent) -> list:
     return out
 
 
+def _round_spawned_node_ids(root: Path, agent_id: str | None) -> list:
+    """DH.514 correction: the ids of the agents THIS round spawned. A parent
+    round's `--owns <kid node id>` is the flow the commit exists for (one
+    parent commit carries 4 kid files), and binding `--owns` to the parent's
+    OWN dispatch record alone refused it. Dispatch stamps every agent it
+    spawns into a session record under `sessions/iter-*/<agent>/agent.json`
+    with `spawned_by_agent` -- the same manifest the parent already reads for
+    the owned-branch merge. Only records THIS agent spawned widen the set; an
+    id no dispatch record names is still refused by name. Ids only, no path
+    literal, no config cell."""
+    out: list = []
+    if not agent_id:
+        return out
+    for ap in sorted((root / "sessions").glob("iter-*/*/agent.json")):
+        try:
+            r = json.loads(ap.read_text())
+        except (OSError, ValueError):
+            continue
+        if not isinstance(r, dict) or r.get("spawned_by_agent") != agent_id:
+            continue
+        for v in (r.get("dispatch_node_id"), r.get("node_id")):
+            if isinstance(v, str) and ":" in v and v not in out:
+                out.append(v)
+    return out
+
+
 def _round_committable(root: Path, nid: str) -> bool:
     """May a round's `done` commit sweep node id `nid`? Three DATA gates, no
     type list in code (hypothesis:a-rounds-named-node-set-is-its-dispatch-time-
@@ -2336,22 +2363,28 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
                       f"or its filename carries {agent_id or 'this round'}'s "
                       f"agent id", file=sys.stderr)
                 continue
-        if nid != node_id and nid not in (named or []):
-            # DH.514: `--owns` is a THIRD kid-supplied route into the set and
-            # the agent-id-in-basename rule above cannot cover it (one parent
-            # commit carries 4 kid files). It is bound to the dispatch-time
-            # `named` set: named elsewhere, never swept.
-            print(f"round-commit gate: refusing {nid} — --owns is bound to "
-                  f"the ids dispatch named for this round", file=sys.stderr)
-            continue
         if nid not in asked:
             # A kid-supplied id (`done --parent`) NEVER widens the set, even
             # for a round-committable type -- judged by the type gate it let
             # a foreign `hypothesis:` ride into this round's commit (DH.390
-            # harvest). Named, never swept.
+            # harvest). Named, never swept. DH.514: this runs BEFORE the
+            # `--owns` guard so each id is named for the route it took; the
+            # other order printed the `--owns` sentence here and made the
+            # `--parent` message dead code.
             print(f"round-commit gate: refusing {nid} — a kid-supplied "
                   f"--parent never widens this round's done commit",
                   file=sys.stderr)
+            continue
+        if nid != node_id and nid not in (named or []):
+            # DH.514: `--owns` is a THIRD kid-supplied route into the set and
+            # the agent-id-in-basename rule above cannot cover it (one parent
+            # commit carries 4 kid files). It is bound to the dispatch-time
+            # `named` set -- this round's own ids PLUS the ids of the agents
+            # this round spawned (`_round_spawned_node_ids`): named
+            # elsewhere, still refused by name.
+            print(f"round-commit gate: refusing {nid} — --owns is bound to "
+                  f"the ids dispatch named for this round and the ids of the "
+                  f"agents it spawned", file=sys.stderr)
             continue
         if not _round_committable(root, nid):
             print(f"round-commit gate: refusing {nid} — not "
