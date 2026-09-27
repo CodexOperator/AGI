@@ -34,7 +34,7 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ## 🔴 Where it stops
 02:5xZ 09-27: NUDGE FIX FIRST (OWNER 02:49:02Z) -- DE dispatches g7.33.17 row 20 now (TMM.271); DT HELD + my model probe DEFERRED until it lands (TMM.272); then GATE DT's model-gate merge-up LIVE (tip db6bbf39e + its osc_band_fit re-derivation); PASS 10 running since 01:23Z
 ```
-state   MAIN = origin + this card · last order = TMM.289 · next = TMM.290 · BOX GUARD: the Prime's backfill LANDED 91f9e1236 (22/22 rows boxed, 18 = core-town) -> DH.498
+state   MAIN = origin + this card · last order = TMM.290 (goal rename send-is-hub-only -> goal:g7.32.6: board row 4 done; body lines 106 + 141 = the Prime's, asked; DE re-points 2 hyps at merge-up) · next = TMM.291 · BOX GUARD: the Prime's backfill LANDED 91f9e1236 (22/22 rows boxed, 18 = core-town) -> DH.498
         CLEARED after DE syncs (TMM.289; my '13 of 17' VOID: a parse miss of the council-* rows) · DH.525 = its code residues · DH.526 = parent/kid
         skill lines (step 2) · hypothesis:skills-load-per-harness-per-tier-from-one-config-cell = step 3 (queued behind 526) · SKILL INDEX (OWNER 05:33:00Z, verbatim: "Don’t need a template change just change the load
         template which determines which files get pulled in. Just have the template/config load in the skill index. No duplication needed.")
