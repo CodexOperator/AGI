@@ -37,7 +37,10 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ## 🔴 Where it stops
 02:5xZ 09-27: NUDGE FIX FIRST (OWNER 02:49:02Z) -- DE dispatches g7.33.17 row 20 now (TMM.271); DT HELD + my model probe DEFERRED until it lands (TMM.272); then GATE DT's model-gate merge-up LIVE (tip db6bbf39e + its osc_band_fit re-derivation); PASS 10 running since 01:23Z
 ```
-state   MAIN = origin + this card · last order = TMM.282 (the Prime YES 04:00Z + its 2 conditions relayed to DE) · next = TMM.283
+state   MAIN = origin + this card · last order = TMM.283 · next = TMM.284 · AT DE's NEXT LANDING: (a) skill agi-corrective (75b57c221; OWNER 05:3xZ in DE's pane,
+        verbatim: "You should have a goal corrective or goal update skill.") -> add it to doc:unified-director-brief's skills line (mine) +
+        [rule] to belam for CLAUDE.md's flow list + the master brief's skills line (the Prime's) (b) goal:g7.33.19 id into the brief
+        (c) the wake-facts draft node + range named to belam (d) then this card's traps -> skills
 PASS10  CLOSED 04:0xZ (belam): season2/main 2129f70bb, 30 rounds 0 RED · 8 DE defect hyps + pass10-0927-residue-batch under goal:g1 (= DE's
         fast-track) · trunk synced ancestry-only 9e65a0faa (tree = HEAD) · box 04:0xZ load 23.8 / io PSI some60 81.7 -> gate suites WAIT for
         load < 16 as well as the nudge fix · WAKE-FACTS: config:rotations facts = prime/owner-only (goal:g12) -> DE drafts (DH.501,
