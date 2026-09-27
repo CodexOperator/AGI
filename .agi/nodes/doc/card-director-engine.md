@@ -59,6 +59,7 @@ CHAIN     next act                                                         land 
                  (measured 1988 on a scratch copy, wt de-h501) -> after the trim: merge, re-run test_rotate_templates on the merge
   reap-chain      507 harvested (kid a13fa3fd fixed the EPERM half; 134 green on de-h507) -> murb3 · frontmatter 520 harvested 280 green (node landed 5a24ccfbd) -> murb3 · model-fence 517 LIVE (no commit 80 min)
  PASS 10         509 512 514 515 516 -> mur-19 · (5) belam-cap-reap HELD until 507 lands
+  g7.33.19 rows  19 -> DH.531 a00-422d2648 LIVE (run key reserved atomically) · 18 -> DH.532 a00-354f1396 LIVE (stale index.lock + silent commit failure)
  skills          doc:draft-skills-first-turn (40dd3bdc7) rides the next [merge-up]; the Prime writes it into config:rotations (TMM.286) ·
                                   526 harvested 136 green (11 lines) -> murb3 -> THEN hypothesis:skills-load-per-harness-per-tier-from-one-config-cell,
                  cut from 526's cleared tip (TMM.287: pi parents + kids load their limited set from the cell; 526's lines retire)
