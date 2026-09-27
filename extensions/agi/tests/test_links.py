@@ -482,6 +482,45 @@ def test_the_writer_owns_the_field_shape():
         assert node_writer.writer_key_shape(key), key
 
 
+BOOLEAN_KEYS = ("on", "off", "yes", "no", "true", "false", "null", "nil")
+
+
+def test_a_boolean_word_key_is_the_writers_shape_and_survives_the_repair(project):
+    """ITEM 4: `write.py <node> 'set on <v>'` renders `on: <v>`, and YAML 1.1
+    reads that bare key back as the Python `bool` True. A round-trip test
+    comparing the key as the READER re-parsed it refused a field the sanctioned
+    writer emits, and `cli._ensure_frontmatter` `pop`ped it -- silent data loss
+    on a legal write. The key must be in shape, and the repair must keep it."""
+    import cli
+    for key in BOOLEAN_KEYS:
+        assert node_writer.writer_key_shape(key), key
+        assert node_writer._render_value(key, "v") == [f"{key}: v"]
+        assert cli._off_shape_keys({key: "v", "id": "x"}) == [], key
+
+
+def test_the_repair_keeps_a_boolean_key_field_it_did_not_refuse(project):
+    """The same family, end to end through `_ensure_frontmatter`: after a
+    repair the `on:` field the writer wrote is still on disk. Fails if the
+    predicate regresses to the reader's re-parse."""
+    import cli
+    path = _node(project, "experiment:e1",
+                 ['id: "experiment:e1"', "type: experiment", "on: yes",
+                  "parents: ['hypothesis:h1']", "mint_id: abc123"],
+                 "b\n")
+    ap = project / "absent.json"
+    ok, msg = cli._ensure_frontmatter(project, path, ap, "experiment:e1")
+    assert ok, msg
+    text = path.read_text()
+    # Measured, not assumed: the repair leaves the block byte-identical, so the
+    # writer's own `on: yes` spelling survives. Before the predicate fix this
+    # exact node hit `new_fm.pop("on")` and lost the field (see the node body).
+    assert "\non: yes\n" in text, text
+    ok2, fm2, defect2 = cli._load_frontmatter(text)
+    assert ok2, defect2
+    assert cli._off_shape_keys(fm2) == []
+    assert fm2[True] is True            # `on: yes` is this field, kept
+
+
 def test_links_refuses_a_glued_key_by_name(project):
     """The claim's second conjunct: refused at links, not silently defaulted."""
     path = _node(project, "hypothesis:h-glued",
@@ -498,7 +537,11 @@ def test_links_refuses_a_glued_key_by_name(project):
     assert any("h-glued" in n for n in links.off_shape_nodes(project))
     assert all(nid != "hypothesis:h-glued" for nid, _fm, _b in
                links._iter_corpus(project))
-    assert links.count_broken_links(project) == 0      # not link damage
+    # ITEM 5: the old `count_broken_links(project) == 0` here was green BECAUSE
+    # it asserted the defect -- the fixture `h-glued` carries no `link_ref` at
+    # all, so the count is structurally blind to the node it was supposedly
+    # checking. Deleted rather than dressed: `all(... not in _iter_corpus)`,
+    # asserted immediately above, is the real measurement.
 
 
 def test_the_gate_and_links_ask_the_same_definition(project):
@@ -513,13 +556,18 @@ def test_the_gate_and_links_ask_the_same_definition(project):
     assert cli._off_shape_keys({"probes": 1, "id": "x"}) == []
 
 
-def test_the_repaired_live_artifact_loads_clean():
-    """The named artifact carries a real `probes` list and no glued key."""
+def test_a_repaired_artifact_loads_clean(project):
+    """ITEM 8: pinned to a FIXTURE. This test used to call
+    `locations.find_project_root(Path(__file__).resolve())` -- the LIVE corpus --
+    so its pass/fail rode on mutable node bytes and it died with
+    `TypeError: unsupported operand type(s) for /: 'NoneType' and 'str'` from an
+    extracted tree with no `.agi`. The repaired artifact is a tmp node now."""
     import cli
-    import locations
-
-    root = locations.find_project_root(Path(__file__).resolve())
-    ok, fm, defect = cli._load_frontmatter(
-        (root / "nodes/experiment/a00-fe05fdae-a240f5.md").read_text())
+    path = _node(project, "experiment:a00-fe05fdae-a240f5",
+                 ['id: "experiment:a00-fe05fdae-a240f5"', "type: experiment",
+                  "mint_id: abc123", "parents: ['hypothesis:h1']",
+                  'probes:', "  - one", "  - two", "  - three"], "b\n")
+    ok, fm, defect = cli._load_frontmatter(path.read_text())
     assert ok, defect
     assert len(fm["probes"]) == 3
+    assert cli._off_shape_keys(fm) == []

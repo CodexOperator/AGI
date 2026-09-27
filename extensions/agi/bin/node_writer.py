@@ -433,6 +433,14 @@ def writer_key_shape(key) -> bool:
     explicitly NOT that grammar), and `_render_value` above writes keys BARE,
     so a key carrying structure is a line no `set` could produce. The second
     test is the writer's own `yaml` round-trip, not a second character class.
+
+    🔴 The round-trip is compared AS THE WRITER RENDERED IT, not as the reader
+    re-parsed it (2026-09-27, a00-3e7b260e ITEM 4). YAML 1.1 coerces a BARE
+    boolean/null word into a Python `bool`/`None`, so the line this function
+    emits for `on` reads back as `{True: "x"}`; `list(back) == [k]` then
+    refused a field `set on <v>` legally writes and `_ensure_frontmatter`
+    blocked the node on it. Only the resolver's collapse is forgiven, and only
+    to a scalar it cannot spell (experiment:a00-3e7b260e-2cce33).
     """
     import yaml
 
@@ -443,7 +451,12 @@ def writer_key_shape(key) -> bool:
         back = yaml.safe_load("".join(l + "\n" for l in _render_value(k, "x")))
     except Exception:
         return False
-    return isinstance(back, dict) and list(back) == [k] and back[k] == "x"
+    if not isinstance(back, dict) or list(back.values()) != ["x"]:
+        return False
+    got = next(iter(back))
+    if got == k:
+        return True
+    return isinstance(got, (bool, type(None))) and not isinstance(k, (bool, type(None)))
 
 
 def render_frontmatter(fm: dict) -> list[str]:
