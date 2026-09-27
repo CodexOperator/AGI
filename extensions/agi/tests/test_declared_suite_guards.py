@@ -344,5 +344,61 @@ def test_the_engine_conftest_imports_the_guard_instead_of_copying_it(
             is suite_guards.no_real_process)
 
 
+def test_two_env_strip_instances_keep_their_own_memo(monkeypatch):
+    """The per-INSTANCE memo: two fixture instances live in ONE process (the
+    engine suite's and the declared suite's, whose conftests both load), and
+    one instance's teardown must not restore what the OTHER instance stripped.
+
+    The REAL fixture body is driven directly -- the generator
+    `make_agi_env_stripped_fixture()` returns is entered with `next()` and
+    exited the way pytest finalizes it (resume to `StopIteration`; a bare
+    `close()` would throw GeneratorExit at the yield and SKIP the restore
+    after it). No child pytest, no spawned process.
+
+    Enter A, enter B, exit B. B stripped nothing of its own (A had already
+    taken the keys) so B's teardown must restore NOTHING: the keys A is
+    still holding down must still be down. Red-first: with the old shared
+    module-global `_STRIPPED` both instances read the SAME dict, so exiting B
+    put the AGI_* channel back while A was still entered."""
+    planted = "AGI_SEAT_TWO_INSTANCE_PROBE"
+    monkeypatch.setenv(planted, "a00-deadbeef")
+    assert planted in os.environ
+
+    # pytest's @fixture wrapper refuses a direct call, so drive the GENERATOR
+    # body itself -- `__wrapped__` is the undecorated function the decorator
+    # wraps. Still the real fixture body: strip_dispatch_env, the yield, the
+    # restore and the clear, all as pytest runs them.
+    def _raw():
+        made = suite_guards.make_agi_env_stripped_fixture()
+        return getattr(made, "__wrapped__", made)()
+
+    def _enter(gen):
+        next(gen)
+        return gen
+
+    def _exit(gen):
+        # pytest's own finalization: resume the body past its yield, so the
+        # restore actually RUNS (close() would skip it -- GeneratorExit).
+        with pytest.raises(StopIteration):
+            next(gen)
+
+    a = _raw()
+    b = _raw()
+    _enter(a)                     # A strips the AGI_* channel
+    assert planted not in os.environ, "the fixture did not strip the channel"
+    _enter(b)                     # B enters: there is nothing left to strip
+    _exit(b)                      # B exits while A is STILL entered
+    try:
+        assert planted not in os.environ, (
+            f"a second fixture instance's teardown restored what the FIRST "
+            f"instance had stripped -- the memo is shared, not per-instance: "
+            f"{planted}={os.environ.get(planted)!r} while instance A is still "
+            f"entered")
+    finally:
+        _exit(a)                 # A's own teardown restores the channel
+    assert os.environ[planted] == "a00-deadbeef", (
+        "the owning instance's teardown did not restore what it stripped")
+
+
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))
