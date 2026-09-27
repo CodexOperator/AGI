@@ -60,8 +60,7 @@ def test_stale_lock_is_cleared_with_one_named_line_and_the_path_continues(tmp_pa
     lock = _mklock(repo, 3600)          # 0-byte, an hour old, no git holder
     assert cli._clear_stale_index_lock(root, repo) is None
     assert not lock.exists(), "a stale unheld lock must be removed"
-    again = cli._clear_stale_index_lock(root, repo)
-    assert again is None, "a clear checkout is a no-op, not a refusal"
+    assert cli._clear_stale_index_lock(root, repo) is None, "clear = a no-op"
 
 
 def test_a_fresh_lock_is_refused_by_name_and_left_untouched(tmp_path):
@@ -73,20 +72,77 @@ def test_a_fresh_lock_is_refused_by_name_and_left_untouched(tmp_path):
     assert lock.exists(), "a FRESH lock is never removed"
 
 
-def test_a_held_lock_is_refused_even_when_it_is_old(tmp_path):
+def test_a_lock_open_in_some_process_fds_is_never_removed(tmp_path):
     cli = _cli()
     root, repo = _repo(tmp_path, stale_s=60)
-    lock = _mklock(repo, 3600)           # old, but a git process lives here
-    holder = subprocess.Popen(
-        ["git", "-C", str(repo), "hash-object", "-w", "--stdin"],
-        stdin=subprocess.PIPE, stdout=subprocess.DEVNULL)
+    lock = _mklock(repo, 3600)           # old, but a live process holds it open
+    holder = subprocess.Popen(["sh", "-c", f"exec 9<{lock}; sleep 30"])
     try:
+        time.sleep(0.5)
         reason = cli._clear_stale_index_lock(root, repo)
     finally:
-        holder.communicate(b"held\n")
+        holder.kill()
+        holder.wait()
+    assert reason and "held=yes" in reason, reason
+    assert lock.exists(), "a lock open in an fd is never removed"
+
+
+def test_a_lock_held_by_a_git_with_cwd_in_the_checkout_is_never_removed(tmp_path):
+    cli = _cli()
+    root, repo = _repo(tmp_path, stale_s=60)
+    lock = _mklock(repo, 100000)         # 100000s old vs a 60s cell
+    holder = subprocess.Popen(["git", "update-index", "--index-info"],
+                              cwd=str(repo), stdin=subprocess.PIPE,
+                              stdout=subprocess.DEVNULL)
+    try:
+        assert holder.poll() is None, "the holder must be ALIVE"
+        argv = Path(f"/proc/{holder.pid}/cmdline").read_bytes().decode()
+        assert str(repo) not in argv, f"the path must not be in argv: {argv}"
+        reason = cli._clear_stale_index_lock(root, repo)
+    finally:
+        holder.stdin.close()
         holder.wait()
     assert reason and "held=yes" in reason, reason
     assert lock.exists(), "a HELD lock is never removed"
+
+
+def test_a_missing_threshold_cell_refuses_by_name(tmp_path):
+    cli = _cli()
+    root, repo = _repo(tmp_path)
+    (root / "config.json").write_text(json.dumps({"values": {"core": {}}}))
+    lock = _mklock(repo, 100000)
+    reason = cli._clear_stale_index_lock(root, repo)
+    assert reason and "stale_index_lock_s not set" in reason, reason
+    assert lock.exists(), "no threshold cell = never unlink"
+
+
+def test_a_failed_round_commit_in_a_real_linked_worktree_is_named(tmp_path):
+    # Conjunct 2 end to end: a REAL linked worktree whose commit FAILS.
+    cli = _cli()
+    main = tmp_path / "main"
+    env = dict(os.environ, GIT_AUTHOR_NAME="a", GIT_AUTHOR_EMAIL="a@b",
+               GIT_COMMITTER_NAME="a", GIT_COMMITTER_EMAIL="a@b")
+    subprocess.run(["git", "init", "-q", "-b", "main", str(main)], check=True, env=env)
+    (main / "f.txt").write_text("x")
+    subprocess.run(["git", "-C", str(main), "add", "f.txt"], check=True, env=env)
+    subprocess.run(["git", "-C", str(main), "commit", "-qm", "seed"], check=True, env=env)
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(main), "worktree", "add", "-qb", "kid", str(wt)],
+                   check=True, env=env)
+    root = wt / ".agi"
+    (root / "nodes" / "verdict").mkdir(parents=True)
+    (root / "config.json").write_text(json.dumps({"values": {"core": {"stale_index_lock_s": 900}}}))
+    (root / "nodes" / "verdict" / "a00-x.md").write_text("---\nid: verdict:a00-x\ntype: verdict\n---\nbody\n")
+    hooks = wt / "hooks"
+    hooks.mkdir()
+    (hooks / "pre-commit").write_text("#!/bin/sh\nexit 1\n")
+    (hooks / "pre-commit").chmod(0o755)
+    subprocess.run(["git", "-C", str(wt), "config", "core.hooksPath",
+                    str(hooks)], check=True, env=env)
+    out = cli._auto_commit_worktree(root, "a00-x", "verdict:a00-x", None, "proved")
+    assert isinstance(out, str) and "commit failed" in out, out
+    assert "commit FAILED" in cli._parent_harvest_body(
+        root, {"agents": []}, "DH.1", "a00-x", {}, commit_failed=out)
 
 
 def test_a_failed_commit_exits_non_zero_and_is_named_in_the_harvest_dm():

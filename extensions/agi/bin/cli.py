@@ -2369,16 +2369,42 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
     return out
 
 
+def _lock_is_held(lock: Path, checkout: Path) -> bool:
+    """HELD = some process has this lock OPEN (/proc/<pid>/fd) or is a git whose
+    CWD resolves inside the checkout (/proc/<pid>/cwd + comm). Never argv: a git
+    run with cwd=the checkout and no path in argv -- row 18's shape -- is
+    invisible to `pgrep -f`."""
+    ck = os.path.realpath(checkout)
+    lp = os.path.realpath(lock)
+    for pid in os.listdir("/proc"):
+        if not pid.isdigit():
+            continue
+        base = f"/proc/{pid}"
+        try:
+            if any(os.readlink(f"{base}/fd/{fd}") == lp
+                   for fd in os.listdir(f"{base}/fd")):
+                return True
+        except OSError:
+            pass
+        try:
+            cwd = os.readlink(f"{base}/cwd")
+            if ((cwd == ck or cwd.startswith(ck + os.sep))
+                    and Path(base, "comm").read_text().strip() == "git"):
+                return True
+        except OSError:
+            pass
+    return False
+
+
 def _clear_stale_index_lock(root: Path, checkout: Path) -> str | None:
     """hypothesis:a-stale-index-lock-is-cleared-or-named-...-never-silent --
     the pre-commit gate: a STALE `.git/index.lock` (older than the cell
-    `values.core.stale_index_lock_s`, no live git holder in this checkout) is
-    removed with ONE named line; a FRESH or HELD one is never touched and the
-    commit refuses BY NAME. Returns the refusal reason, or None when clear."""
+    `values.core.stale_index_lock_s`, no live holder) is removed with ONE named
+    line; a FRESH, HELD or UNTHRESHOLDED one is never touched and the commit
+    refuses BY NAME. Returns the refusal reason, or None when clear."""
     try:
         cfg = json.loads((Path(root) / "config.json").read_text(encoding="utf-8"))
         cell = ((cfg.get("values") or {}).get("core") or {}).get("stale_index_lock_s")
-        stale_s = float(cell) if cell else 900.0
         rel = subprocess.run(["git", "-C", str(checkout), "rev-parse",
                               "--git-path", "index.lock"],
                              capture_output=True, text=True).stdout.strip()
@@ -2387,10 +2413,14 @@ def _clear_stale_index_lock(root: Path, checkout: Path) -> str | None:
         if lock is not None and not lock.is_absolute():
             lock = checkout / lock
         if lock is None or not lock.is_file():
-            return None
+            return None    # no lock: nothing to clear, nothing to refuse
+        # the threshold is the CELL, never a literal; a MISSING cell never unlinks.
+        if cell is None:
+            return ("stale_index_lock_s not set -- NOT removed (no threshold "
+                    "cell is no licence to unlink a lock)")
+        stale_s = float(cell)
         age = time.time() - lock.stat().st_mtime
-        held = subprocess.run(["pgrep", "-f", f"git.*{checkout}"],
-                              capture_output=True).returncode == 0
+        held = _lock_is_held(lock, checkout)
         if age < stale_s or held:
             return (f"index.lock {lock} age={int(age)}s "
                     f"stale_after={int(stale_s)}s held={'yes' if held else 'no'}"

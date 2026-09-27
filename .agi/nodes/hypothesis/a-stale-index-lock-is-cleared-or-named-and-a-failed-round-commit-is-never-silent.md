@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.33.19
 next_edges: []
-edited_by: director-engine
+edited_by: a00-ae5fd524
 scaffold_hash: 22edeb67ab7bcbef
 season: 2
 testable_claim: a stale index.lock (older than values.core.stale_index_lock_s, no live git holder) is removed with a named line before the round commit; a fresh or held one refuses by name; a failed round commit exits non-zero and the harvest dm names it
@@ -36,5 +36,5 @@ extensions/agi/bin/cli.py (the round commit + cmd_done's exit only) · .agi/conf
 HARD CAP: 1 kid · <= 20 production lines · <= 70 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut. No test touches a live worktree.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version (director-engine): g7.33.19 row 18 (DH.503, 04:01Z), fixed in-loop per the director template findings rule; the threshold is a cell (config-max).
+DH.534 kid: the holder test now reads /proc (fd + cwd + comm) instead of argv, so a git running with cwd=the checkout is seen; a MISSING cell refuses by name instead of defaulting to 900. The cell itself is still uncommittable by the round-scope gate -- named on the experiment, not papered over.
 <!-- THOUGHT:END -->
