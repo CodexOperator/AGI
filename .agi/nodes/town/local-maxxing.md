@@ -72,7 +72,7 @@ town:local-maxxing
 │  └─ goal:g7.33 …… MOVED → town:core (engine; parked unassigned)
 ├─ GRAPH REDESIGNS — engine goals on town:core, assigned director-engine; in DEPENDENCY order (owner 01:0xZ 09-27: send depends on mint, rotate on send)
 │  ├─ 1 node spawn/mint … goal:g4.18.1 (may be mostly done)
-│  ├─ 2 messaging + nudge … goal:send-is-hub-only-dm-file-versions-synced-every-30s · goal:g7.32.5
+│  ├─ 2 messaging + nudge … goal:g7.32.6 · goal:g7.32.5
 │  └─ 3 spawn/rotate ……… goal:g7.31.3.3
 └─ TRAJECTORY STAND-IN ← folded from doc:lm-town-trajectory
    (TEMP pending trajectory:* — g7.34.1/.2; doc kept, deprecated pointer)
@@ -103,7 +103,7 @@ town:local-maxxing
 | goal:g5.19 | Thought Master post (remap) |
 | goal:g5.20 | secrets hub banked (remap) |
 | goal:g5.21 | Bend2/HVM map (remap) |
-| goal:send-is-hub-only-dm-file-versions-synced-every-30s | REDESIGN messaging + nudge around the graph: send = one dm-file version through the hub, one 30 s box sync that also nudges, no inbox; + routing by post row, AGI_BOX box identity, quiet rows, read-on-landing, the (default)-box refusal (director-engine; owner 09-26 20:3x-21:1xZ) |
+| goal:g7.32.6 | REDESIGN messaging + nudge around the graph: send = one dm-file version through the hub, one 30 s box sync that also nudges, no inbox; + routing by post row, AGI_BOX box identity, quiet rows, read-on-landing, the (default)-box refusal (director-engine; owner 09-26 20:3x-21:1xZ) |
 | goal:g7.32.5 | REDESIGN messaging: parents send on the hub route by default -- one narrow dm-append push grant (director-engine; owner 00:38Z 09-27) |
 | goal:g7.31.3.3 | REDESIGN spawn/rotate around the graph: parent slots per post in .geometry, dynamic kid rows, rotate = needs-rotate: true, the reaper/heal loop carries out what the graph says (director-engine; owner 00:38-00:45Z 09-27) |
 | goal:g4.18.1 | REDESIGN node spawn/mint: one mint route, the node and its raw file through one captive write flow; may be mostly done -- write.py create, its spawn gate and --payload exist (director-engine; owner ~23:2xZ 09-26) |

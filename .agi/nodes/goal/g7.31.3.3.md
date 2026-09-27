@@ -48,7 +48,7 @@ Unify spawn and rotate as graph writes. Parents become rows under the post that 
 - parent goal:g7.31.3 -- the rotate|spawn route of the five unified engine routes; this makes it one graph write.
 - goal:g7.32.5 -- the parents' dm-append push grant, the messaging half of the same owner message.
 - goal:g4.18.1 -- one mint route: slot and kid rows go through the same write flow.
-- goal:send-is-hub-only-dm-file-versions-synced-every-30s -- the reply route refinement 3 uses; its (default)-box note (46d1d17e1): refinement 2 acts only on the box a row names.
+- goal:g7.32.6 -- the reply route refinement 3 uses; its (default)-box note (46d1d17e1): refinement 2 acts only on the box a row names.
 
 ## Routing
 assigned: director-engine. THIRD of the three graph redesigns, after node spawn/mint (goal:g4.18.1) and the send hub-only work (OWNER 01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): refinement 3's refusal rides send's reply route.
