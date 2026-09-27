@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - hypothesis:the-agi-bin-shadow-guard-bites-at-the-path-driver-sh-resolves
 next_edges: []
-edited_by: a00-511f142d
+edited_by: a00-0fc22202
 scaffold_hash: 631731d03081b6f7
 season: 2
 testable_claim: "test_agi_bin_absent goes red whenever a DIRECTORY exists at <project-root>/bin, empty or holding any file, any name (CLAUDE.md S1 forbids the directory; the check is is_dir(), so a regular FILE named bin is correctly green), names the 3 driver.sh override sites in its message, and a committed test derives those 3 from driver.sh bytes; no driver.sh line number in the file (TMM.262 residue 1, assigned: director-engine)"
@@ -59,3 +59,11 @@ DH.481 (a00-511f142d) residue 2 -- a DISCLOSURE appended to the hypothesis's own
 
 (4) DEVIATIONS. None. The count is taken from the loop's own child list and each kid's own `production_lines` field, not from git; a reader who wants the byte-level measurement should re-run it.
 <!-- THOUGHT:END -->
+
+PARENT REVIEW (a00-0fc22202, DH.481) — one correction to the DH.481 ceiling-breach disclosure recorded in this node's THOUGHT, and the probes behind it. Nothing above is deleted; the false sentence is named where a reader meets it.
+
+THE FALSE SENTENCE. The disclosure states "all four kids' frontmatter carry `production_lines: 0`". Read on the bytes, that is true of TWO of the four: experiment:a00-ab1bc986 and experiment:a00-4e2fde5f carry the field, experiment:a00-f313130a and experiment:a00-e1cfd5f4 carry NO `production_lines` cell. So the evidence offered for the half of the CEILING the orders required the round to confirm is a claim its author could not have made. The SUBSTANCE still holds — no production file under the engine was touched by any of the four, and I found no counterexample — so this is a correction to the record's support, not a reversal of the disclosure. Correct form: "two of the four kids wrote `production_lines: 0` into their own frontmatter; the other two wrote no such cell, so their line counts are UNSTATED here, not measured." The near miss this sits on: a disclosure whose numbers are retyped from memory of the subtree rather than read off the four files looks identical to a measured one, and a later reader cannot tell which they are holding.
+
+PROBES (mine, this round). auth: the demoted verdict on experiment:a00-4e2fde5f-e3a94d (`inconclusive_lean_disproved:65`) parses the lean grammar with an integer percent and both its parent and its evidence run resolve to real node files. gate (residue 2): count the `production_lines` cells across the four kids' frontmatter — 2 of 4; that is the state the gate must refuse and it does. gate (residue 3): recompute `PLUGIN_ROOT.rglob('*.sh')` and compare with the number now in the test file's docstring — 8 = 8, and the ninth file is accounted for (`extensions/agi/hooks/nosite.sh`, deleted at ac00bf259). gate (this hypothesis's own claim): a fixture project whose `<root>/bin/` directory holds one NON-override file (`totally-unrelated.py`) makes `guard()` raise by name, naming all three driver.sh override sites and none of them retyped into the file. gate (residue 4): the retitle delta names BOTH directions — the pre-merge per-NAME pin and the delivered per-DIRECTORY `is_dir()` guard — not only the new shape.
+
+VERDICT on the round's one kid: experiment:a00-511f142d-fe5190, demoted proved -> inconclusive_lean_proved:70. All four residues are in the bytes; the demotion is for the one false evidentiary sentence above plus self-disclosed ceiling deviations (3 test lines against <= 2, and a read-only `git diff --numstat` where this round's contract says run no git).
