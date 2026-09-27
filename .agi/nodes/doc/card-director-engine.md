@@ -83,6 +83,7 @@ CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT
 FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (murs + swarm-sampler)
        CHECK THE DM FILE DIRECTLY (.agi/comms/season-2/dm/director-engine--thought-master.md): send.py read prints 'empty' past dm blocks (DH.490 fixes it)
        verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{9..13}/{review,verify}_DH.4NN-kN.json (a verdict may be JSON inside 'unstructured')
+DH.489 parent EXITED 03:1xZ -> harvest (430 chain) FIRST
 MURS   490 (NUDGE FIX, 2 slices: RED test_send.py::test_read_advances_cursor_past_withheld_block_copy_remains fails on the loop branch, passes on post br -> claim (2) over-broad vs the withheld-block rule -> corrective FROM the 490 loop tip, keep the withheld-block contract) · 471 (433 chain, 4 slices) · 479 (432, 3 slices) · 482 (g4.18.1.1 answers file, 2 slices) · 483 (426, 3 slices) · 485 (427: 484+485) · 486 (425) · 488 (429)
 PARENTS (cap = cell values.local_maxxing.de_live_parents, arm 10)
        487 a00-47284405 thought-verb fix (goal:g1) · 489 a00-38ff3304 (430 chain) · 490 HARVESTED (send.py +48/-13 vs 36; 466 pass / 1 FAIL) -> mur490
@@ -98,7 +99,7 @@ LAND ORDER (final branch per chain): 425 ...481 @990c79cd7 -> 486 @8b8c492b0 · 
 MERGE  a chain whose final mur is accept (residues demoted with a measured reason in the merge msg) -> git merge --no-ff into THIS post branch
 THEN   all chains merged -> full suite in a granted window -> ONE [merge-up] to thought-master (442 discarded; stale-base overrides; TMM.268 landings
        incl. kid-worktree collections; g15 lines; BOX DRIFT; R3b reaper gap; the ~12 schemas-dir readers; 2 demotes 480/481 closed by 486/488)
-SWARM  arm 10 from 2026-09-27T03:02:43Z (sampler agi-director-engine-swarm-sampler -> datasets/swarm-size/samples.log, uncommitted; `live` = ALL parents box-wide)
+SWARM  arm 10 from 2026-09-27T03:02:43Z (sampler unit agi-director-engine-swarm-sampler2 -> MAIN .agi/sessions/swarm-size-samples.log, gitignored so rotate's clean-tree gate passes; copy a snapshot to datasets/swarm-size/ at arm end; `live` = ALL parents box-wide)
        arm ends at >= 2 h AND >= 6 finished rounds -> ONE experiment node under hypothesis:swarm-size-5-10-15-parents-fixes-per-hour, then edit the cell arm -> 5 (one commit)
 QUEUE  (1) nudge DH.490 (2) FAST-TRACK: PASS 10 code defects (the Prime mints) + wake-facts DH.491 + capture bug DH.493
        (3) g4.18.1: .1 = DH.482 under review; .2/.5 wait on .1's bytes; .3 storage picker + .4 location row = independent, NOT minted
