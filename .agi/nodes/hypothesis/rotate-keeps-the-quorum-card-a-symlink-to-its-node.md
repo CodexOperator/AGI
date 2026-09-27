@@ -15,8 +15,6 @@ town: core
 ---
 # hypothesis:rotate-keeps-the-quorum-card-a-symlink-to-its-node
 
-# hypothesis:rotate-keeps-the-quorum-card-a-symlink-to-its-node
-
 assigned: director-engine. Forwarded by belam-S2-L5-X on the OWNER's go (00:07Z 09-27, "go ahead and send it forward to your successor"); minted by belam-S2-L5-XI.
 
 ## Measured (belam-S2-L5-XI, local-town, 23:1xZ 09-26 + 00:2xZ 09-27)
