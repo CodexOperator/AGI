@@ -536,6 +536,40 @@ def test_capture_appends_its_line_and_keeps_the_slot_and_banked(
     assert _section(after, "banked") == _section(before, "banked"), after
 
 
+def test_capture_rotate_self_step_keeps_the_owed_slot(tmp_path, run_hook,
+                                                      monkeypatch, capsys):
+    """The chain's SECOND writer, not just the first: argv[1]'s --stops must
+    carry the owed list too, because `rotate._write_stops_section` REPLACES the
+    whole fenced region. Pre-fix it was `_stops_line` -- `stops: <subject> |
+    last dm:` with no owed list -- so rotate-self destroyed the slot the
+    handoff had just preserved (RED-FIRST)."""
+    graph, cwd = _graph(tmp_path, extra="card_capture_minutes: 10\n")
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
+    monkeypatch.setattr(hook, "_work_last_ts", lambda *a, **k: 2_000_000_000)
+    state_dir = tmp_path / "state-step2"
+    card = _stale_state(tmp_path, graph, state_dir)
+    card.write_text(LIVE_SHAPE_CARD, encoding="utf-8")
+    tp = tmp_path / "step2.jsonl"
+    _transcript(tp, 45_000)
+    code, out, err = run_hook(_payload(graph, tp, "s-step2", cwd), state_dir,
+                              monkeypatch, capsys)
+    assert code == 0, err
+    _handoff, rot = hook._CAPTURE_LOGGED
+    assert rotate.cmd_handoff(
+        SimpleNamespace(driven=True, seat="probe-director",
+                        field=_fields_of(hook._CAPTURE_LOGGED[0]),
+                        dry_run=False), graph) == 0
+    stops = rot[rot.index("--stops") + 1]
+    full, slot = rotate._write_stops_section(card, "probe-director", stops)
+    assert full and slot == "replaced", slot
+    _head, body = _section(card.read_text(encoding="utf-8"), "where it stops")
+    for owed in ("DONE  one landed thing", "NEXT  (1) first owed step",
+                 "      (2) second owed step"):
+        assert owed in body, owed
+    assert "auto-captured at f=" in body, body
+
+
 #: the two UNFENCED slot shapes. `##`-level (doc:card-belam's own: a `##` heading
 #: with a plain prose body) and `###`-level (a subheader inside a `##` section,
 #: unfenced prose below it). Parent PROBE C lost the `###` header byte here:
