@@ -3741,6 +3741,7 @@ def _print_blocks_with_labels(root: Path, me: str, blocks: list[str],
     value, or an absent `comms` block, prints identically to today."""
     labels = _labels_for_blocks(root, blocks)
     enforcing = _comms_config(root).get("verify") == "enforcing"
+    last = -1                     # index of the LAST block this call printed
     for i, block in enumerate(blocks):
         if i > 0:
             print(MSG_SEP, end="")
@@ -3753,6 +3754,8 @@ def _print_blocks_with_labels(root: Path, me: str, blocks: list[str],
             continue
         print(labels[i])
         print(_wrap_block(quote_harness_text(block), wrap), end="")
+        last = i
+    return last
 
 
 def _deferred_stamp(root: Path, me: str, deferred: dict) -> str:
@@ -3813,17 +3816,24 @@ def _own_inbox_or_refuse(target: str, me: str) -> bool:
 
 
 def read(root: Path, me: str, sender: str | None,
-         wrap: int = 160) -> None:
+         wrap: int = 160, *, quiet_empty: bool = False) -> int:
     """Print unread blocks (bodies wrapped at `wrap` columns, display-only)
-    and mark them read."""
+    and mark them read. Returns how many unread ITEMS the inbox held (blocks
+    plus a stored deferred dm, counted whether or not the printer emitted
+    them), so a caller that also sweeps dm channels (`read_dms`) decides the
+    `empty` verdict only when BOTH are empty -- it used to be printed in
+    here, before the dm sweep ran. `quiet_empty=True` withholds it. The read
+    marker follows the LAST BLOCK PRINTED: a block `read` refused to print
+    (FORGED, quarantined) stays unread (conjunct 2)."""
     _lockdown_warn(root)
     inbox = _inbox_path(root, me)
     blocks, marker_index = _scan_messages(inbox)
     deferred = _read_deferred(root, me)
 
     if not blocks and deferred is None:
-        print(f"inbox for {me}: empty")
-        return
+        if not quiet_empty:
+            print(f"inbox for {me}: empty")
+        return 0
 
     # Observe the coalesced count ONCE, before anything is marked read. The
     # clear below is compare-and-clear (it subtracts this observed value),
@@ -3841,23 +3851,40 @@ def read(root: Path, me: str, sender: str | None,
         _print_deferred_block(root, me, deferred, wrap=wrap)
         _clear_deferred(root, me)
 
-    # Print inbox blocks, each prefixed by its verification label.
+    # Print inbox blocks, each prefixed by its verification label. The printer
+    # reports the LAST BLOCK IT PRINTED; a stub printing nothing answers None,
+    # which counts as "printed nothing" so the marker cannot advance.
+    last = -1
     if blocks:
-        _print_blocks_with_labels(root, me, blocks, wrap=wrap)
+        last = _print_blocks_with_labels(root, me, blocks, wrap=wrap)
+        last = last if isinstance(last, int) else -1
 
-    # Mark read: find the current last line and add a marker after it.
-    # If marker already existed, move it past the blocks we just printed.
+    # Mark read: the marker sits immediately AFTER THE LAST BLOCK PRINTED --
+    # never end-of-file past a block `read` withheld, which would retire mail
+    # nobody ever saw (conjunct 2). Before that block stays read, after it
+    # unread.
     if inbox.is_file():
         # newline="" too: a rewrite here must not be the thing that strips the
         # CR the writer preserved (mur-39 order (d)).
         text = inbox.open("r", newline="").read()
         lines = text.splitlines(keepends=True)
         if marker_index >= 0:
-            # Remove old marker; re-insert at end.
             lines = [l for l in lines if l != READ_MARKER]
         # Strip trailing whitespace, then add marker + trailing newline.
         content = "".join(lines).rstrip("\n")
-        inbox.write_text(content + "\n" + READ_MARKER)
+        # `_MSG_BOUNDARY_RE` matches the separator each block carries at its own
+        # head, so `starts[i]` is where block `i` begins and the first WITHHELD
+        # block is `last + 1`; nothing printed at all puts the marker at the
+        # very top (the file header counts as read).
+        starts = [m.start() for m in _MSG_BOUNDARY_RE.finditer(content)]
+        if last < 0:
+            cut = 0
+        elif last + 1 < len(starts):
+            cut = starts[last + 1]
+        else:
+            cut = len(content)
+        inbox.write_text(content[:cut].rstrip("\n") + "\n" + READ_MARKER
+                         + content[cut:].lstrip("\n"))
     # The seat just consumed its unread (clause (1) of hypothesis:l4-wake-
     # repair-is-quiet-honest-and-readable): drop the announced-state sidecar
     # so a LATER new unread state is never mistaken for one already typed.
@@ -3874,6 +3901,9 @@ def read(root: Path, me: str, sender: str | None,
     # early return above: a read that consumed nothing must NOT touch the
     # sidecars. `peek` clears nothing, unchanged.
     _clear_pending(root, me, observed)
+    # What the inbox HELD, not what the printer emitted: a seat holding mail
+    # is never `empty`, even if nothing printed.
+    return len(blocks) + (1 if deferred is not None else 0)
 
 
 def peek(root: Path, me: str, wrap: int = 160) -> None:
@@ -5540,10 +5570,15 @@ def main(argv: list[str] | None = None) -> int:
         if not _own_inbox_or_refuse(_alias_canon(root, args.target) or args.target,
                                     resolved):
             return 2
-        read(root, _alias_canon(root, args.target) or args.target, sender,
-             wrap=wrap)
+        target = _alias_canon(root, args.target) or args.target
+        shown = read(root, target, sender, wrap=wrap, quiet_empty=True)
         # clause (1): the same call also consumes every dm naming the post.
-        read_dms(croot, resolved, wrap=wrap)
+        shown += read_dms(croot, resolved, wrap=wrap)
+        # The seat is empty only when the INBOX held nothing AND the dm sweep
+        # showed nothing (conjunct 1): decided here, after both, never inside
+        # `read` before the sweep.
+        if not shown:
+            print(f"inbox for {target}: empty")
         return 0
 
     if args.verb == "peek":
