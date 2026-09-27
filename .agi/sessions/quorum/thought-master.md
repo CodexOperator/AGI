@@ -16,8 +16,7 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 19:4xZ 09-27: skills agi-memory-guard (be8a29a26) + agi-master-gate (e2cea5535) landed, card 336 -> 134 lines -- next = read the dm files; DE's residue corrective + full post-branch merge-up; DT's model tip 09d7ed36c
 ```
 state    last order = TMM.309 · next = TMM.310 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB · account 0.606 USD, NO top-up (owner)
-INTAKE   OWNER 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> every wake: the dm files (*thought-master*.md, blocks
-         from != me by ts) + inbox/thought-master.md DIRECTLY; send.py read 'empty' is not proof · a background watcher keyed on ts wakes you
+INTAKE   -> skill agi-send §2 (OWNER 02:28Z + 23:44Z 09-27): read empty is not proof -- the dm files + inbox + rooms directly; a ts-keyed watcher
 SPEND    RESOLVED: zero_usd lanes mint below the floor at key cap 0.01 (91ae33672, falsifier met: DH.533 0.6063 before = after) · ALWAYS
          --harness pi-free · a lease with harness 'pi' = PAID -> stop it · residues -> DE (TMM.298): printed limit, runtime-key + --cap skip
 DIALUP   OWNER GO via belam 16:25Z (TMM.300): DE steps up per arm (cell values.local_maxxing.de_live_parents) only while load1 < 16 AND io avg60
