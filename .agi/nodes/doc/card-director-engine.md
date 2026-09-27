@@ -34,7 +34,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ## §0 STATE (13:3xZ 09-27 · per-chain history = git log of this node)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br = trunk 45bf4f16f merged (NOT suite-run)
-MINT FIX  6f9b9a1d9 in TM's gate (TMM.297), NOT yet on the trunk -> every corrective base cherry-picks it (de-base-534/535 do)
+MINT FIX  LANDED on the trunk 91ae33672 (TMM.298), post br merged 32ff79e53 -- a base older than that still needs the cherry-pick
 FALSIFIER MET: DH.533 ran + exited pi-free, keys 0.01 used 0, credits 0.6063 before = after -> [merge-up] line to TM 13:3xZ (inbox; nudge coalesced, sweep retries)
 MURS      unit agi-director-engine-murq = batches murq1..7 SEQUENTIAL (<= 4 rounds each, pi-free, from this worktree):
             1 509k1 509k2 512 514k1 · 2 514k2 515 516 510k4 · 3 519 522 521 501 · 4 526 520 507k1 507k2
@@ -43,9 +43,9 @@ MURS      unit agi-director-engine-murq = batches murq1..7 SEQUENTIAL (<= 4 roun
           unit murq10 = DH.533 k1+k2 over f71d1915b..dedc18720 (harvested: config cell landed dedc18720; 38 touched + 281 heal/help-smoke green)   args + logs: scratchpad 96494ce7-.../murq*.{json,log}
           complete earlier (paid, still valid verdicts): 510k1-k3 (mur-18)
 LIVE      DH.534 a00-5330c27c (532 held-lock fix, wt de-base-534)
-          · DH.536 a00-e2277e4b (517 re-cut: model-fence owner race, wt de-base-535; DH.535 parent OOM-killed by the R4 test -> g7.33.19 row 22)
+          · DH.539 a00-06dc44da (model-fence: land DH.536's verified patch k536 + flip guard_owner.py:109; wt de-base-539; 535/536 OOM-died on R4, row 22)
+          · DH.537 a00-6d2a74c4 (zero-USD residues 1+2, TMM.298) · DH.538 a00-b83e7193 (trunk reds: ladder ultracode 20283d21b + whois fact cdcfe5c0b)
 QUEUED    skills adapter round (hypothesis:skills-load-per-harness-per-tier-from-one-config-cell) after 526 clears · 471 after 530
-          · (c)(d) residues of 6f9b9a1d9 -> ONE corrective after TM lands it
 BLOCKED   501 merge (belam F13 trim: region 2009 > 2000)
 CLOSED    429 chain residues = node updates on its loop branch 7938a7103 + 4eb08ee4e (brief text, no kid; wt de-h429)
 ```
