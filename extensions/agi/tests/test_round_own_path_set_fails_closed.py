@@ -110,8 +110,34 @@ def test_the_own_minted_scaffold_still_lands_with_its_agent_id(tmp_path,
     assert "hypothesis:foreign" in capsys.readouterr().err
 
 
-def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None):
-    d = root / "sessions" / "iter-DH.999" / agent
+def _load_locations():
+    """The engine's locations.py, next to the cli.py under test -- the ONE
+    place the iteration-dirname spelling lives (rule: never re-spell a path
+    in a test either)."""
+    import importlib.util
+    import os
+    from pathlib import Path
+    src = Path(os.environ.get("AGI_CLI_PY")
+               or (Path(__file__).resolve().parents[1] / "bin" / "cli.py"))
+    spec = importlib.util.spec_from_file_location(
+        "agi_loc_own", src.parent / "locations.py")
+    loc = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(loc)
+    return loc
+
+
+def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None, iter_n=999):
+    """A spawn record under the CANONICAL iteration dir for `iter_n`.
+
+    DH.557: this used to write `sessions/iter-DH.999/`, which is not the
+    dirname `locations.iteration_dirname` emits, and the callers called the
+    helper with NO iteration in hand -- so the DH.552 bound (this round's own
+    iter dir) read as an empty set for the WRONG reason: the fixture, not the
+    bound. The bound itself is correct and stays; the fixture now puts the
+    record where a real dispatch puts it, and passes the id.
+    """
+    d = (root / "sessions" / _load_locations().iteration_dirname(iter_n)
+         / agent)
     d.mkdir(parents=True, exist_ok=True)
     (d / "agent.json").write_text(
         '{"spawned_by_agent": "%s", "node_id": "%s", "dispatch_node_id": '
@@ -130,11 +156,19 @@ def test_owns_reaches_the_nodes_of_the_agents_this_round_spawned(tmp_path,
     root = _graph(tmp_path, ids=(("hypothesis", "tgt"),
                                  ("experiment", "a00-kid-1")))
     _spawn(root, "a00-kid-1", "a00-me", "experiment:a00-kid-1")
-    assert cli._round_spawned_node_ids(root, "a00-me") == ["experiment:a00-kid-1"]
-    assert cli._round_spawned_node_ids(root, "a00-somebody-else") == []
-    assert cli._round_spawned_node_ids(root, None) == []
+    assert cli._round_spawned_node_ids(root, "a00-me", 999) == [
+        "experiment:a00-kid-1"]
+    # the three refusals the bound buys, all still empty:
+    assert cli._round_spawned_node_ids(root, "a00-somebody-else", 999) == []
+    assert cli._round_spawned_node_ids(root, None, 999) == []
+    assert cli._round_spawned_node_ids(root, "a00-me", None) == []
+    # ...and a record of THIS round's spawn in ANOTHER iteration does not leak
+    # in: a seat name is not a round id (the DH.552 seat-name leak).
+    _spawn(root, "a00-kid-old", "a00-me", "experiment:a00-kid-old", iter_n=1)
+    assert cli._round_spawned_node_ids(root, "a00-me", 999) == [
+        "experiment:a00-kid-1"]
     named = cli._round_named_node_ids({"target": "hypothesis:tgt"}, None)
-    named += cli._round_spawned_node_ids(root, "a00-me")
+    named += cli._round_spawned_node_ids(root, "a00-me", 999)
     capsys.readouterr()
     paths = cli._round_own_node_paths(
         root, root, None, ["experiment:a00-kid-1"], named, agent_id="a00-me")
@@ -153,7 +187,7 @@ def test_owns_of_a_kid_another_agent_spawned_is_still_refused(tmp_path,
                                  ("experiment", "a00-kid-2")))
     _spawn(root, "a00-kid-2", "a00-other-parent", "experiment:a00-kid-2")
     named = (cli._round_named_node_ids({"target": "hypothesis:tgt"}, None)
-             + cli._round_spawned_node_ids(root, "a00-me"))
+             + cli._round_spawned_node_ids(root, "a00-me", 999))
     capsys.readouterr()
     paths = cli._round_own_node_paths(
         root, root, None, ["experiment:a00-kid-2"], named, agent_id="a00-me")
