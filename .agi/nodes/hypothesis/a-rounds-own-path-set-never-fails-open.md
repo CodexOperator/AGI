@@ -49,6 +49,17 @@ FILE SCOPE extensions/agi/bin/cli.py · extensions/agi/tests/test_cli.py · exte
 CEILING   HARD CAP: 2 kids (split the numbered items between them, no overlap) · <= 25 production lines net over ee2e5823e · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.557 -- DH.552 left a RED and two kids' items unlanded (harvest 15:0xZ: kid a00-8f39d964 landed; a00-e0e124e8 died, a00-fa7a6d2f failed)
+BASE      CUT FROM season2/loops/hypothesis-a-rounds-own-path-set-a00-98233a26 tip e450e5b2e (branch de-base-557). No merge. Never rebase.
+1. RED introduced by DH.552: test_round_own_path_set_fails_closed.py::test_owns_reaches_the_nodes_of_the_agents_this_round_spawned asserts ['experiment:a00-kid-1'] and now gets [] (green on the base d2a3abb2f: 7 passed). The DH.552 cli.py change (+27/-9) narrowed the iter-* spawn glob. Make the test green WITHOUT re-widening the glob to every iter-* dir: the spawn authority is bounded to THIS round's iter dir. If the test's fixture places the kid outside the round's own iter dir, fix the fixture and say why on your node.
+2. Every item of this node's ## CORRECTIVE DH.552 section that kid a00-8f39d964's node does NOT mark done: do it now (read that node first; list which items you took).
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_round_own_path_set_fails_closed.py test_cli.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only. test_help_smoke[suite_guards.py] is red on this old base -- not yours.
+FILE SCOPE extensions/agi/bin/cli.py (the round path-set / spawn glob only) · extensions/agi/tests/test_round_own_path_set_fails_closed.py · extensions/agi/tests/test_cli.py · experiment:a00-8f39d964-fc2306 (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over e450e5b2e · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.552: mur-director-engine-23 DH.514-k1 + DH.514-k2 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.557: mur-director-engine-23 DH.552 harvest red residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
