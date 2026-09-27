@@ -28,7 +28,7 @@ town: core
 ## Step 1 census, 22:43-22:53Z 09-27 (10 min, 2 s fd scans + /proc/<pid>/io + du deltas)
 | writer | MiB/min | share of internal-disk writes (139.4 MiB/min) |
 |---|---|---|
-| DE's drain-gate loop (a polling script, its /tmp scratchpad) | 56.5 | ~40 % -> the writer is fixed, not moved (TMM.308) |
+| DE's base-worktree checkouts (2 x ~145 MiB, made in its drain unit before dispatch; NOT the poll -- DE measured, 22:56Z) | 56.5 | ~40 % -> now cut in /dev/shm and removed after dispatch (TMM.308) |
 | every Claude session | ~8 | ~6 % |
 | all logs: pi sessions 0.09 + transcripts 0.09 + ~/logs 0.01 + workflow records 0.005 | 0.2 | ~0.1 % |
 | unattributed: short-lived git / pytest in worktrees (exit inside the window) | ~70 | ~50 % -> the RAM worktree round (DH.650) |
