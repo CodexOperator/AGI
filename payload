@@ -32,9 +32,6 @@ python3 extensions/agi/bin/workflow.py status          # recent runs by descript
 - Reviewers: LEAN — diffs only (`git diff old new -- <path>`), big docs by `git grep PATTERN <sha> -- <paths>`.
   NEVER `grep -r` / `rg` / `find` over `.agi/` or the repo root: `.agi/worktrees/` holds ~100 checkouts and one
   such walk io-stalls the box (put this in every focus text).
-- STOPPING a run: each pi stage runs in its OWN `run-<id>.scope`, outside the runner unit -- `systemctl --user stop <runner>`
-  leaves the stages billing (TMM.295: two survived a stop 09-27 06:4xZ). Stop the runner, THEN every
-  `app.slice/run-*.scope` whose `cgroup.procs` member has its cwd in your worktree (`readlink /proc/<pid>/cwd`); re-list = 0.
 
 ## 3 · Author / register
 `workflow.py author` writes BOTH halves (`<name>.json` + `agi-<name>.js` derived from it); `workflow.py link` makes
