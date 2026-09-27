@@ -37,7 +37,11 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ## 🔴 Where it stops
 02:5xZ 09-27: NUDGE FIX FIRST (OWNER 02:49:02Z) -- DE dispatches g7.33.17 row 20 now (TMM.271); DT HELD + my model probe DEFERRED until it lands (TMM.272); then GATE DT's model-gate merge-up LIVE (tip db6bbf39e + its osc_band_fit re-derivation); PASS 10 running since 01:23Z
 ```
-state   MAIN = origin + this card · last order = TMM.278 · next = TMM.279 · SYNC 63cdd9f56 = origin/season2/main caa3db8b3 ancestry-only (tree = trunk; effort kept =
+state   MAIN = origin + this card · last order = TMM.280 · next = TMM.281 · cd113d555 director brief: 4 g15 routings -> engine-findings leaf (OWNER 03:3xZ via DE:
+        "A lot of traps into the skill files I imagine." / "Also g15 lines belong in a new goal g15 is retired. ...") · master brief's g15 line
+        proposed to belam ([rule]) · OWED ME: this card's traps -> skills, AFTER DE's 0463850fb (dispatch/node-write/verify skill edits)
+        lands on the trunk (same files: no conflict) · swap 'under goal:g7.33' -> goal:g7.33.19 in the brief once DE lands it
+        · DE 03:4xZ: row 20 nudge = DH.490 (a RED test -> corrective after mur490) · row 21 = table line only · 8 parents live (arm 10) · SYNC 63cdd9f56 = origin/season2/main caa3db8b3 ancestry-only (tree = trunk; effort kept =
         the owner's 01:2xZ c72b01fb5) -> DE rotates early (~0.36, row-21 risk): AFTER its rotation SendMessage the NEW DE session the owed
         orders BY NAME: TMM.271 (row 20 nudge fix) · TMM.275 (cap cell arm 10, fast-track queue, swarm test) · TMM.277 (row 21 capture)
         · DONE: DE rotated 03:15:40Z (post-director-engine-1c) -> the three re-sent by SendMessage 03:1xZ · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
