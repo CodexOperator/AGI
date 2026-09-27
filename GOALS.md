@@ -3025,6 +3025,156 @@ Most of the plumbing exists: `write.py create`'s spawn gate, `--payload` (links 
 ## Routing
 assigned: director-engine. FIRST of the three graph redesigns (OWNER 01:0xZ 09-27, verbatim: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): the hub-only send is written through write.py, so it builds on this route; spawn/rotate (goal:g7.31.3.3) comes after send.
 
+##### G4.18.1.1 — one row validator + an answers file -- a mint is rows checked against the type schema, stamped from the calling post, no shell-quoted values — status: active
+
+# goal:g4.18.1.1
+
+# goal:g4.18.1.1
+
+## OWNER 2026-09-26 ~23:2xZ, verbatim (the fragment this leaf carries; the whole quote is on goal:g4.18.1)
+"Each row filled out and format checked." / "The mint uses the calling posts info to stamp info appropriately."
+
+## Why this exists
+goal:g4.18.1 -- the one mint route needs ONE validator both of its front doors call; today a mint is a single `write.py create` argv whose `--set` k=v pairs are checked only by the spawn gate at the end, so a wrong row is found after the whole command is typed, and a quote or backtick in any value breaks the shell line (the predecessor dropped an owner quote's apostrophes to get it through).
+
+## Target end-state
+- A mint can be described as an ANSWERS FILE (one row per field: frontmatter fields, parents, body, payload) and minted with one `write.py` call that reads it; no value ever passes through a shell-quoted argv.
+- Every row is validated against `.agi/context/schemas/[<type>].md` (required, regex, types, legal parents) by ONE function, row by row, and a refusal names the row and the rule.
+- Rows the calling post does not choose (actor, role, town, season, thought_session) are stamped from the caller's `config:posts` row, never typed.
+
+## Invariants
+- The same validator backs the answers file AND the captive flow (goal:g4.18.1.2); no second copy of a schema rule in code.
+- A refused mint writes nothing (the spawn gate's contract holds).
+
+## Falsifier
+1. An answers file carrying an owner quote with an apostrophe, a backtick and `$(` mints byte-identically (`write.py ... read body` round-trip), exit 0.
+2. Negative: an answers file with one bad row exits non-zero naming that row, and `git status` shows no new node.
+
+## Out of scope
+goal:g4.18.1.2 (captive flow) · goal:g4.18.1.3 (storage picker) · goal:g4.18.1.4 (location row) · goal:g4.18.1.5 (new version) · goal:g4.18.2 (skills)
+
+## Agent Notes
+Assigned to **director-engine**.
+
+##### G4.18.1.2 — the captive mint flow -- a draft filled one row per call, each row checked by the one validator, no interactive stdin — status: active
+
+# goal:g4.18.1.2
+
+# goal:g4.18.1.2
+
+## OWNER 2026-09-26 ~23:2xZ, verbatim (fragment; whole quote on goal:g4.18.1)
+"Why can't minting just use the write function one step at a time as a captive flow the models follow? Each row filled out and format checked." / "recommending doing it manually one at a time to avoid backtick and quote confusion errors"
+
+## Why this exists
+goal:g4.18.1 -- swarm parents struggled with node creation (goal:g4.18.1 Evidence 09-26); a model composing one long `create` argv makes quoting errors a row-by-row flow cannot make.
+
+## Target end-state
+- A post mints by a DRAFT: one command opens it for a type, then one command per row fills and checks that row (goal:g4.18.1.1's validator), and a final command mints it; each step prints the next row to fill and its legal values.
+- The flow needs no interactive stdin (panes have no operator): every step is a separate, resumable call over the draft file.
+- The draft IS an answers file: a finished draft and a hand-written answers file mint through the same code.
+
+## Invariants
+- No row value is ever taken from a shell-quoted argv position that the model must escape; a value can come from a file or stdin.
+- An abandoned draft mints nothing and blocks nothing.
+
+## Falsifier
+1. A scripted run of the step commands mints a hypothesis whose bytes equal the same mint made from an answers file, exit 0.
+2. Negative: a step that fills a row with a value its schema regex refuses exits non-zero and the draft is unchanged.
+
+## Out of scope
+goal:g4.18.1.1 · goal:g4.18.1.3 · goal:g4.18.1.4 · goal:g4.18.1.5
+
+## Agent Notes
+Assigned to **director-engine**.
+
+##### G4.18.1.3 — the storage picker -- location options derived from config paths cells and schemas, pick + append or custom — status: active
+
+# goal:g4.18.1.3
+
+# goal:g4.18.1.3
+
+## OWNER 2026-09-26 ~23:2xZ, verbatim (fragment; whole quote on goal:g4.18.1)
+"Only needs a template showing where each major storage category is at and have the model pick from options listed during flow for things like extension code, template storage in .geometry, etc. and can add a custom path on top. The template pick in the flow just populates it into the pane verbatim and you can then emit the rest of the pathname before sending submit or just submit."
+
+## Why this exists
+goal:g4.18.1 -- a mint that carries a raw file needs a location, and today a post types that path by hand; the predecessor's reading (b) says the options come from the config paths and the schemas, never a hand list.
+
+## Target end-state
+- The mint flow offers the storage categories (engine code, tests, skills, .geometry config, context templates, ...) as a numbered list DERIVED from `.agi/config.json` `paths.*` cells and the schemas; picking one fills the location row's prefix, and the post may append the rest of the path or submit as is.
+- A custom path outside every category is accepted, flagged as custom.
+
+## Invariants
+- No storage path literal in code: a new category is a config cell, and it appears in the picker with no code change.
+
+## Falsifier
+1. Adding one `paths.<town>.<key>` cell in a temp config makes a new option appear in the picker, with no code edit, exit 0.
+2. Negative: `grep` for a storage-path literal in the picker code = 0 hits.
+
+## Out of scope
+goal:g4.18.1.1 · goal:g4.18.1.2 · goal:g4.18.1.4 · goal:g4.18.1.5
+
+## Agent Notes
+Assigned to **director-engine**.
+
+##### G4.18.1.4 — the location row -- names the raw file; a row change renames it in one commit; a directory move needs an explicit confirm — status: active
+
+# goal:g4.18.1.4
+
+# goal:g4.18.1.4
+
+## OWNER 2026-09-26 ~23:2xZ, verbatim (fragment; whole quote on goal:g4.18.1)
+"And each build node contains a reference to the location of its actual file." / "Then the node automatically gains the file name as well, and the file can be renamed via a node write/mint by using the location row change. It just checks and confirms if you literally ask to move the file to a new location not just a rename."
+
+## Why this exists
+goal:g4.18.1 -- a node's raw file is linked by `payload_ref`, but moving the file is a separate hand `git mv` plus a hand ref edit, so the two drift; the predecessor's reading (c): the location row = the file path, the mint id never changes (G2.5).
+
+## Target end-state
+- A node's location row names its raw file; minting with a location creates the file there and fills the row.
+- Changing the location row by a node write renames the file and updates the row in ONE commit; the mint id and grid history are untouched.
+- A change that moves the file to another DIRECTORY (not a rename in place) is refused unless the write explicitly confirms the move.
+
+## Invariants
+- After any write, the location row resolves to an existing file (links.py reports 0 broken payload refs).
+
+## Falsifier
+1. A location-row rename on a temp build node leaves the file at the new name, the row pointing to it and the mint id equal, in one commit, exit 0.
+2. Negative: a directory move without the confirm refuses and moves nothing.
+
+## Out of scope
+goal:g4.18.1.1 · goal:g4.18.1.2 · goal:g4.18.1.3 · goal:g4.18.1.5
+
+## Agent Notes
+Assigned to **director-engine**.
+
+##### G4.18.1.5 — a new version through the same route -- an answers file naming an existing id writes it in place, same validator — status: active
+
+# goal:g4.18.1.5
+
+# goal:g4.18.1.5
+
+## OWNER 2026-09-26 ~23:2xZ, verbatim (fragment; whole quote on goal:g4.18.1)
+"Then also modifying an existing node with a new version could also use the same shared mint route as a brand new node with a fresh file." / "write is used for both or at least the node part and raw file is just written to disk."
+
+## Why this exists
+goal:g4.18.1 -- a new version is an in-place edit plus `grid.py commit` (G6.3), but it goes through write.py's verb script while a new node goes through `create`: two routes, two sets of checks.
+
+## Target end-state
+- An answers file or draft naming an EXISTING node id writes a new version of it in place through the same validator as a fresh mint; its raw file (if any) is rewritten at its location row.
+- No second node file, no `@v2`, no `supersedes:` pair; the grid carries the history.
+
+## Invariants
+- A version write keeps the mint id and every existing edge.
+
+## Falsifier
+1. Re-minting an existing temp node from an edited answers file changes its bytes in place, keeps its mint_id, and creates no new file, exit 0.
+2. Negative: the same answers file with a row its schema refuses writes nothing.
+
+## Out of scope
+goal:g4.18.1.1 · goal:g4.18.1.2 · goal:g4.18.1.3 · goal:g4.18.1.4
+
+## Agent Notes
+Assigned to **director-engine**.
+
 #### G4.18.2 — SKILLS FOR EVERY ENGINE FLOW + THE DOC TRIM -- one skill per flow (goal creation carries its schema), skill build nodes under this goal, cards list skills instead of rules, wake docs trimmed to a byte budget (assigned: belam) — status: active
 
 # goal:g4.18.2
