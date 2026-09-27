@@ -46,6 +46,11 @@ _CACHE_FILE_NAME = "probe"
 #: so the prlimit fallback carries NO process bound -- see `wrap_argv`.
 _DEFAULT_TASKS_MAX = 96
 
+#: `spawn.memory_max` absent -> this. Named so a caller (and a test row)
+#: reads the shipped default instead of typing `4G` -- one source per value,
+#: the same reason `_DEFAULT_TASKS_MAX` exists.
+_DEFAULT_MEMORY_CAP = "4G"
+
 
 def _normalise_cap(val) -> "str | None":
     """None / 'none' / 'null' / '' -> None; else the value verbatim."""
@@ -94,7 +99,7 @@ def resolve_memory_cap(cfg: dict, override: "str | None" = None) -> "str | None"
         return _normalise_cap(override)
     spawn = _spawn_block(cfg)
     if "memory_max" not in spawn:
-        return "4G"
+        return _DEFAULT_MEMORY_CAP
     return _normalise_cap(spawn.get("memory_max"))
 
 

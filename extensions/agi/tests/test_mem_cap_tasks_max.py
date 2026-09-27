@@ -1,17 +1,25 @@
 """TasksMax on the same scope that carries MemoryMax (DH.421,
 hypothesis:a00-1ff9316d-177aae -- "a round's kid cannot fan out processes
 past the box's bound"). The cell is `spawn.tasks_max`, the one that sits
-beside `spawn.memory_max`; the shipped
-default lives in `mem_cap._DEFAULT_TASKS_MAX` so a config with no cell keeps
-working (a round may never commit `.agi/config.json`).
+beside `spawn.memory_max`; the two shipped defaults live in
+`mem_cap._DEFAULT_TASKS_MAX` / `mem_cap._DEFAULT_MEMORY_CAP`, so a config with
+no cell keeps working (a round may never commit `.agi/config.json`) and this
+file never types either number.
 
 THE FAN-OUT ROWS BELOW NEVER SPAWN (DH.453, closing the residue DH.421 left):
 they used to build a real argv and hand it to `subprocess.run`, reaching the
 REAL `agi-memcap-probe` / user scope and forking a real process tree inside a
 pytest. They now go through a STUBBED RUNNER -- the one seam every mem_cap
-spawn passes (`subprocess.run` as the module reaches it) -- which RECORDS the
-argv instead of launching it, so the bound on the argv is asserted with no
-scope, no unit, no forked child and no `shutil.which` gate.
+spawn passes (`subprocess.run` as the module reaches it) -- installed so that
+a spawn would be RECORDED instead of launched. The rows no longer CALL it:
+`wrap_argv` builds argv and returns, so the claim is that it reaches NO spawn
+seam at all (`calls == []`), which is a real property and breaks the day it
+starts spawning. No scope, no unit, no forked child, no `shutil.which` gate.
+
+NAMED COVERAGE RESIDUE, accepted rather than hidden: the real scope REFUSING a
+fan-out past TasksMax is exercised nowhere in the fast suite. The three
+production spawn sites (dispatch.py, heal.py, workflow.py) are unchanged and
+call `wrap_argv`; what this file asserts is the bound ON THE ARGV.
 """
 from __future__ import annotations
 
@@ -22,9 +30,22 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+import locations  # noqa: E402
 import mem_cap  # noqa: E402
 
-WANTED = 18  # < 20 processes even on the uncapped path (the kid-tier rule)
+#: An argv TOKEN, not a process count: no row forks anything (see
+#: `_stub_spawn`), so the number is here to make the built argv readable and
+#: to keep the fan-out SHAPE (`<script> <flag> <n>`) honest. The old comment
+#: claimed "18 < 20 processes" -- a live fork count this file no longer makes.
+WANTED = 18
+
+
+@pytest.fixture(autouse=True)
+def _no_ambient_tasks_max(monkeypatch):
+    """No row reads the DEVELOPER's env: `AGI_TASKS_MAX` outranks the cell in
+    `resolve_tasks_max`, so a shell that exports it would red the rows that
+    never mention it. Rows that WANT the override set it themselves."""
+    monkeypatch.delenv("AGI_TASKS_MAX", raising=False)
 
 
 def _cfg(**spawn):
@@ -32,11 +53,19 @@ def _cfg(**spawn):
 
 
 def _live_config():
-    """The live `.agi/config.json`, or an AssertionError that says which
-    cell is missing -- never a KeyError from a bare `["spawn"]` (DH.453)."""
-    root = Path(__file__).resolve().parents[3]
-    path = root / ".agi" / "config.json"
-    assert path.is_file(), f"spawn.tasks_max: no live config at {path}"
+    """The live config THROUGH THE ONE RESOLVER (goal:g11, config-max).
+
+    It used to walk `parents[3]` and join `.agi/config.json` by hand -- a
+    path literal that silently reads the wrong file under the legacy layout
+    or an engine clone, and a second copy of the rule `locations` already
+    owns. `find_project_root` + `config_path` is that rule; a missing config
+    is an AssertionError that says which cell is missing, never a KeyError
+    from a bare `["spawn"]` (DH.453)."""
+    root = locations.find_project_root(Path(__file__).resolve())
+    assert root is not None, \
+        "spawn.tasks_max: no project graph above this test file"
+    path = locations.config_path(root)
+    assert path is not None, f"spawn.tasks_max: no live config under {root}"
     with open(path) as fh:
         cfg = json.load(fh)
     assert isinstance(cfg, dict), \
@@ -74,18 +103,16 @@ def test_default_is_shipped_when_no_cell_is_present():
         mem_cap._DEFAULT_TASKS_MAX
 
 
-def test_the_live_config_carries_the_owners_own_value(monkeypatch):
+def test_the_live_config_carries_the_owners_own_value():
     """`spawn.tasks_max` is the owner's own number (TMM.263 (2)), so a real
     round is bounded at what the config says -- read from the config, never
     pinned here."""
-    monkeypatch.delenv("AGI_TASKS_MAX", raising=False)
     cfg, cell = _live_spawn_tasks_max()
     assert mem_cap.resolve_tasks_max(cfg) == cell, cell
 
 
-def test_the_old_cell_is_read_nowhere(monkeypatch):
+def test_the_old_cell_is_read_nowhere():
     """`values.memcap.tasks_max` is not a second spelling of the same bound."""
-    monkeypatch.delenv("AGI_TASKS_MAX", raising=False)
     cfg, cell = _live_spawn_tasks_max()
     other = cell + 1  # a value that can never equal the live cell
     cfg.setdefault("values", {}).setdefault("memcap", {})["tasks_max"] = other
@@ -108,11 +135,14 @@ def test_an_unreadable_cell_falls_back_and_never_uncaps(monkeypatch):
 
 def test_a_non_dict_spawn_container_reads_as_absent_for_bOTH_readers():
     """One shared guard: `{"spawn": 42}` raised TypeError out of
-    resolve_memory_cap while resolve_tasks_max already defaulted."""
+    resolve_memory_cap while resolve_tasks_max already defaulted. The
+    shipped memory default is READ as `mem_cap._DEFAULT_MEMORY_CAP`, not
+    typed here, so the two readers' defaults are named in one place."""
     for bad in (42, 0, [], "x", None, True):
         cfg = {"spawn": bad}
         assert mem_cap.resolve_tasks_max(cfg) == mem_cap._DEFAULT_TASKS_MAX, bad
-        assert mem_cap.resolve_memory_cap(cfg) == "4G", bad
+        assert mem_cap.resolve_memory_cap(cfg) == \
+            mem_cap._DEFAULT_MEMORY_CAP, bad
     # a dict with the real cell still reads through the SAME helper
     assert mem_cap.resolve_tasks_max({"spawn": {"tasks_max": 7}}) == 7
     assert mem_cap.resolve_memory_cap({"spawn": {"memory_max": "1G"}}) == "1G"
@@ -167,9 +197,14 @@ def _stub_spawn(monkeypatch):
     as the module reaches it -- with a recorder. Returns the call list.
 
     `wrap_argv` only BUILDS an argv, so this is the whole spawn surface:
-    stubbed, no scope, no unit, no forked child, no `systemd-run` gate. The
-    rows below then assert on the argv the scope WOULD carry, and that the
-    call reached the recorder and not a real process."""
+    stubbed, no scope, no unit, no forked child, no `systemd-run` gate.
+
+    The rows below do NOT call the runner themselves. They used to, and then
+    asserted `calls == [argv]` -- the TEST was the caller, so the assertion
+    proved the stub records, not that `mem_cap` spawns through it. Nothing
+    invokes the seam, so the honest claim is the OPPOSITE one: building the
+    argv launches NOTHING (`calls == []`), which is a real property of
+    `wrap_argv` and would break the day it started spawning."""
     calls = []
 
     def _run(argv, *a, **kw):
@@ -180,10 +215,17 @@ def _stub_spawn(monkeypatch):
     return calls
 
 
-def test_a_fanout_past_the_bound_is_refused_by_the_scope(monkeypatch):
+def test_the_wrapped_argv_carries_both_bounds_and_launches_nothing(monkeypatch):
     """Was: a real `systemd-run` scope forked 18 children under
-    TasksMax=8 and a real user manager counted the refusals. Now: the same
-    claim on the argv, through the stubbed runner."""
+    TasksMax=8 and a real user manager counted the refusals -- the ONE row
+    that ever tested that the scope REFUSES a fan-out past the bound.
+    Now: the same argv, and the bound on it, with no launch at all.
+
+    NAMED COVERAGE RESIDUE (accepted, not hidden): the real refusal is no
+    longer exercised anywhere in the fast suite. What this row proves is
+    that `wrap_argv` carries the bound AND spawns nothing -- the third
+    production spawn sites (dispatch.py, heal.py, workflow.py) still call
+    it and are untouched by this file."""
     calls = _stub_spawn(monkeypatch)
     monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: True)
     monkeypatch.setenv("AGI_TASKS_MAX", "8")
@@ -193,19 +235,17 @@ def test_a_fanout_past_the_bound_is_refused_by_the_scope(monkeypatch):
     assert "--property=MemoryMax=512M" in argv, argv
     assert "--property=TasksMax=8" in argv, argv
     assert "--" in argv and argv[argv.index("--") + 1:] == inner, argv
-    # the launch is RECORDED, never executed
-    mem_cap.subprocess.run(argv, capture_output=True, text=True, timeout=90)
-    assert calls == [argv], calls
+    # building the argv reached NO spawn seam at all
+    assert calls == [], calls
 
 
 def test_the_unwrapped_path_is_unchanged(monkeypatch):
     """`cap is None` -> the SAME argv, so a caller's fan-out is untouched:
     the bound is a property of the wrapped scope, never a behaviour change
-    for a caller that asked for no cap."""
+    for a caller that asked for no cap -- and still no launch."""
     calls = _stub_spawn(monkeypatch)
     monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda cfg=None: True)
     inner = ["fanout.py", "marks", str(WANTED)]
     argv = mem_cap.wrap_argv(inner, None)
     assert argv is inner, argv
-    mem_cap.subprocess.run(argv, capture_output=True, text=True, timeout=90)
-    assert calls == [inner], calls
+    assert calls == [], calls
