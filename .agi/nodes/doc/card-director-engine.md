@@ -34,9 +34,9 @@ Skills: agi-dispatch · agi-workflow · agi-node-write · agi-goal · agi-send �
 ## §0 STATE (03:3xZ 09-27 · compacted: per-chain history = `git log` of this node before 061923b03)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br holds DH.424+431, 434 (262107e12), 430 chain (4af305171, 702 green) · trunk synced c62bfe387
-LIVE      parents (cap = cell values.local_maxxing.de_live_parents, arm 10): 492 a00-cfed6d3f · 504 a00-e20a597b · 497 a00-263a936b
-          · 498 a00-efb7f2a8 · 499 a00-42c4f9a2 · 500 a00-616b9d6c · 501 a00-759e6b60 · 502 a00-06858031 · 503 a00-310da84b · 505 a00-baf55e7f (= cap 10)
-          murs (systemd agi-director-engine-mur<N>): 471 483 485r(verify timed out, re-run) 490 493(+495) 494 496 · swarm-sampler2
+LIVE      parents (cap = cell values.local_maxxing.de_live_parents, arm 10): 492 a00-cfed6d3f · 504 a00-e20a597b · 506 a00-907d12c6 · 497 a00-263a936b
+          · 499 a00-42c4f9a2 · 500 a00-616b9d6c · 501 a00-759e6b60 · 502 a00-06858031 · 503 a00-310da84b · 505 a00-baf55e7f (= cap 10)
+          murs (systemd agi-director-engine-mur<N>): 471 483 485r 493(495 slice pending) 494 496 498 · swarm-sampler2
 CHAIN     tip / state                                                                          land note
  425 bin-guard   494 @11707134d (parent left edits uncommitted; landed TMM.268) -> mur494 running
  426 schema-gate 483 @663cd21e2 -> mur483 3 slices (reviews in, verifies pending)                NEVER 442
@@ -48,9 +48,9 @@ CHAIN     tip / state                                                           
  434 memcap      MERGED 262107e12
  g4.18.1.1       482 mur-14 k1+k2 AWR (id/mint_id spoof, stamp precedence, dry-run bytes, parents char-split, SystemExit) -> 502 LIVE (de-h482)
  g4.18.1.3/.4    496 @3d470e290 (parent left config cell + node uncommitted; landed) -> mur496 (DEFECT: cell geometry -> source_root/.geometry, real = graph_root nodes/.geometry) · 497 LIVE
- send-hub box    498 LIVE: every-live-row-carries-its-own-box (belam 00:35Z + OWNER 21:0xZ); parent goal has no goal_id (belam's node: flag in [merge-up])
+ send-hub box    498 @69958a4a9 1593 green -> mur498 (2 slices); parent goal has no goal_id (belam's node: flag in [merge-up])
  kid-worktrees   499 LIVE: claims 1+2 (prune tool dry-run default + worktrees_root cell); claims 3 (tmpfs) + 4 (reboot prune) = next round; I run --apply only after review
- row 20 nudge    490: RED test_send.py::test_read_advances_cursor_past_withheld_block_copy_remains -> corrective FROM 490 tip after mur490
+ row 20 nudge    490 mur-14 DEMOTE x2 (marker index spaces, last<0, middle-withheld, broke test_send.py:5775, --box-local empty) -> 506 LIVE (de-base-490): KEEP the withheld-FORGED rule, narrow conjunct 2
  thought-verb    487 @24a568ba5 (kid 3 chosen; kids 1-2 demoted, their nodes landed) 2 REDS: render --check MISMATCH 242 (strip_thought newline) + corpus test counts quoted markers -> 500 LIVE (de-h487) (+ brief.py:2352 copy)
  wake-facts      491 @3d2e74719 lean_disproved:60 -> 501 LIVE (draft INTO a node). TMM.282 belam YES 04:00Z: Prime writes the range from 501's node once on trunk IF the node carries
                  (1) test_rotate_templates.py:534 green vs the DRAFT (F16 hand-vocab hit kept, or re-pin in the SAME merge-up) (2) the NEW 'read body N:M' for rotations.md:76+:114 measured on the draft
@@ -64,7 +64,7 @@ OWNER     21:1xZ via belam: send QUIET row cell + READ-ON-LANDING; HOLD stream /
 ```
 done   489 harvested + mur · 494/495 correctives · g4.18.1.3/.4 minted + dispatched · trunk sync
 next   harvest each parent on exit (kid worktrees too) -> mur -> close residues -> merge cleared chains -> suite window -> ONE [merge-up]
-queue  (1) 490 corrective after mur490 · 501 harvest vs TMM.282's 3 conditions · 493 lean_proved:75 (unfenced ### slot = a rotate.py round) after mur493
+queue  (1) 490 corrective after mur490 · 501 harvest vs TMM.282's 3 conditions · NEXT SLOT: 493 corrective (mur-15 AWR: unfenced slot loses its header -- belam's LIVE card is ##-level UNFENCED (measured), so rows for ## + ### unfenced, rotate.py _replace_stops_body ~8094 if red; ceiling clause unread: spawn_budget._ceiling_clause cuts at the newline = a g7.33.19 row)
        (2) belam [decision] 04:03Z PASS 10 defects (goal:g1), in order, when a slot frees and no redesign piece is dispatchable:
            model-fence = DH.505 LIVE · round-stages-gate-on-the-adapter-not-the-harness-name · a-rounds-own-path-set-never-fails-open
            · a-capture-latch-is-a-memory-never-a-hold · the-belam-cap-reap-uses-the-config-grace · a-path-shaped-bin-resolves-in-the-spawns-cwd
