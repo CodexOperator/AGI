@@ -24,7 +24,9 @@ DIALUP   OWNER GO via belam 16:25Z (TMM.300): DE steps up per arm (cell values.l
          < 50 AND 0.01 x live < balance (+ / free > 5G) -> 22:0xZ STEP BACK (TMM.306: load 24.6, io 86 at arm 10; no refill) -> then the RAM worktree round (hypothesis:kid-worktrees-resolve-from-one-cell-...)
 FLASH    Prime [decision] 22:38Z (OWNER): /mnt/agi-flash = logs + write-once scratch ONLY -> plan = hypothesis:logs-and-write-once-scratch-
          live-on-the-flash-disk (goal:g1) · step 0 DONE (harvest-0927 on flash) · census: disk 139 MiB/min = ~50% worktree git/pytest (-> tmpfs,
-         the Prime's go) + ~40% DE's base checkouts in the drain unit (NOT the poll; now /dev/shm, TMM.308) · de-base prune GO paced (TMM.309) + logs 0.1% -> step 2 logs one at a time (tidiness) · never worktrees
+         the Prime's go) + ~40% DE's base checkouts in the drain unit (NOT the poll; now /dev/shm, TMM.308) · de-base prune GO paced (TMM.309)
+         · logs cell = box.logs_dir (engine ignores it today; its value is a missing path -> would turn the log cap OFF): until DE's DH.676 lands
+           move logs by SYMLINK only, never by flipping that cell (DE 23:12Z) + logs 0.1% -> step 2 logs one at a time (tidiness) · never worktrees
 RAMDISK  DH.650 = repo half (DE); the tmpfs mount + user@ budget = the Prime's (card step 5; [decision] 22:0xZ)
 DISK     / full 17:4xZ -> 17.9G (87 stale /tmp/lograce-*, TMM.303) -> 12.2G by 20:0xZ (bursts) -> 14.6G (24 stale logcost-*, TMM.305); ~31G /tmp scratch = DE's sweep round · 45 worktrees removed on /data
          (lossless; records in .agi/sessions/harvest-0927/<wt>/)
