@@ -35,12 +35,12 @@ Skills: agi-dispatch · agi-workflow · agi-node-write · agi-goal · agi-send �
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br holds DH.424+431, 434, 430 chain (4af305171), 425 chain (3e327cf66) · trunk a6d04759c
           RED ON POST BR: test_bin_help_smoke[suite_guards.py] (430 chain's new library module) -> DH.511 a00-bc1424df LIVE 04:36Z (orders (/tmp/claude-1000/-data-work-agi--agi-worktrees-post-director-engine/68c98329-2d26-4c01-a7ad-ac1ebbb6c93e/scratchpad/o511.md) = NEXT FREE SLOT; no [merge-up] until green
-LIVE      parents (cap 10): 499 42c4f9a2 · 501 759e6b60 · 507 fa4269d4 · 508 f957a4d9 · 509 df266356 · 511 bc1424df · 512 256e7631
-          · 513 5a917eb9 · 514 792978f9 · 515 97ddb37e   (all a00-)
-          murs (systemd agi-director-engine-mur<N>): 471r(k1,k3) 485r 492 498 500(500+502) 504 506 510(510x4+497x2, key 18) · swarm-sampler2
+LIVE      parents (cap 10): 499 42c4f9a2 · 501 759e6b60 · 507 fa4269d4 · 508 f957a4d9 (harvest dm in, still running) · 509 df266356
+          · 511 bc1424df · 512 256e7631 · 514 792978f9 · 515 97ddb37e · 516 42e99d0a   (all a00-)
+          murs (systemd agi-director-engine-mur<N>): 471r(k1,k3) 485r 492 498 500(500+502) 504 506 510(key 18) 513 · swarm-sampler2
 CHAIN     tip / state                                                                          land note
  425 bin-guard   MERGED 3e327cf66 (mur-16 DH.494 AWR, note residue demoted with reason)
- 426 schema-gate 483 @663cd21e2 mur-14 k1+k3 DEMOTE (node wording: verdict vs THOUGHT, non-reproducing counts, dead test name, stale cites; k2 verify missing) -> 513 LIVE   NEVER 442
+ 426 schema-gate 513 (5 node edits landed by me, TMM.268) -> mur513   NEVER 442
  427 heal-refuse 485 @ac2b2a4c3 (484+485) -> mur485 running                                     NEVER 476 (its cli.py = cand. for DH.492)
  429 tasks-max   495 @03ac46eea mur-15 AWR: hypothesis ## TESTS names no test (list moved to ## Measured) -> tiny corrective OR demote; LAND: 429 nodes branch first, then 495 tip -X theirs (read the conflict first)
  430 ctx-suite   MERGED 4af305171 (mur-15 DH.489 accept)
@@ -59,7 +59,7 @@ CHAIN     tip / state                                                           
  probe-gate      492 @cd17ab80c 287 green -> mur492 (g7.33.19 row 10)
  round-stages    512 LIVE (PASS 10 (2))
  reap-chain      503: kid work committed by me b3e476aea (parent's commit hit a stale index.lock 04:01Z; removed, no holder) UNREVIEWED -> 507 LIVE reviews + adds the belam-cap record test
- model-fence     505 died (parent + 2 kids, 0 edits) -> 508 LIVE (re-dispatch)
+ model-fence     505 died -> 508: harvest dm 04:57Z (2 accepted, 1 FAILED) -- parent still running at 05:0xZ; harvest on exit
  capture         493 mur-15 AWR -> 509 LIVE (unfenced ## + ### rows; belam's card is ## unfenced)
 OWNER     21:1xZ via belam: send QUIET row cell + READ-ON-LANDING; HOLD stream / encryption-town / sanctuary activation until messaging done
           box id = env AGI_BOX (init via environment.d, stamped by crons.py, engine refuses unset) -- NOT yet on send-is-hub-only
@@ -71,7 +71,7 @@ done   489 harvested + mur · 494/495 correctives · g4.18.1.3/.4    510 @(confi
 next   harvest each parent on exit (kid worktrees too) -> mur -> close residues -> merge cleared chains -> suite window -> ONE [merge-up]
 queue  (1) 490 corrective after mur490 · 501 harvest vs TMM.282's 3 conditions · (493 corrective = DH.509 LIVE; was: (mur-15 AWR: unfenced slot loses its header -- belam's LIVE card is ##-level UNFENCED (measured), so rows for ## + ### unfenced, rotate.py _replace_stops_body ~8094 if red; ceiling clause unread: spawn_budget._ceiling_clause cuts at the newline = a g7.33.19 row)
        (2) belam [decision] 04:03Z PASS 10 defects (goal:g1), in order, when a slot frees and no redesign piece is dispatchable:
-           model-fence = DH.508 LIVE · round-stages = DH.512 · own-path-set = DH.514 · capture-latch = DH.515 (all LIVE) · NEXT: the-belam-cap-reap-uses-the-config-grace
+           model-fence = DH.508 LIVE · round-stages = DH.512 · own-path-set = DH.514 · capture-latch = DH.515 · path-bin = DH.516 (all LIVE) · NEXT: the-belam-cap-reap-uses-the-config-grace HELD until DH.507 lands (same rotate.py reap code) · then node-frontmatter-shape
            · a-capture-latch-is-a-memory-never-a-hold · the-belam-cap-reap-uses-the-config-grace · a-path-shaped-bin-resolves-in-the-spawns-cwd
            · a-node-frontmatter-that-is-not-the-writers-shape-is-refused · then hypothesis:pass10-0927-residue-batch (30-round table)
        (3) g4.18.1: .2/.5 wait on .1's bytes -> send-is-hub-only rest (after .1) + g7.32.5 -> g7.31.3.3 rest (499 claims 3+4)
