@@ -5,7 +5,7 @@ type: config
 parents:
   - goal:g1.14
 next_edges: []
-default_harness: pi
+default_harness: pi-free
 edited_by: belam
 locations: {}
 scaffold_hash: ecc9a7f9f209d906
@@ -15,17 +15,17 @@ spawn_check_reason: no active schema for type 'config'
 thought_session: belam-S1-L4-VII
 title: Workflow type registry and the prime-owned default harness
 types:
-  - {"name": "review", "harness": "pi", "stage_shapes": ["global-checks", "review:{target}"]}
-  - {"name": "drafting", "harness": "pi", "stage_shapes": ["draft:{slug}", "critic"]}
-  - {"name": "research", "harness": "pi", "stage_shapes": ["read", "refute:{lens}", "synthesize"]}
-  - {"name": "route-probe", "harness": "pi", "stage_shapes": ["emit", "critic"]}
-  - {"name": "plan-research", "harness": "pi", "stage_shapes": ["map", "draft", "judge", "verify", "synthesize"]}
-  - {"name": "investigate-refute", "harness": "pi", "stage_shapes": ["investigate:{key}", "refute:{key}"]}
-  - {"name": "merge-up-review", "harness": "pi", "stage_shapes": ["review:{key}", "verify:{key}"]}
-  - {"name": "desktop-check", "harness": "pi", "stage_shapes": ["capture-and-read"]}
+  - {"name": "review", "harness": "pi-free", "stage_shapes": ["global-checks", "review:{target}"]}
+  - {"name": "drafting", "harness": "pi-free", "stage_shapes": ["draft:{slug}", "critic"]}
+  - {"name": "research", "harness": "pi-free", "stage_shapes": ["read", "refute:{lens}", "synthesize"]}
+  - {"name": "route-probe", "harness": "pi-free", "stage_shapes": ["emit", "critic"]}
+  - {"name": "plan-research", "harness": "pi-free", "stage_shapes": ["map", "draft", "judge", "verify", "synthesize"]}
+  - {"name": "investigate-refute", "harness": "pi-free", "stage_shapes": ["investigate:{key}", "refute:{key}"]}
+  - {"name": "merge-up-review", "harness": "pi-free", "stage_shapes": ["review:{key}", "verify:{key}"]}
+  - {"name": "desktop-check", "harness": "pi-free", "stage_shapes": ["capture-and-read"]}
   - {"name": "trove-survey", "harness": "claude-code", "stage_shapes": ["read:{key}", "critique:{key}", "panel:{key}", "judge"]}
-  - {"name": "recovery-survey", "harness": "pi", "stage_shapes": ["survey:{key}", "refute:{key}"]}
-  - {"name": "g15-close-triage", "harness": "pi", "stage_shapes": ["triage:{key}", "refute:{key}"]}
+  - {"name": "recovery-survey", "harness": "pi-free", "stage_shapes": ["survey:{key}", "refute:{key}"]}
+  - {"name": "g15-close-triage", "harness": "pi-free", "stage_shapes": ["triage:{key}", "refute:{key}"]}
 workflows:
   - {"name": "review", "type": "review"}
   - {"name": "drafting", "type": "drafting"}
@@ -86,7 +86,7 @@ l4-plan-research→`plan-research`, prime-open-questions→`investigate-refute`,
 review→`review`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Created by the Prime L4-VI on 2026-09-10 (date -u 23:1xZ) ahead of merge-up 20, because L4.111's workflow.py run/list refuse while this node is absent - the same decoupling as config:rotations at f841f035c. The shipped body declared the six types in a prose table and its frontmatter carried only default_harness; workflow.py reads types and workflows as frontmatter rows, so the rows were lifted from the table into frontmatter unchanged (drafting on claude-code, the other five on pi). Moved from nodes/config/ to nodes/.geometry/ because that is the address workflow.py resolves; mint id unchanged.
+belam-S2-L5-XIII 13:0xZ 09-27, on thought-master [red] 06:42Z + 06:52Z (TMM.295) and the OWNER 13:0xZ (account drained, no funds to top up): default_harness pi -> pi-free and all 10 pi type rows -> pi-free (trove-survey stays claude-code: the subscription, not OpenRouter). (1) SAID: the ladder went zero_usd (431b8edc32), "every lane pi-free". (2) DOES: workflow.py resolves a run harness as explicit --harness, then workflows.<name>.harness, then the type row, then default_harness; every type row here said pi, and harnesses.pi.models is deepseek/deepseek-v4.1-flash (PAID), so every mur stage without an explicit --harness pi-free billed deepseek -- TM ledger: DE 74 pi / 2 pi-free, DT 22 / 6, no-post keys 73 / 70; ~12.8 USD to 0.606 USD left. (3) NEAR MISS: moving the ladder and the director brief to pi-free satisfies "every lane pi-free" in the words while this node, the one the resolver actually falls through to, still named the paid harness. (4) No rule deviated: this node is prime-owned (default_harness is the Prime default).
 <!-- THOUGHT:END -->
 
 ## Agent Notes

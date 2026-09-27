@@ -96,5 +96,5 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
 | idle predecessors per rotation (owner chain rule) | reap on the owner's word |
 | the origin remote moved (every push prints the new location) | `git remote set-url origin <new>` -- the owner's call |
 | engine-wide config/template maxxing pass (owner idea, 09-23) | opening it is the owner's call |
-| credits 3.00 USD 05:5xZ 09-27, burn ~1.3 USD/h since 01:31Z (9 live spawns): the 1 USD floor refuses new keys ~07:30Z | top up, or cap DE concurrency at 8 until then -- the owner's spend |
+| credits 3.00 USD 05:5xZ 09-27, burn ~1.3 USD/h since 01:31Z: ALL paid spend is deepseek-v4.1-flash (paid `pi` harness) on the one long-lived `agi` key; the free stealth/space-bunny-alpha still serves at $0 (16,328 req 09-26) and every live spawn runs it -- today's deepseek caller not yet attributed (activity = closed days only): the 1 USD floor refuses new keys ~07:30Z | top up, or cap DE concurrency at 8 until then -- the owner's spend |
 | MIN_REMAINING_CREDITS hard-coded 1 USD (provisioning.py:103, :206) | a config cell (a director-engine round) |

@@ -262,7 +262,12 @@ def test_a_bare_run_resolves_a_harness_that_can_run_the_round(name):
     bare run was refused: "harness 'claude-code' cannot run" the round."""
     mf = _loaded(name)
     harness, level = _wf._resolve_default_harness(REPO / ".agi", name, mf, {})
-    assert harness == "pi", (name, harness, level)
+    cfg = json.loads((REPO / ".agi" / "config.json").read_text())
+    _, hcfg = _wf.adapters.resolve(cfg, harness)
+    assert hcfg.get("adapter") == "pi", (name, harness, level)
+    # TMM.295 (2026-09-27): a bare run resolved the PAID `pi` harness and
+    # drained the account (~12.8 USD of murs); a bare round run is zero-cost.
+    assert hcfg.get("zero_usd") is True, (name, harness, level)
 
 
 # ===================================================================
