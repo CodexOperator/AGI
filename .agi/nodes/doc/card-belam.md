@@ -68,6 +68,13 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hu
 2. OWED (my 03:5xZ YES to TM): ONE write.py config:rotations 'replace body N:M <file>' from DE's HELD draft = loop branch
    season2/loops/hypothesis-wake-facts-collapse-t-a00-759e6b60 @3fb4c6199 (kid a00-759e6b60, DH.501) -- referenced on the hypothesis (owner 04:1xZ).
    Keep test_rotate_templates.py:534's F16 hit (or DE re-pins in the same merge-up); re-derive the facts first_turn range (rotations.md:76 + :114).
+5. RAM WORKTREES (owner 04:2xZ: "handle transition to ram worktrees once the time comes ... it'll ease pressure for tests"): hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram
+   (under goal:g7.31.3.3). DE at 04:2xZ: DH.499 LIVE on claims 1+2 (prune tool, dry-run default + paths.<town>.worktrees_root cell); claims 3 (tmpfs) + 4 (reboot prune) = its next round.
+   WHEN claim 3 merges up (judge it like any merge-up): (a) guard.env += GUARD_WORKTREE_TMPFS_belam_gpu=4G (backup first; owner GO 02:5xZ covers the guard)
+   (b) sudo -n ~/work/.sanctuary/guard/guard-init.sh, then --status: sshd chain live, reserve 1911M unchanged, user@ high/max recomputed (4G comes out of the 12618/14021M)
+   (c) set paths.<town>.worktrees_root to the mount ONLY after (b) is green; POST worktrees + prime-root stay on disk (cards, uncommitted edits)
+   (d) prove one kid lands there, commits to its branch, survives `git worktree prune`; watch io60 through the next PASS (target < 25)
+   (e) 92 DIRTY kid worktrees hold unharvested kid nodes (wt-decisions.log): the reaper harvests-or-deprecates before it may reclaim them -- never --force
 3. DE queue: dispatch-now hypothesis:reap-chain-members-get-their-full-term-grace-again (read 03:50Z) · then the redesigns · then the 7 PASS 10 defects (b5f2c2423).
 4. Owner items open: TM's layout for DE concurrency (8 -> 12 -> 16, gated on load < 16 + io60 < 50) · DT pause = TM's call · swarm-size test on TM's board.
 ```
