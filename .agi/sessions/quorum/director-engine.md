@@ -64,9 +64,13 @@ OWNER     21:1xZ via belam: send QUIET row cell + READ-ON-LANDING; HOLD stream /
 ```
 done   489 harvested + mur · 494/495 correctives · g4.18.1.3/.4 minted + dispatched · trunk sync
 next   harvest each parent on exit (kid worktrees too) -> mur -> close residues -> merge cleared chains -> suite window -> ONE [merge-up]
-queue  (1) 490 corrective after mur490 · mur493 (493+495) running (2) FAST-TRACK: PASS 10's 3 DE defect hyps (Prime mints at step 6, not yet) + 491 · 493 @b187dabd0 lean_proved:75 (unfenced ### slot loses its header = a rotate.py round) -> mur493
-       (3) g4.18.1: .2/.5 wait on .1's bytes -> send-is-hub-only rest (after .1) + g7.32.5 -> g7.31.3.3 · R3b reaper gap (goal:g1, not minted)
-          · g7.33.17 row 21 TABLE LINE owed on the node · rotate-keeps-the-quorum-card-a-symlink (g6.38) · goal:g7.33.19 rows (OWED)
+queue  (1) 490 corrective after mur490 · 501 harvest vs TMM.282's 3 conditions · 493 lean_proved:75 (unfenced ### slot = a rotate.py round) after mur493
+       (2) belam [decision] 04:03Z PASS 10 defects (goal:g1), in order, when a slot frees and no redesign piece is dispatchable:
+           model-fence = DH.505 LIVE · round-stages-gate-on-the-adapter-not-the-harness-name · a-rounds-own-path-set-never-fails-open
+           · a-capture-latch-is-a-memory-never-a-hold · the-belam-cap-reap-uses-the-config-grace · a-path-shaped-bin-resolves-in-the-spawns-cwd
+           · a-node-frontmatter-that-is-not-the-writers-shape-is-refused · then hypothesis:pass10-0927-residue-batch (30-round table)
+       (3) g4.18.1: .2/.5 wait on .1's bytes -> send-is-hub-only rest (after .1) + g7.32.5 -> g7.31.3.3 rest (499 claims 3+4)
+          · R3b reaper gap + other goal:g7.33.19 rows (OWED) · rotate-keeps-the-quorum-card-a-symlink (g6.38)
 blocked  none
 ```
 
