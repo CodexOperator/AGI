@@ -87,11 +87,16 @@ def _live_config():
     return cfg
 
 
-def _live_spawn_tasks_max():
-    """(cfg, the RESOLVED number, parsed exactly as `resolve_tasks_max` does).
+def _check_tasks_max(cfg):
+    """ONE copy of the rule (DH.488): the cell, parsed exactly as
+    `resolve_tasks_max` parses it, then RESOLVED FROM THE SAME cfg and
+    compared. It takes the cfg as an argument so the planted-cell row below
+    exercises THIS comparison instead of writing a second copy of it: a row
+    that re-implements `resolved == parsed` cannot tell a regression of the
+    helper back to `is` from a fix. Returns the parsed number.
 
-    The number lives in `.agi/config.json` ONLY, and the resolver accepts
-    more than an int: it does `int(str(raw).strip())`. The old helper
+    The number lives in a config dict ONLY, and the resolver accepts more
+    than an int: it does `int(str(raw).strip())`. The old helper
     asserted `isinstance(val, int)`, so an owner editing the cell from `150`
     to `"150"` -- which the resolver reads as 150 -- reddened this file with
     "cell is not an int" while production was fine. So: parse the cell the
@@ -100,21 +105,20 @@ def _live_spawn_tasks_max():
     parses below 1, fails HERE BY NAME -- never a KeyError, and never a
     silent disagreement between the row and the resolver.
 
-    IDENTITY IS NOT EQUALITY (DH.475, residue 1). The comparison was `is`,
-    which holds only because CPython interns small ints in -5..256: the
-    resolver REBUILDS the number with `int(str(raw).strip())`, so every
-    planted cell above 256 -- and an owner editing `spawn.tasks_max` to a
-    real value like 1000 -- reddened a green test with "resolver disagrees
-    with the cell: 1000" while production was right. `==` is what this row
-    means. Red-first proof: a planted cfg dict of 1000 reds the `is` form
-    and greens the `==` form (measured, recorded in
-    experiment:a00-36f071dc-154d29)."""
-    cfg = _live_config()
+    IDENTITY IS NOT EQUALITY (DH.475, residue 1; the guard split out of the
+    live helper in DH.488). The comparison is `==`: the resolver REBUILDS
+    the number with `int(str(raw).strip())`, so `is` holds only because
+    CPython interns small ints in -5..256. Every planted cell above 256 --
+    and an owner editing `spawn.tasks_max` to a real value like 1000 --
+    reddens an `is` form with "resolver disagrees with the cell: 1000" while
+    production is right. Red-first, measured in
+    experiment:a00-66edc224-491bdf: `is` reds the planted row at 1000 and at
+    "1000"; `==` is green at both."""
     spawn = cfg.get("spawn")
     assert isinstance(spawn, dict), \
-        f"spawn.tasks_max: live config has no spawn block: {spawn!r}"
+        f"spawn.tasks_max: config has no spawn block: {spawn!r}"
     assert "tasks_max" in spawn, \
-        f"spawn.tasks_max: live config carries no tasks_max cell: {sorted(spawn)}"
+        f"spawn.tasks_max: config carries no tasks_max cell: {sorted(spawn)}"
     raw = spawn["tasks_max"]
     try:                                    # the resolver's own spelling
         parsed = int(str(raw).strip())
@@ -125,7 +129,14 @@ def _live_spawn_tasks_max():
     resolved = mem_cap.resolve_tasks_max(cfg)
     assert resolved == parsed, \
         f"spawn.tasks_max: resolver disagrees with the cell: {resolved!r}"
-    return cfg, parsed
+    return parsed
+
+
+def _live_spawn_tasks_max():
+    """(cfg, the RESOLVED number) for the LIVE config, through that one rule.
+    """
+    cfg = _live_config()
+    return cfg, _check_tasks_max(cfg)
 
 
 # ---- (1) the cell and the shipped default ----------------------------------
@@ -151,23 +162,19 @@ def test_the_comparison_holds_for_a_planted_cell_above_the_int_cache(
         planted):
     """`==`, NOT `is` (DH.480, closing the DH.475 parent-review caveat).
 
-    `_live_spawn_tasks_max` compares with `==` because the resolver REBUILDS
-    the number with `int(str(raw).strip())`. On the live cell (150) the two
-    spellings agree -- CPython caches small ints in -5..256 -- so a live-only
-    suite cannot tell the fix from the bug. This row plants a cell ABOVE that
-    cache in a COPY of the config (the live config is never written) and
-    asserts the helper's own comparison, so a regression back to `is` reds
-    here. Red-first, measured: with `is` this row fails
-    `assert mem_cap.resolve_tasks_max(planted_cfg) == int(str(planted).strip())`
-    at 1000 and at "1000"; with `==` it is green at both.
+    The comparison lives ONCE, in `_check_tasks_max` (DH.488). Before the
+    split this row re-implemented it, so a regression of the helper's `==`
+    back to `is` stayed GREEN here: two copies of one rule, and the copy
+    under test was never run. This row now calls the helper on a config
+    whose cell is planted ABOVE CPython's small-int cache (a COPY -- the
+    live file is read-only), so the helper's own comparison decides the
+    result at 1000 and at "1000". Red-first, measured: with `is` in the
+    helper this row fails at BOTH planted values (see
+    experiment:a00-66edc224-491bdf); with `==` it is green at both.
     """
     cfg = copy.deepcopy(_live_config())        # a COPY: the live file is read-only
     cfg["spawn"]["tasks_max"] = planted
-    parsed = int(str(planted).strip())         # the resolver's own spelling
-    resolved = mem_cap.resolve_tasks_max(cfg)
-    assert resolved == parsed, \
-        f"spawn.tasks_max: resolver disagrees with the planted cell: {resolved!r}"
-    assert resolved is not parsed or planted in range(-5, 257), planted
+    _check_tasks_max(cfg)     # the ONE comparison, on the planted cfg
 
 
 def test_the_old_cell_is_read_nowhere():
