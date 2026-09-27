@@ -589,6 +589,20 @@ def test_a_repaired_artifact_loads_clean(project):
     assert cli._off_shape_keys(fm) == []
 
 
+def _writer_shaped_probes(value) -> bool:
+    """ITEM 1: TRUTHINESS is not a shape. `probes: one` and `probes:\\n  a: 1`
+    are both truthy, and `_off_shape_keys` only asks about KEYS, so both were
+    certified as "the recovered artifact" the docstring promises is a real
+    list. Ask the WRITER rather than restate list-ness: a value the sanctioned
+    writer would render and that reads back unchanged IS a list of its making.
+    """
+    if not isinstance(value, list):
+        return False
+    import yaml
+    back = yaml.safe_load("".join(l + "\n" for l in node_writer._render_value("probes", value)))
+    return isinstance(back, dict) and back.get("probes") == value
+
+
 def _live_recovered_probes_node(root, cli):
     """The live pin's SUBJECT, not its address. Retire = move to
     `.agi/nodes/deprecated/<type>/` and renames are routine, so one hard-coded
@@ -604,7 +618,7 @@ def _live_recovered_probes_node(root, cli):
         if "probes" not in text:
             continue
         ok, fm, _defect = cli._load_frontmatter(text)
-        if ok and fm.get("probes") and not cli._off_shape_keys(fm):
+        if ok and _writer_shaped_probes(fm.get("probes")) and not cli._off_shape_keys(fm):
             return path, f"first recovered live subject (named artifact retired)"
     return None, "no live experiment node carries a recovered `probes` list"
 
@@ -646,3 +660,24 @@ def test_the_live_pin_survives_its_subjects_legal_absence(project):
     live.unlink()
     live, why = _live_recovered_probes_node(project, cli)
     assert live is None and "no live experiment node" in why
+
+
+def test_the_live_pin_refuses_a_probes_value_that_is_not_a_list(project):
+    """ITEM 5: the sibling docstring claims "whose `probes` value is a real
+    list"; the gate asked only for truthiness, so a scalar and a mapping both
+    passed. Red without the ITEM 1 fix (failure pasted on
+    experiment:a00-85c23976-f70650)."""
+    import cli
+    base = ['id: "x"', "type: experiment", "mint_id: abc123", 'title: "t"',
+            "parents: ['hypothesis:h1']"]
+    _node(project, "experiment:a00-scalar",
+          ['id: "experiment:a00-scalar"'] + base[1:] + ["probes: one"], "b\n")
+    _node(project, "experiment:a00-mapping",
+          ['id: "experiment:a00-mapping"'] + base[1:] + ["probes:", "  a: 1"], "b\n")
+    live, why = _live_recovered_probes_node(project, cli)
+    assert live is None and "no live experiment node" in why
+
+    _node(project, "experiment:a00-list",
+          ['id: "experiment:a00-list"'] + base[1:] + ["probes:", "  - one"], "b\n")
+    live, why = _live_recovered_probes_node(project, cli)
+    assert live is not None and live.name == "a00-list.md", why
