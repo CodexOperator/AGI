@@ -62,6 +62,7 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · §6
    (b) sudo -n ~/work/.sanctuary/guard/guard-init.sh, then --status: sshd chain live, reserve 1911M unchanged, user@ high/max recomputed (4G comes out of the 12618/14021M)
    (c) set paths.<town>.worktrees_root to the mount ONLY after (b) is green; POST worktrees + prime-root stay on disk (cards, uncommitted edits)
    (d) prove one kid lands there, commits to its branch, survives `git worktree prune`; watch io60 through the next PASS (target < 25)
+   (e) sweep = heal.py sweep; its row -> DE's agi-dispatch §5 in the sweep's merge-up (OWNER 17:0xZ, [decision] 17:1xZ) -- check it at that judge
    (e) 92 DIRTY kid worktrees hold unharvested kid nodes (wt-decisions.log): the reaper harvests-or-deprecates before it may reclaim them -- never --force
 6. SKILLS = ONE INDEX LOADED AT STARTUP (OWNER 05:33Z via TM, verbatim: "Don't need a template change just change the load template which determines which files get pulled in. Just have the template/config load in the skill index. No duplication needed.")
    TM removed the director brief's Skills section (464eba344). YOURS: (a) a `skills` first_turn entry in config:rotations (director + prime_director) once DE's
