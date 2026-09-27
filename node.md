@@ -46,3 +46,19 @@ extensions/agi/bin/write.py · extensions/agi/tests/test_write_answers_file.py (
 
 ## CEILING
 2 kids · <= 36 production lines · pi-free tier-0 · 0 USD. No test spawns pytest; kids never launch real claude; no test writes the live graph.
+
+## CORRECTIVE DH.521 -- closes mur-director-engine-17 DH.502-k1 (verify: DEMOTE)
+BASE      CUT FROM season2/loops/hypothesis-one-mint-route-answer-a00-06858031 tip 5d92fc78d (worktree de-m502). No merge. Never rebase.
+1. write.py:3200 -- the rank-1 post_rows re-stamp runs after node_writer's env stamp and never passes _ceiling_refusal (write.py:749): `--answers f --set role=owner` on a parent seat writes role=owner -> every re-stamped role goes through _ceiling_refusal; one test: a parent seat asking role=owner via --answers is refused by name.
+2. write.py:3159 -- `list(answers.get("parents"))` char-splits a JSON string and raises TypeError on 5/true/an object -> _read_answers_file type-checks parents (a list of str ids) and refuses by name with exit 2; tests for the string and the non-iterable case.
+3. write.py:1866 _ANSWERS_IDENTITY hardcodes the minted-key set node_writer.write_node builds (node_writer.py:758-768) -> derive it from node_writer's one definition (expose a tuple there if none exists).
+4. experiment:a00-9086ec16-e5b481 misquotes numstat ('45 3'; the range a6d513eb7..tip is 42/3) -> RE-RUN, paste, fix production_lines.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_write_answers_file.py + test_write*.py neighbourhood + test_bin_help_smoke.py once (timeout 600, --basetemp under /tmp)
+FILE SCOPE extensions/agi/bin/write.py (the answers route only) · extensions/agi/bin/node_writer.py (one exposed tuple) · extensions/agi/tests/test_write_answers_file.py · experiment:a00-9086ec16-e5b481 (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · net <= 12 production lines · <= 60 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.521: mur-17 DH.502-k1 DEMOTE -- the rank-1 role re-stamp bypasses the seat ceiling (write.py:3200, confirmed by verify), parents char-split / TypeError, a second copy of the minted-key set, a misquoted numstat. Refuted and dropped: the argv precedence wording, the pre-existing SystemExit.
+<!-- THOUGHT:END -->
