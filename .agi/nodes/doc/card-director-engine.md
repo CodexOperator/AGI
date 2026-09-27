@@ -31,34 +31,33 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (15:5xZ 09-27 · per-chain history = git log of this node)
+## §0 STATE (16:0xZ 09-27 · per-chain history = git log of this node)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: trunk 91ae33672 merged 32ff79e53 · 429 chain MERGED 1ee2340c3 · DH.515 MERGED 64130e4ec
           (post br NOT suite-run; nothing handed to TM since merge-up 13)
 TOOLS     T=<scratchpad 96494ce7-...> (predecessor's, still the tool dir): MURK=<run key> [NOEX=1] [EXTRA=f,g] gen2.py N murq<Q>.json tip label [R4]
           -> orders<N>.md + c<N>.json · MURK=.. place2.sh N = orders on node + base cut + dispatch · mkmur.py + runmur.sh <unit> · harvest.sh N agent
           tests · verd.py Q.. (<scratchpad 4cf27ed6-...>) = per-unit verdict digest; the RUN KEY is on line 1 of T/murq<Q>.log (-23..-27 differ)
-MURS      lanes: DONE murq1-5 + 7 (triaged) · lane 3 running murq6 (497k1k2 530 531) · singles running murq27 554 · 31 562 · 32 557
-          ENDED 15-30 + lanes 4 5 7 -> DH.558-577 (all AWR or demote) · verd.py Q[@runkey] reads a unit (lanes: key in T/murl<L>.log)
-LIVE      parents DH.558-570 (spawn_budget.py status) · drainers wait for live parents < 10, each after the one before:
-          drain2 571 · drain3 574 575 573 · drain4 576 · drain5 577 (2 kids)   (T/drain<N>.log)
-          harvested green, murring: DH.562 08da15284 murq31 · DH.557 581e81c9d murq32
+MURS      NONE running: every lane (murq1-7) and single (murq15-32) is triaged -> DH.558-583 · verd.py Q[@runkey] reads a unit
+LIVE      parents DH.558-576 (spawn_budget.py status; 562 557 553 harvested earlier -> 582 578 576) · drainers wait for live parents < 10,
+          each after the one before: drain5 577 (2 kids) · drain6 578 581 579 (2 kids) 580 · drain7 582 · drain8 583   (T/drain<N>.log)
+          NEXT EVENT = a parent's [harvest] dm (the watcher: <scratchpad 4cf27ed6>/watch.sh, run in background) -> harvest.sh -> mkmur -> runmur
 QUEUED    DH.572 AFTER 565 harvests, cut from its tip (belam [decision] 15:38Z): (a) key cap x spawn.max_live (30) < balance guard -- 0.01 x 30
           = 0.30 < 0.606; the cap bounds a paid leak at 1 cent per key, it never refuses one (b) config:ladder tier-0 director row = pi +
           ~z-ai/glm-flash-latest (PAID) -> pi-free. Then goal:g4.20.1 ONE HARNESS SOURCE (owner 13:2xZ) -- queued, never dispatch-now
           skills adapter round cut from 573's cleared tip · 471 after 530 (lane 6)
 CHAIN     tips (last)                          next                                                land note
  426 schema-gate  527 → 543 → 559 QUEUED · 427 heal-refuse 528 → 544 → 558 QUEUED                   NEVER 442 · NEVER 476
- probe-gate 523 → 541 → 560 · row 20 nudge 524 → 542 → 561 · trunk reds 538 → 545 → 562 murq31 · zero-usd 537 → 546 → 565 → 572
+ probe-gate 523 → 541 → 560 · row 20 nudge 524 → 542 → 561 · trunk reds 538 → 545 → 562 → 582 · zero-usd 537 → 546 → 565 → 572
  probe-gate land note: 541's verify demote = merge order only (e12a57722 rides 98b2b99e5) -- merge the chain tip, never 541 alone
  stale-lock       532 → 534 → 547 → 564 (lane-7 re-mur of 532: fold its items into 564's mur focus)  532 NEVER merges alone
  model-fence      508 → 517 → 536 → 539 → 548 → 566                                                R4 NEVER run (row 22)
  kid-worktrees    529 → 533 → 540 → 563 (B7 cell folded in; lane-5 re-mur of 529 demote: fold its items into 563's mur focus)
- PASS 10          515 MERGED · 516 → 549 → 567 · 509 → 550 → 569 · 507 → 575 · 512 → 551 → 568 LIVE · 514 → 552 → 557 murq32
+ PASS 10          515 MERGED · 516 → 549 → 567 · 509 → 550 → 569 · 507 → 575 · 512 → 551 → 568 LIVE · 514 → 552 → 557 → 578
                   · belam-cap-reap HELD until 507 lands · 551 chain NEVER merges until 568 closes the paid-pi cost direction (its item 1)
- g4.18.1.x        521 → 555 → 570 (a00-b0bf124f edit NOT landed, row 21) · 510/519 → 553 → 576 · 520 → 574 · 497 lane 6
- thought-verb 522 → 554 murq27 · wake-facts 501 → 556 → 571 (merge BLOCKED until belam trims F13: 2009 > 2000)
- 432 guard-piece 530 lane 6 (NEVER 432 itself) · 433 guard-inst 471 corrective AFTER 432 · send-hub 525 → 577 · run-key 531 lane 6 · skills 526 → 573
+ g4.18.1.x        521 → 555 → 570 (a00-b0bf124f edit NOT landed, row 21) · 510/519 → 553 → 576 · 520 → 574 · 497 → 579
+ thought-verb 522 → 554 → 583 · wake-facts 501 → 556 → 571 (merge BLOCKED until belam trims F13: 2009 > 2000)
+ 432 guard-piece 530 → 580 (NEVER 432 itself) · 433 guard-inst 471 corrective AFTER 432 · send-hub 525 → 577 · run-key 531 → 581 · skills 526 → 573
 ```
 
 ## §1 PLAN
@@ -80,12 +79,13 @@ Skills carry them: agi-dispatch §5 (harvest, vanishing-wt, uncommitted) · agi-
 Card-only: a pi-free mur runs its stages SERIALLY (~7 min each) -> lanes, never one long queue · a --deselect path is cwd-relative
 (use -k) · a running script edited with sed -i keeps its OLD text · the captive capture flattens the quorum link: re-link it.
 gen.py (old) reads ONLY run -23 and EXCLUDES provisioning.py/workflow.py from FILE SCOPE (why 546's kid went out of scope) -> gen2.py.
-A node-only round diff yields a code-less FILE SCOPE: pass the test/code files the items name via EXTRA (558).
+A node-only round diff yields a code-less FILE SCOPE: pass the test/code files the items name via EXTRA (558). gen2 dropped .agi/config.json
+from scope until 15:5xZ (fixed): DH.563's B7 config-cell item may come back OUTSIDE -- close it at 563's harvest.
 
 ## ENGINE FINDINGS
 Rows on goal:g7.33.19 (1-23). BOX DRIFT (OOMPolicy unset on streamer-stub-watch.service; agi.slice drop-in absent) = thought-master's.
 To propose with the next [merge-up]: the <=40 test-line / <=15 prod-line corrective CEILING has no home cell ([hypothesis].md:49) -- a
-template-max row (DH.551 verify M2); corrective ceilings breached in 546 548 551 553 542 547 (row 17 recurs).
+template-max row (DH.551 verify M2); corrective ceilings breached in 546 548 551 553 542 547 (row 17 recurs) · a pi-free verify stage timed out at 3600 s (mur-27 DH.554).
 
 ## BANKED
 - TMM.268 (b) durable fix = a g7.33.17 row -- TM's to mint. · config:brief `extras.parent` -- BLOCKED on prime/owner. · claude-code kids on local-town -- owner's.
@@ -96,5 +96,5 @@ template-max row (DH.551 verify M2); corrective ceilings breached in 546 548 551
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Lanes 4 5 7 + murq30 triaged: 573-577 queued on drainers; the lane re-murs of 529/532 fold into their chains' tip murs instead of duplicate rounds.
+Every mur unit triaged (DH.558-583); the pipeline now waits on parent harvests; gen2's config.json scope drop fixed and noted.
 <!-- THOUGHT:END -->
