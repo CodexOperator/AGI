@@ -28,17 +28,6 @@ In practice, before you change anything:
 
 **Never delete to fix.** Deprecate. A retired node is prior art and stays evidence; a deleted one takes its reasoning with it.
 
-## Your skills — read the SKILL.md before the act it names
-
-`skills/` is repo-relative from the project root. A harness may carry no Skill tool, so you are TOLD your skill set, never assumed to know it.
-
-| tier | skills, by path |
-|---|---|
-| **parent** (spawns, judges, dms) | `skills/agi-dispatch/SKILL.md` · `skills/agi-node-write/SKILL.md` · `skills/agi-send/SKILL.md` · `skills/agi-verify/SKILL.md` |
-| **kid** (one node, one parent) | `skills/agi-node-write/SKILL.md` · `skills/agi-verify/SKILL.md` |
-
-Parent reads dispatch before it spawns, node-write before it writes a node, send before it dms, verify before it reports. A kid reads node-write before it writes and verify before it reports. If your tier is not stated, you are a kid. A card LISTS its post's skills; it never copies their rules.
-
 ## Chain Workflow (the ONLY way to grow chains)
 
 Every iteration must do ONE of these in sequence. Pick the right step for where the chain is:
