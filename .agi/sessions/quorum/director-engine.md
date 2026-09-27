@@ -52,7 +52,9 @@ CHAIN     tip / state                                                           
  kid-worktrees   499 LIVE: claims 1+2 (prune tool dry-run default + worktrees_root cell); claims 3 (tmpfs) + 4 (reboot prune) = next round; I run --apply only after review
  row 20 nudge    490: RED test_send.py::test_read_advances_cursor_past_withheld_block_copy_remains -> corrective FROM 490 tip after mur490
  thought-verb    487 @24a568ba5 (kid 3 chosen; kids 1-2 demoted, their nodes landed) 2 REDS: render --check MISMATCH 242 (strip_thought newline) + corpus test counts quoted markers -> 500 LIVE (de-h487) (+ brief.py:2352 copy)
- wake-facts      491 @3d2e74719 lean_disproved:60: config:rotations facts = PRIME writes it (TMM.281) -> 501 LIVE: draft INTO a node -> rides [merge-up]; red-first test lands only AFTER the Prime's write is on the trunk
+ wake-facts      491 @3d2e74719 lean_disproved:60 -> 501 LIVE (draft INTO a node). TMM.282 belam YES 04:00Z: Prime writes the range from 501's node once on trunk IF the node carries
+                 (1) test_rotate_templates.py:534 green vs the DRAFT (F16 hand-vocab hit kept, or re-pin in the SAME merge-up) (2) the NEW 'read body N:M' for rotations.md:76+:114 measured on the draft
+                 (3) red-first test OFF my branch until the write lands -- check at 501 harvest; missing = one corrective (no live-parent rebrief channel)
  reap-chain      503 LIVE (belam [decision] 03:48Z dispatch now: PASS 10 c14 live regression)
 OWNER     21:1xZ via belam: send QUIET row cell + READ-ON-LANDING; HOLD stream / encryption-town / sanctuary activation until messaging done
           box id = env AGI_BOX (init via environment.d, stamped by crons.py, engine refuses unset) -- NOT yet on send-is-hub-only
