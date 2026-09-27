@@ -50,7 +50,7 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hu
 ## §2 Landed (this seat): 045d1aab3 wake re-link · 6c403aeb4 trunk sync (belam gen 12 key row) · 3 commits for g4.18.2: skills (8 files + 8 build nodes [goal:g4.18.2, idea:engine-skill-doc] + .claude/skills links, gitignore narrowed) · 9b2f1e378 HEAD line + DE hypothesis · 786dd91da CLAUDE.md 26,597 -> 10,123 bytes · d11cfc027 Prime template 10,470 -> 7,698 · d94a59fca g4.18.2 byte budget · OWNER 01:5xZ: monitor.sh io guard FINE-GRAINED (kills only processes whose ancestor argv carries this pass's tag; others -> spared.log) · sshd lane verified live (ssh.service MemoryMin=64M CPUWeight=1000, system.slice MemoryMin=128M, guard: chain live) · skills block -> doc:unified-director-brief, doc:unified-master-brief, 3 duty briefs, the DE/DT/TM/SM cards
 
 ## 🔴 Where it stops
-04:0xZ 09-27 belam-S2-L5-XII: PASS 10 closed + reported (TM [merge-up], DE [decision]); worktree prune done; guard at 12618/14021M
+05:5xZ 09-27 belam-S2-L5-XII rotates at 0.46: PASS 10 closed, worktree prune + cell done, skills index + master/HEAD dedup + guard headroom open
 ```
 1. CHECK every 4 h (cron f86b1cf9, skill agi-merge-pass §1). Next notice when the trunk has new experiments past BASE 6c403aeb4b.
 0. DONE 04:2xZ: PASS 10 leaf goal:g1.26 minted; its 9 nodes re-parented (ids unchanged); town board tree + row; GOALS.md 381 byte-identical.
@@ -64,9 +64,11 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hu
    (c) set paths.<town>.worktrees_root to the mount ONLY after (b) is green; POST worktrees + prime-root stay on disk (cards, uncommitted edits)
    (d) prove one kid lands there, commits to its branch, survives `git worktree prune`; watch io60 through the next PASS (target < 25)
    (e) 92 DIRTY kid worktrees hold unharvested kid nodes (wt-decisions.log): the reaper harvests-or-deprecates before it may reclaim them -- never --force
-6. SKILLS REACH (owner 04:5xZ: "Posts aren't using the skills"): live sessions seated before 01:4xZ never discovered them (skills load at session start;
-   DT's worktree has none, 106 behind the trunk). Fix = a config:rotations first_turn entry printing the skills index (name + one-line trigger) at every wake
-   -- Prime-owned cell, test-pinned region nearby (test_rotate_templates): dry-run with F12's in-process check first. DE is writing a corrective-issuance skill (rule sent 04:5xZ: sibling of the 8, cite agi-goal §5 / agi-dispatch).
+6. SKILLS = ONE INDEX LOADED AT STARTUP (OWNER 05:33Z via TM, verbatim: "Don't need a template change just change the load template which determines which files get pulled in. Just have the template/config load in the skill index. No duplication needed.")
+   TM removed the director brief's Skills section (464eba344). YOURS: (a) a `skills` first_turn entry in config:rotations (director + prime_director) once DE's
+   python producer lands (TMM.284 -- a leading grep is REFUSED by rotate._producing_refusal); (b) remove doc:unified-master-brief's Skills section + this card's
+   SKILLS lines; (c) HEAD B·FORM line -> "the skill index loads at startup; a card never lists or copies skills" (TM's wording).
+7. DONE 05:4xZ: DE parent a00-42c4f9a2's decision -- drop gate (2) HEAD-ancestor-of-base, use branch-reachability; paths.core.worktrees_root landed e84bf0272.
 3. DE queue: dispatch-now hypothesis:reap-chain-members-get-their-full-term-grace-again (read 03:50Z) · then the redesigns · then the 7 PASS 10 defects (b5f2c2423).
 4. Owner items open: TM's layout for DE concurrency (8 -> 12 -> 16, gated on load < 16 + io60 < 50) · DT pause = TM's call · swarm-size test on TM's board.
 ```
@@ -87,6 +89,7 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hu
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
+| memory ALARM 05:08-05:21Z 09-27: box PSI full avg60 peaked 63.2% (watchdog reboots at >= 40% for 5 min); 2 GB swapped; calm since | the raise to user@ 12618/14021M moved pressure from user@ to the box. Middle ground: GUARD_DOCKER_BUDGET_belam_gpu=2048M -> user@ ~10.8/12.0G (sudo guard-init.sh; reversible) -- the owner's guard, the owner's call |
 | 3 of 5 seats sit in session-73.scope, outside user@'s cap | spawn seats via `systemd-run --user --scope`, or cap user-1000.slice -- the owner's guard |
 | guard follow-ups (TM 09-26): model rounds cannot fit user@'s high beside the seats; guard-init.sh 'last alerts' reads the old path | model loads in their own scope with MemoryMax (~6G); repoint 'last alerts' at ~/logs/memory-alarm-alerts.log |
 | 2c leftovers (DE 07:39Z 09-26): exited session 710907bf + ~20 "Remote Control · offline" app rows | `claude rm 710907bf` if yours; app rows only from the app UI |
