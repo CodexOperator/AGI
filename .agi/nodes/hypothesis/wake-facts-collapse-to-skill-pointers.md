@@ -90,6 +90,19 @@ FILE SCOPE extensions/agi/tests/test_rotate_templates.py · .agi/nodes/experimen
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 7c81d3739 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.629 -- closes mur-director-engine-35 DH.601-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-wake-facts-collapse-t-a00-6c0ff5e8 tip f949be73f (branch de-base-629; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Narrowed scan no longer sees a cap copy held in a string constant (test_rotate_templates.py:1539)
+2. 4. Scaffolding byte lost — trailing <!-- BODY:END --> dropped from a00-dcfa7b0b-3fe045.md
+3. ONE RECORD, TWO PLACES, in a single node: a00-28b13689-cfe1f5.md:158 (body, immediately after `## Agent Notes` at :155) and :161 (inside THOUGHT:BEGIN) carry the same DH.601 parent review near-verbatim — the same six probes, the same three NOT-ACCEPTED items, the same VERDICT sentence. FORM/one-source-per-rule: the body is state, the THOUGHT is the delta of THIS version, and the sibling node records the opposite convention for this exact situation ('DH.571 CORRECTIVE … folding the settling record into the authored region instead of leaving it after THOUGHT:END', a00-dcfa7b0b-3fe045 THOUGHT). Residue-level, not demote, but it is a second copy the first reviewer did not name.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_rotate_templates.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_rotate_templates.py · .agi/nodes/experiment/a00-28b13689-cfe1f5.md · .agi/nodes/experiment/a00-b05aceee-3f6650.md · .agi/nodes/experiment/a00-dcfa7b0b-3fe045.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over f949be73f · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.601: mur-director-engine-30 DH.571-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.629: mur-director-engine-35 DH.601-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
