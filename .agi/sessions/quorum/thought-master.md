@@ -14,7 +14,7 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## 🔴 Where it stops
 13:3xZ 09-27: ZERO-USD MINT FIX LANDED 91ae33672 (+ d0c1eba0b restore), FALSIFIER MET (DH.533: 0.6063 before = after) -- dispatch resumed on pi-free (keys cap 0.01, credits 0.606) -- next = read the dm files; DE's full post-branch merge-up (tip f6bf73919, 366 ahead) after a suite window + pi-free murs; then DT's model tip 09d7ed36c (waits on DE's nudge fix)
 ```
-state    MAIN = origin + this card · last order = TMM.299 · next = TMM.300 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB (belam 03:0xZ)
+state    MAIN = origin + this card · last order = TMM.300 · next = TMM.301 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB (belam 03:0xZ)
 INTAKE   OWNER 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> at EVERY nudge + wake read the dm files
          (.agi/comms/season-2/dm/*thought-master*.md, blocks by ts with from != thought-master) + .agi/sessions/inbox/thought-master.md
          DIRECTLY; send.py read's 'empty' is not proof · a background python loop on those 4 files' LAST block (from != me) wakes you
@@ -39,6 +39,8 @@ GATE-DT  tip 09d7ed36c = db6bbf39e (model_slot the ONLY fence lift + cell values
          needs a key) · after landing: DT retires hypothesis:osc-band-fit-preflight (superseded) · then OSC.41's GO, one model round at a time
 DT       minimal lane: <= 1 parent, model-free (TMM.276; OWNER via belam 02:59Z, verbatim: "TM is set on pausing DT but idk for sure. He
          could still retain minimal memory and cpu for smaller or slower experiments")
+DIALUP   OWNER GO via belam 16:25Z -> DE dials up as warranted, gate = load1 < 16 AND io avg60 < 50 AND 0.01 x live < balance, per step
+         (TMM.300; 16:2xZ: load 13.07 ok, io 69.91 FAIL -> not yet) -> then the RAM worktree round (it attacks io itself)
 DH.577   box-cron ruling (c) 16:2xZ (TMM.299): per-job survive_unnamed cell, memory_alarm true, mail_poll/maint_gc/prime_merge false;
          gate = render on THIS box, live env = the 14-line crontab (0 lost) + AGI_BOX absent keeps memory_alarm, drops NAMED on stderr
 DE       queue: row 20 nudge (DH.490) -> FAST-TRACK: PASS 10's 8 defect hyps (goal:g1) + pass10-0927-residue-batch + wake-facts (DH.501)
