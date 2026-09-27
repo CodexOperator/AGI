@@ -1862,8 +1862,10 @@ _ANSWERS_RESERVED = frozenset({"type", "slug", "parents", "body", "payload"})
 
 #: Rows the WRITER mints: `node_writer.write_node` builds id/mint_id/
 #: next_edges/scaffold_hash and THEN `fm.update(extra_fm)` runs, so an answers
-#: row or a `--set` naming one would overwrite the node's own identity.
-_ANSWERS_IDENTITY = frozenset({"id", "mint_id", "next_edges", "scaffold_hash"})
+#: row or a `--set` naming one would overwrite the node's own identity. ONE
+#: definition of that fact, in `node_writer` (the builder), imported here --
+#: a second transcription is a second truth that can drift.
+_ANSWERS_IDENTITY = frozenset(node_writer.MINTED_IDENTITY)
 
 #: THE PRECEDENCE, ONCE, for the rows the environment also stamps: an explicit
 #: `--set` > the answers file > the calling post's config:posts row > the
@@ -1902,6 +1904,17 @@ def _read_answers_file(path: str):
         return None, f"--answers {path}: wants ONE JSON object, got {data!r}"
     if not isinstance(data.get("body", ""), str):
         return None, f"--answers {path}: 'body' must be a string"
+    # `parents` is consumed as `list(answers.get("parents"))`, so a STRING
+    # (JSON "5" -> `['5']`, a real parent id CHAR-SPLIT) or a non-iterable
+    # (`5`, `true`) either mints a garbage parent or raises a TypeError out of
+    # the parser. Type-check it HERE, where every other row is checked, and
+    # refuse BY NAME.
+    parents = data.get("parents")
+    if parents is not None and not (
+            isinstance(parents, list)
+            and all(isinstance(p, str) for p in parents)):
+        return None, (f"--answers {path}: 'parents' must be a list of node-id "
+                      f"strings, got {parents!r}")
     return data, None
 
 
@@ -3231,6 +3244,18 @@ def main(argv: list[str] | None = None) -> int:
         # so a missing/unreadable file is refused by name with exit 2 and NO
         # node is written; `body=None` (no flag) reaches `write_node`
         # unchanged, keeping the BODY_PROMPTS scaffold path byte-identical.
+        # A `role` the answers file or an explicit `--set` names is re-stamped
+        # LAST (below, in `create()`), AFTER `node_writer`'s environment stamp
+        # -- which is exactly why the ceiling guard has to be applied to the
+        # SURVIVING row HERE: an elevation that survives the precedence would
+        # otherwise never be compared with the actor's seat at all.
+        if post_rows.get("role"):
+            refusal = _ceiling_refusal(
+                str(post_rows["role"]), _resolve_seats_role(root, args.actor),
+                args.actor or "-", "--answers")
+            if refusal:
+                print(f"ERR: {refusal}", file=sys.stderr)
+                return 2
         body = None
         if args.body_file is not None:
             try:

@@ -524,3 +524,73 @@ def test_the_precedence_is_STATED_ONCE_and_the_routes_follow_it():
     assert src.count("_STAMP_ROWS = (") == 1, "one source for the order"
     doc = src.split("def _read_answers_file(", 1)[1].split('"""', 2)[2]
     assert "`--set`" in doc and "answers file" in doc and "environment" in doc
+
+
+# --------------------------------------------------------------------------
+# KID 2 (DH.521) — the CLOSING corrective: the role ceiling on the SURVIVING
+# row, a type-checked `parents`, and ONE definition of the minted rows
+# --------------------------------------------------------------------------
+
+def test_a_parent_seat_asking_role_owner_VIA_ANSWERS_is_refused_by_name(
+        project, tmp_path):
+    """Hole 4. The rank-1 `post_rows` re-stamp runs AFTER `node_writer`'s
+    environment stamp, so the surviving `role` row was never compared with
+    the actor's seat: `--answers f --set role=owner` minted `role: owner` from
+    a `parent` seat -- an elevation that `--role`/`AGI_ROLE` would refuse."""
+    f = _write_answers(tmp_path, _answers())
+    _geometry(project)
+    out, err, rc = _mint(project, f, "--actor", "post-a",
+                         "--set", "role=owner")
+    assert rc == 2, out
+    assert "owner" in err and "post-a" in err and "parent" in err, err
+    assert not (project / "nodes" / "goal" / "g9.9.9.md").exists(), \
+        "a refused elevation must leave NO node behind"
+
+
+def test_the_answers_files_OWN_role_row_is_refused_the_same_way(project,
+                                                               tmp_path):
+    """Same guard, rank 2 of the precedence: a role the FILE sets is the
+    surviving row too, and must not be the one route around the ceiling."""
+    f = _write_answers(tmp_path, _answers(role="owner"))
+    _geometry(project)
+    _out, err, rc = _mint(project, f, "--actor", "post-a")
+    assert rc == 2 and "owner" in err and "--answers" in err
+    assert not (project / "nodes" / "goal" / "g9.9.9.md").exists()
+
+
+def test_a_role_the_seat_HOLDS_or_a_LOWER_one_still_lands(project, tmp_path):
+    """The guard is a CEILING, not a ban: `post-a` is a `parent` seat, so
+    parent/council/kid land and only an elevation refuses."""
+    f = _write_answers(tmp_path, _answers())
+    _geometry(project)
+    out, err, rc = _mint(project, f, "--actor", "post-a",
+                         "--set", "role=kid")
+    assert rc == 0, err
+    assert "role: kid" in _frontmatter_of(project)
+
+
+@pytest.mark.parametrize("bad", ["5", 5, True, {"a": 1}, ["goal:g1", 7]])
+def test_a_parents_row_that_is_not_a_list_of_ids_refuses_by_name(
+        project, tmp_path, bad):
+    """Hole 5. `list(answers.get("parents"))` CHAR-SPLITS a JSON string
+    (`"5"` -> `['5']`) and raises TypeError on a non-iterable, both inside
+    `main()` -- a traceback instead of a refusal that names the row."""
+    f = _write_answers(tmp_path, _answers(parents=bad))
+    out, err, rc = _mint(project, f)
+    assert rc == 2, out
+    assert "parents" in err and "list" in err, err
+    assert "Traceback" not in err, "a refusal is one line, never a traceback"
+    assert not (project / "nodes" / "goal" / "g9.9.9.md").exists()
+
+
+def test_the_minted_row_set_is_DEFINED_ONCE_in_node_writer():
+    """Hole 6. `_ANSWERS_IDENTITY` transcribed what `node_writer.write_node`
+    builds: two definitions of one fact. It is now DERIVED from the builder's
+    single tuple, and the builder asserts it really builds every row named."""
+    import node_writer
+    assert write._ANSWERS_IDENTITY == frozenset(node_writer.MINTED_IDENTITY)
+    src = (BIN / "write.py").read_text(encoding="utf-8")
+    assert "_ANSWERS_IDENTITY = frozenset(node_writer.MINTED_IDENTITY)" in src, \
+        "the refusal must DERIVE its rows from the builder"
+    assert 'MINTED_IDENTITY' in (BIN / "node_writer.py").read_text(
+        encoding="utf-8")
