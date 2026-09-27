@@ -144,6 +144,23 @@ FILE SCOPE extensions/agi/bin/send.py · .agi/nodes/experiment/a00-ac24f72d-d335
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 3ab1b282b · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.645 -- closes mur-director-engine-38 DH.622-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-every-live-row-carrie-a00-a025dee4 tip 18dd14a7b (branch de-base-645; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+NOTE      the destroyed THOUGHT came from write.py <id> 'thought -' -- it does NOT read stdin, it writes a literal '-'. Restore it from the node's git history (git log -p -- <node>) and pass the text INLINE: write.py <id> 'thought <text>'. Never 'thought -'.
+1. 1. THOUGHT destroyed to a literal dash — a00-ac24f72d-d33510.md:190
+2. 2. Claim the bytes do not carry — a00-dd6557af-ffda28.md:61
+3. 3. Scaffold residue reintroduced — a00-dd6557af-ffda28.md:104
+4. 4. Orphan THOUGHT:END, no BEGIN, review duplicated — a00-dd6557af-ffda28.md:145
+5. A test that requires a defect, which the first reviewer read but did not charge: the unlocked arm of test_both_writer_classes_in_the_swap_window_merge_and_lose (extensions/agi/tests/test_foreign_refusal_durability.py:301-304) passes ONLY while an unlocked writer's refusal naming is discarded by the inode swap. Any future fix of that durability hole — the exact subject of hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused, and the loss send.py:2266-2268 calls out as 're-named forever' — would make `old-seat\tcore-town` survive and break this committed test. The test pins the known mixed-fleet loss as the expected outcome; that is defensible as a characterisation of the comment, but it is a green test coupled to a defect, and it should be labelled as such in the node.
+6. Two `done`-rendered Agent Notes lines still assert the thing this round falsified: a00-e6bf3eaf-ceff52.md:120 ('a00-ac24f72d item-3 rows + THOUGHT rewritten whole') and a00-ac24f72d-d33510.md:185 ('incl. the THOUGHT rewritten whole') contradict a00-ac24f72d-d33510.md:190. The round edited both nodes and left the false claim standing in both; the first reviewer named only the ac24f72d copy. Residue, not a hand edit — `## Agent Notes` is `done`-owned, so it needs the next `done` to restate, not a write.py edit.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_foreign_refusal_durability.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_foreign_refusal_durability.py · .agi/nodes/experiment/a00-ac24f72d-d33510.md · .agi/nodes/experiment/a00-dd6557af-ffda28.md · .agi/nodes/experiment/a00-e6bf3eaf-ceff52.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 18dd14a7b · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.622: mur-director-engine-35 DH.609-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.645: mur-director-engine-38 DH.622-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
