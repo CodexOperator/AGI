@@ -11,18 +11,44 @@ Two routes into a round's own-path set used to FAIL OPEN in silence:
       that covers `--node-id` was never applied to it. It is now bound to the
       dispatch-time `named` set; anything else is refused BY NAME.
 """
+import os
+
+from pathlib import Path
+
+import pytest
+
+#: `AGI_CLI_PY` as the PROCESS saw it at COLLECTION time. The suite's strip
+#: (extensions/agi/conftest.py:54 `_strip_agi_env`) is a SESSION fixture, so it
+#: runs at first test setup -- AFTER this import. Module import is therefore the
+#: only moment the var is still readable from inside `extensions/agi/tests`, and
+#: the only honest tell for whether a RED proof here was one at all (DH.604).
+_CLI_PY_AT_IMPORT = os.environ.get("AGI_CLI_PY")
 
 
 def _cli_py():
-    """The cli.py under test, or the copy `AGI_CLI_PY` names. MEASURED
-    DH.578: a RED proof must NOT be run from inside `extensions/agi/tests` --
-    that conftest strips every `AGI_*` key session-wide, so the var is
-    invisible and the LIVE cli.py loads whatever you name. Run the file from a
-    copy outside that tree, with PYTHONPATH=<engine>/bin (cli.py:29)."""
-    import os
-    from pathlib import Path
+    """The cli.py under test, or the copy `AGI_CLI_PY` names. A RED proof
+    must NOT be run from inside `extensions/agi/tests` -- that conftest strips
+    every `AGI_*` key session-wide, so the var is invisible and the LIVE
+    cli.py loads whatever you name. DH.604 CLOSED the trap: the fixture below
+    turns that silence into a NAMED skip. The working route is a copy of this
+    file outside that tree, with PYTHONPATH=<engine>/bin (cli.py:29)."""
     return Path(os.environ.get("AGI_CLI_PY")
                 or (Path(__file__).resolve().parents[1] / "bin" / "cli.py"))
+
+
+@pytest.fixture(autouse=True)
+def _agi_cli_py_seam_is_loud():
+    """A set-but-stripped `AGI_CLI_PY` SKIPS, loudly, instead of falling
+    through to the live cli.py: a green there would measure the live tree while
+    the operator believed a copy was under test. Refusing to answer is the
+    honest state, not a pass."""
+    if _CLI_PY_AT_IMPORT and not os.environ.get("AGI_CLI_PY"):
+        pytest.skip(
+            "AGI_CLI_PY was set at collection and is gone now: "
+            "extensions/agi/conftest.py:54 _strip_agi_env deleted every AGI_* "
+            "key session-wide, so this run would silently test the LIVE "
+            "cli.py. Run this file from a copy OUTSIDE extensions/agi/tests "
+            f"(named copy: {Path(_CLI_PY_AT_IMPORT).name})")
 
 
 def _load_module(name, filename):
@@ -131,6 +157,11 @@ def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None, iter_n=999):
 
     `dispatch_node_id=""` writes a record carrying NONE, never silently
     defaulted -- so the DH.552 leg-1 pin below can say what it means.
+    DH.604: the `sessions` segment is `locations.sessions_dir`'s to spell -- a
+    hand-written `root / "sessions"` was a second copy that can drift, and a
+    wrong `root` (repo root, not the `.agi` dir) reads as an empty set for the
+    WRONG reason. Per-worktree `sessions_dir`, never `shared_sessions_dir`:
+    iteration output is the worktree-local fork (locations.iteration_dir).
     DH.557: this used to write `sessions/iter-DH.999/`, which is not the
     dirname `locations.iteration_dirname` emits, and the callers called the
     helper with NO iteration in hand -- so the DH.552 bound (this round's own
@@ -138,8 +169,8 @@ def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None, iter_n=999):
     bound. The bound itself is correct and stays; the fixture now puts the
     record where a real dispatch puts it, and passes the id.
     """
-    d = (root / "sessions" / _load_locations().iteration_dirname(iter_n)
-         / agent)
+    loc = _load_locations()
+    d = (loc.sessions_dir(root) / loc.iteration_dirname(iter_n) / agent)
     d.mkdir(parents=True, exist_ok=True)
     if dispatch_node_id is None:
         dispatch_node_id = node_id
