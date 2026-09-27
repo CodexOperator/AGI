@@ -47,6 +47,17 @@ extensions/agi/bin/send.py · extensions/agi/tests/test_send_dm_read_and_nudge.p
 ## CEILING
 2 kids · <= 36 production lines · pi-free tier-0 · 0 USD. No test touches the live inbox, the live dm files or a real tmux pane.
 
+## CORRECTIVE DH.524 -- closes mur-director-engine-17 DH.506-k1 + k2 (review accept_with_residue; verify failed / unstructured) + TMM.283
+BASE      CUT FROM season2/loops/hypothesis-send-read-prints-ever-a00-907d12c6 tip 5cf6b511e (worktree a00-907d12c6). No merge. Never rebase.
+1. send.py:3925 -- when cut < len(content) the marker write `content[:cut].rstrip("\n")+"\n"+READ_MARKER+content[cut:].lstrip("\n")` drops the file's trailing newline -> keep it byte-exact; one test: a partial read leaves unread blocks behind the marker AND the file still ends in exactly one newline.
+2. TMM.283 (belam 04:31Z): dm-FILE sends to thought-master at 04:00:03Z and 04:03:09Z sit in the dm file but never registered pending -- the SENDER skipped the pending mark, not only read's cursor -> one test: a --to dm-file send registers pending for its recipient (send.py status shows pending >= 1 before any read); fix the sender path if the test is red.
+3. experiment:a00-db001065-4d153e frontmatter says verdict proved / confidence 0.9 (:8, :21) while its body's PARENT DEMOTION (:115) demotes it -> set both fields to what the demotion says (write.py only).
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_send.py test_seatsig.py test_sensei.py test_heal.py test_bin_help_smoke.py test_write_self_row.py once (timeout 900, --basetemp under /tmp)
+FILE SCOPE extensions/agi/bin/send.py (the read-marker write + the dm-file send's pending mark only) · extensions/agi/tests/test_send.py · experiment:a00-db001065-4d153e (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · net <= 12 production lines · <= 60 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version, minted by director-engine on thought-master's `dispatch now` (TMM.271, 02:50Z 09-27) for goal:g7.33.17 row 20, as its OWN round ahead of the queue (it no longer rides with send-is-hub-only). OWNER in thought-master's pane 02:28:27Z, verbatim: "Check dm file directly nudges have been buggy". OWNER in thought-master's pane 02:49:02Z, verbatim: "DT latest message seems nudges are growing more broken. Luckily the DE is on it we need it bad. If needed we can pause DT work for now to give DE more breathing room to implement quicker with a higher cap given no model container and no docker loader". Scope per TMM.271: a test that reproduces BOTH reds first; the smallest fix; the hub redesign stays in send-is-hub-only.
+corrective DH.524: mur-17 DH.506-k1+k2 (verify failed on k1, unstructured on k2; the review residues stand) -- trailing newline lost on a mid-file marker write, a node verdict contradicting its own demotion; plus TMM.283: the dm-file sender skips the pending mark.
 <!-- THOUGHT:END -->
