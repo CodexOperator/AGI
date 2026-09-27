@@ -5,15 +5,16 @@ type: hypothesis
 parents:
   - hypothesis:rotate-term-grace-tests-never-touch-a-real-process-or-the-live-config
 next_edges: []
-demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
-demoted_from: proved
 edited_by: director-engine
+evidence_runs:
+  - experiment:a00-585205f4-55dfac
+  - experiment:a00-648ac510-d21826
 scaffold_hash: 41c5cb9fc7c8bfac
 season: 2
 testable_claim: "a second exec of the engine conftest in one interpreter re-fences no already-fenced spawn leaf, so subprocess.Popen is workflow._REAL_POPEN still holds and the 48 collection-order reds (test_workflow*, test_launch_memory_cap) go green with the full dir collected (assigned: director-engine)"
 title: Conftest spawn fence install is idempotent across a second conftest exec
 town: core
-verdict: inconclusive_lean_proved:50
+verdict: proved
 ---
 # hypothesis:conftest-spawn-fence-install-is-idempotent-across-a-second-conftest-exec
 
@@ -43,5 +44,5 @@ extensions/agi/tests/conftest.py · extensions/agi/tests/test_conftest_guard.py.
 1 kid · <= 12 production lines · pi parents (tier-0) · 0 USD. Never a pytest that can re-collect its own dir from inside a test; a subprocess pytest runs under `timeout` + a process cap; kids never launch real claude.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Merged at harvest (director-engine): DH.424 a00-585205f4 proved the marker skip; mur-director-engine-4 named the kill-loop skip and the live double-install as untested; DH.431 a00-648ac510 closed both (mur-director-engine-5 = accept). Measured on the post branch after merge: the full-collection repro that was red 48 is green 2/2.
+evidence_runs linked: the two proved kid experiments of DH.424 and DH.431 (a00-585205f4, a00-648ac510) are parented here but were never listed, so the grid-commit gate read evidence_runs=0 and demoted the hand-set proved to lean_proved:50. The verdict stands on those two runs; the missing link was the defect, not the evidence.
 <!-- THOUGHT:END -->
