@@ -2180,6 +2180,10 @@ _FOREIGN_REFUSALS: set[tuple[str, str]] = set()
 #: (crons.py `nudge_sweep`), so a process-local memo is empty on every tick and
 #: the refusal is re-printed forever. `paths.core.foreign_refusal_memo`,
 #: repo-relative; one `row<TAB>cause` line per naming.
+#: `paths.core.foreign_refusal_memo` in `.agi/config.json` is THE source of
+#: this path (rule 13: paths live in config, never as literals); the literal
+#: below is ONLY the absent-config fallback, so a graph that never got the
+#: cell still gets a working memo.
 _FOREIGN_MEMO_CELL = "foreign_refusal_memo"
 _FOREIGN_MEMO_DEFAULT = ".agi/sessions/foreign_refusals.tsv"
 
@@ -2236,8 +2240,14 @@ def _forget_refusals(to: str | None = None, root: Path | None = None) -> None:
                 if ln and ln.split("\t", 1)[0] != to]
         if len(keep) == len([ln for ln in lines if ln]):
             return  # nothing of that row is memoized: never rewrite
-        path.write_text("\n".join(keep) + ("\n" if keep else ""),
-                        encoding="utf-8")
+        # ATOMIC: a temp SIBLING then os.replace, never a truncating
+        # write_text -- `_foreign_refusal_said` reads this same file, and a
+        # reader landing in a truncate/write window would see a partial memo
+        # and re-name a refusal already named.
+        tmp = path.with_name(path.name + ".tmp.%d" % os.getpid())
+        tmp.write_text("\n".join(keep) + ("\n" if keep else ""),
+                       encoding="utf-8")
+        os.replace(tmp, path)
     except OSError:  # noqa: BLE001 -- an unwritable memo never blocks a sweep
         pass
 
@@ -2283,10 +2293,9 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     # The row is addressable (or was never refused): forget any old refusal so a
     # LATER foreign cause on the same row is named again -- the DURABLE memo
     # too, and in THIS tick's process, which may not be the one that named it.
-    if root is not None:
-        _forget_refusals(to, root)
-    elif any(k[0] == to for k in _FOREIGN_REFUSALS):
-        _forget_refusals(to)
+    # `root` is a REQUIRED positional parameter of `_nudge_target`, so it is
+    # never None here: the old `elif` arm was unreachable.
+    _forget_refusals(to, root)
     window_ref = (row or {}).get("window")      # e.g. "@267", a NAME, or None
     pid = (row or {}).get("pid")
     if tmux_session is None:

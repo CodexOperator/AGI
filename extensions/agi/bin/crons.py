@@ -806,7 +806,8 @@ def _on_this_box(job: dict, own: str) -> bool:
 def _this_box(root: Path, box_name: str | None = None) -> str:
     """The box this checkout is on, for the `box` gate and the `{box}`
     placeholder. Unresolved (no `AGI_BOX`, no `default_box` cell) is the empty
-    string, which gates nothing in `_on_this_box` and substitutes to nothing."""
+    string, which makes `_on_this_box` REFUSE every box-gated job (fail
+    closed, per the docstring there) and substitutes to nothing."""
     if box_name:
         return box_name
     try:

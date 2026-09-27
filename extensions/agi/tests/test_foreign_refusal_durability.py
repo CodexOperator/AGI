@@ -163,3 +163,43 @@ def test_seating_call_site_stamps_the_box(tmp_path, monkeypatch):
     row = next(r for r in write._load_seats(root)
                if r["name"] == "director-belam")
     assert row["box"] == "local-town"
+
+
+def test_a_reader_never_sees_a_torn_memo_while_a_rewrite_is_in_flight(
+        tmp_path, monkeypatch):
+    """The durable memo is rewritten by `_forget_refusals` while
+    `_foreign_refusal_said` READS the same file (nudge_sweep every 2 min, and
+    `wake --all-local` fanning out). A truncating `write_text` leaves a window
+    in which a reader sees a partial/empty file and re-names an already-named
+    refusal. The rewrite must go through a temp sibling + `os.replace`.
+
+    FALSIFIER: with the old `path.write_text(...)` the hook below never fires
+    (there is no replace to intercept), so `assert fired` fails."""
+    import threading
+    import send
+
+    root = _graph(tmp_path, [FOREIGN])
+    memo = tmp_path / ".agi" / "sessions" / "foreign_refusals.tsv"
+    memo.parent.mkdir(parents=True, exist_ok=True)
+    memo.write_text("far-seat\tsanctuary\nother\tcore-town\n", encoding="utf-8")
+
+    gate = threading.Event()
+    released = threading.Event()
+    fired: list[bool] = []
+
+    def _blocking_replace(src, dst):  # noqa: ANN001
+        fired.append(True)
+        gate.set()
+        released.wait(30)          # hold the rewrite open, pre-swap
+        return real_replace(src, dst)
+
+    real_replace = os.replace
+    monkeypatch.setattr(send.os, "replace", _blocking_replace)
+    t = threading.Thread(target=send._forget_refusals, args=("far-seat", root))
+    t.start()
+    assert gate.wait(30), "no os.replace: the rewrite is not atomic"
+    mid = memo.read_text(encoding="utf-8").splitlines()   # a reader lands here
+    released.set()
+    t.join(30)
+    assert fired and mid == ["far-seat\tsanctuary", "other\tcore-town"], mid
+    assert memo.read_text(encoding="utf-8").splitlines() == ["other\tcore-town"]
