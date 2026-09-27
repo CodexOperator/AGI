@@ -50,9 +50,9 @@ CHAIN     next act                                                         land 
  g4.18.1.1       521 harvested 486 green; item 4 (a00-9086ec16) UNLANDABLE (bytes != write-log, row 21) -> mur-20
  g4.18.1.3       519 harvested 185 green (a00-4bf392d4 landed 36f928c7d) -> mur-20
  g4.18.1.4       497 -> mur510 slices
- send-hub box    525 LIVE; [red] 05:5xZ to TM: 18 of 22 posts rows boxless -> NO MERGE until TM/belam pick backfill or fail-open
- kid-worktrees   499 -> mur499 -> corrective (use paths.core.worktrees_dir, retire worktrees_root; 16 literals) + OWNER sweep round 2
- row 20 nudge    524 LIVE
+  send-hub box    525 LIVE; TMM.289 CLEARED: belam backfilled 22/22 rows (91f9e1236, trunk merged 012c7b4bb; my branch adds no posts row) -> merge after 525 clears
+  kid-worktrees   mur499 k1-k3 AWR (cm YES x3) -> 529 a00-34bf42d0 LIVE (slice 1: one cell + 16 literals + nodes) -> slice 2 from its tip: prune ancestry gate + OWNER dirty-kid sweep
+  row 20 nudge    524 harvested 468 green (node landed 5c9c4120a) -> mur524 (run key mur-20 again: row 19 x2)
  thought-verb    522 harvested 242 green -> mur-20
  probe-gate      523 LIVE
  wake-facts      501 harvested (0eba09517) -> mur-20; trunk region 2009 > 2000 = the claim: pin NOT raised; [red] 05:4xZ via TM: belam trims F13
@@ -71,7 +71,7 @@ done   session 06:0xZ: skill agi-corrective + build node; 11 correctives/rounds 
 next   harvest each parent on exit -> mur -> skill agi-corrective on every residue -> merge cleared chains -> suite window -> ONE [merge-up]
 queue  (1) the skills adapter-seam round after 526 (2) 499 corrective + sweep round 2 (3) 471 after 432 (4) 429 tiny corrective
        (5) PASS 10 (5) after 507 (6) g4.18.1.2/.5 after .1 lands
-blocked  498 merge (TM/belam: boxless rows) · 501 merge (belam: F13 trim)
+blocked  501 merge (belam: F13 trim)
 ```
 
 ## 🔴 WHERE IT STOPS
