@@ -262,6 +262,105 @@ def test_a_lock_held_under_an_unlistable_fd_dir_is_refused_by_name(tmp_path, mon
     assert lock.exists(), "an unlistable fd dir must REFUSE, never unlink"
 
 
+def _unlistable(monkeypatch, pid, exc, err):
+    """Make /proc/<pid>/fd unreadable, for the shape the walk cannot see."""
+    real = os.listdir
+
+    def fake(p, *a, **k):
+        if str(p) == f"/proc/{pid}/fd":
+            raise exc(err, "unreadable", str(p))
+        return real(p, *a, **k)
+
+    monkeypatch.setattr(os, "listdir", fake)
+
+
+def test_a_lock_held_by_an_uninspectable_NON_GIT_holder_is_refused(tmp_path, monkeypatch):
+    # Item 5: the shipped test built its holder `as_git=True` -- the ONE comm
+    # the allowlist still refused -- so it could only be green, and an editor /
+    # backup / scanner holding the lock open was ALLOWLISTED OUT and unlinked.
+    cli = _cli()
+    root, repo = _repo(tmp_path, stale_s=60)
+    holder, lock = _hold_lock_open(_mklock(repo, 3600), as_git=False)
+    _unlistable(monkeypatch, holder.pid, PermissionError, 13)
+    try:
+        reason = cli._clear_stale_index_lock(root, repo)
+    finally:
+        holder.kill(); holder.wait()
+    assert reason and "NOT removed" in reason, reason
+    assert lock.exists(), "an uninspectable NON-git holder must REFUSE, never unlink"
+
+
+def test_a_kids_failed_commit_is_named_in_the_dm_its_parent_receives(tmp_path, monkeypatch):
+    # Item 6: the exit-3 test stubbed `_alarm_dispatcher_on_done` ITSELF, so the
+    # real dm builder (the only code that turns `commit_failed` into a body
+    # anyone RECEIVES) never ran. Here only the TRANSPORT is stubbed: what
+    # `send.send` was called with is the assertion, on the real builder.
+    cli = _cli()
+    wt, root = _linked_wt(tmp_path)
+    rec = root / "sessions" / cli.locations.iteration_dirname("DH.9") / "a00-t"
+    rec.mkdir(parents=True)
+    row = {"id": "a00-t", "tier": "kid", "status": "running",
+           "spawned_by_agent": "a00-par", "node_id": "verdict:a00-t"}
+    (rec / "agent.json").write_text(json.dumps({**row, "agent_id": "a00-t",
+                                                "asked": ["verdict:a00-t"]}))
+    (rec.parent / "manifest.json").write_text(json.dumps({"agents": [row]}))
+    sent = {}
+    import send as _send
+    monkeypatch.setattr(_send, "send", lambda *a, **k: sent.update(a=a) or 0)
+    monkeypatch.setenv("AGI_TIER", "kid")
+    monkeypatch.chdir(wt)
+    rc = cli.cmd_done(argparse.Namespace(
+        iter_n="DH.9", agent_id="a00-t", verdict="proved", confidence=0.9,
+        node_id="verdict:a00-t", parent=None, notes="", next_edge=None,
+        push_further=None, owns=None, evidence_runs=["verdict:a00-t"],
+        probes=None, dry_run=False, no_evidence_gate=False,
+        no_spawn_gate=False))
+    assert rc == 3, f"a FAILED round commit must exit 3, not {rc}"
+    assert sent.get("a"), "the parent must be dm'd, not the seat"
+    assert "a00-par" in sent["a"], sent["a"]
+    assert "commit FAILED:" in sent["a"][2], sent["a"]
+    # item 4: the record must not read `done` after a failed commit
+    assert json.loads((rec / "agent.json").read_text())["status"] == "failed"
+
+
+def test_a_pid_that_exited_mid_walk_is_not_a_holder(tmp_path, monkeypatch):
+    # Item 7: the ENOENT arm keeps the gate usable and had NO test.
+    cli = _cli()
+    root, repo = _repo(tmp_path, stale_s=60)
+    lock = _mklock(repo, 3600)
+    gone = str(max(int(p) for p in os.listdir("/proc") if p.isdigit()) + 7)
+    _unlistable(monkeypatch, int(gone), FileNotFoundError, 2)
+    assert cli._uninspectable(f"/proc/{gone}", FileNotFoundError(2, "gone")) == ""
+    assert cli._clear_stale_index_lock(root, repo) is None
+    assert not lock.exists(), "a stale unheld lock must still clear"
+
+
+def test_a_comm_that_cannot_be_read_still_names_the_refusal(tmp_path, monkeypatch):
+    # Item 7: the `?` arm (our uid, our own fd dir, no comm) had NO test.
+    cli = _cli()
+    real_read = Path.read_text
+
+    def fake_read(self, *a, **k):
+        if str(self).endswith("/comm"):
+            raise PermissionError(13, "Permission denied")
+        return real_read(self, *a, **k)
+
+    monkeypatch.setattr(Path, "read_text", fake_read)
+    assert cli._uninspectable(f"/proc/{os.getpid()}",
+                              PermissionError(13, "denied")) == "?"
+
+
+def test_a_malformed_config_refuses_by_name_and_never_unlinks(tmp_path):
+    # Item 8: the `except (OSError, ValueError, ...)` refusal had NO test.
+    cli = _cli()
+    root, repo = _repo(tmp_path)
+    (root / "config.json").write_text("{not json")
+    lock = _mklock(repo, 3600)
+    reason = cli._clear_stale_index_lock(root, repo)
+    assert reason and "index.lock check failed" in reason, reason
+    assert lock.exists(), "a malformed config is never a licence to unlink"
+
+
 def test_a_failed_commit_exits_non_zero_and_is_named_in_the_harvest_dm():
     cli = _cli()
     body = cli._parent_harvest_body(

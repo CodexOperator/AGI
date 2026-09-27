@@ -1014,6 +1014,11 @@ def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict,
         if row is None:
             return
         line = _completion_line(iter_n, agent_id, node_id, verdict)
+        # item 3: a KID's failed commit was named NOWHERE -- the kid branch
+        # below returns at 1025 with `line` as built, and only the parent
+        # branch consumed `commit_failed`. Same string the parent carries.
+        if commit_failed:
+            line += f" commit FAILED: {commit_failed}"
 
         if tier == "kid":
             parent = row.get("spawned_by_agent")
@@ -1762,6 +1767,15 @@ def cmd_done(args: argparse.Namespace) -> int:
                                         _round_named_node_ids(rec, args.parent),
                                         refused=[args.parent] if args.parent else None)
     commit_fail = _commit_out if isinstance(_commit_out, str) else None
+    if commit_fail:
+        # item 4: `rec["status"] = "done"` is stamped ABOVE, before this
+        # commit runs, so a round whose commit failed read `done` in the
+        # record AND in the manifest mirror. `failed` is the status heal,
+        # sweep and `_parent_harvest_body` already know -- no new vocabulary.
+        rec["status"] = "failed"
+        rec["fail_reason"] = f"round commit FAILED: {commit_fail}"
+        ap.write_text(json.dumps(rec, indent=2))
+        _mirror_terminal_into_manifest(ap, rec, args.agent_id)
 
     # hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- a round that
     # finishes alarms the seat that dispatched it: exactly ONE dm, sent with
@@ -2372,20 +2386,31 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
 
 def _uninspectable(base: str, exc: OSError) -> str:
     """NAME of a live process whose /proc table could not be read, or '' when
-    nothing is lost. ENOENT = the pid EXITED mid-walk: provably no holder, and
-    refusing on every exit would make the gate unusable. Otherwise comm is
-    ALWAYS readable, and it is the SAME signal the cwd branch already trusts:
-    a `git` we cannot see is an unknown holder, so the caller must refuse. Any
-    other uninspectable process (ssh-agent, gpg-agent, a user's systemd --user)
-    is a NAMED RESIDUAL: see the node's disclosure -- refusing on those refuses
-    every commit on any ordinary desktop host."""
+    nothing is lost. Three exits, each a property of the PID and none a guess
+    about its NAME (the allowlist of comms this replaces decided a SAFETY
+    question by a pasted host reading, and blocked every checkout on the box
+    over one unreadable pid in any of them). 1) ENOENT = the pid EXITED
+    mid-walk: provably no holder. 2) ANOTHER uid: `/proc/<pid>`'s own st_uid
+    is readable when the table is not, and a process of another uid cannot
+    hold a file in our worktree. 3) NON-DUMPABLE: an fd dir the KERNEL owns
+    (st_uid 0 for a same-uid pid) is a session daemon (ssh-agent, gpg-agent,
+    sd-pam -- three permanent ones on the measured host), not a writer of our
+    index; refusing on those refuses every commit on every desktop. What is
+    left -- our uid, our own fd dir, still unreadable -- is an UNKNOWN holder
+    and refuses, whatever its comm: an editor or a backup daemon included."""
     if exc.errno == errno.ENOENT:
         return ""
     try:
-        comm = Path(base, "comm").read_text().strip()
+        if os.stat(base).st_uid != os.getuid():
+            return ""
+        if os.getuid() and os.stat(f"{base}/fd").st_uid == 0:
+            return ""
     except OSError:
         return "?"
-    return comm if comm in ("git", "index-pack", "gc", "rebase") else ""
+    try:
+        return Path(base, "comm").read_text().strip() or "?"
+    except OSError:
+        return "?"
 
 
 def _lock_is_held(lock: Path, checkout: Path) -> bool | str:
@@ -2394,10 +2419,11 @@ def _lock_is_held(lock: Path, checkout: Path) -> bool | str:
     run with cwd=the checkout and no path in argv -- row 18's shape -- is
     invisible to `pgrep -f`.
 
-    Returns True, or -- DH.564 -- a NAMED REFUSAL string when a `git` we cannot
-    inspect may hold this lock. Refuse-to-unlink: an unreadable table is NOT an
-    empty table; `except OSError: fds = []` concluded 'no holder' and unlinked a
-    HELD lock."""
+    Returns True, or -- DH.594 -- a NAMED REFUSAL string when an our-own-uid
+    pid we cannot inspect may hold this lock (see `_uninspectable` for who
+    that is and who it is not). Refuse-to-unlink: an unreadable table is NOT
+    an empty table; `except OSError: fds = []` concluded 'no holder' and
+    unlinked a HELD lock."""
     ck = os.path.realpath(checkout)
     lp = os.path.realpath(lock)
     for pid in os.listdir("/proc"):
@@ -2426,11 +2452,14 @@ def _lock_is_held(lock: Path, checkout: Path) -> bool | str:
             if ((cwd == ck or cwd.startswith(ck + os.sep))
                     and Path(base, "comm").read_text().strip() == "git"):
                 return True
-        except OSError as exc:
-            who = _uninspectable(base, exc)
-            if who:
-                return (f"/proc/{pid} ({who}) cwd unreadable "
-                        f"({exc.strerror or exc}) -- holder UNKNOWN, lock NOT removed")
+        except OSError:
+            # A READABLE fd table above already walked every fd this pid has
+            # and found no open lock, and no other signal can outrank that:
+            # an unreadable `cwd` (measured on this host: a same-uid,
+            # dumpable `systemd --user`) is not a holder, and refusing on it
+            # refuses EVERY commit on the box. The un-inspectable case is
+            # already refused at the fd arm, where the table itself is dark.
+            continue
     return False
 
 
