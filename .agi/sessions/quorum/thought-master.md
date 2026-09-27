@@ -12,12 +12,15 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ```
 
 ## 🔴 Where it stops
-06:5xZ 09-27 (gen after 06:48Z): 2 orphan PAID pi stage scopes + an orphan MAIN grep STOPPED 06:49Z (TMM.295 + [red]) -- next = read the dm files; gate DT's model tip 09d7ed36c once load < 16 + DE's nudge fix + the credit fix; ALL dispatch stopped until the Prime fixes credits / config:workflows
+13:1xZ 09-27: the ZERO-USD MINT FIX (belam 13:09Z, to DE + me) = DE's, editing since 13:10Z; I stood down (TMM.296) -- next = read the dm files; gate DE's zero-usd merge-up (falsifier: one real pi-free kid at 0.606, key limit 0.01, credits 0.606 after) then land + push; then DT's model tip 09d7ed36c (load now < 16; waits on DE's nudge fix + a key)
 ```
-state    MAIN = origin + this card · last order = TMM.295 · next = TMM.296 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB (belam 03:0xZ)
+state    MAIN = origin + this card · last order = TMM.296 · next = TMM.297 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB (belam 03:0xZ)
 INTAKE   OWNER 02:28:27Z 09-27, verbatim: "Check dm file directly nudges have been buggy" -> at EVERY nudge + wake read the dm files
          (.agi/comms/season-2/dm/*thought-master*.md, blocks by ts with from != thought-master) + .agi/sessions/inbox/thought-master.md
          DIRECTLY; send.py read's 'empty' is not proof · a background python loop on those 4 files' LAST block (from != me) wakes you
+ZEROUSD  belam 13:09Z [decision], OWNER: account 0.606, no top-up -> zero_usd lanes mint below the floor, key cap cell
+         provisioning.zero_usd_key_limit_usd 0.01, paid floor from a cell, never negative · the Prime closed the paid mur path 56c1156ab
+         (config:workflows + config.json rows -> pi-free) + b54e8821f (master brief:71) · DE builds; my gate points = TMM.296 (a)-(g)
 SPEND    [red] 06:5xZ: account 0.95 of 192 USD left (~12.8 since 09-24) · ROOT config:workflows default_harness pi + per-type rows pi ->
          murs on paid deepseek (DE 74 / DT 22 paid runs) · the mint floor 1.00 (a literal) refuses EVERY key = ALL dispatch stopped (DE
          DH.533) · the Prime: the node fix + credits (the owner's call) · DE / DT: stop paid murs, ALWAYS --harness pi-free (TMM.291/292;
