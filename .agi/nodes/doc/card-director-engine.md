@@ -82,7 +82,7 @@ CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT
 FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-mur*'
        reviews live (at 02:2xZ): mur471 mur479 mur482 mur483 mur485 -- verdicts in MAIN .agi/sessions/workflows/runs/mur-director-engine-{9..13}/verify_DH.4NN-kN.json
          (a verdict may be JSON INSIDE 'unstructured': parse from '"round"' to the last '}')
-       parents live: 486 a00-35644c9c · 487 a00-47284405 (thought regex) · 488 a00-e1951cde · 489 a00-38ff3304 · 482 a00-1bab2a86 (g4.18.1.1 answers file)
+       parents live: 490 a00-5bde5739 (NUDGE BUG, TMM.271 dispatch now) · 486 a00-35644c9c · 487 a00-47284405 (thought regex) · 488 a00-e1951cde · 489 a00-38ff3304 · 482 a00-1bab2a86 (g4.18.1.1 answers file)
 NEXT   434 chain MERGED 262107e12. Each mur: accept -> merge its final branch; residue -> corrective from that loop tip
          = the whole 434 chain (434 NOT an ancestor: verified; merge-tree clean at 33585683f); run test_boxkit_probe + test_mem_cap_tasks_max after
        each other mur: accept (no residue) -> merge its final branch; residue -> corrective cut FROM that loop branch's worktree
@@ -96,9 +96,9 @@ LAND ORDER per chain (final = the last branch): 425: ...456 @b3d381f5a -> 461 @9
 OPEN   R3b: dispatch._reap_pass never re-admits a schema-refused done (_is_death dispatch.py:255 needs a death class) -> OWN g15 hypothesis after the merge-up, propose in [merge-up]
 THEN   all chains clean + merged -> full suite in a granted window -> ONE [merge-up] to thought-master (name: 442 discarded, stale-base overrides
        x all correctives, the g15 lines, the BOX DRIFT, TMM.268 landings, my stale 21:2xZ dm, the ~12 schemas-dir readers)
+NUDGE  TMM.271 (02:50Z, owner 02:49Z verbatim in the node THOUGHT): goal:g7.33.17 row 20 = OWN round AHEAD of the queue -> hypothesis:send-read-prints-every-unread-block-and-every-dm-send-nudges 8e5ac6288 -> DH.490 LIVE (kid1 reds first, kid2 smallest fix); DT on hold, its share is ours; [merge-up] when clean (TM reads my dm file directly)
 G4181  goal:g4.18.1 SPLIT into 5 leaves 2b72ee8fa (.1 validator+answers file · .2 captive flow · .3 storage picker · .4 location row · .5 new version); post br synced to trunk e1328c8a4; hypothesis:one-mint-route-answers-file-validated-row-by-row minted 665af91c4 -> DH.482 a00-1bab2a86 HARVESTED (write.py +125/-13 vs 36 ceiling -- reuses the create gate + seed_required, JSON answers; tests +447; 441 green + 6 skip) -> mur DH.482-k1/k2 RUNNING; .2-.5 wait on .1's bytes; [rule] to TM: agi-goal skill mint omits confidence/origin/seeds/tags/heading_level
 QUEUE  after g4.18.1: then send-is-hub-only (+ (default)-box refusal) + g7.32.5, then g7.31.3.3 (OWNER order 01:0xZ)
-       + goal:g7.33.17 row 20 (TMM.270; added 55a74f262): send.py read 'empty' past unread dm blocks + dm-file send skipping the nudge -- rides with send-is-hub-only
        then goal:g4.18.2 hypothesis:wake-facts-collapse-to-skill-pointers (belam [decision] 01:45Z, owner 01:1xZ; NOT minted on any ref at 01:4xZ -> mint at its turn): config:rotations facts -> one pointer line per F-number to skills/agi-*/SKILL.md, <= 2000 B (from 7164), first_turn range re-derived, test_rotate_templates re-pinned SAME commit, rotate.py DEFAULT_CC_ROLES drops ultracode/max
 ```
 
