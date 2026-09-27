@@ -20,6 +20,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import pytest
@@ -98,6 +99,32 @@ def _sweep(root: Path, name: str = "far-seat",
         [sys.executable, "-c", _DRIVER, str(BIN), str(root), name],
         capture_output=True, text=True, timeout=120, cwd=str(root.parent),
         env=env)
+
+
+# Two MORE real interpreters for the RACE: `_STALL` holds the rewrite open
+# inside its swap window and drops a gate FILE (an observable signal -- no
+# shared memory, no in-process event); `_NAMER` is the ordinary once-only
+# naming path, exactly as `nudge_sweep` calls it.
+_STALL = r'''
+import os, sys, time
+from pathlib import Path
+sys.path.insert(0, sys.argv[1])
+import send
+root, gate, real = Path(sys.argv[2]), Path(sys.argv[3]), os.replace
+send._OS_REPLACE = lambda s, d: (gate.write_text("held"), time.sleep(2.0),
+                                 real(s, d))[2]
+send._forget_refusals("far-seat", root)
+print("SWAPPED")
+'''
+
+_NAMER = r'''
+import sys
+from pathlib import Path
+sys.path.insert(0, sys.argv[1])
+import send
+print("SAID" if send._foreign_refusal_said(
+    Path(sys.argv[2]), "late-seat", "core-town") else "QUIET")
+'''
 
 
 def _said(res: subprocess.CompletedProcess) -> list[str]:
@@ -194,7 +221,9 @@ def test_a_reader_never_sees_a_torn_memo_while_a_rewrite_is_in_flight(
         return real_replace(src, dst)
 
     real_replace = os.replace
-    monkeypatch.setattr(send.os, "replace", _blocking_replace)
+    # patch send._OS_REPLACE, NOT `os.replace`: `send.os IS os`, so patching the
+    # module attribute would block EVERY thread in the interpreter for 30s.
+    monkeypatch.setattr(send, "_OS_REPLACE", _blocking_replace)
     t = threading.Thread(target=send._forget_refusals, args=("far-seat", root))
     t.start()
     assert gate.wait(30), "no os.replace: the rewrite is not atomic"
@@ -203,3 +232,37 @@ def test_a_reader_never_sees_a_torn_memo_while_a_rewrite_is_in_flight(
     t.join(30)
     assert fired and mid == ["far-seat\tsanctuary", "other\tcore-town"], mid
     assert memo.read_text(encoding="utf-8").splitlines() == ["other\tcore-town"]
+
+
+def test_a_naming_racing_the_rewrite_is_merged_not_discarded(tmp_path):
+    """A naming landing between the rewrite's READ and its SWAP used to be
+    DISCARDED (the swap carries the pre-race content), so that refusal was
+    never named again -- and re-named on every later tick, forever. The
+    read-filter-swap and the append must hold the SAME lock. TWO REAL
+    PROCESSES: the writer stalls in the swap window, a second interpreter
+    names. FALSIFIER: unlocked, the append lands in the window, the swap
+    overwrites it, and `late-seat` is gone from the memo."""
+    root = _graph(tmp_path, [FOREIGN])
+    memo = tmp_path / ".agi" / "sessions" / "foreign_refusals.tsv"
+    memo.parent.mkdir(parents=True, exist_ok=True)
+    memo.write_text("far-seat\tsanctuary\nother\tcore-town\n", encoding="utf-8")
+    gate = tmp_path / "held"
+    writer = subprocess.Popen(
+        [sys.executable, "-c", _STALL, str(BIN), str(root), str(gate)],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        cwd=str(tmp_path))
+    try:
+        for _ in range(200):                      # 20s, then fail loudly
+            if gate.exists():
+                break
+            time.sleep(0.1)
+        assert gate.exists(), "the rewrite never reached its swap window"
+        namer = subprocess.run(
+            [sys.executable, "-c", _NAMER, str(BIN), str(root)],
+            capture_output=True, text=True, timeout=120, cwd=str(tmp_path))
+        assert "SAID" in namer.stdout, namer.stderr
+    finally:
+        out, err = writer.communicate(timeout=60)
+    assert "SWAPPED" in out, err
+    assert memo.read_text(encoding="utf-8").splitlines() == [
+        "other\tcore-town", "late-seat\tcore-town"]
