@@ -29,7 +29,8 @@ send.py wake <post>                                   # re-submit a stranded nud
 | rule | why |
 |---|---|
 | `read` once, NEVER `peek` before it | peek never flips the marker, so the nudge re-fires (F25: 8 of 8 nudges) |
-| `read` returns empty → phantom: nothing else | one read is the whole act |
+| `read` empty is NOT proof -- check the files DIRECTLY before calling a nudge a phantom: every `.agi/comms/<season>/dm/*<post>*.md` block (`from` ≠ you, `ts` after your last read) + `.agi/sessions/inbox/<post>.md` + the rooms' newest blocks | owner 09-27 02:28Z ("Check dm file directly nudges have been buggy") + 23:4xZ: 3 messages sat unread 21:37-02:3xZ behind an empty `read`; a phantom is the marker, a real dm is in a file |
+| idle between nudges: a background watcher on those files, keyed on the newest `ts` it has seen from anyone but you | it wakes you on the file, not the nudge -- a nudge can die or re-fire with nothing new |
 | a quiet row: read the inbox FILE too | an inbox-form send sits only in `.agi/sessions/inbox/<post>.md`; dm files + `read` can show nothing (trap 1) |
 | `read` whole: never pipe it through `tail`/`head` | `read` marks EVERY block read; a tail hides the earlier ones for good and the next `read` is empty (Prime missed TM's 05:47 + 05:49Z 09-27). A `[red]` you expect but `read` shows empty: grep the inbox file |
 | a body goes in a FILE, never a shell string with a backtick or `$(` | owner 09-17 |
