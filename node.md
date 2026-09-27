@@ -39,6 +39,11 @@ Unify spawn and rotate as graph writes. Parents become rows under the post that 
 3. A refusal is written into the row by name AND sent to the requesting post through the reply route, found via the graph. Cap it at one reply per failed request.
 4. Gate who may write which rows: parents write only their own kid rows, kids write none.
 
+## Invariants
+- GUARD BY PLACEMENT (Prime 03:2xZ 09-27, on the owner's question 'Will the guard work with the new spawn/rotate unified redesign?'): every spawn -- post, parent, kid, and rotate as a spawn option -- is a `systemd-run --user` transient SERVICE named `agi-<town>-<post>[-<slot>]`; tmux is only a view attached to it. The sanctuary guard caps by systemd placement (user@1000 high/max 12618/14021M; `agi-*.service` -> agi-work.slice 9302M), so a unit so named is guarded with no guard change. Measured 03:2xZ: 25 claude processes of the tmux-spawned seats sit in session-73.scope, OUTSIDE user@1000 (uncapped); dispatch.py parents are --scope units in app.slice (user@ cap only).
+- Near miss: unifying on today's post route (tmux) would move parents OUT of the cap too -- a silent regression nothing refuses.
+- Kid worktrees follow hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram (paths.<town>.worktrees_root; the guard-owned RAM disk; reaper eviction).
+
 ## Relations
 - parent goal:g7.31.3 -- the rotate|spawn route of the five unified engine routes; this makes it one graph write.
 - goal:g7.32.5 -- the parents' dm-append push grant, the messaging half of the same owner message.
@@ -49,5 +54,5 @@ Unify spawn and rotate as graph writes. Parents become rows under the post that 
 assigned: director-engine. THIRD of the three graph redesigns, after node spawn/mint (goal:g4.18.1) and the send hub-only work (OWNER 01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): refinement 3's refusal rides send's reply route.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Second version, routing only: third in the owner dependency order (01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"). The first version's reasoning for the split from goal:g7.32.5 is in grid history (5c3538f94).
+2026-09-27 03:2xZ belam-S2-L5-XII: an Invariants section -- the guard by placement. (1) Owner 03:2xZ: 'Will the guard work with the new spawn/rotate unified redesign?' (2) The guard caps by cgroup placement (guard-init.sh:295-305, the agi-.service.d drop-in Slice=agi-work.slice); measured seats in session-73.scope outside user@1000. (3) Near miss: one route that is the tmux route unifies the protection DOWN. (4) Previous thought (routing third in the owner's dependency order) is in the grid.
 <!-- THOUGHT:END -->
