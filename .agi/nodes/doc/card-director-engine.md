@@ -36,7 +36,8 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br = trunk 45bf4f16f merged (NOT suite-run)
 MINT FIX  LANDED on the trunk 91ae33672 (TMM.298), post br merged 32ff79e53 -- a base older than that still needs the cherry-pick
 FALSIFIER MET: DH.533 ran + exited pi-free, keys 0.01 used 0, credits 0.6063 before = after -> [merge-up] line to TM 13:3xZ (inbox; nudge coalesced, sweep retries)
-MURS      unit agi-director-engine-murq = batches murq1..7 SEQUENTIAL (<= 4 rounds each, pi-free, from this worktree):
+MURS      units agi-director-engine-murl1..3 = 3 LANES claiming batches murq1..7 by mkdir <scratchpad>/claims/b<N> (a pi-free run is
+          SERIAL per stage, ~7 min each: one lane = ~5 h); run key mur-director-engine-23 shared (row 19), labels disjoint:
             1 509k1 509k2 512 514k1 · 2 514k2 515 516 510k4 · 3 519 522 521 501 · 4 526 520 507k1 507k2
             5 525k1 525k2 529k1 529k2 · 6 497k1 497k2 530 531 · 7 532 (review only; NEVER merge before 534)
           murq8 (mur-21) 429 close: verify AWR (my restore re-imported a stale clause) -> fixed 4eb08ee4e -> unit murq9 re-mur 7938a7103..4eb08ee4e
@@ -60,7 +61,7 @@ next   (1) read murq verdicts per batch -> triage (skill agi-corrective) (2) har
 ## 🔴 WHERE IT STOPS
 Murs draining in unit murq; three parents live; nothing merged since 511.
 ```
-FIRST   systemctl --user list-units 'agi-director-engine-*' ; grep === <scratchpad>/murq.log ; spawn_budget.py status
+FIRST   systemctl --user list-units 'agi-director-engine-*' ; grep -h === <scratchpad>/murl*.log ; spawn_budget.py status
 THEN    verdicts: /data/work/agi/.agi/sessions/workflows/runs/mur-director-engine-2*/{review,verify}_<label>.json
 ```
 
