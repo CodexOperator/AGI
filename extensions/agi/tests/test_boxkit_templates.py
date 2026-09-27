@@ -103,16 +103,23 @@ def _load():
 R = _load()
 MISSING_CELLS = sorted({p["dest_cell"] for p in R.manifest()["pieces"]} - set(CELLS))
 # only for the leak checks (a template or a fixture must not carry a literal root)
+# a SHARED root: a bare top-level system directory. It is shared with every unrelated
+# path and prefixes ordinary command lines, so admitting it makes every leak row match
+# every string (the empty-prefix false red, measured as 6). Excluded BY NAME, never by
+# depth: a depth rule also drops the checkout's OWN root on a shallow extract.
+SHARED_ROOTS = frozenset(("/", "/bin", "/boot", "/data", "/dev", "/etc", "/home", "/lib",
+                          "/media", "/mnt", "/opt", "/proc", "/root", "/run", "/sbin",
+                          "/srv", "/sys", "/tmp", "/usr", "/var"))
+
+
 def _leak_roots(project):
-    """The host roots a template must not carry literally: the checkout and the parents
-    that still NAME a directory of their own (residue M2). A root with fewer than two
-    components below the filesystem root ('/', '/tmp', '/home') is shared with every
-    unrelated system path and is a prefix of ordinary command lines: admitting it makes
-    every leak row match every string -- the empty-prefix false red, measured as 6 -- and
-    it says nothing about THIS checkout, so it is dropped. A deep checkout never carried
-    one, which is why the defect stayed invisible until a shallow extract."""
+    """The host roots a template must not carry literally: the checkout, plus the parents
+    that still NAME a directory of their own (residue M2). The checkout root is kept
+    UNCONDITIONALLY: the old `len(p.parts) >= 3` rule threw it away on a shallow extract
+    ('/a/b') and made the set EMPTY at top level, so a template naming the checkout --
+    the one leak this row exists for -- was not a leak at all."""
     return sorted({str(p) for p in [project] + list(Path(project).parents[1:3])
-                   if len(p.parts) >= 3})
+                   if str(p) not in SHARED_ROOTS})
 
 
 LEAK_ROOTS = _leak_roots(PROJECT)
@@ -637,12 +644,9 @@ def test_no_cascade_drop_in_matches_the_recorded_live_bytes_or_names_its_absence
 # goal's literal uid to the kit's {{UID}}, and requires a manifest row to ship each one.
 # A row that ships a FILE but names no artifact is red here: a parser that quietly
 # extracts nothing would otherwise make the closure vacuously true.
-GOAL_TABLE = re.compile(r"^\|\s*([^|]+?)\s*\|")
-
-
 def _goal_rows():
-    body = [ln for ln in (PROJECT / ".agi" / "nodes" / "goal" / "g7.33.18.md")
-            .read_text(encoding="utf-8").splitlines() if ln.strip().startswith("|")]
+    body = [ln for ln in GOAL.read_text(encoding="utf-8").splitlines()
+            if ln.strip().startswith("|")]
     assert body and "---" in body[1], "goal:g7.33.18 must carry a markdown table"
     return [[c.strip() for c in ln.split("|")[1:-1]] for ln in body[2:]
             if ln.count("|") >= 4]
@@ -691,13 +695,23 @@ def _uncovered(required, pieces):
     """The artifacts no manifest row ships, as (row label, artifact).
 
     A unit/slice name ships its drop-in DIRECTORY for it (user.slice ->
-    user.slice.d/...); a file ships the destination that IS or ENDS with it."""
+    user.slice.d/...); a file ships the destination that IS or ENDS with it. A BARE
+    filename the goal names PER UNIT (10-agi-survival.conf) ships as a drop-in for one
+    of that row's units: a top-level file of the same name, in ANY dest_cell, is a
+    different piece and does not satisfy the artifact."""
     out = []
+    units = _no_cascade_units()
     for label, art in required:
         a = art.lstrip("/")
-        if any(art == rel or rel.startswith((art + "/", art + "."))
-               or a == live or live.endswith("/" + a)
-               for _p, rel, live in _shipped_paths(pieces)):
+        paths = _shipped_paths(pieces)
+        if "/" not in a and label.strip().lower().startswith("no cascade"):
+            hit = any(rel == "%s.service.d/%s" % (u, a)
+                      for _p, rel, live in paths for u in units)
+        else:
+            hit = any(art == rel or rel.startswith((art + "/", art + "."))
+                      or a == live or live.endswith("/" + a)
+                      for _p, rel, live in paths)
+        if hit:
             continue
         out.append((label, art))
     return out
@@ -733,24 +747,41 @@ def test_the_whole_table_closure_is_red_when_a_piece_is_removed():
     assert len(rest) == len(PIECES) - 1
 
 
-# 12 -- LEAK_ROOTS MUST NOT ADMIT A ROOT SHALLOWER THAN TWO COMPONENTS (residue M2).
-# The leak row above asks "does any template carry a literal host root"; a root of ONE
-# component ('/', '/tmp') is a prefix of every absolute path, so on a shallow checkout
-# the row reports a leak in every template -- measured 6 false reds -- and says nothing
-# about the checkout it was asked about. The deep checkout the row was written on never
-# exposed it, so the row is exercised here against a SHALLOW checkout it does not have.
-def test_leak_roots_admit_no_root_that_prefixes_the_whole_filesystem():
-    shallow = Path("/tmp/extract/agi")
-    roots = _leak_roots(shallow)
-    assert roots == ["/tmp/extract/agi"], roots
-    assert not [r for r in roots if len(Path(r).parts) < 3], roots
-    # the empty-prefix leak it removes, stated as the pre-fix behaviour: a benign
-    # template is a leak on every line under a root that is a prefix of it
+# 11b -- THE PER-UNIT NO-CASCADE CASE: a same-named file under ANOTHER dest_cell must
+# not satisfy a bare-filename artifact. The goal names 10-agi-survival.conf PER UNIT (as
+# <unit>.service.d/10-agi-survival.conf); a top-level file of that name in any cell is a
+# different piece. The suffix match admitted it (the looseness experiment:a00-b90527fa
+# recorded as accepted); this row pins it red.
+def test_a_same_named_file_in_another_dest_cell_does_not_satisfy_a_no_cascade_artifact():
+    artifact = "10-agi-survival.conf"
+    elsewhere = dict(BY_NAME["agi-survival-conf"], dest_cell="systemd_system_dir")
+    assert _uncovered([("no cascade", artifact)], [elsewhere]), (
+        "a top-level %s in another dest_cell satisfied the per-unit artifact" % artifact)
+    # the row that DOES ship it: the drop-in for a unit the goal names
+    assert _uncovered([("no cascade", artifact)],
+                      [BY_NAME["claude-remote-control-no-cascade"]]) == []
+
+
+# 12 -- LEAK_ROOTS EXCLUDES SHARED ROOTS BY NAME, NOT BY DEPTH (residue M2). The old
+# `len(p.parts) >= 3` rule dropped the CHECKOUT'S OWN root on a shallow extract, so the
+# row reported no leak in a template that names the checkout. The deep checkout it was
+# written on never exposed it, so every shallow shape is planted here, and so is the
+# empty-prefix false red the shared-root exclusion is really for.
+def test_leak_roots_keep_a_shallow_checkout_and_exclude_only_shared_roots():
+    for shallow, keep in ((Path("/a"), "/a"), (Path("/a/b"), "/a/b"),
+                          (Path("/tmp/extract/agi"), "/tmp/extract/agi")):
+        roots = _leak_roots(shallow)
+        assert keep in roots, (str(shallow), roots)
+        assert not [r for r in roots if r in SHARED_ROOTS], roots
+        # a template naming this checkout IS a leak, at every depth
+        assert _leaks("cd %s and ls\n" % keep, roots) == [keep]
+    # the empty-prefix false red the shared-root exclusion is for: a bare top-level dir
+    # is a prefix of every absolute path, so admitting it makes every template a leak
     benign = "ExecStart=/usr/local/bin/agi-slice start\n"
-    assert _leaks(benign, roots) == []
-    assert _leaks(benign, [str(shallow), "/tmp", "/"]) != []
-    # and the live set for THIS box is free of the same roots
-    assert not [r for r in LEAK_ROOTS if len(Path(r).parts) < 3], LEAK_ROOTS
+    assert _leaks(benign, ["/tmp/extract/agi"]) == []
+    assert _leaks(benign, ["/tmp/extract/agi", "/tmp", "/"]) != []
+    # and the live set for THIS box is free of the shared roots
+    assert not [r for r in LEAK_ROOTS if r in SHARED_ROOTS], LEAK_ROOTS
 
 
 # 13 -- STAND-IN SUBSTITUTION IS LONGEST-FIRST (residue N1). Two identity tokens can
@@ -778,3 +809,18 @@ def test_stand_in_substitution_is_longest_first_over_overlapping_tokens():
                                           for j in mapping if j != k)], STANDINS
     # the empty/derived token is skipped, never replaced into every string
     assert _substitute_longest_first("unchanged", {"OWNER_USER": ""}) == "unchanged"
+
+
+# 13b -- N1 AT THE CALL SITE, not only in the helper (row 13 walks the helper in
+# isolation, so a call site reverted to the naive identity order stayed GREEN).
+def test_the_anonymized_live_render_substitutes_through_the_longest_first_helper(monkeypatch):
+    seen, real = [], _substitute_longest_first
+    monkeypatch.setitem(globals(), "_substitute_longest_first",
+                        lambda text, mapping: (seen.append(dict(mapping)),
+                                               real(text, mapping))[1])
+    piece = BY_NAME["user-slice-guard"]
+    got = _anonymized_live_render(piece, R.host_tokens(CFG))
+    assert seen, ("the call site substituted the identity tokens itself; the naive "
+                  "identity order corrupts an overlapping token (row 13)")
+    fix = (FIXTURES / (piece["name"] + ".fixture")).read_text(encoding="utf-8")
+    _assert_piece_matches_fixture(piece, got, fix, _vs())
