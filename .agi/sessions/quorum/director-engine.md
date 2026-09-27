@@ -29,77 +29,73 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 ## IDENTITY
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
-Skills: agi-dispatch · agi-workflow · agi-node-write · agi-goal · agi-send · agi-rotate · agi-verify. Leaves of `goal:g7.33` mine: `.9`, `.14`, `.15`; `.1/.7/.8` HELD.
+Skills: agi-dispatch · agi-workflow · agi-node-write · agi-goal · agi-send · agi-rotate · agi-verify. Leaves of `goal:g7.33` mine: `.9`, `.14`, `.15`, `.19` (NEW); `.1/.7/.8` HELD.
 
-## §0 STATE (03:3xZ 09-27 · compacted: per-chain history = `git log` of this node before 061923b03)
+## §0 STATE (05:1xZ 09-27 · per-chain history = git log of this node)
 ```
-LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br holds DH.424+431, 434, 430 chain (4af305171), 425 chain (3e327cf66) · trunk a6d04759c
-          RED ON POST BR: test_bin_help_smoke[suite_guards.py] (430 chain's new library module) -> DH.511 a00-bc1424df LIVE 04:36Z (orders (/tmp/claude-1000/-data-work-agi--agi-worktrees-post-director-engine/68c98329-2d26-4c01-a7ad-ac1ebbb6c93e/scratchpad/o511.md) = NEXT FREE SLOT; no [merge-up] until green
-LIVE      parents (cap 10): 499 42c4f9a2 · 501 759e6b60 · 507 fa4269d4 · 508 f957a4d9 (harvest dm in, still running) · 509 df266356
-          · 511 bc1424df · 512 256e7631 · 514 792978f9 · 515 97ddb37e · 516 42e99d0a   (all a00-)
-          murs (systemd agi-director-engine-mur<N>): 471r(k1,k3) 485r 492 498 500(500+502) 504 506 510(key 18) 513 · swarm-sampler2
-CHAIN     tip / state                                                                          land note
- 425 bin-guard   MERGED 3e327cf66 (mur-16 DH.494 AWR, note residue demoted with reason)
- 426 schema-gate 513 (5 node edits landed by me, TMM.268) -> mur513   NEVER 442
- 427 heal-refuse 485 @ac2b2a4c3 (484+485) -> mur485 running                                     NEVER 476 (its cli.py = cand. for DH.492)
- 429 tasks-max   495 @03ac46eea mur-15 AWR: hypothesis ## TESTS names no test (list moved to ## Measured) -> tiny corrective OR demote; LAND: 429 nodes branch first, then 495 tip -X theirs (read the conflict first)
- 430 ctx-suite   MERGED 4af305171 (mur-15 DH.489 accept)
- 432 guard-piece 504 @(a00-e20a597b tip) 191 green; 4 kids vs 1, test +246 vs 30 -> mur504 (4 slices); ANON RESIDUE: a kid node row cites the repo path value (checkout root) -> scrub in the next corrective, write <user>/<repo> in patterns   NEVER 432 itself
- 433 guard-inst  471 @07f7fdf01 -> mur471 running                                                land 432's chain FIRST
- 434 memcap      MERGED 262107e12
- g4.18.1.1       502 @5d92fc78d (de-m502) 315 green -> mur500 slice DH.502-k1
- g4.18.1.3/.4    510 @(config fix landed by me) 182 green, 4 kids vs 1 · 497 300 green, 108 prod vs 45 -> both in mur510
- send-hub box    498 @69958a4a9 1593 green -> mur498 (2 slices); parent goal has no goal_id (belam's node: flag in [merge-up])
- kid-worktrees   499 LIVE: claims 1+2 (prune tool dry-run default + worktrees_root cell); claims 3 (tmpfs) + 4 (reboot prune) = next round; I run --apply only after review
- row 20 nudge    490+506 @5cf6b511e 480 green (test_send.py:5775 GREEN again); send.py +100/-21 vs post br (79 net) vs ceiling 36 -> mur506 (2 slices)
- thought-verb    487+500 @dffe6de60 (de-m500): both reds CLOSED (563 green, render --check OK) -> mur500 slice DH.500-k1
- wake-facts      491 @3d2e74719 lean_disproved:60 -> 501 LIVE (draft INTO a node). TMM.282 belam YES 04:00Z: Prime writes the range from 501's node once on trunk IF the node carries
-                 (1) test_rotate_templates.py:534 green vs the DRAFT (F16 hand-vocab hit kept, or re-pin in the SAME merge-up) (2) the NEW 'read body N:M' for rotations.md:76+:114 measured on the draft
-                 (3) red-first test OFF my branch until the write lands -- check at 501 harvest; missing = one corrective (no live-parent rebrief channel)
- probe-gate      492 @cd17ab80c 287 green -> mur492 (g7.33.19 row 10)
- round-stages    512 LIVE (PASS 10 (2))
- reap-chain      503: kid work committed by me b3e476aea (parent's commit hit a stale index.lock 04:01Z; removed, no holder) UNREVIEWED -> 507 LIVE reviews + adds the belam-cap record test
- model-fence     505 died -> 508: harvest dm 04:57Z (2 accepted, 1 FAILED) -- parent still running at 05:0xZ; harvest on exit
- capture         493 mur-15 AWR -> 509 LIVE (unfenced ## + ### rows; belam's card is ## unfenced)
-OWNER     21:1xZ via belam: send QUIET row cell + READ-ON-LANDING; HOLD stream / encryption-town / sanctuary activation until messaging done
-          box id = env AGI_BOX (init via environment.d, stamped by crons.py, engine refuses unset) -- NOT yet on send-is-hub-only
+LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br holds DH.424+431, 434, 430 chain (4af305171), 425 chain (3e327cf66) · trunk d6b893037
+RED       post br: test_bin_help_smoke[suite_guards.py] (430 chain's library module) -> DH.511 a00-bc1424df LIVE (1 exemption line) -> NO [merge-up] until green
+LIVE      parents (cap 10 = cell values.local_maxxing.de_live_parents arm): 501 759e6b60 · 507 fa4269d4 · 509 df266356 · 511 bc1424df · 512 256e7631
+          · 514 792978f9 · 515 97ddb37e · 516 42e99d0a · 517 aae293b3 · 518 07292877   (all a00-)
+          murs (systemd agi-director-engine-mur<N>; verdicts MAIN .agi/sessions/workflows/runs/mur-director-engine-1{3..9}/verify_DH.NNN-kN.json)
+          471r(k1,k3) 485r 492 498 499 500(500+502) 504 506 510(510x4+497x2) 513 · swarm-sampler2 (arm 10 since 03:02:43Z)
+CHAIN     tip / state                                                                     land note
+ 426 schema-gate 513 (5 node edits landed, TMM.268) -> mur513                                  NEVER 442
+ 427 heal-refuse 485 @ac2b2a4c3 -> mur485r (verify timed out once)                             NEVER 476
+ 429 tasks-max   495 @03ac46eea mur-15 AWR: ## TESTS names no test (list sits in ## Measured) -> tiny corrective or demote; LAND 429 nodes br first, then 495 -X theirs (read conflicts)
+ 432 guard-piece 504 191 green, 4 kids vs 1, +246 test lines -> mur504; ANON: a kid node row prints the repo path value -> scrub next     NEVER 432 itself
+ 433 guard-inst  471 @07f7fdf01 -> mur471r (k1,k3 re-run)                                      land 432's chain FIRST
+ g4.18.1.1       502 @5d92fc78d 315 green -> mur500 DH.502-k1
+ g4.18.1.3       510 182 green (4 kids vs 1; geometry cell fix landed by me) -> mur510
+ g4.18.1.4       497 300 green (108 prod vs 45) -> mur510
+ send-hub box    498 1593 green -> mur498 (k1 AWR in, k2 pending); parent goal has no goal_id (belam's node: flag in [merge-up])
+ kid-worktrees   499 447 green: claim 2 built (worktrees_root cell + resolver); claim 1 NOT built -- kid found 'the prune already runs and removes
+                 nothing: every clean non-live kid worktree is refused unmerged' + census 169/181 prunable ~24/35 GB -> mur499
+ row 20 nudge    490+506 @5cf6b511e 480 green (test_send.py:5775 green again); send.py 79 net vs 36 -> mur506
+ thought-verb    487+500 @dffe6de60 563 green, render --check OK -> mur500 DH.500-k1
+ probe-gate      492 287 green -> mur492
+ wake-facts      491 lean_disproved:60 -> 501 LIVE. TMM.282: the PRIME writes the range from 501's node once on trunk IF the node carries (1) test_rotate_templates.py:534
+                 green vs the DRAFT (F16 hit kept or re-pin in the SAME merge-up) (2) the new 'read body N:M' for rotations.md:76+:114 (3) red-first test OFF my branch
+ reap-chain      503 kid work committed by me b3e476aea (stale index.lock) UNREVIEWED -> 507 LIVE (review + belam-cap record test)
+ model-fence     505 died -> 508 d6ccb1f7b: 3 REGRESSIONS in the context fence suite (1f/25p on post br -> 4f/22p) -> 517 LIVE (fix the module, no test edits)
+ capture         493 AWR -> 509 LIVE (unfenced ## + ### rows; belam's card is ## unfenced)
+ PASS 10         512 round-stages · 514 own-path-set (parent authorised a 2nd kid + edits 3 legacy test_cli.py fixtures OUTSIDE scope: at review check they do not
+                 mask the parent-owns-kid refusal) · 515 capture-latch · 516 path-bin · 518 frontmatter-shape (all LIVE) · (5) belam-cap-reap HELD until 507 lands
+OWNER     04:4xZ asked 'How is the 92 unharvested worktree sweep going': answered 78 dirty non-live (58 node-only, 20 code), nobody sweeps; plan = round 2 of
+          kid-worktrees (harvest-or-deprecate: logged node edits -> commit on the kid branch naming the owner; unlogged/code -> listed per owner; dry-run) after mur499,
+          informed by the 'refused unmerged' finding; offered to jump the PASS 10 queue -- NO ANSWER yet
+          21:1xZ via belam: send QUIET row + READ-ON-LANDING; HOLD stream / encryption-town / sanctuary until messaging done
 ```
 
 ## §1 PLAN
 ```
-done   489 harvested + mur · 494/495 correctives · g4.18.1.3/.4    510 @(config fix landed by me) 182 green, 4 kids vs 1 · 497 300 green, 108 prod vs 45 -> both in mur510
-next   harvest each parent on exit (kid worktrees too) -> mur -> close residues -> merge cleared chains -> suite window -> ONE [merge-up]
-queue  (1) 490 corrective after mur490 · 501 harvest vs TMM.282's 3 conditions · (493 corrective = DH.509 LIVE; was: (mur-15 AWR: unfenced slot loses its header -- belam's LIVE card is ##-level UNFENCED (measured), so rows for ## + ### unfenced, rotate.py _replace_stops_body ~8094 if red; ceiling clause unread: spawn_budget._ceiling_clause cuts at the newline = a g7.33.19 row)
-       (2) belam [decision] 04:03Z PASS 10 defects (goal:g1), in order, when a slot frees and no redesign piece is dispatchable:
-           model-fence = DH.508 LIVE · round-stages = DH.512 · own-path-set = DH.514 · capture-latch = DH.515 · path-bin = DH.516 (all LIVE) · NEXT: the-belam-cap-reap-uses-the-config-grace HELD until DH.507 lands (same rotate.py reap code) · then node-frontmatter-shape
-           · a-capture-latch-is-a-memory-never-a-hold · the-belam-cap-reap-uses-the-config-grace · a-path-shaped-bin-resolves-in-the-spawns-cwd
-           · a-node-frontmatter-that-is-not-the-writers-shape-is-refused · then hypothesis:pass10-0927-residue-batch (30-round table)
-       (3) g4.18.1: .2/.5 wait on .1's bytes -> send-is-hub-only rest (after .1) + g7.32.5 -> g7.31.3.3 rest (499 claims 3+4)
-          · R3b reaper gap + other goal:g7.33.19 rows (OWED) · rotate-keeps-the-quorum-card-a-symlink (g6.38)
+done   this session: 430 + 425 chains merged; traps -> skills (0463850fb); card engine findings -> goal:g7.33.19 (rows 1-18); 20 rounds harvested/dispatched
+next   harvest each parent on exit -> mur -> close residues -> merge cleared chains (order in CHAIN) -> suite window -> ONE [merge-up] to thought-master
+queue  (1) 501 harvest vs TMM.282 (2) kid-worktrees round 2 (owner question) (3) PASS 10 (5) after 507, then hypothesis:pass10-0927-residue-batch
+       (4) g4.18.1.2/.5 after .1 lands -> send-is-hub-only rest + g7.32.5 -> g7.31.3.3 rest (499 claims 3+4) (5) g7.33.19 OWED rows
 blocked  none
 ```
 
 ## 🔴 WHERE IT STOPS
+Rotated at f=0.41 with 10 parents and 11 murs live; the post branch is red on one help-smoke row until DH.511 lands.
 ```
 FIRST  spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' ; read the dm file DIRECTLY
-       (.agi/comms/season-2/dm/director-engine--thought-master.md) -- send.py read says 'empty' past dm blocks until DH.490 lands
-VERDICTS  MAIN .agi/sessions/workflows/runs/mur-director-engine-1{4,5,6}/{review,verify}_DH.4NN-kN.json (concurrent murs share ONE key)
-HARVEST   parent pid gone -> git diff <chain prev tip> <loop br> -> CHECK THE KID + PARENT WORKTREES for uncommitted edits
-          -> land only write-log-matched bytes (TMM.268) -> touched tests + neighbourhood -> anonymize grep -> mur (1 slice/kid, systemd-run)
-CORRECTIVE  git worktree add -b de-base-<N> .agi/worktrees/de-base-<N> <loop tip> ; dispatch.py from THERE with --orders
-          --from director-engine --allow-stale-base "<reason>" (orders: scratchpad o<N>.md; template = o494.md)
-MERGE     a chain whose final mur is accept (low residues demoted with a measured reason) -> git merge --no-ff into the post branch
-SWARM     arm 10 since 03:02:43Z (MAIN .agi/sessions/swarm-size-samples.log) -> at >= 2 h AND >= 6 finished rounds: ONE experiment
-          node under hypothesis:swarm-size-5-10-15-parents-fixes-per-hour, then cell arm -> 5 (one commit)
+       (.agi/comms/season-2/dm/director-engine--thought-master.md and belam--director-engine.md) -- the nudge prints 'empty' past dm blocks
+HARVEST   parent pid gone (a harvest dm can arrive BEFORE the exit) -> git diff <prev tip> <loop br> -> uncommitted edits in the parent AND kid worktrees
+          (EVERY parent this session left some) -> nodes: land only if bytes == last write-log sha (landkid check: skill agi-dispatch §5); config.json =
+          the round's declared deliverable -> tests + neighbourhood IN A WORKTREE (parent worktrees vanish once clean: git worktree add de-h<N>) -> anon grep -> mur
+CORRECTIVE  cut from the loop tip (its worktree or git worktree add -b de-base-<N>), --orders --from director-engine --allow-stale-base "<reason>"
+          write the CEILING as a HARD cap in every order (row 17: parents ignore it)
+MERGE     final mur accept (low residues demoted with a measured reason) -> git merge --no-ff; run test_bin_help_smoke.py with EVERY merge
+SWARM     arm 10 since 03:02:43Z -> at >= 2 h AND >= 6 finished rounds: ONE experiment node under hypothesis:swarm-size-5-10-15-parents-fixes-per-hour, then arm -> 5
 ```
 
 ## §4 TRAPS
-Traps live in the skills now (OWNER 03:3xZ): harvest + orders = agi-dispatch §5 · write.py = agi-node-write §5 · suite = agi-verify §2 · goals = agi-goal §1.
-Card-only: `behind` -- interpolate the MEASURED rev-list count into a merge-up, never type it.
+Traps live in the skills (OWNER 03:3xZ): harvest + orders = agi-dispatch §5 · write.py = agi-node-write §5 · suite = agi-verify §2 · goals = agi-goal §1.
+Card-only: `behind` -- interpolate the MEASURED rev-list count into a merge-up, never type it · stale index.locks sit in 4 foreign kid worktrees (not ours).
 
 ## ENGINE FINDINGS
-OWNER 04:4xZ asked about the 92 dirty kid worktrees (belam 690cdd781): measured 78 dirty non-live (58 node-only, 20 code); nobody sweeps them. My answer: round 2 of hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram (conjunct 5, harvest-or-deprecate: logged node edits -> commit on the kid branch naming the owning post; unlogged/code -> listed per owner, never touched; dry-run default) RIGHT AFTER DH.499 harvests (same tool file); offered to jump the PASS 10 queue -- no answer yet.
-Held as rows on goal:g7.33.19 (OWNER 03:3xZ; minted this session) -- never on this card. BOX DRIFT (OOMPolicy unset on streamer-stub-watch.service; agi.slice drop-in absent) = thought-master's, carried in the [merge-up].
+Held as rows on goal:g7.33.19 (rows 1-18) -- never on this card. BOX DRIFT (OOMPolicy unset on streamer-stub-watch.service; agi.slice drop-in absent) = thought-master's, carried in the [merge-up].
 
 ## BANKED
 - TMM.268 (b) durable fix = a g7.33.17 row (dispatch records the node ids the orders name; cli.py done admits exactly those) -- TM's to mint.
