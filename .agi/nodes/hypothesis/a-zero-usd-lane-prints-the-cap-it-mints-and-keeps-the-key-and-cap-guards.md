@@ -102,6 +102,23 @@ FILE SCOPE extensions/agi/bin/provisioning.py · extensions/agi/tests/test_ladde
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 81eb9fcda · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.638 -- closes mur-director-engine-35 DH.608-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-a-zero-usd-lane-print-a00-22577533 tip b239d47a1 (branch de-base-638; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+NOTE      item 1's missing cell = DH.608's ordered ladder revert (config:ladder prime_director settings ultracode -> ""), left UNCOMMITTED and unlogged in worktree .agi/worktrees/a00-22577533 (READ ONLY: git -C .agi/worktrees/a00-22577533 diff -- .agi/nodes/.geometry/ladder.md). Re-apply it THROUGH write.py config:ladder on this branch and commit. The stray root file `the` is REMOVED by the parent (git rm -q the; commit by that path only).
+1. The round's own test file is RED at the merge tip: the assertion needs the ladder cell, the diff does not carry it -- extensions/agi/tests/test_ladder_node.py:76 -- assert prime.get("settings", "") == "" but git show b239d47a1:.agi/nodes/.geometry/ladder.md:37 reads "settings": \"ultracode\" (restored by the BASE commit 81eb9fcda) -> test_ladder_node_declares_roles_table fails 1/7; the paired config half exists only as an uncommitted parent-worktree edit (TMM.268 class the round exists to close).
+2. Proved node's Evidence quotes a production change the range does not contain -- .agi/nodes/experiment/a00-6273b184-c9048b.md:60 -- The PRODUCTION LINES block cites `git diff --numstat` = `1 1 .agi/nodes/.geometry/ladder.md` and frontmatter production_lines: 1; the range's diffstat has no ladder.md line and the cell reads ultracode at BOTH tips - a byte-claim about a reader never read at the tip.
+3. Proved node's test count does not reproduce at the reviewed tip -- .agi/nodes/experiment/a00-6273b184-c9048b.md:50 -- Evidence claims `93 passed, 7 skipped in 132.47s`; measured at b239d47a1: 1 failed, 92 passed, 7 skipped - the self-cited evidence run of a verdict=proved node does not reproduce on the merged bytes.
+4. Decisive probe evidence is prose only - no probes: field, no retained artefacts -- .agi/nodes/experiment/a00-6273b184-c9048b.md:30 -- M1/M2/M4 (red) and M3 (vacuous) are the load-bearing evidence for verdict=proved, but they live in body prose with no frontmatter `probes:` entry (493/1966 experiment nodes carry one) and the /tmp mutation copies are gone, so the claim is UNVERIFIED at merge.
+5. Committed stray artefact at the repo root, outside the declared file scope -- the:0 -- Empty 0-byte file `the` added by 2c860be9b inside this range; junk in the tree, not a node, not in FILE SCOPE.
+6. Item 6 unresolved: a demotion-shaped node file still untracked and outside the graph -- .agi/nodes/deprecated/experiment/a00-3a7af8ee-82df1c.md:0 -- Absent from the tip (git ls-tree -r b239d47a1 -> 0 hits, no history); write.py edits but does not create, so the file cannot be settled by the round - a Prime/director call, named in the node.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_ladder_node.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_ladder_node.py · the · .agi/nodes/.geometry/ladder.md · .agi/nodes/experiment/a00-5a83d3ce-6679dc.md · .agi/nodes/experiment/a00-6273b184-c9048b.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over b239d47a1 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.608: mur-director-engine-31 DH.572-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.638: mur-director-engine-35 DH.608-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
