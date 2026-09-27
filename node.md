@@ -26,6 +26,7 @@ TEMPLATE    THIS — the director's role: standing · loop · rules · rotation 
 CARD        yours — who you are · YOUR loop (research or build) · live state · stops · BANKED
 TRAJECTORY  your town's todo — your master writes it
 ```
+
 ## Standing — every director
 ```
 land      format ✓ AND residues=0 AND the suite green on YOUR tip (§2 suite) — accept_with_residue ≠ land
