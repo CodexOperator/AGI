@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 import sys
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
@@ -606,7 +607,13 @@ def test_a_role_the_seat_HOLDS_or_a_LOWER_one_still_lands_on_a_dry_run(
     out, err, rc = _mint(project, f, "--actor", "post-a",
                          "--set", "role=kid", "--dry-run")
     assert rc == 0, err
-    assert "create goal:g9.9.9" in out and "set      role = 'kid'" in out
+    assert "create goal:g9.9.9" in out
+    # The set line's SPACING is presentation, not mechanism (DH.570 item 3):
+    # match the row and its value, never the column layout, so a reformatted
+    # `set` line cannot fail a behaviourally identical mint.
+    assert re.search(r"set\s+role = 'kid'", out), out
+    assert not (project / "nodes" / "goal" / "g9.9.9.md").exists(), \
+        "a dry run SIMULATES: the row is shown, never written"
 
 
 @pytest.mark.parametrize("bad", ["5", 5, True, {"a": 1}, ["goal:g1", 7]])
