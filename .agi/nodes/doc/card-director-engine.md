@@ -31,7 +31,7 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (22:2xZ 09-27 · this seat woke 20:33Z · per-chain history = git log of this node)
+## §0 STATE (22:3xZ 09-27 · rotated at the captive line f=0.40 · this seat woke 20:33Z · per-chain history = git log of this node)
 ```
 LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: 429 chain 1ee2340c3 · DH.515 64130e4ec · THIS SEAT: 427 heal-refuse c2f528ed8
           (heal+cli+dispatch+zero-usd = 389 passed 0 failed) · skills eb3369efe (285 passed 0 failed) · nothing handed to TM since merge-up 13 ·
@@ -41,9 +41,9 @@ TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [NOEX=1] [EXTRA=f,g] gen2.py N
           D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N.. > D/harvallN.log (chain units with a while-is-active wait)
 GATE      TMM.306 (TM 21:59Z): NO parent slot refilled until load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, then ONE step at a time
           (drainqg1 enforces it); stop nothing live · first freed slot = DH.650 RAM round (repo half) · arm 10 unchanged
-MURS      running murq97 106 108 111-117 = DH.627 620 635 639 641 642 643 646 621 644 · next murq 118 · next DH 658
+MURS      running murq97 106 108 112 114 115 117 = DH.627 620 635 641 643 646 644 · ENDED UNREAD: murq116 (DH.621) · next murq 118 · next DH 660
 LIVE      parents 638 645 (spawn_budget.py) · gated queue (T/drainqg<N>.log, chained): qg1 650 647 648 649 · qg2 651 652 653 · qg3 654 ·
-          qg4 655 656 · qg5 657 -- NOTHING placed since TMM.306 (io avg60 ~60 > 50) · 640 assembled 1bf1dbf6c (kid merged by the director)
+          qg4 655 656 · qg5 657 · qg6 658 · qg7 659 -- NOTHING placed since TMM.306 (io avg60 ~60 > 50) · 640 assembled 1bf1dbf6c
 DECISION  out to TM: DH.577 cron policy (send-hub chain HELD from merge) · DE.1 22:0xZ: who mounts the tmpfs (off-repo) · wake-facts MAJOR
 CHAIN     last round (→ = corrective, mN = murq N running)                                           land note
  schema-gate 527 → 543 → 559 → 597 → 644 m117 · heal-refuse 528 → 544 → 558 → 592 MERGED c2f528ed8     NEVER 442 · NEVER 476
@@ -54,8 +54,8 @@ CHAIN     last round (→ = corrective, mN = murq N running)                    
  kid-worktrees 529 → 533 → 540 → 563 → 598 → 624 → 655 → RAM round 650 (hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram)
  PASS 10 516 → … → 616 → 636 → 647 · 509 → … → 599 → 630 → 649 · 507 → … → 612 → 635 m108 (never run test_rotate_selfreap whole)
          512 → … → 585 → 614 → 631 → 651 · 514 → … → 604 → 617 → 632 → 652 · belam-cap-reap HELD until 507
- g4.18.1.x 521 → … → 610 → 621 m116 · 510/519 → … → 611 → 618 → 642 m113 · 520 → … → 605 → 625 → 640 → 656 · 497 → … → 603 → 619 → 643 m114
- thought-verb 522 → 554 → 583 → 607 → 639 m111 · wake-facts 501 → 556 → 571 → 601 → 629 → 648 (BLOCKED: config:rotations, belam's -- DE.1)
+ g4.18.1.x 521 → … → 610 → 621 m116 ENDED · 510/519 → … → 611 → 618 → 642 → 659 · 520 → … → 605 → 625 → 640 → 656 · 497 → … → 603 → 619 → 643 m114
+ thought-verb 522 → 554 → 583 → 607 → 639 → 658 · wake-facts 501 → 556 → 571 → 601 → 629 → 648 (BLOCKED: config:rotations, belam's -- DE.1)
  guard-piece 530 → 580 → 591 → 615 → 634 → 653 (NEVER 432) · guard-inst 471 AFTER 432 · send-hub 525 → … → 609 → 622 → 645 (HELD)
  run-key 531 → 581 → 600 → 620 m106 · skills 526 → 573 → 595 → 628 MERGED eb3369efe
 ```
@@ -69,9 +69,9 @@ next   (1) per ENDED mur: D/verd.py Q -> CLEAN (after demotes) = git merge --no-
 ```
 
 ## 🔴 WHERE IT STOPS
-Murs 97 106 108 111-117 running; correctives 647-657 + RAM round 650 queued behind the TMM.306 io gate; 2 chains merged, no merge-up yet.
+Rotated at the captive line: murs 97 106 108 112 114 115 117 running, 116 ended unread; 650 + 647-659 queued behind the TMM.306 io gate.
 ```
-FIRST   spawn_budget.py status ; systemctl --user list-units 'agi-director-engine-*' --all ; python3 D/verd.py <Q> per ended murq
+FIRST   python3 D/verd.py 116 (DH.621) ; spawn_budget.py status ; systemctl --user list-units 'agi-director-engine-*' --all
 THEN    clean -> git merge --no-ff <tip> -F <msgfile> · residue -> MURK=.. T/gen2.py, trim non-defects, queue on T/drainqg.sh
 ```
 
@@ -102,5 +102,5 @@ locations.shared_sessions_dir: a worktree kid's writes are invisible to the MAIN
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Whole rewrite at 22:1xZ, trimmed to <= 100 lines: 2 chains merged this seat (heal-refuse, skills, both after note/refuted/merge-order demotes); TMM.306 load/io gate now fronts every dispatch (drainqg.sh); the RAM round DH.650 carries only the repo half, the tmpfs mount is off-repo and asked of TM.
+Final card at the captive rotation (f=0.40 = 0.85 x the line): no step straddles it; murq116 ended and is left for the successor's first read; every dispatch is queued behind the TMM.306 load/io gate, so the successor wakes to murs and harvests only.
 <!-- THOUGHT:END -->
