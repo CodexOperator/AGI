@@ -7820,3 +7820,55 @@ def test_authority_ref_blank_or_missing_field_stays_default(tmp_path):
     assert send_mod.authority_ref(root) == send_mod._PUSHED_SEATS
     _write_key_authority_node(root, None)
     assert send_mod.authority_ref(root) == send_mod._PUSHED_SEATS
+
+
+# ── DH.524 kid a00-a46d3b83: the read-marker rewrite and the dm pending mark ──
+
+
+def test_partial_read_keeps_the_unread_tail_and_the_trailing_newline(
+        project: Path, monkeypatch):
+    """A read whose printer stopped SHORT (walked < last block) leaves the
+    unseen blocks behind the marker -- and the file still ends in exactly ONE
+    newline, the one the writer gave it. The marker write used to splice the
+    tail back with no newline of its own, so a partial read de-newlined the
+    file and the next append fused onto the last body line."""
+    seat = "director"
+    send_mod.send(project, seat, "first body", "prime")
+    send_mod.send(project, seat, "second body", "prime")
+    inbox = send_mod._inbox_path(project, seat)
+    before = inbox.read_bytes()
+    assert before.endswith(b"\n") and not before.endswith(b"\n\n")
+
+    # a partial printer: it ran and printed block 0, then stopped.
+    monkeypatch.setattr(send_mod, "_print_blocks_with_labels",
+                        lambda root, me, blocks, wrap=160: 0)
+    send_mod.read(project, seat, "prime")
+
+    after = inbox.read_bytes()
+    marker = send_mod.READ_MARKER.encode()
+    assert b"second body" in after, "the unseen block must survive the read"
+    assert after.index(b"second body") > after.index(marker), \
+        "the unseen block must sit BEHIND the read marker"
+    assert after.endswith(b"\n") and not after.endswith(b"\n\n"), \
+        "a partial read must leave exactly one trailing newline"
+    # a later read still sees the block, and the append still starts a line
+    send_mod.send(project, seat, "third body", "prime")
+    assert inbox.read_text().endswith("third body\n")
+
+
+def test_dm_send_registers_pending_when_no_pane_ever_nudged(
+        project: Path, monkeypatch):
+    """TMM.283: a `--to` dm send that lands in the FILE while no pane
+    resolves leaves a PENDING mark for its recipient, so `send.py status`
+    reports `pending>=1` BEFORE any read. The mark is the sender's job: the
+    unread cursor only learns of it when someone reads (belam 04:31Z: two
+    dms sat in the file at 04:00:03Z/04:03:09Z with pending=0)."""
+    calls = _fake_tmux(monkeypatch, [])          # no window -> no target
+    seat = "thought-master"
+    send_mod.send_dm(project, "director-thought", seat, "merge-up body",
+                     "director-thought")
+    assert _typed(calls) == [], "no pane: nothing can be typed"
+    dm = project / "dm" / f"director-thought--{seat}.md"
+    assert dm.is_file() and "merge-up body" in dm.read_text()
+    assert send_mod._pending_more(project, seat) == 1
+    assert "pending=1" in send_mod.status(project, seat)

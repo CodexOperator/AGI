@@ -3922,8 +3922,15 @@ def read(root: Path, me: str, sender: str | None,
             while m < len(blocks) and labels[m] == "FORGED":
                 m += 1
             cut = min(head + ends[m - 1], len(content)) if m else head
+        # A PARTIAL read leaves the unread tail in place; the tail keeps the
+        # file's ONE trailing newline, so the rewrite never de-newlines it
+        # (a marker write that ate the final `\n` left the next append fused
+        # onto the last body line).
+        tail = content[cut:].lstrip("\n")
+        if tail and not tail.endswith("\n"):
+            tail += "\n"
         inbox.write_text(content[:cut].rstrip("\n") + "\n" + READ_MARKER
-                         + content[cut:].lstrip("\n"))
+                         + tail)
     # The seat just consumed its unread (clause (1) of hypothesis:l4-wake-
     # repair-is-quiet-honest-and-readable): drop the announced-state sidecar
     # so a LATER new unread state is never mistaken for one already typed.
@@ -4019,8 +4026,20 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     # (hypothesis:l4-the-nudge-carries-the-dm-body-inline); idempotent under
     # a busy pane. The body STILL lands in the dm file -- the pane line is
     # delivery, the file is the record.
-    ok = _nudge_window(locations.find_project_root(croot) or croot, other,
+    root = locations.find_project_root(croot) or croot
+    before = _pending_more(root, other)
+    ok = _nudge_window(root, other,
                        sender=_detect_sender(sender), body=text)
+    # TMM.283: a dm that landed in the FILE but whose nudge never resolved
+    # (no pane target) left NO pending mark -- the recipient's `status` read
+    # `pending=0` while an unread dm sat in the file. Register it HERE, at
+    # the sender, unless the nudge path already accounted for it (a window
+    # coalesce bumps the count itself; a busy pane stores the deferred body)
+    # or the row is quiet (a quiet row types nothing BY CHOICE).
+    if not ok and not _row_is_quiet(root, other) \
+            and not _read_deferred(root, other) \
+            and _pending_more(root, other) == before:
+        _bump_pending(root, other)
     # `_announce_nudge` reads the SEATS row and the comms config, both of
     # which live under the GRAPH root -- the same root `_nudge_window` is
     # handed one line above. Handing it the raw `croot` (the comms root)
