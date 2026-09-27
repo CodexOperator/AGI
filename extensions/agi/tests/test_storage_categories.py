@@ -3,9 +3,12 @@
 `hypothesis:mint-offers-storage-categories-from-config-cells` (goal:g4.18.1.3).
 
 Most tests here build their own temp project under `tmp_path` and write a temp
-config. No test ever WRITES the live config. It is READ in two places:
-`test_live_config_seeds_the_named_categories` reads the live table as a *shape*
-check, and `test_live_seeded_cells_all_point_at_a_directory_that_exists` reads
+config. No test ever WRITES the live config. It is READ in three places:
+`test_live_config_seeds_the_named_categories` and
+`test_every_live_location_is_a_name_payload_base_accepts` read the live
+table as a *shape* check (the keys are there; every `location:` is a name
+`payload_base` accepts), and
+`test_live_seeded_cells_all_point_at_a_directory_that_exists` reads
 it as a BEHAVIOUR check -- a real-disk `is_dir()` over the live rows that
 creates nothing, writes nothing, and skips only on a partial checkout (see its
 docstring). The behaviour checks that need a filesystem the test can SHAPE --
@@ -273,8 +276,14 @@ def test_live_seeded_cells_all_point_at_a_directory_that_exists():
     """The live table, read off the real disk; this test creates NOTHING.
 
     It used to `mkdir` every target and then assert the targets exist -- an
-    assertion that could not fail, so a typo in a live cell passed. A missing
-    BASE root means a partial checkout, so that SKIPS naming the path."""
+    assertion that could not fail, so a typo in a live cell passed.
+
+    The partial-checkout SKIP is decided for the WHOLE table BEFORE any row is
+    asserted, and its message names EVERY absent base, not just the first: a
+    skip raised inside the loop silently covers every row behind it. A missing
+    BASE root means a partial checkout; a missing SUBDIRECTORY inside a base that
+    exists is a FAILURE naming the cell, because a typo and a partial clone look
+    identical from the checkout and only one of them is a defect."""
     live = json.loads((REPO / ".agi" / "config.json").read_text(encoding="utf-8"))
     rows = locations.storage_categories(live, REPO / ".agi")
     bases = [locations.payload_base(REPO / ".agi", r["location"], live)
