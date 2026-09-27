@@ -98,6 +98,19 @@ FILE SCOPE extensions/agi/bin/workflow.py · extensions/agi/tests/test_workflow_
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 2b73f2d84 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.631 -- lands DH.614's two node edits its round left UNLOGGED (never hand-landed, TMM.268)
+BASE      CUT FROM season2/loops/hypothesis-round-stages-gate-on--a00-8a82adaf tip ace2a3f5a (branch de-base-631). No merge. Never rebase.
+NOTE      DH.614's kid edited two experiment nodes with no write-log entry; the parent exited leaving them uncommitted in worktree .agi/worktrees/a00-8a82adaf. Read them with: git -C .agi/worktrees/a00-8a82adaf diff -- .agi/nodes/experiment/a00-205b79d3-a08b8e.md .agi/nodes/experiment/a00-2588e527-e1653e.md (READ ONLY: never write, stage or commit in that worktree).
+1. Re-apply the a00-205b79d3-a08b8e.md hunks (row 3 STRIKE (DH.614) + the rewritten committed-test paragraph) THROUGH write.py on this branch; for each claim the hunk makes, re-run the command it names and paste the output (never type a number).
+2. Re-apply the a00-2588e527-e1653e.md section "6b · the widening is now MEASURED (DH.614, a00-ee817424)" THROUGH write.py; re-run its dry-run measurement here and paste this branch's output, not the copied one.
+3. Paste git -C <this worktree> status -s (empty) and git log --oneline -3 on your node after the commit.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_workflow_round_manifests.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-205b79d3-a08b8e.md · .agi/nodes/experiment/a00-2588e527-e1653e.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · 0 production lines · 0 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.614: mur-director-engine-34 DH.585-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.631: mur-director-engine-35 DH.614-harvest residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
