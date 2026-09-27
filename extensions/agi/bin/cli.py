@@ -15,6 +15,7 @@ id (`L1.08` -> `sessions/iter-L1.08`); `locations.iteration_id` parses both.
 from __future__ import annotations
 
 import argparse
+import errno
 import json
 import os
 import re
@@ -2369,11 +2370,34 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
     return out
 
 
-def _lock_is_held(lock: Path, checkout: Path) -> bool:
+def _uninspectable(base: str, exc: OSError) -> str:
+    """NAME of a live process whose /proc table could not be read, or '' when
+    nothing is lost. ENOENT = the pid EXITED mid-walk: provably no holder, and
+    refusing on every exit would make the gate unusable. Otherwise comm is
+    ALWAYS readable, and it is the SAME signal the cwd branch already trusts:
+    a `git` we cannot see is an unknown holder, so the caller must refuse. Any
+    other uninspectable process (ssh-agent, gpg-agent, a user's systemd --user)
+    is a NAMED RESIDUAL: see the node's disclosure -- refusing on those refuses
+    every commit on any ordinary desktop host."""
+    if exc.errno == errno.ENOENT:
+        return ""
+    try:
+        comm = Path(base, "comm").read_text().strip()
+    except OSError:
+        return "?"
+    return comm if comm in ("git", "index-pack", "gc", "rebase") else ""
+
+
+def _lock_is_held(lock: Path, checkout: Path) -> bool | str:
     """HELD = some process has this lock OPEN (/proc/<pid>/fd) or is a git whose
     CWD resolves inside the checkout (/proc/<pid>/cwd + comm). Never argv: a git
     run with cwd=the checkout and no path in argv -- row 18's shape -- is
-    invisible to `pgrep -f`."""
+    invisible to `pgrep -f`.
+
+    Returns True, or -- DH.564 -- a NAMED REFUSAL string when a `git` we cannot
+    inspect may hold this lock. Refuse-to-unlink: an unreadable table is NOT an
+    empty table; `except OSError: fds = []` concluded 'no holder' and unlinked a
+    HELD lock."""
     ck = os.path.realpath(checkout)
     lp = os.path.realpath(lock)
     for pid in os.listdir("/proc"):
@@ -2382,8 +2406,12 @@ def _lock_is_held(lock: Path, checkout: Path) -> bool:
         base = f"/proc/{pid}"
         try:
             fds = os.listdir(f"{base}/fd")
-        except OSError:
-            fds = []
+        except OSError as exc:
+            who = _uninspectable(base, exc)
+            if who:
+                return (f"/proc/{pid} ({who}) fd table unreadable "
+                        f"({exc.strerror or exc}) -- holder UNKNOWN, lock NOT removed")
+            continue
         for fd in fds:
             # ONE unreadable fd (EPERM on /proc/<pid>/fd/N of another user)
             # must skip THAT fd only -- never the rest of the pid's table:
@@ -2398,8 +2426,11 @@ def _lock_is_held(lock: Path, checkout: Path) -> bool:
             if ((cwd == ck or cwd.startswith(ck + os.sep))
                     and Path(base, "comm").read_text().strip() == "git"):
                 return True
-        except OSError:
-            pass
+        except OSError as exc:
+            who = _uninspectable(base, exc)
+            if who:
+                return (f"/proc/{pid} ({who}) cwd unreadable "
+                        f"({exc.strerror or exc}) -- holder UNKNOWN, lock NOT removed")
     return False
 
 
@@ -2428,6 +2459,8 @@ def _clear_stale_index_lock(root: Path, checkout: Path) -> str | None:
         stale_s = float(cell)
         age = time.time() - lock.stat().st_mtime
         held = _lock_is_held(lock, checkout)
+        if isinstance(held, str):
+            return held          # an INCOMPLETE /proc walk: refuse BY NAME
         if age < stale_s or held:
             return (f"index.lock {lock} age={int(age)}s "
                     f"stale_after={int(stale_s)}s held={'yes' if held else 'no'}"

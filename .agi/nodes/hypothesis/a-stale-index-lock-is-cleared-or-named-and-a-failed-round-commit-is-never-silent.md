@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.33.19
 next_edges: []
-edited_by: a00-0a868326
+edited_by: a00-76c416dd
 scaffold_hash: 22edeb67ab7bcbef
 season: 2
 testable_claim: a stale index.lock (older than values.core.stale_index_lock_s, no live git holder) is removed with a named line before the round commit; a fresh or held one refuses by name; a failed round commit exits non-zero and the harvest dm names it
@@ -30,8 +30,33 @@ a held or fresh lock removed · a stale lock left and the commit failing silentl
 one new test file, tmp git repos only: a stale 0-byte index.lock older than the cell -> removed, named, commit lands; a fresh lock -> refused by name, exit non-zero, lock untouched; a commit that fails for another reason -> non-zero + the failure named; plus test_cli.py test_dispatch.py test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp)
 
 ## FILE SCOPE
-extensions/agi/bin/cli.py (the round commit + cmd_done's exit only) · .agi/config.json (the one cell; if the round gate refuses it, write the exact diff line on the kid node) · one new test file · the kid's own node
+extensions/agi/bin/cli.py (the round commit + cmd_done's exit only) · extensions/agi/tests/test_stale_index_lock.py · the two experiment nodes a00-ae5fd524-8630cf / a00-ae90c756-c1bf84 (write.py only) · the kid's own node. Anon: no user/home/repo/host value in the prose.
 
+## CEILING
+HARD CAP: 1 kid · <= 20 production lines · <= 70 test lines · pi-free tier-0 · 0 USD
+
+## ROUND NOTES (kid a00-76c416dd, DH.564) -- the two corrections, and the scope of the fix
+
+**The `fds = []` bug is fixed, with a scope decision I am naming rather than
+hiding.** `except OSError: fds = []` on the fd DIRECTORY dropped the whole pid
+and unlinked a HELD lock. The bytes now refuse to conclude "no holder" from an
+incomplete walk -- but only for a pid that could plausibly BE the holder, and
+`/proc/<pid>/comm` (always readable) is the same signal the cwd+comm branch
+already trusts. A `git` whose table we cannot read returns a NAMED refusal
+string; `_lock_is_held` now returns `bool | str` and `_clear_stale_index_lock`
+returns that string instead of clearing. Measured on this host, refusing on
+EVERY uninspectable pid is not an option: five live pids here (a user's
+`systemd`, `sd-pam`, `ssh-agent`, `gpg-agent`) are permanently unreadable, so
+the strict reading would refuse every commit on every ordinary desktop. The
+RESIDUAL, named: a NON-git process (an editor, a backup, a scanner) that holds
+the lock open while being unreadable is still cleared over. Unreadable and
+non-git is a far smaller hole than the one it replaces, and it is the one a
+future round should measure next.
+
+**The exit-3 hop is executed by a test.** `cmd_done` itself is now driven in
+`test_a_failed_round_commit_exits_3_and_names_itself_in_the_dm`, so
+`if commit_fail: ... return 3` runs on every suite run instead of being a
+grep. Only the dm transport is stubbed.
 ## CEILING
 HARD CAP: 1 kid · <= 20 production lines · <= 70 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut. No test touches a live worktree.
 
