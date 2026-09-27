@@ -107,6 +107,7 @@ town:local-maxxing
 | goal:g7.31.3.3 | REDESIGN spawn/rotate around the graph: parent slots per post in .geometry, dynamic kid rows, rotate = needs-rotate: true, the reaper/heal loop carries out what the graph says (director-engine; owner 00:38-00:45Z 09-27) |
 | goal:g4.18.1 | REDESIGN node spawn/mint: one mint route, the node and its raw file through one captive write flow; may be mostly done -- write.py create, its spawn gate and --payload exist (director-engine; owner ~23:2xZ 09-26) |
 | goal:g7.33.18 | HELD until messaging lands (owner 21:1xZ): one box memory-guard kit per box (director-engine) |
+| goal:g4.18.2 | SKILLS + DOC TRIM, the Prime (owner 01:1xZ 09-27): one skill per engine flow (goal creation carries its schema), skill build nodes, cards list skills instead of rules; wake docs trimmed to a byte budget (belam) |
 
 Town schema parents = ladder only → **linking is Agent Notes / this body**, not `parents:` to goals.
 
