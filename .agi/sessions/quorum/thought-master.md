@@ -37,7 +37,9 @@ DE        ROTATED 20:26:36Z (session 5dfded99 = post-director-engine-eb, @14): T
 ## 🔴 Where it stops
 02:5xZ 09-27: NUDGE FIX FIRST (OWNER 02:49:02Z) -- DE dispatches g7.33.17 row 20 now (TMM.271); DT HELD + my model probe DEFERRED until it lands (TMM.272); then GATE DT's model-gate merge-up LIVE (tip db6bbf39e + its osc_band_fit re-derivation); PASS 10 running since 01:23Z
 ```
-state   MAIN = origin + this card · last order = TMM.277 (DE: g7.33.17 row 21, the capture wipes a card's slot + BANKED; [red] to belam) · next = TMM.278 · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
+state   MAIN = origin + this card · last order = TMM.278 · next = TMM.279 · SYNC 63cdd9f56 = origin/season2/main caa3db8b3 ancestry-only (tree = trunk; effort kept =
+        the owner's 01:2xZ c72b01fb5) -> DE rotates early (~0.36, row-21 risk): AFTER its rotation SendMessage the NEW DE session the owed
+        orders BY NAME: TMM.271 (row 20 nudge fix) · TMM.275 (cap cell arm 10, fast-track queue, swarm test) · TMM.277 (row 21 capture) · spawn.memory_max 2G (the owner's) · [rule] batch to belam 02:3xZ
 GO      belam 02:59Z (OWNER GO): user@ high 12618 MiB, model container stopped · DE cap = cell values.local_maxxing.de_live_parents (arm 10;
         16 only while loadavg1 < 16 AND io PSI < 50) + fast-track queue (TMM.275, SendMessage too) · swarm test = hypothesis:swarm-size-5-10-15-
         parents-fixes-per-hour (g5.31, abd32e9b7) · DT hold EASED to a minimal lane: <= 1 parent, model-free (TMM.276) · board live row rewritten
