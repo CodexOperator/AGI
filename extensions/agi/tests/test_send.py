@@ -7944,3 +7944,43 @@ def test_undecodable_deferred_sidecar_never_raises(project: Path, monkeypatch):
                   "director-engine")
     assert "body after a bad sidecar" in (send_mod._inbox_dir(project) /
                                           "director.md").read_text()
+
+
+def test_undecodable_deferred_sidecar_keeps_the_stranded_body(
+        project: Path, monkeypatch, capsys):
+    """MISS-1: an UNDECODABLE sidecar is a stranded body, not an empty one.
+    A busy pane made `_store_deferred` overwrite it with fresh json."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux_pane(monkeypatch, ["director"], _FixturePane(busy=True))
+    sidecar = send_mod._inbox_dir(project) / "director.nudge.deferred"
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    sidecar.write_bytes(b"\xff\xfe not utf-8")
+    send_mod.send_dm(project, "ki", "director", "busy dm body", "ki")
+    assert sidecar.read_bytes() == b"\xff\xfe not utf-8", \
+        "the stranded body must survive, never be clobbered"
+    assert send_mod._pending_more(project, "director") == 1, \
+        "this dm is COUNTED instead of stored"
+    assert "unreadable" in capsys.readouterr().err
+
+
+def test_service_sender_unresolved_dm_still_counts(project: Path,
+                                                   monkeypatch):
+    """Defect 1: the mark was keyed on `_sender_class`, whose FIRST clause
+    calls every service sender 'service'. A heal dm is still an unread dm."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux(monkeypatch, [])          # windowless -> no target
+    send_mod.send(project, "director", "heal noticed a bad row", "heal")
+    assert send_mod._pending_more(project, "director") == 1
+
+
+def test_unlisted_recipient_registers_no_pending(project: Path, monkeypatch):
+    """DH.542 ITEM 3: `send_dm` writes a file for ANY name, so a recipient
+    with no seats row gained a `.nudge.pending` nobody reads."""
+    seats = project / ".agi" / "nodes" / ".geometry" / "seats.md"
+    seats.parent.mkdir(parents=True, exist_ok=True)
+    seats.write_text(_seats_md([{"name": "director", "role": "director"}]))
+    _fake_tmux(monkeypatch, [])
+    send_mod.send_dm(project, "ki", "stranger", "hello?", "ki")
+    assert send_mod._pending_more(project, "stranger") == 0
+    pend = send_mod._inbox_dir(project) / "stranger.nudge.pending"
+    assert not pend.exists()

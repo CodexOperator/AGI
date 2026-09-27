@@ -1699,11 +1699,15 @@ def _register_unresolved(root: Path, seat: str, before_pending: int,
     same before/after discipline the pending snapshot already uses."""
     if _row_is_quiet(root, seat):
         return
-    # A self-copy (sender == seat) or a service sender types no nudge ever, so
-    # an unresolved mark would sit in the SENDER'S OWN inbox counting a
-    # message nobody but the sender will read (TMM.283 follow-up).
-    if _sender_class(root, sender, seat) == "service":
+    # A self-copy (sender == seat) wakes nobody, so the mark would sit in the
+    # SENDER'S OWN inbox. Keyed on the SELF-COPY alone: `_sender_class` also
+    # calls a service sender "service" (its FIRST clause), and a service dm
+    # in the FILE is still an unread dm the recipient can count.
+    if sender is not None and str(sender) == str(seat):
         return
+    rows = _locally_loaded_rows(root)   # DH.542 ITEM 3: an UNLISTED recipient
+    if rows and _seat_row_by_name(rows, seat) is None:
+        return                         # gains no pending sidecar nobody reads
     if _deferred_blob(root, seat) != before_deferred:
         return
     if _pending_more(root, seat) != before_pending:
@@ -1808,6 +1812,13 @@ def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
     is the first deferred body), False if one was already pending.
     Best-effort, never raises."""
     existing = _read_deferred(root, seat)
+    if existing is None and _nudge_deferred_path(root, seat).is_file():
+        # An UNDECODABLE sidecar holds a stranded body: KEEP those bytes (a
+        # fresh json.dumps would discard a body nobody can read back), COUNT
+        # this dm instead, and say so. Loud, never a silent loss.
+        print(f"nudge: deferred sidecar for {seat} unreadable; kept it",
+              file=sys.stderr)
+        return False
     if existing is not None:
         others = existing.get("others")
         if not isinstance(others, list):
