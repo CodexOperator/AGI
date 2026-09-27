@@ -48,3 +48,22 @@ extensions/agi/bin/boxes.py · the ONE seat-row writer (named by the kid, file:l
 
 ## CEILING
 2 kids · <= 50 production lines · pi-free tier-0 · 0 USD. No test spawns pytest; kids never launch real claude; never the live .env.
+
+## CORRECTIVE DH.525 -- closes mur-director-engine-17 DH.498-k1 + k2 (verify: accept_with_residue, NOT_MET conjuncts (2b) and (3))
+BASE      CUT FROM season2/loops/hypothesis-every-live-row-carrie-a00-efb7f2a8 tip 69958a4a9 (worktree a00-efb7f2a8). No merge. Never rebase.
+OUT OF SCOPE  the backfill of the 18 boxless config:posts rows -> the director's [red] to its master (other posts' rows), NOT this round.
+1. test_box_guard.py:46-64 still pins the removed default_box fallback (this_box == default_box, a boxless row is local) and is RED at the base -> re-pin both tests to the new contract (an unset box is refused by name), never delete them.
+2. crons.py:795-810 -- _this_box catches boxes.this_box's refusal and returns '', and _on_this_box treats '' as no gate, so a box with no AGI_BOX runs EVERY cron job -> fail CLOSED: an unset box runs no box-gated job and prints the refusal once; one test.
+3. boxes.py:186 row_is_local returns `not own` when this_box raises (fail-open, pinned by test_box_identity.py:124), contradicting conjunct (2b) 'an empty or unknown row box is never local on any box' -> make it never-local and re-pin :124, OR record on the kid node, with the measured reason, why (2b) must keep this one exception; pick one.
+4. send.py:2176 _FOREIGN_REFUSALS is process-local; the nudge_sweep cron is a new process every tick (crons.py:955) -> conjunct (3) 'once per row+cause' needs a durable memo (a small state file under .agi/sessions, keyed row+cause) OR the node narrows (3) to the long-lived reaper (heal.py:1898 _repair_stranded_wakes) with that census line added; pick one, test it.
+5. rotate.py:9657 -- no committed test drives _successor_row_write to the _stamp_row_box call -> one test through _successor_row_write.
+6. experiment:a00-fb8c4f95-cd7594 says '12 tests, 12 passed'; test_box_identity.py has 17 -> RE-RUN, paste, fix (write.py).
+ANON      no user name, home or repo path value, host or IP, no box hardware names (class prefixes only); patterns write <user>
+TESTS     test_box_guard.py test_box_identity.py test_crons*.py test_send.py test_rotate*.py -k box test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp)
+FILE SCOPE extensions/agi/bin/crons.py (_this_box/_on_this_box) · extensions/agi/bin/boxes.py (row_is_local) · extensions/agi/bin/send.py (the foreign-refusal memo) · extensions/agi/tests/test_box_guard.py · extensions/agi/tests/test_box_identity.py · experiment:a00-fb8c4f95-cd7594 (write.py) · the kid's own node. NEVER .agi/nodes/.geometry/posts.md.
+CEILING   HARD CAP: 2 kids (1: items 1-3, 2: items 4-6) · net <= 25 production lines · <= 90 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.525: mur-17 DH.498-k1+k2 accept_with_residue, conjuncts (2b) and (3) NOT_MET -- test_box_guard.py left red, crons un-gated on a box with no AGI_BOX (fail-open), row_is_local fail-open vs (2b), a process-local foreign-refusal memo vs a per-tick cron, no test through _successor_row_write, a stale test count. The 18 boxless config:posts rows (4 of 22 carry box) are a [red] to thought-master, not this round: other posts' rows.
+<!-- THOUGHT:END -->
