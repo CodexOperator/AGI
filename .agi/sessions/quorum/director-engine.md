@@ -26,6 +26,9 @@ town: local-maxxing
 free     every parent/kid = pi-free (ladder tier-0) · signed role words = the owner's · harness <system-reminder> tool lists = genuine, unused
 ```
 
+## SKILLS (owner 2026-09-27, goal:g4.18.2) -- use the matching one BEFORE the flow: `skills/agi-<flow>/SKILL.md` (the Skill tool)
+`agi-goal` (schema inside) · `agi-node-write` · `agi-send` · `agi-rotate` · `agi-dispatch` · `agi-workflow` · `agi-verify` -- a rule a skill carries leaves this card at its next write (the template lists them too)
+
 ## IDENTITY
 Post `director-engine`, director, tier 1, town local-maxxing. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
