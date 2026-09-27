@@ -147,9 +147,19 @@ def _leak_roots(project):
 LEAK_ROOTS = _leak_roots(PROJECT)
 
 
+# ONE SOURCE for the kit denylist's own tokens (owner, home, /.sanctuary/).
+# Row 14b's candidate is DRAWN from this tuple, never re-typed, so it cannot drift
+# out of the rule it is meant to probe (DH.634 item 4).
+KIT_TOKENS = (OWNER, str(Path.home()), "/.sanctuary/")
+
+
 def _leaks(text, roots=LEAK_ROOTS):
-    return [t for t in (OWNER, str(Path.home()), *roots, "/.sanctuary/")
-            if t and t in text]
+    return [t for t in (*KIT_TOKENS, *roots) if t and t in text]
+
+
+# the source and the rule are one: if a token is in KIT_TOKENS it must be DENIED
+# by _leaks. RED if the tuple grows and the denylist stops consulting it.
+assert all(_leaks("cd %s\n" % t) for t in KIT_TOKENS if t), KIT_TOKENS
 
 # A probe identity: contract tests need SOME value for REPO_ROOT/GUARD_SRC to render
 # at all, and a probe is not the answer -- the wire test below supplies nothing.
@@ -1026,15 +1036,16 @@ def test_one_planted_kit_copy_goes_red_and_the_kits_own_bytes_stay_clean(
 # 14b -- THE DISJOINTNESS itself, BOTH directions, EVERY class. Direction 1 is per class.
 # Direction 2 is NOT: the value must be one the KIT denylist can see and NOT a member of
 # LEAK_ROOTS -- naming a leak root made the kit half a TAUTOLOGY (roots are in _leaks by
-# construction, so no state could make it false, DH.615 item 1). KIT_TOKEN is drawn from
-# the kit rule's OTHER tokens (home, /.sanctuary/), which _leaks consults independently
-# of LEAK_ROOTS, so the assert is falsifiable. Never a FAKE_BOX value either: a planted
-# FAKE_BOX value is invisible to every kit rule by definition, so `assert _leaks(planted)
-# == []` could never go red (DH.591 item 1). The kit SEES the token; the engine's denylist
-# does NOT. RED if merged: adding the kit's roots to anonymize.box_tokens makes `scan`
-# name a class here (probe C, DH.591).
-KIT_TOKEN = next(t for t in (str(Path.home()), "/.sanctuary/")
-                 if t and t not in LEAK_ROOTS)
+# construction, so no state could make it false, DH.615 item 1). KIT_TOKEN is DRAWN from
+# KIT_TOKENS -- the kit rule's own token source, which _leaks consults independently
+# of LEAK_ROOTS -- so the assert is falsifiable and the candidate cannot be a second
+# copy of a literal the rule no longer denies (DH.634 item 4). Never a FAKE_BOX value
+# either: a planted FAKE_BOX value is invisible to every kit rule by definition, so
+# `assert _leaks(planted) == []` could never go red (DH.591 item 1). The kit SEES the
+# token; the engine's denylist does NOT. RED when the kit's roots are added to
+# anonymize.box_tokens: `scan` then names a class here (mutation of parent
+# a00-36e29ed9's probe, DH.591; the probe itself is WITHDRAWN -- DH.634).
+KIT_TOKEN = next(t for t in KIT_TOKENS if t and t not in LEAK_ROOTS)
 @pytest.mark.parametrize("cls", ["hostname", "ip", "mac", "board", "secret"])
 def test_the_kit_denylist_and_the_engine_denylist_are_disjoint_in_both_directions(
         cls, fake_box, anonymize):
@@ -1044,5 +1055,7 @@ def test_the_kit_denylist_and_the_engine_denylist_are_disjoint_in_both_direction
     planted = clean + "\n# a planted %s token: %s\n" % (cls, value)
     assert anonymize.scan(planted, toks) == [cls], cls
     assert kit not in LEAK_ROOTS, "tautology: _leaks carries every leak root by rule"
+    assert any(t is KIT_TOKEN for t in KIT_TOKENS), \
+        "candidate is not a member of the kit denylist's own token source"
     assert _leaks("cd %s\n" % kit), "row 4 does not see its own denylist token"
     assert anonymize.scan("cd %s\n" % kit, toks) == [], "the guard now sees a kit token"
