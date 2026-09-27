@@ -40,8 +40,8 @@ TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [NOEX=1] [EXTRA=f,g] gen2.py N
           D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N.. > D/harvallN.log (chain units with a while-is-active wait)
 GATE      TMM.306 (TM 21:59Z): NO parent slot refilled until load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, then ONE step at a time
           (drainqg1 enforces it); stop nothing live · first freed slot = DH.650 RAM round (repo half) · arm 10 unchanged
-MURS      running none · ENDED+TRIAGED: 97 106 108 112 114-118 -> DH.668 661 662 666 663 664 660 665 669 · next murq 119 · next DH 670
-LIVE      parents 638 (spawn_budget.py) · 645 harvested 1300bd8c9 (79 passed) · gated queue (T/drainqg<N>.log, chained): qg1 650 667 647 648 649 (T/drainqgf.sh: N:F = fresh round via T/placef.sh + T/h<N>.txt) ·
+MURS      running murq119 = DH.638 · ENDED+TRIAGED: 97 106 108 112 114-118 -> DH.668 661 662 666 663 664 660 665 669 · next murq 120 · next DH 670
+LIVE      parents 650 a00-7e724480 (placed 22:46Z) · 645 harvested 1300bd8c9 · 638 harvested 568f0b68d (ladder red INHERITED) · gated queue (T/drainqg<N>.log, chained): qg1 [650 placed] 667 647 648 649 (T/drainqgf.sh: N:F = fresh round via T/placef.sh + T/h<N>.txt) ·
           qg2 651 652 653 · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660 661 662 663 664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 -- io avg60 ~61 > 50 · 640 assembled 1bf1dbf6c
 DEMOTED   (not correctives) 660/661/663 'checked CLEAR / not a defect' verify notes · 662: kid ran git diff --numstat (process note) · 665: V1 done-gate + V7 write-log = findings rows already, UNVERIFIED worktree-gone probe · 668: +76 test-line breach = row, timing note
 LOGS      belam [decision] 22:2xZ (owner): logs + sequential scratch -> the new flash mount, TM owns the move; DE owns the
@@ -50,7 +50,7 @@ DECISION  out to TM: DH.577 cron policy (send-hub chain HELD from merge) · DE.1
 CHAIN     last round (→ = corrective, mN = murq N running)                                           land note
  schema-gate 527 → 543 → 559 → 597 → 644 → 665 q · heal-refuse 528 → 544 → 558 → 592 MERGED c2f528ed8     NEVER 442 · NEVER 476
  probe-gate 523 → 541 → 560 → 589 → 626 → 641 → 666 q · row 20 nudge 524 → 542 → 561 → 602 → 637 → 657
- trunk reds 538 → 545 → 562 → 582 → 606 → 623 → 646 → 664 q · zero-usd 537 → 546 → 565 → 572 → 608 → 638 (638 re-applies the ladder revert)
+ trunk reds 538 → 545 → 562 → 582 → 606 → 623 → 646 → 664 q · zero-usd 537 → 546 → 565 → 572 → 608 → 638 m119 (ladder test red inherited from base)
  stale-lock 532 → 534 → 547 → 564 → 594 → 627 → 668 q                                                   532 NEVER merges alone
  model-fence 508 → … → 590 → 613 → 633 → 654                                                         R4 NEVER run (row 22)
  kid-worktrees 529 → 533 → 540 → 563 → 598 → 624 → 655 → RAM round 650 (hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram)
