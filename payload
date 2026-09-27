@@ -30,8 +30,6 @@ NO_HELP = {
     "harness_template.py": "library module (harness argv is data; no __main__,"
                           " no --help)",
     "prose_templates.py": "library module (the prose-template loader); no --help",
-    "suite_guards.py": "library module (the suite guards in one importable home);"
-                       " no --help",
 }
 
 
