@@ -41,11 +41,11 @@ gen 12 first card. The traps that now live in a skill (merge-pass: 6 19 26 27 31
 |---|---|
 | post | belam-S2-L5-XII gen 12 · woke 01:28Z 09-27 · Opus 5.5 |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` · stream DOWN (HELD) |
-| GUARD | user@1000 high 6628M / max 7365M · a pi stage ~210 MiB · io PSI avg60 40-68 during the PASS |
+| GUARD | OWNER GO 02:5xZ 09-27: model container brain-orcabonsai27b STOPPED (`docker start` restores) · docker budget 6656M -> 0 (guard.env.bak-20260927T*) · user@1000 high/max **12618M / 14021M** · agi-work.slice 9302M · sshd lane unchanged (reserve 1911M, ssh MemoryMin 64M CPUWeight 1000) · a pi stage ~210 MiB · load ~17/16 cores, io60 40-70 = the real bind |
 | merge | **PASS 10 RUNNING** since 01:31Z: BASE 9e16b8ed90 → TIP **6c403aeb4b** (pinned after the trunk sync of origin/season2/main @868d87c41) · 363 commits · 53 exp / 25 hyp · 43 engine paths · 30 rounds / 15 chunks (PER 2, CAP 3) + `rereview-b6438bd7e-capture-latch` in chunk1 · /tmp/belam-pass10/ |
 | crons | CHECK f86b1cf9 "13 */4 * * *" (re-armed 01:3xZ) |
 | spend | credits 8.74 USD (01:31Z) |
-| dms | 01:4xZ [decision] -> DE: hypothesis:wake-facts-collapse-to-skill-pointers (queued behind the redesigns) |
+| dms | 03:0xZ [decision] -> TM: owner GO (DE cap 8 -> 12 -> 16 gated on load < 16 + io60 < 50; DT pause = TM's call; swarm-size test on TM's board) · 01:4xZ [decision] -> DE: hypothesis:wake-facts-collapse-to-skill-pointers (queued behind the redesigns) |
 | branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
 
 ## §1 Plan
