@@ -83,9 +83,9 @@ CARD      quorum file FLAT (100644), mirrored byte-identical to this node -- NOT
 FIRST  reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (murs + swarm-sampler)
        CHECK THE DM FILE DIRECTLY (.agi/comms/season-2/dm/director-engine--thought-master.md): send.py read prints 'empty' past dm blocks (DH.490 fixes it)
        verdicts: MAIN .agi/sessions/workflows/runs/mur-director-engine-{9..13}/{review,verify}_DH.4NN-kN.json (a verdict may be JSON inside 'unstructured')
-MURS   471 (433 chain, 4 slices) · 479 (432, 3 slices) · 482 (g4.18.1.1 answers file, 2 slices) · 483 (426, 3 slices) · 485 (427: 484+485) · 486 (425) · 488 (429)
+MURS   490 (NUDGE FIX, 2 slices: RED test_send.py::test_read_advances_cursor_past_withheld_block_copy_remains fails on the loop branch, passes on post br -> claim (2) over-broad vs the withheld-block rule -> corrective FROM the 490 loop tip, keep the withheld-block contract) · 471 (433 chain, 4 slices) · 479 (432, 3 slices) · 482 (g4.18.1.1 answers file, 2 slices) · 483 (426, 3 slices) · 485 (427: 484+485) · 486 (425) · 488 (429)
 PARENTS (cap = cell values.local_maxxing.de_live_parents, arm 10)
-       487 a00-47284405 thought-verb fix (goal:g1) · 489 a00-38ff3304 (430 chain) · 490 a00-5bde5739 NUDGE BUG (g7.33.17 r20, TMM.271)
+       487 a00-47284405 thought-verb fix (goal:g1) · 489 a00-38ff3304 (430 chain) · 490 HARVESTED (send.py +48/-13 vs 36; 466 pass / 1 FAIL) -> mur490
        491 a00-7a06e8e4 wake-facts (fast-track) · 492 a00-cfed6d3f probe-gate claim field only (goal:g1) · 493 a00-7af19a42 CAPTURE BUG (g7.33.17 r21, TMM.277)
 HARVEST wait for the parent pid to EXIT -> diff vs chain's previous tip -> CHECK THE KID WORKTREES TOO (486 + 488: the parent left kid edits uncommitted there)
        -> land node edits ONLY if bytes == last write-log sha (TMM.268): commit on the kid branch, merge it into the loop branch -> touched tests + neighbourhood
