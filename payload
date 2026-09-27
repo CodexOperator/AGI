@@ -59,3 +59,6 @@ never fabricate one after the fact. Mechanism, not wording: quote the instructio
 - create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; recreate `.agi/context/kits/` or `plans/build-site.md`.
 - hand-edit `GOALS.md` (derived) or frontmatter (write.py owns it).
 - let `active_node_count + deprecated_node_count` drop (skill `agi-verify`).
+- start a `--body-file` with its own `# <id>` H1: `create` adds one, the node gets two (fix = `replace body 1:END`).
+- use the `thought` verb on a node whose body QUOTES a THOUGHT pair: it rewrites the FIRST pair anywhere
+  (node_writer.py `_THOUGHT_RE`), the quoted one included — `replace body` instead until that is fixed.
