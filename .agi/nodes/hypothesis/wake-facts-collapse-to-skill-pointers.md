@@ -72,6 +72,24 @@ FILE SCOPE extensions/agi/tests/test_rotate_templates.py · .agi/nodes/experimen
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 410870f13 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## CORRECTIVE DH.601 -- closes mur-director-engine-30 DH.571-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-wake-facts-collapse-t-a00-a0fbcb7c tip 7c81d3739 (branch de-base-601; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+SETTLED   the 2009 B > 2000 B facts region is the Prime's F13 trim on config:rotations, OUTSIDE this round: never edit config:rotations or loosen the 2000 B target; the chain stays merge-BLOCKED on it (director).
+1. 3. Node self-contradiction on the 2009 B figure — a00-dcfa7b0b-3fe045.md:116 vs :147
+2. 4. Probe P1(b) still names a refusal the committed shapes cannot produce — a00-dcfa7b0b-3fe045.md:15
+3. 5. Node asserts a detector hole the same commit closed — a00-dcfa7b0b-3fe045.md:16 and :131-132 vs test:1580
+4. 6. `edited_by` claim contradicted by the same commit — a00-dcfa7b0b-3fe045.md:150 vs :9
+5. The round's OWN new node carries a stated demotion its landed frontmatter contradicts: a00-b05aceee-3f6650.md:121 states 'which is why the lean moves 80 -> 70 and not to proved', while the shipped frontmatter reads `verdict: inconclusive_lean_proved:80` / `confidence: 0.8` at :21 / :8, set by the same `done` commit 4472a261b. A verdict change declared in the body and never applied to the bytes — the first reviewer checked this class only on the three pre-existing nodes and missed the new one.
+6. The freeze test's blast radius was widened with the file: the separator squash at test_rotate_templates.py:1543 (`re.sub(r'(?<=\d)[,_](?=\d)', '', src)`) is applied to the WHOLE file text, not to numeric literals. Measured: on the shipped file the scan finds 1 hit (green); after inserting one unrelated `2_000` mention anywhere in the file the same scan finds 2 and the test goes red with a message about the collapse target appearing twice. The corrective that makes the scan see a hidden second literal also makes it see non-targets — a latent false-positive surface in the anti-near-miss guard, mechanism not wording, and not named by the first reviewer.
+7. The merge red is narrower than reported: the violation assert at test:1505 is GREEN (0 violations on the destination's collapsed region). The ONLY thing blocking is 9 bytes of region residue, and the two available fixes are both outside this round by design — compact 9 bytes of `.agi/nodes/.geometry/rotations.md`, or land the owner-gated `templates.director.startup.facts_pointer_target_bytes` cell named at a00-dcfa7b0b-3fe045.md:117. Naming the exact unblock keeps the red from being read as a broken guard.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_rotate_templates.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_rotate_templates.py · .agi/nodes/experiment/a00-436cd7b6-e9a8f6.md · .agi/nodes/experiment/a00-b05aceee-3f6650.md · .agi/nodes/experiment/a00-d698eaaa-251421.md · .agi/nodes/experiment/a00-dcfa7b0b-3fe045.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 7c81d3739 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.571: mur-director-engine-27 DH.556-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.601: mur-director-engine-30 DH.571-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
