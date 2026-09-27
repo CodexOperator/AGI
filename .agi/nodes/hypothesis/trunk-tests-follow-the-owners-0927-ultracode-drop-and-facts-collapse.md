@@ -38,3 +38,23 @@ extensions/agi/tests/test_ladder_node.py · extensions/agi/tests/test_sensei_wak
 
 ## CEILING
 HARD CAP: 1 kid · 0 production lines · <= 30 test lines net · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+
+## CORRECTIVE DH.545 -- closes mur-director-engine-23 DH.538-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-trunk-tests-follow-th-a00-b83e7193 tip aa383f9f8 (branch de-base-545; the post-branch zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. ultracode guard is prime-row-only and negative-only (test_ladder_node.py:74)
+2. 2. F3 pointer check is line-level, not clause-level; the label assert is self-derived (test_sensei_wake_audit.py:838/844/856/863)
+3. 3. whois re-derive asserted on a hand-built facts list; no live end-to-end category-(a) pin remains
+4. MISSED (test that requires a defect, demote-adjacent but out of scope here): the prose-shadow guard was INVERTED, not kept. The pre-image asserted `len(carriers) == 1` — exactly one live fact CITES the shape (123e0a487:832). The round replaced it with `assert carriers == []` (aa383f9f8:846, 'no live fact inlines a whois shape'). The hypothesis CLAIM and the experiment node's 'contract kept' table both say the guard was KEPT; it was flipped. Consequence: the state that would restore the end-to-end re-derive (defect 3) now makes this test FAIL — a successor who re-inlines `send.py whois <token>` in a live fact is punished for the right fix. The guard should have been kept as 'at most one / never shadows the pointer', not turned into a ban.
+5. MISSED (minor, folds into defect 1): the relax also drops the settings SHAPE. `:74` is a not-equal on a possibly-absent key, so a row whose `settings` key is deleted, set to null, or set to a dict passes. The old `== 'ultracode'` at least forced the key to exist and be a string. A form such as `isinstance(prime.get('settings'), str) and prime['settings'] != 'ultracode'` keeps the removal contract without losing the key's presence.
+6. UNVERIFIED (execution of the round's own files): this worktree's HEAD is 86ae807b0 and `git merge-base --is-ancestor aa383f9f8 HEAD` exits non-zero, so aa383f9f8's test bytes are not on disk here and I could not run the round's versions without editing the tree. I verified instead by replicating the exact expressions of aa383f9f8:838-863 against the live bytes in this worktree (which `git diff 123e0a487 HEAD` shows are byte-identical for ladder.md, rotations.md, skills/agi-send/SKILL.md and sensei.py): pointer count 1, carriers [], the skill shape present exactly once on a non-comment line, and the re-derive landing on ('a','F25'). All four conjuncts hold, so the round's tests do go green on live truth. The round's own counts (95 passed, then 184 passed/7 skipped) and its 6 negative probes remain UNCLAIMED by me; the probe I WOULD run, if the branch were checked out, is: restore 123e0a487's test files, apply only the round's diff, run `env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_ladder_node.py extensions/agi/tests/test_sensei_wake_audit.py -q -p no:cacheprovider --basetemp=/tmp/rev538` and expect 0 failures — a read of committed files only, no rotate/heal/send/dispatch function is called.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_ladder_node.py test_sensei_wake_audit.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_ladder_node.py · extensions/agi/tests/test_sensei_wake_audit.py · .agi/nodes/experiment/a00-5f39d42c-1941d9.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over aa383f9f8 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.545: mur-director-engine-23 DH.538-k1 residues batched into one corrective (orders above, generated from the verdict files).
+<!-- THOUGHT:END -->
