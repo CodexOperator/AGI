@@ -69,10 +69,10 @@ town:local-maxxing
 │  ├─ goal:g1.25 …… CLI GRAMMAR (G1 umbrella: the jev choice surface; owner 09-23)
 │  └─ town:local-maxxing tagged goals (same set ∩)
 │  └─ goal:g7.33 …… MOVED → town:core (engine; parked unassigned)
-├─ GRAPH REDESIGNS — engine goals on town:core, assigned director-engine; messaging FIRST (owner 09-26/27)
-│  ├─ messaging + nudge … goal:send-is-hub-only-dm-file-versions-synced-every-30s · goal:g7.32.5
-│  ├─ spawn/rotate ……… goal:g7.31.3.3
-│  └─ node spawn/mint … goal:g4.18.1 (may be mostly done)
+├─ GRAPH REDESIGNS — engine goals on town:core, assigned director-engine; in DEPENDENCY order (owner 01:0xZ 09-27: send depends on mint, rotate on send)
+│  ├─ 1 node spawn/mint … goal:g4.18.1 (may be mostly done)
+│  ├─ 2 messaging + nudge … goal:send-is-hub-only-dm-file-versions-synced-every-30s · goal:g7.32.5
+│  └─ 3 spawn/rotate ……… goal:g7.31.3.3
 └─ TRAJECTORY STAND-IN ← folded from doc:lm-town-trajectory
    (TEMP pending trajectory:* — g7.34.1/.2; doc kept, deprecated pointer)
 ```
@@ -135,7 +135,7 @@ memory     15 GB box · memory_max 6G · ONE model-loading host kid · GPU = one
 live       see doc:lm-town-trajectory board for tip ids (folded snapshot 2026-09-21)
 research   MP.01 -> TEL.01 -> SWR.02 -> FT.00 -> … (tracks on g5.22–.29, .30–.31)
 engine     goal:g7.33 (+ G7.33.*) → MOVED town:core (parked unassigned)
-redesigns  director-engine, in order: messaging+nudge (hub-only goal + g7.32.5) -> spawn/rotate (g7.31.3.3) -> node spawn/mint (g4.18.1) · the goals live HERE, not on cards (owner 00:5xZ 09-27)
+redesigns  director-engine, in DEPENDENCY order (owner 01:0xZ 09-27): node spawn/mint (g4.18.1) -> messaging+nudge (hub-only goal + g7.32.5; send = write.py) -> spawn/rotate (g7.31.3.3; refusals ride send's reply route) · the goals live HERE, not on cards (owner 00:5xZ 09-27)
 HELD       until messaging lands (owner 21:1xZ): the stream, encryption-town config, sanctuary-master activation, g7.33.18
 geometry   goal:g7.34* → town:core parked (trajectory type + .geometry/towns)
 comms      magic pane (G5.24 / g7.32 messaging on core) = future unified messaging layer

@@ -46,8 +46,8 @@ Unify spawn and rotate as graph writes. Parents become rows under the post that 
 - goal:send-is-hub-only-dm-file-versions-synced-every-30s -- the reply route refinement 3 uses; its (default)-box note (46d1d17e1): refinement 2 acts only on the box a row names.
 
 ## Routing
-assigned: director-engine. After the send hub-only work (messaging first: the owner's 21:1xZ HOLD waits on it); the owner may re-order.
+assigned: director-engine. THIRD of the three graph redesigns, after node spawn/mint (goal:g4.18.1) and the send hub-only work (OWNER 01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): refinement 3's refusal rides send's reply route.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version. Split out of goal:g7.32.5 on the owner's correction in the Prime's pane (00:5xZ 09-27: "It probably goes under the rotate/spawn goal doesn't it?"). (1) The paste said: "Parents need one narrow push grant: they may append to dm files on any post's head. Mint it as a sibling goal to goal:send-is-hub-only-...". (2) Its nearest antecedent is the push grant, a messaging cell; the spawn/rotate design is a route change, and goal:g7.31.3 is the route goal that names rotate|spawn. (3) The near miss: gen 11 read "it" as the whole design and hung all of it under g7.32 (7bf8b8437) -- the words satisfied, the owner's placement lost. So the design lives here, the push grant stays g7.32.5, and each quotes its own half of the owner's 00:38Z message byte for byte from gen 10's transcript 64d3d99e.
+Second version, routing only: third in the owner dependency order (01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"). The first version's reasoning for the split from goal:g7.32.5 is in grid history (5c3538f94).
 <!-- THOUGHT:END -->

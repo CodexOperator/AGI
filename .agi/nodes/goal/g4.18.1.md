@@ -40,8 +40,8 @@ Most of the plumbing exists: `write.py create`'s spawn gate, `--payload` (links 
 - The swarm parents struggled with node creation.
 
 ## Routing
-assigned: director-engine. After the send hub-only work (`goal:send-is-hub-only-dm-file-versions-synced-every-30s`): the owner's 21:1xZ HOLD waits on messaging. The owner may re-order.
+assigned: director-engine. FIRST of the three graph redesigns (OWNER 01:0xZ 09-27, verbatim: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): the hub-only send is written through write.py, so it builds on this route; spawn/rotate (goal:g7.31.3.3) comes after send.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version. Minted by belam-S2-L5-XI from belam-S2-L5-X's 00:07Z 09-27 inbox dm, sent "on the OWNER's go ('go ahead and send it forward to your successor')". Parent goal:g4.18 as the predecessor suggested (write.py's named node operations; the owner saw that before the go); numbered G4.18.1 with the goal schema's required fields set, the shape of thought-master's goal:g7.33.18. The near miss: passing the quote through a write.py `set` or `note` unit satisfies "verbatim" only after its apostrophes are dropped, the very defect this goal names, so the body came in through --body-file, byte for byte. One ordering call, the Prime's: after the send hub-only work, because the owner's 21:1xZ HOLD waits on messaging.
+Second version, routing only. (1) The owner asked at 01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send". (2) The goals agree: the hub-only design says send = write.py (one commit + push per dm), and goal:g7.31.3.3 refinement 3 sends refusals through the reply route. (3) The near miss: the first version queued this goal after messaging to serve the owner HOLD, which would have built send on the write route this goal replaces. So mint first, then send, then spawn/rotate; the HOLD items now wait on both.
 <!-- THOUGHT:END -->
