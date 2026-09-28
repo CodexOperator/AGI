@@ -33,23 +33,23 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ## §0 STATE (07:3xZ 09-28 · seated by the captive capture 07:13Z · per-chain history = git log of this node)
 ```
 MERGE-UP  last LANDED: EG.1 chain 57debf3a2 (TMM.318). Since: every mur = residue -> corrective / text fix; 0 clean, 0 merged
-SERIES    next EG.77 · murs mur-eg-N (last read mur-eg-20 = murq180 + murq181) · next murq185
+SERIES    next EG.77 · murs mur-eg-N (last read mur-eg-20 = murq180 + murq181) · next murq186
 TOOLS     T=<scratchpad 96494ce7-...>: gen2.py N murq<Q>.json tip label (MURK=, NOEX=1, EXTRA=; triage by hand) · place2.sh (pi-free parent) ·
           placecc.sh (CC TEXT KID; overlays the POST config+ladder so kids resolve opus-5-5) · placef.sh N HYP (fresh) · mkmur.py + runmur.sh ·
           hcc.sh N (CC kid: waits for its PID, not its lease, then flock-harvests) · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N
-          (TMM.322 pytest env; ends with a heal.py sweep, ONE per 15 min) · S=<scratchpad d74d6d20-...>/watch2.sh MURS="murq178 murq182 murq183 murq184" (run_in_background)
+          (TMM.322 pytest env; ends with a heal.py sweep, ONE per 15 min) · S=<scratchpad d74d6d20-...>/watch2.sh MURS="murq178 murq182 murq183 murq184 murq185" (run_in_background)
 GATE      TMM.306 load1 < 16 AND io avg60 < 50, two reads 5 min apart · CC kids: <= max_live 4, MemAvailable >= (live+2) x 2G · belam: a memory
           ALARM -> hold new placements
 OWNER     05:2xZ via belam 05:38Z: CC kids + parents = claude-opus-5-5 (merged 11476d1f6) · 06:2xZ via belam 06:21Z: (a) sweep at EVERY harvest,
           never --force (skill row = EG.57 -> EG.69) (b) per-ROLE worktree roots + reaper eviction WITH the RAM round, not EG.53 (c) object store left
           · 06:4xZ via belam 06:27Z: progress -> board 'note' -- REFUSED for posts (goal:g12) -> TMM.323: progress in §2 until EG.59 lands
 TMM.322   (3) every pytest: TMPDIR + --basetemp /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT · (1) = EG.60 · (2) answered
-MURS      murq178 = EG.61-67 (text) · murq182 = EG.58 (EG.9 redo, d1bdf498c; 110 passed; +38 test net) · murq183 = EG.41 (ecaab9920; 427 + 55 passed; send.py +15 -1; parent dm 07:40Z: item 5 OPEN = 3 stale send.py pointers at a00-c3bf7379:42,45 + a00-5e3cfa03:135 -> add to the murq183 triage) · murq184 = EG.59 (first round, 309fdb267; 147 passed; CEILING BREACH 2 kids + prod 33 net + test 171 -> residue)
+MURS      murq178 = EG.61-67 (text) · murq182 = EG.58 (EG.9 redo, d1bdf498c; 110 passed; +38 test net) · murq183 = EG.41 (ecaab9920; 427 + 55 passed; send.py +15 -1; parent dm 07:40Z: item 5 OPEN = 3 stale send.py pointers at a00-c3bf7379:42,45 + a00-5e3cfa03:135 -> add to the murq183 triage) · murq184 = EG.59 (first round, 309fdb267; 147 passed; CEILING BREACH 2 kids + prod 33 net + test 171 -> residue) · murq185 = EG.37 (7030a6261; 166 passed + test_write unknown-location red = BASE lineage, red at f812751ad too)
           · READ: murq172 -> EG.70 EG.71 (text) + EG.72 (pi) · murq177 EG.19 DEMOTE (4/5 items uncommitted in a00-3c15c94c) -> EG.73 (text + 1 skill row) · murq179 EG.69 awr (3 row residues) -> EG.74 · murq180 DH.672 awr (--cap zero_usd test pin) -> EG.75 pi · murq181 EG.36 awr (verify died; 4 node + rlimit/config_max test) -> EG.76 pi
 KIDS      EG.70 (EG.47) + EG.71 (EG.51) opus text kids in unit placecc6 (io + mem gate, auto-harvest via hcc.sh) · EG.73 (EG.19) in unit placecc7 · EG.74 (EG.69) in unit placecc8
           (each unit waits for the previous one's placement) · EG.51 V3/M2 ladder ultracode pair = DEMOTED: owned by EG.56 -> EG.67
 PI LANE   EG.58 = EG.9 chain REDO HARVESTED -> murq182 (own lane, FIRST; EG.50 parent-demoted, 0 commits, NOT landed; pointer cli.py:3066 / copy2 :3207 :3211 verified)
-          -> EG.59 (board note verb grant) HARVESTED -> murq184 -> EG.60 (test-root leak) · chain qgEG(36 41 done) 37 LIVE 42 44 -> 48 (EG.33) 49 (EG.31) 53 (EG.18) 54 (EG.34
+          -> EG.59 (board note verb grant) HARVESTED -> murq184 -> EG.60 (test-root leak) · chain qgEG(36 37 41 done) 42 44 -> 48 (EG.33) 49 (EG.31) 53 (EG.18) 54 (EG.34
           DEMOTE) 68 (DH.671) 72 (EG.52 + test_write.py pin) 75 (DH.672 test pin) 76 (EG.36) · qgRS serial lane (EG.19 done -> 661 -> EG.20) · drainqg13..18: 672-674 · 678 · 679 · EG.2 EG.3 · EG.5 · EG.6
 PASS 12   belam 06:50Z goal:g1.28 (on the TRUNK: merge local-maxxing/season2/main first), BEHIND the fix queue: 5 engine hypotheses (create/API
           set-verbs gate · suite fence stdlib spawn leaves · done commit never sweeps the gate source · seat-wrap DEMOTE · heal seat path cell WITH
@@ -72,10 +72,10 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 - 12 opus text kids placed (EG.47 51 52 55 56 57 61-65 + 66 67 69 queued) · 6 hand salvages of parent/kid-uncommitted in-scope bytes
 - minted 2 under goal:g7.33 (EG.59 board-note verb grant · EG.60 test-root leak) · sweep: 1 tree removed (EG.19 parent, clean + harvested)
 - belam io [red] 06:56Z: 2 runaway searches stopped; SEARCH rule in every order + mur focus
-- 07:1x-07:4xZ: 5 murs judged (murq172 = 2 awr + 1 demote · 177 demote · 179 awr · 180 awr · 181 awr), 0 clean · 7 correctives (EG.70 71 73 74 text · EG.72 75 76 pi) · 6 harvested (EG.69 DH.672 EG.36 EG.58 EG.41 EG.59) · 1 hand salvage (EG.36)
+- 07:1x-07:4xZ: 5 murs judged (murq172 = 2 awr + 1 demote · 177 demote · 179 awr · 180 awr · 181 awr), 0 clean · 7 correctives (EG.70 71 73 74 text · EG.72 75 76 pi) · 7 harvested (EG.69 DH.672 EG.36 EG.58 EG.41 EG.59 EG.37) · 1 hand salvage (EG.36)
 
 ## 🔴 WHERE IT STOPS
-07:3xZ: murq172 + murq177 triaged -> EG.70 EG.71 (placecc6) + EG.73 (placecc7) + EG.74 (placecc8) + EG.72 EG.75 EG.76 (qgEG72 75 76, last in chain); murq178 182 183 184 running; watch2 armed
+07:3xZ: murq172 + murq177 triaged -> EG.70 EG.71 (placecc6) + EG.73 (placecc7) + EG.74 (placecc8) + EG.72 EG.75 EG.76 (qgEG72 75 76, last in chain); murq178 182-185 running; watch2 armed
 ```
 FIRST   on a watch2 EVENT: a mur ended -> D/verd.py Q -> triage (skill agi-corrective §3): pure text -> gen2 EG.73.. + a placecc<N>.sh unit; mixed ->
         a qgEG<N> unit chained after the last qg; a clean round -> git merge --no-ff its tip -> [merge-up] to TM (batch + mur key + verdicts + findings)
