@@ -80,33 +80,6 @@ FILE SCOPE extensions/agi/tests/conftest.py (the session-scoped gate only) · ex
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 0e4e636a1 · <= 40 test lines net over 0e4e636a1 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 0e4e636a1 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
-
-## CORRECTIVE DH.EG.152 -- closes mur-eg-62 EG.128-k1 demote
-BASE      CUT FROM season2/loops/hypothesis-a-test-that-writes-a--a00-61d7ea7c tip 5ffa11d86 (branch de-base-EG.152; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. 1. Ordered item 4 not fixed: the rotate drive site is still inert (fixture record rejected by _record_accepted)
-2. 2. A green test that requires the defect (the rotate witness cannot distinguish fixed from unfixed)
-3. 3. Frontmatter verdict and title contradict the body of the same node
-4. 4. Ceiling breach landed unflagged (83 net test lines against a 30-line cap)
-5. 5. New import-time suite crash outside a project root (unguarded None from find_project_root)
-6. 6. Lease arm false-FAILs innocent tests during a live dispatch
-7. 7. Gate blind to a baseline-present stray .agi gaining sessions/
-8. 8. The round's own new node keeps the dead scaffold it was ordered to delete
-9. 9. Empty '## OUTSIDE' heading where a true sentence was deleted
-10. 10. The suite-wide gate has no committed witness (only a deleted probe file)
-11. MISSED, demote-grade: the gate's lease arm watches the WRONG TREE in a worktree. conftest.py:733-735 builds _LIVE_BUDGET_DIR from locations.sessions_dir(find_project_root(...)), which is the PER-WORKTREE FORK, while spawn_budget.budget_dir (spawn_budget.py:91-111, 'Resolves to the main checkout, never a per-worktree dir') resolves the SHARED room through git_common_root -- and locations.py:857-864 names the budget explicitly in the list of state that must be shared. Measured from this post worktree: the gate's _LIVE_BUDGET_DIR is /data/work/agi/.agi/worktrees/post-director-engine/.agi/sessions/.spawn-budget (EMPTY, 0 files) while the real churn is /data/work/agi/.agi/sessions/.spawn-budget (3 files: a00-175baf9e.lease, .lock, .tmp.llb47xc3.tmp). Every agent runs in a worktree, so the arm that item 6 ordered is inert in exactly the environment the incident class occurs in.
-12. MISSED, demote-grade: this diff writes two new FALSE factual claims into nodes it edited. a00-0a1da446-239cfa.md:116-117 and the Evidence block of a00-64e1ebef-356f47.md both read 'closed the corrective's items 1, 2, 4, 5 on this file' -- item 4 is the conjunct refuted at rotate.py:15296/15343/15418. The demotion is recorded only in the cd03d34d body, so the two sibling nodes now assert a closure that did not happen.
-13. MISSED, residue: test_no_live_root_writes.py:144 replaces 'assert _LIVE_NODES.is_dir(), f"vacuous guard: ..."' with a bare @pytest.mark.skipif. In a checkout with no live nodes/ the round's own live-tree witness now SKIPS SILENTLY instead of failing loudly -- the exact non-vacuity property the assert existed to provide. It was ordered as corrective item 5, so this is recorded as a residue of an ordered change, not a kid deviation.
-14. MISSED, residue: the per-test before/after comparison at conftest.py:775-777 is invisible to a leak a test creates and removes inside itself, and to a leak created by test A and reaped by test B (the pre/post windows never overlap the bad state). No committed test covers either shape.
-HOW       (director, mur-eg-62 = DEMOTE) the suite-wide conftest.py gate is the demote's centre: it must (a) never crash at import outside a project root, (b) read the lease dir from spawn_budget.budget_dir, never the per-worktree fork, (c) never FAIL a test for a live dispatch it did not cause, (d) carry a committed witness that fails on the leak it names. If that cannot fit the CEILING, REMOVE the gate from conftest.py (the net lines fall back under the cap), keep the per-test witnesses, and write the leak class on your node as OUTSIDE for the director's next goal leaf -- a smaller true gate over a larger wrong one.
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
-TESTS     conftest.py test_no_live_root_writes.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE extensions/agi/tests/conftest.py · extensions/agi/tests/test_no_live_root_writes.py · .agi/nodes/experiment/a00-0a1da446-239cfa.md · .agi/nodes/experiment/a00-64e1ebef-356f47.md · .agi/nodes/experiment/a00-cd03d34d-0dfbb3.md (write.py) · the kid's own node
-CEILING   HARD CAP: 1 kid · <= 15 production lines net over 5ffa11d86 · <= 40 test lines net over 5ffa11d86 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 5ffa11d86 <your final tip>` on your node (an empty range is not a measurement)
-PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.152: mur-eg-62 EG.128-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.128: mur-eg-34 EG.94-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
