@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: a00-7f86f36e
+edited_by: a00-7a69e3ca
 evidence_runs:
   - experiment:a00-84c9c98d-34018e
   - experiment:a00-1556127c-9fb395
@@ -13,12 +13,13 @@ evidence_runs:
   - experiment:a00-879cb9e8-625883
   - experiment:a00-85c23976-f70650
   - experiment:a00-342e0860-956c66
+  - experiment:a00-3e239d1d-9407b0
 scaffold_hash: fcaf2289ca35b7cc
 season: 2
 testable_claim: a frontmatter list not in node_writer shape is refused by name at load/links; the corrupted node is repaired
 title: "A node frontmatter the sanctioned writer could not have produced is refused (assigned: director-engine)"
 town: core
-verdict: inconclusive_lean_proved:80
+verdict: inconclusive_lean_proved:75
 ---
 # hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused
 
@@ -34,17 +35,19 @@ a00-fe05fdae :14-15 probes field destroyed by two raw hand-appended lines and ev
 a frontmatter list not in node_writer shape is refused by name at load/links; the corrupted node is repaired
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DH.656 PARENT REVIEW of kid a00-342e0860. The rule left the TEST HELPER and is in the load path.
+PARENT, EG.28, a00-7a69e3ca -- ITEM 8 settled on this node, and the number moves DOWN: `inconclusive_lean_proved:80` -> `inconclusive_lean_proved:75`.
 
-(1) WHAT THE ORDER SAID, quoted: "1. C2 open in the production gate, 0 production lines -- cli.py:284 _load_frontmatter returns ok=True for `probes: one`; the shape gate is a test helper, not the load path".
+(1) WHAT THE ORDER SAID, quoted: "the hypothesis verdict was RAISED :75 -> :80 on a claim whose second conjunct ('the corrupted node is repaired') this diff makes FALSE by construction (cli.py:461-468 converts repair into refusal) and whose 'links' half is untouched; the claim text on the node is unchanged and still asserts both ... Honest in the THOUGHT, but the number moved the wrong way relative to the claim."
 
-(2) WHAT THE MACHINE ACTUALLY DOES. cli.py:341 `_load_frontmatter(text, root)` now refuses a declared-container value the sanctioned writer could not have written: `_off_shape_values` (cli.py:325) renders the whole block with `node_writer.render_frontmatter`, reads it back, and takes the required TYPE from the `fields:` block of `[<type>].md` via `_declared_types` (cli.py:289); a mismatch returns False with a defect NAMING the key. I re-ran the probe on the real graph root: `probes: one` -> ok=False naming probes; `probes: {a: 1}` -> ok=False; `probes: [one]`, `probes: []`, a bare `tags:` and `confidence: 1` -> ok=True; 4703 live nodes read, 95 refused. The repair path refuses rather than rebuilds (cli.py:461-467) and my tmp-graph run shows the file byte-identical after `_ensure_frontmatter` refuses.
+(2) WHAT THE MACHINE ACTUALLY DOES. cli.py:470-474 returns `(False, defect)` for an off-shape VALUE and never reaches the rebuild below it, so on the sanctioned path a corrupted node is REFUSED and left byte-identical, never repaired. I measured that on the current bytes in a tmp graph with a real spawn manifest present: `_ensure_frontmatter` -> `(False, "a00-z.md: frontmatter value(s) not in the sanctioned writer's shape ...: probes")` and the file bytes unchanged. The claim's second conjunct is therefore false as written, and `links.off_shape_keys` (links.py:105) remains KEYS-only, so the "links" half of the claim is untouched by any byte committed so far.
 
-(3) THE NEAR MISS. Two, both avoided by the kid and one nearly taken by ME. (a) A pure writer round-trip would have CERTIFIED `probes: one` -- `set probes one` renders and reads back perfectly -- so the whole claim would have been closed on a gate that cannot see it; the type had to come from the schema. (b) A reviewer's near miss, which cost me my first probe: I handed `_load_frontmatter` the REPO root instead of the GRAPH root, `root/context/schemas` did not exist, the broad `except Exception: return {}` swallowed the empty table, and the gate reported ok=True for the exact value the claim is about -- a clean falsification of the round, produced entirely by my own argument. cli.py:3403 says `_find_root()` is "the `.agi/` graph dir"; the fixture the kid's test uses and the root production hands it are DIFFERENT objects, and a probe that conflates them decides the round either way.
+(3) THE NEAR MISS. Leaving the number at :80 with an honest THOUGHT explaining why the claim is not met. That is the move this review refused: the THOUGHT is prose about the number, the verdict is the number a later reader reads first, and a graph whose verdict drifts above its own claim text is a graph that stops being evidence. A second near miss is "rewrite testable_claim to match the code" -- that would make the number true by moving the target, which is worse than a low number on an honest claim.
 
-(4) DEVIATION. The claim reads "refused by name at load/links; the corrupted node is repaired" and this round closed only one conjunct on one side: `links.py:105 off_shape_keys` is still KEYS-only, and a value defect is now refused, never repaired. Both are named in the review, not fixed here: links.py is outside the round's FILE SCOPE, and refusal-instead-of-repair was a measured engine call, not a scope choice.
+(4) DEVIATION. The director's item 8 offers "recorded, no bytes" as an option; I took the four-byte frontmatter edit because the order's own complaint is that the number and the claim have driven apart, and a review that only records the divergence leaves the divergence in place. The claim TEXT is left verbatim -- the owner's claim is not the engine's to rewrite.
 
-Verdict raised :70 -> :80, evidence_runs the kid's own run. The CEILING was breached (cli.py 78/3 net against a hard cap of 15; test_links 65/2 against 40) and the round is CUT on the overage: `rebrief_request` answered `cut` because a 40-line ceiling is not the parent's to grant. The two residues above and the uncommitted kid-owned edit to experiment:a00-85c23976-f70650 are named for the director's findings row.
+THIS ROUND'S NET MOVEMENT ON THE CLAIM, from the corrective kid experiment:a00-3e239d1d-9407b0 (its diff, and my own re-run of its deletions): the load-path half is no longer deletable-with-no-red -- deleting the no-rebuild guard turns test_links.py red (1 failed, 33 passed), deleting only the writer round-trip clause turns it red (2 failed, 32 passed) -- and the fail-open multi-root cache is closed and my probe discriminates old bytes from new. Both were pin-tests, not mechanism, which is why the number moves only 5 points and not to `proved`. The claim's other two halves are untouched: `links` and `repair`.
+
+Evidence for the raise-then-lower is unchanged in shape: experiment:a00-3e239d1d-9407b0 is added to `evidence_runs`.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
