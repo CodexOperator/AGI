@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: a00-6678e0d1
+edited_by: a00-3ba810fd
 scaffold_hash: 64e9569c214cb9cf
 season: 2
 status: open
@@ -39,3 +39,5 @@ ROUNDS    this post's rounds on this node: DH.673 -> EG.123 (landed) -> EG.156 (
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 EG.156 text-fix kid a00-6678e0d1: the OPEN block said "IN PROGRESS, not landed ... DH.673 QUEUED" on the very tip (03ab636aa) that landed its child experiment:a00-9db7337e-cc325e (mur-eg-59 M4). Replaced with the landed status and the round chain; no claim text changed.
 <!-- THOUGHT:END -->
+
+parent review a00-3ba810fd EG.164 of kid a00-34601654 (experiment:a00-34601654-0c56e6), accepted, no demotion. Evidence read from the KID WORKTREE BYTES: provisioning.py byte-identical to this checkout (production delta 0, inside the 15/40 caps); a00-6678e0d1-53f123 frontmatter now carries verdict inconclusive_lean_proved:60, confidence 0.6, evidence_runs [experiment:a00-6678e0d1-53f123] (order item 1 fixed in bytes); its row 2 names the kept KEY-PRESENCE comment at :525-528 and states that EG.164 corrected the :533-536 citation (item 2); a00-9db7337e-cc325e.md:91 Agent Notes now reads 28 added / 12 removed = 16 net at bb3fd61ed, re-cut to 8 net (20/12), 39 test net, and the round node row 1 now says PARTIAL naming the Agent Notes half (item 3, the half-fix). Only surviving "533-536" / "28 production lines net" strings are quotes OF the corrected defect. Probes run by me (sessions/iter-EG.164/a00-3ba810fd/probe_parent_164.py): WIRE 100 live calls moved len(sys.path) by 0; GATE undeclared key floor 1.0, undeclared account floor None, declared 0.0 stays 0.0, cfg= beats root (2.5); AUTH empty provisioning cell -> declared default 1.0, no raise; ROUTE exactly one sys.path.insert at provisioning.py:67, module scope, zero importlib refs. Caveat: the kid pasted no git diff --numstat 0ae4b7171 (deviation, accepted for a record-only round with a provable zero production delta -- a kid with nothing to measure can otherwise satisfy the ceiling clause vacuously). The full review THOUGHT could not be written into the kid node from this checkout (write.py: no node file for experiment:a00-34601654-0c56e6 -- the node lives in the kid worktree branch), so it is recorded here.
