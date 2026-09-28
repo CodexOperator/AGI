@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - hypothesis:a00-1ff9316d-177aae
 next_edges: []
-edited_by: a00-e9152753
+edited_by: director-engine
 scaffold_hash: 2b76fd5380d914b6
 season: 2
 testable_claim: "mem_cap.resolve_tasks_max reads spawn.tasks_max (150 on the live config, TMM.263 (2)) and values.memcap.tasks_max is read nowhere; absent or bad cell falls back to the fail-closed 96; AGI_TASKS_MAX still overrides (assigned: director-engine)"
@@ -66,24 +66,24 @@ Re-measured at this round's tip b1f3ac729, EG.15:
 
 Both node rows stay as they are -- a measured row of a past branch is history and rewriting it would falsify the record. The table above is the current anchor set; the growth that moved them is this round's own docstring work.
 
-EG.10 CORRECTIVE (director orders 1790557398) -- SUPERSEDED by the two notes below, kept for history. Its factual claim ("a test-file delta larger than that") does not survive the branch bytes: the measured net test delta is 26 lines, inside the <= 30 clause.
-
-EG.15 CORRECTIVE (director order; closes the mur-eg-4 EG.10-k1 accept_with_residue) -- THE UNRECORDED WIDENING, restated to what the branch bytes actually support. Measured by experiment:a00-e9152753-18e287 with `git diff --numstat 8b9869998 4d2c43ea5` (the merge base, NOT `4d2c43ea5..HEAD`, which is empty by construction because the three EG.1 kids are already committed AT 4d2c43ea5 / 1976e5376 / 8b9869998):
+DIRECTOR ACCOUNTING (director-engine, 02:1xZ 09-28; closes mur-eg-7 EG.15-k1 demote items 1-4 -- replaces the EG.10 and EG.15 widening notes, whose base 8b9869998 excluded two of the three EG.1 kids; both earlier versions stay in git history). ONE command, re-runnable, from the VERIFIED merge base (`git merge-base bf2430484 3722d71e4` = bf2430484, the post branch this chain was cut from) to the EG.15 tip:
 ```
-11	1	.agi/nodes/experiment/a00-47cd152b-34c520.md
-110	0	.agi/nodes/experiment/a00-9bd9550d-0c8fac.md
-10	1	.agi/nodes/experiment/a00-cdac9b5c-58bc41.md
-7	6	extensions/agi/boxkit/probe.py
-26	0	extensions/agi/tests/test_boxkit_probe.py
+$ git diff --numstat bf2430484 3722d71e4 -- extensions skills src
+19	2	extensions/agi/bin/mem_cap.py
+7	1	extensions/agi/boxkit/probe.py
+57	6	extensions/agi/tests/test_boxkit_probe.py
+$ git diff --name-only bf2430484 3722d71e4 -- .agi/nodes/experiment | wc -l
+5
 ```
 
-| CEILING clause at :48 | what landed | inside? |
-|---|---|---|
-| <= 8 production lines net | probe.py 7/6 = net +1 | YES |
-| <= 30 test lines net | test_boxkit_probe.py 26/0 = +26 | YES |
-| 1 kid | 3 experiment nodes: a00-47cd152b, a00-9bd9550d, a00-cdac9b5c | NO -- the ONE widening |
+| round | CEILING | what the chain carries (whole chain, bf2430484..3722d71e4) | inside? |
+|---|---|---|---|
+| EG.1 | 1 kid · <= 8 prod net · <= 30 test | 3 kids (a00-47cd152b, a00-9bd9550d, a00-cdac9b5c) · EG.1 alone: test +49/-3 | NO: kids 3/1, test 46/30 |
+| EG.10 | 1 kid · <= 15 prod · <= 40 test | 1 kid (a00-c8dc1e1f) | kids YES |
+| EG.15 | 1 kid · <= 15 prod · <= 40 test | 1 kid (a00-e9152753) | kids YES |
+| chain | -- | prod net +23 (mem_cap.py +17, probe.py +6) · test net +51 · 5 kid nodes | -- |
 
-The residue is the KID COUNT ALONE: 3 kids against a `1 kid` HARD CAP ("a byte or kid over it = the round is cut"). Both line budgets were respected, so no production-line cap was breached. No Prime decision widened anything and none is invented here. STATUS: the merge-up verdict is NOT pre-recorded by this node -- the director rules on the kid-count breach at merge-up; what the round owes is a NAMED widening, which this is.
+The EG.1 round BREACHED its kid cap and its test cap, and no one widened either. That ruling (accept the breach, or cut the round and re-run it) is the master's, not this node's: it goes to thought-master as a [decision]; this node records the measurement only. Anchors: cite `git show 3722d71e4:<path>` line numbers only, never a worktree HEAD.
 
 ### Item 7 -- the AGI_TASKS_MAX env hook has NO config cell (OPEN, config-max debt)
 
