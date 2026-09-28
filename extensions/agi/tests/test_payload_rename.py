@@ -391,6 +391,58 @@ def test_unset_payload_ref_refuses_by_name(tmp_path):
     assert _row_ref(node) == "lib/mod.py" and payload.is_file()
 
 
+def _both_fields_graph(tmp_path: Path):
+    """A row naming its bytes in `payload_ref` AND carrying a hand-written body
+    link in `link_ref` -- the M2 shape, where the two fields disagree."""
+    graph, payload, node = _graph(tmp_path)
+    (tmp_path / "docs").mkdir(exist_ok=True)
+    target = tmp_path / "docs" / "spec.md"
+    target.write_text("the body target\n")
+    row = node.read_text().replace("payload_ref: lib/mod.py\n",
+                                   "payload_ref: lib/mod.py\nlink_ref: docs/spec.md\n")
+    node.write_text(row)
+    return graph, payload, node, target
+
+
+def test_a_body_link_is_unsettable_and_the_payload_refusal_names_its_own_field(
+        tmp_path):
+    """DH.663 (review probe P7b): the unset guard tested BOTH fields and
+    raised ONE message naming `payload_ref`, so a `link_ref` that names a body
+    target -- not the payload -- was refused by a message about a field the
+    caller never wrote. Only the field the row actually names its FILE by is
+    refused, and the refusal names that field."""
+    graph, payload, node, target = _both_fields_graph(tmp_path)
+
+    # the body link drops: the file it names is the node's, not the bytes'
+    edit = write.Edit(node_id="build:b1")
+    write.verb_unset(edit, "link_ref")
+    res = write.submit(graph, edit, actor="kid", session="s1")
+    assert res.status != node_writer.REJECTED, "dropping a body link is legal"
+    assert "link_ref" not in node.read_text().split("---")[1]
+    assert target.is_file() and _row_ref(node) == "lib/mod.py" and payload.is_file()
+
+    # the payload field is still refused, by ITS name
+    edit = write.Edit(node_id="build:b1")
+    write.verb_unset(edit, "payload_ref")
+    with pytest.raises(write.EditError) as refused:
+        write.submit(graph, edit, actor="kid", session="s1")
+    assert "payload_ref" in str(refused.value)
+    assert _row_ref(node) == "lib/mod.py" and payload.is_file()
+
+
+def test_unset_link_ref_on_a_create_payload_row_refuses_by_its_own_name(tmp_path):
+    """The `create --payload` shape names the file in `link_ref` ALONE, so
+    unsetting it there drops the row's name for bytes that stay on disk -- the
+    same hazard, and the refusal must say `link_ref`, not `payload_ref`."""
+    graph, payload, node = _link_graph(tmp_path)
+    edit = write.Edit(node_id="build:b1")
+    write.verb_unset(edit, "link_ref")
+    with pytest.raises(write.EditError) as refused:
+        write.submit(graph, edit, actor="kid", session="s1")
+    assert "link_ref" in str(refused.value)
+    assert payload.is_file() and "link_ref: lib/mod.py" in node.read_text()
+
+
 def test_a_failed_move_rolls_the_location_back_too(tmp_path, monkeypatch):
     """P7: the rollback restored the ref under the NEW `location` the same
     write had rebound -- a row that names nothing."""

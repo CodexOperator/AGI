@@ -2302,9 +2302,19 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # the row would stop naming the bytes while they stayed on disk -- a
     # dangling name, silently. Refuse BY NAME (measured DH.643 a00-caba36a1,
     # M3): the row loses its name, and the bytes have nowhere to go.
+    #
+    # Only the field the row ACTUALLY names its file by is refused, and the
+    # message names THAT field. `_payload_ref` reads `payload_ref` first, so
+    # on a row carrying both fields a `link_ref` naming a body target is not
+    # the payload at all: the wide guard blocked a legal verb (DH.643 review
+    # probe P7b) and told the caller to re-point a field they never wrote.
+    # A `create --payload` row names its file in `link_ref` ALONE, so it is
+    # refused there too -- by its own name.
     if "payload_ref" in edit.unset_fm or links.LINK_FIELD in edit.unset_fm:
-        raise EditError("unsetting a payload_ref names nothing to move; "
-                        "re-point it with `set payload_ref`.")
+        _unset_named = _payload_ref_field(root, edit)
+        if _unset_named and _unset_named in edit.unset_fm:
+            raise EditError(f"unsetting {_unset_named} names nothing to move; "
+                            "re-point it with `set payload_ref`.")
     if "payload_ref" in set_fm or "location" in set_fm:
         try:
             _old_ref, _old_loc = _payload_ref(root, edit)
@@ -2902,6 +2912,26 @@ def _link_ref(root, node_id: str) -> str:
     fm = fm_reader.load_node_file(path, body=False).frontmatter
     lr = fm.get(links.LINK_FIELD)
     return lr.strip() if isinstance(lr, str) and lr.strip() else ""
+
+
+def _payload_ref_field(root, edit: Edit) -> str:
+    """Which FIELD this node names its file by, `""` if it names none.
+
+    `_payload_ref` returns the path; the unset guard needs the field, so the
+    refusal can name what the caller actually wrote. Same order as
+    `_payload_ref`: `payload_ref` first, `link_ref` (the `create --payload`
+    shape) second.
+    """
+    from graph_core.persistence import frontmatter as fm_reader
+
+    path = node_writer.find_node_file(root, edit.node_id)
+    if path is None:
+        return ""
+    fm = fm_reader.load_node_file(path, body=False).frontmatter
+    for field in ("payload_ref", links.LINK_FIELD):
+        if str(fm.get(field) or "").strip():
+            return field
+    return ""
 
 
 def _payload_ref(root, edit: Edit) -> tuple[str, str | None]:
