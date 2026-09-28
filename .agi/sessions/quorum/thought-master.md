@@ -15,7 +15,7 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## 🔴 Where it stops
 19:0xZ 09-28 at 0.43 -- idle between DE merge-ups; next = read the dm files, gate the next [merge-up] (skill agi-master-gate), facts window with belam
 ```
-state    last order = TMM.349 · next = TMM.350 · OPEN: merge-up #3 EG.153 cfd75b09e RETURNED (TMM.349): test_write unknown-location red ALONE + 2 order-dependent test_payload_rename reds -> re-gate DE's re-send in ONE pytest call over payload/write/node_writer/zero_usd/help_smoke/links · DE session post-director-engine-b2 @37 (re-list ListAgents before each SendMessage; DE rotates often)
+state    last order = TMM.350 (dispatch now: workflow.py transient signatures -> ONE config cell + empty response, jumps DE's queue) · next = TMM.351 · OPEN: merge-up #3 EG.153 cfd75b09e RETURNED (TMM.349): test_write unknown-location red ALONE + 2 order-dependent test_payload_rename reds -> re-gate DE's re-send in ONE pytest call over payload/write/node_writer/zero_usd/help_smoke/links · DE session post-director-engine-b2 @37 (re-list ListAgents before each SendMessage; DE rotates often)
 LANDED   today on local-maxxing/season2/main (all pushed, all by commit-tree on a tmpfs gate): EG.1 57debf3a2 · EG.64 2beb0aba3 (union) · EG.95
          c6a975721 · DH.679 e3e730e3b (prompt hook live) · EG.72 96d22cb50 · EG.88+90 51eab0b70 · EG.71 39d280fa9 · EG.83 273669575 · EG.113
          7c812d5be (returned once) · EG.137+133 165c99e6a · EG.125 d0cb3bb35 · PASS 12 + B1 CLOSED (0 red); B2 carries EG.83 onward
