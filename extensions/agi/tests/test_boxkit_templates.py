@@ -1,7 +1,7 @@
 """The boxkit acceptance suite for
 hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes.
 
-Rows 1-14, one per clause of the claim, plus lettered sub-rows. THE RULE, not an
+Rows 1-15, one per clause of the claim, plus lettered sub-rows. THE RULE, not an
 inventory: a row is SPECIFIED by the comment above its own test. This docstring is
 nevertheless an inventory, and the claim that it is not was refuted by its own bytes
 (DH.653 item 5: rows 11, 12 and 13 were named in the file and listed nowhere here).
@@ -164,7 +164,12 @@ LEAK_ROOTS = _leak_roots(PROJECT)
 # repointing the cell left row 4 blind). TAIL TWO, not the leaf: 'guard' is a piece name.
 GUARD_FRAGMENT = "/".join([p for p in Path(CELLS["guard_dir"]).parts
                            if not p.startswith("{")][-2:])
-KIT_TOKENS = (OWNER, str(Path.home()), GUARD_FRAGMENT)
+# the guard dir's OWN PREFIX, from the same cell (DH.653 item 2): narrowing the literal
+# '/.sanctuary/' to the tail-two fragment left a sibling byte under .sanctuary/ a leak
+# that no row covered. DRAWN, not re-typed -- still one source.
+GUARD_PREFIX = "/".join([p for p in Path(CELLS["guard_dir"]).parts
+                         if not p.startswith("{")][:1])
+KIT_TOKENS = (OWNER, str(Path.home()), GUARD_FRAGMENT, GUARD_PREFIX)
 # a fragment absent from the resolved dir can never fire -- refused at the definition
 assert GUARD_FRAGMENT in str(R.expand(CELLS, CELLS["guard_dir"], R.engine_checkout())), \
     "paths.boxkit.guard_dir %r yields fragment %r, absent from the resolved dir" % (
@@ -178,6 +183,9 @@ def _leaks(text, roots=LEAK_ROOTS):
 # the source and the rule are one: if a token is in KIT_TOKENS it must be DENIED
 # by _leaks. RED if the tuple grows and the denylist stops consulting it.
 assert all(_leaks("cd %s\n" % t) for t in KIT_TOKENS if t), KIT_TOKENS
+# the LOST CLASS, covered: a template naming a sibling under the guard dir's prefix
+assert _leaks("cd %s/notes\n" % GUARD_PREFIX), \
+    "the guard dir's own prefix class is not denied"
 
 # A probe identity: contract tests need SOME value for REPO_ROOT/GUARD_SRC to render
 # at all, and a probe is not the answer -- the wire test below supplies nothing.
@@ -1095,7 +1103,10 @@ def test_the_kit_denylist_and_the_engine_denylist_are_disjoint_in_both_direction
 def test_the_row_inventory_here_lists_every_row_the_file_names():
     text = Path(__file__).read_text(encoding="utf-8")
     listed = {int(m) for m in re.findall(r"^(\d+)[.:] ", text, re.M)}
-    used = {int(m) for m in re.findall(r"[Rr]ow (\d+)", text)}
+    # the DECLARED row comments count as uses too (DH.653 item 1): a row declared only
+    # as a bare `# N --` comment, named nowhere in prose, was invisible here and green.
+    used = ({int(m) for m in re.findall(r"[Rr]ow (\d+)", text)}
+            | {int(m) for m in re.findall(r"^# (\d+)\s", text, re.M)})
     missing = sorted(used - listed)
     assert not missing, ("row(s) %s are named in this file but absent from the docstring "
                          "inventory: add the entry, do not delete the reference" % missing)
