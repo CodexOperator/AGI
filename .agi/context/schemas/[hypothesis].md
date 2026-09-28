@@ -47,6 +47,7 @@ dispatch (grid history needs a real commit). Prose, so not in `validation:`; a m
 ## TESTS          the committed tests + their neighbourhood
 ## FILE SCOPE     the files the round may touch, nothing else
 ## CEILING        kids · 10-12 production lines per conjunct · pi parents · a USD cap
+                 measure the CEILING with a TWO-operand numstat, <cut>..<tip before the paste commit>, labelled so (a commit never pastes a numstat that includes itself) · every cite names a function, heading or cell key -- a line number only where the claim IS the line (TMM.328 (c))
 ```
 
 The kid answers the dispatch line FIRST, before any code (owner 2026-09-18 22:0xZ, `doc:l5-owner-decisions`: the config max and
