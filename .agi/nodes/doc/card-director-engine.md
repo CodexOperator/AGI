@@ -32,8 +32,8 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 
 ## §0 STATE (18:5xZ 09-28 · live during the work; per-chain history = git log of this node)
 ```
-MERGE-UP  #1 LANDED 165c99e6a (TMM.345: EG.137 + EG.133 chains) · #2 SENT 18:4xZ: post 08177c25f = EG.125 chain (EG.100 -> 125 -> 157
-          merge resolution; test_cli.py append/append = union, 385 passed) -- await TM
+MERGE-UP  #1 LANDED 165c99e6a (TMM.345: EG.137 + EG.133 chains) · #2 LANDED d0cb3bb35 (TMM.347): post 08177c25f = EG.125 chain (EG.100 -> 125 -> 157
+          merge resolution; test_cli.py append/append = union, 385 passed)
 POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-corrective; TMM.344 answered my stale [red] -- no ruling needed)
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
@@ -55,8 +55,10 @@ EG.5      [red] to TM 18:4xZ (MAJOR): EG.145 guard needs belam cell templates.di
           (absent; live region ~2001 B > the 2000 target) -- after that and EG.145 clears (EG.107 chain) -> merge the post in -> [merge-up] into the facts window (TMM.334 3)
 EG.9      chain tip 1a4046949 waits murq244 (EG.140). AFTER EG.9, in order (TMM.345): (1) the basetemp gate = the EG.128 chain
           (EG.152) + a reaper for >24 h basetemp dirs no process holds -- a FIX, not a row (2) ONE goal:g7.33 hypothesis: repair
-          the off-shape frontmatter via write.py set (15 keys links.py MALFORMED + 106 nodes cli refuses), pi-free (3) the g7.33
-          hypotheses TMM.328 b · 330 · 338 · 336 · findings (b)(c) accepted as rows; (c) merge-resolution ceiling cell = config-max round
+          the off-shape frontmatter via write.py set (15 keys links.py MALFORMED + 106 nodes cli refuses), pi-free (3) TMM.347: ONE goal:g7.33 hypothesis
+          -- dispatch stamps dispatch_node_id into the kid agent.json at spawn (the --owns refusal makes a dead kid unownable); until
+          it lands, dead-kid salvage is the director's, NAMED in every [merge-up] (4) the g7.33 hypotheses TMM.328 b · 330 · 338 · 336
+          (TMM.336 (5) row absorbs [rule] V9) · findings (b)(c) accepted as rows; (c) merge-resolution ceiling cell = config-max round
 EG.102    chain HELD until EG.143 clears · HELD never land: EG.7 · EG.30 · EG.24 · EG.50 · DH.671 cell · EG.19
 GATE      TMM.306 load1 < 16 AND io avg60 < 50, two reads 5 min apart · arm 10 (TMM.343: hammer it) · CC: MemAvailable >= (live+2) x 2G
 ```
