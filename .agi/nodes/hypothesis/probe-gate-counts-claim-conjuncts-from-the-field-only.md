@@ -159,6 +159,21 @@ FILE SCOPE  · .agi/nodes/experiment/a00-7b5520ac-96a290.md · .agi/nodes/experi
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 8698b348e · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.63 -- closes mur-eg-14 EG.40-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-probe-gate-counts-cla-a00-384c3b60 tip c2ddbb9fc (branch de-base-EG.63; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Stale edited_by pointer reintroduced in the very line that fixed ORDER 4 -- .agi/nodes/experiment/a00-df914bba-114582.md:222 -- The sentence asserts 'DH.666's own write has since set it to 9:edited_by: a00-5ab2709c', but the same file's line 9 at c2ddbb9fc reads 'edited_by: director-engine' -- the fix for the 'pasted pointer that no longer points' class introduces a new pointer that does not point.
+2. THOUGHT marker cites an edited_by value the file no longer carries -- .agi/nodes/experiment/a00-df914bba-114582.md:30 -- 'authored in DH.666 by a00-5ab2709c (the edited_by above)' -- line 9 reads 'edited_by: director-engine' at c2ddbb9fc; the attribution sentence is true, the pointer that supports it is not.
+3. Pre-fix defect still stated in the present tense one line above its correction -- .agi/nodes/hypothesis/probe-gate-counts-claim-conjuncts-from-the-field-only.md:25 -- Bullet 1 still says _claim_conjunct_numbers 'unions every (n) match in the field WITH every match in the body' as the live state; the new bullet 26 says the fix is landed. The round marked :26 historical and left :25 unmarked, so the first line a reader meets contradicts the tree (cli.py:1179-1183).
+4. Claim-level verdict unrecorded on the hypothesis although FILE SCOPE granted it -- .agi/nodes/hypothesis/probe-gate-counts-claim-conjuncts-from-the-field-only.md:1 -- OrdersEG.40 FILE SCOPE granted write.py on 'verdict + evidence_runs'; at c2ddbb9fc the node carries neither key while its two children carry proved and inconclusive_lean_proved:80. Schema-legal ([hypothesis].md required: id,type,mint_id,title,testable_claim) but the hypothesis's own outcome is nowhere in the bytes.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_bin_help_smoke.py once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT (TMM.322)); TEXT-ONLY round: node text only
+FILE SCOPE .agi/nodes/experiment/a00-5ab2709c-91e4fd.md · .agi/nodes/experiment/a00-df914bba-114582.md · .agi/nodes/hypothesis/probe-gate-counts-claim-conjuncts-from-the-field-only.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · node text only · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat c2ddbb9fc <your final tip>` on your node (an empty range is not a measurement)
+KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit; a version delta goes in the node THOUGHT (write.py), never the body
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.666: mur-director-engine-41 DH.641-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.63: mur-eg-14 EG.40-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
