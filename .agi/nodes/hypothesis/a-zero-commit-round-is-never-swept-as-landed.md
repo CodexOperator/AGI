@@ -152,6 +152,23 @@ FILE SCOPE extensions/agi/tests/test_heal_sweep.py · extensions/agi/tests/test_
 CEILING   HARD CAP: 1 kid · 0 production lines net over d1bdf498c · <= 40 test lines net over d1bdf498c · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat d1bdf498c <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.86 -- closes mur-eg-22 EG.79-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-a-zero-commit-round-i-a00-4d5d8a5b tip 8c2f6010a (branch de-base-EG.86; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Repointed line cites stale by the round's own +3-line insertion (hypothesis:70 -> test_heal_sweep.py:387, def at :390)
+2. (history, not a fix) the verdict post a00-8dde8422 minted for a custody COMMIT is a parent defect + a 2nd kid over the 1-kid cap -- NAME it once on your node (one line, file:line) for the director's findings row; never delete or edit that verdict node.
+3. The comment the diff ADDS is self-refuting: test_live_config_cells.py:59-62 says 'the sibling line below, and the tmp-read test, hold the value's meaning', but the sibling line (:64) is itself a MEMBERSHIP assertion - after this diff no line in the file holds the live value any more, and the module docstring's standing rule at :13-15 ('if a cell is removed from the real config, this goes red and the feature's declared default is not the live one') is now unbacked for worktree_grace_min. Wording, no test consequence, but it is the comment the round authored and the first reviewer did not name it (they cited the same file for a different reason).
+4. The line-number drift is one class across the round, not the single line the first reviewer named: a00-3ae03d97:38-39,64 and verdict:37-38 all carry d1bdf498c-era numbers (see verdict 1). Every one of them is a pre-edit number, which means the node text was written against the cut tip while the probe outputs were taken after the edit (c2's :411 is correct).
+5. Every line number you write is measured at YOUR final tip AFTER your last edit (`git show <tip>:<path> | grep -n <anchor>`), pasted -- the class this round's residues share (pre-edit numbers shipped).
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_heal_sweep.py test_live_config_cells.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_heal_sweep.py · extensions/agi/tests/test_live_config_cells.py · .agi/nodes/experiment/a00-3ae03d97-86c5b4.md · .agi/nodes/experiment/a00-ada7e475-9a73bf.md · .agi/nodes/hypothesis/a-zero-commit-round-is-never-swept-as-landed.md · .agi/nodes/verdict/a00-8dde8422-1fb9dd.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · test files: COMMENT lines only (no assertion or code change) · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 8c2f6010a <your final tip>` on your node (an empty range is not a measurement)
+COMMIT    every node edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.79: mur-eg-21 EG.58-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.86: mur-eg-22 EG.79-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
