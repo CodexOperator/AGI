@@ -33,7 +33,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ## §0 STATE (09:5xZ 09-28 · successor woke 09:46Z; captive rotate-self failed rc=1 · per-chain history = git log of this node)
 ```
 MERGE-UP  last LANDED: EG.1 chain 57debf3a2 (TMM.318). EG.64 chain LANDED on the trunk 2beb0aba3 (TMM.325; post 19564b6c0); trunk 1b0842f0a merged into the post 09:3xZ. TMM.325: findings (1)-(4) accepted under g7.33.19; skills-cell [rule] sent to belam; corrective orders NEVER quote the THOUGHT marker literally (gen2 now de-marks) -- test_thought_hygiene red = 7 quoted nodes, 2 from my range, until the detector fix
-SERIES    next EG.98 · murs mur-eg-N (last read mur-eg-26 = murq195) · next murq202
+SERIES    next EG.98 · murs mur-eg-N (last read mur-eg-26 = murq195) · next murq203
 TOOLS     T=<scratchpad 96494ce7-...>: gen2.py N murq<Q>.json tip label (MURK=, NOEX=1, EXTRA=; triage by hand) · place2.sh (pi-free parent) ·
           placecc.sh (CC TEXT KID; overlays the POST config+ladder so kids resolve opus-5-5) · placef.sh N HYP (fresh) · mkmur.py + runmur.sh ·
           hcc.sh N (CC kid: waits for its PID, not its lease, then flock-harvests) · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N
@@ -45,11 +45,12 @@ OWNER     05:2xZ via belam 05:38Z: CC kids + parents = claude-opus-5-5 (merged 1
           · 06:4xZ via belam 06:27Z: progress -> board 'note' -- REFUSED for posts (goal:g12) -> TMM.323: progress in §2 until EG.59 lands
 TMM.322   (3) every pytest: TMPDIR + --basetemp /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT · (1) = EG.60 · (2) answered
 MURS      RUNNING (units agi-director-engine-murq*): murq194 = DH.678 + DH.679 + EG.49 · murq196 = text EG.71 77 82 83 84 85 · murq197 = text
-          EG.86 88 89 90 91 95 · murq198 = EG.2 (43a8b5793) · murq199 = EG.53 (d212b8d7d) · murq200 = EG.3 (039140151; smoke red = suite_guards BASE)
+          EG.86 88 89 90 91 95 · murq198 = EG.2 (43a8b5793) · murq199 = EG.53 (d212b8d7d) · murq200 = EG.3 (039140151; smoke red = suite_guards BASE) · murq201 = text EG.92 93 · murq202 = EG.54
 KIDS      EG.92 a00-52cf65c5 (80bd792c3 over e58aad4f6) + EG.93 a00-106015ff (954252b19 over 4c1c57efc) HARVESTED 09:43Z -> murq201 RUNNING
           (09:4xZ, both text rounds, T/murq201.json) · no other CC kid live
-PI LANE   LIVE: EG.54 parent a00-917f3807 + kid a00-8825ba12 · EG.05 parent a00-ae69b608 (drainqg18) -- harvest each when watch2 fires
-          · qg chain after 54: 68 (DH.671) 72 75 76 78 80 81 87 94 96 97 (pi-free correctives, gate-held, qgEG<N>.sh in T) · drainqg18 left: EG.6
+PI LANE   EG.54 HARVESTED 09:49Z (a00-917f3807 ACCEPTED; tip bf992e505 + director salvage 65bcfbf19 = the pi_retry cell) -> murq202 RUNNING ·
+          LIVE: EG.05 parent a00-ae69b608 + kid a00-b9588536 · EG.68 parent a00-8cd5f2bd · EG.06 parent a00-5dea1caa (drainqg18)
+          · qg chain: 72 75 76 78 80 81 87 94 96 97 (pi-free correctives, gate-held, qgEG<N>.sh in T) · drainqg18: EG.6 placed = its last
 PASS 12   belam 06:50Z goal:g1.28 (on the TRUNK: merge local-maxxing/season2/main first), BEHIND the fix queue: 5 engine hypotheses (create/API
           set-verbs gate · suite fence stdlib spawn leaves · done commit never sweeps the gate source · seat-wrap DEMOTE · heal seat path cell WITH
           per-role roots) + hypothesis:pass12-0928-residue-batch (153 items) -> opus text kids <= 4
