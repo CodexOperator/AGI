@@ -2954,12 +2954,13 @@ def _payload_ref(root, edit: Edit, fm: dict | None = None) -> tuple[str, str | N
     path could point the verb at a file the node has never claimed.
     """
     if fm is None:
-        path = node_writer.find_node_file(root, edit.node_id)
-        if path is None:
+        # EG.80 M2: this path used to do its own find_node_file +
+        # load_node_file, so a double read here was INVISIBLE to a counter
+        # that watched `_node_fm`. One reader for the ref helpers; the
+        # refusal is the same contract as before, by name.
+        fm = _node_fm(root, edit.node_id)
+        if fm is None:
             raise EditError(f"no node file for {edit.node_id}")
-        from graph_core.persistence import frontmatter as fm_reader
-
-        fm = fm_reader.load_node_file(path, body=False).frontmatter
     ref = fm.get("payload_ref") or fm.get(links.LINK_FIELD)
     if not isinstance(ref, str) or not ref.strip():
         raise EditError(

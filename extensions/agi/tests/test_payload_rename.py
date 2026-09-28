@@ -318,20 +318,43 @@ def test_a_payload_verb_lands_on_the_new_name_when_the_old_file_is_absent(tmp_pa
     assert _row_ref(node) == "lib/mod.py", "a refused write does not touch the row"
 
 
+@pytest.mark.xfail(strict=True, reason="KNOWN RESIDUAL (EG.80 M4): the row is "
+                   "repointed at a name with no file and the payload verb then "
+                   "raises a raw FileNotFoundError; a GREEN test may not demand "
+                   "a defect. Closing it means node_writer.replace_payload "
+                   "CREATING -- node_writer.py is OUTSIDE this chain's scope. "
+                   "strict=True, so an XPASS -- the day someone fixes it -- "
+                   "FAILS the suite loudly rather than going quietly green.")
 def test_known_residual_a_row_may_name_a_file_that_does_not_exist(tmp_path):
-    """KNOWN RESIDUAL, not intended behaviour (director-engine item 1): the row
-    is repointed at a name with no file, and the payload verb then raises a
-    raw FileNotFoundError. Closing it means node_writer.replace_payload
-    CREATING -- node_writer.py is OUTSIDE this chain's file scope."""
+    """KNOWN RESIDUAL, asserted as the CONTRACT it should have (EG.80 M4).
+
+    The old body asserted the DEFECT: `pytest.raises(FileNotFoundError)`
+    plus `row == "lib/renamed.py"`. That is a GREEN test that DEMANDS the
+    hole, so the suite was green only while a raw FileNotFoundError escaped
+    `submit` past its own contract (write.py:2205-2207) with the row dangling.
+    The body now states the invariant -- after this write the row resolves to
+    a file that exists -- so it FAILS today and xfails, and the day someone
+    lets `replace_payload` create, the XPASS(strict) turns the suite RED.
+    Measured today (EG.80): `FileNotFoundError: payload <root>/lib/renamed.py
+    does not exist` and the row reads `payload_ref: lib/renamed.py` with NO
+    `link_ref` -- the mirror at write.py:2353-2355 needs
+    `_link_ref(root, node_id, fm=_fm) == _old_ref` and this fixture carries
+    no `link_ref` at all, so it never fires. The fix is
+    node_writer.replace_payload CREATING (node_writer.py:650-653), OUTSIDE
+    this chain's FILE SCOPE.
+    """
     graph, payload, node = _graph(tmp_path)
     payload.unlink()
     edit = write.Edit(node_id="build:b1")
     write.verb_set(edit, "payload_ref", "lib/renamed.py")
     edit.payload_bytes = "# caller's new bytes\n"
-    with pytest.raises(FileNotFoundError) as refused:
-        write.submit(graph, edit, actor="kid", session="s1")
-    assert "lib/renamed.py" in str(refused.value)
-    assert _row_ref(node) == "lib/renamed.py", "the row dangles -- the residual"
+    write.submit(graph, edit, actor="kid", session="s1")
+    import locations as _loc
+    loc = node_writer.load_node_file(node).frontmatter.get("location")
+    resolved = _loc.resolve_payload_path(graph, _row_ref(node), loc)
+    assert resolved.is_file(), (
+        f"the row names {_row_ref(node)} and no file is there -- the "
+        f"KNOWN RESIDUAL this xfail pins")
 
 
 def test_nothing_to_move_does_not_buy_an_overwrite_of_the_destination(tmp_path):
@@ -461,16 +484,29 @@ def test_one_submit_reads_the_frontmatter_once(tmp_path, monkeypatch, unsets,
                                               with_payload):
     """Owner 2026-09-28 04:5xZ: `submit` read the node once PER REF HELPER --
     2/3/3 on these shapes, ONE now, every answer derived from that read.
-    `unset link_ref` is legal here (the file field is `payload_ref`)."""
+    `unset link_ref` is legal here (the file field is `payload_ref`).
+
+    EG.80 item 1/M2: the instrument WAS `_node_fm` CALLS -- a symbol this fix
+    itself introduced, so on the pre-fix bytes it ERRORS instead of failing
+    with a number, and it is blind to any read that bypasses `_node_fm` (there
+    was one: `_payload_ref`'s no-`fm` fallback, now gone). It counts the REAL
+    reader `load_node_file` and attributes each call to the frame that made
+    it, so a double read is invisible to it no longer.
+    """
+    import traceback
+
+    from graph_core.persistence import frontmatter as fm_reader
     graph, payload, node = _graph(tmp_path)
-    seen, real = [], write._node_fm
+    seen, real = [], fm_reader.load_node_file
+    helpers = ("_payload_ref", "_link_ref", "_node_fm")
 
-    def counting(root, node_id):
-        fm = real(root, node_id)
-        seen.append(fm)
-        return fm
+    def counting(path, *a, **kw):
+        frames = [f.name for f in traceback.extract_stack()]
+        if any(h in frames for h in helpers):
+            seen.append(next(h for h in frames if h in helpers))
+        return real(path, *a, **kw)
 
-    monkeypatch.setattr(write, "_node_fm", counting)
+    monkeypatch.setattr(fm_reader, "load_node_file", counting)
     edit = write.Edit(node_id="build:b1")
     for field in unsets:
         write.verb_unset(edit, field)
@@ -478,7 +514,8 @@ def test_one_submit_reads_the_frontmatter_once(tmp_path, monkeypatch, unsets,
     if with_payload:
         edit.payload_bytes = "# caller's new bytes\n"
     write.submit(graph, edit, actor="kid", session="s1")
-    assert len(seen) == 1, f"{len(seen)} frontmatter reads, want 1"
+    assert len(seen) == 1, f"{len(seen)} frontmatter reads under a ref " \
+                           f"helper {seen}, want 1"
     assert (tmp_path / "lib" / "renamed.py").is_file()
 
 
