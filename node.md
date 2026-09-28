@@ -152,6 +152,37 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.652 PLACED (parent a00-92a04c39); open loop branch season2/loops/hypothesis-a-rounds-own-path-set-a00-92a04c39 c0a6a4ffa -- murq127 reviewing.
 ROUNDS    this post's rounds on this node: DH.604 DH.617 DH.632 DH.652; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
+
+## CORRECTIVE EG.3 -- closes mur-director-engine-47 DH.652-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-a-rounds-own-path-set-a00-92a04c39 tip c0a6a4ffa (branch de-base-EG.3; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Off-by-one dispatch.py citation '3035-3036' (test:163, repeated test:227 and in node bodies)
+2. Parent-run probes are prose, not machine cells: the parent ran four probes (probe-A..D, recorded in a00-68041083-03040f.md's PARENT REVIEW) and the schema's additive `probes:` frontmatter field exists for exactly this ([experiment].md 'the parent-run negative probes ... Recorded by cli.py done like evidence_runs'), as other nodes use (e.g. a00-a71730a7-5bdf7f.md:18). This node's frontmatter carries `evidence_runs: [experiment:a00-68041083-03040f]` — self-referential — and no `probes:` row, so the four adversarial reruns are unciteable by a machine reader.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_round_own_path_set_fails_closed.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_round_own_path_set_fails_closed.py · .agi/nodes/experiment/a00-0581fdf8-2bb4d2.md · .agi/nodes/experiment/a00-68041083-03040f.md · .agi/nodes/experiment/a00-849236cb-114441.md · .agi/nodes/verdict/a00-29a5edeb-7b795d.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over c0a6a4ffa · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
+
+## CORRECTIVE DH.EG.100 -- closes mur-eg-27 EG.3-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-a-rounds-own-path-set-a00-e8ea641e tip 039140151 (branch de-base-EG.100; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Verdict node asserts its own prior THOUGHT survives (.agi/nodes/verdict/a00-29a5edeb-7b795d.md:274)
+2. 2. probes: cell landed as prose strings, not the six-key dicts the engine's reader defines (.agi/nodes/experiment/a00-68041083-03040f.md:15, .agi/nodes/experiment/a00-139dd5f6-df3721.md:15)
+3. 3. Parent gate probe claims a reader it never read (.agi/nodes/experiment/a00-139dd5f6-df3721.md:17)
+4. M1 (not in the first reviewer's list) -- the parent's own grep claim is FALSE, in the same class as the near-miss it teaches. .agi/nodes/verdict/a00-29a5edeb-7b795d.md:270 asserts 'grep -rn 3035-3036 .agi/nodes/verdict/ .agi/nodes/experiment/ now returns nothing outside kid a00-139dd5f6's own before/after table.' A grep over exactly those two dirs at 039140151 returns 12 hits, TWO of them inside the verdict node the sentence claims was cleaned (verdict:268 quoting the corrective instruction, verdict:270 quoting the grep itself) and one more at a00-139dd5f6:16 (the probe cell, not the before/after table at :52-55). The SUBSTANCE holds -- every surviving hit is a quote, a before-column, or the :109 caveat, so no live stale citation ships -- but the sentence as written is refuted by a grep of its own bytes, one clause after the THOUGHT that says (verdict:272) 'enumerating the sites you were handed satisfies the item text and loses the item intent'. Residue: say 'no LIVE citation survives' instead of 'returns nothing'.
+5. M2 (not in the first reviewer's list) -- the parent accepted a deliverable its own schema refuses. .agi/nodes/experiment/a00-139dd5f6-df3721.md:132 states 'Both briefed items are true in the BYTES ... and the 4-entry probes list on a00-68041083', closing the round at verdict: proved, confidence 0.9. ITEM 2 (:63-77) was briefed as 'the parent probes were prose; they are now a machine cell'. The 4-entry list is a list of prose STRINGS (measured with yaml.safe_load), the same class the item existed to remove, and cli.py:1138-1139 rejects every one. The parent's acceptance gate therefore passed on item text, not item intent -- the identical failure mode recorded at verdict:272. This is why the round shipped with a self-verifying PASSES and is the mechanism behind defects 2 and 3.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_round_own_path_set_fails_closed.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_round_own_path_set_fails_closed.py · .agi/nodes/experiment/a00-0581fdf8-2bb4d2.md · .agi/nodes/experiment/a00-139dd5f6-df3721.md · .agi/nodes/experiment/a00-68041083-03040f.md · .agi/nodes/verdict/a00-29a5edeb-7b795d.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 039140151 · <= 40 test lines net over 039140151 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 039140151 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.652: mur-director-engine-39 DH.632-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.100: mur-eg-27 EG.3-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
