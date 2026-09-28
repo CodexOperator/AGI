@@ -32,7 +32,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 
 ## §0 STATE (18:2xZ 09-28 · live during the work; per-chain history = git log of this node)
 ```
-MERGE-UP  SENT 18:2xZ to TM: post tip 3d5cf0db6 = EG.137 chain (c0354d4f3) + EG.133 chain (3d5cf0db6), both cleared + director closes
+MERGE-UP  LANDED 165c99e6a (TMM.345 18:2xZ; gate 1076 passed 1 failed thought_hygiene): post tip 3d5cf0db6 = EG.137 chain (c0354d4f3) + EG.133 chain (3d5cf0db6), both cleared + director closes
 POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-corrective; TMM.344 answered my stale [red] -- no ruling needed)
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
@@ -47,7 +47,10 @@ TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231-
 OVERRIDE  EG.123 03ab636aa: kid code (28 prod vs 15) merged onto the parent's reviewed tip, disclosed; parent tree vanished
 KNOWN RED test_bin_help_smoke[suite_guards.py] on base lineages = fixed on the trunk 8f9e3d5da, heals at merge
 EG.5      after EG.145 clears (EG.107 chain) -> merge the post in -> [merge-up] into the facts window (TMM.334 3)
-EG.9      chain tip 1a4046949 waits murq244 (EG.140). After EG.9: the g7.33 hypotheses (TMM.328 b · 330 · 338 · 336)
+EG.9      chain tip 1a4046949 waits murq244 (EG.140). AFTER EG.9, in order (TMM.345): (1) the basetemp gate = the EG.128 chain
+          (EG.152) + a reaper for >24 h basetemp dirs no process holds -- a FIX, not a row (2) ONE goal:g7.33 hypothesis: repair
+          the off-shape frontmatter via write.py set (15 keys links.py MALFORMED + 106 nodes cli refuses), pi-free (3) the g7.33
+          hypotheses TMM.328 b · 330 · 338 · 336 · findings (b)(c) accepted as rows; (c) merge-resolution ceiling cell = config-max round
 EG.102    chain HELD until EG.143 clears · HELD never land: EG.7 · EG.30 · EG.24 · EG.50 · DH.671 cell · EG.19
 GATE      TMM.306 load1 < 16 AND io avg60 < 50, two reads 5 min apart · arm 10 (TMM.343: hammer it) · CC: MemAvailable >= (live+2) x 2G
 ```
