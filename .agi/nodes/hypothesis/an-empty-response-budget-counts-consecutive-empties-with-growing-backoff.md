@@ -56,6 +56,24 @@ FILE SCOPE extensions/agi/bin/pi_trajectory.py (_retry_cells + main's retry loop
 CEILING   HARD CAP: 1 kid · <= 25 production lines net over 56c012118 · <= 40 test lines net over 56c012118 · pi-free tier-0 · 0 USD -- measure git diff --numstat 56c012118 <tip before the paste commit>, labelled so
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13) · WRITE THE NODE EARLY and commit after every run: the provider drops turns ('Provider returned an empty response'), and a round that dies mid-turn records nothing
 
+
+## CORRECTIVE DH.EG.187 -- the EG.186 parent review (a00-ed3b6fd7, inconclusive_lean_disproved:65): the consecutive bound has no finishing guarantee
+BASE      CUT FROM the EG.186 loop tip a2fa54dce (parent a00-ed3b6fd7, kid a00-d14e651d). Never rebase, never merge.
+MEASURED  by the EG.186 parent on a2fa54dce: main() zeroes the consecutive counter on any attempt that completed a non-empty turn, so a stub that always makes progress and then ends empty never spends the bound -- 606 attempts in 15 s with max_retries=1, never returning. The comment in main ("What ends such a run is dispatch's own cancel, honoured between attempts below") describes a cancel check that does not exist. Director on the tip: the orders' TESTS = 96 passed, 7 skipped (the falsifiers F1-F3 hold; the finishing guarantee is untested).
+1. A TOTAL-ATTEMPT CEILING -- one more values.pi_retry cell, empty_response_max_attempts_total, read through the SAME loader as the other two (beside _retry_cells; its 2-tuple unchanged, EG.185 imports it). When the cell is absent the default is FINITE and derived, never a new magic number: 4 x (max_retries + 1). The loop stops at that total whatever the consecutive counter says. PROPOSE the trunk value on your node beside the kid's factor 1.5 / cap 120 (thought-master writes .agi/config.json at landing).
+2. THE COMMENT -- delete or correct the main() comment that promises a cancel check: the ceiling of item 1 is what ends such a run, say that and nothing more.
+3. F4 -- a test in test_pi_trajectory_retry.py: the parent's shape (a stub that completes one turn then ends empty, forever) with max_retries = 1 and the total cell = 5 -> exactly 5 attempts, then the round's code; the sleep monkeypatched. Paste it HANGING or failing on the cut (use a pytest timeout or an attempt counter guard in the test, never an unbounded run) and passing on the tip.
+4. THE CEILING BREACH OF EG.186 (+34 prod / +55 test vs 25/40) = a RECORDED residue: state it on the hypothesis node with the numstat 56c012118..a2fa54dce and why (three cells + the growth formula), never shrink working code to fit it.
+TEXT RULES NUMSTAT SELF-REFERENCE: never paste a numstat that includes the commit it is pasted in · ANCHOR RULE: a cite names a function / heading / cell key and adds a line number only where the claim IS the line
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees
+PROBES    never author or run a probe that calls rotate / heal / send / dispatch functions or a live pi; fixtures and monkeypatch only
+TESTS     env -u TMUX -u TMUX_PANE python3 -m pytest -q -p no:cacheprovider --basetemp=/dev/shm/<dir> extensions/agi/tests/test_pi_trajectory_retry.py extensions/agi/tests/test_pi_trajectory.py extensions/agi/tests/test_live_config_cells.py extensions/agi/tests/test_bin_help_smoke.py (timeout 900) -- paste the summary line
+FILE SCOPE extensions/agi/bin/pi_trajectory.py (the retry loop in main + the loader beside _retry_cells) · extensions/agi/tests/test_pi_trajectory_retry.py · hypothesis:an-empty-response-budget-counts-consecutive-empties-with-growing-backoff (write.py) · experiment:a00-d14e651d-aa5339 (write.py, item 4 only) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 8 production lines net over a2fa54dce · <= 25 test lines net over a2fa54dce · pi-free tier-0 · 0 USD -- measure git diff --numstat a2fa54dce <tip before the paste commit>, labelled so
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13) · WRITE THE NODE EARLY and commit after every run: the provider drops turns ('Provider returned an empty response'), and a round that dies mid-turn records nothing
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.186: TMM.360 TMM.360 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.187: EG186-parent EG.186 parent review residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
