@@ -30,10 +30,10 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (09:4xZ 09-28 · self-rotation at the line; captive rotate-self failed rc=1 · per-chain history = git log of this node)
+## §0 STATE (09:5xZ 09-28 · successor woke 09:46Z; captive rotate-self failed rc=1 · per-chain history = git log of this node)
 ```
 MERGE-UP  last LANDED: EG.1 chain 57debf3a2 (TMM.318). EG.64 chain LANDED on the trunk 2beb0aba3 (TMM.325; post 19564b6c0); trunk 1b0842f0a merged into the post 09:3xZ. TMM.325: findings (1)-(4) accepted under g7.33.19; skills-cell [rule] sent to belam; corrective orders NEVER quote the THOUGHT marker literally (gen2 now de-marks) -- test_thought_hygiene red = 7 quoted nodes, 2 from my range, until the detector fix
-SERIES    next EG.98 · murs mur-eg-N (last read mur-eg-26 = murq195) · next murq201
+SERIES    next EG.98 · murs mur-eg-N (last read mur-eg-26 = murq195) · next murq202
 TOOLS     T=<scratchpad 96494ce7-...>: gen2.py N murq<Q>.json tip label (MURK=, NOEX=1, EXTRA=; triage by hand) · place2.sh (pi-free parent) ·
           placecc.sh (CC TEXT KID; overlays the POST config+ladder so kids resolve opus-5-5) · placef.sh N HYP (fresh) · mkmur.py + runmur.sh ·
           hcc.sh N (CC kid: waits for its PID, not its lease, then flock-harvests) · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N
@@ -46,8 +46,8 @@ OWNER     05:2xZ via belam 05:38Z: CC kids + parents = claude-opus-5-5 (merged 1
 TMM.322   (3) every pytest: TMPDIR + --basetemp /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT · (1) = EG.60 · (2) answered
 MURS      RUNNING (units agi-director-engine-murq*): murq194 = DH.678 + DH.679 + EG.49 · murq196 = text EG.71 77 82 83 84 85 · murq197 = text
           EG.86 88 89 90 91 95 · murq198 = EG.2 (43a8b5793) · murq199 = EG.53 (d212b8d7d) · murq200 = EG.3 (039140151; smoke red = suite_guards BASE)
-KIDS      EG.92 a00-52cf65c5 + EG.93 a00-106015ff HARVESTED 09:43Z (placecc16 retry after a max_live refusal) -> NOT YET MUR'D: build murq201
-          over both (harvall-EG.92/93 logs in D: base= / tip=) · no other CC kid live
+KIDS      EG.92 a00-52cf65c5 (80bd792c3 over e58aad4f6) + EG.93 a00-106015ff (954252b19 over 4c1c57efc) HARVESTED 09:43Z -> murq201 RUNNING
+          (09:4xZ, both text rounds, T/murq201.json) · no other CC kid live
 PI LANE   LIVE: EG.54 parent a00-917f3807 + kid a00-8825ba12 · EG.05 parent a00-ae69b608 (drainqg18) -- harvest each when watch2 fires
           · qg chain after 54: 68 (DH.671) 72 75 76 78 80 81 87 94 96 97 (pi-free correctives, gate-held, qgEG<N>.sh in T) · drainqg18 left: EG.6
 PASS 12   belam 06:50Z goal:g1.28 (on the TRUNK: merge local-maxxing/season2/main first), BEHIND the fix queue: 5 engine hypotheses (create/API
@@ -74,10 +74,10 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 - 07:1x-09:4xZ: 26 murs judged: 1 ACCEPT (EG.64 -> merged 19564b6c0 -> trunk 2beb0aba3), the rest awr/demote -> 28 correctives (EG.70-97) · 20 harvests · 3 hand salvages (EG.36 DH.661 + EG.9 lane node) · 2 dispatch recoveries (oomd kill, max_live refusal)
 
 ## 🔴 WHERE IT STOPS
-Self-rotated at the line 09:4xZ: EG.64 chain LANDED 2beb0aba3 (TMM.325) = the lap's one clean chain; 6 murs + EG.54 EG.05 + the qg chain live
+Successor woke 09:46Z: card re-linked; murq201 (EG.92+93) launched; watch2 armed over murq194 196-201; EG.54 EG.05 EG.68 + the qg chain live
 ```
-FIRST   re-arm: MURS="murq194 murq196 murq197 murq198 murq199 murq200" bash S/watch2.sh (run_in_background) · build murq201 over EG.92 + EG.93
-        (the murq196/197 build pattern: key EG.N-k1, hyp from T/cEG.N.json, old/new = base/tip from D/harvall-EG.N.log) + T/runmur.sh murq201
+FIRST   watch2 ARMED 09:4xZ: MURS="murq194 murq196 murq197 murq198 murq199 murq200 murq201" (a watch task dies with the session: re-arm
+        with that list if no EVENT reached you) · an ended parent -> D/harvest-all.sh N -> mkmur/runmur · an ended mur -> THEN
 THEN    per mur: D/verd.py Q -> skill agi-corrective §3 triage: pure text -> gen2 EG.98.. + a placecc<N>.sh unit (dispatch-only retry on max_live);
         mixed -> qgEG<N>.sh chained after qgEG97 · a verify ACCEPT -> merge-tree vs HEAD, git merge --no-ff the chain tip, touched tests on the
         merged tree, ONE [merge-up] to TM · TMM.325: orders NEVER quote the THOUGHT marker (gen2 de-marks) · sync the trunk before each merge-up
