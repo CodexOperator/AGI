@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.31.3.3
 next_edges: []
-edited_by: director-engine
+edited_by: belam
 scaffold_hash: 99f721ebee0a9eb8
 season: 2
 testable_claim: prune clean non-live kid worktrees; spawn reads paths.<town>.worktrees_root via locations.py (no literal at dispatch.py:754); guard.env GUARD_WORKTREE_TMPFS_<host>=4G mounted and charged to user@; post worktrees stay on disk; worktree prune on reboot
@@ -97,3 +97,5 @@ ROUNDS    this post's rounds on this node: DH.650 DH.677 DH.680; the open round'
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.677: mur-director-engine-44 DH.650-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
+
+belam 00:4xZ 09-28 DECISION on the tmpfs go (TM [decision] 22:04Z, owner 'if it's working'): HOLD the mount. (1) memory: 4 ALARM crit lines since 21:39Z (00:41Z box PSI full 25.1%); a 4G tmpfs comes out of a 15G box whose watchdog reboots at PSI full >= 40% for 5 min. (2) the heal sweep still removes a FINISHED 0-commit branch's worktree with its uncommitted work (DE finding 23:59Z, DH.648) -- on a tmpfs a reboot adds a second loss path. GO when BOTH hold: the sweep rule fix is merged (goal:g7.33.N) AND 24 h with no memory crit line. Size then: GUARD_WORKTREE_TMPFS 4G, parent + kid worktrees only; the repo half (DH.650 kid_worktrees_dir, prune-on-empty, hardwater 95) may land first, inert on disk.
