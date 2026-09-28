@@ -186,6 +186,19 @@ FILE SCOPE extensions/agi/tests/test_sensei_wake_audit.py (the assert message st
 CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · <= 2 test lines (message text only) · text only · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat d7eaa2e9e <your final tip>` on your node (an empty range is not a measurement)
 KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit
 
+
+## CORRECTIVE EG.67 -- closes mur-eg-18 EG.56-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-trunk-tests-follow-th-a00-d2e77276 tip 7c935f727 (branch de-base-EG.67; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. A past probe observation was textually substituted, not re-run -- .agi/nodes/experiment/a00-743d7fdd-2fbd37.md:17 -- The `observed` value of an EG.35 probe run was overwritten via write.py `sub!` so the frontmatter row now reads `:969`; a measured record was edited after the fact instead of a new probe row being appended. It is true-if-re-run (I measured 90+7=97 and the message does say :969), so residue not demote.
+2. The repaired citation is a hardcoded line number nothing pins -- extensions/agi/tests/test_sensei_wake_audit.py:1008 -- `:969` is a literal; no test asserts the message matches the real assert line, so the next insertion above :969 recreates exactly the stale citation this round fixed.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_bin_help_smoke.py + any committed test reading an edited file (git grep -l <file> extensions/agi/tests) once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT (TMM.322)); TEXT-ONLY round
+FILE SCOPE extensions/agi/tests/test_sensei_wake_audit.py · .agi/nodes/experiment/a00-743d7fdd-2fbd37.md · .agi/nodes/experiment/a00-d2e77276-e05fca.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · <= 4 test lines (message/comment text only) · text only · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 7c935f727 <your final tip>` on your node (an empty range is not a measurement)
+KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit; a version delta goes in the node THOUGHT (write.py), never the body
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.56: mur-eg-17 EG.35-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.67: mur-eg-18 EG.56-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
