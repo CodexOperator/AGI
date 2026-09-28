@@ -283,10 +283,17 @@ def test_a_cell_read_reaches_config_by_one_import_route(tmp_path, monkeypatch):
     (tmp_path / ".agi").mkdir()
     (tmp_path / ".agi" / "config.json").write_text(
         json.dumps({"provisioning": {"min_mint_remaining_usd": 0.75}}))
+    # `credit_balance` MUST be stubbed non-None: when it returns None can_fund
+    # short-circuits at provisioning.py:227 and never reaches `_prov_cell`, so
+    # the sys.path assertion below would be vacuous on the pre-fix bytes.
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda root=None: (2.0, 1.50, 0.50))
     before = len(sys.path)
     for _ in range(100):
         ok, reason = provisioning.can_fund(tmp_path)  # a real cell read
-    assert (ok, reason) == (True, None), "absence of a key is a pass, not a bug"
+    assert ok is False, "remaining under the floor must refuse"
+    assert "$0.50" in reason and "$0.75" in reason, (
+        f"the refusal must name the CONFIGURED floor, so the cell was read: {reason}")
     assert len(sys.path) == before, "a config cell read must not touch sys.path"
     assert Path(provisioning.__file__).read_text().count("import locations") == 1
     assert provisioning.locations is sys.modules["locations"]
