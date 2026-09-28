@@ -185,6 +185,23 @@ FILE SCOPE .agi/nodes/experiment/a00-1556127c-9fb395.md · .agi/nodes/experiment
 CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 850091463 <your final tip>` on your node (an empty range is not a measurement)
 COMMIT    every node edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.133 -- closes mur-eg-27 EG.82-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-a-node-frontmatter-th-a00-16a744c6 tip ea58d21fe (branch de-base-EG.133; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 2. Published pytest summaries omit `1 skipped` — .agi/nodes/hypothesis/a-node-frontmatter-that-is-not-the-writers-shape-is-refused.md:49
+2. The falsified ground of a standing demotion was recorded but the number was left. a00-7a12aad2-6a3a17.md:25 still reads `verdict: inconclusive_lean_disproved:65`, and the sole stated ground is probes[2] (:17) 'the file is still ` M` in the working tree' — which this very round falsifies at :181 and which `git show --stat 850091463` (the parent's own done commit, carrying a00-3e239d1d-9407b0.md at 6/6) shows was voided by the parent itself. The hypothesis then lists that demoted node as evidence (hypothesis:17) while its own verdict sits at :23. The round's table settles item 3 as 'SETTLED' on the fact only; nothing in it (items 2/8 name only the byte restores) names the verdict re-judge for the parent — the drift the graph itself names as fatal at hypothesis:45 ('verdict is the number a later reader reads first'). Parent action, not a demote of this round.
+3. The THOUGHT was appended to, not rewritten whole. hypothesis:38 opens `THOUGHT-begin`, :39 is the prior author's header ('PARENT, EG.28, a00-7a69e3ca'), the new COUNT CORRECTION is accreted at :51, :54 closes the block — one THOUGHT now carries two rounds' deltas, against the G2.11 rule quoted in AGENTS.md ('body is state, thought is delta … rewritten whole'). The round declared the method ('counts corrected in place; old counts kept in quotes as the record', a00-16a744c6-447f40.md:34) but did not name the convention it traded away, and a00-7a12aad2's own THOUGHT is left with the same accretion shape at :190-195.
+4. RECORDED, NO ACTION (g7.33.19 row 13, the director's findings row): the round's deliverable did not ride its done commit; do not re-land or rewrite history -- name it once on your node.
+KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent only, so the kid wrote code over a 0 cap) -- PARENT: dispatch your kid with --orders pointing at a file holding THIS WHOLE SECTION, and paste its FILE SCOPE + CEILING into the kid prompt; verify the kid's context carries the word CORRECTIVE before it starts.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_links.py (paste its WHOLE last line, skipped count included) + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-16a744c6-447f40.md · .agi/nodes/experiment/a00-7a12aad2-6a3a17.md · .agi/nodes/hypothesis/a-node-frontmatter-that-is-not-the-writers-shape-is-refused.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over ea58d21fe · <= 40 test lines net over ea58d21fe · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat ea58d21fe <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.82: mur-eg-23 EG.44-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.133: mur-eg-27 EG.82-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
