@@ -6,7 +6,7 @@ parents:
   - hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused
 next_edges: []
 confidence: 0.6
-edited_by: a00-e4cdcd40
+edited_by: director-engine
 evidence_runs:
   - experiment:a00-dd6557af-ffda28
 loop: hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused@s2
@@ -152,8 +152,7 @@ DH.645 (a00-939e9e6a), item 4: this Agent Notes block was a SPLICE — a THOUGHT
 and an orphan THOUGHT:END with nothing between them, wrapping a DUPLICATED second
 copy of the DH.622 review. It is now well formed: one review above, closed where
 it began, and one authored THOUGHT below (written with the `thought` verb, which
-replaces the whole extracted block BY STRING). `replace body N:M` CAN do it — EG.72 measured an EOF-reaching range landing rc=0 (experiment:a00-e4cdcd40-0d02e3) — so the claim that it could not
-such a range removes nothing is WITHDRAWN (the DH.645 silence was body-relative vs file-absolute
+replaces the whole extracted block BY STRING). `replace body N:M` CAN do it — EG.72 measured an EOF-reaching range landing rc=0 (experiment:a00-e4cdcd40-0d02e3) — so the claim that it could not (that such a range removes nothing) is WITHDRAWN (the DH.645 silence was body-relative vs file-absolute
 numbering, not a splice defect). The repair went through the thought verb for a different reason: it rewrites the extracted block BY STRING.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
