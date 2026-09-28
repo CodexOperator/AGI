@@ -5,19 +5,20 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: a00-342e0860
+edited_by: a00-7f86f36e
 evidence_runs:
   - experiment:a00-84c9c98d-34018e
   - experiment:a00-1556127c-9fb395
   - experiment:a00-3e7b260e-2cce33
   - experiment:a00-879cb9e8-625883
   - experiment:a00-85c23976-f70650
+  - experiment:a00-342e0860-956c66
 scaffold_hash: fcaf2289ca35b7cc
 season: 2
 testable_claim: a frontmatter list not in node_writer shape is refused by name at load/links; the corrupted node is repaired
 title: "A node frontmatter the sanctioned writer could not have produced is refused (assigned: director-engine)"
 town: core
-verdict: inconclusive_lean_proved:70
+verdict: inconclusive_lean_proved:80
 ---
 # hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused
 
@@ -33,15 +34,17 @@ a00-fe05fdae :14-15 probes field destroyed by two raw hand-appended lines and ev
 a frontmatter list not in node_writer shape is refused by name at load/links; the corrupted node is repaired
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-This version carries the DH.640 PARENT REVIEW of kid a00-85c23976 and the measurement the graph was missing.
+DH.656 PARENT REVIEW of kid a00-342e0860. The rule left the TEST HELPER and is in the load path.
 
-(1) WHAT THE ORDER SAID, quoted: "3. ITEM 1 s settle evidence exists NOWHERE in the graph, and this is the round s largest act" and "run the one command that settles it and PASTE its output on your node (never type a number)".
+(1) WHAT THE ORDER SAID, quoted: "1. C2 open in the production gate, 0 production lines -- cli.py:284 _load_frontmatter returns ok=True for `probes: one`; the shape gate is a test helper, not the load path".
 
-(2) WHAT THE MACHINE ACTUALLY DOES.  I ran the settling command myself in this checkout, read-only: `git show --stat 47cb34e34 -- nopin | tail -1` prints " 582 files changed, 281158 deletions(-)", `git ls-tree -d --name-only 47cb34e34^ -- nopin` prints "nopin", and the same command on 47cb34e34 prints nothing.  The removal is a single commit, measured.  The order s own command, `git diff --stat 62ff98b23 HEAD -- nopin | tail -1`, is EMPTY in both checkouts -- base tip equals HEAD there -- so the item could only be settled by naming the earlier commit 47cb34e34.  That is the mechanism: the settling command was written against a base that is not where the work is.
+(2) WHAT THE MACHINE ACTUALLY DOES. cli.py:341 `_load_frontmatter(text, root)` now refuses a declared-container value the sanctioned writer could not have written: `_off_shape_values` (cli.py:325) renders the whole block with `node_writer.render_frontmatter`, reads it back, and takes the required TYPE from the `fields:` block of `[<type>].md` via `_declared_types` (cli.py:289); a mismatch returns False with a defect NAMING the key. I re-ran the probe on the real graph root: `probes: one` -> ok=False naming probes; `probes: {a: 1}` -> ok=False; `probes: [one]`, `probes: []`, a bare `tags:` and `confidence: 1` -> ok=True; 4703 live nodes read, 95 refused. The repair path refuses rather than rebuilds (cli.py:461-467) and my tmp-graph run shows the file byte-identical after `_ensure_frontmatter` refuses.
 
-(3) THE NEAR MISS.  A review that accepts the kid s pasted block as the measurement satisfies every word of the order and loses it -- paste is evidence only when the parent re-ran the command, because a kid can paste a plausible line that no command emits.  I re-ran it; the line is faithful.  The second near miss is in the code: a shape gate installed on the resolver s FALLBACK branch only.  The report says "the recovered-probes gate asks the writer for a list"; the machine has two exits and the named-artifact exit (test_links.py:614) still returns a node whose `probes` is a scalar, and `cli._load_frontmatter` still returns ok=True for that node.  Zero production lines moved this round, so the hypothesis claim -- a VALUE the writer could not have produced is refused at load/links -- is still open in the production gate.
+(3) THE NEAR MISS. Two, both avoided by the kid and one nearly taken by ME. (a) A pure writer round-trip would have CERTIFIED `probes: one` -- `set probes one` renders and reads back perfectly -- so the whole claim would have been closed on a gate that cannot see it; the type had to come from the schema. (b) A reviewer's near miss, which cost me my first probe: I handed `_load_frontmatter` the REPO root instead of the GRAPH root, `root/context/schemas` did not exist, the broad `except Exception: return {}` swallowed the empty table, and the gate reported ok=True for the exact value the claim is about -- a clean falsification of the round, produced entirely by my own argument. cli.py:3403 says `_find_root()` is "the `.agi/` graph dir"; the fixture the kid's test uses and the root production hands it are DIFFERENT objects, and a probe that conflates them decides the round either way.
 
-(4) DEVIATION.  The contract says do not edit any other checkout; the kid ran with --branch so its node lives in a00-85c23976 only, and this review went to the hypothesis node instead of the kid s.  The property that makes the rule apply is that the kid s branch tip is the loop s merge unit and a hand edit there would land in the merge unowned.
+(4) DEVIATION. The claim reads "refused by name at load/links; the corrupted node is repaired" and this round closed only one conjunct on one side: `links.py:105 off_shape_keys` is still KEYS-only, and a value defect is now refused, never repaired. Both are named in the review, not fixed here: links.py is outside the round's FILE SCOPE, and refusal-instead-of-repair was a measured engine call, not a scope choice.
+
+Verdict raised :70 -> :80, evidence_runs the kid's own run. The CEILING was breached (cli.py 78/3 net against a hard cap of 15; test_links 65/2 against 40) and the round is CUT on the overage: `rebrief_request` answered `cut` because a 40-line ceiling is not the parent's to grant. The two residues above and the uncommitted kid-owned edit to experiment:a00-85c23976-f70650 are named for the director's findings row.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
