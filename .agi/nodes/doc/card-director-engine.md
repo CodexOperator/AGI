@@ -67,6 +67,9 @@ MURS      rmur (re-run until no empty-response stage): 272 EG.161 · 274 EG.183 
           · 277 EG.170-k1 b49c5db9e..492d7397f (facts window) · 278 EG.165-k1 b1d171bf0..56d44d93e (armed 21:28; parent wrote proved THEN
           inconclusive_lean_disproved:25) · JUDGED: 271 EG.169 -> MERGED (in #5) · 273 EG.175 -> director close -> MERGED (in #5)
           · 267-270 -> 179-182 · 259-266 -> 171-178 (176 = director close, EG.153 chain)
+          · 22:2xZ murq274 (EG.183) re-run on EG.183's OWN workflow.py (copy T/workflow-eg183.py, from cut 736f5602a: empty-response stage
+          retry 2 x 15/45 s) -- rmur274 STOPPED; a runner swap, not a merge. OWNER 22:2xZ (relayed to TM verbatim): retire all workflows over
+          time in favor of the unified dispatch route -- TM's plan; the murs stay the bridge until then
 TOOLS2    <scratchpad 3e232af5-...>: cardset.py KEY ENDKEY FILE · drop.py N "k.." "why" · textkid.py N · resnode.py FILE (hypothesis-node
           merge conflict: post sections + chain side, ONE THOUGHT) · rmur.sh Q · deadwatch.sh + redispw.sh (units above)
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
