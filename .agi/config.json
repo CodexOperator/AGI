@@ -235,7 +235,8 @@
   "paths": {
     "core": {
       "worktrees_root": ".agi/worktrees",
-      "suite_roots": [".agi/context"]
+      "suite_roots": [".agi/context"],
+      "foreign_refusal_memo": ".agi/sessions/foreign_refusals.tsv"
     },
     "boxkit": {
       "templates_dir": "extensions/agi/boxkit/templates",

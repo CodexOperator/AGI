@@ -96,6 +96,23 @@ FILE SCOPE extensions/agi/briefs/director-belam-duties.md · extensions/agi/brie
 CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines (text, comments, docstrings, briefs and skill rows only) · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat e58aad4f6 <your final tip>` on your node (an empty range is not a measurement)
 COMMIT    every edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.101 -- closes mur-eg-27 EG.92-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-pass11-0927-residue-b-a00-52cf65c5 tip 80bd792c3 (branch de-base-EG.101; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 4. GOALS.md stale, its rendered g1.27 falsifier false (GOALS.md:1113)
+4. The round edited a file that still carries a live paid-pi review route and said so only in its OUTSIDE list: a00-52cf65c5-23c3bc.md:41 names `extensions/agi/briefs/prime-director-successor.md:26` ('reviews BY NAME on pi') as 'in FILE SCOPE but was not in this corrective's item list', while the round was editing line 3 of that same file. goal/g1.27.md:42 now carries it as STILL OPEN with no round cut, so the graph is honest about it; noting it because the file was in hand and the two lines sit nine lines apart.
+1b. DIRECTOR: GOALS.md is DERIVED -- run `python3 extensions/agi/bin/snapshot-goals.py --render` at your tip, commit GOALS.md, then paste `python3 extensions/agi/bin/snapshot-goals.py --render --check; echo rc=$?` = rc=0 (director-measured rc=1 at 80bd792c3). Never hand-edit GOALS.md.
+DIRECTOR NOTES (no action): mur M1 unread reader REFUTED by measurement -- test_rotate_tail.py -k prime_brief at 80bd792c3 = 1 passed · mur M2 custody = the per-root write-log (findings row 13), demoted.
+DIRECTOR (numstat self-reference, the TEXT-FIX CHURN class): a commit can never paste a numstat that includes itself. Measure `git diff --numstat <CUT> <tip BEFORE your paste commit>`, paste it, and label it so ('measured to <sha>; the paste commit itself adds only this node's text'). A two-operand command with both shas written out is the whole requirement.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS      + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE GOALS.md · extensions/agi/briefs/prime-director-successor.md · .agi/nodes/experiment/a00-52cf65c5-23c3bc.md · .agi/nodes/experiment/a00-5860d475-261fc5.md · .agi/nodes/goal/g1.27.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 80bd792c3 · <= 40 test lines net over 80bd792c3 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 80bd792c3 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.92: mur-eg-19 EG.66-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.101: mur-eg-27 EG.92-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
