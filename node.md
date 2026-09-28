@@ -169,6 +169,22 @@ FILE SCOPE extensions/agi/tests/test_heal_sweep.py · extensions/agi/tests/test_
 CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · test files: COMMENT lines only (no assertion or code change) · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 8c2f6010a <your final tip>` on your node (an empty range is not a measurement)
 COMMIT    every node edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.118 -- closes mur-eg-27 EG.86-k1 M2 (accept_with_residue; V1-V3 + M1 closed by director commit 1a4046949 under TMM.327)
+BASE      CUT FROM season2/loops/hypothesis-a-zero-commit-round-i-a00-cafc99a3 tip 1a4046949 (branch de-base-EG.118). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number).
+1. FALSE EXCLUSIVITY IN A TEST COMMENT -- extensions/agi/tests/test_live_config_cells.py, the config-max comment above the two reaper MEMBERSHIP asserts, says the cell value's meaning 'is held ONLY by test_heal_sweep.py's tmp_reaper_cell test'. The bytes at 1a4046949 say otherwise (director-verified: `git grep -n worktree_grace_min 1a4046949 -- extensions/agi/tests/test_heal_sweep.py`): test_sweep_grace_is_read_from_the_tmp_reaper_cell sets it through _set_cell, test_sweep_bring_home_grace_keeps_not_homed writes grace 100000 and asserts grace-window behaviour, and the repo_root fixture sets it to 0. Rewrite the comment so it names every holder by FUNCTION name (never a line number) or drops the exclusivity; change comment lines ONLY -- no assert, def, import or fixture line.
+DIRECTOR (anchor rule): cite a function / heading / cell key; a line number only where the claim IS the line; paste a git grep -n hit for each name at your tip.
+DIRECTOR (numstat self-reference): measure `git diff --numstat 1a4046949 <tip BEFORE your paste commit>`, paste it, label it so.
+DIRECTOR: every other EG.86-k1 item is CLOSED by director commit 1a4046949 -- never touch the four nodes it edited.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_live_config_cells.py + test_heal_sweep.py + test_bin_help_smoke.py once (timeout 900, --basetemp under a fresh mktemp -d, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_live_config_cells.py (comment lines only) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · <= 6 changed test COMMENT lines, 0 test-logic lines · 0 USD -- a byte or kid over it = the round is cut · MEASURE against the CUT tip, never HEAD
+COMMIT    every edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.86: mur-eg-22 EG.79-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.118: mur-eg-27 EG.86-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
