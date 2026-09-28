@@ -35,7 +35,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 MERGE-UP  [merge-up] EG.1 chain to TM 02:25Z 09-28 -- TIP 95c425f8c, MB dc93a2660 (trunk merged in e810d9f2f), 21 files +1149/-69, 0 deletions;
           123 passed on the tip, links 0, render 0; 1 DECLARED residue carried (mem_cap.py:89-90 docstring -> Item 7 round) · owner 02:2xZ: a TM dm
           may have failed to send (none after TMM.315 in the dm file) -- owner checking with TM
-SERIES    RESET: rounds EG.N (EG.1-23 used, next EG.24; dispatch normalizes the iter to EG.01) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
+SERIES    RESET: rounds EG.N (EG.1-24 used, next EG.25; dispatch normalizes the iter to EG.01) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
           before the reset keep their labels (orders already generated) -- the counter only moves forward
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f,g] gen2.py N murq<Q>.json tip label -> orders<N>.md (N may be EG.n: sed the
           header to CORRECTIVE EG.n) · place2.sh / placef.sh N (DH.N or EG.N label) · drainqgf.sh N:K (K=F fresh via h<N>.txt) · mkmur.py + runmur.sh
@@ -44,7 +44,7 @@ GATE      TMM.306: load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, on
 PLACEMENT de-base-N ON DISK (the /dev/shm variant broke parent done -> DH.648 swept, reverted 00:0xZ); 651's RAM checkout is symlinked
 PRUNE     unit prune-debase OOM-KILLED 00:27Z (systemd-oomd, 41 removed); NOT restarted -- memory crit window (TMM.313 tmpfs hold)
 LANDED    TMM.312 00:42Z: TM landed the WHOLE branch d0d126deb (trunk merged in 90b21bd8f) + sent it to belam
-LIVE      no parent (io gate > 50) · murs: 137 DH.655 · 141 DH.656 · EG.9 chain: EG.17 -> mur-eg-8 residue (fail-open left at heal.py:1683) -> EG.23 FRONT (qgEG23)
+LIVE      no parent (io gate > 50) · murs: 141 DH.656 · DH.655 -> mur-eg-6 residue -> EG.24 queued (after EG.22) · EG.9 chain: EG.17 -> mur-eg-8 residue (fail-open left at heal.py:1683) -> EG.23 FRONT (qgEG23)
           EG.1 chain MERGED 95c425f8c (TMM.315 breach accepted) -> merge-up out · Item 7 (AGI_TASKS_MAX cell + the mem_cap docstring residue) = one
           config-max round AFTER EG.1 lands, behind the EG.9 chain · DH.657 -> mur-eg-7 residue -> EG.22 queued
           EG.13 -> mur-eg-6 residue -> EG.21 queued (memory-cap HARD RULE carried)
@@ -80,7 +80,7 @@ THEN    680 clean -> tmpfs claim to belam + mint the 17-consumer round ; EG.9 me
 ## §4 TRAPS
 Skills: agi-dispatch §5 · agi-corrective · agi-workflow · agi-node-write §5 · agi-memory-guard · agi-master-gate (TMM.304). Card-only: pi-free murs ~7 min/stage, verify can die (review stands) ·
 harvests under load flake 1 test: re-run before a corrective · `pgrep -f place2` matches your own shell: list /proc cmdlines instead ·
-`git merge -F -` does not read stdin · place2 splice fixed 01:1xZ (body ending mid-paragraph / THOUGHT glued to it was refused) · worktrees VANISH (617 618 597 parents/kids): harvest from the branch, update-ref to fast-forward ·
+`git merge -F -` does not read stdin · TWO chains edit heal.py _sweep_finished_worktrees: EG.9 chain (EG.23) + clean-kid chain (EG.24) -- merge EG.9 first, then test the second merge's heal tests before its [merge-up] · place2 splice fixed 01:1xZ (body ending mid-paragraph / THOUGHT glued to it was refused) · worktrees VANISH (617 618 597 parents/kids): harvest from the branch, update-ref to fast-forward ·
 done-time commits skip foreign nodes: check the KID worktree too (618) · parents end WITHOUT a harvest dm: reconcile · stale index.lock
 (no holder) refuses kid commits · NEVER stop a qg unit mid-placement (it kills the dispatch: 680); a killed unit stays failed -> reset-failed before reusing its name · murall/harvest greps match 'failed' in slugs · only / fills: /tmp basetemps. · a PARENT-DEMOTED round's uncommitted config
 stays for its corrective: never land it at harvest (mur-44 DH.650 V4: "hand-landed gate").
