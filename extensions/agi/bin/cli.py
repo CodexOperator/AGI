@@ -1178,21 +1178,23 @@ def _target_hypothesis_node(root: Path, parent, node_id):
 
 
 def _claim_conjunct_numbers(node_file: Path) -> list:
-    """The distinct numbered claim-item numbers across the hypothesis's
-    `testable_claim` frontmatter field and its body -- its conjunct set."""
-    nums = []
+    """The distinct numbered claim-item numbers of a hypothesis -- its
+    conjunct set. `testable_claim` is the schema-declared claim surface and
+    wins outright: the body is prose, and a review citing its own orders as
+    (1)..(n) must not manufacture conjuncts. The body is read only for a node
+    that carries no numbered field."""
     try:
         text = node_file.read_text()
         fm = frontmatter.read_frontmatter(text)
         tc = fm.get("testable_claim") if isinstance(fm, dict) else None
-        if isinstance(tc, str):
-            nums += [int(m) for m in _CLAIM_ITEM_RE.findall(tc)]
+        if isinstance(tc, str) and _CLAIM_ITEM_RE.search(tc):
+            return sorted({int(m) for m in _CLAIM_ITEM_RE.findall(tc)})
         parts = frontmatter.split_frontmatter(text)
         if len(parts) >= 2:
-            nums += [int(m) for m in _CLAIM_ITEM_RE.findall(parts[1])]
+            return sorted({int(m) for m in _CLAIM_ITEM_RE.findall(parts[1])})
     except Exception:
         return []
-    return sorted(set(nums))
+    return []
 
 
 def _parent_probe_gate(root: Path, rec: dict, args, verdict: str):
