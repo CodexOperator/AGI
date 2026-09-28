@@ -34,7 +34,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ```
 MERGE-UP  [merge-up] to TM 00:3xZ 09-28 (belam [decision] 00:0xZ, owner: WHOLE post branch, in-progress included) -- tip d4446340f,
           mb 26d914498, 188 files, 365 passed 1 RED declared (boxkit probe vs the 429 tasks-max chain -> EG.1), 28 nodes labelled ## OPEN
-SERIES    RESET: rounds EG.N (EG.1-14 used, next EG.15; dispatch normalizes the iter to EG.01) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
+SERIES    RESET: rounds EG.N (EG.1-18 used, next EG.19; dispatch normalizes the iter to EG.01) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
           before the reset keep their labels (orders already generated) -- the counter only moves forward
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f,g] gen2.py N murq<Q>.json tip label -> orders<N>.md (N may be EG.n: sed the
           header to CORRECTIVE EG.n) · place2.sh / placef.sh N (DH.N or EG.N label) · drainqgf.sh N:K (K=F fresh via h<N>.txt) · mkmur.py + runmur.sh
@@ -43,10 +43,9 @@ GATE      TMM.306: load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, on
 PLACEMENT de-base-N ON DISK (the /dev/shm variant broke parent done -> DH.648 swept, reverted 00:0xZ); 651's RAM checkout is symlinked
 PRUNE     unit prune-debase OOM-KILLED 00:27Z (systemd-oomd, 41 removed); NOT restarted -- memory crit window (TMM.313 tmpfs hold)
 LANDED    TMM.312 00:42Z: TM landed the WHOLE branch d0d126deb (trunk merged in 90b21bd8f) + sent it to belam
-LIVE      DH.654 a00-f51a4364 · DH.655 a00-2f1b6de2 · murq134 = EG.9-k1 (a42cf4dec..381239880: 132 passed; director landed its in-scope reaper cell;
-          CEILING breach 2 kids / heal.py +37 / test +111) · murq133 = DH.653-k1 (270 passed) · murq135 = EG.12-k1 (da6f3fafe..c884b3663, 80 passed;
-          kid verdict DISPROVED the prior proved, pins replaced)
-          EG.10 -> mur-eg-4 residue -> EG.15 (qgEG15 waits qgEG14) · DH.658 -> mur-eg-4 residue -> EG.14 (+ held EG.11 check, qgEG14 waits qgEG13)
+LIVE      EG.13 a00-5a14d8f1 (EG.8 retry) + qg placements · murq136 = DH.654-k1 (0824b7b5b; smoke red INHERITED) · murq137 = DH.655-k1 (a95eb7170)
+          CORRECTIVES QUEUED (orders T/ordersEG.N.md, unit qgEG<N>): EG.17 = EG.9 chain (mur-eg-5: fail-open at heal.py:1646, ceiling unrecorded,
+          skills/agi-dispatch template) FRONT, gating now · EG.14 (DH.658 + held EG.11 check) -> EG.15 (EG.10) -> EG.16 (DH.653) -> EG.18 (EG.12, verify DEMOTE)
           EG.7 PARENT-DEMOTED, 5 corpus edits UNCOMMITTED in a00-0194accb (never land); EG.11 HELD (conflicts with the DH.658 chain's detector file)
           EG.8: both scopes killed at their own memcg caps (01:04:56Z kid, 01:08:15Z parent), 0 commits -> EG.13 retry, cap a HARD RULE, unit qgEG13
           TMM.314: no box crit, belam's tmpfs clock from 00:43Z
