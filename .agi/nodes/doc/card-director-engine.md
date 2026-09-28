@@ -39,8 +39,10 @@ BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB f
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
 SERIES    next EG.160 · next murq256
-PLACING   PLACED: EG.149 a00-1d3ce82c · 151 a00-dca937e9 · 153 a00-0f8cc2a9 · gate-ok 18:46Z, dispatching: 146 150 152 155 158
-          (read dEG.N.log: rc + spawned) · waiting: pq154 · pq159 (EG.132 corrective: pin teeth) · lane3 still owns 147 148
+PLACING   PLACED: EG.149 a00-1d3ce82c · 151 a00-dca937e9 · 153 a00-0f8cc2a9 · SERIAL unit serial7 (18:5xZ): redispatch2 146 150 152
+          155 158 (all rc=124: 5 parallel dispatches timed out in an io storm, none spawned) then place 154, 159 · lane3 owns 147 148
+          · TRAP (my 18:3xZ deviation, REVERTED): parallel gated placements pass the gate together and storm io -> dispatch.py 300 s
+          timeout; placements stay SERIAL (one unit), never more than 2 dispatching at once
 MURS      239 EG.142 · 244 EG.140 (EG.9 blocker) · 246 EG.135 · 248 EG.143 · 250 EG.139 · 252 EG.145 · 253 EG.144 · 255 EG.156
           (CC kid exited without done: director salvage 0ae4b7171, unreviewed)
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
