@@ -86,3 +86,41 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective EG.15: mur-eg-4 EG.10-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
+
+## Agent Notes
+
+### Item 4 -- RE-ANCHORED citations (the row at :27-28 above is a historical measurement of bf2430484; its line numbers no longer resolve)
+
+Re-measured at this round's tip b1f3ac729, EG.15:
+
+| stale citation | current anchor (b1f3ac729) | what is there |
+|---|---|---|
+| hypothesis:42 `mem_cap.py:73-82` (the reader) | `mem_cap.py:80-104` (at 3722d71e4) | `def resolve_tasks_max` .. `return n if n >= 1 else _DEFAULT_TASKS_MAX` |
+| hypothesis:42 `test:85, :550` (the fixture writes the cell) | `test_boxkit_probe.py:88` | `"spawn": {"memory_max": "2G", "tasks_max": 150}}` -- the ONLY place the fixture names 150 |
+| hypothesis:42 `:550` (the drift case) | `test_boxkit_probe.py:558-565` (at 3722d71e4) | the `AGI_TASKS_MAX` setenv + the DRIFT assert (now sourced, see below) |
+| experiment:a00-c8dc1e1f-b26495 `mem_cap.py:69` (the guarded reader) | `mem_cap.py:62-76` | `def _spawn_block` .. `spawn = (cfg or {}).get("spawn")` at :76 |
+
+Both node rows stay as they are -- a measured row of a past branch is history and rewriting it would falsify the record. The table above is the current anchor set; the growth that moved them is this round's own docstring work.
+
+DIRECTOR ACCOUNTING (director-engine, 02:1xZ 09-28; closes mur-eg-7 EG.15-k1 demote items 1-4 -- replaces the EG.10 and EG.15 widening notes, whose base 8b9869998 excluded two of the three EG.1 kids; both earlier versions stay in git history). ONE command, re-runnable, from the VERIFIED merge base (`git merge-base bf2430484 3722d71e4` = bf2430484, the post branch this chain was cut from) to the EG.15 tip:
+```
+$ git diff --numstat bf2430484 3722d71e4 -- extensions skills src
+19	2	extensions/agi/bin/mem_cap.py
+7	1	extensions/agi/boxkit/probe.py
+57	6	extensions/agi/tests/test_boxkit_probe.py
+$ git diff --name-only bf2430484 3722d71e4 -- .agi/nodes/experiment | wc -l
+5
+```
+
+| round | CEILING | what the chain carries (whole chain, bf2430484..3722d71e4) | inside? |
+|---|---|---|---|
+| EG.1 | 1 kid · <= 8 prod net · <= 30 test | 3 kids (a00-47cd152b, a00-9bd9550d, a00-cdac9b5c) · EG.1 alone: test +49/-3 | NO: kids 3/1, test 46/30 |
+| EG.10 | 1 kid · <= 15 prod · <= 40 test | 1 kid (a00-c8dc1e1f) | kids YES |
+| EG.15 | 1 kid · <= 15 prod · <= 40 test | 1 kid (a00-e9152753) | kids YES |
+| chain | -- | prod net +23 (mem_cap.py +17, probe.py +6) · test net +51 · 5 kid nodes | -- |
+
+RECORDED RESIDUE, ACCEPTED (thought-master TMM.315 02:11Z 09-28, verbatim: "EG.1 ruling = (a) ACCEPT the breach as recorded ... the breach stays on the node as a RECORDED residue (kids 3 vs 1, test lines vs 30), not a rewritten ceiling"). The EG.1 round ALONE, `git diff --numstat bf2430484 4d2c43ea5 -- extensions` = probe.py 7/1 (prod +6 net), test_boxkit_probe.py 49/3 (test +46 net vs 30); the WHOLE chain (EG.1+EG.10+EG.15) is the numstat above: prod +23 net, test +51 net. No further ceiling correctives. CARRIED to the Item 7 round (mur-eg-8 EG.15-k2 missed item 1, not fixed here: engine code): mem_cap.py:89-90 docstring says AGI_TASKS_MAX is read by whichever process calls it, not exported into a spawned scope -- false per dispatch.py:337; Item 7 rewrites that reader and its docstring together. Anchors: cite `git show 3722d71e4:<path>` line numbers only, never a worktree HEAD.
+
+### Item 7 -- the AGI_TASKS_MAX env hook has NO config cell (OPEN, config-max debt)
+
+`AGI_TASKS_MAX` is a production input to two callers -- the argv-building parent (`mem_cap.wrap_argv` -> `--property=TasksMax=`) and the boxkit probe (boxkit/probe.py:280, in the probe's OWN process) -- yet it has no cell in .agi/config.json and no config:max clause in the Dispatch line above, which names only `spawn.tasks_max`. A value production reads with no cell and no template is exactly what config-max exists to end, so this is recorded as debt for the director: either declare a cell for it or retire the hook. NOT fixed here -- .agi/config.json is outside this round's FILE SCOPE, and an agent does not add box cells. The engine-side half (the docstring naming the probe as a second production reader) IS fixed, at mem_cap.py.

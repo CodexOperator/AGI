@@ -16,6 +16,8 @@ sys.path.insert(0, str(BOXKIT))
 sys.path.insert(0, str(HERE / "fixtures" / "boxkit_probe"))
 import probe  # noqa: E402
 import fake_systemctl  # noqa: E402
+sys.path.insert(0, str(HERE.parents[1] / "bin"))  # mem_cap, the ONE spawn-block owner
+import mem_cap  # noqa: E402
 
 CELLS = {"install_root": "/", "sbin_dir": "usr/local/sbin",
          "systemd_system_dir": "etc/systemd/system", "systemd_conf_dir": "etc/systemd",
@@ -82,7 +84,7 @@ def _fixture(tmp: pathlib.Path, monkeypatch, factory=None, base=BASE, memtotal=M
     (agi / "nodes" / ".geometry").mkdir(parents=True)
     (agi / "config.json").write_text(json.dumps({
         "paths": {"boxkit": dict(CELLS, templates_dir="templates")},
-        "values": {"boxkit": dict(VALUES), "memcap": {"tasks_max": 150}},
+        "values": {"boxkit": dict(VALUES), "memcap": {}},
         "spawn": {"memory_max": "2G", "tasks_max": 150}}))
     (agi / "nodes" / ".geometry" / "crons.md").write_text(
         "---\nid: cron:crons\ntype: cron\ncadences:\n  memory_alarm:\n"
@@ -539,19 +541,68 @@ def test_a_row_with_no_target_cell_is_info_and_never_ok(tmp_path, monkeypatch, c
 
 
 def test_spawn_rows_target_the_config_and_the_resolvers_not_a_literal(tmp_path, monkeypatch):
-    """No "2G" / 150 literal here: the row is declared cell vs mem_cap's
-    resolver, so a config the resolvers do not honour is DRIFT."""
+    """No "2G" literal here, and no UNSOURCED number: the row is declared
+    cell vs mem_cap's resolver, so a config the resolvers do not honour is
+    DRIFT.  150 below is the FIXTURE's own cell (written by _fixture), not
+    a bound of the engine, and the fail-closed value is
+    `mem_cap._DEFAULT_TASKS_MAX`, not a literal: a hardcoded 150/96 pair
+    would keep passing after the cell or the shipped default moved."""
     agi, root, shim = _fixture(tmp_path, monkeypatch)
     assert _by_name(probe.rows(agi, root, shim, HELD))["spawn.memory_max"][2] == "ok"
     cfg = json.loads((agi / "config.json").read_text())
     cfg["spawn"]["memory_max"] = "3G"             # the cell IS the target: still ok
     (agi / "config.json").write_text(json.dumps(cfg))
     assert _by_name(probe.rows(agi, root, shim, HELD))["spawn.memory_max"][2] == "ok"
-    cfg["values"]["memcap"]["tasks_max"] = 96     # the resolver disagrees with the cell
-    (agi / "config.json").write_text(json.dumps(cfg))
+    # the ONE cell: with no override, the resolver returns spawn.tasks_max itself.
+    # (a resolver reading values.memcap.tasks_max falls back to 96 and fails HERE.)
+    monkeypatch.delenv("AGI_TASKS_MAX", raising=False)
+    assert _by_name(probe.rows(agi, root, shim, HELD))["spawn.tasks_max"] == (150, 150, "ok")
+    # the resolver disagrees with the cell, through a path PRODUCTION can take:
+    # mem_cap.resolve_tasks_max honours AGI_TASKS_MAX.  The cell itself is 150.
+    monkeypatch.setenv("AGI_TASKS_MAX", str(mem_cap._DEFAULT_TASKS_MAX))
     table = _by_name(probe.rows(agi, root, shim, HELD))
-    assert table["spawn.tasks_max"] == (150, 96, "DRIFT"), table["spawn.tasks_max"]
+    assert table["spawn.tasks_max"] == (150, mem_cap._DEFAULT_TASKS_MAX, "DRIFT"), table["spawn.tasks_max"]
     assert _run(agi, root, shim) == 1
+
+
+def test_a_malformed_spawn_container_is_data_never_a_crash(tmp_path, monkeypatch):
+    """The reader got this guard in _spawn_block (mem_cap.py); the probe -- the
+    read-back of the WHOLE table -- still did `cfg.get("spawn") or {}` then
+    `.get(cell)`, so a scalar container raised out of rows() instead of
+    reporting.  A cell is data: the row must read as absent (info)."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    cfg = json.loads((agi / "config.json").read_text())
+    for bad in (42, "2G", ["x"], None):
+        cfg["spawn"] = bad
+        (agi / "config.json").write_text(json.dumps(cfg))
+        table = _by_name(probe.rows(agi, root, shim, HELD))
+        want_max, want_cap = mem_cap._DEFAULT_TASKS_MAX, mem_cap._DEFAULT_MEMORY_CAP
+        assert table["spawn.tasks_max"] == (None, want_max, "info"), (bad, table["spawn.tasks_max"])
+        assert table["spawn.memory_max"] == (None, want_cap, "info"), bad
+
+
+def test_the_probe_reads_the_spawn_block_through_the_readers_one_guard(
+        tmp_path, monkeypatch):
+    """The malformed-container fix in probe.py used to be a HAND COPY of
+    mem_cap._spawn_block's `isinstance(spawn, dict)` test.  A copy is a second
+    rule: a shape the reader learns to guard would still kill the table.  The
+    probe must CALL the shared guard -- proved by a sentinel, not by reading
+    the source: if the probe decides for itself, the sentinel is never called
+    FROM probe.py.  (Recording every caller is not enough -- the resolvers
+    legitimately go through the same guard -- so it is the frame, not the call,
+    that this asserts.)"""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    seen = []
+    real = mem_cap._spawn_block
+
+    def spy(cfg):
+        seen.append(sys._getframe(1).f_code.co_filename)
+        return real(cfg)
+
+    monkeypatch.setattr(mem_cap, "_spawn_block", spy)
+    table = _by_name(probe.rows(agi, root, shim, HELD))
+    assert any(f.endswith("probe.py") for f in seen), seen
+    assert ("spawn.tasks_max" in table and "spawn.memory_max" in table), sorted(table)
 
 
 def test_a_write_shaped_answer_is_data_never_executed(tmp_path, monkeypatch, capsys):
