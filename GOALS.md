@@ -8458,6 +8458,38 @@ Belam 2026-09-28: activate for write/mint foundation (redesign order skills→wr
 
 Belam 20260928 ET: g7.33.9 foundation fleshed + kids g7.33.9.1/.2 minted via write.py (skills→write/mint); NO pi. Board still lists g7.33 horizon — Belam to move into stop-line when ready.
 
+##### G7.33.1.1 — BODY:BEGIN always emitted — even with create --body-file / explicit body= (residue d from g7.33.1b) — status: complete
+
+<!-- BODY:BEGIN -->
+# goal:g7.33.1.1
+
+## Why this exists
+**Parent `goal:g7.33.1`.** Residue (d) carried from hypothesis:lm-create-body-file-lands-real-prose-not-the-placeholder-scaffold (EF.05 ACCEPTED): `write_node` emitted `<!-- BODY:BEGIN -->` only when `body is None`. A `create --body-file` node therefore had no repair anchor — `cli.py done` cannot separate a mangled frontmatter from the body (hypothesis:l3-done-broken-frontmatter). a/b/c of g7.33.1 already proved on trunk; this leaf closes the disclosed carry.
+
+## Target end-state
+- Every new node from `node_writer.write_node` carries `BODY:BEGIN` immediately after the closing `---`, including explicit `body=` / `write.py create --body-file`.
+- Idempotent: a caller body that already opens with the marker is kept (no double marker).
+- `body is None` scaffold path stays byte-identical (marker + heading + BODY_PROMPTS).
+
+## Invariants
+- Default / already-correct scaffold path unchanged.
+- Marker is the repair boundary for `cli.py done`, never decorative.
+- Prefer write.py for all node edits (skill:agi-node-write).
+
+## Falsifier
+1. `write_node(..., body="## X\\n")` → body starts with `BODY:BEGIN`.
+2. `create --body-file` lands marker + heading + prose; placeholder absent.
+3. Body already starting with `BODY:BEGIN` → exactly one marker.
+4. Focused suite: test_node_writer + test_write body-file trio green.
+
+## Out of scope
+- `--at HEADING` anchor form (hyp a chose structural guard; optional deepen later).
+- Ordered note+replace composition (hyp c docs-only; composition still separate calls).
+- Hand-edit GOALS.md; pi spawn.
+
+## Agent Notes
+Belam NO-PI 2026-09-28: engine FIX landed in same pass as mint — `node_writer.write_node` always emits BODY:BEGIN; tests updated; 6/6 focused green.
+
 #### G7.33.9 — skills + write/mint foundation (redesign order step 1-2) — status: complete
 
 <!-- BODY:BEGIN -->
@@ -14449,6 +14481,8 @@ Falsifiers. Each item is falsified independently: (a) if the anchor or guard fai
 Done when. All three lettered items have a landed round, proved or disproved with its WHY. (c) additionally checked against the chained-note bug found this session (goal:g14.14.3 THOUGHT) to see if one fix covers both.
 
 First chunk, minted next: hypothesis for item (a), the replace body anchor/guard -- this director has the most direct operational evidence for it. Items (b) and (c) queued after, same format.
+
+Belam NO-PI 2026-09-28: a/b/c already ACCEPTED on trunk (EF.04 structural guard; EF.05 --body-file; EF.06 -h standalone NOTES). Residue (d) from EF.05 nested as goal:g7.33.1.1 COMPLETE — node_writer.write_node always emits BODY:BEGIN (incl. explicit body= / create --body-file); idempotent if marker already present; focused 6/6 green. Parent remains active: optional deepen = --at HEADING form (hyp a chose guard) + ordered note+replace composition (hyp c docs-only). No pi.
 
 ##### G7.33.3 — G14.14.3: DISPATCH/RUNTIME -- five measured engine gaps in the dispatch, session-locator, schema-check and startup path (owner 2026-09-21 01:1xZ-01:2xZ on goal:g14, relayed via goal:g7.33) — status: active
 
