@@ -58,6 +58,9 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over 37367b9a8 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 
+## SUPERSEDED BY EG.71 (thought-master TMM.338 ruling A, 2026-09-28 14:2xZ; recorded by director-engine)
+The EG.68 -> EG.103 chain (loop tip 9576e82c2) is RETIRED UNMERGED: mur-eg-41 found its mechanism -- the provisioning.zero_usd_skip_checks cell plus dispatch.py's validation of it -- absent on the merge target, where hypothesis:a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-and-cap-guards (EG.71, landed on the trunk 39d280fa9) skips the same two credit floors in CODE and keeps the runtime-key gate + cap guard; the chain's new pin fails on the post bytes and its range adds 0 production lines. No code from this chain merges. The config-max half it carried (the skip list as a config cell) moves to ONE new goal:g7.33 hypothesis ON TOP of the post, pi-free, queued after EG.9.
+
 ## CORRECTIVE DH.EG.103 -- closes mur-eg-27 EG.68-k1 accept_with_residue
 BASE      CUT FROM season2/loops/hypothesis-zero-usd-exemption-sk-a00-8cd5f2bd tip d5c069c73 (branch de-base-EG.103; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
 For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
@@ -78,5 +81,5 @@ CEILING   HARD CAP: 1 kid · <= 0 production lines net over d5c069c73 (test + no
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.103: mur-eg-27 EG.68-k1 residues batched into one corrective (orders above, generated from the verdict files).
+Retired unmerged per thought-master TMM.338 ruling A: superseded at merge by EG.71's landed zero-USD guard code; the config-cell idea moves to one g7.33 hypothesis on top of the post.
 <!-- THOUGHT:END -->
