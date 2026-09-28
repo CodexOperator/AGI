@@ -40,7 +40,7 @@ POST      895c5fe16 = post + EG.153 + EG.151 + EG.150 chains (local only; the la
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.185 · next murq276
+SERIES    next EG.185 · next murq279
 PLACING   serial12 (173 171 172 174 177 178 placed; all 5 died but 178?) -> serial14 (179) -> serial17 (180 181 182) · serial16 (EG.166) · serial18 (EG.164)
 AUTO      deadwatch (detector: every ended EG.16x-19x parent -> HARVEST line or DEAD + queue) · redispw (worker: serial redispatch2
           of the queue, 10 min apart, cap 5 per round; queue <scratchpad 3e232af5>/redisp.queue) · rmur271 272 (re-run murs until no
@@ -48,9 +48,13 @@ AUTO      deadwatch (detector: every ended EG.16x-19x parent -> HARVEST line or 
 PROVIDER  since 20:0xZ the pi-free model returns 'Provider returned an empty response': 11+ parents died 0-commit, most mur stages die.
           FIXES: EG.151 chain MERGED 63cc7e072 (parent-side retry, in #4) · EG.183 (TMM.350, workflow-stage signatures) harvested
           2d0b3c8ed -> murq274; its config:workflows cell was NOT written -> the corrective must add it
-LIVE      EG.170 a00-1d634168 (facts window) · EG.165 a00-f0d1183c · EG.184 (pq184) · redispw queue: <scratchpad 3e232af5>/redisp.queue
-MURS      272 EG.161 (rmur272) · 274 EG.183 (rmur274: 10 min then retry) · 275 EG.164 · 276 EG.178 · JUDGED: 271 EG.169 -> MERGED (in #5)
-          · 273 EG.175 -> director close -> MERGED (in #5) · 267-270 -> 179-182 · 259-266 -> 171-178 (176 = director close, EG.153 chain)
+LIVE      21:1xZ reconcile: EG.184 a00-c38d9fc2 (+ kid a00-0375e79c) · EG.173 re-dispatch a00-78d234f6 (redispw) · serial17 places EG.182
+          · EG.170 + EG.165 ended with commits UNSEEN by deadwatch (its 20:36 start seeded every existing parent as seen, live ones too)
+          -> harvested 21:08Z green (170: 120 passed at 492d7397f · 165: 117 passed, 1 node landed, at 56d44d93e)
+MURS      rmur (re-run until no empty-response stage): 272 EG.161 · 274 EG.183 · 275 EG.164 (armed 21:08) · 276 EG.178 (armed 21:23)
+          · 277 EG.170-k1 b49c5db9e..492d7397f (facts window) · 278 EG.165-k1 b1d171bf0..56d44d93e (armed 21:28; parent wrote proved THEN
+          inconclusive_lean_disproved:25) · JUDGED: 271 EG.169 -> MERGED (in #5) · 273 EG.175 -> director close -> MERGED (in #5)
+          · 267-270 -> 179-182 · 259-266 -> 171-178 (176 = director close, EG.153 chain)
 TOOLS2    <scratchpad 3e232af5-...>: cardset.py KEY ENDKEY FILE · drop.py N "k.." "why" · textkid.py N · resnode.py FILE (hypothesis-node
           merge conflict: post sections + chain side, ONE THOUGHT) · rmur.sh Q · deadwatch.sh + redispw.sh (units above)
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
