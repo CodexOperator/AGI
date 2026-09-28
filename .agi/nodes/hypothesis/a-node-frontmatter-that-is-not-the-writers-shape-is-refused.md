@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: a00-7a12aad2
+edited_by: a00-16a744c6
 evidence_runs:
   - experiment:a00-84c9c98d-34018e
   - experiment:a00-1556127c-9fb395
@@ -14,6 +14,7 @@ evidence_runs:
   - experiment:a00-85c23976-f70650
   - experiment:a00-342e0860-956c66
   - experiment:a00-3e239d1d-9407b0
+  - experiment:a00-7a12aad2-6a3a17
 scaffold_hash: fcaf2289ca35b7cc
 season: 2
 testable_claim: a frontmatter list not in node_writer shape is refused by name at load/links; the corrupted node is repaired
@@ -45,7 +46,9 @@ PARENT, EG.28, a00-7a69e3ca -- ITEM 8 settled on this node, and the number moves
 
 (4) DEVIATION. The director's item 8 offers "recorded, no bytes" as an option; I took the four-byte frontmatter edit because the order's own complaint is that the number and the claim have driven apart, and a review that only records the divergence leaves the divergence in place. The claim TEXT is left verbatim -- the owner's claim is not the engine's to rewrite.
 
-THIS ROUND'S NET MOVEMENT ON THE CLAIM, from the corrective kid experiment:a00-3e239d1d-9407b0 (its diff, and my own re-run of its deletions): the load-path half is no longer deletable-with-no-red -- deleting the no-rebuild guard turns test_links.py red (1 failed, 33 passed), deleting only the writer round-trip clause turns it red (2 failed, 32 passed) -- and the fail-open multi-root cache is closed and my probe discriminates old bytes from new. Both were pin-tests, not mechanism, which is why the number moves only 5 points and not to `proved`. The claim's other two halves are untouched: `links` and `repair`.
+THIS ROUND'S NET MOVEMENT ON THE CLAIM, from the corrective kid experiment:a00-3e239d1d-9407b0 (its diff, and my own re-run of its deletions): the load-path half is no longer deletable-with-no-red -- deleting the no-rebuild guard turns test_links.py red, deleting only the writer round-trip clause turns it red -- and the fail-open multi-root cache is closed and my probe discriminates old bytes from new. Both were pin-tests, not mechanism, which is why the number moves only 5 points and not to `proved`. The claim's other two halves are untouched: `links` and `repair`.
+
+COUNT CORRECTION (DH.EG.82, experiment:a00-16a744c6-447f40): this paragraph first read "(1 failed, 33 passed)" for the guard deletion and "(2 failed, 32 passed)" for the round-trip clause deletion. Neither reproduces: experiment:a00-7a12aad2-6a3a17 (EG.44) re-measured on a clean copy of tip 2d5c5a81c -> every natural deletion is "1 failed, 34 passed", one test red, never two. The false counts are kept here in quotes as the record; the Agent Notes paragraph below carries the same correction and the four measured cases.
 
 Evidence for the raise-then-lower is unchanged in shape: experiment:a00-3e239d1d-9407b0 is added to `evidence_runs`.
 <!-- THOUGHT:END -->
