@@ -39,12 +39,23 @@ never re-run the whole mur just to get a verify the corrective will supersede.
 ## 3 · Triage — one row per defect
 | the defect is | do |
 |---|---|
+| EVERY residue of the round is PURE TEXT (node prose/frontmatter, a stale cite, a count, a comment or docstring -- no behaviour, no test logic, no config cell) | NO corrective round: the director fixes them itself on the round's loop branch (write.py; a pasted command where a number is claimed), commits there, and batches that range into the NEXT mur (§3a) |
 | a `residue` in THIS round's claim, bytes or nodes | corrective (§4) — batch every residue of the round into ONE corrective |
 | a NOT_MET conjunct | corrective; or split: the conjunct becomes a goal leaf when it needs a new claim / >1 round |
 | `config_max` / `template_max` = yes | corrective naming the EXACT cell or line (never accepted as code) |
 | a `note`, or a refuted defect | demote: the measured reason (command + number) in the merge commit and the card's chain line |
 | a ceiling breach alone (kids, lines) | not a corrective: a findings row (the parent ignored the CEILING) |
 | rule-changing · design above the node · cost/model · Prime/owner-only | `[red]` to your master, named MAJOR — never a corrective |
+
+### 3a · Pure-text residue: the director fixes it (owner 2026-09-28 05:0xZ)
+```
+all residues pure text? ──no──▶ corrective (§4), the text items ride in it
+        │ yes
+        ▼
+cd the round's worktree (or `git worktree add` its loop tip) ─▶ write.py each fix ─▶ commit on the LOOP branch
+─▶ the round joins the NEXT mur's args as its own {key, old_tip = the reviewed tip, new_tip} ─▶ residues 0 ─▶ merge
+```
+A mixed round (one code, test-logic or config item) stays a corrective round; its text items ride in it, never split out.
 
 ## 4 · The node update (the orders live in the graph)
 Write the orders ONCE to a scratch file, then append it to the hypothesis node's body; the same file is `--orders`.
