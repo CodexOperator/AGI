@@ -130,6 +130,27 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.678 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-a-path-shaped-bin-res-a00-68890139 tip a8fcf1574.
 ROUNDS    this post's rounds on this node: DH.616 DH.636 DH.647 DH.678; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
+
+## CORRECTIVE DH.678 -- closes mur-director-engine-44 DH.647-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-a-path-shaped-bin-res-a00-68890139 tip a8fcf1574 (branch de-base-678; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. pi_adapter.py:54 forwarding spawn_cwd into adapters.resolve_bin is pinned by no committed test — deleting it leaves 64 tests green
+2. the item-5 test at test_adapters_spawn_cwd.py:269 asserts only on literals it defines itself and cannot fail for any resolver behaviour
+3. build/bin-adapters-init.md:112-113 attributes two payload changes to this round that are already at the base 7fa89215b
+4. experiment/a00-a266b77a-1197d4.md:56 'pasted from the file' prints pre-round lines 2646/2861 where the tip has 2647/2870, and the same stale pair sits at experiment/a00-45ec831e-e513a5.md:126 and :153
+5. dispatch.py:1415 dry-run mirror diverges from the live build_command call for a relative cell
+6. build/bin-adapters-init.md:22 BUILD-CONTRACT stale (pre-existing, regenerate-only) -- regenerate only (never hand-edit): paste the regenerating command + output, or NAME it on your node if nothing in scope regenerates it.
+7. No committed test discriminates the production call SHAPE — and this round's own parent said so. a00-a266b77a-1197d4.md:186-190 states that 'a test that reads the wiring off the source PASSES on a kwarg that is computed but never reaches Popen, which is what four prior rounds shipped', and that the discriminating probe is standing the resolver in one directory and the round in another. The only new wiring test is a source reader (test_adapters_spawn_cwd.py:337-360, `ast.parse` of dispatch.py text), and the discriminating probe exists only as a /tmp parent probe pasted at :160-164. Combined with defect 1, the whole chain below `adapters.resolve_bin` can be severed on the production shape and the entire committed suite stays green (measured: 77 green). The one test that comes close (:139-198) stubs the very link it needs to prove (:173).
+8. Defect 6 is a live failure, not a reporting divergence: `dispatch --dry-run` (dispatch.py:1415) with a relative path-shaped `bin` that exists only under `branch_root` REFUSES with the resolver's own FileNotFoundError where the live spawn at :2647 would resolve it, so a dry run — the check an agent runs before spending — can report a harness that cannot start.
+9. Two derivations of 'the engine bin dir' inside one test file: test_adapters_spawn_cwd.py:37 derives it as Path(__file__).resolve().parent.parent / 'bin', while the new test at :344 derives the same tree as Path(adapters.__file__).parent.parent / 'dispatch.py'. They coincide in this repo, but if `adapters` ever resolves from another checkout (PYTHONPATH, an installed engine, a project with a cloned engine) the new assertion reads a dispatch.py that is not the tree under test — a reader that is not the one the rest of the file reads.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_adapters_spawn_cwd.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/adapters/__init__.py · extensions/agi/bin/adapters/pi_adapter.py · extensions/agi/bin/dispatch.py · extensions/agi/tests/test_adapters_spawn_cwd.py · .agi/nodes/build/bin-adapters-init.md · .agi/nodes/experiment/a00-45ec831e-e513a5.md · .agi/nodes/experiment/a00-68e82039-53f685.md · .agi/nodes/experiment/a00-a266b77a-1197d4.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over a8fcf1574 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.647: mur-director-engine-39 DH.636-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.678: mur-director-engine-44 DH.647-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
