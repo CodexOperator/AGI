@@ -1624,96 +1624,6 @@ def _round_ring_refusal(project_root: str, ring_name: str, tier: str,
         f"{res.refused}")
 
 
-<<<<<<< HEAD
-# hypothesis:a00-c3a24084-4190b2 / goal:g7.28.1 -- persistent seats.
-_PERSIST_SLEEP = time.sleep
-_PERSIST_POLL_S = 0.2
-_PERSIST_MAX_RESTARTS = 3
-_PERSIST_STOP_ENV = "AGI_PERSISTENT_STOP"
-
-
-def _persistent_stop(iter_dir: Path, agent_id: str) -> bool:
-    """Clean stop: the per-agent stop file, or AGI_PERSISTENT_STOP."""
-    return ((iter_dir / f"stop.{agent_id}").exists()
-            or bool(os.environ.get(_PERSIST_STOP_ENV)))
-
-
-def _pin_posts_row_occupation(root: Path, seat: str | None, pid: int,
-                               *, session_id: str | None = None) -> str:
-    """goal:g7.28.1.2 — stamp the live supervised pid onto config:posts/seats.
-
-    After a `--persistent` start (and after each supervised restart) the
-    seats/posts registry row for that seat must show occupation with the
-    live pid/session pin — not only `agent.json`. Routes through
-    `rotate._write_identity_cells` (the ONE identity-cell writer). No-ops
-    when `seat` is absent or the registry has no matching row. Never
-    raises: a posts-row miss must not tear down the persistent hold.
-    """
-    if not seat or pid is None:
-        return ""
-    try:
-        import rotate as _rotate  # noqa: PLC0415  (local: heavy; avoid tip cycle)
-        graph = locations.find_project_root(root) or root
-        role = "director"
-        for row in geometry_config.load_rows(graph) or []:
-            if row.get("name") == seat:
-                role = str(row.get("role") or role)
-                break
-        cells: dict = {"pid": int(pid)}
-        if session_id is not None:
-            cells["session_id"] = str(session_id)
-        out = _rotate._write_identity_cells(
-            root, seat=seat, actor=seat, role=role, cells=cells)
-        if out:
-            print(f"persistent: posts-row {seat!r} pid={pid}",
-                  file=sys.stderr)
-        return out or ""
-    except Exception as exc:  # noqa: BLE001
-        print(f"persistent: posts-row pin skipped for {seat!r}: {exc}",
-              file=sys.stderr)
-        return ""
-
-
-def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
-                          record: dict, session: Path,
-                          root: Path | None = None,
-                          seat: str | None = None,
-                          max_restarts: int = _PERSIST_MAX_RESTARTS,
-                          poll_s: float = _PERSIST_POLL_S) -> int:
-    """HOLD one seat and re-open the SAME round when it dies.
-
-    `reopen` is the caller's `_open_round`; its closure already holds the ONE
-    rendered `spawn_args`/`spawn_env`, and this function builds no argv -- so
-    there is no second argv path (falsifiers 1 and 3, structural). Bounded by
-    `max_restarts`; `_persistent_stop` ends the hold. Each hand-off rewrites
-    the record's CURRENT pid / `restart_count` and persists `agent.json`.
-    """
-    restarts = 0
-    while not _persistent_stop(iter_dir, agent_id):
-        if proc.poll() is None:
-            _PERSIST_SLEEP(poll_s)
-            continue
-        if restarts >= max_restarts:
-            break
-        try:
-            proc = reopen("ab")
-        except BaseException as exc:  # noqa: BLE001
-            print(f"persistent: {agent_id} restart failed: {exc}",
-                  file=sys.stderr)
-            break
-        restarts += 1
-        record["pid"] = proc.pid
-        record["restart_count"] = restarts
-        (session / "agent.json").write_text(json.dumps(record, indent=2))
-        # goal:g7.28.1.2 — posts/seats row pin tracks the NEW live pid
-        # (never a stale corpse) after each supervised restart.
-        if root is not None:
-            _pin_posts_row_occupation(root, seat, proc.pid,
-                                      session_id=agent_id)
-        print(f"persistent: {agent_id} restart {restarts}/{max_restarts} "
-              f"pid={proc.pid}")
-    return restarts
-=======
 
 def _where_session_candidates(graph: Path, kid_id: str) -> list[Path]:
     """Every session dir named ``kid_id`` under main + parent worktrees.
@@ -1792,7 +1702,6 @@ def cmd_where(kid_id: str, start: Path | None = None) -> int:
     for p in hits:
         print(p)
     return 0
->>>>>>> origin/core/season2/main
 
 
 def main() -> int:
@@ -1954,15 +1863,6 @@ def main() -> int:
              "The caller (e.g. a parent agent) polls cli.py status to "
              "detect completion. Without this flag dispatch blocks until "
              "all agents finish or the timeout expires.",
-    )
-    ap.add_argument(
-        "--persistent",
-        action="store_true",
-        help="goal:g7.28.1 -- opt-in: HOLD the spawned child and, when it "
-             "dies, re-open it through the SAME rendered argv/env seam (no "
-             "second argv path), updating the record's live pid and "
-             "restart_count. Fire-and-forget stays the default. Clean stop: "
-             "<iter>/stop.<agent> or AGI_PERSISTENT_STOP.",
     )
     ap.add_argument(
         "--prompt-file",
@@ -3209,10 +3109,6 @@ def main() -> int:
             "spawned_by_agent": os.environ.get("AGI_AGENT_ID"),
             "dispatched_from_tree": str(root),
         }
-        if args.persistent:
-            # Conjunct (c): the record itself names the occupation.
-            agent_record["persistent"] = True
-            agent_record["restart_count"] = 0
         # goal:g15.25 SM.26 -- the parent record NAMES what the parent was
         # told: the sender, the sha256/byte count of the exact orders bytes,
         # and the source path. A harvest review can then read (and verify) the
@@ -3300,18 +3196,6 @@ def main() -> int:
             spawn_line += (f" key={minted.name} cap=${minted.limit_usd}")
         spawn_line += f" level={level} strategy={strategy}"
         print(spawn_line)
-        if args.persistent:
-            # Hold AFTER the record is on disk; the supervisor keeps pid and
-            # restart_count current. goal:g7.28.1.2 — also stamp the posts/
-            # seats occupation row with the live pid/session pin on start
-            # (and again on each restart inside the supervisor).
-            _persist_seat = _resolved_seat(args.seat)
-            _pin_posts_row_occupation(root, _persist_seat, proc.pid,
-                                      session_id=agent_id)
-            _supervise_persistent(
-                proc, _open_round, iter_dir=iter_dir, agent_id=agent_id,
-                record=agent_record, session=sess_dir,
-                root=root, seat=_persist_seat)
 
     # The one authoritative write, under lock and against a fresh read
     # (goal:s28 for the merge, goal:g4.8 for surviving concurrency). The
@@ -3354,10 +3238,6 @@ def main() -> int:
             _ad_cfg = cfg.get("agent_dispatch") or {}
         except AttributeError:
             _ad_cfg = {}
-        if args.persistent:
-            print("persistent: supervisor holds the seat; inline reaper off",
-                  file=sys.stderr)
-            _inline_reaper = False
         if _ad_cfg.get("inline_reaper") is False:
             _inline_reaper = False
         if not _inline_reaper:
