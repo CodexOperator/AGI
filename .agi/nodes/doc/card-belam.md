@@ -74,7 +74,7 @@ R. RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
-| ROOT FS FULL: / 100% (447 MiB) at 17:2xZ; DE hit 1 MiB at 13:0xZ and tools blocked | move /tmp scratch off / (a tmpfiles.d age rule for /tmp, or TMPDIR=/data/... for every post); `sudo du -xh --max-depth=1 /` to find the rest of the 87 GB |
+| ROOT FS FULL: / 100% (447 MiB) at 17:2xZ; DE hit 1 MiB at 13:0xZ and tools blocked | move /tmp scratch off / (a tmpfiles.d age rule for /tmp, or TMPDIR=/data/... for every post); `sudo du -xh --max-depth=1 /` to find the rest. MEASURED 17:3xZ: model WEIGHTS are on /data (/data/ml/models, bind-mounted), NOT on /. On /: docker images 12.8 GB (llama.cpp:full-cuda 10.3 GB used by NO container; server-cuda 7.0 GB used) + 85 unattached volumes 3.4 GB (check for postgres data first) + home 8.2 GB. Owner idea 17:3xZ: docker data-root -> /data or /mnt/agi-flash (sequential image reads; flash = own io queue; needs sudo + RequiresMountsFor if flash) |
 | DISK LATENCY: sda (USB SSD, dm-crypt, / + /data) ~35 ms/op, io PSI 68-90 | `sudo smartctl -a /dev/sda` · `sudo dmesg -T` for usb/reset · port/cable/heat |
 | memory crits (PSI full peaks 51.2% 04:44Z, 47.2% 06:41Z 09-28; watchdog line 40% for 5 min) | the 4 idle predecessor belam sessions (L5-X..XIII) still hold RAM: reap on the owner's word; or GUARD_DOCKER_BUDGET 2048M |
 | seat rows in config:posts still claude-opus-5 (adv-*, masters) | move on the owner's word |
