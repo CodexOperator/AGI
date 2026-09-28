@@ -127,6 +127,22 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.655 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-clean-kid-worktrees-p-a00-2a47eced tip 4cb4a8808.
 ROUNDS    this post's rounds on this node: DH.598 DH.624 DH.655; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
+
+## CORRECTIVE DH.655 -- closes mur-director-engine-40 DH.624-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-clean-kid-worktrees-p-a00-2a47eced tip 4cb4a8808 (branch de-base-655; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 4. A committed engine test reads the PROJECT config -- extensions/agi/tests/test_heal_sweep.py:1120 -- BIN.parents[2]/.agi/config.json now gates the shared engine suite.
+2. The NEW cell's reason gloss is still partly false, the same defect class the round set out to kill: .agi/config.json:359 says the reason is 'always `dirty(N) owner=<field> paths=...`', but heal.py:1740 joins `dirty[:3]` -- a tree with 4+ dirty paths prints three paths with no marker, and the only committed assertions are single-path trees (test_heal_sweep.py:220 and :1141). The one line the cell governs is pinned only on the <=1-dirty case.
+3. The cell's sentence 'test_report_line_cell_scope_is_exactly_the_listed_line measures that count' (the NINE) overstates: the test cuts six classes and reaches six of the nine sites (heal.py:1673 live, :1729 no branch ref, :1793 session dir not home, :1760 grace, :1808 removed, plus the routed report.format line). `unmerged (no HEAD)` (:1693), the `bad report_line` fallback (:1743), `remove failed` (:1805) and the dry-run `removed` (:1798) have no committed coverage. The node's own 'six per-tree classes' wording (:20, :131) is the honest one; the cell's is not.
+4. test_summary_line_cell_and_fallback_render_the_same_zero_line (:1117-1122) never RENDERS anything -- it compares two raw strings, so its name and docstring describe a check it does not do. Wording only, but it is the test that carries the config_max inversion above.
+5. UNVERIFIED (test execution; director measured at harvest: test_heal_sweep.py + smoke = 110 passed, 6 skipped at 4cb4a8808 -- re-run at your tip and paste): I could not run test_heal_sweep.py against the reviewed bytes. This review worktree is checked out at 3812f8117, which is NOT a descendant of 4cb4a8808 and does not contain the round's test (grep for test_report_line_cell_scope_is_exactly_the_listed_line on disk: 0 hits), and checking 4cb4a8808 out is a write I am not permitted to make. The node's '110 passed, 6 skipped' (a00-8e8ddd4b-925e7a.md:119-122) therefore stands on the round's own run, not on mine. Probe I would run at a checkout of 4cb4a8808: `env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_heal_sweep.py -q -p no:cacheprovider`.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_heal_sweep.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/heal.py · extensions/agi/tests/test_heal_sweep.py · .agi/config.json · .agi/nodes/experiment/a00-24458a50-acb7ea.md · .agi/nodes/experiment/a00-8e8ddd4b-925e7a.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 4cb4a8808 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.624: mur-director-engine-35 DH.598-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.655: mur-director-engine-40 DH.624-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
