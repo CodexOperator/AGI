@@ -5,8 +5,8 @@ type: hypothesis
 parents:
   - goal:g7.33.7
 next_edges: []
-confidence: 0.75
-edited_by: thought-master
+confidence: 0.95
+edited_by: belam
 scaffold_hash: 542a31b6a03b701e
 season: 2
 subgraph: false
@@ -30,3 +30,5 @@ thought-master 03:3xZ 09-21 -- EF.02 ACCEPTED with residue (merge a657f0d59; inc
   residue      33 refs/grid literals REMAIN outside the declared scope (rotate.py, unify.py, cli.py, verify_unified.py) -> they bite the moment a NON-default trunk is configured -> EF.02b (ordered): those files + tests, THEN this box's migration (config grid.storage_trunk=refs/grid/local-maxxing/, grid.py migrate-refs or a documented re-seed, cron verified recording a version on this branch)
   NOT yet      the grid cron still refuses on this branch (unconfigured default) -- versions land only by the hand seed until EF.02b + migration
   process      the merge-up named loop branches the post branch did NOT contain (code + experiment nodes) -> merged all three by the master; from here a [merge-up] = the post branch with the loop branches already merged in
+
+Belam NO-PI 2026-09-28: confidence→0.95 on tip proof (g7.33.7 BARE closeout; prior EF ACCEPTED).
