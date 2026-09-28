@@ -30,30 +30,27 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (03:2xZ 09-28 · seat woke 00:45Z · per-chain history = git log of this node)
+## §0 STATE (03:5xZ 09-28 · gen 36 = heal respawn 03:39Z, gen 35 died of an unknown cause · per-chain history = git log of this node)
 ```
-MERGE-UP  EG.1 chain RE-HANDED to TM 03:4xZ -- TIP 207ae63f4, MB 5c40a8374, 26 files +1377/-76, 0 deletions, 123 passed, 0 open residues. The TMM.316
-          docstring fix 6d78c51bf was made by the director on the OWNER's order 03:3xZ ("EG 29 is so simple you should do it yourself"); EG.29 CANCELLED
-SERIES    EG.N (next EG.31) · murs merge_up "eg" -> mur-eg-N (next mur-eg-10) · DH.N queued before the reset keep their labels
+MERGE-UP  EG.1 chain LANDED 57debf3a2 (TMM.318); rides belam's next pass B1 (TMM.319)
+SERIES    EG.N (next EG.32) · murs merge_up "eg" -> mur-eg-N (next mur-eg-11) · DH.N queued before the reset keep their labels
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f] gen2.py N murq<Q>.json tip label (run FROM the worktree; sed header DH.EG.n -> EG.n)
-          · place2.sh N (splice fixed 01:1xZ) · placef.sh N (fresh) · redispatch2.sh N (dead round, EG labels ok, gated) · mkmur.py + runmur.sh
-          · qgEG<N>.sh = gate -> place2 (chain via `while is-active qgEG<prev>`) · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N...
+          · place2.sh N (splice fixed 01:1xZ) · placef.sh N HYP (fresh, brief on node) · redispatch2.sh N (dead round, gated) · mkmur.py + runmur.sh (next murq148)
+          · qgEG<N>.sh = gate -> place (chain via `while is-active qgEG<prev>`) · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N...
 GATE      TMM.306: load1 < 16 AND io avg60 < 50, two reads 5 min apart, one placement per pass · arm 10
-LIVE      no parent at 03:2xZ · no mur running · everything below is QUEUED in chained units (systemctl --user list-units 'agi-director-engine-*')
-FRONT     EG.27 (qgEG27) = EG.9 heal-sweep chain: EG.23's kid DIED on its last write -> director SALVAGE 344d79ad2 (UNREVIEWED) -> EG.27 cut from it,
-          FIRST ACT verify + close heal.py:1683 rc-discard fail-open. TMM.313: tmpfs GO waits on this chain MERGED + 24 h no memory crit
-RE-DISP   provider-dead 02:45-03:15Z: TMM.317 = ONE AT A TIME, stop the lane on the first died-on-empty -> unit qgRS (T/redisp-serial.sh 660 EG.18
-          EG.19 661 EG.20; log T/qgRS.log, T/emptycount.log) · EG.30 = the retry fix (hypothesis:an-empty-provider-response-is-retried-not-fatal,
-          g7.33.19) placed after EG.29 (qgEG30) · COUNT 03:15-04:15Z runs itself at 04:20Z -> T/count1h.txt: > 1 in 3 died = send TM both numbers
-          · the tier-0 model/provider row is the PRIME's cell (TMM.317 (4))
-QG-EG     EG.30 (retry fix, qgEG30 now waits on nothing -- qgEG29 stopped) · EG.21 (EG.13 chain, memory-cap HARD RULE) -> EG.22 (DH.657) -> EG.24 (DH.655 clean-kid; BOUNDARY vs EG.9) -> EG.25 (DH.659 parent-demote)
-          -> EG.26 (EG.16/DH.653) -> EG.28 (DH.656, mur-eg-9 verify: cli.py guard unpinned, cache key fail-open)
-QG-DH     drainqg8.. chain (T/drainqg<N>.log): 662-664 · 665 · 666 · 668 · 669 · 675 670-674 · 678 · 679 · EG.2 EG.3 · EG.5 (facts chain, TMM.313 (2):
-          goes up as ONE [merge-up], lands with belam's F13 trim + cell) · EG.6
+LIVE 03:5xZ  parents EG.27 a00-71c46e19 · EG.30 a00-99e01741 · EG.22 a00-6107c92f · DH.660 a00-ae77e8be (serial lane) · DH.662 a00-cf2d4d2c · DH.663 a00-3a9dd6d2
+          · mur murq147 = mur-eg-10 EG.21-k1 (401b20f68..4c5d756ac; harvest e5bb2bb61 83 passed 7 skipped + director SALVAGE 4c5d756ac, item-1 node edit, UNREVIEWED)
+FRONT     EG.27 = EG.9 heal-sweep chain (cut from salvage 344d79ad2, UNREVIEWED; FIRST ACT heal.py:1683 rc-discard fail-open). tmpfs GO = this chain MERGED + 24 h no crit
+TMPFS     belam [decision] 03:4xZ (TMM.319, binding): KID worktrees ONLY in RAM, PARENT on disk -- recorded c2411d6ab; EG.18 item 7 routes PARENT to disk (dispatch.py:762 + test:81)
+RE-DISP   unit qgRS: 660 -> EG.18 -> EG.19 -> 661 -> EG.20, one at a time, STOP on the first died-on-empty (T/qgRS.log, T/emptycount.log) · COUNT runs itself 04:20Z
+          -> T/count1h.txt: > 1 in 3 died = TM both numbers · EG.30 (retry fix) placed 03:34Z BEFORE EG.9 (deviation told to TM; TM may order a stop)
+QG-EG     qgEG24 EG.24 (DH.655 clean-kid; BOUNDARY vs EG.9) -> EG.25 (DH.659) -> EG.26 (EG.16/DH.653) -> EG.28 (DH.656) -> EG.31 (Item 7: RETIRE AGI_TASKS_MAX, 9dfa2a25f)
+QG-DH     drainqg8.. chain (T/drainqg<N>.log): 662-664 · 665 · 666 · 668 · 669 · 675 670-674 · 678 · 679 · EG.2 EG.3 · EG.5 (facts chain: ONE [merge-up] to TM,
+          lands with belam's F13 trim + cell) · EG.6
+TM OWED   (2) thought-hygiene = the DETECTOR (extra markers are quotations): EG.14 -> EG.20 (lane) · (3) conftest guards = EG.21 (mur-eg-10) · others above
 HELD      EG.11 (folded into EG.14's item 4) · EG.7's 5 corpus edits stay UNCOMMITTED in a00-0194accb (parent-demoted, never land)
-NEXT      EG.1 lands -> Item 7 config-max round (AGI_TASKS_MAX cell + the carried docstring), behind the EG.9 chain · EG.4 after DH.660 clears ->
-          g7.32.6 send core -> g7.31.3.3 rotate core (belam item 4) · kid-worktrees chain clean -> tmpfs claim to belam + the 17-consumer round
-DECISION  out to TM: DH.577 cron policy (send-hub chain HELD) · wake-facts touches config:rotations (belam's) · logs: symlink until EG.2 lands
+NEXT      EG.4 after DH.660 clears -> g7.32.6 send core -> g7.31.3.3 rotate core (belam item 4) · kid-worktrees chain clean -> tmpfs claim to belam + the 17-consumer round
+DECISION  out to TM: DH.577 cron policy (send-hub chain HELD) · wake-facts touches config:rotations (belam's) · logs: symlink until EG.2 lands · EG.31 RETIRE vs DECLARE
 ```
 
 ## §1 PLAN
@@ -65,17 +62,18 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 ```
 
 ## 🔴 WHERE IT STOPS
-Rotated at the captive line: EG.1 re-handed to TM (207ae63f4, owner-ordered docstring fix); queue drained into chained gated units; EG.27 front.
+Gen 36 live: TMM.318 owed list reconciled, told to TM 03:5xZ; EG.21 in mur (murq147); EG.31 queued; TMM.319 recorded.
 ```
-FIRST   send.py read director-engine (TM's answer on the EG.1 re-hand) ; spawn_budget.py status (every ended parent -> harvest AT ONCE)
-        ; systemctl --user list-units 'agi-director-engine-*' ; T/qgRS.log (serial re-dispatch; STOP = the lane died on empty again)
-THEN    EG.27 ended -> harvest -> mur (range a935bf010..tip covers the salvage) ; 04:20Z T/count1h.txt -> TM if > 1 in 3 died ; murs -> D/verd.py
+FIRST   send.py read director-engine ; spawn_budget.py status (every ended parent -> harvest AT ONCE) ; systemctl --user list-units 'agi-director-engine-*'
+        ; T/qgRS.log (STOP = the lane died on empty again)
+THEN    murq147 ended -> D/verd.py 147 -> clean: merge 4c5d756ac --no-ff + [merge-up] · residue: gen2 EG.32 ; EG.27 ended -> harvest -> mur (range a935bf010..tip)
+        ; 04:20Z T/count1h.txt -> TM if > 1 in 3 died
 ```
 
 ## §4 TRAPS
 Skills: agi-dispatch §5 · agi-corrective · agi-workflow · agi-node-write §5 · agi-memory-guard · agi-master-gate (TMM.304). Card-only: pi-free murs ~7 min/stage, verify can die (review stands) ·
 WATCH NEW PARENTS TOO: a wait keyed on the parents live at its start misses rounds placed and dead in between (EG.18 EG.19 661) · harvests under load flake 1 test: re-run before a corrective · `pgrep -f place2` matches your own shell: list /proc cmdlines instead ·
-`git merge -F -` does not read stdin · TWO chains edit heal.py _sweep_finished_worktrees: EG.9 chain (EG.23) + clean-kid chain (EG.24) -- merge EG.9 first, then test the second merge's heal tests before its [merge-up] · place2 splice fixed 01:1xZ (body ending mid-paragraph / THOUGHT glued to it was refused) · worktrees VANISH (617 618 597 parents/kids): harvest from the branch, update-ref to fast-forward ·
+`git merge -F -` does not read stdin · a HEAL RESPAWN leaves its own posts row dirty in MAIN and the ack refuses: commit that row by exact path in MAIN, then ack · TWO chains edit heal.py _sweep_finished_worktrees: EG.9 chain (EG.23) + clean-kid chain (EG.24) -- merge EG.9 first, then test the second merge's heal tests before its [merge-up] · place2 splice fixed 01:1xZ (body ending mid-paragraph / THOUGHT glued to it was refused) · worktrees VANISH (617 618 597 parents/kids): harvest from the branch, update-ref to fast-forward ·
 done-time commits skip foreign nodes: check the KID worktree too (618) · parents end WITHOUT a harvest dm: reconcile · stale index.lock
 (no holder) refuses kid commits · NEVER stop a qg unit mid-placement (it kills the dispatch: 680); a killed unit stays failed -> reset-failed before reusing its name · murall/harvest greps match 'failed' in slugs · only / fills: /tmp basetemps. · a PARENT-DEMOTED round's uncommitted config
 stays for its corrective: never land it at harvest (mur-44 DH.650 V4: "hand-landed gate").
