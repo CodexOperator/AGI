@@ -39,6 +39,7 @@ never re-run the whole mur just to get a verify the corrective will supersede.
 ## 3 · Triage — one row per defect
 | the defect is | do |
 |---|---|
+| a NODE-PROSE-ONLY residue -- a cite line drift, a count, a one-operand numstat, a THOUGHT delta -- with NO false claim about behaviour, config or a test (TMM.327) | the DIRECTOR closes it in-loop: ONE director commit per chain on its loop tip, no kid, no re-mur; the `[merge-up]` names that commit + its residue list (mur id -> line) and the master reads its diff at the gate (a new drift in it = the tip returns). Anything false about behaviour, config or a test keeps its corrective round + mur |
 | EVERY residue of the round is PURE TEXT (node prose/frontmatter, a stale cite, a count, a comment or docstring -- no behaviour, no test logic, no config cell) | a TEXT-FIX KID on the claude-code harness, never a pi-free parent round (§3a); every pure-text round of a triage pass dispatched at ONCE, in parallel; their ranges batch into the NEXT mur |
 | a `residue` in THIS round's claim, bytes or nodes | corrective (§4) — batch every residue of the round into ONE corrective |
 | a NOT_MET conjunct | corrective; or split: the conjunct becomes a goal leaf when it needs a new claim / >1 round |

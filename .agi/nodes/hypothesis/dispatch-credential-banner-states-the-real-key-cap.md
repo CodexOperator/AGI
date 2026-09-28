@@ -36,6 +36,21 @@ PARENT     paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT ev
 STATUS    IN PROGRESS, not landed: DH.672 QUEUED (not yet dispatched); round work so far on loop branch none (fresh) tip -.
 ROUNDS    this post's rounds on this node: DH.672; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
+
+## CORRECTIVE DH.EG.75 -- closes mur-eg-20 DH.672 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-dispatch-credential-b-a00-7812f7dc tip eadaf5c19 (branch de-base-EG.75; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. --cap on a zero_usd lane is not pinned by a committed test (test_dispatch.py:2962); the brief's 'or --cap' falsifier is settled only by the branch shape at dispatch.py:2201-2203 -> FIX: ONE committed test in extensions/agi/tests/test_dispatch.py that dispatches a zero_usd lane WITH --cap and asserts the banner states the cap the key was actually minted with.
+2. The dispatch-level harness structurally cannot tie the banner to the key: _run_cap_dispatch stubs provisioning.mint (extensions/agi/tests/test_dispatch.py:2886-2887, _Minted(kw['limit_usd']) returns the PRE-override cred_limit), so inside that harness a zero_usd lane's spawn line (extensions/agi/bin/dispatch.py:3095) would print cap=$1.5 while the banner prints limit=$0.02 — the two-line disagreement the round exists to kill is invisible to the committed dispatch test. It is closed in a second layer by the real-mint test at extensions/agi/tests/test_zero_usd_mint_floor.py:53-65, so this is a residue note (the two-layer chain is the honest shape of the evidence), not a defect of the diff. -> FIX: in that test the provisioning.mint stub must record the limit it is CALLED with (not echo the pre-override cred_limit), so the banner-vs-key tie is observable; show the test FAILS when the banner reads the pre-override value (paste the red run, then the green one).
+3. DEMOTED by the director (not yours): test_pre_fix_reaper_blinds_a_stream_error_with_turn_end -- the director's run at eadaf5c19 (env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT, TMPDIR + --basetemp under /dev/shm) = test_dispatch.py + test_cli.py + test_heal_watch.py 284 passed. If YOUR run of test_dispatch.py shows it red, paste the run with its env and name it OUTSIDE; never edit that test.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_dispatch.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_dispatch.py · .agi/nodes/experiment/a00-b976c566-4bd35a.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · 0 production lines net over eadaf5c19 · <= 40 test lines net over eadaf5c19 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat eadaf5c19 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DH.672 brief added by director-engine: belam minted this node as a measured stub (claim + evidence line) and queued it to this post ([decision] 23:0xZ, goal:g1.27); the schema's round brief (dispatch line, falsifiers, tests, file scope, ceiling) was missing, and the director template says the director writes it when the master did not.
+corrective EG.75: mur-eg-20 DH.672 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
