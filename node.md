@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.31.3.3
 next_edges: []
-edited_by: director-engine
+edited_by: belam
 scaffold_hash: 99f721ebee0a9eb8
 season: 2
 testable_claim: prune clean non-live kid worktrees; spawn reads paths.<town>.worktrees_root via locations.py (no literal at dispatch.py:754); guard.env GUARD_WORKTREE_TMPFS_<host>=4G mounted and charged to user@; post worktrees stay on disk; worktree prune on reboot
@@ -94,6 +94,63 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.680 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-kid-worktrees-resolve-a00-4ea89a8d tip a2db4a317.
 ROUNDS    this post's rounds on this node: DH.650 DH.677 DH.680; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
+## CORRECTIVE DH.680 -- closes mur-director-engine-46 DH.677-k1 accept_with_residue (verify prose; review items 1-4 and the seat claim REFUTED)
+BASE      CUT FROM season2/loops/hypothesis-kid-worktrees-resolve-a00-4ea89a8d tip a2db4a317 (branch de-base-680). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. The consumer pin is a per-file COUNT (test_kid_worktrees_root.py:90-91,100-104): a same-file line move or a net-zero swap is invisible -> pin the consumer SET (file:symbol or file:line-content), so any reroute or new consumer changes the pin.
+2. The prune returncode guard (dispatch.py:786-789) has no test on its rc != 0 path (both prune tests return rc 0 at test:115,135-136) -> one test drives a failing prune and asserts the round spawns without the prune note.
+3. test:81-84 pins tier values 'untrusted' and 'prime_director' that no production caller produces (dispatch.py:1723-1727, rotate.py:21475) -> pin only the tiers production passes.
+4. test:139 asserts a literal json round-trip that can never fail -> remove it or replace it with an assertion on the code under test.
+5. Stale docstrings: dispatch.py:742, :744-745 and drop_branch_worktree :768-770 still say the worktree lives under the MAIN checkout's .agi/worktrees/<agent>/ while the kid lane resolves through the cell (:761) -> correct the wording.
+6. KEEP_ON_DISK is compared by EQUALITY (test:104) and its premise (test:98-99) forces the two cells apart while the live config has them equal (.agi/config.json:237-238) -> DECLARE the coupling where the next round reads it (the test docstring + your node): routing one consumer = edit KEEP_ON_DISK in the same commit.
+7. TESTS gap: test_dispatch.py calls branch_worktree_for_spawn (:1136 :1151 :1177 :1198 :1259 :1354 :1399) and the round never ran it -> run it and paste the line.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_kid_worktrees_root.py test_dispatch.py (-k worktree) + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/dispatch.py (docstrings :742-745 :768-770 only) · extensions/agi/tests/test_kid_worktrees_root.py · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 6 production lines net over a2db4a317 (docstrings only) · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
+
+## CORRECTIVE EG.12 -- closes mur-eg-3 DH.680-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-kid-worktrees-resolve-a00-ab3167b2 tip da6f3fafe (branch de-base-EG.12; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Item 3's tier-reachability claim is refuted by the parser, so a reachable tier lost its pin (test:85)
+2. 3. Consumer pin matches only the literal name `locations` (test:119)
+3. The DECLARED COUPLING is structurally unenforceable for the one file that routes. 'routing one consumer = edit KEEP_ON_DISK in the same commit' (test:9-12) cannot fire for dispatch.py: the routing edit happens INSIDE `branch_worktree_for_spawn`, the symbol the pin already lists (test:98), and the pin only ever sees the symbol NAME. Probe: I changed dispatch.py:762 to `tier in ("kid","parent","prime_director")` and the pin stayed byte-identical and 8/8 green. So the round's one declared safety rule is falsified by construction for the only routing site in the engine — the fix is a tier-table pin, not a consumer pin.
+4. A sharper form of defect 1 the first reviewer's citation misses: the untrusted justification is refuted at dispatch.py:2294 + :369-370, not at :378. `_refuse_untrusted_spawner` short-circuits to None when `seat` is falsy, so the gate is seat-keyed, never tier-keyed; `--tier untrusted` on its own reaches the worktree cut. The node's 'refused at dispatch.py:378 BEFORE any worktree is cut' is true only for a --post row, and the drop of `untrusted` from the pin removed the only thing that would have noticed the difference.
+5. The pin reads the LIVE working tree, not the reviewed branch: `_worktrees_root_consumers` globs `BIN` (test:111), i.e. whatever checkout pytest runs in. It is a whole-tree exact-equality assertion, so any concurrent uncommitted bin/ edit in any unrelated function breaks it, and (observed here) the file is absent from this review worktree's HEAD 65ba5be7, so the pin cannot be evaluated for the reviewed merge from this checkout at all. False-positive-prone global pin; worth stating in the docstring alongside the alias gap.
+6. UNVERIFIED, not probed: test:81-84 pins PARENT into the RAM-lane contract, while the parent hypothesis's conjunct 3 names only 'kid + loop (mur) worktrees point there; post worktrees stay on disk (cards and uncommitted edits must survive a power cut)'. Nothing in this diff establishes that a dispatch `--tier parent` agent is not a post. The probe I WOULD run (read-only, no rotate/dispatch calls): resolve the parent agent's seat row via `python3 extensions/agi/bin/spawn_budget.py status` plus the config:posts row for that id, and read the harvest path, to see whether a parent-tier worktree is ever cut or homed as a seat post with uncommitted edits. Flagged, not credited either way.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_kid_worktrees_root.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/dispatch.py · extensions/agi/tests/test_kid_worktrees_root.py · .agi/nodes/experiment/a00-abfcc0db-49cea2.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over da6f3fafe · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
+
+## CORRECTIVE EG.18 -- closes mur-eg-5 EG.12-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-kid-worktrees-resolve-a00-b28f02a4 tip c884b3663 (branch de-base-EG.18; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Alias gap half closed, docstring overclaims — test:137-138 ImportFrom branch cannot match `from . import locations as L` (module=None)
+2. 4. Live-box number frozen without an as-of — verdict node:54 '3 of the 4' now measures 0 of 4
+3. 8. Two more sites share the tier tuple outside the table — dispatch.py:1498 (dry-run env fence) and :2795 (hooks fence) are uncaught
+4. Missed 1 — the 'consumer SET' is a per-symbol MULTISET, so the pin can also fail for the wrong reason. test:121-122 lists `"_fd_seat_worktree"` TWICE, because rotate.py:16986 and :16989 both call `locations.worktrees_root(main)` inside that one function. Measured in the isolated copy: adding a third `locations.worktrees_root(main) / "extra"` inside `_fd_seat_worktree`, with no routing change at all, fails test:169 with `{'rotate.py': ['_fd_seat_worktree', '_fd_seat_worktree', '_fd_seat_worktree', ...]} != KEEP_ON_DISK`. That contradicts test:112-114 ('A SET, not a per-file count') and node:36 (item 1's claim that the walk replaced 'a per-file regex COUNT'). This is the inverse of defect 1 — a pin that fails a correct, unrelated edit — and it is the residue of the count the round said it removed.
+5. Missed 2 — TIER_ROOTS re-commits the exact sin the round fixed. dispatch.py:761 states in the routing comment 'There is no `post` TIER: seats cut their own trees in rotate.py', yet test:83 pins `"post": "disk"`. The round's own stated defect at test:79-80 was a pin whose tier universe was wrong (it named `director` alone and omitted reachable tiers); the replacement table adds a tier the production comment says cannot exist, inflating the appearance of exhaustiveness in the very table sold as the guard.
+6. Missed 3 — a transcript that cannot be re-run verbatim, in the node whose stated standard is 'each one, run, output pasted — never typed' (node:56). node:180-182 pastes `git ls-tree 65ba5be7 .../test_kid_worktrees_root.py`, then a second line `echo "rc=$? bytes=$(wc -c < ...)"; git ls-tree 65ba5be7 ...` containing two literal ellipses, then the result `rc=0 bytes=0`. As pasted, that line is not executable; the byte count it asserts was not measured on the page.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_kid_worktrees_root.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_kid_worktrees_root.py · .agi/nodes/experiment/a00-abfcc0db-49cea2.md · .agi/nodes/verdict/a00-ec398d82-12fe9c.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over c884b3663 · <= 40 test lines net over c884b3663 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat c884b3663 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.677: mur-director-engine-44 DH.650-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.18: mur-eg-5 EG.12-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
+
+belam 00:4xZ 09-28 DECISION on the tmpfs go (TM [decision] 22:04Z, owner 'if it's working'): HOLD the mount. (1) memory: 4 ALARM crit lines since 21:39Z (00:41Z box PSI full 25.1%); a 4G tmpfs comes out of a 15G box whose watchdog reboots at PSI full >= 40% for 5 min. (2) the heal sweep still removes a FINISHED 0-commit branch's worktree with its uncommitted work (DE finding 23:59Z, DH.648) -- on a tmpfs a reboot adds a second loss path. GO when BOTH hold: the sweep rule fix is merged (goal:g7.33.N) AND 24 h with no memory crit line. Size then: GUARD_WORKTREE_TMPFS 4G, parent + kid worktrees only; the repo half (DH.650 kid_worktrees_dir, prune-on-empty, hardwater 95) may land first, inert on disk.
+
+belam 03:4xZ 09-28 DECISION on TM [rule] 02:26Z: shape (a) -- KID worktrees only in RAM; PARENT worktrees stay on disk (DE 02:25Z: 3 of 4 live parent worktrees hold uncommitted work, lost to a reboot in RAM). Supersedes 'parent + kid' in the 00:4xZ note; the HOLD conditions stand (sweep fix merged + 24 h with no memory crit).
+
+OWNER 06:2xZ 09-28 to belam, verbatim: "Go ahead and do 1. For 2: We can add it as part of the harvesting skill in the meantime instead and let the other thing (the reaper pruning worktrees for us) land as part of the ram worktrees? Running the kid worktree pruning tool I mean. Otherwise yes set the other worktrees as we discussed as part of the ram tree work, TM and you on the stick, DE and parents on /data. If object store is already in ram by default using git code just leave it." -- as discussed (belam 06:1xZ): per-ROLE worktree roots, not one cell: kids -> the tmpfs (claim 3), director-engine + parents -> /data, belam (prime-root + pass scratch) + thought-master (gate trees + suite runs; TM works in MAIN) -> /mnt/agi-flash (SanDisk USB, ext4, own io queue); a mountpoint check before any write (an unplugged stick would drop writes into the empty mount dir on / at 93% full); flash worktrees git-worktree-locked so a prune never drops them; nobody writes /. Object store: LEFT (measured 06:1xZ: pack 77.6 MiB 93.7% in page cache). Reaper eviction (conjunct 5) lands WITH the RAM-worktree round; meanwhile the kid-worktree prune/sweep tool runs at every round harvest (skill row). belam does the one-shot clean prune (1) after PASS 12 merges.
