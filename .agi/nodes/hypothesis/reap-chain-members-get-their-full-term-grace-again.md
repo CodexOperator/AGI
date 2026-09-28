@@ -166,6 +166,24 @@ FILE SCOPE extensions/agi/tests/test_rotate_term_grace.py · .agi/nodes/experime
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 3f4da4f5f · <= 40 test lines net over 3f4da4f5f · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 3f4da4f5f <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.96 -- closes mur-eg-25 EG.48-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-reap-chain-members-ge-a00-141af77f tip 45d9be0d7 (branch de-base-EG.96; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Stray file named '=' at the repo root (45d9be0d7; 6 lines of write.py stderr from a mis-parsed shell redirect): REMOVE it with `git rm -- =` in your round commit (a stray, never a node) and paste `git ls-tree --name-only <your tip> | grep -cx '='` -> 0.
+2. Verdict node's evidence_runs cites ITSELF — verdict:a00-10f10d63-aada19 where experiment:a00-25537ced-86b6d8 is the judged run
+3. The rationale EG.48 declared refuted survives un-narrowed in two places — experiment node :103 and the identical sentence at test_rotate_term_grace.py:215 — while the node's own THOUGHT at :209 says it overstated the split
+4. The new pin is measured-insensitive to a cap on the resolved cell: the round's own Mutation A (`max(chain_budget,...)` -> `min(chain_budget,...)`) left it GREEN while the two pre-existing floor tests went RED, so the one test the hypothesis was about does not discriminate its subject and covers only the no-shortening half. This is disclosed, not concealed — recorded on the verdict's probes wire entry at :16 and in the experiment THOUGHT's near-miss — so it is a coverage limit, not a defect, and I flag it only so the merge does not read the new test as closing the ceiling question. It does not; the ceiling half stays open (named OUTSIDE FILE SCOPE at experiment:176-195).
+5. STALE COUNT in the node body the round edited: experiment:a00-25537ced-86b6d8.md:98 still reads '### The fix (test only, 22 lines net; rotate.py UNTOUCHED)' while the round's Agent Notes (:197) and the verdict's Agent Notes (:215) both record '+25 net test lines over 3f4da4f5f' (measured: `git diff --numstat 3f4da4f5f 45d9be0d7` = 31/6 on the test file). Two net-line numbers now live in one node, one of them attached to a section the same commit made stale. Wording-level; not a demotion, but it is a second copy of a number rather than one source.
+6. The PRE-EXISTING sibling stray at the repo root (the file whose name starts with a JSON title, present at 3f4da4f5f): NOT yours -- name it once on your node (OUTSIDE, one line) for the director's findings row; never touch it.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_rotate_term_grace.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE = (repo-root stray, git rm only) · extensions/agi/tests/test_rotate_term_grace.py · .agi/nodes/experiment/a00-25537ced-86b6d8.md · .agi/nodes/verdict/a00-10f10d63-aada19.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · 0 production lines net over 45d9be0d7 · <= 40 test lines net over 45d9be0d7 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 45d9be0d7 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.48: mur-eg-15 EG.33-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.96: mur-eg-25 EG.48-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
