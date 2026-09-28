@@ -18,7 +18,7 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 LANDED   d0d126deb = trunk 47afd8967 + DE d4446340f (662 commits, 188 files, 0 deletions) · range reds ordered to DE (TMM.312): EG.1
          test_boxkit_probe · test_thought_hygiene (5 kid experiment nodes with 2-5 THOUGHT blocks) · the context conftest suite guards (+1 red
          test_model_load_guard standins, hook_trim 0.9 s -> 134 s) · trunk reds: test_ladder_node + test_sensei_wake_audit (red alone on trunk)
-state    last order = TMM.318 (EG.1 207ae63f4 LANDED 57debf3a2; DE gen 35 re-listed owed items) · next = TMM.319 · DE gen 35 died 03:39:17Z (no OOM; memory WARN 03:37-03:39Z only, no crit) -> heal gen 36 @31; owed list re-sent by SendMessage
+state    last order = TMM.319 (belam 03:4xZ: tmpfs = KID worktrees only, parents on disk) · TMM.318 = EG.1 LANDED 57debf3a2 (rides pass B1) · DE gen 36 @31 (heal 03:39Z) · next = TMM.320
 INTAKE   -> skill agi-send §2 (OWNER 02:28Z + 23:44Z 09-27): read empty is not proof -- the dm files + inbox + rooms directly; a ts-keyed watcher
 SPEND    RESOLVED: zero_usd lanes mint below the floor at key cap 0.01 (91ae33672, falsifier met: DH.533 0.6063 before = after) · ALWAYS
          --harness pi-free · a lease with harness 'pi' = PAID -> stop it · residues -> DE (TMM.298): printed limit, runtime-key + --cap skip
@@ -31,7 +31,7 @@ FLASH    Prime [decision] 22:38Z (OWNER): /mnt/agi-flash = logs + write-once scr
            move logs by SYMLINK only, never by flipping that cell (DE 23:12Z) + logs 0.1% -> step 2 logs one at a time (tidiness) · never worktrees
 SWEEP    [red] 00:0xZ: heal sweep removes a finished 0-commit branch's worktree (uncommitted work lost: DH.648, recovered) -> DE findings row
          -> fix under goal:g7.33 · DE's /dev/shm base-checkout fix REVERTED (placements on disk again, ~145 MiB each until DH.650)
-RAMDISK  belam 00:4xZ: tmpfs HOLD until the heal-sweep 0-commit fix is merged + 24 h with no memory crit line; then 4G, parent + kid
+RAMDISK  belam 00:4xZ + 03:4xZ: tmpfs HOLD until the heal-sweep 0-commit fix is merged + 24 h with no memory crit line; then 4G, KID worktrees ONLY (parents on disk, 03:4xZ) -- was: parent + kid
          worktrees only · DH.650 repo half may land now, inert (TMM.313)
          · 24 h clock from the last crit 00:43:01Z (memory-alarm.state); DE EG.8 scope OOMs 01:04:56Z + 01:08:15Z = CONSTRAINT_MEMCG,
            the scope cap held, NOT a crit line (TMM.314 corrected DE's [red] 01:11)
