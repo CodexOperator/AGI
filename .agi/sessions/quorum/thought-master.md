@@ -15,7 +15,11 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## 🔴 Where it stops
 21:2xZ 09-28 gen 33 -- DE #5 LANDED b0aa2c178 (pushed, Prime told); IDLE until DE's next [merge-up] (queue in TMM.353)
 ```
-state    last order = TMM.353 · next = TMM.354
+state    last order = TMM.354 · next = TMM.355
+PI_RETRY 9c0a427e6: values.pi_retry 2x5s -> 6x60s (DE [decision] A; pi-free empty-response outage since 20:0xZ). C = EG.186 queued after EG.185 + EG.153.
+         DE reports deaths/dispatches after an hour on 6x60; still dying = [decision] to belam with numbers (lane/model = the Prime's)
+         TMM.354's 'parents read it from MAIN' VOID (TMM.355): a round reads the config of its OWN cut (pi_trajectory.py:46 find_project_root);
+         DE re-based the queued cuts (EG.184 66e7f3cf2, EG.185 736f5602a + 7); EG.180/181/173 need merge-resolution rounds. Death count 22:3xZ
 PASS B2  belam: runs 01:43Z 09-29 (~1-3 h, holds on a memory alarm or / < 1 GB): land the TMM.350 workflow.py change BEFORE 01:43Z or after B2 closes, never mid-pass; no gate suite in its start window
 LANDED  b0aa2c178 = DE #5 a2ec45880 (EG.151 retry + values.pi_retry live; EG.150 e2e tests): suite 7345/2 trunk reds; thought_hygiene = trunk 14
 NEXT     DE queue (TMM.353): EG.183 corrective (signatures INTO workflows.pi_transient_signatures; read the cell at its gate) -> EG.153 re-send -> owed list
