@@ -30,44 +30,31 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (05:4xZ-06:0xZ 09-28 · gen 37 = rotate-self 05:22Z · per-chain history = git log of this node)
+## §0 STATE (07:1xZ 09-28 · gen 37 = rotate-self 05:22Z · per-chain history = git log of this node)
 ```
-MERGE-UP  EG.1 chain LANDED 57debf3a2 (TMM.318). No chain clean since: every mur this seat read = residue -> corrective / text fix
-SERIES    EG.N (next EG.69) · mur run keys mur-eg-N (last read mur-eg-16) · next murq177
-TOOLS     T=<scratchpad 96494ce7-...>: gen2.py (MURK=<key> gen2.py N murq<Q>.json tip label; sed DH.EG -> EG; triage by hand) · place2.sh N (pi-free
-          parent) · placecc.sh N (CC TEXT-FIX KID, §3a) · placef.sh N HYP · redispatch2.sh N · mkmur.py + runmur.sh · qgEG<N>.sh = [wait prev] gate -> place
-          · harvest.sh = TMM.322 pytest (TMPDIR + basetemp /dev/shm/de-tmp, -u AGI_POST -u AGI_SEAT; units never inherit AGI_*: user manager env has none)
-          · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N... · S=<scratchpad d74d6d20-...>/watch2.sh (MURS="murq172 murq176"): mur ended · parent unharvested · dm
-GATE      TMM.306 load1 < 16 AND io avg60 < 50, two reads 5 min apart · CC kids also MemAvailable >= (n+1) x spawn.memory_max (memory-guard §1) · arm 10
-OWNER     05:0xZ-05:1xZ: pure-text residue -> claude-code TEXT-FIX KIDS, all in parallel under the per-spawn memory cap (skill agi-corrective §3a, 3754d4169)
-          · belam asked 05:2xZ: claude-opus-5 -> claude-opus-5-5, an Opus CC kid row, harnesses.claude-code.max_live (rec 4); until then Sonnet kids
-          · belam [decision] 05:38Z (OWNER 05:2xZ "Move parents to opus 5.5 as well"): CC kids + parents = claude-opus-5-5, max_live 4 (44925a6b6
-            288513229, merged 11476d1f6) · "dispatch now" the pure-text rounds (§3a) under the memory guard per placement, parallel <= 4 · belam 05:32Z: a memory ALARM fires -> HOLD new placements · 04:5xZ: ONE frontmatter read per submit = EG.37 item 7
-TMM.322   (1) name the TEST that leaked the fixture config + nodes/nodes into this tree 05:03Z (repro in a scratch tmpfs tree, dummy AGI_* env) -> findings
-          row + ONE g7.33 hypothesis, pi-free, AFTER EG.9 · (2) answered: 'Opus forks' not recoverable from the bytes on this seat; no Agent tool here
-          · (3) every pytest: TMPDIR + --basetemp /dev/shm, scratch cwd, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT
-RUNNING   murq172 = EG.47 + EG.51 + EG.52 · murq176 = EG.57 re-run (murq174's stages died on it)
-PLACING   unit placecc5 (serial; CC kids <= 4, MemAvailable >= (live+2) x 2G): EG.61-65 = murq162 mur-eg-14 text residues of EG.38 EG.39
-          EG.40 EG.45 EG.46 (the predecessor's hand text batches; all accept_with_residue, all pure text) -> ONE text mur when all 5 end
-          · then unit placecc2: EG.66 (murq174 EG.55 residue: g1.27 falsifier + 3-copy brief index -> one source) · EG.67 (EG.56: re-run probe, line pin)
-BOARD     board 'note' REFUSED for posts (goal:g12; actor_rows = field grants only) -> TMM.323: progress in §2 until EG.59's verb grant + belam's lines
-SWEEP     OWNER 06:2xZ via belam 06:21Z: (a) heal.py sweep LIVE at EVERY harvest (harvest-all.sh tail, never --force; dry-run 06:2xZ = removed 0,
-          refused 325 unmerged/dirty, kept-live 4) · (b) WITH the RAM-worktree round: per-ROLE roots (kids tmpfs · DE + parents /data · belam + TM
-          flash, mountpoint-checked) + reaper eviction -- NOT EG.53 · (c) object store left · belam's one-shot CLEAN prune after PASS 12: never overlap
-QUEUED    EG.58 = EG.9 chain REDO (EG.50 a00-44cd2258 parent-DEMOTED lean_disproved:35, 0 commits, NOT landed; its dirty tree = READ-ONLY
-          reference; true pointer cli.py:3066 _session_complete, shutil.copy2 :3207 :3211 -- verified), OWN lane, first · qgRS serial lane (EG.19 -> 661 -> EG.20) · corrective chain
-          qgEG36 -> 37 -> 41 -> 42 -> 44 -> 48 (EG.33) -> 49 (EG.31) -> 53 (EG.18: fences :1501 :2798 + partial-reroute pin) -> 54 (EG.34 DEMOTE:
-          3 test_pi_trajectory reds + test-shaped live retry cell -> POLICY line) · drainqg13..18: 671-674 · 678 · 679 · EG.2 EG.3 · EG.5 · EG.6
-PASS 12   belam [decision] 06:50Z: goal:g1.28 (3e356eb7f on the TRUNK: merge local-maxxing/season2/main before placing) -- BEHIND the fix queue:
-          engine, one pi-free round each: write-py-create-and-api-paths-run-the-set-verbs-schema-gate · suite-fence-covers-every-stdlib-spawn-leaf ·
-          a-rounds-done-commit-never-sweeps-the-gates-own-source · seat-wrap-is-in-the-tree-or-its-verdict-is-withdrawn (DEMOTE) ·
-          heal-seat-worktree-path-reads-the-worktrees-cell (WITH the per-role roots work) · text: hypothesis:pass12-0928-residue-batch (153 items,
-          25-round table) -> claude-code opus text kids, parallel <= 4 (placecc + hcc.sh)
-CHAINS    conftest (TM item 3): EG.36 = 4th round · DH.664 DEMOTE -> EG.35 (live) · DH.663 -> EG.37 · EG.22 -> EG.41 · EG.24 -> EG.42 (cell worktree_sweep;
-          EG.9 merges first) · EG.28 -> EG.44 · EG.30 -> EG.34 (live) · EG.33 -> EG.48 · EG.31 -> EG.49 · EG.18 -> EG.53 · EG.34 -> EG.54 · DH.671 -> EG.68 (cm: the skip list -> the ONE config cell) · DH.675 -> EG.51 · DH.669 -> EG.52 · DH.670 -> EG.55 · EG.35 -> EG.56 · TMM.320: EG.30 keep · EG.31 RETIRE · EG.18 parent-to-disk
+MERGE-UP  last LANDED: EG.1 chain 57debf3a2 (TMM.318). Since: every mur = residue -> corrective / text fix; 0 clean, 0 merged
+SERIES    next EG.70 · murs mur-eg-N (last read mur-eg-18) · next murq178
+TOOLS     T=<scratchpad 96494ce7-...>: gen2.py N murq<Q>.json tip label (MURK=, NOEX=1, EXTRA=; triage by hand) · place2.sh (pi-free parent) ·
+          placecc.sh (CC TEXT KID; overlays the POST config+ladder so kids resolve opus-5-5) · placef.sh N HYP (fresh) · mkmur.py + runmur.sh ·
+          hcc.sh N (CC kid: waits for its PID, not its lease, then flock-harvests) · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N
+          (TMM.322 pytest env; ends with a heal.py sweep, ONE per 15 min) · S=<scratchpad d74d6d20-...>/watch2.sh MURS="..." (run_in_background)
+GATE      TMM.306 load1 < 16 AND io avg60 < 50, two reads 5 min apart · CC kids: <= max_live 4, MemAvailable >= (live+2) x 2G · belam: a memory
+          ALARM -> hold new placements
+OWNER     05:2xZ via belam 05:38Z: CC kids + parents = claude-opus-5-5 (merged 11476d1f6) · 06:2xZ via belam 06:21Z: (a) sweep at EVERY harvest,
+          never --force (skill row = EG.57 -> EG.69) (b) per-ROLE worktree roots + reaper eviction WITH the RAM round, not EG.53 (c) object store left
+          · 06:4xZ via belam 06:27Z: progress -> board 'note' -- REFUSED for posts (goal:g12) -> TMM.323: progress in §2 until EG.59 lands
+TMM.322   (3) every pytest: TMPDIR + --basetemp /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT · (1) = EG.60 · (2) answered
+MURS      murq172 = EG.47 + EG.51 + EG.52 (text) · murq177 = EG.19 (d40253551; smoke red suite_guards.py = BASE lineage, red on 0824b7b5b too)
+KIDS      opus text kids EG.61-65 (murq162 residues of EG.38 39 40 45 46) live/placing (unit placecc5) -> then EG.66 EG.67 (placecc2) -> EG.69
+          (placecc3) · each auto-harvested by an hcc unit (hccauto) · -> ONE text mur per wave when all of it is harvested
+PI LANE   EG.58 = EG.9 chain REDO (own lane, FIRST; EG.50 parent-demoted, 0 commits, NOT landed; pointer cli.py:3066 / copy2 :3207 :3211 verified)
+          -> EG.59 (board note verb grant) -> EG.60 (test-root leak) · chain qgEG36 37 41 42 44 -> 48 (EG.33) 49 (EG.31) 53 (EG.18) 54 (EG.34
+          DEMOTE) 68 (DH.671) · qgRS serial lane (EG.19 done -> 661 -> EG.20) · drainqg13..18: 672-674 · 678 · 679 · EG.2 EG.3 · EG.5 · EG.6
+PASS 12   belam 06:50Z goal:g1.28 (on the TRUNK: merge local-maxxing/season2/main first), BEHIND the fix queue: 5 engine hypotheses (create/API
+          set-verbs gate · suite fence stdlib spawn leaves · done commit never sweeps the gate source · seat-wrap DEMOTE · heal seat path cell WITH
+          per-role roots) + hypothesis:pass12-0928-residue-batch (153 items) -> opus text kids <= 4
 TMPFS     belam TMM.319: KID worktrees ONLY in RAM, PARENT on disk · GO = EG.9 chain MERGED + 24 h no memory crit
-HELD      EG.7's 5 corpus edits UNCOMMITTED in a00-0194accb (never land) · demoted parents' dirty configs (EG.30, EG.24): never land
-DECISION  out to TM: DH.577 cron policy · wake-facts touches config:rotations (belam's) · logs: symlink until EG.2 lands
+HELD      demoted/out-of-scope uncommitted bytes: EG.7 (a00-0194accb) · EG.30 · EG.24 · EG.50 (a00-44cd2258) · DH.671 cell (a00-6f49a5f0) -- never land
 ```
 
 ## §1 PLAN
@@ -78,24 +65,20 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
        of a DEMOTED round: never; of a DEAD kid: salvage-commit on the kid branch, UNREVIEWED, and re-run from it
 ```
 
-## §2 PROGRESS (TMM.323: board note refused for posts until the verb grant lands -> one line each here; numbers only)
-- 05:2x-06:3xZ harvested 12: EG.18 DH.675 DH.669 EG.34 DH.670 EG.35 EG.47 EG.51 EG.52 EG.55 EG.56 EG.57 DH.671 · salvaged by hand 5 (DH.675 EG.34 DH.670 EG.55 + EG.47 re-place)
-- murs judged 9 = 7 accept_with_residue + 2 demote (murq169 DH.669, murq170 EG.34) · 0 clean · 0 merged · 0 [merge-up]
-- correctives 11 (EG.48-58) · claude-code opus-5-5 text kids 7 (EG.47 51 52 55 56 57 + stopped sonnet a00-f1129c7b) · EG.50 parent-DEMOTED -> EG.58
-- murq162 judged: 5 x accept_with_residue (all text) -> EG.61-65 opus text kids
-- murq174 judged: EG.55 + EG.56 accept_with_residue -> EG.66 EG.67 text kids; EG.57 no verdict -> murq176
-- murq175 DH.671 accept_with_residue -> EG.68 (pi-free, chained after EG.54) · EG.19 harvesting (qgRS)
-- minted 2 under goal:g7.33: verb-scoped board note (EG.59, TMM.323) · test-root leak (EG.60, TMM.322) -- both queued after EG.58
-- live sweep at every harvest: 5 runs, removed 0 (refused 326-328 unmerged/dirty)
+
+## §2 PROGRESS (numbers only; one line each until the board note is granted)
+- 05:2x-07:1xZ: 13 harvested · 13 murs judged = 11 accept_with_residue + 2 demote, 0 clean, 0 merged · 22 correctives/text rounds (EG.48-69)
+- 12 opus text kids placed (EG.47 51 52 55 56 57 61-65 + 66 67 69 queued) · 6 hand salvages of parent/kid-uncommitted in-scope bytes
+- minted 2 under goal:g7.33 (EG.59 board-note verb grant · EG.60 test-root leak) · sweep: 1 tree removed (EG.19 parent, clean + harvested)
+- belam io [red] 06:56Z: 2 runaway searches stopped; SEARCH rule in every order + mur focus
 
 ## 🔴 WHERE IT STOPS
-Gen 37 06:5xZ: murs 172 176 running; EG.61-64 opus kids live (hcc units harvest each), EG.65-67 queued; EG.19 harvesting; EG.58 gated first; PASS 12 queued
+Gen 37 07:1xZ: 2 murs running (172 177); opus text wave EG.61-69 placing + auto-harvesting; pi lane gated with EG.58 (EG.9 redo) first
 ```
-NEXT    watcher event -> the ended mur: D/verd.py Q -> triage (skill agi-corrective §3): ALL pure text -> §3a CC kid (placecc via a gated qgEG<N>);
-        else gen2 EG.50.. chained last · murq165 clean = merge the EG.9 chain FIRST (tmpfs GO), then TMM.322 (1) · murq162 clean = merge each text chain
-WATCH   MURS="murq172 murq176" bash S/watch2.sh (run_in_background; re-arm after every event)
+NEXT    re-arm: MURS="murq172 murq177" bash S/watch2.sh (run_in_background) · each ended mur -> D/verd.py Q -> triage (skill agi-corrective §3):
+        all text -> an opus text kid (placecc + hcc) · else gen2 EG.70.. chained last · a clean mur -> git merge --no-ff that chain's tip -> [merge-up]
+        (EG.9 chain FIRST) · when the EG.61-65 hcc harvests are all done -> ONE mur over their 5 ranges (murq178)
 ```
-
 ## §4 TRAPS
 Skills: agi-dispatch §5 · agi-corrective · agi-workflow · agi-node-write §5 · agi-memory-guard · agi-master-gate (TMM.304). Card-only: pi-free murs ~7 min/stage, verify can die (review stands) ·
 WATCH NEW PARENTS TOO (S/watch2.sh: every spawned line in T/d*.log that is neither live nor in a harvall log = an event; a baseline-diff watcher missed 5 ended parents 04:0xZ): a wait keyed on the parents live at its start misses rounds placed and dead in between (EG.18 EG.19 661) · harvests under load flake 1 test: re-run before a corrective · `pgrep -f place2` matches your own shell: list /proc cmdlines instead ·
@@ -115,7 +98,7 @@ dispatch.py > 300 s at load 32 killed a parent (621) · write-log is a per-root 
 locations.shared_sessions_dir: a worktree kid's writes are invisible to the MAIN log (DH.644 parent). · verb_thought first-match splice
 (write.py:291 via node_writer.py:922 extract_thought) has no committed test composing a body with a pasted BEGIN/END (mur-41 DH.641-k1). · links.py schema
 does not flag an in-scope experiment with no verdict and no evidence_runs (mur-38 DH.627-k1). · heal sweep (heal.py:1502-1516)
-treats a finished 0-commit branch as landed and removes its worktree with uncommitted work (DH.648 -> EG.9); cli.py:149-160 sibling lookup finds records only under <main>/.agi/worktrees. · dispatch.py:1729 --tier has no choices + dispatch.py:761 exact-case tier routing ('KID' takes the disk lane) (DH.680 parent). · a pytest inside a round has no cap of its own; only the round's scope cap stops it and the round dies with 0 commits (EG.8, TMM.314) -- a brief-side MemoryMax on .agi/context pytest is the durable fix · a pi-free 'empty response' kills a parent with 0 commits and no retry (4 rounds 02:45-03:0xZ) · 11 call sites keep the `cfg.get("spawn") or {}` scalar idiom (mur-eg-2 EG.1-k1; EG.10 lists them). · probes mutate PRODUCTION bytes in place for ~2 s and restore from a scratch copy (mur-eg-15 EG.33-k1 M4) -- a parallel reader sees the mutant · rotate.py:11555 explicit wait_secs=float('inf') keeps _reap_chain non-terminating (pre-existing, unreachable from config; mur-eg-15 EG.33-k1 V3) · harvest.sh LANDs only write-log-sha-matched node edits: DH.675's 2 in-scope edits read NOLAND (sha drift) -> salvaged by hand (377f6e201). · a CC kid dispatched from a de-base cut at an old loop tip resolves model AND allowlist from THAT tip's config + ladder (EG.47 got sonnet-5 after belam's opus-5-5 cells landed; refusal 'not in allowed_models') -- placecc overlays the post's two files uncommitted; durable = dispatch reads model cells from the live/post root, not the cut. · parents leave in-scope edits UNCOMMITTED (DH.675 nodes, EG.34 + DH.670 config.json: 3 of 5 parents this gen) -> hand salvage; a done-time commit that NOLANDs on sha drift -- same class as row 13 (mur-eg-17 EG.35 V5) · two done commits with one identical subject naming neither path (EG.35 MIS-1) · dispatch.py:1292-1294 _effective_carry_forward: --orders + --prompt-file at kid tier silently drops the brief (EG.35 MIS-2) · a corrective's CEILING line + the node's ## CEILING = two ceiling cells (EG.35 MIS-3; same as "CEILING has no home cell") · EG.35 parent ran 2 kids vs HARD CAP 1 (ceiling breach, row 17). · a claude-code kid's spawn-budget lease ends BEFORE its process exits (EG.55 a00-c2167bce, EG.57 a00-1e3fe297): the watcher fires early and a harvest lands mid-work -- check /proc/<pid> before harvesting a CC kid · a corrective's order carried a mur's unverified pointer and the kid pasted it (EG.50 item 2: 'copytree at cli.py:2779' = a docstring) -- orders now carry a director-verified pointer + the paste command.
+treats a finished 0-commit branch as landed and removes its worktree with uncommitted work (DH.648 -> EG.9); cli.py:149-160 sibling lookup finds records only under <main>/.agi/worktrees. · dispatch.py:1729 --tier has no choices + dispatch.py:761 exact-case tier routing ('KID' takes the disk lane) (DH.680 parent). · a pytest inside a round has no cap of its own; only the round's scope cap stops it and the round dies with 0 commits (EG.8, TMM.314) -- a brief-side MemoryMax on .agi/context pytest is the durable fix · a pi-free 'empty response' kills a parent with 0 commits and no retry (4 rounds 02:45-03:0xZ) · 11 call sites keep the `cfg.get("spawn") or {}` scalar idiom (mur-eg-2 EG.1-k1; EG.10 lists them). · probes mutate PRODUCTION bytes in place for ~2 s and restore from a scratch copy (mur-eg-15 EG.33-k1 M4) -- a parallel reader sees the mutant · rotate.py:11555 explicit wait_secs=float('inf') keeps _reap_chain non-terminating (pre-existing, unreachable from config; mur-eg-15 EG.33-k1 V3) · harvest.sh LANDs only write-log-sha-matched node edits: DH.675's 2 in-scope edits read NOLAND (sha drift) -> salvaged by hand (377f6e201). · a CC kid dispatched from a de-base cut at an old loop tip resolves model AND allowlist from THAT tip's config + ladder (EG.47 got sonnet-5 after belam's opus-5-5 cells landed; refusal 'not in allowed_models') -- placecc overlays the post's two files uncommitted; durable = dispatch reads model cells from the live/post root, not the cut. · parents leave in-scope edits UNCOMMITTED (DH.675 nodes, EG.34 + DH.670 config.json: 3 of 5 parents this gen) -> hand salvage; a done-time commit that NOLANDs on sha drift -- same class as row 13 (mur-eg-17 EG.35 V5) · two done commits with one identical subject naming neither path (EG.35 MIS-1) · dispatch.py:1292-1294 _effective_carry_forward: --orders + --prompt-file at kid tier silently drops the brief (EG.35 MIS-2) · a corrective's CEILING line + the node's ## CEILING = two ceiling cells (EG.35 MIS-3; same as "CEILING has no home cell") · EG.35 parent ran 2 kids vs HARD CAP 1 (ceiling breach, row 17). · a claude-code kid's spawn-budget lease ends BEFORE its process exits (EG.55 a00-c2167bce, EG.57 a00-1e3fe297): the watcher fires early and a harvest lands mid-work -- check /proc/<pid> before harvesting a CC kid · a corrective's order carried a mur's unverified pointer and the kid pasted it (EG.50 item 2: 'copytree at cli.py:2779' = a docstring) -- orders now carry a director-verified pointer + the paste command. · heal.py:1635 sweep grace reads the worktree DIR mtime: an old but just-edited unleased tree is removable (mur-eg-18 EG.57 M3) · test_help_smoke[suite_guards.py] red on the base lineage (0824b7b5b; EG.19, EG.33) · a full heal.py sweep = ~59 MiB/5 s over 329 trees: harvest-time sweeps throttled to 1 per 15 min (io red 06:56Z).
 ## BANKED
 - [rule] to ride the next [merge-up]: (a) skills/agi-merge-pass: every pasted measurement names its base commit + a re-runnable command
   (mur-37 DH.626, 4x in probe-gate) (b) skills/agi/SKILL.md:528 has no home for the structural-count rule (mur-38 DH.597).
@@ -130,5 +113,5 @@ treats a finished 0-commit branch as landed and removes its worktree with uncomm
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Gen 37 (rotate-self 05:22Z): re-linked the flattened card; EG.18 + DH.675 harvested and put under mur (murq167, murq168; DH.675 needed a hand salvage of 2 in-scope nodes); EG.33 residue -> EG.48 queued last; TMM.322 orders recorded (pytest env scrub applied to harvest.sh); owner 05:3xZ note on the queued CC kid lane answered from the config cells.
+Gen 37 (rotate-self 05:22Z) to 07:1xZ: card written whole and trimmed to the line (99); the loop runs on units (placecc5/2/3 + hccauto for the opus text wave, qg lanes for pi-free correctives, EG.58 = the EG.9 redo first). Deviation, decided under delegated authority: the owner-06:2xZ sweep-at-every-harvest is rate-limited to one sweep per 15 min across harvests because the sweep itself was a top io consumer during belam 06:56Z io red; a skipped harvest is covered by the next sweep, never --force.
 <!-- THOUGHT:END -->
