@@ -16,6 +16,7 @@ untouched.
 """
 from __future__ import annotations
 
+import ast
 import json
 import os
 import subprocess
@@ -334,3 +335,28 @@ def test_a_swapped_tmp_is_a_consumed_distinct_name(tmp_path, monkeypatch):
     assert not src.exists() and src != dst, (src, dst)
     src.unlink(missing_ok=True)               # the stale unlink, in full
     assert memo.read_text(encoding="utf-8").splitlines() == ["other\tcore-town"]
+
+
+def test_the_loss_pinned_arm_keeps_its_label():
+    """DH.669: make "this green test REQUIRES a defect" survive an edit.
+
+    The `unlocked` arm above is the only assertion in the suite that is green
+    ONLY while the durability hole is open; its docstring is the only place
+    that says so, and nothing in the suite asserted the label. Deleting the
+    label would leave every test passing and the pinned loss silent again.
+
+    `xfail(strict=True)` is the WRONG instrument here and would not have held:
+    the arm PASSES today (hole open) and FAILS when the hole is fixed, so
+    strict xfail would XPASS-and-error today and go quiet tomorrow — pinned to
+    the opposite state. The label is prose, so the only machine-readable
+    protection is an assertion that the prose is there.
+    """
+    tree = ast.parse(
+        (HERE / "test_foreign_refusal_durability.py").read_text(encoding="utf-8"))
+    fn = next(n for n in ast.walk(tree)
+              if isinstance(n, ast.FunctionDef)
+              and n.name == "test_both_writer_classes_in_the_swap_window_merge_and_lose")
+    doc = ast.get_docstring(fn) or ""
+    assert "GREEN TEST PINNED TO A KNOWN DEFECT" in doc, (
+        "the loss-pinned arm lost its label: that test is green only while the "
+        "hole is open, and nothing else in the suite records the dependency")
