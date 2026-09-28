@@ -38,11 +38,13 @@ POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-cor
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.167 · next murq258
+SERIES    next EG.168 · next murq258
 PLACING   PLACED: 149 151 153 (harvested) · serial7 (redispatch 150 152 155 158, then place 154 159) -> serial8 (redispatch 146
           147: both died 0-commit 19:03Z) · pq160 (EG.140 corrective = the EG.9 blocker, jumps the queue) -> serial9 (162 163 165 161
           164 166) · TRAP: placements SERIAL, <= 2 dispatching at once (5 parallel dispatches timed out rc=124 in an io storm 18:5xZ)
-MURS      253 EG.144 · 256 EG.149 (re-armed: empty response) · 257 EG.153
+MURS      253 EG.144 · 256 EG.149 (re-armed: empty response)
+CC KID    EG.167 a00-92c392c7 pid 1221790 (murq257 EG.153 -> TEXT-FIX CHURN chain -> opus text kid, DEVIATION on the node): at exit
+          check it ran done; if not, salvage-commit on its branch (EG.156 precedent) -> mur
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
           refuses own board: policy question may come up) · 233->150 (cut de-cut-EG.150 f9fbf587a: merge reds test_free_lane_mints...)
           · 234->151 · 241 DEMOTE->152 (conftest suite gate: fix or remove) · 237->153 · 240->154 · 242->155 · 238->156 (CC text kid) · 243 EG.125 director close d91b942f3 -> EG.157 · 245 EG.133 + 236 EG.137 director closes -> MERGED · 249 EG.138 DEMOTE -> EG.158 · 251 EG.157 -> director close 1da46ba3a -> MERGED 08177c25f
