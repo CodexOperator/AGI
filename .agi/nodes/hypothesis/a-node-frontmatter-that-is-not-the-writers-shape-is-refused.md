@@ -165,6 +165,26 @@ FILE SCOPE extensions/agi/bin/cli.py · extensions/agi/bin/links.py · extension
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 2d5c5a81c · <= 40 test lines net over 2d5c5a81c · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 2d5c5a81c <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.82 -- closes mur-eg-23 EG.44-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-a-node-frontmatter-th-a00-e5b06b6f tip 850091463 (branch de-base-EG.82; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Hypothesis THOUGHT still carries the two counts this round proved false, duplicated by a second near-identical Agent Notes paragraph — hypothesis:48
+2. The MERGE DEFECT DH.640 paragraph was deleted from the hypothesis node and the parent's review still cites it as live — hypothesis:70, cited at a00-7a12aad2-6a3a17.md:189
+3. The demotion ground P3 is falsified by the tip commit 850091463, which carries the very file P3 names as uncommitted — a00-7a12aad2-6a3a17.md:17
+4. The done commit names experiment:a00-1556127c-9fb395, a prior-round kid node it never touched; the parent's real verdict is at a00-7a12aad2-6a3a17.md:25
+5. experiment:a00-7a12aad2-6a3a17 is credited in the hypothesis body but absent from its evidence_runs — hypothesis:9
+6. MISS 1 — the parent's own P1 says it ran 'on the committed bytes at df31589fc' (a00-7a12aad2-6a3a17.md:15) yet at :189 it cites 'the MERGE DEFECT paragraph on the hypothesis node, written by a00-7a69e3ca' as live; that paragraph was already removed by the very commit it claims to have read (`git show df31589fc -- .agi/nodes/hypothesis/...` is the commit that replaced it). The review cites a paragraph out of the diff it says it read, so the citation was never checked against the bytes.
+7. MISS 2 — a second deletion inside the same range, unreported by the first reviewer: commit 850091463 REPLACED the kid's four frontmatter probes on a00-7a12aad2-6a3a17.md (df31589fc lines 15-18: P1 gate / P2 auth / P3 wire / P4 'unrelated pre-existing stray, reported not touched') with the parent's three (:15-17). The kid's P4 stray report (test_bin_help_smoke.py::test_help_smoke[suite_guards.py], reproduced on a clean copy of the tip) is gone from the frontmatter; it survives only in the body section 'Suite, and the stray'. Lower severity than MISS/defect 2 because the body keeps the measurements, but it is the same class: a sanctioned write overwrote another actor's record instead of appending.
+8. Item 2 + MISS 2 (deletions): RESTORE the deleted MERGE DEFECT (DH.640) paragraph and the kid's four frontmatter probes from their last commit (paste `git show 2d5c5a81c:<path> | sed -n 'A,Bp'` for the paragraph, `git show df31589fc:<path> | sed -n '15,18p'` for the probes); a record is corrected by a THOUGHT line, never removed. The commit that names a node it does not touch (item 4) is history: say so on the node, never rewrite it.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-1556127c-9fb395.md · .agi/nodes/experiment/a00-3e239d1d-9407b0.md · .agi/nodes/experiment/a00-7a12aad2-6a3a17.md · .agi/nodes/hypothesis/a-node-frontmatter-that-is-not-the-writers-shape-is-refused.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 850091463 <your final tip>` on your node (an empty range is not a measurement)
+COMMIT    every node edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.44: mur-eg-12 EG.28-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.82: mur-eg-23 EG.44-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
