@@ -353,3 +353,51 @@ def test_cancel_while_pi_runs_is_still_forwarded(tmp_path):
     rc, secs = _cancel(root, sleeper, "{}")
     assert rc is not None and secs < 2.0, \
         f"a live child's cancel is forwarded, not ignored: rc={rc} {secs:.1f}s"
+
+
+def _run_bounded(root: Path, stub: Path, timeout: float):
+    """(rc|None, runs, log) with a HARD timeout: rc None means the wrapper never
+    ended on its own, which is the defect F4 is about. Never an unbounded run."""
+    log = root / "output.log"
+    with log.open("wb") as logf:
+        try:
+            rc = subprocess.run(
+                [PY, WRAPPER, "--wrapper", str(stub),
+                 str(root / "trajectory.jsonl"), "--", "--mode", "json", "hello"],
+                cwd=str(root), stdout=logf, stderr=subprocess.STDOUT,
+                check=False, timeout=timeout).returncode
+        except subprocess.TimeoutExpired:
+            rc = None
+    counter = root.parent / "runs.txt"
+    runs = counter.read_text().splitlines() if counter.exists() else []
+    return rc, runs, log.read_text()
+
+
+def test_a_total_attempt_ceiling_ends_a_provider_that_always_progresses(
+        tmp_path):
+    """F4 (EG.187). RED on the cut a2fa54dce, where the run HANGS: main() zeroes
+    `empties` on ANY attempt that made progress, so a stub that completes a
+    turn and THEN ends empty, on every attempt, never spends the consecutive
+    bound -- the parent's GATE probe measured 606 attempts in 15 s and was
+    killed. The total-attempt ceiling is what ends such a run."""
+    root = _project(tmp_path, 1, 0.0, empty_response_max_attempts_total=5)
+    stub, _ = _stub_pi(tmp_path, [[OK, OK_END, GOOD, EMPTY]])
+    rc, runs, text = _run_bounded(root, stub, 20)
+    assert rc is not None, \
+        f"the run NEVER ends on its own: {len(runs)} attempts in 20 s"
+    assert len(runs) == 5, \
+        f"values.pi_retry.empty_response_max_attempts_total=5, got {len(runs)}"
+    assert "total empty-response attempts 5/5" in text, \
+        f"the ceiling names itself in the round log: {text!r}"
+    assert rc == 1, f"the round's own code is returned, got {rc}"
+
+
+def test_the_total_ceiling_default_is_derived_from_the_consecutive_bound(
+        tmp_path):
+    """Absent, the total ceiling is DERIVED (4 x (max_retries + 1)), never a
+    new magic number, and it is a cell: max_retries=2 -> 12 attempts."""
+    root = _project(tmp_path, 2, 0.0)
+    stub, _ = _stub_pi(tmp_path, [[OK, OK_END, GOOD, EMPTY]])
+    rc, runs, _ = _run_bounded(root, stub, 60)
+    assert rc is not None, f"never ends without the ceiling: {len(runs)}"
+    assert len(runs) == 12, f"4 x (2 + 1) attempts, got {len(runs)}"

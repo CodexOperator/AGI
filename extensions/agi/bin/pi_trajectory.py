@@ -30,6 +30,7 @@ from pathlib import Path
 
 _NAMED = "trajectory: not captured: {}\n"
 _RETRY = "retry: empty provider response {}/{} in {:.2f}s\n"
+_RETRY_TOTAL = "retry: total empty-response attempts {}/{} reached\n"
 #: config-max: the bound and the backoff live in the config cells
 #: values.pi_retry.*, never in this file. The two names below are their
 #: DOCUMENTED DEFAULTS, used only when no config is reachable.
@@ -70,6 +71,24 @@ def _empty_backoff_cells(backoff: float) -> tuple[float, float]:
     except Exception:
         return 1.0, backoff
     return max(1.0, factor), max(0.0, cap)
+
+
+def _empty_total_cell(max_retries: int) -> int:
+    """The TOTAL attempt ceiling, values.pi_retry.empty_response_max_attempts_
+    total, through the SAME loader. Absent, the default is DERIVED, never a new
+    literal: 4 x (max_retries + 1) attempts. The consecutive bound alone cannot
+    end a provider that makes progress then empties (F4, a00-bbed0550)."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import locations  # noqa: PLC0415 -- the bin-script import pattern
+        root = locations.find_project_root() or locations.project_root_from_env()
+        cells = ((locations.load_config(root) if root else {})
+                 .get("values") or {}).get("pi_retry") or {}
+        if "empty_response_max_attempts_total" in cells:
+            return max(1, int(cells["empty_response_max_attempts_total"]))
+    except Exception:
+        pass
+    return 4 * (max_retries + 1)
 
 
 def _stop_fields(ev: dict) -> tuple[object, str]:
@@ -232,6 +251,7 @@ def main(argv):
     pi_bin, traj_path, pi_args = a[1], a[2], a[4:]
     max_retries, backoff = _retry_cells()
     factor, cap = _empty_backoff_cells(backoff)
+    max_total = _empty_total_cell(max_retries)
     empties = 0        # CONSECUTIVE empties, the bound the cell means
     attempt = 0
     while True:
@@ -239,8 +259,7 @@ def main(argv):
         attempt += 1
         # PROGRESS zeroes the count: an attempt that completed a turn before it
         # emptied has done real work, so the empties around it are not a run of
-        # failures -- the bound is CONSECUTIVE, never per run. What ends such a
-        # run is dispatch's own cancel, honoured between attempts below.
+        # failures -- the bound is CONSECUTIVE, never per run.
         if progress:
             empties = 0
         # The attempt's LAST turn decides, never its exit code: real pi exits 0
@@ -248,8 +267,15 @@ def main(argv):
         # inert in production (see _ended_on_empty).
         if not empty or empties >= max_retries:
             return code
+        # The TOTAL ceiling, not the consecutive bound, is what ends a provider
+        # that keeps making progress and then empties; the bound above is spent
+        # only by empties IN A ROW.
+        if attempt >= max_total:
+            sys.stdout.write(_RETRY_TOTAL.format(attempt, max_total))
+            sys.stdout.flush()
+            return code
         # The ONLY thing that earns a retry is an empty provider response, and
-        # the bound is finite, so an always-empty provider cannot loop forever.
+        # both bounds are finite, so no provider can loop forever.
         empties += 1
         wait = min(backoff * factor ** (empties - 1), cap)
         sys.stdout.write(_RETRY.format(empties, max_retries, wait))

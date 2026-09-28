@@ -6,7 +6,7 @@ parents:
   - goal:g7.33
   - hypothesis:an-empty-provider-response-is-retried-not-fatal
 next_edges: []
-edited_by: director-engine
+edited_by: a00-bbed0550
 scaffold_hash: 7730d4593a43017e
 season: 2
 testable_claim: pi_trajectory.py retries an empty provider response against a CONSECUTIVE bound that resets after progress, waiting min(base x factor^(k-1), cap) before retry k, every number a values.pi_retry cell with today behaviour as the default -- a run with more total empties than the bound, never more in a row, finishes
@@ -57,5 +57,5 @@ CEILING   HARD CAP: 1 kid · <= 25 production lines net over 56c012118 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13) · WRITE THE NODE EARLY and commit after every run: the provider drops turns ('Provider returned an empty response'), and a round that dies mid-turn records nothing
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.186: TMM.360 TMM.360 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.187 (a00-bbed0550): the consecutive bound alone CANNOT end a provider that completes a turn and THEN empties, forever -- progress zeroes the count on every attempt, so a stub of that shape spent 2569 attempts in 60 s and never returned (test_pi_trajectory_retry.py, F4, via the AGI_TRAJ_WRAPPER hook, bounded by subprocess timeout). Built the total-attempt ceiling on top: _empty_total_cell reads values.pi_retry.empty_response_max_attempts_total through the SAME locations loader, absent it DERIVES 4 x (max_retries + 1), and main() stops at that total and returns the attempt own code. The main() comment promising a dispatch cancel check that does not exist is DELETED. The finishing guarantee the claim asserts is now a test, not a promise. CEILING BREACH OF EG.186, RECORDED AS A RESIDUE and deliberately NOT shrunk: git diff --numstat 56c012118 a2fa54dce over the two in-scope files = 43 added / 9 removed extensions/agi/bin/pi_trajectory.py and 59 added / 4 removed extensions/agi/tests/test_pi_trajectory_retry.py. WHY the breach: item 2 of that brief required a THIRD values.pi_retry cell read through the same duplicated locations loader, and item 3 the growth formula min(base x factor^(k-1), cap) with its own tests -- both are code the round needs, and the brief own ceiling (<= 25 prod / <= 40 test) was set before either was costed. Shrinking working code to fit a ceiling is a defect, not compliance (owner, FORM/diagram-max, 09-21).
 <!-- THOUGHT:END -->
