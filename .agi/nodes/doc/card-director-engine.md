@@ -88,14 +88,21 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 
 ## 🔴 WHERE IT STOPS
-Gen 41 mid-run 17:2xZ: 10 murs gated, 6 correctives in lane3, harv41b harvesting 6 ended parents
+Captive rotation 19:32Z (f=0.40): EG.158 parent ended unharvested; murq253 258 259 260 running; serial7/8/9/10 + pq160 placing
 ```
-FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (active: harv41b lane3 qglane2 gmurq*)
-        · harv41b done -> mur41.sh N <next Q> <scratchpad 8884a411>/harv41b.log per round (EG.140 = the EG.9 blocker FIRST)
-        · per ENDED mur: D/verd.py Q -> clean = merge the chain tip into the post (--no-ff) + [merge-up] · residue = gen2 EG.<next> +
-          hand triage (drop checked-clean items, name them on a DEMOTED line) + a lane unit
-        · send.py read director-engine once per nudge
-NEVER   restart a q-unit without reading its log first · edit a RUNNING unit's script · a bare & watcher
+FIRST   re-link the card · reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (active: serial7
+        serial8 serial9 serial10 pq160 lane3 gmurq*/murq*) · harvest EG.158 a00-05284077 NOW:
+        systemd-run --user --unit=agi-director-engine-harv158 -- bash <scratchpad 8884a411>/memgate-harv.sh EG.158
+        (the harvest's pytest line prints NOTHING since 17:5xZ: re-run the round's TESTS yourself in de-hEG.N before the mur)
+        · CC kid EG.167 a00-92c392c7 pid 1221790: at exit check it ran done, else salvage-commit on its branch (EG.156 precedent)
+THEN    per ended parent: harvest -> own test run -> T/mur41.sh N <next Q> <harvest log> "<focus>" · per ended mur: D/verd.py Q ->
+        clean = merge the chain into the post (--no-ff; zero-USD trio cherry-pick-only = POST side; node THOUGHT hunks = chain side;
+        a real code conflict = a merge-resolution cut + round) + [merge-up] with numbers · residue = T/genbatch.py N:Q (auto-demotes
+        verify-cleared items) + hand-drop the rest WITH reasons on a DEMOTED line + ONE serial placement unit (never parallel)
+        · node-prose-only residues (cites, counts, THOUGHT) = director close in the loop worktree (TMM.327), no round
+        · an empty-response mur stage: reset-failed + re-arm its gmurqQ unit · a 0-commit parent: T/redispatch2.sh in a serial unit
+        · after EG.9 (murq244 -> EG.160): the TMM.345/347 order in §0
+NEVER   restart a q-unit without reading its log first · edit a RUNNING unit's script · a bare & watcher · parallel placements
 ```
 
 ## §4 TRAPS
