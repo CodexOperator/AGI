@@ -102,6 +102,9 @@ THEN    per ended parent: harvest AT ONCE -> mur · per ended mur: triage -> cle
         · EG.142 (a00-3cbd9016, the TMM.331 front) ENDED: 0 code commits; harvest landed 1 node (experiment a00-82ad1a56, no write-log actor)
           as 76f46d209, 416 passed -> read that node + the kid output.log (empty-response death?) -> redispatch2.sh EG.142 (cut e7db0b5c6)
                         · murq227 (EG.130) + murq231 (EG.108) + murq232 (EG.117) ENDED untriaged -> D/verd.py 227 231 232 · NO mur is running now
+        · PI-FREE LANE DOWN 14:3x-15:0xZ ('Provider returned an empty response'): 5 dead parents + the re-dispatched EG.122 (a00-1b7ef4de) dead
+          too; rdEG137 + rdEG140 STOPPED (placed nothing); [red] to TM 15:0xZ asks hold-or-run for the qg lane -> follow TM's answer, then
+          re-dispatch EG.141 122 137 140 142 with T/redispatch2.sh once a round commits again
 NEVER   restart a q-unit without reading its log first · edit a RUNNING unit's script · start a watcher with a bare & (it never notifies)
 ```
 
