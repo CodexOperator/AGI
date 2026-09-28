@@ -8224,7 +8224,7 @@ Assigned to **director-belam (point)** with umbrella + `.1`. May further split; 
 
 Split 2026-09-21 ET by director-belam: multi-headed falsifiers → goal:g7.31.3.1 (brief lists five routes) + goal:g7.31.3.2 (sample write+send+dispatch). Dispatch parents on leaves.
 
-##### G7.31.3.1 — Cold seat brief lists five pane-facing routes — status: active
+##### G7.31.3.1 — Cold seat brief lists five pane-facing routes — status: complete
 
 # goal:g7.31.3.1
 
@@ -8262,7 +8262,9 @@ Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-head
 
 Director-direct under OWNER FULL STOP (NO pi); supersedes prior Launch-pi Agent Notes.
 
-##### G7.31.3.2 — Sample write+send+dispatch through named CLIs — status: active
+NO-PI falsifier GREEN: restored ## The five pane-facing routes into extensions/agi/lib/agent-prompt.md (dispatch skill_prompt) + test_agent_prompt_routes.py from proved tip e987bdc455; pytest 6/6. Names match goal:g7.31.3 table (write/read/send/dispatch|workflow/rotate|spawn).
+
+##### G7.31.3.2 — Sample write+send+dispatch through named CLIs — status: complete
 
 # goal:g7.31.3.2
 
@@ -8298,6 +8300,10 @@ Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-head
 **Related:** `goal:g1.14`, `command:commands`, `goal:g7.31.3.1`.
 
 Director-direct under OWNER FULL STOP (NO pi); supersedes prior Launch-pi Agent Notes.
+
+NO-PI sample route-1: write.py note verb via named CLI (g7.31.3.2 falsifier)
+
+NO-PI sample named-CLI transcript on tip 6effbc1a61+: (1) write.py note on goal:g7.31.3.2 -> updated; (2) send.py send --from director-helper --to director-belam file-backed body -> dm path /data/work/agi/.agi/comms/season-2/dm/director-belam--director-helper.md (pane busy undelivered-yet); (3) dispatch.py . 9310 --target goal:g7.31.3.2 --tier kid --dry-run --detach -> aimed 1 slot, dry-run nothing spawned. No parallel script.
 
 ##### G7.31.3.3 — SPAWN AND ROTATE ARE ONE GRAPH WRITE -- parent slots pre-set under each post in .geometry, kid rows dynamic under their parent slot, rotate a spawn option (needs-rotate: true), the reaper/heal loop carries out what the graph says (assigned: director-engine) — status: active
 
