@@ -291,6 +291,22 @@ FILE SCOPE extensions/agi/tests/test_sensei_wake_audit.py · .agi/nodes/experime
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over f57fd94c1 · <= 40 test lines net over f57fd94c1 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat f57fd94c1 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.179 -- closes mur-eg-x1701209-b78150 EG.162-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-trunk-tests-follow-th-a00-a1f17600 tip dbee5b11e (branch de-base-EG.179; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+TRIAGE    the verify stage died (pi rc=1): the review stage defects STAND (skill agi-corrective 2), all three kept
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Committed docstring states a false harm for `| head -3` -- extensions/agi/tests/test_sensei_wake_audit.py:584 -- `_pin_probe`'s docstring claims a live entry 'ending | head -3 produced a probe the template branch can never prefix-match and the pin REDed'; sensei.py:386 is `re.match(r"^" + pattern, nc)`, a PREFIX match, so a trailing pipe-head is absorbed and the pre-image pin stayed (a) - only the {seat} shape flips. Named by the parent review (demotion reason 2) and merged unfixed.
+2. The fold the order named is still a hand copy, and the comment overclaims -- extensions/agi/tests/test_sensei_wake_audit.py:589 -- `re.sub(r"\{[^}]+\}", token, seg)` restates sensei.py:383-385 in the test (only `_norm_cmd` is genuinely reused at :587), yet :1051-1053 claims '_pin_probe ... reuses sensei's own _norm_cmd + `;` cut + `| head` strip + `\{[^}]+\}` fold, so the two cannot silently diverge' - the divergence risk the order cited (engine rule edit -> trunk RED) is narrowed, not closed.
+3. The hypothesis's live end-to-end claim still rests on a self-satisfying assert -- extensions/agi/tests/test_sensei_wake_audit.py:1072 -- The landing assert folds its pin FROM the live template and the classifier prefix-matches live templates, so it cannot fail on its own input; the round concedes this at :1039-1042 and the falsifiable content moved to the narrower mutant assert at :1104-1110 (proves the classifier discriminates shape from mention, not that the live end-to-end re-derive REDs). Disclosed, not concealed - a standing residue for the hypothesis node.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_sensei_wake_audit.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_sensei_wake_audit.py · .agi/nodes/experiment/a00-4c01cec5-8ca3db.md · .agi/nodes/experiment/a00-ad5ba4e1-f315a2.md · .agi/nodes/experiment/a00-e381d7cc-a2aff7.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over dbee5b11e · <= 40 test lines net over dbee5b11e · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat dbee5b11e <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.162: mur-eg-x760303-c47bec EG.143-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.179: mur-eg-x1701209-b78150 EG.162-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
