@@ -111,6 +111,22 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.656 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-a-node-frontmatter-th-a00-7674caf6 tip 1bf1dbf6c.
 ROUNDS    this post's rounds on this node: DH.605 DH.625 DH.640 DH.656; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
+
+## CORRECTIVE DH.656 -- closes mur-director-engine-40 DH.640-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-a-node-frontmatter-th-a00-7674caf6 tip 1bf1dbf6c (branch de-base-656; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. C2 open in the production gate, 0 production lines — cli.py:284 _load_frontmatter returns ok=True for `probes: one`; the shape gate is a test helper, not the load path
+2. 2. Shape gate on one exit of two — test_links.py:614 the named-artifact exit bypasses the gate at :621, and the live pin's own asserts pass on a scalar-probes artifact
+3. 3. Verdict text contradicts the landed number — hypothesis node:20 `:75` landed while the same node's review says the target is `:70`; the experiment node keeps `proved` after the parent's demotion
+4. Mechanism nobody named, in either review: the new gate admits an EMPTY list. `_writer_shaped_probes` (extensions/agi/tests/test_links.py:599-603) rejects only non-lists and round-trips whatever the writer renders, so `[]` → `probes: []` → back == [] → True; `_live_recovered_probes_node` then returns that node, and the consumer's `assert fm['probes']` (test_links.py:645) goes RED. The old truthiness gate SKIPPED an empty probes node and kept scanning, so the fallback path is strictly MORE brittle after this diff for one writer-shaped value, and the new test (test_links.py:665-683) covers only scalar / mapping / one-item list. UNVERIFIED by execution (it depends on live-tree content and on the named artifact at test_links.py:612-615 having retired first, so the fallback is not even reached today). Probe I WOULD run, fixtures only: in a `git archive` of 1bf1dbf6c, add a tmp node with `probes: []` as the lowest-sorting subject and call `_live_recovered_probes_node(tmp_project, cli)`, asserting the pin does not return it — never authored or run by me.
+5. Provenance consequence of the merge, adjacent to item 3 but not stated by it: .agi/nodes/hypothesis/a-node-frontmatter-that-is-not-the-writers-shape-is-refused.md:7 carries `edited_by: a00-7674caf6` (the parent, the last writer) while the `verdict: inconclusive_lean_proved:75` on :20 is the KID's write (proved by the kid's own note at .agi/nodes/experiment/a00-85c23976-f70650.md:39, `write.py hypothesis:… 'set verdict inconclusive_lean_proved:75'`). One scalar therefore attributes both writers' bytes to the parent and loses the record of who set the verdict. Already banked in-graph at hypothesis node:64 (PROVENANCE_ACTOR single-scalar collision, fix named as a cli.py frontmatter three-way merge), so it is disclosed residue, not a concealed defect.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_links.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/cli.py · extensions/agi/tests/test_links.py · .agi/nodes/experiment/a00-85c23976-f70650.md · .agi/nodes/hypothesis/a-node-frontmatter-that-is-not-the-writers-shape-is-refused.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 1bf1dbf6c · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.640: mur-director-engine-37 DH.625-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.656: mur-director-engine-40 DH.640-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
