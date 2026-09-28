@@ -6,7 +6,7 @@ parents:
   - hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused
 next_edges: []
 confidence: 0.85
-edited_by: a00-620bf49d
+edited_by: a00-e4cdcd40
 evidence_runs:
   - experiment:a00-620bf49d-ac1ffb
 loop: hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused@s2
@@ -60,20 +60,22 @@ rc=2
 |---|---|
 | EOF replacement, non-empty text | lands rc=0 |
 | deletion, empty FILE source, any range | refused rc=2 (write.py:1996-2001) |
-| deletion, `-` with EMPTY stdin | **lands rc=0** — stdin branch write.py:1984-1988 returns before the check |
+| deletion, `-` with EMPTY stdin | **lands rc=0** — stdin branch write.py:1985-1989 returns before the check |
 
 So the source kind decides, never the range end. The DH.669 review's "a deletion cannot
 be made this way" holds for a file source only. The nodes now say this.
 
 ## Item 6 — measured hazard, worse than named
 Rendering the quoted markers as text (`replace body 33:33` / `35:35` on a00-939e9e6a)
-made `_carry_thought` (node_writer.py:932-935) APPEND the quote's content as a NEW
-authored block at the end of the body — the old body's first `_THOUGHT_RE` match was the
-quote, the new body had none. Captured before overwrite (`carry-observed.txt`):
+made `_carry_thought` (node_writer.py:932-941; the appending return is :941, not the
+def line at :932 that the earlier version of this node cited) APPEND the quote's
+content as a NEW authored block at the end of the body — the old body's first
+`_THOUGHT_RE` match was the quote, the new body had none. Captured before overwrite
+(`carry-observed.txt`):
 ```
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS ver
+[THOUGHT:BEGIN marker line]
 DH.645 (a00-939e9e6a) — this block was destroyed to a literal dash by `write.py <id> 'thought -'`, a verb th
-<!-- THOUGHT:END -->
+[THOUGHT:END marker line]
 ```
 Replaced via the `thought` verb with the node's own reasoning. After: one marker pair
 (:277/:279), the quoted paragraph appears once (inside the fence), `extract_thought`
@@ -98,13 +100,17 @@ $ git diff --numstat 1e7dbd6d5
 `git diff --numstat 1300bd8c9 1e7dbd6d5` (pasted on a00-13835534).
 
 ## For the director's findings row (named, not touched)
-- `extensions/agi/bin/write.py:1984-1988` — empty stdin to `replace <t> N:M -` deletes the
+- `extensions/agi/bin/write.py:1985-1989` — empty stdin to `replace <t> N:M -` deletes the
   range at rc=0 while an empty file is refused; the guard is asymmetric.
-- `extensions/agi/bin/node_writer.py:918-935` — unanchored `_THOUGHT_RE` + `_carry_thought`
+- `extensions/agi/bin/node_writer.py:918-919 + :932-941` — unanchored `_THOUGHT_RE` + `_carry_thought`
   promote a body-quoted THOUGHT to the node's authored thought on any body replace.
-- Three `done`-rendered Agent Notes lines still carry the EOF claim (a00-dd6557af:151-155,
-  a00-939e9e6a ENGINE BEHAVIOUR bullet, a00-13835534's own summary); next `done` restates.
+- EG.72: all THREE lines this bullet counted as un-editable were FIXED in the bytes, not deferred to the next `done` — a00-dd6557af:151-155 (its own `## Agent Notes`),
+    a00-939e9e6a ENGINE BEHAVIOUR bullet, a00-13835534's own summary. The excuse "`## Agent Notes` is `done`-rendered and not hand-editable" is WITHDRAWN as the reason: `## Agent Notes` is a plain body section and `write.py` rewrites it — the three edits are the proof (pasted on experiment:a00-e4cdcd40-0d02e3).
 Every measurement above is pasted from a run; nothing is typed from memory.
 
 ## Agent Notes
-EG.52 corrective: 6 items fixed via write.py; measured rule = EOF replacement lands, empty FILE source refused rc=2 range-independently, empty STDIN deletes rc=0; a00-13835534 demoted to lean_disproved:60, numstat 3->4 pasted, residue 2->3; a00-939e9e6a quote de-marked, which made _carry_thought promote the quote to authored thought (overwritten with own thought); 0 prod/0 test lines, smoke 72 passed 6 skipped
+EG.52 corrective: 6 items fixed via write.py; measured rule = EOF replacement lands, empty FILE source refused rc=2 range-independently, empty STDIN deletes rc=0; a00-13835534 demoted to lean_disproved:60, numstat 3->4 pasted, residue 2->3, ALL THREE since FIXED BY HAND in EG.72 (the `done`-rendered excuse was false); a00-939e9e6a quote de-marked, which made _carry_thought promote the quote to authored thought (overwritten with own thought); 0 prod/0 test lines, smoke 72 passed 6 skipped
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+EG.72 (a00-e4cdcd40) corrects THIS node, which was the worst record in its own chain. (1) THOUGHT POLLUTION, self-inflicted and now fixed: until this write, the first _THOUGHT_RE match in this node's committed bytes was a00-939e9e6a's carried text (extract_thought would have handed a reader another node's reasoning, and the next body replace would have carried it forward again); the quoted pair inside the Item 6 fence is now de-marked ([THOUGHT:BEGIN marker line] / [THOUGHT:END marker line]) and this block is the node's own. The de-mark itself reproduced the hazard exactly as predicted: the replace left the new body with no thought, so _carry_thought (node_writer.py:932-941, append at :941) re-appended the foreign quote at the end — the measurement that pins the rule this node states. (2) TWO BAD CITATIONS corrected in the bytes: the stdin branch is write.py:1985-1989, not 1984-1988 (1984 is the `return` of the previous guard; the branch's own `return` is 1989), and _carry_thought is node_writer.py:932-941, not 932-935 (932-935 is the def line plus two docstring lines and contains no code at all — the finding-row claim was unpinned by its own citation). (3) The residue bullet that excused three surviving EOF lines with "`## Agent Notes` is `done`-rendered and not hand-editable" is restated: that excuse is false, all three lines were fixed by hand in EG.72. (4) The measured replace rules are now a COMMITTED TEST in extensions/agi/tests/test_write.py instead of a typed ownership claim: empty FILE source refused rc=2, empty STDIN source lands rc=0, both in a tmp repo.
+<!-- THOUGHT:END -->
