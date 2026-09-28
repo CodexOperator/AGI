@@ -34,7 +34,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ```
 MERGE-UP  [merge-up] to TM 00:3xZ 09-28 (belam [decision] 00:0xZ, owner: WHOLE post branch, in-progress included) -- tip d4446340f,
           mb 26d914498, 188 files, 365 passed 1 RED declared (boxkit probe vs the 429 tasks-max chain -> EG.1), 28 nodes labelled ## OPEN
-SERIES    RESET: rounds EG.N (EG.1-4 used, next EG.5) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
+SERIES    RESET: rounds EG.N (EG.1-5 used, next EG.6) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
           before the reset keep their labels (orders already generated) -- the counter only moves forward
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f,g] gen2.py N murq<Q>.json tip label -> orders<N>.md (N may be EG.n: sed the
           header to CORRECTIVE EG.n) · place2.sh / placef.sh N (DH.N or EG.N label) · drainqgf.sh N:K (K=F fresh via h<N>.txt) · mkmur.py + runmur.sh
@@ -42,9 +42,9 @@ TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f,g] gen2.py N murq<Q>.
 GATE      TMM.306: load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, one placement per pass · arm 10 · key cap x live < balance
 PLACEMENT de-base-N ON DISK (the /dev/shm variant broke parent done -> DH.648 swept, reverted 00:0xZ); 651's RAM checkout is symlinked
 PRUNE     unit prune-debase (TMM.309 GO: idle io, io<50, 1/30 s, lossless, skips symlinks; log in the flash harvest dir) 41 removed so far
-LIVE      parent 651 (a00-19fc9ca3) · murq126 (DH.648 from the kid branch 45344fb04) · murq125 127 ENDED -> EG.2 EG.3
+LIVE      no parent · harv651 running · murq125 126 127 ENDED -> EG.2 EG.5 EG.3 (126: kid item-4 edit landed 867b44a8b)
 QUEUE     qg2 EG.1 680 653 · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660-664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 ·
-          qg13 675 670-674 (g1.27) · qg14 678 · qg15 679 · qg16 EG.2 EG.3 (chained units, T/drainqg<N>.log)
+          qg13 675 670-674 (g1.27) · qg14 678 · qg15 679 · qg16 EG.2 EG.3 · qg17 EG.5 (chained units, T/drainqg<N>.log)
 BELAM     00:0xZ order: (1) merge-up DONE (2) counters DONE (3) RAM: report the tmpfs claim PROVED when the kid-worktrees chain clears
           (680 -> then mint the 17-consumer routing round) -- belam then does guard.env + guard-init (4) NEXT, dependency order:
           g4.18.1.2 = EG.4 hypothesis:a-draft-mints-one-checked-row-per-call MINTED f1d6f12a1,
@@ -59,10 +59,10 @@ next   (1) per ENDED mur: D/verd.py Q -> clean = git merge --no-ff the chain tip
 ```
 
 ## 🔴 WHERE IT STOPS
-Merge-up out to TM (red declared, EG.1 fixes it), counters reset to EG, EG.4 minted; harv651 + murq126 running; queue gated on io.
+Merge-up out to TM (red declared, EG.1 fixes it); counters reset to EG; every ended mur triaged (EG.2 EG.3 EG.5 queued); harv651 running.
 ```
-FIRST   D/harvall651.log (unit harv651) -> mur it (mkmur 6th arg "eg") ; D/verd.py 126 (DH.648 wake-facts, KID branch) -> EG.5 corrective
-        ; watch T/drainqg2.log (EG.1 heads it) ; spawn_budget.py status ; systemctl --user list-units 'agi-director-engine-*'
+FIRST   D/harvall651.log (unit harv651) -> mur it (T/mkmur.py ... 6th arg "eg") ; watch T/drainqg2.log (EG.1 heads it)
+        ; spawn_budget.py status ; systemctl --user list-units 'agi-director-engine-*' ; send.py read director-engine (TM gates the merge-up)
 THEN    EG.4 (g4.18.1.2) queues only after DH.660 clears (cut from its tip) ; brief g7.32.6 send pipeline core, then g7.31.3.3 (belam item 4)
 ```
 
