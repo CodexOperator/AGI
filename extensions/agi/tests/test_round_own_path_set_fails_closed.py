@@ -160,7 +160,7 @@ def _spawn(root, agent, spawned_by, node_id, dispatch_node_id=None, iter_n=999,
     TWO shapes, because PRODUCTION HAS TWO (DH.652, after reading the writer
     rather than inferring it):
       * `absent_key=True` -- NO `dispatch_node_id` key at all. This is what
-        dispatch.py:3035-3036 writes at SPAWN (`node_id`/`parent`, nothing
+        dispatch.py:3036-3037 writes at SPAWN (`node_id`/`parent`, nothing
         else) and what the reaper rewrites at :3329, and it stays that way
         until a kid's OWN `done` runs the `setdefault` at cli.py:1607. So a
         LIVE kid, and permanently any kid that timed out or was healed, is
@@ -224,7 +224,7 @@ def test_a_dispatch_shaped_record_with_no_dispatch_key_contributes_nothing(
         tmp_path):
     """DH.652, the shape the round's premise called impossible. dispatch.py
     writes a seat's `agent.json` with `node_id`/`parent` and NO
-    `dispatch_node_id` (:3035-3036), and the reaper rewrites the same record
+    `dispatch_node_id` (:3036-3037), and the reaper rewrites the same record
     at :3329 without adding it; the `setdefault` that adds the key is
     cli.py:1607, in a kid's OWN `done`. So a live kid -- and permanently any
     kid that timed out or was healed -- carries the ABSENT shape, and it must
