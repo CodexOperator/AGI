@@ -12,6 +12,7 @@ repo path value, host or IP appears in this file.
 """
 from __future__ import annotations
 
+import contextlib
 import sys
 from pathlib import Path
 
@@ -348,9 +349,14 @@ def test_known_residual_a_row_may_name_a_file_that_does_not_exist(tmp_path):
     edit = write.Edit(node_id="build:b1")
     write.verb_set(edit, "payload_ref", "lib/renamed.py")
     edit.payload_bytes = "# caller's new bytes\n"
-    write.submit(graph, edit, actor="kid", session="s1")
+    # The residual raise must NOT swallow the row: the alarm has to READ the
+    # row to know the residual is still there, and strict=True can only ever
+    # XPASS if execution reaches the assert.
+    with contextlib.suppress(FileNotFoundError):
+        write.submit(graph, edit, actor="kid", session="s1")
     import locations as _loc
-    loc = node_writer.load_node_file(node).frontmatter.get("location")
+    from graph_core.persistence import frontmatter as fm_reader
+    loc = fm_reader.load_node_file(node).frontmatter.get("location")
     resolved = _loc.resolve_payload_path(graph, _row_ref(node), loc)
     assert resolved.is_file(), (
         f"the row names {_row_ref(node)} and no file is there -- the "
