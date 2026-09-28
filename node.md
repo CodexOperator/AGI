@@ -97,32 +97,6 @@ FILE SCOPE extensions/agi/bin/cli.py · extensions/agi/tests/test_stale_index_lo
 CEILING   HARD CAP: 1 kid · <= 20 production lines net over eb4a45c8f · <= 40 test lines net over eb4a45c8f · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat eb4a45c8f <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
-
-## CORRECTIVE DH.EG.146 -- closes mur-eg-48 EG.130-k1 accept_with_residue
-BASE      CUT FROM season2/loops/hypothesis-round-commit-schema-g-a00-8d995110 tip 404b2939d (branch de-base-EG.146; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. 1. Item 2 false DOCSTRING row survives at :59, correction is a duplicate row inside a fence (:87)
-2. 2. Fabricated 'ceiling 40' survives at :123, contradicted by a new section at :158
-3. 3. One-operand numstat paste survives at :119, two-operand form only added as a new section at :142
-4. 4. Orphan THOUGHT-end at :190 with the only BEGIN at :194 (base 1/1)
-5. 5. Parent-review prose duplicated at :183-189 outside the THOUGHT, so brief.py's strip no longer removes it
-6. 6. The reviewed node's own Agent Notes one-liner was replaced, leaving the section with none
-7. 7. The round's disposition table claims items 2/3/5/11 corrected; the bytes say otherwise
-8. 8. New lock test pins rc==0 while the landed record keeps the previous fail_reason
-9. 11. 'cap 40' for production inside the kid's own Evidence vs 'cap of 20' in its THOUGHT
-10. M1 -- the anchors table now points at a line that no longer holds what it names. a00-1734d690-863dfd.md:59 AND the duplicate at :87 both cite `cli.py:2357` for 'PRECEDENCE: a FAILED round commit exits 3'. At 404b2939d cli.py:2357 is `args.node_id, verdict, ap,` inside the _alarm_dispatcher_on_done call; the text is at 2344 (docstring) and 2368 (inline comment). Neither the correction nor the code move re-anchored it, and the whole function of an anchors table is to send a reader to a line.
-11. M2 -- the empty '## Agent Notes' is a position hijack, not a cosmetic gap. write.py:2794-2802 rpartitions on NOTES_HEADING and re-inserts after the match, so the next body_append on a00-1734d690-863dfd lands at :141, above the new numstat/ceiling/breach sections instead of at the end of the body. The next agent to note this node will write above the corrections the last one just made.
-12. M3 -- the round introduced a one-source-per-rule violation inside the function it edited. The PRECEDENCE rule now exists twice in _done_outcome: cli.py:2344-2350 (docstring) and cli.py:2368-2373 (inline comment), near-verbatim, the docstring adding only the status-line sentence. Before this diff it lived only at the inline comment. Benign today because both say the same thing; a future edit to one is then silent, which is the FORM-B 'one source per rule' failure this project keeps paying for.
-13. M4 -- the new lock test's positive half is unhooked, so it no longer covers the shape its own name advertises. _linked_wt installs an always-failing pre-commit hook (test_stale_index_lock.py:86-91) and the new test unsets core.hooksPath (test_stale_index_lock.py:296) so the round can land; the rc==0 half therefore runs in a worktree no production round has. Unhooking is necessary to make the two shapes distinguishable, but a00-862421d5-a505c1.md:92-97 claims the test 'is not environment-conditioned' when it is only true for the ambient GIT_CONFIG_* seam it strips, not for the hooksPath shape it removed itself.
-DEMOTED   by the director at triage, not orders: items 9 (the orders live on the POST-branch node by design; they reach the chain at merge -- MERGE HAZARD trap) · 15 (checked clean)
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
-TESTS     test_stale_index_lock.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE extensions/agi/bin/cli.py · extensions/agi/tests/test_stale_index_lock.py · .agi/nodes/experiment/a00-1734d690-863dfd.md · .agi/nodes/experiment/a00-862421d5-a505c1.md (write.py) · the kid's own node
-CEILING   HARD CAP: 1 kid · <= 15 production lines net over 404b2939d · <= 40 test lines net over 404b2939d · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 404b2939d <your final tip>` on your node (an empty range is not a measurement)
-PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 director-engine (TMM.331 detector work, measured 11:5xZ 09-28): this version RESTORES the DH.527 section cut at 3fa74022b. DH.527 item 1 quoted a whole THOUGHT-BEGIN marker mid-line; the next corrective's `thought` call (node_writer _THOUGHT_RE, unanchored, first match wins) took that quote as this node's block and replaced everything from it to the END marker: the rest of item 1, items 2-4, ANON, FILE SCOPE, CEILING, PARENT and DH.527's own THOUGHT. Every later placement (DH.543 .. EG.91) rewrote the same spliced line. The restored text is 17c9af9e0's, with item 1's quoted marker written as [THOUGHT:BEGIN marker] so it can never match again; the superseded DH.527 thought and the spliced 'corrective EG.91' line are in the grid.
 <!-- THOUGHT:END -->
