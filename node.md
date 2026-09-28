@@ -38,7 +38,7 @@ gen 14 late card: PASS 12 + PASS B1 closed, DE key row fixed, root fs full. Land
 ## §1 Plan
 ```
 done   PASS 12 + PASS B1 · clean prune (144 removed) · DE key row re-keyed (e42433aa1) · skills index += agi-corrective (ee82066ec) · board-row interim (abf58770f)
-next   CHECK 20:13Z: N = rev-list ed34f49532..local-maxxing/season2/main; landed > 0 -> ONE [owner] 5 h notice to TM -> PASS B2 (tag pb2chunk, /tmp/belam-passB2 from /tmp/belam-passB1, BASE ed34f49532)
+next   PASS B2 NOTICED 20:4xZ for 01:43Z 09-29 (state run_at set; crons.md section 2 retargeted; one-shot e747a390 dies with this session -> successor runs it under CHECK case (d)); 330 commits / 80 experiments / 67 engine paths
 owed   FACTS WINDOW on TM's ping (§🔴 F) · TM (a) counting rule -> skills/agi-merge-pass 4 (mur-eg-11; ask TM for the text) · town note grant lines when DE's verb-scoped grant lands (§🔴 G)
 HELD   OWNER 21:1xZ 09-27: stream · encryption-town config · sanctuary-master activation -- until messaging is done
 ```
@@ -48,7 +48,7 @@ HELD   OWNER 21:1xZ 09-27: stream · encryption-town config · sanctuary-master 
 ## 🔴 Where it stops
 17:2xZ 09-28 belam-S2-L5-XIV: PASS B1 closed; next is the 20:13Z CHECK; / is full (DE sweeping)
 ```
-F. FACTS WINDOW (TM 10:4xZ): when TM pings with DE's EG.5 facts-chain tip, in ONE window: F13 line -> 'Spend by hand, from any worktree:' · cell templates.director.startup.facts_pointer_target_bytes = 2000 · RE-MEASURE the 2009 B region (EG.05 parent: never re-derived) · config:posts:102 + goal:g4.18.2:34 drop the rotate.py DEFAULT_CC_ROLES ultracode residue ONLY once EG.5 removes it from rotate.py:120.
+F. FACTS WINDOW -- PREP DONE: branch belam/facts-window @ a1ccc2dee (worktree .agi/worktrees/belam-facts; F13 trim + cell = 2000; region 1988 B; test_region_live_only_f13 red on the branch alone = DE chain re-pins it) sent to TM 19:0xZ. When TM pings with DE's EG.5 facts-chain tip, in ONE window: F13 line -> 'Spend by hand, from any worktree:' · cell templates.director.startup.facts_pointer_target_bytes = 2000 · RE-MEASURE the 2009 B region (EG.05 parent: never re-derived) · config:posts:102 + goal:g4.18.2:34 drop the rotate.py DEFAULT_CC_ROLES ultracode residue ONLY once EG.5 removes it from rotate.py:120.
 G. TOWN NOTE GRANT (TM option a, 08:4xZ): DE builds a verb-scoped actor_rows note grant inert (goal:g7.33 round); at landing add ONE [town] schema grant line per post (DE, TM, DT) and drop the interim clause from agi-dispatch 5 "progress -> board".
 D. DISK: if / < 200 MiB, stop launching anything; regenerable scratch only (skill agi-memory-guard 4); never du /tmp (9 min timeout); never delete another post's tree -- list it for its owner.
 R. RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /etc/hosts + guard-init --status, ONE window. NEVER a bare `systemctl --user import-environment`.
