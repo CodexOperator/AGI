@@ -137,6 +137,22 @@ FILE SCOPE .agi/nodes/experiment/a00-05c36cc7-b96152.md · .agi/nodes/experiment
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 568f0b68d · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.51 -- closes mur-eg-16 DH.675-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-a-zero-usd-lane-print-a00-9c6a65c2 tip 377f6e201 (branch de-base-EG.51; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Probe 2's cmd does not describe the observation its observed/result report — a00-6273b184-c9048b.md:16
+2. PARENT REVIEW caveat misstates the probe reader — a00-8d4fc327-9e0027.md:107
+3. Stale production_lines knowingly carried: a00-6273b184-c9048b.md:17 frontmatter still says production_lines: 1 while its own body :87-94 states the numstat prints nothing and the number 'does not describe the current tree'; git diff --numstat 568f0b68d 377f6e201 lists only the three node files, so the round's true production delta is 0. The salvage landed the correction paragraph and the false number together.
+4. Probe 1 is non-reproducible in the same way as probe 2 and worse: a00-6273b184-c9048b.md:15 points at a /tmp throwaway copy and an artefact 'in the DH.638 scratch dir', both gone. Only its observed is re-checkable in live bytes (ladder.md:37 'ultracode'; dispatch.py:1212 '"settings": r.get("settings") or None' => null when the cell is dropped). Net: the round's two counted probes (_probe_defect -> ['','']) have zero runnable artefacts, and the M1/M2/M3/M4 mutation copies it cites at :119-128 cannot be re-run from the committed tree.
+5. The target hypothesis still carries no verdict at 377f6e201 (frontmatter :1-13 has no verdict key) while two experiments under it do (a00-8d4fc327-9e0027.md:21 'proved'; a00-6273b184-c9048b.md:24 'inconclusive_lean_proved:60'). This is named open at a00-6273b184-c9048b.md:216 but unrecorded as a consequence: with _claim_conjunct_numbers = [1,2] the corrected probe labels make a future tier-parent 'done' on this target refusable for uncovered conjunct 2 (cli.py:1223-1232), which the diff enables without saying so.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_bin_help_smoke.py once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT (TMM.322)); TEXT-ONLY round: no code, no test logic, no config cell
+FILE SCOPE .agi/nodes/experiment/a00-05c36cc7-b96152.md · .agi/nodes/experiment/a00-6273b184-c9048b.md · .agi/nodes/experiment/a00-8d4fc327-9e0027.md · .agi/nodes/hypothesis/a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-and-cap-guards.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · node text only · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 377f6e201 <your final tip>` on your node (an empty range is not a measurement)
+KID       you ARE the round: commit every node edit on your loop branch (cli.py done) before you exit
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.675: mur-director-engine-43 DH.638-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.51: mur-eg-16 DH.675-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
