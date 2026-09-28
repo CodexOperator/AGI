@@ -184,6 +184,10 @@ FILE SCOPE extensions/agi/tests/test_model_fence_guard_owner.py · extensions/ag
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over def7e91ae · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.654 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-model-fence-is-one-mo-a00-f8f4d623 tip e5d3cc5f0.
+ROUNDS    this post's rounds on this node: DH.590 DH.613 DH.633 DH.654; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
 ## CORRECTIVE DH.633 -- closes mur-director-engine-36 DH.613-k1 accept_with_residue
 BASE      CUT FROM season2/loops/hypothesis-model-fence-is-one-mo-a00-24c31597 tip 42d7fa666 (branch de-base-633; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
 For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.

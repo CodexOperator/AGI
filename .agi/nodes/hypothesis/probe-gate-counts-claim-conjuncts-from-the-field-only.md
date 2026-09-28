@@ -121,6 +121,10 @@ FILE SCOPE extensions/agi/tests/test_cli_claim_conjunct_scope.py · .agi/nodes/e
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 15bc46e00 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.666 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-probe-gate-counts-cla-a00-9c666748 tip 8698b348e.
+ROUNDS    this post's rounds on this node: DH.626 DH.641 DH.666; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
 ## CORRECTIVE DH.641 -- closes mur-director-engine-37 DH.626-k1 demote
 BASE      CUT FROM season2/loops/hypothesis-probe-gate-counts-cla-a00-87eecd53 tip 82a23fe26 (branch de-base-641; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
 For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.

@@ -90,6 +90,10 @@ FILE SCOPE extensions/agi/tests/test_rotate_templates.py · .agi/nodes/experimen
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 7c81d3739 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.648 PLACED (parent a00-9a0d6077, its worktree SWEPT before harvest); open work on the KID branch season2/loops/hypothesis-wake-facts-collapse-t-a00-47231bee 45344fb04 -- murq126 reviewing the KID branch.
+ROUNDS    this post's rounds on this node: DH.601 DH.629 DH.648; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
 ## CORRECTIVE DH.629 -- closes mur-director-engine-35 DH.601-k1 accept_with_residue
 BASE      CUT FROM season2/loops/hypothesis-wake-facts-collapse-t-a00-6c0ff5e8 tip f949be73f (branch de-base-629; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
 For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
