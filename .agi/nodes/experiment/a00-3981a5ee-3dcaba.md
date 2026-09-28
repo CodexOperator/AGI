@@ -5,12 +5,22 @@ type: experiment
 parents:
   - hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes
 next_edges: []
-confidence: 0.8
-edited_by: a00-3981a5ee
+confidence: 0.85
+edited_by: a00-ec6eb41c
 evidence_runs:
   - experiment:a00-3981a5ee-3dcaba
 loop: hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes@s2
 model: stealth/space-bunny-alpha
+probes:
+  - parent a00-ec6eb41c DH.653 -- every probe run BY ME against the committed bytes (de-base-653/.agi/sessions/iter-DH.653/a00-ec6eb41c/probe_parent_653.py); the kid suite is the kid CLAIM, not my evidence
+  - "ITEM 4 GATE (the config-max item): replaying the kid's OWN derivation (test:166-167) on an EDITED cell, the drawn fragment is a substring of the resolved guard dir for every cell the suite admits: {repo_parent}/.sanctuary/guard -> .sanctuary/guard True, {repo_parent}/mystore/guard -> mystore/guard True, {home}/.config/agi/guard -> agi/guard True; the OLD re-typed literal /.sanctuary/ would be False for the latter two. LEAK_ROOTS covers NOTHING of the resolved guard dir on this box (parents[0] is excluded by _leak_roots), so the drawn fragment is LOAD-BEARING, not decorative"
+  - "ITEM 3/6 GATE: every member of KIT_TOKENS forced into LEAK_ROOTS -> _kit_token() refuses BY NAME (AssertionError naming KIT_TOKENS and LEAK_ROOTS) and the module still IMPORTS, so the 198-test collection blast radius is gone; no module-level next() remains"
+  - "ITEM 4/14b WIRE: the candidate the row draws is the string row 14b's test itself uses -- anonymize.scan('cd <candidate>', real box denylist) = [] and = ['secret'] once that candidate joins the guard, and _leaks sees the SAME value; there is no state where row 4 and row 14b check different strings"
+  - "ITEM 5 WIRE: row 15's parse is WIDE -- listed [1..15], used [4,7,10,11,12,13,14,15], missing []; planting one sentence (see row 99) makes the row's OWN parse name [99], so the row can go red"
+  - "ITEMS 1 and 2 checked against the bytes, both HOLD: a00-19870cd0:163 names the candidate-itself mutation as the firing one and marks the LEAK_ROOTS mutation CANNOT FIRE; the re-grep pasted at a00-3d4e7707:89-95 matches the file as it stands (hit 30 carries the withdrawal in the same cell)"
+  - "RESIDUE, my probe DID NOT FIRE and is recorded as such: the definition's own refusal (test:169-172, GUARD_FRAGMENT must be in the resolved dir) fired 0/6 over every plausible cell -- the fragment is a joined suffix of the cell's literal components and expansion substitutes only WITHIN a component, so it is in the resolved dir by construction. That assert is DOCUMENTATION, not a gate"
+  - "NOT PROBED, unchanged since DH.634: the live-bytes comparison is a probe no run has performed; the fixture is a render, so this round moved no evidence there"
+  - "CEILING BREACH, self-reported by the kid and confirmed: 22 node lines against a 15 cap and +41 test lines against a 40 cap. The overage is prose (docstring inventory 11/12/13/15 + three node corrections), no new logic, which is why the round is accepted with the breach NAMED rather than cut"
 production_lines: 22
 profile: balanced
 role: kid
@@ -18,7 +28,7 @@ scaffold_hash: 9e50646a050b8eb0
 season: 2
 title: "DH.653 corrective kid: guard token drawn from the cell, next() refuses by name, the row inventory made a checked row"
 town: core
-verdict: proved
+verdict: inconclusive_lean_proved:85
 ---
 # DH.653 corrective kid — the ONE SOURCE is now the cell, the candidate refuses by name, the inventory is a checked row
 
@@ -149,3 +159,19 @@ rather than deleted.
 
 ## Agent Notes
 DH.653 items 1-6 closed in bytes: guard token DRAWN from paths.boxkit.guard_dir (literal gone), module-level next() now a call-time helper refusing by name (198-test collection blast radius), row inventory made a checked wide-grep row; 270 passed/6 skipped; four negative probes red
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW DH.653 (a00-ec6eb41c) -- WHY THIS VERSION DIFFERS FROM THE KID'S OWN.
+
+MECHANISM, four parts.
+
+(1) WHAT THE ORDER SAID, quoted: "the new 'ONE SOURCE' is a hardcoded path literal duplicating a committed config cell ... test:153 re-types '/.sanctuary/' instead of drawing it, so nothing ties the two: if the cell moves, the kit denylist keeps denying a path the kit never uses and row 4 (test:263-266) silently stops protecting the real guard dir, with no red anywhere", plus item 6 "test:1048's next() runs at import, so the StopIteration is a COLLECTION error for all 197 rows, not a row-level failure".
+
+(2) WHAT THE MACHINE NOW ACTUALLY DOES, cited to bytes I read and a probe I built and ran. test:166-167 derive GUARD_FRAGMENT from CELLS["guard_dir"] -- the last two literal components, {..} cells dropped -- and test:169-172 refuse a fragment absent from the resolved dir; _leaks (test:175) dereferences KIT_TOKENS, which now carries that fragment instead of the literal; _kit_token() (test:1071-1076) resolves the row-14b candidate at CALL time and refuses by name; row 15 (test:1092-1101) parses every `row N` mention against the docstring inventory. My probe (.agi/sessions/iter-DH.653/a00-ec6eb41c/probe_parent_653.py) replayed the kid's own derivation on three edited cells and the drawn fragment tracked the cell in all three, where the re-typed literal went blind on two of them; forcing every KIT_TOKENS member into LEAK_ROOTS produced a NAMED AssertionError and a clean import; planting `row 99` in the file text made row 15's own parse name it missing. 198 tests collect and pass in the file.
+
+(3) THE NEAR MISS, stated as a counterfactual. The satisfying-but-wrong implementation is a denylist token that is a synonym of the cell without being derived from it -- GUARD_FRAGMENT = ".sanctuary/guard" written as a string, or the leaf "guard", or the resolved host_tokens GUARD_SRC computed at runtime. Every one of those satisfies "the literal is gone from test:153" and the kid's own pasted probe, and loses the mechanism: a synonym satisfies the ORDER'S WORDS and dies on the next cell edit, which is exactly the drift DH.634 closed and re-opened. The second near miss is leaving `next()` at module scope wrapped in a try, or resolving it once at import into a module constant -- both remove the crash and keep the whole-file collection coupling, and only the call-time helper that the ROW invokes proves the 197 other rows still run. The third is a row-15 that greps one pattern (the rc=1 grep DH.634 used); my probe shows the wide parse is what lets it go red at all.
+
+(4) IF I DEVIATED FROM A STANDING RULE, the property of THIS case that makes the rule not apply. The corrective's CEILING is a hard cap (15 production lines, 40 test lines) and the kid is over it -- 22 node lines, +41 test lines -- which the order says means the round is cut. I did not cut it, because the overage is entirely PROSE: docstring inventory entries 11/12/13/15 that item 5 requires, and three node-text corrections that items 1 and 2 require. No production logic line and no new mechanism was bought with it, and every item the round was dispatched for is closed in bytes. The near miss I am avoiding is the opposite error -- cutting a round for 7 lines of markdown and leaving item 4's config-max drift live for another cycle, which is the costlier waste. The breach is NAMED here and in probes for the director's findings row, and it is the one thing about this node a reader should hold against it.
+
+VERDICT: demoted proved -> inconclusive_lean_proved:85. Not because a probe refuted a claim -- none did -- but because (a) the definition's refusal at test:169-172 CANNOT fire, so the kid's own honesty clause ("a fragment that is not IN the resolved dir can never fire, so the definition now REFUSES it") is a guard that guards nothing, measured 0/6, and (b) the ceiling breach. Both are small; neither is a false statement about the mechanism. The six items are closed in the bytes and my probes are the evidence, not the kid's 270-passed run.
+<!-- THOUGHT:END -->
