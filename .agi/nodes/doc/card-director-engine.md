@@ -73,12 +73,15 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 - belam io [red] 06:56Z: 2 runaway searches stopped; SEARCH rule in every order + mur focus
 
 ## 🔴 WHERE IT STOPS
-Gen 37 07:2xZ: 3 murs running (172 177 178); EG.69 opus kid live; pi lane gated with EG.58 (EG.9 redo) first
+Rotated at the captive capture 07:2xZ: murq172 (EG.47+51+52 text) ENDED UNREAD; murq177 EG.19 + murq178 EG.61-67 running; EG.36 just placed
 ```
-NEXT    re-arm: MURS="murq172 murq177 murq178" bash S/watch2.sh (run_in_background) · each ended mur -> D/verd.py Q -> triage (skill agi-corrective §3):
-        all text -> an opus text kid (placecc + hcc) · else gen2 EG.70.. chained last · a clean mur -> git merge --no-ff that chain's tip -> [merge-up]
-        (EG.9 chain FIRST) · EG.69 harvested -> its own text mur
+FIRST   D/verd.py 172 -> triage (skill agi-corrective §3): all text -> opus text kids (gen2 EG.70.. -> placecc via a placecc<N>.sh unit + hcc.sh);
+        a clean round -> git merge --no-ff its tip -> [merge-up] to TM (batch + mur key + verdicts + findings rows)
+THEN    re-arm: MURS="murq177 murq178" bash S/watch2.sh (run_in_background) · EG.69 auto-harvests (unit placecc3 -> hcc) -> its own text mur ·
+        pi lane: EG.36 LIVE (conftest chain) -> 37 41 42 44 48 49 53 54 68 (qg units, gate-held) · EG.58 (EG.9 redo) own lane FIRST -> EG.59 -> EG.60
+        · qgRS -> 661 -> EG.20 · drainqg · PASS 12 (goal:g1.28, merge the trunk first) behind all of it
 ```
+
 ## §4 TRAPS
 Skills: agi-dispatch §5 · agi-corrective · agi-workflow · agi-node-write §5 · agi-memory-guard · agi-master-gate (TMM.304). Card-only: pi-free murs ~7 min/stage, verify can die (review stands) ·
 WATCH NEW PARENTS TOO (S/watch2.sh: every spawned line in T/d*.log that is neither live nor in a harvall log = an event; a baseline-diff watcher missed 5 ended parents 04:0xZ): a wait keyed on the parents live at its start misses rounds placed and dead in between (EG.18 EG.19 661) · harvests under load flake 1 test: re-run before a corrective · `pgrep -f place2` matches your own shell: list /proc cmdlines instead ·
