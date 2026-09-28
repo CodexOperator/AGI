@@ -2392,3 +2392,43 @@ def test_a_node_under_a_dotted_nodes_dir_is_never_round_committable(tmp_path, ca
     (root / "nodes" / ".geometry" / "seats.md").write_text(
         "---\nid: seats:cadence\ntype: seats\n---\n\nseats:\n  - a\n")
     assert not cli._round_committable(root, "seats:cadence")
+
+
+# --------------------------------------------------------------------------
+# hypothesis:a-rounds-own-path-set-never-fails-open -- a round that passed
+# `--owns` commits the nodes of the agents THIS round spawned
+# --------------------------------------------------------------------------
+
+def test_done_with_owns_commits_the_nodes_this_round_spawned(tmp_path, monkeypatch):
+    """A parent's `--owns <kid node id>` is the flow the round commit exists
+    for (one parent commit carries its kids' files). The done path must widen
+    its named set with the ids of the agents THIS round spawned -- and ONLY
+    when `--owns` was passed. The record is the shape a kid leaves after its
+    own `done`: dispatch's `node_id` plus the `dispatch_node_id` capture."""
+    cli = _load_cli()
+
+    def _run(sub, owns):
+        graph, args = _cmd_done_project(tmp_path / sub)
+        d = graph / "sessions" / "iter-001" / "a00-kid7"
+        d.mkdir(parents=True)
+        (d / "agent.json").write_text(
+            '{"id": "a00-kid7", "node_id": "experiment:a00-kid7", '
+            '"dispatch_node_id": "experiment:a00-kid7", "parent": "hypothesis:h1", '
+            '"spawned_by_agent": "a00-x", "status": "done"}')
+        args.owns = owns
+        seen = {}
+        # the worktree commit is SPYED: the seam under test is the argument,
+        # not the subprocess -- no git, no worktree, no real commit.
+        monkeypatch.setattr(cli, "_auto_commit_worktree",
+                            lambda r, a, n, o, v, named=None, refused=None:
+                            seen.setdefault("named", list(named or [])))
+        monkeypatch.setattr(cli, "_find_root", lambda: graph)
+        assert cli.cmd_done(args) == 0
+        return seen["named"]
+
+    named = _run("owns", ["experiment:a00-kid7"])
+    assert "experiment:a00-kid7" in named, named
+    assert "experiment:e1" in named, named   # dispatch-time set, not replaced
+    named = _run("no-owns", None)
+    assert "experiment:a00-kid7" not in named, named
+    assert "experiment:e1" in named, named

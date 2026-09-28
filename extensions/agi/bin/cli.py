@@ -1764,9 +1764,16 @@ def cmd_done(args: argparse.Namespace) -> int:
     # action, so it owns the worktree commit too. Commits the linked worktree
     # this parent runs in, if it holds uncommitted node writes; a no-op in
     # main (the loop owns main) and outside git. Never fatal.
+    # DH.552 (chain d91b942f3) + the commit-fail handling, composed: the
+    # round's own NAMED set, plus -- ONLY when this round passed `--owns`,
+    # the ids of the agents THIS round spawned (a parent commit carries its
+    # kids' files; binding `--owns` to the dispatch record alone refused it).
+    _named = _round_named_node_ids(rec, args.parent)
+    if args.owns:
+        _named = _named + _round_spawned_node_ids(root, args.agent_id,
+                                                  args.iter_n)
     _commit_out = _auto_commit_worktree(root, args.agent_id, args.node_id,
-                                        args.owns, verdict,
-                                        _round_named_node_ids(rec, args.parent),
+                                        args.owns, verdict, _named,
                                         refused=[args.parent] if args.parent else None)
     commit_fail = _commit_out if isinstance(_commit_out, str) else None
     if commit_fail:
