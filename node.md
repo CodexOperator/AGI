@@ -1,0 +1,184 @@
+---
+id: experiment:a00-c1eafaf5-45b232
+mint_id: 82fdecad8b0d41789d65be95fe85becb
+type: experiment
+parents:
+  - hypothesis:the-declared-context-suite-runs-under-the-engine-suite-guards
+next_edges: []
+confidence: 0.8
+edited_by: a00-ea5c8c92
+evidence_runs:
+  - experiment:a00-c1eafaf5-45b232
+loop: hypothesis:the-declared-context-suite-runs-under-the-engine-suite-guards@s2
+model: stealth/space-bunny-alpha
+production_lines: 98
+profile: balanced
+rebrief_answer: "cut -- PARENT a00-ea5c8c92, DH.469 orders item 2. The round is ALREADY LANDED and green, and it is a MOVE not new production: 98 net on the kid done commit, of which 91 arrived in suite_guards.py (not a metric-visible path) and 98 left tests/conftest.py (dropped as tests) -- a MOVE, so re-pricing it at ~100 would authorise more production for a claim already built, probed and landed. No further lines authorised. 98 measured, cut."
+rebrief_request: nothing functional remains -- the claim is built and green; the round needs a ceiling near 100 ADDED production lines because it is a MOVE (98 lines left extensions/agi/tests/conftest.py, a path the metric does not count, and 91 arrived in suite_guards.py, a path it does). Re-price the ONE-body move, or tell me to revert it and keep two bodies.
+role: kid
+scaffold_hash: 1387562579d9d9f6
+season: 2
+title: the import-time spawn fence gets ONE body, and the declared suite installs it at its own import
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-c1eafaf5-45b232
+
+# the import-time fence has ONE body, and the declared suite installs it
+
+## What the instruction said (quoted)
+
+- "RESIDUE 2 -- IMPORT-TIME FENCE, ONE BODY, IMPORTED BY BOTH CONFTESTS. Move the
+  body of `_install_spawn_fence` / `_make_import_time_fence` / `_resolve_leaves` /
+  `_caller_opted_in` / `_FENCE_MARKER` / `_OWN_PIDS` and the uninstall helper OUT of
+  extensions/agi/tests/conftest.py and INTO suite_guards, keeping the `_FENCE_MARKER`
+  idempotence ... suite_guards exposes ONE install entry point taking a
+  caller-supplied policy (the leaf tuple, the guard flag attr name, the unit-load
+  env var) so the engine conftest keeps its behaviour byte-for-byte.
+  .agi/context/conftest.py then PLAIN-IMPORTS it and calls it at ITS import time.
+  NEVER exec one conftest from another."
+- "RESIDUE 3 -- KILLPG DIVERGENCE. The fixture leaf `_make_guarded_killpg` refuses
+  killpg OUTRIGHT; the import-time fence routes os.killpg through
+  own_pid_signal0_only, i.e. it ALLOWS os.killpg(own pgid, SIGCONT). Two leaves,
+  two rules, on the same call. Make them agree -- adopt the fixture leaf's rule
+  (killpg refused outright) in the import-time fence too."
+
+## What the machine actually does (files, not prose)
+
+```
+BEFORE (two bodies)                        AFTER (one body, two installers)
+suite_guards.py                            suite_guards.py
+  fixtures + kill leaves only                + FENCE_MARKER, resolve_leaves,
+                                              make_import_fence, install_import_fence,
+                                              uninstall_import_fence
+extensions/agi/tests/conftest.py            extensions/agi/tests/conftest.py
+  _install_spawn_fence BODY (98 lines)        - the body (plain import + a 6-line
+  _make_import_time_fence BODY                   policy wrapper; the historical
+  _resolve_leaves BODY                           names re-exported by import)
+  _caller_opted_in BODY
+.agi/context/conftest.py                   .agi/context/conftest.py
+  3 fixtures, NO collection fence           + install_import_fence() at import,
+                                              uninstalled in pytest_unconfigure
+```
+
+- `extensions/agi/bin/suite_guards.py:216` `FENCE_MARKER`, `:225` `resolve_leaves`,
+  `:240` `make_import_fence`, `:277` `install_import_fence`, `:311` `uninstall_import_fence`.
+- `install_import_fence(leaves, guard_flag, own_pids, kills, os_module)` is the ONE
+  entry point; the POLICY (leaf tuple, opt-in flag attribute name, killable pids,
+  which namespace the kill leaves come from) is the caller's.
+- `extensions/agi/tests/conftest.py:650` keeps its name as a thin policy wrapper
+  (`_install_spawn_fence`) over `suite_guards.install_import_fence`, so
+  `test_conftest_guard.py`'s by-path unit loads (`conf._resolve_leaves`,
+  `conf._install_spawn_fence`, `conf._uninstall_spawn_fence`, `conf._FENCE_MARKER`)
+  read the same objects, and `monkeypatch.setattr(conf, "os", stub)` still steers
+  the kill branch (hence the `os_module` argument: the wrapper resolves `os` from
+  THIS module's globals at call time).
+- KILLPG: the kill loop is now `for attr, kill in (("kill", True), ("killpg", False))`
+  (`suite_guards.py:304`) -- `os.kill` keeps the own-pid signal-0 pass-through,
+  `os.killpg` is wrapped with `kill=False` and therefore refused outright, the
+  fixture leaf's rule. ONE call, ONE rule, ONE body.
+
+## Rows (both in extensions/agi/tests/test_declared_suite_guards.py)
+
+| row | what it drives | red-first (what I removed) | result |
+|---|---|---|---|
+| (d) `test_an_opted_in_context_module_that_spawns_at_import_is_refused` | a REAL declared-suite run over a /tmp project shaped like `.agi/context`; the test module does `os.system("true")` at IMPORT with `NO_REAL_PROCESSES = True` | `_IMPORT_FENCE_SAVED = install_import_fence()` -> `None` in CONTEXT_CONFTEST (the conftest's own install removed too) | RED `'\nno tests ran in 0.00s\n'` (a real shell ran at collection, rc 5); GREEN `guard: a NO_REAL_PROCESSES module called os.system at IMPORT time`, refused at collection |
+| (e) `test_an_opted_in_context_module_that_killpgs_at_import_is_refused` | (i) the same real run with `os.killpg(os.getpgid(0), signal.SIGCONT)` at import; (ii) a RECORDER half on a stub leaf driven from an opted-in frame | the kill loop reverted to `(("kill", True), ("killpg", True))`, i.e. the old killpg-through-the-predicate rule | (ii) RED `Failed: DID NOT RAISE AssertionError` -- the old rule passed `killpg(own pgid, 0)` straight through to the real leaf; GREEN refuses and arms nothing |
+
+Note on (e)(i): SIGCONT on a NON-leader process was already refused by the old
+rule (pgid not in own_pids), so that half's red is the missing fence, not the
+divergence. The RECORDER half (ii) is the discriminating red-first, and it uses
+signal 0 on the own pgid so no syscall is ever armed. Measured here: this pytest
+process is not a group leader (`os.getpgid(0) != os.getpid()`), which is exactly
+why the old rule only leaked when the runner WAS a leader -- the leak is real but
+pid-dependent, so a row written from a real signal would have been flaky.
+
+### Commands and results
+
+```
+timeout 900 python3 -m pytest extensions/agi/tests/test_declared_suite_guards.py \
+  extensions/agi/tests/test_conftest_guard.py extensions/agi/tests/test_tier_gate.py \
+  extensions/agi/tests/test_rotate_term_grace.py -q --basetemp /tmp/bt-dh457-17
+  -> 92 passed
+
+timeout 900 python3 -m pytest extensions/agi/tests/test_workflow.py \
+  extensions/agi/tests/test_launch_memory_cap.py -q --basetemp /tmp/bt-dh457-18
+  -> 130 passed
+```
+
+All six briefed files green, 222 tests, each file named individually, every
+--basetemp under /tmp, no bare directory run, no `--nproc`, no claude launched.
+
+## The near miss (the implementation that satisfies the words and loses the mechanism)
+
+- **Importing the fixtures only.** The brief's first sentence -- "the DECLARED
+  suite runs under the engine suite's guards" -- is satisfied by `.agi/context/
+  conftest.py` importing the three fixtures, which is exactly what the file
+  already did and what the previous kid's three conjuncts already prove. The
+  fixtures are FUNCTION-scoped (`no_real_process`) and session-scoped (the lock,
+  the strip): none of them exists while pytest IMPORTS a test module, so a spawn
+  at collection slips past all three. Measured red: the (d) row is green-imported
+  fixtures + `no tests ran` and a real shell at collection. The near miss reads
+  as a finished brief and leaves the collection hole open.
+- **`make_import_fence` shared, killpg still routed through the predicate.** Also
+  words-satisfying (one body, both conftests, kill leaves "guarded"). It keeps two
+  rules for one call, and the leak is pid-dependent (only a group leader slips),
+  so a naive row with a real `killpg` passes today and fails on the next box whose
+  pytest is a session leader. The recorder row is the honest one.
+
+## Deviations from a standing rule, and why this case is exempt
+
+- **`os_module` is an extra policy argument** beyond the three the brief named
+  (leaf tuple, guard flag attr name, unit-load env var). Without it the
+  kill branch reads `suite_guards.os` and `test_conftest_guard.py`'s
+  `monkeypatch.setattr(conf, "os", stub)` row dies -- and that file is outside my
+  file scope, so the seam had to be preserved in production, not by editing the
+  test. The unit-load env var (`AGI_TESTS_CONFTEST_UNIT_LOAD`) stayed in the
+  conftest, which is where the *policy* lives; the body never reads it.
+- **The `suite_guards` sys.path insert** is a literal parent-hop, not a new path
+  cell. (Config/template-max, both questions: no new path is introduced -- the
+  only paths touched are the two conftest files and the bin dir that already has
+  a literal insert; no new value belongs in a template line. Nothing in this
+  round introduces a configurable knob: the fence policy is suite-specific and
+  already spelled by existing cells/attributes.)
+
+## The ceiling (measured, and a re-brief)
+
+`git diff --numstat` over the production paths (test paths excluded):
+
+```
+7   0  .agi/context/conftest.py
+91  2  extensions/agi/bin/suite_guards.py      -> 98 ADDED production lines
+```
+
+That is over the 40-line ceiling and over 2x it, so this node records the
+re-brief: **what remains** -- nothing functional; the claim is built and green.
+**What is needed** -- a ceiling of ~100 ADDED production lines for THIS kind of
+round, because the work is a MOVE: 98 lines left `extensions/agi/tests/conftest.py`
+(a path the metric does not count) and 91 arrived in `suite_guards.py` (a path it
+does). The diff is line-neutral in total (91 added / 98 removed in the conftest),
+but a numstat over production paths can only see the arriving half. I trimmed the
+prose as far as it reads honestly (91 vs the 106 I started at) and stopped rather
+than gzip the code to chase the number, per the brief. If the parent would rather
+I revert the move and keep the two bodies, the whole claim is 1 line of
+`install_import_fence()` in the context conftest and the ONE-body requirement is
+what has to be re-priced.
+
+`production_lines: 98` is written in the frontmatter. `rebrief_request` too.
+
+## Evidence
+
+- `extensions/agi/tests/test_declared_suite_guards.py` rows (d) and (e) -- the
+  real declared-suite runs above, plus the two recorded red-first removals.
+- green: 222 tests over the six briefed files (numbers above).
+- a bug the rows caught in MY OWN move, worth recording: my first `resolve_leaves`
+  rebound `mod` and then called `__import__(mod)` with None, so `pty.spawn` was
+  silently dropped from the fence and
+  `test_conftest_guard.py::test_every_fenced_spawn_leaf_exists_and_fenced` went
+  red with "these fenced leaves do not exist in this interpreter: ['pty.spawn']".
+  A swallowed `except Exception` around `__import__` is how a guard goes quietly
+  dead; that leaf-existence row is the only thing that saw it.
+
+## Agent Notes
+Import-time spawn fence moved to suite_guards as ONE body (install_import_fence with caller policy); .agi/context/conftest.py installs it at its import; killpg now refused outright in BOTH leaves. Two new red-first rows; 222 tests green over the six briefed files. Production diff is 98 ADDED lines (a MOVE from a test path the metric excludes) - rebrief_request recorded.
