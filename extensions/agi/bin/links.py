@@ -89,6 +89,23 @@ class MissingLink(Exception):
         )
 
 
+class MalformedNode(Exception):
+    """A frontmatter key the sanctioned writer could never have written.
+
+    Raised by `resolve` on the single-node path BY NAME (node id + key), so a
+    glued line is refused here instead of riding on as a defaulted `self` link
+    with nothing anywhere saying so (hypothesis:a-node-frontmatter-that-is-
+    not-the-writers-shape-is-refused). The rule is
+    `node_writer.writer_key_shape` — the writer owns it; links asks. NOT a
+    `MissingLink`: damage to the NODE, not a missing payload, so it is never
+    counted as a broken link.
+    """
+
+
+def off_shape_keys(frontmatter: dict) -> list[str]:
+    """Keys of one node's frontmatter that `set` could never have written."""
+    return [str(k) for k in frontmatter if not node_writer.writer_key_shape(k)]
+
 @dataclass(frozen=True)
 class MissingLinkSentinel:
     """What a bulk scan gets instead of content, and instead of an exception.
@@ -164,6 +181,12 @@ def resolve(root, node_id: str, frontmatter: dict, body: str) -> Link:
     and can act on the answer.
     """
     ref, source = link_ref(frontmatter)
+    off = off_shape_keys(frontmatter)
+    if off:
+        raise MalformedNode(
+            f"{node_id}: frontmatter key(s) not in the sanctioned writer's "
+            f"shape (a hand-appended line, not a `set` field): "
+            + ", ".join(k[:60] for k in off))
     if ref == SELF:
         return Link(node_id=node_id, ref=SELF, source=source, path=None,
                     content=body)
@@ -261,8 +284,29 @@ def _iter_corpus(root):
             # already counted there. Skipping it here keeps this metric about
             # links and nothing else.
             continue
+        if off_shape_keys(nf.frontmatter):
+            # A key `set` could never have written resolves as a defaulted
+            # `self` link and reads clean: refuse it, and NAME it below.
+            continue
         node_id = str(nf.frontmatter.get("id") or path.stem)
         yield node_id, nf.frontmatter, nf.body
+
+
+def off_shape_nodes(root) -> list[str]:
+    """`node_id: key` for every corpus node whose frontmatter is off-shape —
+    the name the links read path owes the corpus, even though such a node is
+    excluded from the link metrics (as an unparseable one always was)."""
+    from graph_core.persistence import frontmatter as fm_reader
+
+    out = []
+    for path in sorted((Path(root) / "nodes").rglob("*.md")):
+        try:
+            fm = fm_reader.load_node_file(path).frontmatter
+        except Exception:
+            continue
+        for key in off_shape_keys(fm):
+            out.append(f"{fm.get('id') or path.stem}: {key[:60]}")
+    return out
 
 
 #: The ONE `links` config cell, on a `config` NODE -- `.agi/config.json` is refused by `done`.
@@ -427,6 +471,12 @@ def main(argv: list[str] | None = None) -> int:
         for rel, lineno, old, succ in retired_refs:
             print("  " + cfg["line_template"].format(
                 file=rel, line=lineno, old=old, succ=succ))
+        off = off_shape_nodes(root)
+        if off:
+            print(f"off-shape: {len(off)} frontmatter key(s) refused by name "
+                  f"(not the writer's shape; not link damage)")
+            for name in off:
+                print(f"  MALFORMED {name}")
     for sentinel in live_broken:
         print(f"  BROKEN {sentinel.node_id} -> {sentinel.ref} ({sentinel.path})")
     for sentinel in retired_broken:

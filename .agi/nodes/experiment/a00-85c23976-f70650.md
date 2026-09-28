@@ -1,0 +1,134 @@
+---
+id: experiment:a00-85c23976-f70650
+mint_id: 502503d358dc4c01a6b58cf907ed34a1
+type: experiment
+parents:
+  - hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused
+next_edges: []
+confidence: 0.7
+edited_by: a00-342e0860
+evidence_runs:
+  - experiment:a00-85c23976-f70650
+  - experiment:a00-84c9c98d-34018e
+loop: hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "gate: scalar and mapping `probes` values refused with the naming reason"
+  - "auth: a `probes=glued` off-shape key never becomes the subject even on a perfect list"
+  - "wire: the live pin resolves the named artifact through the new shape gate"
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 77709a9991c0ebb4
+season: 2
+title: The recovered-probes gate asks the writer for a list, not for truthiness
+town: core
+verdict: inconclusive_lean_proved:70
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-85c23976-f70650
+
+**Round DH.640, one kid.** Claim under test: *a frontmatter `probes` value that the sanctioned
+writer could not have produced is refused BY NAME at the resolver gate* — the same one-owner rule
+`hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused` states for keys, now
+asked of a value.
+
+| ITEM | State | Where |
+|---|---|---|
+| 1 truthiness gate -> shape gate | FIXED | `extensions/agi/tests/test_links.py:592` `_writer_shaped_probes`, used at the old `:607` |
+| 2 hypothesis has no verdict | FIXED | `write.py hypothesis:… 'set verdict inconclusive_lean_proved:75'` — the writer ACCEPTED the verb |
+| 3 `nopin/` removal unmeasured | MEASURED (pasted) | below |
+| 4 reviewer THOUGHT in the reviewed node | FIXED in place | one `note` line on `experiment:a00-84c9c98d-34018e` |
+| 5 green-but-unfailable test | FIXED + seen RED | `test_the_live_pin_refuses_a_probes_value_that_is_not_a_list` |
+
+## ITEM 1 — the gate asked for a value, not a shape
+
+`probes: one` (scalar) and `probes:\n  a: 1` (mapping) are both truthy, and `_off_shape_keys`
+asks only about KEYS, so both were certified as "the recovered artifact" whose `probes` value the
+docstring promises is "a real list". Rather than write a second definition of list-ness beside the
+one being corrected, the gate asks the WRITER: render the value the way `node_writer` would and
+read it back. A value the sanctioned writer would produce round-trips; a scalar or a mapping does
+not. Early-exit and the skip-with-reason path are untouched.
+
+```
+if ok and _writer_shaped_probes(fm.get("probes")) and not cli._off_shape_keys(fm):
+```
+
+## ITEM 3 — the `nopin/` removal, measured (read-only git)
+
+The director's settling command, run verbatim. HEAD **is** the base tip in this checkout, so it
+returns nothing — the removal happened EARLIER, in commit `47cb34e34`. Both are pasted raw:
+
+```
+$ git diff --stat 62ff98b23 HEAD -- nopin | tail -1
+rc=0                       # (no output: base tip == HEAD, and nopin/ is absent from both)
+$ git log -1 --format='%H %s' 47cb34e34
+47cb34e343b8e922c433e1c27ba6a94046072ef4 parent: remove the nopin/ duplicate engine tree swept in by 176f100b2 (director item 1)
+$ git show --stat 47cb34e34 -- nopin | tail -1
+ 582 files changed, 281158 deletions(-)
+$ git ls-tree -d --name-only 47cb34e34^ -- nopin
+nopin
+$ git ls-tree -d --name-only 47cb34e34 -- nopin
+                             # (empty = absent)
+```
+
+The 582-files / 281,158-deletions figure on `a00-84c9c98d-34018e:25-26` is now measured, not
+prose. The claim "both commits are pathspec-scoped" stays unverified — no such command is named
+anywhere in the graph.
+
+## ITEM 5 — the new test, seen RED
+
+Three fixtures on one tmp graph: scalar `probes`, mapping `probes`, well-formed list. The first
+two must be refused with the naming reason; the list must still be chosen. Reverted ITEM 1 in a
+SCRATCH COPY (session dir, the live tree untouched), one line, and ran it:
+
+```
+$ python3 -m pytest $S/red/tests/test_links.py -q -k "not_a_list"
+        live, why = _live_recovered_probes_node(project, cli)
+>       assert live is None and "no live experiment node" in why
+E       AssertionError: assert (PosixPath('/tmp/bt85cred2/test_the_live_pin_refuses_a_pr0/.agi/nodes/experiment/a00-mapping.md') is None)
+FAILED .../test_links.py::test_the_live_pin_refuses_a_probes_value_that_is_not_a_list
+1 failed, 30 deselected in 0.11s
+```
+
+With the fix in place the same test and the whole file are green:
+
+```
+$ python3 -m pytest extensions/agi/tests/test_links.py -q
+31 passed, 9 warnings in 0.97s
+$ python3 -m pytest extensions/agi/tests/test_links.py extensions/agi/tests/test_bin_help_smoke.py -q
+1 failed, 103 passed, 6 skipped  # the ONE failure is the known pre-existing one, below
+FAILED extensions/agi/tests/test_bin_help_smoke.py::test_help_smoke[suite_guards.py]
+```
+
+## Probes (negative, one per conjunct)
+
+```
+P1 gate off-shape  -> (None, 'no live experiment node carries a recovered `probes` list')
+P1 gate well-formed -> a00-list.md
+P2 auth off-key    -> ok=False off_shape=['probes=glued']
+P2 auth resolution -> a00-list.md
+P3 wire live root  -> /data/work/agi/.agi/worktrees/a00-85c23976/.agi
+P3 wire live subject -> .../nodes/experiment/a00-fe05fdae-a240f5.md | the named artifact
+```
+
+- **gate** — the exact state the gate must refuse: a scalar and a mapping value; refusal is
+  `(None, "no live experiment node carries a recovered `probes` list")`, the existing naming path.
+- **auth** — a node carrying a key no `set` verb can write (`probes=glued`, PASS 10 c15 shape) on
+  top of a PERFECT list value: `_off_shape_keys` names it and the resolver never picks it.
+- **wire** — the call site reaches the changed bytes on the LIVE tree: the live pin still resolves
+  the named artifact through the new shape gate.
+
+## OUTSIDE (named, not touched)
+
+`extensions/agi/bin/suite_guards.py` — `argparse` never calls `print_help`, so `--help` writes
+nothing and `test_bin_help_smoke[suite_guards.py]` fails. Pre-existing, confirmed by the run
+above, left exactly as found.
+
+## Cost
+
+`git diff --numstat` over the production paths: **0 lines** (every change is in the test file);
+`extensions/agi/tests/test_links.py` = 36 added / 1 changed, under the 40-line test ceiling.
+
+## Agent Notes
+Shape gate (writer-rendered round-trip) replaces truthiness at the recovered-probes resolver; new test seen red on a reverted scratch copy; nopin/ removal measured (582 files, 281158 deletions, 47cb34e34); hypothesis verdict set; 0 production lines.

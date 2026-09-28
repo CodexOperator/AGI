@@ -17,6 +17,7 @@ content and nobody notices for 8,034 fields.
 from __future__ import annotations
 
 import sys
+import json
 from pathlib import Path
 
 import pytest
@@ -26,6 +27,7 @@ SRC = Path(__file__).resolve().parent.parent / "src"
 sys.path.insert(0, str(BIN))
 sys.path.insert(0, str(SRC))
 
+import locations  # noqa: E402
 import node_writer  # noqa: E402
 import links  # noqa: E402
 
@@ -463,3 +465,358 @@ def test_roles_report_marks_unrecorded_without_guessing(project, capsys):
     out = capsys.readouterr().out
     assert "UNRECORDED" in out
     assert "hypothesis:h-unnamed" in out
+
+
+# --------------------------------------------------------------------------
+# The writer's shape, asked of the writer — refused BY NAME on the read path
+# --------------------------------------------------------------------------
+GLUED = 'probes=["wire: (parent a00-a0e8250e, RAN) - one, two'
+
+
+def test_the_writer_owns_the_field_shape():
+    """One definition: `set k=v` is not `set`'s grammar, a structured key is
+    not a bare `key:` line, a plain key is."""
+    assert not node_writer.writer_key_shape('probes=["wire')
+    assert not node_writer.writer_key_shape("FILE SCOPE")
+    assert not node_writer.writer_key_shape("a b")
+    for key in ("id", "type", "parents", "next_edges", "testable_claim",
+                "a00-1556127c-9fb395"):
+        assert node_writer.writer_key_shape(key), key
+
+
+#: ITEM 8: the rule is NOT this tuple, it is node_writer's own definition --
+#: every spelling whose rendered `key: x` line does not read back as a
+#: DIFFERENT string is in shape, which is the whole YAML 1.1 resolver word
+#: set (bool, null, int, float, date) in any case. The tuple below is a
+#: SAMPLE of that set, not its bound: it is generated, so a new case variant
+#: cannot be forgotten the way `nil` was (`nil` is not a YAML 1.1 null word --
+#: it was already in shape before the fix, so listing it was decoration).
+COLLAPSING_KEYS = ("on", "off", "yes", "no", "true", "false", "null", "~",
+                   "On", "NO", "TRUE", "Off", "2024", "1.5", "2024-01-01")
+
+
+def test_a_resolver_collapsed_key_is_the_writers_shape(project):
+    """ITEMS 1/2/8: `set <key> <value>` spells no key character class, so a
+    bare `key: v` line that YAML 1.1 folds to a bool/int/float/date/None key
+    is still a field the writer emits. Measured end to end: each of these
+    used to be refused by the bool-only forgiveness set (`2024`) and `pop`ped
+    by `_ensure_frontmatter` (see the probe output on the node)."""
+    import cli
+    for key in COLLAPSING_KEYS:
+        assert node_writer.writer_key_shape(key), key
+        assert node_writer._render_value(key, "v") == [f"{key}: v"]
+        assert cli._off_shape_keys({key: "v", "id": "x"}) == [], key
+
+
+def test_the_repair_keeps_a_collapsed_key_field_end_to_end(project):
+    """Same family through `_ensure_frontmatter`, the one place the rename
+    bites. `on: yes` comes back as the bool key `True`: the surviving SPELLING
+    is `True` because `render_frontmatter` is handed the re-parsed mapping and
+    never sees the header (ITEM 1 residual, outside scope, cli.py:429-432).
+    Pinned: the field SURVIVES the repair, on a PARSED key, never a substring."""
+    import cli
+    # NO `parents`/`mint_id`: either keeps `_ensure_frontmatter` out of its
+    # re-salvage branch (`frontmatter ok`, nothing rewritten). The manifest
+    # supplies the parent the repair needs.
+    path = _node(project, "experiment:e1",
+                 ['id: "experiment:e1"', "type: experiment", "on: yes",
+                  "notes: keep"], "b\n")
+    ap = project / "agent.json"
+    ap.write_text(json.dumps({"node_id": "experiment:e1", "parent": "hypothesis:h1"}))
+    ok, msg = cli._ensure_frontmatter(project, path, ap, "experiment:e1")
+    assert ok, msg
+    text = path.read_text()
+    ok2, fm2, defect2 = cli._load_frontmatter(text)
+    assert ok2, defect2
+    assert cli._off_shape_keys(fm2) == []
+    assert fm2["parents"] == ["hypothesis:h1"]   # the repair really ran
+    # A KEY on the PARSED mapping: `"on" in text` passes whether or not the
+    # repair ran; `True in text` is a TypeError.
+    assert True in fm2, sorted(map(str, fm2))
+    # ITEM 2: two non-leading keys is the case that used to raise
+    # `TypeError: '<' not supported between 'bool' and 'str'` and kill `done`.
+    assert [l for l in text.splitlines() if l.startswith("notes")] == ["notes: keep"]
+
+
+def test_links_refuses_a_glued_key_by_name(project):
+    """The claim's second conjunct: refused at links, not silently defaulted."""
+    path = _node(project, "hypothesis:h-glued",
+                 ['id: "hypothesis:h-glued"', "type: hypothesis",
+                  "mint_id: abc123", 'title: "t"', 'testable_claim: "c"',
+                  GLUED], "b\n")
+    from graph_core.persistence import frontmatter as fm_reader
+
+    fm = fm_reader.load_node_file(path).frontmatter
+    with pytest.raises(links.MalformedNode) as exc:
+        links.resolve(project, "hypothesis:h-glued", fm, "b\n")
+    assert "hypothesis:h-glued" in str(exc.value)      # node id AND field
+    assert "probes=[" in str(exc.value)
+    assert any("h-glued" in n for n in links.off_shape_nodes(project))
+    assert all(nid != "hypothesis:h-glued" for nid, _fm, _b in
+               links._iter_corpus(project))
+    # ITEM 5: the old `count_broken_links(project) == 0` here was green BECAUSE
+    # it asserted the defect -- the fixture `h-glued` carries no `link_ref` at
+    # all, so the count is structurally blind to the node it was supposedly
+    # checking. Deleted rather than dressed: `all(... not in _iter_corpus)`,
+    # asserted immediately above, is the real measurement.
+
+
+def test_the_gate_and_links_ask_the_same_definition(project):
+    """cli.py no longer restates the shape: one owner, two callers."""
+    import cli
+
+    path = _node(project, "hypothesis:h-glued",
+                 ['id: "hypothesis:h-glued"', "type: hypothesis",
+                  "mint_id: abc123", 'title: "t"', GLUED], "b\n")
+    ok, _fm, defect = cli._load_frontmatter(path.read_text())
+    assert not ok and "probes=[" in defect
+    assert cli._off_shape_keys({"probes": 1, "id": "x"}) == []
+
+
+def test_a_repaired_artifact_loads_clean(project):
+    """ITEM 8 (fixture half): the repaired SHAPE is pinned on a tmp node, so
+    this test does not ride on mutable live bytes -- the property of the
+    repair (a glued `probes` value recovered under its real key) is a
+    property of the code, not of one node's current text."""
+    import cli
+    path = _node(project, "experiment:a00-fe05fdae-a240f5",
+                 ['id: "experiment:a00-fe05fdae-a240f5"', "type: experiment",
+                  "mint_id: abc123", "parents: ['hypothesis:h1']",
+                  'probes:', "  - one", "  - two", "  - three"], "b\n")
+    ok, fm, defect = cli._load_frontmatter(path.read_text())
+    assert ok, defect
+    assert len(fm["probes"]) == 3
+    assert cli._off_shape_keys(fm) == []
+
+
+def _writer_shaped_probes(value) -> bool:
+    """ITEM 1: TRUTHINESS is not a shape. `probes: one` and `probes:\\n  a: 1`
+    are both truthy, and `_off_shape_keys` only asks about KEYS, so both were
+    certified as "the recovered artifact" the docstring promises is a real
+    list. Ask the WRITER rather than restate list-ness: a value the sanctioned
+    writer would render and that reads back unchanged IS a list of its making.
+    """
+    if not isinstance(value, list) or not value:
+        # ITEM 4: `probes: []` IS writer-shaped (it round-trips) and it is
+        # LEGAL -- a goal with no seeds is exactly `seeds: []`, so the LOADER
+        # must not refuse it. The EVIDENCE rule is the consumer's: a recovered
+        # artifact with no probes is not evidence, so this gate asks for a
+        # non-empty list and the `assert fm["probes"]` below can never go red
+        # on a node this function returned.
+        return False
+    import yaml
+    back = yaml.safe_load("".join(l + "\n" for l in node_writer._render_value("probes", value)))
+    return isinstance(back, dict) and back.get("probes") == value
+
+
+def _live_recovered_probes_node(root, cli):
+    """The live pin's SUBJECT, not its address. Retire = move to
+    `.agi/nodes/deprecated/<type>/` and renames are routine, so one hard-coded
+    filename turns a legal graph event red (FileNotFoundError). Prefer the
+    named artifact; else the first live experiment node, in sorted order, whose
+    `probes` value is a real list that loads in shape. Early-exit: measured
+    16ms to the first hit, vs 5.3s to parse all 1962."""
+    named = root / "nodes" / "experiment" / "a00-fe05fdae-a240f5.md"
+    if named.is_file():
+        # ITEM 2: this exit carried NO gate, so a NAMED artifact holding a
+        # scalar `probes:` was returned as the recovered evidence and the pin
+        # passed on it. Both exits now ask the same question; an off-shape
+        # named artifact falls through to the scan instead of being returned.
+        text = named.read_text(errors="replace")
+        ok, fm, _defect = cli._load_frontmatter(text)
+        if ok and _writer_shaped_probes((fm or {}).get("probes")) \
+                and not cli._off_shape_keys(fm):
+            return named, "the named artifact"
+    for path in sorted((root / "nodes" / "experiment").glob("*.md")):
+        text = path.read_text(errors="replace")
+        if "probes" not in text:
+            continue
+        ok, fm, _defect = cli._load_frontmatter(text)
+        if ok and _writer_shaped_probes(fm.get("probes")) and not cli._off_shape_keys(fm):
+            return path, f"first recovered live subject (named artifact retired)"
+    return None, "no live experiment node carries a recovered `probes` list"
+
+
+def test_the_LIVE_repaired_artifact_is_still_in_shape():
+    """ITEM 6: the round DELETED the file's only live pin on
+    `.agi/nodes/experiment/a00-fe05fdae-a240f5.md` -- the exact artifact the
+    parent claim's repair conjunct is about, hand-landed at 5a24ccfbd. With
+    it gone nothing held that repair in place. Restored, and narrow: it
+    reads the LIVE file and asserts only that a real recovered `probes` list
+    still loads clean and in shape. It SKIPS rather than divides when there
+    is no `.agi` to pin -- the one way the old `find_project_root` version
+    died (`TypeError: ... for /: 'NoneType' and 'str'`, reproduced by the
+    parent; fixed by the guard below)."""
+    import cli
+    root = locations.find_project_root(Path(__file__).resolve())
+    if root is None:                      # plugin-only tree: nothing to pin
+        pytest.skip("no .agi above this checkout; the live pin has no subject")
+    live, why = _live_recovered_probes_node(root, cli)
+    if live is None:                      # the subject is gone AND unreplaceable
+        pytest.skip(f"live pin has no subject: {why}")
+    ok, fm, defect = cli._load_frontmatter(live.read_text(errors="replace"))
+    assert ok, defect
+    assert fm["probes"], live
+    assert cli._off_shape_keys(fm) == []
+
+def test_the_live_pin_survives_its_subjects_legal_absence(project):
+    """The death mode the hard-coded address had: retire = MOVE. With the
+    named artifact gone the pin must still find a live recovered subject, and
+    skip with a naming reason when none exists."""
+    import cli
+    _node(project, "experiment:a00-other",
+          ['id: "experiment:a00-other"', "type: experiment",
+           "mint_id: abc123", 'title: "t"', "parents: ['hypothesis:h1']",
+           "probes:", "  - one"], "b\n")
+    live, why = _live_recovered_probes_node(project, cli)
+    assert live is not None and live.name == "a00-other.md", why
+
+    live.unlink()
+    live, why = _live_recovered_probes_node(project, cli)
+    assert live is None and "no live experiment node" in why
+
+
+def test_the_live_pin_refuses_a_probes_value_that_is_not_a_list(project):
+    """ITEM 5: the sibling docstring claims "whose `probes` value is a real
+    list"; the gate asked only for truthiness, so a scalar and a mapping both
+    passed. Red without the ITEM 1 fix (failure pasted on
+    experiment:a00-85c23976-f70650)."""
+    import cli
+    base = ['id: "x"', "type: experiment", "mint_id: abc123", 'title: "t"',
+            "parents: ['hypothesis:h1']"]
+    _node(project, "experiment:a00-scalar",
+          ['id: "experiment:a00-scalar"'] + base[1:] + ["probes: one"], "b\n")
+    _node(project, "experiment:a00-mapping",
+          ['id: "experiment:a00-mapping"'] + base[1:] + ["probes:", "  a: 1"], "b\n")
+    live, why = _live_recovered_probes_node(project, cli)
+    assert live is None and "no live experiment node" in why
+
+    _node(project, "experiment:a00-list",
+          ['id: "experiment:a00-list"'] + base[1:] + ["probes:", "  - one"], "b\n")
+    live, why = _live_recovered_probes_node(project, cli)
+    assert live is not None and live.name == "a00-list.md", why
+
+
+def test_the_named_artifact_exit_asks_the_same_gate_as_the_fallback(project):
+    """ITEM 2: the resolver had TWO exits and only one of them asked. A named
+    artifact whose `probes:` is the scalar `one` was returned as the recovered
+    evidence, and the live pin's `assert fm["probes"]` passed on it. ITEM 4 as
+    well: `probes: []` is writer-shaped but is not evidence, so it is refused
+    here and neither is the named artifact it hides behind."""
+    import cli
+    base = ["type: experiment", "mint_id: abc123", 'title: "t"',
+            "parents: ['hypothesis:h1']"]
+    _node(project, "experiment:a00-fe05fdae-a240f5",
+          ['id: "experiment:a00-fe05fdae-a240f5"'] + base + ["probes: one"], "b\n")
+    _node(project, "experiment:a00-empty",
+          ['id: "experiment:a00-empty"'] + base + ["probes: []"], "b\n")
+    _node(project, "experiment:a00-good",
+          ['id: "experiment:a00-good"'] + base + ["probes:", "  - one"], "b\n")
+    live, why = _live_recovered_probes_node(project, cli)
+    assert live is not None and live.name == "a00-good.md", why
+    ok, fm, defect = cli._load_frontmatter(live.read_text())
+    assert ok and fm["probes"] == ["one"], defect
+
+
+def test_a_declared_container_field_off_the_writers_shape_is_refused_by_name(project):
+    """ITEM 1, the production half: the schema's `fields:` block is where a
+    key's type is written down, and `cli._load_frontmatter` certified a value
+    no `set` produced. Red before the gate, and the defect NAMES the key. A
+    bare `tags:` (the writer renders it as the bare line) and an empty list
+    stay legal: the writer can write both, and only the CONSUMER gets to call
+    an empty field useless."""
+    import cli
+    sdir = project / "context" / "schemas"
+    sdir.mkdir(parents=True)
+    (sdir / "[experiment].md").write_text(
+        "---\nname: experiment\nfields:\n  probes: {type: list}\n"
+        "  tags: {type: list}\nvalidation:\n  required: [id]\n---\n\n# experiment\n")
+    base = ["type: experiment", "mint_id: abc123", 'title: "t"',
+            "parents: ['hypothesis:h1']"]
+    for slug, extra, want_ok in (("off-scalar", ["probes: one"], False),
+                                 ("off-mapping", ["probes:", "  a: 1"], False),
+                                 ("ok-empty", ["probes: []"], True),
+                                 ("ok-bare", ["tags:"], True),
+                                 ("ok-list", ["probes:", "  - one"], True)):
+        p = _node(project, f"experiment:a00-{slug}",
+                  [f'id: "experiment:a00-{slug}"'] + base + extra, "b\n")
+        ok, _fm, defect = cli._load_frontmatter(p.read_text(), project)
+        assert ok is want_ok, (extra, ok, defect)
+        if not ok:
+            assert "probes" in defect and "writer" in defect, defect
+
+
+def _declare(project, kind: str) -> None:
+    # A one-field `[experiment]` schema: `probes: {type: kind}`.
+    sdir = project / "context" / "schemas"
+    sdir.mkdir(parents=True, exist_ok=True)
+    (sdir / "[experiment].md").write_text(
+        f"---\nname: experiment\nfields:\n  probes: {{type: {kind}}}\n---\n\n# experiment\n")
+
+
+def test_an_off_shape_value_is_REFUSED_and_the_file_is_left_alone(project):
+    """ITEM 1, the headline safety property, as a DELETION probe: the refusal
+    branch in `_ensure_frontmatter` (cli.py:463-470) is deletable and the suite
+    stays green. Pinned on the FILE: bytes unchanged, refusal told."""
+    import cli
+    _declare(project, "list")
+    p = _node(project, "experiment:a00-refuse",
+              ['id: "experiment:a00-refuse"', "type: experiment", "mint_id: abc",
+               'title: "t"', "parents: ['hypothesis:h1']", "probes: one"], "b\n")
+    before = p.read_bytes()
+    # NO manifest (`ap=None`): the refusal must not depend on one.
+    ok, msg = cli._ensure_frontmatter(project, p, None, "experiment:a00-refuse")
+    assert not ok and "probes" in msg, msg
+    assert p.read_bytes() == before, "the node was rewritten by a rebuild"
+
+
+def test_the_writer_ROUND_TRIP_is_load_bearing_not_just_the_declared_type(project):
+    """ITEM 2: the round-trip clause `back.get(k) != v` was removable with no
+    test going red -- the "ask the WRITER" half was decoration. A MAPPING whose
+    two keys COLLAPSE (`1`, `"1"`) passes the type gate; the writer cannot
+    spell it -- re-rendered, one key eats the other."""
+    import cli
+    _declare(project, "mapping")
+    p = _node(project, "experiment:a00-collide",
+              ['id: "experiment:a00-collide"', "type: experiment", "mint_id: abc",
+               'title: "t"', "parents: ['hypothesis:h1']", "probes:", "  1: two",
+               '  "1": one'], "b\n")
+    ok, fm, defect = cli._load_frontmatter(p.read_text(), project)
+    assert isinstance(fm.get("probes"), dict), fm        # the type gate PASSES
+    assert not ok and "probes" in defect, defect          # the ROUND TRIP refuses
+
+
+def test_the_declared_type_cache_is_keyed_on_the_ROOT_not_only_the_dir_mtime(tmp_path):
+    """ITEM 3's production change (`cli.py` `_FM_TYPES_CACHE` key
+    `(str(sdir), stamp)`) had NO committed test: the two roots in the probe
+    that found it were tmp dirs, and nothing in the suite ever asks the same
+    process for two roots. `tar` / `cp -a` / `git archive` materialise the same
+    tree twice and the two `context/schemas` dirs share an mtime, so a bare
+    stamp key serves one root's table to the other -- and `_off_shape_values`
+    then returns `[]` for a root that HAS the rule, i.e. fail-open.
+
+    A same-second mtime is not enough to force the collision; the stamp is set
+    in nanoseconds, explicitly, so it cannot drift onto a second boundary.
+    """
+    import os
+    import cli
+    roots = []
+    for name in ("roota", "rootb"):
+        g = tmp_path / name
+        (g / "nodes" / "experiment").mkdir(parents=True)
+        (g / "config.json").write_text("{}")
+        sdir = g / "context" / "schemas"
+        sdir.mkdir(parents=True)
+        # A declares the container field, B declares nothing.
+        fields = "  probes: {type: list}\n" if name == "roota" else ""
+        (sdir / "[experiment].md").write_text(
+            f"---\nname: experiment\nfields:\n{fields}---\n\n# experiment\n")
+        os.utime(sdir, ns=(1790564979920563105, 1790564979920563105))
+        roots.append(g)
+    roota, rootb = roots
+    assert (roota / "context" / "schemas").stat().st_mtime_ns == \
+        (rootb / "context" / "schemas").stat().st_mtime_ns, "the collision is not forced"
+    seen_a = cli._declared_types(roota, "experiment")
+    seen_b = cli._declared_types(rootb, "experiment")
+    assert seen_a.get("probes") is list, seen_a
+    assert "probes" not in seen_b, f"root B was served root A's table: {seen_b}"
