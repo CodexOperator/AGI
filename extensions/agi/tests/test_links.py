@@ -784,3 +784,39 @@ def test_the_writer_ROUND_TRIP_is_load_bearing_not_just_the_declared_type(projec
     ok, fm, defect = cli._load_frontmatter(p.read_text(), project)
     assert isinstance(fm.get("probes"), dict), fm        # the type gate PASSES
     assert not ok and "probes" in defect, defect          # the ROUND TRIP refuses
+
+
+def test_the_declared_type_cache_is_keyed_on_the_ROOT_not_only_the_dir_mtime(tmp_path):
+    """ITEM 3's production change (`cli.py` `_FM_TYPES_CACHE` key
+    `(str(sdir), stamp)`) had NO committed test: the two roots in the probe
+    that found it were tmp dirs, and nothing in the suite ever asks the same
+    process for two roots. `tar` / `cp -a` / `git archive` materialise the same
+    tree twice and the two `context/schemas` dirs share an mtime, so a bare
+    stamp key serves one root's table to the other -- and `_off_shape_values`
+    then returns `[]` for a root that HAS the rule, i.e. fail-open.
+
+    A same-second mtime is not enough to force the collision; the stamp is set
+    in nanoseconds, explicitly, so it cannot drift onto a second boundary.
+    """
+    import os
+    import cli
+    roots = []
+    for name in ("roota", "rootb"):
+        g = tmp_path / name
+        (g / "nodes" / "experiment").mkdir(parents=True)
+        (g / "config.json").write_text("{}")
+        sdir = g / "context" / "schemas"
+        sdir.mkdir(parents=True)
+        # A declares the container field, B declares nothing.
+        fields = "  probes: {type: list}\n" if name == "roota" else ""
+        (sdir / "[experiment].md").write_text(
+            f"---\nname: experiment\nfields:\n{fields}---\n\n# experiment\n")
+        os.utime(sdir, ns=(1790564979920563105, 1790564979920563105))
+        roots.append(g)
+    roota, rootb = roots
+    assert (roota / "context" / "schemas").stat().st_mtime_ns == \
+        (rootb / "context" / "schemas").stat().st_mtime_ns, "the collision is not forced"
+    seen_a = cli._declared_types(roota, "experiment")
+    seen_b = cli._declared_types(rootb, "experiment")
+    assert seen_a.get("probes") is list, seen_a
+    assert "probes" not in seen_b, f"root B was served root A's table: {seen_b}"
