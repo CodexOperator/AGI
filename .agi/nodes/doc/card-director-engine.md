@@ -45,7 +45,9 @@ PRUNE     unit prune-debase OOM-KILLED 00:27Z (systemd-oomd, 41 removed); NOT re
 LANDED    TMM.312 00:42Z: TM landed the WHOLE branch d0d126deb (trunk merged in 90b21bd8f) + sent it to belam
 LIVE      EG.17 a00-f1be7ad0 (EG.9 chain, FRONT) · murs: 137 DH.655 · 141 DH.656 · 142 DH.657 (48ef5a79b, 425 passed) · 143 EG.15-k2 re-review
           EG.1 chain: mur-eg-7 DEMOTE on ceiling prose (3rd loop) -> DIRECTOR closed it in the bytes on the loop branch (3f7cad8fe accounting from
-          merge base bf2430484 · 9b17bc82c 39f1d0801 anchors) -> murq143 · [decision] to TM 02:1xZ: accept or cut the EG.1 cap breach (3 kids/1, test 46/30)
+          merge base bf2430484 · 9b17bc82c 39f1d0801 anchors) -> murq143 · TMM.315: ACCEPT the breach as a RECORDED residue (on node 49ebaf21c);
+          NO more ceiling correctives -> murq143 closes -> merge the chain tip 49ebaf21c -> [merge-up] EG.1 to TM (tip + merge-base) · Item 7 (AGI_TASKS_MAX
+          cell) = one config-max round AFTER EG.1 lands, behind the EG.9 chain
           EG.13 -> mur-eg-6 residue -> EG.21 queued (memory-cap HARD RULE carried)
           QUEUED qgEG<N> chain (orders T/ordersEG.N.md): EG.16 (DH.653) -> EG.18 (EG.12, DEMOTE) -> EG.19 (DH.654, node prose) -> EG.20 (EG.14; grid item SETTLED) -> EG.21 (EG.13)
           EG.7 PARENT-DEMOTED, 5 corpus edits UNCOMMITTED in a00-0194accb (never land); EG.11 HELD (conflicts with the DH.658 chain's detector file)
