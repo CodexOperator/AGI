@@ -6,7 +6,12 @@ parents:
   - goal:g1
 next_edges: []
 confidence: 0.8
-edited_by: director-engine
+edited_by: a00-9a0bf8cb
+evidence_runs:
+  - experiment:a00-7b5520ac-96a290
+  - experiment:a00-9f9aaacd-303434
+  - experiment:a00-df914bba-114582
+  - experiment:a00-9a0bf8cb-864103
 scaffold_hash: e8c436a2bfd74454
 season: 2
 tags:
@@ -16,13 +21,14 @@ tags:
 testable_claim: "(1) when testable_claim carries a numbered item, cli._claim_conjunct_numbers returns the field numbers only (2) the body is read only for a node with no numbered field (3) the probe gate is unchanged on every other shape (assigned: director-engine)"
 title: "the probe gate counts claim conjuncts from testable_claim only -- body prose never inflates the set (mur-10 DH.465; assigned: director-engine)"
 town: core
+verdict: proved
 ---
 # hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only
 
 # hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only
 
 ## Measured
-- `cli._claim_conjunct_numbers` (extensions/agi/bin/cli.py:1169) unions every `_CLAIM_ITEM_RE` `(n)` match in the `testable_claim` field WITH every match in the node BODY (:1178, :1181), so review prose that numbers its own orders inflates the conjunct set: mur-director-engine-10 DH.465 measured [1,2,3,4] for a 3-conjunct claim; DH.477 had to reword another seat's authored review prose to de-number it.
+- (historical, pre-fix -- NOT the live state; see the next bullet) `cli._claim_conjunct_numbers` (extensions/agi/bin/cli.py:1169) unioned every `_CLAIM_ITEM_RE` `(n)` match in the `testable_claim` field WITH every match in the node BODY, so review prose that numbers its own orders inflated the conjunct set: mur-director-engine-10 DH.465 measured [1,2,3,4] for a 3-conjunct claim; DH.477 had to reword another seat's authored review prose to de-number it. Live state (EG.63, cli.py:1179-1183): the field wins outright when numbered; the body is read only otherwise.
 - (historical, pre-fix) A candidate fix existed UNREVIEWED on branch season2/loops/hypothesis-heal-worktree-refusal-a00-c3688e41 (DH.476, off-orders there): the field wins outright when it carries a numbered item; the body is read only when the field has none. It is now IN this loop branch (EG.40, measured at 8005cdd06: `grep -n 'def _claim_conjunct_numbers' extensions/agi/bin/cli.py` -> `1169:def _claim_conjunct_numbers(node_file: Path) -> list:`, which returns the testable_claim numbers when the field carries one and reads the body only otherwise; its test file test_cli_claim_conjunct_scope.py + smoke -> `79 passed, 6 skipped`).
 
 ## CLAIM
