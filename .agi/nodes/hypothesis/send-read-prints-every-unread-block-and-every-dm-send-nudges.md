@@ -108,6 +108,22 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.657 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-send-read-prints-ever-a00-3e020c98 tip 3dd7348c5.
 ROUNDS    this post's rounds on this node: DH.602 DH.637 DH.657; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
+
+## CORRECTIVE DH.657 -- closes mur-director-engine-40 DH.637-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-send-read-prints-ever-a00-3e020c98 tip 3dd7348c5 (branch de-base-657; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. RESIDUE 1 — send.py:1810, the round's new docstring re-asserts the refuted 'kept for ever, pinning that seat to count-only' claim
+2. RESIDUE 2 — a00-ea09e5b6-1db479.md:137 the false 'undecodable bytes forever' sentence survives in an in-scope node body
+3. RESIDUE 3 — a00-143f92b1-0696a2.md:117 diff provenance is false (all 32/7 is this round's own two hunks; cap is not 40; true net is +25)
+4. RESIDUE 4 — send.py:1816 a 0-BYTE sidecar is classified 'unreadable' and kept, pinning the seat to count-only though it strands nothing
+5. MECHANISM the round's stated premise gets half right, and its new test pins the wrong half: 'bodyless but carrying queued dms' (send.py:1819-1821) keeps a shape whose queued bodies NO code path can ever read. The only reader of `others` is _notify_undelivered (send.py:2876), reached solely from wake_all_local's `rec = _read_deferred(root, name)` (send.py:2917 -> :2926), and _read_deferred returns None for a falsy body (send.py:1779) -- so for this shape rec is None and no undelivered notice is ever sent. The next successful typed nudge then _clear_deferred UNLINKS THE WHOLE FILE (send.py:1872-1875 via :2623), destroying the queued bodies rather than delivering them. The docstring's premise '`others` is the only field that carries an undelivered dm' (send.py:1811) is true of the FIELD and false of the delivery: test_bodyless_sidecar_with_queued_dms_is_kept (test_send.py:8024-8038) pins bytes that are guaranteed lost, which is a green test that requires a defect. Not a regression (the pre-fix guard kept this shape too) -- but the honest shape here is the same one the round used for the 0-byte case: keep the BYTES, release the seat.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_send.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/send.py · extensions/agi/tests/test_send.py · .agi/nodes/experiment/a00-143f92b1-0696a2.md · .agi/nodes/experiment/a00-ea09e5b6-1db479.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 3dd7348c5 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.637: mur-director-engine-36 DH.602-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.657: mur-director-engine-40 DH.637-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
