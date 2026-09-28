@@ -34,9 +34,9 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ```
 LANDED    this gen: DH.679 e3e730e3b (TMM.329) · EG.72 96d22cb50 (TMM.330) · EG.88 + EG.90 51eab0b70 (TMM.331) · post e101b854a = trunk 4356ca078 + 0
 SERIES    next EG.121 · murs mur-eg-N (mur-eg-30 = murq209 running) · next murq211
-TMM.331   (TM 11:38Z) PRIORITY: the thought_hygiene DETECTOR chain (EG.14 -> EG.20 -> EG.97) at the FRONT, level with EG.9. DONE: unit qgEG97 (qgEG97f.sh)
-          places EG.97 at the next gate-ok, then holds its name until qgEG96 ends (lane order kept). Cut RE-BASED de-base-EG.97 fa5655bb5 = c32e3c202
-          + trunk 4356ca078; there test_thought_hygiene 31 passed (live corpus, 13 quoting nodes unchanged); orders item 7 = TM's acceptance
+TMM.331   (TM 11:38Z) PRIORITY: the thought_hygiene DETECTOR chain (EG.14 -> EG.20 -> EG.97) at the FRONT, level with EG.9. EG.97 placed + ENDED
+          12:07Z: parent CUT its round (kid wrote node_writer._thought_span +5/-2 + 1 test row vs 0 prod cap; items 3/4/5 unaddressed: the
+          corrective never reached the kid brief). Harvested tip 1d7d660ed (104 passed) -> gmurq211 GATE-HELD = murq211 (substance + breach) -> triage
 TMM.330   OWED after EG.9: sensei_wake_audit TestSLO8WhosPrefix item2 whois-rederive = red on trunk HEAD alone -> ONE g7.33 fix round, pi-free;
           first find the landing that turned it red (git log -S on its asserted string)
 TMM.328   (b) OWED after EG.9: mint ONE goal:g7.33 hypothesis 'a round whose FILE SCOPE names a config cell commits exactly that cell's diff'
