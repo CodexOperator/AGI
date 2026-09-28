@@ -1,0 +1,317 @@
+{
+ "t1": {
+  "slices": {
+   "a": {
+    "off": 10000,
+    "bytes": 9000
+   },
+   "b": {
+    "off": 40000,
+    "bytes": 9000
+   }
+  },
+  "trials": [
+   {
+    "name": "t1r0",
+    "port": 18081,
+    "load_s": 56.5,
+    "lv": 1,
+    "rows": [
+     {
+      "prompt_n": 2061,
+      "prompt_ms": 47831.818,
+      "prompt_per_second": 43.08847303274151,
+      "predicted_n": 8,
+      "cache_n": 0,
+      "size_off": 10000,
+      "size_bytes": 9000,
+      "ms_per_token": 23.208
+     },
+     {
+      "prompt_n": 2132,
+      "prompt_ms": 1402.09,
+      "prompt_per_second": 1520.5871235084767,
+      "predicted_n": 8,
+      "cache_n": 0,
+      "size_off": 40000,
+      "size_bytes": 9000,
+      "ms_per_token": 0.658
+     }
+    ]
+   },
+   {
+    "name": "t1r1",
+    "port": 18082,
+    "load_s": 36.3,
+    "lv": 1,
+    "rows": [
+     {
+      "prompt_n": 2061,
+      "prompt_ms": 45929.525,
+      "prompt_per_second": 44.87309633618027,
+      "predicted_n": 8,
+      "cache_n": 0,
+      "size_off": 10000,
+      "size_bytes": 9000,
+      "ms_per_token": 22.285
+     },
+     {
+      "prompt_n": 2132,
+      "prompt_ms": 1399.01,
+      "prompt_per_second": 1523.9347824533063,
+      "predicted_n": 8,
+      "cache_n": 0,
+      "size_off": 40000,
+      "size_bytes": 9000,
+      "ms_per_token": 0.656
+     }
+    ]
+   },
+   {
+    "name": "t1r2",
+    "port": 18083,
+    "load_s": 38.3,
+    "lv": 1,
+    "rows": [
+     {
+      "prompt_n": 2061,
+      "prompt_ms": 47617.099,
+      "prompt_per_second": 43.282771174279226,
+      "predicted_n": 8,
+      "cache_n": 0,
+      "size_off": 10000,
+      "size_bytes": 9000,
+      "ms_per_token": 23.104
+     },
+     {
+      "prompt_n": 2132,
+      "prompt_ms": 1430.599,
+      "prompt_per_second": 1490.284838728393,
+      "predicted_n": 8,
+      "cache_n": 0,
+      "size_off": 40000,
+      "size_bytes": 9000,
+      "ms_per_token": 0.671
+     }
+    ]
+   }
+  ]
+ },
+ "t2": {
+  "slices": {
+   "w": {
+    "off": null,
+    "bytes": 2
+   },
+   "a": {
+    "off": 10000,
+    "bytes": 9000
+   }
+  },
+  "trials": [
+   {
+    "name": "t2r0",
+    "port": 18084,
+    "load_s": 37.3,
+    "lv": 1,
+    "rows": [
+     {
+      "prompt_n": 13,
+      "prompt_ms": 44677.83,
+      "prompt_per_second": 0.2909720548200304,
+      "predicted_n": 8,
+      "cache_n": 0,
+      "size_off": null,
+      "size_bytes": 2,
+      "ms_per_token": 3436.756
+     },
+     {
+      "prompt_n": 2061,
+      "prompt_ms": 1376.998,
+      "prompt_per_second": 1496.7342000496733,
+      "predicted_n": 8,
+      "cache_n": 0,
+      "size_off": 10000,
+      "size_bytes": 9000,
+      "ms_per_token": 0.668
+     }
+    ]
+   },
+   {
+    "name": "t2r1",
+    "port": 18085,
+    "load_s": 37.3,
+    "lv": 1,
+    "rows": [
+     {
+      "prompt_n": 13,
+      "prompt_ms": 44885.319,
+      "prompt_per_second": 0.2896269936279165,
+      "predicted_n": 8,
+      "cache_n": 0,
+      "size_off": null,
+      "size_bytes": 2,
+      "ms_per_token": 3452.717
+     },
+     {
+      "prompt_n": 2061,
+      "prompt_ms": 1357.017,
+      "prompt_per_second": 1518.7724251059492,
+      "predicted_n": 8,
+      "cache_n": 0,
+      "size_off": 10000,
+      "size_bytes": 9000,
+      "ms_per_token": 0.658
+     }
+    ]
+   },
+   {
+    "name": "t2r2",
+    "port": 18086,
+    "load_s": 37.3,
+    "lv": 1,
+    "rows": [
+     {
+      "prompt_n": 13,
+      "prompt_ms": 46110.253,
+      "prompt_per_second": 0.28193295751380937,
+      "predicted_n": 8,
+      "cache_n": 0,
+      "size_off": null,
+      "size_bytes": 2,
+      "ms_per_token": 3546.943
+     },
+     {
+      "prompt_n": 2061,
+      "prompt_ms": 1373.764,
+      "prompt_per_second": 1500.2576861819061,
+      "predicted_n": 8,
+      "cache_n": 0,
+      "size_off": 10000,
+      "size_bytes": 9000,
+      "ms_per_token": 0.667
+     }
+    ]
+   }
+  ]
+ },
+ "t4": {
+  "name": "t4",
+  "port": 18090,
+  "load_s": 50.4,
+  "lv": 5,
+  "img": "ghcr.io/ggml-org/llama.cpp:full-cuda",
+  "rows": [
+   {
+    "prompt_n": 2061,
+    "prompt_ms": 46752.602,
+    "prompt_per_second": 44.083107930548984,
+    "predicted_n": 8,
+    "cache_n": 0,
+    "size_off": 10000,
+    "size_bytes": 9000,
+    "ms_per_token": 22.684
+   },
+   {
+    "prompt_n": 2132,
+    "prompt_ms": 1439.663,
+    "prompt_per_second": 1480.9021277896286,
+    "predicted_n": 8,
+    "cache_n": 0,
+    "size_off": 40000,
+    "size_bytes": 9000,
+    "ms_per_token": 0.675
+   }
+  ]
+ },
+ "t3": {
+  "trials": [
+   {
+    "name": "t3_s256",
+    "port": 18087,
+    "load_s": 36.3,
+    "lv": 1,
+    "img": "ghcr.io/ggml-org/llama.cpp:full-cuda",
+    "rows": [
+     {
+      "prompt_n": 281,
+      "prompt_ms": 44948.428,
+      "prompt_per_second": 6.251609066283697,
+      "predicted_n": 8,
+      "cache_n": 0,
+      "size_off": 100000,
+      "size_bytes": 1100,
+      "ms_per_token": 159.959
+     }
+    ]
+   },
+   {
+    "name": "t3_a",
+    "port": 18088,
+    "load_s": 55.4,
+    "lv": 1,
+    "img": "ghcr.io/ggml-org/llama.cpp:full-cuda",
+    "rows": [
+     {
+      "prompt_n": 2061,
+      "prompt_ms": 47762.527,
+      "prompt_per_second": 43.15098319651303,
+      "predicted_n": 8,
+      "cache_n": 0,
+      "size_off": 10000,
+      "size_bytes": 9000,
+      "ms_per_token": 23.174
+     }
+    ]
+   },
+   {
+    "name": "t3_s8k",
+    "port": 18089,
+    "load_s": 37.3,
+    "lv": 1,
+    "img": "ghcr.io/ggml-org/llama.cpp:full-cuda",
+    "rows": [
+     {
+      "prompt_n": 7638,
+      "prompt_ms": 49674.786,
+      "prompt_per_second": 153.7600987350001,
+      "predicted_n": 8,
+      "cache_n": 0,
+      "size_off": 200000,
+      "size_bytes": 34000,
+      "ms_per_token": 6.504
+     }
+    ]
+   }
+  ]
+ },
+ "tf": {
+  "name": "tf0",
+  "port": 18091,
+  "load_s": 40.5,
+  "lv": 1,
+  "img": "ghcr.io/ggml-org/llama.cpp:server-cuda",
+  "rows": [
+   {
+    "prompt_n": 13,
+    "prompt_ms": 45576.133,
+    "prompt_per_second": 0.28523701210017094,
+    "predicted_n": 8,
+    "cache_n": 0,
+    "size_off": null,
+    "size_bytes": 2,
+    "ms_per_token": 3505.856
+   },
+   {
+    "prompt_n": 2061,
+    "prompt_ms": 1410.877,
+    "prompt_per_second": 1460.7935348014037,
+    "predicted_n": 8,
+    "cache_n": 0,
+    "size_off": 10000,
+    "size_bytes": 9000,
+    "ms_per_token": 0.685
+   }
+  ]
+ }
+}

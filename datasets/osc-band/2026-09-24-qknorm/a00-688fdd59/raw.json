@@ -1,0 +1,25 @@
+{
+ "meta": {
+  "transformers": "5.17.0",
+  "torch": "2.14.0+cu130",
+  "model": "Qwen3ForCausalLM random weights",
+  "attn_implementation": "eager",
+  "head_dim": 64,
+  "seq_len": 12,
+  "offline": [
+   "1",
+   "1"
+  ],
+  "no_checkpoint": true,
+  "t_s": 0.02
+ },
+ "hook": {
+  "q_untouched": true,
+  "attn_k_is_quant_postrope": true,
+  "quant_changes_output": true
+ },
+ "q_norm_type": "Qwen3RMSNorm",
+ "k_norm_type": "Qwen3RMSNorm",
+ "qwen2_has_qk_norm": false,
+ "structural_ok": true
+}

@@ -196,7 +196,8 @@ def _seat_key_path(root: Path, seat: str) -> Path:
     return _seats_dir(root) / f"{seat}.key"
 
 
-def _signing_key_obj(root: Path, seat: str, key_file: Path) -> dict | None:
+def _signing_key_obj(root: Path, seat: str, key_file: Path,
+                     prefer_authority_deferred: bool = False) -> dict | None:
     """g15.26 (c) -- the signing key dict, with the PENDING-SUCCESSOR
     preference. A `<seat>.key.pending` (persisted by
     rotate._persist_pending_key when a push FAILED after the committed row
@@ -210,7 +211,16 @@ def _signing_key_obj(root: Path, seat: str, key_file: Path) -> dict | None:
     be read, the signer falls back to the live `<seat>.key` and signs EXACTLY
     as before -- a seat with no deferred swap never changes a byte. Returns
     the JSON dict, or None when neither key yields a usable object (the
-    caller then emits an unsigned line, as today)."""
+    caller then emits an unsigned line, as today).
+
+    EF.84 conjunct B: an AUTHORITY-deferred pending (`deferred_for ==
+    "authority"`) is NOT preferred on this match -- the authority never
+    received the successor, so its row still names the predecessor (the live
+    `<seat>.key`), and signing with the pending successor would read
+    FORGED/RETIRED against the authority. The caller that compares the held
+    key to the COMMITTED row (`rotate._caller_hold_key`) passes
+    ``prefer_authority_deferred=True`` to keep that comparison coherent; a
+    push-deferred pending is preferred in BOTH modes, unchanged."""
     import json as _json
     from pathlib import Path as _Path
     _pend = _Path(key_file).parent / f"{_Path(key_file).name}.pending"
@@ -219,9 +229,19 @@ def _signing_key_obj(root: Path, seat: str, key_file: Path) -> dict | None:
             _pobj = _json.loads(_pend.read_text())
         except (ValueError, OSError):
             _pobj = None
+        _authority_deferred = bool(
+            _pobj and _pobj.get("deferred_for") == "authority")
         if _pobj and _pobj.get("pub_hex") and _pobj.get("priv_hex"):
-            _committed = _seats_committed_rows(root)
-            _row = _seat_row_for(root, _committed, seat)
+            if _authority_deferred:
+                if prefer_authority_deferred:
+                    _committed = _seats_committed_rows(root)
+                    _row = _seat_row_for(root, _committed, seat)
+                else:
+                    _row = _row_for_label(
+                        root, _load_rows(root, do_fetch=False), seat)
+            else:
+                _committed = _seats_committed_rows(root)
+                _row = _seat_row_for(root, _committed, seat)
             _row_pub = str((_row or {}).get("pubkey") or "")
             if _row_pub and _row_pub == str(_pobj.get("pub_hex")):
                 return _pobj
@@ -2148,6 +2168,132 @@ def _window_id_listed(tmux_session: str, wid: str) -> bool:
         return False
 
 
+# (3) of hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-
+# refused -- the foreign-row refusal is said ONCE per (row, CAUSE), never on
+# every sweep. Keying on the row ALONE would swallow a genuine CHANGE of cause
+# (a row that becomes addressable, then foreign again, must be named again), so
+# the cause is part of the key and a now-local row FORGETS its own entry below.
+_FOREIGN_REFUSALS: set[tuple[str, str]] = set()
+
+
+#: The DURABLE half of (3): the sweep cron is a NEW PROCESS every tick
+#: (crons.py `nudge_sweep`), so a process-local memo is empty on every tick and
+#: the refusal is re-printed forever. `paths.core.foreign_refusal_memo`,
+#: repo-relative; one `row<TAB>cause` line per naming.
+#: `paths.core.foreign_refusal_memo` in `.agi/config.json` is THE source of
+#: this path (rule 13: paths live in config, never as literals); the literal
+#: below is ONLY the absent-config fallback, so a graph that never got the
+#: cell still gets a working memo.
+_FOREIGN_MEMO_CELL = "foreign_refusal_memo"
+_FOREIGN_MEMO_DEFAULT = ".agi/sessions/foreign_refusals.tsv"
+
+#: Module-level alias so a TEST can interpose on the swap without patching the
+#: process-wide `os` module (`send.os IS os`): a monkeypatched `os.replace`
+#: blocks every other thread in the interpreter for the test's duration.
+_OS_REPLACE = os.replace
+
+
+def _foreign_memo_path(root: Path) -> Path:
+    graph = _graph_root(root)
+    try:
+        cfg = locations.load_config(graph)
+        v = ((cfg.get("paths") or {}).get("core") or {}).get(_FOREIGN_MEMO_CELL)
+    except Exception:  # noqa: BLE001 -- a config problem never blocks a refusal
+        v = None
+    return locations.repo_root(graph) / str(v or _FOREIGN_MEMO_DEFAULT)
+
+
+@contextlib.contextmanager
+def _foreign_memo_lock(path: Path):
+    """Exclusive lock on a LOCK SIBLING, never on the memo itself: the rewrite
+    swaps the memo's INODE, so a lock held on the old one excludes nobody. The
+    read-filter-swap rewrite and the append that can race it take the SAME
+    lock, so a naming that lands inside the window is merged, not discarded --
+    for writers that TAKE the lock (every checkout from 1f19e160c on). An
+    unlocked pre-1f19e160c writer appends to the OLD inode and loses the line."""
+    lock = path.with_name(path.name + ".lock")
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    with lock.open("a+", encoding="utf-8") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(fh, fcntl.LOCK_UN)
+
+
+def _foreign_refusal_said(root: Path, to: str, label: str) -> bool:
+    """True when this (row, cause) has never been NAMED, in THIS process or any
+    earlier one -> say it now, and record it where the next tick will read it."""
+    if (to, label) in _FOREIGN_REFUSALS:
+        return False
+    said = False
+    try:
+        path = _foreign_memo_path(root)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with _foreign_memo_lock(path):   # ONE lock over read AND append, so a
+            # `exists()` guard, not a bare read_text: a missing memo is NOT an
+            # error here -- it is the EMPTY memo, and the append must still run
+            # (a bare read_text raised FileNotFoundError and skipped it).
+            lines = (path.read_text(encoding="utf-8").splitlines()
+                     if path.exists() else [])
+            said = f"{to}\t{label}" in lines
+            if not said:                  # a rewrite in flight cannot lose it
+                with path.open("a", encoding="utf-8") as fh:
+                    fh.write(f"{to}\t{label}\n")
+    except OSError:  # noqa: BLE001 -- an unwritable memo never blocks a refusal
+        pass
+    _FOREIGN_REFUSALS.add((to, label))
+    return not said
+
+
+def _forget_refusals(to: str | None = None, root: Path | None = None) -> None:
+    """Drop the once-only memo for one row (or all of it, when `to` is None).
+    With `root`, the DURABLE memo is rewritten without that row's lines, so a
+    later foreign cause on the same row is named again in a LATER process."""
+    if to is None:
+        _FOREIGN_REFUSALS.clear()
+    else:
+        _FOREIGN_REFUSALS.difference_update({k for k in _FOREIGN_REFUSALS
+                                             if k[0] == to})
+    if to is None or root is None:
+        return
+    try:
+        path = _foreign_memo_path(root)
+        # ATOMIC: a temp SIBLING then os.replace, never a truncating
+        # write_text -- `_foreign_refusal_said` reads this same file, and a
+        # reader landing in a truncate/write window would see a partial memo
+        # and re-name a refusal already named. The read that builds the new
+        # content happens INSIDE the lock, so an append that lands between it
+        # and the swap is merged, never discarded (a discarded naming would be
+        # re-named forever, since the memo no longer holds it) -- fleet-
+        # uniformly, i.e. for lock-taking writers: an UNLOCKED pre-1f19e160c
+        # checkout appends to the old inode and its line is still lost.
+        with _foreign_memo_lock(path):
+            lines = path.read_text(encoding="utf-8").splitlines()
+            keep = [ln for ln in lines
+                    if ln and ln.split("\t", 1)[0] != to]
+            if len(keep) == len([ln for ln in lines if ln]):
+                return
+            tmp = path.with_name(path.name + ".tmp.%d" % os.getpid())
+            swapped = False
+            try:
+                tmp.write_text("\n".join(keep) + ("\n" if keep else ""),
+                               encoding="utf-8")
+                _OS_REPLACE(tmp, path)
+                swapped = True
+            finally:
+                # A temp that never BECAME the target is a stray in
+                # `.agi/sessions` -- remove it. After a successful
+                # os.replace(tmp, path) the tmp ENTRY IS CONSUMED and `tmp`
+                # is still a distinct name from `path`, so the guard is
+                # harmless, not load-bearing (measured: tmp.exists() False
+                # after replace, memo intact).
+                if not swapped:
+                    tmp.unlink(missing_ok=True)
+    except OSError:  # noqa: BLE001 -- an unwritable memo never blocks a sweep
+        pass
+
+
 def _nudge_target(root: Path, to: str, tmux_session: str | None,
                   repair_stale_id: bool = True,
                   ) -> tuple[str, object, str] | None:
@@ -2177,11 +2323,21 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     row = _seat_row_by_name(rows, to)
     if row is not None and not boxes.row_is_local(root, row):
         # A foreign box's row window/pid are NOT addressable here. Refuse by
-        # name, exactly like the stale-@id and name-window refusals below.
-        print(f"nudge: {to} is a FOREIGN box row "
-              f"(box {row.get('box') or '(default)'}); refusing as a target",
-              file=sys.stderr)
+        # name, exactly like the stale-@id and name-window refusals below -- and
+        # say it ONCE per (row, cause): a later sweep that finds the same
+        # refusal silent is a stuck loop, not news. No send-keys is ever issued
+        # into that row's window; the return below is the whole refusal.
+        label = str(row.get("box") or "(unset)")
+        if _foreign_refusal_said(root, to, label):
+            print(f"nudge: {to} is a FOREIGN box row "
+                  f"(box {label}); refusing as a target", file=sys.stderr)
         return None
+    # The row is addressable (or was never refused): forget any old refusal so a
+    # LATER foreign cause on the same row is named again -- the DURABLE memo
+    # too, and in THIS tick's process, which may not be the one that named it.
+    # `root` is a REQUIRED positional parameter of `_nudge_target`, so it is
+    # never None here: the old `elif` arm was unreachable.
+    _forget_refusals(to, root)
     window_ref = (row or {}).get("window")      # e.g. "@267", a NAME, or None
     pid = (row or {}).get("pid")
     if tmux_session is None:
@@ -2796,7 +2952,13 @@ def _notify_undelivered(root: Path, seat: str, rec: dict) -> None:
             continue
         excerpt = (r.get("body") or "").replace("\n", " ")[:80]
         try:
-            send_dm(root, "wake-repair", r.get("sender") or "unknown",
+            # `root` here is the GRAPH root (`_nudge_deferred_path`/
+            # `_comms_config` need it); the dm itself must land in the same
+            # comms root every other send_dm caller uses, or no reader ever
+            # sees it (hypothesis:send-undelivered-notice-lands-in-the-
+            # comms-root).
+            send_dm(comms_root(root), "wake-repair",
+                    r.get("sender") or "unknown",
                     f"[undelivered] {seat} {ts} '{excerpt}' -- pane busy "
                     f"{int(age)} min", sender="wake-repair")
         except SystemExit:
@@ -3058,30 +3220,59 @@ def _seat_row_in(rows: list, from_id: str) -> dict | None:
     return None
 
 
+def _alias_table(root: Path) -> dict:
+    """The ONE `aliases:` table (posts.md frontmatter `old -> new`), LOADED
+    ONCE per caller. Returns the raw dict (old -> new), or {} when the
+    geometry config is absent/unparseable/not a mapping. NEVER prints -- the
+    deprecation notice belongs to the caller that knows whether the token
+    actually matched its reader."""
+    try:
+        path, _key = geometry_config.resolve(root)
+    except Exception:  # noqa: BLE001
+        path = None
+    if path is None or not path.exists():
+        return {}
+    try:
+        nf = _fm.load_node_file(path)
+    except Exception:  # noqa: BLE001
+        return {}
+    al = nf.frontmatter.get("aliases") or {}
+    return al if isinstance(al, dict) else {}
+
+
 def _alias_canon(root: Path, name: str) -> str | None:
     """The ONE `aliases:` table (posts.md frontmatter `old -> new`), the same
     table rotate._find_seat reads, so an old director name resolves through
     it for one season in send.py too (send/read/peek/whois/wake). Returns the
     canonical name and prints `deprecated alias used: old -> new` on stderr
     when `name` is an alias; None when not."""
-    try:
-        path, _key = geometry_config.resolve(root)
-    except Exception:  # noqa: BLE001
-        path = None
-    if path is None or not path.exists():
-        return None
-    try:
-        nf = _fm.load_node_file(path)
-    except Exception:  # noqa: BLE001
-        return None
-    al = nf.frontmatter.get("aliases") or {}
-    if not isinstance(al, dict):
-        return None
-    canon = al.get(name)
+    canon = _alias_table(root).get(name)
     if canon and str(canon) != name:
         print(f"deprecated alias used: {name} -> {canon}", file=sys.stderr)
         return str(canon)
     return None
+
+
+def _dm_names_reader(stem: str, me: str, aliases: dict,
+                     noticed: set | None = None) -> bool:
+    """Whether a dm/room conversation filename names `me`: one of its
+    `--`-separated tokens IS `me`, or is a FORMER name of `me` in the ONE
+    `aliases:` table (old -> new) -- resolved ONCE by the caller and passed
+    in, never re-loaded per token per file. The deprecation notice prints at
+    most once per alias per call (deduped through `noticed`), and ONLY for a
+    token that canonicalises to `me`: an alias of a DIFFERENT post is silent,
+    because it does not select this reader."""
+    for t in stem.split("--"):
+        if t == me:
+            return True
+        canon = aliases.get(t)
+        if canon and str(canon) == me:
+            if noticed is not None and t not in noticed:
+                noticed.add(t)
+                print(f"deprecated alias used: {t} -> {canon}",
+                      file=sys.stderr)
+            return True
+    return False
 
 
 def _seat_row_for(root: Path, rows: list, seat: str) -> dict | None:
@@ -3103,7 +3294,7 @@ def _seat_row_for(root: Path, rows: list, seat: str) -> dict | None:
     return None
 
 
-def _load_rows(root: Path) -> list | None:
+def _load_rows(root: Path, do_fetch: bool = True) -> list | None:
     """The seat rows, through the SAME resolver whois uses: the PUSHED ref
     first, then the working-tree rows as the fallback. Returns None when
     neither yields any rows -- a reader then labels any sig FORGED rather
@@ -3117,7 +3308,7 @@ def _load_rows(root: Path) -> list | None:
     freshly keyed/rotated post's signed dms verify instead of reading
     UNKEYED/FORGED until the hourly push. A pushed row that DOES name a key
     stays authoritative (a stale MAIN key never overrides origin)."""
-    seeded = _pushed_seats(root, _PUSHED_SEATS, True)
+    seeded = _pushed_seats(root, authority_ref(root), do_fetch)
     if seeded is not None:
         rows, _sha, _resolved_ref = seeded
         if rows:
@@ -3851,8 +4042,11 @@ def read_dms(croot: Path, me: str, *, commit: bool = True,
     to-a-post... clauses 1 and 3). Returns the block count shown."""
     n = 0
     d = croot / "dm"
+    root = locations.find_project_root(croot) or croot
+    aliases = _alias_table(root)
+    noticed: set = set()
     for path in (sorted(d.glob("*.md")) if d.is_dir() else []):
-        if me not in path.stem.split("--"):
+        if not _dm_names_reader(path.stem, me, aliases, noticed):
             continue
         blocks = _conv_blocks(path)
         shown = _past(blocks, None, _load_state(path).get(me, 0), me, path,
@@ -3894,7 +4088,13 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     # delivery, the file is the record.
     ok = _nudge_window(locations.find_project_root(croot) or croot, other,
                        sender=_detect_sender(sender), body=text)
-    _announce_nudge(croot, other, ok)
+    # `_announce_nudge` reads the SEATS row and the comms config, both of
+    # which live under the GRAPH root -- the same root `_nudge_window` is
+    # handed one line above. Handing it the raw `croot` (the comms root)
+    # silently dropped the plain `[undelivered-yet]` line whenever the graph
+    # root could not be reached by a rebase (a test fixture, or any layout
+    # without a git common root): the announcement vanished with no error.
+    _announce_nudge(locations.find_project_root(croot) or croot, other, ok)
     return path
 
 
@@ -4072,9 +4272,12 @@ def rooms(croot: Path, me: str) -> list[tuple[str, str, int]]:
 
     dm_dir = croot / "dm"
     if dm_dir.is_dir():
+        root = locations.find_project_root(croot) or croot
+        aliases = _alias_table(root)
+        noticed: set = set()
         for f in sorted(dm_dir.glob("*.md")):
             name = f.stem
-            if me not in name.split("--"):
+            if not _dm_names_reader(name, me, aliases, noticed):
                 continue
             blocks = _conv_blocks(f)
             count = int(_load_state(f).get(me, 0) or 0)
@@ -4305,6 +4508,25 @@ def prime_excluded(croot: Path, round_: str) -> int:
 #: HEAD is the authoritative answer after a fetch — never the local working
 #: tree.
 _PUSHED_SEATS = "origin/" + branches.season_main(2)
+
+
+def authority_ref(root: Path) -> str:
+    """The pushed ref seat keys are verified against -- ONE config cell
+    (config:key-authority, frontmatter `authority_ref`), defaulting to the
+    reviewed root when the node/field is absent. Never raises."""
+    try:
+        from node_writer import find_node_file
+        path = find_node_file(_main_graph_root(root), "config:key-authority")
+        if path is not None:
+            fm = _fm.load_node_file(path, body=False).frontmatter or {}
+            val = fm.get("authority_ref")
+            if isinstance(val, str) and val.strip():
+                return val
+    except Exception:
+        pass
+    return _PUSHED_SEATS
+
+
 #: Candidate paths, posts.md FIRST, tried in order by `_pushed_seats`; the
 #: first that `git show` succeeds on wins.
 _SEATS_REPO_PATHS = (
@@ -4744,7 +4966,7 @@ def _whois_sig_label(root: Path, rows: list | None, session_ref: str,
 
 
 def whois(root: Path, session_ref: str, claim: str | None,
-          source: str = _PUSHED_SEATS, do_fetch: bool = True,
+          source: str | None = None, do_fetch: bool = True,
           sig_line: str | None = None, msg_text: str | None = None,
           target: tuple | None = None):
     """Resolve session_ref against the PUSHED config:seats.
@@ -4770,6 +4992,8 @@ def whois(root: Path, session_ref: str, claim: str | None,
     non-FORGED label returns today's bytes and exit unchanged: Prime ruling A
     keeps the sig label off the exit axis except at this one enforced seam.
     """
+    if source is None:
+        source = authority_ref(root)
     seeded = _pushed_seats(root, source, do_fetch)
     if seeded is None:
         # Pushed authority unreachable. Do NOT silently answer from the working
@@ -5224,7 +5448,7 @@ def main(argv: list[str] | None = None) -> int:
     p_whois.add_argument("--claim", default=None,
                          help="claimed seat name or role; answer whether this "
                               "ref IS that row (impersonation check)")
-    p_whois.add_argument("--source", default=_PUSHED_SEATS,
+    p_whois.add_argument("--source", default=None,
                          help=f"git ref to read seats from (default: pushed "
                               f"{_PUSHED_SEATS})")
     p_whois.add_argument("--no-fetch", dest="no_fetch", action="store_true",

@@ -1224,3 +1224,138 @@ def test_node_dirs_runs_at_rotation_and_full_never_quick(monkeypatch, tmp_path):
     assert "node-dirs" in [r.name for r in full]
     assert "node-dirs" not in [r.name for r in quick]
     assert rot[-1].name == "node-count", "node-count stays the closing check"
+
+
+# --- the DECLARED second suite (hypothesis:context-fixture-tests-run-in-a-
+# configured-suite) ---------------------------------------------------
+
+
+def _write_config(groot, cell_value):
+    (groot / "config.json").write_text(
+        json.dumps({"paths": {"core": {"suite_roots": cell_value}}}))
+
+
+def test_suite_roots_read_the_config_cell_never_a_literal(monkeypatch, tmp_path):
+    groot = tmp_path / ".agi"
+    (groot / "fixtures").mkdir(parents=True)
+    _write_config(groot, [".agi/fixtures"])
+    monkeypatch.setattr(locations, "load_config", lambda root: json.loads(
+        (Path(root) / "config.json").read_text()))
+    roots, cell = verification._declared_suite_roots(groot)
+    assert roots == [(tmp_path / ".agi" / "fixtures").resolve()], roots
+    assert cell == "paths.core.suite_roots"
+
+
+def test_extra_suite_skips_by_cell_name_when_undeclared(monkeypatch, tmp_path):
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    monkeypatch.setattr(locations, "load_config", lambda root: {})
+    r = verification.check_extra_suite(groot)
+    assert r.status == "SKIP", r.status
+    assert "paths.core.suite_roots" in r.note
+
+
+def test_unusable_cell_fails_where_an_absent_cell_skips(monkeypatch, tmp_path):
+    """A DECLARED-UNUSABLE cell is not an absent one: it FAILs and names the
+    value (parent probe C -- a string cell used to read as 'nothing declared')."""
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    for value, kind in (".agi/context", "str"), ([""], "list"), (42, "int"):
+        _write_config(groot, value)
+        monkeypatch.setattr(locations, "load_config", lambda root: json.loads(
+            (Path(root) / "config.json").read_text()))
+        r = verification.check_extra_suite(groot)
+        assert r.status == "FAIL", (kind, r.status, r.note)
+        assert "IS declared but unusable" in r.note, r.note
+        assert "paths.core.suite_roots" in r.note, r.note
+    # and the absent cell still SKIPs -- the two are not the same fact
+    monkeypatch.setattr(locations, "load_config", lambda root: {"paths": {"core": {}}})
+    assert verification.check_extra_suite(groot).status == "SKIP"
+
+
+def test_extra_suite_fails_on_a_collection_error(monkeypatch, tmp_path):
+    groot = tmp_path / ".agi"
+    (groot / "ctx").mkdir(parents=True)
+    (groot / "ctx" / "test_boom.py").write_text("import definitely_not_here\n")
+    _write_config(groot, [".agi/ctx"])
+    monkeypatch.setattr(locations, "load_config", lambda root: json.loads(
+        (Path(root) / "config.json").read_text()))
+    r = verification.check_extra_suite(groot)
+    assert r.status == "FAIL", r.status
+    assert "definitely_not_here" in r.note
+
+
+def test_suite_fail_ids_names_every_id_past_a_ten_line_window():
+    """The unit claim: N>10 failures used to leave only a count in the tail."""
+    out = ("F\n" + "\n".join(f"long traceback line {i} of the failure body"
+                           for i in range(20)) +
+           "\n===== short test summary info =====\n" +
+           "\n".join(f"FAILED tests/test_x.py::test_{i} - AssertionError"
+                     for i in range(15)) +
+           "\n15 failed in 3.2s\n")
+    ids = verification._suite_fail_ids(out)
+    assert ids == [f"tests/test_x.py::test_{i}" for i in range(15)], ids
+    # the old report -- a ten line tail -- names at most one of them
+    assert len("\n".join(out.splitlines()[-10:]).split("FAILED ")) - 1 < len(ids)
+
+
+def test_extra_suite_note_names_each_failing_test_by_node_id(monkeypatch,
+                                                             tmp_path):
+    """Falsifiers 1-2: ONE and THREE forced failures both appear by node id."""
+    groot = tmp_path / ".agi"
+    (groot / "ctx").mkdir(parents=True)
+    body = "".join(f"def test_boom{i}():\n    assert False, 'boom {i}'\n\n"
+                   for i in (1, 2, 3))
+    (groot / "ctx" / "test_forced_fail.py").write_text(body)
+    _write_config(groot, [".agi/ctx"])
+    monkeypatch.setattr(locations, "load_config", lambda root: json.loads(
+        (Path(root) / "config.json").read_text()))
+    r = verification.check_extra_suite(groot)
+    assert r.status == "FAIL", r.status
+    for i in (1, 2, 3):
+        assert f"test_forced_fail.py::test_boom{i}" in r.note, (i, r.note)
+
+
+def test_extra_suite_names_a_module_that_fails_to_import(monkeypatch,
+                                                          tmp_path):
+    """experiment:a00-45ecb18d-d5a017: a COLLECTION error is an `ERROR`
+    short-summary line, which `-rf` alone never asks pytest to print."""
+    groot = tmp_path / ".agi"
+    (groot / "ctx").mkdir(parents=True)
+    (groot / "ctx" / "test_bad_import.py").write_text(
+        "import module_that_does_not_exist\n\n\ndef test_never_runs():\n    pass\n")
+    (groot / "ctx" / "test_fail.py").write_text(
+        "def test_boom():\n    assert False\n")
+    _write_config(groot, [".agi/ctx"])
+    monkeypatch.setattr(locations, "load_config", lambda root: json.loads(
+        (Path(root) / "config.json").read_text()))
+    r = verification.check_extra_suite(groot)
+    assert r.status == "FAIL", (r.status, r.note)
+    assert "test_bad_import.py" in r.note, r.note
+    assert "no FAILED" not in r.note, r.note
+
+
+def test_extra_suite_pass_carries_no_failed_ids(monkeypatch, tmp_path):
+    """Falsifier 3: a PASSING declared suite names no failure."""
+    groot = tmp_path / ".agi"
+    (groot / "ctx").mkdir(parents=True)
+    (groot / "ctx" / "test_good.py").write_text("def test_ok():\n    assert True\n")
+    _write_config(groot, [".agi/ctx"])
+    monkeypatch.setattr(locations, "load_config", lambda root: json.loads(
+        (Path(root) / "config.json").read_text()))
+    r = verification.check_extra_suite(groot)
+    assert r.status == "PASS", (r.status, r.note)
+    assert "FAILED" not in (r.note or ""), r.note
+
+
+def test_extra_suite_runs_at_suite_only(monkeypatch, tmp_path):
+    groot = tmp_path / ".agi"
+    groot.mkdir(parents=True)
+    monkeypatch.setattr(verification, "run_check",
+                        lambda g, n, v: verification.CheckResult(n, "PASS", 0.0, None))
+    monkeypatch.setattr(verification, "check_extra_suite", lambda g:
+                        verification.CheckResult("context-suite", "SKIP", 0.0, None))
+    off = verification.run_level(groot, "quick", suite=False, verbose=False)
+    on = verification.run_level(groot, "rotation", suite=True, verbose=False)
+    assert "context-suite" not in [r.name for r in off]
+    assert "context-suite" in [r.name for r in on]

@@ -1,0 +1,128 @@
+---
+id: experiment:a00-416266d2-e77f31
+mint_id: 971a3aaf045e4ce5bb92cbbbef36e155
+type: experiment
+parents:
+  - hypothesis:heal-worktree-refusal-tests-never-reach-live-tmux-and-dead-branches-go
+next_edges: []
+confidence: 0.6
+edited_by: a00-424772ed
+evidence_runs:
+  - experiment:a00-416266d2-e77f31
+loop: hypothesis:heal-worktree-refusal-tests-never-reach-live-tmux-and-dead-branches-go@s2
+model: stealth/space-bunny-alpha
+production_lines: 6
+profile: balanced
+role: kid
+scaffold_hash: dc5ac1b17eea6da8
+season: 2
+thought_session: iter-DH.459
+title: "Worktree-refusal: (a) tmux seam proven by probe, (c) two rows are real gates, (b) the None-arm deletion REVERSED and the arm restored red-first-gated"
+town: core
+verdict: inconclusive_lean_proved:65
+---
+# experiment:a00-416266d2-e77f31
+
+## What the claim asked, and what ran
+
+| conjunct | action | falsifier run |
+|---|---|---|
+| (a) no committed test reaches LIVE tmux | NEW `test_heal_worktree_tmux_guard.py`: a `tmux` on PATH that appends its argv; the refusal file is run as a SUBPROCESS under it; assert no recorded call names `rotate.DEFAULT_TMUX_SESSION` | negative control (below) fires |
+| (b) the dead `None` branch goes | DELETED `heal.py` `_clean_stale_layout_locks` `if gdir is None: ... return`; a 4-line docstring clause names WHY it cannot arrive (sole caller `_recover_seat` returns at the `:3167` refusal first) — **SUPERSEDED, see the correction below: the arm was RESTORED on DH.449** | — |
+| (c) log-tail guard + stale-lock skip each get a test | 2 rows appended to `test_heal.py` | guard removal → 1 failed |
+
+## Measured before
+
+- Shim probe over `test_heal_worktree_refusal.py`: **5 passed, ZERO recorded tmux
+  invocations** — the reach is latent, not live today; nothing in the file stubs
+  a nudge, so the claim is currently held by accident, not by a seam.
+- `heal.py:3083-3091` (`_clean_stale_layout_locks` `None` branch): single
+  caller at `:3222`, after the refusal return at `:3167-3175` → dead.
+
+## Falsifiers, actually run
+
+```
+# (a) the guard is not vacuous — it FIRES on a live call
+$ python3 -m pytest $S/negctl_guard_test.py -q
+E  AssertionError: reached live: ['send-keys -t agi-rc:0.0 hi']
+1 failed in 0.27s
+
+# (a) the shim records through a nested pytest (proof the PATH shim resolves)
+PATH0= .../shim   which= .../shim/tmux   env= .../neg.log
+$ cat $S/neg.log
+send-keys -t agi-rc:0.0 hi
+
+# (c) delete the log-tail guard's None arm -> the new row fails
+- own = _rotate._sessions_dir(gdir) / f"{seat}.log" if gdir else None
++ own = _rotate._sessions_dir(gdir) / f"{seat}.log"
+1 failed, 19 passed
+
+# (c) ... and with the guard restored
+20 passed
+```
+
+## Suite
+
+```
+$ python3 -m pytest test_heal_worktree_refusal.py test_heal_worktree_tmux_guard.py \
+    test_heal.py test_heal_watch.py test_cli.py test_dispatch.py -q
+309 passed, 57 warnings in 13.62s
+$ git diff --numstat -- extensions/agi/bin/heal.py
+6	6	extensions/agi/bin/heal.py        # 6 production lines, ceiling 40
+```
+
+## What this does NOT settle
+
+- (a) proves the file reaches no tmux **today**. A `send.send` that a future
+  test adds would be caught, but a test that constructs its own PATH (or calls
+  `tmux` by absolute `/usr/bin/tmux`) escapes the shim. The guard is a
+  measurement of the file, not a type-level ban on the seam.
+- (b) SUPERSEDED BY THE CORRECTION BELOW, not deleted: the DH.449 director
+  ruling REVERSED this arm's deletion. The `gdir is None` arm is RESTORED with
+  its one-line log and its docstring clause, so the warning this bullet called
+  insufficient is now backed by code that cannot deref `None` at all. A second
+  caller above the refusal is exactly what the restored arm covers, and
+  test_heal.py::test_stale_lock_clean_never_raises_on_a_pruned_worktree_geometry
+  calls the function DIRECTLY, so a new caller is not what the gate must
+  protect. What genuinely stays open: the docstring asserts the arm is
+  defensive, and nothing type-checks that contract for a future editor.
+
+## CORRECTION — DIRECTOR RULING DH.449 (a00-cc16232f): the (b) deletion is WRONG
+
+- WHAT WAS WRONG: "unreachable BY GEOMETRY" held only for the CURRENT caller
+  (`_recover_seat`'s refusal at `:3167-3175`). `_clean_stale_layout_locks` is
+  module-level, its docstring promises "best-effort, never raises", and
+  `test_heal.py` calls it DIRECTLY — so the promise was false, and a worktree
+  pruned BETWEEN the refusal check and the call left `gdir = None` and the body
+  raised `TypeError: unsupported operand type(s) for /: 'NoneType' and 'str'`.
+- WHAT LANDED (experiment:a00-cc16232f-533562): a red-first row
+  `test_heal.py::test_stale_lock_clean_never_raises_on_a_pruned_worktree_geometry`
+  calls the function with a row whose worktree `.agi` is gone; RED on current
+  bytes with exactly that TypeError. A `gdir is None` arm (one-line log, return)
+  is RESTORED and the docstring now says the arm is DEFENSIVE and why the
+  caller's refusal is a DIFFERENT MOMENT than this read. Deleting the arm again
+  turns the row RED (mutation run). 312 passed across the five named files.
+- THE LESSON THIS NODE OWED ITS READER: "the sole caller refuses first" is a
+  claim about the call GRAPH, not about the function CONTRACT. Deleting a
+  defensive arm needs a gate that calls the function directly, not a docstring
+  clause asserting nobody can.
+
+## Agent Notes
+tmux recording-shim guard test (proven non-vacuous by a negative control), dead None branch in _clean_stale_layout_locks deleted with a why-clause, log-tail guard + stale-lock skip each get a test; 309 passed
+
+PARENT REVIEW DH.427 (a00-7de2b88) — probes run against the DIFF cd21f8ed0..d1d2b9f67, one per conjunct.
+
+probes:
+- wire/(a) guard non-vacuous: my own script drove send._send_keys(rotate.DEFAULT_TMUX_SESSION+":0.0","hello","Enter") under the guard's shim recipe (bare `tmux` argv, PATH shim, AGI_TMUX_SHIM_LOG). SHIM LOG: `send-keys -t agi-rc:0.0 hello Enter` — the shim DOES record a live default-session call, so `assert not live` is not vacuous. HOLD (extensions/agi/tests/test_heal_worktree_tmux_guard.py:31-58).
+- gate/(c1) log-tail guard: replaced heal.py:2926-2928 `own = ... if gdir else None` with an unconditional append; test_heal.py RED (1 failed, 19 passed) — but the failure is a RuntimeError from locations.py (`resolves to the live checkout`), NOT the MAIN-COPY assertion. It gates the crash, not the fallback text.
+- gate/(c2) stale-lock skip: replaced heal.py `if lock.is_file():` with an unconditional `lock.unlink()`; test_heal.py GREEN — 20 passed. FALSIFIER FIRED: the hypothesis's own falsifier "deleting the ... stale-lock skip leaves the suite green" reproduces. `unlink()` on a missing lock raises FileNotFoundError, which the existing `except OSError` swallows, so no log line and no lock is invented either way — the kid's row characterises a no-op that the production guard does not cause.
+
+VERDICT: (a) proved by probe, (b) deletion is correct (sole caller _recover_seat returns at heal.py:3167-3176 before the :3222 call; I read both sites), (c) half-proved. -> inconclusive_lean_disproved:60. The next kid owns the c2 row only.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review replaces the kid's self-assessment. (1) WHAT THE BRIEF SAID: "the log-tail guard + the stale-lock skip each get a test", falsifier "deleting the log-tail guard or the stale-lock skip leaves the suite green". (2) WHAT THE MACHINE DOES: I edited the bytes in my own checkout and ran pytest. Deleting `if lock.is_file():` at heal.py:3090 leaves 20 passed — the row test_stale_lock_skip_leaves_a_clean_sessions_dir_alone does not pin the guard, because the surrounding `except OSError` absorbs the FileNotFoundError an unconditional unlink raises, so both versions produce "no lock removed, no log line". (3) THE NEAR MISS: a test asserting an OBSERVABLE OUTCOME (no lock invented, no log claim) reads as a gate and is not one — a refactor that deletes the guard leaves the observable identical. A real row must make the guard load-bearing, e.g. monkeypatch Path.unlink to fail when called on a lock that does not exist, or assert the warn branch is not taken. (4) No standing rule deviated: I restored heal.py byte-exact (sha256 ac22e1df… before and after) and ran no git write; probes live in my session dir.
+<!-- THOUGHT:END -->
+
+DH.465 (a00-02784673): retitled and re-verdicted. The old title claimed "dead branch deleted"; the node own CORRECTION -- DIRECTOR RULING DH.449 says the (b) deletion was WRONG and the (gdir is None) arm was RESTORED and gated red-first (experiment:a00-cc16232f-533562, re-proved by the DH.459 parent review a00-6fcb56cd). Verdict inconclusively leans PROVED 65, not disproved 60, because the two conjuncts this node still owns are both green under probe: (a) the live-tmux seam was proven non-vacuous by the parent negative control (wire, gate/(a) on the shipped bytes) and was later replaced by slice A in-process recorder; (c) the log-tail row and the stale-lock-skip row each go RED by name under mutation (DH.459 review: MAIN-fallback deletion reds the log-tail row for its OWN reason; the if lock.is_file -> if True mutation reds the skip row). What is NOT proved is (b) as originally shipped, which is why the lean is not 100.
+
+PARENT REVIEW DH.465 (a00-4451c103): this node now says what it shipped. The title no longer reads "dead branch deleted" -- the (b) deletion was REVERSED by the DH.449 ruling in your own CORRECTION section and the `gdir is None` arm is RESTORED -- and the verdict moved from inconclusive_lean_disproved:60 to inconclusive_lean_proved:65. I checked the title against the PRODUCTION bytes, not against the prose: with heal.py:3087-3090 (the whole `if gdir is None` arm) deleted in the shared worktree, test_heal.py::test_stale_lock_clean_never_raises_on_a_pruned_worktree_geometry goes RED by name, TypeError at heal.py:3088, "1 failed, 22 passed"; heal.py was restored byte-exact (sha256 1adfa7c9a195e78b767cb2936b18bee451d07a8cb3c22050567396e09970fa4f). The (a) leg I re-measured in the hypothesis own falsifier terms: a recording tmux PATH shim over test_heal_worktree_refusal.py gives 6 passed with the shim log EMPTY, and `command -v tmux` proves the shim is the one that would be called. Accepted. The residue this node still owes its reader is unchanged and named on the hypothesis: the `if main != own` dedup is un-gateable on the read path, and the --noconftest blindness that slice As in-process gate fixes for ONE file still holds for every other test file in the suite.

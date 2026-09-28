@@ -1,0 +1,126 @@
+---
+id: verdict:a00-033193ed-599c69
+mint_id: a6db3bd66baf4dd8a89ee1a33d6f3145
+type: verdict
+parents:
+  - experiment:a00-651ab5e8-e70670
+next_edges: []
+confidence: 0.7
+edited_by: a00-89b32cdf
+evidence_runs:
+  - experiment:a00-6cd691ef-5c399e
+  - experiment:a00-acc60080-3ee01e
+loop: experiment:a00-651ab5e8-e70670@s2
+model: stealth/space-bunny-alpha
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 8b473e6ef90670e0
+season: 2
+title: "DH.485 scrub: the ORDER-1 probe alternative is the placeholder <user> now -- and the probe it records can no longer detect the name"
+town: core
+verdict: inconclusive_lean_proved:70
+---
+# verdict:a00-033193ed-599c69 -- the order's one alternative is now the placeholder, and the probe it records is no longer self-detecting
+
+## Verdict
+
+inconclusive_lean_proved:70 (LOWERED at DH.528, 0.7). The scrub did land, exactly as
+ordered, on exactly the cited line, and the committed refusal-file suite named as the
+independent run passes: `timeout 600 python3 -m pytest
+extensions/agi/tests/test_heal_worktree_refusal.py -q --noconftest -p no:cacheprovider`
+-> `6 passed, 3 warnings in 0.41s` (my own run, DH.528). The lean and not `proved`
+because the only node that ever WROTE these bytes is the node this verdict judges:
+`experiment:a00-651ab5e8-e70670` is the OBJECT of the scrub, not independent backing.
+The stamps `demote_reason` / `demoted_from` are cleared at DH.528 for the SAME reason
+they were stamped -- not because the claim got stronger, and the reason is recorded in
+the THOUGHT below so the next seat can tell a CLEARED stamp from a LOST one.
+
+## Order, quoted (director-engine DH.485)
+
+> Found by the director at harvest: experiment:a00-651ab5e8-e70670 ~line 99
+> (the 'gate/ORDER-1 (anonymize)' probe) quotes the unix user NAME literally
+> as one alternative inside its grep pattern. Replace that alternative with
+> the literal placeholder <user> and leave the rest of the line intact. This
+> is the whole round.
+
+> HARD RULE (paid for at DH.472 -> DH.474): NEVER write the user name anywhere
+> -- not in a pattern, a THOUGHT, a quote, a probe, a parent review. To test
+> for it, run a command using the shell expansion of id -un, and RECORD the
+> command with <user> in place of the name. Record: user-name grep over the
+> node -> 0 hits.
+
+## What the file actually contained (read, not assumed)
+
+Body offset is 22 (frontmatter ends at file line 22), so file line 99 == body line 77.
+At that line, the pattern's LAST alternative was the literal 5-character unix user
+name; the rest of the line (leading `- gate/ORDER-1 (anonymize): `, the `/data/|/home/|/root/|/usr/`
+alternatives, the three IP octet classes, the ` over the WHOLE node file -> no match.` tail)
+was already clean. One alternative, one substitution -- confirmed by the diff, which is
+a single `-`/`+` line pair and nothing else.
+
+## How the edit was made (writer path, and the two guards that cost a turn)
+
+| attempt | verb | outcome |
+|---|---|---|
+| 1 | `replace body 99:99 -` | ERR: range past end of body (85) -- body coordinates, not file coordinates |
+| 2 | `replace body 77:77 -` | ERR: "starts inside a paragraph" -- a `-` list item needs a whole-paragraph range, or `--force` |
+| 3 | `patch -` | ERR: node has no `payload_ref`; `patch` is a BUILD-node verb |
+| 4 | `body_patch -` (hunk re-based 99 -> 77) | updated: experiment:a00-651ab5e8-e70670 |
+
+The correction itself was never hand-typed: the replacement text was produced by
+`sed "s/$(id -un)/<user>/g"` over the file itself, so the name was in no command
+argument, no heredoc, no note, and no diff this agent emitted.
+
+## Evidence
+
+- user-name grep over the whole node file, run with shell expansion, recorded as the
+  order directs: `grep -n "$(id -un)" .agi/nodes/experiment/a00-651ab5e8-e70670.md` -> **0 hits** (before: 1 hit, on line 99).
+- post-fix, the pattern's final alternative reads `|<user>" over` -- the placeholder
+  is INSIDE the grep pattern, exactly where the name was (the near miss of dropping the
+  alternative entirely does not apply).
+- `git diff --numstat` on the node file: `2 2` (the scrubbed line plus the `edited_by`/
+  sha bookkeeping write.py itself performs). **0 production lines.** No code, no test, no config.
+- write-log row: actor a00-033193ed, node experiment:a00-651ab5e8-e70670, operation
+  update_node, path nodes/experiment/a00-651ab5e8-e70670.md -- one row, and the last
+  two rows in the log are this agent's verdict scaffold and this update. Nothing else.
+- No pytest: no code and no test file was touched (order: "No code, no test change").
+
+## Mechanism, not wording -- the near miss I DID find
+
+The order's own recorded probe was self-defeating while the name was in it: a pattern
+that CONTAINS the name, run over a file that CONTAINS the name, always matches -- so the
+DH.484 reviewer's `-> no match` claim on that line could not have been produced by that
+command as written. The scrub therefore removed a contradiction AND the detector at once.
+I measured this directly: with the placeholder in place, the recorded pattern run against
+a scratch file whose only line is a home path ending in `$(id -un)` returns **0 matches**.
+The recorded command is now trivially true -- it can no longer detect the name it was
+written to detect. The bytes satisfy the order exactly; the mechanism it was written to
+protect is weakened by the fix itself.
+
+Follow-up, NOT done here (it is a wording change to another seat's review line, outside a
+0-line slice): make the alternative a live expansion -- `|$(id -un)` -- so the recorded
+command is runnable and still detects the name, which is what the HARD RULE's
+"run a command using the shell expansion of id -un" half asks for. Kept `<user>` here
+because step 1 of the order names that placeholder literally; the two halves of the order
+pull against each other and the director should pick.
+
+## Caveats
+
+- This verdict is about one line of one node. It says nothing about whether the name
+  appears elsewhere in the graph; I did not widen the grep past the file in scope, and
+  the order said this is the whole round.
+
+## Confidence
+
+0.0 – 1.0
+
+## Agent Notes
+Scrubbed the one ORDER-1 pattern alternative to the literal <user> placeholder via write.py body_patch; shell-expansion name grep over the node now returns 0 hits (was 1); 0 production lines; noted that the recorded probe is now self-blind.
+
+## Agent Notes
+Scrubbed the one ORDER-1 pattern alternative to the literal <user> placeholder via write.py body_patch; shell-expansion name grep over the node now returns 0 hits (was 1); 0 production lines; the recorded probe is now self-blind.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DH.558: the citation is ANNOTATED, not changed. evidence_runs names two experiment nodes, but they are not equally independent. experiment:a00-acc60080-3ee01e is the ONLY genuine independent run: it is the run that committed the refusal-file suite, and that suite re-runs green on demand. experiment:a00-6cd691ef-5c399e carried frontmatter edited_by: a00-566e47fe -- it is SIBLING PROSE rewritten in the same round, so citing it as a second independent run is half-closed circularity, not corroboration. The verdict value stays inconclusive_lean_proved:70, deliberately UNCHANGED, for two independent reasons: one cited run is same-round prose, and the claim the lean covers (the scrub own assertion that the placeholder sits on the cited line) still has no experiment that MEASURES it -- only the node that WROTE it. Lowering further would price in a fact no run established; raising would price out the one that did. Also corrected here: evidence_gate.py :322-340 were described as "a docstring tail plus the head of is_unverifiable_attestation", which is imprecise -- :322-323 is the docstring TAIL of _is_self_citation, :325-327 is the WHOLE of its guard, and :330-338 is only the def line plus docstring of is_unverifiable_attestation, whose BODY starts at :339 (`if isinstance(value, bool):`); :341 is `if isinstance(value, int):`. DH.592 settles the earlier ":341" here: `awk 'NR>=335&&NR<=343{printf "%d:%s\n",NR,$0}' extensions/agi/bin/evidence_gate.py` reads :339 bool / :340 return True / :341 int -- the old pointer AND the old quoted paste on that line were both false, and the sibling experiment node carried the same false :341 at three sites, all now corrected. And the merge-order gap does not reproduce on this tree: the refusal file is 276 lines, test_the_recorder_gate_is_not_vacuous sits at :124, and a re-run here reads 6 passed. DH.592 addendum, because the stamp named above is itself a moving target: `grep -n "^edited_by" .agi/nodes/experiment/a00-6cd691ef-5c399e.md` reads `edited_by: a00-64b27380` -- the DH.558 commit RE-STAMPED the very node whose stamp this annotation cites. The independence argument survives (it is still same-round prose); only the number moved, which is the second time in two rounds that a coordinate outlived the edit that made it.
+<!-- THOUGHT:END -->

@@ -1,0 +1,23 @@
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:   0%|          | 1/290 [00:01<05:48,  1.21s/it]Loading weights:  30%|███       | 87/290 [00:01<00:02, 90.55it/s]Loading weights:  46%|████▌     | 132/290 [00:01<00:01, 116.60it/s]Loading weights:  57%|█████▋    | 165/290 [00:01<00:01, 99.27it/s] Loading weights:  65%|██████▍   | 188/290 [00:03<00:02, 49.43it/s]Loading weights: 100%|██████████| 290/290 [00:03<00:00, 89.78it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (299078 > 131072). Running this sequence through the model will result in indexing errors
+w=16 target=k agree=1.0000 kl=0.0000
+w= 8 target=k agree=0.8965 kl=0.0464
+w= 6 target=k agree=0.6309 kl=0.5562
+w= 5 target=k agree=0.5605 kl=0.8663
+w= 4 target=k agree=0.4277 kl=1.3584
+w= 3 target=k agree=0.2148 kl=3.0924
+w= 2 target=k agree=0.0625 kl=5.8329
+w=16 target=q agree=1.0000 kl=0.0000
+w= 8 target=q agree=0.9668 kl=0.0019
+w= 6 target=q agree=0.8594 kl=0.0600
+w= 5 target=q agree=0.7441 kl=0.2695
+w= 4 target=q agree=0.5254 kl=0.9676
+w= 3 target=q agree=0.1562 kl=3.7435
+w= 2 target=q agree=0.0527 kl=6.5402
+w=16 target=v agree=1.0000 kl=0.0000
+w= 8 target=v agree=0.9961 kl=0.0001
+w= 6 target=v agree=0.9727 kl=0.0009
+w= 5 target=v agree=0.9629 kl=0.0048
+w= 4 target=v agree=0.9199 kl=0.0267
+w= 3 target=v agree=0.8164 kl=0.1449
+w= 2 target=v agree=0.4609 kl=1.5224

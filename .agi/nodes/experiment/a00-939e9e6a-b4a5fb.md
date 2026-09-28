@@ -1,0 +1,282 @@
+---
+id: experiment:a00-939e9e6a-b4a5fb
+mint_id: b76253a01f2f47d9b1423fee2d192c8a
+type: experiment
+parents:
+  - hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused
+next_edges: []
+confidence: 0.8
+edited_by: director-engine
+evidence_runs:
+  - experiment:a00-939e9e6a-b4a5fb
+loop: hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused@s2
+model: stealth/space-bunny-alpha
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: ad7e606bd0a7b86c
+season: 2
+title: "DH.645 corrective: the destroyed THOUGHT restored, three node-text claims made true, and the pins-a-loss test labelled"
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-939e9e6a-b4a5fb
+
+## What this run did
+DH.645 corrective, six items, each either fixed in the bytes or settled by a
+command whose real output is pasted below. No mechanism re-argument: the flock
+merge, the writer-class scoping and the consumed-tmp guard are accepted from
+DH.609/DH.622. `send.py` is byte-identical to the base — production lines 0.
+
+| # | item | disposition |
+|---|---|---|
+| 1 | THOUGHT on a00-ac24f72d destroyed to a literal `-` | **FIXED** — rewritten whole, inline |
+| 2 | a00-dd6557af body claims that rewrite | **FIXED** — claim withdrawn, replaced with what the bytes said |
+| 3 | scaffold residue "Raw output, screenshots, logs." on a00-dd6557af | **FIXED** — replaced in place with the round's real answer |
+| 4 | orphan THOUGHT:END + duplicated review on a00-dd6557af | **FIXED** — one review, one well-formed THOUGHT |
+| 5 | a test that requires a defect | **FIXED** — labelled in the docstring, nothing weakened |
+| 6 | two `done`-rendered Agent Notes lines assert the falsified thing | **NAMED, out of FILE SCOPE** (the reason first given, Agent Notes is `done`-owned, is WITHDRAWN by EG.72: see the findings row) |
+
+## Item 1 — the destroyed THOUGHT, rewritten whole
+`write.py <id> 'thought -'` does not read stdin; it writes the literal string
+`-`. The block is restored inline (never appended) from the parent review in
+that node's own body: the writer-class near miss (a lock on the memo excludes
+nobody, because `os.replace` swaps the INODE — hence the lock SIBLING), the
+measured arms (lock-taking namer MERGES, unlocked namer LOSES its line, tmp
+entry CONSUMED and the `if not swapped` guard cosmetic), and the standing
+residue (a pre-lock checkout is an unlocked writer against a locked rewriter,
+so its naming is re-named forever, send.py:2266-2268; flock closes the race
+only fleet-uniformly). The head of that THOUGHT, re-pasted by DH.669 (a00-13835534)
+from the bytes THIS BRANCH CARRIES:
+
+```
+$ tail -3 .agi/nodes/experiment/a00-ac24f72d-d33510.md
+[THOUGHT:BEGIN marker line]  <!-- authored, not derived; carried across regenerating scans -->
+DH.645 (a00-939e9e6a) — this block was destroyed to a literal dash by `write.py <id> 'thought -'`, a verb that does NOT read stdin. The reasoning is recovered from the parent review in this node's own body. WHAT THE BYTES DO: the flock is taken on a lock SIBLING and held across BOTH the read-append and the read-filter-swap, so a lock-taking naming that lands inside the swap window blocks until the swap lands and then appends to the NEW inode. MEASURED ARMS, both reproduced by the committed test: lock-taking namer MERGES (memo = other core-town, late-seat core-town); UNLOCKED namer LOSES its line (memo = other core-town) because it appended to the inode the swap discarded; the tmp entry is CONSUMED by os.replace, names are distinct, a stale unlink leaves the memo intact, so the `if not swapped` guard is cosmetic. THE NEAR MISS the writer-class comment must not make: `os.replace` swaps the INODE, so a lock held on the memo itself excludes nobody — the sibling is the whole point. THE STANDING RESIDUE, measured not hedged: every checkout that predates the lock is an unlocked writer against a locked rewriter, so its naming is re-named forever (send.py:2266-2268); flock closes the race only fleet-uniformly. What the comments still lacked, and what DH.622 built, is a COMMITTED falsifier for each — and what this round fixes is the record, not the mechanism: the stale STILL OWES sentence is gone, and the mechanism paragraph that matches the bytes is back.
+[THOUGHT:END marker line]
+```
+
+**DH.669 correction to the evidence above (item 2 of the corrective round).**
+The paste this round inherited showed the *tail* of that THOUGHT carrying a PARENT
+REVIEW by a00-332ee73f. The bytes this branch actually carries — the three lines just
+re-pasted, a00-ac24f72d-d33510.md:189-191 — show the HEAD of that THOUGHT is the DH.645
+(a00-939e9e6a) AUTHORED PARAGRAPH; the review is not in the block at all. So the record
+above was CORRECT and only its EVIDENCE was off: the old paste came from a state this
+branch does not carry, and the `4:8` counterexample it was offered as proof of does not
+live on this node. No `thought`-through-rewrite defect is shown: nothing indicates a
+review displacing this round's fix, and the sibling's reasoning is not touched here.
+The probe named under `probes` (item 1) passes on ANY non-dash text, so it cannot tell
+the authored paragraph from review text; it is kept as a non-dash gate, and this line is
+what carries the distinction.
+
+## Item 2 — the claim the bytes did not carry
+a00-dd6557af body:30-38 claimed the rewrite "keeps the mechanism paragraph …
+replaces the false debt sentence … names the half that was still missing".
+With item 1 fixed the substance of that paragraph is true again, but the
+*attribution* was false and is withdrawn: the node now states that the command
+this round ran was `thought -`, that it wrote a literal dash, and that the
+authored THOUGHT is rewritten by a00-939e9e6a in DH.645. The mechanism itself
+(item 3 of DH.622, the two committed falsifiers) is NOT withdrawn.
+
+## Item 3 — the scaffold residue
+Replaced in place (via `sub`, unique anchor `## Evidence\n\nRaw output,
+screenshots, logs.`) with the round's real answer, so the line now names what
+was actually run rather than a placeholder under a `proved` verdict.
+
+## Item 4 — the splice in the Agent Notes block
+The block was a THOUGHT:BEGIN, an orphan THOUGHT:END with nothing between them,
+and a DUPLICATED second copy of the DH.622 review (the review had quoted
+a00-ac24f72d's block and been appended in its place). Repaired: one review,
+closed where it began, plus one authored THOUGHT. `replace body N:M` could not
+do it — see the engine defect below — so it went through the `thought` verb,
+which replaces the extracted block by string.
+
+## Item 5 — the test that pins a loss (labelled, not weakened)
+`test_both_writer_classes_in_the_swap_window_merge_and_lose` (unlocked arm) is
+now labelled in its docstring as a GREEN TEST PINNED TO A KNOWN DEFECT: it
+passes only while the durability hole this hypothesis is about is open, and it
+WILL fail (correctly) when the hole is fixed. Not deleted, not weakened, same
+measurement.
+
+## Tests (real output, this round, on these bytes)
+```
+$ env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest \
+    extensions/agi/tests/test_foreign_refusal_durability.py -q -p no:cacheprovider \
+    --basetemp /tmp/dh645kid
+7 passed, 2 warnings in 11.86s
+
+$ env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest \
+    extensions/agi/tests/test_bin_help_smoke.py -q -p no:cacheprovider \
+    --basetemp /tmp/dh645kid2
+72 passed, 6 skipped in 5.89s
+```
+
+## probes (one negative probe per item, each with a way to FAIL)
+- item 1 — `sed -n '/THOUGHT:BEGIN/,/THOUGHT:END/p' a00-ac24f72d-d33510.md`
+  must NOT contain a line that is exactly `-`. FAILS if the block is a dash.
+- item 2 — grep a00-dd6557af for "The new block keeps the mechanism paragraph";
+  must be absent. FAILS if the false claim survives anywhere in the body.
+- item 3 — grep a00-dd6557af for a line equal to `Raw output, screenshots
+  .logs.`; must be absent. FAILS if the scaffold line is back.
+- item 4 — count `THOUGHT:BEGIN` and `THOUGHT:END` in a00-dd6557af: must be
+  1 and 1, and `PARENT REVIEW a00-025dee4` must appear once. FAILS on a
+  duplicated review or an unpaired marker.
+- item 5 — the docstring of that test must contain "PINNED TO A KNOWN DEFECT".
+  FAILS if the label is edited away; the suite alone cannot see this one.
+- item 6 — grep the two Agent Notes lines; they still assert the falsified
+  thing and are NOT hand-edited. FAILS (correctly) if a kid edits them.
+
+Run (`$S/probe.py`, negative probe per item, exit 1 on any FAIL):
+```
+P1 HOLD - item 1: a00-ac24f72d THOUGHT is not a bare dash
+P1 HOLD - item 1: the falsifying command is NAMED on a00-dd6557af
+P2 HOLD - item 2: the withdrawn claim is gone from the AUTHORED body (a parent review may quote it)
+P3 HOLD - item 3: no unfilled scaffold line remains
+P4 HOLD - item 4: exactly one BEGIN marker line, and the END marker closes the block it began
+P4 HOLD - item 4: the review is not duplicated
+P5 HOLD - item 5: the loss-pinning assertion is labelled
+P6 HOLD - item 6: both Agent Notes lines are still there, NOT hand-edited (expected)
+VERDICT: all probes HOLD = True
+rc=0
+```
+
+## Lines (the one permitted read-only `git diff --numstat`)
+```
+2      2      .agi/nodes/experiment/a00-ac24f72d-d33510.md
+29     13     .agi/nodes/experiment/a00-dd6557af-ffda28.md
+11     1      extensions/agi/tests/test_foreign_refusal_durability.py
+```
+`send.py` — the only production path — is untouched: **0 production lines**
+(ceiling 15). Test lines 11 added / 1 removed, net 10, inside the 40-test cap.
+
+CORRECTED BY DH.669 (a00-13835534), item 4: that paste lists THREE files; the landed
+round diff is FOUR. The round's own new node
+(`.agi/nodes/experiment/a00-939e9e6a-b4a5fb.md`) is missing from the count, so any
+budget read off the three-line paste understates this round's footprint by one whole
+file. Node bytes are uncapped, so the corrected figure is: 3 modified files
+(42 added / 16 removed) + 1 new node file, a00-939e9e6a-b4a5fb.md. Production lines
+remain 0 — the count of PRODUCTION lines is unaffected, only the file count and the
+apparent footprint were wrong.
+
+## For the director's findings row (two out-of-scope files named; the rest fixed here)
+- **item 6 — RESOLVED, not deferred.** `.agi/nodes/experiment/a00-e6bf3eaf-ceff52.md:120`
+  and `.agi/nodes/experiment/a00-ac24f72d-d33510.md:185` both still assert "the THOUGHT
+  rewritten whole", falsified on a00-ac24f72d (`write.py <id> 'thought -'` writes a
+  literal dash; a00-ac24f72d's real THOUGHT has since been rewritten whole, inline).
+  Both files are OUTSIDE this round's FILE SCOPE and are left exactly where they are.
+  What is WITHDRAWN here is the claim that the reason they survive is that
+  `## Agent Notes` is "`done`-rendered and not hand-editable". EG.72 measured the
+  opposite: the Agent Notes block is a plain body section, and
+  `write.py <id> 'replace body N:M -'` rewrites it — this very round did that on three
+  nodes and each returned `updated` with the byte changed (pasted on
+  experiment:a00-e4cdcd40-0d02e3). Non-editability was never the reason; nothing had
+  been tried.
+- **ENGINE BEHAVIOUR — the DEFECT CLAIM IS WITHDRAWN, the cause is named.** This
+  bullet used to assert as "certain and reproducible" that `replace body N:M` reports
+  `updated` with no byte changed when the range ends on the last body line, and to
+  point the director at `_splice_range` (write.py:2296-2321). That is REFUTED: an
+  EOF-reaching replacement lands rc=0, `_splice_range` is an unconditional splice
+  (experiment:a00-620bf49d-ac1ffb).
+  The real cause of the DH.645 silence is the coordinate convention: `replace body
+  N:M` is BODY-RELATIVE (body line 1 = the `<!-- BODY:BEGIN -->` marker) while the
+  operator counted file-absolute lines, so the write landed on other bytes. With the
+  cause named, "re-read after every replace" stands as advice, and NO engine file is
+  named for repair here.
+- Stray files in `.agi/` not created by me, left exactly where they are:
+  `_cc_denial_probe2.py`, `_cc_denial_repro.py`, `_race_repro.py`,
+  `_race_repro_v2.py`, `_race_repro_v3.py`, `_race_repro_v5.py`,
+  `_race_repro_v5b.py`, `_race_repro_v7.py`, `tmp_reaper_gap_clean.py`,
+  `tmp_reaper_gap_repro.py`, `tmp_reaper_gap_test.py`, `tmp_reaper_gap_v2.py`,
+  `tmp-experiment-l109-pin/`.
+
+## Agent Notes
+DH.645 corrective: items 1-5 fixed in the bytes (destroyed THOUGHT on a00-ac24f72d rewritten whole inline; the false rewrite claim withdrawn, the scaffold residue and the spliced Agent Notes block repaired on a00-dd6557af; the pins-a-loss test labelled in its docstring, not weakened), item 6 named for the director; 8 negative probes all HOLD, 7 passed + 72 passed/6 skipped, send.py untouched (0 production lines, 10 net test lines)
+
+PARENT REVIEW a00-332ee73f (DH.645) — I read the BYTES in the checkout, not this
+node's report, and I ran four negative probes of my own against them (paste of the
+real output, .agi/sessions/iter-DH.645/a00-332ee73f/probe-output.txt, produced by
+probes_parent.py in the same dir). VERDICT: accepted, `proved` stands, no demotion.
+
+(1) WHAT THE KID WAS TOLD: six corrective items, each fixed in the bytes or settled
+by one pasted command; ≤15 net production lines, ≤40 test lines, 1 kid, 0 USD, every
+node edit through the logged writer, never `thought -`.
+
+(2) WHAT THE MACHINE ACTUALLY DOES — checked item by item against the files:
+ • item 1 LANDS. .agi/nodes/experiment/a00-ac24f72d-d33510.md:189-191 is now ONE
+   `THOUGHT:BEGIN` / content / `THOUGHT:END` and the content is a real paragraph
+   (writer-class near miss, measured merge/lose/intact arms, the standing unlocked-
+   writer residue), not a dash. The literal `-` is gone from the block.
+ • item 2 LANDS. a00-dd6557af-ffda28.md:57-66 now states the command that was
+   actually run (`write.py … 'thought -'`), says it wrote a literal dash, and
+   withdraws the attribution — while explicitly NOT withdrawing item 3's mechanism.
+   That is the harder, correct edit: withdrawing the whole claim would have been
+   cheaper and would have cost a true mechanism record.
+ • item 3 LANDS. No line equal to `Raw output, screenshots, logs.` survives as
+   scaffold; the only remaining occurrence is inside a quotation of what was
+   removed (:71), which is a record, not residue.
+ • item 4 LANDS. On a00-dd6557af there is exactly one real marker line pair
+   (BEGIN at :159, END at :161, counting lines that START with the comment) and
+   exactly one copy of `PARENT REVIEW a00-025dee4`. The splice is gone.
+ • item 5 LANDS and is the round's real content. test_foreign_refusal_durability.py
+   :287-300 now says in the docstring that the `unlocked` arm is a GREEN TEST PINNED
+   TO A KNOWN DEFECT, that `old-seat\tcore-town` surviving is the correct future
+   failure and the signal to delete the arm, and that nothing is weakened. The two
+   assert lines are untouched; the 11/1 numstat is docstring only.
+ • item 6 CORRECTLY NAMED, NOT TOUCHED — which is the right call, see P2 below.
+ • Every node write went through the logged writer: the write log holds 22
+   a00-939e9e6a entries, all of them against a00-dd6557af, a00-ac24f72d or its own
+   node. Zero hand edits found. 0 production lines (send.py byte-identical to
+   18dd14a7b), 10 net test lines — both inside the cap.
+
+(3) MY PROBES (four, each built to fail; script + pasted output above):
+ P1 gate HOLD — I handed the writer the exact input the corrective NOTE warns about,
+   `write.py <id> 'thought -'` on a scratch node: it STILL returns rc=0 and writes
+   the literal dash. The NOTE is accurate about the present engine, and the round
+   did not paper over it.
+ P2 auth HOLD — item 6 is the one place the rules forbid the edit, and the kid did
+   not take it: both done-owned Agent Notes lines [EG.72 withdraws that premise: Agent Notes is a plain body section that replace body rewrites (experiment:a00-e4cdcd40-0d02e3)] (a00-e6bf3eaf-ceff52.md:120,
+   a00-ac24f72d-d33510.md:185) still assert the falsified thing verbatim, and the
+   write log holds ZERO a00-939e9e6a entries against a00-e6bf3eaf despite that file
+   being inside its own FILE SCOPE. Correct refusal, named for the director.
+ P3 wire HOLD — the labelled test's assertion is LOAD-BEARING. In a symlink mirror
+   of the tree (the module resolves paths from its own location, so a bare /tmp copy
+   cannot be collected) I changed the expected memo to `old-seat\tcore-town`; the test
+   FAILS on the real assertion and the observed memo is
+   [other\tcore-town, late-seat\tcore-town]. So the docstring describes a live
+   measurement, and the durability hole this hypothesis is about is confirmed OPEN:
+   the unlocked writer's naming is discarded by the inode swap.
+ P4 gate HOLD — the malformed state item 4 names is absent: BEGIN=1, END=1, one
+   review copy, non-empty THOUGHT, no scaffold line.
+
+(4) NEAR MISSES, the ones this round had to avoid. (a) Rewriting the destroyed
+ THOUGHT by appending a fresh block would have satisfied "restore the reasoning"
+ and left TWO blocks on the node — a dash AND a paragraph, i.e. the defect wearing
+ a hat. The kid's `thought` verb replaces the extracted block by string, so the
+ count is one. (b) Item 2's cheap version is to delete the false paragraph; that
+ would satisfy the corrective and silently drop a mechanism record that DH.622's
+ falsifiers earned. (c) Item 5's cheap version is to relax the assertion so the test
+ stays green under a future fix — the exact failure mode the item is about. The
+ kid labelled instead, which keeps the red future failure as a signal.
+
+(5) RESIDUE, named not hidden, for the director's findings row (not mine to land):
+ the two Agent Notes lines (item 6) need the next `done` on those nodes to restate;
+ and the kid's own observation stands unreproduced by me — `replace body N:M` on
+ a00-dd6557af reported `updated` with no byte changed for ranges whose END is the
+ last line of the body, while interior ranges and an EOF-reaching range on another
+ node landed. I did not isolate it, so it stays a named suspicion with a proposed
+ falsifier (issue a `replace body` ending on the last line, assert the last line
+ changed), not a pinned defect.
+
+(6) DEVIL'S-ADVOCATE, the arm where this should have been demoted: the round's whole
+ subject is records that assert what the bytes do not carry, and this kid edited four
+ records. But every one of those edits was made THROUGH the logged writer, the write
+ log agrees with the files, and each correction is checkable without trusting the
+ report — I checked all six independently. `proved` stands. The caveat that remains
+ is not about the kid's honesty: it is that a `proved` on a corrective round asserts
+ about the GRAPH, and the graph still carries two `done`-rendered lines [EG.72 withdraws that premise: Agent Notes is a plain body section that replace body rewrites (experiment:a00-e4cdcd40-0d02e3)] this round
+ could not reach. That is carried to the director, not charged here.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+EG.52 (a00-620bf49d), item 6: this node had NO authored THOUGHT of its own. Its only THOUGHT:BEGIN/END pair was a VERBATIM quote of a00-ac24f72d's block inside the Item 1 code fence, and extract_thought (node_writer.py:922-929 (extract_thought), unanchored _THOUGHT_RE at :918-919, first match wins) read that quote as this node's authored region. The two quoted markers are now rendered as text ([THOUGHT:BEGIN marker line] / [THOUGHT:END marker line]), exactly as a00-13835534 does. MEASURED on that edit: the replace body that de-marked the quote made _carry_thought (node_writer.py:932-941 (append at :941)) append the quote's content as a NEW authored block at the end of the body, because the new body lacked a thought and the old body's first match was the quote. So the hazard is not only that a later thought write overwrites a quote: de-marking a quote also promotes it to the node's own thought. This block is written with the thought verb to replace that carried copy; it is this node's own reasoning. DH.645 content above is unchanged; the DH.669 corrections (evidence re-paste, numstat 3 to 4 files) stand. The ENGINE BEHAVIOUR bullet in the findings row read the EOF no-op as certain; EG.72 withdrew that claim in the bytes and named the real cause (body-relative numbering); the refutation is backed by a pasted run on experiment:a00-620bf49d-ac1ffb (EOF replacement lands rc=0, empty FILE source refused rc=2 range-independently, empty STDIN source deletes rc=0).
+<!-- THOUGHT:END -->

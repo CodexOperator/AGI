@@ -47,7 +47,7 @@ def _graph(tmp_path, extra="", row_role="director", row_name="probe-director",
     (graph / "config.json").write_text("{}")
     (graph / "nodes" / ".geometry" / "ladder.md").write_text(
         "---\ndirector_context_tokens: 100000\ndirector_rotate_at: 0.25\n"
-        + extra + "---\n")
+        "capture_chain_log: capture-chain.log\n" + extra + "---\n")
     (graph / "nodes" / ".geometry" / "seats.md").write_text(
         "---\nseats:\n"
         f"  - {{\"name\": \"{row_name}\", \"role\": \"{row_role}\", "
@@ -186,6 +186,31 @@ def test_no_captive_cell_is_off_by_name(tmp_path, capsys, monkeypatch):
     in the ladder the feature is OFF: an over-line director is NOT captured
     (the pre-existing imperative path is byte-identical)."""
     graph, cwd = _graph(tmp_path)
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
+    code, cap = _run(capsys, monkeypatch, graph, cwd, 42_000)
+    assert code == 0, cap.err
+    assert _captures() == [], hook._CAPTURE_LOGGED
+
+
+def test_masters_only_without_ratio_is_off_by_name(tmp_path, capsys, monkeypatch):
+    """EF.22 conjunct 3: `captive_rotate_masters: true` with NO
+    `captive_rotate_ratio` is OFF BY NAME -- not the pre-fix silent 0.85
+    literal. f=0.42 >= 0.85*0.4 = 0.34, so the 0.85 fallback fired (RED-FIRST).
+    """
+    graph, cwd = _graph(tmp_path, extra="captive_rotate_masters: true\n")
+    monkeypatch.setenv("AGI_SEAT", "probe-director")
+    monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
+    code, cap = _run(capsys, monkeypatch, graph, cwd, 42_000)
+    assert code == 0, cap.err
+    assert _captures() == [], hook._CAPTURE_LOGGED
+
+
+def test_unparseable_ratio_is_off_by_name(tmp_path, capsys, monkeypatch):
+    """EF.22 conjunct 3: an UNPARSEABLE `captive_rotate_ratio` is OFF BY NAME
+    -- not the pre-fix silent 0.85 literal (RED-FIRST)."""
+    graph, cwd = _graph(tmp_path,
+                        extra="captive_rotate_ratio: not-a-number\n")
     monkeypatch.setenv("AGI_SEAT", "probe-director")
     monkeypatch.setenv("AGI_HOOK_NO_SPAWN", "1")
     code, cap = _run(capsys, monkeypatch, graph, cwd, 42_000)

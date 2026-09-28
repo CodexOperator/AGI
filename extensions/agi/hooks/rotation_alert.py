@@ -44,7 +44,7 @@
 #
 #    "UserPromptSubmit": [ { "hooks": [
 #        { "type": "command",
-#          "command": "python3 /home/ubuntu/work/agi/extensions/agi/hooks/rotation_alert.py",
+#          "command": "python3 <this box's engine root>/extensions/agi/hooks/rotation_alert.py",
 #          "timeout": 10,
 #          "statusMessage": "agi rotation meter..." } ] } ]
 #
@@ -68,6 +68,8 @@ from pathlib import Path
 #: ZERO rows — the seat lookup that gates the captive auto-rotate (and the
 #: seat's own rotate_at) would be production-dead. rotate.py inserts the same.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+from prose_templates import render
 
 # The sash the hook is told to hand back when it fires. This is the ONE
 # high-signal quantity: the operator copies it and the next command is whole.
@@ -287,15 +289,14 @@ def _seat_line(root: Path, cwd: str, ladder_default: float):
     return seat, ladder_default, "ladder.director_rotate_at"
 
 
-#: Headline used at and above the rotation line (fires every call).
-AT_OR_OVER_TITLE = "## ⚠️  ROTATION OWED NOW — at or over the line"
-
-IMPERATIVE = ("ROTATE NOW: (a) write the card wholesale now, (b) run python3 "
-              "extensions/agi/bin/rotate.py rotate; nothing else this turn")
+#: Model-facing rotation prose is rendered from templates; wording is unchanged.
+AT_OR_OVER_TITLE = render("rotation_alert", "at_or_over_title")
+IMPERATIVE = render("rotation_alert", "imperative")
 AUTO_CAPTURED = "AUTO-CAPTURED"
 _CAPTURE_LOGGED: list[list[str]] = []
+DEFER_PREFIX = render("rotation_alert", "defer_prefix")
 #: Headline used while below the line but crossing a band (fires once per band).
-BENEATH_TITLE = "## ⚠️  approaching rotation"
+BENEATH_TITLE = render("rotation_alert", "beneath_title")
 
 #: Bands are fractions of the rotation threshold, in rising order. Below the
 #: line we emit at most ONCE per band; crossing the NEXT band emits again.
@@ -332,7 +333,7 @@ def _canonical_pin(root: Path, seat: str) -> Path | None:
     `rotate._sessions_dir` routes them to the MAIN checkout via
     `locations.git_common_root`, while a seat's root is its own worktree. On
     this box that is the difference between
-    `/home/ubuntu/work/agi/.agi/sessions/` (where every reader looks) and
+    the MAIN checkout's `.agi/sessions/` (where every reader looks) and
     `…/.agi/worktrees/seat-<name>/.agi/sessions/` (where nothing does), so a
     naive join emits a command that writes a pin no later `--seat` read will
     ever find.
@@ -467,10 +468,6 @@ ROTATE_SELF = (
     "python3 {bin}/rotate.py rotate-self --name {seat} --role director "
     "--timeout 900 --force --stops {stops!r}"
 )
-
-#: The exact deferral headline the claim makes load-bearing wherever it prints.
-DEFER_PREFIX = "rotation deferred: merge-up in flight"
-
 
 def _git_maybe(cwd, *args: str) -> list[str] | None:
     """git in `cwd`, stdout lines, or None on ANY failure (not a repo, a
@@ -786,56 +783,216 @@ def _stops_line(root: Path, seat: str) -> str:
 
 
 def _maybe_force_capture(root: Path, seat: str, card: Path, fraction: float,
-                         minutes: int, state_dir: Path | None) -> tuple[bool, str | None]:
+                         minutes: int, state_dir: Path | None,
+                         session_id: str = "") -> tuple[bool, str | None]:
     """The FORCE decision, shared by the over-line gate and the below-line
     `rotate now` path: card STILL stale `minutes` after the first fire ->
-    capture. `(handled, which)`; not handled = stamp absent/young (P7)."""
+    capture. `(handled, which)`; not handled = stamp absent/young (P7).
+
+    EF.22: a stamp NAMING another session reads as ABSENT (legacy/none stands)."""
     p = (state_dir or Path(f"/tmp/agi-rotation-{os.getuid()}")) / f"capture-{seat}.json"
+    first = 0
+    stamp_session = ""
     try:
-        first = int(json.loads(p.read_text()).get("first", 0))
+        blob = json.loads(p.read_text())
+        first = int(blob.get("first", 0))
+        stamp_session = str(blob.get("session") or "")
     except Exception:   # pylint: disable=broad-except
         first = 0
+        stamp_session = ""
+    if session_id and stamp_session and stamp_session != session_id:
+        return False, None
     if not (first and minutes and (time.time() - first) >= minutes * 60):
         return False, None
     try:
         which = _force_capture(root, seat, card, fraction, minutes,
-                               state_dir or p.parent)
+                               state_dir or p.parent, session_id=session_id)
     except OSError:
         which = "capture-failed"
     return True, (None if which == "captured" else which)
 
 
+#: The bash the ONE capture-chain child runs. handoff and rotate-self are
+#: SEQUENTIAL, not `&&`-chained: a REFUSING driven handoff (the 100-line
+#: composed-card guard) must not SKIP the rotation — the pre-fix `&&` did
+#: exactly that while the stamp had already latched `captured`, so a refusal
+#: idled the seat for hours with nothing but the /tmp log (TMM.223). Each
+#: step's rc is CHECKED; a non-zero one appends `<step> rc=<n>` to the failure
+#: marker `_chain_failure_note` prints to the seat on its next check. Argvs
+#: are positional ($1 = marker, $2 = handoff length, $3.. = the two argvs), so
+#: nothing is shell-interpolated; P7 holds (the child waits, not the hook).
+_CHAIN_SCRIPT = (
+    'f=$1; n=$2; shift 2; a=("$@");'
+    ' "${a[@]:0:$n}"; c=$?;'
+    ' [ "$c" -eq 0 ] || printf "handoff rc=%s\\n" "$c" >>"$f";'
+    ' "${a[@]:$n}"; c=$?;'
+    ' [ "$c" -eq 0 ] || printf "rotate-self rc=%s\\n" "$c" >>"$f"'
+)
+
+
+def _spawn_capture_chain(fail: Path, chain_log, handoff_argv: list[str],
+                         rotate_argv: list[str]):
+    """ONE background child: handoff THEN rotate-self, never blocking the hook."""
+    return _Popen(["bash", "-c", _CHAIN_SCRIPT, "bash", str(fail),
+                   str(len(handoff_argv)), *handoff_argv, *rotate_argv],
+                  stdout=chain_log, stderr=chain_log,
+                  stdin=subprocess.DEVNULL, start_new_session=True)
+
+
+def _chain_failure_note(state_dir: Path, seat: str) -> list[str]:
+    """The lines a FAILED capture-chain step left the seat. The chain appends
+    `<step> rc=<n>` to a marker in the state dir; the hook's NEXT check prints
+    one line each and CLEARS the marker, so the failure is named to the seat
+    exactly once and never only in the /tmp log."""
+    p = state_dir / f"capture-{seat or 'noseat'}.failed"
+    try:
+        lines = [ln for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
+        p.unlink()
+    except OSError:
+        return []
+    return lines
+
+
+def _fenced_payload(rotate, body: str, sub: int) -> str:
+    """The EXACT text a slot write would REPLACE: inside the first fence at/after
+    the slot subheader, else the slot body — `rotate._replace_stops_body`'s own
+    rule, so appending here keeps every other byte."""
+    lines = body.splitlines()
+    start = 0 if sub < 0 else sub + 1
+    for i in range(start, len(lines)):
+        opener = rotate._fence_run(lines[i])
+        if opener < 3:
+            continue
+        for j in range(i + 1, len(lines)):
+            if rotate._fence_run(lines[j]) >= opener:
+                return "\n".join(lines[i + 1:j])
+        return "\n".join(lines[i + 1:])
+    return "\n".join(lines[start:])
+
+
+def _blind_warning(seat: str) -> str:
+    """The warning a BLIND capture prints, fail-SOFT down to a bare line:
+    `render` is fail-HARD (missing file or unmatched `{field}` RAISES), and a
+    warning that raises out of `_capture_stops` -> `_force_capture` -> the
+    every-prompt hook turns a degrade into a crash."""
+    try:
+        return render("rotation_alert", "capture_slot_blind", seat=seat)
+    except Exception:  # noqa: BLE001 (the warning is never what raises)
+        return f"rotation: warning: {seat} unreadable — capture carries NO owed list"
+
+
+def _capture_stops(card: Path, line: str) -> str:
+    """The `s3` a CAPTIVE capture hands the driven handoff: the card's OWN
+    where-it-stops payload with the capture line APPENDED, never replacing it (a
+    bare line DESTROYED the successor's owed list; rotate.py is out of scope, so
+    the capture hands it a payload carrying what it overwrites). rotate's own
+    locator finds the slot; an unreadable card degrades to the bare line --
+    SAYING SO on stdout, never a silent `pass`: this payload is the rotate-self
+    --stops text too, and a writer handed a payload with no owed list replaces
+    the whole fenced slot with the bare line."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import rotate  # noqa: PLC0415 — lazy, engine-optional (P7).
+        sections = rotate._split_card_sections(
+            card.read_text(encoding="utf-8"))[1]
+        loc = rotate._locate_where_it_stops(sections)
+        # A NON-tuple `loc` is NOT a degradation: the card carries NO
+        # where-it-stops slot, so nothing is owed and the bare line loses none.
+        if isinstance(loc, tuple):
+            keep = _fenced_payload(rotate, sections[loc[0]][1], loc[1])
+            if keep:
+                return f"{keep}\n{line}"
+    except Exception:  # noqa: BLE001 (P7: an unreadable card keeps the line)
+        print(_blind_warning(card.name))
+    return line
+
+
 def _force_capture(root: Path, seat: str, card: Path, fraction: float,
-                   minutes: int, state_dir: Path, line: str | None = None) -> str:
+                   minutes: int, state_dir: Path, line: str | None = None,
+                   session_id: str = "") -> str:
     """Capture the final card N min after the imperative first fired (driven
     §0 writer + AUTO-CAPTURED header + rotate-self --force); NO_SPAWN records.
-    `line` overrides the stops reason — the CAPTIVE path names its own ratio."""
+    `line` overrides the stops reason — the CAPTIVE path names its own ratio.
+
+    The latch is keyed by the SESSION that captured (EF.22's rule applied to
+    the `captured` stamp): a stamp naming a DIFFERENT session — or naming none
+    at all, a legacy stamp — reads as ABSENT, so a successor of a captured
+    seat is never latched from birth. Only the session that captured, or a
+    caller that names no session at all (once per seating), sees the latch."""
     if line is None:
         line = f"auto-captured at f={fraction:.4f} after {minutes} min without a self-rotate"
+    stamp = state_dir / f"capture-{seat}.json"
+    try:
+        blob = json.loads(stamp.read_text())
+    except (OSError, ValueError):
+        blob = {}
+    stamp_session = str(blob.get("session") or "")
+    if blob.get("captured") and (not session_id or stamp_session == session_id):
+        return "capture-latched"      # once per SESSION (P7, never twice)
+    # The chain's log NAME is a ladder config cell, never a literal joined on
+    # here (config-max). Absent is fail-closed, NOT a silent default: a capture
+    # whose output would land in an UNDECLARED file is the defect this cell was
+    # minted for (verdict:a00-606bcf68-e43240 "Gap carried forward").
+    log_name = str(_load_ladder(root).get("capture_chain_log") or "")
+    if not log_name or "/" in log_name:
+        print("rotation-alert: fail-closed: ladder declares no "
+              f"`capture_chain_log` file name (got {log_name!r}); refusing to "
+              "capture rather than write the chain output to an unnamed file")
+        return "capture-no-log"
+    # ONE payload, TWO writers: the chain is handoff THEN rotate-self, and
+    # `rotate._write_stops_section` REPLACES the slot's whole fenced region, so
+    # a rotate-self --stops of `_stops_line` (`stops: <subject> | last dm:`,
+    # NO owed list) destroyed the very slot the handoff had preserved
+    # (hypothesis:captive-capture-keeps-the-slot-and-banked-and-appends-its-
+    # line). The capture line is already the payload's tail; `_stops_line` and
+    # the threshold path that owns it are untouched.
+    slot = _capture_stops(card, line)
     s3 = state_dir / f"capture-{seat}.s3"
-    s3.write_text(line + "\n", encoding="utf-8")
+    s3.write_text(slot + "\n", encoding="utf-8")
+    # s6 is EMPTY on purpose: a capture banks nothing and BOTH of the writer's
+    # BANKED branches no-op on an empty field, so the options survive intact.
+    s6 = state_dir / f"capture-{seat}.s6"
+    s6.write_text("", encoding="utf-8")
     b = Path(__file__).resolve().parents[1] / "bin"
     argvs = [["python3", str(b / "rotate.py"), "handoff", "--driven", "--seat", seat,
-              "--field", "s3", str(s3), "--field", "s6", str(s3)],
-             _rotate_self_argv(b, seat, f"{_stops_line(root, seat)} | {line}")]
+              "--field", "s3", str(s3), "--field", "s6", str(s6)],
+             _rotate_self_argv(b, seat, slot)]
     if os.environ.get("AGI_HOOK_NO_SPAWN"):
         _CAPTURE_LOGGED.extend(argvs)
-        print(f"rotation: capture for {seat} declined (AGI_HOOK_NO_SPAWN).")
+        print(render("rotation_alert", "capture_declined", seat=seat))
         return "capture-no-spawn"
-    card.write_text(f"{AUTO_CAPTURED}\n" + card.read_text(encoding="utf-8"),
-                    encoding="utf-8")
-    # ONE background child chains handoff THEN rotate-self with `&&`, so the
-    # card write completes before rotate-self reads it (`--stops` is built
-    # from the card). Both argvs are passed POSITIONALLY ($2.. = handoff argv,
-    # then rotate-self argv; $1 = its length) so nothing is shell-interpolated;
-    # P7 holds -- the hook itself never blocks, the child does the waiting.
+    # The marker is a SIBLING state file, never a write into the card: a live
+    # quorum card is a symlink into nodes/doc/<card>.md, and a prepend there
+    # lands above the node's `---` (TMM.190 gen 22, f 0.41/0.42/0.43).
+    (state_dir / f"capture-{seat}.captured").write_text(
+        f"{AUTO_CAPTURED}: {line}\n", encoding="utf-8")
+    # ONE background child runs handoff THEN rotate-self, so the card write
+    # completes before rotate-self reads it (`--stops` is built from the card)
+    # — and a REFUSING handoff still rotates, naming its rc to the seat on the
+    # next check (`_CHAIN_SCRIPT` / `_chain_failure_note`).
     handoff_argv, rotate_argv = argvs
-    _Popen(["bash", "-c",
-            'n=$1; shift; a=("$@"); "${a[@]:0:$n}" && "${a[@]:$n}"',
-            "bash", str(len(handoff_argv)), *handoff_argv, *rotate_argv],
-           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-           stdin=subprocess.DEVNULL, start_new_session=True)
-    print(f"rotation: CAPTURED {seat}'s final card ({minutes} min stale): {line}")
+    chain_log = (state_dir / log_name).open("ab")   # never DEVNULL
+    _spawn_capture_chain(state_dir / f"capture-{seat}.failed", chain_log,
+                         handoff_argv, rotate_argv)
+    # The blob was read at the TOP of this call, so any writer that landed
+    # between that read and this write had its fields CLOBBERED by ours.
+    # RE-READ immediately before writing and merge onto the FRESH blob, so a
+    # concurrent writer's fields survive (only our two keys are set, and
+    # `session` only when session_id is given, as before).
+    try:
+        fresh = json.loads(stamp.read_text(encoding="utf-8"))
+        if isinstance(fresh, dict):
+            blob = fresh
+    except (OSError, ValueError):
+        pass
+    blob["captured"] = int(time.time())
+    if session_id:
+        blob["session"] = session_id     # the latch is keyed by THIS session
+    try:
+        stamp.write_text(json.dumps(blob), encoding="utf-8")
+    except OSError:
+        pass
+    print(render("rotation_alert", "captured", seat=seat, minutes=minutes, line=line))
     return "captured"
 
 
@@ -863,18 +1020,20 @@ def _captive_rotate_eligible(root: Path, seat: str, masters: bool) -> bool:
 
 
 def _captive_rotate(root: Path, seat: str, fraction: float, threshold: float,
-                    ladder: dict, capture_minutes: int, state_dir: Path) -> bool:
+                    ladder: dict, capture_minutes: int, state_dir: Path,
+                    session_id: str = "") -> bool:
     """CAPTIVE AUTO-ROTATE, trigger (a) (owner 05:1xZ): at f >= the ladder's
     `captive_rotate_ratio` x the line a DIRECTOR is rotated by the engine
     ITSELF — the card as it stands, AUTO-CAPTURED, no consent asked and no
     `card_capture_minutes` waited on. OFF BY NAME until a captive cell exists."""
-    if not seat or not ("captive_rotate_ratio" in ladder
-                        or "captive_rotate_masters" in ladder):
+    if not seat or "captive_rotate_ratio" not in ladder:
         return False
     try:
-        ratio = float(ladder.get("captive_rotate_ratio", 0.85))
+        ratio = float(ladder["captive_rotate_ratio"])
     except (TypeError, ValueError):
-        ratio = 0.85
+        # EF.22 conjunct 3: absent/unparseable ratio is OFF BY NAME, never
+        # the pre-fix silent 0.85 literal.
+        return False
     masters = str(ladder.get("captive_rotate_masters", "false")).strip().lower() \
         in ("1", "true", "yes", "on")
     if fraction < ratio * threshold:
@@ -883,17 +1042,29 @@ def _captive_rotate(root: Path, seat: str, fraction: float, threshold: float,
         return False
     which = _merge_in_flight(root)
     if which or _suite_lock_held(root):
-        print(f"{DEFER_PREFIX} ({which or 'suite-lock-held'}) — the captive "
-              "auto-rotate does not fire while that holds.")
+        print(render("rotation_alert", "captive_deferred_body",
+                     prefix=DEFER_PREFIX, which=which or "suite-lock-held"))
         return False
     line = (f"auto-captured at f={fraction:.4f} at the captive ratio "
             f"{ratio:g} x the line, no self-rotate")
     try:
-        _force_capture(root, seat, _card_path(root, seat), fraction,
-                       capture_minutes, state_dir, line=line)
+        which = _force_capture(root, seat, _card_path(root, seat), fraction,
+                               capture_minutes, state_dir, line=line,
+                               session_id=session_id)
     except OSError:
         return False
-    return True
+    if which == "capture-latched":
+        # This seating already captured. Say NOTHING that would swallow the
+        # imperative: return False so main() takes the over-line branch and
+        # PRINTS the rotate-now line, and the gate re-decides there
+        # (hypothesis:a-capture-latch-is-keyed-by-session-and-never-swallows-
+        # the-imperative). A latch is a memory, never a reason to go quiet.
+        return False
+    # Only a capture that SPAWNED its chain (or recorded it under NO_SPAWN)
+    # may go quiet: `capture-no-log` / `capture-failed` rotated nothing, so
+    # returning True there swallowed the imperative exactly as the latch did
+    # (DH.395 harvest, director-engine gen 24).
+    return which in ("captured", "capture-no-spawn")
 
 #: once-per-generation latch dir, under the shared sessions dir. Keyed by
 #: seat + generation so a slow spawn is never doubled (gate (d)).
@@ -987,6 +1158,10 @@ def _rotate_self_argv(bin_dir: Path, seat: str, stops: str) -> list[str]:
     """The full argv of the background rotate-self the hook spawns at threshold
     (rotate-out ZERO calls — the hook IS the rotate-out). One builder, shared by
     the production spawn and the test seam so the two can never disagree."""
+    # MEASURED (probe pasted on the node): a `--stops` value whose first line
+    # starts with a BARE `-` is an OPTION to argparse (exit 2, no rotation).
+    if stops.startswith("-"):
+        stops = "\n" + stops
     return ["python3", str(bin_dir / "rotate.py"), "rotate-self",
             "--name", seat, "--role", "director", "--timeout", "900",
             "--force", "--stops", stops]
@@ -1048,7 +1223,7 @@ def _gated_rotate(root: Path, seat: str, session_id: str = "",
     if stale:
         print(f"  {clear_line}")
         handled, which = _maybe_force_capture(root, seat, card, fraction,
-                                              minutes, state_dir)
+                                              minutes, state_dir, session_id)
         if handled:
             return which
         print("[rotation] card-age captive: the seat card is older than the "
@@ -1389,6 +1564,13 @@ def main(argv: list[str] | None = None) -> int:
     state_dir = Path(os.environ.get("AGI_ROTATION_STATE_DIR")
                      or f"/tmp/agi-rotation-{os.getuid()}")
     state_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+    # A capture-chain step that exited non-zero names ITSELF here, on the seat's
+    # next check, and the marker is cleared: the /tmp log alone is not a report.
+    for note in _chain_failure_note(state_dir, seat):
+        print("rotation-alert: capture-chain step FAILED: "
+              f"{note} — the captive capture's driven handoff/rotate-self "
+              "chain did not complete; see the ladder's capture_chain_log for "
+              "its output.")
     state_path = state_dir / f"{session_id or 'nosession'}.json"
     fired_bands = set()
     if state_path.is_file():
@@ -1402,7 +1584,7 @@ def main(argv: list[str] | None = None) -> int:
     # engine ITSELF: the card as it stands, AUTO-CAPTURED, no consent asked,
     # no `card_capture_minutes` waited. Off by name with no captive cell.
     if _captive_rotate(root, seat, fraction, threshold, ladder,
-                       capture_minutes, state_dir):
+                       capture_minutes, state_dir, session_id or ""):
         _meter(used, threshold, fraction)
         return 0
 
@@ -1412,9 +1594,18 @@ def main(argv: list[str] | None = None) -> int:
     rotate_now = _rotate_now_unread(root, seat)
     if over_line or rotate_now:
         fp = state_dir / f"capture-{seat or 'noseat'}.json"
-        if not fp.exists():
+        # EF.22: name the writing session; re-stamp on a DIFFERENT session.
+        cur = session_id or ""
+        old = ""
+        if fp.exists():
             try:
-                fp.write_text(json.dumps({"first": int(time.time())}))
+                old = str(json.loads(fp.read_text()).get("session") or "")
+            except Exception:   # pylint: disable=broad-except
+                old = ""
+        if not fp.exists() or (old and old != cur):
+            try:
+                fp.write_text(json.dumps({"first": int(time.time()),
+                                          "session": cur}))
             except OSError:
                 pass
     # Find the highest band the current fraction crosses (below the line).
@@ -1464,7 +1655,16 @@ def main(argv: list[str] | None = None) -> int:
         # over-line seat has not rotated, and re-checks next prompt.
         deferral = _gated_rotate(root, seat, session_id or "", fraction,
                                  capture_minutes, state_dir)
-        if deferral:
+        if deferral == "capture-latched":
+            # A latch is a MEMORY of a capture that already ran, not a
+            # blocker: printing the generic "while that holds" text here
+            # claimed a HOLD that does not exist and would swallow the
+            # imperative's meaning (hypothesis:a-capture-latch-is-a-memory-
+            # never-a-hold).
+            suffix = (f"\n\n{DEFER_PREFIX} (capture-latched) — this seating "
+                      "already captured and its chain ran; that is a memory, "
+                      "not a hold. Re-check on the next prompt.")
+        elif deferral:
             suffix = (f"\n\n{DEFER_PREFIX} ({deferral}) — the hook is not "
                       "rotating this seat while that holds; it re-checks on "
                       "the next prompt.")
@@ -1474,9 +1674,8 @@ def main(argv: list[str] | None = None) -> int:
                       "its card. The command below inspects/rotates by hand "
                       "if needed.")
         _rc = _emit(AT_OR_OVER_TITLE,
-                    "This session is at or over its rotation line. "
-                    "Rotate NOW. If you were mid-round, hand off cleanly first."
-                    + suffix, show_fraction=False)
+                    render("rotation_alert", "at_or_over_body", suffix=suffix),
+                    show_fraction=False)
         _meter(used, threshold, fraction)
         return _rc
 
@@ -1489,7 +1688,8 @@ def main(argv: list[str] | None = None) -> int:
         stale, _clear = _card_stale_measure(root, seat, card)
         if stale:
             _handled, which = _maybe_force_capture(root, seat, card, fraction,
-                                                   capture_minutes, state_dir)
+                                                   capture_minutes, state_dir,
+                                                   session_id or "")
             if which:
                 print(f"{DEFER_PREFIX} ({which}) — the hook could not capture "
                       "this seat's card; re-check on the next prompt.")
@@ -1512,9 +1712,9 @@ def main(argv: list[str] | None = None) -> int:
             pass
         pct = int(b_frac * 100)
         _rc = _emit(BENEATH_TITLE,
-                    f"Approaching rotation ({fraction:.4f} of {threshold:.3f} "
-                    f"window ({fraction/threshold * 100:.2f}% of the line)). "
-                    f"Crossed band {pct}% of threshold.")
+                    render("rotation_alert", "beneath_body", fraction=fraction,
+                           threshold=threshold, percent=fraction/threshold * 100,
+                           pct=pct))
         _meter(used, threshold, fraction)
         return _rc
 

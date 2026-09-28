@@ -208,7 +208,10 @@ def test_every_verb_is_nameable_from_a_command_line():
     """A keystroke an agent cannot spell is a verb that exists only for
     humans."""
     for name in write.VERBS:
-        assert name.isidentifier() or "-" in name
+        # `sub!` is command-line-spellable: the bang is part of the verb name
+        # (hypothesis:write-py-inline-replace-verb), so strip it before the
+        # identifier check.
+        assert name.rstrip("!").isidentifier() or "-" in name
         assert name == name.lower()
 
 
@@ -227,6 +230,33 @@ def test_help_epilog_lists_every_verb_and_arity(capsys):
         assert any(f"{name}\t" in line and f"{write.ARITY[name]} arg" in line
                    for line in out.splitlines()), \
             f"epilog missing {name} (arity {write.ARITY[name]})"
+
+
+def test_help_documents_replace_body_standalone_restriction(capsys):
+    """hypothesis:lm-replace-body-standalone-restriction-is-documented-in-help
+    -- `replace body` already REFUSES to share a submit with note, thought or
+    body_patch (one body writer per submit). That refusal is correct and
+    unchanged; what was missing is discoverability from `-h`, so a caller
+    learns the rule before writing a script that will fail. The rendered help
+    must name `replace` and at least one of note/thought/body_patch together.
+
+    Fails on the pre-change help (the only `replace` line then was the bare
+    `replace body 4:9 path/to/file` example, which names no other writer) and
+    passes once the NOTES block is rendered."""
+    try:
+        write.main(["-h"])
+    except SystemExit:
+        pass
+    out = capsys.readouterr().out
+    restricted = [
+        line for line in out.splitlines()
+        if "replace" in line.lower()
+        and any(w in line.lower() for w in ("note", "thought", "body_patch"))
+    ]
+    assert restricted, (
+        "write.py -h never names the replace-body standalone restriction "
+        "(replace + note/thought/body_patch together); a caller can only "
+        "learn it by hitting the refusal")
 
 
 def test_help_epilog_drift_guard_refuses_a_verb_without_an_example(monkeypatch):
@@ -481,6 +511,65 @@ def test_a_rejected_create_cleans_up_the_file_it_made(project, tmp_path):
     assert made is None
     assert not (tmp_path / "src" / "orphan.py").exists(), (
         "a rejected spawn left an orphaned source file")
+
+
+def test_create_body_file_lands_real_prose_not_the_placeholder(project, tmp_path):
+    """CLAIM (G14.14.1b): `create --body-file PATH` reads the file in the verb
+    layer and threads it to `node_writer.write_node`'s existing `body` kwarg,
+    so the new node carries the caller's own prose. `node_writer` prepends its
+    canonical `# <id>` heading to ANY supplied body (and only a `body is None`
+    call gets the `BODY:BEGIN` marker + prompt), so the byte-identical claim is
+    the prose AFTER that heading; the placeholder must be absent."""
+    _schemas(project)
+    prose = tmp_path / "prose.md"
+    prose.write_text("The claim, stated at length.\n\n"
+                     "## Evidence\n\n- one\n- two\n")
+    out, err, rc = _run(["create", "hypothesis", "with-prose",
+                         "--parent", "goal:g1",
+                         "--body-file", str(prose),
+                         "--root", str(project)])
+    assert rc == 0, (out, err)
+    text = (project / "nodes" / "hypothesis" / "with-prose.md").read_text()
+    _fm, body = node_writer.split_frontmatter(text)
+    assert body == "\n# hypothesis:with-prose\n\n" + prose.read_text(), (
+        "the file's prose did not land verbatim")
+    assert "What is the testable claim?" not in body, (
+        "the BODY_PROMPTS placeholder leaked into a --body-file body")
+
+
+def test_create_without_body_file_still_scaffolds_the_placeholder(project):
+    """The regression guard: `--body-file` absent must pass `body=None`
+    unchanged, so the `BODY_PROMPTS` scaffold path is byte-identical to
+    today's. Compares against the exact bytes `write_node` composes for a
+    `body is None` call — marker, heading, prompt."""
+    _schemas(project)
+    out, err, rc = _run(["create", "hypothesis", "plain-one",
+                         "--parent", "goal:g1",
+                         "--root", str(project)])
+    assert rc == 0, (out, err)
+    text = (project / "nodes" / "hypothesis" / "plain-one.md").read_text()
+    _fm, body = node_writer.split_frontmatter(text)
+    expected = (node_writer.BODY_BEGIN + "\n# hypothesis:plain-one\n\n"
+                + node_writer.BODY_PROMPTS["hypothesis"])
+    # `_serialize_node` normalises the body's trailing newlines to exactly one.
+    expected = expected.rstrip("\n") + "\n"
+    assert body == expected, ("the no-flag scaffold path changed")
+
+
+def test_is_untouched_scaffold_rejects_a_real_body_file_body(project, tmp_path):
+    """Falsifier (c): a real `--body-file` body must NOT be mistaken for an
+    untouched placeholder. `_is_untouched_scaffold` checks whether the existing
+    body is a substring of the scaffold this call would write; against the
+    placeholder scaffold a real body must return False."""
+    _schemas(project)
+    res, _ = write.create(project, "hypothesis", "prose-node", ["goal:g1"],
+                          body="A real, multiline body.\n\n- not a placeholder\n")
+    assert res.written
+    text = Path(res.path).read_text()
+    placeholder = (node_writer.BODY_BEGIN + "\n# hypothesis:prose-node\n\n"
+                   + node_writer.BODY_PROMPTS["hypothesis"])
+    assert node_writer._is_untouched_scaffold(text, placeholder) is False, (
+        "a real body was flagged as an untouched scaffold")
 
 
 # --------------------------------------------------------------------------
@@ -1537,6 +1626,210 @@ def test_replace_body_is_standalone_like_body_patch(project):
 
 
 # --------------------------------------------------------------------------
+# hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
+# the body-only structural guard. `replace body N:M` is offset-free but the
+# RANGE is still hand-chosen; a range that splits a heading from its text (or
+# cuts a paragraph at either edge) is refused before the splice, unless the
+# caller passes `--force`. A whole paragraph, a whole section, and a
+# whole-section tail that ends on a CHILDLESS deeper heading are all admitted
+# -- the last is the falsifier EF.03 measured (experiment:a00-29883877-7abb3b).
+# --------------------------------------------------------------------------
+
+#: Line 1 is blank, line 3 is `## A`, line 5 is the childless deeper heading
+#: `### A.1` with no text of its own before the sibling `## B`.
+GUARD_BODY = "\n# T\n## A\nintro\n### A.1\n## B\nbeta\n"
+
+
+def _guard_node(root, body=GUARD_BODY, name="h2"):
+    """A scratch node whose read body is exactly `body` (the frontmatter is
+    written so the blank line `body` opens with survives the reader)."""
+    d = root / "nodes" / "hypothesis"
+    d.mkdir(parents=True, exist_ok=True)
+    path = d / f"{name}.md"
+    path.write_text(
+        '---\nid: "hypothesis:%s"\ntype: hypothesis\nmint_id: abc123\n'
+        'title: "t"\ntestable_claim: "c"\nscaffold_hash: deadbeef\n'
+        'status: pending\n---\n\n%s\n' % (name, body))
+    (root / "config.json").write_text("{}")
+    return path
+
+
+def _replace_body(root, rng, text, name="h2", force=False):
+    edit = write.Edit(node_id=f"hypothesis:{name}")
+    write.verb_replace(edit, "body", rng, "--force -" if force else "-")
+    edit.replace_text = text
+    return write.submit(root, edit, actor="kid", session="s1")
+
+
+def test_replace_body_guard_refuses_a_heading_split(tmp_path):
+    graph = tmp_path / ".agi"
+    path = _guard_node(graph)
+    before = path.read_text()
+    with pytest.raises(write.EditError) as ei:
+        _replace_body(graph, "3:4", "X")
+    assert "heading" in str(ei.value) and "--force" in str(ei.value)
+    assert path.read_text() == before, "a refused range must write nothing"
+
+
+def test_replace_body_guard_refuses_a_paragraph_tail(tmp_path):
+    body = "\n# T\n## A\nalpha one\nalpha two\ntail\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    path = _guard_node(graph, body)
+    before = path.read_text()
+    # starts strictly inside the paragraph: `alpha one` then `alpha two`
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "5:5", "X")
+    # ends strictly inside the paragraph: `alpha one` then `alpha two`
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "4:4", "X")
+    assert path.read_text() == before
+
+
+def test_replace_body_guard_allows_a_whole_paragraph(tmp_path):
+    body = "\n# T\n## A\nalpha one\nalpha two\ntail\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    _guard_node(graph, body)
+    res = _replace_body(graph, "4:6", "WHOLE PARAGRAPH")
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "WHOLE PARAGRAPH" in after and "## B" in after and "beta" in after
+
+
+def test_replace_body_guard_allows_a_whole_section(tmp_path):
+    body = "\n# T\n## A\nalpha\n\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    _guard_node(graph, body)
+    res = _replace_body(graph, "3:5", "WHOLE SECTION")
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "WHOLE SECTION" in after and "## B" in after
+
+
+def test_replace_body_guard_admits_a_childless_deeper_heading_tail(tmp_path):
+    """EF.03 falsifier (c): the full `## A` section (3:5) ends on the deeper
+    heading `### A.1`, which has NO text of its own -- so ending there is the
+    correct tail, not a split, and the range must land with no --force."""
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    assert write._read_body_text(graph, "hypothesis:h2") == GUARD_BODY
+    res = _replace_body(graph, "3:5", "REPLACED")
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "REPLACED" in after and "### A.1" not in after
+    assert "## B" in after and "beta" in after
+
+
+def test_replace_body_guard_refuses_ending_on_a_heading_with_content(tmp_path):
+    """The other edge, same corruption: ending on a heading whose own
+    section still holds text removes the heading and orphans its text. This
+    is the false-positive BOUNDARY -- the childless case above passes, this
+    one must not."""
+    body = "\n# T\n## A\nintro\n### A.1\na1text\n## B\nbeta\n"
+    graph = tmp_path / ".agi"
+    path = _guard_node(graph, body)
+    before = path.read_text()
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "4:5", "X")   # ends on `### A.1`, a1text left
+    with pytest.raises(write.EditError):
+        _replace_body(graph, "3:5", "X")   # stops short of `## A`'s end
+    assert path.read_text() == before
+
+
+def test_replace_body_guard_allows_a_whole_body_open_range(tmp_path):
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    res = _replace_body(graph, "1:", "WHOLE BODY")
+    assert res.status != node_writer.REJECTED
+    assert "WHOLE BODY" in write._read_body_text(graph, "hypothesis:h2")
+
+
+def test_replace_body_guard_honours_force(tmp_path):
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    res = _replace_body(graph, "3:4", "FORCED", force=True)
+    assert res.status != node_writer.REJECTED
+    after = write._read_body_text(graph, "hypothesis:h2")
+    assert "FORCED" in after and "intro" not in after
+    assert "### A.1" in after, "--force admits exactly the partial edit asked for"
+
+
+def test_replace_body_guard_reflects_in_dry_run(tmp_path):
+    graph = tmp_path / ".agi"
+    _guard_node(graph)
+    before = (graph / "nodes" / "hypothesis" / "h2.md").read_text()
+    proc = subprocess.run(
+        [sys.executable, str(BIN / "write.py"), "hypothesis:h2",
+         "replace body 3:4 -", "--root", str(graph),
+         "--actor", "kid", "--session", "s1", "--dry-run"],
+        input="X\n", capture_output=True, text=True,
+    )
+    assert proc.returncode == 2, proc.stdout + proc.stderr
+    assert "heading" in proc.stderr and "admitted" not in proc.stdout
+    assert (graph / "nodes" / "hypothesis" / "h2.md").read_text() == before
+
+
+def test_replace_body_guard_leaves_a_payload_alone(tmp_path):
+    """A payload is arbitrary bytes; the structural guard is body-only, so an
+    identical range on a `.py` payload is never structure-checked."""
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "build").mkdir(parents=True)
+    (graph / "config.json").write_text("{}")
+    payload = tmp_path / "lib" / "mod.py"
+    payload.parent.mkdir(parents=True, exist_ok=True)
+    payload.write_text("# T\n## A\nintro\n### A.1\n")
+    (graph / "nodes" / "build" / "b9.md").write_text(
+        '---\nid: build:b9\ntype: build\nmint_id: abc123\ntitle: "t"\n'
+        'scaffold_hash: deadbeef\n'
+        f"payload_ref: {payload}\n---\n\nbody\n\n")
+    edit = write.Edit(node_id="build:b9")
+    write.verb_replace(edit, "payload", "1:3", "-")
+    edit.replace_text = "PATCHED"
+    res = write.submit(graph, edit, actor="kid", session="s1")
+    assert res.status != node_writer.REJECTED
+    assert payload.read_text().startswith("PATCHED")
+
+
+def test_replace_body_guard_refuses_a_fence_split(tmp_path):
+    """hypothesis:write-body-range-guard-is-fence-aware-and-clamped.
+
+    A '#' line INSIDE a ``` (or ~~~) block is code, not a heading. Before
+    the fix `_is_heading` matched it, `_section_end` truncated `## A`'s
+    section to the fake heading, and `2:4` -- which removes the opening
+    fence and orphans the fenced body -- was ADMITTED. Both fence
+    characters must refuse it by line and name the `--force` hatch.
+    """
+    for i, fence in enumerate(("```", "~~~")):
+        body = (f"\n## A\na\n{fence}\n# not a heading\ncode\n{fence}\n")
+        graph = tmp_path / f"case{i}" / ".agi"
+        path = _guard_node(graph, body)
+        before = path.read_text()
+        with pytest.raises(write.EditError) as ei:
+            _replace_body(graph, "2:4", "X")
+        msg = str(ei.value)
+        assert "line 4" in msg and "--force" in msg, msg
+        assert path.read_text() == before, "a refused range must write nothing"
+
+
+def test_replace_body_guard_refuses_a_range_past_eof(tmp_path):
+    """hypothesis:write-body-range-guard-is-fence-aware-and-clamped.
+
+    Before the clamp, `end = hi` let `2:999` reach `_is_heading(lines[end-1])`
+    and raise IndexError. It must instead refuse by name and `--force` must
+    still land (the splice naturally clamps past-EOF).
+    """
+    graph = tmp_path / ".agi"
+    path = _guard_node(graph)
+    before = path.read_text()
+    with pytest.raises(write.EditError) as ei:
+        _replace_body(graph, "2:999", "X")
+    msg = str(ei.value)
+    assert "past the end" in msg and "--force" in msg, msg
+    assert path.read_text() == before
+    res = _replace_body(graph, "2:999", "FORCED", force=True)
+    assert res.status != node_writer.REJECTED
+
+
+# --------------------------------------------------------------------------
 # hypothesis:l4-write-api-root-resolution — the API resolves root descend-only
 # --------------------------------------------------------------------------
 
@@ -1746,13 +2039,26 @@ def test_a_set_value_keeps_its_own_ampersands_that_begin_no_verb():
         ("set", ["title", "a && b && c"])]
 
 
-def test_the_residual_limit_a_verb_led_prose_ampersand_is_executed():
-    """KNOWN LIMIT, asserted not hidden. `note quote && set status x` DOES
-    split, because `set` after the `&&` begins a verb: a prose argument
-    cannot quote a verb-led command verbatim. The seam is the verb grammar
-    and this is the hole in it — pinned here so no reader is misled."""
+def test_the_residual_limit_a_verb_led_prose_ampersand_is_escaped_not_executed():
+    r"""WAS a KNOWN LIMIT, now escapable. `note quote && set status x` still
+    splits (the `set` after the `&&` begins a verb) — but the documented
+    escape `\&&` keeps the pair INSIDE the prose argument, byte-for-byte,
+    with the backslash consumed. The unescaped spelling must still split."""
+    assert write.parse_script("note quote \\&& set status x") == [
+        ("note", ["quote && set status x"])]
     assert write.parse_script("note quote && set status x") == [
         ("note", ["quote"]), ("set", ["status", "x"])]
+
+
+def test_a_doubled_separator_still_parses_as_str_split_did():
+    """hypothesis:write-py-outside-ref-... clause (2c): `&&&&` (two `&&`
+    pairs back to back) must parse byte-identically to the pre-verb-led-rule
+    `str.split("&&")` — the escape changes nothing about an ordinary doubled
+    pair. The empty middle chunk is skipped, exactly as before."""
+    assert write.parse_script("note a &&&& set status x") == [
+        ("note", ["a"]), ("set", ["status", "x"])]
+    assert write.parse_script("set title a &&&& thought why") == [
+        ("set", ["title", "a"]), ("thought", ["why"])]
 
 
 def test_an_unknown_first_verb_still_refuses_by_name():
@@ -1849,3 +2155,128 @@ def test_the_round_two_and_round_one_prose_rules_did_not_regress():
         ("note", ["probes && open the box"])]
     assert write.parse_script("note a && setter x") == [
         ("note", ["a && setter x"])]
+
+
+def test_the_escape_is_documented_in_help_and_parses():
+    """The escape must be discoverable: a seat reading `write.py -h` learns
+    the spelling, and the documented spelling actually parses to the literal."""
+    out = subprocess.run(
+        [sys.executable, str(BIN / "write.py"), "-h"],
+        capture_output=True, text=True, timeout=30).stdout
+    assert "\\&&" in out, "write.py -h never documents the literal-&& escape"
+    assert write.parse_script("note a \\&& b") == [("note", ["a && b"])]
+
+
+# --- conjunct 1: the outside-ref gate judges the EFFECTIVE frontmatter -----
+# The gate read ONLY the fields the edit SETS, so a location-only edit
+# skipped an already-set inside ref and a `unset location` edit over-refused
+# against the stale on-disk location. hypothesis is the parent node.
+
+
+def _ref_graph(tmp_path, **locs):
+    import json
+
+    graph = tmp_path / ".agi"
+    (graph / "nodes" / "doc").mkdir(parents=True)
+    (graph / "config.json").write_text(json.dumps({"locations": locs}))
+    return graph
+
+
+def _ref_node(graph, node_id, **fields):
+    ntype, slug = node_id.split(":", 1)
+    lines = [f"id: {node_id}", f"type: {ntype}"]
+    for key, val in fields.items():
+        lines.append(f"{key}: {val}")
+    path = graph / "nodes" / ntype / f"{slug}.md"
+    path.write_text("---\n" + "\n".join(lines) + "\n---\n\nbody\n")
+    return path
+
+
+def test_a_location_only_edit_cannot_hide_an_already_set_inside_ref(
+        tmp_path, capsys):
+    """(1a) ADMITTED-WHEN-IT-SHOULD-REFUSE: the node carries an inside
+    `link_ref`, and the edit moves `location` outside. The effective ref is
+    the one already on disk, so the gate must refuse and write nothing."""
+    graph = _ref_graph(tmp_path, scratch=str(tmp_path.parent / "outside"))
+    path = _ref_node(graph, "doc:n", title="t", link_ref="notes.txt")
+    before = path.read_bytes()
+    rc = write.main(["doc:n", "set location scratch", "--root", str(graph)])
+    err = capsys.readouterr().err
+    assert rc == 2
+    assert "notes.txt" in err and "outside the repo tree" in err
+    assert path.read_bytes() == before, "the refusal wrote nothing"
+
+
+def test_unset_location_makes_the_ref_judged_against_the_repo_root(
+        tmp_path, capsys):
+    """(1b) REFUSED-WHEN-IT-SHOULD-ADMIT: the node's `location` is outside,
+    but the edit UNSETS it and sets an inside ref. Judged against the
+    effective (absent) location, the ref resolves inside and is admitted;
+    the old code fell back to the stale on-disk location and over-refused."""
+    graph = _ref_graph(tmp_path, scratch=str(tmp_path.parent / "outside"))
+    (tmp_path / "notes.txt").write_text("x")
+    path = _ref_node(graph, "doc:n", title="t", location="scratch")
+    rc = write.main(["doc:n", "unset location && set link_ref notes.txt",
+                     "--root", str(graph)])
+    capsys.readouterr()
+    assert rc == 0, "the ref resolves against the repo root once location is gone"
+    text = path.read_text()
+    assert "link_ref: notes.txt" in text
+    assert "\nlocation:" not in text
+
+
+def test_api_direct_sub_is_judged_by_the_outside_ref_gate(tmp_path):
+    """conjunct 1: a DIRECT write.submit carrying an unresolved `sub` Edit
+    must resolve the sub BEFORE the outside-ref gate, so the gate judges the
+    post-sub effective frontmatter. Pre-fix the gate ran first, saw the
+    on-disk inside ref, and the sub landed the outside ref unjudged."""
+    graph = _ref_graph(tmp_path, scratch=str(tmp_path.parent / "outside"))
+    (tmp_path / "notes.txt").write_text("x")
+    path = _ref_node(graph, "doc:n", title="t", link_ref="notes.txt")
+    before = path.read_bytes()
+    edit = write.Edit(node_id="doc:n")
+    write.verb_sub(edit, "notes.txt => ../outside/secret.txt")
+    with pytest.raises(write.EditError, match="outside the repo tree"):
+        write.submit(graph, edit)
+    assert path.read_bytes() == before, "the refusal wrote nothing"
+
+
+def test_empty_source_guards_are_asymmetric_file_refused_stdin_lands(
+        project, tmp_path, monkeypatch, capsys):
+    """The SOURCE KIND decides whether a deletion can be made, never the
+    range end -- and the two branches disagree. Measured on the bytes by
+    EG.52 (experiment:a00-620bf49d-ac1ffb) and pinned here so the rule
+    cannot be re-inverted by a node that never ran a DELETE shape.
+
+    Arm A (empty FILE source, interior range): REFUSED rc=2, body unchanged.
+    Arm B (`-` with EMPTY stdin, same range): LANDS rc=0, range removed.
+
+    Both arms drive the real `main()`, in a tmp graph, and assert the bytes.
+    If a future engine change makes the two arms agree, this test is the
+    thing that must be re-read before the claim on either side is edited.
+    """
+    import io
+
+    body = write._read_body_text(project, "hypothesis:h1")
+    idx = next(i for i, ln in enumerate(body.split("\n"), 1)
+               if ln.strip() == "the body")
+    empty = tmp_path / "empty.txt"
+    empty.write_text("")
+
+    # Arm A — an empty FILE source refuses, loudly, and writes nothing.
+    rc = write.main(["hypothesis:h1", f"replace body {idx}:{idx} {empty}",
+                     "--root", str(project)])
+    err = capsys.readouterr().err
+    assert rc == 2, "an empty FILE source must refuse (rc=2)"
+    assert "empty" in err
+    assert "the body" in write._read_body_text(project, "hypothesis:h1"), \
+        "the refusal must leave the range in place"
+
+    # Arm B — the SAME deletion through `-` with empty stdin lands (rc=0).
+    monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+    rc = write.main(["hypothesis:h1", f"replace body {idx}:{idx} -",
+                     "--root", str(project)])
+    capsys.readouterr()
+    assert rc == 0, f"empty STDIN must land; got rc={rc}"
+    after = write._read_body_text(project, "hypothesis:h1")
+    assert "the body" not in after, "the range must actually be gone"

@@ -6,8 +6,9 @@ parents:
   - hypothesis:l3w4-master-sensei
 next_edges: []
 confidence: 0.8
-edited_by: a00-7fcff527
-evidence_runs: experiment:a00-2931de88-bc6cdd
+edited_by: director-engine
+evidence_runs:
+  - experiment:a00-2931de88-bc6cdd
 loop: hypothesis:l3w4-master-sensei@s2
 model: ~deepseek/deepseek-v4-flash-latest
 profile: balanced
@@ -78,7 +79,7 @@ reinforces the prior run.
 Re-ran sensei gate on current tree: feature still wholly unbuilt (no sensei.py/test/brief, no master-sensei seat row, no sanctuary-master). Gate falls back to claude-fable-5-1/effort=max, opposite of claimed claude-opus-5/effort=high. Confirms prior run a00-2931de88 (inconclusive_lean_disproved:80); state persistent. Blocked on MVP build.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Review (parent a00-7fcff527, L3.36): verdict kept at inconclusive_lean_disproved:80 — the re-run is faithful and the gate output quoted (fable-5-1/max fallback instead of opus-5/high) is real evidence of absence. Two corrections: evidence_runs previously listed only this node (self-referential — a run cannot certify itself); now also cites a00-2931de88, whose result this confirms. This run records absence-of-build only, the exact measure-dont-build anti-pattern the brief names (L3.34); a follow-up kid is being spawned to attempt the actual diff.
+PASS 7 residue (hypothesis:pass7-0926-residue-batch, test_brief.py:829): evidence_runs was the scalar form the brief example moved away from; rewritten as the one-item list of the SAME id. No evidence added or removed, verdict unchanged.
 <!-- THOUGHT:END -->
 
 Parent review L3.36: verdict accepted as inconclusive_lean_disproved:80 (feature still unbuilt; gate resolves wrong model/effort). evidence_runs corrected to cite prior confirming run a00-2931de88 instead of self only. Absence recorded, not built — build attempt dispatched as follow-up kid.

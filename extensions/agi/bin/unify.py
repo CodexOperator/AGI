@@ -40,10 +40,12 @@ assumption, not something to "fix" by adding node-rewriting code here.
 `agi` and `agi-tree` to `/tmp/...` and pass those paths. `preflight()` refuses
 outright, unconditionally, before any other check and regardless of
 `--force`, if either path resolves to the two real checkouts this machine
-happens to keep at `/home/ubuntu/work/agi` and `/home/ubuntu/work/agi-tree`.
-That is a literal path comparison, not a remote-URL check, because a
+happens to keep. Which two those are is NEVER a literal here: `_real_repos()`
+names them per box, from the `box.root` cell and from git's own common dir (see
+its docstring) — so the guard holds on a box whose cells name another box.
+That is a path comparison, not a remote-URL check, because a
 legitimate throwaway clone's own `origin` can point at the very same GitHub
-repos — the thing that must never be `/home/ubuntu/work/agi` is the
+repos — the thing that must never be the real engine checkout is the
 *directory this script writes into*, and a clone under `/tmp` is a different
 directory regardless of what it was cloned from.
 
@@ -99,7 +101,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import grid  # noqa: E402 -- the ONE ref-namespace resolver (goal:g14.14.7)
 import locations  # noqa: E402
+import boxes  # noqa: E402 -- the ONE box-cell reader (goal:g15.29.2)
 
 # The ENGINE's graph_core, never a project's vendored src/ — same precedent as
 # node_writer.py's `mint_permanent_id` import (goal:s14): unify.py always runs
@@ -126,8 +130,20 @@ SYMLINK_MODE = "120000"
 #: this name before adding it, so a retry after a partial failure still works.
 REMOTE_NAME = "agi-unify-source"
 
-GRID_REF_NAMESPACE = "refs/grid"
-GRID_FETCH_REFSPEC = "refs/grid/*:refs/grid/*"
+
+
+def grid_ref_namespace(repo: Path) -> str:
+    """The grid ref namespace for the project `repo` belongs to (goal:g14.14.7).
+
+    Replaces the module constants `GRID_REF_NAMESPACE` / `GRID_FETCH_REFSPEC`:
+    a constant cannot see the project config, so it can only ever spell one
+    namespace. `repo` is a git repo root or a graph root, so the GRAPH root is
+    resolved first -- handing the bare repo root to `grid.ref_ns_for` would
+    find no config and return the default for the wrong reason. A project with
+    no `grid.storage_trunk` keeps exactly `refs/grid`.
+    """
+    repo = Path(repo)
+    return grid.ref_ns_for(locations.find_project_root(repo) or repo)
 
 GRAFT_COMMIT_MESSAGE = (
     "goal:g11 — graft the graph's history under .agi/\n\n"
@@ -245,7 +261,7 @@ def count_grid_refs(repo: Path) -> int:
     """Number of refs under `refs/grid/` in `repo`. A ref is the only home of
     every payload byte (goal:g7) — this is the number step 5 asserts across
     unchanged, and the number `preflight` records before anything happens."""
-    out = _git(repo, "for-each-ref", GRID_REF_NAMESPACE)
+    out = _git(repo, "for-each-ref", grid_ref_namespace(repo))
     return len([line for line in out.splitlines() if line.strip()])
 
 
@@ -316,9 +332,12 @@ def find_stale_payloads(tree: Path, engine: Path) -> list[str]:
 
     The grid is the authority (**goal:g6.3** — the graph holds the bytes and
     the engine tree is what falls out), so the comparison is against
-    `refs/grid/node/<mint-id>:payload` read straight out of the tree clone with
-    plumbing. No import of `grid.py`: this check must keep working even if that
-    module is mid-edit, which during an engine migration it plausibly is.
+    `<ns>/node/<mint-id>:payload` (read through `grid_ref_namespace`) straight
+    out of the tree clone with plumbing. The payload BYTES are read with raw
+    git rather than through `grid.py`'s readers, so this check keeps working
+    even if that module is mid-edit, which during an engine migration it
+    plausibly is; only the namespace string comes from the one resolver, which
+    is a pure function with no git behind it.
 
     A node with no grid ref yet is skipped rather than reported — it has no
     recorded bytes to disagree with, and `find_missing_payloads` already covers
@@ -336,7 +355,7 @@ def find_stale_payloads(tree: Path, engine: Path) -> list[str]:
             continue
         res = subprocess.run(
             ["git", "-C", str(tree), "cat-file", "blob",
-             f"refs/grid/node/{mint_id}:payload"],
+             f"{grid_ref_namespace(tree)}/node/{mint_id}:payload"],
             capture_output=True,
         )
         if res.returncode != 0:
@@ -375,21 +394,64 @@ def _sha256_file(path: Path) -> str:
 
 # --- safety: never the real repos -------------------------------------------
 
+def _git_common_root() -> Path | None:
+    """The working-tree root of the repo this checkout's git dir belongs to —
+    a worktree names its MAIN repo through the common dir. None if git cannot."""
+    repo = Path(__file__).resolve().parent
+    out = _git(repo, "rev-parse", "--git-common-dir", check=False).strip()
+    if not out:
+        return None
+    common = Path(out) if out.startswith("/") else (repo / out)
+    common = common.resolve()
+    return common.parent if common.name == ".git" else common
+
+
+def _real_repos() -> tuple[Path, ...]:
+    """The real checkouts THIS box must never write into, each with its
+    `-tree` sibling: the `box.root` cell when it has one (config-max), and
+    git's own answer for the running checkout whether or not it does — so an
+    absent or foreign cell still fails closed, by name (R-EF58 S1)."""
+    root = locations.find_project_root(Path(__file__).resolve().parent)
+    cell = (boxes.box_cells(root).get("root") if root else "") or ""
+    named: list[Path] = [Path(cell)] if cell else []
+    here = _git_common_root() or (Path(root).resolve().parent if root else None)
+    if here is not None and here not in named:
+        named.append(here)
+    return tuple(p for engine in named
+                 for p in (engine, engine.parent / (engine.name + "-tree")))
+
+
 #: Defense in depth beyond operator discipline (see module docstring): these
-#: two paths are never a legitimate `--engine`/`--tree`, regardless of
-#: `--force`. Deliberately a literal path comparison, not a remote-URL check
-#: — a throwaway clone's own `origin` can legitimately point at the same
-#: GitHub repos these paths hold locally; what must never happen is *this
-#: script writing into these two directories*.
-_FORBIDDEN_REAL_PATHS = (
-    Path("/home/ubuntu/work/agi"),
-    Path("/home/ubuntu/work/agi-tree"),
-)
+#: paths are never a legitimate `--engine`/`--tree`, regardless of `--force`.
+_FORBIDDEN_REAL_PATHS = _real_repos()
 
 
-def _touches_a_real_repo(path: Path) -> bool:
+def _touches_a_real_repo(path: Path) -> Path | None:
+    """The forbidden real repo `path` resolves to, or None — returning the
+    match, not a bare bool, lets the refusal name what it refused."""
     resolved = Path(path).resolve()
-    return any(resolved == forbidden.resolve() for forbidden in _FORBIDDEN_REAL_PATHS)
+    for forbidden in _FORBIDDEN_REAL_PATHS:
+        if resolved == forbidden.resolve():
+            return forbidden
+    return None
+
+
+def _unresolved_real_repo_guard(engine: Path, tree: Path) -> dict | None:
+    """A refusal when the guard resolved no real repo at all, or None.
+
+    An empty forbidden set makes `_touches_a_real_repo` return None for every
+    path — the old empty-list default, which fails OPEN. If nothing named a
+    real repo (no `box.root` cell, no git common root, no project root), the
+    guard cannot tell a throwaway clone from production and must refuse."""
+    if _FORBIDDEN_REAL_PATHS:
+        return None
+    return _refuse(
+        "real_repo_guard_unresolved",
+        f"the real-repo guard resolved no repo to forbid (engine {engine}, "
+        f"tree {tree}) — no box.root cell, no git common root, no project "
+        f"root; refusing rather than allowing a write blind. If this IS the "
+        f"one-time real migration, pass {REAL_MIGRATION_FLAG}",
+    )
 
 
 #: The one flag that lets this script touch the real repos, spelled so it
@@ -433,12 +495,17 @@ def preflight(engine: Path, tree: Path, *, force: bool = False,
     engine = Path(engine).resolve()
     tree = Path(tree).resolve()
 
-    if (_touches_a_real_repo(engine) or _touches_a_real_repo(tree)) and not allow_real:
+    unresolved = _unresolved_real_repo_guard(engine, tree)
+    if unresolved and not allow_real:
+        return unresolved
+
+    real = _touches_a_real_repo(engine) or _touches_a_real_repo(tree)
+    if real and not allow_real:
         return _refuse(
             "refuses_real_repo",
-            f"{engine} or {tree} resolves to one of the real repos this "
-            f"script must never write into — clone to /tmp and point there. "
-            f"If this IS the one-time real migration, pass "
+            f"{real} is one of the real repos this script must never write "
+            f"into (asked for engine {engine}, tree {tree}) — clone to /tmp "
+            f"and point there. If this IS the one-time real migration, pass "
             f"{REAL_MIGRATION_FLAG} (not --force; they are different "
             f"permissions and neither implies the other)",
         )
@@ -894,7 +961,15 @@ def fetch_grid_refs(engine: Path, tree: Path, *, remote_name: str = REMOTE_NAME)
 
     before = count_grid_refs(engine)
     source_count = count_grid_refs(tree)
-    _git(engine, "fetch", "-q", remote_name, GRID_FETCH_REFSPEC)
+    # Source and target each declare their own namespace, so the refspec maps
+    # one to the other (goal:g14.14.7). Unconfigured on both sides this is
+    # exactly `refs/grid/*:refs/grid/*` — the old `GRID_FETCH_REFSPEC` literal,
+    # with NO leading `+`. The `+` would force-update a non-fast-forward ref,
+    # which the original single-namespace literal never did; `grid.push_spec_for`
+    # carries that `+` and is the wrong helper for this fetch.
+    src_ns = grid_ref_namespace(tree)
+    dst_ns = grid_ref_namespace(engine)
+    _git(engine, "fetch", "-q", remote_name, f"{src_ns}/*:{dst_ns}/*")
     after = count_grid_refs(engine)
 
     if after != source_count:
@@ -991,12 +1066,17 @@ def preflight_rollback(engine: Path, *, force: bool = False,
     """
     engine = Path(engine).resolve()
 
-    if _touches_a_real_repo(engine) and not allow_real:
+    unresolved = _unresolved_real_repo_guard(engine, engine)
+    if unresolved and not allow_real:
+        return unresolved
+
+    real = _touches_a_real_repo(engine)
+    if real and not allow_real:
         return _refuse(
             "refuses_real_repo",
-            f"{engine} resolves to one of the real repos this script must "
-            f"never mutate. Rolling back the real migration is a legitimate "
-            f"recovery — pass {REAL_MIGRATION_FLAG} to do it",
+            f"{real} is one of the real repos this script must never mutate "
+            f"(asked for {engine}). Rolling back the real migration is a "
+            f"legitimate recovery — pass {REAL_MIGRATION_FLAG} to do it",
         )
 
     if not (engine / ".git").exists():
@@ -1044,7 +1124,8 @@ def preflight_rollback(engine: Path, *, force: bool = False,
         "prestate": prestate,
         "current_head": current_head,
         "grid_refs_to_delete": sorted(
-            r for r in _all_refs(engine) if r.startswith(GRID_REF_NAMESPACE + "/")
+            r for r in _all_refs(engine)
+            if r.startswith(grid_ref_namespace(engine) + "/")
         ),
         "pushed_to": pushed_to,
         "force": force,
@@ -1072,7 +1153,8 @@ def perform_rollback(engine: Path, pre: dict) -> dict:
 
     _git(engine, "reset", "--hard", pre_head)
 
-    delete_cmds = _git(engine, "for-each-ref", "--format=delete %(refname)", GRID_REF_NAMESPACE)
+    delete_cmds = _git(engine, "for-each-ref", "--format=delete %(refname)",
+                       grid_ref_namespace(engine))
     if delete_cmds.strip():
         _git_stdin(engine, ["update-ref", "--stdin"], delete_cmds)
 

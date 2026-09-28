@@ -1,0 +1,38 @@
+{
+  "rotation": "crash-recovery",
+  "seat": "director-thought",
+  "recorded_at": "2026-09-25T06:41:25.990420Z",
+  "result": "respawned",
+  "probable_cause": "unknown",
+  "succ_name": "director-thought",
+  "gen": 30,
+  "gen_after": 30,
+  "pin_ref": "",
+  "tmux_session": "agi-rc",
+  "window_id": "@3",
+  "pred_pids": [
+    3469223
+  ],
+  "row": {
+    "name": "director-thought",
+    "role": "director",
+    "model": "claude-sonnet-5",
+    "pid": 3469223,
+    "window": "@55",
+    "session_id": "18e986a8-2c6d-4d55-a9b7-c5f601f10c0b",
+    "generation": 29,
+    "worktree": ".agi/worktrees/post-director-thought"
+  },
+  "respawn_outcome": {
+    "name": "director-thought",
+    "generation": 30,
+    "pid": null,
+    "window": "@3",
+    "reason": "",
+    "row": "config:seats row 'director-thought': session_ref= session_name= session_label=director-thought session_id= pid=None generation=30 window='@3' source=registry"
+  },
+  "after_join": {
+    "skipped": "no live session",
+    "age_s": 314.8560736179352
+  }
+}

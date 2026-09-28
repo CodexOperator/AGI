@@ -19,6 +19,7 @@ seeds:
   - goal:g7.31.3
   - goal:g7.31.4
   - goal:g7.31.5
+  - goal:g7.31.6
 status: active
 tags:
   - goal
@@ -28,7 +29,7 @@ tags:
   - adapter
   - magic-pane
   - spine
-thought_session: magic-pane-2026-09-21
+thought_session: belam-sot-land-20260928
 title: "G7.31: Grok-bot adapter holds a tmux/CLI pane that is the seat's spine into posts, pins, formation, auto-rotation, and the unified engine routes"
 town: core
 ---

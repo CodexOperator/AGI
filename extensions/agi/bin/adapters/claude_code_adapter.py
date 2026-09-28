@@ -96,6 +96,9 @@ NAME = "claude-code"
 #: PATH by Popen).
 DEFAULT_BIN = "claude"
 
+#: The ONE override name; `harness_template._first_arg` reads it too.
+ENV_VAR = "CLAUDE_BIN"
+
 #: Built-in tools a spawned agent may reach; also the auto-approved list. No
 #: `Agent`, no `WebFetch` -- a kid's job is the graph in front of it.
 DEFAULT_TOOLS = ("Bash", "Read", "Edit", "Write", "Glob", "Grep")
@@ -265,9 +268,10 @@ def resolve_bin(harness: dict) -> str:
 
     Same precedence as `pi_adapter.resolve_bin` and for the same reason: an
     env var is how a machine with the binary somewhere else runs the loop
-    without editing a tracked config file.
+    without editing a tracked config file. Delegates to the one shared
+    resolver in `adapters.resolve_bin`.
     """
-    return os.environ.get("CLAUDE_BIN") or harness.get("bin") or DEFAULT_BIN
+    return adapters.resolve_bin(harness, ENV_VAR, DEFAULT_BIN)
 
 
 def model_args(harness: dict, tier: str) -> list[str]:
@@ -537,6 +541,17 @@ def write_system_prompt(
     return out
 
 
+#: Brief parts this harness loads ITSELF, so `brief.render` must not inline a
+#: second copy of them. Claude Code reads `CLAUDE.md` from the project
+#: directory as project instructions BEFORE the first turn, so the rendered
+#: first turn re-sent 26 KB the seat already held (measured 2026-09-26,
+#: experiment:a00-4a01c17b-415791: 106,144 chars where the pre-DH.410
+#: static-file turn was 64,896). The harness declares the fact about itself;
+#: `brief.py` reads the attribute and never names a harness, and
+#: `config:brief`'s `harness_self_loads` cell can add more per harness.
+SELF_LOADED_BRIEF_PARTS = ("harness",)
+
+
 def build_command(
     *,
     harness: dict,
@@ -565,6 +580,7 @@ def build_command(
     # project graph root the dispatcher resolved, threaded into the brief so
     # the g15 build-order rule reads the project's `.agi`, not brief.py's own.
     project_root: str | Path | None = None,
+    rendered_brief: str | None = None,  # dispatch's ONE render; None assembles here
 ) -> list[str]:
     """The argv that starts one Claude Code agent.
 
@@ -594,7 +610,7 @@ def build_command(
     # This adapter decides only how to SPELL it, and for Claude Code the only
     # spelling that keeps every segment is one file.
     _btier = brief_tier or tier
-    segments = brief.assemble(
+    segments = [rendered_brief] if rendered_brief is not None else brief.assemble(
         tier=_btier, agent_id=agent_id, iter_n=iter_n, cli_py=cli_py,
         dispatch_py=dispatch_py, scaffold=scaffold, target=target,
         parallel=parallel, max_live=max_live, source_root=source_root,
@@ -837,6 +853,10 @@ def restart(
     brief_tier: str | None = None,
     role: str | None = None,
     ladder_tier: int | None = None,
+    rendered_brief: str | None = None,
+    # hypothesis:every-adapter-restart-spawns-from-the-scrubbed-env --
+    # the base the child env is built from; None means dispatch's scrubbed env.
+    base_env: dict | None = None,
 ) -> int | None:
     """Re-spawn a dead agent. Returns the new pid, or None on failure.
 
@@ -854,9 +874,10 @@ def restart(
         dispatch_py=dispatch_py, target=target, parallel=parallel,
         max_live=max_live, brief_tier=brief_tier, role=role,
         ladder_tier=ladder_tier,
+        rendered_brief=rendered_brief,
     )
     log_file = sess_dir / "output.log"
-    env = child_env(harness=harness, base=dict(os.environ), tier=tier)
+    env = child_env(harness=harness, base=adapters.scrubbed_base(base_env), tier=tier)
     try:
         with open(log_file, "ab") as logf:
             proc = subprocess.Popen(

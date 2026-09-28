@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-cap-10-20-20260925
+thought_session: belam-sot-land-20260928
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -102,19 +102,20 @@ AXES     morals = up-down (vertical · faith ladder · moral:*)
 DONE     residues=0 · format✓ · §3e suite green on YOUR tip (leaf/trunk)
          → write.py set status complete (BARE YAML · never quoted)
          → AFTER each 0-residue leaf-chain merge-up: run FULL verify suite on YOUR director worktree
-         → sync ALL post WTs · NEVER leave closed work as active/horizon
+         → sync ALL post WTs via **merge** (NEVER ff-only · keep WIP · never reset --hard)
+         → harvest-clean finished parent+kid WTs (explicit duty; reaper/heal optional)
          → board Agent Notes (NOT Belam chat)
 GRAPH SoT (all 3 roles: Belam · director-belam · director-helper):
          after ANY graph doc SoT mod → write.py route ONLY · push tips as roles say
          → sync ALL post WTs (seat-director-belam · seat-director-helper · other grok post WTs)
-         → CROSS-DIR LOCAL SYNC ALLOWED: either director may ff|merge-keep-WIP
+         → HARD: merge tip into post WTs (NEVER ff-only · ff ruins grid history · keep WIP · never reset --hard)
+         → CROSS-DIR LOCAL SYNC ALLOWED: either director may merge-keep-WIP (NEVER ff-only)
             the other's /data/work/agi/.agi/worktrees/seat-director-* (never reset --hard)
          → push season2 = core/season2/main ONLY · NEVER seat remote head · no new remote branch
          → no UpdateAgent/profile hand-edit · no ping
 BELAM    no mid-batch talk · daily graph pass only
 REOPEN   = Prime priority over plain open batches
 COORD    self-coordinate via geometry board only (§4b)
-EXCEPT   exposed keys/leak → Belam NOW
          credits empty · mesh down → owner ONLY + HOLD until reply
 ```
 
@@ -147,12 +148,20 @@ DIAGRAM-MAX (HARD — every token):
         ──▶ keep never/only-if/unless · conditions · who/when · supersessions
         ──▶ owner verbatim stays verbatim
 land gate: format ✓ · residues=0 · FULL suite green on post (§3e)
-  → write.py status complete (BARE) on done leaf/trunk · sync post WTs · not leave active/horizon
+  → write.py status complete (BARE) on done leaf/trunk
+  → sync post WTs via **merge** (NEVER ff-only) · harvest-clean finished parent+kid WTs
+  → not leave active/horizon
   → after each 0-residue leaf-chain merge-up: FULL verify suite on YOUR director worktree (forward metric)
   morals axis = up-down · verify-suite progress = forward-backward
-routes: write.py · read · send · dispatch/workflow · rotate/spawn
-  (engine routes wording — prefer named CLIs / write.py route over raw tools)
-§3d residue → write.py goal version (whole-replace thought/feeling)
+DISK (HARD · directors enforce · Belam awareness): AGI WTs/loops budget **50–80GB** used
+  always clean harvested parent+kid worktrees after harvest/done (git worktree remove)
+  · optional reaper/heal when available · still explicit cleanup duty · never wipe live mid-batch
+  · parent brief MUST carry harvest-clean (directors put it in orders / watch COMPLETE)
+routes / SKILLS (prefer skill names over inlining procedure into PROFILE/routines):
+  skill:agi-node-write · agi-goal · agi-send · agi-rotate · agi-dispatch · agi-workflow
+  · agi-verify · agi-merge-pass · agi-master-gate · agi-corrective · agi-memory-guard
+  (engine routes still: write.py · send · dispatch/workflow · rotate/spawn — harness sync recipe stays graph SoT)
+§3d residue → write.py goal version (whole-replace thought/feeling) · skill:agi-corrective
 lean-MUR: context thick → thin file list (≤8–12) anytime · ctx↑ only after lean
 loop independently until residues=0 · report to GRAPH not Belam
 watch: SECTION:ROUTINE_WATCH ACTION FORMAT (self-contained HARD fill · NO standing §3c stub)
@@ -163,7 +172,9 @@ watch-claim (HARD · DIAGRAM C): horizon|leaf claimable · write.py status activ
   · horizon-under-active kids are claimable
 internals-sync: grok-internals-sync title+body from doc:grok-harness-internals-sync ONLY
 OWNER CADENCE (HARD — 2026-09-22): sync every 30m · parents hourly · 15m between bot syncs · parents offset :07 vs :22
-GRAPH SoT post-mod (DIAGRAM A): write.py only · push tips as role (season2=core/season2/main · NEVER seat head / new remote branch) · sync ALL post WTs (cross-dir local sync OK · ff|merge-keep-WIP · never reset --hard) · no UpdateAgent · no ping
+GRAPH SoT post-mod (DIAGRAM A): write.py only · push tips as role (season2=core/season2/main · NEVER seat head / new remote branch)
+  · sync ALL post WTs via **merge** (NEVER ff-only · cross-dir merge-keep-WIP OK · never reset --hard)
+  · no UpdateAgent · no ping
 CONCURRENCY (HARD — DIAGRAM B · ROUTINE_WATCH ACTION FORMAT):
   spawn.parallel=1 per goal (config + orders)
   concurrency = spawn multiple parents for multiple goals
@@ -250,16 +261,19 @@ HORIZON-UNDER-ACTIVE (HARD scan):
   those horizon kids are claimable / spawn targets (activate bare → spawn same turn)
 
 COMPLETE (leaf/trunk done · residues=0 · format✓ · suite✓):
-  write.py status complete (BARE) · sync post WTs · NEVER leave as active/horizon
+  write.py status complete (BARE) · sync post WTs via **merge** (NEVER ff-only)
+  · harvest-clean finished parent+kid WTs (parent brief + director duty · reaper/heal optional)
+  · NEVER leave as active/horizon
   after each 0-residue leaf-chain merge-up → run FULL verify suite on YOUR director worktree (forward metric)
 
 ZERO-RESIDUE
-  MUR accept              ──▶ residues=0 ──▶ board complete OK (outside watch) · verify suite on YOUR WT
+  MUR accept              ──▶ residues=0 ──▶ board complete OK (outside watch) · verify suite on YOUR WT · harvest-clean WTs
   MUR accept_with_residue ──▶ residues>0 ──▶ NO board complete · KEEP parent loops · nest kids
   MUR reject/format-fail  ──▶ fix → re-MUR
 
 1) Sense
    parents alive? workflows running? slots free under ≤10/≤20?
+   disk used under /data/work/agi toward 50–80GB budget? harvested WTs still listed?
    LIVE parent age >90m → health check (progress/traj/log idle · stuck cmd · lease holder alive)
      · unhealthy >90m → treat as hung for watch decision (emit · eligible remur/reclaim ONLY-IF already in SoT · NEVER invent kill)
      · healthy >90m → leave alone
@@ -273,13 +287,14 @@ ZERO-RESIDUE
    FILL toward CAP · multi-leaf nest+FILL · spawn MUR(s) first (if toward-cap)
      then residual parents · then fresh horizon claims
    durable systemd · ACTIVE⇒spawn SAME TURN (bare active + spawn paired)
+   after harvest/done → remove harvested parent+kid WTs (explicit; never wipe live mid-batch)
 3) Emit ONLY on delta — short table OK
 4) No delta → silence
 5) Never invent. Never new remote head. Never push core/main.
-6) Prefer graph routes. DURABLE SPAWN HARD. spawn.parallel=1.
+6) Prefer skill refs (agi-*) + graph routes. DURABLE SPAWN HARD. spawn.parallel=1.
 7) Morals axis (up-down) + verify-suite progress (forward-backward) — see PROFILE DIAGRAM A/B/E
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner-fix: owner GO 2026-09-25 CAP ≤10/dir · ≤20 box (engine max_live=20); no early-exit after MUR-only fill; residual parents + horizon-under-active scan; ACTIVE⇒SPAWN SAME TURN; FILL ORDER MUR→residual→horizon; morals up-down + verify-suite forward metric after 0-residue merge-up; cadence/pins unchanged; LIVE parent >90m health check (unhealthy→hung watch decision · healthy→leave · never invent kill)
+owner-fix 2026-09-28: sync post WTs = merge-not-ff · DISK 50-80GB directors enforce · harvest-clean in COMPLETE/parent-brief/watch · skill refs over inlined PROFILE/ROUTINE bodies · caps ≤10/≤20 unchanged
 <!-- THOUGHT:END -->

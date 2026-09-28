@@ -27,6 +27,8 @@ is `mvp:unified-spawn-path`'s first falsifier, stated as code.
 from __future__ import annotations
 
 import importlib
+import os
+import shutil
 import sys
 from pathlib import Path
 from types import ModuleType
@@ -36,8 +38,99 @@ from types import ModuleType
 REQUIRED = ("build_command", "child_env", "is_alive", "restart", "needs_credential")
 
 
+def scrubbed_base(explicit: dict | None = None) -> dict[str, str]:
+    """The base env a RESTART child is built from.
+
+    `dispatch.scrubbed_env()` is the ONE definition of what gets scrubbed; it
+    is imported lazily because dispatch imports this package. An `explicit`
+    base from the caller wins, so the reaper hands over exactly the env it
+    scrubbed for the first spawn. Before this, every `restart()` read raw
+    `os.environ` and a restarted round inherited the Claude-Code Anthropic
+    credentials (hypothesis:every-adapter-restart-spawns-from-the-scrubbed-env).
+
+    The explicit base is scrubbed on the way through, NOT trusted: before this,
+    `restart(base_env=dict(os.environ))` leaked AGI_MODEL_SLOT_LOCK,
+    ANTHROPIC_API_KEY, AGI_ORDERS_TEXT and PROVISIONING_KEY_VAR, and nothing
+    but the absence of such a caller kept it from leaking live.
+    """
+    # ONE scrub list: `dispatch.ENV_VARS_TO_SCRUB` is imported from dispatch,
+    # which imports this package -- hence the lazy import, not a copy of the
+    # names here. Whatever the caller hands over is FILTERED, so the property
+    # holds by construction instead of by caller discipline: a second spawner
+    # (heal.py's precedent) passing raw `dict(os.environ)` now gets the same
+    # scrub the default base gets. Idempotent over `scrubbed_env()`'s own
+    # output, which is already free of every name in the list.
+    import dispatch
+    if explicit is None:
+        return dispatch.scrubbed_env()
+    scrub = dispatch.ENV_VARS_TO_SCRUB
+    return {k: v for k, v in explicit.items() if k not in scrub}
+
+
 class AdapterError(RuntimeError):
     """Raised for an adapter that is missing, unimportable or incomplete."""
+
+
+def resolve_bin(harness: dict, env_var: str, default: str) -> str:
+    """The ONE harness bin resolver (`goal:g15` config-max).
+
+    `$env_var` override, then the config `bin` cell, then the built-in
+    default. `~/x`, bare `~` and `{home}` expand against the CURRENT HOME at
+    resolve time; `~user/x` expands against THAT user's home
+    (`os.path.expanduser` semantics, `goal:g15.29.2`); a token-expanded path
+    is used only if it exists; a bare name is looked up on PATH. An
+    explicit override naming anything but the default that resolves nowhere
+    refuses BY NAME -- never a bare `Popen` FileNotFoundError.
+
+    A path-shaped cell that does not exist refuses BY NAME -- naming the
+    harness, the path that was tried and the `$env_var` that would override
+    it -- WHETHER OR NOT it needed a home token. Returning the raw
+    `~/...` (or a raw absolute) cell instead is what made `Popen` die on a
+    bare `FileNotFoundError('~/...')` that names nothing (round 2 of this
+    hypothesis), then on `FileNotFoundError('/x/nope')` once the token-free
+    absolute was found to be the same unnamed death wearing a fuller path
+    (`hypothesis:harness-bin-absolute-token-free-bins-refused-by-name`).
+    Precedence never required carrying an unexecable value; a bare NAME is
+    still carried unchanged, which is what a synthetic template with no
+    adapter module renders.
+    """
+    explicit = os.environ.get(env_var) or harness.get("bin")
+    raw = explicit or default
+    override = bool(explicit) and raw != default
+    home = os.path.expanduser("~")
+    if raw.startswith("~"):
+        # `~/x`/`~` -> CURRENT HOME; `~user/x` -> THAT user's home. Splicing
+        # `home + raw[1:]` made `~bob/x` resolve to `/home/<me>bob/x`.
+        path = os.path.expanduser(raw)
+        # A `~user` that does not exist cannot expand: `expanduser` hands the
+        # raw token back unchanged, and the `path == raw` branch below then
+        # returned it, so `Popen` died on a bare
+        # `FileNotFoundError('~nosuch/x')` that named nothing.
+        if path == raw:
+            raise FileNotFoundError(
+                f"harness {harness.get('adapter') or '?'!r}: cannot resolve binary "
+                f"{raw!r}: no such user's home directory; "
+                f"set ${env_var} to override")
+    else:
+        path = raw.replace("{home}", home)
+    if os.sep in path or (os.altsep and os.altsep in path):
+        if os.path.exists(path):
+            return path
+        if path != raw:
+            why = f"expanded to {path!r}, which does not exist"
+        else:
+            why = "does not exist"
+        raise FileNotFoundError(
+            f"harness {harness.get('adapter') or '?'!r}: cannot resolve binary "
+            f"{raw!r}: {why}; "
+            f"set ${env_var} to override")
+    if shutil.which(path):
+        return path
+    if override:
+        raise FileNotFoundError(
+            f"harness {harness.get('adapter') or '?'!r}: cannot resolve binary "
+            f"{raw!r}: ${env_var} unset, config `bin` absent, not on PATH")
+    return path
 
 
 def load(name: str) -> ModuleType:
