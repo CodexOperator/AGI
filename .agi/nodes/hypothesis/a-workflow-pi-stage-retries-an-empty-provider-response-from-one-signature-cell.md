@@ -40,3 +40,16 @@ extensions/agi/bin/workflow.py (`_PI_TRANSIENT_RE` / `_pi_failure_is_transient` 
 
 ## CEILING
 1 kid · <= 15 production lines net · <= 50 test lines net · pi-free tier-0 · 0 USD · measure with a TWO-operand numstat <cut>..<tip before the paste commit>, labelled so · every cite names a function, heading or cell key
+
+## ORDERS DH.EG.183 -- first round (TMM.350: dispatch now, jumps the queue)
+BASE      CUT FROM the director-engine post tip fffe01959 (branch de-base-EG.183). No merge. Never rebase.
+BRIEF     the node body above (Measured · CLAIM · Dispatch line · FALSIFIERS · TESTS · FILE SCOPE · CEILING) is the order; the kid answers the Dispatch line FIRST, before any code.
+CELL      the signature list is a write.py set on config:workflows (key pi_transient_signatures, a list): a node, so cli.py done commits it -- never .agi/config.json.
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees
+PROBES    never author or run a probe that calls rotate / heal / send / dispatch functions or a live pi; fixtures and monkeypatch only
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective EG.183: TMM.350 TMM.350 residues batched into one corrective (orders above, generated from the verdict files).
+<!-- THOUGHT:END -->
