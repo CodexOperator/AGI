@@ -13,12 +13,12 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ```
 
 ## 🔴 Where it stops
-00:4xZ 09-28: DE's WHOLE post branch LANDED d0d126deb (owner order), [merge-up] sent to belam -- next = read the dm files; DE's 3 fix rounds (TMM.312) + counter reset (EG.N / mur-eg); belam PASSes the landing; DT's model tip 09d7ed36c
+00:5xZ 09-28 ROTATING at 0.41 -- next = read the dm files; PASS 12 (belam) over d0d126deb; DE: EG.1 + heal-sweep fix + thought-hygiene + context conftest (TMM.312/313) then counters EG.N / mur-eg; facts chain lands through you with belam's F13 trim in ONE window
 ```
 LANDED   d0d126deb = trunk 47afd8967 + DE d4446340f (662 commits, 188 files, 0 deletions) · range reds ordered to DE (TMM.312): EG.1
          test_boxkit_probe · test_thought_hygiene (5 kid experiment nodes with 2-5 THOUGHT blocks) · the context conftest suite guards (+1 red
          test_model_load_guard standins, hook_trim 0.9 s -> 134 s) · trunk reds: test_ladder_node + test_sensei_wake_audit (red alone on trunk)
-state    last order = TMM.312 · next = TMM.313 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB · account 0.606 USD, NO top-up (owner)
+state    last order = TMM.313 · next = TMM.314 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB · account 0.606 USD, NO top-up (owner)
 INTAKE   -> skill agi-send §2 (OWNER 02:28Z + 23:44Z 09-27): read empty is not proof -- the dm files + inbox + rooms directly; a ts-keyed watcher
 SPEND    RESOLVED: zero_usd lanes mint below the floor at key cap 0.01 (91ae33672, falsifier met: DH.533 0.6063 before = after) · ALWAYS
          --harness pi-free · a lease with harness 'pi' = PAID -> stop it · residues -> DE (TMM.298): printed limit, runtime-key + --cap skip
@@ -31,7 +31,8 @@ FLASH    Prime [decision] 22:38Z (OWNER): /mnt/agi-flash = logs + write-once scr
            move logs by SYMLINK only, never by flipping that cell (DE 23:12Z) + logs 0.1% -> step 2 logs one at a time (tidiness) · never worktrees
 SWEEP    [red] 00:0xZ: heal sweep removes a finished 0-commit branch's worktree (uncommitted work lost: DH.648, recovered) -> DE findings row
          -> fix under goal:g7.33 · DE's /dev/shm base-checkout fix REVERTED (placements on disk again, ~145 MiB each until DH.650)
-RAMDISK  DH.650 = repo half (DE); the tmpfs mount + user@ budget = the Prime's (card step 5; [decision] 22:0xZ)
+RAMDISK  belam 00:4xZ: tmpfs HOLD until the heal-sweep 0-commit fix is merged + 24 h with no memory crit line; then 4G, parent + kid
+         worktrees only · DH.650 repo half may land now, inert (TMM.313)
 DISK     / full 17:4xZ -> 17.9G (87 stale /tmp/lograce-*, TMM.303) -> 12.2G by 20:0xZ (bursts) -> 14.6G (24 stale logcost-*, TMM.305); ~31G /tmp scratch = DE's sweep round · 45 worktrees removed on /data
          (lossless; records in .agi/sessions/harvest-0927/<wt>/)
 GATE-DT  tip 09d7ed36c (model_slot fence lift + cell model_round_memory_max 3584M + osc_band_fit tests) · pre-gate green 03:0xZ · LEFT:
@@ -44,7 +45,8 @@ DH.577   box-cron ruling (c) (TMM.299): per-job survive_unnamed; memory_alarm tr
 DE       queue: DH.490 nudge -> PASS 10 defect hyps + residue batch + wake-facts DH.501 + row 21 capture -> g4.18.1 -> g7.32.6 + g7.32.5 ->
          g7.31.3.3 · skills step 3 = hypothesis:skills-load-per-harness-per-tier-from-one-config-cell · swarm test g5.31 (arms 10/5/15)
          · DE rotates often: after each, re-send owed orders BY NAME
-WAKEFACT 22:0xZ chain HELD (TMM.307): facts region 7164 B vs cap 2000 = the Prime's trim + cell facts_pointer_target_bytes ([decision] sent) · at DE's DH.501 merge-up: NAME node + range to belam (the Prime writes config:rotations facts); test_rotate_templates:534 green
+WAKEFACT belam 00:4xZ: live region 2009 B (cdcfe5c0b), DE's 7164 = an OLD base; the chain (code + guard test) comes to you as a [merge-up];
+         land it in the SAME window as belam's F13 trim (1988 B) + cell templates.director.startup.facts_pointer_target_bytes 2000 -> tell belam first
 AT-LAND  DE's next landing: goal:g7.33.19 into doc:unified-director-brief · more card traps -> skills (OWNER 03:3xZ via DE: "A lot of traps
          into the skill files I imagine.") after DE's 0463850fb skill edits land
 SKILLIDX doc:draft-skills-first-turn (trunk) = THE skill list until the auto index read lands: a new skill = one clause there (4265/5000 B)
