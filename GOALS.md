@@ -7544,7 +7544,7 @@ Nested .1 help-measurement + .2 stub-flag retire; adapter still stub -p pending 
 
 stop-line 2026-09-28: nested g7.31.1.1.1 + g7.31.1.1.2; NO pi.
 
-###### G7.31.1.1.1 — Record grok-bot --help measurement on node or experiment — status: active
+###### G7.31.1.1.1 — Record grok-bot --help measurement on node or experiment — status: complete
 
 # goal:g7.31.1.1.1
 
@@ -7575,6 +7575,20 @@ stop-line 2026-09-28: nested g7.31.1.1.1 + g7.31.1.1.2; NO pi.
 ## Agent Notes
 
 Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
+
+## Measurement 2026-09-28 ~18:50 ET (belam-prime) — refused-by-name
+
+```
+host: belam-prime
+probe: command -v grok-bot; type grok-bot; PATH + GROK_BOT_BIN candidates
+result: GROK_BOT_ABSENT
+exit: non-zero / empty PATH resolution
+DEFAULT_BIN in adapters/grok_bot_adapter.py = "grok-bot" (PATH-resolved by Popen)
+adapter note (docstring): flag SHAPE is still a stub (`<bin> --help` has not been read)
+emitted stub argv today: `<bin> [--model M] -p <prompt>` (copilot spelling)
+```
+
+No `--help` paste possible until `grok-bot` (or `GROK_BOT_BIN` / harness bin cell) is present on a measurable host. This refused-by-name block is the measurement artifact for this leaf.
 
 ###### G7.31.1.1.2 — Retire stub build_command flags to match recorded help — status: active
 
@@ -7648,6 +7662,107 @@ Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-head
 MUR-demote kids .1–.3 fleshed to format; seeds wired; director-direct NO-pi (OWNER FULL STOP supersedes ACTIVE⇒SPAWN).
 
 MUR-demote kids .1-.3 fleshed to format; seeds wired; director-direct NO-pi (OWNER FULL STOP supersedes ACTIVE=>SPAWN).
+
+###### G7.31.1.2.1 — hold restart preserves child_env — status: active
+
+# goal:g7.31.1.2.1
+
+## Why this exists
+
+**Parent `goal:g7.31.1.2`.** MUR `mur-g7-31-1-2-dt-102-2e6a8bf47-2` (2026-09-23) **demote** defect 1: held restart returns before `env = child_env(...)`; `tmux_hold` start/reattach/`_cmd` take/pass no env — credential-none drop and harness env skipped on DEFAULT restart (`HOLD_PANE=True`).
+
+## Target end-state
+
+- Hold restart computes `child_env(...)` (or equivalent) **before** returning the held pid.
+- Respawn/reattach carries that env into the pane (not bare tmux-server inheritance).
+- Proof: spy/assert env keys on held restart; `OPENROUTER_API_KEY` popped when `needs_credential` is false.
+
+## Invariants
+
+- First-spawn founding is OOS (`goal:g7.31.1.2.2`).
+- Build coverage / Popen fallback is OOS (`goal:g7.31.1.2.3`).
+- Credential drop rule stays inside `child_env` (no second drop path).
+
+## Falsifier
+
+1. On tip, held restart path reaches `child_env` / drop_unneeded_credential; a probe shows the held pane does not inherit the forbidden runtime key the pre-hold Popen path would have dropped.
+2. Negative: zero held-restart returns that skip `child_env` when `HOLD_PANE=True`.
+
+## Out of scope
+
+- `goal:g7.31.1.2.2` first-spawn named pane.
+- `goal:g7.31.1.2.3` build node + Popen fallback.
+- Measured CLI argv (`goal:g7.31.1.1`).
+
+## Agent Notes
+
+Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
+
+###### G7.31.1.2.2 — first-spawn founds named held pane — status: active
+
+# goal:g7.31.1.2.2
+
+## Why this exists
+
+**Parent `goal:g7.31.1.2`.** MUR DT.102 demote defect 2: invariant "one named pane per seat / no anonymous fire-and-forget" unmet on **first spawn** — hold only on restart; `dispatch._open_round` still direct `Popen`.
+
+## Target end-state
+
+- First spawn founds the named held pane (`tmux_hold.start` or equivalent) — not only restart.
+- Production path does not stamp `created=true` fabrication on the first restart after anonymous Popen.
+
+## Invariants
+
+- Env-on-hold-restart is OOS (`goal:g7.31.1.2.1`).
+- Build coverage / Popen fallback is OOS (`goal:g7.31.1.2.3`).
+- One named pane per seat; no parallel anonymous Popen then "upgrade".
+
+## Falsifier
+
+1. First-spawn under production `_open_round` uses the hold/start seam; probe shows stable pane_id across kill -9 without out-of-band `tmux_hold.start()`.
+2. Negative: zero production first-spawn paths that only `subprocess.Popen` with no hold/start.
+
+## Out of scope
+
+- `goal:g7.31.1.2.1` child_env on held restart.
+- `goal:g7.31.1.2.3` grid coverage + no-tmux fallback.
+- Persistent dispatch mode umbrella (`goal:g7.28`, helper seat).
+
+## Agent Notes
+
+Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
+
+###### G7.31.1.2.3 — tmux_hold build+Popen fallback — status: active
+
+# goal:g7.31.1.2.3
+
+## Why this exists
+
+**Parent `goal:g7.31.1.2`.** MUR DT.102 demote defects 3–4: no build node/payload_ref for hold module (grid gap); no Popen fallback when tmux/session missing — default-on hold can brick restart. Sense 2026-09-28: `extensions/agi/bin/adapters/tmux_hold.py` **absent** on tip — residue still live.
+
+## Target end-state
+
+- Build node (or grid coverage entry) versions the hold module path once it lands.
+- Restart falls back to direct Popen when tmux absent or session unset — seat can still restart.
+
+## Invariants
+
+- Env carry and first-spawn founding stay on sibling leaves (`.1` / `.2`).
+- Fallback is restart-safety, not a permanent anonymous path (`.2` still owns founding).
+
+## Falsifier
+
+1. `grid_coverage_check` (or build payload_ref) covers the hold module on tip; a no-tmux / no-session probe still restarts via Popen fallback.
+2. Negative: default-on hold must not hard-fail restart when tmux/session is missing.
+
+## Out of scope
+
+- `goal:g7.31.1.2.1` / `goal:g7.31.1.2.2`.
+- Measured CLI (`goal:g7.31.1.1`).
+
+## Agent Notes
+
+Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
 #### G7.31.2 — Pane anchor registers seat occupation across post/pin/formation/auto-rotation — status: active
 
@@ -7834,38 +7949,46 @@ Director-direct under OWNER FULL STOP (NO pi); supersedes prior Launch-pi Agent 
 
 # goal:g7.31.3.3
 
+## Why this exists
+
+**Parent `goal:g7.31.3`.** Owner 2026-09-27 (belam-S2-L5-X pane): parents and posts must share one spawn route; concurrency×parallel become pre-set parent slots under each post in `.geometry`; kids are dynamic `kid*` rows; rotate is a spawn option (`needs-rotate: true`); reaper/heal executes what the graph says. This leaf owns that graph-write redesign (third of three after mint + send). Messaging half of the same owner message is `goal:g7.32.5` (parked / helper).
+
+## Target end-state
+
+- Spawn and rotate are one graph-write path: committed parent-slot defs under each post; live occupancy in a local runtime file; AGI_BOX-gated loop clears `needs-rotate`; refusal stamps named row + one reply; parents write only own kid rows.
+- Nested kids `.1`–`.5` each own one owner-design residue (slots / runtime / AGI_BOX / refusal-reply / write-gate).
+- Falsifiers on kids GREEN independently; this parent stays the umbrella contract.
+
+## Invariants
+
+- GUARD BY PLACEMENT (Prime 03:2xZ 09-27): every spawn — post, parent, kid, and rotate-as-spawn — is a `systemd-run --user` transient SERVICE named `agi-<town>-<post>[-<slot>]`; tmux is only a view. Near miss: unifying on today's post route (tmux) would move parents OUT of the cap.
+- Kid worktrees follow `hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram`.
+- Does **not** open `goal:g7.31.6` / `goal:g7.32.5` / `goal:g7.34` from this leaf.
+- OWNER verbatim below wins over any paraphrase.
+
+## Falsifier
+
+1. Kids `goal:g7.31.3.3.1`–`.5` exist, seeded from this node, each with fixed-order body + CLI/grep falsifier naming its slice.
+2. Negative: zero production path that treats rotate as a separate non-graph write while this leaf is the SoT for the unified design.
+
+## Out of scope
+
+- `goal:g7.32.5` parents' dm-append / messaging half of the same owner message.
+- `goal:g7.31.6` / `goal:g7.34` (parked — do not open).
+- Cold brief / sample CLI leaves (`goal:g7.31.3.1` / `.2`).
+- Impl of systemd placement itself (engine / sanctuary guard).
+
+## Agent Notes
+
+Assigned to **director-belam**. Nested `.1`–`.5`; director-direct under OWNER FULL STOP (NO pi). Routing note: assigned director-engine for impl; Belam holds format/nest on stop-line.
+
 ## OWNER 2026-09-27 00:38Z + 00:45Z (belam-S2-L5-X's pane), verbatim -- the spawn/rotate part
+
 "One thing that bothered me is that parents get a different spawn route than posts. I want parents and posts to share the same spawn route so spawn/rotate becomes one and uses individual post info and/or generic templates to decide who gets what messages. And also it creates the parent seats in-graph under the post seat that spawned them in the .geometry directory, and get removed as part of the reaper routine. So the concurrency limit and the parallel limit together become the amount of pre-set parent post slots each post has under it, and each kid also becomes a row entry in the parent slot “kid*” row. Rows added dynamically on each kid spawn and removed on kid exit. All using the unified spawn route. Rotate just becomes an option for spawn and parents can be rotated in place instead of re dispatched. Everything is still just a unified write/mint of nodes with a new version. The reaper/heal routine just then executes actions as put into the graph via post updates and linked templates. If a post needs rotation  just set the needs-rotate: true and wait on the loop to do it. So everything becomes a graph write even spawn/rotation commands. Parents just spawn kids but all it does is write the rows and points to where in the graph that kid needs to put its next node."
 
 "One addition to 3: a refusal also activated the message send reply route to update the relevant sending post which can be found via graph of what failed and for whom."
 
 (The same 00:38Z message opens with the parents-on-the-message-system question; that half is goal:g7.32.5.)
-
-## The design as the owner confirmed it (gen 10's reading, pasted into the Prime's pane, confirmed 00:5xZ 09-27; the owner's words above win)
-Unify spawn and rotate as graph writes. Parents become rows under the post that spawned them in .geometry, with pre-set parent slots per post. Kids become dynamic kid rows under their parent's slot. Rotate becomes a spawn option (needs-rotate: true), and the reaper/heal loop carries out whatever the graph says. Refinements:
-1. Slot definitions are committed; live occupancy lives in a local runtime file.
-2. Only the box hosting the post acts (checked via AGI_BOX), and the loop clears the flag.
-3. A refusal is written into the row by name AND sent to the requesting post through the reply route, found via the graph. Cap it at one reply per failed request.
-4. Gate who may write which rows: parents write only their own kid rows, kids write none.
-
-## Invariants
-- GUARD BY PLACEMENT (Prime 03:2xZ 09-27, on the owner's question 'Will the guard work with the new spawn/rotate unified redesign?'): every spawn -- post, parent, kid, and rotate as a spawn option -- is a `systemd-run --user` transient SERVICE named `agi-<town>-<post>[-<slot>]`; tmux is only a view attached to it. The sanctuary guard caps by systemd placement (user@1000 high/max 12618/14021M; `agi-*.service` -> agi-work.slice 9302M), so a unit so named is guarded with no guard change. Measured 03:2xZ: 25 claude processes of the tmux-spawned seats sit in session-73.scope, OUTSIDE user@1000 (uncapped); dispatch.py parents are --scope units in app.slice (user@ cap only).
-- Near miss: unifying on today's post route (tmux) would move parents OUT of the cap too -- a silent regression nothing refuses.
-- Kid worktrees follow hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram (paths.<town>.worktrees_root; the guard-owned RAM disk; reaper eviction).
-
-## Relations
-- parent goal:g7.31.3 -- the rotate|spawn route of the five unified engine routes; this makes it one graph write.
-- goal:g7.32.5 -- the parents' dm-append push grant, the messaging half of the same owner message.
-- goal:g4.18.1 -- one mint route: slot and kid rows go through the same write flow.
-- goal:g7.32.6 -- the reply route refinement 3 uses; its (default)-box note (46d1d17e1): refinement 2 acts only on the box a row names.
-
-## Routing
-assigned: director-engine. THIRD of the three graph redesigns, after node spawn/mint (goal:g4.18.1) and the send hub-only work (OWNER 01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): refinement 3's refusal rides send's reply route.
-
-## Agent Notes
-Nested .1–.5 (slots/runtime/AGI_BOX/refusal-reply/write-gate); stays under g7.31.3 stop-line.
-
-Nested .1-.5 (slots/runtime/AGI_BOX/refusal-reply/write-gate); stays under g7.31.3 stop-line.
 
 ###### G7.31.3.3.1 — Committed parent-slot definitions under each post in .geometry — status: active
 
