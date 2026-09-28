@@ -30,70 +30,55 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (22:4xZ 09-27 · this seat woke 22:31Z · per-chain history = git log of this node)
+## §0 STATE (03:2xZ 09-28 · seat woke 00:45Z · per-chain history = git log of this node)
 ```
-SYNC      trunk merged 92c114d5f (3 conflicts, see commit) + GOALS.md re-render f99c68394
-LANDED    merge-ups 12 cbe776456 · 13 0420e2238 · post br: 429 chain 1ee2340c3 · DH.515 64130e4ec · THIS SEAT: 427 heal-refuse c2f528ed8
-          (heal+cli+dispatch+zero-usd = 389 passed 0 failed) · skills eb3369efe (285 passed 0 failed) · nothing handed to TM since merge-up 13 ·
-          01fc645d6 (agi-dispatch §5 sweep row) rides the SAME merge-up as the kid-worktrees chain, never without it
-TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [NOEX=1] [EXTRA=f,g] gen2.py N murq<Q>.json tip label [R4] -> orders<N>.md (check TESTS/FILE
-          SCOPE: empty when the diff has no code) · place2.sh N (de-base-N ON DISK: /dev/shm broke parent done, reverted 00:0xZ; RAM ones removed at harvest) · drainqg.sh N:K.. (TMM.306-gated queue) · redispatch.sh · mkmur.py + runmur.sh
-          D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N.. > D/harvallN.log (chain units with a while-is-active wait)
-GATE      TMM.306 (TM 21:59Z): NO parent slot refilled until load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, then ONE step at a time
-          (drainqg1 enforces it); stop nothing live · first freed slot = DH.650 RAM round (repo half) · arm 10 unchanged
-MURS      running murq125 126 = DH.676 648(kid branch) · ENDED+TRIAGED: 97 106 108 112 114-124 -> DH.680 676 678 679 668 661 662 666 663 664 660 665 669 675 · next murq 127 · next DH 681
-LIVE      parents 651 652 (RAM checkouts symlinked into .agi/worktrees) · harvested: 677 a2db4a317 · 676 d22b6f2d1 (99 passed) ·
-          648: parent worktree SWEPT (0 commits), kid branch 45344fb04 -> murq126 · harvested: 645 1300bd8c9 · 638 568f0b68d · 649 f993eadf7 (95 passed) · gated queue (T/drainqg<N>.log, chained): qg1 DONE (650 harvested b57ec4b90 · 667 c0ba1f156 · 647 a8fcf1574 · 648 a00-9a0d6077 · 649 a00-448409f6 live) · 648 649 (T/drainqgf.sh: N:F = fresh round via T/placef.sh + T/h<N>.txt) ·
-          qg2 680 653 (RAM chain keeps the front: TMM.306) · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660 661 662 663 664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 · qg13 675 670 671 672 673 674 (drainqgf.sh) · qg14 678 · qg15 679 -- io avg60 ~61 > 50 · 640 assembled 1bf1dbf6c
-DEMOTED   (not correctives) 660/661/663 'checked CLEAR / not a defect' verify notes · 662: kid ran git diff --numstat (process note) · 665: V1 done-gate + V7 write-log = findings rows already, UNVERIFIED worktree-gone probe · 668: +76 test-line breach = row, timing note
-PRUNE     TMM.309 GO: unit prune-debase (idle io, 1 per 30 s, io<50, lossless, log on the flash harvest dir) over the 130 old de-base-*
-          647 output.log recovered (fd tail) and kept on the flash harvest dir; stray RAM dir removed
-LOGS      belam [decision] 22:2xZ (owner): logs + sequential scratch -> the new flash mount, TM owns the move; DE owns the
-          log-path cells -> DH.667 (g6.49) DEMOTED mur-44: the one cell is the EXISTING box.logs_dir (my brief missed it); its literal
-          value would switch the log cap off -> corrective DH.676 FRONT of qg2; TM told: symlink, never flip the cell, until 676 lands
-G1.27     belam [decision] 23:0xZ, QUEUED not dispatch-now, AFTER the zero-usd follow-ups: briefs written b5ef95e6c ->
-          DH.670 pass11 batch (ROW 3 first) · 671 zero-usd scope · 672 banner · 673 import route · 674 e2e tests (last) -- T/h67N.txt set,
-          QUEUED as qg13 behind the zero-usd follow-up DH.675
-DECISION  out to TM: DH.577 cron policy (send-hub chain HELD from merge) · DE.1 22:0xZ: who mounts the tmpfs (off-repo) · wake-facts MAJOR
-CHAIN     last round (→ = corrective, mN = murq N running)                                           land note
- schema-gate 527 → 543 → 559 → 597 → 644 → 665 q · heal-refuse 528 → 544 → 558 → 592 MERGED c2f528ed8     NEVER 442 · NEVER 476
- probe-gate 523 → 541 → 560 → 589 → 626 → 641 → 666 q · row 20 nudge 524 → 542 → 561 → 602 → 637 → 657
- trunk reds 538 → 545 → 562 → 582 → 606 → 623 → 646 → 664 q · zero-usd 537 → 546 → 565 → 572 → 608 → 638 → 675 q (ladder red: MET as honest, not relied on)
- stale-lock 532 → 534 → 547 → 564 → 594 → 627 → 668 q                                                   532 NEVER merges alone
- model-fence 508 → … → 590 → 613 → 633 → 654                                                         R4 NEVER run (row 22)
- kid-worktrees 529 → 533 → 540 → 563 → 598 → 624 → 655 → RAM round 650 → 677 → 680 q (mur-46: 4 review items refuted, 7 small residues) · NEXT MINT: route the
-          17 named consumers through kid_worktrees_root (its own round, child of this hypothesis) once 680 clears (hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram)
- PASS 10 516 → … → 616 → 636 → 647 → 678 q · 509 → … → 599 → 630 → 649 → 679 q (merge-order hazard: merge the chain TIP, code rides along) · 507 → … → 612 → 635 → 662 q (never run test_rotate_selfreap whole)
-         512 → … → 585 → 614 → 631 → 651 · 514 → … → 604 → 617 → 632 → 652 · belam-cap-reap HELD until 507
- g4.18.1.x 521 → … → 610 → 621 → 660 q · 510/519 → … → 611 → 618 → 642 → 659 · 520 → … → 605 → 625 → 640 → 656 · 497 → … → 603 → 619 → 643 → 663 q
- thought-verb 522 → 554 → 583 → 607 → 639 → 658 · wake-facts 501 → 556 → 571 → 601 → 629 → 648 m126 kid-branch (BLOCKED: config:rotations, belam's -- DE.1)
- guard-piece 530 → 580 → 591 → 615 → 634 → 653 (NEVER 432) · guard-inst 471 AFTER 432 · send-hub 525 → … → 609 → 622 → 645 → 669 q (HELD)
- run-key 531 → 581 → 600 → 620 → 661 q · skills 526 → 573 → 595 → 628 MERGED eb3369efe
+MERGE-UP  EG.1 chain RE-HANDED to TM 03:4xZ -- TIP 207ae63f4, MB 5c40a8374, 26 files +1377/-76, 0 deletions, 123 passed, 0 open residues. The TMM.316
+          docstring fix 6d78c51bf was made by the director on the OWNER's order 03:3xZ ("EG 29 is so simple you should do it yourself"); EG.29 CANCELLED
+SERIES    EG.N (next EG.31) · murs merge_up "eg" -> mur-eg-N (next mur-eg-10) · DH.N queued before the reset keep their labels
+TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f] gen2.py N murq<Q>.json tip label (run FROM the worktree; sed header DH.EG.n -> EG.n)
+          · place2.sh N (splice fixed 01:1xZ) · placef.sh N (fresh) · redispatch2.sh N (dead round, EG labels ok, gated) · mkmur.py + runmur.sh
+          · qgEG<N>.sh = gate -> place2 (chain via `while is-active qgEG<prev>`) · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N...
+GATE      TMM.306: load1 < 16 AND io avg60 < 50, two reads 5 min apart, one placement per pass · arm 10
+LIVE      no parent at 03:2xZ · no mur running · everything below is QUEUED in chained units (systemctl --user list-units 'agi-director-engine-*')
+FRONT     EG.27 (qgEG27) = EG.9 heal-sweep chain: EG.23's kid DIED on its last write -> director SALVAGE 344d79ad2 (UNREVIEWED) -> EG.27 cut from it,
+          FIRST ACT verify + close heal.py:1683 rc-discard fail-open. TMM.313: tmpfs GO waits on this chain MERGED + 24 h no memory crit
+RE-DISP   provider-dead 02:45-03:15Z: TMM.317 = ONE AT A TIME, stop the lane on the first died-on-empty -> unit qgRS (T/redisp-serial.sh 660 EG.18
+          EG.19 661 EG.20; log T/qgRS.log, T/emptycount.log) · EG.30 = the retry fix (hypothesis:an-empty-provider-response-is-retried-not-fatal,
+          g7.33.19) placed after EG.29 (qgEG30) · COUNT 03:15-04:15Z runs itself at 04:20Z -> T/count1h.txt: > 1 in 3 died = send TM both numbers
+          · the tier-0 model/provider row is the PRIME's cell (TMM.317 (4))
+QG-EG     EG.30 (retry fix, qgEG30 now waits on nothing -- qgEG29 stopped) · EG.21 (EG.13 chain, memory-cap HARD RULE) -> EG.22 (DH.657) -> EG.24 (DH.655 clean-kid; BOUNDARY vs EG.9) -> EG.25 (DH.659 parent-demote)
+          -> EG.26 (EG.16/DH.653) -> EG.28 (DH.656, mur-eg-9 verify: cli.py guard unpinned, cache key fail-open)
+QG-DH     drainqg8.. chain (T/drainqg<N>.log): 662-664 · 665 · 666 · 668 · 669 · 675 670-674 · 678 · 679 · EG.2 EG.3 · EG.5 (facts chain, TMM.313 (2):
+          goes up as ONE [merge-up], lands with belam's F13 trim + cell) · EG.6
+HELD      EG.11 (folded into EG.14's item 4) · EG.7's 5 corpus edits stay UNCOMMITTED in a00-0194accb (parent-demoted, never land)
+NEXT      EG.1 lands -> Item 7 config-max round (AGI_TASKS_MAX cell + the carried docstring), behind the EG.9 chain · EG.4 after DH.660 clears ->
+          g7.32.6 send core -> g7.31.3.3 rotate core (belam item 4) · kid-worktrees chain clean -> tmpfs claim to belam + the 17-consumer round
+DECISION  out to TM: DH.577 cron policy (send-hub chain HELD) · wake-facts touches config:rotations (belam's) · logs: symlink until EG.2 lands
 ```
 
 ## §1 PLAN
 ```
-done   prior seats: murs 82-117, correctives 624-659, 2 chains merged · this seat: murs 97 106 108 112 114-117 triaged -> 660-666 668, 645 harvested, DH.667 minted
-next   (1) per ENDED mur: D/verd.py Q -> CLEAN (after demotes) = git merge --no-ff the chain tip (never while a place2 runs) · residue = gen2 -> drainqg
-       (2) harvest each ended parent; land LOGGED node edits + ORDERED in-scope bytes only (3) enough chains merged -> neighbourhood -> ONE [merge-up]
+loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = provider-dead -> redispatch2.sh) -> mkmur/runmur
+       per ENDED mur: D/verd.py Q -> clean = git merge --no-ff the chain tip -> [merge-up] · residue -> gen2 EG.N -> qgEG<N> chained last
+       ceiling breaches = RECORDED residues (TMM.315), never a prose-only corrective · uncommitted in-scope bytes of an ACCEPTED round: land them;
+       of a DEMOTED round: never; of a DEAD kid: salvage-commit on the kid branch, UNREVIEWED, and re-run from it
 ```
 
 ## 🔴 WHERE IT STOPS
-Murs through 124 triaged; 125 126 running; the /dev/shm dispatch checkout was REVERTED (broke parent done, DH.648 swept); 680 heads qg2; prune running.
+Rotated at the captive line: EG.1 re-handed to TM (207ae63f4, owner-ordered docstring fix); queue drained into chained gated units; EG.27 front.
 ```
-FIRST   D/verd.py 125 (DH.676 logs cell) 126 (DH.648 from the kid branch) ; harvest each ended parent (651 652) ; T/drainqg<N>.log
-THEN    clean -> git merge --no-ff <tip> -F <msgfile> · residue -> MURK=.. T/gen2.py, trim non-defects, queue on T/drainqg.sh
+FIRST   send.py read director-engine (TM's answer on the EG.1 re-hand) ; spawn_budget.py status (every ended parent -> harvest AT ONCE)
+        ; systemctl --user list-units 'agi-director-engine-*' ; T/qgRS.log (serial re-dispatch; STOP = the lane died on empty again)
+THEN    EG.27 ended -> harvest -> mur (range a935bf010..tip covers the salvage) ; 04:20Z T/count1h.txt -> TM if > 1 in 3 died ; murs -> D/verd.py
 ```
 
 ## §4 TRAPS
-Skills: agi-dispatch §5 · agi-corrective · agi-workflow · agi-node-write §5 · agi-memory-guard · agi-master-gate (TMM.304). NEXT TRUNK MERGE:
-add/add on doc:draft-skills-first-turn -> TAKE THE TRUNK'S version. Card-only: pi-free murs ~7 min/stage, verify can die (review stands) ·
-harvests under load flake 1 test: re-run before a corrective · `pgrep -f place2` matches your own shell: list /proc cmdlines instead ·
-`git merge -F -` does not read stdin · worktrees VANISH (617 618 597 parents/kids): harvest from the branch, update-ref to fast-forward ·
+Skills: agi-dispatch §5 · agi-corrective · agi-workflow · agi-node-write §5 · agi-memory-guard · agi-master-gate (TMM.304). Card-only: pi-free murs ~7 min/stage, verify can die (review stands) ·
+WATCH NEW PARENTS TOO: a wait keyed on the parents live at its start misses rounds placed and dead in between (EG.18 EG.19 661) · harvests under load flake 1 test: re-run before a corrective · `pgrep -f place2` matches your own shell: list /proc cmdlines instead ·
+`git merge -F -` does not read stdin · TWO chains edit heal.py _sweep_finished_worktrees: EG.9 chain (EG.23) + clean-kid chain (EG.24) -- merge EG.9 first, then test the second merge's heal tests before its [merge-up] · place2 splice fixed 01:1xZ (body ending mid-paragraph / THOUGHT glued to it was refused) · worktrees VANISH (617 618 597 parents/kids): harvest from the branch, update-ref to fast-forward ·
 done-time commits skip foreign nodes: check the KID worktree too (618) · parents end WITHOUT a harvest dm: reconcile · stale index.lock
-(no holder) refuses kid commits · murall/harvest greps match 'failed' in slugs · only / fills: /tmp basetemps. · a PARENT-DEMOTED round's uncommitted config
-stays for its corrective: never land it at harvest (mur-44 DH.650 V4: "hand-landed gate"). · NEXT TRUNK MERGE (TMM.310):
-skills/agi-send/SKILL.md §2 -> keep BOTH the trunk's two rows (1461add6d, owner 23:44Z) and 0463850fb's lines.
+(no holder) refuses kid commits · NEVER stop a qg unit mid-placement (it kills the dispatch: 680); a killed unit stays failed -> reset-failed before reusing its name · murall/harvest greps match 'failed' in slugs · only / fills: /tmp basetemps. · a PARENT-DEMOTED round's uncommitted config
+stays for its corrective: never land it at harvest (mur-44 DH.650 V4: "hand-landed gate").
 
 ## ENGINE FINDINGS
 Rows on goal:g7.33.19 (1-23). Propose with the next [merge-up]: CEILING has no home cell ([hypothesis].md:49) · ceilings breached (row 17;
@@ -106,18 +91,20 @@ dispatch.py > 300 s at load 32 killed a parent (621) · write-log is a per-root 
 locations.shared_sessions_dir: a worktree kid's writes are invisible to the MAIN log (DH.644 parent). · verb_thought first-match splice
 (write.py:291 via node_writer.py:922 extract_thought) has no committed test composing a body with a pasted BEGIN/END (mur-41 DH.641-k1). · links.py schema
 does not flag an in-scope experiment with no verdict and no evidence_runs (mur-38 DH.627-k1). · heal sweep (heal.py:1502-1516)
-treats a finished 0-commit branch as landed and removes its worktree with uncommitted work (DH.648); cli.py:149-160 sibling lookup finds records only under <main>/.agi/worktrees.
+treats a finished 0-commit branch as landed and removes its worktree with uncommitted work (DH.648 -> EG.9); cli.py:149-160 sibling lookup finds records only under <main>/.agi/worktrees. · dispatch.py:1729 --tier has no choices + dispatch.py:761 exact-case tier routing ('KID' takes the disk lane) (DH.680 parent). · a pytest inside a round has no cap of its own; only the round's scope cap stops it and the round dies with 0 commits (EG.8, TMM.314) -- a brief-side MemoryMax on .agi/context pytest is the durable fix · a pi-free 'empty response' kills a parent with 0 commits and no retry (4 rounds 02:45-03:0xZ) · 11 call sites keep the `cfg.get("spawn") or {}` scalar idiom (mur-eg-2 EG.1-k1; EG.10 lists them).
 
 ## BANKED
 - [rule] to ride the next [merge-up]: (a) skills/agi-merge-pass: every pasted measurement names its base commit + a re-runnable command
   (mur-37 DH.626, 4x in probe-gate) (b) skills/agi/SKILL.md:528 has no home for the structural-count rule (mur-38 DH.597).
 - TMM.268 (b) durable fix = a g7.33.17 row -- TM's. · config:brief `extras.parent` -- prime/owner. · claude-code kids on local-town -- owner's.
 - findings rows 22 13 17 unowned: TM to rank · residue-severity floor (node-text pointers -> demote) -- rule-changing, TM to judge.
+- TO TM with the next line (belam's tmpfs design, TMM.313 '4G, parent + kid worktrees'): PARENT worktrees hold uncommitted work -- EG.12 kid measured 3 of 4 live parent trees dirty; EG.7 left 5 node edits, EG.9 a config cell uncommitted in theirs. In RAM a power cut loses them; parent hypothesis conjunct 3 promises survival for post trees only.
+- [rule] (d) template_max, mur-eg-4 EG.10-k1: a round's CEILING never says to measure against the CUT tip, so kids paste an empty-range numstat (a00-c8dc1e1f) -- fixed in my orders generator 01:3xZ ('MEASURE both against the CUT tip ... paste git diff --numstat <cut> <final>'); the durable home is the [hypothesis].md CEILING line / brief template (TM's).
 - [rule] (c) template_max, mur-43 DH.638: the four-part review scaffold (orders said / machine does / near miss / deviation) is restated per node
   (a00-05c36cc7:152-158, a00-6273b184:163-166) -> ONE config:rotations review-brief template line, THOUGHT cites it (belam's cell).
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-This seat (woke 22:31Z) replaces the predecessor final-card note: every ended mur is triaged into a queued corrective (660-666, 668) and the Prime relayed an owner disk decision that became DH.667 (the logs.dir cell), queued second in qg1 because TMM.306 named DH.650 for the first freed slot. §1 PLAN rewritten for this seat; the chain rows carry the new tips.
+Final at the rotation line 00:5xZ 09-28: TM landed the whole branch (TMM.312) and ordered three fix rounds to the queue front (EG.1 live then harvested, EG.7 + EG.8 minted, 658 pulled up). A queue swap killed the in-flight 680 dispatch; qg2b re-fires it through redispatch.sh ahead of the fix rounds, and the trap is on the card.
 <!-- THOUGHT:END -->
