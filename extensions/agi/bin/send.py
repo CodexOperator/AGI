@@ -2168,6 +2168,132 @@ def _window_id_listed(tmux_session: str, wid: str) -> bool:
         return False
 
 
+# (3) of hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-
+# refused -- the foreign-row refusal is said ONCE per (row, CAUSE), never on
+# every sweep. Keying on the row ALONE would swallow a genuine CHANGE of cause
+# (a row that becomes addressable, then foreign again, must be named again), so
+# the cause is part of the key and a now-local row FORGETS its own entry below.
+_FOREIGN_REFUSALS: set[tuple[str, str]] = set()
+
+
+#: The DURABLE half of (3): the sweep cron is a NEW PROCESS every tick
+#: (crons.py `nudge_sweep`), so a process-local memo is empty on every tick and
+#: the refusal is re-printed forever. `paths.core.foreign_refusal_memo`,
+#: repo-relative; one `row<TAB>cause` line per naming.
+#: `paths.core.foreign_refusal_memo` in `.agi/config.json` is THE source of
+#: this path (rule 13: paths live in config, never as literals); the literal
+#: below is ONLY the absent-config fallback, so a graph that never got the
+#: cell still gets a working memo.
+_FOREIGN_MEMO_CELL = "foreign_refusal_memo"
+_FOREIGN_MEMO_DEFAULT = ".agi/sessions/foreign_refusals.tsv"
+
+#: Module-level alias so a TEST can interpose on the swap without patching the
+#: process-wide `os` module (`send.os IS os`): a monkeypatched `os.replace`
+#: blocks every other thread in the interpreter for the test's duration.
+_OS_REPLACE = os.replace
+
+
+def _foreign_memo_path(root: Path) -> Path:
+    graph = _graph_root(root)
+    try:
+        cfg = locations.load_config(graph)
+        v = ((cfg.get("paths") or {}).get("core") or {}).get(_FOREIGN_MEMO_CELL)
+    except Exception:  # noqa: BLE001 -- a config problem never blocks a refusal
+        v = None
+    return locations.repo_root(graph) / str(v or _FOREIGN_MEMO_DEFAULT)
+
+
+@contextlib.contextmanager
+def _foreign_memo_lock(path: Path):
+    """Exclusive lock on a LOCK SIBLING, never on the memo itself: the rewrite
+    swaps the memo's INODE, so a lock held on the old one excludes nobody. The
+    read-filter-swap rewrite and the append that can race it take the SAME
+    lock, so a naming that lands inside the window is merged, not discarded --
+    for writers that TAKE the lock (every checkout from 1f19e160c on). An
+    unlocked pre-1f19e160c writer appends to the OLD inode and loses the line."""
+    lock = path.with_name(path.name + ".lock")
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    with lock.open("a+", encoding="utf-8") as fh:
+        fcntl.flock(fh, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(fh, fcntl.LOCK_UN)
+
+
+def _foreign_refusal_said(root: Path, to: str, label: str) -> bool:
+    """True when this (row, cause) has never been NAMED, in THIS process or any
+    earlier one -> say it now, and record it where the next tick will read it."""
+    if (to, label) in _FOREIGN_REFUSALS:
+        return False
+    said = False
+    try:
+        path = _foreign_memo_path(root)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with _foreign_memo_lock(path):   # ONE lock over read AND append, so a
+            # `exists()` guard, not a bare read_text: a missing memo is NOT an
+            # error here -- it is the EMPTY memo, and the append must still run
+            # (a bare read_text raised FileNotFoundError and skipped it).
+            lines = (path.read_text(encoding="utf-8").splitlines()
+                     if path.exists() else [])
+            said = f"{to}\t{label}" in lines
+            if not said:                  # a rewrite in flight cannot lose it
+                with path.open("a", encoding="utf-8") as fh:
+                    fh.write(f"{to}\t{label}\n")
+    except OSError:  # noqa: BLE001 -- an unwritable memo never blocks a refusal
+        pass
+    _FOREIGN_REFUSALS.add((to, label))
+    return not said
+
+
+def _forget_refusals(to: str | None = None, root: Path | None = None) -> None:
+    """Drop the once-only memo for one row (or all of it, when `to` is None).
+    With `root`, the DURABLE memo is rewritten without that row's lines, so a
+    later foreign cause on the same row is named again in a LATER process."""
+    if to is None:
+        _FOREIGN_REFUSALS.clear()
+    else:
+        _FOREIGN_REFUSALS.difference_update({k for k in _FOREIGN_REFUSALS
+                                             if k[0] == to})
+    if to is None or root is None:
+        return
+    try:
+        path = _foreign_memo_path(root)
+        # ATOMIC: a temp SIBLING then os.replace, never a truncating
+        # write_text -- `_foreign_refusal_said` reads this same file, and a
+        # reader landing in a truncate/write window would see a partial memo
+        # and re-name a refusal already named. The read that builds the new
+        # content happens INSIDE the lock, so an append that lands between it
+        # and the swap is merged, never discarded (a discarded naming would be
+        # re-named forever, since the memo no longer holds it) -- fleet-
+        # uniformly, i.e. for lock-taking writers: an UNLOCKED pre-1f19e160c
+        # checkout appends to the old inode and its line is still lost.
+        with _foreign_memo_lock(path):
+            lines = path.read_text(encoding="utf-8").splitlines()
+            keep = [ln for ln in lines
+                    if ln and ln.split("\t", 1)[0] != to]
+            if len(keep) == len([ln for ln in lines if ln]):
+                return
+            tmp = path.with_name(path.name + ".tmp.%d" % os.getpid())
+            swapped = False
+            try:
+                tmp.write_text("\n".join(keep) + ("\n" if keep else ""),
+                               encoding="utf-8")
+                _OS_REPLACE(tmp, path)
+                swapped = True
+            finally:
+                # A temp that never BECAME the target is a stray in
+                # `.agi/sessions` -- remove it. After a successful
+                # os.replace(tmp, path) the tmp ENTRY IS CONSUMED and `tmp`
+                # is still a distinct name from `path`, so the guard is
+                # harmless, not load-bearing (measured: tmp.exists() False
+                # after replace, memo intact).
+                if not swapped:
+                    tmp.unlink(missing_ok=True)
+    except OSError:  # noqa: BLE001 -- an unwritable memo never blocks a sweep
+        pass
+
+
 def _nudge_target(root: Path, to: str, tmux_session: str | None,
                   repair_stale_id: bool = True,
                   ) -> tuple[str, object, str] | None:
@@ -2197,11 +2323,21 @@ def _nudge_target(root: Path, to: str, tmux_session: str | None,
     row = _seat_row_by_name(rows, to)
     if row is not None and not boxes.row_is_local(root, row):
         # A foreign box's row window/pid are NOT addressable here. Refuse by
-        # name, exactly like the stale-@id and name-window refusals below.
-        print(f"nudge: {to} is a FOREIGN box row "
-              f"(box {row.get('box') or '(default)'}); refusing as a target",
-              file=sys.stderr)
+        # name, exactly like the stale-@id and name-window refusals below -- and
+        # say it ONCE per (row, cause): a later sweep that finds the same
+        # refusal silent is a stuck loop, not news. No send-keys is ever issued
+        # into that row's window; the return below is the whole refusal.
+        label = str(row.get("box") or "(unset)")
+        if _foreign_refusal_said(root, to, label):
+            print(f"nudge: {to} is a FOREIGN box row "
+                  f"(box {label}); refusing as a target", file=sys.stderr)
         return None
+    # The row is addressable (or was never refused): forget any old refusal so a
+    # LATER foreign cause on the same row is named again -- the DURABLE memo
+    # too, and in THIS tick's process, which may not be the one that named it.
+    # `root` is a REQUIRED positional parameter of `_nudge_target`, so it is
+    # never None here: the old `elif` arm was unreachable.
+    _forget_refusals(to, root)
     window_ref = (row or {}).get("window")      # e.g. "@267", a NAME, or None
     pid = (row or {}).get("pid")
     if tmux_session is None:

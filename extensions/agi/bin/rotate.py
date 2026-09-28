@@ -9662,6 +9662,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                                  role=role, cells=cells):
         return (f"skipped: no seat-registry row with name {seat!r} "
                 "(a THROWAWAY seat never writes seats.md)")
+    box_line = _stamp_row_box(root, seat=_row_name, row=_row or {})
     _extra = (f" pubkey={key_rotation['successor_pub'][:16]}... "
               f"key_history={len(key_rotation['retired'])}"
               if key_rotation else "")
@@ -9670,7 +9671,34 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
             f"session_name={session_name} "
             f"session_label={cells.get('session_label', '')} "
             f"session_id={session_id} pid={pid} {_gen_field} "
-            f"window={window!r} source=registry{_extra}")
+            f"window={window!r} source=registry{_extra}{box_line}")
+
+
+def _stamp_row_box(root: Path, *, seat: str, row: dict) -> str:
+    """A LIVE row carries its OWN `box` cell, stamped from AGI_BOX at seating.
+
+    `box` is a SEATING cell the schema grants to the master's actor
+    (`actor_rows`), never a post's own (owner 14:5xZ 09-18; L4.110 ruling B),
+    so the stamp rides the SAME one writer `_write_identity_cells` under that
+    resolved actor -- the authority path quick-migrate already uses. A row
+    that already names its box is never rewritten (once per row, not per
+    rotation). Returns a short outcome suffix ('' when nothing was written)."""
+    import boxes  # local: same dir, no cycle
+    if str((row or {}).get("box") or "").strip():
+        return ""
+    master = _migrate_seating_actor(root)
+    if not master:
+        return " box=(no seating grant)"
+    try:
+        label = boxes.this_box(root)
+    except Exception:  # noqa: BLE001 -- an undeclared box stamps nothing
+        return " box=(undeclared: this graph names no box)"
+    try:
+        _write_identity_cells(root, seat=seat, actor=master, role="",
+                              cells={"box": label})
+    except Exception as exc:  # noqa: BLE001 -- a refused stamp never fails a seat
+        return f" box=STAMP REFUSED ({exc})"
+    return f" box={label}"
 
 
 def _looks_like_session_uuid(s: str) -> bool:
