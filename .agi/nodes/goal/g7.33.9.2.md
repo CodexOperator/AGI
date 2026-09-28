@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.9
 next_edges: []
 confidence: 0.85
-edited_by: director-belam
+edited_by: belam
 goal_id: G7.33.9.2
 goal_kind: subgoal
 heading_level: 5
@@ -14,13 +14,13 @@ origin: goals-doc
 scaffold_hash: 4ef44353fa77ab06
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - write
   - mint
   - foundation
   - redesign
-thought_session: belam-g733-foundation-20260928
+thought_session: belam-g73392-close-20260928T223113Z
 title: "G7.33.9.2: write/mint route — all node+goal edits via write.py + skills; no hand-edit; no pi required under FULL STOP"
 town: core
 ---
@@ -49,3 +49,7 @@ town: core
 
 ## Agent Notes
 Assigned to **director-belam**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Belam NO-PI self-work: falsifiers GREEN on tip c484539ad4 — write.py read body g7.33.9 exits 0 with Why→…→Agent Notes; skills/agi-node-write+agi-goal present and .claude/skills symlinks resolve; write.py -h documents replace-body standalone; MAIN write-log covers all tip g7.33.9* (actor=belam); no open seeds under .9.2. Route proved without pi.
+<!-- THOUGHT:END -->
