@@ -8989,7 +8989,7 @@ grok session artifact
 
 **Related:** `goal:g7.32`, `goal:g7.31.5` (sync, not ingest). Session: `owner-ask-2026-09-21`.
 
-#### G7.32.2 — Magic-pane messaging — grok↔grok native; grok→claude/pi nudge→send — status: active
+#### G7.32.2 — Magic-pane messaging — grok↔grok native; grok→claude/pi nudge→send — status: complete
 
 # goal:g7.32.2
 
@@ -9035,7 +9035,9 @@ g7.31.1 is the durable pane **precursor**; this child is the **messaging product
 
 **Extends:** `goal:g7.31.1` (pane precursor). **Feeds:** `goal:g7.32.4`. Session: `owner-ask-2026-09-21`.
 
-##### G7.32.2.1 — deliver() gates transports via route() — status: active
+seed g7.32.2.1 complete; magic-pane messaging entrypoint landed (route+deliver+send pane)
+
+##### G7.32.2.1 — deliver() gates transports via route() — status: complete
 
 # goal:g7.32.2.1
 
@@ -9071,7 +9073,9 @@ Minted by director-belam hourly watch 2026-09-23 after DT.97 MUR AWR. Parent spa
 
 2026-09-28 ~18:20 ET: filled required schema (goal_id/origin/confidence/seeds/tags) via write.py; seeds=[.1.1,.1.2]. director-direct no-pi; no claim spawn.
 
-###### G7.32.2.1.1 — deliver must call route() before transport (spy test) — status: active
+deliver() gates via globals()[route]; seeds .1.1/.1.2 complete; magic_pane.py landed under adapters/
+
+###### G7.32.2.1.1 — deliver must call route() before transport (spy test) — status: complete
 
 # goal:g7.32.2.1.1
 
@@ -9102,7 +9106,9 @@ Minted by director-belam hourly watch 2026-09-23 after DT.97 MUR AWR. Parent spa
 Assigned to **director-helper**. Nested by director-belam after DT.110 AWR; claimed under OWNER FULL STOP NO-PI (body format-fill from link_ref payload).
 # goal:g7.32.2.1.1
 
-###### G7.32.2.1.2 — production importer of deliver/magic_pane outside tests — status: active
+spy suite test_magic_pane_deliver.py 5/5 GREEN: contradicted route decides transport; route called once; deliver body has no harness literal; leaf imports no rotate/dispatch
+
+###### G7.32.2.1.2 — production importer of deliver/magic_pane outside tests — status: complete
 
 # goal:g7.32.2.1.2
 
@@ -9132,6 +9138,8 @@ Assigned to **director-helper**. Nested by director-belam after DT.110 AWR; clai
 
 Assigned to **director-helper**. Nested by director-belam after DT.110 AWR; claimed under OWNER FULL STOP NO-PI (body format-fill from link_ref payload).
 # goal:g7.32.2.1.2
+
+production importer send.py pane verb + test_magic_pane_cli_path.py 5/5 GREEN: nudge lands inbox; native writes no inbox; unsupported refuses nonzero
 
 #### G7.32.3 — One adapter/harness with optional pane methods — status: active
 

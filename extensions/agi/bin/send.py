@@ -5559,11 +5559,32 @@ def main(argv: list[str] | None = None) -> int:
                              "through evaluate_veto -- the wire that gives "
                              "the rings m-of-n veto gate a real caller")
 
+    # `pane` is the PRODUCTION caller of adapters/magic_pane.py
+    # (goal:g7.32.2.1.2): the routing decision is magic_pane.route()'s, not
+    # this file's.
+    p_pane = sub.add_parser("pane", parents=[common],
+                            help="deliver one message through the magic pane")
+    p_pane.add_argument("pane_args", nargs="*", help="SOURCE TARGET TEXT...")
+
     args = ap.parse_args(argv)
 
     root = _project_root()
     croot = comms_root(root, args.comms_root)
     sender = args.from_id
+
+    if args.verb == "pane":
+        from adapters import magic_pane
+        if len(args.pane_args) < 3:
+            print("ERR: pane needs SOURCE TARGET TEXT", file=sys.stderr)
+            return 1
+        source, target, *rest = args.pane_args
+        # the ONE side-effect seam: a nudge lands in the target seat inbox
+        magic_pane.reach = lambda seat, body: send(
+            root, _alias_canon(root, seat) or seat, body,
+            sender or _detect_sender(sender))
+        transport = magic_pane.deliver(source, target, " ".join(rest))
+        print(transport)
+        return 0 if transport != magic_pane.UNSUPPORTED else 1
 
     if args.verb == "send":
         # --room/--to: the whole positional bucket is text, nothing is a
