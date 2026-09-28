@@ -199,6 +199,23 @@ FILE SCOPE extensions/agi/tests/test_sensei_wake_audit.py · .agi/nodes/experime
 CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · <= 4 test lines (message/comment text only) · text only · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 7c935f727 <your final tip>` on your node (an empty range is not a measurement)
 KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit; a version delta goes in the node THOUGHT (write.py), never the body
 
+
+## CORRECTIVE DH.EG.93 -- closes mur-eg-19 EG.67-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-trunk-tests-follow-th-a00-89021ac8 tip 4c1c57efc (branch de-base-EG.93; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Pasted green count does not reproduce and hides a red in the file the round edited -- .agi/nodes/experiment/a00-89021ac8-c88ed1.md:49 -- '162 passed, 7 skipped' measures as 160 passed / 1 failed / 7 skipped over 168 collected (red at test_sensei_wake_audit.py:832)
+2. Same non-reproducing count carried into the appended probe row -- .agi/nodes/experiment/a00-743d7fdd-2fbd37.md:18 -- the row's own cmd re-runs to 1 failed, so its evidence does not support its 'expected: green'
+3. The test:832 red is pre-existing and already owned: .agi/nodes/.geometry/rotations.md is byte-identical at 7c935f727 and 4c1c57efc, and hypothesis:trunk-tests-follow-the-owners-0927-ultracode-drop-and-facts-collapse (## Measured) already records it as a live trunk red with a falsifier -- so the round's verdict=proved is not impeached by the red; only the paste is.
+4. The appended row introduces a 7th key 'run' beyond the six declared per probe in .agi/context/schemas/[experiment].md:18-22; it breaks no gate because cli.py:1129 (_probe_defect) only flags MISSING keys, so the tier-parent probe gate still counts conjunct 3.
+5. Every number or line you write is measured at YOUR final tip after your last edit and PASTED with its command (two-operand git diff); a claim you cannot re-run is narrowed or removed, never retyped.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_sensei_wake_audit.py · .agi/nodes/experiment/a00-743d7fdd-2fbd37.md · .agi/nodes/experiment/a00-89021ac8-c88ed1.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines (text, comments, docstrings, briefs and skill rows only) · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 4c1c57efc <your final tip>` on your node (an empty range is not a measurement)
+COMMIT    every edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.67: mur-eg-18 EG.56-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.93: mur-eg-19 EG.67-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
