@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write
 next_edges: []
 confidence: 0.9
-edited_by: a00-0f8cc2a9
+edited_by: a00-92c392c7
 evidence_runs:
   - experiment:a00-fd3b2d8a-0d5a4d
 loop: hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write@s2
@@ -73,9 +73,9 @@ $ git show dff3b6076:extensions/agi/tests/test_payload_rename.py | grep -n 'xfai
 |---|------|-------------|
 | 1 | five re-published CUT numbers (375/522/555/566/328) | RE-POINTED at the tip: 381/528/561/572/329. hypothesis:41 (:375 -> :381) and hypothesis:44 (:566 -> :572, :522 -> :528, :555 -> :561). The last round's P5 "every citation lands on the real line" is REFUTED by the command above -- see item 4. |
 | 2 | dispatch line said the `unset` falsifier was "STILL OPEN, unmeasured, no test" while the Agent Notes said it was refuted | THE DISPATCH LINE WAS THE LIE. The falsifier is closed in the bytes at write.py:2324-2327 and held by `test_unset_payload_ref_refuses_by_name` (test_payload_rename.py:416) and `test_unset_link_ref_on_a_create_payload_row_refuses_by_its_own_name` (test_payload_rename.py:468). hypothesis:38 rewritten to say so, with the residual named (on a `link_ref`-ALONE row `unset payload_ref` is a no-op, not a refusal) and the false `body_patch` gap dropped. |
-| 3 | `note:` marker/def pair 322/328 mixing two revisions | BOTH were one low: marker 322, def 329. hypothesis:40 and a00-0a22ec6c:111 and a00-0a22ec6c:206 (M4) all re-pointed. |
+| 3 | `note:` marker/def pair 322/328 mixing two revisions | BOTH were one low: marker 322, def 329. hypothesis:40 and a00-0a22ec6c:111 and the M4 item of a00-0a22ec6c's EG.80 Agent Note (:215 at f7294d13d; :206 is inside '## Weakness of this node' -- EG.167) all re-pointed. |
 | 4 | PARENT P5 certified on a stale blob | P5 on a00-b2b01c2b is now marked **REFUTED**, with the settling command pasted next to it, and a new table on that node naming the one-line cause: the parent verified a copy/worktree, not the committed test file at the tip. Not softened into a wording fix. |
-| 5 | this round's own `import contextlib` (test_payload_rename.py:15) shifted every def by +1 | All nine hypothesis citations fixed: 159->160 (x2, :29 and :37), 76->77, 175->176, 208->209, 122->123, 301->302, 190->191, 273->274. Four further drifted citations found in the same pass and fixed, none in the brief: a00-0a22ec6c:61 :483->:489, a00-0a22ec6c:105 :439->:468, a00-310104ca:47 and a00-0a22ec6c:119 the `_graph` row text 36-38 -> 39-42, a00-4ef63f5c:41 the `_graph` helper 26-45 -> 28-43. |
+| 5 | cited test lines drifted (cause withdrawn EG.167: defs moved +6, marker/def +1 -- no one insertion does both) | All nine hypothesis citations fixed: 159->160 (x2, :29 and :37), 76->77, 175->176, 208->209, 122->123, 301->302, 190->191, 273->274. Four further drifted citations found in the same pass and fixed, none in the brief: a00-0a22ec6c:61 :483->:489, a00-0a22ec6c:105 :439->:468, a00-310104ca:47 and a00-0a22ec6c:119 the `_graph` row text 36-38 -> 39-42, a00-4ef63f5c:41 the `_graph` helper 26-45 -> 28-43. |
 | 6 | two write.py citations inside lines this round rewrote | BOTH confirmed wrong, both fixed. `def _enforce_outside_ref_gate` is write.py:**1456** (1455 is BLANK; its two callers are :1506 and :2144). The `create --payload` mint is `extra[links.LINK_FIELD] = str(payload)` at write.py:**3131**; 3130 is the `ensure_payload` call. hypothesis:42 and :44 and a00-0a22ec6c:160. |
 | 7 | `edited_by` on a00-0a22ec6c named neither author nor lander | The field CANNOT carry both, and write.py overwrites it with the last writer, so it now reads `a00-fd3b2d8a` and the three-part truth is on that node: author a00-b2b01c2b, lander director-engine by hand at dff3b6076, last writer a00-fd3b2d8a. A one-slot provenance field on a node three actors touched is a structural defect; named for the director. |
 | 8 | a00-b2b01c2b's item-5 `Where` said "hypothesis:41,44,48" | :48 is the `## FILE SCOPE` heading. Corrected to `hypothesis:41,44` with the error named in place, plus the note that the numbers it moved were themselves one low at the tip. |
