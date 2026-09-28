@@ -35,10 +35,12 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 MERGE-UP  #1 LANDED 165c99e6a · #2 LANDED d0cb3bb35 · #5 LANDED b0aa2c178 (TMM.353, after the a2ec45880 dedupe) · #3/#4 RETURNED, #4b superseded
           · de-mu-EG151 = the CLEAN LANDING BRANCH: stack each cleared chain on it (merge-tree onto its tip first) as the next #N
           · #6 carries: goal:g7.33.19 row 24 (132d494e1, TMM.352 H1 row) + TM's rows a-c + the first cleared item of TMM.353's queue
-QUEUE     TMM.353, in order: (1) EG.183 corrective = EG.185 (cell pi_transient_signatures on config:workflows, code = reader; LAND before
-          01:43Z or after PASS B2 closes, never mid-pass) (2) EG.153 with both TMM.351 reds fixed + the one-call line = EG.184 (first attempt
-          died; CARRY d0367f71d; redispw re-dispatches) (3) TM card's owed list: EG.9 -> EG.128 -> dispatch_node_id stamp -> g7.33 items
-POST      17f338a69 = trunk b0aa2c178 synced in (own posts row = trunk; an-empty-provider hypothesis = post side)
+QUEUE     TMM.353/356, in order: (1) EG.183 corrective = EG.185 (cell pi_transient_signatures on config:workflows, code = reader; LAND before
+          01:43Z or after PASS B2 closes, never mid-pass) (2) EG.153 with both TMM.351 reds fixed + the one-call line = EG.184 (CARRY d0367f71d)
+          (3) TMM.356 per-role worktree roots (OWNER GO) on hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram, order on the
+          trunk 8af87980f (in the post 1391a0170): paths.<town>.* cells via locations.py + a mount check that REFUSES a non-mountpoint, no
+          literal; tmpfs keeps its TMM.313/319 gate (4) TM card owed list: EG.9 -> EG.128 -> dispatch_node_id stamp -> g7.33 items
+POST      1391a0170 = trunk synced (b0aa2c178 #5, 9c0a427e6 pi_retry 6 x 60 s, 8af87980f TMM.356 order); conflicts kept both sides
 PIRETRY   TMM.354 DECIDED A: values.pi_retry 6 x 60 s on the trunk 9c0a427e6. A parent reads config from its OWN worktree (find_project_root
           from cwd; load_config has no MAIN overlay) -> [red] correction sent to TM 21:4xZ. Cuts re-based: EG.184 + pick 66e7f3cf2 · EG.185
           736f5602a (orders on the node re-based, a389fe585) · 174 166 177 179 171 182 168 merged with the trunk (SP/mergecut.sh +
