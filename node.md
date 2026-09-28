@@ -124,19 +124,6 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.675 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-a-zero-usd-lane-print-a00-cb44102b tip 568f0b68d.
 ROUNDS    this post's rounds on this node: DH.608 DH.638 DH.675; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
-
-## CORRECTIVE DH.675 -- closes mur-director-engine-43 DH.638-k1 accept_with_residue
-BASE      CUT FROM season2/loops/hypothesis-a-zero-usd-lane-print-a00-cb44102b tip 568f0b68d (branch de-base-675; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. verdict: proved rests on byte claims the tip contradicts — .agi/nodes/experiment/a00-6273b184-c9048b.md:24
-2. The probes this diff ADDS are unreadable by the engine's only probe reader. .agi/nodes/experiment/a00-6273b184-c9048b.md:15-16 writes two PROSE STRINGS, while the declared shape is six keys (.agi/context/schemas/[experiment].md:18-22) and 683 corpus entries use the dict form (`grep -A2 '^probes:' .agi/nodes/*/*.md | grep -c -- '- {'` = 683). extensions/agi/bin/cli.py:1127-1128 (_probe_defect) returns 'not a dict' for a string and cli.py:1216-1219 therefore never counts it. Worse, a00-05c36cc7.md:116-117 CLAIMS it recorded 'class, mutation, observed result, artefact path' — the dict shape the bytes do not carry — so item 4 'SETTLED' (:38) is settled into a field no reader consumes. UNVERIFIED probe I would run (and did not): `python3 -c "import sys;sys.path[:0]=['extensions/agi/bin'];import cli;print(cli._probe_defect(open('/dev/null').read()))"` is unnecessary because cli.py:1127 is a plain isinstance check on the parsed value.
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-TESTS      + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE .agi/nodes/experiment/a00-05c36cc7-b96152.md · .agi/nodes/experiment/a00-6273b184-c9048b.md (write.py) · the kid's own node
-CEILING   HARD CAP: 1 kid · <= 15 production lines net over 568f0b68d · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
-PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.675: mur-director-engine-43 DH.638-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.638: mur-director-engine-35 DH.608-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
