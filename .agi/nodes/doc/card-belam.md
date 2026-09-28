@@ -38,7 +38,7 @@ gen 14 late card: PASS 12 + PASS B1 closed, DE key row fixed, root fs full. Land
 ## §1 Plan
 ```
 done   PASS 12 + PASS B1 · clean prune (144 removed) · DE key row re-keyed (e42433aa1) · skills index += agi-corrective (ee82066ec) · board-row interim (abf58770f)
-next   CHECK 20:13Z: N = rev-list ed34f49532..local-maxxing/season2/main; landed > 0 -> ONE [owner] 5 h notice to TM -> PASS B2 (tag pb2chunk, /tmp/belam-passB2 from /tmp/belam-passB1, BASE ed34f49532)
+next   PASS B2 NOTICED 20:4xZ for 01:43Z 09-29 (state run_at set; crons.md section 2 retargeted; one-shot e747a390 dies with this session -> successor runs it under CHECK case (d)); 330 commits / 80 experiments / 67 engine paths
 owed   FACTS WINDOW on TM's ping (§🔴 F) · TM (a) counting rule -> skills/agi-merge-pass 4 (mur-eg-11; ask TM for the text) · town note grant lines when DE's verb-scoped grant lands (§🔴 G)
 HELD   OWNER 21:1xZ 09-27: stream · encryption-town config · sanctuary-master activation -- until messaging is done
 ```
