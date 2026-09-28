@@ -39,6 +39,9 @@ QUEUE     TMM.353, in order: (1) EG.183 corrective = EG.185 (cell pi_transient_s
           01:43Z or after PASS B2 closes, never mid-pass) (2) EG.153 with both TMM.351 reds fixed + the one-call line = EG.184 (first attempt
           died; CARRY d0367f71d; redispw re-dispatches) (3) TM card's owed list: EG.9 -> EG.128 -> dispatch_node_id stamp -> g7.33 items
 POST      17f338a69 = trunk b0aa2c178 synced in (own posts row = trunk; an-empty-provider hypothesis = post side)
+PIRETRY   [decision] to TM 21:3xZ, OPEN: trunk values.pi_retry = 2 retries x 5 s fixed; EG.184's parent died ON a cut carrying it (279 empties).
+          A (recommended) 6 x 60 s cell-only · B hold re-dispatches · C A + growing backoff (code). If A lands: every de-base cut still carries
+          2/5 -> merge the trunk into each queued cut (a merge-resolution cut) before its re-dispatch, never edit config.json by hand
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
