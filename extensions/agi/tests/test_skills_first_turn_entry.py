@@ -19,10 +19,10 @@ sys.path.insert(0, str(REPO / "extensions" / "agi" / "bin"))
 # NO OMITTED_DEFECT EXEMPTION. The `agi-corrective` clause was once carried
 # "until its build node reaches the trunk" (config:rotations why text, 09-27
 # NEAR MISS); `build:skills-agi-corrective-SKILL.md` HAS been on the trunk
-# since, so the exemption's own expiry condition is met and the suite is RED
-# on purpose until the clause is added at the fix site -- rotations.md:83 and
-# rotations.md:123 (`id: config:rotations`), which is OUTSIDE this suite's
-# scope. A human TODO cannot be re-deleted silently; this can.
+# since, so the exemption expired. The fix site (`id: config:rotations`, both
+# `skills` first_turn entries) now names agi-corrective, and this suite goes
+# RED if that clause is ever removed again. A human TODO cannot be
+# re-deleted silently; this can.
 
 def _skills_entries() -> list[tuple[str, dict]]:
     from graph_core.persistence import frontmatter as _fm

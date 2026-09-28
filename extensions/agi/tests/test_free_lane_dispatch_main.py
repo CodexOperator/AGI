@@ -2,8 +2,10 @@
 tests (a) -- the zero-usd lane is proved through dispatch.main() itself.
 FALSIFIERS: a drained account + a `zero_usd: true` row does NOT mint a key at
 the CELL `provisioning.zero_usd_key_limit_usd`; a PAID row on the same balance
-is not refused BY THE ACCOUNT FLOOR. No network: credit_balance and the create
-call are the only fakes.
+is not refused BY THE ACCOUNT FLOOR. A dispatch-path proof with every I/O
+boundary faked: adapters.load, subprocess.Popen/run, _GRACE_SLEEP,
+provisioning.credit_balance/available/_read_provisioning_key/_mutation_guard/
+check_runtime_key_usable/check_key_floor/check_account_floor and the _call.
 """
 from __future__ import annotations
 
