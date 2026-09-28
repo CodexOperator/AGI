@@ -66,6 +66,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import envfile  # noqa: E402
+import locations  # noqa: E402
 
 #: OpenRouter's key-management endpoint.
 API_BASE = "https://openrouter.ai/api/v1/keys"
@@ -202,8 +203,6 @@ def _prov_cell(root, name: str, default: float) -> float:
     if root is None:
         return default
     try:
-        sys.path.insert(0, str(Path(__file__).resolve().parent))
-        import locations  # noqa: E402
         graph = locations.find_project_root(Path(root).resolve()) or Path(root)
         cfg = locations.load_config(graph)
         return float((cfg.get("provisioning") or {}).get(name, default))
@@ -831,8 +830,6 @@ def _configured_limit(root: Path | str) -> float:
     a reason to refuse a mint, only to fall back to the documented default.
     """
     try:
-        sys.path.insert(0, str(Path(__file__).resolve().parent))
-        import locations  # noqa: E402
         graph = locations.find_project_root(Path(root).resolve()) or Path(root)
         cfg = locations.load_config(graph)
         return settings(cfg)[0]
@@ -1184,8 +1181,6 @@ def _captures_dir(root: Path | str) -> Path:
     """Where capture JSON files live: the MAIN checkout's `sessions/` dir, so
     a diff in any worktree reads the same file (the same anchor `spawn_budget`
     uses for leases — captures are spend state, shared across worktrees)."""
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import locations  # noqa: E402
     graph = locations.find_project_root(Path(root).resolve()) or Path(root)
     return graph / locations.SESSIONS_DIR_NAME / ".spend-captures"
 
@@ -1245,8 +1240,6 @@ def _activity_workspace(root: Path | str | None = None) -> str | None:
     WHICH workspace it read — the owner's question cannot be answered without
     it. Absent means absent; it is recorded as null, never guessed."""
     try:
-        sys.path.insert(0, str(Path(__file__).resolve().parent))
-        import locations  # noqa: E402
         graph = (locations.find_project_root(Path(root).resolve())
                  if root else None)
         cfg = locations.load_config(graph) if graph else {}
@@ -1522,8 +1515,6 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     # reap
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import locations  # noqa: E402
     import spawn_budget  # noqa: E402
 
     root = locations.find_project_root(Path(args.root).resolve())
