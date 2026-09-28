@@ -286,9 +286,10 @@ TESTS     the one call: env -u TMUX -u TMUX_PANE python3 -m pytest -q -p no:cach
 FILE SCOPE extensions/agi/tests/test_write.py · extensions/agi/tests/test_payload_rename.py · the ONE leaking test file you name (its isolation only) · extensions/agi/bin/write.py (the unknown-location re-raise only, if item 1 picks the code) · .agi/nodes/hypothesis/a-payload-ref-change-renames-the-file-in-the-same-write.md (write.py) · the kid's own node
 CEILING   HARD CAP: 1 kid · <= 10 production lines · <= 40 test lines net over 161faa64e · pi-free tier-0 · 0 USD -- measure `git diff --numstat 161faa64e <tip before the paste commit>`, labelled so
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+CARRY     from the DEAD first attempt (parent a00-c38d9fc2 + kid a00-6586afae, both killed by 'Provider returned an empty response', 0 commits; 21:1xZ), the kid's PASTED runs as the parent recorded them -- facts to re-run, not claims: (a) the one call on 161faa64e (PYTHONHASHSEED=7, --basetemp /dev/shm) = 1 failed, 590 passed, 7 skipped, 1 xfailed -- ONLY item 1's test red; the three test_payload_rename.py reds of MEASURED did NOT reproduce · (b) test_payload_rename.py paired with ONE other file of the set (test_write, test_write_guard, test_write_sub, test_node_writer, test_links, test_zero_usd_mint_floor, test_bin_help_smoke) = green every time. ITEM 2 therefore = reproduce with a pasted seed/order and name the leaker, OR record NOT REPRODUCIBLE at this tip with those two runs re-pasted by you -- by a pasted command, never by argument · WRITE THE NODE EARLY and commit after every run: a round that dies mid-turn records nothing
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.184: TMM.351 TMM.351 residues batched into one corrective (orders above, generated from the verdict files).
+carry EG.184: the first attempt died on empty provider responses with 0 commits; its kid's two pasted runs (only item 1 red on the cut; the three payload_rename reds did not reproduce; each pair green) are carried as a CARRY line so the re-dispatch re-runs them instead of re-hunting blind.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
