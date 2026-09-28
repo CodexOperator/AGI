@@ -301,6 +301,26 @@ FILE SCOPE extensions/agi/bin/dispatch.py · extensions/agi/bin/provisioning.py 
 CEILING   HARD CAP: 1 kid · <= 40 production lines net over 30f99ec23 · 0 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE against the CUT tip, never HEAD: paste git diff --numstat 30f99ec23 <your final tip> on your node
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.155 -- closes mur-eg-63 EG.129-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-model-fence-is-one-mo-a00-269f2901 tip 14bfe0480 (branch de-base-EG.155; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Item-3 docstring names an ordering no code implements (dispatch.py:1628)
+2. 3. CEILING paste is the forbidden one-operand form (node:94)
+3. 4. Item-2's green evidence elides its argv (node:80)
+4. 5. New bare (True, None) fail-open (provisioning.py:230)
+5. UNVERIFIED-BY-ME: the 263-passed GREEN is over the 14bfe0480 bytes, and this worktree's HEAD (21e41270) does not contain them — the merge-tip item-3 docstring is absent here and the two bins differ from 14bfe0480 only by comment wording. Everything I ran (test_zero_usd_mint_floor 14 passed, test_dispatch 139, test_model_fence_cap 6, test_bin_help_smoke 72/7) measures the worktree tip, not the merge tip. The probe I WOULD run (not run): extract 14bfe0480's two bins into a scratch tree and run the order's six-file command at :293 — `env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT python3 -m pytest extensions/agi/tests/test_zero_usd_mint_floor.py extensions/agi/tests/test_model_fence_guard_owner.py extensions/agi/tests/test_model_fence_one_module.py extensions/agi/tests/test_provisioning.py extensions/agi/tests/test_dispatch.py extensions/agi/tests/test_ladder_node.py -q -p no:cacheprovider --basetemp /dev/shm/<unique>` — expecting 263 passed / 5 skipped at the merge tip.
+6. One-source residue the first reviewer missed: the round added `_cfg(root)` at provisioning.py:201-211 to read the project config, but mint still inlines the identical read at :875-876 (find_project_root + load_config) and :1293-1295 does it a third time. The new helper absorbs neither existing copy, so the file now has three ways to read one config — small, but it is the 'one source per rule' shape, and the round's own hypothesis is a one-config-read claim.
+7. Missed coverage note: the wire probe (node:17, THOUGHT C1) only exercises the cap guard through `--cap 1.00`, i.e. the branch at dispatch.py:2408 that exists only `if args.cap is not None`. A zero-USD round dispatched with NO --cap never reaches cap_headroom in dispatch; its only sizing refusal is mint's zero_usd_sizing_ok at :930-933. That path is covered by the node's 'gate' probe, not by the wire probe, so 'the restored cap guard runs for EVERY openrouter lane' is measured for the --cap lane only.
+DEMOTED   by the director at triage, not orders: items 2 (ceiling breach 66 vs 40 on a merge-resolution round: a findings row, disclosed; item 7 below is the cure that shrinks it) · 9 (no demote-grade defect: checked clean)
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_provisioning.py test_dispatch.py test_zero_usd_mint_floor.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/dispatch.py · extensions/agi/bin/provisioning.py · .agi/nodes/experiment/a00-9e1b8a45-e8bfeb.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 14bfe0480 · <= 40 test lines net over 14bfe0480 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 14bfe0480 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective EG.84: mur-eg-22 EG.73-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
