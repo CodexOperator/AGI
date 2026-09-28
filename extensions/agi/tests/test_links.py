@@ -744,3 +744,43 @@ def test_a_declared_container_field_off_the_writers_shape_is_refused_by_name(pro
         assert ok is want_ok, (extra, ok, defect)
         if not ok:
             assert "probes" in defect and "writer" in defect, defect
+
+
+def _declare(project, kind: str) -> None:
+    # A one-field `[experiment]` schema: `probes: {type: kind}`.
+    sdir = project / "context" / "schemas"
+    sdir.mkdir(parents=True, exist_ok=True)
+    (sdir / "[experiment].md").write_text(
+        f"---\nname: experiment\nfields:\n  probes: {{type: {kind}}}\n---\n\n# experiment\n")
+
+
+def test_an_off_shape_value_is_REFUSED_and_the_file_is_left_alone(project):
+    """ITEM 1, the headline safety property, as a DELETION probe: the refusal
+    branch in `_ensure_frontmatter` (cli.py:463-470) is deletable and the suite
+    stays green. Pinned on the FILE: bytes unchanged, refusal told."""
+    import cli
+    _declare(project, "list")
+    p = _node(project, "experiment:a00-refuse",
+              ['id: "experiment:a00-refuse"', "type: experiment", "mint_id: abc",
+               'title: "t"', "parents: ['hypothesis:h1']", "probes: one"], "b\n")
+    before = p.read_bytes()
+    # NO manifest (`ap=None`): the refusal must not depend on one.
+    ok, msg = cli._ensure_frontmatter(project, p, None, "experiment:a00-refuse")
+    assert not ok and "probes" in msg, msg
+    assert p.read_bytes() == before, "the node was rewritten by a rebuild"
+
+
+def test_the_writer_ROUND_TRIP_is_load_bearing_not_just_the_declared_type(project):
+    """ITEM 2: the round-trip clause `back.get(k) != v` was removable with no
+    test going red -- the "ask the WRITER" half was decoration. A MAPPING whose
+    two keys COLLAPSE (`1`, `"1"`) passes the type gate; the writer cannot
+    spell it -- re-rendered, one key eats the other."""
+    import cli
+    _declare(project, "mapping")
+    p = _node(project, "experiment:a00-collide",
+              ['id: "experiment:a00-collide"', "type: experiment", "mint_id: abc",
+               'title: "t"', "parents: ['hypothesis:h1']", "probes:", "  1: two",
+               '  "1": one'], "b\n")
+    ok, fm, defect = cli._load_frontmatter(p.read_text(), project)
+    assert isinstance(fm.get("probes"), dict), fm        # the type gate PASSES
+    assert not ok and "probes" in defect, defect          # the ROUND TRIP refuses

@@ -283,8 +283,13 @@ def _off_shape_keys(fm: dict) -> list[str]:
 #: YAML hands back for a bare word is the resolver's collapse, already forgiven
 #: in `node_writer.writer_key_shape`.
 _FM_TYPE_WORDS = {"list": list, "mapping": dict, "dict": dict}
-#: schemas-dir mtime -> declared types, so a rule edited mid-process is re-read
-#: rather than served stale for the life of the process.
+#: (schemas-dir, its mtime_ns) -> declared types. Two ROOTS in one process are
+#: keyed apart: materialising the same tree twice (`tar`, `cp -a`, `git
+#: archive`) shares the dir mtime, and a bare mtime key would then serve one
+#: root's table to the other -- deciding against ANOTHER root's schema.
+#: Re-read on a NEW mtime, which create/rename inside the dir does; an in-place
+#: write of a rule does NOT change the dir mtime, and is re-read because
+#: `node_writer` writes tmp+rename, not because this stamp promises it.
 _FM_TYPES_CACHE: dict = {}
 
 
@@ -298,7 +303,8 @@ def _declared_types(root, node_type) -> dict:
         stamp = sdir.stat().st_mtime_ns
     except Exception:
         return {}
-    table = _FM_TYPES_CACHE.get(stamp)
+    key = (str(sdir), stamp)
+    table = _FM_TYPES_CACHE.get(key)
     if table is None:
         table = {}
         try:
@@ -311,7 +317,7 @@ def _declared_types(root, node_type) -> dict:
         except Exception:
             pass
         _FM_TYPES_CACHE.clear()
-        _FM_TYPES_CACHE[stamp] = table
+        _FM_TYPES_CACHE[key] = table
     return table.get(node_writer.canonical_node_type(node_type), {})
 
 
