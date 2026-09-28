@@ -93,6 +93,25 @@ FILE SCOPE extensions/agi/tests/test_free_lane_dispatch_main.py · extensions/ag
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over f9fbf587a · <= 40 test lines net over f9fbf587a · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat f9fbf587a <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.169 -- closes mur-eg-x1305298-83f469 EG.150-k1 accept_with_residue (TEXT-FIX KID, skill agi-corrective 3a)
+BASE      CUT FROM season2/loops/hypothesis-free-lane-mint-and-sk-a00-af643b89 tip 2b866de03 (branch de-base-EG.169). No merge. Never rebase.
+TRIAGE    verify wins: review R1-R4 refuted by the verify stage (dropped) · every kept item is PURE TEXT (node prose or a docstring): no behaviour, test logic or config changes
+DEMOTED   by the director at triage: verify V5 (the converse leg fakes available()=True) = a NOTE, severity note, no false claim in the bytes
+Pointers below were re-read by the director at 2b866de03 (git show 2b866de03:<path> | sed -n A,Bp).
+1. STALE SENTENCE -- .agi/nodes/experiment/a00-e5b926db-80ea64.md, the "Corrective EG.124:" paragraph (tip line 172) says "suite RED on the live agi-corrective omission by design"; the CORRECTION section above it ("the expected red is GONE") refutes that. Fixed = the sentence says the red was expected then and is gone now (cite the CORRECTION heading), via write.py.
+2. STALE SENTENCE -- same node, the "CAVEAT I accept from the kid:" line (tip line 178) says the tree "now carries ONE expected red"; the same CORRECTION refutes it. Fixed = marked as history superseded by the CORRECTION, via write.py.
+3. FALSE LINE -- .agi/nodes/experiment/a00-f38a455b-d5028f.md, the bullet starting "The hypothesis node body no longer records the OMITTED_DEFECT history ANYWHERE (probe D)" (tip line 190): the hypothesis node carries OMITTED_DEFECT 4 times. Fixed = the bullet states the truth, settled by PASTING the output of: git grep -c OMITTED_DEFECT <your tip> -- .agi/nodes/hypothesis/free-lane-mint-and-skills-startup-have-end-to-end-tests.md
+4. STALE HEADER COMMENT -- extensions/agi/tests/test_skills_first_turn_entry.py, the "# NO OMITTED_DEFECT EXEMPTION." comment block (tip lines 19-25) says "the suite is RED on purpose until the clause is added at the fix site". The clause is added; the file passes. Fixed = the comment says the fix site now names agi-corrective and the test guards against its removal; settled by PASTING the pytest summary line of that file.
+5. UNDERSTATED DOCSTRING -- extensions/agi/tests/test_free_lane_dispatch_main.py module docstring, the sentence "No network: credit_balance and the create call are the only fakes." (tip lines 5-6). The harness also fakes adapters.load, subprocess.Popen/run, the grace sleep, provisioning.available, the key reader, the mutation guard and the key checks. Fixed = the sentence says it is a dispatch-path proof with every I/O boundary faked (name them by function, no line numbers).
+TEXT RULES NUMSTAT SELF-REFERENCE: never paste a numstat that includes the commit it is pasted in -- measure <cut>..<tip before the paste commit>, labelled so · ANCHOR RULE: a cite names a function / heading / cell key / quoted sentence, a line number only where the claim IS the line · every number on your node is a PASTED command output
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees
+TESTS     test_skills_first_turn_entry.py test_free_lane_dispatch_main.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_skills_first_turn_entry.py (comment only) · extensions/agi/tests/test_free_lane_dispatch_main.py (docstring only) · .agi/nodes/experiment/a00-e5b926db-80ea64.md · .agi/nodes/experiment/a00-f38a455b-d5028f.md · the kid's own node (all nodes via write.py)
+CEILING   HARD CAP: 1 kid · 0 production lines · <= 16 test-file lines changed, comments/docstrings only · 0 USD -- a code byte or a line over = the round is cut · paste `git diff --numstat 2b866de03 <tip before the paste commit>` on your node
+KID       COMMIT every edit (files AND nodes) on your branch before you exit (cli.py done)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.150: mur-eg-54 EG.124-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.169: mur-eg-x1305298-83f469 EG.150-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
