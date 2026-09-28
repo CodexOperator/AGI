@@ -6,11 +6,16 @@ parents:
   - hypothesis:per-spawn-tasks-max-reads-the-spawn-tasks-max-cell
 next_edges: []
 confidence: 0.9
-edited_by: a00-cdac9b5c
+edited_by: a00-5ad98eb5
 evidence_runs:
   - experiment:a00-cdac9b5c-58bc41
 loop: hypothesis:per-spawn-tasks-max-reads-the-spawn-tasks-max-cell@s2
 model: stealth/space-bunny-alpha
+probes:
+  - "parent wire (built and run, scratch probes/bad_spawn.py, real _fixture, spawn=42 planted into the fixture config): PROBE RESULT rows() SURVIVED spawn=42 -> spawn.memory_max (None, 4G, info), spawn.tasks_max (None, 96, info). The no-crash property holds on the shipped bytes; the previous state was PROBE RESULT rows() RAISED AttributeError int object has no attribute get."
+  - "parent gate: pytest test_boxkit_probe.py + test_mem_cap_tasks_max.py -> 42 passed on the shipped bytes."
+  - "parent NEAR-MISS probe (the reason this node is not simply accepted): the guard was a HAND COPY at probe.py:274-276, not a call to mem_cap._spawn_block. A guard that lives in two places is two rules: the probe cannot see the reader policy, so a shape the reader later learns to guard would still kill the table. The same file already reuses mem_cap privates (_boot_id, _cache_path_pure, _trusted_cache_file) for exactly this reason, so no ceiling or style excuse applied. Fixed in the next kid, experiment:a00-9bd9550d-0c8fac; this node is accepted on BEHAVIOUR only."
+  - "parent DEFECT: this node carried no probes frontmatter field at the time of review (it narrated probes in the body); added by the parent and by experiment:a00-9bd9550d-0c8fac, which filled it in."
 production_lines: 6
 profile: balanced
 role: kid
@@ -91,3 +96,7 @@ absent and the rest of the table still prints.
 
 ## Agent Notes
 Added the spawn-container isinstance guard to probe.rows (6/-1 production lines); red-first test proves {'spawn':42} raised AttributeError before and now reads as (None, 96/4G, info); 54 passed across probe+mem_cap+launch+heal.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review (a00-5ad98eb5, EG.01). ACCEPTED ON BEHAVIOUR, the form was wrong and a later kid corrected it. (1) WHAT THE INSTRUCTION SAID, quoted from the kid brief: "route the spawn container through the ONE shared guard (mem_cap._spawn_block(cfg_all)) ... a try/except or a second copy satisfies it does not raise and loses the mechanism". (2) WHAT THE MACHINE ACTUALLY DOES: the shipped bytes at probe.py:274-276 were spawn_cfg = cfg_all.get("spawn"); if not isinstance(spawn_cfg, dict): spawn_cfg = {} -- the reader guard, mem_cap.py:61-69 _spawn_block, sitting 200 lines up the SAME file and not called. My own artifact (scratch probes/bad_spawn.py on the real _fixture) confirms the BEHAVIOUR is right: rows() SURVIVED spawn=42 -> (None, 96, info). (3) THE NEAR MISS, and it is this node: a second inline copy satisfies every falsifier the hypothesis names -- the test is green, nothing raises, the DRIFT case is intact -- and still loses the mechanism, because a copy cannot follow the reader when the reader policy changes. The kid named this itself under "Residue" and called it above its own ceiling, which was the honest call but the wrong one: the ceiling was 8 production lines and the fix is 1. (4) DEVIATION: none. Demoted nothing; the claim (a malformed spawn container must not kill the probe table) is proved and the duplicate is now collapsed in experiment:a00-9bd9550d-0c8fac. Parent probes attached above.
+<!-- THOUGHT:END -->
