@@ -1900,3 +1900,42 @@ def test_cap_headroom_with_no_declared_floor_treats_it_as_zero(monkeypatch):
     monkeypatch.setattr(provisioning, "list_all_keys", lambda root=None: [])
     ok, msg = provisioning.cap_headroom({}, None, 1.0)
     assert ok is False and "floor $0.00" in msg, msg
+
+
+def test_both_floor_readers_route_through_prov_cell(monkeypatch):
+    """Residue of hypothesis:provisioning-reads-its-cells-through-one-import-route:
+    the two pre-loaded `cfg` floor readers read their DOLLAR cell inline instead
+    of through `_prov_cell`, the module's one resolver.
+
+    Two assertions, and the second is the one that matters. A half-fix that
+    dropped the passed `cfg` (`_prov_cell(None, ...)` returns the default) would
+    still satisfy the first -- the cell is read through the resolver -- while
+    silently discarding the configured floor. The CONFIGURED value must WIN.
+    """
+    seen = []
+    real = provisioning._prov_cell
+
+    def spy(root, name, default, cfg=None):
+        seen.append(name)
+        return real(root, name, default, cfg=cfg)
+
+    monkeypatch.setattr(provisioning, "_prov_cell", spy)
+    assert provisioning.min_key_remaining_floor(
+        {"provisioning": {"min_key_remaining_usd": 2.5}}) == 2.5
+    assert provisioning.min_account_remaining_floor(
+        {"provisioning": {"min_account_remaining_usd": 3.25}}) == 3.25
+    assert seen == ["min_key_remaining_usd", "min_account_remaining_usd"], seen
+    # Absent stays absent (None, not a dollar) -- the opt-in contract, and it
+    # must not be a $1.00 default smuggled in through the new route.
+    assert provisioning.min_account_remaining_floor({}) is None
+    assert provisioning.min_key_remaining_floor({}) == \
+        provisioning.DEFAULT_MIN_KEY_REMAINING_USD
+    # A declared-but-blank cell falls back to the default, not to a raise.
+    assert provisioning.min_key_remaining_floor(
+        {"provisioning": None}) == provisioning.DEFAULT_MIN_KEY_REMAINING_USD
+    assert provisioning.min_key_remaining_floor(
+        {"provisioning": {"min_key_remaining_usd": None}}) == \
+        provisioning.DEFAULT_MIN_KEY_REMAINING_USD
+    # The root route is untouched: root=None with no pre-loaded cfg still
+    # yields the default.
+    assert real(None, "min_key_remaining_usd", 0.5) == 0.5
