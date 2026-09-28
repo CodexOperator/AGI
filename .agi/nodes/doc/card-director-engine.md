@@ -32,8 +32,11 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 
 ## §0 STATE (09:5xZ 09-28 · successor woke 09:46Z; captive rotate-self failed rc=1 · per-chain history = git log of this node)
 ```
-MERGE-UP  SENT 11:1xZ [merge-up] EG.95 chain: post b9595c770 over trunk e2e28bcbe (trunk synced 77a387a49), 34 files, director close d199686b7, skill row 3e7d73173, findings (1)-(3) + [rule] (f) riding -> awaiting TM gate · prior: EG.64 chain LANDED 2beb0aba3 (TMM.325)
+MERGE-UP  EG.95 chain LANDED c6a975721 (TMM.328; director close d199686b7 confirmed exact) · SENT 11:2xZ [merge-up] DH.679 chain: post 4c3421b2a over trunk 9e0791ef7, director close 0fc02251b, 1321 passed -> awaiting TM gate
 SERIES    next EG.111 · murs mur-eg-N (last read mur-eg-27/28 = mur-eg-26/27/28: murq194 197-204 206 207) · next murq208
+TMM.328   (TM 11:10Z) (a) DONE 44df78f1b skill row 2 narrowed · (c) DONE 44df78f1b [hypothesis].md CEILING line (rides belam's pass) · (b) OPEN:
+          mint ONE goal:g7.33 hypothesis 'a round whose FILE SCOPE names a config cell commits exactly that cell's diff, nothing else in
+          config.json' (cli.py _round_scope_ok excludes config.json by design) -- pi-free, queued AFTER EG.9 · findings (2) (3) = g7.33.19 rows
 TMM.327   (TM 10:56Z) RULING C: a NODE-PROSE-ONLY residue (cite drift · count · one-operand numstat · THOUGHT delta; nothing false about
           behaviour/config/test) = DIRECTOR closes it: ONE commit per chain on its loop tip (kid worktree, write.py), no kid, no re-mur; the
           [merge-up] names the commit + residue list (mur id -> line). Skill row landed 3e7d73173. placecc21 (EG.111-116) CANCELLED unplaced;
@@ -43,7 +46,7 @@ TMM.327   (TM 10:56Z) RULING C: a NODE-PROSE-ONLY residue (cite drift · count �
           pointer, M2 item-5 row · EG.88 1363216ea: V1 /tmp-dependent paste (6549e49d, 014a5577), V2+M1 699af22b count, M2 014a5577 no THOUGHT
           · EG.86 4976703f0: V1 V2 cafc99a3, V3 3ae03d97 heal cite, M1 verdict 8dde8422 cite+count [M2 test comment = kid round, re-place]
           · EG.89 9ecbe21a7: V1 d85ae42b dated anchor [M1 11971713 '--force not a CLI flag' = false mechanism -> kid round, re-place]
-          · DH.679 a7beee73f (mur-eg-26): 'stated ONCE' 42ca5cbe THOUGHT + 8F/13P string in its probes value
+          · DH.679 DONE 0fc02251b (merged 108600ca6, merge-up sent)
 TOOLS     T=<scratchpad 96494ce7-...>: gen2.py N murq<Q>.json tip label (MURK=, NOEX=1, EXTRA=; triage by hand) · place2.sh (pi-free parent) ·
           placecc.sh (CC TEXT KID; overlays the POST config+ladder so kids resolve opus-5-5) · placef.sh N HYP (fresh) · mkmur.py + runmur.sh ·
           hcc.sh N (CC kid: waits for its PID, not its lease, then flock-harvests) · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N
