@@ -162,6 +162,23 @@ def test_a_number_naming_no_cell_and_no_tail_answers_nothing_and_says_so(
     assert out == ["custom\tsource_root\t"], out
 
 
+def test_digits_are_ascii_only_and_never_raise_out_of_the_resolver():
+    """`isdigit()` and `int()` disagree, and the resolver must not raise.
+
+    '²' (U+00B2) and '⑴' are `isdigit()` True and `int()` ValueError, so the
+    old guard RAISED out of the resolver for a pick that should read as a
+    name. '٣' is `isdigit()` True and `int()` 3, so a name typed in another
+    script was silently read as ROW 3. All four are names here, custom.
+    """
+    for pick in ("\u00b2", "\u2463", "\u0663", "\u0662"):
+        row = locations.resolve_storage_category(pick, None, _seeded())
+        assert row["custom"] is True, pick
+        assert row["payload_ref"] == pick, pick
+    # the control: ASCII digits still index the table
+    assert locations.resolve_storage_category("3", None, _seeded())["key"] \
+        == "skills"
+
+
 def test_resolver_carries_no_storage_path_literal():
     src = inspect.getsource(locations.storage_categories) + \
         inspect.getsource(locations.resolve_storage_category)

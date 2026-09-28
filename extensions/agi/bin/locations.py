@@ -616,7 +616,9 @@ def resolve_storage_category(pick, tail: str | None = None,
     not in the table must not be told it may not. A pick that is a NUMBER
     naming no cell is not a path but a stale list index: the tail carries the
     whole answer and the digits are dropped, so `--storage-pick 99 --tail x`
-    never yields a payload named `99`.
+    never yields a payload named `99`. "Digits" means ASCII 0-9 and nothing
+    else: '٣' is a NAME to this resolver, not row 3, and '²' is a name too
+    rather than a ValueError.
 
     THE COST, stated here because the call site reads this and not the round's
     Caveats: a caller who genuinely means a FILE NAMED `99` now loses that
@@ -633,9 +635,14 @@ def resolve_storage_category(pick, tail: str | None = None,
     """
     rows = storage_categories(config, root)
     text = str(pick).strip()
+    # ASCII digits only. `str.isdigit()` is TRUE for '²' and '⑴', which
+    # `int()` then refuses with ValueError -- and for '٣', which `int()`
+    # silently accepts as 3, so a NAME typed in another script is read as a
+    # row index. Both are answered here, never raised out of the resolver.
+    num = int(text) if text.isascii() and text.isdigit() else None
     hit = None
     for row in rows:
-        if text == row["key"] or (text.isdigit() and int(text) == row["n"]):
+        if text == row["key"] or (num is not None and num == row["n"]):
             hit = row
             break
     if hit is not None:
@@ -648,7 +655,7 @@ def resolve_storage_category(pick, tail: str | None = None,
         rest = str(tail or "").strip().lstrip("/")
         return {**hit, "payload_ref": f"{hit['prefix']}/{rest}" if rest
                 else hit["prefix"]}
-    ref = str(tail or "").strip() if text.isdigit() else text
+    ref = str(tail or "").strip() if num is not None else text
     return {"n": 0, "key": "custom", "label": "custom", "custom": True,
             "location": DEFAULT_PAYLOAD_LOCATION, "location_ok": True,
             "target_exists": None,
