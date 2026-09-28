@@ -113,6 +113,26 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.662 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-reap-chain-members-ge-a00-a9270629 tip 5efa0387a.
 ROUNDS    this post's rounds on this node: DH.596 DH.612 DH.635 DH.662; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
+
+## CORRECTIVE DH.662 -- closes mur-director-engine-40 DH.635-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-reap-chain-members-ge-a00-a9270629 tip 5efa0387a (branch de-base-662; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. evidence_runs demoted by the closing commit, dropping the run the machine-read claim names, contradicting the review that certified it
+2. the new grace-side math.isfinite guard at rotate.py:11469 is unpinned
+3. the review's '_chain_deadline_s is hardened for free' is false; it keeps its own bare v>0 test
+4. test comment calls a FINITE 1e308 'a non-finite GRACE'
+5. duplicate '## Agent Notes' heading at the hypothesis node
+6. testable_claim gained literal wrapping quotes
+7. The round's headline evidence is not reproducible from the graph. The four probes recorded in .agi/nodes/hypothesis/reap-chain-members-get-their-full-term-grace-again.md:13-16 (GATE 20 hostile cells, WIRE 61.05 s, the 181.0 s 3-member floor, AUTH wait_secs) all name `python3 /tmp/probe635/p2.py` and `p3.py` — untracked /tmp scripts, not in the repo and not in the grid, so no later reader can re-run them; the node's claim rests on bytes the graph does not carry. I read both scripts to check the other way (real-resource touch): they are honest fixtures — rot.os.kill replaced by a list append, _pid_alive and _short_ps stubbed, a FakeClock, fake pid 424242, tmp .agi roots under /tmp/probe635 — so nothing real was signalled. The finding is the missing artefact, not a fabricated number. Neither the first reviewer's list nor the parent's own review names it.
+8. The reviewed bytes are not present in this worktree, so every 'N/N green' claim in both reviews is UNVERIFIED by execution. HEAD here is 3812f8117, whose extensions/agi/bin/rotate.py has no _num_or at all (90 lines removed vs 5efa0387a) and whose test_rotate_term_grace.py has lost 210 lines; git merge-base --is-ancestor says NO for both 0271068e7 and 5efa0387a. My single allowed run (test_live_config_cells.py + test_rotate_term_grace.py, 25 passed, env -u TMUX -u TMUX_PANE) therefore measures different code and I do not cite it. Probe I WOULD run and did not: in a throwaway checkout of 5efa0387a, run the two committed test files, then delete ` and math.isfinite(v)` at rotate.py:11469 and re-run — expect the same green, which is the measurement behind defect 2.
+9. A claim inside the new record is contradicted by a sibling resolver and the contradiction is left standing in a machine-read field: the probes record at hypothesis node :16 asserts '_num_or(inf,20)=20.0' as though it settled the chain_deadline_s consumer, while rotate.py:11510-11512 never calls _num_or. The OUTSIDE list (a00-ec3788a4.md item 2) says chain_deadline_s is 'still unbounded' but attributes it to the cell's VALUE, not to the missing finite check in that resolver, so the next round reads a partly-fixed hole as untouched-and-understood.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_live_config_cells.py test_rotate_term_grace.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/rotate.py · extensions/agi/tests/test_live_config_cells.py · extensions/agi/tests/test_rotate_term_grace.py · .agi/nodes/experiment/a00-07b7004a-d5dafb.md · .agi/nodes/experiment/a00-ec3788a4-f6ed0f.md · .agi/nodes/hypothesis/reap-chain-members-get-their-full-term-grace-again.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 5efa0387a · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.635: mur-director-engine-36 DH.612-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.662: mur-director-engine-40 DH.635-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
