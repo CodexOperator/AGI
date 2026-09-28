@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write
 next_edges: []
 confidence: 0.9
-edited_by: a00-92c392c7
+edited_by: director-engine
 evidence_runs:
   - experiment:a00-fd3b2d8a-0d5a4d
 loop: hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write@s2
@@ -77,12 +77,12 @@ $ git show dff3b6076:extensions/agi/tests/test_payload_rename.py | grep -n 'xfai
 | 4 | PARENT P5 certified on a stale blob | P5 on a00-b2b01c2b is now marked **REFUTED**, with the settling command pasted next to it, and a new table on that node naming the one-line cause: the parent verified a copy/worktree, not the committed test file at the tip. Not softened into a wording fix. |
 | 5 | cited test lines drifted (cause withdrawn EG.167: defs moved +6, marker/def +1 -- no one insertion does both) | All nine hypothesis citations fixed: 159->160 (x2, :29 and :37), 76->77, 175->176, 208->209, 122->123, 301->302, 190->191, 273->274. Four further drifted citations found in the same pass and fixed, none in the brief: a00-0a22ec6c:61 :483->:489, a00-0a22ec6c:105 :439->:468, a00-310104ca:47 and a00-0a22ec6c:119 the `_graph` row text 36-38 -> 39-42, a00-4ef63f5c:41 the `_graph` helper 26-45 -> 28-43. |
 | 6 | two write.py citations inside lines this round rewrote | BOTH confirmed wrong, both fixed. `def _enforce_outside_ref_gate` is write.py:**1456** (1455 is BLANK; its two callers are :1506 and :2144). The `create --payload` mint is `extra[links.LINK_FIELD] = str(payload)` at write.py:**3131**; 3130 is the `ensure_payload` call. hypothesis:42 and :44 and a00-0a22ec6c:160. |
-| 7 | `edited_by` on a00-0a22ec6c named neither author nor lander | The field CANNOT carry both, and write.py overwrites it with the last writer, so it now reads `a00-fd3b2d8a` and the three-part truth is on that node: author a00-b2b01c2b, lander director-engine by hand at dff3b6076, last writer a00-fd3b2d8a. A one-slot provenance field on a node three actors touched is a structural defect; named for the director. |
+| 7 | `edited_by` on a00-0a22ec6c named neither author nor lander | The field CANNOT carry both, and write.py overwrites it with the last writer, so it reads the LAST write.py writer (a later round moved it again: see that node frontmatter) and the three-part truth is on that node: author a00-b2b01c2b, lander director-engine by hand at dff3b6076, last writer a00-fd3b2d8a. A one-slot provenance field on a node three actors touched is a structural defect; named for the director. |
 | 8 | a00-b2b01c2b's item-5 `Where` said "hypothesis:41,44,48" | :48 is the `## FILE SCOPE` heading. Corrected to `hypothesis:41,44` with the error named in place, plus the note that the numbers it moved were themselves one low at the tip. |
 
 ## Outside scope, named not touched
 - `extensions/agi/bin/node_writer.py:650-653` -- `replace_payload` still never creates, so the KNOWN RESIDUAL stays open. Unchanged this round, deliberately.
-- `hypothesis:39`/`:41` write.py band citations (2329, 2353-2355, 2414, 2381-2396, 3206-3210) were not re-measured by this round except the two in item 6; a writer that shifts by 71 lines between rounds is named in the hypothesis's own RECORDED RESIDUE, not here.
+- the hypothesis node write.py band citations were not re-measured by this round except the two in item 6 (director close EG.176: the band list and its :39/:41 placement were wrong, so they are dropped, not restated -- locate each band by its function name); a writer that shifts by 71 lines between rounds is named in the hypothesis's own RECORDED RESIDUE, not here.
 
 ## Evidence
 
@@ -91,7 +91,7 @@ $ git diff --numstat dff3b6076 -- extensions/agi/bin/write.py extensions/agi/bin
 (empty: no code change)      # 0 production lines, 0 test lines over the CUT tip
 
 $ python3 -m pytest extensions/agi/tests/test_payload_rename.py extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /tmp/bf153 -p no:cacheprovider
-100 passed, 6 skipped, 1 xfailed, 35 warnings in 14.06s
+100 passed, 6 skipped, 1 xfailed, 35 warnings in 14.06s   [the PRIOR round run, quoted; THIS tip, director-run for EG.176 at a1a1e686b: `pytest extensions/agi/tests/test_payload_rename.py -q -p no:cacheprovider` = 28 passed, 1 xfailed, 35 warnings]
 ```
 
 No code was changed this round: 0 production lines, 0 test lines, node prose only. `test_payload_rename.py` is in this round's FILE SCOPE precisely so a citation could be CHECKED against it, not so a byte could be moved.
