@@ -30,37 +30,30 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (19:3xZ 09-28 · live during the work; per-chain history = git log of this node)
+## §0 STATE (18:4xZ 09-28 · live during the work; per-chain history = git log of this node)
 ```
-MERGE-UP  #1 LANDED 165c99e6a (TMM.345: EG.137 + EG.133 chains) · #2 LANDED d0cb3bb35 (TMM.347): post 08177c25f = EG.125 chain (EG.100 -> 125 -> 157
-          merge resolution; test_cli.py append/append = union, 385 passed)
+MERGE-UP  LANDED 165c99e6a (TMM.345 18:2xZ; gate 1076 passed 1 failed thought_hygiene): post tip 3d5cf0db6 = EG.137 chain (c0354d4f3) + EG.133 chain (3d5cf0db6), both cleared + director closes
 POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-corrective; TMM.344 answered my stale [red] -- no ruling needed)
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.169 · next murq261
-PLACING   PLACED: 149 151 153 (harvested) · serial7 (redispatch 150 152 155 158, then place 154 159) -> serial8 (redispatch 146
-          147: both died 0-commit 19:03Z) · pq160 (EG.140 corrective = the EG.9 blocker, jumps the queue) -> serial9 (162 163 165 161
-          164 166) -> serial10 (168) · TRAP: placements SERIAL, <= 2 dispatching at once (5 parallel dispatches timed out rc=124 in an io storm 18:5xZ)
-MURS      253 EG.144 · 258 EG.150 (merge resolution) · 259 EG.152 (conftest gate) · 260 EG.155 (DEAD-ROUND SALVAGE db1cc2174:
-          parent no done commit, kid empty scaffold; test_provisioning.py outside FILE SCOPE)
-CC KID    EG.167 a00-92c392c7 pid 1221790 (murq257 EG.153 -> TEXT-FIX CHURN chain -> opus text kid, DEVIATION on the node): at exit
-          check it ran done; if not, salvage-commit on its branch (EG.156 precedent) -> mur
+SERIES    next EG.159 · next murq255
+PLACING   PARALLEL staggered units pq149 150 151 152 153 154 155 158 (each: offset, TMM.306 gate, place2) -- the serial chain
+          (lane5 qgEG149 qgEG152 lane6) was STOPPED while waiting (0 live parents, io gate rarely open); lane3 still holds 146 147 148
+          · CC kid EG.156 ended (harvest owed)
+MURS      239 EG.142 · 244 EG.140 (EG.9 blocker) · 246 EG.135 · 248 EG.143 · 250 EG.139 · 251 EG.157 (EG.125 merge resolution) ·
+          252 EG.145 · 253 EG.144 · 254 EG.132 (director merged its kid: parent could not, node conflict; kid verdict = :70)
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
           refuses own board: policy question may come up) · 233->150 (cut de-cut-EG.150 f9fbf587a: merge reds test_free_lane_mints...)
-          · 234->151 · 241 DEMOTE->152 (conftest suite gate: fix or remove) · 237->153 · 240->154 · 242->155 · 238->156 (CC text kid) · 243 EG.125 director close d91b942f3 -> EG.157 · 245 EG.133 + 236 EG.137 director closes -> MERGED · 249 EG.138 DEMOTE -> EG.158 · 251 EG.157 -> director close 1da46ba3a -> MERGED 08177c25f
-          · 254 EG.132 (verify died) -> EG.159 · 19:0xZ batch (genbatch.py, verify-cleared items auto-demoted): 244 EG.140 -> 160
-          · 246 EG.135 -> 161 · 248 EG.143 -> 162 · 252 EG.145 -> 163 · 255 EG.156 -> 164 · 239 EG.142 -> 165 · 250 EG.139 -> 166 · 256 EG.149 -> 168
+          · 234->151 · 241 DEMOTE->152 (conftest suite gate: fix or remove) · 237->153 · 240->154 · 242->155 · 238->156 (CC text kid) · 243 EG.125 director close d91b942f3 -> EG.157 · 245 EG.133 + 236 EG.137 director closes -> MERGED · 249 EG.138 DEMOTE -> EG.158
 OVERRIDE  EG.123 03ab636aa: kid code (28 prod vs 15) merged onto the parent's reviewed tip, disclosed; parent tree vanished
 KNOWN RED test_bin_help_smoke[suite_guards.py] on base lineages = fixed on the trunk 8f9e3d5da, heals at merge
 EG.5      [red] to TM 18:4xZ (MAJOR): EG.145 guard needs belam cell templates.director.startup.facts_pointer_target_bytes
           (absent; live region ~2001 B > the 2000 target) -- after that and EG.145 clears (EG.107 chain) -> merge the post in -> [merge-up] into the facts window (TMM.334 3)
 EG.9      chain tip 1a4046949 waits murq244 (EG.140). AFTER EG.9, in order (TMM.345): (1) the basetemp gate = the EG.128 chain
           (EG.152) + a reaper for >24 h basetemp dirs no process holds -- a FIX, not a row (2) ONE goal:g7.33 hypothesis: repair
-          the off-shape frontmatter via write.py set (15 keys links.py MALFORMED + 106 nodes cli refuses), pi-free (3) TMM.347: ONE goal:g7.33 hypothesis
-          -- dispatch stamps dispatch_node_id into the kid agent.json at spawn (the --owns refusal makes a dead kid unownable); until
-          it lands, dead-kid salvage is the director's, NAMED in every [merge-up] (4) the g7.33 hypotheses TMM.328 b · 330 · 338 · 336
-          (TMM.336 (5) row absorbs [rule] V9) · findings (b)(c) accepted as rows; (c) merge-resolution ceiling cell = config-max round
+          the off-shape frontmatter via write.py set (15 keys links.py MALFORMED + 106 nodes cli refuses), pi-free (3) the g7.33
+          hypotheses TMM.328 b · 330 · 338 · 336 · findings (b)(c) accepted as rows; (c) merge-resolution ceiling cell = config-max round
 EG.102    chain HELD until EG.143 clears · HELD never land: EG.7 · EG.30 · EG.24 · EG.50 · DH.671 cell · EG.19
 GATE      TMM.306 load1 < 16 AND io avg60 < 50, two reads 5 min apart · arm 10 (TMM.343: hammer it) · CC: MemAvailable >= (live+2) x 2G
 ```
@@ -88,21 +81,14 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 
 ## 🔴 WHERE IT STOPS
-Captive rotation 19:32Z (f=0.40): EG.158 parent ended unharvested; murq253 258 259 260 running; serial7/8/9/10 + pq160 placing
+Gen 41 mid-run 17:2xZ: 10 murs gated, 6 correctives in lane3, harv41b harvesting 6 ended parents
 ```
-FIRST   re-link the card · reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (active: serial7
-        serial8 serial9 serial10 pq160 lane3 gmurq*/murq*) · harvest EG.158 a00-05284077 NOW:
-        systemd-run --user --unit=agi-director-engine-harv158 -- bash <scratchpad 8884a411>/memgate-harv.sh EG.158
-        (the harvest's pytest line prints NOTHING since 17:5xZ: re-run the round's TESTS yourself in de-hEG.N before the mur)
-        · CC kid EG.167 a00-92c392c7 pid 1221790: at exit check it ran done, else salvage-commit on its branch (EG.156 precedent)
-THEN    per ended parent: harvest -> own test run -> T/mur41.sh N <next Q> <harvest log> "<focus>" · per ended mur: D/verd.py Q ->
-        clean = merge the chain into the post (--no-ff; zero-USD trio cherry-pick-only = POST side; node THOUGHT hunks = chain side;
-        a real code conflict = a merge-resolution cut + round) + [merge-up] with numbers · residue = T/genbatch.py N:Q (auto-demotes
-        verify-cleared items) + hand-drop the rest WITH reasons on a DEMOTED line + ONE serial placement unit (never parallel)
-        · node-prose-only residues (cites, counts, THOUGHT) = director close in the loop worktree (TMM.327), no round
-        · an empty-response mur stage: reset-failed + re-arm its gmurqQ unit · a 0-commit parent: T/redispatch2.sh in a serial unit
-        · after EG.9 (murq244 -> EG.160): the TMM.345/347 order in §0
-NEVER   restart a q-unit without reading its log first · edit a RUNNING unit's script · a bare & watcher · parallel placements
+FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (active: harv41b lane3 qglane2 gmurq*)
+        · harv41b done -> mur41.sh N <next Q> <scratchpad 8884a411>/harv41b.log per round (EG.140 = the EG.9 blocker FIRST)
+        · per ENDED mur: D/verd.py Q -> clean = merge the chain tip into the post (--no-ff) + [merge-up] · residue = gen2 EG.<next> +
+          hand triage (drop checked-clean items, name them on a DEMOTED line) + a lane unit
+        · send.py read director-engine once per nudge
+NEVER   restart a q-unit without reading its log first · edit a RUNNING unit's script · a bare & watcher
 ```
 
 ## §4 TRAPS
