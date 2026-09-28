@@ -43,9 +43,11 @@ GATE      TMM.306: load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, on
 PLACEMENT de-base-N ON DISK (the /dev/shm variant broke parent done -> DH.648 swept, reverted 00:0xZ); 651's RAM checkout is symlinked
 PRUNE     unit prune-debase OOM-KILLED 00:27Z (systemd-oomd, 41 removed); NOT restarted -- memory crit window (TMM.313 tmpfs hold)
 LANDED    TMM.312 00:42Z: TM landed the WHOLE branch d0d126deb (trunk merged in 90b21bd8f) + sent it to belam
-LIVE      EG.17 a00-f1be7ad0 (EG.9 chain, FRONT) · DH.657 a00-52e8835e · murs: 137 DH.655 (a95eb7170) · 139 EG.13 (401b20f68: the standin HANG = env strip ate a
-          probe recursion sentinel -> 134 s + EG.8's OOMs) · 140 EG.15 (3722d71e4, EG.1 chain) · 141 DH.656 (e6af7ba46; smoke red INHERITED)
-          QUEUED qgEG<N> chain (orders T/ordersEG.N.md): EG.16 (DH.653) -> EG.18 (EG.12, DEMOTE) -> EG.19 (DH.654, node prose) -> EG.20 (EG.14; grid item SETTLED)
+LIVE      EG.17 a00-f1be7ad0 (EG.9 chain, FRONT) · murs: 137 DH.655 · 141 DH.656 · 142 DH.657 (48ef5a79b, 425 passed) · 143 EG.15-k2 re-review
+          EG.1 chain: mur-eg-7 DEMOTE on ceiling prose (3rd loop) -> DIRECTOR closed it in the bytes on the loop branch (3f7cad8fe accounting from
+          merge base bf2430484 · 9b17bc82c 39f1d0801 anchors) -> murq143 · [decision] to TM 02:1xZ: accept or cut the EG.1 cap breach (3 kids/1, test 46/30)
+          EG.13 -> mur-eg-6 residue -> EG.21 queued (memory-cap HARD RULE carried)
+          QUEUED qgEG<N> chain (orders T/ordersEG.N.md): EG.16 (DH.653) -> EG.18 (EG.12, DEMOTE) -> EG.19 (DH.654, node prose) -> EG.20 (EG.14; grid item SETTLED) -> EG.21 (EG.13)
           EG.7 PARENT-DEMOTED, 5 corpus edits UNCOMMITTED in a00-0194accb (never land); EG.11 HELD (conflicts with the DH.658 chain's detector file)
           EG.8: both scopes killed at their own memcg caps (01:04:56Z kid, 01:08:15Z parent), 0 commits -> EG.13 retry, cap a HARD RULE, unit qgEG13
           TMM.314: no box crit, belam's tmpfs clock from 00:43Z
