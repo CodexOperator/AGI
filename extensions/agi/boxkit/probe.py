@@ -269,7 +269,12 @@ def rows(root: pathlib.Path, install_root: pathlib.Path, systemctl: str = "syste
                 judge(got, "present", "present", OK_TOL, True)))
     # The spawn cells ARE the target: the row asks whether the config parses and
     # whether mem_cap's resolvers return it -- not whether it equals a literal.
-    spawn_cfg = cfg_all.get("spawn") or {}
+    # ...and a container that is not a dict is ABSENT, not a crash: the reader
+    # guards it in mem_cap._spawn_block, the probe's own `.get()` must not
+    # raise out of rows() -- that is the read-back of the whole table.
+    spawn_cfg = cfg_all.get("spawn")
+    if not isinstance(spawn_cfg, dict):
+        spawn_cfg = {}
     for cell, resolved in (("memory_max", mem_cap.resolve_memory_cap(cfg_all)),
                            ("tasks_max", mem_cap.resolve_tasks_max(cfg_all))):
         want = spawn_cfg.get(cell)

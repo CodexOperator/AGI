@@ -559,6 +559,21 @@ def test_spawn_rows_target_the_config_and_the_resolvers_not_a_literal(tmp_path, 
     assert _run(agi, root, shim) == 1
 
 
+def test_a_malformed_spawn_container_is_data_never_a_crash(tmp_path, monkeypatch):
+    """The reader got this guard in _spawn_block (mem_cap.py); the probe -- the
+    read-back of the WHOLE table -- still did `cfg.get("spawn") or {}` then
+    `.get(cell)`, so a scalar container raised out of rows() instead of
+    reporting.  A cell is data: the row must read as absent (info)."""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    cfg = json.loads((agi / "config.json").read_text())
+    for bad in (42, "2G", ["x"], None):
+        cfg["spawn"] = bad
+        (agi / "config.json").write_text(json.dumps(cfg))
+        table = _by_name(probe.rows(agi, root, shim, HELD))
+        assert table["spawn.tasks_max"] == (None, 96, "info"), (bad, table["spawn.tasks_max"])
+        assert table["spawn.memory_max"] == (None, "4G", "info"), bad
+
+
 def test_a_write_shaped_answer_is_data_never_executed(tmp_path, monkeypatch, capsys):
     """The hostile systemctl: it answers a string cell with a command.  The
     probe must print it, judge it, and never run it -- the canary survives."""
