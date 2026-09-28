@@ -59,9 +59,9 @@ Re-measured at this round's tip b1f3ac729, EG.15:
 
 | stale citation | current anchor (b1f3ac729) | what is there |
 |---|---|---|
-| hypothesis:42 `mem_cap.py:73-82` (the reader) | `mem_cap.py:80-102` | `def resolve_tasks_max` .. `return n if n >= 1 else _DEFAULT_TASKS_MAX` |
+| hypothesis:42 `mem_cap.py:73-82` (the reader) | `mem_cap.py:80-104` (at 3722d71e4) | `def resolve_tasks_max` .. `return n if n >= 1 else _DEFAULT_TASKS_MAX` |
 | hypothesis:42 `test:85, :550` (the fixture writes the cell) | `test_boxkit_probe.py:88` | `"spawn": {"memory_max": "2G", "tasks_max": 150}}` -- the ONLY place the fixture names 150 |
-| hypothesis:42 `:550` (the drift case) | `test_boxkit_probe.py:563-565` | the `AGI_TASKS_MAX` setenv + the DRIFT assert (now sourced, see below) |
+| hypothesis:42 `:550` (the drift case) | `test_boxkit_probe.py:558-565` (at 3722d71e4) | the `AGI_TASKS_MAX` setenv + the DRIFT assert (now sourced, see below) |
 | experiment:a00-c8dc1e1f-b26495 `mem_cap.py:69` (the guarded reader) | `mem_cap.py:62-76` | `def _spawn_block` .. `spawn = (cfg or {}).get("spawn")` at :76 |
 
 Both node rows stay as they are -- a measured row of a past branch is history and rewriting it would falsify the record. The table above is the current anchor set; the growth that moved them is this round's own docstring work.
