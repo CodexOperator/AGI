@@ -44,7 +44,7 @@ OWNER     05:2xZ via belam 05:38Z: CC kids + parents = claude-opus-5-5 (merged 1
           never --force (skill row = EG.57 -> EG.69) (b) per-ROLE worktree roots + reaper eviction WITH the RAM round, not EG.53 (c) object store left
           · 06:4xZ via belam 06:27Z: progress -> board 'note' -- REFUSED for posts (goal:g12) -> TMM.323: progress in §2 until EG.59 lands
 TMM.322   (3) every pytest: TMPDIR + --basetemp /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT · (1) = EG.60 · (2) answered
-MURS      murq178 = EG.61-67 (text) · murq182 = EG.58 (EG.9 redo, d1bdf498c; 110 passed; +38 test net) · murq183 = EG.41 (ecaab9920; 427 + 55 passed; send.py +15 -1)
+MURS      murq178 = EG.61-67 (text) · murq182 = EG.58 (EG.9 redo, d1bdf498c; 110 passed; +38 test net) · murq183 = EG.41 (ecaab9920; 427 + 55 passed; send.py +15 -1; parent dm 07:40Z: item 5 OPEN = 3 stale send.py pointers at a00-c3bf7379:42,45 + a00-5e3cfa03:135 -> add to the murq183 triage)
           · READ: murq172 -> EG.70 EG.71 (text) + EG.72 (pi) · murq177 EG.19 DEMOTE (4/5 items uncommitted in a00-3c15c94c) -> EG.73 (text + 1 skill row) · murq179 EG.69 awr (3 row residues) -> EG.74 · murq180 DH.672 awr (--cap zero_usd test pin) -> EG.75 pi · murq181 EG.36 awr (verify died; 4 node + rlimit/config_max test) -> EG.76 pi
 KIDS      EG.70 (EG.47) + EG.71 (EG.51) opus text kids in unit placecc6 (io + mem gate, auto-harvest via hcc.sh) · EG.73 (EG.19) in unit placecc7 · EG.74 (EG.69) in unit placecc8
           (each unit waits for the previous one's placement) · EG.51 V3/M2 ladder ultracode pair = DEMOTED: owned by EG.56 -> EG.67
