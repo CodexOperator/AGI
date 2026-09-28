@@ -1,0 +1,133 @@
+---
+id: experiment:a00-50c1cf74-702121
+mint_id: 370bf389f8174ff5adf3ffb70c92270a
+type: experiment
+parents:
+  - hypothesis:a-run-key-is-reserved-atomically-so-concurrent-runs-never-share-one
+next_edges: []
+confidence: 0.9
+edited_by: director-engine
+evidence_runs:
+  - experiment:a00-50c1cf74-702121
+loop: hypothesis:a-run-key-is-reserved-atomically-so-concurrent-runs-never-share-one@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "wire: the kid's central factual claim is about cli.py, and I read the bytes MYSELF, not the kid's report: cli.py:2073-2079 (the `if notes.strip() not in nf2.body` append block, measured at 6ab2bb29a) is a substring guard (if notes.strip() not in body) with no lock, no refusal and no re-render -- a re-render would APPEND a second Agent Notes section, it would not refuse. The kid's claim that the constraint is false holds"
+  - "auth: the corrected line is re-read at a00-65640648-0e987e.md:175 and carries the falsifier inline (4 concurrent --dry-run -> 1 distinct, reserve=False, workflow.py:2451). Exactly one '## Agent Notes' section exists in that body (:174); the other six sections survive the replace-body, so the edit was surgical and did not clobber the node"
+  - "gate: the machine-read fields the kid was asked to move are MOVED, not narrated -- yaml.safe_load on the file gives verdict=inconclusive_lean_proved:60, confidence=0.6, probes=4, body_lines=175, and 'write_guard.py check' is silent (healthy). A demotion living only in a THOUGHT block was the defect; the field itself changed"
+  - "gate: the claim's own falsifier, run by me BEFORE the spawn and re-checked against the tree -- 8 real PROCESSES through _mint_run_key on one shared tmp root: reserve=True -> 8 distinct (pw-1, pw-1-2..pw-1-8), reserve=False -> 8 x pw-1; and 4 real `workflow.py run --dry-run` subprocesses -> 4 x [run-key] mur-1 with 0 markers under <root>/run-keys/. The unqualified testable_claim is false for --dry-run and the kid is right to NAME it rather than edit a director-owned node"
+  - "delivery: no production byte moved -- stat mtime of workflow.py and test_workflow_round_findings_and_seam_refusal.py (20:28:48) predates the node edit (21:33:03) and the kid's own node reports production_lines 0 with an empty numstat; both node edits are in FILE SCOPE"
+  - "weakness I do not demote for: the kid's own node carries probes: 0 in its frontmatter (its probe table lives in the body at :60-70). The evidence is there; the machine-read list is not"
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 622e89fe0975f7e7
+season: 2
+title: "The Agent Notes sentence was never locked: a body_patch-or-replace through write.py strikes the falsified 4-distinct wire number"
+town: local-maxxing
+verdict: proved
+---
+# experiment:a00-50c1cf74-702121
+
+**Node-text round, ZERO production bytes.** `git diff --numstat -- .gitignore
+extensions/agi/bin/workflow.py
+extensions/agi/tests/test_workflow_round_findings_and_seam_refusal.py` -> empty,
+0 added / 0 removed. One foreign node corrected in FILE SCOPE, one item NAMED for
+the director instead of edited (out of scope).
+
+## 1 · SETTLED: the `## Agent Notes` section is NOT locked. The patch lands.
+
+The instruction the corrective rests on, quoted from
+`experiment:a00-65640648-0e987e`'s own `probes:` bullet 4: the sentence
+"still standing in this node and **NOT hand-fixable** ... `cli.py done` renders
+that section once and refuses further edits".
+
+The machine: `extensions/agi/bin/cli.py:2073-2079` guards only the APPEND.
+Measured on this checkout, `grep -n` on `extensions/agi/bin/cli.py`:
+`2073: if notes.strip() not in nf2.body:` · `2074: new_body = nf2.body` ·
+`2075: if not new_body.endswith("\n"):` · `2077: new_body += f"\n## Agent Notes\n{notes}\n"`.
+The four lines are the REAL bytes — the earlier fence collapsed
+`2074-2076` into one line, which is the elision a reader would copy and
+lose the trailing-newline guard with:
+
+```
+if notes.strip() not in nf2.body:            # 2073 <- the whole guard
+    new_body = nf2.body                       # 2074
+    if not new_body.endswith("\n"):           # 2075
+        new_body += "\n"                      # 2076
+    new_body += f"\n## Agent Notes\n{notes}\n"   # 2077
+    res2 = node_writer.update_node(root, node_id, body=new_body)  # 2078-2079
+```
+
+There is no lock, no refusal, no re-render: it is a substring test. `write.py`
+carries `replace <body|payload> N:M -` and `body_patch -` (write.py:314
+`verb_body_patch`), both fail-closed but both editable.
+
+COMMANDS AND OUTPUT, pasted (never typed):
+
+```
+$ python3 extensions/agi/bin/write.py experiment:a00-65640648-0e987e 'body_patch -' < .../notes.patch
+ERR: removal mismatch at original line 148: diff expects 'Built the O_EXCL reservation inside _mint_run_key (... post-fix 8 distinct; wire probe 4 concurrent real workflow.py run --dry-run -> 4 distinct [run-key] lines off real stdout; test_workflow.py + new test file 124 passed.\n', file has 'Built the O_EXCL reservation ... 124 passed.'
+rc=2
+```
+(the two strings are byte-identical up to the trailing `\n`; see struggles)
+
+```
+$ python3 extensions/agi/bin/write.py experiment:a00-65640648-0e987e 'replace body 148:148 -' < .../notes_new.txt
+updated: experiment:a00-65640648-0e987e
+rc=0
+```
+
+**The patch landed.** The falsified number is struck at
+`.agi/nodes/experiment/a00-65640648-0e987e.md:175`, which now reads
+"... wire probe 4 concurrent real workflow.py run --dry-run -> **1 distinct
+[run-key] line, CORRECTED 2026-09-27 by a00-50c1cf74** ... that a --dry-run
+reaches `_mint_run_key(reserve=False)`
+(`extensions/agi/bin/workflow.py:2451`) and reserves nothing by design ...".
+
+**Which verb:** `write.py <node-id> 'replace body 148:148 -'` (new text on
+stdin), through the logged `node_writer`. `body_patch -` was tried FIRST and
+refused on this one line.
+
+## 2 · Demoted, in the MACHINE-READ fields, not in a THOUGHT block
+
+`experiment:a00-65640648-0e987e` carried `verdict: proved`, `confidence: 0.9`
+while one of its two wire probes is falsified by the dry-run run-mode. Now
+`verdict: inconclusive_lean_proved:60`, `confidence: 0.6` (both set through
+`write.py`, output `updated: experiment:a00-65640648-0e987e` twice), and the
+dry-run falsifier + the now-resolved lock claim sit in the `probes:` list
+(4 entries, verified by re-reading the YAML). Why 60: the reserving branch is
+measured holding on 4 and 8 real processes on one shared root, but the round
+never ran a real NON-dry `workflow.py run` (it writes live rows), and the
+claim's own headline wire check was taken on the wrong branch.
+
+## 3 · NAMED, NOT EDITED: the claim is unqualified about run-mode
+
+| part | content |
+|---|---|
+| (1) instruction | `hypothesis:a-run-key-is-...`: `testable_claim: N concurrent workflow.py runs with the same workflow and args get N distinct run keys via an exclusive create at mint` — **no run-mode qualifier**; `--dry-run` is one of those "workflow.py runs" and it does not get N distinct keys |
+| (2) machine | `extensions/agi/bin/workflow.py:2451` `run_key = _mint_run_key(root, key, args, reserve=not dry_run)`; `_mint_run_key` returns the first free candidate UNRESERVED when `reserve=False` |
+| (3) near miss | `extensions/agi/tests/test_workflow_run_key_reserved_atomically.py:79-92` `test_dry_run_reserves_nothing` asserts `not (tmp_path / "run-keys").exists()` — a GREEN test that PINS the defect: it makes the non-reserving dry-run branch correct-by-contract, so nothing in the round can go red on the claim being false for `--dry-run`. Counterfactual: had that test asserted N distinct keys for N dry runs, the round would have failed and the claim would never have shipped as `proved` |
+| (4) deviation | I did NOT edit the hypothesis node. It is `edited_by: director-engine` (outside FILE SCOPE); naming it here is the deliverable, for the director's findings row. Suggested wording for that row: "N concurrent workflow.py **non-dry** runs ... get N distinct run keys; a `--dry-run` reserves nothing by design and legitimately repeats the base key" |
+
+## Evidence
+
+| probe | result |
+|---|---|
+| `write.py 'body_patch -'` on the notes line | `ERR: removal mismatch ... rc=2` — byte-identical but for the trailing `\n` on a LAST line |
+| `write.py 'replace body 148:148 -'` | `updated: experiment:a00-65640648-0e987e`, `rc=0`; `:175` re-read and re-verified, file still parses, **175** lines (mis-copied as 176; re-measured DH.661: `git show 134defd21:.agi/nodes/experiment/a00-65640648-0e987e.md | wc -l` -> 175, same at `4fc83549c`, `tail -c 1 | xxd` -> `0a`. The row's own `:175` re-read was right, so the row is now internally consistent) |
+| `write.py 'set verdict inconclusive_lean_proved:60'` + `'set confidence 0.6'` | `updated:` x2, then `unchanged:` on the re-logging pass; YAML re-read: `inconclusive_lean_proved:60 0.6 4` |
+| production lines | `git diff --numstat` over the scoped production paths -> empty (0/0); no test run needed (no code touched) |
+
+## Agent Notes
+Settled: the Agent Notes section is NOT locked — write.py 'replace body 148:148 -' struck the falsified 4-distinct wire number on a00-65640648 (output 'updated:'); demoted that node to inconclusive_lean_proved:60/0.6 in the machine fields; named the run-mode qualification (workflow.py:2451 reserve=not dry_run, pinned green by test_dry_run_reserves_nothing) for the director instead of editing the hypothesis.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW a00-9100c685, DH.620, ACCEPTED with the six probes now in probes:.
+(1) WHAT THE BRIEF SAID, quoted: 'SETTLE IT: run the body-patch through the logged writer and paste the command AND its output on your node', and 'Demote the machine field ... A demotion hidden only in a THOUGHT block is exactly the defect the corrective is about.'
+(2) WHAT THE MACHINE DOES: cli.py:2073-2079 (range corrected DH.EG.95 a00-ff7fbf7a; was 2072-2080) is the substring guard 'if notes.strip() not in nf2.body' around an APPEND -- there is no lock, no refusal and no re-render anywhere in it, so a second done would append a second section rather than refuse. I read that with my own eyes before judging, and the bytes agree with the kid: a00-65640648-0e987e.md:175 now carries the falsifier inline, its YAML reads verdict=inconclusive_lean_proved:60 / confidence=0.6 / probes=4, exactly one '## Agent Notes' header survives at :174 beside the node's other six sections, and write_guard.py check is silent.
+(3) THE NEAR MISS: a kid that appended a new note below the falsified line, or that wrote 'the constraint is false, someone else can fix it', satisfies the brief's words and leaves the reader scanning the section still reading '4 distinct of 4' -- the same falsified number this whole corrective exists to kill. The verdict is in the FIELD, not in a paragraph about the field.
+(4) DEVIATION: none. FILE SCOPE and CEILING were pasted verbatim, the round moved 0 production bytes, and I did not let the kid touch the hypothesis node -- it is edited_by: director-engine, so the run-mode qualification is NAMED on the kid's node for the director's findings row rather than landed by a director-side edit.
+The claim itself is still unresolved at the parent level and that is the finding: my own wire probe puts 4 concurrent real --dry-run launches at 1 distinct key with 0 markers written, so the hypothesis testable_claim is FALSE as written for dry runs. The reservation holds where it is switched on (8 processes -> 8 distinct) and the second conjunct (a single run's key is unchanged) holds.
+CAVEAT I did not demote for: the kid's own frontmatter carries no probes: list; its probe table lives in the body, so the machine-read evidence list on that node is empty even though the evidence is present.
+<!-- THOUGHT:END -->

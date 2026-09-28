@@ -231,20 +231,93 @@ def _existing_run_keys(root: Path, key: str) -> set[str]:
         return set()
 
 
-def _mint_run_key(root: Path, key: str, args: dict) -> str:
+# How many names the mint will try before giving up on a reservation and
+# returning the next candidate anyway. Bounded, so a stale marker (or an
+# unwritable marker dir) can NEVER hang or crash the mint.
+RUN_KEY_MINT_ATTEMPTS = 64
+
+# The reservation namespace, relative to the shared project root (the same
+# root `_existing_run_keys` reads `<key>.jsonl` from). A sibling of
+# `sessions/`, so reserving a name never creates or writes into the tracked-run
+# tree.
+RUN_KEY_MARKER_DIR = "run-keys"
+
+
+def _reserve_run_key(root: Path, run_key: str) -> bool | None:
+    """RESERVE `run_key` for this process with an EXCLUSIVE create — the
+    atomic step hypothesis:a-run-key-is-reserved-atomically-so-concurrent-runs-
+    never-share-one asks for. The marker is an O_CREAT|O_EXCL file under
+    `<sess>/run-keys/` (RUN_KEY_MARKER_DIR), resolvable from the SAME root
+    the tracked rows live under (`_loc.shared_project_root(root) or root`,
+    exactly as `_existing_run_keys` does). The namespace is a SIBLING of
+    `sessions/`,
+    not a subdir of it: `sessions/` is the tracked-run record and a `--dry-run`
+    must not create it (extensions/agi/tests/test_workflow.py
+    `test_dry_run_writes_no_row` asserts exactly that), and minting a name is
+    not tracking a run. It is likewise NOT inside the live
+    `.agi/sessions/workflows/runs` tree.
+
+    False = "a peer holds this name" (advance); None = "reservation is
+    IMPOSSIBLE here" (EACCES/EROFS/ENOSPC) — a DIFFERENT failure, and
+    conflating the two let N peers fall through to one unreserved name with
+    no log line (director item 8). NEVER raises: a de-collided name is a
+    nicety, not a gate (same contract as `_existing_run_keys`).
+
+    Stale markers are SKIPPED, never reaped: reaping needs a row-vs-marker
+    reconciliation pass that costs more production lines than this round has,
+    and a skipped name is a wasted suffix, never a wrong key."""
+    try:
+        sess = _loc.shared_project_root(root) or root
+        d = Path(sess) / RUN_KEY_MARKER_DIR
+        d.mkdir(parents=True, exist_ok=True)
+        fd = os.open(str(d / f"{run_key}.lock"),
+                     os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+        os.close(fd)
+        return True
+    except FileExistsError:
+        return False
+    except Exception as exc:
+        print(f"[workflow] run-key reservation unavailable ({exc}); "
+              "minting a unique key instead", file=sys.stderr)
+        return None
+
+
+def _unique_run_key(base: str) -> str:
+    """A key NO sibling can hold — for when the namespace cannot be reserved
+    (unwritable dir, exhausted suffix space): pid + random bytes. An
+    UNRESERVED plain candidate is what two peers collide on."""
+    return f"{base}-x{os.getpid()}-{os.urandom(3).hex()}"
+
+
+def _mint_run_key(root: Path, key: str, args: dict, reserve: bool = True) -> str:
     """The descriptive run key for this run: workflow-type abbreviation joined
     to the slugged run args, de-collided against the rows already tracked for
-    this workflow."""
+    this workflow AND RESERVED atomically at mint, so N concurrent launches
+    get N distinct keys. A single launch's key is unchanged: the first
+    candidate is taken whenever it is free, and the reservation is invisible
+    to the caller — the reserved name and the name written into the row are
+    the SAME string, because `run_workflow` binds this return value once."""
     base = _run_key_abbrev(key)
     toks = _run_arg_tokens(args)
     if toks:
         base = f"{base}-" + "-".join(toks)
     used = _existing_run_keys(root, key)
     candidate, i = base, 2
-    while candidate in used:
+    for _ in range(RUN_KEY_MINT_ATTEMPTS):
+        if candidate not in used:
+            if not reserve:
+                # A `--dry-run` tracks no row, so it reserves nothing: the
+                # dry-run-writes-nothing contract is HONOURED, not satisfied
+                # by moving the write (director item 6 / MISS-1).
+                return candidate
+            got = _reserve_run_key(root, candidate)
+            if got:
+                return candidate
+            if got is None:
+                return _unique_run_key(base)
         candidate = f"{base}-{i}"
         i += 1
-    return candidate
+    return _unique_run_key(base) if reserve else candidate
 
 
 class WorkflowsNodeError(Exception):
@@ -2375,7 +2448,7 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # by a DESCRIPTIVE key minted from this workflow's type + run args
     # (`mur-39`, `mur-sl1-2`), printed FIRST, never by the harness id. The
     # mint reads existing tracked rows so a re-run de-collides (-2, -3).
-    run_key = _mint_run_key(root, key, args)
+    run_key = _mint_run_key(root, key, args, reserve=not dry_run)
     # The RUNNER resolves the project root and hands it to every stage prompt
     # as `{project_root}` — no prompt hardcodes a checkout path, so a run
     # started in a git worktree mints into THAT worktree's graph. Added AFTER
