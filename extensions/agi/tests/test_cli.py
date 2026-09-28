@@ -2078,7 +2078,7 @@ def test_own_node_paths_drops_a_named_goal_and_keeps_the_target(tmp_path):
             f"---\nid: {sub}:{nid}\ntype: {sub}\n---\n\nbody\n")
     paths = cli._round_own_node_paths(
         root, root, "experiment:a00-x-1", None,
-        ["hypothesis:tgt", "goal:g5"])
+        ["hypothesis:tgt", "goal:g5"], agent_id="a00-x")
     assert paths == {"nodes/experiment/a00-x-1.md",
                      "nodes/hypothesis/tgt.md"}, paths
 
@@ -2165,7 +2165,7 @@ def test_every_refused_named_id_is_named_on_stderr(tmp_path, capsys):
     capsys.readouterr()
     paths = cli._round_own_node_paths(
         root, root, "experiment:a00-x-1", None, ["hypothesis:tgt"],
-        refused=["goal:g5"])
+        refused=["goal:g5"], agent_id="a00-x")
     err = capsys.readouterr().err
     # Dropped from the sweep ...
     assert paths == {"nodes/experiment/a00-x-1.md",
@@ -2177,7 +2177,7 @@ def test_every_refused_named_id_is_named_on_stderr(tmp_path, capsys):
     # A clean round names nothing.
     capsys.readouterr()
     cli._round_own_node_paths(root, root, "experiment:a00-x-1", None,
-                              ["hypothesis:tgt"])
+                              ["hypothesis:tgt"], agent_id="a00-x")
     assert capsys.readouterr().err == ""
 
 
@@ -2276,12 +2276,15 @@ def test_own_node_id_is_type_gated_too(tmp_path, capsys):
         "---\ntype: goal\nround_commit: false\n---\n\nbody\n")
     capsys.readouterr()
     paths = cli._round_own_node_paths(
-        root, root, "experiment:a00-x-1", None, [], refused=["goal:g5"])
+        root, root, "experiment:a00-x-1", None, [], refused=["goal:g5"],
+        agent_id="a00-x")
     assert paths == {"nodes/experiment/a00-x-1.md"}, paths
     assert "goal:g5" in capsys.readouterr().err
-    # the round's OWN node named on --node-id, but of a refused TYPE
+    # the round's OWN node named on --node-id, but of a refused TYPE.
+    # DH.514: named by dispatch (`named`), so the `--node-id` SEED guard is
+    # satisfied and the assertion below is the TYPE gate, not the seed.
     capsys.readouterr()
-    paths = cli._round_own_node_paths(root, root, "goal:g5", None, [])
+    paths = cli._round_own_node_paths(root, root, "goal:g5", None, ["goal:g5"])
     assert paths == set(), paths
     assert "goal:g5" in capsys.readouterr().err
 
@@ -2462,3 +2465,42 @@ def test_a_written_shape_key_is_never_refused(tmp_path):
     ok, fm, defect = cli._load_frontmatter(text)
     assert ok, defect
     assert fm["probes"] == ["one", "two"]
+
+
+# hypothesis:a-rounds-own-path-set-never-fails-open -- a round that passed
+# `--owns` commits the nodes of the agents THIS round spawned
+# --------------------------------------------------------------------------
+
+def test_done_with_owns_commits_the_nodes_this_round_spawned(tmp_path, monkeypatch):
+    """A parent's `--owns <kid node id>` is the flow the round commit exists
+    for (one parent commit carries its kids' files). The done path must widen
+    its named set with the ids of the agents THIS round spawned -- and ONLY
+    when `--owns` was passed. The record is the shape a kid leaves after its
+    own `done`: dispatch's `node_id` plus the `dispatch_node_id` capture."""
+    cli = _load_cli()
+
+    def _run(sub, owns):
+        graph, args = _cmd_done_project(tmp_path / sub)
+        d = graph / "sessions" / "iter-001" / "a00-kid7"
+        d.mkdir(parents=True)
+        (d / "agent.json").write_text(
+            '{"id": "a00-kid7", "node_id": "experiment:a00-kid7", '
+            '"dispatch_node_id": "experiment:a00-kid7", "parent": "hypothesis:h1", '
+            '"spawned_by_agent": "a00-x", "status": "done"}')
+        args.owns = owns
+        seen = {}
+        # the worktree commit is SPYED: the seam under test is the argument,
+        # not the subprocess -- no git, no worktree, no real commit.
+        monkeypatch.setattr(cli, "_auto_commit_worktree",
+                            lambda r, a, n, o, v, named=None, refused=None:
+                            seen.setdefault("named", list(named or [])))
+        monkeypatch.setattr(cli, "_find_root", lambda: graph)
+        assert cli.cmd_done(args) == 0
+        return seen["named"]
+
+    named = _run("owns", ["experiment:a00-kid7"])
+    assert "experiment:a00-kid7" in named, named
+    assert "experiment:e1" in named, named   # dispatch-time set, not replaced
+    named = _run("no-owns", None)
+    assert "experiment:a00-kid7" not in named, named
+    assert "experiment:e1" in named, named
