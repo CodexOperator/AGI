@@ -32,8 +32,8 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 
 ## §0 STATE (03:2xZ 09-28 · seat woke 00:45Z · per-chain history = git log of this node)
 ```
-MERGE-UP  EG.1 chain 95c425f8c RETURNED by TM (TMM.316, 02:3xZ; that dm never reached my inbox) for ONE docstring fix (mem_cap.py
-          resolve_tasks_max: AGI_TASKS_MAX IS inherited via dispatch.scrubbed_env; typo WHICEVER) -> EG.29 (qgEG29, behind EG.27) -> mur -> re-send [merge-up]
+MERGE-UP  EG.1 chain RE-HANDED to TM 03:4xZ -- TIP 207ae63f4, MB 5c40a8374, 26 files +1377/-76, 0 deletions, 123 passed, 0 open residues. The TMM.316
+          docstring fix 6d78c51bf was made by the director on the OWNER's order 03:3xZ ("EG 29 is so simple you should do it yourself"); EG.29 CANCELLED
 SERIES    EG.N (next EG.31) · murs merge_up "eg" -> mur-eg-N (next mur-eg-10) · DH.N queued before the reset keep their labels
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f] gen2.py N murq<Q>.json tip label (run FROM the worktree; sed header DH.EG.n -> EG.n)
           · place2.sh N (splice fixed 01:1xZ) · placef.sh N (fresh) · redispatch2.sh N (dead round, EG labels ok, gated) · mkmur.py + runmur.sh
@@ -46,7 +46,7 @@ RE-DISP   provider-dead 02:45-03:15Z: TMM.317 = ONE AT A TIME, stop the lane on 
           EG.19 661 EG.20; log T/qgRS.log, T/emptycount.log) · EG.30 = the retry fix (hypothesis:an-empty-provider-response-is-retried-not-fatal,
           g7.33.19) placed after EG.29 (qgEG30) · COUNT 03:15-04:15Z runs itself at 04:20Z -> T/count1h.txt: > 1 in 3 died = send TM both numbers
           · the tier-0 model/provider row is the PRIME's cell (TMM.317 (4))
-QG-EG     EG.21 (EG.13 chain, memory-cap HARD RULE) -> EG.22 (DH.657) -> EG.24 (DH.655 clean-kid; BOUNDARY vs EG.9) -> EG.25 (DH.659 parent-demote)
+QG-EG     EG.30 (retry fix, qgEG30 now waits on nothing -- qgEG29 stopped) · EG.21 (EG.13 chain, memory-cap HARD RULE) -> EG.22 (DH.657) -> EG.24 (DH.655 clean-kid; BOUNDARY vs EG.9) -> EG.25 (DH.659 parent-demote)
           -> EG.26 (EG.16/DH.653) -> EG.28 (DH.656, mur-eg-9 verify: cli.py guard unpinned, cache key fail-open)
 QG-DH     drainqg8.. chain (T/drainqg<N>.log): 662-664 · 665 · 666 · 668 · 669 · 675 670-674 · 678 · 679 · EG.2 EG.3 · EG.5 (facts chain, TMM.313 (2):
           goes up as ONE [merge-up], lands with belam's F13 trim + cell) · EG.6
@@ -65,10 +65,11 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 ```
 
 ## 🔴 WHERE IT STOPS
-Queue drained into chained gated units; EG.27 (EG.9 chain, from the salvage) at the front; EG.1 merge-up 95c425f8c waits on TM.
+Rotated at the captive line: EG.1 re-handed to TM (207ae63f4, owner-ordered docstring fix); queue drained into chained gated units; EG.27 front.
 ```
-FIRST   send.py read director-engine ; spawn_budget.py status (every ended parent -> harvest AT ONCE) ; systemctl --user list-units 'agi-director-engine-qg*'
-THEN    EG.27 / EG.29 / EG.30 ended -> harvest -> mur ; EG.29 clean -> merge -> EG.1 [merge-up] again ; 04:20Z T/count1h.txt -> TM if > 1 in 3 ; murs -> verd.py
+FIRST   send.py read director-engine (TM's answer on the EG.1 re-hand) ; spawn_budget.py status (every ended parent -> harvest AT ONCE)
+        ; systemctl --user list-units 'agi-director-engine-*' ; T/qgRS.log (serial re-dispatch; STOP = the lane died on empty again)
+THEN    EG.27 ended -> harvest -> mur (range a935bf010..tip covers the salvage) ; 04:20Z T/count1h.txt -> TM if > 1 in 3 died ; murs -> D/verd.py
 ```
 
 ## §4 TRAPS
