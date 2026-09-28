@@ -16,7 +16,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-sot-land-20260928
+thought_session: belam-no-pi-stop-20260928
 title: Belam/Prime grok internals — TEMP harness SoT stand-in
 town: core
 ---
@@ -132,6 +132,7 @@ After ANY graph SoT modification (standing / internals / town) — ALL three rol
 you = Prime / Belam (not a director scripted stand-in)
 MINT umbrella g7.N / top-level ──▶ Belam/Prime only
 NEST under ASSIGNED             ──▶ directors (§4b)
+TREE BUILD                      ──▶ Belam = main directing role (directors self-work under NO-PI)
 LAND gates                      ──▶ format ✓ · residues=0 · suite green
 ```
 
@@ -155,10 +156,16 @@ CONCURRENCY (HARD — DIAGRAM D awareness · SoT doc:standing-llm-ops §4): spaw
   CAP-RULER awareness: directors fill toward ≤10 when claimable remains (soft floor stays awareness-only under owner 10/20 GO)
   · OWNER GO 2026-09-25: engine spawn.max_live=20 box-wide; directors treat ≤10 live/dir as CAP-RULER (SoT awareness; acquire enforces box max_live only)
   soft floor: under owner 10/20 GO, do not fill past ≤10/dir or box 20 (Belam awareness; directors enforce)
-  residual-after-MUR + horizon-under-active + ACTIVE⇒spawn same turn = director WATCH HARD (see director SoT)
-DURABLE SPAWN (HARD — SoT standing §4): parents → systemd --user scope via dispatch durable; never SSH/bash children
-ACTIVE-BEFORE-SPAWN (directors · bare YAML active): never spawn while goal still horizon · quoted 'active' = BUG
-  · ACTIVE⇒SPAWN SAME TURN (directors): bare active ⇒ durable pi parent same wake
+  residual-after-MUR + horizon-under-active + ACTIVE⇒same-turn = director WATCH HARD (see director SoT)
+NO-PI HARNESS (HARD — owner FULL STOP 2026-09-28 until owner lifts):
+  NO durable pi parent spawn · NO pi harness · NO pi parent scopes
+  Directors+Belam complete goals THEMSELVES via write.py + skill:agi-*
+    (node-write · goal · dispatch-without-pi · verify · merge-pass)
+  Belam = main directing role for tree build
+DURABLE (softened under NO-PI): non-pi dispatch / self-work only · never SSH/bash children · NEVER pi
+ACTIVE-BEFORE-SPAWN (directors · bare YAML active): never act while goal still horizon · quoted 'active' = BUG
+  · ACTIVE⇒SPAWN SAME TURN (OVERRIDE): bare active ⇒ director/Belam self-work OR non-pi dispatch ONLY
+    (NEVER durable pi parent — owner FULL STOP until lift)
 COMPLETE (leaf/trunk · residues=0 · format✓ · suite✓): write.py status complete (BARE)
   · sync post WTs via **merge** (NEVER ff-only) · harvest-clean finished parent+kid WTs · not leave active/horizon
 AXES (everyone): morals = up-down · verify-suite progress after each batch = forward-backward
@@ -174,5 +181,5 @@ Sync routine title + body come from `doc:grok-harness-internals-sync` ONLY.
 `grok-internals-sync` name / schedule / prompt are copied identically from that doc; this per-post SoT supplies PROFILE only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner-fix 2026-09-28: LAND HARD merge-not-ff (never ff-only — ff ruins grid history) · DISK 50-80GB + harvest-clean parent/kid WTs · skill refs (agi-*) not inline procedures · standing stub unchanged (no shared LAND)
+owner FULL STOP 2026-09-28: NO-PI HARD — no durable pi parent/harness until owner lifts · ACTIVE⇒SPAWN = self-work/non-pi only · Belam directs tree · keep merge-not-ff · disk 50-80GB · harvest-clean · caps ≤10/≤20 · skill refs
 <!-- THOUGHT:END -->
