@@ -60,8 +60,7 @@ EG.82     awr (hyp a-node-frontmatter-that-is-not-the-writers-shape-is-refused, 
           the round commit = findings row 13
 EG.83     awr (3531d6028): D1-D3 REFUTED · M1 prose (NOTES name only EG.47) = director close · TEMPLATE_MAX=yes: a00-ef5840bb:64's 'paste the
           post-commit range / wc -l of the new node' is standing order text -> ONE [rule] line to TM for the agi-corrective order template
-EG.85     DEMOTE (6f8cde609): D1 = a duplicated EVIDENCE STRENGTH paragraph (a00-4ffbe53c:52) + a00-3dc7f365 title/:34 claim a fix the
-          bytes refute -> director close (cut the copy, fix the claim) · M5 no committed test reads the agi-dispatch five-gate row -> test
+EG.85     DEMOTE (6f8cde609; loop a00-3dc7f365): D1 DONE 7a0c3cc21 (the duplicated EVIDENCE STRENGTH copy cut; the title claim holds) · M5 no committed test reads the agi-dispatch five-gate row -> test
           corrective (pi-free) · M1 hand-landed sibling nodes (director landing = the round's gate) -> findings row
 EG.71     chain CLOSED edaf6831e, HELD: carries 2 ladder cells (prime settings ultracode + tier-0 director pi -> pi-free, kid-written, hand-landed
                     81eb9fcda); post ladder = its new test_tier0_rows_resolve_a_zero_usd_harness RED -> [decision] to TM 12:0xZ, recommend A (belam lands the director cell)
