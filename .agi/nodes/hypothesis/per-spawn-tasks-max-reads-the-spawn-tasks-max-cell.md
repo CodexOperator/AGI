@@ -63,6 +63,26 @@ FILE SCOPE extensions/agi/boxkit/probe.py · extensions/agi/bin/mem_cap.py (docs
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 4d2c43ea5 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.15 -- closes mur-eg-4 EG.10-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-per-spawn-tasks-max-r-a00-7b3f1dbe tip b1f3ac729 (branch de-base-EG.15; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. residue -- Item 5 half-applied: DRIFT row sources its setenv (test_boxkit_probe.py:558) but still types the bare literal 96 in the expectation at :560
+2. 2. residue -- The UNRECORDED-widening note omits the <=8 production-lines-net cap at the hypothesis node's CEILING (:48) that the range's mem_cap.py +17/-2 = net 15 breaches
+3. 3. note -- The new AGI_TASKS_MAX docstring attributes production reachability to dispatch exporting env into the scope, while the read happens in the parent that builds the argv
+4. 4. note -- The round's own citations (hypothesis node:42, mem_cap.py:73-82 / test:85 / :550, and the table's 'mem_cap.py:69') were invalidated by this very diff's docstring growth
+5. 5. note -- The round pre-records the merge-up verdict ('recorded as accept_with_residue') on the parent hypothesis node at :55
+6. The widening note's own factual claim does not survive the branch bytes. hypothesis:55 says `what actually landed on this loop branch is 3 experiment nodes and a test-file delta larger than that` (that = <= 30 test lines), but `git diff --numstat 8b9869998 4d2c43ea5` gives test_boxkit_probe.py 26/0 and boxkit/probe.py 7/6 -- 26 test lines (inside 30) and net +1 production line (inside 8). The ONLY real widening is the KID count (3 experiment nodes vs `1 kid` at :48); the note therefore records a widening that is one-third true and states a test-line magnitude its own branch contradicts. The residue that survives is narrower and is the one the note should have written.
+7. The round's material output undercuts item 3's own conclusion from the other side: the DRIFT row is not a test-only artefact at all -- boxkit/probe.py:280 calls mem_cap.resolve_tasks_max in the probe's own process, so the docstring's warning about 'losing the driver' is right, but the same code path means the env hook is a PRODUCTION probe input with no config cell and no config:max declaration anywhere in the node's Dispatch line (hypothesis:25 covers only the spawn.tasks_max cell).
+8. The test's own stated invariant is falsified by this round: test_boxkit_probe.py:544-545 declares `No "2G" / 150 literal here` while :555 pins 150 and :560 pins 96 -- item 5's `FIXED` is contradicted by the docstring of the very test it edited, which is stronger than calling the literal 'a pinned duplicate'.
+9. Checked and CLEAN, recorded so the merge-up does not re-open it: no real-resource touch in the touched test (HOME redirected at test_boxkit_probe.py:130, XDG_RUNTIME_DIR at :278/:386, AGI_MEMCAP_SYSTEMD_RUN forced to 1 at :131 so mem_cap's real systemd-run probe at mem_cap.py:288-300 never fires, systemctl is a tmp shim at :63) and no demotion/deletion -- `git diff --name-status 4d2c43ea5 b1f3ac729 -- .agi/nodes` is A(experiment) + M(hypothesis) only.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_boxkit_probe.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/mem_cap.py · extensions/agi/tests/test_boxkit_probe.py · .agi/nodes/experiment/a00-c8dc1e1f-b26495.md · .agi/nodes/hypothesis/per-spawn-tasks-max-reads-the-spawn-tasks-max-cell.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over b1f3ac729 · <= 40 test lines net over b1f3ac729 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat b1f3ac729 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.10: mur-eg-2 EG.1-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.15: mur-eg-4 EG.10-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
