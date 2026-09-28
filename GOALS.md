@@ -7952,7 +7952,7 @@ Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
 Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
-#### G7.31.2 — Pane anchor registers seat occupation across post/pin/formation/auto-rotation — status: active
+#### G7.31.2 — Pane anchor registers seat occupation across post/pin/formation/auto-rotation — status: complete
 
 # goal:g7.31.2
 
@@ -8003,6 +8003,8 @@ Assigned to **director-helper** with `.4` + `.5` AND keep `g7.26`–`g7.30` land
 
 leaf g7.31.2.1 complete (pane registry tests GREEN); .2 residues open; .3 seeds=[.3.1] argv-builder strip nest. NO pi.
 
+2026-09-28 ~19:30 ET NO-PI helper: all three seeds complete (.1 registry, .2 pane-contract rotate reuse, .3 argv-builder strip); test_seat_pane_registry 17/17 + test_rotate_pane_contract 4/4 GREEN
+
 ##### G7.31.2.1 — Seat-start registry occupation matches tmux pane pin — status: complete
 
 # goal:g7.31.2.1
@@ -8038,7 +8040,7 @@ seat start ──▶ pane attach
 Assigned to **director-helper**. One falsifier head of `goal:g7.31.2`. Diagram-max; batch-max; spawn.parallel=1; no MAIN push; zero `--post`/`--seat` on parent/kid dispatch.
 # goal:g7.31.2.1
 
-##### G7.31.2.2 — Rotate/auto-rotation reuses same pane contract — status: active
+##### G7.31.2.2 — Rotate/auto-rotation reuses same pane contract — status: complete
 
 # goal:g7.31.2.2
 
@@ -8084,6 +8086,8 @@ Assigned to **director-helper**. One falsifier head of `goal:g7.31.2`. Prefer pr
 | note | production_lines:2 vs body 0 code lines / siblings 0 | `.agi/nodes/hypothesis/a00-f4f7eb39-a27b6a.md:22,:90` | set production_lines:0 or justify metric |
 
 **Central claim held:** kid3 lean_proved:90 with predecessor-named THOUGHT + correct reader. NO merge-up while residues>0. Next parent: DH.54 @ tip after this §3d write. spawn.parallel=1.
+
+2026-09-28 ~19:30 ET NO-PI helper: falsifier GREEN — test_rotate_pane_contract 4/4 (pane name reused + staged rename + no per-harness argv builder + grok refused by name); siblings .1/.3 already complete
 
 ##### G7.31.2.3 — Zero new harness argv builders in rotate.py — status: complete
 
