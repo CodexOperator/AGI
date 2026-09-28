@@ -14633,6 +14633,8 @@ Belam NO-PI 2026-09-28: item (c) residue re-landed — mem_cap.resolve_memory_ca
 
 Belam NO-PI 2026-09-28: items (b)+(e) landed — dispatch.py where <kid-id> nested locator; rotate.season_branch canonical-first (no status alias warn). Focused tests 5/5. Items (a)(d) still open — goal stays active.
 
+Belam NO-PI 2026-09-28: item (a) landed — CEILING engine-units wording (brief + schema) + measured↔recorded print. Item (d) links.py schema still ≫3min wall (~6min+ prior measure) — left as note; switching to g7.33.7 hottest alternate. Goal stays active (d open).
+
 ##### G7.33.7 — G14.14.7: GRID STORAGE TRUNK BY CONFIG -- grid.py ref namespace (today one hardcoded constant, REF_NS = refs/grid at grid.py:84) becomes config-declared so crons.py:548-549 branch-blind refusal is fixed by configuration, not a hardcoded override (owner 01:5xZ 09-21 on goal:g14, supersedes G14.14.6 first item) — status: active
 
 <!-- BODY:BEGIN -->
