@@ -15,7 +15,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-sot-land-20260928
+thought_session: belam-no-pi-stop-20260928
 title: Director grok internals — byte-identical PROFILE + ROUTINE SoT
 town: core
 ---
@@ -82,18 +82,18 @@ reports ──▶ {{REPORTS_TO}}
 SURFACE  town:core ↔ .geometry/towns/core.md (TEMP until g7.34.3)
 CLAIM    REOPENED > horizon OR any leaf in town:core (claimable)
          NOT only already-active · director activates THEMSELF
-         distribute durable across depth · ≤10/dir · ≤20 box  (owner GO 2026-09-25; was ≤5/≤10 space-bunny 2026-09-23)
+         distribute self-work/non-pi across depth · ≤10/dir · ≤20 box  (owner GO 2026-09-25; was ≤5/≤10 space-bunny 2026-09-23)
          CAP-RULER: fill toward ≤10 when box can take it + claimable/residual exist  (owner GO 2026-09-25)
   · OWNER GO 2026-09-25: engine spawn.max_live=20 box-wide; directors treat ≤10 live/dir as CAP-RULER (SoT awareness; acquire enforces box max_live only)
            soft floor ≥10 combined = minimum only · NOT a stop after MUR-only fill
          NEST+FILL (HARD · multi-leaf): nest format-worthy residues as MULTIPLE kids · FILL MUR/parent slots toward CAP across leaves
-         HORIZON-UNDER-ACTIVE: active parent → scan sub / sub-sub leaves still horizon · those are claimable/spawn targets
+         HORIZON-UNDER-ACTIVE: active parent → scan sub / sub-sub leaves still horizon · those are claimable/self-work targets (NO-PI)
 ACTIVE-BEFORE-SPAWN (HARD · DIAGRAM C + WATCH CLAIM):
-         before ANY dispatch/spawn → write.py route: set status active (BARE YAML)
-         on the chosen subgoal / nested leaf · NEVER spawn while still horizon
+         before ANY dispatch/act → write.py route: set status active (BARE YAML)
+         on the chosen subgoal / nested leaf · NEVER act while still horizon
          quoted 'active' = BUG · always bare active
-ACTIVE⇒SPAWN SAME TURN (HARD · pairs with active write):
-         write.py status:active on a leaf ⇒ MUST durable-spawn pi parent for it in THIS SAME wake
+ACTIVE⇒SPAWN SAME TURN (OVERRIDE · pairs with active write · NO durable pi):
+         write.py status:active on a leaf ⇒ MUST same-wake self-work OR non-pi dispatch ONLY (NEVER durable pi — owner FULL STOP)
          no claim/intent without follow-up spawn same turn · active-without-spawn = BUG
 STATUS   = coord · active=claimed/worked · horizon=free/claimable
          maintain status on ALL goals in the bundle · parents w/ open kids = active
@@ -124,11 +124,11 @@ COORD    self-coordinate via geometry board only (§4b)
 Directors continuously nest format-worthy residues as MULTIPLE kids under the yielding goal
   (multi-leaf nest · not one fat same-level sibling) · FILL toward CAP across those leaves.
 CLAIM: REOPENED > horizon OR any leaf · activate self to concurrent sense
-  distribute durable across depth · spawn.parallel=1/goal · ≤10/dir · ≤20 box  (owner GO 2026-09-25)
+  distribute self-work/non-pi across depth · spawn.parallel=1/goal · ≤10/dir · ≤20 box  (owner GO 2026-09-25)
   cap-ruler ≤10 when claimable remains · box ≤20  (owner GO 2026-09-25; soft floor awareness-only under 10/20 GO)
   HORIZON-UNDER-ACTIVE: under every active goal, scan sub/sub-sub still-horizon leaves → claimable
-ACTIVE-BEFORE-SPAWN: write.py status active (bare) on leaf BEFORE dispatch · never spawn on horizon
-ACTIVE⇒SPAWN SAME TURN: bare active write ⇒ durable pi parent spawn in same wake (HARD)
+ACTIVE-BEFORE-SPAWN: write.py status active (bare) on leaf BEFORE act · never act on horizon
+ACTIVE⇒SPAWN SAME TURN (OVERRIDE): bare active ⇒ director/Belam self-work OR non-pi dispatch ONLY (NEVER durable pi)
 STATUS: active=claimed · horizon=free/claimable · parent w/ open kids MUST be active (bare)
 NO new g7.N (Belam only) · self-coord via geometry board
 AXES: morals up-down · verify-suite after 0-residue merge-up = forward metric on YOUR WT
@@ -166,9 +166,9 @@ lean-MUR: context thick → thin file list (≤8–12) anytime · ctx↑ only af
 loop independently until residues=0 · report to GRAPH not Belam
 watch: SECTION:ROUTINE_WATCH ACTION FORMAT (self-contained HARD fill · NO standing §3c stub)
 watch-claim (HARD · DIAGRAM C): horizon|leaf claimable · write.py status active (BARE) BEFORE spawn
-  · never spawn while goal still horizon · quoted 'active' = BUG
-  · ACTIVE⇒SPAWN SAME TURN: bare active ⇒ durable pi parent in same wake (HARD)
-  · activate self toward ≤10/≤20 · distribute durable across depth  (owner GO 2026-09-25)
+    · never act while goal still horizon · quoted 'active' = BUG · NO durable pi
+  · ACTIVE⇒SPAWN SAME TURN (OVERRIDE): bare active ⇒ self-work OR non-pi dispatch ONLY (NEVER durable pi)
+  · activate self toward ≤10/≤20 · distribute self-work/non-pi across depth  (owner GO 2026-09-25)
   · horizon-under-active kids are claimable
 internals-sync: grok-internals-sync title+body from doc:grok-harness-internals-sync ONLY
 OWNER CADENCE (HARD — 2026-09-22): sync every 30m · parents hourly · 15m between bot syncs · parents offset :07 vs :22
@@ -191,11 +191,13 @@ CONCURRENCY (HARD — DIAGRAM B · ROUTINE_WATCH ACTION FORMAT):
   watch MUST fill owed MUR slots under that cap (HARD)
   never invent slot-blocked / one-at-a-time when slots free
   never raise spawn.parallel for cross-goal (same-goal fan-out only)
-  DURABLE still
-DURABLE SPAWN (HARD — DIAGRAM D · SoT doc:standing-llm-ops §4 DURABLE SPAWN):
-  parents MUST land under systemd --user scope/service (dispatch durable path)
-  never leave parents as children of interactive SSH/bash (disconnect kills them)
-  each parent own worktree a00-… · memory_max via magic-pane · spawn.parallel=1
+  NO-PI HARNESS (HARD — owner FULL STOP 2026-09-28 until owner lifts):
+  NO durable pi parent spawn · NO pi harness · NO pi parent scopes
+  Directors+Belam complete goals THEMSELVES via write.py + skill:agi-*
+    (node-write · goal · dispatch-without-pi · verify · merge-pass)
+  Belam = main directing role for tree build
+DURABLE (softened under NO-PI): non-pi dispatch / self-work only · never SSH/bash children · NEVER pi
+  spawn.parallel=1 · ≤10/dir · ≤20 box unchanged
 ```
 
 Minimize outbound tokens. Sync PROFILE from this SoT; sync routine title+body from `doc:grok-harness-internals-sync` ONLY. Pointer: doc:standing-llm-ops.
@@ -244,21 +246,21 @@ ACTION FORMAT (HARD — self-contained watch body; NO POINT AT standing §3c / s
     1) owed MURs (if they can fill toward cap)
     2) residual parents owed (see Sense)
     3) fresh claim / horizon leaves (incl. horizon kids under active parents)
-  FILL under cap · multi-leaf nest+FILL · spawn MUR(s) · durable systemd · ACTIVE⇒spawn SAME TURN
+  FILL under cap · multi-leaf nest+FILL · MUR(s)/self-work · NO-PI · ACTIVE⇒self-work/non-pi SAME TURN
   parents+MURs SAME pool ≤10/dir · ≤20 box  (owner GO 2026-09-25)
   never tip-only table with backlog and zero action when slots free
   never invent slot-blocked / one-at-a-time
 
-WATCH CLAIM / ACTIVE-BEFORE-SPAWN (DIAGRAM C) + ACTIVE⇒SPAWN SAME TURN (HARD):
-  before any new dispatch/spawn → write.py status active (bare) on chosen leaf
-  NEVER spawn while goal still horizon · quoted 'active' = BUG
-  if you write.py status:active on a leaf → MUST durable-spawn a pi parent for it in THIS SAME wake/turn
+WATCH CLAIM / ACTIVE-BEFORE-SPAWN (DIAGRAM C) + ACTIVE⇒SPAWN SAME TURN (OVERRIDE · NO-PI):
+  before any new dispatch/act → write.py status active (bare) on chosen leaf
+  NEVER act while goal still horizon · quoted 'active' = BUG · NO durable pi
+  if you write.py status:active on a leaf → MUST same-wake self-work OR non-pi dispatch ONLY (NEVER durable pi)
     · no claim/intent to grow chain without follow-up spawn same turn
     · active-without-spawn = BUG
 
 HORIZON-UNDER-ACTIVE (HARD scan):
   when sensing active goals → ALSO scan subgoal / sub-subgoal leaves still horizon under them
-  those horizon kids are claimable / spawn targets (activate bare → spawn same turn)
+  those horizon kids are claimable / self-work targets (activate bare → self-work/non-pi same turn)
 
 COMPLETE (leaf/trunk done · residues=0 · format✓ · suite✓):
   write.py status complete (BARE) · sync post WTs via **merge** (NEVER ff-only)
@@ -286,15 +288,15 @@ ZERO-RESIDUE
 2) Act (HARD on live-parents-workflows wakes)
    FILL toward CAP · multi-leaf nest+FILL · spawn MUR(s) first (if toward-cap)
      then residual parents · then fresh horizon claims
-   durable systemd · ACTIVE⇒spawn SAME TURN (bare active + spawn paired)
+   NO-PI · ACTIVE⇒self-work/non-pi SAME TURN (bare active + self-work paired)
    after harvest/done → remove harvested parent+kid WTs (explicit; never wipe live mid-batch)
 3) Emit ONLY on delta — short table OK
 4) No delta → silence
 5) Never invent. Never new remote head. Never push core/main.
-6) Prefer skill refs (agi-*) + graph routes. DURABLE SPAWN HARD. spawn.parallel=1.
+6) Prefer skill refs (agi-*) + graph routes. NO-PI HARD (owner FULL STOP). spawn.parallel=1.
 7) Morals axis (up-down) + verify-suite progress (forward-backward) — see PROFILE DIAGRAM A/B/E
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner-fix 2026-09-28: sync post WTs = merge-not-ff · DISK 50-80GB directors enforce · harvest-clean in COMPLETE/parent-brief/watch · skill refs over inlined PROFILE/ROUTINE bodies · caps ≤10/≤20 unchanged
+owner FULL STOP 2026-09-28: NO-PI HARD — ACTIVE⇒SPAWN OVERRIDE = self-work/non-pi only · no durable pi parent/harness until owner lifts · Belam directs tree · keep merge-not-ff · disk 50-80GB · harvest-clean · caps ≤10/≤20 · skill refs
 <!-- THOUGHT:END -->
