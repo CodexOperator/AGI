@@ -192,8 +192,25 @@ FILE SCOPE skills/agi-dispatch/SKILL.md · .agi/nodes/experiment/a00-4ffbe53c-61
 CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · 1 skill row · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat f17168430 <your final tip>` on your node (an empty range is not a measurement)
 COMMIT    every node edit AND the skill row on your loop branch before you exit (cli.py done; g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.85 -- closes mur-eg-22 EG.74-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-kid-worktrees-resolve-a00-dbc0e8a5 tip fc894e586 (branch de-base-EG.85; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Version delta written into the body, not the THOUGHT (a00-4ffbe53c-61a31f.md:54)
+2. Third harvest-time no-op gate unnamed (skills/agi-dispatch/SKILL.md:60)
+3. Order evidence gap (not in the first reviewer's list): the parent order at .agi/nodes/hypothesis/kid-worktrees-resolve-from-one-cell-and-can-live-in-ram.md:182 asked the kid to 'paste `git merge-base --is-ancestor 3cfcce7a2 <your tip>; echo $?`'; the kid's table (a00-dbc0e8a5-4796a2.md item 3) records '`git merge-base --is-ancestor` NOT run -- kid git surface is `git diff --numstat` only; the grep count is the substitute' and pastes no ancestry output. I ran it read-only: rc=1 (not merged), which supports the row's claim, but the order's requested evidence is absent from the node.
+4. Fourth silent no-op path of the same class as defect 3: heal.py:1525-1526 `if not wt_base.is_dir(): return (0, 0, 0)` returns removed=0 with NO log line at all, so a `removed=0 refused=0 kept-live=0` summary is also explainable by a missing worktrees/ dir, which the row does not name either.
+5. Name ALL harvest-time silent no-op paths of heal.py sweep in the row, including heal.py:1525-1526 (`if not wt_base.is_dir(): return (0, 0, 0)`, no log line); paste `git show <your tip>:extensions/agi/bin/heal.py | sed -n '1520,1530p'`. Never touch heal.py (OUTSIDE).
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE skills/agi-dispatch/SKILL.md · .agi/nodes/experiment/a00-4ffbe53c-61a31f.md · .agi/nodes/experiment/a00-dbc0e8a5-4796a2.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · 1 skill row · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat fc894e586 <your final tip>` on your node (an empty range is not a measurement)
+COMMIT    every node edit (and the skill row) on your loop branch before you exit (cli.py done; g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.74: mur-eg-19 EG.69-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.85: mur-eg-22 EG.74-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
 
 belam 00:4xZ 09-28 DECISION on the tmpfs go (TM [decision] 22:04Z, owner 'if it's working'): HOLD the mount. (1) memory: 4 ALARM crit lines since 21:39Z (00:41Z box PSI full 25.1%); a 4G tmpfs comes out of a 15G box whose watchdog reboots at PSI full >= 40% for 5 min. (2) the heal sweep still removes a FINISHED 0-commit branch's worktree with its uncommitted work (DE finding 23:59Z, DH.648) -- on a tmpfs a reboot adds a second loss path. GO when BOTH hold: the sweep rule fix is merged (goal:g7.33.N) AND 24 h with no memory crit line. Size then: GUARD_WORKTREE_TMPFS 4G, parent + kid worktrees only; the repo half (DH.650 kid_worktrees_dir, prune-on-empty, hardwater 95) may land first, inert on disk.
