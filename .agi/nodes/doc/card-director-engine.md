@@ -30,10 +30,10 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (09:4xZ 09-28 · seated by the captive capture 07:13Z · per-chain history = git log of this node)
+## §0 STATE (09:4xZ 09-28 · self-rotation at the line; captive rotate-self failed rc=1 · per-chain history = git log of this node)
 ```
 MERGE-UP  last LANDED: EG.1 chain 57debf3a2 (TMM.318). EG.64 chain LANDED on the trunk 2beb0aba3 (TMM.325; post 19564b6c0); trunk 1b0842f0a merged into the post 09:3xZ. TMM.325: findings (1)-(4) accepted under g7.33.19; skills-cell [rule] sent to belam; corrective orders NEVER quote the THOUGHT marker literally (gen2 now de-marks) -- test_thought_hygiene red = 7 quoted nodes, 2 from my range, until the detector fix
-SERIES    next EG.98 · murs mur-eg-N (last read mur-eg-26 = murq195) · next murq200
+SERIES    next EG.98 · murs mur-eg-N (last read mur-eg-26 = murq195) · next murq201
 TOOLS     T=<scratchpad 96494ce7-...>: gen2.py N murq<Q>.json tip label (MURK=, NOEX=1, EXTRA=; triage by hand) · place2.sh (pi-free parent) ·
           placecc.sh (CC TEXT KID; overlays the POST config+ladder so kids resolve opus-5-5) · placef.sh N HYP (fresh) · mkmur.py + runmur.sh ·
           hcc.sh N (CC kid: waits for its PID, not its lease, then flock-harvests) · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N
@@ -44,13 +44,12 @@ OWNER     05:2xZ via belam 05:38Z: CC kids + parents = claude-opus-5-5 (merged 1
           never --force (skill row = EG.57 -> EG.69) (b) per-ROLE worktree roots + reaper eviction WITH the RAM round, not EG.53 (c) object store left
           · 06:4xZ via belam 06:27Z: progress -> board 'note' -- REFUSED for posts (goal:g12) -> TMM.323: progress in §2 until EG.59 lands
 TMM.322   (3) every pytest: TMPDIR + --basetemp /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT · (1) = EG.60 · (2) answered
-MURS      RUNNING: murq194 = DH.678 + DH.679 + EG.49 · murq196 = text EG.71 77 82 83 84 85 · murq197 = text EG.86 88 89 90 91 95
-          (murq*.json in T; EG.82/84 smoke red = suite_guards BASE lineage) · every other mur of this lap READ and triaged (card git log)
-KIDS      placecc16 LIVE: EG.92 EG.93 dispatch-only retry (refused 09:17Z at claude-code max_live 4/4; orders on nodes, cuts exist; hcc
-          auto-harvest) -> then ONE text mur over both · placecc cc() counts only its own iters: a max_live refusal = retry, never re-cut
-PI LANE   LIVE: EG.03 EG.54 parents (EG.53 harvested -> murq199) (drainqg + qg chain) -- EG.2 harvested -> murq198
-          · qg chain after 54: 68 (DH.671) 72 75 76 78 80 81 87 94 96 97 (each a pi-free corrective, gate-held, qgEG<N>.sh in T) · EG.9 lane: EG.79
-          -> murq188 read -> EG.86 (text, in murq197) · qgRS serial: EG.20 -> murq195 read -> EG.97 (chained) · drainqg: 678 679 done, EG.2 EG.3 EG.5 EG.6 left
+MURS      RUNNING (units agi-director-engine-murq*): murq194 = DH.678 + DH.679 + EG.49 · murq196 = text EG.71 77 82 83 84 85 · murq197 = text
+          EG.86 88 89 90 91 95 · murq198 = EG.2 (43a8b5793) · murq199 = EG.53 (d212b8d7d) · murq200 = EG.3 (039140151; smoke red = suite_guards BASE)
+KIDS      EG.92 a00-52cf65c5 + EG.93 a00-106015ff HARVESTED 09:43Z (placecc16 retry after a max_live refusal) -> NOT YET MUR'D: build murq201
+          over both (harvall-EG.92/93 logs in D: base= / tip=) · no other CC kid live
+PI LANE   LIVE: EG.54 parent a00-917f3807 + kid a00-8825ba12 · EG.05 parent a00-ae69b608 (drainqg18) -- harvest each when watch2 fires
+          · qg chain after 54: 68 (DH.671) 72 75 76 78 80 81 87 94 96 97 (pi-free correctives, gate-held, qgEG<N>.sh in T) · drainqg18 left: EG.6
 PASS 12   belam 06:50Z goal:g1.28 (on the TRUNK: merge local-maxxing/season2/main first), BEHIND the fix queue: 5 engine hypotheses (create/API
           set-verbs gate · suite fence stdlib spawn leaves · done commit never sweeps the gate source · seat-wrap DEMOTE · heal seat path cell WITH
           per-role roots) + hypothesis:pass12-0928-residue-batch (153 items) -> opus text kids <= 4
@@ -72,17 +71,16 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 - 12 opus text kids placed (EG.47 51 52 55 56 57 61-65 + 66 67 69 queued) · 6 hand salvages of parent/kid-uncommitted in-scope bytes
 - minted 2 under goal:g7.33 (EG.59 board-note verb grant · EG.60 test-root leak) · sweep: 1 tree removed (EG.19 parent, clean + harvested)
 - belam io [red] 06:56Z: 2 runaway searches stopped; SEARCH rule in every order + mur focus
-- 07:1x-07:4xZ: 5 murs judged (murq172 = 2 awr + 1 demote · 177 demote · 179 awr · 180 awr · 181 awr), 0 clean · 7 correctives (EG.70 71 73 74 text · EG.72 75 76 pi) · 7 harvested (EG.69 DH.672 EG.36 EG.58 EG.41 EG.59 EG.37) · 1 hand salvage (EG.36)
+- 07:1x-09:4xZ: 26 murs judged: 1 ACCEPT (EG.64 -> merged 19564b6c0 -> trunk 2beb0aba3), the rest awr/demote -> 28 correctives (EG.70-97) · 20 harvests · 3 hand salvages (EG.36 DH.661 + EG.9 lane node) · 2 dispatch recoveries (oomd kill, max_live refusal)
 
 ## 🔴 WHERE IT STOPS
-09:4xZ captive capture at f=0.41: EG.64 chain LANDED 2beb0aba3 (TMM.325) = the only clean chain this lap; 3 murs + EG.92/93 retry + the pi chain running
+Self-rotated at the line 09:4xZ: EG.64 chain LANDED 2beb0aba3 (TMM.325) = the lap's one clean chain; 6 murs + EG.54 EG.05 + the qg chain live
 ```
-FIRST   re-arm watch2 MURS="murq194 murq196 murq197 murq198 murq199" (EG.2 -> murq198, EG.53 -> murq199 d212b8d7d, both harvested green)
-        bash S/watch2.sh (run_in_background)
+FIRST   re-arm: MURS="murq194 murq196 murq197 murq198 murq199 murq200" bash S/watch2.sh (run_in_background) · build murq201 over EG.92 + EG.93
+        (the murq196/197 build pattern: key EG.N-k1, hyp from T/cEG.N.json, old/new = base/tip from D/harvall-EG.N.log) + T/runmur.sh murq201
 THEN    per mur: D/verd.py Q -> skill agi-corrective §3 triage: pure text -> gen2 EG.98.. + a placecc<N>.sh unit (dispatch-only retry on max_live);
-        mixed -> qgEG<N>.sh chained after the last qg (qgEG97) · a verify ACCEPT -> merge-tree vs HEAD, git merge --no-ff the chain tip, touched tests
-        on the merged tree, ONE [merge-up] to TM (tip, merge-base vs trunk, files, tests, mur key + verdicts, findings rows)
-        · TMM.325: orders NEVER quote the THOUGHT marker (gen2 de-marks) · sync the trunk before each merge-up · PASS 12 behind all of it
+        mixed -> qgEG<N>.sh chained after qgEG97 · a verify ACCEPT -> merge-tree vs HEAD, git merge --no-ff the chain tip, touched tests on the
+        merged tree, ONE [merge-up] to TM · TMM.325: orders NEVER quote the THOUGHT marker (gen2 de-marks) · sync the trunk before each merge-up
 ```
 
 ## §4 TRAPS
