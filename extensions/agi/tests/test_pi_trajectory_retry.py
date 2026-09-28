@@ -50,6 +50,14 @@ NESTED_TURN_EMPTY = {"type": "turn_end", "toolResults": [],
 NESTED_OTHER = {"type": "message_end",
                 "message": {"role": "assistant", "stopReason": "error",
                             "errorMessage": "Provider returned a 500 from upstream"}}
+# A toolResult's message_end. It ends a MESSAGE, never a turn, so it must not
+# decide the round: on the pre-fix bytes _ended_on_empty answered False for it
+# and OVERWROTE the empty=True set by the turn_end before it.
+TOOLRESULT_END = {"type": "message_end",
+                  "message": {"role": "toolResult", "toolCallId": "1",
+                              "toolName": "bash", "isError": False,
+                              "content": [{"type": "text", "text": "a\n"}],
+                              "timestamp": 2}}
 OK = {"type": "tool_execution_start", "toolName": "bash", "toolCallId": "1",
       "args": {"command": "echo a"}}
 OK_END = {"type": "tool_execution_end", "toolName": "bash",
@@ -211,6 +219,21 @@ def test_a_nested_turn_end_empty_is_retried_too(tmp_path):
     stub, counter = _stub_pi(tmp_path, [[NESTED_TURN_EMPTY], [OK, OK_END]])
     text, runs = _run(root, stub, counter, root / "trajectory.jsonl")
     assert runs == ["run", "run"], f"a nested turn_end empty retries: {runs}"
+    assert "retry: empty provider response 1/2" in text, text
+
+
+def test_a_toolresult_message_end_after_an_empty_turn_end_still_retries(tmp_path):
+    """RED on the pre-fix bytes: the last-turn decision was keyed on
+    ("turn_end","message_end"), so a toolResult's message_end arriving AFTER an
+    empty turn_end answered False and MASKED the empty stop -- the empty last
+    turn went unretried and the round died on exactly the failure this chain
+    exists to prevent. Only a turn ends a turn."""
+    root = _project(tmp_path, 2, 0.05)
+    stub, counter = _stub_pi(tmp_path, [[NESTED_TURN_EMPTY, TOOLRESULT_END],
+                                        [OK, OK_END]])
+    text, runs = _run(root, stub, counter, root / "trajectory.jsonl")
+    assert runs == ["run", "run"], \
+        f"a toolResult message_end never masks an empty turn_end: {runs} / {text!r}"
     assert "retry: empty provider response 1/2" in text, text
 
 
