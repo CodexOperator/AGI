@@ -174,23 +174,6 @@ FILE SCOPE .agi/nodes/experiment/a00-5ab2709c-91e4fd.md · .agi/nodes/experiment
 CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · node text only · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat c2ddbb9fc <your final tip>` on your node (an empty range is not a measurement)
 KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit; a version delta goes in the node THOUGHT (write.py), never the body
 
-
-## CORRECTIVE DH.EG.90 -- closes mur-eg-19 EG.63-k1 accept_with_residue
-BASE      CUT FROM season2/loops/hypothesis-probe-gate-counts-cla-a00-9a0bf8cb tip fffb284f6 (branch de-base-EG.90; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. Live-state provenance dated to EG.63 while the code landed at 8005cdd06/EG.40 (round wrote 0 production lines)
-2. hypothesis evidence_runs cite three text-only children and omit a00-a041cdef-3b79fa (the red-first code fix) and a00-ea0222b3-4ed78e (the wire test)
-3. The round that set verdict: proved on the hypothesis never exercised a falsifier that hypothesis names. .agi/nodes/hypothesis/probe-gate-counts-claim-conjuncts-from-the-field-only.md:43 falsifier 3 is 'test_cli.py or its neighbourhood goes red' and :46 names the neighbourhood test_cli.py test_heal_watch.py test_dispatch.py; the round's pasted run (a00-9a0bf8cb-864103.md:55) covers only test_cli_claim_conjunct_scope.py + test_bin_help_smoke.py. So the evidence behind :24 is narrower than the node's own FALSIFIERS section. UNVERIFIED whether test_cli.py is green at fffb284f6: I ran it in an extensions-only `git archive fffb284f6 extensions` extraction and got 5 failures, all extraction artifacts (NameError: pytest not defined; no .agi/nodes to walk), so the probe I WOULD run is that same file from a full fffb284f6 checkout in a tree that still has .agi/.
-4. No line in the hypothesis names the commit that actually changed cli.py. The only landing provenance it carries is 'measured at 8005cdd06' (:32), and `git show --stat 8005cdd06` shows 1 file changed, .agi/nodes/experiment/a00-df914bba-114582.md -- a node-only merge-up that touches zero extensions/ bytes. A reader auditing 'which round landed the field-wins fix' therefore has, on this node, one wrong label (EG.63, :31), one node-only commit (:32), and a 'three proved children' count (:34 of the child) against five. e12a57722 exists and is findable only by `git log -S`, never by reading the node.
-5. Every number or line you write is measured at YOUR final tip after your last edit and PASTED with its command (two-operand git diff); a claim you cannot re-run is narrowed or removed, never retyped.
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
-TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE .agi/nodes/experiment/a00-9a0bf8cb-864103.md · .agi/nodes/experiment/a00-df914bba-114582.md · .agi/nodes/hypothesis/probe-gate-counts-claim-conjuncts-from-the-field-only.md (write.py) · the kid's own node
-CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines (text, comments, docstrings, briefs and skill rows only) · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat fffb284f6 <your final tip>` on your node (an empty range is not a measurement)
-COMMIT    every edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.90: mur-eg-19 EG.63-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.63: mur-eg-14 EG.40-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
