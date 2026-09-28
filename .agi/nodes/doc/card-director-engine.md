@@ -102,7 +102,11 @@ THEN    per ended parent: harvest AT ONCE -> mur · per ended mur: triage -> cle
         · EG.142 (a00-3cbd9016, the TMM.331 front) ENDED: 0 code commits; harvest landed 1 node (experiment a00-82ad1a56, no write-log actor)
           as 76f46d209, 416 passed -> read that node + the kid output.log (empty-response death?) -> redispatch2.sh EG.142 (cut e7db0b5c6)
                         · murq227 (EG.130) + murq231 (EG.108) + murq232 (EG.117) ENDED untriaged -> D/verd.py 227 231 232 · NO mur is running now
-                        · TMM.342 (15:5xZ, OWNER 15:50Z verbatim on TM's dm: 'the stealth model just has poor uptime due to being hammered ... we load
+                                · TMM.343 (15:5xZ, OWNER 15:51Z verbatim: "No need to lighten load let's hammer it") VOIDS TMM.342's cap + hold: full arm cell
+          (values.local_maxxing.de_live_parents), box gates only; an empty-response death is simply re-dispatched. RUNNING: unit rdEG141 (EG.141
+          first) -> unit rdlane2 (EG.122 137 140 142 123, serial) · unit qglane2 = the stopped qg lane re-run serially (124 127 125 126 128 129
+          131 132 133 135 138 139). Count started vs died-on-empty on this card; report only if the lane stops answering entirely
+        · (voided by TMM.343) TMM.342 (15:5xZ, OWNER 15:50Z verbatim on TM's dm: 'the stealth model just has poor uptime due to being hammered ... we load
           heavily'): HOLD RELEASED, no probe pair. RULES: <= 3 live pi-free parents until EG.141's retry fix lands (then the arm cell) ·
           re-dispatch the dead rounds ONE AT A TIME, EG.141 FIRST (unit agi-director-engine-rdEG141 started 15:5xZ, gate-held) -> then 122 137
           140 142 123 · a round that dies on empty = re-dispatched ONCE · 3 empty deaths in a row = HOLD again + tell TM · keep the count ·
