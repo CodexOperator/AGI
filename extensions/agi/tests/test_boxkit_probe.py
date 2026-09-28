@@ -555,7 +555,7 @@ def test_spawn_rows_target_the_config_and_the_resolvers_not_a_literal(tmp_path, 
     assert _by_name(probe.rows(agi, root, shim, HELD))["spawn.tasks_max"] == (150, 150, "ok")
     # the resolver disagrees with the cell, through a path PRODUCTION can take:
     # mem_cap.resolve_tasks_max honours AGI_TASKS_MAX.  The cell itself is 150.
-    monkeypatch.setenv("AGI_TASKS_MAX", "96")
+    monkeypatch.setenv("AGI_TASKS_MAX", str(mem_cap._DEFAULT_TASKS_MAX))
     table = _by_name(probe.rows(agi, root, shim, HELD))
     assert table["spawn.tasks_max"] == (150, 96, "DRIFT"), table["spawn.tasks_max"]
     assert _run(agi, root, shim) == 1
@@ -572,8 +572,9 @@ def test_a_malformed_spawn_container_is_data_never_a_crash(tmp_path, monkeypatch
         cfg["spawn"] = bad
         (agi / "config.json").write_text(json.dumps(cfg))
         table = _by_name(probe.rows(agi, root, shim, HELD))
-        assert table["spawn.tasks_max"] == (None, 96, "info"), (bad, table["spawn.tasks_max"])
-        assert table["spawn.memory_max"] == (None, "4G", "info"), bad
+        want_max, want_cap = mem_cap._DEFAULT_TASKS_MAX, mem_cap._DEFAULT_MEMORY_CAP
+        assert table["spawn.tasks_max"] == (None, want_max, "info"), (bad, table["spawn.tasks_max"])
+        assert table["spawn.memory_max"] == (None, want_cap, "info"), bad
 
 
 def test_the_probe_reads_the_spawn_block_through_the_readers_one_guard(

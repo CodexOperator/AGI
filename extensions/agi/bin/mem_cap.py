@@ -65,7 +65,14 @@ def _spawn_block(cfg: "dict | None") -> dict:
     A cell is data, not a promise: `spawn` that is a number, a list or a
     string must not raise out of a reader (it did: `resolve_memory_cap`
     raised TypeError on `{"spawn": 42}`), it must read as absent and fall
-    back to the shipped default."""
+    back to the shipped default.
+
+    Two consumers, ONE guard: both resolvers
+    (`resolve_memory_cap`, `resolve_tasks_max`) and the boxkit probe's
+    `spawn.*` rows (extensions/agi/boxkit/probe.py, which CALLS this rather
+    than re-deciding `isinstance(spawn, dict)`).  A second copy would be a
+    second rule: a shape this guard learns to accept would still kill the
+    probe table."""
     spawn = (cfg or {}).get("spawn")
     return spawn if isinstance(spawn, dict) else {}
 
@@ -77,7 +84,15 @@ def resolve_tasks_max(cfg: "dict | None" = None) -> int:
     reads, so the whole per-spawn scope is one `spawn` block (TMM.263 (2),
     owner 19:5xZ). A cell that is absent, non-numeric, or below 1 falls back
     to `_DEFAULT_TASKS_MAX` rather than to "no bound": an unreadable cell
-    must not silently un-cap the tree. `AGI_TASKS_MAX` overrides for tests."""
+    must not silently un-cap the tree.
+
+    `AGI_TASKS_MAX` is an ENV HOOK, not a test-only affordance: dispatch
+    exports the environment into every per-spawn scope, so PRODUCTION can
+    take this path (an operator, a wrapper script or an inherited
+    environment all reach it).  The boxkit probe's DRIFT row
+    (test_boxkit_probe.py `test_spawn_rows_...`) drives through it, so that
+    row loses its driver -- silently, with no failing test -- if the hook is
+    ever retired as test-only."""
     env = os.environ.get("AGI_TASKS_MAX")
     raw = env if env not in (None, "") else _spawn_block(cfg).get("tasks_max")
     try:

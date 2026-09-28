@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - hypothesis:a00-1ff9316d-177aae
 next_edges: []
-edited_by: director-engine
+edited_by: a00-c8dc1e1f
 scaffold_hash: 2b76fd5380d914b6
 season: 2
 testable_claim: "mem_cap.resolve_tasks_max reads spawn.tasks_max (150 on the live config, TMM.263 (2)) and values.memcap.tasks_max is read nowhere; absent or bad cell falls back to the fail-closed 96; AGI_TASKS_MAX still overrides (assigned: director-engine)"
@@ -50,3 +50,6 @@ PARENT     paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT ever
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 EG.1 (first round of the reset EG series, belam [decision] 00:0xZ 09-28): the post branch carries a red between this chain (merged 1ee2340c3: resolve_tasks_max reads spawn.tasks_max) and the boxkit probe test that still drives values.memcap.tasks_max; found by the merge-up run over the 23 touched test files, declared in the merge-up, fixed here rather than by hand (a director writes no engine code).
 <!-- THOUGHT:END -->
+
+## Agent Notes
+EG.10 CORRECTIVE (director orders 1790557398) -- CEILING WIDENING IS UNRECORDED. The CEILING above reads "1 kid and <= 30 test lines"; what actually landed on this loop branch is 3 experiment nodes and a test-file delta larger than that, and NO artifact in the tree names a Prime decision widening it. This note records the widening as UNRECORDED rather than inventing one. Measured by experiment:a00-c8dc1e1f-b26495: HEAD in the round checkout is 4d2c43ea5 itself, and the three EG.1 kids are already committed AT that commit (4d2c43ea5 / 1976e5376 / 8b9869998), so "git diff --numstat 4d2c43ea5..HEAD" is EMPTY and cannot show the widening -- a future round must diff the merge base, not HEAD. TO SETTLE IT: the Prime or the director states the widened ceiling on this node; until then this round is recorded as accept_with_residue.
