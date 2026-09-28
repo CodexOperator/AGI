@@ -8082,7 +8082,10 @@ def _replace_stops_body(body: str, s3: str, sub_offset: int | None) -> str:
     fenced code block under the (possibly `###`-level) header, keeping the
     header and everything around it. When there is no fence, the whole body
     is replaced — the lean PRIME `## §3 🔴 NEXT COMMAND` body is one plain
-    line and is filled wholesale."""
+    line and is filled wholesale. A `###`-level slot with an UNFENCED body
+    keeps its subheader line and every byte above it (`s3` already carries
+    what the writer is about to replace, so the old tail is not carried a
+    second time) — dropping the header lost a byte of the slot."""
     lines = body.splitlines()
     for idx, ln in enumerate(lines):
         if ln.strip().startswith("```"):
@@ -8091,6 +8094,11 @@ def _replace_stops_body(body: str, s3: str, sub_offset: int | None) -> str:
                 if new is not None:
                     return "\n".join(new)
                 break
+    # no fenced block: a `###`-level slot keeps its subheader + what is above
+    # it (the `###`-level BANKED branch's rule); a plain `##` body is still
+    # filled wholesale, the documented Prime behaviour.
+    if sub_offset is not None and 0 <= sub_offset < len(lines):
+        return "\n".join(lines[: sub_offset + 1] + ([s3] if s3 else []))
     # no fenced block: replace the whole body
     return s3
 
