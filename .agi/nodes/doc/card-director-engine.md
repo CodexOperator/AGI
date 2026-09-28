@@ -33,20 +33,20 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ## §0 STATE (07:1xZ 09-28 · gen 37 = rotate-self 05:22Z · per-chain history = git log of this node)
 ```
 MERGE-UP  last LANDED: EG.1 chain 57debf3a2 (TMM.318). Since: every mur = residue -> corrective / text fix; 0 clean, 0 merged
-SERIES    next EG.70 · murs mur-eg-N (last read mur-eg-18) · next murq178
+SERIES    next EG.70 · murs mur-eg-N (last read mur-eg-18) · next murq179
 TOOLS     T=<scratchpad 96494ce7-...>: gen2.py N murq<Q>.json tip label (MURK=, NOEX=1, EXTRA=; triage by hand) · place2.sh (pi-free parent) ·
           placecc.sh (CC TEXT KID; overlays the POST config+ladder so kids resolve opus-5-5) · placef.sh N HYP (fresh) · mkmur.py + runmur.sh ·
           hcc.sh N (CC kid: waits for its PID, not its lease, then flock-harvests) · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N
-          (TMM.322 pytest env; ends with a heal.py sweep, ONE per 15 min) · S=<scratchpad d74d6d20-...>/watch2.sh MURS="..." (run_in_background)
+          (TMM.322 pytest env; ends with a heal.py sweep, ONE per 15 min) · S=<scratchpad d74d6d20-...>/watch2.sh MURS="murq172 murq177 murq178" (run_in_background)
 GATE      TMM.306 load1 < 16 AND io avg60 < 50, two reads 5 min apart · CC kids: <= max_live 4, MemAvailable >= (live+2) x 2G · belam: a memory
           ALARM -> hold new placements
 OWNER     05:2xZ via belam 05:38Z: CC kids + parents = claude-opus-5-5 (merged 11476d1f6) · 06:2xZ via belam 06:21Z: (a) sweep at EVERY harvest,
           never --force (skill row = EG.57 -> EG.69) (b) per-ROLE worktree roots + reaper eviction WITH the RAM round, not EG.53 (c) object store left
           · 06:4xZ via belam 06:27Z: progress -> board 'note' -- REFUSED for posts (goal:g12) -> TMM.323: progress in §2 until EG.59 lands
 TMM.322   (3) every pytest: TMPDIR + --basetemp /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT · (1) = EG.60 · (2) answered
-MURS      murq172 = EG.47 + EG.51 + EG.52 (text) · murq177 = EG.19 (d40253551; smoke red suite_guards.py = BASE lineage, red on 0824b7b5b too)
-KIDS      opus text kids EG.61-65 (murq162 residues of EG.38 39 40 45 46) live/placing (unit placecc5) -> then EG.66 EG.67 (placecc2) -> EG.69
-          (placecc3) · each auto-harvested by an hcc unit (hccauto) · -> ONE text mur per wave when all of it is harvested
+MURS      murq172 = EG.47 + EG.51 + EG.52 (text) · murq178 = EG.61-67 (text) · murq177 = EG.19 (d40253551; smoke red suite_guards.py = BASE lineage, red on 0824b7b5b too)
+KIDS      opus text wave EG.61-67 HARVESTED (72 passed each) -> murq178 (7 rounds) · EG.69 (EG.57's row: + the grace/session gates + EG.9's
+          refusals in ONE row) live, auto-harvest queued in unit placecc3
 PI LANE   EG.58 = EG.9 chain REDO (own lane, FIRST; EG.50 parent-demoted, 0 commits, NOT landed; pointer cli.py:3066 / copy2 :3207 :3211 verified)
           -> EG.59 (board note verb grant) -> EG.60 (test-root leak) · chain qgEG36 37 41 42 44 -> 48 (EG.33) 49 (EG.31) 53 (EG.18) 54 (EG.34
           DEMOTE) 68 (DH.671) · qgRS serial lane (EG.19 done -> 661 -> EG.20) · drainqg13..18: 672-674 · 678 · 679 · EG.2 EG.3 · EG.5 · EG.6
@@ -73,11 +73,11 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 - belam io [red] 06:56Z: 2 runaway searches stopped; SEARCH rule in every order + mur focus
 
 ## 🔴 WHERE IT STOPS
-Gen 37 07:1xZ: 2 murs running (172 177); opus text wave EG.61-69 placing + auto-harvesting; pi lane gated with EG.58 (EG.9 redo) first
+Gen 37 07:2xZ: 3 murs running (172 177 178); EG.69 opus kid live; pi lane gated with EG.58 (EG.9 redo) first
 ```
-NEXT    re-arm: MURS="murq172 murq177" bash S/watch2.sh (run_in_background) · each ended mur -> D/verd.py Q -> triage (skill agi-corrective §3):
+NEXT    re-arm: MURS="murq172 murq177 murq178" bash S/watch2.sh (run_in_background) · each ended mur -> D/verd.py Q -> triage (skill agi-corrective §3):
         all text -> an opus text kid (placecc + hcc) · else gen2 EG.70.. chained last · a clean mur -> git merge --no-ff that chain's tip -> [merge-up]
-        (EG.9 chain FIRST) · when the EG.61-65 hcc harvests are all done -> ONE mur over their 5 ranges (murq178)
+        (EG.9 chain FIRST) · EG.69 harvested -> its own text mur
 ```
 ## §4 TRAPS
 Skills: agi-dispatch §5 · agi-corrective · agi-workflow · agi-node-write §5 · agi-memory-guard · agi-master-gate (TMM.304). Card-only: pi-free murs ~7 min/stage, verify can die (review stands) ·
