@@ -197,7 +197,7 @@ For EACH item: fix it in the bytes, OR -- when the item is already true, refuted
 1. 2. Parent probes written as prose strings, not the schema's probe dicts — a00-82e7d5d4-3feda4.md:14
 2. locations.py:638 — `int(text) == row["n"]` is guarded by `text.isdigit()`, but isdigit() and int() do not agree: '²' (U+00B2) is isdigit()==True and int('²') raises ValueError, so `--storage-pick ²` falls into the ERR path. main catches it (locations.py:1147-1150), so the consequence is a graceful but opaque `ERR: invalid literal for int() with base 10: '²'`, rc 1, not a traceback — note-level, and PRE-EXISTING (the diff changes no behaviour line). UNVERIFIED by any committed test; the probe I WOULD run is an in-process `locations.resolve_storage_category('²', None, cfg)` — I did NOT run it as a round probe; I verified only the `str.isdigit`/`int` semantics.
 3. a00-eea0b2c4-0b4709.md:221 — `## Agent Notes` is the LAST `#`-starting line in the 226-line file, so `_agent_notes_block` (season.py:1565-1571, break at the first line starting with '#') returns lines 222-226 which INCLUDE a second `<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.25: parent-review-a00-9147b8b2 DH.659-parent-demote residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.61: mur-eg-14 EG.38-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
 
 ## CORRECTIVE EG.25 -- closes the DH.659 PARENT DEMOTE (a00-9147b8b2: inconclusive_lean_disproved:60; items 1 and 3 claimed fixed but NOT in the bytes)
@@ -213,3 +213,14 @@ TESTS     test_storage_categories.py + test_bin_help_smoke.py once (timeout 900,
 FILE SCOPE .agi/nodes/experiment/a00-82e7d5d4-3feda4.md · .agi/nodes/experiment/a00-eea0b2c4-0b4709.md (write.py) · the kid's own node -- no code
 CEILING   HARD CAP: 1 kid · 0 production lines · 0 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13) -- an uncommitted node edit is NOT delivered: check  in the KID worktree before you accept
+
+## CORRECTIVE EG.61 -- closes mur-eg-14 EG.38-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-mint-offers-storage-c-a00-2b3163e9 tip 395779682 (branch de-base-EG.61; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. CEILING item not closed — EG.38's own numstat against the cut tip is not pasted, and the measured net is +19 lines -- .agi/nodes/experiment/a00-699af22b-be5860.md:147 -- Orders EG.38 require `git diff --numstat 0071a2e4d <final tip>` pasted on the node; the numstat block at :147-155 is still the kid's uncommitted-worktree measurement. My `git diff --numstat 0071a2e4d 395779682` = 37/18 = +19 net, over the stated <=15 cap unless 'production lines' is read as code (0 code lines here). Prime's call on the reading.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_bin_help_smoke.py once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT (TMM.322)); TEXT-ONLY round: node text only
+FILE SCOPE .agi/nodes/experiment/a00-699af22b-be5860.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · node text only · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 395779682 <your final tip>` on your node (an empty range is not a measurement)
+KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit; a version delta goes in the node THOUGHT (write.py), never the body
