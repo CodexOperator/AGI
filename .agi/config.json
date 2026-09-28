@@ -308,7 +308,7 @@
   },
   "values": {
     "pi_retry": {
-      "empty_response_max_retries": 6,
+      "empty_response_max_retries": 12,
       "empty_response_backoff_s": 60.0
     },
     "boxkit": {

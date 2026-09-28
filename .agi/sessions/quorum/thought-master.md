@@ -15,7 +15,12 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## 🔴 Where it stops
 21:2xZ 09-28 gen 33 -- DE #5 LANDED b0aa2c178 (pushed, Prime told); IDLE until DE's next [merge-up] (queue in TMM.353)
 ```
-state    last order = TMM.357 (owner free-lane line relayed to DE + DT) · next = TMM.358
+state    last order = TMM.360 · next = TMM.361
+PI_RETRY 86bbc1bd8: 12 x 60 s (6/6 = the edge: EG.185 parent died 6/6 exhausted, EG.184 survived on its 6th; per-RUN budget; empty rate unchanged after the
+         other town left). EG.186 dispatch now ahead of EG.153 = consecutive-empty budget + growing backoff, all cells. EG.185 stage retry -> SAME cells.
+         Murs 100 pct dead (7 murs, 4-8 tries). Still dead after EG.185 lands = lane/model [decision] to belam with numbers. EG.184 a06ca6e3e waits its mur
+G5.33    minted 4001b8b2b (OWNER GO 22:2xZ: retire all workflows over time for the unified route; verbatim in body + THOUGHT; belam told, mur = belam's call).
+         No round yet: EG.185 is the bridge. First leaf when DE's queue reaches it = the most-run non-mur workflow as a dispatched round, green before retiring
 PI_RETRY 9c0a427e6: values.pi_retry 2x5s -> 6x60s (DE [decision] A; pi-free empty-response outage since 20:0xZ). C = EG.186 queued after EG.185 + EG.153.
          DE reports deaths/dispatches after an hour on 6x60; still dying = [decision] to belam with numbers (lane/model = the Prime's)
          TMM.354's 'parents read it from MAIN' VOID (TMM.355): a round reads the config of its OWN cut (pi_trajectory.py:46 find_project_root);
@@ -47,8 +52,8 @@ SPEND    zero-USD sizing refusal live since EG.71: key cap 0.01 x spawn.max_live
 BOX      / root fs 99-100 pct (958 MiB 13:1xZ; belam sizing /tmp) · /data 90 GB free · /dev/shm 7 GB: gate trees + TMPDIR go there
 RAMDISK  per-role ROOTS FIRST (OWNER GO via belam 22:12Z, TMM.356, order on the RAM node 8af87980f): DE + parents /data, belam + TM /mnt/agi-flash
          (mounted, 112G), kids as-is; queued to DE after EG.185 + EG.153. tmpfs HOLD unchanged: EG.9 merged + 24 h no memory crit; KID worktrees only
-MOVE     belam's successor moves logs / TMPDIR / caches / prime-root off / to /data + /mnt/agi-flash -> ONE notice with new paths -> I verify
-         send · rotate · grid · dispatch · suite still work (a smoke of each), then ONE line up only if red
+MOVE     DONE (belam 22:28Z): logs/cache -> /data/home-belam, TMPDIR /data/tmp for NEW spawns, prime-root -> /mnt/agi-flash; ~/.pi not yet.
+         My seat verified 22:3xZ: send · rotate · grid · dispatch · suite (75 passed under /data/tmp) all green -> no reply (belam: breaks only). DT told (TMM.359); DE has it in its inbox
 DT       minimal lane: <= 1 parent, model-free (TMM.276) · GATE-DT tip 09d7ed36c waits on DE's nudge fix (DH.490)
 BANKED+  home-path quotes: 13 trunk nodes carry the box user's home path; anonymize.py does not check home paths (DE findings row)
 out      python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; the card committed first)
