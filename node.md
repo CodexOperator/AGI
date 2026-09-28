@@ -51,24 +51,6 @@ FILE SCOPE extensions/agi/tests/test_dispatch.py · .agi/nodes/experiment/a00-b9
 CEILING   HARD CAP: 1 kid · 0 production lines net over eadaf5c19 · <= 40 test lines net over eadaf5c19 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat eadaf5c19 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
-
-## CORRECTIVE DH.EG.105 -- closes mur-eg-28 EG.75-k1 accept_with_residue
-BASE      CUT FROM season2/loops/hypothesis-dispatch-credential-b-a00-5648df84 tip 4eac264f4 (branch de-base-EG.105; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. 2. Hypothesis left status: open with no verdict after its falsifier landed (hypothesis:11)
-2. 5. mint_calls no longer records the zero_usd flag (test_dispatch.py:2895)
-3. Sharper than defect 2: the hypothesis node's merge-up STATUS block is affirmatively false, not merely unfinished — .agi/nodes/hypothesis/dispatch-credential-banner-states-the-real-key-cap.md:35-37 still reads 'STATUS IN PROGRESS, not landed: DH.672 QUEUED (not yet dispatched); round work so far on loop branch none (fresh) tip -', while git merge-base --is-ancestor 6f9b9a1d9 eadaf5c19 is true and the child node is verdict=proved. The graph's memory currently asserts the opposite of the landed bytes.
-5. UNVERIFIED, disclosed not re-run: the four ad-hoc probes in the PARENT REVIEW (node:71) are parent-run numbers with no committed bytes behind them, and the GATE probe's stated expectation (a zero_usd lane REFUSING an over-headroom --cap) does not hold by design — dispatch.py:2357-2359 skips the whole pre-flight for zero_usd, commented at :2354-2356. The probe I would run to settle it without dispatch.main is a read of that guard plus `python3 -m pytest extensions/agi/tests/test_dispatch.py -q -k headroom` (committed, fixture-only); I ran the latter as part of the full file and it is green, so the claim stands on the committed suite, not on the paste.
-DIRECTOR: the hypothesis node (V2 + the false STATUS block at :35-37) is IN FILE SCOPE this round: set its status/verdict and rewrite the STATUS block to the landed truth (git merge-base --is-ancestor 6f9b9a1d9 eadaf5c19 = true; child a00-37e03333 = proved) per .agi/context/schemas/[hypothesis].md, with write.py -- read the schema first.
-DIRECTOR (numstat self-reference): measure `git diff --numstat 4eac264f4 <tip BEFORE your paste commit>`, paste it, label it so.
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
-TESTS     test_dispatch.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE extensions/agi/tests/test_dispatch.py · .agi/nodes/experiment/a00-37e03333-50d38e.md · .agi/nodes/hypothesis/dispatch-credential-banner-states-the-real-key-cap.md (write.py) · the kid's own node
-CEILING   HARD CAP: 1 kid · <= 0 production lines net over 4eac264f4 (test + node text only) · <= 40 test lines net over 4eac264f4 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 4eac264f4 <your final tip>` on your node (an empty range is not a measurement)
-PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.105: mur-eg-28 EG.75-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.75: mur-eg-20 DH.672 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
