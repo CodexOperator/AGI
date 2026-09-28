@@ -160,6 +160,21 @@ FILE SCOPE extensions/agi/bin/send.py · extensions/agi/tests/test_send.py · .a
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 38fa6e926 · <= 40 test lines net over 38fa6e926 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 38fa6e926 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.77 -- closes mur-eg-21 EG.41-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-send-read-prints-ever-a00-c526a7da tip ecaab9920 (branch de-base-EG.77; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+The parent's own harvest dm (07:40Z) measured item 1-2's shipped numbers as 3911-3927 / 2920-2957 (one call site 2976) / def read( 3970 -- RE-MEASURE with `git show <your tip>:extensions/agi/bin/send.py | grep -n ...` and paste; never copy these. For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. ITEM 5 -- the round's own +14 docstring re-staled the pointer it was ordered to de-stale -- .agi/nodes/experiment/a00-c3bf7379-8e12ed.md:45 -- The diff adds 14 lines at send.py:1899-1913, so on the tip it ships _notify_undelivered is 2920-2957 (call 2976), _print_deferred_block is 3911 (print 3921-3927) and the read call site is 4008 -- while the node text, at :42, :45 and :154, certifies 2906-2943, 3897-3913, 2962 and 3995 against 'tip 38fa6e926', now one commit stale. The parent review already demoted this item in the same file (:242), so the chain is honest, but the wrong numbers still ship under a node the merge promotes.
+2. Second stale pointer shipped on the sibling node (def read 3956) -- .agi/nodes/experiment/a00-5e3cfa03-650288.md:135 -- The EG.41 note certifies 'send.py:4043 for def read(, which is 3956 at this tip'; at ecaab9920 def read( is send.py:3970. The other numbers in the same note (1779, 1806-1825, 1818-1819, 1828, 1841, 1890) sit above the docstring and are correct.
+3. One node, two verdicts: frontmatter proved beside an embedded parent review at 55 -- .agi/nodes/experiment/a00-cf800c23-1459e5.md:40 -- Frontmatter reads 'verdict: proved' (what the graph queries, and what commit bc82f0a14 'a00-c526a7da done: ... verdict=proved' set), while the THOUGHT at :242 records the same parent's own judgement as 'ITEM 5 DEMOTED, verdict inconclusive_lean_proved:55'. A reader taking the frontmatter gets a stronger claim than the review on the file supports.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-143f92b1-0696a2.md · .agi/nodes/experiment/a00-5e3cfa03-650288.md · .agi/nodes/experiment/a00-c3bf7379-8e12ed.md · .agi/nodes/experiment/a00-cf800c23-1459e5.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat ecaab9920 <your final tip>` on your node (an empty range is not a measurement)
+COMMIT    every node edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.41: mur-eg-12 EG.22-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.77: mur-eg-21 EG.41-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
