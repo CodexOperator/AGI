@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: director-engine
+edited_by: belam
 scaffold_hash: 6b6d04df7eda08e9
 season: 2
 tags:
@@ -38,14 +38,14 @@ POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-cor
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.169 · next murq261
-PLACING   PLACED: 149 151 153 (harvested) · serial7 (redispatch 150 152 155 158, then place 154 159) -> serial8 (redispatch 146
-          147: both died 0-commit 19:03Z) · pq160 (EG.140 corrective = the EG.9 blocker, jumps the queue) -> serial9 (162 163 165 161
-          164 166) -> serial10 (168) · TRAP: placements SERIAL, <= 2 dispatching at once (5 parallel dispatches timed out rc=124 in an io storm 18:5xZ)
-MURS      253 EG.144 · 258 EG.150 (merge resolution) · 259 EG.152 (conftest gate) · 260 EG.155 (DEAD-ROUND SALVAGE db1cc2174:
-          parent no done commit, kid empty scaffold; test_provisioning.py outside FILE SCOPE)
-CC KID    EG.167 a00-92c392c7 pid 1221790 (murq257 EG.153 -> TEXT-FIX CHURN chain -> opus text kid, DEVIATION on the node): at exit
-          check it ran done; if not, salvage-commit on its branch (EG.156 precedent) -> mur
+SERIES    next EG.169 · next murq265
+PLACING   serial8 (redispatch 146 147) -> serial9 (162 163 165 161 164 166) -> serial10 (168) · serial11 (redispatch EG.148:
+          parent a00-e7acd4c7 died 0-commit, no output log; waits on serial7+8) · serial7 done (154 159 placed) · pq160 done
+          · TRAP: placements SERIAL, <= 2 dispatching at once (5 parallel dispatches timed out rc=124 in an io storm 18:5xZ)
+HARVESTED 19:36Z <scratchpad 8884a411>/harv160.log: EG.160 8adbb1926 · EG.158 dd030ceb5 · EG.151 26324bcde · EG.167 a1a1e686b
+          (the CC kid ran done 45d495c67; 4 salvage LANDs of logged node edits)
+MURS      253 EG.144 · 258 EG.150 (merge resolution) · 259 EG.152 (conftest gate) · 260 EG.155 (DEAD-ROUND SALVAGE db1cc2174)
+          · 261 EG.160 (the EG.9 blocker) · 262 EG.158 · 263 EG.151 · 264 EG.167 (text-churn focus)
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
           refuses own board: policy question may come up) · 233->150 (cut de-cut-EG.150 f9fbf587a: merge reds test_free_lane_mints...)
           · 234->151 · 241 DEMOTE->152 (conftest suite gate: fix or remove) · 237->153 · 240->154 · 242->155 · 238->156 (CC text kid) · 243 EG.125 director close d91b942f3 -> EG.157 · 245 EG.133 + 236 EG.137 director closes -> MERGED · 249 EG.138 DEMOTE -> EG.158 · 251 EG.157 -> director close 1da46ba3a -> MERGED 08177c25f
@@ -88,13 +88,12 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 
 ## 🔴 WHERE IT STOPS
-Captive rotation 19:32Z (f=0.40): EG.158 parent ended unharvested; murq253 258 259 260 running; serial7/8/9/10 + pq160 placing
+19:4xZ successor reconciled: 4 ended rounds harvested green (EG.160 158 151 167) -> murq261-264 gated; EG.148 0-commit -> serial11
 ```
-FIRST   re-link the card · reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (active: serial7
-        serial8 serial9 serial10 pq160 lane3 gmurq*/murq*) · harvest EG.158 a00-05284077 NOW:
-        systemd-run --user --unit=agi-director-engine-harv158 -- bash <scratchpad 8884a411>/memgate-harv.sh EG.158
-        (the harvest's pytest line prints NOTHING since 17:5xZ: re-run the round's TESTS yourself in de-hEG.N before the mur)
-        · CC kid EG.167 a00-92c392c7 pid 1221790: at exit check it ran done, else salvage-commit on its branch (EG.156 precedent)
+FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (serial8-11, gmurq261-264,
+        murq258-260) · per ENDED mur: D/verd.py Q -- 261 (EG.160 = the EG.9 blocker) FIRST
+        · every ended parent: harvest at once -- systemd-run --user --unit=agi-director-engine-harvN -- bash
+          <scratchpad 8884a411>/memgate-harv.sh EG.N ... (tools' Claude-Session lines now carry this session)
 THEN    per ended parent: harvest -> own test run -> T/mur41.sh N <next Q> <harvest log> "<focus>" · per ended mur: D/verd.py Q ->
         clean = merge the chain into the post (--no-ff; zero-USD trio cherry-pick-only = POST side; node THOUGHT hunks = chain side;
         a real code conflict = a merge-resolution cut + round) + [merge-up] with numbers · residue = T/genbatch.py N:Q (auto-demotes
