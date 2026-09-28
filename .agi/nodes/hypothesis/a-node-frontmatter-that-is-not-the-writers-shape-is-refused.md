@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: a00-98a14a87
+edited_by: director-engine
 evidence_runs:
   - experiment:a00-84c9c98d-34018e
   - experiment:a00-1556127c-9fb395
@@ -46,7 +46,7 @@ Item 1 is SETTLED, not fixed, and the settling measurement is the whole last lin
 
 Item 4 is RECORDED, NO ACTION (g7.33.19 row 13): this chain's deliverable did not ride its done commit -- the 850091463 message names experiment:a00-1556127c-9fb395 while the EG.44 parent verdict actually lives on a00-7a12aad2-6a3a17. History is not rewritten and nothing is re-landed; it is named here once.
 
-(3) THE NEAR MISS. Two, and this round took neither. (a) Fixing item 1 by editing a `1 skipped` into a published line -- that would satisfy the order's words and lose the mechanism, because the count is a property of what pytest collected, not a property of the sentence; a typed-in skip count is prose wearing a measurement's clothes. (b) Re-judging a00-7a12aad2 back up to :80 while the graph still has no `links`-half mechanism. That is where the number stops: this claim is "refused by name at load/links; the corrupted node is repaired", and a fourth round has now MEASURED the links half to be keys-only rather than assumed it. The verdict is the number a later reader reads first, so a number that outruns the conjuncts is a graph that stops being evidence.
+(3) THE NEAR MISS. One, and this round did not take it: fixing item 1 by editing a `1 skipped` into a published line -- that would satisfy the order's words and lose the mechanism, because the count is a property of what pytest collected, not a property of the sentence; a typed-in skip count is prose wearing a measurement's clothes. The re-judge of a00-7a12aad2 to inconclusive_lean_proved:80 is NOT a near miss: it is the action this round TOOK (item 2, in (2) above). Where the number stops: this claim is "refused by name at load/links; the corrupted node is repaired", and a fourth round has MEASURED the links half to be keys-only rather than assumed it -- :80, not higher, is the verdict those conjuncts carry. (Director close, TMM.327, mur-eg-x552735-fc285a EG.133-k1: an earlier wording listed the taken re-judge as a declined near miss.)
 
 (4) DEVIATION. The order's item 2 said "Parent action, not a demote of this round", and the one-kid ceiling meant the corrective items 1 and 3 had a single kid slot that this round's kid spent on a measurement instead. I fixed items 1, 3 and 4 on this node myself through the sanctioned writer rather than re-dispatching: the work is text, the cap is one kid, and a re-brief for text I can write in one call costs a round to no end. That is a property of THIS case -- the residue is prose on the target node, not a mechanism anywhere -- and not a general licence for a parent to do a kid's work.
 <!-- THOUGHT:END -->
