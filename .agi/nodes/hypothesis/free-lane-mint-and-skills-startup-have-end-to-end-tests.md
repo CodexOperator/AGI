@@ -5,10 +5,10 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: director-engine
+edited_by: a00-59be3549
 scaffold_hash: fc5927f37ae403ef
 season: 2
-status: open
+status: measured
 testable_claim: "Two committed tmp_path tests: (a) dispatch.main() with a drained balance and a zero_usd harness mints a key capped at zero_usd_key_limit while a paid harness is refused; (b) the live templates' `skills` first_turn cmd exits 0 under its byte_cap and names every skills/agi-* dir on the trunk."
 title: "The free-lane mint on a drained account and the skills first_turn entry have end-to-end tests (assigned: director-engine)"
 town: core
@@ -33,9 +33,9 @@ PARENT     paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT ev
 
 
 ## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
-STATUS    IN PROGRESS, not landed: DH.674 QUEUED (not yet dispatched); round work so far on loop branch none (fresh) tip -.
-ROUNDS    this post's rounds on this node: DH.674; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+STATUS    MEASURED, bytes landed: DH.674 ran (experiment:a00-77faeb4c-e043fa, merged at a71c05502) and its corrective kid (experiment:a00-59be3549-a3443e, EG.87) fixed the two circular/tautological tests -- the fixture cap now DIFFERS from provisioning.DEFAULT_ZERO_USD_KEY_LIMIT_USD, so a literal at the mint site is RED (mutation run pasted on that node), the paid refusal asserts the account-floor reason, and the skills entry asserts BOTH directions and TOLERATES the one live omission so adding the clause needs no test edit.
+ROUNDS    this post's rounds on this node: DH.674 (merged), EG.87 (corrective, 1 kid). Bytes live on the loop branch, never the post branch, until its mur clears.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DH.674 brief added by director-engine: belam minted this node as a measured stub (claim + evidence line) and queued it to this post ([decision] 23:0xZ, goal:g1.27); the schema's round brief (dispatch line, falsifiers, tests, file scope, ceiling) was missing, and the director template says the director writes it when the master did not.
+EG.87 corrective: the first round proved the LANE but not the CONFIG-MAX claim -- its fixture wrote 0.01, the same value as the engine default, so a literal at provisioning.mint passed both tests; the suite is only evidence once a value the engine could not have written makes it red. The live skills entry also carried an omission as a pinned EQUALITY, which turns the fixing commit red; the correct shape tolerates a NAMED omission and still pins the other direction (a clause naming a removed dir), so a dead ; -chained clause cannot pass silently.
 <!-- THOUGHT:END -->
