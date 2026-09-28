@@ -238,6 +238,31 @@ FILE SCOPE  · .agi/nodes/experiment/a00-26dd471a-65047d.md · .agi/nodes/experi
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 0824b7b5b · <= 40 test lines net over 0824b7b5b · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 0824b7b5b <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.73 -- closes mur-eg-19 EG.19-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-model-fence-is-one-mo-a00-ff3b0464 tip d40253551 (branch de-base-EG.73; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Five-item fix table false against the merged span, 4 of 5 items have no bytes (.agi/nodes/experiment/a00-3c15c94c-a630ad.md:29-33)
+2. Evidence paste '0 box.root forms' (same node:89) -- merged a00-26dd471a-65047d.md has 9
+3. Item 1 unlanded -- a00-26dd471a-65047d.md:327 sentence still ends on 'in'
+4. Item 2 unlanded -- a00-3e0ac0db-808f82.md:288 typed '5 hits' survives against its own :126 (measured 1+6=7)
+5. Item 4 unlanded -- a00-26dd471a-65047d.md:345,:349 and a00-e7a0f7a7-e74764.md:209-225,:313; the false absolute about paths.core.worktrees_root still ships
+6. Item 5 unlanded -- a00-26dd471a-65047d.md:38,172,265,271,273,275,342,343,348 + a00-e7a0f7a7-e74764.md:194,220,313; stale box.root path form at 12 sites
+7. The unlanded work does not achieve what the node claims either, so this is not only an absence-of-bytes problem: `git -C .agi/worktrees/a00-3c15c94c diff --numstat 0824b7b5b` puts a00-26dd471a-65047d.md at 87/24 with a new section headed 'WHY `<box.root>` IS ALSO WRONG HERE' at worktree :381, and `grep -c 'box\.root'` there is 20 against 9 at 0824b7b5b, with 5 lines still carrying the `<box.root>/` path form. The paste at a00-3c15c94c-a630ad.md:89 therefore reports '0 live path forms' for a grep that returns 20 on both the base and the edited file -- the round increased the token it certifies as eliminated.
+8. The node never discloses, anywhere in CAVEATS or the THOUGHT, that the four node corrections are uncommitted worktree bytes; the caveat at :123-126 instead says the in-place annotations 'Both are true now and both will go stale on the next merge', which reads to a later reader as if the annotated bytes are in the tree they are describing.
+9. The merge SHIPS the false absolute the round exists to correct: with a00-26dd471a-65047d.md:344-345 and a00-e7a0f7a7-e74764.md:313 unchanged, the tip's own text tells the next reader that paths.core.worktrees_root does not exist, while the receiving trunk has carried it since c9d703f46. A reader who trusts the merged tree will re-derive the same false order the round measured and withdrew.
+10. Item 3 of EG.19 (re-scoped wrongly onto the kid's own node): a00-e7a0f7a7-e74764.md carries a bare '## THOUGHT' heading and no THOUGHT:BEGIN/END region at the tip -- write its region with write.py `thought` on THAT node (the order named it).
+11. config_max (mur-eg-19): cite the config cell, not a path form: paths.core.worktrees_root EXISTS on the town trunk since c9d703f46 (paste `git show local-maxxing/season2/main:.agi/config.json | grep -n worktrees_root`); it is ABSENT at your cut d40253551 -- say both, pinned to their commits, and replace every stale `<box.root>/...` form with `<paths.core.worktrees_root>/...`.
+12. template_max (mur-eg-19): the 'writer's anchor guard' lessons at a00-3c15c94c-a630ad.md:66-75 (read/replace line numbers are BODY-relative while order citations are FILE-relative · the guard treats a whole bullet list as one paragraph · `sub` on a unique substring is the cheap door) + the two-operand rule (a wire diff is `git diff <base> <tip>`, never `git diff <base>` = the worktree) move to ONE row in skills/agi-node-write/SKILL.md; the node keeps a one-line pointer to that row.
+13. DO NOT copy or apply the demoted round's uncommitted bytes in .agi/worktrees/a00-3c15c94c (demoted: they raise the box.root count 9 -> 20); re-do each item from the tip bytes. Every measurement is `git show <your tip>:<path> | grep ...` or `git diff <cut> <your tip>` -- two operands.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE skills/agi-node-write/SKILL.md · .agi/nodes/experiment/a00-26dd471a-65047d.md · .agi/nodes/experiment/a00-3c15c94c-a630ad.md · .agi/nodes/experiment/a00-3e0ac0db-808f82.md · .agi/nodes/experiment/a00-e7a0f7a7-e74764.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · 1 skill row · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat d40253551 <your final tip>` on your node (an empty range is not a measurement)
+COMMIT    every node edit AND the skill row on your loop branch before you exit (cli.py done; g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.19: mur-eg-5 DH.654-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.73: mur-eg-19 EG.19-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
