@@ -34,7 +34,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ```
 MERGE-UP  [merge-up] to TM 00:3xZ 09-28 (belam [decision] 00:0xZ, owner: WHOLE post branch, in-progress included) -- tip d4446340f,
           mb 26d914498, 188 files, 365 passed 1 RED declared (boxkit probe vs the 429 tasks-max chain -> EG.1), 28 nodes labelled ## OPEN
-SERIES    RESET: rounds EG.N (EG.1-6 used, next EG.7; dispatch normalizes the iter to EG.01) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
+SERIES    RESET: rounds EG.N (EG.1-8 used, next EG.9; dispatch normalizes the iter to EG.01) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
           before the reset keep their labels (orders already generated) -- the counter only moves forward
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f,g] gen2.py N murq<Q>.json tip label -> orders<N>.md (N may be EG.n: sed the
           header to CORRECTIVE EG.n) · place2.sh / placef.sh N (DH.N or EG.N label) · drainqgf.sh N:K (K=F fresh via h<N>.txt) · mkmur.py + runmur.sh
@@ -42,8 +42,9 @@ TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f,g] gen2.py N murq<Q>.
 GATE      TMM.306: load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, one placement per pass · arm 10 · key cap x live < balance
 PLACEMENT de-base-N ON DISK (the /dev/shm variant broke parent done -> DH.648 swept, reverted 00:0xZ); 651's RAM checkout is symlinked
 PRUNE     unit prune-debase (TMM.309 GO: idle io, io<50, 1/30 s, lossless, skips symlinks; log in the flash harvest dir) 41 removed so far
-LIVE      parents EG.1 (a00-5ad98eb5) + 680 (placing 00:24Z) · murq125-128 ENDED -> EG.2 EG.5 EG.3 EG.6 · drainqgf K=eg -> mur-eg -> EG.2 EG.5 EG.3 (126: kid item-4 edit landed 867b44a8b)
-QUEUE     qg2 [EG.1 680 placed] 653 · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg7 659 · qg8 660-664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 ·
+LANDED    TMM.312 00:42Z: TM landed the WHOLE branch d0d126deb (trunk merged in 90b21bd8f) + sent it to belam
+LIVE      no parent · harvEG1 running (EG.1 parent ended, branch 4d2c43ea5) · murq125-128 ENDED -> EG.2 EG.5 EG.3 EG.6 · K=eg -> mur-eg -> EG.2 EG.5 EG.3 (126: kid item-4 edit landed 867b44a8b)
+QUEUE     qg2 = T/qg2b.sh: gate -> redispatch 680 (its dispatch was KILLED by my queue swap; orders on node) -> EG.7 EG.8 658 653 (TMM.312 fix rounds) · qg3 654 · qg4 655 656 · qg5 657 · qg6 (empty, 658 moved up) · qg7 659 · qg8 660-664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 ·
           qg13 675 670-674 (g1.27) · qg14 678 · qg15 679 · qg16 EG.2 EG.3 · qg17 EG.5 · qg18 EG.6 (chained units, T/drainqg<N>.log)
 BELAM     00:0xZ order: (1) merge-up DONE (2) counters DONE (3) RAM: report the tmpfs claim PROVED when the kid-worktrees chain clears
           (680 -> then mint the 17-consumer routing round) -- belam then does guard.env + guard-init (4) NEXT, dependency order:
@@ -59,11 +60,11 @@ next   (1) per ENDED mur: D/verd.py Q -> clean = git merge --no-ff the chain tip
 ```
 
 ## 🔴 WHERE IT STOPS
-Rotated at the line: merge-up out to TM (red declared, EG.1 live fixes it); EG series live; every ended mur triaged; EG.1 + 680 placed.
+Rotated at the line: branch LANDED by TM (d0d126deb); TMM.312 fix rounds EG.7 EG.8 + 658 at the queue front behind the 680 redispatch; harvEG1 running.
 ```
-FIRST   send.py read director-engine (TM gates the merge-up) ; spawn_budget.py status -> harvest EG.1 / 680 the moment each ends
-        (D/harvest-all.sh EG.1 | 680; the sweep reaps 0-commit trees) -> mur with T/mkmur.py ... 6th arg "eg" ; watch T/drainqg*.log
-THEN    680 clean -> report the tmpfs claim to belam + mint the 17-consumer routing round ; EG.4 after DH.660 clears ; brief g7.32.6, then g7.31.3.3
+FIRST   D/harvallEG1.log (unit harvEG1) -> mur (T/mkmur.py ... 6th arg "eg") ; T/drainqg2.log (680 redispatch, then EG.7 EG.8 658 653)
+        ; spawn_budget.py status -> harvest each ended parent AT ONCE ; send.py read director-engine
+THEN    680 clean -> tmpfs claim to belam + mint the 17-consumer round ; EG.4 after DH.660 clears ; brief g7.32.6, then g7.31.3.3 (belam item 4)
 ```
 
 ## §4 TRAPS
@@ -71,7 +72,7 @@ Skills: agi-dispatch §5 · agi-corrective · agi-workflow · agi-node-write §5
 harvests under load flake 1 test: re-run before a corrective · `pgrep -f place2` matches your own shell: list /proc cmdlines instead ·
 `git merge -F -` does not read stdin · worktrees VANISH (617 618 597 parents/kids): harvest from the branch, update-ref to fast-forward ·
 done-time commits skip foreign nodes: check the KID worktree too (618) · parents end WITHOUT a harvest dm: reconcile · stale index.lock
-(no holder) refuses kid commits · murall/harvest greps match 'failed' in slugs · only / fills: /tmp basetemps. · a PARENT-DEMOTED round's uncommitted config
+(no holder) refuses kid commits · NEVER stop a qg unit mid-placement (it kills the dispatch: 680); a killed unit stays failed -> reset-failed before reusing its name · murall/harvest greps match 'failed' in slugs · only / fills: /tmp basetemps. · a PARENT-DEMOTED round's uncommitted config
 stays for its corrective: never land it at harvest (mur-44 DH.650 V4: "hand-landed gate").
 
 ## ENGINE FINDINGS
@@ -98,5 +99,5 @@ treats a finished 0-commit branch as landed and removes its worktree with uncomm
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Final at the rotation line 00:2xZ 09-28: belam [decision] 00:0xZ items (1) merge-up and (2) counter reset are done, (3) waits on the kid-worktrees chain (680 placed), (4) EG.4 minted and dependency-gated on DH.660. The /dev/shm dispatch checkout was reverted after it broke parent done; the placers and harvest carry the EG label path.
+Final at the rotation line 00:5xZ 09-28: TM landed the whole branch (TMM.312) and ordered three fix rounds to the queue front (EG.1 live then harvested, EG.7 + EG.8 minted, 658 pulled up). A queue swap killed the in-flight 680 dispatch; qg2b re-fires it through redispatch.sh ahead of the fix rounds, and the trap is on the card.
 <!-- THOUGHT:END -->
