@@ -47,10 +47,10 @@ RE-DISP   unit qgRS: 660 -> EG.18 -> EG.19 -> 661 -> EG.20, one at a time, STOP 
 QG-EG     qgEG24 EG.24 (DH.655 clean-kid; BOUNDARY vs EG.9) -> EG.25 (DH.659) -> EG.26 (EG.16/DH.653) -> EG.28 (DH.656) -> EG.31 (Item 7: RETIRE AGI_TASKS_MAX, 9dfa2a25f)
 QG-DH     drainqg8.. chain (T/drainqg<N>.log): 662-664 · 665 · 666 · 668 · 669 · 675 670-674 · 678 · 679 · EG.2 EG.3 · EG.5 (facts chain: ONE [merge-up] to TM,
           lands with belam's F13 trim + cell) · EG.6
-TM OWED   (2) thought-hygiene = the DETECTOR (extra markers are quotations): EG.14 -> EG.20 (lane) · (3) conftest guards = EG.21 (mur-eg-10) · others above
+TMM.320   ACCEPTED: EG.30 keep (early placement in its THOUGHT 28b13b808) · EG.31 RETIRE · EG.18 parent-to-disk · thought-hygiene = the DETECTOR via EG.14 -> EG.20 (landing test: real-corpus green on the trunk corpus, 5 nodes UNCHANGED) · conftest guards = EG.21 · one clean [merge-up] per chain
 HELD      EG.11 (folded into EG.14's item 4) · EG.7's 5 corpus edits stay UNCOMMITTED in a00-0194accb (parent-demoted, never land)
 NEXT      EG.4 after DH.660 clears -> g7.32.6 send core -> g7.31.3.3 rotate core (belam item 4) · kid-worktrees chain clean -> tmpfs claim to belam + the 17-consumer round
-DECISION  out to TM: DH.577 cron policy (send-hub chain HELD) · wake-facts touches config:rotations (belam's) · logs: symlink until EG.2 lands · EG.31 RETIRE vs DECLARE
+DECISION  out to TM: DH.577 cron policy (send-hub chain HELD) · wake-facts touches config:rotations (belam's)  · logs: symlink until EG.2 lands
 ```
 
 ## §1 PLAN
