@@ -57,6 +57,7 @@ round_commit: false  — a round's `cli.py done` never sweeps a goal node
 ```
 Owner words are copied VERBATIM into the body (a `## OWNER <date> <time>, verbatim` section) — the node is
 where owner verbatim lives, never a card. Framing: a target end-state, never "finish today or failed".
+Progress on a goal is never written on the goal or a card: one numbers-only line on the town board (skill agi-dispatch §5 "progress → board").
 
 ## 4 · Edit · retire · renumber
 | op | how |
