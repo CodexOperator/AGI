@@ -122,7 +122,7 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over 15bc46e00 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 ## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
-STATUS    IN PROGRESS, not landed: DH.666 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-probe-gate-counts-cla-a00-9c666748 tip 8698b348e.
+STATUS    IN PROGRESS, not landed: DH.666 ran (parent a00-384c3b60, harvested 04:33Z 09-28 at 8005cdd06); mur-eg-12 accept_with_residue; its pure-text residues fixed by the director (skill agi-corrective §3a) at c2ddbb9fc on season2/loops/hypothesis-probe-gate-counts-cla-a00-384c3b60 -> batched re-mur.
 ROUNDS    this post's rounds on this node: DH.626 DH.641 DH.666; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
 ## CORRECTIVE DH.641 -- closes mur-director-engine-37 DH.626-k1 demote
