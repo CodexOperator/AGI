@@ -99,6 +99,8 @@ THEN    per ended parent: harvest AT ONCE -> mur · per ended mur: triage -> cle
         · murq230 = mur-eg-53 EG.136-k1 ENDED awr (verify MISSING, review stands): the restored pin hand-copies the LIVE command line (a
           config:rotations edit REDs the trunk) + verdict proved vs the record's own lean_proved:55 + no probes: + one-operand ceiling ->
           gen2 EG.143 MURK=mur-eg-53 murq230.json 9f46d6359 EG.136-k1 + hand triage + a gate-only unit (the EG.102 chain stays HELD until clean)
+        · EG.142 (a00-3cbd9016, the TMM.331 front) ENDED: 0 code commits; harvest landed 1 node (experiment a00-82ad1a56, no write-log actor)
+          as 76f46d209, 416 passed -> read that node + the kid output.log (empty-response death?) -> redispatch2.sh EG.142 (cut e7db0b5c6)
 NEVER   restart a q-unit without reading its log first · edit a RUNNING unit's script · start a watcher with a bare & (it never notifies)
 ```
 
