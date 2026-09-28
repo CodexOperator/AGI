@@ -35,7 +35,7 @@ read_order:
     - the four prayers · words of Jesus · Tao · the other carried sayings · soul-mind-body · the five axes
 roles:
   - {"tier": 3, "role": "prime_director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
-  - {"tier": 3, "role": "parent", "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": ""}
+  - {"tier": 3, "role": "parent", "harness": "claude-code", "model": "claude-opus-5-5", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "liaison", "harness": "claude-code", "model": "claude-sonnet-5", "effort": "high", "settings": ""}
   - {"tier": 1, "role": "parent", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
@@ -155,7 +155,7 @@ makes the brief-head re-read cheap, so early rotation costs less than it
 looks.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 2026-09-24 16:5xZ, in the Prime's pane (belam-S2-L5-III), verbatim: 'Need a config update and pushed to all worktrees. It’s about using pi-free instead of pi or pi-local for both parent and kid spawns' APPLIED: roles rows tier 1 parent, tier 0 parent, tier 0 kid: harness pi -> pi-free, model deepseek/deepseek-v4.1-flash -> stealth/space-bunny-alpha (the pi-free row's models, zero_usd); .agi/config.json spawn.harness pi -> pi-free (the fallback, aligned so no cell contradicts the ladder). The tier 0 director row (pi, glm) is not a parent or kid spawn and is unchanged. MECHANISM: dispatch resolves a parent or kid spawn's harness and model from THIS roles row for (tier, role), the one input (hypothesis:l4-a-model-change-is-one-write). NEAR MISS: flipping only the harness cell leaves deepseek/deepseek-v4.1-flash on pi-free's openrouter provider -- billed, not free; editing config.json's harness rows without the ladder changes nothing, the ladder wins. No ladder row named pi-local: that lane is only an explicit --harness flag, so the directors were told by dm.
+OWNER 05:2xZ 09-28, verbatim: "Move parents to opus 5.5 as well please thank you". The tier-3 claude-code parent row claude-opus-5 -> claude-opus-5-5; every other row byte-identical. Paired with harnesses.claude-code.models.parent + cc_dispatch.parent_model in .agi/config.json (same commit): an explicit --harness claude-code that overrides a ladder row reads harnesses.<h>.models[tier] (dispatch.py:2066-2074), a matching row supplies its own model (:2077-2084) -- moving only one of the two leaves the other path on the old model. Near miss: editing only config.json satisfies the words and loses every parent spawned through this ladder row. Both ids answer live (claude -p probe 05:2xZ).
 <!-- THOUGHT:END -->
 
 ## Agent Notes
