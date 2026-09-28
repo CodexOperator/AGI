@@ -1888,13 +1888,27 @@ def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
 
 
 def _clear_deferred(root: Path, seat: str) -> None:
-    """Drop the deferred dm body after a line carrying it (or a fresher
-    dm that supersedes it) is actually DELIVERED -- never on a coalesce.
-    Best-effort, never raises."""
+    """Drop the deferred dm body that was actually DELIVERED (by a line
+    carrying it, or by a `read` that printed it) -- never on a coalesce.
+    A sidecar may hold MORE THAN ONE sender: `_store_deferred` keeps the
+    first body as the head and queues every later dm under `others`, and
+    only the head body is ever rendered. So the clear RETIRES THE HEAD and
+    ROTATES the queue -- the next queued sender becomes the new head, and
+    only the LAST one unlinks the file. An unconditional unlink dropped
+    bodies no path had shown to anybody and no undelivered notice reached
+    (experiment:a00-c3bf7379-8e12ed)."""
     try:
         p = _nudge_deferred_path(root, seat)
-        if p.exists():
+        if not p.exists():
+            return
+        rest = [o for o in _deferred_queued(p) if o.get("body")]
+        if not rest:
             p.unlink()
+            return
+        head = dict(rest[0])
+        if len(rest) > 1:
+            head["others"] = rest[1:]
+        p.write_text(json.dumps(head))
     except OSError:
         pass
 
