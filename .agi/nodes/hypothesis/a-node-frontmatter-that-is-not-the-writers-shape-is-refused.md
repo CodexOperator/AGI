@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: a00-7674caf6
+edited_by: a00-342e0860
 evidence_runs:
   - experiment:a00-84c9c98d-34018e
   - experiment:a00-1556127c-9fb395
@@ -17,7 +17,7 @@ season: 2
 testable_claim: a frontmatter list not in node_writer shape is refused by name at load/links; the corrupted node is repaired
 title: "A node frontmatter the sanctioned writer could not have produced is refused (assigned: director-engine)"
 town: core
-verdict: inconclusive_lean_proved:75
+verdict: inconclusive_lean_proved:70
 ---
 # hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused
 

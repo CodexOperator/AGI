@@ -276,7 +276,69 @@ def _off_shape_keys(fm: dict) -> list[str]:
     return [str(k) for k in fm if not node_writer.writer_key_shape(k)]
 
 
-def _load_frontmatter(text: str) -> tuple[bool, dict | None, str]:
+#: The schema's own WORDS for a CONTAINER field, mapped to what the sanctioned
+#: writer writes for them -- read from `[<type>].md`, never restated per key
+#: (hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused).
+#: SCALARS are absent on purpose: `confidence: 1` is not a defect, and the type
+#: YAML hands back for a bare word is the resolver's collapse, already forgiven
+#: in `node_writer.writer_key_shape`.
+_FM_TYPE_WORDS = {"list": list, "mapping": dict, "dict": dict}
+#: schemas-dir mtime -> declared types, so a rule edited mid-process is re-read
+#: rather than served stale for the life of the process.
+_FM_TYPES_CACHE: dict = {}
+
+
+def _declared_types(root, node_type) -> dict:
+    """`key -> container type` from the `fields:` block of `[<type>].md`."""
+    if not root or not node_type:
+        return {}
+    try:
+        from schema_registry import load_schemas_from_dir
+        sdir = Path(root) / "context" / "schemas"
+        stamp = sdir.stat().st_mtime_ns
+    except Exception:
+        return {}
+    table = _FM_TYPES_CACHE.get(stamp)
+    if table is None:
+        table = {}
+        try:
+            reg = load_schemas_from_dir(sdir)
+            for name in list(getattr(reg, "schemas", {}) or {}):
+                fields = (getattr(reg.get(name), "frontmatter", {}) or {}).get("fields") or {}
+                table[node_writer.canonical_node_type(name)] = {
+                    str(k): _FM_TYPE_WORDS[spec["type"]] for k, spec in fields.items()
+                    if isinstance(spec, dict) and spec.get("type") in _FM_TYPE_WORDS}
+        except Exception:
+            pass
+        _FM_TYPES_CACHE.clear()
+        _FM_TYPES_CACHE[stamp] = table
+    return table.get(node_writer.canonical_node_type(node_type), {})
+
+
+def _off_shape_values(fm: dict, types: dict) -> list[str]:
+    """Keys of `fm` whose VALUE the sanctioned writer could not have written.
+
+    ASK, do not restate: the writer renders the block the way `set` does
+    (`node_writer.render_frontmatter`), it is read back, and the type it must
+    carry is read from the schema. A round-trip ALONE cannot see `probes: one`
+    -- the writer renders the scalar it is handed and reads it back perfectly
+    -- so the declaration is the only thing that can name it. An EMPTY list
+    stays legal (a goal with no seeds IS `seeds: []`): the CONSUMER decides
+    whether an empty field is evidence.
+    """
+    import yaml
+    if not types:
+        return []
+    try:
+        back = yaml.safe_load("".join(l + "\n" for l in node_writer.render_frontmatter(fm)))
+    except Exception:
+        return []
+    return [str(k) for k, v in fm.items()
+            if types.get(str(k)) and v is not None
+            and (not isinstance(v, types[str(k)]) or back.get(str(k)) != v)]
+
+
+def _load_frontmatter(text: str, root=None) -> tuple[bool, dict | None, str]:
     """Parse a node file's leading frontmatter block.
 
     Returns ``(ok, fm, defect)``. ``ok=True`` means the ``---`` block is
@@ -305,6 +367,11 @@ def _load_frontmatter(text: str) -> tuple[bool, dict | None, str]:
         return False, fm, ("frontmatter key(s) not in the sanctioned writer's "
                            "shape (a hand-appended line, not a `set` field): "
                            + ", ".join(k[:60] for k in off))
+    badv = _off_shape_values(fm, _declared_types(root, fm.get("type")))
+    if badv:
+        return False, fm, ("frontmatter value(s) not in the sanctioned writer's "
+                           "shape (a hand-appended line, not a `set` field): "
+                           + ", ".join(k[:60] for k in badv))
     missing = [k for k in _FM_REQUIRED if not fm.get(k)]
     if missing:
         return False, fm, "frontmatter missing required field(s): " + ", ".join(missing)
@@ -388,9 +455,17 @@ def _ensure_frontmatter(root: Path, node_file: Path, ap: Path,
     swallow the kid's work, which is worse than the defect.
     """
     text = node_file.read_text(errors="replace")
-    ok, _fm, defect = _load_frontmatter(text)
+    ok, _fm, defect = _load_frontmatter(text, root)
     if ok:
         return True, "frontmatter ok"
+    # A VALUE off the writer's shape is a REFUSAL, never a rebuild: the repair
+    # below re-renders the very value the gate just rejected, so it cannot fix
+    # the defect and would churn a parseable block for nothing.
+    if isinstance(_fm, dict) and _off_shape_values(
+            _fm, _declared_types(root, _fm.get("type"))):
+        return False, (f"{node_file.name}: {defect} -- not repaired here; a "
+                       "value the sanctioned writer could not have written is "
+                       "recovered by hand, never by rebuilding the block")
 
     # Determine the body. A *cleanly closed* `---` block delimits it as
     # `parts[2]` even when the block itself is YAML-broken or missing required
@@ -1897,7 +1972,7 @@ def _missing_after_lift(root, node_id) -> list[str]:
     path = node_writer.find_node_file(root, node_id)
     if path is None:
         return []
-    ok, fm, _ = _load_frontmatter(path.read_text())
+    ok, fm, _ = _load_frontmatter(path.read_text(), root)
     if not ok or not fm:
         return []
     ntype = node_writer.canonical_node_type(fm.get("type") or path.parent.name)

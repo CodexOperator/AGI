@@ -596,7 +596,13 @@ def _writer_shaped_probes(value) -> bool:
     list. Ask the WRITER rather than restate list-ness: a value the sanctioned
     writer would render and that reads back unchanged IS a list of its making.
     """
-    if not isinstance(value, list):
+    if not isinstance(value, list) or not value:
+        # ITEM 4: `probes: []` IS writer-shaped (it round-trips) and it is
+        # LEGAL -- a goal with no seeds is exactly `seeds: []`, so the LOADER
+        # must not refuse it. The EVIDENCE rule is the consumer's: a recovered
+        # artifact with no probes is not evidence, so this gate asks for a
+        # non-empty list and the `assert fm["probes"]` below can never go red
+        # on a node this function returned.
         return False
     import yaml
     back = yaml.safe_load("".join(l + "\n" for l in node_writer._render_value("probes", value)))
@@ -612,7 +618,15 @@ def _live_recovered_probes_node(root, cli):
     16ms to the first hit, vs 5.3s to parse all 1962."""
     named = root / "nodes" / "experiment" / "a00-fe05fdae-a240f5.md"
     if named.is_file():
-        return named, "the named artifact"
+        # ITEM 2: this exit carried NO gate, so a NAMED artifact holding a
+        # scalar `probes:` was returned as the recovered evidence and the pin
+        # passed on it. Both exits now ask the same question; an off-shape
+        # named artifact falls through to the scan instead of being returned.
+        text = named.read_text(errors="replace")
+        ok, fm, _defect = cli._load_frontmatter(text)
+        if ok and _writer_shaped_probes((fm or {}).get("probes")) \
+                and not cli._off_shape_keys(fm):
+            return named, "the named artifact"
     for path in sorted((root / "nodes" / "experiment").glob("*.md")):
         text = path.read_text(errors="replace")
         if "probes" not in text:
@@ -681,3 +695,52 @@ def test_the_live_pin_refuses_a_probes_value_that_is_not_a_list(project):
           ['id: "experiment:a00-list"'] + base[1:] + ["probes:", "  - one"], "b\n")
     live, why = _live_recovered_probes_node(project, cli)
     assert live is not None and live.name == "a00-list.md", why
+
+
+def test_the_named_artifact_exit_asks_the_same_gate_as_the_fallback(project):
+    """ITEM 2: the resolver had TWO exits and only one of them asked. A named
+    artifact whose `probes:` is the scalar `one` was returned as the recovered
+    evidence, and the live pin's `assert fm["probes"]` passed on it. ITEM 4 as
+    well: `probes: []` is writer-shaped but is not evidence, so it is refused
+    here and neither is the named artifact it hides behind."""
+    import cli
+    base = ["type: experiment", "mint_id: abc123", 'title: "t"',
+            "parents: ['hypothesis:h1']"]
+    _node(project, "experiment:a00-fe05fdae-a240f5",
+          ['id: "experiment:a00-fe05fdae-a240f5"'] + base + ["probes: one"], "b\n")
+    _node(project, "experiment:a00-empty",
+          ['id: "experiment:a00-empty"'] + base + ["probes: []"], "b\n")
+    _node(project, "experiment:a00-good",
+          ['id: "experiment:a00-good"'] + base + ["probes:", "  - one"], "b\n")
+    live, why = _live_recovered_probes_node(project, cli)
+    assert live is not None and live.name == "a00-good.md", why
+    ok, fm, defect = cli._load_frontmatter(live.read_text())
+    assert ok and fm["probes"] == ["one"], defect
+
+
+def test_a_declared_container_field_off_the_writers_shape_is_refused_by_name(project):
+    """ITEM 1, the production half: the schema's `fields:` block is where a
+    key's type is written down, and `cli._load_frontmatter` certified a value
+    no `set` produced. Red before the gate, and the defect NAMES the key. A
+    bare `tags:` (the writer renders it as the bare line) and an empty list
+    stay legal: the writer can write both, and only the CONSUMER gets to call
+    an empty field useless."""
+    import cli
+    sdir = project / "context" / "schemas"
+    sdir.mkdir(parents=True)
+    (sdir / "[experiment].md").write_text(
+        "---\nname: experiment\nfields:\n  probes: {type: list}\n"
+        "  tags: {type: list}\nvalidation:\n  required: [id]\n---\n\n# experiment\n")
+    base = ["type: experiment", "mint_id: abc123", 'title: "t"',
+            "parents: ['hypothesis:h1']"]
+    for slug, extra, want_ok in (("off-scalar", ["probes: one"], False),
+                                 ("off-mapping", ["probes:", "  a: 1"], False),
+                                 ("ok-empty", ["probes: []"], True),
+                                 ("ok-bare", ["tags:"], True),
+                                 ("ok-list", ["probes:", "  - one"], True)):
+        p = _node(project, f"experiment:a00-{slug}",
+                  [f'id: "experiment:a00-{slug}"'] + base + extra, "b\n")
+        ok, _fm, defect = cli._load_frontmatter(p.read_text(), project)
+        assert ok is want_ok, (extra, ok, defect)
+        if not ok:
+            assert "probes" in defect and "writer" in defect, defect
