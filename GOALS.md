@@ -8945,7 +8945,7 @@ Owner vision covered (no duplicate of g7.31.1–.5 meanings):
 
 Session: `owner-ask-2026-09-21`. Frame as TARGETS not tasks.
 
-#### G7.32.1 — Grok session ingest — sessions land as graph nodes — status: active
+#### G7.32.1 — Grok session ingest — sessions land as graph nodes — status: complete
 
 # goal:g7.32.1
 
@@ -8988,6 +8988,8 @@ grok session artifact
 ## Agent Notes
 
 **Related:** `goal:g7.32`, `goal:g7.31.5` (sync, not ingest). Session: `owner-ask-2026-09-21`.
+
+landed session_ingest.py from proved tip a419f03419; falsifiers 1+2 green (mint + re-ingest no-fork); NO-PI seat tip
 
 #### G7.32.2 — Magic-pane messaging — grok↔grok native; grok→claude/pi nudge→send — status: complete
 
@@ -9141,7 +9143,7 @@ Assigned to **director-helper**. Nested by director-belam after DT.110 AWR; clai
 
 production importer send.py pane verb + test_magic_pane_cli_path.py 5/5 GREEN: nudge lands inbox; native writes no inbox; unsupported refuses nonzero
 
-#### G7.32.3 — One adapter/harness with optional pane methods — status: active
+#### G7.32.3 — One adapter/harness with optional pane methods — status: complete
 
 # goal:g7.32.3
 
@@ -9184,7 +9186,9 @@ grok_bot_adapter
 
 **Extends:** `goal:g7.25`, `goal:g7.31.1`. Session: `owner-ask-2026-09-21`.
 
-#### G7.32.4 — send.py thin router — transport choose, never policy — status: active
+landed OPTIONAL_PANE + PaneNotHeld + pane_{attach,send,read} on grok_bot_adapter from proved tip eda6daa994; test_adapter_pane_methods green; NO-PI seat tip
+
+#### G7.32.4 — send.py thin router — transport choose, never policy — status: complete
 
 # goal:g7.32.4
 
@@ -9227,6 +9231,8 @@ g7.31.3 lists `send` among five pane-facing routes; this child owns the **router
 ## Agent Notes
 
 **Extends:** `goal:g7.31.3` (send as a route). **Used by:** `goal:g7.32.2`. Session: `owner-ask-2026-09-21`.
+
+landed send_transport.py rotation adapter from proved tip bed84760ac; send.py has zero import rotate/dispatch; thin-router falsifier green; NO-PI seat tip
 
 #### G7.32.5 — messaging/magic-pane into active goals (after spawn/rotate) — status: horizon
 
