@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.31.3.3
 next_edges: []
-edited_by: belam
+edited_by: director-engine
 scaffold_hash: 99f721ebee0a9eb8
 season: 2
 testable_claim: prune clean non-live kid worktrees; spawn reads paths.<town>.worktrees_root via locations.py (no literal at dispatch.py:754); guard.env GUARD_WORKTREE_TMPFS_<host>=4G mounted and charged to user@; post worktrees stay on disk; worktree prune on reboot
@@ -128,8 +128,25 @@ FILE SCOPE extensions/agi/bin/dispatch.py · extensions/agi/tests/test_kid_workt
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over da6f3fafe · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.18 -- closes mur-eg-5 EG.12-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-kid-worktrees-resolve-a00-b28f02a4 tip c884b3663 (branch de-base-EG.18; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Alias gap half closed, docstring overclaims — test:137-138 ImportFrom branch cannot match `from . import locations as L` (module=None)
+2. 4. Live-box number frozen without an as-of — verdict node:54 '3 of the 4' now measures 0 of 4
+3. 8. Two more sites share the tier tuple outside the table — dispatch.py:1498 (dry-run env fence) and :2795 (hooks fence) are uncaught
+4. Missed 1 — the 'consumer SET' is a per-symbol MULTISET, so the pin can also fail for the wrong reason. test:121-122 lists `"_fd_seat_worktree"` TWICE, because rotate.py:16986 and :16989 both call `locations.worktrees_root(main)` inside that one function. Measured in the isolated copy: adding a third `locations.worktrees_root(main) / "extra"` inside `_fd_seat_worktree`, with no routing change at all, fails test:169 with `{'rotate.py': ['_fd_seat_worktree', '_fd_seat_worktree', '_fd_seat_worktree', ...]} != KEEP_ON_DISK`. That contradicts test:112-114 ('A SET, not a per-file count') and node:36 (item 1's claim that the walk replaced 'a per-file regex COUNT'). This is the inverse of defect 1 — a pin that fails a correct, unrelated edit — and it is the residue of the count the round said it removed.
+5. Missed 2 — TIER_ROOTS re-commits the exact sin the round fixed. dispatch.py:761 states in the routing comment 'There is no `post` TIER: seats cut their own trees in rotate.py', yet test:83 pins `"post": "disk"`. The round's own stated defect at test:79-80 was a pin whose tier universe was wrong (it named `director` alone and omitted reachable tiers); the replacement table adds a tier the production comment says cannot exist, inflating the appearance of exhaustiveness in the very table sold as the guard.
+6. Missed 3 — a transcript that cannot be re-run verbatim, in the node whose stated standard is 'each one, run, output pasted — never typed' (node:56). node:180-182 pastes `git ls-tree 65ba5be7 .../test_kid_worktrees_root.py`, then a second line `echo "rc=$? bytes=$(wc -c < ...)"; git ls-tree 65ba5be7 ...` containing two literal ellipses, then the result `rc=0 bytes=0`. As pasted, that line is not executable; the byte count it asserts was not measured on the page.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_kid_worktrees_root.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_kid_worktrees_root.py · .agi/nodes/experiment/a00-abfcc0db-49cea2.md · .agi/nodes/verdict/a00-ec398d82-12fe9c.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over c884b3663 · <= 40 test lines net over c884b3663 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat c884b3663 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.12: mur-eg-3 DH.680-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.18: mur-eg-5 EG.12-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
 
 belam 00:4xZ 09-28 DECISION on the tmpfs go (TM [decision] 22:04Z, owner 'if it's working'): HOLD the mount. (1) memory: 4 ALARM crit lines since 21:39Z (00:41Z box PSI full 25.1%); a 4G tmpfs comes out of a 15G box whose watchdog reboots at PSI full >= 40% for 5 min. (2) the heal sweep still removes a FINISHED 0-commit branch's worktree with its uncommitted work (DE finding 23:59Z, DH.648) -- on a tmpfs a reboot adds a second loss path. GO when BOTH hold: the sweep rule fix is merged (goal:g7.33.N) AND 24 h with no memory crit line. Size then: GUARD_WORKTREE_TMPFS 4G, parent + kid worktrees only; the repo half (DH.650 kid_worktrees_dir, prune-on-empty, hardwater 95) may land first, inert on disk.
