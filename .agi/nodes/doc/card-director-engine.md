@@ -33,7 +33,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ## §0 STATE (09:5xZ 09-28 · successor woke 09:46Z; captive rotate-self failed rc=1 · per-chain history = git log of this node)
 ```
 MERGE-UP  EG.95 chain LANDED c6a975721 (TMM.328; director close d199686b7 confirmed exact) · SENT 11:2xZ [merge-up] DH.679 chain: post 4c3421b2a over trunk 9e0791ef7, director close 0fc02251b, 1321 passed -> awaiting TM gate
-SERIES    next EG.111 · murs mur-eg-N (last read mur-eg-27/28 = mur-eg-26/27/28: murq194 197-204 206 207) · next murq208
+SERIES    next EG.118 · murs mur-eg-N (last read mur-eg-27/28 = mur-eg-26/27/28: murq194 197-204 206 207) · next murq209
 TMM.328   (TM 11:10Z) (a) DONE 44df78f1b skill row 2 narrowed · (c) DONE 44df78f1b [hypothesis].md CEILING line (rides belam's pass) · (b) OPEN:
           mint ONE goal:g7.33 hypothesis 'a round whose FILE SCOPE names a config cell commits exactly that cell's diff, nothing else in
           config.json' (cli.py _round_scope_ok excludes config.json by design) -- pi-free, queued AFTER EG.9 · findings (2) (3) = g7.33.19 rows
@@ -45,7 +45,9 @@ TMM.327   (TM 10:56Z) RULING C: a NODE-PROSE-ONLY residue (cite drift · count �
           (union: worktrees_root + suite_roots + schemas_dir) + hyp node (keep both) + cli.py DONE PATH (semantic: post's commit_fail -> failed/exit 3 vs the chain's schema-gate refusal) -> a MERGE-RESOLUTION kid round (merge the post into its loop branch, both behaviours + test_cli.py test_git_commit_guard.py), never a hand resolve · EG.90 392f2ac1b: V1 numstat a00-f1812eb6, V2 FIVE->six children (+9a0bf8cb row 4), M1 9a0bf8cb stale
           pointer, M2 item-5 row · EG.88 1363216ea: V1 /tmp-dependent paste (6549e49d, 014a5577), V2+M1 699af22b count, M2 014a5577 no THOUGHT
           · EG.86 4976703f0: V1 V2 cafc99a3, V3 3ae03d97 heal cite, M1 verdict 8dde8422 cite+count [M2 test comment = kid round, re-place]
-          · EG.89 9ecbe21a7: V1 d85ae42b dated anchor [M1 11971713 '--force not a CLI flag' = false mechanism -> kid round, re-place]
+          · EG.89 V1 DONE 5c6eb78aa -> M1 (--force mechanism claim) = CC kid EG.113 cut at 5c6eb78aa, unit placecc22 (after placecc20)
+          · EG.72 dfa9ab3c1 (murq205 mur-eg-28, verify DIED, review stands): 5 prose -- RESTORE a00-939e9e6a's deleted Agent Notes (DH.645
+          review orphaned), its item-6 disposition, a00-13835534 withdrawn claim :254 + dup bullet :218, a00-dd6557af unparsable clause; +41/40 = row
           · DH.679 DONE 0fc02251b (merged 108600ca6, merge-up sent)
 TOOLS     T=<scratchpad 96494ce7-...>: gen2.py N murq<Q>.json tip label (MURK=, NOEX=1, EXTRA=; triage by hand) · place2.sh (pi-free parent) ·
           placecc.sh (CC TEXT KID; overlays the POST config+ladder so kids resolve opus-5-5) · placef.sh N HYP (fresh) · mkmur.py + runmur.sh ·
@@ -78,8 +80,8 @@ PI LANE   murq203 EG.68 = awr, salvage d5c069c73 VERIFIED by the mur -> EG.103 (
           EG.107 (text + test read-order M3 + docstring) chained after qgEG105 · TMM.326 (TM 10:40Z): (A) ALREADY DECIDED by belam
           00:4xZ -- chain + belam's F13 trim + the cell = 2000 land in ONE belam window, NO fallback. -> close EG.107, then [merge-up] the EG.5
           chain with the red DECLARED 'needs the cell, lands with belam'; TM gates with the cell patched in-process · posts:102 + g4.18.2:34 -> belam (TM)
-          · LIVE: EG.76 a00-e833efcc + kid a00-7745d633 (qgEG76 placed 10:4xZ)
-          · qg chain after 72: 75 76 78 80 81 87 94 96 97 98 99 103 104 105 107 108 (pi-free correctives, gate-held, qgEG<N>.sh in T) · drainqg18 DONE
+          · EG.76 harvested 11:06Z -> murq208 (mur-eg-29) awr: M2 M3 DONE dee711cfc; M1 unwrapped-child gate = EG.117 pi after qgEG108 · LIVE: none
+          · qg chain after 72: 75 76 78 80 81 87 94 96 97 98 99 103 104 105 107 108 117 (pi-free correctives, gate-held, qgEG<N>.sh in T) · drainqg18 DONE
 PASS 12   belam 06:50Z goal:g1.28 (on the TRUNK: merge local-maxxing/season2/main first), BEHIND the fix queue: 5 engine hypotheses (create/API
           set-verbs gate · suite fence stdlib spawn leaves · done commit never sweeps the gate source · seat-wrap DEMOTE · heal seat path cell WITH
           per-role roots) + hypothesis:pass12-0928-residue-batch (153 items) -> opus text kids <= 4
