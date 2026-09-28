@@ -87,10 +87,13 @@ def resolve_tasks_max(cfg: "dict | None" = None) -> int:
     must not silently un-cap the tree.
 
     `AGI_TASKS_MAX` is an ENV HOOK, not a test-only affordance. It is read
-    by WHICEVER PROCESS CALLS THIS, not exported into a spawned scope: the
-    parent that builds the argv (wrap_argv -> TasksMax) and the boxkit probe
-    (probe.py, in the probe's OWN process) both call it, so an operator, a
-    wrapper script or an inherited environment reaches it in PRODUCTION. The
+    by WHICHEVER PROCESS CALLS THIS -- the parent that builds the argv
+    (wrap_argv -> TasksMax) and the boxkit probe (probe.py, in the probe's
+    OWN process) -- AND it is inherited by every spawn: dispatch.scrubbed_env
+    drops only ENV_VARS_TO_SCRUB (dispatch.py:295), so a set value passes
+    into each spawned scope and reaches that scope's own callers too. An
+    operator, a wrapper script or an inherited environment reaches it in
+    PRODUCTION. The
     hook has no config cell of its own, so the probe's DRIFT row
     (test_boxkit_probe.py `test_spawn_rows_...`) drives through it -- if the
     hook is ever retired as test-only that row loses its driver, silently,
