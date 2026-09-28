@@ -143,22 +143,6 @@ FILE SCOPE .agi/nodes/experiment/a00-7b5520ac-96a290.md · .agi/nodes/experiment
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 82a23fe26 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
-
-## CORRECTIVE DH.666 -- closes mur-director-engine-41 DH.641-k1 demote
-BASE      CUT FROM season2/loops/hypothesis-probe-gate-counts-cla-a00-9c666748 tip 8698b348e (branch de-base-666; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. Re-created mis-paste on the round's own evidence node -- .agi/nodes/experiment/a00-df914bba-114582.md:72
-2. No authored THOUGHT block of its own -- a00-df914bba-114582.md:74
-3. The merging parent wrote into the evidence it reviewed, and did not charge it: commit bf784385b ('a00-9c666748 done', 22:08:03) is inside the review range and edits .agi/nodes/experiment/a00-df914bba-114582.md -- flipping `edited_by:` at :9 from a00-df914bba to a00-9c666748, appending its harvest to Agent Notes, and (via the thought splice) replacing the two real grep output lines. That is the same act the round itself charged as ITEM 4 on the DH.626 parent ('A reviewer edited the evidence it was reviewing'), raised against its own side and left uncharged. The first reviewer's defect 1 saw the paste but not its writer, its commit, or that it was a write.py thought verb rather than a hand edit.
-4. The parent's own P6(b) self-verification (pasted at :85) checks only that a00-7b5520ac now prints 261/279/281/300; it never re-reads the node the harvest was writing into, so the six 'all HOLD' probes cover a file the same `done` call was mutating. A verification that excludes the file under the writer's own hand is the near miss this round was chartered to catch.
-5. UNVERIFIED by me (probe I would run, not run): the DH.641 parent's P3 wire probe ('real cli.py done DH.641 --verdict proved --dry-run --parent hypothesis:target' in a tmp graph, record status still running). The only deliverable figure I could reproduce is ITEM 8's suite count: extracted 82a23fe26's extensions/ to /tmp and ran the two named files -> '79 passed, 6 skipped, 1 warning', matching :104-107. The P3/P4 subprocess and monkeypatch claims are parent scratch, not committed tests, and are not decidable from the diff.
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-TESTS      + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE  · .agi/nodes/experiment/a00-7b5520ac-96a290.md · .agi/nodes/experiment/a00-9f9aaacd-303434.md · .agi/nodes/experiment/a00-bc9448e3-61e351.md · .agi/nodes/experiment/a00-df914bba-114582.md · .agi/nodes/experiment/a00-ea0222b3-4ed78e.md (write.py) · the kid's own node
-CEILING   HARD CAP: 1 kid · <= 15 production lines net over 8698b348e · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
-PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.666: mur-director-engine-41 DH.641-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.641: mur-director-engine-37 DH.626-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
