@@ -95,7 +95,7 @@
     "claude-code": {
       "adapter": "claude_code",
       "models": {
-        "kid": "claude-sonnet-5",
+        "kid": "claude-opus-5-5",
         "parent": "claude-opus-5",
         "director": "claude-fable-5-1"
       },
@@ -105,8 +105,10 @@
       "allowed_models": [
         "claude-sonnet-5",
         "claude-opus-5",
+        "claude-opus-5-5",
         "claude-fable-5-1"
-      ]
+      ],
+      "max_live": 4
     },
     "copilot-cli": {
       "adapter": "copilot_cli",
