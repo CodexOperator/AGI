@@ -33,7 +33,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ## §0 STATE (05:4xZ-06:0xZ 09-28 · gen 37 = rotate-self 05:22Z · per-chain history = git log of this node)
 ```
 MERGE-UP  EG.1 chain LANDED 57debf3a2 (TMM.318). No chain clean since: every mur this seat read = residue -> corrective / text fix
-SERIES    EG.N (next EG.52) · mur run keys mur-eg-N (last read mur-eg-16) · next murq171
+SERIES    EG.N (next EG.53) · mur run keys mur-eg-N (last read mur-eg-16) · next murq171
 TOOLS     T=<scratchpad 96494ce7-...>: gen2.py (MURK=<key> gen2.py N murq<Q>.json tip label; sed DH.EG -> EG; triage by hand) · place2.sh N (pi-free
           parent) · placecc.sh N (CC TEXT-FIX KID, §3a) · placef.sh N HYP · redispatch2.sh N · mkmur.py + runmur.sh · qgEG<N>.sh = [wait prev] gate -> place
           · harvest.sh = TMM.322 pytest (TMPDIR + basetemp /dev/shm/de-tmp, -u AGI_POST -u AGI_SEAT; units never inherit AGI_*: user manager env has none)
@@ -42,15 +42,16 @@ GATE      TMM.306 load1 < 16 AND io avg60 < 50, two reads 5 min apart · CC kids
 OWNER     05:0xZ-05:1xZ: pure-text residue -> claude-code TEXT-FIX KIDS, all in parallel under the per-spawn memory cap (skill agi-corrective §3a, 3754d4169)
           · belam asked 05:2xZ: claude-opus-5 -> claude-opus-5-5, an Opus CC kid row, harnesses.claude-code.max_live (rec 4); until then Sonnet kids
           · belam [decision] 05:38Z (OWNER 05:2xZ "Move parents to opus 5.5 as well"): CC kids + parents = claude-opus-5-5, max_live 4 (44925a6b6
-            288513229, merged 11476d1f6) · "dispatch now" the pure-text rounds (§3a) under the memory guard per placement, parallel <= 4 · 04:5xZ: ONE frontmatter read per submit = EG.37 item 7
+            288513229, merged 11476d1f6) · "dispatch now" the pure-text rounds (§3a) under the memory guard per placement, parallel <= 4 · belam 05:32Z: a memory ALARM fires -> HOLD new placements · 04:5xZ: ONE frontmatter read per submit = EG.37 item 7
 TMM.322   (1) name the TEST that leaked the fixture config + nodes/nodes into this tree 05:03Z (repro in a scratch tmpfs tree, dummy AGI_* env) -> findings
           row + ONE g7.33 hypothesis, pi-free, AFTER EG.9 · (2) answered: 'Opus forks' not recoverable from the bytes on this seat; no Agent tool here
           · (3) every pytest: TMPDIR + --basetemp /dev/shm, scratch cwd, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT
 RUNNING   murq162 = 5 director text batches (EG.38 395779682 · EG.39 eef31410a · EG.40 c2ddbb9fc · EG.45 dedca8545 · EG.46 29962ec4f)
-          · murq165 EG.43 = EG.9 chain (tip d00757c25) · murq167 EG.18 (0e96c485f, 80 passed) · DH.675 -> EG.51 (murq168 residue) · murq169 DH.669 (1e7dbd6d5, 80 passed) · murq170 EG.34 (737712de1: parent-uncommitted values.pi_retry
+          · murq165 EG.43 = EG.9 chain (tip d00757c25) · murq167 EG.18 (0e96c485f, 80 passed) · DH.675 -> EG.51 (murq168 residue) · DH.669 -> EG.52 (murq169 DEMOTE) · murq170 EG.34 (737712de1: parent-uncommitted values.pi_retry
           cell SALVAGED; live cell (7, 0.01 s) pinned by the test only to differ from the default = config_max question put to the mur) · parents DH.670 EG.35 · qgEG50 = EG.9 chain corrective (murq165 EG.43, 3 items), OWN lane, first
 LIVE KID  EG.47 a00-0de7626f claude-code/opus-5-5 (EG.26 text residue; the first place a00-f1129c7b resolved sonnet-5 = STOPPED)
           · EG.51 a00-b100d6b9 claude-code/opus-5-5 (murq168 mur-eg-16 DH.675-k1: 5 node-text items)
+          · EG.52 a00-620bf49d claude-code/opus-5-5 (murq169 mur-eg-16 DH.669-k1 DEMOTE: 6 node-text items, false write.py claim re-minted)
 QUEUED    qgRS serial lane (EG.19 -> 661 -> EG.20) · corrective chain qgEG36 -> 37 -> 41 -> 42 -> 44
           -> 48 (murq164 EG.33, 5 items) -> 49 (murq166 EG.31, 5 items, mixed: test_boxkit_probe literal 150) · drainqg13..18: 670-674 · 678 · 679
           · EG.2 EG.3 · EG.5 (facts: ONE [merge-up] w/ belam's F13) · EG.6
@@ -74,7 +75,7 @@ Gen 37 05:5xZ: EG.18 DH.675 DH.669 EG.34 harvested and under mur (murq167-170); 
 ```
 NEXT    watcher event -> the ended mur: D/verd.py Q -> triage (skill agi-corrective §3): ALL pure text -> §3a CC kid (placecc via a gated qgEG<N>);
         else gen2 EG.50.. chained last · murq165 clean = merge the EG.9 chain FIRST (tmpfs GO), then TMM.322 (1) · murq162 clean = merge each text chain
-WATCH   MURS="murq162 murq167 murq169 murq170" bash S/watch2.sh (run_in_background; re-arm after every event)
+WATCH   MURS="murq162 murq167 murq170" bash S/watch2.sh (run_in_background; re-arm after every event)
 ```
 
 ## §4 TRAPS
