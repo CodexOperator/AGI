@@ -82,7 +82,7 @@ def _fixture(tmp: pathlib.Path, monkeypatch, factory=None, base=BASE, memtotal=M
     (agi / "nodes" / ".geometry").mkdir(parents=True)
     (agi / "config.json").write_text(json.dumps({
         "paths": {"boxkit": dict(CELLS, templates_dir="templates")},
-        "values": {"boxkit": dict(VALUES), "memcap": {"tasks_max": 150}},
+        "values": {"boxkit": dict(VALUES), "memcap": {}},
         "spawn": {"memory_max": "2G", "tasks_max": 150}}))
     (agi / "nodes" / ".geometry" / "crons.md").write_text(
         "---\nid: cron:crons\ntype: cron\ncadences:\n  memory_alarm:\n"
@@ -547,8 +547,13 @@ def test_spawn_rows_target_the_config_and_the_resolvers_not_a_literal(tmp_path, 
     cfg["spawn"]["memory_max"] = "3G"             # the cell IS the target: still ok
     (agi / "config.json").write_text(json.dumps(cfg))
     assert _by_name(probe.rows(agi, root, shim, HELD))["spawn.memory_max"][2] == "ok"
-    cfg["values"]["memcap"]["tasks_max"] = 96     # the resolver disagrees with the cell
-    (agi / "config.json").write_text(json.dumps(cfg))
+    # the ONE cell: with no override, the resolver returns spawn.tasks_max itself.
+    # (a resolver reading values.memcap.tasks_max falls back to 96 and fails HERE.)
+    monkeypatch.delenv("AGI_TASKS_MAX", raising=False)
+    assert _by_name(probe.rows(agi, root, shim, HELD))["spawn.tasks_max"] == (150, 150, "ok")
+    # the resolver disagrees with the cell, through a path PRODUCTION can take:
+    # mem_cap.resolve_tasks_max honours AGI_TASKS_MAX.  The cell itself is 150.
+    monkeypatch.setenv("AGI_TASKS_MAX", "96")
     table = _by_name(probe.rows(agi, root, shim, HELD))
     assert table["spawn.tasks_max"] == (150, 96, "DRIFT"), table["spawn.tasks_max"]
     assert _run(agi, root, shim) == 1
