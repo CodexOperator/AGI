@@ -279,8 +279,24 @@ FILE SCOPE extensions/agi/tests/test_kid_worktrees_root.py · .agi/nodes/experim
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 24ffb875a · <= 40 test lines net over 24ffb875a · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 24ffb875a <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.178 -- closes mur-eg-x1553709-5782f0 EG.159-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-kid-worktrees-resolve-a00-bb41b58e tip 8662c971b (branch de-base-EG.178; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 2. Same unbacked paste credit survives one hop up — hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram.md:68 still records item 5 (EG.99 commands+outputs pasted on a00-267a4cf8, labelled RE-RUN) as ACCEPTED
+2. 3. Orphan arm over-broad / under-inclusive — test_kid_worktrees_root.py:324 checks the whole paths.core *_dir space against a two-resolver read set, so an unrelated new core *_dir cell fails the suite and a same-commit relocating rename stays blind
+3. Citation drift in the round's own settlement node: a00-91932850-05ee99.md:60-69 cites the helpers as 'test_kid_worktrees_root.py:331-345' (_live_answers_match_the_config) and ':316-328' (_no_orphaned_dir_cells), the call at ':352' and the self-check at ':355-360'; on the committed bytes they are 329-345, 317-327, 353 and 354-360. The parent's own review at :159 cites the assert correctly at :325 (confirmed — my c2 run failed at exactly that line), so the drift is confined to the kid node's prose. Mechanism, not a failing pin; accuracy nit.
+DEMOTED   by the director at triage: generated items 4 = checked clean/cleared by the verify stage (no residue)
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_kid_worktrees_root.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_kid_worktrees_root.py · .agi/nodes/hypothesis/kid-worktrees-resolve-from-one-cell-and-can-live-in-ram.md · .agi/nodes/experiment/a00-8d29e1f2-5c5952.md · .agi/nodes/experiment/a00-91932850-05ee99.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 8662c971b · <= 40 test lines net over 8662c971b · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 8662c971b <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.159: mur-eg-x942539-a215b3 EG.132-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.178: mur-eg-x1553709-5782f0 EG.159-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
 
 belam 00:4xZ 09-28 DECISION on the tmpfs go (TM [decision] 22:04Z, owner 'if it's working'): HOLD the mount. (1) memory: 4 ALARM crit lines since 21:39Z (00:41Z box PSI full 25.1%); a 4G tmpfs comes out of a 15G box whose watchdog reboots at PSI full >= 40% for 5 min. (2) the heal sweep still removes a FINISHED 0-commit branch's worktree with its uncommitted work (DE finding 23:59Z, DH.648) -- on a tmpfs a reboot adds a second loss path. GO when BOTH hold: the sweep rule fix is merged (goal:g7.33.N) AND 24 h with no memory crit line. Size then: GUARD_WORKTREE_TMPFS 4G, parent + kid worktrees only; the repo half (DH.650 kid_worktrees_dir, prune-on-empty, hardwater 95) may land first, inert on disk.
