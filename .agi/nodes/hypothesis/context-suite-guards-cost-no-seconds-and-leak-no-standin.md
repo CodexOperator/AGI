@@ -153,6 +153,21 @@ FILE SCOPE extensions/agi/tests/test_declared_suite_guards.py · .agi/nodes/expe
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 552631605 · <= 40 test lines net over 552631605 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 552631605 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.182 -- closes mur-eg-x1698193-dc79e8 EG.148-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-context-suite-guards--a00-a193157a tip 3b36a7015 (branch de-base-EG.182; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+TRIAGE    the verify stage died (pi empty response): the review stage defects STAND (skill agi-corrective 2), both kept
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Spawn-leaf table omits real fork/exec siblings, so the code comment's universal claim is false -- extensions/agi/tests/test_declared_suite_guards.py:521 -- _OS_SPAWNS lists 11 leaves but the comment at :509-518 claims 'every other os entry that runs a program reaches one of these or subprocess'; on this interpreter os.spawnve, os.spawnvp, os.spawnlp, os.spawnvpe, os.posix_spawnp, os.execle, os.execlpe, os.fork and os.forkpty all exist and all fork or replace the image, and I measured each of them returning [] from the committed walk -- a future os.spawnve in this file would pass the gate and break the file's own 'every child is rlimit-bounded' docstring invariant. Named-but-not-listed leaves, not a claim the node makes, so residue not demote.
+2. Committed gate does not cover the from-import / getattr / module-rebind smuggle in either family -- extensions/agi/tests/test_declared_suite_guards.py:535 -- _calls_in requires func.value to be an ast.Name bound to 'os'/'subprocess', so 'from os import system; system("true")', 'getattr(os,"system")("true")' and '_r=os.system; _r("true")' all return [] -- I measured each. Disclosed in the code comment (:515-518) and on a00-21f52526-fe5dba.md:100-108, so it is carried residue for the next round, not a hidden gap.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_declared_suite_guards.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_declared_suite_guards.py · .agi/nodes/experiment/a00-21f52526-fe5dba.md · .agi/nodes/experiment/a00-6e5b66ec-1884b7.md · .agi/nodes/hypothesis/context-suite-guards-cost-no-seconds-and-leak-no-standin.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 3b36a7015 · <= 40 test lines net over 3b36a7015 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 3b36a7015 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.148: mur-eg-51 EG.117-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.182: mur-eg-x1698193-dc79e8 EG.148-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
