@@ -32,20 +32,21 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 
 ## §0 STATE (19:3xZ 09-28 · live during the work; per-chain history = git log of this node)
 ```
-MERGE-UP  #1 LANDED 165c99e6a (TMM.345: EG.137 + EG.133 chains) · #2 LANDED d0cb3bb35 (TMM.347): post 08177c25f = EG.125 chain (EG.100 -> 125 -> 157
-          merge resolution; test_cli.py append/append = union, 385 passed)
+MERGE-UP  #1 LANDED 165c99e6a (TMM.345) · #2 LANDED d0cb3bb35 (TMM.347, EG.125 chain) · #3 SENT 20:3xZ post cfd75b09e = EG.153 chain
+          (merge b4e233ca8 at director close 0ccd29b77; trio = POST side; node = one THOUGHT) -- awaiting TM's gate
 POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-corrective; TMM.344 answered my stale [red] -- no ruling needed)
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.171 · next murq270
-PLACING   serial9 (162 163 placed; then 165 161 164 166) -> serial10 (168) · pq170 (EG.170 facts-window re-pin) · serial7 8 11 done
-          · TRAP: placements SERIAL, <= 2 dispatching at once (rc=124 io storm 18:5xZ)
-HARVESTED <scratchpad 8884a411>/harv160 154 159 146 148.log: EG.160 8adbb1926 · EG.158 dd030ceb5 · EG.151 26324bcde · EG.167 a1a1e686b
-          · EG.154 4b6d0aa3b · EG.159 8662c971b · EG.146 7880395b2 · EG.147 2a01c199b (KNOWN RED only) · EG.148 3b36a7015 · EG.162 harvesting
-MURS      259 EG.152 · 260 EG.155 (dead-round salvage) · 261 EG.160 (the EG.9 blocker) · 262 EG.158 · 263 EG.151 · 264 EG.167
-          · 265 EG.154 · 266 EG.159 · 267 EG.146 · 268 EG.147 · 269 EG.148 · 258 EG.150 JUDGED awr -> EG.169
-CC KID    EG.169 a00-adb0b43d (opus text kid, murq258 EG.150-k1: 5 text items, V5 note demoted) · hcc169 harvests at pid exit
+SERIES    next EG.179 · next murq272
+PLACING   serial12 (correctives 173 171 172 174 177 178, EG.173 = EG.9 blocker FIRST) · placecc175 (mem-gated CC text kid EG.175, then
+          hcc) · serial9 (164 166 left) -> serial10 (168) · TRAP: placements SERIAL, <= 2 dispatching at once (rc=124 io storm 18:5xZ)
+LIVE      EG.170 a00-1d634168 (facts window) · EG.165 a00-f0d1183c · EG.169 harvested 019b4c1c2 -> murq271
+MURS      267 EG.146 · 268 EG.147 · 269 EG.148 · 270 EG.162 · 271 EG.169 (text kid) · JUDGED 20:2xZ: 259-266 all awr -> 261 EG.160 -> 173
+          · 259 EG.152 -> 171 · 260 EG.155 -> 172 · 262 EG.158 -> 174 · 263 EG.151 -> 175 (CC text) · 264 EG.167 -> DIRECTOR CLOSE
+          0ccd29b77 -> MERGED b4e233ca8 · 265 EG.154 -> 177 (+config_max cell item) · 266 EG.159 -> 178
+TOOLS2    <scratchpad 3e232af5-...>: cardset.py KEY ENDKEY FILE (replace §0 lines via write.py) · drop.py N "k.." "why" (demote items)
+          · textkid.py N (orders -> CC text-kid form; KID line = cli.py done, never git)
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
           refuses own board: policy question may come up) · 233->150 (cut de-cut-EG.150 f9fbf587a: merge reds test_free_lane_mints...)
           · 234->151 · 241 DEMOTE->152 (conftest suite gate: fix or remove) · 237->153 · 240->154 · 242->155 · 238->156 (CC text kid) · 243 EG.125 director close d91b942f3 -> EG.157 · 245 EG.133 + 236 EG.137 director closes -> MERGED · 249 EG.138 DEMOTE -> EG.158 · 251 EG.157 -> director close 1da46ba3a -> MERGED 08177c25f
