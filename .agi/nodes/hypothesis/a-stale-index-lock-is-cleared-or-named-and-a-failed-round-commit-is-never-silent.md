@@ -149,6 +149,20 @@ FILE SCOPE extensions/agi/bin/cli.py · extensions/agi/tests/test_stale_index_lo
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 3076682d7 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.64 -- closes mur-eg-14 EG.45-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-a-stale-index-lock-is-a00-d4da08e3 tip dedca8545 (branch de-base-EG.64; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. CEILING measurement not pasted for this range -- .agi/nodes/experiment/a00-110f9e30-debcf3.md:146 -- The node's only numstat measures the DH.668 kid round (42/39), not 37bf99a1a..dedca8545; the order requires the range measurement pasted and calls an empty range 'not a measurement'. The value is 3/3 on the node itself, 0 production, 0 test — the cap holds, the artefact is missing.
+2. Version delta left as a body changelog pointer -- .agi/nodes/experiment/a00-110f9e30-debcf3.md:78 -- `corrected in EG.45 per mur-eg-13` is a round pointer in the body; by G2.11 the reason THIS version differs belongs in the THOUGHT block, which still carries only the DH.668 parent review verbatim.
+3. Same-class stale cites left unnamed outside FILE SCOPE -- .agi/nodes/hypothesis/a-stale-index-lock-is-cleared-or-named-and-a-failed-round-commit-is-never-silent.md:9 -- push_further cites cli.py:2406 for the non-dumpable uid-0 fd-dir exit (it is 2407-2408) and cli.py:2455 for `except OSError: continue` (it is 2452-2453) — the exact class of orders item 1; the OUTSIDE clause required it named on the round's node for the director's findings row and it was not.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_bin_help_smoke.py once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT (TMM.322)); TEXT-ONLY round: node text only
+FILE SCOPE .agi/nodes/experiment/a00-110f9e30-debcf3.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · node text only · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat dedca8545 <your final tip>` on your node (an empty range is not a measurement)
+KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit; a version delta goes in the node THOUGHT (write.py), never the body
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.668: mur-director-engine-38 DH.627-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.64: mur-eg-14 EG.45-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
