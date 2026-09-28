@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: a00-e5b926db
+edited_by: a00-f38a455b
 scaffold_hash: fc5927f37ae403ef
 season: 2
 status: measured
@@ -33,8 +33,8 @@ PARENT     paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT ev
 
 
 ## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
-STATUS    MEASURED, bytes landed: DH.674 ran (experiment:a00-77faeb4c-e043fa, merged at a71c05502) and its corrective kid (experiment:a00-59be3549-a3443e, EG.87) fixed the two circular/tautological tests -- the fixture cap now DIFFERS from provisioning.DEFAULT_ZERO_USD_KEY_LIMIT_USD, so a literal at the mint site is RED (mutation run pasted on that node), the paid refusal asserts the account-floor reason, and the skills entry asserts BOTH directions and TOLERATES the one live omission so adding the clause needs no test edit.
-ROUNDS    this post's rounds on this node: DH.674 (merged), EG.87 (corrective, 1 kid). Bytes live on the loop branch, never the post branch, until its mur clears.
+STATUS    MEASURED, bytes landed, suite GREEN on the EG.150 cut (f9fbf587a). DH.674 (experiment:a00-77faeb4c-e043fa, merged at a71c05502) built the two tmp_path suites; EG.87 (experiment:a00-59be3549-a3443e) de-circularised them (fixture cap DIFFERS from DEFAULT_ZERO_USD_KEY_LIMIT_USD, so a literal at the mint site is RED); EG.124 (experiment:a00-e5b926db-80ea64) replaced the OMITTED_DEFECT exemption with the STRICT shape -- the skills entry must name every skills/agi-* dir and every build node it names must RESOLVE, with no exemption left in the suite; EG.150 (experiment:a00-f38a455b-d5028f) split the free-lane assert onto the TRUNK's real gate split (the two DOLLAR floors absent AND the provisioning-ABSENT runtime-key gate PRESENT, mutation-pasted) and added the converse leg (a dead runtime key refuses a zero_usd lane and mints nothing). The suite is green today because the live cell names agi-corrective (ee82066ec) -- there is no tolerance mechanism left for a reader to rely on.
+ROUNDS    this post's rounds on this node: DH.674 (merged), EG.87 (corrective, 1 kid), EG.124 (corrective, 1 kid), EG.150 (corrective, 1 kid). Bytes live on the loop branch, never the post branch, until its mur clears.
 
 
 ## CORRECTIVE DH.EG.87 -- closes mur-eg-23 DH.674 accept_with_residue
@@ -78,5 +78,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over 37a5a2f85 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-EG.87 corrective: the first round proved the LANE but not the CONFIG-MAX claim -- its fixture wrote 0.01, the same value as the engine default, so a literal at provisioning.mint passed both tests; the suite is only evidence once a value the engine could not have written makes it red. The live skills entry also carried an omission as a pinned EQUALITY, which turns the fixing commit red; the correct shape tolerates a NAMED omission and still pins the other direction (a clause naming a removed dir), so a dead ; -chained clause cannot pass silently.
+EG.150: a red round test is a claim about which side is stale, and the owner-dated comment in the BYTES settles it -- the trunk says a ZERO-USD lane skips the two DOLLAR floors and keeps every other gate, so the fixture was the stale paraphrase and the test is the thing to fix. Fixing it by asserting the real split (floors absent AND the runtime-key gate PRESENT, plus the converse leg: a dead runtime key still refuses) TIGHTENS rather than weakens: the old single "no gates ran" assert would have gone GREEN on a mutant that de-indents the gate away. An exemption is a promise a later reader cannot check; the strict suite that is green because the cell was fixed is the same green with the receipt attached.
 <!-- THOUGHT:END -->

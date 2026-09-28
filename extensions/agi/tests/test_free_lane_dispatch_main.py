@@ -104,8 +104,9 @@ def _dispatch(monkeypatch, root, harness="pi"):
 
 def test_free_lane_mints_at_the_zero_usd_cell_cap_on_a_drained_account(
         tmp_path, monkeypatch):
-    """(a) first half: a zero_usd harness skips every paid floor and mints a
-    key hard-capped at the CELL cap, never a literal."""
+    """(a) first half: a zero_usd harness skips the two DOLLAR floors (keeping
+    the runtime-key pre-flight) and mints a key hard-capped at the CELL cap,
+    never a literal."""
     mints, calls = [], []
     root = _harness(monkeypatch, tmp_path, zero_usd=True, mints=mints, calls=calls)
     cap = json.loads((root / ".agi" / "config.json").read_text()
@@ -113,9 +114,15 @@ def test_free_lane_mints_at_the_zero_usd_cell_cap_on_a_drained_account(
     assert cap != provisioning.DEFAULT_ZERO_USD_KEY_LIMIT_USD, (
         "fixture cap == DEFAULT: a literal at the mint site would pass")
     assert _dispatch(monkeypatch, root) == 0
-    assert not [c for c in calls if c in
-                ("runtime_key", "key_floor", "account_floor")], \
-        f"a zero_usd lane must SKIP every paid floor; it ran {calls}"
+    # the split is a DE-INDENT, not a free pass: the two DOLLAR floors are
+    # absent, the provisioning-ABSENT runtime-key gate is PRESENT for every
+    # openrouter lane (dispatch.py:2364 runs it ABOVE the zero_usd split at
+    # :2372). Pinned here so a future de-indent that drops the gate for
+    # zero-USD lanes is red.
+    assert not [c for c in calls if c in ("key_floor", "account_floor")], \
+        f"a zero_usd lane must SKIP both dollar floors; it ran {calls}"
+    assert "runtime_key" in calls, (
+        f"a zero_usd lane keeps the runtime-key pre-flight; it ran {calls}")
     assert len(mints) == 1, mints
     assert mints[0]["limit"] == cap, (
         f"free lane minted at {mints[0]['limit']}, not the cell cap {cap}")
@@ -134,6 +141,22 @@ def test_paid_lane_is_refused_by_the_account_floor_on_the_same_balance(
     assert set(calls) == {"runtime_key", "key_floor", "account_floor"}, \
         f"a paid lane must keep every floor; it ran {calls}"
     assert mints == [], "a refused paid dispatch minted a key anyway"
+
+
+def test_a_dead_runtime_key_refuses_even_a_zero_usd_lane(tmp_path, monkeypatch):
+    """The converse leg of the split: skipping the dollar floors is not
+    skipping the gates. A zero_usd lane whose runtime key is unusable is
+    refused BEFORE any budget slot, and mints nothing."""
+    mints, calls = [], []
+    root = _harness(monkeypatch, tmp_path, zero_usd=True, mints=mints, calls=calls)
+    monkeypatch.setattr(dispatch.provisioning, "check_runtime_key_usable",
+                        lambda cfg, r=None: (calls.append("runtime_key")
+                                             or (False, "runtime key 401 expired")))
+    assert _dispatch(monkeypatch, root) == 1, \
+        "a dead runtime key must refuse a zero_usd lane too"
+    assert mints == [], f"a refused zero_usd dispatch minted anyway: {mints}"
+    assert not [c for c in calls if c in ("key_floor", "account_floor")], \
+        f"the refusal must come from the runtime-key gate, not a floor; {calls}"
 
 
 def test_the_paid_floor_comes_from_its_cell_not_a_literal(tmp_path, monkeypatch):
