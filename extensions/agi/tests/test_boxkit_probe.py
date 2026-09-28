@@ -16,6 +16,8 @@ sys.path.insert(0, str(BOXKIT))
 sys.path.insert(0, str(HERE / "fixtures" / "boxkit_probe"))
 import probe  # noqa: E402
 import fake_systemctl  # noqa: E402
+sys.path.insert(0, str(HERE.parents[1] / "bin"))  # mem_cap, the ONE spawn-block owner
+import mem_cap  # noqa: E402
 
 CELLS = {"install_root": "/", "sbin_dir": "usr/local/sbin",
          "systemd_system_dir": "etc/systemd/system", "systemd_conf_dir": "etc/systemd",
@@ -572,6 +574,30 @@ def test_a_malformed_spawn_container_is_data_never_a_crash(tmp_path, monkeypatch
         table = _by_name(probe.rows(agi, root, shim, HELD))
         assert table["spawn.tasks_max"] == (None, 96, "info"), (bad, table["spawn.tasks_max"])
         assert table["spawn.memory_max"] == (None, "4G", "info"), bad
+
+
+def test_the_probe_reads_the_spawn_block_through_the_readers_one_guard(
+        tmp_path, monkeypatch):
+    """The malformed-container fix in probe.py used to be a HAND COPY of
+    mem_cap._spawn_block's `isinstance(spawn, dict)` test.  A copy is a second
+    rule: a shape the reader learns to guard would still kill the table.  The
+    probe must CALL the shared guard -- proved by a sentinel, not by reading
+    the source: if the probe decides for itself, the sentinel is never called
+    FROM probe.py.  (Recording every caller is not enough -- the resolvers
+    legitimately go through the same guard -- so it is the frame, not the call,
+    that this asserts.)"""
+    agi, root, shim = _fixture(tmp_path, monkeypatch)
+    seen = []
+    real = mem_cap._spawn_block
+
+    def spy(cfg):
+        seen.append(sys._getframe(1).f_code.co_filename)
+        return real(cfg)
+
+    monkeypatch.setattr(mem_cap, "_spawn_block", spy)
+    table = _by_name(probe.rows(agi, root, shim, HELD))
+    assert any(f.endswith("probe.py") for f in seen), seen
+    assert ("spawn.tasks_max" in table and "spawn.memory_max" in table), sorted(table)
 
 
 def test_a_write_shaped_answer_is_data_never_executed(tmp_path, monkeypatch, capsys):
