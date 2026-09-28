@@ -40,14 +40,14 @@ gen 14 card: PASS 12 closed, series B next. Landed history moved to the board no
 ```
 done   PASS 12 steps 0-8 · owner orders: models (kid+parent opus 5.5, max_live 4) · board rule (39b942824) · DH.499 per-role roots note (968d19ca1) · g7.32.6 nudge-loss measurement (321a99b29) · redesign order to DE (g4.18.1 -> g7.32.6 -> g7.31.3.3)
 done   clean prune 08:35Z: 144 removed, 154 dirty kept, /data +13.2 GB (board b1aba8033) · TM [red] 06:3xZ town-note grant: option (a) accepted, skill row interim (abf58770f)
-now    PASS B1 IN FLIGHT 13:48Z: TIP pinned ed34f49532, BASE 72d8d565ce, /tmp/belam-passB1 (monitor.sh = the ONE Monitor), 8 rounds / 4 chunks CAP 3, SAMPLED (credits 0.606 < 4: engine-delta x3 + 5 hyp incl. the p2 re-check; 6 unsampled in plan.json) -> 14:4xZ: 5 of 8 rounds have verdicts (all accept_with_residue, RED gate CLEAR: 0 node deletions, keyword hits = negations, 0 secrets / 18,662 added lines); 3 incomplete (p2 re-check verify, engine-delta-1 verify, engine-delta-2) because the free provider returns EMPTY responses since 14:40Z -> /tmp/belam-passB1/reretry.sh retries them every 20 min x6, stops an attempt on the first empty death -> then verdicts.py -v -> step 5 in prime-root (tag pb1chunk, /tmp/belam-passB1, BASE 72d8d565ce; carries EG.1 57debf3a2 + re-checks the p2 demote)
+next   PASS B1 at 13:47Z (one-shot f3ff3dd0): series B (tag pb1chunk, /tmp/belam-passB1, BASE 72d8d565ce; carries EG.1 57debf3a2 + re-checks the p2 demote)
 HELD   OWNER 21:1xZ 09-27: stream · encryption-town config · sanctuary-master activation -- until messaging is done
 ```
 
 ## §2 Landed (gen 14): b065c922c wake re-link · 44925a6b6 + 288513229 opus 5.5 kids/parents · 968d19ca1 DH.499 owner note · 321a99b29 g7.32.6 · 39b942824 skills board row · 3e356eb7f goal:g1.28 + 6 hypotheses · 774e0b912 PASS 12 merge (prime-root, pushed) · f91ae15f5 board note · b1aba8033 prune board · abf58770f board-row interim · a577c160a ladder roles[5] pi-free (TM option A) -- FACTS WINDOW owed on TM ping: F13 trim + cell facts_pointer_target_bytes 2000 + re-measure 2009 B + fix config:posts:102 and goal:g4.18.2:34 once EG.5 removes ultracode
 
 ## 🔴 Where it stops
-13:5xZ 09-28 belam-S2-L5-XIV: PASS B1 in flight (/tmp/belam-passB1, TIP ed34f49532); verdicts + merge next
+08:5xZ 09-28 belam-S2-L5-XIV: PASS 12 closed, clean prune done; PASS B1 fires 13:47Z (one-shot f3ff3dd0, crons.md section 2)
 ```
 P. PRUNE DONE 08:35Z (board b1aba8033). The 154 dirty kid trees are DE's sweep (agi-dispatch 5 "worktree sweep"), never --force.
 B. PASS B1 NOTICED 08:4xZ, fires 13:47Z (one-shot f3ff3dd0; if this session is gone, the successor runs it under CHECK case (d)): rebuild tooling from /tmp/belam-pass12 into /tmp/belam-passB1 (BASE 72d8d565ce, tag pb1 in build.py / launch.sh / monitor.sh TAG= / retry.sh PASS_TAG / verdicts.py glob). monitor.sh TAG was stale p10 in PASS 12 -- grep every tag after copying.
