@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - hypothesis:a00-1ff9316d-177aae
 next_edges: []
-edited_by: a00-c8dc1e1f
+edited_by: a00-e9152753
 scaffold_hash: 2b76fd5380d914b6
 season: 2
 testable_claim: "mem_cap.resolve_tasks_max reads spawn.tasks_max (150 on the live config, TMM.263 (2)) and values.memcap.tasks_max is read nowhere; absent or bad cell falls back to the fail-closed 96; AGI_TASKS_MAX still overrides (assigned: director-engine)"
@@ -52,4 +52,39 @@ EG.1 (first round of the reset EG series, belam [decision] 00:0xZ 09-28): the po
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-EG.10 CORRECTIVE (director orders 1790557398) -- CEILING WIDENING IS UNRECORDED. The CEILING above reads "1 kid and <= 30 test lines"; what actually landed on this loop branch is 3 experiment nodes and a test-file delta larger than that, and NO artifact in the tree names a Prime decision widening it. This note records the widening as UNRECORDED rather than inventing one. Measured by experiment:a00-c8dc1e1f-b26495: HEAD in the round checkout is 4d2c43ea5 itself, and the three EG.1 kids are already committed AT that commit (4d2c43ea5 / 1976e5376 / 8b9869998), so "git diff --numstat 4d2c43ea5..HEAD" is EMPTY and cannot show the widening -- a future round must diff the merge base, not HEAD. TO SETTLE IT: the Prime or the director states the widened ceiling on this node; until then this round is recorded as accept_with_residue.
+
+### Item 4 -- RE-ANCHORED citations (the row at :27-28 above is a historical measurement of bf2430484; its line numbers no longer resolve)
+
+Re-measured at this round's tip b1f3ac729, EG.15:
+
+| stale citation | current anchor (b1f3ac729) | what is there |
+|---|---|---|
+| hypothesis:42 `mem_cap.py:73-82` (the reader) | `mem_cap.py:80-102` | `def resolve_tasks_max` .. `return n if n >= 1 else _DEFAULT_TASKS_MAX` |
+| hypothesis:42 `test:85, :550` (the fixture writes the cell) | `test_boxkit_probe.py:88` | `"spawn": {"memory_max": "2G", "tasks_max": 150}}` -- the ONLY place the fixture names 150 |
+| hypothesis:42 `:550` (the drift case) | `test_boxkit_probe.py:563-565` | the `AGI_TASKS_MAX` setenv + the DRIFT assert (now sourced, see below) |
+| experiment:a00-c8dc1e1f-b26495 `mem_cap.py:69` (the guarded reader) | `mem_cap.py:62-76` | `def _spawn_block` .. `spawn = (cfg or {}).get("spawn")` at :76 |
+
+Both node rows stay as they are -- a measured row of a past branch is history and rewriting it would falsify the record. The table above is the current anchor set; the growth that moved them is this round's own docstring work.
+
+EG.10 CORRECTIVE (director orders 1790557398) -- SUPERSEDED by the two notes below, kept for history. Its factual claim ("a test-file delta larger than that") does not survive the branch bytes: the measured net test delta is 26 lines, inside the <= 30 clause.
+
+EG.15 CORRECTIVE (director order; closes the mur-eg-4 EG.10-k1 accept_with_residue) -- THE UNRECORDED WIDENING, restated to what the branch bytes actually support. Measured by experiment:a00-e9152753-18e287 with `git diff --numstat 8b9869998 4d2c43ea5` (the merge base, NOT `4d2c43ea5..HEAD`, which is empty by construction because the three EG.1 kids are already committed AT 4d2c43ea5 / 1976e5376 / 8b9869998):
+```
+11	1	.agi/nodes/experiment/a00-47cd152b-34c520.md
+110	0	.agi/nodes/experiment/a00-9bd9550d-0c8fac.md
+10	1	.agi/nodes/experiment/a00-cdac9b5c-58bc41.md
+7	6	extensions/agi/boxkit/probe.py
+26	0	extensions/agi/tests/test_boxkit_probe.py
+```
+
+| CEILING clause at :48 | what landed | inside? |
+|---|---|---|
+| <= 8 production lines net | probe.py 7/6 = net +1 | YES |
+| <= 30 test lines net | test_boxkit_probe.py 26/0 = +26 | YES |
+| 1 kid | 3 experiment nodes: a00-47cd152b, a00-9bd9550d, a00-cdac9b5c | NO -- the ONE widening |
+
+The residue is the KID COUNT ALONE: 3 kids against a `1 kid` HARD CAP ("a byte or kid over it = the round is cut"). Both line budgets were respected, so no production-line cap was breached. No Prime decision widened anything and none is invented here. STATUS: the merge-up verdict is NOT pre-recorded by this node -- the director rules on the kid-count breach at merge-up; what the round owes is a NAMED widening, which this is.
+
+### Item 7 -- the AGI_TASKS_MAX env hook has NO config cell (OPEN, config-max debt)
+
+`AGI_TASKS_MAX` is a production input to two callers -- the argv-building parent (`mem_cap.wrap_argv` -> `--property=TasksMax=`) and the boxkit probe (boxkit/probe.py:280, in the probe's OWN process) -- yet it has no cell in .agi/config.json and no config:max clause in the Dispatch line above, which names only `spawn.tasks_max`. A value production reads with no cell and no template is exactly what config-max exists to end, so this is recorded as debt for the director: either declare a cell for it or retire the hook. NOT fixed here -- .agi/config.json is outside this round's FILE SCOPE, and an agent does not add box cells. The engine-side half (the docstring naming the probe as a second production reader) IS fixed, at mem_cap.py.

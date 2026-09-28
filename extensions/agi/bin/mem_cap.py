@@ -86,13 +86,15 @@ def resolve_tasks_max(cfg: "dict | None" = None) -> int:
     to `_DEFAULT_TASKS_MAX` rather than to "no bound": an unreadable cell
     must not silently un-cap the tree.
 
-    `AGI_TASKS_MAX` is an ENV HOOK, not a test-only affordance: dispatch
-    exports the environment into every per-spawn scope, so PRODUCTION can
-    take this path (an operator, a wrapper script or an inherited
-    environment all reach it).  The boxkit probe's DRIFT row
-    (test_boxkit_probe.py `test_spawn_rows_...`) drives through it, so that
-    row loses its driver -- silently, with no failing test -- if the hook is
-    ever retired as test-only."""
+    `AGI_TASKS_MAX` is an ENV HOOK, not a test-only affordance. It is read
+    by WHICEVER PROCESS CALLS THIS, not exported into a spawned scope: the
+    parent that builds the argv (wrap_argv -> TasksMax) and the boxkit probe
+    (probe.py, in the probe's OWN process) both call it, so an operator, a
+    wrapper script or an inherited environment reaches it in PRODUCTION. The
+    hook has no config cell of its own, so the probe's DRIFT row
+    (test_boxkit_probe.py `test_spawn_rows_...`) drives through it -- if the
+    hook is ever retired as test-only that row loses its driver, silently,
+    with no failing test."""
     env = os.environ.get("AGI_TASKS_MAX")
     raw = env if env not in (None, "") else _spawn_block(cfg).get("tasks_max")
     try:

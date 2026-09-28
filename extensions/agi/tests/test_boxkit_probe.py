@@ -541,8 +541,12 @@ def test_a_row_with_no_target_cell_is_info_and_never_ok(tmp_path, monkeypatch, c
 
 
 def test_spawn_rows_target_the_config_and_the_resolvers_not_a_literal(tmp_path, monkeypatch):
-    """No "2G" / 150 literal here: the row is declared cell vs mem_cap's
-    resolver, so a config the resolvers do not honour is DRIFT."""
+    """No "2G" literal here, and no UNSOURCED number: the row is declared
+    cell vs mem_cap's resolver, so a config the resolvers do not honour is
+    DRIFT.  150 below is the FIXTURE's own cell (written by _fixture), not
+    a bound of the engine, and the fail-closed value is
+    `mem_cap._DEFAULT_TASKS_MAX`, not a literal: a hardcoded 150/96 pair
+    would keep passing after the cell or the shipped default moved."""
     agi, root, shim = _fixture(tmp_path, monkeypatch)
     assert _by_name(probe.rows(agi, root, shim, HELD))["spawn.memory_max"][2] == "ok"
     cfg = json.loads((agi / "config.json").read_text())
@@ -557,7 +561,7 @@ def test_spawn_rows_target_the_config_and_the_resolvers_not_a_literal(tmp_path, 
     # mem_cap.resolve_tasks_max honours AGI_TASKS_MAX.  The cell itself is 150.
     monkeypatch.setenv("AGI_TASKS_MAX", str(mem_cap._DEFAULT_TASKS_MAX))
     table = _by_name(probe.rows(agi, root, shim, HELD))
-    assert table["spawn.tasks_max"] == (150, 96, "DRIFT"), table["spawn.tasks_max"]
+    assert table["spawn.tasks_max"] == (150, mem_cap._DEFAULT_TASKS_MAX, "DRIFT"), table["spawn.tasks_max"]
     assert _run(agi, root, shim) == 1
 
 
