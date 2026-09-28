@@ -38,6 +38,15 @@ extensions/agi/bin/mem_cap.py · extensions/agi/tests/test_mem_cap_tasks_max.py.
 ## CEILING
 1 kid · <= 12 production lines · pi-free tier-0 · 0 USD. No test spawns pytest; kids never launch real claude.
 
+## ROUND EG.1 -- the post-branch RED between two merged chains (director-engine, first round of the EG series: belam [decision] 00:0xZ 09-28 reset the DH counter)
+Measured   post branch bf2430484: test_boxkit_probe.py::test_spawn_rows_target_the_config_and_the_resolvers_not_a_literal FAILS (1 failed, 365 passed over the 23 touched test files): assert (150, 150, 'ok') == (150, 96, 'DRIFT'). The fixture drives the drift through values.memcap.tasks_max (test:85, :550) while this node's chain (merged 1ee2340c3) made mem_cap.resolve_tasks_max read spawn.tasks_max (mem_cap.py:73-82) -- two merged chains disagree on which cell the resolver reads.
+CLAIM      the boxkit probe's spawn.tasks_max row and its test agree with the ONE cell this node names (spawn.tasks_max via mem_cap.resolve_tasks_max): a resolver/cell disagreement is still reported as DRIFT, driven through a path production can take (e.g. the resolver's env override), and no test or probe reads values.memcap.tasks_max as the tasks bound.
+Dispatch line  config-max: spawn.tasks_max is the one cell (no new cell) · template-max: none · code: the probe row / test fixture follow the resolver; never bring back a second cell
+FALSIFIERS the named test still fails · any probe/test path still sets or reads values.memcap.tasks_max as the bound · the DRIFT case is removed rather than re-driven
+TESTS      test_boxkit_probe.py test_mem_cap*.py (if present) + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE)
+FILE SCOPE extensions/agi/tests/test_boxkit_probe.py · extensions/agi/boxkit/probe.py (the spawn.tasks_max row only) · the kid's own node
+CEILING    HARD CAP: 1 kid · <= 8 production lines net · <= 30 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT     paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-mur-director-engine-21 DH.495-c1 (verify accept_with_residue): the prior version restored a37e21cc9 TESTS text whose DH.421 systemd-scope clause DH.453 had made stale, and left the test-row list in both Measured and TESTS. This version: ONE test list, in ## TESTS, without the stale clause (DH.453 removed the spawn rows); the historical list is dropped from ## Measured (git history holds it). Code residues of the 429 chain rode DH.443. Brief text by the director, no kid.
+EG.1 (first round of the reset EG series, belam [decision] 00:0xZ 09-28): the post branch carries a red between this chain (merged 1ee2340c3: resolve_tasks_max reads spawn.tasks_max) and the boxkit probe test that still drives values.memcap.tasks_max; found by the merge-up run over the 23 touched test files, declared in the merge-up, fixed here rather than by hand (a director writes no engine code).
 <!-- THOUGHT:END -->
