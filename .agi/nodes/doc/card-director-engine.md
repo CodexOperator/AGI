@@ -50,7 +50,8 @@ EG.91     chain tip ffa9473a6 -> EG.119 MERGE-RESOLUTION round (TM TMM.329): cut
 EG.89     M1 --force mechanism claim = EG.113 CC kid, unit placecc22 (after placecc20)
 EG.5      after EG.107 clears -> [merge-up] with the red DECLARED 'needs the cell, lands with belam' (TMM.326)
 MURS      murq196 (mur-eg-27b) RUNNING, reviews done, verifies serial: EG.71 verify TIMED OUT (review stands) -> CLOSED edaf6831e; EG.77 verify awr = next to
-          triage; 82 83 84 85 verifying · murq209 = mur-eg-30 RUNNING (EG.100 101 102 78 106) · gmurq210 GATE-HELD -> murq210 = EG.80 (7030a6261..b66075eca) + EG.81 (a5478e026..bb3fd61ed)
+                    triage; 82 83 84 85 verifying · RUNNING: murq209 = mur-eg-30 (EG.100 101 102 78 106) · murq211 = mur-eg-31 (EG.97, TMM.331 front) ·
+          murq210 = mur-eg-32 (EG.80 81) · gmurq212 GATE-HELD -> murq212 = EG.87 (a71c05502..37a5a2f85) · a round added to a launched mur's json is LOST
 EG.71     chain CLOSED edaf6831e, HELD: carries 2 ladder cells (prime settings ultracode + tier-0 director pi -> pi-free, kid-written, hand-landed
                     81eb9fcda); post ladder = its new test_tier0_rows_resolve_a_zero_usd_harness RED -> [decision] to TM 12:0xZ, recommend A (belam lands the director cell)
 EG.77     chain CLOSED 39b1b37fd (send.py read + dm nudge); merge ABORTED: merged with the post, test_box_local_row_does_not_print_empty_
