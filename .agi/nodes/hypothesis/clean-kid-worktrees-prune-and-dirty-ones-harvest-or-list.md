@@ -122,6 +122,11 @@ FILE SCOPE extensions/agi/bin/heal.py · extensions/agi/tests/test_heal_sweep.py
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 0b9921e2d · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.655 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-clean-kid-worktrees-p-a00-2a47eced tip 4cb4a8808.
+ROUNDS    this post's rounds on this node: DH.598 DH.624 DH.655; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.624: mur-director-engine-35 DH.598-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->

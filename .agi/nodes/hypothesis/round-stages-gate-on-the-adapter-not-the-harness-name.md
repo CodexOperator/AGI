@@ -129,6 +129,11 @@ FILE SCOPE extensions/agi/bin/workflow.py (the :2209 manifest comment only) · e
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 93671498b · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.651 PLACED (parent a00-19fc9ca3); open loop branch season2/loops/hypothesis-round-stages-gate-on--a00-19fc9ca3 40f548265 -- parent LIVE.
+ROUNDS    this post's rounds on this node: DH.614 DH.631 DH.651; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.651: mur-director-engine-38 DH.614-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->

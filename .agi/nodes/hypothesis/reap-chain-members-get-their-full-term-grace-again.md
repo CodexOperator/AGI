@@ -108,6 +108,11 @@ FILE SCOPE extensions/agi/bin/rotate.py · extensions/agi/tests/test_live_config
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 0271068e7 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.662 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-reap-chain-members-ge-a00-a9270629 tip 5efa0387a.
+ROUNDS    this post's rounds on this node: DH.596 DH.612 DH.635 DH.662; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.635: mur-director-engine-36 DH.612-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->

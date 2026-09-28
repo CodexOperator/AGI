@@ -125,6 +125,11 @@ FILE SCOPE extensions/agi/bin/adapters/__init__.py · extensions/agi/bin/dispatc
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 7fa89215b · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.678 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-a-path-shaped-bin-res-a00-68890139 tip a8fcf1574.
+ROUNDS    this post's rounds on this node: DH.616 DH.636 DH.647 DH.678; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.647: mur-director-engine-39 DH.636-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->

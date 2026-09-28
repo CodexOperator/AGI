@@ -79,6 +79,11 @@ FILE SCOPE extensions/agi/bin/crons.py · extensions/agi/bin/grid.py · extensio
 CEILING   HARD CAP: 1 kid · <= 25 production lines net over c0ba1f156 · <= 80 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.676 PLACED (parent a00-a6dd3d2f); open loop branch season2/loops/hypothesis-box-logs-dir-resolves-a00-a6dd3d2f d22b6f2d1 -- murq125 reviewing.
+ROUNDS    this post's rounds on this node: DH.667 DH.676; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.676: mur-director-engine-44 DH.667-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->

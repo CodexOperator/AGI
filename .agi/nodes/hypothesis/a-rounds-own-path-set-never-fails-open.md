@@ -147,6 +147,11 @@ FILE SCOPE extensions/agi/tests/test_round_own_path_set_fails_closed.py · .agi/
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 3490e7b8e · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.652 PLACED (parent a00-92a04c39); open loop branch season2/loops/hypothesis-a-rounds-own-path-set-a00-92a04c39 c0a6a4ffa -- murq127 reviewing.
+ROUNDS    this post's rounds on this node: DH.604 DH.617 DH.632 DH.652; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.652: mur-director-engine-39 DH.632-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->

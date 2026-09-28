@@ -42,6 +42,11 @@ CEILING    HARD CAP: 1 kid · 0 production code lines · <= 30 test lines · pi-
 ANON       no user name, home or repo path value, host, IP or hardware name; patterns write <user>
 PARENT     paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit AND every node/config edit on the loop branch before you exit
 
+
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.670 QUEUED (not yet dispatched); round work so far on loop branch none (fresh) tip -.
+ROUNDS    this post's rounds on this node: DH.670; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 DH.670 brief added by director-engine: belam minted this node as a measured stub (claim + evidence line) and queued it to this post ([decision] 23:0xZ, goal:g1.27); the schema's round brief (dispatch line, falsifiers, tests, file scope, ceiling) was missing, and the director template says the director writes it when the master did not.
 <!-- THOUGHT:END -->

@@ -103,6 +103,11 @@ FILE SCOPE extensions/agi/bin/send.py · extensions/agi/tests/test_send.py · .a
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over c8f5b36fa · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.657 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-send-read-prints-ever-a00-3e020c98 tip 3dd7348c5.
+ROUNDS    this post's rounds on this node: DH.602 DH.637 DH.657; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.637: mur-director-engine-36 DH.602-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->

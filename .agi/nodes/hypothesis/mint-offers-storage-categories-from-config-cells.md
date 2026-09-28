@@ -185,6 +185,11 @@ FILE SCOPE extensions/agi/bin/locations.py · extensions/agi/tests/test_storage_
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over dab046d52 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.659 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-mint-offers-storage-c-a00-5dae1c0c tip 7a286b752.
+ROUNDS    this post's rounds on this node: DH.611 DH.618 DH.642 DH.659; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.642: mur-director-engine-38 DH.618-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
