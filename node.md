@@ -145,6 +145,11 @@ FILE SCOPE  · .agi/nodes/experiment/a00-2e615bb5-234c16.md · .agi/nodes/experi
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over df5fe19b0 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.660 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-one-mint-route-answer-a00-31004c15 tip 1e74cea4b.
+ROUNDS    this post's rounds on this node: DH.610 DH.621 DH.660; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective DH.621: mur-director-engine-35 DH.610-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
