@@ -53,7 +53,7 @@ BOX       / at 94 pct 21:1xZ (6.5 GiB free) · belam 22:12Z (OWNER GO): per-role
           on it, confirm send, rotate, grid, dispatch and the suite still work (one line each, to TM) · the other town left the free lane
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.187 · next murq280 · murs re-armed on EG.183's runner: S3/rmur2.sh + runmur2.sh (274 277 279); rmur.sh (old runner) still
+SERIES    next EG.187 · next murq281 · EG.174 HARVESTED 23:00Z (a00-1e5ecbf7, tip 24634a90c, 85 passed; kid-only commit) -> murq280 (rmur2)
           drives 272 275 276 278 until they end -- TMM.360: never skip a mur, keep re-arming; next [count] to TM after EG.186 lands (deaths /
           dispatches + mur stage survival); still 100 pct dead after EG.185 lands -> the lane/model question goes to belam
           · EG.186 LIVE a00-ed3b6fd7 (22:50Z) on cut 50b35023b = trunk 56c012118 + the node's 2 commits cherry-picked -- TRAP: place2 cut a NEW
