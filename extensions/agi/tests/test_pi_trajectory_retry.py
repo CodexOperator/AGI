@@ -63,16 +63,23 @@ OK = {"type": "tool_execution_start", "toolName": "bash", "toolCallId": "1",
 OK_END = {"type": "tool_execution_end", "toolName": "bash",
           "toolCallId": "1", "isError": False,
           "result": {"content": [{"type": "text", "text": "a\n"}]}}
+# A COMPLETED, non-empty turn: what PROGRESS looks like on the wire (pi ends
+# every turn with a turn_end), and so what zeroes the consecutive count.
+GOOD = {"type": "turn_end", "toolResults": [],
+        "message": {"role": "assistant", "stopReason": "stop"}}
 
 
-def _project(tmp_path: Path, max_retries: int, backoff: float) -> Path:
+def _project(tmp_path: Path, max_retries: int, backoff: float,
+             **cells) -> Path:
     """A .agi/ project the wrapper's OWN config loader walks up to, carrying
-    only the two cells under test."""
+    only the cells under test. Extra kwargs are the two backoff cells;
+    omitting them IS the missing-cell case."""
     root = tmp_path / "proj"
     (root / ".agi").mkdir(parents=True)
     (root / ".agi" / "config.json").write_text(json.dumps(
-        {"values": {"pi_retry": {"empty_response_max_retries": max_retries,
-                                 "empty_response_backoff_s": backoff}}}),
+        {"values": {"pi_retry": dict(
+            {"empty_response_max_retries": max_retries,
+             "empty_response_backoff_s": backoff}, **cells)}}),
         encoding="utf-8")
     return root
 
@@ -272,6 +279,54 @@ def _cancel(root: Path, stub: Path, marker: str):
         if proc.poll() is None:
             proc.kill()
             proc.wait()
+
+
+def _waits(text: str) -> list[float]:
+    """The sleeps the wrapper RECORDED in its own log, in order."""
+    return [float(l.rsplit(" in ", 1)[1].rstrip("s")) for l in text.splitlines()
+            if l.startswith("retry: empty provider response")]
+
+
+def test_more_total_empties_than_the_bound_still_finishes(tmp_path):
+    """RED on the base: the bound was PER RUN, so a third empty -- never more
+    than one IN A ROW, each after a completed turn -- killed a progressing
+    round. A completed turn zeroes the count: the run FINISHES."""
+    root = _project(tmp_path, 1, 0.0)
+    stub, counter = _stub_pi(tmp_path, [[OK, OK_END, GOOD, EMPTY]] * 3 +
+                                        [[OK, OK_END, GOOD]])
+    text, runs = _run(root, stub, counter, root / "trajectory.jsonl")
+    assert len(runs) == 4, f"3 empties > max_retries=1, never 2 in a row: {runs}"
+    assert text.count("retry: empty provider response 1/1") == 3, \
+        f"every empty of the run was retried and counted: {text!r}"
+
+
+def test_the_consecutive_bound_is_real(tmp_path):
+    """Not 'unlimited while progressing': an always-empty provider still costs
+    1 + max_retries attempts, then the round ends."""
+    root = _project(tmp_path, 2, 0.0)
+    stub, counter = _stub_pi(tmp_path, [[EMPTY]])
+    text, runs = _run(root, stub, counter, root / "trajectory.jsonl")
+    assert runs == ["run"] * 3, f"2 CONSECUTIVE retries, then the end: {runs}"
+    assert text.count("retry: empty provider response") == 2, text
+
+
+def test_the_growing_backoff_is_min_base_x_factor_pow_k_minus_1_capped(tmp_path):
+    """RED on the base: every retry waited the flat base cell. The wait before
+    retry k is min(base x factor^(k-1), cap) -- cells, one loader."""
+    root = _project(tmp_path, 3, 0.01, empty_response_backoff_factor=2.0,
+                    empty_response_backoff_cap_s=0.03)
+    stub, counter = _stub_pi(tmp_path, [[EMPTY]])
+    text, _ = _run(root, stub, counter, root / "trajectory.jsonl")
+    assert _waits(text) == [0.01, 0.02, 0.03], f"growing, then capped: {_waits(text)}"
+
+
+def test_a_missing_backoff_cell_falls_back_to_todays_flat_wait(tmp_path):
+    """A config written before the two cells exist waits exactly what it
+    waited before: factor 1.0, cap = base, so the default costs no waiting."""
+    root = _project(tmp_path, 2, 0.01)
+    stub, counter = _stub_pi(tmp_path, [[EMPTY]])
+    text, _ = _run(root, stub, counter, root / "trajectory.jsonl")
+    assert _waits(text) == [0.01, 0.01], f"no cells, no change: {_waits(text)}"
 
 
 def test_cancel_inside_the_backoff_dies_and_does_not_respawn(tmp_path):

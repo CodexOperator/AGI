@@ -55,6 +55,23 @@ def _retry_cells() -> tuple[int, float]:
     return max(0, max_retries), max(0.0, backoff)
 
 
+def _empty_backoff_cells(backoff: float) -> tuple[float, float]:
+    """(factor, cap seconds) for the GROWING empty-response backoff, read
+    through the SAME loader _retry_cells() uses. The documented defaults
+    reproduce today's behaviour: factor 1.0, cap = the base backoff."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import locations  # noqa: PLC0415 -- the bin-script import pattern
+        root = locations.find_project_root() or locations.project_root_from_env()
+        cells = ((locations.load_config(root) if root else {})
+                 .get("values") or {}).get("pi_retry") or {}
+        factor = float(cells.get("empty_response_backoff_factor", 1.0))
+        cap = float(cells.get("empty_response_backoff_cap_s", backoff))
+    except Exception:
+        return 1.0, backoff
+    return max(1.0, factor), max(0.0, cap)
+
+
 def _stop_fields(ev: dict) -> tuple[object, str]:
     """(stopReason, errorMessage) of one pi turn, read from WHEREVER pi put
     them. On the wire they are NESTED: a real `--mode json` turn_end is
@@ -128,12 +145,13 @@ def _is_empty_response(raw: str) -> bool:
 def _attempt(pi_bin, traj_path, pi_args, attempt: int = 0) -> tuple[int, bool]:
     """One pi run, teed and parsed exactly as before.
 
-    Returns (exit code, saw an empty provider response).
+    Returns (exit code, saw an empty provider response, made PROGRESS -- a turn
+    ended that was NOT an empty-response stop, so the attempt did real work).
 
     The trajectory APPENDS across attempts (a discarded attempt's tool records
     are real work, never pruned), so each attempt opens with ONE boundary
     record: that is what makes those records attributable, not fused."""
-    empty = False
+    empty, progress = False, False
     pi = subprocess.Popen([pi_bin, *pi_args], stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
     # The forwarder lives exactly as long as the CHILD: past this scope it aims
@@ -159,7 +177,11 @@ def _attempt(pi_bin, traj_path, pi_args, attempt: int = 0) -> tuple[int, bool]:
         sys.stdout.buffer.write(raw)
         sys.stdout.flush()
         ended = _ended_on_empty(raw)
-        empty = ended if ended is not None else (empty or _is_empty_response(raw))
+        if ended is not None:
+            empty = ended               # the LAST turn decides
+            progress = progress or not ended   # a finished turn is sticky progress
+        else:
+            empty = empty or _is_empty_response(raw)
         if trajf is None:
             continue
         try:
@@ -197,7 +219,7 @@ def _attempt(pi_bin, traj_path, pi_args, attempt: int = 0) -> tuple[int, bool]:
         trajf.close()
     for sig, prev in prev_handlers.items():
         signal.signal(sig, prev)
-    return pi.wait(), empty
+    return pi.wait(), empty, progress
 
 
 def main(argv):
@@ -209,18 +231,30 @@ def main(argv):
         return 2
     pi_bin, traj_path, pi_args = a[1], a[2], a[4:]
     max_retries, backoff = _retry_cells()
-    for attempt in range(max_retries + 1):
-        code, empty = _attempt(pi_bin, traj_path, pi_args, attempt)
+    factor, cap = _empty_backoff_cells(backoff)
+    empties = 0        # CONSECUTIVE empties, the bound the cell means
+    attempt = 0
+    while True:
+        code, empty, progress = _attempt(pi_bin, traj_path, pi_args, attempt)
+        attempt += 1
+        # PROGRESS zeroes the count: an attempt that completed a turn before it
+        # emptied has done real work, so the empties around it are not a run of
+        # failures -- the bound is CONSECUTIVE, never per run. What ends such a
+        # run is dispatch's own cancel, honoured between attempts below.
+        if progress:
+            empties = 0
         # The attempt's LAST turn decides, never its exit code: real pi exits 0
         # on an empty response in json mode, so EG.34's code==0 guard was
         # inert in production (see _ended_on_empty).
-        if not empty or attempt == max_retries:
+        if not empty or empties >= max_retries:
             return code
         # The ONLY thing that earns a retry is an empty provider response, and
         # the bound is finite, so an always-empty provider cannot loop forever.
-        sys.stdout.write(_RETRY.format(attempt + 1, max_retries, backoff))
+        empties += 1
+        wait = min(backoff * factor ** (empties - 1), cap)
+        sys.stdout.write(_RETRY.format(empties, max_retries, wait))
         sys.stdout.flush()
-        time.sleep(backoff)
+        time.sleep(wait)
 
 
 if __name__ == "__main__":
