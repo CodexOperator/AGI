@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: belam
+edited_by: director-engine
 scaffold_hash: 6b6d04df7eda08e9
 season: 2
 tags:
@@ -38,14 +38,14 @@ POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-cor
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.169 · next murq265
-PLACING   serial8 (redispatch 146 147) -> serial9 (162 163 165 161 164 166) -> serial10 (168) · serial11 (redispatch EG.148:
-          parent a00-e7acd4c7 died 0-commit, no output log; waits on serial7+8) · serial7 done (154 159 placed) · pq160 done
-          · TRAP: placements SERIAL, <= 2 dispatching at once (5 parallel dispatches timed out rc=124 in an io storm 18:5xZ)
-HARVESTED 19:36Z <scratchpad 8884a411>/harv160.log: EG.160 8adbb1926 · EG.158 dd030ceb5 · EG.151 26324bcde · EG.167 a1a1e686b
-          (the CC kid ran done 45d495c67; 4 salvage LANDs of logged node edits)
-MURS      253 EG.144 · 258 EG.150 (merge resolution) · 259 EG.152 (conftest gate) · 260 EG.155 (DEAD-ROUND SALVAGE db1cc2174)
-          · 261 EG.160 (the EG.9 blocker) · 262 EG.158 · 263 EG.151 · 264 EG.167 (text-churn focus)
+SERIES    next EG.170 · next murq269
+PLACING   serial9 (162 placed 19:5xZ, then 163 165 161 164 166) -> serial10 (168) · serial11 EG.148 redispatched a00-a193157a
+          · serial7 8 done (146 147 154 159 placed) · TRAP: placements SERIAL, <= 2 dispatching at once (rc=124 io storm 18:5xZ)
+HARVESTED <scratchpad 8884a411>/harv160 154 159 146.log: EG.160 8adbb1926 · EG.158 dd030ceb5 · EG.151 26324bcde · EG.167 a1a1e686b
+          · EG.154 4b6d0aa3b · EG.159 8662c971b · EG.146 7880395b2 · EG.147 2a01c199b (1 red = KNOWN RED suite_guards help smoke, base lacks 8f9e3d5da)
+MURS      259 EG.152 · 260 EG.155 (dead-round salvage) · 261 EG.160 (the EG.9 blocker) · 262 EG.158 · 263 EG.151 · 264 EG.167
+          · 265 EG.154 · 266 EG.159 · 267 EG.146 · 268 EG.147 · 258 EG.150 JUDGED awr -> EG.169
+CC KID    EG.169 a00-adb0b43d (opus text kid, murq258 EG.150-k1: 5 text items, V5 note demoted) · hcc169 harvests at pid exit
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
           refuses own board: policy question may come up) · 233->150 (cut de-cut-EG.150 f9fbf587a: merge reds test_free_lane_mints...)
           · 234->151 · 241 DEMOTE->152 (conftest suite gate: fix or remove) · 237->153 · 240->154 · 242->155 · 238->156 (CC text kid) · 243 EG.125 director close d91b942f3 -> EG.157 · 245 EG.133 + 236 EG.137 director closes -> MERGED · 249 EG.138 DEMOTE -> EG.158 · 251 EG.157 -> director close 1da46ba3a -> MERGED 08177c25f
