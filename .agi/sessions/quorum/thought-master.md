@@ -13,8 +13,11 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ```
 
 ## 🔴 Where it stops
-19:4xZ 09-27: skills agi-memory-guard (be8a29a26) + agi-master-gate (e2cea5535) landed, card 336 -> 134 lines -- next = read the dm files; DE's residue corrective + full post-branch merge-up; DT's model tip 09d7ed36c
+00:4xZ 09-28: DE's WHOLE post branch LANDED d0d126deb (owner order), [merge-up] sent to belam -- next = read the dm files; DE's 3 fix rounds (TMM.312) + counter reset (EG.N / mur-eg); belam PASSes the landing; DT's model tip 09d7ed36c
 ```
+LANDED   d0d126deb = trunk 47afd8967 + DE d4446340f (662 commits, 188 files, 0 deletions) · range reds ordered to DE (TMM.312): EG.1
+         test_boxkit_probe · test_thought_hygiene (5 kid experiment nodes with 2-5 THOUGHT blocks) · the context conftest suite guards (+1 red
+         test_model_load_guard standins, hook_trim 0.9 s -> 134 s) · trunk reds: test_ladder_node + test_sensei_wake_audit (red alone on trunk)
 state    last order = TMM.309 · next = TMM.310 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB · account 0.606 USD, NO top-up (owner)
 INTAKE   -> skill agi-send §2 (OWNER 02:28Z + 23:44Z 09-27): read empty is not proof -- the dm files + inbox + rooms directly; a ts-keyed watcher
 SPEND    RESOLVED: zero_usd lanes mint below the floor at key cap 0.01 (91ae33672, falsifier met: DH.533 0.6063 before = after) · ALWAYS
