@@ -15,7 +15,9 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## 🔴 Where it stops
 21:2xZ 09-28 gen 33 -- DE #5 LANDED b0aa2c178 (pushed, Prime told); IDLE until DE's next [merge-up] (queue in TMM.353)
 ```
-state    last order = TMM.357 (owner free-lane line relayed to DE + DT) · next = TMM.358
+state    last order = TMM.358 · next = TMM.359
+G5.33    minted 4001b8b2b (OWNER GO 22:2xZ: retire all workflows over time for the unified route; verbatim in body + THOUGHT; belam told, mur = belam's call).
+         No round yet: EG.185 is the bridge. First leaf when DE's queue reaches it = the most-run non-mur workflow as a dispatched round, green before retiring
 PI_RETRY 9c0a427e6: values.pi_retry 2x5s -> 6x60s (DE [decision] A; pi-free empty-response outage since 20:0xZ). C = EG.186 queued after EG.185 + EG.153.
          DE reports deaths/dispatches after an hour on 6x60; still dying = [decision] to belam with numbers (lane/model = the Prime's)
          TMM.354's 'parents read it from MAIN' VOID (TMM.355): a round reads the config of its OWN cut (pi_trajectory.py:46 find_project_root);
