@@ -39,35 +39,12 @@ never re-run the whole mur just to get a verify the corrective will supersede.
 ## 3 · Triage — one row per defect
 | the defect is | do |
 |---|---|
-| EVERY residue of the round is PURE TEXT (node prose/frontmatter, a stale cite, a count, a comment or docstring -- no behaviour, no test logic, no config cell) | a TEXT-FIX KID on the claude-code harness, never a pi-free parent round (§3a); every pure-text round of a triage pass dispatched at ONCE, in parallel; their ranges batch into the NEXT mur |
 | a `residue` in THIS round's claim, bytes or nodes | corrective (§4) — batch every residue of the round into ONE corrective |
 | a NOT_MET conjunct | corrective; or split: the conjunct becomes a goal leaf when it needs a new claim / >1 round |
 | `config_max` / `template_max` = yes | corrective naming the EXACT cell or line (never accepted as code) |
 | a `note`, or a refuted defect | demote: the measured reason (command + number) in the merge commit and the card's chain line |
 | a ceiling breach alone (kids, lines) | not a corrective: a findings row (the parent ignored the CEILING) |
 | rule-changing · design above the node · cost/model · Prime/owner-only | `[red]` to your master, named MAJOR — never a corrective |
-
-### 3a · Pure-text residue: a claude-code TEXT-FIX KID, all in parallel (owner 2026-09-28 05:0xZ + 05:1xZ)
-```
-all residues pure text? ──no──▶ corrective (§4), the text items ride in it
-        │ yes
-        ▼
-orders<N>.md as §4 (the section on the node, same file = --orders) ─▶ cut de-base-<N> at the round's LOOP tip
-─▶ dispatch a KID, not a parent:
-   dispatch.py . EG.<N> --target hypothesis:<id> --level small --tier kid --role kid --ladder-tier 0 \
-     --harness claude-code --branch --detach --orders orders<N>.md --from <post> --allow-stale-base "<reason>"
-─▶ EVERY pure-text round of this triage pass at once (no qg chain) ─▶ harvest each ─▶ ONE mur over all their ranges
-   ({key, old_tip = the reviewed tip, new_tip = the kid's tip} per round) ─▶ residues 0 ─▶ merge
-```
-| knob | where it lives today | what it does |
-|---|---|---|
-| model | `harnesses.claude-code.models.kid` (claude-sonnet-5); ladder rows own model choice | `--tier kid` -> `claude -p --model <kid>`. Opus needs the Prime's row (the parent entry `claude-opus-5` is not a current id) |
-| per-kid memory | `spawn.memory_max` (2G) + `spawn.tasks_max`: every spawn runs in its OWN scope | the CC memory limit: a runaway kid dies alone |
-| how many at once | `harnesses.claude-code.max_live` (spawn_budget.py:580; absent = only `spawn.max_live`) | the parallel bound for CC kids -- the Prime's cell |
-| admission | skill agi-memory-guard §1: MemAvailable >= (n + 1) x `spawn.memory_max` before placing n kids; load1 + io avg60 as TMM.306 | place fewer, never queue behind a pi chain |
-
-A mixed round (one code, test-logic or config item) stays a pi-free corrective round (§4-§5); its text items ride in it, never split out.
-The kid's brief is the orders: every item fixed with write.py or settled by a PASTED command, committed on its branch (`cli.py done`).
 
 ## 4 · The node update (the orders live in the graph)
 Write the orders ONCE to a scratch file, then append it to the hypothesis node's body; the same file is `--orders`.
