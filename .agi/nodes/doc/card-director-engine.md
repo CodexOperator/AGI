@@ -35,7 +35,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 MERGE-UP  [merge-up] EG.1 chain to TM 02:25Z 09-28 -- TIP 95c425f8c, MB dc93a2660 (trunk merged in e810d9f2f), 21 files +1149/-69, 0 deletions;
           123 passed on the tip, links 0, render 0; 1 DECLARED residue carried (mem_cap.py:89-90 docstring -> Item 7 round) · owner 02:2xZ: a TM dm
           may have failed to send (none after TMM.315 in the dm file) -- owner checking with TM
-SERIES    RESET: rounds EG.N (EG.1-25 used, next EG.26; dispatch normalizes the iter to EG.01) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
+SERIES    RESET: rounds EG.N (EG.1-26 used, next EG.27; dispatch normalizes the iter to EG.01) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
           before the reset keep their labels (orders already generated) -- the counter only moves forward
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f,g] gen2.py N murq<Q>.json tip label -> orders<N>.md (N may be EG.n: sed the
           header to CORRECTIVE EG.n) · place2.sh / placef.sh N (DH.N or EG.N label) · drainqgf.sh N:K (K=F fresh via h<N>.txt) · mkmur.py + runmur.sh
@@ -44,8 +44,9 @@ GATE      TMM.306: load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, on
 PLACEMENT de-base-N ON DISK (the /dev/shm variant broke parent done -> DH.648 swept, reverted 00:0xZ); 651's RAM checkout is symlinked
 PRUNE     unit prune-debase OOM-KILLED 00:27Z (systemd-oomd, 41 removed); NOT restarted -- memory crit window (TMM.313 tmpfs hold)
 LANDED    TMM.312 00:42Z: TM landed the WHOLE branch d0d126deb (trunk merged in 90b21bd8f) + sent it to belam
-LIVE      EG.23 a00-aac9fa04 (EG.9 chain) · murs 141 DH.656 · 145 EG.16 (066ebff9e, 270 passed) · DH.660 = both kids died on a pi-free empty response,
-          0 bytes -> gated RE-DISPATCH unit qgR660 (orders on node; EG.4 still waits on 660) · DH.659 PARENT-DEMOTED (kid node edits uncommitted, a THOUGHT truncated: never land) -> EG.25 queued · DH.655 -> mur-eg-6 residue -> EG.24 queued (after EG.22) · EG.9 chain: EG.17 -> mur-eg-8 residue (fail-open left at heal.py:1683) -> EG.23 FRONT (qgEG23)
+LIVE      EG.20 a00-57a3516d · EG.23 a00-aac9fa04 (EG.9 chain) · mur 146 = DH.656-k2 (murq141's review TIMED OUT 3600 s) · EG.16 -> mur-eg-9 -> EG.26 queued
+          PROVIDER-DEAD 02:45-03:0xZ (pi-free 'Provider returned an empty response', 0 commits): DH.660 EG.18 EG.19 DH.661 -> gated RE-DISPATCH
+          (qgR660 then qgR2 = T/redispatch2.sh EG.18 EG.19 661; orders already on the nodes; dead logs kept as T/d<N>.dead1.log)
           EG.1 chain MERGED 95c425f8c (TMM.315 breach accepted) -> merge-up out · Item 7 (AGI_TASKS_MAX cell + the mem_cap docstring residue) = one
           config-max round AFTER EG.1 lands, behind the EG.9 chain · DH.657 -> mur-eg-7 residue -> EG.22 queued
           EG.13 -> mur-eg-6 residue -> EG.21 queued (memory-cap HARD RULE carried)
@@ -80,7 +81,7 @@ THEN    680 clean -> tmpfs claim to belam + mint the 17-consumer round ; EG.9 me
 
 ## §4 TRAPS
 Skills: agi-dispatch §5 · agi-corrective · agi-workflow · agi-node-write §5 · agi-memory-guard · agi-master-gate (TMM.304). Card-only: pi-free murs ~7 min/stage, verify can die (review stands) ·
-harvests under load flake 1 test: re-run before a corrective · `pgrep -f place2` matches your own shell: list /proc cmdlines instead ·
+WATCH NEW PARENTS TOO: a wait keyed on the parents live at its start misses rounds placed and dead in between (EG.18 EG.19 661) · harvests under load flake 1 test: re-run before a corrective · `pgrep -f place2` matches your own shell: list /proc cmdlines instead ·
 `git merge -F -` does not read stdin · TWO chains edit heal.py _sweep_finished_worktrees: EG.9 chain (EG.23) + clean-kid chain (EG.24) -- merge EG.9 first, then test the second merge's heal tests before its [merge-up] · place2 splice fixed 01:1xZ (body ending mid-paragraph / THOUGHT glued to it was refused) · worktrees VANISH (617 618 597 parents/kids): harvest from the branch, update-ref to fast-forward ·
 done-time commits skip foreign nodes: check the KID worktree too (618) · parents end WITHOUT a harvest dm: reconcile · stale index.lock
 (no holder) refuses kid commits · NEVER stop a qg unit mid-placement (it kills the dispatch: 680); a killed unit stays failed -> reset-failed before reusing its name · murall/harvest greps match 'failed' in slugs · only / fills: /tmp basetemps. · a PARENT-DEMOTED round's uncommitted config
@@ -97,7 +98,7 @@ dispatch.py > 300 s at load 32 killed a parent (621) · write-log is a per-root 
 locations.shared_sessions_dir: a worktree kid's writes are invisible to the MAIN log (DH.644 parent). · verb_thought first-match splice
 (write.py:291 via node_writer.py:922 extract_thought) has no committed test composing a body with a pasted BEGIN/END (mur-41 DH.641-k1). · links.py schema
 does not flag an in-scope experiment with no verdict and no evidence_runs (mur-38 DH.627-k1). · heal sweep (heal.py:1502-1516)
-treats a finished 0-commit branch as landed and removes its worktree with uncommitted work (DH.648 -> EG.9); cli.py:149-160 sibling lookup finds records only under <main>/.agi/worktrees. · dispatch.py:1729 --tier has no choices + dispatch.py:761 exact-case tier routing ('KID' takes the disk lane) (DH.680 parent). · a pytest inside a round has no cap of its own; only the round's scope cap stops it and the round dies with 0 commits (EG.8, TMM.314) -- a brief-side MemoryMax on .agi/context pytest is the durable fix · 11 call sites keep the `cfg.get("spawn") or {}` scalar idiom (mur-eg-2 EG.1-k1; EG.10 lists them).
+treats a finished 0-commit branch as landed and removes its worktree with uncommitted work (DH.648 -> EG.9); cli.py:149-160 sibling lookup finds records only under <main>/.agi/worktrees. · dispatch.py:1729 --tier has no choices + dispatch.py:761 exact-case tier routing ('KID' takes the disk lane) (DH.680 parent). · a pytest inside a round has no cap of its own; only the round's scope cap stops it and the round dies with 0 commits (EG.8, TMM.314) -- a brief-side MemoryMax on .agi/context pytest is the durable fix · a pi-free 'empty response' kills a parent with 0 commits and no retry (4 rounds 02:45-03:0xZ) · 11 call sites keep the `cfg.get("spawn") or {}` scalar idiom (mur-eg-2 EG.1-k1; EG.10 lists them).
 
 ## BANKED
 - [rule] to ride the next [merge-up]: (a) skills/agi-merge-pass: every pasted measurement names its base commit + a re-runnable command
