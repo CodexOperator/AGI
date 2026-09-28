@@ -111,6 +111,23 @@ FILE SCOPE extensions/agi/bin/dispatch.py (docstrings :742-745 :768-770 only) ·
 CEILING   HARD CAP: 1 kid · <= 6 production lines net over a2db4a317 (docstrings only) · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.12 -- closes mur-eg-3 DH.680-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-kid-worktrees-resolve-a00-ab3167b2 tip da6f3fafe (branch de-base-EG.12; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Item 3's tier-reachability claim is refuted by the parser, so a reachable tier lost its pin (test:85)
+2. 3. Consumer pin matches only the literal name `locations` (test:119)
+3. The DECLARED COUPLING is structurally unenforceable for the one file that routes. 'routing one consumer = edit KEEP_ON_DISK in the same commit' (test:9-12) cannot fire for dispatch.py: the routing edit happens INSIDE `branch_worktree_for_spawn`, the symbol the pin already lists (test:98), and the pin only ever sees the symbol NAME. Probe: I changed dispatch.py:762 to `tier in ("kid","parent","prime_director")` and the pin stayed byte-identical and 8/8 green. So the round's one declared safety rule is falsified by construction for the only routing site in the engine — the fix is a tier-table pin, not a consumer pin.
+4. A sharper form of defect 1 the first reviewer's citation misses: the untrusted justification is refuted at dispatch.py:2294 + :369-370, not at :378. `_refuse_untrusted_spawner` short-circuits to None when `seat` is falsy, so the gate is seat-keyed, never tier-keyed; `--tier untrusted` on its own reaches the worktree cut. The node's 'refused at dispatch.py:378 BEFORE any worktree is cut' is true only for a --post row, and the drop of `untrusted` from the pin removed the only thing that would have noticed the difference.
+5. The pin reads the LIVE working tree, not the reviewed branch: `_worktrees_root_consumers` globs `BIN` (test:111), i.e. whatever checkout pytest runs in. It is a whole-tree exact-equality assertion, so any concurrent uncommitted bin/ edit in any unrelated function breaks it, and (observed here) the file is absent from this review worktree's HEAD 65ba5be7, so the pin cannot be evaluated for the reviewed merge from this checkout at all. False-positive-prone global pin; worth stating in the docstring alongside the alias gap.
+6. UNVERIFIED, not probed: test:81-84 pins PARENT into the RAM-lane contract, while the parent hypothesis's conjunct 3 names only 'kid + loop (mur) worktrees point there; post worktrees stay on disk (cards and uncommitted edits must survive a power cut)'. Nothing in this diff establishes that a dispatch `--tier parent` agent is not a post. The probe I WOULD run (read-only, no rotate/dispatch calls): resolve the parent agent's seat row via `python3 extensions/agi/bin/spawn_budget.py status` plus the config:posts row for that id, and read the harvest path, to see whether a parent-tier worktree is ever cut or homed as a seat post with uncommitted edits. Flagged, not credited either way.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_kid_worktrees_root.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/dispatch.py · extensions/agi/tests/test_kid_worktrees_root.py · .agi/nodes/experiment/a00-abfcc0db-49cea2.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over da6f3fafe · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.680: mur-director-engine-46 DH.677-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.12: mur-eg-3 DH.680-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
