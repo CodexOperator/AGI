@@ -1857,117 +1857,6 @@ def _schema_field_refusal(schema, node_type: str, key, value, *,
     return None
 
 
-#: Rows an answers FILE names for the mint itself, not as frontmatter.
-_ANSWERS_RESERVED = frozenset({"type", "slug", "parents", "body", "payload"})
-
-#: Rows the WRITER mints: `node_writer.write_node` builds id/mint_id/
-#: next_edges/scaffold_hash and THEN `fm.update(extra_fm)` runs, so an answers
-#: row or a `--set` naming one would overwrite the node's own identity. ONE
-#: definition of that fact, in `node_writer` (the builder), imported here --
-#: a second transcription is a second truth that can drift.
-_ANSWERS_IDENTITY = frozenset(node_writer.MINTED_IDENTITY)
-
-#: THE PRECEDENCE, ONCE, for the rows the environment also stamps: an explicit
-#: `--set` > the answers file > the calling post's config:posts row > the
-#: environment (`node_writer._stamp_env_fields`). The surviving choice is
-#: re-stamped AFTER the mint, so nothing above the env rank is silently lost.
-#: `edited_by` is absent: that row is create()'s own `--actor` provenance and
-#: the post row has always lost to it.
-_STAMP_ROWS = ("role", "town", "season", "thought_session")
-
-
-def _refuse_authored_identity(key: str, source: str) -> str | None:
-    """ONE check for BOTH create routes (an answers row and an argv `--set`):
-    a row the writer MINTS is refused BY NAME, never overwritten."""
-    if key in _ANSWERS_IDENTITY:
-        return (f"create --{source} refused by name: {key!r} is MINTED by "
-                f"node_writer ({', '.join(sorted(_ANSWERS_IDENTITY))}) and is "
-                "never authorable")
-    return None
-
-
-def _read_answers_file(path: str):
-    """ONE answers file -> (data, refusal). JSON, so an apostrophe, a backtick
-    and `$(` need no shell quoting: no field value on this route passes
-    through a shell-quoted argv (claim 1).
-
-    PRECEDENCE (see `_STAMP_ROWS`): an explicit `--set` beats the file, the
-    file beats the calling post's `config:posts` row, and that row beats the
-    environment. A row NO caller may choose (`_ANSWERS_IDENTITY`) refuses by
-    name here, not silently."""
-    import json
-    try:
-        data = json.loads(Path(path).read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, ValueError) as exc:
-        return None, f"--answers {path}: {exc}"
-    if not isinstance(data, dict):
-        return None, f"--answers {path}: wants ONE JSON object, got {data!r}"
-    if not isinstance(data.get("body", ""), str):
-        return None, f"--answers {path}: 'body' must be a string"
-    # `parents` is consumed as `list(answers.get("parents"))`, so a STRING
-    # (JSON "5" -> `['5']`, a real parent id CHAR-SPLIT) or a non-iterable
-    # (`5`, `true`) either mints a garbage parent or raises a TypeError out of
-    # the parser. Type-check it HERE, where every other row is checked, and
-    # refuse BY NAME.
-    parents = data.get("parents")
-    if parents is not None and not (
-            isinstance(parents, list)
-            and all(isinstance(p, str) for p in parents)):
-        return None, (f"--answers {path}: 'parents' must be a list of node-id "
-                      f"strings, got {parents!r}")
-    return data, None
-
-
-def _post_stamp(root, actor: str) -> dict:
-    """The CALLING post's `config:posts` row as frontmatter rows (claim 3).
-
-    The row is selected by EXACT name equality with the actor that is running
-    the mint (or, with no `--actor`, the post the environment names) — never
-    by prefix, never "the last row", so another post's row can never stamp.
-    Every value is READ from the row / the ladder cell; none is transcribed.
-    An empty dict when no row matches: an unstamped node beats a wrong one.
-    """
-    name = (actor or "").strip() or (geometry_config.resolved_seat_env() or "")
-    row = next((r for r in _load_seats(root) if r.get("name") == name), None)
-    if not row:
-        return {}
-    import season
-    try:
-        current = int(season._get_current_season(root))
-    except (TypeError, ValueError):
-        current = None  # a corrupt ladder cell stamps nothing, never a bad row
-    values = {"edited_by": str(row["name"]), "role": row.get("role"),
-              "town": row.get("town"),
-              "season": current,
-              "thought_session": row.get("session_name")
-              or row.get("session_id")}
-    return {k: v for k, v in values.items() if v not in (None, "")}
-
-
-def _answers_row_refusal(root, node_type: str, node_id: str, slug: str,
-                         parents: list[str], set_fm: dict) -> str | None:
-    """The ONE row validator the answers route runs — a thin WRAPPER, never a
-    second copy: `_refuse_marker_value` + `_enforce_create_schema_gate` (which
-    is `_schema_field_refusal` over every row) + the REQUIRED rows
-    `node_writer.seed_required` cannot derive. Every name is read through the
-    schema registry; a refusal writes NOTHING (claim 2)."""
-    for key, value in set_fm.items():
-        refusal = _refuse_marker_value(key, value)
-        if refusal:
-            return refusal
-    refusal = _enforce_create_schema_gate(root, node_type, set_fm)
-    if refusal:
-        return refusal
-    preview = dict(set_fm, id=node_id, type=node_type, mint_id="0" * 32,
-                   parents=list(parents))
-    missing = node_writer.seed_required(root, node_type, preview, slug)
-    if missing:
-        return (f"create --answers {node_id} refused by name: "
-                + ", ".join(repr(k) for k in missing) + " required at mint "
-                "and NOT in the answers file (schema validation.required)")
-    return None
-
-
 def _enforce_create_schema_gate(root, node_type: str, set_fm: dict) -> str | None:
     """The CREATE half of a schema's field-level refusal annotations.
 
@@ -2978,7 +2867,7 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
            set_fm: dict | None = None, payload: str | None = None,
            body: str | None = None,
            actor: str = "", session: str = "", role: str = "",
-           bypass: bool = False, post_rows: dict | None = None):
+           bypass: bool = False):
     """Mint a node — and, for a build node, the file it points at.
 
     **This is `write.py`'s other half, and its absence was the hole that made
@@ -3033,19 +2922,12 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
 
     # Provenance goes on through the same routine every other edit uses, so a
     # created node is not a node with a weaker record than an edited one.
-    # `post_rows` (the answers route ONLY) is re-stamped HERE because
-    # `node_writer._stamp_env_fields` OWNS `season` and `role` at mint and
-    # overwrites whatever the file asked for, from the ENVIRONMENT; the post
-    # row is the authority the claim names, so it lands last. Absent (the
-    # argv route) this is a no-op and `create()` stays byte-identical.
-    stamp_rows = dict(post_rows or {})
-    if stamp_rows or actor or session:
+    if actor or session:
         stamp = Edit(node_id=res.node_id)
         if actor:
             stamp.set_fm[PROVENANCE_ACTOR] = actor
         if session:
             stamp.set_fm[PROVENANCE_SESSION] = session
-        stamp.set_fm.update(stamp_rows)
         node_writer.update_node(root, res.node_id, set_fm=stamp.set_fm,
                                 log_extra=_log_provenance(actor))
     return res, created_file
@@ -3120,10 +3002,6 @@ def main(argv: list[str] | None = None) -> int:
                          "placeholder scaffold")
     ap.add_argument("--set", dest="sets", action="append", default=[],
                     help="with `create`: extra frontmatter, k=v, repeatable")
-    ap.add_argument("--answers", default=None, metavar="PATH",
-                    help="with `create`: mint the node from ONE JSON answers "
-                         "file (type, slug, parents, every row, body) — an "
-                         "alternative to --set/--body-file, not a new verb")
     ap.add_argument("--no-spawn-gate", action="store_true",
                     help="bypass the spawn gate, loudly")
     ap.add_argument("--root", default=".", help="any path inside the project")
@@ -3160,27 +3038,11 @@ def main(argv: list[str] | None = None) -> int:
         if root is None:
             print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
             return 1
-        answers: dict = {}
-        post_rows: dict = {}
-        if args.answers:
-            answers, refusal = _read_answers_file(args.answers)
-            if refusal:
-                print(f"ERR: {refusal}", file=sys.stderr)
-                return 2
-        script = args.script or answers.get("type") or ""
-        slug = args.slug or answers.get("slug") or ""
-        parents = list(args.parents or answers.get("parents") or [])
-        set_fm = {k: v for k, v in answers.items()
-                  if k not in _ANSWERS_RESERVED}
-        for k in sorted(set_fm):
-            refusal = _refuse_authored_identity(k, "answers")
-            if refusal:
-                print(f"ERR: {refusal}", file=sys.stderr)
-                return 2
-        if not script or not slug:
+        if not args.script or not args.slug:
             print("ERR: create needs a type and a slug: "
                   'write.py create <type> <slug> --parent <id>', file=sys.stderr)
             return 2
+        set_fm = {}
         for pair in args.sets:
             if "=" not in pair:
                 print(f"ERR: --set expects k=v, got {pair!r}", file=sys.stderr)
@@ -3191,32 +3053,11 @@ def main(argv: list[str] | None = None) -> int:
             # a value the shared reader would split on is refused here too
             # (exit 2, one line naming the key), never landed into the
             # frontmatter for the reader to mis-split.
-            refusal = (_refuse_authored_identity(k, "set")
-                       or _refuse_marker_value(k, v))
+            refusal = _refuse_marker_value(k, v)
             if refusal:
                 print(f"ERR: {refusal}", file=sys.stderr)
                 return 2
             set_fm[k] = v
-        # claim 2: the answers route runs ONE row validator BEFORE the
-        # dry-run short-circuit, so a bad row refuses on a dry run too.
-        if answers:
-            # claim 3: the calling post's row fills the rows the answers file
-            # is SILENT on, BEFORE the validator — so a stamp goes through the
-            # same row rules and can satisfy a REQUIRED row. A row the file
-            # SETS wins; the stamp never overwrites an authored row.
-            post_rows = {k: v for k, v in _post_stamp(root, args.actor).items()
-                         if k not in set_fm}
-            set_fm.update(post_rows)
-            # THE PRECEDENCE, executed: an explicit `--set` and the file's own
-            # row now outrank the post row, so the SURVIVING choice is what
-            # create() re-stamps after `node_writer`'s environment stamp.
-            post_rows.update({k: set_fm[k] for k in _STAMP_ROWS
-                              if k in set_fm})
-            refusal = _answers_row_refusal(root, script, f"{script}:{slug}",
-                                           slug, parents, set_fm)
-            if refusal:
-                print(f"ERR: {refusal}", file=sys.stderr)
-                return 2
         # hypothesis:l4-the-town-create-gate-refuses-what-the-loader-refuses-
         # and-every-vision-id-must-exist — the schema's field-level `refuse:`/
         # declared-`int` rules are a GATE the create path enforces GENERICALLY,
@@ -3224,38 +3065,17 @@ def main(argv: list[str] | None = None) -> int:
         # refuses what the real mint would refuse). A town `branches:` cell and
         # a non-int `season` both refuse BY NAME by exit 2 here — never a
         # traceback, never a node born only for a later reader to reject.
-        refusal = _enforce_create_schema_gate(root, script, set_fm)
+        refusal = _enforce_create_schema_gate(root, args.script, set_fm)
         if refusal:
             print(f"ERR: {refusal}", file=sys.stderr)
             return 2
-        # The ceiling guard lives ABOVE the dry-run short-circuit: one guard,
-        # one message, one exit code, on BOTH paths (a dry run simulates the
-        # mint, so it refuses what the real mint refuses -- the same rule the
-        # answers row validator above follows, and the hole `--dry-run` used
-        # to open around it).
-        # INHERITED FAIL-OPEN, stated here so a later reader sees it is policy
-        # and not an oversight: an actor with no seat row (or a seat role off
-        # the ladder) makes `_ceiling_refusal` return None, so an unseated
-        # `--actor` -- or none at all -- still mints an elevated `role` here.
-        # That is the SAME policy the `--role`/`AGI_ROLE` routes carry
-        # (`_ceiling_refusal`); changing it would make `--answers` STRICTER
-        # than `--role` on identical facts. A ladder decision, not this
-        # call site's: named for the director, not fixed here.
-        if post_rows.get("role"):
-            refusal = _ceiling_refusal(
-                str(post_rows["role"]), _resolve_seats_role(root, args.actor),
-                args.actor or "-", "--answers")
-            if refusal:
-                print(f"ERR: {refusal}", file=sys.stderr)
-                return 2
         if args.dry_run:
-            print(f"create {script}:{slug}")
-            print(f"  parents  {parents or '(none)'}")
-            print(f"  payload  {args.payload or answers.get('payload') or ''}")
+            print(f"create {args.script}:{args.slug}")
+            print(f"  parents  {args.parents or '(none)'}")
+            if args.payload:
+                print(f"  payload  {args.payload}")
             if args.body_file is not None:
                 print(f"  body-file {args.body_file}")
-            elif answers.get("body") is not None:
-                print("  body     (from --answers)")
             for k, v in set_fm.items():
                 print(f"  set      {k} = {v!r}")
             return 0
@@ -3264,11 +3084,6 @@ def main(argv: list[str] | None = None) -> int:
         # so a missing/unreadable file is refused by name with exit 2 and NO
         # node is written; `body=None` (no flag) reaches `write_node`
         # unchanged, keeping the BODY_PROMPTS scaffold path byte-identical.
-        # A `role` the answers file or an explicit `--set` names is re-stamped
-        # LAST (below, in `create()`), AFTER `node_writer`'s environment stamp
-        # -- which is exactly why the ceiling guard has to be applied to the
-        # SURVIVING row HERE: an elevation that survives the precedence would
-        # otherwise never be compared with the actor's seat at all.
         body = None
         if args.body_file is not None:
             try:
@@ -3277,14 +3092,10 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERR: --body-file {args.body_file}: {exc}",
                       file=sys.stderr)
                 return 2
-        elif answers.get("body") is not None:
-            body = answers["body"]
-        res, made = create(root, script, slug, parents,
-                           set_fm=set_fm,
-                           payload=args.payload or answers.get("payload"),
-                           body=body, actor=args.actor, session=args.session,
-                           role=args.role, bypass=args.no_spawn_gate,
-                           post_rows=post_rows)
+        res, made = create(root, args.script, args.slug, args.parents,
+                           set_fm=set_fm, payload=args.payload, body=body,
+                           actor=args.actor, session=args.session, role=args.role,
+                           bypass=args.no_spawn_gate)
         if res.rejected:
             print(f"ERR: spawn rejected for {res.node_id}: {res.reason}. "
                   f"Fix: {res.gate.fix} (--no-spawn-gate bypasses this, loudly.)",
