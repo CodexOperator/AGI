@@ -33,7 +33,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ## §0 STATE (09:5xZ 09-28 · successor woke 09:46Z; captive rotate-self failed rc=1 · per-chain history = git log of this node)
 ```
 MERGE-UP  last LANDED: EG.1 chain 57debf3a2 (TMM.318). EG.64 chain LANDED on the trunk 2beb0aba3 (TMM.325; post 19564b6c0); trunk 1b0842f0a merged into the post 09:3xZ. TMM.325: findings (1)-(4) accepted under g7.33.19; skills-cell [rule] sent to belam; corrective orders NEVER quote the THOUGHT marker literally (gen2 now de-marks) -- test_thought_hygiene red = 7 quoted nodes, 2 from my range, until the detector fix
-SERIES    next EG.107 · murs mur-eg-N (last read mur-eg-27/28 = murq198-204 + 206) · next murq208
+SERIES    next EG.108 · murs mur-eg-N (last read mur-eg-27/28 = murq198-204 + 206 207) · next murq208
 TOOLS     T=<scratchpad 96494ce7-...>: gen2.py N murq<Q>.json tip label (MURK=, NOEX=1, EXTRA=; triage by hand) · place2.sh (pi-free parent) ·
           placecc.sh (CC TEXT KID; overlays the POST config+ladder so kids resolve opus-5-5) · placef.sh N HYP (fresh) · mkmur.py + runmur.sh ·
           hcc.sh N (CC kid: waits for its PID, not its lease, then flock-harvests) · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N
@@ -45,7 +45,7 @@ OWNER     05:2xZ via belam 05:38Z: CC kids + parents = claude-opus-5-5 (merged 1
           · 06:4xZ via belam 06:27Z: progress -> board 'note' -- REFUSED for posts (goal:g12) -> TMM.323: progress in §2 until EG.59 lands
 TMM.322   (3) every pytest: TMPDIR + --basetemp /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT · (1) = EG.60 · (2) answered
 MURS      RUNNING (units agi-director-engine-murq*): murq194 = DH.678 + DH.679 + EG.49 · murq196 = text EG.71 77 82 83 84 85 · murq197 = text
-          EG.86 88 89 90 91 95 · murq205 = EG.72 (dfa9ab3c1; ACCEPTED; test +41 vs 40 = ceiling row) · murq207 = EG.5 (2bb530796; red at BASE too = belam's facts cell)
+          EG.86 88 89 90 91 95 · murq205 = EG.72 (dfa9ab3c1; ACCEPTED; test +41 vs 40 = ceiling row)
 JUDGED    murq198 EG.2 = DEMOTE (9 V + 4 M) -> EG.98 corrective (+ director items 14 {home} renders on the MERGED tree, 15 config salvage;
           scope + boxes.py [box].md test_paths_audit.py; ceiling 25/60 disclosed) · murq199 EG.53 = awr -> EG.99 (live-config test + false
           probe claim; M1 refuted: chain carries locations.py +58; M3 M4 demoted) · MERGE NOTE EG.53 chain: config.json:237 conflict ->
@@ -59,10 +59,12 @@ REAL BUG  murq202 EG.54 = DEMOTE: pi_trajectory.py detectors read stopReason TOP
           verified: production pi log lines 8-9) -> the empty-response retry has NEVER fired -> EG.104 (both detectors + turn_end keying +
           a NESTED fixture; prod cap 20) · murq206 EG.75 = awr -> EG.105 (hypothesis status/STATUS block + test mint_calls zero_usd flag)
 PI LANE   murq203 EG.68 = awr, salvage d5c069c73 VERIFIED by the mur -> EG.103 (V1-V3
-          text + M4 test: validation above the provider gate; 0 prod lines, no config) chained after qgEG99 · EG.5 harvested 10:20Z ->
-          murq207; test_live_facts_region red at BASE 867b44a8b too: needs config:rotations templates.director.startup.facts_pointer_target_bytes
-          (belam's cell) -> a [red] to TM if murq207 upholds it · LIVE: none (pi lane idle, qg chain gate-held on io)
-          · qg chain after 72: 75 76 78 80 81 87 94 96 97 98 99 103 104 105 (pi-free correctives, gate-held, qgEG<N>.sh in T) · drainqg18 DONE
+          text + M4 test: validation above the provider gate; 0 prod lines, no config) chained after qgEG99 · murq207 EG.5 = awr ->
+          EG.107 (text + test read-order M3 + docstring) chained after qgEG105 · [red] SENT to TM 10:4xZ (delivered): the EG.5 chain's test
+          DEMANDS config:rotations templates.director.startup.facts_pointer_target_bytes (belam's; 0 hits on trunk ca6913527) -> the chain
+          cannot land green until belam writes it (A = 2000, recommended) or orders a fallback (B) · + config:posts:102 / g4.18.2:34 stale on landing
+          · LIVE: none (pi lane idle, qg chain gate-held on io)
+          · qg chain after 72: 75 76 78 80 81 87 94 96 97 98 99 103 104 105 107 (pi-free correctives, gate-held, qgEG<N>.sh in T) · drainqg18 DONE
 PASS 12   belam 06:50Z goal:g1.28 (on the TRUNK: merge local-maxxing/season2/main first), BEHIND the fix queue: 5 engine hypotheses (create/API
           set-verbs gate · suite fence stdlib spawn leaves · done commit never sweeps the gate source · seat-wrap DEMOTE · heal seat path cell WITH
           per-role roots) + hypothesis:pass12-0928-residue-batch (153 items) -> opus text kids <= 4
