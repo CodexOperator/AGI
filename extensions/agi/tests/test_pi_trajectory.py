@@ -60,6 +60,15 @@ def _stub_pi(tmp_path: Path, lines: list[str]) -> Path:
     return script
 
 
+def _tool_rows(traj: Path) -> list[dict]:
+    """The TOOL rows only. Each attempt opens with one `attempt_boundary`
+    record (pi_trajectory.py) so a retried attempt's records are attributable,
+    not fused -- a real row that is not a tool call, and a reader that asserts
+    the exact row set must say which it wants."""
+    rows = [json.loads(l) for l in traj.read_text().splitlines()]
+    return [r for r in rows if r.get("type") != "attempt_boundary"]
+
+
 def _run_wrapper(tmp_path: Path, stub: Path, traj: Path) -> Path:
     out = tmp_path / "output.log"
     with out.open("wb") as logf:
@@ -75,7 +84,7 @@ def test_three_tool_calls_land_three_ordered_jsonl_entries(tmp_path):
     traj = tmp_path / "trajectory.jsonl"
     out = _run_wrapper(tmp_path, stub, traj)
 
-    rows = [json.loads(l) for l in traj.read_text().splitlines()]
+    rows = _tool_rows(traj)
     assert len(rows) == 3, f"one entry per tool_execution_end, got {rows}"
     assert [r["tool"] for r in rows] == ["bash", "read", "bash"]
     # real-wire shape: end event carries NO args, so the row must carry the
@@ -126,7 +135,7 @@ def test_end_without_args_carries_the_start_stash_args(tmp_path):
     ])
     traj = tmp_path / "trajectory.jsonl"
     _run_wrapper(tmp_path, stub, traj)
-    rows = [json.loads(l) for l in traj.read_text().splitlines()]
+    rows = _tool_rows(traj)
     assert [r["tool"] for r in rows] == ["bash", "edit"]
     assert rows[0]["args"] == {"command": "echo wire"}, \
         "end event carries no args; start stash must backfill it"
@@ -199,7 +208,7 @@ def test_produced_command_wrapper_path_is_real_and_runs_end_to_end(tmp_path):
     with (tmp_path / "run_out.log").open("wb") as logf:
         subprocess.run(run_cmd, stdout=logf, stderr=subprocess.STDOUT, check=True)
 
-    rows = [json.loads(l) for l in traj.read_text().splitlines()]
+    rows = _tool_rows(traj)
     assert len(rows) == 3, f"one ordered entry per tool_execution_end, got {rows}"
     assert [r["tool"] for r in rows] == ["bash", "read", "bash"]
     assert rows[0]["args"] == {"command": "echo a"}
