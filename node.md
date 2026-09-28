@@ -40,6 +40,10 @@ extensions/agi/bin/cli.py · extensions/agi/hooks/agent-git/pre-commit · extens
 ## CEILING
 <= 3 kids · <= 12 production lines per conjunct · pi parents (tier-0) · 0 USD. Every test that spawns python/pytest/git runs under `timeout` + a process cap; never a pytest that re-collects its own dir; kids never launch real claude.
 
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.665 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-round-commit-schema-g-a00-3ef778da tip 630d1f8ff.
+ROUNDS    this post's rounds on this node: DH.597 DH.644 DH.665; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
 ## CORRECTIVE DH.527 -- closes mur-director-engine-18 DH.513-k1 (review accept_with_residue; verify killed by memory-cap rc=-9, review residues stand)
 BASE      CUT FROM season2/loops/hypothesis-round-commit-schema-g-a00-5a917eb9 tip 73a3d5003 (worktree a00-5a917eb9). No merge. Never rebase. NEVER DH.442.
 0 production lines, 0 test lines: node wording only, EVERY edit through write.py (never a scripted rewrite: the write-log must attest each one).
