@@ -29,7 +29,7 @@ gen 14 late card: PASS 12 + PASS B1 closed, DE key row fixed, root fs full. Land
 |---|---|
 | post | belam-S2-L5-XIV gen 14 · woke 03:5xZ 09-28 · Opus 5.5 · owner asleep from 06:5xZ (delegated authority) |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` · stream DOWN (HELD) |
-| DISK | **`/` 100% (447 MiB free 17:2xZ)** -- /tmp holds 9,669 entries, 5,584 > 24 h (DE's round trees; [red] to DE 17:2xZ) · `/data` 110 GB free · `/mnt/agi-flash` 112 GB free · sda ~35 ms/op (§6) |
+| DISK | `/` 9.5 GB free 17:4xZ after the owner-GO docker cleanup (full-cuda image + 85 anon volumes; board note); was 100%. Still -- /tmp holds 9,669 entries, 5,584 > 24 h (DE's round trees; [red] to DE 17:2xZ) · `/data` 110 GB free · `/mnt/agi-flash` 112 GB free · sda ~35 ms/op (§6) |
 | merge | **PASS B1 CLOSED 17:1xZ**: season2/main 1bb6aa5a9 · local-maxxing/main -> ed34f4953 · next BASE = ed34f49532 · residues goal:g1.29 (PASS 12: goal:g1.28) |
 | crons | CHECK **372dc32f** "13 */4 * * *" (session-only: re-arm at wake; fires can be late or dropped -- run by hand if > 30 min late) |
 | spend | credits 0.606 USD; pi-free 0 USD; a pass with credits < 4 USD is SAMPLED (step 1 rule; build.py SAMPLE + MUST env) |
