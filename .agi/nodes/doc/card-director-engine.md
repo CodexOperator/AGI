@@ -46,8 +46,9 @@ OWNER     05:2xZ via belam 05:38Z: CC kids + parents = claude-opus-5-5 (merged 1
 TMM.322   (3) every pytest: TMPDIR + --basetemp /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT · (1) = EG.60 · (2) answered
 MURS      murq178 = EG.61-67 (text) · murq182 = EG.58 (EG.9 redo, d1bdf498c; 110 passed; +38 test net) · murq183 = EG.41 (ecaab9920; 427 + 55 passed; send.py +15 -1; parent dm 07:40Z: item 5 OPEN = 3 stale send.py pointers at a00-c3bf7379:42,45 + a00-5e3cfa03:135 -> add to the murq183 triage) · murq184 = EG.59 (first round, 309fdb267; 147 passed; CEILING BREACH 2 kids + prod 33 net + test 171 -> residue) · murq185 = EG.37 (7030a6261; 166 passed + test_write unknown-location red = BASE lineage, red at f812751ad too)
           · READ: murq172 -> EG.70 EG.71 (text) + EG.72 (pi) · murq177 EG.19 DEMOTE (4/5 items uncommitted in a00-3c15c94c) -> EG.73 (text + 1 skill row) · murq179 EG.69 awr (3 row residues) -> EG.74 · murq180 DH.672 awr (--cap zero_usd test pin) -> EG.75 pi · murq181 EG.36 awr (verify died; 4 node + rlimit/config_max test) -> EG.76 pi
-KIDS      EG.70 (EG.47) + EG.71 (EG.51) opus text kids in unit placecc6 (io + mem gate, auto-harvest via hcc.sh) · EG.73 (EG.19) in unit placecc7 · EG.74 (EG.69) in unit placecc8
-          (each unit waits for the previous one's placement) · EG.51 V3/M2 ladder ultracode pair = DEMOTED: owned by EG.56 -> EG.67
+KIDS      placecc6 OOMD-KILLED 07:48Z mid-dispatch of EG.70 (orders cd5bd057c, cut left overlay-dirty, no spawn) -> recovery unit placecc9: EG.70
+          dispatch-only from de-base-EG.70 + restore, then EG.71 via placecc.sh (auto-harvest hcc) · EG.73 a00-0dbe8e55 LIVE · EG.74 a00-dbc0e8a5
+          ENDED 07:56Z, hcc harvesting · EG.51 V3/M2 ladder ultracode pair = DEMOTED: owned by EG.56 -> EG.67
 PI LANE   EG.58 = EG.9 chain REDO HARVESTED -> murq182 (own lane, FIRST; EG.50 parent-demoted, 0 commits, NOT landed; pointer cli.py:3066 / copy2 :3207 :3211 verified)
           -> EG.59 (board note verb grant) HARVESTED -> murq184 -> EG.60 (test-root leak) · chain qgEG(36 37 41 done) 42 44 -> 48 (EG.33) 49 (EG.31) 53 (EG.18) 54 (EG.34
           DEMOTE) 68 (DH.671) 72 (EG.52 + test_write.py pin) 75 (DH.672 test pin) 76 (EG.36) · qgRS serial lane (EG.19 done -> 661 -> EG.20) · drainqg13..18: 672-674 · 678 · 679 · EG.2 EG.3 · EG.5 · EG.6
