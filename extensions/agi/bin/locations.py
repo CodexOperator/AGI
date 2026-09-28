@@ -477,17 +477,189 @@ def payload_base(root: Path, location: str | None = None,
         return repo_root(root)
 
     declared = (cfg.get("locations") or {}).get(name)
-    if isinstance(declared, str) and declared.strip():
+    if _is_usable_location_value(name, declared):
         p = Path(declared.strip()).expanduser()
         return p.resolve() if p.is_absolute() else (root / p).resolve()
 
-    known = ["source_root", "graph_root", "repo_root"]
-    known += sorted(k for k in (cfg.get("locations") or {})
-                    if isinstance(k, str) and k not in known)
+    # ONE list of accepted names, shared with the picker (`known_payload_locations`):
+    # two copies of this list drift, and the advice a pane gives then differs
+    # from the advice the write path gives for the same config.
     raise KeyError(
         f"unknown payload location {name!r}. Declare it under `locations:` in "
-        f"the project config, or use one of: {', '.join(known)}."
+        f"the project config, or use one of: "
+        f"{', '.join(known_payload_locations(cfg))}."
     )
+
+
+def _is_usable_location_value(name, value) -> bool:
+    """Whether a `locations:` cell is a value `payload_base` accepts.
+
+    ONE predicate, both call sites (the write path here, the picker in
+    `known_payload_locations`): two copies drift, and the drift shows up as a
+    name the picker offers and the write path refuses.
+    """
+    return (isinstance(name, str) and isinstance(value, str)
+            and bool(value.strip()))
+
+
+def known_payload_locations(config: dict | None = None) -> list[str]:
+    """The location NAMES `payload_base` accepts, in resolution order.
+
+    The one list both the picker and `payload_base` read, so a cell that
+    declares a name the write path would refuse is recognisable HERE, at the
+    option, instead of far downstream as a KeyError naming a config value.
+    """
+    known = ["source_root", "graph_root", "repo_root"]
+    declared = (config or {}).get("locations") or {}
+    # A name is offered only if `payload_base` would ACCEPT its value: it takes
+    # a non-empty str and refuses everything else. Offering a key whose value is
+    # a dict or a blank string would stamp `location_ok: True` on a category
+    # the write path then refuses by name.
+    known += [k for k, v in declared.items()
+              if k not in known and _is_usable_location_value(k, v)]
+    return known
+
+
+def storage_category_block_error(config: dict | None = None) -> str | None:
+    """Name the config cell that leaves the table unreadable, or None.
+
+    The READER stays TOTAL (a mistyped block is an empty table, never a
+    crash) -- but an empty table PRINTS NOTHING, so the typo would be
+    invisible. This is where that silence becomes a name the CLI can report.
+    """
+    cfg = config or {}
+    mint = cfg.get("mint")
+    if "mint" in cfg and not isinstance(mint, dict):
+        return (f"mint is {type(mint).__name__}, not a table -- "
+                f"mint.storage_categories cannot be read")
+    if not isinstance(mint, dict) or "storage_categories" not in mint:
+        return None
+    block = mint["storage_categories"]
+    if isinstance(block, dict):
+        return None
+    return (f"mint.storage_categories is {type(block).__name__}, not a table "
+            f"-- the picker has no options to offer")
+
+
+def storage_category_target(root: Path, row: dict,
+                            config: dict | None = None) -> Path:
+    """Where one picker row actually points, base + prefix. Raises on a name
+    `payload_base` refuses, exactly as the write path would."""
+    base = payload_base(root, row["location"], config)
+    return (base / row["prefix"]) if row["prefix"] else base
+
+
+def storage_categories(config: dict | None = None,
+                       root: Path | None = None) -> list[dict]:
+    """The numbered storage-category picker, in config CELL order.
+
+    `hypothesis:mint-offers-storage-categories-from-config-cells`. The
+    directory a new payload files under is data, so it lives in
+    `mint.storage_categories.<key> = {location, prefix, label}` and this is
+    only its reader. Insertion order is the numbering order: a new cell is a
+    new option and nothing else changes.
+
+    Given `root`, each row also carries `target_exists`: whether the directory
+    it points at is on disk NOW. `location_ok` says the NAME is one
+    `payload_base` accepts; only this says the target is real, and a cell can
+    pass the first and fail the second (a mistyped prefix, a tree not created
+    yet). `None` when no root was given -- a table read without a checkout
+    cannot claim anything about the disk.
+    """
+    cfg = config or {}
+    known = known_payload_locations(cfg)
+    mint = cfg.get("mint")
+    block = mint.get("storage_categories") if isinstance(mint, dict) else None
+    if not isinstance(block, dict):          # a mistyped block is an EMPTY table
+        block = {}                           # -- never a crash: the picker must
+                                            # still print, so the config can be
+                                            # read and the typo seen.
+    rows: list[dict] = []
+    for key, cell in block.items():
+        if not isinstance(cell, dict):
+            # A cell that is not a mapping KEEPS ITS NUMBER as a BAD row: a
+            # silent `continue` renumbered every row below it, so "pick 3"
+            # would name a different category than the list a pane was shown.
+            # Visible and refused by name beats gone.
+            rows.append({
+                "n": len(rows) + 1, "key": str(key), "label": str(key),
+                "location": f"<not a mapping: {cell!r}>",
+                "location_ok": False, "prefix": "", "custom": False,
+                "target_exists": None,
+            })
+            continue
+        name = str(cell.get("location") or DEFAULT_PAYLOAD_LOCATION)
+        rows.append({
+            "n": len(rows) + 1,
+            "key": str(key),
+            "label": str(cell.get("label") or key),
+            "location": name,
+            "location_ok": name in known,
+            "prefix": str(cell.get("prefix") or "").strip("/"),
+            "custom": False,
+            "target_exists": None,
+        })
+        if root is not None and rows[-1]["location_ok"]:
+            rows[-1]["target_exists"] = storage_category_target(
+                root, rows[-1], cfg).is_dir()
+    return rows
+
+
+def resolve_storage_category(pick, tail: str | None = None,
+                             config: dict | None = None,
+                             root: Path | None = None) -> dict:
+    """(pick, tail) -> one row carrying `(location, payload_ref)`.
+
+    `pick` is a NUMBER or a KEY from the table. A pick naming no cell is read
+    as a path and returned FLAGGED `custom` against the default base -- an
+    accepted answer, never an exception: a pane that types a path it knows is
+    not in the table must not be told it may not. A pick that is a NUMBER
+    naming no cell is not a path but a stale list index: the tail carries the
+    whole answer and the digits are dropped, so `--storage-pick 99 --tail x`
+    never yields a payload named `99`. "Digits" means ASCII 0-9 and nothing
+    else: '٣' is a NAME to this resolver, not row 3, and '²' is a name too
+    rather than a ValueError.
+
+    THE COST, stated here because the call site reads this and not the round's
+    Caveats: a caller who genuinely means a FILE NAMED `99` now loses that
+    name -- there is no way to spell it, because the reading is by digits, not
+    by table membership. The degenerate case is the other half: a digit naming
+    no cell AND carrying NO tail drops to an EMPTY `payload_ref` under the
+    default base and still exits 0 (`--storage-pick 99` -> `custom\tsource_root\t`).
+    That is a refusal to guess, not a name: no file is named, and a caller
+    that wants a payload must pass `--tail`.
+
+    A cell whose `location` is NOT a name `payload_base` accepts is a config
+    error, not a pick, and it is refused HERE by name: the row is never
+    returned, so no caller can carry a name the write path will reject.
+    """
+    rows = storage_categories(config, root)
+    text = str(pick).strip()
+    # ASCII digits only. `str.isdigit()` is TRUE for '²' and '⑴', which
+    # `int()` then refuses with ValueError -- and for '٣', which `int()`
+    # silently accepts as 3, so a NAME typed in another script is read as a
+    # row index. Both are answered here, never raised out of the resolver.
+    num = int(text) if text.isascii() and text.isdigit() else None
+    hit = None
+    for row in rows:
+        if text == row["key"] or (num is not None and num == row["n"]):
+            hit = row
+            break
+    if hit is not None:
+        if not hit.get("location_ok", True):
+            raise ValueError(
+                f"storage category {hit['key']!r} declares location "
+                f"{hit['location']!r}, which payload_base does not accept. "
+                f"Use one of: {', '.join(known_payload_locations(config))}."
+            )
+        rest = str(tail or "").strip().lstrip("/")
+        return {**hit, "payload_ref": f"{hit['prefix']}/{rest}" if rest
+                else hit["prefix"]}
+    ref = str(tail or "").strip() if num is not None else text
+    return {"n": 0, "key": "custom", "label": "custom", "custom": True,
+            "location": DEFAULT_PAYLOAD_LOCATION, "location_ok": True,
+            "target_exists": None,
+            "prefix": "", "payload_ref": ref or str(tail or "").strip()}
 
 
 def resolve_payload_path(root: Path, ref: str, location: str | None = None,
@@ -921,6 +1093,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--json", action="store_true", help="emit JSON")
     ap.add_argument("--what", choices=["root", "source", "goals", "repo"],
                     help="print one path and nothing else")
+    ap.add_argument("--storage-categories", action="store_true",
+                    help="print the numbered storage-category picker")
+    ap.add_argument("--storage-pick", default=None,
+                    help="resolve one pick (number or key) to location + "
+                         "payload_ref; implies --storage-categories")
+    ap.add_argument("--tail", default=None,
+                    help="with --storage-pick: the tail under the prefix")
     ap.add_argument("--claim-iter", action="store_true",
                     help="allocate the next free iteration id, reserve its "
                          "sessions dir, print the id")
@@ -960,6 +1139,46 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     cfg = load_config(root)
+
+    if args.tail is not None and args.storage_pick is None:
+        print("ERR: --tail names the file under a category, so it needs "
+              "--storage-pick; the category is the part the tail hangs from.",
+              file=sys.stderr, flush=True)
+        return 1
+
+    if args.storage_categories or args.storage_pick is not None:
+        if args.storage_pick is not None:
+            # the table is built once, inside the resolver -- not here too
+            try:
+                row = resolve_storage_category(args.storage_pick, args.tail,
+                                               cfg, root)
+            except ValueError as exc:
+                print(f"ERR: {exc}", file=sys.stderr, flush=True)
+                return 1
+            print(f"{row['custom'] and 'custom' or row['key']}\t"
+                  f"{row['location']}\t{row['payload_ref']}")
+            return 0
+        bad_block = storage_category_block_error(cfg)
+        rows = storage_categories(cfg, root)
+        for row in rows:
+            print(f"{row['n']}  {row['key']}  {row['location']}  "
+                  f"{row['prefix']}  ({row['label']})"
+                  f"{'' if row['target_exists'] is not False else '  MISSING'}"
+                  f"{'' if row['location_ok'] else '  BAD LOCATION'}")
+        if bad_block:
+            print(f"ERR: {bad_block}", file=sys.stderr, flush=True)
+            return 1
+        broken = [f"{r['key']}={r['location']!r}" for r in rows
+                  if not r["location_ok"]]
+        if broken:
+            print(f"ERR: mint.storage_categories declares "
+                  f"{', '.join(broken)}, a location payload_base does not "
+                  f"accept. Use one of: "
+                  f"{', '.join(known_payload_locations(cfg))}.",
+                  file=sys.stderr, flush=True)
+            return 1
+        return 0
+
     resolved = {
         "root": str(root),
         "repo": str(repo_root(root)),

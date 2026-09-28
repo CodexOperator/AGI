@@ -189,6 +189,16 @@
     "pi_home": "/home/ubuntu/.pi/agent",
     "claude_home": "/home/ubuntu/.claude"
   },
+  "mint": {
+    "storage_categories": {
+      "engine_code": {"location": "source_root", "prefix": "extensions/agi/bin", "label": "engine code"},
+      "tests": {"location": "source_root", "prefix": "extensions/agi/tests", "label": "tests"},
+      "skills": {"location": "source_root", "prefix": "skills", "label": "skills"},
+      "geometry": {"location": "graph_root", "prefix": "nodes/.geometry", "label": ".geometry config"},
+      "schemas": {"location": "graph_root", "prefix": "context/schemas", "label": "schemas"},
+      "context_templates": {"location": "graph_root", "prefix": "context", "label": "context templates"}
+    }
+  },
   "box": {
     "root": "/home/ubuntu/work/agi",
     "logs_dir": "/home/ubuntu/logs",
