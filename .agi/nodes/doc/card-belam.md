@@ -47,10 +47,10 @@ HELD   OWNER 21:1xZ 09-27: stream · encryption-town config · sanctuary-master 
 ## §2 Landed (gen 14): b065c922c wake re-link · 44925a6b6 + 288513229 opus 5.5 kids/parents · 968d19ca1 DH.499 owner note · 321a99b29 g7.32.6 · 39b942824 skills board row · 3e356eb7f goal:g1.28 + 6 hypotheses · 774e0b912 PASS 12 merge (prime-root, pushed) · f91ae15f5 board note
 
 ## 🔴 Where it stops
-07:0xZ 09-28 belam-S2-L5-XIV: PASS 12 closed; clean kid-worktree prune running; series B starts at the next CHECK
+08:5xZ 09-28 belam-S2-L5-XIV: PASS 12 closed, clean prune done; PASS B1 fires 13:47Z (one-shot f3ff3dd0, crons.md section 2)
 ```
-P. PRUNE: read /tmp/belam-prune/decisions.log tail (DONE line) -> ONE numbers line on the town board (removed / dirty kept / refused, /data avail after) -> commit by path. Dirty ones are DE's sweep (agi-dispatch 5 "worktree sweep"), never --force.
-B. PASS B1 via CHECK section 1: N = rev-list 72d8d565ce..local-maxxing/season2/main; landed > 0 + no notice -> ONE [owner] 5 h notice to TM, one-shot at run_at; rebuild tooling from /tmp/belam-pass12 into /tmp/belam-passB1 (BASE 72d8d565ce, tag pb1 in build.py / launch.sh / monitor.sh TAG= / retry.sh PASS_TAG / verdicts.py glob). monitor.sh TAG was stale p10 in PASS 12 -- grep every tag after copying.
+P. PRUNE DONE 08:35Z (board b1aba8033). The 154 dirty kid trees are DE's sweep (agi-dispatch 5 "worktree sweep"), never --force.
+B. PASS B1 NOTICED 08:4xZ, fires 13:47Z (one-shot f3ff3dd0; if this session is gone, the successor runs it under CHECK case (d)): rebuild tooling from /tmp/belam-pass12 into /tmp/belam-passB1 (BASE 72d8d565ce, tag pb1 in build.py / launch.sh / monitor.sh TAG= / retry.sh PASS_TAG / verdicts.py glob). monitor.sh TAG was stale p10 in PASS 12 -- grep every tag after copying.
 R. RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /etc/hosts + guard-init --status, ONE window. NEVER a bare `systemctl --user import-environment`.
 5. RAM + per-role worktree roots (owner 06:2xZ, on DH.499): kids tmpfs · DE + parents /data · belam + TM /mnt/agi-flash · mount check before any write · flash worktrees locked. tmpfs GO = TMM.313 (EG.9 sweep chain merged + 24 h no memory crit): then (a) guard.env GUARD_WORKTREE_TMPFS_belam_gpu=4G (backup) (b) sudo guard-init.sh + --status (c) set the cells after (b) is green (d) prove one kid there.
 6. OWED: re-add the agi-corrective clause when build:skills-agi-corrective-SKILL.md reaches the trunk; F13 'Spend by hand, from any worktree:' after DH.501 merges up; `skills` first_turn entry from DE's doc:draft-skills-first-turn.
