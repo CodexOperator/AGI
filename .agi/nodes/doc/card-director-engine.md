@@ -96,21 +96,19 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 
 ## 🔴 WHERE IT STOPS
-19:4xZ successor reconciled: 4 ended rounds harvested green (EG.160 158 151 167) -> murq261-264 gated; EG.148 0-commit -> serial11
+20:5xZ: pi-free empty responses kill most parents + mur stages; automation re-places them; EG.151 fix merged (#4 sent), EG.183 under murq274
 ```
-FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (serial8-11, gmurq261-264,
-        murq258-260) · per ENDED mur: D/verd.py Q -- 261 (EG.160 = the EG.9 blocker) FIRST
-        · every ended parent: harvest at once -- systemd-run --user --unit=agi-director-engine-harvN -- bash
-          <scratchpad 8884a411>/memgate-harv.sh EG.N ... (tools' Claude-Session lines now carry this session)
-THEN    per ended parent: harvest -> own test run -> T/mur41.sh N <next Q> <harvest log> "<focus>" · per ended mur: D/verd.py Q ->
-        clean = merge the chain into the post (--no-ff; zero-USD trio cherry-pick-only = POST side; node THOUGHT hunks = chain side;
-        a real code conflict = a merge-resolution cut + round) + [merge-up] with numbers · residue = T/genbatch.py N:Q (auto-demotes
-        verify-cleared items) + hand-drop the rest WITH reasons on a DEMOTED line + ONE serial placement unit (never parallel)
-        · node-prose-only residues (cites, counts, THOUGHT) = director close in the loop worktree (TMM.327), no round
-        · an empty-response mur stage: reset-failed + re-arm its gmurqQ unit · a 0-commit parent: T/redispatch2.sh in a serial unit
-        · after EG.9 (murq244 -> EG.160): the TMM.345/347 order in §0
+FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (deadwatch redispw rmur* serial* gmurq*/murq*)
+        · tail <scratchpad 3e232af5>/deadwatch.log: every HARVEST line not yet harvested -> systemd-run --user --unit=agi-director-engine-harvN
+          -- bash <scratchpad 8884a411>/memgate-harv.sh EG.N ... (DEAD lines are handled by redispw -- never redispatch by hand)
+        · murq274 (EG.183) ended -> D/verd.py 274 -> corrective MUST add the config:workflows pi_transient_signatures cell (write.py set,
+          a node the kid commits) -> harvest -> mur -> merge FIRST, then fold pi_trajectory's retry onto the same cell (TMM.350)
+        · EG.170 (facts window, TMM.348) ended -> harvest -> mur b49c5db9e..tip -> [merge-up] naming the chain tip + a1ccc2dee
+        · send.py read director-engine once per nudge (TM owes the gate of #3/#4)
+THEN    per ended mur: D/verd.py Q -> clean/prose-only = director close (TMM.327) on the loop tip + merge (--no-ff; trio = POST side;
+        hypothesis node = S3/resnode.py) + [merge-up] · residue = T/genbatch.py N:Q + S3/drop.py (reasons) + S3/textkid.py for pure text
+        + ONE serial pq.sh unit (never parallel placements)   [S3 = <scratchpad 3e232af5>]
 NEVER   restart a q-unit without reading its log first · edit a RUNNING unit's script · a bare & watcher · parallel placements
-```
 
 ## §4 TRAPS
 Skills: agi-dispatch §5 · agi-corrective · agi-workflow · agi-node-write §5 · agi-memory-guard · agi-master-gate (TMM.304). Card-only: pi-free murs ~7 min/stage, verify can die (review stands) ·
