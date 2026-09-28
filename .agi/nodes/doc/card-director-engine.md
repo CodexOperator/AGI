@@ -43,8 +43,10 @@ GATE      TMM.306: load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, on
 PLACEMENT de-base-N ON DISK (the /dev/shm variant broke parent done -> DH.648 swept, reverted 00:0xZ); 651's RAM checkout is symlinked
 PRUNE     unit prune-debase OOM-KILLED 00:27Z (systemd-oomd, 41 removed); NOT restarted -- memory crit window (TMM.313 tmpfs hold)
 LANDED    TMM.312 00:42Z: TM landed the WHOLE branch d0d126deb (trunk merged in 90b21bd8f) + sent it to belam
-LIVE      EG.9 a00-da2aca6b (heal-sweep fix, TMM.313 FRONT) · EG.7 a00-0194accb (qg2) · murq130 = DH.680-k1 over a2db4a317..da6f3fafe (harvest 219 passed;
-          parent-demoted: test cap +49/40, refuted tier note) · EG.1: mur-eg-2 accept_with_residue -> EG.10 orders (T/ordersEG.10.md), unit qgEG10 = gate -> place2
+LIVE      EG.9 a00-da2aca6b (heal-sweep fix, TMM.313 FRONT) · EG.10 a00-7b3f1dbe (EG.1 residues, cut 4d2c43ea5) · EG.8 a00-4b4b4b90 (qg2) · murq130 = DH.680-k1
+          (a2db4a317..da6f3fafe, harvest 219 passed; parent-demoted: test cap +49/40, refuted tier note)
+          EG.7 harvested 637ec02b3: PARENT-DEMOTED lean_proved:75, 5 corpus edits left UNCOMMITTED in a00-0194accb (never land) -> EG.11 = the
+          detector (line-start markers only), corpus byte-unchanged; unit qgEG11 (waits qgEG10, then gate -> place2)
 QUEUE     qg2 = T/qg2b.sh: gate -> redispatch 680 (its dispatch was KILLED by my queue swap; orders on node) -> EG.7 EG.8 658 653 (TMM.312 fix rounds) · qg3 654 · qg4 655 656 · qg5 657 · qg6 (empty, 658 moved up) · qg7 659 · qg8 660-664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 ·
           qg13 675 670-674 (g1.27) · qg14 678 · qg15 679 · qg16 EG.2 EG.3 · qg17 EG.5 (orders AMENDED per TMM.313 (2): item 5 = re-measure 2009 B on trunk, item 10 = guard reads cell templates.director.startup.facts_pointer_target_bytes; chain goes up as ONE [merge-up], lands with belam's F13 trim + cell) · qg18 EG.6 (chained units, T/drainqg<N>.log)
 TMM.313   tmpfs HOLD: GO only when EG.9 is MERGED + 24 h with no memory crit; then 4G parent+kid only · DH.650 repo half may land NOW, inert (chain 650-677-680)
@@ -73,7 +75,7 @@ THEN    680 clean -> tmpfs claim to belam + mint the 17-consumer round ; EG.9 me
 ## §4 TRAPS
 Skills: agi-dispatch §5 · agi-corrective · agi-workflow · agi-node-write §5 · agi-memory-guard · agi-master-gate (TMM.304). Card-only: pi-free murs ~7 min/stage, verify can die (review stands) ·
 harvests under load flake 1 test: re-run before a corrective · `pgrep -f place2` matches your own shell: list /proc cmdlines instead ·
-`git merge -F -` does not read stdin · worktrees VANISH (617 618 597 parents/kids): harvest from the branch, update-ref to fast-forward ·
+`git merge -F -` does not read stdin · place2 splice fixed 01:1xZ (body ending mid-paragraph / THOUGHT glued to it was refused) · worktrees VANISH (617 618 597 parents/kids): harvest from the branch, update-ref to fast-forward ·
 done-time commits skip foreign nodes: check the KID worktree too (618) · parents end WITHOUT a harvest dm: reconcile · stale index.lock
 (no holder) refuses kid commits · NEVER stop a qg unit mid-placement (it kills the dispatch: 680); a killed unit stays failed -> reset-failed before reusing its name · murall/harvest greps match 'failed' in slugs · only / fills: /tmp basetemps. · a PARENT-DEMOTED round's uncommitted config
 stays for its corrective: never land it at harvest (mur-44 DH.650 V4: "hand-landed gate").
