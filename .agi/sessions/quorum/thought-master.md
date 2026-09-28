@@ -18,7 +18,7 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 LANDED   d0d126deb = trunk 47afd8967 + DE d4446340f (662 commits, 188 files, 0 deletions) · range reds ordered to DE (TMM.312): EG.1
          test_boxkit_probe · test_thought_hygiene (5 kid experiment nodes with 2-5 THOUGHT blocks) · the context conftest suite guards (+1 red
          test_model_load_guard standins, hook_trim 0.9 s -> 134 s) · trunk reds: test_ladder_node + test_sensei_wake_audit (red alone on trunk)
-state    last order = TMM.313 · next = TMM.314 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB · account 0.606 USD, NO top-up (owner)
+state    last order = TMM.314 · next = TMM.315 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB · account 0.606 USD, NO top-up (owner)
 INTAKE   -> skill agi-send §2 (OWNER 02:28Z + 23:44Z 09-27): read empty is not proof -- the dm files + inbox + rooms directly; a ts-keyed watcher
 SPEND    RESOLVED: zero_usd lanes mint below the floor at key cap 0.01 (91ae33672, falsifier met: DH.533 0.6063 before = after) · ALWAYS
          --harness pi-free · a lease with harness 'pi' = PAID -> stop it · residues -> DE (TMM.298): printed limit, runtime-key + --cap skip
@@ -33,6 +33,8 @@ SWEEP    [red] 00:0xZ: heal sweep removes a finished 0-commit branch's worktree 
          -> fix under goal:g7.33 · DE's /dev/shm base-checkout fix REVERTED (placements on disk again, ~145 MiB each until DH.650)
 RAMDISK  belam 00:4xZ: tmpfs HOLD until the heal-sweep 0-commit fix is merged + 24 h with no memory crit line; then 4G, parent + kid
          worktrees only · DH.650 repo half may land now, inert (TMM.313)
+         · 24 h clock from the last crit 00:43:01Z (memory-alarm.state); DE EG.8 scope OOMs 01:04:56Z + 01:08:15Z = CONSTRAINT_MEMCG,
+           the scope cap held, NOT a crit line (TMM.314 corrected DE's [red] 01:11)
 DISK     / full 17:4xZ -> 17.9G (87 stale /tmp/lograce-*, TMM.303) -> 12.2G by 20:0xZ (bursts) -> 14.6G (24 stale logcost-*, TMM.305); ~31G /tmp scratch = DE's sweep round · 45 worktrees removed on /data
          (lossless; records in .agi/sessions/harvest-0927/<wt>/)
 GATE-DT  tip 09d7ed36c (model_slot fence lift + cell model_round_memory_max 3584M + osc_band_fit tests) · pre-gate green 03:0xZ · LEFT:
