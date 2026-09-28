@@ -175,6 +175,20 @@ FILE SCOPE extensions/agi/tests/test_boxkit_templates.py · .agi/nodes/experimen
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 066ebff9e · <= 40 test lines net over 066ebff9e · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 066ebff9e <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.47 (TEXT-FIX KID, claude-code, skill agi-corrective §3a) -- closes mur-eg-14 EG.26-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-box-memory-guard-piec-a00-22e244fc tip d643618b6 (branch de-base-EG.47; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+ORDERS    THIS text is the order set; the loop branch's copy of the hypothesis node does not carry the director's CORRECTIVE sections -- never report that as a defect.
+KIND      PURE TEXT: node prose/frontmatter only, with write.py; never code, tests or config. Where a node claims a number or a line, RUN the command and paste its output. Commit on your branch (cli.py done).
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. THOUGHT on the demoted node appended, not rewritten from scratch (.agi/nodes/experiment/a00-3d4e7707-9962d4.md:157)
+2. 2. A node states a mechanism claim the diff refutes (.agi/nodes/experiment/a00-8e3104fe-68efc7.md:33 — the `thought` verb 'replaces the authored region by construction (write.py:291-300)')
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_boxkit_templates.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-3d4e7707-9962d4.md · .agi/nodes/experiment/a00-8e3104fe-68efc7.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid (you) · 0 production lines · 0 test lines · node text only -- a code or test byte = the round is cut
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.26: mur-eg-9 EG.16-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.47: mur-eg-14 EG.26-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
