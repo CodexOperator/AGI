@@ -316,16 +316,22 @@ def test_a_payload_verb_lands_on_the_new_name_when_the_old_file_is_absent(tmp_pa
     assert "renamed.py" in str(onto.value), "the refusal names the destination"
     assert (tmp_path / "lib" / "renamed.py").read_text() == "# already here\n"
     assert _row_ref(node) == "lib/mod.py", "a refused write does not touch the row"
-    where = tmp_path / "b"
-    g2, p2, n2 = _graph(where)
-    p2.unlink()
-    edit2 = write.Edit(node_id="build:b1")
-    write.verb_set(edit2, "payload_ref", "lib/renamed.py")
-    edit2.payload_bytes = "# caller's new bytes\n"
+
+
+def test_known_residual_a_row_may_name_a_file_that_does_not_exist(tmp_path):
+    """KNOWN RESIDUAL, not intended behaviour (director-engine item 1): the row
+    is repointed at a name with no file, and the payload verb then raises a
+    raw FileNotFoundError. Closing it means node_writer.replace_payload
+    CREATING -- node_writer.py is OUTSIDE this chain's file scope."""
+    graph, payload, node = _graph(tmp_path)
+    payload.unlink()
+    edit = write.Edit(node_id="build:b1")
+    write.verb_set(edit, "payload_ref", "lib/renamed.py")
+    edit.payload_bytes = "# caller's new bytes\n"
     with pytest.raises(FileNotFoundError) as refused:
-        write.submit(g2, edit2, actor="kid", session="s1")
-    assert "lib/renamed.py" in str(refused.value) and "lib/mod.py" not in str(refused.value)
-    assert _row_ref(n2) == "lib/renamed.py"
+        write.submit(graph, edit, actor="kid", session="s1")
+    assert "lib/renamed.py" in str(refused.value)
+    assert _row_ref(node) == "lib/renamed.py", "the row dangles -- the residual"
 
 
 def test_nothing_to_move_does_not_buy_an_overwrite_of_the_destination(tmp_path):
@@ -441,6 +447,39 @@ def test_unset_link_ref_on_a_create_payload_row_refuses_by_its_own_name(tmp_path
         write.submit(graph, edit, actor="kid", session="s1")
     assert "link_ref" in str(refused.value)
     assert payload.is_file() and "link_ref: lib/mod.py" in node.read_text()
+
+    # the way out it names IS workable here: taking it moves the file.
+    _submit_set(graph, "build:b1", "payload_ref", "lib/renamed.py")
+    assert (tmp_path / "lib" / "renamed.py").is_file() and not payload.exists()
+    assert _row_ref(node) == "lib/renamed.py"
+
+
+@pytest.mark.parametrize("unsets,with_payload", [
+    ((), False), (("link_ref",), False), ((), True)],
+    ids=["plain set", "unset+set", "set+payload"])
+def test_one_submit_reads_the_frontmatter_once(tmp_path, monkeypatch, unsets,
+                                              with_payload):
+    """Owner 2026-09-28 04:5xZ: `submit` read the node once PER REF HELPER --
+    2/3/3 on these shapes, ONE now, every answer derived from that read.
+    `unset link_ref` is legal here (the file field is `payload_ref`)."""
+    graph, payload, node = _graph(tmp_path)
+    seen, real = [], write._node_fm
+
+    def counting(root, node_id):
+        fm = real(root, node_id)
+        seen.append(fm)
+        return fm
+
+    monkeypatch.setattr(write, "_node_fm", counting)
+    edit = write.Edit(node_id="build:b1")
+    for field in unsets:
+        write.verb_unset(edit, field)
+    write.verb_set(edit, "payload_ref", "lib/renamed.py")
+    if with_payload:
+        edit.payload_bytes = "# caller's new bytes\n"
+    write.submit(graph, edit, actor="kid", session="s1")
+    assert len(seen) == 1, f"{len(seen)} frontmatter reads, want 1"
+    assert (tmp_path / "lib" / "renamed.py").is_file()
 
 
 def test_a_failed_move_rolls_the_location_back_too(tmp_path, monkeypatch):

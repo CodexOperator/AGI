@@ -2209,7 +2209,18 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     touches_payload = bool(edit.payload_from or edit.payload_bytes
                            or edit.patch_from or edit.patch_diff
                            or edit.replace_target == "payload")
-    payload_ref, location = _payload_ref(root, edit) if touches_payload else ("", None)
+    # Owner 2026-09-28 04:5xZ: "That frontmatter reread may cause issues in
+    # the future. Mind fixing it so it doesn't do it twice." One submit reads
+    # the node's frontmatter ONCE and hands it to the three ref helpers;
+    # measured 2/3/3 loads through them on the three shapes, 1/1/1 after.
+    _fm = _node_fm(root, edit.node_id) if (touches_payload
+                                            or "payload_ref" in set_fm
+                                            or "location" in set_fm
+                                            or "payload_ref" in edit.unset_fm
+                                            or links.LINK_FIELD in edit.unset_fm
+                                            ) else None
+    payload_ref, location = (_payload_ref(root, edit, fm=_fm)
+                             if touches_payload else ("", None))
 
     # hypothesis:l3-write-partial-diffs-as-writes -- a `patch` computes the
     # new payload bytes by applying its diff to the payload's CURRENT bytes,
@@ -2311,13 +2322,13 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # A `create --payload` row names its file in `link_ref` ALONE, so it is
     # refused there too -- by its own name.
     if "payload_ref" in edit.unset_fm or links.LINK_FIELD in edit.unset_fm:
-        _unset_named = _payload_ref_field(root, edit)
+        _unset_named = _payload_ref_field(_fm or {})
         if _unset_named and _unset_named in edit.unset_fm:
             raise EditError(f"unsetting {_unset_named} names nothing to move; "
                             "re-point it with `set payload_ref`.")
     if "payload_ref" in set_fm or "location" in set_fm:
         try:
-            _old_ref, _old_loc = _payload_ref(root, edit)
+            _old_ref, _old_loc = _payload_ref(root, edit, fm=_fm)
         except EditError:
             _old_ref = ""
         # links.py reads `link_ref` FIRST (links.py:126-142); a
@@ -2340,7 +2351,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         # `link_ref` ALONE, so `link_ref == _old_ref` there and the mirror
         # still fires.
         if ("payload_ref" in set_fm and _old_ref
-                and _link_ref(root, edit.node_id) == _old_ref):
+                and _link_ref(root, edit.node_id, fm=_fm) == _old_ref):
             set_fm[links.LINK_FIELD] = str(set_fm["payload_ref"])
         if _old_ref:
             try:
@@ -2895,7 +2906,18 @@ def apply_unified_diff(original: str, diff: str) -> str:
     return "".join(out)
 
 
-def _link_ref(root, node_id: str) -> str:
+def _node_fm(root, node_id: str) -> dict | None:
+    """The node's frontmatter, `None` when it has no file -- ONE read per
+    submit (owner 2026-09-28: the double frontmatter reread is pressure),
+    handed to `_payload_ref_field`, `_payload_ref` and `_link_ref`."""
+    from graph_core.persistence import frontmatter as fm_reader
+
+    path = node_writer.find_node_file(root, node_id)
+    return (fm_reader.load_node_file(path, body=False).frontmatter
+            if path is not None else None)
+
+
+def _link_ref(root, node_id: str, fm: dict | None = None) -> str:
     """The node's `link_ref` when it carries one, else "".
 
     `_payload_ref` below reads `payload_ref` first and falls back to
@@ -2904,17 +2926,13 @@ def _link_ref(root, node_id: str) -> str:
     or the link dangles -- and so must EVERY later repoint, once the row
     carries both fields (experiment:a00-6761ec8a-99af24, probe P1).
     """
-    from graph_core.persistence import frontmatter as fm_reader
-
-    path = node_writer.find_node_file(root, node_id)
-    if path is None:
-        return ""
-    fm = fm_reader.load_node_file(path, body=False).frontmatter
+    if fm is None:
+        fm = _node_fm(root, node_id) or {}
     lr = fm.get(links.LINK_FIELD)
     return lr.strip() if isinstance(lr, str) and lr.strip() else ""
 
 
-def _payload_ref_field(root, edit: Edit) -> str:
+def _payload_ref_field(fm: dict) -> str:
     """Which FIELD this node names its file by, `""` if it names none.
 
     `_payload_ref` returns the path; the unset guard needs the field, so the
@@ -2922,31 +2940,26 @@ def _payload_ref_field(root, edit: Edit) -> str:
     `_payload_ref`: `payload_ref` first, `link_ref` (the `create --payload`
     shape) second.
     """
-    from graph_core.persistence import frontmatter as fm_reader
-
-    path = node_writer.find_node_file(root, edit.node_id)
-    if path is None:
-        return ""
-    fm = fm_reader.load_node_file(path, body=False).frontmatter
     for field in ("payload_ref", links.LINK_FIELD):
         if str(fm.get(field) or "").strip():
             return field
     return ""
 
 
-def _payload_ref(root, edit: Edit) -> tuple[str, str | None]:
+def _payload_ref(root, edit: Edit, fm: dict | None = None) -> tuple[str, str | None]:
     """Where this node's bytes live, or an error naming why there are none.
 
     Read off the node rather than passed in, because `payload_ref` is the
     node's own statement about which file it is; a caller that supplied the
     path could point the verb at a file the node has never claimed.
     """
-    from graph_core.persistence import frontmatter as fm_reader
+    if fm is None:
+        path = node_writer.find_node_file(root, edit.node_id)
+        if path is None:
+            raise EditError(f"no node file for {edit.node_id}")
+        from graph_core.persistence import frontmatter as fm_reader
 
-    path = node_writer.find_node_file(root, edit.node_id)
-    if path is None:
-        raise EditError(f"no node file for {edit.node_id}")
-    fm = fm_reader.load_node_file(path, body=False).frontmatter
+        fm = fm_reader.load_node_file(path, body=False).frontmatter
     ref = fm.get("payload_ref") or fm.get(links.LINK_FIELD)
     if not isinstance(ref, str) or not ref.strip():
         raise EditError(
