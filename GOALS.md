@@ -8679,7 +8679,7 @@ heal / cron surface
 Assigned to **director-helper**. Prefer inventory grep of heal/cron + process list before/after. No MAIN push.
 # goal:g7.31.4.3
 
-#### G7.31.5 — Graph↔harness-doc sync — write route keeps Grok Bot profile/settings driftless — status: active
+#### G7.31.5 — Graph↔harness-doc sync — write route keeps Grok Bot profile/settings driftless — status: complete
 
 # goal:g7.31.5
 
@@ -8730,7 +8730,9 @@ Assigned to **director-helper** with `.2` + `.4` AND keep `g7.26`–`g7.30` land
 
 2026-09-28 ~18:20 ET: seeds wired to .1/.2/.3 via write.py. director-direct no-pi.
 
-##### G7.31.5.1 — write.py standing/instruction updates linked Grok profile — status: active
+all three seeds complete: .1 forward write->profile, .2 reverse-absent documented, .3 drift sweep+rotate guard; test_profile_sync 18/18 GREEN
+
+##### G7.31.5.1 — write.py standing/instruction updates linked Grok profile — status: complete
 
 # goal:g7.31.5.1
 
@@ -8764,7 +8766,9 @@ Grok Bot profile / settings bytes match
 Assigned to **director-helper**. One falsifier head of `goal:g7.31.5`. No MAIN push.
 # goal:g7.31.5.1
 
-##### G7.31.5.2 — Reverse harness-doc bridge or explicit absence recorded — status: active
+falsifier GREEN: write.py same-action profile_sync.sync_node; test_write_cli + sibling .1 tests GREEN (BODY non-heading so heading-section guard no longer masks sync)
+
+##### G7.31.5.2 — Reverse harness-doc bridge or explicit absence recorded — status: complete
 
 # goal:g7.31.5.2
 
@@ -8799,7 +8803,9 @@ Assigned to **director-helper**. Prefer documenting absence if bridge not found 
 
 reverse bridge (harness doc -> graph) is ABSENT on this tip. Evidence: experiment:a00-fcd60995-reverse-bridge-absent (committed) -- editing a profile_ref artifact and running profile_sync.py --check yields DRIFT rc=1 with the node unchanged; profile_sync.py overwrites the artifact toward the node, never the reverse; no import/reverse/artifact verb exists. Independently re-probed this round (hypothesis:a00-ce81c047-f9185d): node sha 6e1b665e unchanged across --check (DRIFT rc=1) and forward sync. FALSIFIER for when it lands: when a reverse bridge lands, editing the artifact named by a node profile_ref and running the named command MUST change the node body to match; until then absence stands and falsifier-2 is N/A.
 
-##### G7.31.5.3 — Automated graph↔profile drift check exits non-zero on desync — status: active
+reverse bridge ABSENT recorded on node (experiment:a00-fcd60995); falsifier-2 N/A until bridge lands; re-probed tip 92b46487bf+
+
+##### G7.31.5.3 — Automated graph↔profile drift check exits non-zero on desync — status: complete
 
 # goal:g7.31.5.3
 
@@ -8848,6 +8854,8 @@ Assigned to **director-helper**. Prefer a small CLI/check script or pytest; no M
 | note | except-branch read_text unguarded | `profile_sync.py:76` | guard permission errors inside check_all |
 
 **Central claim held:** check_all + rotate-seat drift gate real. NO merge-up while residues>0. Next parent: DH.55 @ tip after this §3d write. spawn.parallel=1.
+
+falsifier GREEN: check_all sweep + _check_profile_drift restored on cmd_rotate_self + cmd_loop; test_profile_sync 18/18 GREEN (was 5F)
 
 #### G7.31.6 — spawn/rotate via skills after write/mint (caps ≤10/≤20) — status: horizon
 

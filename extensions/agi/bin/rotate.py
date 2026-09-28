@@ -631,6 +631,31 @@ def _check_branch_guard(root: Path | None) -> str | None:
     return None
 
 
+
+def _check_profile_drift(root: Path | None) -> str | None:
+    """Refuse rotation when a linked profile artifact disagrees with its node.
+
+    The graph is the SoT (`goal:g7.31.5.3`); drift is refused BY NAME before
+    any side effect, and nothing-linked/nothing-drifted is a no-op.
+    """
+    if root is None:
+        return None
+    import profile_sync  # inline: keep rotate's module load free of it
+    try:
+        bad = [r for r in profile_sync.check_all(root) if r["status"] != "ok"]
+    except Exception as e:
+        # `check_all` already tolerates malformed node files (a non-profile
+        # parse error must never block rotation), so reaching here is a
+        # guard failure, not drift. Say so, and do not let it pass silently.
+        return f"rotate refused: profile guard failure: {e}"
+    if not bad:
+        return None
+    names = ", ".join(
+        f"{r.get('path') or r['node_id']} ({r['status']})" for r in bad)
+    return (f"rotate refused: profile drift — {len(bad)} linked node(s) "
+            f"out of sync: {names}")
+
+
 # ---- role resolution (ladder roles table, else config.json, else defaults)
 
 
@@ -3075,6 +3100,13 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     guard = _check_branch_guard(root)
     if guard:
         print(guard, file=sys.stderr)
+        return 1
+
+    # goal:g7.31.5.3: as in `cmd_rotate_self`, drift refuses BEFORE the meter
+    # (which writes) and before any spawn. Same guard, same text.
+    pguard = _check_profile_drift(root)
+    if pguard:
+        print(pguard, file=sys.stderr)
         return 1
 
     if not args.force:
@@ -18994,6 +19026,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     guard = _check_branch_guard(root)
     if guard:
         print(guard, file=sys.stderr)
+        return 1
+    pguard = _check_profile_drift(root)
+    if pguard:
+        print(pguard, file=sys.stderr)
         return 1
     seat = args.name
     # goal:g15.14 P1-c — the registry gate runs FIRST: before the geometry

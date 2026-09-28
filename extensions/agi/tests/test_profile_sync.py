@@ -19,7 +19,7 @@ sys.path.insert(0, str(BIN))
 
 import profile_sync  # noqa: E402
 
-BODY = "# standing\n\nrule one\n"
+BODY = "standing\n\nrule one\n"
 THOUGHT = ("<!-- THOUGHT:BEGIN — authored, not derived -->\n"
            "why this version\n<!-- THOUGHT:END -->\n")
 
