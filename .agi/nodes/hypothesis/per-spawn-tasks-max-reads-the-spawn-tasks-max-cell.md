@@ -83,8 +83,25 @@ FILE SCOPE extensions/agi/bin/mem_cap.py · extensions/agi/tests/test_boxkit_pro
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over b1f3ac729 · <= 40 test lines net over b1f3ac729 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat b1f3ac729 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.49 -- closes mur-eg-15 EG.31-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-per-spawn-tasks-max-r-a00-f0adee5c tip d61dde9ad (branch de-base-EG.49; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Hypothesis node canonical fields still assert the retired hook overrides the cell (.agi/nodes/hypothesis/per-spawn-tasks-max-reads-the-spawn-tasks-max-cell.md:11, :22)
+2. Stale mechanism sentence in the docstring of the test the round edited (extensions/agi/tests/test_mem_cap_tasks_max.py:269)
+3. Parent over-certification on the very node that was stale: a00-bf749770-1f7083.md:84 records 'no residue beyond the kid-recorded stale __pycache__ caveat' while the hypothesis node the round brief was written into (:11, :22) still asserted the hook overrides. The parent was the gate on this item and passed it.
+4. The autouse fixture is now inert and its docstring says otherwise: test_mem_cap_tasks_max.py:57-63 claims the fixture 'keeps such a shell from reaching the one row that PROVES the hook is gone', but that row's own monkeypatch.setenv at :202 overrides whatever the fixture did. Nothing in the file depends on the variable being unset, so the fixture (and its rationale) is vestigial hygiene. Low; retire it or say why it stays.
+5. Pre-existing but touched and left: test_boxkit_probe.py:563 pins the literal 150 while the same test's own docstring at :545-549 argues 'a hardcoded 150/96 pair would keep passing after the cell or the shipped default moved'. The round rewrote this exact assertion and did not source the 150 the way it sourced the default. Already recorded as EG.15 item 8 (hypothesis:77); note only, not this round's.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_boxkit_probe.py test_mem_cap_tasks_max.py + test_bin_help_smoke.py once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT (TMM.322)); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/mem_cap.py · extensions/agi/tests/test_boxkit_probe.py · extensions/agi/tests/test_mem_cap_tasks_max.py · .agi/nodes/experiment/a00-bf749770-1f7083.md · .agi/nodes/hypothesis/per-spawn-tasks-max-reads-the-spawn-tasks-max-cell.md (write.py; item 1 only) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over d61dde9ad · <= 40 test lines net over d61dde9ad · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat d61dde9ad <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Item 7 becomes round EG.31 (TMM.318 owed list, verbatim: "Item 7 config-max round (AGI_TASKS_MAX cell)"). Director choice RETIRE over DECLARE: the value already has its cell (spawn.tasks_max, mem_cap.py resolve_tasks_max), and the hook is a second source that dispatch.scrubbed_env passes into every spawn, so an ambient env silently outranks the owner's 150. A cell for the hook would be a knob for a knob. Near miss: the docstring warns that retiring the hook strands the probe DRIFT row (test_boxkit_probe.py:558-565) -- a non-numeric cell drives the same DRIFT through the resolver's own fallback (probe.py:280, want != resolved), so the row keeps a committed driver. TM gates the merge-up and may overrule to DECLARE.
+corrective EG.49: mur-eg-15 EG.31-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
 
 ## Agent Notes
