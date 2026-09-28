@@ -156,6 +156,23 @@ FILE SCOPE extensions/agi/tests/test_sensei_wake_audit.py · .agi/nodes/experime
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 771a038dd · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.35 -- closes mur-eg-11 DH.664-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-trunk-tests-follow-th-a00-3f7ae4ce tip 9b2e53f16 (branch de-base-EG.35; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+ORDERS    THIS text is the order set; the loop branch's copy of the hypothesis node does not carry the director's CORRECTIVE sections (the post branch does) -- never report that as a defect.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Demoted verdict never applied to the key — .agi/nodes/experiment/a00-0e9439e3-f7fd4f.md:27
+2. Docstring biconditional is false on the bytes (diff-introduced, test_sensei_wake_audit.py:576-577): 'its generator is empty exactly when `_binding_violations` already reported'. `_binding_clause` returns None whenever `len(cmd) != 1` (test:559-561), while `_shape_command_line` returns the FIRST of N live shape lines for N>=1, so the true relation is one-directional. Demonstrated on the tip tree in /tmp/tipchk: a skill with two live `send.py whois <session_name>` lines gives `_binding_violations` = ['no single live clause binds agi-send ... (shape lines: 2'] and `_shape_command_line` = 'send.py whois <session_name> --claim a' — non-empty while the binding reports. The reachability argument the new helper documents rests on that 'exactly when'.
+3. The assert at tip:963 is still unreachable on the live path BY CONSTRUCTION: the new call site keeps the short-circuit (`_shape_command_line(skill_text, shape) if clause else ""`, test:962), so `shape_cmd` is empty exactly when `clause` is falsy, which already REDs at :943. The synthetic pair added at test:997-1000 proves the HELPER's false state, not the assert's reachability. This is disclosed in the node (a00-0e9439e3-f7fd4f.md:210 and :220, 'the live path still shadowed, named'), so it is not a hidden defect — but the node TITLE ('gives the dead assert a real false state', line 25) reads wider than the bytes.
+4. Mangled diff-introduced comment at test_sensei_wake_audit.py:998-1000: the trailing comment is duplicated and truncated — '# DH.664: the false' / '# state the assert at' / '# state the assert at' — the sentence never completes and names no line, in the very test that is the item-4 evidence.
+5. UNVERIFIED (not run, by rule): whether the loop's own `cli.py done` for this round will reconcile the prose demotion into the frontmatter. No committed test reads a node's THOUGHT prose verdict, so a prose-only demotion is invisible to the suite. The probe I WOULD run, after the round's own done: `python3 extensions/agi/bin/write.py experiment:a00-0e9439e3-f7fd4f 'read body 230:241'` and grep the frontmatter for `verdict:` / `demoted_from:` — expecting `inconclusive_lean_disproved:35` plus `demoted_from: proved`; anything else is the standing defect.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_sensei_wake_audit.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_sensei_wake_audit.py · .agi/nodes/experiment/a00-0e9439e3-f7fd4f.md · .agi/nodes/experiment/a00-4650a11d-0a9ba6.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 9b2e53f16 · <= 40 test lines net over 9b2e53f16 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 9b2e53f16 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.664: mur-director-engine-41 DH.646-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.35: mur-eg-11 DH.664-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
