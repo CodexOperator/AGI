@@ -28,6 +28,8 @@ python3 extensions/agi/bin/verification.py window      # lock free? tip? baselin
 env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/<file>.py -q   # one committed file, never a rotate test from a pane
 ```
 - The lock is `.agi/sessions/verify-suite.lock`; "free" = absent in MAIN AND every post worktree (F7).
+- Never merge into a tree while a suite runs in it: getsource tests read the moved file (2 false reds, measured).
+- local-maxxing context tests: `PYTHONPATH=` the cell `paths.local_maxxing.osc_test_pythonpath` + system python3 (the venv has no pytest).
 - The Prime grants ONE suite window at a time; a probe never calls rotate/heal/send/dispatch functions (a probe
   once TERM'd the Prime's pane from inside it).
 

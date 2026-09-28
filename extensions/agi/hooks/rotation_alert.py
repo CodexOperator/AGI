@@ -908,6 +908,17 @@ def _force_capture(root: Path, seat: str, card: Path, fraction: float,
     chain_log = (state_dir / log_name).open("ab")   # never DEVNULL
     _spawn_capture_chain(state_dir / f"capture-{seat}.failed", chain_log,
                          handoff_argv, rotate_argv)
+    # The blob was read at the TOP of this call, so any writer that landed
+    # between that read and this write had its fields CLOBBERED by ours.
+    # RE-READ immediately before writing and merge onto the FRESH blob, so a
+    # concurrent writer's fields survive (only our two keys are set, and
+    # `session` only when session_id is given, as before).
+    try:
+        fresh = json.loads(stamp.read_text(encoding="utf-8"))
+        if isinstance(fresh, dict):
+            blob = fresh
+    except (OSError, ValueError):
+        pass
     blob["captured"] = int(time.time())
     if session_id:
         blob["session"] = session_id     # the latch is keyed by THIS session
@@ -1574,7 +1585,16 @@ def main(argv: list[str] | None = None) -> int:
         # over-line seat has not rotated, and re-checks next prompt.
         deferral = _gated_rotate(root, seat, session_id or "", fraction,
                                  capture_minutes, state_dir)
-        if deferral:
+        if deferral == "capture-latched":
+            # A latch is a MEMORY of a capture that already ran, not a
+            # blocker: printing the generic "while that holds" text here
+            # claimed a HOLD that does not exist and would swallow the
+            # imperative's meaning (hypothesis:a-capture-latch-is-a-memory-
+            # never-a-hold).
+            suffix = (f"\n\n{DEFER_PREFIX} (capture-latched) — this seating "
+                      "already captured and its chain ran; that is a memory, "
+                      "not a hold. Re-check on the next prompt.")
+        elif deferral:
             suffix = (f"\n\n{DEFER_PREFIX} ({deferral}) — the hook is not "
                       "rotating this seat while that holds; it re-checks on "
                       "the next prompt.")

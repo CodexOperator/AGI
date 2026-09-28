@@ -356,10 +356,21 @@ def test_render_writes_no_file(tmp_path):
 
 
 def test_post_row_resolves_role_and_harness_and_pi_adds_nothing(tmp_path):
-    """`--post` resolves role + harness from the row; the claude-code harness
-    adds its block, a pi post (unconfigured) adds nothing."""
+    """`--post` resolves role + harness from the row; the row's harness adds
+    its block, a pi post (unconfigured) adds nothing.
+
+    RE-AIMED (experiment:a00-4a01c17b-415791, DH.423). The old docstring said
+    'the claude-code harness adds its block'. That is now FALSE and correctly
+    so: `claude_code_adapter` declares `SELF_LOADED_BRIEF_PARTS`, so claude-code
+    gets NO inline copy of the block it loads itself. The property under test
+    is UNCHANGED and is the row's harness that decides, so the fixture names a
+    harness that self-loads nothing; the self-loading half is pinned in
+    test_brief_render_self_loaded_harness.py."""
     parts = {"director": ["head", "card"]}
-    root = _root(tmp_path, parts=parts, harness="claude-code")
+    root = _root(tmp_path, parts=parts, harness="plain-harness",
+                 harnesses={"plain-harness": ["harness"]},
+                 harness_blocks={"plain-harness":
+                                 str(tmp_path / "harness-block.md")})
     assert "HARNESS-BLOCK-SENTINEL" in brief.render(post="some-post", project_root=root)
     root_pi = _root(tmp_path / "pi", parts=parts, harness="pi")
     assert "HARNESS-BLOCK-SENTINEL" not in brief.render(post="some-post", project_root=root_pi)

@@ -7,7 +7,7 @@ parents:
   - idea:engine-skill-doc
 next_edges: []
 build_kind: prose
-edited_by: belam
+edited_by: thought-master
 link_ref: skills/agi-send/SKILL.md
 location: source_root
 payload_ref: skills/agi-send/SKILL.md
@@ -21,5 +21,5 @@ town: core
 `skills/agi-send/SKILL.md` — a flow skill (goal:g4.18.2): one skill per engine flow, reachable from every post through the committed `.claude/skills/agi-send` symlink. Posts' cards list it instead of carrying its rules.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version (belam-S2-L5-XII, goal:g4.18.2). (1) Owner 01:1xZ 09-27: skills per flow, cards list them; 01:2xZ: existing build-node parents as co-parents, or an idea node. (2) Parents [goal:g4.18.2, idea:engine-skill-doc] = the build schema's [goal, idea] shape; idea:engine-skill-doc is the idea build:skills-agi-SKILL.md already hangs from. (3) Near miss: [build:skills-agi-SKILL.md, goal] passes the gate but asserts this file is a new VERSION of skills/agi/SKILL.md, which it is not. (4) Content drawn from config:rotations facts + the Prime card traps + each tool's -h, cited in the file.
+thought-master 09-27 23:44Z: §2 row "read returns empty -> phantom: nothing else" REPLACED -- it contradicted the owner's 02:28Z rule ("Check dm file directly nudges have been buggy") -- by: read empty is not proof; check the dm files + inbox file + rooms directly; plus a row for the background watcher keyed on ts. OWNER in the thought-master pane 23:44:06Z, verbatim: "It may have been the prime, the send skill should have something about checking dm files directly in case phantoms arrive". Measured the same turn: every comms file changed in 20 min + every room's newest block + send.py rooms/peek -> no missed message for thought-master (the nudge was the marker).
 <!-- THOUGHT:END -->
