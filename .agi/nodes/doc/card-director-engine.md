@@ -30,20 +30,20 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (17:5xZ 09-28 · live during the work; per-chain history = git log of this node)
+## §0 STATE (18:2xZ 09-28 · live during the work; per-chain history = git log of this node)
 ```
+MERGE-UP  SENT 18:2xZ to TM: post tip 3d5cf0db6 = EG.137 chain (c0354d4f3) + EG.133 chain (3d5cf0db6), both cleared + director closes
 POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-corrective; TMM.344 answered my stale [red] -- no ruling needed)
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.157 · next murq248
-PLACING   serial: lane3 (143 145 144 146 147 148) -> qgEG149 -> lane5 (150 151) -> qgEG152 -> lane6 (153 154 155) · rdEG132 (0-commit
-          redispatch) · CC kid EG.156 a00-6678e0d1 (EG.123 text fix, placed 17:5xZ)
-MURS      gated/running: 236 EG.137 · 239 EG.142 (re-run: empty response) · 243 EG.125 · 244 EG.140 (the EG.9 blocker) · 245 EG.133 ·
-          246 EG.135 · 247 EG.131 (merge resolution)
+SERIES    next EG.158 · next murq251
+PLACING   serial: lane3 (143 145 144 146 147 148) -> qgEG149 -> lane5 (150 151) -> qgEG152 -> lane6 (153 154 155) · EG.132 redispatched a00-b0718c09
+          · qgEG157 = EG.125 chain MERGE-RESOLUTION (cut de-cut-EG.157 fdb7e3c61: restore the DH.552 --owns union + pin it) · CC kid EG.156 a00-6678e0d1 (EG.123 text fix, placed 17:5xZ)
+MURS      gated/running: 239 EG.142 (re-run: empty response) · 244 EG.140 (the EG.9 blocker) · 246 EG.135 · 248 EG.143 · 249 EG.138 · 250 EG.139 · 247 EG.131 (merge resolution)
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
           refuses own board: policy question may come up) · 233->150 (cut de-cut-EG.150 f9fbf587a: merge reds test_free_lane_mints...)
-          · 234->151 · 241 DEMOTE->152 (conftest suite gate: fix or remove) · 237->153 · 240->154 · 242->155 · 238->156 (CC text kid)
+          · 234->151 · 241 DEMOTE->152 (conftest suite gate: fix or remove) · 237->153 · 240->154 · 242->155 · 238->156 (CC text kid) · 243 EG.125 director close d91b942f3 -> EG.157 · 245 EG.133 + 236 EG.137 director closes -> MERGED
 OVERRIDE  EG.123 03ab636aa: kid code (28 prod vs 15) merged onto the parent's reviewed tip, disclosed; parent tree vanished
 KNOWN RED test_bin_help_smoke[suite_guards.py] on base lineages = fixed on the trunk 8f9e3d5da, heals at merge
 EG.5      after EG.145 clears (EG.107 chain) -> merge the post in -> [merge-up] into the facts window (TMM.334 3)
