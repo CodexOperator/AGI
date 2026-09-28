@@ -81,22 +81,6 @@ FILE SCOPE extensions/agi/bin/provisioning.py (docstrings/comments only) · .agi
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 03ab636aa · <= 40 test lines net over 03ab636aa · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 03ab636aa <your final tip>` on your node (an empty range is not a measurement)
 KID       you are a TEXT-FIX KID (skill agi-corrective 3a): text only -- node prose via write.py, and in provisioning.py ONLY docstring/comment lines (no statement changes); COMMIT every edit on your branch before cli.py done
 
-
-## CORRECTIVE DH.EG.164 -- closes mur-eg-x942762-60d89c EG.156-k1 accept_with_residue
-BASE      CUT FROM season2/loops/hypothesis-provisioning-reads-it-a00-6678e0d1 tip 0ae4b7171 (branch de-base-EG.164; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. 1. Round outcome is not machine-readable — no verdict, no evidence_runs; the kid never ran cli.py done and the director salvage-committed it
-2. 2. Stale citation in the round's own record — the kept comment cited as provisioning.py:533-536 but sitting at 525-528 on the tip the kid produced
-3. PARTIAL FIX of order item 1, which the first reviewer passed over: the overclaim order item 1 existed to cure survives verbatim at .agi/nodes/experiment/a00-9db7337e-cc325e.md:91 — 'Agent Notes ... 28 prod / 39 test lines net over bb3fd61ed' — and now contradicts the same node's corrected lines :87-88 (28 added / 12 removed = 16 net at bb3fd61ed, re-cut to 8 net) and the parent's STATUS at .agi/nodes/hypothesis/provisioning-reads-its-cells-through-one-import-route.md:36 ('8 net production lines over bb3fd61ed'). The kid's own item-1 row claims FIXED citing only the Measurement section (.agi/nodes/experiment/a00-6678e0d1-53f123.md:26), so the round's headline item is half-done. One-line prose fix; residue, not demote.
-DEMOTED   by the director at triage: generated items 5 6 = checked clean/cleared by the verify stage (no residue) · and items 3 (a director salvage commit; grid.py commit --all runs only off season2/main, never here) · 5 (not run, not a defect)
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
-TESTS      + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE extensions/agi/bin/provisioning.py · .agi/nodes/experiment/a00-6678e0d1-53f123.md · .agi/nodes/experiment/a00-9db7337e-cc325e.md · .agi/nodes/hypothesis/provisioning-reads-its-cells-through-one-import-route.md (write.py) · the kid's own node
-CEILING   HARD CAP: 1 kid · <= 15 production lines net over 0ae4b7171 · <= 40 test lines net over 0ae4b7171 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 0ae4b7171 <your final tip>` on your node (an empty range is not a measurement)
-PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.164: mur-eg-x942762-60d89c EG.156-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.156: mur-eg-59 EG.123-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
