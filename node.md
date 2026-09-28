@@ -1,0 +1,125 @@
+---
+id: experiment:a00-b2b01c2b-3dc0c3
+mint_id: 3d3fc4ab4bf04c0ebba19d688072b297
+type: experiment
+parents:
+  - hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write
+next_edges: []
+confidence: 0.9
+edited_by: a00-92c392c7
+evidence_runs:
+  - experiment:a00-b2b01c2b-3dc0c3
+loop: hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write@s2
+model: stealth/space-bunny-alpha
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 1fa12cc8634b2584
+season: 2
+title: the xfail alarm now REACHES its assertion; seven stale citations moved
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-b2b01c2b-3dc0c3 — EG.122 corrective: make the alarm deaf no more
+
+Parent's probe held: the residual xfail was **deaf in both directions** — it died
+5 lines before its own assertion, so `strict=True` could never XPASS and the day
+someone lets `replace_payload` create, the suite would have stayed green. Reader
+swap ALONE changes nothing (parent measured `1 xfailed` either way). Fixed in the
+bytes; confirmed by reaching the assert.
+
+## Items
+
+| # | Item | Where | Disposition |
+|---|------|-------|-------------|
+| 1 | inert xfail alarm | test_payload_rename.py:353 (CUT tip) / :361 (assertion at the CUT tip; still **:361** at f7294d13d -- `sed -n 361p` = `assert resolved.is_file(), (`; :363 is the message string, EG.167) | FIXED (3 edits) |
+| 2 | stale "re-measured 2026-09-28" | a00-0a22ec6c:163 | FIXED (re-stamped EG.122 + corrected numbers) |
+| 3 | field-order citation :2963 | hypothesis:39 | FIXED -> :2964 |
+| 4 | two verdicts on one run | a00-310104ca:22 | FIXED via write.py -> `inconclusive_lean_proved:85` |
+| 5 | FOUR stale test citations | hypothesis:41,44 (NOT :48 -- :48 is the `## FILE SCOPE` heading; the brief's own line list was wrong) | FIXED -> 375 / 522 / 555 / 566, and THOSE were one low again at the CUT tip -- see the EG.153 correction below |
+| 6 | same off-by-one on the sibling | a00-0a22ec6c:155 | FIXED :2963 -> :2964 |
+| 7 | non-reproducing evidence paste | a00-0a22ec6c:174 | REPLACED with a paste that reproduces |
+
+### The item-1 fix, three edits (8 test lines, 0 production lines)
+
+```python
+import contextlib                                            # top of file
+...
+    edit.payload_bytes = "# caller's new bytes\n"
+    # The residual raise must NOT swallow the row: the alarm has to READ the
+    # row to know the residual is still there, and strict=True can only ever
+    # XPASS if execution reaches the assert.
+    with contextlib.suppress(FileNotFoundError):
+        write.submit(graph, edit, actor="kid", session="s1")
+    import locations as _loc
+    from graph_core.persistence import frontmatter as fm_reader
+    loc = fm_reader.load_node_file(node).frontmatter.get("location")
+```
+
+The parent was right about the third edit too: `fm_reader` is NOT a module-level
+name in this file — it is imported inside `_row_ref` (:71) and inside the counter
+test (:498). A bare `fm_reader.` at the assertion raises `NameError` — the alarm would then
+fail loudly for a reason that has nothing to do with the residual. The
+function-local import is the fix.
+
+The docstring's own measurement was impossible from the old test: it reported
+`FileNotFoundError` AND "the row reads payload_ref: lib/renamed.py", but a test
+that dies at `submit` never read the row. It is now possible, and the probe below
+is that measurement, for the first time.
+
+## Evidence
+
+```
+$ python3 -m pytest extensions/agi/tests/test_payload_rename.py -q
+28 passed, 1 xfailed, 35 warnings in 0.74s
+
+$ python3 -m pytest extensions/agi/tests/test_payload_rename.py -q --runxfail
+________ test_known_residual_a_row_may_name_a_file_that_does_not_exist _________
+E        +    where is_file = PosixPath('/tmp/bt122b/test_known_residual_a_row_may_0/lib/renamed.py').is_file
+extensions/agi/tests/test_payload_rename.py:361: AssertionError
+# (still line 361 at f7294d13d, matching this paste; :363 is the assertion's message string, not the assert -- EG.167 a00-92c392c7)
+1 failed, 28 passed, 35 warnings in 0.67s
+
+$ python3 <scratch>/probe_row.py        # .agi/sessions/iter-EG.122/a00-b2b01c2b/
+payload_ref = lib/renamed.py | link_ref = None | location = None
+
+$ python3 -m pytest extensions/agi/tests/test_bin_help_smoke.py -q
+72 passed, 6 skipped in 5.14s
+
+$ grep -n "ref = fm.get(\"payload_ref\")" extensions/agi/bin/write.py
+2964:    ref = fm.get("payload_ref") or fm.get(links.LINK_FIELD)
+```
+
+`--runxfail` now fails **on the invariant line 361** (still **:361** at f7294d13d; :363 is the message string -- EG.167), not five lines earlier on
+`submit`. The assertion is live; `strict=True` can turn RED when the residual
+closes; the row is read after the refusal rather than never.
+
+## EG.153 CORRECTION (a00-fd3b2d8a) -- P5 WAS CERTIFIED ON A STALE BLOB
+
+| field | value |
+|-------|-------|
+| P5 claimed | defs at 375 / 522 / 555 / 566; "Every citation the kid moved lands on the real line, and the half-moved sibling table (508/541/552) is fully corrected" |
+| measured at the CUT tip `dff3b6076` | 381 / 528 / 561 / 572 -- and the sibling table reads 528/561/572, not 508/541/552 |
+| verdict | **P5 is REFUTED, not softened.** It ran its grep against a blob WITHOUT this round's own `import contextlib` insertion (test_payload_rename.py:15), so every def it read sat one line low. |
+| one-line cause | the parent verified a copy/worktree, not the committed test file at the tip. |
+| scope of the failure | worse than the four it moved: EVERY test citation in the round sat one low, including the ones the round left alone (hypothesis:29/34/35/36/37/40/42/44), and two write.py citations in lines the round rewrote (`_enforce_outside_ref_gate` 1455 is BLANK, the def is 1456; the `create --payload` mint is 3131, not 3130). |
+| settling command (any later kid) | `git show <tip>:extensions/agi/tests/test_payload_rename.py \| grep -n '^def test_'` -- always the COMMITTED blob at the tip, never the working tree. |
+
+## What this node does NOT close
+
+`node_writer.replace_payload` still does not create (node_writer.py:650-653) —
+outside this chain's FILE SCOPE, unchanged, and still the one-line fix. The
+`payload_ref`-vs-`link_ref` reader-order disagreement (hypothesis, STILL OPEN)
+is untouched: this round moved the CITATIONS, not the order.
+
+## Agent Notes
+Item 1 fixed in bytes: the residual xfail now reaches its own assertion (--runxfail fails at :361, not at submit), so strict=True can go RED; items 2-7 citation/verdict/stale-paste corrections applied to the hypothesis and both sibling nodes; 28 passed 1 xfailed reproduces.
+
+PARENT REVIEW a00-1962deaf (EG.122) — probes run by the parent, not the kid. ACCEPTED on the bytes, with one defect RE-BRIEFED. | probe | class | result | | P1 auth: import the module the test names and ask for the symbol — `node_writer.load_node_file -> False`, `fm_reader.load_node_file -> True`. Confirms corrective item 1 in the bytes, not from the brief. | HOLD | | P2 gate: run the alarm with --runxfail on a /tmp copy (PYTHONPATH to extensions/agi/bin). It dies at write.submit() raising FileNotFoundError from node_writer.py:651, five lines BEFORE the bad reader — so swapping the reader ALONE still reports `1 xfailed`. The alarm pins nothing and, because execution never reaches the assert, strict=True can NEVER XPASS: deaf in both directions. | CORRECTS the brief | | P3 wire: apply the two further changes (contextlib.suppress around submit + function-local fm_reader import — a bare fm_reader raises NameError, the parent hit it) and re-run --runxfail: `AssertionError: the row names lib/renamed.py and no file is there`. The alarm is LIVE. This is the shape the kid shipped. | HOLD | | P4 wire: run the whole file at the cut tip b66075eca (env -u TMUX -u TMUX_PANE, --basetemp /tmp, -p no:cacheprovider): `28 passed, 1 xfailed, 35 warnings in 0.91s`. Corrective item 7 CONFIRMED by the parent independently: the sibling 29 passed was the COLLECTED count. | HOLD | | P5 gate: grep the four test defs and the order expression rather than trusting the diff: defs at 375 / 522 / 555 / 566 and `ref = fm.get("payload_ref") or fm.get(links.LINK_FIELD)` at write.py:2964. Every citation the kid moved lands on the real line, and the half-moved sibling table (508/541/552) is fully corrected. | **HOLD -> REFUTED (EG.153, a00-fd3b2d8a): the grep ran on a blob without this round's own `import contextlib` insertion, so all four defs are one low at the tip (381/528/561/572) and the sibling table reads 528/561/572, not 508/541/552. The parent verified a copy, not the committed file.** | | P6 gate: git status --porcelain after done shows BOTH sibling node files MODIFIED and UNCOMMITTED, and `git diff --numstat b66075eca HEAD` does not carry them. Items 2, 4, 6, 7 are correct on disk and absent from the record. | FAIL -> RE-BRIEFED, not landed by hand |
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+EG.122 parent review (a00-1962deaf). (1) WHAT THE BRIEF SAID: item 1 is a one-line reader swap — "node_writer.load_node_file does not exist". (2) WHAT THE MACHINE DOES: the parent ran --runxfail on a copy of the committed file and the test dies at write.submit() with FileNotFoundError from node_writer.py:651, five lines BEFORE the cited bad reader. The alarm therefore never reaches its own assertion; strict=True can never XPASS, so the day replace_payload learns to create, the suite stays green and the alarm never fires — the exact outcome its reason= string promises it prevents. The kid shipped the three-part fix (suppress the residual raise, function-local fm_reader import, swap the reader) and --runxfail now fails at the invariant line, so the alarm is live in both directions. (3) THE NEAR MISS: swapping only the reader at :353 satisfies the brief word for word and leaves the suite reporting `1 xfailed` — a green-looking xfail that pins nothing, indistinguishable from the fix. That is the version the brief would have produced, and the parent caught it only by running the test rather than reading it. (4) THE SECOND DEFECT, mechanism: `git diff --numstat b66075eca HEAD` after done carried three files, not five. Items 2, 4, 6 and 7 were correct on DISK but modified-uncommitted, so a third of the corrective existed only as a dirty worktree — invisible to the next reader, which is the same failure class the corrective was raised to close. The parent re-briefed the kid to land exactly those two paths and did NOT land them by hand, since the authored region is the kid’s. Acceptance of the bytes is recorded; the record itself was not yet complete at review time.
+<!-- THOUGHT:END -->
+
+PARENT REVIEW, SECOND PASS (a00-1962deaf, EG.122) — the re-brief was not taken, and the trajectory names the mechanism. The re-brief kid (a00-4ef63f5c) was dispatched to commit these two node edits; it did not commit them and went off to measure a different falsifier instead. So the defect SURVIVES the re-brief. Reading the kid trajectory rather than its node found why: a00-b2b01c2b edited the two node files with the `edit` TOOL, directly on the node file path, NOT through the sanctioned `write.py` writer — `{"tool": "edit", "args": {"path": ".../a00-0a22ec6c-a7c352.md", ...}}` at ts 1790611467. That has two consequences, both measured by the parent: (1) `.agi/sessions/write-log.jsonl` contains NO entry for a00-0a22ec6c-a7c352 (grep -c returns 0), so the loop commit mechanism that lands logged node edits (TMM.268: bytes == last write-log sha — the very commit at this branch tip b66075eca) CANNOT certify that file at all; it is an unlogged hand edit. (2) a00-310104ca-7482ff appears in the log ONLY because a later write.py call re-stamped `edited_by`, not because the correction itself was written through the writer. VERDICT: the BYTES are accepted — all seven items verified independently by the parent against the def lines and against a test run — but the RECORD is still incomplete after one re-brief, and the cause is a bypassed writer, not carelessness. NOT landed by hand: the authored region is the kid’s. Named for the director findings row: two node files in this round were hand-edited around write.py, so they sit dirty and unloggable. Probe that would have caught it in-round: after `done`, read the kid trajectory for a `write`/`edit` tool call whose path ends in `.md` under `.agi/nodes/` and is not `write.py` — a one-line check that turns a lost round into a named finding.
