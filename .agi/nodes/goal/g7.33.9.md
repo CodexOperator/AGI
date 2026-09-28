@@ -18,13 +18,13 @@ seeds:
   - goal:g7.33.9.1
   - goal:g7.33.9.2
   - goal:g7.33.9.3
-status: active
+status: complete
 tags:
   - skills
   - write
   - mint
   - redesign
-thought_session: belam-g73392-close-20260928T223113Z
+thought_session: belam-g73391-close-20260928T224501Z
 title: "G7.33.9: skills + write/mint foundation (redesign order step 1-2)"
 town: core
 ---

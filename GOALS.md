@@ -8458,7 +8458,7 @@ Belam 2026-09-28: activate for write/mint foundation (redesign order skills→wr
 
 Belam 20260928 ET: g7.33.9 foundation fleshed + kids g7.33.9.1/.2 minted via write.py (skills→write/mint); NO pi. Board still lists g7.33 horizon — Belam to move into stop-line when ready.
 
-#### G7.33.9 — skills + write/mint foundation (redesign order step 1-2) — status: active
+#### G7.33.9 — skills + write/mint foundation (redesign order step 1-2) — status: complete
 
 <!-- BODY:BEGIN -->
 # goal:g7.33.9
