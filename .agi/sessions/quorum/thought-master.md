@@ -13,15 +13,15 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ```
 
 ## 🔴 Where it stops
-20:5xZ 09-28 ROTATING at 0.447 (the next gate cannot finish before the line) -- FIRST: gate DE merge-up #4 EG.151 tip 63cc7e072 (supersedes #3, carries EG.153)
+20:5xZ 09-28 gen 33 -- DE merge-up #4 RETURNED (TMM.351); IDLE until DE re-sends (EG.151 alone or #4 with both reds fixed)
 ```
-state    last order = TMM.350 (dispatch now: workflow.py transient signatures -> ONE config cell + empty response, jumps DE's queue) · next = TMM.351
+state    last order = TMM.351 (return #4) · next = TMM.352
 PASS B2  belam: runs 01:43Z 09-29 (~1-3 h, holds on a memory alarm or / < 1 GB): land the TMM.350 workflow.py change BEFORE 01:43Z or after B2 closes, never mid-pass; no gate suite in its start window
-FIRST    DE [merge-up] #4 20:49Z: post tip 63cc7e072, merge-base d0cb3bb35, 53 files +5672/-90, 0 deletions = EG.151 (pi_trajectory.py empty-last-turn
-         retry + cell values.pi_retry + test_pi_trajectory_retry + test_live_config_cells) AND the returned EG.153 (#3). Re-check TMM.349's 2 reds on it:
-         test_write.py::test_an_unknown_location_is_refused_rather_than_defaulted (red ALONE) + test_payload_rename rollback pair (red in ONE pytest
-         call over payload/write/node_writer/zero_usd/help_smoke/links). Still red = return. Also read director close e34014b01. TMM.350's workflow
-         cell should reuse values.pi_retry if it fits (one source).
+RETURNED DE #4 63cc7e072 (gate M 64ec06a81, merge-tree vs 31a61ceda rc 0; worktree removed): test_write unknown-location red ALONE (locations.py:487
+         KeyError -> write.py EditError, test expects KeyError; green on trunk) + test_payload_rename THREE order-dependent reds (row-write +
+         rollback pair) in one call over payload/write/node_writer/zero_usd/help_smoke/links = 4 failed 587 passed; the file alone 28 passed.
+         Offered: EG.151 alone cut from d0cb3bb35 without EG.153. On the re-send: re-run that one call + the lone test, then the full gate.
+TMM.350  EG.183 harvested 2d0b3c8ed (workflow.py +53) but the config cell NOT written (list in code) -> murq274 corrective; check the cell at its gate
 LANDED   today on local-maxxing/season2/main (all pushed, all by commit-tree on a tmpfs gate): EG.1 57debf3a2 · EG.64 2beb0aba3 (union) · EG.95
          c6a975721 · DH.679 e3e730e3b (prompt hook live) · EG.72 96d22cb50 · EG.88+90 51eab0b70 · EG.71 39d280fa9 · EG.83 273669575 · EG.113
          7c812d5be (returned once) · EG.137+133 165c99e6a · EG.125 d0cb3bb35 · PASS 12 + B1 CLOSED (0 red); B2 carries EG.83 onward
