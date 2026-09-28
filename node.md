@@ -133,21 +133,6 @@ FILE SCOPE extensions/agi/bin/rotate.py · extensions/agi/tests/test_live_config
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 5efa0387a · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
-
-## CORRECTIVE EG.33 -- closes mur-eg-10 DH.662-k1 accept_with_residue
-BASE      CUT FROM season2/loops/hypothesis-reap-chain-members-ge-a00-cf2d4d2c tip 6c4af09f7 (branch de-base-EG.33; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-ORDERS    THIS text is the order set; the loop branch's copy of the hypothesis node does not carry the director's CORRECTIVE sections (the post branch does) -- never report that as a defect.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. 1. Duplicate-##-Agent-Notes item refused on a FALSE mechanism - .agi/nodes/experiment/a00-d27ace25-5a431b.md:135 (body_patch write.py:314-330 closes it, notes are inside the body)
-2. 2. evidence_runs omits experiment:a00-d27ace25-5a431b, which the node's own testable_claim names (hypothesis node:10) - the DH.635 item-2 defect reintroduced
-3. Unpinned contract the round itself asserts: a00-d27ace25 body ('A large but FINITE cell is still honoured -- that is the floor contract, not a hole') and its gate probe observation 'finite 1e308 deadline -> 1e+308' have NO committed test. test_rotate_term_grace.py pins 1e308 only for the MAX cell (:436-439) and for the grace/max pairing (:450); the chain_deadline_s params at :210 are only [abc, True, -1, 0, None, [], inf, 1e999] and the existing deadline tests use 2.5/7 (:205-207). A follow-up that capped _chain_deadline_s at 20.0 would leave the whole file green, i.e. the floor contract this round cemented is unpinned (residue, add 1e308 to the malformed-vs-finite split).
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-TESTS     test_rotate_term_grace.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE extensions/agi/bin/rotate.py · extensions/agi/tests/test_rotate_term_grace.py · .agi/nodes/experiment/a00-d27ace25-5a431b.md · .agi/nodes/experiment/a00-ec3788a4-f6ed0f.md · .agi/nodes/hypothesis/reap-chain-members-get-their-full-term-grace-again.md (write.py) · the kid's own node
-CEILING   HARD CAP: 1 kid · <= 15 production lines net over 6c4af09f7 · <= 40 test lines net over 6c4af09f7 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 6c4af09f7 <your final tip>` on your node (an empty range is not a measurement)
-PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.33: mur-eg-10 DH.662-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.662: mur-director-engine-40 DH.635-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
