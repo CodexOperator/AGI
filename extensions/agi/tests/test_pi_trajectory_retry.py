@@ -19,8 +19,10 @@ from __future__ import annotations
 
 import json
 import os
+import signal
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
@@ -116,3 +118,56 @@ def test_the_bound_is_the_config_cell_and_holds(tmp_path):
     assert runs == ["run", "run"], \
         f"the BOUND is values.pi_retry.empty_response_max_retries=1, got {runs}"
     assert text.count("retry: empty provider response 1/1") == 1, text
+
+
+
+
+def _cancel(root: Path, stub: Path, marker: str):
+    """Run the wrapper on `stub`, SIGTERM it once `marker` is in its log, and
+    return (rc|None, seconds): rc None = still ALIVE, the cancel was
+    swallowed. The counter file of the stub (its respawn evidence) is left on
+    disk for the caller to read."""
+    proc = subprocess.Popen(
+        [PY, WRAPPER, "--wrapper", str(stub), str(root / "trajectory.jsonl"),
+         "--", "--mode", "json", "hello"], cwd=str(root),
+        stdout=(root / "output.log").open("wb"), stderr=subprocess.STDOUT)
+    for _ in range(80):                     # a backoff wide enough to land in
+        if marker in (root / "output.log").read_text(errors="replace"):
+            break
+        time.sleep(0.05)
+    t0 = time.time()
+    proc.send_signal(signal.SIGTERM)
+    try:
+        return proc.wait(timeout=2.0), time.time() - t0
+    except subprocess.TimeoutExpired:
+        return None, time.time() - t0
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait()
+
+
+def test_cancel_inside_the_backoff_dies_and_does_not_respawn(tmp_path):
+    """RED on the base: the SIGTERM forwarder outlived the child, so a cancel
+    landing in main's backoff was swallowed and the provider was RESPAWNED."""
+    root = _project(tmp_path, 2, 6.0)
+    stub, counter = _stub_pi(tmp_path, [[EMPTY]])
+    rc, secs = _cancel(root, stub, "retry: empty provider response")
+    runs = counter.read_text().splitlines() if counter.exists() else []
+    assert rc is not None and secs < 2.0, \
+        f"a cancelled round dies promptly, not parked in backoff: rc={rc}"
+    assert runs == ["run"], \
+        f"a cancelled round never respawns the provider, got {runs}"
+
+
+def test_cancel_while_pi_runs_is_still_forwarded(tmp_path):
+    """The forwarder keeps its job WHILE the child lives: the cancel reaches
+    pi and the wrapper dies promptly instead of waiting the run out."""
+    root = _project(tmp_path, 0, 0.05)
+    sleeper = tmp_path / "sleeper.py"
+    sleeper.write_text("#!/usr/bin/env python3\nimport time\nprint('{}',"
+                       " flush=True)\ntime.sleep(30)\n", encoding="utf-8")
+    sleeper.chmod(0o755)
+    rc, secs = _cancel(root, sleeper, "{}")
+    assert rc is not None and secs < 2.0, \
+        f"a live child's cancel is forwarded, not ignored: rc={rc} {secs:.1f}s"

@@ -58,7 +58,15 @@ def _retry_cells() -> tuple[int, float]:
 def _is_empty_response(raw: str) -> bool:
     """True for the provider's empty-response stop: stopReason=error whose
     errorMessage names an empty response (5 rounds died on exactly this in
-    EG.18-EG.20). Every OTHER error is False -- it ends the round as today."""
+    EG.18-EG.20). Every OTHER error is False -- it ends the round as today.
+
+    `raw` is whatever pi's PIPE yielded, so a BYTE line (pi's own plain-text
+    warning, e.g. an unknown-model notice) must decode, never raise: a
+    detector that crashes on a non-JSON line kills the very round it exists
+    to save (measured EG.30: TypeError -> the round died on line 1).
+    """
+    if isinstance(raw, (bytes, bytearray)):
+        raw = raw.decode("utf-8", "replace")
     try:
         ev = json.loads(raw)
     except Exception:
@@ -76,8 +84,13 @@ def _attempt(pi_bin, traj_path, pi_args) -> tuple[int, bool]:
     empty = False
     pi = subprocess.Popen([pi_bin, *pi_args], stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
-    for sig in (signal.SIGTERM, signal.SIGINT):
-        signal.signal(sig, lambda s, f, p=pi: p.send_signal(s))
+    # The forwarder lives exactly as long as the CHILD: past this scope it aims
+    # at a reaped pid, so a cancel landing in main's backoff sleep is swallowed
+    # and the round RESPAWNS the provider after dispatch gave up (measured
+    # EG.30). Restored below: between runs the wrapper's own SIGTERM is the
+    # default disposition -- die.
+    prev_handlers = {sig: signal.signal(sig, lambda s, f, p=pi: p.send_signal(s))
+                     for sig in (signal.SIGTERM, signal.SIGINT)}
     trajf, failed = None, False
     try:
         trajf = open(traj_path, "a", encoding="utf-8")
@@ -126,6 +139,8 @@ def _attempt(pi_bin, traj_path, pi_args) -> tuple[int, bool]:
             trajf = None
     if trajf is not None:
         trajf.close()
+    for sig, prev in prev_handlers.items():
+        signal.signal(sig, prev)
     return pi.wait(), empty
 
 
