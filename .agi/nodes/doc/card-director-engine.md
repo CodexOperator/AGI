@@ -49,7 +49,8 @@ EG.91     chain tip ffa9473a6 -> EG.119 MERGE-RESOLUTION round LIVE: parent a00-
 EG.89     M1 --force mechanism claim = EG.113 CC kid, unit placecc22 (after placecc20)
 EG.5      after EG.107 clears -> [merge-up] with the red DECLARED 'needs the cell, lands with belam' (TMM.326)
 MURS      RUNNING: murq209 = mur-eg-30 (EG.100 101 102 78 106) · murq211 = mur-eg-31 (EG.97, TMM.331 front) · murq210 = mur-eg-32 (EG.80 81)
-          · gmurq212 GATE-HELD -> murq212 = EG.87 (a71c05502..37a5a2f85) · a round added to a LAUNCHED mur's json is LOST (check is-active first)
+                    · murq212 = mur-eg-33 RUNNING (EG.87 a71c05502..37a5a2f85) · gmurq213 GATE-HELD -> murq213 = EG.94 (bfc310107..0e4e636a1)
+          · a round added to a LAUNCHED mur's json is LOST (check is-active first)
 MUR-EG-27b (murq196 ENDED 12:2xZ; files runs/mur-eg-27/*_EG.8x-k1.json):
 EG.84     CLOSED 0dff9ae50 (tip of loop a00-a76aaeee) -> MERGE NEXT: merge-tree vs post = config.json CONFLICT (union, as EG.72/EG.91) + brings
           extensions/agi/model_fence.py + 2 tests + .agi/context/conftest.py: run test_model_fence_* test_zero_usd_mint_floor provisioning dispatch
