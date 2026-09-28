@@ -101,7 +101,7 @@ THEN    per ended parent: harvest AT ONCE -> mur · per ended mur: triage -> cle
           gen2 EG.143 MURK=mur-eg-53 murq230.json 9f46d6359 EG.136-k1 + hand triage + a gate-only unit (the EG.102 chain stays HELD until clean)
         · EG.142 (a00-3cbd9016, the TMM.331 front) ENDED: 0 code commits; harvest landed 1 node (experiment a00-82ad1a56, no write-log actor)
           as 76f46d209, 416 passed -> read that node + the kid output.log (empty-response death?) -> redispatch2.sh EG.142 (cut e7db0b5c6)
-                · murq232 (EG.117) + murq231 (EG.108) ENDED untriaged -> D/verd.py 231 232
+                        · murq227 (EG.130) + murq231 (EG.108) + murq232 (EG.117) ENDED untriaged -> D/verd.py 227 231 232 · NO mur is running now
 NEVER   restart a q-unit without reading its log first · edit a RUNNING unit's script · start a watcher with a bare & (it never notifies)
 ```
 
