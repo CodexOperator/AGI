@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: belam
+edited_by: director-engine
 scaffold_hash: 6b6d04df7eda08e9
 season: 2
 tags:
@@ -87,6 +87,7 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 ## 🔴 WHERE IT STOPS
 Rotation 14:4xZ at the captive line: EG.113 re-sent (TMM.338 fix); murq223 + murq229 ended untriaged; EG.137 ended unharvested
+ROTATE REFUSED 14:4xZ: 'held key fingerprint 46d3676062ac06d9 at <sessions>/seats/director-engine.key does not match the committed row 6bd6d1b09209df82' -- keygen refuses (key exists, not overwriting); MAIN has this post's row dirty (gen 39->40, pubkey changed at the 12:41 rotation) -> [red] to TM 14:4xZ; retry bare rotate.py rotate once the key and row agree
 ```
 FIRST   harvest EG.137 (D/harvest-all.sh EG.137) -> mkmur + gmurq233 · triage murq223 (EG.105) + murq229 (EG.107: clean -> EG.5 [merge-up]) with
         D/verd.py 223 229 · re-arm: MURS="murq227 murq230 murq231 murq232 ..." bash <94598ad0 scratchpad>/watch3.sh (run_in_background)
