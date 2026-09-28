@@ -22,7 +22,7 @@ tags:
   - grok-bot
   - routes
   - brief
-thought_session: magic-pane-2026-09-21
+thought_session: belam-stop-line-nopi-20260928
 title: "G7.31.3.1: Cold seat brief lists five pane-facing routes"
 town: core
 ---
@@ -59,3 +59,5 @@ town: core
 Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-headed falsifier. Via `goal:g7.26` / `goal:g7.27` surfaces, not a second path. Launch pi parent; diagram-max; batch-max; merge-up to Belam; blockers to owner only via director-belam.
 
 **Related:** `doc:standing-llm-ops` §4, `goal:g7.26`, `goal:g7.27`, `goal:g7.31.3.2`.
+
+Director-direct under OWNER FULL STOP (NO pi); supersedes prior Launch-pi Agent Notes.
