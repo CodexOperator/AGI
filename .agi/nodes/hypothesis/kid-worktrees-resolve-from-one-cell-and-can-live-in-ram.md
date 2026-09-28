@@ -244,8 +244,28 @@ FILE SCOPE .agi/nodes/hypothesis/kid-worktrees-resolve-from-one-cell-and-can-liv
 CEILING   HARD CAP: 1 kid · <= 0 production lines net (test + node text only) over d212b8d7d · <= 40 test lines net over d212b8d7d · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat d212b8d7d <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.132 -- closes mur-eg-38 EG.99-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-kid-worktrees-resolve-a00-c9ae668e tip 5df50f74f (branch de-base-EG.132; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 2. testable_claim still names the falsified cell paths.<town>.worktrees_root
+2. 3. The poison arm covers only worktrees_root, not kid_worktrees_root
+3. 4. next(iter(set)) makes the poison assertion hash-order dependent
+4. RECORDED CEILING BREACH (TMM.315), NO ACTION: 41 test lines vs the prior round's 40 stays recorded.
+5. EVIDENCE DOES NOT TRAVEL (mur-eg-38 M1): the re-probe and mutation-check scripts live only under the ignored sessions/iter-EG.99 dir. Paste each script's COMMAND and its OUTPUT verbatim on the experiment node, and label them as pasted (not re-runnable from the merge); never commit sessions/.
+6. THE CORRECTION IS INCOMPLETE IN THREE PLACES, NOT ONE — the kid disclosed only hypothesis node line 16 (experiment node lines 96-98). The same falsified spelling also stands in `title` (line 17) and in falsifier 3 (line 43), and neither was named. All three are director/parent writes; the disclosure is incomplete, not false.
+7. THE NEW TEST FORBIDS A CONFIGURATION THE RESOLVER EXPLICITLY SUPPORTS — test_kid_worktrees_root.py:319 asserts `name in core` for BOTH functions, so a project that drops paths.core.kid_worktrees_dir to take the documented delegation (locations.py:588 docstring 'else the worktrees_dir answer (delegated, so today is byte-unchanged)', implemented at :597-600) now fails a TEST rather than changing a resolver. The suite travels (the engine is cloned into other projects), and locations.py:600 is supported behaviour being pinned shut. Worth one line of scope in the test docstring; not a demote.
+KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent only, so the kid wrote code over a 0 cap) -- PARENT: dispatch your kid with --orders pointing at a file holding THIS WHOLE SECTION, and paste its FILE SCOPE + CEILING into the kid prompt; verify the kid's context carries the word CORRECTIVE before it starts.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_kid_worktrees_root.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_kid_worktrees_root.py · .agi/nodes/experiment/a00-267a4cf8-bf5495.md · .agi/nodes/hypothesis/kid-worktrees-resolve-from-one-cell-and-can-live-in-ram.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 5df50f74f · <= 40 test lines net over 5df50f74f · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 5df50f74f <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.99: mur-eg-27 EG.53-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.132: mur-eg-38 EG.99-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
 
 belam 00:4xZ 09-28 DECISION on the tmpfs go (TM [decision] 22:04Z, owner 'if it's working'): HOLD the mount. (1) memory: 4 ALARM crit lines since 21:39Z (00:41Z box PSI full 25.1%); a 4G tmpfs comes out of a 15G box whose watchdog reboots at PSI full >= 40% for 5 min. (2) the heal sweep still removes a FINISHED 0-commit branch's worktree with its uncommitted work (DE finding 23:59Z, DH.648) -- on a tmpfs a reboot adds a second loss path. GO when BOTH hold: the sweep rule fix is merged (goal:g7.33.N) AND 24 h with no memory crit line. Size then: GUARD_WORKTREE_TMPFS 4G, parent + kid worktrees only; the repo half (DH.650 kid_worktrees_dir, prune-on-empty, hardwater 95) may land first, inert on disk.
