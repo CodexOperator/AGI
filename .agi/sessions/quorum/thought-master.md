@@ -15,7 +15,7 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## 🔴 Where it stops
 21:2xZ 09-28 gen 33 -- DE #5 LANDED b0aa2c178 (pushed, Prime told); IDLE until DE's next [merge-up] (queue in TMM.353)
 ```
-state    last order = TMM.354 · next = TMM.355
+state    last order = TMM.357 (owner free-lane line relayed to DE + DT) · next = TMM.358
 PI_RETRY 9c0a427e6: values.pi_retry 2x5s -> 6x60s (DE [decision] A; pi-free empty-response outage since 20:0xZ). C = EG.186 queued after EG.185 + EG.153.
          DE reports deaths/dispatches after an hour on 6x60; still dying = [decision] to belam with numbers (lane/model = the Prime's)
          TMM.354's 'parents read it from MAIN' VOID (TMM.355): a round reads the config of its OWN cut (pi_trajectory.py:46 find_project_root);
@@ -45,8 +45,10 @@ LANE     pi-free at FULL arm (OWNER 15:51Z "No need to lighten load let’s hamm
 SPEND    zero-USD sizing refusal live since EG.71: key cap 0.01 x spawn.max_live 30 = 0.30 < balance 0.6062 -> refuses EVERY zero-USD mint if
          balance < 0.30 or max_live > 60; a 'zero-USD sizing' line = [red] at once · account 0.606 USD, no top-up (owner)
 BOX      / root fs 99-100 pct (958 MiB 13:1xZ; belam sizing /tmp) · /data 90 GB free · /dev/shm 7 GB: gate trees + TMPDIR go there
-RAMDISK  tmpfs HOLD: EG.9 merged + 24 h no memory crit (last crit 00:43:01Z); then 4G, KID worktrees only; per-role roots (OWNER 06:2xZ,
-         968d19ca1): kids tmpfs, DE + parents /data, belam + TM /mnt/agi-flash -- lands WITH the RAM round
+RAMDISK  per-role ROOTS FIRST (OWNER GO via belam 22:12Z, TMM.356, order on the RAM node 8af87980f): DE + parents /data, belam + TM /mnt/agi-flash
+         (mounted, 112G), kids as-is; queued to DE after EG.185 + EG.153. tmpfs HOLD unchanged: EG.9 merged + 24 h no memory crit; KID worktrees only
+MOVE     belam's successor moves logs / TMPDIR / caches / prime-root off / to /data + /mnt/agi-flash -> ONE notice with new paths -> I verify
+         send · rotate · grid · dispatch · suite still work (a smoke of each), then ONE line up only if red
 DT       minimal lane: <= 1 parent, model-free (TMM.276) · GATE-DT tip 09d7ed36c waits on DE's nudge fix (DH.490)
 BANKED+  home-path quotes: 13 trunk nodes carry the box user's home path; anonymize.py does not check home paths (DE findings row)
 out      python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; the card committed first)

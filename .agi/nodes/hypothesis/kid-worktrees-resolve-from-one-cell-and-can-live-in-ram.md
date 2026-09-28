@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.31.3.3
 next_edges: []
-edited_by: director-engine
+edited_by: thought-master
 scaffold_hash: 99f721ebee0a9eb8
 season: 2
 testable_claim: prune clean non-live kid worktrees; spawn reads paths.<town>.worktrees_root via locations.py (no literal at dispatch.py:754); guard.env GUARD_WORKTREE_TMPFS_<host>=4G mounted and charged to user@; post worktrees stay on disk; worktree prune on reboot
@@ -297,6 +297,8 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective EG.178: mur-eg-x1553709-5782f0 EG.159-k1 residues batched into one corrective (orders above, generated from the verdict files).
+
+OWNER 21:0xZ 09-28 to belam, verbatim: "Otherwise yes let them know hopefully the free lane should have more use now" -- relayed by belam 22:12Z with the OWNER GO (split, belam), verbatim: "per-role worktree roots go AHEAD of the tmpfs step (no RAM cost): kids stay as-is until tmpfs; DE + parents /data; belam + TM /mnt/agi-flash, mount check first. The tmpfs step keeps its TMM.313 gate." This version adds the order that re-sequences the round: roots before RAM.
 <!-- THOUGHT:END -->
 
 belam 00:4xZ 09-28 DECISION on the tmpfs go (TM [decision] 22:04Z, owner 'if it's working'): HOLD the mount. (1) memory: 4 ALARM crit lines since 21:39Z (00:41Z box PSI full 25.1%); a 4G tmpfs comes out of a 15G box whose watchdog reboots at PSI full >= 40% for 5 min. (2) the heal sweep still removes a FINISHED 0-commit branch's worktree with its uncommitted work (DE finding 23:59Z, DH.648) -- on a tmpfs a reboot adds a second loss path. GO when BOTH hold: the sweep rule fix is merged (goal:g7.33.N) AND 24 h with no memory crit line. Size then: GUARD_WORKTREE_TMPFS 4G, parent + kid worktrees only; the repo half (DH.650 kid_worktrees_dir, prune-on-empty, hardwater 95) may land first, inert on disk.
@@ -306,3 +308,5 @@ belam 03:4xZ 09-28 DECISION on TM [rule] 02:26Z: shape (a) -- KID worktrees only
 belam [decision] 03:4xZ 09-28 (TMM.319, binding; supersedes the size line above): the RAM disk holds KID worktrees ONLY; PARENT worktrees stay on disk. HOLD unchanged: the heal-sweep 0-commit fix (EG.9 chain) MERGED + 24 h with no memory crit line (last crit 00:43:01Z). The RAM round's brief says kids only (EG.18 item 7 routes PARENT to disk).
 
 OWNER 06:2xZ 09-28 to belam, verbatim: "Go ahead and do 1. For 2: We can add it as part of the harvesting skill in the meantime instead and let the other thing (the reaper pruning worktrees for us) land as part of the ram worktrees? Running the kid worktree pruning tool I mean. Otherwise yes set the other worktrees as we discussed as part of the ram tree work, TM and you on the stick, DE and parents on /data. If object store is already in ram by default using git code just leave it." -- as discussed (belam 06:1xZ): per-ROLE worktree roots, not one cell: kids -> the tmpfs (claim 3), director-engine + parents -> /data, belam (prime-root + pass scratch) + thought-master (gate trees + suite runs; TM works in MAIN) -> /mnt/agi-flash (SanDisk USB, ext4, own io queue); a mountpoint check before any write (an unplugged stick would drop writes into the empty mount dir on / at 93% full); flash worktrees git-worktree-locked so a prune never drops them; nobody writes /. Object store: LEFT (measured 06:1xZ: pack 77.6 MiB 93.7% in page cache). Reaper eviction (conjunct 5) lands WITH the RAM-worktree round; meanwhile the kid-worktree prune/sweep tool runs at every round harvest (skill row). belam does the one-shot clean prune (1) after PASS 12 merges.
+
+thought-master [decision] 22:1xZ 09-28 (TMM.356, relaying the Prime's OWNER GO split, 22:12Z): the PER-ROLE WORKTREE ROOTS step goes AHEAD of the tmpfs step (no RAM cost) -- kids stay where they are until tmpfs; director-engine + parent worktrees on /data; belam + thought-master roots on /mnt/agi-flash (mountpoint checked 22:1xZ: mounted, 112G free). config-max: each root is a paths.<town>.* cell resolved by locations.py, never a literal; a mount check before any root on /mnt/agi-flash is used, refusing (not falling back) when it is not a mountpoint. The tmpfs step keeps its TMM.313 / TMM.319 gate unchanged (EG.9 merged + 24 h with no memory crit; KID worktrees only). Queued to director-engine behind EG.185 and EG.153.
