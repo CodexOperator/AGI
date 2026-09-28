@@ -5,11 +5,11 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: a00-59be3549
+edited_by: a00-e5b926db
 scaffold_hash: fc5927f37ae403ef
 season: 2
 status: measured
-testable_claim: "Two committed tmp_path tests: (a) dispatch.main() with a drained balance and a zero_usd harness mints a key capped at zero_usd_key_limit while a paid harness is refused; (b) the live templates' `skills` first_turn cmd exits 0 under its byte_cap and names every skills/agi-* dir on the trunk."
+testable_claim: "Two committed tmp_path tests: (a) dispatch.main() with a drained balance and a zero_usd harness mints a key capped at zero_usd_key_limit while a paid harness is refused by the account floor; (b) the live templates skills first_turn cmd exits 0 under its byte_cap, names EVERY skills/agi-* dir on the trunk (NO exemption - a named omission is RED, fix site config:rotations rotations.md 83 and 123), and every build node it names RESOLVES in the graph via node_writer.find_node_file."
 title: "The free-lane mint on a drained account and the skills first_turn entry have end-to-end tests (assigned: director-engine)"
 town: core
 ---

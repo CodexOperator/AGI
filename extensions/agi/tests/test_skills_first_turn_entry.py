@@ -14,13 +14,15 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[3]
 ROTATIONS = REPO / ".agi" / "nodes" / ".geometry" / "rotations.md"
 sys.path.insert(0, str(REPO / "extensions" / "agi" / "src"))
+sys.path.insert(0, str(REPO / "extensions" / "agi" / "bin"))
 
-# The live entry omits exactly one agi-* skill dir, and the config:rotations
-# reason for it (09-27 NEAR MISS, "until the node reaches the trunk") is now
-# FALSE -- skill and build node are both on the trunk. The assertion below
-# TOLERATES the omission rather than pinning it, so adding the clause turns
-# this suite GREEN with no test edit; drop the set once it is named.
-OMITTED_DEFECT = {"agi-corrective"}
+# NO OMITTED_DEFECT EXEMPTION. The `agi-corrective` clause was once carried
+# "until its build node reaches the trunk" (config:rotations why text, 09-27
+# NEAR MISS); `build:skills-agi-corrective-SKILL.md` HAS been on the trunk
+# since, so the exemption's own expiry condition is met and the suite is RED
+# on purpose until the clause is added at the fix site -- rotations.md:83 and
+# rotations.md:123 (`id: config:rotations`), which is OUTSIDE this suite's
+# scope. A human TODO cannot be re-deleted silently; this can.
 
 def _skills_entries() -> list[tuple[str, dict]]:
     from graph_core.persistence import frontmatter as _fm
@@ -57,15 +59,33 @@ def test_the_skills_entry_runs_under_its_own_byte_cap():
 
 def test_the_skills_entry_names_every_skill_dir_on_the_trunk():
     """BOTH directions, or a `;`-chained clause is unchecked: a dir the entry
-    omits (beyond the declared omission) is red, and so is a clause naming a
-    REMOVED dir -- the last clause's rc never proved that."""
+    omits is red, and so is a clause naming a REMOVED dir -- the last
+    clause's rc never proved that."""
     for role, entry in _skills_entries():
         named = set(re.findall(r"build:skills-(\S+?)-SKILL\.md", entry["cmd"]))
         present = {d.name for d in (REPO / "skills").iterdir()
                    if d.is_dir() and d.name.startswith("agi")}
-        assert not (present - named) - OMITTED_DEFECT, (
+        assert not (present - named), (
             f"{role}: the skills entry omits {sorted(present - named)}; every "
-            "agi-* skill dir on the trunk must be named")
+            "agi-* skill dir on the trunk must be named. Fix site: "
+            f"{ROTATIONS.relative_to(REPO)}:83,123 (config:rotations)")
         assert not named - present, (
             f"{role}: the skills entry names {sorted(named - present)}, absent "
             "from the trunk -- a dead clause in the `;`-chained cmd")
+
+
+def test_every_build_node_the_cmd_names_resolves_in_the_graph():
+    """/bin/sh -c returns the LAST clause's rc, so a clause naming a RENAMED
+    or REMOVED build node fails while the suite stays green -- a dead clause
+    is invisible. Ask the one resolver write.py itself uses
+    (node_writer.find_node_file, extensions/agi/bin/node_writer.py:185)."""
+    import node_writer
+    for role, entry in _skills_entries():
+        named = re.findall(r"(build:\S+?\.md)", entry["cmd"])
+        assert named, f"{role}: the skills entry names no build node at all"
+        dead = [n for n in sorted(set(named))
+                if node_writer.find_node_file(REPO / ".agi", n) is None]
+        assert not dead, (
+            f"{role}: the skills cmd names build nodes {dead} which do not "
+            "RESOLVE in the graph -- a dead mid-chain clause: /bin/sh -c "
+            "returns only the last clause's rc, so this clause fails SILENTLY")
