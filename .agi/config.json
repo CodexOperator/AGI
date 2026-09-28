@@ -293,6 +293,10 @@
     }
   },
   "values": {
+    "pi_retry": {
+      "empty_response_max_retries": 7,
+      "empty_response_backoff_s": 0.01
+    },
     "boxkit": {
       "user_high_ratio": 0.9,
       "swap_ratio": 0.5,
