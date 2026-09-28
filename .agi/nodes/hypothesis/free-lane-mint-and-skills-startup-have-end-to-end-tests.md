@@ -57,6 +57,26 @@ FILE SCOPE extensions/agi/tests/test_free_lane_dispatch_main.py · extensions/ag
 CEILING   HARD CAP: 1 kid · 0 production lines net over a71c05502 · test lines net <= 0 over a71c05502 (the round is already +221 vs its 120 cap: every fix is paid for by cutting duplicated setup) · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat a71c05502 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.124 -- closes mur-eg-33 EG.87-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-free-lane-mint-and-sk-a00-befd213e tip 37a5a2f85 (branch de-base-EG.124; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. OUTSIDE, INFORMATION ONLY: the live skills first_turn entry (config:rotations, .agi/nodes/.geometry/rotations.md) omits agi-corrective; that cell is belam's/thought-master's and the director has banked it for them -- NEVER edit rotations.md. Keep OMITTED_DEFECT; item 4 makes it self-expiring.
+2. 2. Hypothesis testable_claim (b) still asserts 'names every skills/agi-* dir on the trunk' while the shipped test exempts one dir
+3. 4. The rc check cannot see a dead mid-chain clause (rc comes from the last clause; the regex only matches skills DIRS) - false negative on a renamed/removed build node
+4. 5. OMITTED_DEFECT has no staleness assertion (test_skills_first_turn_entry.py:23) - a manual TODO, so a later re-deletion of the clause is invisible
+5. RECORDED CEILING BREACH (TMM.315), NO ACTION: 221 test lines vs the prior brief's cap 120 stays a recorded residue -- never delete test lines to meet it.
+6. experiment:81 names `.agi/context/config.json` as the file holding the live skills first_turn clause. That file DOES NOT EXIST (`ls .agi/context/config.json` -> No such file or directory). The real cell is `.agi/nodes/.geometry/rotations.md` (frontmatter id `config:rotations`), lines 83 and 123. Only the address on the same line rescues a fixer; a fixer who follows the named path lands nowhere, and the residue the round hands the merge-up (item 1's fix site) is mis-pointed. Mechanism, not wording: `ls` plus rotations.md:2 `id: config:rotations`.
+7. The mutation proof is only half re-runnable and the first reviewer treated it as settled. experiment:55 claims 'On the tip bytes that same mutation is GREEN (3 passed)' - confirming it requires editing provisioning.py, which a reviewer may not do. UNVERIFIED-BY-RUN, mechanism-confirmed instead: the cut fixture wrote `"zero_usd_key_limit_usd": 0.01` (a71c05502:test_free_lane_dispatch_main.py:34) and the mint site reads `if zero_usd: limit_usd = zero_usd_key_limit(root)` (provisioning.py:874), so a literal 0.01 at that site is indistinguishable from the cell. Probe I would run and did NOT: copy the tip tree, replace line 874 with `limit_usd = DEFAULT_ZERO_USD_KEY_LIMIT_USD # MUTANT`, run the two files, `cmp` the restore.
+KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent only, so the kid wrote code over a 0 cap) -- PARENT: dispatch your kid with --orders pointing at a file holding THIS WHOLE SECTION, and paste its FILE SCOPE + CEILING into the kid prompt; verify the kid's context carries the word CORRECTIVE before it starts.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_free_lane_dispatch_main.py test_skills_first_turn_entry.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_free_lane_dispatch_main.py · extensions/agi/tests/test_skills_first_turn_entry.py · .agi/nodes/experiment/a00-59be3549-a3443e.md · .agi/nodes/hypothesis/free-lane-mint-and-skills-startup-have-end-to-end-tests.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 37a5a2f85 · <= 40 test lines net over 37a5a2f85 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 37a5a2f85 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.87: mur-eg-23 DH.674 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.124: mur-eg-33 EG.87-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
