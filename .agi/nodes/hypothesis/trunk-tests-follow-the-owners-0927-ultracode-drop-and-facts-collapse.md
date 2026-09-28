@@ -173,6 +173,19 @@ FILE SCOPE extensions/agi/tests/test_sensei_wake_audit.py · .agi/nodes/experime
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 9b2e53f16 · <= 40 test lines net over 9b2e53f16 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 9b2e53f16 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.56 -- closes mur-eg-17 EG.35-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-trunk-tests-follow-th-a00-baffc89c tip d7eaa2e9e (branch de-base-EG.56; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Repaired assert message cites :963, a comment line, not the assert; extensions/agi/tests/test_sensei_wake_audit.py:1008 — the assert is at :969 after the docstring hunk added 6 net lines
+2. MIS-4 (the one machine-readable record that repeats the stale citation): a00-743d7fdd-2fbd37.md:17 is a `probes:` frontmatter row — the shape the evidence gate counts, {conjunct, class, cmd, expected, observed, result} — that records conjunct 3 as `result: falsified` on the observation 'the mangled trailing comment is absent from the bytes and the message now names :963'. A gate-counted probe row therefore asserts a citation the bytes contradict (the assert is at :969). The same one-range fix that repairs defect 1 repairs this; left as is, the graph's machine-readable evidence disagrees with the graph's bytes.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_sensei_wake_audit.py + test_bin_help_smoke.py once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT (TMM.322)); TEXT-ONLY round: an assert MESSAGE string and a frontmatter citation, no assert logic changes
+FILE SCOPE extensions/agi/tests/test_sensei_wake_audit.py (the assert message string at ~:1008 ONLY) · .agi/nodes/experiment/a00-743d7fdd-2fbd37.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · <= 2 test lines (message text only) · text only · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat d7eaa2e9e <your final tip>` on your node (an empty range is not a measurement)
+KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.35: mur-eg-11 DH.664-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.56: mur-eg-17 EG.35-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
