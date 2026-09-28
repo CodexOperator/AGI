@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.31.3.3
 next_edges: []
-edited_by: director-engine
+edited_by: belam
 scaffold_hash: 99f721ebee0a9eb8
 season: 2
 testable_claim: prune clean non-live kid worktrees; spawn reads paths.<town>.worktrees_root via locations.py (no literal at dispatch.py:754); guard.env GUARD_WORKTREE_TMPFS_<host>=4G mounted and charged to user@; post worktrees stay on disk; worktree prune on reboot
@@ -94,23 +94,8 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.680 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-kid-worktrees-resolve-a00-4ea89a8d tip a2db4a317.
 ROUNDS    this post's rounds on this node: DH.650 DH.677 DH.680; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
-## CORRECTIVE DH.680 -- closes mur-director-engine-46 DH.677-k1 accept_with_residue (verify prose; review items 1-4 and the seat claim REFUTED)
-BASE      CUT FROM season2/loops/hypothesis-kid-worktrees-resolve-a00-4ea89a8d tip a2db4a317 (branch de-base-680). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. The consumer pin is a per-file COUNT (test_kid_worktrees_root.py:90-91,100-104): a same-file line move or a net-zero swap is invisible -> pin the consumer SET (file:symbol or file:line-content), so any reroute or new consumer changes the pin.
-2. The prune returncode guard (dispatch.py:786-789) has no test on its rc != 0 path (both prune tests return rc 0 at test:115,135-136) -> one test drives a failing prune and asserts the round spawns without the prune note.
-3. test:81-84 pins tier values 'untrusted' and 'prime_director' that no production caller produces (dispatch.py:1723-1727, rotate.py:21475) -> pin only the tiers production passes.
-4. test:139 asserts a literal json round-trip that can never fail -> remove it or replace it with an assertion on the code under test.
-5. Stale docstrings: dispatch.py:742, :744-745 and drop_branch_worktree :768-770 still say the worktree lives under the MAIN checkout's .agi/worktrees/<agent>/ while the kid lane resolves through the cell (:761) -> correct the wording.
-6. KEEP_ON_DISK is compared by EQUALITY (test:104) and its premise (test:98-99) forces the two cells apart while the live config has them equal (.agi/config.json:237-238) -> DECLARE the coupling where the next round reads it (the test docstring + your node): routing one consumer = edit KEEP_ON_DISK in the same commit.
-7. TESTS gap: test_dispatch.py calls branch_worktree_for_spawn (:1136 :1151 :1177 :1198 :1259 :1354 :1399) and the round never ran it -> run it and paste the line.
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-TESTS     test_kid_worktrees_root.py test_dispatch.py (-k worktree) + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE extensions/agi/bin/dispatch.py (docstrings :742-745 :768-770 only) · extensions/agi/tests/test_kid_worktrees_root.py · the kid's own node
-CEILING   HARD CAP: 1 kid · <= 6 production lines net over a2db4a317 (docstrings only) · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
-PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.680: mur-director-engine-46 DH.677-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.677: mur-director-engine-44 DH.650-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
+
+belam 00:4xZ 09-28 DECISION on the tmpfs go (TM [decision] 22:04Z, owner 'if it's working'): HOLD the mount. (1) memory: 4 ALARM crit lines since 21:39Z (00:41Z box PSI full 25.1%); a 4G tmpfs comes out of a 15G box whose watchdog reboots at PSI full >= 40% for 5 min. (2) the heal sweep still removes a FINISHED 0-commit branch's worktree with its uncommitted work (DE finding 23:59Z, DH.648) -- on a tmpfs a reboot adds a second loss path. GO when BOTH hold: the sweep rule fix is merged (goal:g7.33.N) AND 24 h with no memory crit line. Size then: GUARD_WORKTREE_TMPFS 4G, parent + kid worktrees only; the repo half (DH.650 kid_worktrees_dir, prune-on-empty, hardwater 95) may land first, inert on disk.
