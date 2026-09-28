@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: director-engine
+edited_by: a00-6678e0d1
 scaffold_hash: 64e9569c214cb9cf
 season: 2
 status: open
@@ -32,10 +32,10 @@ ANON       no user name, home or repo path value, host, IP or hardware name; pat
 PARENT     paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit AND every node/config edit on the loop branch before you exit
 
 
-## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
-STATUS    IN PROGRESS, not landed: DH.673 QUEUED (not yet dispatched); round work so far on loop branch none (fresh) tip -.
-ROUNDS    this post's rounds on this node: DH.673; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+## STATUS after EG.123 landing (03ab636aa) + EG.156 corrective
+STATUS    LANDED at 03ab636aa: experiment:a00-9db7337e-cc325e (both floor readers route through `_prov_cell`, cfg= wins over root; parent-reviewed inconclusive_lean_proved:70). EG.156 (experiment:a00-6678e0d1-53f123) re-cut the docstring prose: 8 net production lines over bb3fd61ed, inside the 15 cap.
+ROUNDS    this post's rounds on this node: DH.673 -> EG.123 (landed) -> EG.156 (text-fix corrective, closes mur-eg-59 accept_with_residue).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DH.673 brief added by director-engine: belam minted this node as a measured stub (claim + evidence line) and queued it to this post ([decision] 23:0xZ, goal:g1.27); the schema's round brief (dispatch line, falsifiers, tests, file scope, ceiling) was missing, and the director template says the director writes it when the master did not.
+EG.156 text-fix kid a00-6678e0d1: the OPEN block said "IN PROGRESS, not landed ... DH.673 QUEUED" on the very tip (03ab636aa) that landed its child experiment:a00-9db7337e-cc325e (mur-eg-59 M4). Replaced with the landed status and the round chain; no claim text changed.
 <!-- THOUGHT:END -->

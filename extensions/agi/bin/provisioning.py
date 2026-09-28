@@ -199,15 +199,7 @@ def credit_balance(root: Path | str | None = None) -> tuple[float, float, float]
 
 
 def _prov_cell(root, name: str, default: float, cfg: dict | None = None) -> float:
-    """One `provisioning.<name>` dollar cell from the project config.
-
-    ONE resolver for every dollar cell in this module
-    (hypothesis:provisioning-reads-its-cells-through-one-import-route).
-    `cfg` is a PRE-LOADED config held by a caller that already has one; it
-    WINS over `root`, so routing a pre-loaded caller through here can never
-    downgrade a configured value to the default. `root=None` with no `cfg` is
-    the "no project" answer and yields the default.
-    """
+    """One `provisioning.<name>` dollar cell; a pre-loaded `cfg` wins over `root`."""
     if cfg is not None:
         try:
             val = (cfg.get("provisioning") or {}).get(name, default)
