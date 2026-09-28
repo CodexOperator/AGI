@@ -88,7 +88,8 @@ def _ended_on_empty(raw) -> bool | None:
     `turn_end` and NOTHING ELSE decides. A `message_end` ends a MESSAGE: every
     toolResult emits one, so keying on it let a toolResult's message_end answer
     False and MASK an empty=True already set by the turn_end before it -- the
-    empty last turn went unretried. A message_end that does carry an empty stop
+    empty last turn would have gone unretried. LATENT, not live: no production
+    log orders a message_end after its turn_end. A message_end with an empty stop
     is still caught, by _is_empty_response, which raises the flag between
     turns."""
     try:
