@@ -13,7 +13,10 @@ heading_level: 5
 origin: goals-doc
 scaffold_hash: 67eb4b9e47d1ff69
 season: 2
-seeds: []
+seeds:
+  - goal:g7.31.1.2.1
+  - goal:g7.31.1.2.2
+  - goal:g7.31.1.2.3
 status: active
 tags:
   - goal
@@ -23,7 +26,7 @@ tags:
   - adapter
   - tmux
   - pane
-thought_session: magic-pane-2026-09-21
+thought_session: belam-stop-line-nopi-20260928
 title: "G7.31.1.2: Durable named tmux pane restart/reattach hold"
 town: core
 ---
@@ -61,3 +64,11 @@ town: core
 Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-headed falsifier. Launch pi parent; diagram-max; batch-max; merge-up to Belam; blockers to owner only via director-belam.
 
 **Related:** `goal:g7.28`, `goal:g7.31.1.1`.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+wire seeds to existing MUR-demote kids .1/.2/.3; bodies fleshed format-worthy director-direct NO-pi 2026-09-28
+<!-- THOUGHT:END -->
+
+MUR-demote kids .1–.3 fleshed to format; seeds wired; director-direct NO-pi (OWNER FULL STOP supersedes ACTIVE⇒SPAWN).
+
+MUR-demote kids .1-.3 fleshed to format; seeds wired; director-direct NO-pi (OWNER FULL STOP supersedes ACTIVE=>SPAWN).

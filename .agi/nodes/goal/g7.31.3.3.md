@@ -6,20 +6,25 @@ parents:
   - goal:g7.31.3
 next_edges: []
 confidence: 0.7
-edited_by: belam
+edited_by: director-belam
 goal_id: G7.31.3.3
 goal_kind: subgoal
 heading_level: 5
 origin: goals-doc
 scaffold_hash: d179db52abe5b582
 season: 2
-seeds: []
+seeds:
+  - goal:g7.31.3.3.1
+  - goal:g7.31.3.3.2
+  - goal:g7.31.3.3.3
+  - goal:g7.31.3.3.4
+  - goal:g7.31.3.3.5
 status: active
 tags:
   - engine
   - spawn
   - rotate
-thought_session: belam-S2-L5-XI
+thought_session: belam-stop-line-nopi-20260928
 title: "G7.31.3.3: SPAWN AND ROTATE ARE ONE GRAPH WRITE -- parent slots pre-set under each post in .geometry, kid rows dynamic under their parent slot, rotate a spawn option (needs-rotate: true), the reaper/heal loop carries out what the graph says (assigned: director-engine)"
 town: core
 ---
@@ -54,5 +59,10 @@ Unify spawn and rotate as graph writes. Parents become rows under the post that 
 assigned: director-engine. THIRD of the three graph redesigns, after node spawn/mint (goal:g4.18.1) and the send hub-only work (OWNER 01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): refinement 3's refusal rides send's reply route.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-2026-09-27 03:2xZ belam-S2-L5-XII: an Invariants section -- the guard by placement. (1) Owner 03:2xZ: 'Will the guard work with the new spawn/rotate unified redesign?' (2) The guard caps by cgroup placement (guard-init.sh:295-305, the agi-.service.d drop-in Slice=agi-work.slice); measured seats in session-73.scope outside user@1000. (3) Near miss: one route that is the tmux route unifies the protection DOWN. (4) Previous thought (routing third in the owner's dependency order) is in the grid.
+nest five format-worthy owner-design residues .1-.5; director-direct NO-pi; do not open g7.31.6
 <!-- THOUGHT:END -->
+
+## Agent Notes
+Nested .1–.5 (slots/runtime/AGI_BOX/refusal-reply/write-gate); stays under g7.31.3 stop-line.
+
+Nested .1-.5 (slots/runtime/AGI_BOX/refusal-reply/write-gate); stays under g7.31.3 stop-line.
