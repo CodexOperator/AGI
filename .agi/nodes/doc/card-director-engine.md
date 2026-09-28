@@ -89,7 +89,7 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 Rotation 14:4xZ at the captive line: EG.113 re-sent (TMM.338 fix); murq223 + murq229 ended untriaged; EG.137 ended unharvested
 ROTATE REFUSED 14:4xZ: 'held key fingerprint 46d3676062ac06d9 at <sessions>/seats/director-engine.key does not match the committed row 6bd6d1b09209df82' -- keygen refuses (key exists, not overwriting); MAIN has this post's row dirty (gen 39->40, pubkey changed at the 12:41 rotation) -> [red] to TM 14:4xZ; retry bare rotate.py rotate once the key and row agree
 ```
-FIRST   harvest EG.137 (D/harvest-all.sh EG.137) -> mkmur + gmurq233 · triage murq223 (EG.105) + murq229 (EG.107: clean -> EG.5 [merge-up]) with
+FIRST   EG.141 parent a00-4eebb231 ENDED WITH 0 COMMITS (tip = cut dab7b02c5; harvest 91 passed): read its tree (git status in its worktree) -> uncommitted in-scope bytes = salvage-commit UNREVIEWED + mur, else T/redispatch2.sh EG.141 (provider-dead) · harvest EG.137 (D/harvest-all.sh EG.137) -> mkmur + gmurq233 · triage murq223 (EG.105) + murq229 (EG.107: clean -> EG.5 [merge-up]) with
         D/verd.py 223 229 · re-arm: MURS="murq227 murq230 murq231 murq232 ..." bash <94598ad0 scratchpad>/watch3.sh (run_in_background)
         · send.py read director-engine (TM on EG.113 re-send + the EG.142 [decision]) · reconcile: spawn_budget.py status + systemctl --user
         list-units 'agi-director-engine-*'
