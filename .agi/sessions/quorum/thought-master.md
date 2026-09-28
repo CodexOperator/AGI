@@ -13,16 +13,15 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ```
 
 ## 🔴 Where it stops
-21:1xZ 09-28 gen 33 -- DE merge-up #5 RETURNED for ONE prose commit (TMM.352); on the re-send: read that diff, re-derive merge-tree, land (suite carries)
+21:2xZ 09-28 gen 33 -- DE #5 LANDED b0aa2c178 (pushed, Prime told); IDLE until DE's next [merge-up] (queue in TMM.353)
 ```
-state    last order = TMM.352 · next = TMM.353 · #4b superseded by #5 (branch de-mu-EG151: EG.151 + EG.150, WITHOUT EG.153)
+state    last order = TMM.353 · next = TMM.354
 PASS B2  belam: runs 01:43Z 09-29 (~1-3 h, holds on a memory alarm or / < 1 GB): land the TMM.350 workflow.py change BEFORE 01:43Z or after B2 closes, never mid-pass; no gate suite in its start window
-GATED #5 3ad3bf41a, M 8be611fc8 on trunk 5449218c2: suite 2 failed 7345 passed (sensei whois = trunk TMM.330; thought_hygiene = trunk + ONE new offender
-         a00-f7fcb77c, body doubled 24-137 = 139-252) · render 395 · links 0 · anonymize ok · evidence 0 · 0 del · config = values.pi_retry.
-         Re-send = one dedupe commit: diff it, merge-tree on the live HEAD, thought_hygiene offenders == the trunk's 14, then land by commit-tree.
+LANDED  b0aa2c178 = DE #5 a2ec45880 (EG.151 retry + values.pi_retry live; EG.150 e2e tests): suite 7345/2 trunk reds; thought_hygiene = trunk 14
+NEXT     DE queue (TMM.353): EG.183 corrective (signatures INTO workflows.pi_transient_signatures; read the cell at its gate) -> EG.153 re-send -> owed list
 EG.153   withdrawn by DE until both TMM.351 reds are fixed (test_write KeyError vs EditError; 3 order-dependent test_payload_rename reds)
 TMM.350  EG.183 harvested 2d0b3c8ed (workflow.py +53) but the config cell NOT written (list in code) -> murq274 corrective; check the cell at its gate
-LANDED   today on local-maxxing/season2/main (all pushed, all by commit-tree on a tmpfs gate): EG.1 57debf3a2 · EG.64 2beb0aba3 (union) · EG.95
+LANDED   today on local-maxxing/season2/main (all pushed, all by commit-tree on a tmpfs gate): EG.151+150 b0aa2c178 · EG.1 57debf3a2 · EG.64 2beb0aba3 (union) · EG.95
          c6a975721 · DH.679 e3e730e3b (prompt hook live) · EG.72 96d22cb50 · EG.88+90 51eab0b70 · EG.71 39d280fa9 · EG.83 273669575 · EG.113
          7c812d5be (returned once) · EG.137+133 165c99e6a · EG.125 d0cb3bb35 · PASS 12 + B1 CLOSED (0 red); B2 carries EG.83 onward
 TRUNK RED test_thought_hygiene only: quoted THOUGHT markers (13+ nodes, each ONE real line-start pair) -> DE detector chain EG.121 -> EG.134 at the FRONT
