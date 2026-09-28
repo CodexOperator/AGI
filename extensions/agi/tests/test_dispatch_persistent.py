@@ -1,4 +1,4 @@
-"""goal:g7.28.1 + goal:g7.28.1.2 (hypothesis:a00-c3a24084-4190b2).
+"""goal:g7.28.1 + goal:g7.28.1.2 + goal:g7.28.2 (hypothesis:a00-c3a24084-4190b2).
 
 A `--persistent` dispatch HOLDS its seat and, when the child dies, re-opens
 it through the SAME `_open_round` seam -- hence the SAME rendered
@@ -8,6 +8,11 @@ record shows the occupation (persistent / live pid / restart_count).
 goal:g7.28.1.2 — after start AND after each supervised restart, the
 seats/posts registry row for `--seat` shows occupied with the live
 pid/session pin (not only agent.json).
+
+goal:g7.28.2 — kid/parent NON-persistent spawns stay fire-and-forget:
+exactly one spawn, no persistent/restart_count fields, posts/seats row
+untouched even with --seat, and dry-run creates no session / names no
+supervisor.
 
 No live model, no network, no real sleep: `subprocess.Popen` is faked for the
 spawn path and `dispatch._PERSIST_SLEEP` is a no-op.
@@ -299,3 +304,101 @@ def test_persistent_restart_updates_posts_row_pid(
         f"row pid {row.get('pid')} is not the live child "
         f"{spawned[1][1].pid}; corpse was {spawned[0][1].pid}")
     assert row.get("pid") != spawned[0][1].pid, row
+
+# ---------------------------------------------------------------------------
+# goal:g7.28.2 — non-persistent kid/parent spawns unchanged (regression).
+# Persistent is opt-in; default fire-and-forget must stay byte/lifecycle
+# identical for BOTH kid and parent tiers, and must never pin the posts row.
+# ---------------------------------------------------------------------------
+
+
+def _project_with_parent_ladder(project: Path) -> Path:
+    """Extend the kid-only ladder with a tier-1 parent row so --tier parent
+    resolves without changing harness/model allowlists."""
+    ladder = project / ".agi" / "nodes" / ".geometry" / "ladder.md"
+    ladder.write_text(
+        "---\ncurrent_season: 2\nroles:\n"
+        "  - {tier: 0, role: kid, harness: pi, model: deepseek-v4}\n"
+        "  - {tier: 1, role: parent, harness: pi, model: deepseek-v4}\n"
+        "---\nbody",
+        encoding="utf-8",
+    )
+    cfg_path = project / ".agi" / "config.json"
+    cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+    models = cfg["harnesses"]["pi"].setdefault("models", {})
+    models.setdefault("parent", models.get("kid", "deepseek-v4"))
+    cfg_path.write_text(json.dumps(cfg), encoding="utf-8")
+    return project
+
+
+def test_parent_fire_and_forget_spawns_no_supervisor(
+        project, monkeypatch, capsys):
+    """g7.28.2: --tier parent without --persistent is fire-and-forget —
+    exactly one spawn, no persistent/restart_count fields on the record."""
+    _project_with_parent_ladder(project)
+    spawned = _fake_spawn(monkeypatch, [{"left": 999, "rc": None}])
+    monkeypatch.setattr(
+        sys, "argv",
+        [str(BIN / "dispatch.py"), str(project), "1",
+         "--level", "small", "--harness", "pi", "--tier", "parent",
+         "--target", "hypothesis:x"])
+
+    assert dispatch.main() == 0
+    assert len(spawned) == 1, f"parent default must not restart: {len(spawned)}"
+    agents = _manifest(project)
+    assert agents and "persistent" not in agents[0], agents
+    assert "restart_count" not in agents[0], agents
+
+
+def test_nonpersistent_with_seat_leaves_posts_row_untouched(
+        project_with_posts, monkeypatch, capsys):
+    """g7.28.2: non-persistent spawn even WITH --seat must NOT pin the
+    posts/seats row — occupation pin is persistent-only."""
+    before = _posts_row(project_with_posts)
+    assert before.get("pid") == 0, before
+    spawned = _fake_spawn(monkeypatch, [{"left": 999, "rc": None}])
+    monkeypatch.setattr(
+        sys, "argv",
+        _argv(project_with_posts, "--seat", _SEAT_NAME))
+
+    assert dispatch.main() == 0
+    assert len(spawned) == 1
+    after = _posts_row(project_with_posts)
+    assert after.get("pid") == 0, (
+        f"non-persistent must leave posts pid=0; got {after.get('pid')}")
+    assert after.get("session_id", "") in ("", None), after
+    agents = _manifest(project_with_posts)
+    assert agents and "persistent" not in agents[0], agents
+
+
+def test_kid_dry_run_no_persistent_side_effects(project, capsys):
+    """g7.28.2 regression dry-run (kid): resolves, exits 0, creates no
+    session dir, never mentions a persistent supervisor."""
+    argv = [str(BIN / "dispatch.py"), str(project), "1",
+            "--level", "small", "--harness", "pi", "--tier", "kid",
+            "--target", "hypothesis:x", "--dry-run"]
+    import subprocess as sp
+    r = sp.run(argv, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    out = r.stdout + r.stderr
+    assert "dry-run: nothing spawned" in out
+    assert "persistent:" not in out
+    assert "supervisor" not in out.lower() or "persistent" not in out.lower()
+    sessions = list(project.glob(".agi/sessions/**"))
+    assert not sessions, f"dry-run must not write sessions: {sessions}"
+
+
+def test_parent_dry_run_no_persistent_side_effects(project, capsys):
+    """g7.28.2 regression dry-run (parent): same invariants as kid."""
+    _project_with_parent_ladder(project)
+    argv = [str(BIN / "dispatch.py"), str(project), "1",
+            "--level", "small", "--harness", "pi", "--tier", "parent",
+            "--target", "hypothesis:x", "--dry-run"]
+    import subprocess as sp
+    r = sp.run(argv, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    out = r.stdout + r.stderr
+    assert "dry-run: nothing spawned" in out
+    assert "persistent:" not in out
+    sessions = list(project.glob(".agi/sessions/**"))
+    assert not sessions, f"dry-run must not write sessions: {sessions}"
