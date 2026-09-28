@@ -264,8 +264,23 @@ FILE SCOPE extensions/agi/tests/test_kid_worktrees_root.py · .agi/nodes/experim
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 5df50f74f · <= 40 test lines net over 5df50f74f · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 5df50f74f <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.159 -- closes mur-eg-x942539-a215b3 EG.132-k1 accept_with_residue (no verify)
+BASE      CUT FROM de-h-EG.132 tip 24ffb875a (branch de-base-EG.159; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Corrective item 5's evidence paste is not in any committed state -- .agi/nodes/experiment/a00-8d29e1f2-5c5952.md:80 -- The node (and the parent's review) credit a paste onto experiment:a00-267a4cf8-bf5495, but that node's blob is identical at the cut, the kid branch and the tip (3c3256fb), and the quoted numstat listing it does not reproduce against the cut - the claim is unbacked.
+2. Kid-lane live-cell pin has no teeth against a resolver-only rename -- extensions/agi/tests/test_kid_worktrees_root.py:330 -- The delegation arm accepts any kid-lane cell absent from paths.core, so renaming locations.py:595-596 to an unread key leaves the pin GREEN (the cell-orphaned case is indistinguishable from the supported drop, and both live cells hold the same value .agi/worktrees so the orphan is invisible); the node's line 57 'A = the pin still has teeth' is refuted by the bytes and is still standing text.
+HOW       (director) the parent a00-b0718c09 measured the gap and named the cure: a faithful kid-lane resolver-only rename (locations.py kid_worktrees_dir -> kid_tree_dir in BOTH lookups, live config untouched) leaves test_live_config_carries_the_cells_the_resolver_reads GREEN; ONE assert over the core *_dir keys that NO resolver reads closes it. Paste that rename probe RED on your tip (tree copy under tmp, never the live tree) and the unrenamed control GREEN.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_kid_worktrees_root.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_kid_worktrees_root.py · .agi/nodes/experiment/a00-8d29e1f2-5c5952.md · .agi/nodes/hypothesis/kid-worktrees-resolve-from-one-cell-and-can-live-in-ram.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 24ffb875a · <= 40 test lines net over 24ffb875a · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 24ffb875a <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.132: mur-eg-38 EG.99-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.159: mur-eg-x942539-a215b3 EG.132-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
 
 belam 00:4xZ 09-28 DECISION on the tmpfs go (TM [decision] 22:04Z, owner 'if it's working'): HOLD the mount. (1) memory: 4 ALARM crit lines since 21:39Z (00:41Z box PSI full 25.1%); a 4G tmpfs comes out of a 15G box whose watchdog reboots at PSI full >= 40% for 5 min. (2) the heal sweep still removes a FINISHED 0-commit branch's worktree with its uncommitted work (DE finding 23:59Z, DH.648) -- on a tmpfs a reboot adds a second loss path. GO when BOTH hold: the sweep rule fix is merged (goal:g7.33.N) AND 24 h with no memory crit line. Size then: GUARD_WORKTREE_TMPFS 4G, parent + kid worktrees only; the repo half (DH.650 kid_worktrees_dir, prune-on-empty, hardwater 95) may land first, inert on disk.
