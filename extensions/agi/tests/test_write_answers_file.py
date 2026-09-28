@@ -645,10 +645,17 @@ def test_the_minted_row_set_is_DEFINED_ONCE_in_node_writer():
     # green -- the test required the WORDING, not the derivation.
     import importlib
     saved = node_writer.MINTED_IDENTITY
+    # an earlier test may have popped 'write' from sys.modules: reload what
+    # import resolves now, never the stale top-level object (TMM.338)
+    saved_mod = sys.modules.get("write")
     try:
         node_writer.MINTED_IDENTITY = saved + ("row_from_the_builder",)
-        reloaded = importlib.reload(write)
+        reloaded = importlib.reload(importlib.import_module("write"))
         assert "row_from_the_builder" in reloaded._ANSWERS_IDENTITY
     finally:
         node_writer.MINTED_IDENTITY = saved
-        importlib.reload(write)
+        importlib.reload(importlib.import_module("write"))
+        if saved_mod is None:
+            sys.modules.pop("write", None)
+        else:
+            sys.modules["write"] = saved_mod
