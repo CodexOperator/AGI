@@ -183,6 +183,26 @@ FILE SCOPE extensions/agi/tests/test_thought_hygiene.py · .agi/nodes/experiment
 CEILING   HARD CAP: 1 kid · 0 production lines net over fa5655bb5 · test lines net <= 0 over fa5655bb5 (already +62 vs 40: cut to pay for any fix) · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat fa5655bb5 <your final tip before the paste commit>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.121 -- closes mur-eg-31 EG.97-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-thought-verb-edits-on-a00-ace37bab tip 1d7d660ed (branch de-base-EG.121; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Region can now swallow body prose when a node carries two real blocks -- node_writer.py:970, removed `begin = -1`
+2. 2. Order item 3 UNADDRESSED: a00-cf8a2a01-5513eb.md:105,:133 still assert the pre-merge _is_guard_copy state; file not in the diff
+3. 3. Order item 4 UNADDRESSED and its cites stale (_is_guard_copy at :311-314, one-string decoy at :408, exemption call at :333)
+4. 4. Order item 5 UNADDRESSED: grep -c '^probes:' == 0 on a00-cf8a2a01-5513eb.md and a00-ff74eae3-7096bf.md at the tip
+9. UNADDRESSED residue the first reviewer did not name: no committed row pins the WIRE consequence of this fix. `write.py:2810-2814` takes the splice branch only because `_thought_span` returns a span; the committed wire test (`test_a_region_holding_an_unclosed_fence_is_still_editable_in_place`, :186-199) covers the UNCLOSED-fence shape, not the quoted-END shape. The node's probe p3 covers it, but a probe recorded on a node is not a row -- one more order item for the next round.
+10. The reach of the removed reset is narrower than 'two real blocks': once `begin` is set at node_writer.py:961, the loop's `elif` (:962) tests only `_END_RE`, so a second BEGIN line is inert. The widening requires >=2 real column-0 BEGINs AND a fenced END occurring before the second block's real END -- the first reviewer's framing admits shapes the change does not touch.
+ITEM 1 SHAPE: keep the quoted-END case readable (the kid's new row) AND restore the reset for a REAL region: a body with two real column-0 blocks plus a fenced END between them must not lose the prose between them -- commit that case as a row that is RED on 1d7d660ed (paste the red) and green at your tip; plus ONE wire row through write.py (item 9).
+KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent only, so the kid wrote code over a 0 cap) -- PARENT: dispatch your kid with --orders pointing at a file holding THIS WHOLE SECTION, and paste its FILE SCOPE + CEILING into the kid prompt; verify the kid's context carries the word CORRECTIVE before it starts.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_thought_hygiene.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/node_writer.py (_thought_span ONLY) · extensions/agi/tests/test_thought_hygiene.py · .agi/nodes/experiment/a00-cf8a2a01-5513eb.md · .agi/nodes/experiment/a00-ff74eae3-7096bf.md · .agi/nodes/experiment/a00-2c27c7b2-87176b.md · .agi/nodes/hypothesis/thought-verb-edits-only-the-top-level-thought-block.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 1d7d660ed · <= 40 test lines net over 1d7d660ed · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 1d7d660ed <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective EG.20: mur-eg-6 EG.14-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
