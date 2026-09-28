@@ -35,7 +35,7 @@ _PROBE_UNIT = "agi-memcap-probe"
 _CACHE_DIR_NAME = "agi-memcap"
 _CACHE_FILE_NAME = "probe"
 
-#: `values.memcap.tasks_max` -- the PER-TREE process bound carried as
+#: `spawn.tasks_max` -- the PER-TREE process bound carried as
 #: `TasksMax` on the SAME scope that carries `MemoryMax`. Shipped default
 #: 96: one round's own tree is a round process plus its tools (a `pytest -n8`
 #: run is ~15 procs), so 96 is ~6x headroom on a normal round, while the
@@ -46,6 +46,11 @@ _CACHE_FILE_NAME = "probe"
 #: so the prlimit fallback carries NO process bound -- see `wrap_argv`.
 _DEFAULT_TASKS_MAX = 96
 
+#: `spawn.memory_max` absent -> this. Named so a caller (and a test row)
+#: reads the shipped default instead of typing `4G` -- one source per value,
+#: the same reason `_DEFAULT_TASKS_MAX` exists.
+_DEFAULT_MEMORY_CAP = "4G"
+
 
 def _normalise_cap(val) -> "str | None":
     """None / 'none' / 'null' / '' -> None; else the value verbatim."""
@@ -54,15 +59,47 @@ def _normalise_cap(val) -> "str | None":
     return str(val)
 
 
-def resolve_tasks_max(cfg: "dict | None" = None) -> int:
-    """`values.memcap.tasks_max` -> an int >= 1, else the shipped default.
+def _spawn_block(cfg: "dict | None") -> dict:
+    """The `spawn` container AS A DICT, or {} -- one shared guard.
 
-    A cell that is absent, non-numeric, or below 1 falls back to
-    `_DEFAULT_TASKS_MAX` rather than to "no bound": an unreadable cell must
-    not silently un-cap the tree. `AGI_TASKS_MAX` overrides for tests."""
+    A cell is data, not a promise: `spawn` that is a number, a list or a
+    string must not raise out of a reader (it did: `resolve_memory_cap`
+    raised TypeError on `{"spawn": 42}`), it must read as absent and fall
+    back to the shipped default.
+
+    Two consumers, ONE guard: both resolvers
+    (`resolve_memory_cap`, `resolve_tasks_max`) and the boxkit probe's
+    `spawn.*` rows (extensions/agi/boxkit/probe.py, which CALLS this rather
+    than re-deciding `isinstance(spawn, dict)`).  A second copy would be a
+    second rule: a shape this guard learns to accept would still kill the
+    probe table."""
+    spawn = (cfg or {}).get("spawn")
+    return spawn if isinstance(spawn, dict) else {}
+
+
+def resolve_tasks_max(cfg: "dict | None" = None) -> int:
+    """`spawn.tasks_max` -> an int >= 1, else the shipped default.
+
+    The cell sits beside `spawn.memory_max`, the one `resolve_memory_cap`
+    reads, so the whole per-spawn scope is one `spawn` block (TMM.263 (2),
+    owner 19:5xZ). A cell that is absent, non-numeric, or below 1 falls back
+    to `_DEFAULT_TASKS_MAX` rather than to "no bound": an unreadable cell
+    must not silently un-cap the tree.
+
+    `AGI_TASKS_MAX` is an ENV HOOK, not a test-only affordance. It is read
+    by WHICHEVER PROCESS CALLS THIS -- the parent that builds the argv
+    (wrap_argv -> TasksMax) and the boxkit probe (probe.py, in the probe's
+    OWN process) -- AND it is inherited by every spawn: dispatch.scrubbed_env
+    drops only ENV_VARS_TO_SCRUB (dispatch.py:295), so a set value passes
+    into each spawned scope and reaches that scope's own callers too. An
+    operator, a wrapper script or an inherited environment reaches it in
+    PRODUCTION. The
+    hook has no config cell of its own, so the probe's DRIFT row
+    (test_boxkit_probe.py `test_spawn_rows_...`) drives through it -- if the
+    hook is ever retired as test-only that row loses its driver, silently,
+    with no failing test."""
     env = os.environ.get("AGI_TASKS_MAX")
-    raw = env if env not in (None, "") else (
-        ((cfg or {}).get("values") or {}).get("memcap") or {}).get("tasks_max")
+    raw = env if env not in (None, "") else _spawn_block(cfg).get("tasks_max")
     try:
         n = int(str(raw).strip())
     except (TypeError, ValueError):
@@ -80,9 +117,9 @@ def resolve_memory_cap(cfg: dict, override: "str | None" = None) -> "str | None"
     """
     if override is not None:
         return _normalise_cap(override)
-    spawn = (cfg or {}).get("spawn") or {}
+    spawn = _spawn_block(cfg)
     if "memory_max" not in spawn:
-        return "4G"
+        return _DEFAULT_MEMORY_CAP
     return _normalise_cap(spawn.get("memory_max"))
 
 
@@ -274,8 +311,10 @@ def wrap_argv(argv: list, cap: "str | None",
               cfg: "dict | None" = None) -> list:
     """`cap is None` -> the SAME argv object, unwrapped; else systemd-run when
     usable, else the prlimit fallback. `cfg` is OPTIONAL and read only for the
-    cache's `values.memcap` cells -- a caller with no config on hand gets the
-    shipped defaults, so the hot path never has to resolve the graph itself."""
+    cache's `values.memcap` cells and for `spawn.tasks_max` (via
+    `resolve_tasks_max`, which defaults when `cfg` is None) -- a caller with
+    no config on hand gets the shipped defaults, so the hot path never has to
+    resolve the graph itself."""
     if cap is None:
         return argv
     if systemd_run_usable(cfg):

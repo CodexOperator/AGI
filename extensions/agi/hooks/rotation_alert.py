@@ -853,6 +853,60 @@ def _chain_failure_note(state_dir: Path, seat: str) -> list[str]:
     return lines
 
 
+def _fenced_payload(rotate, body: str, sub: int) -> str:
+    """The EXACT text a slot write would REPLACE: inside the first fence at/after
+    the slot subheader, else the slot body — `rotate._replace_stops_body`'s own
+    rule, so appending here keeps every other byte."""
+    lines = body.splitlines()
+    start = 0 if sub < 0 else sub + 1
+    for i in range(start, len(lines)):
+        opener = rotate._fence_run(lines[i])
+        if opener < 3:
+            continue
+        for j in range(i + 1, len(lines)):
+            if rotate._fence_run(lines[j]) >= opener:
+                return "\n".join(lines[i + 1:j])
+        return "\n".join(lines[i + 1:])
+    return "\n".join(lines[start:])
+
+
+def _blind_warning(seat: str) -> str:
+    """The warning a BLIND capture prints, fail-SOFT down to a bare line:
+    `render` is fail-HARD (missing file or unmatched `{field}` RAISES), and a
+    warning that raises out of `_capture_stops` -> `_force_capture` -> the
+    every-prompt hook turns a degrade into a crash."""
+    try:
+        return render("rotation_alert", "capture_slot_blind", seat=seat)
+    except Exception:  # noqa: BLE001 (the warning is never what raises)
+        return f"rotation: warning: {seat} unreadable — capture carries NO owed list"
+
+
+def _capture_stops(card: Path, line: str) -> str:
+    """The `s3` a CAPTIVE capture hands the driven handoff: the card's OWN
+    where-it-stops payload with the capture line APPENDED, never replacing it (a
+    bare line DESTROYED the successor's owed list; rotate.py is out of scope, so
+    the capture hands it a payload carrying what it overwrites). rotate's own
+    locator finds the slot; an unreadable card degrades to the bare line --
+    SAYING SO on stdout, never a silent `pass`: this payload is the rotate-self
+    --stops text too, and a writer handed a payload with no owed list replaces
+    the whole fenced slot with the bare line."""
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bin"))
+        import rotate  # noqa: PLC0415 — lazy, engine-optional (P7).
+        sections = rotate._split_card_sections(
+            card.read_text(encoding="utf-8"))[1]
+        loc = rotate._locate_where_it_stops(sections)
+        # A NON-tuple `loc` is NOT a degradation: the card carries NO
+        # where-it-stops slot, so nothing is owed and the bare line loses none.
+        if isinstance(loc, tuple):
+            keep = _fenced_payload(rotate, sections[loc[0]][1], loc[1])
+            if keep:
+                return f"{keep}\n{line}"
+    except Exception:  # noqa: BLE001 (P7: an unreadable card keeps the line)
+        print(_blind_warning(card.name))
+    return line
+
+
 def _force_capture(root: Path, seat: str, card: Path, fraction: float,
                    minutes: int, state_dir: Path, line: str | None = None,
                    session_id: str = "") -> str:
@@ -885,12 +939,24 @@ def _force_capture(root: Path, seat: str, card: Path, fraction: float,
               f"`capture_chain_log` file name (got {log_name!r}); refusing to "
               "capture rather than write the chain output to an unnamed file")
         return "capture-no-log"
+    # ONE payload, TWO writers: the chain is handoff THEN rotate-self, and
+    # `rotate._write_stops_section` REPLACES the slot's whole fenced region, so
+    # a rotate-self --stops of `_stops_line` (`stops: <subject> | last dm:`,
+    # NO owed list) destroyed the very slot the handoff had preserved
+    # (hypothesis:captive-capture-keeps-the-slot-and-banked-and-appends-its-
+    # line). The capture line is already the payload's tail; `_stops_line` and
+    # the threshold path that owns it are untouched.
+    slot = _capture_stops(card, line)
     s3 = state_dir / f"capture-{seat}.s3"
-    s3.write_text(line + "\n", encoding="utf-8")
+    s3.write_text(slot + "\n", encoding="utf-8")
+    # s6 is EMPTY on purpose: a capture banks nothing and BOTH of the writer's
+    # BANKED branches no-op on an empty field, so the options survive intact.
+    s6 = state_dir / f"capture-{seat}.s6"
+    s6.write_text("", encoding="utf-8")
     b = Path(__file__).resolve().parents[1] / "bin"
     argvs = [["python3", str(b / "rotate.py"), "handoff", "--driven", "--seat", seat,
-              "--field", "s3", str(s3), "--field", "s6", str(s3)],
-             _rotate_self_argv(b, seat, f"{_stops_line(root, seat)} | {line}")]
+              "--field", "s3", str(s3), "--field", "s6", str(s6)],
+             _rotate_self_argv(b, seat, slot)]
     if os.environ.get("AGI_HOOK_NO_SPAWN"):
         _CAPTURE_LOGGED.extend(argvs)
         print(render("rotation_alert", "capture_declined", seat=seat))
@@ -908,6 +974,17 @@ def _force_capture(root: Path, seat: str, card: Path, fraction: float,
     chain_log = (state_dir / log_name).open("ab")   # never DEVNULL
     _spawn_capture_chain(state_dir / f"capture-{seat}.failed", chain_log,
                          handoff_argv, rotate_argv)
+    # The blob was read at the TOP of this call, so any writer that landed
+    # between that read and this write had its fields CLOBBERED by ours.
+    # RE-READ immediately before writing and merge onto the FRESH blob, so a
+    # concurrent writer's fields survive (only our two keys are set, and
+    # `session` only when session_id is given, as before).
+    try:
+        fresh = json.loads(stamp.read_text(encoding="utf-8"))
+        if isinstance(fresh, dict):
+            blob = fresh
+    except (OSError, ValueError):
+        pass
     blob["captured"] = int(time.time())
     if session_id:
         blob["session"] = session_id     # the latch is keyed by THIS session
@@ -1081,6 +1158,10 @@ def _rotate_self_argv(bin_dir: Path, seat: str, stops: str) -> list[str]:
     """The full argv of the background rotate-self the hook spawns at threshold
     (rotate-out ZERO calls — the hook IS the rotate-out). One builder, shared by
     the production spawn and the test seam so the two can never disagree."""
+    # MEASURED (probe pasted on the node): a `--stops` value whose first line
+    # starts with a BARE `-` is an OPTION to argparse (exit 2, no rotation).
+    if stops.startswith("-"):
+        stops = "\n" + stops
     return ["python3", str(bin_dir / "rotate.py"), "rotate-self",
             "--name", seat, "--role", "director", "--timeout", "900",
             "--force", "--stops", stops]
@@ -1574,7 +1655,16 @@ def main(argv: list[str] | None = None) -> int:
         # over-line seat has not rotated, and re-checks next prompt.
         deferral = _gated_rotate(root, seat, session_id or "", fraction,
                                  capture_minutes, state_dir)
-        if deferral:
+        if deferral == "capture-latched":
+            # A latch is a MEMORY of a capture that already ran, not a
+            # blocker: printing the generic "while that holds" text here
+            # claimed a HOLD that does not exist and would swallow the
+            # imperative's meaning (hypothesis:a-capture-latch-is-a-memory-
+            # never-a-hold).
+            suffix = (f"\n\n{DEFER_PREFIX} (capture-latched) — this seating "
+                      "already captured and its chain ran; that is a memory, "
+                      "not a hold. Re-check on the next prompt.")
+        elif deferral:
             suffix = (f"\n\n{DEFER_PREFIX} ({deferral}) — the hook is not "
                       "rotating this seat while that holds; it re-checks on "
                       "the next prompt.")

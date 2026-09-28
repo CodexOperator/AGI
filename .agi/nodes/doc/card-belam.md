@@ -12,62 +12,48 @@ tags:
   - card
   - prime
   - belam
-thought_session: belam-S2-L5-XII
+thought_session: belam-S2-L5-XIV
 title: "doc:card-belam -- the Prime's card: the one scratch (state · plan · landed · where it stops · traps · verification · BANKED)"
 town: core
 ---
 # doc:card-belam — the Prime's card (local-town): the ONE scratch
 
-Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here.
+Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 12 first card. The traps that now live in a skill (merge-pass: 6 19 26 27 31 33 34 36 37 38 39; send: 1 25 29 41; rotate: 2 10; workflow: 8 9) are listed as skills instead of rows -- owner 01:1xZ 09-27: "everyone's card just lists all the relevant skills". Traps no skill carries (3 13 15 24 28 30 40 + the new 42) stay.
+gen 14 card: PASS 12 closed, series B next. Landed history moved to the board note + commit log (owner 06:4xZ 09-28: the board carries progress so cards stay trim) -- §2 keeps only this gen's one-liners.
 <!-- THOUGHT:END -->
 
-## SKILLS — use the matching one BEFORE the flow (skills/agi-<flow>/SKILL.md; the Skill tool)
-| flow | skill |
-|---|---|
-| CHECK · notice · PASS · trunk sync | `agi-merge-pass` |
-| mint/edit a goal (schema inside) | `agi-goal` |
-| any other node, build node, config:* | `agi-node-write` |
-| dm · inbox · whois · wake | `agi-send` |
-| rotate out · wake | `agi-rotate` |
-| dispatch · judge | `agi-dispatch` |
-| a review/research workflow | `agi-workflow` |
-| verify a landing | `agi-verify` |
-
-## §0 State (01:4xZ 09-27)
+## §0 State (07:0xZ 09-28)
 | | |
 |---|---|
-| post | belam-S2-L5-XII gen 12 · woke 01:28Z 09-27 · Opus 5.5 |
+| post | belam-S2-L5-XIV gen 14 · woke 03:5xZ 09-28 · Opus 5.5 · owner ASLEEP from 06:5xZ (delegated authority) |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` · stream DOWN (HELD) |
-| GUARD | user@1000 high 6628M / max 7365M · a pi stage ~210 MiB · io PSI avg60 40-68 during the PASS |
-| merge | **PASS 10 RUNNING** since 01:31Z: BASE 9e16b8ed90 → TIP **6c403aeb4b** (pinned after the trunk sync of origin/season2/main @868d87c41) · 363 commits · 53 exp / 25 hyp · 43 engine paths · 30 rounds / 15 chunks (PER 2, CAP 3) + `rereview-b6438bd7e-capture-latch` in chunk1 · /tmp/belam-pass10/ |
-| crons | CHECK f86b1cf9 "13 */4 * * *" (re-armed 01:3xZ) |
-| spend | credits 8.74 USD (01:31Z) |
-| dms | 01:4xZ [decision] -> DE: hypothesis:wake-facts-collapse-to-skill-pointers (queued behind the redesigns) |
-| branches | directors LOCAL-ONLY · thought-master ALONE pushes `local-maxxing/season2/main` · belam keeps `local-maxxing/main` + `season2/main` |
+| disks | `/` 93% (6.6G) + `/data` = ONE USB SSD (LVM) · `/mnt/agi-flash` SanDisk ext4 112G, own io queue · nvme BROKEN (owner) |
+| merge | **PASS 12 CLOSED 06:5xZ**: season2/main 774e0b912 · local-maxxing/main -> 72d8d565c · next BASE = 72d8d565ce · residues goal:g1.28 |
+| crons | CHECK **372dc32f** "13 */4 * * *" (session-only: re-arm at wake; the 08:13Z fire never came -- ran by hand 08:4xZ) · PASS B1 one-shot **f3ff3dd0** "47 13 28 9 *" (notice to TM 08:4xZ; state notice_sent_at + run_at set; procedure = crons.md section 2) |
+| spend | pi-free 0 USD this pass; paid paths closed (56c1156ab) |
+| models | claude-code kid + parent = claude-opus-5-5 (44925a6b6, 288513229) · harnesses.claude-code.max_live 4 · seat rows unchanged |
+| memory | crit/warn every ~30-60 min 02:01-05:50Z (PSI full peak 25.9%, each cleared < 3 min); 4 idle predecessor belam sessions (X-XIII) still alive -- §6 |
 
 ## §1 Plan
 ```
-done   wake: card re-linked, CHECK re-armed · PASS 10 steps 0-3 (stamp, trunk sync 6c403aeb4, build, launch) · g4.18.2: 8 skills + nodes + links, HEAD line, CLAUDE.md trim, facts trim -> DE
-next   PASS 10 steps 4-9 as chunks exit (verdicts.py, the re-review round first) · g4.18.2 remainder: prime brief trim, other posts' cards pick up the HEAD line at their next write
-HELD   OWNER 21:1xZ: stream · encryption-town config · sanctuary-master activation -- until messaging is done
-open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hub-only-... has no goal_id/goal_kind (a renumber, on the owner's word) · §6
+done   PASS 12 steps 0-8 · owner orders: models (kid+parent opus 5.5, max_live 4) · board rule (39b942824) · DH.499 per-role roots note (968d19ca1) · g7.32.6 nudge-loss measurement (321a99b29) · redesign order to DE (g4.18.1 -> g7.32.6 -> g7.31.3.3)
+done   clean prune 08:35Z: 144 removed, 154 dirty kept, /data +13.2 GB (board b1aba8033) · TM [red] 06:3xZ town-note grant: option (a) accepted, skill row interim (abf58770f)
+next   PASS B1 at 13:47Z (one-shot f3ff3dd0): series B (tag pb1chunk, /tmp/belam-passB1, BASE 72d8d565ce; carries EG.1 57debf3a2 + re-checks the p2 demote)
+HELD   OWNER 21:1xZ 09-27: stream · encryption-town config · sanctuary-master activation -- until messaging is done
 ```
 
-## §2 Landed (this seat): 045d1aab3 wake re-link · 6c403aeb4 trunk sync (belam gen 12 key row) · 3 commits for g4.18.2: skills (8 files + 8 build nodes [goal:g4.18.2, idea:engine-skill-doc] + .claude/skills links, gitignore narrowed) · 9b2f1e378 HEAD line + DE hypothesis · 786dd91da CLAUDE.md 26,597 -> 10,123 bytes · d11cfc027 Prime template 10,470 -> 7,698 · d94a59fca g4.18.2 byte budget · OWNER 01:5xZ: monitor.sh io guard FINE-GRAINED (kills only processes whose ancestor argv carries this pass's tag; others -> spared.log) · sshd lane verified live (ssh.service MemoryMin=64M CPUWeight=1000, system.slice MemoryMin=128M, guard: chain live) · skills block -> doc:unified-director-brief, doc:unified-master-brief, 3 duty briefs, the DE/DT/TM/SM cards
+## §2 Landed (gen 14): b065c922c wake re-link · 44925a6b6 + 288513229 opus 5.5 kids/parents · 968d19ca1 DH.499 owner note · 321a99b29 g7.32.6 · 39b942824 skills board row · 3e356eb7f goal:g1.28 + 6 hypotheses · 774e0b912 PASS 12 merge (prime-root, pushed) · f91ae15f5 board note
 
 ## 🔴 Where it stops
-01:4xZ 09-27 belam-S2-L5-XII: PASS 10 chunks running (1-3 live, 4 held on a cleared 01:38Z WARN); g4.18.2 skills + CLAUDE.md trim landed
+08:5xZ 09-28 belam-S2-L5-XIV: PASS 12 closed, clean prune done; PASS B1 fires 13:47Z (one-shot f3ff3dd0, crons.md section 2)
 ```
-1. PASS 10: wait on the Monitor (monitor.sh; re-arm on expiry after reading events.log). Every exit -> python3 /tmp/belam-pass10/verdicts.py.
-   02:0xZ: chunks 1-3 in (6 rounds, all accept_with_residue, 0 RED; RED? flags = keyword FPs). b6438bd7e CONFIRMED by the re-review.
-   Residue table so far: /tmp/belam-pass10/residues.md. DE defect hypotheses owed at step 6: workflow.py:2417 harness-name gate refuses pi-free rounds ·
-   rotation_alert false "capture-latched ... holds" deferral · model_fence.py:29-36 KeyError. Then steps 4-9 (skill agi-merge-pass).
-2. g4.18.2 remainder: trim extensions/agi/briefs/prime-director-successor.md (10,470 bytes; its §0 wake + comms now live in agi-rotate / agi-send)
-   via write.py build:briefs-prime-director-successor 'replace payload N:M <file>'; measure the next wake's first meter read vs 0.092.
-3. DE owns: the redesigns (mint g4.18.1 -> send hub-only + g7.32.5 -> spawn/rotate g7.31.3.3) then the facts trim hypothesis.
+P. PRUNE DONE 08:35Z (board b1aba8033). The 154 dirty kid trees are DE's sweep (agi-dispatch 5 "worktree sweep"), never --force.
+B. PASS B1 NOTICED 08:4xZ, fires 13:47Z (one-shot f3ff3dd0; if this session is gone, the successor runs it under CHECK case (d)): rebuild tooling from /tmp/belam-pass12 into /tmp/belam-passB1 (BASE 72d8d565ce, tag pb1 in build.py / launch.sh / monitor.sh TAG= / retry.sh PASS_TAG / verdicts.py glob). monitor.sh TAG was stale p10 in PASS 12 -- grep every tag after copying.
+R. RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /etc/hosts + guard-init --status, ONE window. NEVER a bare `systemctl --user import-environment`.
+5. RAM + per-role worktree roots (owner 06:2xZ, on DH.499): kids tmpfs · DE + parents /data · belam + TM /mnt/agi-flash · mount check before any write · flash worktrees locked. tmpfs GO = TMM.313 (EG.9 sweep chain merged + 24 h no memory crit): then (a) guard.env GUARD_WORKTREE_TMPFS_belam_gpu=4G (backup) (b) sudo guard-init.sh + --status (c) set the cells after (b) is green (d) prove one kid there.
+6. OWED: re-add the agi-corrective clause when build:skills-agi-corrective-SKILL.md reaches the trunk; F13 'Spend by hand, from any worktree:' after DH.501 merges up; `skills` first_turn entry from DE's doc:draft-skills-first-turn.
 ```
 ## §4 Traps (the rest live in the skills)
 | # | trap | rule |
@@ -75,22 +61,24 @@ open   SM seat (owner's go) · the wedge's trigger (unproven) · goal:send-is-hu
 | 3 | the grid cron versions an UNCOMMITTED node within minutes | a fresh node is retired + moved, never deleted |
 | 13 | the stream is LIVE (when up) | never print a secret, key, address or host name |
 | 15 | a retire+move with a changed body shows as `D` in a big diff | resolve by mint_id before calling a deletion RED |
-| 24 | the trunk push is thought-master's alone (owner 09-25) | belam pushes only `season2/main` + `local-maxxing/main` |
+| 24 | the trunk push is thought-master's alone | belam pushes only `season2/main` + `local-maxxing/main` |
 | 28 | after a reboot the seat row keeps the dead pid | `rotate._successor_row_write(...)`, commit posts.md by exact path |
-| 30 | after a reboot heal re-spawns SOME seats | `reseat.py` from MAIN (transcript 82d56d5d) |
-| 40 | F13's `/home/ubuntu/work/agi/.env` does not exist on local-town | the MAIN .env is `/data/work/agi/.env` |
-| 42 | `write.py … 'replace body N:M'` refuses a range with no blank line around it (the HEAD's five diagram blocks are one "paragraph") | `--force` rides the SOURCE argument: `replace body N:M --force <file>`, after asserting the range; a refused replace in a chain still lets a later `thought` land -- check each line's result |
+| 30 | after a reboot heal re-spawns SOME seats | `reseat.py` from MAIN |
+| 40 | F13's home-path .env does not exist here | the MAIN .env is `/data/work/agi/.env` |
+| 42 | `replace body N:M` refuses a range with no blank line around it | `--force` rides the SOURCE arg, after asserting the range |
+| 43 | a send lands `pending=0` when parents dm at the same time: no nudge, `wake` says nothing-pending (g7.32.6) | check the addressee's inbox for a `# read up to here` after your block; its own file watcher usually catches it |
+| 44 | `write.py create goal` without origin/seeds/heading_level is skipped by the render | set origin goals-doc, seeds [], heading_level 3 (as g1.27) |
+| 45 | `du`/`find` over `.agi/worktrees` (660+ trees) is an io storm | never; count with `git worktree list` |
 
-## §5 Verification: `links.py links` 0 broken · `snapshot-goals.py --render --check` · `commands.py run verify` (bin-suite-fresh FAIL known) · `~/work/.sanctuary/guard/guard-init.sh --status` + `tail ~/logs/memory-alarm-alerts.log`
+## §5 Verification: `links.py links` 0 broken · `snapshot-goals.py --render --check` · `commands.py run verify` (bin-suite-fresh FAIL known) · `~/work/.sanctuary/guard/guard-init.sh --status` + `tail ~/logs/memory-alarm-alerts.log | cut -d" " -f1,3-`
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
-| 3 of 5 seats sit in session-73.scope, outside user@'s cap | spawn seats via `systemd-run --user --scope`, or cap user-1000.slice -- the owner's guard |
-| guard follow-ups (TM 09-26): model rounds cannot fit user@'s high beside the seats; guard-init.sh 'last alerts' reads the old path | model loads in their own scope with MemoryMax (~6G); repoint 'last alerts' at ~/logs/memory-alarm-alerts.log |
-| 2c leftovers (DE 07:39Z 09-26): exited session 710907bf + ~20 "Remote Control · offline" app rows | `claude rm 710907bf` if yours; app rows only from the app UI |
-| stream-master's seat after the power cycle | re-seat only on the owner's explicit go (HELD 21:1xZ) |
-| idle predecessors per rotation (owner chain rule) | reap on the owner's word |
-| the origin remote moved (every push prints the new location) | `git remote set-url origin <new>` -- the owner's call |
-| engine-wide config/template maxxing pass (owner idea, 09-23) | opening it is the owner's call |
-| MIN_REMAINING_CREDITS hard-coded 1 USD (provisioning.py:103, :206) | a config cell (a director-engine round) |
+| 4 idle predecessor belam sessions (L5-X, XI, XII, XIII: claude --remote-control) still alive, holding RAM while memory crits recur | reap them (owner chain rule: on the owner's word) |
+| memory crits recur (PSI full > 20% ~hourly 02-06Z 09-28) | middle ground GUARD_DOCKER_BUDGET_belam_gpu=2048M, or seats into user@ via `systemd-run --user --scope` -- the owner's guard |
+| seat rows in config:posts still claude-opus-5 (adv-*, masters) | move on the owner's word (dispatched parents already 5.5) |
+| guard follow-ups (TM 09-26): model rounds vs user@ high; guard-init 'last alerts' path | model loads in own scope MemoryMax ~6G; repoint to ~/logs/memory-alarm-alerts.log |
+| origin remote moved (every push prints it) | `git remote set-url origin <new>` -- the owner's call |
+| engine-wide config/template maxxing pass (owner idea 09-23) | opening it is the owner's call |
+| DISK LATENCY 07:0xZ 09-28: io PSI some avg60 83-90 with the runaways gone; sda (USB SSD, dm-crypt, / + /data) 57% busy at ~16 ops/s = ~35 ms per op; jbd2 + dmcrypt_write + flush kworkers in D; systemd-tmpfiles in D 2h49m (/tmp is on /); dmesg shows no reset/error to belam | `sudo smartctl -a /dev/sda` + `sudo dmesg -T \| grep -iE "usb\|sda\|reset"` + check the USB port/cable/heat; `du -sh /tmp` as root. The prune waits on io60 < 40 |

@@ -17,6 +17,26 @@ import sys
 
 import pytest
 
+# The DECLARED second suite (paths.core.suite_roots) runs under the SAME
+# guards as the engine suite: the suite lock, the dispatch-env strip and the
+# opt-in real-process / live-config guard. They are IMPORTED from one plain
+# module, never exec'd from the engine conftest (hypothesis:the-declared-
+# context-suite-runs-under-the-engine-suite-guards; DH.419's 127-process fork
+# came from a conftest that exec'd another conftest).
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[2]
+                       / "extensions" / "agi" / "bin"))
+from suite_guards import (  # noqa: E402,F401 -- imported FIXTURES are the guard
+    agi_env_stripped,
+    install_import_fence,
+    no_real_process,
+    suite_lock,
+    uninstall_import_fence,
+)
+
+# The IMPORT-TIME fence, at THIS conftest's import: no fixture exists while
+# pytest imports a test module, so a spawn AT COLLECTION is covered only here.
+_IMPORT_FENCE_SAVED = install_import_fence()
+
 # `AGI_MODEL_FENCE_SRC` names the file (or the dir holding it) so the guard
 # resolves from an env, not from a literal path; the sibling of this conftest
 # under `extensions/agi/` is the default.
@@ -49,6 +69,7 @@ _LOAD_HOOK = model_fence.install()   # hole C, the import half: `import` itself
 def pytest_sessionfinish(session, exitstatus):
     """Removed at session end: the hook outlives neither the run nor the process."""
     model_fence.uninstall(_LOAD_HOOK)
+    uninstall_import_fence(_IMPORT_FENCE_SAVED)
 
 
 @pytest.fixture

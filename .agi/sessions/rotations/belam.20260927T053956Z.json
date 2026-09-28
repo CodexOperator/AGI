@@ -1,0 +1,253 @@
+{
+  "rotation": "rotate-self",
+  "seat": "belam",
+  "recorded_at": "2026-09-27T05:43:27.704609Z",
+  "result": "success",
+  "observations": {
+    "a_successor_window_under_plain_name": {
+      "present": false,
+      "window": "belam",
+      "windows": [
+        "belam-S2-L5-VIII",
+        "director-thought",
+        "belam-S2-L5-XII",
+        "belam-S2-L5-XIII",
+        "belam-S2-L5-IX",
+        "belam-S2-L5-X",
+        "belam-S2-L5-XI",
+        "director-engine",
+        "thought-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "b_generation": {
+      "before": 12,
+      "after": 13
+    },
+    "c_readback_log_path": "/data/work/agi/.agi/sessions/belam.log",
+    "d_stale_continue_cursor": {
+      "start_offset": 9184885,
+      "read_before_write": true,
+      "note": "only bytes AFTER start_offset can confirm the successor; a stale pre-spawn `continue` at/before the cursor is refused"
+    },
+    "e_predecessor_alive": {
+      "present": true,
+      "name": "belam-S2-L5-XII",
+      "windows": [
+        "belam-S2-L5-VIII",
+        "director-thought",
+        "belam-S2-L5-XII",
+        "belam-S2-L5-XIII",
+        "belam-S2-L5-IX",
+        "belam-S2-L5-X",
+        "belam-S2-L5-XI",
+        "director-engine",
+        "thought-master"
+      ],
+      "source": "tmux list-windows -t agi-rc -F #{window_name}"
+    },
+    "spawn_to_registry_s": -53.253
+  },
+  "steps_reached": [
+    "handoff",
+    "2",
+    "spawn",
+    "4.5",
+    "4"
+  ],
+  "handover": {
+    "own_window": {
+      "name": "belam-S2-L5-XII",
+      "id": "@18"
+    },
+    "successor_window": {
+      "name": "belam-S2-L5-XIII",
+      "id": "@22"
+    },
+    "join": {
+      "found": true,
+      "window_id": "@22",
+      "pid": 4003298,
+      "session_id": "244a153d-437b-41e5-98a0-745b892d0bcd",
+      "transcript": "/home/belam/.claude/projects/-data-work-agi/244a153d-437b-41e5-98a0-745b892d0bcd.jsonl",
+      "name": "agi-f8",
+      "path": "/home/belam/.claude/sessions/4003298.json",
+      "note": "joined by @22 in registry file 4003298.json"
+    },
+    "successor_row": "config:seats row 'belam': session_ref= session_name=agi-f8 session_label= session_id=244a153d-437b-41e5-98a0-745b892d0bcd pid=4003298 generation=13 window='@22' source=registry pubkey=3823a2376bdac021... key_history=5",
+    "spawn_row_commit": "spawn_row_commit: committed (sha 3389d8f6c, retried 0) -- own-row only: belam spawn row: gen 13, session_id 244a153d-437b-41e5-98a0-745b892d0bcd, window @22, pid 4003298\npush: push: OK -- local-maxxing/season2/main\nauthority: OK -- 21e8d8e50 -> season2/main",
+    "key_replace": "key_replace: wrote successor key to /data/work/agi/.agi/sessions/seats/belam.key (0600, atomic replace)",
+    "meter_pin": "/data/work/agi/.agi/sessions/belam.meter",
+    "ack_written": "/data/work/agi/.agi/sessions/seats/belam.ack.gen13.json",
+    "own_authority_released": "generation 12 of seat 'belam' retired; successor generation 13 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
+    "belam_cap": {
+      "prefix": "belam",
+      "would_exceed_five": true,
+      "oldest_to_reap": "belam-S2-L5-VIII",
+      "live_belam": [
+        "belam-S2-L5-IX",
+        "belam-S2-L5-VIII",
+        "belam-S2-L5-X",
+        "belam-S2-L5-XI",
+        "belam-S2-L5-XII",
+        "belam-S2-L5-XIII"
+      ]
+    },
+    "button_down": "grid committed \u2014 record+row on branch local-maxxing/season2/main",
+    "livestream_repoint": {
+      "session": "view-belam",
+      "target": "@22",
+      "skipped": "view session view-belam absent"
+    },
+    "model_confirm": {
+      "expected": {
+        "model": "claude-opus-5-5",
+        "effort": "high"
+      },
+      "requested": {},
+      "live": {
+        "model": "claude-opus-5-5"
+      },
+      "verdict": "mismatch",
+      "confirm_at": "after_join"
+    },
+    "bootstrap": "/data/work/agi/.agi/sessions/seats/belam.bootstrap.json",
+    "ack_written_at_spawn": "/data/work/agi/.agi/sessions/seats/belam.ack.json"
+  },
+  "swept_latches": [],
+  "inherited": true,
+  "stops_sha256": "c1d6ad70f3d9025073f5bbd4409457bbe1abf05265c9dc97a09dce725c87c2dd",
+  "after_join": {
+    "performer": "tail",
+    "performed_by": "tail",
+    "committed_by": "tail",
+    "delay_s": 20,
+    "results": [
+      {
+        "label": "join",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep belam-S2-L5-XIII",
+        "rc": 0,
+        "output": "@22 belam-S2-L5-XIII\n",
+        "truncated": false,
+        "byte_cap": 40000
+      },
+      {
+        "label": "pin",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/belam.meter --session-log /home/belam/.claude/projects/-data-work-agi/244a153d-437b-41e5-98a0-745b892d0bcd.jsonl",
+        "rc": 0,
+        "output": "0.0763\t76293/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
+        "truncated": false,
+        "byte_cap": 40000
+      },
+      {
+        "label": "reap-proof",
+        "cmd": "ps -e -o pid=,ppid=,tty=,args= | grep -E 'none: nothing to reap'",
+        "rc": 1,
+        "output": "",
+        "truncated": false,
+        "byte_cap": 40000
+      },
+      {
+        "label": "belam-chain",
+        "cmd": "tmux list-windows -t agi-rc -F '#{window_id} #{window_name}' | grep -E 'belam-S[0-9]+-L[0-9]+'",
+        "rc": 0,
+        "output": "@0 belam-S2-L5-VIII\n@18 belam-S2-L5-XII\n@22 belam-S2-L5-XIII\n@4 belam-S2-L5-IX\n@11 belam-S2-L5-X\n@16 belam-S2-L5-XI\n",
+        "truncated": false,
+        "byte_cap": 40000
+      }
+    ],
+    "dm": "## AFTER_JOIN OUTPUT (the SERVICE ran the rotation's after_join for you; you ran nothing)\nThis is your SECOND input, delivered `after_join_delay_s` after spawn.\n\n[join] exit 0\n[pin] exit 0\n[reap-proof] exit 1\n$ ps -e -o pid=,ppid=,tty=,args= | grep -E 'none: nothing to reap'\n[belam-chain] exit 0\n\nThe full output of every entry is in the rotation record:\npython3 extensions/agi/bin/rotate.py status --post belam --record latest\n\nWhere a decision remains (only a `diff` against the handoff), emit EXACTLY this copy-paste line:\npython3 extensions/agi/bin/rotate.py ack --seat belam --gen 12 --ref <your ListAgents ref> diff --text -",
+    "delivery": {
+      "mode": "typed",
+      "nudge": "suppressed"
+    },
+    "dm_sender": "belam",
+    "dm_signed": true,
+    "code_head": "7ac4435",
+    "code_loaded": "1790451096:1132110",
+    "claimed_at": "2026-09-27T05:43:27.913550+00:00",
+    "claim_key": "2026-09-27T05:43:27.704609Z",
+    "performed_after_s": 0.20880866050720215
+  },
+  "announced_to": [],
+  "s12_self_reap": {
+    "order": "deepest-first",
+    "planned": true,
+    "belam_reap": {
+      "oldest": "belam-S2-L5-VIII",
+      "window_id": "@0",
+      "pids": [
+        100337,
+        100418,
+        100474,
+        100475,
+        100483,
+        100492
+      ],
+      "reaped": false,
+      "order": "deepest-first",
+      "ps_after": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "chain": [
+        {
+          "pid": 100492,
+          "was_alive": true,
+          "termd": true,
+          "gone_after": true,
+          "ps_before": "100492 /home/belam/.local/share/GitKrakenCLI/gk mcp --plugin --host=claude",
+          "ps_after": ""
+        },
+        {
+          "pid": 100483,
+          "was_alive": true,
+          "termd": true,
+          "gone_after": true,
+          "ps_before": "100483 /home/belam/.npm/_npx/f5cec77757ac662d/node_modules/@gitkraken/gk/bin/gk mcp --plugin --host=claude",
+          "ps_after": ""
+        },
+        {
+          "pid": 100475,
+          "was_alive": true,
+          "termd": true,
+          "gone_after": true,
+          "ps_before": "100475 node /home/belam/.npm/_npx/f5cec77757ac662d/node_modules/.bin/gk mcp --plugin --host=claude",
+          "ps_after": ""
+        },
+        {
+          "pid": 100474,
+          "was_alive": true,
+          "termd": true,
+          "gone_after": true,
+          "ps_before": "100474 sh -c 'gk' mcp --plugin --host=claude",
+          "ps_after": ""
+        },
+        {
+          "pid": 100418,
+          "was_alive": true,
+          "termd": false,
+          "gone_after": false,
+          "ps_before": "100418 npm exec @gitkraken/gk mcp --plugin --host=claude",
+          "ps_after": "100418 [npm exec @gitkr] <defunct>"
+        },
+        {
+          "pid": 100337,
+          "was_alive": true,
+          "termd": false,
+          "gone_after": false,
+          "ps_before": "100337 claude --resume 2d327bde-0ac9-47ea-89ac-9bd65766abd4 --remote-control belam-S2-L5-VIII --permission-mode bypassPermissions --debug-file /data/work/agi/.agi/sessions/belam.log --model claude-opus-5-5 --effort max --settings {\"ultracode\": true} [owner, relayed by the sanctuary session] You are back after an outage. This box memory-livelocked at about 03:20Z (memory pressure, hung tasks by 03:31Z, sshd unable to fork a login) and was power-cycled by hand at about 03:56Z. Your transcript stops at 03:15Z, so anything you had armed (session crons, background waits, the 04:13Z CHECK) is gone and needs re-arming.  Owner orders, in this order: 1. Make sure the watchdog is working on this box. Measured just now: systemd-oomd, earlyoom and watchdog are all INACTIVE here; the sanctuary guard (five layers incl. a softdog watchdog that reboots after 5 min of memory stall) was copied to ~/work/.sanctuary/guard and dry-run clean but NOT applied. Plan: `~/work/.sanctuary/guard/guard-init.sh --dry-run --apply-docker`; apply: `sudo ~/work/.sanctuary/guard/guard-init.sh --apply-docker`; verify: `~/work/.sanctuary/guard/guard-init.sh --status`. Docs: ~/work/.sanctuary/GUARD.md. It caps user@1000 at ~5.8G and agi.slice at ~4G (the llama-server container is budgeted 8G separately; it sits at ~6.5G). 2. Set a memory alarm if possible, so a climb toward exhaustion is raised before the box wedges again (guard's watch covers cap kills; add whatever pressure / available-memory alarm fits the engine's alarm system). 3. Then resume normal operations. Cause of the wedge is not proven: memory pressure began right after the 03:20Z cron batch; 59 memcg kills of capped python3 (agi-memcap-probe and run-*.scope) happened between 22:49Z and 03:14Z. Worth a look when you have a moment.",
+          "ps_after": "100337 [claude] <defunct>"
+        }
+      ]
+    },
+    "gated": "own window + own chain kill GATED OFF on a numeral-chain seat (owner chain rule keeps the five newest predecessors idle in their windows)",
+    "own_window_id": "@18",
+    "own_chain_reap": "GATED OFF"
+  },
+  "committed_by": "rotate-self"
+}

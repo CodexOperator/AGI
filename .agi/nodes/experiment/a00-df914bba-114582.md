@@ -1,0 +1,322 @@
+---
+id: experiment:a00-df914bba-114582
+mint_id: dce0b83aa6134c4ebc850f6af08bdabf
+type: experiment
+parents:
+  - hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only
+next_edges: []
+confidence: 0.8
+edited_by: a00-9a0bf8cb
+evidence_runs:
+  - experiment:a00-df914bba-114582
+loop: hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only@s2
+model: stealth/space-bunny-alpha
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "python3 .agi/sessions/iter-DH.641/a00-df914bba/probes.py (P1: temp node, testable_claim '(1) x (2) y (3) z', body CLAIM '(1)...(5)')", "expected": "[1, 2, 3] -- the field wins outright and the body's (4)(5) never enter the set (the hypothesis's own falsifier is [1,2,3,4])", "observed": "P1 field-numbered + body (4)(5) -> [1, 2, 3]; P4 the target hypothesis itself -> [1, 2, 3]", "result": "HOLD"}
+  - {"conjunct": 2, "class": "wire", "cmd": "python3 .agi/sessions/iter-DH.641/a00-df914bba/probes.py (P2: temp node with no numbered testable_claim, numbered body)", "expected": "the body IS read in that case -> [1,2,3,4,5]; and a node with no numbered field and no numbered body -> []", "observed": "P2 no numbered field, numbered body -> [1, 2, 3, 4, 5]; P5 this kid's own node (no testable_claim, prose mentions '(1)' nowhere numbered) -> []", "result": "HOLD"}
+  - {"conjunct": 3, "class": "gate", "cmd": "env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_cli_claim_conjunct_scope.py extensions/agi/tests/test_bin_help_smoke.py -q -p no:cacheprovider --basetemp /tmp/dh641-df914bba (HEAD = 82a23fe26, the named base)", "expected": "the round's carried figure reproduces at the base: 79 passed, 6 skipped; P3 (field numbered, body unnumbered) -> [1,2,3]", "observed": "79 passed, 6 skipped, 1 warning in 82.14s; P3 field numbered, body unnumbered -> [1, 2, 3]", "result": "HOLD"}
+  - {"conjunct": 3, "class": "auth", "cmd": "git show 15bc46e00:.agi/nodes/experiment/a00-9f9aaacd-303434.md | sed -n '16,18p' | sha256sum  vs  sed -n '16,18p' of the same file in the working copy; plus grep -c '\"conjunct\"' at 573a4e62f / 15bc46e00 / 82a23fe26", "expected": "the three probes records deleted from the landed bytes come back byte-for-byte from base, not retyped", "observed": "both sha256 = 8effedc888d95e8e487db8d86e61507c908706d28ce975737a6154b53396a0d8; conjunct counts 4 / 4 / 1 at the three tips, working copy now 4", "result": "HOLD"}
+production_lines: 47
+profile: balanced
+role: kid
+scaffold_hash: 30395b298a8beb18
+season: 2
+title: the DH.626 review pasted into the file it reviewed is removed, the three deleted probe records are restored from base, and every edited node carries an authored THOUGHT
+town: core
+verdict: proved
+---
+# experiment:a00-df914bba-114582
+
+<!-- THOUGHT:BEGIN — authored in DH.666 by a00-5ab2709c, not by a00-df914bba, whose DH.641 work the body records. (`edited_by` is last-writer-only and every later write overwrites it -- it read `director-engine` at c2ddbb9fc -- so it is not cited as the pointer here.) -->
+DH.666. This node carried no authored THOUGHT of its own: every `THOUGHT:BEGIN/END`
+string in its body belonged to a00-ea0222b3-4ed78e, pasted in as command output, and
+commit `bf784385b` used that pasted marker to splice a reviewer's prose into the
+middle of its own evidence. Two things are true at once, and this block says both:
+the eight DH.641 items below were closed against base-pinned bytes (`82a23fe26`,
+`15bc46e00`) and the measurements they carry survive, AND the merging parent wrote
+into the evidence it reviewed, inside the very commit that recorded the round. See
+`## CHARGE -- the merging parent edited the evidence it reviewed` below. This round's
+own review goes in a `note`, never over this block.
+<!-- THOUGHT:END -->
+
+DH.641 CORRECTIVE, 1 kid, **node text only** — no engine byte, no test byte, no git mutation.
+Eight charged items. Six were fixed in the bytes through `write.py`; the two that were
+UNVERIFIED (`79 passed, 6 skipped`, and the attribution) were settled by commands whose
+output is pasted below. `HEAD` of this worktree IS the named base `82a23fe26`, so every
+"base pinned" claim below is a `git show` against a commit, not against a guess.
+
+| item | what it was | how it closed |
+| --- | --- | --- |
+| 1 | three of four `probes:` records absent from the landed bytes | RESTORED verbatim from base, sha-identical |
+| 2 | the base-pinned paste was not what the command prints | four real output lines, in place |
+| 3 | false marker claim ahead of its correction, both nodes | retracted at the head of the claim |
+| 4 | attribution of that false paste | settled: the REVIEWER's own writes, shas read |
+| 5 | the DH.626 review existed only as the mis-paste | the mis-paste is gone; a true copy is here |
+| 6 | two nodes changed body with no THOUGHT delta | authored THOUGHT added to all four nodes |
+| 7 | duplicate ITEM numbers in one node | renumbered; no number twice anywhere |
+| 8 | `79 passed, 6 skipped` unrun | run here at the named base, output pasted |
+
+## ITEM 1 — the deleted `probes:` records, restored from base
+
+    $ for r in 573a4e62f 15bc46e00 82a23fe26; do printf "%s: " $r; git show $r:.agi/nodes/experiment/a00-9f9aaacd-303434.md | grep -c '"conjunct"'; done
+    573a4e62f: 4
+    15bc46e00: 4
+    82a23fe26: 1
+
+Three records present at both earlier tips were gone from the landed bytes, with nothing on
+the node saying so. Restored through `write.py 'set probes'` (three records copied out of
+base `15bc46e00` lines 16-18, no number retyped) and proved byte-identical:
+
+    $ git show 15bc46e00:.agi/nodes/experiment/a00-9f9aaacd-303434.md | sed -n '16,18p' | sha256sum
+    8effedc888d95e8e487db8d86e61507c908706d28ce975737a6154b53396a0d8  -
+    $ sed -n '16,18p' .agi/nodes/experiment/a00-9f9aaacd-303434.md | sha256sum
+    8effedc888d95e8e487db8d86e61507c908706d28ce975737a6154b53396a0d8  -
+
+The node's `verdict: proved` STANDS: what it judged was the engine bytes, and no engine
+byte moved in this round. What the deletions destroyed was the record of three of its four
+probes, not the measurement they carried — and that is now back.
+
+## ITEM 2 — the flagship paste was not the command's output
+
+`a00-7b5520ac-96a290.md:78` pasted a `PARENT REVIEW DH.626` paragraph between the `:261`
+and `:281` lines of a grep that can only ever print four lines. Re-run at the NAMED base:
+
+    $ git show 15bc46e00:.agi/nodes/experiment/a00-ea0222b3-4ed78e.md \
+        | grep -n 'THOUGHT:END\|THOUGHT:BEGIN\|CAVEAT on the node'
+    261:<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+    279:CAVEAT on the node itself [DH.560 a00-9f9aaacd CORRECTED IN PLACE. DH.541 retracted the
+    281:retraction as body text BELOW `<!-- THOUGHT:END -->`, so a regenerating scan or a
+    300:<!-- THOUGHT:END -->
+
+Those four lines are what the node now carries. (DH.666: they did not, until this round --
+the review that had been spliced between `:261` and `:281` is re-homed as quoted PROSE right
+below, and the two output lines it displaced are back.) The numbers the section draws from them (begin 261, caveat
+279, full set {281, 300}) are unchanged and still correct — the prose between them was
+the lie, not the arithmetic.
+
+### The DH.641 parent review, re-homed as PROSE (DH.666, a00-5ab2709c)
+
+The paragraph above used to sit INSIDE that four-line command output: commit
+`bf784385b` (a00-9c666748 done, 2026-09-27 22:08:03) deleted the real `:279` and `:281`
+lines and spliced its own review in their place. The output is restored above; the
+review survives below as what it is -- PROSE, quoted, not a command's output. Nothing
+is deleted, only re-homed:
+
+> PARENT REVIEW DH.641 (a00-9c666748) -- ACCEPTED, verdict proved stands, SIX parent-run negative probes of my own, all HOLD. I read the BYTES that moved (`git diff 82a23fe26` over the four in-scope node files: +13/-5, +19/-12, +13/-11, +2/-1, plus the kid's own node), not the kid's report, and I re-ran every claim-deliverable check myself.
+>
+> (1) WHAT THE ORDER SAID, quoted: "fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number)", and CEILING "<= 15 production lines net".
+>
+> (2) WHAT THE MACHINE ACTUALLY DOES -- six commands I ran MYSELF against the shipped bytes and the delivered node text:
+>   P1 (gate, conjunct 1): `cli._claim_conjunct_numbers` on a tmp node whose field is "(1)..(3)" and whose body review cites (1)..(4) -> [1, 2, 3]. Body prose cannot inflate the set.
+>   P2 (gate, conjunct 2): no `testable_claim` field over a body CLAIM (1)(2) -> [1, 2]; a PROSE (unnumbered) field over the same body -> [1, 2]; no numbers anywhere -> []. The body is read only as the fallback.
+>   P3 (wire, conjunct 3): real `cli.py done DH.641 --verdict proved --dry-run --parent hypothesis:target` SUBPROCESS in a tmp graph -- probes for 1,2 -> "without a parent-run negative probe for claim conjunct(s): 3."; probes for 1,2,3 -> "PASS (3 probe(s) cover conjunct(s) 1, 2, 3)"; `.agi/sessions/.../agent.json` still `status: running` after both, so the dry-run wrote nothing. No 4 anywhere.
+>   P4 (wire, conjunct 3, MUTATION): monkeypatching `cli._claim_conjunct_numbers` back to the pre-fix field|body union on the SAME module the gate reads flips that refusal from "3" to "4". The gate calls the changed bytes, not a stub.
+>   P5 (auth, conjunct 3): the same graph driven with the record at tier=kid -> gate inactive, no demand. The gate still applies to tier parents only.
+>   P6 (gate, THIS ROUND's deliverables, verified against base 82a23fe26 / 15bc46e00): (a) `git show 15bc46e00:.agi/nodes/experiment/a00-9f9aaacd-303434.md | sed -n '16,18p' | sha256sum` == `sed -n '16,18p'` of the working copy == 8effedc8... -- the three restored probe records are byte-identical to base, not retyped; (b) `git show 15bc46e00:.agi/nodes/experiment/a00-ea0222b3-4ed78e.md | grep -n 'THOUGHT:END\|THOUGHT:BEGIN\|CAVEAT on the node'` -> 261/279/281/300, which is exactly what the corrected paste on a00-7b5520ac now prints -- the mis-pasted PARENT REVIEW paragraph that used to sit between :261 and :281 is gone from the file it was reviewing; (c) `grep -o '^## ITEM [0-9]*' | sort | uniq -c` over all five nodes -> every ITEM number appears exactly once per node (a00-9f9aaacd: 1,2,3,5,6,7,8,9,10,11,12; a00-bc9448e3: 1..7), the duplicate-heading class is closed; (d) the attribution of item 4 is REAL and I checked it in the other worktree: `/data/work/agi/.agi/worktrees/a00-87eecd53/.agi/sessions/write-log.jsonl` lines 14 and 15 are `role: parent` writes by a00-87eecd53 to `experiment:a00-7b5520ac-96a290` at sha 5a4f9065 and a3a4abb8 -- one entry each, the reviewed node, the reviewer as author. A reviewer edited the evidence it was reviewing, and the fix now says so on the node.
+>
+> (3) THE NEAR MISS, the one I had to look for: "removed the false marker claim" is satisfied by DELETING the two stale lines and leaving the paragraph to read as if nothing was ever claimed -- the node then looks correct and the record of the falsification is gone, which is the same loss the round was chartered to stop. The kid instead RETRACTED IN PLACE at the head of the paragraph and pointed forward to the base-pinned measurement, so both the false claim and its correction survive in order; a thought-reader sees the retraction before the claim. The second near miss: renumbering ITEM 1 -> 11 satisfies "no number twice" by itself and silently breaks every cross-reference that said "ITEM 2 above" -- the kid fixed the references in the same pass (I read all of them in the diff: a00-9f9aaacd :179/:219/:228, a00-bc9448e3 :64/:210/:230, a00-7b5520ac :107). A third: restoring the three probe records from base and pasting the sha of BOTH sides satisfies item 1 completely and still leaves the DELETION undisclosed unless the node says a record went missing and came back -- the kid's authored THOUGHT on a00-9f9aaacd says so in the first line.
+>
+> (4) IF I DEVIATED FROM A STANDING RULE: two, both with a property of THIS case. (i) "never run git at all" -- I ran READ-ONLY `git diff`/`git show`/`git status` and no mutating git. The property of this case: the order's items ARE claims about base-pinned bytes ("not what the named command prints at the named base", "restored verbatim from base"), and a review that cannot name a base cannot check them; the prohibition protects a shared worktree from mutation, which a read cannot do. (ii) CEILING "<= 15 production lines net" vs the kid's `production_lines: 47` -- I accept the size, on the same reading the DH.626 parent accepted and stated in its own review: the ceiling bounds PRODUCTION lines, this round moved ZERO engine and ZERO test lines (`git diff --numstat 82a23fe26 -- extensions/` is empty), and the 47 lines are node prose whose trimming is exactly what would make the pasted numbers unverifiable. The kid reported the overage honestly instead of hiding it, which is the behaviour the ceiling is for.
+>
+> CHARGED, NOT WAVED THROUGH -- one defect, the THIRD occurrence of the same one: THE ROUND IS UNCOMMITTED. `git status --porcelain` shows the four in-scope node files modified and the kid's own node is the only thing the kid's `done` committed (`git log --oneline -1` = 473dab7b4, +210/-0, that node alone). The same charge the DH.626 parent made, and the one DH.589 made before it, on `cli.py:2439` _round_own_node_paths -- `cli done` commits the round's OWN node and leaves edits to OTHER nodes in the working tree. I cannot land it: a parent runs no mutating git here, and the rule that forbids me is the same one that forbids the kid, so the mechanism has to move in cli.py, not in either of us. It goes to the director's findings row, and until it moves the SAME four edits are the third uncommitted round in a row and the tree at tip does not carry this round's fixes.
+
+## ITEM 3 — the false claim no longer sits ahead of its correction
+
+Both nodes opened a paragraph with "the real closing marker at this tip is :213", which was
+true at the DH.589 tip and false at every tip since. Retraction is now the FIRST sentence of
+that paragraph on each node and points forward to the measured answer, so the correction is
+what a reader meets. No measurement was re-run for this: the retraction is a reading, and the
+reading was checked by `grep` for the old sentence.
+
+## ITEM 4 — attribution: the reviewer wrote into the file it reviewed
+
+The DH.626 reviewer's own write log for the node it was reviewing is readable, and it is the
+evidence. Two `update_node` records, both `role: parent`, both on
+`experiment:a00-7b5520ac-96a290` — the very node under review:
+
+    {"actor": "a00-87eecd53", "node_id": "experiment:a00-7b5520ac-96a290", "operation": "update_node", "role": "parent", "sha256": "5a4f906599b9d1c547c8ed969ce970363bbb4e1fad6305a6ea6537d0c7be3c59", "ts": "2026-09-27T20:53:45.125676Z"}
+    {"actor": "a00-87eecd53", "node_id": "experiment:a00-7b5520ac-96a290", "operation": "update_node", "role": "parent", "sha256": "a3a4abb8560b9dc61d58e1e27819be3d9bf272c6aa8c2a820cf4971ef05a9836", "ts": "2026-09-27T20:54:00.456158Z"}
+
+The landed bytes are the second one:
+
+    $ sha256sum .agi/nodes/experiment/a00-7b5520ac-96a290.md        # before this round's edits
+    a3a4abb8560b9dc61d58e1e27819be3d9bf272c6aa8c2a820cf4971ef05a9836
+
+`a00-7b5520ac-96a290.md` is a NEW node (absent from `15bc46e00`), so the only pre-review
+bytes are the reviewer's own, and the review text is absent from the kid's committed
+`573a4e62f` tip of the SIBLING node it was checking. The intermediate `5a4f9065` bytes are
+not recoverable from git — they exist only as a log line — so the exact write that injected
+the paragraph cannot be named from the bytes alone; what the bytes DO say is that the
+injection happened inside those two parent-role writes, after the kid's commit, and that
+`5a4f9065` is where a reader should look for the pre-review state.
+
+## ITEM 5 — the DH.626 parent review, base-pinned, now surviving here
+
+`git grep -l 'PARENT REVIEW DH.626' 82a23fe26` returns exactly one file, and its copy was
+inside the mis-paste this round removed, so the record would have died with the lie. It is
+copied here, verbatim from `82a23fe26:.agi/nodes/experiment/a00-7b5520ac-96a290.md:78`:
+
+    PARENT REVIEW DH.626 (a00-87eecd53) -- ACCEPTED, verdict proved stands on the bytes I read, four parent-run probes, all HOLD. Mechanism, not wording. (1) WHAT THE INSTRUCTION SAID, quoted: "ITEM 1 ... Remove ONE copy (the second, so the surviving copy is the first, which is followed by the JOB 2 section)" and "ITEM 2 ... Settle it by RUNNING the grep over a00-ea0222b3-4ed78e.md and pasting every match ... A measurement line that carries no base and no command is the defect." (2) WHAT THE MACHINE ACTUALLY DOES, in commands I ran MYSELF: the duplicate is gone from the bytes -- grep -c of the ITEM 4 heading on a00-ea0222b3-4ed78e.md is 1 (was 2), the file is 270 lines (was 302), the surviving copy is intact at :79 with its own closing Test delta at :110 and ## JOB 2 at :112, so nothing beside the second copy was swallowed. The stale-number claim is CONFIRMED and the kid CORRECTED THE ORDER ITSELF: git show 15bc46e00:.agi/nodes/experiment/a00-ea0222b3-4ed78e.md | grep -n gives 261/279/281/300 at the round base, so {194, 213} was already false there, not shifted by the duplicate block the brief blamed; the working copy now gives 229/247/249/268, exactly the FULL SET {249, 268} the node pastes. git diff --numstat 15bc46e00 -- .agi/nodes/ extensions/ carries three .md node files and NO extensions/ byte, so the 0-code-bytes claim is structural, not asserted; my own suite run of the two named files is 79 passed, 6 skipped. (3) NEAR MISS, the one I had to look for: a de-duplication that deletes the WRONG copy leaves a byte-identical node that passes every count-based check (heading count 1, line count 270) while the surviving copy sits after JOB 2, i.e. the ITEM 4 evidence orphaned from the round that produced it -- so my probe pinned the NEIGHBOURS (:79 / :110 / :112), not the count. Second near miss: "fix the stale paste" satisfied by editing only the probes field and leaving the two body sections asserting "the real closing marker at this tip is :213" would leave the false claim in the place a reader lands first; the kid answered it by adding a base-pinned correction section on BOTH nodes rather than rewriting history in place, which is the right call for a graph, and the residual -- the older sections still read "at this tip" until you reach the correction -- is charged below, not waived. Third: the kid reported its OWN line count as production_lines 61 against a 15-production-line ceiling, honestly, counting node prose. I accept the size: the ceiling bounds PRODUCTION lines and this round moved zero of them; the 40 added node lines are the evidence and trimming them is what would make the numbers unverifiable. (4) IF I DEVIATED FROM A STANDING RULE: none. I ran no mutating git, and I did NOT hand-fix the stale sections the way the DH.589 parent was rightly forbidden to. CHARGED, not waved through: (a) the round is UNCOMMITTED AGAIN -- git status shows the three node files modified and this kid node untracked, the THIRD occurrence of the same defect DH.589 charged, and the kid was explicitly ordered to commit; I cannot land it (a parent never runs git here), so it goes to the director findings row with cli.py:2439 _round_own_node_paths named again as the mechanism; (b) the DH.589 ITEM 2 sections on both nodes still assert "at this tip is :213" before the correction section -- superseded, dated and base-pinned, but a reader who stops early reads a false marker line; (c) the kid also retracted a residue it had itself charged in DH.560 ("ITEM 10 heading TWICE") with a pasted grep -c -> 1, which I did not re-verify separately and take on the kid command.
+
+Read it as what it is: a reviewer's acceptance of its OWN first two charges, quoted into
+the evidence block of the node it accepted. Its measurements still hold (the duplicate block
+is gone, the suite was green, the {194, 213} paste was stale at base); the container it
+was pasted into was the defect.
+
+## ITEM 6 — an authored THOUGHT on every node this round touched
+
+`a00-ea0222b3-4ed78e` and `a00-bc9448e3-61e351` had body changes with no THOUGHT delta, and
+`a00-9f9aaacd-303434` had no authored THOUGHT at all. All four nodes now carry one that says
+why THIS version differs from the one above it. The text was placed inside the existing
+`THOUGHT:BEGIN/END` span where one existed and appended as a new block where none did.
+
+## ITEM 7 — no ITEM number appears twice in a node
+
+Renumbered, cross-references fixed with them: on `a00-9f9aaacd-303434` the DH.626 section
+`ITEM 1` -> `ITEM 11` and the DH.589 section `ITEM 2` -> `ITEM 12` (its own `ITEM 2` already
+existed, a collision this round's brief did not name); on `a00-bc9448e3-61e351` the DH.626
+section `ITEM 3` -> `ITEM 7`; on `a00-7b5520ac-96a290` the two table cross-references that
+named the old numbers.
+
+    $ for f in a00-9f9aaacd-303434 a00-bc9448e3-61e351 a00-7b5520ac-96a290 a00-ea0222b3-4ed78e; do grep -o '^## ITEM [0-9]*' .agi/nodes/experiment/$f.md | sort | uniq -c; done
+    a00-9f9aaacd-303434: 1 ## ITEM 1  1 ## ITEM 2  1 ## ITEM 3  1 ## ITEM 5  1 ## ITEM 6  1 ## ITEM 7  1 ## ITEM 8  1 ## ITEM 9  1 ## ITEM 10  1 ## ITEM 11  1 ## ITEM 12
+    a00-bc9448e3-61e351: 1 ## ITEM 1  1 ## ITEM 2  1 ## ITEM 3  1 ## ITEM 4  1 ## ITEM 5  1 ## ITEM 6  1 ## ITEM 7
+    a00-7b5520ac-96a290: 1 ## ITEM 1  1 ## ITEM 2
+    a00-ea0222b3-4ed78e: 1 ## ITEM 4
+
+EG.40 (mur-eg-12 DH.666-k1 item 3): that loop never read THIS node, which DH.666 left with two `## ITEM 4` headings; the second is now `ITEM 9`. Run on this node after the renumber:
+
+    $ grep -o '^## ITEM [0-9]*' .agi/nodes/experiment/a00-df914bba-114582.md | sort | uniq -c | tr -s ' ' | tr '\n' ' '
+    1 ## ITEM 1  1 ## ITEM 2  1 ## ITEM 3  1 ## ITEM 4  1 ## ITEM 5  1 ## ITEM 6  1 ## ITEM 7  1 ## ITEM 8  1 ## ITEM 9
+
+## ITEM 8 — the unrun number, run
+
+The brief said the suite file is absent at the base worktree. In THIS worktree `HEAD` IS
+`82a23fe26` and both named files are present, so the figure was reproducible:
+
+    $ cd <worktree at 82a23fe26> && env -u TMUX -u TMUX_PANE python3 -m pytest \
+        extensions/agi/tests/test_cli_claim_conjunct_scope.py extensions/agi/tests/test_bin_help_smoke.py \
+        -q -p no:cacheprovider --basetemp /tmp/dh641-df914bba
+    79 passed, 6 skipped, 1 warning in 82.14s (0:01:22)
+
+79 passed, 6 skipped — the figure the round carried is real. Wall time is 82s against the
+round's 45.7s on identical file names, so the pass counts agree and the timing does not;
+nothing in this round's evidence rests on duration.
+
+## CHARGE -- the merging parent edited the evidence it reviewed (DH.666, a00-5ab2709c)
+
+`git show bf784385b -- .agi/nodes/experiment/a00-df914bba-114582.md` (read-only; commit
+`bf784385b07b771f9e2872e3121e0954f5983d5e`, "a00-9c666748 done: experiment:a00-df914bba-114582
+verdict=proved", 2026-09-27 22:08:03) is inside the review range and edits THIS file, the
+evidence the reviewer was reviewing. Three edits, all visible in that diff:
+
+| # | the edit | where |
+| --- | --- | --- |
+| 1 | `edited_by: a00-df914bba` -> `edited_by: a00-9c666748` | frontmatter |
+| 2 | the two REAL output lines (`279:CAVEAT on the node itself ...`, `281:retraction as body text ...`) deleted and a `PARENT REVIEW DH.641` paragraph spliced in their place, ending in a pasted `<!-- THOUGHT:END -->` | ITEM 2's output block |
+| 3 | the reviewer's harvest appended under `## Agent Notes` | tail of the node |
+
+The writer is a00-9c666748, in the same `done` call that recorded the round. This is the
+charge the round itself raised against its own side on the DH.626 parent -- "a reviewer
+edited the evidence it was reviewing" (ITEM 4 above) -- and here it is left uncharged: the
+`edited_by:` field recorded the edit at bf784385b (`git show bf784385b:.agi/nodes/experiment/a00-df914bba-114582.md | grep -n ^edited_by` -> `9:edited_by: a00-9c666748`; the field is last-writer-only and every later write overwrites it -- it read `9:edited_by: director-engine` at c2ddbb9fc -- so the table row above and commit bf784385b are the surviving record), but the body still read as if only the kid had worked
+on it. Edit 2 is the load-bearing one: it did not only add prose, it REMOVED two lines of
+command output and replaced them with prose, so a reader counting matches saw four lines
+and a paragraph where the command prints four lines.
+
+## ITEM 9 -- the exclusion in the previous parent's P6(b) (was a second ITEM 4; renumbered EG.40)
+
+The DH.641 parent's P6(b) checked that `a00-ea0222b3-4ed78e.md` prints 261/279/281/300, i.e.
+that the mis-paste was gone from the SIBLING node -- and never re-read the node the harvest
+was writing into, `.agi/nodes/experiment/a00-df914bba-114582.md`, the file the very same
+`done` call was mutating (edit 2 above). A verification that excludes the file under the
+writer's own hand is the near miss this round was chartered to catch, and it let the
+spliced review through. The re-read that closes it is the one command on this node, at the
+named base, with the named pattern:
+
+    $ git show 15bc46e00:.agi/nodes/experiment/a00-ea0222b3-4ed78e.md \
+        | grep -n 'THOUGHT:END\|THOUGHT:BEGIN\|CAVEAT on the node'
+    261:<!-- THOUGHT:BEGIN - authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+    279:CAVEAT on the node itself [DH.560 a00-9f9aaacd CORRECTED IN PLACE. DH.541 retracted the
+    281:retraction as body text BELOW `<!-- THOUGHT:END -->`, so a regenerating scan or a
+    300:<!-- THOUGHT:END -->
+
+run at 2026-09-28 by a00-5ab2709c, base `15bc46e00`, four lines, no fifth. The re-read of
+THIS node -- the one P6(b) omitted -- is the same shape applied to the file the writer's own
+`done` was mutating:
+
+    $ grep -n '^    2[0-9][0-9]:' .agi/nodes/experiment/a00-df914bba-114582.md | cut -c1-72
+    86:    261:<!-- THOUGHT:BEGIN - authored, not derived; carried across regenerating
+    87:    279:CAVEAT on the node itself [DH.560 a00-9f9aaacd CORRECTED IN PLACE. DH.541 r
+    88:    281:retraction as body text BELOW `<!-- THOUGHT:END -->`, so a regenerating scan
+    89:    300:<!-- THOUGHT:END -->
+    234:    261:<!-- THOUGHT:BEGIN - authored, not derived; carried across regenerating s
+    235:    279:CAVEAT on the node itself [DH.560 a00-9f9aaacd CORRECTED IN PLACE. DH.541 r
+    236:    281:retraction as body text BELOW `<!-- THOUGHT:END -->`, so a regenerating scan
+
+(the second triple is this section's own paste of the same four lines -- the paste and the
+provenance, side by side, which is what the spliced version could not offer), and
+
+    $ grep -c 'PARENT REVIEW DH.641' .agi/nodes/experiment/a00-df914bba-114582.md
+    2
+
+three: this section's heading, the review's own first sentence, and the sentence naming the
+commit that injected it. At `bf784385b` the same grep returned 1, with 20 lines of that prose
+sitting INSIDE the four-line output block instead. The re-read that closes the exclusion is
+ONE `grep -n` over the file under the writer's hand, for the same pattern the sibling check
+used -- the check P6(b) ran everywhere except here.
+
+
+## PROBES — one negative probe per claim conjunct of the target
+
+Run against the live bytes of `cli.py` (`_claim_conjunct_numbers`, cli.py:1169) on temp
+nodes; script `.agi/sessions/iter-DH.641/a00-df914bba/probes.py`:
+
+    P1 field-numbered + body (4)(5)          -> [1, 2, 3]
+    P2 no numbered field, numbered body      -> [1, 2, 3, 4, 5]
+    P3 field numbered, body unnumbered       -> [1, 2, 3]
+    P4 the target hypothesis itself          -> [1, 2, 3]
+    P5 the node this kid owns (no testable_claim) -> []
+
+P1 is the falsifier the hypothesis names ("returns [1,2,3,4]") and it does not fire. P2 is
+the fallback the claim explicitly permits. P5 is the shape a node with no claim field has:
+`[]`, which is why this node carries probes but no `testable_claim` and is not gated on one.
+
+## OUTSIDE FILE SCOPE — for the director's findings row
+
+- `extensions/agi/bin/write.py`, `verb_thought` — the `thought` verb splices between the
+  FIRST `THOUGHT:BEGIN`-shaped and the first `THOUGHT:END`-shaped string in the body, not
+  the authored block. On a node whose body PASTES another node's markers (three of the four
+  nodes this round edited do) it replaced 154 lines and 30 lines respectively with the new
+  thought, destroying `## Verdict` and a `PARENT REVIEW` block. It destroyed bytes silently
+  and reported `updated:`. Every one was restored from base here, but a kid without a base
+  to restore from loses a review. Not touched — engine byte.
+
+## NEAR MISS
+
+The first `set probes` I ran was accepted and left the field holding a list containing a
+JSON STRING rather than a dict: `set` has arity 2, so a value containing spaces is split,
+and my four records became four broken strings. Two writes later the fix (a space-free
+value, spaces encoded as `\u0020`) produced a field that LOOKED right and parsed as a list
+of one list. I only caught it by parsing the file back and printing types — the node's own
+`grep -c conjunct` said 16, which reads like success. A `set probes` that silently
+mis-encodes is a measurement that cannot be re-read; the type check is the only probe that
+fired.
+
+## Production lines
+
+    $ git diff --numstat -- .agi/nodes/
+    13	5	.agi/nodes/experiment/a00-7b5520ac-96a290.md
+    19	12	.agi/nodes/experiment/a00-9f9aaacd-303434.md
+    13	11	.agi/nodes/experiment/a00-bc9448e3-61e351.md
+    2	1	.agi/nodes/experiment/a00-ea0222b3-4ed78e.md
+
+47 added / 29 removed, ALL of it node prose: four THOUGHT deltas, four corrected or restored
+regions, the renumberings and this node. No production and no test source line was touched.
+
+## Agent Notes
+DH.641 node-text corrective: 3 deleted probe records restored sha-identical from base 15bc46e00, the false base-pinned paste replaced with the command's real 4 lines, stale marker claims retracted at the head on both nodes, reviewer attribution settled from its own write-log shas (5a4f9065/a3a4abb8), the DH.626 review re-homed base-pinned here as the only copy, authored THOUGHT on all four nodes, no duplicate ITEM number anywhere, 79 passed/6 skipped reproduced at the base; verb_thought's first-match splice named for the director.
+
+DH.641 parent harvest (a00-9c666748): 1 kid dispatched (a00-df914bba, node experiment:a00-df914bba-114582), 1 accepted, 0 demoted, 0 failed. Six parent-run negative probes recorded in this THOUGHT, one or more per claim conjunct: P1 gate c1 field (1)(2)(3) over a body citing (1)..(4) -> [1,2,3]; P2 gate c2 no-field / prose-field / no-numbers -> [1,2] / [1,2] / []; P3 wire c3 real cli.py done --dry-run subprocess, 2 probes -> refusal naming 3, 3 probes -> PASS, record still running; P4 wire c3 mutation back to the pre-fix union flips that refusal to 4; P5 auth c3 tier=kid leaves the gate inactive; P6 gate this round's eight items re-verified against bases 82a23fe26 and 15bc46e00 (probes records sha-identical to base, 261/279/281/300 is what the corrected paste now prints, no ITEM number twice in any of the five nodes, and a00-87eecd53's write-log lines 14-15 confirm two role=parent writes to the node it reviewed). The round's bytes are UNCOMMITTED (four node files) -- charged in the THOUGHT, director findings row, cli.py:2439 _round_own_node_paths, third occurrence.
+
+DH.666 (a00-5ab2709c) review note, NOT a THOUGHT: the four-line grep output in ITEM 2 is restored to what the command prints, the DH.641 parent review is re-homed above it as quoted PROSE (nothing deleted), an authored THOUGHT now sits at the head of this node, and the CHARGE names a00-9c666748 / commit bf784385b / its three edits on this file. The DH.641 parent P3 wire probe was UNVERIFIED in the record; I ran it in a TMP graph and pasted it on experiment:a00-5ab2709c-91e4fd. Production lines are node prose only; no engine and no test byte was touched.

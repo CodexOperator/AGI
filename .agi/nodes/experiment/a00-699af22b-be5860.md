@@ -1,0 +1,227 @@
+---
+id: experiment:a00-699af22b-be5860
+mint_id: 2ea68d0455cc473188d47102a256b433
+type: experiment
+parents:
+  - hypothesis:mint-offers-storage-categories-from-config-cells
+next_edges: []
+confidence: 0.85
+edited_by: director-engine
+evidence_runs:
+  - experiment:a00-699af22b-be5860
+loop: hypothesis:mint-offers-storage-categories-from-config-cells@s2
+model: stealth/space-bunny-alpha
+probes:
+  - {"conjunct": 1, "class": "wire", "cmd": "python3 -c \"import sys,pathlib; sys.path.insert(0,'extensions/agi/bin'); import cli, frontmatter; ps = frontmatter.read_frontmatter(pathlib.Path('.agi/nodes/experiment/a00-82e7d5d4-3feda4.md').read_text())['probes']; print(len(ps), [cli._probe_defect(p) for p in ps if cli._probe_defect(p)])\"", "expected": "the five PARENT probes parse as the schema probe DICTS, so cli._probe_defect returns no defect and the conjunct gate counts 1-5; a prose-string probes list returns not a dict for all five", "observed": "probes 5, defects [] (none); conjuncts covered [1,2,3,4,5]", "result": "HOLD -- item 1 fixed in the bytes and the gate now counts all five"}
+  - {"conjunct": 2, "class": "gate", "cmd": "python3 -c \"import sys,pathlib; sys.path.insert(0,'extensions/agi/bin'); import season; L = pathlib.Path('.agi/nodes/experiment/a00-eea0b2c4-0b4709.md').read_text().splitlines(keepends=True); bi = next(x for x,l in enumerate(L) if l.startswith('<!-- THOUGHT:BEGIN')); ni = next(x for x,l in enumerate(L) if l.strip()=='## Agent Notes'); pre = ''.join(L[:ni+2]) + ''.join(L[bi:bi+3]); f = lambda t: (len(season._agent_notes_block(t)), repr(''.join(season._agent_notes_block(t)).rstrip().splitlines()[-1][:40])); print('PRE-FIX', f(pre)); print('DELIVERED', f(''.join(L)))\"", "expected": "the notes block on the delivered file ends in NOTES PROSE; the same file in the pre-fix layout (notes first, THOUGHT to EOF) extracts a block whose LAST line is the THOUGHT marker, which is what _resolve_node_conflict then folds into the union and overwrites", "observed": "PRE-FIX (4, '<!-- THOUGHT:END -->') vs DELIVERED (1, 'Digit pick no longer eats its tail (loca')", "result": "HOLD -- item 2 fixed by MOVING the block; the negative direction is reproduced and the delivered bytes do not have it"}
+  - {"conjunct": 3, "class": "wire", "cmd": "grep -c '^<!-- THOUGHT:BEGIN' and '^<!-- THOUGHT:END' plus grep -n on both node files, then season._resolve_node_conflict on a git-shaped conflict whose only marked hunk is an untouched Evidence line of a00-eea0b2c4", "expected": "one whole THOUGHT pair per node with no sentence of the DH.618 THOUGHT cut, and a conflicted merge of the delivered file keeps the THOUGHT, the notes and drops the markers", "observed": "eea0b2c4: BEGIN 1 (line 221), END 2 (105 = a fenced paste of another node's tail, 223 = the real pair); 82e7d5d4: BEGIN 1 (172), END 1 (174) [EG.38: re-measured on the delivered bytes 0071a2e4d; the first run preceded the round's own +1-line Evidence caption]. Resolver on the delivered file: THOUGHT:BEGIN kept 1, DH.618 thought text kept True, notes kept True, conflict markers gone True", "result": "HOLD with one named residue -- the stray END at :105 is pasted evidence, deliberately not edited"}
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 4ea180f27efeb85a
+season: 2
+title: "The DH.659 corrective landed in the bytes: parent probes in the schema dict shape, and the Agent Notes block moved so the merge writer can no longer swallow the DH.618 THOUGHT"
+town: core
+verdict: inconclusive_lean_proved:85
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-699af22b-be5860
+
+## Experiment
+
+EG.25 corrective against the DH.659 parent demote (a00-9147b8b2). One kid,
+`write.py` only, **0 production code lines, 0 test lines** — the two files in
+FILE SCOPE are node texts. No git except the one `git diff --numstat` allowed
+by the brief; **the loop owns every commit** (deviation recorded below).
+
+| # | order | what I did, in the bytes |
+|---|---|---|
+| 1 | parent probes written as prose strings, not the schema's probe dicts (`a00-82e7d5d4-3feda4:14`) | **FIXED.** `probes:` is now five dicts `{conjunct, class, cmd, expected, observed, result}` per `.agi/context/schemas/[experiment].md`, conjuncts 1–5, classes wire/gate/auth/gate/gate. The `observed` strings are the parent review's own outputs, verbatim — shape changed, evidence did not. One Evidence line on that node records the re-record so the next reader does not think the probes were re-run |
+| 2 | `## Agent Notes` is the last `#` line on `a00-eea0b2c4-0b4709`, so its span runs to EOF and `_resolve_node_conflict` replaces the whole tail with the union (`season.py:1603-1651`) | **FIXED BY MOVING, not by editing.** The `## Agent Notes` block now sits AFTER the `<!-- THOUGHT:END -->`, i.e. last in the file — the layout `write.py --notes` itself appends. The notes TEXT is byte-identical to the pre-fix line; what changed is that nothing sits below the block any more, so `end = len(lines)` now replaces a 1-line span with the 1-line union instead of a 3-line span containing the whole DH.618 parent-review THOUGHT |
+| 3 | after both: exactly one whole THOUGHT pair each, no sentence of the DH.618 THOUGHT cut | **MEASURED** (below). The DH.618 parent-review THOUGHT is present whole on both nodes |
+
+### The shape change is a machine-readable one, not a cosmetic one
+
+```
+$ python3 -c "import sys,pathlib; sys.path.insert(0,'extensions/agi/bin');
+import cli, frontmatter;
+fm = frontmatter.read_frontmatter(pathlib.Path('.agi/nodes/experiment/a00-82e7d5d4-3feda4.md').read_text());
+ps = fm['probes']; print('probes', len(ps), 'defects', [cli._probe_defect(p) for p in ps if cli._probe_defect(p)])"
+probes 5 defects []
+$ ... same, conjuncts: [1, 2, 3, 4, 5]
+```
+
+Before this round every one of those five probes returned `not a dict` from
+`cli._probe_defect` (`cli.py:1160-1169`), so the parent-run negative-probe gate
+(`_parent_probe_gate`, `cli.py:1189-1233`) counted **zero** covered conjuncts
+out of a node that has all five.
+
+### The two notes blocks, read back through the reader the round is about
+
+```
+$ python3 -c "import sys,pathlib; sys.path.insert(0,'extensions/agi/bin'); import season;
+for n in ('a00-eea0b2c4-0b4709','a00-82e7d5d4-3feda4'):
+    b = season._agent_notes_block(pathlib.Path('.agi/nodes/experiment/%s.md' % n).read_text())
+    print(n, len(b), repr(''.join(b).rstrip().splitlines()[-1][:45]))"
+a00-eea0b2c4-0b4709 1 ['Digit pick no longer eats its tail (locations']
+a00-82e7d5d4-3feda4 3 ['PARENT REVIEW DH.642 (a00-5dae1c0c), read aga']
+```
+
+Last line of each extracted block is NOTES PROSE, never a `THOUGHT` marker.
+
+## Evidence
+
+**Item 3 — the THOUGHT counts, measured on the delivered bytes:**
+
+```
+# re-measured by the director at EG.38 on the delivered bytes (0071a2e4d). The paste that stood here was overwritten by a later
+# `thought` write: node_writer _THOUGHT_RE matched the marker text inside this fence and the col-0 END below it (first-match
+# splice). That text is kept verbatim under ## Agent Notes. The commands below carry no marker text: [B]/[E] classes, sed labels.
+$ grep -c '^<!-- THOUGHT:[B]EGIN' .agi/nodes/experiment/a00-eea0b2c4-0b4709.md   ->  1
+$ grep -c '^<!-- THOUGHT:[E]ND'   .agi/nodes/experiment/a00-eea0b2c4-0b4709.md   ->  2
+$ grep -n '^<!-- THOUGHT' .agi/nodes/experiment/a00-eea0b2c4-0b4709.md | sed 's/<!-- THOUGHT:\([A-Z]*\).*/\1/'
+105:END
+221:BEGIN
+223:END
+$ grep -c '^<!-- THOUGHT:[B]EGIN' .agi/nodes/experiment/a00-82e7d5d4-3feda4.md   ->  1
+$ grep -c '^<!-- THOUGHT:[E]ND'   .agi/nodes/experiment/a00-82e7d5d4-3feda4.md   ->  1
+$ grep -n '^<!-- THOUGHT' .agi/nodes/experiment/a00-82e7d5d4-3feda4.md | sed 's/<!-- THOUGHT:\([A-Z]*\).*/\1/'
+172:BEGIN
+174:END
+# this node itself, BEFORE the EG.38 edit:
+$ grep -c '^<!-- THOUGHT:[B]EGIN' .agi/nodes/experiment/a00-699af22b-be5860.md   ->  1
+$ grep -c '^<!-- THOUGHT:[E]ND'   .agi/nodes/experiment/a00-699af22b-be5860.md   ->  2
+$ grep -n '^<!-- THOUGHT' .agi/nodes/experiment/a00-699af22b-be5860.md | sed 's/<!-- THOUGHT:\([A-Z]*\).*/\1/'
+79:END
+189:BEGIN
+191:END
+```
+
+Which pair is which, named: on `a00-eea0b2c4` the **real** pair is 221/223 and
+the `:105` END is a pasted byte of another node's terminal line sitting inside a
+``` fence (lines 104–106) — left in place, because editing a command's pasted
+output to make a grep look clean is falsifying the evidence, and the order only
+asked me to REPORT the counts. `a00-82e7d5d4` is clean: 1/1, and its
+`## Agent Notes` (body line 175) was already last, so it never had the trap.
+
+**No sentence of the DH.618 THOUGHT is cut** — the parent's `## Agent Notes`
+line and the whole `THOUGHT:BEGIN ... THOUGHT:END` paragraph are present, the
+latter now ABOVE the notes heading instead of below it.
+
+### Negative probe of my own (wire): the move is load-bearing, measured both ways
+
+```
+$ python3 (scratch, iter-EG.25/a00-699af22b) -- season._agent_notes_block on the
+  delivered file vs. the same file reconstructed in its PRE-FIX layout
+PRE-FIX   block: (4, "'<!-- THOUGHT:END -->'")      <- 4 lines, the THOUGHT swallowed
+DELIVERED block: (1, "'Digit pick no longer eats its tail (loca'")
+```
+
+and through the WRITER, on a git-shaped conflict whose only marked hunk is an
+untouched Evidence line:
+
+```
+POST-FIX : THOUGHT:BEGIN kept 1 | DH.618 thought kept True | notes kept True | markers gone True
+```
+
+On the pre-fix layout the same conflict leaves the whole THOUGHT *inside* the
+notes block: the union then carries the DH.618 thought text as notes, so the
+next `--notes` round appends inside that span. CORRECTED at EG.38 per the parent review
+(Agent Notes): the thought is NOT lost -- `season.py:1612` unions OURS's notes span
+with THEIRS's, and OURS already holds the markers, so the text rides forward as
+notes prose. The damage is CONTAMINATION plus self-perpetuation, not deletion.
+The span runs to EOF because `season.py:1636-1639` sets `end = len(lines)`
+and `:1646` replaces `lines[i+1:end]`; this round removed the span instead of arguing with the
+writer, which is out of FILE SCOPE.
+
+**The suite, on the delivered bytes (no code changed, run once as briefed):**
+
+```
+$ env -u TMUX -u TMUX_PANE python3 -m pytest \
+    extensions/agi/tests/test_storage_categories.py \
+    extensions/agi/tests/test_bin_help_smoke.py -q -p no:cacheprovider \
+    --basetemp=/tmp/pt659
+104 passed, 6 skipped in 5.66s
+```
+
+**Lines, one read-only measurement:**
+
+```
+$ git diff --numstat -- .agi/nodes/experiment/a00-82e7d5d4-3feda4.md \
+    .agi/nodes/experiment/a00-eea0b2c4-0b4709.md \
+    .agi/nodes/experiment/a00-699af22b-be5860.md
+```
+
+(once pasted in the frontmatter as `production_lines`, which EG.88 set to the code count, 0; 0 of them are code — node
+texts are the only paths I hold. That count was an UNCOMMITTED-worktree read.)
+
+EG.61 (corrective, closing mur-eg-14 EG.38-k1): EG.38's own numstat against the
+cut tip, run and pasted, not typed:
+
+```
+$ git diff --numstat 0071a2e4d 395779682
+37	18	.agi/nodes/experiment/a00-699af22b-be5860.md
+```
+
+Net +19 lines, all in this one node text; 0 code lines, 0 test lines. Over
+the stated <=15 cap if "production lines" counts node text, inside it if it
+counts code only -- the reading is the Prime's call, not settled here.
+
+## Caveats
+
+- I did **not** remove the stray `<!-- THOUGHT:END -->` at `a00-eea0b2c4:105`.
+  It is inside a fenced paste of a real command's output, the order asked for
+  counts rather than an edit, and no reader pairs BEGIN/END backwards: the END
+  precedes the only col-0 BEGIN. A tool that counts ENDs without pairing will
+  still report 2 on that file. EG.38 (director): THIS node carried the same class -- a col-0 END left at :79 inside the Evidence fence by a later `thought` splice -- and its own count read 1 BEGIN / 2 END; the fence is re-measured without marker text, so this node now counts 1 / 1 (pasted under ## Agent Notes).
+- The five re-recorded probes are the parent review a00-5dae1c0c's own runs.
+  I re-ran none of them; I changed the SHAPE, and the schema's
+  `class: {type: list}` comment does not say which layer writes them, so a
+  future kid should not read my re-record as a claim that I re-ran DH.642.
+- Fixing item 2 by MOVING the notes block is a layout choice, not the only
+  one. The alternative — an explicit `<!-- THOUGHT -->`-aware span in the
+  writer — is the real fix and lives outside FILE SCOPE.
+- `git diff --numstat` is against an UNCOMMITTED worktree shared with other
+  agents; the done-time commit's own diff may differ if another node lands in
+  the same window.
+
+## Struggles
+
+- **`write.py`'s paragraph-anchor guard cost me three refused splices** trying to
+  insert one paragraph under `## Evidence` on `a00-82e7d5d4`: `replace body
+  43:44` (heading removed, text survives) and `replace body 44:44` (heading
+  split from its text) both refused, and the guard's line numbers were one
+  off my own `read` (it called body 44 the heading where `read 43:45` shows the
+  heading at 43 and TWO blanks after it, with the first text line at 46). The
+  accepted splice was `replace body 46:46` with the paragraph + blank + the
+  original line. The guard is right every time; the numbering is per-node and I
+  should have read three lines further before aiming.
+- **My first three probe harnesses were wrong, and would have "proved" a false
+  thing.** Building the conflict by concatenating the whole file twice made
+  `theirs` carry a 23-line notes block, so the union pasted a chunk of the BODY
+  (ending at `<!-- BODY:BEGIN -->`) where the notes should be; a second
+  version split a line in half with the marker and produced a mangled
+  "Digit pick\n no longer eats its tail" note; and a third put a nested
+  `## heading` after the notes, which the writer does NOT delete (it breaks at
+  the heading, so the body below it survives). Only the git-shaped
+  whole-line hunk reproduces what a merge actually feeds the resolver. Three
+  turns burned on my own construction before the one that measured the real
+  machine — a reminder that "the writer deletes body text" is false for a
+  nested heading and only true for a non-`#` tail, which is exactly the
+  distinction the trap turns on.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+EG.88 corrective (a00-6549e49d), closing mur-eg-19 EG.61-k1 item 1: frontmatter production_lines 12 -> 0. The 12 was the EG.25 kid's uncommitted-worktree read of NODE-TEXT diff lines and equals the EG.61 figure (+12) but not EG.38's (+19); all three count node text, both later ones pasted under the Lines block, none counts code. Every round on this node was text-only with a 0-production-line ceiling that counts text, comments and briefs as non-production, so the field states the code count, 0; the node-text counts stay where their commands are. Nothing else on the node changed; the prior THOUGHT (EG.61) is in the grid at the previous version.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+DH.659 items 1-3 fixed in the bytes: a00-82e7d5d4's five parent probes re-recorded as schema probe dicts (cli._probe_defect now clean, conjuncts 1-5 counted), and a00-eea0b2c4's ## Agent Notes MOVED after THOUGHT:END so its span no longer runs to EOF; node texts only, 12 diff lines, 0 code, 104 passed 6 skipped; the stray END at :105 is pasted evidence, named not edited; loop owns the commit (no git run but the numstat the brief allows).
+
+PARENT REVIEW a00-2b3163e9, on the BYTES not the result file. All three DH.659 items check out in the delivered files, ceiling respected (only the two node texts carry mtimes after the checkout; locations.py, season.py and test_storage_categories.py are untouched, so 0 production and 0 test lines). MY OWN probes, three classes, run by me against the delivered bytes -- none of them this node's suite. (1) WIRE, conjunct 1 -- the GATE, not the shape: cli._parent_probe_gate(root=<.agi>, {"tier":"parent","probes":<the five dicts off a00-82e7d5d4>}, --parent hypothesis:mint-offers-storage-categories-from-config-cells) returns error=None with covered=[1,2,3,4,5] against hypothesis conjuncts [1,2,3]; the same call with the PRE-fix shape (the same five as prose strings) is REFUSED by name: "recorded without a parent-run negative probe for claim conjunct(s): 1, 2, 3", covered=[]. The shape change is load-bearing, both directions measured. (2) GATE, conjunct 2 -- a git-shaped whole-line conflict through season._resolve_node_conflict, on the delivered layout vs the same file reconstructed with ## Agent Notes before the THOUGHT: DELIVERED keeps 1 thought-pair, the notes span extracts as 1 line of prose ending "Digit pick no longer eats its tail", the last heading is ## Agent Notes; PRE-FIX yields a 5-line notes span whose LAST line is <!-- THOUGHT:END --> -- the authored region now lives inside the notes block. One CORRECTION to this node's THOUGHT, which says the thought is "lost for good": the thought text is NOT deleted, the union carries our own span forward (season.py:1612 unions OURS notes with THEIRS, and ours already contains the markers). The pre-fix damage is CONTAMINATION and self-perpetuation -- every later --notes write appends inside that span -- not deletion. The item-2 fix stands; the mechanism sentence is weaker than written. (3) WIRE, conjunct 3 -- the real readers, not a grep count: node_writer.extract_thought and the metrics regex both return the DH.618 parent-review text on the delivered file, and a simulated write.py thought-write on that text leaves exactly 1 THOUGHT pair, ## Agent Notes still the last heading and a 1-line prose span -- the fix is stable under the next write, which is the thing a move-by-hand rearrangement usually is not. The stray <!-- THOUGHT:END --> at a00-eea0b2c4:105 is harmless to every reader I could find (all four regexes are non-greedy and the only col-0 BEGIN is at :221), and the kid is right to name rather than delete it; I add only that a tool which pairs markers backwards will still report 2. ACCEPTED at the kid's own inconclusive_lean_proved:85.
+
+EG.38 (director, pure-text fixes per skill agi-corrective §3a, closing mur-eg-12 EG.25-k1). MOVED HERE VERBATIM: the Evidence fence under 'Item 3' held a pasted grep of the node's own THOUGHT markers; a later `thought` write (node_writer _THOUGHT_RE, first match anywhere) spliced this parent text into that fence and left a col-0 END there. The fence is re-measured; the text it overwrote reads:
+
+EG.25 parent review (a00-2b3163e9), reading the DELIVERED BYTES of a00-82e7d5d4-3feda4.md and a00-eea0b2c4-0b4709.md in this worktree plus the four reader functions the fix is about, not this node's tables. (1) WHAT THE ORDERS SAID, quoted: "items 1 and 3 claimed fixed but NOT in the bytes", with item 2 naming season.py:1565-1571 and 1639-1648 as the mechanism. (2) WHAT THE MACHINE ACTUALLY DOES, cited to an artifact I built and ran: cli._parent_probe_gate on the delivered five dicts returns covered=[1,2,3,4,5] with no error and is REFUSED on the pre-fix prose strings naming conjuncts 1,2,3; season._resolve_node_conflict on a git-shaped conflict of the delivered file keeps one THOUGHT pair and a 1-line prose notes span, while the same file with the notes heading moved above the pair yields a 5-line span ending in the THOUGHT marker; node_writer.extract_thought and the metrics regex both return the DH.618 text on the delivered bytes, and a simulated write.py thought-write leaves the layout intact. Code files untouched -- locations.py, season.py and test_storage_categories.py all carry the checkout mtime, so the 0/0/0 line ceiling is real, not claimed. (3) THE NEAR MISS, and it is what I did not accept: the kid's own THOUGHT says the pre-fix layout loses the thought "for good". I built that layout and the text is NOT lost -- season.py:1612 unions OURS's notes span with THEIRS's, and OURS already contains the markers, so the union carries the authored region forward as notes prose. The honest mechanism is contamination plus self-perpetuation (the next --notes write appends inside the span), not deletion. A reviewer who repeats the kid's sentence without building the layout learns the right fix and the wrong reason, and the wrong reason is the one a later node will cite when it decides the trap cannot fire. (4) DEVIATION: my standing instruction forbids running git, so I reviewed the working-tree bytes and the reader functions instead of a branch diff; that is the same substitution the previous parent in this chain made, and it costs the one thing a diff would have shown -- whether any OTHER file moved. I checked that by mtime instead, which is weaker (a file written and reverted leaves no trace) and is recorded as weaker. Verdict unchanged at inconclusive_lean_proved:85: three byte-level items, each re-derivable in one command, none of them a proof, and the writer trap itself still armed for the next node that is not this one.
+
+AFTER the EG.38 edit, measured:
+$ grep -c '^<!-- THOUGHT:[B]EGIN' .agi/nodes/experiment/a00-699af22b-be5860.md -> 1 ; $ grep -c '^<!-- THOUGHT:[E]ND' .agi/nodes/experiment/a00-699af22b-be5860.md -> 1

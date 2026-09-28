@@ -269,7 +269,13 @@ def rows(root: pathlib.Path, install_root: pathlib.Path, systemctl: str = "syste
                 judge(got, "present", "present", OK_TOL, True)))
     # The spawn cells ARE the target: the row asks whether the config parses and
     # whether mem_cap's resolvers return it -- not whether it equals a literal.
-    spawn_cfg = cfg_all.get("spawn") or {}
+    # ...and a container that is not a dict is ABSENT, not a crash. The reader
+    # owns that guard (mem_cap._spawn_block) and the probe CALLS it rather than
+    # re-deciding `isinstance(spawn, dict)` here: one source per rule, and the
+    # same reuse the cache rows above already make of mem_cap privates. A second
+    # copy would let the two readers drift -- a shape the reader learns to guard
+    # would still kill the table.
+    spawn_cfg = mem_cap._spawn_block(cfg_all)
     for cell, resolved in (("memory_max", mem_cap.resolve_memory_cap(cfg_all)),
                            ("tasks_max", mem_cap.resolve_tasks_max(cfg_all))):
         want = spawn_cfg.get(cell)
