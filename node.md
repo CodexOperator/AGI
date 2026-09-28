@@ -185,27 +185,6 @@ FILE SCOPE .agi/nodes/experiment/a00-d85ae42b-bf72d8.md · .agi/nodes/experiment
 CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · node text only · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat eef31410a <your final tip>` on your node (an empty range is not a measurement)
 KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit; a version delta goes in the node THOUGHT (write.py), never the body
 
-
-## CORRECTIVE DH.EG.89 -- closes mur-eg-19 EG.62-k1 accept_with_residue
-BASE      CUT FROM season2/loops/hypothesis-one-mint-route-answer-a00-0c20ee50 tip 11a2fd3ce (branch de-base-EG.89; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. THOUGHT points at a grid version that does not exist (x3) - d85ae42b:134 'Prior DH.660 reasoning lives in the grid version before this one'; same clause at e0efd9fc:114 and ff788172:297
-2. Re-runnable ONCE probe no longer reproduces and the round doubled its hits - d85ae42b:43 'Re-run on this tip, pasted, not typed' over the paste at :49-52
-3. Stale typed count left live in the node whose THOUGHT was rewritten - d85ae42b:140 'returns TWO sites, not one'
-4. Evidence row PROVED=0 where the file holds 1 - 0c20ee50:54
-5. 0c20ee50:67 'test_bin_help_smoke.py: 72 passed, 6 skipped' pasted as a bare number, no command; measured 72 passed, 7 skipped
-6. CAUSE of defect 1, which the first reviewer reported as a symptom only: NEITHER commit in the range ran `grid.py commit` - 056aac2ce (the kid's done commit, 1 file) and 11a2fd3ce (the director's landing, 3 files) are plain git commits. AGENTS.md pairs the two ('git commit · python3 extensions/agi/bin/grid.py commit --all'). That is why all four mints have 0 grid versions, so 'the grid version before this one' is empty; it also means 0c20ee50 (a3fd3d8a) joins the 11-node anomaly set that has no grid history at all. Fixing the landing without the grid commit is what manufactures the false pointer.
-7. Low: the numstat paste at 0c20ee50:60-65 (4/5, 5/6, 2/16) omits the round's own 80-line minted node, so read as the round's scope it reports 11 insertions where the range holds 91. It is labelled 'Measured on the worktree before `cli.py done` commits', so it is scoped rather than wrong - but the block is not ordered against :52 ('After the edits'), which is why the miscount at :54 escaped.
-8. DEMOTED by the director: the TMM.268 'bytes == last write-log sha' custody item -- the harvest matched against the KID worktree's own write-log (per-root, node_writer.py:127; findings row); do not rewrite a landing commit.
-9. Every number or line you write is measured at YOUR final tip after your last edit and PASTED with its command (two-operand git diff); a claim you cannot re-run is narrowed or removed, never retyped.
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
-TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE .agi/nodes/experiment/a00-0c20ee50-c7717f.md · .agi/nodes/experiment/a00-d85ae42b-bf72d8.md · .agi/nodes/experiment/a00-e0efd9fc-a8cf4c.md · .agi/nodes/experiment/a00-ff788172-12084f.md (write.py) · the kid's own node
-CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines (text, comments, docstrings, briefs and skill rows only) · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 11a2fd3ce <your final tip>` on your node (an empty range is not a measurement)
-COMMIT    every edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.89: mur-eg-19 EG.62-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.62: mur-eg-14 EG.39-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
