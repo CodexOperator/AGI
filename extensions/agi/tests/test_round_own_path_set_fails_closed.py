@@ -13,6 +13,7 @@ Two routes into a round's own-path set used to FAIL OPEN in silence:
 """
 import json
 import os
+import sys
 
 from pathlib import Path
 
@@ -62,6 +63,33 @@ def _load_module(name, filename):
 
 def _load_cli():
     return _load_module("agi_cli_own", "cli.py")
+
+
+def _engine_module(name):
+    """The engine module `name`, as cli.py ITSELF imported it (cli.py:31,36);
+    `_load_cli()` has exec'd it, so it is in `sys.modules`. Reaching for it
+    here is what keeps this file from owning a second frontmatter reader."""
+    return sys.modules[name]
+
+
+def _graph_root():
+    """The graph root for THIS run, by the engine's own resolver
+    (`locations.find_project_root`, the call `cli._find_root` makes), asked
+    from cwd FIRST and this file's own directory second. Not
+    `Path(__file__).resolve().parents[3]`: the RED-proof route this file's own
+    docstring gives is a COPY OUTSIDE `extensions/agi/tests`, where that path
+    has no fourth parent -- `IndexError: 3` on the very route the docstring
+    tells the reader to take. A copy names no graph, so the CWD is the only
+    honest source, and when neither start resolves we FAIL BY NAME."""
+    locations = _engine_module("locations")
+    for start in (Path.cwd(), Path(__file__).resolve().parent):
+        root = locations.find_project_root(start)
+        if root is not None:
+            return root
+    pytest.fail(
+        "no .agi graph root resolves from cwd or from this file's directory: "
+        "this test reads the LIVE graph's committed nodes, so run pytest from "
+        "inside the repo (a copy outside it names no graph)")
 
 
 def _graph(tmp_path, ids=(("hypothesis", "foreign"),
@@ -315,11 +343,19 @@ def test_a_refused_parent_is_named_for_the_parent_route(tmp_path, capsys):
 def test_this_chains_probe_cells_pass_the_engines_own_reader(node):
     """DH.EG.100: EG.03 accepted a `probes:` cell of prose STRINGS because it
     read it with yaml, not with the reader the gate runs (`_probe_defect`).
-    The probe cells this round repaired must pass that reader, entry by entry."""
-    import yaml
-    text = (Path(__file__).resolve().parents[3] / ".agi" / "nodes"
-            / "experiment" / f"{node}.md").read_text()
-    probes = yaml.safe_load(text.split("\n---\n", 1)[0][4:])["probes"]
-    assert probes, node
-    for p in probes:
-        assert _load_cli()._probe_defect(p) == "", (node, p)
+    The probe cells this round repaired must pass that reader, entry by entry.
+
+    Two engine-owned calls, no local arithmetic and no local parse: the node's
+    ADDRESS comes from `cli._find_node_file` (cli.py:1868 -> node_writer
+    .find_node_file), which resolves an abbreviated id and reads the retired
+    `nodes/deprecated/<type>/` sibling, so a retirement stops being a hard red;
+    its BYTES come from `frontmatter.read_frontmatter`. `root` is whatever
+    `_graph_root()` resolved -- the operator's tree, not a hardcoded
+    `<repo>/.agi/nodes/experiment/`."""
+    cli = _load_cli()
+    path = cli._find_node_file(_graph_root(), f"experiment:{node}")
+    assert path is not None, f"experiment:{node} does not resolve in this tree"
+    fm = _engine_module("frontmatter").read_frontmatter(path.read_text()) or {}
+    assert fm.get("probes"), (node, str(path))
+    for p in fm["probes"]:
+        assert cli._probe_defect(p) == "", (node, p)
