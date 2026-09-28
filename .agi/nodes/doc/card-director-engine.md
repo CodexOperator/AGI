@@ -33,7 +33,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ## §0 STATE (04:5xZ 09-28 · gen 36 = heal respawn 03:39Z · per-chain history = git log of this node)
 ```
 MERGE-UP  EG.1 chain LANDED 57debf3a2 (TMM.318); rides belam's B1 pass (TMM.319). Nothing else clean yet: every mur of this seat = residue -> corrective
-SERIES    EG.N (next EG.47) · murs merge_up "eg" -> mur-eg-N (last seen mur-eg-13) · next murq164 · DH.N queued before the reset keep their labels
+SERIES    EG.N (next EG.47) · murs merge_up "eg" -> mur-eg-N (last seen mur-eg-13) · next murq165 · RUNNING murq162 (5 text batches) · murq163 EG.26 · murq164 EG.33 (smoke red suite_guards = base lineage) · DH.N queued before the reset keep their labels
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> gen2.py N murq<Q>.json tip label (sed DH.EG.n -> EG.n; triage the items by hand) · place2.sh N · placef.sh N HYP
           · redispatch2.sh N · mkmur.py + runmur.sh · qgEG<N>.sh = [wait qgEG<prev>] gate -> place2 · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N...
           · S=<scratchpad d74d6d20-...>/watch2.sh (MURS="murqA ..."): event = mur ended · a DE parent neither live nor harvested · new dm/inbox
