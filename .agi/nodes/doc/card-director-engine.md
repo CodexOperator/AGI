@@ -43,7 +43,7 @@ TMM.320   ACCEPTED: EG.30 keep · EG.31 RETIRE AGI_TASKS_MAX · EG.18 parent-to-
 TMPFS     belam TMM.319: KID worktrees ONLY in RAM, PARENT on disk (c2411d6ab; EG.18 item 7) · GO = EG.9 chain MERGED + 24 h no memory crit
 LANES     FRONT gate-only: qgEG43 = EG.9 chain (mur-eg-10 DEMOTE: evidence + falsified measurement + SKILL.md:60; code MET; + cell reaper.worktree_grace_min)
           · qgEG31 = Item 7 fresh round · rdEG26 = EG.26 re-dispatch (died-no-work 41 min; a 2nd death -> TM) · qgRS serial lane: EG.18 -> EG.19 -> 661 -> EG.20
-          · CORRECTIVE CHAIN qgEG33 -> 34 -> 35 -> 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 44 -> 45 -> 46 (each waits the previous placement unit + the gate)
+                   · CORRECTIVE CHAIN qgEG33 -> 34 -> 35 -> 36 -> 37 -> 41 -> 42 -> 44 (each waits the previous placement unit + the gate) · OWNER 05:0xZ: pure-text residue = the director fixes it (skill agi-corrective §3a, 0b0fc369c): EG.38 39 40 45 46 UNITS STOPPED unplaced, fixed by director forks on their loop branches -> ONE batched mur
           · drainqg12..18: 669 · 675 670-674 · 678 · 679 · EG.2 EG.3 · EG.5 (facts: ONE [merge-up] to TM with belam's F13 trim) · EG.6
 CHAINS    EG.21 conftest: EG.32 DEMOTE -> EG.36 (4th round) · DH.662 -> EG.33 · EG.30 -> EG.34 (cell values.pi_retry) · DH.664 DEMOTE -> EG.35
           · DH.663 -> EG.37 (+ OWNER 04:5xZ item 7: ONE frontmatter read per submit) · EG.25 -> EG.38 · DH.660 -> EG.39 · DH.666 -> EG.40 · EG.22 -> EG.41
