@@ -125,6 +125,23 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.653 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-box-memory-guard-piec-a00-fee425e8 tip 6702b6ee6.
 ROUNDS    this post's rounds on this node: DH.591 DH.615 DH.634 DH.653; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
+
+## CORRECTIVE DH.653 -- closes mur-director-engine-39 DH.634-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-box-memory-guard-piec-a00-fee425e8 tip 6702b6ee6 (branch de-base-653; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1 -- the red-first rewritten by this round and elevated into a node as the 'TRUE SCOPE' that refutes the old universal negative names a mutation that cannot fire (adding the kit's LEAK_ROOTS to anonymize.box_tokens)
+2. 3 -- a pasted grep result is summarised as 'all four hits labelled' when one cited line is not; a00-2efa683b:30 still presents probe C as this round's run-and-pasted mutation
+3. 6 -- (note) module-level next() candidate selection crashes with a bare StopIteration instead of refusing by name; named twice by kid and parent, unfixed
+4. CONFIG-MAX / mechanism, and the strongest thing in the diff: the new 'ONE SOURCE' is a hardcoded path literal duplicating a committed config cell. .agi/config.json:247 carries paths.<town>.boxkit.guard_dir = '{repo_parent}/.sanctuary/guard', and the same test file asserts at test:529-534 that the guard dir IS that cell and derives GUARD_SRC from it. test:153 re-types '/.sanctuary/' instead of drawing it, so nothing ties the two: if the cell moves, the kit denylist keeps denying a path the kit never uses and row 4 (test:263-266) silently stops protecting the real guard dir, with no red anywhere. The drift the round claims to have closed re-enters through its own fix, and the round's central conjunct (a00-3d4e7707-9962d4.md:143, 'the literal /.sanctuary/ is now unique to test:153') is exactly the claim that misses this.
+5. Item 4's closure rests on a grep that cannot see the surviving inventory. a00-2efa683b-cd698b.md:131 and a00-3d4e7707-9962d4.md:77 assert 'the header names the RULE (a row is named only by the comment above its own test, no list of row names exists -- test:4-7)', proven only by `grep -n '10b\|SUB-ROWS'` returning rc=1. But the same file enumerates rows 1-10 at test:10-50 and other rows refer to them by name: test:45 'row 10 compares them', :51/:55/:973 'row 4', :657 'Row 10', :717 'row 11g', :896 'row 12', :954 'row 13'. A second copy of row names exists 4 lines below the rule that says none exists, and it is still incomplete (11, 12, 13, 13b, 14b are referenced but not listed) -- the same stale-inventory class DH.591 raised, closed by a grep too narrow to see it.
+6. Blast-radius escalation the round missed on its own declared residue: test:1048's next() runs at import, so the StopIteration is a COLLECTION error for all 197 rows, not a row-level failure. a00-3d4e7707:134-138 scopes it as a shape change to row 14b only; the next round should be told it takes the whole file down.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_boxkit_templates.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_boxkit_templates.py · .agi/nodes/experiment/a00-19870cd0-134fe5.md · .agi/nodes/experiment/a00-2efa683b-cd698b.md · .agi/nodes/experiment/a00-3d4e7707-9962d4.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 6702b6ee6 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.634: mur-director-engine-36 DH.615-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.653: mur-director-engine-39 DH.634-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
