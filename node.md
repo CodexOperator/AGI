@@ -24,3 +24,7 @@ FILE SCOPE the 5 experiment nodes above (write.py replace body) · the kid's own
 CEILING    HARD CAP: 1 kid · 0 production lines · 0 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 ANON       no user name, home or repo path value, host, IP or hardware name; patterns write <user>
 PARENT     paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+EG.7 harvested 637ec02b3, PARENT-DEMOTED inconclusive_lean_proved:75 (a00-0194accb): the 5 corpus edits entity-escaped quoted markers, broke a byte-identity span two reviews attested and moved grep transcripts off their command; they stay UNCOMMITTED in the parent worktree, never landed. Every extra marker on the 5 nodes is a quotation (line-start count <= 1 each, director 01:0xZ), so the fix is the detector. Corrective EG.11 (detector-only) was written, then HELD 01:2xZ: DH.658 (hypothesis:thought-verb-edits-only-the-top-level-thought-block) already routes _count_thought_blocks through node_writer in the same test file, so a parallel edit would conflict; EG.11's check rides as item 4 of EG.14 (DH.658's corrective): the detector must count <= 1 on the 5 nodes byte-unchanged. This node closes when EG.14 clears.
+<!-- THOUGHT:END -->
