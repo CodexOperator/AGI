@@ -162,6 +162,19 @@ FILE SCOPE extensions/agi/tests/test_boxkit_templates.py · .agi/nodes/experimen
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 7623d8adc · <= 40 test lines net over 7623d8adc · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 7623d8adc <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.26 -- closes mur-eg-9 EG.16-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-box-memory-guard-piec-a00-41ee77ef tip 066ebff9e (branch de-base-EG.26; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. The header's row count is a second, unchecked copy — row 15 does not read it -- extensions/agi/tests/test_boxkit_templates.py:4 -- 'Rows 1-15' is matched by neither `[Rr]ow (\d+)` (test:1108) nor the new `^# (\d+)` parse, so adding row 16 plus its docstring entry leaves the file fully green with the header still saying 15 — verified by probe (199 passed). The round's own item 3 cell ('the header's own count is checkable by the same row') is false of the bytes. Latent today, not a live false green.
+2. Demotion did not move the confidence cell -- .agi/nodes/experiment/a00-3d4e7707-9962d4.md:8 -- verdict:30 fell proved -> inconclusive_lean_proved:55 while confidence:8 stayed 0.9, so the node's two frontmatter numbers now disagree; the next reader (or the evidence gate) sees a high-confidence node whose only conjunct its own review refuted.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_boxkit_templates.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_boxkit_templates.py · .agi/nodes/experiment/a00-2efa683b-cd698b.md · .agi/nodes/experiment/a00-3d4e7707-9962d4.md · .agi/nodes/experiment/a00-c339cb91-8933d0.md · .agi/nodes/verdict/a00-17f4d750-05709f.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 066ebff9e · <= 40 test lines net over 066ebff9e · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 066ebff9e <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.16: mur-eg-5 DH.653-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.26: mur-eg-9 EG.16-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
