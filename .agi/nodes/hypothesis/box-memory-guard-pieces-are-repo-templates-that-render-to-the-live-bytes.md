@@ -189,6 +189,23 @@ TESTS     test_boxkit_templates.py + test_bin_help_smoke.py once (timeout 900, -
 FILE SCOPE .agi/nodes/experiment/a00-3d4e7707-9962d4.md · .agi/nodes/experiment/a00-8e3104fe-68efc7.md (write.py) · the kid's own node
 CEILING   HARD CAP: 1 kid (you) · 0 production lines · 0 test lines · node text only -- a code or test byte = the round is cut
 
+
+## CORRECTIVE DH.EG.70 -- closes mur-eg-17 EG.47-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-box-memory-guard-piec-a00-0de7626f tip a402ceeb3 (branch de-base-EG.70; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. New false claim in OUTSIDE: `--force` "does not exist" (a00-0de7626f-4f8260.md:74)
+2. New false claim: "the older reasoning lives in the grid versions" (a00-3d4e7707-9962d4.md:157, echoed at a00-0de7626f-4f8260.md:30)
+3. RE-SCOPE the OUTSIDE --force row (a00-0de7626f:74): --force EXISTS as a PREFIX on the source argument (write.py:448 `if source.startswith("--force ")`; test_write.py:1659); the real defect is that VERB_EXAMPLES["replace"] (write.py:602) and the --help epilog (write.py:2961-2983) never document the prefix form, so `--force` typed as a separate token gets `unrecognized arguments`. Paste `git show a402ceeb3:extensions/agi/bin/write.py | sed -n '448p;602p'`. Never touch write.py (OUTSIDE line only).
+4. When settling item 2, the instrument is `git for-each-ref refs/grid/ | grep -c <mint id>` per mint id of this round (git ls-tree never lists refs): paste it; where no grid ref exists for a mint id, the 'older reasoning lives in the grid versions' sentence is false -> rewrite it to name the git commit that holds the prior text (paste `git log --oneline -1 -- <path>`).
+5. The pasted `git diff --numstat` block in a00-0de7626f-4f8260.md:66-68 lists only the two EDITED nodes (2/2, 10/8) and omits the round's own new 84-line node, so a reader reproducing the paste sees two files where the round touched three.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-0de7626f-4f8260.md · .agi/nodes/experiment/a00-3d4e7707-9962d4.md · .agi/nodes/experiment/a00-8e3104fe-68efc7.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat a402ceeb3 <your final tip>` on your node (an empty range is not a measurement)
+COMMIT    every node edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.47: mur-eg-14 EG.26-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.70: mur-eg-17 EG.47-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
