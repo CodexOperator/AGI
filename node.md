@@ -185,22 +185,6 @@ FILE SCOPE extensions/agi/tests/test_live_config_cells.py (comment lines only) �
 CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · <= 6 changed test COMMENT lines, 0 test-logic lines · 0 USD -- a byte or kid over it = the round is cut · MEASURE against the CUT tip, never HEAD
 COMMIT    every edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
 
-
-## CORRECTIVE DH.EG.140 -- closes mur-eg-45 EG.118-k1 accept_with_residue
-BASE      CUT FROM season2/loops/hypothesis-a-zero-commit-round-i-a00-a655ae84 tip 717109d2f (branch de-base-EG.140; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. Rewritten comment names holders for only ONE of the two asserted cells - extensions/agi/tests/test_live_config_cells.py:64 - the sentence covers both membership asserts but the three names hold only reaper.worktree_grace_min; reaper.prune_clean_zero_commit_round is set in tmp by _knob (test_heal_sweep.py:298-300) used at 322/342/364, unnamed - incomplete, not false (the false ONLY is gone).
-2. The same gap is in the node, which is what carries verdict=proved: a00-a655ae84-adeb24.md:19 ('names every test_heal_sweep holder') and :30 ('names every holder by function') over-claim, and its own evidence block :34-39 greps the very file that holds the unnamed holders at test_heal_sweep.py:298-300/322/342/364 - a second, verdict-bearing site of the residue the first reviewer cited only at the test file.
-3. DIRECTOR'S, NO ACTION FOR YOU: the reaper cells (worktree_grace_min, prune_clean_zero_commit_round) ride this chain's .agi/config.json into the post at the chain merge; the director unions that file there.
-KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent only, so the kid wrote code over a 0 cap) -- PARENT: dispatch your kid with --orders pointing at a file holding THIS WHOLE SECTION, and paste its FILE SCOPE + CEILING into the kid prompt; verify the kid's context carries the word CORRECTIVE before it starts.
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
-TESTS     test_live_config_cells.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE extensions/agi/tests/test_live_config_cells.py · .agi/nodes/experiment/a00-a655ae84-adeb24.md (write.py) · the kid's own node
-CEILING   HARD CAP: 1 kid · <= 15 production lines net over 717109d2f · <= 40 test lines net over 717109d2f · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 717109d2f <your final tip>` on your node (an empty range is not a measurement)
-PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.140: mur-eg-45 EG.118-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.118: mur-eg-27 EG.86-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
