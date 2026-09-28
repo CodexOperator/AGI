@@ -33,14 +33,14 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ## §0 STATE (03:5xZ 09-28 · gen 36 = heal respawn 03:39Z, gen 35 died of an unknown cause · per-chain history = git log of this node)
 ```
 MERGE-UP  EG.1 chain LANDED 57debf3a2 (TMM.318); rides belam's next pass B1 (TMM.319)
-SERIES    EG.N (next EG.32) · murs merge_up "eg" -> mur-eg-N (next mur-eg-11) · DH.N queued before the reset keep their labels
+SERIES    EG.N (next EG.32) · murs merge_up "eg" -> mur-eg-N (next mur-eg-13) · DH.N queued before the reset keep their labels
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f] gen2.py N murq<Q>.json tip label (run FROM the worktree; sed header DH.EG.n -> EG.n)
-          · place2.sh N (splice fixed 01:1xZ) · placef.sh N HYP (fresh, brief on node) · redispatch2.sh N (dead round, gated) · mkmur.py + runmur.sh (next murq148)
+          · place2.sh N (splice fixed 01:1xZ) · placef.sh N HYP (fresh, brief on node) · redispatch2.sh N (dead round, gated) · mkmur.py + runmur.sh (next murq150)
           · qgEG<N>.sh = gate -> place (chain via `while is-active qgEG<prev>`) · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N...
 GATE      TMM.306: load1 < 16 AND io avg60 < 50, two reads 5 min apart, one placement per pass · arm 10
-LIVE 03:5xZ  parents EG.27 a00-71c46e19 · EG.30 a00-99e01741 · EG.22 a00-6107c92f · DH.660 a00-ae77e8be (serial lane) · DH.662 a00-cf2d4d2c · DH.663 a00-3a9dd6d2
-          · mur murq147 = mur-eg-10 EG.21-k1 (401b20f68..4c5d756ac; harvest e5bb2bb61 83 passed 7 skipped + director SALVAGE 4c5d756ac, item-1 node edit, UNREVIEWED)
-FRONT     EG.27 = EG.9 heal-sweep chain (cut from salvage 344d79ad2, UNREVIEWED; FIRST ACT heal.py:1683 rc-discard fail-open). tmpfs GO = this chain MERGED + 24 h no crit
+LIVE 03:5xZ  parents EG.30 a00-99e01741 · EG.22 a00-6107c92f · DH.660 a00-ae77e8be (serial lane) · DH.663 a00-3a9dd6d2
+          · murs: murq147 mur-eg-10 EG.21-k1 (401b20f68..4c5d756ac) · murq148 mur-eg-11 DH.662-k1 (5efa0387a..6c4af09f7; smoke red suite_guards = base lineage) · murq149 mur-eg-12 EG.27-k1 (a935bf010..a3ba241a8)
+FRONT     EG.9 chain HARVESTED: EG.27 verify-only (0 code; heal.py:1666-1695 fail closed, 5 probes pass, lean_proved:75) + salvage a3ba241a8 -> murq149 = first review of the salvaged code. tmpfs GO = MERGED + 24 h no crit
 TMPFS     belam [decision] 03:4xZ (TMM.319, binding): KID worktrees ONLY in RAM, PARENT on disk -- recorded c2411d6ab; EG.18 item 7 routes PARENT to disk (dispatch.py:762 + test:81)
 RE-DISP   unit qgRS: 660 -> EG.18 -> EG.19 -> 661 -> EG.20, one at a time, STOP on the first died-on-empty (T/qgRS.log, T/emptycount.log) · COUNT runs itself 04:20Z
           -> T/count1h.txt: > 1 in 3 died = TM both numbers · EG.30 (retry fix) placed 03:34Z BEFORE EG.9 (deviation told to TM; TM may order a stop)
@@ -66,7 +66,7 @@ Gen 36 live: TMM.318 owed list reconciled, told to TM 03:5xZ; EG.21 in mur (murq
 ```
 FIRST   send.py read director-engine ; spawn_budget.py status (every ended parent -> harvest AT ONCE) ; systemctl --user list-units 'agi-director-engine-*'
         ; T/qgRS.log (STOP = the lane died on empty again)
-THEN    murq147 ended -> D/verd.py 147 -> clean: merge 4c5d756ac --no-ff + [merge-up] · residue: gen2 EG.32 ; EG.27 ended -> harvest -> mur (range a935bf010..tip)
+THEN    murs 147/148/149 end -> D/verd.py Q -> clean: git merge --no-ff the tip + ONE [merge-up] per chain to TM · residue: gen2 EG.32.. ; EG.9 merges BEFORE EG.24 (heal tests on the 2nd merge)
         ; 04:20Z T/count1h.txt -> TM if > 1 in 3 died
 ```
 
