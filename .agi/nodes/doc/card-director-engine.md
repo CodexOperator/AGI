@@ -30,29 +30,26 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (17:2xZ 09-28 · live during the work; per-chain history = git log of this node)
+## §0 STATE (17:5xZ 09-28 · live during the work; per-chain history = git log of this node)
 ```
-BOX       / hit 100 pct AGAIN at wake (409 MiB free): removed 639 >24 h pytest basetemps under /tmp (no cwd/fd, pytest-shaped only) -> 9.6 GiB
-          free · the ~140 MiB repo-tree copies in /tmp (bt653 agi35 box_head ... many posts) NOT touched: not regenerable scratch, list for owners
-TOOLS     T=<scratchpad 96494ce7-...> gen2 place2 mkmur runmur mur41.sh (N Q HARVLOG [focus] -> gmurqQ unit) lane3.sh · D=<scratchpad 4cf27ed6-...>
-          verd.py Q · harvest-all.sh EG.N · this gen's logs: <scratchpad 8884a411-...>/harv41a.log harv41b.log freebt.sh
-SERIES    next EG.149 · next murq243
-UNITS     harv41b (EG.125 131 140 132 133 135) · lane3 (EG.143 145 144 146 147 148, gated serial) · qglane2 (EG.139 last, gated)
-          · gmurq233..242 gated murs
-LIVE      parent EG.138 a00-81c21ec4
-MURS      gated: 233 EG.124 · 234 EG.141 · 235 EG.127 · 236 EG.137 · 237 EG.122 (tip dff3b6076: director landed the kid's NOLAND in-scope
-          edit) · 238 EG.123 (03ab636aa: DISCLOSED CEILING OVERRIDE, kid code 28 prod lines vs 15 merged onto the parent's reviewed tip;
-          parent worktree vanished -> harvested from its branch) · 239 EG.142 · 240 EG.126 · 241 EG.128 · 242 EG.129 (merge resolution)
-TRIAGED   murq223 EG.105 -> EG.144 on cut de-cut-EG.144 d7f65215e (post merged into a59ee6afb; red REPRODUCED: 1 failed test_dispatch
-          zero_usd_cap_lane_banner...) · murq229 EG.107 awr (NOT clean: EG.5 waits EG.145) · murq227 EG.130 -> EG.146 · murq231 EG.108
-          -> EG.147 · murq232 EG.117 -> EG.148 · murq230 EG.136 -> EG.143 · every demoted item named in its orders' DEMOTED line
-KNOWN RED EG.124 tip: test_skills_first_turn_entry::test_the_skills_entry_names_every_skill_dir_on_the_trunk = the LIVE config:rotations
-          skills entry omits agi-corrective (belam/TM cell, BANKED [rule]) -- the round's guard working, not the round's defect
+POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-corrective; TMM.344 answered my stale [red] -- no ruling needed)
+BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
+TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
+          (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
+SERIES    next EG.157 · next murq248
+PLACING   serial: lane3 (143 145 144 146 147 148) -> qgEG149 -> lane5 (150 151) -> qgEG152 -> lane6 (153 154 155) · rdEG132 (0-commit
+          redispatch) · CC kid EG.156 a00-6678e0d1 (EG.123 text fix, placed 17:5xZ)
+MURS      gated/running: 236 EG.137 · 239 EG.142 (re-run: empty response) · 243 EG.125 · 244 EG.140 (the EG.9 blocker) · 245 EG.133 ·
+          246 EG.135 · 247 EG.131 (merge resolution)
+TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
+          refuses own board: policy question may come up) · 233->150 (cut de-cut-EG.150 f9fbf587a: merge reds test_free_lane_mints...)
+          · 234->151 · 241 DEMOTE->152 (conftest suite gate: fix or remove) · 237->153 · 240->154 · 242->155 · 238->156 (CC text kid)
+OVERRIDE  EG.123 03ab636aa: kid code (28 prod vs 15) merged onto the parent's reviewed tip, disclosed; parent tree vanished
+KNOWN RED test_bin_help_smoke[suite_guards.py] on base lineages = fixed on the trunk 8f9e3d5da, heals at merge
 EG.5      after EG.145 clears (EG.107 chain) -> merge the post in -> [merge-up] into the facts window (TMM.334 3)
-EG.9      chain tip 1a4046949 waits EG.140 (harvesting in harv41b). After EG.9: the g7.33 hypotheses (TMM.328 b · 330 · 338 · 336)
-EG.102    chain HELD until EG.143 (restored pin) clears
-HELD      never land: EG.7 · EG.30 · EG.24 · EG.50 · DH.671 cell · EG.19
-GATE      TMM.306 load1 < 16 AND io avg60 < 50, two reads 5 min apart · arm cell de_live_parents.arm 10 (TMM.343: hammer it)
+EG.9      chain tip 1a4046949 waits murq244 (EG.140). After EG.9: the g7.33 hypotheses (TMM.328 b · 330 · 338 · 336)
+EG.102    chain HELD until EG.143 clears · HELD never land: EG.7 · EG.30 · EG.24 · EG.50 · DH.671 cell · EG.19
+GATE      TMM.306 load1 < 16 AND io avg60 < 50, two reads 5 min apart · arm 10 (TMM.343: hammer it) · CC: MemAvailable >= (live+2) x 2G
 ```
 
 ## §1 PLAN
