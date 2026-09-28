@@ -118,6 +118,23 @@ FILE SCOPE extensions/agi/tests/test_heal_sweep.py · extensions/agi/tests/test_
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over d00757c25 · <= 40 test lines net over d00757c25 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat d00757c25 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.58 -- re-does EG.50 (parent a00-44cd2258 DEMOTED its own round to inconclusive_lean_disproved:35 and committed NOTHING); closes mur-eg-15 EG.43-k1
+BASE      CUT FROM season2/loops/hypothesis-a-zero-commit-round-i-a00-116079d2 tip d00757c25 (branch de-base-EG.58). No merge. Never rebase.
+PRIOR     the demoted attempt's UNCOMMITTED tree is .agi/worktrees/a00-44cd2258 -- READ it only (git -C <that tree> diff -- <path>), never write there. Its parent CONFIRMED items 1 and 3 good (37 passed; the index assertion is reached live): you MAY re-apply those two test diffs, then re-run the tests yourself. Its item 2 and its node paragraphs are WRONG -- do not copy them.
+For EACH item: fix it in the bytes, OR run the one command that settles it and PASTE its output on your node (never type a number, never elide a grep).
+1. One-source breach: test_heal_sweep.py (~:380) opens the LIVE .agi/config.json; test_live_config_cells.py is the ONE file that reads it. Move the worktree_grace_min live-cell pin into test_live_config_cells.py; test_heal_sweep.py proves the cell is READ via a tmp config only.
+2. The false pointer heal.py:1783 is cited 4x as 'the standard session-complete copy into the shared-sessions home' (a00-ada7e475-9a73bf.md ~:56 and ~:159, a00-a0e112bb-1a7fdb.md ~:45, the hypothesis node). The TRUE pointer, verified by the director on d00757c25: `_session_complete` at cli.py:3066, which copies with `shutil.copy2` at cli.py:3207 and cli.py:3211. There is NO copytree on that path; cli.py:2779 is a line of the `_trees_match` DOCSTRING -- never cite it. PASTE on your node: git show d00757c25:extensions/agi/bin/cli.py | sed -n '3066p;3207p;3211p'
+3. Overstatement: the hypothesis body says the knob test shows 'homed ... before removed', but test_heal_sweep.py (~:369-371) asserts both substrings with `in` only -- pin the ORDER (text.index('homed') < text.index('removed')) or correct the sentence.
+4. Each corrected paragraph appears EXACTLY ONCE in its node: write.py `replace body N:M` counts BODY lines (the frontmatter is not counted) -- read the body numbered first. PASTE `grep -c '<a phrase unique to the corrected paragraph>' <node>` = 1 for each of the four nodes, unelided.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_heal_sweep.py test_live_config_cells.py + test_bin_help_smoke.py once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT (TMM.322)); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_heal_sweep.py · extensions/agi/tests/test_live_config_cells.py · .agi/nodes/experiment/a00-ada7e475-9a73bf.md · .agi/nodes/experiment/a00-a0e112bb-1a7fdb.md · .agi/nodes/hypothesis/a-zero-commit-round-is-never-swept-as-landed.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · 0 production lines · <= 40 test lines net over d00757c25 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · paste `git diff --numstat d00757c25 <your final tip>` on your node
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit -- EG.50 committed nothing and a sweep can take an uncommitted tree
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.50: mur-eg-15 EG.43-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.58: mur-eg-15 EG.50-redo residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
