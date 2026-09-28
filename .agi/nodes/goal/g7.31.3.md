@@ -16,6 +16,7 @@ season: 2
 seeds:
   - goal:g7.31.3.1
   - goal:g7.31.3.2
+  - goal:g7.31.3.3
 status: active
 tags:
   - goal
@@ -27,7 +28,7 @@ tags:
   - send
   - dispatch
   - rotate
-thought_session: magic-pane-2026-09-21
+thought_session: belam-stop-line-nopi-20260928
 title: "G7.31.3: Five unified engine routes through the pane (write/read/send/dispatch|workflow/rotate|spawn)"
 town: core
 ---
@@ -87,3 +88,7 @@ Assigned to **director-belam (point)** with umbrella + `.1`. May further split; 
 **Related:** `doc:standing-llm-ops` §4, `goal:g1.14`, `command:commands`, `goal:g7.26`, `goal:g7.27`.
 
 Split 2026-09-21 ET by director-belam: multi-headed falsifiers → goal:g7.31.3.1 (brief lists five routes) + goal:g7.31.3.2 (sample write+send+dispatch). Dispatch parents on leaves.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+include g7.31.3.3 in seeds (owner spawn/rotate graph-write leaf already live)
+<!-- THOUGHT:END -->

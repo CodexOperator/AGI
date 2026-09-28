@@ -14,12 +14,12 @@ origin: goals-doc
 scaffold_hash: 47f10fb29650b886
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - skills
   - adoption
   - redesign
-thought_session: belam-g733-foundation-20260928
+thought_session: belam-stop-line-nopi-20260928
 title: "G7.33.9.1: skills adoption — skills/agi-* present on trunks + .claude/skills symlinks resolve; directors route via skill:agi-node-write / agi-goal"
 town: core
 ---
@@ -47,3 +47,7 @@ town: core
 
 ## Agent Notes
 Assigned to **director-belam**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+skills falsifier GREEN on tip: .claude/skills/agi-node-write+agi-goal symlinks resolve; no regular-file drift; director-direct NO-pi
+<!-- THOUGHT:END -->
