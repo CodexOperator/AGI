@@ -38,13 +38,13 @@ POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-cor
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.170 · next murq269
-PLACING   serial9 (162 placed 19:5xZ, then 163 165 161 164 166) -> serial10 (168) · serial11 EG.148 redispatched a00-a193157a
-          · serial7 8 done (146 147 154 159 placed) · TRAP: placements SERIAL, <= 2 dispatching at once (rc=124 io storm 18:5xZ)
-HARVESTED <scratchpad 8884a411>/harv160 154 159 146.log: EG.160 8adbb1926 · EG.158 dd030ceb5 · EG.151 26324bcde · EG.167 a1a1e686b
-          · EG.154 4b6d0aa3b · EG.159 8662c971b · EG.146 7880395b2 · EG.147 2a01c199b (1 red = KNOWN RED suite_guards help smoke, base lacks 8f9e3d5da)
+SERIES    next EG.171 · next murq270
+PLACING   serial9 (162 163 placed; then 165 161 164 166) -> serial10 (168) · pq170 (EG.170 facts-window re-pin) · serial7 8 11 done
+          · TRAP: placements SERIAL, <= 2 dispatching at once (rc=124 io storm 18:5xZ)
+HARVESTED <scratchpad 8884a411>/harv160 154 159 146 148.log: EG.160 8adbb1926 · EG.158 dd030ceb5 · EG.151 26324bcde · EG.167 a1a1e686b
+          · EG.154 4b6d0aa3b · EG.159 8662c971b · EG.146 7880395b2 · EG.147 2a01c199b (KNOWN RED only) · EG.148 3b36a7015 · EG.162 harvesting
 MURS      259 EG.152 · 260 EG.155 (dead-round salvage) · 261 EG.160 (the EG.9 blocker) · 262 EG.158 · 263 EG.151 · 264 EG.167
-          · 265 EG.154 · 266 EG.159 · 267 EG.146 · 268 EG.147 · 258 EG.150 JUDGED awr -> EG.169
+          · 265 EG.154 · 266 EG.159 · 267 EG.146 · 268 EG.147 · 269 EG.148 · 258 EG.150 JUDGED awr -> EG.169
 CC KID    EG.169 a00-adb0b43d (opus text kid, murq258 EG.150-k1: 5 text items, V5 note demoted) · hcc169 harvests at pid exit
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
           refuses own board: policy question may come up) · 233->150 (cut de-cut-EG.150 f9fbf587a: merge reds test_free_lane_mints...)
@@ -53,8 +53,12 @@ TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231-
           · 246 EG.135 -> 161 · 248 EG.143 -> 162 · 252 EG.145 -> 163 · 255 EG.156 -> 164 · 239 EG.142 -> 165 · 250 EG.139 -> 166 · 256 EG.149 -> 168
 OVERRIDE  EG.123 03ab636aa: kid code (28 prod vs 15) merged onto the parent's reviewed tip, disclosed; parent tree vanished
 KNOWN RED test_bin_help_smoke[suite_guards.py] on base lineages = fixed on the trunk 8f9e3d5da, heals at merge
-EG.5      [red] to TM 18:4xZ (MAJOR): EG.145 guard needs belam cell templates.director.startup.facts_pointer_target_bytes
-          (absent; live region ~2001 B > the 2000 target) -- after that and EG.145 clears (EG.107 chain) -> merge the post in -> [merge-up] into the facts window (TMM.334 3)
+EG.5      FACTS WINDOW (TMM.348 19:57Z): belam/facts-window a1ccc2dee (F13 trim + cell facts_pointer_target_bytes 2000) pairs with the
+          EG.107 chain (tip db4157188). Cut de-cut-EG.163: e3d289056 = post 0f3ccf2c1 merged INTO db4157188 (trio = POST side, node =
+          post sections + chain falsifier 2) -> b49c5db9e = + a1ccc2dee (clean). EG.170 (pq170) = re-pin test_region_live_only_f13 on
+          b49c5db9e (the one red: IndexError). EG.163 placed on the OLD cut db4157188 (a00-13ea9b20, placed before the redirect) ->
+          at harvest merge its tip into the EG.170 tip, ONE mur over b49c5db9e..merged, all test_rotate_templates green -> [merge-up]
+          to TM naming the chain tip + a1ccc2dee
 EG.9      chain tip 1a4046949 waits murq244 (EG.140). AFTER EG.9, in order (TMM.345): (1) the basetemp gate = the EG.128 chain
           (EG.152) + a reaper for >24 h basetemp dirs no process holds -- a FIX, not a row (2) ONE goal:g7.33 hypothesis: repair
           the off-shape frontmatter via write.py set (15 keys links.py MALFORMED + 106 nodes cli refuses), pi-free (3) TMM.347: ONE goal:g7.33 hypothesis
