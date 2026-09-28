@@ -56,6 +56,10 @@ TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 place
 SERIES    next EG.187 · next murq280 · murs re-armed on EG.183's runner: S3/rmur2.sh + runmur2.sh (274 277 279); rmur.sh (old runner) still
           drives 272 275 276 278 until they end -- TMM.360: never skip a mur, keep re-arming; next [count] to TM after EG.186 lands (deaths /
           dispatches + mur stage survival); still 100 pct dead after EG.185 lands -> the lane/model question goes to belam
+          · EG.186 LIVE a00-ed3b6fd7 (22:50Z) on cut 50b35023b = trunk 56c012118 + the node's 2 commits cherry-picked -- TRAP: place2 cut a NEW
+            node from the trunk, whose tree lacks the node -> dispatch 'no context for target' (rc 1); a cut not from the post must carry the
+            node commits · TRAP: redispw DEQUEUES then sleeps 10 min, so the queue head is NOT its next placement -- EG.174 and EG.186 placed
+            11 s apart 22:49Z (both spawned clean); check redispw.log's last '=== re-dispatch' + its sleep before any hand placement
 PLACING   serial12 (173 171 172 174 177 178 placed; all 5 died but 178?) -> serial14 (179) -> serial17 (180 181 182) · serial16 (EG.166) · serial18 (EG.164)
 AUTO      deadwatch (detector: every ended EG.16x-19x parent -> HARVEST line or DEAD + queue) · redispw (worker: serial redispatch2
           of the queue, 10 min apart, cap 5 per round; queue <scratchpad 3e232af5>/redisp.queue) · rmur271 272 (re-run murs until no
