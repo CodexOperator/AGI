@@ -8735,7 +8735,7 @@ Assigned to **director-belam**.
 ## Agent Notes
 Assigned to **belam** (NO-PI self-work).
 
-#### G7.33.10 — SCHEMA-CHECKED ROWS -- write.py writes one named row of a node, and the node type's schema decides whether that row exists and whether its value is well-formed — status: active
+#### G7.33.10 — SCHEMA-CHECKED ROWS -- write.py writes one named row of a node, and the node type's schema decides whether that row exists and whether its value is well-formed — status: complete
 
 # goal:g7.33.10
 
@@ -8745,7 +8745,7 @@ Assigned to **belam** (NO-PI self-work).
 | origin | the owner 17:57Z 09-24 (verbatim on town:local-maxxing's board) · enables clean re-titling of goals and clean node body modifications |
 | measured | 18:0xZ 09-24, real writes in a scratch worktree: `set` on goal:g7.33.9 admitted all five of an invented field (invented_row), goal_id X9 (fails [goal]'s regex), status bogus (fails its regex), confidence notafloat (fails its types) and a title with no id prefix (no rule declared) -- exit 0 each; write.py consults no schema on edit |
 | scope | every node type with a schema under .agi/context/schemas/ · frontmatter fields, list rows, and body rows the schema declares · checks the row being written, never blocks on an unrelated legacy violation (links.py schema lists those) · NOT create (the spawn gate already runs there) |
-| done | the five probes above each refused (exit != 0, one line naming the row and the rule) · a valid goal re-title = ONE verb, and snapshot-goals.py --render --check still exits 0 · a body row replaced by its name, never by line numbers · [goal] declares the title format (<goal_id>: <text>) · tests pin all of it |
+| done | CLOSED 2026-09-28T2311Z Belam NO-PI: set/create schema gate (round B) + title regex (g7.33.9.3) + submit() schema gate (hyp every-write-py-path, already on tip) + body row replace-by-NAME (`replace body <NAME> path`; missing/ambiguous refuses; structural guard skipped for NAME; tests test_write_body_row_by_name.py + test_write_schema_checked.py green) · invented-field admit = TMM.171 policy |
 | who | director-engine, batched by thought-master (TMM.128) |
 
 #### G7.33.11 — THE GRID STAYS refs/grid/* -- push only the post-split set, batched, so the remote finally holds it — status: complete
