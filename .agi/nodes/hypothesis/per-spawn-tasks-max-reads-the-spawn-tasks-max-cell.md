@@ -48,5 +48,5 @@ FILE SCOPE extensions/agi/tests/test_boxkit_probe.py · extensions/agi/boxkit/pr
 CEILING    HARD CAP: 1 kid · <= 8 production lines net · <= 30 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT     paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-EG.1 (first round of the reset EG series, belam [decision] 00:0xZ 09-28): the post branch carries a red between this chain (merged 1ee2340c3: resolve_tasks_max reads spawn.tasks_max) and the boxkit probe test that still drives values.memcap.tasks_max; found by the merge-up run over the 23 touched test files, declared in the merge-up, fixed here rather than by hand (a director writes no engine code).
+corrective EG.10: mur-eg-2 EG.1-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
