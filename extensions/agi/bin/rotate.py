@@ -248,39 +248,41 @@ def _season_ref_on_origin(root: Path, ref: str) -> bool:
 def season_branch(root: Path | None) -> str:
     """THE ONE resolver for the season branch name.
 
-    Starts from `season/s{current_season}` in the ladder (`season/s2` only
-    when the ladder is unreadable — load_ladder_field already warns), then
-    accepts BOTH spellings and emits the canonical name ONLY when it exists
-    on origin (hypothesis:l4-branches-follow-the-season-grammar).
+    Starts from the CANONICAL `season{N}/main` spelling so callers like
+    `rotate.py status --record` never trip `branches.py: deprecated alias
+    used: season/sN -> seasonN/main` (goal:g7.33.3(e) /
+    hypothesis:lm-rotate-status-uses-canonical-season-branch). The legacy
+    ladder spelling `season/s{N}` remains the no-git / neither-on-origin
+    fallback.
 
-    `branches.ref_candidates(branch)` returns the canonical first (`season
-    N/main`) then the legacy alias (`season/sN`) as the one-season deprecated
-    fallback; the first candidate that resolves on origin is returned, so on
-    a pre-migration tree — where only `origin/season/sN` exists and
-    `origin/season<N>/main` does NOT — the legacy spelling is emitted and a
-    canonical name that would resolve nowhere is never printed. A tree where
-    NO candidate resolves falls back to the input branch unchanged (never a
-    name that does not exist; readers address it as `origin/{season}`). With
-    `root is None` (no git) the origin probe is skipped and the ladder
-    spelling is returned directly.
+    `branches.ref_candidates(canonical)` returns the canonical first then the
+    legacy alias as the one-season deprecated fallback — WITHOUT parsing the
+    alias, so no warn. The first candidate that resolves on origin is
+    returned: on a pre-migration tree (canonical absent, legacy present) the
+    legacy spelling is emitted; when neither resolves, the ladder spelling is
+    returned unchanged. With `root is None` the origin probe is skipped and
+    the ladder spelling is returned directly.
 
-    Every literal `season/s2` site in rotate.py routes through this so a
-    season change is ONLY the ladder's `current_season` (hypothesis l4-the-
+    Every season-branch site in rotate.py routes through this so a season
+    change is ONLY the ladder's `current_season` (hypothesis l4-the-
     prepare-captives-measure-generation-upstream-and-season-and-the-gate-
-    is-not-a-test-seam, piece 4: printed lines change text only by the
-    season number)."""
+    is-not-a-test-seam, piece 4)."""
     s = load_ladder_field(root, "current_season", None) if root is not None \
         else None
     if s is None:
-        branch = "season/s2"
+        s = 2
+        ladder = "season/s2"
     else:
-        branch = f"season/s{s}"
+        ladder = f"season/s{s}"
+    canonical = f"season{s}/main"
     if root is None:
-        return branch
-    for cand in branches.ref_candidates(branch):
+        return ladder
+    # Feed the CANONICAL spelling to ref_candidates — never the alias — so
+    # status does not print the deprecated-alias warning on every call.
+    for cand in branches.ref_candidates(canonical):
         if _season_ref_on_origin(root, cand):
             return cand
-    return branch
+    return ladder
 
 
 def find_newest_cc_transcript(slug: str = CC_PROJECT_SLUG) -> Path | None:
