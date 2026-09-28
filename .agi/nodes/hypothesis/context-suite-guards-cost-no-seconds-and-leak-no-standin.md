@@ -78,6 +78,31 @@ FILE SCOPE .agi/nodes/hypothesis/context-suite-guards-cost-no-seconds-and-leak-n
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 4c5d756ac · <= 40 test lines net over 4c5d756ac · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 4c5d756ac <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.36 -- closes mur-eg-12 EG.32-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-context-suite-guards--a00-788a653e tip 78f5ea920 (branch de-base-EG.36; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+ORDERS    THIS text is the order set; the loop branch's copy of the hypothesis node does NOT carry it (the director's post branch does) -- never report "no section" as a defect. FOURTH round on this chain: every item not closed in the bytes is named on your node with the command that shows it open.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Committed `verdict: proved` contradicted by its own body ('demoted from proved to lean')
+2. 2. New pin is a source-TEXT regex, never executes the conftest, so it PASSES on the shadowing bytes that hang
+3. 3. Vacuous assert `suite_guards.agi_env_stripped is not None`
+4. 4. Hypothesis left with no `verdict:` and no `evidence_runs:` after a decided round
+5. 5. Hypothesis's cost half names `test_hook_trim_fixture_a00-faa1fb92`, absent from the committed tree; the round proved a different quantity under ulimit -v
+6. 6. Third strip pass has no try/finally
+7. 7. Corrective item 3 unfixed: Budget numstat still `12 0` / `20 0`
+8. 8. Corrective item 4 unfixed: passed-count split still '7 + 10 + 11'
+9. The round's own EVIDENCE ROW is self-refuting and false on the bytes -- the first reviewer caught typed timings but not the COUNT. .agi/nodes/experiment/a00-08865efb-29156d.md:84-85 reads '`pytest extensions/agi/tests/test_declared_suite_guards.py -q` -> **11 passed in 1.55 s** (was 10 passed; the new pin is inside the wiring test)'. The diff adds ZERO test functions: `grep -c '^def test_'` is 11 at 4c5d756ac and 11 at 78f5ea920, and `git diff --numstat` shows the 17 test lines are `import re` plus asserts inside the existing `test_the_real_context_conftest_installs_the_shared_guards`. A pin added INSIDE an existing test cannot move the passed-count from 10 to 11; the +1 belongs to an earlier commit. The row contradicts itself in the same clause ('the new pin is inside the wiring test' -- then why did the count move?) and is exactly the typed-not-derived number this chain exists to kill.
+10. Unguarded regex extract, extensions/agi/tests/test_declared_suite_guards.py:270: the only guard is the pre-existing `assert "from suite_guards import" in src` at :256, which a single-line, non-parenthesised import (`from suite_guards import agi_env_stripped, no_real_process`) satisfies. re.search then returns None and `.group(1)` raises AttributeError -- a red with a stack trace that names neither the import list nor the fix, instead of the named assertion the pin was written to produce.
+11. Unread reader: the new pin derives the declared conftest from a hardcoded literal, `Path(__file__).resolve().parents[3] / ".agi" / "context" / "conftest.py"` (test_declared_suite_guards.py:253-254), while .agi/config.json already carries the cell `paths.core.suite_roots = ['.agi/context']`. An engine-suite test (extensions/agi/tests/) therefore asserts on one repo's declared conftest by literal path rather than by the declared resolver -- so it is wrong in any other project (fantasia/) and cannot follow a suite-root move. Pre-existing in the three sibling asserts the diff sits under, so not newly introduced, but the round extended the pin on top of the unread cell rather than reading it.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+HARD RULE (from EG.13, unchanged) every .agi/context pytest runs ONLY under systemd-run --user --scope -q -p MemoryMax=2G -p MemorySwapMax=0; the standin test alone, never bare.
+TESTS     test_declared_suite_guards.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/hypothesis/context-suite-guards-cost-no-seconds-and-leak-no-standin.md (write.py: verdict + evidence_runs + the cost-half test name) · extensions/agi/tests/test_declared_suite_guards.py · .agi/nodes/experiment/a00-08865efb-29156d.md (write.py) · the kid's own node · .agi/nodes/experiment/a00-55826c04-d4408d.md (write.py, item 7) · .agi/nodes/experiment/a00-d5fc548f-4c1aff.md (write.py, item 8)
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 78f5ea920 · <= 40 test lines net over 78f5ea920 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 78f5ea920 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.32: mur-eg-10 EG.21-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.36: mur-eg-12 EG.32-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
