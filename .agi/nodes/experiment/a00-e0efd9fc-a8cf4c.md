@@ -6,7 +6,7 @@ parents:
   - hypothesis:one-mint-route-answers-file-validated-row-by-row
 next_edges: []
 confidence: 0.7
-edited_by: a00-0c20ee50
+edited_by: a00-11971713
 evidence_runs:
   - experiment:a00-e0efd9fc-a8cf4c
 loop: hypothesis:one-mint-route-answers-file-validated-row-by-row@s2
@@ -111,7 +111,7 @@ probes:
   from the commit the round points at.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-EG.62 version, text only. WHY THIS VERSION DIFFERS: two deltas the previous THOUGHT never recorded. (a) EG.39 changed a factual claim in the Caveats: the counting rule home moved from ff788172 Caveats (which never held it; grep for "a copy is a place" on ff788172 exits 1) to 2e615bb5:47. (b) EG.62 strikes the EG.39 aside "the director BANKED it as a [rule]": at eef31410a no rule line exists in the director card, skills/ or .agi/context/ (git grep exits 1), so the bullet now says OWED and names nothing as banked. Verdict unchanged at inconclusive_lean_proved:70. Prior DH.621 reasoning lives in the grid version before this one.
+EG.62 version, text only. WHY THIS VERSION DIFFERS: two deltas the previous THOUGHT never recorded. (a) EG.39 changed a factual claim in the Caveats: the counting rule home moved from ff788172 Caveats (which never held it; grep for "a copy is a place" on ff788172 exits 1) to 2e615bb5:47. (b) EG.62 strikes the EG.39 aside "the director BANKED it as a [rule]": at eef31410a no rule line exists in the director card, skills/ or .agi/context/ (git grep exits 1), so the bullet now says OWED and names nothing as banked. Verdict unchanged at inconclusive_lean_proved:70. Prior DH.621 reasoning has NO grid version: `git for-each-ref refs/grid/` holds 0 refs for mint e6bfe831, because neither 056aac2ce nor 11a2fd3ce ran `grid.py commit`; it is readable at `git show eef31410a:.agi/nodes/experiment/a00-e0efd9fc-a8cf4c.md`. EG.89 (corrective DH.EG.89, text only): this pointer corrected; it named a grid version that does not exist.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
