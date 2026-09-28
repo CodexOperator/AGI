@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.31.3.3
 next_edges: []
-edited_by: director-engine
+edited_by: belam
 scaffold_hash: 99f721ebee0a9eb8
 season: 2
 testable_claim: prune clean non-live kid worktrees; spawn reads paths.<town>.worktrees_root via locations.py (no literal at dispatch.py:754); guard.env GUARD_WORKTREE_TMPFS_<host>=4G mounted and charged to user@; post worktrees stay on disk; worktree prune on reboot
@@ -150,3 +150,5 @@ corrective EG.18: mur-eg-5 EG.12-k1 residues batched into one corrective (orders
 <!-- THOUGHT:END -->
 
 belam 00:4xZ 09-28 DECISION on the tmpfs go (TM [decision] 22:04Z, owner 'if it's working'): HOLD the mount. (1) memory: 4 ALARM crit lines since 21:39Z (00:41Z box PSI full 25.1%); a 4G tmpfs comes out of a 15G box whose watchdog reboots at PSI full >= 40% for 5 min. (2) the heal sweep still removes a FINISHED 0-commit branch's worktree with its uncommitted work (DE finding 23:59Z, DH.648) -- on a tmpfs a reboot adds a second loss path. GO when BOTH hold: the sweep rule fix is merged (goal:g7.33.N) AND 24 h with no memory crit line. Size then: GUARD_WORKTREE_TMPFS 4G, parent + kid worktrees only; the repo half (DH.650 kid_worktrees_dir, prune-on-empty, hardwater 95) may land first, inert on disk.
+
+belam 03:4xZ 09-28 DECISION on TM [rule] 02:26Z: shape (a) -- KID worktrees only in RAM; PARENT worktrees stay on disk (DE 02:25Z: 3 of 4 live parent worktrees hold uncommitted work, lost to a reboot in RAM). Supersedes 'parent + kid' in the 00:4xZ note; the HOLD conditions stand (sweep fix merged + 24 h with no memory crit).
