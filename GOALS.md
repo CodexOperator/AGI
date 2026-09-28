@@ -8350,7 +8350,9 @@ Assigned to **director-belam**. Nested `.1`–`.5`; director-direct under OWNER 
 
 (The same 00:38Z message opens with the parents-on-the-message-system question; that half is goal:g7.32.5.)
 
-###### G7.31.3.3.1 — Committed parent-slot definitions under each post in .geometry — status: active
+NO-PI stopline11: kids g7.31.3.3.1 + g7.31.3.3.2 COMPLETE (committed parent-slots.md + runtime occupancy via parent_slots.py; pytest 6/6). Remain active: .3 AGI_BOX/needs-rotate, .4 refusal+reply, .5 write-gate. No pi; did not open g7.31.6/g7.32.5.
+
+###### G7.31.3.3.1 — Committed parent-slot definitions under each post in .geometry — status: complete
 
 # goal:g7.31.3.3.1
 
@@ -8382,7 +8384,9 @@ Assigned to **director-belam**. Nested `.1`–`.5`; director-direct under OWNER 
 
 Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
-###### G7.31.3.3.2 — Live occupancy in local runtime file (not committed defs) — status: active
+NO-PI: committed parent-slot defs landed at .agi/nodes/.geometry/parent-slots.md + parent_slots.py reader; pytest test_parent_slots 6/6; defs hold no occupancy SoT (assert_defs_hold_no_occupancy).
+
+###### G7.31.3.3.2 — Live occupancy in local runtime file (not committed defs) — status: complete
 
 # goal:g7.31.3.3.2
 
@@ -8413,6 +8417,8 @@ Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 ## Agent Notes
 
 Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
+
+NO-PI: runtime occupancy path .agi/sessions/parent-occupancy.json via parent_slots.occupy/clear; occupy+clear leave committed defs byte-identical (sha256 falsifier).
 
 ###### G7.31.3.3.3 — AGI_BOX host-only loop acts and clears needs-rotate — status: active
 
@@ -9286,6 +9292,8 @@ belam-S2-L5-XI 00:4xZ 09-27, on the OWNER's go (an owner-pasted line from belam-
 belam-S2-L5-XI 01:0xZ 09-27, OWNER verbatim: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send" -- ORDER of the three graph redesigns: (1) goal:g4.18.1, the mint/write route; (2) this goal + goal:g7.32.5 (send = write.py, so it builds on (1)); (3) goal:g7.31.3.3 spawn/rotate (its refusals ride this goal's reply route). The owner's 21:1xZ HOLD items wait on (2).
 
 OWNER 06:0xZ 09-27 to belam, verbatim: "It's because pids rotate but tmux panes stay the same. We shifted to PIDs for messaging at some point and it broke things. I think the redesign is also doing it but if PIDs get updated auto as part of rotate it also fixes it" -- belam measured 06:0xZ: the four seats rotating on local-town (belam, thought-master, director-thought, director-engine) carry a LIVE pid in their row; rotate's successor row write stamps it (rotate.py:6695). Stale pids sit on rows of seats not seated on this box.
+
+NO-PI stopline11: seat tip carries boxes.this_box refuse-unset + test_box_identity/test_box_guard 24/24 GREEN (hypothesis:every-live-row… conjuncts on tip). Parent stays active — post-branch send/cron/nudge/read redesign not closed; no pi; did not open g7.32.5.
 
 ### G7.33 — ENGINE FIXES SURFACED BY THE TOWN — every engine trap the rounds hit becomes a pi round itself, run alongside the research rounds under a second (Sonnet) director; plus the two dispatch upgrades the owner named: one workflow that chains parent dispatch → drain → mur, and a batch workflow that runs rounds serially or in parallel by memory allocation and closes with a whole-batch MUR over the sub-goal that parents them — status: active
 
