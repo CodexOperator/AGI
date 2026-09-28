@@ -34,7 +34,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ```
 MERGE-UP  [merge-up] to TM 00:3xZ 09-28 (belam [decision] 00:0xZ, owner: WHOLE post branch, in-progress included) -- tip d4446340f,
           mb 26d914498, 188 files, 365 passed 1 RED declared (boxkit probe vs the 429 tasks-max chain -> EG.1), 28 nodes labelled ## OPEN
-SERIES    RESET: rounds EG.N (EG.1-3 used, next EG.4) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
+SERIES    RESET: rounds EG.N (EG.1-4 used, next EG.5) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
           before the reset keep their labels (orders already generated) -- the counter only moves forward
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f,g] gen2.py N murq<Q>.json tip label -> orders<N>.md (N may be EG.n: sed the
           header to CORRECTIVE EG.n) · place2.sh / placef.sh N (DH.N or EG.N label) · drainqgf.sh N:K (K=F fresh via h<N>.txt) · mkmur.py + runmur.sh
@@ -47,7 +47,8 @@ QUEUE     qg2 EG.1 680 653 · qg3 654 · qg4 655 656 · qg5 657 · qg6 658 · qg
           qg13 675 670-674 (g1.27) · qg14 678 · qg15 679 · qg16 EG.2 EG.3 (chained units, T/drainqg<N>.log)
 BELAM     00:0xZ order: (1) merge-up DONE (2) counters DONE (3) RAM: report the tmpfs claim PROVED when the kid-worktrees chain clears
           (680 -> then mint the 17-consumer routing round) -- belam then does guard.env + guard-init (4) NEXT, dependency order:
-          g4.18.1.2 captive mint flow -> g7.32.6 send pipeline core -> g7.31.3.3 rotate core (EG rounds, briefs on nodes)
+          g4.18.1.2 = EG.4 hypothesis:a-draft-mints-one-checked-row-per-call MINTED f1d6f12a1,
+          QUEUE it (EG.4:F, h-file) only after DH.660 clears, cut from that g4.18.1.1 tip -> g7.32.6 send pipeline core -> g7.31.3.3 rotate core (EG rounds, briefs on nodes)
 DECISION  out to TM: DH.577 cron policy (send-hub chain HELD) · wake-facts touches config:rotations (belam's) · logs: symlink until EG.2 lands
 ```
 
