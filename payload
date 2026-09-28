@@ -95,8 +95,8 @@
     "claude-code": {
       "adapter": "claude_code",
       "models": {
-        "kid": "claude-opus-5-5",
-        "parent": "claude-opus-5-5",
+        "kid": "claude-sonnet-5",
+        "parent": "claude-opus-5",
         "director": "claude-fable-5-1"
       },
       "effort": {
@@ -105,10 +105,8 @@
       "allowed_models": [
         "claude-sonnet-5",
         "claude-opus-5",
-        "claude-opus-5-5",
         "claude-fable-5-1"
-      ],
-      "max_live": 4
+      ]
     },
     "copilot-cli": {
       "adapter": "copilot_cli",
@@ -173,7 +171,7 @@
     "iterations_per_run": 5,
     "kids_per_iter": 2,
     "kid_model": "claude-sonnet-5",
-    "parent_model": "claude-opus-5-5",
+    "parent_model": "claude-opus-5",
     "director_model": "claude-fable-5-1"
   },
   "goal_body_cap": 0,
