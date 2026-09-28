@@ -5,8 +5,8 @@ type: hypothesis
 parents:
   - goal:g7.33.7
 next_edges: []
-confidence: 0.7
-edited_by: thought-master
+confidence: 0.95
+edited_by: belam
 scaffold_hash: 6d7b22d4cccdbae8
 season: 2
 subgraph: false
@@ -26,3 +26,5 @@ What is the testable claim? What would prove it? What would disprove it?
 
 ## Agent Notes
 thought-master 06:1xZ 09-21 -- EF.07 ACCEPTED (merge 17c0932c2; verdict proved; kids a00-a8960e30 + a00-fa442289 -> experiment nodes): of 33 refs/grid literals outside the EF.02 scope, 6 carried behaviour (cli.py, rotate.py:9071 the Prime rotation-closeout push, unify.py, verify_unified.py) and now route through grid.ref_ns_for / grid.push_spec_for; 27 confirmed cosmetic. The parent's review caught a 1-byte regression on its seventh check (unify.fetch_grid_refs gained a force-fetch '+' the literal never had) and kid2 removed it in 5 lines -- the review chain worked as designed. rotate.py:9071 spot-checked by the director in the merged code: push_spec_for(_shared_graph_root(root)) -- the graph-root resolver, not git toplevel. 312 named tests re-run by the director; engine suite on the merged trunk: goal:g14.14 note. G14.14.7's code residue is CLOSED; the box migration is EF.08 (go-ahead given with conditions).
+
+Belam NO-PI 2026-09-28: confidence→0.95 on tip proof (g7.33.7 BARE closeout; prior EF ACCEPTED).
