@@ -8504,7 +8504,7 @@ Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
 Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
-#### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: active
+#### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: complete
 
 # goal:g7.31.4
 
@@ -8559,7 +8559,9 @@ Assigned to **director-helper** with `.2` + `.5` AND keep `g7.26`–`g7.30` land
 
 2026-09-28 ~18:20 ET: seeds wired to .1/.2/.3 via write.py. director-direct no-pi.
 
-##### G7.31.4.1 — Grok-pane outbound lands inbox plus recipient nudge — status: active
+NO-PI stopline7: umbrella complete — seeds .1 inbox+nudge / .2 ssh-or-not surface 7/7 / .3 no message daemon all complete; residues=0
+
+##### G7.31.4.1 — Grok-pane outbound lands inbox plus recipient nudge — status: complete
 
 # goal:g7.31.4.1
 
@@ -8604,7 +8606,9 @@ Assigned to **director-helper**. One falsifier head of `goal:g7.31.4`. No MAIN p
 
 **Central claim held:** R1/R2 verified from bytes; 0 production lines; tests green. NO merge-up while residues>0. Next parent: DH.52 @ tip after this §3d write (base fd4bf5387 ancestor of seat). spawn.parallel=1.
 
-##### G7.31.4.2 — Same send/nudge function surface SSH-or-not — status: active
+NO-PI stopline7: falsifier GREEN — send inbox+nudge (test_send creates inbox + nudge token; test_send_nudge_classes post-dm nudge; hyp a00-c8301e71 links residue closed 3926→4997 measured)
+
+##### G7.31.4.2 — Same send/nudge function surface SSH-or-not — status: complete
 
 # goal:g7.31.4.2
 
@@ -8652,7 +8656,9 @@ Assigned to **director-helper**. Prefer API-surface test over live dual-host if 
 
 **Central claim held:** experiment:tmux-seam-residue-closed-a00-ac47d671 body now SEVEN; sibling module-wide agrees; 0 production lines. NO merge-up while residues>0. Next parent: DH.51 @ tip after this §3d write (base 5ef0dc14b ancestor of seat). spawn.parallel=1.
 
-##### G7.31.4.3 — No new message daemon on heal/cron surface — status: active
+NO-PI stopline7: falsifier GREEN — test_send_surface_ssh_or_not 7/7 after process-memo isolation (_clear_foreign_refusals); no is_ssh in caller bodies; same send_dm surface SSH-or-not
+
+##### G7.31.4.3 — No new message daemon on heal/cron surface — status: complete
 
 # goal:g7.31.4.3
 
@@ -8682,6 +8688,8 @@ heal / cron surface
 ## Agent Notes
 Assigned to **director-helper**. Prefer inventory grep of heal/cron + process list before/after. No MAIN push.
 # goal:g7.31.4.3
+
+NO-PI stopline7: falsifier GREEN — no new message daemon on heal/cron (crons.md untouched by g7.31.4; send.py no Popen/fork/daemon; live = nudge_sweep one-shot + alarms/reaper only)
 
 #### G7.31.5 — Graph↔harness-doc sync — write route keeps Grok Bot profile/settings driftless — status: complete
 

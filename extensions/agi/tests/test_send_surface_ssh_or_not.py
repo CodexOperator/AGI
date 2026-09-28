@@ -83,6 +83,18 @@ def tmux_shim(tmp_path, monkeypatch) -> _TmuxShim:
 
 
 @pytest.fixture(autouse=True)
+def _clear_foreign_refusals():
+    """Process-memo isolation: `_FOREIGN_REFUSALS` is module-global, so a
+    prior test that named far-seat foreign (e.g. transport_decision) would
+    silence the FOREIGN stderr print in a later real-path test. Clear it
+    every test — same pattern as test_box_identity.fake_tmux.
+    """
+    send._forget_refusals()
+    yield
+    send._forget_refusals()
+
+
+@pytest.fixture(autouse=True)
 def _no_real_tmux(tmux_shim):
     """GLOBAL closure (MUR residue #2): the no-real-tmux property is a
     property of the MODULE, not of the three tests that happened to request
