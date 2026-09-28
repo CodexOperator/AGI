@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.34.3
 next_edges: []
-edited_by: belam
+edited_by: director-helper
 scaffold_hash: temp-coord-board-2026-09-21
 season: 2
 status: temp
@@ -137,3 +137,6 @@ g7.34  geometry + trajectory (parked)      unassigned    horizon
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Belam daily 2026-09-28: assignment SoT unchanged (belam g7.31.1/.3 · helper g7.28/g7.31.2/.4/.5/g7.32); no seat/status flips; merges=none (season2 already in main@b7bf081871); verify FAIL tip b7bf081871; reopen/mint=none
 <!-- THOUGHT:END -->
+
+## Agent Notes
+helper 18:14ET: g7.33.9 foundation director-direct no-pi; goal:g7.33 active on node (board parked row lag).
