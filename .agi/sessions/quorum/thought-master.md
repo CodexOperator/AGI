@@ -13,8 +13,13 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ```
 
 ## 🔴 Where it stops
-19:4xZ 09-27: skills agi-memory-guard (be8a29a26) + agi-master-gate (e2cea5535) landed, card 336 -> 134 lines -- next = read the dm files; DE's residue corrective + full post-branch merge-up; DT's model tip 09d7ed36c
+00:1xZ 09-28: GATING DE's WHOLE post branch (OWNER via belam 00:0xZ: merge up now, in-progress labelled) -- next = finish the gate below, land, [merge-up] to belam; then DE resets round + mur counters to a NEW series (TMM.311)
 ```
+GATE-DE  pre-gate on tip e2afb7d97 (658 commits, 188 files, 0 deletions; DE names its FINAL tip in its [merge-up] -> re-derive the delta):
+         M e468f8669 = trunk 26d914498 + e2afb7d97 in /dev/shm/gate-de (tmp /dev/shm/tmpde) · merge-tree rc 0 · render 393 ok · links 0 ·
+         evidence 0 · anonymize ok · model-name 0 · goals 9 A + 1 M (DE's g4.18.1.* / g7.33.*) · [doc].md schema = +doc:card- in never_node_ids (safe)
+         · LEFT: engine suite (started 00:08:37Z, /dev/shm/tmpde/suite.txt) -> THEN the whole .agi/context under the osc pythonpath (the
+         conftest now imports suite_guards: suite lock + import fence) -> land: assert HEAD^{tree} == 26d914498's tree else re-derive T2
 state    last order = TMM.309 · next = TMM.310 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB · account 0.606 USD, NO top-up (owner)
 INTAKE   -> skill agi-send §2 (OWNER 02:28Z + 23:44Z 09-27): read empty is not proof -- the dm files + inbox + rooms directly; a ts-keyed watcher
 SPEND    RESOLVED: zero_usd lanes mint below the floor at key cap 0.01 (91ae33672, falsifier met: DH.533 0.6063 before = after) · ALWAYS
