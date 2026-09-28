@@ -137,6 +137,22 @@ FILE SCOPE extensions/agi/tests/test_declared_suite_guards.py · .agi/nodes/expe
 CEILING   HARD CAP: 1 kid · <= 0 production lines net over dee711cfc (test only) · <= 40 test lines net over dee711cfc · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat dee711cfc <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.148 -- closes mur-eg-51 EG.117-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-context-suite-guards--a00-d8b5cfcb tip 552631605 (branch de-base-EG.148; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. gate scope is subprocess.<attr> only, so an os.system/os.popen child would pass 'test_every_spawn_in_this_module_runs_under_the_guarded_wrapper'
+2. 6. the hypothesis's evidence_runs omits the kid
+3. UNVERIFIED (probe NOT run): the CEILING clause 'pi-free tier-0 - 0 USD' (hypothesis:...:137) against the node's 'model: stealth/space-bunny-alpha'. I did not read .agi/config.json's model/tier table, so I will not assert the cost. The probe I would run: python3 -c "import json;c=json.load(open('.agi/config.json'));print([(t.get('tier'),t.get('model'),t.get('cost')) for t in c.get('models',c.get('tiers',[]))])" and grep the id against the pi provider list.
+DEMOTED   by the director at triage, not orders: items 3 4 6 (checked clean) · 5 (self-disclosed, zero residue)
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_declared_suite_guards.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_declared_suite_guards.py · .agi/nodes/experiment/a00-6e5b66ec-1884b7.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 552631605 · <= 40 test lines net over 552631605 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 552631605 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.117: mur-eg-29 EG.76-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.148: mur-eg-51 EG.117-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
