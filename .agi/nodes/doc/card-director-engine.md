@@ -30,22 +30,23 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (18:4xZ 09-28 · live during the work; per-chain history = git log of this node)
+## §0 STATE (18:5xZ 09-28 · live during the work; per-chain history = git log of this node)
 ```
-MERGE-UP  LANDED 165c99e6a (TMM.345 18:2xZ; gate 1076 passed 1 failed thought_hygiene): post tip 3d5cf0db6 = EG.137 chain (c0354d4f3) + EG.133 chain (3d5cf0db6), both cleared + director closes
+MERGE-UP  #1 LANDED 165c99e6a (TMM.345: EG.137 + EG.133 chains) · #2 SENT 18:4xZ: post 08177c25f = EG.125 chain (EG.100 -> 125 -> 157
+          merge resolution; test_cli.py append/append = union, 385 passed) -- await TM
 POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-corrective; TMM.344 answered my stale [red] -- no ruling needed)
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.159 · next murq255
-PLACING   PARALLEL staggered units pq149 150 151 152 153 154 155 158 (each: offset, TMM.306 gate, place2) -- the serial chain
-          (lane5 qgEG149 qgEG152 lane6) was STOPPED while waiting (0 live parents, io gate rarely open); lane3 still holds 146 147 148
-          · CC kid EG.156 ended (harvest owed)
-MURS      239 EG.142 · 244 EG.140 (EG.9 blocker) · 246 EG.135 · 248 EG.143 · 250 EG.139 · 251 EG.157 (EG.125 merge resolution) ·
-          252 EG.145 · 253 EG.144 · 254 EG.132 (director merged its kid: parent could not, node conflict; kid verdict = :70)
+SERIES    next EG.160 · next murq256
+PLACING   PLACED: EG.149 a00-1d3ce82c · 151 a00-dca937e9 · 153 a00-0f8cc2a9 · gate-ok 18:46Z, dispatching: 146 150 152 155 158
+          (read dEG.N.log: rc + spawned) · waiting: pq154 · pq159 (EG.132 corrective: pin teeth) · lane3 still owns 147 148
+MURS      239 EG.142 · 244 EG.140 (EG.9 blocker) · 246 EG.135 · 248 EG.143 · 250 EG.139 · 252 EG.145 · 253 EG.144 · 255 EG.156
+          (CC kid exited without done: director salvage 0ae4b7171, unreviewed)
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
           refuses own board: policy question may come up) · 233->150 (cut de-cut-EG.150 f9fbf587a: merge reds test_free_lane_mints...)
-          · 234->151 · 241 DEMOTE->152 (conftest suite gate: fix or remove) · 237->153 · 240->154 · 242->155 · 238->156 (CC text kid) · 243 EG.125 director close d91b942f3 -> EG.157 · 245 EG.133 + 236 EG.137 director closes -> MERGED · 249 EG.138 DEMOTE -> EG.158
+          · 234->151 · 241 DEMOTE->152 (conftest suite gate: fix or remove) · 237->153 · 240->154 · 242->155 · 238->156 (CC text kid) · 243 EG.125 director close d91b942f3 -> EG.157 · 245 EG.133 + 236 EG.137 director closes -> MERGED · 249 EG.138 DEMOTE -> EG.158 · 251 EG.157 -> director close 1da46ba3a -> MERGED 08177c25f
+          · 254 EG.132 (verify died) -> EG.159
 OVERRIDE  EG.123 03ab636aa: kid code (28 prod vs 15) merged onto the parent's reviewed tip, disclosed; parent tree vanished
 KNOWN RED test_bin_help_smoke[suite_guards.py] on base lineages = fixed on the trunk 8f9e3d5da, heals at merge
 EG.5      [red] to TM 18:4xZ (MAJOR): EG.145 guard needs belam cell templates.director.startup.facts_pointer_target_bytes
