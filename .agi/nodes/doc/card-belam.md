@@ -81,3 +81,4 @@ R. RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /
 | guard follow-ups (TM 09-26): model rounds vs user@ high; guard-init 'last alerts' path | model loads in own scope MemoryMax ~6G; repoint to ~/logs/memory-alarm-alerts.log |
 | origin remote moved (every push prints it) | `git remote set-url origin <new>` -- the owner's call |
 | engine-wide config/template maxxing pass (owner idea 09-23) | opening it is the owner's call |
+| DISK LATENCY 07:0xZ 09-28: io PSI some avg60 83-90 with the runaways gone; sda (USB SSD, dm-crypt, / + /data) 57% busy at ~16 ops/s = ~35 ms per op; jbd2 + dmcrypt_write + flush kworkers in D; systemd-tmpfiles in D 2h49m (/tmp is on /); dmesg shows no reset/error to belam | `sudo smartctl -a /dev/sda` + `sudo dmesg -T \| grep -iE "usb\|sda\|reset"` + check the USB port/cable/heat; `du -sh /tmp` as root. The prune waits on io60 < 40 |
