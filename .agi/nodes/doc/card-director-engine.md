@@ -60,9 +60,9 @@ REAL BUG  murq202 EG.54 = DEMOTE: pi_trajectory.py detectors read stopReason TOP
           a NESTED fixture; prod cap 20) · murq206 EG.75 = awr -> EG.105 (hypothesis status/STATUS block + test mint_calls zero_usd flag)
 PI LANE   murq203 EG.68 = awr, salvage d5c069c73 VERIFIED by the mur -> EG.103 (V1-V3
           text + M4 test: validation above the provider gate; 0 prod lines, no config) chained after qgEG99 · murq207 EG.5 = awr ->
-          EG.107 (text + test read-order M3 + docstring) chained after qgEG105 · [red] SENT to TM 10:4xZ (delivered): the EG.5 chain's test
-          DEMANDS config:rotations templates.director.startup.facts_pointer_target_bytes (belam's; 0 hits on trunk ca6913527) -> the chain
-          cannot land green until belam writes it (A = 2000, recommended) or orders a fallback (B) · + config:posts:102 / g4.18.2:34 stale on landing
+          EG.107 (text + test read-order M3 + docstring) chained after qgEG105 · TMM.326 (TM 10:40Z): (A) ALREADY DECIDED by belam
+          00:4xZ -- chain + belam's F13 trim + the cell = 2000 land in ONE belam window, NO fallback. -> close EG.107, then [merge-up] the EG.5
+          chain with the red DECLARED 'needs the cell, lands with belam'; TM gates with the cell patched in-process · posts:102 + g4.18.2:34 -> belam (TM)
           · LIVE: none (pi lane idle, qg chain gate-held on io)
           · qg chain after 72: 75 76 78 80 81 87 94 96 97 98 99 103 104 105 107 (pi-free correctives, gate-held, qgEG<N>.sh in T) · drainqg18 DONE
 PASS 12   belam 06:50Z goal:g1.28 (on the TRUNK: merge local-maxxing/season2/main first), BEHIND the fix queue: 5 engine hypotheses (create/API
