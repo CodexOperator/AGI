@@ -155,7 +155,9 @@ def test_claude_code_seam_refuses_a_round_stage_by_name(
     monkeypatch.setattr(_wf, "_load_manifest", lambda r, k: manifest)
     monkeypatch.setattr(_wf, "_load_config", lambda r: _CLAUDE_CFG)
     monkeypatch.setattr(_wf, "_repo_root", lambda r: REPO)
-    monkeypatch.setattr(_wf, "_mint_run_key", lambda *a: "probe-1")
+    # **k: the stub takes `reserve=` since workflow.py:2450 mints with it (a
+    # dry run reserves nothing); a bare *a stub raised TypeError.
+    monkeypatch.setattr(_wf, "_mint_run_key", lambda *a, **k: "probe-1")
     monkeypatch.setattr(_wf, "_track_run", lambda *a, **k: None)
     monkeypatch.setattr(_wf, "_claude_code_seam_present",
                         lambda env=None: seam)
@@ -188,7 +190,7 @@ def test_the_refusal_does_not_touch_a_round_free_workflow(
     monkeypatch.setattr(_wf, "_load_manifest", lambda r, k: manifest)
     monkeypatch.setattr(_wf, "_load_config", lambda r: _CLAUDE_CFG)
     monkeypatch.setattr(_wf, "_repo_root", lambda r: REPO)
-    monkeypatch.setattr(_wf, "_mint_run_key", lambda *a: "probe-1")
+    monkeypatch.setattr(_wf, "_mint_run_key", lambda *a, **k: "probe-1")
     monkeypatch.setattr(_wf, "_track_run", lambda *a, **k: None)
     monkeypatch.setattr(_wf, "_claude_code_seam_present", lambda env=None: True)
     buf = io.StringIO()

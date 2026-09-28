@@ -289,3 +289,246 @@ def test_healer_pi_bin_resolves_through_the_shared_resolver(tmp_path, monkeypatc
     assert heal._pi_bin(graph) == "/resolved/pi"
     assert seen["env"] == "PI_BIN"
     assert seen["raw"] == "pi"
+
+
+# --- the log-tail guard + the stale-lock skip (TMM.262 residues 8+10) ------
+#
+# Both guards fire on a BAD day only (a dead seat, a gone worktree), so both
+# survived untested. `heal-worktree-refusal-tests-never-reach-live-tmux-and-
+# dead-branches-go` gives each its own row.
+
+WT_ROW = {"name": "wt", "role": "director", "pid": 424242, "window": "@50",
+          "worktree": ".agi/worktrees/seat-wt"}
+
+
+def _wt_graph(tmp_path: Path, *, worktree: bool) -> tuple[Path, Path]:
+    """A worktree-shaped graph root; `worktree=False` is it after the
+    worktree dir is pruned (what a dead seat leaves behind)."""
+    gdir = make_project(tmp_path)
+    wt = gdir / "worktrees" / "seat-wt" / ".agi"
+    if worktree:
+        (wt / "sessions").mkdir(parents=True, exist_ok=True)
+    return gdir, wt
+
+
+def test_log_tail_falls_back_to_main_when_the_worktree_log_is_gone(
+        tmp_path, monkeypatch):
+    """THE LOG-TAIL GUARD: a row claiming a worktree whose `.agi` is GONE
+    resolves no own log, so the tail must come from MAIN's copy — not be
+    ''. An empty tail classifies the death wrong (every dead seat reads as
+    'no evidence'), which is the day this path exists for."""
+    import rotate
+    gdir, _ = _wt_graph(tmp_path, worktree=False)
+    (gdir / "sessions").mkdir(parents=True, exist_ok=True)
+    (gdir / "sessions" / "wt.log").write_text("MAIN-COPY", encoding="utf-8")
+    assert heal._read_seat_log_tail(gdir, WT_ROW, rotate) == "MAIN-COPY"
+
+
+class _SessionsDirSpy:
+    """The candidate ORDER `_read_seat_log_tail` asks for, in-process: every
+    `_sessions_dir(gdir)` call is recorded, so the row can name WHICH geometry
+    was asked first; `watch_reads` records every log file the tail actually
+    READS, in order — the candidate list as the code consumes it.
+
+    It answers each geometry root with that root's OWN `<gdir>/sessions`,
+    which is the contract the tail code is written against. The real
+    `rotate._sessions_dir` deliberately collapses every worktree seat onto
+    MAIN's shared room (hypothesis:l4-a-check-that-answers-a-question-it-is-
+    not-asking), so with the real module `own` and `main` are one path here and
+    the worktree-vs-MAIN preference is unobservable."""
+
+    def __init__(self):
+        self.seen: list[Path] = []
+        self.reads: list[Path] = []
+
+    def _sessions_dir(self, gdir):
+        self.seen.append(Path(gdir))
+        return Path(gdir) / "sessions"
+
+    def watch_reads(self, monkeypatch) -> "_SessionsDirSpy":
+        real_read = Path.read_bytes
+        reads = self.reads
+
+        def spy_read(self, *a, **kw):
+            reads.append(Path(self))
+            return real_read(self, *a, **kw)
+
+        monkeypatch.setattr(Path, "read_bytes", spy_read)
+        return self
+
+
+def test_log_tail_prefers_own_copy_then_falls_back_to_main_exactly_once(
+        tmp_path, monkeypatch):
+    """THE LOG-TAIL CANDIDATE ORDER, red-first for its OWN reason: a worktree
+    seat's OWN copy is read first, and MAIN's copy is the fallback of LAST
+    resort once the own copy is gone. Asserting the fallback TEXT alone is not
+    a gate — deleting the whole MAIN branch made DH.427's row red through an
+    unrelated locations.py RuntimeError instead
+    (experiment:a00-416266d2-e77f31). The `if main != own` DEDUP is NOT pinned
+    here: the read loop returns at the first readable candidate, so a
+    duplicated MAIN candidate is never stat-ed or read and the guard has no
+    observable effect — EXCEPT on the MISS path, which
+    `test_log_tail_dedups_main_against_own_when_the_seat_room_is_shared`
+    pins by counting the `Path.exists` stats."""
+    gdir, wt = _wt_graph(tmp_path, worktree=True)
+    (gdir / "sessions").mkdir(parents=True, exist_ok=True)
+    own_log = wt / "sessions" / "wt.log"
+    main_log = gdir / "sessions" / "wt.log"
+    main_log.write_text("MAIN-COPY", encoding="utf-8")
+    own_log.write_text("OWN-COPY", encoding="utf-8")
+
+    spy = _SessionsDirSpy().watch_reads(monkeypatch)
+    assert heal._read_seat_log_tail(gdir, WT_ROW, spy) == "OWN-COPY"
+    assert spy.seen[0] == wt, f"own geometry not asked first: {spy.seen}"
+    assert spy.reads == [own_log], f"own copy not preferred: {spy.reads}"
+
+    # worktree pruned: the own copy is gone, MAIN's copy answers.
+    own_log.unlink()
+    spy.seen.clear()
+    spy.reads.clear()
+    tail = heal._read_seat_log_tail(gdir, WT_ROW, spy)
+    assert tail == "MAIN-COPY", (
+        f"MAIN fallback copy not preferred after the worktree went: {tail!r}")
+    assert spy.reads == [main_log], (
+        f"MAIN copy is not the fallback of last resort: {spy.reads}")
+
+
+class _SharedRoomSpy:
+    """A `_rotate` stand-in that COLLAPSES every geometry root onto ONE
+    shared sessions room — the contract the real `rotate._sessions_dir` has
+    (all seats log into MAIN's room, hypothesis:l4-a-check-that-answers-a-
+    question-it-is-not-asking). So `own` and `main` are literally the same
+    Path and `if main != own:` is the only thing standing between a doubled
+    candidate and a doubled stat. Every `Path.exists` call is recorded."""
+
+    def __init__(self, room: Path):
+        self.room = room
+        self.stats: list[Path] = []
+
+    def _sessions_dir(self, gdir):
+        return self.room
+
+    def watch_stats(self, monkeypatch) -> "_SharedRoomSpy":
+        real_exists = Path.exists
+        stats = self.stats
+
+        def spy_exists(self, *a, **kw):
+            stats.append(Path(self))
+            return real_exists(self, *a, **kw)
+
+        monkeypatch.setattr(Path, "exists", spy_exists)
+        return self
+
+
+def test_log_tail_dedups_main_against_own_when_the_seat_room_is_shared(
+        tmp_path, monkeypatch):
+    """THE `if main != own:` DEDUP, and the gate the order row could not
+    build. With the real `_rotate` the worktree seat's own room and MAIN's
+    room are ONE path, so `cands` is a single entry by construction; drop the
+    dedup and the SAME path sits in the list twice.
+
+    The order row cannot see this: the read loop RETURNS at the first readable
+    candidate, so a duplicate is never read. The MISS path is where the
+    duplicate is observable — the loop's `if p.exists()` is then reached once
+    per candidate — so a missing seat log is counted, not read. Probe MUT-B in
+    experiment:a00-f3548040-e4e0c8: `if main != own:` -> `if True:` makes this
+    row red with 2 stats against the pinned 1. Without the dedup the tail is
+    still '' (the second stat is a harmless no-op), which is exactly why
+    asserting the tail alone would be a dead assertion.
+    """
+    gdir, _ = _wt_graph(tmp_path, worktree=True)
+    room = gdir / "sessions"
+    room.mkdir(parents=True, exist_ok=True)
+    log = room / "wt.log"
+    assert not log.exists(), "the miss path needs the log to be ABSENT"
+
+    spy = _SharedRoomSpy(room).watch_stats(monkeypatch)
+    assert heal._read_seat_log_tail(gdir, WT_ROW, spy) == ""
+    monkeypatch.undo()
+    assert spy.stats == [log], (
+        f"the shared seat room was stat-ed more than once: {spy.stats} "
+        "(a duplicate MAIN candidate; `if main != own:` did not dedup)")
+
+
+def test_stale_lock_skip_leaves_a_clean_sessions_dir_alone(tmp_path,
+                                                          monkeypatch,
+                                                          capsys):
+    """THE STALE-LOCK SKIP, as a real gate: a dead seat with NO
+    verify-suite.lock under its own sessions/ must leave Path.unlink
+    UNCALLED on that path and never reach the `warn: could not remove stale
+    lock` branch. The no-log-line claim alone is not a gate — the unlink's
+    `except OSError` swallows FileNotFoundError, so a mutating version
+    produces the same log and stays green
+    (experiment:a00-f76b1fde-5e44ad)."""
+    gdir, wt = _wt_graph(tmp_path, worktree=True)
+    lock = wt / "sessions" / "verify-suite.lock"
+    log = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+
+    real_unlink = Path.unlink
+    touched: list[Path] = []
+
+    def spy_unlink(self, *a, **kw):
+        touched.append(Path(self))
+        return real_unlink(self, *a, **kw)
+
+    monkeypatch.setattr(Path, "unlink", spy_unlink)
+    heal._clean_stale_layout_locks(gdir, WT_ROW)
+    monkeypatch.undo()
+
+    assert lock not in touched, f"unlink called on a lock that is not there: {touched}"
+    assert not lock.exists()
+    err = capsys.readouterr().err
+    assert "could not remove stale lock" not in err, err
+    text = log.read_text(encoding="utf-8") if log.exists() else ""
+    assert "removed stale verify-suite.lock" not in text, text
+
+
+def test_stale_lock_clean_never_raises_on_a_pruned_worktree_geometry(
+        tmp_path, monkeypatch, capsys):
+    """THE DEFENSIVE `gdir is None` ARM, as a real gate: `_seat_geometry_dir`
+    REFUSES a row whose worktree `.agi` is gone (None is a refusal, never a
+    fallback to MAIN), so a direct call on such a row must return without
+    raising and touch nothing. `_clean_stale_layout_locks` is module-level and
+    its docstring promises "best-effort, never raises"; with the arm deleted
+    the body did `None / "sessions"` and raised TypeError
+    (DIRECTOR RULING DH.449, restoring the DH.436 deletion)."""
+    gdir, wt = _wt_graph(tmp_path, worktree=False)
+
+    # (b) SCOPE, and NOT a restatement of the unlink spy below: a REAL
+    # sibling seat's REAL planted lock under a REAL geometry dir must
+    # SURVIVE this call. The `gdir is None` arm is a refusal for THIS
+    # row's geometry, never a sweep over the room; the old closing
+    # assertion (`not (gdir/"sessions"/"verify-suite.lock").exists()`)
+    # was VACUOUS -- nothing ever created that file, so it was true of any
+    # code at all. Delete the arm and this row dies red on the `None /`
+    # TypeError; widen the arm into a sweep and it is red on the message.
+    sib = gdir / "worktrees" / "seat-sibling" / ".agi" / "sessions"
+    sib.mkdir(parents=True, exist_ok=True)
+    sib_lock = sib / "verify-suite.lock"
+    sib_lock.write_text("LIVE-SIBLING-SEAT", encoding="utf-8")
+
+    log = tmp_path / "reaper.log"
+    monkeypatch.setenv("AGI_REAPER_LOG", str(log))
+
+    real_unlink = Path.unlink
+    touched: list[Path] = []
+
+    def spy_unlink(self, *a, **kw):
+        touched.append(Path(self))
+        return real_unlink(self, *a, **kw)
+
+    monkeypatch.setattr(Path, "unlink", spy_unlink)
+    try:
+        heal._clean_stale_layout_locks(gdir, WT_ROW)  # must not raise
+    finally:
+        monkeypatch.undo()
+
+    assert not touched, f"touched something on a refusal: {touched}"
+    assert sib_lock.exists(), (
+        f"the refusal swept a sibling seat's REAL lock away: {sib_lock}")
+    assert sib_lock.read_text(encoding="utf-8") == "LIVE-SIBLING-SEAT"
+    err = capsys.readouterr().err
+    assert "could not remove stale lock" not in err, err
+    text = log.read_text(encoding="utf-8") if log.exists() else ""
+    assert "removed stale verify-suite.lock" not in text, text

@@ -95,8 +95,8 @@
     "claude-code": {
       "adapter": "claude_code",
       "models": {
-        "kid": "claude-sonnet-5",
-        "parent": "claude-opus-5",
+        "kid": "claude-opus-5-5",
+        "parent": "claude-opus-5-5",
         "director": "claude-fable-5-1"
       },
       "effort": {
@@ -105,8 +105,10 @@
       "allowed_models": [
         "claude-sonnet-5",
         "claude-opus-5",
+        "claude-opus-5-5",
         "claude-fable-5-1"
-      ]
+      ],
+      "max_live": 4
     },
     "copilot-cli": {
       "adapter": "copilot_cli",
@@ -171,7 +173,7 @@
     "iterations_per_run": 5,
     "kids_per_iter": 2,
     "kid_model": "claude-sonnet-5",
-    "parent_model": "claude-opus-5",
+    "parent_model": "claude-opus-5-5",
     "director_model": "claude-fable-5-1"
   },
   "goal_body_cap": 0,
@@ -187,6 +189,16 @@
     "pi_home": "/home/ubuntu/.pi/agent",
     "claude_home": "/home/ubuntu/.claude"
   },
+  "mint": {
+    "storage_categories": {
+      "engine_code": {"location": "source_root", "prefix": "extensions/agi/bin", "label": "engine code"},
+      "tests": {"location": "source_root", "prefix": "extensions/agi/tests", "label": "tests"},
+      "skills": {"location": "source_root", "prefix": "skills", "label": "skills"},
+      "geometry": {"location": "graph_root", "prefix": "nodes/.geometry", "label": ".geometry config"},
+      "schemas": {"location": "graph_root", "prefix": "context/schemas", "label": "schemas"},
+      "context_templates": {"location": "graph_root", "prefix": "context", "label": "context templates"}
+    }
+  },
   "box": {
     "root": "/home/ubuntu/work/agi",
     "logs_dir": "/home/ubuntu/logs",
@@ -197,18 +209,17 @@
   "workflows": {
     "review": {
       "effort": "medium",
-      "provider": "pi",
+      "provider": "pi-free",
       "note": "defaults for the round-review workflow; resolved by workflow.py run review --harness pi with --args overriding; config-maxxed so it can run on any harness (hypothesis:l3w4-workflows-config-maxxed), 2026-09-07. No 'model' here on purpose: provider is pi, and the pi harness resolves its model from harnesses.pi.models by role, never from this row \u2014 a shared model field across disjoint namespaces (Claude Code aliases vs OpenRouter slugs) is what billed Anthropic Sonnet on an OpenRouter key (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
     },
     "drafting": {
-      "model": "deepseek/deepseek-v4.1-flash",
       "effort": "max",
-      "provider": "pi",
+      "provider": "pi-free",
       "note": "defaults for the brief-drafting workflow; override per run with Workflow args {model, effort}; the drafter seat (hypothesis:l3w4-drafter-seat) reads this row and passes it through \u2014 owner quote (6), 2026-09-07. 'sonnet' is correct HERE because provider is claude-code, whose model namespace is subscription aliases, not OpenRouter slugs (hypothesis:l3-workflow-model-crosses-harness-namespace)."
     },
     "deep-search": {
       "effort": "high",
-      "provider": "pi",
+      "provider": "pi-free",
       "note": "defaults for the deep-search workflow; question, facts, lenses and refute_n arrive via --args, never here or in either workflow file (hypothesis:l3-deep-search-workflow-harness-agnostic), 2026-09-07. No 'model' here on purpose, same reason as workflows.review: provider is pi, model comes from harnesses.pi.models by role (hypothesis:l3-workflow-model-crosses-harness-namespace, 2026-09-08)."
     }
   },
@@ -233,7 +244,9 @@
   },
   "paths": {
     "core": {
-      "suite_roots": [".agi/context"]
+      "worktrees_root": ".agi/worktrees",
+      "suite_roots": [".agi/context"],
+      "foreign_refusal_memo": ".agi/sessions/foreign_refusals.tsv"
     },
     "boxkit": {
       "templates_dir": "extensions/agi/boxkit/templates",
@@ -244,7 +257,8 @@
       "user_systemd_dir": "{home}/.config/systemd/user",
       "watchdog_conf": "etc/watchdog.conf",
       "user_systemd_data_dir": "{home}/.local/share/systemd/user",
-      "guard_dir": "{repo_parent}/.sanctuary/guard"
+      "guard_dir": "{repo_parent}/.sanctuary/guard",
+      "fixtures_dir": "extensions/agi/tests/fixtures/boxkit"
     },
     "local_maxxing": {
       "worktree_a00_2f819956": ".agi/worktrees/a00-2f819956",
@@ -350,7 +364,8 @@
       "ALERT_COOLDOWN_S": "600"
     },
     "core": {
-      "model_load_allowed_max_bytes": 67108864
+      "model_load_allowed_max_bytes": 67108864,
+      "stale_index_lock_s": 900
     },
     "local_maxxing": {
       "osc_band_seeds": [7, 21, 99],

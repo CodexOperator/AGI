@@ -33,7 +33,8 @@ pending PASS). The crons are POINTER prompts — edit the section, never the cro
 4 verdicts ONLY from runs/<key>/{review,verify}_<label>.json → RED | demote | accept(_with_residue)
 5 clear → prime-root: pull --ff-only · merge --no-ff TIP (merge-tree preview) · commands.py run verify · push season2/main ·
   ff local-maxxing/main to TIP · grid.py commit --all (background)
-6 residues → ONE batch hypothesis under goal:g1 + one hypothesis per real code defect (assigned: director-engine) → ONE [decision] dm to DE
+6 residues → a PASS LEAF goal (goal:g1.<next>: "PASS N residues", skill agi-goal §5) under goal:g1 or the goal they fit; under it ONE batch
+  hypothesis + one hypothesis per real code defect (assigned: director-engine) → ONE [decision] dm to DE (owner 04:1xZ 09-27: subgoals, like directors)
 7 state file (last_merged_town_sha = TIP …, pass fields → null) · ONE numbers-only note on the town:local-maxxing board · commit by path
 8 ONLY NOW one [merge-up] report dm to thought-master      9 owner report ≤ 6 lines
 ```

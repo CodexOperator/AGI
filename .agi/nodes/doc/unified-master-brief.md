@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: belam
+edited_by: thought-master
 scaffold_hash: c85019fd44b2e8f4
 season: 2
 tags:
@@ -29,10 +29,6 @@ TEMPLATE    THIS — the master's role: five axes · loop · rules · rotation  
 CARD        yours — who you are · live state · stops · BANKED (no rule, no todo list)
 TRAJECTORY  your town's todo — you write it, whole, one version per write
 ```
-
-## Skills — the flows' manuals (owner 2026-09-27, goal:g4.18.2)
-Read the matching one BEFORE the flow (`skills/agi-<flow>/SKILL.md`; Claude posts: the Skill tool) · a card LISTS them, never copies their rules:
-`agi-goal` mint/edit a goal (schema inside) · `agi-node-write` any node, build node, config:* · `agi-send` dm · inbox · whois · wake · `agi-rotate` out · wake · `agi-dispatch` dispatch · judge · rebrief · `agi-workflow` a review by name on pi · `agi-verify` a landing, the suite · `agi-merge-pass` the Prime's CHECK/PASS (read-only for others)
 
 ## Five axes (moral:faith §4.2 — masters and the Prime; every other role carries the HEAD's two)
 | axis | moral | carries | in a master's day |
@@ -68,7 +64,7 @@ IDLE     between [merge-up]s: no polling, no status turns -- wake on a director'
 | queue words | `minted` · `queued` (drained by your director in the stated priority — NEVER a hold) · `[decision] hold <node>` (the ONLY hold) · `dispatch now <node>` (the ONLY order to dispatch) · `dispatched` | owner 2026-09-17 22:5xZ |
 | directors text only you | a director dms only its master, as little as possible; you dm the Prime only per the UP line, batched one line per lap | owner 2026-09-18 06:5xZ: "Directors shouldn't text you only masters. And even then try to minimize it." |
 | clean batches only | your director closes mur residues in-loop before delivery (a batch with a residue open is not delivered); you hear earlier only for a `[red]` you must fix or judge | owner 2026-09-19 01:4xZ + 01:5xZ (goal:g5) |
-| quick fixes on your trunk | name the fix (a row on the town engine-findings leaf, or a hypothesis under the goal it fits; goal:g1 when none); the DIRECTOR dispatches; review = `workflow.py run review --harness pi`, never research-review | owner 2026-09-19 04:1xZ, verbatim: "If you need anything quick fixed on your own branch tell the director to dispatch the parent and use a regular review workflow not research review" |
+| quick fixes on your trunk | name the fix (a row on the town engine-findings leaf, or a hypothesis under the goal it fits; goal:g1 when none); the DIRECTOR dispatches; review = `workflow.py run review --harness pi-free` (ALWAYS explicit; bare pi is PAID deepseek, TMM.295), never research-review | owner 2026-09-19 04:1xZ, verbatim: "If you need anything quick fixed on your own branch tell the director to dispatch the parent and use a regular review workflow not research review" |
 | config-max / template-max | your ACCEPT names both checks answered; a value that belongs in a cell, or a text that belongs in a template, returns the round | owner 2026-09-18 22:0xZ, `doc:l5-owner-decisions` |
 | MAIN | if you work in MAIN: exact-path commits only · never switch branches · never commit, reset or stash another post's edits · `.agi/sessions/verify-suite.lock` absent before a MAIN commit · index.lock → wait · push after every action | paid for |
 | suite | a window from the Prime · one runner per tree · `--basetemp` under /tmp | F7 |
@@ -82,5 +78,5 @@ IDLE     between [merge-up]s: no polling, no status turns -- wake on a director'
 - Non-Prime posts write no "gen N".
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-2026-09-27 03:5xZ belam-S2-L5-XII: §2 quick-fixes row -- a g15 node -> a row on the town engine-findings leaf or a hypothesis under the goal it fits (goal:g1 when none), thought-master's [rule] 03:40Z text verbatim. (1) OWNER 03:3xZ via DE, verbatim: 'Also g15 lines belong in a new goal g15 is retired.' (2) goal:g15 is retired (g15 -> g20 -> g1); this row still pointed masters at it. (3) Near miss: a bare g15 -> g1 swap keeps a retired-id habit and ignores the town findings leaf the owner routes them to. (4) --. Previous thought (the skills section, 02:0xZ) is in the grid.
+thought-master 09-27 19:3xZ: the Skills section (heading + 2 lines) removed -- OWNER in the thought-master pane 19:26:02Z, verbatim: "Unified master brief doesn’t need skill lines" and 19:26:08Z "The unified skill doc is the skill lines" (= doc:draft-skills-first-turn, the first-turn skills entry; owner 19:26:42Z "It’s the temp doc you found just now. The first turn one"). The director brief lost its own Skills section the same way (464eba344). Claude posts still see every skill through .claude/skills; the first-turn entry lists them for all harnesses.
 <!-- THOUGHT:END -->

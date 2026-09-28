@@ -151,35 +151,41 @@ def default_box(root: Path) -> str:
 
 
 def this_box(root: Path) -> str:
-    """AGI_BOX from the resolved env, else the posts node's default box."""
+    """AGI_BOX from the resolved env, else the box's own env file.
+
+    NO `default_box` fallback: that cell is the posts node's DOCUMENTATION of
+    its home box, never a locality fallback. An unset AGI_BOX REFUSES -- a
+    silent default read every boxless row as `core-town` and so as foreign
+    (hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-
+    refused, belam 00:35Z 09-27).
+    """
     import envfile
     val = os.environ.get("AGI_BOX", "").strip()
     if not val:
         val = envfile.read_env(envfile.resolve(root).env_file).get("AGI_BOX", "").strip()
-    val = val or default_box(root)
     if not val:
         raise RuntimeError(
-            f"no AGI_BOX in the env and no `default_box` cell on the posts "
-            f"node under {root} — this graph cannot say which box it is"
+            f"no AGI_BOX in the env and none in the box env file under "
+            f"{root} — this graph cannot say which box it is (`default_box` "
+            f"is documentation, never a fallback)"
         )
     return val
 
 
 def row_is_local(root: Path, row: dict) -> bool:
-    """True when `row`'s box (its own cell, else the default) is THIS box.
+    """True when `row` NAMES this box on its own `box` cell.
 
-    A graph with NO box declaration at all (no AGI_BOX and no `default_box`)
-    is a single-box graph: every row is local, which is exactly today's
-    behaviour. The guard is FAIL-OPEN there rather than crashing a watcher.
+    An EMPTY or UNKNOWN row box is NOT local on any DECLARED box and
+    `'(default)'` is never a match. The ONE retained fail-open: a graph that
+    declares no box AT ALL stays a single-box graph (a dev graph must not go
+    dark), but a row that DOES name a box there is foreign -- unprovable.
     """
     own = str((row or {}).get("box") or "").strip()
     try:
         here = this_box(root)
-    except Exception:  # noqa: BLE001 -- undeclared box: single-box graph
-        return True
-    if not own:
-        own = default_box(root)
-    return own == here
+    except Exception:  # noqa: BLE001 -- an undeclared box proves nothing
+        return not own
+    return bool(own) and own == here
 
 if __name__ == "__main__":
     import argparse

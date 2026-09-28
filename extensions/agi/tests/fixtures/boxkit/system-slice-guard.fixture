@@ -1,0 +1,5 @@
+# sanctuary guard layer 2. Written by /box/.sanctuary/guard/guard-init.sh.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See GUARD.md.
+# The parent link for ssh.service's MemoryMin: without it the child's is worth 0.
+[Slice]
+MemoryMin=128M

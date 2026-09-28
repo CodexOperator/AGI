@@ -2185,6 +2185,15 @@ def main() -> int:
     # --cap overrides the standing default and any per-post cap for THIS round.
     if args.cap is not None:
         cred_limit = float(args.cap)
+    # hypothesis:a-zero-usd-lane-prints-the-cap-it-mints -- provisioning.mint
+    # FORCES limit_usd = zero_usd_key_limit(root) when the lane is zero-USD
+    # (provisioning.mint, the `if zero_usd:` line), so on such a lane the
+    # number resolved above is a promise no key keeps. Resolve the SAME cell,
+    # in the SAME order as the mint (AFTER the --cap override, because the
+    # mint overrides the flag it is handed), and the banner announces the cap
+    # the key will actually carry. One source of truth, no new literal.
+    if dispatch_harness.get("zero_usd") is True:
+        cred_limit = provisioning.zero_usd_key_limit(root)
     cred_ws = provisioning.workspace(cfg)
     issuing = provisioning.available(root)
     # hypothesis:l4-needs-credential-is-provider-gated -- this banner is a
@@ -2346,8 +2355,7 @@ def main() -> int:
     # belam 09-27 13:1xZ (owner, account drained): a ZERO-USD lane skips the
     # key and account floors -- its minted key is hard-capped instead
     # (provisioning.zero_usd_key_limit_usd); paid lanes keep every gate.
-    if (dispatch_harness.get("provider") == "openrouter"
-            and dispatch_harness.get("zero_usd") is not True):
+    if dispatch_harness.get("provider") == "openrouter":
         # this round's REQUIRED (d)/(e): the provisioning-ABSENT gate. With
         # provisioning LIVE this short-circuits True (the spawn mints its own
         # key, so a dead runtime key must not block -- L4.98). With it ABSENT,
@@ -2357,30 +2365,36 @@ def main() -> int:
         if not _rtk_ok:
             print(f"ERR: {_rtk_msg}", file=sys.stderr)
             return 1
-        _hkey_ok, _hkey_msg = provisioning.check_key_floor(cfg, root, iter_n=args.iter_n)
-        if not _hkey_ok:
-            print(f"ERR: {_hkey_msg}", file=sys.stderr)
-            return 1
-        # conjunct (1) of hypothesis:l4-workflow-residue-sub-floor-marker-dead-
-        # code-and-truncation: ok=True still means dispatch proceeds, but a
-        # (True, <marker>) return NAMES a skipped sub-floor minted key. A
-        # marker returned to a caller that ignores it is the falsifier, so it
-        # reaches a surface here as a NOTICE, before the account-floor block.
-        if _hkey_ok and _hkey_msg:
-            print(f"notice: {_hkey_msg}", file=sys.stderr)
-        # hypothesis:l4-the-floor-must-watch-the-account — ADDITIVE to the key
-        # floor, never replacing it. Rounds bill to the ACCOUNT, which the key
-        # floor cannot see, so a drained account must refuse a spawn the same
-        # way a drained key does. Fail-closed on a present reading below,
-        # fail-open on absence or a network error (see check_account_floor).
-        if _acc_exempt is not None:
-            print(f"account floor: exempt — kid of admitted live round "
-                  f"{_acc_exempt[0]} pid {_acc_exempt[1]}", file=sys.stderr)
-        else:
-            _acc_ok, _acc_msg = provisioning.check_account_floor(cfg, root)
-            if not _acc_ok:
-                print(f"ERR: {_acc_msg}", file=sys.stderr)
+        # the two DOLLAR floors below are the only gates a zero-USD lane skips
+        # (its minted key is hard-capped instead); the runtime-key gate above
+        # and the --cap guard below run for EVERY openrouter lane, so the
+        # split is a de-indent, not a reordered paid path.
+        if dispatch_harness.get("zero_usd") is not True:
+            _hkey_ok, _hkey_msg = provisioning.check_key_floor(
+                cfg, root, iter_n=args.iter_n)
+            if not _hkey_ok:
+                print(f"ERR: {_hkey_msg}", file=sys.stderr)
                 return 1
+            # conjunct (1) of hypothesis:l4-workflow-residue-sub-floor-marker-dead-
+            # code-and-truncation: ok=True still means dispatch proceeds, but a
+            # (True, <marker>) return NAMES a skipped sub-floor minted key. A
+            # marker returned to a caller that ignores it is the falsifier, so
+            # it reaches a surface here as a NOTICE, before the account-floor block.
+            if _hkey_ok and _hkey_msg:
+                print(f"notice: {_hkey_msg}", file=sys.stderr)
+            # hypothesis:l4-the-floor-must-watch-the-account — ADDITIVE to the key
+            # floor, never replacing it. Rounds bill to the ACCOUNT, which the key
+            # floor cannot see, so a drained account must refuse a spawn the same
+            # way a drained key does. Fail-closed on a present reading below,
+            # fail-open on absence or a network error (see check_account_floor).
+            if _acc_exempt is not None:
+                print(f"account floor: exempt — kid of admitted live round "
+                      f"{_acc_exempt[0]} pid {_acc_exempt[1]}", file=sys.stderr)
+            else:
+                _acc_ok, _acc_msg = provisioning.check_account_floor(cfg, root)
+                if not _acc_ok:
+                    print(f"ERR: {_acc_msg}", file=sys.stderr)
+                    return 1
         # conjunct (2): a --cap over headroom REFUSES by name before any mint.
         if args.cap is not None:
             # hypothesis:...cap-notices item 14: a non-positive cap always
@@ -2392,8 +2406,17 @@ def main() -> int:
             # item 13: the slot loop mints ONE key per slot, so price the
             # round at cap x slots -- n read from THIS resolved cfg.
             _slots = max(1, adapters.parallelism(cfg))
+            # hypothesis:a-zero-usd-lane-prints-the-cap-it-mints -- price the
+            # guard at the cap this round will MINT (`cred_limit`, which for a
+            # zero_usd lane is already the zero_usd_key_limit cell, resolved
+            # above), never at the pre-override `--cap`: a zero_usd lane
+            # provably cannot spend 1.00, so a guard measuring 1.00 refuses a
+            # cap the round cannot overspend. `exempt_floor` keeps the account
+            # floor out of the price for exactly the lane that is exempt from
+            # it at check_account_floor (side door, not a floor).
             _cap_ok, _cap_msg = provisioning.cap_headroom(
-                cfg, root, float(args.cap) * _slots, slots=_slots)
+                cfg, root, cred_limit * _slots, slots=_slots,
+                exempt_floor=dispatch_harness.get("zero_usd") is True)
             if not _cap_ok:
                 print(f"ERR: {_cap_msg}", file=sys.stderr)
                 return 1
