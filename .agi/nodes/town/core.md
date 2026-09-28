@@ -13,7 +13,7 @@ location: encryption-town
 master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
 season: 2
-thought_session: belam-daily-town-pass-2026-09-24
+thought_session: belam-daily-town-pass-2026-09-28
 town: core
 visions:
   - vision:alive
@@ -165,7 +165,9 @@ Belam daily pass 2026-09-23T10:00ET: merges=season2→main (cf89d6ffb→5723882c
 Belam daily pass 2026-09-22T09:50ET: merges=none; verify=FAIL (TestMergeUp git-identity + OPENROUTER_API_KEY empty); reopen/mint=none
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Belam daily 2026-09-24: FF-merged origin/core/season2/main into core/main@04400f68f (nest g7.31.1.2.{1,2,3}+g7.32.2.1* + space-bunny caps 5/10 + credential workspace); no board-complete (all stop-line active mid-batch); verify FAIL tip 04400f68f (pytest suite timed out 1800s; full-level: schema timeout 600s, secrets OPENROUTER_API_KEY missing, node-dirs stray .payloads; goals-check PASS byte-identical); vision/moral lens clear — stop-line g7.28/g7.31/g7.32 (+nests) serves alive/self-perpetuating/all-is-one; no reopen/mint
+Belam daily 2026-09-28: no season2→main merge (origin/core/season2/main@6dbeb34f6a ancestor of core/main@b7bf081871; CAP+reaper already merged); no board-complete (stop-line g7.28/g7.31*/g7.32* all still active mid-batch; no residues=0+suite evidence); verify FAIL tip b7bf081871 (goals-check drift on reaper Agent Notes · secrets OPENROUTER_API_KEY missing · tests 19 failed incl TestMergeUp · bin-suite-fresh heal.py/mem_cap.py · node-dirs .payloads; schema PASS ~266s · smoke/viewport/credentials/crons PASS); vision/moral lens clear — stop-line serves alive/self-perpetuating/all-is-one (faith ladder · antifragile reaper/CAP · love no mid-batch chatter); no reopen/mint
 <!-- THOUGHT:END -->
 
 Belam daily pass 2026-09-24T09:50ET: merges=season2→main FF (8c837f096→04400f68f); verify=FAIL tip 04400f68f (suite timeout 1800s + schema timeout 600s + secrets OPENROUTER_API_KEY empty + node-dirs stray .payloads); reopen/mint=none
+
+Belam daily pass 2026-09-28T09:50ET: merges=none (season2@6dbeb34f6a already in main@b7bf081871); verify=FAIL tip b7bf081871 (goals-check GOALS drift · secrets OPENROUTER_API_KEY empty · tests 19fail/5885pass TestMergeUp+node_dirs+workflow · bin-suite-fresh heal.py/mem_cap.py · node-dirs stray .payloads; schema/smoke/links/credentials PASS); reopen/mint=none
