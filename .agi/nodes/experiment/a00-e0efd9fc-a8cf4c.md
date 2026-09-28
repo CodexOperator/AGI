@@ -6,7 +6,7 @@ parents:
   - hypothesis:one-mint-route-answers-file-validated-row-by-row
 next_edges: []
 confidence: 0.7
-edited_by: a00-d85ae42b
+edited_by: director-engine
 evidence_runs:
   - experiment:a00-e0efd9fc-a8cf4c
 loop: hypothesis:one-mint-route-answers-file-validated-row-by-row@s2
@@ -46,12 +46,12 @@ Nine items, all text-only. ZERO code bytes changed, so no test file was added
   0 `_ceiling_refusal` hits, no `:67`. Four nodes sent strikers to a line that
   does not exist. It is the chain's root hypothesis, so this is also a
   candidate for a decision to ADD the rule there, not only to strike a citation.
-- The counting rule is stated ONCE, on `ff788172`'s Caveats: a copy is a place
-  that STATES the mechanism. Not restated here, on purpose -- DH.660. Its home
+- The counting rule is stated ONCE, at `2e615bb5`:47 -- a pointer, no restatement
+  (EG.39: the home was misnamed as `ff788172`, which never held it). Its home
   in a template or schema is still homeless (`git grep -ln 'one source per
   rule' <tip> -- skills/ .agi/context/` exits 1) and OWED, at a budget of ONE
   line, in the next round whose scope admits a skills/ or .agi/context/ file.
-  Name for the director, not touched here.
+  Name for the director, not touched here; the director BANKED it as a [rule] (EG.39).
 - This node proposes a gate against a self-evidenced `proved` and does not need
   one on itself: its taxonomy is already the honest one
   (`inconclusive_lean_proved:70` with `evidence_runs: [itself]`), so the self
