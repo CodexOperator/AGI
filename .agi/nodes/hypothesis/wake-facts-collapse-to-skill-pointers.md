@@ -181,6 +181,22 @@ FILE SCOPE extensions/agi/tests/test_rotate_templates.py · .agi/nodes/experimen
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over bbb225324 · <= 40 test lines net over bbb225324 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat bbb225324 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.163 -- closes mur-eg-x995321-a7a1e2 EG.145-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-wake-facts-collapse-t-a00-f69e08b6 tip db4157188 (branch de-base-EG.163; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Order pin does not pin the cell read's presence — extensions/agi/tests/test_rotate_templates.py:1509 (deleting _facts_pointer_target_bytes(src) from the helper leaves the pin green)
+2. 3. The extracted helper's BYTE-COMPARISON arm (test_rotate_templates.py:1510-1514) has no green test at all — deleting the cell read AND the `assert got <= target` arm leaves the pin and both cell tests green
+3. Defect 3 (missed by the first reviewer): the whole byte-ceiling arm of the extracted helper, :1510-1514, is unexercised — deleting :1509-:1514 leaves the pin and both cell tests green (measured 8 passed), and the live guard cannot reach it on this tree (0 violations, 2009 B, stops at the :1535 cell refusal). This is the same family as reported defect 1 but a strictly larger hole, and it is the arm the live guard exists to enforce.
+DEMOTED   by the director at triage, not orders: items 3 + 5 (the merge-tip red = config:rotations lacks belam's facts_pointer_target_bytes cell: a MAJOR [red] with TM 18:4xZ, never this round's) · 6 + 7 (checked clean)
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_rotate_templates.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_rotate_templates.py · .agi/nodes/experiment/a00-5f0e91f8-923aff.md · .agi/nodes/experiment/a00-7601a6ed-3ee882.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over db4157188 · <= 40 test lines net over db4157188 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat db4157188 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective EG.5: mur-director-engine-47 DH.648-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
