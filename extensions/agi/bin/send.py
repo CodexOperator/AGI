@@ -1896,7 +1896,21 @@ def _clear_deferred(root: Path, seat: str) -> None:
     ROTATES the queue -- the next queued sender becomes the new head, and
     only the LAST one unlinks the file. An unconditional unlink dropped
     bodies no path had shown to anybody and no undelivered notice reached
-    (experiment:a00-c3bf7379-8e12ed)."""
+    (experiment:a00-c3bf7379-8e12ed).
+
+    TWO preservation rules for queued `others`, deliberately DIFFERENT, so
+    neither is read as a promise of the other:
+      (1) DROP rule (here): a queued entry whose `body` is falsy is RETIRED
+          WITH the head -- `rest = [o for o in _deferred_queued(p) if
+          o.get("body")]` keeps only renderable bodies, so a headless queued
+          dm is NOT carried into the new head and is not undeliverable by
+          anyone.
+      (2) CARRY rule (`_store_deferred` takeover): a bodyless sidecar is
+          TAKEN OVER, and there every queued record -- falsy body included --
+          rides forward, because overwriting the file would destroy bodies
+          `_read_deferred` cannot reach and `_notify_undelivered` is the only
+          reader that would ever have surfaced them.
+    A file that never reaches this helper therefore loses nothing."""
     try:
         p = _nudge_deferred_path(root, seat)
         if not p.exists():
