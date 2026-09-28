@@ -607,6 +607,14 @@ def replace_payload(root, ref: str, source=None, *, location: str | None = None,
     return dest, True
 
 
+#: THE minted identity rows -- the ONE definition of that fact. `write_node`
+#: builds these in `fm` and only THEN runs `fm.update(extra_fm)`, so a caller
+#: row naming one would overwrite the node's own identity. `write.py`'s
+#: answers/`--set` refusal derives its row set from HERE rather than
+#: transcribing it (one source per rule).
+MINTED_IDENTITY = ("id", "mint_id", "next_edges", "scaffold_hash")
+
+
 def write_node(
     root,
     node_type,
@@ -767,6 +775,8 @@ def write_node(
         "scaffold_hash": scaffold_hash(scaffold_body),
     }
     fm.update(extra_fm or {})
+    assert set(MINTED_IDENTITY) <= set(fm), (
+        "MINTED_IDENTITY names a row write_node does not build")
     # goal:s31 -- fill what the schema requires and this routine can derive,
     # BEFORE the file is written, so a scaffold is born valid rather than
     # waiting for a parent to notice. Safe because `scaffold_hash` hashes the
