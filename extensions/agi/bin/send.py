@@ -1674,6 +1674,47 @@ class _PendingLock:
         return False
 
 
+def _deferred_blob(root: Path, seat: str) -> str | None:
+    """The raw deferred sidecar bytes, or None when no file exists. Used to
+    tell a deferred body THIS nudge wrote from one an EARLIER send left
+    behind (TMM.283 stale-deferred residue)."""
+    try:
+        p = _nudge_deferred_path(root, seat)
+        return p.read_text() if p.is_file() else None
+    except Exception:                                    # noqa: BLE001
+        return None
+
+
+def _register_unresolved(root: Path, seat: str, before_pending: int,
+                         before_deferred: str | None,
+                         sender: str | None = None) -> None:
+    """TMM.283: a message that landed in the FILE but whose nudge never
+    resolved (no pane target) left NO pending mark. Register it at the
+    SENDER unless the nudge path already accounted for it -- a window
+    coalesce bumps the count itself, a busy pane writes the deferred body
+    (appending this message to `others` and counting it) -- or the row is
+    quiet (a quiet row types nothing BY CHOICE). A deferred body left by an
+    EARLIER, unrelated send does NOT suppress the mark: only a sidecar this
+    very nudge WROTE (bytes changed) accounts for this message, which is the
+    same before/after discipline the pending snapshot already uses."""
+    if _row_is_quiet(root, seat):
+        return
+    # A self-copy (sender == seat) wakes nobody, so the mark would sit in the
+    # SENDER'S OWN inbox. Keyed on the SELF-COPY alone: `_sender_class` also
+    # calls a service sender "service" (its FIRST clause), and a service dm
+    # in the FILE is still an unread dm the recipient can count.
+    if sender is not None and str(sender) == str(seat):
+        return
+    rows = _locally_loaded_rows(root)   # DH.542 ITEM 3: an UNLISTED recipient
+    if rows and _seat_row_by_name(rows, seat) is None:
+        return                         # gains no pending sidecar nobody reads
+    if _deferred_blob(root, seat) != before_deferred:
+        return
+    if _pending_more(root, seat) != before_pending:
+        return
+    _bump_pending(root, seat)
+
+
 def _bump_pending(root: Path, seat: str) -> None:
     """Increment the pending-coalesced count; a dm coalesced inside the
     per-seat window is counted here so a LATER delivered nudge carries it.
@@ -1762,6 +1803,41 @@ def _record_deferred_render(root: Path, seat: str, more: int) -> None:
         pass
 
 
+def _deferred_keep_reason(p: Path) -> str | None:
+    """Why an existing `.nudge.deferred` must be KEPT instead of taken over,
+    or None when the file is a legal EMPTY shell. Only UNDECODABLE bytes are
+    kept (a 0-byte file included: `read_text()` is `""`, which is a shell, not
+    damage) or a payload that is not an object. A PARSEABLE dict never pins a
+    seat to count-only -- not even one whose `body` is falsy while `others`
+    holds queued dm bodies: `_read_deferred` returns None for it, so NO
+    undelivered notice is ever sent and the next typed nudge would
+    `_clear_deferred` UNLINK the file, losing those bodies. `_deferred_queued`
+    carries them forward on the takeover instead."""
+    try:
+        raw = p.read_text()
+        if not raw.strip():
+            return None
+        d = json.loads(raw)
+    except (OSError, UnicodeDecodeError, ValueError):
+        return "unreadable"
+    if not isinstance(d, dict):
+        return "unreadable"
+    return None
+
+
+def _deferred_queued(p: Path) -> list:
+    """Queued `others` dm bodies in a sidecar `_read_deferred` cannot reach
+    (falsy `body`), so a takeover of that file does not destroy them."""
+    try:
+        d = json.loads(p.read_text())
+        others = d.get("others") if isinstance(d, dict) else None
+        if not isinstance(others, list):
+            return []
+        return [o for o in others if isinstance(o, dict)]
+    except (OSError, UnicodeDecodeError, ValueError):
+        return []
+
+
 def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
     """Persist the FIRST deferred dm body for a seat; a later dm in the
     same batch is COUNTED (pending) and appended to `others` so the sender
@@ -1771,6 +1847,23 @@ def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
     is the first deferred body), False if one was already pending.
     Best-effort, never raises."""
     existing = _read_deferred(root, seat)
+    sidecar = _nudge_deferred_path(root, seat)
+    carried: list = []
+    if existing is None and sidecar.is_file():
+        # A sidecar that reads as bodyless is only worth KEEPING if its BYTES
+        # are undecodable: a fresh json.dumps would discard them and nobody
+        # could read them back. Any legal shell -- empty, or a parseable dict
+        # `_read_deferred` will not return -- is no loss: take it over, store
+        # the new body, and carry any queued `others` forward so their
+        # unreadable bodies are not silently destroyed.
+        reason = _deferred_keep_reason(sidecar)
+        if reason:
+            # COUNT this dm instead (the call sites read False as "not the
+            # first body") and name the TRUE reason. Loud, never silent.
+            print(f"nudge: deferred sidecar for {seat} {reason}; kept it",
+                  file=sys.stderr)
+            return False
+        carried = _deferred_queued(sidecar)
     if existing is not None:
         others = existing.get("others")
         if not isinstance(others, list):
@@ -1785,21 +1878,51 @@ def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
     try:
         p = _nudge_deferred_path(root, seat)
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(json.dumps({"sender": sender, "body": body,
-                                 "ts": _now()}))
+        rec = {"sender": sender, "body": body, "ts": _now()}
+        if carried:
+            rec["others"] = carried
+        p.write_text(json.dumps(rec))
         return True
     except OSError:
         return False
 
 
 def _clear_deferred(root: Path, seat: str) -> None:
-    """Drop the deferred dm body after a line carrying it (or a fresher
-    dm that supersedes it) is actually DELIVERED -- never on a coalesce.
-    Best-effort, never raises."""
+    """Drop the deferred dm body that was actually DELIVERED (by a line
+    carrying it, or by a `read` that printed it) -- never on a coalesce.
+    A sidecar may hold MORE THAN ONE sender: `_store_deferred` keeps the
+    first body as the head and queues every later dm under `others`, and
+    only the head body is ever rendered. So the clear RETIRES THE HEAD and
+    ROTATES the queue -- the next queued sender becomes the new head, and
+    only the LAST one unlinks the file. An unconditional unlink dropped
+    bodies no path had shown to anybody and no undelivered notice reached
+    (experiment:a00-c3bf7379-8e12ed).
+
+    TWO preservation rules for queued `others`, deliberately DIFFERENT, so
+    neither is read as a promise of the other:
+      (1) DROP rule (here): a queued entry whose `body` is falsy is RETIRED
+          WITH the head -- `rest = [o for o in _deferred_queued(p) if
+          o.get("body")]` keeps only renderable bodies, so a headless queued
+          dm is NOT carried into the new head and is not undeliverable by
+          anyone.
+      (2) CARRY rule (`_store_deferred` takeover): a bodyless sidecar is
+          TAKEN OVER, and there every queued record -- falsy body included --
+          rides forward, because overwriting the file would destroy bodies
+          `_read_deferred` cannot reach and `_notify_undelivered` is the only
+          reader that would ever have surfaced them.
+    A file that never reaches this helper therefore loses nothing."""
     try:
         p = _nudge_deferred_path(root, seat)
-        if p.exists():
+        if not p.exists():
+            return
+        rest = [o for o in _deferred_queued(p) if o.get("body")]
+        if not rest:
             p.unlink()
+            return
+        head = dict(rest[0])
+        if len(rest) > 1:
+            head["others"] = rest[1:]
+        p.write_text(json.dumps(head))
     except OSError:
         pass
 
@@ -3119,8 +3242,17 @@ def send(root: Path, to: str, text: str, sender: str | None,
     # input-is-typed-into-the-successors-pane...). The inbox write is
     # unaffected — the dm is still the durable, signed record.
     if nudge and not _row_is_quiet(root, to):
-        _announce_nudge(root, to, _nudge_window(
-            root, to, sender=sender if sender is not None else from_id))
+        p_before = _pending_more(root, to)
+        d_before = _deferred_blob(root, to)
+        ok = _nudge_window(
+            root, to, sender=sender if sender is not None else from_id)
+        # TMM.283 INBOX HALF: the sibling sender path owns the SAME mark. The
+        # box lands either way, so an inbox block whose wake never resolved
+        # must be countable, exactly as a `--to` dm is.
+        if not ok:
+            _register_unresolved(root, to, p_before, d_before,
+                                 sender if sender is not None else from_id)
+        _announce_nudge(root, to, ok)
 
     print(inbox.resolve())
     return (from_id, sig_line is not None)
@@ -3864,11 +3996,15 @@ def _quarantine_block(root: Path, me: str, block: str) -> Path:
 
 
 def _print_blocks_with_labels(root: Path, me: str, blocks: list[str],
-                              wrap: int = 160) -> None:
+                              wrap: int = 160) -> int:
     """Print one label line before each block, then the block in FULL, its
     message body wrapped at `wrap` columns (display-only; the inbox file and
     read marker are untouched). `wrap <= 0` prints today's byte-for-byte
-    output.
+    output. Returns the INDEX (into `blocks`) of the last block it printed,
+    -1 when it printed none; `read` reads a non-int answer as "no printer
+    ran" (the marker then cannot advance at all) and an int that is not the
+    last block as "the printer stopped there" (the marker advances only to
+    that block's end).
 
     Under comms.verify == "enforcing" AND ONLY THEN, a block whose label is
     EXACTLY `FORGED` (never RETIRED/UNSIGNED/VERIFIED) is refused: one
@@ -3877,6 +4013,7 @@ def _print_blocks_with_labels(root: Path, me: str, blocks: list[str],
     value, or an absent `comms` block, prints identically to today."""
     labels = _labels_for_blocks(root, blocks)
     enforcing = _comms_config(root).get("verify") == "enforcing"
+    last = -1                     # index of the LAST block this call printed
     for i, block in enumerate(blocks):
         if i > 0:
             print(MSG_SEP, end="")
@@ -3889,6 +4026,8 @@ def _print_blocks_with_labels(root: Path, me: str, blocks: list[str],
             continue
         print(labels[i])
         print(_wrap_block(quote_harness_text(block), wrap), end="")
+        last = i
+    return last
 
 
 def _deferred_stamp(root: Path, me: str, deferred: dict) -> str:
@@ -3948,18 +4087,46 @@ def _own_inbox_or_refuse(target: str, me: str) -> bool:
     return False
 
 
+def _block_end_offsets(region: str) -> list[int]:
+    """End offset (into `region`) of every block `_scan_messages` returns
+    from it, in the same order and under the same drop-empty rule. The i-th
+    offset is the end of the i-th block the printer walked -- ONE index
+    space, never a second list of offsets free to drift from the blocks
+    actually printed (the DH.490 defect)."""
+    ends, pos = [], 0
+    for m in _MSG_BOUNDARY_RE.finditer(region):
+        if region[pos:m.start()].strip():
+            ends.append(m.start())
+        pos = m.end()
+    if region[pos:].strip():
+        ends.append(len(region))
+    return ends
+
+
 def read(root: Path, me: str, sender: str | None,
-         wrap: int = 160) -> None:
+         wrap: int = 160, *, quiet_empty: bool = False) -> int:
     """Print unread blocks (bodies wrapped at `wrap` columns, display-only)
-    and mark them read."""
+    and mark them read. Returns how many unread ITEMS the inbox held (blocks
+    plus a stored deferred dm, counted whether or not the printer emitted
+    them), so a caller that also sweeps dm channels (`read_dms`) decides the
+    `empty` verdict only when BOTH are empty -- it used to be printed in
+    here, before the dm sweep ran. `quiet_empty=True` withholds it. The read
+    marker follows the BLOCKS the printer walked, not the region it was
+    handed: it advances past every block the printer printed AND past a
+    FORGED block it quarantined (narrowed conjunct 2 -- it never passes an
+    unread VALID block that was not printed, so a printer that ran and
+    stopped short retires nothing behind it), while the inbox still drains
+    so the same refused bytes are never re-refused and the quarantine keeps
+    the copy."""
     _lockdown_warn(root)
     inbox = _inbox_path(root, me)
     blocks, marker_index = _scan_messages(inbox)
     deferred = _read_deferred(root, me)
 
     if not blocks and deferred is None:
-        print(f"inbox for {me}: empty")
-        return
+        if not quiet_empty:
+            print(f"inbox for {me}: empty")
+        return 0
 
     # Observe the coalesced count ONCE, before anything is marked read. The
     # clear below is compare-and-clear (it subtracts this observed value),
@@ -3977,23 +4144,61 @@ def read(root: Path, me: str, sender: str | None,
         _print_deferred_block(root, me, deferred, wrap=wrap)
         _clear_deferred(root, me)
 
-    # Print inbox blocks, each prefixed by its verification label.
+    # Print inbox blocks, each prefixed by its verification label. The printer
+    # reports the LAST BLOCK IT PRINTED; a stub printing nothing answers None
+    # ("no printer ran", the marker cannot advance), and an int that is not
+    # the last block is the partial printer: it ran and stopped short, so the
+    # blocks behind it were never seen.
+    walked = -2                      # -2 = no printer ran at all
     if blocks:
-        _print_blocks_with_labels(root, me, blocks, wrap=wrap)
+        ans = _print_blocks_with_labels(root, me, blocks, wrap=wrap)
+        if isinstance(ans, int):
+            walked = max(-1, min(ans, len(blocks) - 1))
 
-    # Mark read: find the current last line and add a marker after it.
-    # If marker already existed, move it past the blocks we just printed.
+    # Mark read: the marker is placed in the SAME index space the blocks were
+    # printed from (see `cut` below), so it can never sit past a VALID block
+    # nobody saw (conjunct 2) nor re-print what it already printed.
     if inbox.is_file():
         # newline="" too: a rewrite here must not be the thing that strips the
         # CR the writer preserved (mur-39 order (d)).
         text = inbox.open("r", newline="").read()
-        lines = text.splitlines(keepends=True)
-        if marker_index >= 0:
-            # Remove old marker; re-insert at end.
-            lines = [l for l in lines if l != READ_MARKER]
+        raw_lines = text.splitlines(keepends=True)
+        # The unread REGION, taken from the lines AS SCANNED (marker_index
+        # indexes the unfiltered list) -- slicing the marker-stripped list at
+        # the same index would drop the first line of the first unread block.
+        region = ("".join(raw_lines[marker_index + 1:]) if marker_index >= 0
+                  else "".join(raw_lines))
+        lines = [l for l in raw_lines if l != READ_MARKER]
         # Strip trailing whitespace, then add marker + trailing newline.
         content = "".join(lines).rstrip("\n")
-        inbox.write_text(content + "\n" + READ_MARKER)
+        # ONE INDEX SPACE: `region`, `head` and `ends` all come from the lines
+        # `_scan_messages` scanned, so `cut` resolves from the block list the
+        # printer walked -- never a second list of offsets free to drift.
+        head = len(content) - len(region.rstrip("\n"))
+        ends = _block_end_offsets(region)
+        # The marker consumes the longest PREFIX of the unread blocks holding
+        # no VALID block the printer did not print: every block it walked
+        # (printed, or refused and quarantined -- the inbox drains so the same
+        # bytes are never re-refused), then any FORGED block behind the last
+        # one it printed, which was also seen. No printer at all (`-2`)
+        # consumes nothing: the marker stays put.
+        if walked == -2:
+            cut = head
+        else:
+            labels = _labels_for_blocks(root, blocks)
+            m = walked + 1
+            while m < len(blocks) and labels[m] == "FORGED":
+                m += 1
+            cut = min(head + ends[m - 1], len(content)) if m else head
+        # A PARTIAL read leaves the unread tail in place; the tail keeps the
+        # file's ONE trailing newline, so the rewrite never de-newlines it
+        # (a marker write that ate the final `\n` left the next append fused
+        # onto the last body line).
+        tail = content[cut:].lstrip("\n")
+        if tail and not tail.endswith("\n"):
+            tail += "\n"
+        inbox.write_text(content[:cut].rstrip("\n") + "\n" + READ_MARKER
+                         + tail)
     # The seat just consumed its unread (clause (1) of hypothesis:l4-wake-
     # repair-is-quiet-honest-and-readable): drop the announced-state sidecar
     # so a LATER new unread state is never mistaken for one already typed.
@@ -4010,6 +4215,9 @@ def read(root: Path, me: str, sender: str | None,
     # early return above: a read that consumed nothing must NOT touch the
     # sidecars. `peek` clears nothing, unchanged.
     _clear_pending(root, me, observed)
+    # What the inbox HELD, not what the printer emitted: a seat holding mail
+    # is never `empty`, even if nothing printed.
+    return len(blocks) + (1 if deferred is not None else 0)
 
 
 def peek(root: Path, me: str, wrap: int = 160) -> None:
@@ -4086,8 +4294,20 @@ def send_dm(croot: Path, me: str, other: str, text: str,
     # (hypothesis:l4-the-nudge-carries-the-dm-body-inline); idempotent under
     # a busy pane. The body STILL lands in the dm file -- the pane line is
     # delivery, the file is the record.
-    ok = _nudge_window(locations.find_project_root(croot) or croot, other,
+    root = locations.find_project_root(croot) or croot
+    before = _pending_more(root, other)
+    d_before = _deferred_blob(root, other)
+    ok = _nudge_window(root, other,
                        sender=_detect_sender(sender), body=text)
+    # TMM.283: a dm that landed in the FILE but whose nudge never resolved
+    # (no pane target) left NO pending mark -- the recipient's `status` read
+    # `pending=0` while an unread dm sat in the file. Register it HERE, at
+    # the sender, unless the nudge path already accounted for it (a window
+    # coalesce bumps the count itself; a busy pane stores the deferred body)
+    # or the row is quiet (a quiet row types nothing BY CHOICE).
+    if not ok:
+        _register_unresolved(root, other, before, d_before,
+                             _detect_sender(sender))
     # `_announce_nudge` reads the SEATS row and the comms config, both of
     # which live under the GRAPH root -- the same root `_nudge_window` is
     # handed one line above. Handing it the raw `croot` (the comms root)
@@ -5653,13 +5873,18 @@ def main(argv: list[str] | None = None) -> int:
                 if not nm:
                     continue
                 if boxes.row_is_local(root, r):
-                    read(root, nm, sender, wrap=wrap)
+                    shown = read(root, nm, sender, wrap=wrap,
+                                 quiet_empty=True)
                     # clause (1) for the SERVICE reader too: mail_poll must
                     # sweep the same row's dm channels, or a dm pushed from
                     # another box lands in a file this reader never opens
                     # (hypothesis:l4-one-read-returns-everything-addressed-
-                    # to-a-post...). Same per-row loop, same box gate.
-                    read_dms(croot, nm, wrap=wrap)
+                    # to-a-post...). Same per-row loop, same box gate -- and
+                    # the SAME `empty` verdict the positional path decides
+                    # after the sweep, never inside `read` before it.
+                    shown += read_dms(croot, nm, wrap=wrap)
+                    if not shown:
+                        print(f"inbox for {nm}: empty")
                 else:
                     print(f"mail_poll: skipped foreign-box post {nm} "
                           f"(box {r.get('box') or '(default)'})",
@@ -5676,10 +5901,15 @@ def main(argv: list[str] | None = None) -> int:
         if not _own_inbox_or_refuse(_alias_canon(root, args.target) or args.target,
                                     resolved):
             return 2
-        read(root, _alias_canon(root, args.target) or args.target, sender,
-             wrap=wrap)
+        target = _alias_canon(root, args.target) or args.target
+        shown = read(root, target, sender, wrap=wrap, quiet_empty=True)
         # clause (1): the same call also consumes every dm naming the post.
-        read_dms(croot, resolved, wrap=wrap)
+        shown += read_dms(croot, resolved, wrap=wrap)
+        # The seat is empty only when the INBOX held nothing AND the dm sweep
+        # showed nothing (conjunct 1): decided here, after both, never inside
+        # `read` before the sweep.
+        if not shown:
+            print(f"inbox for {target}: empty")
         return 0
 
     if args.verb == "peek":

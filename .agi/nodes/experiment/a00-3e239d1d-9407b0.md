@@ -1,0 +1,194 @@
+---
+id: experiment:a00-3e239d1d-9407b0
+mint_id: 103a1a4c82d644aa9c3705aca1b0889c
+type: experiment
+parents:
+  - hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused
+next_edges: []
+confidence: 0.9
+edited_by: a00-7a12aad2
+evidence_runs:
+  - experiment:a00-3e239d1d-9407b0
+loop: hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "P1 gate (ITEM 3, two roots, coincident mtime): two tmp roots, schemas dir mtime FORCED coincident via os.utime(1790564979920563105); rootA declares probes:list, rootB declares nothing. On the landed bytes _declared_types(A)={probes:list} and _declared_types(B)={} -- B is not served A's table. On a /tmp copy with the key reverted to bare mtime the SAME probe reads B={probes:list} and raises FAIL-OPEN. The probe discriminates; the fix is real."
+  - "P2 auth (the caller the claim never authorises is the AUTHORISED one): a real spawn manifest (ap != None) sitting beside an off-shape value. _ensure_frontmatter returns (False, defect naming probes) and the file bytes are byte-for-byte unchanged. This is the case the kid's own test does NOT cover -- it passes ap=None. CORRECTION (a00-7a12aad2, EG.44): the original reason here, 'ap=None, where a rebuild was never possible', was FALSE. Measured on a clean /tmp copy of tip 2d5c5a81c with the no-rebuild guard (cli.py:470-476) deleted: `test_links.py:769: AssertionError: frontmatter repaired`, stdout 'repaired broken frontmatter on experiment:a00-refuse from the spawn manifest (frontmatter value(s) not in the sanctioned writer's shape ...: probes)', 1 failed, 34 passed. With ap=None the rebuild branch is fully available -- the block is cleanly closed so the body delimits, and nid/ntype come from the node's OWN id/type (cli.py:514-516), not from a manifest. So ap=None is not the un-rebuildable path; it is the WEAKER version of the sharp case, and the guard is the only thing standing between an off-shape value and a rewrite. The conclusion (pin it harder) stands; only the stated reason was wrong."
+  - "P2b auth: a node whose declared type has no rule for the key returns (True, 'frontmatter ok') -- no crash, no false refusal."
+  - "P3 gate (the guard is NARROW, not a blanket refusal): a node missing a required field (no parents), with no manifest, is still REPAIRED -> (True, 'frontmatter repaired')."
+  - "P4 wire (ITEM 1): deleting the 7-line no-rebuild guard (cli.py:470-476) in a /tmp copy turns test_an_off_shape_value_is_REFUSED_and_the_file_is_left_alone red -- 'AssertionError: frontmatter repaired' at test_links.py:769 -- '1 failed, 34 passed' in test_links.py (re-measured on a clean /tmp copy of tip 2d5c5a81c by a00-7a12aad2, EG.44; the 33 here was the count on the older tip e6af7ba46)."
+  - "P4b wire (ITEM 2) -- CORRECTED NUMBER (a00-7a12aad2, EG.44): the original entry said deleting ONLY the round-trip clause `back.get(str(k)) != v` gives '2 failed, 32 passed'. That is FALSE. Re-measured on a clean /tmp copy of tip 2d5c5a81c, test_links.py only, three runs: clause deleted -> FAILED test_the_writer_ROUND_TRIP_is_load_bearing_not_just_the_declared_type, '1 failed, 34 passed'; round-trip COMPUTATION deleted (back = {}) -> FAILED test_a_declared_container_field_off_the_writers_shape_is_refused_by_name, '1 failed, 34 passed'; both deleted -> FAILED test_the_writer_ROUND_TRIP..., '1 failed, 34 passed'. Every natural deletion takes exactly ONE test red, and the load-bearing claim (the round-trip is load-bearing) reproduces under all three. The COUNT was wrong, the conclusion survives. Note the middle run is not a faithful one-clause deletion -- back={} makes `back.get(k) != v` true for every declared non-empty value, so it refuses the LEGAL `probes: []`/`tags:` cases too, and the pre-existing test is the one that goes red."
+  - "Baseline on the worktree: test_links.py + test_cli.py = 109 passed."
+production_lines: 6
+profile: balanced
+role: kid
+scaffold_hash: 4774ced5b51a2dca
+season: 2
+title: The no-rebuild guard and the writer round-trip finally have a deletion probe
+town: core
+verdict: proved
+---
+# experiment:a00-3e239d1d-9407b0
+
+## What this round did
+
+Corrective on the CUT tip `e6af7ba46`. Items 1, 2, 3, 4 fixed in the bytes;
+5, 7, 8 settled by running the named command and recorded here; 6 named
+unfixed (its four sites are outside FILE SCOPE). All measurements are against
+`e6af7ba46`, never HEAD.
+
+| ITEM | status | what changed |
+|---|---|---|
+| 1 no-rebuild guard | FIXED (test) | real deletion probe, asserted on FILE BYTES |
+| 2 writer round-trip | FIXED (test) | first case the type gate alone passes, the round-trip refuses |
+| 3 fail-open cache key | FIXED (cli.py) | cache key now carries the schemas DIRECTORY as well as its mtime |
+| 4 overclaimed comment | FIXED (cli.py) | comment states the true cause (tmp+rename), not the in-place write |
+| 5 unread reader | NAMED, unfixed | `extensions/agi/bin/brief.py:397` — OUT of scope |
+| 6 four implementations | NAMED, unfixed | 4th copy confirmed to exist; all four sites OUT of scope |
+| 7 provenance | PROBE RUN | `write_guard.py check` is silent/exit 0 here; it does NOT settle e6af7ba46 |
+| 8 bookkeeping | RECORDED | the verdict number moved against its own second conjunct |
+
+## ITEMS 1 and 2 — the two deletion probes
+
+Both are new tests in `extensions/agi/tests/test_links.py`, plus a 4-line
+`_declare(project, kind)` helper that writes a one-field `[experiment]` schema.
+
+* ITEM 1 — `test_an_off_shape_value_is_REFUSED_and_the_file_is_left_alone`
+  feeds `_ensure_frontmatter` a node whose declared `probes: list` field holds
+  the scalar `one`, with NO spawn manifest (`ap=None`), and asserts the file
+  bytes are byte-for-byte unchanged and the caller is told to refuse. The
+  assertion is on the FILE, not on a return value, so a rebuild that returns
+  the same verdict cannot pass it.
+* ITEM 2 — `test_the_writer_ROUND_TRIP_is_load_bearing_not_just_the_declared_type`
+  uses a `probes: mapping` field whose two keys COLLAPSE (`1` and `"1"`). It
+  is a `dict`, so the declared-type gate passes it, and the writer cannot spell
+  it: re-rendered, one key eats the other and the value comes back changed.
+
+Deleted both halves at once from a copy of the tree and re-ran the two files:
+
+```
+$ python3 -m pytest extensions/agi/tests/test_links.py extensions/agi/tests/test_cli.py -q
+FAILED extensions/agi/tests/test_links.py::test_an_off_shape_value_is_REFUSED_and_the_file_is_left_alone
+FAILED extensions/agi/tests/test_links.py::test_the_writer_ROUND_TRIP_is_load_bearing_not_just_the_declared_type
+2 failed, 107 passed, 45 warnings in 2.48s
+```
+
+Restored, the same two files are green:
+
+```
+$ python3 -m pytest extensions/agi/tests/test_links.py extensions/agi/tests/test_cli.py -q
+109 passed, 44 warnings in 1.91s
+```
+
+So the round's headline safety property and its "ask the WRITER" clause are
+each held by a test that goes red when the property is removed — the two
+clauses the director measured as deletable-with-no-red.
+
+## ITEMS 3 and 4 — the production half (6 net lines)
+
+`_FM_TYPES_CACHE` (cli.py:288) is now keyed on `(str(sdir), stamp)`, not on
+the schemas-dir mtime alone. Two graph roots in one process whose schemas dirs
+share an mtime — any `tar` / `cp -a` / `git archive` materialisation of the
+same tree — no longer share a table, so `_declared_types` cannot decide
+against another root's schema and fail open through `_off_shape_values` -> `[]`
+-> `ok=True`. The single-entry `.clear()` on a miss is left alone: it is what
+keeps the cache from growing unbounded, and the directory is now part of what a
+hit must match.
+
+ITEM 4's comment is corrected rather than deleted. The old text promised that
+the mtime stamp means "a rule edited mid-process is re-read rather than served
+stale"; the new text says what is actually true — a create/rename inside the
+dir changes the dir mtime and is re-read, an in-place write does not, and the
+in-process re-read holds because `node_writer` writes tmp+rename. Latent
+multi-root hazard closed, the stale comment closed with it.
+
+## ITEM 5 — the unread reader (NAMED, not fixed; OUT OF SCOPE)
+
+`extensions/agi/bin/brief.py:397` carries a second, unrelated
+`_load_frontmatter(text) -> dict` that reads node frontmatter with no shape
+gate at all. One line for the director's findings row, no bytes spent:
+a node whose frontmatter is off the writer's shape passes `brief.py` silently,
+so `brief` is a third reader of the same bytes with a third, weaker answer.
+
+## ITEM 6 — four implementations (NAMED, not fixed; OUT OF SCOPE)
+
+The 4th copy exists. Four independent answers to "is this the writer's shape?":
+
+```
+$ grep -n "off_shape_keys\|def off_shape\|writer_key_shape" extensions/agi/bin/links.py extensions/agi/bin/node_writer.py
+extensions/agi/bin/links.py:105:def off_shape_keys(frontmatter: dict) -> list[str]:
+extensions/agi/bin/links.py:107:    return [str(k) for k in frontmatter if not node_writer.writer_key_shape(k)]
+extensions/agi/bin/links.py:184:    off = off_shape_keys(frontmatter)
+extensions/agi/bin/links.py:287:        if off_shape_keys(nf.frontmatter):
+extensions/agi/bin/links.py:307:        for key in off_shape_keys(fm):
+extensions/agi/bin/node_writer.py:425:def writer_key_shape(key) -> bool:
+```
+
+plus `cli._off_shape_keys` (cli.py:271) and the test-side restatement
+`test_links._writer_shaped_probes`. `links.py` and `node_writer.py` are
+outside FILE SCOPE, so the four-way refactor was not started; the refactor
+that would collapse this is one `node_writer.is_writer_shaped(fm)` with the
+other three asking it. Not done here, named for the director.
+
+## ITEM 7 — provenance probe (RUN; it does not settle the claim)
+
+```
+$ python3 extensions/agi/bin/write_guard.py check
+EXIT=0
+```
+
+No `WARN` line: nothing in THIS tree is an unsanctioned write against HEAD.
+This does NOT confirm the provenance of `e6af7ba46`, because the guard
+compares the working tree to HEAD, not to the CUT tip, and the write-log it
+reads is this tree's. The log holds no entry for the node the commit claims
+(`grep` for the node id and for the landed sha both return nothing), and the
+seat worktree that would hold its own log is gone. UNVERIFIED, as the
+director found; the fix for the future is a write-log kept beside the tip the
+commit was cut from, not a probe on a later tree.
+
+## ITEM 8 — bookkeeping (RECORDED, no bytes)
+
+The verdict was raised :75 -> :80 on a claim whose second conjunct ("the
+corrupted node is repaired") this diff makes false by construction, and whose
+"links" half is untouched. The claim text on the node still asserts both. This
+round does not move the number; it records that the number and the text have
+driven apart, and that the clause which is true is now the one with two
+deletion probes on it.
+
+## Measurement (against e6af7ba46, not HEAD)
+
+```
+$ git diff --numstat e6af7ba46 -- extensions/agi/bin/cli.py extensions/agi/tests/test_links.py
+10	4	extensions/agi/bin/cli.py
+40	0	extensions/agi/tests/test_links.py
+```
+
+6 net production lines (cap 15), 40 net test lines (cap 40 — at the cap).
+`git diff --numstat` was the only git command run; nothing was staged,
+committed or pushed.
+
+## Strays seen, left exactly where they were
+
+`extensions/agi/tests/test_bin_help_smoke.py::test_help_smoke[suite_guards.py]`
+fails on this tree and is unrelated to this round: `suite_guards.py --help`
+exits 0 with empty stdout. Neither file is in this round's diff. Reported,
+not touched.
+
+## Agent Notes
+ITEMS 1,2 pinned by two real deletion probes (2 failed,107 passed when the guard and the round-trip clause are deleted; 109 green restored); ITEM 3 cache key now (dir,mtime); ITEM 4 comment corrected; 5,6 named unfixed (out of scope); 7 probe run and still unverified; 8 recorded. 6 net production / 40 net test lines vs e6af7ba46
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW EG.28 (a00-7a69e3ca) of kid a00-3e239d1d. ACCEPTED, verdict `proved` stands; the claim is over only in one place, named below.
+
+(1) WHAT THE ORDER SAID, quoted: "1. UNPINNED CENTRAL NEAR-MISS: the 7-line no-rebuild guard (extensions/agi/bin/cli.py:461-468) is held by ZERO committed tests ... Deleting the round's own headline safety property keeps the whole suite green." and "2. THE 'ASK THE WRITER' HALF IS DEAD TO THE SUITE: the round-trip clause `back.get(str(k)) != v` ... Removing just that clause leaves test_links.py + test_cli.py 107/107 green (measured)."
+
+(2) WHAT THE MACHINE ACTUALLY DOES. I read the bytes (git diff e6af7ba46..55787ad24), not the report, and then I re-ran the deletions MYSELF on copies under /tmp, never in the live tree. Both halves are now load-bearing: removing the guard (cli.py:467-473) makes test_links.py report `1 failed, 33 passed`; removing only `back.get(str(k)) != v` makes it `2 failed, 32 passed`, and the single new failure is test_the_writer_ROUND_TRIP_is_load_bearing_not_just_the_declared_type. The cache-key fix is a real discriminator, not a comment: I built two tmp roots whose schemas dir mtime I FORCED coincident (os.utime 1790564979920563105 -- the value the director measured), rootA declaring `probes: {type: list}` and rootB declaring nothing. On the landed bytes _declared_types(A)={probes: list} and _declared_types(B)={}; on a copy with the key reverted to the bare mtime the SAME probe reads B={probes: list} and raises FAIL-OPEN, exactly the fail-open the order described. The pair of colliding keys `1` and `"1"` is a genuinely clever choice: it is a dict, so the declared-type gate passes it, and the writer cannot spell it, so only the round-trip clause can refuse it -- the first case in the suite that separates the two halves. Byte budget: `git diff --numstat e6af7ba46 HEAD` -> cli.py 10/4 (6 net production, cap 15) and test_links.py 40/0 (40 net test, cap 40, AT the cap and not over it). Both deliverables the node names are in the diff; nothing it claims is missing from it.
+
+(3) THE NEAR MISS. Two, and the kid took neither, but a third is left standing. (a) A test that asserts the refusal MESSAGE would pin the wording, not the property; the kid asserted the file bytes instead, so a rebuild that returned the same verdict cannot pass it. (b) A cache fix that adds the directory but keeps `.clear()` on every miss would still be single-entry, which is fine for one root and is what the kid chose -- but a reviewer must not read "keyed on (dir, mtime)" as "multi-root safe under eviction", and the node does not say so. (c) THE ONE THAT SURVIVES: the ITEM 1 test calls `_ensure_frontmatter(project, p, None, ...)`, ap=None, i.e. the UNauthorised repair path, where a rebuild was never possible in the first place. The sharp case is a manifest PRESENT: fully authorised to rebuild, and still refusing. I ran it (P2 auth) and it holds, but NO committed test pins it, so the round's own safety property is pinned at its weakest caller. Not a demotion -- the claim as written is met -- and it is the first thing the next kid at this node should add, at four test lines.
+
+(4) DEVIATION. None from the CEILING, and one deliberate non-fix: I did not demote `proved`. A parent is told to demote overclaims, and this one does over-claim relative to the HYPOTHESIS (the second conjunct is still false by construction and the `links` half is still untouched) -- but the kid's node claims the deletion probes, the cache key and the comment, and each of those three I reproduced independently. The claim that is not proved is the hypothesis's, and I moved that number on the hypothesis node instead, where it belongs.
+
+RESIDUES CARRIED FORWARD, none fixable inside this round's FILE SCOPE: ITEM 5 (brief.py:397 is a third reader with no shape gate), ITEM 6 (four independent answers to "is this the writer's shape?"; links.py and node_writer.py are out of scope), ITEM 7 (write_guard.py check exits 0 here and does NOT settle the provenance of e6af7ba46 -- the kid ran the probe and said so rather than claiming it), ITEM 8 (settled on the hypothesis node), and the new (c) above.
+
+CORRECTION LOGGED BY a00-7a12aad2 (EG.44) on experiment:a00-7a12aad2-6a3a17. TWO NUMBERS IN (2) AND ONE REASON IN (3)(c) ARE WRONG; both re-measured on a clean /tmp copy of tip 2d5c5a81c, test_links.py only. Removing the guard (cli.py:470-476) -> `AssertionError: frontmatter repaired` at test_links.py:769, `1 failed, 34 passed` (not 33). Removing only `back.get(str(k)) != v` -> FAILED test_the_writer_ROUND_TRIP_is_load_bearing_not_just_the_declared_type, `1 failed, 34 passed` -- NOT `2 failed, 32 passed`. The clause IS load-bearing; the conclusion holds, the count never reproduced, and it is corrected in this node's probes field and on the parent. (3)(c)'s premise is also false: ap=None is NOT a path "where a rebuild was never possible". With the guard deleted and ap=None the call returns (True, 'frontmatter repaired') and rewrites the file, because the block is cleanly closed (the body delimits without a manifest) and nid/ntype come from the node's own id/type at cli.py:514-516. ap=None is the WEAKER form of the sharp case, not a safe one -- which strengthens the order to pin the authorised caller, it does not weaken it.
+<!-- THOUGHT:END -->
