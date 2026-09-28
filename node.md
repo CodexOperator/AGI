@@ -118,26 +118,6 @@ FILE SCOPE  · .agi/nodes/experiment/a00-381d71db-0a613b.md · .agi/nodes/experi
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 134defd21 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
-
-## CORRECTIVE DH.EG.95 -- closes mur-eg-23 DH.661-k1 accept_with_residue
-BASE      CUT FROM season2/loops/hypothesis-a-run-key-is-reserved-a00-5c7b9208 tip eed5b9293 (branch de-base-EG.95; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. STATE AT YOUR CUT eed5b9293: the director LANDED the kid's 3 uncommitted repairs (a00-381d71db, a00-3fe73d86, a00-50c1cf74; on-disk sha == last write-log sha). Re-check items 1-2 against eed5b9293: say which of the four ordered repairs are now in the bytes (paste `git diff --stat 134defd21 eed5b9293`) and fix the node text that claims more or less.
-2. The round's four ordered node-text repairs (items 1/2/3/5) are not in the tip — a correct-but-uncommitted edit
-3. Node body still asserts the repairs are in the bytes — a00-33537e5f-e4b668.md:32
-4. Ordered TESTS line has no paste — test_bin_help_smoke.py never reported, one ordered run unaccounted for
-5. The node's own custody-wall claim stopped reproducing BECAUSE OF THIS ROUND: a00-33537e5f-e4b668.md:97 asserts '0 rows anywhere name a00-50c1cf74-702121 or a00-381d71db-0a613b', but a scan of all 217 write-log.jsonl files under .agi/worktrees/ finds 3 such rows in this round's OWN log, ts 2026-09-28T08:32:23Z, :32:38Z, :32:43Z — written 70s after the 08:31:13Z probe (a timestamped command in the kid's trajectory). The claim was true when measured, so it is not a falsehood, but the node states it in the present tense and a reader re-running the grep now gets the opposite answer; residue = date the claim and note the round's own rows.
-6. A stale copy of the very range corrective item 2 was ordered to correct survives inside the repaired file: /data/work/agi/.agi/worktrees/a00-33537e5f/.agi/nodes/experiment/a00-50c1cf74-702121.md:128 (DH.620 parent's THOUGHT) still cites `cli.py:2072-2080` while the fence at :45-49 was corrected to 2073-2079. The file was in FILE SCOPE and the THOUGHT is the authored region, so this is a one-line residue for the same scoped add.
-7. A green test in the reported set certifies the gap the hypothesis cannot close: of the '4 passed' at a00-33537e5f-e4b668.md:45 and :137, test_dry_run_reserves_nothing (test_workflow_run_key_reserved_atomically.py:79-92 at 2e80f46ee) pins `--dry-run` reserving nothing as correct-by-contract, so '4 passed' is not coverage of the hypothesis. The node's :149-152 reports the pin's own numbers but not this caveat. Separately, my read of that test's bytes finds it fixture-clean (tmp_path only; :85 monkeypatches shared_project_root; :84's real .agi is only the `repo` arg to a dry-run run_workflow; no tmux, systemd, crontab or real-resource touch) — the real-resource defect class does NOT apply here.
-8. Every number or line you write is measured at YOUR final tip after your last edit and PASTED with its command (two-operand git diff); a claim you cannot re-run is narrowed or removed, never retyped.
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
-TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE .agi/nodes/experiment/a00-33537e5f-e4b668.md · .agi/nodes/experiment/a00-381d71db-0a613b.md · .agi/nodes/experiment/a00-3fe73d86-ba22ce.md · .agi/nodes/experiment/a00-50c1cf74-702121.md (write.py) · the kid's own node
-CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat eed5b9293 <your final tip>` on your node (an empty range is not a measurement)
-COMMIT    every edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.95: mur-eg-23 DH.661-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.661: mur-director-engine-40 DH.620-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
