@@ -133,22 +133,6 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.668 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-a-stale-index-lock-is-a00-995097f3 tip 3076682d7.
 ROUNDS    this post's rounds on this node: DH.594 DH.627 DH.668; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
-
-## CORRECTIVE DH.668 -- closes mur-director-engine-38 DH.627-k1 accept_with_residue
-BASE      CUT FROM season2/loops/hypothesis-a-stale-index-lock-is-a00-995097f3 tip 3076682d7 (branch de-base-668; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. Three cites of a function that does not exist -- workflow.py::_round_git_wait (experiment/a00-064385b1-d30690.md:59, :172, :199)
-2. In-scope experiment a00-9dfef904-01bf3b has no verdict and no evidence_runs, and links.py schema does not flag it
-3. The reviewer's proposed fix for defect 1 would itself have created a VACUOUS GREEN TEST, which is the failure shape the rules name: with `max(pid)+7` the positive test `test_a_pid_that_exits_between_the_fd_listing_and_the_stat_is_not_a_holder` still PASSES (:401 `is None`) while the fix is provably never exercised, because `_lock_is_held` (cli.py:2432) never visits a pid absent from /proc. I reproduced this in a /tmp copy of the committed tree. The binding is load-bearing, not stylistic.
-4. The real brittleness the reviewer missed, in `_a_live_same_uid_pid_not_us` (test_stale_index_lock.py:364-377): it raises `AssertionError("no live same-uid non-git pid in this process's /proc")` on any host whose only same-uid pid is the test process itself (a minimal container, uid != 0, pid 1 root-owned). Both new tests hard-fail there. The pre-existing base test at :342 is container-safe; these two are not. A pure fixture (monkeypatch `os.listdir` for the whole `/proc` table to a synthetic entry) would cover the same arm with no host binding -- the reviewer's `max(pid)+7` is not that fixture.
-5. `fake_stat` matches with `str(p).startswith(f"/proc/{pid}")` (test:396, :420) -- a NUMERIC PREFIX match. A pid `21020` alongside target `2102` is also darkened/EACCES'd, so the gate-level assertion at :425 could be satisfied by a neighbouring pid. Tightening would be `str(p) == f"/proc/{pid}/fd"` or an f-string segment match. No such neighbour exists on this host (only 2102 matches `^2102`), so it is latent, not live.
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-TESTS     test_stale_index_lock.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE extensions/agi/bin/cli.py · extensions/agi/tests/test_stale_index_lock.py · .agi/nodes/experiment/a00-064385b1-d30690.md · .agi/nodes/experiment/a00-9dfef904-01bf3b.md · .agi/nodes/hypothesis/a-stale-index-lock-is-cleared-or-named-and-a-failed-round-commit-is-never-silent.md (write.py) · the kid's own node
-CEILING   HARD CAP: 1 kid · <= 15 production lines net over 3076682d7 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
-PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.668: mur-director-engine-38 DH.627-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.627: mur-director-engine-35 DH.594-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
