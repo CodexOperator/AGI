@@ -8252,6 +8252,8 @@ Belam 20260928 ET: g7.33.9 foundation fleshed + kids g7.33.9.1/.2 minted via wri
 ## Agent Notes
 Assigned to **director-belam**. Foundation write/mint only via write.py + graph skills; no pi. Kids: `goal:g7.33.9.1` (skills adoption), `goal:g7.33.9.2` (write/mint route).
 
+Belam NO-PI: closed g7.33.9.2 write/mint route (falsifiers GREEN; residues=0; format✓). g7.33.9.1 skills adoption still active. No pi.
+
 ##### G7.33.9.1 — skills adoption — skills/agi-* present on trunks + .claude/skills symlinks resolve; directors route via skill:agi-node-write / agi-goal — status: active
 
 # goal:g7.33.9.1
@@ -8279,7 +8281,7 @@ Assigned to **director-belam**. Foundation write/mint only via write.py + graph 
 ## Agent Notes
 Assigned to **director-belam**.
 
-##### G7.33.9.2 — write/mint route — all node+goal edits via write.py + skills; no hand-edit; no pi required under FULL STOP — status: active
+##### G7.33.9.2 — write/mint route — all node+goal edits via write.py + skills; no hand-edit; no pi required under FULL STOP — status: complete
 
 # goal:g7.33.9.2
 
