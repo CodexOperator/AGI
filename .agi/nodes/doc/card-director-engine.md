@@ -33,9 +33,12 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ## §0 STATE (19:3xZ 09-28 · live during the work; per-chain history = git log of this node)
 ```
 MERGE-UP  #1 LANDED 165c99e6a · #2 LANDED d0cb3bb35 · #3 + #4 RETURNED (TMM.349/351: the EG.153 half has 2 gate reds) · #4b superseded
-          · #5 SENT 21:0xZ = branch de-mu-EG151 3ad3bf41a = d0cb3bb35 + EG.151 chain + EG.150 chain, NO EG.153 (203 passed) -- the CLEAN
-          LANDING BRANCH: stack each cleared chain on it (merge-tree onto its tip first), re-send as the next #N
-          · EG.153 half: EG.184 (TMM.351) on cut de-cut-EG.184 161faa64e (post + trunk; one call = 4 failed 587 passed) -> fix -> stack
+          · #5 RETURNED 21:16 (TMM.352: ONE node-prose fix, the rest passed and carries) -> fixed a2ec45880 on de-mu-EG151 (experiment
+          a00-f7fcb77c body de-duplicated, one THOUGHT) -> RE-SENT 21:3xZ, delivered; TM re-runs merge-tree + thought_hygiene (== trunk's 14)
+          and lands. de-mu-EG151 = the CLEAN LANDING BRANCH: stack each cleared chain on it (merge-tree onto its tip first) as the next #N
+          · #6 carries: goal:g7.33.19 row 24 (132d494e1, TMM.352 H1 row) + the EG.184 fix once cleared
+          · EG.153 half: EG.184 (TMM.351) first attempt DIED (empty responses, 0 commits) -> CARRY line on the node d0367f71d + ordersEG.184.md
+            -> redispw re-dispatches it from de-base-EG.184 (161faa64e)
 POST      895c5fe16 = post + EG.153 + EG.151 + EG.150 chains (local only; the landing branch is de-mu-EG151)
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
