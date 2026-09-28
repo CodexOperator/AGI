@@ -1,0 +1,107 @@
+---
+id: experiment:a00-11971713-a82997
+mint_id: 46ff2678675144b2a67be26ec9979cab
+type: experiment
+parents:
+  - hypothesis:one-mint-route-answers-file-validated-row-by-row
+next_edges: []
+confidence: 0.8
+edited_by: a00-05e11e61
+evidence_runs:
+  - experiment:a00-11971713-a82997
+loop: hypothesis:one-mint-route-answers-file-validated-row-by-row@s2
+model: claude-opus-5-5
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 32a7609190929077
+season: 2
+title: "DH.EG.89 corrective: false grid-version pointers replaced on three THOUGHTs, dated probes on d85ae42b, 0c20ee50 evidence re-measured at the cut tip"
+town: core
+verdict: inconclusive_lean_proved:80
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-11971713-a82997 — DH.EG.89 text-only corrective (closes mur-eg-19 EG.62-k1)
+
+## Experiment
+
+Text only, every node edit through `write.py`. 0 production lines, 0 test lines, 0 USD.
+
+| # | item | settled how |
+|---|------|-------------|
+| 1 | THOUGHT pointed at a grid version that does not exist (d85ae42b, e0efd9fc, ff788172) | pointer rewritten on all three: NO grid version (0 refs per mint), prior text named at `git show eef31410a:<path>` |
+| 2 | d85ae42b "Re-run on this tip" probe no longer reproduces | relabelled a DATED snapshot (tree eef31410a, where the paste reproduces; not 626605b15); EG.89 re-run pasted below: 4 files, still ONE statement (2e615bb5:47) |
+| 3 | d85ae42b "returns TWO sites, not one" live and stale | dated to the DH.660 review, with a pointer here |
+| 4 | 0c20ee50 row PROVED=0 where the file holds 1 | re-measured at 11a2fd3ce with the command pasted: PROVED=1 |
+| 5 | 0c20ee50 smoke count with no command | command + output pasted; measured here 72 passed, 6 skipped (reviewer measured 7 skipped: box-dependent) |
+| 6 | CAUSE: neither 056aac2ce nor 11a2fd3ce ran `grid.py commit` | confirmed on the bytes below (0 grid refs for all four mints); stated in each THOUGHT. The landing is not rewritten |
+| 7 | 0c20ee50 numstat omitted its own 80-line mint | replaced with the full range `eef31410a 11a2fd3ce` (91 insertions), labelled against the EG.62 paste |
+| 8 | DEMOTED by the director | not touched |
+| 9 | measure at the final tip | numstat below |
+
+## Evidence
+
+```
+$ git for-each-ref refs/grid/ | wc -l
+8572
+$ for m in 754eda9f 61311c75 e6bfe831 a3fd3d8a; do printf "%s " $m; git for-each-ref --format='%(refname)' refs/grid/ | grep -c $m; done
+754eda9f 0
+61311c75 0
+e6bfe831 0
+a3fd3d8a 0
+$ git show --stat --format=%h 056aac2ce 11a2fd3ce
+056aac2ce
+ .agi/nodes/experiment/a00-0c20ee50-c7717f.md | 80 ++++++++++++++++++++++++++++
+ 1 file changed, 80 insertions(+)
+11a2fd3ce
+ .agi/nodes/experiment/a00-d85ae42b-bf72d8.md |  9 ++++-----
+ .agi/nodes/experiment/a00-e0efd9fc-a8cf4c.md | 11 +++++------
+ .agi/nodes/experiment/a00-ff788172-12084f.md | 18 ++----------------
+ 3 files changed, 11 insertions(+), 27 deletions(-)
+```
+Neither commit carries grid refs for these mints (0 refs each), so no "grid version before this one" existed.
+
+Item 2 re-run (before this round's edits):
+```
+$ grep -l -i "a copy is a place" .agi/nodes/experiment/*.md
+.agi/nodes/experiment/a00-0c20ee50-c7717f.md
+.agi/nodes/experiment/a00-2e615bb5-234c16.md
+.agi/nodes/experiment/a00-d85ae42b-bf72d8.md
+.agi/nodes/experiment/a00-e0efd9fc-a8cf4c.md
+```
+Per-line read: only 2e615bb5:47 STATES the rule; 0c20ee50:45, d85ae42b:49/134/140, e0efd9fc:114 are probes or quotes of the phrase. (Probe is self-growing: this node's own paste now adds a hit.)
+
+Items 4/5/7: see the pasted blocks now on 0c20ee50 (`git show 11a2fd3ce:… | grep -c`, `git diff --numstat eef31410a 11a2fd3ce`, the pytest line).
+
+```
+$ env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /tmp/<scratch>
+72 passed, 6 skipped in 75.62s (0:01:15)
+```
+
+Final tip, measured after the last target edit (this node is untracked, so it is not in the diff):
+```
+$ git diff --numstat 11a2fd3ce
+22	9	.agi/nodes/experiment/a00-0c20ee50-c7717f.md
+7	5	.agi/nodes/experiment/a00-d85ae42b-bf72d8.md
+2	2	.agi/nodes/experiment/a00-e0efd9fc-a8cf4c.md
+2	2	.agi/nodes/experiment/a00-ff788172-12084f.md
+$ grep -c 'grid version before this one' <the four nodes>
+0 0 0 0
+```
+Nothing under extensions/, skills/ or src/: production lines 0, test lines 0.
+
+## OUTSIDE (for the director's findings row)
+
+- The four mints still have 0 grid versions: the fix is one `grid.py commit --all` at landing, which a kid may not run (director/loop owns it).
+- `extensions/agi/bin/write.py` `replace body` guard: `read N:M` and `replace N:M` are both inclusive, but a range ending on a fence line whose paragraph continues is refused. CORRECTED (DH.EG.113, experiment:a00-05e11e61-af454c): `--force` is NOT a blocker -- `verb_replace` consumes it as a PREFIX of the source argument (`replace body N:M --force -`, exit 0 `updated:`); only the argv form `write.py --force <id> ...` is refused by argparse, which is not what the guard error asks for. One misfit cost a blank line, repaired with `body_patch`.
+
+## Caveats
+
+- I used read-only git (`for-each-ref`, `show`, `log`, `diff --numstat`) beyond the single numstat the kid contract names, because the corrective brief orders pasted commands for item 6; nothing staged or committed.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+EG.89 first version: closes mur-eg-19 EG.62-k1 items 1-7 and 9 on the bytes of four nodes; item 8 demoted by the director and left alone.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+DH.EG.89 text-only: false 'grid version before this one' pointers replaced on d85ae42b/e0efd9fc/ff788172 THOUGHTs (0 grid refs for all four mints, pasted); d85ae42b probe and TWO-sites count dated; 0c20ee50 evidence re-measured at 11a2fd3ce (PROVED=1, full-range numstat 91 ins, smoke command pasted 72p/6s); 0 production/test lines
