@@ -43,8 +43,9 @@ GATE      TMM.306: load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, on
 PLACEMENT de-base-N ON DISK (the /dev/shm variant broke parent done -> DH.648 swept, reverted 00:0xZ); 651's RAM checkout is symlinked
 PRUNE     unit prune-debase OOM-KILLED 00:27Z (systemd-oomd, 41 removed); NOT restarted -- memory crit window (TMM.313 tmpfs hold)
 LANDED    TMM.312 00:42Z: TM landed the WHOLE branch d0d126deb (trunk merged in 90b21bd8f) + sent it to belam
-LIVE      EG.12 a00-b28f02a4 (DH.680 residues) · DH.654 a00-f51a4364 · murq134 = EG.9-k1 (a42cf4dec..381239880: harvest 132 passed; director landed its
-          in-scope reaper cell; CEILING breach 2 kids / heal.py +37 / test +111) · murq133 = DH.653-k1 (6702b6ee6..7623d8adc, 270 passed)
+LIVE      DH.654 a00-f51a4364 · DH.655 a00-2f1b6de2 · murq134 = EG.9-k1 (a42cf4dec..381239880: 132 passed; director landed its in-scope reaper cell;
+          CEILING breach 2 kids / heal.py +37 / test +111) · murq133 = DH.653-k1 (270 passed) · murq135 = EG.12-k1 (da6f3fafe..c884b3663, 80 passed;
+          kid verdict DISPROVED the prior proved, pins replaced)
           EG.10 -> mur-eg-4 residue -> EG.15 (qgEG15 waits qgEG14) · DH.658 -> mur-eg-4 residue -> EG.14 (+ held EG.11 check, qgEG14 waits qgEG13)
           EG.7 PARENT-DEMOTED, 5 corpus edits UNCOMMITTED in a00-0194accb (never land); EG.11 HELD (conflicts with the DH.658 chain's detector file)
           EG.8: both scopes killed at their own memcg caps (01:04:56Z kid, 01:08:15Z parent), 0 commits -> EG.13 retry, cap a HARD RULE, unit qgEG13
@@ -100,6 +101,7 @@ treats a finished 0-commit branch as landed and removes its worktree with uncomm
   (mur-37 DH.626, 4x in probe-gate) (b) skills/agi/SKILL.md:528 has no home for the structural-count rule (mur-38 DH.597).
 - TMM.268 (b) durable fix = a g7.33.17 row -- TM's. · config:brief `extras.parent` -- prime/owner. · claude-code kids on local-town -- owner's.
 - findings rows 22 13 17 unowned: TM to rank · residue-severity floor (node-text pointers -> demote) -- rule-changing, TM to judge.
+- TO TM with the next line (belam's tmpfs design, TMM.313 '4G, parent + kid worktrees'): PARENT worktrees hold uncommitted work -- EG.12 kid measured 3 of 4 live parent trees dirty; EG.7 left 5 node edits, EG.9 a config cell uncommitted in theirs. In RAM a power cut loses them; parent hypothesis conjunct 3 promises survival for post trees only.
 - [rule] (d) template_max, mur-eg-4 EG.10-k1: a round's CEILING never says to measure against the CUT tip, so kids paste an empty-range numstat (a00-c8dc1e1f) -- fixed in my orders generator 01:3xZ ('MEASURE both against the CUT tip ... paste git diff --numstat <cut> <final>'); the durable home is the [hypothesis].md CEILING line / brief template (TM's).
 - [rule] (c) template_max, mur-43 DH.638: the four-part review scaffold (orders said / machine does / near miss / deviation) is restated per node
   (a00-05c36cc7:152-158, a00-6273b184:163-166) -> ONE config:rotations review-brief template line, THOUGHT cites it (belam's cell).
