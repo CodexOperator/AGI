@@ -141,6 +141,25 @@ FILE SCOPE extensions/agi/bin/send.py · extensions/agi/tests/test_send.py · .a
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 48ef5a79b · <= 40 test lines net over 48ef5a79b · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 48ef5a79b <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.41 -- closes mur-eg-12 EG.22-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-send-read-prints-ever-a00-6107c92f tip 38fa6e926 (branch de-base-EG.41; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+ORDERS    THIS text is the order set; the loop branch's copy of the hypothesis node does not carry the director's CORRECTIVE sections (the post branch does) -- never report that as a defect.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 2. The item-3 citation correction leaves one pointer stale -- .agi/nodes/experiment/a00-5e3cfa03-650288.md:133 (asserts `1816-1817` is the 0-byte guard)
+2. 3. New node's evidence table cites `_print_deferred_block` at 3895-3898 -- .agi/nodes/experiment/a00-c3bf7379-8e12ed.md:42
+3. 4. Clear drops falsy-body queued entries while the takeover carries them -- extensions/agi/bin/send.py:1904 (two preservation rules for `others`, undocumented)
+4. 6. Retraction preserves a 17/3 production count numstat cannot reproduce -- .agi/nodes/experiment/a00-143f92b1-0696a2.md:155
+5. A FOURTH stale pointer of the same class as #3, and the worst-placed one: .agi/nodes/experiment/a00-c3bf7379-8e12ed.md:45 cites `_notify_undelivered` at `send.py:2935-2957` under a table headed '(post-fix numbering)'. On the post-fix tree (38fa6e926 and the kid's own 057d478a8) the def is at send.py:2906 and the function ends at 2943; 2935-2957 is the notice f-string through `wake_all_local`'s `rec = _read_deferred(root, name)` at 2953. This is the ONLY reader of `others` (2906-2943, reachable only from wake_all_local:2953) -- i.e. the exact reader the node's central claim rests on, and the one the node's own 'Honest limits' says it did not exercise.
+6. The retraction's SECOND surviving falsehood (sharper than #6): because `git show 1cf2b3665`'s two hunks are entirely the kid's own ITEM 1 work, the surviving claim at .agi/nodes/experiment/a00-143f92b1-0696a2.md:155 -- 'the over-cap number is real and lives in the EARLIER rounds residue, not in this kid' -- is false as well as the 17/3 figure. The node therefore still asserts an under-cap round that its own commit shows at +25 net against a stated cap of 15. One paragraph, one write.py edit; nobody should have to re-derive it.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_send.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/send.py · extensions/agi/tests/test_send.py · .agi/nodes/experiment/a00-143f92b1-0696a2.md · .agi/nodes/experiment/a00-5e3cfa03-650288.md · .agi/nodes/experiment/a00-c3bf7379-8e12ed.md · .agi/nodes/verdict/experiment_a00-c3bf7379-8e12ed.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 38fa6e926 · <= 40 test lines net over 38fa6e926 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 38fa6e926 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.22: mur-eg-7 DH.657-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.41: mur-eg-12 EG.22-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
