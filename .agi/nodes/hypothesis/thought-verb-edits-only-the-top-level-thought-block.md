@@ -203,6 +203,29 @@ FILE SCOPE extensions/agi/bin/node_writer.py (_thought_span ONLY) · extensions/
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 1d7d660ed · <= 40 test lines net over 1d7d660ed · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 1d7d660ed <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.134 -- closes mur-eg-39 EG.121-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-thought-verb-edits-on-a00-7e730504 tip d16380fc6 (branch de-base-EG.134; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Unconditional BEGIN re-anchor treats a quoted BEGIN inside an UNCLOSED fence as a real second block (node_writer.py:964); base span (0,171) becomes tip span (57,171), a thought edit deletes the quoted marker and lands a SECOND real THOUGHT-begin
+2. 2. The hunk's own docstring asserts the opposite of what the hunk does, with no covering row (node_writer.py:957)
+3. 3. Hypothesis conjunct 2b ('never touching a quoted pair') is false at the wire -- write.py:2810 destroys the quoted pair and emits two BEGIN markers
+4. 4. Ordered node-text items 2-5 dropped for the second consecutive round; a00-cf8a2a01-5513eb.md:4/:6/:10/:34 assert the pre-merge state and neither cf8a2a01 nor ff74eae3 carries a probes: field
+5. RECORDED CEILING BREACH (TMM.315), NO ACTION: 41 vs 40 test lines stays recorded.
+6. RESOLVED BY THE DIRECTOR, NO ACTION: the DH.EG.121 orders sit on the director post and reach this lineage at the chain merge; the parent's node rides the same merge.
+7. 7. strip_thought now leaves the first of two real blocks in reader-visible prose (node_writer.py:982)
+8. UNPROBED READER, and the strongest thing I found that the first reviewer did not name: links.py:349-351 uses node_writer._thought_span to compute which LINES of a source surface are exempt from the retired-goal-id scan. Measured on the shape the hunk actually changes (first block's END inside a balanced fence), BASE skips lines 2-7 and TIP skips only 8-10 -- so a retired goal id written inside the FIRST block of a two-block surface file is now reported as a link hit that the base suppressed. The round's P5 probe (frontmatter `probes:` on a00-59d141df-4493da) read links.py only for 'owns no marker regex'; nothing in the round records that the reader's DEPENDENCE ON WHICH BLOCK IS THE SPAN changed. Latent today (no live two-block surface), unreported either way.
+9. The new wire row does not exercise the change: test_thought_hygiene.py:221-239 drives write.py:2810 on a single real block with a balanced-fenced quoted END, a shape node_writer.py:964-967 does not alter. ITEM 9's row proves the splice-vs-append seam, not the new re-anchor; no committed row drives the CHANGED hunk through the wire, which is why the regression in defect 1 is invisible to a green file.
+10. CONTEXT, NO ACTION: the reviewer scanned 4626 live nodes and found 0 with more than one real THOUGHT:BEGIN -- the defect is latent, which is why the fix must be a TEST-FIRST row on the exact unclosed-fence shape, not a live-node migration.
+KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent only, so the kid wrote code over a 0 cap) -- PARENT: dispatch your kid with --orders pointing at a file holding THIS WHOLE SECTION, and paste its FILE SCOPE + CEILING into the kid prompt; verify the kid's context carries the word CORRECTIVE before it starts.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_thought_hygiene.py test_links.py test_write.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/node_writer.py (the ONE span rule; links.py and write.py only READ it) · extensions/agi/tests/test_thought_hygiene.py · .agi/nodes/experiment/a00-cf8a2a01-5513eb.md · .agi/nodes/hypothesis/thought-verb-edits-only-the-top-level-thought-block.md · .agi/nodes/experiment/a00-59d141df-4493da.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 25 production lines net over d16380fc6 · <= 40 test lines net over d16380fc6 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat d16380fc6 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective EG.20: mur-eg-6 EG.14-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
