@@ -38,8 +38,8 @@ TMM.327   (TM 10:56Z) RULING C: a NODE-PROSE-ONLY residue (cite drift · count �
           behaviour/config/test) = DIRECTOR closes it: ONE commit per chain on its loop tip (kid worktree, write.py), no kid, no re-mur; the
           [merge-up] names the commit + residue list (mur id -> line). Skill row landed 3e7d73173. placecc21 (EG.111-116) CANCELLED unplaced;
           EG.109 dropped from placecc20. DIRECTOR-CLOSE QUEUE (mur-eg-27 murq197 unless named; items = verify V/M):
-          EG.95 DONE d199686b7 (merged) · EG.91 d8b8c4565: M2 a00-1d76d43f '1 failed' flake unmarked, M3 hyp
-          CEILING breach unlabelled · EG.90 392f2ac1b: V1 numstat a00-f1812eb6, V2 FIVE->six children (+9a0bf8cb row 4), M1 9a0bf8cb stale
+          EG.95 DONE d199686b7 (merged) · EG.91 CLOSED ffa9473a6 (notes on 1d76d43f + 4d2a125a) BUT its chain CONFLICTS with the post: config.json
+          (union: worktrees_root + suite_roots + schemas_dir) + hyp node (keep both) + cli.py DONE PATH (semantic: post's commit_fail -> failed/exit 3 vs the chain's schema-gate refusal) -> a MERGE-RESOLUTION kid round (merge the post into its loop branch, both behaviours + test_cli.py test_git_commit_guard.py), never a hand resolve · EG.90 392f2ac1b: V1 numstat a00-f1812eb6, V2 FIVE->six children (+9a0bf8cb row 4), M1 9a0bf8cb stale
           pointer, M2 item-5 row · EG.88 1363216ea: V1 /tmp-dependent paste (6549e49d, 014a5577), V2+M1 699af22b count, M2 014a5577 no THOUGHT
           · EG.86 4976703f0: V1 V2 cafc99a3, V3 3ae03d97 heal cite, M1 verdict 8dde8422 cite+count [M2 test comment = kid round, re-place]
           · EG.89 9ecbe21a7: V1 d85ae42b dated anchor [M1 11971713 '--force not a CLI flag' = false mechanism -> kid round, re-place]
