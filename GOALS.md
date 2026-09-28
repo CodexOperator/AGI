@@ -3944,6 +3944,7 @@ real one is the hypergraph viewport (**G9.4**, **G10.3**); markdown is what
 gets rendered until that exists, not the target.
 
 ### G6.10 — Seat rotation, quorum, and nudge harness tests — status: active
+
 <!-- BODY:BEGIN -->
 # goal:g6.10
 
@@ -3961,38 +3962,6 @@ gets rendered until that exists, not the target.
 
 <!-- BODY:BEGIN -->
 # goal:g6.13
-
-### G6.49 — the reaper burns the box it is meant to tend — a per-spawn OOM probe, a sweep that re-derives a permanent refusal, and liveness that cannot see a live tree — status: active
-
-<!-- BODY:BEGIN -->
-# goal:g6.49
-
-## Agent Notes
-Measured on encryption-town (belam-prime) 2026-09-25 14:2xZ, while local-town sat wedged with sshd not completing a banner exchange and its work frozen at 13:58:34Z. The reaper is the thing that was supposed to keep the box tidy; it was a top consumer of the box instead. Three independent defects, one subgoal each. (1) oom_kill 1784 since boot with 1422 failed run-*.scope units resident in systemd --user, one pair per spawn, because mem_cap's enforcement probe ran once per PROCESS and its whole contract is an observed SIGKILL. (2) 622 worktrees swept every 30s, removed=0 on all 2387 passes since 2026-09-23, about 5 git subprocesses per worktree per pass, roughly 3000 process spawns per pass to re-derive an unchanged refusal; the reaper log reached 48 MB in 6 days. (3) liveness read only the spawn-budget lease dir, which was EMPTY (kept-live=0) while 11 worktrees held running processes, three of them mid workflow.py run merge-up-review -- had the other four sweep conditions passed, a live round's tree would have been deleted under it. Fix landed on codex-town/reaper-fix-20260925 at 81c054e2a, merged to core/main at 4cdf601ff. Verified after restart: sweep refused=323 kept-live=6 (unchanged=312), and the backstop reported 7 leaseless trees held live by a running process.
-
-#### G6.49.1 — mem_cap's enforcement probe runs once per PROCESS, so every spawn costs one deliberate OOM kill and one leaked failed scope — status: complete
-
-<!-- BODY:BEGIN -->
-# goal:g6.49.1
-
-## Agent Notes
-DEFECT: mem_cap.systemd_run_usable() cached its verdict in a module global, so it re-probed once per PROCESS. The probe's contract is an observed SIGKILL -- it allocates 256 MB under a MemoryMax=64M scope and requires the kill -- so every dispatch.py, heal.py and cron invocation paid one deliberate 256 MB allocation, one cgroup OOM kill, and one anonymous failed run-<random>.scope that nothing ever reset. MEASURED on encryption-town: oom_kill 1784 since boot, 1422 failed run-*.scope units resident in systemd --user, 52 of the 55 surviving dmesg kill records being python3 at ~65,000kB (the 64M cap), against a configured spawn.memory_max of 6G that nothing legitimate should die under. FIX: probe once per BOOT, verdict cached in XDG_RUNTIME_DIR keyed on boot id; the scope carries a fixed --unit so it can be reset-failed by name; AGI_MEMCAP_SYSTEMD_RUN=0|1 skips the probe entirely. Enforcement semantics unchanged -- still a real allocation past a real cap, still requiring the observed SIGKILL. VERIFIED live: cold run took exactly one OOM kill (1793 to 1794), two subsequent fresh processes took none and left the failed-unit count flat. The 1430 accumulated units were cleared with systemctl --user reset-failed (1430 to 0; run-*.scope 1422 to 8).
-
-#### G6.49.2 — the worktree sweep re-derives a permanent refusal every pass, at full subprocess cost, and logs it every time — status: complete
-
-<!-- BODY:BEGIN -->
-# goal:g6.49.2
-
-## Agent Notes
-DEFECT: _sweep_finished_worktrees re-evaluated every worktree from scratch on every pass. A refusal is a pure function of (HEAD, base tip) -- while neither moves, the verdict cannot change -- but the sweep re-ran rev-parse twice, merge-base, git status and the bring-home probe anyway, and logged an identical refusal line each time. MEASURED on encryption-town: 622 worktrees, removed=0 on all 2387 passes since 2026-09-23T07:31Z, about 82.6s per pass against a 30s poll (so roughly 53s of work per cycle), ~5 git subprocesses per worktree per pass, i.e. on the order of 3000 process spawns per pass to reach an answer that had not changed in two days. heal.py watch held 18.3 pct CPU average over 2d 6h on a 4-thread box. The reaper log reached 48 MB in 6 days; the log, not the work, is what grew. FIX: memoize the refusal per process keyed on (head, base_tip) and skip both the subprocesses and the per-pass log line while it holds; replace the two per-worktree rev-parse calls with ONE git worktree list --porcelain for the whole pass; report the skipped count as (unchanged=N) on the summary line so the saving is visible rather than silent. VERIFIED after restart: sweep refused=323 kept-live=6 (unchanged=312).
-
-#### G6.49.3 — an empty lease dir reads as nothing-is-live, so the sweep would delete a worktree out from under a running round — status: complete
-
-<!-- BODY:BEGIN -->
-# goal:g6.49.3
-
-## Agent Notes
-DEFECT: sweep condition (1) read liveness ONLY from the spawn-budget lease dir, by design -- the docstring says the lease dir is the liveness source, never ps by name. The design premise failed in practice. MEASURED on encryption-town 2026-09-25: .agi/sessions/.spawn-budget held no leases at all (kept-live=0 on every pass) while 11 worktrees held running processes -- tmux seats, bash shells, and THREE mid workflow.py run merge-up-review (MUR 231, 232, 234, each with a live viewport.py). The only reason nothing was lost is that conditions (2)-(5) refused all 622 trees for unrelated reasons; a tree that was merged, clean and past grace would have been removed out from under a live round. This is latent data loss, not a performance defect, and it was found by accident while clearing the worktrees by hand. FIX: a backstop under the lease dir, never a replacement. _live_worktrees_by_cwd reads /proc/<pid>/cwd and open descriptors -- an exact kernel fact about this box, not the ps name match condition (1) rightly rules out -- and unions the result into live_ids. It can only ever keep MORE trees, never fewer. The pass logs a named line when it fires. VERIFIED after restart: 7 leaseless tree(s) held live by a running process, kept-live=6 where the lease dir alone reported 0.
 
 ### G6.14 — L-series test-maxxing hypothesis batch — status: active
 
@@ -4891,6 +4860,38 @@ SL7.82 harvested 17:24Z (Prime line (e)): keygen --all-live's HEAD-ahead-of-orig
 
 <!-- BODY:BEGIN -->
 # goal:g6.48
+
+### G6.49 — the reaper burns the box it is meant to tend — a per-spawn OOM probe, a sweep that re-derives a permanent refusal, and liveness that cannot see a live tree — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g6.49
+
+## Agent Notes
+Measured on encryption-town (belam-prime) 2026-09-25 14:2xZ, while local-town sat wedged with sshd not completing a banner exchange and its work frozen at 13:58:34Z. The reaper is the thing that was supposed to keep the box tidy; it was a top consumer of the box instead. Three independent defects, one subgoal each. (1) oom_kill 1784 since boot with 1422 failed run-*.scope units resident in systemd --user, one pair per spawn, because mem_cap's enforcement probe ran once per PROCESS and its whole contract is an observed SIGKILL. (2) 622 worktrees swept every 30s, removed=0 on all 2387 passes since 2026-09-23, about 5 git subprocesses per worktree per pass, roughly 3000 process spawns per pass to re-derive an unchanged refusal; the reaper log reached 48 MB in 6 days. (3) liveness read only the spawn-budget lease dir, which was EMPTY (kept-live=0) while 11 worktrees held running processes, three of them mid workflow.py run merge-up-review -- had the other four sweep conditions passed, a live round's tree would have been deleted under it. Fix landed on codex-town/reaper-fix-20260925 at 81c054e2a, merged to core/main at 4cdf601ff. Verified after restart: sweep refused=323 kept-live=6 (unchanged=312), and the backstop reported 7 leaseless trees held live by a running process.
+
+#### G6.49.1 — mem_cap's enforcement probe runs once per PROCESS, so every spawn costs one deliberate OOM kill and one leaked failed scope — status: complete
+
+<!-- BODY:BEGIN -->
+# goal:g6.49.1
+
+## Agent Notes
+DEFECT: mem_cap.systemd_run_usable() cached its verdict in a module global, so it re-probed once per PROCESS. The probe's contract is an observed SIGKILL -- it allocates 256 MB under a MemoryMax=64M scope and requires the kill -- so every dispatch.py, heal.py and cron invocation paid one deliberate 256 MB allocation, one cgroup OOM kill, and one anonymous failed run-<random>.scope that nothing ever reset. MEASURED on encryption-town: oom_kill 1784 since boot, 1422 failed run-*.scope units resident in systemd --user, 52 of the 55 surviving dmesg kill records being python3 at ~65,000kB (the 64M cap), against a configured spawn.memory_max of 6G that nothing legitimate should die under. FIX: probe once per BOOT, verdict cached in XDG_RUNTIME_DIR keyed on boot id; the scope carries a fixed --unit so it can be reset-failed by name; AGI_MEMCAP_SYSTEMD_RUN=0|1 skips the probe entirely. Enforcement semantics unchanged -- still a real allocation past a real cap, still requiring the observed SIGKILL. VERIFIED live: cold run took exactly one OOM kill (1793 to 1794), two subsequent fresh processes took none and left the failed-unit count flat. The 1430 accumulated units were cleared with systemctl --user reset-failed (1430 to 0; run-*.scope 1422 to 8).
+
+#### G6.49.2 — the worktree sweep re-derives a permanent refusal every pass, at full subprocess cost, and logs it every time — status: complete
+
+<!-- BODY:BEGIN -->
+# goal:g6.49.2
+
+## Agent Notes
+DEFECT: _sweep_finished_worktrees re-evaluated every worktree from scratch on every pass. A refusal is a pure function of (HEAD, base tip) -- while neither moves, the verdict cannot change -- but the sweep re-ran rev-parse twice, merge-base, git status and the bring-home probe anyway, and logged an identical refusal line each time. MEASURED on encryption-town: 622 worktrees, removed=0 on all 2387 passes since 2026-09-23T07:31Z, about 82.6s per pass against a 30s poll (so roughly 53s of work per cycle), ~5 git subprocesses per worktree per pass, i.e. on the order of 3000 process spawns per pass to reach an answer that had not changed in two days. heal.py watch held 18.3 pct CPU average over 2d 6h on a 4-thread box. The reaper log reached 48 MB in 6 days; the log, not the work, is what grew. FIX: memoize the refusal per process keyed on (head, base_tip) and skip both the subprocesses and the per-pass log line while it holds; replace the two per-worktree rev-parse calls with ONE git worktree list --porcelain for the whole pass; report the skipped count as (unchanged=N) on the summary line so the saving is visible rather than silent. VERIFIED after restart: sweep refused=323 kept-live=6 (unchanged=312).
+
+#### G6.49.3 — an empty lease dir reads as nothing-is-live, so the sweep would delete a worktree out from under a running round — status: complete
+
+<!-- BODY:BEGIN -->
+# goal:g6.49.3
+
+## Agent Notes
+DEFECT: sweep condition (1) read liveness ONLY from the spawn-budget lease dir, by design -- the docstring says the lease dir is the liveness source, never ps by name. The design premise failed in practice. MEASURED on encryption-town 2026-09-25: .agi/sessions/.spawn-budget held no leases at all (kept-live=0 on every pass) while 11 worktrees held running processes -- tmux seats, bash shells, and THREE mid workflow.py run merge-up-review (MUR 231, 232, 234, each with a live viewport.py). The only reason nothing was lost is that conditions (2)-(5) refused all 622 trees for unrelated reasons; a tree that was merged, clean and past grace would have been removed out from under a live round. This is latent data loss, not a performance defect, and it was found by accident while clearing the worktrees by hand. FIX: a backstop under the lease dir, never a replacement. _live_worktrees_by_cwd reads /proc/<pid>/cwd and open descriptors -- an exact kernel fact about this box, not the ps name match condition (1) rightly rules out -- and unions the result into live_ids. It can only ever keep MORE trees, never fewer. The pass logs a named line when it fires. VERIFIED after restart: 7 leaseless tree(s) held live by a running process, kept-live=6 where the lease dir alone reported 0.
 
 ### G7.1 — Legacy direct links absorbed from old top-level roots — status: retired
 
@@ -7473,6 +7474,11 @@ Assigned to **director-helper** with `.2` + `.4` AND keep `g7.26`–`g7.30` land
 
 **Related:** `write.py`, pane write route (`goal:g7.31.3`), `goal:g7.26` (post briefs / custom instructions), `doc:standing-llm-ops`.
 
+#### G7.31.6 — spawn/rotate via skills after write/mint (caps ≤10/≤20) — status: horizon
+
+<!-- BODY:BEGIN -->
+# goal:g7.31.6
+
 ### G7.32 — Session ingest + magic-pane messaging + adapter pane methods + send.py thin router — status: active
 
 # goal:g7.32
@@ -7721,7 +7727,12 @@ g7.31.3 lists `send` among five pane-facing routes; this child owns the **router
 
 **Extends:** `goal:g7.31.3` (send as a route). **Used by:** `goal:g7.32.2`. Session: `owner-ask-2026-09-21`.
 
-### G7.33 — ENGINE FIXES SURFACED BY THE TOWN — every engine trap the rounds hit becomes a pi round itself, run alongside the research rounds under a second (Sonnet) director; plus the two dispatch upgrades the owner named: one workflow that chains parent dispatch → drain → mur, and a batch workflow that runs rounds serially or in parallel by memory allocation and closes with a whole-batch MUR over the sub-goal that parents them — status: horizon
+#### G7.32.5 — messaging/magic-pane into active goals (after spawn/rotate) — status: horizon
+
+<!-- BODY:BEGIN -->
+# goal:g7.32.5
+
+### G7.33 — ENGINE FIXES SURFACED BY THE TOWN — every engine trap the rounds hit becomes a pi round itself, run alongside the research rounds under a second (Sonnet) director; plus the two dispatch upgrades the owner named: one workflow that chains parent dispatch → drain → mur, and a batch workflow that runs rounds serially or in parallel by memory allocation and closes with a whole-batch MUR over the sub-goal that parents them — status: active
 
 <!-- BODY:BEGIN -->
 # goal:g7.33
@@ -7745,6 +7756,13 @@ thought-master 01:5xZ 09-21 (owner: 'we need a config and template maxxing pass 
 thought-master 01:5xZ 09-21 (owner, verbatim on goal:g14: 'let's have a way to trunk the grid into any arbitrary branch storage trunk via config/template use'): ADD G7.33.7 GRID STORAGE TRUNK BY CONFIG -- today grid.py writes refs/grid/<mint_id> (branch-blind, master-only unless --allow-branch) and crons.py:548 hardcodes the command. Round: (a) `grid.storage_trunk` in .agi/config.json (a ref namespace like refs/grid/<town>/ or a branch name; default = the current refs/grid/ so every existing project round-trips unchanged) with the crons node able to override per project; (b) grid.py commit/log/diff/versions/payload/status and stitch.py --from-grid all resolve the trunk from config -- one resolver, no second spelling; (c) crons.py emits the grid_sync line from the same config (this supersedes G7.33.6's first item: with a configured trunk the branch-blind refusal no longer applies; keep --allow-branch as the explicit override for an unconfigured tree); (d) tests: a tree with storage_trunk=refs/grid/t1/ records N versions there and refs/grid/ stays untouched; the default tree is byte-identical to today; `grid.py versions` reads back from the configured trunk. Migration for this box: set storage_trunk=refs/grid/local-maxxing/ AFTER the round lands, then one `grid.py migrate-refs` (existing verb) or a documented re-seed. Ceiling 200 engine lines; the kid pins existing behaviour with the engine suite first.
 
 thought-master 02:1xZ 09-21 (owner 02:1xZ via goal:g5.26): ADD G7.33.8 SESSION CAPTURE HOOK -- claude-code role sessions (masters, directors, Prime) land at session end / rotate under datasets/sessions/<role>/<session>/ through datasets/tools/scrub.py with the graph's pre-labels (model, harness, provider, role, post, town, box); pi parents/kids already land under datasets/trajectories/. After 7.33.4; ceiling 200 engine lines; never a second scrub.
+
+Belam 2026-09-28: activate for write/mint foundation (redesign order skills→write/mint→spawn/rotate→messaging); nest g7.33.9 skills adoption under this
+
+#### G7.33.9 — skills + write/mint foundation (redesign order step 1-2) — status: active
+
+<!-- BODY:BEGIN -->
+# goal:g7.33.9
 
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
