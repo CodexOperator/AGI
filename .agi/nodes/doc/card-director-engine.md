@@ -33,7 +33,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ## §0 STATE (11:5xZ 09-28 · successor woke 11:17Z; per-chain history = git log of this node)
 ```
 LANDED    this gen: DH.679 e3e730e3b (TMM.329) · EG.72 96d22cb50 (TMM.330) · EG.88 + EG.90 51eab0b70 (TMM.331) · post e101b854a = trunk 4356ca078 + 0
-SERIES    next EG.120 · murs mur-eg-N (last read mur-eg-27/28) · next murq210
+SERIES    next EG.121 · murs mur-eg-N (mur-eg-30 = murq209 running) · next murq211
 TMM.331   (TM 11:38Z) PRIORITY: the thought_hygiene DETECTOR chain (EG.14 -> EG.20 -> EG.97) at the FRONT, level with EG.9. DONE: unit qgEG97 (qgEG97f.sh)
           places EG.97 at the next gate-ok, then holds its name until qgEG96 ends (lane order kept). Cut RE-BASED de-base-EG.97 fa5655bb5 = c32e3c202
           + trunk 4356ca078; there test_thought_hygiene 31 passed (live corpus, 13 quoting nodes unchanged); orders item 7 = TM's acceptance
@@ -50,10 +50,13 @@ EG.91     chain tip ffa9473a6 -> EG.119 MERGE-RESOLUTION round (TM TMM.329): cut
 EG.89     M1 --force mechanism claim = EG.113 CC kid, unit placecc22 (after placecc20)
 EG.5      after EG.107 clears -> [merge-up] with the red DECLARED 'needs the cell, lands with belam' (TMM.326)
 MURS      murq196 (mur-eg-27b) RUNNING, reviews done, verifies serial: EG.71 verify TIMED OUT (review stands) -> CLOSED edaf6831e; EG.77 verify awr = next to
-          triage; 82 83 84 85 verifying · murq209 = mur-eg-30 RUNNING (EG.100 101 102 78 106) · gmurq210 GATE-HELD -> murq210 = EG.80 (7030a6261..b66075eca)
+          triage; 82 83 84 85 verifying · murq209 = mur-eg-30 RUNNING (EG.100 101 102 78 106) · gmurq210 GATE-HELD -> murq210 = EG.80 (7030a6261..b66075eca) + EG.81 (a5478e026..bb3fd61ed)
 EG.71     chain CLOSED edaf6831e, HELD: carries 2 ladder cells (prime settings ultracode + tier-0 director pi -> pi-free, kid-written, hand-landed
-          81eb9fcda); post ladder = its new test_tier0_rows_resolve_a_zero_usd_harness RED -> [decision] to TM 12:0xZ, recommend A (belam lands the director cell)
-UNITS     placecc20 22 23 (CC text, serial) · qg lane 80(LIVE parent a00-68c5483a) 81 87 94 96 [97 front] 98 99 103 104 105 107 108 117 · qgEG119
+                    81eb9fcda); post ladder = its new test_tier0_rows_resolve_a_zero_usd_harness RED -> [decision] to TM 12:0xZ, recommend A (belam lands the director cell)
+EG.77     chain CLOSED 39b1b37fd (send.py read + dm nudge); merge ABORTED: merged with the post, test_box_local_row_does_not_print_empty_
+          before_the_dm_sweep RED (passes alone on the chain) = EG.72's box rule vs the fixture's box 'local' -> EG.120 corrective, cut
+          de-base-EG.120 42b212b06 (post merged in), unit qgEG120 after EG.119's placement -> harvest -> mur -> merge
+UNITS     placecc20 22 23 (CC text, serial) · qg lane 87 94 96 [97 front] 98 99 103 104 105 107 108 117 · qgEG119 -> qgEG120 · gmurq210
 TOOLS     T=<scratchpad 96494ce7-...>: gen2.py · place2.sh / placecc.sh (both now WAIT while the post tree has MERGE_HEAD) · mkmur.py + runmur.sh ·
           hcc.sh · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N · S=<scratchpad d74d6d20-...>/watch2.sh MURS="..." (run_in_background)
 GATE      TMM.306 load1 < 16 AND io avg60 < 50, two reads 5 min apart · CC kids: <= max_live 4, MemAvailable >= (live+2) x 2G
