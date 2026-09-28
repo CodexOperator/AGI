@@ -63,6 +63,9 @@ PROVIDER  since 20:0xZ the pi-free model returns 'Provider returned an empty res
 LIVE      21:1xZ reconcile: EG.184 a00-c38d9fc2 (+ kid a00-0375e79c) · EG.173 re-dispatch a00-78d234f6 (redispw) · serial17 places EG.182
           · EG.170 + EG.165 ended with commits UNSEEN by deadwatch (its 20:36 start seeded every existing parent as seen, live ones too)
           -> harvested 21:08Z green (170: 120 passed at 492d7397f · 165: 117 passed, 1 node landed, at 56d44d93e)
+          · EG.184 HARVESTED 22:31Z (a00-c8f1d0f6 on 66e7f3cf2, tip a06ca6e3e, 2 commits, 6/6 retries used): the TMM.351 one call on the
+            tip = 591 passed 0 failed (cut: 1 failed) -> needs its mur (dies on the old runner) · 22:3xZ [count] + [decision] to TM: A raise
+            pi_retry to 12 x 60 s + EG.186 ahead / B hold murs, land on the gate alone / C both -- OPEN
 MURS      rmur (re-run until no empty-response stage): 272 EG.161 · 274 EG.183 · 275 EG.164 (armed 21:08) · 276 EG.178 (armed 21:23)
           · 277 EG.170-k1 b49c5db9e..492d7397f (facts window) · 278 EG.165-k1 b1d171bf0..56d44d93e (armed 21:28; parent wrote proved THEN
           inconclusive_lean_disproved:25) · JUDGED: 271 EG.169 -> MERGED (in #5) · 273 EG.175 -> director close -> MERGED (in #5)
