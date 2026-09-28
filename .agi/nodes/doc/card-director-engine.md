@@ -122,6 +122,8 @@ THEN    per ended parent: harvest AT ONCE -> mur · per ended mur: triage -> cle
         · EG.124 parent a00-bd378097 REPORTED 16:03Z (accepted 1, experiment a00-e5b926db disproved 0.7): harvest it (D/harvest-all.sh EG.124);
           its kid's in-scope item-6 edit to experiment a00-59be3549-a3443e is UNCOMMITTED in that worktree (accepted round -> land it by exact
           path, UNREVIEWED) -> mur; the ONE expected red = the live config:rotations skills clause (belam's/TM's cell, banked rule (4))
+        · EG.141 RE-DISPATCH ANSWERED 16:05Z: parent a00-5bd860ef, kid a00-4339e263 tip e0b271fdb (the lane is back): harvest (D/harvest-all.sh
+          EG.141) -> mur. Count from 14:30Z: 9 started, 8 died on empty, 1 answered
 NEVER   restart a q-unit without reading its log first · edit a RUNNING unit's script · start a watcher with a bare & (it never notifies)
 ```
 
