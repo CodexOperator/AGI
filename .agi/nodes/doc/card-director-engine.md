@@ -35,12 +35,13 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 MERGE-UP  #1 LANDED 165c99e6a · #2 LANDED d0cb3bb35 · #5 LANDED b0aa2c178 (TMM.353, after the a2ec45880 dedupe) · #3/#4 RETURNED, #4b superseded
           · de-mu-EG151 = the CLEAN LANDING BRANCH: stack each cleared chain on it (merge-tree onto its tip first) as the next #N
           · #6 carries: goal:g7.33.19 row 24 (132d494e1, TMM.352 H1 row) + TM's rows a-c + the first cleared item of TMM.353's queue
-QUEUE     TMM.353/356, in order: (1) EG.183 corrective = EG.185 (cell pi_transient_signatures on config:workflows, code = reader; LAND before
-          01:43Z or after PASS B2 closes, never mid-pass) (2) EG.153 with both TMM.351 reds fixed + the one-call line = EG.184 (CARRY d0367f71d)
-          (3) TMM.356 per-role worktree roots (OWNER GO) on hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram, order on the
-          trunk 8af87980f (in the post 1391a0170): paths.<town>.* cells via locations.py + a mount check that REFUSES a non-mountpoint, no
-          literal; tmpfs keeps its TMM.313/319 gate (4) TM card owed list: EG.9 -> EG.128 -> dispatch_node_id stamp -> g7.33 items
-POST      1391a0170 = trunk synced (b0aa2c178 #5, 9c0a427e6 pi_retry 6 x 60 s, 8af87980f TMM.356 order); conflicts kept both sides
+QUEUE     TMM.353/356/360, in order: (1) EG.186 DISPATCH NOW (TMM.360 item 2): minted hypothesis:an-empty-response-budget-counts-consecutive-
+          empties-with-growing-backoff 1d563b262, placing via pq186 from trunk 56c012118 (consecutive bound + growing backoff, cells = reader;
+          factor/cap cell values PROPOSED by the kid, TM writes config.json at landing) (2) EG.185 (TMM.350 + TMM.360 item 3: item 5 = the
+          workflow-stage retry reads values.pi_retry via pi_trajectory _retry_cells, one source) -- orders amended d4255456f, cut c2404cc17
+          (12 x 60), the old-orders parent a00-573ce2a1 STOPPED 22:36Z -> redispw queue head; LAND before 01:43Z or after PASS B2
+          (3) EG.153 = EG.184 HARVESTED green (one call 591/0) -> murq279 (4) TMM.356 per-role roots, order 8af87980f (5) TM owed list
+POST      8abdcc7cf = trunk synced (86bbc1bd8 values.pi_retry 12 x 60 s); queued cuts re-merged: 185 166 177 179 171 182 168 172
 PIRETRY   TMM.354 DECIDED A: values.pi_retry 6 x 60 s on the trunk 9c0a427e6. A parent reads config from its OWN worktree (find_project_root
           from cwd; load_config has no MAIN overlay) -> [red] correction sent to TM 21:4xZ. Cuts re-based: EG.184 + pick 66e7f3cf2 · EG.185
           736f5602a (orders on the node re-based, a389fe585) · 174 166 177 179 171 182 168 merged with the trunk (SP/mergecut.sh +
@@ -52,7 +53,9 @@ BOX       / at 94 pct 21:1xZ (6.5 GiB free) · belam 22:12Z (OWNER GO): per-role
           on it, confirm send, rotate, grid, dispatch and the suite still work (one line each, to TM) · the other town left the free lane
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.186 · next murq279 · EG.185 placing: unit pq185 (T/pq185.log, dEG.185.log)
+SERIES    next EG.187 · next murq280 · murs re-armed on EG.183's runner: S3/rmur2.sh + runmur2.sh (274 277 279); rmur.sh (old runner) still
+          drives 272 275 276 278 until they end -- TMM.360: never skip a mur, keep re-arming; next [count] to TM after EG.186 lands (deaths /
+          dispatches + mur stage survival); still 100 pct dead after EG.185 lands -> the lane/model question goes to belam
 PLACING   serial12 (173 171 172 174 177 178 placed; all 5 died but 178?) -> serial14 (179) -> serial17 (180 181 182) · serial16 (EG.166) · serial18 (EG.164)
 AUTO      deadwatch (detector: every ended EG.16x-19x parent -> HARVEST line or DEAD + queue) · redispw (worker: serial redispatch2
           of the queue, 10 min apart, cap 5 per round; queue <scratchpad 3e232af5>/redisp.queue) · rmur271 272 (re-run murs until no
