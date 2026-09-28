@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.31.3.3
 next_edges: []
-edited_by: belam
+edited_by: director-engine
 scaffold_hash: 99f721ebee0a9eb8
 season: 2
 testable_claim: prune clean non-live kid worktrees; spawn reads paths.<town>.worktrees_root via locations.py (no literal at dispatch.py:754); guard.env GUARD_WORKTREE_TMPFS_<host>=4G mounted and charged to user@; post worktrees stay on disk; worktree prune on reboot
@@ -146,8 +146,20 @@ FILE SCOPE extensions/agi/tests/test_kid_worktrees_root.py · extensions/agi/bin
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over c884b3663 · <= 40 test lines net over c884b3663 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat c884b3663 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.57 -- the harvest skill row for the kid-worktree sweep (OWNER 06:2xZ 09-28 via belam [decision] 06:21Z, item (a))
+BASE      CUT FROM the director-engine post branch tip 658a5ed24 (branch de-base-EG.57). No merge. Never rebase.
+OWNER     verbatim (06:2xZ 09-28): "We can add it as part of the harvesting skill in the meantime instead and let the other thing (the reaper pruning worktrees for us) land as part of the ram worktrees? Running the kid worktree pruning tool I mean."
+1. skills/agi-dispatch/SKILL.md §5, the ONE row '| worktree sweep |' (~:60) is stale against the code: it says the sweep 'writes nothing -- there is no apply flag: the live pass = cell values.core.worktree_sweep.dry_run_default', but heal.py _main_sweep (grep -n 'def _main_sweep' extensions/agi/bin/heal.py) REMOVES unless --dry-run is passed, and the cell values.core.worktree_sweep does not exist in .agi/config.json. REWRITE that row whole so it says: at EVERY round harvest (owner 06:2xZ 09-28, quoted above) run python3 extensions/agi/bin/heal.py sweep --root <main checkout> LIVE -- harvest-or-drain, never --force, never git worktree remove --force by hand; it removes only a CLEAN, MERGED, non-live kid tree (branch kept) and REFUSES dirty / unmerged trees by name; post worktrees + live rounds never touched; --dry-run = census only; the reaper's own pruning lands with the RAM-worktree round; a Prime one-shot clean prune after a PASS is separate -- never overlap one. PASTE the two commands that prove the CLI shape (grep of _main_sweep's add_argument lines; python3 -c over .agi/config.json showing the cell is absent) on your node.
+2. Put the owner verbatim above in the THOUGHT of your node (write.py), never on the skill row itself (the row cites 'owner 06:2xZ 09-28').
+ANON      no user name, home or repo path value, host, IP or hardware/brand name; patterns write <user>
+TESTS     test_bin_help_smoke.py + any committed test that reads skills/agi-dispatch/SKILL.md (git grep -l 'agi-dispatch/SKILL.md' extensions/agi/tests) once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT); TEXT-ONLY round
+FILE SCOPE skills/agi-dispatch/SKILL.md (the '| worktree sweep |' row ONLY) · the kid's own node (write.py)
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · 1 skill row · 0 USD -- a byte over it = the round is cut · paste git diff --numstat 658a5ed24 <your final tip>
+KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-belam [decision] 03:4xZ 09-28 via TM (TMM.319), binding: "tmpfs shape = KID worktrees only in RAM; PARENT worktrees stay on disk ... Record the shape on that node when you next touch it; the RAM round's brief says kids only." This version: conjunct 3 now names PARENT on disk; EG.18 (not yet re-dispatched, serial lane behind DH.660) gains item 7 + dispatch.py in FILE SCOPE, because the bytes on its base c884b3663 route parent to the kid root (dispatch.py:762 `tier in ("kid", "parent")`) and pin it (test:81 `"parent": "kid"`) -- orders that only recorded the shape would let EG.18 re-bless the pin. Near miss: a separate RAM round would re-open the same function this chain already owns; the item costs ~4 production lines under the 15-line ceiling. Hold unchanged (EG.9 merged + 24 h no crit).
+corrective EG.57: owner-0928 owner-0928-sweep-row residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
 
 belam 00:4xZ 09-28 DECISION on the tmpfs go (TM [decision] 22:04Z, owner 'if it's working'): HOLD the mount. (1) memory: 4 ALARM crit lines since 21:39Z (00:41Z box PSI full 25.1%); a 4G tmpfs comes out of a 15G box whose watchdog reboots at PSI full >= 40% for 5 min. (2) the heal sweep still removes a FINISHED 0-commit branch's worktree with its uncommitted work (DE finding 23:59Z, DH.648) -- on a tmpfs a reboot adds a second loss path. GO when BOTH hold: the sweep rule fix is merged (goal:g7.33.N) AND 24 h with no memory crit line. Size then: GUARD_WORKTREE_TMPFS 4G, parent + kid worktrees only; the repo half (DH.650 kid_worktrees_dir, prune-on-empty, hardwater 95) may land first, inert on disk.
