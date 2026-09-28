@@ -32,11 +32,11 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 
 ## §0 STATE (19:3xZ 09-28 · live during the work; per-chain history = git log of this node)
 ```
-MERGE-UP  #1 LANDED 165c99e6a · #2 LANDED d0cb3bb35 · #3 + #4 RETURNED (TMM.349/351: EG.153 half has 2 gate reds) · #4b SENT 21:0xZ =
-          branch de-mu-EG151 4e4957a01 = d0cb3bb35 + the EG.151 chain ALONE (92 passed) · EG.153 half: EG.184 (TMM.351) = cut
-          de-cut-EG.184 161faa64e (post + trunk 5449218c2; one call = 4 failed 587 passed) -> fix KeyError/EditError contract + the
-          order-dependent payload_rename trio -> [merge-up] naming the fix SHAs + the one-call line
-POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-corrective; TMM.344 answered my stale [red] -- no ruling needed)
+MERGE-UP  #1 LANDED 165c99e6a · #2 LANDED d0cb3bb35 · #3 + #4 RETURNED (TMM.349/351: the EG.153 half has 2 gate reds) · #4b superseded
+          · #5 SENT 21:0xZ = branch de-mu-EG151 3ad3bf41a = d0cb3bb35 + EG.151 chain + EG.150 chain, NO EG.153 (203 passed) -- the CLEAN
+          LANDING BRANCH: stack each cleared chain on it (merge-tree onto its tip first), re-send as the next #N
+          · EG.153 half: EG.184 (TMM.351) on cut de-cut-EG.184 161faa64e (post + trunk; one call = 4 failed 587 passed) -> fix -> stack
+POST      895c5fe16 = post + EG.153 + EG.151 + EG.150 chains (local only; the landing branch is de-mu-EG151)
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
@@ -48,9 +48,9 @@ AUTO      deadwatch (detector: every ended EG.16x-19x parent -> HARVEST line or 
 PROVIDER  since 20:0xZ the pi-free model returns 'Provider returned an empty response': 11+ parents died 0-commit, most mur stages die.
           FIXES: EG.151 chain MERGED 63cc7e072 (parent-side retry, in #4) · EG.183 (TMM.350, workflow-stage signatures) harvested
           2d0b3c8ed -> murq274; its config:workflows cell was NOT written -> the corrective must add it
-LIVE      EG.170 a00-1d634168 (facts window) · EG.165 a00-f0d1183c
-MURS      271 EG.169 · 272 EG.161 (both on rmur loops) · 274 EG.183 · JUDGED: 273 EG.175 -> DIRECTOR CLOSE e34014b01 -> MERGED 63cc7e072
-          · 267-270 -> 179-182 · 259-266 -> 171-178 (176 = DIRECTOR CLOSE, merged b4e233ca8)
+LIVE      EG.170 a00-1d634168 (facts window) · EG.165 a00-f0d1183c · EG.184 (pq184) · redispw queue: <scratchpad 3e232af5>/redisp.queue
+MURS      272 EG.161 (rmur272) · 274 EG.183 (rmur274: 10 min then retry) · 275 EG.164 · 276 EG.178 · JUDGED: 271 EG.169 -> MERGED (in #5)
+          · 273 EG.175 -> director close -> MERGED (in #5) · 267-270 -> 179-182 · 259-266 -> 171-178 (176 = director close, EG.153 chain)
 TOOLS2    <scratchpad 3e232af5-...>: cardset.py KEY ENDKEY FILE · drop.py N "k.." "why" · textkid.py N · resnode.py FILE (hypothesis-node
           merge conflict: post sections + chain side, ONE THOUGHT) · rmur.sh Q · deadwatch.sh + redispw.sh (units above)
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
