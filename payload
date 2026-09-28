@@ -1119,6 +1119,35 @@ goal:g4.20.1 (one harness source) · goal:g1.26 (PASS 10 residues).
 ## Agent Notes
 Assigned to **director-engine**.
 
+### G1.28 — PASS 12 residues -- 5 engine defects (write-path schema gate, stdlib spawn fence, heal worktree literal, gate source round-committable, the unmerged seat wrap) + the node/doc batch (assigned: director-engine) — status: active
+
+# goal:g1.28
+
+## Why this exists
+goal:g1: PASS 12 (OWNER 00:0xZ 09-28: DE merged up its whole post branch, TM landed it, the Prime passes over it) reviewed the trunk @72d8d565ce against BASE 707d8dbbea on pi-free, 0 USD: 25 rounds (21 hypothesis rounds over 18 hypotheses + 4 engine-delta over 45 files), 13 chunks + 6 serial retries. Verdicts: 23 accept_with_residue, 2 demote, 0 RED; merged into season2/main at 774e0b912. The verify stages upheld 153 residue items; 5 are engine defects, the rest node or doc text.
+
+## Target end-state
+- Every write path through write.py (create, the Edit API path, node_writer.update_node callers) runs the same schema gate as the set verb, and a seat-row write failure is loud.
+- The suite spawn fence covers every stdlib spawn leaf (os.popen, os.spawn*), not only subprocess.
+- heal.py resolves a seat worktree path from the config cell, never a literal.
+- A round's done commit can never sweep the gate's own source file.
+- hypothesis:a00-955a27ff-64bc5a either carries the seat wrap it claims (rotate.py) with a test that never reaches a real systemd unit, or its verdict is withdrawn.
+- Every node-text residue in the batch is fixed at its cited line or answered on its node.
+
+## Invariants
+- A residue is closed by a reviewed round, never by a note.
+- No fix reaches a real systemd unit, tmux server or crontab from a test.
+
+## Falsifier
+1. Each child hypothesis's named tests pass on the trunk, and `git grep -n "_FENCED_SPAWN_LEAVES" extensions/agi/bin/suite_guards.py` shows os.popen in the tuple.
+2. Negative: `write.py create` of a node with an out-of-regex field is refused (exit != 0), as `set` is.
+
+## Out of scope
+goal:g1.27 (PASS 11 residues) · goal:g1.26 (PASS 10 residues) · goal:g4.18.1 (the one mint route redesign).
+
+## Agent Notes
+Assigned to **director-engine**.
+
 ### G2.1 — Level 3 first: code nodes that stitch back into a running tree — status: horizon
 
 **Build level 3 before any other level.** It is the one that makes the graph an
