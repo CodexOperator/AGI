@@ -50,7 +50,7 @@ CHAINS    EG.21 conftest: EG.32 DEMOTE -> EG.36 (4th round) · DH.662 -> EG.33 �
           · EG.24 -> EG.42 (cell values.core.worktree_sweep; EG.9 merges first) · EG.28 -> EG.44 · DH.668 -> EG.45 · DH.665 -> EG.46
 HELD      EG.11 (in EG.14 item 4) · EG.7's 5 corpus edits UNCOMMITTED in a00-0194accb (demoted, never land) · parent configs left dirty (EG.30, EG.24): never land
 NEXT      EG.4 after DH.660 clears -> g7.32.6 send core -> g7.31.3.3 rotate core · kid-worktrees chain clean -> tmpfs claim to belam + the 17-consumer round
-DECISION  out to TM: DH.577 cron policy (send-hub chain HELD) · wake-facts touches config:rotations (belam's) · logs: symlink until EG.2 lands
+DECISION  out to BELAM 05:2xZ (owner-ordered CC text-fix kids, skill agi-corrective §3a 3754d4169): (1) claude-opus-5 is not a current id -> claude-opus-5-5 (2) Opus claude-code kid row (3) harnesses.claude-code.max_live rec 4 · until then: Sonnet kids, n <= MemAvailable/2G - 1 · out to TM: DH.577 cron policy (send-hub chain HELD) · wake-facts touches config:rotations (belam's) · logs: symlink until EG.2 lands
 ```
 
 ## §1 PLAN
