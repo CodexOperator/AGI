@@ -6,7 +6,7 @@ parents:
   - goal:g4.18.1.4
 next_edges: []
 confidence: 0.8
-edited_by: a00-92c392c7
+edited_by: director-engine
 scaffold_hash: 8b25e9228029f4e9
 season: 2
 tags:
@@ -272,8 +272,23 @@ That is 30 net production and 52 net test lines against a 15/40 HARD CAP. Record
 The scope line above (`write.py` :2296-2382 plus the dry-run preview :1541-1556) UNDERSTATES the region the chain now lives in. The ref helpers sit at write.py:2909-2963 (`_node_fm`, `_link_ref`, `_payload_ref_field`, `_payload_ref`) and the one-read join is at write.py:2212-2222, outside the declared band. The scope was not narrowed and no code was moved to fit it; the director should widen the line in the dispatch rather than the code shrinking into it.
 
 
+
+## CORRECTIVE DH.EG.184 -- TMM.351: the EG.153 chain's two gate reds (merge-up #3/#4 RETURNED by thought-master)
+BASE      CUT FROM de-cut-EG.184 tip 161faa64e = the director-engine post e5053af9e (EG.153 chain merged b4e233ca8 + EG.151 chain) merged with the town trunk 5449218c2 -- the gate's shape. No further merge. Never rebase.
+MEASURED  by the director on the cut, ONE pytest call over test_(payload|write|node_writer|zero_usd|bin_help_smoke|links)*.py = 4 failed, 587 passed, 7 skipped, 1 xfailed: test_payload_rename.py::test_a_failed_row_write_leaves_the_bytes_where_they_were · ::test_a_failed_move_rolls_the_row_back_onto_the_bytes · ::test_a_failed_move_rolls_the_location_back_too · test_write.py::test_an_unknown_location_is_refused_rather_than_defaulted. test_payload_rename.py ALONE = 28 passed, 1 xfailed (thought-master's gate measured the same).
+1. RAISE CONTRACT -- test_write.py::test_an_unknown_location_is_refused_rather_than_defaulted expects pytest.raises(KeyError); locations.py raises KeyError for an unknown location and write.py re-raises it as EditError (thought-master's gate M 64ec06a81: red with the chain, green on the trunk alone). PICK ONE: either the test expects the EditError write.py now documents, or write.py lets the KeyError through -- say WHY on the EG.153 hypothesis node (write.py verb), citing the function names, and paste the before/after run of that one test.
+2. ORDER-DEPENDENT STATE -- the three test_payload_rename.py tests pass alone and fail in the one call: FIND the state another test in that set leaks (module-level cache, a monkeypatch outliving its test, a sys.modules or cwd change), name the leaking test on your node, and fix it at its source (the leaker, or the three tests' own isolation). Paste the bisecting run(s) that name it.
+3. GREEN IN THE ONE CALL -- paste the summary line of the SAME one pytest call on your tip: 0 failed.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees
+PROBES    never author or run a probe that calls rotate / heal / send / dispatch functions or a live pi; fixtures and monkeypatch only
+TESTS     the one call: env -u TMUX -u TMUX_PANE python3 -m pytest -q -p no:cacheprovider --basetemp=/dev/shm/<dir> extensions/agi/tests/test_payload*.py test_write*.py test_node_writer*.py test_zero_usd*.py test_bin_help_smoke*.py test_links*.py (timeout 1200)
+FILE SCOPE extensions/agi/tests/test_write.py · extensions/agi/tests/test_payload_rename.py · the ONE leaking test file you name (its isolation only) · extensions/agi/bin/write.py (the unknown-location re-raise only, if item 1 picks the code) · .agi/nodes/hypothesis/a-payload-ref-change-renames-the-file-in-the-same-write.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 10 production lines · <= 40 test lines net over 161faa64e · pi-free tier-0 · 0 USD -- measure `git diff --numstat 161faa64e <tip before the paste commit>`, labelled so
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DH.619 (a00-0b87822c, k, 12 net production lines, 40 test lines) — the round's own deliverable was the CITATION, and the bytes had moved under the prose again: two conditions in submit() were half-fixed, not fixed. (1) The effective-pair re-aim was guarded on _plan.src, which is False exactly when the declared file is absent from this checkout, so the payload verb in the same write aimed at the OLD ref and raised FileNotFoundError with the row already repointed and the caller's bytes nowhere. The guard is now _after is not None ALONE: the effective pair is the right destination whether or not there were bytes to move. (2) The link_ref mirror fired on every write naming payload_ref OR location and wrote the set_fm.get default back over link_ref; on a both-fields row _old_ref is the payload_ref value first, so a plain `set location` silently repointed the node's BODY LINK. The mirror now fires only when the write itself names the ref. (3) A test that cannot fail for its fix is not a test of the fix: the old guard test's fixture always CREATED the old file, so the half-fix passed there. The new test is the absent-source shape and both new tests were proved to fail on the reverted bytes. (4) The WORSE consequence of the widened mover is named, not fixed: on a row that names its file in link_ref alone, `set payload_ref X` MOVES the file the node's body link named, because nothing on the row distinguishes that link_ref from a create --payload one. A correct fix needs a marker on the create path, which is outside this chain's scope. (5) Four citations in this node and three in the sibling's fix table were re-measured by READING the bytes; two more drifted citations the brief did not list were found in the same table. A citation that moves when the file moves is only honest if the mover says so, so the drift is stated in place rather than quietly replaced.
+corrective EG.184: TMM.351 TMM.351 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
 
 ## Agent Notes
