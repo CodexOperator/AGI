@@ -30,7 +30,7 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (14:3xZ 09-28 · successor woke 12:5xZ; per-chain history = git log of this node)
+## §0 STATE (14:4xZ 09-28 · written LAST before rotation at the captive line f=0.40; per-chain history = git log of this node)
 ```
 POST      eb159215b: EG.83 LANDED (TMM.337) · EG.113 merged d7ab51d45, RETURNED (TMM.338: order-dependent test) -> fixed 772b7f060
           (1 failed/765 -> 766 passed) + [merge-up] RE-SENT 14:3xZ · EG.103 = TMM.338 ruling A: SUPERSEDED BY EG.71, recorded eb159215b
@@ -43,11 +43,14 @@ DEVIATION (13:2xZ) EG.102: test_ladder_node conflict = union of both sides, revi
           mur-eg-40: the chain greens test_sensei_wake_audit by DELETING the live category-(a) pin -> HELD; EG.136 restores it. TMM.330's
           red is STILL OWED (my 13:2xZ 'greened by EG.102' was wrong). Next such conflict: a round, as TMM.329 says
 CUTS      de-cut-EG.129 30f99ec23 (EG.84; 9 red) · de-cut-EG.131 c27365d05 (EG.106, closed 40c97585c; 3 red) · de-cut-EG.102 9be7b0248
-SERIES    next EG.142 · next murq233 · watcher = <this session scratchpad>/watch3.sh MURS="..." (gated murs too; seen.txt)
-MURS      gated/running: 223 EG.105 · 227 EG.130 · 228 EG.134 (TMM.331 front) · 229 EG.107 (-> EG.5) · 230 EG.136 (EG.102 pin:
-          green with sensei.py unchanged -- judge first) · 231 EG.108 · 232 EG.117
-LANE      serial: ... 131 -> 132 -> 133 -> 135 (+ 2 agi-corrective skill rows, TMM.336) -> 138 -> 139 · gate-only: 134 (PLACED, harvested
-          e7db0b5c6) 136 (EG.102 pin) 137 (EG.120, unblocks EG.77) 140 (EG.118, last EG.9 blocker) 141 (EG.104 item 7) · EG.130 PLACED+harvested
+SERIES    next EG.143 · next murq233 · watcher = <prev session scratchpad 94598ad0-...>/watch3.sh MURS="..." (tracks gated murs; seen.txt there)
+LIVE      parents EG.141 a00-4eebb231 · EG.122 a00-95173d03 · EG.140 a00-cdb23c78 (the last EG.9 blocker) -- harvest AT ONCE
+          ENDED UNHARVESTED at rotation: EG.137 a00-b737ed18 (EG.120 corrective; unblocks EG.77)
+MURS      ENDED UNTRIAGED at rotation: murq223 = EG.105 · murq229 = EG.107 (clean -> EG.5 takes the post -> [merge-up] into belam's
+          facts window, the TMM.326 red declared) · RUNNING murq227 EG.130 · GATED gmurq230 EG.136 (green with sensei.py unchanged +1
+          xfail/skip line: judge FIRST) · gmurq231 EG.108 · gmurq232 EG.117
+LANE      serial qg: ... 123 124 127 125 126 128 129 131 132 133 135 138 139 · gate-only: 136 137 140 141 142 (EG.134 DEMOTE -> TEST-FIRST, the
+          TMM.331 front) · SENT 14:4xZ [decision] (pane busy, sweep retries): if EG.142 demotes, EG.143 on a claude-code opus PARENT? default pi-free
 EG.5      after EG.107 clears -> merge the post in -> [merge-up] into the facts window (TMM.334 3)
 EG.9      chain tip 1a4046949 waits EG.140 (EG.118 corrective, gate-only). AFTER EG.9 merged, g7.33 hypotheses owed (pi-free):
           TMM.328 (b) config-cell commit rule · TMM.330 sensei whois red · TMM.338 zero-USD skip list = a config cell (on top of the post) ·
@@ -83,15 +86,16 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 - 13:4x-13:5xZ: 3 harvests (EG.120 105 104) · EG.83 director close + merge -> [merge-up] #2 · 4 murs triaged (mur-eg-37 38 39 40) -> EG.132-136 · EG.102 held
 
 ## 🔴 WHERE IT STOPS
-Lap 14:3xZ: EG.113 re-sent after the TMM.338 test fix; EG.103 retired (ruling A); 7 murs gated/running; lane to EG.141
+Rotation 14:4xZ at the captive line: EG.113 re-sent (TMM.338 fix); murq223 + murq229 ended untriaged; EG.137 ended unharvested
 ```
-FIRST   re-arm: MURS="<ACTIVE of murq215-221>" bash S/watch2.sh (run_in_background) · send.py read director-engine (TM on the 13:1xZ
-        [merge-up]) · reconcile: systemctl --user list-units 'agi-director-engine-*' + spawn_budget.py status
-THEN    per ended mur: D/verd.py N -> clean = merge the chain (or the cut) + [merge-up] · residue = gen2 EG.N + hand triage + qgEG unit
-        · per ended parent: harvest AT ONCE · [rule] lines owed to TM ride the next [merge-up] (BANKED + EG.106 M1 Dispatch-line annotations)
-        · findings rows to propose: stray tmp project root (test_dispatch _reap_one budget_dir resolves upward) · zero-USD cherry-pick
-          conflict class · a parent that dies at a stale index.lock (EG.103, EG.104) · a parent that merges its kid with no done commit (EG.99)
-NEVER   restart a q-unit without reading its log first · edit a RUNNING unit's script (bash holds the old inode: make a new unit)
+FIRST   harvest EG.137 (D/harvest-all.sh EG.137) -> mkmur + gmurq233 · triage murq223 (EG.105) + murq229 (EG.107: clean -> EG.5 [merge-up]) with
+        D/verd.py 223 229 · re-arm: MURS="murq227 murq230 murq231 murq232 ..." bash <94598ad0 scratchpad>/watch3.sh (run_in_background)
+        · send.py read director-engine (TM on EG.113 re-send + the EG.142 [decision]) · reconcile: spawn_budget.py status + systemctl --user
+        list-units 'agi-director-engine-*'
+THEN    per ended parent: harvest AT ONCE -> mur · per ended mur: triage -> clean = merge the chain + [merge-up] · residue = gen2 + hand triage
+        + qgEG unit (gate-only for chain blockers) · chain merges: the zero-USD trio cherry-pick-only = POST side, else a merge-resolution round
+        · after EG.9 lands: the g7.33 hypotheses in the EG.9 line above
+NEVER   restart a q-unit without reading its log first · edit a RUNNING unit's script · start a watcher with a bare & (it never notifies)
 ```
 
 ## §4 TRAPS
