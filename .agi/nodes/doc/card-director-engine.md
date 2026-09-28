@@ -49,9 +49,10 @@ EG.91     chain tip ffa9473a6 -> EG.119 MERGE-RESOLUTION round (TM TMM.329): cut
           unit qgEG119 places it right after EG.97's placement, gate-held -> harvest -> mur -> merge the chain
 EG.89     M1 --force mechanism claim = EG.113 CC kid, unit placecc22 (after placecc20)
 EG.5      after EG.107 clears -> [merge-up] with the red DECLARED 'needs the cell, lands with belam' (TMM.326)
-MURS      murq196 RUNNING = text EG.71 77 82 83 84 85 · gmurq209 = GATE-HELD unit -> murq209 (5 rounds: + EG.78 309fdb267..ccb73e1e2, EG.106 d6f88dfee..980edcf1e) over EG.100 (039140151..d9393ee35) +
-          EG.101 (80bd792c3..7239015d6; its range edits GOALS.md: derived -- focus asks for the render round trip) + EG.102 (954252b19..20562ab3b)
-          -- all 3 CC text kids harvested before this gen (EG.100 harvest 1 fail = post_wire smoke load flake, passes alone 0.14 s)
+MURS      murq196 (mur-eg-27b) RUNNING, reviews done, verifies serial: EG.71 verify TIMED OUT (review stands) -> CLOSED edaf6831e; EG.77 verify awr = next to
+          triage; 82 83 84 85 verifying · murq209 = mur-eg-30 RUNNING (EG.100 101 102 78 106) · gmurq210 GATE-HELD -> murq210 = EG.80 (7030a6261..b66075eca)
+EG.71     chain CLOSED edaf6831e, HELD: carries 2 ladder cells (prime settings ultracode + tier-0 director pi -> pi-free, kid-written, hand-landed
+          81eb9fcda); post ladder = its new test_tier0_rows_resolve_a_zero_usd_harness RED -> [decision] to TM 12:0xZ, recommend A (belam lands the director cell)
 UNITS     placecc20 22 23 (CC text, serial) · qg lane 80(LIVE parent a00-68c5483a) 81 87 94 96 [97 front] 98 99 103 104 105 107 108 117 · qgEG119
 TOOLS     T=<scratchpad 96494ce7-...>: gen2.py · place2.sh / placecc.sh (both now WAIT while the post tree has MERGE_HEAD) · mkmur.py + runmur.sh ·
           hcc.sh · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N · S=<scratchpad d74d6d20-...>/watch2.sh MURS="..." (run_in_background)
