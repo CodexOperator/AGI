@@ -32,7 +32,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 
 ## §0 STATE (09:5xZ 09-28 · successor woke 09:46Z; captive rotate-self failed rc=1 · per-chain history = git log of this node)
 ```
-MERGE-UP  EG.95 chain LANDED c6a975721 (TMM.328; director close d199686b7 confirmed exact) · SENT 11:2xZ [merge-up] DH.679 chain: post 4c3421b2a over trunk 9e0791ef7, director close 0fc02251b, 1321 passed -> awaiting TM gate
+MERGE-UP  DH.679 LANDED e3e730e3b (TMM.329) · SENT 11:4xZ [merge-up] EG.72 chain: post e74db3dd2 over trunk 8be8485a6, chain merge 47c9aca38 at close b3081c59e, 1124 passed -> awaiting TM gate
 SERIES    next EG.118 · murs mur-eg-N (last read mur-eg-27/28 = mur-eg-26/27/28: murq194 197-204 206 207) · next murq209
 TMM.328   (TM 11:10Z) (a) DONE 44df78f1b skill row 2 narrowed · (c) DONE 44df78f1b [hypothesis].md CEILING line (rides belam's pass) · (b) OPEN:
           mint ONE goal:g7.33 hypothesis 'a round whose FILE SCOPE names a config cell commits exactly that cell's diff, nothing else in
@@ -43,10 +43,10 @@ TMM.327   (TM 10:56Z) RULING C: a NODE-PROSE-ONLY residue (cite drift · count �
           EG.109 dropped from placecc20. DIRECTOR-CLOSE QUEUE (mur-eg-27 murq197 unless named; items = verify V/M):
           EG.95 DONE d199686b7 (merged) · EG.91 CLOSED ffa9473a6 (notes on 1d76d43f + 4d2a125a) BUT its chain CONFLICTS with the post: config.json
           (union: worktrees_root + suite_roots + schemas_dir) + hyp node (keep both) + cli.py DONE PATH (semantic: post's commit_fail -> failed/exit 3 vs the chain's schema-gate refusal) -> a MERGE-RESOLUTION kid round (merge the post into its loop branch, both behaviours + test_cli.py test_git_commit_guard.py), never a hand resolve · EG.90 392f2ac1b: V1 numstat a00-f1812eb6, V2 FIVE->N children (+9a0bf8cb row 4; COUNT the experiments whose parents: field names the hypothesis -- a mention-grep of proved nodes gave 7, the mur says 6; never type the number), M1 9a0bf8cb stale
-          pointer, M2 item-5 row · EG.88 1363216ea: V1 /tmp-dependent paste (6549e49d, 014a5577), V2+M1 699af22b count, M2 014a5577 no THOUGHT
+          pointer, M2 item-5 row · EG.88 DONE 259114fe5 (not yet merged) was 1363216ea: V1 /tmp-dependent paste (6549e49d, 014a5577), V2+M1 699af22b count, M2 014a5577 no THOUGHT
           · EG.86 4976703f0: V1 V2 cafc99a3, V3 3ae03d97 heal cite, M1 verdict 8dde8422 cite+count [M2 test comment = kid round, re-place]
           · EG.89 V1 DONE 5c6eb78aa -> M1 (--force mechanism claim) = CC kid EG.113 cut at 5c6eb78aa, unit placecc22 (after placecc20)
-          · EG.72 dfa9ab3c1 (murq205 mur-eg-28, verify DIED, review stands): 5 prose -- RESTORE a00-939e9e6a's deleted Agent Notes (DH.645
+          · EG.72 DONE b3081c59e, merged 47c9aca38, merge-up sent; was dfa9ab3c1 (murq205 mur-eg-28, verify DIED, review stands): 5 prose -- RESTORE a00-939e9e6a's deleted Agent Notes (DH.645
           review orphaned), its item-6 disposition, a00-13835534 withdrawn claim :254 + dup bullet :218, a00-dd6557af unparsable clause; +41/40 = row
           · DH.679 DONE 0fc02251b (merged 108600ca6, merge-up sent)
 TOOLS     T=<scratchpad 96494ce7-...>: gen2.py N murq<Q>.json tip label (MURK=, NOEX=1, EXTRA=; triage by hand) · place2.sh (pi-free parent) ·
