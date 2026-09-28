@@ -1,0 +1,16 @@
+{"model": "qwen2", "np": 32, "cell": "qwen2:uniform@4.25", "budget": "4.25", "arm": "uniform", "widths": [4], "agree": 0.608154297, "kl": 1.100692734}
+{"model": "qwen2", "np": 32, "cell": "qwen2:key_only@4.25", "budget": "4.25", "arm": "key_only", "widths": [4, 4, 3, 3], "agree": 0.528564453, "kl": 1.570819303}
+{"model": "qwen2", "np": 32, "cell": "qwen2:inverse_energy@4.25", "budget": "4.25", "arm": "inverse_energy", "widths": [4, 4, 3, 3], "agree": 0.481445312, "kl": 1.927326374}
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@4.25", "budget": "4.25", "arm": "random", "widths": [4, 4, 3, 3], "agree": 0.499755859, "kl": 1.685655542}
+{"model": "qwen2", "np": 32, "cell": "qwen2:uniform@5.25", "budget": "5.25", "arm": "uniform", "widths": [5], "agree": 0.704589844, "kl": 0.737660229}
+{"model": "qwen2", "np": 32, "cell": "qwen2:key_only@5.25", "budget": "5.25", "arm": "key_only", "widths": [5, 5, 4, 4], "agree": 0.732421875, "kl": 0.612523086}
+{"model": "qwen2", "np": 32, "cell": "qwen2:inverse_energy@5.25", "budget": "5.25", "arm": "inverse_energy", "widths": [5, 5, 4, 4], "agree": 0.670166016, "kl": 0.823237948}
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@5.25", "budget": "5.25", "arm": "random", "widths": [5, 5, 4, 4], "agree": 0.656982422, "kl": 0.927568132}
+{"model": "qwen2", "np": 32, "cell": "qwen2:uniform@6.25", "budget": "6.25", "arm": "uniform", "widths": [6], "agree": 0.778808594, "kl": 0.402416112}
+{"model": "qwen2", "np": 32, "cell": "qwen2:key_only@6.25", "budget": "6.25", "arm": "key_only", "widths": [6, 6, 5, 5], "agree": 0.830566406, "kl": 0.248020329}
+{"model": "qwen2", "np": 32, "cell": "qwen2:inverse_energy@6.25", "budget": "6.25", "arm": "inverse_energy", "widths": [6, 6, 5, 5], "agree": 0.759521484, "kl": 0.493861996}
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@6.25", "budget": "6.25", "arm": "random", "widths": [6, 6, 5, 5], "agree": 0.739013672, "kl": 0.579230808}
+{"model": "qwen2", "np": 32, "cell": "qwen2:uniform@7.25", "budget": "7.25", "arm": "uniform", "widths": [7], "agree": 0.874267578, "kl": 0.128181695}
+{"model": "qwen2", "np": 32, "cell": "qwen2:key_only@7.25", "budget": "7.25", "arm": "key_only", "widths": [7, 7, 6, 6], "agree": 0.883300781, "kl": 0.113941976}
+{"model": "qwen2", "np": 32, "cell": "qwen2:inverse_energy@7.25", "budget": "7.25", "arm": "inverse_energy", "widths": [7, 7, 6, 6], "agree": 0.849121094, "kl": 0.184509795}
+{"model": "qwen2", "np": 32, "cell": "qwen2:random@7.25", "budget": "7.25", "arm": "random", "widths": [7, 7, 6, 6], "agree": 0.815917969, "kl": 0.294135168}

@@ -10,7 +10,7 @@ edited_by: a00-89094f2f
 evidence_runs:
   - experiment:grok-bot-config-row-resolves-live
 line_ceiling: 40
-loop: goal:g17.14.2@s2
+loop: goal:g7.25.2@s2
 model: deepseek/deepseek-v4.1-flash
 probes:
   - {"conjunct": 1, "class": "auth", "probe": "resolve(cfg,grok-bot) with row inserted in memory", "observed": "(grok-bot, adapter=grok_bot, bin=/home/ubuntu/.npm-global/bin/grok-bot)", "result": "pass"}

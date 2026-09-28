@@ -25,7 +25,10 @@ __pycache__/
 .claude/worktrees/
 sessions/
 experiments/
-.claude/skills/
+# .claude/skills/ retired — skill symlinks committed (goal:g4.18.2 / Belam 2026-09-28)
+.claude/skills/*
+!.claude/skills/agi
+!.claude/skills/agi-*
 
 # Staged payload checkout (GOALS.md G6.3/G6.1, `grid.py checkout`). The
 # committed home of these bytes is the node's own grid ref — this directory is

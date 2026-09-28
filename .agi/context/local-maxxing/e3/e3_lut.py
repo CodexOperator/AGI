@@ -1,4 +1,8 @@
 import numpy as np, torch, snntorch as snn, json
+import os as _os
+import tempfile
+_TMP_DIR = _os.path.join(tempfile.gettempdir(), "kidB")
+_os.makedirs(_TMP_DIR, exist_ok=True)
 np.set_printoptions(linewidth=250)
 LEV = {}
 def lev(a, b):
@@ -76,7 +80,7 @@ num_steps=200; thr=1.0; w_syn=0.8
 dc = torch.ones(num_steps)*0.3
 torch.manual_seed(42)
 spk_in = (torch.rand(num_steps) < 0.3).float()
-np.save('/tmp/kidB/spk_in.npy', spk_in.numpy())
+np.save(_os.path.join(_TMP_DIR, 'spk_in.npy'), spk_in.numpy())
 
 out = {'commit': 'd87863c52bfa9fd3e417449aba66adeca90654a6',
        'num_steps': num_steps, 'thr': thr, 'w_syn': w_syn,
@@ -113,4 +117,4 @@ out['beta8']={str(b):b**8 for b in [0.5,0.8,0.95]}
 print(json.dumps(out['beta8']))
 for row in table:
     print(row)
-json.dump(out, open('/tmp/kidB/e3_results.json','w'))
+json.dump(out, open(_os.path.join(_TMP_DIR, 'e3_results.json'),'w'))

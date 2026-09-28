@@ -6,7 +6,7 @@ parents:
   - verdict:grok-bot-row-landable-list-evidence
 next_edges: []
 edited_by: a00-d1c9f37f
-loop: goal:g17.14.2@s2
+loop: goal:g7.25.2@s2
 model: deepseek/deepseek-v4.1-flash
 profile: balanced
 role: kid

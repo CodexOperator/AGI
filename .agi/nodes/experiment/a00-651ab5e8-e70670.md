@@ -1,0 +1,138 @@
+---
+id: experiment:a00-651ab5e8-e70670
+mint_id: 8e67b7c41560452e8788b81fa498afcd
+type: experiment
+parents:
+  - hypothesis:heal-worktree-refusal-tests-never-reach-live-tmux-and-dead-branches-go
+next_edges: []
+confidence: 0.85
+edited_by: a00-566e47fe
+evidence_runs:
+  - experiment:a00-651ab5e8-e70670
+line_ceiling: 12
+loop: hypothesis:heal-worktree-refusal-tests-never-reach-live-tmux-and-dead-branches-go@s2
+model: stealth/space-bunny-alpha
+profile: balanced
+role: kid
+scaffold_hash: a4775810f73bcdd4
+season: 2
+title: "DH.484 wording slice: anonymize the residue path, restate the dispatch as shipped, date the UNREACHABLE measurement"
+town: core
+verdict: proved
+---
+# experiment:a00-651ab5e8-e70670
+
+## Experiment
+
+DH.484 corrective slice, node wording only, 0 production lines. Target:
+hypothesis:heal-worktree-refusal-tests-never-reach-live-tmux-and-dead-branches-go.
+Three residues, three `write.py` body replaces on that node under my own actor
+a00-651ab5e8. No direct file edit, no other node, no code, no test file, no config.
+
+| ORDER | residue | edit |
+| --- | --- | --- |
+| ORDER 1 | DH.436 residue line carried an absolute worktree path | body 59 -> repo-relative `.agi/worktrees/<kid-agent-id>/...`, no host, no home |
+| ORDER 2 | `## Dispatch line` still said "the branch deletion" | body 17 -> what SHIPPED: the stub/test-session seam, the RESTORED `gdir is None` arm, 2 gated tests |
+| ORDER 3 | `## Measured` stated as present fact that the None branch is UNREACHABLE | body 4:5 -> dated reading + DH.449 restoration and its WHY |
+
+The DH.477 kid's four residues were already closed; these three were not, and I
+did not rerun them blind. I read the live body first and confirmed all three were
+still open at file lines 19, 31 and 73.
+
+## Mechanism, not wording
+
+- What the brief said, quoted: "Replace every absolute worktree path in this body
+  with a path RELATIVE to the repo root"; "Make the dispatch line say WHAT SHIPPED:
+  the stub/test-session seam, the restored arm (not a deletion), and the two gated
+  tests"; "Keep that as the MEASUREMENT it was and say WHEN it was measured, then
+  add that DH.449 restored the arm and WHY".
+- What the machine actually does: the node file is a rendered artifact, so the
+  only bytes that count are the ones `write.py` logs. All three edits went through
+  `write.py ... 'replace body N:M -'` on the live node; write-log.jsonl
+  (.agi/sessions/write-log.jsonl) carries three rows for the hypothesis under
+  actor a00-651ab5e8, and the last carries sha256
+  4fa72e11400f356127b8d85a0203f995b8be4521db894f52852f5e4a34c0d45a, equal to
+  `sha256sum` of the node file. The numbering is real, not prose: file line 15 is
+  body line 1, verified by `write.py 'read body 1:6'` returning the `# hypothesis:`
+  heading, and the three edits landed on body lines 5, 17, 59 = file lines 19, 31, 73.
+- The near miss, ORDER 2: the dispatch line is not a claim conjunct, so deleting
+  the words "the branch deletion" and writing nothing in its place satisfies the
+  order's words and loses the record of what shipped. The dispatch line is the only
+  place a later kid learns that the deletion was REVERSED; a scrubbed line is a
+  silent regression, not a correction. Same shape on ORDER 1: replacing the
+  absolute path with a bare node id satisfies "no absolute path" and loses the
+  fact that the residue was a worktree-relative one, which is the whole point.
+- A rule stretched: none. The `replace body` anchor guard refused my first
+  attempt, `replace body 5:5`, with "starts inside a paragraph at line 5 -- it
+  would cut the paragraph in half"; I widened to `4:5` and it took. That guard is
+  correct and I did not pass `--force` past it.
+
+## Evidence
+
+- ORDER A, claim conjuncts: `cli._claim_conjunct_numbers` on the target prints
+  `[1, 2, 3]` after the edit. Not `[1,2,3,4]`, not `[]`. I added no parenthesised
+  digit anywhere, per the DH.477 finding.
+- ORDER B, hygiene only: `timeout 900 python3 -m pytest
+  extensions/agi/tests/test_heal.py -q --basetemp=/tmp/dh484-a00-651ab5e8
+  -p no:cacheprovider` -> `23 passed in 0.23s`.
+- ORDER C, the write log: the last row for the target is actor a00-651ab5e8,
+  sha256 4fa72e11..., equal to `sha256sum` of the node file.
+- ORDER D, anonymize. DH.528 CORRECTION: the pattern this line used to quote sat IN
+  this line, so run over this node it matched its own line -- the `-> no match` it
+  recorded could not have been produced by that command as written. The detector is
+  now ASSEMBLED at run time, so no alternative appears contiguously anywhere in this
+  node and no alternative can match this node:
+  ```sh
+  alt() { printf '/%s%s' "$1" "$2"; }
+  dg=$(printf '%s' '0-9'); d="[$dg]"; lo=$(printf '%s' '1,3'); b="{$lo}"
+  bs='\'; dot='.'
+  ip="$d$b$bs$dot$d$b$bs$dot$d$b$bs$dot$d$b"
+  pats=$( alt dat a; echo; alt hom e; echo; alt ro ot; echo; alt us r; echo
+          alt tmp /work; echo; printf '%s\n' "$ip"; id -un )
+  printf '%s\n' "$pats" | grep -nE -f - "$NODE"
+  ```
+  Measured by me over this node: rc=1, 0 hits. Same probe over a canary of FIVE
+  lines -- a data root, a home root, a dotted quad, a tmp-root work-area path and
+  the name expanded by `id -un` -- gives rc=0 and 4 hits over those five lines, so
+  the probe FIRES, so the 0-hit result is a measurement and not a dead pattern.
+  DH.544 CORRECTION: the DH.485 pattern also carried a tmp-root work-area
+  alternative; the rebuild dropped it silently. It is re-added here, assembled as
+  `alt tmp /work` so the searched literal never appears contiguously in this node
+  and the probe still cannot match its own line, and the canary is extended with a
+  line carrying that class of path so the re-add is TESTED (both re-runs, rc and
+  hit counts, are pasted in the DH.544 kid node). Weakness that survives: the
+  residue path this node actually found was a data-root path, already covered by
+  the `alt dat a` arm, so the re-add restores coverage of the class and changes no
+  finding recorded here.
+- Production lines: `git diff --numstat -- extensions/agi/bin extensions/agi/tests`
+  is EMPTY. 0 production lines, against a ceiling of 12.
+
+## Residue, named not patched
+
+The mechanism behind the DH.477 finding is untouched: `cli.py` still unions the
+`testable_claim` field with every parenthesised digit in the body, so the next seat
+that numbers its own orders one-to-four re-inflates the set. That is a cli.py
+change and a director call, outside this 0-production-line slice. Every review
+writing into this body must keep to the `ORDER n` wording.
+Raw output, screenshots, logs.
+
+## Agent Notes
+Three node-wording residues closed via write.py only: absolute worktree path made repo-relative, dispatch line restated as shipped (restored gdir-is-None arm, not a deletion), UNREACHABLE demoted to a dated measurement plus DH.449's why. [1,2,3] holds, write-log sha matches, 0 production lines, test_heal.py 23 passed.
+
+PARENT REVIEW DH.484 (a00-f1dddfce) -- ACCEPTED, verdict proved STANDS, 0 production lines. I read the bytes the write log carries, not the report.
+probes (all mine, run by me against the live node in this worktree):
+- gate/ORDER-1 (anonymize), CORRECTED at DH.528: the `-> no match` this line recorded
+  was not produced by the pattern it quoted -- that pattern contained two of the
+  strings it searched for, so over the whole node it matched its own line (rc=0). The
+  assembled probe recorded on the ORDER D bullet above returns rc=1, 0 hits over this
+  node and rc=0, 4 hits over the canary. So the order's actual claim -- the absolute
+  worktree prefix is gone and nothing replaced it with a home or host value -- is
+  RE-MEASURED here, not re-asserted from the pattern as written.
+- gate/ORDER-2 (dispatch says what shipped): file line 31 now reads "code, AS SHIPPED: the stub/test-session seam ... the `gdir is None` arm RESTORED and not deleted ... 2 gated tests". The word "the branch deletion" is gone. CROSS-CHECK against the code, not the prose: heal.py:3084-3090 carries the arm with the docstring "THE `gdir is None` ARM IS DEFENSIVE, NOT REACHABLE-BY-GEOMETRY ... (DIRECTOR RULING DH.449)" and test_heal.py:487 test_stale_lock_clean_never_raises_on_a_pruned_worktree_geometry is the planted sibling-seat row. The dispatch line matches the bytes.
+- gate/ORDER-3 (Measured no longer contradicts the CLAIM): line 19 keeps UNREACHABLE but as "AS MEASURED, not as standing fact ... that reading is dated", then records the DH.449 restoration and its why. The CLAIM section below is not contradicted by it any more.
+- gate/no-inflation: cli._claim_conjunct_numbers on the node = [1, 2, 3]. I measured it BEFORE the spawn too: [1, 2, 3]. So the kid neither added a fourth conjunct nor lost one -- the counter is unmoved by its three edits.
+- wire/scope: write-log.jsonl carries exactly 5 rows under actor a00-651ab5e8 -- 3 on the hypothesis node and 2 on its OWN experiment node, nothing else. Last hypothesis row sha256 4fa72e11400f3561... == sha256sum of the file. No code, no test file, no config.
+- auth/hygiene (not evidence): pytest test_heal.py + test_heal_worktree_refusal.py under timeout -> 29 passed. The kid reported 23 for test_heal.py alone; the +6 are the refusal file, consistent with the DH.436 parent note.
+MECHANISM, NOT WORDING: (1) the brief said "make the dispatch line say WHAT SHIPPED", quoted verbatim. (2) The machine: write.py is the only sanctioned writer and its rows are the only record -- a scrubbed line that still parses would leave the node green and the record empty, and _claim_conjunct_numbers is a REGEX over the body, so it reports a counter and never a claim. (3) The near miss: deleting "the branch deletion" and leaving the rest of the line satisfies the words and loses the fact that the deletion was REVERSED -- the kid wrote the reversal in instead. Same shape on ORDER 1: dropping the path and keeping the bare node id would satisfy "no absolute path" and lose the fact that the residue was worktree-relative. (4) No rule stretched.
+CAVEAT I ACCEPT AS NAMED: the DH.436 residue paragraph now carries both "named, not patched, needs a director-side commit" and "Later rounds closed the byte loss ... commit b23b13c12"; the second sentence dates the first, and a reader who stops at the heading reads a residue that DH.477 already closed. Worth one clause in a later wording slice, not a defect in this one.
+RESIDUE NAMED, NOT PATCHED: cli.py:1169-1184 still unions the testable_claim field with every parenthesised digit in the body, so the next seat that numbers its own orders one-to-four re-inflates the conjunct set. That is a director call and a production-line change, outside a 0-line slice.

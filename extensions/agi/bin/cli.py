@@ -15,6 +15,7 @@ id (`L1.08` -> `sessions/iter-L1.08`); `locations.iteration_id` parses both.
 from __future__ import annotations
 
 import argparse
+import errno
 import json
 import os
 import re
@@ -30,7 +31,9 @@ import branches  # noqa: E402 -- hyp l4-deliverable-check: round-own fork base
 import evidence_gate  # noqa: E402
 import frontmatter  # noqa: E402
 import geometry_config  # noqa: E402
+import grid  # noqa: E402 -- the ONE ref-namespace resolver (goal:g14.14.7)
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
+import links  # noqa: E402 -- parse_written_by, the ONE parse of a type's writers
 import locations  # noqa: E402
 import node_writer  # noqa: E402
 import spawn_budget  # noqa: E402
@@ -638,7 +641,8 @@ def _node_declared_deliverables(root, node_file) -> list:
     return []
 
 
-def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
+def _parent_harvest_body(root, manifest, iter_n, agent_id, row,
+                         commit_failed: str = "") -> str:
     """hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-
     per-round, clause 2 -- the ONE seat dm a parent sends at harvest. Counts
     and node ids derive from the agent records of kids whose `spawned_by_agent`
@@ -670,6 +674,10 @@ def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
     tip = _branch_tip(root, branch)
     notes = _kid_budget_notes(root, kids)
     tail = (" " + " ".join(notes)) if notes else ""
+    # hypothesis:a-stale-index-lock-is-cleared-or-named-...-never-silent: a
+    # round commit that failed is NAMED in the one harvest dm, never silent.
+    if commit_failed:
+        tail += f" commit FAILED: {commit_failed}"
     return (f"{_completion_line(iter_n, agent_id, None, 'harvest')} "
             f"accepted={accepted} demoted={demoted} failed={failed} "
             f"kids=[{', '.join(node_ids)}] "
@@ -938,7 +946,7 @@ def _write_kid_report(holders: list[Path], agent_id: str, line: str) -> None:
 
 
 def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict,
-                              record_path=None):
+                              record_path=None, commit_failed: str = ""):
     """hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- the round's
     ONE completion dm, sent with NO flag: the dispatcher was stamped into the
     manifest at spawn (`dispatched_by`), and a round that finishes alarms
@@ -1006,6 +1014,11 @@ def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict,
         if row is None:
             return
         line = _completion_line(iter_n, agent_id, node_id, verdict)
+        # item 3: a KID's failed commit was named NOWHERE -- the kid branch
+        # below returns at 1025 with `line` as built, and only the parent
+        # branch consumed `commit_failed`. Same string the parent carries.
+        if commit_failed:
+            line += f" commit FAILED: {commit_failed}"
 
         if tier == "kid":
             parent = row.get("spawned_by_agent")
@@ -1035,7 +1048,7 @@ def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict,
             import send as _send
             _send.send(root, dispatcher,
                        _parent_harvest_body(root, manifest, iter_n,
-                                            agent_id, row),
+                                            agent_id, row, commit_failed),
                        agent_id)
             return
 
@@ -1165,21 +1178,23 @@ def _target_hypothesis_node(root: Path, parent, node_id):
 
 
 def _claim_conjunct_numbers(node_file: Path) -> list:
-    """The distinct numbered claim-item numbers across the hypothesis's
-    `testable_claim` frontmatter field and its body -- its conjunct set."""
-    nums = []
+    """The distinct numbered claim-item numbers of a hypothesis -- its
+    conjunct set. `testable_claim` is the schema-declared claim surface and
+    wins outright: the body is prose, and a review citing its own orders as
+    (1)..(n) must not manufacture conjuncts. The body is read only for a node
+    that carries no numbered field."""
     try:
         text = node_file.read_text()
         fm = frontmatter.read_frontmatter(text)
         tc = fm.get("testable_claim") if isinstance(fm, dict) else None
-        if isinstance(tc, str):
-            nums += [int(m) for m in _CLAIM_ITEM_RE.findall(tc)]
+        if isinstance(tc, str) and _CLAIM_ITEM_RE.search(tc):
+            return sorted({int(m) for m in _CLAIM_ITEM_RE.findall(tc)})
         parts = frontmatter.split_frontmatter(text)
         if len(parts) >= 2:
-            nums += [int(m) for m in _CLAIM_ITEM_RE.findall(parts[1])]
+            return sorted({int(m) for m in _CLAIM_ITEM_RE.findall(parts[1])})
     except Exception:
         return []
-    return sorted(set(nums))
+    return []
 
 
 def _parent_probe_gate(root: Path, rec: dict, args, verdict: str):
@@ -1596,7 +1611,22 @@ def cmd_done(args: argparse.Namespace) -> int:
     rec["finished_at"] = int(time.time())
     rec["verdict"] = verdict
     rec["confidence"] = args.confidence
+    # SAME DEFECT, the `--node-id` line: `rec["node_id"]` is DISPATCH's field
+    # (dispatch.py stamps the scaffolded id there) and the sweep reads it, so
+    # the kid's `--node-id` re-entered the named set one page after `del
+    # parent` protected the parameter. Capture dispatch's value under a key
+    # nothing writes, BEFORE the overwrite, and let the named set read only
+    # the captured one (`dispatch_parent` below is the same precedent).
+    rec.setdefault("dispatch_node_id", rec.get("node_id") or "")
     rec["node_id"] = args.node_id
+    # hypothesis:a-rounds-named-node-set-is-its-dispatch-time-ids-never-a-kid-
+    # supplied-parent -- `rec["parent"]` is DISPATCH's field, and the sweep
+    # reads it (see `_round_named_node_ids`). Preserve the value dispatch
+    # wrote under a key NOTHING writes, BEFORE the kid's `--parent`
+    # overwrites the original: otherwise the line `del parent` protects the
+    # parameter while the record re-introduces the kid's id one page earlier,
+    # and `done --parent config:posts` widens the committed set again.
+    rec.setdefault("dispatch_parent", rec.get("parent") or "")
     rec["parent"] = args.parent
     if args.owns:
         rec["owns"] = list(args.owns)   # goal:s27 — a parent's real artefact
@@ -1734,17 +1764,35 @@ def cmd_done(args: argparse.Namespace) -> int:
     # action, so it owns the worktree commit too. Commits the linked worktree
     # this parent runs in, if it holds uncommitted node writes; a no-op in
     # main (the loop owns main) and outside git. Never fatal.
-    _auto_commit_worktree(root, args.agent_id, args.node_id, args.owns, verdict)
+    _commit_out = _auto_commit_worktree(root, args.agent_id, args.node_id,
+                                        args.owns, verdict,
+                                        _round_named_node_ids(rec, args.parent),
+                                        refused=[args.parent] if args.parent else None)
+    commit_fail = _commit_out if isinstance(_commit_out, str) else None
+    if commit_fail:
+        # item 4: `rec["status"] = "done"` is stamped ABOVE, before this
+        # commit runs, so a round whose commit failed read `done` in the
+        # record AND in the manifest mirror. `failed` is the status heal,
+        # sweep and `_parent_harvest_body` already know -- no new vocabulary.
+        rec["status"] = "failed"
+        rec["fail_reason"] = f"round commit FAILED: {commit_fail}"
+        ap.write_text(json.dumps(rec, indent=2))
+        _mirror_terminal_into_manifest(ap, rec, args.agent_id)
 
     # hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- a round that
     # finishes alarms the seat that dispatched it: exactly ONE dm, sent with
     # no flag, right after the done: commit. Never fatal to the done path.
     _alarm_rc = _alarm_dispatcher_on_done(root, args.iter_n, args.agent_id,
-                                          args.node_id, verdict, ap)
+                                          args.node_id, verdict, ap,
+                                          commit_failed=commit_fail or "")
 
     print(f"agent {args.agent_id} status=done verdict={verdict}")
     # SM.67 C2: a silent dm (no holder -> alarm returned 1) surfaces as the
     # exit code AFTER the verdict is recorded; a clean round exits 0.
+    if commit_fail:
+        # the round commit FAILED: the seat must never read this as landed
+        print(f"ERR: round commit FAILED: {commit_fail}", file=sys.stderr)
+        return 3
     return _alarm_rc if _alarm_rc else 0
 
 
@@ -2094,6 +2142,15 @@ def _round_scope_ok(rel: str, agent_id: str, own_paths: set) -> bool:
         return False
     if p.startswith(".agi/sessions/quorum/"):
         return False
+    # The gate's OWN inputs, refused like `config.json` above
+    # (hypothesis:a-rounds-commit-never-writes-its-own-gate-inputs-and-an-
+    # unreadable-schema-refuses): `_round_committable` reads
+    # `.agi/context/schemas/[<type>].md` for `written_by` / `round_commit` /
+    # `structural`, so a round that could commit a schema could widen its own
+    # type gate. Absent `kits/` here on purpose -- no cli.py reader makes a
+    # kit a gate input, and refusing it would strand rounds' own kit work.
+    if p.startswith(".agi/context/schemas/"):
+        return False
     if p.startswith(".agi/nodes/"):
         return bool(agent_id) and agent_id in p.rsplit("/", 1)[-1]
     return True
@@ -2117,12 +2174,208 @@ def cmd_scope_check(args: argparse.Namespace) -> int:
     return 0 if all(_round_scope_ok(p, agent_id, own) for p in paths) else 1
 
 
+def _round_named_node_ids(rec, parent) -> list:
+    """hypothesis:a-rounds-named-node-set-is-its-dispatch-time-ids-never-a-kid-
+    supplied-parent -- the node ids the round's ORDERS name: ONLY what
+    dispatch wrote into the agent record (`target` / `parent` / `node_id`).
+    A kid ordered to correct an EXISTING node in place cannot have that edit
+    committed by any other rule (its own node is its own; a foreign node is
+    foreign), so the round's own NAMED set is the target dispatch picked.
+    `--parent` is the KID's line, not dispatch's, so it is read here for
+    signature compatibility and never widens the set -- before, one round
+    could name `config:posts` on the command line and have that edit swept
+    into its own loop-branch commit. `parent` stays in the signature (call
+    sites and tests name it) but contributes NOTHING. Ids only -- each is
+    filtered by type in `_round_own_node_paths`."""
+    out = []
+    del parent   # dispatch-time ids only; the kid's --parent never widens
+    # `dispatch_parent` is captured by `cmd_done` BEFORE it writes the kid's
+    # `--parent` into `rec["parent"]`; it is the ONLY parent the set reads.
+    # The `parent` fallback is for a record that never went through `cmd_done`
+    # (a fixture, a record written by an older dispatch, a direct call) -- in
+    # the `done` path the capture above has always run first.
+    if isinstance(rec, dict):
+        _dp = rec.get("dispatch_parent", rec.get("parent"))
+        # `node_id` is read ONLY as `dispatch_node_id` -- the value dispatch
+        # wrote, captured by `cmd_done` before the kid's `--node-id`
+        # overwrote it. There is deliberately NO `rec.get("node_id")`
+        # fallback here: that key is the kid's line, and reading it let
+        # `done --node-id hypothesis:<foreign>` ride a foreign node into this
+        # round's loop-branch commit with no type gate at all (the `--parent`
+        # half of the same hole, closed in DH.390/411).
+        _cand = (rec.get("target"), _dp, rec.get("dispatch_node_id"))
+    else:
+        _cand = (None, None, None)
+    for v in _cand:
+        if isinstance(v, str) and ":" in v and v not in out:
+            out.append(v)
+    return out
+
+
+def _round_committable(root: Path, nid: str) -> bool:
+    """May a round's `done` commit sweep node id `nid`? Three DATA gates, no
+    type list in code (hypothesis:a-rounds-named-node-set-is-its-dispatch-time-
+    ids-never-a-kid-supplied-parent):
+      1. `grid.round_commit` in `.agi/config.json` -- `node_types` (a type no
+         round may edit: goal, config, town, ...) and `never_node_ids` (id
+         prefixes: `doc:unified-`). An ABSENT cell gates nothing, so a fixture
+         or a fresh tree behaves as it did.
+      2. the type's OWN schema `written_by` (`.agi/context/schemas/[<type>].md`
+         via `schema_registry`, the same reader `write.py` enforces it with) --
+         a type admitting ONLY owner/prime_director is never round-editable.
+      3. the type's schema `round_commit` cell -- `false` refuses the type,
+         `true` allows it, a map allows it and may add `never_node_ids`. This
+         cell is read from a COMMITTED file a round may itself commit
+         (`_round_scope_ok` only refuses `.agi/config.json`, `.agi/context/
+         schemas/`, the quorum dir and foreign node files), so unlike (1) it
+         survives into main; an explicit
+         cell WINS over the config allowlist either way.
+      4. STRUCTURAL geometry, default DENY: a type whose own schema declares
+         `structural: true`, or whose node file resolves under a DOTTED
+         directory of `nodes/` (`.geometry/` and whatever sibling is minted
+         next), is never round-editable. This is the structural half of
+         (2)+(3) -- the seat table, the cadence table and the ladder live
+         there -- and it generalises: a NEW geometry type is denied by its
+         home and by its schema cell, with no name in this function
+         (DH.414 residue (b): `command:cmd-a`, `cron:crons`, `ladder:ladder`
+         all passed before this line).
+    """
+    ntype = nid.split(":", 1)[0]
+    try:
+        from schema_registry import load_schemas_from_dir
+        sdir = Path(root) / "context" / "schemas"
+        if sdir.is_dir():
+            reg = load_schemas_from_dir(sdir)
+            # An UNREADABLE schema refuses, BY NAME. The loader records the
+            # file and the reason in `registry.errors` and carries on, so a
+            # truncated or frontmatter-less `[<type>].md` was indistinguishable
+            # from an absent one and the type gate went OPEN in silence
+            # (hypothesis:a-rounds-commit-never-writes-its-own-gate-inputs-and-
+            # an-unreadable-schema-refuses). Only THIS type's own error
+            # refuses; a broken neighbour's schema still gates nothing.
+            for path, reason in reg.errors:
+                if Path(path).stem.strip("[]") == ntype:
+                    print(f"refuse: round commit: schema {Path(path).name} "
+                          f"unreadable ({reason})", file=sys.stderr)
+                    return False
+            sch = reg.get(ntype)
+            if sch is not None:
+                if sch.frontmatter.get("structural") is True:
+                    return False
+                wb = links.parse_written_by(sch.frontmatter.get("written_by"))
+                if wb and not (wb - {"owner", "prime_director"}):
+                    return False
+                cell = sch.frontmatter.get("round_commit")
+                if cell is not None:
+                    if isinstance(cell, dict):
+                        if cell.get("allow") is False:
+                            return False
+                        if any(isinstance(p, str) and nid.startswith(p)
+                               for p in (cell.get("never_node_ids") or [])):
+                            return False
+                    else:
+                        return bool(cell)
+    except Exception as exc:  # noqa: BLE001 -- an unreadable schema REFUSES
+        print(f"refuse: round commit: schema gate failed for {nid}: "
+              f"{type(exc).__name__}: {exc}", file=sys.stderr)
+        return False
+    # The node's own home: a structural directory (`nodes/.geometry/`) holds the
+    # graph's furniture, not a round's work. Dotted dir = structural, so a new
+    # geometry type is denied by WHERE it LIVES, with no name in this function.
+    # DH.414 residue (b): the rule was a NAME GUESS -- a dotted dir holding a
+    # file whose stem equals the id's type or slug -- so `doc:geometry-towns-
+    # core` at `nodes/.geometry/towns/core.md` matched nothing and the seat
+    # table was swept in silence. The JOIN is the real one: resolve the node
+    # FILE BY ID (`_find_node_file`, the reader already in hand) and refuse
+    # when the resolved path runs under a dotted directory of `nodes/`. The
+    # stem guess is kept only as the fallback for an id no file resolves
+    # (a fixture, a type minted this run) -- it can over-refuse, never
+    # under-refuse.
+    try:
+        nodes = Path(root) / "nodes"
+        nf = _find_node_file(root, nid)
+        if nf is not None:
+            try:
+                if any(part.startswith(".")
+                       for part in Path(nf).relative_to(nodes).parts[:-1]):
+                    return False
+            except ValueError:
+                pass
+        else:
+            slug = nid.split(":", 1)[1]
+            for d in nodes.iterdir():
+                if not (d.is_dir() and d.name.startswith(".")):
+                    continue
+                if any(f.stem in (ntype, slug) for f in d.glob("*.md")):
+                    return False
+    except OSError:
+        pass
+    try:
+        cfg = json.loads((Path(root) / "config.json").read_text(encoding="utf-8"))
+        rc = ((cfg.get("grid") or {}).get("round_commit") or {})
+    except (OSError, ValueError, AttributeError):
+        rc = {}
+    if any(isinstance(p, str) and nid.startswith(p)
+           for p in (rc.get("never_node_ids") or [])):
+        return False
+    types = rc.get("node_types")
+    return not (isinstance(types, list) and types and ntype not in types)
+
+
 def _round_own_node_paths(root: Path, checkout_root: Path,
-                          node_id: str | None, owns: list | None) -> set:
-    """The round's own node files, relative to the checkout toplevel."""
+                          node_id: str | None, owns: list | None,
+                          named: list | None = None,
+                          refused: list | None = None,
+                          agent_id: str | None = None) -> set:
+    """The round's own node files, relative to the checkout toplevel. The
+    round's OWN node is always its own; every other id -- `--owns`, the
+    dispatch-time named set, and the kid's own `--parent` -- must be
+    round-committable by type.
+
+    Every REFUSED id is NAMED on stderr: a round told `done --parent goal:g5`
+    used to get silence, and could not tell "I refuse that" from "I never saw
+    it". `--parent` is threaded in as `refused` because it is `del`eted from
+    the named set in `_round_named_node_ids` -- it is still a value the round
+    asked for, so it is judged (and named) where it is in hand."""
     out = set()
-    for nid in [node_id, *(owns or [])]:
-        if not nid:
+    seen = set()
+    asked = [node_id, *(owns or []), *(named or [])]
+    for nid in [*asked, *(refused or [])]:
+        if not nid or nid in seen:
+            continue
+        seen.add(nid)
+        if nid == node_id and agent_id and nid not in (named or []):
+            # DH.414 residue (a): the `--node-id` SEED. `node_id` is the
+            # KID's line, and the type gate alone let `done --node-id
+            # hypothesis:<foreign>` ride a foreign node into this round's
+            # commit: `_round_scope_ok` short-circuits on `own_paths`, so the
+            # agent-id rule that is the ONLY thing requiring a node file to
+            # carry this round's id was skipped. It seeds the sweep only if
+            # DISPATCH named this id (`named`) or the node file's basename
+            # carries this round's agent id -- the same agent-id rule
+            # `_round_scope_ok` applies. With no agent id in hand (a direct
+            # call, a test fixture) the pre-existing behaviour stands and the
+            # type gate still applies.
+            base = Path(_find_node_file(root, nid) or "").name
+            if not (agent_id and agent_id in base):
+                print(f"round-commit gate: refusing {nid} — a --node-id "
+                      f"seeds this round's commit only if dispatch named it "
+                      f"or its filename carries {agent_id or 'this round'}'s "
+                      f"agent id", file=sys.stderr)
+                continue
+        if nid not in asked:
+            # A kid-supplied id (`done --parent`) NEVER widens the set, even
+            # for a round-committable type -- judged by the type gate it let
+            # a foreign `hypothesis:` ride into this round's commit (DH.390
+            # harvest). Named, never swept.
+            print(f"round-commit gate: refusing {nid} — a kid-supplied "
+                  f"--parent never widens this round's done commit",
+                  file=sys.stderr)
+            continue
+        if not _round_committable(root, nid):
+            print(f"round-commit gate: refusing {nid} — not "
+                  f"round-committable, so it is left uncommitted by this "
+                  f"round's done commit", file=sys.stderr)
             continue
         nf = _find_node_file(root, nid)
         if nf and nf.exists():
@@ -2133,8 +2386,132 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
     return out
 
 
+def _uninspectable(base: str, exc: OSError) -> str:
+    """NAME of a live process whose /proc table could not be read, or '' when
+    nothing is lost. Three exits, each a property of the PID and none a guess
+    about its NAME (the allowlist of comms this replaces decided a SAFETY
+    question by a pasted host reading, and blocked every checkout on the box
+    over one unreadable pid in any of them). 1) ENOENT = the pid EXITED
+    mid-walk: provably no holder. 2) ANOTHER uid: `/proc/<pid>`'s own st_uid
+    is readable when the table is not, and a process of another uid cannot
+    hold a file in our worktree. 3) NON-DUMPABLE: an fd dir the KERNEL owns
+    (st_uid 0 for a same-uid pid) is a session daemon (ssh-agent, gpg-agent,
+    sd-pam -- three permanent ones on the measured host), not a writer of our
+    index; refusing on those refuses every commit on every desktop. A stat
+    ENOENT takes the listing's exit: the pid EXITED mid-walk. What is
+    left -- our uid, our own fd dir, still unreadable -- is an UNKNOWN holder
+    and refuses, whatever its comm: an editor or a backup daemon included."""
+    if exc.errno == errno.ENOENT:
+        return ""
+    try:
+        if os.stat(base).st_uid != os.getuid():
+            return ""
+        if os.getuid() and os.stat(f"{base}/fd").st_uid == 0:
+            return ""
+    except OSError as sexc:
+        # a pid that EXITED between the listing above and this stat is
+        # provably no holder -- the same exit as the ENOENT arm above. Every
+        # OTHER errno (EACCES, EPERM, ...) stays an UNKNOWN holder.
+        return "" if sexc.errno == errno.ENOENT else "?"
+    try:
+        return Path(base, "comm").read_text().strip() or "?"
+    except OSError:
+        return "?"
+
+
+def _lock_is_held(lock: Path, checkout: Path) -> bool | str:
+    """HELD = some process has this lock OPEN (/proc/<pid>/fd) or is a git whose
+    CWD resolves inside the checkout (/proc/<pid>/cwd + comm). Never argv: a git
+    run with cwd=the checkout and no path in argv -- row 18's shape -- is
+    invisible to `pgrep -f`.
+
+    Returns True, or -- DH.594 -- a NAMED REFUSAL string when an our-own-uid
+    pid we cannot inspect may hold this lock (see `_uninspectable` for who
+    that is and who it is not). Refuse-to-unlink: an unreadable table is NOT
+    an empty table; `except OSError: fds = []` concluded 'no holder' and
+    unlinked a HELD lock."""
+    ck = os.path.realpath(checkout)
+    lp = os.path.realpath(lock)
+    for pid in os.listdir("/proc"):
+        if not pid.isdigit():
+            continue
+        base = f"/proc/{pid}"
+        try:
+            fds = os.listdir(f"{base}/fd")
+        except OSError as exc:
+            who = _uninspectable(base, exc)
+            if who:
+                return (f"/proc/{pid} ({who}) fd table unreadable "
+                        f"({exc.strerror or exc}) -- holder UNKNOWN, lock NOT removed")
+            continue
+        for fd in fds:
+            # ONE unreadable fd (EPERM on /proc/<pid>/fd/N of another user)
+            # must skip THAT fd only -- never the rest of the pid's table:
+            # a raised any() aborts the pid and a HELD lock gets unlinked.
+            try:
+                if os.readlink(f"{base}/fd/{fd}") == lp:
+                    return True
+            except OSError:
+                continue
+        try:
+            cwd = os.readlink(f"{base}/cwd")
+            if ((cwd == ck or cwd.startswith(ck + os.sep))
+                    and Path(base, "comm").read_text().strip() == "git"):
+                return True
+        except OSError:
+            # A READABLE fd table above already walked every fd this pid has
+            # and found no open lock, and no other signal can outrank that:
+            # an unreadable `cwd` (measured on this host: a same-uid,
+            # dumpable `systemd --user`) is not a holder, and refusing on it
+            # refuses EVERY commit on the box. The un-inspectable case is
+            # already refused at the fd arm, where the table itself is dark.
+            continue
+    return False
+
+
+def _clear_stale_index_lock(root: Path, checkout: Path) -> str | None:
+    """hypothesis:a-stale-index-lock-is-cleared-or-named-...-never-silent --
+    the pre-commit gate: a STALE `.git/index.lock` (older than the cell
+    `values.core.stale_index_lock_s`, no live holder) is removed with ONE named
+    line; a FRESH, HELD or UNTHRESHOLDED one is never touched and the commit
+    refuses BY NAME. Returns the refusal reason, or None when clear."""
+    try:
+        cfg = json.loads((Path(root) / "config.json").read_text(encoding="utf-8"))
+        cell = ((cfg.get("values") or {}).get("core") or {}).get("stale_index_lock_s")
+        rel = subprocess.run(["git", "-C", str(checkout), "rev-parse",
+                              "--git-path", "index.lock"],
+                             capture_output=True, text=True).stdout.strip()
+        # git resolves `--git-path` against the PROCESS cwd, not -C: rebase it.
+        lock = Path(rel) if rel else None
+        if lock is not None and not lock.is_absolute():
+            lock = checkout / lock
+        if lock is None or not lock.is_file():
+            return None    # no lock: nothing to clear, nothing to refuse
+        # the threshold is the CELL, never a literal; a MISSING cell never unlinks.
+        if cell is None:
+            return ("stale_index_lock_s not set -- NOT removed (no threshold "
+                    "cell is no licence to unlink a lock)")
+        stale_s = float(cell)
+        age = time.time() - lock.stat().st_mtime
+        held = _lock_is_held(lock, checkout)
+        if isinstance(held, str):
+            return held          # an INCOMPLETE /proc walk: refuse BY NAME
+        if age < stale_s or held:
+            return (f"index.lock {lock} age={int(age)}s "
+                    f"stale_after={int(stale_s)}s held={'yes' if held else 'no'}"
+                    " -- NOT removed")
+        lock.unlink()
+        print(f"cleared stale index.lock {lock}: age={int(age)}s > "
+              f"{int(stale_s)}s, no git holder")
+        return None
+    except (OSError, ValueError, AttributeError, subprocess.SubprocessError) as exc:
+        return f"index.lock check failed: {exc}"
+
+
 def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
-                         owns: list | None, verdict: str) -> Path | None:
+                         owns: list | None, verdict: str,
+                         named: list | None = None,
+                         refused: list | None = None) -> Path | None:
     """Give the commit to the parent at the moment it accepts its kid's node.
 
     hypothesis:l3w4-branch-parent-commits — a `--branch` parent runs inside a
@@ -2154,7 +2531,9 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
     DIFFERENT repo than the project's common-dir, i.e.
     `locations.git_common_root(root)` != this checkout's own toplevel.
 
-    Returns the committed checkout root on success, None otherwise. A commit
+    Returns the committed checkout root on success, None otherwise, and the
+    FAILURE REASON as a string when the commit was refused or failed, so
+    `cmd_done` can exit non-zero and the harvest dm can name it. A commit
     failure prints a loud named ERR to stderr but NEVER discards the verdict
     already recorded — the same principle `cmd_done` applies a few lines above
     when the schema-fill step fails: the kid's work is on disk and is worth
@@ -2212,7 +2591,8 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
     # the round's OWN paths, never `add -A` (hypothesis:l4-the-round-done-
     # commit-scopes-to-the-round-own-paths-never-git-add-a). A foreign dirty
     # path is named on stderr and left where it is.
-    own = _round_own_node_paths(root, checkout_root, node_id, owns)
+    own = _round_own_node_paths(root, checkout_root, node_id, owns, named,
+                                refused, agent_id=agent_id)
     in_scope, foreign = [], []
     for rec in status.stdout.split("\0"):
         if len(rec) < 4:
@@ -2256,14 +2636,20 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
                 subject_verdict = stored
     subject = f"{agent_id} done: {ref} verdict={subject_verdict}"
 
+    # the stale-lock gate, BEFORE the commit: a clear path commits, a fresh or
+    # held lock refuses by name and leaves the lock exactly as it found it.
+    refused_lock = _clear_stale_index_lock(root, checkout_root)
+    if refused_lock:
+        print(f"ERR: worktree commit refused in {checkout_root}: {refused_lock}",
+              file=sys.stderr)
+        return refused_lock
     add = subprocess.run(["git", "-C", str(checkout_root), "add", "--",
                           *in_scope],
                          capture_output=True, text=True)
     if add.returncode != 0:
-        print(f"ERR: worktree commit add failed in {checkout_root}: "
-              f"{add.stderr.strip() or '(no stderr from git)'}",
-              file=sys.stderr)
-        return None
+        reason = (f"add failed: {add.stderr.strip() or '(no stderr from git)'}")
+        print(f"ERR: worktree commit {reason} in {checkout_root}", file=sys.stderr)
+        return reason
 
     commit_env = dict(os.environ)
     # Item (5): dispatch exports AGI_PROJECT_ROOT as the GRAPH dir (<wt>/.agi),
@@ -2284,10 +2670,10 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
          "commit", "-qm", subject],
         capture_output=True, text=True, env=commit_env)
     if commit.returncode != 0:
-        print(f"ERR: worktree commit failed in {checkout_root}: "
-              f"{commit.stderr.strip() or '(no stderr from git)'}",
-              file=sys.stderr)
-        return None
+        reason = (f"commit failed: "
+                  f"{commit.stderr.strip() or '(no stderr from git)'}")
+        print(f"ERR: worktree {reason} in {checkout_root}", file=sys.stderr)
+        return reason
 
     print(f"committed worktree {checkout_root}: {subject}")
     return checkout_root
@@ -2331,6 +2717,32 @@ def cmd_status(args: argparse.Namespace) -> int:
 _WAIT_POLL_SECONDS = 20.0
 _WAIT_MAX_SECONDS = 540.0
 
+#: `wait` timeout -- the deadline passed with a kid still running. Named (it
+#: was a bare `return 2`) so `brief.py` renders the code from here, not a copy.
+_WAIT_TIMEOUT = 2
+
+#: `wait --agent X` where X matches NO manifest row -- returned at once, named.
+#: Never 1 (missing manifest) and never 2 (genuine still-running timeout).
+_WAIT_NO_AGENT = 3
+
+#: The default set (no `--agent`) with ZERO `tier: kid` rows -- named, at once.
+#: `dispatch.py` writes the manifest on disk (`_merge_manifest`, dispatch.py:2933)
+#: BEFORE it returns, and the parent calls `dispatch --detach` then `wait` as two
+#: synchronous Bash calls (brief.py:1930), so a zero-kid-row `wait` means NO kid
+#: was ever spawned -- most loudly because the spawn was refused as unadmitted
+#: (a row lands in `unadmitted`, never in `agents`). Returning 0 there let the
+#: parent end its turn silently with no kid.
+_WAIT_NO_KID_ROWS = 4
+
+
+def _wait_elapsed(rec: dict, now: float) -> int:
+    """Whole seconds since `rec['started_at']`; 0 if absent/0/unparseable."""
+    try:
+        begun = int(rec.get("started_at", 0) or 0)
+    except (TypeError, ValueError):
+        return 0
+    return max(0, int(now - begun)) if begun else 0
+
 
 def cmd_wait(args: argparse.Namespace) -> int:
     """Block IN-PROCESS until every kid of the round is terminal.
@@ -2349,16 +2761,28 @@ def cmd_wait(args: argparse.Namespace) -> int:
     deadline = time.monotonic() + args.max_seconds
     while True:
         m = json.loads(manifest.read_text())
-        states = [(a["id"], a.get("status", "running")) for a in m["agents"]
-                  if (a.get("id") in want if want
-                      else a.get("tier", "kid") == "kid")]
-        print(f"wait {args.iter_n}: " + ", ".join(f"{i}={s}" for i, s in states))
-        if states and all(s in TERMINAL_STATUSES for _, s in states):
+        rows = [a for a in m["agents"]
+                if (a.get("id") in want if want
+                    else a.get("tier", "kid") == "kid")]
+        if not rows:
+            if want:
+                print("no manifest agent matches --agent: "
+                      + " ".join(sorted(want)), file=sys.stderr)
+                return _WAIT_NO_AGENT
+            print(f"no tier:kid row exists for iter {args.iter_n} -- no kid "
+                  f"was spawned for this round", file=sys.stderr)
+            return _WAIT_NO_KID_ROWS
+        states = [(a["id"], a.get("status", "running"),
+                   _wait_elapsed(a, time.time())) for a in rows]
+        print(f"wait {args.iter_n}: " + ", ".join(
+            f"{i}={s} elapsed={e}s" for i, s, e in states))
+        if all(s in TERMINAL_STATUSES for _, s, _ in states):
             return 0
         if time.monotonic() >= deadline:
             print("still running: " + " ".join(
-                i for i, s in states if s not in TERMINAL_STATUSES), file=sys.stderr)
-            return 2
+                i for i, s, _ in states if s not in TERMINAL_STATUSES),
+                file=sys.stderr)
+            return _WAIT_TIMEOUT
         time.sleep(min(_WAIT_POLL_SECONDS, max(0.0, deadline - time.monotonic())))
 
 
@@ -4052,9 +4476,17 @@ def _reshuffle_cell_edits(root: Path, season: int, jobs: list[dict]) -> list[str
 
 def _reshuffle_refs_grid(repo: Path) -> str:
     """Byte source of truth for the refs/grid namespace: refname + object name
-    per ref, one per line, refs sorted. Compare before/after for identity."""
+    per ref, one per line, refs sorted. Compare before/after for identity.
+
+    The namespace is read through `grid.ref_ns_for`, not written as a literal
+    (goal:g14.14.7): a project that declares `grid.storage_trunk` keeps its
+    history under the namespace it names. `repo` is a git repo root, so the
+    GRAPH root (`<repo>/.agi`) is resolved first -- passing the bare repo root
+    to the resolver would find no config and silently return the default.
+    """
+    ns = grid.ref_ns_for(locations.find_project_root(repo) or repo)
     r = subprocess.run(
-        ["git", "for-each-ref", "--format=%(refname) %(objectname)", "refs/grid"],
+        ["git", "for-each-ref", "--format=%(refname) %(objectname)", ns],
         cwd=repo, capture_output=True, text=True)
     return "\n".join(sorted(r.stdout.splitlines())) + "\n"
 

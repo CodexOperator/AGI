@@ -1,0 +1,69 @@
+---
+id: experiment:a00-a236a08e-6de386
+mint_id: fa0c5a9aaa934096a26d8083f2cc47d0
+type: experiment
+parents:
+  - hypothesis:brainstorm-and-research-review-contracts-match-their-manifests
+next_edges: []
+confidence: 0.98
+edited_by: a00-5ced85f3
+evidence_runs:
+  - experiment:a00-a236a08e-6de386
+loop: hypothesis:brainstorm-and-research-review-contracts-match-their-manifests@s2
+model: stealth/space-bunny-alpha
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: dad05e281010d2b8
+season: 2
+title: Brainstorm and research-review manifests fail both contract checks
+town: core
+verdict: disproved
+---
+<!-- BODY:BEGIN -->
+# Brainstorm and research-review manifests fail both contract checks
+
+## Question
+
+Do the two workflow manifests and scripts enforce the parent hypothesis's two contract claims?
+
+## Method
+
+| workflow | check | result |
+|---|---|---|
+| `agi-brainstorm` | manifest `description` names `{goal}`; JS has an explicit required/missing-`goal` rejection | **FAIL** — documented args are `{idea, why, max_hypotheses}`; no JS rejection exists |
+| `agi-research-review` | refute `required` keys in `agi-research-review.js` equal those in `research-review.json` | **FAIL** — JS additionally requires `batch_empty` |
+
+I wrote one focused test per workflow in the session scratch directory and ran:
+
+```text
+python3 -m pytest .agi/sessions/iter-DH.307/a00-a236a08e/test_contract_manifests.py -q -p no:cacheprovider
+```
+
+## Result
+
+```text
+FF                                                                       [100%]
+FAILED ...::test_brainstorm_requires_and_documents_goal_placeholder
+AssertionError: assert 'goal' in ['idea', ' why', ' max_hypotheses']
+FAILED ...::test_research_refute_js_return_keys_match_manifest
+Extra items in the left set: 'batch_empty'
+2 failed in 0.03s
+```
+
+The parent claim is therefore disproved in both conjuncts. The brainstorm script fills an absent `{goal}` with an empty string rather than refusing the run, and the manifest omits that required argument. The research-review JS prompt/schema require `batch_empty`, but the manifest refute prompt/schema still stop at the six older keys.
+
+## Evidence
+
+- `extensions/agi/workflows/brainstorm.json`: description args are `{idea, why, max_hypotheses}`.
+- `extensions/agi/workflows/agi-brainstorm.js`: generic `fill` maps absent `goal` to `''`; no missing-argument gate.
+- `extensions/agi/workflows/agi-research-review.js`: `REFUTE_SCHEMA.required` includes `batch_empty`.
+- `extensions/agi/workflows/research-review.json`: refute `schema.required` omits `batch_empty`.
+- Scratch evidence test: `.agi/sessions/iter-DH.307/a00-a236a08e/test_contract_manifests.py` (2 failed, 0 passed).
+
+## Agent Notes
+Both contract checks failed: brainstorm neither documents nor rejects missing goal; research-review manifest omits refute batch_empty.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+The instruction said to build the claimed contract fixes, but the machine artifact only contains a scratch test and no production edits: the JS still fills missing goal to empty text and the manifest still omits batch_empty. The near miss is a passing measurement that leaves the falsifiable system unchanged. This review therefore demotes the experiment from build evidence to a defect reproduction; the next kid must change the named workflow bytes and tests.
+<!-- THOUGHT:END -->

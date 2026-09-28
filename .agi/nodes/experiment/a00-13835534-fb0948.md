@@ -1,0 +1,257 @@
+---
+id: experiment:a00-13835534-fb0948
+mint_id: 9424361e85054867bfa7651a75baebf5
+type: experiment
+parents:
+  - hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused
+next_edges: []
+confidence: 0.6
+edited_by: director-engine
+evidence_runs:
+  - experiment:a00-13835534-fb0948
+loop: hypothesis:every-live-row-carries-its-own-box-and-an-unset-box-is-refused@s2
+model: stealth/space-bunny-alpha
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 5bed1cb1a707a3e7
+season: 2
+title: "DH.669 corrective: the refuted EOF-splice claim pinned and rewritten, the stale evidence paste replaced with the real bytes, the pinned-loss label given a committed assertion"
+town: core
+verdict: inconclusive_lean_disproved:60
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-13835534-fb0948
+
+## What this run did
+DH.669 corrective, four items. Each is either FIXED in the bytes or settled by a
+command whose real output is pasted here. No mechanism re-argument.
+
+| # | item | disposition |
+|---|---|---|
+| 1 | a00-dd6557af THOUGHT asserted a silent EOF no-op the machine does not do | **FIXED** — option (b), pinned by measurement, counterexample kept |
+| 2 | a00-939e9e6a's evidence paste did not match the bytes it certifies | **FIXED** — re-pasted the real bytes, re-stated: record CORRECT, evidence off |
+| 3 | the pinned-loss label was protected by nothing committed | **FIXED in bytes** — a committed assertion (item-3 test) |
+| 4 | the numstat paste undercounts the round's files | **FIXED** — four files, node text only |
+
+## Item 1 — the refuted quantifier, pinned (fix (b), not deletion)
+The a00-dd6557af authored THOUGHT ended: *"Also measured here: replace body N:M
+silently removes NOTHING when the range ends on the last line of the body
+(write.py _splice_range), so a deletion whose range reaches EOF cannot be made
+that way."* REFUTED. Five commands, throwaway agi project, full paste at
+`.agi/sessions/iter-DH.669/a00-13835534/item1-eof-probe.txt`:
+
+```
+$ wc -l                      # marker-less node: 6 frontmatter + 7 body lines
+13 .agi/nodes/goal/parent-probe-669.md
+$ write.py goal:parent-probe-669 'replace body 7:7 new.txt'
+updated: goal:parent-probe-669
+rc=0
+body now:  line1 line2 line3 line4 line5 (blank) NEWTAIL      <- LAST body line replaced
+
+$ write.py goal:pp-A 'replace body 5:5 new2.txt'               # last line of a 5-line body
+ERR: replace body 5:5 starts inside a paragraph at line 5 ('TAILY') -- it would cut the
+paragraph in half. Widen the range to a blank line or a heading, or pass --force
+(hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices)
+rc=2
+body unchanged:  (REFUSED LOUDLY, nothing written)
+
+$ write.py goal:pp-C 'replace body 1:5 new2.txt'               # WHOLE body, reaches EOF
+updated: goal:pp-C
+rc=0
+body:  Z
+```
+
+So: an EOF-reaching **replacement** lands (rc=0). No DELETE shape was ever run in this
+round's probes — every one above passes non-empty text. CORRECTED BY EG.52
+(a00-620bf49d, pasted on experiment:a00-620bf49d-ac1ffb): a deletion through an empty
+FILE source is REFUSED rc=2, range-independently (write.py:1996-2001, interior 1:2 and
+EOF 1:4 both refused); a deletion through `-` with EMPTY stdin LANDS rc=0 (the stdin
+branch at write.py:1985-1989 returns before that check). `_splice_range`
+(write.py:2296-2321) is an unconditional splice with no silent-no-op branch; the only
+pre-splice guard `_body_range_refusal` (write.py:2477+) either REFUSES LOUDLY with rc=2
+and the offending line named, or admits. Nothing is ever silent.
+
+**The real mechanism behind DH.645's "updated but no byte changed"**, also measured
+here: `replace body N:M` is **BODY-RELATIVE**, body line 1 = the `<!-- BODY:BEGIN -->`
+marker itself and the body ends at `<!-- BODY:END -->`, so `13:13` against a 9-line
+body is `ERR ... ends past the end of the body at line 9`, rc=2. A range written in
+file-absolute numbers lands on *other bytes* or is refused — never on a silent EOF
+no-op. (This is the same class as
+`hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices`, which owns
+the guard.) The node now says this; the observation that survives is the paragraph-edge
+refusal, and it is kept, not deleted.
+
+## Item 2 — the evidence, re-pasted; the record turns out to be CORRECT
+The paste at a00-939e9e6a:52-55 showed a00-ac24f72d's THOUGHT tail carrying a PARENT
+REVIEW by a00-332ee73f. I re-ran the tail against the bytes **this branch carries**:
+
+```
+$ tail -3 .agi/nodes/experiment/a00-ac24f72d-d33510.md
+[THOUGHT:BEGIN marker line]  <!-- authored, not derived; carried across regenerating scans -->
+DH.645 (a00-939e9e6a) — this block was destroyed to a literal dash by `write.py <id> 'thought -'`, a verb that does NOT read stdin. The reasoning is recovered from the parent review in this node's own body. WHAT THE BYTES DO: ...
+[THOUGHT:END marker line]
+```
+
+(The two HTML comment markers are rendered as `[... marker line]` here ONLY so this
+node's own `thought` verb cannot mistake quoted evidence for this node's authored
+thought — `extract_thought` takes the FIRST `THOUGHT:BEGIN` it finds
+(node_writer.py:922-929), and a verbatim paste inside a body silently captures it.
+The three lines are byte-verbatim at
+`.agi/sessions/iter-DH.669/a00-13835534/item2-ac24f72d-tail.txt`. This is itself a
+finding: a node whose body quotes another node's THOUGHT block will have its thought
+replaced by the next `thought` write, in either direction.)
+
+That is the **DH.645 (a00-939e9e6a) AUTHORED PARAGRAPH**, not a review. So the record
+was CORRECT and only its EVIDENCE was off: the old paste came from a state this branch
+does not carry, and the `4:8` counterexample offered as proof of does not live on this
+node. **No `thought`-through-rewrite defect is shown** — nothing indicates a review
+displacing the round's fix, and a00-ac24f72d's reasoning was not touched here (its
+file is byte-identical to the base, 0 lines changed by me). The sibling is left alone.
+Also recorded: the round's own probe P1 ("must NOT contain a line that is exactly `-`")
+passes on ANY non-dash text, so it cannot distinguish the authored paragraph from review
+text; it is kept as a non-dash gate and the new line is what carries the distinction.
+
+## Item 3 — the label, protected by an assertion (the only BYTES item)
+`test_the_loss_pinned_arm_keeps_its_label` reads this file with `ast`, pulls the
+`test_both_writer_classes_in_the_swap_window_merge_and_lose` docstring, and asserts the
+string `GREEN TEST PINNED TO A KNOWN DEFECT` is in it. Delete the label and the suite
+goes red instead of quietly lying.
+
+**Why not `xfail(strict=True)`:** the arm PASSES today (the hole is open) and FAILS when
+the hole is fixed, so strict xfail would XPASS-and-error today and go quiet tomorrow —
+pinned to the opposite state of the one that matters. The label is prose, so the only
+machine-readable protection is an assertion that the prose is present.
+
+Negative probe — the assertion can FAIL (in-memory mutation, no file edit,
+`.agi/sessions/iter-DH.669/a00-13835534/item3-negative-probe.py`):
+```
+P3a real bytes, label present: True (expected True)
+P3b label deleted, label present: False (expected False -> assertion fires)
+VERDICT: the label assertion is LOAD-BEARING, not a comment that protects nothing
+rc=0
+```
+
+## Item 4 — the numstat count (node text only)
+The paste lists THREE files; the landed diff is FOUR. The round's own new node
+`a00-939e9e6a-b4a5fb.md` was absent, so a budget read off that paste understated the
+round's footprint by one whole file. Corrected in place: 3 modified files
+(42 added / 16 removed) + 1 new node file. Production lines remain 0.
+
+## Tests (real output, this round, on these bytes)
+```
+$ env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest \
+    extensions/agi/tests/test_foreign_refusal_durability.py -q -p no:cacheprovider \
+    --basetemp /tmp/dh669kid
+8 passed, 2 warnings in 15.14s
+
+$ env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest \
+    extensions/agi/tests/test_bin_help_smoke.py -q -p no:cacheprovider \
+    --basetemp /tmp/dh669kid2
+72 passed, 6 skipped in 57.18s
+```
+7 -> 8 on the first: the new one is the only addition.
+
+## Lines (the one permitted read-only `git diff --numstat`)
+```
+27     3      .agi/nodes/experiment/a00-939e9e6a-b4a5fb.md
+2      2      .agi/nodes/experiment/a00-dd6557af-ffda28.md   (2/2 pre-existing; my edit is inside it)
+26     0      extensions/agi/tests/test_foreign_refusal_durability.py
+```
+CORRECTED BY EG.52 (a00-620bf49d): that paste lists THREE files; the landed round is
+FOUR — this node's own file is missing, the exact shape item 4 corrected on a00-939e9e6a.
+Measured over the round's landed range (base 1300bd8c9 to the landing tip 1e7dbd6d5):
+```
+$ git diff --numstat 1300bd8c9 1e7dbd6d5
+225	0	.agi/nodes/experiment/a00-13835534-fb0948.md
+27	3	.agi/nodes/experiment/a00-939e9e6a-b4a5fb.md
+4	2	.agi/nodes/experiment/a00-dd6557af-ffda28.md
+26	0	extensions/agi/tests/test_foreign_refusal_durability.py
+```
+(a00-dd6557af is 4/2 on the landed range: the parent review's appended lines ride in it.)
+`extensions/agi/bin/**` — every production path — is **untouched: 0 production lines**
+(ceiling 15, measured 0). My net in the test file is +15 lines against the base, inside
+the 40-test cap. Node bytes are uncapped.
+
+## probes (each with a way to FAIL)
+- P1 (item 1) — `replace body 7:7` on a 7-body-line node must change the last body
+  line. FAILS if the refuted quantifier is true. HOLD (rc=0, line changed).
+- P2 (item 1) — `replace body 1:5` (whole body, reaches EOF) must change bytes.
+  FAILS if an EOF-reaching deletion is impossible. HOLD.
+- P3 (item 1) — `replace body 5:5` at a paragraph edge must exit rc=2 with an `ERR`
+  and write nothing. FAILS if a refusal is silent. HOLD.
+- P4 (item 2) — `tail -3` of a00-ac24f72d must show the DH.645 authored paragraph and
+  NOT a `PARENT REVIEW`. FAILS if a review displaces the fix. HOLD.
+- P5 (item 3) — delete the label string in memory, re-run the probe: must go False.
+  FAILS if the guard is decorative. HOLD.
+- P6 (item 4) — the numstat block on a00-939e9e6a must name four files. FAILS if the
+  count is three again.
+
+## For the director's findings row — the three EOF lines are FIXED, the classification is WITHDRAWN
+EG.52 (a00-620bf49d) counted THREE lines carrying an EOF claim and excused all three with
+"`## Agent Notes` is `done`-rendered and not hand-editable". EG.72 measured that excuse
+false and fixed all three in the bytes. `## Agent Notes` is a plain body section: the
+`replace body` / `sub` verbs rewrite it, and each of the three edits below returned
+`updated` with the byte changed. Non-editability was never the reason they stood.
+- **FIXED on a00-dd6557af-ffda28** (inside its `## Agent Notes`): "`replace body N:M`
+  could not do it: a range whose END is the last line of the body removes nothing
+  (`_splice_range`)" is now withdrawn, with the real cause named (body-relative vs
+  file-absolute numbering). The `## Agent Notes` block itself was edited through
+  `write.py` — the proof that it was editable all along.
+- **FIXED on a00-939e9e6a** (its "ENGINE BEHAVIOUR" findings bullet, a hand-editable
+  authored section above `## Agent Notes`): the "certain and reproducible" EOF no-op
+  claim and its `_splice_range` citation are withdrawn; the bullet now names the
+  coordinate convention as the cause and asks the director for no engine repair.
+- **FIXED on THIS node** (its own `## Agent Notes` line, via `sub!`): "(EOF replace AND
+  delete both land, rc=0)" now reads that delete lands rc=0 only through empty STDIN and
+  is refused rc=2 through an empty FILE source.
+- **Still open, honestly:** two files remain out of this round's FILE SCOPE and still
+  carry the falsified "THOUGHT rewritten whole" line —
+  `.agi/nodes/experiment/a00-e6bf3eaf-ceff52.md:120` and
+  `.agi/nodes/experiment/a00-ac24f72d-d33510.md:185`. Named for the director, NOT
+  excused by a false editability claim.
+- **Unpinned engine behaviour, now measured, worth a node of its own:** `replace body
+  N:M` is body-relative (body line 1 = the `<!-- BODY:BEGIN -->` marker) while error
+  messages and the docs read as if they were file-absolute. That mismatch is what made
+  two rounds report "updated, no byte changed". `_body_range_refusal` is correct and
+  loud; the defect is the coordinate convention, not the splice.
+- **Asymmetric empty-source guard (EG.52, measured; now a committed test in
+  `extensions/agi/tests/test_write.py`, run by EG.72):** `replace body N:M <empty file>`
+  is refused rc=2 (write.py:1996-2001), but `replace body N:M -` with EMPTY stdin
+  returns rc=0 and deletes the range (write.py:1985-1989 returns before the check).
+- Stray files in `.agi/` not created by me, left exactly where they are (unchanged
+  from the DH.645 list): `_cc_denial_probe2.py`, `_cc_denial_repro.py`,
+  `_race_repro.py`, `_race_repro_v2.py`, `_race_repro_v3.py`, `_race_repro_v5.py`,
+  `_race_repro_v5b.py`, `_race_repro_v7.py`, `tmp_reaper_gap_clean.py`,
+  `tmp_reaper_gap_repro.py`, `tmp_reaper_gap_test.py`, `tmp_reaper_gap_v2.py`,
+  `tmp-experiment-l109-pin/`.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DH.669 corrective, 4 items. Item 1 is the one the parent review demoted, and EG.52 (a00-620bf49d) restated it here from a PASTED /dev/shm run, not a reading: an EOF-reaching REPLACEMENT lands (rc=0, _splice_range has no silent branch), but this round never ran a DELETE shape, so the earlier sentence that a deletion also lands was an inversion, not a measurement. Measured by EG.52: a deletion through an empty FILE source is refused rc=2 range-independently (write.py:1996-2001, interior and EOF ranges both refused); a deletion through replace ... - with EMPTY stdin lands rc=0 because the stdin branch (write.py:1985-1989) returns before that check. So neither the original conclusion (a deletion cannot be made that way) nor this round's inversion (it lands) is true unqualified: the source kind decides, not the range. Item 2 inverted: re-running tail -3 on a00-ac24f72d showed the DH.645 authored paragraph, so that record was CORRECT and only its evidence was off. Item 3 is the bytes: a committed ast assertion that the loss-pinned arm keeps its docstring label, chosen over strict xfail because the arm passes while the hole is OPEN. Item 4: the numstat paste on a00-939e9e6a said three files and was corrected to four; EG.52 found the same omission on THIS node (three listed, four landed incl. this 225-line file) and pasted the landed-range numstat. Verdict moved from proved to inconclusive_lean_disproved:60 by EG.52: the parent review demoted item 1 and the only evidence_run is this node. Residue for the director is THREE done-rendered lines, not two: a00-dd6557af Agent Notes, a00-939e9e6a ENGINE BEHAVIOUR bullet, and this node's own Agent Notes summary. NOTE: the THOUGHT:BEGIN/END triple in the Item 2 code fence is rendered as text; this block is the node's.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+DH.669 corrective, 4 items all fixed in the bytes: a00-dd6557af's refuted 'EOF range silently removes NOTHING' THOUGHT re-pinned by 5 commands (EOF replace lands rc=0; delete lands rc=0 ONLY through empty STDIN and is refused rc=2 through an empty FILE source) and rewritten to the measured rule (replace body N:M is BODY-RELATIVE, refusals loud at rc=2) with the paragraph-edge observation kept; a00-939e9e6a's stale evidence paste replaced with a re-run tail -3 showing the DH.645 authored paragraph, so that record was CORRECT and only its evidence was off; the loss-pinned label given a committed ast assertion (strict xfail would be pinned to the opposite state); numstat count corrected 3 files -> 4. 0 production lines, +15 test lines, 80 passed 6 skipped.
+
+PARENT REVIEW a00-161c6118 (DH.669) — read the BYTES. ITEMS 2, 3 AND 4 LAND; ITEM 1 IS FIXED IN THE WRONG HALF AND THE ROUND IS lean_disproved ON IT.
+
+(1) WHAT THE BRIEF SAID, quoted: "fix it in the bytes, OR — when the item is already true, refuted by the bytes, or UNVERIFIED — run the ONE command that settles it"; item 1 asked to re-word the THOUGHT to the BODY-s status or pin it with the falsifier the node already proposes.
+
+(2) WHAT THE MACHINE ACTUALLY DOES. The half the kid got right: my own independent probe, run from scratch in a throwaway agi project BEFORE I spawned the kid and again after, agrees with the kid — an EOF-reaching REPLACEMENT lands. `$ write.py goal:parent-probe-669 'replace body 7:7 new.txt'` on a 7-body-line node -> `updated: goal:parent-probe-669`, rc=0, last body line replaced. _splice_range (write.py:2310-2321) is an unconditional splice and _body_range_refusal either refuses loudly at rc=2 or admits. So the sentence the corrective called REFUTED is refuted exactly where the corrective said it was.
+
+The half the kid got WRONG, and it is the half the sentence was actually about: the sentence's conclusion is "a DELETION whose range reaches EOF CANNOT BE MADE THAT WAY", and that is TRUE — but the true reason is not the range, it is the EMPTY SOURCE, refused range-independently at write.py:1996-2001. MY PROBE, P-DELETE (gate class — I hand the engine the exact state the claim says lands):
+
+    $ python3 write.py goal:pp-del3 'replace body 1:4 empty.txt'   # 4 body lines, range reaches EOF
+    ERR: replace source 'empty.txt' is empty — refusing to replace a range with an empty source (it would delete the range). Nothing written. A deliberate deletion needs an explicit signal, not an empty file.
+    rc=2
+    body after:  B1 / B2 / (blank) / TAILY        <- unchanged
+
+The kid's own probe file (.agi/sessions/iter-DH.669/a00-13835534/item1-eof-probe.txt) never runs that shape: every "delete" it measured is a REPLACEMENT with non-empty text (`replace body 7:7 new.txt`, `replace body 1:5 new.txt`). So the pasted evidence supports "a replacement lands", and the node then reads it as "a DELETION lands": this node's body ("an EOF-reaching replacement and an EOF-reaching **deletion** both land (rc=0)"), its THOUGHT ("an EOF-reaching replacement and deletion are exactly what the writer does"), and a00-dd6557af's rewritten THOUGHT, which now carries "So an EOF-reaching replacement and deletion are exactly what the writer does". Three records, one new false claim, minted in the one round chartered to remove a claim the machine does not make.
+
+(3) THE NEAR MISS, and it is the same shape as the defect it replaced. A node-text item satisfied by INVERTING the claim rather than by measuring it: the corrective said "this record asserts more than the machine does", the satisfying move "the record now says the opposite", and nothing in the kid's suite or probes can tell an inverted false claim from an inverted true one, because neither was run. Correcting the CITED MECHANISM was available and was done; leaving the CONCLUSION alone was not required by the corrective and is what breaks it. The one shape that would have held: keep the conclusion, name the real blocker (empty source, write.py:1996-2001, range-independent), and drop only the false _splice_range no-op attribution.
+
+(4) THE RESIDUE THE KID NAMED IS THE PROOF. It listed a00-dd6557af:151-155 as carrying "the refuted claim" — that line says "a range whose END is the last line of the body removes nothing (_splice_range)". Its MECHANISM is the false half (now refuted) and its CONCLUSION is the true half (now also contradicted by the kid's own rewrite). The kid was right that the line is done-rendered and not hand-editable [EG.72 withdraws that premise: Agent Notes is a plain body section that replace body rewrites (experiment:a00-e4cdcd40-0d02e3)], and right to name it rather than patch it — but it then resolved the ambiguity the WRONG way in a file it did own.
+
+MY OTHER PROBES, one per remaining conjunct, all run by me from scratch, not from the kid's suite: P-LABEL (gate) — a copy of the test file with the label string deleted, run under pytest at the canonical depth, fails EXACTLY on test_the_loss_pinned_arm_keeps_its_label with "the loss-pinned arm lost its label"; the committed assertion is load-bearing, so ITEM 3's bytes hold and the strict-xfail argument in its docstring is the right reading of the arm's polarity. P-WIRE (wire) — the assertion reaches the changed bytes live: it ast-parses the file on disk, so a file edit, not an in-memory string, is what moves it. P-RECORD (wire) — a00-ac24f72d's THOUGHT head in the working tree IS the DH.645 authored paragraph, not a parent review, so ITEM 2's finding that the record was CORRECT and only its evidence off holds, and the sibling was left untouched. P-FOOT (gate) — the numstat paste on a00-939e9e6a now names four files, ITEM 4 holds. Ceiling: 0 production lines, +15 test lines, both inside; 1 kid; the title is the kid's own words. No ceiling breach found.
+
+(5) WHAT THE NEXT RUN SHOULD DO: rewrite the conclusion in a00-13835534 and a00-dd6557af to the MEASURED rule — an EOF-reaching REPLACEMENT lands (rc=0), a DELETION is refused LOUDLY at rc=2 because the SOURCE is empty (write.py:1996-2001), and the range is irrelevant to that refusal — and pin it with `replace body 1:4 <empty file>` in a committed test so the claim cannot drift a third time. The stray temp projects I built under /tmp are outside the repo and were left there deliberately as named probes; the kid's session probes are inside its own session dir, which is correct.

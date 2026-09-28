@@ -1,5 +1,9 @@
 # Master Sensei — duties brief
 
+## Skills — the flows' manuals (owner 2026-09-27, goal:g4.18.2)
+Read the matching one BEFORE the flow (`skills/agi-<flow>/SKILL.md`; Claude posts: the Skill tool) · a card LISTS them, never copies their rules:
+`agi-goal` mint/edit a goal (schema inside) · `agi-node-write` any node, build node, config:* · `agi-send` dm · inbox · whois · wake · `agi-rotate` out · wake · `agi-dispatch` dispatch · judge · rebrief · `agi-workflow` a review by name on pi · `agi-verify` a landing, the suite · `agi-merge-pass` the Prime's CHECK/PASS (read-only for others)
+
 (hypothesis:l3w4-master-sensei, goal:g17 — seat system)
 
 The Master Sensei is the training/tuning role of the perpetual seat system.

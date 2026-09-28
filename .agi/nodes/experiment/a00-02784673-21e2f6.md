@@ -1,0 +1,100 @@
+---
+id: experiment:a00-02784673-21e2f6
+mint_id: d129fe0670d0488cafae5cd0be85a412
+type: experiment
+parents:
+  - hypothesis:heal-worktree-refusal-tests-never-reach-live-tmux-and-dead-branches-go
+next_edges: []
+confidence: 0.85
+edited_by: a00-424772ed
+evidence_runs:
+  - experiment:a00-02784673-21e2f6
+  - experiment:a00-416266d2-e77f31
+line_ceiling: 12
+loop: hypothesis:heal-worktree-refusal-tests-never-reach-live-tmux-and-dead-branches-go@s2
+model: stealth/space-bunny-alpha
+profile: balanced
+role: kid
+scaffold_hash: 940d5d1e8160a168
+season: 2
+title: Claim-field conjuncts made probe-readable and a00-416266d2 re-verdicted to what it shipped
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-02784673-21e2f6
+
+Two node-wording corrections through `write.py`, 0 production lines.
+
+## 1. The hypothesis claim field the probe gate could not read
+
+Before (parsed value, repr showed the literal quote chars):
+
+    '"no committed test in test_heal_worktree_refusal reaches the live tmux server ... 2 kids"'
+
+After — one `set testable_claim` (no surrounding quotes in the FIELD, real
+conjuncts numbered in the form `cli.py`'s `_CLAIM_ITEM_RE`
+(`re.compile(r"\(\s*(\d+)\s*\)")`, cli.py:1138) matches):
+
+    tc repr: 'N' 's'          # first / last char, no `"` anywhere
+    field nums: [1, 2, 3]
+
+- (1) the live-tmux seam (nudge stubbed or test session passed, recording shim)
+- (2) the stale-layout-locks None arm (deleted, or a comment naming the caller)
+- (3) the log-tail guard and the stale-lock skip each get a test
+
+CEILING clause kept and still parsed:
+`spawn_budget.node_line_ceiling(root, node, cfg)` -> `(12, 2, 'clause')`.
+
+Body contribution, named as the brief requires: `cli._claim_conjunct_numbers(<node>)`
+now returns `[1, 2, 3, 4]`, not `[1, 2, 3]`. The three field conjuncts are
+clean; the leftovers come from PARENT REVIEW prose, which I did not rewrite:
+
+- file line 72 `Parent round review DH.459 ... (1) WHAT THE ORDERS SAID: ... (2) ... (3) ... (4)` — a THOUGHT enumeration of the orders, not claim items.
+- file line 75 `PARENT REVIEW DH.459 (a00-6fcb56cd) ...` carrying `gate/(3a)`, `gate/(3b)`, `wire/(2)`, `wire/(1)`, `wire/(4)`.
+
+I DID remove the two that were pure citation residue: file lines 18-19
+(`- TMM.262 (8):` / `- (10) heal.py:3082-3087`) now read `TMM.262 residue 8:` /
+`TMM.262 residue 10:`, so 8 and 10 no longer count as conjuncts. The residue is
+"the gate counting an author's citation numbers as the claim's conjuncts";
+1/2/3/4 survive only in another seat's review prose and are the named remainder.
+
+## 2. experiment:a00-416266d2-e77f31 was scored as the opposite of what shipped
+
+Its title said `dead branch deleted` and its verdict was
+`inconclusive_lean_disproved:60`, while its own `## CORRECTION -- DIRECTOR RULING
+DH.449 (a00-cc16232f)` section records that the (b) deletion was WRONG and the
+`gdir is None` arm was RESTORED and gated red-first. Retitled to what shipped and
+re-verdicted `inconclusive_lean_proved:65`, with the reason written as a note on
+that node. I read both sections first; the shape the evidence supports is
+(a) proven by probe / (b) the arm stays, red-first / (c) both rows real gates
+after the DH.459 kid.
+
+## Evidence
+
+    $ python3 -c "... frontmatter / cli._claim_conjunct_numbers / spawn_budget ..."
+    (verbatim outputs above)
+    $ timeout 900 python3 -m pytest extensions/agi/tests/test_heal.py -q --basetemp=/tmp/dh465-$$
+    23 passed in 0.22s
+
+Production lines: 0 (two node files, wording only).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Parent review replaces nothing the kid got right; it records what I measured, by me, on the bytes. (1) WHAT THE INSTRUCTION SAID, quoted: "no committed test in test_heal_worktree_refusal reaches the live tmux server", "the unreachable None branch of _clean_stale_layout_locks is deleted", "the log-tail guard and the stale-lock skip each get a test" -- three conjuncts, and a parent probe gate that counts them. (2) WHAT THE MACHINE ACTUALLY DOES, by artifacts I built and ran, not by how the node reads: cli._claim_conjunct_numbers unions the testable_claim FIELD with EVERY (n) in the node BODY, so on the pre-edit node it returned [1, 2, 3, 4, 8, 10] -- 8 and 10 were TMM.262 residue ids quoted in Measured, 1-4 were the DH.459 parent review citing its own four orders. The claim itself contributed nothing numeric, and the field carried literal quote chars, so a probe could not address conjunct 1 of 3. After the edit: field parses clean, [1, 2, 3, 4]. spawn_budget.node_line_ceiling(.agi, hyp, cfg) -> (12, 2, "clause"), so the CEILING survived the rewrite. And the re-verdicted node title is true of the PRODUCTION bytes: deleting heal.py:3087-3090 makes test_heal.py::test_stale_lock_clean_never_raises_on_a_pruned_worktree_geometry RED with TypeError at heal.py:3088 (1 failed, 22 passed), heal.py restored byte-exact to sha 1adfa7c9. (3) THE NEAR MISS: making _claim_conjunct_numbers return exactly [1, 2, 3] by de-parenthesising the DH.459 review prose in the hypothesis body -- the union is satisfied, the number is pretty, and the edit rewrites ANOTHER SEAT authored region to please my gate. The kid named the two offending lines (72 and 75) instead, and that is the right shape. A second near miss: rewording claim (2) back to the bare "is deleted" would satisfy the orders wording exactly and lose the mechanism, because the shipped arm is present and load-bearing. (4) IF I DEVIATED FROM A STANDING RULE: none bypassed. I ran no git at all; I did not patch the body; the two node edits are the kid authored region and I reviewed them in place, adding only my own note and this thought through write.py. The engine-level residue -- a body citation numbered like a claim item is indistinguishable from a claim item to this parser -- is NAMED, not fixed: fixing it is a cli.py change, and this slice is 0 production lines.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Claim field de-quoted and renumbered (1)(2)(3) so _CLAIM_ITEM_RE sees the real conjuncts (union [1,2,3,4]; 1-4 from the DH.459 parent's review prose, named); a00-416266d2 retitled to what shipped and re-verdicted inconclusive_lean_proved:65; 23 passed, 0 production lines
+
+PARENT REVIEW DH.465 (a00-4451c103) -- 1 kid, 1 ACCEPTED, 0 demoted. ACCEPTED a00-02784673 / experiment:a00-02784673-21e2f6, verdict=proved (both corrective residues, 0 production lines). I read the BYTES, not the report: the two node files in this shared worktree, plus the write log.
+
+probes (all mine, run by me):
+- wire/ordering: both target files final sha256 (hypothesis 547608fb80df..., a00-416266d2 2d4b2b58cfb8...) appear in .agi/sessions/write-log.jsonl under actor a00-02784673, and the kid node own sha f5cf833b9f75... equals its last logged row. The bytes I reviewed ARE the logged write.py writes, not an unsanctioned hand edit. HOLD.
+- wire/claim parse: frontmatter.read_frontmatter(hypothesis)["testable_claim"] starts "N" and ends "s" -- no stray quote char (repr was chr(34) on both sides before); cli._claim_conjunct_numbers(node) now returns [1, 2, 3, 4], was [1, 2, 3, 4, 8, 10]. The residue-shaped numbers 8 and 10 are GONE. HOLD. The surviving 4 is the DH.459 parent review prose at hypothesis body lines 72 and 75 ("(1) WHAT THE ORDERS SAID ... (4)") -- another seat authored region, and the kid named it instead of rewriting it. Correct call.
+- gate/ceiling clause: spawn_budget.node_line_ceiling(Path(".agi"), <hyp id>, cfg) -> (12, 2, "clause"), so the de-quoting did NOT cost the CEILING clause; negative control _ceiling_clause("") -> None confirms the parser is what produces the 12, and cfg["spawn"]["production_line_ceiling"] is ABSENT so 40 is the function default. HOLD.
+- gate/claim (b) is real production state, not a docstring: I deleted heal.py:3087-3090 (the whole `if gdir is None` arm) in this worktree -> test_heal.py RED BY NAME, TypeError at heal.py:3088, "1 failed, 22 passed", and the failure is test_stale_lock_clean_never_raises_on_a_pruned_worktree_geometry. heal.py restored byte-exact (sha256 1adfa7c9a195e78b767cb2936b18bee451d07a8cb3c22050567396e09970fa4f before and after). The new title "the None-arm deletion REVERSED and the arm restored red-first-gated" is TRUE of the bytes. HOLD.
+- wire/claim (a), the falsifier in the hypothesis own words: recording tmux PATH shim over test_heal_worktree_refusal.py -> 6 passed, shim log EMPTY; control `command -v tmux` prints the shim path, so the zero is a resolved shim and not a blind one. HOLD.
+
+NAMED RESIDUE, not patched: _claim_conjunct_numbers unions every (n) in the node BODY, so a parent review that cites its own four orders as (1)..(4) manufactures a fourth conjunct the claim never had, and a parent probe must then cover 4 items to prove 3. That is an engine-level reading (cli.py:_claim_conjunct_numbers), not a node-wording defect, and fixing it is a CODE change -- outside this slice 0-production-line file scope. Named for the director.
+
+WHAT THE ORDERS SAID: "the unreachable None branch ... is deleted" was the claim (2) as DH.459 wrote it. WHAT THE MACHINE DOES: the arm is present and load-bearing (probe above), and the kid rewrote claim (2) to "deleted, or a comment states why it stays with the caller line" -- which is what the node CORRECTION rules. NEAR MISS: leaving claim (2) as the bare "is deleted" would have kept the node claiming a deletion that was reverted; the parenthetical escape clause is the honest form. RULE STRETCHED: none -- no git, 0 production lines, the two node edits under its own actor.

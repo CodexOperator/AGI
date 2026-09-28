@@ -123,35 +123,21 @@ This also sharpens the stopgap warning above rather than softening it. An index
 of symbols cannot do either job: it is rebuilt from the current tree, so it
 knows no node, no link, and nothing to propagate *to*.
 
+## Owner 2026-09-24: shape · imap · omap — every tool call is a graph path
+
+OWNER 2026-09-24 19:3xZ, in the Prime's pane (belam-S2-L5-III), verbatim:
+
+> All potential tool calls and such are literal graph paths, and will become formalized even more so with an IOMap node or build node rows called shape, imap, and omap. imap (input map): list and format of all the calls that can/must (clearly marked for what's an optional input and what's mandatory, and the mandatory vs optional shapes for each input) be sent to this node; omap: map of other build nodes and nested inside it individual node functions this build node calls or potentially calls (both marked clearly as mandatory vs potential output) along with the internal function that does that call, and the overall output format/shape the node should have. So a graph function call becomes just a graph read routed smartly via magic-pane.
+
+**The three rows, as the Prime reads them** (a restatement for implementers; the verbatim above governs):
+
+| row | carries | marks |
+|---|---|---|
+| `imap` | every call that can or must be sent to this node, each with its input shape | mandatory vs optional, per call and per input |
+| `omap` | every build node, and every function inside it, that this node calls or may call, plus the internal function that makes each call | mandatory vs potential |
+| `shape` | the node's overall output format | — |
+
+A tool call is then a graph path (a build node plus one of its functions); its argument check is the callee's `imap`, its effects are the caller's `omap`, and its result is the callee's `shape` — so a graph function call is a graph read that the magic pane routes. This is the object the 09-02 section above already names (the IO map as the table the read path resolves through), extended to the call surface; goal:g1.25's CLI grammar is its first consumer (jev proposes, `imap` validates) and goal:g5.21 waits on it.
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-This version gives the IO map two jobs it did not have, both arriving from the
-owner's read/write board on 2026-09-02, and both changing what kind of object
-the map is. v2 described a map as an inherited contract *slice* — annotation
-hanging off a node, read by humans and by `stitch.py --verify`. The linkage job
-makes it structural: if a node body is a live link, the map is what the read
-path dereferences, and an absent map means an unreadable node rather than a
-thinner one.
-
-The propagation job was recorded here rather than in a new goal for the same
-reason the gitnexus section was: it is the IO map's object, and a second id
-would split one intent. What made it statable now is a measurement rather than
-an argument — the `retired` rename in flight this session is a change with no
-semantic content that still costs a corpus pass plus three hand-edited
-documents.
-
-It was first drafted into `goal:g2.25` and moved here at the owner's
-correction, which was right and is worth recording because the wrong placement
-was plausible: G10.2 is about the *shape* of the hypergraph, while propagation
-is a link (this goal) plus a traversal (`goal:g13`'s write path). The sub-file
-question is the owner's too — whether text can be linked inside another file
-robustly — and the answer turned out to be already in the repo rather than
-needing invention: `BUILD-CONTRACT` and `THOUGHT` are marked regions with a
-different owner from the prose around them, surviving regeneration, working
-today.
-
-Deliberately not restated: G13's three open questions. They are decisions that
-constrain this map's shape and they belong to the goal that raised them; a copy
-here would be exactly the drift `goal:s17` names.
-
-No status change, and the S3 ordering for the judgement half is untouched.
+This version adds the owner's 09-24 shape / imap / omap order (verbatim, its own section before this block) and a table restating the three rows; every earlier section is unchanged and the status stays horizon. Why here and not a new goal: this goal already defines the IO map as the linkage table the read path resolves through (the 09-02 section); the owner's rows extend that same object to the call surface, so a second goal would be the drift goal:s17 names. goal:g1.25 (jev's CLI grammar) is the first consumer and goal:g5.21 (Bend2 mapping) waits on it.
 <!-- THOUGHT:END -->

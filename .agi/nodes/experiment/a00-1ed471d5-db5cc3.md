@@ -1,0 +1,97 @@
+---
+id: experiment:a00-1ed471d5-db5cc3
+mint_id: c11ed521b31a445596ed4f4f23046836
+type: experiment
+parents:
+  - hypothesis:lm-replace-body-standalone-restriction-is-documented-in-help
+next_edges: []
+confidence: 0.9
+edited_by: a00-8b14545c
+evidence_runs:
+  - experiment:a00-1ed471d5-db5cc3
+line_ceiling: 200
+loop: hypothesis:lm-replace-body-standalone-restriction-is-documented-in-help@s2
+model: deepseek/deepseek-v4.1-flash
+production_lines: 15
+profile: balanced
+role: kid
+scaffold_hash: c6372bfa7a6ce76d
+season: 2
+title: write.py -h now documents the replace-body standalone-submit restriction in a NOTES block
+town: local-maxxing
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-1ed471d5-db5cc3
+
+## Experiment
+
+Docs-only round. The parent hypothesis is that `write.py submit()` already
+refuses a `replace body` edit that also carries `body_append` (`note`),
+`thought`, or `body_patch_diff` — that refusal is correct and must not move —
+and that the only gap is DISCOVERABILITY: `write.py -h` never stated the rule,
+so a caller learned it only by hitting the refusal on a real or `--dry-run`
+submit.
+
+What I did, in one file (`extensions/agi/bin/write.py`, inside `main()`'s
+epilog build at ~L2571, plus a source comment on the `replace` entry in
+`VERB_EXAMPLES`): appended a short NOTES block AFTER the verb table so every
+verb line keeps its exact `name\tarity arg(s)\texample` shape the drift guard
+and the epilog tests inspect. The rendered help now carries, verbatim:
+
+    NOTES:
+      replace body is standalone; it cannot share a script line with note,
+      thought or body_patch (one body writer per submit). Compose them as
+      separate write.py calls.
+
+and added `test_help_documents_replace_body_standalone_restriction` to
+`extensions/agi/tests/test_write.py`, which renders `-h` via capsys and
+asserts a help line names `replace` together with at least one of
+`note`/`thought`/`body_patch`. The existing refusal test
+`test_replace_body_is_standalone_like_body_patch` is untouched.
+
+### Falsifiers, each observed
+
+(a) **`submit()` raising condition and message BYTE-UNCHANGED.** `git diff --
+extensions/agi/bin/write.py` shows exactly two hunks (a 3-line comment on the
+`replace` example entry, a 12-line NOTES append in `main()`). Grepping the zero
+context diff for the refusal text `is standalone; it cannot share a line with`
+returns **0** occurrences. The live raise at L2006-2012 is unchanged.
+
+(b) **Before/after `-h` grep.** Captured to
+`.agi/sessions/iter-EF.06/a00-1ed471d5/help_before.txt` (pre-change) and
+`help_after.txt` (post-change).
+
+    before: `python3 extensions/agi/bin/write.py -h | grep -i replace`
+      54:  replace\t3 arg(s)\treplace body 4:9 path/to/file
+    after:
+      54:  replace\t3 arg(s)\treplace body 4:9 path/to/file
+      58:  replace body is standalone; it cannot share a script line with note, thought or body_patch (one body writer per submit). Compose them as separate write.py calls.
+
+    The new test's predicate over the two snapshots: pre-change -> `[]`
+    (test FAILS), post-change -> one matching line (test PASSES).
+
+(c) **Epilog build exits cleanly; drift guard does not fire.**
+    `python3 extensions/agi/bin/write.py -h` -> exit 0, full epilog printed.
+    The guard only checks `set(VERBS)` vs `set(VERB_EXAMPLES)` and
+    `set(VERB_EXAMPLES)` vs `set(ARITY)`; the NOTES block is appended after the
+    loop and cannot trip it.
+
+## Evidence
+
+Test run (`python3 -m pytest extensions/agi/tests/test_write.py -q`):
+
+    128 passed, 81 warnings in 5.46s
+
+Targeted run (`-k 'help_documents_replace_body_standalone or
+replace_body_is_standalone or help_epilog'`): `6 passed, 122 deselected`.
+
+Diff size: `git diff --numstat -- extensions/agi/bin/write.py` -> `15  0`
+production lines (well under the 200-line ceiling); no other production file
+touched. The edited test file is excluded from the production count by the
+brief. Both help snapshots are held in the scratch dir named above.
+
+## Agent Notes
+Added a NOTES block to write.py -h (epilog, after the verb table) stating 'replace body is standalone; it cannot share a script line with note, thought or body_patch (one body writer per submit)'; new test test_help_documents_replace_body_standalone_restriction FAILS on the pre-change help and PASSES after; submit() refusal byte-unchanged (0 refusal-text lines in diff); full test_write.py 128 passed; 15 production lines.
+
+EF.06 parent review: ACCEPTED, verdict proved. Diff verified (write.py NOTES footer after verb table + 1 new test), raise untouched, 3 parent-run probes hold (wire: pre/post -h 0->1 match; gate: all 3 body-writer refusals fire; gate: 7 epilog/standalone tests pass). No second kid needed -- docs-only claim fully discharged.

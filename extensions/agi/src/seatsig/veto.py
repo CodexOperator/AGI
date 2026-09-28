@@ -98,12 +98,17 @@ def _parse_iso(value) -> datetime | None:
         return None
 
 
-def read(root, path: Path | None = None) -> dict:
+class VetoCellUnreadable(RuntimeError):
+    """The veto cell is absent or cannot be parsed without degrading it."""
+
+
+def read(root, path: Path | None = None, *, strict: bool = False) -> dict:
     """The VETOES geometry node state as a plain dict (never mode).
 
-    ``root`` may be a graph root (the ``.agi``/config dir) or None; an absent
-    or unparseable cell reads as the defaults (a free tree). Read through the
-    SAME engine loader rings.py uses -- never a hand-rolled frontmatter read.
+    ``root`` may be a graph root (the ``.agi``/config dir) or None. By
+    default an absent or unparseable cell reads as the defaults (a free tree).
+    ``strict=True`` instead raises :class:`VetoCellUnreadable`, for an
+    authority mutation that must not turn uncertainty into permission.
     """
     out = dict(_DEFAULTS)
     # Copy the LIST defaults so no caller can mutate the module-level shared
@@ -112,9 +117,13 @@ def read(root, path: Path | None = None) -> dict:
     out["active_gates"] = [dict(g) for g in _DEFAULTS["active_gates"]]
     out["vetoes"] = [dict(v) for v in _DEFAULTS["vetoes"]]
     if root is None:
+        if strict:
+            raise VetoCellUnreadable("graph root is unavailable")
         return out
     cell = Path(root) / (path or VETOES_CELL)
     if not cell.is_file():
+        if strict:
+            raise VetoCellUnreadable(f"missing veto cell {cell}")
         return out
     try:
         from graph_core.persistence import frontmatter
@@ -123,12 +132,16 @@ def read(root, path: Path | None = None) -> dict:
         for key in _DEFAULTS:
             if key in nf.frontmatter:
                 out[key] = nf.frontmatter[key]
-    except Exception:  # noqa: BLE001  (an unreadable cell is an absent cell)
+    except Exception as exc:  # noqa: BLE001
+        if strict:
+            raise VetoCellUnreadable(f"unreadable veto cell {cell}: {exc}") from exc
         pass
-    if not isinstance(out.get("active_gates"), list):
-        out["active_gates"] = []
-    if not isinstance(out.get("vetoes"), list):
-        out["vetoes"] = []
+    for key in ("active_gates", "vetoes"):
+        if not isinstance(out.get(key), list):
+            if strict:
+                raise VetoCellUnreadable(
+                    f"unreadable veto cell {cell}: {key} is not a list")
+            out[key] = []
     return out
 
 
