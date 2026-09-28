@@ -192,6 +192,22 @@ FILE SCOPE extensions/agi/tests/test_send_dm_read_and_nudge.py · extensions/agi
 CEILING   HARD CAP: 1 kid · <= 10 production lines net over 42b212b06 · <= 12 test lines net over 42b212b06 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.137 -- closes mur-eg-42 EG.120-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-send-read-prints-ever-a00-a603ca83 tip 007221c02 (branch de-base-EG.137; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Foreign-box leg asserts only stdout absence, not the naming contract — test_send_dm_read_and_nudge.py:430; stderr is never inspected, so a silent drop of foreign rows (the branch's own contract at send.py:5889) passes green
+2. The round's own conjunct was never negatively probed. The base red at :411 was the box gate dropping the row, so at the base the D5 assert about the pre-sweep `empty` line (test:417, 'inbox for' not in out) was never reached, and neither the kid's nor the parent's probes touch it -- both probes delete/weaken an ADDED line. UNVERIFIED (I did not run it: it needs a modified copy of the tree under test, and this review may not author a probe that drives send.main): drop the single `quiet_empty=True` keyword at send.py:5876 in a scratch copy of the tip and run `pytest extensions/agi/tests/test_send_dm_read_and_nudge.py -k box_local`; by reading it must go red at :417 because read() prints 'inbox for {me}: empty' at send.py:4126-4129 whenever quiet_empty is false. Worth a one-line record, not a demote.
+3. The two evidence records of the same call disagree on the exception class and nobody reconciled them: the kid's Item 1 quotes the RuntimeError from boxes.py:167, the parent's probe 2 (node:16) records 'this_box() with AGI_BOX unset RAISED SecretsError' (SecretsError originates only in envfile.py:141-150, :172, i.e. a different root/env-file shape). My own first-hand run raises RuntimeError. The gate outcome is identical either way (bare `except Exception` at boxes.py:186 -> `return not own` -> False), so nothing in the verdict turns on it -- but one of the two records is inaccurate as written.
+KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent only, so the kid wrote code over a 0 cap) -- PARENT: dispatch your kid with --orders pointing at a file holding THIS WHOLE SECTION, and paste its FILE SCOPE + CEILING into the kid prompt; verify the kid's context carries the word CORRECTIVE before it starts.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_send_dm_read_and_nudge.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_send_dm_read_and_nudge.py · .agi/nodes/experiment/a00-1ac2dd28-c29fe1.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 007221c02 · <= 40 test lines net over 007221c02 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 007221c02 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.120: mur-eg-27 EG.77-merge residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.137: mur-eg-42 EG.120-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
