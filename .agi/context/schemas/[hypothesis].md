@@ -46,7 +46,7 @@ dispatch (grid history needs a real commit). Prose, so not in `validation:`; a m
 ## FALSIFIERS     what would show the claim false
 ## TESTS          the committed tests + their neighbourhood
 ## FILE SCOPE     the files the round may touch, nothing else
-## CEILING        kids · 10-12 production lines per conjunct · pi parents · a USD cap
+## CEILING        kids · 10-12 ENGINE lines per conjunct (source-suffix lines; data files never count) · pi parents · a USD cap
                  measure the CEILING with a TWO-operand numstat, <cut>..<tip before the paste commit>, labelled so (a commit never pastes a numstat that includes itself) · every cite names a function, heading or cell key -- a line number only where the claim IS the line (TMM.328 (c))
 ```
 
