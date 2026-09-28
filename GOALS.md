@@ -8220,6 +8220,88 @@ Belam 2026-09-28: activate for write/mint foundation (redesign order skills→wr
 <!-- BODY:BEGIN -->
 # goal:g7.33.9
 
+## Why this exists
+**Parent `goal:g7.33`.** Owner redesign land order 2026-09-28: **skills → write/mint → spawn/rotate → messaging**. SoT (`doc:belam-grok-internals`) already refs skill:agi-node-write · agi-goal · … Directors+Belam pursue write/mint via skills under NO-PI HARD (owner FULL STOP), not inlined PROFILE. This leaf is the adoption/order track; G7.33.1 remains the engine FIX track for write.py ergonomics.
+
+## Target end-state
+| # | conjunct |
+|---|---|
+| 1 | `skills/agi-*` present on core trunks and `.claude/skills` symlinks resolve to them |
+| 2 | every node+goal write by Belam/directors goes through write.py + skill:agi-node-write / skill:agi-goal (no hand-edit of `.agi/nodes`) |
+| 3 | write/mint foundation residues that block clean adoption are nested under this leaf (or under G7.33.10) as bare-active self-work leaves — never left as card prose |
+
+## Invariants
+- skill files are the procedures; SoT carries skill *refs*, never pasted skill bodies
+- G7.33.1 hypotheses stay the write.py ergonomics FIX track; this leaf does not re-own them
+- NO-PI: complete via self-work / non-pi only until owner lifts
+
+## Falsifier
+1. `test -f skills/agi-node-write/SKILL.md && test -L .claude/skills/agi-node-write && readlink -f .claude/skills/agi-node-write | grep -q skills/agi-node-write` exits 0 for every skills/agi-* (positive)
+2. Negative: a committed edit under `.agi/nodes/` that bypasses write.py (no write-log actor row for that path in the same commit window) — forbidden while this leaf is active
+
+## Out of scope
+- goal:g7.33.1 write.py ergonomics FIX rounds (a/b/c)
+- goal:g7.31.6 spawn/rotate via skills (redesign step 3; horizon)
+- goal:g7.32.5 messaging/magic-pane (redesign step 4; horizon)
+
+## Agent Notes
+Assigned to **belam** (Prime tree-build under NO-PI). Directors self-work nested leaves; no director pings unless blocker.
+
+##### G7.33.9.1 — skills/agi-* on core trunks + .claude/skills symlinks resolve — status: complete
+
+# goal:g7.33.9.1
+
+## Why this exists
+**Parent `goal:g7.33.9`.** Conjunct 1 of the write/mint foundation: skills must exist on core trunks and `.claude/skills` symlinks must resolve. Measured on tip before this nest (2026-09-28): all 12 `skills/agi-*` dirs present; all 12 `.claude/skills/agi*` symlinks resolve into `skills/`.
+
+## Target end-state
+Every `skills/agi-*` directory on core trunks has a `SKILL.md`, and every matching `.claude/skills/<name>` is a symlink whose target resolves under `skills/<name>`.
+
+## Invariants
+- symlinks stay relative (`../../skills/...`); never absolute box paths
+- skill bodies live only under `skills/`; `.claude/skills` is the harness view
+
+## Falsifier
+1. `for d in skills/agi*; do test -f "$d/SKILL.md" || exit 1; n=$(basename "$d"); test -L ".claude/skills/$n" || exit 1; readlink -f ".claude/skills/$n" | grep -q "/skills/$n$"; done` exits 0
+2. Negative: any `.claude/skills/agi*` that is a real directory (not a symlink) or whose target is outside the repo
+
+## Out of scope
+- skill content quality / director adoption (goal:g7.33.9.2+)
+- write.py ergonomics (goal:g7.33.1)
+
+## Agent Notes
+Assigned to **belam**.
+
+##### G7.33.9.2 — [goal] title regex — id-prefix format refused/admitted by write.py — status: complete
+
+# goal:g7.33.9.2
+
+## Why this exists
+**Parent `goal:g7.33.9`.** G7.33.10 round B landed schema-checked `set`/`create --set` (lean_proved:70) but explicitly left open the fifth measured probe: a goal `title` with no id-prefix format — `[goal].md` declared no `title` regex. That residue blocks clean write/mint adoption (re-title cannot be refused by name).
+
+## Target end-state
+| # | conjunct |
+|---|---|
+| 1 | `[goal].md` `validation.regex.title` requires `^[GS]\\d+(\\.\\d+)*: .+` (goal_id prefix + `: ` + non-empty text) |
+| 2 | `write.py ... set title <bad>` and `create --set title=<bad>` refuse by name; a well-formed title still writes |
+| 3 | a focused test pins both refusal and admit |
+
+## Invariants
+- gate checks the value being written only (legacy titles without the prefix stay until re-titled; not a links.py tree-wide break)
+- G7.33.10 remains the schema-checked-rows parent; this leaf owns only the title-format residue
+
+## Falsifier
+1. `write.py goal:g7.33.9 --dry-run set title \"nope\"` exits != 0 naming `title` + regex
+2. `write.py goal:g7.33.9 --dry-run set title \"G7.33.9: ok text\"` admitted
+3. Negative: a create with `title=G7.33.9.2` (no `: text`) is admitted
+
+## Out of scope
+- mass re-title of ~20 legacy/grandfathered goals (legacy-direct absorbers, pre-prefix titles)
+- invented-field policy (TMM.171: undeclared fields stay admitted)
+
+## Agent Notes
+Assigned to **belam** (NO-PI self-work).
+
 #### G7.33.10 — SCHEMA-CHECKED ROWS -- write.py writes one named row of a node, and the node type's schema decides whether that row exists and whether its value is well-formed — status: active
 
 # goal:g7.33.10
