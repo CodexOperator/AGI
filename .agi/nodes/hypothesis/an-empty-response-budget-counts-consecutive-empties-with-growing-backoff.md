@@ -40,3 +40,22 @@ extensions/agi/bin/pi_trajectory.py (_retry_cells and main's retry loop only) ·
 
 ## CEILING
 1 kid · <= 25 production lines net · <= 40 test lines net · pi-free tier-0 · 0 USD -- two-operand numstat <cut>..<tip before the paste commit>, labelled so
+
+## ROUND EG.186 -- TMM.360 item 2: dispatch now, ahead of EG.153 (the empty-response budget counts consecutive empties, backoff grows to a cap)
+BASE      CUT FROM the town trunk tip 56c012118 (values.pi_retry 12 x 60 s already on it). Never rebase, never merge.
+1. THE CLAIM above, in pi_trajectory.py only: a consecutive counter in main's retry loop that resets once a resumed attempt completes at least one turn before it ends; the wait before retry k = min(base x factor^(k-1), cap).
+2. CELLS -- read factor and cap through the SAME loader _retry_cells uses; KEEP _retry_cells() returning (max_retries, backoff) unchanged (EG.185 item 5 imports it for the workflow-stage retry); add the two new cells beside it with defaults factor 1.0 and cap = backoff (today's behaviour, no new literal beyond those defaults). PROPOSE on your node the factor and cap values for the trunk cell (thought-master writes .agi/config.json at landing; a round-done commit never carries it).
+3. FALSIFIERS 1-3 above = three tests in test_pi_trajectory_retry.py (stub pi + fixture config; the sleep monkeypatched, never a real wait). Paste each failing on the cut and passing on the tip.
+TEXT RULES NUMSTAT SELF-REFERENCE: never paste a numstat that includes the commit it is pasted in · ANCHOR RULE: a cite names a function / heading / cell key and adds a line number only where the claim IS the line
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees
+PROBES    never author or run a probe that calls rotate / heal / send / dispatch functions or a live pi; fixtures and monkeypatch only
+TESTS     env -u TMUX -u TMUX_PANE python3 -m pytest -q -p no:cacheprovider --basetemp=/dev/shm/<dir> extensions/agi/tests/test_pi_trajectory_retry.py extensions/agi/tests/test_pi_trajectory.py extensions/agi/tests/test_live_config_cells.py extensions/agi/tests/test_bin_help_smoke.py (timeout 900) -- paste the summary line
+FILE SCOPE extensions/agi/bin/pi_trajectory.py (_retry_cells + main's retry loop) · extensions/agi/tests/test_pi_trajectory_retry.py · this node (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 25 production lines net over 56c012118 · <= 40 test lines net over 56c012118 · pi-free tier-0 · 0 USD -- measure git diff --numstat 56c012118 <tip before the paste commit>, labelled so
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13) · WRITE THE NODE EARLY and commit after every run: the provider drops turns ('Provider returned an empty response'), and a round that dies mid-turn records nothing
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective EG.186: TMM.360 TMM.360 residues batched into one corrective (orders above, generated from the verdict files).
+<!-- THOUGHT:END -->
