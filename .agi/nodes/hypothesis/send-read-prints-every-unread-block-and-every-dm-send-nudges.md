@@ -175,6 +175,23 @@ FILE SCOPE .agi/nodes/experiment/a00-143f92b1-0696a2.md · .agi/nodes/experiment
 CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat ecaab9920 <your final tip>` on your node (an empty range is not a measurement)
 COMMIT    every node edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.120 -- INTEGRATION RED: the EG.77 chain meets the landed EG.72 box rule (director-measured at merge)
+BASE      CUT FROM de-base-EG.120 tip 42b212b06 = the director's merge of the post (which carries the landed EG.72 box rule) into the EG.77 chain tip 39b1b37fd; merge-tree clean. No further merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number).
+1. RED AT THE CUT, measured: `pytest extensions/agi/tests/test_send_dm_read_and_nudge.py test_box_identity.py test_box_guard.py` = 1 FAILED, test_box_local_row_does_not_print_empty_before_the_dm_sweep ('the row's dm block never printed', output EMPTY); it PASSES alone on the chain tip 39b1b37fd. Its fixture rows carry box 'local', and the landed EG.72 rule (boxes.py this_box + row_is_local: an unset AGI_BOX is refused, an empty or unknown row box is NOT local) now drops that row. FIND which reader drops it (send.py mail_poll --box-local branch, _locally_loaded_rows, row_is_local) and PASTE the proof.
+2. DECIDE AND STATE, on your node: is the defect in the TEST (its fixture predates the box rule: a local row must carry this box's alias and the test must set AGI_BOX via monkeypatch) or in the CODE (the --box-local branch must still sweep a row the rule keeps)? The landed EG.72 rule is the contract -- never weaken it to make this test pass. Fix exactly one side; the D5 assertion (no false 'empty' before the dm sweep) must still discriminate.
+3. At your tip: the three files above + test_send.py GREEN, pasted; never delete or weaken an assert.
+DIRECTOR (anchor rule): cite a function / heading / cell key; a line number only where the claim IS the line; paste a git grep -n hit for each name at your tip.
+DIRECTOR (numstat self-reference): measure `git diff --numstat 42b212b06 <tip BEFORE your paste commit>`, paste it, label it so.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_send_dm_read_and_nudge.py test_box_identity.py test_box_guard.py test_send.py + test_bin_help_smoke.py once (timeout 900, --basetemp under a fresh mktemp -d, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_send_dm_read_and_nudge.py · extensions/agi/bin/send.py (the --box-local read branch ONLY, if item 2 finds the defect there) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 10 production lines net over 42b212b06 · <= 12 test lines net over 42b212b06 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.77: mur-eg-21 EG.41-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.120: mur-eg-27 EG.77-merge residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
