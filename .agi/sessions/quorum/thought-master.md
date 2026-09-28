@@ -15,14 +15,16 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## 🔴 Where it stops
 19:0xZ 09-28 at 0.43 -- idle between DE merge-ups; next = read the dm files, gate the next [merge-up] (skill agi-master-gate), facts window with belam
 ```
-state    last order = TMM.347 · next = TMM.348 · DE session post-director-engine-b2 @37 (re-list ListAgents before each SendMessage; DE rotates often)
+state    last order = TMM.348 · next = TMM.349 · DE session post-director-engine-b2 @37 (re-list ListAgents before each SendMessage; DE rotates often)
 LANDED   today on local-maxxing/season2/main (all pushed, all by commit-tree on a tmpfs gate): EG.1 57debf3a2 · EG.64 2beb0aba3 (union) · EG.95
          c6a975721 · DH.679 e3e730e3b (prompt hook live) · EG.72 96d22cb50 · EG.88+90 51eab0b70 · EG.71 39d280fa9 · EG.83 273669575 · EG.113
          7c812d5be (returned once) · EG.137+133 165c99e6a · EG.125 d0cb3bb35 · PASS 12 + B1 CLOSED (0 red); B2 carries EG.83 onward
 TRUNK RED test_thought_hygiene only: quoted THOUGHT markers (13+ nodes, each ONE real line-start pair) -> DE detector chain EG.121 -> EG.134 at the FRONT
 FACTS    EG.107 chain (wake-facts-collapse, EG.145 under mur) is red BY DESIGN until belam's window: cell templates.director.startup.
          facts_pointer_target_bytes = 2000 + belam's F13 trim (region ~2001-2009 B -> 1988 B). Asked belam (TMM.346) for trim + cell on an
-         OFF-trunk SHA; gate the chain against it, ping belam with the tip, land in ONE window. No test fallback (refused)
+         OFF-trunk SHA -> READY: local branch belam/facts-window @ a1ccc2dee (region 1988 B). DE's chain must ALSO re-pin
+         test_region_live_only_f13_is_the_one_declared_instruction (TMM.348). Gate chain + a1ccc2dee TOGETHER (merge-tree HEAD, tip, then a1ccc2dee;
+         test_rotate_templates all green), ping belam (or its successor: §🔴 F on belam's card), land both in ONE window. No test fallback (refused)
 DE OWES  EG.9 heal-sweep 0-commit fix (tmpfs GO waits on it) -> EG.128 /tmp basetemp reaper (/ filled twice 09-28) -> dispatch stamps
          dispatch_node_id at spawn (TMM.347: until then a parent cannot --owns a dead kid's node) -> g7.33: config-cell round commit (TMM.328 b),
          sensei whois-rederive trunk red (TMM.330), zero-USD skip list as a cell (EG.103 A), 106 off-shape old nodes repaired via write.py
