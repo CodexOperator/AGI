@@ -43,9 +43,9 @@ GATE      TMM.306: load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, on
 PLACEMENT de-base-N ON DISK (the /dev/shm variant broke parent done -> DH.648 swept, reverted 00:0xZ); 651's RAM checkout is symlinked
 PRUNE     unit prune-debase OOM-KILLED 00:27Z (systemd-oomd, 41 removed); NOT restarted -- memory crit window (TMM.313 tmpfs hold)
 LANDED    TMM.312 00:42Z: TM landed the WHOLE branch d0d126deb (trunk merged in 90b21bd8f) + sent it to belam
-LIVE      EG.9 a00-da2aca6b (heal-sweep fix, TMM.313 FRONT) · EG.12 a00-b28f02a4 (DH.680 residues) · DH.653 a00-ec6eb41c · DH.654 a00-f51a4364
-          murq131 = EG.10-k1 (4d2c43ea5..b1f3ac729, harvest 100 passed, lean_proved:80) · DH.658 (6deb61be4, 96 passed) -> mur-eg-4 residue -> EG.14
-          (+ item 4 = the held EG.11 check), unit qgEG14 waits qgEG13
+LIVE      EG.12 a00-b28f02a4 (DH.680 residues) · DH.654 a00-f51a4364 · murq134 = EG.9-k1 (a42cf4dec..381239880: harvest 132 passed; director landed its
+          in-scope reaper cell; CEILING breach 2 kids / heal.py +37 / test +111) · murq133 = DH.653-k1 (6702b6ee6..7623d8adc, 270 passed)
+          EG.10 -> mur-eg-4 residue -> EG.15 (qgEG15 waits qgEG14) · DH.658 -> mur-eg-4 residue -> EG.14 (+ held EG.11 check, qgEG14 waits qgEG13)
           EG.7 PARENT-DEMOTED, 5 corpus edits UNCOMMITTED in a00-0194accb (never land); EG.11 HELD (conflicts with the DH.658 chain's detector file)
           EG.8: both scopes killed at their own memcg caps (01:04:56Z kid, 01:08:15Z parent), 0 commits -> EG.13 retry, cap a HARD RULE, unit qgEG13
           TMM.314: no box crit, belam's tmpfs clock from 00:43Z
