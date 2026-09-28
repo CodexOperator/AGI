@@ -34,10 +34,6 @@ town: core
 
 So send calls write.py, and nudge calls both write.py and read.py. All DMs across all boxes local. Or not share the 30 second delay which is useful for sending corrections anyway. Can fine tune the delay via config to see how different values perform. I guess cron can just check all active seats across all boxes on every box for now to keep it simpler. It's a cheap call at our current roster size."
 
-## OWNER 2026-09-28 06:5xZ (belam's pane), verbatim -- concurrent sends lose one
-"Btw DE had parents message completion so your DM may have been swallowed. That may be the issue. Parents and you sending DMs around the same time causes one to get lost."
-Measured by belam 06:3xZ from `.agi/sessions/inbox/director-engine.md` + `send.py status director-engine`: 06:22:42 / 06:22:50 / 06:23:20 three parent completion dms · 06:23:24 belam (read marker after it) · 06:27:44 belam [rule] dm: NO read marker after it and NO nudge (status marker=407s = last nudge ~06:24, pending=0) · 06:28:12 parent a00-1e3fe297. Earlier the same morning: two belam inbox sends (05:2xZ) both landed `pending=0` and `send.py wake` refused with nothing-pending while the block sat unread. The file keeps every block; what is lost is the NUDGE (pending counter / marker), so the reader never looks.
-
 ## The design, one line per part (the Prime's reading; the owner's words win -- 20:3xZ above, 20:4xZ + 20:5xZ in the notes)
 1. send = write.py: ONE commit + push per dm -- a new version of the pairwise dm file node, its read row = false.
 2. ADDRESS = the addressee's post row: its own box + its designated remote head (its "inbox" destination); no remote head -> the nearest, lowest-level remote branch (owner 20:4xZ, 20:5xZ). Same-box dms take the same route; the hub-only reading of 20:3xZ is superseded (owner 06:1xZ 09-27).
