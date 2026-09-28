@@ -38,13 +38,15 @@ POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-cor
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.179 · next murq272
-PLACING   serial12 (correctives 173 171 172 174 177 178, EG.173 = EG.9 blocker FIRST) · placecc175 (mem-gated CC text kid EG.175, then
-          hcc) · serial9 (164 166 left) -> serial10 (168) · TRAP: placements SERIAL, <= 2 dispatching at once (rc=124 io storm 18:5xZ)
-LIVE      EG.170 a00-1d634168 (facts window) · EG.165 a00-f0d1183c · EG.169 harvested 019b4c1c2 -> murq271
-MURS      267 EG.146 · 268 EG.147 · 269 EG.148 · 270 EG.162 · 271 EG.169 (text kid) · JUDGED 20:2xZ: 259-266 all awr -> 261 EG.160 -> 173
-          · 259 EG.152 -> 171 · 260 EG.155 -> 172 · 262 EG.158 -> 174 · 263 EG.151 -> 175 (CC text) · 264 EG.167 -> DIRECTOR CLOSE
-          0ccd29b77 -> MERGED b4e233ca8 · 265 EG.154 -> 177 (+config_max cell item) · 266 EG.159 -> 178
+SERIES    next EG.183 · next murq274
+PLACING   serial12 (173 171 172 174 177 178) -> serial14 (179) -> serial17 (180 181 182) · serial10 (168) · serial13 (EG.164 redispatch)
+          -> serial15 (EG.173 redispatch: its parent a00-aa605c82 died 0-commit) -> serial16 (EG.166 redispatch) · <= 2 dispatching at once
+PROVIDER  20:0x-20:3xZ the pi-free model returns 'Provider returned an empty response' (not classed transient): parents EG.148 163 164
+          166 173 died 0-commit with no output; mur stages 269v 270v 271 (x2) 272 died. Intermittent (267 268 clean). Fix in loop = the
+          EG.151 chain (an-empty-provider-response-is-retried-not-fatal: EG.175 under murq273) -- push it to the post FIRST once it clears
+LIVE      EG.170 a00-1d634168 (facts window) · EG.165 a00-f0d1183c · EG.175 harvested d4f16430f -> murq273
+MURS      271 EG.169 (re-armed x2) · 272 EG.161 (re-armed) · 273 EG.175 · JUDGED 20:4xZ: 267 EG.146 -> 180 · 268 EG.147 -> 181 · 269 EG.148
+          (verify died) -> 182 · 270 EG.162 (verify died) -> 179 · earlier: 259-266 -> 171-178 (176 = DIRECTOR CLOSE, merged b4e233ca8)
 TOOLS2    <scratchpad 3e232af5-...>: cardset.py KEY ENDKEY FILE (replace §0 lines via write.py) · drop.py N "k.." "why" (demote items)
           · textkid.py N (orders -> CC text-kid form; KID line = cli.py done, never git)
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
