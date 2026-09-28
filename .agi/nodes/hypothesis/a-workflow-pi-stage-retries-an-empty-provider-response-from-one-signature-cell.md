@@ -50,6 +50,24 @@ PROBES    never author or run a probe that calls rotate / heal / send / dispatch
 ANON      no user name, home or repo path value, host or IP; patterns write <user>
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.185 -- TMM.350 + TMM.353: the signatures go INTO the config cell, the code is the reader (EG.183 shipped the reader, never the cell)
+BASE      CUT FROM the EG.183 loop tip 2d0b3c8ed (parent a00-11db41a2; branch de-base-EG.185). Never rebase, never merge.
+MEASURED  by the director at 2d0b3c8ed: workflow.py _load_geometry_node returns fm.get("pi_transient_signatures") and _pi_transient_re reads it -- but config:workflows (.agi/nodes/.geometry/workflows.md) carries NO pi_transient_signatures key (git grep -n pi_transient .agi/nodes/.geometry/workflows.md = 0 lines), and workflow.py keeps the SAME list as the literal tuple _PI_TRANSIENT_FALLBACK: two sources of one list, and the cell that is supposed to be the source is absent. Every live run today therefore matches on the code literal.
+1. THE CELL -- write the five signatures of _PI_TRANSIENT_FALLBACK, byte-identical, as ONE list cell: python3 extensions/agi/bin/write.py config:workflows 'set pi_transient_signatures <the JSON list>' --actor <you>. Paste git grep -n -A6 '^pi_transient_signatures' .agi/nodes/.geometry/workflows.md showing the list landed AS A LIST, not a string.
+2. CODE = THE READER -- delete the literal tuple _PI_TRANSIENT_FALLBACK from workflow.py. _pi_transient_re compiles the cell's fragments only. An absent, empty or unreadable cell = NO transient match plus ONE stderr line naming the missing cell (config:workflows pi_transient_signatures) -- loud, never a silent second list. No signature string may remain in workflow.py code: paste `git grep -n "empty response" extensions/agi/bin/workflow.py` and account for every hit (a comment naming the cell is fine; a literal the regex compiles is not).
+3. TESTS -- in test_workflow.py: (a) the SHIPPED cell: load config:workflows from the real project root, assert a non-empty list that compiles and matches 'Provider returned an empty response' (the live-config guard; RED if the cell is removed -- paste that red by a fixture copy with the key dropped, never by editing the real node); (b) the cell IS the source: a fixture config:workflows whose list carries one NEW signature -> a stage failing with that text is retried, and the same text with the stock list is not; (c) absent cell -> no retry and the stderr line of item 2. Each new behaviour: paste a run that fails on the cut and passes on the tip.
+4. THE EG.183 NODE -- experiment:a00-ca8fa749-b4f2a5 says the list has ONE source; re-state it to what the bytes now do (the cell), with write.py.
+TEXT RULES NUMSTAT SELF-REFERENCE: never paste a numstat that includes the commit it is pasted in · ANCHOR RULE: a cite names a function / heading / cell key and adds a line number only where the claim IS the line
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees
+PROBES    never author or run a probe that calls rotate / heal / send / dispatch functions or a live pi; fixtures and monkeypatch only
+TESTS     env -u TMUX -u TMUX_PANE python3 -m pytest -q -p no:cacheprovider --basetemp=/dev/shm/<dir> extensions/agi/tests/test_workflow.py extensions/agi/tests/test_live_config_cells.py extensions/agi/tests/test_bin_help_smoke.py (timeout 900) -- paste the summary line
+FILE SCOPE extensions/agi/bin/workflow.py (_pi_transient_re + the deleted _PI_TRANSIENT_FALLBACK only) · extensions/agi/tests/test_workflow.py · .agi/nodes/.geometry/workflows.md (write.py set, the ONE key) · experiment:a00-ca8fa749-b4f2a5 (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 10 production lines net over 2d0b3c8ed (a deletion-heavy round: the tuple goes) · <= 40 test lines net over 2d0b3c8ed · pi-free tier-0 · 0 USD -- measure git diff --numstat 2d0b3c8ed <tip before the paste commit>, labelled so
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit (the config:workflows node included) on the loop branch before you exit (g7.33.19 row 13) · WRITE THE NODE EARLY and commit after every run: the provider drops turns ('Provider returned an empty response'), and a round that dies mid-turn records nothing
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.183: TMM.350 TMM.350 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.185: TMM.353 TMM.350 + TMM.353 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
