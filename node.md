@@ -169,22 +169,6 @@ FILE SCOPE  · .agi/nodes/experiment/a00-2e615bb5-234c16.md · .agi/nodes/experi
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 1e74cea4b · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
-
-## CORRECTIVE EG.62 -- closes mur-eg-14 EG.39-k1 accept_with_residue
-BASE      CUT FROM season2/loops/hypothesis-one-mint-route-answer-a00-ae77e8be tip eef31410a (branch de-base-EG.62; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. THOUGHT not rewritten with the demotion — a00-d85ae42b-bf72d8.md:135 still 'The claim is PROVED' against frontmatter :21 inconclusive_lean_disproved:65
-2. '[rule] BANKED' claim unbacked at eef31410a — a00-d85ae42b-bf72d8.md:46 (also a00-e0efd9fc-a8cf4c.md:54)
-3. The missing-THOUGHT defect covers ALL THREE edited nodes, not just the one: e0efd9fc:49-54 changes a factual claim (the rule's home, from ff788172's Caveats to 2e615bb5:47) and ff788172:253 adds a new on-this-tip claim ('the command also returns b0bf124f:106'), and neither node's THOUGHT (e0efd9fc:115, ff788172:296+) records that its version changed. The diff has no THOUGHT hunk anywhere (git diff f0f5a36e6 eef31410a touches only :5-8, :18-21, :35-81 of d85ae42b; :6-9, :49-54 of e0efd9fc; :253 of ff788172).
-4. The demotion's REASON is unrecorded inside the merge range, not merely its THOUGHT: `git grep -n 'EG.39' eef31410a -- .agi/nodes/doc/card-director-engine.md` returns no match, and the parent hypothesis one-mint-route-answers-file-validated-row-by-row.md never names a00-d85ae42b. A reader of the merged tip sees proved -> inconclusive_lean_disproved:65 with no stated cause anywhere in the tree; the only trace is 72aff26ec, outside the range.
-5. The version-delta was pasted into the BODY instead of the authored region: d85ae42b:44-46 ('EG.39 (the director's pure-text fix of mur-eg-11 DH.660-k1) corrected this line: it named ff788172's Caveats, which never held it. The rule's skill home is BANKED by the director as a [rule]') sits in the 'The one number' body section while the THOUGHT at :134-136 still carries the DH.660 delta — a note in two homes, neither of them the version's delta region.
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-TESTS     test_bin_help_smoke.py once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT (TMM.322)); TEXT-ONLY round: node text only
-FILE SCOPE .agi/nodes/experiment/a00-d85ae42b-bf72d8.md · .agi/nodes/experiment/a00-e0efd9fc-a8cf4c.md · .agi/nodes/experiment/a00-ff788172-12084f.md (write.py) · the kid's own node
-CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · node text only · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat eef31410a <your final tip>` on your node (an empty range is not a measurement)
-KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit; a version delta goes in the node THOUGHT (write.py), never the body
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.62: mur-eg-14 EG.39-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.660: mur-director-engine-41 DH.621-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
