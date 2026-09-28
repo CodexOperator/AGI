@@ -100,8 +100,27 @@ FILE SCOPE extensions/agi/bin/mem_cap.py · extensions/agi/tests/test_boxkit_pro
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over d61dde9ad · <= 40 test lines net over d61dde9ad · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat d61dde9ad <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.110 -- closes mur-eg-26 EG.49-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-per-spawn-tasks-max-r-a00-dcf47d0f tip 4490089b8 (branch de-base-EG.110; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 2. FALSIFIER 1 greps a docstring - .agi/nodes/hypothesis/per-spawn-tasks-max-reads-the-spawn-tasks-max-cell.md:28
+2. 3. Probes are prose, not probe dicts - .agi/nodes/experiment/a00-aa4ebef6-aa5cf6.md:14
+3. 4. THOUGHT carries no delta for this version - .agi/nodes/experiment/a00-bf749770-1f7083.md:90
+4. G2.11 delta gap on the HYPOTHESIS node - the stronger instance of the reviewer's defect 4, which was reported only on a00-bf749770. `git diff d61dde9ad 4490089b8 -- .agi/nodes/hypothesis/per-spawn-tasks-max-... | grep -c THOUGHT` = 0: the round rewrote the canonical frontmatter testable_claim (:11) and the ## CLAIM body (:22) and appended an EG.49 item 1 note (:141), but the THOUGHT at :104 still carries only the generic scaffold line 'corrective EG.49: mur-eg-15 EG.31-k1 residues batched into one corrective (orders above, generated from the verdict files)' - no delta for why THIS version differs. This is the node the round exists to fix, and it is the same class as flagged defect 4.
+5. The hypothesis node now carries two inconsistent falsification regimes: the new CLAIM at :22 asserts the hook is retired and git grep is empty, while ## FALSIFIERS at :28 still lists a grep that a legitimate wrap_argv docstring satisfies. Same root as defect 2, but the inconsistency is between two fields of the same node and the round rewrote the claim without reconciling the falsifier list.
+DIRECTOR (anchor rule): cite a function / heading / cell key; a line number only where the claim IS the line; paste a git grep -n hit for each name at your tip.
+DIRECTOR (numstat self-reference): measure `git diff --numstat 4490089b8 <tip BEFORE your paste commit>`, paste it, label it so.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_mem_cap_tasks_max.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_mem_cap_tasks_max.py · .agi/nodes/experiment/a00-aa4ebef6-aa5cf6.md · .agi/nodes/experiment/a00-bf749770-1f7083.md · .agi/nodes/hypothesis/per-spawn-tasks-max-reads-the-spawn-tasks-max-cell.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 4490089b8 · <= 40 test lines net over 4490089b8 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 4490089b8 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.49: mur-eg-15 EG.31-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.110: mur-eg-26 EG.49-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
 
 ## Agent Notes
