@@ -32,9 +32,9 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 
 ## §0 STATE (03:2xZ 09-28 · seat woke 00:45Z · per-chain history = git log of this node)
 ```
-MERGE-UP  EG.1 chain [merge-up] to TM 02:25Z -- TIP 95c425f8c, MB dc93a2660, 21 files +1149/-69, 0 deletions, 123 passed; 1 DECLARED residue carried
-          (mem_cap.py:89-90 docstring -> Item 7 round) · TM has not answered yet (owner 02:2xZ: a TM send may have failed; owner checking)
-SERIES    EG.N (next EG.29) · murs merge_up "eg" -> mur-eg-N (next mur-eg-10) · DH.N queued before the reset keep their labels
+MERGE-UP  EG.1 chain 95c425f8c RETURNED by TM (TMM.316, 02:3xZ; that dm never reached my inbox) for ONE docstring fix (mem_cap.py
+          resolve_tasks_max: AGI_TASKS_MAX IS inherited via dispatch.scrubbed_env; typo WHICEVER) -> EG.29 (qgEG29, behind EG.27) -> mur -> re-send [merge-up]
+SERIES    EG.N (next EG.31) · murs merge_up "eg" -> mur-eg-N (next mur-eg-10) · DH.N queued before the reset keep their labels
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f] gen2.py N murq<Q>.json tip label (run FROM the worktree; sed header DH.EG.n -> EG.n)
           · place2.sh N (splice fixed 01:1xZ) · placef.sh N (fresh) · redispatch2.sh N (dead round, EG labels ok, gated) · mkmur.py + runmur.sh
           · qgEG<N>.sh = gate -> place2 (chain via `while is-active qgEG<prev>`) · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N...
@@ -42,7 +42,10 @@ GATE      TMM.306: load1 < 16 AND io avg60 < 50, two reads 5 min apart, one plac
 LIVE      no parent at 03:2xZ · no mur running · everything below is QUEUED in chained units (systemctl --user list-units 'agi-director-engine-*')
 FRONT     EG.27 (qgEG27) = EG.9 heal-sweep chain: EG.23's kid DIED on its last write -> director SALVAGE 344d79ad2 (UNREVIEWED) -> EG.27 cut from it,
           FIRST ACT verify + close heal.py:1683 rc-discard fail-open. TMM.313: tmpfs GO waits on this chain MERGED + 24 h no memory crit
-RE-DISP   provider-dead 02:45-03:15Z (pi-free empty response, 0 commits): qgR660 (DH.660) -> qgR2 (EG.18 EG.19 661) -> qgR3 (EG.20) · [red] to TM 03:1xZ
+RE-DISP   provider-dead 02:45-03:15Z: TMM.317 = ONE AT A TIME, stop the lane on the first died-on-empty -> unit qgRS (T/redisp-serial.sh 660 EG.18
+          EG.19 661 EG.20; log T/qgRS.log, T/emptycount.log) · EG.30 = the retry fix (hypothesis:an-empty-provider-response-is-retried-not-fatal,
+          g7.33.19) placed after EG.29 (qgEG30) · COUNT 03:15-04:15Z runs itself at 04:20Z -> T/count1h.txt: > 1 in 3 died = send TM both numbers
+          · the tier-0 model/provider row is the PRIME's cell (TMM.317 (4))
 QG-EG     EG.21 (EG.13 chain, memory-cap HARD RULE) -> EG.22 (DH.657) -> EG.24 (DH.655 clean-kid; BOUNDARY vs EG.9) -> EG.25 (DH.659 parent-demote)
           -> EG.26 (EG.16/DH.653) -> EG.28 (DH.656, mur-eg-9 verify: cli.py guard unpinned, cache key fail-open)
 QG-DH     drainqg8.. chain (T/drainqg<N>.log): 662-664 · 665 · 666 · 668 · 669 · 675 670-674 · 678 · 679 · EG.2 EG.3 · EG.5 (facts chain, TMM.313 (2):
@@ -65,7 +68,7 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 Queue drained into chained gated units; EG.27 (EG.9 chain, from the salvage) at the front; EG.1 merge-up 95c425f8c waits on TM.
 ```
 FIRST   send.py read director-engine ; spawn_budget.py status (every ended parent -> harvest AT ONCE) ; systemctl --user list-units 'agi-director-engine-qg*'
-THEN    EG.27 ended -> harvest -> mur (range a935bf010..tip covers the salvage) ; TM answers the EG.1 merge-up -> Item 7 round ; murs -> verd.py
+THEN    EG.27 / EG.29 / EG.30 ended -> harvest -> mur ; EG.29 clean -> merge -> EG.1 [merge-up] again ; 04:20Z T/count1h.txt -> TM if > 1 in 3 ; murs -> verd.py
 ```
 
 ## §4 TRAPS
