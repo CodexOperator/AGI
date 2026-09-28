@@ -257,6 +257,22 @@ FILE SCOPE extensions/agi/tests/test_ladder_node.py · .agi/context/schemas/[lad
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 9be7b0248 · <= 60 test lines net over 9be7b0248 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 9be7b0248 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.143 -- closes mur-eg-53 EG.136-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-trunk-tests-follow-th-a00-f5b219a2 tip 9f46d6359 (branch de-base-EG.143; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. The restored pin hand-copies the LIVE command line, so a config:rotations edit REDs trunk — the residue-1 class the round exists to close, re-opened on the cmd axis -- extensions/agi/tests/test_sensei_wake_audit.py:1033 -- `pin = "python3 extensions/agi/bin/send.py whois prime-ref --claim belam"` duplicates rotations.md:77/:116 wholesale; _first_turn_label (sensei.py:376-387) prefix-matches the whole first segment, so adding one flag to the live cmd REDs at :1036 (reviewer probe, /tmp copy, 1 failed/89 deselected; restored = green). Fix is small and derivable: build the pin from the live template by substituting `\{[^}]+\}` with a probe token instead of hand-writing it.
+2. Machine verdict `proved` contradicts the record's own inconclusive_lean_proved:55 -- .agi/nodes/experiment/a00-4c01cec5-8ca3db.md:22 -- Frontmatter `verdict: proved` / confidence 0.82 while the THOUGHT (:113) and Agent Notes (:117) say inconclusive_lean_proved:55; the demotion is invisible to the evidence gate and to every machine reader (DH.562 item 4, third recurrence on this chain).
+3. `verdict: proved` with no `probes:` field — the item-7 class this round was dispatched against, re-committed -- .agi/nodes/experiment/a00-4c01cec5-8ca3db.md:12 -- `evidence_runs` self-cites the node and the machine-readable negative-probe field the schema declares ([experiment].md:18-22) is absent, so `verdict: proved` rests on prose; the parent recorded this as unfixed in the THOUGHT that ships.
+4. Ceiling paste is one-operand (worktree), not a two-operand measurement at the final tip -- .agi/nodes/experiment/a00-4c01cec5-8ca3db.md:104 -- `git diff --numstat 9be7b0248 -- extensions/ tests/ skills/ src/` measures against the live worktree, not a tip; the number (+51) is right but the form is the EG.93 item-5 / EG.102 item-1 residue. Two-operand truth: 68/17 test + 119/0 node.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_sensei_wake_audit.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_sensei_wake_audit.py · .agi/nodes/experiment/a00-4c01cec5-8ca3db.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 9f46d6359 · <= 40 test lines net over 9f46d6359 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 9f46d6359 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.136: mur-eg-40 EG.102-merge residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.143: mur-eg-53 EG.136-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
