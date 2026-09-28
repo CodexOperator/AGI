@@ -2,10 +2,11 @@
 hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes.
 
 Rows 1-14, one per clause of the claim, plus lettered sub-rows. THE RULE, not an
-inventory: a row is named ONLY by the comment above its own test, and no list of row
-names is kept anywhere -- every enumeration here was a second copy that went stale on
-arrival (a range that cited a row that does not exist, a sub-row that was never
-written). To add a row, write its comment; nothing else to update.
+inventory: a row is SPECIFIED by the comment above its own test. This docstring is
+nevertheless an inventory, and the claim that it is not was refuted by its own bytes
+(DH.653 item 5: rows 11, 12 and 13 were named in the file and listed nowhere here).
+Rather than delete it, the copy is CHECKED -- row 15 fails if a row the file names is
+absent below, so it goes RED instead of stale.
 
 1. every manifest row carries the KIT CONTRACT keys and a known dest_cell;
 2. every piece renders with no {{UNFILLED}} surviving;
@@ -48,6 +49,13 @@ written). To add a row, write its comment; nothing else to update.
     against its RECORDED LIVE bytes by the DECLARED delta, line for line: a converging
     and a differently-drifting render are both RED, and a row with no recorded live
     bytes is a NAMED skip, never a silent pass.
+11: WHOLE-TABLE COVERAGE: the manifest reaches EVERY unit the goal node's table names,
+    not just the no-cascade layer, and CELLS is read at CALL time (11g), so a cell
+    rename moves the rule instead of inverting it.
+12: the leak-root rule is the shape the OLD depth rule got wrong -- the legacy oracle is
+    pinned inline so _leak_roots must DISAGREE with it, not merely differ.
+13: the ANONYMIZED live render substitutes through the longest-first helper (13b pins
+    that at the CALL SITE), so a reverted identity order cannot stay green.
 14: THE ENGINE'S OWN GUARD over the kit's bytes. Row 4 is a BESPOKE denylist
     (checkout roots, home, owner, cgroup uid) because anonymize.py's classes
     (hostname/ip/mac/board/secret) do not cover those -- which made the two DISJOINT: a
@@ -57,6 +65,8 @@ written). To add a row, write its comment; nothing else to update.
     read into the test): it plants one FAKE_BOX value in a COPY of one template and
     asserts scan names the CLASS, and asserts the UNPLANTED kit bytes stay clean. It
     guards a PLANTED COPY: the kit's own bytes could only go red on a real denylist.
+15: THIS INVENTORY IS CHECKED: every `row N` the file names must be listed above, or the
+    row is red. A claim that no inventory exists was itself the stale copy (DH.653).
 
 Reads: config cells, the goal node, and the committed fixtures. It reads NO live unit
 file and calls no systemd: the live-bytes comparison is a probe, run by the parent.
@@ -147,10 +157,18 @@ def _leak_roots(project):
 LEAK_ROOTS = _leak_roots(PROJECT)
 
 
-# ONE SOURCE for the kit denylist's own tokens (owner, home, /.sanctuary/).
-# Row 14b's candidate is DRAWN from this tuple, never re-typed, so it cannot drift
-# out of the rule it is meant to probe (DH.634 item 4).
-KIT_TOKENS = (OWNER, str(Path.home()), "/.sanctuary/")
+# ONE SOURCE for the kit denylist's own tokens (owner, home, the guard dir's own
+# fragment); the candidate is DRAWN from this tuple, never re-typed (DH.634 item 4).
+# The guard fragment is DRAWN FROM THE CELL paths.boxkit.guard_dir, not re-typed as
+# '/.sanctuary/' (DH.653 item 4: a literal there duplicated a committed cell, so
+# repointing the cell left row 4 blind). TAIL TWO, not the leaf: 'guard' is a piece name.
+GUARD_FRAGMENT = "/".join([p for p in Path(CELLS["guard_dir"]).parts
+                           if not p.startswith("{")][-2:])
+KIT_TOKENS = (OWNER, str(Path.home()), GUARD_FRAGMENT)
+# a fragment absent from the resolved dir can never fire -- refused at the definition
+assert GUARD_FRAGMENT in str(R.expand(CELLS, CELLS["guard_dir"], R.engine_checkout())), \
+    "paths.boxkit.guard_dir %r yields fragment %r, absent from the resolved dir" % (
+        CELLS["guard_dir"], GUARD_FRAGMENT)
 
 
 def _leaks(text, roots=LEAK_ROOTS):
@@ -1042,20 +1060,43 @@ def test_one_planted_kit_copy_goes_red_and_the_kits_own_bytes_stay_clean(
 # copy of a literal the rule no longer denies (DH.634 item 4). Never a FAKE_BOX value
 # either: a planted FAKE_BOX value is invisible to every kit rule by definition, so
 # `assert _leaks(planted) == []` could never go red (DH.591 item 1). The kit SEES the
-# token; the engine's denylist does NOT. RED when the kit's roots are added to
-# anonymize.box_tokens: `scan` then names a class here (mutation of parent
-# a00-36e29ed9's probe, DH.591; the probe itself is WITHDRAWN -- DH.634).
-KIT_TOKEN = next(t for t in KIT_TOKENS if t and t not in LEAK_ROOTS)
+# token; the engine's denylist does NOT. RED when THIS candidate is added to
+# anonymize.box_tokens: `scan` then names a class here. NOT the kit's LEAK_ROOTS --
+# that mutation cannot fire, because the candidate is drawn precisely from outside
+# LEAK_ROOTS (DH.653 item 1; the earlier text named a mutation that was unfalsifiable).
+def _kit_token():
+    """Row 14b's candidate, resolved at CALL time and REFUSING BY NAME. It was a
+    module-level next(): a bare StopIteration AT IMPORT is a COLLECTION error and no
+    row in this file runs (measured blast radius: all 198, DH.653 items 3 and 6)."""
+    cands = [t for t in KIT_TOKENS if t and t not in LEAK_ROOTS]
+    assert cands, ("no kit denylist token outside LEAK_ROOTS: every member of "
+                   "KIT_TOKENS %r is a leak root, so row 14b has no falsifiable "
+                   "candidate" % ([t for t in KIT_TOKENS if t],))
+    return cands[0]
+
 @pytest.mark.parametrize("cls", ["hostname", "ip", "mac", "board", "secret"])
 def test_the_kit_denylist_and_the_engine_denylist_are_disjoint_in_both_directions(
         cls, fake_box, anonymize):
     toks = anonymize.box_tokens(PROJECT)
-    value, kit = FAKE_BOX[cls][0], KIT_TOKEN
+    value, kit = FAKE_BOX[cls][0], _kit_token()
     clean = (TEMPLATES / BY_NAME["oomd-guard"]["template"]).read_text(encoding="utf-8")
     planted = clean + "\n# a planted %s token: %s\n" % (cls, value)
     assert anonymize.scan(planted, toks) == [cls], cls
     assert kit not in LEAK_ROOTS, "tautology: _leaks carries every leak root by rule"
-    assert any(t is KIT_TOKEN for t in KIT_TOKENS), \
+    assert any(t is kit for t in KIT_TOKENS), \
         "candidate is not a member of the kit denylist's own token source"
     assert _leaks("cd %s\n" % kit), "row 4 does not see its own denylist token"
     assert anonymize.scan("cd %s\n" % kit, toks) == [], "the guard now sees a kit token"
+
+
+# 15 -- THE INVENTORY IS CHECKED, NOT CLAIMED ABSENT: the header said "no list of row
+# names exists" and WAS one (DH.653 item 5). This row is the wide grep -- it sees every
+# `row N` mention, so a row added without its entry is RED rather than stale.
+def test_the_row_inventory_here_lists_every_row_the_file_names():
+    text = Path(__file__).read_text(encoding="utf-8")
+    listed = {int(m) for m in re.findall(r"^(\d+)[.:] ", text, re.M)}
+    used = {int(m) for m in re.findall(r"[Rr]ow (\d+)", text)}
+    missing = sorted(used - listed)
+    assert not missing, ("row(s) %s are named in this file but absent from the docstring "
+                         "inventory: add the entry, do not delete the reference" % missing)
+    assert listed, "the inventory parse found nothing -- the rule above is now vacuous"
