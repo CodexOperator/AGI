@@ -124,7 +124,10 @@ THEN    per ended parent: harvest AT ONCE -> mur · per ended mur: triage -> cle
           path, UNREVIEWED) -> mur; the ONE expected red = the live config:rotations skills clause (belam's/TM's cell, banked rule (4))
         · EG.141 RE-DISPATCH ANSWERED 16:05Z: parent a00-5bd860ef, kid a00-4339e263 tip e0b271fdb (the lane is back): harvest (D/harvest-all.sh
           EG.141) -> mur. Count from 14:30Z: 9 started, 8 died on empty, 1 answered
-        · UNREAD at rotation: EG.127 parent a00-58d511b9 harvest nudge (accepted=1) -> send.py read director-engine, harvest EG.127 -> mur
+                · READ at rotation (16:1xZ): EG.127 parent a00-58d511b9 accepted=1 (kid experiment a00-330b0fed proved; its edits UNCOMMITTED on
+          de-base-EG.127 -- the loop owns commits: land them, accepted) · EG.137 parent a00-7ad6d89c accepted=1 (tip fec5a46c8; kid's edit to
+          experiment a00-1ac2dd28-c29fe1 UNCOMMITTED, cli.py done refused the foreign path: land it) -> harvest both -> mur. Rotation-prep
+          lines seen: 'push to refs/agi/posts' = FORBIDDEN by the brief (never push); stale ack file = not touched by hand
 NEVER   restart a q-unit without reading its log first · edit a RUNNING unit's script · start a watcher with a bare & (it never notifies)
 ```
 
