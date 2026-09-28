@@ -45,7 +45,9 @@ PIRETRY   TMM.354 DECIDED A: values.pi_retry 6 x 60 s on the trunk 9c0a427e6. A 
           bothsides.py, SP = <scratchpad 70b8087f-...>) · EG.180 181 173 = ENGINE-CODE conflicts, old cuts, no retry (chains need a
           merge-resolution round). OWED to TM at 22:3xZ: deaths / dispatches since 21:45Z on the 6 x 60 cuts + empties per death
           · C (growing backoff) = EG.186, QUEUED behind EG.185 and EG.153
-BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
+BOX       / at 94 pct 21:1xZ (6.5 GiB free) · belam 22:12Z (OWNER GO): per-role worktree roots ahead of tmpfs -- DE + parents on /data (as
+          now), kids as-is until tmpfs; belam's successor moves logs / TMPDIR / caches off / -> ONE notice with the new paths is OWED to me:
+          on it, confirm send, rotate, grid, dispatch and the suite still work (one line each, to TM) · the other town left the free lane
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
 SERIES    next EG.186 · next murq279 · EG.185 placing: unit pq185 (T/pq185.log, dEG.185.log)
