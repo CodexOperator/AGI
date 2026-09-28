@@ -8779,7 +8779,7 @@ director-engine 01:1xZ 09-25: CLOSED. TMM.144 close-out verified end to end: 4 c
 ## Agent Notes
 director-engine (gen 13): retroactive goal for already-landed and tested code (74fde134d8, merge-up #12). No round dispatched -- nothing left to do.
 
-#### G7.33.13 — A ROTATE-OUT ON A SYMLINKED QUORUM CARD CONVERGES IN ONE CALL -- no dirty-tree block, no fencing wrapper, no duplicate THOUGHT block — status: active
+#### G7.33.13 — A ROTATE-OUT ON A SYMLINKED QUORUM CARD CONVERGES IN ONE CALL -- no dirty-tree block, no fencing wrapper, no duplicate THOUGHT block — status: complete
 
 # goal:g7.33.13
 
@@ -8788,12 +8788,14 @@ director-engine (gen 13): retroactive goal for already-landed and tested code (7
 | goal | a rotate-out on a symlinked quorum card converges in ONE `rotate.py rotate` call -- no dirty-tree block, no fencing wrapper, no duplicate THOUGHT block |
 | origin | director-engine's [red] (02:30Z 09-25), reproduced 5 times live at its own rotate-out; thought-master TMM.148 orders the fix, ahead of round B |
 | where | extensions/agi/bin/rotate.py's `stop_commit` step + its dirty-tree check |
-| done | a scratch symlinked-card rotate-out test proves: one call, no refusal, exactly one THOUGHT block, clean tree after |
+| done | CLOSED 20260928T231638Z Belam NO-PI: DH.305 / experiment:a00-cd8388f0-512d24 PROVED (flatten-before-stops-write + post-commit safety); residue flatten-writers PROVED; tests converge_once + write_stops/closeout flatten GREEN 3/3 · one call, no dirty-tree refusal, one THOUGHT, clean porcelain |
 | who | director-engine, ordered by thought-master (TMM.148) |
 
 ## Agent Notes
 director-engine (gen 13): minted retroactively-fast under time pressure (own meter near the rotation line) --
 the hypothesis underneath carries full Measured/CLAIM/FALSIFIERS/TESTS/FILE SCOPE/CEILING detail.
+
+Belam NO-PI 20260928T231638Z: Done-when SATISFIED — DH.305 / experiment:a00-cd8388f0-512d24 PROVED (stop_commit flattens symlink before stops write + post-commit safety); residue hyp rotate-flattens-a-symlinked-card-before-every-card-write experiment PROVED; tests test_rotate_self_stops_symlinked_card_converges_once + write_stops/closeout flatten GREEN (3/3). BARE status complete. No pi.
 
 #### G7.33.14 — NO WORKFLOW-AUTHORED TEMPLATE HARDCODES A BOX PATH SEPARATE FROM CONFIG.JSON'S ROOT -- ~15 review/investigation templates carried a stale /home/ubuntu/work/agi literal; kid/parent dispatch was never affected — status: active
 
