@@ -397,7 +397,12 @@ def test_box_local_row_does_not_print_empty_before_the_dm_sweep(project, croot,
     """D5: the `--box-local` mail_poll branch read each local row WITHOUT
     `quiet_empty=True`, so `inbox for <nm>: empty` printed BEFORE the row's dm
     channels were swept -- a false `empty` line per row. The row's own verdict
-    is decided after `read_dms`, exactly as the positional path does."""
+    is decided after `read_dms`, exactly as the positional path does.
+
+    A LOCAL row is one that names THIS box (boxes.row_is_local: an unset
+    AGI_BOX is refused), so the fixture declares both halves: the box here and
+    the row's own `box` cell equal to it."""
+    monkeypatch.setenv("AGI_BOX", "local")
     _write_dm_block(croot, PEER, ME, ME, "dm-only-body-xyz")
     rows = [{"name": ME, "role": "director", "window": "@9", "pid": 424242,
              "box": "local"}]
@@ -417,6 +422,12 @@ def test_box_local_row_does_not_print_empty_before_the_dm_sweep(project, croot,
     assert send_mod.main(["--from", ME, "--comms-root", str(croot),
                           "read", "--box-local"]) == 0
     assert "inbox for seat-c: empty" in capsys.readouterr().out
+    # ...and a row naming ANOTHER box is still skipped on this box
+    monkeypatch.setattr(send_mod, "_locally_loaded_rows",
+                        lambda r: [{"name": "seat-x", "box": "elsewhere"}])
+    assert send_mod.main(["--from", ME, "--comms-root", str(croot),
+                          "read", "--box-local"]) == 0
+    assert "inbox for seat-x" not in capsys.readouterr().out
 
 
 # ── (c) a dm-file send fires the recipient nudge, same path as inbox ──────
