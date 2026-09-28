@@ -15,6 +15,7 @@ id (`L1.08` -> `sessions/iter-L1.08`); `locations.iteration_id` parses both.
 from __future__ import annotations
 
 import argparse
+import errno
 import json
 import os
 import re
@@ -640,7 +641,8 @@ def _node_declared_deliverables(root, node_file) -> list:
     return []
 
 
-def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
+def _parent_harvest_body(root, manifest, iter_n, agent_id, row,
+                         commit_failed: str = "") -> str:
     """hypothesis:l4-a-kid-reports-to-its-parent-and-the-seat-hears-one-dm-
     per-round, clause 2 -- the ONE seat dm a parent sends at harvest. Counts
     and node ids derive from the agent records of kids whose `spawned_by_agent`
@@ -672,6 +674,10 @@ def _parent_harvest_body(root, manifest, iter_n, agent_id, row) -> str:
     tip = _branch_tip(root, branch)
     notes = _kid_budget_notes(root, kids)
     tail = (" " + " ".join(notes)) if notes else ""
+    # hypothesis:a-stale-index-lock-is-cleared-or-named-...-never-silent: a
+    # round commit that failed is NAMED in the one harvest dm, never silent.
+    if commit_failed:
+        tail += f" commit FAILED: {commit_failed}"
     return (f"{_completion_line(iter_n, agent_id, None, 'harvest')} "
             f"accepted={accepted} demoted={demoted} failed={failed} "
             f"kids=[{', '.join(node_ids)}] "
@@ -940,7 +946,7 @@ def _write_kid_report(holders: list[Path], agent_id: str, line: str) -> None:
 
 
 def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict,
-                              record_path=None):
+                              record_path=None, commit_failed: str = ""):
     """hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- the round's
     ONE completion dm, sent with NO flag: the dispatcher was stamped into the
     manifest at spawn (`dispatched_by`), and a round that finishes alarms
@@ -1008,6 +1014,11 @@ def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict,
         if row is None:
             return
         line = _completion_line(iter_n, agent_id, node_id, verdict)
+        # item 3: a KID's failed commit was named NOWHERE -- the kid branch
+        # below returns at 1025 with `line` as built, and only the parent
+        # branch consumed `commit_failed`. Same string the parent carries.
+        if commit_failed:
+            line += f" commit FAILED: {commit_failed}"
 
         if tier == "kid":
             parent = row.get("spawned_by_agent")
@@ -1037,7 +1048,7 @@ def _alarm_dispatcher_on_done(root, iter_n, agent_id, node_id, verdict,
             import send as _send
             _send.send(root, dispatcher,
                        _parent_harvest_body(root, manifest, iter_n,
-                                            agent_id, row),
+                                            agent_id, row, commit_failed),
                        agent_id)
             return
 
@@ -1751,19 +1762,35 @@ def cmd_done(args: argparse.Namespace) -> int:
     # action, so it owns the worktree commit too. Commits the linked worktree
     # this parent runs in, if it holds uncommitted node writes; a no-op in
     # main (the loop owns main) and outside git. Never fatal.
-    _auto_commit_worktree(root, args.agent_id, args.node_id, args.owns, verdict,
-                          _round_named_node_ids(rec, args.parent),
-                          refused=[args.parent] if args.parent else None)
+    _commit_out = _auto_commit_worktree(root, args.agent_id, args.node_id,
+                                        args.owns, verdict,
+                                        _round_named_node_ids(rec, args.parent),
+                                        refused=[args.parent] if args.parent else None)
+    commit_fail = _commit_out if isinstance(_commit_out, str) else None
+    if commit_fail:
+        # item 4: `rec["status"] = "done"` is stamped ABOVE, before this
+        # commit runs, so a round whose commit failed read `done` in the
+        # record AND in the manifest mirror. `failed` is the status heal,
+        # sweep and `_parent_harvest_body` already know -- no new vocabulary.
+        rec["status"] = "failed"
+        rec["fail_reason"] = f"round commit FAILED: {commit_fail}"
+        ap.write_text(json.dumps(rec, indent=2))
+        _mirror_terminal_into_manifest(ap, rec, args.agent_id)
 
     # hypothesis:l4-a-round-alarms-its-dispatcher-by-default -- a round that
     # finishes alarms the seat that dispatched it: exactly ONE dm, sent with
     # no flag, right after the done: commit. Never fatal to the done path.
     _alarm_rc = _alarm_dispatcher_on_done(root, args.iter_n, args.agent_id,
-                                          args.node_id, verdict, ap)
+                                          args.node_id, verdict, ap,
+                                          commit_failed=commit_fail or "")
 
     print(f"agent {args.agent_id} status=done verdict={verdict}")
     # SM.67 C2: a silent dm (no holder -> alarm returned 1) surfaces as the
     # exit code AFTER the verdict is recorded; a clean round exits 0.
+    if commit_fail:
+        # the round commit FAILED: the seat must never read this as landed
+        print(f"ERR: round commit FAILED: {commit_fail}", file=sys.stderr)
+        return 3
     return _alarm_rc if _alarm_rc else 0
 
 
@@ -2357,6 +2384,128 @@ def _round_own_node_paths(root: Path, checkout_root: Path,
     return out
 
 
+def _uninspectable(base: str, exc: OSError) -> str:
+    """NAME of a live process whose /proc table could not be read, or '' when
+    nothing is lost. Three exits, each a property of the PID and none a guess
+    about its NAME (the allowlist of comms this replaces decided a SAFETY
+    question by a pasted host reading, and blocked every checkout on the box
+    over one unreadable pid in any of them). 1) ENOENT = the pid EXITED
+    mid-walk: provably no holder. 2) ANOTHER uid: `/proc/<pid>`'s own st_uid
+    is readable when the table is not, and a process of another uid cannot
+    hold a file in our worktree. 3) NON-DUMPABLE: an fd dir the KERNEL owns
+    (st_uid 0 for a same-uid pid) is a session daemon (ssh-agent, gpg-agent,
+    sd-pam -- three permanent ones on the measured host), not a writer of our
+    index; refusing on those refuses every commit on every desktop. A stat
+    ENOENT takes the listing's exit: the pid EXITED mid-walk. What is
+    left -- our uid, our own fd dir, still unreadable -- is an UNKNOWN holder
+    and refuses, whatever its comm: an editor or a backup daemon included."""
+    if exc.errno == errno.ENOENT:
+        return ""
+    try:
+        if os.stat(base).st_uid != os.getuid():
+            return ""
+        if os.getuid() and os.stat(f"{base}/fd").st_uid == 0:
+            return ""
+    except OSError as sexc:
+        # a pid that EXITED between the listing above and this stat is
+        # provably no holder -- the same exit as the ENOENT arm above. Every
+        # OTHER errno (EACCES, EPERM, ...) stays an UNKNOWN holder.
+        return "" if sexc.errno == errno.ENOENT else "?"
+    try:
+        return Path(base, "comm").read_text().strip() or "?"
+    except OSError:
+        return "?"
+
+
+def _lock_is_held(lock: Path, checkout: Path) -> bool | str:
+    """HELD = some process has this lock OPEN (/proc/<pid>/fd) or is a git whose
+    CWD resolves inside the checkout (/proc/<pid>/cwd + comm). Never argv: a git
+    run with cwd=the checkout and no path in argv -- row 18's shape -- is
+    invisible to `pgrep -f`.
+
+    Returns True, or -- DH.594 -- a NAMED REFUSAL string when an our-own-uid
+    pid we cannot inspect may hold this lock (see `_uninspectable` for who
+    that is and who it is not). Refuse-to-unlink: an unreadable table is NOT
+    an empty table; `except OSError: fds = []` concluded 'no holder' and
+    unlinked a HELD lock."""
+    ck = os.path.realpath(checkout)
+    lp = os.path.realpath(lock)
+    for pid in os.listdir("/proc"):
+        if not pid.isdigit():
+            continue
+        base = f"/proc/{pid}"
+        try:
+            fds = os.listdir(f"{base}/fd")
+        except OSError as exc:
+            who = _uninspectable(base, exc)
+            if who:
+                return (f"/proc/{pid} ({who}) fd table unreadable "
+                        f"({exc.strerror or exc}) -- holder UNKNOWN, lock NOT removed")
+            continue
+        for fd in fds:
+            # ONE unreadable fd (EPERM on /proc/<pid>/fd/N of another user)
+            # must skip THAT fd only -- never the rest of the pid's table:
+            # a raised any() aborts the pid and a HELD lock gets unlinked.
+            try:
+                if os.readlink(f"{base}/fd/{fd}") == lp:
+                    return True
+            except OSError:
+                continue
+        try:
+            cwd = os.readlink(f"{base}/cwd")
+            if ((cwd == ck or cwd.startswith(ck + os.sep))
+                    and Path(base, "comm").read_text().strip() == "git"):
+                return True
+        except OSError:
+            # A READABLE fd table above already walked every fd this pid has
+            # and found no open lock, and no other signal can outrank that:
+            # an unreadable `cwd` (measured on this host: a same-uid,
+            # dumpable `systemd --user`) is not a holder, and refusing on it
+            # refuses EVERY commit on the box. The un-inspectable case is
+            # already refused at the fd arm, where the table itself is dark.
+            continue
+    return False
+
+
+def _clear_stale_index_lock(root: Path, checkout: Path) -> str | None:
+    """hypothesis:a-stale-index-lock-is-cleared-or-named-...-never-silent --
+    the pre-commit gate: a STALE `.git/index.lock` (older than the cell
+    `values.core.stale_index_lock_s`, no live holder) is removed with ONE named
+    line; a FRESH, HELD or UNTHRESHOLDED one is never touched and the commit
+    refuses BY NAME. Returns the refusal reason, or None when clear."""
+    try:
+        cfg = json.loads((Path(root) / "config.json").read_text(encoding="utf-8"))
+        cell = ((cfg.get("values") or {}).get("core") or {}).get("stale_index_lock_s")
+        rel = subprocess.run(["git", "-C", str(checkout), "rev-parse",
+                              "--git-path", "index.lock"],
+                             capture_output=True, text=True).stdout.strip()
+        # git resolves `--git-path` against the PROCESS cwd, not -C: rebase it.
+        lock = Path(rel) if rel else None
+        if lock is not None and not lock.is_absolute():
+            lock = checkout / lock
+        if lock is None or not lock.is_file():
+            return None    # no lock: nothing to clear, nothing to refuse
+        # the threshold is the CELL, never a literal; a MISSING cell never unlinks.
+        if cell is None:
+            return ("stale_index_lock_s not set -- NOT removed (no threshold "
+                    "cell is no licence to unlink a lock)")
+        stale_s = float(cell)
+        age = time.time() - lock.stat().st_mtime
+        held = _lock_is_held(lock, checkout)
+        if isinstance(held, str):
+            return held          # an INCOMPLETE /proc walk: refuse BY NAME
+        if age < stale_s or held:
+            return (f"index.lock {lock} age={int(age)}s "
+                    f"stale_after={int(stale_s)}s held={'yes' if held else 'no'}"
+                    " -- NOT removed")
+        lock.unlink()
+        print(f"cleared stale index.lock {lock}: age={int(age)}s > "
+              f"{int(stale_s)}s, no git holder")
+        return None
+    except (OSError, ValueError, AttributeError, subprocess.SubprocessError) as exc:
+        return f"index.lock check failed: {exc}"
+
+
 def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
                          owns: list | None, verdict: str,
                          named: list | None = None,
@@ -2380,7 +2529,9 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
     DIFFERENT repo than the project's common-dir, i.e.
     `locations.git_common_root(root)` != this checkout's own toplevel.
 
-    Returns the committed checkout root on success, None otherwise. A commit
+    Returns the committed checkout root on success, None otherwise, and the
+    FAILURE REASON as a string when the commit was refused or failed, so
+    `cmd_done` can exit non-zero and the harvest dm can name it. A commit
     failure prints a loud named ERR to stderr but NEVER discards the verdict
     already recorded — the same principle `cmd_done` applies a few lines above
     when the schema-fill step fails: the kid's work is on disk and is worth
@@ -2483,14 +2634,20 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
                 subject_verdict = stored
     subject = f"{agent_id} done: {ref} verdict={subject_verdict}"
 
+    # the stale-lock gate, BEFORE the commit: a clear path commits, a fresh or
+    # held lock refuses by name and leaves the lock exactly as it found it.
+    refused_lock = _clear_stale_index_lock(root, checkout_root)
+    if refused_lock:
+        print(f"ERR: worktree commit refused in {checkout_root}: {refused_lock}",
+              file=sys.stderr)
+        return refused_lock
     add = subprocess.run(["git", "-C", str(checkout_root), "add", "--",
                           *in_scope],
                          capture_output=True, text=True)
     if add.returncode != 0:
-        print(f"ERR: worktree commit add failed in {checkout_root}: "
-              f"{add.stderr.strip() or '(no stderr from git)'}",
-              file=sys.stderr)
-        return None
+        reason = (f"add failed: {add.stderr.strip() or '(no stderr from git)'}")
+        print(f"ERR: worktree commit {reason} in {checkout_root}", file=sys.stderr)
+        return reason
 
     commit_env = dict(os.environ)
     # Item (5): dispatch exports AGI_PROJECT_ROOT as the GRAPH dir (<wt>/.agi),
@@ -2511,10 +2668,10 @@ def _auto_commit_worktree(root: Path, agent_id: str, node_id: str | None,
          "commit", "-qm", subject],
         capture_output=True, text=True, env=commit_env)
     if commit.returncode != 0:
-        print(f"ERR: worktree commit failed in {checkout_root}: "
-              f"{commit.stderr.strip() or '(no stderr from git)'}",
-              file=sys.stderr)
-        return None
+        reason = (f"commit failed: "
+                  f"{commit.stderr.strip() or '(no stderr from git)'}")
+        print(f"ERR: worktree {reason} in {checkout_root}", file=sys.stderr)
+        return reason
 
     print(f"committed worktree {checkout_root}: {subject}")
     return checkout_root
