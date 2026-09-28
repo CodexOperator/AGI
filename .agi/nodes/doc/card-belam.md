@@ -31,7 +31,7 @@ gen 14 card: PASS 12 closed, series B next. Landed history moved to the board no
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` · stream DOWN (HELD) |
 | disks | `/` 93% (6.6G) + `/data` = ONE USB SSD (LVM) · `/mnt/agi-flash` SanDisk ext4 112G, own io queue · nvme BROKEN (owner) |
 | merge | **PASS 12 CLOSED 06:5xZ**: season2/main 774e0b912 · local-maxxing/main -> 72d8d565c · next BASE = 72d8d565ce · residues goal:g1.28 |
-| crons | CHECK **372dc32f** "13 */4 * * *" (session-only: re-arm at wake) |
+| crons | CHECK **372dc32f** "13 */4 * * *" (session-only: re-arm at wake; the 08:13Z fire never came -- ran by hand 08:4xZ) · PASS B1 one-shot **f3ff3dd0** "47 13 28 9 *" (notice to TM 08:4xZ; state notice_sent_at + run_at set; procedure = crons.md section 2) |
 | spend | pi-free 0 USD this pass; paid paths closed (56c1156ab) |
 | models | claude-code kid + parent = claude-opus-5-5 (44925a6b6, 288513229) · harnesses.claude-code.max_live 4 · seat rows unchanged |
 | memory | crit/warn every ~30-60 min 02:01-05:50Z (PSI full peak 25.9%, each cleared < 3 min); 4 idle predecessor belam sessions (X-XIII) still alive -- §6 |
@@ -39,8 +39,8 @@ gen 14 card: PASS 12 closed, series B next. Landed history moved to the board no
 ## §1 Plan
 ```
 done   PASS 12 steps 0-8 · owner orders: models (kid+parent opus 5.5, max_live 4) · board rule (39b942824) · DH.499 per-role roots note (968d19ca1) · g7.32.6 nudge-loss measurement (321a99b29) · redesign order to DE (g4.18.1 -> g7.32.6 -> g7.31.3.3)
-now    one-shot CLEAN kid-worktree prune (owner GO 06:2xZ): /tmp/belam-prune/prune.sh, log decisions.log (663 worktrees, /data 97263M before)
-next   CHECK 08:13Z -> series B: PASS B1 (tag pb1chunk, /tmp/belam-passB1, BASE 72d8d565ce; carries EG.1 57debf3a2 + re-checks the p2 demote)
+done   clean prune 08:35Z: 144 removed, 154 dirty kept, /data +13.2 GB (board b1aba8033) · TM [red] 06:3xZ town-note grant: option (a) accepted, skill row interim (abf58770f)
+next   PASS B1 at 13:47Z (one-shot f3ff3dd0): series B (tag pb1chunk, /tmp/belam-passB1, BASE 72d8d565ce; carries EG.1 57debf3a2 + re-checks the p2 demote)
 HELD   OWNER 21:1xZ 09-27: stream · encryption-town config · sanctuary-master activation -- until messaging is done
 ```
 
