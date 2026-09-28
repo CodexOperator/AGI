@@ -152,6 +152,15 @@ class Edit:
     # the source argument (`replace body 4:9 --force -`), so the positional
     # range/source grammar is unchanged; an API caller sets the field.
     replace_force: bool = False
+    # hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write --
+    # the explicit consent that admits a payload move ACROSS directories (or
+    # across `location` bases) when `set payload_ref`/`set location` names a
+    # new file. A same-directory rename needs none: the row and the file keep
+    # naming one thing. Spelled as a PREFIX on the value
+    # (`set payload_ref --confirm-move new/dir/f.txt`), like `replace ... --
+    # force`, so an old script parses identically; an API caller sets the
+    # field. Per-call intent, NOT a box setting: no config cell carries it.
+    confirm_location_move: bool = False
     # hypothesis:write-py-inline-replace-verb -- `sub`/`sub!`: the FIRST
     # ` => ` splits `<old>` from `<new>`; plain `sub` demands exactly ONE
     # literal match, `sub!` replaces every one. `sub_target` is `payload` or
@@ -261,6 +270,13 @@ def verb_set(edit: Edit, key: str, value: str) -> Edit:
             f"A mint id is assigned once (goal:g2.5); scaffold_hash is how "
             f"completion is detected, and edit mode is not a loophole in the "
             f"rule the kid brief already follows.")
+    # hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write --
+    # `--confirm-move` rides the value as a PREFIX on the two keys that name
+    # where a node's file lives, so the `set <key> <value>` grammar is
+    # unchanged and every other key still refuses the spelling as a value.
+    if key in ("payload_ref", "location") and value.startswith("--confirm-move "):
+        edit.confirm_location_move = True
+        value = value[len("--confirm-move "):].strip()
     coerced = _coerce(value)
     refusal = _refuse_marker_value(key, coerced)
     if refusal:
@@ -1437,6 +1453,43 @@ def _self_row_edit(schema, root, actor, where, set_fm, unset_fm,
     return refusal is None
 
 
+def _enforce_outside_ref_gate(root, edit):
+    """Refuse a ref that resolves OUTSIDE the repo tree. ONE gate, TWO callers.
+
+    It judges the EFFECTIVE frontmatter: a value this edit SETS, else ABSENT
+    when this edit UNSETS the key, else what the node file already carries
+    (hypothesis:write-py-outside-ref-gate-...). It ran only inside submit(),
+    so `--dry-run` previewed rc 0 a write the land refuses rc 2 (P6).
+    """
+    _on_disk: dict = {}
+    if (_nf := node_writer.find_node_file(root, edit.node_id)):
+        from graph_core.persistence import frontmatter as _fmr
+        try:
+            _on_disk = _fmr.load_node_file(_nf, body=False).frontmatter or {}
+        except Exception:
+            _on_disk = {}
+
+    def _effective(key):
+        if key in edit.set_fm:
+            return edit.set_fm[key]
+        if key in edit.unset_fm:
+            return None
+        return _on_disk.get(key)
+
+    for _f in ("link_ref", "payload_ref"):
+        try:
+            _out = links.outside_repo_path(root, _effective(_f),
+                                           _effective("location"))
+        except KeyError as _ke:
+            # An undeclared `location` NAME is a refusal naming the name, not
+            # a traceback out of locations.payload_base: this write used to
+            # land a row here, and the same write now dies on a stack trace.
+            raise EditError(str(_ke).strip("'\""))
+        if _out:
+            raise EditError(
+                f"cannot set {_f!r}: {_out} resolves outside the repo tree")
+
+
 def _preview_dry_run_gate(root, edit, args):
     """The `--dry-run` RING-GATE PREVIEW (hypothesis:l4-a-signed-decision-
     covers-every-written-key-and-a-nonce-is-never-spent-on-a-failed-write,
@@ -1449,6 +1502,11 @@ def _preview_dry_run_gate(root, edit, args):
     dry run of a write the gate would refuse (short of quorum, stale, or
     replayed nonce) printed as if it would succeed."""
     from seatsig import rings as _pr  # noqa: PLC0415
+    try:
+        _enforce_outside_ref_gate(root, edit)
+    except EditError as _oe:
+        print(f"ERR: {_oe}", file=sys.stderr)
+        return 2
     _prev: dict = {}
     try:
         _pfresh = _pr.parse_ring_fresh(args.ring_fresh)
@@ -1477,6 +1535,26 @@ def _preview_dry_run_gate(root, edit, args):
     else:
         print("  RING-GATE PREVIEW: admitted (written_by + ring quorum + "
               "freshness satisfied); dry-run writes nothing")
+    # A dry run SIMULATES (create's schema gate runs PRE-dry-run on purpose,
+    # write.py:3107), so a refusal the real submit() raises is raised here.
+    if "payload_ref" in edit.set_fm or "location" in edit.set_fm:
+        try:
+            _old_ref, _old_loc = _payload_ref(root, edit)
+        except EditError:
+            _old_ref = ""
+        if _old_ref:
+            try:
+                _mp = node_writer.plan_move(
+                    root, _old_ref,
+                    str(edit.set_fm.get("payload_ref", _old_ref)),
+                    old_location=_old_loc,
+                    new_location=edit.set_fm.get("location", _old_loc),
+                    confirm=edit.confirm_location_move)
+            except (node_writer.MoveRefused, KeyError) as _mv:
+                print(f"  MOVE PREVIEW: {str(_mv).strip(chr(39) + chr(34))}")
+                return 2
+            if _mp.src is not None:
+                print(f"  MOVE PREVIEW: {_mp.src} -> {_mp.dest}")
     return 0
 
 
@@ -2174,26 +2252,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # only `set_fm` admitted a location-only move of an existing inside ref,
     # and falling back to the stale on-disk location over-refused an
     # `unset location` (hypothesis:write-py-outside-ref-gate-...).
-    _on_disk: dict = {}
-    if (_nf := node_writer.find_node_file(root, edit.node_id)):
-        from graph_core.persistence import frontmatter as _fmr
-        try:
-            _on_disk = _fmr.load_node_file(_nf, body=False).frontmatter or {}
-        except Exception:
-            _on_disk = {}
-
-    def _effective(key):
-        if key in edit.set_fm:
-            return edit.set_fm[key]
-        if key in edit.unset_fm:
-            return None
-        return _on_disk.get(key)
-
-    for _f in ("link_ref", "payload_ref"):
-        if (_p := links.outside_repo_path(root, _effective(_f),
-                                          _effective("location"))):
-            raise EditError(
-                f"cannot set {_f!r}: {_p} resolves outside the repo tree")
+    _enforce_outside_ref_gate(root, edit)
 
     # hypothesis:l4-replace-api-drops-source — the ONE shared resolution of
     # the replacement source. Without this, an API caller's `replace_from`
@@ -2261,7 +2320,18 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     touches_payload = bool(edit.payload_from or edit.payload_bytes
                            or edit.patch_from or edit.patch_diff
                            or edit.replace_target == "payload")
-    payload_ref, location = _payload_ref(root, edit) if touches_payload else ("", None)
+    # Owner 2026-09-28 04:5xZ: "That frontmatter reread may cause issues in
+    # the future. Mind fixing it so it doesn't do it twice." One submit reads
+    # the node's frontmatter ONCE and hands it to the three ref helpers;
+    # measured 2/3/3 loads through them on the three shapes, 1/1/1 after.
+    _fm = _node_fm(root, edit.node_id) if (touches_payload
+                                            or "payload_ref" in set_fm
+                                            or "location" in set_fm
+                                            or "payload_ref" in edit.unset_fm
+                                            or links.LINK_FIELD in edit.unset_fm
+                                            ) else None
+    payload_ref, location = (_payload_ref(root, edit, fm=_fm)
+                             if touches_payload else ("", None))
 
     # hypothesis:l3-write-partial-diffs-as-writes -- a `patch` computes the
     # new payload bytes by applying its diff to the payload's CURRENT bytes,
@@ -2338,10 +2408,122 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # the body-only path and this gate is the load-bearing confinement.
     _enforce_master_sensei_facts_body(root, edit.node_id, actor, body)
 
+    # hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write --
+    # naming a file is ONE intention, so the bytes move with the row, in this
+    # same write. Every refusal is raised in the PLAN, BEFORE update_node, so a
+    # refused move leaves the row AND the bytes untouched; the rename itself is
+    # the first thing AFTER the row lands, so a row that fails to write cannot
+    # leave the bytes moved (experiment:a00-6cb920d2-f30271). A declared ref
+    # with no file here is nothing to move, not a refusal.
+    _plan = None
+    _old_ref = ""
+    _old_loc = None
+    _after = None
+    # `unset payload_ref` never reaches the mover: the trigger below keys on
+    # `set_fm`, and verb_unset writes `edit.unset_fm` (write.py:288-293). So
+    # the row would stop naming the bytes while they stayed on disk -- a
+    # dangling name, silently. Refuse BY NAME (measured DH.643 a00-caba36a1,
+    # M3): the row loses its name, and the bytes have nowhere to go.
+    #
+    # Only the field the row ACTUALLY names its file by is refused, and the
+    # message names THAT field. `_payload_ref` reads `payload_ref` first, so
+    # on a row carrying both fields a `link_ref` naming a body target is not
+    # the payload at all: the wide guard blocked a legal verb (DH.643 review
+    # probe P7b) and told the caller to re-point a field they never wrote.
+    # A `create --payload` row names its file in `link_ref` ALONE, so it is
+    # refused there too -- by its own name.
+    if "payload_ref" in edit.unset_fm or links.LINK_FIELD in edit.unset_fm:
+        _unset_named = _payload_ref_field(_fm or {})
+        if _unset_named and _unset_named in edit.unset_fm:
+            raise EditError(f"unsetting {_unset_named} names nothing to move; "
+                            "re-point it with `set payload_ref`.")
+    if "payload_ref" in set_fm or "location" in set_fm:
+        try:
+            _old_ref, _old_loc = _payload_ref(root, edit, fm=_fm)
+        except EditError:
+            _old_ref = ""
+        # links.py reads `link_ref` FIRST (links.py:126-142); a
+        # `create --payload` row carries `link_ref` and no `payload_ref`
+        # (write.py:3059). The new ref is written to BOTH fields on that
+        # shape -- and on EVERY later repoint too: the old rule keyed on
+        # `payload_ref` being ABSENT, so the SECOND `set payload_ref` of a
+        # renamed row moved the file and left `link_ref` on the first name
+        # (`broken_links` 1, measured P1). The mirror fires only when this
+        # write actually AIMS at the ref: a write naming only `location`
+        # used to write the `_old_ref` default back over `link_ref`, and
+        # `_old_ref` is the `payload_ref` value first -- so a row carrying
+        # BOTH fields had its body link's target silently overwritten
+        # (measured DH.619 probe P-B).
+        # ... and only when `link_ref` IS the file being repointed
+        # (`link_ref == _old_ref`). A BOTH-fields row carries a body link the
+        # author wrote by hand; the write AIMS at `payload_ref`, and mirroring
+        # into `link_ref` anyway rewrote the body link's own target (measured
+        # DH.643 a00-caba36a1, M2). A `create --payload` row names its file in
+        # `link_ref` ALONE, so `link_ref == _old_ref` there and the mirror
+        # still fires.
+        if ("payload_ref" in set_fm and _old_ref
+                and _link_ref(root, edit.node_id, fm=_fm) == _old_ref):
+            set_fm[links.LINK_FIELD] = str(set_fm["payload_ref"])
+        if _old_ref:
+            try:
+                _plan = node_writer.plan_move(
+                    root, _old_ref, str(set_fm.get("payload_ref", _old_ref)),
+                    old_location=_old_loc,
+                    new_location=set_fm.get("location", _old_loc),
+                    confirm=edit.confirm_location_move)
+                # where the bytes live AFTER this write -- the payload verb in
+                # the same submit must aim here, not at the OLD ref
+                _after = (str(set_fm.get("payload_ref", _old_ref)),
+                          set_fm.get("location", _old_loc))
+            except (node_writer.MoveRefused, KeyError) as _mv:
+                # KeyError = an undeclared `location` NAME, from
+                # locations.payload_base. A refusal, not a traceback.
+                raise EditError(str(_mv).strip("'\""))
+
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
                                   log_extra=_log_provenance(actor))
+    if _plan is not None and _plan.src is not None and res.status != node_writer.REJECTED:
+        try:
+            node_writer.move_payload(
+                root, plan=_plan, mint_id=_node_mint_id(root, edit.node_id),
+                log_extra=_log_provenance(actor))
+        except OSError as _mo:
+            # A move that raises (mkdir, os.replace) would leave the ROW on
+            # the new path and the BYTES on the old one -- the dangling row
+            # conjunct 3 forbids, manufactured by the ordering fix. Roll the
+            # ROW back onto the bytes that are still there: the `location` the
+            # same write rebound is part of that pair, and a row with the OLD
+            # ref under the NEW base names nothing (measured P7).
+            _rb: dict = {"payload_ref": _old_ref}
+            if _link_ref(root, edit.node_id):
+                _rb[links.LINK_FIELD] = _old_ref
+            _rb_unset: list = []
+            if _old_loc:
+                _rb["location"] = _old_loc
+            else:
+                _rb_unset.append("location")
+            node_writer.update_node(
+                root, edit.node_id, set_fm=_rb, unset_fm=_rb_unset,
+                log_extra=_log_provenance(actor))
+            raise EditError(f"the row was written but the move failed ({_mo}); "
+                            f"the row was rolled back to {_old_ref}.")
     if payload_ref and res.status != node_writer.REJECTED:
+        # hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write
+        # -- `set payload_ref X` in the SAME submit as a `payload` verb: the
+        # pair was read BEFORE the move, so replace_payload aimed at the old
+        # name, the write raised FileNotFoundError, and the caller's bytes
+        # were written NOWHERE (measured P2). One intention, one destination:
+        # aim at the EFFECTIVE pair, the one the move just created.
+        # `_after is not None` ALONE: the effective pair is the right
+        # destination whether or not there were bytes here to move. The
+        # `_plan.src is not None` conjunct was False exactly when the
+        # declared file is absent from this checkout, and then the payload
+        # verb aimed at the OLD ref and raised FileNotFoundError with the
+        # row already repointed and the caller's bytes written NOWHERE
+        # (measured DH.619 probe P-A', re-measured by a00-0b87822c).
+        if _after is not None:
+            payload_ref, location = _after
         # hypothesis:l3-write-payload-unchanged-unlogged — a same-bytes re-log
         # is still a sanction. Hand the owning node's mint_id to
         # replace_payload so the payload-write log entry carries it, matching
@@ -2835,19 +3017,61 @@ def apply_unified_diff(original: str, diff: str) -> str:
     return "".join(out)
 
 
-def _payload_ref(root, edit: Edit) -> tuple[str, str | None]:
+def _node_fm(root, node_id: str) -> dict | None:
+    """The node's frontmatter, `None` when it has no file -- ONE read per
+    submit (owner 2026-09-28: the double frontmatter reread is pressure),
+    handed to `_payload_ref_field`, `_payload_ref` and `_link_ref`."""
+    from graph_core.persistence import frontmatter as fm_reader
+
+    path = node_writer.find_node_file(root, node_id)
+    return (fm_reader.load_node_file(path, body=False).frontmatter
+            if path is not None else None)
+
+
+def _link_ref(root, node_id: str, fm: dict | None = None) -> str:
+    """The node's `link_ref` when it carries one, else "".
+
+    `_payload_ref` below reads `payload_ref` first and falls back to
+    `link_ref` -- the opposite of links.py:126-142. A `create --payload` row
+    names its file in `link_ref` alone, so a repoint must update that field
+    or the link dangles -- and so must EVERY later repoint, once the row
+    carries both fields (experiment:a00-6761ec8a-99af24, probe P1).
+    """
+    if fm is None:
+        fm = _node_fm(root, node_id) or {}
+    lr = fm.get(links.LINK_FIELD)
+    return lr.strip() if isinstance(lr, str) and lr.strip() else ""
+
+
+def _payload_ref_field(fm: dict) -> str:
+    """Which FIELD this node names its file by, `""` if it names none.
+
+    `_payload_ref` returns the path; the unset guard needs the field, so the
+    refusal can name what the caller actually wrote. Same order as
+    `_payload_ref`: `payload_ref` first, `link_ref` (the `create --payload`
+    shape) second.
+    """
+    for field in ("payload_ref", links.LINK_FIELD):
+        if str(fm.get(field) or "").strip():
+            return field
+    return ""
+
+
+def _payload_ref(root, edit: Edit, fm: dict | None = None) -> tuple[str, str | None]:
     """Where this node's bytes live, or an error naming why there are none.
 
     Read off the node rather than passed in, because `payload_ref` is the
     node's own statement about which file it is; a caller that supplied the
     path could point the verb at a file the node has never claimed.
     """
-    from graph_core.persistence import frontmatter as fm_reader
-
-    path = node_writer.find_node_file(root, edit.node_id)
-    if path is None:
-        raise EditError(f"no node file for {edit.node_id}")
-    fm = fm_reader.load_node_file(path, body=False).frontmatter
+    if fm is None:
+        # EG.80 M2: this path used to do its own find_node_file +
+        # load_node_file, so a double read here was INVISIBLE to a counter
+        # that watched `_node_fm`. One reader for the ref helpers; the
+        # refusal is the same contract as before, by name.
+        fm = _node_fm(root, edit.node_id)
+        if fm is None:
+            raise EditError(f"no node file for {edit.node_id}")
     ref = fm.get("payload_ref") or fm.get(links.LINK_FIELD)
     if not isinstance(ref, str) or not ref.strip():
         raise EditError(
@@ -3098,6 +3322,11 @@ def main(argv: list[str] | None = None) -> int:
         "  a prose argument carries a literal verb-led && by escaping it "
         "as \\&&; an unescaped && before a verb still separates, and "
         "&&&& (a doubled pair) separates exactly as it always did.")
+    epilog_lines.append(
+        "  `set payload_ref`/`set location` renames the file the node names "
+        "in the same write; a move across directories or location bases is "
+        "REFUSED unless the value carries the --confirm-move PREFIX "
+        "(`set payload_ref --confirm-move new/dir/f.txt`).")
     epilog = "\n".join(epilog_lines)
 
     ap = argparse.ArgumentParser(

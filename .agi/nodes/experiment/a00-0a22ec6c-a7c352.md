@@ -1,0 +1,217 @@
+---
+id: experiment:a00-0a22ec6c-a7c352
+mint_id: 48c8c0d6418b48619519fd31c6e7cc0e
+type: experiment
+parents:
+  - hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write
+next_edges: []
+confidence: 0.85
+edited_by: director-engine
+evidence_runs:
+  - experiment:a00-0a22ec6c-a7c352
+loop: hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write@s2
+model: stealth/space-bunny-alpha
+probes:
+  - {"conjunct": 7, "class": "wire", "cmd": "parent probe_eg37.py: monkeypatch graph_core.persistence.frontmatter.load_node_file with a COUNTER over the WHOLE submit (not just _node_fm) on three shapes: plain set payload_ref / unset link_ref + set / set + payload verb (parent script under my session dir, EG.37)", "expected": "the ref-helper double read is gone: pre-fix 5/6/7 total loads, post-fix one fewer on each shape, and every conjunct behaviour unchanged", "observed": "POST 4/4/5 total loads, and the stack trace names the four: _enforce_outside_ref_gate (write.py:2144), _node_fm (2216), update_node (2372), _node_mint_id (2378). PRE-FIX, same script against write.py from f812751ad copied to a temp bin dir: 5/6/7. So the ref-helper portion went 2/3/3 -> 1 exactly as the node says, and the node named the other three readers rather than implying one read per submit", "result": "HOLD"}
+  - {"conjunct": 2, "class": "gate", "cmd": "tmp graph, set payload_ref vendor/moved.py with NO confirm", "expected": "refused by name naming both paths, row and bytes untouched", "observed": "refused: refusing to move the payload across directories: <t>/lib/mod.py -> <t>/vendor/moved.py; row=lib/mod.py, file_still_here=True", "result": "HOLD"}
+  - {"conjunct": 3, "class": "gate", "cmd": "tmp graph with an OCCUPIED destination, set payload_ref lib/renamed.py", "expected": "refused, destination bytes byte-identical, row untouched", "observed": "refused (refusing to move ... onto ...), dest_intact=True row=lib/mod.py", "result": "HOLD"}
+  - {"conjunct": 1, "class": "wire", "cmd": "tmp graph, set payload_ref lib/renamed.py (three shapes incl. unset+set in one edit)", "expected": "file moved, old path gone, row repointed, status updated", "observed": "moved=True old_gone=True row=lib/renamed.py status=updated on all three", "result": "HOLD - the single read did not stale the move: the ref read at write.py:2216 lands BEFORE update_node at :2372, and the unset guard and plan_move both run before it, so one early read equals the three late ones it replaced"}
+  - {"conjunct": 4, "class": "gate", "cmd": "unset payload_ref on a payload_ref row; unset link_ref on a create --payload row (_link_graph); then TAKE the advice the message names", "expected": "each refused by its OWN field name, row and bytes intact, and the named way out actually works", "observed": "unsetting payload_ref ... re-point it with `set payload_ref`; unsetting link_ref ... re-point it with `set payload_ref`; taking the advice on the create row: file_moved=True row=lib/renamed.py - no dangling row", "result": "HOLD - the message is still one shape for two fields, but the way out is now pinned by bytes, not by reading"}
+production_lines: 13
+profile: balanced
+role: kid
+scaffold_hash: c05eab99f32118b4
+season: 2
+thought: "EG.37 parent review (a00-5f832c19) of the diff f812751ad..3e254351e, five probes, all HOLD; verdict kept at proved. (1) WHAT THE ORDER SAID, quoted: \"That frontmatter reread may cause issues in the future. Mind fixing it so it doesn t do it twice\" and item 7 - one submit parses the node frontmatter TWICE, _payload_ref_field (write.py:2917) for the unset guard at :2314, then _payload_ref (:2935) again at :2320, each doing its own find_node_file + load_node_file. (2) WHAT THE MACHINE ACTUALLY DOES: the kid added _node_fm (write.py:2909) and the three ref helpers now take its dict; my probe counted load_node_file over the WHOLE submit with a stack trace - POST 4/4/5 loads, and the four callers are _enforce_outside_ref_gate (:2144), _node_fm (:2216), update_node (:2372), _node_mint_id (:2378); the same script against write.py from f812751ad in a temp bin dir reads 5/6/7. So the ref-helper reads went 2/3/3 -> 1/1/1, the node claim is exact, and the three residual readers are named on the node rather than papered over. The staleness risk I went looking for is absent by ORDERING, not by luck: the read at :2216 happens before update_node at :2372, and the unset guard (:2322) and plan_move (:2325-2355) both run before that write, so one early read is the same value the three late reads used to fetch. (3) THE NEAR MISS a reviewer must not accept: a memo cache inside write.py that hands update_node and _node_mint_id the SAME dict - it satisfies one-read-full-stop and is WRONG, because update_node is the write and _node_mint_id must read the row as it lands, not as it was. The node declines it by name. A second near miss: the committed test counts _node_fm, which is a helper the fix itself introduced, so on the pre-fix bytes it errors rather than failing with a number - the assertion is real, the vacuity is bounded by my whole-submit count, which is the number a future round should pin. (4) NO STANDING RULE DEVIATED. Checks I made beyond the probes: the hypothesis node citations the node claims it corrected (mirror 2353-2355, mover trigger 2329, _payload_ref 2949/2963, the _after guard 2414, create --payload 3130) all read as cited in the bytes; the RECORDED RESIDUE and FILE SCOPE sections are present with the pasted numstat; the under-reported 43 test lines are now 52 with the command on experiment:a00-c024ec73-5838a5:36. Ceiling re-measured by me against the CUT tip: 37-24 = 13 net production (cap 15), 48-9 = 39 net test (cap 40). Item 1 is settled the honest way - the dangling-row half is its own test whose NAME says KNOWN RESIDUAL, and the fix that would close it (node_writer.py:650-653, payload never creates) is named for the director and untouched. One thing the round could not land: the corrected a00-c024ec73 node is still UNCOMMITTED in the worktree - the bytes are right, the commit is the loop s, not the kid s and not mine."
+title: one frontmatter read per submit; unset residual and way-out named
+town: core
+verdict: proved
+---
+# experiment:a00-0a22ec6c-a7c352
+
+## What this round did
+The owner's own line (2026-09-28 04:5xZ) was the deliverable: stop reading the
+node's frontmatter twice in one `submit`. Measured first, then fixed, then proved
+on the built bytes. Four corrective items landed with it.
+
+## Item 7 — ONE read per submit (the main deliverable)
+Before, three helpers each did their own `find_node_file` + `load_node_file`:
+`_payload_ref_field` (unset guard), `_payload_ref` (the plan), `_link_ref` (the
+mirror). New helper `_node_fm` (write.py:2909) reads ONCE; all three take the
+frontmatter as an argument (`fm=None` still reads, so the OTHER CALLERS are
+untouched). **The count "five" on this line was off by whatever you count
+(EG.80):** `git grep -n "_node_fm\|_payload_ref_field\|_payload_ref(\|_link_ref("
+-- extensions/agi/bin/write.py` gives FOUR fm-less callers of the three helpers —
+`_payload_ref` at 1542 (dry-run preview), 2518 (`sub payload`) and 3420
+(`patch`), `_link_ref` at 2388 (the rollback) — plus ONE caller of `_node_fm`
+itself, write.py:2216, which is the READ, not a caller of a ref helper. Five
+only if the new helper's own caller is counted in. `submit` reads once at
+write.py:2212-2222 and hands the same dict to every answer. Behaviour
+UNCHANGED — same field order, same refusals, same messages (the test that pins
+the unset refusal is unchanged and passes).
+
+| shape | ref-helper reads before | after |
+|---|---|---|
+| (a) plain `set payload_ref` | 2 | **1** |
+| (b) `unset link_ref` + `set payload_ref` in one edit | 3 | **1** |
+| (c) `set payload_ref` + a `payload` verb in the same edit | 3 | **1** |
+
+Probe: the instrument is now `.agi/sessions/iter-EG.80/a00-310104ca/probe_reads.py`
+(the EG.37 copy is not in this worktree). Committed proof:
+`test_one_submit_reads_the_frontmatter_once` (test_payload_rename.py:489; parametrised at :486),
+parametrised over all three shapes. **What it counts, corrected (EG.80 M2b):
+`write._node_fm` CALLS — a helper this fix itself introduced — NOT
+`load_node_file` calls, and on the pre-fix bytes it errors (AttributeError)
+rather than failing with the number 2/3/3.** It was blind to `_payload_ref`'s
+no-`fm` fallback (write.py:2955-2962), which did its own `find_node_file` +
+`load_node_file`; that fallback now reads through `_node_fm`, so the two
+instruments agree and the test is no longer blind. Its own vacuity bound is
+the whole-submit table below.
+
+Not reached, named, and RE-COUNTED per shape (EG.80, probe
+`.agi/sessions/iter-EG.80/a00-310104ca/probe_reads.py`, which counts the real
+`load_node_file` and prints the calling stack — the table above counted
+`_node_fm` CALLS, which is not the same instrument):
+
+| shape | whole-submit `load_node_file` | of those, ref helpers |
+|---|---|---|
+| (a) plain `set payload_ref` | 4 | 1 |
+| (b) `unset link_ref` + `set payload_ref` | 4 | 1 |
+| (c) `set payload_ref` + a `payload` verb | 5 | 1 |
+| (d) `set payload_ref` + a move that RAISES (rollback) | 6 | 2 |
+
+The non-ref readers on (a)-(c) are `_enforce_outside_ref_gate` (the gate),
+`node_writer.update_node` (the write itself) and `_node_mint_id` (twice on
+(c), once per move). Shape (d) is the correction the earlier paste on this
+node missed: it enters the rollback at write.py:2388, where `_link_ref(root,
+edit.node_id)` is called with NO `fm` and therefore reads the row AS IT HAS
+JUST LANDED, after `update_node` at :2372 — a read that is CORRECT and
+deliberate, because the rollback must mirror back the `link_ref` the landed
+row really carries, not the pre-write one. So (d) is 6 loads, of which 2 go
+through the ref helpers, plus a second `update_node` for the rollback write.
+Sharing one read with `update_node`/`_node_mint_id` would mean caching across
+the WRITE, a different invariant. The owner's sentence is satisfied at the
+layer it names (the ref helpers), and the number is on this node.
+
+## Item 6 — the unset refusal's way out, settled
+The refusal always ends "re-point it with `set payload_ref`", even when the field
+refused is `link_ref`. Settled by TAKING the advice, not by reading the message:
+on a `create --payload` row (`link_ref` alone, test's `_link_graph`), `unset
+link_ref` is refused by its own name, then `set payload_ref lib/renamed.py` moves
+the file and leaves the row resolving to an existing one — the mirror writes
+`link_ref` too, so nothing dangles. **The advice is workable; the message stays.**
+Proved in the committed test
+`test_unset_link_ref_on_a_create_payload_row_refuses_by_its_own_name`
+(test_payload_rename.py:468), which now takes the advice after the refusal.
+
+## Item 1 — the dangling-row half, renamed not hidden
+`test_payload_rename.py`'s second half asserted a raw `FileNotFoundError` out of
+`submit` with the row already pointing at `lib/renamed.py` and no file there. It
+is now its own test, `test_known_residual_a_row_may_name_a_file_that_does_not_exist`
+(test_payload_rename.py:322, the `xfail` marker; :329 the def), and its NAME says it pins a
+KNOWN RESIDUAL.
+Measured shape, pasted — **and the earlier paste on this node was WRONG**
+(EG.80 M4 re-measure, probe `probe_row.py` under this kid's session dir): with
+no file at either name, `submit` raises
+`FileNotFoundError: payload <root>/lib/renamed.py does not exist — 'payload'
+replaces bytes, it never creates` and the row reads `payload_ref:
+lib/renamed.py` and **NO `link_ref`**. The committed fixture `_graph` carries
+`payload_ref` alone (test_payload_rename.py:39-42, the `_graph` row text); the mirror at
+write.py:2353-2355 requires `_link_ref(root, node_id, fm=_fm) == _old_ref`,
+`_link_ref` returns `''` on that row and `_old_ref` is `lib/mod.py`, so the
+mirror never fires and 2355 is the only place submit writes `LINK_FIELD`. The
+"plus `link_ref: lib/renamed.py`" printed here before is false; the row this
+residual leaves carries one field.
+node_writer.py:650-653 is the refusal and is OUTSIDE this chain's FILE SCOPE;
+per the brief it is named here for the director's findings row and not touched.
+EG.80 M4 also changed the test's POLARITY: a green test may not DEMAND a
+defect, so the body now asserts the invariant (after the write the row
+resolves to a file that exists) under `@pytest.mark.xfail(strict=True)` —
+xfailed today, XPASS (suite red) the day someone lets `replace_payload` create.
+
+## Item 5 — record correction
+`experiment:a00-c024ec73-5838a5` line 36 claimed "test lines 43 added". Corrected
+ON THAT NODE to **52 added, 0 removed**, citing
+`git diff --numstat d7ad6f377 f812751ad -- extensions/agi/tests/test_payload_rename.py`
+(reads `52  0`) and noting that the round did carry a 40 test ceiling, so 52/40 is
+the recorded overrun.
+
+## Item 4 — OUTSIDE the chain's declared FILE SCOPE (for the findings row)
+- `write.py:2909` `_node_fm` — the one-read helper; it sits with the other ref
+  helpers, outside the chain's declared `:2296-2382` band. Not moved to fit scope.
+- `write.py:2212-2222` — the single read in `submit`, also outside that band.
+- `node_writer.py:650-653` — the `payload`-never-creates refusal behind the
+  dangling-row residual (item 1). Untouchable here by brief.
+
+The hypothesis node now carries a `## FILE SCOPE, RE-MEASURED 2026-09-28` section
+saying the scope line understates the region the chain lives in, and a
+`## RECORDED RESIDUE` section with the d7ad6f377..f812751ad numstat (32/2 and
+52/0 — a 30/52 overrun of the 15/40 cap, recorded, not trimmed).
+
+## Citations (item 3)
+Every citation in the 2296-2320 band and the ones it drags with it were
+re-measured by reading the bytes and corrected on the hypothesis node with
+`write.py`: the mirror 2317-2318 -> **2353-2355**, the mover trigger 2300 ->
+**2329**, `_payload_ref` 2891/2904 -> **2949/2964** (its no-`fm` path now
+reads through `_node_fm`, EG.80 M2), `verb_unset` 288-292 -> **288-293**,
+`_resolve_sub` 2457 -> **2506**, `plan_move` refusal 567-569 -> **567-570**,
+destination refusal 573-575 -> **578-580**, `move_payload` 579-606 -> **586-613**,
+the `_after` guard 2377 -> **2414**, the cross-directory refusal
+2321-2333 -> **2358-2370**, `create --payload` 3059 -> **3131** (the `extra[links.LINK_FIELD] = str(payload)` mint; 3130 is the `ensure_payload` call above it), the epilog
+3148-3151 -> **3206-3210** (SUPERSEDED at a1a1e686b: the in-function epilog block is the `#: One-line example per verb` comment at write.py:3170 -- `git show a1a1e686b:extensions/agi/bin/write.py | grep -n epilog`). Test line numbers, re-measured 2026-09-28 (EG.122, a00-b2b01c2b, at the
+def lines themselves -- the EG.80 pass had only half-moved them and left the
+dry-run row 14 lines low). **RE-MEASURED AGAIN 2026-09-28 at the CUT tip
+dff3b6076 (EG.153, a00-fd3b2d8a), whose defs sit where the arrows
+point (the shift is +6 for these defs but +1 for the xfail marker/def pair, so NO single
+insertion explains it; the earlier stated cause is withdrawn, EG.167)**: location-only 375 -> **381**, failed-move
+522 -> **528**, argv 555 -> **561**, dry-run 566 -> **572**, `create --payload`
+3130 -> **3131**. The one-read test 483 -> **489**; the create-row unset refusal
+439 -> **468**; the residual marker/def 321/328 -> **322/329**; `_graph`'s row
+text 36-38 -> **39-42**. The historical "was -> now" pairs above are left as
+they were written, because they are a record of the move, not a citation into
+today's bytes:
+location-only 352 -> **375** (-> 381 at the tip), failed-move 485 -> **522** (-> 528), argv 518 -> **555** (-> 561),
+dry-run 529 -> **566** (-> 572), unset-way-out 439 -> **462**, the one-read test 460 ->
+**483**, residual **322** (marker) / **328** (def).
+
+## Evidence
+```
+$ git diff --numstat f812751ad -- extensions/agi/bin/write.py extensions/agi/tests/test_payload_rename.py
+37	24	extensions/agi/bin/write.py
+48	9	extensions/agi/tests/test_payload_rename.py
+
+$ python3 -m pytest extensions/agi/tests/test_payload_rename.py -q
+# STALE -- this paste did NOT reproduce (29 is the COLLECTED count, not
+# passed, after the round's own xfail marker landed). Reproduced paste
+# (EG.122, a00-b2b01c2b) lives on a00-b2b01c2b-3dc0c3.
+28 passed, 1 xfailed, 35 warnings in 0.74s
+
+$ python3 -m pytest extensions/agi/tests/test_bin_help_smoke.py -q
+72 passed, 6 skipped in 4.94s
+
+$ python3 .agi/sessions/iter-EG.37/a00-0a22ec6c/probe_reads.py
+A plain set payload_ref -> loads=4 helpers=3
+B unset link_ref + set payload_ref -> loads=4 helpers=4
+C set payload_ref + payload verb -> loads=5 helpers=4
+   load by ['breakdown', 'submit', '_enforce_outside_ref_gate']
+   load by ['breakdown', 'submit', '_node_fm']
+   load by ['breakdown', 'submit', 'update_node']
+   load by ['breakdown', 'submit', '_node_mint_id']
+```
+
+Ceiling: **13 net production lines** (37-24, cap 15) · **39 net test lines**
+(48-9, cap 40). Both measured against the CUT tip f812751ad, not HEAD.
+
+## Weakness of this node
+The count is 1 for the ref helpers, not for the whole submit: `update_node` and
+`_enforce_outside_ref_gate` still read the same file in the same call, and closing
+that means a cache that spans the write — a bigger invariant than this round
+should take on unasked. A reader who wanted "one read, full stop" will find this
+short.
+
+## Agent Notes
+One frontmatter read per submit: _node_fm reads once, all three ref helpers take it; 2/3/3 -> 1/1/1 on the three measured shapes, proved by a committed counter test. Unset way-out settled workable; dangling-row half renamed as a known residual; hypothesis citations re-measured; 13 net production, 39 net test.
+
+EG.80 (a00-310104ca, corrective) — four text items corrected ABOVE, each against a pasted command, plus two byte fixes. M2a (bytes, write.py:2955-2962): _payload_ref's no-fm fallback did its own find_node_file + load_node_file, so a double read there was INVISIBLE to the committed counter, which watches write._node_fm. It now goes through _node_fm, keeping the same EditError refusal by name; the fallback stays unreachable-with-success (it only fires when there is no node file, and it raises there). M2b (text, above): the test counts _node_fm CALLS, not load_node_file, and errors rather than reporting 2/3/3 on the pre-fix bytes. M3 (text, above): the reader at write.py:2388 was missing from the 'not reached, named' list; per-shape totals re-counted with a stack-trace probe — 4/4/5 and 6 on the rollback shape, and that read is CORRECT (it must see the row as it lands, after update_node at :2372). M4 (bytes, test_payload_rename.py:322-329 (the tip's marker/def; the node read 321-328, one low)): the residual test was GREEN-ON-A-DEFECT — it asserted the raw FileNotFoundError and the dangling row. Marking it xfail(strict=True) ALONE is the wrong polarity: with the defect PRESENT the body PASSES, so the suite went red immediately (measured: [XPASS(strict)]). The body is now the INVARIANT (after the write the row resolves to a file that exists) under xfail(strict=True): xfailed today, and the day replace_payload creates, the XPASS turns the suite red. Both directions measured. M5 (text): the node's one-source ledger did not name the SECOND frontmatter reader — _read_node_fm (write.py:996-1016, fail-soft, swallows every exception, loads the body, returns a dict copy; used by the validation/answer path at :1070/:1172/:1304/:1730) beside _node_fm (write.py:2909-2917, strict, body=False, raw dict, write path). Not a duplicate: a write path must NOT swallow a read error, and the answer path must. Named on the hypothesis node; the two must stay apart.
+
+EG.153 (a00-fd3b2d8a) -- PROVENANCE: edited_by read `a00-310104ca` and named NEITHER the true author NOR the lander. Truth in three parts: AUTHOR of the item-5 citation correction and the evidence-paste replacement = a00-b2b01c2b; LANDER of this file into the tip = director-engine, by hand, at commit dff3b6076 (outside any kid); LAST WRITER THROUGH write.py = a00-fd3b2d8a (this round's citation re-measure). The field CANNOT carry all three -- write.py overwrites it with the last writer -- so it reads whichever post wrote LAST through write.py (the frontmatter names it; a later round moves it again) and the two durable facts live in this note. A one-slot provenance field is a structural defect for a node three actors touched; named for the director.

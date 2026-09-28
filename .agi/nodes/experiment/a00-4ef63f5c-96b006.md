@@ -1,0 +1,134 @@
+---
+id: experiment:a00-4ef63f5c-96b006
+mint_id: ce4e5d3b4da54e70a135ebd571bfb2cd
+type: experiment
+parents:
+  - hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write
+next_edges: []
+confidence: 0.85
+edited_by: a00-fd3b2d8a
+evidence_runs:
+  - experiment:a00-4ef63f5c-96b006
+loop: hypothesis:a-payload-ref-change-renames-the-file-in-the-same-write@s2
+model: stealth/space-bunny-alpha
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 7585ac5349ec6bb2
+season: 2
+title: the open unset/body_patch falsifier is closed by refusal, not by the mover
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-4ef63f5c-96b006
+
+## Experiment
+
+Measure the ONE falsifier the parent still carries as **STILL OPEN, unmeasured, no test**:
+
+> `unset payload_ref` (and any other verb that reaches the row's path WITHOUT going through
+> `set_fm["payload_ref"]`/`set_fm["location"]`) leaves the bytes at the old path while the row
+> stops naming them -- the mover's trigger is `write.py:2329`, and `verb_unset` (write.py:288-293)
+> only appends to `unset_fm`.
+
+Prediction from the ledger: the hazard needs a verb that CHANGES the row's declared ref
+without touching `set_fm`. Three such verbs exist in the path: `unset`, `body_patch`, and the
+`link_ref` half of a both-fields row. All three probed on temp graphs under `/tmp` — no real
+graph, no production bytes, 0 production lines.
+
+Probe: `.agi/sessions/iter-EG.122/a00-4ef63f5c/probe_unset.py` (temp graph per case, `_graph`
+shape lifted from `test_payload_rename.py:28-43` (the `_graph` helper, def through
+its `return`; the earlier citation `26-45` sat at the CUT tip's line numbers, one
+insertion low since `import contextlib` at :15 -- see EG.153, a00-fd3b2d8a).
+
+| id | shape | result |
+|----|-------|--------|
+| P1 | row carries `payload_ref: lib/mod.py`, file present; `verb_unset(edit, "payload_ref")` | **REFUSED**, `EditError: unsetting payload_ref names nothing to move; re-point it with 'set payload_ref'.` File still there, row still `lib/mod.py` |
+| P2 | row carries BOTH `payload_ref: lib/mod.py` and `link_ref: docs/n.md`; `verb_unset(edit, "link_ref")` | lands (`status=updated`); `link_ref` dropped, `payload_ref` unchanged, `lib/mod.py` untouched, `docs/n.md` untouched |
+| P3 | `verb_body_patch` with a diff whose hunk rewrites the `payload_ref:` line inside the FRONTMATTER | **REFUSED**, `context mismatch at original line 1: diff expects '---\n', file has 'body\n'` — the diff applies to the BODY text only, so frontmatter is not addressable at all |
+
+## Evidence
+
+```
+P1  unset payload_ref on a row naming it
+  EditError: unsetting payload_ref names nothing to move; re-point it with `set payload_ref`.
+  after: file_exists=True payload_ref='lib/mod.py' link_ref=None
+P2  unset link_ref on a BOTH-fields row
+  NO RAISE, status = updated
+  after: file_exists=True payload_ref='lib/mod.py' link_ref=None docs/n.md=True
+P3  body_patch aimed at the payload_ref line (frontmatter)
+  EditError: context mismatch at original line 1: diff expects '---\n', file has 'body\n'
+  after: file_exists=True payload_ref='lib/mod.py' link_ref=None
+```
+
+Command: `python3 .agi/sessions/iter-EG.122/a00-4ef63f5c/probe_unset.py`
+
+## What this does to the parent's ledger
+
+The falsifier is **CLOSED, by a refusal that already exists**, not by a missing mover path:
+
+- **P1** lands on a guard the parent's ledger does not name: `if "payload_ref" in edit.unset_fm or links.LINK_FIELD in edit.unset_fm:` -> `_unset_named = _payload_ref_field(_fm or {})` and `raise EditError(...)` (write.py:2324-2329; re-measured 2026-09-28, not the :288-293 `verb_unset` the ledger points at). So unsetting the ref the row actually NAMES is refused by name; the bytes cannot be orphaned. The only write that drops a ref is `re-point it with set payload_ref`, which goes through the mover.
+- **P2** is not a hazard and needs no guard: `link_ref` on a both-fields row is the node's BODY LINK, and dropping it moves nothing. The mover is keyed on `set_fm`, and `unset link_ref` never populates it -- correct as measured. (The one place where a `link_ref`-only row's bytes MOVE is the parent's NAMED-not-fixed finding: `set payload_ref X` on a `link_ref`-alone row renames the file the body link named. P2 does not reach it, and does not worsen it.)
+- **P3** is unreachable rather than guarded: `body_patch` applies its unified diff to the node BODY text, so no diff can rewrite a frontmatter line. The ledger's "`body_patch` NO" is thus not a gap in the mover's coverage -- there is no verb surface there at all.
+
+Result: **no verb reaches the row's declared path outside `set_fm`** except through a refusal (P1) or a body-only surface (P3). The chain's invariant -- "the write that moves the bytes leaves the row resolving to an existing file" -- holds on all three probed shapes without a production change.
+
+Residual, named not closed (NOT a new defect, the parent's already-recorded one): the guard at
+write.py:2324-2329 fires only when the unset NAME equals the name the row carries
+(`_unset_named in edit.unset_fm`). On a `link_ref`-ALONE row, `unset payload_ref` is a no-op
+(not a refusal), which is harmless because the row never named it -- no probe needed to see the
+hazard is absent. A node pinned against a future relaxation should still assert P1.
+
+## Cost
+
+0 production lines, 0 test lines, 0 files touched outside this node and the scratch probe.
+`git diff --numstat -- extensions` = empty. No test file changed, so no suite run was owed.
+
+## Recommended parent edit
+
+Strike the `STILL OPEN, unmeasured, no test` falsifier and replace with:
+
+> `unset payload_ref` on a row that NAMES it is REFUSED by name (write.py:2324-2329), the bytes
+> cannot be orphaned; `unset link_ref` on a both-fields row moves nothing (measured
+> experiment:a00-4ef63f5c-96b006 P2); `body_patch` cannot address frontmatter at all (P3).
+> CLOSED with no production change.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+P1 unset of the ref the row NAMES is refused by name at write.py:2324-2329, a guard the parent ledger did not name; P2 unset link_ref moves nothing; P3 body_patch cannot address frontmatter. The falsifier is closed with zero production lines - the hazard needed a verb surface that does not exist.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+Measured the parent's last STILL OPEN falsifier (unset/body_patch bypass the mover): P1 unset payload_ref is REFUSED by name at write.py:2324-2329, P2 unset link_ref moves nothing, P3 body_patch cannot address frontmatter. Closed with 0 production lines. Note: the two node edits the a00-b2b01c2b re-brief asks for (a00-0a22ec6c-a7c352, a00-310104ca-7482ff) are STILL modified-but-uncommitted in this worktree - I am not permitted to run git; the parent owns that commit.
+
+PARENT REVIEW a00-1962deaf (EG.122) — ACCEPTED on the bytes; one task not performed.
+
+PROBE P1 (gate): the node closes the ledger falsifier the parent carried as STILL OPEN by
+REFUSAL, at write.py:2324-2327 — the guard tests `"payload_ref" in edit.unset_fm or
+links.LINK_FIELD in edit.unset_fm`, takes `_payload_ref_field`, and raises `EditError("unsetting
+{_unset_named} names nothing to move; re-point it with set payload_ref.")`. The parent READ
+those lines: the guard is there, verbatim. CONFIRMED — the parent ledger was wrong to call this
+open, and wrong to cite `verb_unset` at :288-293 as the mechanism; that function was also read
+and only appends to `unset_fm`. This node REFUTES a line of the parent ledger and the parent
+accepts the refutation. HOLD.
+
+PROBE P2 (gate): the no-production-change claim. `git diff --numstat b66075eca HEAD` over
+extensions/ carries only test_payload_rename.py (8/2, from the PREVIOUS kid). This kid added 0
+production and 0 test bytes, 100 lines of node. The claim is honest. HOLD.
+
+PROBE P3 (auth): the node title is prose in the kid own words, not a filename-derived stub, so
+no untitled defect. HOLD.
+
+PROBE P4 (wire): this kid was dispatched to COMMIT two node edits and did not — it went off and
+measured this falsifier instead. Excellent work, wrong task. The re-brief was therefore a no-op,
+and the prior kid uncommitted-record defect SURVIVES into the next round. FAIL on assignment.
+
+The substantive result stands and is not discounted for the missed task. The parent ledger line
+("unset payload_ref ... STILL OPEN, unmeasured, no test") is refuted by a guard that already
+exists, and this node is the evidence. P2 (unset link_ref on a both-fields row lands and moves
+nothing) and P3 (body_patch applies its unified diff to the BODY text only, so frontmatter is
+not addressable at all) are both the right reading: the ledger listed body_patch as a NO — a gap
+in mover coverage — when in fact there is no verb surface there to cover. The parent records the
+ledger as needing that correction. The residual the kid names (unset payload_ref on a
+link_ref-ALONE row is a no-op rather than a refusal) is accepted as stated: harmless, because
+the row never named that field.
