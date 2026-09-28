@@ -789,18 +789,25 @@ def enforce_log_caps(root: Path, repo_root: Path, dry_run: bool = False,
 def _on_this_box(job: dict, own: str) -> bool:
     """The job's `box` gate: absent = every box; a string/list restricts it.
 
-    An empty `own` (a graph that declares no box anywhere) gates nothing.
+    An empty `own` (a graph that cannot name its own box) FAILS CLOSED: a
+    job that NAMES a box cannot be proven to be on it, so it does not run —
+    it is never every box by accident (hypothesis:every-live-row-carries-its-
+    own-box-and-an-unset-box-is-refused). An ungated job (`box` absent) is
+    still every box and is untouched.
     """
     b = job.get("box")
-    if not b or not own:
+    if not b:
         return True
+    if not own:
+        return False
     return own in b if isinstance(b, list) else own == b
 
 
 def _this_box(root: Path, box_name: str | None = None) -> str:
     """The box this checkout is on, for the `box` gate and the `{box}`
     placeholder. Unresolved (no `AGI_BOX`, no `default_box` cell) is the empty
-    string, which gates nothing in `_on_this_box` and substitutes to nothing."""
+    string, which makes `_on_this_box` REFUSE every box-gated job (fail
+    closed, per the docstring there) and substitutes to nothing."""
     if box_name:
         return box_name
     try:
@@ -972,6 +979,15 @@ def render_managed_lines(root: Path, repo_root: Path, engine_root: Path, node: d
         glog = Path(job["log"]) if job.get("log") else _log_path(repo_root)
         lines.append(f"{sched} cd {root} && {cmd} >> {glog} 2>&1")
 
+    if not own:
+        refused = sorted(n for n, j in jobs.items()
+                         if j.get("box") and j.get("enabled"))
+        if refused:
+            # ONCE, not once per job: the crontab is the durable artifact a
+            # human reads, and an unset AGI_BOX must be visible there.
+            lines.append("# agi: refused box-gated job(s) "
+                         + ", ".join(refused) + " — no AGI_BOX: this graph "
+                         "cannot name its own box (fail closed)")
     return lines
 
 
