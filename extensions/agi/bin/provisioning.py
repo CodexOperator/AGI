@@ -198,15 +198,34 @@ def can_fund(root: Path | str | None = None) -> tuple[bool, str | None]:
     left can afford a $0.25 key. Below that boundary, the next mint risks a
     402 (insufficient credits) and leaves no escape path — the loop would need
     a key to mint keys, and no credits remain to create one.
+
+    When the project declares `provisioning.min_account_remaining_usd`, that
+    value is the mint floor too (same account balance `check_account_floor`
+    already guards). Absent that key, the legacy `MIN_REMAINING_CREDITS`
+    ($1.00) applies so rootless/unconfigured callers keep today's behaviour.
     """
     bal = credit_balance(root)
     if bal is None:
         return True, None  # no provisioning key = shared key fallback
     _total, _used, remaining = bal
-    if remaining < MIN_REMAINING_CREDITS:
+    floor = float(MIN_REMAINING_CREDITS)
+    floor_src = "MIN_REMAINING_CREDITS"
+    if root is not None:
+        try:
+            sys.path.insert(0, str(Path(__file__).resolve().parent))
+            import locations  # noqa: E402
+            graph = locations.find_project_root(Path(root).resolve()) or Path(root)
+            cfg = locations.load_config(graph)
+            acct = min_account_remaining_floor(cfg)
+            if acct is not None:
+                floor = float(acct)
+                floor_src = "provisioning.min_account_remaining_usd"
+        except Exception:  # noqa: BLE001 — unreadable config keeps legacy floor
+            pass
+    if remaining < floor:
         return False, (
             f"remaining credits (${remaining:.2f}) below minimum "
-            f"(${MIN_REMAINING_CREDITS:.2f}) — minting a new key risks making "
+            f"(${floor:.2f} via {floor_src}) — minting a new key risks making "
             f"the loop unfundable")
     return True, None
 
