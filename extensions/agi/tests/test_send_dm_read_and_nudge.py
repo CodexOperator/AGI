@@ -427,7 +427,14 @@ def test_box_local_row_does_not_print_empty_before_the_dm_sweep(project, croot,
                         lambda r: [{"name": "seat-x", "box": "elsewhere"}])
     assert send_mod.main(["--from", ME, "--comms-root", str(croot),
                           "read", "--box-local"]) == 0
-    assert "inbox for seat-x" not in capsys.readouterr().out
+    cap = capsys.readouterr()
+    assert "inbox for seat-x" not in cap.out, (
+        "the foreign row's inbox line printed anyway: " + cap.out)
+    # ...and it is NAMED on stderr, not dropped silently: mail_poll's service
+    # reader must say which post it skipped and why (send.py, the `--box-local`
+    # branch). stdout-absence alone would wave through a silent drop.
+    assert "mail_poll: skipped foreign-box post seat-x" in cap.err, (
+        "the foreign row was dropped without naming it on stderr: " + cap.err)
 
 
 # ── (c) a dm-file send fires the recipient nudge, same path as inbox ──────
