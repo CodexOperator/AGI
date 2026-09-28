@@ -14635,7 +14635,7 @@ Belam NO-PI 2026-09-28: items (b)+(e) landed — dispatch.py where <kid-id> nest
 
 Belam NO-PI 2026-09-28: item (a) landed — CEILING engine-units wording (brief + schema) + measured↔recorded print. Item (d) links.py schema still ≫3min wall (~6min+ prior measure) — left as note; switching to g7.33.7 hottest alternate. Goal stays active (d open).
 
-##### G7.33.7 — G14.14.7: GRID STORAGE TRUNK BY CONFIG -- grid.py ref namespace (today one hardcoded constant, REF_NS = refs/grid at grid.py:84) becomes config-declared so crons.py:548-549 branch-blind refusal is fixed by configuration, not a hardcoded override (owner 01:5xZ 09-21 on goal:g14, supersedes G14.14.6 first item) — status: active
+##### G7.33.7 — G14.14.7: GRID STORAGE TRUNK BY CONFIG -- grid.py ref namespace (today one hardcoded constant, REF_NS = refs/grid at grid.py:84) becomes config-declared so crons.py:548-549 branch-blind refusal is fixed by configuration, not a hardcoded override (owner 01:5xZ 09-21 on goal:g14, supersedes G14.14.6 first item) — status: complete
 
 <!-- BODY:BEGIN -->
 # goal:g14.14.7
@@ -14652,6 +14652,8 @@ Falsifiers. The round is falsified if a tree with no storage_trunk configured re
 Done when. The hypothesis lands a verdict against its own falsifiers: default tree byte-identical, a configured trunk isolates its versions, crons.py has one spelling, engine suite green. Migration for this box (storage_trunk=refs/grid/local-maxxing/ then grid.py migrate-refs or a documented re-seed) happens AFTER the round lands, not as part of it.
 
 First chunk, minted next: hypothesis:lm-grid-storage-trunk-is-config-declared, the whole round (a) through (d) as one testable claim, per the goal g14.14.7 body describing ONE round rather than independent lettered items.
+
+Belam NO-PI 20260928T235231Z: BARE complete — tip already carries EF.02/07/08/09 (storage_trunk config · literal sites CLOSED · migrate-trunk live cutover · commit guard lifts branch-blind + live cron proof). Done-when met. No new code this slice; graph closeout only.
 
 ##### G7.33.8 — G14.14.8: SESSION CAPTURE HOOK -- claude-code role sessions (masters, directors, Prime) land at session end/rotate under datasets/sessions/<role>/<session>/ through the existing scrub.py, with the graph pre-labels; it is the magic pane corpus (moved up per owner 05:4xZ, TME.13/16) — status: active
 
