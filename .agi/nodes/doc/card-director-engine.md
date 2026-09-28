@@ -119,6 +119,9 @@ THEN    per ended parent: harvest AT ONCE -> mur · per ended mur: triage -> cle
         · PI-FREE LANE DOWN 14:3x-15:0xZ ('Provider returned an empty response'): 5 dead parents + the re-dispatched EG.122 (a00-1b7ef4de) dead
           too; rdEG137 + rdEG140 STOPPED (placed nothing); [red] to TM 15:0xZ asks hold-or-run for the qg lane -> follow TM's answer, then
           re-dispatch EG.141 122 137 140 142 with T/redispatch2.sh once a round commits again
+        · EG.124 parent a00-bd378097 REPORTED 16:03Z (accepted 1, experiment a00-e5b926db disproved 0.7): harvest it (D/harvest-all.sh EG.124);
+          its kid's in-scope item-6 edit to experiment a00-59be3549-a3443e is UNCOMMITTED in that worktree (accepted round -> land it by exact
+          path, UNREVIEWED) -> mur; the ONE expected red = the live config:rotations skills clause (belam's/TM's cell, banked rule (4))
 NEVER   restart a q-unit without reading its log first · edit a RUNNING unit's script · start a watcher with a bare & (it never notifies)
 ```
 
