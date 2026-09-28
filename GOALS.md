@@ -7540,6 +7540,74 @@ Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-head
 
 **Related:** `goal:g7.25` family, `goal:g7.30`, `goal:g7.31.1.2`.
 
+Nested .1 help-measurement + .2 stub-flag retire; adapter still stub -p pending measurement.
+
+stop-line 2026-09-28: nested g7.31.1.1.1 + g7.31.1.1.2; NO pi.
+
+###### G7.31.1.1.1 — Record grok-bot --help measurement on node or experiment — status: active
+
+# goal:g7.31.1.1.1
+
+## Why this exists
+
+**Parent `goal:g7.31.1.1`.** Measured-CLI falsifier needs a pasted `grok-bot --help` (or equivalent) on this node or a child experiment. Sense 2026-09-28: adapter docstring still says flag shape is a stub (`<bin> --help` has not been read).
+
+## Target end-state
+
+- A recorded `--help` (or refused-by-name measurement if binary absent on host) lives on this node or a linked experiment artifact.
+- Measurement is CLI/grep-answerable from the node body.
+
+## Invariants
+
+- Argv retirement to match measurement is OOS (`goal:g7.31.1.1.2`).
+- No guessed flags invented in the measurement record.
+
+## Falsifier
+
+1. This node (or linked experiment) contains a pasted help/measurement block dated and host-tagged.
+2. Negative: zero "vibes-only" claims that argv matches help without a paste.
+
+## Out of scope
+
+- `goal:g7.31.1.1.2` stub-flag retirement.
+- Pane hold (`goal:g7.31.1.2` family).
+
+## Agent Notes
+
+Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
+
+###### G7.31.1.1.2 — Retire stub build_command flags to match recorded help — status: active
+
+# goal:g7.31.1.1.2
+
+## Why this exists
+
+**Parent `goal:g7.31.1.1`.** After measurement lands (`goal:g7.31.1.1.1`), `build_command` must emit argv that matches it and drop stub-only guessed flags (today: lone `-p` copilot spelling called out in adapter docstring).
+
+## Target end-state
+
+- `adapters.load("grok_bot").build_command(...)` argv matches the recorded measurement.
+- Stub-only guessed flags absent from landed adapter path on `core/season2/main` (grep/diff proof).
+
+## Invariants
+
+- Measurement paste is prerequisite OOS on sibling `.1`.
+- No second argv path; seam stays adapter `build_command`.
+
+## Falsifier
+
+1. Diff/grep on tip: emitted argv ⊆ measured flags; stub-only `-p` (or whatever measurement retires) gone if help forbids it.
+2. Negative: docstring must not still claim "flag SHAPE is still a stub" once this leaf is complete.
+
+## Out of scope
+
+- `goal:g7.31.1.1.1` measurement record.
+- Durable pane (`goal:g7.31.1.2`).
+
+## Agent Notes
+
+Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
+
 ##### G7.31.1.2 — Durable named tmux pane restart/reattach hold — status: active
 
 # goal:g7.31.1.2
@@ -7576,6 +7644,10 @@ Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-head
 Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-headed falsifier. Launch pi parent; diagram-max; batch-max; merge-up to Belam; blockers to owner only via director-belam.
 
 **Related:** `goal:g7.28`, `goal:g7.31.1.1`.
+
+MUR-demote kids .1–.3 fleshed to format; seeds wired; director-direct NO-pi (OWNER FULL STOP supersedes ACTIVE⇒SPAWN).
+
+MUR-demote kids .1-.3 fleshed to format; seeds wired; director-direct NO-pi (OWNER FULL STOP supersedes ACTIVE=>SPAWN).
 
 #### G7.31.2 — Pane anchor registers seat occupation across post/pin/formation/auto-rotation — status: active
 
@@ -7719,6 +7791,8 @@ Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-head
 
 **Related:** `doc:standing-llm-ops` §4, `goal:g7.26`, `goal:g7.27`, `goal:g7.31.3.2`.
 
+Director-direct under OWNER FULL STOP (NO pi); supersedes prior Launch-pi Agent Notes.
+
 ##### G7.31.3.2 — Sample write+send+dispatch through named CLIs — status: active
 
 # goal:g7.31.3.2
@@ -7754,6 +7828,8 @@ Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-head
 
 **Related:** `goal:g1.14`, `command:commands`, `goal:g7.31.3.1`.
 
+Director-direct under OWNER FULL STOP (NO pi); supersedes prior Launch-pi Agent Notes.
+
 ##### G7.31.3.3 — SPAWN AND ROTATE ARE ONE GRAPH WRITE -- parent slots pre-set under each post in .geometry, kid rows dynamic under their parent slot, rotate a spawn option (needs-rotate: true), the reaper/heal loop carries out what the graph says (assigned: director-engine) — status: active
 
 # goal:g7.31.3.3
@@ -7785,6 +7861,171 @@ Unify spawn and rotate as graph writes. Parents become rows under the post that 
 
 ## Routing
 assigned: director-engine. THIRD of the three graph redesigns, after node spawn/mint (goal:g4.18.1) and the send hub-only work (OWNER 01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): refinement 3's refusal rides send's reply route.
+
+## Agent Notes
+Nested .1–.5 (slots/runtime/AGI_BOX/refusal-reply/write-gate); stays under g7.31.3 stop-line.
+
+Nested .1-.5 (slots/runtime/AGI_BOX/refusal-reply/write-gate); stays under g7.31.3 stop-line.
+
+###### G7.31.3.3.1 — Committed parent-slot definitions under each post in .geometry — status: active
+
+# goal:g7.31.3.3.1
+
+## Why this exists
+
+**Parent `goal:g7.31.3.3`.** Owner design: concurrency+parallel limits become pre-set parent post slots under each post in `.geometry`; slot definitions are committed.
+
+## Target end-state
+
+- Committed slot definitions exist under each relevant post in `.geometry` (count = concurrency×parallel contract).
+- Live occupancy is NOT stored in the committed slot defs (sibling owns runtime file).
+
+## Invariants
+
+- Sibling slices under `goal:g7.31.3.3` own their own falsifiers — do not widen this leaf.
+- Does not open `goal:g7.31.6` / `goal:g7.32.5` (board parked); stays under stop-line `g7.31.3`.
+
+## Falsifier
+
+1. Grep/read on tip shows committed parent-slot rows under post geometry for a sample post.
+2. Negative: slot defs file must not hold live occupancy fields as SoT.
+
+## Out of scope
+
+- Other `goal:g7.31.3.3.*` siblings.
+- Messaging half of the same owner message (`goal:g7.32.5`, helper / parked).
+
+## Agent Notes
+
+Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
+
+###### G7.31.3.3.2 — Live occupancy in local runtime file (not committed defs) — status: active
+
+# goal:g7.31.3.3.2
+
+## Why this exists
+
+**Parent `goal:g7.31.3.3`.** Owner design: live occupancy lives in a local runtime file (not the committed slot defs).
+
+## Target end-state
+
+- A local runtime file records which parent slots / kid rows are occupied.
+- Reaper/heal clears occupancy on exit; committed geometry stays definition-only.
+
+## Invariants
+
+- Sibling slices under `goal:g7.31.3.3` own their own falsifiers — do not widen this leaf.
+- Does not open `goal:g7.31.6` / `goal:g7.32.5` (board parked); stays under stop-line `g7.31.3`.
+
+## Falsifier
+
+1. Runtime occupancy path is named on this node; probe shows occupy+clear without editing committed slot defs.
+2. Negative: zero commits whose only change is flipping live occupancy bits in committed geometry.
+
+## Out of scope
+
+- Other `goal:g7.31.3.3.*` siblings.
+- Messaging half of the same owner message (`goal:g7.32.5`, helper / parked).
+
+## Agent Notes
+
+Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
+
+###### G7.31.3.3.3 — AGI_BOX host-only loop acts and clears needs-rotate — status: active
+
+# goal:g7.31.3.3.3
+
+## Why this exists
+
+**Parent `goal:g7.31.3.3`.** Owner design: only the box hosting the post acts (checked via AGI_BOX); the loop clears `needs-rotate: true` after acting.
+
+## Target end-state
+
+- Loop/reaper acts on a row only when `AGI_BOX` matches the row's host.
+- After a successful rotate/spawn action, `needs-rotate` is cleared by the same loop.
+
+## Invariants
+
+- Sibling slices under `goal:g7.31.3.3` own their own falsifiers — do not widen this leaf.
+- Does not open `goal:g7.31.6` / `goal:g7.32.5` (board parked); stays under stop-line `g7.31.3`.
+
+## Falsifier
+
+1. Cross-box probe: non-matching AGI_BOX does not mutate the row; matching box clears `needs-rotate` after act.
+2. Negative: no silent clear of `needs-rotate` without an action record.
+
+## Out of scope
+
+- Other `goal:g7.31.3.3.*` siblings.
+- Messaging half of the same owner message (`goal:g7.32.5`, helper / parked).
+
+## Agent Notes
+
+Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
+
+###### G7.31.3.3.4 — Refusal writes named row + one send-reply to requesting post — status: active
+
+# goal:g7.31.3.3.4
+
+## Why this exists
+
+**Parent `goal:g7.31.3.3`.** Owner addition: a refusal writes the row by name AND sends one reply to the requesting post via the send reply route (graph-found); cap one reply per failed request.
+
+## Target end-state
+
+- Refusal stamps the named row and triggers exactly one reply through the send reply route.
+- Cap: one reply per failed request (no reply storms).
+
+## Invariants
+
+- Sibling slices under `goal:g7.31.3.3` own their own falsifiers — do not widen this leaf.
+- Does not open `goal:g7.31.6` / `goal:g7.32.5` (board parked); stays under stop-line `g7.31.3`.
+
+## Falsifier
+
+1. Induced refusal: row updated by name + exactly one reply delivered to requesting post.
+2. Negative: zero multi-reply storms for a single failed request.
+
+## Out of scope
+
+- Other `goal:g7.31.3.3.*` siblings.
+- Messaging half of the same owner message (`goal:g7.32.5`, helper / parked).
+
+## Agent Notes
+
+Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
+
+###### G7.31.3.3.5 — Write gate — parents own kid rows only; kids write none — status: active
+
+# goal:g7.31.3.3.5
+
+## Why this exists
+
+**Parent `goal:g7.31.3.3`.** Owner design: gate who may write which rows — parents write only their own kid rows; kids write none.
+
+## Target end-state
+
+- Write path refuses kid→row writes and parent→foreign-kid writes.
+- Parents may write only their own `kid*` rows under their slot.
+
+## Invariants
+
+- Sibling slices under `goal:g7.31.3.3` own their own falsifiers — do not widen this leaf.
+- Does not open `goal:g7.31.6` / `goal:g7.32.5` (board parked); stays under stop-line `g7.31.3`.
+
+## Falsifier
+
+1. Probe: parent write to own kid row succeeds; kid write and foreign-kid write refuse by name.
+2. Negative: no unscoped write path that mutates arbitrary geometry rows.
+
+## Out of scope
+
+- Other `goal:g7.31.3.3.*` siblings.
+- Messaging half of the same owner message (`goal:g7.32.5`, helper / parked).
+
+## Agent Notes
+
+Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
 #### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: active
 
@@ -8217,7 +8458,7 @@ Belam 2026-09-28: activate for write/mint foundation (redesign order skills→wr
 
 Belam 20260928 ET: g7.33.9 foundation fleshed + kids g7.33.9.1/.2 minted via write.py (skills→write/mint); NO pi. Board still lists g7.33 horizon — Belam to move into stop-line when ready.
 
-#### G7.33.9 — skills + write/mint foundation (redesign order step 1-2) — status: active
+#### G7.33.9 — skills + write/mint foundation (redesign order step 1-2) — status: complete
 
 <!-- BODY:BEGIN -->
 # goal:g7.33.9
@@ -8254,7 +8495,7 @@ Assigned to **director-belam**. Foundation write/mint only via write.py + graph 
 
 Belam NO-PI: closed g7.33.9.2 write/mint route (falsifiers GREEN; residues=0; format✓). g7.33.9.1 skills adoption still active. No pi.
 
-##### G7.33.9.1 — skills adoption — skills/agi-* present on trunks + .claude/skills symlinks resolve; directors route via skill:agi-node-write / agi-goal — status: active
+##### G7.33.9.1 — skills adoption — skills/agi-* present on trunks + .claude/skills symlinks resolve; directors route via skill:agi-node-write / agi-goal — status: complete
 
 # goal:g7.33.9.1
 

@@ -6,14 +6,16 @@ parents:
   - goal:g7.31.1
 next_edges: []
 confidence: 0.9
-edited_by: belam
+edited_by: director-belam
 goal_id: G7.31.1.1
 goal_kind: subgoal
 heading_level: 5
 origin: goals-doc
 scaffold_hash: 1e10ebb759c9d056
 season: 2
-seeds: []
+seeds:
+  - goal:g7.31.1.1.1
+  - goal:g7.31.1.1.2
 status: active
 tags:
   - goal
@@ -23,7 +25,7 @@ tags:
   - adapter
   - cli
   - measured
-thought_session: belam-status-hygiene-sot-2026-09-22
+thought_session: belam-stop-line-nopi-20260928
 title: "G7.31.1.1: Measured CLI argv matches grok-bot --help; stub flags retired"
 town: core
 ---
@@ -63,5 +65,9 @@ Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-head
 **Related:** `goal:g7.25` family, `goal:g7.30`, `goal:g7.31.1.2`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-horizon-pass not in-flight unclaimed on board
+nest measured-CLI residues: .1 help-measurement + .2 stub-flag retire; director-direct NO-pi
 <!-- THOUGHT:END -->
+
+Nested .1 help-measurement + .2 stub-flag retire; adapter still stub -p pending measurement.
+
+stop-line 2026-09-28: nested g7.31.1.1.1 + g7.31.1.1.2; NO pi.

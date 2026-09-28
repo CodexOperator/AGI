@@ -24,7 +24,7 @@ tags:
   - write
   - send
   - dispatch
-thought_session: magic-pane-2026-09-21
+thought_session: belam-stop-line-nopi-20260928
 title: "G7.31.3.2: Sample write+send+dispatch through named CLIs"
 town: core
 ---
@@ -60,3 +60,5 @@ town: core
 Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-headed falsifier. Launch pi parent; diagram-max; batch-max; merge-up to Belam; blockers to owner only via director-belam.
 
 **Related:** `goal:g1.14`, `command:commands`, `goal:g7.31.3.1`.
+
+Director-direct under OWNER FULL STOP (NO pi); supersedes prior Launch-pi Agent Notes.
