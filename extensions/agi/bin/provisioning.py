@@ -198,14 +198,29 @@ def credit_balance(root: Path | str | None = None) -> tuple[float, float, float]
     return total, used, remaining
 
 
-def _prov_cell(root, name: str, default: float) -> float:
-    """One `provisioning.<name>` dollar cell from the project config."""
+def _prov_cell(root, name: str, default: float, cfg: dict | None = None) -> float:
+    """One `provisioning.<name>` dollar cell from the project config.
+
+    ONE resolver for every dollar cell in this module
+    (hypothesis:provisioning-reads-its-cells-through-one-import-route).
+    `cfg` is a PRE-LOADED config held by a caller that already has one; it
+    WINS over `root`, so routing a pre-loaded caller through here can never
+    downgrade a configured value to the default. `root=None` with no `cfg` is
+    the "no project" answer and yields the default.
+    """
+    if cfg is not None:
+        try:
+            val = (cfg.get("provisioning") or {}).get(name, default)
+            return default if val is None else float(val)
+        except Exception:  # noqa: BLE001 -- an absent/blank cell keeps the default
+            return default
     if root is None:
         return default
     try:
         graph = locations.find_project_root(Path(root).resolve()) or Path(root)
-        cfg = locations.load_config(graph)
-        return float((cfg.get("provisioning") or {}).get(name, default))
+        loaded = locations.load_config(graph)
+        val = (loaded.get("provisioning") or {}).get(name, default)
+        return default if val is None else float(val)
     except Exception:  # noqa: BLE001 -- an unreadable config keeps the default
         return default
 
@@ -295,8 +310,8 @@ def min_key_remaining_floor(cfg: dict) -> float:
     how low the runtime key may sink before the loop stops spending slots on
     it is a run parameter, not a buried constant.
     """
-    prov = ((cfg.get("provisioning") or {}))
-    return float(prov.get("min_key_remaining_usd", DEFAULT_MIN_KEY_REMAINING_USD))
+    return _prov_cell(None, "min_key_remaining_usd",
+                      DEFAULT_MIN_KEY_REMAINING_USD, cfg=cfg)
 
 
 def check_runtime_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, str | None]:
@@ -515,13 +530,14 @@ def min_account_remaining_floor(cfg: dict) -> float | None:
     than a bare default is the difference between "no floor declared" and "a
     floor of a dollar" — only the former is a no-op.
     """
-    prov = ((cfg.get("provisioning") or {}))
-    if "min_account_remaining_usd" not in prov:
+    # A KEY-PRESENCE test, not a dollar read: "absent" and "declared" must
+    # stay distinguishable, and only the declared case reaches the resolver
+    # below for its VALUE. The value itself is read through `_prov_cell`, so
+    # a configured floor still wins here exactly as it does everywhere else.
+    if "min_account_remaining_usd" not in (cfg.get("provisioning") or {}):
         return None
-    val = prov.get("min_account_remaining_usd")
-    if val is None:
-        val = DEFAULT_MIN_ACCOUNT_REMAINING_USD
-    return float(val)
+    return _prov_cell(None, "min_account_remaining_usd",
+                      DEFAULT_MIN_ACCOUNT_REMAINING_USD, cfg=cfg)
 
 
 def check_account_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, str | None]:
