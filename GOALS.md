@@ -14629,6 +14629,8 @@ Done when. All five lettered items have a landed round, proved or disproved with
 
 First chunk, minted next: hypothesis:lm-dispatch-memory-override-feeds-agi-batch-scheduling, for item (c), ordered first per the g14.14 Order of work line.
 
+Belam NO-PI 2026-09-28: item (c) residue re-landed — mem_cap.resolve_memory_cap(cfg, override=) restored on tip (was TypeError vs dispatch --memory); test_mem_cap_override 8/8; hyp confidence 0.95. Items (a)(b)(d)(e) still open — goal stays active.
+
 ##### G7.33.7 — G14.14.7: GRID STORAGE TRUNK BY CONFIG -- grid.py ref namespace (today one hardcoded constant, REF_NS = refs/grid at grid.py:84) becomes config-declared so crons.py:548-549 branch-blind refusal is fixed by configuration, not a hardcoded override (owner 01:5xZ 09-21 on goal:g14, supersedes G14.14.6 first item) — status: active
 
 <!-- BODY:BEGIN -->
