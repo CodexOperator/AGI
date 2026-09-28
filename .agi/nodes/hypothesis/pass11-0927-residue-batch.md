@@ -113,6 +113,26 @@ FILE SCOPE GOALS.md · extensions/agi/briefs/prime-director-successor.md · .agi
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 80bd792c3 · <= 40 test lines net over 80bd792c3 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 80bd792c3 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.126 -- closes mur-eg-30 EG.101-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-pass11-0927-residue-b-a00-96b5071f tip 7239015d6 (branch de-base-EG.126; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Brief paid-pi review route left live, file in scope and only named — extensions/agi/briefs/prime-director-successor.md:26
+2. 2. Ordered test not run — .agi/nodes/experiment/a00-96b5071f-50c08a.md:56
+3. 3. numstat paste is one-operand — .agi/nodes/experiment/a00-96b5071f-50c08a.md:48
+4. RESOLVED BY THE DIRECTOR, NO ACTION: the EG.101 orders sit on the director post branch and reach this lineage at the chain merge.
+5. OUTSIDE, NO ACTION: a committed guard for the repo's own GOALS.md vs goal nodes is a new round -- the director files it as a findings row.
+6. The falsifier this diff renders pins LINE NUMBERS, not strings: GOALS.md:1113 cites prime-director-successor.md:26, round-mur.json:6, CLAUDE.md:6-7 and .agi/nodes/doc/unified-head.md:59. I re-ran it at 7239015d6 (8 hits), but any edit inserted above those lines silently falsifies the citation. Authored at 80bd792c3 in g1.27.md (unchanged across the range), so it is not this round's authored region — it is, however, the text this diff publishes.
+7. A deferral that cites the condition it itself satisfied: item 4 was deferred on the strength of the rendered sentence 'no round has been cut for either yet' (GOALS.md:1113) — but this round WAS the cut round for that residue and item 4 (orders:104) had already put the file in scope (orders:112). The graph stays honest, so residue, but the rationale does not hold under its own bytes.
+KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent only, so the kid wrote code over a 0 cap) -- PARENT: dispatch your kid with --orders pointing at a file holding THIS WHOLE SECTION, and paste its FILE SCOPE + CEILING into the kid prompt; verify the kid's context carries the word CORRECTIVE before it starts.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_snapshot_goals.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/briefs/prime-director-successor.md · GOALS.md (DERIVED: change the goal node with write.py, then snapshot-goals.py --render; --render --check must exit 0 -- never hand-edit GOALS.md) · .agi/nodes/experiment/a00-96b5071f-50c08a.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 7239015d6 · <= 40 test lines net over 7239015d6 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 7239015d6 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.101: mur-eg-27 EG.92-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.126: mur-eg-30 EG.101-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
