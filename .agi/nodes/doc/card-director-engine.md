@@ -32,8 +32,9 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 
 ## §0 STATE (00:5xZ 09-28 · seat woke 00:45Z 09-28 · per-chain history = git log of this node)
 ```
-MERGE-UP  [merge-up] to TM 00:3xZ 09-28 (belam [decision] 00:0xZ, owner: WHOLE post branch, in-progress included) -- tip d4446340f,
-          mb 26d914498, 188 files, 365 passed 1 RED declared (boxkit probe vs the 429 tasks-max chain -> EG.1), 28 nodes labelled ## OPEN
+MERGE-UP  [merge-up] EG.1 chain to TM 02:25Z 09-28 -- TIP 95c425f8c, MB dc93a2660 (trunk merged in e810d9f2f), 21 files +1149/-69, 0 deletions;
+          123 passed on the tip, links 0, render 0; 1 DECLARED residue carried (mem_cap.py:89-90 docstring -> Item 7 round) · owner 02:2xZ: a TM dm
+          may have failed to send (none after TMM.315 in the dm file) -- owner checking with TM
 SERIES    RESET: rounds EG.N (EG.1-20 used, next EG.21; dispatch normalizes the iter to EG.01) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
           before the reset keep their labels (orders already generated) -- the counter only moves forward
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f,g] gen2.py N murq<Q>.json tip label -> orders<N>.md (N may be EG.n: sed the
@@ -43,13 +44,11 @@ GATE      TMM.306: load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, on
 PLACEMENT de-base-N ON DISK (the /dev/shm variant broke parent done -> DH.648 swept, reverted 00:0xZ); 651's RAM checkout is symlinked
 PRUNE     unit prune-debase OOM-KILLED 00:27Z (systemd-oomd, 41 removed); NOT restarted -- memory crit window (TMM.313 tmpfs hold)
 LANDED    TMM.312 00:42Z: TM landed the WHOLE branch d0d126deb (trunk merged in 90b21bd8f) + sent it to belam
-LIVE      EG.17 a00-f1be7ad0 (EG.9 chain, FRONT) · murs: 137 DH.655 · 141 DH.656 · 142 DH.657 (48ef5a79b, 425 passed) · 143 EG.15-k2 re-review
-          EG.1 chain: mur-eg-7 DEMOTE on ceiling prose (3rd loop) -> DIRECTOR closed it in the bytes on the loop branch (3f7cad8fe accounting from
-          merge base bf2430484 · 9b17bc82c 39f1d0801 anchors) -> murq143 · TMM.315: ACCEPT the breach as a RECORDED residue (on node 49ebaf21c);
-          NO more ceiling correctives -> murq143 closes -> merge the chain tip 49ebaf21c -> [merge-up] EG.1 to TM (tip + merge-base) · Item 7 (AGI_TASKS_MAX
-          cell) = one config-max round AFTER EG.1 lands, behind the EG.9 chain
+LIVE      no parent (io gate > 50) · murs: 137 DH.655 · 141 DH.656 · 144 EG.17 (EG.9 chain, a935bf010: fail-closed + docs)
+          EG.1 chain MERGED 95c425f8c (TMM.315 breach accepted) -> merge-up out · Item 7 (AGI_TASKS_MAX cell + the mem_cap docstring residue) = one
+          config-max round AFTER EG.1 lands, behind the EG.9 chain · DH.657 -> mur-eg-7 residue -> EG.22 queued
           EG.13 -> mur-eg-6 residue -> EG.21 queued (memory-cap HARD RULE carried)
-          QUEUED qgEG<N> chain (orders T/ordersEG.N.md): EG.16 (DH.653) -> EG.18 (EG.12, DEMOTE) -> EG.19 (DH.654, node prose) -> EG.20 (EG.14; grid item SETTLED) -> EG.21 (EG.13)
+          QUEUED qgEG<N> chain (orders T/ordersEG.N.md): EG.16 (DH.653) -> EG.18 (EG.12, DEMOTE) -> EG.19 (DH.654, node prose) -> EG.20 (EG.14; grid item SETTLED) -> EG.21 (EG.13) -> EG.22 (DH.657)
           EG.7 PARENT-DEMOTED, 5 corpus edits UNCOMMITTED in a00-0194accb (never land); EG.11 HELD (conflicts with the DH.658 chain's detector file)
           EG.8: both scopes killed at their own memcg caps (01:04:56Z kid, 01:08:15Z parent), 0 commits -> EG.13 retry, cap a HARD RULE, unit qgEG13
           TMM.314: no box crit, belam's tmpfs clock from 00:43Z
