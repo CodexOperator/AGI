@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.17
 next_edges: []
 confidence: 0.8
-edited_by: a00-ffaf1904
+edited_by: a00-020ce45f
 scaffold_hash: f38bbb2ebd9a7dbe
 season: 2
 tags:
@@ -60,4 +60,6 @@ DH.649 CORRECTION #2 (a00-ffaf1904) to the DH.630 line above: the CONTROL was th
 ## Agent Notes
 That is the next round's first item, and it needs a test-line ceiling raised, not another production line.
 
-DH.630 CORRECTIVE (a00-42ca5cbe) -- that item is DONE (the row is now parametrised over live+hybrid+h2+h3; the dead STEP2_CARDS_UNCOVERED marker is deleted, one residue marker left). MERGE-IN RED, MEASURED, the graph was silent on it: the branch's test_rotation_alert_capture.py is 23 passed / 2 xfailed on the BRANCH tree (archive of 1ea22df7d), but 9 failed / 14 passed / 2 xfailed against the MERGE TARGET engine (archive of f55fc2c1), and 8 of those 9 already fail with the PRE-ROUND file -- season/s2's hooks/rotation_alert.py has no _capture_stops and its rotate.py lacks the subheader-keeping branch of _replace_stops_body. This test file CANNOT merge up alone: the branch's rotation_alert.py and rotate.py bytes must ride the SAME merge. Also corrected in the bytes: the h3 xfail reason was FALSE (the `### Where it stops` subheader survives; dumped card and both pytest runs on experiment:a00-42ca5cbe-9e17ff), BOTH _section lookups now use the shape's own slot title, and the strict `slot == "replaced"` assertion is RESTORED (it held on all four shapes -- the loosening was unnecessary, not a trade).
+DH.630 CORRECTIVE (a00-42ca5cbe) -- that item is DONE (the row is now parametrised over live+hybrid+h2+h3; the dead STEP2_CARDS_UNCOVERED marker is deleted, one residue marker left). Also corrected in the bytes: the h3 xfail reason was FALSE (the `### Where it stops` subheader survives; dumped card and both pytest runs on experiment:a00-42ca5cbe-9e17ff), BOTH _section lookups now use the shape's own slot title, and the strict `slot == "replaced"` assertion is RESTORED (it held on all four shapes -- the loosening was unnecessary, not a trade).
+
+MERGE-IN RED, MEASURED, and stated HERE ONLY (TEMPLATE-MAX, mur-45 review, DH.679: the duplicate copy on experiment:a00-42ca5cbe-9e17ff's body was removed and that node now cites this line). The branch's test_rotation_alert_capture.py is 23 passed / 2 xfailed on the BRANCH tree (archive of 1ea22df7d), but 9 failed / 14 passed / 2 xfailed against the MERGE TARGET engine (archive of f55fc2c1) -- season/s2's hooks/rotation_alert.py has no _capture_stops and its rotate.py lacks the subheader-keeping branch of _replace_stops_body. This test file CANNOT merge up alone: the branch's rotation_alert.py and rotate.py bytes must ride the SAME merge. WITHDRAWN, and kept withdrawn here so the numbers never re-appear: the "8 of those 9 already fail with the PRE-ROUND file" control (DH.649 correction #2, in the THOUGHT above) was taken from the WRONG file, 1ea22df7d's own. The correct control is this round's base fc4fa8132, and against the same merge-target engine it fails NINE, not eight -- ALL NINE merge-target failures are inherited, the test file is the WITNESS and not the cause. DH.679 (a00-020ce45f) carried the same withdrawal into the machine-read `probes` conjunct-2 wire row of experiment:a00-42ca5cbe-9e17ff, which had been the place a harvest reads the superseded number from.
