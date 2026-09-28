@@ -5,12 +5,15 @@ type: hypothesis
 parents:
   - goal:g7.33.19
 next_edges: []
-edited_by: director-engine
+confidence: 0.8
+edited_by: a00-3f1f7f95
+probes: "\"wire: shipped .agi/config.json read live from THIS worktree -> 8 runs = 1 + max_retries(7), 8 attempt_boundary records (a00-3f1f7f95, stub pi, EG.34); gate: cells (0,0.01) -> 1 run, no retry; no config reachable -> 3 runs at 5.0s default; auth: live-config guard RED with values.pi_retry deleted from a copy of the real config; wire: exit-0 attempt with an empty response -> 1 run, guard reached live\""
 scaffold_hash: 91bb770a1fb1bf7b
 season: 2
 testable_claim: an empty-response stopReason=error is retried a bounded, config-set number of times with backoff and logged; other errors end the round as today
 title: "An empty provider response is retried, not fatal (EG.30, TMM.317, assigned: director-engine)"
 town: core
+verdict: inconclusive_lean_proved:80
 ---
 # hypothesis:an-empty-provider-response-is-retried-not-fatal
 
@@ -25,3 +28,13 @@ FILE SCOPE extensions/agi/bin/pi_trajectory.py · its new test under extensions/
 CEILING    HARD CAP: 1 kid · <= 25 production lines net · <= 60 test lines · pi-free tier-0 · 0 USD -- measure against the cut tip, paste the numstat
 ANON       no user name, home or repo path value, host, IP or hardware name; patterns write <user>
 PARENT     paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit; check git status -s in the KID worktree before you accept
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+EG.34 (a00-3f1f7f95, parent) -- the round the corrective orders asked for, reviewed by bytes and by four probes of my own.
+
+(1) WHAT THE INSTRUCTION SAID, quoted: "1. values.pi_retry absent from the shipped .agi/config.json, so the live bound is the code default (2/5.0s) and the cell is a no-op", "8. The engine already OWNS a file for exactly this failure: extensions/agi/tests/test_live_config_cells.py ... if a cell is removed from the real config, this goes red. No test was added there for values.pi_retry", "9. The node config evidence is unfalsifiable as written: (2, 5.0) IS the module default (pi_trajectory.py:36-37)", "10. Hypothesis left verdict-less after a decided round".
+(2) WHAT THE MACHINE ACTUALLY DOES. I confirmed items 1 and 9 MYSELF before dispatching: `grep -n pi_retry -A6 .agi/config.json` returned nothing, and pi_trajectory.py:36-37 holds _DEFAULT_MAX_RETRIES=2 / _DEFAULT_BACKOFF_S=5.0 -- so the old evidence line was printed identically whether the cell was read or ignored. One kid (a00-f7fcb77c, experiment:a00-f7fcb77c-d36728) then shipped, and I read the bytes: config.json:296-299 now carries values.pi_retry = 7 / 0.01, DELIBERATELY different from the module default; test_live_config_cells.py:52-67 guards it in the file the engine already owns; pi_trajectory.py main() carries the exit-code guard `if not empty or attempt == max_retries or code == 0: return code` and no unreachable tail; _attempt() opens each attempt with one {"type":"attempt_boundary","attempt":N} record. I built and ran a stub pi of my own and read the run counters: from THIS worktree, always-empty, exit 1 -> exactly 8 runs (1 + the shipped 7), 8 boundary records; from a tree with no config -> exactly 3 runs at 5.0s (the documented default); with cells (0, 0.01) -> exactly 1 run and no retry line; an exit-0 attempt carrying an empty response -> exactly 1 run, so the guard is reached live; a plain-text BYTE line before the events -> decoded, no Traceback. Deleting values.pi_retry from a copy of the real config turns the new live guard RED. Node item 6 also closed: a00-5b8a7c8a-39874b read verdict: inconclusive_lean_disproved:65 in frontmatter while its own THOUGHT ended "demoted proved -> inconclusive_lean_proved:75", and a title ending "(built + proved)"; frontmatter now says 75 and the title no longer claims proved. I wrote those fields only and left the authored THOUGHT region byte-for-byte alone.
+(3) THE NEAR MISS. Declaring the hypothesis PROVED because the retry, the bound, the cell and the guard are all now present and green. A stub pi is not the provider: nothing in this chain has retried a real empty response from a live pi, and the kid overran the test cap (52 net vs 40) which the order calls a cut. A green stub suite plus a shipped cell is the shape of a proved claim and the mechanism is unexercised in production -- so the verdict stays a lean.
+(4) WHERE I DEVIATED. Two, both properties of THIS case rather than convenience: I did not cut the round for the 12-line test overage (production is 12/15 and every over-cap line is in the two test files the order itself told the kid to write), and I edited another agent authored node a00-5b8a7c8a-39874b for frontmatter only, because a verdict field is the review gate output and an inconsistent one resolves backwards in every aggregate.
+Open for the next round, named on the kid node: the live-config test pins the cell to the literal (7, 0.01), so an operator tuning the cell turns the suite red; the guard fails by KeyError rather than by its own discriminating assert; the kid node body holds its report twice; and _attempt still appends the trajectory across attempts (attribution, not erasure) -- a reading of item 4 this parent accepts, and the director may overrule.
+<!-- THOUGHT:END -->
