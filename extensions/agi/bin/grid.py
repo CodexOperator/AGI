@@ -47,6 +47,9 @@ Usage:
   grid.py checkout --all [--dir D]  # materialize payloads into <project>/payloads/
                                     # — the staged copy an author edits (goal:g6.1)
   grid.py sync [REMOTE]             # push refs/grid/* to origin (manual/one-off)
+  grid.py migrate-trunk [--from NS] [--to NS]   # move every ref onto NS (the
+                                    # configured grid.storage_trunk when --to is
+                                    # absent); dry-run unless --write (goal:g14.14.7)
   grid.py cron install|show|remove  # manage the two-cadence sync cron entries
                                     #   */N: snapshot + push grid refs
                                     #   hourly: push the D1 branch
@@ -81,7 +84,8 @@ PARENTS_RE = re.compile(r'^parents:[ \t]*$', re.MULTILINE)
 PARENTS_INLINE_RE = re.compile(r'^parents:\s*\[([^\]]*)\]\s*$', re.MULTILINE)
 PARENTS_SCALAR_RE = re.compile(r'^parents:\s*([^\n\[][^\n]*)$', re.MULTILINE)
 GIT_IDENT = ["-c", "user.name=grid", "-c", "user.email=grid@agi"]
-REF_NS = "refs/grid"
+DEFAULT_REF_NS = "refs/grid"
+REF_NS = DEFAULT_REF_NS
 # Tree entry names inside a node's D2 commit. `node.md` predates payloads and
 # keeps its name so every existing reader (`rev-parse <tip>:node.md`) still
 # works. `payload` is goal:g6.3's addition: one node owns exactly one
@@ -101,6 +105,165 @@ GIT_MODE_EXEC = "100755"
 GIT_MODE_SYMLINK = "120000"
 FETCH_SPEC = f"+{REF_NS}/*:{REF_NS}/*"
 PUSH_SPEC = f"{REF_NS}/*:{REF_NS}/*"
+
+
+def ref_ns_for(root: Path) -> str:
+    """The grid ref namespace for graph root `root` (goal:g14.14.7).
+
+    This is the ONE resolver the nine derived call sites in this file already
+    keyed on — it now reads `grid.storage_trunk` out of the project config
+    instead of returning a literal. Absent, unreadable, malformed or empty
+    config resolves to `DEFAULT_REF_NS`, so a project that never sets the key
+    keeps every ref exactly where it was: no silent migration for the many
+    trees already carrying `refs/grid/*` history.
+
+    A trailing `/` is stripped on purpose: `refs/grid/t1/` and `refs/grid/t1`
+    must name the same namespace, or the caller's own concatenation would mint
+    `refs/grid/t1//node/...` with a doubled separator and two spellings of one
+    trunk, which is the exact defect this round removes.
+
+    The config is read from the project's ONE shared checkout
+    (`locations.shared_project_root`), not from the worktree handed in
+    (hypothesis:grid-old-namespace-refilled-and-forked). A linked git worktree
+    carries its OWN `.agi/config.json`, which can predate the storage-trunk
+    migration; reading it would resolve `DEFAULT_REF_NS` and re-mint the
+    migrated-from namespace while the main checkout's config names the trunk.
+    A tree that is not a linked worktree, or that has no `storage_trunk`,
+    resolves `DEFAULT_REF_NS` byte-for-byte as before.
+    """
+    shared = locations.shared_project_root(Path(root))
+    cfg = locations.load_config(shared or Path(root))
+    section = cfg.get("grid")
+    trunk = section.get("storage_trunk") if isinstance(section, dict) else None
+    if not isinstance(trunk, str) or not trunk.strip():
+        return DEFAULT_REF_NS
+    return trunk.strip().rstrip("/")
+
+
+def migrated_trunk_namespaces(root: Path) -> list[str]:
+    """Namespaces nested under `DEFAULT_REF_NS` that already hold refs.
+
+    The post-migration / stale-config state the falsifier names: history lives
+    at `refs/grid/<trunk>/node/<mint-id>` while the resolved namespace is the
+    bare `DEFAULT_REF_NS` (the shared config lost its `storage_trunk`, or a
+    linked worktree still reads its own pre-migration config). Writing there
+    would re-mint the migrated-from namespace and fork a second v1 root, so
+    `cmd_commit` refuses by name rather than silently forking.
+
+    A namespace is where `node/` OR `session/` begins
+    (hypothesis:grid-commit-guard-and-writer-read-one-namespace conjunct 2):
+    a nested trunk holding ONLY session refs was migrated too, and skipping
+    it because it carries no `/node/` let the guard pass and re-mint
+    `DEFAULT_REF_NS` exactly as before.
+    """
+    prefix = f"{DEFAULT_REF_NS}/"
+    ns: set[str] = set()
+    for line in git(root, "for-each-ref", DEFAULT_REF_NS,
+                    "--format=%(refname)").splitlines():
+        if not line.startswith(prefix):
+            continue
+        found = re.sub(r"/(node|session)/.*$", "", line, count=1)
+        if found != line and found != DEFAULT_REF_NS:
+            ns.add(found)
+    return sorted(ns)
+
+
+def push_spec_for(root: Path) -> str:
+    """`REF_NS` push refspec for graph root `root` — the one spelling of it.
+
+    `crons.py` imports this rather than re-hardcoding the namespace (goal:g14.14.7
+    item b): the second spelling in the cron template was the gap, and a
+    function is what makes `apply` and the cron line agree by construction.
+    """
+    ns = ref_ns_for(root)
+    return f"{ns}/*:{ns}/*"
+
+
+# The ONE declared home of the grid push defaults: a project that has not set
+# `grid.push_batch_limit` in its config.json gets the value declared here, and
+# the missing cell is named once in the log instead of killing the cron path
+# (hypothesis:grid-sync-survives-a-project-without-push-batch-limit).
+GRID_PUSH_DEFAULTS = {"push_batch_limit": 200}
+
+
+def push_batch_limit(root: Path) -> int:
+    """Maximum changed grid refs in one host validation request — a config
+    cell, not a literal default (PASS 5/6 residue,
+    hypothesis:grid-push-batch-limit-is-a-config-cell). A project that has not
+    set the cell is named once and falls back to `GRID_PUSH_DEFAULTS`, so the
+    grid_sync cron keeps versioning every project on the box."""
+    cfg = locations.load_config(locations.shared_project_root(Path(root)) or Path(root))
+    value = (cfg.get("grid") or {}).get("push_batch_limit")
+    if value is None:
+        value = GRID_PUSH_DEFAULTS["push_batch_limit"]
+        print(
+            f"grid: config cell grid.push_batch_limit is absent -- using the "
+            f"declared default {value} (set it in config.json to override)")
+    return max(1, int(value))
+
+
+def push_batches(root: Path) -> list[list[str]]:
+    """Exact post-split refspec batches for changed local tips; never a wildcard."""
+    ns = ref_ns_for(root)
+    local = [line.split() for line in git(
+        root, "for-each-ref", ns, "--format=%(refname) %(objectname)").splitlines()]
+    remote = {parts[1]: parts[0] for parts in (
+        line.split() for line in git(
+            root, "ls-remote", "--refs", "origin", f"{ns}/*").splitlines())}
+    cfg = locations.load_config(locations.shared_project_root(Path(root)) or Path(root))
+    grid_cfg = cfg.get("grid") or {}
+    split_epoch = int(grid_cfg.get("push_split_epoch", 0))
+    minimum = int(grid_cfg.get("push_min_season", 0))
+    changed = []
+    for ref, oid in local:
+        if remote.get(ref) == oid:
+            continue
+        is_root = False
+        if split_epoch or minimum:
+            meta = git(root, "show", "-s", "--format=%ct %P", oid).split()
+            is_root = len(meta) < 2
+            if split_epoch and is_root and int(meta[0]) < split_epoch:
+                # The seed pass created unrelated v1 roots; descendants remain.
+                continue
+        if minimum and is_root:
+            season = re.search(r"^season:\s*(\d+)\s*$", git(root, "show", f"{oid}:node.md"), re.M)
+            if season and int(season.group(1)) < minimum:
+                continue
+        changed.append(f"{ref}:{ref}")
+    size = push_batch_limit(root)
+    return [changed[i:i + size] for i in range(0, len(changed), size)]
+
+
+def cmd_push_changed(root: Path) -> None:
+    """Advance only changed local grid tips, stopping at the first bad batch."""
+    ensure_repo(root)
+    batches = push_batches(root)
+    for number, batch in enumerate(batches, 1):
+        git(root, "push", "-q", "origin", *batch)
+        print(f"grid push batch {number}/{len(batches)}: {len(batch)} ref(s)")
+    print(f"grid push: {sum(map(len, batches))} changed ref(s) in {len(batches)} batch(es)")
+
+
+def fetch_spec_for(root: Path) -> str:
+    """`REF_NS` fetch refspec for graph root `root` (see `push_spec_for`)."""
+    ns = ref_ns_for(root)
+    return f"+{ns}/*:{ns}/*"
+
+
+def apply_storage_trunk(root: Path) -> str:
+    """Resolve `grid.storage_trunk` for `root` into this module's globals.
+
+    `REF_NS`, `FETCH_SPEC` and `PUSH_SPEC` are the values every other function
+    here derives from, so one call makes all of them config-aware with no
+    further edits. `main()` calls it once, before dispatch; a test or a caller
+    holding a configured tree calls it directly. Returns the resolved
+    namespace so a caller can report it without re-reading the config.
+    """
+    global REF_NS, FETCH_SPEC, PUSH_SPEC
+    REF_NS = ref_ns_for(root)
+    FETCH_SPEC = fetch_spec_for(root)
+    PUSH_SPEC = push_spec_for(root)
+    return REF_NS
 
 
 def find_project_root(start: Path | None = None) -> Path:
@@ -855,13 +1018,53 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
     """
     ensure_repo(root)
 
+    # hypothesis:grid-commit-guard-and-writer-read-one-namespace conjunct 1 --
+    # a DIRECT `cmd_commit` call must resolve the trunk itself, from the same
+    # config the guard below reads. `main()` calling `apply_storage_trunk`
+    # does not help a library or test caller, and the guard would then compare
+    # the config-aware `ref_ns_for(root)` against writes still going to the
+    # module-global `REF_NS` default -- guard and writer, two namespaces.
+    apply_storage_trunk(root)
+
+    # hypothesis:grid-old-namespace-refilled-and-forked conjunct 2 -- refuse by
+    # name after a storage-trunk migration. `ref_ns_for` now reads the shared
+    # checkout's config, so a stale linked worktree is redirected to the trunk;
+    # but a config that genuinely lost `storage_trunk` while nested trunk refs
+    # remain is the post-migration state, and committing there would re-mint
+    # the migrated-from namespace and fork a second v1 root. Name BOTH the old
+    # namespace and the trunk, exit non-zero, write no ref. Session (D3) drafts
+    # are exempt: a draft is not an accepted version and takes no namespace.
+    if not session and ref_ns_for(root) == DEFAULT_REF_NS:
+        migrated = migrated_trunk_namespaces(root)
+        if migrated:
+            sys.exit(
+                f"grid: refusing commit: resolved namespace {DEFAULT_REF_NS!r} "
+                f"but this repo already holds refs under {', '.join(migrated)}. "
+                f"The shared config does not declare grid.storage_trunk (stale "
+                f"linked worktree, or the key was blanked after migration); "
+                f"writing to {DEFAULT_REF_NS!r} would re-mint the migrated-from "
+                f"namespace and fork history. Set grid.storage_trunk to "
+                f"{migrated[0]!r} in the shared checkout."
+            )
+
     # hypothesis:l2w15-grid-master-guard — refuse commit on a non-master
     # branch unless --allow-branch is passed. Session commits (D3 drafts)
     # are never gated. Addendum (owners, seasons-as-branches): any branch the
     # season grammar admits (canonical season<n>/… or the legacy master/
     # season/s<N> aliases) is admitted like master; anything else — feature
     # branches, malformed season names, detached HEAD — refused.
-    if not session and not allow_branch:
+    #
+    # hypothesis:lm-grid-commit-configured-trunk-lifts-branch-blind-refusal —
+    # the refusal exists ONLY because node refs are branch-blind: every branch
+    # writes the same `refs/grid/node/<mint-id>`, so a feature branch would
+    # collide with master's history. A tree that declares a non-default
+    # `grid.storage_trunk` keeps its refs in a project-specific namespace, so
+    # the collision it is refused for cannot occur and the refusal is lifted.
+    # `ref_ns_for(root)` is the config resolver, NOT the module global `REF_NS`
+    # (correct only after `apply_storage_trunk()` has run). It returns
+    # `DEFAULT_REF_NS` for absent/unreadable/empty config, so an unconfigured
+    # tree refuses EXACTLY as before and `--allow-branch` stays its override.
+    if not session and not allow_branch and ref_ns_for(root) == DEFAULT_REF_NS:
         # resolve the checked-out branch of the repo that owns the graph
         # Use symbolic-ref: on a branch it returns the ref name (e.g. master,
         # work); on detached HEAD it fails (exit != 0) which we treat as not
@@ -1450,6 +1653,91 @@ def cmd_migrate_mint_refs(root: Path, write: bool) -> None:
           f"(no mint_id), {in_collision} id(s) in a ref collision")
 
 
+def _valid_ref(root: Path, ref: str) -> bool:
+    """True iff git would accept `ref` as a refname. Raw subprocess rather
+    than `git()` because an invalid candidate is a refusal to report, not a
+    process to kill."""
+    res = subprocess.run(
+        ["git", "check-ref-format", ref], capture_output=True, text=True,
+    )
+    return res.returncode == 0
+
+
+def cmd_migrate_trunk(root: Path, target: str | None, write: bool,
+                      source: str | None = None) -> None:
+    """Move EVERY ref under a source namespace into a different one
+    (goal:g14.14.7): `refs/grid/node/<x>` -> `<trunk>/node/<x>`, the one
+    ref-shape change `cmd_migrate_refs` and `cmd_migrate_mint_refs` do not
+    cover -- both of those move refs WITHIN `refs/grid/node/`, neither
+    changes the NAMESPACE.
+
+    Ref-driven, not node-file-driven: the source list comes from
+    `git for-each-ref <old>/node/`, so a ref whose node file was deleted or
+    deprecated (or that never had one) still moves. Reuses `_rename_ref`
+    UNCHANGED for the safety-critical mutation -- `update-ref <new> <old_tip>`
+    (same commit object, so the full multi-version chain stays traversable),
+    then a compare-and-swap `update-ref -d <old> <old_tip>` -- so it inherits
+    dry-run-by-default, idempotency and refuse-never-clobber for free.
+
+    `source` is the SOURCE namespace and defaults to `DEFAULT_REF_NS`
+    (`refs/grid`), NOT to the config-resolved `REF_NS`. This is deliberate:
+    `main()` resolves the config into `REF_NS` via `apply_storage_trunk`
+    BEFORE dispatch, so with `grid.storage_trunk` already set the
+    config-resolved value is the TARGET, and using it as the source makes
+    `old_ns == new_ns` and moves nothing (the config-first order the
+    hypothesis names would silently no-op). The verb's job is "move where the
+    refs ARE onto a trunk"; a config-declared trunk is reached with `--to`
+    absent and `--from` left at its default. The migration MUST run before any
+    `commit --all` under the new config, or that commit forks fresh v1 refs
+    under the new namespace while the old history sits unmoved.
+
+    `target` is the DESTINATION namespace; absent, the configured
+    `grid.storage_trunk` (`ref_ns_for`) is used, so the same command is the
+    cut for both `--to` and config-declared trunks. A trailing `/` is
+    stripped from both namespaces (the same one-spelling rule `ref_ns_for`
+    enforces).
+
+    Refuses cleanly (SystemExit, no ref touched) if the destination is empty
+    or not a valid ref namespace. If `new_ns == old_ns` every ref reports
+    unchanged and nothing is moved -- idempotent by construction.
+    """
+    ensure_repo(root)
+    old_ns = (source or DEFAULT_REF_NS).strip().rstrip("/")
+    new_ns = (target or ref_ns_for(root)).strip().rstrip("/")
+    if not new_ns or not _valid_ref(root, f"{new_ns}/node/x"):
+        sys.exit(f"ERR: migrate-trunk: {new_ns!r} is not a valid ref "
+                 f"namespace (use e.g. refs/grid/local-maxxing)")
+
+    prefix = f"{old_ns}/node/"
+    suffixes = [line[len(prefix):] for line in
+                git(root, "for-each-ref", prefix,
+                    "--format=%(refname)").splitlines()
+                if line.startswith(prefix) and len(line) > len(prefix)]
+
+    moved = unchanged = conflicts = 0
+    for suffix in suffixes:
+        old_ref = f"{prefix}{suffix}"
+        new_ref = f"{new_ns}/node/{suffix}"
+        if old_ref == new_ref:
+            unchanged += 1
+            continue
+        status = _rename_ref(root, old_ref, new_ref, write)
+        if status == "moved":
+            print(f"{'MOVE' if write else 'WOULD-MOVE'}  {old_ref} -> {new_ref}")
+            moved += 1
+        elif status == "conflict":
+            conflicts += 1
+            print(f"CONFLICT  {old_ref} -> {new_ref}: destination already "
+                  f"has different history -- not touched", file=sys.stderr)
+        else:  # "unchanged" or "no-history"
+            unchanged += 1
+
+    mode = "write" if write else "dry-run"
+    print(f"grid migrate-trunk ({mode}): {old_ns} -> {new_ns}: {moved} "
+          f"{'moved' if write else 'would-move'}, {unchanged} unchanged, "
+          f"{conflicts} conflict(s)")
+
+
 def cmd_sync(root: Path, remote: str | None) -> None:
     ensure_repo(root)
     remotes = git(root, "remote").splitlines()
@@ -1636,8 +1924,25 @@ def main() -> None:
                              "refs/grid/node/<mint-id>; dry-run unless --write. "
                              "MUST run before commit --all under the new keying.")
     mm.add_argument("--write", action="store_true")
+    mt = sub.add_parser("migrate-trunk",
+                        help="goal:g14.14.7 -- move EVERY ref from a source "
+                             "namespace onto a new trunk (e.g. "
+                             "refs/grid -> refs/grid/local-maxxing), reusing "
+                             "_rename_ref; dry-run unless --write. Config key "
+                             "grid.storage_trunk declares the destination; the "
+                             "source is --from (default refs/grid), never the "
+                             "config-resolved namespace.")
+    mt.add_argument("--from", dest="from_ns", default=DEFAULT_REF_NS,
+                    help="source namespace (default: refs/grid); deliberately "
+                         "NOT the configured trunk -- run this BEFORE any "
+                         "commit --all under the new config")
+    mt.add_argument("--to", default=None,
+                    help="destination namespace (default: the configured "
+                         "grid.storage_trunk); a trailing / is stripped")
+    mt.add_argument("--write", action="store_true")
     s = sub.add_parser("sync")
     s.add_argument("remote", nargs="?")
+    sub.add_parser("push-changed", help="push only changed grid tips in bounded batches")
     cr = sub.add_parser("cron")
     cr.add_argument("action", choices=["install", "show", "remove"])
     cr.add_argument("--snapshot-mins", type=int, default=5)
@@ -1648,6 +1953,7 @@ def main() -> None:
                          "layer is trusted should enable this.")
     args = ap.parse_args()
     root = find_project_root()
+    apply_storage_trunk(root)
     if args.cmd == "commit":
         cmd_commit(root, args.files, args.all,
                    tuple(args.session) if args.session else None,
@@ -1677,8 +1983,12 @@ def main() -> None:
         cmd_migrate_refs(root, args.write)
     elif args.cmd == "migrate-mint-refs":
         cmd_migrate_mint_refs(root, args.write)
+    elif args.cmd == "migrate-trunk":
+        cmd_migrate_trunk(root, args.to, args.write, args.from_ns)
     elif args.cmd == "sync":
         cmd_sync(root, args.remote)
+    elif args.cmd == "push-changed":
+        cmd_push_changed(root)
     elif args.cmd == "cron":
         cmd_cron(root, args.action, args.snapshot_mins, args.publish_engine)
 

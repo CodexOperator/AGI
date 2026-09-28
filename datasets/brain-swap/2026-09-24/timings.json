@@ -1,0 +1,88 @@
+{
+ "plain_B": [
+  {
+   "label": "warmup",
+   "model": "Ternary-Bonsai-2-27B-PTQ1_0",
+   "wall_s": 27.94,
+   "prompt_n": 59,
+   "prompt_tps": 2.9,
+   "predicted_n": 26,
+   "decode_tps": 3.47,
+   "finish": "stop",
+   "content_chars": 2,
+   "reasoning_chars": 88
+  },
+  {
+   "label": "measured-1",
+   "model": "Ternary-Bonsai-2-27B-PTQ1_0",
+   "wall_s": 24.36,
+   "prompt_n": 2097,
+   "prompt_tps": 253.3,
+   "predicted_n": 256,
+   "decode_tps": 16.99,
+   "finish": "length",
+   "content_chars": 0,
+   "reasoning_chars": 1044
+  },
+  {
+   "label": "measured-2",
+   "model": "Ternary-Bonsai-2-27B-PTQ1_0",
+   "wall_s": 12.27,
+   "prompt_n": 4,
+   "prompt_tps": 11.0,
+   "predicted_n": 256,
+   "decode_tps": 21.43,
+   "finish": "length",
+   "content_chars": 0,
+   "reasoning_chars": 1044
+  },
+  {
+   "label": "distinct-1",
+   "model": "Ternary-Bonsai-2-27B-PTQ1_0",
+   "wall_s": 21.96,
+   "prompt_n": 2383,
+   "prompt_tps": 263.2,
+   "predicted_n": 256,
+   "decode_tps": 21.25
+  },
+  {
+   "label": "distinct-2",
+   "model": "Ternary-Bonsai-2-27B-PTQ1_0",
+   "wall_s": 24.57,
+   "prompt_n": 1766,
+   "prompt_tps": 237.2,
+   "predicted_n": 223,
+   "decode_tps": 21.06
+  },
+  {
+   "label": "distinct-3",
+   "model": "Ternary-Bonsai-2-27B-PTQ1_0",
+   "wall_s": 18.19,
+   "prompt_n": 1131,
+   "prompt_tps": 252.8,
+   "predicted_n": 256,
+   "decode_tps": 22.1
+  }
+ ],
+ "orca_C2": [
+  {
+   "label": "orca-distinct-1",
+   "model": "OrcaBonsai-27B-C2",
+   "wall_s": 21.12,
+   "prompt_n": 1849,
+   "prompt_tps": 255.3,
+   "predicted_n": 256,
+   "decode_tps": 20.17
+  },
+  {
+   "label": "orca-distinct-2",
+   "model": "OrcaBonsai-27B-C2",
+   "wall_s": 19.71,
+   "prompt_n": 1798,
+   "prompt_tps": 249.4,
+   "predicted_n": 240,
+   "decode_tps": 20.51
+  }
+ ],
+ "note": "plain_B measured-2 repeated measured-1 byte for byte (a slicing slip) -> a prompt-cache hit (prompt_n 4): not a prefill reading; the distinct-* rows are the clean ones"
+}

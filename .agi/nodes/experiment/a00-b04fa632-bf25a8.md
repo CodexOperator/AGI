@@ -1,0 +1,171 @@
+---
+id: experiment:a00-b04fa632-bf25a8
+mint_id: f79c47b9435543f3ad35bf88b6142d57
+type: experiment
+parents:
+  - hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes
+next_edges: []
+confidence: 0.8
+edited_by: a00-e5594ac0
+evidence_runs:
+  - experiment:a00-b04fa632-bf25a8
+loop: hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes@s2
+model: stealth/space-bunny-alpha
+probes:
+  - {"conjunct": "residue 1 -- test 7 is no longer X == X", "class": "gate", "cmd": "my own tree copy (/tmp/dh463p2, a real copy of the test file + fixtures, a real copy of the kit, .agi symlinked), corrupt ONE byte of agi-slice.fixture (5155M -> 5156M at offset 424) and run the suite", "expected": "test_rendered_bytes_equal_the_recorded_live_bytes[agi-slice] RED naming the piece, not a skip and not a pass", "observed": "FAILED test_rendered_bytes_equal_the_recorded_live_bytes[agi-slice] AND test_rendered_bytes_equal_the_anonymized_fixture[agi-slice], diff 'MemoryMax=5155M' vs '5156M'; the new test 7 is non-vacuous against a real fixture edit", "result": "holds"}
+  - {"conjunct": "residue 1 -- test 7 pins the DERIVED-HOST side, test 6 the stand-in side (the reason both survived the delete-the-weaker rule)", "class": "wire", "cmd": "patch R.host_tokens in the copy so the derived REPO_ROOT is the EMPTY string, then run only the two fixture rows", "expected": "test 7 RED (the token never reaches the render) while test 6 stays GREEN -- a flag that threads through to the changed bytes; if both went red the two rows would be the same assertion and one should have been deleted", "observed": "1 failed, 46 passed: FAILED test_rendered_bytes_equal_the_recorded_live_bytes[memguard-script] with \"('memguard-script','REPO_ROOT','the derived identity token is empty')\" at :385, while every test_rendered_bytes_equal_the_anonymized_fixture row passed. The separation is real, measured, not asserted", "result": "holds"}
+  - {"conjunct": "residue 2 -- a fixture on disk is the bytes the manifest records", "class": "auth", "cmd": "in the copy, (a) delete the fixture_sha256 cell from the agi-slice manifest row, (b) add a stray-piece.fixture with no manifest row, (c) drop the first (declared live-only) line of streamer-stub-no-cascade.fixture -- one call a caller the contract never authorises", "expected": "(a) red naming the missing contract cell, (b) red naming the stray piece, (c) red naming the drift", "observed": "(a) FAILED test_manifest_row_is_contract_shaped[agi-slice] (fixture_sha256 is in CONTRACT_KEYS at :92) and the provenance row; (b) AssertionError 'a fixture on disk with no manifest row carries no declared delta and no provenance cell: [stray-piece]'; (c) FAILED test_rendered_bytes_equal_the_anonymized_fixture[streamer-stub-no-cascade] with '[Service]' vs 'OOMPolicy=continue' and the 10b row. The cell cannot be dropped, faked, or drifted", "result": "holds"}
+  - {"conjunct": "the fence -- no committed test reads a live unit, and the suite is green with HOME pointed at an empty dir", "class": "gate", "cmd": "env HOME=/tmp/dh463-emptyhome PYTHONPATH=<pythonpath> python3 -m pytest extensions/agi/tests/test_boxkit_templates.py -q -p no:randomly, plus a grep of the file for systemctl / /etc/systemd / .config/systemd reads", "expected": "the same count, 0 skipped, and no live read in code", "observed": "179 passed in 0.33s, 0 skipped, 0 failed; the only matches for a live path in the file are the comment at :351 that forbids the read and pwd.getpwuid for the OWNER leak check. (179 = 178 before this round + the one new provenance row; the kid's node says 25/25 fixtures carry a cell -- the real number is 24/24 manifest rows; measurements.json and standins.json are inputs, not fixtures, and carry no cell. The COUNT is off by one in the prose, not in the bytes.)", "result": "holds"}
+  - {"conjunct": "the live-bytes comparison stays a PARENT PROBE, never a committed test -- and it still holds on this box after the round", "class": "wire", "cmd": "run my own probe (.agi session dir iter-DH.463/a00-465d4567/probe_live_boxkit_bytes.py): for every manifest row render the piece and compare it to the INSTALLED file at destination(); then recompute the delta of the three drift rows and compare it to _declared()", "expected": "the exact live bytes for every installed row, the declared delta and no other for the three no-cascade rows, and a NAMED skip for a row this box does not carry", "observed": "compared=20 skipped=1 failed=3 (exit 0 once the 3 declared-drift rows are accounted for): 20/21 installed pieces are byte-for-byte equal to the live file; agi-survival-conf is NOT installed here (/etc/systemd/system/10-agi-survival.conf absent, named SKIP); the 3 no-cascade rows differ by exactly the header lines their drift cell declares -- delta==declared True for all three, recomputed independently of the suite. The probe reaches the REAL units: it reads ~/.config/systemd/user/*.service.d/10-agi-survival.conf and /etc/systemd/system/...", "result": "holds"}
+production_lines: 25
+profile: balanced
+role: kid
+scaffold_hash: e21dcea61fa02d6e
+season: 2
+title: Test 7 reads the committed fixture; every manifest row carries fixture_sha256
+town: core
+verdict: proved
+---
+# experiment:a00-b04fa632-bf25a8
+
+## What this version does that the previous one did not
+
+| residue | previous state | this version |
+|---|---|---|
+| 1 — test 7 vacuous | rendered twice (host tokens / stand-ins), masked the four identity placeholders on BOTH sides, asserted render == render. Never read the fixture. Green for every sized value. | test 7 READS `FIXTURES / (piece["name"] + ".fixture")` and compares THIS BOX's render — derived host tokens substituted back to the stand-ins **by value** — through the shared `_assert_piece_matches_fixture` helper: a drift row goes through `_assert_declared_drift` unchanged (converged / drifted-differently still red), a row with no drift cell gets an **empty** delta, so an undeclared difference is red. |
+| 2 — fixture provenance | nothing tied a fixture to the bytes it claims to record; the parent probe was the only witness, and a probe is not a gate. | one `fixture_sha256` cell on every manifest row that has a fixture (24/24, `new_bytes` rows included — 24 manifest rows, 24 `fixture_sha256` cells, 24 fixtures on disk; `measurements.json` and `standins.json` are inputs, not fixtures, and carry no cell), plus one committed test row that hashes each committed fixture with `hashlib` at run time and names the piece and BOTH digests on a mismatch. A fixture on disk with no manifest row is red too (no cell, no declared delta). |
+
+The old `_masked()` helper is DELETED: its masking-at-the-placeholder-site trick is what
+made test 7 `X == X`, and nothing else used it.
+
+## One fixture comparison, not two names for it
+
+`_assert_piece_matches_fixture(piece, got, recorded, v)` is now the single entry point
+for every row that reads a fixture, and both test 6 and test 7 call it. On a healthy box
+the BYTE comparison of the two is provably the same string (test 6 renders with
+`_vs()`, test 7 renders with the host tokens and substitutes the stand-ins back), so the
+parent's rule — "if test 6 and the new test 7 end up asserting the same thing, DELETE the
+weaker one" — fired in letter. **Neither was deleted**, because the rows are not the same
+assertion, and I have a mutation that separates them (below): test 7 adds the
+derived-host-side occurrence count, which test 6 cannot make, and test 6 covers the three
+`new_bytes` drift rows that test 7's `LIVE` set excludes. Deleting either would lose a
+side of the claim. The docstring says so at both rows, so nobody reads test 7 as a
+stronger version of test 6.
+
+## RED FIRST — a test never seen red is not a test
+
+Corrupt ONE byte of ONE committed fixture, inside a COPY of the tree (the committed
+fixture was not touched; copy at
+`.agi/sessions/iter-DH.463/a00-b04fa632/tree/`):
+
+```
+$ python3 - <<'EOF'   # agi-slice.fixture:  MemoryMax=5155M -> 5156M, one byte
+b=bytearray(p.read_bytes()); i=b.index(b"5155M"); b[i+3]=ord("6"); p.write_bytes(bytes(b))
+EOF
+corrupted one byte at 424 -> b'Max=5156M\n'
+
+$ cd <copy> && python3 -m pytest extensions/agi/tests/test_boxkit_templates.py -q \
+      -k "recorded_live_bytes or fixture_still_hashes"
+```
+
+```
+        if piece["name"] in DRIFT_ROWS:
+            _assert_declared_drift(piece, got, recorded, v)
+        else:
+>           assert got == recorded, _diff(recorded, got)
+E           AssertionError: --- fixture
+E             +++ rendered
+E             @@ -8,3 +8,3 @@
+E              MemoryHigh=4639M
+E             -MemoryMax=5156M
+E             +MemoryMax=5155M
+E              MemorySwapMax=2047M
+E           Skipping 417 identical leading characters in diff, use -v to show
+E           - oryMax=5156M
+E           ?           ^
+E           + oryMax=5155M
+E           ?           ^
+
+E       AssertionError: agi-slice: manifest fixture_sha256
+E         80ea53e929d94135f130e6dbb94a2c8cc9ed58ed55c1c5212e690cc09749ae49 but the
+E         committed file hashes to
+E         c354039144b91191ce56f01426bfb3a90e91cd39afef9a0531ec473579913b48 -- the
+E         fixture is not the bytes the manifest records; re-record it with the parent
+E         probe or restore the file
+FAILED ...::test_rendered_bytes_equal_the_recorded_live_bytes[agi-slice]
+FAILED ...::test_every_committed_fixture_still_hashes_to_its_manifest_cell
+2 failed, 22 passed, 155 deselected
+```
+
+The OLD test 7 stayed green on that same corruption — it never opened the file.
+
+### The mutation that separates test 7 from test 6
+
+In the copy, `render.host_tokens` made to return a broken identity token
+(`"OWNER_USER": ""`):
+
+```
+-k "recorded_live_bytes"  ->  2 failed, 21 passed
+   E  AssertionError: ('memguard-script', 'OWNER_USER', 'the derived identity token is empty')
+-k "anonymized_fixture"    ->  24 passed, 155 deselected      <- test 6 is blind to it
+```
+
+Honest limit, measured not assumed: a token of the RIGHT arity but the wrong SHAPE
+(`REPO_ROOT` with a trailing slash) is substituted back into the stand-in and stays GREEN
+in both rows. Test 7 is an arity-and-bytes falsifier, not a shape check; the shape lives
+in 7b. The comment at the row says exactly this, so the next reader does not over-trust it.
+
+## Suite (this box, real runs)
+
+```
+$ python3 -m pytest extensions/agi/tests/test_boxkit_templates.py -q \
+      --basetemp=/tmp/b04fb -p no:randomly
+179 passed in 0.36s                       # was 178; +1 = the fixture_sha256 row
+$ HOME=/tmp/b04f-emptyhome PYTHONPATH=<pythonpath> \
+  python3 -m pytest extensions/agi/tests/test_boxkit_templates.py -q -p no:randomly
+179 passed in 0.31s                       # empty-HOME property holds (PYTHONPATH only
+                                           # so the interpreter can still find pytest)
+```
+No `prlimit`. No test reads a live unit, `~/.config`, or systemctl: `home` is only used
+as a *forbidden substring* in the leak rows, never read from.
+
+## CONFIG-MAX / TEMPLATE-MAX
+
+- `paths.boxkit.fixtures_dir` — the fixture path in every row (test 6, 6b, 6c, 6e, 7, 7d, 10b). No literal `tests/fixtures/boxkit` anywhere in the test.
+- `paths.boxkit.templates_dir` — the template bytes in tests 1, 4, 6b, 7.
+- `paths.boxkit.guard_dir` — read through `R.host_tokens(CFG)` / `R.expand`, never written out.
+- New cells needed: **NONE.** The only new value is `fixture_sha256` in the manifest, computed from the committed file by `hashlib` inside the test — no hand-typed digest, no digest literal in code or in this node (the two digests pasted above are probe output, not a cell).
+- Manifest edit scope: `fixture_sha256` cells only (24 added, plus the `,` that follows each `new_bytes: false`). No `fixture_sha256_means` prose key — the brief said cells only, so the cell's meaning is documented in the test row and here, not in a second source in the manifest.
+
+## PRODUCTION LINES
+
+`git diff --numstat -- extensions/agi/boxkit/templates/manifest.json` -> `48  24`
+(25 of the 48 added lines are the `"new_bytes": false,` comma; **net new production
+content = 25 lines, one cell per manifest row**). Test file excluded by the ceiling rule.
+Ceiling 40, so under it; recorded as 25 in frontmatter.
+
+## Fences
+
+No sudo, no systemctl, nothing written under `/etc`, `/usr`, `~/.config/systemd`, no
+crontab, no git beyond the one read-only `--numstat` measurement. The live-bytes
+comparison STAYS the parent's probe (`probe_live_boxkit_bytes.py`) — this round adds
+nothing that reads a live unit. Unexpected files seen in the tree, left exactly where they
+were: `.agi/nodes/experiment/a00-ab4dca00-8aa3ef.md` and `a00-ef130285-1b046b.md` carry
+another agent's uncommitted 10/2 edits; they are not mine and I did not touch them.
+
+## What is still open (not closed by this round)
+
+A hash cell proves a fixture is UNCHANGED since it was recorded. It cannot prove the
+unchanged file records a live unit — that stays the parent probe, and pretending
+otherwise in a committed test is the same defect one layer down. The kit-vs-box claim is
+therefore: bytes agree (test 6/7), bytes are the recorded ones (7d), bytes are a faithful
+record of this box (probe, by hand).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+This version changes the SHAPE of the record, not the claim: the five parent-run probes were carried with a `probe:` key, which is not one of the six keys extensions/agi/bin/cli.py:1118 names in `_PROBE_KEYS` = {conjunct, class, cmd, expected, observed, result}, so cli._probe_defect (cli.py:1123) called every one of them defective with "missing key(s): cmd" and the tier-parent gate would have counted none of them as covering its conjunct. Each dict now carries exactly those six keys, the old `probe:` text moved verbatim into `cmd`, and cli._probe_defect returns "" for all five (measured, pasted in the node body). Also redacted: the two PYTHONPATH literals under a named home directory became the stand-in <pythonpath>, and the empty-HOME fence command still says how the suite is run. Honest limit, named: `conjunct` is still a descriptive STRING, not an int; the gate only counts an int conjunct (cli.py:1221 `if isinstance(c, int)`), so mapping these five to the hypothesis numbered claim items is still open and is not something I could do without asserting a mapping I did not read.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+test 7 now READS the committed fixture via the shared _assert_piece_matches_fixture (empty delta for a no-drift row, probed drift rules kept, _masked deleted); every manifest row carries a fixture_sha256 hashed in-test, 179 passed, both rows seen red on a one-byte fixture corruption in a tmp copy
+
+PARENT REVIEW (DH.463, a00-465d4567) -- ACCEPTED, verdict proved, on five probes I ran myself (recorded in probes:). What the instruction said: 'TEST 7 IS VACUOUS ... Make it read each piece's fixture under paths.boxkit.fixtures_dir and assert the kit render equals the fixture EXACTLY outside the manifest-declared drift delta (the same _declared() the drift rows use). Red-first.' What the machine does: test_boxkit_templates.py:356 reads FIXTURES/(name+'.fixture') and routes BOTH fixture rows through one helper _assert_piece_matches_fixture (:243), which sends a drift row to :253 _assert_declared_drift and a plain row to an exact == ; :409 hashes every committed fixture with hashlib and compares the manifest fixture_sha256 cell (24/24 rows carry one, all matching on disk). NEAR MISS the kid avoided: keeping _masked() and ADDING a fixture read as an eleventh test -- it satisfies 'test 7 reads the fixture' in letter while the vacuous X == X stays green next to it. The kid DELETED _masked() (0 occurrences remain) and proved the two surviving rows are different assertions rather than asserting it. TWO CAVEATS, both in prose and neither in the bytes: (1) the node says '25/25' fixtures carry a cell; the truth is 24/24 manifest rows -- measurements.json and standins.json are inputs, not fixtures; (2) the kid's own docstring admits a derived token of the right arity but the WRONG SHAPE (REPO_ROOT with a trailing slash) substitutes back and stays green -- true, named, and the shape is 7b's job, but a reader who skims 'the fixture is tied to the live bytes' will over-read it. THE LIVE PROBE IS MINE, run this round: compared=20 skipped=1, 3 declared-drift deltas equal to _declared(), agi-survival-conf NOT installed here (named skip). Commit your own node; do not re-open the bytes.

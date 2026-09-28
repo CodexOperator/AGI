@@ -101,6 +101,12 @@ def _init_main(tmp_path, rows, comms):
         _geo, encoding="utf-8")
     (root / "nodes" / ".geometry" / "seats.md").write_text(
         _geo, encoding="utf-8")
+    from seatsig import veto as _veto
+    _veto_cell = {"veto_room": "veto", "rate_limit_per_window": 1,
+                  "window_seconds": 3600, "expiry_seconds": 86400,
+                  "active_gates": [], "vetoes": []}
+    _veto.save(root / ".agi", _veto_cell)
+    _veto.save(root, _veto_cell)
     (root / ".agi" / "sessions").mkdir(parents=True, exist_ok=True)
     (root / ".gitignore").write_text("sessions/\n", encoding="utf-8")
     # the rotation TEMPLATE for role `parent` — `cmd_rotate_self` refuses

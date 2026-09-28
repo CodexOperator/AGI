@@ -1,0 +1,9 @@
+0.00.000.306 I srv  llama_server: initializing ...
+0.00.316.817 I cmn  common_param: common_params_print_info: verbosity = 3 (adjust with the `-lv N` CLI arg)
+0.00.317.480 W srv  llama_server: security: no API key is set and CORS allows all origins (see https://github.com/ggml-org/llama.cpp/pull/25655)
+0.00.318.808 I srv    load_model: loading model '/work/Qwen3.5-9B-Q4_K_M.gguf'
+0.03.828.084 I cmn          init: llama threadpool init, n_threads = 8
+0.40.463.008 W srv    load_model: cache_reuse is not supported by this context, it will be disabled
+0.40.488.678 I srv    load_model: initializing, n_slots = 1, n_ctx_slot = 92416, kv_unified = 'false'
+0.40.493.468 I srv  llama_server: model loaded
+0.40.493.476 I srv  llama_server: listening on http://127.0.0.1:18089

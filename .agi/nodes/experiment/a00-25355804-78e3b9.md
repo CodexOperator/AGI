@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-suite-green-on-main-the-18-reds-after-h2-and-rc-propagation-are-fixtures-that-learn-the-resolver-plus-one-no-repo-predicate-fix
 next_edges: []
 confidence: 0.85
-edited_by: a00-9608da10
+edited_by: a00-e6bdd18c
 evidence_runs:
   - experiment:a00-25355804-78e3b9
 line_ceiling: 15
@@ -142,3 +142,5 @@ PARENT REVIEW (a00-107fc3a7): claim core PROVED by my own full-suite run -- `ver
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 PARENT REVIEW v2 (a00-107fc3a7): v1 was the kid's authored round. This version demotes the kid's verdict=proved to inconclusive_lean_proved:80 because parent review (a00-107fc3a7) independently probed and found the claim core PROVED but the round incomplete: (1) the claim's TESTS require a dedicated no-git-path predicate test (is_live_checkout(no-repo)==False); the diff carries only the summary-parser test -- the predicate is exercised by the heal_watch test + my probe but not by its own named test. (2) CLASS D node reason is false: it claims the two landings put the season2/main hit in workflow.py, but git blame/L shows the comment predates the landings (present at 982257cdd, added in a season2/main merge c67b973f8); the re-pin fix itself is legitimate (extends the pinned inventory as the claim allows) but the attribution text must not blame the landings. Core evidence (my own run): full `verification.py --level rotation --suite` -> RESULT PASS, tests [passed=5326, skipped=16], table agrees with pytest footer (no phantom failed=18); CLASS A probe: no-repo path is_live_checkout=False, in-repo basetemp still refused (exit 3 named line); CLASS B/C/D/F all green across affected files (240+144 passed, --basetemp /tmp).
 <!-- THOUGHT:END -->
+
+PASS 9 RECORD CORRECTION (belam 17:44Z, measured in experiment:a00-e6bdd18c-b14568): CLASS A as this node tells it was FICTION. locations.git_common_root is annotated -> Path and every failure branch (no .git found, OSError, rc!=0, parts!=2) returns root UNCHANGED -- it never returns None -- so 'g is not None and e is not None' is a TAUTOLOGY that can never be False and the CLASS A production fix changed NO behaviour. The cause it names (git rev-parse fails -> cwd's repo) never existed in this lineage; it was fixed before the round (3195931fc^). The is_live_checkout docstring line 'A path with no git common root (None) is never the live checkout' was FALSE as written. The 18 reds were made green by the fixtures/assertions (CLASS B/C/D/F) and the CLASS E summary-parser fix; CLASS A is credited nowhere. Mechanism now fixed in experiment:a00-e6bdd18c-b14568: a new locations._enclosing_repo returns None where a path is in NO repo and is_live_checkout DECIDES on that fact (a branch that can execute False) instead of asserting a None the resolver cannot produce; the discriminating test pins the resolver to one root and reads False for a gitless path (SM.80 bytes read True).

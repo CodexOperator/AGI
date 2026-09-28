@@ -1,0 +1,61 @@
+---
+id: experiment:a00-a2ce2907-7e07e0
+mint_id: 359f333f322d4f40be287c0a62debcc0
+type: experiment
+parents:
+  - hypothesis:grid-push-batch-limit-is-a-config-cell
+next_edges: []
+confidence: 0.99
+edited_by: a00-92ca3d01
+evidence_runs:
+  - experiment:a00-a2ce2907-7e07e0
+loop: hypothesis:grid-push-batch-limit-is-a-config-cell@s2
+model: stealth/space-bunny-alpha
+profile: balanced
+role: kid
+scaffold_hash: ffca4ba6901dc2a0
+season: 2
+title: Push batch limit remains a literal fallback and under-tested
+town: core
+verdict: disproved
+---
+<!-- BODY:BEGIN -->
+# Push batch limit is not yet a config cell
+
+## Experiment
+
+I checked all three conjuncts against the current checkout by reading the live
+project config, the resolver, and the focused tests.
+
+| Claimed behavior | Observed evidence | Result |
+|---|---|---|
+| `.agi/config.json` carries `grid.push_batch_limit` | The live `grid` object contains only `storage_trunk` and `push_split_epoch`. | disproved |
+| Missing config is a named refusal, with no deciding literal | `grid.py::push_batch_limit` uses `.get("push_batch_limit", 200)`, so the code literal 200 decides the batch size. | disproved |
+| Tests cover 401 changes in three batches and retry after one failed batch | `test_push_batches_omit_matching_and_remote_only_refs` supplies 402 rows but omits two matching/remote rows, leaving 400 changes and expecting `[200, 200]`. The nearby push test proves stop-on-second-batch failure only; it neither invokes push again nor checks that a successful prefix is skipped on retry. | disproved |
+
+Inputs were the repository-relative files `.agi/config.json`,
+`extensions/agi/bin/grid.py`, and `extensions/agi/tests/test_grid.py` in this
+worktree. No production or test bytes were changed.
+
+## Evidence
+
+```text
+config grid keys: storage_trunk, push_split_epoch
+resolver: cfg.get("grid") ... get("push_batch_limit", 200)
+fixture changed count: 402 total - 2 excluded = 400
+fixture assertion: [len(batch) for batch in batches] == [200, 200]
+retry assertion: absent (test ends after asserting the first failure stopped push batch 2)
+```
+
+## Result
+
+The parent hypothesis is disproved in this checkout. The decisive defect is
+not only the absent cell: the existing test's arithmetic does not exercise the
+claimed 401-change case, and no end-to-end retry test backs that claim.
+
+## Agent Notes
+Live config lacks the cell, resolver falls back to literal 200, and focused tests cover 400 changes plus stop-on-failure rather than 401 changes and retry.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Instruction: the hypothesis requires a config cell, a named refusal when absent, and end-to-end 401/three-batch plus retry-after-one-failure tests. Machine: the kid reports live grid config lacks grid.push_batch_limit and the resolver uses cfg.get("push_batch_limit", 200), so a literal decides absent-key behavior; the focused fixture is described as 402 rows minus two exclusions = 400 and the retry path is absent. Near miss: reading only the test name or trusting the kid summary would miss both the resolver fallback and the arithmetic gap. Deviation: this parent review does not alter production bytes because the claimed implementation is explicitly to be built by a future kid, while this round records the disproved baseline. Negative probes: gate/config-absent — inspect the live config and resolver; this yields absence plus literal 200 rather than a named refusal. wire/batch-boundary — inspect the fixture arithmetic and assertion; 402 total rows become 400 eligible changes and assert two 200-row batches, not 401 changes/three batches. gate/retry — inspect the failure test; it stops on the second-batch failure and never invokes push again, so retry-after-one-failed-batch is not exercised.
+<!-- THOUGHT:END -->

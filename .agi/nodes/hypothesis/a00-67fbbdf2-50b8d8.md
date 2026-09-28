@@ -15,7 +15,7 @@ profile: balanced
 role: kid
 scaffold_hash: da69c9c2c39c811e
 season: 2
-testable_claim: The `grok_bot_adapter.py` bytes built on the `goal:g17.14.*` lineage (sibling tip `44e6f11a7`, sha256 `66b7891f…6081c`, 162 lines) and their test can be reconciled onto **this** tip (`7d35ae4f9`, `core/season2/main`) as ordinary file writes — no merge, no cherry-pick — with (a) the adapter byte-identical, (b) the test identical except for ONE change that un-gates the peers-resolve test, (c) one build node per file whose `parents:` resolve and which carry the canonical mint ids, all closing DT.23 residue 1 without touching `dispatch.py` or `.agi/config.json`.
+testable_claim: The `grok_bot_adapter.py` bytes built on the `goal:g7.25.*` lineage (sibling tip `44e6f11a7`, sha256 `66b7891f…6081c`, 162 lines) and their test can be reconciled onto **this** tip (`7d35ae4f9`, `core/season2/main`) as ordinary file writes — no merge, no cherry-pick — with (a) the adapter byte-identical, (b) the test identical except for ONE change that un-gates the peers-resolve test, (c) one build node per file whose `parents:` resolve and which carry the canonical mint ids, all closing DT.23 residue 1 without touching `dispatch.py` or `.agi/config.json`.
 title: Reconciling the Grok Bot adapter onto the DT.23 tip as ordinary writes, with the peers test un-gated
 town: core
 verdict: proved

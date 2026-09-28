@@ -1,0 +1,71 @@
+# director-thought 2026-09-24 02:3xZ -- evidence for the 0-USD-efficiency hypotheses (TMM.90). Raw lines; no brief text; no host paths.
+## 1. brain log (docker logs brain-orcabonsai27b; timestamps are MM.SS.mmm since the container start ~01:21:54Z)
+  56.13.649.856 I slot launch_slot_: id  0 | task 33692 | processing task, is_child = 0
+  56.13.649.865 E srv    send_error: task id = 33692, error: request (66720 tokens) exceeds the available context size (65536 tokens), try increasing it
+  56.13.649.870 I slot      release: id  0 | task 33692 | stop processing: n_tokens = 64524, truncated = 0
+  56.13.649.886 W srv          stop: cancel task, id_task = 33692
+  57.27.334.170 I slot launch_slot_: id  0 | task 33695 | processing task, is_child = 0
+  57.34.617.898 I slot print_timing: id  0 | task 33695 | prompt processing, n_tokens =   2048, progress = 0.08, t =   7.28 s / 281.18 tokens per second
+  57.42.325.813 I slot print_timing: id  0 | task 33695 | prompt processing, n_tokens =   4096, progress = 0.16, t =  14.99 s / 273.22 tokens per second
+  57.50.246.860 I slot print_timing: id  0 | task 33695 | prompt processing, n_tokens =   6144, progress = 0.24, t =  22.91 s / 268.15 tokens per second
+  57.58.351.617 I slot print_timing: id  0 | task 33695 | prompt processing, n_tokens =   8192, progress = 0.32, t =  31.02 s / 264.11 tokens per second
+  58.06.634.624 I slot print_timing: id  0 | task 33695 | prompt processing, n_tokens =  10240, progress = 0.40, t =  39.30 s / 260.56 tokens per second
+  58.15.087.106 I slot print_timing: id  0 | task 33695 | prompt processing, n_tokens =  12288, progress = 0.49, t =  47.75 s / 257.32 tokens per second
+  58.23.707.337 I slot print_timing: id  0 | task 33695 | prompt processing, n_tokens =  14336, progress = 0.57, t =  56.37 s / 254.31 tokens per second
+  58.32.484.147 I slot print_timing: id  0 | task 33695 | prompt processing, n_tokens =  16384, progress = 0.65, t =  65.15 s / 251.48 tokens per second
+  58.41.411.474 I slot print_timing: id  0 | task 33695 | prompt processing, n_tokens =  18432, progress = 0.73, t =  74.08 s / 248.82 tokens per second
+  58.50.548.439 I slot print_timing: id  0 | task 33695 | prompt processing, n_tokens =  20480, progress = 0.81, t =  83.21 s / 246.11 tokens per second
+  58.59.831.781 I slot print_timing: id  0 | task 33695 | prompt processing, n_tokens =  22528, progress = 0.89, t =  92.50 s / 243.55 tokens per second
+  59.09.250.136 I slot print_timing: id  0 | task 33695 | prompt processing, n_tokens =  24576, progress = 0.97, t = 101.92 s / 241.14 tokens per second
+  59.10.994.556 I slot print_timing: id  0 | task 33695 | prompt processing, n_tokens =  24805, progress = 0.98, t = 103.66 s / 239.29 tokens per second
+  59.12.578.720 I slot print_timing: id  0 | task 33695 | prompt processing, n_tokens =  25134, progress = 0.99, t = 105.24 s / 238.82 tokens per second
+  59.13.861.627 I slot print_timing: id  0 | task 33695 | prompt processing, n_tokens =  25317, progress = 1.00, t = 106.53 s / 237.66 tokens per second
+  59.33.667.885 I slot      release: id  0 | task 33695 | stop processing: n_tokens = 25621, truncated = 0
+  63.00.174.239 I slot launch_slot_: id  0 | task 36092 | processing task, is_child = 0
+  63.00.174.247 E srv    send_error: task id = 36092, error: request (65796 tokens) exceeds the available context size (65536 tokens), try increasing it
+  63.00.174.250 I slot      release: id  0 | task 36092 | stop processing: n_tokens = 40325, truncated = 0
+  63.00.174.264 W srv          stop: cancel task, id_task = 36092
+  63.03.895.298 I slot launch_slot_: id  0 | task 36095 | processing task, is_child = 0
+  63.12.316.124 I slot print_timing: id  0 | task 36095 | prompt processing, n_tokens =   2149, progress = 0.74, t =   8.41 s / 255.47 tokens per second
+  63.13.820.157 I slot print_timing: id  0 | task 36095 | prompt processing, n_tokens =   2406, progress = 0.82, t =   9.92 s / 242.42 tokens per second
+  63.15.576.920 I slot print_timing: id  0 | task 36095 | prompt processing, n_tokens =   2918, progress = 1.00, t =  11.68 s / 249.80 tokens per second
+  65.40.994.847 I slot      release: id  0 | task 36095 | stop processing: n_tokens = 5645, truncated = 0
+  65.42.336.727 I slot launch_slot_: id  0 | task 38824 | processing task, is_child = 0
+  65.53.046.593 I slot print_timing: id  0 | task 38824 | prompt processing, n_tokens =   2377, progress = 0.46, t =  10.71 s / 221.95 tokens per second
+  66.02.902.058 I slot print_timing: id  0 | task 38824 | prompt processing, n_tokens =   4425, progress = 0.49, t =  20.57 s / 215.17 tokens per second
+  66.12.922.750 I slot print_timing: id  0 | task 38824 | prompt processing, n_tokens =   6473, progress = 0.53, t =  30.59 s / 211.63 tokens per second
+  66.23.073.125 I slot print_timing: id  0 | task 38824 | prompt processing, n_tokens =   8521, progress = 0.56, t =  40.74 s / 209.17 tokens per second
+  66.33.363.584 I slot print_timing: id  0 | task 38824 | prompt processing, n_tokens =  10569, progress = 0.59, t =  51.03 s / 207.13 tokens per second
+  66.43.793.319 I slot print_timing: id  0 | task 38824 | prompt processing, n_tokens =  12617, progress = 0.63, t =  61.46 s / 205.30 tokens per second
+  66.54.388.131 I slot print_timing: id  0 | task 38824 | prompt processing, n_tokens =  14665, progress = 0.66, t =  72.05 s / 203.54 tokens per second
+  67.03.432.841 W srv          stop: cancel task, id_task = 38824
+  67.05.049.059 I slot      release: id  0 | task 38824 | stop processing: n_tokens = 41518, truncated = 0
+  key: 33692 = EF.90 kid a00-0d0977d3 (director-engine, local) overflow · 33695 = LEAF.03 parent a00-bbb13581 first turn (prefill from 0) ·
+       36092 = LEAF.03 parent 12th request, overflow · 36095 = pi compaction summary · 38824 = the retry, cancelled by the SIGTERM (owner cancel, 02:28:57Z)
+## 2. LEAF.03 parent a00-bbb13581 (pi 0.67.68, PI_CODING_AGENT_DIR route): its own output.log events
+  Warning: Model "deepseek/deepseek-v4.1-flash" not found for provider "openrouter". Using custom model id.
+  error at 02:24:54.783Z: 400 request (65796 tokens) exceeds the available context size (65536 tokens), try increasing it
+  first-turn usage.input = 25321 tokens · tool calls before the overflow = 12 · last logged event = compaction_start
+## 3. pi 0.67.68 source (package-relative), what an agent's system prompt carries
+  dist/core/resource-loader.js:31: const candidates = ["AGENTS.md", "CLAUDE.md"];
+  dist/core/resource-loader.js:63: if (contextFile && !seenPaths.has(contextFile.path)) {
+  dist/core/resource-loader.js:72: currentDir = parentDir;
+  dist/core/system-prompt.js:16: const appendSection = appendSystemPrompt ? `\n\n${appendSystemPrompt}` : "";
+  dist/core/system-prompt.js:21: if (appendSection) {
+  dist/core/system-prompt.js:22: prompt += appendSection;
+  dist/core/system-prompt.js:26: prompt += "\n\n# Project Context\n\n";
+  dist/core/system-prompt.js:38: prompt += `\nCurrent date: ${date}`;
+  dist/core/system-prompt.js:39: prompt += `\nCurrent working directory: ${promptCwd}`;
+  dist/core/system-prompt.js:100: if (appendSection) {
+  dist/core/system-prompt.js:101: prompt += appendSection;
+  dist/core/system-prompt.js:105: prompt += "\n\n# Project Context\n\n";
+  dist/core/system-prompt.js:116: prompt += `\nCurrent date: ${date}`;
+  dist/core/system-prompt.js:117: prompt += `\nCurrent working directory: ${promptCwd}`;
+  pi --help: --no-context-files, -nc        Disable AGENTS.md and CLAUDE.md discovery and loading
+## 4. the ancestor walk from an agent worktree (repo-relative)
+  .agi/worktrees/a00-bbb13581/AGENTS.md -> CLAUDE.md · 26597 chars
+  AGENTS.md (main checkout) -> CLAUDE.md · 26597 chars
+## 5. the model entries pi resolves (models.json per agent dir; contextWindow only)
+  default agent dir · provider local-town: Qwen3.5-9B-Q4_K_M=47000, Qwen3.5-35B-A3B-Q3_K_M=47000, bonsai=32000
+  TMM.79 local dir · provider local-town: Qwen3.5-9B-Q4_K_M=47000, Qwen3.5-35B-A3B-Q3_K_M=47000, bonsai=32000
+  TMM.79 local dir · provider openrouter: no model entries (base-URL override only)

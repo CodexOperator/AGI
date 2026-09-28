@@ -67,10 +67,34 @@ def test_ladder_node_declares_roles_table(engine_on_path):
     assert prime.get("harness") == "claude-code"
     assert prime.get("model") == "claude-fable-5-1"
     assert prime.get("effort") == "max"
-    assert prime.get("settings") == "ultracode"
+    # commit 20283d21b (2026-09-27) DROPPED settings from BOTH tier-3 rows:
+    # ultracode reaches a real launch flag (dispatch.py:2093-2094), so a
+    # config cell named it changes how the PRIME starts under an orders
+    # condition that said 'CHANGES NO PAID/ZERO-USD LANE'. The cell was
+    # restored only to green this assertion; the assertion was the stale
+    # side. The stale test is fixed here, the cell stays dropped.
+    assert prime.get("settings", "") == ""
     # every role the graph knows is resolvable through the table
     roles = {r.get("role") for r in rows}
     assert {"kid", "parent", "director", "prime_director"} <= roles
+
+
+def test_tier0_rows_resolve_a_zero_usd_harness(engine_on_path):
+    """Tier-0 rows must RESOLVE 0-USD, not merely look free in the yaml.
+    Path: read_ladder_roles -> resolve_role_spec -> harnesses.<h>.zero_usd."""
+    import json, locations, spawn_gate
+    from dispatch import resolve_role_spec
+    root = locations.find_project_root(Path(__file__))
+    roles = spawn_gate.read_ladder_roles(root / "nodes") or []
+    cfg = json.loads((root / "config.json").read_text(encoding="utf-8"))
+    tier0 = [r for r in roles if r.get("tier") == 0]
+    # a non-empty floor: an empty roles table would pass this test with ZERO
+    # assertions executed.
+    assert tier0, "no tier-0 rows in the ladder roles table"
+    for row in tier0:
+        name = resolve_role_spec(cfg, roles, 0, row["role"])["harness"]
+        assert cfg["harnesses"].get(name, {}).get("zero_usd") is True, (
+            f"tier-0 {row['role']} resolves harness {name!r}, not a 0-USD lane")
 
 
 def test_ladder_node_declares_season_names(engine_on_path):

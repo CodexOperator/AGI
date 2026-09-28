@@ -1,0 +1,469 @@
+{
+ "new_bytes_means": "new to the kit: these bytes were authored here, not copied from an installed file; it says nothing about whether a given box carries the file",
+ "drift_means": "a row with a drift cell carries a RECORDED LIVE file (tests/fixtures/boxkit/<name>.fixture, anonymized) and DECLARES, line for line, the exact difference between what the template renders and what that live file carries: render_only_lines are the header lines the render has and the live file does not, live_only_lines the reverse. The payload (every non-comment line) is equal. Placeholders resolve through the same renderer as the template. A render that CONVERGES on the live bytes is a DEFECT here, not an improvement: the live file is the owner's 09-25 survival header, and a kit that quietly adopts it loses the declaration of why the drop-in exists.",
+ "pieces": [
+  {
+   "name": "user-at-service-guard",
+   "template": "user-at-service-guard.tmpl",
+   "dest_cell": "systemd_system_dir",
+   "dest_rel": "user@{{UID}}.service.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "HELD_OUT",
+    "MEM_LOW",
+    "MEM_TOTAL",
+    "OWNER_USER",
+    "SYS_RESERVE",
+    "UID",
+    "USER_HIGH",
+    "USER_MAX",
+    "USER_OOM_PCT",
+    "USER_SWAP",
+    "USER_TASKS"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "de34ab31969681f2040f60a06fb8e8e0dae54b6bb12be1588ee7395b03ca1264"
+  },
+  {
+   "name": "user-slice-guard",
+   "template": "user-slice-guard.tmpl",
+   "dest_cell": "systemd_system_dir",
+   "dest_rel": "user.slice.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "MEM_LOW"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "838839fa75d2b2384c22642d11dfc5ec884ec4ed29d96fc88912ae642504ed4f"
+  },
+  {
+   "name": "user-uid-slice-guard",
+   "template": "user-uid-slice-guard.tmpl",
+   "dest_cell": "systemd_system_dir",
+   "dest_rel": "user-{{UID}}.slice.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "MEM_LOW"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "838839fa75d2b2384c22642d11dfc5ec884ec4ed29d96fc88912ae642504ed4f"
+  },
+  {
+   "name": "system-slice-guard",
+   "template": "system-slice-guard.tmpl",
+   "dest_cell": "systemd_system_dir",
+   "dest_rel": "system.slice.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "SYSTEM_MIN"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "653d8899b6d00ed83d81a0d38f86e1baf8a7faa39b626a10112bc9d9ce2cad81"
+  },
+  {
+   "name": "ssh-service-guard",
+   "template": "ssh-service-guard.tmpl",
+   "dest_cell": "systemd_system_dir",
+   "dest_rel": "ssh.service.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "SSH_CPU_WEIGHT",
+    "SSH_MIN"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "49a7fb37743c8aab1cf6e92ef50b778d79aaf8c76c03b3d39645ab44ad4b7f7f"
+  },
+  {
+   "name": "oomd-guard",
+   "template": "oomd-guard.tmpl",
+   "dest_cell": "systemd_conf_dir",
+   "dest_rel": "oomd.conf.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "OOMD_PRESSURE_PCT",
+    "OOMD_PRESSURE_SEC",
+    "OOMD_SWAP_PCT"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "edeeef5580dbfcf6ff909782ba551a70592bc4c9c51b684ceda7d925cc1fddb8"
+  },
+  {
+   "name": "watchdog-conf",
+   "template": "watchdog-conf.tmpl",
+   "dest_cell": "watchdog_conf",
+   "dest_rel": "",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "none",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "HEALTH_BIN",
+    "WD_INTERVAL",
+    "WD_LOG_DIR",
+    "WD_PRIORITY",
+    "WD_REPAIR_MAX",
+    "WD_RETRY_TIMEOUT",
+    "WD_TEST_TIMEOUT",
+    "WD_TIMEOUT"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "2cffb5b62c22c0980fe91ebdf6c1a9b25406bdbf6cda5964b18c152d3a1b8a4c"
+  },
+  {
+   "name": "memguard-service",
+   "template": "memguard-service.tmpl",
+   "dest_cell": "systemd_system_dir",
+   "dest_rel": "agi-memguard.service",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "PYTHON_BIN",
+    "SBIN_ABS"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "76314890c531dfe116b28e61a94aeb8e842e67955843f5245e111a982d11f4df"
+  },
+  {
+   "name": "agi-slice",
+   "template": "agi-slice.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "agi.slice",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "AGI_CPU_WEIGHT",
+    "AGI_HIGH",
+    "AGI_MAX",
+    "AGI_OOM_PCT",
+    "AGI_TASKS",
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "USER_SWAP"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "80ea53e929d94135f130e6dbb94a2c8cc9ed58ed55c1c5212e690cc09749ae49"
+  },
+  {
+   "name": "agi-engine-slice",
+   "template": "agi-engine-slice.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "agi-engine.slice",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "ENGINE_CPU_WEIGHT",
+    "ENGINE_HIGH",
+    "ENGINE_MAX",
+    "ENGINE_SWAP",
+    "ENGINE_TASKS",
+    "GUARD_DOC",
+    "GUARD_SRC"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "1a8c06e51df24eef8a30f61c257f8e112810b28b2c35c84d7eff3faae0eaa2f6"
+  },
+  {
+   "name": "agi-work-slice",
+   "template": "agi-work-slice.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "agi-work.slice",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "WORK_CPU_WEIGHT",
+    "WORK_HIGH",
+    "WORK_MAX",
+    "WORK_TASKS"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "50eeae8f43f71a2645d36b5b9029ff9990783a024a74da1c9dc7c38f12347975"
+  },
+  {
+   "name": "agi-service-guard",
+   "template": "agi-service-guard.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "agi-.service.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "18caf96101be8a36c28c9415cb8f7eb9093433aa8fec75e1bfb19556cb776017"
+  },
+  {
+   "name": "agi-agi-service-guard",
+   "template": "agi-agi-service-guard.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "agi-agi-.service.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "ce07349978ef119438c983e38afaa382b021cc2b6eb6f921b985e6e34a114a16"
+  },
+  {
+   "name": "user-root-slice-guard",
+   "template": "user-root-slice-guard.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "-.slice.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "USER_OOM_PCT"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "4be4145c0203a8d7b9c7d7122b927f9922b479104ba8f6fc44408591da67551d"
+  },
+  {
+   "name": "app-slice-guard",
+   "template": "app-slice-guard.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "app.slice.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "MEM_LOW"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "7675fabf84b229fa0688de974807596700c68bd076f53fe04d0fb63f18eb1e4f"
+  },
+  {
+   "name": "claude-remote-control-guard",
+   "template": "claude-remote-control-guard.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "claude-remote-control.service.d/50-sanctuary-guard.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "CRC_CPU_WEIGHT",
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "MEM_LOW"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "58d80064474fb517e595fb207f433d5e6c762f130d98e960262f22d652e3babb"
+  },
+  {
+   "name": "streamer-stub-no-cascade",
+   "template": "streamer-stub-no-cascade.tmpl",
+   "dest_cell": "user_systemd_dir",
+   "dest_rel": "streamer-stub.service.d/10-agi-survival.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "OOM_POLICY"
+   ],
+   "new_bytes": true,
+   "drift": {
+    "render_only_lines": [
+     "# sanctuary guard layer 2. Written by {{GUARD_SRC}}.",
+     "# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.",
+     "# The no-cascade drop-in (goal:g7.33.18): OOM-killing streamer-stub must not take the",
+     "# session down with it, so the failure continues instead of cascading."
+    ],
+    "live_only_lines": [
+     "# owner 09-25: one OOM-killed process must never stop the whole unit (04:02Z took every seat down)"
+    ],
+    "why": "the live file was hand-written by the owner on 09-25 while the 04:02Z cascade took every seat down; it states the same decision in the owner's words. The template states it in guard-kit words. The payload is identical -- only the prose header differs, and that difference is the declared delta."
+   },
+   "fixture_sha256": "c8c8c55f561dd866d669e1c27da6f9d400e4408ddd5a5f6fec116de1c888140d"
+  },
+  {
+   "name": "streamer-stub-watch-no-cascade",
+   "template": "streamer-stub-watch-no-cascade.tmpl",
+   "dest_cell": "user_systemd_dir",
+   "dest_rel": "streamer-stub-watch.service.d/10-agi-survival.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "OOM_POLICY"
+   ],
+   "new_bytes": true,
+   "drift": {
+    "render_only_lines": [
+     "# sanctuary guard layer 2. Written by {{GUARD_SRC}}.",
+     "# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.",
+     "# The no-cascade drop-in (goal:g7.33.18): OOM-killing streamer-stub-watch must not take the",
+     "# session down with it, so the failure continues instead of cascading."
+    ],
+    "live_only_lines": [
+     "# owner 09-25: one OOM-killed process must never stop the whole unit (04:02Z took every seat down)"
+    ],
+    "why": "the live file was hand-written by the owner on 09-25 while the 04:02Z cascade took every seat down; it states the same decision in the owner's words. The template states it in guard-kit words. The payload is identical -- only the prose header differs, and that difference is the declared delta."
+   },
+   "fixture_sha256": "c8c8c55f561dd866d669e1c27da6f9d400e4408ddd5a5f6fec116de1c888140d"
+  },
+  {
+   "name": "claude-remote-control-no-cascade",
+   "template": "claude-remote-control-no-cascade.tmpl",
+   "dest_cell": "user_systemd_dir",
+   "dest_rel": "claude-remote-control.service.d/10-agi-survival.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC",
+    "OOM_POLICY"
+   ],
+   "new_bytes": true,
+   "drift": {
+    "render_only_lines": [
+     "# sanctuary guard layer 2. Written by {{GUARD_SRC}}.",
+     "# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.",
+     "# The no-cascade drop-in (goal:g7.33.18): OOM-killing claude-remote-control must not take the",
+     "# session down with it, so the failure continues instead of cascading."
+    ],
+    "live_only_lines": [
+     "# owner 09-25: one OOM-killed process must never stop the whole unit (04:02Z took every seat down)"
+    ],
+    "why": "the live file was hand-written by the owner on 09-25 while the 04:02Z cascade took every seat down; it states the same decision in the owner's words. The template states it in guard-kit words. The payload is identical -- only the prose header differs, and that difference is the declared delta."
+   },
+   "fixture_sha256": "c8c8c55f561dd866d669e1c27da6f9d400e4408ddd5a5f6fec116de1c888140d"
+  },
+  {
+   "name": "sanctuary-watch-service",
+   "template": "sanctuary-watch-service.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "sanctuary-watch.service",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "c70408b39807290d126160abdf2651e2743ebd3a01d51ac00b663a27cbbc809c"
+  },
+  {
+   "name": "sanctuary-watch-timer",
+   "template": "sanctuary-watch-timer.tmpl",
+   "dest_cell": "user_systemd_data_dir",
+   "dest_rel": "sanctuary-watch.timer",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "user",
+   "placeholders": [
+    "GUARD_DOC",
+    "GUARD_SRC"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "04161325608d94d99503165a4a2da8acf8de2c9e2e7016dbde9092cd1805aa2b"
+  },
+  {
+   "name": "memguard-script",
+   "template": "memguard-script.tmpl",
+   "dest_cell": "sbin_dir",
+   "dest_rel": "agi-memguard.py",
+   "mode": "0755",
+   "sudo": false,
+   "reload": "none",
+   "placeholders": [
+    "ALERT_COOLDOWN_S",
+    "HISTORY_S",
+    "INTERVAL_S",
+    "LOW_AVAIL_BYTES",
+    "LOW_AVAIL_GIB",
+    "MEMGUARD_LOG",
+    "OWNER_USER",
+    "PI_OOM_ADJ",
+    "PROTECT_NICE",
+    "PROTECT_OOM_ADJ",
+    "REPO_ROOT",
+    "SPIKE_BYTES",
+    "SUSPEND_PCT",
+    "SUSPEND_RATIO"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "ef3d02b262056fc499251a41282f5e9becb88443fdab6003f2d8d3ff2512066c"
+  },
+  {
+   "name": "health-script",
+   "template": "health-script.tmpl",
+   "dest_cell": "sbin_dir",
+   "dest_rel": "sanctuary-health",
+   "mode": "0755",
+   "sudo": false,
+   "reload": "none",
+   "placeholders": [
+    "GUARD_DOC_ABS",
+    "HEALTH_DISABLE",
+    "HEALTH_ENV",
+    "HEALTH_GRACE",
+    "HEALTH_LIMIT",
+    "HEALTH_LOG",
+    "SBIN_ABS",
+    "WATCHDOG_CONF",
+    "WD_RETRY_TIMEOUT"
+   ],
+   "new_bytes": false,
+   "fixture_sha256": "4bfee236bb249e2dbb7cfbeb805a0e872863cf66d192547f417614d9a49edc40"
+  },
+  {
+   "name": "agi-survival-conf",
+   "template": "agi-survival-conf.tmpl",
+   "dest_cell": "systemd_system_dir",
+   "dest_rel": "10-agi-survival.conf",
+   "mode": "0644",
+   "sudo": false,
+   "reload": "system",
+   "placeholders": [
+    "OOM_POLICY"
+   ],
+   "new_bytes": true,
+   "fixture_sha256": "37fd70d1d8b2535c75f390903ad55bf5b38043e5e1e7d92004fcf12f2a383f7b"
+  }
+ ]
+}
