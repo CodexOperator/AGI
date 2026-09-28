@@ -44,7 +44,8 @@ GATE      TMM.306: load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, on
 PLACEMENT de-base-N ON DISK (the /dev/shm variant broke parent done -> DH.648 swept, reverted 00:0xZ); 651's RAM checkout is symlinked
 PRUNE     unit prune-debase OOM-KILLED 00:27Z (systemd-oomd, 41 removed); NOT restarted -- memory crit window (TMM.313 tmpfs hold)
 LANDED    TMM.312 00:42Z: TM landed the WHOLE branch d0d126deb (trunk merged in 90b21bd8f) + sent it to belam
-LIVE      parents EG.16 a00-41ee77ef + 2 placed 02:4xZ · mur 141 DH.656 · DH.659 PARENT-DEMOTED (kid node edits uncommitted, a THOUGHT truncated: never land) -> EG.25 queued · DH.655 -> mur-eg-6 residue -> EG.24 queued (after EG.22) · EG.9 chain: EG.17 -> mur-eg-8 residue (fail-open left at heal.py:1683) -> EG.23 FRONT (qgEG23)
+LIVE      EG.23 a00-aac9fa04 (EG.9 chain) · murs 141 DH.656 · 145 EG.16 (066ebff9e, 270 passed) · DH.660 = both kids died on a pi-free empty response,
+          0 bytes -> gated RE-DISPATCH unit qgR660 (orders on node; EG.4 still waits on 660) · DH.659 PARENT-DEMOTED (kid node edits uncommitted, a THOUGHT truncated: never land) -> EG.25 queued · DH.655 -> mur-eg-6 residue -> EG.24 queued (after EG.22) · EG.9 chain: EG.17 -> mur-eg-8 residue (fail-open left at heal.py:1683) -> EG.23 FRONT (qgEG23)
           EG.1 chain MERGED 95c425f8c (TMM.315 breach accepted) -> merge-up out · Item 7 (AGI_TASKS_MAX cell + the mem_cap docstring residue) = one
           config-max round AFTER EG.1 lands, behind the EG.9 chain · DH.657 -> mur-eg-7 residue -> EG.22 queued
           EG.13 -> mur-eg-6 residue -> EG.21 queued (memory-cap HARD RULE carried)
