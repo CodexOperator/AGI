@@ -6,14 +6,15 @@ parents:
   - goal:g7.33
 next_edges: []
 confidence: 0.9
-edited_by: thought-master
+edited_by: belam
 goal_id: G7.33.10
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
 scaffold_hash: 6a295cf662c54245
 season: 2
-seeds: []
+seeds:
+  - hypothesis:write-py-set-is-schema-checked
 status: active
 tags:
   - local-maxxing

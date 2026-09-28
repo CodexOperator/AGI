@@ -8256,8 +8256,6 @@ Assigned to **director-belam**. Foundation write/mint only via write.py + graph 
 
 # goal:g7.33.9.1
 
-# goal:g7.33.9.1
-
 ## Why this exists
 **Parent `goal:g7.33.9`.** Belam redesign order step 1: skills land and resolve before write/mint adoption. Measured on seat 2026-09-28: `skills/agi-node-write`, `agi-goal`, `agi-verify`, `agi-merge-pass` exist and `.claude/skills/agi-node-write` + `agi-goal` symlink to them — this leaf tracks keeping that wiring true on core trunks and making directors route through the skills.
 
@@ -8285,8 +8283,6 @@ Assigned to **director-belam**.
 
 # goal:g7.33.9.2
 
-# goal:g7.33.9.2
-
 ## Why this exists
 **Parent `goal:g7.33.9`.** Belam redesign order step 2: write/mint foundation. All node+goal mint and edit goes through `write.py` via skills; no pi parents required for foundation work under OWNER FULL STOP (NO pi / NO durable OpenRouter pi spawn).
 
@@ -8310,6 +8306,36 @@ Assigned to **director-belam**.
 
 ## Agent Notes
 Assigned to **director-belam**.
+
+##### G7.33.9.3 — [goal] title regex — id-prefix format refused/admitted by write.py — status: complete
+
+# goal:g7.33.9.3
+
+## Why this exists
+**Parent `goal:g7.33.9`.** G7.33.10 round B landed schema-checked `set`/`create --set` (lean_proved:70) but left open measured probe 5: a goal `title` with no id-prefix format — `[goal].md` declared no `title` regex. Parallel nest used G7.33.9.1/.2 for skills adoption + write/mint route; this leaf owns the title-format residue only.
+
+## Target end-state
+| # | conjunct |
+|---|---|
+| 1 | `[goal].md` `validation.regex.title` = `^[GS]\d+(\.\d+)*: .+` |
+| 2 | `write.py set title <bad>` refuses by name; well-formed title admits |
+| 3 | `test_write_schema_checked` pins refuse + admit |
+
+## Invariants
+- write-path only; ~20 legacy titles stay until re-titled
+- does not re-own G7.33.10 invented-field policy (TMM.171 admit)
+
+## Falsifier
+1. `write.py goal:g7.33.9 --dry-run 'set title nope'` exits != 0 naming title+regex
+2. `write.py goal:g7.33.9 --dry-run 'set title G7.33.9: ok'` admitted
+3. Negative: `set title G7.33.9` (id only, no `: text`) admitted
+
+## Out of scope
+- mass re-title of legacy-direct / pre-prefix goals
+- G7.33.9.1 skills adoption · G7.33.9.2 write/mint route
+
+## Agent Notes
+Assigned to **belam** (NO-PI self-work).
 
 #### G7.33.10 — SCHEMA-CHECKED ROWS -- write.py writes one named row of a node, and the node type's schema decides whether that row exists and whether its value is well-formed — status: active
 
