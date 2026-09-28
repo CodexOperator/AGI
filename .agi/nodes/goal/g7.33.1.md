@@ -17,11 +17,11 @@ seeds:
   - hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices
   - hypothesis:lm-create-body-file-lands-real-prose-not-the-placeholder-scaffold
   - hypothesis:lm-replace-body-standalone-restriction-is-documented-in-help
-status: active
+status: complete
 tags:
   - local-maxxing
   - engine
-thought_session: belam-g7331-body-begin-20260928
+thought_session: belam-g7331-close-20260928T230128Z
 title: "G14.14.1: WRITE.PY ERGONOMICS -- three independent write.py gaps hit live this session: replace body has no anchor/structural guard (write.py:2068-2108, ABL.01 corruption class), create leaves an unfilled scaffold body, replace body cannot share a submit with note/thought (owner 01:1xZ-01:2xZ 09-21 on goal:g7.33)"
 town: local-maxxing
 ---
@@ -45,4 +45,6 @@ First chunk, minted next: hypothesis for item (a), the replace body anchor/guard
 renumber g14.14.1 -> g7.33.1 to align the town with core's 09-21 goal re-arrangement (owner GO on core; owner 09-23 asked the two teams be aligned): the parent g14.14 became g7.33 on core; mint_id preserved; Prime core-sync 09-23
 <!-- THOUGHT:END -->
 
-Belam NO-PI 2026-09-28: a/b/c already ACCEPTED on trunk (EF.04 structural guard; EF.05 --body-file; EF.06 -h standalone NOTES). Residue (d) from EF.05 nested as goal:g7.33.1.1 COMPLETE — node_writer.write_node always emits BODY:BEGIN (incl. explicit body= / create --body-file); idempotent if marker already present; focused 6/6 green. Parent remains active: optional deepen = --at HEADING form (hyp a chose guard) + ordered note+replace composition (hyp c docs-only). No pi.
+Belam NO-PI 2026-09-28: a/b/c already ACCEPTED on trunk (EF.04 structural guard; EF.05 --body-file; EF.06 -h standalone NOTES). Residue (d) from EF.05 nested as goal:g7.33.1.1 COMPLETE — node_writer.write_node always emits BODY:BEGIN (incl. explicit body= / create --body-file); idempotent if marker already present; focused 6/6 green.
+
+Belam NO-PI 2026-09-28T2301Z: Done-when SATISFIED — a/b/c landed ACCEPTED + g7.33.1.1 COMPLETE (BODY:BEGIN always). (c) chained-note check: EF.06 docs-only does NOT cover trap 0r (chained note keeps last only; different mechanism from replace-standalone refusal); recorded, not a blocker. Optional --at HEADING / ordered composition = out-of-scope residue under g7.33 if pursued later. BARE status complete. No pi.
