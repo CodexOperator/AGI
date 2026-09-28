@@ -47,3 +47,24 @@ def test_live_config_declares_the_chain_deadline_cell():
     cfg = json.loads((ENGINE_ROOT / ".agi" / "config.json").read_text(
         encoding="utf-8"))
     assert cfg["reaper"]["chain_deadline_s"] == 20.0
+
+
+def test_live_config_declares_a_well_typed_pi_retry_cell():
+    """`values.pi_retry.*` is in the REAL config, PRESENT and well-typed.
+
+    It asserts SHAPE, never VALUE: the bound and the backoff are a PROVIDER
+    policy an operator tunes, so pinning them here (or forcing them off the
+    module default) makes a legitimate tuning turn the suite red. The cell is
+    proved READ by test_pi_trajectory_retry.py, which writes its own tmp config
+    and shows the run count following the cell's numbers.
+    """
+    cfg = json.loads((ENGINE_ROOT / ".agi" / "config.json").read_text(
+        encoding="utf-8"))
+    cells = (cfg.get("values") or {}).get("pi_retry")
+    assert isinstance(cells, dict), \
+        f"values.pi_retry must be declared in the live config, got {cells!r}"
+    for key, kind in (("empty_response_max_retries", int),
+                      ("empty_response_backoff_s", float)):
+        val = cells.get(key)
+        assert isinstance(val, kind) and not isinstance(val, bool), \
+            f"values.pi_retry.{key} must be a {kind.__name__}, got {val!r}"
