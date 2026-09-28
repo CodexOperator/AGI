@@ -162,6 +162,64 @@ FILE SCOPE extensions/agi/tests/test_boxkit_templates.py · .agi/nodes/experimen
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 7623d8adc · <= 40 test lines net over 7623d8adc · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 7623d8adc <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.26 -- closes mur-eg-9 EG.16-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-box-memory-guard-piec-a00-41ee77ef tip 066ebff9e (branch de-base-EG.26; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. The header's row count is a second, unchecked copy — row 15 does not read it -- extensions/agi/tests/test_boxkit_templates.py:4 -- 'Rows 1-15' is matched by neither `[Rr]ow (\d+)` (test:1108) nor the new `^# (\d+)` parse, so adding row 16 plus its docstring entry leaves the file fully green with the header still saying 15 — verified by probe (199 passed). The round's own item 3 cell ('the header's own count is checkable by the same row') is false of the bytes. Latent today, not a live false green.
+2. Demotion did not move the confidence cell -- .agi/nodes/experiment/a00-3d4e7707-9962d4.md:8 -- verdict:30 fell proved -> inconclusive_lean_proved:55 while confidence:8 stayed 0.9, so the node's two frontmatter numbers now disagree; the next reader (or the evidence gate) sees a high-confidence node whose only conjunct its own review refuted.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_boxkit_templates.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_boxkit_templates.py · .agi/nodes/experiment/a00-2efa683b-cd698b.md · .agi/nodes/experiment/a00-3d4e7707-9962d4.md · .agi/nodes/experiment/a00-c339cb91-8933d0.md · .agi/nodes/verdict/a00-17f4d750-05709f.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 066ebff9e · <= 40 test lines net over 066ebff9e · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 066ebff9e <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
+
+## CORRECTIVE EG.47 (TEXT-FIX KID, claude-code, skill agi-corrective §3a) -- closes mur-eg-14 EG.26-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-box-memory-guard-piec-a00-22e244fc tip d643618b6 (branch de-base-EG.47; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+ORDERS    THIS text is the order set; the loop branch's copy of the hypothesis node does not carry the director's CORRECTIVE sections -- never report that as a defect.
+KIND      PURE TEXT: node prose/frontmatter only, with write.py; never code, tests or config. Where a node claims a number or a line, RUN the command and paste its output. Commit on your branch (cli.py done).
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. THOUGHT on the demoted node appended, not rewritten from scratch (.agi/nodes/experiment/a00-3d4e7707-9962d4.md:157)
+2. 2. A node states a mechanism claim the diff refutes (.agi/nodes/experiment/a00-8e3104fe-68efc7.md:33 — the `thought` verb 'replaces the authored region by construction (write.py:291-300)')
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_boxkit_templates.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-3d4e7707-9962d4.md · .agi/nodes/experiment/a00-8e3104fe-68efc7.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid (you) · 0 production lines · 0 test lines · node text only -- a code or test byte = the round is cut
+
+
+## CORRECTIVE DH.EG.70 -- closes mur-eg-17 EG.47-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-box-memory-guard-piec-a00-0de7626f tip a402ceeb3 (branch de-base-EG.70; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. New false claim in OUTSIDE: `--force` "does not exist" (a00-0de7626f-4f8260.md:74)
+2. New false claim: "the older reasoning lives in the grid versions" (a00-3d4e7707-9962d4.md:157, echoed at a00-0de7626f-4f8260.md:30)
+3. RE-SCOPE the OUTSIDE --force row (a00-0de7626f:74): --force EXISTS as a PREFIX on the source argument (write.py:448 `if source.startswith("--force ")`; test_write.py:1659); the real defect is that VERB_EXAMPLES["replace"] (write.py:602) and the --help epilog (write.py:2961-2983) never document the prefix form, so `--force` typed as a separate token gets `unrecognized arguments`. Paste `git show a402ceeb3:extensions/agi/bin/write.py | sed -n '448p;602p'`. Never touch write.py (OUTSIDE line only).
+4. When settling item 2, the instrument is `git for-each-ref refs/grid/ | grep -c <mint id>` per mint id of this round (git ls-tree never lists refs): paste it; where no grid ref exists for a mint id, the 'older reasoning lives in the grid versions' sentence is false -> rewrite it to name the git commit that holds the prior text (paste `git log --oneline -1 -- <path>`).
+5. The pasted `git diff --numstat` block in a00-0de7626f-4f8260.md:66-68 lists only the two EDITED nodes (2/2, 10/8) and omits the round's own new 84-line node, so a reader reproducing the paste sees two files where the round touched three.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-0de7626f-4f8260.md · .agi/nodes/experiment/a00-3d4e7707-9962d4.md · .agi/nodes/experiment/a00-8e3104fe-68efc7.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat a402ceeb3 <your final tip>` on your node (an empty range is not a measurement)
+COMMIT    every node edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
+
+
+## CORRECTIVE DH.EG.83 -- closes mur-eg-22 EG.70-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-box-memory-guard-piec-a00-775fe9d4 tip 49b7b899d (branch de-base-EG.83; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. (review residue, mur-eg-22) The node created to close order item 5 re-introduces it on itself: a00-775fe9d4-ae8544.md:66's final-range numstat omits its own 84 lines -- paste `git diff --numstat a402ceeb3 <your tip>` (two operands) listing EVERY file the range touches, the new node included.
+2. a00-0de7626f-4f8260.md:19 (title) and :82 (THOUGHT) still describe the EG.47 version — 'First version: a pure-text corrective. Both items are fixed...' enumerating only EG.47's two items — while :9 now reads `edited_by: a00-775fe9d4` and the body carries the EG.70 deltas (row 1 grid-versions retraction at :30, corrected numstat at :66-70, re-scoped OUTSIDE at :74-77). G2.11: the thought is the delta, 'why THIS version differs'. The round demonstrably knew the rule — it rewrote the sibling's delta region at a00-3d4e7707-9962d4.md:157 ('EG.70 (a00-775fe9d4, corrective, text only) rewrites this block from scratch to correct one false sentence') — and applied it to only one of the two nodes it edited. Ordered scope did not name it (the corrective lists items 1-5 and no THOUGHT work on a00-0de7626f), so it is an unordered standing-rule miss, not an order breach; low severity because every body claim on the node is true and a00-3d4e7707's matching 'No body line, verdict or confidence changed in this version' is verifiably true of its diff (hunks only at :6-12 edited_by and :154-158 THOUGHT).
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-0de7626f-4f8260.md · .agi/nodes/experiment/a00-3d4e7707-9962d4.md · .agi/nodes/experiment/a00-775fe9d4-ae8544.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · 0 skill rows · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 49b7b899d <your final tip>` on your node (an empty range is not a measurement)
+COMMIT    every node edit (and the skill row) on your loop branch before you exit (cli.py done; g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.16: mur-eg-5 DH.653-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.83: mur-eg-22 EG.70-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
