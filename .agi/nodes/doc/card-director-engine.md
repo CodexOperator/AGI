@@ -30,7 +30,7 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (19:1xZ 09-28 · live during the work; per-chain history = git log of this node)
+## §0 STATE (19:3xZ 09-28 · live during the work; per-chain history = git log of this node)
 ```
 MERGE-UP  #1 LANDED 165c99e6a (TMM.345: EG.137 + EG.133 chains) · #2 LANDED d0cb3bb35 (TMM.347): post 08177c25f = EG.125 chain (EG.100 -> 125 -> 157
           merge resolution; test_cli.py append/append = union, 385 passed)
@@ -38,18 +38,19 @@ POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-cor
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.168 · next murq258
+SERIES    next EG.169 · next murq261
 PLACING   PLACED: 149 151 153 (harvested) · serial7 (redispatch 150 152 155 158, then place 154 159) -> serial8 (redispatch 146
           147: both died 0-commit 19:03Z) · pq160 (EG.140 corrective = the EG.9 blocker, jumps the queue) -> serial9 (162 163 165 161
-          164 166) · TRAP: placements SERIAL, <= 2 dispatching at once (5 parallel dispatches timed out rc=124 in an io storm 18:5xZ)
-MURS      253 EG.144 · 256 EG.149 (re-armed: empty response)
+          164 166) -> serial10 (168) · TRAP: placements SERIAL, <= 2 dispatching at once (5 parallel dispatches timed out rc=124 in an io storm 18:5xZ)
+MURS      253 EG.144 · 258 EG.150 (merge resolution) · 259 EG.152 (conftest gate) · 260 EG.155 (DEAD-ROUND SALVAGE db1cc2174:
+          parent no done commit, kid empty scaffold; test_provisioning.py outside FILE SCOPE)
 CC KID    EG.167 a00-92c392c7 pid 1221790 (murq257 EG.153 -> TEXT-FIX CHURN chain -> opus text kid, DEVIATION on the node): at exit
           check it ran done; if not, salvage-commit on its branch (EG.156 precedent) -> mur
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
           refuses own board: policy question may come up) · 233->150 (cut de-cut-EG.150 f9fbf587a: merge reds test_free_lane_mints...)
           · 234->151 · 241 DEMOTE->152 (conftest suite gate: fix or remove) · 237->153 · 240->154 · 242->155 · 238->156 (CC text kid) · 243 EG.125 director close d91b942f3 -> EG.157 · 245 EG.133 + 236 EG.137 director closes -> MERGED · 249 EG.138 DEMOTE -> EG.158 · 251 EG.157 -> director close 1da46ba3a -> MERGED 08177c25f
           · 254 EG.132 (verify died) -> EG.159 · 19:0xZ batch (genbatch.py, verify-cleared items auto-demoted): 244 EG.140 -> 160
-          · 246 EG.135 -> 161 · 248 EG.143 -> 162 · 252 EG.145 -> 163 · 255 EG.156 -> 164 · 239 EG.142 -> 165 · 250 EG.139 -> 166
+          · 246 EG.135 -> 161 · 248 EG.143 -> 162 · 252 EG.145 -> 163 · 255 EG.156 -> 164 · 239 EG.142 -> 165 · 250 EG.139 -> 166 · 256 EG.149 -> 168
 OVERRIDE  EG.123 03ab636aa: kid code (28 prod vs 15) merged onto the parent's reviewed tip, disclosed; parent tree vanished
 KNOWN RED test_bin_help_smoke[suite_guards.py] on base lineages = fixed on the trunk 8f9e3d5da, heals at merge
 EG.5      [red] to TM 18:4xZ (MAJOR): EG.145 guard needs belam cell templates.director.startup.facts_pointer_target_bytes
