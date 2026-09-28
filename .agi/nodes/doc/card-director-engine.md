@@ -124,6 +124,7 @@ THEN    per ended parent: harvest AT ONCE -> mur · per ended mur: triage -> cle
           path, UNREVIEWED) -> mur; the ONE expected red = the live config:rotations skills clause (belam's/TM's cell, banked rule (4))
         · EG.141 RE-DISPATCH ANSWERED 16:05Z: parent a00-5bd860ef, kid a00-4339e263 tip e0b271fdb (the lane is back): harvest (D/harvest-all.sh
           EG.141) -> mur. Count from 14:30Z: 9 started, 8 died on empty, 1 answered
+        · UNREAD at rotation: EG.127 parent a00-58d511b9 harvest nudge (accepted=1) -> send.py read director-engine, harvest EG.127 -> mur
 NEVER   restart a q-unit without reading its log first · edit a RUNNING unit's script · start a watcher with a bare & (it never notifies)
 ```
 
