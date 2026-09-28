@@ -33,11 +33,11 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ## §0 STATE (05:4xZ-06:0xZ 09-28 · gen 37 = rotate-self 05:22Z · per-chain history = git log of this node)
 ```
 MERGE-UP  EG.1 chain LANDED 57debf3a2 (TMM.318). No chain clean since: every mur this seat read = residue -> corrective / text fix
-SERIES    EG.N (next EG.55) · mur run keys mur-eg-N (last read mur-eg-16) · next murq172
+SERIES    EG.N (next EG.55) · mur run keys mur-eg-N (last read mur-eg-16) · next murq173
 TOOLS     T=<scratchpad 96494ce7-...>: gen2.py (MURK=<key> gen2.py N murq<Q>.json tip label; sed DH.EG -> EG; triage by hand) · place2.sh N (pi-free
           parent) · placecc.sh N (CC TEXT-FIX KID, §3a) · placef.sh N HYP · redispatch2.sh N · mkmur.py + runmur.sh · qgEG<N>.sh = [wait prev] gate -> place
           · harvest.sh = TMM.322 pytest (TMPDIR + basetemp /dev/shm/de-tmp, -u AGI_POST -u AGI_SEAT; units never inherit AGI_*: user manager env has none)
-          · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N... · S=<scratchpad d74d6d20-...>/watch2.sh (MURS="murq162 murq171"): mur ended · parent unharvested · dm
+          · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N... · S=<scratchpad d74d6d20-...>/watch2.sh (MURS="murq162 murq171 murq172"): mur ended · parent unharvested · dm
 GATE      TMM.306 load1 < 16 AND io avg60 < 50, two reads 5 min apart · CC kids also MemAvailable >= (n+1) x spawn.memory_max (memory-guard §1) · arm 10
 OWNER     05:0xZ-05:1xZ: pure-text residue -> claude-code TEXT-FIX KIDS, all in parallel under the per-spawn memory cap (skill agi-corrective §3a, 3754d4169)
           · belam asked 05:2xZ: claude-opus-5 -> claude-opus-5-5, an Opus CC kid row, harnesses.claude-code.max_live (rec 4); until then Sonnet kids
@@ -48,8 +48,7 @@ TMM.322   (1) name the TEST that leaked the fixture config + nodes/nodes into th
           · (3) every pytest: TMPDIR + --basetemp /dev/shm, scratch cwd, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT
 RUNNING   murq162 = 5 director text batches (EG.38 395779682 · EG.39 eef31410a · EG.40 c2ddbb9fc · EG.45 dedca8545 · EG.46 29962ec4f)
           · murq171 DH.670 (pass11 residue batch, 96db57094 = parent-uncommitted config notes SALVAGED) · parent EG.35 live
-LIVE KID  EG.51 a00-b100d6b9 + EG.52 a00-620bf49d, claude-code/opus-5-5 (text fixes of DH.675 / DH.669-DEMOTE)
-HARVESTED EG.47 a00-0de7626f (opus) tip a402ceeb3 over d643618b6, 72 passed -> ONE text mur with EG.51 + EG.52 when both end (§3a)
+TEXT MUR  murq172 = EG.47 (a402ceeb3) + EG.51 (5a0e89753) + EG.52 (7e65aee23), all opus text-fix kids harvested, 72 passed each
 QUEUED    EG.50 = EG.9 chain corrective (murq165 EG.43, 3 items), OWN lane, first · qgRS serial lane (EG.19 -> 661 -> EG.20) · corrective chain
           qgEG36 -> 37 -> 41 -> 42 -> 44 -> 48 (EG.33) -> 49 (EG.31) -> 53 (EG.18: fences :1501 :2798 + partial-reroute pin) -> 54 (EG.34 DEMOTE:
           3 test_pi_trajectory reds + test-shaped live retry cell -> POLICY line) · drainqg13..18: 671-674 · 678 · 679 · EG.2 EG.3 · EG.5 · EG.6
@@ -69,11 +68,11 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 ```
 
 ## 🔴 WHERE IT STOPS
-Gen 37 06:0xZ: every harvested round is under mur or a corrective; EG.9 chain -> EG.50 (own lane); 2 opus text kids live; watcher live
+Gen 37 06:0xZ: 3 murs running (162 171 172); no kid or parent of mine live but EG.35; correctives gated; watcher live
 ```
 NEXT    watcher event -> the ended mur: D/verd.py Q -> triage (skill agi-corrective §3): ALL pure text -> §3a CC kid (placecc via a gated qgEG<N>);
         else gen2 EG.50.. chained last · murq165 clean = merge the EG.9 chain FIRST (tmpfs GO), then TMM.322 (1) · murq162 clean = merge each text chain
-WATCH   MURS="murq162 murq171" bash S/watch2.sh (run_in_background; re-arm after every event)
+WATCH   MURS="murq162 murq171 murq172" bash S/watch2.sh (run_in_background; re-arm after every event)
 ```
 
 ## §4 TRAPS
