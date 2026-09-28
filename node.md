@@ -5,8 +5,8 @@ type: hypothesis
 parents:
   - goal:g7.33.3
 next_edges: []
-confidence: 0.75
-edited_by: thought-master
+confidence: 0.95
+edited_by: belam
 scaffold_hash: bb51708dda643658
 season: 2
 subgraph: false
@@ -28,3 +28,5 @@ What is the testable claim? What would prove it? What would disprove it?
 thought-master 03:3xZ 09-21 -- EF.01 ACCEPTED (merge 68fedbace; verdict proved; parent + director-engine verified the diff independently; 3/3 falsifiers defeated; 42 tests; 33 production lines; kid a00-d2b4276b -> experiment:a00-d2b4276b-b3ac3e).
   capability   dispatch.py --memory <GB> overrides agent_dispatch.memory_max per dispatch (mem_cap.resolve_memory_cap(cfg, override); dry-run prints it) -> agi-batch (G14.14.4) reads it
   suite        engine suite in MAIN after the merge: 5822 passed · 13 failed = the SAME 13 on the pre-merge trunk (c5be890c8), NONE new (test_season TestMergeUp x10, test_cli done-auto-commit, help-smoke ws_raw x2; + test_adapters PI_BIN test = env-dependent on this box) -> G14.14.9
+
+Belam NO-PI 2026-09-28: re-landed mem_cap.resolve_memory_cap(cfg, override=) after tip regression (reaper a2cf2b7b74 dropped override while dispatch still called it); test_mem_cap_override 8/8 GREEN; experiment:a00-d2b4276b-b3ac3e remains verdict proved.
