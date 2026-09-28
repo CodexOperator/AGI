@@ -131,6 +131,21 @@ FILE SCOPE extensions/agi/tests/test_thought_hygiene.py · .agi/nodes/experiment
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 368e4fe8d · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE EG.14 -- closes mur-eg-4 DH.658-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-thought-verb-edits-on-a00-d2eb9cf1 tip 6deb61be4 (branch de-base-EG.14; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Sentinel is a one-line literal, so any file can opt out of the guard -- extensions/agi/tests/test_thought_hygiene.py:297 -- _is_exempt exempts any file whose text contains _GUARD_SENTINEL (line 278), so a decoy writing one string plus a real marker pair is exempt again -- the parent probed it as [] and named it as the round's own residue. Not a demote: it is stated on the node, bounded (an unusual literal), and weaker than the basename blindfold it replaces; but no committed row pins it either way.
+2. Round overran the DH.658 HARD CAP of 40 test lines (reading: added lines) -- extensions/agi/tests/test_thought_hygiene.py:1 -- 54 added / 36 removed against the order's '<= 40 test lines ... a byte or kid over it = the round is cut'. Every ordered item is verifiably fixed and 0 production lines landed; the ceiling ruling is explicitly the Prime's, and under a net reading (+18) the round is inside.
+3. Falsifier 2's append-and-preserve leg has no committed row -- extensions/agi/tests/test_thought_hygiene.py:200 -- The only write._compose_body call site is line 220, driving three live nodes; only the mid-line prose node reaches the append branch (write.py:2813-2814), so 'a body with ONLY a fenced/indented pair -> a top-level block is added and the quote is byte-identical' is true in the bytes and unasserted.
+4. (folds in the held EG.11, the EG.7 parent's 'the detector, not the corpus') the corpus test must hold on TODAY's corpus: run your tip's _count_thought_blocks over the 5 nodes AS THEY ARE on the post branch -- `git show cbbaf1e66:.agi/nodes/experiment/<id>.md` for a00-4e2fde5f-e3a94d a00-511f142d-fe5190 a00-591924e2-a79f3c a00-5c1c3862-c36247 a00-74f016df-05930f -- and paste the five counts; each must be <= 1 (every extra marker there is a QUOTATION). A count of 2 = fix the detector, NEVER those nodes (they stay byte-unchanged).
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_thought_hygiene.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_thought_hygiene.py · .agi/nodes/experiment/a00-5437a71f-4e8531.md · .agi/nodes/experiment/a00-e88afdb8-c7a039.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 6deb61be4 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.658: mur-director-engine-41 DH.639-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.14: mur-eg-4 DH.658-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
