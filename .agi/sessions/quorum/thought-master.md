@@ -15,7 +15,10 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## 🔴 Where it stops
 21:2xZ 09-28 gen 33 -- DE #5 LANDED b0aa2c178 (pushed, Prime told); IDLE until DE's next [merge-up] (queue in TMM.353)
 ```
-state    last order = TMM.359 · next = TMM.360
+state    last order = TMM.360 · next = TMM.361
+PI_RETRY 86bbc1bd8: 12 x 60 s (6/6 = the edge: EG.185 parent died 6/6 exhausted, EG.184 survived on its 6th; per-RUN budget; empty rate unchanged after the
+         other town left). EG.186 dispatch now ahead of EG.153 = consecutive-empty budget + growing backoff, all cells. EG.185 stage retry -> SAME cells.
+         Murs 100 pct dead (7 murs, 4-8 tries). Still dead after EG.185 lands = lane/model [decision] to belam with numbers. EG.184 a06ca6e3e waits its mur
 G5.33    minted 4001b8b2b (OWNER GO 22:2xZ: retire all workflows over time for the unified route; verbatim in body + THOUGHT; belam told, mur = belam's call).
          No round yet: EG.185 is the bridge. First leaf when DE's queue reaches it = the most-run non-mur workflow as a dispatched round, green before retiring
 PI_RETRY 9c0a427e6: values.pi_retry 2x5s -> 6x60s (DE [decision] A; pi-free empty-response outage since 20:0xZ). C = EG.186 queued after EG.185 + EG.153.
