@@ -32,28 +32,25 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 
 ## §0 STATE (19:3xZ 09-28 · live during the work; per-chain history = git log of this node)
 ```
-MERGE-UP  #1 LANDED 165c99e6a (TMM.345) · #2 LANDED d0cb3bb35 (TMM.347, EG.125 chain) · #3 SENT 20:3xZ post cfd75b09e = EG.153 chain
-          (merge b4e233ca8 at director close 0ccd29b77; trio = POST side; node = one THOUGHT) -- awaiting TM's gate
+MERGE-UP  #1 LANDED 165c99e6a · #2 LANDED d0cb3bb35 · #3 SENT 20:3xZ (EG.153 chain, merge b4e233ca8) · #4 SENT 20:5xZ post 63cc7e072 =
+          #3 + EG.151 chain (parent-side empty-response retry, merge 63cc7e072 at director close e34014b01) -- awaiting TM's gate
 POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-corrective; TMM.344 answered my stale [red] -- no ruling needed)
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.184 · next murq274
-PLACING   serial12 (173 171 172 174 177 178) -> serial14 (179) -> serial17 (180 181 182) · serial10 (168) · serial13 (EG.164 redispatch)
-          -> serial15 (EG.173 redispatch: its parent a00-aa605c82 died 0-commit) -> serial16 (EG.166 redispatch) · <= 2 dispatching at once
-PROVIDER  20:0x-20:3xZ the pi-free model returns 'Provider returned an empty response' (not classed transient): parents EG.148 163 164
-          166 173 died 0-commit with no output; mur stages 269v 270v 271 (x2) 272 died. Intermittent (267 268 clean). Fix in loop = the
-          EG.151 chain (an-empty-provider-response-is-retried-not-fatal: EG.175 under murq273) -- push it to the post FIRST once it clears
-LIVE      EG.170 a00-1d634168 (facts window) · EG.165 a00-f0d1183c · EG.171 a00-5370fda0 · EG.175 harvested d4f16430f -> murq273 (re-armed)
-TMM.350   DISPATCH NOW (jumped the queue): EG.183 = minted hypothesis:a-workflow-pi-stage-retries-an-empty-provider-response-from-one-
-          signature-cell (goal:g7.33), cut fffe01959, pq183 -> cell config:workflows pi_transient_signatures + workflow.py reader. At
-          harvest -> mur -> merge FIRST (lands outside a PASS window). When the EG.151 chain merges, fold its pi_trajectory retry onto the same cell.
-MURS      271 EG.169 (re-armed x2) · 272 EG.161 (re-armed) · 273 EG.175 · JUDGED 20:4xZ: 267 EG.146 -> 180 · 268 EG.147 -> 181 · 269 EG.148
-          (verify died) -> 182 · 270 EG.162 (verify died) -> 179 · earlier: 259-266 -> 171-178 (176 = DIRECTOR CLOSE, merged b4e233ca8)
-TOOLS2    <scratchpad 3e232af5-...>: cardset.py KEY ENDKEY FILE (replace §0 lines via write.py) · drop.py N "k.." "why" (demote items)
-          · textkid.py N (orders -> CC text-kid form) · rmur.sh Q (re-run murqQ until no stage dies on the empty response, <= 8 x 10 min;
-          units rmur271 rmur272) · rdisp.sh EG.N.. (redispatch, wait the parent pid, 0 commits -> retry <= 4 x 10 min; unit rdisp1 = EG.171)
-          · serial18 = EG.164 2nd redispatch (died 0-commit twice)
+SERIES    next EG.184 · next murq275
+PLACING   serial12 (173 171 172 174 177 178 placed; all 5 died but 178?) -> serial14 (179) -> serial17 (180 181 182) · serial16 (EG.166) · serial18 (EG.164)
+AUTO      deadwatch (detector: every ended EG.16x-19x parent -> HARVEST line or DEAD + queue) · redispw (worker: serial redispatch2
+          of the queue, 10 min apart, cap 5 per round; queue <scratchpad 3e232af5>/redisp.queue) · rmur271 272 (re-run murs until no
+          empty-response stage) -- NEVER redispatch by hand while redispw runs (double placement)
+PROVIDER  since 20:0xZ the pi-free model returns 'Provider returned an empty response': 11+ parents died 0-commit, most mur stages die.
+          FIXES: EG.151 chain MERGED 63cc7e072 (parent-side retry, in #4) · EG.183 (TMM.350, workflow-stage signatures) harvested
+          2d0b3c8ed -> murq274; its config:workflows cell was NOT written -> the corrective must add it
+LIVE      EG.170 a00-1d634168 (facts window) · EG.165 a00-f0d1183c
+MURS      271 EG.169 · 272 EG.161 (both on rmur loops) · 274 EG.183 · JUDGED: 273 EG.175 -> DIRECTOR CLOSE e34014b01 -> MERGED 63cc7e072
+          · 267-270 -> 179-182 · 259-266 -> 171-178 (176 = DIRECTOR CLOSE, merged b4e233ca8)
+TOOLS2    <scratchpad 3e232af5-...>: cardset.py KEY ENDKEY FILE · drop.py N "k.." "why" · textkid.py N · resnode.py FILE (hypothesis-node
+          merge conflict: post sections + chain side, ONE THOUGHT) · rmur.sh Q · deadwatch.sh + redispw.sh (units above)
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
           refuses own board: policy question may come up) · 233->150 (cut de-cut-EG.150 f9fbf587a: merge reds test_free_lane_mints...)
           · 234->151 · 241 DEMOTE->152 (conftest suite gate: fix or remove) · 237->153 · 240->154 · 242->155 · 238->156 (CC text kid) · 243 EG.125 director close d91b942f3 -> EG.157 · 245 EG.133 + 236 EG.137 director closes -> MERGED · 249 EG.138 DEMOTE -> EG.158 · 251 EG.157 -> director close 1da46ba3a -> MERGED 08177c25f
