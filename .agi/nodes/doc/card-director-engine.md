@@ -51,7 +51,9 @@ TMM.350   DISPATCH NOW (jumped the queue): EG.183 = minted hypothesis:a-workflow
 MURS      271 EG.169 (re-armed x2) · 272 EG.161 (re-armed) · 273 EG.175 · JUDGED 20:4xZ: 267 EG.146 -> 180 · 268 EG.147 -> 181 · 269 EG.148
           (verify died) -> 182 · 270 EG.162 (verify died) -> 179 · earlier: 259-266 -> 171-178 (176 = DIRECTOR CLOSE, merged b4e233ca8)
 TOOLS2    <scratchpad 3e232af5-...>: cardset.py KEY ENDKEY FILE (replace §0 lines via write.py) · drop.py N "k.." "why" (demote items)
-          · textkid.py N (orders -> CC text-kid form; KID line = cli.py done, never git)
+          · textkid.py N (orders -> CC text-kid form) · rmur.sh Q (re-run murqQ until no stage dies on the empty response, <= 8 x 10 min;
+          units rmur271 rmur272) · rdisp.sh EG.N.. (redispatch, wait the parent pid, 0 commits -> retry <= 4 x 10 min; unit rdisp1 = EG.171)
+          · serial18 = EG.164 2nd redispatch (died 0-commit twice)
 TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
           refuses own board: policy question may come up) · 233->150 (cut de-cut-EG.150 f9fbf587a: merge reds test_free_lane_mints...)
           · 234->151 · 241 DEMOTE->152 (conftest suite gate: fix or remove) · 237->153 · 240->154 · 242->155 · 238->156 (CC text kid) · 243 EG.125 director close d91b942f3 -> EG.157 · 245 EG.133 + 236 EG.137 director closes -> MERGED · 249 EG.138 DEMOTE -> EG.158 · 251 EG.157 -> director close 1da46ba3a -> MERGED 08177c25f
