@@ -35,7 +35,7 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 MERGE-UP  [merge-up] EG.1 chain to TM 02:25Z 09-28 -- TIP 95c425f8c, MB dc93a2660 (trunk merged in e810d9f2f), 21 files +1149/-69, 0 deletions;
           123 passed on the tip, links 0, render 0; 1 DECLARED residue carried (mem_cap.py:89-90 docstring -> Item 7 round) · owner 02:2xZ: a TM dm
           may have failed to send (none after TMM.315 in the dm file) -- owner checking with TM
-SERIES    RESET: rounds EG.N (EG.1-26 used, next EG.27; dispatch normalizes the iter to EG.01) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
+SERIES    RESET: rounds EG.N (EG.1-27 used, next EG.28; dispatch normalizes the iter to EG.01) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
           before the reset keep their labels (orders already generated) -- the counter only moves forward
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f,g] gen2.py N murq<Q>.json tip label -> orders<N>.md (N may be EG.n: sed the
           header to CORRECTIVE EG.n) · place2.sh / placef.sh N (DH.N or EG.N label) · drainqgf.sh N:K (K=F fresh via h<N>.txt) · mkmur.py + runmur.sh
@@ -44,9 +44,11 @@ GATE      TMM.306: load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, on
 PLACEMENT de-base-N ON DISK (the /dev/shm variant broke parent done -> DH.648 swept, reverted 00:0xZ); 651's RAM checkout is symlinked
 PRUNE     unit prune-debase OOM-KILLED 00:27Z (systemd-oomd, 41 removed); NOT restarted -- memory crit window (TMM.313 tmpfs hold)
 LANDED    TMM.312 00:42Z: TM landed the WHOLE branch d0d126deb (trunk merged in 90b21bd8f) + sent it to belam
-LIVE      EG.20 a00-57a3516d · EG.23 a00-aac9fa04 (EG.9 chain) · mur 146 = DH.656-k2 (murq141's review TIMED OUT 3600 s) · EG.16 -> mur-eg-9 -> EG.26 queued
-          PROVIDER-DEAD 02:45-03:0xZ (pi-free 'Provider returned an empty response', 0 commits): DH.660 EG.18 EG.19 DH.661 -> gated RE-DISPATCH
-          (qgR660 then qgR2 = T/redispatch2.sh EG.18 EG.19 661; orders already on the nodes; dead logs kept as T/d<N>.dead1.log)
+LIVE      no parent · mur 146 = DH.656-k2 (murq141 review TIMED OUT) · EG.16 -> mur-eg-9 -> EG.26 queued
+          EG.9 chain: EG.23's kid a00-04e86ac0 DIED on its last write, ALL work uncommitted -> director SALVAGE 344d79ad2 on the kid branch (UNREVIEWED)
+          -> EG.27 FRONT (qgEG27): cut from the salvage, FIRST ACT verify it + close heal.py:1683 rc-discard fail-open
+          PROVIDER-DEAD 02:45-03:1xZ (pi-free empty response, 0 commits): DH.660 EG.18 EG.19 DH.661 EG.20 -> gated RE-DISPATCH chain qgR660 -> qgR2
+          (T/redispatch2.sh EG.18 EG.19 661) -> qgR3 (EG.20); orders already on the nodes; dead logs T/d<N>.dead1.log
           EG.1 chain MERGED 95c425f8c (TMM.315 breach accepted) -> merge-up out · Item 7 (AGI_TASKS_MAX cell + the mem_cap docstring residue) = one
           config-max round AFTER EG.1 lands, behind the EG.9 chain · DH.657 -> mur-eg-7 residue -> EG.22 queued
           EG.13 -> mur-eg-6 residue -> EG.21 queued (memory-cap HARD RULE carried)
