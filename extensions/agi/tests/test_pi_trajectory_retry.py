@@ -33,6 +33,23 @@ EMPTY = {"type": "turn_end", "stopReason": "error",
          "errorMessage": "Provider returned an empty response"}
 OTHER = {"type": "turn_end", "stopReason": "error",
          "errorMessage": "Provider returned a 500 from upstream"}
+# The REAL wire shape, measured on EG.104 a00-b9e8e8d9's own live log
+# (.agi/sessions/iter-EG.104/a00-b9e8e8d9/output.log): every turn_end carries
+# {"type","message","toolResults"} and the stop fields live INSIDE "message".
+# message_end carries {"type","message"} the same way.
+NESTED_EMPTY = {"type": "message_end",
+                "message": {"role": "assistant", "api": "openrouter-completions",
+                            "model": "stealth/space-bunny-alpha",
+                            "stopReason": "error",
+                            "errorMessage": "Provider returned an empty response",
+                            "content": [], "provider": "openrouter",
+                            "responseId": "gen-0", "timestamp": 1}}
+NESTED_TURN_EMPTY = {"type": "turn_end", "toolResults": [],
+                     "message": {"role": "assistant", "stopReason": "error",
+                                 "errorMessage": "Provider returned an empty response"}}
+NESTED_OTHER = {"type": "message_end",
+                "message": {"role": "assistant", "stopReason": "error",
+                            "errorMessage": "Provider returned a 500 from upstream"}}
 OK = {"type": "tool_execution_start", "toolName": "bash", "toolCallId": "1",
       "args": {"command": "echo a"}}
 OK_END = {"type": "tool_execution_end", "toolName": "bash",
@@ -172,6 +189,39 @@ def test_the_bound_is_the_config_cell_and_holds(tmp_path):
     assert text.count("retry: empty provider response 1/1") == 1, text
 
 
+
+
+def test_the_nested_real_wire_shape_is_retried(tmp_path):
+    """RED on EG.103's bytes: pi nests stopReason/errorMessage under
+    `message`, and both detectors read the TOP level, so on a real production
+    line the retry NEVER fired. Fixture = the shape measured on this round's own
+    output.log, not a shape the engine invented for itself."""
+    root = _project(tmp_path, 2, 0.05)
+    stub, counter = _stub_pi(tmp_path, [[NESTED_EMPTY], [OK, OK_END]])
+    text, runs = _run(root, stub, counter, root / "trajectory.jsonl")
+    assert runs == ["run", "run"], \
+        f"the REAL nested empty response is retried, not fatal: {runs} / {text!r}"
+    assert "retry: empty provider response 1/2" in text, text
+
+
+def test_a_nested_turn_end_empty_is_retried_too(tmp_path):
+    """turn_end nests the same way as message_end; a provider can empty on
+    either, and both end the turn."""
+    root = _project(tmp_path, 2, 0.05)
+    stub, counter = _stub_pi(tmp_path, [[NESTED_TURN_EMPTY], [OK, OK_END]])
+    text, runs = _run(root, stub, counter, root / "trajectory.jsonl")
+    assert runs == ["run", "run"], f"a nested turn_end empty retries: {runs}"
+    assert "retry: empty provider response 1/2" in text, text
+
+
+def test_a_nested_NON_empty_error_is_still_not_retried(tmp_path):
+    """The nesting fix must not widen the trigger: a 500 nested under
+    `message` still ends the round exactly as before."""
+    root = _project(tmp_path, 2, 0.05)
+    stub, counter = _stub_pi(tmp_path, [[NESTED_OTHER]])
+    text, runs = _run(root, stub, counter, root / "trajectory.jsonl")
+    assert runs == ["run"], f"no retry on another error: {runs} / {text!r}"
+    assert "retry: empty provider response" not in text, text
 
 
 def _cancel(root: Path, stub: Path, marker: str):

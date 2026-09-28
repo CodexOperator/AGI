@@ -55,6 +55,30 @@ def _retry_cells() -> tuple[int, float]:
     return max(0, max_retries), max(0.0, backoff)
 
 
+def _stop_fields(ev: dict) -> tuple[object, str]:
+    """(stopReason, errorMessage) of one pi turn, read from WHEREVER pi put
+    them. On the wire they are NESTED: a real `--mode json` turn_end is
+    {"type":"turn_end","message":{"role":...,"stopReason":...},"toolResults":[]}
+    (measured on this round's own live log, .agi/sessions/iter-EG.104/
+    a00-b9e8e8d9/output.log), and a `message_end` is {"type":"message_end",
+    "message":{...,"stopReason":"error","errorMessage":"Provider returned an
+    empty response"}}. A detector that reads only the TOP level returns False on
+    every real line, so the retry never fires in production while a flat-fixture
+    suite stays green. The top level is still read: a flat fixture and a future
+    pi are both cheap to keep working, and the two shapes are the same claim."""
+    msg = ev.get("message")
+    msg = msg if isinstance(msg, dict) else {}
+    stop = ev.get("stopReason")
+    if stop is None:
+        stop = msg.get("stopReason")
+    err = ev.get("errorMessage")
+    if err is None:
+        err = msg.get("errorMessage")
+    if err is None and isinstance(ev.get("error"), str):
+        err = ev["error"]
+    return stop, str(err or "")
+
+
 def _ended_on_empty(raw) -> bool | None:
     """None unless the line ENDS a turn; else True when that turn ended on an
     empty-response stop. The retry follows the LAST turn, never the exit code:
@@ -67,8 +91,8 @@ def _ended_on_empty(raw) -> bool | None:
             return None
     except Exception:
         return None
-    return (ev.get("stopReason") == "error"
-            and "empty" in str(ev.get("errorMessage") or "").lower())
+    stop, err = _stop_fields(ev)
+    return stop == "error" and "empty" in err.lower()
 
 
 def _is_empty_response(raw: str) -> bool:
@@ -88,9 +112,10 @@ def _is_empty_response(raw: str) -> bool:
     except Exception:
         ev = None
     if isinstance(ev, dict):
-        msg = str(ev.get("errorMessage") or raw)
-        return ev.get("stopReason") == "error" and "empty" in msg.lower()
-    return '"stopReason":"error"' in raw and "empty response" in raw.lower()
+        stop, err = _stop_fields(ev)
+        return stop == "error" and "empty" in (err or raw).lower()
+    return '"stopReason":"error"' in raw.replace(" ", "") \
+        and "empty response" in raw.lower()
 
 
 def _attempt(pi_bin, traj_path, pi_args, attempt: int = 0) -> tuple[int, bool]:

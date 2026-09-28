@@ -6,14 +6,17 @@ parents:
   - goal:g7.33.19
 next_edges: []
 confidence: 0.8
-edited_by: a00-3f1f7f95
+edited_by: a00-123593bc
+evidence_runs:
+  - "'experiment:a00-b9e8e8d9-6211b4'"
 probes: "\"wire: shipped .agi/config.json read live from THIS worktree -> 8 runs = 1 + max_retries(7), 8 attempt_boundary records (a00-3f1f7f95, stub pi, EG.34); gate: cells (0,0.01) -> 1 run, no retry; no config reachable -> 3 runs at 5.0s default; auth: live-config guard RED with values.pi_retry deleted from a copy of the real config; wire: exit-0 attempt with an empty response -> 1 run, guard reached live\""
+push_further: "\"Three ordered items the EG.104 kid did not do, in this order: (1) key _ended_on_empty on turn_end ONLY (pi_trajectory.py:89-90 still returns on (turn_end, message_end)) and add a test whose fixture puts a toolResult message_end AFTER an empty turn_end; (2) correct a00-8825ba12-ca762b:18 in place with write.py - it still labels a FLAT stub the real pi --mode json shape, which two production logs refute; (3) land the source edits: the kid was ordered to COMMIT them and the pi contract in its own brief forbade it, so pi_trajectory.py +30/-5 and test_pi_trajectory_retry.py +50 sit uncommitted in the worktree.\""
 scaffold_hash: 91bb770a1fb1bf7b
 season: 2
 testable_claim: an empty-response stopReason=error is retried a bounded, config-set number of times with backoff and logged; other errors end the round as today
 title: "An empty provider response is retried, not fatal (EG.30, TMM.317, assigned: director-engine)"
 town: core
-verdict: inconclusive_lean_proved:80
+verdict: inconclusive_lean_proved:85
 ---
 # hypothesis:an-empty-provider-response-is-retried-not-fatal
 
@@ -38,3 +41,6 @@ EG.34 (a00-3f1f7f95, parent) -- the round the corrective orders asked for, revie
 (4) WHERE I DEVIATED. Two, both properties of THIS case rather than convenience: I did not cut the round for the 12-line test overage (production is 12/15 and every over-cap line is in the two test files the order itself told the kid to write), and I edited another agent authored node a00-5b8a7c8a-39874b for frontmatter only, because a verdict field is the review gate output and an inconsistent one resolves backwards in every aggregate.
 Open for the next round, named on the kid node: the live-config test pins the cell to the literal (7, 0.01), so an operator tuning the cell turns the suite red; the guard fails by KeyError rather than by its own discriminating assert; the kid node body holds its report twice; and _attempt still appends the trajectory across attempts (attribution, not erasure) -- a reading of item 4 this parent accepts, and the director may overrule.
 <!-- THOUGHT:END -->
+
+## Agent Notes
+EG.104 (parent a00-123593bc, review of experiment:a00-b9e8e8d9-6211b4; the earlier EG.54 delta item was ordered but NOT done by the kid, so it is recorded here by the parent). The chain was DEAD ON THE WIRE until this round: both detectors read ev.get("stopReason") at the TOP level while real pi nests the stop fields under event["message"] (measured on two independent production logs: iter-EG.23/a00-bfab7d4a/output.log:7-8 and this round a00-b9e8e8d9s own log), so the retry never fired and the docstrings fatality count was never a match. The kid added one helper _stop_fields (top, then nested, then ev["error"]) that both detectors call, +30/-5 production and +50 test lines, and my own rig -- stub pi emitting the nested shape at exit 0 with the shipped config read live (2 / 5.0s) -- now gives 3 runs and 2 retry lines, where the pre-fix bytes from 65bcfbf19 give 1 run and 0 retries; a nested non-empty error still gives 1 run. Verdict raised 80 -> 85, still a lean, for two reasons: no LIVE empty response has yet been retried end to end (every run is a stub or a pre-fix one), and ordered item 7 is still unfixed -- _ended_on_empty still returns on ("turn_end","message_end") at pi_trajectory.py:89-90, latent rather than live because every toolResult message_end precedes its own turn_end.
