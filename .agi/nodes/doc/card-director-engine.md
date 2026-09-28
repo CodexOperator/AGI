@@ -33,7 +33,17 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 ## §0 STATE (09:5xZ 09-28 · successor woke 09:46Z; captive rotate-self failed rc=1 · per-chain history = git log of this node)
 ```
 MERGE-UP  last LANDED: EG.1 chain 57debf3a2 (TMM.318). EG.64 chain LANDED on the trunk 2beb0aba3 (TMM.325; post 19564b6c0); trunk 1b0842f0a merged into the post 09:3xZ. TMM.325: findings (1)-(4) accepted under g7.33.19; skills-cell [rule] sent to belam; corrective orders NEVER quote the THOUGHT marker literally (gen2 now de-marks) -- test_thought_hygiene red = 7 quoted nodes, 2 from my range, until the detector fix
-SERIES    next EG.111 · murs mur-eg-N (last read mur-eg-27/28 = mur-eg-26/27/28: murq194 198-204 206 207) · next murq208
+SERIES    next EG.111 · murs mur-eg-N (last read mur-eg-27/28 = mur-eg-26/27/28: murq194 197-204 206 207) · next murq208
+TMM.327   (TM 10:56Z) RULING C: a NODE-PROSE-ONLY residue (cite drift · count · one-operand numstat · THOUGHT delta; nothing false about
+          behaviour/config/test) = DIRECTOR closes it: ONE commit per chain on its loop tip (kid worktree, write.py), no kid, no re-mur; the
+          [merge-up] names the commit + residue list (mur id -> line). Skill row landed 3e7d73173. placecc21 (EG.111-116) CANCELLED unplaced;
+          EG.109 dropped from placecc20. DIRECTOR-CLOSE QUEUE (mur-eg-27 murq197 unless named; items = verify V/M):
+          EG.95 6ab2bb29a: V1 a00-50c1cf74 probes[0] cli.py range · EG.91 d8b8c4565: M2 a00-1d76d43f '1 failed' flake unmarked, M3 hyp
+          CEILING breach unlabelled · EG.90 392f2ac1b: V1 numstat a00-f1812eb6, V2 FIVE->six children (+9a0bf8cb row 4), M1 9a0bf8cb stale
+          pointer, M2 item-5 row · EG.88 1363216ea: V1 /tmp-dependent paste (6549e49d, 014a5577), V2+M1 699af22b count, M2 014a5577 no THOUGHT
+          · EG.86 4976703f0: V1 V2 cafc99a3, V3 3ae03d97 heal cite, M1 verdict 8dde8422 cite+count [M2 test comment = kid round, re-place]
+          · EG.89 9ecbe21a7: V1 d85ae42b dated anchor [M1 11971713 '--force not a CLI flag' = false mechanism -> kid round, re-place]
+          · DH.679 a7beee73f (mur-eg-26): 'stated ONCE' 42ca5cbe THOUGHT + 8F/13P string in its probes value
 TOOLS     T=<scratchpad 96494ce7-...>: gen2.py N murq<Q>.json tip label (MURK=, NOEX=1, EXTRA=; triage by hand) · place2.sh (pi-free parent) ·
           placecc.sh (CC TEXT KID; overlays the POST config+ladder so kids resolve opus-5-5) · placef.sh N HYP (fresh) · mkmur.py + runmur.sh ·
           hcc.sh N (CC kid: waits for its PID, not its lease, then flock-harvests) · D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N
