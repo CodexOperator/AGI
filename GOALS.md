@@ -8215,10 +8215,101 @@ thought-master 02:1xZ 09-21 (owner 02:1xZ via goal:g5.26): ADD G7.33.8 SESSION C
 
 Belam 2026-09-28: activate for write/mint foundation (redesign order skills→write/mint→spawn/rotate→messaging); nest g7.33.9 skills adoption under this
 
+Belam 20260928 ET: g7.33.9 foundation fleshed + kids g7.33.9.1/.2 minted via write.py (skills→write/mint); NO pi. Board still lists g7.33 horizon — Belam to move into stop-line when ready.
+
 #### G7.33.9 — skills + write/mint foundation (redesign order step 1-2) — status: active
 
 <!-- BODY:BEGIN -->
 # goal:g7.33.9
+
+## Why this exists
+**Parent `goal:g7.33`.** Belam 2026-09-28 activate for write/mint foundation: redesign land order is **skills → write/mint → spawn/rotate → messaging**. This leaf is steps 1–2 (adoption/order track). Engine write.py ergonomics traps stay on `goal:g7.33.1`; this leaf does not re-own those FIX rounds. SoT patch `/tmp/belam-sot-patch/goals/g7.33.skills.md` (link_ref) + Belam note on `goal:g7.33`: nest skills adoption under g7.33.
+
+## Target end-state
+- `skills/agi-*` (at least agi-node-write · agi-goal · agi-verify · agi-merge-pass) present on core trunks; `.claude/skills` symlinks resolve to them.
+- Directors pursue all node+goal writes via `skill:agi-node-write` / `skill:agi-goal` → `write.py` only — no hand-edit of `.agi/nodes/**`, no inlined PROFILE write recipes.
+- write/mint foundation usable without pi parents: `write.py create|set|note|thought|replace body` + spawn gate; ACTIVE-BEFORE-SPAWN / pi dispatch are out of this leaf (OWNER FULL STOP: NO pi).
+- Nested kids carry the adoption split: `.1` skills present+wired · `.2` write/mint route discipline.
+
+## Invariants
+- `write.py` is the only sanctioned node writer (skill agi-node-write §1).
+- Never invent a new top-level `g7.N` (Belam/Prime only). Nest under `goal:g7.33` / this leaf.
+- `goal:g7.33.1` keeps the engine FIX track for replace-body / create-scaffold / compose traps; this leaf never duplicates those hypotheses.
+- Caps ≤10/dir · ≤20 box still apply to non-pi work. No durable OpenRouter pi spawn from this leaf.
+- Deprecate-never-delete; GOALS.md is derived (`snapshot-goals.py --render`).
+
+## Falsifier
+1. `test -f skills/agi-node-write/SKILL.md && test -f skills/agi-goal/SKILL.md && test -L .claude/skills/agi-node-write` exits 0 on seat tip.
+2. `python3 extensions/agi/bin/write.py -h` exits 0 and documents replace-body standalone rule.
+3. Negative: zero hand-edit commits under `.agi/nodes/goal/g7.33.9*` that bypass write.py actor/session stamping on this leaf after foundation land.
+
+## Out of scope
+- `goal:g7.33.1` write.py ergonomics engine rounds (hypotheses under that leaf).
+- spawn/rotate redesign (redesign order step 3) and messaging (step 4) — later leaves under g7.33 or sibling tops when Belam mints.
+- town:core stop-line assignment moves (Belam daily board SoT); this leaf does not rewrite `doc:geometry-towns-core` seat rows.
+- pi parent dispatch / agi-dispatch durable spawn (OWNER FULL STOP).
+
+## Agent Notes
+Assigned to **director-belam**. Foundation write/mint only via write.py + graph skills; no pi. Kids: `goal:g7.33.9.1` (skills adoption), `goal:g7.33.9.2` (write/mint route).
+
+##### G7.33.9.1 — skills adoption — skills/agi-* present on trunks + .claude/skills symlinks resolve; directors route via skill:agi-node-write / agi-goal — status: active
+
+# goal:g7.33.9.1
+
+# goal:g7.33.9.1
+
+## Why this exists
+**Parent `goal:g7.33.9`.** Belam redesign order step 1: skills land and resolve before write/mint adoption. Measured on seat 2026-09-28: `skills/agi-node-write`, `agi-goal`, `agi-verify`, `agi-merge-pass` exist and `.claude/skills/agi-node-write` + `agi-goal` symlink to them — this leaf tracks keeping that wiring true on core trunks and making directors route through the skills.
+
+## Target end-state
+- Required skills present under `skills/agi-*` on `core/season2/main` tip.
+- `.claude/skills/<name>` symlinks resolve (no dangling, no inlined copy drift).
+- Director briefs / cards point at skill:agi-node-write and skill:agi-goal rather than inlined PROFILE write recipes.
+
+## Invariants
+- Skills are the manual; `write.py -h` and schemas win on conflict — fix the skill file, never bypass.
+- No hand-maintained duplicate skill bodies under `.claude/skills/` (symlink only).
+
+## Falsifier
+1. `ls -L .claude/skills/agi-node-write/SKILL.md .claude/skills/agi-goal/SKILL.md` exits 0.
+2. Negative: no regular-file (non-symlink) `.claude/skills/agi-node-write` on tip.
+
+## Out of scope
+- `goal:g7.33.9.2` write/mint route discipline.
+- Engine ergonomics under `goal:g7.33.1`.
+
+## Agent Notes
+Assigned to **director-belam**.
+
+##### G7.33.9.2 — write/mint route — all node+goal edits via write.py + skills; no hand-edit; no pi required under FULL STOP — status: active
+
+# goal:g7.33.9.2
+
+# goal:g7.33.9.2
+
+## Why this exists
+**Parent `goal:g7.33.9`.** Belam redesign order step 2: write/mint foundation. All node+goal mint and edit goes through `write.py` via skills; no pi parents required for foundation work under OWNER FULL STOP (NO pi / NO durable OpenRouter pi spawn).
+
+## Target end-state
+- `write.py create|set|unset|note|thought|replace body|read body` is the only path used for g7.33.9* graph growth on this seat.
+- Spawn gate honored on create; `--no-spawn-gate` never used.
+- Foundation notes and nested kids land with actor/session stamps; GOALS.md regenerated via `snapshot-goals.py --render` when goals mint.
+
+## Invariants
+- replace body is standalone (never same script as note/thought).
+- Caps ≤10/dir · ≤20 box for non-pi work.
+- Never invent top-level g7.N; nest under existing Belam-minted tops.
+
+## Falsifier
+1. `python3 extensions/agi/bin/write.py goal:g7.33.9 "read body 1:3"` exits 0 and shows format-worthy Why→…→Agent Notes.
+2. Negative: zero unstamped hand-edits to `.agi/nodes/goal/g7.33.9*.md` after this leaf lands.
+
+## Out of scope
+- pi dispatch / agi-round / agi-batch (g7.33.4 and stop-line engine rounds).
+- spawn/rotate + messaging redesign steps 3–4.
+
+## Agent Notes
+Assigned to **director-belam**.
 
 #### G7.33.10 — SCHEMA-CHECKED ROWS -- write.py writes one named row of a node, and the node type's schema decides whether that row exists and whether its value is well-formed — status: active
 
