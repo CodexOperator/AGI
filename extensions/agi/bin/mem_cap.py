@@ -35,12 +35,56 @@ _PROBE_UNIT = "agi-memcap-probe"
 _CACHE_DIR_NAME = "agi-memcap"
 _CACHE_FILE_NAME = "probe"
 
+#: `spawn.tasks_max` -- the PER-TREE process bound carried as
+#: `TasksMax` on the SAME scope that carries `MemoryMax`. Shipped default
+#: 96: one round's own tree is a round process plus its tools (a `pytest -n8`
+#: run is ~15 procs), so 96 is ~6x headroom on a normal round, while the
+#: DH.419 fan-out that pushed user@ over memory.high was 127 forks -- a
+#: default below that number, and far below the box's user@ `pids.max`
+#: (16384), so the SCOPE refuses the fork instead of the whole user slice
+#: growing. RLIMIT_NPROC cannot express this (it is per-USER, not per-tree),
+#: so the prlimit fallback carries NO process bound -- see `wrap_argv`.
+_DEFAULT_TASKS_MAX = 96
+
+#: `spawn.memory_max` absent -> this. Named so a caller (and a test row)
+#: reads the shipped default instead of typing `4G` -- one source per value,
+#: the same reason `_DEFAULT_TASKS_MAX` exists.
+_DEFAULT_MEMORY_CAP = "4G"
+
 
 def _normalise_cap(val) -> "str | None":
     """None / 'none' / 'null' / '' -> None; else the value verbatim."""
     if val is None or str(val).strip().lower() in ("", "none", "null"):
         return None
     return str(val)
+
+
+def _spawn_block(cfg: "dict | None") -> dict:
+    """The `spawn` container AS A DICT, or {} -- one shared guard.
+
+    A cell is data, not a promise: `spawn` that is a number, a list or a
+    string must not raise out of a reader (it did: `resolve_memory_cap`
+    raised TypeError on `{"spawn": 42}`), it must read as absent and fall
+    back to the shipped default."""
+    spawn = (cfg or {}).get("spawn")
+    return spawn if isinstance(spawn, dict) else {}
+
+
+def resolve_tasks_max(cfg: "dict | None" = None) -> int:
+    """`spawn.tasks_max` -> an int >= 1, else the shipped default.
+
+    The cell sits beside `spawn.memory_max`, the one `resolve_memory_cap`
+    reads, so the whole per-spawn scope is one `spawn` block (TMM.263 (2),
+    owner 19:5xZ). A cell that is absent, non-numeric, or below 1 falls back
+    to `_DEFAULT_TASKS_MAX` rather than to "no bound": an unreadable cell
+    must not silently un-cap the tree. `AGI_TASKS_MAX` overrides for tests."""
+    env = os.environ.get("AGI_TASKS_MAX")
+    raw = env if env not in (None, "") else _spawn_block(cfg).get("tasks_max")
+    try:
+        n = int(str(raw).strip())
+    except (TypeError, ValueError):
+        return _DEFAULT_TASKS_MAX
+    return n if n >= 1 else _DEFAULT_TASKS_MAX
 
 
 def resolve_memory_cap(cfg: dict, override: "str | None" = None) -> "str | None":
@@ -53,9 +97,9 @@ def resolve_memory_cap(cfg: dict, override: "str | None" = None) -> "str | None"
     """
     if override is not None:
         return _normalise_cap(override)
-    spawn = (cfg or {}).get("spawn") or {}
+    spawn = _spawn_block(cfg)
     if "memory_max" not in spawn:
-        return "4G"
+        return _DEFAULT_MEMORY_CAP
     return _normalise_cap(spawn.get("memory_max"))
 
 
@@ -104,15 +148,16 @@ def _cache_names(cfg: "dict | None") -> "tuple[str, str] | None":
     return d, f
 
 
-def _probe_cache_path(cfg: "dict | None" = None) -> "pathlib.Path | None":
-    """Where the cross-process probe verdict lives. `AGI_MEMCAP_CACHE` (an
-    explicit file path, for tests) wins; else a private dir under the
-    per-user runtime dir (tmpfs, cleared on boot); else the platform temp
-    dir -- `tempfile.gettempdir()` ($TMPDIR, else the box's `/tmp`), NOT a
-    `/tmp` literal: the same base every other engine temp path resolves
-    through, so the box's own answer wins and this file spells no root.
-    None means "no cache is writable" -- the probe then runs per process, the
-    old behaviour, rather than failing."""
+def _cache_path_pure(cfg: "dict | None" = None) -> "pathlib.Path | None":
+    """WHERE the cross-process probe verdict lives, and nothing else -- no
+    mkdir, no chmod, no lstat, so a read-only caller resolves the same path
+    this module writes without touching the box.  `_probe_cache_path` is this
+    plus the private-dir creation, so ONE place does the arithmetic.
+    `AGI_MEMCAP_CACHE` (an explicit file path, for tests) wins; else the
+    per-user runtime dir (tmpfs, cleared on boot); else `tempfile.gettempdir()`
+    ($TMPDIR, else the box's `/tmp`), NOT a `/tmp` literal: the same base every
+    other engine temp path resolves through, so the box's own answer wins and
+    this file spells no root."""
     env = os.environ.get("AGI_MEMCAP_CACHE")
     if env:
         return pathlib.Path(env)
@@ -121,8 +166,20 @@ def _probe_cache_path(cfg: "dict | None" = None) -> "pathlib.Path | None":
         return None
     run = os.environ.get("XDG_RUNTIME_DIR")
     base = pathlib.Path(run) if run else pathlib.Path(tempfile.gettempdir())
-    d = _private_dir(base / names[0])
-    return None if d is None else d / names[1]
+    return base / names[0] / names[1]
+
+
+def _probe_cache_path(cfg: "dict | None" = None) -> "pathlib.Path | None":
+    """The WRITER's path: the pure resolution above, then the dir WE own made
+    private.  None means "no cache is writable" -- the probe then runs per
+    process, the old behaviour, rather than failing."""
+    if os.environ.get("AGI_MEMCAP_CACHE"):
+        return _cache_path_pure(cfg)     # the caller named the file; its dir is its own
+    path = _cache_path_pure(cfg)
+    if path is None:
+        return None
+    d = _private_dir(path.parent)
+    return None if d is None else path
 
 
 def _trusted_cache_file(path: pathlib.Path) -> "pathlib.Path | None":
@@ -234,14 +291,22 @@ def wrap_argv(argv: list, cap: "str | None",
               cfg: "dict | None" = None) -> list:
     """`cap is None` -> the SAME argv object, unwrapped; else systemd-run when
     usable, else the prlimit fallback. `cfg` is OPTIONAL and read only for the
-    cache's `values.memcap` cells -- a caller with no config on hand gets the
-    shipped defaults, so the hot path never has to resolve the graph itself."""
+    cache's `values.memcap` cells and for `spawn.tasks_max` (via
+    `resolve_tasks_max`, which defaults when `cfg` is None) -- a caller with
+    no config on hand gets the shipped defaults, so the hot path never has to
+    resolve the graph itself."""
     if cap is None:
         return argv
     if systemd_run_usable(cfg):
         return ["systemd-run", "--user", "--scope", "-q",
                 f"--property=MemoryMax={cap}",
+                f"--property=TasksMax={resolve_tasks_max(cfg)}",
                 "--property=MemorySwapMax=0", "--", *argv]
+    # NAMED RESIDUAL (DH.421): the prlimit fallback bounds ADDRESS SPACE per
+    # process and NOTHING about the tree's width -- RLIMIT_NPROC is per-USER,
+    # so a per-tree process cap has no prlimit spelling. A box without a
+    # usable systemd-run still fans out unbounded; the fix is the systemd
+    # path, not a second limit here.
     return ["prlimit", f"--as={_as_bytes(cap)}", "--", *argv]
 
 

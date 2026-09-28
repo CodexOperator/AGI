@@ -410,6 +410,29 @@ if str(_BIN) not in sys.path:
 import locations  # noqa: E402
 import verification  # noqa: E402
 
+#: The guard pieces this conftest used to keep a second copy of. ONE home
+#: (`suite_guards`); this module IMPORTS them -- a plain import, never an exec
+#: (residue 1 of verify_DH.430-k1: suite_guards claimed to be THE one home
+#: while three copies of these bodies lived in the conftests). The names are
+#: re-exported under their historical spellings so the leaf tests that load
+#: this conftest BY PATH keep reading the same attributes.
+from suite_guards import (  # noqa: E402,F401 -- the guard, imported not copied
+    SUITE_LOCK_MARKER,
+    _FENCED_MODULE_RUNNERS,
+    _FENCED_SPAWN_LEAVES,
+    _fence_bound_runners,
+    _make_guarded_kill,
+    _make_guarded_killpg,
+    FENCE_MARKER as _FENCE_MARKER,
+    install_import_fence,
+    make_import_fence as _make_import_time_fence,
+    make_suite_lock_fixture,
+    no_real_process as _no_real_process_or_live_config,
+    own_pid_signal0_only,
+    resolve_leaves as _resolve_leaves,
+    uninstall_import_fence as _uninstall_spawn_fence,
+)
+
 #: PROD `sessions_dir`, captured BEFORE the autouse fixture rebinds it under
 #: tmp (a WRITE-rehome); the tier-gate's READ goes through the real join.
 _PROD_SESSIONS_DIR = locations.sessions_dir
@@ -428,51 +451,14 @@ PROVISIONING_TESTS_ARE_GUARDED = True
 #: refuses itself against its own parent's live lock and deadlocks the round.
 #: The name must NOT begin AGI_ or AUTORESEARCH_ (extensions/agi/conftest.py
 #: strips those prefixes) — that is why it is VERIFY_*.
-SUITE_LOCK_MARKER = "VERIFY_SUITE_LOCK_PID"
-
-
-@pytest.fixture(scope="session", autouse=True)
-def _suite_lock_guard():
-    """Acquire the suite lock for the whole pytest session, once.
-
-    A bare `python3 -m pytest extensions/agi/tests/` creates
-    `<graph>/sessions/verify-suite.lock` with its own pid and removes it on
-    exit. A second independent pytest started while the first runs finds the
-    lock held by a LIVE pid and REFUSES, naming that holder. A nested pytest
-    (pytest inside pytest) inherits SUITE_LOCK_MARKER from its acquiring
-    parent and NO-OPS — the parent still holds the window, so the child must
-    not re-acquire.
-    """
-    if os.environ.get(SUITE_LOCK_MARKER):
-        # Inherited: our parent process holds the suite window for this run.
-        yield
-        return
-
-    root = locations.find_project_root(Path(__file__).resolve())
-    if root is None:
-        # Not inside an agi project — no graph sessions dir to guard. No-op.
-        yield
-        return
-    lock_path, holder = verification.acquire_suite_lock(root)
-    if lock_path is None:
-        if holder is None:
-            raise RuntimeError(
-                "suite window refused — the suite lock could not be written "
-                f"under {root / 'sessions'}")
-        raise RuntimeError(
-            f"suite window refused — pid {holder} is a LIVE runner holding "
-            f"{root / 'sessions' / verification.SUITE_LOCK}; one suite at a "
-            "time — wait for it or ask whoever owns it")
-    os.environ[SUITE_LOCK_MARKER] = str(os.getpid())
-    try:
-        yield
-    finally:
-        os.environ.pop(SUITE_LOCK_MARKER, None)
-        if lock_path.exists():
-            try:
-                lock_path.unlink()
-            except OSError:
-                pass
+#: The engine suite's ROOT POLICY, and all that is left of it: the lock body
+#: is `suite_guards.make_suite_lock_fixture`, instantiated with this conftest's
+#: own `find_project_root(Path(__file__))` -- the FILE, never the cwd, so a
+#: `cd` cannot move the window (hypothesis:l4-the-suite-lock-belongs-to-
+#: pytest-not-its-caller). The declared context suite instantiates the same
+#: factory with the VERIFY_GRAPH_ROOT-else-cwd resolver.
+_suite_lock_guard = make_suite_lock_fixture(
+    lambda: locations.find_project_root(Path(__file__).resolve()))
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -633,92 +619,58 @@ def _no_openrouter(monkeypatch):
 _GUARD_OPTIN_ATTR = "NO_REAL_PROCESSES"
 
 
-@pytest.fixture(autouse=True)
-def _no_real_process_or_live_config(request, monkeypatch):
-    """hypothesis:rotate-term-grace-tests-never-touch-a-real-process-or-the-
-    live-config -- PER-FILE OPT-IN process/config guard.
+# `os.kill` / `os.killpg` / the fenced leaves / the bound engine runners all
+# live in `suite_guards` now: signal 0 on the OWN pid is the only traffic the
+# kill leaf passes through, and the leaf list is ONE shared tuple.
+#: Every fence carries the real leaf it wraps under `_FENCE_MARKER` (imported
+#: from suite_guards, the ONE body) and `install_import_fence` SKIPS a leaf
+#: already carrying it: conftest.py is exec'd twice in one interpreter
+#: (test_tier_gate.py), and a fence over a fence made `subprocess.Popen is
+#: _REAL_POPEN` false for 48 tests (measured 2026-09-26 a00-585205f4).
 
-    An opted-in module may not: spawn a process (subprocess.Popen/run/call/
-    check_output, os.fork, os.forkpty), read any `/proc` path, `os.kill` a
-    pid that is not its own, or open a real `.agi/config.json` outside
-    tmp_path. Measured on test_rotate_term_grace.py before this guard: a
-    double-fork + setsid + Popen launcher, 499 `/proc/<pid>/cmdline` reads,
-    17 real `os.kill` calls (14 of them signal-0 probes) and a live
-    `rot.ENGINE_ROOT/.agi/config.json` read -- in a file whose docstring
-    claimed "no real pane, pid, unit or crontab".
+#: A caller that set this module attribute opted in to the process guard.
+_GUARD_FLAG = _GUARD_OPTIN_ATTR
 
-    One patch point per resource, all at the stdlib leaf every caller
-    resolves through (the `_no_real_tmux` lesson): `builtins.open` and
-    `io.open` see `open()`, `io.open` and Path.read_text/read_bytes alike;
-    `os.scandir`/`os.listdir` see Path.iterdir/glob/listdir. So /proc and
-    the live config are caught in three hooks, NOT in os.open -- the C
-    `_io.open` never calls the Python-level `os.open`, so an `os.open` hook
-    alone catches nothing. A test that needs a real one
-    monkeypatches AFTER this fixture's setup and wins for the test's
-    duration (function-scoped monkeypatch, same ordering fact as
-    `_no_real_tmux`) -- which is exactly how the rewritten reap test injects
-    its own fake `os.kill`."""
-    if not getattr(getattr(request, "module", None), _GUARD_OPTIN_ATTR, False):
-        yield
-        return
-    tmp = str(request.getfixturevalue("tmp_path"))
-    own = {os.getpid(), os.getppid()}
+#: The pids the kill leaves may touch: this process, and NOTHING else.
+_OWN_PIDS = frozenset({os.getpid()})
 
-    def _check_path(path):
-        try:
-            s = os.fspath(path)
-        except TypeError:  # an int fd
-            return
-        if s.startswith("/proc"):
-            raise AssertionError(
-                "guard: a NO_REAL_PROCESSES test read /proc; stub the "
-                "process table, never the live one")
-        if s.endswith(".agi/config.json") and not s.startswith(tmp):
-            raise AssertionError(
-                f"guard: a NO_REAL_PROCESSES test opened the LIVE config {s!r}; "
-                "the live cell belongs to tests/test_live_config_cells.py")
 
-    def _guarded_open(path, *a, **k):
-        _check_path(path)
-        return real_open(path, *a, **k)
+#: Set by a test that loads this conftest BY PATH to unit-test one of its
+#: leaves: the unit load must not install (and then remove) the session-wide
+#: import-time fence under the running suite's feet.
+_UNIT_LOAD_ENV = "AGI_TESTS_CONFTEST_UNIT_LOAD"
 
-    def _refuse_spawn(*a, **k):
-        raise AssertionError(
-            "guard: a NO_REAL_PROCESSES test spawned a process; inject the "
-            "seam (pid list, kill, liveness probe) instead")
+#: This suite's NAME for the one install entry point. The BODY is
+#: `suite_guards.install_import_fence` (the same one the declared context
+#: suite installs at ITS import time); this wrapper carries this suite's
+#: POLICY -- its leaf tuple, its opt-in flag name, its own-pid set -- and
+#: reads `os` from THIS module's globals at CALL time, so an in-process unit
+#: test can point the kill branch at a stub instead of the real os module
+#: (test_conftest_guard's kill-branch rows).
+def _install_spawn_fence(leaves=_FENCED_SPAWN_LEAVES, kills=True, **kwargs):
+    kwargs.setdefault("guard_flag", _GUARD_FLAG)
+    kwargs.setdefault("own_pids", _OWN_PIDS)
+    return install_import_fence(leaves=leaves, kills=kills, os_module=os,
+                                **kwargs)
 
-    def _guarded_kill(pid, sig, *a, **k):
-        if int(pid) not in own:
-            raise AssertionError(
-                f"guard: a NO_REAL_PROCESSES test signalled pid {pid}; only "
-                "its own pid may be signalled")
-        return real_kill(pid, sig, *a, **k)
 
-    def _guarded_scandir(path=".", *a, **k):
-        _check_path(path)
-        return real_scandir(path, *a, **k)
+#: The import-time fence is installed at CONFTEST import, which pytest does
+#: before it imports any test module in this dir: the only ordering that
+#: covers a module that spawns AT IMPORT (measured 2026-09-26 a00-6e17df77 --
+#: both a function-scoped and a session-scoped fixture are too late).
+_IMPORT_FENCE_SAVED = None
+if os.environ.get(_UNIT_LOAD_ENV) != "1":
+    _IMPORT_FENCE_SAVED = _install_spawn_fence()
 
-    def _guarded_listdir(path=".", *a, **k):
-        _check_path(path)
-        return real_listdir(path, *a, **k)
 
-    real_open, real_kill = builtins.open, os.kill
-    real_scandir, real_listdir = os.scandir, os.listdir
-    # builtins.open AND io.open: they are two names, and only io.open is what
-    # Path.read_text/open resolves at call time (the C _io.open never calls
-    # the Python-level os.open, so an os.open hook alone catches nothing).
-    monkeypatch.setattr(builtins, "open", _guarded_open)
-    monkeypatch.setattr(io, "open", _guarded_open)
-    monkeypatch.setattr(os, "scandir", _guarded_scandir)
-    # A directory walk needs BOTH hooks: Path.iterdir/glob/listdir reach
-    # os.listdir, os.walk/scandir callers reach os.scandir.
-    monkeypatch.setattr(os, "listdir", _guarded_listdir)
-    for _name in ("Popen", "run", "call", "check_output"):
-        monkeypatch.setattr(subprocess, _name, _refuse_spawn)
-    monkeypatch.setattr(os, "fork", _refuse_spawn)
-    monkeypatch.setattr(os, "forkpty", _refuse_spawn)
-    monkeypatch.setattr(os, "kill", _guarded_kill)
-    yield
+def pytest_unconfigure(config):
+    """Undo the import-time fence when the session ends: it is installed in
+    the pytest PROCESS, so a suite that embeds pytest must get its stdlib
+    back."""
+    global _IMPORT_FENCE_SAVED  # noqa: PLW0603 -- one install per process
+    if _IMPORT_FENCE_SAVED is not None:
+        _uninstall_spawn_fence(_IMPORT_FENCE_SAVED)
+        _IMPORT_FENCE_SAVED = None
 
 
 @pytest.fixture(autouse=True)

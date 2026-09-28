@@ -3079,6 +3079,156 @@ Most of the plumbing exists: `write.py create`'s spawn gate, `--payload` (links 
 ## Routing
 assigned: director-engine. FIRST of the three graph redesigns (OWNER 01:0xZ 09-27, verbatim: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): the hub-only send is written through write.py, so it builds on this route; spawn/rotate (goal:g7.31.3.3) comes after send.
 
+##### G4.18.1.1 — one row validator + an answers file -- a mint is rows checked against the type schema, stamped from the calling post, no shell-quoted values — status: active
+
+# goal:g4.18.1.1
+
+# goal:g4.18.1.1
+
+## OWNER 2026-09-26 ~23:2xZ, verbatim (the fragment this leaf carries; the whole quote is on goal:g4.18.1)
+"Each row filled out and format checked." / "The mint uses the calling posts info to stamp info appropriately."
+
+## Why this exists
+goal:g4.18.1 -- the one mint route needs ONE validator both of its front doors call; today a mint is a single `write.py create` argv whose `--set` k=v pairs are checked only by the spawn gate at the end, so a wrong row is found after the whole command is typed, and a quote or backtick in any value breaks the shell line (the predecessor dropped an owner quote's apostrophes to get it through).
+
+## Target end-state
+- A mint can be described as an ANSWERS FILE (one row per field: frontmatter fields, parents, body, payload) and minted with one `write.py` call that reads it; no value ever passes through a shell-quoted argv.
+- Every row is validated against `.agi/context/schemas/[<type>].md` (required, regex, types, legal parents) by ONE function, row by row, and a refusal names the row and the rule.
+- Rows the calling post does not choose (actor, role, town, season, thought_session) are stamped from the caller's `config:posts` row, never typed.
+
+## Invariants
+- The same validator backs the answers file AND the captive flow (goal:g4.18.1.2); no second copy of a schema rule in code.
+- A refused mint writes nothing (the spawn gate's contract holds).
+
+## Falsifier
+1. An answers file carrying an owner quote with an apostrophe, a backtick and `$(` mints byte-identically (`write.py ... read body` round-trip), exit 0.
+2. Negative: an answers file with one bad row exits non-zero naming that row, and `git status` shows no new node.
+
+## Out of scope
+goal:g4.18.1.2 (captive flow) · goal:g4.18.1.3 (storage picker) · goal:g4.18.1.4 (location row) · goal:g4.18.1.5 (new version) · goal:g4.18.2 (skills)
+
+## Agent Notes
+Assigned to **director-engine**.
+
+##### G4.18.1.2 — the captive mint flow -- a draft filled one row per call, each row checked by the one validator, no interactive stdin — status: active
+
+# goal:g4.18.1.2
+
+# goal:g4.18.1.2
+
+## OWNER 2026-09-26 ~23:2xZ, verbatim (fragment; whole quote on goal:g4.18.1)
+"Why can't minting just use the write function one step at a time as a captive flow the models follow? Each row filled out and format checked." / "recommending doing it manually one at a time to avoid backtick and quote confusion errors"
+
+## Why this exists
+goal:g4.18.1 -- swarm parents struggled with node creation (goal:g4.18.1 Evidence 09-26); a model composing one long `create` argv makes quoting errors a row-by-row flow cannot make.
+
+## Target end-state
+- A post mints by a DRAFT: one command opens it for a type, then one command per row fills and checks that row (goal:g4.18.1.1's validator), and a final command mints it; each step prints the next row to fill and its legal values.
+- The flow needs no interactive stdin (panes have no operator): every step is a separate, resumable call over the draft file.
+- The draft IS an answers file: a finished draft and a hand-written answers file mint through the same code.
+
+## Invariants
+- No row value is ever taken from a shell-quoted argv position that the model must escape; a value can come from a file or stdin.
+- An abandoned draft mints nothing and blocks nothing.
+
+## Falsifier
+1. A scripted run of the step commands mints a hypothesis whose bytes equal the same mint made from an answers file, exit 0.
+2. Negative: a step that fills a row with a value its schema regex refuses exits non-zero and the draft is unchanged.
+
+## Out of scope
+goal:g4.18.1.1 · goal:g4.18.1.3 · goal:g4.18.1.4 · goal:g4.18.1.5
+
+## Agent Notes
+Assigned to **director-engine**.
+
+##### G4.18.1.3 — the storage picker -- location options derived from config paths cells and schemas, pick + append or custom — status: active
+
+# goal:g4.18.1.3
+
+# goal:g4.18.1.3
+
+## OWNER 2026-09-26 ~23:2xZ, verbatim (fragment; whole quote on goal:g4.18.1)
+"Only needs a template showing where each major storage category is at and have the model pick from options listed during flow for things like extension code, template storage in .geometry, etc. and can add a custom path on top. The template pick in the flow just populates it into the pane verbatim and you can then emit the rest of the pathname before sending submit or just submit."
+
+## Why this exists
+goal:g4.18.1 -- a mint that carries a raw file needs a location, and today a post types that path by hand; the predecessor's reading (b) says the options come from the config paths and the schemas, never a hand list.
+
+## Target end-state
+- The mint flow offers the storage categories (engine code, tests, skills, .geometry config, context templates, ...) as a numbered list DERIVED from `.agi/config.json` `paths.*` cells and the schemas; picking one fills the location row's prefix, and the post may append the rest of the path or submit as is.
+- A custom path outside every category is accepted, flagged as custom.
+
+## Invariants
+- No storage path literal in code: a new category is a config cell, and it appears in the picker with no code change.
+
+## Falsifier
+1. Adding one `paths.<town>.<key>` cell in a temp config makes a new option appear in the picker, with no code edit, exit 0.
+2. Negative: `grep` for a storage-path literal in the picker code = 0 hits.
+
+## Out of scope
+goal:g4.18.1.1 · goal:g4.18.1.2 · goal:g4.18.1.4 · goal:g4.18.1.5
+
+## Agent Notes
+Assigned to **director-engine**.
+
+##### G4.18.1.4 — the location row -- names the raw file; a row change renames it in one commit; a directory move needs an explicit confirm — status: active
+
+# goal:g4.18.1.4
+
+# goal:g4.18.1.4
+
+## OWNER 2026-09-26 ~23:2xZ, verbatim (fragment; whole quote on goal:g4.18.1)
+"And each build node contains a reference to the location of its actual file." / "Then the node automatically gains the file name as well, and the file can be renamed via a node write/mint by using the location row change. It just checks and confirms if you literally ask to move the file to a new location not just a rename."
+
+## Why this exists
+goal:g4.18.1 -- a node's raw file is linked by `payload_ref`, but moving the file is a separate hand `git mv` plus a hand ref edit, so the two drift; the predecessor's reading (c): the location row = the file path, the mint id never changes (G2.5).
+
+## Target end-state
+- A node's location row names its raw file; minting with a location creates the file there and fills the row.
+- Changing the location row by a node write renames the file and updates the row in ONE commit; the mint id and grid history are untouched.
+- A change that moves the file to another DIRECTORY (not a rename in place) is refused unless the write explicitly confirms the move.
+
+## Invariants
+- After any write, the location row resolves to an existing file (links.py reports 0 broken payload refs).
+
+## Falsifier
+1. A location-row rename on a temp build node leaves the file at the new name, the row pointing to it and the mint id equal, in one commit, exit 0.
+2. Negative: a directory move without the confirm refuses and moves nothing.
+
+## Out of scope
+goal:g4.18.1.1 · goal:g4.18.1.2 · goal:g4.18.1.3 · goal:g4.18.1.5
+
+## Agent Notes
+Assigned to **director-engine**.
+
+##### G4.18.1.5 — a new version through the same route -- an answers file naming an existing id writes it in place, same validator — status: active
+
+# goal:g4.18.1.5
+
+# goal:g4.18.1.5
+
+## OWNER 2026-09-26 ~23:2xZ, verbatim (fragment; whole quote on goal:g4.18.1)
+"Then also modifying an existing node with a new version could also use the same shared mint route as a brand new node with a fresh file." / "write is used for both or at least the node part and raw file is just written to disk."
+
+## Why this exists
+goal:g4.18.1 -- a new version is an in-place edit plus `grid.py commit` (G6.3), but it goes through write.py's verb script while a new node goes through `create`: two routes, two sets of checks.
+
+## Target end-state
+- An answers file or draft naming an EXISTING node id writes a new version of it in place through the same validator as a fresh mint; its raw file (if any) is rewritten at its location row.
+- No second node file, no `@v2`, no `supersedes:` pair; the grid carries the history.
+
+## Invariants
+- A version write keeps the mint id and every existing edge.
+
+## Falsifier
+1. Re-minting an existing temp node from an edited answers file changes its bytes in place, keeps its mint_id, and creates no new file, exit 0.
+2. Negative: the same answers file with a row its schema refuses writes nothing.
+
+## Out of scope
+goal:g4.18.1.1 · goal:g4.18.1.2 · goal:g4.18.1.3 · goal:g4.18.1.4
+
+## Agent Notes
+Assigned to **director-engine**.
+
 #### G4.18.2 — SKILLS FOR EVERY ENGINE FLOW + THE DOC TRIM -- one skill per flow (goal creation carries its schema), skill build nodes under this goal, cards list skills instead of rules, wake docs trimmed to a byte budget (assigned: belam) — status: active
 
 # goal:g4.18.2
@@ -8251,6 +8401,11 @@ each row becomes its own round (and its own sub-leaf if it grows) when it is dis
 | 14 | test_f1_rename_mode_strands_the_live_writer_on_a_BOUNDED_archive trunk load flake: freeze the stranded writer across the apply like 569ea9a1b | TMM.241 (1) | DONE 071f2ec15 (test-only; 12/12 under load; red not reproduced -- rare) |
 | 15 | DH.401 successor shape: a slot [P, fence(n)[P, ```...```]] still compounds +1 per rotation -> drop the outer fence + the duplicated P; prove on the successor shape | TMM.241 (2) | LIVE DH.409 a00-f28911bd |
 | 16 | a capture refuses whenever trunk moved (rotate-self skips the bare rotate's origin merge) -- goal:g7.33.15 residue | TMM.241 (3) + DE 17:01Z [red] | DONE DH.408 242dd3475 (registered behind seat merges at the guard; red 3/green) |
+| 17 | model_fence: _cap_from_config KeyError at import when a config lacks the cell (-> cap 0, fail closed) + the refusal names model_slot.py, not 'this suite asserts on bytes' | TMM.256 + TMM.260 (2) | DONE (director, direct; test_model_fence_cap.py red 5/green 6) |
+| 18 | a round's kid cannot fan out pytest past the box's bound -- an ENGINE fence (the suite lock and spawn_budget did not stop DH.419's 127 procs) | TMM.258/260 (1) | DONE DH.421 091808547 (TasksMax on the round scope; peaks sent to TM; the seat-wrap half NOT taken) |
+| 19 | DH.410's first live render (TMM.261): the render INLINES CLAUDE.md (26,597 B + COMMANDS) where the claude-code harness already loads it as project instructions, and prints the role template heading twice (the render's + the node's own) -> 106,144 vs 64,896 chars (+64 pct). Drop the inline CLAUDE.md for a harness that loads it itself; one template heading | TMM.261 | DONE DH.423 e636d7aa9 (director-engine render 62,304 -> 35,589 chars; only CLAUDE.md dropped) |
+| 20 | send.py read prints 'inbox ... empty' while unread dm blocks sit in the raw inbox file with the read marker already past them (TM inbox 02:20:05Z: DE 01:49Z [red] + 02:16Z [rule]), and a dm-file send can skip the nudge (DT 21:37Z [merge-up] never nudged) -> find what advances the marker without printing, and why a dm-file send skips the nudge | TMM.270 (owner in TM's pane 02:28:27Z) | DISPATCHED DH.490 a00-5bde5739 (TMM.271 dispatch now): harvested, 1 red (withheld-block test) -> mur490 + corrective |
+| 21 | the captive AUTO-CAPTURE (rotation_alert.py ~971 -> _force_capture) REPLACES a card's 'Where it stops' slot body AND its BANKED section with its one 'auto-captured at f=...' line -- a successor loses the whole owed list (DT 03:02Z; restored from f76c09619 by 8384aa443) -> a capture keeps the slot + BANKED byte-identical and APPENDS its line; test: a captured card with a multi-line slot + BANKED diffed before/after | TMM.277 | DISPATCHED DH.493 a00-7af19a42 (hypothesis:captive-capture-keeps-the-slot-and-banked-and-appends-its-line, 43447b04e) |
 
 ## Who
 director-engine (engine leaf of g7.33). Model-free rounds; one row per round.
@@ -8278,6 +8433,86 @@ WORLD-AFTER: every box that runs seats carries the SAME memory-watch stack, size
 SIZING, per box: user@ MemoryMax = MemTotal - every budget held outside user@ (container caps; the stream when it runs outside user@) - the box's MEASURED system reserve (local-town ~1.9 GiB; encryption-town 942 MiB, its 09-25 install) · MemoryHigh = 0.9 x MemoryMax · MemorySwapMax = 0.5 x swap · agi.slice MemoryHigh / MemoryMax = 0.63 / 0.70 x user@ MemoryMax (local-town's ratios).
 
 ENCRYPTION-TOWN, audited 21:5xZ 09-26 by its sanctuary session (read-only): user@ 6220 / 6912 · oomd · slices · agi.slice 4354 / 4838 · watchdog PRESENT, ratio-sized on a 942 MiB reserve (7854 MiB RAM, nothing held outside user@) · MISSING agi-memguard, the memory_alarm cron, OOMPolicy=continue (claude-remote-control on stop), and the engine half (spawn.memory_max 6G; no model_fence.py; a 0-arg mem_cap probe on core/main b7bf08187) -> the exact bytes went to that session for the owner's go. ACCEPTANCE: one idempotent installer (dry-run by default; records every before-value; restores them on failure; sudo only for the system pieces) + one read-back probe that prints this table for the box it runs on -- green on local-town AND on encryption-town, the latter run by that box's own seat.
+
+##### G7.33.18.1 — the memory-watch stack as repo TEMPLATES -- every live piece, sized values as placeholders, paths as config cells, anonymize-clean (assigned: director-engine) — status: active
+
+# goal:g7.33.18.1
+
+# goal:g7.33.18.1
+
+WORLD-AFTER: every box-level piece of local-town's memory-watch stack (goal:g7.33.18's table: the user@ / oomd / slice drop-ins, agi.slice, agi-memguard.py + its unit, the 10-agi-survival no-cascade drop-ins, watchdog.conf + sanctuary-health) lives in the repo as a TEMPLATE whose sized values are placeholders and whose paths come from config cells (paths.*), never literals; the copied bytes pass `anonymize.py check` (a host name / address inside a script becomes a config cell).
+
+ACCEPTANCE: one template per live piece, byte-equal to the live file once rendered with local-town's measured values (a committed test renders each against a fixture of the live values and diffs); no template carries a literal path, host, address or hardware name; anonymize clean.
+
+##### G7.33.18.2 — ONE idempotent installer -- dry-run by default, sized from the box's MemTotal/swap, every before-value recorded and restored on failure (assigned: director-engine) — status: active
+
+# goal:g7.33.18.2
+
+# goal:g7.33.18.2
+
+WORLD-AFTER: ONE idempotent installer renders goal:g7.33.18.1's templates sized by goal:g7.33.18's SIZING from the box's own MemTotal/swap, and installs them: DRY-RUN BY DEFAULT (prints the plan: path, before-value, after-value), records every before-value, restores them all on any failure, needs sudo only for the system pieces, and a second run changes nothing.
+
+ACCEPTANCE: in a tmp-root fixture (never the live box): dry-run writes nothing; a real run against the tmp root writes every piece; a second run is a no-op; an injected failure mid-install restores every before-value byte-for-byte; the sizing rows reproduce local-town's measured numbers from its MemTotal/swap.
+
+##### G7.33.18.3 — ONE read-only read-back probe -- prints g7.33.18's table for the box it runs on, ok/drift per row (assigned: director-engine) — status: active
+
+# goal:g7.33.18.3
+
+# goal:g7.33.18.3
+
+WORLD-AFTER: ONE read-only read-back probe prints goal:g7.33.18's table (layer · the value on THIS box · the value SIZING wants · ok/drift) for the box it runs on, from the box's own files and `systemctl show` reads -- no write, no sudo, no unit change.
+
+ACCEPTANCE: a committed test drives it over a tmp-root fixture + a stubbed `systemctl show` and gets the table; run read-only on local-town it prints every row with no drift against the measured values; exits non-zero on any drift, naming the row.
+
+#### G7.33.19 — ENGINE FINDINGS FROM director-engine ROUNDS -- the 16 ex-card g15 lines (g15 retired) held as rows until DONE, VOID or MOVED; each row its own sub-leaf when dispatched (OWNER 09-27 03:3xZ) — status: active
+
+# goal:g7.33.19
+
+## OWNER 2026-09-27 03:3xZ, verbatim (in director-engine's pane)
+"Also g15 lines belong in a new goal g15 is retired. And they could potentially be moved under a relevant new goal themselves. Contact prime if you have issues doing the changes."
+
+## Why this exists
+**Parent `goal:g7.33`** (engine fixes surfaced by the town, each a pi round of its own, run by the engine director). director-engine's card carried 16 engine findings as "g15" lines -- a retired id (g15 -> g20 -> goal:g1, skill agi-goal §5), on a card, which is not a tracker. They are held HERE, one row each, the goal:g7.33.17 pattern: a row becomes its own sub-leaf (or moves under the goal it fits) when it is dispatched.
+
+## Target end-state -- every row DONE (sha) · VOID (reason) · MOVED (goal id)
+| # | finding (measured) | source | state 09-27 |
+|---|---|---|---|
+| 1 | concurrent merge-up-review runs mint ONE run key: `_existing_run_keys` sees only finished rows, so live murs overwrite each other's key (mur-director-engine-3 x2, -4 x3, -5 x3, -8 x3, -14 x7) | DE rounds 09-26/27 | OWED |
+| 2 | a kid gets an EMPTY `.git` (no refs): an order to "merge the loop branch first" can never run -- 437/438/442/443 built on the wrong base | DH.437-443 | OWED (workaround in skill agi-dispatch §2: cut correctives from the loop tip) |
+| 3 | dms "iter=iter-001 agent=... reason=death" reached a live inbox with no agent record: likely a kid TEST writing the live inbox | DE inbox 09-26 23:01Z | OWED (find the test) |
+| 4 | a parent's harvest line is blind to kids registered via `--owns` (DH.454 kids=[] while 2 ran) and to its own demotes (DH.460 demoted=0 vs a00-fcb5f3fb lean_disproved:70) | DH.454, DH.460 | OWED |
+| 5 | `cli.py done` writes node rows with NO actor in the write-log | DH.459 rows 16-17 | OWED |
+| 6 | ~12 engine readers hard-code `<graph>/context/schemas`; only cli + spawn_gate read the cell `paths.core.schemas_dir` | mur-9 DH.455 | OWED (an engine-wide migration) |
+| 7 | the mur verify stage times out at 3600 s under load (loadavg 10-12 / 16 cores) | DH.450, 467, 469 | OWED (smaller slices or the timeout cell) |
+| 8 | the mur verify stage can return its JSON inside `unstructured`: the verdict parses only by hand | DH.466 mur-11 | OWED |
+| 9 | rotation-alert reports 'capture-chain step FAILED: rotate-self rc=1' AFTER the successor seated | 09-27 01:2xZ; recurred 13:2xZ at the director-engine wake as rc=3 (record `started`, seat live) | OWED |
+| 10 | `cli._claim_conjunct_numbers` unions testable_claim with every (n) in the body: quoted review prose inflates the conjunct count | mur-10 DH.465 | DISPATCHED DH.492 (hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only) |
+| 11 | after_join output delivered twice (pane input + a self-signed inbox dm) | 09-27 01:27Z | OWED |
+| 12 | a dispatch stale-base refusal prints the JSON then 'aimed: 1 slot' with no spawn -- reads as success | DE dispatches 09-26 | OWED |
+| 13 | a parent can harvest and exit leaving its kid's (DH.486, 488, 495) or its own (DH.489) node edits UNCOMMITTED; recurred 09-27 13:3x-14:1xZ in 3 of 5 harvests (DH.533 config cell, DH.544 x3 nodes, DH.543 x4 nodes -- every byte == write-log, landed by the director) | DH.486-495 | OWED (director lands logged bytes, TMM.268; skill agi-dispatch §5) |
+| 14 | a parent's harvest dm can be lost (DH.429 finished, no inbox line) | DH.429 | OWED |
+| 15 | write.py `thought` rewrites the FIRST THOUGHT pair anywhere, a QUOTED pair included (node_writer.py `_THOUGHT_RE`); same regex in snapshot-goals.py, metrics.py, brief.py | mur-13 DH.481, mur-14 DH.486 | DISPATCHED DH.487 (hypothesis:thought-verb-edits-only-the-top-level-thought-block) |
+| 16 | the reaper skips REFUSED rounds (R3b) | mur-12 DH.470 | OWED |
+| 17 | parents ignore the round CEILING: DH.479, 504, 510 spawned 3-4 kids vs a 1-kid ceiling; DH.497, 506, 510 shipped 2-3x the production-line cap (108 vs 45, 79 net vs 36, +100 vs 40) -- the ceiling is prose the parent reads, never a fence (and spawn_budget._ceiling_clause reads nothing when the number sits on the next line, mur-15 DH.493); DH.533 (09-27 13:3xZ): ~240 test lines in TWO new files vs <= 100 in one; DH.537 tests +113 vs <= 50; DH.534 cli.py net +84 over the post branch vs <= 30 (the kid measured +30 against its own base, which already carried +54 -- a CEILING written relative to the post branch is misread against the round base); DH.542 send.py net +38 vs <= 15; tests over cap in DH.540 (~121/80), 550 (125/40), 551 (93/40), 554 (65/40), 555 (54/40) | DE rounds 09-27 | OWED |
+| 18 | a stale `index.lock` in a round worktree makes the parent's commit fail and the parent exits SILENT (DH.503: lock 04:01:16Z, 0 bytes, no holder; kid work left uncommitted and unreviewed); 4 more kid worktrees held one at 04:24Z | DH.503 | DISPATCHED DH.532 (hypothesis:a-stale-index-lock-is-cleared-or-named-and-a-failed-round-commit-is-never-silent) |
+| 19 | two concurrent `workflow.py run merge-up-review` launches got the SAME run key: mur511 (05:24:37Z) and murb1 (05:36Z) both print `[run-key] mur-director-engine-19` and write into one run dir -- labels differed so no verdict was lost, but run-level state is shared; the key allocation is not atomic; recurred 13:2xZ: murq (13:20:51Z) and murq8 (13:2xZ) both mur-director-engine-21 (labels differed, no clash) -- fix = DH.531, under review | director-engine 05:4xZ, /tmp logs of both units; again x8 on mur-20 | DISPATCHED DH.531 (hypothesis:a-run-key-is-reserved-atomically-so-concurrent-runs-never-share-one) |
+| 20 | `replace body` traps: (a) no END keyword (`read body 1:END` refuses; skill agi-node-write said `1:END`, fixed 75b57c221); (b) the paragraph guard counts a trailing THOUGHT block into the LAST section, so a range starting at that section's heading must run through THOUGHT:END (DH.524 refused at 28:29, section end 33); a paragraph-only range passes | director-engine 05:2x-05:5xZ (DH.520, DH.522, DH.524 appends) | OWED (b); DONE (a) in the skill |
+| 21 | a parent exits leaving a kid node edit whose bytes DIFFER from its last write-log sha (DH.521: experiment:a00-9086ec16-e5b481, actor a00-b0bf124f row 2) -- unlandable by TMM.268, so the corrective item it carried stays open with nothing to say why; recurred DH.555 (14:5xZ): experiment:a00-b0bf124f-4b8eb4 dirty in the parent worktree, no write-log match -> not landed | DH.521 harvest 05:5xZ | OWED |
+| 22 | a context test OOMs its runner: test_model_load_guard.py::test_standins_never_leak_into_a_later_module (R4, a child pytest) exhausts memory on the unfixed model-fence tree -- killed the DH.535 parent's 2G scope at 95 s (13:24:45Z); reproduced by the director in a 1G scope, the other 14 tests of the file finish in ~1 s; the DH.536 fence (deselect + ulimit -v) did NOT hold: ulimit -v is per process, and the child pytest tree still OOM-killed kid a00-a65c6da4 (13:32:31Z) and parent a00-e2277e4b ; then DH.539 kid a00-c6290fe1 (13:41:02Z): it ran pytest from inside the osc dir, where the director's repo-root --deselect path matched nothing -- 4 agents lost; a deselect in orders must be -k (cwd-independent); the defect itself is unowned | DH.535 death 13:2xZ | OWED |
+| 23 | the rotation-alert hold lead-in names a merge-up in EVERY hold arm: the clause lives in the shared template extensions/agi/templates/rotation_alert/defer_prefix.md:1 (byte-pinned by test_prose_templates.py:23), used at rotation_alert.py:969 (suite-lock), :1156 (merge), :1594 (generic hold), :1604 (capture failed) -- a per-arm lead-in needs a template edit + re-pin, not a branch arm | mur-23 DH.515-k1 (verify missed 1) | OWED |
+
+## Invariants
+- A finding lives in exactly one place: a row here, or the node a row MOVED to -- never a card line or a retired goal id.
+
+## Falsifier
+1. Every row's state cell reads DONE <sha> · VOID <reason> · MOVED <goal id>: `grep -cE '\| (OWED|DISPATCHED)' ` over this node = 0.
+2. Negative: `grep -c 'g15' ` over doc:card-director-engine = 0.
+
+## Out of scope
+goal:g7.33.17 (the 09-25 queue) · goal:g7.33.15 · goal:g7.33.16 · goal:g7.33.18
+
+## Agent Notes
+Assigned to **director-engine**.
 
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 

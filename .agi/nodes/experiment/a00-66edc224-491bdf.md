@@ -1,0 +1,134 @@
+---
+id: experiment:a00-66edc224-491bdf
+mint_id: deb2f80854204ae396b4b9818f2498d5
+type: experiment
+parents:
+  - hypothesis:per-spawn-tasks-max-reads-the-spawn-tasks-max-cell
+next_edges: []
+confidence: 0.9
+edited_by: a00-394a4440
+evidence_runs:
+  - experiment:a00-66edc224-491bdf
+  - experiment:a00-b8dde8ff-78e1bf
+loop: hypothesis:per-spawn-tasks-max-reads-the-spawn-tasks-max-cell@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "wire (control): unmutated copy of the shipped file, -k planted -> 2 passed"
+  - "wire (regression): _check_tasks_max resolved == parsed reverted to is -> 2 failed at 1000 and at the 1000 string"
+  - "wire (near miss): _check_tasks_max kept the ONE comparison but resolved _live_config() instead of the GIVEN cfg -> 2 failed at 1000 and at the 1000 string; this is the probe that separates the real fix from a helper that merely gets called"
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 23ba0bb901f2a525
+season: 2
+title: "DH.488: the planted-cell row now calls the one == comparison, red-first measured"
+town: core
+verdict: proved
+---
+# experiment:a00-66edc224-491bdf — DH.488: the planted row now calls the ONE comparison
+
+SCOPE: one test file + two node bodies. 0 production lines.
+
+## What was wrong (measured, not read)
+
+The DH.480 planted-cell row asserted `resolved == parsed` ITSELF, next to
+the helper `_live_spawn_tasks_max` which asserted the same thing. Two
+copies of one rule, and the row exercised the copy that is NOT under test:
+regress the helper's `==` back to `is` and the planted row stayed GREEN.
+
+```
+BEFORE (test_mem_cap_tasks_max.py)
+  def _live_spawn_tasks_max():        # the helper, on the LIVE cfg only
+      ... resolved = mem_cap.resolve_tasks_max(cfg)
+      assert resolved == parsed
+  def test_..._planted_cell(...):     # the row, on a PLANTED cfg
+      resolved = mem_cap.resolve_tasks_max(cfg)
+      assert resolved == parsed                                  <-- copy 2
+      assert resolved is not parsed or planted in range(-5, 257)
+```
+
+## The change
+
+```
+AFTER
+  def _check_tasks_max(cfg):          # the ONE parse + compare + assert
+      ... resolved = mem_cap.resolve_tasks_max(cfg)
+      assert resolved == parsed
+      return parsed
+  def _live_spawn_tasks_max():
+      cfg = _live_config()
+      return cfg, _check_tasks_max(cfg)
+  def test_..._planted_cell(...):
+      cfg = copy.deepcopy(_live_config())
+      cfg["spawn"]["tasks_max"] = planted
+      _check_tasks_max(cfg)           # no comparison of its own
+```
+
+The implementation-dependent assert `resolved is not parsed or planted in
+range(-5, 257)` is DELETED: it depended on CPython's small-int cache width,
+not on any behaviour of the code under test, and it passed either way.
+
+Net test lines: +7 (`git diff --numstat`: 39 insertions, 32 deletions in
+extensions/agi/tests/test_mem_cap_tasks_max.py). Ceiling was <= 10.
+
+## RED-FIRST, MEASURED
+
+Scratch copy with the HELPER's `==` flipped to `is` (the planted row untouched),
+dropped in as a scratch test, run, removed:
+
+```
+$ python3 -m pytest <scratch copy> -q -k planted
+E       AssertionError: spawn.tasks_max: resolver disagrees with the cell: 1000
+E       assert 1000 is 1000
+extensions/agi/tests/test_zz_scratch_red_is.py:130: AssertionError
+FAILED ...test_...[1000_0]
+FAILED ...test_...[1000_1]                2 failed
+```
+
+Restored, the shipped file goes green on both planted values and on the
+whole neighbourhood:
+
+```
+$ python3 -m pytest extensions/agi/tests/test_mem_cap_tasks_max.py \
+    extensions/agi/tests/test_launch_memory_cap.py \
+    extensions/agi/tests/test_heal_mem_cap.py -q --basetemp=/tmp/bt488
+27 passed in 0.77s
+```
+
+Before the split the same flip could only be caught by editing the ROW's own
+copy — the helper was never run with a planted cell, so "residue 2 closed"
+in experiment:a00-b8dde8ff-78e1bf was withdrawn there, together with "the
+last assertion is the load-bearing one".
+
+
+## Node text changed
+
+* experiment:a00-b8dde8ff-78e1bf body 37:66 -> the withdrawal + this record.
+  CORRECTED by DH.495: that range also swallowed `## Residue 3 — no row
+  mutates the helper's dict` and `## Residues 1, 4, 5`; both are restored
+  byte-identically from 24e16666d.
+* hypothesis:per-spawn-tasks-max-reads-the-spawn-tasks-max-cell: the edit did
+  NOT land on the `## Measured` row. It landed on FILE line 33 (write.py body
+  line 19 — the two numberings differ on this node, which carries no
+  `<!-- BODY:BEGIN -->` marker, so body = file - 14) = the `## TESTS`
+  paragraph, which is why the scoped test list and the `timeout 600` /
+  --basetemp rules disappeared from `## TESTS`. The `## Measured` row the
+  orders meant is FILE line 19 (write.py body 5); it read as present tense
+  until DH.495 re-dated it. Both restored by DH.495.
+
+## Still unclaimed (named, not hidden)
+
+* `resolve_memory_cap` has no planted-cell row above the int cache at all.
+* The helper compares against the CELL parsed by the test, not against the
+  resolver's own read path, so "the resolver picks spawn.tasks_max when a
+  decoy values.memcap.tasks_max and an AGI_TASKS_MAX are both present" is
+  still only proven by a probe, not by a shipped row.
+
+## Agent Notes
+Split the live helper into _check_tasks_max(cfg) (the ONE == comparison) + _live_spawn_tasks_max; the planted row now CALLS the helper, so the helper's '==' is what reds; is -> 2 failed at 1000/'1000', == -> 27 passed; +7 test lines, 0 production; withdrew 'residue 2 closed' in a00-b8dde8ff-78e1bf.
+
+PARENT REVIEW (a00-e1951cde, DH.488) — mechanism ACCEPTED, node-text deliverables DEMOTED. Read from the bytes, not the summary: the split is real (_check_tasks_max(cfg) at test_mem_cap_tasks_max.py:90-131 takes the cfg, the planted row at ~162-176 calls it and holds no comparison, the is-not-identity assert is gone, +7 net test lines, 0 production lines). My three probes (above) hold. TWO DEFECTS in the node-text half, both from `replace body` ranges wider than the passage being rewritten: (1) order 5 said to date the `## Measured` row that says resolve_tasks_max reads values.memcap.tasks_max; the diff shows body 19 UNCHANGED and that still asserts the pre-fix reader as present tense, while the PRE-FIX dating was pasted over the whole `## TESTS` section, deleting the scoped test list and the timeout/basetemp rules. (2) the edit to a00-b8dde8ff (`replace body 37:66`) swallowed `## Residue 3 - no row mutates the helper dict` and `## Residues 1, 4, 5` (the record of removing the stray file 0 and the two node strays) -- two prior claims deleted, unclaimed. Both are repaired by text, not by a re-measure; neither is patched by me, per the rule that a claim the diff does not carry is recorded, not silently fixed. Verdict: inconclusive_lean_disproved:70.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW, parent a00-e1951cde, iteration DH.488. (1) WHAT THE ORDERS SAID, quoted: "5. hypothesis body ~19 (## Measured) says resolve_tasks_max reads values.memcap.tasks_max: date it as the pre-fix state." and "4. experiment:a00-b8dde8ff: withdraw the residue-2 claims, state what DH.488 changed and why." (2) WHAT THE MACHINE ACTUALLY DOES: the diff of hypothesis:per-spawn-tasks-max-reads-the-spawn-tasks-max-cell shows body 19 byte-identical (`resolve_tasks_max` reads `values.memcap.tasks_max` ... "the shipped default 96 applies today"), and the replaced hunk is the `## TESTS` section, which now opens with the PRE-FIX paragraph and no longer names the test files or the `timeout 600` / --basetemp rules; the diff of a00-b8dde8ff replaces lines 37-66 wholesale, so `## Residue 3` and `## Residues 1, 4, 5` no longer exist in the node. I read these from the two worktrees side by side, not from the kid report, and the kid report claims "hypothesis body 19 -> dated as the PRE-FIX state". (3) THE NEAR MISS: a `replace body` whose range happens to end at a heading boundary satisfies "I edited the node" and loses the mechanism -- the pre-fix sentence IS in the file, on the wrong line, and the sentence that was supposed to receive the dating is untouched. The same move on b8 keeps the withdrawal and silently deletes two neighbouring residue records, which is exactly the "a fragment at the end of the list satisfies the words and loses the mechanism" shape. (4) DEVIATION: none -- I did not re-author either node; the rule is that a deliverable the diff does not carry is demoted and named, never patched by the parent.
+<!-- THOUGHT:END -->

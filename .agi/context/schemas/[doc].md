@@ -4,7 +4,7 @@ name: doc
 # -- a round's `cli.py done` commit may not sweep the `doc:unified-*` family
 # (the `never_node_ids` half of the round-commit policy). Committed bytes, not
 # .agi/config.json: see cli.py `_round_committable`.
-round_commit: {never_node_ids: [doc:unified-]}
+round_commit: {never_node_ids: [doc:unified-, doc:card-]}
 fields:
   title: {type: str}
   link_ref: {type: str}           # path of the design doc this node IS, relative to `location`; absent = body-is-data (goals-preamble)
