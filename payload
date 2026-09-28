@@ -1119,35 +1119,6 @@ goal:g4.20.1 (one harness source) · goal:g1.26 (PASS 10 residues).
 ## Agent Notes
 Assigned to **director-engine**.
 
-### G1.28 — PASS 12 residues -- 5 engine defects (write-path schema gate, stdlib spawn fence, heal worktree literal, gate source round-committable, the unmerged seat wrap) + the node/doc batch (assigned: director-engine) — status: active
-
-# goal:g1.28
-
-## Why this exists
-goal:g1: PASS 12 (OWNER 00:0xZ 09-28: DE merged up its whole post branch, TM landed it, the Prime passes over it) reviewed the trunk @72d8d565ce against BASE 707d8dbbea on pi-free, 0 USD: 25 rounds (21 hypothesis rounds over 18 hypotheses + 4 engine-delta over 45 files), 13 chunks + 6 serial retries. Verdicts: 23 accept_with_residue, 2 demote, 0 RED; merged into season2/main at 774e0b912. The verify stages upheld 153 residue items; 5 are engine defects, the rest node or doc text.
-
-## Target end-state
-- Every write path through write.py (create, the Edit API path, node_writer.update_node callers) runs the same schema gate as the set verb, and a seat-row write failure is loud.
-- The suite spawn fence covers every stdlib spawn leaf (os.popen, os.spawn*), not only subprocess.
-- heal.py resolves a seat worktree path from the config cell, never a literal.
-- A round's done commit can never sweep the gate's own source file.
-- hypothesis:a00-955a27ff-64bc5a either carries the seat wrap it claims (rotate.py) with a test that never reaches a real systemd unit, or its verdict is withdrawn.
-- Every node-text residue in the batch is fixed at its cited line or answered on its node.
-
-## Invariants
-- A residue is closed by a reviewed round, never by a note.
-- No fix reaches a real systemd unit, tmux server or crontab from a test.
-
-## Falsifier
-1. Each child hypothesis's named tests pass on the trunk, and `git grep -n "_FENCED_SPAWN_LEAVES" extensions/agi/bin/suite_guards.py` shows os.popen in the tuple.
-2. Negative: `write.py create` of a node with an out-of-regex field is refused (exit != 0), as `set` is.
-
-## Out of scope
-goal:g1.27 (PASS 11 residues) · goal:g1.26 (PASS 10 residues) · goal:g4.18.1 (the one mint route redesign).
-
-## Agent Notes
-Assigned to **director-engine**.
-
 ### G2.1 — Level 3 first: code nodes that stitch back into a running tree — status: horizon
 
 **Build level 3 before any other level.** It is the one that makes the graph an
@@ -8147,10 +8118,6 @@ assigned: director-engine, with the send hub-only work.
 "Okay I was thinking of simplifying send to only use the hub route. Send automatically pushes a single dm push to the correct dm file on-chain, as a new dm file node version, always "overwriting" the existing dm file with a fresh version and setting the read row to false. Then every box with an active post has a cron that runs every 30 seconds to sync DM files only directly for the active posts on that box. Nudge only fires as part dm file sync, matter of fact the nudge script can be the local box sync script activated by the cron. No separate inbox system. Reading inbox is reading the dm file and setting the read row to true and pushing that back to remote. Other seats then get read status via graph on their next 30s cron.
 
 So send calls write.py, and nudge calls both write.py and read.py. All DMs across all boxes local. Or not share the 30 second delay which is useful for sending corrections anyway. Can fine tune the delay via config to see how different values perform. I guess cron can just check all active seats across all boxes on every box for now to keep it simpler. It's a cheap call at our current roster size."
-
-## OWNER 2026-09-28 06:5xZ (belam's pane), verbatim -- concurrent sends lose one
-"Btw DE had parents message completion so your DM may have been swallowed. That may be the issue. Parents and you sending DMs around the same time causes one to get lost."
-Measured by belam 06:3xZ from `.agi/sessions/inbox/director-engine.md` + `send.py status director-engine`: 06:22:42 / 06:22:50 / 06:23:20 three parent completion dms · 06:23:24 belam (read marker after it) · 06:27:44 belam [rule] dm: NO read marker after it and NO nudge (status marker=407s = last nudge ~06:24, pending=0) · 06:28:12 parent a00-1e3fe297. Earlier the same morning: two belam inbox sends (05:2xZ) both landed `pending=0` and `send.py wake` refused with nothing-pending while the block sat unread. The file keeps every block; what is lost is the NUDGE (pending counter / marker), so the reader never looks.
 
 ## The design, one line per part (the Prime's reading; the owner's words win -- 20:3xZ above, 20:4xZ + 20:5xZ in the notes)
 1. send = write.py: ONE commit + push per dm -- a new version of the pairwise dm file node, its read row = false.
