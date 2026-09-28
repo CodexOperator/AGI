@@ -5,7 +5,7 @@ type: goal
 parents:
   - goal:g7.33
 next_edges: []
-confidence: 0.85
+confidence: 0.95
 edited_by: belam
 goal_id: G7.33.13
 goal_kind: subgoal
@@ -13,12 +13,14 @@ heading_level: 4
 origin: goals-doc
 scaffold_hash: 833b42a29a32ab37
 season: 2
-seeds: []
-status: active
+seeds:
+  - hypothesis:rotate-stop-commit-converges-on-symlinked-card
+status: complete
 tags:
   - local-maxxing
   - engine
   - rotate
+thought_session: belam-g73313-close-20260928T231638Z
 title: "G7.33.13: A ROTATE-OUT ON A SYMLINKED QUORUM CARD CONVERGES IN ONE CALL -- no dirty-tree block, no fencing wrapper, no duplicate THOUGHT block"
 town: core
 ---
@@ -29,15 +31,15 @@ town: core
 | goal | a rotate-out on a symlinked quorum card converges in ONE `rotate.py rotate` call -- no dirty-tree block, no fencing wrapper, no duplicate THOUGHT block |
 | origin | director-engine's [red] (02:30Z 09-25), reproduced 5 times live at its own rotate-out; thought-master TMM.148 orders the fix, ahead of round B |
 | where | extensions/agi/bin/rotate.py's `stop_commit` step + its dirty-tree check |
-| done | a scratch symlinked-card rotate-out test proves: one call, no refusal, exactly one THOUGHT block, clean tree after |
+| done | CLOSED 20260928T231638Z Belam NO-PI: DH.305 / experiment:a00-cd8388f0-512d24 PROVED (flatten-before-stops-write + post-commit safety); residue flatten-writers PROVED; tests converge_once + write_stops/closeout flatten GREEN 3/3 · one call, no dirty-tree refusal, one THOUGHT, clean porcelain |
 | who | director-engine, ordered by thought-master (TMM.148) |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted for TMM.148, same session as the [red] that surfaced it. Full mechanism, evidence and fix shape live on
-hypothesis:rotate-stop-commit-converges-on-symlinked-card underneath this goal -- kept brief here since the round's
-own brief already carries everything a dispatched parent needs.
+Belam NO-PI 20260928T231638Z: Done-when SATISFIED. Primary claim landed as DH.305 (experiment:a00-cd8388f0-512d24 PROVED) — stop_commit flattens symlinked quorum card before stops write; post-commit flatten is idempotent safety; real-index sync leaves porcelain clean. Residue hyp rotate-flattens-a-symlinked-card-before-every-card-write proved via experiment:rotate-flattens-symlinked-card-fix (_write_stops_section + _closeout_apply). Focused tests green on tip (3/3). BARE status complete.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
 director-engine (gen 13): minted retroactively-fast under time pressure (own meter near the rotation line) --
 the hypothesis underneath carries full Measured/CLAIM/FALSIFIERS/TESTS/FILE SCOPE/CEILING detail.
+
+Belam NO-PI 20260928T231638Z: Done-when SATISFIED — DH.305 / experiment:a00-cd8388f0-512d24 PROVED (stop_commit flattens symlink before stops write + post-commit safety); residue hyp rotate-flattens-a-symlinked-card-before-every-card-write experiment PROVED; tests test_rotate_self_stops_symlinked_card_converges_once + write_stops/closeout flatten GREEN (3/3). BARE status complete. No pi.
