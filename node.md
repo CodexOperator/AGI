@@ -84,7 +84,7 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over b1f3ac729 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Item 7 becomes round EG.31 (TMM.318 owed list, verbatim: "Item 7 config-max round (AGI_TASKS_MAX cell)"). Director choice RETIRE over DECLARE: the value already has its cell (spawn.tasks_max, mem_cap.py resolve_tasks_max), and the hook is a second source that dispatch.scrubbed_env passes into every spawn, so an ambient env silently outranks the owner's 150. A cell for the hook would be a knob for a knob. Near miss: the docstring warns that retiring the hook strands the probe DRIFT row (test_boxkit_probe.py:558-565) -- a non-numeric cell drives the same DRIFT through the resolver's own fallback (probe.py:280, want != resolved), so the row keeps a committed driver. TM gates the merge-up and may overrule to DECLARE.
+corrective EG.15: mur-eg-4 EG.10-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
 
 ## Agent Notes
@@ -121,19 +121,6 @@ $ git diff --name-only bf2430484 3722d71e4 -- .agi/nodes/experiment | wc -l
 
 RECORDED RESIDUE, ACCEPTED (thought-master TMM.315 02:11Z 09-28, verbatim: "EG.1 ruling = (a) ACCEPT the breach as recorded ... the breach stays on the node as a RECORDED residue (kids 3 vs 1, test lines vs 30), not a rewritten ceiling"). The EG.1 round ALONE, `git diff --numstat bf2430484 4d2c43ea5 -- extensions` = probe.py 7/1 (prod +6 net), test_boxkit_probe.py 49/3 (test +46 net vs 30); the WHOLE chain (EG.1+EG.10+EG.15) is the numstat above: prod +23 net, test +51 net. No further ceiling correctives. CLOSED by 6d78c51bf (TMM.316 return; the director on the owner's order 03:3xZ; was: carried to the Item 7 round, mur-eg-8 EG.15-k2 missed item 1): mem_cap.py:89-90 docstring says AGI_TASKS_MAX is read by whichever process calls it, not exported into a spawned scope -- false per dispatch.py:337; Item 7 rewrites that reader and its docstring together. Anchors: cite `git show 3722d71e4:<path>` line numbers only, never a worktree HEAD.
 
-### Item 7 -- the AGI_TASKS_MAX env hook has NO config cell (config-max debt; round EG.31 below retires the hook)
+### Item 7 -- the AGI_TASKS_MAX env hook has NO config cell (OPEN, config-max debt)
 
 `AGI_TASKS_MAX` is a production input to two callers -- the argv-building parent (`mem_cap.wrap_argv` -> `--property=TasksMax=`) and the boxkit probe (boxkit/probe.py:280, in the probe's OWN process) -- yet it has no cell in .agi/config.json and no config:max clause in the Dispatch line above, which names only `spawn.tasks_max`. A value production reads with no cell and no template is exactly what config-max exists to end, so this is recorded as debt for the director: either declare a cell for it or retire the hook. NOT fixed here -- .agi/config.json is outside this round's FILE SCOPE, and an agent does not add box cells. The engine-side half (the docstring naming the probe as a second production reader) IS fixed, at mem_cap.py.
-
-## ROUND EG.31 -- Item 7 closed by RETIRING the AGI_TASKS_MAX hook (thought-master TMM.318: "Item 7 config-max round (AGI_TASKS_MAX cell)")
-BASE       CUT FROM the post branch tip (carries the landed EG.1 chain 57debf3a2 + 6d78c51bf). Never rebase.
-DECISION   (director) the value already HAS its cell, spawn.tasks_max; the env hook is a SECOND source that an inherited environment carries into every spawn (dispatch.scrubbed_env). ONE source per rule: retire the hook, the cell is the only knob. No new cell, never write .agi/config.json.
-CLAIM      `resolve_tasks_max(cfg)` reads ONLY `spawn.tasks_max` (absent/non-numeric/<1 -> 96); `git grep -n AGI_TASKS_MAX extensions/agi/bin extensions/agi/boxkit` returns nothing; the probe's spawn.tasks_max DRIFT row is still driven by a committed test -- through a cell the resolver cannot read (e.g. spawn.tasks_max = "abc": want "abc", resolved 96 -> DRIFT), never an env var.
-Dispatch line  config-max: spawn.tasks_max is the one cell (read it, never write config.json) · template-max: none · code: mem_cap.resolve_tasks_max drops its os.environ read + its docstring's hook paragraph
-FALSIFIERS `git grep -n AGI_TASKS_MAX extensions/agi/bin extensions/agi/boxkit` hits a line · with AGI_TASKS_MAX=5 set and spawn.tasks_max=150, resolve_tasks_max != 150 · the DRIFT row test no longer fails when its driver is removed (paste the probe row it asserts)
-TESTS      test_mem_cap_tasks_max.py + test_boxkit_probe.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE extensions/agi/bin/mem_cap.py (resolve_tasks_max + its docstring ONLY) · extensions/agi/tests/test_mem_cap_tasks_max.py · extensions/agi/tests/test_boxkit_probe.py (the AGI_TASKS_MAX rows ONLY, :558-565 at 57debf3a2) · this hypothesis node (write.py) · the kid's own node
-OUTSIDE    an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-CEILING    HARD CAP: 1 kid · <= 12 production lines net · <= 30 test lines net · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE against the CUT tip, never HEAD: paste `git diff --numstat <cut> <final>` on your node (an empty range is not a measurement)
-ANON       no user name, home or repo path value, host, IP or hardware name; patterns write <user>
-PARENT     paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
