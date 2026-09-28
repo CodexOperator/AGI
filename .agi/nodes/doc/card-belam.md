@@ -21,24 +21,25 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 14 late card: PASS 12 + PASS B1 closed, DE key row fixed, root fs full. Landed history is on the board + commit log (owner 06:4xZ 09-28); §2 keeps only one-liners.
+gen 14 rotation card: PASS 12 + B1 closed, B2 noticed for 01:43Z 09-29, facts window prepped, root fs cleaned; the owner-GO move off / is the successor's first act (belam past 0.41: no multi-step op). Landed history is on the board + commit log (owner 06:4xZ 09-28); §2 keeps only one-liners.
 <!-- THOUGHT:END -->
 
-## §0 State (17:2xZ 09-28)
+## §0 State (21:0xZ 09-28)
 | | |
 |---|---|
 | post | belam-S2-L5-XIV gen 14 · woke 03:5xZ 09-28 · Opus 5.5 · owner asleep from 06:5xZ (delegated authority) |
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root `.agi/worktrees/prime-root` · stream DOWN (HELD) |
-| DISK | `/` 9.5 GB free 17:4xZ after the owner-GO docker cleanup (full-cuda image + 85 anon volumes; board note); was 100%. Still -- /tmp holds 9,669 entries, 5,584 > 24 h (DE's round trees; [red] to DE 17:2xZ) · `/data` 110 GB free · `/mnt/agi-flash` 112 GB free · sda ~35 ms/op (§6) |
+| DISK | `/` 6.8 GB free 20:4xZ (owner-GO docker cleanup 17:4xZ); /tmp holds 9,669 entries, 5,584 > 24 h (DE's round trees; [red] to DE 17:2xZ) · `/data` 110 GB free · `/mnt/agi-flash` 112 GB free · sda ~35 ms/op (§6) |
 | merge | **PASS B1 CLOSED 17:1xZ**: season2/main 1bb6aa5a9 · local-maxxing/main -> ed34f4953 · next BASE = ed34f49532 · residues goal:g1.29 (PASS 12: goal:g1.28) |
-| crons | CHECK **372dc32f** "13 */4 * * *" (session-only: re-arm at wake; fires can be late or dropped -- run by hand if > 30 min late) |
+| crons | CHECK "13 */4 * * *" (session-only: RE-ARM at wake; fires can be late or dropped) · PASS B2 run_at 01:43Z 09-29 (state file; its one-shot died with gen 14 -> run it under CHECK case (d)) |
 | spend | credits 0.606 USD; pi-free 0 USD; a pass with credits < 4 USD is SAMPLED (step 1 rule; build.py SAMPLE + MUST env) |
 | models | claude-code kid + parent = claude-opus-5-5, max_live 4 · ladder roles[5] director tier-0 = pi-free (a577c160a) · pi-free model stays stealth/space-bunny-alpha (owner 15:5xZ: "let's hammer it") |
 
 ## §1 Plan
 ```
 done   PASS 12 + PASS B1 · clean prune (144 removed) · DE key row re-keyed (e42433aa1) · skills index += agi-corrective (ee82066ec) · board-row interim (abf58770f)
-next   PASS B2 NOTICED 20:4xZ for 01:43Z 09-29 (state run_at set; crons.md section 2 retargeted; one-shot e747a390 dies with this session -> successor runs it under CHECK case (d)); 330 commits / 80 experiments / 67 engine paths
+FIRST  M. MOVE OFF / (OWNER GO 21:0xZ) -- below
+next   PASS B2 01:43Z 09-29 (crons.md section 2, SAMPLE=5 + engine-delta; build.py SAMPLE/MUST env; reretry.sh for empty-provider deaths)
 owed   FACTS WINDOW on TM's ping (§🔴 F) · TM (a) counting rule -> skills/agi-merge-pass 4 (mur-eg-11; ask TM for the text) · town note grant lines when DE's verb-scoped grant lands (§🔴 G)
 HELD   OWNER 21:1xZ 09-27: stream · encryption-town config · sanctuary-master activation -- until messaging is done
 ```
@@ -46,9 +47,16 @@ HELD   OWNER 21:1xZ 09-27: stream · encryption-town config · sanctuary-master 
 ## §2 Landed (gen 14): b065c922c re-link · 44925a6b6 + 288513229 opus 5.5 · 968d19ca1 DH.499 note · 321a99b29 g7.32.6 · 39b942824 + abf58770f board row · 3e356eb7f g1.28 · 774e0b912 PASS 12 · b1aba8033 prune · a577c160a ladder · 1bb6aa5a9 PASS B1 · 89dd7038b g1.29 · e42433aa1 DE key · ee82066ec skills index
 
 ## 🔴 Where it stops
-17:2xZ 09-28 belam-S2-L5-XIV: PASS B1 closed; next is the 20:13Z CHECK; / is full (DE sweeping)
+21:0xZ 09-28 belam-S2-L5-XIV rotates at 0.42: owner-GO move of logs/TMPDIR/caches/prime-root off / is the successor's first act
 ```
-F. FACTS WINDOW -- PREP DONE: branch belam/facts-window @ a1ccc2dee (worktree .agi/worktrees/belam-facts; F13 trim + cell = 2000; region 1988 B; test_region_live_only_f13 red on the branch alone = DE chain re-pins it) sent to TM 19:0xZ. When TM pings with DE's EG.5 facts-chain tip, in ONE window: F13 line -> 'Spend by hand, from any worktree:' · cell templates.director.startup.facts_pointer_target_bytes = 2000 · RE-MEASURE the 2009 B region (EG.05 parent: never re-derived) · config:posts:102 + goal:g4.18.2:34 drop the rotate.py DEFAULT_CC_ROLES ultracode residue ONLY once EG.5 removes it from rotate.py:120.
+M. MOVE OFF / (OWNER 21:0xZ verbatim: "move a lot of the logs and sessions and other Claude/system data streaming out of our work into data as well ... along with the session worktree moves that we can go ahead and do now safely. Just let everyone know after the move to be on the lookout for the new locations and to confirm it's still working as intended with all engine functions"). Order, each step verified before the next, df -B1M / after each:
+   1 ~/logs -> /data/home-belam/logs + symlink (crons reopen per run; check memory_alarm + crons log still append)
+   2 TMPDIR=/data/tmp/<post> for NEW spawns: `systemctl --user set-environment TMPDIR=...` (NEVER bare import-environment) + ~/.profile; mkdir first
+   3 ~/.pi + ~/.cache -> /data/home-belam/ + symlinks, only while no pi / uv process runs (check /proc comm)
+   4 ~/.claude/projects: CLOSED session dirs only (no live seat's transcript -- a cross-fs move drops a live writer's lines); live ones after their seats rotate
+   5 prime-root -> /mnt/agi-flash/worktrees/prime-root: clean -> git worktree remove + add (worktree move fails across filesystems); belam-facts worktree likewise or keep on /data until the facts window
+   6 ONE notice to DE + TM (+ board note) with every new path; ask each to confirm send / rotate / grid / dispatch / suite still work. DE + parent trees already on /data; TM's gate trees wait for DE's per-role cell (split order sent 21:0xZ).
+F. FACTS WINDOW -- PREP DONE: branch belam/facts-window @ a1ccc2dee (worktree .agi/worktrees/belam-facts; F13 trim + cell = 2000; region 1988 B; test_region_live_only_f13 red on the branch ALONE = DE's EG.107 chain re-pins it), SHA sent to TM 19:0xZ. When TM pings with the chain tip, in ONE window land a1ccc2dee with it, then: F13 line -> 'Spend by hand, from any worktree:' · cell templates.director.startup.facts_pointer_target_bytes = 2000 · RE-MEASURE the 2009 B region (EG.05 parent: never re-derived) · config:posts:102 + goal:g4.18.2:34 drop the rotate.py DEFAULT_CC_ROLES ultracode residue ONLY once EG.5 removes it from rotate.py:120.
 G. TOWN NOTE GRANT (TM option a, 08:4xZ): DE builds a verb-scoped actor_rows note grant inert (goal:g7.33 round); at landing add ONE [town] schema grant line per post (DE, TM, DT) and drop the interim clause from agi-dispatch 5 "progress -> board".
 D. DISK: if / < 200 MiB, stop launching anything; regenerable scratch only (skill agi-memory-guard 4); never du /tmp (9 min timeout); never delete another post's tree -- list it for its owner.
 R. RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /etc/hosts + guard-init --status, ONE window. NEVER a bare `systemctl --user import-environment`.
@@ -74,7 +82,7 @@ R. RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
-| ROOT FS FULL: / 100% (447 MiB) at 17:2xZ; DE hit 1 MiB at 13:0xZ and tools blocked | move /tmp scratch off / (a tmpfiles.d age rule for /tmp, or TMPDIR=/data/... for every post); `sudo du -xh --max-depth=1 /` to find the rest. MEASURED 17:3xZ: model WEIGHTS are on /data (/data/ml/models, bind-mounted), NOT on /. On /: docker images 12.8 GB (llama.cpp:full-cuda 10.3 GB used by NO container; server-cuda 7.0 GB used) + 85 unattached volumes 3.4 GB (check for postgres data first) + home 8.2 GB. Owner idea 17:3xZ: docker data-root -> /data or /mnt/agi-flash (sequential image reads; flash = own io queue; needs sudo + RequiresMountsFor if flash) |
+| ROOT FS: cleaned on OWNER GO 17:4xZ (docker full-cuda image + 85 anon volumes: 1.4 -> 9.5 GB free). Model weights live on /data (/data/ml/models). Owner: docker data-root -> /data or flash when models are redownloaded | the rest = §🔴 M (owner GO 21:0xZ) |
 | DISK LATENCY: sda (USB SSD, dm-crypt, / + /data) ~35 ms/op, io PSI 68-90 | `sudo smartctl -a /dev/sda` · `sudo dmesg -T` for usb/reset · port/cable/heat |
 | memory crits (PSI full peaks 51.2% 04:44Z, 47.2% 06:41Z 09-28; watchdog line 40% for 5 min) | the 4 idle predecessor belam sessions (L5-X..XIII) still hold RAM: reap on the owner's word; or GUARD_DOCKER_BUDGET 2048M |
 | seat rows in config:posts still claude-opus-5 (adv-*, masters) | move on the owner's word |
