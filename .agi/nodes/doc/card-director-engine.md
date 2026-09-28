@@ -102,6 +102,11 @@ THEN    per ended parent: harvest AT ONCE -> mur · per ended mur: triage -> cle
         · EG.142 (a00-3cbd9016, the TMM.331 front) ENDED: 0 code commits; harvest landed 1 node (experiment a00-82ad1a56, no write-log actor)
           as 76f46d209, 416 passed -> read that node + the kid output.log (empty-response death?) -> redispatch2.sh EG.142 (cut e7db0b5c6)
                         · murq227 (EG.130) + murq231 (EG.108) + murq232 (EG.117) ENDED untriaged -> D/verd.py 227 231 232 · NO mur is running now
+                · TMM.341 (15:0xZ) HOLD: no new pi-free round or mur. STOPPED 15:0xZ (all waiting, none mid-placement): qgEG124 125 126 127 128
+          129 131 132 133 135 138 139 -- restart = a NEW unit per script, chained in that order, only after release. RE-OPEN TEST: one tiny
+          probe every 20 min; TWO answered in a row release the lane; then re-dispatch the six dead rounds ONE AT A TIME, EG.141 first (the
+          retry fix): EG.141 122 137 140 142 (+ the re-dispatched EG.122). Keep a count from 14:30Z: started vs died-on-empty (6 of 6 so far).
+          Model question + keys [red] = belam's
         · PI-FREE LANE DOWN 14:3x-15:0xZ ('Provider returned an empty response'): 5 dead parents + the re-dispatched EG.122 (a00-1b7ef4de) dead
           too; rdEG137 + rdEG140 STOPPED (placed nothing); [red] to TM 15:0xZ asks hold-or-run for the qg lane -> follow TM's answer, then
           re-dispatch EG.141 122 137 140 142 with T/redispatch2.sh once a round commits again
