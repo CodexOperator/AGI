@@ -745,14 +745,19 @@ def write_node(
         )
         return res
 
-    scaffold_body = f"\n# {node_id}\n\n" if heading else "\n"
-    if body is None:
-        # hypothesis:l3-done-broken-frontmatter -- anchor the body start with
-        # the marker, right after the closing `---`. A kid's write tool that
-        # later mangles the frontmatter leaves this line intact; `cli.py done`
-        # repairs the broken `---` block up to that boundary, never past it.
-        scaffold_body = BODY_BEGIN + scaffold_body
-    scaffold_body += BODY_PROMPTS.get(ntype, "") if body is None else body
+    # hypothesis:l3-done-broken-frontmatter + goal:g7.33.1 residue (d) /
+    # hypothesis:lm-create-body-file-lands-real-prose-not-the-placeholder-scaffold
+    # Agent Notes: ALWAYS emit BODY:BEGIN after the closing `---`, including
+    # when the caller passes an explicit body / --body-file. Without the
+    # marker, cli.py done cannot separate a mangled frontmatter from the
+    # body. Idempotent: a body that already opens with BODY:BEGIN is kept
+    # as-is (no second marker, no forced heading re-wrap).
+    content = BODY_PROMPTS.get(ntype, "") if body is None else body
+    head = f"\n# {node_id}\n\n" if heading else "\n"
+    if content.startswith(BODY_BEGIN) or content.lstrip("\n").startswith(BODY_BEGIN):
+        scaffold_body = content if content.startswith(BODY_BEGIN) else content.lstrip("\n")
+    else:
+        scaffold_body = BODY_BEGIN + head + content
     res.path = node_file
 
     if node_file.exists():
