@@ -53,7 +53,7 @@ BOX       / at 94 pct 21:1xZ (6.5 GiB free) · belam 22:12Z (OWNER GO): per-role
           on it, confirm send, rotate, grid, dispatch and the suite still work (one line each, to TM) · the other town left the free lane
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.187 · next murq281 · EG.174 HARVESTED 23:00Z (a00-1e5ecbf7, tip 24634a90c, 85 passed; kid-only commit) -> murq280 (rmur2)
+SERIES    next EG.188 · next murq281 · EG.174 -> murq280 · EG.186 HARVESTED 23:33Z (a00-ed3b6fd7, tip a2fa54dce, tree VANISHED; tests on a temp worktree 96 passed): parent DEMOTED lean_disproved:65 -- consecutive bound has NO total stop (606 attempts in 15 s) + ceiling +34/+55 vs 25/40 -> CORRECTIVE EG.187 (total-attempt cell, default 4 x (max+1); comment; F4; breach recorded) placing via pq187 after redispw EG.177; mur the chain at EG.187 tip
           drives 272 275 276 278 until they end -- TMM.360: never skip a mur, keep re-arming; next [count] to TM after EG.186 lands (deaths /
           dispatches + mur stage survival); still 100 pct dead after EG.185 lands -> the lane/model question goes to belam
           · EG.186 LIVE a00-ed3b6fd7 (22:50Z) on cut 50b35023b = trunk 56c012118 + the node's 2 commits cherry-picked -- TRAP: place2 cut a NEW
