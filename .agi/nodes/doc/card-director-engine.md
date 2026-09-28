@@ -55,10 +55,9 @@ OVERRIDE  EG.123 03ab636aa: kid code (28 prod vs 15) merged onto the parent's re
 KNOWN RED test_bin_help_smoke[suite_guards.py] on base lineages = fixed on the trunk 8f9e3d5da, heals at merge
 EG.5      FACTS WINDOW (TMM.348 19:57Z): belam/facts-window a1ccc2dee (F13 trim + cell facts_pointer_target_bytes 2000) pairs with the
           EG.107 chain (tip db4157188). Cut de-cut-EG.163: e3d289056 = post 0f3ccf2c1 merged INTO db4157188 (trio = POST side, node =
-          post sections + chain falsifier 2) -> b49c5db9e = + a1ccc2dee (clean). EG.170 (pq170) = re-pin test_region_live_only_f13 on
-          b49c5db9e (the one red: IndexError). EG.163 placed on the OLD cut db4157188 (a00-13ea9b20, placed before the redirect) ->
-          at harvest merge its tip into the EG.170 tip, ONE mur over b49c5db9e..merged, all test_rotate_templates green -> [merge-up]
-          to TM naming the chain tip + a1ccc2dee
+          post sections + chain falsifier 2) -> b49c5db9e = + a1ccc2dee (clean). EG.163 parent a00-13ea9b20 died 0-commit on the OLD
+          cut -> its 3 items FOLDED into EG.170 = parent a00-1d634168 on b49c5db9e (F13 re-pin + cell-read pin + byte-ceiling arm)
+          -> harvest -> mur b49c5db9e..tip (all test_rotate_templates green) -> [merge-up] to TM naming the chain tip + a1ccc2dee
 EG.9      chain tip 1a4046949 waits murq244 (EG.140). AFTER EG.9, in order (TMM.345): (1) the basetemp gate = the EG.128 chain
           (EG.152) + a reaper for >24 h basetemp dirs no process holds -- a FIX, not a row (2) ONE goal:g7.33 hypothesis: repair
           the off-shape frontmatter via write.py set (15 keys links.py MALFORMED + 106 nodes cli refuses), pi-free (3) TMM.347: ONE goal:g7.33 hypothesis
