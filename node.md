@@ -249,22 +249,6 @@ FILE SCOPE extensions/agi/bin/node_writer.py (the ONE span rule) · .agi/nodes/e
 CEILING   HARD CAP: 1 kid · <= 40 production lines net over e7db0b5c6 · <= 80 test lines net over e7db0b5c6 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat e7db0b5c6 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
-
-## CORRECTIVE DH.EG.165 -- closes mur-eg-x553346-8ada72 EG.142-k1 accept_with_residue (no verify)
-BASE      CUT FROM season2/loops/hypothesis-thought-verb-edits-on-a00-08811c63 tip b1d171bf0 (branch de-base-EG.165; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. TEST-FIRST: no committed RED state -- tests and fix landed in one commit -- extensions/agi/tests/test_thought_hygiene.py:634 -- Order requires the rows committed and pasted RED at e7db0b5c6 before any node_writer.py edit; 516e551af carries node_writer.py and the test file together, so no RED commit exists (the node's own RED paste reads '2 failed' where the committed bytes give 3). I reproduced RED by byte substitution, so this is process, not evidence.
-2. TEST-FIRST (d) discharged 1 of the 5 named live nodes -- extensions/agi/tests/test_thought_hygiene.py:685 -- Only a00-bb10233d-5a7f1f is pinned by a committed row; the other four stray-fence-anchor nodes are named nowhere in the graph, so the exemption's cost is asserted on one node instead of counted.
-3. Straddle shape still resolves to the FIRST region, unpinned by any row -- extensions/agi/bin/node_writer.py:1002 -- A real block, then an unclosed fence, then a SECOND real column-0 block: the non-stray filter keeps the first (kid probe P7: base (5,54) and tip (5,54)) -- unchanged from the cut, so no regression, but the direction is unpinned and is the next round's named target.
-4. The node's '5 pre-existing test_write.py seat failures' do not reproduce -- .agi/nodes/experiment/a00-b928198d-11d8ae.md:44 -- I ran test_write.py on the tip bytes in a scratch tree: 139 passed, 0 failed; the failures appear only in the kid's six-file invocation, so the 'pre-existing, proven by swapping base bytes back' argument stands for that invocation only. Already recorded in the node's PARENT REVIEW and THOUGHT.
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
-TESTS     test_thought_hygiene.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE extensions/agi/bin/node_writer.py · extensions/agi/tests/test_thought_hygiene.py · .agi/nodes/experiment/a00-9c12fcfc-ec53a5.md · .agi/nodes/experiment/a00-b928198d-11d8ae.md · .agi/nodes/experiment/a00-cf8a2a01-5513eb.md (write.py) · the kid's own node
-CEILING   HARD CAP: 1 kid · <= 15 production lines net over b1d171bf0 · <= 40 test lines net over b1d171bf0 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat b1d171bf0 <your final tip>` on your node (an empty range is not a measurement)
-PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective EG.20: mur-eg-6 EG.14-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
