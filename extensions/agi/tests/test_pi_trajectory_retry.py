@@ -226,8 +226,10 @@ def test_a_toolresult_message_end_after_an_empty_turn_end_still_retries(tmp_path
     """RED on the pre-fix bytes: the last-turn decision was keyed on
     ("turn_end","message_end"), so a toolResult's message_end arriving AFTER an
     empty turn_end answered False and MASKED the empty stop -- the empty last
-    turn went unretried and the round died on exactly the failure this chain
-    exists to prevent. Only a turn ends a turn."""
+    turn would have gone unretried. LATENT, not live: no production log shows
+    a toolResult message_end AFTER a turn_end (every one precedes it; measured
+    CORRECTIVE EG.151), so this is a strict narrowing of the trigger, not a
+    round that died. Only a turn ends a turn."""
     root = _project(tmp_path, 2, 0.05)
     stub, counter = _stub_pi(tmp_path, [[NESTED_TURN_EMPTY, TOOLRESULT_END],
                                         [OK, OK_END]])
