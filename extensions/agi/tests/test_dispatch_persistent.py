@@ -1,9 +1,13 @@
-"""goal:g7.28.1 (hypothesis:a00-c3a24084-4190b2) -- falsifiers 1 and 3.
+"""goal:g7.28.1 + goal:g7.28.1.2 (hypothesis:a00-c3a24084-4190b2).
 
 A `--persistent` dispatch HOLDS its seat and, when the child dies, re-opens
 it through the SAME `_open_round` seam -- hence the SAME rendered
 `spawn_args`/`spawn_env`, no second argv path, no re-render. And the seat's
 record shows the occupation (persistent / live pid / restart_count).
+
+goal:g7.28.1.2 — after start AND after each supervised restart, the
+seats/posts registry row for `--seat` shows occupied with the live
+pid/session pin (not only agent.json).
 
 No live model, no network, no real sleep: `subprocess.Popen` is faked for the
 spawn path and `dispatch._PERSIST_SLEEP` is a no-op.
@@ -18,6 +22,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
@@ -197,3 +202,100 @@ def test_record_carries_persistent_live_pid_and_restart_count(
     assert rec["pid"] == spawned[1][1].pid, (
         f"record pid {rec['pid']} is not the live child "
         f"{spawned[1][1].pid}")
+
+
+# ---------------------------------------------------------------------------
+# goal:g7.28.1.2 — posts/seats registry occupation under persistent start/
+# restart. Fixture carries a real config:seats row + the live [config].md
+# self_row schema so `_pin_posts_row_occupation` -> `_write_identity_cells`
+# is admitted.
+# ---------------------------------------------------------------------------
+
+_LIVE_CONFIG_SCHEMA = (
+    Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas"
+    / "[config].md"
+)
+_SEAT_NAME = "director-seat"
+
+
+def _install_posts_registry(graph: Path, *, pid: int = 0) -> None:
+    """Write seats.md + [config].md schema under an `.agi` graph root."""
+    geom = graph / "nodes" / ".geometry"
+    geom.mkdir(parents=True, exist_ok=True)
+    row = {"name": _SEAT_NAME, "role": "director", "pid": pid,
+           "session_ref": "", "window": ""}
+    body = (
+        "---\nid: config:seats\ntype: config\nseats:\n"
+        f"  - {json.dumps(row)}\n---\n"
+    )
+    (geom / "seats.md").write_text(body, encoding="utf-8")
+    schemas = graph / "context" / "schemas"
+    schemas.mkdir(parents=True, exist_ok=True)
+    if _LIVE_CONFIG_SCHEMA.exists():
+        (schemas / "[config].md").write_text(
+            _LIVE_CONFIG_SCHEMA.read_text(encoding="utf-8"), encoding="utf-8")
+    else:
+        (schemas / "[config].md").write_text(
+            "---\nname: config\nwritten_by: [owner, prime_director]\n"
+            "self_row: {list_key: seats, match_key: name, "
+            "fields: [session_ref, session_name, session_id, generation, "
+            "window, pid]}\n---\nbody\n",
+            encoding="utf-8")
+
+
+def _posts_row(root: Path, name: str = _SEAT_NAME) -> dict:
+    """The seats/posts row exactly as it lives on the wire."""
+    graph = root / ".agi"
+    seats = graph / "nodes" / ".geometry" / "seats.md"
+    posts = graph / "nodes" / ".geometry" / "posts.md"
+    path = posts if posts.exists() else seats
+    fm = yaml.safe_load(path.read_text(encoding="utf-8").split("---")[1])
+    key = "posts" if "posts" in fm else "seats"
+    return next(r for r in fm[key] if r.get("name") == name)
+
+
+@pytest.fixture()
+def project_with_posts(project: Path) -> Path:
+    """`project` plus a seats/posts registry row the pin writer can update."""
+    _install_posts_registry(project / ".agi", pid=0)
+    return project
+
+
+def test_persistent_start_pins_posts_row_live_pid(
+        project_with_posts, monkeypatch, capsys):
+    """g7.28.1.2 falsifier 1: after persistent start, posts/seats row pid
+    matches the supervised child (and session_id carries the agent id)."""
+    spawned = _fake_spawn(monkeypatch, [
+        {"left": 999, "rc": None},
+    ], stop_after=1)
+    monkeypatch.setattr(
+        sys, "argv",
+        _argv(project_with_posts, "--persistent", "--seat", _SEAT_NAME))
+
+    assert dispatch.main() == 0
+    assert len(spawned) == 1
+    row = _posts_row(project_with_posts)
+    assert row.get("pid") == spawned[0][1].pid, row
+    # session pin: agent id landed in session_id
+    assert row.get("session_id"), row
+
+
+def test_persistent_restart_updates_posts_row_pid(
+        project_with_posts, monkeypatch, capsys):
+    """g7.28.1.2 falsifier 2: after supervised restart, row pid is the NEW
+    live child — never the corpse."""
+    spawned = _fake_spawn(monkeypatch, [
+        {"left": 14, "rc": 1},
+        {"left": 999, "rc": None},
+    ], stop_after=2)
+    monkeypatch.setattr(
+        sys, "argv",
+        _argv(project_with_posts, "--persistent", "--seat", _SEAT_NAME))
+
+    assert dispatch.main() == 0
+    assert len(spawned) == 2
+    row = _posts_row(project_with_posts)
+    assert row.get("pid") == spawned[1][1].pid, (
+        f"row pid {row.get('pid')} is not the live child "
+        f"{spawned[1][1].pid}; corpse was {spawned[0][1].pid}")
+    assert row.get("pid") != spawned[0][1].pid, row

@@ -1637,8 +1637,46 @@ def _persistent_stop(iter_dir: Path, agent_id: str) -> bool:
             or bool(os.environ.get(_PERSIST_STOP_ENV)))
 
 
+def _pin_posts_row_occupation(root: Path, seat: str | None, pid: int,
+                               *, session_id: str | None = None) -> str:
+    """goal:g7.28.1.2 — stamp the live supervised pid onto config:posts/seats.
+
+    After a `--persistent` start (and after each supervised restart) the
+    seats/posts registry row for that seat must show occupation with the
+    live pid/session pin — not only `agent.json`. Routes through
+    `rotate._write_identity_cells` (the ONE identity-cell writer). No-ops
+    when `seat` is absent or the registry has no matching row. Never
+    raises: a posts-row miss must not tear down the persistent hold.
+    """
+    if not seat or pid is None:
+        return ""
+    try:
+        import rotate as _rotate  # noqa: PLC0415  (local: heavy; avoid tip cycle)
+        graph = locations.find_project_root(root) or root
+        role = "director"
+        for row in geometry_config.load_rows(graph) or []:
+            if row.get("name") == seat:
+                role = str(row.get("role") or role)
+                break
+        cells: dict = {"pid": int(pid)}
+        if session_id is not None:
+            cells["session_id"] = str(session_id)
+        out = _rotate._write_identity_cells(
+            root, seat=seat, actor=seat, role=role, cells=cells)
+        if out:
+            print(f"persistent: posts-row {seat!r} pid={pid}",
+                  file=sys.stderr)
+        return out or ""
+    except Exception as exc:  # noqa: BLE001
+        print(f"persistent: posts-row pin skipped for {seat!r}: {exc}",
+              file=sys.stderr)
+        return ""
+
+
 def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
                           record: dict, session: Path,
+                          root: Path | None = None,
+                          seat: str | None = None,
                           max_restarts: int = _PERSIST_MAX_RESTARTS,
                           poll_s: float = _PERSIST_POLL_S) -> int:
     """HOLD one seat and re-open the SAME round when it dies.
@@ -1666,6 +1704,11 @@ def _supervise_persistent(proc, reopen, *, iter_dir: Path, agent_id: str,
         record["pid"] = proc.pid
         record["restart_count"] = restarts
         (session / "agent.json").write_text(json.dumps(record, indent=2))
+        # goal:g7.28.1.2 — posts/seats row pin tracks the NEW live pid
+        # (never a stale corpse) after each supervised restart.
+        if root is not None:
+            _pin_posts_row_occupation(root, seat, proc.pid,
+                                      session_id=agent_id)
         print(f"persistent: {agent_id} restart {restarts}/{max_restarts} "
               f"pid={proc.pid}")
     return restarts
@@ -3172,10 +3215,16 @@ def main() -> int:
         print(spawn_line)
         if args.persistent:
             # Hold AFTER the record is on disk; the supervisor keeps pid and
-            # restart_count current.
+            # restart_count current. goal:g7.28.1.2 — also stamp the posts/
+            # seats occupation row with the live pid/session pin on start
+            # (and again on each restart inside the supervisor).
+            _persist_seat = _resolved_seat(args.seat)
+            _pin_posts_row_occupation(root, _persist_seat, proc.pid,
+                                      session_id=agent_id)
             _supervise_persistent(
                 proc, _open_round, iter_dir=iter_dir, agent_id=agent_id,
-                record=agent_record, session=sess_dir)
+                record=agent_record, session=sess_dir,
+                root=root, seat=_persist_seat)
 
     # The one authoritative write, under lock and against a fresh read
     # (goal:s28 for the merge, goal:g4.8 for surviving concurrency). The
