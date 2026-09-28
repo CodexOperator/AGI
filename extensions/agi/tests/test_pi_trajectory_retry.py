@@ -52,7 +52,9 @@ def _project(tmp_path: Path, max_retries: int, backoff: float) -> Path:
     return root
 
 
-def _stub_pi(tmp_path: Path, runs: list[list[dict]]) -> tuple[Path, Path]:
+def _stub_pi(tmp_path: Path, runs: list[list[dict]],
+             code: int | None = None,
+             raw: bytes = b"") -> tuple[Path, Path]:
     """A stub `pi`: the Nth invocation prints runs[n] (the last set repeats),
     and every invocation appends a line to the counter file, so the test can
     assert how many times the wrapper respawned the provider."""
@@ -65,9 +67,14 @@ def _stub_pi(tmp_path: Path, runs: list[list[dict]]) -> tuple[Path, Path]:
         f"c = pathlib.Path({str(counter)!r})\n"
         "n = len(c.read_text().splitlines()) if c.exists() else 0\n"
         "c.write_text(('run\\n') * (n + 1))\n"
+        f"if {raw!r}:\n"
+        "    sys.stdout.buffer.write(" + repr(raw) + ")\n"
+        "    sys.stdout.buffer.flush()\n"
         "evs = runs[min(n, len(runs) - 1)]\n"
         "for ev in evs:\n    print(json.dumps(ev), flush=True)\n"
-        "sys.exit(1 if any(e.get('stopReason') == 'error' for e in evs) else 0)\n",
+        f"ec = {code!r}\n"
+        "sys.exit(ec if ec is not None else\n"
+        "           (1 if any(e.get('stopReason') == 'error' for e in evs) else 0))\n",
         encoding="utf-8")
     script.chmod(0o755)
     return script, counter
@@ -97,8 +104,35 @@ def test_empty_response_is_retried_and_then_the_round_lands(tmp_path):
         f"the empty response is retried once, not fatal; got {runs}"
     assert "retry: empty provider response 1/2" in text, \
         f"every retry is counted in the round log, got {text!r}"
-    assert [json.loads(l)["tool"] for l in traj.read_text().splitlines()] \
-        == ["bash"], "the retried round's real work still lands on the trajectory"
+    recs = [json.loads(l) for l in traj.read_text().splitlines()]
+    assert [r["tool"] for r in recs if r.get("tool")] == ["bash"], \
+        "the retried round's real work still lands on the trajectory"
+    assert [r["attempt"] for r in recs if r.get("type") == "attempt_boundary"] \
+        == [1, 2], \
+        "each attempt opens with ONE boundary record, so the discarded " \
+        f"attempt's records are attributable, not fused: {recs}"
+
+
+def test_a_successful_attempt_is_never_respawned(tmp_path):
+    """Exit-code guard: an empty line inside a run that ended 0 has nothing to
+    finish, so the wrapper returns it instead of burning the bound."""
+    root = _project(tmp_path, 2, 0.05)
+    stub, counter = _stub_pi(tmp_path, [[OK, OK_END, EMPTY]], code=0)
+    text, _ = _run(root, stub, counter, root / "trajectory.jsonl")
+    assert counter.read_text().splitlines() == ["run"], \
+        f"a run that exited 0 is not retried, got {text!r}"
+
+
+def test_a_plain_byte_line_decodes_and_never_kills_the_round(tmp_path):
+    """Regression on the bytes-decode repair: pi's own plain-text notice
+    arrives on the PIPE as bytes, so the detector decodes instead of raising
+    (a TypeError here killed the round the wrapper exists to save)."""
+    root = _project(tmp_path, 1, 0.05)
+    stub, _ = _stub_pi(tmp_path, [[OK, OK_END]],
+                       raw=b"warning: unknown model\n")
+    text, _ = _run(root, stub, tmp_path / "absent.txt", root / "t.jsonl")
+    assert "Traceback" not in text, f"a byte line must not crash: {text!r}"
+    assert (root / "t.jsonl").read_text().strip(), "records still land"
 
 
 def test_other_errors_are_not_retried(tmp_path):

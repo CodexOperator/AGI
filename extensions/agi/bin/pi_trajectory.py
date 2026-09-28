@@ -77,10 +77,14 @@ def _is_empty_response(raw: str) -> bool:
     return '"stopReason":"error"' in raw and "empty response" in raw.lower()
 
 
-def _attempt(pi_bin, traj_path, pi_args) -> tuple[int, bool]:
+def _attempt(pi_bin, traj_path, pi_args, attempt: int = 0) -> tuple[int, bool]:
     """One pi run, teed and parsed exactly as before.
 
-    Returns (exit code, saw an empty provider response)."""
+    Returns (exit code, saw an empty provider response).
+
+    The trajectory APPENDS across attempts (a discarded attempt's tool records
+    are real work, never pruned), so each attempt opens with ONE boundary
+    record: that is what makes those records attributable, not fused."""
     empty = False
     pi = subprocess.Popen([pi_bin, *pi_args], stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT)
@@ -98,6 +102,10 @@ def _attempt(pi_bin, traj_path, pi_args) -> tuple[int, bool]:
         failed = True
         sys.stdout.write(_NAMED.format(exc))
         sys.stdout.flush()
+    else:
+        trajf.write(json.dumps({"ts": time.time(), "type": "attempt_boundary",
+                                "attempt": attempt + 1}) + "\n")
+        trajf.flush()
     args_by_id = {}
     for raw in pi.stdout:
         sys.stdout.buffer.write(raw)
@@ -154,15 +162,15 @@ def main(argv):
     pi_bin, traj_path, pi_args = a[1], a[2], a[4:]
     max_retries, backoff = _retry_cells()
     for attempt in range(max_retries + 1):
-        code, empty = _attempt(pi_bin, traj_path, pi_args)
-        if not empty or attempt == max_retries:
+        code, empty = _attempt(pi_bin, traj_path, pi_args, attempt)
+        # Exit-code guard: only a FAILED attempt is worth respawning.
+        if not empty or attempt == max_retries or code == 0:
             return code
         # The ONLY thing that earns a retry is an empty provider response, and
         # the bound is finite, so an always-empty provider cannot loop forever.
         sys.stdout.write(_RETRY.format(attempt + 1, max_retries, backoff))
         sys.stdout.flush()
         time.sleep(backoff)
-    return code
 
 
 if __name__ == "__main__":
