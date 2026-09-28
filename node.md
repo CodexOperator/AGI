@@ -143,28 +143,6 @@ FILE SCOPE extensions/agi/bin/heal.py · extensions/agi/tests/test_heal_sweep.py
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 4cb4a8808 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
-
-## CORRECTIVE EG.24 -- closes mur-eg-6 DH.655-k1 accept_with_residue
-BASE      CUT FROM season2/loops/hypothesis-clean-kid-worktrees-p-a00-2f1b6de2 tip a95eb7170 (branch de-base-EG.24; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. 1. config:359 'NO committed coverage' names two lines the suite DOES cover (dry-run `removed`, `bad report_line`)
-2. 2. cell-vs-fallback drift guard gone; the value now lives in three places with nothing comparing them
-3. 4. stale in-code docstring in the very function the round changed (heal.py:1607 'the first three dirty paths', no +K)
-4. SETTLED by the director: commit a95eb7170 committed the kid's working-tree bytes of .agi/config.json WITHOUT editing them -- that is what '(bytes unchanged)' states. If the kid node credits itself with committing the cell, correct THAT sentence on the node (the director committed it); nothing else.
-5. 7. 'nine per-tree lines' is an unmeasured prose count and omits the `homed` line
-6. heal.py:1444-1449 -- the ENGINE's own comment is the stale reader defect 2 hides: "the SOURCE is the cell ... and `test_summary_line_cell_and_fallback_render_the_same_zero_line` fails the moment the two drift". After this round that test compares an INLINE literal to the engine literal (:1122-1132), so it can no longer detect the project cell drifting. The round changed the test's mechanism and left the comment that advertises the old one; no committed code compares config:360 to heal.py:1450.
-7. a00-49009d98-622454.md:14-25 -- the frontmatter `probes` record is comma-shredded: 'counts (0, 0, 0)' was split into three entries, so the gate conjunct reads "counts (0" / "0" / "0) and [sweep] listed a00-gate0001: ...". It parses as YAML (list-of-str is schema-legal per .agi/context/schemas/[experiment].md:18) but the graph's evidence for that conjunct is unreadable as written; sibling nodes carry probes as {class,cmd,expected,observed,result} dicts.
-8. a00-49009d98-622454.md:96 -- "The FOUR uncovered per-tree lines named in the cell" then names FIVE, and the cell names five: the same class of miscount as defects 1 and 7, in the round's own residue ledger.
-9. The parent claim gap is far larger than the 3-path cap the reviewer measured and is recorded NOWHERE: `hypothesis:clean-kid-worktrees-prune-and-dirty-ones-harvest-or-list` testable_claim says a dirty kid 'commits its write-logged node edits on its kid branch and lists every other dirty path per owner', but the shipped sweep NEVER commits anything -- the dirty branch only lists and continues (heal.py:1740-1755; the code comment at :1757-1759 calls the harvest 'a director's hand harvest', not the sweep's). The harvest conjunct is unimplemented, and the round corrected only the cell's half of the story. Director-owned claim, so the correction is owed upstream, not by this kid.
-10. Coverage boundary not pinned: the +K marker is asserted only at 5 dirty paths (test:1152-1155, '+2') and at 1 (no marker); nothing pins 4 (boundary+1) or a large N, so the '+{len(dirty)-3}' arithmetic in heal.py:1477 is unverified above 5.
-BOUNDARY  hypothesis:a-zero-commit-round-is-never-swept-as-landed (EG.9 chain, EG.23 in flight) edits the SAME _sweep_finished_worktrees in heal.py on its own branch: never pull it; keep your hunks out of its 0-commit arm; the director reconciles at merge.
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-TESTS     test_heal_sweep.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE extensions/agi/bin/heal.py · extensions/agi/tests/test_heal_sweep.py · .agi/config.json · .agi/nodes/experiment/a00-49009d98-622454.md (write.py) · the kid's own node
-CEILING   HARD CAP: 1 kid · <= 15 production lines net over a95eb7170 · <= 40 test lines net over a95eb7170 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat a95eb7170 <your final tip>` on your node (an empty range is not a measurement)
-PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.24: mur-eg-6 DH.655-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.655: mur-director-engine-40 DH.624-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
