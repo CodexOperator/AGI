@@ -17,13 +17,14 @@ season: 2
 seeds:
   - goal:g7.33.9.1
   - goal:g7.33.9.2
+  - goal:g7.33.9.3
 status: active
 tags:
   - skills
   - write
   - mint
   - redesign
-thought_session: belam-sot-land-20260928
+thought_session: belam-g733-foundation-20260928
 title: "G7.33.9: skills + write/mint foundation (redesign order step 1-2)"
 town: core
 ---
@@ -31,32 +32,35 @@ town: core
 # goal:g7.33.9
 
 ## Why this exists
-**Parent `goal:g7.33`.** Owner redesign land order 2026-09-28: **skills → write/mint → spawn/rotate → messaging**. SoT (`doc:belam-grok-internals`) already refs skill:agi-node-write · agi-goal · … Directors+Belam pursue write/mint via skills under NO-PI HARD (owner FULL STOP), not inlined PROFILE. This leaf is the adoption/order track; G7.33.1 remains the engine FIX track for write.py ergonomics.
+**Parent `goal:g7.33`.** Belam 2026-09-28 activate for write/mint foundation: redesign land order is **skills → write/mint → spawn/rotate → messaging**. This leaf is steps 1–2 (adoption/order track). Engine write.py ergonomics traps stay on `goal:g7.33.1`; this leaf does not re-own those FIX rounds. SoT patch `/tmp/belam-sot-patch/goals/g7.33.skills.md` (link_ref) + Belam note on `goal:g7.33`: nest skills adoption under g7.33.
 
 ## Target end-state
-| # | conjunct |
-|---|---|
-| 1 | `skills/agi-*` present on core trunks and `.claude/skills` symlinks resolve to them |
-| 2 | every node+goal write by Belam/directors goes through write.py + skill:agi-node-write / skill:agi-goal (no hand-edit of `.agi/nodes`) |
-| 3 | write/mint foundation residues that block clean adoption are nested under this leaf (or under G7.33.10) as bare-active self-work leaves — never left as card prose |
+- `skills/agi-*` (at least agi-node-write · agi-goal · agi-verify · agi-merge-pass) present on core trunks; `.claude/skills` symlinks resolve to them.
+- Directors pursue all node+goal writes via `skill:agi-node-write` / `skill:agi-goal` → `write.py` only — no hand-edit of `.agi/nodes/**`, no inlined PROFILE write recipes.
+- write/mint foundation usable without pi parents: `write.py create|set|note|thought|replace body` + spawn gate; ACTIVE-BEFORE-SPAWN / pi dispatch are out of this leaf (OWNER FULL STOP: NO pi).
+- Nested kids carry the adoption split: `.1` skills present+wired · `.2` write/mint route discipline.
 
 ## Invariants
-- skill files are the procedures; SoT carries skill *refs*, never pasted skill bodies
-- G7.33.1 hypotheses stay the write.py ergonomics FIX track; this leaf does not re-own them
-- NO-PI: complete via self-work / non-pi only until owner lifts
+- `write.py` is the only sanctioned node writer (skill agi-node-write §1).
+- Never invent a new top-level `g7.N` (Belam/Prime only). Nest under `goal:g7.33` / this leaf.
+- `goal:g7.33.1` keeps the engine FIX track for replace-body / create-scaffold / compose traps; this leaf never duplicates those hypotheses.
+- Caps ≤10/dir · ≤20 box still apply to non-pi work. No durable OpenRouter pi spawn from this leaf.
+- Deprecate-never-delete; GOALS.md is derived (`snapshot-goals.py --render`).
 
 ## Falsifier
-1. `test -f skills/agi-node-write/SKILL.md && test -L .claude/skills/agi-node-write && readlink -f .claude/skills/agi-node-write | grep -q skills/agi-node-write` exits 0 for every skills/agi-* (positive)
-2. Negative: a committed edit under `.agi/nodes/` that bypasses write.py (no write-log actor row for that path in the same commit window) — forbidden while this leaf is active
+1. `test -f skills/agi-node-write/SKILL.md && test -f skills/agi-goal/SKILL.md && test -L .claude/skills/agi-node-write` exits 0 on seat tip.
+2. `python3 extensions/agi/bin/write.py -h` exits 0 and documents replace-body standalone rule.
+3. Negative: zero hand-edit commits under `.agi/nodes/goal/g7.33.9*` that bypass write.py actor/session stamping on this leaf after foundation land.
 
 ## Out of scope
-- goal:g7.33.1 write.py ergonomics FIX rounds (a/b/c)
-- goal:g7.31.6 spawn/rotate via skills (redesign step 3; horizon)
-- goal:g7.32.5 messaging/magic-pane (redesign step 4; horizon)
+- `goal:g7.33.1` write.py ergonomics engine rounds (hypotheses under that leaf).
+- spawn/rotate redesign (redesign order step 3) and messaging (step 4) — later leaves under g7.33 or sibling tops when Belam mints.
+- town:core stop-line assignment moves (Belam daily board SoT); this leaf does not rewrite `doc:geometry-towns-core` seat rows.
+- pi parent dispatch / agi-dispatch durable spawn (OWNER FULL STOP).
 
 ## Agent Notes
-Assigned to **belam** (Prime tree-build under NO-PI). Directors self-work nested leaves; no director pings unless blocker.
+Assigned to **director-belam**. Foundation write/mint only via write.py + graph skills; no pi. Kids: `goal:g7.33.9.1` (skills adoption), `goal:g7.33.9.2` (write/mint route).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-deepened under NO-PI: filled bare body; nested .1 (skills present→COMPLETE) + .2 (title regex residue of .10→COMPLETE code+tests); parent stays active for conjunct 2 (directors write via skills) + further write/mint residues
+NO-PI pass: parallel seat already minted .1/.2 (skills adoption + write/mint route, still active); this pass minted .3 title-regex residue COMPLETE + schema/tests; parent stays active
 <!-- THOUGHT:END -->
