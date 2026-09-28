@@ -1111,3 +1111,14 @@ def test_the_row_inventory_here_lists_every_row_the_file_names():
     assert not missing, ("row(s) %s are named in this file but absent from the docstring "
                          "inventory: add the entry, do not delete the reference" % missing)
     assert listed, "the inventory parse found nothing -- the rule above is now vacuous"
+    # the HEADER's own "Rows A-B" is a third copy, and neither regex above reads it:
+    # a fully consistent EXTRA row (declared comment + docstring entry) left this
+    # row green under a header still saying 15. The declared last number is compared
+    # with the highest row the file actually names, so the header cannot go stale.
+    declared = re.search(r"^Rows (\d+)-(\d+)", text, re.M)
+    assert declared, "the docstring no longer declares a `Rows A-B` header range"
+    first, last = int(declared.group(1)), int(declared.group(2))
+    highest = max(listed | used)
+    assert last == highest, (
+        "the header declares rows %d-%d but the highest row this file names is %d: "
+        "move the header, do not leave a second copy" % (first, last, highest))
