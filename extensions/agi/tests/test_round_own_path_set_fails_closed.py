@@ -308,3 +308,18 @@ def test_a_refused_parent_is_named_for_the_parent_route(tmp_path, capsys):
     err = capsys.readouterr().err
     assert "a kid-supplied --parent never widens" in err, err
     assert "--owns is bound" not in err, err
+
+
+@pytest.mark.parametrize("node", ["a00-0581fdf8-2bb4d2", "a00-139dd5f6-df3721",
+                                  "a00-68041083-03040f"])
+def test_this_chains_probe_cells_pass_the_engines_own_reader(node):
+    """DH.EG.100: EG.03 accepted a `probes:` cell of prose STRINGS because it
+    read it with yaml, not with the reader the gate runs (`_probe_defect`).
+    The probe cells this round repaired must pass that reader, entry by entry."""
+    import yaml
+    text = (Path(__file__).resolve().parents[3] / ".agi" / "nodes"
+            / "experiment" / f"{node}.md").read_text()
+    probes = yaml.safe_load(text.split("\n---\n", 1)[0][4:])["probes"]
+    assert probes, node
+    for p in probes:
+        assert _load_cli()._probe_defect(p) == "", (node, p)
