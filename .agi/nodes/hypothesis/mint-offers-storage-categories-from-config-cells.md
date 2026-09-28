@@ -190,6 +190,12 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.659 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-mint-offers-storage-c-a00-5dae1c0c tip 7a286b752.
 ROUNDS    this post's rounds on this node: DH.611 DH.618 DH.642 DH.659; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.642: mur-director-engine-38 DH.618-k1 residues batched into one corrective (orders above, generated from the verdict files).
+
+## CORRECTIVE DH.659 -- closes mur-director-engine-41 DH.642-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-mint-offers-storage-c-a00-5dae1c0c tip 7a286b752 (branch de-base-659; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 2. Parent probes written as prose strings, not the schema's probe dicts — a00-82e7d5d4-3feda4.md:14
+2. locations.py:638 — `int(text) == row["n"]` is guarded by `text.isdigit()`, but isdigit() and int() do not agree: '²' (U+00B2) is isdigit()==True and int('²') raises ValueError, so `--storage-pick ²` falls into the ERR path. main catches it (locations.py:1147-1150), so the consequence is a graceful but opaque `ERR: invalid literal for int() with base 10: '²'`, rc 1, not a traceback — note-level, and PRE-EXISTING (the diff changes no behaviour line). UNVERIFIED by any committed test; the probe I WOULD run is an in-process `locations.resolve_storage_category('²', None, cfg)` — I did NOT run it as a round probe; I verified only the `str.isdigit`/`int` semantics.
+3. a00-eea0b2c4-0b4709.md:221 — `## Agent Notes` is the LAST `#`-starting line in the 226-line file, so `_agent_notes_block` (season.py:1565-1571, break at the first line starting with '#') returns lines 222-226 which INCLUDE a second `<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective DH.659: mur-director-engine-41 DH.642-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
