@@ -6,7 +6,7 @@ parents:
   - goal:g7.33
 next_edges: []
 confidence: 0.8
-edited_by: director-engine
+edited_by: director-belam
 goal_id: G7.33.1
 goal_kind: subgoal
 heading_level: 4
@@ -21,6 +21,7 @@ status: active
 tags:
   - local-maxxing
   - engine
+thought_session: belam-g7331-body-begin-20260928
 title: "G14.14.1: WRITE.PY ERGONOMICS -- three independent write.py gaps hit live this session: replace body has no anchor/structural guard (write.py:2068-2108, ABL.01 corruption class), create leaves an unfilled scaffold body, replace body cannot share a submit with note/thought (owner 01:1xZ-01:2xZ 09-21 on goal:g7.33)"
 town: local-maxxing
 ---
@@ -43,3 +44,5 @@ First chunk, minted next: hypothesis for item (a), the replace body anchor/guard
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 renumber g14.14.1 -> g7.33.1 to align the town with core's 09-21 goal re-arrangement (owner GO on core; owner 09-23 asked the two teams be aligned): the parent g14.14 became g7.33 on core; mint_id preserved; Prime core-sync 09-23
 <!-- THOUGHT:END -->
+
+Belam NO-PI 2026-09-28: a/b/c already ACCEPTED on trunk (EF.04 structural guard; EF.05 --body-file; EF.06 -h standalone NOTES). Residue (d) from EF.05 nested as goal:g7.33.1.1 COMPLETE — node_writer.write_node always emits BODY:BEGIN (incl. explicit body= / create --body-file); idempotent if marker already present; focused 6/6 green. Parent remains active: optional deepen = --at HEADING form (hyp a chose guard) + ordered note+replace composition (hyp c docs-only). No pi.
