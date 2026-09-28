@@ -47,8 +47,17 @@ ROUNDS    this post's rounds on this node: DH.597 DH.644 DH.665; the open round'
 ## CORRECTIVE DH.527 -- closes mur-director-engine-18 DH.513-k1 (review accept_with_residue; verify killed by memory-cap rc=-9, review residues stand)
 BASE      CUT FROM season2/loops/hypothesis-round-commit-schema-g-a00-5a917eb9 tip 73a3d5003 (worktree a00-5a917eb9). No merge. Never rebase. NEVER DH.442.
 0 production lines, 0 test lines: node wording only, EVERY edit through write.py (never a scripted rewrite: the write-log must attest each one).
-1. experiment:a00-cb8fae55-9c5f9e -- DH.513 added a stray fence (:145), a SECOND <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.91: mur-eg-19 EG.65-k1 residues batched into one corrective (orders above, generated from the verdict files).
+1. experiment:a00-cb8fae55-9c5f9e -- DH.513 added a stray fence (:145), a SECOND [THOUGHT:BEGIN marker] (:147) and a byte-identical copy of the DH.470 paragraph (:148): old_tip had BEGIN=1/END=1 -> restore exactly one THOUGHT pair and one copy of the paragraph; paste `grep -c 'THOUGHT:BEGIN'` on that one file (= 1).
+2. the DH.513 kid applied two edits by scripted exact-string rewrite, so no write-log row attests them -> re-apply the six DH.513 node edits' final bytes through write.py so each node's last write-log sha equals its bytes; paste the per-node check.
+3. experiment:a00-212ee37a-73fc13 stays inconclusive_lean_disproved:55 on a premise that no longer reproduces (test_cli.py:2755 reads VISIBLE ONCE; grep -c revisited test_cli.py = 0) -> RE-RUN both, paste, and set the verdict the measurement supports, reason in its THOUGHT.
+4. experiment:a00-47615c4e-006a39:155 says the a00-cb8fae55 duplicate is a DH.483 miss; old_tip had BEGIN=1, so DH.513 introduced it -> correct the sentence.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+FILE SCOPE experiment:a00-cb8fae55-9c5f9e · a00-212ee37a-73fc13 · a00-47615c4e-006a39 · a00-58f9c0e5-af6502 · a00-7087b01c-a4999d · a00-d596cc8b-bea4b5 (write.py only) · the kid's own node
+CEILING   HARD CAP: 1 kid · 0 production lines · 0 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit on the loop branch before you exit
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+director-engine (TMM.331 detector work, measured 11:5xZ 09-28): this version RESTORES the DH.527 section cut at 3fa74022b. DH.527 item 1 quoted a whole THOUGHT-BEGIN marker mid-line; the next corrective's `thought` call (node_writer _THOUGHT_RE, unanchored, first match wins) took that quote as this node's block and replaced everything from it to the END marker: the rest of item 1, items 2-4, ANON, FILE SCOPE, CEILING, PARENT and DH.527's own THOUGHT. Every later placement (DH.543 .. EG.91) rewrote the same spliced line. The restored text is 17c9af9e0's, with item 1's quoted marker written as [THOUGHT:BEGIN marker] so it can never match again; the superseded DH.527 thought and the spliced 'corrective EG.91' line are in the grid.
 <!-- THOUGHT:END -->
 
 ## CORRECTIVE DH.665 -- closes mur-director-engine-41 DH.644-k1 accept_with_residue
