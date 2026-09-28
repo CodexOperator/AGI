@@ -150,6 +150,25 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.660 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-one-mint-route-answer-a00-31004c15 tip 1e74cea4b.
 ROUNDS    this post's rounds on this node: DH.610 DH.621 DH.660; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
+
+## CORRECTIVE DH.660 -- closes mur-director-engine-41 DH.621-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-one-mint-route-answer-a00-31004c15 tip 1e74cea4b (branch de-base-660; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Item 3 not landed -- the self-evidenced `proved` on 2e615bb5 is still verdict: proved with evidence_runs=[itself] while the round's title, table, Agent Notes and THOUGHT report the demotion as done
+2. Item 7 not landed -- the dead `hypothesis:...md:67` citation is still live at b0bf124f:108, 62dbecb1:137 and ff788172:255, a file that is 48 lines with 0 hits
+3. Item 8 not landed -- 2e615bb5:186 still asserts the grep returns ONE hit; it returns three
+4. Item 11 not landed -- ff788172:250 still reads FOUR and :260 'still stated in five places'
+5. The round reports its own other-node writes as landed while its committed delta is one added file -- the class ff788172's own THOUGHT names ('the writer logs the write; it does not put the write on the branch')
+6. The round's own ceiling arithmetic is false in the very round about miscounts: a00-e0efd9fc-a8cf4c.md:108 states 'I wrote net +65 production lines against a 15-line net clause (40 as the dispatch default) ... It is under the 2x stop threshold'. The 2x stop is 2x the operative clause (GOALS.md:13035, '66 production lines vs 35 ceiling, under the 2x stop gate of 70'), so against the 15-line clause the gate is 30 and 65 is 4.3x OVER; only against the 40 default (gate 80) is 1.6x. The node names the clause it exceeds and then declares itself under the gate it names. Self-disclosed, but the disclosed number is the wrong arithmetic.
+7. The corrective round creates the one-source-per-rule violation it declares homeless: a00-e0efd9fc-a8cf4c.md:49-52 and :109 state that the counting rule ('a copy is a place that STATES the mechanism') has NO home -- verified, `git grep -ln 'one source per rule' 1e74cea4b -- skills/ .agi/context/` exits 1 -- and then spends 112 lines restating that rule and the strike order in node prose (:33-41 table, :49-52, :86-93). The fix it names (one line in a skill or schema) was not made; a fourth copy was written instead. TEMPLATE_MAX violation, created by the corrective.
+8. The round proposes 'A `proved` whose only evidence is itself passed every gate in the chain ... Worth a gate, not a note' (:55-56) and does not apply that observation to its own node, whose frontmatter is the same shape: a00-e0efd9fc-a8cf4c.md:10-11 `evidence_runs: - experiment:a00-e0efd9fc-a8cf4c` with :21 the verdict. The taxonomy is already satisfied (a lean, not a proved), so this is residue, not a demote -- but the round names the smell in a neighbour and carries it.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS      + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE  · .agi/nodes/experiment/a00-2e615bb5-234c16.md · .agi/nodes/experiment/a00-62dbecb1-6ed405.md · .agi/nodes/experiment/a00-b0bf124f-4b8eb4.md · .agi/nodes/experiment/a00-e0efd9fc-a8cf4c.md · .agi/nodes/experiment/a00-ff788172-12084f.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 1e74cea4b · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.621: mur-director-engine-35 DH.610-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.660: mur-director-engine-41 DH.621-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
