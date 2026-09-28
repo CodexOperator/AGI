@@ -66,7 +66,6 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import envfile  # noqa: E402
-import spawn_budget  # noqa: E402
 
 #: OpenRouter's key-management endpoint.
 API_BASE = "https://openrouter.ai/api/v1/keys"
@@ -100,14 +99,8 @@ DEFAULT_TTL_MINUTES = 60
 NAME_PREFIX = "agi"
 #: Credits endpoint — account-level remaining budget. Not workspace-scoped.
 CREDITS_BASE = "https://openrouter.ai/api/v1/credits"
-#: Minimum remaining credits before refusing to mint a PAID-lane key; the
-#: default of the cell `provisioning.min_mint_remaining_usd`.
+#: Minimum remaining credits before refusing to mint a new key.
 MIN_REMAINING_CREDITS = 1.0
-#: Hard dollar cap on a ZERO-USD-lane key (belam 09-27 13:1xZ, owner: account
-#: drained); the default of the cell `provisioning.zero_usd_key_limit_usd`.
-#: A free-lane key can never spend more than this, so it may mint below the
-#: paid floor -- but never past zero (OpenRouter 402s even free models then).
-DEFAULT_ZERO_USD_KEY_LIMIT_USD = 0.01
 
 #: OpenRouter's single-key endpoint — the RUNTIME key's OWN limit/usage/remaining.
 #: The account/credits endpoints read the ACCOUNT balance; this endpoint reads the
@@ -198,75 +191,42 @@ def credit_balance(root: Path | str | None = None) -> tuple[float, float, float]
     return total, used, remaining
 
 
-def _cfg(root) -> dict:
-    """The project config dict, or {} — never raises, never a literal path."""
-    if root is None:
-        return {}
-    try:
-        sys.path.insert(0, str(Path(__file__).resolve().parent))
-        import locations  # noqa: E402
-        graph = locations.find_project_root(Path(root).resolve()) or Path(root)
-        return locations.load_config(graph)
-    except Exception:  # noqa: BLE001 -- an unreadable config reads as empty
-        return {}
-
-
-def _prov_cell(root, name: str, default: float) -> float:
-    """One `provisioning.<name>` dollar cell from the project config."""
-    try:
-        return float((_cfg(root).get("provisioning") or {}).get(name, default))
-    except Exception:  # noqa: BLE001 -- an unreadable value keeps the default
-        return default
-
-
-def zero_usd_sizing_ok(root: Path | str | None = None,
-                       cap: float | None = None) -> tuple[bool, str | None]:
-    """(ok, reason) — the sizing invariant: cap x spawn.max_live < balance.
-
-    A zero-USD cap BOUNDS a leak, it never refuses one (a paid model is served
-    through the same key), so the sized leak is `cap x live spawns`.
-    """
-    cap = zero_usd_key_limit(root) if cap is None else cap
-    bal = credit_balance(root)
-    if bal is None:
-        return True, None  # no balance to compare against: today's behaviour
-    live = spawn_budget.max_live(_cfg(root))
-    product = cap * live
-    if product >= bal[2]:
-        return False, (
-            f"zero-USD sizing: key cap ${cap:.4f} x spawn.max_live {live} = "
-            f"${product:.4f} >= account balance ${bal[2]:.4f} — a paid model "
-            f"through these keys drains the account")
-    return True, None
-
-
-def zero_usd_key_limit(root: Path | str | None = None) -> float:
-    """The hard cap on a zero-USD-lane key (`provisioning.zero_usd_key_limit_usd`)."""
-    return _prov_cell(root, "zero_usd_key_limit_usd", DEFAULT_ZERO_USD_KEY_LIMIT_USD)
-
-
-def can_fund(root: Path | str | None = None,
-             zero_usd: bool = False) -> tuple[bool, str | None]:
+def can_fund(root: Path | str | None = None) -> tuple[bool, str | None]:
     """(ok, reason) — whether the remaining credits can fund one more key.
 
     The decision replaces a guess with a known threshold: a project with $1.00
     left can afford a $0.25 key. Below that boundary, the next mint risks a
     402 (insufficient credits) and leaves no escape path — the loop would need
     a key to mint keys, and no credits remain to create one.
+
+    When the project declares `provisioning.min_account_remaining_usd`, that
+    value is the mint floor too (same account balance `check_account_floor`
+    already guards). Absent that key, the legacy `MIN_REMAINING_CREDITS`
+    ($1.00) applies so rootless/unconfigured callers keep today's behaviour.
     """
     bal = credit_balance(root)
     if bal is None:
         return True, None  # no provisioning key = shared key fallback
     _total, _used, remaining = bal
-    # A zero-USD lane's floor is its own hard key cap: it may mint below the
-    # paid floor, never past zero. A paid lane keeps the cell floor.
-    floor = (zero_usd_key_limit(root) if zero_usd else
-             _prov_cell(root, "min_mint_remaining_usd", MIN_REMAINING_CREDITS))
+    floor = float(MIN_REMAINING_CREDITS)
+    floor_src = "MIN_REMAINING_CREDITS"
+    if root is not None:
+        try:
+            sys.path.insert(0, str(Path(__file__).resolve().parent))
+            import locations  # noqa: E402
+            graph = locations.find_project_root(Path(root).resolve()) or Path(root)
+            cfg = locations.load_config(graph)
+            acct = min_account_remaining_floor(cfg)
+            if acct is not None:
+                floor = float(acct)
+                floor_src = "provisioning.min_account_remaining_usd"
+        except Exception:  # noqa: BLE001 — unreadable config keeps legacy floor
+            pass
     if remaining < floor:
         return False, (
             f"remaining credits (${remaining:.2f}) below minimum "
-            f"(${floor:.2f}, {'zero-USD key cap' if zero_usd else 'provisioning.min_mint_remaining_usd'}) "
-            f"— minting a new key risks making the loop unfundable")
+            f"(${floor:.2f} via {floor_src}) — minting a new key risks making "
+            f"the loop unfundable")
     return True, None
 
 
@@ -627,8 +587,7 @@ def _live_key_headroom(rec: dict) -> float:
 
 
 def cap_headroom(cfg: dict, root: Path | str | None,
-                 cap: float, slots: int = 1,
-                 exempt_floor: bool = False) -> tuple[bool, str | None]:
+                 cap: float, slots: int = 1) -> tuple[bool, str | None]:
     """(ok, msg): does `cap` fit pool minus floor minus live caps?
     Fail-open on an absent key or a network error (check_account_floor idiom).
 
@@ -639,16 +598,6 @@ def cap_headroom(cfg: dict, root: Path | str | None,
 
     `slots` prices the round at `cap * slots` (one minted key per slot,
     `spawn.parallel`); the refusal names the multiplier when it is > 1.
-
-    🔴 `exempt_floor` is the ZERO-USD lane's exemption (hypothesis:a-zero-usd-
-    lane-prints-the-cap-it-mints): such a lane is EXEMPT from the account
-    floor at `check_account_floor`, so charging it `min_account_remaining_
-    floor` here re-introduces through a side door the very floor it was
-    exempted from -- and since its minted keys are hard-capped at
-    `zero_usd_key_limit_usd`, the floor is the only term that can refuse a cap
-    the round physically cannot overspend. The floor term is then 0.0 and the
-    refusal NAMES that, so a zero-USD lane is visibly priced without it.
-    `live` still counts: another lane's minted key does draw on this pool.
 
     🔴 Every fail-open carries a MARKER, never `(True, None)` (the
     `check_key_floor` idiom): `(True, <marker>)` names what could not be read
@@ -669,19 +618,15 @@ def cap_headroom(cfg: dict, root: Path | str | None,
             f"cap not measured: the account/key listing was unreadable "
             f"(provisioning API error); round cap ${cap:.2f} proceeds "
             f"unmeasured")
-    floor = 0.0 if exempt_floor else (min_account_remaining_floor(cfg) or 0.0)
+    floor = min_account_remaining_floor(cfg) or 0.0
     live = sum(_live_key_headroom(r) for r in keys)
     avail = bal[2] - floor - live
     if cap > avail:
         _head = (f"round cap ${cap / slots:.2f} x {slots} slots = ${cap:.2f}"
                  if slots > 1 else f"round cap ${cap:.2f}")
-        # the MARKER a floorless pool cannot supply: an exempt lane's $0.00 is
-        # a DECLARED exemption, and the refusal must say so.
-        _floor_txt = (f"floor ${floor:.2f} (exempt)" if exempt_floor
-                      else f"floor ${floor:.2f}")
         return False, (
             f"{_head} exceeds pool headroom ${avail:.2f} "
-            f"(pool ${bal[2]:.2f} - {_floor_txt} - live ${live:.2f}) "
+            f"(pool ${bal[2]:.2f} - floor ${floor:.2f} - live ${live:.2f}) "
             f"(live counts each un-expired {NAME_PREFIX}- key's limit minus "
             f"usage; disabled and expired keys are free)")
     return True, None
@@ -888,13 +833,8 @@ def mint(*, iter_n: int | str, agent_id: str, tier: str = "kid",
          limit_usd: float | None = None,
          ttl_minutes: int = DEFAULT_TTL_MINUTES,
          workspace_id: str | None = None,
-         root: Path | str | None = None,
-         zero_usd: bool = False) -> MintedKey | None:
+         root: Path | str | None = None) -> MintedKey | None:
     """Issue one capped, expiring runtime key. None if issuance is unavailable.
-
-    `zero_usd` (the lane's harness row says so): the key's limit is forced to
-    the hard cap `provisioning.zero_usd_key_limit_usd` and the account floor is
-    that cap, so a free lane still mints on a drained account.
 
     Returns None — never raises — when there is no provisioning key, because
     absence is a supported state. A *failed* call with a key present does
@@ -914,8 +854,6 @@ def mint(*, iter_n: int | str, agent_id: str, tier: str = "kid",
     if limit_usd is None:
         limit_usd = (_configured_limit(root) if root is not None
                      else DEFAULT_LIMIT_USD)
-    if zero_usd:
-        limit_usd = zero_usd_key_limit(root)
 
     expires = (datetime.datetime.now(datetime.timezone.utc)
                + datetime.timedelta(minutes=ttl_minutes))
@@ -928,14 +866,10 @@ def mint(*, iter_n: int | str, agent_id: str, tier: str = "kid",
     # the remaining budget cannot fund the next key, so the loop does not paint
     # itself into a corner with no credits left to mint a key for the next
     # iteration.
-    ok, reason = can_fund(root, zero_usd=True) if zero_usd else can_fund(root)
+    ok, reason = can_fund(root)
     if not ok:
         raise ProvisioningError(
             f"mint refused for {name}: {reason}")
-    if zero_usd:
-        ok, reason = zero_usd_sizing_ok(root, limit_usd)
-        if not ok:
-            raise ProvisioningError(f"mint refused for {name}: {reason}")
 
     # goal:g1.11 / 2026-09-03 — `workspace_id` is honoured on create, asserted
     # against the live API before this line was written (201, and the returned
