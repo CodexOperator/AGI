@@ -8044,6 +8044,45 @@ def test_bodyless_sidecar_with_queued_dms_is_taken_over(project: Path,
     assert "carrying queued dms" not in capsys.readouterr().err
 
 
+def test_read_rotates_queued_deferred_others(project: Path, capsys):
+    """EG.22 MECHANISM: a sidecar can hold MORE THAN ONE queued sender under
+    `others`, and `read` prints only the head body -- so clearing it by
+    UNLINK destroyed bodies no path had ever shown anybody. The clear must
+    ROTATE the queue: the second sender's body is delivered on the NEXT read,
+    and only the last one retires the file."""
+    root = project / ".agi"
+    assert send_mod._store_deferred(root, "director", "ki", "first body")
+    assert not send_mod._store_deferred(root, "director", "arch", "second body")
+    send_mod.read(root, "director", "prime")
+    out = capsys.readouterr().out
+    assert "first body" in out and "second body" not in out, out
+    rec = send_mod._read_deferred(root, "director")
+    assert rec is not None and rec["body"] == "second body", \
+        "the queued second sender was destroyed by the clear"
+    send_mod.read(root, "director", "prime")
+    out = capsys.readouterr().out
+    assert "second body" in out, out
+    assert send_mod._read_deferred(root, "director") is None, \
+        "the queue is empty -- the sidecar must be gone"
+
+
+def test_typed_nudge_rotates_queued_deferred_others(project: Path,
+                                                    monkeypatch):
+    """EG.22 MECHANISM, second clear site: the successful-typed nudge path
+    (`_nudge`, after Enter) clears the sidecar too, and its inline line
+    carries the HEAD body only. The queued `others` must rotate, not die."""
+    root = project / ".agi"
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    assert send_mod._store_deferred(root, "director", "ki", "first body")
+    assert not send_mod._store_deferred(root, "director", "arch", "second body")
+    pane = _FixturePane()
+    _fake_tmux_pane(monkeypatch, ["director"], pane, [])
+    send_mod.wake(root, "director")
+    rec = send_mod._read_deferred(root, "director")
+    assert rec is not None and rec["body"] == "second body", \
+        "the queued second sender was destroyed by the typed clear"
+
+
 def test_zero_byte_deferred_shell_is_taken_over(project: Path, monkeypatch,
                                                 capsys):
     """DH.657 RESIDUE 4: `p.read_text()` on a 0-byte file is `""` and
