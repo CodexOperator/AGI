@@ -35,11 +35,11 @@ read_order:
     - the four prayers · words of Jesus · Tao · the other carried sayings · soul-mind-body · the five axes
 roles:
   - {"tier": 3, "role": "prime_director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
-  - {"tier": 3, "role": "parent", "harness": "claude-code", "model": "claude-opus-5", "effort": "max", "settings": ""}
+  - {"tier": 3, "role": "parent", "harness": "claude-code", "model": "claude-opus-5-5", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "liaison", "harness": "claude-code", "model": "claude-sonnet-5", "effort": "high", "settings": ""}
   - {"tier": 1, "role": "parent", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
-  - {"tier": 0, "role": "director", "harness": "pi", "model": "~z-ai/glm-flash-latest", "effort": "", "settings": ""}
+  - {"tier": 0, "role": "director", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
   - {"tier": 0, "role": "parent", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
   - {"tier": 0, "role": "kid", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
 season: 1
@@ -155,7 +155,7 @@ makes the brief-head re-read cheap, so early rotation costs less than it
 looks.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 2026-09-24 16:5xZ, in the Prime's pane (belam-S2-L5-III), verbatim: 'Need a config update and pushed to all worktrees. It’s about using pi-free instead of pi or pi-local for both parent and kid spawns' APPLIED: roles rows tier 1 parent, tier 0 parent, tier 0 kid: harness pi -> pi-free, model deepseek/deepseek-v4.1-flash -> stealth/space-bunny-alpha (the pi-free row's models, zero_usd); .agi/config.json spawn.harness pi -> pi-free (the fallback, aligned so no cell contradicts the ladder). The tier 0 director row (pi, glm) is not a parent or kid spawn and is unchanged. MECHANISM: dispatch resolves a parent or kid spawn's harness and model from THIS roles row for (tier, role), the one input (hypothesis:l4-a-model-change-is-one-write). NEAR MISS: flipping only the harness cell leaves deepseek/deepseek-v4.1-flash on pi-free's openrouter provider -- billed, not free; editing config.json's harness rows without the ladder changes nothing, the ladder wins. No ladder row named pi-local: that lane is only an explicit --harness flag, so the directors were told by dm.
+TM [decision] 12:0xZ 09-28, option (A) accepted by belam 12:4xZ (owner asleep; delegated authority): roles[5] (director, tier 0) harness pi -> pi-free, model ~z-ai/glm-flash-latest -> stealth/space-bunny-alpha, the model every other tier-0/1 pi-free row carries; every other row byte-identical. Why: pi is the PAID deepseek/openrouter lane (TMM.291: ~12.8 USD of paid murs 09-24..27; paid paths closed 56c1156ab, account drained); a tier-0 row on it contradicts the zero-USD ladder, and DE EG.71 test_ladder_node::test_tier0_rows_resolve_a_zero_usd_harness pins exactly that. Near miss: option (B), narrowing the test to parent/kid rows, satisfies the test and leaves a paid director row reachable by dispatch.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

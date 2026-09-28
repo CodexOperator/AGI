@@ -190,6 +190,53 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.659 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-mint-offers-storage-c-a00-5dae1c0c tip 7a286b752.
 ROUNDS    this post's rounds on this node: DH.611 DH.618 DH.642 DH.659; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
-<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.642: mur-director-engine-38 DH.618-k1 residues batched into one corrective (orders above, generated from the verdict files).
+
+## CORRECTIVE DH.659 -- closes mur-director-engine-41 DH.642-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-mint-offers-storage-c-a00-5dae1c0c tip 7a286b752 (branch de-base-659; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 2. Parent probes written as prose strings, not the schema's probe dicts — a00-82e7d5d4-3feda4.md:14
+2. locations.py:638 — `int(text) == row["n"]` is guarded by `text.isdigit()`, but isdigit() and int() do not agree: '²' (U+00B2) is isdigit()==True and int('²') raises ValueError, so `--storage-pick ²` falls into the ERR path. main catches it (locations.py:1147-1150), so the consequence is a graceful but opaque `ERR: invalid literal for int() with base 10: '²'`, rc 1, not a traceback — note-level, and PRE-EXISTING (the diff changes no behaviour line). UNVERIFIED by any committed test; the probe I WOULD run is an in-process `locations.resolve_storage_category('²', None, cfg)` — I did NOT run it as a round probe; I verified only the `str.isdigit`/`int` semantics.
+3. a00-eea0b2c4-0b4709.md:221 — `## Agent Notes` is the LAST `#`-starting line in the 226-line file, so `_agent_notes_block` (season.py:1565-1571, break at the first line starting with '#') returns lines 222-226 which INCLUDE a second `<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective EG.88: mur-eg-19 EG.61-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
+
+## CORRECTIVE EG.25 -- closes the DH.659 PARENT DEMOTE (a00-9147b8b2: inconclusive_lean_disproved:60; items 1 and 3 claimed fixed but NOT in the bytes)
+BASE      CUT FROM season2/loops/hypothesis-mint-offers-storage-c-a00-9147b8b2 tip b5a2856ac (branch de-base-EG.25). No merge. Never rebase.
+Measured  (parent a00-9147b8b2 + director harvest) the branch moves 3 files (locations.py +13/-3, test_storage_categories.py +17, the kid node); .agi/nodes/experiment/a00-82e7d5d4-3feda4.md and a00-eea0b2c4-0b4709.md are byte-identical to 7a286b752 -- the kid's edits to them sat UNCOMMITTED in its worktree and are NOT landed (the a00-eea0b2c4 splice also truncated the DH.618 THOUGHT mid-sentence and left a duplicate THOUGHT:END). Items 2 and 4 hold on the bytes. test_storage_categories.py + smoke = 104 passed, 6 skipped at b5a2856ac.
+For EACH item: fix it in the bytes with write.py (replace body N:M on a range you READ first -- never the thought verb), then paste the output of: git diff b5a2856ac <your tip> -- <that node>  on your node.
+1. Parent probes written as prose strings, not the schema's probe dicts — a00-82e7d5d4-3feda4.md:14
+2. a00-eea0b2c4-0b4709.md:221 — `## Agent Notes` is the LAST `#`-starting line in the 226-line file, so `_agent_notes_block` (season.py:1565-1571, break at the first line starting with '#') returns lines 222-226 which INCLUDE a second `<!-- THOUGHT:BEGIN/END -->` pair, and `_resolve_node_conflict` (season.py:1639-1648) then sets end=len(lines) and replaces the whole tail with the union. This is the LIVE instance of the trap the round names as OUTSIDE, sitting in one of the two nodes the round edited, and the node's Evidence claim ('Both notes blocks still extract non-empty after the splices') checks only the direction that does not bite. Pre-existing (identical shape at dab046d52 :214/:217/:219), so not introduced here — but the round named the trap in this file and did not name its own instance.
+3. After both: each of the two nodes carries exactly ONE THOUGHT:BEGIN/END pair, whole -- paste: grep -c '^<!-- THOUGHT:BEGIN' <node>, the same for THOUGHT:END, and the THOUGHT's last line; no sentence of the DH.618 THOUGHT is cut.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_storage_categories.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE)
+FILE SCOPE .agi/nodes/experiment/a00-82e7d5d4-3feda4.md · .agi/nodes/experiment/a00-eea0b2c4-0b4709.md (write.py) · the kid's own node -- no code
+CEILING   HARD CAP: 1 kid · 0 production lines · 0 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13) -- an uncommitted node edit is NOT delivered: check  in the KID worktree before you accept
+
+## CORRECTIVE EG.61 -- closes mur-eg-14 EG.38-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-mint-offers-storage-c-a00-2b3163e9 tip 395779682 (branch de-base-EG.61; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. CEILING item not closed — EG.38's own numstat against the cut tip is not pasted, and the measured net is +19 lines -- .agi/nodes/experiment/a00-699af22b-be5860.md:147 -- Orders EG.38 require `git diff --numstat 0071a2e4d <final tip>` pasted on the node; the numstat block at :147-155 is still the kid's uncommitted-worktree measurement. My `git diff --numstat 0071a2e4d 395779682` = 37/18 = +19 net, over the stated <=15 cap unless 'production lines' is read as code (0 code lines here). Prime's call on the reading.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_bin_help_smoke.py once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT (TMM.322)); TEXT-ONLY round: node text only
+FILE SCOPE .agi/nodes/experiment/a00-699af22b-be5860.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · node text only · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 395779682 <your final tip>` on your node (an empty range is not a measurement)
+KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit; a version delta goes in the node THOUGHT (write.py), never the body
+
+## CORRECTIVE DH.EG.88 -- closes mur-eg-19 EG.61-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-mint-offers-storage-c-a00-014a5577 tip a215318b5 (branch de-base-EG.88; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. frontmatter production_lines: 12 stale against the node's own +19/+12 measurements (.agi/nodes/experiment/a00-699af22b-be5860.md:18)
+2. Reader neither reviewer ran: season._agent_notes_block on the DELIVERED bytes of a00-699af22b at a215318b5 still extracts 10 lines of prose ending in a grep line, and the file is 1 THOUGHT-begin / 1 THOUGHT:END (:213/:215). The round's own EG.25/EG.38 fix (move the notes block last, so the span no longer runs to EOF) survived this round's splice — the one thing a text-only corrective most easily breaks, and it did not.
+3. Residue neither reviewer named: the pasted test command at a00-014a5577:57 elides its own arguments (`TMPDIR=/dev/shm/... `, `--basetemp=/dev/shm/...`), so the evidence line is not re-runnable verbatim and the 13.32s timing cannot be tied to a run. Low severity (wording), but it is the same paste-not-type rule the order enforces at hypothesis:219.
+4. DEMOTED by the director: the TMM.268 'bytes == last write-log sha' custody item -- the harvest matched against the KID worktree's own write-log (per-root, node_writer.py:127; findings row); do not rewrite a landing commit.
+5. Every number or line you write is measured at YOUR final tip after your last edit and PASTED with its command (two-operand git diff); a claim you cannot re-run is narrowed or removed, never retyped.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-014a5577-dc5d42.md · .agi/nodes/experiment/a00-699af22b-be5860.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines (text, comments, docstrings, briefs and skill rows only) · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat a215318b5 <your final tip>` on your node (an empty range is not a measurement)
+COMMIT    every edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)

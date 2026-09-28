@@ -95,8 +95,8 @@
     "claude-code": {
       "adapter": "claude_code",
       "models": {
-        "kid": "claude-sonnet-5",
-        "parent": "claude-opus-5",
+        "kid": "claude-opus-5-5",
+        "parent": "claude-opus-5-5",
         "director": "claude-fable-5-1"
       },
       "effort": {
@@ -105,8 +105,10 @@
       "allowed_models": [
         "claude-sonnet-5",
         "claude-opus-5",
+        "claude-opus-5-5",
         "claude-fable-5-1"
-      ]
+      ],
+      "max_live": 4
     },
     "copilot-cli": {
       "adapter": "copilot_cli",
@@ -171,7 +173,7 @@
     "iterations_per_run": 5,
     "kids_per_iter": 2,
     "kid_model": "claude-sonnet-5",
-    "parent_model": "claude-opus-5",
+    "parent_model": "claude-opus-5-5",
     "director_model": "claude-fable-5-1"
   },
   "goal_body_cap": 0,
@@ -186,6 +188,16 @@
     "comms_root": "comms/season-2",
     "pi_home": "/home/ubuntu/.pi/agent",
     "claude_home": "/home/ubuntu/.claude"
+  },
+  "mint": {
+    "storage_categories": {
+      "engine_code": {"location": "source_root", "prefix": "extensions/agi/bin", "label": "engine code"},
+      "tests": {"location": "source_root", "prefix": "extensions/agi/tests", "label": "tests"},
+      "skills": {"location": "source_root", "prefix": "skills", "label": "skills"},
+      "geometry": {"location": "graph_root", "prefix": "nodes/.geometry", "label": ".geometry config"},
+      "schemas": {"location": "graph_root", "prefix": "context/schemas", "label": "schemas"},
+      "context_templates": {"location": "graph_root", "prefix": "context", "label": "context templates"}
+    }
   },
   "box": {
     "root": "/home/ubuntu/work/agi",
@@ -233,7 +245,8 @@
   "paths": {
     "core": {
       "worktrees_root": ".agi/worktrees",
-      "suite_roots": [".agi/context"]
+      "suite_roots": [".agi/context"],
+      "foreign_refusal_memo": ".agi/sessions/foreign_refusals.tsv"
     },
     "boxkit": {
       "templates_dir": "extensions/agi/boxkit/templates",
@@ -350,7 +363,8 @@
       "ALERT_COOLDOWN_S": "600"
     },
     "core": {
-      "model_load_allowed_max_bytes": 67108864
+      "model_load_allowed_max_bytes": 67108864,
+      "stale_index_lock_s": 900
     },
     "local_maxxing": {
       "osc_band_seeds": [7, 21, 99],

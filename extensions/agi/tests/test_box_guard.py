@@ -42,26 +42,30 @@ def _no_ambient_box(monkeypatch):
     monkeypatch.delenv("AGI_BOX", raising=False)
 
 
-# (2) no cell = the default box, and the default box is local to itself.
-def test_no_box_cell_is_default_box_and_local(tmp_path):
+# (2) an unset AGI_BOX is REFUSED BY NAME, and `default_box` is never a
+# fallback: the cell still READS (it is the posts node's documentation of its
+# home box) but `this_box` raises instead of silently naming it.
+def test_unset_box_is_refused_by_name_not_defaulted(tmp_path):
     root = _graph(tmp_path, "core-town",
                   rows=[{"name": "a", "pid": 1},
                         {"name": "b", "pid": 2, "box": "local-town"}])
-    assert boxes.this_box(root) == "core-town"
+    with pytest.raises(RuntimeError) as e:
+        boxes.this_box(root)
+    assert "AGI_BOX" in str(e.value) and "default_box" in str(e.value)
+    # the DOCUMENTATION cell still reads — it is not a locality fallback
     assert boxes.default_box(root) == "core-town"
-    assert boxes.row_is_local(root, {"name": "a"})
-    assert not boxes.row_is_local(root, {"name": "b", "box": "local-town"})
 
 
-# (3) this box comes from AGI_BOX in the env; unset falls back to default.
+# (3) this box comes from AGI_BOX in the env; unset REFUSES, never defaults.
 def test_this_box_reads_agi_box_env(tmp_path, monkeypatch):
     root = _graph(tmp_path, "core-town")
     monkeypatch.setenv("AGI_BOX", "local-town")
     assert boxes.this_box(root) == "local-town"
-    # A boxless row is the DEFAULT box, so it is now foreign to local-town.
+    # A boxless row names no box, so it is foreign to local-town.
     assert not boxes.row_is_local(root, {"name": "a"})
     monkeypatch.delenv("AGI_BOX")
-    assert boxes.this_box(root) == "core-town"
+    with pytest.raises(RuntimeError):
+        boxes.this_box(root)
 
 
 # (1) whois never asserts a foreign row's window; heal and status skip it.
@@ -110,8 +114,9 @@ def test_foreign_rows_skipped_by_name_at_every_call_site(tmp_path, monkeypatch):
 
 # (4) crons box filter: core byte-identical with no box fields; the live node
 # renders core = grid_sync + mirror + branch_push and local = branch_push + mail.
-def test_crons_box_filter_core_unchanged_and_local_mail_only(tmp_path):
+def test_crons_box_filter_core_unchanged_and_local_mail_only(tmp_path, monkeypatch):
     import crons
+    monkeypatch.setenv("AGI_BOX", "core-town")
     root = _graph(tmp_path, "core-town")
     repo = tmp_path
     subprocess.run(["git", "init", "-q", str(repo)], check=True)
@@ -156,6 +161,38 @@ def test_crons_box_filter_core_unchanged_and_local_mail_only(tmp_path):
 # (6) no RUNABLE literal box alias in any engine script (comments/docstrings
 # are prose, matching test_no_literal_town.py's AST rule; season.py carries
 # 'core-town' in a comment and is not an offender).
+# (2b) FAIL CLOSED: a graph that cannot name its own box runs NO box-gated
+# job, and says so once in the crontab it renders.
+def test_crons_box_gate_fails_closed_on_an_unset_box(tmp_path, monkeypatch):
+    import crons
+    monkeypatch.delenv("AGI_BOX", raising=False)
+    root = _graph(tmp_path, "core-town")  # default_box cell, no AGI_BOX
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    with_box = {"crons_live": True, "jobs": {
+        "grid_sync": {"enabled": True, "every_mins": 5, "schedule": None,
+                      "box": "core-town"},
+        "mail_poll": {"enabled": True, "every_mins": 5, "schedule": None,
+                      "box": "local-town"}}}
+    lines = crons.render_managed_lines(root, repo, repo, with_box)
+    runnable = [ln for ln in lines if not ln.lstrip().startswith("#")]
+    assert not any("grid.py" in ln for ln in runnable)
+    assert not any("mail_poll" in ln or "--box-local" in ln for ln in runnable)
+    assert len([ln for ln in lines if "refused" in ln]) == 1  # exactly once
+
+    # An UNGATED job still runs (no box field = every box, unchanged), and
+    # `box_name=` an explicit override restores the gate as before.
+    ungated = {"crons_live": True, "jobs": {
+        "grid_sync": {"enabled": True, "every_mins": 5, "schedule": None}}}
+    only = crons.render_managed_lines(root, repo, repo, ungated)
+    assert not [ln for ln in only if ln.lstrip().startswith("#")]
+    assert any("grid.py" in ln for ln in only)
+    assert crons._on_this_box(with_box["jobs"]["mail_poll"], "") is False
+    assert crons._on_this_box(ungated["jobs"]["grid_sync"], "") is True
+    assert crons._on_this_box(with_box["jobs"]["mail_poll"], "local-town")
+
+
 def test_no_literal_box_alias_in_bin():
     import ast
     offenders = []

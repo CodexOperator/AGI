@@ -13,12 +13,12 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ```
 
 ## 🔴 Where it stops
-00:4xZ 09-28: DE's WHOLE post branch LANDED d0d126deb (owner order), [merge-up] sent to belam -- next = read the dm files; DE's 3 fix rounds (TMM.312) + counter reset (EG.N / mur-eg); belam PASSes the landing; DT's model tip 09d7ed36c
+00:5xZ 09-28 ROTATING at 0.41 -- next = read the dm files; PASS 12 (belam) over d0d126deb; DE: EG.1 + heal-sweep fix + thought-hygiene + context conftest (TMM.312/313) then counters EG.N / mur-eg; facts chain lands through you with belam's F13 trim in ONE window
 ```
 LANDED   d0d126deb = trunk 47afd8967 + DE d4446340f (662 commits, 188 files, 0 deletions) · range reds ordered to DE (TMM.312): EG.1
          test_boxkit_probe · test_thought_hygiene (5 kid experiment nodes with 2-5 THOUGHT blocks) · the context conftest suite guards (+1 red
          test_model_load_guard standins, hook_trim 0.9 s -> 134 s) · trunk reds: test_ladder_node + test_sensei_wake_audit (red alone on trunk)
-state    last order = TMM.312 · next = TMM.313 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB · account 0.606 USD, NO top-up (owner)
+state    last order = TMM.335 (EG.71 LANDED 39d280fa9 pre-B1; new zero-USD sizing refusal live-measured 0.30 < 0.6062; ladder roles-table red green; / at 99 pct -> belam [red]) · TMM.334 (belam cell a577c160a DONE -> EG.71 re-merge; ladder roles-table ultracode red -> EG.5 or g7.33; facts window open, belam re-measures 2009 B; PASS B1 pins 13:47Z) · TMM.333 (EG.71 HELD on belam ladder cell roles[5] tier-0 director pi -> pi-free, [decision] sent, rec A; DH.527 splice restore rides next merge-up) · TMM.332 (EG.97 detector at the front, green on live corpus; 96d22cb50 carried 2 undisclosed CORRECTIVE order sections -- read, harmless, kept) · TMM.331 (EG.88+EG.90 LANDED 51eab0b70; thought_hygiene red 13 quoted nodes -> detector fix to the FRONT with EG.9) · TMM.330 (EG.72 LANDED 96d22cb50, first live run measured = no change; trunk red test_sensei_wake_audit item2 -> DE g7.33) · TMM.329 (DH.679 LANDED e3e730e3b: capture keeps slot + BANKED, hook live; EG.91 conflict -> merge-resolution kid) · TMM.328 (EG.95 LANDED c6a975721; agi-corrective row-2 overlap -> DE next close; config.json round-commit defect -> g7.33 hyp; [hypothesis].md anchor rule approved) · TMM.327 (text churn ruling C: node-prose-only residues closed by DE itself, one commit per chain, I read the diff; behaviour/config/test claims keep corrective + mur; row -> skills/agi-corrective) · TMM.326 (EG.5 facts chain: (A) one window with belam, no test fallback; DE closes EG.107 then [merge-up]; belam told) · TMM.325 (EG.64 19564b6c0 LANDED 2beb0aba3 as a UNION on the RAM node; thought_hygiene red now 7 quoted nodes; skills first_turn [rule] -> belam) · TMM.324 (io red closed; the reaper service = the leftover random reader on sda3 -> findings row, rides the RAM-round reaper work) · TMM.323 (board note refused for directors + me: [red] to belam, verb-scoped actor_rows code half inert under g7.33 after EG.9) · TMM.322 (DE test-isolation leak 05:03Z contained, 0 spend verified; test named -> g7.33 fix; no Claude forks) · TMM.321 (belam env-leak 03:4xZ: DE kids a00-03658de5 + a00-2b3163e9 checked at harvest) · TMM.320 (EG.30 early placement kept · EG.31 RETIRES the AGI_TASKS_MAX hook, approved · EG.18 +parent-to-disk route) · TMM.319 tmpfs = KID worktrees only · EG.1 LANDED 57debf3a2 (pass B1) · DE live session = post-director-engine-7e @36 (gen 39, 11:17Z) (re-list ListAgents before each SendMessage) · next = TMM.336 · PASS 12 CLOSED 06:5xZ (season2/main 774e0b912; 23 awr / 2 demote / 0 red; residues -> goal:g1.28, belam -> DE); PASS B1 carries EG.1 57debf3a2 + all past 72d8d565ce
 INTAKE   -> skill agi-send §2 (OWNER 02:28Z + 23:44Z 09-27): read empty is not proof -- the dm files + inbox + rooms directly; a ts-keyed watcher
 SPEND    RESOLVED: zero_usd lanes mint below the floor at key cap 0.01 (91ae33672, falsifier met: DH.533 0.6063 before = after) · ALWAYS
          --harness pi-free · a lease with harness 'pi' = PAID -> stop it · residues -> DE (TMM.298): printed limit, runtime-key + --cap skip
@@ -31,7 +31,10 @@ FLASH    Prime [decision] 22:38Z (OWNER): /mnt/agi-flash = logs + write-once scr
            move logs by SYMLINK only, never by flipping that cell (DE 23:12Z) + logs 0.1% -> step 2 logs one at a time (tidiness) · never worktrees
 SWEEP    [red] 00:0xZ: heal sweep removes a finished 0-commit branch's worktree (uncommitted work lost: DH.648, recovered) -> DE findings row
          -> fix under goal:g7.33 · DE's /dev/shm base-checkout fix REVERTED (placements on disk again, ~145 MiB each until DH.650)
-RAMDISK  DH.650 = repo half (DE); the tmpfs mount + user@ budget = the Prime's (card step 5; [decision] 22:0xZ)
+RAMDISK  (OWNER 06:2xZ on the RAM hypothesis, 968d19ca1: per-role roots = kids tmpfs, DE + parents /data, belam + TM /mnt/agi-flash -- lands WITH the RAM round) belam 00:4xZ + 03:4xZ: tmpfs HOLD until the heal-sweep 0-commit fix is merged + 24 h with no memory crit line; then 4G, KID worktrees ONLY (parents on disk, 03:4xZ) -- was: parent + kid
+         worktrees only · DH.650 repo half may land now, inert (TMM.313)
+         · 24 h clock from the last crit 00:43:01Z (memory-alarm.state); DE EG.8 scope OOMs 01:04:56Z + 01:08:15Z = CONSTRAINT_MEMCG,
+           the scope cap held, NOT a crit line (TMM.314 corrected DE's [red] 01:11)
 DISK     / full 17:4xZ -> 17.9G (87 stale /tmp/lograce-*, TMM.303) -> 12.2G by 20:0xZ (bursts) -> 14.6G (24 stale logcost-*, TMM.305); ~31G /tmp scratch = DE's sweep round · 45 worktrees removed on /data
          (lossless; records in .agi/sessions/harvest-0927/<wt>/)
 GATE-DT  tip 09d7ed36c (model_slot fence lift + cell model_round_memory_max 3584M + osc_band_fit tests) · pre-gate green 03:0xZ · LEFT:
@@ -44,7 +47,8 @@ DH.577   box-cron ruling (c) (TMM.299): per-job survive_unnamed; memory_alarm tr
 DE       queue: DH.490 nudge -> PASS 10 defect hyps + residue batch + wake-facts DH.501 + row 21 capture -> g4.18.1 -> g7.32.6 + g7.32.5 ->
          g7.31.3.3 · skills step 3 = hypothesis:skills-load-per-harness-per-tier-from-one-config-cell · swarm test g5.31 (arms 10/5/15)
          · DE rotates often: after each, re-send owed orders BY NAME
-WAKEFACT 22:0xZ chain HELD (TMM.307): facts region 7164 B vs cap 2000 = the Prime's trim + cell facts_pointer_target_bytes ([decision] sent) · at DE's DH.501 merge-up: NAME node + range to belam (the Prime writes config:rotations facts); test_rotate_templates:534 green
+WAKEFACT belam 00:4xZ: live region 2009 B (cdcfe5c0b), DE's 7164 = an OLD base; the chain (code + guard test) comes to you as a [merge-up];
+         land it in the SAME window as belam's F13 trim (1988 B) + cell templates.director.startup.facts_pointer_target_bytes 2000 -> tell belam first
 AT-LAND  DE's next landing: goal:g7.33.19 into doc:unified-director-brief · more card traps -> skills (OWNER 03:3xZ via DE: "A lot of traps
          into the skill files I imagine.") after DE's 0463850fb skill edits land
 SKILLIDX doc:draft-skills-first-turn (trunk) = THE skill list until the auto index read lands: a new skill = one clause there (4265/5000 B)
@@ -55,7 +59,7 @@ out      python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; the card 
 ## Traps (post-specific, learned)
 ```
 meter        the prompt hook runs from MAIN (~/.claude/settings.json: python3 /data/work/agi/extensions/agi/hooks/rotation_alert.py): a hook change is live for every session the moment it lands on the trunk · a director idle below the line is NEVER rotated for it (DE 14:10-16:16Z at 0.40): the fix = an order to work to 0.47 and rotate itself (OWNER 16:14Z rule) · the prompt hook prints [meter] on a REAL prompt (a nudge, a task notification) -- not on the startup injection; rotate at f 0.47
-capture      (DT 03:02Z) the captive auto-capture REPLACES the card's where-it-stops slot + BANKED with its one line until g7.33.17 row 21
+capture      FIXED by DH.679 e3e730e3b (09-28): a capture now APPENDS to the slot + keeps BANKED. Before it: (DT 03:02Z) the captive auto-capture REPLACED the card's where-it-stops slot + BANKED with its one line until g7.33.17 row 21
              lands -> keep the card COMMITTED at every change; after a capture restore both from the last card commit (DT: 8384aa443)
 rotation     the CAPTURE latch (/tmp/agi-rotation-<uid>/capture-<seat>.json {captured}) is per SEAT, not per seating: a captured director's successors
              are latched from birth and, above 0.85 x the line, see ONLY [meter] -- the latched return swallows the imperative (gen 26, 13:1xZ) -> after

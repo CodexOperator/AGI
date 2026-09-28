@@ -150,6 +150,78 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.660 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-one-mint-route-answer-a00-31004c15 tip 1e74cea4b.
 ROUNDS    this post's rounds on this node: DH.610 DH.621 DH.660; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
+
+## CORRECTIVE DH.660 -- closes mur-director-engine-41 DH.621-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-one-mint-route-answer-a00-31004c15 tip 1e74cea4b (branch de-base-660; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Item 3 not landed -- the self-evidenced `proved` on 2e615bb5 is still verdict: proved with evidence_runs=[itself] while the round's title, table, Agent Notes and THOUGHT report the demotion as done
+2. Item 7 not landed -- the dead `hypothesis:...md:67` citation is still live at b0bf124f:108, 62dbecb1:137 and ff788172:255, a file that is 48 lines with 0 hits
+3. Item 8 not landed -- 2e615bb5:186 still asserts the grep returns ONE hit; it returns three
+4. Item 11 not landed -- ff788172:250 still reads FOUR and :260 'still stated in five places'
+5. The round reports its own other-node writes as landed while its committed delta is one added file -- the class ff788172's own THOUGHT names ('the writer logs the write; it does not put the write on the branch')
+6. The round's own ceiling arithmetic is false in the very round about miscounts: a00-e0efd9fc-a8cf4c.md:108 states 'I wrote net +65 production lines against a 15-line net clause (40 as the dispatch default) ... It is under the 2x stop threshold'. The 2x stop is 2x the operative clause (GOALS.md:13035, '66 production lines vs 35 ceiling, under the 2x stop gate of 70'), so against the 15-line clause the gate is 30 and 65 is 4.3x OVER; only against the 40 default (gate 80) is 1.6x. The node names the clause it exceeds and then declares itself under the gate it names. Self-disclosed, but the disclosed number is the wrong arithmetic.
+7. The corrective round creates the one-source-per-rule violation it declares homeless: a00-e0efd9fc-a8cf4c.md:49-52 and :109 state that the counting rule ('a copy is a place that STATES the mechanism') has NO home -- verified, `git grep -ln 'one source per rule' 1e74cea4b -- skills/ .agi/context/` exits 1 -- and then spends 112 lines restating that rule and the strike order in node prose (:33-41 table, :49-52, :86-93). The fix it names (one line in a skill or schema) was not made; a fourth copy was written instead. TEMPLATE_MAX violation, created by the corrective.
+8. The round proposes 'A `proved` whose only evidence is itself passed every gate in the chain ... Worth a gate, not a note' (:55-56) and does not apply that observation to its own node, whose frontmatter is the same shape: a00-e0efd9fc-a8cf4c.md:10-11 `evidence_runs: - experiment:a00-e0efd9fc-a8cf4c` with :21 the verdict. The taxonomy is already satisfied (a lean, not a proved), so this is residue, not a demote -- but the round names the smell in a neighbour and carries it.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS      + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE  · .agi/nodes/experiment/a00-2e615bb5-234c16.md · .agi/nodes/experiment/a00-62dbecb1-6ed405.md · .agi/nodes/experiment/a00-b0bf124f-4b8eb4.md · .agi/nodes/experiment/a00-e0efd9fc-a8cf4c.md · .agi/nodes/experiment/a00-ff788172-12084f.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 1e74cea4b · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
+
+## CORRECTIVE EG.62 -- closes mur-eg-14 EG.39-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-one-mint-route-answer-a00-ae77e8be tip eef31410a (branch de-base-EG.62; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. THOUGHT not rewritten with the demotion — a00-d85ae42b-bf72d8.md:135 still 'The claim is PROVED' against frontmatter :21 inconclusive_lean_disproved:65
+2. '[rule] BANKED' claim unbacked at eef31410a — a00-d85ae42b-bf72d8.md:46 (also a00-e0efd9fc-a8cf4c.md:54)
+3. The missing-THOUGHT defect covers ALL THREE edited nodes, not just the one: e0efd9fc:49-54 changes a factual claim (the rule's home, from ff788172's Caveats to 2e615bb5:47) and ff788172:253 adds a new on-this-tip claim ('the command also returns b0bf124f:106'), and neither node's THOUGHT (e0efd9fc:115, ff788172:296+) records that its version changed. The diff has no THOUGHT hunk anywhere (git diff f0f5a36e6 eef31410a touches only :5-8, :18-21, :35-81 of d85ae42b; :6-9, :49-54 of e0efd9fc; :253 of ff788172).
+4. The demotion's REASON is unrecorded inside the merge range, not merely its THOUGHT: `git grep -n 'EG.39' eef31410a -- .agi/nodes/doc/card-director-engine.md` returns no match, and the parent hypothesis one-mint-route-answers-file-validated-row-by-row.md never names a00-d85ae42b. A reader of the merged tip sees proved -> inconclusive_lean_disproved:65 with no stated cause anywhere in the tree; the only trace is 72aff26ec, outside the range.
+5. The version-delta was pasted into the BODY instead of the authored region: d85ae42b:44-46 ('EG.39 (the director's pure-text fix of mur-eg-11 DH.660-k1) corrected this line: it named ff788172's Caveats, which never held it. The rule's skill home is BANKED by the director as a [rule]') sits in the 'The one number' body section while the THOUGHT at :134-136 still carries the DH.660 delta — a note in two homes, neither of them the version's delta region.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_bin_help_smoke.py once (timeout 900, TMPDIR + --basetemp under /dev/shm, env -u TMUX -u TMUX_PANE -u AGI_POST -u AGI_SEAT (TMM.322)); TEXT-ONLY round: node text only
+FILE SCOPE .agi/nodes/experiment/a00-d85ae42b-bf72d8.md · .agi/nodes/experiment/a00-e0efd9fc-a8cf4c.md · .agi/nodes/experiment/a00-ff788172-12084f.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · node text only · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat eef31410a <your final tip>` on your node (an empty range is not a measurement)
+KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit; a version delta goes in the node THOUGHT (write.py), never the body
+
+
+## CORRECTIVE DH.EG.89 -- closes mur-eg-19 EG.62-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-one-mint-route-answer-a00-0c20ee50 tip 11a2fd3ce (branch de-base-EG.89; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. THOUGHT points at a grid version that does not exist (x3) - d85ae42b:134 'Prior DH.660 reasoning lives in the grid version before this one'; same clause at e0efd9fc:114 and ff788172:297
+2. Re-runnable ONCE probe no longer reproduces and the round doubled its hits - d85ae42b:43 'Re-run on this tip, pasted, not typed' over the paste at :49-52
+3. Stale typed count left live in the node whose THOUGHT was rewritten - d85ae42b:140 'returns TWO sites, not one'
+4. Evidence row PROVED=0 where the file holds 1 - 0c20ee50:54
+5. 0c20ee50:67 'test_bin_help_smoke.py: 72 passed, 6 skipped' pasted as a bare number, no command; measured 72 passed, 7 skipped
+6. CAUSE of defect 1, which the first reviewer reported as a symptom only: NEITHER commit in the range ran `grid.py commit` - 056aac2ce (the kid's done commit, 1 file) and 11a2fd3ce (the director's landing, 3 files) are plain git commits. AGENTS.md pairs the two ('git commit · python3 extensions/agi/bin/grid.py commit --all'). That is why all four mints have 0 grid versions, so 'the grid version before this one' is empty; it also means 0c20ee50 (a3fd3d8a) joins the 11-node anomaly set that has no grid history at all. Fixing the landing without the grid commit is what manufactures the false pointer.
+7. Low: the numstat paste at 0c20ee50:60-65 (4/5, 5/6, 2/16) omits the round's own 80-line minted node, so read as the round's scope it reports 11 insertions where the range holds 91. It is labelled 'Measured on the worktree before `cli.py done` commits', so it is scoped rather than wrong - but the block is not ordered against :52 ('After the edits'), which is why the miscount at :54 escaped.
+8. DEMOTED by the director: the TMM.268 'bytes == last write-log sha' custody item -- the harvest matched against the KID worktree's own write-log (per-root, node_writer.py:127; findings row); do not rewrite a landing commit.
+9. Every number or line you write is measured at YOUR final tip after your last edit and PASTED with its command (two-operand git diff); a claim you cannot re-run is narrowed or removed, never retyped.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-0c20ee50-c7717f.md · .agi/nodes/experiment/a00-d85ae42b-bf72d8.md · .agi/nodes/experiment/a00-e0efd9fc-a8cf4c.md · .agi/nodes/experiment/a00-ff788172-12084f.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines (text, comments, docstrings, briefs and skill rows only) · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 11a2fd3ce <your final tip>` on your node (an empty range is not a measurement)
+COMMIT    every edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
+
+
+## CORRECTIVE DH.EG.113 -- closes mur-eg-27 EG.89-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-one-mint-route-answer-a00-11971713 tip 5c6eb78aa (branch de-base-EG.113; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+2. FALSE MECHANISM CLAIM ABOUT A READER (the class this round exists to strike) -- .agi/nodes/experiment/a00-11971713-a82997.md:96 states: '`--force` is named in the error yet is not a CLI flag (argparse rejects it)'. The bytes refute it. extensions/agi/bin/write.py:443-450 implements it explicitly: '# `--force` rides the source argument as a PREFIX (`... 4:9 --force -`) ... if source.startswith("--force "): edit.replace_force = True'. Five refusal strings tell the caller to use it (write.py:2504, 2514, 2520, 2527, 2535). The support predates the round by seven days (231244dc0, 2026-09-21) and is an ancestor of BOTH 11a2fd3ce and 5c6eb78aa, so the round could have read it; it did not. The same sentence also omits that the guard's refusal at write.py:2515-2521 has a working escape, so it names a blocker the tool does not have. UNVERIFIED beyond the static read: I did not run a write.py --force replace (it would be a node write, and this review is read-only); the probe I WOULD run is `python3 extensions/agi/bin/write.py replace body <a throwaway fixture node> 5:6 --force -` and check exit 0, versus the same command without the prefix refusing.
+DIRECTOR (anchor rule): cite a function / heading / cell key; a line number only where the claim IS the line; paste a git grep -n hit for each name at your tip.
+DIRECTOR (numstat self-reference): measure `git diff --numstat 5c6eb78aa <tip BEFORE your paste commit>`, paste it, label it so.
+DIRECTOR: V1 (the 626605b15 dated anchor) is CLOSED by director commit 5c6eb78aa under TMM.327 -- never touch it. Your ONE item is the mechanism claim about --force: settle it by running the command against write.py at your tip and PASTE the output; then state on the node exactly what the bytes do.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS      + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-0c20ee50-c7717f.md · .agi/nodes/experiment/a00-11971713-a82997.md · .agi/nodes/experiment/a00-d85ae42b-bf72d8.md · .agi/nodes/experiment/a00-e0efd9fc-a8cf4c.md · .agi/nodes/experiment/a00-ff788172-12084f.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 5c6eb78aa · <= 40 test lines net over 5c6eb78aa · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 5c6eb78aa <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.621: mur-director-engine-35 DH.610-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.113: mur-eg-27 EG.89-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
