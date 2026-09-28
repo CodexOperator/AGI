@@ -172,45 +172,6 @@ FILE SCOPE extensions/agi/tests/test_adapters_spawn_cwd.py · .agi/nodes/experim
 CEILING   HARD CAP: 1 kid · <= 0 production lines net over 75e6114fa (test + node text only) · <= 40 test lines net over 75e6114fa · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 75e6114fa <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
-
-## CORRECTIVE DH.EG.147 -- closes mur-eg-52 EG.108-k1 accept_with_residue
-BASE      CUT FROM season2/loops/hypothesis-a-path-shaped-bin-res-a00-b224b031 tip 40e3bac8c (branch de-base-EG.147; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. 1. The two false FIXED-IN-BYTES rows survive in .agi/nodes/experiment/a00-2ce5b70d-4c5e52.md:38/:39, a node the round held write.py scope on
-2. 3. The ANCHORS grep claim at .agi/nodes/experiment/a00-17037767-b02ceb.md:155 is false — `grep -n os.chdir` returns two lines
-3. 4. The node asserts bin-adapters-init.md has no `## v3`; it has one
-4. Sibling leak sites the round bounded away without naming: the same bare-`os.chdir`-into-a-directory-the-run-may-delete shape still exists in committed tests outside this file — extensions/agi/tests/test_locations.py:564 and :567, test_tier_gate.py:1360 and :1369, test_envfile.py:608/:611/:627/:630, test_write.py:1266, test_rotate_selfreap.py:853. Out of FILE SCOPE so not a defect of this round, but node :156 ('every other chdir in the file was already monkeypatch.chdir') is scoped to one file while item 8's radius is scoped to five, and neither names the siblings. A follow-up round should sweep them; the probe is `grep -rn "^[[:space:]]*os\.chdir" extensions/agi/tests/*.py`.
-DEMOTED   by the director at triage, not orders: items 5 6 7 (checked and cleared by the verify stage)
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
-TESTS     test_adapters_spawn_cwd.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE extensions/agi/tests/test_adapters_spawn_cwd.py · .agi/nodes/experiment/a00-17037767-b02ceb.md (write.py) · the kid's own node
-CEILING   HARD CAP: 1 kid · <= 15 production lines net over 40e3bac8c · <= 40 test lines net over 40e3bac8c · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 40e3bac8c <your final tip>` on your node (an empty range is not a measurement)
-PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
-
-
-## CORRECTIVE DH.EG.181 -- closes mur-eg-x1620308-4d1e7f EG.147-k1 accept_with_residue
-BASE      CUT FROM season2/loops/hypothesis-a-path-shaped-bin-res-a00-88643eee tip 2a01c199b (branch de-base-EG.181; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. 2. item 1's false FIXED-IN-BYTES rows still readable -- a00-2ce5b70d-4c5e52.md:38 (and :39); named OUTSIDE FILE SCOPE, not rewritten to MEASURED, NOT FIXED
-2. (NARROWED by the verifier: repair ONLY the site(s) that do NOT restore cwd in a finally; paste the git grep proving the rest restore) 4. eleven sibling bare-os.chdir leak sites measured, not repaired -- test_locations.py:564, test_rotate_selfreap.py:853, test_tier_gate.py:1360/1369, test_write.py:1266/1269, test_envfile.py:608/611/627/630
-3. 6. anchor miscounts its own paste ('FIVE files' where the paste shows four) -- a00-17037767-b02ceb.md:200
-4. 7. stale numstat in the embedded parent review ('139/0', 'uncommitted') -- a00-667c3335-441afa.md:118
-5. STALE THOUGHT on the very node the round rewrote: .agi/nodes/experiment/a00-17037767-b02ceb.md:256-258 still carries 'PARENT REVIEW (a00-b224b031, EG.108)' as the reason for THIS version, after the round changed 60 body lines of that node. G2.11 is explicit that thought is delta and is rewritten on each change (.agi/context/schemas/[build].md:302-304), so a reader zooming 'why does this version differ' gets the previous round's reasoning. This is the substantive form of charge 5, which I refuted as stated.
-6. The embedded parent review claims four probes and lists three: .agi/nodes/experiment/a00-667c3335-441afa.md:146 says 'all four REPRODUCE it exactly' and then gives exactly three bullets -- auth (:147), gate (:148), wire (:151). A fourth is never named. Same class of miscount as charge 6, inside the bytes this round committed (bad8cd563).
-7. .agi/nodes/experiment/a00-667c3335-441afa.md:168 asserts 'the kid is forbidden from running git, and so is the parent', while the same review pastes `git diff --numstat 40e3bac8c HEAD` output at :143 and :148 and `git status --porcelain` output at :150. The node contradicts itself about what was run.
-8. The named follow-up radius is wider than the defect it names: 10 of the 11 bare-os.chdir sites restore cwd in a `finally` (test_locations.py:566-567, test_tier_gate.py:1368-1369, test_write.py:1268-1269, test_envfile.py:610-611, :629-630) and test_rotate_selfreap.py:853 is `os.chdir("/")` inside the forked grandchild (:847) before `os.execv` (:854). None reproduces the parent's measured one-failure leak, so the next round is pointed at sites that cannot fail the way the anchor claims.
-DEMOTED   by the director at triage: generated item(s) 3 -- an existing engine findings row, larger than this round (done-time commit skips foreign nodes, cli.py _auto_commit path; g7.33.19 row): the director hand-landed the node at harvest (2a01c199b); the durable fix is its own g7.33 hypothesis, not this corrective
-DEMOTED   by the director at triage: generated item(s) 1 -- grid versioning is not a loop-branch act: a build node's grid version is cut by grid.py commit --all on season2/main (the Prime's pass); posts never run it off season2/main
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
-TESTS      + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE extensions/agi/tests/test_rotate_selfreap.py · extensions/agi/tests/test_locations.py (the non-restoring chdir site(s) only) · .agi/nodes/experiment/a00-2ce5b70d-4c5e52.md · .agi/nodes/experiment/a00-17037767-b02ceb.md · .agi/nodes/experiment/a00-667c3335-441afa.md (write.py) · the kid's own node
-CEILING   HARD CAP: 1 kid · <= 15 production lines net over 2a01c199b · <= 40 test lines net over 2a01c199b · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 2a01c199b <your final tip>` on your node (an empty range is not a measurement)
-PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.181: mur-eg-x1620308-4d1e7f EG.147-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.108: mur-eg-26 DH.678-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
