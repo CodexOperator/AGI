@@ -99,17 +99,20 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 - belam io [red] 06:56Z: 2 runaway searches stopped; SEARCH rule in every order + mur focus
 - 07:1x-09:4xZ: 26 murs judged: 1 ACCEPT (EG.64 -> merged 19564b6c0 -> trunk 2beb0aba3), the rest awr/demote -> 28 correctives (EG.70-97) · 20 harvests · 3 hand salvages (EG.36 DH.661 + EG.9 lane node) · 2 dispatch recoveries (oomd kill, max_live refusal)
 - 09:46-11:2xZ: 7 harvests (EG.54 68 6 72 75 5 76) · 2 config salvages (EG.54 65bcfbf19, EG.68 d5c069c73: kids cannot commit config.json) · 14 murs judged (murq194 197-208): 1 real bug (EG.54: the empty-response retry never fired, nested stopReason) · 2 [red]/[decision] to TM -> TMM.326 (A decided) + TMM.327 (C: director closes node prose) + TMM.328 · 5 director closes (EG.95 91 679 89 76) · 2 chains merged -> EG.95 LANDED c6a975721, DH.679 sent · 12 correctives queued (EG.98-117)
+- 11:17-12:4xZ: 4 landed (DH.679 e3e730e3b · EG.72 96d22cb50 · EG.88+EG.90 51eab0b70) + 1 post-only merge-up sent (DH.527 restoration) · 9 director closes (EG.72 88 90 86 71 77 84 85-D1 + DH.527 restore) · 7 harvests (EG.78 80 81 97 87 94 + 106 orders) · 4 murs judged (mur-eg-27b/28/31) · 5 correctives written (EG.118 119 120 121 + 97 re-cut) · 2 chains HELD on reds (EG.71 ladder cell, EG.77 integration) · 3 placement-tool bugs fixed (MERGE_HEAD race, index.lock race, thought-verb splice)
 
 ## 🔴 WHERE IT STOPS
-Rotation 11:2xZ at the line: EG.95 LANDED c6a975721 + DH.679 [merge-up] sent (TMM.327 C director closes); murq196 + 8 pi/CC units queued gate-held
+Rotation 12:4xZ at the captive line: 3 landings + DH.527 restored; murq210 ENDED untriaged; EG.119 LIVE; EG.121/120 + murq213 gate-held
 ```
-FIRST   re-arm: MURS="murq196" bash S/watch2.sh (run_in_background) · read TM's answer to the DH.679 [merge-up] (dm file) · reconcile the units:
-        systemctl --user list-units 'agi-director-engine-*' (qgEG78..117 chain + placecc17 18 19 20 22 -- all gate-held on io avg60 < 50)
-THEN    TMM.327 director closes (write.py sub/note in the chain's loop worktree, ONE commit per chain, then merge-tree + merge + touched tests +
-        [merge-up] naming the commit + residue list): EG.72 (5 prose) · EG.88 · EG.90 · EG.86 prose (then its M2 test-comment kid) ·
-        EG.91 chain = a MERGE-RESOLUTION kid round (cli.py done path, both behaviours) · TMM.328 (b) mint the config-cell-commit g7.33 hypothesis
-        (pi-free, after EG.9) · EG.5: after EG.107 clears -> [merge-up] with the red DECLARED 'needs the cell, lands with belam' (TMM.326)
-        · per ended mur: D/verd.py Q (run key from its log) -> skill agi-corrective row 1 (prose = mine) / row 2+ (kid rounds)
+FIRST   re-arm: MURS="murq209 murq212" bash S/watch2.sh (run_in_background) · read TM's reply to the post-only [merge-up] (post d39453f46) ·
+        reconcile: systemctl --user list-units 'agi-director-engine-*' + spawn_budget.py status (EG.119 parent a00-b16f935e LIVE)
+THEN    triage mur-eg-32 (murq210 ENDED: EG.80 + EG.81; runs/mur-eg-32/*) -> director close (prose) or corrective (gen2 + hand triage)
+        · per ended mur: murq209 = mur-eg-30 (EG.100 101 102 78 106) · murq212 = mur-eg-33 (EG.87) · murq213 = EG.94 (gate-held)
+        · merge EG.84 chain 0dff9ae50 (config.json union; model_fence tests) -> [merge-up]
+        · EG.82 D2+M2 / EG.83 M1 director closes; EG.83 tm=yes + banked template rule -> [rule] line to TM
+        · EG.86 waits EG.118 (placecc23) · EG.71 waits belam's ladder cell (TMM.333: TRUNK ladder + belam's cell ONLY) · EG.77 waits EG.120
+        · after EG.9 merged: TMM.328 (b) config-cell hypothesis + TMM.330 sensei whois red round (both g7.33, pi-free)
+NEVER   restart a q-unit without reading its log first (12:4xZ: a finished qgEG119 was restarted -> a duplicate placement nearly; log restored)
 ```
 
 ## §4 TRAPS
