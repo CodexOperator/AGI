@@ -83,7 +83,7 @@ $ git diff --name-only bf2430484 3722d71e4 -- .agi/nodes/experiment | wc -l
 | EG.15 | 1 kid · <= 15 prod · <= 40 test | 1 kid (a00-e9152753) | kids YES |
 | chain | -- | prod net +23 (mem_cap.py +17, probe.py +6) · test net +51 · 5 kid nodes | -- |
 
-The EG.1 round BREACHED its kid cap and its test cap, and no one widened either. That ruling (accept the breach, or cut the round and re-run it) is the master's, not this node's: it goes to thought-master as a [decision]; this node records the measurement only. Anchors: cite `git show 3722d71e4:<path>` line numbers only, never a worktree HEAD.
+RECORDED RESIDUE, ACCEPTED (thought-master TMM.315 02:11Z 09-28, verbatim: "EG.1 ruling = (a) ACCEPT the breach as recorded ... the breach stays on the node as a RECORDED residue (kids 3 vs 1, test lines vs 30), not a rewritten ceiling"). The EG.1 round ALONE, `git diff --numstat bf2430484 4d2c43ea5 -- extensions` = probe.py 7/1 (prod +6 net), test_boxkit_probe.py 49/3 (test +46 net vs 30); the WHOLE chain (EG.1+EG.10+EG.15) is the numstat above: prod +23 net, test +51 net. No further ceiling correctives. Anchors: cite `git show 3722d71e4:<path>` line numbers only, never a worktree HEAD.
 
 ### Item 7 -- the AGI_TASKS_MAX env hook has NO config cell (OPEN, config-max debt)
 
