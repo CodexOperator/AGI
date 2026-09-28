@@ -16,7 +16,7 @@ tags:
   - internals
   - standing
   - owner-2026-09-21
-thought_session: belam-cap-10-20-20260925
+thought_session: belam-sot-land-20260928
 title: Belam/Prime grok internals — TEMP harness SoT stand-in
 town: core
 ---
@@ -116,13 +116,15 @@ After ANY graph SoT modification (standing / internals / town) — ALL three rol
   3. ALWAYS sync ALL post worktrees to that tip:
        seat-director-belam · seat-director-helper · any other grok post WTs
        (paths under /data/work/agi/.agi/worktrees/)
-       prefer ff-only; if dirty → merge tip in without wiping WIP (never reset --hard)
-       CROSS-DIR LOCAL SYNC ALLOWED: either director may ff|merge-keep-WIP
+       HARD sync = git merge tip (NEVER ff-only · ff ruins grid history)
+         keep WIP · never reset --hard
+       CROSS-DIR LOCAL SYNC ALLOWED: either director may merge-keep-WIP (NEVER ff-only)
          the other's seat-director-* worktree (never reset --hard)
   4. Do NOT rely on remote-only — local HEAD must show the SoT
   5. No ping — graph + local trees; their grok-internals-sync picks PROFILE on next */30
   COMPLETE: when leaf/trunk done (residues=0 · format✓ · suite✓) → write.py status complete (BARE)
-         · sync post WTs · NEVER leave closed work as active/horizon
+         · sync post WTs via merge (not ff) · harvest-clean finished parent+kid WTs
+         · NEVER leave closed work as active/horizon
 ```
 
 ## AUTHORITY
@@ -140,6 +142,13 @@ SoT edit HARD: prefer refine existing fence/diagram · never pile new micro-fenc
 ALL posts: harness mirrors ← graph SoT only
 Grok seed: install grok-internals-sync + mint/link per-post *-grok-internals
 Pointer: doc:standing-llm-ops · recipe: doc:grok-harness-internals-sync
+SKILLS (refs · not inline): skill:agi-node-write · agi-goal · agi-send · agi-rotate · agi-dispatch
+  · agi-workflow · agi-verify · agi-merge-pass · agi-master-gate · agi-corrective · agi-memory-guard
+  Prefer skill names over stuffing procedure into PROFILE/routines (harness sync recipe stays graph SoT)
+DISK (HARD · Belam awareness · directors enforce): AGI worktrees/loops budget **50–80GB** used
+  (box ~450GB). After harvest/done: always clean harvested parent+kid WTs (git worktree remove)
+  · optional reaper/heal when available · still explicit cleanup duty · no new cron unless one exists
+  · NEVER wipe live mid-batch
 CONCURRENCY (HARD — DIAGRAM D awareness · SoT doc:standing-llm-ops §4): spawn.parallel=1/goal
   concurrency=multi-parent×multi-goal · never raise parallel for cross-goal
   ≤10 live / director · ≤20 box-wide · parents+MURs SAME pool  (owner GO 2026-09-25; was ≤5/≤10 space-bunny 2026-09-23)
@@ -150,12 +159,12 @@ CONCURRENCY (HARD — DIAGRAM D awareness · SoT doc:standing-llm-ops §4): spaw
 DURABLE SPAWN (HARD — SoT standing §4): parents → systemd --user scope via dispatch durable; never SSH/bash children
 ACTIVE-BEFORE-SPAWN (directors · bare YAML active): never spawn while goal still horizon · quoted 'active' = BUG
   · ACTIVE⇒SPAWN SAME TURN (directors): bare active ⇒ durable pi parent same wake
-COMPLETE (leaf/trunk · residues=0 · format✓ · suite✓): write.py status complete (BARE) · sync post WTs · not leave active/horizon
+COMPLETE (leaf/trunk · residues=0 · format✓ · suite✓): write.py status complete (BARE)
+  · sync post WTs via **merge** (NEVER ff-only) · harvest-clean finished parent+kid WTs · not leave active/horizon
 AXES (everyone): morals = up-down · verify-suite progress after each batch = forward-backward
 ```
 
 Minimize outbound tokens. Sync PROFILE from this SoT; sync routine title+body from `doc:grok-harness-internals-sync` ONLY via `grok-internals-sync`.
-
 ---
 
 ### SECTION:ROUTINE_SYNC
@@ -165,5 +174,5 @@ Sync routine title + body come from `doc:grok-harness-internals-sync` ONLY.
 `grok-internals-sync` name / schedule / prompt are copied identically from that doc; this per-post SoT supplies PROFILE only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner-fix: Belam PROFILE awareness only — CAP ≤10/dir · ≤20 box (owner GO 2026-09-25; soft floor awareness-only, do not fill past) + CAP-RULER + residual-after-MUR + ACTIVE⇒same-turn + morals/verify axes (fleet); directors own cap-fill via doc:director-grok-internals; RECON-MIN stays Belam-daily; no mid-batch FILL
+owner-fix 2026-09-28: LAND HARD merge-not-ff (never ff-only — ff ruins grid history) · DISK 50-80GB + harvest-clean parent/kid WTs · skill refs (agi-*) not inline procedures · standing stub unchanged (no shared LAND)
 <!-- THOUGHT:END -->

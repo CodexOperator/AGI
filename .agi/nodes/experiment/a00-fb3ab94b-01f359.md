@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-jev-isotonic-per-group-fixes-verdict-ece
 next_edges: []
 confidence: 0.85
-edited_by: a00-de483bb6
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-fb3ab94b-01f359
 line_ceiling: 40
@@ -17,7 +17,7 @@ probes:
   - {"conjunct": 1, "class": "gate", "by": "parent", "cmd": "alt-label probe: correctness = argmax(probabilities)==labels.q1 (7/1110 rows differ from choice==label)", "expected": "verdict <=0.10 on >=4/5", "observed": "0.081,0.1185,0.1003,0.060,0.1995 -> 2/5", "result": "FAILS under both correctness definitions"}
   - {"conjunct": 2, "class": "gate", "by": "parent", "cmd": "same independent run, experiment subgroup", "expected": "<=0.12 on >=4/5 seeds", "observed": "0.1012,0.1801,0.1013,0.0736,0.0783 -> 4/5 <=0.12", "result": "HOLDS"}
   - {"conjunct": 2, "class": "gate", "by": "parent", "cmd": "leakage/oracle: isotonic fit on the held-out fold itself", "expected": "if no leakage and failure is generalization, train-fit stays high while oracle is near 0", "observed": "verdict oracle 0.0000-0.0058, experiment oracle 0.0084-0.0372; train-fit 0.057-0.203", "result": "HOLDS (no leakage; failure is generalization)"}
-  - {"conjunct": 1, "class": "wire", "by": "parent", "cmd": "rerun .agi/context/local-maxxing/typesafe/jev_isotonic_residual.py to a temp file and diff against committed bench/20260919T055335Z.jsonl", "expected": "byte-identical; script reads the real corpus", "observed": "byte-identical; reads acts_replay_scrub.jsonl, 1107 usable rows", "result": "HOLDS"}
+  - {"conjunct": 1, "class": "wire", "by": "parent", "cmd": "rerun datasets/jev-typed-acts/jev_isotonic_residual.py to a temp file and diff against committed bench/20260919T055335Z.jsonl", "expected": "byte-identical; script reads the real corpus", "observed": "byte-identical; reads acts_replay_scrub.jsonl, 1107 usable rows", "result": "HOLDS"}
 production_lines: 72
 profile: balanced
 role: kid
@@ -37,7 +37,7 @@ q1 residual left over after per-group temperature is **shape not scale**, and
 per-group **isotonic regression** of top-1 confidence against top-1 correctness
 fit on the train fold brings verdict held-out ECE <= 0.10 on >= 4/5 seeds.
 
-Data: `.agi/context/local-maxxing/typesafe/acts_replay_scrub.jsonl` (read-only,
+Data: `datasets/jev-typed-acts/acts_replay_scrub.jsonl` (read-only,
 0 API calls, 0 network, CPU). 1110 rows = 370 acts x 3 repeats; 1107 usable q1
 rows (n_experiment=600, n_verdict=507; 1 verdict act has no q1 label). Split:
 50/50 by act id WITHIN each subgroup, seeded shuffle, held = second half of the
@@ -52,8 +52,8 @@ Fit = **PAVA by hand** (pure NumPy, no sklearn dependency; cross-checked against
 <0.002). The claim's numbers correspond to the **max-prob (ece_B)** arm; the
 self-reported scalar is the secondary arm.
 
-Probe: `.agi/context/local-maxxing/typesafe/jev_isotonic_residual.py` (kept
-under `typesafe/` rather than `sessions/` on purpose: `.gitignore:100` hides
+Probe: `datasets/jev-typed-acts/jev_isotonic_residual.py` (kept
+under `datasets/jev-typed-acts/` rather than `sessions/` on purpose: `.gitignore:100` hides
 `session/`, which is exactly how the TM.57 probe became non-reproducible).
 Rows: `.agi/context/local-maxxing/bench/20260919T055335Z.jsonl` (full-corpus
 before per group, one row per seed x subgroup, plus pooled).
@@ -105,7 +105,7 @@ taking argmax moves up to **77%** of held-out verdict rows on seed 7 (0.02-0.04
   to 0.000-0.006 on all 5 seeds. The train-fold map does not transfer: the
   verdict subgroup's per-seed miscalibration is unstable across the act split.
 
-Reproduce: `python3 .agi/context/local-maxxing/typesafe/jev_isotonic_residual.py
+Reproduce: `python3 datasets/jev-typed-acts/jev_isotonic_residual.py
 .agi/context/local-maxxing/bench/20260919T055335Z.jsonl` (CPU, ~0.6 s, no
 network, 0 API calls). Output is byte-identical to the committed bench rows.
 
@@ -118,6 +118,6 @@ PARENT REVIEW of a00-fb3ab94b (verdict disproved), TM.73, parent a00-de483bb6. T
 <!-- THOUGHT:END -->
 
 ## Agent Notes
-Per-group isotonic on max-prob: verdict held-out ECE 0.0756/0.1153/0.1048/0.0565/0.2034 (mean 0.1111, before 0.3229) -> <=0.10 on only 2/5 seeds; experiment 4/5 <=0.12 (guard holds); pooled 3/5 <=0.12. Shape fails where scale failed: pre-registered trigger to cause 3 (repeat-agreement) or cause 4 (channel A/B). Oracle in-sample fit reaches 0.000-0.006, so failure is generalization not capability. Probe tracked at typesafe/jev_isotonic_residual.py, rows bench/20260919T055335Z.jsonl.
+Per-group isotonic on max-prob: verdict held-out ECE 0.0756/0.1153/0.1048/0.0565/0.2034 (mean 0.1111, before 0.3229) -> <=0.10 on only 2/5 seeds; experiment 4/5 <=0.12 (guard holds); pooled 3/5 <=0.12. Shape fails where scale failed: pre-registered trigger to cause 3 (repeat-agreement) or cause 4 (channel A/B). Oracle in-sample fit reaches 0.000-0.006, so failure is generalization not capability. Probe tracked at datasets/jev-typed-acts/jev_isotonic_residual.py, rows bench/20260919T055335Z.jsonl.
 
 Parent review TM.73: kid disproved the isotonic claim and I reproduced it independently. Verdict-after 0.0756/0.1153/0.1048/0.0565/0.2034 (<=0.10 on 2/5) matches my own PAVA exactly; experiment-after 4/5 <=0.12; rerun byte-identical; oracle 0.000-0.006 rules out leakage; alt correctness definition still 2/5. Probes recorded under probes:. Claim disproved: shape fails where scale failed; next lever is cause 3 (repeat agreement) or cause 4 (channel A vs B).

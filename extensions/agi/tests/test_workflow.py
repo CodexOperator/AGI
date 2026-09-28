@@ -15,6 +15,7 @@ import io
 import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -26,6 +27,35 @@ sys.path.insert(0, str(BIN))
 
 import workflow  # noqa: E402
 from workflow import _resolve_knobs, validate_return  # noqa: E402
+
+
+def _fake_bin(name: str) -> str:
+    """A real, never-executed `harnesses.<h>.bin` cell.
+
+    A path-shaped `bin` cell that does not exist now REFUSES by name
+    (`hypothesis:harness-bin-absolute-token-free-bins-refused-by-name`), so a
+    test cannot stand in for a harness binary with a literal like
+    `/bin/fakepi`. `subprocess.run` is mocked in every test that uses this --
+    the file exists to satisfy the resolver, never to be spawned.
+    """
+    import tempfile
+    d = Path(tempfile.mkdtemp(prefix="fakebin-")) / name
+    d.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    d.chmod(0o755)
+    return str(d)
+
+
+FAKE_PI = _fake_bin("fakepi")
+
+
+@pytest.fixture(autouse=True)
+def _no_ambient_pi_bin(monkeypatch):
+    """`_pi_harness_cfg` now resolves through the ONE shared resolver, where
+    `$PI_BIN` wins over the config cell. A suite run from a pi seat exports
+    PI_BIN, so without this the fake-bin tests would spawn the REAL pi. A test
+    that exercises the override sets PI_BIN itself, after this fixture.
+    (hypothesis:harness-bin-paths-resolve-per-box round 3)"""
+    monkeypatch.delenv("PI_BIN", raising=False)
 
 WF_DIR = REPO / "extensions" / "agi" / "workflows"
 CLAUDE_WF = REPO / ".claude" / "workflows"
@@ -249,7 +279,7 @@ def test_run_stage_pi_passes_resolved_model_and_rendered_prompt():
           "_repeat_item": {"slug": "a"},
           "schema": {"type": "object", "properties": {"slug": {"type": "string"}},
                       "required": ["slug"]}}
-    cfg = {"harnesses": {"pi": {"bin": "/bin/fakepi", "provider": "openrouter",
+    cfg = {"harnesses": {"pi": {"bin": FAKE_PI, "provider": "openrouter",
                                 "thinking": "medium"}}}
     with mock.patch("subprocess.run", side_effect=fake_run):
         rc, value = _run_stage_pi(cfg, st, {"draft:a": {"model": "glm",
@@ -257,7 +287,7 @@ def test_run_stage_pi_passes_resolved_model_and_rendered_prompt():
                                   {"scratch": "/tmp/S"})
     assert rc == 0 and value == {"slug": "a", "v": 1}
     cmd = captured["cmd"]
-    assert "/bin/fakepi" in cmd, cmd
+    assert FAKE_PI in cmd, cmd
     assert "--provider" in cmd and "openrouter" in cmd, cmd
     assert "--model" in cmd and "glm" in cmd, cmd
     assert "--thinking" in cmd and "high" in cmd, cmd  # effort max -> high
@@ -404,7 +434,7 @@ def test_transient_5xx_retries_bounded_and_named(monkeypatch, capsys):
 
     sleeps: list[float] = []
     monkeypatch.setattr(_wf, "_RETRY_SLEEP", sleeps.append)
-    cfg = {"harnesses": {"pi": {"bin": "/bin/fakepi", "provider": "openrouter"}}}
+    cfg = {"harnesses": {"pi": {"bin": FAKE_PI, "provider": "openrouter"}}}
     view = _wf.RunView("k", [_retry_stage()], "pi", out=io.StringIO())
     with mock.patch("subprocess.run", side_effect=fake_run):
         rc, value = _run_stage_pi(
@@ -746,6 +776,159 @@ def test_pi_prose_stage_is_unstructured_not_failed(tmp_path_factory, tmp_path,
 
 
 # ---------- stage manifests match the .js Claude Code scripts ---------------
+
+def test_brainstorm_manifest_and_js_require_nonempty_goal(tmp_path):
+    """The brainstorm goal is a parent, not decorative prompt text: a missing
+    or empty goal must fail before any agent dispatch, and both halves name
+    the required argument."""
+    import shutil
+    import subprocess
+
+    man = json.loads((WF_DIR / "brainstorm.json").read_text(encoding="utf-8"))
+    assert "required args: {idea, goal, why, max_hypotheses}" in man["description"]
+
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("node is required to execute the workflow contract")
+    src = (WF_DIR / "agi-brainstorm.js").read_text(encoding="utf-8")
+    lines = src.splitlines()
+    start = lines.index("export const meta = {")
+    end = start + 1 + lines[start + 1:].index("}")
+    body = "\n".join(lines[:start] + lines[end + 1:])
+    script = tmp_path / "brainstorm.mjs"
+    script.write_text(
+        "async function __w(args, agent, parallel, pipeline, phase, log) {\n"
+        + body + "\n}\nawait __w({idea: 'idea:x'})\n", encoding="utf-8")
+    proc = subprocess.run([node, str(script)], capture_output=True, text=True, timeout=30)
+    assert proc.returncode != 0, proc.stdout
+    assert "requires a non-empty goal argument" in proc.stderr, proc.stderr
+
+
+@pytest.mark.parametrize("brainstorm_args", [
+    {"idea": "idea:x", "why": "w", "max_hypotheses": 3},        # goal absent
+    {"idea": "idea:x", "goal": "", "why": "w", "max_hypotheses": 3},  # blank
+])
+def test_brainstorm_manifest_route_refuses_a_missing_goal(
+        brainstorm_args, capsys):
+    """hypothesis:brainstorm-manifest-route-refuses-a-missing-goal -- the
+    pi/pi-free MANIFEST route used to have no required-arg check at all
+    (only the native JS route did); a missing or blank goal must refuse by
+    name before any stage dispatches, same as the JS route."""
+    from workflow import run_workflow
+    buf = io.StringIO()
+    rc = run_workflow(REPO / ".agi", "brainstorm", "pi", brainstorm_args,
+                      True, out=buf)
+    assert rc != 0
+    assert "[dispatch]" not in buf.getvalue(), buf.getvalue()
+    err = capsys.readouterr().err
+    assert "refused" in err and "goal" in err, err
+
+
+def test_manifest_extends_materializes_base_then_prelude_then_child(tmp_path):
+    """A composed round keeps the unchanged review source ahead of its prelude."""
+    root = tmp_path / ".agi"
+    wf = root / "extensions" / "agi" / "workflows"
+    wf.mkdir(parents=True)
+    (wf / "base.json").write_text(json.dumps({
+        "name": "base", "type": "review", "harness": "pi-free",
+        "stages": [{"label": "review", "prompt": "unchanged"}],
+    }), encoding="utf-8")
+    (wf / "round.json").write_text(json.dumps({
+        "name": "round", "extends": "base",
+        "prelude": [{"kind": "round", "label": "round-parent"}],
+        "stages": [],
+    }), encoding="utf-8")
+
+    manifest = workflow._load_manifest(root, "round")
+    assert [stage["label"] for stage in manifest["stages"]] == [
+        "round-parent", "review"]
+    assert manifest["type"] == "review"
+    assert manifest["harness"] == "pi-free"
+    assert manifest["stages"][1]["depends_on"] == ["round-parent"]
+    assert manifest["stages"][1]["chained_from"] == "round-parent"
+    assert [stage["label"] for stage in workflow._expand_stages(
+        manifest, {})] == ["round-parent", "review"]
+
+
+def test_round_stage_dispatches_once_and_gates_on_branch_commit(
+        tmp_path, monkeypatch):
+    root = tmp_path / ".agi"
+    root.mkdir()
+    seen = []
+    monkeypatch.setattr(workflow.subprocess, "run", lambda *a, **k: (
+        seen.append(a[0]) or subprocess.CompletedProcess(
+            a[0], 0, "spawned a00-test\nmanifest: ignored\n", "")))
+    monkeypatch.setattr(workflow.time, "sleep", lambda _s: None)
+    monkeypatch.setattr(workflow.time, "monotonic",
+                        iter((0.0, 0.0, 0.0)).__next__)
+    import dispatch
+    monkeypatch.setattr(dispatch, "_branch_has_done_commit",
+                        lambda _root, rec, agent: rec.get("branch") == "loop/hyp")
+    monkeypatch.setattr(workflow, "_round_git_harvest", lambda _root, _rec: {
+        "old_tip": "old", "new_tip": "new", "files": ["extensions/agi/bin/workflow.py"]})
+    manifest = {"agents": [{"id": "a00-test", "status": "running",
+                            "branch": "loop/hyp", "base_branch": "main"}]}
+    monkeypatch.setattr(workflow._loc, "iteration_dir", lambda _root, _iter: root)
+    (root / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+
+    rc, value = workflow._run_round_stage(
+        root, {"target_arg": "target", "iteration_arg": "iteration"},
+        {"target": "hypothesis:x", "iteration": "L1.01"}, 3)
+
+    assert rc == 0, value
+    # `experiments` / `verdict` are the round's OWN committed nodes, keyed from
+    # the harvest range: a review stage chained to the round renders
+    # `{experiments}` / `{verdict}` from them instead of a blank
+    # (hypothesis:a-round-stage-fails-closed-by-name-and-every-inherited-
+    # review-stage-is-gated, falsifier 3). The harvested range here holds no
+    # node of either kind, so both are the honest `[]`.
+    assert value == {"key": "hypothesis:x", "hypothesis": "hypothesis:x",
+                     "parent": "a00-test", "branch": "loop/hyp",
+                     "old_tip": "old", "new_tip": "new",
+                     "files": ["extensions/agi/bin/workflow.py"],
+                     "experiments": [], "verdict": []}
+    assert len(seen) == 1
+    cmd = seen[0]
+    assert cmd[-8:] == ["--tier", "parent", "--role", "parent",
+                        "--ladder-tier", "0", "--branch", "--detach"]
+
+
+def test_round_git_harvest_uses_recorded_refs_and_files(tmp_path, monkeypatch):
+    calls = []
+    answers = {"merge-base": "base-tip\n", "rev-parse": "round-tip\n",
+               "diff": "a.py\nb.py\n\n"}
+    def fake_run(cmd, **kw):
+        calls.append(cmd[3:])
+        op = cmd[3]
+        return subprocess.CompletedProcess(cmd, 0, answers[op], "")
+    monkeypatch.setattr(workflow.subprocess, "run", fake_run)
+    got = workflow._round_git_harvest(tmp_path, {
+        "branch": "loop/hyp", "base_branch": "main"})
+    assert got == {"old_tip": "base-tip", "new_tip": "round-tip",
+                   "files": ["a.py", "b.py"]}
+    assert calls == [["merge-base", "main", "loop/hyp"],
+                     ["rev-parse", "loop/hyp"],
+                     ["diff", "--name-only", "base-tip..round-tip"]]
+
+
+def test_round_stage_refuses_dispatch_without_retry(tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.setattr(workflow.subprocess, "run", lambda *a, **k: (
+        calls.append(a[0]) or subprocess.CompletedProcess(a[0], 3, "", "no")))
+    rc, value = workflow._run_round_stage(
+        tmp_path, {}, {"target": "hypothesis:x", "iteration": "L1.01"}, 3)
+    assert (rc, value, len(calls)) == (3, None, 1)
+
+
+def test_manifest_extends_refuses_a_cycle(tmp_path):
+    root = tmp_path / ".agi"
+    wf = root / "extensions" / "agi" / "workflows"
+    wf.mkdir(parents=True)
+    (wf / "a.json").write_text('{"extends": "b"}', encoding="utf-8")
+    (wf / "b.json").write_text('{"extends": "a"}', encoding="utf-8")
+    with pytest.raises(ValueError, match="cycle at 'a'"):
+        workflow._load_manifest(root, "a")
+
 
 def test_review_and_drafting_stage_json_matches_js_prompts():
     js = (WF_DIR / "agi-round-review.js").read_text(encoding="utf-8")
@@ -3007,7 +3190,7 @@ def test_help_names_root_and_still_exits_0():
 # ---------- R1: the runner resolves {project_root}, never a literal --------
 # hypothesis:lm-chained-research-review-cuts-director-glue-calls, residues
 # from outcome:a00-cc347774-096d54. The why/brainstorm/refute/review prompts
-# used to `cd /home/ubuntu/work/agi`, so a run started in a git worktree
+# used to `cd` a hard-coded absolute repo path, so a run started in a git worktree
 # minted into the MAIN checkout's graph. The runner now injects the resolved
 # project root as a run arg and each prompt carries `{project_root}`.
 
@@ -3121,6 +3304,7 @@ def test_pi_empty_handoff_lands_in_the_tracked_row(tmp_path_factory):
     from workflow import run_workflow
 
     good = json.dumps({"target": "k", "decisions": [], "ready_batch": [],
+                       "batch_empty": True,
                        "kept": "none", "dropped": "none", "notes": "n"})
 
     def fake_run(cmd, **kw):
@@ -3157,7 +3341,7 @@ def _capture_pi_prompt(stage, run_args):
         return _sp.CompletedProcess(cmd, 0,
                                     stdout='{"a": "x"}', stderr="")
 
-    cfg = {"harnesses": {"pi": {"bin": "/bin/fakepi",
+    cfg = {"harnesses": {"pi": {"bin": FAKE_PI,
                                 "provider": "openrouter"}}}
     st = dict(stage)
     label = st["label"]
@@ -3194,3 +3378,49 @@ def test_pi_prompt_without_schema_is_byte_identical():
     args = {"scratch": "/tmp/S"}
     prompt = _capture_pi_prompt(stage, args)
     assert prompt == render_stage_prompt(stage, args), repr(prompt)
+
+
+# ---------- round 3: _pi_harness_cfg reads the ONE shared resolver ----------
+# hypothesis:harness-bin-paths-resolve-per-box. The reader used to be
+# config-BEFORE-env and fell back to a hard-coded absolute literal, so a per-box
+# `~/.npm-global/bin/pi` cell never expanded and every merge-up-review stage
+# died at once with `pi exited rc=1`.
+
+def test_pi_harness_cfg_env_override_wins_over_the_config_cell(tmp_path,
+                                                               monkeypatch):
+    """The claim's precedence: $PI_BIN FIRST, config cell second. Both cells
+    are REAL files: a path-shaped cell that does not exist refuses by name
+    now (`hypothesis:harness-bin-absolute-token-free-bins-refused-by-name`),
+    so a sentinel path is no longer a usable stand-in for either side."""
+    from_bin = tmp_path / "PI_BIN"
+    cfg_bin = tmp_path / "config"
+    for f in (from_bin, cfg_bin):
+        f.write_text("#!/bin/sh\n")
+        f.chmod(0o755)
+    monkeypatch.setenv("PI_BIN", str(from_bin))
+    cfg = {"harnesses": {"pi": {"bin": str(cfg_bin),
+                                "provider": "openrouter"}}}
+    assert workflow._pi_harness_cfg(cfg)["bin"] == str(from_bin)
+
+
+def test_pi_harness_cfg_expands_a_home_token_against_the_box_home(
+        tmp_path, monkeypatch):
+    """No /home/<user> literal and no hand-made symlink: a `~/...` cell is the
+    EXPANDED path under the CURRENT HOME when the file exists."""
+    monkeypatch.delenv("PI_BIN", raising=False)
+    bindir = tmp_path / ".npm-global" / "bin"
+    bindir.mkdir(parents=True)
+    fake = bindir / "pi"
+    fake.write_text("#!/bin/sh\n", encoding="utf-8")
+    fake.chmod(0o755)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    cfg = {"harnesses": {"pi": {"bin": "~/.npm-global/bin/pi",
+                                "provider": "openrouter"}}}
+    assert workflow._pi_harness_cfg(cfg)["bin"] == str(fake)
+
+
+def test_pi_harness_cfg_default_is_a_bare_path_name_not_a_home_literal():
+    """A project with no `harnesses.pi` row gets `pi`, not a /home/<user>
+    literal that only exists on core-town's box."""
+    cfg = {"harnesses": {}}
+    assert workflow._pi_harness_cfg(cfg)["bin"] == "pi"

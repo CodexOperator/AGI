@@ -1,0 +1,28 @@
+{
+ "name": "t2r1",
+ "port": 18085,
+ "load_s": 37.3,
+ "lv": 1,
+ "rows": [
+  {
+   "prompt_n": 13,
+   "prompt_ms": 44885.319,
+   "prompt_per_second": 0.2896269936279165,
+   "predicted_n": 8,
+   "cache_n": 0,
+   "size_off": null,
+   "size_bytes": 2,
+   "ms_per_token": 3452.717
+  },
+  {
+   "prompt_n": 2061,
+   "prompt_ms": 1357.017,
+   "prompt_per_second": 1518.7724251059492,
+   "predicted_n": 8,
+   "cache_n": 0,
+   "size_off": 10000,
+   "size_bytes": 9000,
+   "ms_per_token": 0.658
+  }
+ ]
+}

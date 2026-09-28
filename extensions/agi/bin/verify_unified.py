@@ -68,6 +68,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import grid  # noqa: E402 -- the ONE ref-namespace resolver (goal:g14.14.7)
 import locations  # noqa: E402
 from frontmatter import split_frontmatter  # noqa: E402
 
@@ -122,8 +123,15 @@ def _rev_parse(repo: Path, rev: str = "HEAD") -> str | None:
 
 
 def _grid_refs(repo: Path) -> dict[str, str]:
-    """`{refname: target sha}` for every ref under `refs/grid/`."""
-    out = _git(repo, "for-each-ref", "refs/grid/", "--format=%(refname) %(objectname)")
+    """`{refname: target sha}` for every ref under the grid namespace.
+
+    The namespace is `grid.ref_ns_for`'s (goal:g14.14.7), keyed on the project
+    `repo` belongs to -- `repo` is a git repo root, so the GRAPH root is
+    resolved first. A project with no `grid.storage_trunk` still reads
+    `refs/grid/`, exactly as before.
+    """
+    ns = grid.ref_ns_for(locations.find_project_root(repo) or repo)
+    out = _git(repo, "for-each-ref", ns + "/", "--format=%(refname) %(objectname)")
     refs: dict[str, str] = {}
     for line in out.splitlines():
         line = line.strip()

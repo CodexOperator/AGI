@@ -216,3 +216,49 @@ def test_alarms_prime_row_is_never_rotated(ladder, spawns, monkeypatch,
     _stamp(tmp_path, "belam", age_s=60 * 60)
     assert rotate.cmd_alarms(_alarms(tmp_path, "quorum"), tmp_path) == 0
     assert spawns == []
+
+
+def test_alarms_loop_is_flat_no_frame_growth(ladder, spawns, monkeypatch,
+                                             tmp_path):
+    """EF.22 conjunct 1: the no-`--once` loop meters one pass per interval
+    with NO stack growth. The pre-fix tail recursed once per interval
+    (`return cmd_alarms(args, root)` after `time.sleep`), so a run reached
+    RecursionError after ~1000 polls. Drive 800 passes with `time.sleep`
+    monkeypatched; `_load_seats` records the call depth each pass and it must
+    be CONSTANT -- a frame per interval makes max(depths) exceed min(depths)
+    on pre-fix bytes (RED-FIRST; 800 stays under the ~990-frame recursion
+    crash so the assertion fires cleanly, not as a RecursionError)."""
+    ladder.update({"director_rotate_at": 0.40,
+                   "director_context_tokens": 100_000})
+    _director(tmp_path)
+    _pin_seat_transcript(tmp_path, "kid-1", tokens=10_000)   # holds (f=0.10)
+    depths = []
+    real_load = rotate._load_seats
+
+    def _depth():
+        n, frame = 0, sys._getframe()
+        while frame is not None:
+            n += 1
+            frame = frame.f_back
+        return n
+
+    def spy_load(root):
+        depths.append(_depth())
+        return real_load(root)
+
+    monkeypatch.setattr(rotate, "_load_seats", spy_load)
+
+    class _Stop(Exception):
+        pass
+
+    def fake_sleep(_seconds):
+        if len(depths) >= 800:
+            raise _Stop()
+
+    monkeypatch.setattr(rotate.time, "sleep", fake_sleep)
+    args = SimpleNamespace(holder="advisor", once=False, interval=0,
+                           comms_root=str(tmp_path / "comms"), root=None)
+    with pytest.raises(_Stop):
+        rotate.cmd_alarms(args, tmp_path)
+    assert len(depths) >= 800, len(depths)
+    assert max(depths) == min(depths), (min(depths), max(depths))

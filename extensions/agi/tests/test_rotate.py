@@ -520,6 +520,7 @@ def test_rotate_self_completes_pending_swap_before_minting(
     # upstream prepare check 2 finds a CLEAN tree, never a blocker).
     (tmp_path / "agi-tree.config.json").write_text("{}", encoding="utf-8")
     _init_git_remote(tmp_path)            # commits
+    _write_readable_veto_cell(tmp_path)
     pend = bin_send._seats_dir(tmp_path) / "adv-alive.key.pending"
     pend.write_text(json.dumps({"scheme": "ed25519",
                                 "priv_hex": succ_priv.hex(),
@@ -630,6 +631,7 @@ def test_rotate_self_stops_push_completes_pending_swap_site(
         "# adv-alive card\n## Intro\ncarried\n", encoding="utf-8")
     (tmp_path / "agi-tree.config.json").write_text("{}", encoding="utf-8")
     _init_git_remote(tmp_path)
+    _write_readable_veto_cell(tmp_path)
     pend = bin_send._seats_dir(tmp_path) / "adv-alive.key.pending"
     pend.write_text(json.dumps({"scheme": "ed25519",
                                 "priv_hex": succ_priv.hex(),
@@ -641,10 +643,10 @@ def test_rotate_self_stops_push_completes_pending_swap_site(
     calls = []
     real_finish = rotate._finish_pending_swap_on_push
 
-    def rec_finish(root, seat, push_line):
+    def rec_finish(root, seat, push_line, authority_line=None):
         kp = bin_send._seat_key_path(root, seat)
         before = (kp.parent / f"{kp.name}.pending").exists()
-        r = real_finish(root, seat, push_line)
+        r = real_finish(root, seat, push_line, authority_line=authority_line)
         after = (kp.parent / f"{kp.name}.pending").exists()
         if before:
             calls.append((push_line, r != "", after))
@@ -724,6 +726,7 @@ def test_rotate_self_merge_push_completes_pending_swap_site(
     (quorum / "adv-alive.md").write_text(
         "# adv-alive card\n## Intro\ncarried\n", encoding="utf-8")
     (tmp_path / "agi-tree.config.json").write_text("{}", encoding="utf-8")
+    _write_readable_veto_cell(tmp_path)
     bare = _init_git_remote(tmp_path)
     # layer an AHEAD commit onto origin/season/s2 (the ladder's season
     # branch, `_prepare_merge_target`'s fallback for a non-post branch) so
@@ -779,10 +782,10 @@ def test_rotate_self_merge_push_completes_pending_swap_site(
     calls = []
     real_finish = rotate._finish_pending_swap_on_push
 
-    def rec_finish(root, seat, push_line):
+    def rec_finish(root, seat, push_line, authority_line=None):
         kp = bin_send._seat_key_path(root, seat)
         before = (kp.parent / f"{kp.name}.pending").exists()
-        r = real_finish(root, seat, push_line)
+        r = real_finish(root, seat, push_line, authority_line=authority_line)
         after = (kp.parent / f"{kp.name}.pending").exists()
         if before:
             calls.append((push_line, r != "", after))
@@ -1554,9 +1557,13 @@ def test_spawn_falls_back_to_defaults_without_table(monkeypatch, tmp_path, capsy
 def test_successor_prompt_prepends_constitution_head():
     body = "the successor body"
     prompt = brief.successor_prompt(tier="prime_director", body=body)
-    assert prompt.startswith("─── CONSTITUTION HEAD ───")
+    # hypothesis:brief-py-assembles-every-first-turn-from-config: the head
+    # is `render`'s head part (doc:unified-head), the same bytes the
+    # SessionStart hook prints -- one head, never a second copy.
+    assert prompt.startswith("─── HEAD ───")
     assert "THE FOUR PRAYERS" in prompt
-    assert prompt.rstrip().endswith(body)
+    assert body in prompt
+    assert prompt.rstrip().endswith(brief.PAID_FOR_PATH_GUARD)
     assert prompt.index(body) > prompt.index("THE FOUR PRAYERS")
 
 
@@ -1625,9 +1632,11 @@ def test_spawn_liaison_prompt_sources_the_assembled_brief_not_the_static_file(mo
     assert "OWNER LIAISON" in out, "the assembled liaison brief is the body"
 
 
-def test_spawn_prime_director_static_path_is_unchanged(monkeypatch, tmp_path, capsys):
-    # Regression: the prime's spawned (no --prompt-file) must still read the
-    # DEFAULT_PROMPT_FILE static successor file, never the assembled brief.
+def test_spawn_prime_director_renders_not_the_static_file(monkeypatch, tmp_path, capsys):
+    # Regression for hypothesis:brief-py-assembles-every-first-turn-from-config:
+    # a prime spawned with NO --prompt-file gets the assembled brief (the
+    # render, or its loud fallback on this brief-less fixture root), never the
+    # static DEFAULT_PROMPT_FILE that the pre-fix path read for the prime.
     root = _proj(tmp_path)
     sentinel = tmp_path / "prime.md"
     sentinel.write_text("STATIC PRIME BODY {name}\n")
@@ -1639,10 +1648,13 @@ def test_spawn_prime_director_static_path_is_unchanged(monkeypatch, tmp_path, ca
         "spawn", "--name", "belam-1", "--tier", "prime_director",
         "--dry-run",
     ])
-    out = capsys.readouterr().out
+    captured = capsys.readouterr()
     assert exit_code == 0
-    assert "STATIC PRIME BODY belam-1" in out, (
-        "the prime must still read DEFAULT_PROMPT_FILE through the static path")
+    assert "STATIC PRIME BODY belam-1" not in captured.out, (
+        "the prime must render its brief, not read DEFAULT_PROMPT_FILE")
+    assert "--remote-control belam-1" in captured.out
+    assert "falling back to brief.assemble" in captured.err, (
+        "the no-config-brief fallback must say so on stderr")
 
 
 def test_derive_successor_name():
@@ -2695,6 +2707,15 @@ def test_sessions_dir_resolves_to_main_from_a_worktree(tmp_path):
 # ── l3w4-seat-rotation-loops: alarms --holder / rotate-self / status --seats ──
 
 
+def _write_readable_veto_cell(g):
+    from seatsig import veto
+    veto.save(g, {
+        "veto_room": "veto", "rate_limit_per_window": 1,
+        "window_seconds": 3600, "expiry_seconds": 86400,
+        "active_gates": [], "vetoes": [],
+    })
+
+
 def _write_seats_sheet(root, rows):
     """Write a minimal seals-md-style registry the loader can parse."""
     nodes = root / "nodes" / ".geometry"
@@ -3341,6 +3362,136 @@ def test_rotate_self_stops_one_call_writes_card_commits_rotates(
         ["git", "-C", str(top), "show", "HEAD:sessions/quorum/adv-alive.md"],
         capture_output=True, text=True).stdout
     assert "fix the merge on seat-3" in committed_card
+
+
+def test_rotate_self_stops_symlinked_card_converges_once(
+        fake_ladder, tmp_path, monkeypatch, capsys):
+    """A quorum symlink is flattened BEFORE the stops write, so one real
+    rotate-self call neither dirties the link target nor adds a THOUGHT block."""
+    _write_seats_sheet(tmp_path, [{"name": "adv-alive", "role": "parent",
+                                   "model": "x", "effort": "max"}])
+    node = tmp_path / "nodes" / "doc" / "card-adv-alive.md"
+    node.parent.mkdir(parents=True, exist_ok=True)
+    target_before = (
+        "# adv-alive card\n\n## Intro\ncarried\n\n"
+        "<!-- THOUGHT:BEGIN -->\none authored thought\n"
+        "<!-- THOUGHT:END -->\n")
+    node.write_text(target_before, encoding="utf-8")
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    card = quorum / "adv-alive.md"
+    card.symlink_to(os.path.relpath(node, card.parent))
+    _init_git_remote(tmp_path)
+    win = tmp_path / "windows.txt"
+    win.write_text("adv-alive\n", encoding="utf-8")
+
+    def fake_spawn(**kw):
+        with open(win, "a", encoding="utf-8") as fh:
+            fh.write("adv-alive\n")
+        return 0, "echo hi"
+    monkeypatch.setattr(rotate, "spawn_window", fake_spawn)
+    monkeypatch.setattr(
+        rotate, "_read_ack",
+        lambda *a, **k: {"seat": "s", "gen_after": 1, "answer": "continue"})
+    monkeypatch.setattr(rotate, "_kill_window", lambda *a, **k: None)
+    calls = []
+    status_after_commit = []
+    real_commit = rotate._commit_stops_row
+    def counting_commit(*a, **k):
+        result = real_commit(*a, **k)
+        calls.append(a)
+        status_after_commit.append(subprocess.run(
+            ["git", "-C", str(tmp_path), "status", "--porcelain"],
+            capture_output=True, text=True, check=True).stdout)
+        return result
+    monkeypatch.setattr(rotate, "_commit_stops_row", counting_commit)
+    args = _rotate_self_args(tmp_path, window_path=str(win),
+                             stops="fix the merge")
+    rc = rotate.cmd_rotate_self(args, tmp_path)
+    captured = capsys.readouterr()
+    out, err = captured.out, captured.err
+
+    assert rc == 0, out + err
+    assert len(calls) == 1
+    assert "stop_commit: committed" in err
+    assert "dirty tree" not in out + err
+    assert not card.is_symlink()
+    assert node.read_text(encoding="utf-8") == target_before
+    assert node.read_text(encoding="utf-8").count("THOUGHT:BEGIN") == 1
+    assert card.read_text(encoding="utf-8").count("THOUGHT:BEGIN") == 1
+    assert "fix the merge" in card.read_text(encoding="utf-8")
+    assert status_after_commit == [""]
+
+    # Negative scope probe: a plain card is already converged and stays
+    # byte-identical; this fix must not rewrite any non-symlink card.
+    plain = quorum / "plain.md"
+    plain_bytes = b"# plain\n"
+    plain.write_bytes(plain_bytes)
+    rotate._flatten_card_symlink(plain)
+    assert plain.read_bytes() == plain_bytes
+
+
+def test_write_stops_section_flattens_a_symlinked_card(tmp_path):
+    """hypothesis:rotate-flattens-a-symlinked-card-before-every-card-write --
+    `_write_stops_section` is the delegated `rotate --stops` pre-write
+    (rotate.py:21514-21515, called with NO flatten before this fix). Direct
+    unit call, no CLI/spawn machinery: a symlinked card converges to a
+    regular file carrying the new stops text, and the symlink's OLD target
+    is left byte-identical -- the write never followed the link through."""
+    node = tmp_path / "nodes" / "doc" / "card-adv-alive.md"
+    node.parent.mkdir(parents=True, exist_ok=True)
+    target_before = "# adv-alive card\n\n## 🔴 Where it stops\n```\nold cmd\n```\n"
+    node.write_text(target_before, encoding="utf-8")
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    card = quorum / "adv-alive.md"
+    card.symlink_to(os.path.relpath(node, card.parent))
+
+    full, slot = rotate._write_stops_section(card, "adv-alive", "new cmd")
+
+    assert slot == "replaced"
+    assert not card.is_symlink()
+    assert "new cmd" in card.read_text(encoding="utf-8")
+    assert node.read_text(encoding="utf-8") == target_before, (
+        "the write followed the symlink into the graph node")
+
+
+def test_closeout_apply_flattens_a_symlinked_card(tmp_path):
+    """hypothesis:rotate-flattens-a-symlinked-card-before-every-card-write --
+    `_closeout_apply` (rotate.py:8511, reached from `cmd_rotate_self
+    --closeout --form` via :18888) had the same gap. Direct unit call: a
+    symlinked card converges to a regular file carrying the filled slot,
+    and the old link target is untouched."""
+    node = tmp_path / "nodes" / "doc" / "card-adv-alive.md"
+    node.parent.mkdir(parents=True, exist_ok=True)
+    target_before = "# adv-alive card\n\n## §0 STATE\nold state\n"
+    node.write_text(target_before, encoding="utf-8")
+    quorum = tmp_path / "sessions" / "quorum"
+    quorum.mkdir(parents=True, exist_ok=True)
+    card = quorum / "adv-alive.md"
+    card.symlink_to(os.path.relpath(node, card.parent))
+
+    full, s3_value, err = rotate._closeout_apply(
+        tmp_path, "adv-alive", "parent", {"s0": "new state from the form"},
+        None, write=True)
+
+    assert err is None, err
+    assert not card.is_symlink()
+    assert "new state from the form" in card.read_text(encoding="utf-8")
+    assert node.read_text(encoding="utf-8") == target_before, (
+        "the write followed the symlink into the graph node")
+
+    # Negative scope probe: --dry-run (write=False) touches nothing, same
+    # invariant test_rotate_self_closeout_dry_run_touches_no_card already
+    # covers at the CLI level -- pin it here too, at the unit boundary.
+    node2 = tmp_path / "nodes" / "doc" / "card-other.md"
+    node2.parent.mkdir(parents=True, exist_ok=True)
+    node2.write_text("# other\n", encoding="utf-8")
+    card2 = quorum / "other.md"
+    card2.symlink_to(os.path.relpath(node2, card2.parent))
+    rotate._closeout_apply(tmp_path, "other", "parent",
+                           {"s0": "would-be new state"}, None, write=False)
+    assert card2.is_symlink(), "a dry run flattened the card"
 
 
 def test_stops_replacer_keeps_prose_outside_fence_and_round_trips(tmp_path):
@@ -6780,12 +6931,18 @@ def test_rotate_self_missing_rotations_node_refuses_before_side_effects(
 
 def test_rotate_self_consumes_template_brief_as_successor_prompt(
         fake_ladder, tmp_path, monkeypatch, capsys):
-    """L4.112 (C), updated L5.11: when --prompt-file is NOT given, rotate-self
-    hands the template's brief_file (with `{seat}` substituted) to the
-    successor as its prompt. The director's brief is the seat's quorum
-    scratchpad, so `.agi/sessions/quorum/{seat}.md` becomes the post's OWN
-    quorum card -- resolved through `_own_sessions_dir`, never CWD. This
-    MAIN-resident seat resolves to MAIN's absolute path."""
+    """L4.112 (C), updated L5.11, updated by
+    hypothesis:non-prime-rotate-self-renders-through-brief-render: when
+    --prompt-file is NOT given, rotate-self hands the template's brief_file
+    (with `{seat}` substituted) to the successor as its CARD. The director's
+    brief_file is the seat's quorum scratchpad, so
+    `.agi/sessions/quorum/{seat}.md` is the post's OWN quorum card --
+    resolved through `_own_sessions_dir`, never CWD -- and it arrives as
+    `card_file`, so the successor's first turn is the ONE render (as the
+    prime's already was) rather than a file read. This MAIN-resident seat
+    resolves to MAIN's absolute path. SUPERSEDED: the old assertion was
+    `seen["prompt_file"] == <that path>`, i.e. the cell was the successor's
+    PROMPT."""
     tmpls = {"director": {"brief_file": ".agi/sessions/quorum/{seat}.md",
                           "steps": ["handoff", "spawn", "join"],
                           "telemetry": ["seed", "model"]}}
@@ -6795,6 +6952,7 @@ def test_rotate_self_consumes_template_brief_as_successor_prompt(
     seen = {}
     def fake_spawn(**kw):
         seen["prompt_file"] = kw.get("prompt_file")
+        seen["card_file"] = kw.get("card_file")
         with open(win, "a", encoding="utf-8") as fh:
             fh.write("adv-alive\n")
         return 0, "echo hi"
@@ -6805,7 +6963,9 @@ def test_rotate_self_consumes_template_brief_as_successor_prompt(
     args = _rotate_self_args(tmp_path, window_path=str(win))
     rc = rotate.cmd_rotate_self(args, tmp_path)
     assert rc == 0
-    assert seen["prompt_file"] == str(
+    assert seen["prompt_file"] is None, (
+        "the cell is a card, so spawn_window renders for this role too")
+    assert seen["card_file"] == str(
         rotate._own_sessions_dir(tmp_path, "adv-alive")
         / "quorum" / "adv-alive.md")
 

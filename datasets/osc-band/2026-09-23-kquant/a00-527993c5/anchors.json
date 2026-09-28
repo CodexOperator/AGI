@@ -1,0 +1,31 @@
+{
+ "6": {
+  "agree": 0.851562,
+  "kl": 0.168396,
+  "avg_bits": 6.25,
+  "avg_data_bits": 6.0,
+  "C": 1
+ },
+ "8": {
+  "agree": 0.938965,
+  "kl": 0.027813,
+  "avg_bits": 8.25,
+  "avg_data_bits": 8.0,
+  "C": 1
+ },
+ "12": {
+  "agree": 0.995361,
+  "kl": 0.000106,
+  "avg_bits": 12.25,
+  "avg_data_bits": 12.0,
+  "C": 1
+ },
+ "16": {
+  "agree": 0.999512,
+  "kl": 0.0,
+  "avg_bits": 16.25,
+  "avg_data_bits": 16.0,
+  "C": 1
+ },
+ "_note": "in-eval uniform absmax key-precision anchor; w=16 is the lossless-path control"
+}

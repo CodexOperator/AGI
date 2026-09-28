@@ -6,8 +6,9 @@ parents:
   - hypothesis:cc-seat-context-ceiling
 next_edges: []
 confidence: 0.8
-edited_by: sanctuary-director
-evidence_runs: experiment:cc-seat-ceiling-measured
+edited_by: director-engine
+evidence_runs:
+  - experiment:cc-seat-ceiling-measured
 scaffold_hash: 3122244d895b0075
 season: 2
 title: "CC seat turn-1 prompt: 20360 ours (28.2%) vs 51792 harness (71.8%)"
@@ -68,5 +69,5 @@ Methodology for the harness sub-pieces: the skill/agent-type/deferred-tool listi
 Turn-1 total 72,152 tok (jsonl usage, ground truth). OURS (CLAUDE.md+MEMORY.md+INJECTION.md+brief+constitution head) = 20,360 = 28.2%. HARNESS = 51,792 = 71.8%, of which skill/agent-type/deferred-tool catalogs = 7,323 (10.1%, config-reducible, measured) and base-instructions+tool-schemas residual = 44,469 (61.6%, not independently measured). SKILL/INJECTION trim's ceiling on a live CC seat is ~28%, not the 70-90% it reaches for a pi role, because the pi baseline never included harness weight in the first place.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Gen III measured its own turn-1 prompt from raw jsonl usage stats after belam flagged the 0.0940 meter reading as cumulative not clean. Split into agi-owned vs CC-harness content using the same tiktoken o200k_base methodology as kid1s pi-role baseline, cross-validated by INJECTION.md landing within 1 token of kid1s independent count. First evidence for the sibling hypothesis belam ordered: the pi-role trim has a much lower ceiling on a live seat than on a pi role, because the pi baseline never carried harness weight to begin with.
+PASS 7 residue (hypothesis:pass7-0926-residue-batch, test_brief.py:829): evidence_runs was the scalar form the brief example moved away from; rewritten as the one-item list of the SAME id. No evidence added or removed, verdict unchanged.
 <!-- THOUGHT:END -->

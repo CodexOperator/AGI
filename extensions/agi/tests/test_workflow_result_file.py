@@ -32,10 +32,34 @@ import subprocess as _sp  # noqa: E402
 import workflow as _wf  # noqa: E402
 from workflow import RunView, _run_stage_pi, run_workflow  # noqa: E402
 
+
+@pytest.fixture(autouse=True)
+def _no_ambient_pi_bin(monkeypatch):
+    """`$PI_BIN` now WINS over the config cell (the ONE shared resolver), so
+    a suite run from a pi seat would otherwise dispatch these fake-bin tests
+    at the real pi. (hypothesis:harness-bin-paths-resolve-per-box round 3)"""
+    monkeypatch.delenv("PI_BIN", raising=False)
+
 SCHEMA = {"type": "object", "properties": {"a": {"type": "string"}},
           "required": ["a"]}
 VALID = {"a": "from-digest"}
-CFG = {"harnesses": {"pi": {"bin": "/bin/fakepi", "provider": "openrouter"}}}
+def _fake_pi_bin() -> str:
+    """A REAL, never-spawned `harnesses.pi.bin` cell.
+
+    A path-shaped `bin` cell that does not exist REFUSES by name
+    (`hypothesis:harness-bin-absolute-token-free-bins-refused-by-name`), so the
+    `/bin/fakepi` literal these tests used as a stand-in can no longer be
+    resolved. `subprocess.run` is mocked throughout; the file exists only to
+    satisfy the resolver.
+    """
+    import tempfile
+    p = Path(tempfile.mkdtemp(prefix="fakebin-")) / "fakepi"
+    p.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    p.chmod(0o755)
+    return str(p)
+
+
+CFG = {"harnesses": {"pi": {"bin": _fake_pi_bin(), "provider": "openrouter"}}}
 KNOBS = {"read:x": {"model": "m", "effort": "low"}}
 
 

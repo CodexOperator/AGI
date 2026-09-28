@@ -26,7 +26,7 @@ sys.path.insert(0, str(BIN))
 from workflow import validate_return  # noqa: E402
 
 WF = REPO / "extensions" / "agi" / "workflows" / "merge-up-review.json"
-BRIEF = REPO / ".agi" / "nodes" / "doc" / "unified-director-brief.md"
+BRIEF = REPO / ".agi" / "context" / "schemas" / "[hypothesis].md"  # the brief format lives in the hypothesis schema (owner 09-23)
 
 ANSWER_ENUM = {"enum": ["yes", "no"]}
 

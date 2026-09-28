@@ -1,0 +1,18 @@
+Loading weights:   0%|          | 0/290 [00:00<?, ?it/s]Loading weights:   0%|          | 1/290 [00:00<04:07,  1.17it/s]Loading weights:  28%|██▊       | 81/290 [00:00<00:01, 114.40it/s]Loading weights:  43%|████▎     | 126/290 [00:01<00:01, 152.40it/s]Loading weights:  56%|█████▌    | 162/290 [00:01<00:00, 162.17it/s]Loading weights:  66%|██████▌   | 192/290 [00:01<00:00, 163.93it/s]Loading weights:  80%|████████  | 232/290 [00:01<00:00, 187.37it/s]Loading weights:  89%|████████▊ | 257/290 [00:01<00:00, 149.60it/s]Loading weights:  96%|█████████▌| 277/290 [00:02<00:00, 156.47it/s]Loading weights: 100%|██████████| 290/290 [00:02<00:00, 134.62it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (299078 > 131072). Running this sequence through the model will result in indexing errors
+arms: {'uniform_w8': 8.25, 'uniform_w9': 9.25, 'uniform_w10': 10.25, 'uniform_w11': 11.25, 'uniform_w12': 12.25, 'energy_6p0': 6.0, 'energy_8p0': 8.0, 'energy_9p0': 9.0, 'energy_10p5': 10.5, 'energy_13p0': 13.0, 'rand_9p0_s1': 9.0, 'rand_9p0_s2': 9.0, 'rand_9p0_s3': 9.0, 'energy_3p5': 3.5}
+prompt 1/8 45s
+prompt 2/8 93s
+prompt 3/8 138s
+prompt 4/8 185s
+prompt 5/8 231s
+prompt 6/8 275s
+prompt 7/8 320s
+prompt 8/8 367s
+{
+ "largest_safe_step": "energy_9p0",
+ "lowest_holding_bits": {
+  "energy": 9.0,
+  "uniform": 10.25
+ }
+}

@@ -3,6 +3,7 @@
 import fcntl
 import functools
 import importlib.util
+import json
 import os
 import subprocess
 import sys
@@ -167,6 +168,213 @@ def test_sync_pushes_grid_refs_and_sets_fetch_spec(project, tmp_path):
     # a fresh clone must be able to fetch the grid: refspec configured
     specs = grid.git(project, "config", "--get-all", "remote.origin.fetch")
     assert grid.FETCH_SPEC in specs.splitlines()
+
+
+def test_push_batches_omit_matching_and_remote_only_refs(tmp_path, monkeypatch):
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"push_batch_limit": 200}}))
+    rows = [f"refs/grid/node/{i} oid-{i}" for i in range(402)]
+    # git ls-remote prints "<sha>\t<refname>" per line, sha first -- not the
+    # reverse. A mock in ref-first order would silently cancel out the exact
+    # key/value inversion push_batches had (goal:g7.33.11).
+    remote = [f"oid-0\trefs/grid/node/0", f"oid-401\trefs/grid/node/401",
+              "remote\trefs/grid/node/remote-only"]
+    monkeypatch.setattr(grid, "git", lambda root, *args: (
+        "\n".join(remote) if args[0] == "ls-remote" else "\n".join(rows)))
+    batches = grid.push_batches(tmp_path)
+    assert [len(batch) for batch in batches] == [200, 200]
+    assert "refs/grid/node/0:refs/grid/node/0" not in batches[0]
+    assert "refs/grid/node/remote-only:refs/grid/node/remote-only" not in sum(batches, [])
+
+
+def test_push_batches_exclude_pre_split_v1_roots(tmp_path, monkeypatch):
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"push_batch_limit": 10, "push_min_season": 2}}))
+    rows = ["refs/grid/node/old oid-old", "refs/grid/node/new oid-new",
+            "refs/grid/node/child oid-child"]
+    def fake_git(root, *args):
+        if args[0] == "ls-remote":
+            return ""
+        if args[0] == "for-each-ref":
+            return "\n".join(rows)
+        if args[:2] == ("show", "-s"):
+            return "" if args[-1] == "oid-old" else "parent"
+        return "---\nseason: 1\n" if args[-1] == "oid-old:node.md" else "---\nseason: 2\n"
+    monkeypatch.setattr(grid, "git", fake_git)
+    assert grid.push_batches(tmp_path) == [
+        ["refs/grid/node/new:refs/grid/node/new",
+         "refs/grid/node/child:refs/grid/node/child"]]
+
+
+def test_push_changed_stops_after_failed_batch(tmp_path, monkeypatch):
+    monkeypatch.setattr(grid, "ensure_repo", lambda root: None)
+    monkeypatch.setattr(grid, "push_batches", lambda root: [["a"], ["b"], ["c"]])
+    calls = []
+    def push(root, *args):
+        calls.append(args)
+        if len(calls) == 2:
+            raise SystemExit("ERR: rejected")
+    monkeypatch.setattr(grid, "git", push)
+    with pytest.raises(SystemExit, match="rejected"):
+        grid.cmd_push_changed(tmp_path)
+    assert len(calls) == 2
+
+
+def test_push_batches_exclude_seed_epoch_roots_but_keep_descendants(tmp_path, monkeypatch):
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"push_split_epoch": 100, "push_batch_limit": 10}}))
+    rows = ["refs/grid/node/old oid-old", "refs/grid/node/new oid-new",
+            "refs/grid/node/child oid-child"]
+    def fake_git(root, *args):
+        if args[0] == "ls-remote":
+            return ""
+        if args[0] == "for-each-ref":
+            return "\n".join(rows)
+        if args[-1] == "oid-old":
+            return "99"
+        if args[-1] == "oid-child":
+            return "101 parent"
+        return "101"
+    monkeypatch.setattr(grid, "git", fake_git)
+    assert grid.push_batches(tmp_path) == [
+        ["refs/grid/node/new:refs/grid/node/new",
+         "refs/grid/node/child:refs/grid/node/child"]]
+
+
+def test_push_batches_use_measured_seed_boundary_and_count(tmp_path, monkeypatch):
+    """The calendar-midnight proxy admitted the measured 01:48Z seed roots."""
+    boundary = 1789955640  # 2026-09-21 01:54Z: first measured local-only boundary
+    old_seed = 1789955280  # 2026-09-21 01:48Z: the rejected seed root
+    (tmp_path / "agi-tree.config.json").write_text(json.dumps({
+        "grid": {"push_batch_limit": 200, "push_split_epoch": boundary}}))
+    rows = [f"refs/grid/node/{i} oid-{i}" for i in range(1869)]
+
+    def fake_git(root, *args):
+        if args[0] == "ls-remote":
+            return ""
+        if args[0] == "for-each-ref":
+            return "\n".join(rows)
+        if args[-1] == "oid-0":
+            return str(old_seed)
+        return f"{boundary} parent"
+
+    monkeypatch.setattr(grid, "git", fake_git)
+    batches = grid.push_batches(tmp_path)
+    assert [len(batch) for batch in batches] == [200] * 9 + [68]
+    assert sum(map(len, batches)) == 1868
+    assert not any(ref.endswith(":refs/grid/node/0") for batch in batches for ref in batch)
+
+
+def test_push_batch_limit_falls_back_and_names_the_absent_cell(tmp_path, capsys):
+    """hypothesis:grid-sync-survives-a-project-without-push-batch-limit: the
+    grid_sync cron versions EVERY project on the box, so a project that has
+    not set `grid.push_batch_limit` must not die on `sys.exit`. It takes the
+    ONE declared default (grid.GRID_PUSH_DEFAULTS) and names the missing cell
+    once in the log — no hard-coded 200 at the use site."""
+    (tmp_path / "agi-tree.config.json").write_text("{}")
+    assert grid.push_batch_limit(tmp_path) == 200 == grid.GRID_PUSH_DEFAULTS["push_batch_limit"]
+    out = capsys.readouterr().out
+    assert out.count("grid.push_batch_limit") == 1
+    assert "absent" in out
+
+
+def test_push_batches_401_changes_split_into_three_batches(tmp_path, monkeypatch):
+    """The 401-change boundary named by the PASS 5/6 residue: exactly
+    ceil(401/200) = 3 batches, the last one a singleton -- untested before
+    this round (the nearest existing coverage, `..._omit_matching_and_
+    remote_only_refs`, starts from 402 SOURCE rows and excludes two,
+    landing on 400 changed refs, not 401)."""
+    (tmp_path / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"push_batch_limit": 200}}))
+    rows = [f"refs/grid/node/{i} oid-{i}" for i in range(401)]
+    monkeypatch.setattr(grid, "git", lambda root, *args: (
+        "" if args[0] == "ls-remote" else "\n".join(rows)))
+    batches = grid.push_batches(tmp_path)
+    assert [len(batch) for batch in batches] == [200, 200, 1]
+    assert sum(map(len, batches)) == 401
+
+
+def test_push_changed_retries_after_a_failed_batch_against_a_real_remote(
+        project, tmp_path, capsys, monkeypatch):
+    """The retry half of the same residue: a batch that fails mid-run is not
+    lost. `push_batches` recomputes from git state on every call (never a
+    log of "what still owes a push"), so the NEXT `cmd_push_changed` --
+    exactly what the grid_sync cron line runs again five minutes later --
+    must finish the job without re-attempting a batch that already landed."""
+    (project / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"push_batch_limit": 1}}))
+    (project / "nodes" / "idea" / "y.md").write_text(
+        '---\nid: "idea:y"\nmint_id: b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\n'
+        'type: idea\n---\n\nsecond thought\n')
+    grid.cmd_commit(project, [], do_all=True, session=None)
+
+    remote = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(remote)], check=True)
+    grid.git(project, "remote", "add", "origin", str(remote))
+
+    real_git = grid.git
+    calls = {"n": 0}
+
+    def flaky_git(root, *args):
+        if args[:1] == ("push",):
+            calls["n"] += 1
+            if calls["n"] == 2:
+                raise SystemExit("ERR: simulated network failure")
+        return real_git(root, *args)
+
+    monkeypatch.setattr(grid, "git", flaky_git)
+    with pytest.raises(SystemExit, match="simulated network failure"):
+        grid.cmd_push_changed(project)
+    monkeypatch.setattr(grid, "git", real_git)
+    capsys.readouterr()
+
+    ref_x = grid.mint_node_ref(MINT_X)
+    ref_y = grid.mint_node_ref("b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2")
+    landed = {
+        ref: subprocess.run(["git", "ls-remote", str(remote), ref],
+                            capture_output=True, text=True,
+                            check=True).stdout.strip()
+        for ref in (ref_x, ref_y)
+    }
+    # exactly one batch landed before the simulated failure; the other did not.
+    assert bool(landed[ref_x]) != bool(landed[ref_y])
+
+    grid.cmd_push_changed(project)  # the retry -- ordinary git, no flakiness
+    for ref in (ref_x, ref_y):
+        tip = grid.ref_tip(project, ref)
+        advertised = subprocess.run(
+            ["git", "ls-remote", str(remote), ref],
+            capture_output=True, text=True, check=True).stdout.strip()
+        assert advertised == f"{tip}\t{ref}", ref
+
+
+def test_push_changed_advances_real_bare_remote(project, tmp_path, capsys):
+    (project / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"push_batch_limit": 200}}))
+    grid.cmd_commit(project, [], do_all=True, session=None)
+    remote = tmp_path / "remote.git"
+    subprocess.run(["git", "init", "--bare", "-q", str(remote)], check=True)
+    grid.git(project, "remote", "add", "origin", str(remote))
+    grid.cmd_push_changed(project)
+    ref = grid.mint_node_ref(MINT_X)
+    tip = grid.ref_tip(project, ref)
+    remote_tip = subprocess.run(
+        ["git", "--git-dir", str(remote), "rev-parse", ref],
+        capture_output=True, text=True, check=True).stdout
+    assert remote_tip.strip() == tip
+    capsys.readouterr()
+
+    # The push-changed stage of three consecutive grid_sync ticks. Every tick
+    # must discover no changed ref, and every assertion below reads the real
+    # bare remote through git ls-remote rather than trusting the report text.
+    for tick in range(1, 4):
+        grid.cmd_push_changed(project)
+        assert capsys.readouterr().out.strip().endswith(
+            "grid push: 0 changed ref(s) in 0 batch(es)"), tick
+        advertised = subprocess.run(
+            ["git", "ls-remote", str(remote), ref],
+            capture_output=True, text=True, check=True).stdout.strip()
+        assert advertised == f"{tip}\t{ref}", tick
 
 
 def test_find_project_root_accepts_canonical_and_legacy_config(tmp_path):
@@ -1413,6 +1621,78 @@ def test_allow_branch_message_mentions_branch_name_and_flag(guard_project, capsy
     assert "--allow-branch" in err
 
 
+# --- hypothesis:lm-grid-commit-configured-trunk-lifts-branch-blind-refusal ---
+#
+# The guard exists ONLY because refs are branch-blind under the DEFAULT
+# `refs/grid`: every branch writes the same `refs/grid/node/<mint-id>`. A tree
+# declaring a non-default `grid.storage_trunk` keeps its refs in its own
+# namespace, so commit --all on a non-season branch no longer refuses there.
+# An UNCONFIGURED tree must refuse byte-for-byte as before; `--allow-branch`
+# stays its override; session (D3) commits stay ungated either way.
+
+
+def _configure_guard_trunk(root, trunk):
+    """Write `grid.storage_trunk` into the guard fixture's config."""
+    (root / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"storage_trunk": trunk}}))
+    return root
+
+
+def test_configured_trunk_lifts_refusal_on_non_season_branch(
+        guard_project, restore_ref_ns):
+    """Falsifier (a): configured non-default trunk + non-season branch ->
+    commit --all succeeds with NO --allow-branch, recording in that trunk."""
+    _configure_guard_trunk(guard_project, "refs/grid/local-maxxing")
+    grid.apply_storage_trunk(guard_project)
+    assert grid.REF_NS == "refs/grid/local-maxxing"
+    _on_branch(guard_project, "work")
+    grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    assert grid.ref_tip(
+        guard_project, grid.mint_node_ref(MINT_G11)) is not None
+
+
+def test_unconfigured_tree_still_refuses_on_non_season_branch(
+        guard_project, capsys):
+    """Falsifier (b), the regression guard: with no `grid.storage_trunk` the
+    refusal is unchanged -- exit 2, no ref, message names --allow-branch."""
+    _on_branch(guard_project, "work")
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(guard_project, [], do_all=True, session=None)
+    assert exc.value.code == 2
+    assert "--allow-branch" in capsys.readouterr().err
+    assert grid.ref_tip(
+        guard_project, grid.mint_node_ref(MINT_G11)) is None
+
+
+def test_allow_branch_still_overrides_unconfigured_refusal(guard_project):
+    """Falsifier (c): --allow-branch remains the explicit override on an
+    unconfigured tree's non-season branch."""
+    _on_branch(guard_project, "work")
+    grid.cmd_commit(guard_project, [], do_all=True, session=None,
+                    allow_branch=True)
+    assert grid.ref_tip(
+        guard_project, grid.mint_node_ref(MINT_G11)) is not None
+
+
+def test_session_commit_ungated_configured_and_unconfigured(
+        guard_project, restore_ref_ns):
+    """Falsifier (d): session (D3) commits stay ungated on a non-season branch
+    whether the trunk is configured or not."""
+    f = guard_project / "nodes" / "idea" / "x.md"
+    _on_branch(guard_project, "work")
+    grid.cmd_commit(guard_project, [str(f)], do_all=False,
+                    session=("1", "a01"))
+    assert grid.ref_tip(
+        guard_project, grid.session_ref("1", "a01", "idea:x")) is not None
+
+    _configure_guard_trunk(guard_project, "refs/grid/local-maxxing")
+    grid.apply_storage_trunk(guard_project)
+    grid.cmd_commit(guard_project, [str(f)], do_all=False,
+                    session=("1", "a02"))
+    assert grid.ref_tip(
+        guard_project, grid.session_ref("1", "a02", "idea:x")) is not None
+
+
 # --------------------------------------------- evidence gate on the commit path
 #
 # hypothesis:gate-must-sit-on-the-commit-path (goal:g7). The falsifier the
@@ -1849,3 +2129,386 @@ def _hold_grid_lock_at(lock, seconds):
     t.start()
     return t
 
+
+# --------------- goal:g14.14.7 -- storage trunk is config-declared --------
+
+
+@pytest.fixture()
+def restore_ref_ns():
+    """`apply_storage_trunk` mutates module globals; no test may leak them."""
+    saved = (grid.REF_NS, grid.FETCH_SPEC, grid.PUSH_SPEC)
+    yield
+    grid.REF_NS, grid.FETCH_SPEC, grid.PUSH_SPEC = saved
+
+
+def _configure(agi, config):
+    (agi / "config.json").write_text(json.dumps(config))
+    return agi
+
+
+def test_default_tree_resolves_refs_grid(tmp_path, restore_ref_ns):
+    """Falsifier (i), the heaviest one: a tree with no `storage_trunk` key
+    resolves exactly `refs/grid` and records its version there, byte-for-byte
+    as before. A silent default change would strand every existing history."""
+    agi = _configure(_make_g11_project(tmp_path), {})
+    assert grid.ref_ns_for(agi) == "refs/grid"
+    assert grid.apply_storage_trunk(agi) == "refs/grid"
+    assert grid.REF_NS == "refs/grid"
+    assert grid.PUSH_SPEC == "refs/grid/*:refs/grid/*"
+    assert grid.FETCH_SPEC == "+refs/grid/*:refs/grid/*"
+    grid.cmd_commit(agi, [], do_all=True, session=None)
+    refs = grid.git(agi, "for-each-ref", "refs/grid", "--format=%(refname)")
+    assert f"refs/grid/node/{MINT_X}" in refs
+
+
+def test_configured_trunk_isolates_versions(tmp_path, restore_ref_ns):
+    """Falsifier (iii): a configured trunk records its versions there, the
+    default `refs/grid/node/*` path stays untouched, and the history reads
+    back through the resolved namespace.
+
+    `refs/grid/t1/` (trailing slash) is the spelling the goal names, and it
+    must not mint `refs/grid/t1//node/...`."""
+    agi = _configure(_make_g11_project(tmp_path),
+                     {"grid": {"storage_trunk": "refs/grid/t1/"}})
+    assert grid.ref_ns_for(agi) == "refs/grid/t1"   # trailing slash stripped
+    grid.apply_storage_trunk(agi)
+    grid.cmd_commit(agi, [], do_all=True, session=None)
+    refs = grid.git(agi, "for-each-ref", "refs/", "--format=%(refname)")
+    assert f"refs/grid/t1/node/{MINT_X}" in refs
+    assert f"refs/grid/node/{MINT_X}" not in refs
+    assert "refs/grid/t1//" not in refs
+    assert versions(agi, "idea:g") == 1             # reads back
+
+
+def test_crons_py_has_no_namespace_literal():
+    """Falsifier (ii): the second spelling is gone. crons.py names the
+    namespace only through grid.py's own resolver."""
+    crons_src = (BIN.with_name("crons.py")).read_text()
+    assert "refs/grid" not in crons_src
+
+
+
+# ---------------- goal:g14.14.7 -- migrate-trunk: change the NAMESPACE -----
+#
+# migrate-refs and migrate-mint-refs both move refs WITHIN refs/grid/node/.
+# Neither changes the namespace. This is the one that does, and it is
+# ref-driven (a ref with no live node file still moves).
+
+@pytest.fixture()
+def trunk_project(tmp_path):
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "agi-tree.config.json").write_text("{}")
+    (tmp_path / "nodes" / "level3").mkdir(parents=True)
+    grid.cmd_init(tmp_path)
+    return tmp_path
+
+
+def _seed_node_ref(root, suffix, revisions=("body 1\n",)):
+    """Create `refs/grid/node/<suffix>` by plumbing only -- deliberately no
+    node FILE behind it, so the tests prove the migration is ref-driven."""
+    parent = None
+    for i, text in enumerate(revisions, 1):
+        blob = grid.git(root, "hash-object", "-w", "--stdin", input_text=text)
+        tree = grid.git(root, "mktree",
+                        input_text=f"100644 blob {blob}\tnode.md\n")
+        args = ["commit-tree", tree, "-m", f"v{i} {suffix}"]
+        if parent:
+            args += ["-p", parent]
+        parent = grid.git(root, *args)
+    grid.git(root, "update-ref", f"refs/grid/node/{suffix}", parent)
+    return parent
+
+
+def _refs(root, ns):
+    return grid.git(root, "for-each-ref", ns, "--format=%(refname)").splitlines()
+
+
+def test_migrate_trunk_dry_run_changes_nothing(trunk_project, capsys):
+    root = trunk_project
+    tips = {s: _seed_node_ref(root, s) for s in ("m1", "m2", "m3")}
+
+    capsys.readouterr()
+    grid.cmd_migrate_trunk(root, "refs/grid/local-maxxing", write=False)
+    out = capsys.readouterr().out
+
+    assert out.count("WOULD-MOVE") == 3
+    assert "3 would-move, 0 unchanged, 0 conflict(s)" in out
+    assert sorted(_refs(root, "refs/grid/node/")) == sorted(
+        f"refs/grid/node/{s}" for s in tips)
+    assert _refs(root, "refs/grid/local-maxxing") == []
+
+
+def test_migrate_trunk_write_moves_all_and_preserves_shas(trunk_project):
+    root = trunk_project
+    tips = {s: _seed_node_ref(root, s, ("a\n", "b\n")) for s in ("m1", "m2", "m3")}
+
+    grid.cmd_migrate_trunk(root, "refs/grid/local-maxxing", write=True)
+
+    new = _refs(root, "refs/grid/local-maxxing/node/")
+    assert len(new) == 3
+    assert _refs(root, "refs/grid/node/") == []      # moved, not duplicated
+    for s, tip in tips.items():
+        assert grid.ref_tip(root, f"refs/grid/local-maxxing/node/{s}") == tip
+        assert int(grid.git(root, "rev-list", "--count",
+                            f"refs/grid/local-maxxing/node/{s}")) == 2
+
+
+def test_migrate_trunk_is_idempotent(trunk_project, capsys):
+    root = trunk_project
+    for s in ("m1", "m2"):
+        _seed_node_ref(root, s)
+    grid.cmd_migrate_trunk(root, "refs/grid/local-maxxing", write=True)
+    tip = grid.ref_tip(root, "refs/grid/local-maxxing/node/m1")
+
+    capsys.readouterr()
+    grid.cmd_migrate_trunk(root, "refs/grid/local-maxxing", write=True)  # no-op
+    out = capsys.readouterr().out
+
+    assert "0 moved, 0 unchanged, 0 conflict(s)" in out
+    assert grid.ref_tip(root, "refs/grid/local-maxxing/node/m1") == tip
+    assert _refs(root, "refs/grid/node/") == []
+
+
+def test_migrate_trunk_uses_configured_trunk_when_to_absent(trunk_project,
+                                                            restore_ref_ns):
+    root = trunk_project
+    _seed_node_ref(root, "m1")
+    (root / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"storage_trunk": "refs/grid/local-maxxing/"}}))
+    assert grid.ref_ns_for(root) == "refs/grid/local-maxxing"  # slash stripped
+
+    grid.cmd_migrate_trunk(root, None, write=True)
+
+    assert _refs(root, "refs/grid/local-maxxing/node/") == [
+        "refs/grid/local-maxxing/node/m1"]
+    assert "refs/grid/local-maxxing//" not in grid.git(
+        root, "for-each-ref", "refs/", "--format=%(refname)")
+
+
+def test_migrate_trunk_config_first_via_main_sequence(trunk_project,
+                                                      restore_ref_ns):
+    """The config-first order the hypothesis names, through main()'s real
+    sequence. main() calls `apply_storage_trunk(root)` BEFORE dispatch, so by
+    the time the verb runs `REF_NS` is the TARGET trunk. The source must not
+    be re-resolved from that config, or `old_ns == new_ns` and nothing moves.
+
+    This test FAILS on the pre-fix bytes: with `old_ns = REF_NS` it reports
+    '0 moved' and leaves every ref under `refs/grid/node/`."""
+    root = trunk_project
+    tips = {s: _seed_node_ref(root, s, ("a\n", "b\n")) for s in ("m1", "m2")}
+    (root / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"storage_trunk": "refs/grid/local-maxxing"}}))
+
+    # Exactly what main() does, in order: resolve config FIRST, then migrate.
+    grid.apply_storage_trunk(root)
+    assert grid.REF_NS == "refs/grid/local-maxxing"   # the config-first state
+    grid.cmd_migrate_trunk(root, None, write=True)
+
+    new = _refs(root, "refs/grid/local-maxxing/node/")
+    assert len(new) == 2
+    assert _refs(root, "refs/grid/node/") == []       # moved, not stranded
+    for s, tip in tips.items():
+        assert grid.ref_tip(root, f"refs/grid/local-maxxing/node/{s}") == tip
+
+
+def test_migrate_trunk_from_override_with_config_set(trunk_project,
+                                                     restore_ref_ns):
+    """Even with a configured trunk already resolved into `REF_NS`, an
+    explicit `--from refs/grid` moves the refs onto the configured `--to`
+    destination -- the source seam is independent of the config."""
+    root = trunk_project
+    _seed_node_ref(root, "m1")
+    (root / "agi-tree.config.json").write_text(
+        json.dumps({"grid": {"storage_trunk": "refs/grid/local-maxxing"}}))
+    grid.apply_storage_trunk(root)
+    assert grid.REF_NS == "refs/grid/local-maxxing"
+
+    grid.cmd_migrate_trunk(root, None, write=True, source="refs/grid")
+
+    assert _refs(root, "refs/grid/local-maxxing/node/") == [
+        "refs/grid/local-maxxing/node/m1"]
+    assert _refs(root, "refs/grid/node/") == []
+
+
+def test_migrate_trunk_refuses_to_overwrite_conflicting_destination(
+        trunk_project, capsys):
+    root = trunk_project
+    old_tip = _seed_node_ref(root, "m1", ("real history\n",))
+    grid.git(root, "update-ref", "refs/grid/local-maxxing/node/m1", old_tip)
+
+    # Different history already at the destination -> never clobbered.
+    other_tip = _seed_node_ref(root, "m2", ("other history\n",))
+    grid.git(root, "update-ref", "refs/grid/local-maxxing/node/m1", other_tip)
+    assert other_tip != old_tip
+
+    grid.cmd_migrate_trunk(root, "refs/grid/local-maxxing", write=True)
+
+    assert grid.ref_tip(root, "refs/grid/node/m1") == old_tip       # untouched
+    assert grid.ref_tip(root, "refs/grid/local-maxxing/node/m1") == other_tip
+
+
+def test_migrate_trunk_same_namespace_is_unchanged_noop(trunk_project, capsys):
+    root = trunk_project
+    _seed_node_ref(root, "m1")
+
+    capsys.readouterr()
+    grid.cmd_migrate_trunk(root, "refs/grid", write=True)
+    out = capsys.readouterr().out
+
+    assert "0 moved, 1 unchanged, 0 conflict(s)" in out
+    assert grid.ref_tip(root, "refs/grid/node/m1") is not None
+
+
+def test_migrate_trunk_refuses_invalid_target_namespace(trunk_project):
+    root = trunk_project
+    _seed_node_ref(root, "m1")
+    with pytest.raises(SystemExit):
+        grid.cmd_migrate_trunk(root, "refs/grid//bad", write=True)
+    # Invalid target -> nothing moved, source intact.
+    assert grid.ref_tip(root, "refs/grid/node/m1") is not None
+
+
+# ---- hypothesis:grid-old-namespace-refilled-and-forked ----------------------
+#
+# Conjunct 1: ONE config for every worktree -- a commit from a linked git
+# worktree whose own `.agi/config.json` predates the storage-trunk migration
+# resolves the trunk out of the MAIN checkout, never `refs/grid`.
+# Conjunct 2: after a migration, a commit that would write the migrated-from
+# namespace refuses BY NAME instead of re-minting it.
+
+MINT_W = "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+
+
+def _make_worktree_repo(tmp_path):
+    """MAIN G11 repo declaring a trunk + a linked worktree with a STALE config.
+
+    Returns `(main_graph, worktree_graph)`; the worktree's own config is `{}`
+    (no `storage_trunk`), exactly the pre-migration shape a linked checkout
+    keeps. A node file lives in each so `commit --all` has work to do.
+    """
+    subprocess.run(["git", "init", "-q", "-b", "master", str(tmp_path)],
+                   check=True)
+    subprocess.run(["git", "-C", str(tmp_path), "-c", "user.name=t",
+                    "-c", "user.email=t@t", "commit", "-q", "--allow-empty",
+                    "-m", "root"], check=True)
+    agi = tmp_path / ".agi"
+    (agi / "nodes" / "idea").mkdir(parents=True)
+    (agi / "config.json").write_text(
+        json.dumps({"grid": {"storage_trunk": "refs/grid/t9"}}))
+    (agi / "nodes" / "idea" / "g.md").write_text(
+        f'---\nid: "idea:g"\nmint_id: {MINT_X}\ntype: idea\n---\n\nmain\n')
+    wt = tmp_path / "wt"
+    subprocess.run(["git", "-C", str(tmp_path), "worktree", "add", "-q",
+                    str(wt), "-b", "wtbranch"], check=True)
+    wagi = wt / ".agi"
+    (wagi / "nodes" / "idea").mkdir(parents=True)
+    (wagi / "config.json").write_text("{}")          # STALE: no trunk key
+    (wagi / "nodes" / "idea" / "w.md").write_text(
+        f'---\nid: "idea:w"\nmint_id: {MINT_W}\ntype: idea\n---\n\nwt\n')
+    return agi, wagi
+
+
+def test_worktree_resolves_shared_trunk_config(tmp_path, restore_ref_ns):
+    """Conjunct 1 resolver: `ref_ns_for(worktree)` reads MAIN's config, not the
+    worktree's stale one. FAILS on pre-fix bytes (returns `refs/grid`)."""
+    _, wagi = _make_worktree_repo(tmp_path)
+    assert (wagi / "config.json").read_text() == "{}"      # genuinely stale
+    assert grid.ref_ns_for(wagi) == "refs/grid/t9"
+    grid.apply_storage_trunk(wagi)
+    grid.cmd_commit(wagi, [], do_all=True, session=None)
+    refs = grid.git(wagi, "for-each-ref", "refs/", "--format=%(refname)")
+    assert f"refs/grid/t9/node/{MINT_W}" in refs
+    assert f"refs/grid/node/{MINT_W}" not in refs
+
+
+def test_commit_refuses_remining_migrated_namespace(
+        trunk_project, restore_ref_ns):
+    """Conjunct 2 / the falsifier as code: after `migrate-trunk`, blank the
+    trunk key while nested trunk refs remain -> the commit refuses by name,
+    exits non-zero, and writes no ref. FAILS on pre-fix bytes (silently
+    re-mints `refs/grid/node/<mint>`)."""
+    root = trunk_project
+    (root / "nodes" / "level3" / "g.md").write_text(
+        f'---\nid: "level3:g"\nmint_id: {MINT_X}\ntype: level3\n---\n\nhi\n')
+    _seed_node_ref(root, MINT_X)
+    grid.cmd_migrate_trunk(root, "refs/grid/local-maxxing", write=True)
+    assert _refs(root, "refs/grid/local-maxxing/node/") == [
+        f"refs/grid/local-maxxing/node/{MINT_X}"]
+
+    (root / "agi-tree.config.json").write_text("{}")   # trunk key blanked
+    assert grid.ref_ns_for(root) == "refs/grid"
+
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(root, [], do_all=True, session=None, lock_wait=1)
+    msg = str(exc.value.code)
+    assert "refusing commit" in msg
+    assert "refs/grid" in msg and "refs/grid/local-maxxing" in msg
+    assert _refs(root, "refs/grid/node/") == []        # nothing re-minted
+    assert _refs(root, "refs/grid/local-maxxing/node/") == [
+        f"refs/grid/local-maxxing/node/{MINT_X}"]      # trunk untouched
+
+
+def test_unconfigured_tree_with_no_nested_trunk_still_uses_refs_grid(
+        tmp_path, restore_ref_ns):
+    """Regression: an unconfigured tree with no nested trunk stays
+    BYTE-IDENTICAL to today -- `refs/grid`, no refusal."""
+    agi = _make_g11_project(tmp_path)
+    assert grid.ref_ns_for(agi) == "refs/grid"
+    assert grid.migrated_trunk_namespaces(agi) == []
+    grid.cmd_commit(agi, [], do_all=True, session=None, lock_wait=1)
+    refs = grid.git(agi, "for-each-ref", "refs/", "--format=%(refname)")
+    assert f"refs/grid/node/{MINT_X}" in refs
+
+
+# ---- hypothesis:grid-commit-guard-and-writer-read-one-namespace ------------
+#
+# Conjunct 1: a DIRECT `cmd_commit` resolves the trunk from config itself, so
+# the guard's `ref_ns_for(root)` and the writer's global `REF_NS` are one
+# namespace without a prior `apply_storage_trunk()` from `main()`.
+# Conjunct 2: a nested trunk holding ONLY session refs is detected by the
+# guard too -- it was migrated, and writing `refs/grid` re-mints it.
+
+
+def _seed_session_only_ref(root, ref):
+    """A session ref with NO node ref beside it -- the state the pre-fix
+    detector skipped because it required `/node/` in the refname."""
+    blob = grid.git(root, "hash-object", "-w", "--stdin", input_text="draft\n")
+    tree = grid.git(root, "mktree", input_text=f"100644 blob {blob}\tnode.md\n")
+    commit = grid.git(root, "commit-tree", tree, "-m", "seed session")
+    grid.git(root, "update-ref", ref, commit)
+
+
+def test_direct_cmd_commit_resolves_configured_trunk_itself(
+        tmp_path, restore_ref_ns):
+    """Conjunct 1: a DIRECT `cmd_commit` -- no prior `apply_storage_trunk`,
+    module global deliberately left at the default -- writes ONLY under the
+    configured trunk. FAILS on pre-fix bytes: the guard saw the config-aware
+    trunk but the writer still used the default `REF_NS`, recording
+    `refs/grid/node/*`."""
+    agi = _configure(_make_g11_project(tmp_path),
+                     {"grid": {"storage_trunk": "refs/grid/t7"}})
+    grid.REF_NS = grid.DEFAULT_REF_NS            # the un-resolved state
+    grid.cmd_commit(agi, [], do_all=True, session=None)
+    refs = grid.git(agi, "for-each-ref", "refs/", "--format=%(refname)")
+    assert f"refs/grid/t7/node/{MINT_X}" in refs
+    assert f"refs/grid/node/{MINT_X}" not in refs
+
+
+def test_commit_refuses_nested_trunk_with_only_session_refs(
+        trunk_project, restore_ref_ns):
+    """Conjunct 2: a nested trunk holding ONLY session refs was migrated
+    too; a commit that would re-mint `refs/grid` refuses by name. FAILS on
+    pre-fix bytes: the detector skipped refs without `/node/`, the guard
+    passed, and `refs/grid/node/<mint>` was silently re-minted."""
+    root = trunk_project
+    (root / "nodes" / "level3" / "g.md").write_text(
+        f'---\nid: "level3:g"\nmint_id: {MINT_X}\ntype: level3\n---\n\nhi\n')
+    _seed_session_only_ref(root, "refs/grid/t9/session/1/a01/level3-g")
+    assert grid.migrated_trunk_namespaces(root) == ["refs/grid/t9"]
+
+    with pytest.raises(SystemExit) as exc:
+        grid.cmd_commit(root, [], do_all=True, session=None, lock_wait=1)
+    msg = str(exc.value.code)
+    assert "refusing commit" in msg
+    assert "refs/grid/t9" in msg
+    assert _refs(root, "refs/grid/node/") == []        # nothing re-minted

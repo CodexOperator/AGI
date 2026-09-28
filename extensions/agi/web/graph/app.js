@@ -397,11 +397,14 @@ function render3D() {
 
   // The default orientation, used at start AND by R (reset): face-on -- the
   // camera on the +z axis (el 1.45 = the clamp), az 0, close enough that the
-  // web fills the frame (dist 480: the old 1500 after ~9 effective wheel-in
-  // clicks at 0.88 -- measured against the kiosk view the owner approved, not
-  // computed). Owner order 2026-09-12 00:1xZ: "Make current orientation be
-  // default view for graph anytime it starts or restarts."
-  const CAM_DEFAULT = { az: 0, el: 1.45, dist: 480 };
+  // web fills the frame. dist 1400 (was 480 pre-spherical-layout): scaled up
+  // for LAYER1_Z=700 / SPHERE_R=260 (2026-09-24) so both layer-spheres clear
+  // the frame -- an estimate (2 x the two-sphere bounding radius from the
+  // target), not eyeballed against a live kiosk yet like the old value was;
+  // may want the owner's live tuning pass. Owner order 2026-09-12 00:1xZ:
+  // "Make current orientation be default view for graph anytime it starts or
+  // restarts."
+  const CAM_DEFAULT = { az: 0, el: 1.45, dist: 1400 };
   const cam = {
     target: new THREE.Vector3(0, 0, layerz / 2),
     az: CAM_DEFAULT.az, el: CAM_DEFAULT.el, dist: CAM_DEFAULT.dist,
@@ -412,6 +415,7 @@ function render3D() {
 
   const mouse = { ix: 0, iy: 0, over: false, lx: 0, ly: 0 };
   let pick = null;
+  let userDragging = false;
 
   // ---- live overlay objects rebuilt here on a cadence ----
   let liveEdges = null;   // THREE.LineSegments (seat + agent work edges)
@@ -524,7 +528,9 @@ function render3D() {
   });
   renderer.domElement.addEventListener("pointerdown", (ev) => {
     mouse.lx = ev.clientX; mouse.ly = ev.clientY;
+    userDragging = true;
   });
+  window.addEventListener("pointerup", () => { userDragging = false; });
   renderer.domElement.addEventListener("wheel", (ev) => {
     ev.preventDefault();
     cam.dist = Math.max(200, Math.min(9000, cam.dist * (ev.deltaY > 0 ? 0.88 : 1.13)));
@@ -577,8 +583,61 @@ function render3D() {
     if (tip !== pick) { pick = tip; showTooltip(tip, mouse.ix, mouse.iy); }
   }
 
+  /* --------------------------- auto camera pilot --------------------------
+   * Owner 2026-09-24: "zooms in dynamically and smoothly to the graph
+   * section being lit up automatically and zooms back out partially or pans
+   * across to accommodate multiple points lighting then back to full zoom
+   * out." "Lit" reuses liveSeatPairs()' own `active` flag -- the same signal
+   * that already pulses a seat sphere and brightens its work edges gold, not
+   * a new concept. No lit points -> ease back to CAM_DEFAULT. One or more ->
+   * ease target to their centroid and distance to whatever frames them all;
+   * several spread wide -> slow continuous orbit (the "pans across") rather
+   * than guessing one best-fit angle. Skips entirely while the viewer is
+   * dragging, so it never fights a manual orbit/pan/zoom. */
+  const AUTOPILOT_RETAIN = 0.985;    // per-frame retention (higher = slower/smoother ease)
+  const AUTOPILOT_MIN_DIST = 260;
+  const AUTOPILOT_PAD = 1.6;         // headroom so lit points aren't frame-edge-tight
+  const AUTO_ORBIT_RATE = 0.0009;    // rad/frame @ ~60fps -> one revolution per ~2 min
+
+  function litPoints() {
+    const seen = new Map();
+    const add = (id, x, y, z) => { if (id) seen.set(id, { x, y, z }); };
+    for (const s of (state.live && state.live.seats) || []) {
+      if (!s.active) continue;
+      const src = state.seatsById["seat:" + s.seat];
+      if (src) add(src.id, src.pos[0], src.pos[1], src.pos[2]);
+    }
+    for (const { t, active } of liveSeatPairs()) {
+      if (active) add(t.id, t.pos[0], t.pos[1], t.pos[2]);
+    }
+    return Array.from(seen.values());
+  }
+
+  function updateAutopilot() {
+    if (userDragging) return;
+    const pts = litPoints();
+    let desiredTarget, desiredDist;
+    if (!pts.length) {
+      desiredTarget = new THREE.Vector3(0, 0, layerz / 2);
+      desiredDist = CAM_DEFAULT.dist;
+    } else {
+      let cx = 0, cy = 0, cz = 0;
+      for (const p of pts) { cx += p.x; cy += p.y; cz += p.z; }
+      cx /= pts.length; cy /= pts.length; cz /= pts.length;
+      let spread = 0;
+      for (const p of pts) spread = Math.max(spread, Math.hypot(p.x - cx, p.y - cy, p.z - cz));
+      desiredTarget = new THREE.Vector3(cx, cy, cz);
+      desiredDist = Math.max(AUTOPILOT_MIN_DIST,
+        Math.min(CAM_DEFAULT.dist, (spread + 24) * AUTOPILOT_PAD));
+      if (pts.length > 1 && spread > 30) cam.az += AUTO_ORBIT_RATE;
+    }
+    cam.target.lerp(desiredTarget, 1 - AUTOPILOT_RETAIN);
+    cam.dist += (desiredDist - cam.dist) * (1 - AUTOPILOT_RETAIN);
+  }
+
   let liveCooldown = 0;
   function frame() {
+    updateAutopilot();
     setCam();
     state.t += 1 / 60;
 

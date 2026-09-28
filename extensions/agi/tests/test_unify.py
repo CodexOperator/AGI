@@ -4,11 +4,10 @@ the whole risk of this script is in what real git actually does with `merge
 -s ours` + `read-tree --prefix`, so the fixtures below are small but real —
 `git init`, real commits, real `refs/grid/*` refs via `update-ref`.
 
-**Never point this test file at `/home/ubuntu/work/agi` or
-`/home/ubuntu/work/agi-tree`.** Every fixture builds its own tiny repos under
-`tmp_path`; `unify.py` itself also refuses those two paths unconditionally
-(`test_preflight_refuses_the_real_repos`), so a mistake here would be caught
-twice over.
+**Never point this test file at a real checkout.** Every fixture builds its
+own tiny repos under `tmp_path`; `unify.py` itself also refuses the real
+checkouts unconditionally (`test_preflight_refuses_the_real_repos`), so a
+mistake here would be caught twice over.
 """
 from __future__ import annotations
 
@@ -102,7 +101,7 @@ def make_tree_repo(tmp_path: Path) -> Path:
     (d / "GOALS.md").write_text("# GOALS\n\n## G1: something\n")
     (d / ".gitignore").write_text(TREE_GITIGNORE)
     # CLAUDE.md + AGENTS.md, modeled on the real tree: AGENTS.md is a relative
-    # symlink to CLAUDE.md, same directory, same as `/home/ubuntu/work/agi-tree`.
+    # symlink to CLAUDE.md, same directory, as the real `agi-tree` checkout keeps it.
     # Both are required by relocate_files, so every fixture built with this
     # helper carries them, same as the real tree always does.
     (d / "CLAUDE.md").write_text("# CLAUDE.md\n\nProject instructions.\n")
@@ -256,6 +255,82 @@ def test_grid_refs_transfer_with_count_and_target_preserved(migrated):
     for ref in ("refs/grid/node/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                 "refs/grid/node/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"):
         assert _rev_parse(engine, ref) == _rev_parse(tree, ref)
+
+
+def _record_fetch_refspec(engine: Path, tree: Path, monkeypatch) -> list[str]:
+    """The exact refspec `fetch_grid_refs` hands `git fetch`. The fetch call
+    itself is faked (these fixtures have no remote named `agi-unify-source`),
+    but every other git call runs for real, so the argv under test is the argv
+    a real run would send."""
+    seen: list[list[str]] = []
+    real_run = unify.subprocess.run
+
+    def recorder(argv, **kw):
+        args = [str(a) for a in argv]
+        if "fetch" in args:
+            seen.append(args)
+            return subprocess.CompletedProcess(args, 0, stdout="", stderr="")
+        return real_run(argv, **kw)
+
+    monkeypatch.setattr(unify.subprocess, "run", recorder)
+    unify.fetch_grid_refs(engine, tree)
+    return [a for argv in seen for a in argv if "refs/" in a]
+
+
+def test_grid_namespace_reads_the_projects_storage_trunk(repos, monkeypatch):
+    """The unify call sites read their namespace through
+    `grid.ref_ns_for` (goal:g14.14.7): a project declaring
+    `grid.storage_trunk` moves the git command's namespace, not just its
+    output. This is the SOURCE check the round exists for -- an unconfigured
+    empty config still yields `refs/grid` (asserted by the count above).
+    """
+    engine, tree = repos
+
+    # The fetch is faked below, so the target's ref count cannot come from a
+    # real transfer: pre-seed the engine with the same two refs the tree
+    # carries, making the post-fetch count assertion (source == target) hold.
+    engine_tip = _rev_parse(engine)
+    for mint in ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"):
+        _git(engine, "update-ref", f"refs/grid/node/{mint}", engine_tip)
+
+    # UNCONFIGURED on both sides: the fetch refspec must be EXACTLY the old
+    # GRID_FETCH_REFSPEC literal, with no leading `+`. The `+` would turn a
+    # refusing fetch into a force-update -- a behaviour change hidden inside a
+    # byte that still spells `refs/grid`.
+    unconfigured = _record_fetch_refspec(engine, tree, monkeypatch)
+    assert "refs/grid/*:refs/grid/*" in unconfigured, unconfigured
+    assert not any(s.startswith("+") for s in unconfigured), unconfigured
+
+    (tree / "agi-tree.config.json").write_text(
+        '{"grid": {"storage_trunk": "refs/grid/t9"}}\n')
+    (engine / "agi-tree.config.json").write_text(
+        '{"grid": {"storage_trunk": "refs/grid/t9"}}\n')
+    assert unify.grid_ref_namespace(tree) == "refs/grid/t9"
+
+    seen: list[list[str]] = []
+    real_run = unify.subprocess.run
+
+    def recorder(argv, **kw):
+        seen.append([str(a) for a in argv])
+        return real_run(argv, **kw)
+
+    monkeypatch.setattr(unify.subprocess, "run", recorder)
+    # 0 refs are under the configured trunk; the two refs live under
+    # `refs/grid/...` and must no longer be counted.
+    assert unify.count_grid_refs(tree) == 0
+    assert any("refs/grid/t9" in a for argv in seen for a in argv), seen
+
+    # the stale-payload probe reads the trunk too, on a node with a mint id
+    _add_payload_node(tree, "b1", "extensions/agi/bin/hello.py")
+    seen.clear()
+    unify.find_stale_payloads(tree, engine)
+    assert any("refs/grid/t9/node/" in a for argv in seen for a in argv), seen
+
+    # CONFIGURED on both sides: the refspec maps the declared source
+    # namespace to the declared target, `+`-free, `refs/grid/t9` -> `refs/grid/t9`.
+    configured = _record_fetch_refspec(engine, tree, monkeypatch)
+    assert "refs/grid/t9/*:refs/grid/t9/*" in configured, configured
+    assert not any(s.startswith("+") for s in configured), configured
 
 
 # --- file relocation -----------------------------------------------------------
@@ -449,21 +524,66 @@ def test_preflight_force_allows_dirty_and_existing_agi(repos):
 
 def test_preflight_refuses_the_real_repos(tmp_path):
     tree = make_tree_repo(tmp_path)
-    result = unify.preflight(Path("/home/ubuntu/work/agi"), tree)
+    here = unify._git_common_root()
+    assert here is not None, "git must name the repo this checkout belongs to"
+    result = unify.preflight(here, tree)
     assert result["ok"] is False
     assert result["reason"] == "refuses_real_repo"
 
     engine = make_engine_repo(tmp_path)
-    result = unify.preflight(engine, Path("/home/ubuntu/work/agi-tree"))
+    result = unify.preflight(engine, here)
     assert result["ok"] is False
     assert result["reason"] == "refuses_real_repo"
 
 
 def test_preflight_force_does_not_bypass_real_repo_guard(tmp_path):
     tree = make_tree_repo(tmp_path)
-    result = unify.preflight(Path("/home/ubuntu/work/agi"), tree, force=True)
+    result = unify.preflight(unify._git_common_root(), tree, force=True)
     assert result["ok"] is False
     assert result["reason"] == "refuses_real_repo"
+
+
+def test_real_repo_guard_names_this_checkout_without_a_box_cell(tmp_path, monkeypatch):
+    """The guard fails closed (R-EF58 S1/M1).
+
+    `box.root` may be absent, or may name another box entirely (the live
+    cell on this box names a path that does not exist here). Git can always
+    name the repo THIS checkout belongs to — a worktree names its MAIN repo
+    through the common dir — so the guard still refuses, and the refusal
+    says which repo it refused.
+    """
+    monkeypatch.setattr(unify.boxes, "box_cells", lambda root: {})
+    here = unify._git_common_root()
+    assert here is not None, "git must name the repo this checkout belongs to"
+    monkeypatch.setattr(unify, "_FORBIDDEN_REAL_PATHS", unify._real_repos())
+
+    assert unify._touches_a_real_repo(here) == here
+    assert unify._touches_a_real_repo(here.parent / (here.name + "-tree"))
+
+    res = unify.preflight(here, tmp_path / "tree")
+    assert res["ok"] is False
+    assert res["reason"] == "refuses_real_repo"
+    assert str(here) in res["detail"]
+
+
+def test_real_repo_guard_fails_closed_when_nothing_resolves(tmp_path, monkeypatch):
+    """An empty forbidden set is a refusal, not an allow.
+
+    If neither the box cell nor git nor a project root names a real repo,
+    `_touches_a_real_repo` returns None for every path — the pre-fix
+    empty-list default, which fails OPEN. The guard cannot tell a throwaway
+    clone from production, so it must refuse by name.
+    """
+    monkeypatch.setattr(unify.boxes, "box_cells", lambda root: {})
+    monkeypatch.setattr(unify, "_git_common_root", lambda: None)
+    monkeypatch.setattr(unify.locations, "find_project_root", lambda *a, **k: None)
+    assert unify._real_repos() == ()
+    monkeypatch.setattr(unify, "_FORBIDDEN_REAL_PATHS", ())
+
+    result = unify.preflight(tmp_path / "engine", tmp_path / "tree")
+    assert result["ok"] is False
+    assert result["reason"] == "real_repo_guard_unresolved"
+    assert str(tmp_path / "engine") in result["detail"]
 
 
 # --- idempotency: a clean refusal on a second run -------------------------------

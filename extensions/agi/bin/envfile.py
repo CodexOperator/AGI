@@ -121,6 +121,10 @@ def _line_is_forbidden_key(key: str, value: str) -> bool:
 class SecretsError(Exception):
     """A problem with the node or the paths it declares.
 
+    Its OWN type, never a ValueError (goal:g15.29.16): a malformed secrets
+    cell must not be swallowed by every unrelated ``except ValueError`` in a
+    caller that was only guarding a parse. Callers catch ``SecretsError``.
+
     Raised, printed by `main()`, exit 1. Never swallowed: `goal:g1.5`'s whole
     complaint is that setup fails silently in both directions, so a resolver
     that quietly returns the wrong path is worse than one that refuses.
@@ -190,6 +194,22 @@ class Resolution:
         self.env_file = _expand(_path_of("env_file", DEFAULT_ENV_FILE), self.root)
         self.template = _expand(_path_of("env_template", DEFAULT_TEMPLATE), self.root)
         self.required_keys = [str(k) for k in (fm.get("required_keys") or [])]
+        # `required_any` is a list of GROUPS; each group is satisfied when ANY
+        # one of its keys is present non-empty. An absent cell means no groups
+        # (yesterday's behaviour unchanged). A malformed entry is refused BY
+        # NAME rather than silently dropped -- a mis-shaped cell must not fail
+        # open (hypothesis:every-secrets-reader-honours-required-any, D2).
+        groups: list[list[str]] = []
+        for group in (fm.get("required_any") or []):
+            if (not isinstance(group, list) or not group
+                    or not all(isinstance(k, str) and k.strip() for k in group)):
+                raise SecretsError(
+                    f"required_any entry {group!r} is malformed — every entry "
+                    f"must be a non-empty list of non-empty key names "
+                    f"(list-of-lists), refused rather than dropped silently"
+                )
+            groups.append([str(k) for k in group])
+        self.required_any = groups
         self.optional_keys = [str(k) for k in (fm.get("optional_keys") or [])]
         # The node may extend the floor; it can never lower it.
         declared_forbidden = [str(k) for k in (fm.get("forbidden_keys") or [])]
@@ -204,6 +224,7 @@ class Resolution:
             "template": str(self.template),
             "template_exists": self.template.is_file(),
             "required_keys": self.required_keys,
+            "required_any": self.required_any,
             "optional_keys": self.optional_keys,
             "forbidden_keys": self.forbidden_keys,
         }
@@ -407,6 +428,17 @@ def set_key(res: "Resolution", name: str) -> int:
     return 0
 
 
+def fill_in_hint(res: Resolution) -> str:
+    """What a missing `.env` should be told to fill in: every `required_key`,
+    then each `required_any` GROUP as `at least one of A, B` -- a group is
+    satisfied by any ONE of its keys, which the bare join did not say. A node
+    that declares neither gets the honest '(no keys declared)'.
+    (hypothesis:required-any-diagnostic-names-the-declared-alternatives)"""
+    parts = list(res.required_keys)
+    parts += [f"at least one of {', '.join(group)}" for group in res.required_any]
+    return ", ".join(parts) or "(no keys declared)"
+
+
 def check(res: Resolution, verify: bool = False) -> tuple[list[str], list[str]]:
     """`(problems, notes)` — neither ever contains a secret value.
 
@@ -432,7 +464,7 @@ def check(res: Resolution, verify: bool = False) -> tuple[list[str], list[str]]:
     if not res.env_file.is_file():
         problems.append(
             f"missing {res.env_file} — copy {res.template.name} to it, "
-            f"chmod 600, and fill in: {', '.join(res.required_keys) or '(no keys declared)'}"
+            f"chmod 600, and fill in: {fill_in_hint(res)}"
         )
         return problems, notes
 
@@ -445,6 +477,12 @@ def check(res: Resolution, verify: bool = False) -> tuple[list[str], list[str]]:
         value = env.get(key, "")
         if not value:
             problems.append(f"{key} is missing or empty in {res.env_file}")
+    for group in res.required_any:
+        if not any(env.get(k, "").strip() for k in group):
+            problems.append(
+                f"none of {', '.join(group)} is set in {res.env_file} — "
+                f"at least one is required"
+            )
     if verify:
         for key in res.required_keys:
             value = env.get(key, "")

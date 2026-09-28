@@ -1,0 +1,111 @@
+---
+id: experiment:a00-2b105955-ed3d3b
+mint_id: a2e26addda7e435593a3a7cb72a5df5c
+type: experiment
+parents:
+  - hypothesis:agi-bin-guard-refuses-the-directory-and-derives-the-override-set
+next_edges: []
+confidence: 0.9
+edited_by: a00-991dc2e8
+evidence_runs:
+  - experiment:a00-2b105955-ed3d3b
+loop: hypothesis:agi-bin-guard-refuses-the-directory-and-derives-the-override-set@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "gate: root whose bin/ holds ONLY an empty subdir (zero files) -> RED, names the directory and 'files found under it: (empty)'"
+  - "auth: find_project_root in a fresh /tmp dir -> None; the SHIPPED test's None branch (resolver patched to None) fails with 'no project root resolved from <start>: the guard would raise TypeError, not refuse the directory' -- by name, not TypeError (2 passed)"
+  - "wire: doctored driver.sh copy with the inject.py and render-context.py sites re-pointed at $PLUGIN_ROOT -> derived set (snapshot-build-site.py, inject.py, render-context.py) -> (snapshot-build-site.py,), and the LIVE refusal message follows it -- not a stub"
+production_lines: 6
+profile: balanced
+role: kid
+scaffold_hash: e9485e346e9b42cb
+season: 2
+title: The S1 wording was wrong, not the pinned set of three
+town: core
+verdict: proved
+---
+# The pinned SET of three was right; the WORDING that said "S1 names" was wrong
+
+Three residues, one test file and two node wordings. No guard behaviour changed.
+
+## Residue 1 — what CLAUDE.md S1 ACTUALLY says (read, not assumed)
+
+CLAUDE.md, "The two rules this project has already paid for", first bullet, verbatim:
+
+> **NEVER create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`.**
+> ... Don't recreate a `bin/` directory there (S1).
+
+So S1 names **two** of the three, plus a ban on the `bin/` directory. The third,
+`inject.py`, is the other half of driver.sh's `RENDER_PY=` site (beside
+`render-context.py`, at the `[[ -x "$PROJECT_ROOT/bin/<name>.py" ]]` sites) and
+S1 never names it. The DH.441 orders' "the three names CLAUDE.md S1 names" was
+false; the PINNED SET of three is correct — the wording is what was wrong.
+
+| in the test file | after |
+|---|---|
+| `test_override_set_is_exactly_the_three_s1_names` | `test_override_set_is_exactly_driver_sh_three_sites` |
+| docstring "exactly the three names CLAUDE.md S1 names" | S1's line quoted verbatim in the docstring, stating that it names two of the three and that `inject.py` is the driver.sh `RENDER_PY` site |
+
+Untouched on purpose: the guard message "CLAUDE.md S1 forbids the directory … and
+it is a directory" — S1 *does* forbid the directory, so that wording is correct.
+No other "S1 names" / "three S1" phrasing survived the sweep
+(`grep -nEi 's1 names|three s1'` on the file after the edit: only the two honest
+uses inside the new docstring and the "not a list of three names" line in
+`guard.__doc__`, which is about the directory ban, not the set).
+
+## Residue 2 — guard(None) refuses BY NAME now
+
+`find_project_root` returns `Path | None`; `None / "bin"` raised TypeError, an
+unnamed failure. `test_agi_bin_directory_does_not_exist` now holds the resolved
+root in a local and `pytest.fail`s with "no project root resolved from <start>:
+the guard would raise TypeError, not refuse the directory" — one row, readable,
+no new test to lose.
+
+## Residue 3 — the citation-sweep claim was itself rot
+
+`experiment:a00-dd7678e9-101f13` claimed the sweep ran in `a00-71af1de3`,
+`a00-aacb941d` and `a00-6e0c08cc`. Re-read: only `a00-71af1de3` and
+`a00-dd7678e9` itself held a citation; the other two held none, so they were named
+as swept without ever holding anything to sweep. Corrected IN PLACE via
+`body_patch` (R2 table row + the Residue bullet), plus one `thought` block.
+**Only that one node was wrong** — no other node carries the claim. Verdict,
+confidence and evidence_runs untouched.
+
+## Probes (mine, on the live bytes)
+
+| class | cmd | expected | observed |
+|---|---|---|---|
+| gate | root whose `bin/` holds ONLY an empty subdirectory (zero files) | red, names the directory, "files found under it: (empty)" | `CLAUDE.md S1 forbids the directory /tmp/dh448/gate/proj/.agi/bin at all, and it is a directory. files found under it: (empty). driver.sh prefers … for: snapshot-build-site.py, inject.py, render-context.py` |
+| auth | `find_project_root(fresh tmp dir)` → None; the SHIPPED test's None branch driven by patching the resolver | refusal by NAME, not TypeError | 2 passed; refusal text starts `no project root resolved from …/test_agi_bin_absent.py: the guard would raise TypeError, not refuse the directory` |
+| wire | doctored `driver.sh` copy, `inject.py`/`render-context.py` sites re-pointed at `$PLUGIN_ROOT` | the derived set AND the live refusal message follow the bytes | real `(snapshot-build-site.py, inject.py, render-context.py)` → doctored `(snapshot-build-site.py,)`; the live refusal message reads "… for: snapshot-build-site.py" — the changed bytes are on the call path, not a stub |
+
+## Suite
+
+```
+$ timeout 600 python3 -m pytest extensions/agi/tests/test_agi_bin_absent.py -q --basetemp=/tmp/dh448/bt2
+12 passed in 6.42s
+$ timeout 600 python3 -m pytest extensions/agi/tests/test_locations.py -q --basetemp=/tmp/dh448/bt3
+86 passed in 5.78s
+```
+
+Production lines (non-test `git diff --numstat`): **6** — all in
+`.agi/nodes/experiment/a00-dd7678e9-101f13.md` (the wording correction). No
+engine or driver byte moved.
+
+## Residue left
+
+- `_OVERRIDE_RE` still cannot see a shell-ASSEMBLED path (`"$P"/bin/x.py`) — a
+  parser, not a regex. Unchanged, carried forward.
+- The pin asserts a literal three-name set against driver.sh bytes; adding a
+  fourth `$PROJECT_ROOT/bin/` site to driver.sh goes red here, which is correct
+  but means the pin must be edited by hand when driver.sh legitimately grows.
+- The citation scan still reads ONE file, its own source. Unchanged.
+
+## Evidence
+Probe outputs quoted verbatim in the table above; pytest output in the Suite
+section; `body_patch` result `updated: experiment:a00-dd7678e9-101f13`.
+
+## Agent Notes
+Corrected the S1 wording (S1 names 2 of driver.sh's 3 override sites, not 3), made guard(None) refuse by name, fixed the a00-dd7678e9 over-broad citation-sweep claim in place; 12 passed
+
+PARENT REVIEW a00-991dc2e8 (DH.448) -- ACCEPTED, all three residues verified against the BYTES, not the report. (1) Residue 1 holds: test_agi_bin_absent.py:245+ is test_override_set_is_exactly_driver_sh_three_sites, its docstring quotes CLAUDE.md:273 verbatim (NEVER create .agi/bin/snapshot-build-site.py or .agi/bin/render-context.py) and states S1 names TWO of the three, inject.py being the other RENDER_PY half; I read CLAUDE.md:273 myself -- the pinned SET is right, the old wording was the defect. (2) Residue 2 holds: the test holds find_project_root in a local and pytest.fails BY NAME; the guard message wording (S1 forbids the DIRECTORY) is correctly untouched. (3) Residue 3 holds: a00-dd7678e9-101f13 R2 row and residue bullet now name only a00-71af1de3 and the node itself, with the over-broad claim recorded in its THOUGHT; verdict/confidence/evidence_runs untouched. Parent probes, run by me on the shipped bytes (probe_dh448.py, /tmp, not the kid suite): GATE -- bin/ holding ONLY an empty subdir (zero files) -> RED, names the dir, "files found under it: (empty)": hold. AUTH -- find_project_root from a fresh /tmp dir returns None; driving the shipped test with the resolver patched to None raises Failed("no project root resolved from ...: the guard would raise TypeError, not refuse the directory"), not TypeError: hold. WIRE -- DRIVER rebound to a doctored copy with the inject.py site re-pointed at $PLUGIN_ROOT: derived set drops to (snapshot-build-site.py, render-context.py) and the LIVE guard message follows (inject.py absent, other.py and snapshot-build-site.py named): hold, the changed bytes are on the call path and not a stub. Suite re-run by me as a non-evidence sanity check: 12 passed.

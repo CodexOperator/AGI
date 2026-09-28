@@ -1,0 +1,5 @@
+# sanctuary guard layer 3. Written by /box/.sanctuary/guard/guard-init.sh.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See GUARD.md.
+# agi-agi-* = the engine's own scripts (heal.py watch, rotate.py alarms).
+[Service]
+Slice=agi-engine.slice

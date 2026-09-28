@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-jev-verdict-ece-floor-is-label-disagreement
 next_edges: []
 confidence: 0.8
-edited_by: a00-2b8b1432
+edited_by: director-thought
 evidence_runs:
   - experiment:a00-f8aca319-427816
 line_ceiling: 60
@@ -62,7 +62,7 @@ unstable (gold 7.6-17.3, graph 1.1-7.9), matching `hypothesis:lm-jev-verdict-t-i
 Full-corpus verdict ECE B = 0.3234 (507 rows) vs TM.57 reference 0.3169 — structural replication,
 folds differ, same conclusion.
 
-**Contested arm is TOO THIN TO CONCLUDE.** Held contested acts per seed: self 3/1/3/3/3,
+**Contested arm is TOO THIN TO CONCLUDE.** Held contested acts per seed: self 3/5/3/3/3 [corrected TMM.39: was 3/1/3/3/3, the train column; the committed held row for seed 1 is 5, so this cell is not <5 -- the too-thin conclusion still holds on the train side, per the parent probe],
 corr 3/5/2/3/2, graph 4/3/3/3/1 — all <5, so claim (ii) is untestable on these bytes. Secondary:
 per-group isotonic on the unanimous subset reaches <=0.10 on 2/5 seeds (gold 0.067/0.102) but
 not on the pre-registered temperature arm.
