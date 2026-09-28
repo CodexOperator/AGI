@@ -339,8 +339,8 @@ def test_a_pid_that_exited_mid_walk_is_not_a_holder(tmp_path, monkeypatch):
     cli = _cli()
     root, repo = _repo(tmp_path, stale_s=60)
     lock = _mklock(repo, 3600)
-    gone = str(max(int(p) for p in os.listdir("/proc") if p.isdigit()) + 7)
-    _unlistable(monkeypatch, int(gone), FileNotFoundError, 2)
+    gone = _synthetic_proc(monkeypatch, _SYNTH_PID,
+                           (FileNotFoundError, 2), (FileNotFoundError, 2))
     assert cli._uninspectable(f"/proc/{gone}", FileNotFoundError(2, "gone")) == ""
     assert cli._clear_stale_index_lock(root, repo) is None
     assert not lock.exists(), "a stale unheld lock must still clear"
@@ -361,21 +361,36 @@ def test_a_comm_that_cannot_be_read_still_names_the_refusal(tmp_path, monkeypatc
                               PermissionError(13, "denied")) == "?"
 
 
-def _a_live_same_uid_pid_not_us():
-    """A REAL, live, same-uid pid that is not this process -- read out of THIS
-    process's own /proc table, never invented, and never a `git`."""
-    for p in sorted(os.listdir("/proc"), key=lambda x: int(x) if x.isdigit() else 0):
-        if not p.isdigit() or int(p) == os.getpid():
-            continue
-        try:
-            if os.stat(f"/proc/{p}").st_uid != os.getuid():
-                continue
-            if Path(f"/proc/{p}/comm").read_text().strip() == "git":
-                continue
-        except OSError:
-            continue
-        return p
-    raise AssertionError("no live same-uid non-git pid in this process's /proc")
+_SYNTH_PID = 4194303   # a pid no host runs, and the ONLY one the fixture lists
+
+
+def _synthetic_proc(monkeypatch, pid, fd_exc, stat_exc):
+    """A PURE /proc fixture (items 3+4): the WHOLE table is one pid we name,
+    its fd listing and its stat raise the errno we pass. No host binding at all
+    -- nothing here needs a live same-uid pid to exist, so a minimal container
+    (uid != 0, only pid 1 and us) can no longer hard-fail the test. The pid IS
+    VISITED because the LISTING names it: `_lock_is_held` only ever walks pids
+    `os.listdir("/proc")` returned, so a pid that is merely free is never seen.
+    The stat match is EXACT equality (item 5): a `startswith`/`in` form also
+    darkens a NEIGHBOUR (`/proc/21020` beside `/proc/2102`) and would let the
+    assertion pass on a pid that is not the one under test."""
+    real_listdir, real_stat = os.listdir, os.stat
+
+    def fake_listdir(p, *a, **k):
+        if str(p) == "/proc":
+            return [str(pid)]
+        if str(p) == f"/proc/{pid}/fd":
+            raise fd_exc[0](fd_exc[1], "unreadable", str(p))
+        return real_listdir(p, *a, **k)
+
+    def fake_stat(p, *a, **k):
+        if str(p) == f"/proc/{pid}":
+            raise stat_exc[0](stat_exc[1], "no stat for you", str(p))
+        return real_stat(p, *a, **k)
+
+    monkeypatch.setattr(os, "listdir", fake_listdir)
+    monkeypatch.setattr(os, "stat", fake_stat)
+    return pid
 
 
 def test_a_pid_that_exits_between_the_fd_listing_and_the_stat_is_not_a_holder(tmp_path, monkeypatch):
@@ -383,20 +398,14 @@ def test_a_pid_that_exits_between_the_fd_listing_and_the_stat_is_not_a_holder(tm
     # whose fd table came back dark and that then EXITED before the stat was
     # returned as an UNKNOWN HOLDER ("?"), refusing every commit on a host that
     # spawns and reaps agents. No test covered the stat arm; this one drives
-    # both halves on a REAL same-uid pid out of this process's own /proc.
+    # both halves on a PURE fixture (item 4): the whole /proc table is one
+    # pid we name, so the walk visits it on any host and no host can fail.
     cli = _cli()
     root, repo = _repo(tmp_path, stale_s=60)
     lock = _mklock(repo, 3600)
-    pid = int(_a_live_same_uid_pid_not_us())
-    _unlistable(monkeypatch, pid, PermissionError, 13)   # the fd table is dark
-    real = os.stat
-
-    def fake_stat(p, *a, **k):                            # ... and the pid is
-        if str(p).startswith(f"/proc/{pid}"):            # GONE by the stat
-            raise FileNotFoundError(2, "No such file or directory", str(p))
-        return real(p, *a, **k)
-
-    monkeypatch.setattr(os, "stat", fake_stat)
+    # the fd table is dark ... and the pid is GONE by the stat (ENOENT)
+    pid = _synthetic_proc(monkeypatch, _SYNTH_PID,
+                          (PermissionError, 13), (FileNotFoundError, 2))
     assert cli._uninspectable(f"/proc/{pid}", PermissionError(13, "denied")) == ""
     assert cli._clear_stale_index_lock(root, repo) is None, \
         "a pid that exited mid-walk must not refuse the whole commit"
@@ -406,20 +415,14 @@ def test_a_pid_that_exits_between_the_fd_listing_and_the_stat_is_not_a_holder(tm
 def test_a_stat_that_fails_with_anything_but_ENOENT_still_refuses(tmp_path, monkeypatch):
     # The other half of MISS 2: the fix is NARROW. EACCES on the stat is not
     # an exit and must keep returning the "?" UNKNOWN-HOLDER refusal, and the
-    # gate must still refuse BY NAME on it.
+    # gate must still refuse BY NAME on it. Same pure fixture; only the stat
+    # errno differs, which is what holds the line (item 5's exact match keeps
+    # a NEIGHBOURING pid from supplying the EACCES instead).
     cli = _cli()
     root, repo = _repo(tmp_path, stale_s=60)
     lock = _mklock(repo, 3600)
-    pid = int(_a_live_same_uid_pid_not_us())
-    _unlistable(monkeypatch, pid, PermissionError, 13)
-    real = os.stat
-
-    def fake_stat(p, *a, **k):
-        if str(p).startswith(f"/proc/{pid}"):
-            raise PermissionError(13, "Permission denied", str(p))
-        return real(p, *a, **k)
-
-    monkeypatch.setattr(os, "stat", fake_stat)
+    pid = _synthetic_proc(monkeypatch, _SYNTH_PID,
+                          (PermissionError, 13), (PermissionError, 13))
     assert cli._uninspectable(f"/proc/{pid}", PermissionError(13, "denied")) == "?"
     reason = cli._clear_stale_index_lock(root, repo)
     assert reason and "NOT removed" in reason, reason
