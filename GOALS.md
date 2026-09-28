@@ -14587,7 +14587,7 @@ thought-master 02:1xZ 09-21 (owner via the Prime, goal:g14 L240: diagram-max ALL
 <!-- BODY:BEGIN -->
 # goal:g5.32
 
-##### G7.33.1 — G14.14.1: WRITE.PY ERGONOMICS -- three independent write.py gaps hit live this session: replace body has no anchor/structural guard (write.py:2068-2108, ABL.01 corruption class), create leaves an unfilled scaffold body, replace body cannot share a submit with note/thought (owner 01:1xZ-01:2xZ 09-21 on goal:g7.33) — status: active
+##### G7.33.1 — G14.14.1: WRITE.PY ERGONOMICS -- three independent write.py gaps hit live this session: replace body has no anchor/structural guard (write.py:2068-2108, ABL.01 corruption class), create leaves an unfilled scaffold body, replace body cannot share a submit with note/thought (owner 01:1xZ-01:2xZ 09-21 on goal:g7.33) — status: complete
 
 <!-- BODY:BEGIN -->
 # goal:g14.14.1
@@ -14605,7 +14605,9 @@ Done when. All three lettered items have a landed round, proved or disproved wit
 
 First chunk, minted next: hypothesis for item (a), the replace body anchor/guard -- this director has the most direct operational evidence for it. Items (b) and (c) queued after, same format.
 
-Belam NO-PI 2026-09-28: a/b/c already ACCEPTED on trunk (EF.04 structural guard; EF.05 --body-file; EF.06 -h standalone NOTES). Residue (d) from EF.05 nested as goal:g7.33.1.1 COMPLETE — node_writer.write_node always emits BODY:BEGIN (incl. explicit body= / create --body-file); idempotent if marker already present; focused 6/6 green. Parent remains active: optional deepen = --at HEADING form (hyp a chose guard) + ordered note+replace composition (hyp c docs-only). No pi.
+Belam NO-PI 2026-09-28: a/b/c already ACCEPTED on trunk (EF.04 structural guard; EF.05 --body-file; EF.06 -h standalone NOTES). Residue (d) from EF.05 nested as goal:g7.33.1.1 COMPLETE — node_writer.write_node always emits BODY:BEGIN (incl. explicit body= / create --body-file); idempotent if marker already present; focused 6/6 green.
+
+Belam NO-PI 2026-09-28T2301Z: Done-when SATISFIED — a/b/c landed ACCEPTED + g7.33.1.1 COMPLETE (BODY:BEGIN always). (c) chained-note check: EF.06 docs-only does NOT cover trap 0r (chained note keeps last only; different mechanism from replace-standalone refusal); recorded, not a blocker. Optional --at HEADING / ordered composition = out-of-scope residue under g7.33 if pursued later. BARE status complete. No pi.
 
 ##### G7.33.3 — G14.14.3: DISPATCH/RUNTIME -- five measured engine gaps in the dispatch, session-locator, schema-check and startup path (owner 2026-09-21 01:1xZ-01:2xZ on goal:g14, relayed via goal:g7.33) — status: active
 
