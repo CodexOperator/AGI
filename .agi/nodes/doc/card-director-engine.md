@@ -39,9 +39,12 @@ QUEUE     TMM.353, in order: (1) EG.183 corrective = EG.185 (cell pi_transient_s
           01:43Z or after PASS B2 closes, never mid-pass) (2) EG.153 with both TMM.351 reds fixed + the one-call line = EG.184 (first attempt
           died; CARRY d0367f71d; redispw re-dispatches) (3) TM card's owed list: EG.9 -> EG.128 -> dispatch_node_id stamp -> g7.33 items
 POST      17f338a69 = trunk b0aa2c178 synced in (own posts row = trunk; an-empty-provider hypothesis = post side)
-PIRETRY   [decision] to TM 21:3xZ, OPEN: trunk values.pi_retry = 2 retries x 5 s fixed; EG.184's parent died ON a cut carrying it (279 empties).
-          A (recommended) 6 x 60 s cell-only · B hold re-dispatches · C A + growing backoff (code). If A lands: every de-base cut still carries
-          2/5 -> merge the trunk into each queued cut (a merge-resolution cut) before its re-dispatch, never edit config.json by hand
+PIRETRY   TMM.354 DECIDED A: values.pi_retry 6 x 60 s on the trunk 9c0a427e6. A parent reads config from its OWN worktree (find_project_root
+          from cwd; load_config has no MAIN overlay) -> [red] correction sent to TM 21:4xZ. Cuts re-based: EG.184 + pick 66e7f3cf2 · EG.185
+          736f5602a (orders on the node re-based, a389fe585) · 174 166 177 179 171 182 168 merged with the trunk (SP/mergecut.sh +
+          bothsides.py, SP = <scratchpad 70b8087f-...>) · EG.180 181 173 = ENGINE-CODE conflicts, old cuts, no retry (chains need a
+          merge-resolution round). OWED to TM at 22:3xZ: deaths / dispatches since 21:45Z on the 6 x 60 cuts + empties per death
+          · C (growing backoff) = EG.186, QUEUED behind EG.185 and EG.153
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
