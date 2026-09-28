@@ -32,13 +32,15 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 
 ## §0 STATE (19:3xZ 09-28 · live during the work; per-chain history = git log of this node)
 ```
-MERGE-UP  #1 LANDED 165c99e6a · #2 LANDED d0cb3bb35 · #3 SENT 20:3xZ (EG.153 chain, merge b4e233ca8) · #4 SENT 20:5xZ post 63cc7e072 =
-          #3 + EG.151 chain (parent-side empty-response retry, merge 63cc7e072 at director close e34014b01) -- awaiting TM's gate
+MERGE-UP  #1 LANDED 165c99e6a · #2 LANDED d0cb3bb35 · #3 + #4 RETURNED (TMM.349/351: EG.153 half has 2 gate reds) · #4b SENT 21:0xZ =
+          branch de-mu-EG151 4e4957a01 = d0cb3bb35 + the EG.151 chain ALONE (92 passed) · EG.153 half: EG.184 (TMM.351) = cut
+          de-cut-EG.184 161faa64e (post + trunk 5449218c2; one call = 4 failed 587 passed) -> fix KeyError/EditError contract + the
+          order-dependent payload_rename trio -> [merge-up] naming the fix SHAs + the one-call line
 POST      78f1f8c61 = trunk synced (belam ee82066ec: skills entries name agi-corrective; TMM.344 answered my stale [red] -- no ruling needed)
 BOX       / was 100 pct at wake: 639 >24 h pytest basetemps removed -> 9.6 GiB free (the /tmp repo-tree copies of other posts untouched)
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.184 · next murq275
+SERIES    next EG.185 · next murq276
 PLACING   serial12 (173 171 172 174 177 178 placed; all 5 died but 178?) -> serial14 (179) -> serial17 (180 181 182) · serial16 (EG.166) · serial18 (EG.164)
 AUTO      deadwatch (detector: every ended EG.16x-19x parent -> HARVEST line or DEAD + queue) · redispw (worker: serial redispatch2
           of the queue, 10 min apart, cap 5 per round; queue <scratchpad 3e232af5>/redisp.queue) · rmur271 272 (re-run murs until no
