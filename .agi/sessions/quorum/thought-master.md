@@ -13,46 +13,31 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ```
 
 ## 🔴 Where it stops
-00:5xZ 09-28 ROTATING at 0.41 -- next = read the dm files; PASS 12 (belam) over d0d126deb; DE: EG.1 + heal-sweep fix + thought-hygiene + context conftest (TMM.312/313) then counters EG.N / mur-eg; facts chain lands through you with belam's F13 trim in ONE window
+19:0xZ 09-28 at 0.43 -- idle between DE merge-ups; next = read the dm files, gate the next [merge-up] (skill agi-master-gate), facts window with belam
 ```
-LANDED   d0d126deb = trunk 47afd8967 + DE d4446340f (662 commits, 188 files, 0 deletions) · range reds ordered to DE (TMM.312): EG.1
-         test_boxkit_probe · test_thought_hygiene (5 kid experiment nodes with 2-5 THOUGHT blocks) · the context conftest suite guards (+1 red
-         test_model_load_guard standins, hook_trim 0.9 s -> 134 s) · trunk reds: test_ladder_node + test_sensei_wake_audit (red alone on trunk)
-state    last order = TMM.346 (EG.107 facts chain red = expected one-window design; asked belam for the F13 trim + cell as an off-trunk SHA to gate against) · TMM.345 (EG.137+EG.133 LANDED 165c99e6a; 106 old nodes off-shape -> write.py repair round; /tmp basetemp reaper EG.128 NEXT after EG.9) · TMM.344 (EG.124 red = stale base: belam ee82066ec already added agi-corrective to both skills entries -> DE syncs) · TMM.343 (OWNER 15:51Z "No need to lighten load let’s hammer it": lane at FULL arm, box gates only, dead rounds re-dispatched; TMM.342's cap VOID) · TMM.342 (OWNER 15:50Z: lane released) · TMM.341 (pi-free lane HELD: 6 empty-response deaths 14:3x-15:0xZ; 20-min probe re-opens; ladder model [decision] to belam) · TMM.340 (DE rotation REFUSED: key 11:19Z vs dirty MAIN row gen 40 pubkey 43cc49.. -> [red] to belam, keys owner) · TMM.339 (EG.113 LANDED 7c812d5be after one return; EG.103 superseded) · TMM.338 (EG.113 d7ab51d45 RETURNED: order-dependent reload red in its own new test; EG.103 = A, retire as superseded + g7.33 config-cell hyp) · TMM.337 (EG.83 LANDED 273669575, rides B2; TMM.336 = homes for DE rule lines 1-8; home-path leak a00-77817316 -> DE close) · TMM.335 (EG.71 LANDED 39d280fa9 pre-B1; new zero-USD sizing refusal live-measured 0.30 < 0.6062; ladder roles-table red green; / at 99 pct -> belam [red]) · TMM.334 (belam cell a577c160a DONE -> EG.71 re-merge; ladder roles-table ultracode red -> EG.5 or g7.33; facts window open, belam re-measures 2009 B; PASS B1 pins 13:47Z) · TMM.333 (EG.71 HELD on belam ladder cell roles[5] tier-0 director pi -> pi-free, [decision] sent, rec A; DH.527 splice restore rides next merge-up) · TMM.332 (EG.97 detector at the front, green on live corpus; 96d22cb50 carried 2 undisclosed CORRECTIVE order sections -- read, harmless, kept) · TMM.331 (EG.88+EG.90 LANDED 51eab0b70; thought_hygiene red 13 quoted nodes -> detector fix to the FRONT with EG.9) · TMM.330 (EG.72 LANDED 96d22cb50, first live run measured = no change; trunk red test_sensei_wake_audit item2 -> DE g7.33) · TMM.329 (DH.679 LANDED e3e730e3b: capture keeps slot + BANKED, hook live; EG.91 conflict -> merge-resolution kid) · TMM.328 (EG.95 LANDED c6a975721; agi-corrective row-2 overlap -> DE next close; config.json round-commit defect -> g7.33 hyp; [hypothesis].md anchor rule approved) · TMM.327 (text churn ruling C: node-prose-only residues closed by DE itself, one commit per chain, I read the diff; behaviour/config/test claims keep corrective + mur; row -> skills/agi-corrective) · TMM.326 (EG.5 facts chain: (A) one window with belam, no test fallback; DE closes EG.107 then [merge-up]; belam told) · TMM.325 (EG.64 19564b6c0 LANDED 2beb0aba3 as a UNION on the RAM node; thought_hygiene red now 7 quoted nodes; skills first_turn [rule] -> belam) · TMM.324 (io red closed; the reaper service = the leftover random reader on sda3 -> findings row, rides the RAM-round reaper work) · TMM.323 (board note refused for directors + me: [red] to belam, verb-scoped actor_rows code half inert under g7.33 after EG.9) · TMM.322 (DE test-isolation leak 05:03Z contained, 0 spend verified; test named -> g7.33 fix; no Claude forks) · TMM.321 (belam env-leak 03:4xZ: DE kids a00-03658de5 + a00-2b3163e9 checked at harvest) · TMM.320 (EG.30 early placement kept · EG.31 RETIRES the AGI_TASKS_MAX hook, approved · EG.18 +parent-to-disk route) · TMM.319 tmpfs = KID worktrees only · EG.1 LANDED 57debf3a2 (pass B1) · DE live session = post-director-engine-b2 @37 (gen 40; key red CLOSED by belam e42433aa1 16:3xZ, DE told to rotate bare) · PASS B1 CLOSED 17:1xZ (season2/main 1bb6aa5a9; 8 awr / 0 demote / 0 red; residues 62 -> goal:g1.29); B2 carries EG.83 onward (re-list ListAgents before each SendMessage) · next = TMM.347 · PASS 12 CLOSED 06:5xZ (season2/main 774e0b912; 23 awr / 2 demote / 0 red; residues -> goal:g1.28, belam -> DE); PASS B1 carries EG.1 57debf3a2 + all past 72d8d565ce
-INTAKE   -> skill agi-send §2 (OWNER 02:28Z + 23:44Z 09-27): read empty is not proof -- the dm files + inbox + rooms directly; a ts-keyed watcher
-SPEND    RESOLVED: zero_usd lanes mint below the floor at key cap 0.01 (91ae33672, falsifier met: DH.533 0.6063 before = after) · ALWAYS
-         --harness pi-free · a lease with harness 'pi' = PAID -> stop it · residues -> DE (TMM.298): printed limit, runtime-key + --cap skip
-DIALUP   OWNER GO via belam 16:25Z (TMM.300): DE steps up per arm (cell values.local_maxxing.de_live_parents) only while load1 < 16 AND io avg60
-         < 50 AND 0.01 x live < balance (+ / free > 5G) -> 22:0xZ STEP BACK (TMM.306: load 24.6, io 86 at arm 10; no refill) -> then the RAM worktree round (hypothesis:kid-worktrees-resolve-from-one-cell-...)
-FLASH    Prime [decision] 22:38Z (OWNER): /mnt/agi-flash = logs + write-once scratch ONLY -> plan = hypothesis:logs-and-write-once-scratch-
-         live-on-the-flash-disk (goal:g1) · step 0 DONE (harvest-0927 on flash) · census: disk 139 MiB/min = ~50% worktree git/pytest (-> tmpfs,
-         the Prime's go) + ~40% DE's base checkouts in the drain unit (NOT the poll; now /dev/shm, TMM.308) · de-base prune GO paced (TMM.309)
-         · logs cell = box.logs_dir (engine ignores it today; its value is a missing path -> would turn the log cap OFF): until DE's DH.676 lands
-           move logs by SYMLINK only, never by flipping that cell (DE 23:12Z) + logs 0.1% -> step 2 logs one at a time (tidiness) · never worktrees
-SWEEP    [red] 00:0xZ: heal sweep removes a finished 0-commit branch's worktree (uncommitted work lost: DH.648, recovered) -> DE findings row
-         -> fix under goal:g7.33 · DE's /dev/shm base-checkout fix REVERTED (placements on disk again, ~145 MiB each until DH.650)
-RAMDISK  (OWNER 06:2xZ on the RAM hypothesis, 968d19ca1: per-role roots = kids tmpfs, DE + parents /data, belam + TM /mnt/agi-flash -- lands WITH the RAM round) belam 00:4xZ + 03:4xZ: tmpfs HOLD until the heal-sweep 0-commit fix is merged + 24 h with no memory crit line; then 4G, KID worktrees ONLY (parents on disk, 03:4xZ) -- was: parent + kid
-         worktrees only · DH.650 repo half may land now, inert (TMM.313)
-         · 24 h clock from the last crit 00:43:01Z (memory-alarm.state); DE EG.8 scope OOMs 01:04:56Z + 01:08:15Z = CONSTRAINT_MEMCG,
-           the scope cap held, NOT a crit line (TMM.314 corrected DE's [red] 01:11)
-DISK     / full 17:4xZ -> 17.9G (87 stale /tmp/lograce-*, TMM.303) -> 12.2G by 20:0xZ (bursts) -> 14.6G (24 stale logcost-*, TMM.305); ~31G /tmp scratch = DE's sweep round · 45 worktrees removed on /data
-         (lossless; records in .agi/sessions/harvest-0927/<wt>/)
-GATE-DT  tip 09d7ed36c (model_slot fence lift + cell model_round_memory_max 3584M + osc_band_fit tests) · pre-gate green 03:0xZ · LEFT:
-         re-mint M on live HEAD, engine suite, whole .agi/context under torch, pi-free mur, live probe -> WAITS on DE's nudge fix (DH.490)
-         · after: DT retires hypothesis:osc-band-fit-preflight · then OSC.41, one model round at a time
-DT       minimal lane: <= 1 parent, model-free (TMM.276; OWNER via belam 02:59Z, verbatim: "TM is set on pausing DT but idk for sure. He
-         could still retain minimal memory and cpu for smaller or slower experiments")
-DH.577   box-cron ruling (c) (TMM.299): per-job survive_unnamed; memory_alarm true, mail_poll/maint_gc/prime_merge false; gate = render on
-         THIS box: live env keeps all 14 lines; AGI_BOX absent keeps memory_alarm, names every drop
-DE       queue: DH.490 nudge -> PASS 10 defect hyps + residue batch + wake-facts DH.501 + row 21 capture -> g4.18.1 -> g7.32.6 + g7.32.5 ->
-         g7.31.3.3 · skills step 3 = hypothesis:skills-load-per-harness-per-tier-from-one-config-cell · swarm test g5.31 (arms 10/5/15)
-         · DE rotates often: after each, re-send owed orders BY NAME
-WAKEFACT belam 00:4xZ: live region 2009 B (cdcfe5c0b), DE's 7164 = an OLD base; the chain (code + guard test) comes to you as a [merge-up];
-         land it in the SAME window as belam's F13 trim (1988 B) + cell templates.director.startup.facts_pointer_target_bytes 2000 -> tell belam first
-AT-LAND  DE's next landing: goal:g7.33.19 into doc:unified-director-brief · more card traps -> skills (OWNER 03:3xZ via DE: "A lot of traps
-         into the skill files I imagine.") after DE's 0463850fb skill edits land
-SKILLIDX doc:draft-skills-first-turn (trunk) = THE skill list until the auto index read lands: a new skill = one clause there (4265/5000 B)
-SYNC     season2/main moved -> merge it into the trunk ancestry-only (tree = HEAD) after proving its delta is on HEAD; else rotations refuse
+state    last order = TMM.347 · next = TMM.348 · DE session post-director-engine-b2 @37 (re-list ListAgents before each SendMessage; DE rotates often)
+LANDED   today on local-maxxing/season2/main (all pushed, all by commit-tree on a tmpfs gate): EG.1 57debf3a2 · EG.64 2beb0aba3 (union) · EG.95
+         c6a975721 · DH.679 e3e730e3b (prompt hook live) · EG.72 96d22cb50 · EG.88+90 51eab0b70 · EG.71 39d280fa9 · EG.83 273669575 · EG.113
+         7c812d5be (returned once) · EG.137+133 165c99e6a · EG.125 d0cb3bb35 · PASS 12 + B1 CLOSED (0 red); B2 carries EG.83 onward
+TRUNK RED test_thought_hygiene only: quoted THOUGHT markers (13+ nodes, each ONE real line-start pair) -> DE detector chain EG.121 -> EG.134 at the FRONT
+FACTS    EG.107 chain (wake-facts-collapse, EG.145 under mur) is red BY DESIGN until belam's window: cell templates.director.startup.
+         facts_pointer_target_bytes = 2000 + belam's F13 trim (region ~2001-2009 B -> 1988 B). Asked belam (TMM.346) for trim + cell on an
+         OFF-trunk SHA; gate the chain against it, ping belam with the tip, land in ONE window. No test fallback (refused)
+DE OWES  EG.9 heal-sweep 0-commit fix (tmpfs GO waits on it) -> EG.128 /tmp basetemp reaper (/ filled twice 09-28) -> dispatch stamps
+         dispatch_node_id at spawn (TMM.347: until then a parent cannot --owns a dead kid's node) -> g7.33: config-cell round commit (TMM.328 b),
+         sensei whois-rederive trunk red (TMM.330), zero-USD skip list as a cell (EG.103 A), 106 off-shape old nodes repaired via write.py
+         (TMM.345), brief.py ORDERS channel + review-scaffold template (TMM.336), verb-scoped town note grant (TMM.323, belam adds grant lines)
+RULINGS  TMM.327 (C): a node-prose-only residue = ONE director commit per chain, I read its diff; behaviour/config/test claims keep corrective +
+         mur · cherry-pick rule: a file whose chain side is ONLY the zero-USD cherry-pick takes the post side · every [merge-up] lists files
+         outside its named chains
+LANE     pi-free at FULL arm (OWNER 15:51Z "No need to lighten load let’s hammer it"): box gates only, dead rounds re-dispatched
+SPEND    zero-USD sizing refusal live since EG.71: key cap 0.01 x spawn.max_live 30 = 0.30 < balance 0.6062 -> refuses EVERY zero-USD mint if
+         balance < 0.30 or max_live > 60; a 'zero-USD sizing' line = [red] at once · account 0.606 USD, no top-up (owner)
+BOX      / root fs 99-100 pct (958 MiB 13:1xZ; belam sizing /tmp) · /data 90 GB free · /dev/shm 7 GB: gate trees + TMPDIR go there
+RAMDISK  tmpfs HOLD: EG.9 merged + 24 h no memory crit (last crit 00:43:01Z); then 4G, KID worktrees only; per-role roots (OWNER 06:2xZ,
+         968d19ca1): kids tmpfs, DE + parents /data, belam + TM /mnt/agi-flash -- lands WITH the RAM round
+DT       minimal lane: <= 1 parent, model-free (TMM.276) · GATE-DT tip 09d7ed36c waits on DE's nudge fix (DH.490)
+BANKED+  home-path quotes: 13 trunk nodes carry the box user's home path; anonymize.py does not check home paths (DE findings row)
 out      python3 extensions/agi/bin/rotate.py rotate (bare, from MAIN; the card committed first)
 ```
 
