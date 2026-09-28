@@ -144,6 +144,22 @@ PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every
 STATUS    IN PROGRESS, not landed: DH.679 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-captive-capture-keeps-a00-448409f6 tip f993eadf7.
 ROUNDS    this post's rounds on this node: DH.599 DH.630 DH.649 DH.679; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
+
+## CORRECTIVE DH.679 -- closes mur-director-engine-45 DH.649-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-captive-capture-keeps-a00-448409f6 tip f993eadf7 (branch de-base-679; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Withdrawn '8 of those 9' still in the hypothesis Agent Notes (hypothesis:63) — correction landed in the THOUGHT (line 57) only
+2. The TARGET node's own Agent Notes still carries the withdrawn pair, one hop from where the first reviewer looked: .agi/nodes/experiment/a00-42ca5cbe-9e17ff.md:344 at f993eadf7 reads 'merge-in red MEASURED (23p/2x on branch tree vs 9F/14P/2X vs merge target, 8 of 9 pre-existing) -- the test file cannot merge up alone'. Both halves were withdrawn this round (wrong control AND wrong causality), on the node the round rewrote 127 lines of, in the same block-class the round did fix on the parent.
+3. The withdrawn control survives in a MACHINE-READ field, not just prose: a00-42ca5cbe-9e17ff.md:16, the `probes:` conjunct-2 'wire' entry, still records 'PRE-ROUND file (1ea22df7d's own) against the same merge target: 8 failed, 13 passed' with result PASS. extensions/agi/bin/cli.py:2026 keys on `probes`, so the superseded number is what a harvest reads — the same one-source failure DH.599 item 4 flagged, re-occurring in a field a reader keys on.
+4. TEMPLATE-MAX (mur-45 review): the merge-order sentence ('the branch rotation_alert.py and rotate.py bytes must ride the same merge as the test file') lives in TWO bodies (experiment/a00-42ca5cbe-9e17ff.md:240 and the hypothesis :63) -> keep it ONCE, in the hypothesis body, and make the experiment cite it.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS      + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE  · .agi/nodes/experiment/a00-42ca5cbe-9e17ff.md · .agi/nodes/experiment/a00-ffaf1904-015138.md · .agi/nodes/hypothesis/captive-capture-keeps-the-slot-and-banked-and-appends-its-line.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over f993eadf7 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.649: mur-director-engine-39 DH.630-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective DH.679: mur-director-engine-45 DH.649-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
