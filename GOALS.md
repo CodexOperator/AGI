@@ -7353,6 +7353,8 @@ Depends on / pairs with `goal:g7.27` for restart argv source.
 
 2026-09-28 ~18:20 ET: seeds wired to .1/.2 via write.py (director-direct no-pi FULL STOP). residual active under helper stop-line.
 
+g7.28.1 seeds wired to residue nests .1.1+.1.2; persistent pytest currently RED (resolve_memory_cap kwarg). NO pi.
+
 #### G7.28.1 — persistent hold+restart + seat registry occupation — status: active
 
 # goal:g7.28.1
@@ -7392,6 +7394,64 @@ Assigned to **director-helper**. Split from multi-headed `goal:g7.28`. No MAIN p
 # goal:g7.28.1
 
 PARENT REVIEW (DH.49): falsifiers 1 and 3 of goal:g7.28.1 hold on 3 parent probes (stop gate, zero bound, no-rebuild); falsifier 2 FALSIFIED by probe C -- after restarts exhaust the record names a dead pid under persistent:true, and the posts-row surface is untouched. Judged inconclusive_lean_disproved:55.
+
+seed g7.28.1.1 complete (live-pid); g7.28.1.2 posts-row still open
+
+##### G7.28.1.1 — persistent restart keeps live pid pin — status: complete
+
+# goal:g7.28.1.1
+
+## Why this exists
+**Parent `goal:g7.28.1`.** Parent review of hypothesis:a00-c3a24084-4190b2 (lean_disproved:55) named probe C: with max_restarts>0 and an instantly-dead reopen, `record.pid` / `agent.json` pid stayed on the corpse. Conjunct 2 of the parent falsifier (live pid/session pin) does not hold until this leaf closes.
+
+## Target end-state
+- After a supervised restart under `--persistent`, the seat record and `agent.json` carry the **live** child pid (not the dead predecessor).
+- A deliberate kill+reopen cycle updates the pin before the next supervise loop tick.
+
+## Invariants
+- Restart still reuses the same rendered argv (no second `build_command` / template render) — shared with sibling evidence under g7.28.1.
+- Non-persistent fire-and-forget path untouched (`goal:g7.28.2`).
+
+## Falsifier
+1. Parent-style probe C against tip: after reopen of a dead child, `record.pid == live_child.pid` and `agent.json` pid matches; a corpse pid fails the probe.
+2. Negative: with `_persistent_stop` asserted, restarts stay 0 and pid is not rewritten to a fiction.
+
+## Out of scope
+- Posts/seat-registry occupation row (`goal:g7.28.1.2`).
+- Non-persistent regression (`goal:g7.28.2`).
+- Template authorship (`goal:g7.27`).
+
+## Agent Notes
+Assigned to **director-helper**. Split from g7.28.1 residue (probe C). NO pi; director-direct write.py only under OWNER FULL STOP.
+
+restored mem_cap.py (override + wrap_argv cfg + tasks_max) from finished engine 6d78c51bf9; TypeError gone; test_dispatch_persistent 3/3 GREEN incl live-pid after restart
+
+##### G7.28.1.2 — persistent start updates seats/posts occupation row — status: active
+
+# goal:g7.28.1.2
+
+## Why this exists
+**Parent `goal:g7.28.1`.** Parent review named posts-row occupation as untouched by the kid that landed `_supervise_persistent`. Conjunct 2 of the parent also requires the seat registry / posts row to show occupied with the live pid/session pin — not only `agent.json`.
+
+## Target end-state
+- After `dispatch … --persistent` start (and after each supervised restart), the seats/posts registry row for that seat shows occupied with the live pid/session pin.
+- Registry pin and persistent record stay coherent (one-writer facts).
+
+## Invariants
+- Same persistent hold contract as `goal:g7.28.1` / `.1.1`; no second argv builder on restart.
+- Pane-anchor registry work under `goal:g7.31.2.1` may share readers; this leaf owns the persistent-dispatch writer path.
+
+## Falsifier
+1. After persistent start: seats/posts row occupied + live pid/session pin matches the supervised child.
+2. After supervised restart: row pin updates to the new live pid (never stale corpse).
+
+## Out of scope
+- Live-pid field inside agent.json alone (`goal:g7.28.1.1`).
+- Non-persistent regression (`goal:g7.28.2`).
+- Rotate pane-contract (`goal:g7.31.2.*`).
+
+## Agent Notes
+Assigned to **director-helper**. Split from g7.28.1 residue (posts-row untouched). NO pi; director-direct write.py only under OWNER FULL STOP.
 
 #### G7.28.2 — non-persistent kid/parent spawns unchanged — status: active
 
@@ -7818,7 +7878,9 @@ Assigned to **director-helper** with `.4` + `.5` AND keep `g7.26`–`g7.30` land
 
 2026-09-28 ~18:20 ET: seeds wired to .1/.2/.3 via write.py. director-direct no-pi.
 
-##### G7.31.2.1 — Seat-start registry occupation matches tmux pane pin — status: active
+leaf g7.31.2.1 complete (pane registry tests GREEN); .2 residues open; .3 seeds=[.3.1] argv-builder strip nest. NO pi.
+
+##### G7.31.2.1 — Seat-start registry occupation matches tmux pane pin — status: complete
 
 # goal:g7.31.2.1
 
@@ -7900,7 +7962,7 @@ Assigned to **director-helper**. One falsifier head of `goal:g7.31.2`. Prefer pr
 
 **Central claim held:** kid3 lean_proved:90 with predecessor-named THOUGHT + correct reader. NO merge-up while residues>0. Next parent: DH.54 @ tip after this §3d write. spawn.parallel=1.
 
-##### G7.31.2.3 — Zero new harness argv builders in rotate.py — status: active
+##### G7.31.2.3 — Zero new harness argv builders in rotate.py — status: complete
 
 # goal:g7.31.2.3
 
@@ -7943,6 +8005,38 @@ Assigned to **director-helper**. Prefer regression test + source grep. No MAIN p
 | note | empty `## Hypothesis` section (claim only in FM) | `a00-9fa7f4f5-60c4ba.md:28` | fill or drop heading |
 
 **Central claim held:** profile-sync evidence_runs scalar→list so decisive proved passes commit-path gate; static re-derive 0 would-demote. NO merge-up while residues>0. Next parent: DH.50 @ tip after this §3d write (base a5b82056a ancestor of seat). spawn.parallel=1.
+
+seed g7.31.2.3.1 complete; argv-builder falsifier GREEN on tip (no _build_claude/_copilot/_pi/_grok*_command; grok absent)
+
+###### G7.31.2.3.1 — strip _build_*_command argv builders from rotate.py — status: complete
+
+# goal:g7.31.2.3.1
+
+## Why this exists
+**Parent `goal:g7.31.2.3`.** Committed test `test_rotate_has_no_per_harness_argv_builder` fails on tip: `_build_claude_command` (and sibling `_build_*_command` helpers) still live in `rotate.py`. Parent falsifier demands zero new harness argv builders — orchestration only, argv via template seam.
+
+## Target end-state
+- `rotate.py` contains no `_build_claude_command` / `_build_copilot_command` / `_build_harness_command` (or equivalent per-harness argv builders).
+- Sole argv seam remains template render (`harness_template`) + thin orchestration hook.
+- `test_rotate_has_no_per_harness_argv_builder` passes on tip.
+
+## Invariants
+- Successor pane-contract reuse (`goal:g7.31.2.2`) stays green while builders are removed.
+- No MAIN push; edit only seat/director-helper worktree.
+
+## Falsifier
+1. Grep/AST of `rotate.py`: zero `_build_*_command` harness argv builders; committed `test_rotate_has_no_per_harness_argv_builder` exits 0.
+2. Negative: reintroducing `_build_claude_command` makes that test fail.
+
+## Out of scope
+- Seat-start registry occupation (`goal:g7.31.2.1`).
+- Messaging / handbacks (`goal:g7.31.4`).
+- Persistent dispatch (`goal:g7.28`).
+
+## Agent Notes
+Assigned to **director-helper**. Nest under g7.31.2.3 after RED argv-builder test on tip. NO pi; director-direct write.py only under OWNER FULL STOP.
+
+stripped _build_claude_command + _build_copilot_command from rotate.py; test_rotate_has_no_per_harness_argv_builder + pane-contract 4/4 GREEN; sole argv seam remains _build_harness_command → harness_template.render
 
 #### G7.31.3 — Five unified engine routes through the pane (write/read/send/dispatch|workflow/rotate|spawn) — status: active
 
@@ -8828,12 +8922,64 @@ Minted by director-belam hourly watch 2026-09-23 after DT.97 MUR AWR. Parent spa
 
 ###### G7.32.2.1.1 — deliver must call route() before transport (spy test) — status: active
 
-<!-- BODY:BEGIN -->
+# goal:g7.32.2.1.1
+
+## Why this exists
+
+**Parent `goal:g7.32.2.1`.** MUR `mur-g7-32-2-1-dt-110-f4c3a72d0` AWR missed: committed tests vary harness strings, not that transport is chosen SOLELY from `route()`. A `deliver()` that re-derives equality and never calls `route()` still passes the three tests.
+
+## Target end-state
+
+- At least one committed test spies/fails if `deliver()` does not call `route()` (or equivalent gate) before choosing native vs nudge.
+- Near-miss named in the parent MUR is falsified by the suite on tip.
+
+## Invariants
+
+- No harness-name special case; equality of harness strings alone.
+- No new remote heads; no MAIN; edit only own `--branch` worktree.
+
+## Falsifier
+
+1. Mutating `deliver()` to skip `route()` and re-derive equality makes a committed test fail (red), while the tip (calls `route()`) stays green.
+
+## Out of scope
+
+- Live pane delivery; Prime build-node mint; importer wiring (sibling leaf).
+
+## Agent Notes
+
+Assigned to **director-helper**. Nested by director-belam after DT.110 AWR; claimed under OWNER FULL STOP NO-PI (body format-fill from link_ref payload).
 # goal:g7.32.2.1.1
 
 ###### G7.32.2.1.2 — production importer of deliver/magic_pane outside tests — status: active
 
-<!-- BODY:BEGIN -->
+# goal:g7.32.2.1.2
+
+## Why this exists
+
+**Parent `goal:g7.32.2.1`.** MUR DT.110 AWR missed: `magic_pane.py` has no importer at tip `f4c3a72d0` — `deliver()`/`route()` sit on no live path, so the enforcing entrypoint is unit-only.
+
+## Target end-state
+
+- A real production caller (send/adapter/messaging path already in scope of g7.32) imports and uses `deliver()` (or documents the single approved call site landed on tip).
+- `git grep` finds a non-test importer of `magic_pane` / `deliver(`.
+
+## Invariants
+
+- Messaging module still imports no rotate/dispatch internals.
+- No new remote heads; no MAIN; own `--branch` only.
+
+## Falsifier
+
+1. Tip shows a production importer of `deliver`/`magic_pane` outside tests; removing it breaks a named path or a committed integration test.
+
+## Out of scope
+
+- Auto-mint build: node (Prime); live grok pane smoke as sole proof.
+
+## Agent Notes
+
+Assigned to **director-helper**. Nested by director-belam after DT.110 AWR; claimed under OWNER FULL STOP NO-PI (body format-fill from link_ref payload).
 # goal:g7.32.2.1.2
 
 #### G7.32.3 — One adapter/harness with optional pane methods — status: active
@@ -9066,8 +9212,6 @@ Belam NO-PI: closed g7.33.9.2 write/mint route (falsifiers GREEN; residues=0; fo
 
 ## Agent Notes
 Assigned to **director-belam**.
-
-2026-09-28 ~18:28 ET helper re-assert complete after Belam body rewrite: ls -L skills symlinks GREEN. director-direct no-pi.
 
 ##### G7.33.9.2 — write/mint route — all node+goal edits via write.py + skills; no hand-edit; no pi required under FULL STOP — status: complete
 
