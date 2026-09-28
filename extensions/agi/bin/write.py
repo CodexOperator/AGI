@@ -51,6 +51,7 @@ delivered the convenience and none of the reason.
 """
 from __future__ import annotations
 
+import difflib
 import os
 import re
 import sys
@@ -146,6 +147,27 @@ class Edit:
     replace_range: str = ""
     replace_from: str = ""
     replace_text: str = ""
+    # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
+    # the explicit consent that admits a body range the structural guard
+    # would otherwise refuse (`_body_range_refusal`). Spelled as a prefix on
+    # the source argument (`replace body 4:9 --force -`), so the positional
+    # range/source grammar is unchanged; an API caller sets the field.
+    replace_force: bool = False
+    # hypothesis:write-py-inline-replace-verb -- `sub`/`sub!`: the FIRST
+    # ` => ` splits `<old>` from `<new>`; plain `sub` demands exactly ONE
+    # literal match, `sub!` replaces every one. `sub_target` is `payload` or
+    # `""` (node frontmatter + body). `_resolve_sub` resolves it ONCE into the
+    # ordinary `set_fm` / body / `payload_bytes` paths, so no gate is skipped.
+    sub_old: str = ""
+    sub_new: str = ""
+    sub_all: bool = False
+    sub_target: str = ""
+    sub_body: str = ""
+    sub_diff: str = ""
+    sub_count: int = 0
+    sub_resolved: bool = False
+    # conjunct 3: one `(target, old, new, all)` op per `sub`; applied in order.
+    sub_ops: list = field(default_factory=list)
     # hypothesis:l4-a-ring-decision-carries-m-of-n-signatures -- the ring
     # signatures backing a non-self-row config write that a `ring:`-declaring
     # schema demands (rung 2). Each is `<post>:<scheme>:<sig_hex>` over the
@@ -168,7 +190,7 @@ class Edit:
                     or self.patch_from or self.patch_diff
                     or self.body_patch_from or self.body_patch_diff
                     or self.read_target or self.read_range
-                    or self.replace_target)
+                    or self.replace_target or self.sub_old)
 
 
 # --------------------------------------------------------------------------
@@ -418,10 +440,44 @@ def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
     if target not in ("payload", "body"):
         raise EditError(
             f"replace target must be 'payload' or 'body', got {target!r}")
+    # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
+    # `--force` rides the source argument as a PREFIX (`... 4:9 --force -`),
+    # the one free-text positional, so the range/target grammar does not
+    # change and an old script parses identically. Only a prefix followed by
+    # a space is consumed; a bare `--force` stays a (nonexistent) path and
+    # refuses loudly rather than silently deleting the range.
+    if source.startswith("--force "):
+        edit.replace_force = True
+        source = source[len("--force "):].strip()
     _parse_range(rng)   # validates and raises early, so a typo refuses here
     edit.replace_target = target
     edit.replace_range = rng
     edit.replace_from = source
+    return edit
+
+
+def verb_sub(edit: Edit, spec: str) -> Edit:
+    """`sub <old> => <new>` -- one literal occurrence."""
+    text = spec.strip()
+    target = ""
+    if text.startswith("payload "):
+        target, text = "payload", text[8:].strip()
+    if " => " not in text:
+        raise EditError(f"sub needs `sub <old> => <new>`, got {spec!r}")
+    old, new = text.split(" => ", 1)
+    if not old:
+        raise EditError("sub `<old>` is empty -- nothing written")
+    edit.sub_ops.append((target, old, new, False))
+    edit.sub_target, edit.sub_old, edit.sub_new = target, old, new
+    return edit
+
+
+def verb_sub_bang(edit: Edit, spec: str) -> Edit:
+    """`sub!` -- every occurrence, count printed."""
+    verb_sub(edit, spec)
+    edit.sub_all = True
+    _t, _o, _n, _a = edit.sub_ops[-1]
+    edit.sub_ops[-1] = (_t, _o, _n, True)
     return edit
 
 
@@ -475,6 +531,8 @@ def verb_payload(edit: Edit, source: str) -> Edit:
 
 VERBS = {
     "set": verb_set,
+    "sub": verb_sub,
+    "sub!": verb_sub_bang,
     "unset": verb_unset,
     "link": verb_link,
     "thought": verb_thought,
@@ -498,6 +556,7 @@ VERBS = {
 #: two-argument verb and errored. A fixed split is a parser that assumes every
 #: verb has the same shape.
 ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
+         "sub": 1, "sub!": 1,
          "payload": 1, "payload_text": 1, "patch": 1, "body_patch": 1,
          "read": 2, "replace": 3, "adopt": 0}
 #: hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
@@ -506,12 +565,17 @@ ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
 #: stays in the current verb's last free-text argument. The literal
 #: `str.split("&&")` this replaces split inside an argument too, and leaked
 #: prose in a note/ref field crashed `links.py links` (experiment:a00-794503d4).
-#: Residual (test-pinned): prose cannot quote a VERB-LED command.
+#: Residual (test-pinned): prose cannot quote a VERB-LED command UNLESS it
+#: escapes the pair: `\&&` is carried byte-for-byte (backslash consumed) while
+#: an unescaped verb-led `&&` still splits.
 #: A trailing `&&` (nothing but whitespace after it) is still a separator --
 #: otherwise it leaks into the last argument and verb-only scripts change.
 #: So is a pair that closes a verb name with no space: `-&&adopt&&`.
-_VERB_SEP = re.compile(r"\s*&&\s*(?=(?:%s)(?:\s|$|&&)|$)" % "|".join(
-    sorted(VERBS, key=len, reverse=True)))
+#: A DOUBLED pair (`&&&&`) is its own separator, so it parses exactly as the
+#: pre-verb-led `str.split("&&")` did (the empty middle chunk is skipped).
+_ESC_AMP = "\x00esc-amp\x00"
+_VERB_SEP = re.compile(r"\s*(?:&&){2,}\s*|\s*&&\s*(?=(?:%s)(?:\s|$|&&)|$)"
+                       % "|".join(sorted(VERBS, key=len, reverse=True)))
 
 #: One-line example per verb, for the help epilog. Module-level (not local to
 #: main) so a test can assert each example PARSES as its verb's arity via the
@@ -522,6 +586,8 @@ _VERB_SEP = re.compile(r"\s*&&\s*(?=(?:%s)(?:\s|$|&&)|$)" % "|".join(
 #: teaches would be refused.
 VERB_EXAMPLES = {
     "set": "set key value",
+    "sub": "sub old => new",
+    "sub!": "sub! old => new",
     "unset": "unset frontmatter_key",
     "link": "link self",
     "thought": "thought why this version differs",
@@ -531,6 +597,9 @@ VERB_EXAMPLES = {
     "patch": "patch -",
     "body_patch": "body_patch -",
     "read": "read body 4:9",
+    #: Standalone at submit(): it cannot ride the same script line as
+    #: note/thought/body_patch (one body writer per submit). The rendered
+    #: NOTES block below carries that rule into `-h`.
     "replace": "replace body 4:9 path/to/file",
     "adopt": "adopt",
 }
@@ -600,8 +669,8 @@ def parse_script(text: str) -> list[tuple[str, list[str]]]:
     the string is data here, exactly as `commands.py` keeps argv a list.
     """
     out: list[tuple[str, list[str]]] = []
-    for chunk in _VERB_SEP.split(str(text)):
-        stripped = chunk.strip()
+    for chunk in _VERB_SEP.split(str(text).replace(r"\&&", _ESC_AMP)):
+        stripped = chunk.strip().replace(_ESC_AMP, "&&")
         if not stripped:
             continue
         name = stripped.split(None, 1)[0]
@@ -1396,6 +1465,7 @@ def _preview_dry_run_gate(root, edit, args):
             allow_self_row=True,
             has_body=bool(edit.body_append or edit.thought
                           or edit.body_patch_diff
+                          or edit.sub_body
                           or edit.replace_target == "body"),
             signatures=args.ring_sigs,
             out_decision=_prev,
@@ -1711,6 +1781,194 @@ def _enforce_written_by(root, node_type, actor, where, role: str = "",
     return
 
 
+def _matches_type(value, declared: str) -> bool:
+    """`declared` is one `validation.types` spelling; `value` is already
+    `_coerce`d. An unrecognised spelling gates nothing — only a caller that
+    already knows `declared` is truthy calls this."""
+    if declared == "int":
+        return isinstance(value, int) and not isinstance(value, bool)
+    if declared == "float":
+        return isinstance(value, (int, float)) and not isinstance(value, bool)
+    if declared == "bool":
+        return isinstance(value, bool)
+    if declared == "list":
+        return isinstance(value, list)
+    if declared == "str":
+        return isinstance(value, str)
+    return True
+
+
+def _schema_field_refusal(schema, node_type: str, key, value, *,
+                          verb: str) -> str | None:
+    """One row's schema check — the predicate `create --set` and `set` both
+    call, so the two verbs judge a row identically instead of by two
+    hand-kept copies (goal:g7.33.10 round B,
+    hypothesis:write-py-set-is-schema-checked). Refuses BY NAME, never a
+    traceback, on the first violation:
+
+      1. the schema's field-level `refuse:` annotation;
+      2. `validation.types[key]` (or, absent that, `fields[key].type`) is
+         declared and `value`'s coerced Python type does not match it —
+         int/float/list/bool/str, not just int;
+      3. `validation.regex[key]` is declared and `value` does not fully
+         match it.
+
+    Required-ness is a separate concern this predicate does not own
+    (create's own `required_nonempty` loop and `links.py schema` do) — a
+    field the schema simply does not mention gates nothing.
+
+    NO "undeclared field is refused" check — REMOVED (thought-master TMM.171,
+    returned merge-up @0f08a9d3d8): a first version refused any `key` not in
+    `fields:` or a hand-picked `_UNIVERSAL_FIELDS` allowlist, and TMM.171's
+    measurement (a scratch-worktree --dry-run sweep) found 111 (type, field)
+    pairs across 2,273 live node-fields sit in no schema's `fields:` at all —
+    `experiment.production_lines` (461 live uses), `experiment.line_ceiling`
+    (362), `goal.heading_level` (362), `hypothesis.verdict` (150),
+    `hypothesis.ceiling` (98), `experiment.rebrief_answer`/`rebrief_request`
+    (brief.py's own re-brief protocol, cli.py:842) among them — every one of
+    which the gate refused on trunk's live graph. The schemas' `fields:`
+    blocks are far less complete than the corpus's actual field usage; an
+    allowlist maintained by hand cannot keep up with that gap, and refusing
+    on it breaks routine protocol writes rather than catching typos. Dropped
+    entirely rather than patched wider — the type/regex checks below stay,
+    because those only fire on a field a schema explicitly typed or
+    regex'd, a far smaller and more deliberate set.
+    """
+    fields = schema.fields or {}
+    field = fields.get(key)
+    if isinstance(field, dict) and field.get("refuse"):
+        ground = str(field.get("refuse"))
+        return (f"{verb} {node_type} refused by name: {key!r} is not a "
+                f"settable cell — {ground} (schema field-level `refuse:`, "
+                f"enforced generically)")
+    validation = schema.frontmatter.get("validation") or {}
+    declared = (validation.get("types") or {}).get(key)
+    if declared is None and isinstance(field, dict):
+        declared = field.get("type")
+    if declared and not _matches_type(value, declared):
+        article = "an" if declared[0] in "aeiou" else "a"
+        return (f"{verb} {node_type} refused by name: {key!r} must be "
+                f"{article} {declared} value, got {value!r} (schema declares "
+                f"{key}: {declared})")
+    pattern = (validation.get("regex") or {}).get(key)
+    if pattern and (not isinstance(value, str)
+                    or re.fullmatch(pattern, value) is None):
+        return (f"{verb} {node_type} refused by name: {key!r} must match "
+                f"{pattern!r}, got {value!r} (schema validation.regex)")
+    return None
+
+
+#: Rows an answers FILE names for the mint itself, not as frontmatter.
+_ANSWERS_RESERVED = frozenset({"type", "slug", "parents", "body", "payload"})
+
+#: Rows the WRITER mints: `node_writer.write_node` builds id/mint_id/
+#: next_edges/scaffold_hash and THEN `fm.update(extra_fm)` runs, so an answers
+#: row or a `--set` naming one would overwrite the node's own identity. ONE
+#: definition of that fact, in `node_writer` (the builder), imported here --
+#: a second transcription is a second truth that can drift.
+_ANSWERS_IDENTITY = frozenset(node_writer.MINTED_IDENTITY)
+
+#: THE PRECEDENCE, ONCE, for the rows the environment also stamps: an explicit
+#: `--set` > the answers file > the calling post's config:posts row > the
+#: environment (`node_writer._stamp_env_fields`). The surviving choice is
+#: re-stamped AFTER the mint, so nothing above the env rank is silently lost.
+#: `edited_by` is absent: that row is create()'s own `--actor` provenance and
+#: the post row has always lost to it.
+_STAMP_ROWS = ("role", "town", "season", "thought_session")
+
+
+def _refuse_authored_identity(key: str, source: str) -> str | None:
+    """ONE check for BOTH create routes (an answers row and an argv `--set`):
+    a row the writer MINTS is refused BY NAME, never overwritten."""
+    if key in _ANSWERS_IDENTITY:
+        return (f"create --{source} refused by name: {key!r} is MINTED by "
+                f"node_writer ({', '.join(sorted(_ANSWERS_IDENTITY))}) and is "
+                "never authorable")
+    return None
+
+
+def _read_answers_file(path: str):
+    """ONE answers file -> (data, refusal). JSON, so an apostrophe, a backtick
+    and `$(` need no shell quoting: no field value on this route passes
+    through a shell-quoted argv (claim 1).
+
+    PRECEDENCE (see `_STAMP_ROWS`): an explicit `--set` beats the file, the
+    file beats the calling post's `config:posts` row, and that row beats the
+    environment. A row NO caller may choose (`_ANSWERS_IDENTITY`) refuses by
+    name here, not silently."""
+    import json
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, ValueError) as exc:
+        return None, f"--answers {path}: {exc}"
+    if not isinstance(data, dict):
+        return None, f"--answers {path}: wants ONE JSON object, got {data!r}"
+    if not isinstance(data.get("body", ""), str):
+        return None, f"--answers {path}: 'body' must be a string"
+    # `parents` is consumed as `list(answers.get("parents"))`, so a STRING
+    # (JSON "5" -> `['5']`, a real parent id CHAR-SPLIT) or a non-iterable
+    # (`5`, `true`) either mints a garbage parent or raises a TypeError out of
+    # the parser. Type-check it HERE, where every other row is checked, and
+    # refuse BY NAME.
+    parents = data.get("parents")
+    if parents is not None and not (
+            isinstance(parents, list)
+            and all(isinstance(p, str) for p in parents)):
+        return None, (f"--answers {path}: 'parents' must be a list of node-id "
+                      f"strings, got {parents!r}")
+    return data, None
+
+
+def _post_stamp(root, actor: str) -> dict:
+    """The CALLING post's `config:posts` row as frontmatter rows (claim 3).
+
+    The row is selected by EXACT name equality with the actor that is running
+    the mint (or, with no `--actor`, the post the environment names) — never
+    by prefix, never "the last row", so another post's row can never stamp.
+    Every value is READ from the row / the ladder cell; none is transcribed.
+    An empty dict when no row matches: an unstamped node beats a wrong one.
+    """
+    name = (actor or "").strip() or (geometry_config.resolved_seat_env() or "")
+    row = next((r for r in _load_seats(root) if r.get("name") == name), None)
+    if not row:
+        return {}
+    import season
+    try:
+        current = int(season._get_current_season(root))
+    except (TypeError, ValueError):
+        current = None  # a corrupt ladder cell stamps nothing, never a bad row
+    values = {"edited_by": str(row["name"]), "role": row.get("role"),
+              "town": row.get("town"),
+              "season": current,
+              "thought_session": row.get("session_name")
+              or row.get("session_id")}
+    return {k: v for k, v in values.items() if v not in (None, "")}
+
+
+def _answers_row_refusal(root, node_type: str, node_id: str, slug: str,
+                         parents: list[str], set_fm: dict) -> str | None:
+    """The ONE row validator the answers route runs — a thin WRAPPER, never a
+    second copy: `_refuse_marker_value` + `_enforce_create_schema_gate` (which
+    is `_schema_field_refusal` over every row) + the REQUIRED rows
+    `node_writer.seed_required` cannot derive. Every name is read through the
+    schema registry; a refusal writes NOTHING (claim 2)."""
+    for key, value in set_fm.items():
+        refusal = _refuse_marker_value(key, value)
+        if refusal:
+            return refusal
+    refusal = _enforce_create_schema_gate(root, node_type, set_fm)
+    if refusal:
+        return refusal
+    preview = dict(set_fm, id=node_id, type=node_type, mint_id="0" * 32,
+                   parents=list(parents))
+    missing = node_writer.seed_required(root, node_type, preview, slug)
+    if missing:
+        return (f"create --answers {node_id} refused by name: "
+                + ", ".join(repr(k) for k in missing) + " required at mint "
+                "and NOT in the answers file (schema validation.required)")
+    return None
+
+
 def _enforce_create_schema_gate(root, node_type: str, set_fm: dict) -> str | None:
     """The CREATE half of a schema's field-level refusal annotations.
 
@@ -1759,26 +2017,13 @@ def _enforce_create_schema_gate(root, node_type: str, set_fm: dict) -> str | Non
         return None
     if schema is None:
         return None
-    fields = schema.fields or {}
-    vt = (schema.frontmatter.get("validation") or {}).get("types") or {}
     required_nonempty = ((schema.frontmatter.get("validation") or {})
                          .get("required_nonempty") or [])
-    for key in set_fm:
-        field = fields.get(key)
-        if isinstance(field, dict) and field.get("refuse"):
-            ground = str(field.get("refuse"))
-            return (f"create {node_type} refused by name: {key!r} is not a "
-                    f"settable cell — {ground}"
-                    f" (schema field-level `refuse:`, enforced generically "
-                    f"at mint)")
-        declared_int = (vt.get(key) == "int"
-                        or (isinstance(field, dict) and field.get("type") == "int"))
-        if declared_int:
-            v = set_fm[key]
-            if isinstance(v, bool) or not isinstance(v, int):
-                return (f"create {node_type} refused by name: {key!r} must "
-                        f"be an integer at mint, got {v!r}"
-                        f" (schema declares {key}: int)")
+    for key, value in set_fm.items():
+        refusal = _schema_field_refusal(schema, node_type, key, value,
+                                        verb="create")
+        if refusal:
+            return refusal
     for key in required_nonempty:
         if key not in set_fm:
             return (f"create {node_type} refused by name: {key!r} is required "
@@ -1791,6 +2036,38 @@ def _enforce_create_schema_gate(root, node_type: str, set_fm: dict) -> str | Non
                     f"non-empty at mint, got {v!r} (empty) — a node born with "
                     f"an empty {key} would be refused at read (schema "
                     f"validation.required_nonempty)")
+    return None
+
+
+def _enforce_set_schema_gate(root, node_type: str, set_fm: dict) -> str | None:
+    """The SET half of goal:g7.33.10 round B — `create --set` has run
+    `_enforce_create_schema_gate` since the town gate landed; an existing
+    node's `set` consulted no schema at all until now (measured: an invented
+    field, an out-of-regex `goal_id`/`status`, a non-float `confidence` and
+    a raw string into a list-typed field all wrote clean, exit 0). Shares
+    `_schema_field_refusal` with `create` so the two verbs judge a row
+    identically. Returns a ONE-LINE refusal or None; a schema or key this
+    predicate does not recognise gates nothing, exactly like the create
+    gate — required-ness stays out of scope here too.
+    """
+    try:
+        from schema_registry import load_schemas_from_dir
+    except Exception:  # noqa: BLE001
+        return None
+    schemas_dir = Path(root) / "context" / "schemas"
+    if not schemas_dir.is_dir():
+        return None
+    try:
+        schema = load_schemas_from_dir(schemas_dir).get(node_type)
+    except Exception:  # noqa: BLE001
+        return None
+    if schema is None:
+        return None
+    for key, value in set_fm.items():
+        refusal = _schema_field_refusal(schema, node_type, key, value,
+                                        verb="set")
+        if refusal:
+            return refusal
     return None
 
 
@@ -1887,20 +2164,35 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # resolved descend-only here, so a wrong root refuses before any write.
     root = _resolve_api_root(root)
 
-    # A link_ref/payload_ref set outside the repo tree is refused before any
-    # write; the SAME predicate links.py's schema report calls. The ref
-    # resolves against the EFFECTIVE location -- this edit's `location` if it
-    # carries one, else the one already on the node file -- so the refusal and
-    # the report agree in every reachable state (hypothesis:l5-a-verdict-...).
-    _loc = edit.set_fm.get("location")
-    if _loc is None and (_nf := node_writer.find_node_file(root, edit.node_id)):
+    # conjunct 1: resolve `sub` BEFORE the outside-ref gate, on the API path
+    # too; main already resolved it for its preview (idempotent).
+    _resolve_sub(root, edit)
+
+    # A link_ref/payload_ref resolving outside the repo tree is refused before
+    # any write; the SAME predicate links.py's schema report calls. It judges
+    # the EFFECTIVE frontmatter: a value this edit SETS, else ABSENT when this
+    # edit UNSETS the key, else what the node file already carries. Reading
+    # only `set_fm` admitted a location-only move of an existing inside ref,
+    # and falling back to the stale on-disk location over-refused an
+    # `unset location` (hypothesis:write-py-outside-ref-gate-...).
+    _on_disk: dict = {}
+    if (_nf := node_writer.find_node_file(root, edit.node_id)):
         from graph_core.persistence import frontmatter as _fmr
         try:
-            _loc = _fmr.load_node_file(_nf, body=False).frontmatter.get("location")
+            _on_disk = _fmr.load_node_file(_nf, body=False).frontmatter or {}
         except Exception:
-            _loc = None
+            _on_disk = {}
+
+    def _effective(key):
+        if key in edit.set_fm:
+            return edit.set_fm[key]
+        if key in edit.unset_fm:
+            return None
+        return _on_disk.get(key)
+
     for _f in ("link_ref", "payload_ref"):
-        if (_p := links.outside_repo_path(root, edit.set_fm.get(_f), _loc)):
+        if (_p := links.outside_repo_path(root, _effective(_f),
+                                          _effective("location"))):
             raise EditError(
                 f"cannot set {_f!r}: {_p} resolves outside the repo tree")
 
@@ -1918,6 +2210,7 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
                         allow_self_row=True,
                         has_body=bool(edit.body_append or edit.thought
                                       or edit.body_patch_diff
+                                      or edit.sub_body
                                       or edit.replace_target == "body"),
                         signatures=getattr(edit, "signatures", []),
                         out_decision=_ring_out,
@@ -1937,6 +2230,9 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     body = None
     if edit.body_append or edit.thought:
         body = _compose_body(root, edit)
+    elif edit.sub_body:
+        # sub touched the body with no note/thought riding along.
+        body = edit.sub_body
     # hypothesis:l3-partial-write-adoption — the PATH form must read its diff
     # BEFORE the apply-check below, or body_patch_diff is still empty at apply
     # time and the diff is silently discarded (measured 2026-09-09: `body_patch
@@ -1952,10 +2248,10 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         # through `update_node` below, so the THOUGHT region is carried across
         # and write_guard sees a sanctioned write. Exclusive with note/thought:
         # one body writer per submit keeps a single writer author of the body.
-        if edit.body_append or edit.thought:
+        if edit.body_append or edit.thought or edit.sub_body:
             raise EditError(
-                "body_patch is standalone; it cannot share a line with note "
-                "or thought (one body writer per submit)")
+                "body_patch is standalone; it cannot share a line with note, "
+                "thought or sub (one body writer per submit)")
         body = apply_unified_diff(_read_body_text(root, edit.node_id),
                                   edit.body_patch_diff)
 
@@ -1990,18 +2286,46 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # is written, so a bad range leaves the node and the payload untouched.
     if edit.replace_target:
         if edit.replace_target == "body" and (edit.body_append or edit.thought
-                                              or edit.body_patch_diff):
+                                              or edit.body_patch_diff
+                                              or edit.sub_body):
             raise EditError(
                 "replace body is standalone; it cannot share a line with "
                 "note, thought or body_patch (one body writer per submit)")
-        _spliced = _splice_range(
-            _target_text(root, edit, edit.replace_target,
-                         payload_ref, location),
-            edit.replace_range, edit.replace_text)
+        _current = _target_text(root, edit, edit.replace_target,
+                                payload_ref, location)
+        # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-
+        # splices -- the body-only structural guard, before the splice and
+        # before any write. A payload is arbitrary bytes and is never
+        # structure-checked; `read body N:M` stays unguarded too.
+        if edit.replace_target == "body" and not edit.replace_force:
+            _refusal = _body_range_refusal(_current, edit.replace_range)
+            if _refusal:
+                raise EditError(
+                    f"{_refusal} "
+                    f"(hypothesis:lm-replace-body-anchor-guards-against-mis-"
+                    f"offset-splices)")
+        _spliced = _splice_range(_current, edit.replace_range,
+                                 edit.replace_text)
         if edit.replace_target == "body":
             body = _spliced
         else:
             edit.payload_bytes = _spliced
+
+    # hypothesis:every-write-py-path-is-schema-checked-not-only-the-set-verb
+    # -- the schema gate for the LIBRARY path. main() runs the same predicate
+    # (line ~3121) on the CLI, but submit() did not, so every engine caller
+    # (rotate.py's list cells among them) wrote a value the schema refuses by
+    # name: a `refuse:` annotation, a wrong type, a raw scalar into a
+    # list-typed field, an out-of-regex value. The SAME one-line refusal, the
+    # SAME row-and-rule naming, raised as an EditError before anything is
+    # written -- so the API and the CLI cannot disagree about what a legal row
+    # is. Only the caller's own `set_fm` is judged, exactly as on the CLI: the
+    # provenance/ring cells submit() adds afterwards are its own bookkeeping.
+    if edit.set_fm and ":" in edit.node_id:
+        _refusal = _enforce_set_schema_gate(
+            root, edit.node_id.split(":", 1)[0], edit.set_fm)
+        if _refusal:
+            raise EditError(_refusal)
 
     # A `location` set in this same edit wins over the one on disk: naming the
     # new base and moving the bytes is one intention, not two.
@@ -2123,6 +2447,221 @@ def _splice_range(text: str, rng: str, new: str) -> str:
     return "\n".join(lines[:start] + new_lines + lines[end:])
 
 
+def _resolve_sub(root, edit: Edit) -> None:
+    """Resolve every `sub` op, composing in order (conjunct 3)."""
+    if edit.sub_resolved or not edit.sub_ops:
+        return
+    node_before = node_after = None
+    payload_before = payload_after = None
+    node_label = edit.node_id
+    payload_label = ""
+    total = 0
+    for target, old, new, all_ in edit.sub_ops:
+        if target == "payload":
+            if payload_before is None:
+                ref, loc = _payload_ref(root, edit)
+                payload_before = payload_after = _read_payload_bytes(
+                    root, ref, loc)
+                payload_label = ref
+            before, label = payload_after, payload_label
+        else:
+            if node_before is None:
+                path = node_writer.find_node_file(root, edit.node_id)
+                if path is None:
+                    raise EditError(f"no node file for {edit.node_id}")
+                node_before = node_after = path.read_text(encoding="utf-8")
+            before, label = node_after, node_label
+        n = before.count(old)
+        if n == 0:
+            raise EditError(f"sub: 0 occurrences of {old!r} in "
+                            f"{label} -- nothing written")
+        if not all_ and n != 1:
+            raise EditError(f"sub: {n} occurrences of {old!r} in "
+                            f"{label}; use sub! -- nothing written")
+        after = before.replace(old, new, -1 if all_ else 1)
+        total += n if all_ else 1
+        if target == "payload":
+            payload_after = after
+        else:
+            node_after = after
+    if payload_after is not None:
+        edit.payload_bytes = payload_after
+    if node_after is not None:
+        old_fm = frontmatter.read_frontmatter(node_before)
+        new_fm = frontmatter.read_frontmatter(node_after)
+        if not old_fm or new_fm is None or set(old_fm) != set(new_fm):
+            raise EditError(f"sub would break frontmatter in {node_label} -- "
+                            f"nothing written")
+        if any(old_fm.get(k) != new_fm.get(k) for k in PROTECTED):
+            raise EditError("sub cannot change id/mint_id/type/scaffold_hash "
+                            "-- nothing written")
+        changed = {k: v for k, v in new_fm.items()
+                   if k not in PROTECTED and old_fm.get(k) != v}
+        for k, v in changed.items():
+            refusal = _refuse_marker_value(k, v)
+            if refusal:
+                raise EditError(refusal)
+        edit.set_fm.update(changed)
+        ob = frontmatter.split_frontmatter(node_before)[1]
+        nb = frontmatter.split_frontmatter(node_after)[1]
+        if nb != ob:
+            edit.sub_body = nb
+    edit.sub_count, edit.sub_resolved = total, True
+
+
+# --------------------------------------------------------------------------
+# The structural guard (hypothesis:lm-replace-body-anchor-guards-against-mis-
+# offset-splices). `replace body N:M` is offset-free, but the RANGE is still
+# chosen by hand: a range one line short of a section end splits a heading
+# from its text and the write is silent. This guard catches exactly that
+# class before `_splice_range` runs -- on the BODY only, because a payload is
+# arbitrary bytes and a partial `read` must stay unguarded -- and always names
+# `--force` plus the node id, so the refusal is an instruction, not a wall.
+# --------------------------------------------------------------------------
+
+_HEADING_RE = re.compile(r"^ {0,3}(#{1,6})(?:\s|$)")
+_FENCE_RE = re.compile(r"^( {0,3})(`{3,}|~{3,})(.*)$")
+
+
+def _is_heading(line: str) -> bool:
+    """One strict CommonMark heading rule, shared by the whole guard."""
+    return bool(_HEADING_RE.match(line))
+
+
+def _heading_level(line: str) -> int:
+    """The ATX heading level (1..6), or 0 for a non-heading line."""
+    m = _HEADING_RE.match(line)
+    return len(m.group(1)) if m else 0
+
+
+def _fence_marker(line: str):
+    """(char, length, info-string) of a CommonMark fence line, or None."""
+    m = _FENCE_RE.match(line)
+    return (m.group(2)[0], len(m.group(2)), m.group(3)) if m else None
+
+
+def _guard_headings(lines: list[str]) -> list[bool]:
+    """Per line: an ATX heading that is NOT inside a code fence.
+
+    `# not a heading` inside ``` or ~~~ is code, and treating it as a
+    heading truncates `_section_end`, admitting a replace-body range that
+    cuts the fenced block in half (hypothesis:write-body-range-guard-is-
+    fence-aware-and-clamped). Fences follow CommonMark: an opening run of
+    three or more ``` or ~~~ (a backtick fence's info string may hold no
+    backtick); it closes only on the SAME character, at least as long, with
+    nothing but whitespace after it.
+    """
+    out = [False] * len(lines)
+    fence = None
+    for i, line in enumerate(lines):
+        mark = _fence_marker(line)
+        if fence is None:
+            if mark and not (mark[0] == "`" and "`" in mark[2]):
+                fence = mark[:2]
+                continue
+            out[i] = _is_heading(line)
+        elif (mark and mark[0] == fence[0] and mark[1] >= fence[1]
+              and not mark[2].strip()):
+            fence = None
+    return out
+
+
+def _section_end(lines: list[str], idx: int) -> int:
+    """The 0-based EXCLUSIVE end of the section headed by `lines[idx]`.
+
+    The next line at the same-or-higher level OUTSIDE any code fence, or
+    the end of the text. This is the guard's own rule for "where the
+    heading's text stops", and the whole-section case is measured against
+    it rather than guessed at.
+    """
+    head = _guard_headings(lines)
+    level = _heading_level(lines[idx])
+    j = idx + 1
+    while j < len(lines):
+        if head[j] and _heading_level(lines[j]) <= level:
+            break
+        j += 1
+    return j
+
+
+def _plain(line: str, heading: bool) -> bool:
+    """A line that is neither blank nor a heading -- paragraph content."""
+    return bool(line.strip()) and not heading
+
+
+def _has_content(lines: list[str], a: int, b: int) -> bool:
+    """Any non-blank line in the 0-based half-open `[a, b)`.
+
+    Blank lines are not orphaned text, so a heading followed only by blanks
+    may be a range's last line without refusing: the body always ends in a
+    newline, and punishing that would be a false positive on the working
+    case.
+    """
+    return any(ln.strip() for ln in lines[a:b])
+
+
+def _body_range_refusal(text: str, rng: str) -> str | None:
+    """The refusal text for a body range that splits structure, or None.
+
+    Three shapes, each naming the offending line and the escape hatch:
+
+    (a) the range STARTS strictly inside a paragraph;
+    (b) the range ENDS strictly inside a paragraph;
+    (c) the range STARTS on a heading but stops before the end of that
+        heading's own section, orphaning non-blank text under it (only a
+        BOUNDED upper bound can stop short -- `N:` runs to EOF and covers
+        the section);
+    (d) the range ENDS exactly on a heading -- `### A.1` -- whose own section
+        still holds non-blank text: the heading is removed and its text
+        survives, the same split from the other edge.
+
+    The childless tail -- a section whose last line is a deeper heading with
+    nothing under it -- matches none of the four and is ADMITTED, because
+    that heading IS the correct end of the outer section (falsifier (c) of
+    the hypothesis, measured on experiment:a00-29883877-7abb3b).
+    """
+    lo, hi = _parse_range(rng)
+    lines = text.split("\n")
+    n = len(lines)
+    start = 0 if lo is None else lo - 1
+    if hi is not None and hi > n:
+        return (f"replace body {rng} ends past the end of the body at line "
+                f"{n} -- the range overruns it. Cap the range at {n} or "
+                f"pass --force")
+    end = n if hi is None else hi
+    if start >= n or end <= start:
+        return None
+    head = _guard_headings(lines)
+    if start > 0 and _plain(lines[start], head[start]) \
+            and _plain(lines[start - 1], head[start - 1]):
+        return (f"replace body {rng} starts inside a paragraph at line "
+                f"{start + 1} ({lines[start]!r}) -- it would cut the "
+                f"paragraph in half. Widen the range to a blank line or a "
+                f"heading, or pass --force")
+    if end < n and _plain(lines[end - 1], head[end - 1]) \
+            and _plain(lines[end], head[end]):
+        return (f"replace body {rng} ends inside a paragraph at line {end} "
+                f"({lines[end - 1]!r}) -- the rest of the paragraph would be "
+                f"orphaned. Widen the range to a blank line or a heading, "
+                f"or pass --force")
+    if hi is not None and head[start]:
+        sec = _section_end(lines, start)
+        if end < sec and _has_content(lines, end, sec):
+            return (f"replace body {rng} starts on the heading "
+                    f"{lines[start]!r} but stops before the end of its "
+                    f"section (line {sec}) -- that splits the heading from "
+                    f"its text. Widen the range or pass --force")
+    j = end - 1
+    if head[j]:
+        sec = _section_end(lines, j)
+        if sec > j + 1 and _has_content(lines, j + 1, sec):
+            return (f"replace body {rng} ends on the heading {lines[j]!r} "
+                    f"-- the heading is removed while its text (line "
+                    f"{j + 2}..{sec}) survives. Widen the range past its "
+                    f"section or pass --force")
+    return None
+
+
 def _read_payload_text(root, ref: str, location: str | None, rng: str) -> str:
     """The requested line range of a build node's payload file, as text.
 
@@ -2177,6 +2716,44 @@ def _target_text(root, edit: "Edit", target: str,
 _HUNK_RE = re.compile(
     r"@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@.*")
 
+_NO_EOF_MARKER = "\\ No newline at end of file"
+
+
+def _split_keepends(text: str) -> list[str]:
+    """Split on a bare `\n` ONLY, keeping the newline on terminated lines.
+
+    `str.splitlines(True)` also splits on `\r`, `\v`, `\f` and friends, which
+    would corrupt a node whose bytes contain any of them. This is the one
+    line-splitter `apply_unified_diff` and the diff renderer share, so the
+    two halves agree on what a "line" is.
+    """
+    parts = text.split("\n")
+    lines = [p + "\n" for p in parts[:-1]]
+    if parts[-1]:
+        lines.append(parts[-1])
+    return lines
+
+
+def _standard_unified_diff(before: str, after: str, *, fromfile: str,
+                           tofile: str) -> str:
+    """`difflib.unified_diff` rendered as a STANDARD unified diff.
+
+    Both sides are compared keepends, so a missing EOF newline is a real line
+    difference (exactly as GNU diff sees it), and every content line with no
+    trailing newline is followed by the `\\ No newline at end of file` marker.
+    The split("\n") representation instead models a missing EOF newline as a
+    phantom empty trailing line, which GNU `patch` rejects (hypothesis:sub-
+    dry-run-preview-is-the-bytes-update-node-lands).
+    """
+    out = []
+    for line in difflib.unified_diff(
+            _split_keepends(before), _split_keepends(after),
+            fromfile=fromfile, tofile=tofile, lineterm="\n"):
+        out.append(line)
+        if not line.endswith("\n"):
+            out.append("\n" + _NO_EOF_MARKER + "\n")
+    return "".join(out)
+
 
 def apply_unified_diff(original: str, diff: str) -> str:
     """Apply a unified diff to `original`, fail-closed, in memory.
@@ -2184,7 +2761,10 @@ def apply_unified_diff(original: str, diff: str) -> str:
     hypothesis:l3-write-partial-diffs-as-writes. Reads the grid's own diff
     vocabulary (what `git diff` / `difflib.unified_diff` emit): `---`/`+++`
     headers are optional, `@@` hunks carry body lines prefixed with space
-    (context), `-` (removed) or `+` (added).
+    (context), `-` (removed) or `+` (added). A `\\ No newline at end of file`
+    marker strips the trailing newline from the line before it, so a patch
+    round-trips a file whose last line is unterminated -- the marker GNU
+    `patch` emits and demands.
 
     **No partial application, ever.** Every context line and every removal is
     checked against the payload's current bytes; the first mismatch raises
@@ -2192,13 +2772,14 @@ def apply_unified_diff(original: str, diff: str) -> str:
     header is malformed, or body bytes that arrive outside any hunk, also
     refuse. The result is a single new string built entirely in memory.
     """
-    orig = original.split("\n")
+    orig = _split_keepends(original)
     diff_lines = diff.split("\n")
     if diff_lines and diff_lines[-1] == "":
         diff_lines = diff_lines[:-1]
 
     # --- Collect the hunks first, so a malformed diff refuses before any
-    # state has been touched. ---
+    # state has been touched. Each body entry carries `has_nl`: the marker
+    # line clears it on the entry it follows. ---
     hunks = []
     i, n = 0, len(diff_lines)
     while i < n:
@@ -2214,12 +2795,19 @@ def apply_unified_diff(original: str, diff: str) -> str:
             while i < n and not diff_lines[i].startswith("@@"):
                 b = diff_lines[i]
                 i += 1
+                if b == _NO_EOF_MARKER:
+                    if not body:
+                        raise EditError(
+                            "no-newline marker with no preceding line")
+                    action, content, _ = body[-1]
+                    body[-1] = (action, content, False)
+                    continue
                 if not b:
-                    body.append((" ", ""))   # a context blank line
+                    body.append((" ", "", True))   # a context blank line
                     continue
                 if b[0] not in "+- ":
                     raise EditError(f"bytes outside any hunk: {b!r}")
-                body.append((b[0], b[1:]))
+                body.append((b[0], b[1:], True))
             hunks.append((old_start, new_start, body))
         else:
             # `---`/`+++` path headers and stray blank separators are
@@ -2237,28 +2825,29 @@ def apply_unified_diff(original: str, diff: str) -> str:
         while oi < target:
             out.append(orig[oi])
             oi += 1
-        for action, content in body:
+        for action, content, has_nl in body:
+            want = content + ("\n" if has_nl else "")
             if action == " ":
-                if oi >= len(orig) or orig[oi] != content:
+                if oi >= len(orig) or orig[oi] != want:
                     got = (repr(orig[oi]) if oi < len(orig) else "<EOF>")
                     raise EditError(
                         f"context mismatch at original line {oi + 1}: "
-                        f"diff expects {content!r}, file has {got}")
+                        f"diff expects {want!r}, file has {got}")
                 out.append(orig[oi])
                 oi += 1
             elif action == "-":
-                if oi >= len(orig) or orig[oi] != content:
+                if oi >= len(orig) or orig[oi] != want:
                     got = (repr(orig[oi]) if oi < len(orig) else "<EOF>")
                     raise EditError(
                         f"removal mismatch at original line {oi + 1}: "
-                        f"diff expects {content!r}, file has {got}")
+                        f"diff expects {want!r}, file has {got}")
                 oi += 1
             else:                       # action == "+"
-                out.append(content)
+                out.append(want)
     while oi < len(orig):
         out.append(orig[oi])
         oi += 1
-    return "\n".join(out)
+    return "".join(out)
 
 
 def _payload_ref(root, edit: Edit) -> tuple[str, str | None]:
@@ -2321,6 +2910,11 @@ def _compose_body(root, edit: Edit) -> str:
     if path is None:
         raise EditError(f"no node file for {edit.node_id}")
     body = fm_reader.load_node_file(path).body
+    if edit.sub_body:
+        # hypothesis:write-py-inline-replace-verb -- a `sub` that touched the
+        # body is the base note/thought compose onto, so `sub a => b && note
+        # why` is one body write, not two.
+        body = edit.sub_body
 
     if edit.body_append and edit.body_append.strip() not in body:
         # Append UNDER an existing heading rather than adding a second one.
@@ -2348,10 +2942,58 @@ def _compose_body(root, edit: Edit) -> str:
     return body
 
 
+def _landed_node_text(root, edit: Edit, actor: str = "",
+                      session: str = "") -> str:
+    """The bytes `update_node` would write; the conjunct-4 preview diff.
+
+    Built through `node_writer.assemble_node`, the SAME ordering `update_node`
+    uses, so the preview cannot drift from the landed bytes
+    (hypothesis:sub-dry-run-preview-is-the-bytes-update-node-lands).
+    """
+    from graph_core.persistence import frontmatter as fm_reader
+    path = node_writer.find_node_file(root, edit.node_id)
+    if path is None:
+        raise EditError(f"no node file for {edit.node_id}")
+    nf = fm_reader.load_node_file(path)
+    new_body = nf.body
+    has_new_body = False
+    if edit.body_append or edit.thought:
+        new_body = _compose_body(root, edit)
+        has_new_body = True
+    elif edit.sub_body:
+        new_body = edit.sub_body
+        has_new_body = True
+    set_fm = dict(edit.set_fm or {})
+    set_fm[PROVENANCE_ACTOR] = actor or _default_actor()
+    if session:
+        set_fm[PROVENANCE_SESSION] = session
+    fm, new_body, _ = node_writer.assemble_node(
+        nf.frontmatter, new_body,
+        old_body=nf.body if has_new_body else None,
+        set_fm=set_fm, unset_fm=edit.unset_fm)
+    return node_writer._serialize_node(node_writer.render_frontmatter(fm),
+                                       new_body)
+
+
+def _baseline_node_text(root, node_id: str) -> str:
+    """The on-disk node's bytes, VERBATIM -- the `-` diff side: NO stamp, NO
+    absorb, NO re-serialize, so the patch applies to the file that is actually
+    there and a duplicate body frontmatter block the real write strips, a
+    missing EOF newline, or a frontmatter `render_frontmatter` would rewrite
+    all stay visible as the bytes they are (hypothesis:sub-dry-run-preview-is-
+    the-bytes-update-node-lands).
+    """
+    path = node_writer.find_node_file(root, node_id)
+    if path is None:
+        raise EditError(f"no node file for {node_id}")
+    return path.read_text(encoding="utf-8")
+
+
 def create(root, node_type: str, slug: str, parents: list[str], *,
            set_fm: dict | None = None, payload: str | None = None,
+           body: str | None = None,
            actor: str = "", session: str = "", role: str = "",
-           bypass: bool = False):
+           bypass: bool = False, post_rows: dict | None = None):
     """Mint a node — and, for a build node, the file it points at.
 
     **This is `write.py`'s other half, and its absence was the hole that made
@@ -2392,6 +3034,7 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
 
     res = node_writer.write_node(root, node_type, slug, parents,
                                  extra_fm=extra or None, bypass=bypass,
+                                 body=body,
                                  log_extra=_log_provenance(actor))
     if res.rejected or not res.written:
         if created_file is not None:
@@ -2405,12 +3048,19 @@ def create(root, node_type: str, slug: str, parents: list[str], *,
 
     # Provenance goes on through the same routine every other edit uses, so a
     # created node is not a node with a weaker record than an edited one.
-    if actor or session:
+    # `post_rows` (the answers route ONLY) is re-stamped HERE because
+    # `node_writer._stamp_env_fields` OWNS `season` and `role` at mint and
+    # overwrites whatever the file asked for, from the ENVIRONMENT; the post
+    # row is the authority the claim names, so it lands last. Absent (the
+    # argv route) this is a no-op and `create()` stays byte-identical.
+    stamp_rows = dict(post_rows or {})
+    if stamp_rows or actor or session:
         stamp = Edit(node_id=res.node_id)
         if actor:
             stamp.set_fm[PROVENANCE_ACTOR] = actor
         if session:
             stamp.set_fm[PROVENANCE_SESSION] = session
+        stamp.set_fm.update(stamp_rows)
         node_writer.update_node(root, res.node_id, set_fm=stamp.set_fm,
                                 log_extra=_log_provenance(actor))
     return res, created_file
@@ -2421,7 +3071,8 @@ def main(argv: list[str] | None = None) -> int:
     or `write.py build:bin-x "read payload 10:20"` / `"patch -"` (diff on
     stdin, fail-closed; `body_patch -` for a node body).
 
-    or `write.py create <type> <slug> --parent <id> [--payload PATH]`.
+    or `write.py create <type> <slug> --parent <id> [--payload PATH]
+    [--body-file PATH]`.
     """
     import argparse
 
@@ -2446,6 +3097,22 @@ def main(argv: list[str] | None = None) -> int:
     for name in VERBS:
         epilog_lines.append(
             f"  {name}\t{ARITY[name]} arg(s)\t{VERB_EXAMPLES[name]}")
+    # hypothesis:lm-replace-body-standalone-restriction-is-documented-in-help
+    # -- submit() already refuses this loudly (see the raise below); the gap
+    # was discoverability, so the rule is rendered into `-h` BEFORE a caller
+    # writes a script that will fail. Appended AFTER the verb table so every
+    # verb line keeps its exact `name\tarity arg(s)\texample` shape that the
+    # drift guard and the epilog tests inspect.
+    epilog_lines.append("")
+    epilog_lines.append("NOTES:")
+    epilog_lines.append(
+        "  replace body is standalone; it cannot share a script line with "
+        "note, thought or body_patch (one body writer per submit). "
+        "Compose them as separate write.py calls.")
+    epilog_lines.append(
+        "  a prose argument carries a literal verb-led && by escaping it "
+        "as \\&&; an unescaped && before a verb still separates, and "
+        "&&&& (a doubled pair) separates exactly as it always did.")
     epilog = "\n".join(epilog_lines)
 
     ap = argparse.ArgumentParser(
@@ -2462,8 +3129,16 @@ def main(argv: list[str] | None = None) -> int:
                          "many are legal, not argparse")
     ap.add_argument("--payload", default=None,
                     help="with `create`: source file to link, created if absent")
+    ap.add_argument("--body-file", default=None, metavar="PATH",
+                    help="with `create`: read this file's UTF-8 bytes as the "
+                         "node body verbatim, instead of the type's "
+                         "placeholder scaffold")
     ap.add_argument("--set", dest="sets", action="append", default=[],
                     help="with `create`: extra frontmatter, k=v, repeatable")
+    ap.add_argument("--answers", default=None, metavar="PATH",
+                    help="with `create`: mint the node from ONE JSON answers "
+                         "file (type, slug, parents, every row, body) — an "
+                         "alternative to --set/--body-file, not a new verb")
     ap.add_argument("--no-spawn-gate", action="store_true",
                     help="bypass the spawn gate, loudly")
     ap.add_argument("--root", default=".", help="any path inside the project")
@@ -2500,11 +3175,27 @@ def main(argv: list[str] | None = None) -> int:
         if root is None:
             print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
             return 1
-        if not args.script or not args.slug:
+        answers: dict = {}
+        post_rows: dict = {}
+        if args.answers:
+            answers, refusal = _read_answers_file(args.answers)
+            if refusal:
+                print(f"ERR: {refusal}", file=sys.stderr)
+                return 2
+        script = args.script or answers.get("type") or ""
+        slug = args.slug or answers.get("slug") or ""
+        parents = list(args.parents or answers.get("parents") or [])
+        set_fm = {k: v for k, v in answers.items()
+                  if k not in _ANSWERS_RESERVED}
+        for k in sorted(set_fm):
+            refusal = _refuse_authored_identity(k, "answers")
+            if refusal:
+                print(f"ERR: {refusal}", file=sys.stderr)
+                return 2
+        if not script or not slug:
             print("ERR: create needs a type and a slug: "
                   'write.py create <type> <slug> --parent <id>', file=sys.stderr)
             return 2
-        set_fm = {}
         for pair in args.sets:
             if "=" not in pair:
                 print(f"ERR: --set expects k=v, got {pair!r}", file=sys.stderr)
@@ -2515,11 +3206,32 @@ def main(argv: list[str] | None = None) -> int:
             # a value the shared reader would split on is refused here too
             # (exit 2, one line naming the key), never landed into the
             # frontmatter for the reader to mis-split.
-            refusal = _refuse_marker_value(k, v)
+            refusal = (_refuse_authored_identity(k, "set")
+                       or _refuse_marker_value(k, v))
             if refusal:
                 print(f"ERR: {refusal}", file=sys.stderr)
                 return 2
             set_fm[k] = v
+        # claim 2: the answers route runs ONE row validator BEFORE the
+        # dry-run short-circuit, so a bad row refuses on a dry run too.
+        if answers:
+            # claim 3: the calling post's row fills the rows the answers file
+            # is SILENT on, BEFORE the validator — so a stamp goes through the
+            # same row rules and can satisfy a REQUIRED row. A row the file
+            # SETS wins; the stamp never overwrites an authored row.
+            post_rows = {k: v for k, v in _post_stamp(root, args.actor).items()
+                         if k not in set_fm}
+            set_fm.update(post_rows)
+            # THE PRECEDENCE, executed: an explicit `--set` and the file's own
+            # row now outrank the post row, so the SURVIVING choice is what
+            # create() re-stamps after `node_writer`'s environment stamp.
+            post_rows.update({k: set_fm[k] for k in _STAMP_ROWS
+                              if k in set_fm})
+            refusal = _answers_row_refusal(root, script, f"{script}:{slug}",
+                                           slug, parents, set_fm)
+            if refusal:
+                print(f"ERR: {refusal}", file=sys.stderr)
+                return 2
         # hypothesis:l4-the-town-create-gate-refuses-what-the-loader-refuses-
         # and-every-vision-id-must-exist — the schema's field-level `refuse:`/
         # declared-`int` rules are a GATE the create path enforces GENERICALLY,
@@ -2527,22 +3239,67 @@ def main(argv: list[str] | None = None) -> int:
         # refuses what the real mint would refuse). A town `branches:` cell and
         # a non-int `season` both refuse BY NAME by exit 2 here — never a
         # traceback, never a node born only for a later reader to reject.
-        refusal = _enforce_create_schema_gate(root, args.script, set_fm)
+        refusal = _enforce_create_schema_gate(root, script, set_fm)
         if refusal:
             print(f"ERR: {refusal}", file=sys.stderr)
             return 2
+        # The ceiling guard lives ABOVE the dry-run short-circuit: one guard,
+        # one message, one exit code, on BOTH paths (a dry run simulates the
+        # mint, so it refuses what the real mint refuses -- the same rule the
+        # answers row validator above follows, and the hole `--dry-run` used
+        # to open around it).
+        # INHERITED FAIL-OPEN, stated here so a later reader sees it is policy
+        # and not an oversight: an actor with no seat row (or a seat role off
+        # the ladder) makes `_ceiling_refusal` return None, so an unseated
+        # `--actor` -- or none at all -- still mints an elevated `role` here.
+        # That is the SAME policy the `--role`/`AGI_ROLE` routes carry
+        # (`_ceiling_refusal`); changing it would make `--answers` STRICTER
+        # than `--role` on identical facts. A ladder decision, not this
+        # call site's: named for the director, not fixed here.
+        if post_rows.get("role"):
+            refusal = _ceiling_refusal(
+                str(post_rows["role"]), _resolve_seats_role(root, args.actor),
+                args.actor or "-", "--answers")
+            if refusal:
+                print(f"ERR: {refusal}", file=sys.stderr)
+                return 2
         if args.dry_run:
-            print(f"create {args.script}:{args.slug}")
-            print(f"  parents  {args.parents or '(none)'}")
-            if args.payload:
-                print(f"  payload  {args.payload}")
+            print(f"create {script}:{slug}")
+            print(f"  parents  {parents or '(none)'}")
+            print(f"  payload  {args.payload or answers.get('payload') or ''}")
+            if args.body_file is not None:
+                print(f"  body-file {args.body_file}")
+            elif answers.get("body") is not None:
+                print("  body     (from --answers)")
             for k, v in set_fm.items():
                 print(f"  set      {k} = {v!r}")
             return 0
-        res, made = create(root, args.script, args.slug, args.parents,
-                           set_fm=set_fm, payload=args.payload,
-                           actor=args.actor, session=args.session, role=args.role,
-                           bypass=args.no_spawn_gate)
+        # hypothesis:lm-create-body-file-lands-real-prose-not-the-placeholder-
+        # scaffold -- the verb layer owns IO. Read the body HERE, in `main()`,
+        # so a missing/unreadable file is refused by name with exit 2 and NO
+        # node is written; `body=None` (no flag) reaches `write_node`
+        # unchanged, keeping the BODY_PROMPTS scaffold path byte-identical.
+        # A `role` the answers file or an explicit `--set` names is re-stamped
+        # LAST (below, in `create()`), AFTER `node_writer`'s environment stamp
+        # -- which is exactly why the ceiling guard has to be applied to the
+        # SURVIVING row HERE: an elevation that survives the precedence would
+        # otherwise never be compared with the actor's seat at all.
+        body = None
+        if args.body_file is not None:
+            try:
+                body = Path(args.body_file).read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError) as exc:
+                print(f"ERR: --body-file {args.body_file}: {exc}",
+                      file=sys.stderr)
+                return 2
+        elif answers.get("body") is not None:
+            body = answers["body"]
+        res, made = create(root, script, slug, parents,
+                           set_fm=set_fm,
+                           payload=args.payload or answers.get("payload"),
+                           body=body, actor=args.actor, session=args.session,
+                           role=args.role, bypass=args.no_spawn_gate,
+                           post_rows=post_rows)
         if res.rejected:
             print(f"ERR: spawn rejected for {res.node_id}: {res.reason}. "
                   f"Fix: {res.gate.fix} (--no-spawn-gate bypasses this, loudly.)",
@@ -2573,6 +3330,29 @@ def main(argv: list[str] | None = None) -> int:
     except EditError as exc:
         print(f"ERR: {exc}", file=sys.stderr)
         return 2
+
+    # goal:g7.33.10 round B -- the SET half of the schema-checked-rows gate.
+    # `edit.set_fm` is fully accumulated now (every `set` in the script has
+    # landed), so one pass here judges every row before anything reaches
+    # submit(). node_type is the node id's own prefix convention
+    # (`goal:g7.2` -> `goal`), the same shortcut node_writer already uses.
+    if edit.set_fm and ":" in args.node_id:
+        node_type = args.node_id.split(":", 1)[0]
+        refusal = _enforce_set_schema_gate(root, node_type, edit.set_fm)
+        if refusal:
+            print(f"ERR: {refusal}", file=sys.stderr)
+            return 2
+
+    # hypothesis:write-py-inline-replace-verb -- resolve `sub`/`sub!` once,
+    # here, so the `--dry-run` preview shows the real diff and a 0/2+ match
+    # refusal prints ERR and writes nothing. submit() re-resolves idempotently
+    # for an API caller.
+    if edit.sub_ops:
+        try:
+            _resolve_sub(root, edit)
+        except EditError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
 
     # hypothesis:l4-...-the-write-itself, SIGNER'S VIEW (kid D): `--ring-fields`
     # prints the EXACT config-write decision bytes a `ring:`-declaring schema's
@@ -2712,9 +3492,34 @@ def main(argv: list[str] | None = None) -> int:
         if edit.body_patch_from and not edit.body_patch_diff:
             print(f"  body_patch from {edit.body_patch_from}")
         if edit.replace_target:
+            if edit.replace_target == "body" and not edit.replace_force:
+                _refusal = _body_range_refusal(
+                    _target_text(root, edit, "body"), edit.replace_range)
+                if _refusal:
+                    print(f"ERR: {_refusal}", file=sys.stderr)
+                    return 2
             _src3 = "stdin" if edit.replace_from == "-" else edit.replace_from
             print(f"  replace {edit.replace_target} {edit.replace_range} "
                   f"({len(edit.replace_text)} chars, {_src3})")
+        if edit.sub_resolved:
+            _before = _baseline_node_text(root, edit.node_id)
+            _after = _landed_node_text(root, edit, actor=args.actor,
+                                       session=args.session)
+            # A STANDARD unified diff: compared keepends so a missing EOF
+            # newline is a real line difference, rendered with the `\ No
+            # newline at end of file` marker GNU `patch` demands. The old
+            # split("\n") render modelled a missing EOF newline as a phantom
+            # empty trailing line and GNU patch rejected the printed diff
+            # (hypothesis:sub-dry-run-preview-is-the-bytes-update-node-lands).
+            _sdiff = _standard_unified_diff(
+                _before, _after,
+                fromfile=f"a/{edit.node_id}", tofile=f"b/{edit.node_id}")
+            edit.sub_diff = _sdiff
+            sys.stdout.write(_sdiff)
+            if _sdiff and not _sdiff.endswith("\n"):
+                sys.stdout.write("\n")
+            print(f"  sub     {edit.sub_count} match(es) of "
+                  f"{edit.sub_old!r} -> {edit.sub_new!r}")
         return _preview_dry_run_gate(root, edit, args)
 
     if edit.payload_from == "-":
@@ -2746,6 +3551,8 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     print(f"{res.status}: {edit.node_id}"
           + (f" — {res.reason}" if res.reason else ""))
+    if res.status != node_writer.REJECTED and edit.sub_resolved:
+        print(f"sub: replaced {edit.sub_count} occurrence(s)")
     if res.status != node_writer.REJECTED:
         # The seat's OWN last act (conjunct 1): --actor first, then the env.
         last_act.touch_env(root, args.actor)

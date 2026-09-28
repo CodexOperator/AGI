@@ -1,0 +1,390 @@
+---
+id: experiment:a00-ff788172-12084f
+mint_id: 61311c7575f64e298868a4e4a19de010
+type: experiment
+parents:
+  - hypothesis:one-mint-route-answers-file-validated-row-by-row
+next_edges: []
+confidence: 0.6
+edited_by: a00-11971713
+evidence_runs:
+  - experiment:a00-ff788172-12084f
+loop: hypothesis:one-mint-route-answers-file-validated-row-by-row@s2
+model: stealth/space-bunny-alpha
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 82cb7eef9ecdc121
+season: 2
+title: "DH.570 corrective: the dry-run guard round repaired its own overstatements"
+town: core
+verdict: inconclusive_lean_proved:60
+---
+# experiment:a00-ff788172-12084f
+
+## Question
+
+Did `experiment:a00-949eaa34-76f733` (the `--dry-run` answers role-ceiling
+round) say true things about itself? Settled on the bytes, item by item, with
+every number a pasted command and not a typed one.
+
+## The base was wrong, and that cost a turn
+
+The brief names `83d964956` as the base to `git diff --numstat` against. It is
+not the round's base — it IS the round (`git log` shows it is the commit that
+*reports* the round, one commit after `31be99890`), so the diff over it is
+empty. The round's own parent, as the DH.555 reviewer used it, is `b9f9f6f81`.
+Every number below is over that.
+
+```
+$ git rev-parse HEAD
+83d9649569dbff9f727afb1fcf8b5b9f1f86c351
+$ git log --oneline -3
+83d964956 a00-0cdc4614 done: experiment:a00-949eaa34-76f733 verdict=proved
+31be99890 a00-949eaa34 done: experiment:a00-949eaa34-76f733 verdict=proved
+b9f9f6f81 director-engine: zero-USD lanes mint below the floor ...
+$ git diff --numstat 83d964956
+                       # (empty — the brief's base is the round's own tip)
+$ git diff --numstat b9f9f6f81 83d964956
+127     0    .agi/nodes/experiment/a00-949eaa34-76f733.md
+20      7    extensions/agi/bin/write.py
+54      3    extensions/agi/tests/test_write_answers_file.py
+```
+
+## Item-by-item
+
+| # | verdict | what the bytes said |
+|---|---------|--------------------|
+| 1 | FALSE CLAIM, LANDED | the parent-node edit never happened; landed now |
+| 2 | BREACH, REPORTED | 51 net test lines against a cap of 40 |
+| 3 | FIXED in the test | wording coupling removed |
+| 4 | WRONG CITATION | reviewer pointed into an evidence fence |
+| 5 | TWO SELF-UNDERSTATEMENTS | (a) fixed here; (b) survived UN-struck — struck by DH.587 |
+| 6 | UNVERIFIED → TRUE | the numbers hold |
+| 7 | OVER-STATED → NARROWED | one residual, not two |
+| 8 | PARTLY WRONG | the sweep is clean, "zero deletions" is not |
+
+### 1. The parent caveat addendum never landed — FIXED
+
+`experiment:a00-949eaa34-76f733`'s table row 3 says the inherited fail-open
+was "added as a THIRD call site to the parent's Caveats via `write.py`". The
+parent's Caveats list held three bullets and none of them was the fail-open:
+
+```
+$ grep -n "^## \|^### " .agi/nodes/experiment/a00-b0bf124f-4b8eb4.md
+26:## Experiment
+42:## Why the ceiling hole was a real elevation, not a nit
+67:## Evidence
+83:## Caveats this node carries honestly
+99:## Agent Notes
+$ grep -n "fail-open\|unseated" .agi/nodes/experiment/a00-b0bf124f-4b8eb4.md
+103:   (a THOUGHT-block paragraph — not the Caveats list)
+```
+
+The only mention was inside the reviewer's THOUGHT, which is provenance, not a
+caveat a later reader inherits. Landed for real via `body_patch` on the
+parent's Caveats, as a fourth bullet, dated DH.570 and naming the false claim.
+The round's own table row now carries the correction instead of the claim.
+
+### 2. Test cap breached — REPORTED, NOT HIDDEN
+
+`54/3` = **51 net added against a declared cap of 40**, over by 11. No test was
+deleted to reach the cap; the number is now in the round's Caveats. The round's
+only budget sentence was about the argv route's 15-line production cap, so the
+breach was invisible in its own cost reporting (item 5a).
+
+### 3. Wording-coupled assertion — FIXED
+
+`test_write_answers_file.py:609` pinned the dry-run print's column layout.
+A reformatted `set` line would fail a behaviourally identical mint. Now it
+asserts the mechanism, and the byte-for-byte `dry_err == real_err` assertion
+above it is untouched:
+
+```python
+    assert rc == 0, err
+    assert "create goal:g9.9.9" in out
+    # The set line's SPACING is presentation, not mechanism (DH.570 item 3):
+    # match the row and its value, never the column layout, so a reformatted
+    # `set` line cannot fail a behaviourally identical mint.
+    assert re.search(r"set\s+role = 'kid'", out), out
+    assert not (project / "nodes" / "goal" / "g9.9.9.md").exists(), \
+        "a dry run SIMULATES: the row is shown, never written"
+```
+
+PASTED VERBATIM from `extensions/agi/tests/test_write_answers_file.py:609-616`
+(DH.587 replaced the earlier fence, which carried the OLD literal
+`set      role = 'kid'` plus an inline "<- actually ..." annotation — a node
+whose declared Question is "every number a pasted command and not a typed one"
+must not paste bytes that are not the bytes). Cost: **8 added / 1 removed**
+test lines, measured:
+
+```
+$ git diff --numstat 83d964956 920bfee39 -- extensions/agi/tests/test_write_answers_file.py
+8	1	extensions/agi/tests/test_write_answers_file.py
+```
+
+which is **7 net, UNDER this round's own 40-line test ceiling** — the earlier
+sentence here called it "a further breach of the 40-line test ceiling" and that
+was wrong (item 1 of DH.587). The ROUND total over `b9f9f6f81` is `61/3` = 58
+net, and 58 is what the round's caveat 2 reports.
+
+### 4. The reviewer's own citation is wrong
+
+`a00-b0bf124f-4b8eb4.md:72` is inside the ``` evidence fence — the `ERR:
+--answers owner refused: actor post-a resolves to parent` probe text — not the
+Caveats list. The Caveats header is at **:83**. Corrected line numbers: the
+indicted fact ("no fail-open bullet in the Caveats list") is at the Caveats
+list, `a00-b0bf124f-4b8eb4.md:83-95` before the DH.570 edit; the reviewer
+should have written 83, not 72. Recorded here rather than relayed upward as-is.
+
+### 5. Two self-understatements — (a) FIXED, (b) NOT FIXED BY THIS ROUND
+
+(a) the test-line overrun was absent from the round's Caveats; (b) table row 3
+claimed a parent-node edit that was never made. (a) is on this node, stated in
+its Caveats. (b) was NOT: the false claim survived UN-struck in
+`experiment:a00-949eaa34-76f733.md`'s Agent Notes and THOUGHT, so "both are now
+on the round's own node, struck through at the claim site" was itself an
+over-statement — this round corrected one site and asserted completeness it did
+not have, the same class of error the round exists to remove. **DH.587 struck
+the two surviving copies**; the round's own claim of completeness is corrected
+above rather than defended.
+
+### 6. UNVERIFIED evidence block — TRUE (numbers hold)
+
+```
+$ env -u TMUX -u TMUX_PANE python3 -m pytest \
+    extensions/agi/tests/test_write_answers_file.py \
+    extensions/agi/tests/test_bin_help_smoke.py \
+    extensions/agi/tests/test_rotate_first_decision.py -q \
+    -p no:cacheprovider --basetemp=/tmp/dh570v
+124 passed, 6 skipped, 21 warnings in 220.77s (0:03:40)
+
+# the two-file claim, on its own
+$ ... test_write_answers_file.py test_bin_help_smoke.py -q --basetemp=/tmp/dh570a
+113 passed, 6 skipped, 21 warnings in 11.90s
+$ ... test_rotate_first_decision.py -q --basetemp=/tmp/dh570b
+11 passed in 0.89s
+```
+
+113 + 11 = 124, so the node's "113 passed, 6 skipped" and "11 passed" are both
+correct. No correction needed. Re-run after my item-3 edit: still
+`113 passed, 6 skipped`.
+
+### 7. Reload caveat OVER-stated → NARROWED
+
+The node called `importlib.reload(write)` "heavier than a source assert and the
+one thing a future `write.py` with import-time side effects would break". The
+concrete cross-module risk is nil, and the ordering is green:
+
+```
+$ grep -rn '^from write import|^from node_writer import' extensions/agi/tests/*.py
+grep-rc=1                      # nothing: no sibling holds a stale binding
+$ pytest test_write_answers_file.py -k "minted_row_set_is_DEFINED_ONCE or \
+    ceiling_guard_refuses_a_dry_run or role_the_seat_HOLDS_or_a_LOWER_..." -q
+4 passed, 37 deselected, 1 warning in 0.11s
+```
+
+The real residual is exactly one thing: a FUTURE import-time side effect in
+`write.py`, which does not exist today. The round's Caveats now say that.
+
+### 8. Green sweep — CLEAN, but the "zero deletions" claim is FALSE
+
+Confirmed clean: the `project` fixture writes only under `tmp_path`
+(`test_write_answers_file.py:91-100`), `_geometry` writes only inside that temp
+graph (`:133-139`), and no verification/gate file is touched —
+
+```
+$ git diff --name-only b9f9f6f81 83d964956 | grep -Ei 'verification|conftest|commands|tmux|systemd|cron'
+grep-rc=1                      # no verification/gate/config file in the diff
+```
+
+REFUTED: `git diff --numstat b9f9f6f81 83d964956` is `20/7` on `write.py` and
+`54/3` on the test file — **10 deletions, not zero**. Read before reporting
+them as a coverage loss, and they are clean: the 7 in `write.py` are the guard
+MOVED (removed below the short-circuit, re-added above it), and the 3 in the
+test file are the removed literal-source assert:
+
+```
+-    src = (BIN / "write.py").read_text(encoding="utf-8")
+-    assert "_ANSWERS_IDENTITY = frozenset(node_writer.MINTED_IDENTITY)" in src, \
+-        "the refusal must DERIVE its rows from the builder"
+```
+
+No assertion of behaviour was deleted; the one deleted assertion tested
+SPELLING, which is the defect item 3 is about. The negative result is worth
+having; the count in the brief was not.
+
+## Cost
+
+| path | mine | role |
+|------|------|------|
+| `extensions/agi/bin/write.py` | **0 lines** | untouched — the mechanism stands |
+| `extensions/agi/tests/test_write_answers_file.py` | 8/1 | item 3 only |
+| `experiment:a00-949eaa34-76f733.md` | node text | items 2, 3, 5, 7 |
+| `experiment:a00-b0bf124f-4b8eb4.md` | node text | item 1 |
+
+```
+$ git diff --numstat HEAD -- extensions/agi/bin/write.py      # production: empty
+$ git status --porcelain
+ M .agi/nodes/experiment/a00-949eaa34-76f733.md
+ M .agi/nodes/experiment/a00-b0bf124f-4b8eb4.md
+ M extensions/agi/tests/test_write_answers_file.py
+?? .agi/nodes/experiment/a00-ff788172-12084f.md
+```
+
+No stray files, nothing outside FILE SCOPE, nothing uncommitted by anyone else
+noticed. STRIKEN by DH.587 and replaced by the measured numbers: this round's
+OWN test delta was **7 net** (`83d964956..920bfee39`, `8/1`), which is UNDER
+its own 40-line test ceiling — it did not breach it. The ROUND total over
+`b9f9f6f81` is `61/3` = **58 net against the 40 cap, over by 18**, and that is
+the breach caveat 2 reports:
+
+## Caveats
+
+- This round fixed what a round OVERSTATED about itself. It did not re-litigate
+  the mechanism: the guard's placement, the `dry_err == real_err` byte
+  equality and the load-bearing precondition assert are all accepted as the
+  DH.555 reviewer left them, and my 113-passed run is on those bytes.
+- The argv route's `--set role=owner` (no `--answers`) still reaches `extra_fm`
+  unguarded. Inherited, named, untouched — file scope and a ladder decision.
+- The unseated fail-open is recorded in **THREE** places, counted by the
+  mechanism clause ("still mints"): `experiment:a00-949eaa34-76f733.md:92-96`,
+  `experiment:a00-b0bf124f-4b8eb4.md:95-104`, and the call-site comment at
+  `write.py:3236-3243` (the only copy in production code). Verified here, a pre-DH.660 snapshot: on this tip the command also returns b0bf124f:106, the counting sentence DH.660 added (a count, not a site), so the sites stay THREE; the re-run is pasted at experiment:a00-d85ae42b-bf72d8 "The one number" (EG.39):
+  ```
+  $ grep -n "still mints" a00-949eaa34-76f733.md a00-b0bf124f-4b8eb4.md extensions/agi/bin/write.py
+  a00-949eaa34-76f733.md:93
+  a00-b0bf124f-4b8eb4.md:101
+  extensions/agi/bin/write.py:3239
+  ```
+  This bullet is a POINTER that performs the count, so it is not itself a copy.
+  The `hypothesis:...md:67` site this bullet once named is DEAD — that file is
+  48 lines with 0 `_ceiling_refusal` hits; DH.621 struck the citation on the
+  other two nodes and this is the third. If a later kid hardens
+  `_ceiling_refusal`, all THREE must be struck together; none is load-bearing.
+  The rule is still stated in three places — a one-source-per-rule violation
+  inside the very rule the caveat issues a strike order for.
+- `write.py` has zero open questions from this round, so the next kid here has
+  nothing to fix in production and should pick a NEW item rather than re-run
+  mine.
+
+## Struggles
+
+- The brief's BASE (`83d964956`) is the round's own tip, not its parent, so
+  the one measurement it prescribes returns empty and looks like "no breach".
+  A corrective that trusted it would have reported the cap as met. I spent a
+  turn finding `b9f9f6f81` from the reviewer's own citation.
+- `write.py replace body` refused twice on the round's node (paragraph-anchor
+  guard, and a table row one line off from my count), and `patch -` on a node
+  with no `payload_ref` refuses outright; `body_patch -` with a hand-counted
+  unified diff is what worked, and it is fail-closed on every count, so each
+  miss costs a turn.
+- The tier gate refused a run naming three explicit node ids
+  (`AGI_TIER=kid refuses a bare full-suite directory run`) — only a file plus
+  `-k` is accepted, so a genuinely targeted run costs a `-k` regex.
+- `grep -rn '^from write import|...'` returning rc 1 is the SUCCESS case here;
+  it reads like a failed command in a log and is easy to mis-paste as a defect.
+
+## Evidence
+
+All command outputs are pasted inline above; the load-bearing ones are the
+`git diff --numstat b9f9f6f81 83d964956` (51-net test breach), the
+`124 passed, 6 skipped` / `113 passed, 6 skipped` / `11 passed` triple (item 6),
+the `4 passed, 37 deselected` ordering run (item 7) and the empty
+`git diff --name-only | grep -Ei 'verification|conftest|...'` (item 8).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+EG.62 version, text only. WHY THIS VERSION DIFFERS: EG.39 added one on-this-tip claim to the THREE-places Caveat: the "still mints" grep also returns b0bf124f:106, a counting sentence DH.660 added, which is a count and not a site, so the sites stay THREE; the pasted re-run lives at a00-d85ae42b-bf72d8 "The one number". The previous THOUGHT (DH.570 parent review, a00-e8ed6f32) did not record that change; it has NO grid version: `git for-each-ref refs/grid/` holds 0 refs for mint 61311c75, because neither 056aac2ce nor 11a2fd3ce ran `grid.py commit`; it is readable at `git show eef31410a:.agi/nodes/experiment/a00-ff788172-12084f.md`. Verdict unchanged. EG.89 (corrective DH.EG.89, text only): this pointer corrected; it named a grid version that does not exist.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+DH.570 corrective: 8 items settled on the bytes. False parent-edit claim landed for real, 51-net test-cap breach reported, wording-coupled assertion weakened to the mechanism, reviewer citation corrected (72 in an evidence fence, Caveats at 83), reload caveat narrowed to one future import-time side effect, item-6 numbers verified true, item-8 zero-deletions claim refuted (10 deletions, all intended). The brief's BASE 83d964956 is the round's own tip, so its prescribed numstat is empty; the honest base is b9f9f6f81. write.py untouched.
+
+PARENT PROBES DH.570, run by a00-e8ed6f32 on 920bfee39 + the working tree, not on the kid's result file. probes: auth -- item 1 read at the authority that would serve it: `git show HEAD:.agi/nodes/experiment/a00-b0bf124f-4b8eb4.md | grep -n fail-open` matches only :103 (a THOUGHT paragraph), never the Caveats list at :83-95, so the node's 'LANDED' is true of the worktree and false of HEAD. gate -- the exact state handed over, HEAD: `git status --porcelain` = ' M a00-949eaa34-76f733.md' + ' M a00-b0bf124f-4b8eb4.md', two uncommitted node edits; the addendum is blocked from the graph until the loop commits. wire -- item 3 reaches live bytes: pytest extensions/agi/tests/test_write_answers_file.py -q gives 41 passed, and re.search(r"set\s+role = 'kid'") matches the live print at write.py:3456-3457 while still binding on the value, so the weakened assertion is live and not vacuous. Result: claims 2/3/6/7/8 hold; item 1's 'LANDED' does not -> inconclusive_lean_proved:60. Residue named for the director's findings row: a00-b0bf124f-4b8eb4.md:95 and a00-949eaa34-76f733.md Caveats, uncommitted node text; ceiling is 1 kid, so no re-spawn.
+
+## DH.587 corrective on this node (kid a00-62dbecb1)
+
+Five of the six items the director's corrective named on this node are now
+settled in the bytes, one by the probe, and every number below is pasted.
+
+### Item 6 — is the added `assert not (...g9.9.9.md).exists()` LOAD-BEARING? YES, proved
+
+The probe is a scratch tree under
+`.agi/sessions/iter-DH.587/a00-62dbecb1/probe3/`: the real
+`tests/test_write_answers_file.py`, every `bin/` entry a SYMLINK to the real one,
+and `bin/write.py` a COPY that carries the mutation. Control first, then two
+mutations that differ in one line.
+
+```
+$ # CONTROL, unpatched copy of write.py
+$ env -u TMUX -u TMUX_PANE python3 -m pytest agi-copy/tests/test_write_answers_file.py \
+    -q -p no:cacheprovider --basetemp=/tmp/dh587e
+1 failed, 40 passed, 29 warnings in 0.57s
+$ # that one control failure is a SCRATCH artefact, present in the control and
+$ # in every probe run alike: extensions/agi/tests/conftest.py:609 monkeypatches
+$ # AGI_ROLE away and the copy has no conftest, so the live env stamps
+$ # 'role: kid'. The REAL file in this tree: 41 passed. It cancels below.
+
+$ # MUTATION A -- the whole short-circuit header removed
+$ #   write.py:3251  'if args.dry_run:'  ->  'if False:  # DH.587 probe: ...'
+$ env -u TMUX -u TMUX_PANE python3 -m pytest agi-copy/tests/test_write_answers_file.py \
+    -q -p no:cacheprovider --basetemp=/tmp/dh587g
+>       assert "create goal:g9.9.9" in out
+E       assert 'create goal:g9.9.9' in "SPAWN-GATE UNVERIFIED goal:g9.9.9 ...
+E         created: goal:g9.9.9 -> /tmp/dh587g/.../nodes/goal/g9.9.9.md\n"
+agi-copy/tests/test_write_answers_file.py:610: AssertionError
+2 failed, 39 passed, 31 warnings in 0.53s
+
+$ # MUTATION B -- only the dry run's early RETURN removed, the print kept
+$ #   write.py:3261  'return 0'  ->  'pass  # DH.587 probe: ...'
+$ env -u TMUX -u TMUX_PANE python3 -m pytest agi-copy/tests/test_write_answers_file.py \
+    -q -p no:cacheprovider --basetemp=/tmp/dh587h
+>       assert not (project / "nodes" / "goal" / "g9.9.9.md").exists(), \
+E       AssertionError: a dry run SIMULATES: the row is shown, never written
+E       assert not True
+E        +  where True = exists()
+E        +    +  where exists = (((PosixPath('/tmp/dh587h/test_a_role_the_seat_HOLDS_or_1/.agi') / 'nodes') / 'goal') / 'g9.9.9.md').exists
+agi-copy/tests/test_write_answers_file.py:615: AssertionError
+2 failed, 39 passed, 31 warnings in 0.44s
+```
+
+**Verdict: the assertion is load-bearing, and MUTATION B is the clean
+isolation** — one extra failure, and it is exactly the new `:615` assert, from
+exactly one deleted `return`. Mutation A, which also removes the print, is
+caught one line EARLIER at `:610`, so a reader following the brief's wording
+("expecting exactly the :615 assert to fail") would call A a miss. It is not a
+miss: the new assert can only be REACHED while the dry-run print survives, and
+B is the only mutation that isolates it. A is a weaker second demonstration of
+the same defect (the node is written while the dry run reports a simulation)
+and is pasted because it is what the brief actually prescribes.
+
+**The de-wiring is real but PARTIAL, and the node's own wording is too strong.**
+`re.search(r"set\s+role = 'kid'", out)` no longer pins the column layout, but it
+still pins the ROW format of `write.py:3260` — change the f-string
+`  set    {k} = {v!r}` to one space and the assert fails on a behaviourally
+identical mint. The claim is only about column layout, so this is acceptable;
+"never the column layout" reads as full de-wiring and is not. Nor is the assert
+vacuous: it still binds on the VALUE 'kid', which is the row that matters.
+
+### Item 1 — the ceiling arithmetic, measured
+
+```
+$ git diff --numstat 83d964956 920bfee39 -- extensions/agi/tests/test_write_answers_file.py
+8	1	extensions/agi/tests/test_write_answers_file.py
+$ git diff --numstat b9f9f6f81 920bfee39 -- extensions/agi/tests/test_write_answers_file.py \
+                                           extensions/agi/bin/write.py
+20	7	extensions/agi/bin/write.py
+61	3	extensions/agi/tests/test_write_answers_file.py
+```
+
+7 net is this round's OWN delta and is UNDER its 40-line test ceiling; 58 net
+(61-3) is the ROUND total over `b9f9f6f81` and is 18 over. The two were
+conflated. The round's own parent THOUGHT already said the right thing ("the
+40-test-line cap binds THIS round's delta over base 83d964956, which is 8/1 = 7
+net, so this kid is inside its ceiling") while the Caveats said the opposite.
+
+### Item 5 — the fence is now the file
+
+The old fence pasted the OLD literal `set      role = 'kid'` with an inline
+`<- actually ...` annotation, under a disclosure paragraph. It is replaced above
+by the file's own lines 609-616, pasted by a script that read them, not typed.

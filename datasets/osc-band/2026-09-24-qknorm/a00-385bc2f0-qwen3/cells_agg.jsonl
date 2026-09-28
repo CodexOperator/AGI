@@ -1,0 +1,5 @@
+{"model": "qwen3", "np": 64, "budget": "4.125", "arm": "uniform", "seed": 0, "n": 1, "arm_is_stochastic": false, "widths": [4], "prompts": 2, "agree": 0.032226562, "kl": 9.229263782}
+{"model": "qwen3", "np": 64, "budget": "4.125", "arm": "key_only", "seed": 0, "n": 1, "arm_is_stochastic": false, "widths": [5, 4, 4, 3], "prompts": 2, "agree": 0.052734375, "kl": 9.125009059}
+{"model": "qwen3", "np": 64, "budget": "4.125", "arm": "random", "seed": 7, "n": 3, "arm_is_stochastic": true, "widths": [5, 4, 4, 3], "prompts": 2, "agree": 0.033203125, "kl": 11.960137844}
+{"model": "qwen3", "np": 64, "budget": "4.125", "arm": "random", "seed": 21, "n": 3, "arm_is_stochastic": true, "widths": [5, 4, 4, 3], "prompts": 2, "agree": 0.025390625, "kl": 9.811252118}
+{"model": "qwen3", "np": 64, "budget": "4.125", "arm": "random", "seed": 99, "n": 3, "arm_is_stochastic": true, "widths": [5, 4, 4, 3], "prompts": 2, "agree": 0.051757812, "kl": 7.918902874}

@@ -1862,3 +1862,530 @@ def test_done_refuses_a_conflicting_kid_branch_by_name(tmp_path, monkeypatch,
     assert ahead == "1", f"a refused merge must not move the parent, got {ahead}"
     assert _ggit(main, "ls-files", "-u").stdout.strip() == "", \
         "no conflict may survive the refusal (no partial merge)"
+
+
+def test_reshuffle_refs_grid_reads_the_projects_storage_trunk(tmp_path, monkeypatch):
+    """`_reshuffle_refs_grid` keys its `for-each-ref` namespace on
+    `grid.ref_ns_for` (goal:g14.14.7) rather than the literal `refs/grid`, so
+    the before/after identity check follows the project's configured trunk."""
+    cli = _load_cli()
+    repo = tmp_path / "r"
+    repo.mkdir()
+    seen: list[list[str]] = []
+
+    class _R:
+        returncode = 0
+        stdout = ""
+        stderr = ""
+
+    def recorder(argv, **kw):
+        seen.append([str(a) for a in argv])
+        return _R()
+
+    monkeypatch.setattr(cli.subprocess, "run", recorder)
+    monkeypatch.setattr(cli.grid, "ref_ns_for",
+                        lambda root: "refs/grid/t9")
+    out = cli._reshuffle_refs_grid(repo)
+    assert out == "\n"
+    assert seen and seen[0][-1] == "refs/grid/t9", seen
+
+
+# --------------------------------------------------------------------------
+# hypothesis:a-kid-can-commit-the-existing-nodes-its-orders-name -- the round
+# commits an EXISTING node its orders NAME (the target), and still refuses
+# every other foreign path, `.agi/config.json` included.
+# --------------------------------------------------------------------------
+
+def test_named_target_node_ids_come_from_the_record_and_the_parent():
+    cli = _load_cli()
+    rec = {"target": "hypothesis:tgt", "parent": "goal:g1",
+           "dispatch_node_id": "experiment:a00-x-1"}
+    ids = cli._round_named_node_ids(rec, "hypothesis:tgt")
+    assert ids == ["hypothesis:tgt", "goal:g1", "experiment:a00-x-1"]
+    # No record (a fixture, a dead tree) yields NOTHING -- a kid's --parent
+    # alone is not an order.
+    assert cli._round_named_node_ids(None, "hypothesis:tgt") == []
+    # A non-id field never becomes a path.
+    assert cli._round_named_node_ids({"target": "team/core"}, None) == []
+
+
+# --------------------------------------------------------------------------
+# hypothesis:a-rounds-named-node-set-is-its-dispatch-time-ids-never-a-kid-
+# supplied-parent -- the named set is dispatch's, and a type no round may edit
+# is never swept, whichever line named it.
+# --------------------------------------------------------------------------
+
+def test_kid_supplied_parent_never_widens_the_named_set():
+    cli = _load_cli()
+    rec = {"target": "hypothesis:tgt"}
+    assert cli._round_named_node_ids(rec, "hypothesis:tgt") == ["hypothesis:tgt"]
+    # The DH.386 widening: --parent named a prime/owner-only node.
+    assert cli._round_named_node_ids(rec, "config:posts") == ["hypothesis:tgt"]
+    assert cli._round_named_node_ids({"target": "hypothesis:tgt"},
+                                     "doc:unified-head") == ["hypothesis:tgt"]
+
+
+def test_round_committable_reads_the_config_cell_and_the_schema_written_by(tmp_path):
+    import json
+    cli = _load_cli()
+    root = tmp_path / ".agi"
+    (root / "context" / "schemas").mkdir(parents=True)
+    (root / "config.json").write_text(json.dumps({"grid": {"round_commit": {
+        "node_types": ["hypothesis", "experiment", "doc"],
+        "never_node_ids": ["doc:unified-"],
+    }}}))
+    (root / "context" / "schemas" / "[town].md").write_text(
+        "---\nname: town\nwritten_by: [prime_director, owner]\n---\n")
+    # In the declared set.
+    assert cli._round_committable(root, "hypothesis:tgt")
+    # Never declared as round-editable: a goal, a config row, a doc prefix.
+    assert not cli._round_committable(root, "goal:g5")
+    assert not cli._round_committable(root, "config:posts")
+    assert not cli._round_committable(root, "doc:unified-head")
+    assert cli._round_committable(root, "doc:goals-preamble")
+    # written_by in the type's OWN schema beats the cell's allowlist.
+    assert not cli._round_committable(root, "town:local-maxxing")
+    # An absent cell gates nothing: a fixture tree behaves as it did.
+    (root / "config.json").write_text("{}")
+    assert cli._round_committable(root, "goal:g5")
+    assert cli._round_committable(root, "doc:unified-head")
+    assert not cli._round_committable(root, "town:local-maxxing")
+
+
+def test_round_commit_policy_lives_in_the_committed_schemas_not_in_config(tmp_path):
+    """The cell that says which types a round's `done` commit may sweep must be
+    in a file this actor class CAN commit. `.agi/config.json` is refused by
+    `_round_scope_ok` (cli.py:2096), so a policy living there is fail-open in
+    every committed tree -- measured: goal:g5 and doc:unified-head passed the
+    gate with the cell absent. This test copies the REAL schema files and an
+    EMPTY config.json, so only committed bytes decide."""
+    import json
+    import shutil
+    from pathlib import Path
+    cli = _load_cli()
+    src = Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas"
+    if not src.is_dir():
+        pytest.skip("no .agi/context/schemas in this checkout")
+    root = tmp_path / ".agi"
+    shutil.copytree(src, root / "context" / "schemas")
+    (root / "config.json").write_text(json.dumps({}))
+    # Committed policy, no config: the two families the claim names are refused.
+    assert not cli._round_committable(root, "goal:g5")
+    assert not cli._round_committable(root, "doc:unified-head")
+    # Not swept up with them: a doc of another family, a hypothesis, a town row
+    # (its own schema's written_by still refuses it).
+    assert cli._round_committable(root, "doc:goals-preamble")
+    assert cli._round_committable(root, "hypothesis:tgt")
+    assert not cli._round_committable(root, "town:local-maxxing")
+
+
+def test_geometry_types_are_never_round_committable(tmp_path):
+    """DH.414 residue (b): `[command]`, `[cron]` and `[ladder]` carry neither
+    `written_by` nor `round_commit`, so a round's `done` commit swept
+    `command:cmd-a`, `cron:crons` and `ladder:ladder` -- the seat table, the
+    cadence table and the ladder. STRUCTURAL, no type list in code: a type
+    whose own schema declares `structural: true`, OR whose node lives under a
+    dotted structural directory (`nodes/.geometry/`), is never round-editable
+    -- so a NEW geometry type minted with no cell is still denied."""
+    import json
+    import shutil
+    from pathlib import Path
+    cli = _load_cli()
+    src = Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas"
+    if not src.is_dir():
+        pytest.skip("no .agi/context/schemas in this checkout")
+    root = tmp_path / ".agi"
+    shutil.copytree(src, root / "context" / "schemas")
+    (root / "config.json").write_text(json.dumps({}))
+    # The measured residue, on the LIVE bytes.
+    assert not cli._round_committable(root, "command:cmd-a")
+    assert not cli._round_committable(root, "cron:crons")
+    assert not cli._round_committable(root, "ladder:ladder")
+    # Ordinary graph nodes are untouched.
+    assert cli._round_committable(root, "hypothesis:tgt")
+    assert cli._round_committable(root, "doc:goals-preamble")
+    # A NEW geometry type, no schema cell at all: denied by its DIRECTORY.
+    (root / "nodes" / ".geometry").mkdir(parents=True)
+    (root / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nid: seats:cadence\ntype: seats\n---\n\nseats:\n  - a\n")
+    assert not cli._round_committable(root, "seats:cadence")
+    # ...and a NON-structural id under the same dir tree is not denied by the
+    # directory rule: it falls through to the ordinary gates.
+    (root / "nodes" / "experiment").mkdir(parents=True)
+    (root / "nodes" / "experiment" / "ok.md").write_text(
+        "---\nid: experiment:ok\ntype: experiment\n---\n\nbody\n")
+    assert cli._round_committable(root, "experiment:ok")
+
+
+def test_round_never_commits_its_own_gate_inputs_and_a_broken_schema_refuses(
+        tmp_path, capsys):
+    """hypothesis:a-rounds-commit-never-writes-its-own-gate-inputs-and-an-
+    unreadable-schema-refuses -- the round-done commit may not sweep the files
+    its OWN type gate is read from, and a schema the loader could not read
+    REFUSES, by name, instead of silently opening the gate.
+
+    Rows (one schema body per row, same root):
+      intact   -> committable  (the cell says false only for a refused type)
+      truncated (no closing `---`) -> REFUSED + the filename on stderr
+      prose (no frontmatter)       -> REFUSED + the filename on stderr
+      absent                       -> allowed (documented schema-less default)
+    """
+    import json
+    cli = _load_cli()
+    root = tmp_path / ".agi"
+    sdir = root / "context" / "schemas"
+    sdir.mkdir(parents=True)
+    (root / "config.json").write_text(json.dumps({}))
+    (sdir / "hypothesis.md").write_text(
+        "---\ntype: hypothesis\nround_commit: false\n---\n")
+    assert cli._round_committable(root, "hypothesis:tgt") is False
+    for broken in ("---\ntype: hypothesis\nround_commit: false\n",
+                   "just prose, no frontmatter at all\n"):
+        (sdir / "hypothesis.md").write_text(broken)
+        assert cli._round_committable(root, "hypothesis:tgt") is False, broken
+        assert "hypothesis.md" in capsys.readouterr().err
+    # A genuinely ABSENT schema is still the documented fail-open default --
+    # refusing it would break every type with no schema file.
+    (sdir / "hypothesis.md").unlink()
+    assert cli._round_committable(root, "hypothesis:tgt") is True
+    # The gate's own inputs are not the round's to commit, named like
+    # `.agi/config.json` beside them.
+    agent = "a00-4ca94877"
+    assert cli._round_scope_ok(".agi/config.json", agent, set()) is False
+    assert cli._round_scope_ok(
+        ".agi/context/schemas/hypothesis.md", agent, set()) is False
+    assert cli._round_scope_ok(
+        ".agi/context/schemas/[hypothesis].md", agent, set()) is False
+    # A node of the round's own, and an ordinary session file, still pass.
+    assert cli._round_scope_ok(
+        ".agi/nodes/experiment/a00-4ca94877-7866da.md", agent, set()) is True
+    assert cli._round_scope_ok(".agi/sessions/x/note.md", agent, set()) is True
+
+
+def test_own_node_paths_drops_a_named_goal_and_keeps_the_target(tmp_path):
+    import json
+    cli = _load_cli()
+    root = tmp_path / ".agi"
+    (root / "context" / "schemas").mkdir(parents=True)
+    (root / "config.json").write_text(json.dumps({"grid": {"round_commit": {
+        "node_types": ["hypothesis", "experiment"],
+    }}}))
+    for sub, nid in (("goal", "g5"), ("hypothesis", "tgt"),
+                     ("experiment", "a00-x-1")):
+        d = root / "nodes" / sub
+        d.mkdir(parents=True, exist_ok=True)
+        (d / f"{nid}.md").write_text(
+            f"---\nid: {sub}:{nid}\ntype: {sub}\n---\n\nbody\n")
+    paths = cli._round_own_node_paths(
+        root, root, "experiment:a00-x-1", None,
+        ["hypothesis:tgt", "goal:g5"])
+    assert paths == {"nodes/experiment/a00-x-1.md",
+                     "nodes/hypothesis/tgt.md"}, paths
+
+
+def test_auto_commit_lands_the_named_target_node_and_refuses_the_rest(tmp_path):
+    main = tmp_path / "main"
+    main.mkdir()
+    (main / ".agi" / "nodes" / "hypothesis").mkdir(parents=True)
+    (main / ".agi" / "config.json").write_text("{}")
+    _ggit(main, "init", "-q")
+    _ggit(main, "checkout", "-q", "-b", "season/s1")
+    _gitc(main, "base")
+
+    br = "loop/named-target@s2"
+    wt = tmp_path / "wt"
+    r = _ggit(main, "worktree", "add", "-b", br, str(wt), "season/s1")
+    assert r.returncode == 0, r.stderr
+    wt_graph = wt / ".agi"
+    (wt_graph / "nodes" / "hypothesis").mkdir(parents=True)
+    (wt_graph / "config.json").write_text("{}")
+    # The node the round's ORDERS name: a human slug carrying no agent id, so
+    # `_round_scope_ok` alone refuses it -- it lands only via the named set.
+    target = wt_graph / "nodes" / "hypothesis" / "a-kid-can-commit.md"
+    target.write_text("---\nid: hypothesis:a-kid-can-commit\ntype: hypothesis\n"
+                      "---\n\nbody\n")
+    # A node nobody named, and the config cell: both must stay dirty.
+    foreign = wt_graph / "nodes" / "hypothesis" / "not-named.md"
+    foreign.write_text("---\nid: hypothesis:not-named\ntype: hypothesis\n"
+                       "---\n\nbody\n")
+    own = wt_graph / "nodes" / "experiment" / "a00-kid-1.md"
+    own.parent.mkdir(parents=True, exist_ok=True)
+    own.write_text("---\nid: experiment:a00-kid-1\ntype: experiment\n"
+                   "---\n\nbody\n")
+    (wt_graph / "config.json").write_text('{"paths": {}}')
+
+    cli = _load_cli()
+    rec = {"target": "hypothesis:a-kid-can-commit"}
+    # PRE-FIX state: the named set is empty, so the named target is left
+    # uncommitted and only the agent-id node lands. This is the measured
+    # defect (TMM.212 item 1) the named set removes.
+    assert cli._auto_commit_worktree(
+        wt_graph, "a00-kid", "experiment:a00-kid-1", None, "pending", []) \
+        is not None
+    pre = _ggit(wt, "show", "--name-only", "--format=", "HEAD").stdout
+    assert "nodes/experiment/a00-kid-1.md" in pre, pre
+    assert "nodes/hypothesis/a-kid-can-commit.md" not in pre, pre
+
+    named = cli._round_named_node_ids(rec, "hypothesis:a-kid-can-commit")
+    # The kid's --parent carries the SAME id here (dispatch named it), so the
+    # target still lands; a --parent DISPATCH did not name lands nothing.
+    assert named == ["hypothesis:a-kid-can-commit"]
+    root = cli._auto_commit_worktree(wt_graph, "a00-kid",
+                                     "experiment:a00-kid-1", None,
+                                     "pending", named)
+    assert root is not None
+    files = _ggit(wt, "show", "--name-only", "--format=", "HEAD").stdout
+    assert "nodes/hypothesis/a-kid-can-commit.md" in files, files
+    assert "nodes/hypothesis/not-named.md" not in files, files
+    assert ".agi/config.json" not in files, files
+    assert foreign.read_text().count("not-named") == 1
+
+
+def test_every_refused_named_id_is_named_on_stderr(tmp_path, capsys):
+    """The last clause of the round-commit claim: a refused path is NAMED.
+    Pre-fix `_round_own_node_paths` dropped a non-committable id with a bare
+    `continue`, so `done --parent goal:g5` got silence -- the round could not
+    tell "I refuse that" from "I never saw it". Real schema bytes decide, so
+    only the committed `[goal].md` `round_commit: false` cell refuses."""
+    import shutil
+    from pathlib import Path
+    cli = _load_cli()
+    src = Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas"
+    if not src.is_dir():
+        pytest.skip("no .agi/context/schemas in this checkout")
+    root = tmp_path / ".agi"
+    shutil.copytree(src, root / "context" / "schemas")
+    (root / "config.json").write_text("{}")
+    for sub, nid in (("goal", "g5"), ("hypothesis", "tgt"),
+                     ("experiment", "a00-x-1")):
+        d = root / "nodes" / sub
+        d.mkdir(parents=True, exist_ok=True)
+        (d / f"{nid}.md").write_text(
+            f"---\nid: {sub}:{nid}\ntype: {sub}\n---\n\nbody\n")
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, "experiment:a00-x-1", None, ["hypothesis:tgt"],
+        refused=["goal:g5"])
+    err = capsys.readouterr().err
+    # Dropped from the sweep ...
+    assert paths == {"nodes/experiment/a00-x-1.md",
+                     "nodes/hypothesis/tgt.md"}, paths
+    # ... and NAMED on stderr, including the `--parent` id that
+    # `_round_named_node_ids` del()s out of the named set.
+    assert "goal:g5" in err, err
+    assert "refusing" in err, err
+    # A clean round names nothing.
+    capsys.readouterr()
+    cli._round_own_node_paths(root, root, "experiment:a00-x-1", None,
+                              ["hypothesis:tgt"])
+    assert capsys.readouterr().err == ""
+
+
+def test_kid_parent_never_widens_even_for_a_committable_type(tmp_path, capsys):
+    """DH.390 harvest: `refused=[args.parent]` ran the kid's `--parent`
+    through the TYPE gate, so `done --parent hypothesis:<foreign>` -- a
+    round-committable type -- was swept into the round's commit again. The
+    kid's --parent is named on stderr and never swept, whatever its type."""
+    from pathlib import Path
+    cli = _load_cli()
+    root = tmp_path / ".agi"
+    (root / "context" / "schemas").mkdir(parents=True)
+    (root / "config.json").write_text("{}")
+    d = root / "nodes" / "hypothesis"
+    d.mkdir(parents=True)
+    for nid in ("tgt", "foreign"):
+        (d / f"{nid}.md").write_text(
+            f"---\nid: hypothesis:{nid}\ntype: hypothesis\n---\n\nbody\n")
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, None, None, ["hypothesis:tgt"],
+        refused=["hypothesis:foreign"])
+    assert paths == {"nodes/hypothesis/tgt.md"}, paths
+    assert "hypothesis:foreign" in capsys.readouterr().err
+    # the same id named by DISPATCH is the round's own -- still lands
+    paths = cli._round_own_node_paths(
+        root, root, None, None, ["hypothesis:tgt"],
+        refused=["hypothesis:tgt"])
+    assert paths == {"nodes/hypothesis/tgt.md"}, paths
+
+
+def test_dispatch_parent_survives_the_done_parent_overwrite():
+    """DH.411: `cmd_done` wrote `rec["parent"] = args.parent` BEFORE the sweep
+    read it, so `del parent` in `_round_named_node_ids` killed only the
+    PARAMETER and the KID's id re-entered the named set through the record
+    key the fix meant to protect. Dispatch's value is now preserved under a
+    key nothing writes, before the overwrite; the kid's `--parent` never
+    widens the set, whatever its type."""
+    cli = _load_cli()
+    rec = {"target": "hypothesis:tgt", "parent": "hypothesis:dispatch-parent"}
+    # exactly what cmd_done does, in order
+    rec.setdefault("dispatch_parent", rec.get("parent") or "")
+    rec["parent"] = "doc:kid-supplied-foreign"
+    assert cli._round_named_node_ids(rec, "doc:kid-supplied-foreign") == [
+        "hypothesis:tgt", "hypothesis:dispatch-parent"]
+    # a pre-capture record (a fixture, an older dispatch) still reads parent
+    assert cli._round_named_node_ids(
+        {"target": "hypothesis:tgt", "parent": "hypothesis:dp"}, None) == [
+            "hypothesis:tgt", "hypothesis:dp"]
+    # and the set is the same whatever the kid typed on the command line
+    assert cli._round_named_node_ids(rec, "config:posts") == cli._round_named_node_ids(rec, None)
+
+
+def test_dispatch_node_id_survives_the_done_node_id_overwrite():
+    """DH.414: the `--parent` half was closed in DH.390/411; the `--node-id`
+    half was still open. `cmd_done` writes `rec["node_id"] = args.node_id`
+    BEFORE the sweep reads the record, and `rec["node_id"]` is DISPATCH's
+    field -- so a kid that named a FOREIGN node on `--node-id` landed it in
+    the round's named set, and `nid != node_id` exempted exactly that id from
+    the type gate: swept into this round's loop-branch commit, unjudged.
+    Dispatch's value is captured under `dispatch_node_id` before the
+    overwrite, and the named set reads ONLY that."""
+    cli = _load_cli()
+    rec = {"target": "hypothesis:tgt", "parent": "hypothesis:dp",
+           "node_id": "experiment:a00-x-1"}
+    # exactly what cmd_done does, in order
+    rec.setdefault("dispatch_node_id", rec.get("node_id") or "")
+    rec["node_id"] = "hypothesis:kid-supplied-foreign"
+    assert cli._round_named_node_ids(rec, "hypothesis:kid-supplied-foreign") == [
+        "hypothesis:tgt", "hypothesis:dp", "experiment:a00-x-1"]
+    # the KID's id is in the record under a key the set never reads
+    assert "hypothesis:kid-supplied-foreign" not in rec["dispatch_node_id"]
+    assert cli._round_named_node_ids(
+        {"target": "hypothesis:tgt", "node_id": "hypothesis:foreign"}, None) == [
+            "hypothesis:tgt"]
+
+
+def test_own_node_id_is_type_gated_too(tmp_path, capsys):
+    """The round's OWN `--node-id` is no longer exempt from the type gate: a
+    kid cannot name a `config:`/`goal:` id on its own line and have it swept.
+    Its own `experiment:`/`hypothesis:` node (basename carries the agent id)
+    is round-committable and still lands -- the gate judges the TYPE, not the
+    ownership."""
+    from pathlib import Path
+    cli = _load_cli()
+    root = tmp_path / ".agi"
+    (root / "context" / "schemas").mkdir(parents=True)
+    (root / "config.json").write_text("{}")
+    (root / "nodes" / "experiment").mkdir(parents=True)
+    (root / "nodes" / "goal").mkdir(parents=True)
+    (root / "nodes" / "experiment" / "a00-x-1.md").write_text(
+        "---\nid: experiment:a00-x-1\ntype: experiment\n---\n\nbody\n")
+    (root / "nodes" / "goal" / "g5.md").write_text(
+        "---\nid: goal:g5\ntype: goal\n---\n\nbody\n")
+    (root / "context" / "schemas" / "[goal].md").write_text(
+        "---\ntype: goal\nround_commit: false\n---\n\nbody\n")
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, "experiment:a00-x-1", None, [], refused=["goal:g5"])
+    assert paths == {"nodes/experiment/a00-x-1.md"}, paths
+    assert "goal:g5" in capsys.readouterr().err
+    # the round's OWN node named on --node-id, but of a refused TYPE
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(root, root, "goal:g5", None, [])
+    assert paths == set(), paths
+    assert "goal:g5" in capsys.readouterr().err
+
+
+def test_node_id_seed_needs_dispatch_or_the_agent_id_in_the_filename(tmp_path, capsys):
+    """DH.414 residue (a): the `--node-id` SEED. `cmd_done` hands
+    `node_id=args.node_id` to `_auto_commit_worktree`; the seed is `asked[0]`
+    and once it is in `own_paths` it short-circuits `_round_scope_ok`, the
+    only rule that requires a node filename to carry this round's agent id.
+    So `done --node-id hypothesis:<foreign>` swept a FOREIGN hypothesis into
+    the round's loop-branch commit, with the type gate (a hypothesis IS
+    round-committable) passing it and stderr empty. Measured pre-fix on these
+    bytes: `{nodes/hypothesis/foreign.md, nodes/experiment/a00-me-1.md}`, no
+    stderr. Now the seed lands only when DISPATCH named the id, or the node
+    file's basename carries this round's agent id -- and is NAMED when refused.
+    The three cases everyone fears stay GREEN: a parent's own human-slug node
+    dispatch named, a kid's own minted scaffolded experiment, and a hypothesis
+    round editing its own dispatch target in place."""
+    from pathlib import Path
+    cli = _load_cli()
+    root = tmp_path / ".agi"
+    (root / "context" / "schemas").mkdir(parents=True)
+    (root / "config.json").write_text("{}")
+    (root / "nodes" / "hypothesis").mkdir(parents=True)
+    (root / "nodes" / "experiment").mkdir(parents=True)
+    for sub, nid in (("hypothesis", "foreign"),
+                     ("hypothesis", "a-rounds-named-node-set"),
+                     ("hypothesis", "foreign-slug"),
+                     ("experiment", "a00-me-1")):
+        (root / "nodes" / sub / f"{nid}.md").write_text(
+            f"---\nid: {sub}:{nid}\ntype: {sub}\n---\n\nbody\n")
+
+    # 1. a FOREIGN id on --node-id: refused, and NAMED.
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, "hypothesis:foreign", None,
+        ["experiment:a00-me-1"], agent_id="a00-me")
+    assert paths == {"nodes/experiment/a00-me-1.md"}, paths
+    err = capsys.readouterr().err
+    assert "hypothesis:foreign" in err and "refusing" in err, err
+
+    # 2. the round's OWN minted scaffold (basename carries the agent id) lands
+    #    even when dispatch named nothing at all.
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(root, root, "experiment:a00-me-1", None,
+                                      [], agent_id="a00-me")
+    assert paths == {"nodes/experiment/a00-me-1.md"}, paths
+    assert capsys.readouterr().err == ""
+
+    # 3. a PARENT whose own node is a human slug, named by DISPATCH: lands
+    #    (its filename carries no agent id -- the named set is the rule).
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, "hypothesis:a-rounds-named-node-set", None,
+        ["hypothesis:a-rounds-named-node-set"], agent_id="a00-me")
+    assert paths == {"nodes/hypothesis/a-rounds-named-node-set.md"}, paths
+    assert capsys.readouterr().err == ""
+
+    # 4. a hypothesis round editing its own DISPATCH TARGET in place, passed on
+    #    --node-id while dispatch named a DIFFERENT id: still lands, because
+    #    dispatch named it.
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, "hypothesis:foreign-slug", None,
+        ["hypothesis:foreign-slug"], agent_id="a00-me")
+    assert paths == {"nodes/hypothesis/foreign-slug.md"}, paths
+    assert capsys.readouterr().err == ""
+
+
+def test_a_node_under_a_dotted_nodes_dir_is_never_round_committable(tmp_path, capsys):
+    """DH.414 residue (b): the structural rule joined the dotted dir to the id
+    by a NAME GUESS -- a file whose stem equals the id's type or slug. The real
+    seat table `doc:geometry-towns-core` lives at
+    `nodes/.geometry/towns/core.md` (type `doc`, stem `core`, TWO levels down),
+    so nothing matched: `_round_committable` was True and the seat table was
+    swept by a round commit, in silence. The join is now the real one --
+    resolve the node FILE BY ID (`_find_node_file`) and refuse when the
+    resolved path runs under a dotted directory of `nodes/`. The `structural:
+    true` schema cell and the stem fallback both stay."""
+    import shutil
+    from pathlib import Path
+    cli = _load_cli()
+    src = Path(__file__).resolve().parents[3] / ".agi" / "context" / "schemas"
+    if not src.is_dir():
+        pytest.skip("no .agi/context/schemas in this checkout")
+    root = tmp_path / ".agi"
+    shutil.copytree(src, root / "context" / "schemas")
+    (root / "config.json").write_text("{}")
+    g = root / "nodes" / ".geometry" / "towns"
+    g.mkdir(parents=True)
+    (g / "core.md").write_text("---\nid: doc:geometry-towns-core\ntype: doc\n"
+                               "---\n\ntowns:\n  - core\n")
+    # the id's own type (`doc`) is a perfectly committable type
+    assert cli._round_committable(root, "doc:goals-preamble")
+    # ...but the file's HOME under a dotted dir of nodes/ denies it, by id.
+    assert not cli._round_committable(root, "doc:geometry-towns-core")
+    capsys.readouterr()
+    paths = cli._round_own_node_paths(
+        root, root, "doc:geometry-towns-core", None,
+        ["doc:geometry-towns-core"], agent_id="a00-me")
+    assert paths == set(), paths
+    assert "doc:geometry-towns-core" in capsys.readouterr().err
+    # a structural type with NO resolvable file still lands on the stem
+    # fallback (the guess can over-refuse; it can never under-refuse).
+    (root / "nodes" / ".geometry" / "seats.md").write_text(
+        "---\nid: seats:cadence\ntype: seats\n---\n\nseats:\n  - a\n")
+    assert not cli._round_committable(root, "seats:cadence")

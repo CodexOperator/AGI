@@ -76,7 +76,7 @@ class TestClassifyCall:
         assert label == "facts"
 
     def test_git_status_matches_first_turn_git_state(self):
-        cmd = "git -C /home/ubuntu/work/agi status -sb | head -3"
+        cmd = "git -C /srv/agi status -sb | head -3"
         cat, label = sensei.classify_call(cmd, "Bash", SEAT, _ft_entries())
         assert cat == "a"
         assert label == "git-state"
@@ -103,7 +103,7 @@ class TestClassifyCall:
         assert cat == "b"
 
     def test_ls_sessions_rotations_by_hand_is_category_b(self):
-        cmd = "ls -la /home/ubuntu/work/agi/.agi/sessions/rotations | tail -5"
+        cmd = "ls -la /srv/agi/.agi/sessions/rotations | tail -5"
         cat, _ = sensei.classify_call(cmd, "Bash", SEAT, _ft_entries())
         assert cat == "b"
 
@@ -998,7 +998,7 @@ class TestServiceOwedClassification:
         # a hand read that matches NO after_join step is (b), unchanged — the
         # s rule must not swallow general reads.
         cat, _ = sensei.classify_call(
-            "ls -la /home/ubuntu/work/agi/.agi/sessions/rotations | tail -5",
+            "ls -la /srv/agi/.agi/sessions/rotations | tail -5",
             "Bash", SEAT, _ft_entries(), after_join=_aj_entries())
         assert cat == "b"
         cat2, _ = sensei.classify_call(
@@ -1019,7 +1019,7 @@ class TestServiceOwedEndToEnd:
                      "sanctuary-director --gen 14 --ref 7aeee9 continue"),
             ("Bash", "python3 extensions/agi/bin/rotate.py meter --pin 5f2 "
                      "--session-log /tmp/s.json"),
-            ("Bash", "ls -la /home/ubuntu/work/agi/.agi/sessions/rotations "
+            ("Bash", "ls -la /srv/agi/.agi/sessions/rotations "
                      "| tail -5"),
             ("Bash", "ps -o pid,ppid -p 1234 2>/dev/null"),
             ("Bash", "python3 -m pytest extensions/agi/tests/test_sensei.py "

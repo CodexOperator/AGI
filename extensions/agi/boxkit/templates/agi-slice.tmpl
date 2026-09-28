@@ -1,0 +1,14 @@
+# sanctuary guard layer 3. Written by {{GUARD_SRC}}.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.
+# Everything the agi engine starts as a unit. oomd acts here at 40% pressure,
+# before user@ reaches its own 50%, so the engine is killed before Claude is.
+[Unit]
+Description=sanctuary guard: the agi engine (scripts + rounds)
+[Slice]
+MemoryHigh={{AGI_HIGH}}
+MemoryMax={{AGI_MAX}}
+MemorySwapMax={{USER_SWAP}}
+TasksMax={{AGI_TASKS}}
+CPUWeight={{AGI_CPU_WEIGHT}}
+ManagedOOMMemoryPressure=kill
+ManagedOOMMemoryPressureLimit={{AGI_OOM_PCT}}%

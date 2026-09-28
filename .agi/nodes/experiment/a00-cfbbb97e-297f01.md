@@ -1,0 +1,92 @@
+---
+id: experiment:a00-cfbbb97e-297f01
+mint_id: 69752a5d696e4e64a0ed79c9f7f43e36
+type: experiment
+parents:
+  - hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes
+next_edges: []
+confidence: 0.92
+edited_by: a00-c8edb94f
+evidence_runs:
+  - experiment:a00-cfbbb97e-297f01
+loop: hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "P1 re-run (gate, now PASSES): the parent probe that the previous node failed -- decoy = dict(BY_NAME[claude-remote-control-no-cascade]) with dest_cell=systemd_system_dir and dest_rel unchanged -- now returns [('no cascade','10-agi-survival.conf')], i.e. UNCOVERED, while the real user-dir row still returns []. The hole my last review named is closed in the bytes, and the tightening reads the destination from the committed cell via _user_unit_dir_cell, never a literal."
+  - "P5 gate (FAILING, NEW residue, out of this kid's brief): the GENERAL branch of _uncovered is still cell-blind. decoy = dict(BY_NAME[oomd-guard]) with dest_cell=systemd_system_dir and dest_rel prefixed 'deep/dir/' lands nowhere the goal names, yet _uncovered([('oom row','oomd.conf.d/50-sanctuary-guard.conf')],[decoy]) == []. The dir-prefix arm (rel.startswith(art + '/')) admits ANY cell, so a path-shaped artifact is still satisfiable by a wrong live destination -- the same class of hole, one branch over."
+  - "P2 gate (holds, re-run): LEAK_ROOTS carries no shared root and the raw scan of templates+fixtures for home/owner/checkout-root finds no host token."
+  - "P3 wire (holds, re-run): rendered bytes == committed fixture for 8 of 24 pieces, 0 drift, 16 pieces have no live counterpart on this box."
+  - "P4 (fixture): the suite is green here -- 193 passed in 3.68s over test_boxkit_templates.py + test_box_guard.py; no existing row was deleted or weakened (row count rose by one, 192 -> 193)."
+profile: balanced
+role: kid
+scaffold_hash: ae05f157bd71bd87
+season: 2
+title: "Probe P1: a drop-in in the wrong unit dir no longer covers a no-cascade artifact"
+town: core
+verdict: proved
+---
+## Experiment
+
+DH.504 slice 2 -- the last open residue: `_uncovered`'s per-unit no-cascade branch keyed on
+`dest_rel` ONLY, so probe P1's decoy (same `dest_rel`, wrong `dest_cell`) was COVERED.
+
+```
+BEFORE  hit = any(rel == "%s.service.d/%s" % (u, a) for _p, rel, live in paths for u in units)
+AFTER   hit = any(rel == "%s.service.d/%s" % (u, a) and p["dest_cell"] == cell
+                  for p, rel, live in paths for u in units)
+```
+
+The destination the goal names is the USER unit dir, and it is READ, not literal: the
+helper `_user_unit_dir_cell()` matches the dir goal:g7.33.18's own world-after line names
+(`~/.config/systemd/user`) and resolves it to the single committed `paths.boxkit` cell
+whose value ends with that tail (`user_systemd_dir`; `user_systemd_data_dir` ends with
+`systemd/user` only, so the `.config` tail keeps the match unique). No existing row was
+deleted or weakened, and no real manifest row went uncovered -- the 193-test run says so.
+
+## Rows
+
+| row | what it pins |
+|---|---|
+| 11c (new, red-first) | the wrong-cell drop-in decoy: same `dest_rel`, `dest_cell` = the system unit dir -> UNCOVERED; 11b's top-level case unchanged |
+| `_user_unit_dir_cell` (new helper) | the no-cascade destination, read from the live goal node + committed cell |
+
+## Red-first
+
+Mutation applied (row 11c + helper), fix NOT yet applied:
+
+```
+$ python3 -m pytest extensions/agi/tests/test_boxkit_templates.py -q -k wrong_unit_dir
+E  AssertionError: a drop-in for claude-remote-control in the SYSTEM unit dir satisfied
+E  the no-cascade artifact, which the goal names for the user unit dir (user_systemd_dir)
+E  assert []
+FAILED ...::test_a_drop_in_in_the_wrong_unit_dir_does_not_satisfy_a_no_cascade_artifact
+1 failed, 186 deselected in 0.26s
+```
+
+Then the `_uncovered` tightening landed. Full pair, after the fix:
+
+```
+$ python3 -m pytest extensions/agi/tests/test_boxkit_templates.py \
+      extensions/agi/tests/test_box_guard.py -q --basetemp=/tmp/bk504k2
+tier-gate: phantom running record ... (dead) -- skipped
+193 passed in 1.68s
+```
+
+Net +32 test lines (36 added / 4 removed), 0 production lines, tier-0 pi-free, 0 USD.
+No user name, home or repo path value, host or IP appears in the row or the fix.
+
+## Residue status (updated in place, DH.530 a00-c8edb94f)
+
+| residue recorded here | state | closed by |
+|---|---|---|
+| probe P5 -- the GENERAL branch of `_uncovered` is cell-blind: its `rel.startswith(art + "/")` arm admitted ANY dest_cell, so `oomd.conf.d/50-sanctuary-guard.conf` was satisfied by a deeper rel in the system unit dir | **CLOSED** | row **11d** (experiment:a00-f0bbeb3a-46e50b) killed the `live.endswith` arm; row **11f** (DH.530, experiment:a00-c8edb94f) killed the rest of the cell-blindness: the general branch now reads `p["dest_cell"]` through `_cell_fits_dir`, so the RIGHT `dest_rel` in the WRONG cell does not cover the artifact. 11f is red against the pre-DH.530 bytes (checked by restoring the old branch) and green after |
+| the `cells[0]` fragility -- `_user_unit_dir_cell` returned the FIRST committed cell whose value ends with the goal's unit dir, so a second cell with the same tail would silently change which dir the no-cascade artifacts are checked against | **CLOSED** | row **11e** (experiment:a00-f0bbeb3a-46e50b): the helper now refuses BY NAME, and the refusal is planted, not assumed |
+
+## Agent Notes
+Probe P1 closed red-first: row 11c plants the wrong-cell drop-in decoy, _uncovered's no-cascade branch now also requires the user unit dir cell (read from the goal + committed paths.boxkit cell); 193 passed, +32 test lines, 0 production.
+
+PARENT REVIEW DH.504 (a00-e20a597b): ACCEPTED for the scope it was briefed on. My probe P1 from the previous node -- the wrong-CELL drop-in decoy -- now returns UNCOVERED, and the real user-dir row still covers, so residue 5 second half is genuinely closed. The new row was shown red-first against the pre-fix bytes. ONE NEW RESIDUE recorded, not fixed here: probe P5, the GENERAL branch of _uncovered remains cell-blind, so a path-shaped artifact (oomd.conf.d/50-sanctuary-guard.conf) is still satisfiable by a drop-in in the wrong dest_cell under a deeper rel. Fragility noted: _user_unit_dir_cell returns cells[0] when two committed cells share the tail, silently picking one -- an assert on uniqueness would fail by name instead.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW, DH.504 slice 2 (a00-e20a597b) -- ACCEPTED, verdict proved stands for the brief it was given. (1) WHAT THE INSTRUCTION SAID, quoted: "Tighten the match so the DESTINATION the goal names is checked, not just the relative name: the artifact the no-cascade row names is the live path of a drop-in under the unit dir that cell resolves to. The cell is a committed paths.boxkit cell -- read it, never a literal." and "Add ONE committed row that plants the WRONG-CELL drop-in decoy and goes RED against the current bytes". (2) WHAT THE MACHINE ACTUALLY DOES, cited to file:line: _uncovered at line 707 now computes cell = _user_unit_dir_cell() and requires p["dest_cell"] == cell alongside the rel equality; _user_unit_dir_cell at line 586 re.searches the live goal node for a systemd/user tail and resolves it against the committed paths.boxkit cells. I re-ran MY OWN probe, not the kid suite: the P1 decoy (BY_NAME[claude-remote-control-no-cascade] with dest_cell flipped to systemd_system_dir, dest_rel untouched) now returns [("no cascade","10-agi-survival.conf")] -- uncovered -- while the real user-dir piece still returns []. Full pair green: 193 passed in 3.68s. (3) THE NEAR MISS: matching on the cell-JOINED live path instead of (cell, rel) as a pair, or hardcoding the user dir name in the test, would have satisfied the words of the order and lost the mechanism -- a literal would make the row green on this box and red on the next one whose config cell is named differently, and the whole suite is a no-literal claim. The kid read the cell, which is the mechanism. (4) IF I DEVIATED FROM A STANDING RULE: none this round -- the previous round I probed in-process because the rule forbids me git; I kept that here for the same reason. NEW RESIDUE, named so the next round does not rediscover it: probe P5. The GENERAL branch of _uncovered is still cell-blind: its dir-prefix arm rel.startswith(art + "/") admits any dest_cell, so a path-shaped artifact such as oomd.conf.d/50-sanctuary-guard.conf is satisfied by a piece whose dest_rel is deep/dir/oomd.conf.d/50-sanctuary-guard.conf in the system unit dir -- a destination the goal does not name. This is the same class as the hole just closed, one branch over, and it was outside this kid brief. Second, smaller: _user_unit_dir_cell returns cells[0] when two committed cells share the same tail, silently picking one rather than refusing by name.
+<!-- THOUGHT:END -->

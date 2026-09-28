@@ -231,20 +231,93 @@ def _existing_run_keys(root: Path, key: str) -> set[str]:
         return set()
 
 
-def _mint_run_key(root: Path, key: str, args: dict) -> str:
+# How many names the mint will try before giving up on a reservation and
+# returning the next candidate anyway. Bounded, so a stale marker (or an
+# unwritable marker dir) can NEVER hang or crash the mint.
+RUN_KEY_MINT_ATTEMPTS = 64
+
+# The reservation namespace, relative to the shared project root (the same
+# root `_existing_run_keys` reads `<key>.jsonl` from). A sibling of
+# `sessions/`, so reserving a name never creates or writes into the tracked-run
+# tree.
+RUN_KEY_MARKER_DIR = "run-keys"
+
+
+def _reserve_run_key(root: Path, run_key: str) -> bool | None:
+    """RESERVE `run_key` for this process with an EXCLUSIVE create — the
+    atomic step hypothesis:a-run-key-is-reserved-atomically-so-concurrent-runs-
+    never-share-one asks for. The marker is an O_CREAT|O_EXCL file under
+    `<sess>/run-keys/` (RUN_KEY_MARKER_DIR), resolvable from the SAME root
+    the tracked rows live under (`_loc.shared_project_root(root) or root`,
+    exactly as `_existing_run_keys` does). The namespace is a SIBLING of
+    `sessions/`,
+    not a subdir of it: `sessions/` is the tracked-run record and a `--dry-run`
+    must not create it (extensions/agi/tests/test_workflow.py
+    `test_dry_run_writes_no_row` asserts exactly that), and minting a name is
+    not tracking a run. It is likewise NOT inside the live
+    `.agi/sessions/workflows/runs` tree.
+
+    False = "a peer holds this name" (advance); None = "reservation is
+    IMPOSSIBLE here" (EACCES/EROFS/ENOSPC) — a DIFFERENT failure, and
+    conflating the two let N peers fall through to one unreserved name with
+    no log line (director item 8). NEVER raises: a de-collided name is a
+    nicety, not a gate (same contract as `_existing_run_keys`).
+
+    Stale markers are SKIPPED, never reaped: reaping needs a row-vs-marker
+    reconciliation pass that costs more production lines than this round has,
+    and a skipped name is a wasted suffix, never a wrong key."""
+    try:
+        sess = _loc.shared_project_root(root) or root
+        d = Path(sess) / RUN_KEY_MARKER_DIR
+        d.mkdir(parents=True, exist_ok=True)
+        fd = os.open(str(d / f"{run_key}.lock"),
+                     os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
+        os.close(fd)
+        return True
+    except FileExistsError:
+        return False
+    except Exception as exc:
+        print(f"[workflow] run-key reservation unavailable ({exc}); "
+              "minting a unique key instead", file=sys.stderr)
+        return None
+
+
+def _unique_run_key(base: str) -> str:
+    """A key NO sibling can hold — for when the namespace cannot be reserved
+    (unwritable dir, exhausted suffix space): pid + random bytes. An
+    UNRESERVED plain candidate is what two peers collide on."""
+    return f"{base}-x{os.getpid()}-{os.urandom(3).hex()}"
+
+
+def _mint_run_key(root: Path, key: str, args: dict, reserve: bool = True) -> str:
     """The descriptive run key for this run: workflow-type abbreviation joined
     to the slugged run args, de-collided against the rows already tracked for
-    this workflow."""
+    this workflow AND RESERVED atomically at mint, so N concurrent launches
+    get N distinct keys. A single launch's key is unchanged: the first
+    candidate is taken whenever it is free, and the reservation is invisible
+    to the caller — the reserved name and the name written into the row are
+    the SAME string, because `run_workflow` binds this return value once."""
     base = _run_key_abbrev(key)
     toks = _run_arg_tokens(args)
     if toks:
         base = f"{base}-" + "-".join(toks)
     used = _existing_run_keys(root, key)
     candidate, i = base, 2
-    while candidate in used:
+    for _ in range(RUN_KEY_MINT_ATTEMPTS):
+        if candidate not in used:
+            if not reserve:
+                # A `--dry-run` tracks no row, so it reserves nothing: the
+                # dry-run-writes-nothing contract is HONOURED, not satisfied
+                # by moving the write (director item 6 / MISS-1).
+                return candidate
+            got = _reserve_run_key(root, candidate)
+            if got:
+                return candidate
+            if got is None:
+                return _unique_run_key(base)
         candidate = f"{base}-{i}"
         i += 1
-    return candidate
+    return _unique_run_key(base) if reserve else candidate
 
 
 class WorkflowsNodeError(Exception):
@@ -788,15 +861,45 @@ def validate_registry(root: Path, wf: Path | None = None,
     return 0
 
 
-def _load_manifest(root: Path, name: str) -> dict:
-    """The single stage manifest both harnesses read: <name>.json."""
+def _load_manifest(root: Path, name: str, _seen: set[str] | None = None) -> dict:
+    """Load one manifest, materializing inherited stages then its prelude."""
+    seen = set() if _seen is None else _seen
+    if name in seen:
+        raise ValueError(f"workflow manifest cycle at {name!r}")
+    seen.add(name)
     p = root.joinpath(*WORKFLOWS_DIR_REL, f"{name}.json")
     if not p.is_file():
         # fall back to the .js script's sibling (rare; name may carry it)
         p = root.joinpath(*WORKFLOWS_DIR_REL, f"agi-{name}.js")
         if not p.is_file():
             raise FileNotFoundError(f"no stage manifest {name}.json under {WORKFLOWS_DIR_REL}")
-    return json.loads(p.read_text(encoding="utf-8"))
+    raw = json.loads(p.read_text(encoding="utf-8"))
+    base = raw.get("extends")
+    if not base:
+        return raw
+    inherited = _load_manifest(root, base, seen)
+    merged = {**inherited, **raw}
+    rounds = [s["label"] for s in raw.get("prelude", []) if s.get("kind") == "round"]
+    reviews = []
+    for st in inherited.get("stages", []):
+        st = dict(st)
+        deps = st.get("depends_on") or []
+        st["depends_on"] = list(dict.fromkeys(([deps] if isinstance(deps, str) else deps) + rounds))
+        if rounds and not st.get("chained_from"):
+            st["chained_from"] = rounds[0]
+        # What the INHERITED stages of THIS round are owed, declared by the
+        # round manifest rather than by the base: a base's review stages are
+        # shared by bare runs (which owe no range at all), so the range keys
+        # belong to the round that gathers one. Composition -- never the base
+        # bytes -- is where they are declared (a manifest cell, not a list in
+        # this file, so a reader can see WHICH round owes what).
+        owed = raw.get("inherited_required_placeholders")
+        if owed:
+            st["required_placeholders"] = list(dict.fromkeys(
+                list(st.get("required_placeholders") or []) + list(owed)))
+        reviews.append(st)
+    merged["stages"] = raw.get("prelude", []) + reviews + raw.get("stages", [])
+    return merged
 
 
 def _expand_stages(manifest: dict, args: dict) -> list[dict]:
@@ -1166,6 +1269,9 @@ class RunView:
         # own run-level fact (never a failure), rendered by `summary` and
         # recorded in the tracking row as `batch_empty`.
         self.empty_handoffs: list = []
+        # the `resolved` stages this run OBSERVED succeed (today: a
+        # `kind: round` stage that returned 0) and therefore counts in `ok=`
+        self.ok_resolved: set = set()
 
     def _tree(self) -> None:
         o = self.out
@@ -1194,11 +1300,23 @@ class RunView:
     def run_started(self) -> None:
         self._tree()
 
-    def stage_resolved(self, label: str, detail: str = "") -> None:
+    def stage_resolved(self, label: str, detail: str = "",
+                       counts_ok: bool = False) -> None:
         """claude-code path: the script is the runner there, so a stage can
         only be RESOLVED here, never observed to completion. Also the pi
         path's digest fallback: a stage with no schema-valid stdout whose
-        declared `result_file` validates is resolved from that file."""
+        declared `result_file` validates is resolved from that file.
+
+        `counts_ok` marks the ONE case where `resolved` is a SUCCESS the run
+        itself observed — a `kind: round` stage `_run_round_stage` returned 0
+        for. It is FALSE for the claude-code path, where `resolved` only
+        means "handed to the Workflow tool", and for the digest fallback,
+        where it is a recovery: folding either into `ok=` would change the
+        summary bytes two certificates in test_workflow.py pin
+        (hypothesis:a-skipped-stage-gates-its-dependents-like-a-failed-one,
+        falsifier 4 vs falsifier 5)."""
+        if counts_ok:
+            self.ok_resolved.add(label)
         self._set(label, "resolved", detail)
 
     def stage_started(self, label: str, detail: str = "") -> None:
@@ -1277,12 +1395,18 @@ class RunView:
         counts: dict[str, int] = {}
         for s in self.state.values():
             counts[s["status"]] = counts.get(s["status"], 0) + 1
+        # a `resolved` round stage SUCCEEDED: a stand-in round stage that
+        # never touched this view left itself `pending` and a fully
+        # successful run under-counted ok by one
+        # (hypothesis:a-skipped-stage-gates-its-dependents-like-a-failed-one,
+        # falsifier 4). Only the round marks itself this way.
+        resolved = len(self.ok_resolved)
         for e in self.empty_handoffs:
             o.write(f"[warn] {e['stage']}: handoff {e['field']} is empty — "
                     "the stage ran and kept nothing (batch_empty=true); "
                     "this is not a chain failure\n")
         o.write(f"[summary] workflow={self.key} stages={len(self.order)} "
-                f"ok={counts.get('ok', 0)} "
+                f"ok={counts.get('ok', 0) + resolved} "
                 f"unstructured={counts.get('unstructured', 0)} "
                 f"failed={counts.get('failed', 0)}\n")
 
@@ -1378,8 +1502,13 @@ def _pi_harness_cfg(cfg: dict) -> dict:
     skips the config, but a config row with sane defaults)."""
     h = (cfg.get("harnesses") or {}).get("pi") or {}
     return {
-        "bin": h.get("bin") or os.environ.get("PI_BIN")
-               or "/home/ubuntu/.npm-global/bin/pi",
+        # The ONE shared resolver: $PI_BIN first, then the `~`/{home}-expanded
+        # config cell, then PATH for the built-in default. Round 1 of
+        # hypothesis:harness-bin-paths-resolve-per-box moved the config bins to
+        # `~/.npm-global/bin/pi`; this reader used to read the RAW cell
+        # config-before-env and fall back to a /home/ubuntu literal (the two
+        # defects that killed every merge-up-review stage at once).
+        "bin": adapters.resolve_bin(h, "PI_BIN", "pi"),
         "provider": h.get("provider") or "openrouter",
         "thinking": h.get("thinking") or "medium",
     }
@@ -1466,7 +1595,8 @@ def _resolve_workflow_spawn_env(root, cfg: dict, run_key: str, harness: str,
             iter_n=run_key, agent_id=f"workflow:{run_key}",
             tier=_workflow_credential_tier(stages),
             limit_usd=limit_usd, ttl_minutes=ttl_minutes,
-            workspace_id=provisioning.workspace(cfg), root=root)
+            workspace_id=provisioning.workspace(cfg), root=root,
+            zero_usd=((cfg.get("harnesses") or {}).get(harness) or {}).get("zero_usd") is True)
     except provisioning.ProvisioningError as exc:
         print(f"ERR: could not mint a workflow credential: {exc}",
               file=sys.stderr)
@@ -1516,15 +1646,34 @@ def _revoke_run_credential(key_hash: str | None, root) -> None:
               file=sys.stderr)
 
 
-def _stage_context(repo: Path, graph_root: Path, stage: dict) -> str:
+# The pre-fix literal the context build ran under, kept as the undeclared
+# default so a manifest that declares no `context_timeout_s` is
+# byte-for-byte today (the claim's third conjunct) -- 60 s, NOT the stage
+# wall's 3600. `_resolve_context_timeout` is the ONE place this default
+# lives; `_stage_context` still guards `None` for legacy callers.
+_DEFAULT_CONTEXT_TIMEOUT_S = 60
+
+
+def _stage_context(repo: Path, graph_root: Path, stage: dict,
+                   context_timeout_s: int = _DEFAULT_CONTEXT_TIMEOUT_S) -> str:
     """Assemble the shared graph context for one live workflow stage.
 
     The stage prompt remains workflow-specific, but the graph state and role
     brief come from the same read surfaces used by ordinary dispatched kids.
     This keeps a workflow stage from inventing a second context assembly path.
+
+    `context_timeout_s` is the budget BOTH context reads run under, resolved by
+    the CALLER from the manifest (`stage["context_timeout_s"]` >
+    `manifest["context_timeout_s"]` > `_DEFAULT_CONTEXT_TIMEOUT_S`) -- this
+    function never re-reads a manifest and never owns a second copy of the
+    resolver. It used to be two hard `timeout=60` literals, which is exactly
+    how every verify stage died `context-build-timeout after 60 s` at box load
+    40-51 (merge-up-review, 09-23 mur).
     """
     import subprocess
 
+    budget = (_DEFAULT_CONTEXT_TIMEOUT_S if context_timeout_s is None
+              else context_timeout_s)
     role = str(stage.get("role") or "kid")
     tier = str(stage.get("tier") or role)
     if tier not in {"kid", "parent", "advisor", "director",
@@ -1533,7 +1682,7 @@ def _stage_context(repo: Path, graph_root: Path, stage: dict) -> str:
     viewport = subprocess.run(
         [sys.executable, str(_THIS / "viewport.py"), "--emit", "llm",
          "--depth", "3"],
-        cwd=str(repo), capture_output=True, text=True, timeout=180,
+        cwd=str(repo), capture_output=True, text=True, timeout=budget,
     )
     if viewport.returncode != 0:
         raise RuntimeError(
@@ -1542,7 +1691,7 @@ def _stage_context(repo: Path, graph_root: Path, stage: dict) -> str:
     brief = subprocess.run(
         [sys.executable, str(_THIS / "brief.py"), "head", "--tier", tier,
          "--project-root", str(graph_root)],
-        cwd=str(repo), capture_output=True, text=True, timeout=180,
+        cwd=str(repo), capture_output=True, text=True, timeout=budget,
     )
     if brief.returncode != 0:
         raise RuntimeError(
@@ -1710,7 +1859,7 @@ def _stage_is_producing(stage: dict) -> bool:
 
 def _run_stage_proc(cmd, *, budget: float, stage: dict,
                     spawn_env: dict | None, view: "RunView | None",
-                    cap: "str | None" = None):
+                    cap: "str | None" = None, cfg: "dict | None" = None):
     """Run ONE stage command with the SM.105 optional wall extension, on a
     live `Popen` so an extension is the SAME process and the SAME output file.
 
@@ -1723,9 +1872,13 @@ def _run_stage_proc(cmd, *, budget: float, stage: dict,
     it gets the single deadline it was given."""
     env = spawn_env if spawn_env is not None else _pi_env()
     # SM.112 -- one cap for the stage child. Only on a REAL launch: a test
-    # that injected the Popen seam owns its own child.
+    # that injected the Popen seam owns its own child. `cfg` is the graph the
+    # CALLER already holds, passed so the seam reads the declared
+    # `values.memcap.*` cells (hypothesis:a00-50b210d5-b85ee2) exactly as
+    # `dispatch.py` does; None keeps the shipped defaults, so a caller with
+    # no config in hand is byte-unchanged.
     if cap is not None and subprocess.Popen is _REAL_POPEN:
-        cmd = mem_cap.wrap_argv(cmd, cap)
+        cmd = mem_cap.wrap_argv(cmd, cap, cfg)
     if subprocess.Popen is _REAL_POPEN and subprocess.run is not _REAL_RUN:
         return subprocess.run(cmd, capture_output=True, text=True, env=env,
                               timeout=budget)
@@ -1812,7 +1965,7 @@ def _run_stage_pi(cfg: dict, stage: dict, knobs: dict, run_args: dict,
         try:
             proc = _run_stage_proc(
                 cmd, budget=budget, stage=stage, spawn_env=spawn_env,
-                view=view, cap=cap)
+                view=view, cap=cap, cfg=cfg)
         except subprocess.TimeoutExpired:
             # A timeout is reported as ELAPSED TIME FIRST, never as "could not
             # start": TimeoutExpired IS a SubprocessError and the string it
@@ -1981,6 +2134,19 @@ def _current_load() -> float:
     return os.getloadavg()[0]
 
 
+def _whole_seconds(value: float) -> int:
+    """A resolved budget, floored to whole seconds and never to ZERO.
+
+    A 0<v<1 budget is a positive number, so it clears the refusal, but
+    `int(0.5)` truncates it to 0 and `subprocess.run(timeout=0)` raises
+    `TimeoutExpired` immediately — the same silent kill a declared 0 causes.
+    Every truncation site (with and without load scaling, stage wall and
+    context build) floors at ONE second instead
+    (goal:g15.29.20 FR-C1; hypothesis:context-budget-never-floors-to-zero-
+    and-is-pinned)."""
+    return max(1, int(value))
+
+
 def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
     """The stage's wall-clock budget in seconds, DECLARED — never truthy.
 
@@ -2022,23 +2188,229 @@ def _resolve_stage_timeout(stage: dict, manifest: dict) -> int:
     lf = (stage["load_factor"] if "load_factor" in stage
           else manifest.get("load_factor"))
     if lf is None:
-        return raw
+        return _whole_seconds(raw)
     if isinstance(lf, bool) or not isinstance(lf, (int, float)) or lf <= 0:
         raise ValueError(
             f"stage {label!r} load_factor={lf!r} is not a positive number")
-    return int(min(raw * (1.0 + lf * _current_load()), raw * _LOAD_CAP_MULT))
+    return _whole_seconds(min(raw * (1.0 + lf * _current_load()),
+                              raw * _LOAD_CAP_MULT))
 
 
-def _failed_dependency(stage: dict, failed_keys: dict) -> str | None:
+def _resolve_context_timeout(stage: dict, manifest: dict) -> int:
+    """The stage's CONTEXT-BUILD budget in seconds, DECLARED — never truthy.
+
+    Same resolution shape as `_resolve_stage_timeout` (which owns the stage
+    WALL): stage `context_timeout_s` > manifest `context_timeout_s` >
+    `_DEFAULT_CONTEXT_TIMEOUT_S` (60, the literal this replaces). Presence,
+    not truthiness: a declared stage key wins even when 0, and a declared 0,
+    negative, bool or non-numeric value is REFUSED BY NAME before any stage
+    runs — `run_workflow` resolves both budgets in the same try/except, so the
+    refusal is one path with rc 5 and `--dry-run` agrees with the live run.
+
+    Load scaling is opt-in and reads the same `load_factor` cells as the wall
+    (a context build is itself slower under load, which is the incident this
+    closes) and is capped at `_LOAD_CAP_MULT` x the declared budget; absent
+    everywhere means the declared number, byte-for-byte.
+    """
+    label = stage.get("label")
+    if "context_timeout_s" in stage and stage["context_timeout_s"] is not None:
+        raw = stage["context_timeout_s"]
+        where = f"stage {label!r} context_timeout_s"
+    else:
+        raw = manifest.get("context_timeout_s")
+        where = f"stage {label!r} inherits workflow context_timeout_s"
+    if raw is None:
+        return _DEFAULT_CONTEXT_TIMEOUT_S
+    if isinstance(raw, bool) or not isinstance(raw, (int, float)) or raw <= 0:
+        raise ValueError(
+            f"{where}={raw!r} is not a positive number of seconds; a budget "
+            f"of 0 (or less, or non-numeric) is not a request to wait "
+            f"forever — the run is refused before any stage is dispatched")
+    lf = (stage["load_factor"] if "load_factor" in stage
+          else manifest.get("load_factor"))
+    if lf is None:
+        return _whole_seconds(raw)
+    if isinstance(lf, bool) or not isinstance(lf, (int, float)) or lf <= 0:
+        raise ValueError(
+            f"stage {label!r} load_factor={lf!r} is not a positive number")
+    return _whole_seconds(min(raw * (1.0 + lf * _current_load()),
+                              raw * _LOAD_CAP_MULT))
+
+
+def _round_git_harvest(root: Path, rec: dict) -> dict:
+    """Read the committed review range from the dispatch record's own refs."""
+    branch, base = rec.get("branch"), rec.get("base_branch")
+    if not branch or not base:
+        raise ValueError("round completion record has no branch/base_branch")
+
+    def git(*words: str) -> str:
+        p = subprocess.run(["git", "-C", str(root), *words],
+                           capture_output=True, text=True, timeout=30)
+        if p.returncode:
+            raise ValueError((p.stderr or p.stdout or "git failed").strip())
+        return p.stdout.strip()
+
+    old_tip = git("merge-base", base, branch)
+    new_tip = git("rev-parse", branch)
+    files = [f for f in git("diff", "--name-only", f"{old_tip}..{new_tip}").splitlines() if f]
+    return {"old_tip": old_tip, "new_tip": new_tip, "files": files}
+
+
+def _run_round_stage(root: Path, stage: dict, args: dict, timeout_s: int):
+    """Dispatch one detached parent and gate on its own status plus branch commit."""
+    target = args.get(stage.get("target_arg", "target"))
+    iteration = args.get(stage.get("iteration_arg", "iteration"))
+    if not target or not iteration:
+        raise ValueError("round stage requires target and iteration args")
+    cmd = [sys.executable, str(_THIS / "dispatch.py"), str(root), str(iteration),
+           "--target", str(target), "--tier", "parent", "--role", "parent",
+           "--ladder-tier", "0", "--branch", "--detach"]
+    # A dispatch that never returns inside its own budget is a HUNG round, and
+    # a hung round is a NAMED STAGE FAILURE (rc 3, same as a refused spawn) --
+    # not a run-level abort. Unwrapped, `TimeoutExpired` left `_run_round_stage`
+    # and `run_workflow` entirely: the per-stage try/except in the runner only
+    # wraps `_stage_context`, so the whole run died of a stage that had merely
+    # not finished, and every inherited review stage chained to it was never
+    # named at all. Caught HERE, the runner marks `round-parent` failed and
+    # `_failed_dependency` skips the whole inherited chain by name
+    # (hypothesis:a-round-stage-fails-closed-by-name-and-every-inherited-
+    # review-stage-is-gated, falsifier 2a).
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True,
+                              timeout=timeout_s)
+    except subprocess.TimeoutExpired:
+        return 3, None
+    if proc.returncode:
+        return 3, None
+    match = re.search(r"^spawned\s+(\S+)", proc.stdout or "", re.M)
+    if not match:
+        return 3, None
+    agent_id = match.group(1)
+    import dispatch
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        try:
+            manifest = json.loads(_loc.iteration_dir(root, iteration).joinpath(
+                "manifest.json").read_text(encoding="utf-8"))
+            rec = next(a for a in manifest["agents"] if a.get("id") == agent_id)
+        except (OSError, ValueError, KeyError, StopIteration):
+            rec = {}
+        if rec.get("status") in ("failed", "timeout", "stalled"):
+            return 3, None
+        if rec.get("status") == "done" or dispatch._branch_has_done_commit(root, rec, agent_id):
+            try:
+                harvest = _round_git_harvest(root, rec)
+            except (OSError, ValueError, subprocess.TimeoutExpired):
+                return 3, None
+            return 0, {"key": target, "hypothesis": target, "parent": agent_id,
+                        "branch": rec.get("branch"), **harvest,
+                        **_round_findings(harvest.get("files") or [])}
+        time.sleep(min(1, max(0, deadline - time.monotonic())))
+    return 2, None
+
+
+#: The node kinds a round's review stages are handed by name. A review prompt
+#: that writes `{experiments}` or `{verdict}` must find the round's OWN
+#: committed nodes there.
+_ROUND_FINDING_KINDS = ("experiment", "verdict")
+
+
+def _round_findings(files: list) -> dict:
+    """The round's committed nodes, keyed by kind, for a chained review
+    stage's `{experiments}` / `{verdict}` placeholders. Measured pre-fix: the
+    round returned only `key/hypothesis/parent/branch/old_tip/new_tip/files`,
+    so both placeholders rendered `''` through `_SafeDict` and a review stage
+    was asked to judge a round that had produced no evidence — silently, since
+    a blank placeholder looks exactly like a short answer. The round's
+    committed range IS the evidence, so the harvest's own file list is the one
+    source; a key with no node of that kind is `[]` (an honest empty, not a
+    missing name) (hypothesis:a-round-stage-fails-closed-by-name-and-every-
+    inherited-review-stage-is-gated, falsifier 3)."""
+    found: dict[str, list[str]] = {}
+    for f in files:
+        m = re.search(r"nodes/(" + "|".join(_ROUND_FINDING_KINDS) + r")/([^/]+)\.md$",
+                      str(f))
+        if m:
+            found.setdefault(m.group(1), []).append(m.group(2))
+    return {"experiments": found.get("experiment", []),
+            "verdict": found.get("verdict", [])}
+
+
+#: Keys a prior return can ALWAYS carry, whatever its stage declared: the
+#: `unstructured`/`violations` pair every non-validating return is recorded as,
+#: and the payload `_run_round_stage` builds (its identity, the git harvest
+#: range, and the finding kinds `_round_findings` keys).
+_STRUCTURED_RETURN_KEYS = frozenset({
+    "unstructured", "violations", "key", "hypothesis", "parent", "branch",
+    "old_tip", "new_tip", "files"} | set(_round_findings([])))
+
+
+def _chain_owed_keys(stage: dict, by_label: dict,
+                     run_args: dict) -> list[str]:
+    """The placeholders this stage's chain OWES it that nothing can supply.
+
+    A stage declares them in its manifest as `required_placeholders` (a
+    manifest value, never a per-workflow list in this code): the keys the
+    chain promised this stage — a round's `{experiments}`/`{verdict}`, a
+    prior's `{answer}`. One that no run arg, no repeat item and no field of
+    the prior return can supply renders as `''` through `_SafeDict` (which
+    exists so OPTIONAL args like `{scratch}` keep working), so the stage is
+    silently asked to judge nothing. Naming it here is the fail-closed
+    shape; an UNDECLARED placeholder is not judged, because from the
+    manifest and args alone an unsupplied optional arg is indistinguishable
+    from a typo (hypothesis:a-round-stage-fails-closed-by-name-and-every-
+    inherited-review-stage-is-gated, falsifier 3)."""
+    declared = list(stage.get("required_placeholders") or [])
+    known = set(run_args or {})
+    known.update((stage.get("_repeat_item") or {}).keys())
+    # A DECLARED key is judged only by what can actually supply it here. It
+    # is NOT excused by the blanket structured-return whitelist: that
+    # whitelist is a description of what a round BUILDS, and a round whose
+    # harvest dropped the key builds nothing of it -- so a declared
+    # `old_tip`/`new_tip`/`files` is owed until the round's own return (or an
+    # explicit run arg) puts it in `args`.
+    known.update(_STRUCTURED_RETURN_KEYS - set(declared))
+    base = stage.get("chained_from")
+    src = by_label.get(base) if isinstance(base, str) else None
+    schema = (src or {}).get("schema") or {}
+    known.update(schema.get("properties") or {})
+    known.update(schema.get("required") or [])
+    return sorted(k for k in declared if k not in known)
+
+
+def _failed_dependency(stage: dict, failed_keys: dict,
+                        simple_failed: frozenset[str] = frozenset()) -> str | None:
     """The base label this stage depends on that has a failed slice, or None.
     A repeated slice depends on the SAME `_repeat_key` of its base; a simple
     stage depends on the whole base. A repeated stage never consults its own
-    base label, so a failed slice never skips a sibling slice (SM.105)."""
-    deps = stage.get("chained_from") or stage.get("depends_on")
+    base label, so a failed slice never skips a sibling slice (SM.105).
+
+    `simple_failed` names the bases that failed AS A WHOLE — a stage with no
+    `repeat` of its own, e.g. the prelude `kind: round` parent. It gates every
+    slice of the dependent: without it the containment check compared a
+    dependent slice's `_repeat_key` against `{None}` and let EVERY inherited
+    review slice RUN after the round had already failed
+    (hypothesis:a-round-stage-fails-closed-by-name-and-every-inherited-
+    review-stage-is-gated, falsifier 1).
+
+    `chained_from` and `depends_on` are BOTH consulted, not one-or-the-other:
+    the composed round manifests give every inherited stage a
+    `depends_on=[round-parent]` while the later ones ALSO keep their own
+    `chained_from` (verify <- review, refute <- brainstorm). Reading only
+    `chained_from` let a DOWNSTREAM stage run after the round had failed and
+    the stage it chains from had merely been SKIPPED -- the chain was gated at
+    its head only, which is the gate the composition was supposed to close
+    (hypothesis:two-committed-round-manifests-run-a-round-then-its-review-by-
+    name, falsifier 3)."""
+    chained = stage.get("chained_from")
+    depends = stage.get("depends_on") or []
+    depends = [depends] if isinstance(depends, str) else list(depends)
+    deps = ([chained] if isinstance(chained, str) else []) + depends
     if not deps:
         return None
-    deps = [deps] if isinstance(deps, str) else deps
     for d in deps:
+        if d in simple_failed:
+            return d
         keys = failed_keys.get(d)
         if keys and ("_repeat_key" not in stage
                      or stage["_repeat_key"] in keys):
@@ -2076,7 +2448,7 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # by a DESCRIPTIVE key minted from this workflow's type + run args
     # (`mur-39`, `mur-sl1-2`), printed FIRST, never by the harness id. The
     # mint reads existing tracked rows so a re-run de-collides (-2, -3).
-    run_key = _mint_run_key(root, key, args)
+    run_key = _mint_run_key(root, key, args, reserve=not dry_run)
     # The RUNNER resolves the project root and hands it to every stage prompt
     # as `{project_root}` — no prompt hardcodes a checkout path, so a run
     # started in a git worktree mints into THAT worktree's graph. Added AFTER
@@ -2087,6 +2459,22 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     out.write(f"[run-key] {run_key}\n")
     cfg_row = (cfg.get("workflows") or {}).get(key) or {}
     manifest = _load_manifest(repo, key)
+    # hypothesis:brainstorm-manifest-route-refuses-a-missing-goal: a
+    # manifest-declared `required_args` list (config-max, never a literal
+    # per-workflow check here) is refused BY NAME before any stage expands
+    # or dispatches -- the pi/pi-free route used to have no such guard at
+    # all, unlike the native JS route's own required-goal check.
+    _missing_args = [a for a in (manifest.get("required_args") or [])
+                     if not str(args.get(a) or "").strip()]
+    if _missing_args:
+        print(f"workflow.py: workflow={key} refused: missing required "
+              f"non-empty arg(s) {_missing_args} (manifest.required_args)",
+              file=sys.stderr)
+        # rc 2, distinct from the rc 5 stage-timeout refusal and rc 3/4
+        # elsewhere in this function: a caller must be able to tell a
+        # bad-args refusal (nothing about the manifest's stages was even
+        # reached) from every other refusal class.
+        return 2
     stages = _expand_stages(manifest, args)
 
     # No literal `'pi'` default (hypothesis:l4-workflow-types-and-default-
@@ -2096,13 +2484,39 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # wins, envelope — it is the per-run override the CLI exposes.
     if not harness:
         harness, _level = _resolve_default_harness(root, key, manifest, cfg_row)
+    # A `kind: round` stage is executed by `_run_round_stage`, which dispatches
+    # a detached parent through dispatch.py -- the pi path's own runner. A seam
+    # that cannot run it must REFUSE BY NAME, not ignore the stage: measured,
+    # the claude-code branch handed back the Workflow call, marked the round
+    # `resolved` and returned 0, so a run that dispatched NO parent reported
+    # every stage satisfied. Refused BEFORE the dry-run return, so `--dry-run`
+    # and the live run agree (rc 6: a seam/manifest mismatch, distinct from
+    # the rc 2 bad-args, rc 3 credential/stage and rc 5 budget refusals).
+    # Gate on the ADAPTER, not the harness name: `pi-free` runs the same pi
+    # runner, and a name check left round stages runnable only on the PAID
+    # `pi` harness (the ~12.8 USD mur leak, TMM.295, 2026-09-27).
+    try:
+        _round_adapter = adapters.resolve(cfg, harness)[1].get("adapter")
+    except adapters.AdapterError:
+        _round_adapter = None
+    if _round_adapter != "pi":
+        _round_stages = [st["label"] for st in stages
+                         if st.get("kind") == "round"]
+        if _round_stages:
+            print(f"workflow.py: workflow={key} refused: stage(s) "
+                  f"{_round_stages} are kind=round, which harness "
+                  f"{harness!r} cannot run; a round stage needs a pi-adapter harness (`--harness pi-free`)",
+                  file=sys.stderr)
+            return 6
     try:
         _harness_name, harness_cfg = adapters.resolve(cfg, harness)
     except adapters.AdapterError as exc:
         raise ValueError(
             f"workflow {key!r}: invalid harness override {harness!r}: {exc}"
         ) from exc
-    knobs = {st["label"]: _resolve_knobs(st, cfg_row, args) for st in stages}
+    knobs = {st["label"]: ({"effort": st.get("effort_hint", _DEFAULT_EFFORT)}
+                           if st.get("kind") == "round" else
+                           _resolve_knobs(st, cfg_row, args)) for st in stages}
     if harness == "pi":
         # The pi model is resolved and namespace-checked here, BEFORE any
         # dry-run print or spawn — the config row's model is claude-code's,
@@ -2113,6 +2527,8 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
         # a project with no ladder file.
         _roles = spawn_gate.read_ladder_roles(root / "nodes" if root else None)
         for st in stages:
+            if st.get("kind") == "round":
+                continue
             model = _resolve_pi_model(cfg, st, args, _roles)
             _assert_model_in_provider_namespace(model, hc["provider"])
             knobs[st["label"]]["model"] = model
@@ -2135,9 +2551,12 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
     # manifest-level `timeout_s: 0` can no longer reach
     # `subprocess.run(timeout=0)` and silently kill every stage.
     stage_timeouts: dict[str, int] = {}
+    stage_context_timeouts: dict[str, int] = {}
     for st in stages:
         try:
             stage_timeouts[st["label"]] = _resolve_stage_timeout(st, manifest)
+            stage_context_timeouts[st["label"]] = \
+                _resolve_context_timeout(st, manifest)
         except ValueError as exc:
             print(f"workflow.py: workflow={key} refused: {exc}",
                   file=sys.stderr)
@@ -2220,22 +2639,82 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
         # on the first failure -- it marks THAT slice failed and continues,
         # skipping only stages that depend on a failed slice.
         failed_keys: dict[str, set] = {}
+        # the bases that failed AS A WHOLE (a stage with no `repeat`): they
+        # gate every slice of their dependents, unlike a failed single slice
+        simple_failed: set[str] = set()
+        # the ROOT failure behind each gated base, so a stage skipped for a
+        # SKIPPED dependency names the stage that actually failed, not the
+        # intermediate that never ran (hypothesis:a-skipped-stage-gates-its-
+        # dependents-like-a-failed-one, falsifier 3)
+        root_failed: dict[str, str] = {}
+
+        def note_failed(stage: dict, root: str | None = None) -> None:
+            base = stage.get("_base_label", stage["label"])
+            failed_keys.setdefault(base, set()).add(stage.get("_repeat_key"))
+            if "_repeat_key" not in stage:
+                simple_failed.add(base)
+            root_failed.setdefault(base, root or base)
+
         first_rc: int | None = None
+        by_label = {s.get("_base_label", s["label"]): s for s in stages}
         for st in stages:
-            dep = _failed_dependency(st, failed_keys)
+            dep = _failed_dependency(st, failed_keys, simple_failed)
             if dep is not None:
-                view.stage_skipped(st["label"], f"dependency {dep!r} failed")
+                # a SKIPPED stage is not-succeeded for gating, so the gate
+                # holds through the WHOLE chain and not only one hop: without
+                # this a stage that depends on the SKIPPED one found nothing
+                # to fail on and ran (falsifier 1, the plain A->B->C chain)
+                # NOT `root`: that name is run_workflow's project root, and
+                # rebinding it sent every later _run_round_stage /
+                # _persist_stage_value / _track_run / _revoke_run_credential a
+                # stage LABEL (DH.399 harvest, director-engine gen 24)
+                root_fail = root_failed.get(dep, dep)
+                why = (f"dependency {dep!r} failed" if root_fail == dep else
+                       f"dependency {root_fail!r} failed (via {dep!r})")
+                view.stage_skipped(st["label"], why)
                 print(f"workflow.py: workflow={key} skipped stage "
-                      f"{st['label']} (dependency {dep!r} failed)",
+                      f"{st['label']} ({why})",
                       file=sys.stderr)
+                note_failed(st, root_fail)
                 continue
             prior = None
-            if "_repeat_key" in st and st.get("chained_from"):
-                # `chained_from` over the same repeat key: the prior stage's
-                # validated return merged into this stage's prompt context.
-                prior = prior_by_key.get((st["chained_from"], st["_repeat_key"]))
+            if st.get("chained_from"):
+                # A repeated stage chained from a SIMPLE upstream (the
+                # prelude `kind: round` parent, which no repeat expands) looks
+                # up (round-parent, <its own slice key>) and finds nothing, so
+                # every inherited review SLICE rendered {old_tip}/{new_tip}/
+                # {files} as blank -- a run that looked chained and carried
+                # nothing. The exact match still wins; the `(cf, None)` row
+                # exists only when a NON-repeated upstream ran, and a
+                # repeated upstream never writes that row, so a failed sibling
+                # slice still hands down nothing.
+                prior = (prior_by_key.get((st["chained_from"],
+                                           st.get("_repeat_key")))
+                         or prior_by_key.get((st["chained_from"], None)))
+                # A placeholder the chain DECLARES it is owed, that nothing
+                # can supply, is a named stage failure and never a blank.
+                # A key the upstream return itself dropped is NOT this case
+                # -- that is already named on the upstream stage (its
+                # `unstructured` status and its schema violation).
+                gaps = (_chain_owed_keys(st, by_label, args)
+                        if prior is not None else [])
+                if gaps:
+                    reason = (f"required placeholder(s) {gaps} are owed by "
+                              f"nothing — no run arg, no repeat item and no "
+                              f"field of {st['chained_from']!r}'s return")
+                    view.stage_failed(st["label"], reason)
+                    print(f"workflow.py: workflow={key} stage "
+                          f"{st['label']} {reason}", file=sys.stderr)
+                    if first_rc is None:
+                        first_rc = 3
+                    note_failed(st)
+                    continue
             try:
-                context_text = _stage_context(repo, root, st)
+                if st.get("kind") == "round":
+                    context_text = None
+                else:
+                    context_text = _stage_context(
+                        repo, root, st, stage_context_timeouts[st["label"]])
             except (subprocess.TimeoutExpired, RuntimeError) as exc:
                 # Fail THIS stage by name; siblings proceed under SM.105.
                 reason = (f"context-build-timeout after {exc.timeout:g} s"
@@ -2246,19 +2725,49 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
                       f"{reason}", file=sys.stderr)
                 if first_rc is None:
                     first_rc = 3
-                failed_keys.setdefault(
-                    st.get("_base_label", st["label"]), set()).add(
-                        st.get("_repeat_key"))
+                note_failed(st)
                 continue
             # The budget was resolved (declared, never truthy) before any
             # dispatch -- see `_resolve_stage_timeout` for `0` and the refusal.
             stage_timeout = stage_timeouts[st["label"]]
-            rc, value = _run_stage_pi(
-                cfg, st, knobs, args, out=out, view=view, prior=prior,
-                spawn_env=spawn_env, context_text=context_text,
-                timeout_s=stage_timeout)
+            runner = (_run_round_stage(root, st, args, stage_timeout)
+                      if st.get("kind") == "round" else
+                      _run_stage_pi(cfg, st, knobs, args, out=out, view=view,
+                                    prior=prior, spawn_env=spawn_env,
+                                    context_text=context_text,
+                                    timeout_s=stage_timeout))
+            rc, value = runner
+            if rc == 0 and st.get("kind") == "round":
+                # A RESOLVED round is NAMED, never left `pending`:
+                # `_run_round_stage` returns a bare (rc, value) and never
+                # touches the view, so the success twin of the mark-and-
+                # continue patch below (which covers rc != 0) was missing —
+                # the run record read `{'round-parent': 'pending'}` with
+                # `failed=0`, indistinguishable from a round that never
+                # resolved at all. The exact mirror of falsifier 3, where a
+                # FAILED round is named and its whole review chain is named
+                # skipped (hypothesis:two-committed-round-manifests-run-a-
+                # round-then-its-review-by-name, seam 4).
+                if view.state.get(st["label"], {}).get("status") == "pending":
+                    v = value if isinstance(value, dict) else {}
+                    view.stage_resolved(
+                        st["label"],
+                        f"round resolved: {v.get('old_tip')}..{v.get('new_tip')}"
+                        f" ({len(v.get('files') or [])} files,"
+                        f" parent {v.get('parent')})", counts_ok=True)
             if value is not None:
                 _persist_stage_value(root, run_key, st["label"], value)
+                # A round's harvest is the RUN's context, not just its first
+                # dependent's: every inherited review prompt names
+                # {old_tip}/{new_tip}/{files} (and the deeper slices chain from
+                # the FIRST review stage, whose own return is the reviewer's
+                # findings, not the round's range), so without this the tail of
+                # a composed chain rendered the range BLANK -- a run that
+                # looked chained and compared nothing. An explicit run arg still
+                # wins over the round's value (hypothesis:two-committed-round-
+                # manifests-run-a-round-then-its-review-by-name, falsifier 2).
+                if st.get("kind") == "round":
+                    args = {**(value if isinstance(value, dict) else {}), **args}
                 # A declared handoff list that came back EMPTY is a run-level
                 # fact, not a stage failure: name it so a consumer can tell
                 # "the stage dropped everything" from "the chain broke"
@@ -2270,16 +2779,21 @@ def run_workflow(root: Path, name: str, harness: str, args: dict, dry_run: bool,
             if rc != 0:
                 # MARK AND CONTINUE: this slice failed; siblings and every
                 # independent stage still run. The run ends non-zero below.
+                # `_run_round_stage` returns a bare rc and never touches the
+                # view, so a failed round used to read `pending` in the
+                # summary and in the tracking row. Mark it here when the
+                # runner did not already (`_run_stage_pi` names its own).
+                if view.state.get(st["label"], {}).get("status") != "failed":
+                    view.stage_failed(st["label"], f"rc={rc}")
                 if first_rc is None:
                     first_rc = rc
-                failed_keys.setdefault(
-                    st.get("_base_label", st["label"]), set()).add(
-                        st.get("_repeat_key"))
+                note_failed(st)
                 print(f"workflow.py: workflow={key} stage {st['label']} "
                       f"failed (rc={rc}); continuing", file=sys.stderr)
                 continue
-            if "_repeat_key" in st and value is not None:
-                prior_by_key[(st["_base_label"], st["_repeat_key"])] = value
+            if value is not None:
+                prior_by_key[(st.get("_base_label", st["label"]),
+                              st.get("_repeat_key"))] = value
         view.summary()
         _track_run(root, key, harness, view, run_key)
         return first_rc or 0

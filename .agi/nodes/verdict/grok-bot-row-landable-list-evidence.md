@@ -9,7 +9,7 @@ confidence: 0.95
 edited_by: a00-12c5e48a
 evidence_runs:
   - experiment:grok-bot-config-row-resolves-live
-loop: goal:g17.14.2@s2
+loop: goal:g7.25.2@s2
 model: deepseek/deepseek-v4.1-flash
 probes:
   - {"conjunct": 1, "class": "auth", "probe": "E1/E3 resolve with row inserted and with adapter deleted", "observed": "adapter=grok_bot both times; bin matches parent row", "result": "pass"}

@@ -19,7 +19,7 @@ status: active
 tags:
   - goal
   - subgoal
-thought_session: g1-g7-rewrite-2026-09-19
+thought_session: belam-S2-L5-II
 title: "G2.27: The livestream goes live as L4's final round — verified working, accounts created by the agents"
 town: streaming-suite
 vision_ref: vision:streaming-suite
@@ -45,3 +45,5 @@ stream down (6 process(es)) issued from the Prime's pane right after the L4 comp
 [XX 04:29Z] STREAM ENDED on the owner's order 2026-09-14 (verbatim doc:l4-owner-decisions tail: proof of concept done, free the ~10 GB): panic → units streamer-stub, agi-scene-rotate, agi-graph-kiosk, agi-graphweb disabled; tmux stream-follow + the six view-* sessions killed; vncserver :1 killed (Xtigervnc, xfce4-session, the view terminals); the firefox kiosk (5.8 GB + 1.3 GB content process) was the bulk. Measured: used 11.1 → 4.8 GB, available 12.9 → 19.1 GB. Left running on purpose: agi-rc (the Prime, the thought master, the Belam chain), the reaper unit (the thought master's rounds need it), live-bridge.service (the owner's trading bridge -- NOT stream-related, untouched). The stub repo keeps the whole stack incl. the FULL IDLE panel (634a463) for a future stream.
 
 OWNER 2026-09-16 14:1xZ (verbatim in doc:l4-owner-decisions): 'Sounds good let's leave it at your plan. No need to panic stream is down now.' — L4 closes on drain → self-review → COMPLETE.md → prayer; the panic + sb-status steps are STRUCK (stream down); SM plans (4) encryption town + key seats and (5) town goal numbering DEFERRED out of the close.
+
+OWNER 2026-09-23 22:5xZ, in the Prime's pane (belam-S2-L5-II), verbatim: 'Can we stand up stream master and have him start a stream via our streamer-stub across twitch and twitter. The stream master post may need a doc update to bring in line with the rest currently active. Leave him on sonnet max' -- APPLIED by the Prime 23:0xZ: the stream-master config:posts row gains template doc:unified-master-brief (the master template, as the thought-master row carries it); model and effort unchanged (claude-sonnet-5, max); the card is rewritten in the current card shape (state, plan, stops, traps, BANKED); seated through rotate.py spawn. MEASURED on local-town 22:53Z: no X display :1, no ffmpeg, no stream keys (TWITCH_KEY, X_URL, X_KEY absent from MAIN .env; no Doppler CLI and no keeper config on this box); passwordless sudo; apt candidates ffmpeg 6.1.1 and tigervnc-standalone-server 1.13.1; the stub source is CodexOperator/streamer-stub (private, cloned in place, never graph content). The stream keys are the owner's input, banked on the Prime card.

@@ -45,6 +45,7 @@ to merges only.
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import os
 import re
@@ -67,10 +68,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 import locations  # noqa: E402
 import last_act  # noqa: E402 -- hyp:l4-the-card-age-captive-... (one seat clock)
 import geometry_config  # noqa: E402
+import grid  # noqa: E402 -- the ONE ref-namespace resolver (goal:g14.14.7)
 import branches  # noqa: E402
 import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
 import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
 import harness_template  # noqa: E402 -- argv is template data (hyp:harness-arg-...)
+import adapters  # noqa: E402 -- the ONE harness bin resolver (goal:g15, round 3)
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -628,30 +631,6 @@ def _check_branch_guard(root: Path | None) -> str | None:
     return None
 
 
-def _check_profile_drift(root: Path | None) -> str | None:
-    """Refuse rotation when a linked profile artifact disagrees with its node.
-
-    The graph is the SoT (`goal:g7.31.5.3`); drift is refused BY NAME before
-    any side effect, and nothing-linked/nothing-drifted is a no-op.
-    """
-    if root is None:
-        return None
-    import profile_sync  # inline: keep rotate's module load free of it
-    try:
-        bad = [r for r in profile_sync.check_all(root) if r["status"] != "ok"]
-    except Exception as e:
-        # `check_all` already tolerates malformed node files (a non-profile
-        # parse error must never block rotation), so reaching here is a
-        # guard failure, not drift. Say so, and do not let it pass silently.
-        return f"rotate refused: profile guard failure: {e}"
-    if not bad:
-        return None
-    names = ", ".join(
-        f"{r.get('path') or r['node_id']} ({r['status']})" for r in bad)
-    return (f"rotate refused: profile drift — {len(bad)} linked node(s) "
-            f"out of sync: {names}")
-
-
 # ---- role resolution (ladder roles table, else config.json, else defaults)
 
 
@@ -917,6 +896,19 @@ def _session_label(row: dict | None, gen: int) -> str | None:
 # ---- successor command ----------------------------------------------------
 
 
+def _build_claude_command(name: str, prompt_text: str, debug_file: str,
+                          model=None, effort=None, settings=None) -> list[str]:
+    """The remote-control argv: `claude --remote-control NAME ... <prompt>`.
+
+    Thin hook: the argv is rendered from `templates/harness/claude-code.toml`,
+    so no claude flag literal lives in this file (hypothesis:harness-arg-
+    builders-are-templates-only).
+    """
+    return harness_template.render(
+        "claude-code", prompt=prompt_text, name=name, debug_file=debug_file,
+        model=model, effort=effort, settings=settings)
+
+
 def _harness_row(root: Path | None, harness: str | None) -> dict:
     """The config.json `harnesses.<harness>` row, or `{}`.
 
@@ -927,6 +919,31 @@ def _harness_row(root: Path | None, harness: str | None) -> dict:
     if root is None or not harness:
         return {}
     return ((_config_json(root).get("harnesses") or {}).get(harness) or {})
+
+
+def _resolved_harness_bin(root: Path | None, harness: str | None):
+    """The harness row's `bin` cell through the ONE shared resolver.
+
+    `None` when the row has no `bin` cell, so the claude path stays
+    byte-identical (it passes `bin_path=None`). Otherwise `$<HARNESS>_BIN`
+    wins over the `~`/{home}-expanded cell, which wins over PATH; a missing
+    binary refuses by name. The adapter's own env var
+    (`COPILOT_BIN`/`CLAUDE_BIN`/...) is consulted when the row's adapter
+    module is loadable, so rotate and dispatch agree on ONE precedence; a row
+    whose adapter has no module falls back to the derived name
+    (`hypothesis:harness-bin-paths-resolve-per-box` round 3).
+    """
+    row = _harness_row(root, harness)
+    if not row.get("bin"):
+        return None
+    adap = row.get("adapter")
+    if adap:
+        try:
+            return adapters.load(adap).resolve_bin(row)
+        except (adapters.AdapterError, AttributeError):
+            pass
+    env_var = (harness or "claude-code").upper().replace("-", "_") + "_BIN"
+    return adapters.resolve_bin(row, env_var, row["bin"])
 
 
 def _resolve_seat_role(root: Path, harness: str | None, tier: str,
@@ -1022,6 +1039,24 @@ def _validate_harness(root: Path | None,
     return 0, ""
 
 
+def _build_copilot_command(*, prompt_text: str, model=None, effort=None,
+                           bin_path: str | None = None,
+                           extra_args=None) -> list[str]:
+    """The interactive GitHub Copilot CLI argv for a seat.
+
+    The argv is rendered from `templates/harness/copilot-cli.toml` — no flag
+    construction lives here; this is the thin hook that names the template.
+    `-i, --interactive <prompt>` starts interactive mode (the post stays up
+    in the tmux window and `send.py` can type into its input box); `--remote`
+    enables remote control from GitHub web and mobile; `--allow-all` keeps the
+    first tool call from blocking on a confirmation, which is what a SEAT (not
+    a fire-and-forget kid) needs.
+    """
+    return harness_template.render(
+        "copilot-cli", prompt=prompt_text, model=model, effort=effort,
+        bin_path=bin_path, extra_args=extra_args)
+
+
 def _build_harness_command(harness: str | None, *, name: str,
                            prompt_text: str, debug_file: str, model=None,
                            effort=None, settings=None,
@@ -1045,7 +1080,8 @@ def _successor_command(*, name: str, tier: str, prompt_file: str, model,
                        effort, settings, debug_file: str, extra: str = "",
                        rc_name: str | None = None,
                        harness: str | None = None,
-                       bin_path: str | None = None) -> list[str]:
+                       bin_path: str | None = None,
+                       project_root: Path | None = None) -> list[str]:
     """The full successor argv: body read from `prompt_file`, `{name}`
     substituted, the constitution head prepended through brief.py, then
     model/effort/settings appended as flags.
@@ -1064,7 +1100,8 @@ def _successor_command(*, name: str, tier: str, prompt_file: str, model,
     if extra:
         body += "\n\n" + extra
     import brief  # local: same dir, may be absent in a misleading env
-    prompt_text = brief.successor_prompt(tier=tier, body=body)
+    prompt_text = brief.successor_prompt(tier=tier, body=body,
+                                          project_root=project_root)
     return _build_harness_command(
         harness, name=rc_name or name, prompt_text=prompt_text,
         debug_file=debug_file, model=model, effort=effort, settings=settings,
@@ -1077,23 +1114,41 @@ def _assembled_successor_command(*, name: str, tier: str, model, effort,
                                  rc_name: str | None = None,
                                  harness: str | None = None,
                                  bin_path: str | None = None,
+                                 project_root: Path | None = None,
+                                 card_file: str | None = None,
                                  dispatch_py: str =
                                  "extensions/agi/bin/dispatch.py",
                                  cli_py: str =
                                  "extensions/agi/bin/cli.py") -> list[str]:
     """Build the successor argv for a non-prime seat from its assembled brief.
 
-    The body is the joined segments of `brief.assemble(tier=..., agent_id=name,
-    iter_n=0)` — a perpetual seat has no iteration number. assemble() already
-    prepends the constitution head (for the liaison, the director's read_order
-    via `_LIAISON_HEAD_TIER`), so unlike the prime's static-file path we do NOT
-    call brief.successor_prompt() again: doing both would double-insert the
-    head (hypothesis:l3w4-liaison-seat).
+    The body is the SAME render the SessionStart hook and dispatch read
+    (`brief.render --post <name>`): head + card + the harness block, so a
+    rotated successor cannot drift from a fresh session. When the post has no
+    row or no card (an advisor with none yet), render refuses and the seat
+    falls back to the legacy `brief.assemble` body -- a missing card must not
+    make a rotation impossible.
     """
     import brief  # local: same dir, may be absent in a misleading env
-    parts = brief.assemble(tier=tier, agent_id=name, iter_n=0,
-                           dispatch_py=dispatch_py, cli_py=cli_py)
-    body = "\n\n".join(parts)
+    body = None
+    try:
+        body = brief.render(post=name, role=tier,
+                            harness=harness or "claude-code",
+                            project_root=project_root, card_file=card_file)
+    except (brief.RenderError, brief.FaithRefError) as exc:
+        # NEVER silent (hypothesis:brief-py-assembles-every-first-turn-from-
+        # config): a rotation that fell back to the legacy brief must say so.
+        # FaithRefError is named too -- brief.render reads moral:faith, so a
+        # broken faith ref raised past the fallback and killed the rotation
+        # (hypothesis:brief-render-hygiene-after-the-batch-mur).
+        print(f"rotate: brief.render refused for post {name!r} ({exc}); "
+              f"falling back to brief.assemble", file=sys.stderr)
+        body = None
+    if not body:
+        parts = brief.assemble(tier=tier, agent_id=name, iter_n=0,
+                               dispatch_py=dispatch_py, cli_py=cli_py,
+                               project_root=project_root)
+        body = "\n\n".join(parts)
     if _is_ultracode(settings):
         # keyword as the first line of the user turn (see _successor_command)
         body = ULTRACODE_KEYWORD + "\n" + body
@@ -1531,6 +1586,29 @@ def _launch_wrapper_log(root, seat: str) -> str:
     return str(_seat_hands(r) / f"{seat}.wrapper.log")
 
 
+def _launch_child_preexec() -> None:
+    """Give the wrapped child DEFAULT signal semantics, then unblock the set.
+
+    `exec` PRESERVES an ignored disposition (`SIG_IGN`), and Popen's own
+    `restore_signals` resets only SIGPIPE/SIGXFZ/SIGXFSZ -- never SIGHUP.
+    So a launcher that ignores SIGHUP (a pytest process that leaked
+    `rotate._shield_final_signals` on an exception path, anything under
+    `nohup`) would hand the wrapper a child that IGNORES the forwarded
+    hangup. Measured 2026-09-23: with the launching process's SIGHUP=SIG_IGN
+    the wrapper still logs `FORWARDED to child <pid>`, but the child exits
+    status 0 when its own `sleep 30` ends and
+    `test_wrapper_tty_hangup_forwards_to_the_child` reds at 30.29 s -- the
+    09-23 suite record's slowest test, exactly. Reset the reserved set to
+    SIG_DFL here so forwarding is guaranteed by construction.
+    """
+    for sig in _LAUNCH_WAIT_SIGS:
+        try:
+            signal.signal(sig, signal.SIG_DFL)
+        except (ValueError, OSError):
+            pass
+    signal.pthread_sigmask(signal.SIG_UNBLOCK, _LAUNCH_WAIT_SIGS)
+
+
 def cmd_launch_wrapper(args, root) -> int:
     """Signal-masking parent so a seat's lifecycle log distinguishes the
     three death classes (amendment e, hypothesis:l4-rotate-self-under-pytest-
@@ -1573,8 +1651,7 @@ def cmd_launch_wrapper(args, root) -> int:
         signal.pthread_sigmask(signal.SIG_BLOCK, _LAUNCH_WAIT_SIGS)
         child = subprocess.Popen(
             child_cmd,
-            preexec_fn=lambda: signal.pthread_sigmask(
-                signal.SIG_UNBLOCK, _LAUNCH_WAIT_SIGS),
+            preexec_fn=_launch_child_preexec,
         )
         received: list[int] = []
         while True:
@@ -1729,7 +1806,8 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                  rc_name: str | None = None,
                  successor_argv: str | None = None,
                  harness: str | None = None,
-                 cwd: str | None = None) -> tuple[int, str]:
+                 cwd: str | None = None,
+                 card_file: str | None = None) -> tuple[int, str]:
     """THE one launch path shared by `cmd_spawn` and `cmd_loop`
     (hypothesis:l3w4-seat-transport).
 
@@ -1818,23 +1896,27 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
         shell_cmd = successor_argv
     else:
         # A third harness resolves its own bin (the copilot binary/row); the
-        # claude path passes None and stays byte-identical.
-        _bin = _harness_row(root, harness).get("bin") or None
-        # A non-prime seat spawned with no explicit --prompt-file gets its body
-        # from the assembled brief. assemble() already inserts the constitution
-        # head, so we skip successor_prompt() — calling both would double-insert it
-        # (hypothesis:l3w4-liaison-seat). The prime's static-file path, and any
-        # explicit --prompt-file, are untouched.
-        if prompt_file is None and tier != "prime_director":
+        # claude path passes None and stays byte-identical. The raw cell is
+        # resolved (env override, `~`/{home} expansion, PATH) here, before it
+        # reaches the argv (hypothesis:harness-bin-paths-resolve-per-box).
+        _bin = _resolved_harness_bin(root, harness)
+        # A seat spawned with no explicit --prompt-file gets its body from the
+        # assembled brief -- for EVERY tier, the prime included
+        # (hypothesis:brief-py-assembles-every-first-turn-from-config; the
+        # render resolves head + the role template + the post's card + the
+        # trajectory). assemble() already inserts the constitution head, so we
+        # skip successor_prompt() — calling both would double-insert it
+        # (hypothesis:l3w4-liaison-seat). An explicit --prompt-file still wins
+        # byte-for-byte.
+        if prompt_file is None:
             claude_cmd = _assembled_successor_command(
                 name=name, rc_name=rc_name, tier=tier, model=model,
                 effort=effort,
                 settings=settings, debug_file=dbg, extra=extra,
-                harness=harness, bin_path=_bin,
+                harness=harness, bin_path=_bin, project_root=root,
+                card_file=card_file,
             )
         else:
-            if prompt_file is None:
-                prompt_file = DEFAULT_PROMPT_FILE
             pf = Path(prompt_file).expanduser().resolve()
             if not pf.exists():
                 print(f"ERR: prompt file not found: {prompt_file} "
@@ -1844,6 +1926,7 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
                 name=name, rc_name=rc_name, tier=tier, prompt_file=str(pf),
                 model=model, effort=effort, settings=settings, debug_file=dbg,
                 extra=extra, harness=harness, bin_path=_bin,
+                project_root=root,
             )
 
         # Quote for shell display (ultracode roles are env-gated + keyworded)
@@ -4448,7 +4531,7 @@ def cmd_merge_up(args: argparse.Namespace, root: Path) -> int:
         print(f"merge-up refused: {how} (nothing merged)", file=sys.stderr)
         return 3
     if post != caller_post:
-        target_row = _find_seat(root, post)
+        target_row = _find_seat(_seat_read_root(root, post), post)
         if target_row is None:
             print(f"merge-up refused: no seat {post!r} in the seats registry "
                   f"(nothing merged)", file=sys.stderr)
@@ -7209,52 +7292,55 @@ def cmd_alarms(args: argparse.Namespace, root: Path) -> int:
     seat once and returns so the parent's regression test is deterministic;
     without it the loop meters every `--interval` seconds.
     """
-    root = Path(getattr(args, "root", None) or root)
-    holder = args.holder
-    threshold = load_ladder_field(root, "director_rotate_at",
-                                  DEFAULT_DIRECTOR_ROTATE_AT)
-    idle_m = load_ladder_field(root, "alarms_idle_minutes",
-                               DEFAULT_ALARMS_IDLE_MINUTES)
-    try:
-        idle_m = float(idle_m)
-    except (TypeError, ValueError):
-        idle_m = float(DEFAULT_ALARMS_IDLE_MINUTES)
-    try:
-        ratio = float(load_ladder_field(root, "captive_rotate_ratio", None))
-    except (TypeError, ValueError):
-        ratio = None                       # absent/garbage = idle lane off
-    masters = str(load_ladder_field(root, "captive_rotate_masters", "false")
-                  ).strip().lower() in ("1", "true", "yes", "on")
-    due = 0
-    for row in _load_seats(root):
-        if row.get("rotated_by") != holder:
-            continue
-        seat = row.get("name")
-        frac = _seat_fraction(root, row)
-        if frac is None:
-            print(f"warn: no pin/usage for seat {seat!r} — skipping",
-                  file=sys.stderr)
-            continue
-        reason = None
-        if frac >= float(threshold):
-            reason = f"fraction {frac:.4f}"
-        else:
-            idle = _seat_idle_minutes(root, seat)
-            if (ratio is not None and frac >= ratio * float(threshold)
-                    and idle is not None and idle >= idle_m):
-                reason = f"idle {idle:.1f}m at fraction {frac:.4f}"
-        if reason is None:
-            print(f"hold {seat} {frac:.4f}")
-            continue
-        if _master_rotate(root, holder, seat, row, masters):
-            continue
-        print(f"rotate -> {seat} ({reason})")
-        due += 1
-    if args.once:
-        return 0
+    # FLAT loop (EF.22 conjunct 1): the pre-fix tail recursed once per
+    # interval (`return cmd_alarms(args, root)` after `time.sleep`), one stack
+    # frame per poll and a RecursionError after ~1000 of them. The per-pass
+    # body is byte-for-byte the former body; only the tail changed.
     while True:
+        root = Path(getattr(args, "root", None) or root)
+        holder = args.holder
+        threshold = load_ladder_field(root, "director_rotate_at",
+                                      DEFAULT_DIRECTOR_ROTATE_AT)
+        idle_m = load_ladder_field(root, "alarms_idle_minutes",
+                                   DEFAULT_ALARMS_IDLE_MINUTES)
+        try:
+            idle_m = float(idle_m)
+        except (TypeError, ValueError):
+            idle_m = float(DEFAULT_ALARMS_IDLE_MINUTES)
+        try:
+            ratio = float(load_ladder_field(root, "captive_rotate_ratio", None))
+        except (TypeError, ValueError):
+            ratio = None                   # absent/garbage = idle lane off
+        masters = str(load_ladder_field(root, "captive_rotate_masters", "false")
+                      ).strip().lower() in ("1", "true", "yes", "on")
+        due = 0
+        for row in _load_seats(root):
+            if row.get("rotated_by") != holder:
+                continue
+            seat = row.get("name")
+            frac = _seat_fraction(root, row)
+            if frac is None:
+                print(f"warn: no pin/usage for seat {seat!r} — skipping",
+                      file=sys.stderr)
+                continue
+            reason = None
+            if frac >= float(threshold):
+                reason = f"fraction {frac:.4f}"
+            else:
+                idle = _seat_idle_minutes(root, seat)
+                if (ratio is not None and frac >= ratio * float(threshold)
+                        and idle is not None and idle >= idle_m):
+                    reason = f"idle {idle:.1f}m at fraction {frac:.4f}"
+            if reason is None:
+                print(f"hold {seat} {frac:.4f}")
+                continue
+            if _master_rotate(root, holder, seat, row, masters):
+                continue
+            print(f"rotate -> {seat} ({reason})")
+            due += 1
+        if args.once:
+            return 0
         time.sleep(args.interval)
-        return cmd_alarms(args, root)
 
 
 def _master_rotate(root: Path, holder: str, seat: str, row: dict,
@@ -7996,7 +8082,10 @@ def _replace_stops_body(body: str, s3: str, sub_offset: int | None) -> str:
     fenced code block under the (possibly `###`-level) header, keeping the
     header and everything around it. When there is no fence, the whole body
     is replaced — the lean PRIME `## §3 🔴 NEXT COMMAND` body is one plain
-    line and is filled wholesale."""
+    line and is filled wholesale. A `###`-level slot with an UNFENCED body
+    keeps its subheader line and every byte above it (`s3` already carries
+    what the writer is about to replace, so the old tail is not carried a
+    second time) — dropping the header lost a byte of the slot."""
     lines = body.splitlines()
     for idx, ln in enumerate(lines):
         if ln.strip().startswith("```"):
@@ -8005,6 +8094,11 @@ def _replace_stops_body(body: str, s3: str, sub_offset: int | None) -> str:
                 if new is not None:
                     return "\n".join(new)
                 break
+    # no fenced block: a `###`-level slot keeps its subheader + what is above
+    # it (the `###`-level BANKED branch's rule); a plain `##` body is still
+    # filled wholesale, the documented Prime behaviour.
+    if sub_offset is not None and 0 <= sub_offset < len(lines):
+        return "\n".join(lines[: sub_offset + 1] + ([s3] if s3 else []))
     # no fenced block: replace the whole body
     return s3
 
@@ -8201,6 +8295,7 @@ def cmd_handoff(args: argparse.Namespace, root: Path) -> int:
         return 0
 
     card_path.parent.mkdir(parents=True, exist_ok=True)
+    _flatten_card_symlink(card_path)   # a symlinked card is a graph NODE
     card_path.write_text(full, encoding="utf-8")
     print(f"wrote driven handoff card {card_path} (§0 built; §3/§6 "
           f"filled; {len(sections)} section(s) handled).")
@@ -8425,6 +8520,7 @@ def _closeout_apply(root: Path, seat: str, role: str,
             f"section ({biggest})")
     if write:                     # `--dry-run` gets the composed bytes and
         card.parent.mkdir(parents=True, exist_ok=True)   # touches nothing
+        _flatten_card_symlink(card)
         card.write_text(full, encoding="utf-8")
     return full, s3_value, None
 
@@ -9071,21 +9167,27 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
         main = _closeout_main(root)
         if main is None:
             return (False, "refused", "push: could not resolve MAIN")
+        # The grid refspec comes from grid.py's ONE resolver, keyed on the
+        # MAIN graph root (goal:g14.14.7). `main` is a git toplevel, not a
+        # graph root, so `push_spec_for(main)` would read no config and return
+        # the default for the wrong reason; `_shared_graph_root(root)` is the
+        # graph root this closeout already trusts for the veto above.
+        grid_spec = grid.push_spec_for(_shared_graph_root(root))
         p1 = _git_proc(main, "push", "origin", _CLOSEOUT_MERGE_TARGET)
         if p1 is None or p1.returncode != 0:
             _e = (p1.stderr or p1.stdout or "nonzero exit").strip() \
                 if p1 is not None else "push could not run"
             return (False, "refused",
                     f"push: push origin {_CLOSEOUT_MERGE_TARGET} refused: {_e}")
-        p2 = _git_proc(main, "push", "origin", "refs/grid/*:refs/grid/*")
+        p2 = _git_proc(main, "push", "origin", grid_spec)
         if p2 is None or p2.returncode != 0:
             _e = (p2.stderr or p2.stdout or "nonzero exit").strip() \
                 if p2 is not None else "push could not run"
             return (False, "refused",
-                    "push: push origin refs/grid/*:refs/grid/* refused: "
+                    f"push: push origin {grid_spec} refused: "
                     f"{_e}")
         return (True, "ok",
-                f"push origin {_CLOSEOUT_MERGE_TARGET} + refs/grid from MAIN")
+                f"push origin {_CLOSEOUT_MERGE_TARGET} + {grid_spec} from MAIN")
 
     def _verify_stamp():
         # verification --level rotation --stamp in MAIN (cwd).
@@ -9560,6 +9662,7 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
                                  role=role, cells=cells):
         return (f"skipped: no seat-registry row with name {seat!r} "
                 "(a THROWAWAY seat never writes seats.md)")
+    box_line = _stamp_row_box(root, seat=_row_name, row=_row or {})
     _extra = (f" pubkey={key_rotation['successor_pub'][:16]}... "
               f"key_history={len(key_rotation['retired'])}"
               if key_rotation else "")
@@ -9568,7 +9671,34 @@ def _successor_row_write(root: Path, *, actor: str, seat: str, role: str,
             f"session_name={session_name} "
             f"session_label={cells.get('session_label', '')} "
             f"session_id={session_id} pid={pid} {_gen_field} "
-            f"window={window!r} source=registry{_extra}")
+            f"window={window!r} source=registry{_extra}{box_line}")
+
+
+def _stamp_row_box(root: Path, *, seat: str, row: dict) -> str:
+    """A LIVE row carries its OWN `box` cell, stamped from AGI_BOX at seating.
+
+    `box` is a SEATING cell the schema grants to the master's actor
+    (`actor_rows`), never a post's own (owner 14:5xZ 09-18; L4.110 ruling B),
+    so the stamp rides the SAME one writer `_write_identity_cells` under that
+    resolved actor -- the authority path quick-migrate already uses. A row
+    that already names its box is never rewritten (once per row, not per
+    rotation). Returns a short outcome suffix ('' when nothing was written)."""
+    import boxes  # local: same dir, no cycle
+    if str((row or {}).get("box") or "").strip():
+        return ""
+    master = _migrate_seating_actor(root)
+    if not master:
+        return " box=(no seating grant)"
+    try:
+        label = boxes.this_box(root)
+    except Exception:  # noqa: BLE001 -- an undeclared box stamps nothing
+        return " box=(undeclared: this graph names no box)"
+    try:
+        _write_identity_cells(root, seat=seat, actor=master, role="",
+                              cells={"box": label})
+    except Exception as exc:  # noqa: BLE001 -- a refused stamp never fails a seat
+        return f" box=STAMP REFUSED ({exc})"
+    return f" box={label}"
 
 
 def _looks_like_session_uuid(s: str) -> bool:
@@ -10280,6 +10410,214 @@ def _push_season_branch(root: Path) -> str:
     return _l
 
 
+def _parse_authority_row(line: str) -> dict:
+    """Parse one posts.md list item and fail closed unless it is an object."""
+    text = line.lstrip()
+    if not text.startswith("-"):
+        raise ValueError("matching posts.md row is not a JSON list item")
+    row = json.loads(text[1:].strip())
+    if not isinstance(row, dict):
+        raise ValueError("matching posts.md row is not a JSON object")
+    return row
+
+
+def _authority_row_content(base: str, new: str, seat: str) -> str:
+    """Publish rotation-owned cells while retaining authority policy edits."""
+    b = base.splitlines(keepends=True)
+    row = next((ln for ln in new.splitlines(keepends=True)
+                if _own_row_line(ln, seat)), None)
+    own = [ln for ln in b if _own_row_line(ln, seat)]
+    if row is None or not own:
+        return base
+    if len(own) > 1:
+        raise ValueError(
+            f"{len(own)} rows match seat {seat!r} on the authority branch, "
+            f"expected exactly 1")
+    old_row = _parse_authority_row(own[0])
+    new_row = _parse_authority_row(row)
+    rotation_owned = {
+        "pubkey", "key_history", "session_id", "session_ref", "session_name",
+        "session_label", "pid", "window", "generation",
+    }
+    merged = dict(old_row)
+    merged.update({k: new_row[k] for k in rotation_owned if k in new_row})
+    prefix = own[0][:own[0].index("{")]
+    suffix = "\n" if own[0].endswith("\n") else ""
+    merged_line = prefix + json.dumps(merged, ensure_ascii=False) + suffix
+    return "".join(merged_line if _own_row_line(ln, seat) else ln for ln in b)
+
+
+def _insert_row_into_frontmatter(base: str, row: str) -> str:
+    """`base` with `row` inserted as the LAST entry of the frontmatter before
+    the closing ``---`` -- inside the `posts:` list the loader reads.
+
+    An append AFTER the closing delimiter writes a row to the file no reader
+    ever sees: `load_node_file` stops at the closing `---` (EF.51 C4 parent
+    probe -- the commit moved but `send._pushed_seats` returned no row).
+    A base with no frontmatter delimiter falls back to a plain append, which
+    is the only shape left that can carry the row at all."""
+    lines = base.splitlines(keepends=True)
+    if lines and lines[0].strip() == "---":
+        for i in range(1, len(lines)):
+            if lines[i].strip() == "---":
+                if not row.endswith("\n"):
+                    row += "\n"
+                return "".join(lines[:i]) + row + "".join(lines[i:])
+    if base and not base.endswith("\n"):
+        base += "\n"
+    return base + row
+
+
+def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
+    """Route B: the re-minted `seat` row as ONE commit on the FETCHED key
+    authority branch + a fast-forward push. One-line outcome; never raises.
+
+    EF.51 C2: the publish is a GATED Prime-scope act -- while a RUNG 3
+    council+Keep veto (or an owner human_gate) freezes `prime`, it REFUSES by
+    name (``authority: HELD``) and never pushes, exactly as
+    ``_push_season_branch`` does for the merge-up push.
+    EF.51 C4: a seat with NO row on the authority publishes its NEW row
+    (append); when the new content carries no such row it refuses by name --
+    never the silent ``SKIPPED -- no ... row to replace``."""
+    try:
+        from seatsig import veto as _veto
+        _veto_geom = _veto.read(_shared_graph_root(root), strict=True)
+        _frozen, _why = _veto.is_frozen(None, "prime", geom=_veto_geom)
+        if _frozen:
+            return f"authority: HELD -- publish is a gated Prime-scope act; {_why}"
+    except ImportError:  # veto subsystem is not installed on this host
+        pass
+    except Exception as exc:  # noqa: BLE001  (an unreadable veto cell gates)
+        return f"authority: HELD -- veto cell is unreadable ({exc})"
+    try:
+        import send as _send
+        ref = _send.authority_ref(root)
+    except Exception as exc:  # noqa: BLE001
+        return f"authority: SKIPPED -- no authority ref ({exc})"
+    if not ref.startswith("origin/") or len(ref) <= 7:
+        return f"authority: SKIPPED -- non-origin authority ref {ref!r}"
+    branch, main_root = ref[7:], _shared_graph_root(root)
+    top = _git_toplevel(main_root)
+    if top is None:
+        return "authority: SKIPPED -- no git repo (gitless fixture/root)"
+    rel = os.path.relpath(_ack_seats_path(main_root), top)
+    attempted = False  # EF.56: a real fetch of the authority branch happened
+    unreadable = False  # EF.86: a fetch exception -> never SKIPPED
+    for _att in range(2):  # non-ff race -> fetch again and recompose
+        try:
+            fetch = subprocess.run(["git", "-C", str(top), "fetch", "origin",
+                                    branch], capture_output=True, text=True,
+                                   timeout=60)
+        except subprocess.TimeoutExpired as exc:
+            unreadable = True
+            last = (f"fetch of authority branch {branch} timed out after "
+                    f"{exc.timeout}s")
+            break  # a hanging fetch does not un-hang on a second try
+        except OSError as exc:
+            unreadable = True
+            last = f"could not launch git fetch for {branch}: {exc}"
+            break
+        base = (_blob_text(top, f"FETCH_HEAD:{rel}")
+                if fetch.returncode == 0 else None)
+        if fetch.returncode == 0:
+            attempted = True
+        if base is None:
+            last = fetch.stderr.strip() or fetch.stdout.strip() or (
+                f"authority branch {branch} has no {rel}")
+            continue
+        try:
+            content = _authority_row_content(base, new_content, seat)
+        except (ValueError, TypeError) as exc:
+            return (f"authority: FAILED -- malformed matching posts.md row "
+                    f"for {seat!r} ({exc})")
+        if content == base and not any(
+                _own_row_line(ln, seat) for ln in base.splitlines()):
+            # FIRST seating (C4): no row to replace -> append the new one.
+            row = next((ln for ln in new_content.splitlines(keepends=True)
+                        if _own_row_line(ln, seat)), None)
+            if row is None:
+                return (f"authority: REFUSED -- the new content carries no "
+                        f"{seat!r} row to seat on {branch}")
+            content = _insert_row_into_frontmatter(base, row)
+        if content == base:
+            return f"authority: SKIPPED -- no {seat!r} row to replace on {branch}"
+        fd, idx = tempfile.mkstemp(prefix="authrow-idx-")
+        os.close(fd)
+        env = dict(os.environ, GIT_INDEX_FILE=idx)
+
+        def _g(*a, **kw):  # noqa: ANN001, ANN002
+            kw.setdefault("timeout", 60)
+            return subprocess.run(["git", "-C", str(top), *a], env=env,
+                                  capture_output=True, text=True, **kw)
+
+        try:
+            # one commit on the FETCHED authority head, one row changed
+            head = _g("rev-parse", "FETCH_HEAD").stdout.strip()
+            blob = _g("hash-object", "-w", "--stdin",
+                      input=content).stdout.strip()
+            tree = ""
+            if (head and blob and _g("read-tree", head).returncode == 0
+                    and _g("update-index", "--add", "--cacheinfo",
+                           f"100644,{blob},{rel}").returncode == 0):
+                tree = _g("write-tree").stdout.strip()
+            if not tree:
+                last = "index/tree build failed"; continue
+            sha = _g("commit-tree", tree, "-p", head, "-m",
+                     f"{seat} key row: re-minted pubkey -> {branch}"
+                     ).stdout.strip()
+            if not sha:
+                last = "commit-tree failed"; continue
+            try:
+                push = subprocess.run(
+                    ["git", "-C", str(top), "push", "origin",
+                     f"{sha}:refs/heads/{branch}"],
+                    capture_output=True, text=True, timeout=60)
+            except subprocess.TimeoutExpired as exc:
+                last = (f"push of authority branch {branch} timed out after "
+                        f"{exc.timeout}s")
+                break
+            except OSError as exc:
+                last = f"could not launch git push for {branch}: {exc}"
+                break
+            if push.returncode != 0:
+                last = push.stderr.strip() or push.stdout.strip()
+                continue
+            return f"authority: OK -- {sha[:9]} -> {branch}"
+        except subprocess.TimeoutExpired as exc:
+            last = (f"authority commit build for {branch} timed out after "
+                    f"{exc.timeout}s")
+            break
+        except OSError as exc:
+            last = (f"could not launch git for the authority commit on "
+                    f"{branch}: {exc}")
+            break
+        finally:
+            os.unlink(idx)
+    # EF.56: distinguish "nothing to publish to" (the authority branch was
+    # never fetched -- no ref on origin) from "a real publish attempt that
+    # failed". Only the latter may gate the C3 successor-key swap; a repo
+    # with no authority branch keeps the pre-EF.51 push-only swap behaviour.
+    # EF.73: a failed fetch alone cannot tell a reachable origin whose branch
+    # is absent (SKIPPED) from an UNREACHABLE origin we could not read -- the
+    # ref may exist there and disagree with the on-disk key, so it must FAIL.
+    # `ls-remote --exit-code` discriminates: rc 2 = the ref is truly absent.
+    if not attempted:
+        try:
+            _probe = subprocess.run(
+                ["git", "-C", str(top), "ls-remote", "--exit-code", "origin",
+                 branch], capture_output=True, text=True, timeout=60)
+        except subprocess.TimeoutExpired as exc:
+            return (f"authority: FAILED -- ls-remote of {branch} timed out "
+                    f"after {exc.timeout}s")
+        except OSError as exc:
+            return (f"authority: FAILED -- could not launch git ls-remote "
+                    f"for {branch}: {exc}")
+        if _probe.returncode == 2 and not unreadable:
+            return (f"authority: SKIPPED -- no authority branch {branch} "
+                    f"(never fetched; {last})")
+    return f"authority: FAILED -- {last}"
+
+
 # g15 retry budget: the spawn-row commit re-reads HEAD and re-stages the
 # own-row pathspec up to `_SPAWN_ROW_RETRIES` times before recording FAILED
 # (a peer commit may move HEAD mid-rotation: `cannot lock ref 'HEAD'`).
@@ -10290,7 +10628,8 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
                       session_id: str | None = None,
                       window: str = "",
                       pid: int | None = None,
-                      verb: str = "spawn row") -> str:
+                      verb: str = "spawn row",
+                      rekey: bool = False) -> str:
     """g15.24 (Sensei's pick, fix (a)) — rotate-self COMMITS its own s6.1
     spawn-row write, so the successor's ONE required wake act (`rotate.py
     ack --gen N --ref X continue`) finds seats.md CLEAN and the r3b gate
@@ -10318,6 +10657,10 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     byte-identical and `git add` staged nothing), RECORDS the skip in
     one line and commits nothing. NEVER raises, never fails the rotation.
     Returns a one-line outcome for the handover's `spawn_row_commit`.
+
+    EF.51 C1: `rekey` says whether this commit follows a REAL key mint. The
+    key-authority publish runs ONLY when `rekey` is True (a plain
+    window/pid/session row commit must never touch the authority ref).
     """
     main_root = _shared_graph_root(root)
     top = _git_toplevel(main_root)
@@ -10441,6 +10784,10 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     # may flip exactly as before (a commit SKIPPED / gitless case is not a
     # push failure).
     _push = _push_season_branch(root)
+    # conjunct 2 (route B): publish the ONE seat row to the key authority --
+    # EF.51 C1: ONLY when this commit follows a real re-key, never on a
+    # plain window/pid/session row write.
+    _auth = _publish_row_to_authority(root, seat, new_content) if rekey else ""
     # g15.26 claim (b): a successful push means origin now carries the
     # committed row -- so any deferred successor-key swap for this seat (a
     # `.key.pending` written when an earlier push FAILED) COMPLETES now
@@ -10449,10 +10796,15 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     # deleted. Best-effort; `_finish_pending_swap_on_push` never raises
     # (and returns '' -- no extra line -- when there is no push OK or no
     # pending swap to complete).
-    _done = _finish_pending_swap_on_push(root, seat, _push)
+    _done = _finish_pending_swap_on_push(
+        root, seat, _push, authority_line=(_auth if rekey else None))
     if _done:
         return (f"spawn_row_commit: committed (sha {sha}, retried {retried}) "
-                f"-- seats.md own-row only: {msg}\npush: {_push}\n{_done}")
+                f"-- seats.md own-row only: {msg}\npush: {_push}\n{_done}"
+                f"\n{_auth}")
+    if _auth:
+        return (f"spawn_row_commit: committed (sha {sha}, retried {retried}) "
+                f"-- own-row only: {msg}\npush: {_push}\n{_auth}")
     return (f"spawn_row_commit: committed (sha {sha}, retried {retried}) -- "
             f"own-row only: {msg}\npush: {_push}")
 
@@ -11031,6 +11383,31 @@ def _restore_shield_signals(old: list) -> None:
             pass
 
 
+def _restore_signals_on_exit(fn):
+    """Restore the pre-call SIGHUP/SIGTERM/SIGPIPE dispositions in a
+    `finally`, whatever exit path `fn` takes.
+
+    A shield installed inside `fn` (`_shield_final_signals` sets the three
+    to SIG_IGN for the self-reap tail) must NEVER leak: the pre-fix restore
+    sat on the success return alone, so any raise or early return between
+    the shield and that line left SIG_IGN in the caller -- and the pytest
+    runtime is shared, so a later reap test inherited it (core-sync-0923
+    R5). Snapshot BEFORE the call and put them back on every way out."""
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        old: list = []
+        for sig in (signal.SIGHUP, signal.SIGTERM, signal.SIGPIPE):
+            try:
+                old.append((sig, signal.getsignal(sig)))
+            except (ValueError, OSError, AttributeError):
+                pass
+        try:
+            return fn(*args, **kwargs)
+        finally:
+            _restore_shield_signals(old)
+    return wrapper
+
+
 def _button_down_legal_hint(root: Path) -> str:
     """Read-only one-liner for the dry-run: which branch a grid commit would
     run on. NEVER commits/pushes (dry-run touches nothing); only reads the
@@ -11099,7 +11476,59 @@ def _reap_pid(pid: int) -> dict:
             "gone_after": gone, "ps_before": ps_before, "ps_after": ps_after}
 
 
-def _reap_chain(pids: list[int], *, wait_secs: float = 5.0,
+def _term_grace_s() -> float:
+    """`reaper.term_grace_s` from `.agi/config.json`; 15.0 is the RESOLVER for
+    a missing cell, not a second value. 15 s vs the MEASURED claude CLI
+    TERM->exit of 1.1 s (n=1 throwaway `claude --remote-control`, see
+    experiment:a00-2fa1fab0-b7d2a0) — 13x margin for a BUSY session's flush,
+    still bounded. A malformed cell must never raise; the reaper runs when
+    things are broken. heal.py's `_late_reap_wait_max_s` is the same STYLE but
+    is not importable: it is key-specific and heal.py imports rotate.py.
+    Never raises."""
+    try:
+        cfg_path = locations.config_path(find_project_root())
+        if cfg_path is not None:
+            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+            v = (cfg.get("reaper") or {}).get("term_grace_s")
+            if isinstance(v, (int, float)) and not isinstance(v, bool) \
+                    and v > 0:
+                return float(v)
+    except (OSError, json.JSONDecodeError, TypeError, AttributeError):
+        pass
+    return 15.0
+
+
+#: Reserved OUT of the ONE chain budget for the post-SIGKILL settle poll
+#: (L4.122): the TERM wait may not eat it, or a chain that exhausts the
+#: deadline -- exactly the chains the deadline exists for -- records
+#: gone_after=False on every member it did KILL.
+_SIGKILL_SETTLE_S = 1.0
+
+
+def _chain_deadline_s() -> float:
+    """`reaper.chain_deadline_s` from `.agi/config.json`; 20.0 is the RESOLVER
+    for a missing cell, not a second value. It bounds the WHOLE reap chain
+    (hypothesis:a-reap-chain-is-bounded-by-one-chain-deadline-not-per-pid-
+    grace): N TERM-ignoring members are all gone inside this ONE budget,
+    never N x `reaper.term_grace_s`. The LAST `_SIGKILL_SETTLE_S` of that
+    budget is RESERVED for the post-KILL poll, so a chain that exhausts the
+    deadline still records an honest `gone_after`. The default
+    exceeds the 15.0 term grace so a single-member chain is unchanged by it.
+    Same never-raises shape as `_term_grace_s`."""
+    try:
+        cfg_path = locations.config_path(find_project_root())
+        if cfg_path is not None:
+            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+            v = (cfg.get("reaper") or {}).get("chain_deadline_s")
+            if isinstance(v, (int, float)) and not isinstance(v, bool) \
+                    and v > 0:
+                return float(v)
+    except (OSError, json.JSONDecodeError, TypeError, AttributeError):
+        pass
+    return 20.0
+
+
+def _reap_chain(pids: list[int], *, wait_secs: float | None = None,
                 kill_survivors: bool = True) -> dict:
     """s12 — TERM a predecessor process chain DEEPEST-FIRST, verify each gone.
 
@@ -11109,8 +11538,15 @@ def _reap_chain(pids: list[int], *, wait_secs: float = 5.0,
     never orphans a live claude. Each pid's observation records was_alive,
     termd, gone_after and the `ps -p` reads around it.
 
-    Each pid gets up to `wait_secs` to die after TERM; a survivor is SIGKILL'd
-    when `kill_survivors` (L4.118/R2: "wait up to 5 s per pid, KILL what
+    Each pid gets up to `wait_secs` (`reaper.term_grace_s`, default 15 s) to
+    die after TERM, but the WHOLE chain is bounded by ONE deadline
+    (`reaper.chain_deadline_s`, default 20 s): a member's wait is
+    `min(now + wait_secs, chain_deadline - settle)`, so N TERM-ignoring
+    members cost one chain deadline, never N x term_grace_s. `settle` is
+    `min(_SIGKILL_SETTLE_S, half the chain budget)`: the post-SIGKILL poll
+    needs a reserve INSIDE the budget, or an exhausted chain records a KILLed
+    member as still alive. A survivor is SIGKILL'd
+    when `kill_survivors` (L4.118/R2: "wait up to the grace, KILL what
     survives").
 
     Refuses the caller's OWN pid and any pid <= 0 (like `_reap_pid`):
@@ -11119,6 +11555,13 @@ def _reap_chain(pids: list[int], *, wait_secs: float = 5.0,
     shell parent); this guard is the second, independent fence.
     """
     chain: list[dict] = []
+    if wait_secs is None:
+        wait_secs = _term_grace_s()  # reaper.term_grace_s, read at runtime
+    chain_budget = _chain_deadline_s()
+    chain_deadline = time.time() + chain_budget  # ONE budget, all pids
+    # the settle reserve is CARVED OUT of it, never added on top, and never
+    # more than half of it, so a tiny chain_deadline_s still gets a TERM wait
+    settle = min(_SIGKILL_SETTLE_S, chain_budget / 2.0)
     for pid in reversed(pids):
         pid = int(pid)
         if pid <= 0 or pid == os.getpid():
@@ -11137,7 +11580,8 @@ def _reap_chain(pids: list[int], *, wait_secs: float = 5.0,
                 os.kill(pid, signal.SIGTERM)
             except OSError:
                 pass
-            deadline = time.time() + wait_secs
+            deadline = min(time.time() + wait_secs,
+                           max(time.time(), chain_deadline - settle))
             while time.time() < deadline and _pid_alive(pid):
                 # L4.122 criterion 2 (merge-up 23): bind `wpid` BEFORE the
                 # `if`. A pid that is NOT our child (an ancestor pane bash /
@@ -11173,7 +11617,7 @@ def _reap_chain(pids: list[int], *, wait_secs: float = 5.0,
                 # briefly so the recorded gone_after reflects the eventual
                 # state, not the reaping race.
                 if not termd:
-                    deadline_t = time.time() + 1.0
+                    deadline_t = min(time.time() + settle, chain_deadline)
                     while time.time() < deadline_t and _pid_alive(pid):
                         time.sleep(0.05)
                     termd = not _pid_alive(pid)
@@ -16937,7 +17381,8 @@ def _rotate_first_key(root: Path, cfg_root, seat: str, row: dict | None,
                 generation=_read_generation(root, seat),
                 session_id=str(row.get("session_id") or ""),
                 window=str(row.get("window") or ""),
-                pid=int(row.get("pid") or 0))
+                pid=int(row.get("pid") or 0),
+                rekey=True)
             note += f"; {_cn.splitlines()[0]}"
         except Exception as exc:  # noqa: BLE001
             note += f"; key row commit not performed ({exc})"
@@ -17110,14 +17555,20 @@ def _apply_successor_key_pending(pending: dict) -> str:
             f"(0600, atomic replace)")
 
 
-def _persist_pending_key(key_rotation: dict, key_path: Path) -> str:
+def _persist_pending_key(key_rotation: dict, key_path: Path,
+                         deferred_for: str = "push") -> str:
     """g15.26 claim (a) -- PERSIST the pending successor key, not drop it.
     Called by `_apply_successor_key_gated` when the row WAS written and
     committed (so HEAD's committed row names the successor PUBKEY) but the
     season-branch PUSH FAILED. Writes the successor private key to
     `<sessions>/seats/<seat>.key.pending` (SEAT_KEY_MODE 0600, temp +
     os.replace, never committed) as the JSON shape `{scheme, priv_hex,
-    pub_hex, gen_after, minted_at}`, derived from the rotation dict -- so a
+    pub_hex, gen_after, minted_at, deferred_for}` -- `deferred_for` (EF.67,
+    R-EF51 M1) records WHICH leg deferred the swap (`push` or `authority`)
+    so `_complete_pending_key_swap` can refuse to complete an
+    authority-deferred pending without a successful authority publish; a
+    pending with no recorded reason (legacy pre-EF.67) reads push-deferred.
+    Derived from the rotation dict -- so a
     later successful push of that row can complete the swap
     (`_complete_pending_key_swap`). Without this file the successor private
     key exists nowhere on disk (it lived only in the rotation dict before
@@ -17135,7 +17586,9 @@ def _persist_pending_key(key_rotation: dict, key_path: Path) -> str:
         "pub_hex": key_rotation.get("successor_pub"),
         "gen_after": (key_rotation.get("retired") or {}).get("to"),
         "minted_at": (key_rotation.get("note") or ""),
+        "deferred_for": str(deferred_for or "push"),
     }
+    _why = str(deferred_for or "push")
     _tmp = _pend.parent / f".{_pend.name}.tmp"
     try:
         _fd = os.open(_tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC,
@@ -17152,17 +17605,18 @@ def _persist_pending_key(key_rotation: dict, key_path: Path) -> str:
         os.chmod(_tmp, send.SEAT_KEY_MODE)
         os.replace(_tmp, _pend)
     except (OSError, TypeError, ValueError):
-        return (f"key_replace: NOT applied -- push did not succeed; "
+        return (f"key_replace: NOT applied -- {_why} did not succeed; "
                 f"{key_path} left byte-identical; pending successor key "
                 f"could NOT be persisted to {_pend}"
                 f" (deferred swap on later join-origin)")
-    return (f"key_replace: NOT applied -- push did not succeed; "
+    return (f"key_replace: NOT applied -- {_why} did not succeed; "
             f"{key_path} left byte-identical; pending successor key "
             f"persisted to {_pend} (0600, deferred swap on a later "
             f"successful push)")
 
 
-def _complete_pending_key_swap(root: Path, seat: str) -> str:
+def _complete_pending_key_swap(root: Path, seat: str,
+                               authority_line: str | None = None) -> str:
     """g15.26 claim (b) -- COMPLETE a deferred successor-key swap at a later
     successful push of that row. Callers invoke it AFTER `_push_season_branch`
     reports a successful push (origin now carries the committed row). A
@@ -17176,7 +17630,12 @@ def _complete_pending_key_swap(root: Path, seat: str) -> str:
     pub_hex does NOT match the committed row (the row still names the OLD
     pubkey), the pending file is left alone -- the swap stays deferred, and
     ONE line says so. Absent pending file / gitless root -> '' (nothing to
-    do, never a failure). Never raises."""
+    do, never a failure). EF.67 (R-EF51 M1): a pending persisted because the
+    AUTHORITY leg deferred it (`deferred_for == "authority"`) completes ONLY
+    when the caller supplies a non-gating `authority_line`; with no
+    authority context, or a HELD/FAILED line, it refuses BY NAME and leaves
+    the key file byte-identical. A `push`-deferred (or legacy reason-less)
+    pending keeps the old push-only completion, back-compat. Never raises."""
     import send  # local: same dir (send.py pattern)
     _key = send._seat_key_path(root, seat)
     _pend = _key.parent / f"{_key.name}.pending"
@@ -17187,6 +17646,18 @@ def _complete_pending_key_swap(root: Path, seat: str) -> str:
     except (ValueError, OSError):
         return (f"key swap NOT completed -- unreadable pending file "
                 f"{_pend} (left as-is)")
+    # EF.67 (R-EF51 M1): a pending persisted on the AUTHORITY leg completes
+    # ONLY through a non-gating authority line (a publish attempted and
+    # SUCCEEDED, or a non-attempt SKIP). A push-OK site / the direct
+    # completion call passes no authority context -> refuse BY NAME and
+    # leave `<seat>.key` byte-identical.
+    if _obj.get("deferred_for") == "authority" and (
+            authority_line is None
+            or _authority_publish_gates_swap(authority_line)):
+        return (f"key swap NOT completed -- pending {_pend} was deferred on "
+                f"the AUTHORITY leg; no successful authority publish "
+                f"(authority_line={authority_line!r}), key left "
+                f"byte-identical")
     _pend_pub = str(_obj.get("pub_hex") or "")
     if not _pend_pub:
         return (f"key swap NOT completed -- pending file {_pend} carries "
@@ -17240,8 +17711,56 @@ def _complete_pending_key_swap(root: Path, seat: str) -> str:
     return f"key swap completed (deferred from gen {_gen})"
 
 
+def _authority_publish_gates_swap(line: str | None) -> bool:
+    """EF.56 C3 discriminator: only an ATTEMPTED authority publish that did
+    not succeed may defer a successor-key swap. ``HELD`` (the veto gate) and
+    ``FAILED`` (a real fetch+push attempt that was refused) gate; every
+    ``SKIPPED``/``REFUSED`` line means nothing was published -- and therefore
+    no on-disk key can disagree with the authority -- so it must NOT gate.
+    Accepts the full ``authority: <line>`` form or its payload (``<line>``),
+    because the two gate sites parse it differently. Never raises."""
+    s = str(line or "")
+    if s.startswith("authority: "):
+        s = s[len("authority: "):]
+    return s.startswith(("HELD", "FAILED"))
+
+
+def _retry_authority_publish_for_pending_swap(root: Path, seat: str) -> str:
+    """EF.84 conjunct A -- an authority-deferred `<seat>.key.pending`
+    completes at the NEXT successful authority publish. ONLY when the pending
+    records `deferred_for == "authority"`: re-attempt
+    `_publish_row_to_authority` with the seat's COMMITTED row (HEAD, the row
+    the authority never received) and pass that line to
+    `_complete_pending_key_swap`, which flips the key and deletes the pending
+    on a non-gating line and refuses by name on FAILED/HELD. No pending, a
+    push-deferred or a legacy reason-less pending -> '' (no authority publish
+    is attempted, nothing changes). Never raises."""
+    import send  # local: same dir (send.py pattern)
+    _key = send._seat_key_path(root, seat)
+    _pend = _key.parent / f"{_key.name}.pending"
+    if not _pend.is_file():
+        return ""
+    try:
+        _obj = json.loads(_pend.read_text())
+    except (ValueError, OSError):
+        return ""
+    if _obj.get("deferred_for") != "authority":
+        return ""
+    main_root = _shared_graph_root(root)
+    top = _git_toplevel(main_root)
+    if top is None:
+        return ""
+    rel = os.path.relpath(_ack_seats_path(main_root), top)
+    new_content = _blob_text(top, f"HEAD:{rel}")
+    if not new_content:
+        return ""
+    _auth = _publish_row_to_authority(root, seat, new_content)
+    return _complete_pending_key_swap(root, seat, authority_line=_auth)
+
+
 def _finish_pending_swap_on_push(root: Path, seat: str,
-                                 push_line: str | None) -> str:
+                                 push_line: str | None,
+                                 authority_line: str | None = None) -> str:
     """g15.26 claim (b) -- ONE helper every push-OK site calls to complete a
     deferred `<seat>.key.pending` swap. It completes the swap exactly when
     ``push_line`` reports a successful push (starts ``push: OK``): that is the
@@ -17250,10 +17769,39 @@ def _finish_pending_swap_on_push(root: Path, seat: str,
     cannot drift into completing a swap on a FAILED push. Returns the one-line
     outcome ('' when there is no push OK, no pending file, or the committed
     row still names the old pubkey) and prints the completed-swap line to
-    stderr. Never raises."""
+    stderr. Never raises.
+
+    EF.51 C3: when ``authority_line`` is given (the `_commit_spawn_row`
+    re-key leg), the swap ALSO waits for ``authority: OK`` -- an
+    `authority: FAILED`/HELD/non-origin SKIP defers it with a named line, so
+    a key on disk never disagrees with what the authority holds. A caller
+    that passes no authority line (ack/prepare/keygen push-OK sites with no
+    authority publish) keeps the old push-only gate.
+
+    EF.67 (R-EF51 M1): ``authority_line`` is passed THROUGH to
+    `_complete_pending_key_swap`, so an authority-deferred pending is not
+    completed here with no authority context even when the trunk push is OK.
+    """
     if not str(push_line or "").startswith("push: OK"):
         return ""
-    _done = _complete_pending_key_swap(root, seat)
+    # EF.84 conjunct A: a push-OK site with NO authority context is the
+    # "next publish" for an authority-deferred pending -- re-attempt the
+    # authority publish of the committed row and complete the swap on a
+    # non-gating line. No authority-deferred pending -> '' and the old
+    # push-only completion below runs unchanged.
+    if authority_line is None:
+        _retry = _retry_authority_publish_for_pending_swap(root, seat)
+        if _retry:
+            print(_retry, file=sys.stderr)
+            return _retry
+    if authority_line is not None and _authority_publish_gates_swap(
+            authority_line):
+        _l = (f"key swap NOT completed -- authority publish did not succeed "
+              f"({authority_line})")
+        print(_l, file=sys.stderr)
+        return _l
+    _done = _complete_pending_key_swap(root, seat,
+                                       authority_line=authority_line)
     if _done:
         print(_done, file=sys.stderr)
     return _done
@@ -17265,17 +17813,23 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
     ONE commit, AND the season-branch PUSH all SUCCEEDED (mur-SL2.13 (2): the
     swap waits for the push -- a push FAILED still yields the join, but the
     key is deferred and NOT swapped, so a key on disk never disagrees with
-    what origin holds). ``key_rotation`` is `_rotate_successor_key`'s dict
+    what origin holds). EF.51 C3: when the commit carries a trailing
+    ``\nauthority: <line>`` (a re-key), the swap ALSO waits for
+    ``authority: OK`` -- a FAILED/HELD/non-origin SKIP defers it by name. ``key_rotation`` is `_rotate_successor_key`'s dict
     (a NO-OP -> '' when it carries no ``pending_key``); ``row_outcome`` is
     the `_successor_row_write` return (starts ``config:seats row`` on
     success) and ``commit_outcome`` is the `_commit_spawn_row` return (starts
     ``spawn_row_commit: FAILED`` / ``FAILED:`` on failure; carries a trailing
     ``\npush: <line>`` when the push leg ran). A push line starting ``push:
-    FAILED`` defers the swap with ONE stderr line naming it; a SKIPPED or
+    FAILED`` or ``push: HELD`` defers the swap with ONE stderr line naming
+    it; a SKIPPED or
     absent push is NOT a failure (a gitless / byte-identical case flips the
     key exactly as before). Any other combination -- row write failed, commit
     failed, or the write never ran -- leaves the predecessor key file
-    BYTE-IDENTICAL and records the refusal, never replacing it. Never raises.
+    BYTE-IDENTICAL and records the refusal, never replacing it. EF.67
+    (R-EF20 M1): ``push: HELD`` (a gated veto push) is a DEFERRAL by NAME,
+    exactly like ``push: FAILED`` -- the key must not flip under a gated
+    push. Never raises.
     Returns one line for the handover's ``key_replace``."""
     if not key_rotation or not key_rotation.get("pending_key"):
         return ""
@@ -17286,17 +17840,26 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
                                          "FAILED:"))
     # the push outcome rides the commit string's trailing line, if present:
     # ``\npush: push: FAILED -- ...``. Absent (early-return paths never
-    # reached the push) or SKIPPED is NOT a failure -- only ``push: FAILED``.
+    # reached the push) or SKIPPED is NOT a failure -- only a GATING push
+    # line (``push: FAILED`` / ``push: HELD``, EF.67 R-EF20 M1) defers.
     _push_line = _commit.rpartition("\npush: ")[2]
     # rpartition keeps the helper's own ``push: ...`` prefix on _push_line.
     _push = _push_line
-    _push_failed = _push.startswith("push: FAILED")
-    if _row_ok and not _commit_failed and not _push_failed:
+    _push_gated = _push.startswith(("push: FAILED", "push: HELD"))
+    # EF.51 C3: the authority publish outcome rides the commit string's
+    # trailing ``\nauthority: <line>`` when this commit followed a re-key.
+    # ABSENT (a non-rekey commit / early-return path) is NOT a failure.
+    _auth = _commit.rpartition("\nauthority: ")[2]
+    _auth_present = "\nauthority: " in _commit
+    _auth_failed = _auth_present and _authority_publish_gates_swap(_auth)
+    if _row_ok and not _commit_failed and not _push_gated and not _auth_failed:
         return _apply_successor_key_pending(key_rotation["pending_key"])
     if not _row_ok:
         _why = "row write"
     elif _commit_failed:
         _why = "commit"
+    elif _auth_failed:
+        _why = "authority"
     else:
         _why = "push"
     # SL: on a push failure the swap is DEFERRED -- the ONE stderr line naming
@@ -17309,8 +17872,8 @@ def _apply_successor_key_gated(key_rotation, row_outcome, commit_outcome) -> str
     # (`_complete_pending_key_swap`) atomically completes the swap. The
     # falsifier "after a failed push the minted key exists nowhere on disk"
     # is closed here.
-    if _why == "push":
-        return _persist_pending_key(key_rotation, Path(_path))
+    if _why in ("push", "authority"):
+        return _persist_pending_key(key_rotation, Path(_path), _why)
     return (f"key_replace: NOT applied -- {_why} did not succeed; "
             f"{_path} left byte-identical with the predecessor key, NO "
             f"successor key written (deferred swap on later join-origin) "
@@ -17364,6 +17927,22 @@ def _fence_run(ln: str) -> int:
     return n if n >= 3 else 0
 
 
+STOPS_SUBJECT_FALLBACK = "(no prose outside the fences -- see the card)"
+
+
+def _stops_subject_tail(stops_text: str, limit: int = 80) -> str:
+    """The rotate-out commit subject TAIL: the first line of the stops text
+    that is NOT a fence delimiter (`_fence_run == 0`), stripped and
+    truncated to `limit` chars; `STOPS_SUBJECT_FALLBACK` (a named,
+    non-empty constant) when every line is a fence line or the text carries
+    no prose. Never a backtick run, whatever the model hands back."""
+    for ln in stops_text.splitlines():
+        s = ln.strip()
+        if s and _fence_run(s) == 0:
+            return s[:limit]
+    return STOPS_SUBJECT_FALLBACK
+
+
 def _fence_for(stops_text: str) -> str:
     """The fence string that wraps `stops_text`: a run of backticks LONGER
     than every code fence already inside it, three by default. CommonMark
@@ -17379,6 +17958,99 @@ def _fence_for(stops_text: str) -> str:
     return "`" * inner
 
 
+def _unwrap_fence_block(text: str) -> str:
+    """If `text` is ITSELF exactly one fence-wrapped block -- the first
+    non-blank line opens a fence of run n, the last non-blank line is that
+    same run and nothing else, and no line inside carries a run >= n --
+    return the CONTENT between the pair. That is the shape a card slot has
+    when the model hands the slot back as it reads it in the card (the card
+    IS the prompt), so unwrapping here keeps the slot's fence depth IDEMPOTENT
+    across N rotations instead of compounding +1 per rotation (belam 09-24:
+    commit subjects that were literally a backtick run, 95b4f0a21 / 11e170950
+    / 1c69c9e81). Anything else -- a fence as ONE part among others, an
+    unpaired opener, a lone line -- is returned UNCHANGED, so a genuine
+    inner ``` block still nests in a longer outer fence (`_fence_for`)."""
+    lines = text.split("\n")
+    while lines and not lines[0].strip():
+        lines.pop(0)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    if len(lines) < 2:
+        return text
+    n = _fence_run(lines[0])
+    if n < 3 or lines[-1].strip() != "`" * n:
+        return text
+    inner = lines[1:-1]
+    if any(_fence_run(ln) >= n for ln in inner):
+        return text
+    return "\n".join(inner)
+
+
+def _slot_exterior_prose(lines: list[str]) -> set[str]:
+    """The slot body's non-blank lines OUTSIDE its fence -- the prose a
+    rewrite carries back verbatim."""
+    out, i, n = [], 0, len(lines)
+    while i < n:
+        r = _fence_run(lines[i])
+        if r >= 3:
+            j = i + 1
+            while j < n and _fence_run(lines[j]) < r:
+                j += 1
+            if j >= n:
+                # an UNPAIRED run (no closer to the end) is a stray
+                # delimiter sitting in PROSE position, and it is the card's
+                # own exterior line -- treating it as an opener swallowed
+                # every line after it, so the sign-off below it stopped
+                # counting as exterior and the handback re-nested it (and
+                # the stray run with it) on EVERY rotation, +1 depth and one
+                # copied sign-off per round (probe: a00-a177f505).
+                out.append(lines[i].strip())
+                i += 1
+                continue
+            i = j + 1
+        else:
+            out.append(lines[i].strip())
+            i += 1
+    return {ln for ln in out if ln}
+
+
+def _drop_slot_exterior_prose(stops_text: str, exterior: set[str]) -> str:
+    """The card IS the prompt, so a handback of the where-it-stops slot carries
+    the slot's OWN exterior prose as well as its block, and the rewrite writes
+    that prose back from the card -- so a copy left inside the stops text is
+    re-nested inside the block every rotation (measured live: a genuine inner
+    ``` block went 4 -> 5 -> 6 over three rotations, experiment
+    a00-a066dc22-5cb6c8). Drop the runs OUTSIDE the handback's outermost fence
+    that are the card's own prose, and nothing else: a line the handback holds
+    outside the fence that the card does not, or any line inside the fence, is
+    the model's own."""
+    if not exterior:
+        return stops_text
+    lines = stops_text.split("\n")
+    runs = [i for i, ln in enumerate(lines) if _fence_run(ln) >= 3]
+    if not runs:
+        return stops_text
+    # the handback's block is its FIRST fence PAIR, not everything from the
+    # first run to the LAST one: an unpaired run below the pair (a stray
+    # delimiter in prose position) would otherwise be swallowed into `mid`
+    # and its sign-off with it, so neither was ever droppable.
+    opener = _fence_run(lines[runs[0]])
+    close = runs[0]
+    for i in runs[1:]:
+        if _fence_run(lines[i]) >= opener:
+            close = i
+            break
+    else:
+        return stops_text
+    head, mid, tail = lines[:runs[0]], lines[runs[0]:close + 1], lines[close + 1:]
+
+    def _is_ours(rs: list[str]) -> bool:
+        return all((not r.strip()) or r.strip() in exterior for r in rs)
+    if not (_is_ours(head) and _is_ours(tail)):
+        return stops_text
+    return "\n".join(mid)
+
+
 def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
     """Render the where-it-stops SLOT BLOCK -- the ```-fenced code block
     holding the stops text, plus the optional `diff requested:` line AFTER
@@ -17391,6 +18063,11 @@ def _render_stops_block(stops_text: str, diff_gap: str | None) -> str:
     fence is wrapped in a LONGER outer fence (`_fence_for`, the CommonMark
     rule) so the inner fence is content, never a delimiter (goal:g15.25
     line (3), residue (iii))."""
+    stops_text = _unwrap_fence_block(stops_text)
+    if not stops_text.strip():
+        # an empty fence pair would render a block with an EMPTY body: the
+        # slot's prose is dropped and the next subject is a bare constant.
+        stops_text = STOPS_SUBJECT_FALLBACK
     fence = _fence_for(stops_text)
     out = fence + "\n" + stops_text.rstrip("\n") + "\n" + fence
     if diff_gap:
@@ -17481,6 +18158,7 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
             full = _stamp_rotating_header(
                 full, frac, datetime.utcnow().strftime("%H:%MZ"))
         card_path.parent.mkdir(parents=True, exist_ok=True)
+        _flatten_card_symlink(card_path)
         card_path.write_text(full, encoding="utf-8")
         return full, "created"
     sec_idx, sub = stops
@@ -17508,12 +18186,16 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
                 end = j
                 break
         tail = lines[end:] if end < len(lines) else []
+        stops_text = _drop_slot_exterior_prose(
+            stops_text, _slot_exterior_prose(lines[sub + 1:end]))
         block = _render_stops_block(stops_text, diff_gap)
         new_region = _stops_replace_fenced_region(lines[sub + 1:end], block)
         if new_region is None:
             new_region = block.splitlines()   # no fence: whole slot replaced
         new_body = _join_body(keep + [sub_header] + new_region + tail)
     else:
+        stops_text = _drop_slot_exterior_prose(
+            stops_text, _slot_exterior_prose(body.splitlines()))
         block = _render_stops_block(stops_text, diff_gap)
         new_region = _stops_replace_fenced_region(body.splitlines(), block)
         new_body = block if new_region is None else _join_body(new_region)
@@ -17523,8 +18205,17 @@ def _write_stops_section(card_path: Path, seat: str, stops_text: str,
         full = _stamp_rotating_header(
             full, frac, datetime.utcnow().strftime("%H:%MZ"))
     card_path.parent.mkdir(parents=True, exist_ok=True)
+    _flatten_card_symlink(card_path)
     card_path.write_text(full, encoding="utf-8")
     return full, "replaced"
+
+
+def _flatten_card_symlink(card_path: Path) -> None:
+    """Make a quorum symlink regular before a caller mutates the card."""
+    if card_path.is_symlink():
+        text = card_path.read_text(encoding="utf-8")
+        card_path.unlink()
+        card_path.write_text(text, encoding="utf-8")
 
 
 def _commit_stops_row(root: Path, seat: str, card_path: Path,
@@ -17575,8 +18266,8 @@ def _commit_stops_row(root: Path, seat: str, card_path: Path,
             if seed.returncode != 0:
                 return (f"stop_commit: FAILED — git read-tree: "
                         f"{seed.stderr.strip()}")
-        cb = _tg(["hash-object", "-w", "--stdin"],
-                 input=card_path.read_text(encoding="utf-8"))
+        card_text = card_path.read_text(encoding="utf-8")
+        cb = _tg(["hash-object", "-w", "--stdin"], input=card_text)
         if cb.returncode != 0 or not cb.stdout.strip():
             return "stop_commit: FAILED — card hash-object"
         upd = _tg(["update-index", "--add", "--cacheinfo",
@@ -17597,6 +18288,10 @@ def _commit_stops_row(root: Path, seat: str, card_path: Path,
         if rc.returncode != 0:
             return (f"stop_commit: FAILED — git commit: "
                     f"{rc.stderr.strip()}")
+        # A quorum symlink is intentionally flattened in the snapshot. Make
+        # the working tree agree, or the later dirty check sees only a
+        # regular-vs-symlink mismatch and refuses its own rotate-out.
+        _flatten_card_symlink(card_path)
         # point the REAL index's card (and own-row seats) entry at the
         # committed blob — the same sync `_ack_commit_seats` does for its own
         # row — so the rotate-out leaves `git status` CLEAN (the claim's
@@ -17775,7 +18470,8 @@ def _caller_hold_key(root: Path, seat: str, row: dict | None,
         return None, None, (f"post {seat!r} is unkeyed: "
                             f"{KEYGEN_LINE.format(seat=seat)} first")
     key_path = send._seat_key_path(root, seat)
-    obj = send._signing_key_obj(root, seat, key_path)
+    obj = send._signing_key_obj(root, seat, key_path,
+                                prefer_authority_deferred=True)
     if obj is None:
         return None, None, (
             f"post {seat!r} carries a pubkey but holds no signing key at "
@@ -18137,6 +18833,119 @@ def _dm_rotation_spawn_row_failed(root: Path, seat: str, reason: str) -> str:
         return f"rotation-failed dm to supervisor {sup!r} FAILED: {exc}"
 
 
+#: The session-capture landing dir under a repo (goal:g14.14.8). It MIRRORS
+#: -- never duplicates -- the established `datasets/trajectories/<id>/`
+#: shape (`transcript.jsonl` + `label.json`), so a reader of one can read
+#: the other.
+SESSION_DATASET_DIR = "sessions"
+
+#: Loaded-once cache of `datasets/tools/scrub.py`, keyed by resolved path.
+_SCRUB_MODULE_CACHE: dict = {}
+
+
+def _load_scrub_module(root: Path):
+    """The ONE redactor: `datasets/tools/scrub.py`, imported by path.
+
+    The redaction implementation is reused UNCHANGED -- a second, local
+    redactor is the exact falsifier this capture exists to avoid. Search
+    order is the caller's own repo first (where the landing goes), then this
+    script's repo (a worktree's rotate.py may run against a graph whose repo
+    has no `datasets/`). Raises on absence so `_capture_session_safe` can log
+    it and leave the rotation standing.
+    """
+    import importlib.util
+    cands = [locations.repo_root(root) / "datasets" / "tools" / "scrub.py",
+             ENGINE_ROOT / "datasets" / "tools" / "scrub.py"]
+    path = next((p for p in cands if p.is_file()), None)
+    if path is None:
+        raise FileNotFoundError(
+            "datasets/tools/scrub.py not found (tried: "
+            + ", ".join(str(p) for p in cands) + ")")
+    key = str(path)
+    mod = _SCRUB_MODULE_CACHE.get(key)
+    if mod is None:
+        spec = importlib.util.spec_from_file_location("agi_scrub", path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        _SCRUB_MODULE_CACHE[key] = mod
+    return mod
+
+
+def capture_session_transcript(root: Path, *, seat: str, row: dict | None,
+                               transcript_path: Path | str | None = None
+                               ) -> Path | None:
+    """Land one scrubbed rotation transcript + its pre-labels under
+    `datasets/sessions/<role>/<session-id>/` (goal:g14.14.8).
+
+    `transcript_path=None` resolves the seat's OWN transcript through the ONE
+    existing resolver `resolve_transcript` (--session-log / $AGI_SESSION_LOG
+    / seat pin / cwd slug), never a second discovery path. Scrubbing goes
+    through `datasets/tools/scrub.py` UNCHANGED and the landed bytes are
+    re-checked with the SAME module's `recheck` before the write completes.
+
+    Returns the landing dir, or None when no transcript resolved. Raises on a
+    real failure; the call site uses `_capture_session_safe`.
+    """
+    source_tag = "explicit"
+    if transcript_path is None:
+        tpath, source_tag = resolve_transcript(root=root, seat=seat)
+        if tpath is None:
+            print(f"WARN: session capture: no transcript for seat {seat!r} "
+                  f"(source={source_tag})", file=sys.stderr)
+            return None
+    else:
+        tpath = Path(transcript_path).expanduser()
+    session_id = tpath.stem
+    role = ((row or {}).get("role") or "unknown")
+    dest = (locations.repo_root(root) / "datasets" / SESSION_DATASET_DIR
+            / str(role) / session_id)
+    dest.mkdir(parents=True, exist_ok=True)
+    scrub = _load_scrub_module(root)
+    raw = tpath.read_text(encoding="utf-8", errors="replace")
+    scrubbed, counts = scrub.redact_text(raw)
+    remaining = scrub.recheck(scrubbed)
+    if remaining:
+        print(f"WARN: session capture: {len(remaining)} candidate span(s) "
+              f"remain after scrub for {session_id}", file=sys.stderr)
+    (dest / "transcript.jsonl").write_text(scrubbed, encoding="utf-8")
+    label = {
+        "role": (row or {}).get("role"),
+        "harness": (row or {}).get("harness"),
+        "model": (row or {}).get("model"),
+        "name": (row or {}).get("name"),
+        "town": (row or {}).get("town"),
+        "box": (row or {}).get("box"),
+        "session_id": session_id,
+        "transcript_source": source_tag,
+        "scrub_redactions": counts,
+    }
+    if row and "provider" in row:
+        label["provider"] = row.get("provider")
+    (dest / "label.json").write_text(
+        json.dumps(label, indent=2) + "\n", encoding="utf-8")
+    return dest
+
+
+def _capture_session_safe(root: Path, *, seat: str, row: dict | None,
+                          transcript_path=None) -> Path | None:
+    """Non-blocking capture: log on error, never raise past the caller.
+
+    A capture is ADDITIVE (goal:g14.14.8): a rotation that already succeeded
+    must COMPLETE even when its capture fails, with the error logged.
+    """
+    try:
+        dest = capture_session_transcript(root, seat=seat, row=row,
+                                          transcript_path=transcript_path)
+        if dest is not None:
+            print(f"session capture: {dest} (rotation continues)")
+        return dest
+    except Exception as e:  # noqa: BLE001 -- never fail a rotation here
+        print(f"WARN: session capture failed (rotation continues): "
+              f"{type(e).__name__}: {e}", file=sys.stderr)
+        return None
+
+
+@_restore_signals_on_exit
 def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     """The self-rotation primitive for a NON-prime seat.
 
@@ -18180,7 +18989,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # config:seats unless --throwaway (a rehearsal-only registration that
         # never writes seats.md).
         if not getattr(args, "throwaway", False):
-            _prow = _find_seat(root, args.seat)
+            _prow = _find_seat(_seat_read_root(root, args.seat), args.seat)
             if _prow is None:
                 print(f"ERR: no seat {args.seat!r} in the seats registry "
                       f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
@@ -18213,28 +19022,12 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if guard:
         print(guard, file=sys.stderr)
         return 1
-    pguard = _check_profile_drift(root)
-    if pguard:
-        print(pguard, file=sys.stderr)
-        return 1
-    # (geometry guard, mechanism 3): a worktree whose own .agi/nodes/.geometry/
-    # is BEHIND the shared geometry branch would spawn its successor on a
-    # stale config:rotations / config:seats. Resolve WHICH tree the geometry
-    # comes from once, up front — the integration tree when the worktree's own
-    # is behind but the integration tree's is current; else refuse BY NAME with
-    # the behind-count and the sync command. `cfg_root` feeds seat + template
-    # resolution; every other rotate-self path keeps the worktree `root`.
-    cfg_root, geom_src = _geometry_resolution_root(root)
-    if cfg_root is None:
-        print(geom_src, file=sys.stderr)
-        return 1
     seat = args.name
-    # goal:g15.14 P1-c — the registry gate runs BEFORE the prepare/perform
-    # step. The only-behind merge `_prepare_checks(perform=)` performs is a
-    # SIDE EFFECT; on a behind worktree an unregistered `--name` would
-    # otherwise MERGE a commit before the "no seat" refusal. So the seat must
-    # exist in the registry FIRST, and an unregistered name refuses with NO
-    # merge performed. A THROWAWAY seat (hypothesis:l3-rotate-self-successor-
+    # goal:g15.14 P1-c — the registry gate runs FIRST: before the geometry
+    # resolution below, and so before the only-behind merge that resolution
+    # may now PERFORM (a SIDE EFFECT). An unregistered `--name` must reach
+    # nothing that fetches, pushes or merges; it refuses with `no seat` and
+    # no merge. A THROWAWAY seat (hypothesis:l3-rotate-self-successor-
     # override) is a rehearsal-only registration that NEVER writes seats.md:
     # it skips this registry gate and builds a default row instead (role from
     # --role, default parent; model/effort/settings resolved from the ladder
@@ -18242,13 +19035,39 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # before — an unregistered name errors `no seat`.
     row = None
     if not getattr(args, "throwaway", False):
-        row = _find_seat(cfg_root, seat)
+        row = _find_seat(_seat_read_root(root, seat), seat)
         if row is None:
             print(f"ERR: no seat {seat!r} in the seats registry "
                   f"(.agi/nodes/.geometry/seats.md).", file=sys.stderr)
             return 1
     else:
         row = {}  # default row; never consulted against seats.md
+    # (geometry guard, mechanism 3): a worktree whose own .agi/nodes/.geometry/
+    # is BEHIND the shared geometry branch would spawn its successor on a
+    # stale config:rotations / config:seats. Resolve WHICH tree the geometry
+    # comes from once, up front — the integration tree when the worktree's own
+    # is behind but the integration tree's is current; else ONE free
+    # mechanical merge before the refusal (see below). `cfg_root` feeds seat +
+    # template resolution; every other rotate-self path keeps the worktree
+    # `root`.
+    cfg_root, geom_src = _geometry_resolution_root(root)
+    if cfg_root is None and not getattr(args, "dry_run", False):
+        # A REGISTERED seat on a behind CLEAN worktree is the COMMON case, not
+        # an error: every other seat's commits land on the geometry branch, so
+        # a seat that waited long enough to be due was almost always behind,
+        # and it refused instead of rotating. So the refusal is preceded by ONE
+        # attempt at the merge rotate-self ALREADY performs by default: the
+        # SAME `_prepare_checks(perform=True)` the captive gate runs below
+        # (fetch + merge, never rebase; only on a clean tree and only when the
+        # merge applies clean — no second implementation). Only a merge that
+        # brings the geometry to 0 behind re-resolves; a conflicting, dirty or
+        # failing merge leaves the BY-NAME refusal exactly as it was.
+        _prepare_checks(root, seat, perform=True)
+        if _geometry_behind_count(root) == 0:
+            cfg_root, geom_src = _geometry_resolution_root(root)
+    if cfg_root is None:
+        print(geom_src, file=sys.stderr)
+        return 1
 
     # re-cut (Prime XIX 07:28Z): the row is the ONE launch source -- a
     # differing flag refuses here (exit 3); equal = no-op; throwaway left alone.
@@ -18350,7 +19169,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _stops_gap = getattr(args, "ask_diff", False)
         _gap = _stops_gap if isinstance(_stops_gap, str) and _stops_gap \
             else None
-        _first = _stops_text.strip().splitlines()[0][:80]
+        _first = _stops_subject_tail(_stops_text)
         _msg = (f"{seat} rotate-out gen {_gb}->{_gb + 1}: {_first}")
         _card = _own_card_path(root, seat)
         if args.dry_run:
@@ -18370,6 +19189,9 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
             #     already reads -- never re-derived), and passed down so the
             #     rotate-out is ONE card write + ONE commit.
             _frac = _seat_fraction(root, row)
+            # Flatten BEFORE the write: writing through the link would dirty
+            # its node target, which this pathspec commit does not own.
+            _flatten_card_symlink(_card)
             _full, _slot = _write_stops_section(
                 _card, seat, _stops_text, diff_gap=_gap, frac=_frac)
             if _full is None:
@@ -18685,7 +19507,9 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     # below then reads a `.key` that already agrees with HEAD. Never on a
     # dry-run (the swap is a real write; dry-run touches nothing).
     if not getattr(args, "dry_run", False):
-        _done = _complete_pending_key_swap(root, seat)
+        _done = _retry_authority_publish_for_pending_swap(root, seat)
+        if not _done:
+            _done = _complete_pending_key_swap(root, seat)
         if _done:
             print(_done, file=sys.stderr)
     # L5.16 (hypothesis:l5-spawn-mints-the-successor-key-under-the-row-name-
@@ -18847,18 +19671,26 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
               f"command(s) resolved; {mode}")
 
     # (3) spawn the successor under the SAME plain name - never a Roman numeral
-    # L4.112 (C): the template is consumed on the existing call path -- when
-    # --prompt-file is NOT given, the successor prompt is the template's
-    # brief_file with `{seat}` substituted (the director's brief is the seat's
-    # QUORUM scratchpad, .agi/sessions/quorum/{seat}.md); --prompt-file still
-    # overrides. The consume-path applies on a REAL spawn: a dry-run is a
+    # L4.112 (C): the template is consumed on the existing call path. The
+    # template's `brief_file` is the rotating post's OWN quorum card, resolved
+    # through the rename boundary (L5.11) and handed to the successor as
+    # `card_file` -- a CARD, not a prompt file -- so the successor's first turn
+    # is the ONE render (head + role template + card + harness block +
+    # trajectory) for EVERY role, prime included
+    # (hypothesis:non-prime-rotate-self-renders-through-brief-render). A prime
+    # is excluded here for a different reason than before: its cell points at a
+    # STATIC brief (extensions/agi/briefs/prime-director-successor.md), not a
+    # card, so it must not be fed as one. `--prompt-file` still overrides.
+    # The consume-path applies on a REAL spawn: a dry-run is a
     # refusal/planning check (the top print already shows brief=), and the
     # template tests are hermetic -- their brief paths are not materialised.
     # The real spawn is where the file-existence gate in spawn_window lives.
     prompt_file = args.prompt_file
+    card_file = None
     if (not args.dry_run and prompt_file is None
+            and role != "prime_director"
             and tmpl is not None and tmpl.get("brief_file")):
-        # L5.11: resolve the template brief through the post's OWN tree, so
+        # L5.11: resolve the template card through the post's OWN tree, so
         # the successor reads the same card the boundary renames -- never a
         # CWD coincidence. At a rename boundary the card was renamed under
         # the PRE-rename row's tree (`_applied_rename["old"]`); the `{seat}`
@@ -18866,7 +19698,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         # disk. `--prompt-file` still overrides (it never enters this branch)
         # and is not re-rooted.
         _brief_root_seat = (_applied_rename or {}).get("old") or seat
-        prompt_file = _resolve_brief_file(
+        card_file = _resolve_brief_file(
             root, _brief_root_seat,
             str(tmpl["brief_file"]).replace("{seat}", seat))
     if ask_diff:
@@ -18984,7 +19816,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
         _rc_label = _session_label(row, gen)
     rc, _ = spawn_window(
         name=spawn_name, tier=role,
-        prompt_file=prompt_file,
+        prompt_file=prompt_file, card_file=card_file,
         model=args.model or ((row.get("model") if row else None) or None),
         effort=args.effort or ((row.get("effort") if row else None) or None),
         settings=(json.loads(args.settings) if args.settings
@@ -19356,7 +20188,8 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                     root, seat=seat, generation=gen,
                     session_id=succ_session_id,
                     window=succ_window_id or spawn_name,
-                    pid=succ_pid)
+                    pid=succ_pid,
+                    rekey=bool(_key_rotation))
             except Exception as exc:  # noqa: BLE001
                 handover["spawn_row_commit"] = f"FAILED: {exc}"
         # SL5.05 handover-order fix: the actual <seat>.key REPLACE happens
@@ -19642,6 +20475,16 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     if _lat is not None:
         _rec.setdefault("observations", {})["spawn_to_registry_s"] = _lat
     record_path = _write_rotation_record(root, _rec, path=rec_path)
+
+    # (6.1) SESSION CAPTURE (goal:g14.14.8): land the PREDECESSOR's own
+    #     transcript, scrubbed, beside its pre-labels under
+    #     `datasets/sessions/<role>/<session_id>/` (mirrors trajectories/).
+    #     ADDITIVE and NON-BLOCKING: the rotation already succeeded above; a
+    #     capture error is logged and the rotation completes regardless.
+    #     Resolved through the ONE existing `resolve_transcript` (env
+    #     $AGI_SESSION_LOG still names THIS seat's own session here).
+    if not args.dry_run:
+        _capture_session_safe(root, seat=seat, row=row)
 
     # (5.75) GOAL:g15.25 (SL7.15) — a completed rotation ROTATES the ack
     #     file. The successor confirmed gen `gen`; that generation's live ack
@@ -20526,7 +21369,7 @@ def cmd_migrate(args: argparse.Namespace, root: Path) -> int:
               "composes a broken `claude --resume  --fork-session` that "
               "silently loses context); nothing touched")
         return 1
-    branch = f"refs/agi/posts/{args.post}"
+    branch = _migrate_post_ref(root, args.post)
     print(f"migrate {args.post}: {source} -> {args.to} (mode {mode})")
     for i, step in enumerate((
             "card: refuse a stale where-it-stops slot by name (rotate's own gate)",
@@ -20578,6 +21421,19 @@ def _migrate_default_mode(root: Path, post: str) -> str:
     return "rotate"
 
 
+def _migrate_post_ref(root: Path, post: str) -> str:
+    """The post's ONE mirror-ref spelling (`branches.mirror_ref`), season
+    read from the ladder -- never a second hand-rolled post ref literal."""
+    season = 0
+    try:
+        import spawn_gate  # noqa: PLC0415 -- local: same dir, no cycle
+        season = int(spawn_gate.read_ladder_season(
+            _shared_graph_root(root) / "nodes") or 0)
+    except Exception:  # noqa: BLE001 -- no ladder -> season 0 (ref is flat)
+        season = 0
+    return branches.mirror_ref(season, "posts", post)
+
+
 def _migrate_row(root: Path, post: str) -> dict:
     """The post's committed identity row (MAIN's graph), {} when absent."""
     import write
@@ -20612,7 +21468,13 @@ def _migrate_copy_transcript(root: Path, rec: dict, worktree: Path) -> Path:
     over ssh (never an address); tests monkeypatch this."""
     dest = _migrate_transcript_dest(worktree, rec.get("session_id"))
     dest.parent.mkdir(parents=True, exist_ok=True)
-    remote = f"$HOME/.claude/projects/{dest.parent.name}/{dest.name}"
+    # `~`-relative, never `$HOME`: this argv is a literal list, so there is no
+    # shell to expand a variable, and scp's SFTP default (OpenSSH >= 9.0) runs
+    # no remote shell either -- the server expands a leading `~` via
+    # expand-path@openssh.com, but `$HOME` reaches it as four literal chars.
+    # Measured on OpenSSH_9.6p1: `scp -D /usr/lib/openssh/sftp-server
+    # boxA:~/.claude/.../x.jsonl` succeeds, the `$HOME` spelling is ENOENT.
+    remote = f"~/.claude/projects/{dest.parent.name}/{dest.name}"
     subprocess.run(["scp", "-q", f"{rec.get('source_box')}:{remote}",
                     str(dest)], check=False)
     try:
@@ -20627,7 +21489,7 @@ def _migrate_seat(root: Path, *, post: str, rec: dict, row: dict, box: str) -> d
     successor on THIS box (mode rotate = the ordinary spawn from row+card;
     mode fork = the transcript copy + the exact resume command). Returns the
     identity cells the seating produced; tests monkeypatch THIS."""
-    ref = rec.get("branch") or f"refs/agi/posts/{post}"
+    ref = rec.get("branch") or _migrate_post_ref(root, post)
     # R1: the worktree path is the row's OWN configured cell when it carries
     # one (relative resolves against MAIN, exactly as `_fd_seat_worktree`
     # does); only an empty cell falls back to the `.agi/worktrees/post-<seat>`
@@ -20699,6 +21561,7 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
     record or a row already live is REFUSED BY NAME and nothing is seated."""
     import migrate_channel
     import send
+    import write
     try:
         me = boxes.this_box(root)
     except Exception as exc:  # noqa: BLE001 -- an undeclared box cannot seat
@@ -20756,6 +21619,14 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
             print(f"receive {post}: would seat on {me} (mode {rec.get('mode')}, "
                   f"ref {rec.get('branch')}); nothing touched")
             continue
+        # FR-B2 conjunct A: resolve the seating grant BEFORE any seating. No
+        # grant -> `_migrate_seat` is NEVER called (no worktree, no spawn, no
+        # row cell), the request is byte-identical and the record skips BY NAME.
+        master = _migrate_seating_actor(root)
+        if not master:
+            print(f"SKIP: no actor_rows grant covers box/worktree for {post} "
+                  f"(record {path.name} skipped, tick lives)")
+            continue
         try:
             cells = _migrate_seat(root, post=post, rec=rec, row=row, box=me)
         except OSError as exc:
@@ -20772,21 +21643,22 @@ def cmd_migrate_receive(args: argparse.Namespace, root: Path) -> int:
                          if cells.get(k) is not None}
         seat_cells = {k: cells[k] for k in ("box", "worktree")
                       if cells.get(k) is not None}
-        line = ""
-        if session_cells:
-            line = _write_identity_cells(
-                root, seat=post, actor=post,
-                role=str(row.get("role") or "director"), cells=session_cells)
-        master = _migrate_seating_actor(root) if seat_cells else ""
-        if seat_cells and master:
-            seated_line = _write_identity_cells(
-                root, seat=post, actor=master, role="", cells=seat_cells)
-            line = f"{line}; {seated_line}" if line else seated_line
-        elif seat_cells:
-            # SLICE 6: no seating grant -> no ack, request record left as it
-            # was (a receive that could not seat has not seated).
-            print(f"SKIP: no actor_rows grant covers box/worktree for {post} "
-                  f"(the seating cells were not written)")
+        # FR-B2 conjunct B: an inadmissible grant raises write.EditError from
+        # the ONE writer; catch it BY NAME so a later good record still seats.
+        try:
+            line = ""
+            if session_cells:
+                line = _write_identity_cells(
+                    root, seat=post, actor=post,
+                    role=str(row.get("role") or "director"),
+                    cells=session_cells)
+            if seat_cells:
+                seated_line = _write_identity_cells(
+                    root, seat=post, actor=master, role="", cells=seat_cells)
+                line = f"{line}; {seated_line}" if line else seated_line
+        except write.EditError as exc:
+            print(f"SKIP: migrate record {path.name} for {post} identity write "
+                  f"refused ({exc}); record skipped, tick lives")
             continue
         ack = migrate_channel.seat_record(rec, ts=send._now())
         ack_path = cdir / migrate_channel.record_name(ack)

@@ -77,6 +77,13 @@ LEVELS: dict[str, list[str]] = {
 #: The declared command `--suite` adds to a level. Opt-in only.
 SUITE_CMD = "tests"
 
+#: The SECOND declared suite -- `.agi/context`'s fixture test modules, outside
+#: every configured suite. Its ROOTS are a config cell of repo-relative paths,
+#: never a literal here; absent cell = a named SKIP
+#: (hypothesis:context-fixture-tests-run-in-a-configured-suite).
+EXTRA_SUITE_CMD = "context-suite"
+EXTRA_SUITE_CELL = ("paths", "core", "suite_roots")
+
 STATE_FILE = "verify-count.json"        # under <groot>/sessions/
 #: Where a pid's cwd/cmdline/ppid are read (a test seam: non-Linux has none).
 PROC = Path("/proc")
@@ -152,6 +159,24 @@ _PYTEST_COUNT_PATTERNS = (
     ("failed", r"(\d+)\s+failed"),
     ("errors", r"(\d+)\s+errors?"),
 )
+
+
+_PYTEST_ID_PATTERN = re.compile(r"^(?:FAILED|ERROR)\s+(\S+)", re.M)
+
+
+def _suite_fail_ids(output: str) -> list[str]:
+    """Every failing test of a run, by pytest node id, in first-seen order.
+
+    A WINDOW of the output is not a report: the short summary of N failures
+    is N+ lines long, so a fixed tail budget drops the first ids and can leave
+    only a bare count (hypothesis:a-declared-suite-fail-names-its-failing-
+    tests-and-the-context-flake-is-named). Read the `FAILED <nodeid>` lines
+    pytest already writes instead of guessing a line count.
+    """
+    seen: dict = {}
+    for m in _PYTEST_ID_PATTERN.finditer(output):
+        seen.setdefault(m.group(1), None)
+    return list(seen)
 
 
 def _parse_pytest_counts(output: str) -> dict:
@@ -1455,6 +1480,97 @@ def render_window(groot: Path, grant: str | None = None) -> str:
 # --- the runner ------------------------------------------------------------
 
 
+def _suite_cell_state(groot: Path) -> tuple[bool, object, str]:
+    """(declared, value, cell) from the config cell.
+
+    The ABSENCE of a cell and an UNUSABLE cell are different facts. A string
+    where a list belongs, or a list of objects, used to read as "nothing was
+    declared" -- a typo silently switched the whole second suite off while
+    claiming no declaration existed (parent probe C, DH.387). The distinction
+    is the caller's to act on, so this returns the raw value and a declared
+    flag; a cell that resolves to null is ABSENT, not unusable."""
+    cell = ".".join(EXTRA_SUITE_CELL)
+    node = locations.load_config(groot)
+    for part in EXTRA_SUITE_CELL:
+        if not isinstance(node, dict) or part not in node:
+            return False, None, cell
+        node = node[part]
+    if node is None:
+        return False, None, cell
+    return True, node, cell
+
+
+def _declared_suite_roots(groot: Path) -> tuple[list[Path], str]:
+    """(roots, cell-name) from the config cell; repo-relative, never a
+    literal. An absent/empty cell -> ([], cell): the caller SKIPs by name."""
+    declared, node, cell = _suite_cell_state(groot)
+    # a non-string entry would be str()-coerced into a nonsense PATH; leave it
+    # to the caller, which FAILs it as an unusable declaration naming the value
+    if not declared or not isinstance(node, list) or any(
+            not isinstance(r, str) for r in node):
+        return [], cell
+    # cell values are REPO-RELATIVE (owner 09-23); the repo is the parent of
+    # the `.agi/` graph dir in the G11 layout.
+    base = groot.parent if groot.name == ".agi" else locations.source_root(groot)
+    return [(base / str(r)).resolve() for r in node if str(r)], cell
+
+
+def check_extra_suite(groot: Path) -> CheckResult:
+    """The DECLARED second suite: pytest over the configured roots. A
+    collection ERROR is a FAIL with the failing tail -- a context module that
+    cannot import is skipped BY NAME (`pytest.importorskip`), not dropped."""
+    start = time.monotonic()
+    import suite_guards  # noqa: PLC0415 -- lazy: suite_guards imports THIS module
+    roots, cell = _declared_suite_roots(groot)
+    if not roots:
+        declared, value, _ = _suite_cell_state(groot)
+        if declared:
+            return CheckResult(EXTRA_SUITE_CMD, "FAIL", time.monotonic() - start,
+                               note=f"cell {cell} IS declared but unusable: "
+                                    f"expected a non-empty list of repo-relative "
+                                    f"paths, got {type(value).__name__} "
+                                    f"{value!r:.80}")
+        return CheckResult(EXTRA_SUITE_CMD, "SKIP", time.monotonic() - start,
+                           note=f"no suite roots declared in config cell {cell}")
+    counts: dict = {}
+    notes: list[str] = []
+    ok = True
+    for root in roots:
+        if not root.is_dir():
+            notes.append(f"{root}: not a directory")
+            ok = False
+            continue
+        # ONE `-r` flag carrying every category the reader parses: `-q` alone
+        # prints no short summary, and in pytest the LAST `-r` flag on the
+        # argv WINS (`-rs -rf -rE` prints none of them; `-rsEf` prints all
+        # three), so the categories go in one flag or not at all. `E` is the
+        # one that is easy to leave out: a module that fails to IMPORT is a
+        # collection ERROR and prints no `ERROR <file>` line without it
+        # (experiment:a00-45ecb18d-d5a017).
+        # env=: the declared suite is spawned WITHOUT the caller's dispatch
+        # vars (AGI_SEAT/AGI_TIER/AGI_AGENT and the git-hook channel), so it
+        # sees the same bytes whichever seat started it
+        # (hypothesis:the-declared-context-suite-runs-under-the-engine-suite-
+        # guards). The suite lock marker is kept: this run happens INSIDE the
+        # window this runner already holds.
+        proc = subprocess.run([sys.executable, "-m", "pytest", str(root),
+                               "-q", "-rsEf"], capture_output=True, text=True,
+                              timeout=SUITE_TIMEOUT, cwd=groot,
+                              env=suite_guards.spawn_env())
+        out = (proc.stdout or "") + (proc.stderr or "")
+        counts.update(_parse_pytest_counts(out))
+        if proc.returncode:
+            ok = False
+            ids = _suite_fail_ids(out)
+            named = "\n".join(f"  FAILED/ERROR {i}" for i in ids)
+            notes.append(
+                f"{root.name}: exit {proc.returncode}\n"
+                f"{named or '  (no FAILED/ERROR node id in the output)'}\n"
+                + "\n".join(out.splitlines()[-10:]))
+    return CheckResult(EXTRA_SUITE_CMD, "PASS" if ok else "FAIL",
+                       time.monotonic() - start, counts or None, "\n".join(notes))
+
+
 def run_check(groot: Path, name: str, verbose: bool) -> CheckResult:
     """Run ONE declared command and judge it. Never raises for the check.
 
@@ -1550,6 +1666,9 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool,
         # explicit --stamp the recorded baseline is never re-stamped.
         names.append("smoke")
     results = [run_check(groot, n, verbose) for n in names]
+    if suite:
+        # the DECLARED second suite, from the config cell, never a literal
+        results.append(check_extra_suite(groot))
     # SM.122 — the write-seam guard, appended at EVERY level, as a built-in.
     results.append(check_anonymize(groot))
     if level in ("rotation", "full"):

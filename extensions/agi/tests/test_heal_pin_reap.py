@@ -151,7 +151,7 @@ def _seats(graph: Path) -> list[dict]:
 
 
 def _judge(*, graph: Path, registry: Path, names: list[str], rows: list[dict],
-           now: float | None = None) -> list[dict]:
+           now: float | None = None, pid_alive=None) -> list[dict]:
     """Wire the whole KID-1 pipeline for a set of window names: build the
     window list, read rows, build pins, list seat sessions, judge."""
     windows = _windows(names)
@@ -159,7 +159,7 @@ def _judge(*, graph: Path, registry: Path, names: list[str], rows: list[dict],
     pins, _skipped = heal._pin_table(graph, rows)
     sess = heal._seat_sessions(str(registry), windows)
     return heal._judge_leases(pins, sess, rows, graph,
-                              now=now or time.time())
+                              now=now or time.time(), pid_alive=pid_alive)
 
 
 # --------------------------------------------------------------------------
@@ -403,6 +403,86 @@ def test_skipped_transcript_judged_unpinned(graph, registry):
     assert out and out[0]["verdict"] == "REAP"
 
 # --------------------------------------------------------------------------
+# STALE-PIN — a LIVE seat session whose pin is STALE is never REAP.
+# Three cases: current-row + live pid -> STALE-PIN; live pid that the row does
+# NOT name (a genuinely orphaned session) -> still REAP (no blanket amnesty);
+# dead pid -> unchanged (REAP / the pass's idempotent skip). The pass-level
+# test at the end proves STALE-PIN never arms even under `armed`.
+# --------------------------------------------------------------------------
+
+def test_live_current_session_with_stale_pin_is_stale_pin(graph, registry):
+    """LIVE pid + STALE pin (transcript gone) + the row still names this
+    session -> STALE-PIN, never REAP."""
+    names = ["seat-live"]
+    sid = "llll-live"
+    _mk_pin(graph, "seat-live", None)                 # stale pin
+    _write_registry(registry, 9501, sid, _id_for(names, "seat-live"))
+    _write_seats(graph, [{"name": "seat-live", "session_id": sid,
+                          "pid": 9501,
+                          "window": _id_for(names, "seat-live")}])
+    out = _judge(graph=graph, registry=registry, names=names, rows=None,
+                 pid_alive=lambda p: True)
+    assert [(s["verdict"], s["reason"]) for s in out] == [
+        ("STALE-PIN", "stale pin for the seat's current session")]
+
+
+def test_live_orphan_session_not_row_current_still_reaps(graph, registry):
+    """LIVE pid + stale pin, but the row names a DIFFERENT current session
+    (a genuinely orphaned registry file) -> still REAP: STALE-PIN is not a
+    blanket amnesty for anything alive."""
+    names = ["seat-orph"]
+    sid = "oooo-orphan"
+    _mk_pin(graph, "seat-orph", None)                 # stale pin
+    _write_registry(registry, 9601, sid, _id_for(names, "seat-orph"))
+    _write_seats(graph, [{"name": "seat-orph", "session_id": "ffff-other",
+                          "pid": 999999, "window": "@424242"}])
+    out = _judge(graph=graph, registry=registry, names=names, rows=None,
+                 pid_alive=lambda p: True)
+    assert out and out[0]["verdict"] == "REAP"
+
+
+def test_dead_current_session_still_reaps(graph, registry):
+    """DEAD pid + the row naming it as current -> unchanged: REAP (the pin is
+    stale AND the process is gone, so there is nothing to protect)."""
+    names = ["seat-deadc"]
+    sid = "dddd-curdead"
+    _mk_pin(graph, "seat-deadc", None)                # stale pin
+    _write_registry(registry, 9701, sid, _id_for(names, "seat-deadc"))
+    _write_seats(graph, [{"name": "seat-deadc", "session_id": sid,
+                          "pid": 9701}])
+    out = _judge(graph=graph, registry=registry, names=names, rows=None,
+                 pid_alive=lambda p: False)
+    assert out and out[0]["verdict"] == "REAP"
+
+
+def test_stale_pin_never_arms_under_armed_mode(graph, registry):
+    """End-to-end through `_pin_reap_pass` in ARMED mode: a live current
+    session with a stale pin is STALE-PIN and the reaper is NEVER called; a
+    dead orphan in the same pass IS reaped (the branch is narrow, not a
+    blanket)."""
+    names = ["seat-mix"]
+    live_sid = "mmmm-live"
+    dead_sid = "mmmm-dead"
+    _mk_pin(graph, "seat-mix", None)                  # stale pin
+    _write_registry(registry, 9801, live_sid, _id_for(names, "seat-mix"))
+    _write_seats(graph, [{"name": "seat-mix", "session_id": live_sid,
+                          "pid": 9801}])
+    judged = _judge(graph=graph, registry=registry, names=names, rows=None,
+                    pid_alive=lambda p: True)
+    assert [j["verdict"] for j in judged] == ["STALE-PIN"]
+    called = []
+
+    def reaper(root, j, rt):
+        called.append(j["session_id"])
+        return {"reaped": True}
+
+    acted = _run_pass(graph=graph, registry=registry, names=names, rows=None,
+                      mode="armed", reaper=reaper, pid_alive=lambda p: True)
+    assert called == [] and acted == []
+    assert dead_sid not in called   # never judged: not in the registry
+
+
+# --------------------------------------------------------------------------
 # KID 2 — the PASS + the ARM (_pin_reap_pass, mode from config).
 # Append, never rewrite the KID-1 tests above. FIXTURES ONLY: fixture root,
 # fixture registry dir, fixture window file via the `window_path` seam, a fake
@@ -573,3 +653,116 @@ def test_pass_mode_reads_config_default_dry_run(graph, registry):
     acted = _run_pass(graph=graph, registry=registry, names=names, rows=None,
                       mode=None, reaper=reaper)
     assert acted == [] and called == []
+
+
+# --------------------------------------------------------------------------
+# CONJUNCT B (hypothesis:heal-late-reap-bound-covers-an-unparsable-record-
+# and-stale-pin-logs-once) — a per-row pin-reap line is emitted ONCE per row
+# STATE, and the suppression SURVIVES PROCESS EXIT (a state file under the
+# shared reaper state dir, never a module-level set).
+# --------------------------------------------------------------------------
+
+PIN_REAP_SEEN = "pin-reap-seen.json"
+
+
+def _pin_reap_seen_file(graph: Path) -> Path:
+    return heal._reaper_state_file(graph, PIN_REAP_SEEN)
+
+
+def _stale_fixture(graph: Path, registry: Path, sid: str, pid: int):
+    names = ["seat-one"]
+    _mk_pin(graph, "seat-one", None)                     # stale pin
+    _write_registry(registry, pid, sid, _id_for(names, "seat-one"))
+    _write_seats(graph, [{"name": "seat-one", "session_id": sid, "pid": pid}])
+    return names
+
+
+def test_stale_pin_row_logs_once_per_state(graph, registry, tmp_path,
+                                           monkeypatch):
+    """Two passes in ONE process, no state change -> exactly ONE row line;
+    a changed state (new sid) -> a second line."""
+    monkeypatch.setenv("AGI_REAPER_STATE", str(tmp_path / "state"))
+    lines: list[str] = []
+    monkeypatch.setattr(heal, "_watch_log", lines.append)
+    sid = "ssss-1"
+    _stale_fixture(graph, registry, sid, 9701)
+    for _ in range(2):
+        _run_pass(graph=graph, registry=registry, names=["seat-one"],
+                  rows=None, mode="dry-run", pid_alive=lambda p: True)
+    rows = [ln for ln in lines if "pin-reap STALE-PIN" in ln]
+    assert len(rows) == 1, lines
+    assert _pin_reap_seen_file(graph).is_file(), "no persisted seen-state"
+    # a STATE change (the seat re-pinned to a new session) logs again
+    _write_registry(registry, 9702, "ssss-2", _id_for(["seat-one"], "seat-one"))
+    _write_seats(graph, [{"name": "seat-one", "session_id": "ssss-2",
+                          "pid": 9702}])
+    _run_pass(graph=graph, registry=registry, names=["seat-one"], rows=None,
+              mode="dry-run", pid_alive=lambda p: True)
+    assert len([ln for ln in lines if "pin-reap STALE-PIN" in ln]) == 2, lines
+
+
+def test_stale_pin_suppression_survives_a_fresh_process(graph, registry,
+                                                        tmp_path, monkeypatch):
+    """THE wire probe: process 1 logs, process 2 (a NEW interpreter) is
+    SILENT for the same unchanged row, and loud again once the state moves."""
+    monkeypatch.setenv("AGI_REAPER_STATE", str(tmp_path / "state"))
+    log = tmp_path / "reaper.log"
+    lines: list[str] = []
+    monkeypatch.setattr(heal, "_watch_log", lines.append)
+    sid = "ssss-1"
+    _stale_fixture(graph, registry, sid, 9701)
+    _run_pass(graph=graph, registry=registry, names=["seat-one"], rows=None,
+              mode="dry-run", pid_alive=lambda p: True)
+    assert len([ln for ln in lines if "pin-reap STALE-PIN" in ln]) == 1, lines
+
+    script = (
+        "import sys, rotate, heal\n"
+        "from pathlib import Path\n"
+        "g, reg, wp, logf = Path(sys.argv[1]), sys.argv[2], sys.argv[3],"
+        " sys.argv[4]\n"
+        "heal._watch_log = lambda l: open(logf, 'a').write(l + '\\n')\n"
+        "heal._pin_reap_pass(g, registry_dir=reg, window_path=wp,"
+        " pid_alive=lambda p: True, mode='dry-run')\n"
+    )
+    wp = _window_file(["seat-one"])
+    import subprocess  # noqa: PLC0415
+    env = dict(_os.environ, PYTHONPATH=str(BIN))
+    for _ in range(2):
+        out = subprocess.run([sys.executable, "-c", script, str(graph),
+                              str(registry), wp, str(log)],
+                             capture_output=True, text=True, env=env)
+        assert out.returncode == 0, out.stderr
+    text = log.read_text() if log.is_file() else ""
+    assert "pin-reap STALE-PIN" not in text, text
+    # a state change in a fresh process logs again
+    _write_registry(registry, 9703, "ssss-3", _id_for(["seat-one"], "seat-one"))
+    _write_seats(graph, [{"name": "seat-one", "session_id": "ssss-3",
+                          "pid": 9703}])
+    wp = _window_file(["seat-one"])
+    out = subprocess.run([sys.executable, "-c", script, str(graph),
+                          str(registry), wp, str(log)],
+                         capture_output=True, text=True, env=env)
+    assert out.returncode == 0, out.stderr
+    assert "pin-reap STALE-PIN: seat=seat-one sid=ssss-3" in log.read_text()
+
+
+def test_suppressed_row_still_arms(graph, registry, tmp_path, monkeypatch):
+    """Suppression touches the LOG line only: a second armed pass over an
+    unchanged REAP row still reaps (one-shot logging is not one-shot arming)."""
+    monkeypatch.setenv("AGI_REAPER_STATE", str(tmp_path / "state"))
+    monkeypatch.setattr(heal, "_watch_log", lambda ln: None)
+    names = ["seat-arm"]
+    sid = "wwww-1"
+    _write_registry(registry, 9801, sid, _id_for(names, "seat-arm"))
+    _write_seats(graph, [{"name": "seat-arm"}])
+    _set_pin_reap_mode(graph, "armed")
+    called = []
+
+    def reaper(root, j, rt):
+        called.append(j["session_id"])
+        return {"reaped": True}
+
+    for _ in range(2):
+        _run_pass(graph=graph, registry=registry, names=names, rows=None,
+                  mode="armed", reaper=reaper, pid_alive=lambda p: True)
+    assert called == [sid, sid], called

@@ -1,0 +1,195 @@
+# pi agent-session compaction-sites excerpt (FIXTURE, committed bytes)
+# pi_version_installed: 0.67.68
+# source_root: global npm root, @mariozechner/pi-coding-agent (read only; pi NOT run)
+# file: dist/core/agent-session.js  sha256: 736225fb653c20a744fa868c7fac060cc623c81e30aaecca8cf1e948d3105f68  bytes: 107014  lines: 300-340
+# file: dist/core/agent-session.js  sha256: 736225fb653c20a744fa868c7fac060cc623c81e30aaecca8cf1e948d3105f68  bytes: 107014  lines: 728-742
+# file: dist/core/agent-session.js  sha256: 736225fb653c20a744fa868c7fac060cc623c81e30aaecca8cf1e948d3105f68  bytes: 107014  lines: 1369-1452
+# file: dist/core/agent-session.js  sha256: 736225fb653c20a744fa868c7fac060cc623c81e30aaecca8cf1e948d3105f68  bytes: 107014  lines: 1452-1462
+# file: dist/core/agent-session.js  sha256: 736225fb653c20a744fa868c7fac060cc623c81e30aaecca8cf1e948d3105f68  bytes: 107014  lines: 1919-1931
+# file: dist/core/compaction/compaction.js  sha256: 6422222902cfb22d693e5edd5731a72e0e518d16b7695f99bf62089b2443177c  bytes: 24213  lines: 145-153
+# claim version named: 0.67.68  (match: see test_compaction_sites_fixture_a00-6cbe5da1.py)
+===== dist/core/agent-session.js lines 300-340 =====
+300	            else if (event.message.role === "user" ||
+301	                event.message.role === "assistant" ||
+302	                event.message.role === "toolResult") {
+303	                // Regular LLM message - persist as SessionMessageEntry
+304	                this.sessionManager.appendMessage(event.message);
+305	            }
+306	            // Other message types (bashExecution, compactionSummary, branchSummary) are persisted elsewhere
+307	            // Track assistant message for auto-compaction (checked on agent_end)
+308	            if (event.message.role === "assistant") {
+309	                this._lastAssistantMessage = event.message;
+310	                const assistantMsg = event.message;
+311	                if (assistantMsg.stopReason !== "error") {
+312	                    this._overflowRecoveryAttempted = false;
+313	                }
+314	                // Reset retry counter immediately on successful assistant response
+315	                // This prevents accumulation across multiple LLM calls within a turn
+316	                if (assistantMsg.stopReason !== "error" && this._retryAttempt > 0) {
+317	                    this._emit({
+318	                        type: "auto_retry_end",
+319	                        success: true,
+320	                        attempt: this._retryAttempt,
+321	                    });
+322	                    this._retryAttempt = 0;
+323	                }
+324	            }
+325	        }
+326	        // Check auto-retry and auto-compaction after agent completes
+327	        if (event.type === "agent_end" && this._lastAssistantMessage) {
+328	            const msg = this._lastAssistantMessage;
+329	            this._lastAssistantMessage = undefined;
+330	            // Check for retryable errors first (overloaded, rate limit, server errors)
+331	            if (this._isRetryableError(msg)) {
+332	                const didRetry = await this._handleRetryableError(msg);
+333	                if (didRetry)
+334	                    return; // Retry was initiated, don't proceed to compaction
+335	            }
+336	            this._resolveRetry();
+337	            await this._checkCompaction(msg);
+338	        }
+339	    }
+340	    /** Resolve the pending retry promise */
+===== end =====
+===== dist/core/agent-session.js lines 728-742 =====
+728	                    throw new Error(`Authentication failed for "${this.model.provider}". ` +
+729	                        `Credentials may have expired or network is unavailable. ` +
+730	                        `Run '/login ${this.model.provider}' to re-authenticate.`);
+731	                }
+732	                throw new Error(`No API key found for ${this.model.provider}.\n\n` +
+733	                    `Use /login or set an API key environment variable. See ${join(getDocsPath(), "providers.md")}`);
+734	            }
+735	            // Check if we need to compact before sending (catches aborted responses)
+736	            const lastAssistant = this._findLastAssistantMessage();
+737	            if (lastAssistant) {
+738	                await this._checkCompaction(lastAssistant, false);
+739	            }
+740	            // Build messages array (custom message if any, then user message)
+741	            messages = [];
+742	            // Add user message
+===== end =====
+===== dist/core/agent-session.js lines 1369-1452 =====
+1369	    /**
+1370	     * Check if compaction is needed and run it.
+1371	     * Called after agent_end and before prompt submission.
+1372	     *
+1373	     * Two cases:
+1374	     * 1. Overflow: LLM returned context overflow error, remove error message from agent state, compact, auto-retry
+1375	     * 2. Threshold: Context over threshold, compact, NO auto-retry (user continues manually)
+1376	     *
+1377	     * @param assistantMessage The assistant message to check
+1378	     * @param skipAbortedCheck If false, include aborted messages (for pre-prompt check). Default: true
+1379	     */
+1380	    async _checkCompaction(assistantMessage, skipAbortedCheck = true) {
+1381	        const settings = this.settingsManager.getCompactionSettings();
+1382	        if (!settings.enabled)
+1383	            return;
+1384	        // Skip if message was aborted (user cancelled) - unless skipAbortedCheck is false
+1385	        if (skipAbortedCheck && assistantMessage.stopReason === "aborted")
+1386	            return;
+1387	        const contextWindow = this.model?.contextWindow ?? 0;
+1388	        // Skip overflow check if the message came from a different model.
+1389	        // This handles the case where user switched from a smaller-context model (e.g. opus)
+1390	        // to a larger-context model (e.g. codex) - the overflow error from the old model
+1391	        // shouldn't trigger compaction for the new model.
+1392	        const sameModel = this.model && assistantMessage.provider === this.model.provider && assistantMessage.model === this.model.id;
+1393	        // Skip compaction checks if this assistant message is older than the latest
+1394	        // compaction boundary. This prevents a stale pre-compaction usage/error
+1395	        // from retriggering compaction on the first prompt after compaction.
+1396	        const compactionEntry = getLatestCompactionEntry(this.sessionManager.getBranch());
+1397	        const assistantIsFromBeforeCompaction = compactionEntry !== null && assistantMessage.timestamp <= new Date(compactionEntry.timestamp).getTime();
+1398	        if (assistantIsFromBeforeCompaction) {
+1399	            return;
+1400	        }
+1401	        // Case 1: Overflow - LLM returned context overflow error
+1402	        if (sameModel && isContextOverflow(assistantMessage, contextWindow)) {
+1403	            if (this._overflowRecoveryAttempted) {
+1404	                this._emit({
+1405	                    type: "compaction_end",
+1406	                    reason: "overflow",
+1407	                    result: undefined,
+1408	                    aborted: false,
+1409	                    willRetry: false,
+1410	                    errorMessage: "Context overflow recovery failed after one compact-and-retry attempt. Try reducing context or switching to a larger-context model.",
+1411	                });
+1412	                return;
+1413	            }
+1414	            this._overflowRecoveryAttempted = true;
+1415	            // Remove the error message from agent state (it IS saved to session for history,
+1416	            // but we don't want it in context for the retry)
+1417	            const messages = this.agent.state.messages;
+1418	            if (messages.length > 0 && messages[messages.length - 1].role === "assistant") {
+1419	                this.agent.state.messages = messages.slice(0, -1);
+1420	            }
+1421	            await this._runAutoCompaction("overflow", true);
+1422	            return;
+1423	        }
+1424	        // Case 2: Threshold - context is getting large
+1425	        // For error messages (no usage data), estimate from last successful response.
+1426	        // This ensures sessions that hit persistent API errors (e.g. 529) can still compact.
+1427	        let contextTokens;
+1428	        if (assistantMessage.stopReason === "error") {
+1429	            const messages = this.agent.state.messages;
+1430	            const estimate = estimateContextTokens(messages);
+1431	            if (estimate.lastUsageIndex === null)
+1432	                return; // No usage data at all
+1433	            // Verify the usage source is post-compaction. Kept pre-compaction messages
+1434	            // have stale usage reflecting the old (larger) context and would falsely
+1435	            // trigger compaction right after one just finished.
+1436	            const usageMsg = messages[estimate.lastUsageIndex];
+1437	            if (compactionEntry &&
+1438	                usageMsg.role === "assistant" &&
+1439	                usageMsg.timestamp <= new Date(compactionEntry.timestamp).getTime()) {
+1440	                return;
+1441	            }
+1442	            contextTokens = estimate.tokens;
+1443	        }
+1444	        else {
+1445	            contextTokens = calculateContextTokens(assistantMessage.usage);
+1446	        }
+1447	        if (shouldCompact(contextTokens, contextWindow, settings)) {
+1448	            await this._runAutoCompaction("threshold", false);
+1449	        }
+1450	    }
+1451	    /**
+1452	     * Internal: Run auto-compaction with events.
+===== end =====
+===== dist/core/agent-session.js lines 1452-1462 =====
+1452	     * Internal: Run auto-compaction with events.
+1453	     */
+1454	    async _runAutoCompaction(reason, willRetry) {
+1455	        const settings = this.settingsManager.getCompactionSettings();
+1456	        this._emit({ type: "compaction_start", reason });
+1457	        this._autoCompactionAbortController = new AbortController();
+1458	        try {
+1459	            if (!this.model) {
+1460	                this._emit({
+1461	                    type: "compaction_end",
+1462	                    reason,
+===== end =====
+===== dist/core/agent-session.js lines 1919-1931 =====
+1919	    /**
+1920	     * Check if an error is retryable (overloaded, rate limit, server errors).
+1921	     * Context overflow errors are NOT retryable (handled by compaction instead).
+1922	     */
+1923	    _isRetryableError(message) {
+1924	        if (message.stopReason !== "error" || !message.errorMessage)
+1925	            return false;
+1926	        // Context overflow is handled by compaction, not retry
+1927	        const contextWindow = this.model?.contextWindow ?? 0;
+1928	        if (isContextOverflow(message, contextWindow))
+1929	            return false;
+1930	        const err = message.errorMessage;
+1931	        // Match: overloaded_error, provider returned error, rate limit, 429, 500, 502, 503, 504, service unavailable, network/connection errors (including connection lost), fetch failed, request ended without sending chunks, terminated, retry delay exceeded
+===== end =====
+===== dist/core/compaction/compaction.js lines 145-153 =====
+145	}
+146	/**
+147	 * Check if compaction should trigger based on context usage.
+148	 */
+149	export function shouldCompact(contextTokens, contextWindow, settings) {
+150	    if (!settings.enabled)
+151	        return false;
+152	    return contextTokens > contextWindow - settings.reserveTokens;
+153	}
+===== end =====

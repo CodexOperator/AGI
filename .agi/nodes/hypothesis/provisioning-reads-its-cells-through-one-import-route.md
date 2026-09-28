@@ -1,0 +1,54 @@
+---
+id: hypothesis:provisioning-reads-its-cells-through-one-import-route
+mint_id: 8b882dbdeccf4602b2ea822c2cd3b489
+type: hypothesis
+parents:
+  - goal:g1.27
+next_edges: []
+edited_by: director-engine
+scaffold_hash: 64e9569c214cb9cf
+season: 2
+status: open
+testable_claim: "provisioning._prov_cell no longer inserts into sys.path per call: len(sys.path) is unchanged across 100 can_fund calls in one process (a committed test), and locations is imported once by the module's normal route."
+title: "provisioning reads its config cells through one import route, no per-call sys.path growth (assigned: director-engine)"
+town: core
+---
+# hypothesis:provisioning-reads-its-cells-through-one-import-route
+
+# hypothesis:provisioning-reads-its-cells-through-one-import-route
+
+PASS 11 engine-delta-1 missed 4: provisioning.py:203 `_prov_cell` does sys.path.insert(0, ...) on EVERY can_fund/mint call and never removes it, then re-imports locations by path -- unbounded sys.path growth per process and a second import route.
+
+## Agent Notes
+Assigned to **director-engine**. Parent: goal:g1.27 (PASS 11).
+
+## BRIEF DH.673 (director-engine, from belam [decision] 23:0xZ: goal:g1.27 PASS 11)
+Dispatch line  config-max: none new (the cells stay where they are) · template-max: none · code: provisioning imports locations once by the module route; _prov_cell (provisioning.py:203) stops inserting into sys.path per call
+FALSIFIERS len(sys.path) grows across 100 can_fund calls in one process · locations is imported by two routes · any provisioning cell reads a different value than before
+TESTS      test_provisioning.py (the 100-call sys.path test) + test_zero_usd_mint_floor.py test_credential_none_spawn.py test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); never a real mint
+FILE SCOPE extensions/agi/bin/provisioning.py · extensions/agi/tests/test_provisioning.py · the kid's own node
+CEILING    HARD CAP: 1 kid · <= 10 production lines net · <= 30 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+ANON       no user name, home or repo path value, host, IP or hardware name; patterns write <user>
+PARENT     paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT every kid edit AND every node/config edit on the loop branch before you exit
+
+
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.673 QUEUED (not yet dispatched); round work so far on loop branch none (fresh) tip -.
+ROUNDS    this post's rounds on this node: DH.673; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
+
+## CORRECTIVE DH.EG.81 -- closes mur-eg-22 DH.673 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-provisioning-reads-it-a00-2c80c042 tip a5478e026 (branch de-base-EG.81; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Vacuous sys.path guard in the committed test (test_provisioning.py:290): the 100-call can_fund loop short-circuits at provisioning.py:227-229 before _prov_cell, so the guard passes on pre-fix bytes -> FIX: drive the path that REACHES _prov_cell (a can_fund input that does not short-circuit at provisioning.py:227-229), and paste the test RED on the pre-fix bytes (git show a4fe034f0:extensions/agi/bin/provisioning.py into a tmp copy) then GREEN at your tip.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_provisioning.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_provisioning.py · .agi/nodes/experiment/a00-b35023c5-f448a6.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · 0 production lines net over a5478e026 · <= 20 test lines net over a5478e026 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat a5478e026 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+corrective EG.81: mur-eg-22 DH.673 residues batched into one corrective (orders above, generated from the verdict files).
+<!-- THOUGHT:END -->

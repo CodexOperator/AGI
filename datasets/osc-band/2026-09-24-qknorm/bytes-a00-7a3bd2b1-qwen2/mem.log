@@ -1,0 +1,13 @@
+== baseline 2026-09-26T17:45:55+00:00
+scope=/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/run-rfd2a2123c6674b6db4e84930774e335b.scope
+scope_peak_kB=158400512
+user_at_peak_kB=5590224896
+user_at_current_kB=2682470400
+user_at_high_kB=5500829696
+user_at_inactive_file_kB=inactive_file 229007360
+== after 2026-09-26T17:47:05+00:00
+scope_peak_kB=2501500928
+user_at_peak_kB=5590224896
+user_at_current_kB=3377086464
+user_at_hard_kB=5500829696
+inactive_file=inactive_file 619114496

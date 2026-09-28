@@ -7,6 +7,13 @@ fields:
   logs_dir: {type: str}      # the directory this box's logs live in; placeholder {logs}
   tmux_session: {type: str}  # the tmux session seats are spawned into; placeholder {tmux}
   user: {type: str}          # the account this box runs as; placeholder {user}
+placeholders:
+  root: root                # {root} renders the `root` cell
+  logs: logs_dir            # {logs} renders the `logs_dir` cell
+  tmux: tmux_session        # {tmux} renders the `tmux_session` cell
+  user: user                # {user} renders the `user` cell
+  repo_root: repo_root      # {repo_root} renders the `repo_root` cell (crons)
+  box: box                  # {box} renders the `box` cell (crons' own box)
 validation:
   required: [root, logs_dir, tmux_session, user]
   types:
@@ -20,8 +27,9 @@ validation:
 
 **The `box` cell group on `.agi/config.json` — the four facts that differ
 between two boxes running the same graph.** `extensions/agi/bin/boxes.py`
-reads this declaration as its one source of the cell names (falling back to a
-constant only when the schema is absent); `extensions/agi/bin/paths.py audit`
+reads this declaration as its one source of the cell names AND of the
+placeholder map (falling back only to the fields it can read when the schema
+is absent); `extensions/agi/bin/paths.py audit`
 uses those names to classify a box-specific literal as `logs`, `tmux` or
 `user`. A third reader must read this schema, not write a fourth list.
 

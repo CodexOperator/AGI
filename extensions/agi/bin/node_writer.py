@@ -607,6 +607,14 @@ def replace_payload(root, ref: str, source=None, *, location: str | None = None,
     return dest, True
 
 
+#: THE minted identity rows -- the ONE definition of that fact. `write_node`
+#: builds these in `fm` and only THEN runs `fm.update(extra_fm)`, so a caller
+#: row naming one would overwrite the node's own identity. `write.py`'s
+#: answers/`--set` refusal derives its row set from HERE rather than
+#: transcribing it (one source per rule).
+MINTED_IDENTITY = ("id", "mint_id", "next_edges", "scaffold_hash")
+
+
 def write_node(
     root,
     node_type,
@@ -715,6 +723,28 @@ def write_node(
         )
         return res
 
+    # hypothesis:node-writer-create-refuses-a-brand-new-node-whose-parent-
+    # id-does-not-resolve -- the second CREATE-only refusal. A parent id that
+    # resolves to no node is UNVERIFIED, and fail-open is correct for anything
+    # ALIVE (never re-point a legacy edge, G7.1). But for a brand-new create
+    # there is nothing legitimate to preserve: the edge names a node that does
+    # not exist yet -- most often a subgoal the same round meant to mint and
+    # did not. Same REJECTED shape as the no-active-schema branch above. Only
+    # the unresolved-parent-id reason qualifies, and only when the file does
+    # not exist: an existing node keeps its fail-open edge untouched.
+    if (
+        gate.status == spawn_gate.UNVERIFIED
+        and gate.reason.startswith("parent id(s) resolve to no node")
+        and not node_file.exists()
+    ):
+        res.status = REJECTED
+        res.reason = (
+            f"{gate.reason}: a new {ntype} node cannot be created onto a "
+            f"parent that names no node. Create the parent first, or pass a "
+            f"parent id that exists in the graph."
+        )
+        return res
+
     scaffold_body = f"\n# {node_id}\n\n" if heading else "\n"
     if body is None:
         # hypothesis:l3-done-broken-frontmatter -- anchor the body start with
@@ -745,6 +775,8 @@ def write_node(
         "scaffold_hash": scaffold_hash(scaffold_body),
     }
     fm.update(extra_fm or {})
+    assert set(MINTED_IDENTITY) <= set(fm), (
+        "MINTED_IDENTITY names a row write_node does not build")
     # goal:s31 -- fill what the schema requires and this routine can derive,
     # BEFORE the file is written, so a scaffold is born valid rather than
     # waiting for a parent to notice. Safe because `scaffold_hash` hashes the
@@ -986,6 +1018,25 @@ def _serialize_node(fm_lines: list[str], body: str) -> str:
     return text.rstrip("\n") + "\n"
 
 
+def assemble_node(fm: dict, body: str, *, old_body: str | None = None,
+                  set_fm: dict | None = None,
+                  unset_fm=()) -> tuple[dict, str, list[str]]:
+    """Merge one node edit: unset -> carry THOUGHT -> absorb a duplicate body
+    frontmatter block -> `set_fm`. `set_fm` MUST follow the absorb, or a stale
+    body key clobbers an explicit edit (hypothesis:sub-dry-run-preview-is-
+    the-bytes-update-node-lands). `update_node` and the `--dry-run` preview
+    both call this, so previewed bytes are landed bytes.
+    """
+    fm = dict(fm)
+    for key in unset_fm:
+        fm.pop(key, None)
+    if old_body is not None:
+        body = _carry_thought(old_body, body)
+    fm, body, absorbed = _absorb_leading_frontmatter(fm, body)
+    fm.update(set_fm or {})
+    return fm, body, absorbed
+
+
 def update_node(
     root,
     node_id,
@@ -1033,10 +1084,7 @@ def update_node(
     res.slug = path.stem
     res.parents = list(fm.get("parents") or [])
 
-    for key in unset_fm:
-        fm.pop(key, None)
-
-    new_body = nf.body if body is None else _carry_thought(nf.body, body)
+    new_body = nf.body if body is None else body
 
     # hypothesis:l2-done-doubled-frontmatter — a kid that kept the scaffold's
     # frontmatter in its body (L2.01: experiment:a00-e65beccc-ac5309) leaves a
@@ -1044,7 +1092,10 @@ def update_node(
     # serializes the file back it would read as TWO frontmatter blocks. Absorb
     # the duplicate into the real frontmatter (later keys winning) and strip it
     # from the body, ONE writer -- the shared `cli.py done`/`post_wire` path.
-    fm, new_body, _absorbed = _absorb_leading_frontmatter(fm, new_body)
+    # the order lives in ONE helper so the preview cannot drift (same hyp).
+    fm, new_body, _absorbed = assemble_node(
+        fm, new_body, old_body=None if body is None else nf.body,
+        set_fm=set_fm, unset_fm=unset_fm)
     if _absorbed:
         print(
             f"warn: absorbed duplicate frontmatter from body of {node_id} "
@@ -1052,9 +1103,7 @@ def update_node(
             f"duplicate removed (l2-done-doubled-frontmatter)",
             file=sys.stderr)
 
-    # The verdict/confidence delta wins over anything the duplicate carried,
-    # so it is applied AFTER the absorb -- never clobbered by a body block.
-    fm.update(set_fm or {})
+    # `assemble_node` applies the delta AFTER the absorb (never clobbered).
 
     if fm == nf.frontmatter and new_body == nf.body:
         res.status = UNCHANGED
