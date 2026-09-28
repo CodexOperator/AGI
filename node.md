@@ -133,6 +133,28 @@ FILE SCOPE extensions/agi/briefs/prime-director-successor.md · GOALS.md (DERIVE
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 7239015d6 · <= 40 test lines net over 7239015d6 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 7239015d6 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.154 -- closes mur-eg-61 EG.126-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-pass11-0927-residue-b-a00-1cd1a177 tip 113277b34 (branch de-base-EG.154; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. One-operand ceiling paste on the round's own node — .agi/nodes/experiment/a00-0b3c2953-c34436.md:43
+2. 2. False cross-claim authored in this diff — .agi/nodes/experiment/a00-96b5071f-50c08a.md:48
+3. 3. The paid-pi parent route one line above the rewritten row — extensions/agi/briefs/prime-director-successor.md:25
+4. 4. Order item 6 (the falsifier pins LINE NUMBERS) neither fixed nor settled with a pasted command — .agi/nodes/goal/g1.27.md:42
+5. The round's own evidence paste is a broken command: a00-0b3c2953-c34436.md:31 presents 'the falsifier's own grep' as `git grep -nE "on pi([^-[:alnum:]_]$|--harness pi([^-[:alnum:]_]$|read body 37:64"` — three ')' transcribed as '|'. I ran it: `fatal: command line, 'on pi([^-[:alnum:]_]$|--harness pi([^-[:alnum:]_]$|read body 37:64': Unmatched ( or \(`. The RESULT is not fabricated (I re-ran the real regex from g1.27.md:42: 8 hits at 7239015d6, 7 at 113277b34, and the 7 survivors the node lists at :64-70 match byte-for-byte), so this is a mangled paste under orders:119 'paste its output, never type a number' — the first reviewer treated the 8->7 numbers as the defect and never noticed the command cannot run.
+6. A typed number that does not add up: a00-0b3c2953-c34436.md:50 claims '9 added lines in total, 5 of them outside node prose'. Of the 9 added lines in the pasted list only 2 are outside .agi/nodes (GOALS.md 1, the brief 1); 7 are node lines (build node 1 + experiment node 4 + goal node 2). The paste also excludes the node's own 88-line file, so no reading of the pasted list yields 5. Ceiling compliance (<=15) is unaffected.
+7. Format defect in a brand-new node: '## Agent Notes' appears twice, at a00-0b3c2953-c34436.md:85 (empty) and :87 (the real note) — the diff added the heading twice.
+8. Unrun committed test that renders the edited brief: extensions/agi/tests/test_rotate_templates.py:41 sets brief_file: extensions/agi/briefs/prime-director-successor.md and asserts on its render at :96-100; orders:131 named only the goal/render pair, so the file the round edited was never rendered by a test (the EG.92 item 3 coverage pattern). I ran it myself (env -u TMUX -u TMUX_PANE, fixtures only, tmp): 36 passed — so this is a coverage omission with NO latent break, residue only.
+9. UNVERIFIED, with the probe I would run: '158 passed, 7 skipped' (a00-0b3c2953-c34436.md:38) is a claim about the 113277b34 tree and I could not re-measure it here (this worktree is at HEAD 21e412706). Probe: at 113277b34, `cd <tree> && env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest extensions/agi/tests/test_snapshot_goals.py extensions/agi/tests/test_bin_help_smoke.py -q -p no:cacheprovider --basetemp /tmp/egi126-verify`.
+DEMOTED   by the director at triage, not orders: items 10 (checked clean)
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_rotate_templates.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE GOALS.md · extensions/agi/briefs/prime-director-successor.md · .agi/nodes/build/briefs-prime-director-successor.md · .agi/nodes/experiment/a00-0b3c2953-c34436.md · .agi/nodes/experiment/a00-96b5071f-50c08a.md · .agi/nodes/goal/g1.27.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 113277b34 · <= 40 test lines net over 113277b34 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 113277b34 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.126: mur-eg-30 EG.101-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.154: mur-eg-61 EG.126-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
