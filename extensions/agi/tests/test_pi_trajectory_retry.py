@@ -113,14 +113,32 @@ def test_empty_response_is_retried_and_then_the_round_lands(tmp_path):
         f"attempt's records are attributable, not fused: {recs}"
 
 
-def test_a_successful_attempt_is_never_respawned(tmp_path):
-    """Exit-code guard: an empty line inside a run that ended 0 has nothing to
-    finish, so the wrapper returns it instead of burning the bound."""
+def test_the_real_pi_shape_exit_0_on_an_empty_response_is_retried(tmp_path):
+    """Real pi exits 0 on an empty response in `--mode json`: its print-mode
+    raises exitCode=1 inside the `mode === "text"` branch only, and dispatch
+    spawns `-p --mode json` (pi dist/modes/print-mode.ts). So an exit-code
+    guard suppresses EVERY retry in production while a stub suite stays green
+    -- this test is the stub that carries pi's REAL exit code, not the code the
+    test itself would like (EG.34's guard test passed code=0 by parameter)."""
     root = _project(tmp_path, 2, 0.05)
-    stub, counter = _stub_pi(tmp_path, [[OK, OK_END, EMPTY]], code=0)
-    text, _ = _run(root, stub, counter, root / "trajectory.jsonl")
-    assert counter.read_text().splitlines() == ["run"], \
-        f"a run that exited 0 is not retried, got {text!r}"
+    stub, counter = _stub_pi(tmp_path, [[EMPTY], [OK, OK_END]], code=0)
+    text, runs = _run(root, stub, counter, root / "trajectory.jsonl")
+    assert runs == ["run", "run"], \
+        f"an exit-0 empty response is what production sends; got {runs}"
+    assert "retry: empty provider response 1/2" in text, text
+
+
+def test_an_attempt_that_emptied_then_landed_is_not_respawned(tmp_path):
+    """The bound is not the exit code either: an attempt that emptied mid-stream
+    and then ended on a NORMAL stop has finished its round, so respawning it
+    would redo the work. The LAST turn decides, not the first empty line."""
+    root = _project(tmp_path, 2, 0.05)
+    stub, counter = _stub_pi(tmp_path, [[OK, OK_END, EMPTY,
+                                         {"type": "turn_end",
+                                          "stopReason": "stop"}]])
+    text, runs = _run(root, stub, counter, root / "trajectory.jsonl")
+    assert runs == ["run"], f"a landed attempt is not respawned, got {runs}"
+    assert "retry: empty provider response" not in text, text
 
 
 def test_a_plain_byte_line_decodes_and_never_kills_the_round(tmp_path):

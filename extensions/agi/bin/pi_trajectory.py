@@ -29,7 +29,7 @@ import time
 from pathlib import Path
 
 _NAMED = "trajectory: not captured: {}\n"
-_RETRY = "retry: empty provider response {}/{} in {:.1f}s\n"
+_RETRY = "retry: empty provider response {}/{} in {:.2f}s\n"
 #: config-max: the bound and the backoff live in the config cells
 #: values.pi_retry.*, never in this file. The two names below are their
 #: DOCUMENTED DEFAULTS, used only when no config is reachable.
@@ -53,6 +53,22 @@ def _retry_cells() -> tuple[int, float]:
     except Exception:
         return _DEFAULT_MAX_RETRIES, _DEFAULT_BACKOFF_S
     return max(0, max_retries), max(0.0, backoff)
+
+
+def _ended_on_empty(raw) -> bool | None:
+    """None unless the line ENDS a turn; else True when that turn ended on an
+    empty-response stop. The retry follows the LAST turn, never the exit code:
+    real pi exits 0 in --mode json whatever the provider did (print-mode raises
+    exitCode=1 in TEXT mode only), so a code==0 guard kills every retry."""
+    try:
+        ev = json.loads(raw)
+        if not isinstance(ev, dict) or ev.get("type") not in ("turn_end",
+                                                              "message_end"):
+            return None
+    except Exception:
+        return None
+    return (ev.get("stopReason") == "error"
+            and "empty" in str(ev.get("errorMessage") or "").lower())
 
 
 def _is_empty_response(raw: str) -> bool:
@@ -110,8 +126,8 @@ def _attempt(pi_bin, traj_path, pi_args, attempt: int = 0) -> tuple[int, bool]:
     for raw in pi.stdout:
         sys.stdout.buffer.write(raw)
         sys.stdout.flush()
-        if _is_empty_response(raw):
-            empty = True
+        ended = _ended_on_empty(raw)
+        empty = ended if ended is not None else (empty or _is_empty_response(raw))
         if trajf is None:
             continue
         try:
@@ -163,8 +179,10 @@ def main(argv):
     max_retries, backoff = _retry_cells()
     for attempt in range(max_retries + 1):
         code, empty = _attempt(pi_bin, traj_path, pi_args, attempt)
-        # Exit-code guard: only a FAILED attempt is worth respawning.
-        if not empty or attempt == max_retries or code == 0:
+        # The attempt's LAST turn decides, never its exit code: real pi exits 0
+        # on an empty response in json mode, so EG.34's code==0 guard was
+        # inert in production (see _ended_on_empty).
+        if not empty or attempt == max_retries:
             return code
         # The ONLY thing that earns a retry is an empty provider response, and
         # the bound is finite, so an always-empty provider cannot loop forever.

@@ -49,19 +49,22 @@ def test_live_config_declares_the_chain_deadline_cell():
     assert cfg["reaper"]["chain_deadline_s"] == 20.0
 
 
-def test_live_config_declares_a_pi_retry_cell_that_beats_the_default():
-    """`values.pi_retry.*` is in the REAL config and DIFFERS from the module
-    default (pi_trajectory.py:36-37) -- a cell equal to the default is exactly
-    what a resolver that IGNORES it returns, so the cell proves nothing."""
-    spec = importlib.util.spec_from_file_location(
-        "pi_traj_live_cells", BIN / "pi_trajectory.py")
-    traj = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(traj)
+def test_live_config_declares_a_well_typed_pi_retry_cell():
+    """`values.pi_retry.*` is in the REAL config, PRESENT and well-typed.
+
+    It asserts SHAPE, never VALUE: the bound and the backoff are a PROVIDER
+    policy an operator tunes, so pinning them here (or forcing them off the
+    module default) makes a legitimate tuning turn the suite red. The cell is
+    proved READ by test_pi_trajectory_retry.py, which writes its own tmp config
+    and shows the run count following the cell's numbers.
+    """
     cfg = json.loads((ENGINE_ROOT / ".agi" / "config.json").read_text(
         encoding="utf-8"))
-    cells = cfg["values"]["pi_retry"]
-    live = (cells["empty_response_max_retries"],
-            cells["empty_response_backoff_s"])
-    assert live == (7, 0.01), cells
-    assert live != (traj._DEFAULT_MAX_RETRIES, traj._DEFAULT_BACKOFF_S), \
-        "a cell equal to the module default cannot prove the cell is read"
+    cells = (cfg.get("values") or {}).get("pi_retry")
+    assert isinstance(cells, dict), \
+        f"values.pi_retry must be declared in the live config, got {cells!r}"
+    for key, kind in (("empty_response_max_retries", int),
+                      ("empty_response_backoff_s", float)):
+        val = cells.get(key)
+        assert isinstance(val, kind) and not isinstance(val, bool), \
+            f"values.pi_retry.{key} must be a {kind.__name__}, got {val!r}"
