@@ -43,10 +43,11 @@ GATE      TMM.306: load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, on
 PLACEMENT de-base-N ON DISK (the /dev/shm variant broke parent done -> DH.648 swept, reverted 00:0xZ); 651's RAM checkout is symlinked
 PRUNE     unit prune-debase OOM-KILLED 00:27Z (systemd-oomd, 41 removed); NOT restarted -- memory crit window (TMM.313 tmpfs hold)
 LANDED    TMM.312 00:42Z: TM landed the WHOLE branch d0d126deb (trunk merged in 90b21bd8f) + sent it to belam
-LIVE      EG.9 a00-da2aca6b (heal-sweep fix, TMM.313 FRONT) · EG.10 a00-7b3f1dbe (EG.1 residues) · EG.8 a00-4b4b4b90 + DH.658 a00-d2eb9cf1 (qg2)
+LIVE      EG.9 a00-da2aca6b (heal-sweep fix, TMM.313 FRONT) · EG.10 a00-7b3f1dbe (EG.1 residues) · DH.658 a00-d2eb9cf1 (qg2)
           DH.680: mur-eg-3 accept_with_residue -> EG.12 (cut da6f3fafe), unit qgEG12 = gate -> place2; lands DH.650's repo half inert once clean (TMM.313)
-          EG.7 harvested 637ec02b3: PARENT-DEMOTED lean_proved:75, 5 corpus edits left UNCOMMITTED in a00-0194accb (never land) -> EG.11 = the
-          detector (line-start markers only), corpus byte-unchanged; unit qgEG11 waits qgEG12
+          EG.7 PARENT-DEMOTED lean_proved:75, 5 corpus edits UNCOMMITTED in a00-0194accb (never land) -> EG.11 detector, unit qgEG11 waits qgEG12
+          EG.8 parent a00-4b4b4b90 ran the standins test UNCAPPED -> OOM kill 01:08:15Z, 0 commits (probes: hook-trim 0.35/0.38 s alone, 134 s NOT
+          reproduced) -> EG.13 retry, cap made a HARD RULE, unit qgEG13 waits qgEG11 · TELL TM in the next line: that OOM is a memory crit (belam's 24 h tmpfs clock)
 QUEUE     qg2 = T/qg2b.sh: gate -> redispatch 680 (its dispatch was KILLED by my queue swap; orders on node) -> EG.7 EG.8 658 653 (TMM.312 fix rounds) · qg3 654 · qg4 655 656 · qg5 657 · qg6 (empty, 658 moved up) · qg7 659 · qg8 660-664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 ·
           qg13 675 670-674 (g1.27) · qg14 678 · qg15 679 · qg16 EG.2 EG.3 · qg17 EG.5 (orders AMENDED per TMM.313 (2): item 5 = re-measure 2009 B on trunk, item 10 = guard reads cell templates.director.startup.facts_pointer_target_bytes; chain goes up as ONE [merge-up], lands with belam's F13 trim + cell) · qg18 EG.6 (chained units, T/drainqg<N>.log)
 TMM.313   tmpfs HOLD: GO only when EG.9 is MERGED + 24 h with no memory crit; then 4G parent+kid only · DH.650 repo half may land NOW, inert (chain 650-677-680)
@@ -91,7 +92,7 @@ dispatch.py > 300 s at load 32 killed a parent (621) · write-log is a per-root 
 locations.shared_sessions_dir: a worktree kid's writes are invisible to the MAIN log (DH.644 parent). · verb_thought first-match splice
 (write.py:291 via node_writer.py:922 extract_thought) has no committed test composing a body with a pasted BEGIN/END (mur-41 DH.641-k1). · links.py schema
 does not flag an in-scope experiment with no verdict and no evidence_runs (mur-38 DH.627-k1). · heal sweep (heal.py:1502-1516)
-treats a finished 0-commit branch as landed and removes its worktree with uncommitted work (DH.648 -> EG.9); cli.py:149-160 sibling lookup finds records only under <main>/.agi/worktrees. · dispatch.py:1729 --tier has no choices + dispatch.py:761 exact-case tier routing ('KID' takes the disk lane) (DH.680 parent). · 11 call sites keep the `cfg.get("spawn") or {}` scalar idiom (mur-eg-2 EG.1-k1; EG.10 lists them).
+treats a finished 0-commit branch as landed and removes its worktree with uncommitted work (DH.648 -> EG.9); cli.py:149-160 sibling lookup finds records only under <main>/.agi/worktrees. · dispatch.py:1729 --tier has no choices + dispatch.py:761 exact-case tier routing ('KID' takes the disk lane) (DH.680 parent). · a parent ignored its node's memory-cap order and OOM-killed itself (EG.8): orders cannot enforce a cap -- a dispatch/brief-side MemoryMax on .agi/context pytest is the durable fix · 11 call sites keep the `cfg.get("spawn") or {}` scalar idiom (mur-eg-2 EG.1-k1; EG.10 lists them).
 
 ## BANKED
 - [rule] to ride the next [merge-up]: (a) skills/agi-merge-pass: every pasted measurement names its base commit + a re-runnable command
