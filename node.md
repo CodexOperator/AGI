@@ -21,6 +21,10 @@ town: core
 
 # hypothesis:thought-verb-edits-only-the-top-level-thought-block
 
+## OPEN at the 2026-09-28 merge-up (director-engine; belam [decision] 00:0xZ: in-progress included)
+STATUS    IN PROGRESS, not landed: DH.658 QUEUED (not yet dispatched); round work so far on loop branch season2/loops/hypothesis-thought-verb-edits-on-a00-35b211d9 tip 368e4fe8d.
+ROUNDS    this post's rounds on this node: DH.607 DH.639 DH.658; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
+
 ## Measured
 - `node_writer._THOUGHT_RE` (extensions/agi/bin/node_writer.py:918) is `<!--\s*THOUGHT:BEGIN.*?<!--\s*THOUGHT:END\s*-->` with DOTALL and NO line anchor; `extract_thought` (:922) returns the FIRST match anywhere in the body, and `write.py` `verb_thought` (:291) / the submit path (:2807) rewrite that match.
 - mur-director-engine-13 DH.481-k1 (DEMOTE): a `write.py ... thought` on experiment:a00-4e2fde5f-e3a94d matched a THOUGHT pair QUOTED with 4-space indentation inside its DH.467 PARENT REVIEW and replaced it, destroying the quoted evidence; the only remaining pair now sits inside the review, so every later `thought` edit overwrites review prose again (self-perpetuating).
