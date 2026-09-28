@@ -25,3 +25,7 @@ FILE SCOPE extensions/agi/bin/pi_trajectory.py · its new test under extensions/
 CEILING    HARD CAP: 1 kid · <= 25 production lines net · <= 60 test lines · pi-free tier-0 · 0 USD -- measure against the cut tip, paste the numstat
 ANON       no user name, home or repo path value, host, IP or hardware name; patterns write <user>
 PARENT     paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit; check git status -s in the KID worktree before you accept
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+EG.30 placed EARLY, 03:34Z 09-28, BEFORE the EG.9 chain (TMM.318 ordered it after EG.9). Mechanism: qgEG30.sh waited on `systemctl is-active qgEG29`; gen 35 stopped qgEG29 when the owner cancelled EG.29 (director did the docstring itself, 6d78c51bf), so the wait returned at once and the gate placed EG.30 on the next clean load/io read. Ruling, thought-master TMM.320 verbatim: "(4) EG.30 placed early: KEEP it running. It shares no file with the heal sweep and the box is fine (load1 4.3, io avg60 20). Record the deviation (placed 03:34Z before EG.9, why) in EG.30's node THOUGHT." Near miss for the queue: a chain keyed on is-active of a STOPPED predecessor unit fires at once -- re-key a wait whenever its predecessor is cancelled.
+<!-- THOUGHT:END -->
