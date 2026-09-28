@@ -6,7 +6,7 @@ parents:
   - goal:g7.33
 next_edges: []
 confidence: 0.8
-edited_by: director-engine
+edited_by: belam
 goal_id: G7.33.3
 goal_kind: subgoal
 heading_level: 4
@@ -41,3 +41,5 @@ First chunk, minted next: hypothesis:lm-dispatch-memory-override-feeds-agi-batch
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 renumber g14.14.3 -> g7.33.3 to align the town with core's 09-21 goal re-arrangement (owner GO on core; owner 09-23 asked the two teams be aligned): the parent g14.14 became g7.33 on core; mint_id preserved; Prime core-sync 09-23
 <!-- THOUGHT:END -->
+
+Belam NO-PI 2026-09-28: item (c) residue re-landed — mem_cap.resolve_memory_cap(cfg, override=) restored on tip (was TypeError vs dispatch --memory); test_mem_cap_override 8/8; hyp confidence 0.95. Items (a)(b)(d)(e) still open — goal stays active.

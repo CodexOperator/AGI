@@ -8,10 +8,8 @@ import os
 import pathlib
 import shutil
 import signal
-import stat
 import subprocess
 import sys
-import tempfile
 
 _PROBE: "bool | None" = None
 _SUFFIX = {"K": 1024, "M": 1024 ** 2, "G": 1024 ** 3, "T": 1024 ** 4}
@@ -23,88 +21,12 @@ _SUFFIX = {"K": 1024, "M": 1024 ** 2, "G": 1024 ** 3, "T": 1024 ** 4}
 #: encryption-town in 6 days, one pair per spawn.
 _PROBE_UNIT = "agi-memcap-probe"
 
-#: The cache lives in a dir of this name under the per-user runtime dir. Named
-#: because the DIR, not the file, is the unit of privacy:
-#: `hypothesis:mem-cap-probe-cache-is-private-and-atomic`.
-#: The two names are the DEFAULTS of the config cells `values.memcap.
-#: probe_cache_dir_name` / `probe_cache_file` (config-max, owner 2026-09-23) --
-#: a caller that HAS a config passes it, and a config that omits or mangles the
-#: cell lands here. They are names, not paths: the base dir is box-resolved
-#: (`$XDG_RUNTIME_DIR`, else the platform temp dir), so no box root is spelled
-#: in this file. A cell carrying a separator is REFUSED, never joined.
-_CACHE_DIR_NAME = "agi-memcap"
-_CACHE_FILE_NAME = "probe"
-
-#: `spawn.tasks_max` -- the PER-TREE process bound carried as
-#: `TasksMax` on the SAME scope that carries `MemoryMax`. Shipped default
-#: 96: one round's own tree is a round process plus its tools (a `pytest -n8`
-#: run is ~15 procs), so 96 is ~6x headroom on a normal round, while the
-#: DH.419 fan-out that pushed user@ over memory.high was 127 forks -- a
-#: default below that number, and far below the box's user@ `pids.max`
-#: (16384), so the SCOPE refuses the fork instead of the whole user slice
-#: growing. RLIMIT_NPROC cannot express this (it is per-USER, not per-tree),
-#: so the prlimit fallback carries NO process bound -- see `wrap_argv`.
-_DEFAULT_TASKS_MAX = 96
-
-#: `spawn.memory_max` absent -> this. Named so a caller (and a test row)
-#: reads the shipped default instead of typing `4G` -- one source per value,
-#: the same reason `_DEFAULT_TASKS_MAX` exists.
-_DEFAULT_MEMORY_CAP = "4G"
-
 
 def _normalise_cap(val) -> "str | None":
     """None / 'none' / 'null' / '' -> None; else the value verbatim."""
     if val is None or str(val).strip().lower() in ("", "none", "null"):
         return None
     return str(val)
-
-
-def _spawn_block(cfg: "dict | None") -> dict:
-    """The `spawn` container AS A DICT, or {} -- one shared guard.
-
-    A cell is data, not a promise: `spawn` that is a number, a list or a
-    string must not raise out of a reader (it did: `resolve_memory_cap`
-    raised TypeError on `{"spawn": 42}`), it must read as absent and fall
-    back to the shipped default.
-
-    Two consumers, ONE guard: both resolvers
-    (`resolve_memory_cap`, `resolve_tasks_max`) and the boxkit probe's
-    `spawn.*` rows (extensions/agi/boxkit/probe.py, which CALLS this rather
-    than re-deciding `isinstance(spawn, dict)`).  A second copy would be a
-    second rule: a shape this guard learns to accept would still kill the
-    probe table."""
-    spawn = (cfg or {}).get("spawn")
-    return spawn if isinstance(spawn, dict) else {}
-
-
-def resolve_tasks_max(cfg: "dict | None" = None) -> int:
-    """`spawn.tasks_max` -> an int >= 1, else the shipped default.
-
-    The cell sits beside `spawn.memory_max`, the one `resolve_memory_cap`
-    reads, so the whole per-spawn scope is one `spawn` block (TMM.263 (2),
-    owner 19:5xZ). A cell that is absent, non-numeric, or below 1 falls back
-    to `_DEFAULT_TASKS_MAX` rather than to "no bound": an unreadable cell
-    must not silently un-cap the tree.
-
-    `AGI_TASKS_MAX` is an ENV HOOK, not a test-only affordance. It is read
-    by WHICHEVER PROCESS CALLS THIS -- the parent that builds the argv
-    (wrap_argv -> TasksMax) and the boxkit probe (probe.py, in the probe's
-    OWN process) -- AND it is inherited by every spawn: dispatch.scrubbed_env
-    drops only ENV_VARS_TO_SCRUB (dispatch.py:295), so a set value passes
-    into each spawned scope and reaches that scope's own callers too. An
-    operator, a wrapper script or an inherited environment reaches it in
-    PRODUCTION. The
-    hook has no config cell of its own, so the probe's DRIFT row
-    (test_boxkit_probe.py `test_spawn_rows_...`) drives through it -- if the
-    hook is ever retired as test-only that row loses its driver, silently,
-    with no failing test."""
-    env = os.environ.get("AGI_TASKS_MAX")
-    raw = env if env not in (None, "") else _spawn_block(cfg).get("tasks_max")
-    try:
-        n = int(str(raw).strip())
-    except (TypeError, ValueError):
-        return _DEFAULT_TASKS_MAX
-    return n if n >= 1 else _DEFAULT_TASKS_MAX
 
 
 def resolve_memory_cap(cfg: dict, override: "str | None" = None) -> "str | None":
@@ -117,9 +39,9 @@ def resolve_memory_cap(cfg: dict, override: "str | None" = None) -> "str | None"
     """
     if override is not None:
         return _normalise_cap(override)
-    spawn = _spawn_block(cfg)
+    spawn = (cfg or {}).get("spawn") or {}
     if "memory_max" not in spawn:
-        return _DEFAULT_MEMORY_CAP
+        return "4G"
     return _normalise_cap(spawn.get("memory_max"))
 
 
@@ -140,122 +62,46 @@ def _boot_id() -> str:
         return ""
 
 
-def _private_dir(path: pathlib.Path) -> "pathlib.Path | None":
-    """A cache dir WE own, mode 0700, or None. A dir another user pre-created
-    at a predictable `/tmp` name is refused outright -- otherwise the file
-    checks below trust a verdict planted for us. An unwritable or foreign
-    cache costs a re-probe, never a wrong verdict."""
-    try:
-        path.mkdir(parents=True, exist_ok=True, mode=0o700)
-        if os.lstat(path).st_uid != os.geteuid():
-            return None
-        os.chmod(path, 0o700)
-    except OSError:
-        return None
-    return path
-
-
-def _cache_names(cfg: "dict | None") -> "tuple[str, str] | None":
-    """(dir name, file name) from `values.memcap`, or None if a cell is
-    unusable. A name with a path separator, `.`/`..` or a NUL could move the
-    cache somewhere `_private_dir` would happily trust, so it is refused."""
-    v = ((cfg or {}).get("values") or {}).get("memcap") or {}
-    d = str(v.get("probe_cache_dir_name") or _CACHE_DIR_NAME)
-    f = str(v.get("probe_cache_file") or _CACHE_FILE_NAME)
-    for name in (d, f):
-        if not name or name in (".", "..") or "/" in name or "\0" in name:
-            return None
-    return d, f
-
-
-def _cache_path_pure(cfg: "dict | None" = None) -> "pathlib.Path | None":
-    """WHERE the cross-process probe verdict lives, and nothing else -- no
-    mkdir, no chmod, no lstat, so a read-only caller resolves the same path
-    this module writes without touching the box.  `_probe_cache_path` is this
-    plus the private-dir creation, so ONE place does the arithmetic.
-    `AGI_MEMCAP_CACHE` (an explicit file path, for tests) wins; else the
-    per-user runtime dir (tmpfs, cleared on boot); else `tempfile.gettempdir()`
-    ($TMPDIR, else the box's `/tmp`), NOT a `/tmp` literal: the same base every
-    other engine temp path resolves through, so the box's own answer wins and
-    this file spells no root."""
+def _probe_cache_path() -> "pathlib.Path | None":
+    """Where the cross-process probe verdict lives. `AGI_MEMCAP_CACHE` wins;
+    else the per-user runtime dir (tmpfs, cleared on boot); else `/tmp`.
+    None means "no cache is writable" -- the probe then runs per process, the
+    old behaviour, rather than failing."""
     env = os.environ.get("AGI_MEMCAP_CACHE")
     if env:
         return pathlib.Path(env)
-    names = _cache_names(cfg)
-    if names is None:
-        return None
     run = os.environ.get("XDG_RUNTIME_DIR")
-    base = pathlib.Path(run) if run else pathlib.Path(tempfile.gettempdir())
-    return base / names[0] / names[1]
-
-
-def _probe_cache_path(cfg: "dict | None" = None) -> "pathlib.Path | None":
-    """The WRITER's path: the pure resolution above, then the dir WE own made
-    private.  None means "no cache is writable" -- the probe then runs per
-    process, the old behaviour, rather than failing."""
-    if os.environ.get("AGI_MEMCAP_CACHE"):
-        return _cache_path_pure(cfg)     # the caller named the file; its dir is its own
-    path = _cache_path_pure(cfg)
-    if path is None:
-        return None
-    d = _private_dir(path.parent)
-    return None if d is None else path
-
-
-def _trusted_cache_file(path: pathlib.Path) -> "pathlib.Path | None":
-    """The cache file only if it is a REGULAR file we own. A symlink at a
-    predictable path is not followed (a planted link would otherwise both
-    read a foreign verdict and redirect our write), and a file another user
-    owns is not trusted."""
+    base = pathlib.Path(run) if run else pathlib.Path("/tmp")
     try:
-        st = os.lstat(path)
+        base.mkdir(parents=True, exist_ok=True)
     except OSError:
         return None
-    if not stat.S_ISREG(st.st_mode) or st.st_uid != os.geteuid():
-        return None
-    return path
+    return base / ".agi-memcap-probe"
 
 
-def _read_cached_probe(cfg: "dict | None" = None) -> "bool | None":
-    """The verdict cached for THIS boot, or None (absent, stale, foreign,
-    partial or corrupt). A body that is not exactly `0` or `1` is a torn or
-    planted write and is re-probed, never read as a `False`."""
-    path = _probe_cache_path(cfg)
-    if path is None:
-        return None
-    path = _trusted_cache_file(path)
+def _read_cached_probe() -> "bool | None":
+    """The verdict cached for THIS boot, or None (absent, stale or corrupt)."""
+    path = _probe_cache_path()
     if path is None:
         return None
     try:
         boot, _, val = path.read_text().strip().partition(" ")
     except OSError:
         return None
-    if val not in ("0", "1") or boot != _boot_id():
+    if not val or boot != _boot_id():
         return None
     return val == "1"
 
 
-def _write_cached_probe(val: bool, cfg: "dict | None" = None) -> None:
-    """Best-effort and ATOMIC: a temp file in the same dir (0600 by
-    construction) then `os.replace`, so a concurrent reader sees the old
-    verdict or the new one, never a half-written one. An unwritable cache
-    costs a re-probe, never a failure."""
-    path = _probe_cache_path(cfg)
+def _write_cached_probe(val: bool) -> None:
+    """Best-effort: an unwritable cache costs a re-probe, never a failure."""
+    path = _probe_cache_path()
     if path is None:
         return
     try:
-        fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=path.name + ".")
+        path.write_text(f"{_boot_id()} {'1' if val else '0'}\n")
     except OSError:
-        return
-    try:
-        with os.fdopen(fd, "w") as fh:
-            fh.write(f"{_boot_id()} {'1' if val else '0'}\n")
-        os.replace(tmp, path)
-    except OSError:
-        try:
-            os.unlink(tmp)
-        except OSError:
-            pass
+        pass
 
 
 def _reset_probe_unit() -> None:
@@ -271,7 +117,7 @@ def _reset_probe_unit() -> None:
         pass
 
 
-def systemd_run_usable(cfg: "dict | None" = None) -> bool:
+def systemd_run_usable() -> bool:
     """Launchability is not enforcement: launch a REAL allocation past a REAL
     tiny cap and require the observed SIGKILL -- on boxes whose swap absorbs
     the overage, or that swallow the property, the probe must say False so
@@ -288,7 +134,7 @@ def systemd_run_usable(cfg: "dict | None" = None) -> bool:
     if forced is not None and forced.strip() != "":
         return forced.strip() not in ("0", "false", "False", "no")
     if _PROBE is None:
-        _PROBE = _read_cached_probe(cfg)
+        _PROBE = _read_cached_probe()
     if _PROBE is None:
         _PROBE = False
         if shutil.which("systemd-run"):
@@ -303,30 +149,19 @@ def systemd_run_usable(cfg: "dict | None" = None) -> bool:
             except (OSError, subprocess.SubprocessError):
                 _PROBE = False
             _reset_probe_unit()
-        _write_cached_probe(_PROBE, cfg)
+        _write_cached_probe(_PROBE)
     return _PROBE
 
 
-def wrap_argv(argv: list, cap: "str | None",
-              cfg: "dict | None" = None) -> list:
+def wrap_argv(argv: list, cap: "str | None") -> list:
     """`cap is None` -> the SAME argv object, unwrapped; else systemd-run when
-    usable, else the prlimit fallback. `cfg` is OPTIONAL and read only for the
-    cache's `values.memcap` cells and for `spawn.tasks_max` (via
-    `resolve_tasks_max`, which defaults when `cfg` is None) -- a caller with
-    no config on hand gets the shipped defaults, so the hot path never has to
-    resolve the graph itself."""
+    usable, else the prlimit fallback."""
     if cap is None:
         return argv
-    if systemd_run_usable(cfg):
+    if systemd_run_usable():
         return ["systemd-run", "--user", "--scope", "-q",
                 f"--property=MemoryMax={cap}",
-                f"--property=TasksMax={resolve_tasks_max(cfg)}",
                 "--property=MemorySwapMax=0", "--", *argv]
-    # NAMED RESIDUAL (DH.421): the prlimit fallback bounds ADDRESS SPACE per
-    # process and NOTHING about the tree's width -- RLIMIT_NPROC is per-USER,
-    # so a per-tree process cap has no prlimit spelling. A box without a
-    # usable systemd-run still fans out unbounded; the fix is the systemd
-    # path, not a second limit here.
     return ["prlimit", f"--as={_as_bytes(cap)}", "--", *argv]
 
 
