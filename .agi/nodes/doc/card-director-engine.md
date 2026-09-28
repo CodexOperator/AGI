@@ -30,22 +30,24 @@ free     every parent/kid = pi-free (ladder tier-0) · signed role words = the o
 Post `director-engine`, director, tier 1, town local-maxxing, master thought-master. Worktree `.agi/worktrees/post-director-engine` on
 `local-maxxing/season2/posts/director-engine/main`. **NEVER `git push` from here**; merge-ups go to thought-master as ONE `[merge-up]` dm.
 
-## §0 STATE (00:3xZ 09-28 · seat woke 22:31Z 09-27 · per-chain history = git log of this node)
+## §0 STATE (00:5xZ 09-28 · seat woke 00:45Z 09-28 · per-chain history = git log of this node)
 ```
 MERGE-UP  [merge-up] to TM 00:3xZ 09-28 (belam [decision] 00:0xZ, owner: WHOLE post branch, in-progress included) -- tip d4446340f,
           mb 26d914498, 188 files, 365 passed 1 RED declared (boxkit probe vs the 429 tasks-max chain -> EG.1), 28 nodes labelled ## OPEN
-SERIES    RESET: rounds EG.N (EG.1-8 used, next EG.9; dispatch normalizes the iter to EG.01) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
+SERIES    RESET: rounds EG.N (EG.1-9 used, next EG.10; dispatch normalizes the iter to EG.01) · murs merge_up "eg" -> mur-eg, mur-eg-2 ... (T/mkmur.py 6th arg = "eg"); DH.N queued
           before the reset keep their labels (orders already generated) -- the counter only moves forward
 TOOLS     T=<scratchpad 96494ce7-...>: MURK=<key> [EXTRA=f,g] gen2.py N murq<Q>.json tip label -> orders<N>.md (N may be EG.n: sed the
           header to CORRECTIVE EG.n) · place2.sh / placef.sh N (DH.N or EG.N label) · drainqgf.sh N:K (K=F fresh via h<N>.txt) · mkmur.py + runmur.sh
           D=<scratchpad 4cf27ed6-...>: verd.py Q · harvest-all.sh N (removes a RAM de-base + its symlink after copying sessions to flash)
 GATE      TMM.306: load1 < 16 AND io PSI avg60 < 50 on two reads 5 min apart, one placement per pass · arm 10 · key cap x live < balance
 PLACEMENT de-base-N ON DISK (the /dev/shm variant broke parent done -> DH.648 swept, reverted 00:0xZ); 651's RAM checkout is symlinked
-PRUNE     unit prune-debase (TMM.309 GO: idle io, io<50, 1/30 s, lossless, skips symlinks; log in the flash harvest dir) 41 removed so far
+PRUNE     unit prune-debase OOM-KILLED 00:27Z (systemd-oomd, 41 removed); NOT restarted -- memory crit window (TMM.313 tmpfs hold)
 LANDED    TMM.312 00:42Z: TM landed the WHOLE branch d0d126deb (trunk merged in 90b21bd8f) + sent it to belam
-LIVE      no parent · harvEG1 running (EG.1 parent ended, branch 4d2c43ea5) · murq125-128 ENDED -> EG.2 EG.5 EG.3 EG.6 · K=eg -> mur-eg -> EG.2 EG.5 EG.3 (126: kid item-4 edit landed 867b44a8b)
+LIVE      EG.9 parent a00-da2aca6b (heal-sweep 0-commit fix, TMM.313 FRONT, base a42cf4dec, de-base-EG.9) · murq129 = EG.1-k1 over 1c825a36e..4d2c43ea5
+          (harvest 114 passed 7 skipped: boxkit probe + tasks-max + smoke) · murq125-128 ENDED -> EG.2 EG.5 EG.3 EG.6 queued
 QUEUE     qg2 = T/qg2b.sh: gate -> redispatch 680 (its dispatch was KILLED by my queue swap; orders on node) -> EG.7 EG.8 658 653 (TMM.312 fix rounds) · qg3 654 · qg4 655 656 · qg5 657 · qg6 (empty, 658 moved up) · qg7 659 · qg8 660-664 · qg9 665 · qg10 666 · qg11 668 · qg12 669 ·
-          qg13 675 670-674 (g1.27) · qg14 678 · qg15 679 · qg16 EG.2 EG.3 · qg17 EG.5 · qg18 EG.6 (chained units, T/drainqg<N>.log)
+          qg13 675 670-674 (g1.27) · qg14 678 · qg15 679 · qg16 EG.2 EG.3 · qg17 EG.5 (orders AMENDED per TMM.313 (2): item 5 = re-measure 2009 B on trunk, item 10 = guard reads cell templates.director.startup.facts_pointer_target_bytes; chain goes up as ONE [merge-up], lands with belam's F13 trim + cell) · qg18 EG.6 (chained units, T/drainqg<N>.log)
+TMM.313   tmpfs HOLD: GO only when EG.9 is MERGED + 24 h with no memory crit; then 4G parent+kid only · DH.650 repo half may land NOW, inert (chain 650-677-680)
 BELAM     00:0xZ order: (1) merge-up DONE (2) counters DONE (3) RAM: report the tmpfs claim PROVED when the kid-worktrees chain clears
           (680 -> then mint the 17-consumer routing round) -- belam then does guard.env + guard-init (4) NEXT, dependency order:
           g4.18.1.2 = EG.4 hypothesis:a-draft-mints-one-checked-row-per-call MINTED f1d6f12a1,
@@ -60,11 +62,12 @@ next   (1) per ENDED mur: D/verd.py Q -> clean = git merge --no-ff the chain tip
 ```
 
 ## 🔴 WHERE IT STOPS
-Rotated at the line: branch LANDED by TM (d0d126deb); TMM.312 fix rounds EG.7 EG.8 + 658 at the queue front behind the 680 redispatch; harvEG1 running.
+Working: EG.9 (heal-sweep fix) live at the queue front; murq129 reviewing EG.1; qg2 gate -> 680 redispatch -> EG.7 EG.8 658 653.
 ```
-FIRST   D/harvallEG1.log (unit harvEG1) -> mur (T/mkmur.py ... 6th arg "eg") ; T/drainqg2.log (680 redispatch, then EG.7 EG.8 658 653)
-        ; spawn_budget.py status -> harvest each ended parent AT ONCE ; send.py read director-engine
-THEN    680 clean -> tmpfs claim to belam + mint the 17-consumer round ; EG.4 after DH.660 clears ; brief g7.32.6, then g7.31.3.3 (belam item 4)
+FIRST   T/murq129.log -> D/verd.py 129: clean = git merge --no-ff 4d2c43ea5 (EG.1 closes the declared red) ; residue -> gen2 EG.10
+        ; spawn_budget.py status: EG.9 a00-da2aca6b ended -> harvest AT ONCE (D/harvest-all.sh EG.9) -> mur ; T/drainqg2.log ; send.py read director-engine
+THEN    680 clean -> tmpfs claim to belam + mint the 17-consumer round ; EG.9 merged -> tell TM (starts belam's 24 h tmpfs clock) ; EG.4 after DH.660 ;
+        brief g7.32.6, then g7.31.3.3 (belam item 4)
 ```
 
 ## §4 TRAPS
