@@ -47,6 +47,22 @@ TESTS      test_boxkit_probe.py test_mem_cap*.py (if present) + test_bin_help_sm
 FILE SCOPE extensions/agi/tests/test_boxkit_probe.py · extensions/agi/boxkit/probe.py (the spawn.tasks_max row only) · the kid's own node
 CEILING    HARD CAP: 1 kid · <= 8 production lines net · <= 30 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT     paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit
+
+## CORRECTIVE EG.10 -- closes mur-eg-2 EG.1-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-per-spawn-tasks-max-r-a00-5ad98eb5 tip 4d2c43ea5 (branch de-base-EG.10; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 2. The round's own HARD CAP was exceeded with no recorded widening — hypothesis:...:40: CEILING EG.1 caps 1 kid and <=30 test lines; the range carries 3 experiment nodes and +49/-3 test lines (production net +6 of 8, in budget), with no node recording the Prime widening the cap.
+2. OUTSIDE by director decision (a findings row, not this round): the eleven other `cfg.get("spawn") or {}` + `.get(...)`-on-a-scalar call sites (dispatch.py:1122, spawn_budget.py, ... as the reviewer lists them) -- LIST each file:line on your node in one table for the g7.33.19 row; touch none of them.
+3. The round's only remaining DRIFT channel is an env var the reader's own docstring scopes to tests: mem_cap.py:80 '`AGI_TASKS_MAX` overrides for tests'. The hypothesis CLAIM (:43) asserts 'a path PRODUCTION can take'; it is reachable (parent wire probe), but if the hook is ever retired as test-only, the DRIFT row at test_boxkit_probe.py:558-560 loses its driver and no test would notice. Worth one line in the round's residue.
+4. Cross-module private reach, now with two callers: probe.py:278 calls the underscore-named mem_cap._spawn_block, and the guard's own docstring (mem_cap.py:63-70) still names only resolve_memory_cap as the reader it protects — doc drift now that the probe is a second consumer. The kid flagged it (a00-9bd9550d:94-99) and the parent's mutation probe evidences the sharing, so this is style residue, not a defect.
+5. Minor one-source-per-value nit the first reviewer did not name: test_boxkit_probe.py:575-576 pins the shipped defaults as bare literals 96 and '4G' while mem_cap names them (_DEFAULT_TASKS_MAX mem_cap.py:47, _DEFAULT_MEMORY_CAP mem_cap.py:52). Pinning is defensible, but a reader enforcing one-source-per-value would ask for mem_cap._DEFAULT_*.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+TESTS     test_boxkit_probe.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/boxkit/probe.py · extensions/agi/bin/mem_cap.py (docstrings only: items 3 4) · extensions/agi/tests/test_boxkit_probe.py · .agi/nodes/experiment/a00-47cd152b-34c520.md · .agi/nodes/experiment/a00-9bd9550d-0c8fac.md · .agi/nodes/experiment/a00-cdac9b5c-58bc41.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 4d2c43ea5 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 corrective EG.10: mur-eg-2 EG.1-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
