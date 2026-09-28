@@ -1,0 +1,86 @@
+---
+id: experiment:a00-0de7626f-4f8260
+mint_id: 261aaf7dfa5e4bd9b9edf0d4ec768bcd
+type: experiment
+parents:
+  - hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes
+next_edges: []
+confidence: 0.9
+edited_by: director-engine
+evidence_runs:
+  - experiment:a00-0de7626f-4f8260
+loop: hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes@s2
+model: claude-opus-5-5
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: b71f6cf8d1c576fb
+season: 2
+title: EG.47 corrective (a00-3d4e7707 THOUGHT rewrite + a00-8e3104fe thought-verb claim fix), with EG.70 corrections to its own evidence and OUTSIDE rows
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# EG.47 corrective: two node-text items, fixed in the bytes with write.py (evidence and OUTSIDE rows corrected EG.70)
+
+Closes mur-eg-14 EG.26-k1 accept_with_residue. Text only: 0 production lines, 0 test lines.
+
+| item | defect (brief) | fix, in the bytes | verb |
+|---|---|---|---|
+| 1 | THOUGHT on `experiment:a00-3d4e7707-9962d4` appended, not rewritten (:157) | THOUGHT rewritten from scratch: it states only why THIS version exists (the block's shape) and what the node asserts now (lean 55 = confidence 0.55, probe-C conjunct retracted, other findings hold). The EG.16 paragraph is gone from the block (`grep -c "a00-c339cb91 (EG.16) demotes"` → `0`); CORRECTED EG.70: no grid ref exists for this node (`git for-each-ref refs/grid/ \| grep -c b9176a264d5842baa66377faebc124ec` → `0`), so the older reasoning lives in git commit `d643618b6`, not in grid versions | `thought` |
+| 2 | `experiment:a00-8e3104fe-68efc7`:33 says the `thought` verb "replaces the authored region by construction (write.py:291-300)" -- the diff refutes it | the claim was in THREE places, and all three are corrected: table row 2 (:33), the Item 2 prose (:89-91 "REWRITTEN from scratch, not appended"), and the evidence bullet (:120 "a property of the verb, not of my care") | `replace body` ×2, `sub` ×3 |
+
+## Mechanism behind item 2 (read in the bytes, not inferred)
+
+`write.py:291-300` (`verb_thought`) only stores the caller's text: `edit.thought = text`.
+`write.py:2806-2813` then swaps the old region for that text:
+
+```
+        existing = node_writer.extract_thought(body)
+        if existing:
+            body = body.replace(existing, block)
+```
+
+So the REGION gets replaced every time, but the TEXT is whatever the caller passes. EG.26 passed the
+EG.16 paragraph back in with its own paragraph added, so the region was replaced and
+the reasoning was still appended. "Rewrite, do not append" depends on the caller; the verb doesn't enforce it.
+The same fact is why item 1 existed at all.
+
+## Evidence (pasted)
+
+```
+$ grep -n "^confidence\|^verdict" .agi/nodes/experiment/a00-3d4e7707-9962d4.md
+8:confidence: 0.55
+30:verdict: inconclusive_lean_proved:55
+
+$ grep -n "EG.47\|291-300" .agi/nodes/experiment/a00-8e3104fe-68efc7.md   (after the fix; cut to 120 cols)
+33:| 2 | "set confidence to a value consistent with the 55 lean (0.55) via write.py, and say so in that node's THOUGHT (
+90:CORRECTED EG.47: the THOUGHT was NOT rewritten from scratch -- the EG.16 paragraph was
+92:below names it); the EG.47 corrective kid rewrote it. This round's paragraph named: what
+120:- `write.py:291-300` read directly: the `thought` verb sets `edit.thought`, replacing the
+
+$ env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest extensions/agi/tests/test_boxkit_templates.py \
+    extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /tmp/eg47-a00-0de7626f
+270 passed, 6 skipped in 6.94s
+
+$ git diff --numstat d643618b6 a402ceeb3   (CORRECTED EG.70: the round's full range -- the new node landed in ff334c880, the two edits in a402ceeb3)
+84	0	.agi/nodes/experiment/a00-0de7626f-4f8260.md
+2	2	.agi/nodes/experiment/a00-3d4e7707-9962d4.md
+10	8	.agi/nodes/experiment/a00-8e3104fe-68efc7.md
+```
+
+## OUTSIDE (for the director's findings row; not touched)
+
+- `extensions/agi/bin/write.py:602` + `:2961-2983` -- RE-SCOPED EG.70: `--force` EXISTS, as a PREFIX on the
+  source argument (`write.py:448` `if source.startswith("--force ")`; `test_write.py:1659`), e.g. `replace body 4:9 --force -`.
+  The defect is that `VERB_EXAMPLES["replace"]` (:602) and the `--help` epilog never document the prefix form, so
+  `--force` typed as a separate argv token gets `unrecognized arguments`.
+- `extensions/agi/bin/write.py:291-300` -- `thought` can't tell a rewrite from a carry-forward; a
+  guard that refuses a new thought containing the old one verbatim would stop the item-1 defect at write time.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+EG.83 (a00-ef5840bb, corrective, text only): the title, H1 and this block still described only the EG.47 version while the body carries EG.70 deltas (row 1 grid-versions retraction, corrected numstat, re-scoped OUTSIDE). Title and H1 now name both rounds; this block is rewritten to state that delta. The EG.70 version (a00-775fe9d4) replaced grid-version claims with git commit d643618b6 (0 grid refs exist), widened the pasted numstat to the full d643618b6..a402ceeb3 range, and re-scoped the --force OUTSIDE row to an undocumented prefix form. No verdict, confidence or evidence claim changed in either later version.
+<!-- THOUGHT:END -->
+
+## Agent Notes
+EG.83 corrective (a00-ef5840bb): title + THOUGHT rewritten to name EG.83; provenance measured by the director 13:5xZ in the round's worktree: its sessions/write-log.jsonl holds 7 write.py rows by a00-ef5840bb on this node and its sibling (no hand edit). Earlier rounds: Corrective text-fix: a00-3d4e7707 THOUGHT rewritten from scratch (EG.16 carry-forward removed); refuted thought-verb mechanism claim on a00-8e3104fe corrected at all 3 sites (:33, :89-91, :120) citing write.py:2806-2813; 0 prod/test lines; boxkit+help smoke 270 passed/6 skipped

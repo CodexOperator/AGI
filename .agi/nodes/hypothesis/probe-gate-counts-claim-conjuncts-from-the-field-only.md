@@ -6,7 +6,15 @@ parents:
   - goal:g1
 next_edges: []
 confidence: 0.8
-edited_by: director-engine
+edited_by: a00-f1812eb6
+evidence_runs:
+  - experiment:a00-a041cdef-3b79fa
+  - experiment:a00-ea0222b3-4ed78e
+  - experiment:a00-7b5520ac-96a290
+  - experiment:a00-9f9aaacd-303434
+  - experiment:a00-df914bba-114582
+  - experiment:a00-9a0bf8cb-864103
+  - experiment:a00-f1812eb6-4ade63
 scaffold_hash: e8c436a2bfd74454
 season: 2
 tags:
@@ -16,14 +24,16 @@ tags:
 testable_claim: "(1) when testable_claim carries a numbered item, cli._claim_conjunct_numbers returns the field numbers only (2) the body is read only for a node with no numbered field (3) the probe gate is unchanged on every other shape (assigned: director-engine)"
 title: "the probe gate counts claim conjuncts from testable_claim only -- body prose never inflates the set (mur-10 DH.465; assigned: director-engine)"
 town: core
+verdict: proved
 ---
 # hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only
 
 # hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only
 
 ## Measured
-- `cli._claim_conjunct_numbers` (extensions/agi/bin/cli.py:1169) unions every `_CLAIM_ITEM_RE` `(n)` match in the `testable_claim` field WITH every match in the node BODY (:1178, :1181), so review prose that numbers its own orders inflates the conjunct set: mur-director-engine-10 DH.465 measured [1,2,3,4] for a 3-conjunct claim; DH.477 had to reword another seat's authored review prose to de-number it.
-- A candidate fix exists UNREVIEWED on branch season2/loops/hypothesis-heal-worktree-refusal-a00-c3688e41 (DH.476, off-orders there): the field wins outright when it carries a numbered item; the body is read only when the field has none.
+- (historical, pre-fix -- NOT the live state; see the next bullet) `cli._claim_conjunct_numbers` (extensions/agi/bin/cli.py:1169) unioned every `_CLAIM_ITEM_RE` `(n)` match in the `testable_claim` field WITH every match in the node BODY, so review prose that numbers its own orders inflated the conjunct set: mur-director-engine-10 DH.465 measured [1,2,3,4] for a 3-conjunct claim; DH.477 had to reword another seat's authored review prose to de-number it. Live state (landed by commit e12a57722, experiment:a00-a041cdef-3b79fa; cli.py unchanged from there to fffb284f6; cli.py:1179-1183): the field wins outright when numbered; the body is read only otherwise.
+- LANDING (EG.90, measured, not retyped): the fix is commit `e12a57722` -- `git diff --numstat e12a57722^ e12a57722` -> `9 7 extensions/agi/bin/cli.py`, `78 0 extensions/agi/tests/test_cli_claim_conjunct_scope.py`, `77 0 .agi/nodes/experiment/a00-a041cdef-3b79fa.md`; `git diff --numstat e12a57722 fffb284f6 -- extensions/agi/bin/cli.py` -> empty. `8005cdd06` (the only landing provenance this node carried before EG.90) is a node-only merge-up: `git diff --numstat 8005cdd06^ 8005cdd06` -> `110 21 .agi/nodes/experiment/a00-df914bba-114582.md`, zero extensions/ bytes. The candidate originated as DH.476 on branch season2/loops/hypothesis-heal-worktree-refusal-a00-c3688e41 and was re-derived, not merged, by a00-a041cdef (red-first). `grep -n 'def _claim_conjunct_numbers' extensions/agi/bin/cli.py` read `1169:def _claim_conjunct_numbers(node_file: Path) -> list:` at 8005cdd06 (EG.40) and still does at fffb284f6.
+- FALSIFIER 3 (EG.90, experiment:a00-f1812eb6-4ade63), at fffb284f6 in a full checkout: `env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest extensions/agi/tests/test_cli.py extensions/agi/tests/test_heal_watch.py extensions/agi/tests/test_dispatch.py extensions/agi/tests/test_cli_claim_conjunct_scope.py extensions/agi/tests/test_bin_help_smoke.py -q -p no:cacheprovider --basetemp /tmp/eg90-f1812eb6` -> `362 passed, 6 skipped, 55 warnings in 271.51s (0:04:31)`. The neighbourhood is green; falsifier 3 did not fire.
 
 ## CLAIM
 (1) when `testable_claim` carries at least one numbered item, `_claim_conjunct_numbers` returns the field's numbers ONLY; (2) the body is read only for a node with no numbered field; (3) the parent probe gate's behaviour on every other shape is unchanged.
@@ -174,6 +184,23 @@ FILE SCOPE .agi/nodes/experiment/a00-5ab2709c-91e4fd.md · .agi/nodes/experiment
 CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · node text only · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat c2ddbb9fc <your final tip>` on your node (an empty range is not a measurement)
 KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit; a version delta goes in the node THOUGHT (write.py), never the body
 
+
+## CORRECTIVE DH.EG.90 -- closes mur-eg-19 EG.63-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-probe-gate-counts-cla-a00-9a0bf8cb tip fffb284f6 (branch de-base-EG.90; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Live-state provenance dated to EG.63 while the code landed at 8005cdd06/EG.40 (round wrote 0 production lines)
+2. hypothesis evidence_runs cite three text-only children and omit a00-a041cdef-3b79fa (the red-first code fix) and a00-ea0222b3-4ed78e (the wire test)
+3. The round that set verdict: proved on the hypothesis never exercised a falsifier that hypothesis names. .agi/nodes/hypothesis/probe-gate-counts-claim-conjuncts-from-the-field-only.md:43 falsifier 3 is 'test_cli.py or its neighbourhood goes red' and :46 names the neighbourhood test_cli.py test_heal_watch.py test_dispatch.py; the round's pasted run (a00-9a0bf8cb-864103.md:55) covers only test_cli_claim_conjunct_scope.py + test_bin_help_smoke.py. So the evidence behind :24 is narrower than the node's own FALSIFIERS section. UNVERIFIED whether test_cli.py is green at fffb284f6: I ran it in an extensions-only `git archive fffb284f6 extensions` extraction and got 5 failures, all extraction artifacts (NameError: pytest not defined; no .agi/nodes to walk), so the probe I WOULD run is that same file from a full fffb284f6 checkout in a tree that still has .agi/.
+4. No line in the hypothesis names the commit that actually changed cli.py. The only landing provenance it carries is 'measured at 8005cdd06' (:32), and `git show --stat 8005cdd06` shows 1 file changed, .agi/nodes/experiment/a00-df914bba-114582.md -- a node-only merge-up that touches zero extensions/ bytes. A reader auditing 'which round landed the field-wins fix' therefore has, on this node, one wrong label (EG.63, :31), one node-only commit (:32), and a 'three proved children' count (:34 of the child) against five. e12a57722 exists and is findable only by `git log -S`, never by reading the node.
+5. Every number or line you write is measured at YOUR final tip after your last edit and PASTED with its command (two-operand git diff); a claim you cannot re-run is narrowed or removed, never retyped.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-9a0bf8cb-864103.md · .agi/nodes/experiment/a00-df914bba-114582.md · .agi/nodes/hypothesis/probe-gate-counts-claim-conjuncts-from-the-field-only.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines (text, comments, docstrings, briefs and skill rows only) · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat fffb284f6 <your final tip>` on your node (an empty range is not a measurement)
+COMMIT    every edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.63: mur-eg-14 EG.40-k1 residues batched into one corrective (orders above, generated from the verdict files).
+EG.90 corrective (a00-f1812eb6): the live-state label read EG.63 and the only landing provenance was the node-only commit 8005cdd06; both now name e12a57722, the commit that changed cli.py (numstat pasted). evidence_runs gain the code fix a00-a041cdef-3b79fa and the wire test a00-ea0222b3-4ed78e. Falsifier 3 (test_cli.py + neighbourhood) was never run by the round that set proved; it is run here at fffb284f6 and is green (362 passed, 6 skipped), so verdict proved stands on evidence that now covers every named falsifier.
 <!-- THOUGHT:END -->

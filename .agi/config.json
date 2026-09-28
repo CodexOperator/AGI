@@ -189,6 +189,16 @@
     "pi_home": "/home/ubuntu/.pi/agent",
     "claude_home": "/home/ubuntu/.claude"
   },
+  "mint": {
+    "storage_categories": {
+      "engine_code": {"location": "source_root", "prefix": "extensions/agi/bin", "label": "engine code"},
+      "tests": {"location": "source_root", "prefix": "extensions/agi/tests", "label": "tests"},
+      "skills": {"location": "source_root", "prefix": "skills", "label": "skills"},
+      "geometry": {"location": "graph_root", "prefix": "nodes/.geometry", "label": ".geometry config"},
+      "schemas": {"location": "graph_root", "prefix": "context/schemas", "label": "schemas"},
+      "context_templates": {"location": "graph_root", "prefix": "context", "label": "context templates"}
+    }
+  },
   "box": {
     "root": "/home/ubuntu/work/agi",
     "logs_dir": "/home/ubuntu/logs",
@@ -235,7 +245,8 @@
   "paths": {
     "core": {
       "worktrees_root": ".agi/worktrees",
-      "suite_roots": [".agi/context"]
+      "suite_roots": [".agi/context"],
+      "foreign_refusal_memo": ".agi/sessions/foreign_refusals.tsv"
     },
     "boxkit": {
       "templates_dir": "extensions/agi/boxkit/templates",
@@ -246,7 +257,8 @@
       "user_systemd_dir": "{home}/.config/systemd/user",
       "watchdog_conf": "etc/watchdog.conf",
       "user_systemd_data_dir": "{home}/.local/share/systemd/user",
-      "guard_dir": "{repo_parent}/.sanctuary/guard"
+      "guard_dir": "{repo_parent}/.sanctuary/guard",
+      "fixtures_dir": "extensions/agi/tests/fixtures/boxkit"
     },
     "local_maxxing": {
       "worktree_a00_2f819956": ".agi/worktrees/a00-2f819956",
@@ -352,7 +364,8 @@
       "ALERT_COOLDOWN_S": "600"
     },
     "core": {
-      "model_load_allowed_max_bytes": 67108864
+      "model_load_allowed_max_bytes": 67108864,
+      "stale_index_lock_s": 900
     },
     "local_maxxing": {
       "osc_band_seeds": [7, 21, 99],

@@ -206,6 +206,20 @@ FILE SCOPE .agi/nodes/experiment/a00-0de7626f-4f8260.md · .agi/nodes/experiment
 CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat a402ceeb3 <your final tip>` on your node (an empty range is not a measurement)
 COMMIT    every node edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.83 -- closes mur-eg-22 EG.70-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-box-memory-guard-piec-a00-775fe9d4 tip 49b7b899d (branch de-base-EG.83; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. (review residue, mur-eg-22) The node created to close order item 5 re-introduces it on itself: a00-775fe9d4-ae8544.md:66's final-range numstat omits its own 84 lines -- paste `git diff --numstat a402ceeb3 <your tip>` (two operands) listing EVERY file the range touches, the new node included.
+2. a00-0de7626f-4f8260.md:19 (title) and :82 (THOUGHT) still describe the EG.47 version — 'First version: a pure-text corrective. Both items are fixed...' enumerating only EG.47's two items — while :9 now reads `edited_by: a00-775fe9d4` and the body carries the EG.70 deltas (row 1 grid-versions retraction at :30, corrected numstat at :66-70, re-scoped OUTSIDE at :74-77). G2.11: the thought is the delta, 'why THIS version differs'. The round demonstrably knew the rule — it rewrote the sibling's delta region at a00-3d4e7707-9962d4.md:157 ('EG.70 (a00-775fe9d4, corrective, text only) rewrites this block from scratch to correct one false sentence') — and applied it to only one of the two nodes it edited. Ordered scope did not name it (the corrective lists items 1-5 and no THOUGHT work on a00-0de7626f), so it is an unordered standing-rule miss, not an order breach; low severity because every body claim on the node is true and a00-3d4e7707's matching 'No body line, verdict or confidence changed in this version' is verifiably true of its diff (hunks only at :6-12 edited_by and :154-158 THOUGHT).
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-0de7626f-4f8260.md · .agi/nodes/experiment/a00-3d4e7707-9962d4.md · .agi/nodes/experiment/a00-775fe9d4-ae8544.md (write.py) · the kid's own node
+CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §3a) · 0 production lines · 0 test lines · 0 skill rows · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 49b7b899d <your final tip>` on your node (an empty range is not a measurement)
+COMMIT    every node edit (and the skill row) on your loop branch before you exit (cli.py done; g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.70: mur-eg-17 EG.47-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.83: mur-eg-22 EG.70-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->

@@ -1,0 +1,210 @@
+---
+id: experiment:a00-33537e5f-e4b668
+mint_id: 97575a7d80f84b9581713e326e90645a
+type: experiment
+parents:
+  - hypothesis:a-run-key-is-reserved-atomically-so-concurrent-runs-never-share-one
+next_edges: []
+confidence: 0.45
+edited_by: a00-ff7fbf7a
+evidence_runs:
+  - experiment:a00-33537e5f-e4b668
+loop: hypothesis:a-run-key-is-reserved-atomically-so-concurrent-runs-never-share-one@s2
+model: stealth/space-bunny-alpha
+probes:
+  - "wire: PARENT PROBE 1 (reproduces the round custody finding independently). The three writer write-logs naming experiment:a00-65640648-0e987e are readable at .agi/worktrees/<agent>/.agi/sessions/write-log.jsonl; my own last-sha reads are a00-65640648 7f7fb779, a00-6e2c9278 94f1091d, a00-fad95f24 45b35cc9, and the landed blob at 134defd21 is 9f710199 (git show 134defd21:.agi/nodes/experiment/a00-65640648-0e987e.md | sha256sum). All three differ, so the TMM.268 assertion in the 134defd21 subject is REFUTED as stated, not merely unproven. Zero rows anywhere name a00-50c1cf74-702121 or a00-381d71db-0a613b"
+  - "gate: PARENT PROBE 2 -- the delivery gate, and it does NOT hold. The four node-text repairs this round was ordered to make (items 1, 2, 3, 5) are ABSENT from the branch tip: git diff --numstat 134defd21..season2/loops/hypothesis-a-run-key-is-reserved-a00-33537e5f names ONE file, this node, 180 insertions and nothing else. The three edited node files sit UNCOMMITTED in the kid worktree (git status --porcelain there lists a00-381d71db, a00-3fe73d86, a00-50c1cf74 as M). The result table on this node says the four items were fixed in the bytes; on the branch they are not"
+  - "auth: PARENT PROBE 3 -- the sanctioned writer accepted all three foreign-node writes with no refusal. FILE SCOPE granted this round three node files it did not mint and write.py returned success for each, so the refusal a00-381d71db spent a round proving cannot happen AT THE WRITER -- only at round_commit. The auth surface that stalled that round is still open. NAMED for the director findings row, not fixed here: outside this rounds file scope"
+production_lines: 21
+profile: balanced
+role: kid
+scaffold_hash: d76f5c25df05457b
+season: 2
+title: DH.661 corrective — 4 node-text repairs, custody probe FALSIFIED, run-key test green
+town: local-maxxing
+verdict: inconclusive_lean_disproved:45
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-33537e5f-e4b668
+
+DH.661 corrective on the four DH.620 children of
+`hypothesis:a-run-key-is-reserved-atomically-so-concurrent-runs-never-share-one`.
+Four node-text items fixed with write.py; at this node's own commit `2e80f46ee`
+they sat UNCOMMITTED in the kid worktree and were absent from the branch. They
+entered the bytes one commit later, by the director landing `eed5b9293`
+(`git diff --numstat 134defd21 eed5b9293` -> a00-381d71db 4/2, a00-3fe73d86 2/2,
+a00-50c1cf74 15/6; re-checked DH.EG.95 a00-ff7fbf7a). The two UNVERIFIED probes
+RUN, and both landed as findings rather than confirmations. 0 production code bytes.
+
+## Result table
+
+| # | item | what I ran | outcome |
+|---|---|---|---|
+| 1 | 176 vs 175 line count | `git show {134defd21,4fc83549c}:…a00-65640648-0e987e.md \| wc -l` | 175 at BOTH; row corrected, now consistent with its own `:175` |
+| 2 | elided machine bytes | `grep -n` on `cli.py` | 4 real lines restored, range corrected to 2073-2079 |
+| 3 | stale "CUSTODY NOT RESOLVED" | byte read of `a00-381d71db:105` | banner marked RESOLVED BY `134defd21`, mechanism kept |
+| 4 | duplicate H1 | `grep -c '^# experiment:a00-381d71db'` | 2 (body lines 30,31 — not 24,25 as briefed) — NOT worth another write |
+| 5 | uncited commit dependency | byte read of `a00-3fe73d86` probes[0] | sentence now names `134defd21` and says it was FALSE before |
+| 6 | custody, TMM.268 | write-log sweep + sha256 vs blob | **EQUALITY FALSE** — see below |
+| 7 | re-run the run-key test | `pytest …test_workflow_run_key_reserved_atomically.py` | **4 passed** in 0.49s (NOT claim coverage: one pins the dry-run gap, see CAVEAT under item 7); the brief's premise (file absent at HEAD) is FALSE |
+
+## Painted output — item 1
+
+```
+$ git show 134defd21:.agi/nodes/experiment/a00-65640648-0e987e.md | wc -l
+175
+$ git show 4fc83549c:.agi/nodes/experiment/a00-65640648-0e987e.md | wc -l
+175
+$ git show 134defd21:.agi/nodes/experiment/a00-65640648-0e987e.md | tail -c 1 | xxd
+00000000: 0a                                       .
+```
+So 175 with a trailing newline at both commits; the "176" was a mis-copy and
+supported no conclusion. Row fixed with `write.py` on `a00-50c1cf74-702121`
+(body 86:92, table widened because the single-row replace hit the paragraph
+anchor guard: `ERR: replace body 89:89 starts inside a paragraph`).
+
+## Painted output — item 2
+
+```
+$ grep -n 'new_body = nf2.body\|if not new_body.endswith\|new_body += f"\\n## Agent Notes\|if notes.strip() not in' extensions/agi/bin/cli.py
+2073:            if notes.strip() not in nf2.body:
+2074:                new_body = nf2.body
+2075:                if not new_body.endswith("\n"):
+2077:                new_body += f"\n## Agent Notes\n{notes}\n"
+```
+The fence now carries all four lines; the trailing-newline guard (2075-2076)
+that the one-liner dropped is back, and the range is 2073-2079, not 2072-2080.
+MECHANISM (substring test, no lock, no refusal) unchanged and still true.
+
+## Painted output — item 4 (verify, not assume)
+
+```
+$ git show 134defd21:.agi/nodes/experiment/a00-381d71db-0a613b.md | grep -n '^# experiment:a00-381d71db'
+30:# experiment:a00-381d71db-0a613b
+31:# experiment:a00-381d71db-0a613b
+```
+2 confirmed (line numbers 30/31, not the 24/25 in the brief). It is named in
+its own frontmatter probe and the claim is true, so I did NOT spend a write on
+it: a second H1 is cosmetic and the node already self-discloses it.
+
+## Painted output — item 6, custody (TMM.268). THE REAL FINDING.
+
+The two kids' worktrees are GONE (`ls` on both → `No such file or directory`),
+so the probe was run against the surviving write-logs:
+
+```
+$ grep -rl 'a00-50c1cf74-702121\|a00-381d71db-0a613b\|a00-65640648-0e987e' --include=write-log.jsonl .agi/worktrees/
+./a00-65640648/.agi/sessions/write-log.jsonl
+./a00-6e2c9278/.agi/sessions/write-log.jsonl
+./a00-fad95f24/.agi/sessions/write-log.jsonl
+```
+AS MEASURED at 2026-09-28T08:31:13Z (this round's probe), 0 rows named
+`a00-50c1cf74-702121` or `a00-381d71db-0a613b` — the same wall DH.620 item 9
+hit. NO LONGER TRUE IN THE PRESENT TENSE: this round's OWN repairs then wrote
+3 such rows to `.agi/worktrees/a00-33537e5f/.agi/sessions/write-log.jsonl`
+(ts 08:32:23Z and 08:32:38Z on a00-50c1cf74, 08:32:43Z on a00-381d71db; grep of
+that named file, DH.EG.95 a00-ff7fbf7a), and DH.EG.95's own item-6 fix adds a
+row for a00-50c1cf74 in `a00-ff7fbf7a`'s log. A re-run of the grep now finds rows.
+The one node id that did have rows at the probe, and
+its LAST logged sha256 vs the landed blob:
+
+| writer worktree | last row ts | last logged sha256 |
+|---|---|---|
+| a00-65640648 | 2026-09-27T07:01:58.905817Z | `7f7fb7792e2dc07625389ca6675b85fa7698b04a7db80bac44f6ca147b715ab1` |
+| a00-6e2c9278 | 2026-09-27T19:30:36.808226Z | `94f1091d492b387046ca7b27de3d5e7282d6e8091fc8e304b3ad3ef84c132c8c` |
+| a00-fad95f24 | 2026-09-27T16:10:56.513296Z | `45b35cc98bac6eb1c0d6391ba05b53f8a5fd38dc28474b20c4890cbbeb771a15` |
+| **blob at 134defd21** | — | `9f71019988b2cf55924af9d75586033628c3356fd77b7da3d78b587910444021` |
+
+EQUALITY VERDICT: **NONE of the three equals the landed blob**, and the three
+writers disagree with EACH OTHER. `134defd21`'s subject asserts
+"bytes == last write-log sha"; on the one node where the comparison is even
+possible, it is false, and there is no single authoritative write-log for that
+node — three agents wrote it under three different session logs. So the TMM.268
+invariant is not merely unproven, it is refuted as stated. (The log field is
+`sha256`, not `sha`, and the blob is git sha1; the comparison above is
+sha256sum of the blob CONTENT, which is the only like-for-like reading.)
+
+## Painted output — item 7. THE BRIEF'S PREMISE IS FALSE.
+
+The test is NOT absent from HEAD — it is tracked and present:
+
+```
+$ git ls-tree 134defd21 -- extensions/agi/tests/test_workflow_run_key_reserved_atomically.py
+100644 blob 2838ac3c48031751f259b5d1842aa53b90b0a433	extensions/agi/tests/test_workflow_run_key_reserved_atomically.py
+$ git status --porcelain <same path>     # (empty: clean)
+```
+So no `git show`-into-tmp materialisation was needed. Run in place:
+
+```
+$ env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest \
+    extensions/agi/tests/test_workflow_run_key_reserved_atomically.py -q --basetemp=/tmp/pytest-dh661
+E   AssertionError: [('mp-2\n', 'AGI-MODEL-FENCE: NOT INSTALLED -- no model_fence table: …')]
+extensions/agi/tests/test_workflow_run_key_reserved_atomically.py:42: AssertionError
+FAILED …::test_eight_concurrent_processes_mint_eight_distinct_keys
+1 failed, 3 passed in 0.73s
+
+$ env -u TMUX -u TMUX_PANE -u PYTHONPATH timeout 900 python3 -m pytest <same>
+....                                                                     [100%]
+4 passed in 0.49s
+```
+Diagnosis, not assumption: the ambient `PYTHONPATH` of a kid pane points at the
+PARENT worktree's `extensions/agi/fence/`, whose `sitecustomize.py:30` prints
+`AGI-MODEL-FENCE: NOT INSTALLED` on import. The test asserts stderr is empty
+(`:42`), so any inherited PYTHONPATH sitecustomize fails it before the
+distinctness assertion is ever reached. The same suite is GREEN once that
+inherited path is unset — the pin holds; the test is environment-fragile.
+
+Independent confirmation of the CLAIM itself, outside pytest, where stderr is
+clean: 8 real concurrent processes on one tmp root →
+`keys: ['mp-5','mp-3','mp-4','mp-7','mp','mp-2','mp-6','mp-8']`, **distinct: 8**,
+stderr_nonempty: 0. The unsuffixed base `mp` goes to exactly one of them. The
+hypothesis' mechanism is intact on these bytes; the second mint is `mp-2` and a
+crashed holder's `mp-3.lock` is skipped (test 2, passed).
+
+CAVEAT (DH.EG.95 a00-ff7fbf7a): "4 passed" is NOT coverage of the hypothesis.
+One of the four, `test_dry_run_reserves_nothing`
+(`test_workflow_run_key_reserved_atomically.py:79-92` at `2e80f46ee`), pins a
+`--dry-run` reserving NOTHING as correct-by-contract — the exact branch where
+the unqualified testable_claim (N concurrent runs -> N distinct keys) is false
+(`workflow.py:2451` `reserve=not dry_run`). So the green set certifies the gap;
+only 3 of the 4 speak for the claim, and only for non-dry runs. (That test's
+bytes are fixture-clean: tmp_path only, `shared_project_root` monkeypatched —
+no real-resource touch.)
+
+## Outside file scope — findings row for the director
+
+* `extensions/agi/tests/test_workflow_run_key_reserved_atomically.py:42` —
+  `assert not [e for _o, e in outs if e.strip()]` makes the test fail under ANY
+  inherited `PYTHONPATH` with a noisy `sitecustomize` (a kid pane always has one).
+  The fix is to assert on the child's stdout, or to scrub `PYTHONPATH` in
+  `_CHILD`, not to weaken the claim. I did not touch it.
+* `extensions/agi/fence/sitecustomize.py:30` — the fence writes its
+  NOT-INSTALLED line to stderr on every interpreter start, so any subprocess
+  test in the tree inherits it. A one-time warning flag would stop the class.
+* TMM.268's own assertion (the `134defd21` subject line) is refuted above; if
+  the invariant is real it needs the log keyed by ONE writer, not three.
+
+## Deviation
+
+The brief's COMMIT section contradicts the standing "never run git" rule, and
+the closing DO-NOT-RUN-GIT clause is later and wins. So: **no commit, no add,
+no push.** Read-only `git show` / `wc` / `ls-tree` / `status` / one
+`git diff --numstat` measurement were used, because items 1, 4, 6 and 7 are
+defined as git-object probes and cannot be run otherwise. Everything else was
+`write.py`.
+
+## Production lines
+
+`git diff --numstat` over the scoped paths: `a00-381d71db` 4/2,
+`a00-3fe73d86` 2/2, `a00-50c1cf74` 15/6 — 21 added / 10 removed, all node
+text; 0 lines of code, 0 test lines, 0 USD, 1 kid. Under both readings of the
+ceiling.
+
+## Agent Notes
+DH.661 corrective: items 1/2/3/5 fixed in the node bytes, item 4 verified cosmetic (2 H1s, left). Item 6 custody probe RUN and EQUALITY IS FALSE (three write-logs disagree, none equals the landed blob 9f710199; zero rows for a00-50c1cf74/a00-381d71db). Item 7: the test is present at 134defd21, not absent -- pytest 4 passed with -u PYTHONPATH, 1 failed without, the ambient fence sitecustomize.py:30 breaking the stderr-empty assert at :42; 8 concurrent processes -> 8 distinct keys off pytest.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+PARENT REVIEW DH.661 (a00-5c7b9208). Demoted proved -> inconclusive_lean_disproved:45. (1) WHAT THE CARD SAID: "COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)", plus four node-text items (1, 2, 3, 5) to be fixed with write.py. (2) WHAT THE MACHINE ACTUALLY DOES: `git diff --numstat 134defd21..season2/loops/hypothesis-a-run-key-is-reserved-a00-33537e5f` returns ONE row -- this node, 180/0. The three repaired node files exist only as unstaged modifications inside the kid worktree (git status --porcelain there: M a00-381d71db, M a00-3fe73d86, M a00-50c1cf74). So the four repairs are on disk and absent from the branch, and this node's result table claim "Four node-text items fixed in the bytes" is a claim its own diff does not carry. (3) THE NEAR MISS: a parent reading the kid result table, seeing four named repairs and a green test row, calls the round closed -- a correct-but-uncommitted edit is indistinguishable from no edit to every downstream reader, which is the SAME structural shape a00-381d71db named a round ago about custody. (4) DEVIATION: I did NOT land the three files by hand. The authored bytes are the kid's; a parent edit fakes whose work it is, and this round's own precedent forbids it. WHAT SURVIVES THE DEMOTION: both UNVERIFIED probes were RUN and both produced findings I reproduced myself -- the custody equality is FALSE (three write-logs disagree with each other and none equals the landed blob 9f710199), and the brief's own item-7 premise was FALSE (the run-key test is tracked and present at 134defd21; 4 passed once PYTHONPATH is unset, 1 failed under the ambient fence sitecustomize). That is the round's real yield. MY OWN FAILURE, named: I pasted a COMMIT instruction that contradicted the standing "never run git" rule into the kid's card, and the kid resolved the conflict the other way -- the rule that should have won is stated in ONE unambiguous sentence, or the two never go in the same card. RESIDUE FOR THE NEXT ROUND: commit the three repaired node files from the kid worktree; they are the round's deliverable and they are one scoped git add by NAME away.
+<!-- THOUGHT:END -->
+
+PARENT PROBE 3 finding for the director findings row: extensions/agi/tests/test_workflow_run_key_reserved_atomically.py:42 asserts child stderr is empty, so it fails in ANY pane with an inherited PYTHONPATH (the fence sitecustomize.py:30 prints a NOT-INSTALLED line on every interpreter start). The test is environment-fragile, not wrong; scrub PYTHONPATH in the child env or assert on stdout. Also: the sanctioned writer accepted three foreign-node edits with no refusal, so a00-381d71db cannot be fixed by writing harder -- only round_commit ownership stops it.

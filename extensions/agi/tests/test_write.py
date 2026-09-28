@@ -2239,3 +2239,44 @@ def test_api_direct_sub_is_judged_by_the_outside_ref_gate(tmp_path):
     with pytest.raises(write.EditError, match="outside the repo tree"):
         write.submit(graph, edit)
     assert path.read_bytes() == before, "the refusal wrote nothing"
+
+
+def test_empty_source_guards_are_asymmetric_file_refused_stdin_lands(
+        project, tmp_path, monkeypatch, capsys):
+    """The SOURCE KIND decides whether a deletion can be made, never the
+    range end -- and the two branches disagree. Measured on the bytes by
+    EG.52 (experiment:a00-620bf49d-ac1ffb) and pinned here so the rule
+    cannot be re-inverted by a node that never ran a DELETE shape.
+
+    Arm A (empty FILE source, interior range): REFUSED rc=2, body unchanged.
+    Arm B (`-` with EMPTY stdin, same range): LANDS rc=0, range removed.
+
+    Both arms drive the real `main()`, in a tmp graph, and assert the bytes.
+    If a future engine change makes the two arms agree, this test is the
+    thing that must be re-read before the claim on either side is edited.
+    """
+    import io
+
+    body = write._read_body_text(project, "hypothesis:h1")
+    idx = next(i for i, ln in enumerate(body.split("\n"), 1)
+               if ln.strip() == "the body")
+    empty = tmp_path / "empty.txt"
+    empty.write_text("")
+
+    # Arm A — an empty FILE source refuses, loudly, and writes nothing.
+    rc = write.main(["hypothesis:h1", f"replace body {idx}:{idx} {empty}",
+                     "--root", str(project)])
+    err = capsys.readouterr().err
+    assert rc == 2, "an empty FILE source must refuse (rc=2)"
+    assert "empty" in err
+    assert "the body" in write._read_body_text(project, "hypothesis:h1"), \
+        "the refusal must leave the range in place"
+
+    # Arm B — the SAME deletion through `-` with empty stdin lands (rc=0).
+    monkeypatch.setattr(sys, "stdin", io.StringIO(""))
+    rc = write.main(["hypothesis:h1", f"replace body {idx}:{idx} -",
+                     "--root", str(project)])
+    capsys.readouterr()
+    assert rc == 0, f"empty STDIN must land; got rc={rc}"
+    after = write._read_body_text(project, "hypothesis:h1")
+    assert "the body" not in after, "the range must actually be gone"

@@ -36,6 +36,34 @@ PARENT     paste FILE SCOPE and CEILING verbatim into every kid brief; COMMIT ev
 STATUS    IN PROGRESS, not landed: DH.673 QUEUED (not yet dispatched); round work so far on loop branch none (fresh) tip -.
 ROUNDS    this post's rounds on this node: DH.673; the open round's bytes live on its loop branch, never on the post branch, until its mur clears.
 
+
+## CORRECTIVE DH.EG.81 -- closes mur-eg-22 DH.673 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-provisioning-reads-it-a00-2c80c042 tip a5478e026 (branch de-base-EG.81; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Vacuous sys.path guard in the committed test (test_provisioning.py:290): the 100-call can_fund loop short-circuits at provisioning.py:227-229 before _prov_cell, so the guard passes on pre-fix bytes -> FIX: drive the path that REACHES _prov_cell (a can_fund input that does not short-circuit at provisioning.py:227-229), and paste the test RED on the pre-fix bytes (git show a4fe034f0:extensions/agi/bin/provisioning.py into a tmp copy) then GREEN at your tip.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_provisioning.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_provisioning.py · .agi/nodes/experiment/a00-b35023c5-f448a6.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · 0 production lines net over a5478e026 · <= 20 test lines net over a5478e026 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat a5478e026 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
+
+## CORRECTIVE DH.EG.123 -- closes mur-eg-32 EG.81-k1 accept_with_residue (no verify)
+BASE      CUT FROM season2/loops/hypothesis-provisioning-reads-it-a00-cd9ce068 tip bb3fd61ed (branch de-base-EG.123; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. REFUTED BY THE DIRECTOR (13:1xZ, measured): the review's 'test_provisioning.py RED at the merge tip' (test_a_swept_lease_surrenders_its_credential_hash, assert 1 == 0 in spawn_budget.live_count) did not reproduce -- 90 passed 5 skipped at bb3fd61ed, at its base a5478e026, and at bb3fd61ed merged into the director-engine post. Run `python3 -m pytest -q -p no:cacheprovider extensions/agi/tests/test_provisioning.py` ONCE and paste the last line on your node; if it FAILS in your run, paste the failing test's assertion + which env vars were set (AGI_*, TMUX*) -- that is the finding, do not change the test to pass.
+2. Two provisioning cells are read by a SECOND path, not through _prov_cell -- extensions/agi/bin/provisioning.py:298 -- min_key_remaining_floor reads `(cfg.get("provisioning") or {}).get("min_key_remaining_usd", ...)` inline and account_floor_floor does the same for min_account_remaining_usd at provisioning.py:518, both taking a pre-loaded cfg rather than a root through _prov_cell (provisioning.py:201). The IMPORT route is still one (module-scope line 67/69, no per-call insert), so the hypothesis title holds as written, but under the Prime's stated focus (every cell read through the one resolver) these two are a genuine second read path. Pre-existing: provisioning.py is byte-identical between a5478e026 and bb3fd61ed.
+KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent only, so the kid wrote code over a 0 cap) -- PARENT: dispatch your kid with --orders pointing at a file holding THIS WHOLE SECTION, and paste its FILE SCOPE + CEILING into the kid prompt; verify the kid's context carries the word CORRECTIVE before it starts.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_provisioning.py test_zero_usd_mint_floor.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/bin/provisioning.py (ONLY min_key_remaining_floor and account_floor_floor: read their cells through _prov_cell, nothing else) · extensions/agi/tests/test_provisioning.py · .agi/nodes/experiment/a00-26c0e40c-c35b84.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over bb3fd61ed · <= 40 test lines net over bb3fd61ed · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat bb3fd61ed <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-DH.673 brief added by director-engine: belam minted this node as a measured stub (claim + evidence line) and queued it to this post ([decision] 23:0xZ, goal:g1.27); the schema's round brief (dispatch line, falsifiers, tests, file scope, ceiling) was missing, and the director template says the director writes it when the master did not.
+corrective EG.123: mur-eg-32 EG.81-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->

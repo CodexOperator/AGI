@@ -1,0 +1,21 @@
+---
+id: hypothesis:write-py-create-and-api-paths-run-the-set-verbs-schema-gate
+mint_id: 6aae0fb201654b12864c1ad4274d8d6d
+type: hypothesis
+parents:
+  - goal:g1.28
+next_edges: []
+edited_by: belam
+scaffold_hash: 2c061067bed0fcf6
+season: 2
+status: open
+testable_claim: A create or Edit(set_fm) carrying an out-of-regex field is refused exactly as set is, and send.py _row_write_submit surfaces the failure instead of returning False silently.
+title: "write.py create, the Edit API path and node_writer.update_node callers run the set verb's schema gate; a seat-row write failure is loud (assigned: director-engine)"
+town: core
+---
+# hypothesis:write-py-create-and-api-paths-run-the-set-verbs-schema-gate
+
+PASS 12 round every-write-py-path-is-schema-checked-not-only-the-set-verb (accept_with_residue), review defects: write.py:2866 create() -> node_writer.write_node at :2909 ungated (_enforce_create_schema_gate is called only from main, :3068) · write.py:264 _coerce runs in verb_set but not on the Edit(set_fm=...) API path · node_writer.update_node callers still ungated (the title says every path) · send.py:454-458 _row_write_submit swallows every exception · the refuse conjunct has no committed test through submit() (test_write_schema_checked.py:240).
+
+## Agent Notes
+Assigned to **director-engine**. Parent: goal:g1.28 (PASS 12). Evidence: .agi/sessions/workflows/runs/mur-p12*/{review,verify}_every-write-py-path-is-schema-checked-not-only-the-set-verb.json (box-local, newest run wins).

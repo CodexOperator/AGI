@@ -1,0 +1,16 @@
+# sanctuary guard layer 2. Written by {{GUARD_SRC}}.
+# Edit guard.env or the script and re-run it; do not hand-edit this file. See {{GUARD_DOC}}.
+# Everything {{OWNER_USER}} runs (Claude, its tmux seats, the agi engine, pi rounds)
+# lives under user@{{UID}}. Capped at RAM - reserve - docker, it can thrash itself
+# but it can never take the memory sshd needs to fork your login.
+#   RAM {{MEM_TOTAL}}M - reserve {{SYS_RESERVE}}M - docker {{HELD_OUT}}M = {{USER_MAX}}
+# MemoryLow is one link of the chain that makes Claude's own MemoryLow real:
+# cgroup v2 protection only reaches a cgroup whose every ancestor has some.
+[Service]
+MemoryHigh={{USER_HIGH}}
+MemoryMax={{USER_MAX}}
+MemorySwapMax={{USER_SWAP}}
+MemoryLow={{MEM_LOW}}
+TasksMax={{USER_TASKS}}
+ManagedOOMMemoryPressure=kill
+ManagedOOMMemoryPressureLimit={{USER_OOM_PCT}}%

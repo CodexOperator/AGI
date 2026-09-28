@@ -39,7 +39,7 @@ roles:
   - {"tier": 1, "role": "director", "harness": "claude-code", "model": "claude-fable-5-1", "effort": "max", "settings": ""}
   - {"tier": 1, "role": "liaison", "harness": "claude-code", "model": "claude-sonnet-5", "effort": "high", "settings": ""}
   - {"tier": 1, "role": "parent", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
-  - {"tier": 0, "role": "director", "harness": "pi", "model": "~z-ai/glm-flash-latest", "effort": "", "settings": ""}
+  - {"tier": 0, "role": "director", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
   - {"tier": 0, "role": "parent", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
   - {"tier": 0, "role": "kid", "harness": "pi-free", "model": "stealth/space-bunny-alpha", "effort": "", "settings": ""}
 season: 1
@@ -155,7 +155,7 @@ makes the brief-head re-read cheap, so early rotation costs less than it
 looks.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-OWNER 05:2xZ 09-28, verbatim: "Move parents to opus 5.5 as well please thank you". The tier-3 claude-code parent row claude-opus-5 -> claude-opus-5-5; every other row byte-identical. Paired with harnesses.claude-code.models.parent + cc_dispatch.parent_model in .agi/config.json (same commit): an explicit --harness claude-code that overrides a ladder row reads harnesses.<h>.models[tier] (dispatch.py:2066-2074), a matching row supplies its own model (:2077-2084) -- moving only one of the two leaves the other path on the old model. Near miss: editing only config.json satisfies the words and loses every parent spawned through this ladder row. Both ids answer live (claude -p probe 05:2xZ).
+TM [decision] 12:0xZ 09-28, option (A) accepted by belam 12:4xZ (owner asleep; delegated authority): roles[5] (director, tier 0) harness pi -> pi-free, model ~z-ai/glm-flash-latest -> stealth/space-bunny-alpha, the model every other tier-0/1 pi-free row carries; every other row byte-identical. Why: pi is the PAID deepseek/openrouter lane (TMM.291: ~12.8 USD of paid murs 09-24..27; paid paths closed 56c1156ab, account drained); a tier-0 row on it contradicts the zero-USD ladder, and DE EG.71 test_ladder_node::test_tier0_rows_resolve_a_zero_usd_harness pins exactly that. Near miss: option (B), narrowing the test to parent/kid rows, satisfies the test and leaves a paid director row reachable by dispatch.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
