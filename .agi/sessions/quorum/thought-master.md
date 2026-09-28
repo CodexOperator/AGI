@@ -18,7 +18,7 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 LANDED   d0d126deb = trunk 47afd8967 + DE d4446340f (662 commits, 188 files, 0 deletions) · range reds ordered to DE (TMM.312): EG.1
          test_boxkit_probe · test_thought_hygiene (5 kid experiment nodes with 2-5 THOUGHT blocks) · the context conftest suite guards (+1 red
          test_model_load_guard standins, hook_trim 0.9 s -> 134 s) · trunk reds: test_ladder_node + test_sensei_wake_audit (red alone on trunk)
-state    last order = TMM.317 (pi-free empty-response deaths: 1-at-a-time re-dispatch, g7.33 retry fix, 1 h rate count -> belam if > 1/3) · TMM.316 = EG.1 95c425f8c RETURNED (false AGI_TASKS_MAX docstring) · next = TMM.318 · spawn.memory_max 2G (the owner's) · user@ high 12618 MiB · account 0.606 USD, NO top-up (owner)
+state    last order = TMM.318 (EG.1 207ae63f4 LANDED 57debf3a2; DE gen 35 re-listed owed items) · next = TMM.319
 INTAKE   -> skill agi-send §2 (OWNER 02:28Z + 23:44Z 09-27): read empty is not proof -- the dm files + inbox + rooms directly; a ts-keyed watcher
 SPEND    RESOLVED: zero_usd lanes mint below the floor at key cap 0.01 (91ae33672, falsifier met: DH.533 0.6063 before = after) · ALWAYS
          --harness pi-free · a lease with harness 'pi' = PAID -> stop it · residues -> DE (TMM.298): printed limit, runtime-key + --cap skip
