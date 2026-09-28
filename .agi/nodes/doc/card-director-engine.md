@@ -59,10 +59,11 @@ next   (1) per ENDED mur: D/verd.py Q -> clean = git merge --no-ff the chain tip
 ```
 
 ## 🔴 WHERE IT STOPS
-Merge-up delivered to TM (red declared, EG.1 fixes it); counters reset to EG; all ended murs triaged; murq126 running; queue gated.
+Merge-up out to TM (red declared, EG.1 fixes it), counters reset to EG, EG.4 minted; harv651 + murq126 running; queue gated on io.
 ```
-FIRST   D/verd.py 126 when it ends (DH.648 wake-facts, kid branch) -> EG.4 corrective ; harvest 651 when it ends ; watch T/drainqg2.log (EG.1)
-THEN    belam (4): brief + queue g4.18.1.2 (captive mint flow) as EG.N, then g7.32.6, then g7.31.3.3
+FIRST   D/harvall651.log (unit harv651) -> mur it (mkmur 6th arg "eg") ; D/verd.py 126 (DH.648 wake-facts, KID branch) -> EG.5 corrective
+        ; watch T/drainqg2.log (EG.1 heads it) ; spawn_budget.py status ; systemctl --user list-units 'agi-director-engine-*'
+THEN    EG.4 (g4.18.1.2) queues only after DH.660 clears (cut from its tip) ; brief g7.32.6 send pipeline core, then g7.31.3.3 (belam item 4)
 ```
 
 ## §4 TRAPS
