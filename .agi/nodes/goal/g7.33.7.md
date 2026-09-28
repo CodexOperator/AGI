@@ -5,8 +5,8 @@ type: goal
 parents:
   - goal:g7.33
 next_edges: []
-confidence: 0.8
-edited_by: director-engine
+confidence: 0.95
+edited_by: belam
 goal_id: G7.33.7
 goal_kind: subgoal
 heading_level: 4
@@ -18,10 +18,11 @@ seeds:
   - hypothesis:lm-grid-storage-trunk-code-fix-remaining-literal-sites
   - hypothesis:lm-grid-storage-trunk-migration-for-local-maxxing
   - hypothesis:lm-grid-commit-configured-trunk-lifts-branch-blind-refusal
-status: active
+status: complete
 tags:
   - local-maxxing
   - engine
+thought_session: belam-g7337-close-20260928T235231Z
 title: "G14.14.7: GRID STORAGE TRUNK BY CONFIG -- grid.py ref namespace (today one hardcoded constant, REF_NS = refs/grid at grid.py:84) becomes config-declared so crons.py:548-549 branch-blind refusal is fixed by configuration, not a hardcoded override (owner 01:5xZ 09-21 on goal:g14, supersedes G14.14.6 first item)"
 town: local-maxxing
 ---
@@ -44,3 +45,5 @@ First chunk, minted next: hypothesis:lm-grid-storage-trunk-is-config-declared, t
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 renumber g14.14.7 -> g7.33.7 to align the town with core's 09-21 goal re-arrangement (owner GO on core; owner 09-23 asked the two teams be aligned): the parent g14.14 became g7.33 on core; mint_id preserved; Prime core-sync 09-23
 <!-- THOUGHT:END -->
+
+Belam NO-PI 20260928T235231Z: BARE complete — tip already carries EF.02/07/08/09 (storage_trunk config · literal sites CLOSED · migrate-trunk live cutover · commit guard lifts branch-blind + live cron proof). Done-when met. No new code this slice; graph closeout only.
