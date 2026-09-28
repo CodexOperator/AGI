@@ -1805,21 +1805,37 @@ def _record_deferred_render(root: Path, seat: str, more: int) -> None:
 
 def _deferred_keep_reason(p: Path) -> str | None:
     """Why an existing `.nudge.deferred` must be KEPT instead of taken over,
-    or None when the file is a legal EMPTY shell. `_read_deferred` collapses
-    UNPARSEABLE and PARSEABLE-BUT-BODYLESS into one None, so a sidecar that
-    holds nothing was kept -- and called 'unreadable' -- for ever, pinning
-    that seat to count-only. `others` is the only field that carries an
-    undelivered dm; a bare sender/`more` shell strands nothing."""
+    or None when the file is a legal EMPTY shell. Only UNDECODABLE bytes are
+    kept (a 0-byte file included: `read_text()` is `""`, which is a shell, not
+    damage) or a payload that is not an object. A PARSEABLE dict never pins a
+    seat to count-only -- not even one whose `body` is falsy while `others`
+    holds queued dm bodies: `_read_deferred` returns None for it, so NO
+    undelivered notice is ever sent and the next typed nudge would
+    `_clear_deferred` UNLINK the file, losing those bodies. `_deferred_queued`
+    carries them forward on the takeover instead."""
     try:
         raw = p.read_text()
+        if not raw.strip():
+            return None
         d = json.loads(raw)
     except (OSError, UnicodeDecodeError, ValueError):
         return "unreadable"
     if not isinstance(d, dict):
         return "unreadable"
-    if isinstance(d.get("others"), list) and d["others"]:
-        return "bodyless but carrying queued dms"
     return None
+
+
+def _deferred_queued(p: Path) -> list:
+    """Queued `others` dm bodies in a sidecar `_read_deferred` cannot reach
+    (falsy `body`), so a takeover of that file does not destroy them."""
+    try:
+        d = json.loads(p.read_text())
+        others = d.get("others") if isinstance(d, dict) else None
+        if not isinstance(others, list):
+            return []
+        return [o for o in others if isinstance(o, dict)]
+    except (OSError, UnicodeDecodeError, ValueError):
+        return []
 
 
 def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
@@ -1832,11 +1848,14 @@ def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
     Best-effort, never raises."""
     existing = _read_deferred(root, seat)
     sidecar = _nudge_deferred_path(root, seat)
+    carried: list = []
     if existing is None and sidecar.is_file():
-        # A sidecar that reads as bodyless is only worth KEEPING if it still
-        # HOLDS something (undecodable bytes, or queued `others`): a fresh
-        # json.dumps would discard it and nobody could read it back. A legal
-        # EMPTY shell is no loss -- take it over and store the new body.
+        # A sidecar that reads as bodyless is only worth KEEPING if its BYTES
+        # are undecodable: a fresh json.dumps would discard them and nobody
+        # could read them back. Any legal shell -- empty, or a parseable dict
+        # `_read_deferred` will not return -- is no loss: take it over, store
+        # the new body, and carry any queued `others` forward so their
+        # unreadable bodies are not silently destroyed.
         reason = _deferred_keep_reason(sidecar)
         if reason:
             # COUNT this dm instead (the call sites read False as "not the
@@ -1844,6 +1863,7 @@ def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
             print(f"nudge: deferred sidecar for {seat} {reason}; kept it",
                   file=sys.stderr)
             return False
+        carried = _deferred_queued(sidecar)
     if existing is not None:
         others = existing.get("others")
         if not isinstance(others, list):
@@ -1858,8 +1878,10 @@ def _store_deferred(root: Path, seat: str, sender: str, body: str) -> bool:
     try:
         p = _nudge_deferred_path(root, seat)
         p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(json.dumps({"sender": sender, "body": body,
-                                 "ts": _now()}))
+        rec = {"sender": sender, "body": body, "ts": _now()}
+        if carried:
+            rec["others"] = carried
+        p.write_text(json.dumps(rec))
         return True
     except OSError:
         return False

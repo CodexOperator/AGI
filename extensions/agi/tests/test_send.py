@@ -8021,18 +8021,54 @@ def test_bodyless_deferred_shell_is_taken_over(project: Path, monkeypatch,
     assert "unreadable" not in capsys.readouterr().err
 
 
-def test_bodyless_sidecar_with_queued_dms_is_kept(project: Path, monkeypatch,
-                                                  capsys):
-    """The middle shape: no readable body, but `others` still holds dm bodies
-    -- those ARE stranded, so keep the bytes, count this dm, say why."""
+def test_bodyless_sidecar_with_queued_dms_is_taken_over(project: Path,
+                                                        monkeypatch,
+                                                        capsys):
+    """DH.657 MECHANISM: the bodyless-but-carrying-`others` shape does NOT pin
+    the seat to count-only. `_read_deferred` returns None for it, so no
+    undelivered notice is EVER sent, and the next typed nudge would unlink the
+    whole file -- the queued bodies were guaranteed lost. Honest behaviour: the
+    new body is STORED and the queued bodies ride along in `others`, where the
+    undelivered sweep can now reach them."""
     _plain_seats(project, [{"name": "director", "role": "director"}])
     _fake_tmux_pane(monkeypatch, ["director"], _FixturePane(busy=True))
     sidecar = send_mod._inbox_dir(project) / "director.nudge.deferred"
     sidecar.parent.mkdir(parents=True, exist_ok=True)
-    seed = json.dumps({"sender": "ki", "body": "",
-                       "others": [{"sender": "x", "body": "queued"}]})
-    sidecar.write_text(seed)
+    sidecar.write_text(json.dumps({"sender": "ki", "body": "",
+                                   "others": [{"sender": "x",
+                                               "body": "queued"}]}))
     send_mod.send_dm(project, "ki", "director", "busy dm body", "ki")
-    assert sidecar.read_text() == seed, "queued dm bytes must survive"
+    rec = send_mod._read_deferred(project, "director")
+    assert rec["body"] == "busy dm body", "the seat must not stay count-only"
+    assert [o["body"] for o in rec["others"]] == ["queued"], "queued dm lost"
+    assert "carrying queued dms" not in capsys.readouterr().err
+
+
+def test_zero_byte_deferred_shell_is_taken_over(project: Path, monkeypatch,
+                                                capsys):
+    """DH.657 RESIDUE 4: `p.read_text()` on a 0-byte file is `""` and
+    `json.loads("")` raises, so a shell that strands NOTHING was kept and
+    called 'unreadable'. A 0-byte file must answer like a legal empty shell."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux_pane(monkeypatch, ["director"], _FixturePane(busy=True))
+    sidecar = send_mod._inbox_dir(project) / "director.nudge.deferred"
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    sidecar.write_text("")
+    send_mod.send_dm(project, "ki", "director", "busy dm body", "ki")
+    assert send_mod._read_deferred(project, "director")["body"] == "busy dm body"
+    assert "unreadable" not in capsys.readouterr().err
+
+
+def test_undecodable_deferred_bytes_are_still_kept(project: Path, monkeypatch,
+                                                    capsys):
+    """The NEGATIVE probe: only UNDECODABLE bytes justify pinning the seat to
+    count-only. Real damage is still kept and still named on stderr."""
+    _plain_seats(project, [{"name": "director", "role": "director"}])
+    _fake_tmux_pane(monkeypatch, ["director"], _FixturePane(busy=True))
+    sidecar = send_mod._inbox_dir(project) / "director.nudge.deferred"
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    sidecar.write_bytes(b"\xff\xfe not json")
+    send_mod.send_dm(project, "ki", "director", "busy dm body", "ki")
+    assert send_mod._read_deferred(project, "director") is None
     assert send_mod._pending_more(project, "director") == 1
-    assert "carrying queued dms" in capsys.readouterr().err
+    assert "unreadable" in capsys.readouterr().err
