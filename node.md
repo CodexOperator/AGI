@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.95
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 3a99284532ec1593
 season: 1
 thought_session: season
@@ -36,7 +36,7 @@ Ran 10-test suite exercising every claim from `hypothesis:a00-12e9183c-90ceab`:
 ## Evidence
 
 ```
-cd /home/ubuntu/work/agi && python3 /tmp/exp_store_in_graph.py
+cd <home>/work/agi && python3 /tmp/exp_store_in_graph.py
 
 [PASS] Toggle defaults off
 [PASS] store_in_graph=True writes vectors to node frontmatter
