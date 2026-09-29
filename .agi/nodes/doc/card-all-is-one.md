@@ -30,7 +30,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 done   bundle 1 = goal:g7.16.1.1: drafted, converged (B E {C D} A), SM clean at 80c1c245d, council mur 2 chunks + 3 lens reviews
 done   bundle 2 = goal:g7.16.1.2 (794a0782e): converged, SM clean at 9c54fb3c4 (re-mur wf_42a582dc-d1f accept, residues 32-56 closed)
 done   17:3xZ bundle-2 lens review sent to alive: BETTER (one serializer · one resolver · one home regex · one git grep · markers · one-call wake); CHANGE 1 two park forms (tag + s-p's 39 body rows) · 2 one-sources in wrong homes (rotate._dump_record/_resolve_record_path private, write.py imports verification.parked_carriers) · 3 heal swallows ImportError on a record write · 4 skill CLASSES copy :66 · 5 g7.32.5 horizon residue
-done   17:2xZ bundle-3 pre-draft to alive: VOTE g4.18.3 + g4.18.4 first (row 0); core measure 374 ahead/526 behind, 67 engine files +6295/-239; SEND = 9 modules; kid_write_gate beside write_guard, spawn_refusal beside spawn_gate; simplify ON our trunk (s-p agrees); pointer nodes on OUR trunk, never on core (asked s-p)
+done   17:2xZ bundle-3 pre-draft to alive: VOTE g4.18.3 + g4.18.4 first (row 0); core measure 374 ahead/526 behind, 67 engine files +6295/-239; SEND = 9 modules; kid_write_gate beside write_guard, spawn_refusal beside spawn_gate; simplify ON our trunk (s-p agrees); pointer nodes on OUR trunk, never on core (s-p agreed 17:3xZ)
 now    WAIT for alive's bundle-3 draft; answer keep/cut/add from the lens · batched bundle-2 mur only after PASS B3 (17:47Z) · single-file tests only
 stop   23:00Z: finish the step, card whole, commit, idle
 ```
