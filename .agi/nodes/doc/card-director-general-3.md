@@ -32,9 +32,9 @@ done   W-G.1 41107692f (+mvp 0a58fe968, build:GOALS.md retired e6bbc6527) · W-G
 done   W1a 387359c62 (+mvp 5952b7131): node_writer.body_rows + write.py row <n>[:<i>-<j>]
 done   W1b 14cf86000 (+mvp 82c4ec6d4): a write.py verb in MAIN commits itself by exact path
 done   W2a 58332a732 (+mvp fe0230f3f): links.resolve_mint (no shape check: the Prime 22:1xZ) + links.py mint + write.py mint target
-done   residues 81-85 9eaf5992f · 86 claim corrected on mvp:dg3b4-wg2 · 87 88 90 93 95 c13eec672 · 89 f9261c83e
-FIRST  read the inbox: SM's re-mur of W2a + c13eec672 + f9261c83e (wf key in the dm) -> close in-loop
-NEXT   banked residues (§6 BANKED 86 91 92 94 96), then W1c goal:g4.18.5.3 (plan in §6), then W2b.1 (.6.2.1) · W2b.2 (.6.2.2) ·
+done   residues 81-85 9eaf5992f · 86 claim corrected on mvp:dg3b4-wg2 · 87 88 90 93 95 c13eec672 · 89 f9261c83e · 91 92 fd8d74ab3
+FIRST  read the inbox: SM's re-mur of W2a + c13eec672 + f9261c83e + fd8d74ab3 (wf key in the dm) -> close in-loop
+NEXT   banked residues (§6 BANKED 86 94 96), then W1c goal:g4.18.5.3 (plan in §6), then W2b.1 (.6.2.1) · W2b.2 (.6.2.2) ·
        W2c A (.6.3.1 PARENTS ONLY, loader.py:210-230) · W2c B/C (.6.3.2/.3) · W2e (.6.5) · W2d .4.1 UNHELD (re-mint experiment:osc-band-call-run-a00-66d002ad ONCE,
        old history under the old ref, old->new in its THOUGHT; hypothesis keeps c89ca4b1; write.py refuses a mint change -> ONE owner-cited path) ·
        W3a/b (.7.1-.2) · W3c-1 additive before the W3c-2 atomic cut (ceiling 125, one row; SM checks: never two read paths taught)
@@ -44,10 +44,10 @@ NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:
 ## §2 Landed
 - bundle 1-3: grid history of this card (bundle 3 CLOSED at 1f39ffb1c)
 - bundle 4: 41107692f 0a58fe968 e6bbc6527 82fce8a34 254f58ef7 08b921fd8 9eaf5992f 387359c62 5952b7131 14cf86000 82c4ec6d4
-  58332a732 fe0230f3f c13eec672 f9261c83e
+  58332a732 fe0230f3f c13eec672 f9261c83e fd8d74ab3
 
 ## 🔴 Where it stops
-Stopped at 23:00Z (owner) after W2a + residue fixes; SM re-murs W2a + c13eec672 + f9261c83e. The next session: FIRST row of §1, then NEXT.
+Stopped at 23:00Z (owner) after W2a + residue fixes; SM re-murs W2a + c13eec672 + f9261c83e + fd8d74ab3. The next session: FIRST row of §1, then NEXT.
 First command at wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
@@ -57,7 +57,7 @@ python3 extensions/agi/bin/send.py --from director-general-3 read director-gener
 | trap | rule |
 |---|---|
 | MAIN is shared by every post | commit by exact path, gated `[ ! -e .agi/sessions/verify-suite.lock ]`; never switch branches, stash or reset |
-| write.py verb in MAIN (since 14cf86000) | commits ITSELF by exact path; never a second git commit of that node. `create` does NOT: commit it by path |
+| write.py in MAIN (verbs since 14cf86000; create + adopt since fd8d74ab3) | commits ITSELF by exact path; never a second git commit of that node |
 | pytest takes verify-suite.lock | conftest holds it for EVERY session, even one file: never two pytest at once; another post's loop flips it between files -> wait for absence per file |
 | pkill -f / pgrep -f <pattern> | match their own shell line (exit 144): find a process by its ppid chain |
 | derive-commands --all | appends the retired command table to CLAUDE.md (tables lag command:commands): edit the derived row by hand |
@@ -72,7 +72,6 @@ python3 extensions/agi/bin/send.py --from director-general-3 read director-gener
 ## §6 BANKED
 - 86 (SM wf_8ce06028-a81): report_integrity + warn_premature_complete (goal:s26) have NO caller since cmd_render left; links.py does not check parents.
   Options: (a) re-wire both into verification level quick as a `goals-integrity` command (recommended) · (b) retire both and re-point the W2c-B xfail row.
-- 91: payload-only writes never commit -> gate on UPDATED or res.payload_changed.   92: create + adopt return before _commit_write -> call it on the new path.
 - 94 ([red] with belam from SM): 4 engine subprocess callers of the write.py CLI now auto-commit: rotate.py closeout g17.1 note (keep-and-say: a closeout
   commits anyway) · season.py:274 · sensei.py:2465 · failures.py:361 -> an explicit opt-out (AGI_WRITE_NO_COMMIT=1 in their subprocess env) until each is reviewed.
 - 96: row --dry-run shows an empty range + rc 0 on an out-of-range n -> resolve the range in the dry-run preview, refuse out of range.
