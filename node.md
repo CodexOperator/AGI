@@ -6,7 +6,7 @@ parents:
   - verdict:the-verb-layer-holds
 next_edges: []
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 1fa82bcb5901b9de
 season: 1
 thought_session: season
@@ -137,7 +137,7 @@ A passing test on CI means the pipeline works end to end, closing the verdict's 
 ### How to invoke
 
 ```bash
-cd /home/ubuntu/work/agi
+cd <home>/work/agi
 python3 -m pytest extensions/agi/tests/test_smoke_submit.py -v
 ```
 
