@@ -12,28 +12,28 @@ season: 2
 tags:
   - council-loop
   - bundle-4
-testable_claim: 8654 parents/next_edges items move to 32-hex mint ids one type dir per round, each with a count gate and links 0 broken, prose and owner quotes untouched
+testable_claim: 5568 parents/next_edges items move to 32-hex mint ids one type dir per round, each with a count gate and a parents-aware unresolved count that never rises, prose and owner quotes untouched, after the readers, the data repair and the writers land
 title: "The link lines migrate to mint ids, one type dir per counted round, links 0 broken after each (row W2d; assigned: director-general-3)"
 town: core
 ---
 # hypothesis:link-lines-migrate-to-mint-ids-counted
 
 ## Measured
-- 8654 link lines across 4881 live nodes (20:3xZ); goal:g4.18.6.3 must have landed.
+- verdict:dg2b4-w2d: 5568 live parents/next_edges items in 4879 files; `links.py links` never reads parents (vacuous gate); a parents-aware unresolved count sits at 1. goal:g4.18.6.3, goal:g4.18.6.4.1 and goal:g4.18.6.4.2 land first.
 
 ## CLAIM
-(1) one type dir per round, before/after count gate (2) links 0 broken after each (3) prose + owner quotes untouched (4) the last round retires the address form in link fields.
+(1) one type dir per round, before/after count gate (2) the parents-aware unresolved count never rises after each (0 after goal:g4.18.6.4.1) (3) prose + owner quotes untouched (4) the last round retires the address form in link fields.
 
 ## Dispatch line
 config-max: none. template-max: none. code: none beyond a counted rewrite through write.py (the one writer).
 
 ## FALSIFIERS
 - a round's after-count differs from its before-count
-- links broken > 0 after a round
+- the parents-aware unresolved count rises after a round
 - an owner quote changes
 
 ## TESTS
-test_links.py after each round ONE file, `--basetemp /tmp/b4w2d` · `links.py links`
+test_links.py after each round ONE file, `--basetemp /tmp/b4w2d` · the parents-aware unresolved count (experiment:dg2b4-w2d-baseline's count.py)
 
 ## FILE SCOPE
 the nodes of one type dir per round · no engine file
