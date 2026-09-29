@@ -573,27 +573,27 @@ def _record_transcript(rec: dict) -> Path | None:
     for key in ("session_log",):
         v = rec.get(key)
         if v:
-            return Path(str(v)).expanduser()
+            return Path(rotate._resolve_record_path(v))
     ho = rec.get("handover")
     if isinstance(ho, dict):
         v = ho.get("session_log")
         if v:
-            return Path(str(v)).expanduser()
+            return Path(rotate._resolve_record_path(v))
         j = ho.get("join") or {}
         if isinstance(j, dict):
             v = j.get("transcript")
             if v:
-                return Path(str(v)).expanduser()
+                return Path(rotate._resolve_record_path(v))
     # the first-seating shape: the top-level path is the FALLBACK, read only
     # when no `handover.join.transcript` was present above.
     v = rec.get("transcript_path")
     if v:
-        return Path(str(v)).expanduser()
+        return Path(rotate._resolve_record_path(v))
     obs = rec.get("observations")
     if isinstance(obs, dict):
         v = obs.get("c_readback_log_path")
         if v and str(v).lower().endswith(".jsonl"):
-            return Path(str(v)).expanduser()
+            return Path(rotate._resolve_record_path(v))
     return None
 
 
@@ -1727,7 +1727,7 @@ def write_audit_into_record(rec_path, side: str, payload: dict) -> None:
         audit = {}
     audit[side] = payload
     rec["audit"] = audit
-    p.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    p.write_text(rotate._dump_record(rec), encoding="utf-8")  # the ONE serializer
 
 
 def _unstage_audit_record(top, rel: str) -> None:
