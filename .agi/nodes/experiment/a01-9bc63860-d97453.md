@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-second-director-ran-this-graph-uninvited
 next_edges: []
 confidence: 0.6
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: a74696def592acd1
 season: 1
 thought_session: season
@@ -60,7 +60,7 @@ raised the workspace budget at ~01:20.
 
 ### 3. A second checkout at `~/.hermes/agi/`
 
-`~/.hermes/agi` is a symlink to `/home/ubuntu/work/agi`, the same repo.
+`~/.hermes/agi` is a symlink to `<home>/work/agi`, the same repo.
 `~/.hermes/` also contains `SOUL.md`, `session_logs/`, `skills/`, `cron/`,
 `state.db` — an autonomous framework (CodexOperator/Hermes) environment.
 A `claude` session started from this checkout inherits the global `agi` skill

@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-dec78137-07daab
 next_edges: []
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 2e24a1ca763650ca
 season: 1
 thought_session: season
@@ -74,7 +74,7 @@ The hypothesis also defines a control: 6 distinct targets should produce D = 6 d
 ### Raw classification output
 
 ```
-$ python3 /home/ubuntu/work/agi/classify_kids.py
+$ python3 <home>/work/agi/classify_kids.py
 ==============================================================================
 HYPOTHESIS CLASSIFICATION — 8 concurrent kids @ goal:g4.8 --level small
 ==============================================================================
@@ -145,7 +145,7 @@ RESULT: STRONGLY SUPPORTED — D=3 near expected D≈2, ratio D/P=0.38
 
 ### Classifier script
 
-Source at: `/home/ubuntu/work/agi/classify_kids.py` (committed with this node).
+Source at: `<home>/work/agi/classify_kids.py` (committed with this node).
 
 ### Individual node evidence
 

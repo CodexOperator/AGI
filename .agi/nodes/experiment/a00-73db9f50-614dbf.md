@@ -6,7 +6,7 @@ parents:
   - hypothesis:gpu-local-town-openai-endpoint
 next_edges: []
 confidence: 0.92
-edited_by: a00-cd68ae51
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-73db9f50-614dbf
 loop: hypothesis:gpu-local-town-openai-endpoint@s2
@@ -33,7 +33,7 @@ changed, so no repo test suite applies.
 
 A reviewer found IPv4-shaped (dotted-quad) tokens in three LOCAL, GITIGNORED
 session files — invisible to `git diff` because git never tracks them, and
-present only in the MAIN checkout (`/home/ubuntu/work/agi`), not under this
+present only in the MAIN checkout (`<home>/work/agi`), not under this
 worktree's `.agi/sessions/`.
 
 The bridge transcript was confirmed, not assumed: of the two candidates under
@@ -60,9 +60,9 @@ the other candidate is clean (0 tokens). Redacted all three in place with python
 `re.sub(IPV4, "<redacted-ip>", text)`, read-file/write-file:
 
 ```
-/home/ubuntu/work/agi/.agi/sessions/iter-TM.03/a00-ab5b20f7/output.log: 2 -> 0 remaining
-/home/ubuntu/work/agi/.agi/sessions/remote-control.log: 5 -> 0 remaining
-/home/ubuntu/work/agi/.agi/sessions/bridge-transcript-cse_01DVhNAyopQZLSV5AQi2y1t7.jsonl: 10 -> 0 remaining
+<home>/work/agi/.agi/sessions/iter-TM.03/a00-ab5b20f7/output.log: 2 -> 0 remaining
+<home>/work/agi/.agi/sessions/remote-control.log: 5 -> 0 remaining
+<home>/work/agi/.agi/sessions/bridge-transcript-cse_01DVhNAyopQZLSV5AQi2y1t7.jsonl: 10 -> 0 remaining
 ```
 
 Verification by COUNTING remaining matches after the rewrite (fresh process):

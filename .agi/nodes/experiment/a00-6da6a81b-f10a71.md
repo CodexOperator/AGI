@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-window-names-the-suite-lock-holder-pid-tree-age-command-and-runner-row-in-one-line
 next_edges: []
 confidence: 0.9
-edited_by: a00-09301626
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-6da6a81b-f10a71
 line_ceiling: 35
@@ -83,7 +83,7 @@ is asserted byte-for-byte.
 Live read on this tree (a real holder in this seat's worktree, no fixture):
 
 ```
-POST-FIX held line: lock: held by 1177450 since 19:04:54Z (age 0s, tree a00-09301626, cmd /bin/bash -c cd /home/ubuntu/work/agi/.agi/worktrees/a00-093)
+POST-FIX held line: lock: held by 1177450 since 19:04:54Z (age 0s, tree a00-09301626, cmd /bin/bash -c cd <home>/work/agi/.agi/worktrees/a00-093)
 POST-FIX free line: lock: free
 ```
 

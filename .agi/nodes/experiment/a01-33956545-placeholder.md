@@ -6,7 +6,7 @@ parents:
   - hypothesis:a01-33956545-9fc0bb
 next_edges: []
 confidence: 0.73
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a01-33956545-placeholder
 link_ref: extensions/agi/tests/test_commands.py
@@ -54,7 +54,7 @@ Steps:
   included).
 - CLAUDE.md, QUICKSTART.md, and SKILL.md COMMANDS blocks now read
   `` `bash '<engine>/extensions/agi/driver.sh' ...` `` rather than literal
-  `/home/ubuntu/...`.
+  `<home>/...`.
 - `extensions/agi/tests/test_commands.py::test_render_table_preserves_placeholders`
   asserts `<engine>` / `<root>` visibility and absence of absolute paths.
 

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-worktree-looks-like-a-project-to-the-crontab
 next_edges: []
 confidence: 0.9
-edited_by: a00-ca0a2c66
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-508fe29d-32e38e
 loop: hypothesis:l4-a-worktree-looks-like-a-project-to-the-crontab@s2
@@ -23,18 +23,18 @@ verdict: proved
 
 ## Experiment
 
-Ran the real tool from `a00-ca0a2c66`, a linked git worktree of `/home/ubuntu/work/agi`, to reproduce both of the hypothesis's defects with live `crons.py`/`locations.py`/`grid.py` machinery. No code was edited, no cron installed, crontab pointed at temp files only.
+Ran the real tool from `a00-ca0a2c66`, a linked git worktree of `<home>/work/agi`, to reproduce both of the hypothesis's defects with live `crons.py`/`locations.py`/`grid.py` machinery. No code was edited, no cron installed, crontab pointed at temp files only.
 
-**Claim 1 — a worktree resolves as its own project.** `locations.repo_root(seat)` returns the seat worktree itself (`/home/ubuntu/work/agi/.agi/worktrees/a00-ca0a2c66`), NOT the common root. It has its own checked-out `.agi/config.json`, which is exactly what makes a directory a project to nearest-enclosing resolution. Meanwhile `locations.git_common_root(seat)` returns `/home/ubuntu/work/agi` — the same root the common checkout resolves to. So the two resolution helpers disagree on what this tree is; `crons.py _resolve` (crons.py:413) uses `repo_root`, the wrong one. Measured:
+**Claim 1 — a worktree resolves as its own project.** `locations.repo_root(seat)` returns the seat worktree itself (`<home>/work/agi/.agi/worktrees/a00-ca0a2c66`), NOT the common root. It has its own checked-out `.agi/config.json`, which is exactly what makes a directory a project to nearest-enclosing resolution. Meanwhile `locations.git_common_root(seat)` returns `<home>/work/agi` — the same root the common checkout resolves to. So the two resolution helpers disagree on what this tree is; `crons.py _resolve` (crons.py:413) uses `repo_root`, the wrong one. Measured:
 ```
-git rev-parse --git-common-dir -> /home/ubuntu/work/agi/.git        (linked worktree: .git file says gitdir: .../a00-ca0a2c66)
-repo_root(seat)  = /home/ubuntu/work/agi/.agi/worktrees/a00-ca0a2c66
-git_common_root  = /home/ubuntu/work/agi
+git rev-parse --git-common-dir -> <home>/work/agi/.git        (linked worktree: .git file says gitdir: .../a00-ca0a2c66)
+repo_root(seat)  = <home>/work/agi/.agi/worktrees/a00-ca0a2c66
+git_common_root  = <home>/work/agi
 ```
 
 **Claim 1b — `crons.py show` from a seat renders a self-defeating block, and `apply` would install it as a SECOND block.** `show --crontab-file /tmp/a00_cron_seat.txt` prints `project: <the seat worktree>` and renders a managed block keyed on the seat's own hash `6daae4ce`:
 ```
-*/5 * * * * cd <seat>/.agi && python3 <seat>/extensions/agi/bin/grid.py commit --all --prefix 'cron: ' >> /home/ubuntu/logs/agi-crons-a00-ca0a2c66-6daae4ce.log 2>&1 && git -C <seat> push -q origin 'refs/grid/*:refs/grid/*' >> ... 2>&1 && python3 <seat>/extensions/agi/bin/crons.py apply >> ... 2>&1
+*/5 * * * * cd <seat>/.agi && python3 <seat>/extensions/agi/bin/grid.py commit --all --prefix 'cron: ' >> <home>/logs/agi-crons-a00-ca0a2c66-6daae4ce.log 2>&1 && git -C <seat> push -q origin 'refs/grid/*:refs/grid/*' >> ... 2>&1 && python3 <seat>/extensions/agi/bin/crons.py apply >> ... 2>&1
 7 * * * * cd <seat>/.agi && git -C <seat> push -q origin loop/hypothesis-l4-a-worktree-looks-l-a00-ca0a2c66@s2 >> ... 2>&1
 ```
 The common checkout renders an entirely different block (hash `2f118e6f`, branch `season/s2`). `block_markers` keys on `sha256(repo_root)[:12]`, so `apply` from the seat appends a second managed block beside the main one rather than reconciling. One crontab, one user, two claimed owners.
@@ -49,13 +49,13 @@ Raw real-tree outputs (pasted, not simulated):
 
 `locations` split-brain — seat worktree:
 ```
-repo_root  = /home/ubuntu/work/agi/.agi/worktrees/a00-ca0a2c66   (what _resolve uses)
-git_common = /home/ubuntu/work/agi                               (what Item (a) should use)
+repo_root  = <home>/work/agi/.agi/worktrees/a00-ca0a2c66   (what _resolve uses)
+git_common = <home>/work/agi                               (what Item (a) should use)
 ```
 
 `crons.py show` from seat (temp crontab):
 ```
-project: /home/ubuntu/work/agi/.agi/worktrees/a00-ca0a2c66
+project: <home>/work/agi/.agi/worktrees/a00-ca0a2c66
 crons_live: True
 installed: (none)
 desired:
@@ -66,7 +66,7 @@ status: DRIFT
 
 `crons.py show` from common root (temp crontab):
 ```
-project: /home/ubuntu/work/agi
+project: <home>/work/agi
 crons_live: True
 installed: (none)
 desired:
@@ -85,6 +85,6 @@ Grid guard (grid.py L856-866): refuses `commit --all` unless branch is `master` 
 Constraint observances: `locations.py`/`grid.py` NOT edited (parallel L4.101 owns `locations.py`; hypothesis forbids both anyway). No cron installed — every `show`/`apply` used a temp `--crontab-file`. No node or engine file changed.
 
 ## Agent Notes
-Real-tree reproduction from seat worktree a00-ca0a2c66: locations.repo_root(seat)==seat while git_common_root==/home/ubuntu/work/agi (split-brain); crons.py show renders a seat-keyed (6daae4ce) managed block vs main checkout (2f118e6f); seat branch not master/season/* so grid.py commit exits 2; &&-chain then silently kills push + self-reapply. Both hypothesis defects proven.
+Real-tree reproduction from seat worktree a00-ca0a2c66: locations.repo_root(seat)==seat while git_common_root==<home>/work/agi (split-brain); crons.py show renders a seat-keyed (6daae4ce) managed block vs main checkout (2f118e6f); seat branch not master/season/* so grid.py commit exits 2; &&-chain then silently kills push + self-reapply. Both hypothesis defects proven.
 
 Parent review (a00-ca0a2c66) ACCEPTED as proved. Verified: real-tree outputs reproduced both defects (repo_root vs git_common_root split-brain measured; seat branch refused by grid.py, ampersand-chain kills self-reapply). Parents resolve; evidence_runs self-cites, legitimate for an experiment that IS the run. Constraint observances checked - no files touched, temp crontab only. Caveat: reproduction only, no fix; the fix lives in sibling experiment:a00-f00c554c-eb8135.

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-rotate-out-audit-counts-a-tag-send-as-output-and-a-notified-output-file-read-as-its-harvest
 next_edges: []
 confidence: 0.9
-edited_by: a00-f9ff0d74
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-72a3cc60-29596d
 line_ceiling: 15
@@ -35,7 +35,7 @@ Built the claim, not measured it (hypothesis:l4-a-g15-claim-is-a-build-order-not
 
 **Pre-fix state, reproduced on the live record.** `sensei.rotate_out_audit`
 over the master-sensei gen-8 record `20260916T144838Z` (transcript
-`/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/59ca602d-…jsonl`) counted
+`<home>/.claude/projects/-home-ubuntu-work-agi/59ca602d-…jsonl`) counted
 **out calls 3, excess 2 over floor 1** — exactly the number the audited record
 carries (`audit.out.calls 3, b 2, d 1`). The three calls are the measured
 shape: (1) `cat /tmp/claude-1001/…/tasks/bpohvkj78.output | cut -c1-200 && …

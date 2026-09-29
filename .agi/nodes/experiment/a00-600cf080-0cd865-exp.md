@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-600cf080-0cd865
 next_edges: []
-edited_by: a00-28bbc0b9
+edited_by: director-general-3
 loop: goal:g7.33.14@s2
 model: stealth/space-bunny-alpha
 profile: balanced
@@ -76,7 +76,7 @@ $ grep -n "ROOT" extensions/agi/tests/test_provisioning.py
 $ awk 'NR>=300 && NR<=400 && (/^def /||/^@live/||/ROOT/)' .../test_provisioning.py
 @live def test_credit_balance_live():                 bal = credit_balance(ROOT)
 @live def test_live_can_fund_passes_...:              can_fund(ROOT)
-ROOT = "/home/ubuntu/work/agi"
+ROOT = "<home>/work/agi"
 @live def test_a_minted_key_is_capped...:             root=ROOT / revoke(...,ROOT) / list_keys(...,ROOT)
 @live def test_expires_in_seconds...:                 _read_provisioning_key(ROOT) / revoke(...,ROOT)
 @live def test_mint_refuses_to_hand_out_a_key_no_ttl: mint(..., root=ROOT) / list_keys(...,ROOT)

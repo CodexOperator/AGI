@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-send-py-read-refuses-a-target-that-is-not-the-resolved-sender-and-peek-stays-open
 next_edges: []
 confidence: 0.8
-edited_by: sensei-director
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-71afa7e6-dfd131
 loop: hypothesis:l4-send-py-read-refuses-a-target-that-is-not-the-resolved-sender-and-peek-stays-open@s2
@@ -34,7 +34,7 @@ WHAT I DID:
 - Robustness per the brief: if `find_project_root(Path(__file__))` is None (copied into a non-project) it no-ops; if the inbox dir does not exist (fresh machine, tmp project) it records a sentinel and asserts the dir is still absent — never a false failure.
 - Placement justified: conftest.py's guards (tmux, provisioning, suite lock) are project-wide seams; an "inbox untouched by THIS module's tests" assertion is a property of how the comms dispatch tests isolate I/O, so it lives beside them, scoped to this file's session.
 
-**2. Proved the detector fires.** Added a TEMPORARY `test_ZZZ_temporary_leak_proof` that wrote `leak_probe_tmp.md` into the real shared inbox; the session teardown assertion tripped, naming `leak_probe_tmp.md` and the real path `/home/ubuntu/work/agi/.agi/sessions/inbox`. Then REMOVED the deliberate break and cleaned the probe file. Detector verified live, then reverted.
+**2. Proved the detector fires.** Added a TEMPORARY `test_ZZZ_temporary_leak_proof` that wrote `leak_probe_tmp.md` into the real shared inbox; the session teardown assertion tripped, naming `leak_probe_tmp.md` and the real path `<home>/work/agi/.agi/sessions/inbox`. Then REMOVED the deliberate break and cleaned the probe file. Detector verified live, then reverted.
 
 **3. Fixed a latent flake in kid 1's OWN `clear_identity` (strengthens, never weakens, the 6 tests).** `_detect_sender` reads AGI_AGENT_ID, then geometry_config.resolved_seat_env (AGI_POST first, then AGI_SEAT), before --from. Kid 1's fixture deleted AGI_AGENT_ID + AGI_SEAT but NOT AGI_POST, which the session-start hook exports (here AGI_POST=sensei-director). On any host carrying AGI_POST, `test_read_unknown_sender_refused_with_from_hint` and `test_read_refuses_unknown_even_for_unknown_target` resolved the sender to 'sensei-director' instead of 'unknown' and FAILED.assert. Added `monkeypatch.delenv("AGI_POST", raising=False)` to `clear_identity`. Both now pass; all six of kid 1's tests green.
 
@@ -63,7 +63,7 @@ mail_alert.py `_inbox_unread(root, me)` reads only its OWN seat's inbox via `sen
 **Leak detector proof (before removal):**
 ```
 > python3 -m pytest test_send.py -k test_ZZZ_temporary_leak_proof -p no:cacheprovider
-E  AssertionError: leak detected: a test wrote into the LIVE shared inbox /home/ubuntu/work/agi/.agi/sessions/inbox:
+E  AssertionError: leak detected: a test wrote into the LIVE shared inbox <home>/work/agi/.agi/sessions/inbox:
 E      leak_probe_tmp.md
 E    -- dispatch tests must chdir into a tmp project; nothing may write the real checkout's inbox
 E  assert not {'leak_probe_tmp.md'}

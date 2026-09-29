@@ -5,14 +5,14 @@ type: experiment
 parents:
   - hyp:zoom-encoded-node-ids
 confidence: 0.92
-edited_by: season.py
+edited_by: director-general-3
 season: 1
 tags:
   - g2.5
 thought_session: season
 title: "Fan-out budget: does any node in the corpus exceed 36/62 children?"
 ---
-**Method.** Walked `/home/ubuntu/work/agi-tree/nodes/**/*.md` (a plain
+**Method.** Walked `<home>/work/agi-tree/nodes/**/*.md` (a plain
 `glob`, explicitly unioned with a dotfile glob because Python's `**/*.md`
 silently skips names starting with `.` — this corpus has exactly one such
 file, `nodes/level3/.gitignore.md`, which would otherwise have
