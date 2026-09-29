@@ -103,23 +103,6 @@ FILE SCOPE extensions/agi/bin/write.py · extensions/agi/tests/test_write_actor_
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over d8352b06e · <= 40 test lines net over d8352b06e · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat d8352b06e <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
-
-## CORRECTIVE DH.EG.168 -- closes mur-eg-x1185969-917ec9 EG.149-k1 accept_with_residue
-BASE      CUT FROM season2/loops/hypothesis-a-post-may-append-a-n-a00-1d3ce82c tip f61e31fa0 (branch de-base-EG.168; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
-For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
-1. 1. Item-1's only guard is unpinned: removing `and r.get("town")` at write.py:1219 leaves the file 19/19 green, so test_a_scopeless_row_keeps_the_grant_unscoped (test_write_actor_rows_verb.py:171-174) cannot see the predicate it claims to pin
-2. 2. Duplicate '## Agent Notes' still standing at a00-330b0fed-dc3c30.md:176 and :180
-3. 6. WIRE/FLEET probe cites an uncommitted scratch script (a00-2b714fe3-d479dc.md:19, :89, :101)
-4. Live-data coupling the first reviewer mis-described (item 3): the new tests inherit test_write_actor_rows.py:42-43,104-107, which read the LIVE .agi/context/schemas/[config].md from the repo root, so two of the four new tests' verdicts depend on the exact `overrides: {` spelling at [config].md:9. The failure mode is loud (the resolved-board test goes red), so it is coupling hygiene, not a silent vacuity -- and the module docstring at test_write_actor_rows_verb.py:5-9 does disclose the read.
-DEMOTED   by the director at triage, not orders: items 4 (ceiling breach: a findings row) · 5 (proves the fix load-bearing: positive, no residue) · 6 (inert until a [town].md verb grant line: the grant is its own goal:g7.33 leaf, EG.59) · 8 (ladder towns vocabulary drift: a findings row)
-OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
-ANON      no user name, home or repo path value, host or IP; patterns write <user>
-SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
-TESTS     test_write_actor_rows_verb.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
-FILE SCOPE extensions/agi/bin/write.py · extensions/agi/tests/test_write_actor_rows_verb.py · .agi/nodes/experiment/a00-2b714fe3-d479dc.md · .agi/nodes/experiment/a00-330b0fed-dc3c30.md (write.py) · the kid's own node
-CEILING   HARD CAP: 1 kid · <= 15 production lines net over f61e31fa0 · <= 40 test lines net over f61e31fa0 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat f61e31fa0 <your final tip>` on your node (an empty range is not a measurement)
-PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
-
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.168: mur-eg-x1185969-917ec9 EG.149-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.149: mur-eg-56 EG.127-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
