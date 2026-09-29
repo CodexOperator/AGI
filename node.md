@@ -12,7 +12,7 @@ tags:
   - card
   - prime
   - belam
-thought_session: belam-S2-L5-XVI
+thought_session: belam-S2-L5-XVII
 title: "doc:card-belam -- the Prime's card: the one scratch (state · plan · landed · where it stops · traps · verification · BANKED)"
 town: core
 ---
@@ -27,11 +27,11 @@ gen 16 rotates at f 0.36 BEFORE PASS B3, not at the 0.47 line: a PASS is multi-r
 ## §0 State (17:4xZ 09-29, after the 17:27Z oomd kill + the owner's --resume)
 | | |
 |---|---|
-| post | belam-S2-L5-XVI gen 16 RESUMED (row re-seated 21e7bce28: pid 2449918, @0, agi-8f [326913]); the 17:23Z rotation to gen 17 died in the kill; all posts re-seated by ack at new windows @1-@8 |
+| post | belam-S2-L5-XVII gen 17 (rotated in 17:56Z, answered continue; quorum card re-linked 45cf51809) |
 | formation | council loop LIVE until 23:00Z (owner 16:5xZ: "Keep working till 7pm next and I'll check my CC sub then") · bundle 3 = goal:g7.16.1.3 (grok core simplify; H1 g4.18.3 · H2 g4.18.4 first) with DG1 · alive @4 · all-is-one @5 · self-perpetuating @6 · DG1 @7 · DG2 @8 · DG3 @12 (agi-aa) · SM @13 (agi-1c) · stream-master @14 (NEW, side post) · TM/DT/DE DOWN |
 | merge | PASS B2 2fb5c2043 · posts [red] fixed dcd06014e + sync #3 07f02d4a2 · PASS B3 due 17:47Z (BASE 922ff3f48d; 220 commits / 30 experiments / 0 D at 16:4xZ) |
 | STREAM | OFF (owner 17:3xZ: "put stream-master on new box first then start the stream"): panic --retract + unit stopped + Xvfb :2 / kiosk / graphweb stopped (freed ~4.7 GB); stream-master (@5 agi-5c) told to hold; encryption-town readiness = investigator report pending |
-| crons | CHECK c844508f "13 */4 * * *" · STOP 0d90087a "0 23 29 9 *" · PASS B3 b533770a "33 23 29 9 *" (MOVED from 17:47Z; the old 17:47Z cron survived the --resume and fired: NOT run). Old duplicates 89c68201 + a743e484 deleted. Session-only: a successor re-arms |
+| crons | RE-ARMED 17:59Z by gen 17: CHECK b6b9d561 "13 */4 * * *" · STOP 567a7760 "0 23 29 9 *" · PASS B3 c0be8341 "33 23 29 9 *". Session-only: a successor re-arms |
 
 ## §1 Plan
 ```
@@ -49,7 +49,7 @@ HELD   g1.30 / g4.18.3 / g4.18.4 dms to DE (DE down; the council took g4.18.3 + 
 ## §2 Landed (gen 16): 2fb5c2043 · acff4a1ab · 1532a604b · feed41d3e · dcd06014e · 07f02d4a2 · fc4320819 · fee990795 · 899ea077f · b3f12726e · 7705a3a73 · 883e27369 · 237fdfc3f
 
 ## 🔴 Where it stops
-18:2xZ 09-29 belam-S2-L5-XVI: rotating after the oomd restore; successor: RE-ARM the crons first, then the stream-master move (owner items), PASS B3 at 23:33Z
+18:0xZ 09-29 belam-S2-L5-XVII: crons re-armed; waiting on the owner items for the stream-master move; council STOP 23:00Z, PASS B3 23:33Z; verify smoke BLIND on goal:g4.18.7 heading_level ([red] to alive 18:0xZ)
 ```
 B0. RE-ARM (session crons die with a session): CHECK "13 */4 * * *" · council STOP "0 23 29 9 *" · PASS B3 "33 23 29 9 *" (memory gate first).
 B3. 23:33Z: section 2 of .agi/sessions/prime-merge.crons.md (skill agi-merge-pass §2-§4): copy /data/home-belam/passB2 -> passB3, retag pb3 (grep every pb2 after copying).
