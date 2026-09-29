@@ -31,27 +31,24 @@ gen 15: the owner-GO move off / (M) ran steps 1-6 except ~/.pi (a pi parent was 
 | box | local-town: MAIN `/data/work/agi` on `local-maxxing/season2/main` · prime-root **`/mnt/agi-flash/worktrees/prime-root`** (symlink at `.agi/worktrees/prime-root`) · stream DOWN (HELD) |
 | DISK | `/` 11.3 GB free 22:3xZ (was 6.2) · `/data` 54 GB free (card XIV said 110 at 20:4xZ -- unexplained, not falling now) · flash 114 GB · sda ~3 MiB/s writes to / |
 | moved | ~/logs -> /data/home-belam/logs · ~/.cache/{uv,pip} -> /data/home-belam/cache · TMPDIR=/data/tmp (new spawns) · 41 closed ~/.claude/projects dirs -> /data/home-belam/claude-projects |
-| merge | **PASS B2 IN FLIGHT** (stamped 01:43:09Z 09-29): BASE ed34f49532 · TIP pinned 0628fb4afc (trunk sync of origin 156797702e, clean) · 12 rounds (5 hyp SAMPLED + 7 engine-delta) in /tmp/belam-passB2 · RED checks clean (0 D, 0 secret hits / 23,079 added lines, 0 broken) · MUST p2: test_boxkit_probe 28 passed |
+| merge | PASS B1 CLOSED 17:1xZ: season2/main 1bb6aa5a9 · next BASE = ed34f49532 · residues goal:g1.29 |
 | crons | CHECK da6f2ed6 "13 */4 * * *" · PASS B2 one-shot fca674bb 01:43Z 09-29 (both session-only: RE-ARM at wake) |
 | spend | credits 0.606 USD -> PASS B2 is SAMPLED (build.py SAMPLE + MUST env) on --harness pi-free |
 
 ## §1 Plan
 ```
 done   M. move off / steps 1,2,4,5,6 + 3 for uv/pip (22:1x-22:3xZ) · notice to DE + TM (both read) · board note
-now    PASS B2 (🔴 P) -- on the free lane's re-retry; owner [owner] 22:26Z: workflows retire over time (goal:g5.33) -- agi-merge-up-review is belam's call: kept until a dispatched replacement runs green
+next   PASS B2 01:43Z 09-29 (crons.md section 2)
 owed   M3b ~/.pi -> /data/home-belam/pi when NO pi runs (check /proc comm) · M4b live seats' ~/.claude/projects dirs after they rotate
 owed   FACTS WINDOW on TM's ping (🔴 F) · TM (a) counting rule -> skills/agi-merge-pass 4 · town note grant lines (🔴 G)
 HELD   OWNER 21:1xZ 09-27: stream · encryption-town config · sanctuary-master activation -- until messaging is done
 ```
 
-## §2 Landed (gen 15): 6e31f798a card re-link · 8f891b8cd path move + board note · 0628fb4af PASS B2 trunk sync · 599cf3b07 config:rotations stale agi-corrective clause (DE flag)
+## §2 Landed (gen 15): 6e31f798a card re-link · (this commit) board note + card
 
 ## 🔴 Where it stops
-01:5xZ 09-29 belam-S2-L5-XV: PASS B2 waits on the free lane -- all 6 chunks died 01:47-01:52Z on 'Provider returned an empty response' (0/12 reviewed)
+22:3xZ 09-28 belam-S2-L5-XV: path move done except ~/.pi; PASS B2 at 01:43Z is next
 ```
-P. PASS B2: reretry.sh (setsid, started 01:52:51Z) runs the MISSING rounds ONE AT A TIME every 20 min, 6 attempts, stops an attempt on the first empty death.
-   Watch: `tail /tmp/belam-passB2/events.log` · `python3 /tmp/belam-passB2/verdicts.py | grep ATTN`. Rounds all in -> step 4 verdicts -> step 5 in prime-root (on flash).
-   RERETRY GAVE UP -> the PASS closes UNREVIEWED-HELD: no merge; pass fields stay; next CHECK re-runs from step 2 with the same BASE.
 M3b. ~/.pi (935 MB, pi agent state): ONLY while no process with comm `pi` runs. cp -a to /data/home-belam/pi, mv ~/.pi ~/.pi.old-on-root,
      ln -s, a `pi --version` smoke, then rm the old. PI_BIN stays ~/.npm-global/bin/pi (not moved).
 M4b. live seats' project dirs (-data-work-agi, post-director-engine, post-director-thought, -data-work): after each seat rotates; `ln -s --` (names start with '-').
