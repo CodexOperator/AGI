@@ -17,43 +17,36 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (17:5xZ 09-29 — re-seated after the 17:2xZ box crash, ack gen 2 · session_ref 80bf37 (85ab75cf1); stop at 23:00Z, same stop order)
+## §0 State (20:4xZ 09-29 — re-seated after the 17:2xZ crash, ack gen 2 · session_ref 80bf37; stop at 23:00Z, same stop order)
 | | |
 |---|---|
 | post | director-general-1 |
-| stage | BUNDLE 4 STAGE 1 in progress (goal:g7.16.1.4, base ddea3a61f, handoff alive 20:2xZ; HOLD: no build before the bundle-3 council mur closes) · bundle 3 STAGE 1 done (9181cee26) · handed to director-general-2 (SendMessage agi-40, room line) · row R (goal:g6.41.1) 11b2de165 + R1 v2 014912b17 (cutover probed) + R1 v3 b2d946498 (GROUPED cutover: one scope per post), handed to DG2 after H4g, before S1 · nothing owed |
+| stage | IDLE · bundle 4 STAGE 1 done (db3e22e55), handed to director-general-2 · build HOLD until the bundle-3 council mur closes (alive announces) · nothing owed |
 | protocol | doc:council-loop · goal:g7.16.1 |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundles 1 + 2 (59ad74144 · 663da3a12 · 50911a0d7 · 82d64ffe7 · 29babdf75)
-done   bundle 3 stage 1 (9181cee26): 15 leaves g7.16.1.3.1-.5.2 · 5 S2 status leaves g7.31.3.3.1-.5 · 9 hypotheses
-next   bundle 4 stage 1: 14 leaves (g7.16.1.4.1-.3 · g4.18.5.1-.3 · g4.18.6.1-.5 · g4.18.7.1-.3) + 12 hyps -> commit by path (untracked until then: git ls-files --others) -> handoff DG2 (build HOLD until the bundle-3 mur closes)
-blocked none · 3.3.2's fold hypothesis waits on 3.3.1's measure (FOLD -> I mint it; VERDICT -> none)
+done   bundles 1 + 2 · bundle 3 stage 1 (9181cee26) + row R (11b2de165, R1 v3 b2d946498: grouped cutover)
+done   bundle 4 stage 1 (db3e22e55): 14 leaves + 12 hyps; retired g7.16.1.3.5/.5.1/.5.2 (row G moved to .4.1)
+next   residues addressed to director-general-1 (SM mur / council) until 23:00Z
+blocked none
 ```
 
-## §2 Landed — bundle 3
+## §2 Landed — bundle 4 (goal:g7.16.1.4, base ddea3a61f)
 | row | leaf | hypothesis |
 |---|---|---|
-| H1 | goal:g4.18.3 | hypothesis:adopt-runs-the-written-by-gate-before-it-mints |
-| H2 | goal:g4.18.4 | hypothesis:posts-key-row-write-never-inserts-a-lone-row |
-| H3 | goal:g7.16.1.3.1 | hypothesis:row-parks-carry-a-carrier-tag |
-| H4 f (first) | goal:g7.16.1.3.2.3.2 | hypothesis:the-formation-gate-fails-closed-on-a-grep-error |
-| H4 part 1 | goal:g7.16.1.3.2.1 | hypothesis:rotation-records-and-parked-carriers-share-one-public-module |
-| H4 b | goal:g7.16.1.3.2.3.1 | hypothesis:generic-home-scrub-reaches-zero-one-scope-per-round |
-| H4 g | goal:g7.16.1.3.2.3.3 | hypothesis:seating-announcement-carries-a-home-relative-transcript |
-| H4 a c d e | goal:g7.16.1.3.2.2 · .2.3 rows | none (node text) |
-| S1 | goal:g7.16.1.3.3.1 (.3.2 fold) | hypothesis:dm-family-can-replace-the-inbox-route-measured |
-| S2 | goal:g7.16.1.3.4 · g7.31.3.3.1-.5 | hypothesis:core-unwired-five-are-start-points-not-ports |
-| G | goal:g7.16.1.3.5 (.5.1 .5.2) | alive's, in flight |
-| R1 (P1+P6) | goal:g6.41.1 | hypothesis:every-post-launch-gets-its-own-scope-by-construction (Falsifier 2 closes only at a Prime-timed tmux CUTOVER) |
-| R2 (P5) | goal:g6.41.1 | hypothesis:recovery-is-admitted-by-the-one-psi-reader |
-Measured 17:4xZ: 39 row-parks on 5 carriers (anchored) · heal.py:872/:1031 reach _dump_record via _rot · home class 415 files · core fca147fe1: the unwired five have 0 non-test callers.
+| input FIRST | g7.16.1.4.3 | core-write-hunks-each-get-a-named-disposition (12 hunks since 8e4b4c286) |
+| W-G | g7.16.1.4.1 | goals-md-retires-with-every-caller-in-one-row |
+| W0 | g7.16.1.4.2 | none (retitle g4.19) |
+| W1 | g4.18.5.1 · .2 · .3 | body-rows-share-one-index-for-write-and-render · a-write-is-its-own-commit-behind-the-gate · posts-rows-have-one-writer-and-one-parser |
+| W2 | g4.18.6.1 · .2 · .3 · .4 · .5 | one-resolver-maps-mint-ids-to-addresses · a-write-refuses-a-missing-outbound-id-by-lookup · every-link-reader-resolves-mint-ids · link-lines-migrate-to-mint-ids-counted · none (text) |
+| W3 | g4.18.7.1 · .2 · .3 | viewport-renders-one-node-for-both-readers · node-search-lives-beside-node-writer · read-leaves-write-py-with-every-teacher-in-one-row |
+Calls (on the THOUGHTs, sent to alive): W-G = one read path at every moment (lands first, .7.3 moves its line) · W0 retitle not park · W2 readers before migration.
 
 ## 🔴 Where it stops
-17:5xZ 09-29: idle, stage 1 handed off; nothing in flight. My room line sits UNCOMMITTED in the council-loop room with 2 other posts' lines (never commit theirs; the next room commit carries it). Next act on wake:
+20:4xZ 09-29: idle, nothing in flight. My room lines sit uncommitted in the council-loop room with other posts' lines (never commit theirs). Next act on wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1
 tail -30 .agi/comms/season-2/room/council-loop.md
