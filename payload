@@ -1313,14 +1313,16 @@ def check_formation(groot: Path) -> CheckResult:
     try:
         live = [(i, f) for i, f, _ in rotation_record.grep_live(groot, "parked: formation")
                 if i.split(":")[0] in ("goal", "hypothesis")]
-        rows = {i: sorted(set(row.findall(f.read_text("utf-8", "replace")))) for i, f in live}
+        goal = str(table[active] or "")
+        # rows parked for the ACTIVE formation's own goal are awake: `set active`
+        # drops that tag (write.py) while the rows stay, so they never FAIL here
+        rows = {i: sorted(set(row.findall(f.read_text("utf-8", "replace"))) - {goal}) for i, f in live}
         tagged = {g: {c for c, _, _ in rotation_record.parked_carriers(groot, g)}
                   for g in {g for gs in rows.values() for g in gs}}
         untagged = [f"untagged {i} (parked:{g})" for i, gs in rows.items()
                     for g in gs if i not in tagged[g]]
         marks = [f"mark {i}" for i, f in live
                  if mark.search(node_writer.thought_text(f.read_text("utf-8", "replace")) or "")]
-        goal = str(table[active] or "")
         wake = [i for i, _, _ in rotation_record.parked_carriers(groot, goal)] if goal else []
     except rotation_record.GrepError as exc:  # a guard that cannot look fails closed
         return CheckResult("formation", "FAIL", time.monotonic() - t0,
