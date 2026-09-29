@@ -38,7 +38,7 @@ then   bundle 3 built + SM clean -> batched mur + ONE lens review · stop 23:00Z
 - bundle 1 lens: KEEP 5, 0 red · conditions carried into bundle 2 (one `~` resolver, caller-grep parking test, generic home regex, park count gate)
 - bundle 2 lens (17:2xZ): test_rotation_record_home 10 passed · anonymize over 794a0782e..9c54fb3c4 exit 0 · 8 park tags, 0 THOUGHT marks · of 16 parks: 8 PARK / 8 LIVE, 7 of the 8 un-parks record their caller reason · F (config:rotations formation line) still owed
 - FINDING: 39 parked rows in body tables whose carrier has no tag (g7.33.19 11 · pass10 11 · pass11 3 · pass12 8 · passb1 6): a g7.16.2 switch wakes none. Proposed: tag the carriers + the check FAILs on an untagged row-park
-- bundle 3 votes: g4.18.3/.4 first · simplify on our trunk + a core pointer node per folded module · every fold carries its test
+- bundle 3 votes: g4.18.3/.4 first · simplify on our trunk; each folded node names its core module + sha (pointer on OUR trunk: core is read-only, conceded to all-is-one) · every fold carries its test
 
 ## 🔴 Where it stops
 17:3xZ 09-29 bundle-2 lens + bundle-3 votes sent to agi-8b + agi-96; waiting on alive's bundle-3 draft
