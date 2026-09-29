@@ -15,7 +15,7 @@ Directors never hand-write engine code (owner, `04e5070c9` — restated, matches
 ## §0 STATE (live at handoff)
 
 - **AUTHORITY:** owner speaks through the Prime (belam) via `doc:l5-owner-decisions` + signed dm's. belam rotated its own signing key mid-session (old fp `994cd72eb50911f9` → new fp `4f479294f081f5f2`); two messages arrived on the old/retired key and were treated as directionally useful but not acted on alone until corroborated independently against the graph — both turned out accurate.
-- **Balance:** checked three times, all from the real `/home/ubuntu/work/agi/.env` provisioning key. Start of session: $25 total / $12.20 used ($12.80 free). Mid-session the owner topped up to **$65 total** (not this seat's action). Latest: $65 total / $16.79 used → **$48.21 free**. Comfortably above the $5 round floor and the $1.60 dispatch floor throughout.
+- **Balance:** checked three times, all from the real `<home>/work/agi/.env` provisioning key. Start of session: $25 total / $12.20 used ($12.80 free). Mid-session the owner topped up to **$65 total** (not this seat's action). Latest: $65 total / $16.79 used → **$48.21 free**. Comfortably above the $5 round floor and the $1.60 dispatch floor throughout.
 - **Live spawns at handoff:** `a00-66892a80` tier=parent iter=L5.13 pid=3641922, dispatched this session, still running (the sweep rename/copy fix — see §2 RED). Backgrounded wait `bnfyogwwu` covers it; nothing else live (budget 1/25).
 - **Model:** unchanged, `deepseek/deepseek-v4.1-flash` for all parents and kids.
 - **Push rule:** unchanged — plain `git push` from the post worktree (`.agi/worktrees/post-sanctuary-director`, branch `core/season2/posts/sanctuary-director/main`, mirror `refs/agi/posts/sanctuary-director`); never `-u origin <name>`, never an explicit `refs/heads/...` spelling.
@@ -99,7 +99,7 @@ THEN:  python3 extensions/agi/bin/spawn_budget.py status           (confirm L5.1
 
 1. Sync post branch (`git fetch -q && git merge --no-edit origin/season2/main`, never rebase). Report the REAL verification level you actually ran (full suite or touched-tests-only) — don't imply more than you did.
 2. Send `[merge-up]` with the post-branch TIP SHA + numbers + any residues/findings, WAIT for the Prime's GO-by-SHA naming that exact sha — do not merge ahead of it.
-3. In MAIN (`cd /home/ubuntu/work/agi`; `git status` first; never clean/stash; re-fetch immediately before merging): `git merge --no-ff <tip-sha> -F <msg-file>` → if it refuses on pre-existing uncommitted content, investigate before touching it (see §4's comms-churn trap) → `snapshot-goals.py --render` → `--render --check` → `links.py links` (0 broken) → `grid.py commit --all` → `git push origin season2/main` (+ `git push origin "refs/grid/*:refs/grid/*"` if grid produced new versions) → report `[merge-up]` with the landed SHA + numbers.
+3. In MAIN (`cd <home>/work/agi`; `git status` first; never clean/stash; re-fetch immediately before merging): `git merge --no-ff <tip-sha> -F <msg-file>` → if it refuses on pre-existing uncommitted content, investigate before touching it (see §4's comms-churn trap) → `snapshot-goals.py --render` → `--render --check` → `links.py links` (0 broken) → `grid.py commit --all` → `git push origin season2/main` (+ `git push origin "refs/grid/*:refs/grid/*"` if grid produced new versions) → report `[merge-up]` with the landed SHA + numbers.
 4. For YOUR OWN post branch: plain `git push`, never `-u origin <name>`, never an explicit `refs/heads/...` spelling.
 5. **Never merge-then-hold.**
 

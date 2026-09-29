@@ -2,7 +2,7 @@
 captured_at_utc: 2026-09-08T05:04:13Z
 meter: 0.3198	319828/1000000 tokens	source=seat_pin	threshold=0.35
 head: 77580f272 HANDOFF: Belam XI closing — money leak sealed, four owner asks banked, L3.43 handed over live
-live_agents: budget: 8/25 live  dir=/home/ubuntu/work/agi/.agi/sessions/.spawn-budget
+live_agents: budget: 8/25 live  dir=<home>/work/agi/.agi/sessions/.spawn-budget
 --- belam windows BEFORE ---
 0: belam-S1-L3-IX (1 panes) [80x24] [layout 2ce3,80x24,0,0,151] @151
 1: belam-S1-L3-X (1 panes) [80x24] [layout ace7,80x24,0,0,165] @165

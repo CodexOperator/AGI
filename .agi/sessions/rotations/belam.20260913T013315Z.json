@@ -27,9 +27,9 @@
       "before": 18,
       "after": 19
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/belam.log"
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/belam.log"
   },
-  "refusal_reason": "registry file for @348 not found in /home/ubuntu/.claude/sessions within the bounded join poll",
+  "refusal_reason": "registry file for @348 not found in <home>/.claude/sessions within the bounded join poll",
   "handover": {
     "own_window": {
       "name": "belam-S1-L4-XVIII",
