@@ -14,7 +14,7 @@ tags:
   - engine
   - write
   - thought
-testable_claim: "(1) a THOUGHT block is the authored region only when BOTH its BEGIN and END markers start a line at column 0 (an indented or inline marker is a quotation); fenced code blocks are NOT tracked, so a column-0 pair inside a fence counts as authored (2) write.py thought rewrites only that block and adds one when none exists, never touching an indented pair (3) every reader (snapshot-goals.py, metrics.py, links.py, brief.py, graph2sql.py) reads the one definition in node_writer (assigned: director-engine; bundle 1 row B: director-general-3)"
+testable_claim: "(1) a THOUGHT block is the authored region only when BOTH its BEGIN and END markers start a line at column 0 (an indented or inline marker is a quotation); fenced code blocks are NOT tracked, so a column-0 pair inside a fence counts as authored (2) write.py thought rewrites only that block and adds one when none exists, never touching an indented pair (3) every NODE-body reader (snapshot-goals.py, metrics.py, brief.py, graph2sql.py, and links.py's retired-successor read through node_writer.thought_text) reads the one definition in node_writer; links.py's surface-file skip (plain substring tests over non-node files, DH.522 item 2) is out of scope (assigned: director-engine; bundle 1 row B: director-general-3)"
 title: "write.py thought edits only the top-level THOUGHT block -- never a pair quoted inside a review (DH.481 destroyed quoted evidence; assigned: director-engine)"
 town: core
 ---
@@ -32,10 +32,10 @@ ROUNDS    this post's rounds on this node: DH.607 DH.639 DH.658; the open round'
 - The comment at :915-917 says the spelling is shared with `snapshot-goals.py` and `metrics.py` -- "one spelling, three readers".
 
 ## CLAIM
-(1) a THOUGHT block counts as the node's authored region only when BOTH its BEGIN and END markers start a line at column 0 -- an indented or inline marker is a quotation. NAMED GAP: fenced code blocks are NOT tracked (node_writer _THOUGHT_RE comment: 3 real blocks sit after an unbalanced fence, measured 09-29), so a column-0 pair inside a fence counts as authored; (2) `write.py <id> thought ...` rewrites that block only, never an indented/quoted pair, and adds a top-level block when none exists; (3) every reader (snapshot-goals.py, metrics.py, links.py, brief.py, graph2sql.py) reads the same ONE definition in node_writer (no second regex).
+(1) a THOUGHT block counts as the node's authored region only when BOTH its BEGIN and END markers start a line at column 0 -- an indented or inline marker is a quotation. NAMED GAP: fenced code blocks are NOT tracked (node_writer _THOUGHT_RE comment: 3 real blocks sit after an unbalanced fence, measured 09-29), so a column-0 pair inside a fence counts as authored; (2) `write.py <id> thought ...` rewrites that block only, never an indented/quoted pair, and adds a top-level block when none exists; (3) every NODE-body reader (snapshot-goals.py, metrics.py, brief.py, graph2sql.py, and links.py's retired-successor read through node_writer.thought_text) reads the same ONE definition in node_writer (no second regex). OUT OF SCOPE: links.py's surface-file skip, plain substring THOUGHT tests over non-node files (DH.522 item 2; mvp:dg3-b-one-thought-definition names it).
 
 ## Dispatch line
-config-max: none (a marker spelling is code shared by readers, not a tunable). template-max: none. code: the anchored single definition + the three readers routed through it -- the resolver that does not exist.
+config-max: none (a marker spelling is code shared by readers, not a tunable). template-max: none. code: the anchored single definition + the node-body readers named in CLAIM (3) routed through it -- the resolver that does not exist.
 
 ## FALSIFIERS
 - A body with a quoted, indented THOUGHT pair inside a review AND a top-level block: a `thought` edit changes the quoted pair.
@@ -251,5 +251,5 @@ CEILING   HARD CAP: 1 kid · <= 40 production lines net over e7db0b5c6 · <= 80 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Residue 1 of sanctuary-master mur wf_a56d005b-d6b (bundle 1, fixed by director-general-1): testable_claim and CLAIM (1) promised a fence-aware definition, but node_writer _THOUGHT_RE anchors both markers at column 0 and deliberately does not track fences (3 real blocks follow an unbalanced fence). The claim is narrowed to the bytes and the fence gap is named, not hidden. (3) now lists every reader the built round routed through the one definition.
+Residue 19 of sanctuary-master re-mur wf_aa3f01d4-2aa (bundle 1, fixed by director-general-1): the residue-1 rewrite (663da3a12) widened CLAIM (3) to every reader including links.py, but links.py keeps a bare substring THOUGHT skip for non-node surface files (DH.522 item 2) that the round never routed. (3) is narrowed to the node-body readers, with links.py counted only for its retired-successor read through node_writer.thought_text, and the surface scan is named out of scope, matching mvp:dg3-b-one-thought-definition. The Dispatch line's stale 'three readers' now points at CLAIM (3).
 <!-- THOUGHT:END -->
