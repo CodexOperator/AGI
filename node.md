@@ -6,7 +6,7 @@ parents:
   - hypothesis:rotate-term-grace-tests-never-touch-a-real-process-or-the-live-config
 next_edges: []
 confidence: 0.95
-edited_by: a00-b0a277d8
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-7447fd2b-311e70
 loop: hypothesis:rotate-term-grace-tests-never-touch-a-real-process-or-the-live-config@s2
@@ -48,7 +48,7 @@ PYTHONPATH=$S python3 -m pytest extensions/agi/tests/test_rotate_term_grace.py -
 | 1 | " | `spawn:Popen ['ps','-o','pid=,cmd=','-p','2127463']` and `spawn:run ['git','-C',…,'rev-parse']` | `rotate._reap_chain` itself, under the test |
 | 2 | reads /proc | **529** `read:/proc /proc/<pid>/cmdline` | the test, :118-127 — the full-box scan |
 | 3 | signals a real pid | `os.kill pid=2127463 sig=0 / 15 / 9` | the test, :126-135 (probe + TERM + KILL) |
-| 4 | reads the live config | `read:live-config /data/work/agi/.agi/worktrees/a00-b0a277d8/.agi/config.json` | `test_live_config_declares_the_cell`, :85-89 |
+| 4 | reads the live config | `read:live-config <repo>/.agi/worktrees/a00-b0a277d8/.agi/config.json` | `test_live_config_declares_the_cell`, :85-89 |
 
 The 529 `/proc` reads include the live agent panes on this box — the exact
 scan the parent flagged as "the class that once TERM'd a Prime from its own
@@ -114,9 +114,5 @@ Standing-rule deviation: none. I ran read-only git (status/diff) because the rev
 Residue carried forward, not ridden: the fix (fake the pid/kill/ps seams, move the live-config assertion to the cell's owning test, add the autouse guard) is NOT done. It is engine work under its own build; this round is measurement only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT RE-VERSION of a00-7447fd2b's experiment node: accepted unchanged in verdict, hardened in provenance.
-
-(1) WHAT THE BRIEF SAID: "A kid's tests are its CLAIM, not your evidence... run one negative probe per claim conjunct yourself and record them as probes:". (2) WHAT THE MACHINE DOES: the node as filed carried no `probes:` field and no parent-run evidence -- its only backing was the kid's own plugin at sessions/iter-DH.381/a00-7447fd2b/probe_plugin.py. My three probes are independent artifacts (/tmp/probe_parent.py, /tmp/probe_parent2.py, and a temporary test file under extensions/agi/tests/ that I deleted in the same command), and they hit the same seams from a different instrument: 499 /proc cmdline reads, one real Popen of a fork+setsid launcher, 2 `ps` + 4 `git` spawns from rotate._reap_chain itself, 17 os.kill calls (14 probes + TERM + 2 KILL) against pid 2152545, and a green 1-passed run for a test that did every forbidden act. (3) NEAR MISS: a parent that reads the kid's hits.txt, sees "529 /proc reads, all four falsifiers fire", and records the node as proved-by-the-kid -- the number is right and the evidence is still the kid's, which is precisely the failure mode the parent-task node names. The number is only evidence when a second instrument reproduces it. (4) DEVIATION: none; the standing no-git rule is about commits and the review section mandates reading the diff.
-
-The claim survives both of its conjuncts' falsification, so `disproved` stands at confidence 0.95. What does NOT stand is any implication that the round closed something: the defect is measured, unfixed, and the guard the claim names does not exist to stop the next one.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
