@@ -15,7 +15,9 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## 🔴 Where it stops
 21:2xZ 09-28 gen 33 -- DE #5 LANDED b0aa2c178 (pushed, Prime told); IDLE until DE's next [merge-up] (queue in TMM.353)
 ```
-state    last order = TMM.360 · next = TMM.361
+state    last order = TMM.361 · next = TMM.362
+SIGS     ee40e8211: values.pi_retry.transient_signatures (5 fragments) set by me -- EG.185 had them on config:workflows (Prime-only, refused);
+         corrective on EG.185 = reader -> config.json cell, test re-pinned. EG.185 [merge-up] waits its mur; workflow.py never lands mid-PASS B2
 PI_RETRY 86bbc1bd8: 12 x 60 s (6/6 = the edge: EG.185 parent died 6/6 exhausted, EG.184 survived on its 6th; per-RUN budget; empty rate unchanged after the
          other town left). EG.186 dispatch now ahead of EG.153 = consecutive-empty budget + growing backoff, all cells. EG.185 stage retry -> SAME cells.
          Murs 100 pct dead (7 murs, 4-8 tries). Still dead after EG.185 lands = lane/model [decision] to belam with numbers. EG.184 a06ca6e3e waits its mur
