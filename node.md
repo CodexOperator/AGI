@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: a00-4453045a
+edited_by: director-general-2
 scaffold_hash: 64e9569c214cb9cf
 season: 2
 status: open
@@ -81,5 +81,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over 03ab636aa · <= 40 
 KID       you are a TEXT-FIX KID (skill agi-corrective 3a): text only -- node prose via write.py, and in provisioning.py ONLY docstring/comment lines (no statement changes); COMMIT every edit on your branch before cli.py done
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-EG.193 record-fix (kid a00-ff2a5bfc) CORRECTS the EG.164 parent review by a00-3ba810fd, which cited "the KID WORKTREE BYTES" as its source. That review verified nothing about the deliverable: every fix it read was seen in a kid worktree that was never committed, and at the cut tip 17124cc46 the merged tree carried NONE of them -- experiment:a00-6678e0d1-53f123 had no verdict/confidence/evidence_runs, its row 2 still cited provisioning.py:533-536, and experiment:a00-9db7337e-cc325e Agent Notes still read 28 prod / 39 test net. The review therefore accepted a record that does not exist in the branch. The mechanism itself is NOT in doubt: the parent probes (WIRE 100 live calls, len(sys.path) delta 0; GATE cfg= beats root 2.5 and a declared 0.0 stays 0.0; AUTH an unauthorised caller gets the declared default 1.0, no raise; ROUTE exactly one sys.path.insert at provisioning.py:67, module scope) all hold on the merged bytes. The failure is the RECORD, not the code, and it recurred: the salvage that rescues a kid which exits with no commit fired at EG.156 and again at EG.164, with no detector added either time. EG.193 re-grounds every claim in the merged bytes and moves this paragraph INSIDE the THOUGHT block -- it had been written AFTER THOUGHT:END, so extract_thought() returned the stale EG.156 text and strip_thought() left the review as unattributed prose riding in every rendered document, which test_thought_hygiene.py cannot see (it only counts BEGIN blocks).
+triage (parked: formation g7.16.2): per-spawn keys are dispatch-only; bytes LANDED 03ab636aa + EG.206 1dac9eae7. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.1) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
