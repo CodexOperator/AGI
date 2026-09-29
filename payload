@@ -47,6 +47,7 @@ CLI_PY = PLUGIN_ROOT / "bin" / "cli.py"
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
 import mem_cap  # noqa: E402 -- SM.112: a healer is a launched agent too
+import rotation_record  # noqa: E402 -- the ONE record serializer (home-relative)
 import adapters  # noqa: E402 -- the shared (tier, role, harness) resolver
 import spawn_gate  # noqa: E402
 import spawn_budget  # noqa: E402 -- liveness reader for the worktree sweep (hyp:l4-a-finished-rounds-worktree-is-removed-after-harvest)
@@ -846,7 +847,8 @@ def _close_late_reap_abandoned(record, record_path, now, succ_id, waited,
                                bound) -> dict:
     """Close a record whose successor registry NEVER appeared, as
     `abandoned` in the SAME `s12_self_reap` shape the success path writes.
-    The log line is the pass driver's, not this function's. Never raises."""
+    The log line is the pass driver's, not this function's. A failed record
+    write never raises; a broken serializer import does (goal:g7.16.1.3 H4)."""
     out = {"action": "abandoned", "already": False, "window_id": succ_id,
            "waited_s": round(waited, 1), "bound_s": bound}
     doc = dict(record)
@@ -868,9 +870,8 @@ def _close_late_reap_abandoned(record, record_path, now, succ_id, waited,
     }
     if record_path:
         try:
-            import rotate as _rot  # the ONE record serializer (home-relative)
-            Path(record_path).write_text(_rot._dump_record(doc), encoding="utf-8")
-        except (OSError, ImportError):  # never raises (the import is inside)
+            Path(record_path).write_text(rotation_record.dump_record(doc), encoding="utf-8")
+        except OSError:  # a failed write never raises; a missing module stays loud
             out["written"] = False
     return out
 
@@ -1027,9 +1028,8 @@ def _late_reap_for_skipped(root, record, *, record_path=None,
         if loadv is not None:
             obs["loadavg_1_5_15"] = loadv
         try:
-            import rotate as _rot  # the ONE record serializer (home-relative)
-            Path(record_path).write_text(_rot._dump_record(doc), encoding="utf-8")
-        except (OSError, ImportError):  # never raises (the import is inside)
+            Path(record_path).write_text(rotation_record.dump_record(doc), encoding="utf-8")
+        except OSError:  # a failed write never raises; a missing module stays loud
             pass
     return {"action": "reaped", "role": role, "chain": reap,
             "windows": windows, "pids": pids}
