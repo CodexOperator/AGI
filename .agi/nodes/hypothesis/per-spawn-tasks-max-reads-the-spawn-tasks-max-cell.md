@@ -150,8 +150,26 @@ FILE SCOPE  · .agi/nodes/experiment/a00-583115ef-1f1050.md · .agi/nodes/experi
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 2145a6c09 · <= 40 test lines net over 2145a6c09 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 2145a6c09 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.197 -- closes mur-eg-x317893-441d00 EG.166-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-per-spawn-tasks-max-r-a00-3bd5dc2b tip 74bb47d11 (branch de-base-EG.197; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Probe cmd is a shell syntax error yet carries result: pass — .agi/nodes/experiment/a00-bf749770-1f7083.md:16
+2. verdict: proved contradicts the node's own three fail probes and its PARENT VERDICT: lean_disproved — the demotion exists only in prose and no gate applies it
+3. CEILING row is self-excluding and applies a production-line default to node text
+4. M1 (demote-grade companion to defect 1, missed entirely): ALL THREE probes on the node that states the rule are themselves unrunnable. /bin/sh -n returns rc=2 on every one — a00-d9973172-844ae4.md:15 ('load extensions/agi/bin/cli.py AS OF 2145a6c09 (git show ...) ...', `Syntax error: "(" unexpected`), :16 ('git diff --name-only 693ddf5e4..302def096 (the kid branch vs the tip it spawned from)'), :17 ('subprocess.run(cmd, shell=True) for EVERY probes: cmd on a00-583115ef and a00-bf749770 ...', `Syntax error: word unexpected`). These are prose descriptions carrying class: gate/auth, the exact shape the round's own rule at :34 declares a claim rather than evidence — on the record of the round written to enforce the rule. Same remedy: the explanation belongs in expected/observed, not in cmd.
+5. M2: a00-d9973172-844ae4.md:115 records `git diff --numstat 2145a6c09 -- <paths>` with no final-tip operand, so it diffs the cut tip against the WORKING TREE — the form hypothesis:...md:150 explicitly forbids. Executed on this box it prints 0/95, 0/127, 0/92, not the pasted 17/6, 30/9, 5/5; only the two-commit form reproduces them. Same class as defect 1: a recorded command that cannot produce the recorded output, in the section that certifies the budget.
+DEMOTED   by the director at triage: generated item(s) 6 -- a clean ownership re-check (no deletion, no hand-landed gate), not a residue
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS      + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE  · .agi/nodes/experiment/a00-583115ef-1f1050.md · .agi/nodes/experiment/a00-8180bb99-a29ba6.md · .agi/nodes/experiment/a00-bf749770-1f7083.md · .agi/nodes/experiment/a00-d9973172-844ae4.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 74bb47d11 · <= 40 test lines net over 74bb47d11 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 74bb47d11 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.166: mur-eg-x994966-0d4e59 EG.139-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.197: mur-eg-x317893-441d00 EG.166-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
 
 ## Agent Notes
