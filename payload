@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""spawn_gate.py — the schema spawn gate (GOALS.md S17).
+"""spawn_gate.py — the schema spawn gate (goal:s17).
 
 Seven node types were in daily use and `context/schemas/` declared six —
 with `verdict`, the type `evidence_gate.py` exists to police, absent
 entirely. Nothing anywhere checked a node against a schema at write time, so
 the spawn rules were a **prose control**: real, written down, and enforced by
-whoever happened to remember. GOALS.md's design ethic forbids exactly that —
+whoever happened to remember. The goals' design ethic forbids exactly that —
 "no prose-only controls where a code control is possible".
 
 This module is that control, as code. It is deliberately shaped like
