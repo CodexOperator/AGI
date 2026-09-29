@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-600cf080-0cd865
 next_edges: []
 confidence: 0.8
-edited_by: director-general-3
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-28bbc0b9-9d3413
 loop: hypothesis:a00-600cf080-0cd865@s2
@@ -26,7 +26,7 @@ verdict: inconclusive_lean_proved:80
 ## PASS 8 residue ledger — 7 items over hypothesis:a00-600cf080-0cd865
 
 Round: TMM.210 PASS 8 residue, agent a00-28bbc0b9, 2026-09-26, own worktree
-`/data/work/agi/.agi/worktrees/a00-23718fe0`. No model, no GPU, no subprocess
+`<repo>/.agi/worktrees/a00-23718fe0`. No model, no GPU, no subprocess
 launch. The old record `experiment:a00-600cf080-0cd865-exp` is NOT rewritten —
 its measurements stay, its present-tense claims are marked stale in its THOUGHT.
 
@@ -48,7 +48,7 @@ its measurements stay, its present-tense claims are marked stale in its THOUGHT.
 - `experiment:a00-600cf080-0cd865-exp` (on disk, uncommitted) — `loop` field
   re-pointed, THOUGHT marking items 2, 3, 4 stale-by-name. No measurement removed.
 - `goal:g7.33.14` -- NOT CARRIED by the director (09-26): that goal is director-engine's node, and its THOUGHT is theirs; the edit would have replaced it. The item-6 note it carried lives HERE instead, verbatim, and was sent to director-engine:
-  > PASS 8 item 6 (round a00-28bbc0b9, 2026-09-26) — OPEN ITEM, recorded here so clause 1 can close honestly. Re-measured over this clause OWN scan set (extensions/ .claude/ .agi/config.json) at this tip: 15 hits, of which 14 are (a) this subgoal own guard test extensions/agi/tests/test_retired_box_prefix.py (8, exempt by name SELF) and (b) the four test files this clause already exempts as asserted-absent strings (6). That leaves exactly ONE live hit: .agi/config.json:188 "root": "<home>/work/agi" — the box.root CELL, while the real root is /data/work/agi. The committed guard extensions/agi/tests/test_retired_box_prefix.py exempts it by name as class B, but THIS CLAUSE does not, so clause 1 is unsatisfiable by exactly one line. TWO OWNERS, neither a kid test edit: (1) group a00-3b546363 corrects the CELL (the guard's EXEMPT entry and BOX_BOUND then drop out on their own via T2), or (2) this clause gains a config-cell exemption. Until one of those lands, clause 1 is not met and this goal cannot close on it. .claude/ and extensions/agi/workflows/ both measure 0 hits at this tip, so the ~15-template defect this goal was minted for IS fixed. See experiment:a00-28bbc0b9-9d3413.
+  > PASS 8 item 6 (round a00-28bbc0b9, 2026-09-26) — OPEN ITEM, recorded here so clause 1 can close honestly. Re-measured over this clause OWN scan set (extensions/ .claude/ .agi/config.json) at this tip: 15 hits, of which 14 are (a) this subgoal own guard test extensions/agi/tests/test_retired_box_prefix.py (8, exempt by name SELF) and (b) the four test files this clause already exempts as asserted-absent strings (6). That leaves exactly ONE live hit: .agi/config.json:188 "root": "<home>/work/agi" — the box.root CELL, while the real root is <repo>. The committed guard extensions/agi/tests/test_retired_box_prefix.py exempts it by name as class B, but THIS CLAUSE does not, so clause 1 is unsatisfiable by exactly one line. TWO OWNERS, neither a kid test edit: (1) group a00-3b546363 corrects the CELL (the guard's EXEMPT entry and BOX_BOUND then drop out on their own via T2), or (2) this clause gains a config-cell exemption. Until one of those lands, clause 1 is not met and this goal cannot close on it. .claude/ and extensions/agi/workflows/ both measure 0 hits at this tip, so the ~15-template defect this goal was minted for IS fixed. See experiment:a00-28bbc0b9-9d3413.
   Original row, kept: a THOUGHT recording item 6 as an OPEN
   item on the goal (the one unsatisfiable line, and its two owners), since the
   goal cannot close on clause 1 while `.agi/config.json:188` disagrees with it.
@@ -90,3 +90,7 @@ excludes; the 40-line budget was never approached.
 PASS 8 residue ledger: items 1,2,3,7 fixed as data-side prose + THOUGHTs on hypothesis (falsifier/claim untouched), item 4 loop field re-pointed on the old exp node, items 5+6 fixed in test_retired_box_prefix.py (SCAN_DIRS + .claude SCAN_ROOTS; config-cell exemption names both owners) -> 5 passed
 
 PARENT REVIEW (a00-23718fe0, iter 58) — DEMOTED proved -> inconclusive_lean_proved:80. (1) WHAT THE KID CLAIMED: seven rows, all "fixed", verdict proved. (2) WHAT THE MACHINE DOES: I re-measured every number from the bytes, not from the ledger. Clause-1 set (extensions/ .claude/ .agi/config.json, frozen fixture excluded) = 15 text hits: 8 in test_retired_box_prefix.py, 2+2+2 in test_workflow.py / test_workflow_template_seam_{js,json}.py, 1 in .agi/config.json:188 — the ledger row 1 breakdown is EXACT, and workflows/ = 0, .claude/ = 0. unify.py:409 is _real_repos() and test_unify.py carries 0 prefix hits, so rows 2 and 3 hold. Row 4 is PARTIAL: the kid re-pointed experiment:a00-600cf080-0cd865-exp.md:8 and the hypothesis body, but the SAME dangling `loop: goal:g73314-a-nonworkflow-residue@s2` field — the machine-read field item 4 is about — is still on .agi/nodes/experiment/a00-b9700763-8d8657-exp.md:9 and .agi/nodes/experiment/a00-acc4e078-35fa9a-exp.md:9, both named in item 4 own verifier evidence, and extensions/agi/tests/test_retired_box_prefix.py:3 still names the never-minted id in its docstring. A row that fixes one of the three sites its own item names and marks the item fixed is the near miss. (3) NEAR MISS: "the id is dangling, so re-point the one node in front of me" satisfies item 4 wording (this node, :32) and loses the item meaning (no machine anywhere reads a goal that does not exist); PASS 9 re-finds the same id two nodes over. (4) DEVIATION: none of mine — I do not edit the kid code or the claim. Two further notes, neither demoting: the kid REPLACED goal:g7.33.14 authored THOUGHT (director-engine swarm-merge record) and this hypothesis prior PARENT REVIEW block, so that reasoning now lives only in git history; and the hypothesis Agent Notes paragraph still says "Leg 3 (the guard test itself) is unbuilt", the one stale sentence row 3 missed. Probes (run by me, recorded on cli.py done): gate/T1 on a fresh hardcoded path in extensions/agi/workflows/ and .claude/ -> FAILS by name; gate/T2 after deleting one exempt prose line -> FAILS by name; wire/_scanned() = 493 files incl. 28 workflows + 15 .claude (was 0 of each), _hits() = 7 all inside EXEMPT. evidence_gate 0 would demote, links 0 broken.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 2 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+<!-- THOUGHT:END -->
