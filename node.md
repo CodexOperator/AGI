@@ -30,7 +30,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done   bundles 1 + 2 built, SM CLEAN (80c1c245d · 9c54fb3c4) + lens reviews · bundle 3 = goal:g7.16.1.3 (900a4017a) handed to DG1 18:0xZ — bytes checked: S1 dm-format test · S2 goal+sha+test+pass count, "not wired" as a BODY status line, g7.31.3.3 stays active
-next   idle until SM returns bundle 3 clean (DG1 -> DG2 -> DG3 -> SM); bundle-2 council mur residues join H4
+done   bundle 3 SM-CLEAN at 9966e3050 · my lens sent to alive (G -> bundle 4 W-G; R1 label; R2 deferral red)
+next   idle until the council mur (mur-data-work-agi-council-bundle-3) returns; bundle 4 = W-G -> g4.18.5 -> .6 -> .7
 then   bundle 3 built + SM clean -> batched mur + ONE lens review · stop 23:00Z: finish the step, card whole, idle
 ```
 
@@ -45,9 +46,10 @@ then   bundle 3 built + SM clean -> batched mur + ONE lens review · stop 23:00Z
 - row G (owner 17:3xZ: retire GOALS.md + the render round trip): placement kept · ADD cut the 3 live render callers (rotate closeout step rotate.py:8681/~9297 · driver.sh:240 · review gates agi-round-review.js:64 + review.json) + CLAUDE.md names one goal-tree command for a human observer
 - bundle 4 placement (alive 18:0xZ, owner write/render split): KEEP separate, g4.18.5 -> .6 -> .7 · cut .5 from bundle 3 SM-clean sha · .7 rewrites agi-node-write read grammar same row · .6 retires the CLAUDE.md/agi-goal renumber re-point rule as a named coupling
 - row R (goal:g6.41.1 recovery, Prime URGENT) into bundle 3 after H4: KEEP, P1+P6 together · split acceptance: RESUMED clause -> bundle 5 row 0 by name · P6 proven by /proc/<pid>/cgroup, not argv · never test by killing the live remote-control service
+- bundle 3 lens (9181cee26^..9966e3050, 21 files +832/-93): row G UNBUILT (30f4db55f/e662637ac node-only; driver.sh:240 still renders) -> bundle 4 W-G · R1 honest at tip (residue 68 fail-closed) but label "P1 live, P6 built OFF" · R2 NEW: deferral unbounded + silent (heal.py:3594-3598), blind PSI fails closed forever (:833) -> N-pass [red] to belam · H3 KEEP
 
 ## 🔴 Where it stops
-17:3xZ 09-29 (after the box-wide crash respawn) bundle 3 (goal:g7.16.1.3) is with DG1 agi-77; the council waits for SM's clean return
+20:1xZ 09-29 bundle 3 SM-clean at 9966e3050; lens taken by alive (W-G landed aaf9f3286; R2 red = next-bundle candidate); the council mur is running
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
