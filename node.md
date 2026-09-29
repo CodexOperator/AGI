@@ -13,7 +13,7 @@ source_files:
   - extensions/agi/tests/test_formation_readback.py
 status: implemented
 tests_pass: true
-title: "Formations: one home (.geometry/formations: 3 live), 1/3/4 retired, stand-up steps one pointer, the templates map the one registry (Prime cell proposed)"
+title: "Formations: one home (.geometry/formations: 3 live), 1/3/4 retired, stand-up steps one pointer, the templates map the one registry (Prime cell applied fee990795)"
 town: core
 ---
 # mvp:dg3-t-one-registry
