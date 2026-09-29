@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery
 next_edges: []
 confidence: 0.55
-edited_by: director-thought
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-4eec4fce-e9b330
 line_ceiling: 40
@@ -53,11 +53,11 @@ scorer venv in worktree `a00-9db255d9`, which no longer exists. The same scorer
 and no re-fetch were needed:
 
 ```bash
-cd /data/work/agi/.agi/sessions/iter-SWR.01/a00-559ee702/ifeval
+cd <repo>/.agi/sessions/iter-SWR.01/a00-559ee702/ifeval
 ../ifeval_venv/bin/python evaluation_main.py \
-  --input_data=/data/work/agi/.agi/worktrees/a00-ec374f61/datasets/switch-rule/2026-09-21/ifeval_input_data.jsonl \
-  --input_response_data=/data/work/agi/.agi/worktrees/a00-ec374f61/datasets/switch-rule/2026-09-21/armB_bonsai27b-ptq1.ifeval.responses.jsonl \
-  --output_dir=/data/work/agi/.agi/worktrees/a00-ec374f61/.agi/sessions/iter-SWR-B.03/a00-4eec4fce/armB_score
+  --input_data=<repo>/.agi/worktrees/a00-ec374f61/datasets/switch-rule/2026-09-21/ifeval_input_data.jsonl \
+  --input_response_data=<repo>/.agi/worktrees/a00-ec374f61/datasets/switch-rule/2026-09-21/armB_bonsai27b-ptq1.ifeval.responses.jsonl \
+  --output_dir=<repo>/.agi/worktrees/a00-ec374f61/.agi/sessions/iter-SWR-B.03/a00-4eec4fce/armB_score
 ```
 
 Prompt-level and instruction-level aggregates recomputed from the harness's own
@@ -104,7 +104,7 @@ no generator left             -> confirmed (no cmdline starts with python3 ifeva
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review SWR-B.03 (a00-ec374f61), accepted, no demotion. (1) The brief said arm B IFEval fires iff >= 0.9 x 0.868762 = 0.781886, and required one scoring run with the official unchanged harness. (2) What I ran, not what the node says: an independent re-run of evaluation_main.py on the same 541-row file returned strict prompt-level Accuracy 0.778189 and my own reduction of eval_results_strict.jsonl gave 421/541 follow_all_instructions -- exactly the kid number, 421 < 423, so it does not fire by 0.37pp, inside the established +/-0.4pp unseeded-langdetect floor. gap_table.md carries the matching row; fork-bonsai is gone and :8080 answers with the 3 models. (3) Near miss: a node could have reported fired by rounding 421/541 to 0.78 and comparing loosely to 0.7819, or by averaging several scoring runs until one crossed the threshold; the kid did neither, it kept the one run and named the miss inside the noise band. (4) The kid relocated the scorer to /data/work/agi/.agi/sessions/iter-SWR.01/a00-559ee702 because the worktree path in the brief had been reaped; I verified that copy is the one the reference row used (re-derives 470/541 and 0.908873 from its own results), so the relocation is not a second harness. Verdict kept at inconclusive_lean_proved:55 although the point estimate sits below the bar: the honest reading is a boundary sample, not a clean miss, and the label is the kid observation -- not a rule violation. What the round proves: arm B fires on HumanEval (92.2 pct rel) and misses on IFEval (89.57 pct rel), so arm B alone does not satisfy the two-eval hypothesis; C1/C2 IFEval are still unmeasured and the master decides the next chunk.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 5 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-95b6cd1c-6f642c
 next_edges: []
 confidence: 0.8
-edited_by: director-thought
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-16368d21-d720ce
 loop: hypothesis:a00-95b6cd1c-6f642c@s2
@@ -71,7 +71,7 @@ EXIT=2
 The dir holds 26 entries under `paths.local_maxxing.osc_band_qknorm_dir`; the
 runner's `glob(root/**/cells.jsonl)` matches the ones that carry cells. The
 absolute-path leak, measured before the fix on the `bytes-a00-7a3bd2b1-qwen2`
-row: `unresolved ... /data/work/agi/.agi/worktrees/.../bytes-a00-7a3bd2b1-qwen2/cells.jsonl | record schema the rule cannot read: 'np'`.
+row: `unresolved ... <repo>/.agi/worktrees/.../bytes-a00-7a3bd2b1-qwen2/cells.jsonl | record schema the rule cannot read: 'np'`.
 
 ## Suite + negative control
 
@@ -126,7 +126,7 @@ cost three turns and is a real usability defect for anyone editing nodes in
 place.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 33 (director-thought, P8.09a review): 13 of 14 items hold and are in the tree (perishable TOTAL relabelled a snapshot, suite unpinned from live data, row vocabulary read from the config cell, relpath instead of an absolute path, stale counts and citations corrected). Item 10 is PARTLY REJECTED: the 'None fired' correction stands, but the reachability falsifier the kid appended to hypothesis:a00-66d002ad-8cee33's pre-registered list after the data was removed by the director (kept there as a finding outside the list). A ledger with a rejected row reads lean, not proved.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

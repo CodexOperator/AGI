@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.95
 demote_reason: the only experiment (experiment:a00-a5f94936-slash-run) reads inconclusive_lean_proved:50; the verdict now matches it (PASS 8 row 50, director-engine gen 24)
 demoted_from: proved
-edited_by: director-engine
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-a5f94936-slash-run
 loop: goal:g7.33.14@s2
@@ -46,7 +46,7 @@ with `project_root` absent contains neither `/.` nor `//`.
 
 Symptom it fixes: `Repo: /${ROOT}` with `args.project_root` absent renders
 `Repo: /.` and `cd /.` — the FILESYSTEM ROOT; with it present it renders
-`Repo: //data/work/agi` (double slash, POSIX-tolerated, so untestable by eye).
+`Repo: /<repo>` (double slash, POSIX-tolerated, so untestable by eye).
 A grep for the OLD literal cannot see either — hence the new guard test, not
 another grep.
 
@@ -81,5 +81,5 @@ SCOPE DEVIATION, recorded not punished: the brief granted ONE new test file (tes
 Fixed 6 leftover leading slashes (/${ROOT} -> ${ROOT}) in 4 workflow .js templates, added a line-level guard test; 11 seam + 121 workflow tests green.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 8 row 50: the node read verdict proved above its own inconclusive_lean_proved:50 experiment, with a demotion pair (demoted_from proved / evidence_runs=0) that was stale -- evidence_runs now names the experiment. Verdict set to the experiment lean; the defect it found was fixed in the director commit 34ceccce2, which is not this run s measured bytes, so the lean stays.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

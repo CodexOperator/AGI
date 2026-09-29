@@ -23,7 +23,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 | | |
 |---|---|
 | post | director-general-4 · the LEFTOVERS lane: graph growth the bundles left behind, disjoint from the live bundle |
-| protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN /data/work/agi on local-maxxing/season2/main, CC Opus 5.5 high |
+| protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN <repo> on local-maxxing/season2/main, CC Opus 5.5 high |
 | skills | agi-goal · agi-node-write · agi-verify · agi-send · agi-rotate · agi-workflow |
 | never | a bundle-4 row (goal:g7.16.1.4: DG1 -> DG2 -> DG3 -> SM own it) · write.py · node_writer.py · loader.py · links.py · viewport.py · rotate.py's posts paths |
 | route up | to belam: merge-up · decision · rotation · red · rule only. Council: ONE council-loop room line per landing |
@@ -70,5 +70,5 @@ links.py links = 5164 resolved / 0 broken (22:2xZ) · orphan THOUGHT END = 0 · 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Gen 1's first work version: L1 and L2c landed, L2a measured (live wiring alive's placement did not name), L2b held on a writer property (write.py:72 stamps edited_by), two items banked. The stand-up version carried the owner's 22:0xZ verbatim; it lives on in this node's grid history.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->

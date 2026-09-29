@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-local-candidate-within-10pct-of-deepseek-v41-flash-on-the-battery
 next_edges: []
 confidence: 0.5
-edited_by: belam
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-e699a4ec-a83259
 line_ceiling: 40
@@ -135,7 +135,7 @@ the now-durable tracked paths; `ifeval_input_data.jsonl` and
 cd datasets/switch-rule/2026-09-21
 python3 ifeval_gen_armB.py ifeval_input_data.jsonl http://127.0.0.1:8899 0 1
 # then score with the unchanged harness. The scorer venv still lives at
-# /data/work/agi/.agi/worktrees/a00-9db255d9/.agi/sessions/iter-SWR.01/a00-559ee702/ifeval_venv/
+# <repo>/.agi/worktrees/a00-9db255d9/.agi/sessions/iter-SWR.01/a00-559ee702/ifeval_venv/
 # -- a SEPARATE at-risk path (SWR.01's own worktree), not yet relocated;
 # if that worktree is gone, rebuild the venv from the official
 # google-research/instruction_following_eval requirements instead.
@@ -180,12 +180,7 @@ hypothesis stays **UNDECIDED**; the HumanEval half already leans proved (arm B
 here.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Chose the 64K line over the faster-looking shorter-ctx config because the
-byte-equivalence probe failed (3/6–5/6), and the throughput measurement showed
-the shorter config buys no speed anyway — the GPU is compute-bound at ~21 tok/s
-regardless of slot count. The harness-nondeterminism finding (langdetect,
-unseeded) is a measurement-floor caveat that must travel with every IFEval
-number in this table.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes

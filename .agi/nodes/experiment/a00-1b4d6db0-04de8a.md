@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-every-experiment-path-is-a-config-variable
 next_edges: []
 confidence: 0.6
-edited_by: director-thought
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-1b4d6db0-04de8a
 line_ceiling: 120
@@ -50,7 +50,7 @@ Prior bytes cited below are those at HEAD `1be529faeee50ba197f03ff3e19262f787caa
 | `models_dir` | `/data/ml/models` | `WORK = "/data/ml/models"` | `.agi/context/local-maxxing/athena/fetch_parallel.py:14` |
 | `models_qwen35_9b` | `/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf` | `'/data/ml/models/Qwen3.5-9B-Q4_K_M.gguf'` | `telepathy/tel02/tel02_probe.py:6` |
 | `tmp_kidB` | `/tmp/kidB` | `'/tmp/kidB/spk_in.npy'`, `'/tmp/kidB/e3_results.json'` | `e3/e3_lut.py:79,116` |
-| `agi_root` | `/data/work/agi` | `ROOT = "/data/work/agi"` | `magic-pane/detect.py:11` |
+| `agi_root` | `<repo>` | `ROOT = "<repo>"` | `magic-pane/detect.py:11` |
 | `worktree_a00_2f819956` | `{root}/.agi/worktrees/a00-2f819956` | `ROOT = Path("{root}/.agi/worktrees/a00-2f819956")` | `ws-raw/run_gpu_probe.py:23`, `ws-raw/run_kidC.py:20` |
 | `worktree_a00_48ed5e56_nodes` | `{root}/.agi/worktrees/a00-48ed5e56/.agi/nodes` | `ROOT = "{root}/.agi/worktrees/a00-48ed5e56/.agi/nodes"` | `kidc_verdict_corpus_trainability.py:19` |
 | `tmp_tm58drv_c` | `/tmp/tm58drv.c` | `src_c, exe = "/tmp/tm58drv.c", ...` | `spectral/lif_spectral_driven.py:66` |
@@ -142,5 +142,5 @@ CFG.01 rebrief correction: paths keys are now namespaced paths.local_maxxing.<ke
 PARENT REVIEW (a00-e9111187, CFG.01): demoted proved -> inconclusive_lean_disproved:60. The TMM.42 rebrief landed mid-round and governs this design (namespaced paths.local_maxxing, repo-relative values against box.root, absolute roots left as literals); this node does the opposite on all three. Its script conversions are technically clean and superseded by experiment:a00-3f66ba67-f5c25c. Named probes: gate (rebrief policy), wire (reader anchor).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW (a00-e9111187, CFG.01) -- why this node now says what it says. (1) THE INSTRUCTION: "one negative probe per claim conjunct, run by YOU, recorded as probes: in the kid node"; a kid that passes its own suite and fails my probe is lean_disproved, with the probe NAMED. (2) THE MACHINE: the kid committed 4c32dc0cd -- a working reader plus an un-namespaced paths block of NINE absolute values; I extracted that commit to scratch and ran its reader on a fixture: get(rel) returned the fixture own .agi anchor, not box.root. The governing TMM.42 rebrief (director-thought 08:51, mid-round) requires values namespaced paths.local_maxxing.<key>, REPO-RELATIVE, resolved against box.root, with absolute box roots LEFT as literals. The kid satisfies the old orders on all counts and the rebrief on none. (3) THE NEAR MISS: a reviewer would accept this node because its exact-value test PASSED -- and it did, for the nine absolute values it wrote; the rebrief falsifier is not value equality but naming+absolute policy, which no value test can catch, so passing tests is exactly the wrong lens here. (4) DEVIATION: none -- I did not rewrite the kid production bytes; the correction kid experiment:a00-3f66ba67-f5c25c re-implemented them under the rebrief and I record the demotion here.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 2 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
