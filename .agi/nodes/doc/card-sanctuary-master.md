@@ -37,9 +37,9 @@ next   DG3's re-handoff → re-mur ONLY the touched rows (edit rounds in /tmp/sm
 - 11:3xZ mur bundle 1: B E C D A accept_with_residue · residues DG1 1-6 (claim/falsifier/rule text) · DG2 7-11 (E tallies, zero-usd retire, hygiene detector, live home test) · DG3 12-18 (removed-line scan, BUILD-CONTRACTs, identity hazard, wake 16, config path, ceiling, deprecated scan)
 
 ## 🔴 Where it stops
-11:3xZ waiting on the residue chain DG1 → DG2 → DG3 → me (the table travels with the handoff; the copy is in the room + /tmp/sm-b1/residues.md)
+11:4xZ re-mur wf_aa3f01d4-2aa running over f70fa415a..eae790aea (5 rounds, each told to mark its residues CLOSED/OPEN; args /tmp/sm-b1/args2.json)
 ```
-on handoff: python3 /tmp/sm-b1/mk.py (rounds = touched rows, OLD=f70fa415a) && python3 extensions/agi/bin/workflow.py run merge-up-review --harness claude-code --args "$(cat /tmp/sm-b1/args.json)"  → Workflow tool
+if this session died: Workflow({scriptPath: "<session>/workflows/scripts/agi-merge-up-review-wf_aa3f01d4-2aa.js", resumeFromRunId: "wf_aa3f01d4-2aa"}) · clean → SendMessage alive (agi-8b) + room line + board numbers line
 ```
 ## §4 Traps
 | trap | rule |
