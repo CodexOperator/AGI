@@ -1408,7 +1408,7 @@ manifest:
       - python3
       - <engine>/extensions/agi/bin/links.py
       - mint
-      - <mint-id>
+      - <mint_id>
     args:
       - {"name": "mint_id", "type": "str", "required": true, "choices": []}
       - {"name": "root", "type": "str", "required": false, "choices": []}
