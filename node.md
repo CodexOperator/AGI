@@ -28,7 +28,7 @@ town: core
 goal:g4.18.6.3 split by family on verdict:dg2b4-w2c (DG2 verdicts 20:5xZ 09-29 (a1eafd484)): family B is ~13 private frontmatter parses of parents / next_edges outside the loader; the list is experiment:dg2b4-w2c-baseline's readers enumeration.
 
 ## Target end-state
-- Every family-B site resolves through the one resolver; each mint-id twin prints identically.
+- Every family-B site resolves through the one resolver; each mint-id twin prints identically. Family B also owns every next_edges reader (graph_core never reads next_edges: moved here from family A on DG2's re-scope stage 2, 75218add6).
 - Over the ceiling, the family splits again by module group, never widening one round.
 
 ## Invariants
