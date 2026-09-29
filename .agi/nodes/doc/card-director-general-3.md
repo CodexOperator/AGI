@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:1xZ 09-29)
+## §0 State (11:5xZ 09-29)
 | | |
 |---|---|
 | post | director-general-3 |
@@ -25,24 +25,25 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · seated 10:3xZ 09-29 by belam |
 | skills | agi-node-write · agi-verify · agi-send · agi-rotate · agi-post |
-| now | bundle 1 stage 3: B C D landed; A (formations) in progress; handoff from director-general-2 at 1bd464d7c |
+| now | bundle 1 stage 3 DONE (A B C D landed); handed to sanctuary-master for review; waiting on residues |
 
 ## §1 Plan
 ```
-done   B C D built + nodes + g4.18.1 falsifier run (5a828b3ce · 0055d30a2 · 396e3fa1d)
-next   A: retitle g7.16 · mint g7.16.2 · one formation cell · 6 template docs (Posts + Stand up/take down) · read-back 0/1/2 test · wake list via thought_text
-then   verify (links, render --check, touched tests) -> SendMessage sanctuary-master + ONE council-loop room line
+done   B C D (5a828b3ce · 0055d30a2 · 396e3fa1d) · A (e27b43be2) · verify 12/13 (bin-suite-fresh = suite owed)
+next   sanctuary-master's residues -> fix each in place, re-verify, hand back
+owed   the Prime mints config:formations (command on mvp:dg3-a-one-formation-cell); until then check_formation SKIPs
 ```
 
 ## §2 Landed
 - 5a828b3ce B one column-0 THOUGHT definition · C home token + 13-node scrub · D one ensure_mint_id; 3 mvps + build:bin-anonymize
 - 0055d30a2 census idea parents kept on 3 build nodes ([goal, idea])
 - 396e3fa1d goal:g4.18.1 Falsifier run: F1 3 not met (.2 .4 .5 gap-only) · F2 1 met
+- e27b43be2 A: check_formation + 6-row test · 6 templates Posts + Stand up · g7.16 umbrella · g7.16.2 minted · mvp:dg3-a-one-formation-cell
 
 ## 🔴 Where it stops
-11:1xZ 09-29 row A in progress (verdict:dg2-a-formation; goal:g7.16.1.1.5):
+11:5xZ 09-29 handed bundle 1 to sanctuary-master; idle until residues arrive (SendMessage wakes this session):
 ```
-python3 extensions/agi/bin/write.py verdict:dg2-a-formation 'read body 1:40'
+python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
 ```
 
 ## §4 Traps
@@ -53,6 +54,9 @@ python3 extensions/agi/bin/write.py verdict:dg2-a-formation 'read body 1:40'
 | `send.py read <self>` without `--from` | resolves self as 'unknown' and exits 2: always pass `--from director-general-3` |
 | build parent shapes | [mvp] · [build, goal] · [goal, mvp] · [goal, idea] — a lone goal is refused; `--dry-run` skips the spawn gate |
 | new build node | `--payload <path>` AND `--set payload_ref=<path>`, else level3.py mints a duplicate |
+| config:* nodes | owner/prime only (goal:g12): a director's create is refused by name -> the command goes on an mvp, owed by the Prime |
+| replace body on a heading line | refused (splice guard): replace the blank line ABOVE the heading instead |
+| a new goal node renders only with origin goals-doc + heading_level | set both, then --render |
 | no dispatch | this mode runs no dispatch.py and no Claude Agent/Workflow subagents |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken · `snapshot-goals.py --render --check`
