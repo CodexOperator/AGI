@@ -207,6 +207,9 @@
     "memcap": {
       "probe_cache_dir_name": "agi-memcap",
       "probe_cache_file": "probe"
+    },
+    "dm": {
+      "sync_interval_min": 3
     }
   }
 }

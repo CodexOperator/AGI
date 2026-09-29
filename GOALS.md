@@ -8967,6 +8967,8 @@ Owner vision covered (no duplicate of g7.31.1–.5 meanings):
 
 Session: `owner-ask-2026-09-21`. Frame as TARGETS not tasks.
 
+NO-PI stopline13: seed g7.32.6 complete (post-branch contracts); g7.32.5 remains parked — do not open; umbrella stays active.
+
 #### G7.32.1 — Grok session ingest — sessions land as graph nodes — status: complete
 
 # goal:g7.32.1
@@ -9261,7 +9263,7 @@ landed send_transport.py rotation adapter from proved tip bed84760ac; send.py ha
 <!-- BODY:BEGIN -->
 # goal:g7.32.5
 
-#### G7.32.6 — SEND ROUTES BY POST-BRANCH ADDRESS -- every dm is a new dm-file node version pushed to the addressee post's own remote head (else the nearest, lowest-level remote branch); one per-box sync cron (1-3 min cell) syncs the local posts' dms and nudges; read pushes a read-flag version to the sender; no inbox (assigned: director-engine) — status: active
+#### G7.32.6 — SEND ROUTES BY POST-BRANCH ADDRESS -- every dm is a new dm-file node version pushed to the addressee post's own remote head (else the nearest, lowest-level remote branch); one per-box sync cron (1-3 min cell) syncs the local posts' dms and nudges; read pushes a read-flag version to the sender; no inbox (assigned: director-engine) — status: complete
 
 # goal:g7.32.6
 
@@ -9306,6 +9308,229 @@ OWNER 06:0xZ 09-27 to belam, verbatim: "It's because pids rotate but tmux panes 
 NO-PI stopline11: seat tip carries boxes.this_box refuse-unset + test_box_identity/test_box_guard 24/24 GREEN (hypothesis:every-live-row… conjuncts on tip). Parent stays active — post-branch send/cron/nudge/read redesign not closed; no pi; did not open g7.32.5.
 
 NO-PI stopline12: box-identity 24/24 still GREEN; post-branch send/cron/nudge/read redesign still open (not closed this wake); no pi; did not open g7.32.5
+
+NO-PI stopline13: nested .1-.6 contracts GREEN (26/26); production send.py/crons wiring is director-engine follow-on; did not open g7.32.5/g7.31.6.
+
+##### G7.32.6.1 — Post-branch address = addressee remote_head else nearest remote-visible — status: complete
+
+<!-- BODY:BEGIN -->
+# goal:g7.32.6.1
+
+## Why this exists
+
+**Parent `goal:g7.32.6`.** Owner design line for the post-branch send redesign: ADDRESS = addressee post row `remote_head` (else nearest lowest-level remote-visible branch). Same route for same-box and cross-box DMs.
+
+## Target end-state
+
+- Contract library on tip encodes the owner residue for this leaf.
+- Falsifiers GREEN independently; production send.py/crons wiring is director-engine follow-on.
+
+## Invariants
+
+- Sibling slices under `goal:g7.32.6` own their own falsifiers — do not widen this leaf.
+- Does **not** open `goal:g7.31.6` / `goal:g7.32.5` (board parked).
+- NO pi under OWNER FULL STOP.
+
+## Falsifier
+
+1. `resolve_address` returns `remote_head` when set.
+2. Else nearest: `<town>/season<m>/main` > `<town>/main` > `season<n>/main`.
+3. Negative: `None` row refused by name.
+
+## Out of scope
+
+- Other `goal:g7.32.6.*` siblings.
+- Parked `goal:g7.32.5` / `goal:g7.31.6`.
+
+## Agent Notes
+
+Assigned to **director-helper** under OWNER FULL STOP (NO pi). Contract-first; engine wires production later.
+
+NO-PI stopline13: dm_address.py + test_dm_address 7/7; remote_head wins else nearest remote-visible.
+
+##### G7.32.6.2 — Send = ONE dm-file node version via write.py (read=false) — status: complete
+
+<!-- BODY:BEGIN -->
+# goal:g7.32.6.2
+
+## Why this exists
+
+**Parent `goal:g7.32.6`.** Owner design line for the post-branch send redesign: send = write.py: ONE new pairwise dm node version; read row = false; destination = post-branch address; no inbox write.
+
+## Target end-state
+
+- Contract library on tip encodes the owner residue for this leaf.
+- Falsifiers GREEN independently; production send.py/crons wiring is director-engine follow-on.
+
+## Invariants
+
+- Sibling slices under `goal:g7.32.6` own their own falsifiers — do not widen this leaf.
+- Does **not** open `goal:g7.31.6` / `goal:g7.32.5` (board parked).
+- NO pi under OWNER FULL STOP.
+
+## Falsifier
+
+1. `build_send_version` yields `read=False` and `destination=address`.
+2. path is `comms/dm/<a>--<b>.md` (sorted); never `sessions/inbox`.
+3. Negative: missing address refused (no hub fallback).
+
+## Out of scope
+
+- Other `goal:g7.32.6.*` siblings.
+- Parked `goal:g7.32.5` / `goal:g7.31.6`.
+
+## Agent Notes
+
+Assigned to **director-helper** under OWNER FULL STOP (NO pi). Contract-first; engine wires production later.
+
+NO-PI stopline13: dm_send_version.py + test_dm_send_version 4/4; read=false; no inbox path.
+
+##### G7.32.6.3 — ONE per-box DM sync cron; interval is a 1-3 min config cell — status: complete
+
+<!-- BODY:BEGIN -->
+# goal:g7.32.6.3
+
+## Why this exists
+
+**Parent `goal:g7.32.6`.** Owner design line for the post-branch send redesign: ONE cron per box syncs local posts' dms from each remote head. Interval = config cell `values.dm.sync_interval_min` in [1,3] (default 3).
+
+## Target end-state
+
+- Contract library on tip encodes the owner residue for this leaf.
+- Falsifiers GREEN independently; production send.py/crons wiring is director-engine follow-on.
+
+## Invariants
+
+- Sibling slices under `goal:g7.32.6` own their own falsifiers — do not widen this leaf.
+- Does **not** open `goal:g7.31.6` / `goal:g7.32.5` (board parked).
+- NO pi under OWNER FULL STOP.
+
+## Falsifier
+
+1. `interval_minutes` default 3; seconds 180.
+2. `values.dm.sync_interval_min` / `comms.dm_sync_interval_min` honored in range.
+3. Negative: out of [1,3] refused by name.
+
+## Out of scope
+
+- Other `goal:g7.32.6.*` siblings.
+- Parked `goal:g7.32.5` / `goal:g7.31.6`.
+
+## Agent Notes
+
+Assigned to **director-helper** under OWNER FULL STOP (NO pi). Contract-first; engine wires production later.
+
+NO-PI stopline13: dm_sync_cron.py + values.dm.sync_interval_min=3; test_dm_sync_cron 5/5.
+
+##### G7.32.6.4 — Nudge fires only from sync on unread local-post dms — status: complete
+
+<!-- BODY:BEGIN -->
+# goal:g7.32.6.4
+
+## Why this exists
+
+**Parent `goal:g7.32.6`.** Owner design line for the post-branch send redesign: nudge = the box sync; fires only from sync, on unread dm for a post local to this box (`AGI_BOX`). Quiet blocks unless `[red]`.
+
+## Target end-state
+
+- Contract library on tip encodes the owner residue for this leaf.
+- Falsifiers GREEN independently; production send.py/crons wiring is director-engine follow-on.
+
+## Invariants
+
+- Sibling slices under `goal:g7.32.6` own their own falsifiers — do not widen this leaf.
+- Does **not** open `goal:g7.31.6` / `goal:g7.32.5` (board parked).
+- NO pi under OWNER FULL STOP.
+
+## Falsifier
+
+1. `from_sync=False` never nudges.
+2. foreign box / already-read refuse.
+3. quiet blocks; `[red]` overrides quiet.
+
+## Out of scope
+
+- Other `goal:g7.32.6.*` siblings.
+- Parked `goal:g7.32.5` / `goal:g7.31.6`.
+
+## Agent Notes
+
+Assigned to **director-helper** under OWNER FULL STOP (NO pi). Contract-first; engine wires production later.
+
+NO-PI stopline13: dm_nudge_gate.py + test_dm_nudge_gate 4/4; sync-only local unread; quiet/[red].
+
+##### G7.32.6.5 — Read pushes read=true dm version to SENDER remote head — status: complete
+
+<!-- BODY:BEGIN -->
+# goal:g7.32.6.5
+
+## Why this exists
+
+**Parent `goal:g7.32.6`.** Owner design line for the post-branch send redesign: read = new dm node version with `read=true`, pushed to the SENDER remote head (not addressee). Others learn on next sync.
+
+## Target end-state
+
+- Contract library on tip encodes the owner residue for this leaf.
+- Falsifiers GREEN independently; production send.py/crons wiring is director-engine follow-on.
+
+## Invariants
+
+- Sibling slices under `goal:g7.32.6` own their own falsifiers — do not widen this leaf.
+- Does **not** open `goal:g7.31.6` / `goal:g7.32.5` (board parked).
+- NO pi under OWNER FULL STOP.
+
+## Falsifier
+
+1. `build_read_version` `read=True` and `destination=resolve_address(sender_row)`.
+2. `read_target=sender`; path is post-branch dm.
+3. Negative: nameless sender refused.
+
+## Out of scope
+
+- Other `goal:g7.32.6.*` siblings.
+- Parked `goal:g7.32.5` / `goal:g7.31.6`.
+
+## Agent Notes
+
+Assigned to **director-helper** under OWNER FULL STOP (NO pi). Contract-first; engine wires production later.
+
+NO-PI stopline13: dm_read_version.py + test_dm_read_version 3/3; read=true to sender remote.
+
+##### G7.32.6.6 — No separate inbox -- sessions/inbox retires on post-branch route — status: complete
+
+<!-- BODY:BEGIN -->
+# goal:g7.32.6.6
+
+## Why this exists
+
+**Parent `goal:g7.32.6`.** Owner design line for the post-branch send redesign: no inbox system: `.agi/sessions/inbox/*` retires once send/cron/nudge/read hold on the post-branch dm route.
+
+## Target end-state
+
+- Contract library on tip encodes the owner residue for this leaf.
+- Falsifiers GREEN independently; production send.py/crons wiring is director-engine follow-on.
+
+## Invariants
+
+- Sibling slices under `goal:g7.32.6` own their own falsifiers — do not widen this leaf.
+- Does **not** open `goal:g7.31.6` / `goal:g7.32.5` (board parked).
+- NO pi under OWNER FULL STOP.
+
+## Falsifier
+
+1. `assert_allowed_dm_path` accepts `comms/dm/<a>--<b>.md`.
+2. Negative: `sessions/inbox/*` refused by name.
+
+## Out of scope
+
+- Other `goal:g7.32.6.*` siblings.
+- Parked `goal:g7.32.5` / `goal:g7.31.6`.
+
+## Agent Notes
+
+Assigned to **director-helper** under OWNER FULL STOP (NO pi). Contract-first; engine wires production later.
+
+NO-PI stopline13: dm_no_inbox.py + test_dm_no_inbox 3/3; sessions/inbox refused by name.
 
 ### G7.33 — ENGINE FIXES SURFACED BY THE TOWN — every engine trap the rounds hit becomes a pi round itself, run alongside the research rounds under a second (Sonnet) director; plus the two dispatch upgrades the owner named: one workflow that chains parent dispatch → drain → mur, and a batch workflow that runs rounds serially or in parallel by memory allocation and closes with a whole-batch MUR over the sub-goal that parents them — status: active
 
