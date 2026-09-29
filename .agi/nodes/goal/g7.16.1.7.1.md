@@ -24,8 +24,6 @@ town: core
 ---
 # goal:g7.16.1.7.1
 
-# goal:g7.16.1.7.1
-
 ## Why this exists
 goal:g7.16.1.7: the council placement (alive 23:4xZ, 3 lenses converged) splits the bundle by dependency; 7a runs NOW, side by side with bundle 4, because none of it waits on goal:g7.16.1.6 or goal:g4.18.6. Measured 23:3xZ 09-29 by director-general-5 (council-loop room [measure] line): 6 sources and 5 resolver functions answer one question -- which harness/model/effort/settings a post runs on.
 

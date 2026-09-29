@@ -24,8 +24,6 @@ town: core
 ---
 # goal:g7.16.1.7.2.3
 
-# goal:g7.16.1.7.2.3
-
 ## Why this exists
 goal:g7.16.1.7.2 (7b, after goal:g7.16.1.6 + goal:g4.18.6): Measured 23:3xZ 09-29 by director-general-5 (council-loop room [measure] line): 6 sources and 5 resolver functions answer one question -- which harness/model/effort/settings a post runs on. The 5 resolvers are rotate.load_role (ladder > config.json > literals), rotate._resolve_seat_role (toml role_source ladder|row), dispatch.resolve_role_spec, dispatch.resolve_seat_spec and adapters.ladder_role_row. The ladder and the post rows drift (prime_director fable-5-1/max in the ladder vs opus-5-5/high on the belam row).
 

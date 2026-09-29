@@ -24,8 +24,6 @@ town: core
 ---
 # goal:g7.16.1.7.2.5
 
-# goal:g7.16.1.7.2.5
-
 ## Why this exists
 goal:g7.16.1.7: the owner, verbatim there: "So formations are templates containing empty link rows pointing to "null" that are set as part of formation activation, which writes the template into .geometry while filling in the link rows dynamically at stand up" and "All I or you need is to activate the right formation template and chain the appropriate harness template". Shape condition (self-perpetuating lens 23:5xZ): COLD-START -- a fresh clone + ONE formation activation = a running formation, nothing else typed. Absorbs by name goal:g6.36 (rotate driven) where it concerns stand-up.
 
