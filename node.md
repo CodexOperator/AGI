@@ -29,7 +29,7 @@ town: core
 rotation_record.grep_live   raise GrepError on git exit >= 2, on exit 1 WITH stderr (the verdict's open gap: an unreadable file),
                              and on a hit whose frontmatter does not load (yaml.YAMLError, the file named)
 check_formation            GrepError -> FAIL `the live-node grep failed` + the error (a guard that cannot look fails closed)
-write.py set active        GrepError -> `unpark FAILED (parked:<goal>): <err>` on stderr; the cell write stands
+write.py set active        greps the carriers FIRST; GrepError -> `set active refused`, nothing written, rc 2 (council C1, 66da33b01)
 ```
 
 ## Tests
@@ -42,5 +42,5 @@ test_a_grep_error_fails_closed[bad-pathspec,git-config] + test_a_malformed_hit_i
 1. the three tests pass. 2. live check_formation PASS.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Residue 62 (sanctuary-master mur wf_a3b15e54-c65): a hit with no frontmatter block, or one that cannot be read, is a GrepError too, never a TypeError (test_a_frontmatter_less_hit_is_a_named_fail). Prior THOUGHT: grid history.
+The write.py row follows council C1 (66da33b01; sanctuary-master re-mur wf_0696f122-7f0 residue 78): set active no longer stands with an undelivered wake -- the carrier grep runs before the cell write and a GrepError refuses the whole set. Earlier this node: residue 62 (no frontmatter / unreadable hit -> GrepError). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
