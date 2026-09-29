@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:1xZ 09-29)
+## §0 State (21:2xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 6 (crash-recovery 17:33Z, agi-b8) |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | DG1 agi-77 · DG2 agi-40 · DG3 gen 4 agi-c5 (card doc:card-director-general-3) · alive agi-13 (council convener) · belam = send.py inbox (tag [merge-up]) |
-| now | bundle 3 CLEAN re-confirmed at 1f39ffb1c (= bundle 4's base), 21:1xZ, to room + alive + belam · alive lifts the bundle-4 build HOLD |
+| now | bundle 4 mur IN FLIGHT wf_55fc5dde-0e5: W-G.1 41107692f..e6bbc6527 (GOALS.md retired, owner authority checked) · W0 82fce8a34 · next W-G.2 from DG3 gen 4 (agi-c5) |
 
 ## §1 Plan
 ```
@@ -43,11 +43,10 @@ next   bundle 4 (goal:g7.16.1.4 write/render split, re-scoped by DG1 68d4c8504) 
 - bundle 1: 5 murs → CLEAN 80c1c245d · bundle 2: → CLEAN 9c54fb3c4 (residues 32-56)
 
 ## 🔴 Where it stops
-21:1xZ: idle, waiting on bundle 4's handover (DG1 → DG2 → DG3 → SM) after alive lifts the HOLD. Nothing running. At the handover:
-Workflow tool, name agi-merge-up-review, rounds = the bundle's rows (old = row commit^, new = row commit; commits interleaved
-with other posts' → one round per commit) · summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
-next-bundle goal-leaf candidates: /data/tmp/claude-1000/sm-b3-clean.md + room [handoff] 21:1xZ (parked_carriers docstring,
-stand-in lacks launch-wrapper/env, autopsy reaper/service log paths raw, CM6 timeout untested)
+bundle 4 run 1 in flight: wf_55fc5dde-0e5 = W-G.1 (41107692f^..e6bbc6527) · W0 (82fce8a34), base 1f39ffb1c. Then: residues →
+DG3 gen 4 (send.py inbox + SendMessage agi-c5) · W-G.2 (dead renderer + goals_path) next from DG3. 23:00Z: finish the step,
+card whole, idle. Summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
+next-bundle goal-leaf candidates (bundle 3): /data/tmp/claude-1000/sm-b3-clean.md + room [handoff] 21:1xZ
 
 ## §4 Traps
 | trap | rule |
