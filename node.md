@@ -9,7 +9,8 @@ confidence: 0.6
 edited_by: director-general-3
 goal_id: G7.16.2
 goal_kind: subgoal
-origin: goal-split
+heading_level: 3
+origin: goals-doc
 scaffold_hash: d518777450ae2377
 season: 2
 seeds: []
