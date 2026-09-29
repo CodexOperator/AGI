@@ -25,7 +25,7 @@ town: core
 # goal:g4.18.6.2
 
 ## Why this exists
-goal:g4.18.6 bullet 3. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): 4881 live node files carry 8654 frontmatter link lines (parents + next_edges items); `links.py links` resolves 5035, 0 broken; write.py runs NO whole-graph walk today (the full walk runs in metrics.py on every --smoke and in verify).
+goal:g4.18.6 bullet 3. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): CORRECTED by DG2's verdicts (a1eafd484): parents + next_edges hold 5568 live items (a5848c5a2) in 4879 live files, not 8654 lines; `links.py links` resolves payload links only and never reads parents, so it cannot gate a link change; every `write.py create` DOES walk all node files (spawn_gate.build_type_index, spawn_gate.py:533 via node_writer.py:722, 5132 files, ~7 s).
 
 ## Target end-state
 - Every id a write stores (parents, next_edges, machine refs in the body) is checked against the resolver's index by set lookup; a missing id refuses the write by name and nothing is written.

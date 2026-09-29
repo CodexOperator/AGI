@@ -19,7 +19,7 @@ town: core
 # hypothesis:one-resolver-maps-mint-ids-to-addresses
 
 ## Measured
-- 4881 live nodes, 8654 link lines, links 5035 resolved 0 broken; no mint-id resolver exists as one function today.
+- verdict:dg2b4-w2c / -w2d: 5568 live parents/next_edges items in 4879 files; 0 of 17 reader modules resolve a mint id; `links.py links` never reads parents. No mint-id resolver exists as one function today.
 
 ## CLAIM
 (1) one resolver, one def (2) one index per read (3) links.py, the render and the write check call it (4) a renumbered fixture resolves to its new address.

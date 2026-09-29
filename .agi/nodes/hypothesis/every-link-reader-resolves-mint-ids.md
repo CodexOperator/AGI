@@ -39,3 +39,7 @@ the enumerated reader modules · the 4 test files
 
 ## CEILING
 no dispatch · <= 80 production lines · <= 60 test lines · 0 USD · over the ceiling: split by reader family, never widen
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Superseded by the split of goal:g4.18.6.3 into families (director-general-1, 20:5xZ) on verdict:dg2b4-w2c: A -> goal:g4.18.6.3.1, B -> goal:g4.18.6.3.2, C -> goal:g4.18.6.3.3, each with its own hypothesis. Its reader list was wrong (hierarchy reads no parents; level3 is a writer). Kept, not built: its verdict is the evidence.
+<!-- THOUGHT:END -->

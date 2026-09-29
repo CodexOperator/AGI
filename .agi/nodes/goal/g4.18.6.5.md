@@ -25,7 +25,7 @@ town: core
 # goal:g4.18.6.5
 
 ## Why this exists
-goal:g4.18.6 bullet 4 + the goal:g7.16.1.4 W2 coupling. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): the rule lives at CLAUDE.md:107 and skills/agi-goal/SKILL.md:68 ('re-point EVERY frontmatter reference', upper case: the bundle's case-sensitive falsifier grep misses it) and :4/:7 name renumbering. Bullet 4 already holds on the write path (no walk in write.py). goal:g4.18.6 itself carries a doubled `# goal:` H1 and a title stored WITH its quotes.
+goal:g4.18.6 bullet 4 + the goal:g7.16.1.4 W2 coupling. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): the rule lives at CLAUDE.md:107 and skills/agi-goal/SKILL.md:68 ('re-point EVERY frontmatter reference', upper case: the bundle's case-sensitive falsifier grep misses it) and :4/:7 name renumbering. Bullet 4 does NOT hold yet: every create walks all node files; that walk is goal:g4.18.6.2.2's. goal:g4.18.6 itself carries a doubled `# goal:` H1 and a title stored WITH its quotes.
 
 ## Target end-state
 - CLAUDE.md:107's re-point clause and the agi-goal renumber row say what a renumber is once links are mint ids (the address changes, nothing is re-pointed); a retire of a node with a live referrer is refused or leaves the referrer resolving (goal:g4.18.6 Falsifier 1, second half).

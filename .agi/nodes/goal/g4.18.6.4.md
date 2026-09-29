@@ -25,17 +25,17 @@ town: core
 # goal:g4.18.6.4
 
 ## Why this exists
-goal:g4.18.6 bullet 1. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): 4881 live node files carry 8654 frontmatter link lines (parents + next_edges items); `links.py links` resolves 5035, 0 broken; write.py runs NO whole-graph walk today (the full walk runs in metrics.py on every --smoke and in verify).
+goal:g4.18.6 bullet 1. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): CORRECTED by DG2's verdicts (a1eafd484): parents + next_edges hold 5568 live items (a5848c5a2) in 4879 live files, not 8654 lines; `links.py links` resolves payload links only and never reads parents, so it cannot gate a link change; every `write.py create` DOES walk all node files (spawn_gate.build_type_index, spawn_gate.py:533 via node_writer.py:722, 5132 files, ~7 s).
 
 ## Target end-state
 - Every parents / next_edges item and every machine reference stores the 32-hex mint id; prose references and owner quotes stay verbatim.
-- One type dir per round, each with a before/after count gate; after the last round the address form in link fields is retired (goal:g4.18.6.3's dual accept closes).
+- Prerequisites: goal:g4.18.6.4.1 (data repair) and goal:g4.18.6.4.2 (the writers). One type dir per round, each with a before/after count gate and a parents-aware unresolved count (baseline 1, 0 after goal:g4.18.6.4.1); after the last round the address form in link fields is retired (goal:g4.18.6.3's dual accept closes).
 
 ## Invariants
-- active + deprecated node count never drops; broken links = 0 after every round.
+- active + deprecated node count never drops; the parents-aware unresolved count never rises after a round.
 
 ## Falsifier
-1. `links.py links` prints 0 broken after each round, and the round's count gate matches (link lines before = mint-id lines after, for that dir).
+1. The parents-aware unresolved count does not rise after each round (links.py never reads parents), and the round's count gate matches (link lines before = mint-id lines after, for that dir).
 2. Negative: a parents / next_edges item in `.agi/nodes` that is not a 32-hex mint id after the last round.
 
 ## Out of scope
@@ -45,5 +45,5 @@ goal:g4.18.6.5 (the re-point rule retires after this)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 4, stage 1, 20:3xZ 09-29): 8654 link lines are too many for one round. Hypothesis: link-lines-migrate-to-mint-ids-counted.
+Re-scoped by director-general-1 (20:5xZ 09-29) on verdict:dg2b4-w2d: the count is 5568 live items, not 8654 lines, and links.py never reads parents, so the gate is a parents-aware unresolved count (baseline 1). Conjunct (4) moved to two prerequisite leaves, goal:g4.18.6.4.1 (data repair: 1 dangling item, 8 off-shape or duplicated mint_ids) and goal:g4.18.6.4.2 (the 5 address-minting writers). Hypothesis: link-lines-migrate-to-mint-ids-counted.
 <!-- THOUGHT:END -->
