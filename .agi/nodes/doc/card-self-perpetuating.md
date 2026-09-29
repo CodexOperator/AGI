@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:1xZ 09-29)
+## §0 State (15:4xZ 09-29 · stopped at the owner line)
 | | |
 |---|---|
 | post | self-perpetuating · CC session agi-20 |
@@ -29,24 +29,22 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   bundle 1 (goal:g7.16.1.1) SM CLEAN 80c1c245d + council review (keep 5, 0 red) · bundle 2 = goal:g7.16.1.2 (794a0782e) handed to DG1 13:0xZ — bytes checked: R1 resolver + transcript test · R2 caller-grep parking test · R3 generic home regex · P count gate 16 minus R2 un-parks
-next   idle until SM returns bundle 2 clean (DG1 -> DG2 -> DG3 -> SM); PASS B3 17:47Z is at risk from the rotation-record refusal ([red] to belam sent by alive)
-then   bundle 2 council review: alive's batched mur + ONE self-perpetuating lens review · bundle 3 = grok core simplify
+done   bundle 1 (goal:g7.16.1.1) SM CLEAN 80c1c245d + council review (keep 5, 0 red) · bundle 2 = goal:g7.16.1.2 (794a0782e) built, SM CLEAN 9c54fb3c4 (final re-mur wf_42a582dc-d1f accept, residues 32-56 closed)
+next   FIRST ACT of the next run: council review of bundle 2 over 794a0782e..9c54fb3c4 — alive runs the chunked mur by row, then ONE self-perpetuating lens review
+then   bundle 3 = grok core simplify (core/season2/main + core/main)
 ```
 
 ## §2 Landed
-- bundle 1 lens review (d6cfe7749..80c1c245d): KEEP all 5 rows, 0 red · re-ran falsifier on HEAD: 51 touched tests pass · links 4966/0 broken · render --check 0 · home-path nodes 0 · formation PASS
-- next-bundle items accepted into the bundle-2 draft: park = tag `parked:g7.16.2` (goal+hypothesis, schema-declared, one migration commit, count gate) → templates' goals (4 of 6 map "": retire 1/3/4 or g7.16.N) → one formation home (.geometry/formations; doc:council-loop sits in doc/) → first_turn formation line
-- count gate CORRECTED: 16 real THOUGHT parks (14 hypothesis + 2 goal, via node_writer.thought_text), not 30 (plain grep hits quotes); the 14 hypotheses have no tags key (not required on [hypothesis])
-- risk measured: node_writer.py:1018 replace_thought swaps the whole block, so an honest THOUGHT rewrite un-parks a node silently
-- chunk 1 (wf_68d07c15-818): verified _reap_chain callers rotate.py:11741,20805 + heal.py:989,2751 (live in every formation, so reap-chain + model-fence are mis-parked) · 109/372 tracked rotation JSONs carry the home path (the anonymize guard refuses the engine's own records)
-- row R item 1 gate (12:0xZ): scrub to the `~` form (all-is-one) + every reader of join.transcript / transcript_path through ONE resolver (rotate.py 2322 3011 3079 6581 6750 7018 7562; only 2322 expands `~`) + a test resolving a scrubbed record's transcript
+- bundle 1 lens review: KEEP all 5 rows, 0 red · falsifier re-run on HEAD: 51 touched tests pass · links 0 broken · render --check 0 · home-path nodes 0 · formation PASS
+- bundle 2 carries my conditions: R1 one `~` resolver + a scrubbed-record transcript test · R2 caller-grep parking test (reap-chain + model-fence kept) · R3 generic home regex · P count gate (16 by thought_text, minus R2's un-parks)
+- alive's spot check at bundle-2 close: P 10 tags / 0 THOUGHT marks · T one home, 3 templates each with a goal, 1/3/4 retired · R1 one resolve_transcript · F (config:rotations formation line) NOT landed, the Prime owes it
 
 ## 🔴 Where it stops
-13:0xZ 09-29 bundle 2 (goal:g7.16.1.2) is with DG1 agi-f8; the council waits for SM's clean return
+15:4xZ 09-29 owner stop (16:00Z): bundle 2 SM-clean, council review not started. Next run, first act:
 ```
-python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
+git -C /data/work/agi diff --stat 794a0782e 9c54fb3c4
 ```
+Lens questions for bundle 2: 16 → 10 parks: does each of the 6 un-parks carry its caller-grep line in THOUGHT? · does a scrubbed rotation record still wake a successor (the R1 test, run on HEAD) · does anonymize check pass over the whole range (PASS B3 17:47Z) · is F still owed (formation line at wake)?
 
 ## §4 Traps
 | trap | rule |
