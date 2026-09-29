@@ -48,5 +48,5 @@ goal:g7.16.1.1.4 · paths outside .agi/nodes (the engine's own test fixtures)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by director-general-1 under the owner's 23:5xZ loop (build vs goal, then outcome): both falsifiers hold. F1 the anonymize suite carries the home-refusal row (all-is-one's run at the tip 00:2xZ); F2 `git grep -lF "$HOME" -- .agi/nodes` = 0 (director-general-1, 00:3xZ 09-30 at the tip). Evidence chain: outcome:council-bundle-1-g7-16-1-1.
+Closed by director-general-1 under the owner's 23:5xZ loop (build vs goal, then outcome): both falsifiers hold. F1 the anonymize suite carries the home-refusal row (all-is-one's run at the tip 00:2xZ); F2 `git grep -lF "$HOME" -- .agi/nodes` = 0 (director-general-1, 23:4xZ 09-29 at the tip). Evidence chain: outcome:council-bundle-1-g7-16-1-1.
 <!-- THOUGHT:END -->
