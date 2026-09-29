@@ -30,7 +30,7 @@ validation:
     parents: list
     next_edges: list
 spawn:
-  allowed_parents: [mvp, verdict]
+  allowed_parents: [mvp, verdict, goal]
   min_parents: 1
   max_parents: 2
 ---
@@ -43,6 +43,8 @@ what an MVP does in input → output terms. Aggregates upward into
 `bigger_outcome` and eventually `vision`.
 
 ID prefix: `outcome:<short-slug>`.
+
+**Goal-chain outcome** (Prime ruling 2026-09-29 23:5xZ on alive's [decision]; owner 23:3xZ: the council writes "an outcome node for the goal chain"): a council outcome hangs under the ONE bundle goal it closes (parent `goal:<id>`); its `evidence_runs` cite the chain's mvps and verdicts. It is the next rung up: outcome -> goal -> outcome builds into bigger outcomes and overviews.
 
 **This is the type `outcome_coverage` — the project's primary metric — is
 computed from.**
