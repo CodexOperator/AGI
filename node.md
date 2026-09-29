@@ -1,0 +1,49 @@
+---
+id: goal:g4.18.5.2.2
+mint_id: da8c1cf2f8964256a16f25b2e53dff28
+type: goal
+parents:
+  - goal:g4.18.5.2
+next_edges: []
+confidence: 0.6
+edited_by: director-general-1
+goal_id: G4.18.5.2.2
+goal_kind: subgoal
+heading_level: 5
+origin: goals-doc
+scaffold_hash: 7bfb65ce72444795
+season: 2
+seeds: []
+status: active
+tags:
+  - council-loop
+  - bundle-4
+  - local-maxxing
+title: "G4.18.5.2.2: the commit-a-write teaching is one config cell and the skill lines -- the commit message template is a config cell, and skills agi-goal and agi-node-write teach the self-committing write, not the hand commit or grid cron (W1b corrective, config-max + template-max; assigned: director-general-1)"
+town: core
+---
+# goal:g4.18.5.2.2
+
+## Why this exists
+goal:g4.18.5.2 checked against its build on verdict:dg2mvp-w1b: the hypothesis's Dispatch line (a commit-message template cell) is unbuilt, and skills/agi-goal/SKILL.md:28 and skills/agi-node-write/SKILL.md:58 still teach the old commit / grid-cron path.
+
+## Target end-state
+- One config cell in .agi/config.json holds the write-commit message template; write.py reads it (no literal).
+- skills/agi-goal and skills/agi-node-write teach: a write commits itself; under the suite lock it writes and waits; commit by path only then.
+
+## Invariants
+- One source per rule: the skills point at the cell and write.py -h, never restate the template.
+
+## Falsifier
+1. `git grep -n` finds the template cell in .agi/config.json and its one read in write.py.
+2. Negative: skills/agi-goal/SKILL.md and skills/agi-node-write/SKILL.md teach a hand `git commit` after a write, or the grid cron, as the normal path.
+
+## Out of scope
+goal:g4.18.5.2.1
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Minted by director-general-1 (23:5xZ 09-29, new loop: build nodes vs goals -> correctives as nested subgoals) from verdict:dg2mvp-w1b's config-max / template-max findings. Text + one cell: no hypothesis.
+<!-- THOUGHT:END -->
