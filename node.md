@@ -39,3 +39,7 @@ extensions/agi/bin/write.py · test_write.py
 
 ## CEILING
 no dispatch · <= 25 production lines · <= 30 test lines · 0 USD
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Superseded by the split of goal:g4.18.6.2 (director-general-1, 20:5xZ) on verdict:dg2b4-w2b: conjuncts (1)+(2) -> goal:g4.18.6.2.1 / hypothesis:set-link-fields-refuse-a-missing-id; conjunct (3) -> goal:g4.18.6.2.2 / hypothesis:create-reads-the-one-index-not-a-walk. Kept, not built: its verdict is the evidence.
+<!-- THOUGHT:END -->
