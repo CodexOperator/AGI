@@ -1,23 +1,14 @@
 #!/usr/bin/env python3
-"""snapshot-goals.py — convert GOALS.md into first-class nodes under nodes/goal/.
+"""snapshot-goals.py — the shared node-file helpers the goal importer left behind.
 
-Reads `<PROJECT_ROOT>/GOALS.md` (human-authored prose) and writes one frontmatter
-file per goal heading of the form:
-
-    ## G1 — Playable dungeon crawler (sandbox ladder) — status: active
-
-Output: `nodes/goal/<gid-lower>-<slug-of-title>.md`, node id `goal:g1`.
-
-Linkage is parent-pointing: a node joins a goal by listing the goal node id in
-its own `parents:` list (e.g. `parents: [goal:g2]`). render-context.py already
-turns `parents` into `spawns` edges, so goals traverse and render for free.
-This script only *reads* those parent pointers to compute each goal's `seeds:`
-list — it never emits `next_edges` and never touches chain shape.
-
-Pruning is H0-safe: only files stamped `origin: goals-doc` that were not written
-this run are removed. A missing GOALS.md is a no-op (prunes nothing).
-
-Run: `python3 bin/snapshot-goals.py [--strict] [--project PATH]`
+GOALS.md is RETIRED (owner 2026-09-29 17:3xZ, goal:g7.16.1.4.1): the render
+(`--render` / `--check`), the legacy document import and its prune are
+gone. A goal lives only in its node, minted with `write.py create goal` and
+read by id. What stays is imported by file path by level3.py,
+snapshot-build-site.py, backfill-mint-ids.py, decompose-engine.py and
+post_wire.py: `write_frontmatter` (THE serializer), `ensure_mint_id`,
+`load_existing_nodes`, `_set_project_root`, the THOUGHT helpers, the
+referential-integrity report and the goal:s26 premature-complete warning.
 """
 from __future__ import annotations
 
@@ -31,25 +22,6 @@ import yaml
 from pathlib import Path
 
 ORIGIN = "goals-doc"
-# `horizon` = declared and committed to, but deliberately not being worked yet.
-# It is what lets L5 goal rotation distinguish queued goals from active ones.
-# The `cc_dispatch.max_goals_active` cap that this used to reference was
-# deleted 2026-09-06 (owner decision, re-brief of hypothesis:
-# l2-goals-active-exempt) — long-term goals are `goal_kind: perpetual` and
-# there is no active-goal cap to trip.
-# `retired` is canonical (goal:g5, renamed 2026-09-02). `phasing-out` is the
-# legacy spelling and stays accepted forever, not through one migration
-# window: projects predating the rename carry it, and this set only decides
-# whether to WARN. Dropping it would print a spurious warning on every goal in
-# every such project — the S11 sequence's reader-accepts-both step, made
-# permanent because there is no second writer to migrate them.
-KNOWN_STATUSES = {"active", "horizon", "retired", "phasing-out", "complete"}
-# Default only. `goal_body_cap` in the project config overrides it and `0`
-# disables capping entirely — see `body_cap()` / `cap_body()` and goal:s12,
-# which separates "silent truncation is always wrong" (a bug, fixed
-# unconditionally) from "what the cap should be" (policy, the owner's).
-BODY_CAP = 4000
-
 PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 
 # goal:g11 — one resolver for every path. `bin/` is already on sys.path for
@@ -102,34 +74,9 @@ ensure_mint_id = _ensure_mint_id
 #: file counted as half-migrated rather than done.
 config_path = locations.config_path
 
-# goal:g11 — not `PROJECT_ROOT / "GOALS.md"`. Under the `.agi/` layout the graph
-# root is `<repo>/.agi`, and rendering the goal document there would hide the
-# one file a human is most likely to open first. `goals_path` puts a bare
-# `goals_file` name at the repo root instead, and honours an explicit override
-# for a project that already ships a GOALS.md of its own.
-GOALS_MD = locations.goals_path(PROJECT_ROOT)
 NODES_DIR = PROJECT_ROOT / "nodes"
 
-# `## G1 — Title — status: active`             long-term goal
-# `### G1.2 — Title — status: active`          sub-goal, nested under G1
-# `## S3 — Title — status: active`             standalone short-term goal
-#
-# Sub-goals and short-term goals exist so that work small enough to be a TODO
-# item still lands in the graph instead of in a second document. A sub-goal
-# parent-points at its long-term goal exactly the way a seed idea does; a
-# short-term goal is its own root and needs no parent to be legitimate.
-GOAL_RE = re.compile(r"^##\s*([GS]\d+)\b(.*)$")
-SUBGOAL_RE = re.compile(r"^###\s*(G\d+\.\d+)\b(.*)$")
-# A top-level perpetual goal renders under a `## Perpetual` section as `### <gid>`
-# (no dot — a dotted `### G1.2` is a subgoal and matches SUBGOAL_RE).
-PERPETUAL_RE = re.compile(r"^###\s*([GS]\d+)\b(.*)$")
-HEADING_RE = re.compile(r"^##\s")
-STATUS_RE = re.compile(r"[—-]?\s*status\s*:\s*(.+?)\s*$", re.IGNORECASE)
 GOAL_ID_RE = re.compile(r"^goal:")
-
-_GID_RE = re.compile(r"^([A-Za-z]+)(\d+(?:\.\d+)*)$")
-
-
 
 
 def _id_rest(node_id: str) -> str:
@@ -145,9 +92,8 @@ def _id_rest(node_id: str) -> str:
 
 def _set_project_root(path: Path) -> None:
     """Re-point the module-level path globals (used by --project in tests)."""
-    global PROJECT_ROOT, GOALS_MD, NODES_DIR
+    global PROJECT_ROOT, NODES_DIR
     PROJECT_ROOT = Path(path).resolve()
-    GOALS_MD = locations.goals_path(PROJECT_ROOT)
     NODES_DIR = PROJECT_ROOT / "nodes"
 
 
@@ -408,53 +354,6 @@ def load_existing_nodes() -> dict:
 # --- GOALS.md parsing ------------------------------------------------------
 
 
-
-
-
-
-
-
-
-
-GENERATED_BANNER = (
-    "<!-- GENERATED — do not edit this file.\n"
-    "     Source of truth: nodes/goal/*.md and nodes/doc/goals-preamble.md.\n"
-    "     Edit the node, then `snapshot-goals.py --render` (goal:g6.9).\n"
-    "     An edit made here is overwritten on the next render, silently, the\n"
-    "     same way an edit to nodes/goal/ used to be before the arrow flipped.\n"
-    "     This document is a flat reading convenience; the graph is the\n"
-    "     interface, and the hypergraph viewport (G9.4/G10.3) is the good one. -->"
-)
-
-#: Rendered at the head of the `## Perpetual` section (hypothesis
-#: l3w1-goal-kind-perpetual, L3 wave 1). Perpetual goals are broadly worded,
-#: one director each, meant to outlive seasons; they nevertheless may be
-#: `retired` on the node — retire stays legal, it is just not a lifecycle
-#: column in this section.
-PERPETUAL_INTRO = (
-    "The following goals are `goal_kind: perpetual` — the long-horizon\n"
-    "commitments, broadly worded, one director each. Retire stays legal on the\n"
-    "node; they simply carry no per-goal complete/retired lifecycle line here."
-)
-
-#: hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council — the non-core
-#: town sections label an app/town that is a vision with its own council and
-#: its own vision cap. The town is a DERIVED value (a vision's `town:` cell,
-#: default `core`, goal:g8.2), so this header is a neutral sentence with the
-#: town's value interpolated — never a branch on a town's literal name.
-APP_TOWN_INTRO = (
-    "The goals of this app/town share one vision, one council and one per-town\n"
-    "vision cap (hypothesis:l4-towns-each-app-is-a-vision-with-its-own-council).\n"
-    "Town is derived from a vision's `town:` cell; core is every other goal."
-)
-
-
-
-
-
-
-
-
 def collect_parent_refs(existing: dict) -> dict:
     """Map any referenced id -> sorted list of node ids whose `parents` reference it.
 
@@ -533,14 +432,6 @@ def report_integrity(existing: dict, refs: dict,
     return unresolved, unresolved_goals, prefix_mismatches, genuinely_missing
 
 
-PREAMBLE_ID = "doc:goals-preamble"
-PREAMBLE_PATH = ("doc", "goals-preamble.md")
-
-
-
-
-
-
 #: Goal statuses that mean "still being pursued". A root carrying one of these
 #: below it has not finished, whatever its own text says.
 LIVE_GOAL_STATUSES = ("active", "horizon")
@@ -594,17 +485,15 @@ def warn_premature_complete(existing: dict) -> list[tuple]:
     return offenders
 
 
-
-
-
-
-
-
-
-
-
-
-
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description=(
+        "RETIRED as a command (goal:g7.16.1.4.1): GOALS.md, its render and "
+        "its import are gone. This module stays as the shared node-file "
+        "helpers other generators import."))
+    ap.parse_args(argv)
+    print("snapshot-goals.py: GOALS.md is retired (goal:g7.16.1.4.1); read a "
+          "goal by id: write.py goal:<id> 'read body 1:60'", file=sys.stderr)
+    return 2
 
 
 if __name__ == "__main__":
