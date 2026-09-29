@@ -5,8 +5,8 @@ type: goal
 parents:
   - goal:g7.33
 next_edges: []
-confidence: 0.65
-edited_by: director-engine
+confidence: 0.95
+edited_by: belam
 goal_id: G7.33.8
 goal_kind: subgoal
 heading_level: 4
@@ -15,10 +15,11 @@ scaffold_hash: d34105ecfc763555
 season: 2
 seeds:
   - hypothesis:lm-claude-code-session-capture-lands-scrubbed-transcripts-at-rotation
-status: active
+status: complete
 tags:
   - local-maxxing
   - engine
+thought_session: belam-g7338-close-20260929T001833Z
 title: "G14.14.8: SESSION CAPTURE HOOK -- claude-code role sessions (masters, directors, Prime) land at session end/rotate under datasets/sessions/<role>/<session>/ through the existing scrub.py, with the graph pre-labels; it is the magic pane corpus (moved up per owner 05:4xZ, TME.13/16)"
 town: local-maxxing
 ---
@@ -39,5 +40,5 @@ Done when. A real claude-code role session (this seat is one) rotates and its sc
 First chunk, minted next: hypothesis for the capture mechanism itself (transcript resolution + scrub + land, mirroring the trajectories shape), scoped to rotate.py + a new small landing helper, reusing scrub.py unchanged.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-renumber g14.14.8 -> g7.33.8 to align with core's 09-21 goal re-arrangement (owner 09-23: goal ids may be renumbered; mint_id preserved); Prime reference fix after the core sync
+Done-when SATISFIED on tip (Belam NO-PI 20260929T001833Z): capture_session_transcript + _capture_session_safe at rotate-self finalize land scrubbed transcript.jsonl + label.json under datasets/sessions/role/session via datasets/tools/scrub.py UNCHANGED; resolve_transcript one path; capture error never fails rotation. Focused test_session_capture 4/4 GREEN. BARE status complete @0.95. No new code; graph closeout only.
 <!-- THOUGHT:END -->
