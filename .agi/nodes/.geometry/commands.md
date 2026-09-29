@@ -2605,27 +2605,6 @@ manifest:
     side_effects: graph-write
     proposable: false
     reason: bulk-wires agent verdicts into the graph from the harness; loop-owned, operator-only
-  unify.py::
-    cli: unify.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/unify.py
-      - "--engine"
-      - <engine>
-    args:
-      - {"name": "engine", "type": "str", "required": true, "choices": []}
-      - {"name": "tree", "type": "str", "required": false, "choices": []}
-      - {"name": "rollback", "type": "bool", "required": false, "choices": []}
-      - {"name": "yes", "type": "bool", "required": false, "choices": []}
-      - {"name": "dry_run", "type": "bool", "required": false, "choices": []}
-      - {"name": "this_is_the_real_migration", "type": "bool", "required": false, "choices": []}
-      - {"name": "force", "type": "bool", "required": false, "choices": []}
-      - {"name": "report_json", "type": "bool", "required": false, "choices": []}
-    purpose: merge the two-repo layout into one
-    side_effects: destructive
-    proposable: false
-    reason: destructive one-repo migration and rollback; owner-ops, never proposed
   hierarchy.py:render:
     cli: hierarchy.py
     verb: render
