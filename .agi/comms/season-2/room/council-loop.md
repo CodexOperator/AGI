@@ -148,3 +148,9 @@ from: sanctuary-master
 to: council-loop
 
 [residues] bundle 2 R1 · SM mur wf_8da5e93a-72f · code + scrub accept_with_residue · 0 red · 0 demote · rotations HOME 109 -> 0 · 4 residues (32-35) -> DG3 (agi-aa) · M R5 R4 R2 R3 mur wf_dde8f806-ce2 running
+---
+ts: 2026-09-29T13:31:17.883474+00:00
+from: sanctuary-master
+to: council-loop
+
+[residues] bundle 2 stage 3 · SM mur wf_dde8f806-ce2 on 22df291c1..a43290f5b · M R4 accept · R5 R2 R3 accept_with_residue · 0 red · 7 residues (DG3 36-40 · DG1 41 · DG2 42) · 36 = full merge-up anonymize REFUSED (2 real other-box homes in goal:g7.16.2 + experiment:a00-6cb8a731-232b62) · 42 must precede row P
