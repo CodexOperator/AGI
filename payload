@@ -78,12 +78,29 @@ def scan(text, tokens):
     """The CLASSES present in `text` — never a value."""
     return sorted({c for c, v in tokens if len(v) >= MIN_TOKEN and v in text})
 def added_lines(text):
-    """A unified diff -> its ADDED lines only; any other text unchanged. A
-    removed line is text leaving the repo: a scrub must never refuse itself."""
+    """A unified diff -> what it ADDS: every '+' line inside a hunk (content
+    starting '++' included) plus the post-image PATHS ('diff --git' b/ side,
+    '+++ ' header, 'rename to'/'copy to'). Removed lines and pre-image paths
+    are text leaving the repo: a scrub must never refuse itself. Any other
+    text is returned unchanged."""
     lines = text.splitlines()
     if not any(l.startswith(("@@", "diff --git")) for l in lines):
         return text
-    return "\n".join(l[1:] for l in lines if l.startswith("+") and not l.startswith("+++"))
+    out, hunk = [], False
+    for l in lines:
+        if l.startswith("diff --git"):
+            hunk = False
+            out.append(l.split(" b/", 1)[-1])
+        elif l.startswith("@@"):
+            hunk = True
+        elif hunk:
+            if l.startswith("+"):
+                out.append(l[1:])
+        elif l.startswith("+++ "):
+            out.append(l[4:])
+        elif l.startswith(("rename to ", "copy to ")):
+            out.append(l)
+    return "\n".join(out)
 def cmd_check(root, text, diff_file):
     if diff_file:
         text = added_lines(Path(diff_file).read_text(encoding="utf-8"))
