@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w4-context-load-minimal
 next_edges: []
 confidence: 0.7
-edited_by: a00-8e296aa5
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-8e04c97e-b742f6
 loop: hypothesis:l3w4-context-load-minimal@s2
@@ -57,7 +57,7 @@ pytest extensions/agi/tests/ -q  ->  2209 passed, 1 skipped  (rolslice tests inc
 ```
 
 Slice assembly output extracts the hierarchy chart + role sections; full run:
-`/home/ubuntu/work/agi/tmp/venv/bin/python extensions/agi/bin/rolslice.py --all --measure --root .agi`
+`<home>/work/agi/tmp/venv/bin/python extensions/agi/bin/rolslice.py --all --measure --root .agi`
 (venv has tiktoken+yaml; base python lacks tiktoken — same env note as the sibling measurement rounds).
 
 ## Agent Notes
