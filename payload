@@ -1881,6 +1881,8 @@ def launch_in_window(tmux_session: str, name: str, shell_cmd: str, *,
     script: str | None = None
     handed_off = False
     try:
+        if root is None and cwd:  # SM rotate candidate: the launch tree's project, not the spawner's cwd
+            root = locations.find_project_root(cwd)
         ensure_tmux_session(tmux_session, root)  # goal:g6.41.1 P1: a server first, in its own scope
         launch_cmd = f"cd {shlex.quote(str(cwd or os.getcwd()))} && {shell_cmd}"
         if len(launch_cmd) > inline_max:
