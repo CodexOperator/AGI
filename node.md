@@ -38,6 +38,7 @@ gen 16 rotates at f 0.36 BEFORE PASS B3, not at the 0.47 line: a PASS is multi-r
 DONE   PASS B2 · config:formations + registry · posts [red] · goals g1.30 g4.18.3 g4.18.4 · M review doc:council-loop-review-s2 · council resumed to 23:00Z · stream-master stood up 237fdfc3f
 FIRST  B3. PASS B3 (below)
 then   F. row F: config:rotations first_turn `formation` line (goal:g7.16.1.2.9, exact draft at its body :35-38) · S. the 23:00Z stop -> owner <= 6 lines, hold for the CC-subscription call
+URGENT goal:g6.41.1 (owner 17:3xZ "Make the recovery path restart tmux and your session as well"): root cause = tmux lives in claude-remote-control.service's cgroup; heal respawned 8 posts FRESH at gen+1; patch P1-P6 on the node; sent to the council 18:1xZ as urgent (P1 + P5 first). The box stays EXPOSED until P1 lands
 OWNER  17:4x-18:0xZ: THE WRITE/RENDER SPLIT -> sent to the council (alive, 18:0xZ) as one bundle: goal:g4.18.5 (rows; a write is a commit) · goal:g4.18.6 (links = raw mint ids; the renderer owns names + visibility) · NEW row, the council mints it: read leaves write.py -> ONE render path (viewport --emit llm, goal:g2.19). Owner: "Read doesn't belong to write semantically"
 OWNER  17:3xZ: RETIRE GOALS.md + the render round trip ("stop bothering with it") -> handed to alive as a bundle-3 row; NEVER render or --check GOALS.md again, never commit it
 OWNER  17:2xZ: goal:g4.18.5 (write.py rows + line edits; a write is a commit behind the permission layer; assigned DE, a council bundle may take it) · move stream-master to encryption-town "once possible" (town:streaming-suite note; skill agi-post §3; needs encryption-town reachable)
@@ -88,6 +89,7 @@ R.  RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + 
 | item | recommendation |
 |---|---|
 | REBOOT 04:50Z 09-29: systemd-oomd made 67 kills, then sanctuary-health failed PSI-full >= 40% past 300 s and the watchdog rebooted BY DESIGN | (a) keep both guards (recommended) · (b) exempt seat infrastructure from oomd — root config · (c) cap the load |
+| belam row says claude-opus-5-5 / high / quiet; the live Prime runs claude-opus-5-5[1m] / max: a resume built from the row (goal:g6.41.1 P2) would DOWNGRADE the Prime | owner sets the row (model + effort) before P2 lands |
 | docker data-root still on / | a stop-the-daemon window; owner's word |
 | DISK LATENCY: sda (USB SSD, dm-crypt, / + /data) ~35 ms/op | `sudo smartctl -a /dev/sda` · `sudo dmesg -T` |
 | origin remote moved (every push prints it) | `git remote set-url origin <new>` |
