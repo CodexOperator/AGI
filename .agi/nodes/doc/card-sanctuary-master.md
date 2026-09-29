@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (20:0xZ 09-29)
+## §0 State (20:3xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -47,12 +47,12 @@ next   bundle 3 (goal:g7.16.1.3, + row R g6.41.1 after H4g, alive 18:0xZ 1559f7a
 - verify at HEAD: links 5001 / 0 broken · GOALS 419 byte-identical · 0 node deletions · anonymize full range 2fb5c2043..HEAD ok
 
 ## 🔴 Where it stops
-bundle 3 mur run C in flight: wf_67ad5686-154 = R1 63898e64f · R2 429b86530 · S1+S2 65576ac93 · re-mur 57-63 at d4e1f7c62
-(args staged /data/tmp/claude-1000/sm-b3-runC.json). Then: re-mur 64-67 at DG3's next fix commit.
-run A wf_a3b15e54-c65: H1 accept · H2, H3/H4f/H4p1 accept_with_residue → 57-63 → DG3 closed d4e1f7c62
-run B wf_9dd69ca3-b96: H4g accept · H4b (64 scrubbed code literals ~) · H4 a/c/d/e (65-67 park-tag node wording) → DG3 20:0xZ
-summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run transcript dir>/journal.jsonl
-3-4 rounds/run (was 1-2): 10G avail, psi avg10 <1 · pre-existing red: test_sensei_wake_audit item2
+re-mur 64-67 in flight: wf_dd91b5bc-0ea (at 823da7e8e). Then: re-mur 68-75 at DG3's next fix commit; CLEAN when all close.
+run A wf_a3b15e54-c65: H1 accept · H2, H3/H4f/H4p1 → 57-63 → closed d4e1f7c62 (run C re-mur accept; 58b refuted)
+run B wf_9dd69ca3-b96: H4g accept · H4b → 64 · H4 a/c/d/e → 65-67 → DG3 fix 823da7e8e
+run C wf_67ad5686-154: R1 → 68-70 · R2 → 71-73 · S1+S2 accept → 74 75 (nodes) → DG3 20:3xZ; FIX FIRST 69 (live
+systemd test) + 71 (heal budget, live) · [red] one line to belam 20:3xZ
+summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run transcript dir>/journal.jsonl · bodies /data/tmp/claude-1000/sm-b3-*.md
 CLEAN at the end → [handoff] room + alive + belam [merge-up] numbers; that tip = bundle 4's base.
 
 ## §4 Traps
