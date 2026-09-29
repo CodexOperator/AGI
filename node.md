@@ -18,7 +18,7 @@ status: active
 tags:
   - local-maxxing
   - engine
-title: "G7.33.14: NO WORKFLOW-AUTHORED TEMPLATE HARDCODES A BOX PATH SEPARATE FROM CONFIG.JSON'S ROOT -- ~15 review/investigation templates carried a stale /home/ubuntu/work/agi literal; kid/parent dispatch was never affected"
+title: "G7.33.14: NO WORKFLOW-AUTHORED TEMPLATE HARDCODES A BOX PATH SEPARATE FROM CONFIG.JSON'S ROOT -- ~15 review/investigation templates carried a stale <home>/work/agi literal; kid/parent dispatch was never affected"
 town: core
 ---
 # goal:g7.33.14
@@ -26,9 +26,9 @@ town: core
 ## Why this exists
 **Parent `goal:g7.33`.** director-engine gen 20 (2026-09-25), while checking whether DH.360's
 merge-up-review could safely be re-dispatched, found `.agi/config.json` declares
-`root: "/home/ubuntu/work/agi"` and that exact literal (not a `{template}` var) is hardcoded
+`root: "<home>/work/agi"` and that exact literal (not a `{template}` var) is hardcoded
 into the prompt text of ~15 workflow.py-authored review/investigation templates. MEASURED on
-this box: `ls /home/ubuntu/work/agi` -> No such file or directory; `whoami` -> belam; `$HOME` ->
+this box: `ls <home>/work/agi` -> No such file or directory; `whoami` -> belam; `$HOME` ->
 <home>; the real repo root is /data/work/agi (confirmed via `ps -ef` showing real
 launch-wrapper processes running from /data/work/agi). thought-master independently verified
 the same absence (TMM.183, 2026-09-25 23:0xZ) and named this the right home for the fix.
@@ -37,7 +37,7 @@ the same absence (TMM.183, 2026-09-25 23:0xZ) and named this the right home for 
 - Every `workflow.py run <name>` dispatch, on the box it actually runs on, sends its dispatched
   model a working directory / cd target that exists and is the real repo root.
 - `.agi/config.json`'s `root` field (and `paths.local_maxxing.pi_home`, `claude_home`,
-  `logs_dir`, which carry the same `/home/ubuntu/...` assumption) match the box.
+  `logs_dir`, which carry the same `<home>/...` assumption) match the box.
 - A single seam retires: no workflow-authored `.json`/`.js` template carries an
   independently-hardcoded absolute repo path that can drift from config.json's own `root`.
 
@@ -50,7 +50,7 @@ the same absence (TMM.183, 2026-09-25 23:0xZ) and named this the right home for 
   (config.json's `root`, or the `.json` templates it feeds), not scattered N times.
 
 ## Falsifier
-1. `grep -rn '/home/ubuntu/work/agi' extensions/ .claude/ .agi/config.json` returns 0 hits,
+1. `grep -rn '<home>/work/agi' extensions/ .claude/ .agi/config.json` returns 0 hits,
    EXCEPT lines in test_workflow.py, test_unify.py, test_workflow_template_seam_js.py and
    test_workflow_template_seam_json.py that assert the literal's ABSENCE as a negative fixture
    -- those files must keep the string to test for it. A hit anywhere else is real; a hit only
