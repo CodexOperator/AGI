@@ -49,7 +49,7 @@ next   bundle 4 (goal:g7.16.1.4 write/render split: W0 g4.19 → W1 g4.18.5 → 
 NEXT: council re-mur wf_868fe677-21c in flight = chunk 2 CM1-CM4 (528115210) + chunk 1 CM5 CM6 CM8 (cfe5a6aca).
 DEVIATION from DG3's 'hold for one re-mur' (20:5xZ): the 23:00Z stop -- the fixed half now, ONE small round for CM7 CM9
 CM10 at DG3-successor's commit (they sit on doc:card-director-general-3). Then re-confirm CLEAN.
-Nothing running. At the handover: Workflow tool, name agi-merge-up-review, rounds = the bundle's rows (old = the row commit^, new = the row commit), args staged in
+Bundle 4, at its handover: Workflow tool, name agi-merge-up-review, rounds = the bundle's rows (old = the row commit^, new = the row commit), args staged in
 /data/tmp/claude-1000/sm-b4-*.json · summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
 carried goal-leaf candidates (7): in the room [handoff] 20:0xZ and /data/tmp/claude-1000/sm-b3-clean.md
 
