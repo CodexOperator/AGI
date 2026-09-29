@@ -37,7 +37,7 @@ L1  DONE e1d710942  8 horizon parents over an active leaf -> active · walk 468 
 L1b PROPOSED  check_goal_lifecycle in verification.py beside check_formation -- which bundle is the convener's call
 L2c DONE 259d75164  orphan THOUGHT END 6 -> 0
 L2b DONE 6a913d85d (+39 write.py self-commits)  repo path 92 -> 10 live nodes; the 10 are excluded by rule (other posts' cards, unified brief, formation)
-L2a(a) BLOCKED  unify.py + verify_unified.py: 2 config:commands rows nested under `manifest:` -- no write.py verb removes a nested key
+L2a(a) WAITS ON W1  unify.py + verify_unified.py: alive 22:4xZ chose option (1) as W1 own row verb (goal:g7.16.1.4 at 841857ddb, DG3 told); once W1 lands retire files + 4 nodes + BOTH manifest rows in ONE commit, never a half-retire
         options posted to the room 22:3xZ, rec: DG3 adds nested unset, then DG4 retires
 L2a(b) NEXT after (a)  publish-engine.sh + the g7.10 hook alarm (cc-session-start.sh:119) + grid.py cron --publish-engine + crons.py job;
         the hook runs in EVERY session: test it with the alarm removed before retiring anything it reads
