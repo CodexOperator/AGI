@@ -24,3 +24,7 @@ town: core
 # build:bin-anonymize
 
 `extensions/agi/bin/anonymize.py` -- the physical-token guard at the write seam (SM.122): ONE token list (`box_tokens`), ONE checker (`check`), a box-local pre-commit hook.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Residue 12 of sanctuary-master mur wf_a56d005b-d6b (director-general-3): check now judges a unified diff on its ADDED lines only (added_lines). A removed line is text leaving the repo, so a scrub never refuses itself. Measured before the fix: 5a828b3ce's own diff returned ['home']. Non-diff text is judged whole, as before. Row: test_a_diff_is_judged_on_added_lines_only (scrub passes, leak refuses).
+<!-- THOUGHT:END -->

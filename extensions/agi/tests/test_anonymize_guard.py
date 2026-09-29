@@ -304,3 +304,18 @@ def test_the_live_path_carries_the_home_token(tmp_path, monkeypatch):
     toks = anonymize.box_tokens(tmp_path)
     assert ("home", home) in toks
     assert anonymize.scan(f"see {home}/x.md", toks) == ["home"]
+
+
+# (10) sanctuary-master mur wf_a56d005b-d6b residue 12: a staged diff is judged
+# on its ADDED lines only -- a scrub removing the home path must not refuse
+# itself -- while an added line carrying it still refuses.
+def test_a_diff_is_judged_on_added_lines_only(tmp_path, fake_box, monkeypatch):
+    home = str(tmp_path / "home" / "someuser")
+    monkeypatch.setenv("HOME", home)
+    root = _graph(tmp_path)
+    scrub = tmp_path / "scrub.diff"
+    scrub.write_text(f"diff --git a/n.md b/n.md\n@@ -1 +1 @@\n-see {home}/x\n+see <home>/x\n")
+    assert anonymize.cmd_check(root, None, str(scrub)) == 0
+    leak = tmp_path / "leak.diff"
+    leak.write_text(f"diff --git a/n.md b/n.md\n@@ -1 +1 @@\n-see <home>/x\n+see {home}/x\n")
+    assert anonymize.cmd_check(root, None, str(leak)) == 1

@@ -31,6 +31,7 @@ def groot(tmp_path):
     _node(root, "goal/g1.md", "goal:g1", _T.format("keep; parked: formation g7.16.2"))
     _node(root, "goal/g2.md", "goal:g2", "a body naming `parked: formation g7.16.2`\n")
     _node(root, "goal/g3.md", "goal:g3", _T.format("parked: formation g7.16.20"))
+    _node(root, "deprecated/goal/g4.md", "goal:g4", _T.format("parked: formation g7.16.2"))
     return root
 
 
@@ -61,6 +62,8 @@ def test_one_active_passes_and_wakes_only_the_thought_mark(groot):
 
 
 def test_switching_is_one_cell_and_changes_the_wake_list(groot):
+    _cell(groot, "doc:two-step")
+    assert verification.check_formation(groot).number == {"wake": 1}
     _cell(groot, "doc:council-loop")
     r = verification.check_formation(groot)
     assert (r.status, r.number) == ("PASS", {"wake": 0})

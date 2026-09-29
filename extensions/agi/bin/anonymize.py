@@ -77,12 +77,19 @@ def box_tokens(root):
 def scan(text, tokens):
     """The CLASSES present in `text` — never a value."""
     return sorted({c for c, v in tokens if len(v) >= MIN_TOKEN and v in text})
+def added_lines(text):
+    """A unified diff -> its ADDED lines only; any other text unchanged. A
+    removed line is text leaving the repo: a scrub must never refuse itself."""
+    lines = text.splitlines()
+    if not any(l.startswith(("@@", "diff --git")) for l in lines):
+        return text
+    return "\n".join(l[1:] for l in lines if l.startswith("+") and not l.startswith("+++"))
 def cmd_check(root, text, diff_file):
     if diff_file:
-        text = Path(diff_file).read_text(encoding="utf-8")
+        text = added_lines(Path(diff_file).read_text(encoding="utf-8"))
     elif text is None:
-        text = _run(["git", "-C", str(locations.source_root(root)),
-                     "diff", "--cached", "-U0"])
+        text = added_lines(_run(["git", "-C", str(locations.source_root(root)),
+                                 "diff", "--cached", "-U0"]))
     if locations.shared_project_root(root) is None:
         print("anonymize: no denylist source, skipped")
         return 0

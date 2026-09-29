@@ -1302,7 +1302,9 @@ def check_formation(groot: Path) -> CheckResult:
                            note=f"want ONE active registered template, got {active!r}")
     goal = str(table[active] or "")
     mark = re.compile(rf"parked: formation {re.escape(goal)}(?!\d|\.\d)")
-    wake = sorted(m.group(1) for f in (groot / "nodes").rglob("*.md") if goal
+    live = (f for f in (groot / "nodes").rglob("*.md")
+            if f.relative_to(groot / "nodes").parts[0] != "deprecated")
+    wake = sorted(m.group(1) for f in live if goal
                   and mark.search(node_writer.thought_text(f.read_text("utf-8", "replace")) or "")
                   and (m := re.search(r"^id: *\"?([^\"\n]+)", f.read_text("utf-8", "replace"), re.M)))
     return CheckResult("formation", "PASS", time.monotonic() - t0, number={"wake": len(wake)},
