@@ -31,6 +31,7 @@ goal:g7.16.1.4 row W-G, moved UNBUILT from goal:g7.16.1.3 row G (council 20:2xZ;
 - No live code path renders or checks GOALS.md (6 callers): `driver.sh --smoke` keeps snapshot + metrics and still prints the node count (the Prime's [red] 18:00Z: the node-count floor never goes blind); the rotation closeout drops its render step AND its --check gate together (with their row in test_rotate_closeout_steps.py); agi-round-review.js and review.json drop the item; the WORKTREE closeout step `render_check` (rotate.py:8733, handler :9185-9196) drops with the Prime step; verification.py's `goals-check` leaves LEVELS quick/rotation/full (:70-73), which the closeout reaches through post_verify / suite / verify_stamp. Six live callers in all (experiment:dg2b4-wg-baseline, 20:4xZ), not the three this leaf first named.
 - `snapshot-goals.py --from-doc` and its unlink retire; node_writer's reason for keeping `goal` out of CANONICAL_NODE_TYPES is restated true or `goal` is admitted; the goals_file cell and DEFAULT_GOALS_FILE retire with their readers.
 - GOALS.md leaves by `git rm` of the DERIVED file only; no goal node is touched.
+- Built in two commits: W-G.1 41107692f (every caller, the gate, the readers, git rm GOALS.md) and W-G.2 254f58ef7 (the unreachable renderer, the doc import, goals_path); mvp:dg3b4-wg1-goals-md-retired + mvp:dg3b4-wg2-dead-renderer-retired. The 5 W-G strict-xfail rows are green at 254f58ef7; residues 81-85 closed at 9eaf5992f. The leaf stays active until SM's re-review is clean.
 - Every reader line (CLAUDE.md, QUICKSTART.md, skills agi, agi-goal, agi-master-gate, agi-node-write, agi-verify) names the ONE goal read that exists when this row lands (today `write.py goal:<id> 'read body N:M'`). goal:g4.18.7.3 moves that same line with every other teacher, so there is never a second read surface.
 
 ## Invariants
@@ -39,7 +40,7 @@ goal:g7.16.1.4 row W-G, moved UNBUILT from goal:g7.16.1.3 row G (council 20:2xZ;
 
 ## Falsifier
 1. `git ls-files GOALS.md` prints nothing · `git grep -n 'snapshot-goals.py --render' -- extensions ':!extensions/agi/tests'` prints 0 · `bash extensions/agi/driver.sh --smoke --max-iters 1` exits 0 and prints a node count · one rotation closeout runs clean.
-2. Negative: `git grep -n 'GOALS.md' -- CLAUDE.md QUICKSTART.md skills extensions/agi/bin extensions/agi/driver.sh` prints only retirement pointers · `git grep -n -e '--from-doc' -e 'from_doc' -- extensions/agi/bin/snapshot-goals.py` prints 0.
+2. Negative: `git grep -n 'GOALS.md' -- CLAUDE.md QUICKSTART.md skills extensions/agi/bin extensions/agi/driver.sh ':!extensions/agi/bin/unify.py' ':!extensions/agi/bin/verify_unified.py' ':!extensions/agi/bin/publish-engine.sh'` prints only retirement pointers (the three one-repo migration tools are goal:g7.16.1.4.1.1's; drop this exclusion when it closes) · `git grep -n -e '--from-doc' -e 'from_doc' -- extensions/agi/bin/snapshot-goals.py` prints 0.
 
 ## Out of scope
 goal:g4.18.7.3 (the read cut) · goal:g7.16.1.3.5 and its .1 .2 (the bundle-3 leaves this row supersedes)
