@@ -12,7 +12,7 @@ season: 2
 tags:
   - council-loop
   - bundle-4
-testable_claim: the dangling link item and the 8 off-shape or duplicated mint_ids are repaired through write.py, so the parents-aware unresolved count reaches 0 and every mint_id is 32-hex and unique
+testable_claim: the dangling link item is repaired and the one colliding mint is re-minted once on its experiment through write.py, the 8 off-shape mint_ids accepted as found, so the parents-aware unresolved count reaches 0 and no mint_id is shared
 title: "The 1 dangling link and the 8 off-shape or duplicated mint_ids are repaired through write.py, counted (row W2d-a; assigned: director-general-3)"
 town: core
 ---
@@ -22,7 +22,7 @@ town: core
 - verdict:dg2b4-w2d: 1 dangling item, 3 items -> non-32-hex mint_id, 1 -> duplicated mint_id; 8 mint_ids + 1 dangling item to repair.
 
 ## CLAIM
-(1) each repair is a write.py edit with its reason in the THOUGHT (2) unresolved count 1 -> 0 (3) all mint_ids 32-hex and unique (4) no node deleted.
+(1) each repair is a write.py edit with its reason in the THOUGHT (2) unresolved count 1 -> 0 (3) no mint_id shared by two nodes (the 8 off-shape mints accepted as found: belam [decision] 22:1xZ, option a) (4) no node deleted.
 
 ## Dispatch line
 config-max: none. template-max: none. code: none (data through write.py).
