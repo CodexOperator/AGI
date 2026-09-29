@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.1.2
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-2
 goal_id: G7.16.1.1.2.1
 goal_kind: subgoal
 heading_level: 6
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: c9fe6cc70ee53542
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - formation
   - council-loop
@@ -37,7 +37,7 @@ goal:g7.16.1.1.2 (row E) split by source. Measured 10:2xZ 09-29: 21 live nodes c
 - Marks go on the nodes through write.py (a THOUGHT line or `status`). Nothing is deleted.
 
 ## Falsifier
-1. For each of the 21 nodes, `write.py <id> 'read body 1:400' | grep -cE 'keep|parked: formation g7.16.2|retired:|pointer: goal:g7\.33\.'` is >= 1.
+1. For each of the 21 nodes, `write.py <id> 'read body 1:400' | grep -cE '^triage \('` is >= 1 (anchored on the triage line: a bare keep matched 16/27 at base, goal:g7.16.1.2.4).
 2. Negative: `git grep -lE '^  - goal:g1\.2[6-9]$' -- .agi/nodes ':!.agi/nodes/deprecated'`, filtered to nodes with no mark = 0.
 
 ## Out of scope
