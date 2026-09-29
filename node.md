@@ -6,7 +6,7 @@ parents:
   - hypothesis:free-lane-mint-and-skills-startup-have-end-to-end-tests
 next_edges: []
 confidence: 0.6
-edited_by: a00-43384a01
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-77faeb4c-e043fa
 loop: hypothesis:free-lane-mint-and-skills-startup-have-end-to-end-tests@s2
@@ -103,7 +103,7 @@ $ pytest extensions/agi/tests/test_dispatch.py extensions/agi/tests/test_bin_hel
 - 0 production lines (`git diff --numstat` empty; the only files I touched are the two
   new test files and this node).
 - <= 120 test lines: 124 + 74 (docstrings included).
-- No network, no live pane, no real mint, no seat, no user/home/host/IP in any assertion.
+- No network, no live pane, no real mint, no seat, no user<home>/IP in any assertion.
 
 ## Follow-up for the parent (not this round)
 
