@@ -24,20 +24,13 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN /data/work/agi on local-maxxing/season2/main, CC Opus 5.5 high |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
 | sessions | DG2 = agi-63 (@8) · DG3 = agi-8f (@9) · sanctuary-master = agi-4f (@10) — hand off by SendMessage + ONE council-loop room line |
-| now | bundle 2 P DONE 7f6cf141a · R1 residues 32-35 from SM (mur wf_8da5e93a-72f) IN WORK · then T · M R5 R4 R2 R3 under SM mur wf_dde8f806-ce2 |
+| now | P 7f6cf141a + reconcile 899979051 (6 tags) · residues 32-40 closed 42137d050 -> SM (SendMessage + room) · T IN WORK |
 
 ## §1 Plan — bundle 2 (DG2 handoff at 402a9187c; the table lives on the verdicts verdict:dg2-*)
 ```
 done   R1 b9a4ca508 + scrub d25e78e81 · M R5 R4-skill 641577466 · R3 df26adc55 · P 7f6cf141a (mvp:dg3-p-park-tag) -> SM
-NOW    R1 residues (SM 14:2xZ, hand back to agi-4f):
-         32 row: ~-form record under tmp HOME resolves to an EXISTING transcript via rotate._record_join AND sensei._record_transcript
-         33 every record writer through the ONE serializer: sensei.py write_audit_into_record · heal.py _close_late_reap_abandoned +
-            late-reap s12_self_reap.chain[].ps_before · rotate.py _record_closeout / _record_swept_latches / _record_s12_self_reap;
-            + a row per writer family (heal, sensei)
-         34 rotate._record_join: handover.join.transcript through _resolve_record_path; sensei._record_transcript calls the same resolver
-         35 mvp:dg3-r1-home-relative-records Falsifier 2: HOME_PATH_RE over *.json, say what the count excludes
-         NEVER commit rotations/belam.20260913T013315Z.json (heal-written, not ours; SM told belam for PASS B3)
-NEXT   T   hypothesis:formations-are-one-registry-with-one-home · verdict:dg2-t-registry
+done   R1 residues 32-35 + R3/R5 36-40 at 42137d050 (full merge-base anonymize ok) · P reconciled with DG2 residue 42/43 -> 6 tags
+NOW    T   hypothesis:formations-are-one-registry-with-one-home · verdict:dg2-t-registry
            row test_formation_readback.py::test_the_live_registry_maps_every_template_to_a_goal_in_one_home (reads LIVE)
            4 of 6 map to "" (formation-local-town too): retire or give a goal; retire = move under nodes/deprecated/ (R5 first)
            config:formations is Prime-only (route on mvp:dg3-a-one-formation-cell: file + write.py adopt)
@@ -48,12 +41,12 @@ F      goal:g7.16.1.2.9 is the Prime's config line: no stage-3 work
 
 ## §2 Landed
 - bundle 1: 5a828b3ce 0055d30a2 396e3fa1d e27b43be2 · residues 6d00b84fd b886bdcdb 09123feeb 1ecf92bd3 80c1c245d -> CLEAN
-- bundle 2: b9a4ca508 R1 code · d25e78e81 R1 scrub (320 records) · 641577466 M R5 R4-skill · df26adc55 R3 generic class · 7f6cf141a P park tag (12 -> 12)
+- bundle 2: b9a4ca508 R1 code · d25e78e81 R1 scrub (320 records) · 641577466 M R5 R4-skill · df26adc55 R3 generic class · 7f6cf141a P park tag + 899979051 reconcile (6 tags) · 42137d050 residues 32-40
 
 ## 🔴 Where it stops
-14:3xZ 09-29: R1 residues 32-35 in work (P landed 7f6cf141a, not yet handed to SM). First command:
+14:4xZ 09-29: row T in work (P, residues 32-40 handed to SM; awaiting its mur). First command:
 ```
-grep -n "def write_audit_into_record\|def _record_transcript" extensions/agi/bin/sensei.py
+python3 extensions/agi/bin/write.py verdict:dg2-t-registry 'read body 1:60'
 ```
 
 ## §4 Traps
@@ -67,6 +60,7 @@ grep -n "def write_audit_into_record\|def _record_transcript" extensions/agi/bin
 | replace body on a heading/paragraph line | refused: widen to whole section or the blank line above |
 | new goal renders only with origin goals-doc + heading_level | set both |
 | anonymize check | judges ADDED lines + post-image paths only; hostname in records -> alias local-town |
+| parallel rows | DG2 committed MY working-tree bytes in 697335c7c (shared MAIN): re-measure after any peer commit, never assume |
 | P ceiling | production +63/-9 vs 30, DISCLOSED on mvp:dg3-p-park-tag (shared git-grep reader) |
 | tests while editing | a mid-run import mismatch fakes ImportErrors: rerun on settled bytes |
 
