@@ -980,6 +980,11 @@ def _stamp_env_fields(fm: dict, *, current_season: int | None = None,
 #: NOT tracked: 3 real blocks sit after an unbalanced fence (measured 09-29).
 #: The ONE definition: brief.py, links.py, metrics.py, snapshot-goals.py and
 #: graph2sql.py read it through the functions below (`goal:s17`).
+#: The two marker strings a writer emits -- the ONE spelling (moved verbatim
+#: from snapshot-goals.py, goal:g7.16.1.2; that file and write.py import them).
+THOUGHT_BEGIN = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
+                 "regenerating scans. The reasoning behind THIS version. -->")
+THOUGHT_END = "<!-- THOUGHT:END -->"
 _THOUGHT_RE = re.compile(
     r"^<!--\s*THOUGHT:BEGIN.*?^<!--\s*THOUGHT:END\s*-->",
     re.DOTALL | re.MULTILINE)

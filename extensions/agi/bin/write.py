@@ -2915,9 +2915,8 @@ def _compose_body(root, edit: Edit) -> str:
             body = body.rstrip() + f"\n\n{NOTES_HEADING}\n{note}\n"
 
     if edit.thought:
-        block = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
-                 "regenerating scans. The reasoning behind THIS version. -->\n"
-                 f"{edit.thought}\n<!-- THOUGHT:END -->")
+        block = (f"{node_writer.THOUGHT_BEGIN}\n{edit.thought}\n"
+                 f"{node_writer.THOUGHT_END}")
         body = node_writer.replace_thought(body, block)
     return body
 

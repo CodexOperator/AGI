@@ -78,9 +78,8 @@ def _cell_with(root: Path, active: str, templates: str) -> None:
         f"templates: {templates}\n---\n", "utf-8")
 
 
-# Strict xfail: RED on the trunk at 82d64ffe7 -- find_node_file resolves
-# nodes/deprecated/, so a retired template passes; the build removes the marker.
-@pytest.mark.xfail(strict=True, reason="hypothesis:formation-check-refuses-a-deprecated-template")
+# RED on the trunk at 82d64ffe7 -- find_node_file resolves nodes/deprecated/,
+# so a retired template passed; green since director-general-3's build.
 def test_a_retired_template_fails_the_check(groot):
     _node(groot, "deprecated/doc/retired.md", "doc:retired")
     _cell_with(groot, "doc:retired", "{doc:council-loop: g7.16.1, doc:retired: g7.16.9}")

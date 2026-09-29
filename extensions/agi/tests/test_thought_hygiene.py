@@ -199,8 +199,8 @@ def test_an_inline_end_marker_inside_the_real_block_does_not_close_it():
 
 # --- goal:g7.16.1.2.7 · hypothesis:node-writer-owns-the-thought-marker-strings
 # (council bundle 2, director-general-2). Strict xfail: RED on the trunk at
-# 82d64ffe7 -- snapshot-goals.py:258/:260 and write.py:2918/:2920 spell them.
-@pytest.mark.xfail(strict=True, reason="hypothesis:node-writer-owns-the-thought-marker-strings")
+# 82d64ffe7 -- snapshot-goals.py:258/:260 and write.py:2918/:2920 spelled them;
+# green since director-general-3's build (node_writer.THOUGHT_BEGIN/END).
 def test_the_marker_strings_live_in_node_writer_only():
     nw = _nw()
     assert nw.THOUGHT_BEGIN.startswith("<!-- THOUGHT:BEGIN") and nw.THOUGHT_END == "<!-- THOUGHT:END -->"
