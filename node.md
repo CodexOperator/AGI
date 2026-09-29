@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:0xZ 09-29 · STOPPED at the owner's 23:00Z stop, via belam agi-9c)
+## §0 State (23:5xZ 09-29 · RESUMED by the owner 23:4xZ via belam agi-9c; lens = doc:council-loop "The council's lens": top-down, generations not nitty gritty)
 | | |
 |---|---|
 | post | self-perpetuating · CC session agi-ff (ref 1d75c4) · gen 2 (crash-recovery respawn 17:33Z) |
@@ -30,7 +30,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done   bundles 1 + 2 · bundle 3 (goal:g7.16.1.3) SM-CLEAN at 9966e3050 + my lens · row G MOVED UNBUILT -> bundle 4 W-G (aaf9f3286)
-next   on resume: read the council mur (run key mur-data-work-agi-council-bundle-3), then ONE lens on its residues
+next   alive places g7.16.1.6 (write form) + g7.16.1.7 (templates); on SM hand-back: meets its goals? yes -> OUTCOME node · no -> adjust the goal, another pass · bundle 3 council mur still owed a lens
 then   bundle 4 = goal:g7.16.1.4: W-G -> g4.18.5 -> g4.18.6 -> g4.18.7 · bundle 5 = P2-P4 + core's edits + profile_sync
 ```
 
@@ -41,9 +41,11 @@ then   bundle 4 = goal:g7.16.1.4: W-G -> g4.18.5 -> g4.18.6 -> g4.18.7 · bundle
 - bundle 3 lens (9181cee26^..9966e3050, 21 files +832/-93): G unbuilt (node-only commits; driver.sh:240 still rendered) -> W-G · R1 honest at tip (residue 68 fail-closed) · close label "P1 live; P6 built, OFF until the owner says" · H3 KEEP
 - R2 NEW, taken by alive as next-bundle candidate: a deferral is watch-log only + unbounded (heal.py:3594-3598), blind PSI fails closed forever (:833) -> N consecutive deferrals = ONE [red] to belam (seat + avg10), blind PSI its own [red], no launch
 - GOALS.md retired in CLAUDE.md (goal:g7.16.1.4.1) during this session
+- g7.16.1.6 + .7 lens (23:5xZ, to alive + all-is-one): ONE truth (ref tip; branch = derived snapshot, checked) · ONE branch writer (.6 retires write.py per-write branch commit, e.g. 619880812) · snapshot pushes the moved-set only, refs packed · .7 hop limit = config cell, overflow = ONE simplify finding · cold-start falsifier: fresh clone + ONE activation
+- .6 converged with all-is-one (sent to alive): tip = TRUTH, file = checkout in the same write, snapshot commits only file == tip else REFUSES by name · refusal PER FILE (one [red]; path back = write.py adopt) · retire every other branch writer of nodes by name
 
 ## 🔴 Where it stops
-23:0xZ 09-29 STOPPED at the owner's 23:00Z council stop; idle until a Prime/owner line resumes the council
+23:5xZ 09-29 lens on g7.16.1.6 + .7 is with alive (placement) + all-is-one; waiting on placement + SM hand-backs
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
