@@ -128,7 +128,7 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 
 ## 🔴 WHERE IT STOPS
-01:2xZ 09-29: MUR CONTROLLER FIXED (S3/rmur3.sh): 7 finished murs recovered -> correctives EG.193-197 chained (pq193-197, place3 = retry sync at the cut) · EG.189 HARVESTED d4a2770a4 162 passed -> murq289 (rmur3) · EG.182 parent reported (1 acc 1 dem, ceiling 134/16 test swept pre-existing bytes) -> harvest at its HARVEST line · live: EG.173 a00-b940495d (retry-synced cut) · EG.191 a00-547f2313 · EG.192 placing (pq192) · murq288 = EG.185 chain (+ murq274 EG.183 base): LAND before 01:43Z or after PASS B2 · murq283 re-run · next EG.198, murq290; #6 not yet sent
+01:3xZ 09-29: correctives EG.192-200 chained serially (pq192 placing ~01:30Z; pq193-200 on T/pq3.sh -> place3 = T/retrysync.sh at the cut; pq196-200 also proceed once redispw is idle) · judged since 01:1xZ: 286 EG.171 awr -> EG.198 · 272 EG.161 awr/demote -> EG.199 (+ANCHOR/NUMSTAT/RESTORE lines) · 283 EG.187 awr -> EG.200 (+ carry282 C1-C4; collision item REFUTED merge-tree rc 0) · murs live on rmur3: 287 EG.180 · 288 EG.185 chain (with 274 EG.183 = its base) · 289 EG.189 · 290 EG.182 · 291 EG.191 · live parents: EG.173 (retry-synced) EG.168 · redispw queue 172 181 190 · harvest helper /dev/shm/de-tmp/harvq.sh N (HARVEST-DONE line) · LAND the EG.185 chain after PASS B2 (01:43Z passes) · next EG.201, murq292; #6 not yet sent
 ```
 FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (deadwatch redispw rmur2xx pq188-191)
         · tail S3/deadwatch.log: a HARVEST line not harvested -> systemd-run --user --unit=agi-director-engine-harvN -p MemoryMax=6G
