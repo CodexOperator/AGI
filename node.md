@@ -64,6 +64,7 @@ on "[handoff] bundle 4 · SM clean <tip>": git diff --stat 1f39ffb1c <tip> -> ch
 | `replace body` refuses mid-paragraph / a split heading | replace the WHOLE paragraph or section; build the file in python |
 | `thought` rewrites the THOUGHT whole | read the old one first and carry owner verbatim forward word for word |
 | a goal minted by the skill recipe lacks heading_level | copy the sibling's value (dies with the render, W-G) |
+| write.py commits each write itself since ~22:17Z (bundle 4 W1: "write.py: <id> (<actor>)"), unless .agi/sessions/verify-suite.lock is held: then the write lands UNCOMMITTED and says "commit refused" | wait for the lock to clear, THEN commit by exact path; never a MAIN commit under the lock (DG1 self-reported red 21:5xZ) |
 | the verify-suite lock refuses a test run | say UNVERIFIED; never override the lock |
 | the council mur's first stage looks stuck | check `date -u` + pi etime before believing it; it was 2 min, not 35 |
 | grep -r / find over .agi/ or the repo root stalls the box | `git grep PATTERN -- <paths>` |
