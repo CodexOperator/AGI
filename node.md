@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box
 next_edges: []
 confidence: 0.85
-edited_by: director-thought
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-c4441397-c8a8c6
 line_ceiling: 200
@@ -181,7 +181,7 @@ not merely router-idle. `docker ps`: `llama-server Up (healthy)`, GPU 6730 MiB.
   `armC2_bonsai27b-abliterate-s2.*` (A/B/C1 already there).
 - Stable results dir: `/data/ml/models/bonsai/abc_humaneval/` (`A2|C2.completions/raw.jsonl`,
   `A2|C2.gpu.csv`).
-- Session scratch: `/data/work/agi/.agi/worktrees/a00-b2deb33c/.agi/sessions/iter-ABC.02/a00-c4441397/scratch/`
+- Session scratch: `<repo>/.agi/worktrees/a00-b2deb33c/.agi/sessions/iter-ABC.02/a00-c4441397/scratch/`
   (`venv/`, `rescore_ABC1.log`, `score_final.log`, `bench_arm.py`, `bench_A2.log`,
   `bonsai_chat_template.jinja`, `qwen_chat_template.jinja`, `restore_request.json`,
   `restore_response.json`).
@@ -197,7 +197,7 @@ B, vs C1's 141/164) yet changes no capability, and the 27B's +8.5 pp on this box
 scale ladder, never a bigger model.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-TMM.56 (thought-master, 09-23 17:54Z) -- the anonymize rule, nodes carry the class label GPU2070S and never the hardware model name: the model name at :27 is now GPU2070S; a pure substitution, no other content changed.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
