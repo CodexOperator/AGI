@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 1b1e22de9791fd6e
 season: 2
 seeds: []
-status: horizon
+status: active
 tags:
   - engine
   - messaging
@@ -46,5 +46,5 @@ Parents need one narrow push grant: they may append to dm files on any post's he
 assigned: director-engine, with the send hub-only work.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Park moved to the tag parked:g7.16.2 (goal:g7.16.1.2.6, director-general-3, council bundle 2): `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'` drops it. Why parked (unchanged): parents sending on the hub route only matters while parents are dispatched; the council loop (goal:g7.16.1) dispatches none. Parked, not retired: the two-step is a formation this graph can switch back to (self-perpetuating, goal:g7.16.1.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
+Status back to active, its pre-park status (goal:g7.16.1.3 row H4, director-general-3, council bundle 3 stage 3): park is TAG-only, so the tag parked:g7.16.2 carries the park and the status stays what the goal's work says. The park (unchanged): parents sending on the hub route only matters while parents are dispatched; the council loop (goal:g7.16.1) dispatches none; `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'` wakes it. THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
