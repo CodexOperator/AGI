@@ -74,6 +74,7 @@ import towns  # noqa: E402 -- row town cell reader (goal:g15.25 SM.32b)
 import boxes  # noqa: E402 -- the ONE box-membership guard (hyp:l4-remote-thought-town)
 import harness_template  # noqa: E402 -- argv is template data (hyp:harness-arg-...)
 import adapters  # noqa: E402 -- the ONE harness bin resolver (goal:g15, round 3)
+import mem_cap  # noqa: E402 -- goal:g6.41.1: the post scope arm + its one switch
 from graph_core.persistence import frontmatter  # noqa: E402
 
 
@@ -1490,7 +1491,8 @@ def _read_seat_pin(root: Path, seat: str, cur_gen: int | None) -> tuple[Path | N
 # --- spawn subcommand -----------------------------------------------------
 
 
-def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None) -> str:
+def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None,
+               scope_slice: str | None = mem_cap.POST_SCOPE_SLICE) -> str:
     """The quoted shell line that launches `claude_cmd`.
 
     Three exports may ride in front of the command, and all compose:
@@ -1519,15 +1521,21 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None) -> s
     TERM'd-FROM-OUTSIDE (signal 15 with a sender line) from the WINDOW-KILLED
     (HUP). The seatless line stays byte-identical to today — the wrapper is
     inserted only when `seat` is not None.
+
+    **Every post runs in its OWN scope** under `scope_slice` (goal:g6.41.1 P6,
+    mem_cap.scope_argv; cap-free, the slice holds the cap), wrapping the
+    launch-wrapper too, so an oomd kill takes one post. spawn_window, the ONE
+    caller, passes the `spawn.post_scope` cell: None (the cell off) = unscoped.
     """
-    joined = " ".join(shlex.quote(c) for c in claude_cmd)
+    unit = f"agi-post-{re.sub(r'[^\w.-]', '_', seat)}-{int(time.time())}" if seat else None
+    joined = " ".join(shlex.quote(c) for c in mem_cap.scope_argv(claude_cmd, scope_slice))
     # AGI_SEAT rides FIRST in the export chain, so it is set before the
     # reaper/ultracode knobs and the claude process — composed the same way
     # REAPER_ENV_EXPORT already composes, as one `... && ...` line.
     cmd = joined
     if seat is not None:
-        wrap = " ".join(shlex.quote(c) for c in (
-            _launch_wrapper_argv(seat, claude_cmd)))
+        wrap = " ".join(shlex.quote(c) for c in mem_cap.scope_argv(
+            _launch_wrapper_argv(seat, claude_cmd), scope_slice, unit))
         cmd = f"export AGI_POST={shlex.quote(seat)} AGI_SEAT={shlex.quote(seat)} && " + wrap
     reaper = REAPER_ENV_EXPORT + " && " + cmd
     if _is_ultracode(settings):
@@ -1731,6 +1739,83 @@ def cmd_launch_wrapper(args, root) -> int:
 _TMUX_ARG_SAFE = 8192
 
 
+def ensure_tmux_session(tmux_session: str,
+                        slice_: str = mem_cap.POST_SCOPE_SLICE) -> None:
+    """goal:g6.41.1 P1: create `tmux_session` when absent, in its OWN scope under
+    `slice_` (never inside the remote-control or reaper cgroup), so the next
+    new-window has a server. Present = no-op; a failure is a warning (the
+    new-window that follows names the real error)."""
+    try:
+        if subprocess.run(["tmux", "has-session", "-t", tmux_session],
+                          capture_output=True, text=True, timeout=10).returncode == 0:
+            return
+        r = subprocess.run(["systemd-run", "--user", "--scope", "-q", f"--slice={slice_}",
+                            f"--unit=agi-tmux-{tmux_session}-{int(time.time())}", "--",
+                            "tmux", "new-session", "-d", "-s", tmux_session],
+                           capture_output=True, text=True, timeout=30)
+        if r.returncode != 0:
+            print(f"warn: could not create tmux session {tmux_session!r} in its own "
+                  f"scope: {(r.stderr or r.stdout).strip()}", file=sys.stderr)
+    except (OSError, subprocess.SubprocessError) as exc:
+        print(f"warn: tmux session ensure for {tmux_session!r} failed: {exc}",
+              file=sys.stderr)
+
+
+def _cutover_plan(procs: dict, keep: int, posts: dict) -> dict:
+    """goal:g6.41.1 cutover, PURE: {pid: (ppid, comm)} -> {unit name: [pids]}.
+    A post root is a pid in `posts` ({pid: post name}) or a tmux server child
+    whose tree runs `claude`; each root's tree is its OWN unit (the post name,
+    else pid-<root>). Every other pid but `keep` (the service MainPID) is "tmux"."""
+    kids: dict = {}
+    for pid, (ppid, _c) in procs.items():
+        kids.setdefault(ppid, []).append(pid)
+
+    def tree(p):
+        return [p] + [q for k in kids.get(p, []) for q in tree(k)]
+    roots = set(posts) | {p for p, (pp, _c) in procs.items()
+                          if procs.get(pp, (0, ""))[1].startswith("tmux")
+                          and any(procs[q][1] == "claude" for q in tree(p))}
+    plan = {posts.get(r) or f"pid-{r}": sorted(tree(r)) for r in sorted(roots)}
+    moved = {q for pids in plan.values() for q in pids}
+    rest = sorted(p for p in procs if p != keep and p not in moved)
+    return {**({"tmux": rest} if rest else {}), **plan}
+
+
+def _cutover_to_scopes(cgroup_dir, keep: int, posts: dict, *,
+                       slice_: str = mem_cap.POST_SCOPE_SLICE, prefix: str = "agi-",
+                       tries: int = 5) -> dict:
+    """Move every pid of `cgroup_dir` but `keep` into its plan unit, each a
+    Delegate=yes scope under `slice_`, by StartTransientUnit(PIDs) (a new unit)
+    or AttachProcessesToUnit (one already started), repeated until only `keep`
+    is left (a fork mid-move lands next try). DUMMIES ONLY here: the live
+    cutover is the owner's word after PASS B3 (doc:card-belam §6)."""
+    procs_file, done = Path(cgroup_dir) / "cgroup.procs", {}
+    bus = ["busctl", "--user", "call", "org.freedesktop.systemd1", "/org/freedesktop/systemd1",
+           "org.freedesktop.systemd1.Manager"]
+    for _ in range(tries):
+        live = [int(x) for x in procs_file.read_text().split() if int(x) != keep]
+        if not live:
+            break
+        procs = {}
+        for pid in live + [keep]:
+            try:
+                st = Path(f"/proc/{pid}/stat").read_text()
+                procs[pid] = (int(st.rsplit(")", 1)[1].split()[1]),
+                              Path(f"/proc/{pid}/comm").read_text().strip())
+            except (OSError, ValueError, IndexError):
+                continue  # exited mid-read
+        for name, pids in _cutover_plan(procs, keep, posts).items():
+            unit, ids = f"{prefix}{name}.scope", [str(q) for q in pids]
+            argv = (bus + ["AttachProcessesToUnit", "ssau", unit, "/", str(len(ids)), *ids] if unit in done
+                    else bus + ["StartTransientUnit", "ssa(sv)a(sa(sv))", unit, "fail", "3",
+                                "PIDs", "au", str(len(ids)), *ids, "Slice", "s", slice_,
+                                "Delegate", "b", "true", "0"])
+            r = subprocess.run(argv, capture_output=True, text=True, timeout=30)
+            done[unit] = done.get(unit) or r.returncode == 0
+        time.sleep(0.5)  # the scope job settles before the re-read
+    return done
+
+
 def _launch_window(tmux_session: str, name: str, shell_cmd: str, *,
                    cwd: str | None = None) -> int:
     """Run `shell_cmd` in a new tmux window. Returns 0 on success.
@@ -1760,6 +1845,7 @@ def _launch_window(tmux_session: str, name: str, shell_cmd: str, *,
        downstream window-existence check added at L3.33 caught the *symptom*;
        this returns the *cause*.
     """
+    ensure_tmux_session(tmux_session)  # goal:g6.41.1 P1: a server first, in its own scope
     launch_cmd = f"cd {shlex.quote(cwd or os.getcwd())} && {shell_cmd}"
     if len(launch_cmd) > _TMUX_ARG_SAFE:
         fd, script = tempfile.mkstemp(prefix=f"agi-launch-{name}-",
@@ -1930,7 +2016,8 @@ def spawn_window(*, name: str, tier: str, prompt_file: str,
             )
 
         # Quote for shell display (ultracode roles are env-gated + keyworded)
-        shell_cmd = _shell_cmd(claude_cmd, settings, seat=seat)
+        shell_cmd = _shell_cmd(claude_cmd, settings, seat=seat, scope_slice=mem_cap.resolve_post_scope(
+            _config_json(root) if root is not None else {}))
 
     if dry_run:
         print(shell_cmd)
