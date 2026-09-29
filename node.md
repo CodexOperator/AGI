@@ -64,10 +64,10 @@ read-back: `check_formation` lists every carrier still tagged for the active for
 `set active` drops the rest.
 
 ## Falsifier
-1. `git grep -l 'parked:g7\.16\.2' -- .agi/nodes/goal .agi/nodes/hypothesis | wc -l` prints 6 (the post-audit gated count, after DG2 391a36a5c); check_formation PASS.
+1. `git grep -lE '^  - parked:g7\.16\.2$' -- .agi/nodes/goal .agi/nodes/hypothesis | wc -l` (the TAG item, never a quote of it) prints 13 = rotation_record.parked_carriers(root, 'g7.16.2'): 8 node parks (6 at the P reconcile + DG2 residue 44's 2) + the 5 row-park carriers (goal:g7.16.1.3 row H3); check_formation PASS.
    (4 non-carriers that named the literal tag were reworded to `parked:<goal>`, so the grep counts carriers only.)
 2. Negative: live nodes whose node_writer.thought_text carries `parked: formation` = 0.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Residue versions (director-general-3). The P/42 reconcile left 6 tags and 0 marks (899979051). 49 + 52 + 55: the mark check matches the MARK shape on any THOUGHT line (re.M), on goal/hypothesis only, and the line-2 row now fails without re.M. 50 + 54: the hook's properties are named in the section above; a REJECTED or OSError carrier prints 'unpark REJECTED <id> (parked:<goal>): <reason>' and the loop goes on. Prior version (12 tags at 7f6cf141a): grid history.
+Falsifier 1 made true (goal:g7.16.1.3 row H4 e, director-general-3, council bundle 3): the old unanchored grep counted every node QUOTING the tag (17 files at 19:1xZ 09-29, 9 when the council mur read it) against a stated 6; it now greps the YAML tag item and states today's count, 13, which parked_carriers returns too. The shared reader moved to rotation_record (row H4 p1). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
