@@ -28,10 +28,10 @@ gen 18 is a crash recovery, not a rotation: the ack refused on its own dirty row
 | | |
 |---|---|
 | post | belam-S2-L5-XVIII gen 18 (RECOVERED: spawned 20:59Z, ack continue bb35f4c12 after committing the spawn's own row 12d8b278d; quorum link intact; meter 0.07) |
-| formation | council loop LIVE until 23:00Z (owner 16:5xZ: "Keep working till 7pm next and I'll check my CC sub then") · bundle 3 = goal:g7.16.1.3 (grok core simplify; H1 g4.18.3 · H2 g4.18.4 first) with DG1 · alive @4 · all-is-one @5 · self-perpetuating @6 · DG1 @7 · DG2 @8 · DG3 @12 (agi-aa) · SM @13 (agi-1c) · stream-master @14 (NEW, side post) · TM/DT/DE DOWN |
+| formation | council loop LIVE until 23:00Z (owner 16:5xZ: "Keep working till 7pm next and I'll check my CC sub then") · bundle 3 = goal:g7.16.1.3 (grok core simplify; H1 g4.18.3 · H2 g4.18.4 first) with DG1 · alive @4 · all-is-one @5 · self-perpetuating @6 · DG1 @7 · DG2 @8 · DG3 @10 (agi-c5) · DG4 @12 (NEW 22:14Z, owner 22:0xZ; LEFTOVERS lane, doc:card-director-general-4) · SM @13 (agi-1c) · stream-master @14 (NEW, side post) · TM/DT/DE DOWN |
 | merge | bundle 3 CLEAN re-confirmed ddea3a61f (SM 20:20Z, 23/23 residues closed, 0 red) = bundle 4 base · trunk syncs 1b340f1f4 (gen 17) + ce35d8c6f (gen 18: 3a4dcd6ce, ancestry only; the trunk is 0 behind season2/main) · PASS B2 2fb5c2043 · posts [red] fixed dcd06014e + sync #3 07f02d4a2 · PASS B3 due 17:47Z (BASE 922ff3f48d; 220 commits / 30 experiments / 0 D at 16:4xZ) |
 | STREAM | OFF (owner 17:3xZ: "put stream-master on new box first then start the stream"): panic --retract + unit stopped + Xvfb :2 / kiosk / graphweb stopped (freed ~4.7 GB); stream-master (@5 agi-5c) told to hold; encryption-town readiness = investigator report pending |
-| crons | RE-ARMED 21:0xZ by gen 18: CHECK c2bcbd3f "13 */4 * * *" · STOP 134b456e "0 23 29 9 *" · PASS B3 9f6c36ee "33 23 29 9 *". Session-only: a successor re-arms |
+| crons | RE-ARMED 21:0xZ by gen 18: CHECK c2bcbd3f "13 */4 * * *" · STOP c2ca8bfe (8 posts incl. DG4) "0 23 29 9 *" · PASS B3 9f6c36ee "33 23 29 9 *". Session-only: a successor re-arms |
 
 ## §1 Plan
 ```
@@ -46,7 +46,7 @@ OWNER  17:2xZ: goal:g4.18.5 (write.py rows + line edits; a write is a commit beh
 HELD   g1.30 / g4.18.3 / g4.18.4 dms to DE (DE down; the council took g4.18.3 + .4 into bundle 3) · encryption-town config
 ```
 
-## §2 Landed (gen 16): 2fb5c2043 · acff4a1ab · 1532a604b · feed41d3e · dcd06014e · 07f02d4a2 · fc4320819 · fee990795 · 899ea077f · b3f12726e · 7705a3a73 · 883e27369 · 237fdfc3f · gen 17: 45cf51809 · fa6f2c51b · a70ad4312 · 1b340f1f4 · gen 18: 12d8b278d · bb35f4c12 · ce35d8c6f
+## §2 Landed (gen 16): 2fb5c2043 · acff4a1ab · 1532a604b · feed41d3e · dcd06014e · 07f02d4a2 · fc4320819 · fee990795 · 899ea077f · b3f12726e · 7705a3a73 · 883e27369 · 237fdfc3f · gen 17: 45cf51809 · fa6f2c51b · a70ad4312 · 1b340f1f4 · gen 18: 12d8b278d · bb35f4c12 · ce35d8c6f · a8106f76a · 4b9ea1da0 (DG4 row) · 4876c1920 (DG4 card + goal:g7.16.1.5 horizon, owner RAM-disk idea) · W2d mint ruling (a) to DG2+DG1 22:1xZ
 
 ## 🔴 Where it stops
 21:0xZ 09-29 belam-S2-L5-XVIII (recovered): crons re-armed, trunk synced + pushed; inbox read through 20:54Z, nothing open for the Prime; waiting on the owner items for the stream-master move; council STOP 23:00Z, PASS B3 23:33Z; verify smoke BLIND on goal:g4.18.7 heading_level ([red] to alive 18:0xZ)
