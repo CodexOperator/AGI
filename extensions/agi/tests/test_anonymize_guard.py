@@ -387,3 +387,12 @@ def test_a_bare_home_is_the_same_generic_class(tmp_path, fake_box, monkeypatch):
         assert anonymize.scan(text, toks) == ["home"], text
     assert anonymize.home_relative(f"for {bare} at spawn", home="/h/me") == "for <home> at spawn"
     assert anonymize.scan("see /home/<seg> and ~/x", toks) == []
+
+
+def test_prose_naming_the_home_dir_is_not_a_home(tmp_path, fake_box, monkeypatch):
+    """The segment is a user name: `/home/,` in prose never matches (residue 46 follow-up)."""
+    monkeypatch.setenv("HOME", str(tmp_path / "h" / "me"))
+    toks = anonymize.box_tokens(_graph(tmp_path))
+    assert anonymize.scan("anonymize grep (user name, /home/, IPs)", toks) == []
+    assert anonymize.scan("a tmp HOME: <tmp>/home/.npm-global/bin/pi", toks) == []
+    assert anonymize.home_relative("for /" + "home/zqxwv, next", home="/h/me") == "for <home>, next"
