@@ -24,8 +24,6 @@ town: core
 ---
 # goal:g7.16.1.7.2.2
 
-# goal:g7.16.1.7.2.2
-
 ## Why this exists
 goal:g7.16.1.7: the owner, verbatim there: "Add a way to smoothly switch the symlink over to the new config settings." and point 3 "Yup that works." (write beside the old file, swap the symlink by one rename).
 
