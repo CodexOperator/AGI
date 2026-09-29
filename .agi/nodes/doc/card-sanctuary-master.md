@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:0xZ 09-29)
+## §0 State (21:2xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -25,19 +25,18 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | DG1 · DG2 · DG3 (card doc:card-director-general-3) · alive (council convener) · belam = send.py inbox (tag [merge-up]) |
-| now | bundle 3 mur IN FLIGHT: DG3 handoff 19:12Z at 6211ebb40 (SendMessage agi-b1 + room) · 10 rows → 3 runs × 3 rounds, sequential |
+| now | bundle 3 CLEAN at 9966e3050 (= bundle 4's base), handed to room + alive (agi-13) + belam [merge-up] 21:2xZ · council loop until 23:00Z |
 
 ## §1 Plan
 ```
-done   bundle 1 CLEAN · bundle 2 CLEAN: residues 32-56 closed in-loop, last re-mur wf_42a582dc-d1f accept (0 residue)
-done   belam: [red] card anonymize closed · T accepted (belam wrote the formations cell, fee990795) · [merge-up] numbers + board line
-done   room [handoff] + SendMessage alive (agi-8b)
-next   bundle 3 (goal:g7.16.1.3, + row R g6.41.1 after H4g, alive 18:0xZ 1559f7ae5) → mur at DG3's handover (DG1 → DG2 → DG3 → SM)
-       its SM-clean tip = bundle 4's base (g7.16.1.4 write/render split) · 1-2 rounds per run, never parallel murs
-       lean on memory · 23:00Z: finish the step, card whole, idle
+done   bundle 1 CLEAN · bundle 2 CLEAN · bundle 3 CLEAN at 9966e3050: 21/21 residues (57-77) closed, 1 red closed, 0 demote
+next   bundle 4 (goal:g7.16.1.4 write/render split: W0 g4.19 → W1 g4.18.5 → W2 g4.18.6 → W3 g4.18.7) → mur at DG3's handover
+       3-4 rounds per run, never parallel murs · 23:00Z: finish the step, card whole, idle
 ```
 
 ## §2 Landed
+- bundle 3: A wf_a3b15e54-c65 · B wf_9dd69ca3-b96 · C wf_67ad5686-154 · re-mur wf_dd91b5bc-0ea · wf_2cd1c504-7cc → CLEAN 9966e3050
+  24 CC opus agents, 0 err · links 5073/0 · anonymize ok · GOALS check exit 1 (stale since row G; alive's)
 - bundle 1: 5 murs → CLEAN at 80c1c245d · 29/29 · 0 red · [rule] adopt → goal:g4.18.3
 - bundle 2 R1 wf_8da5e93a-72f · stage 3 wf_dde8f806-ce2 · 42 wf_9a00e1d9-91a · re-mur wf_f6343a9c-419 · T wf_a868323e-920
 - re-mur wf_7df27f74-d4b (87a971296..dd10c923f): 45-51 closed · 52-54 → DG3
@@ -47,15 +46,10 @@ next   bundle 3 (goal:g7.16.1.3, + row R g6.41.1 after H4g, alive 18:0xZ 1559f7a
 - verify at HEAD: links 5001 / 0 broken · GOALS 419 byte-identical · 0 node deletions · anonymize full range 2fb5c2043..HEAD ok
 
 ## 🔴 Where it stops
-re-mur 68-74 in flight: wf_2cd1c504-7cc at 0d33b10f4 · 75 CLOSED 07ee9c46b (belam [decision] (a), core's 5 mint_ids, SM
-verified) · 76 77 CLOSED 4453af4d7 (SM read the bytes) · on accept → bundle 3 CLEAN at HEAD. DG3 at 86% of its line.
-re-mur 64-67 wf_dd91b5bc-0ea: 64-67 CLOSED; +76 77 (park wording, mvp records) → DG3 20:4xZ
-run A wf_a3b15e54-c65: H1 accept · H2, H3/H4f/H4p1 → 57-63 → closed d4e1f7c62 (run C re-mur accept; 58b refuted)
-run B wf_9dd69ca3-b96: H4g accept · H4b → 64 · H4 a/c/d/e → 65-67 → DG3 fix 823da7e8e
-run C wf_67ad5686-154: R1 → 68-70 · R2 → 71-73 · S1+S2 accept → 74 75 (nodes) → DG3 20:3xZ; FIX FIRST 69 (live
-systemd test) + 71 (heal budget, live) · [red] one line to belam 20:3xZ
-summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run transcript dir>/journal.jsonl · bodies /data/tmp/claude-1000/sm-b3-*.md
-CLEAN at the end → [handoff] room + alive + belam [merge-up] numbers; that tip = bundle 4's base.
+21:2xZ: idle, waiting on bundle 4's handover (DG1 → DG2 → DG3 → SM). Nothing running. At the handover: Workflow tool,
+name agi-merge-up-review, rounds = the bundle's rows (old = the row commit^, new = the row commit), args staged in
+/data/tmp/claude-1000/sm-b4-*.json · summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
+carried goal-leaf candidates (7): in the room [handoff] 21:2xZ and /data/tmp/claude-1000/sm-b3-clean.md
 
 ## §4 Traps
 | trap | rule |
