@@ -29,19 +29,21 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   mur-1 wf_a56d005b-d6b (18 residues) · mur-2 wf_aa3f01d4-2aa (18/18 closed, 6 new) · mur-3 wf_16ffb9a5-596 (24/24 closed; B E D accept; 4 new on C A → DG3 only)
-next   DG3's handoff → mur-4 over 30684908b..<tip> on rows C + A, items 25 27 28 29 only → clean → alive (agi-8b) + room + ONE board numbers line
+done   bundle 1 CLEAN at 80c1c245d after 5 murs · handed to the council (alive agi-8b, SendMessage + room line) 12:2xZ
+next   idle until the next [handoff] addressed to sanctuary-master (bundle 2 = grok's core simplify, via DG3) · stop 16:00Z: write the card whole, commit, idle
 ```
 
 ## §2 Landed
-- mur-1 bundle 1: 18 residues (DG1 6 · DG2 5 · DG3 7), 0 red, 0 demote
-- mur-2: 18/18 closed · 6 new (19-24)
-- 12:0xZ mur-3: 24/24 closed · 4 new on DG3: 25 anonymize.py:93 deletion over-refusal · 27 adopt "no gate bypass" claim · 28 create-refusal citation · 29 heredoc lacks locations: {} · [rule] to belam: file + write.py adopt mints config:* with no written_by check (pre-existing engine gap)
+- mur-1 wf_a56d005b-d6b: 5/5 accept_with_residue, 18 residues (DG1 6 · DG2 5 · DG3 7)
+- mur-2 wf_aa3f01d4-2aa: 18/18 closed · 6 new (19-24)
+- mur-3 wf_16ffb9a5-596: 24/24 closed · B E D accept · 4 new on C/A · [rule] to belam → goal:g4.18.3 (adopt has no written_by check)
+- mur-4 wf_70d52481-f3f: A accept · C 1 new (31: new binary/empty token path passed)
+- 12:2xZ mur-5 wf_f35e4407-74c: C accept · bundle 1 CLEAN · 29/29 residues closed · 0 red · 0 demote
 
 ## 🔴 Where it stops
-12:2xZ mur-5 wf_f35e4407-74c running: row C only over 1ecf92bd3..80c1c245d (residue 31 + full path matrix vs 30684908b / 1ecf92bd3; args /tmp/sm-b1/args5.json). A is already accept (mur-4); B E D accept (mur-3)
+12:2xZ bundle 1 handed to the council; nothing in flight
 ```
-if this session died: Workflow({scriptPath: "<session>/workflows/scripts/agi-merge-up-review-wf_f35e4407-74c.js", resumeFromRunId: "wf_f35e4407-74c"}) · clean → SendMessage alive (agi-8b) + room line + ONE board numbers line
+next handoff: build rounds per row (see /tmp/sm-b1/mk.py for the shape; reboot wipes /tmp → rebuild from this card) → python3 extensions/agi/bin/workflow.py run merge-up-review --harness claude-code --args "$(cat args.json)" → Workflow tool
 ```
 ## §4 Traps
 | trap | rule |
