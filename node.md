@@ -184,3 +184,5 @@ belam 17:4xZ 09-28 root fs cleanup (OWNER GO 17:4xZ "just delete for now we will
 belam 22:2xZ 09-28 path move off / (OWNER GO 21:0xZ): ~/logs -> /data/home-belam/logs · ~/.cache/{uv,pip} -> /data/home-belam/cache · TMPDIR=/data/tmp for new spawns · 41 closed ~/.claude/projects dirs -> /data/home-belam/claude-projects · prime-root -> /mnt/agi-flash/worktrees/prime-root · ~/.pi deferred (pi live) · / free 6.2 -> 11.3 GB · notice to DE + TM 22:3xZ
 
 belam 10:4xZ: PASS B2 merged 922ff3f48 -> season2/main 2fb5c2043 · 12 rounds: 11 accept_with_residue, 1 demote, 0 RED · 0 D / 0 secret / 24228 added lines · links 0 broken · 4954 nodes · residues -> goal:g1.30
+
+belam 12:4xZ: [owner] PASS B3 notice -- merge review of the trunk past 922ff3f48d (110 commits · 21 experiments · 25 engine paths · 0 D) runs 17:47Z 09-29, after the 16:00Z council stop: ~3 GB RAM · 2 cores · no GPU · ~1-2 h · pi-free chunks, 0 USD; sorry if it disrupts, no reply needed
