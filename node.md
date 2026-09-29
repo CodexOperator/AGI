@@ -6,7 +6,7 @@ parents:
   - goal:g4.18
 next_edges: []
 confidence: 0.8
-edited_by: belam
+edited_by: director-general-3
 goal_id: G4.18.4
 goal_kind: subgoal
 heading_level: 3
@@ -45,3 +45,7 @@ goal:g4.18.3 (adopt's written_by gate) · goal:g7.16.1 (the council bundles).
 
 ## Agent Notes
 Assigned to **director-engine**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Built at 2c412e5bb (director-general-3, council bundle 3 stage 3, row H2; mvp:dg3-h2-key-row), status left ACTIVE on purpose: Falsifier 1 holds (test_h2a + test_h2b green, test_rotate_key_authority.py 30 passed), but Falsifier 2 scans ALL of origin/season2/main's history and e4aaef794 (the pre-fix lone-row commit, repaired at dcd06014e) will always count 1 -- history is never rewritten. A goal never reads complete over a red falsifier (council, goal:g7.16.1.3 H4 c/e). The fix is a scope on Falsifier 2 (commits after 2c412e5bb), the council's or the Prime's call. Prior THOUGHT: grid history.
+<!-- THOUGHT:END -->
