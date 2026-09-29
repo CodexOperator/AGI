@@ -17,42 +17,29 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:00Z 09-29 — STOPPED on the owner's 23:00Z stop ("Keep working till 7pm"), relayed by the council; re-seated 17:3xZ after the crash, ack gen 2 · session_ref 80bf37)
+## §0 State (23:5xZ 09-29 — rotating at the captive line f=0.408; council RESUMED 23:4xZ, work until ~04:00Z 09-30)
 | | |
 |---|---|
 | post | director-general-1 |
-| stage | RESUMED 23:4xZ (owner: "Restart council including DG5 stand up") · DG1 = goals + hypotheses for S4 (bundle 4), S6 (g7.16.1.6 write form), S7 (g7.16.1.7 spawn/rotate); NOT in room directors (belam 23:5xZ: DG3/4/5 only) · WAITING on alive's placement handoff for .6/.7 (both horizon, assigned to the council) · order when placed: S6 machinery leaves (DG3) -> S7 (DG5) -> S6 fill-in (DG4) · NEW LOOP (belam 23:5xZ): after DG2's MVP-vs-hypotheses pass, DG1 checks BUILD nodes vs goals -> correctives as nested subgoals -> no residue -> OUTCOME node per goal (parent = the goal) -> SM. Asked DG2 to hand rows one at a time. Prep 23:4xZ 09-29, read-only falsifier greps HOLD for W-G, W0, W1a, W1b, W2a (shape guard removed) -- tests pending DG2. Stop ~04:00Z |
-| protocol | doc:council-loop · goal:g7.16.1 |
+| stage | NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"): DG2 hands rows after its MVP-vs-hypotheses pass -> DG1 checks BUILD nodes vs GOALS -> correctives as NESTED subgoals -> no residue -> OUTCOME per goal (parent = the goal) -> SM |
+| protocol | doc:council-loop · goal:g7.16.1 · NOT in room directors (DG3/4/5 only, belam 23:5xZ) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundles 1 + 2 · bundle 3 stage 1 (9181cee26) + row R (11b2de165; R1 v3 b2d946498 grouped cutover) · bundle 3 CLOSED 1f39ffb1c
-done   bundle 4 stage 1 (db3e22e55) · heading_level fix (68f23e0f6) · W-G 6 callers (521334b6b)
-done   re-scope 1 (68d4c8504) · re-scope 2 (d4a186957) · W0 falsifier (45771a9e1) · W-G build line + horizon leaf g7.16.1.4.1.1 (d1de2e804; council: bundle 5, RETIRE, 99e0f3580)
-done   belam mint [decision] 22:1xZ applied (7cf590f0d): g4.18.6.4.1 UNHELD, every W2 gate = "is a node's mint_id"
-done   NEW LOOP 00:xZ: outcomes FINALIZED for bundles 1-3 (367d53349 + bundle-2 adoption): goal:g7.16.1.1 closed (4 leaves), goal:g7.16.1.3 12 leaves closed (2 falsifiers restated to HOME_PATH_RE), outcome:council-bundle-2 adopted (.2.9 moved to .7); W0 closed; SM told -> bigger_outcome
-next   DG2 hands rows one at a time (W-G, W1a, W1b, W2a pending its MVP pass) -> build vs goal -> correctives as nested subgoals -> bundle-4 OUTCOME when SM clears 98-105 · .6/.7 leaves when alive places them · STOP ~04:00Z
-blocked none
+done   outcomes FINALIZED bundles 1-3 (367d53349 + adoption): 16 leaves closed on re-run falsifiers; SM wrote bigger_outcome 4ae3324b2
+done   W0 g7.16.1.4.2 closed · W1b + W2a correctives nested (2c94133cc): g4.18.5.2.1 busy-index commit · g4.18.5.2.2 template cell + skills · g4.18.6.1.1 per-read mint index OWNED by W2a
+done   fabricated "00:xZ 09-30" stamps fixed in 22 nodes (SM caught it): READ date -u, never estimate
+next   W1a (DG2 pass 608f2fa9f, verdict:dg2mvp-w1a DISPROVED 0.85) -> build vs goal:g4.18.5.1: nest correctives (see where it stops)
+next   W-G pass from DG2 (pending) · bundle-4 OUTCOME when SM hands it (residues 98-107 clean) · g7.16.1.6/.7 leaves when alive places them (horizon, council)
 ```
-
-## §2 Landed — bundle 4 (goal:g7.16.1.4, base 1f39ffb1c)
-| row | leaves | state |
-|---|---|---|
-| input | g7.16.1.4.3 | DG2 measure |
-| W-G | g7.16.1.4.1 (+ .1.1 horizon, bundle 5 retire) | BUILT (41107692f, 254f58ef7), active until SM re-review clean |
-| W0 | g7.16.1.4.2 | BUILT (82fce8a34) |
-| W1 | g4.18.5.1 · .2 · .3 | .2 landed (write.py self-commits) |
-| W2 | g4.18.6.1 · .2.1 · .2.2 · .3.1-.3 · .4 · .4.1 · .4.2 · .5 | re-scoped twice; .4.1 unheld (option a) |
-| W3 | g4.18.7.1 · .2 · .3 (one row, ceiling 125) | pending |
-Superseded, kept as evidence: hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids.
 
 ## 🔴 Where it stops
-23:00Z 09-29: stopped, idle, nothing in flight. My council-room lines may sit uncommitted beside other posts' lines (never commit theirs). Next act on wake:
+W1a build-vs-goal is the next act: DG2 handed goal:g4.18.5.1 with verdict:dg2mvp-w1a DISPROVED and fork hypothesis:row-refuses-thought-markers-and-resolves-a-table-name. Nest under goal:g4.18.5.1: (a) replace body ALSO re-inserts the THOUGHT block (pre-existing; node_writer.update_node re-inserts a mid-body THOUGHT; 1120 live nodes have that shape) = its own leaf, beyond the fork's row-only scope · (b) core's row-by-NAME (verdict:dg2b4-in, 9 hunks) never absorbed: record DEFERRED by name on g7.16.1.4.3 or nest it. Conjunct (4) render is W3a's. Then SendMessage agi-40 (DG2) the leaf ids. Every create: --set heading_level=<segments>; check git status after each write (write.py exits 0 on an uncommitted node).
 ```
 python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1
-tail -30 .agi/comms/season-2/room/council-loop.md
+python3 extensions/agi/bin/write.py goal:g4.18.5.1 'read body 1:60'
 ```
 
 ## §4 Traps
