@@ -5548,31 +5548,10 @@ def _preserve_audit(rec: dict, existing_path: Path | None) -> None:
         rec["audit"] = doc["audit"]
 
 
-def _home_rel(obj):
-    """`obj` with every string value home-relative (goal:g7.16.1.2.1): this
-    box's HOME -> `~`, any other box's home dir -> `<home>/`, through
-    anonymize's ONE definition. A committed rotation record never carries a
-    home path -- the path fields AND the log text (after_join cmd/output, ps
-    snapshots, re-homed records from another box)."""
-    if isinstance(obj, dict):
-        return {k: _home_rel(v) for k, v in obj.items()}
-    if isinstance(obj, list):
-        return [_home_rel(v) for v in obj]
-    if isinstance(obj, str):
-        from anonymize import home_relative
-        return home_relative(obj)
-    return obj
-
-
-def _dump_record(obj) -> str:
-    """The ONE serializer for rotation records: home-relative, indent 2."""
-    return json.dumps(_home_rel(obj), indent=2) + "\n"
-
-
-def _resolve_record_path(value) -> str:
-    """The ONE reader for a path a record (or registry) carries: `~` expanded,
-    the absolute legacy form passed through unchanged; '' when absent."""
-    return os.path.expanduser(str(value)) if value else ""
+# the ONE record serializer + path reader live in rotation_record (goal:g7.16.1.3
+# row H4): rotate keeps its internal call names through this alias.
+from rotation_record import dump_record as _dump_record  # noqa: E402
+from rotation_record import resolve_record_path as _resolve_record_path  # noqa: E402
 
 
 def _write_rotation_record(root: Path, record: dict,

@@ -206,3 +206,17 @@ def test_unparsable_recorded_at_bounded_across_processes(graph, tmp_path,
     got = json.loads(out.stdout.strip().splitlines()[-1])
     assert got["action"] == "waiting", got
     assert got["ts_source"] == "first-seen" and got["waited_s"] > 900.0, got
+
+
+# goal:g7.16.1.3 row H4 -- the record write catches OSError ONLY: a failed write
+# reads written: False, a broken serializer import is loud.
+def test_record_write_catches_oserror_only(tmp_path, monkeypatch):
+    rec = tmp_path / "missing-dir" / "r.json"             # parent absent: OSError
+    out = heal._close_late_reap_abandoned({}, str(rec), 0, "@1", 1.0, 1)
+    assert out["written"] is False
+
+    def broken(_doc):
+        raise ImportError("no module named anonymize")
+    monkeypatch.setattr(heal.rotation_record, "dump_record", broken)
+    with pytest.raises(ImportError):
+        heal._close_late_reap_abandoned({}, str(tmp_path / "r.json"), 0, "@1", 1.0, 1)

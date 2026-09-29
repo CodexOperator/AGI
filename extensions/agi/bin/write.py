@@ -2366,12 +2366,17 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # its `parked:<goal>` tag leaves every carrier in the same call.
     if (edit.node_id == "config:formations" and "active" in edit.set_fm
             and res.status != node_writer.REJECTED):
-        import verification
+        import rotation_record  # the shared carrier grep: write never imports the verifier
         cell = node_writer.find_node_file(root, "config:formations")
         from graph_core.persistence import frontmatter as _fmr
         table = _fmr.load_node_file(cell, body=False).frontmatter.get("templates") or {}
         goal = str(table.get(edit.set_fm["active"]) or "")
-        for nid, _f, tags in (verification.parked_carriers(root, goal) if goal else []):
+        try:
+            carriers = rotation_record.parked_carriers(root, goal) if goal else []
+        except rotation_record.GrepError as exc:  # set active stands; the wake is named as failed
+            carriers = []
+            print(f"unpark FAILED (parked:{goal}): {exc}", file=sys.stderr)
+        for nid, _f, tags in carriers:
             try:
                 w = node_writer.update_node(root, nid, set_fm={
                     "tags": [t for t in tags if t != f"parked:{goal}"],

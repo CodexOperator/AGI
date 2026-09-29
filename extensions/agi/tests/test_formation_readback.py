@@ -237,8 +237,7 @@ _QUOTE = "| a bare `triage: parked: formation` grep | `· triage: parked: format
 
 
 @pytest.mark.parametrize("body,tags,status", [
-    pytest.param(_ROW, "", "FAIL", marks=pytest.mark.xfail(
-        strict=True, reason="bundle 3 H3: RED until DG3 builds the carrier rule")),
+    (_ROW, "", "FAIL"),                 # the untagged carrier
     (_ROW, "parked:g7.16.2", "PASS"),   # the tagged carrier
     (_QUOTE, "", "PASS"),               # quotes only: the rule is anchored
 ], ids=["untagged-row", "tagged-row", "quote-only"])
@@ -252,7 +251,6 @@ def test_a_row_park_needs_its_carrier_tag(groot, body, tags, status):
 # --- goal:g7.16.1.3.2.3.2 · hypothesis:the-formation-gate-fails-closed-on-a-grep-error
 # (bundle 3 H4 f, director-general-2): git grep exit >= 2 is a FAIL carrying
 # git's stderr (exit 1 = no hits stays PASS: test_switching_... wake 0).
-@pytest.mark.xfail(strict=True, reason="bundle 3 H4f: RED until DG3 builds the exit-code branch")
 @pytest.mark.parametrize("how", ["bad-pathspec", "git-config"])
 def test_a_grep_error_fails_closed(groot, monkeypatch, how):
     import subprocess
@@ -268,7 +266,6 @@ def test_a_grep_error_fails_closed(groot, monkeypatch, how):
                                    or "bogus" in r.note + r.message)
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 3 H4f: RED until DG3 guards the frontmatter load")
 def test_a_malformed_hit_is_a_named_fail_not_a_crash(groot):
     f = groot / "nodes" / "goal" / "bad.md"
     f.write_text("---\nid: goal:bad\ntags: [unclosed\n---\nparked: formation g7.16.2\n", "utf-8")

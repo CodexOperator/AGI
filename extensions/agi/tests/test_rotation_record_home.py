@@ -147,7 +147,6 @@ def test_a_committed_record_round_trips_through_todays_serializer(home):
     assert rotate._dump_record(json.loads(raw)).encode("utf-8") == raw
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 3 H4 p1: RED until DG3 builds the shared public record module")
 def test_a_committed_record_round_trips_through_the_shared_module(home):
     import importlib
     shared = importlib.import_module("rotation_record")

@@ -50,6 +50,7 @@ import locations  # noqa: E402
 import commands  # noqa: E402
 import spawn_budget  # noqa: E402 -- the ONE budget-dir reader (never re-globbed)
 import rotate  # noqa: E402  -- _sessions_dir (the ONE resolver the pins share)
+import rotation_record  # noqa: E402  -- grep_live + parked_carriers (goal:g7.16.1.3 H4)
 import branches  # noqa: E402  -- ref_candidates (canonical-first season grammar)
 import schema_registry  # noqa: E402  -- the ONE schema reader the gates use
 
@@ -1282,37 +1283,14 @@ def check_anonymize(groot: Path) -> CheckResult:
                        note="" if proc.returncode == 0 else (tail[-1] if tail else ""))
 
 
-def _grep_live(groot: Path, needle: str) -> list[tuple[str, Path, dict]]:
-    """Live nodes whose bytes carry `needle`: ONE `git grep` (no rglob),
-    deprecated/ skipped -> (id, file, frontmatter), id-sorted."""
-    import yaml
-    import node_writer
-    r = subprocess.run(["git", "grep", "--no-index", "-lzF", "-e", needle, "--", "."],
-                       cwd=groot / "nodes", capture_output=True, text=True)
-    hits = []
-    for rel in filter(None, r.stdout.split("\0")):
-        if not rel.startswith("deprecated/"):
-            f = groot / "nodes" / rel
-            fm = yaml.safe_load(node_writer.split_frontmatter(f.read_text("utf-8", "replace"))[0])
-            if isinstance(fm, dict) and fm.get("id"):
-                hits.append((str(fm["id"]), f, fm))
-    return sorted(hits, key=lambda h: h[0])
-
-
-def parked_carriers(groot: Path, goal: str) -> list[tuple[str, Path, list]]:
-    """goal:g7.16.1.2.6 -- live nodes whose `tags` hold `parked:<goal>` (the
-    tag form in [goal].md / [hypothesis].md) -> (id, file, tags)."""
-    tag = f"parked:{goal}"
-    return [(i, f, list(fm.get("tags") or [])) for i, f, fm in _grep_live(groot, tag)
-            if tag in (fm.get("tags") or [])]
-
-
 def check_formation(groot: Path) -> CheckResult:
     """goal:g7.16.1.1.5 -- exactly ONE formation is active: config:formations
     `active` names a template registered in its `templates` map that exists.
     Then lists as wakeable every live node tagged `parked:<that template's
     goal>` (goal:g7.16.1.2.6); FAIL while any THOUGHT still carries the retired
-    `parked: formation` mark. No cell = SKIP: a project that runs no formations."""
+    `parked: formation` mark, while a body row parked for a formation lacks its
+    carrier's tag (goal:g7.16.1.3 H3), or when the live-node grep cannot look
+    (H4 f). No cell = SKIP: a project that runs no formations."""
     import yaml
     import node_writer
     t0 = time.monotonic()
@@ -1329,15 +1307,29 @@ def check_formation(groot: Path) -> CheckResult:
     # the MARK shape only (THOUGHT start or "(" before it), on park carriers only:
     # a tally ("11 parked: ...") or prose naming the mark never trips it
     mark = re.compile(r"(?:^|\()parked: formation g\d", re.M)  # any THOUGHT line
-    marks = [i for i, f, _ in _grep_live(groot, "parked: formation")
-             if i.split(":")[0] in ("goal", "hypothesis")
-             and mark.search(node_writer.thought_text(f.read_text("utf-8", "replace")) or "")]
-    if marks:
+    # a body ROW parked for a formation needs its carrier's tag (goal:g7.16.1.3
+    # row H3), anchored at the row's end: a node QUOTING the string never trips it
+    row = re.compile(r"· triage: parked: formation (g\d+(?:\.\d+)*) \|$", re.M)
+    try:
+        live = [(i, f) for i, f, _ in rotation_record.grep_live(groot, "parked: formation")
+                if i.split(":")[0] in ("goal", "hypothesis")]
+        rows = {i: sorted(set(row.findall(f.read_text("utf-8", "replace")))) for i, f in live}
+        tagged = {g: {c for c, _, _ in rotation_record.parked_carriers(groot, g)}
+                  for g in {g for gs in rows.values() for g in gs}}
+        untagged = [f"untagged {i} (parked:{g})" for i, gs in rows.items()
+                    for g in gs if i not in tagged[g]]
+        marks = [f"mark {i}" for i, f in live
+                 if mark.search(node_writer.thought_text(f.read_text("utf-8", "replace")) or "")]
+        goal = str(table[active] or "")
+        wake = [i for i, _, _ in rotation_record.parked_carriers(groot, goal)] if goal else []
+    except rotation_record.GrepError as exc:  # a guard that cannot look fails closed
         return CheckResult("formation", "FAIL", time.monotonic() - t0,
-                           note=f"{len(marks)} THOUGHT park mark(s): the park is the tag parked:<goal>",
-                           message="\n".join(f"mark {m}" for m in marks))
-    goal = str(table[active] or "")
-    wake = [i for i, _, _ in parked_carriers(groot, goal)] if goal else []
+                           note="the live-node grep failed", message=str(exc))
+    if marks or untagged:
+        return CheckResult("formation", "FAIL", time.monotonic() - t0,
+                           note=f"{len(marks)} THOUGHT park mark(s), {len(untagged)} untagged row-park "
+                                f"carrier(s): the park is the tag parked:<goal>",
+                           message="\n".join(marks + untagged))
     return CheckResult("formation", "PASS", time.monotonic() - t0, number={"wake": len(wake)},
                        note=f"active {active} {goal or '-'}",
                        message="\n".join(f"wake {w}" for w in wake))
