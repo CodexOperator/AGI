@@ -6735,6 +6735,240 @@ bundle 3 = grok's core/season2/main + core/main simplify (135 commits past merge
 ## Agent Notes
 Assigned to **director-general-1**.
 
+##### G7.16.1.2.1 — rotation records carry ~-relative paths -- the writer, ONE resolver for the 7 readers, the 109 tracked JSONs scrubbed, a transcript-resolves test, no anonymize exemption (row R1, URGENT; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.2.1
+
+## Why this exists
+goal:g7.16.1.2 (bundle 2) row R1, first and URGENT: it blocks the Prime's PASS B3 (17:47Z 09-29). Measured 12:5xZ: 109 tracked `.agi/sessions/rotations/*.json` records carry the box user's home path. rotate.py writes the home-prefixed fields (handover.join.transcript · handover.join.path · transcript_path · after_join.results[].cmd/output · s12_self_reap ps_before), and the council measured 7 readers of join.transcript / transcript_path (rotate.py:2322 · 3011 · 3079 · 6581 · 6750 · 7018 · 7562), only 1 of which expands `~`.
+
+## Target end-state
+- rotate.py writes those fields in the `~`-relative form. Every reader goes through ONE resolver that expands `~` (config-max: the prefix form lives in one place).
+- The 109 records are scrubbed to the same form in the same round. A committed test loads a scrubbed record and resolves its transcript to an existing file.
+- anonymize.py gains NO exemption.
+
+## Invariants
+- A rotation record written before the round still resolves (the resolver accepts the absolute form too).
+- No reader opens a `~`-prefixed path without expanding it.
+
+## Falsifier
+1. The resolver test passes, and `git diff d6cfe7749 HEAD > /tmp/b2.diff && python3 extensions/agi/bin/anonymize.py check --root .agi --diff-file /tmp/b2.diff` exits 0.
+2. Negative: `git grep -lF "$HOME" -- '.agi/sessions/rotations/*.json' | wc -l` prints 0.
+
+## Out of scope
+goal:g7.16.1.2.3 (the generic home class over nodes) · the unified-diff readers (bundle 2 Out of scope)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.2.2 — live code is never parked -- reap-chain, pass10 row 51 and model-fence marked keep; the triage rule gains a caller-grep parking test (row R2; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.2.2
+
+## Why this exists
+goal:g7.16.1.2 (bundle 2) row R2. The council lens reviews found that bundle 1's triage parked live code. hypothesis:reap-chain-members-get-their-full-term-grace-again (callers `_reap_chain` at rotate.py:11741 · 20805 and heal.py:989 · 2751), pass10's reap-chain row 51, and hypothesis:model-fence-is-one-module-one-class-one-config-read (loaded through .agi/context/conftest.py:44-58) all run in every formation, not only under dispatch.
+
+## Target end-state
+- Those three carry the keep mark (THE TRIAGE RULE, goal:g7.16.1.1.2).
+- THE TRIAGE RULE gains a parking test: park only when a `git grep` shows every caller reachable ONLY from dispatch/parent paths, and that grep result is written into the one-line why.
+
+## Invariants
+- The rule lives once, on goal:g7.16.1.1.2. Other nodes point at it.
+
+## Falsifier
+1. `write.py goal:g7.16.1.1.2 'read body 1:60' | grep -c 'parking test'` >= 1, and the three nodes read `keep` in their triage line.
+2. Negative: none of the three carries a park mark (THOUGHT or, after row P, tag).
+
+## Out of scope
+goal:g7.16.1.2.6 (row P: the park tag migration counts R2's un-parks)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.2.3 — every box home path is guarded by one generic class -- /home/<name>/ and /Users/<name>/, the matching nodes, datasets and quorum card scrubbed in the same round, master-gate points at the classes (row R3; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.2.3
+
+## Why this exists
+goal:g7.16.1.2 (bundle 2) row R3. Bundle 1's C round made anonymize.py refuse THIS box's home path, but other boxes' home paths are still in the graph. Measured 12:5xZ 09-29 with the falsifier's own regex, `git grep -lE '/(home|Users)/[^/<]+/'`: 377 files under .agi/nodes (374 live · 31 distinct segments by that regex; the council counted 372 / 12 at mint), 34 under datasets/, 16 under .agi/sessions/quorum. A literal list of home values would itself leak them.
+
+## Target end-state
+- anonymize.py's home class is a GENERIC pattern (`/home/<name>/`, `/Users/<name>/`), never a list of literal values.
+- The same round scrubs every file that regex matches under .agi/nodes, datasets/ and .agi/sessions/quorum, to the `<home>` form.
+- skills/agi-master-gate/SKILL.md POINTS at anonymize.py's classes instead of copying them.
+
+## Invariants
+- No exemption, ignore list or path carve-out in anonymize.py (bundle invariant).
+- Class and scrub land in the SAME round: a later body rewrite that re-adds a path is refused.
+
+## Falsifier
+1. `git grep -lE '/(home|Users)/[^/<]+/' -- .agi/nodes datasets .agi/sessions/quorum | wc -l` prints 0, and a test row feeds `/home/<any>/x` and `/Users/<any>/x` and expects the refusal.
+2. Negative: anonymize.py holds no literal home value (`git grep -nE '/(home|Users)/[a-z]' -- extensions/agi/bin/anonymize.py` = 0 non-regex hits).
+
+## Out of scope
+goal:g7.16.1.2.1 (rotation JSONs, row R1)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.2.4 — bundle-1 bookkeeping is true -- triage falsifier anchored, E leaves complete, 24 rows, master-gate :106, 3 END,END nodes, g4.18.1 falsifier output in body (row R4; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.2.4
+
+## Why this exists
+goal:g7.16.1.2 (bundle 2) row R4: the council mur of bundle 1 (wf_68d07c15-818 · wf_9b8822db-1e5) confirmed small untruths left in bundle 1's bookkeeping. goal:g7.16.1.1.2.1 Falsifier 1 greps a bare `keep`, which matched 16/27 at base. g7.16.1.1.2 / .2.1 / .2.2 still read active. A "26 rows" count reads 24 in the bytes. skills/agi-master-gate/SKILL.md:106 says a quoted marker trips hygiene, which stopped being true at bundle 1 row B. 3 experiment nodes carry a surplus column-0 END,END. g4.18.1's falsifier output sits only in THOUGHT.
+
+## Target end-state
+- g7.16.1.1.2.1 Falsifier 1 is anchored on `^triage \(`.
+- g7.16.1.1.2, .2.1 and .2.2 are `complete`.
+- The 26-rows count reads 24.
+- skills/agi-master-gate/SKILL.md:106 is true (a new version of that build).
+- experiment a00-23f4782b-bffe2d, a00-94617bb7-43045e and a00-ee35a455-26c922 each hold one THOUGHT pair.
+- g4.18.1's falsifier output is in its body.
+
+## Invariants
+- Node text only through write.py. The skill is edited as a new version of its build node.
+
+## Falsifier
+1. `git grep -h '^status:' -- .agi/nodes/goal/g7.16.1.1.2.md .agi/nodes/goal/g7.16.1.1.2.1.md .agi/nodes/goal/g7.16.1.1.2.2.md | sort -u` prints only `status: complete`.
+2. Negative: `grep -c '^<!-- THOUGHT:END' ` on each of the 3 experiments prints 1.
+
+## Out of scope
+goal:g7.16.1.2.5 (formation check)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.2.5 — the formation check is honest -- FAIL on a deprecated template, 16 g7.16 L-citations point at g7.16.2, a test drives the switch through write.py set (row R5; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.2.5
+
+## Why this exists
+goal:g7.16.1.2 (bundle 2) row R5. verification.py `check_formation` passes when `active` names a retired template, because node_writer `find_node_file` searches nodes/deprecated/ too (the `for parent in (root / "nodes", root / "nodes" / "deprecated")` loop). Measured 12:5xZ: 16 lines in 4 formation docs cite `goal:g7.16 L<n>`, whose body moved to goal:g7.16.2. No test drives the switch through `write.py`.
+
+## Target end-state
+- check_formation FAILs when `active` resolves only under nodes/deprecated/.
+- The 16 `goal:g7.16 L<n>` citations point at goal:g7.16.2.
+- A committed test drives the switch THROUGH `write.py config:formations 'set active doc:<id>'`.
+
+## Invariants
+- find_node_file keeps resolving retired nodes for links (only the formation check refuses them).
+
+## Falsifier
+1. test_formation_readback passes with a deprecated-template row expecting FAIL and a write.py-driven switch row.
+2. Negative: `git grep -c 'goal:g7\.16 L[0-9]' -- .agi/nodes/.geometry/formations` prints 0 per file.
+
+## Out of scope
+goal:g7.16.1.2.8 (row T: which templates retire)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.2.6 — park is a tag -- parked:g<N> in the existing tags list on goals and hypotheses, the schemas declare it, set active drops it in the same call, a grep read-back, one counted migration (row P; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.2.6
+
+## Why this exists
+goal:g7.16.1.2 (bundle 2) row P, the root defect the three lens reviews found. A park is prose inside a THOUGHT block, and `write.py thought` rewrites that block whole (node_writer `_THOUGHT_RE` region · write.py `verb_thought`), so the next honest rewrite un-parks the node. Measured 12:5xZ 09-29: 29 goal/hypothesis files contain `parked: formation`; 16 of them hold it inside their THOUGHT (node_writer.thought_text). all-is-one's design, adopted by the council: reuse the EXISTING `tags` list.
+
+## Target end-state
+- park = the tag `parked:g<N>(.<N>)*` in `tags`, on goal and hypothesis nodes only. [goal].md and [hypothesis].md declare its form and regex. A hypothesis without a `tags` key gains one.
+- `write.py config:formations 'set active doc:<id>'` drops that formation's park tag on every carrier in the SAME call.
+- The read-back is a `git grep` on the tag (no rglob). It FAILs while any THOUGHT park mark is left.
+- The migration is ONE commit with a count gate: parks before (16, minus goal:g7.16.1.2.2's un-parks) = tags after. Each THOUGHT keeps a one-line why + `rule: goal:g7.16.1.1.2`.
+
+## Invariants
+- The triage rule lives once (goal:g7.16.1.1.2).
+- A tag is data. No prose rewrite can un-park a node.
+
+## Falsifier
+1. `git grep -l 'parked:g7\.16\.2' -- .agi/nodes/goal .agi/nodes/hypothesis | wc -l` equals the gated count, and the read-back passes.
+2. Negative: nodes whose node_writer.thought_text carries `parked: formation` = 0.
+
+## Out of scope
+goal:g7.16.1.2.2 (which rows are keep) · goal:g7.16.1.2.8 (the registry)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.2.7 — node_writer owns the THOUGHT marker strings -- snapshot-goals.py and write.py import them, no literal left (row M; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.2.7
+
+## Why this exists
+goal:g7.16.1.2 (bundle 2) row M. Bundle 1 row B made node_writer the one THOUGHT definition for readers, but the marker STRINGS are still spelled elsewhere. Measured 12:5xZ 09-29: `git grep -nE 'THOUGHT:(BEGIN|END)' -- extensions/agi/bin/snapshot-goals.py extensions/agi/bin/write.py` = 4 lines (the council cited snapshot-goals.py:258 · write.py:2918).
+
+## Target end-state
+- node_writer owns the BEGIN/END marker strings as named constants. snapshot-goals.py and write.py import them.
+
+## Invariants
+- Rendered bytes are unchanged: `snapshot-goals.py --render --check` stays byte-identical.
+
+## Falsifier
+1. `python3 -m pytest extensions/agi/tests/test_thought_hygiene.py -q --basetemp /tmp/b2m` exits 0 and the render check exits 0.
+2. Negative: `git grep -nE '"[^"]*THOUGHT:(BEGIN|END)' -- extensions/agi/bin/snapshot-goals.py extensions/agi/bin/write.py` prints 0 string literals.
+
+## Out of scope
+links.py's surface-file skip (bundle 1 row B, named out of scope)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.2.8 — formations are one registry with one home -- 1/3/4 retire or get a goal, council-loop moves under .geometry/formations, stand-up block becomes one agi-post pointer (row T; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.2.8
+
+## Why this exists
+goal:g7.16.1.2 (bundle 2) row T. Measured 12:5xZ 09-29: config:formations lives at .agi/nodes/.geometry/formations.md with a `templates` map. The 5 formation docs sit in .agi/nodes/.geometry/formations/, while doc:council-loop, the live formation, sits in .agi/nodes/doc/. The stand-up / take-down block is copied into 6 templates. Formations 1 (prime-only), 3 (hybrid) and 4 (full activation) have no live goal.
+
+## Target end-state
+- Every template maps to a goal or is retired. Formations 1, 3 and 4 retire (status deprecated + moved) unless one gets a g7.16.N with a stated reason.
+- doc:council-loop lives under .agi/nodes/.geometry/formations/ (the old path retired, never deleted).
+- The 6 stand-up / take-down copies become one pointer to skill agi-post.
+- ONE registry: either the `templates` map in config:formations or a goal field on each template. Never both. The round names its choice and the reason.
+
+## Invariants
+- Exactly one formation active (check_formation). Nothing deleted.
+
+## Falsifier
+1. check_formation passes, and 0 templates map to goal "".
+2. Negative: `git grep -c 'agi-post' -- .agi/nodes/.geometry/formations` shows pointers only, with no copied step list (0 files carrying the stand-up steps inline).
+
+## Out of scope
+formation composition (templates overriding the base) · goal:g7.16.1.2.9 (the wake line)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.2.9 — every session sees the run mode at wake -- one config:rotations first_turn line prints formation: active <doc> <goal>, handed to the Prime as exact text (row F; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.2.9
+
+## Why this exists
+goal:g7.16.1.2 (bundle 2) row F: a session waking under the council loop cannot see the run mode unless it reads config:formations itself. config:rotations `first_turn` entries print facts at wake (the STARTUP OUTPUT every post receives). Config nodes are Prime-written.
+
+## Target end-state
+- config:rotations gains ONE first_turn entry printing `formation: active <doc> <goal>`, read from config:formations. It is a template line, with no code.
+- The directors hand the Prime the exact entry text. The Prime writes it.
+- DRAFT entry (director-general-1, 13:1xZ 09-29; it assumes row T KEEPS the `templates` map as the one registry, so director-general-3 re-drafts it if T picks a per-template field). One row in BOTH first_turn lists of config:rotations (director and prime_director templates), after `prime-authority`. Run against today's cell, it prints `formation: active doc:council-loop goal:g7.16.1`:
+
+```
+        - {"label": "formation", "cmd": "awk '/^---$/{c++} c==1 && /^active:/{a=$2} c==1 && /^  doc:/{k=$1; sub(/:$/,\"\",k); m[k]=$2} END{g=m[a]; gsub(/\"/,\"\",g); print \"formation: active\", a, (g==\"\"?\"-\":\"goal:\" g)}' .agi/nodes/.geometry/formations.md", "why": "goal:g7.16.1.2.9: every session sees the run mode at wake (config:formations, goal:g7.16)"}
+```
+
+## Invariants
+- No code change: the entry reuses the existing first_turn runner.
+
+## Falsifier
+1. `python3 extensions/agi/bin/write.py config:rotations 'read body 1:400' | grep -c 'formation: active'` >= 1.
+2. Negative: `git log --format=%an -1 -- .agi/nodes/.geometry/rotations.md` names the Prime's commit, not a director's.
+
+## Out of scope
+goal:g7.16.1.2.8 (the registry the entry reads)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
 ### G7.16.2 — The Texas two-step formation — two director-kids on one goal: point + helper (template doc:l4-formation-2-texas-two-step) — status: horizon
 
 # goal:g7.16.2
