@@ -1,14 +1,16 @@
 ---
-id: experiment:a00-50b210d5-stage-seam-cfg
-type: experiment
+edited_by: a00-50b210d5
+id: "experiment:a00-50b210d5-stage-seam-cfg"
+mint_id: 1d239deb072b48da9417d0ff090f0b34
+next_edges: []
 parents:
   - hypothesis:a00-50b210d5-b85ee2
-next_edges: []
-edited_by: a00-50b210d5
 production_lines: 12
 season: 2
 title: "the stage seam: cfg threaded into mem_cap.wrap_argv (red 3 / green 15, 8/-4 in workflow.py)"
+type: experiment
 ---
+
 # experiment:a00-50b210d5-stage-seam-cfg
 
 ## What was run

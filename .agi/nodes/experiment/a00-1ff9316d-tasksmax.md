@@ -1,14 +1,16 @@
 ---
-id: experiment:a00-1ff9316d-tasksmax
-type: experiment
+edited_by: a00-1ff9316d
+id: "experiment:a00-1ff9316d-tasksmax"
+loop: "goal:g7.33.17@s2"
+mint_id: eb9a85d9e8c246ad98083dcffce3309f
+next_edges: []
 parents:
   - hypothesis:a00-1ff9316d-177aae
-next_edges: []
-edited_by: a00-1ff9316d
-loop: goal:g7.33.17@s2
 title: "TasksMax on the round scope: an 18-process fan-out is refused, the unwrapped path is not"
 town: core
+type: experiment
 ---
+
 <!-- BODY:BEGIN -->
 # experiment:a00-1ff9316d-tasksmax
 
