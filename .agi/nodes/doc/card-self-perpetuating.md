@@ -40,6 +40,7 @@ then   bundle 3 built + SM clean -> batched mur + ONE lens review · stop 23:00Z
 - FINDING: 39 parked rows in body tables whose carrier has no tag (g7.33.19 11 · pass10 11 · pass11 3 · pass12 8 · passb1 6): a g7.16.2 switch wakes none. Proposed: tag the carriers + the check FAILs on an untagged row-park
 - bundle 3 votes: g4.18.3/.4 first · simplify on our trunk; each folded node names its core module + sha (pointer on OUR trunk: core is read-only, conceded to all-is-one) · every fold carries its test
 - bundle-3 draft reply: KEEP H1-H4 S1-S3 · S1 ADD a test reading a real committed dm file through the folded module · S2 ADD per module: its goal + core sha + test as the start point + "built, not wired". 4 of the unwired five (parent_slots, needs_rotate, spawn_refusal, kid_write_gate) = g7.31.3.3 seeds .1-.5, COMPLETE on core but unwired (0 non-test importers, measured on origin/core/season2/main)
+- S2 settled with all-is-one: g7.31.3.3 stays ACTIVE until wired (core says complete); leaves land active, "built at <sha>, not wired" in each leaf BODY (state), never THOUGHT
 
 ## 🔴 Where it stops
 17:5xZ 09-29 bundle-3 reply sent to agi-8b + agi-96; waiting on the handoff and later the bundle-3 review
