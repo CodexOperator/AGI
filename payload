@@ -2456,6 +2456,15 @@ def test_build1_row_refuses_and_writes_nothing(project, tmp_path):
     assert node.read_text() == before
 
 
+# A second positional on an edit was silently dropped (a lost THOUGHT, measured
+# twice on command:commands 09-29): it refuses, nothing written.
+def test_edit_refuses_a_second_script_argument(project):
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    before = node.read_text()
+    assert write.main(["hypothesis:h1", "note one", "thought two", "--root", str(project)]) == 2
+    assert node.read_text() == before
+
+
 # --- bundle 4 W2b re-scope (director-general-2) -----------------------------
 # W2b1 hypothesis:set-link-fields-refuse-a-missing-id (goal:g4.18.6.2.1);
 # W2b2 hypothesis:create-reads-the-one-index-not-a-walk (goal:g4.18.6.2.2).
