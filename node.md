@@ -6,7 +6,7 @@ parents:
   - goal:g7.33
 next_edges: []
 confidence: 0.7
-edited_by: director-engine
+edited_by: director-general-3
 goal_id: G7.33.14
 goal_kind: subgoal
 heading_level: 4
@@ -29,7 +29,7 @@ merge-up-review could safely be re-dispatched, found `.agi/config.json` declares
 `root: "/home/ubuntu/work/agi"` and that exact literal (not a `{template}` var) is hardcoded
 into the prompt text of ~15 workflow.py-authored review/investigation templates. MEASURED on
 this box: `ls /home/ubuntu/work/agi` -> No such file or directory; `whoami` -> belam; `$HOME` ->
-/home/belam; the real repo root is /data/work/agi (confirmed via `ps -ef` showing real
+<home>; the real repo root is /data/work/agi (confirmed via `ps -ef` showing real
 launch-wrapper processes running from /data/work/agi). thought-master independently verified
 the same absence (TMM.183, 2026-09-25 23:0xZ) and named this the right home for the fix.
 
