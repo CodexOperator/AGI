@@ -6,7 +6,7 @@ parents:
   - hypothesis:unify-real-repo-guard-fails-closed-and-names-this-checkout
 next_edges: []
 confidence: 0.85
-edited_by: a00-435f7d54
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-19380df7-615df5
   - experiment:a00-a34eb635-78a309
@@ -78,7 +78,7 @@ $ env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_unify.py 
 Live bytes unchanged and still guarded (read-only probe, HAZARD respected —
 no unify run against the real repo):
 ```
-forbidden live: (/home/ubuntu/work/agi, /home/ubuntu/work/agi-tree,
+forbidden live: (<home>/work/agi, <home>/work/agi-tree,
                  /data/work/agi, /data/work/agi-tree)
 touch /data/work/agi: /data/work/agi
 ```
