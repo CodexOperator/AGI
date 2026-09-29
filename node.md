@@ -22,7 +22,7 @@ town: core
 - verdict:dg2b4-w2c: ~13 private frontmatter parses (list: experiment:dg2b4-w2c-baseline readers enumeration).
 
 ## CLAIM
-(1) each listed site calls the resolver (2) its twin prints identically.
+(1) each listed site calls the resolver (2) its twin prints identically (3) every next_edges reader is in this family (moved from A: graph_core never reads next_edges).
 
 ## Dispatch line
 config-max: none. template-max: none. code: re-point sites.
