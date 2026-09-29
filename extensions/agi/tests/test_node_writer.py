@@ -1735,3 +1735,33 @@ def test_b4_w1a_the_row_index_has_one_definition():
             if isinstance(n, ast.FunctionDef)
             and n.name in ("body_rows", "_resolve_body_row_range")]
     assert defs == ["node_writer.py"], defs
+
+
+
+# --- bundle 4 W2d-b (director-general-2) -- goal:g4.18.6.4.2 ------------------
+_W2DB = "bundle 4 W2d-b: RED until DG3 builds the writer's address -> mint_id resolve"
+_W2DB_MINT = "0123456789abcdef0123456789abcdef"
+
+
+@pytest.mark.xfail(strict=True, reason=_W2DB + " (node_writer.py:821)")
+def test_b4_w2db_write_node_stores_the_parents_mint_id(project):
+    import yaml
+    (project / "nodes" / "idea" / "i1.md").write_text(f"---\nid: idea:i1\nmint_id: {_W2DB_MINT}\ntype: idea\n---\n")
+    res = nw.write_node(project, "hypothesis", "w2db", ["idea:i1"])
+    assert yaml.safe_load(res.path.read_text().split("---", 2)[1])["parents"] == [_W2DB_MINT]
+
+
+@pytest.mark.xfail(strict=True, reason=_W2DB + " (seatsig/veto.py:402)")
+def test_b4_w2db_veto_default_parent_is_the_mint_id_of_goal_g15(tmp_path):
+    from seatsig import veto
+    from graph_core.persistence import frontmatter
+    (tmp_path / "nodes" / "goal").mkdir(parents=True)
+    (tmp_path / "nodes" / "goal" / "g15.md").write_text(f"---\nid: goal:g15\nmint_id: {_W2DB_MINT}\ntype: goal\n---\n")
+    assert frontmatter.load_node_file(veto.save(tmp_path, {})).frontmatter["parents"] == [_W2DB_MINT]
+
+
+@pytest.mark.xfail(strict=True, reason=_W2DB + " (decompose-engine.py:385, snapshot-build-site.py:329-389)")
+def test_b4_w2db_no_writer_assigns_a_bare_address_parent():
+    de, sbs = ((BIN / f).read_text(encoding="utf-8") for f in ("decompose-engine.py", "snapshot-build-site.py"))
+    assert 'fm["parents"] = [goal_id]' not in de
+    assert '"parents": [f"idea:domain-' not in sbs and '"parents": [parent_hyp] if' not in sbs

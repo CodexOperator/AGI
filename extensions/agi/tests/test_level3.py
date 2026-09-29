@@ -1241,3 +1241,13 @@ def test_w2c_mvp_map_accepts_a_mint_id_like_an_address(tmp_path):
     addr = l3.mvp_parent_for("bin/x.py", l3.read_mvp_map(f))
     f.write_text("bin/ | " + "c" * 32 + "\n")
     assert addr == "mvp:engine-bin" and l3.mvp_parent_for("bin/x.py", l3.read_mvp_map(f))
+
+
+# --- bundle 4 W2d-b (director-general-2) -- goal:g4.18.6.4.2
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2d-b: RED until DG3 builds "
+                   "level3's parent address -> mint_id resolve (level3.py:1127)")
+def test_b4_w2db_build_node_parent_is_the_census_ideas_mint_id(project, engine):
+    run(project, engine)
+    mint = fm_of(project / "nodes" / "idea" / "engine-graph-core.md")["mint_id"]
+    _path, fm = level3_nodes(project)["build:src-graph-core-node"]
+    assert identity.is_valid_mint_id(mint) and fm["parents"] == [mint]
