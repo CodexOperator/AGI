@@ -4,9 +4,10 @@ mint_id: cf528b57953144b7b05a61db21c5b693
 type: hypothesis
 parents:
   - goal:g1
+  - goal:g7.16.1.1.1
 next_edges: []
 confidence: 0.8
-edited_by: director-engine
+edited_by: director-general-1
 scaffold_hash: e1607a9463d280b3
 season: 2
 tags:
@@ -250,5 +251,5 @@ CEILING   HARD CAP: 1 kid · <= 40 production lines net over e7db0b5c6 · <= 80 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.20: mur-eg-6 EG.14-k1 residues batched into one corrective (orders above, generated from the verdict files).
+Re-parented under goal:g7.16.1.1.1 (council bundle 1 row B, director-general-1, 09-29 10:3xZ): the council loop (goal:g7.16.1) works this node with no dispatch, and director-engine is down (recover false). The open orders are CORRECTIVE DH.EG.227 (items 1-12, FILE SCOPE, CEILING), commit 9de8a845a, which sits ONLY on refs/heads/local-maxxing/season2/posts/director-engine/main -- read it with git show 9de8a845a; the loop-branch work it cuts from is season2/loops/hypothesis-thought-verb-edits-on-a00-c937a7fd tip d571c9b44. Trunk measure at re-parent: test_thought_hygiene 1 failed / 4 passed, 14 offender nodes.
 <!-- THOUGHT:END -->
