@@ -24,8 +24,6 @@ town: core
 ---
 # goal:g7.16.1.7.2.4
 
-# goal:g7.16.1.7.2.4
-
 ## Why this exists
 goal:g7.16.1.7: the owner, verbatim there: "Ideally the post holds everything for that role: session id, pid, tmux pane id, renderer nested inside it but actually a mint id link: harness config (includes model type)." Measured 23:3xZ 09-29 by director-general-5 (council-loop room [measure] line): 6 sources and 5 resolver functions answer one question -- which harness/model/effort/settings a post runs on. config:posts carries 27 rows x 5 copied cells (harness, model, effort, settings, session_kind) = 135 cells, only 9 distinct combos.
 
