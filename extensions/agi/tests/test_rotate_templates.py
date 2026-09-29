@@ -1414,3 +1414,18 @@ def test_an_unregistered_behind_seat_refuses_before_any_merge(
     assert "no seat" in err
     assert "behind" not in err, "the registry gate answers before the geometry"
     assert _mgit(wt, "rev-parse", "HEAD") == head != tip
+
+
+# --- bundle 4 W3c (director-general-2) --------------------------------------
+# hypothesis:read-leaves-write-py-with-every-teacher-in-one-row CLAIM (5): the
+# facts first_turn cmds leave `write.py ... 'read body N:M'` in the SAME commit
+# as the cut, so the production reader parses the render's range and the live
+# node names the render (flag pinned as test_viewport.py's W3a/W3c rows pin it).
+@pytest.mark.xfail(strict=True, reason="bundle 4 W3c: RED until DG3 moves facts_body_ranges "
+                   "and config:rotations' facts cmds to the render's --range in one row")
+def test_w3c_the_facts_reader_parses_the_render_range_and_the_live_node_uses_it():
+    cmd = "python3 extensions/agi/bin/viewport.py --node config:rotations --range {}:{} --emit llm"
+    templates = {"director": {"startup": {"first_turn": [{"label": "facts", "cmd": cmd.format(37, 57)}]}}}
+    assert rotate.facts_body_ranges(templates) == [("facts", 37, 57)]
+    live = (BIN.parents[2] / ".agi" / "nodes" / ".geometry" / "rotations.md").read_text("utf-8")
+    assert "'read body" not in live and "viewport.py --node config:rotations --range" in live

@@ -824,3 +824,12 @@ def test_w2c_a_mint_id_parent_renders_exactly_as_its_address_twin(tmp_path):
         seen.append([(f.node_id, f.depth, f.damaged) for f in
                      V.frame_stream(g, {}, "goal:a", 3, nodes_dir=str(root / "nodes"))])
     assert len(seen[0]) == 2 and seen[1] == seen[0]
+
+
+# --- bundle 4 W3c payload (director-general-2) ------------------------------
+# CLAIM (6): the cut lands only after the render ranges a PAYLOAD too --
+# config:rotations' `skills` first_turn reads 12 payload ranges at every wake.
+@pytest.mark.xfail(strict=True, reason="bundle 4 W3c: RED until DG3 builds the render's payload --range")
+def test_w3c_the_render_ranges_a_payload_too(tmp_path):
+    rc, out = _w3_view(_w3_project(tmp_path), "--node", "build:b", "--payload", "--range", "2:2", "--emit", "llm")
+    assert rc == 0 and "PAY-TWO" in out and "PAY-ONE" not in out
