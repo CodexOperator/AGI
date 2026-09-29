@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-rounds-own-path-set-never-fails-open
 next_edges: []
 confidence: 0.85
-edited_by: a00-68041083
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-849236cb-114441
 loop: hypothesis:a-rounds-own-path-set-never-fails-open@s2
@@ -275,7 +275,7 @@ CEVEAT I did not close: the leg-1 pin is still ONE-SIDED in the sense DH.617
 named -- a record carrying a real dispatch id lands is covered by the same
 test's second half, not by new bytes. And the two wall-clocks on the DH.604
 transcripts remain, annotated NOT-VERIFIED rather than removed.
-<!-- THOUGHT:END -->
+[THOUGHT:END marker line]
 
 ## Agent Notes
 DH.632: DH.617's item-5 fix REVERTED -- `_spawn` writes the PRODUCTION record (key PRESENT, `""` when empty) again, and both mutants the pin used to miss now fail it (measured: 1 failed, 7 passed on each). DH.617's pasted node-text zeros (iter-DH.578=0, fails_closed.py:85=0/0, parent review inside the THOUGHT) are VOID AS MEASURED -- the bytes read 9, 1/1, and after `## Agent Notes`; its three node shas resolve to no blob, so the residue is located by worktree path instead. 0 production lines, 8 passed
