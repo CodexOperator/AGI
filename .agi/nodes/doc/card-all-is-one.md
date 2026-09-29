@@ -15,57 +15,37 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (17:1xZ 09-29 — RESUMED to 23:00Z, owner 16:5xZ via belam)
+## §0 State (23:00Z 09-29 — STOPPED on belam's relay of the owner's stop; IDLE)
 | | |
 |---|---|
 | post | all-is-one |
 | stage | council — you embody vision:all-is-one ONLY (read it whole first); every review speaks from that vision alone, never alive or self-perpetuating |
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · CC session agi-86 (ref 081012) since the 17:33Z crash-recovery respawn (gen 2) |
-| peers (this run) | ALL session names changed at the 17:33Z respawn (DG3 = 547207, SM = 724084) — ListAgents / posts row session_ref first |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · gen 2 (re-seated 17:33Z crash-recovery respawn), CC session agi-86 / 081012 |
+| peers | session names change per run: ListAgents / posts row session_ref first (alive was agi-13 this run) |
 | skills | agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundle 1 = goal:g7.16.1.1: drafted, converged (B E {C D} A), SM clean at 80c1c245d, council mur 2 chunks + 3 lens reviews
-done   bundle 2 = goal:g7.16.1.2 (794a0782e): converged, SM clean at 9c54fb3c4 (re-mur wf_42a582dc-d1f accept, residues 32-56 closed)
-done   17:1xZ bundle-2 lens review sent to alive: BETTER (one serializer · one resolver · one home regex · one git grep · markers · one-call wake); CHANGE 1 two park forms (tag + s-p's 39 body rows) · 2 one-sources in wrong homes (rotate._dump_record/_resolve_record_path private, write.py imports verification.parked_carriers) · 3 heal swallows ImportError on a record write · 4 skill CLASSES copy :66 · 5 g7.32.5 horizon residue
-done   17:1xZ bundle-3 pre-draft to alive: VOTE g4.18.3 + g4.18.4 first (row 0); core measure 374 ahead/526 behind, 67 engine files +6295/-239; SEND = 9 modules; kid_write_gate beside write_guard, spawn_refusal beside spawn_gate; simplify ON our trunk (s-p agrees); pointer nodes on OUR trunk, never on core (s-p agreed 17:1xZ)
-done   17:1xZ bundle-3 draft reply: keep H1-H4 · S1 ONLY as a replacement (core send.py still 149 inbox refs, trunk 152: dm_* sits BESIDE inbox) gated by its measure leaf, else a verdict · S2 verdict (verified: only own tests import the five; session_ingest = a 2nd mint door -> write.py create) · S3 CUT (profile_sync goes with bundle 4's rotate/write edits; magic_pane follows S1)
-done   17:1xZ agreed s-p's adds (S1 pins a real dm file; S2 = goal + core sha + "built, not wired"); added: g7.31.3.3 + .1-.5 are `complete` on core but `active`/absent on our trunk -> S2's verdict + a [merge-note] to belam: true status ACTIVE until wired; "built at <sha>, not wired" goes in each leaf BODY (state), never THOUGHT (conceded to s-p)
-done   17:1xZ bundle 3 = goal:g7.16.1.3 (900a4017a) -> DG1; S3 dissolved, S1 replacement-or-verdict (route count + dm-file test), S2 verdict with session_ingest -> write.py create + ACTIVE-until-wired in BODY; [merge-note] sent to belam by alive
-done   17:2xZ council mur b2 (wf_4e0708df-4ef, 0 red): my skill pre-read half-refuted (home IS listed; stale hand copy confirmed); confirmed residues on g7.16.1.3 H4 (83bb22b46): generic-home scrub 424 files · 1.2.1 falsifier 3/21 · pass10 row 32 false park · 2 stale mvps · _grep_live fails open · seating announcement leaks transcript path; my line: fix via the SAME home_relative, fail closed
-done   17:3xZ row G (owner: retire GOALS.md, on g7.16.1.3 at 2eb4f4528): placement agreed; sent 3 same-row couplings: rotate closeout gated on --render --check (compares vs "" -> refuses forever) · snapshot-goals --from-doc unlinks goal nodes (the only GOALS.md -> deletion path) · node_writer excludes `goal` from CANONICAL_NODE_TYPES on a reason G makes false; reach = 16 engine files · 5 skills · CLAUDE.md · QUICKSTART · 12 tests; one goal read path
-done   18:1xZ write/render split (owner 18:0xZ): AGREE bundle 4 = g4.18.5 -> .6 -> .7, not folded into 3; one-source conditions sent to alive: g4.18.6 read-via-render bullet -> g4.18.7 only · g4.19 resolved in bundle-4 row 0 (retitle or parked:g4.18.7) · g4.18.3 gate invariant carried into g4.18.5, base = bundle-3 SM-clean tip · `read` leaves VERBS in the same row as the 23-file repoint · nit: doubled H1 on g4.18.3/.5/.6
-
-done   18:2xZ row R (g6.41.1 recovery, Prime URGENT): AGREE R1=P1+P6 + R2=P5 into bundle 3 after H4g; conditions to alive: tmux ensure inside _launch_window + wrap_argv inside _shell_cmd (one launcher) · leaf Out-of-scope names bundle 3 + assigned director-engine -> rewrite with the fold · R falsifier = cgls negative + one-post kill (falsifier 1 needs P2 -> bundle 5) · P5 reuses memory_alarm.read_psi · agreed bundle 4 DG1 reads core write.py +125 as input
-done   18:3xZ row G: AGREE moved to bundle 4 as W-G (verified unbuilt: 30f4db55f/e662637ac edit only the leaf; driver.sh:240 still renders); couplings + CLAUDE.md read line ride with G; render + --check stay live until W-G, red attributed by name
-done   18:4xZ bundle-3 lens review (9181cee26^..9966e3050, 8 test files 367 passed) sent to alive: BETTER; owed before close C1 write.py:2376 unpark GrepError exits 0 (fail closed) · C2 _cutover_* 0 callers -> name built-not-wired in g6.41.1 body · C3 3rd systemd-run builder in ensure_tmux_session, no usable-check; bundle-4 inputs B1 heal launcher copy · B2 4 posts commit paths -> g4.18.5 · B3 grep_live home · B4 3rd config reader
-now    WAIT for alive: C1-C3 placement + council mur result; bundle-2 council mur wf_4e0708df-4ef residues join H4 · batched bundle-2 mur only after PASS B3 (17:47Z) · single-file tests only
-stop   23:00Z: finish the step, card whole, commit, idle
+done   bundle 1 (g7.16.1.1) + bundle 2 (g7.16.1.2): converged, SM clean, council mur + lens reviews sent (see git history of this node)
+done   17:3xZ row G couplings sent: closeout --check gate · --from-doc unlink · node_writer goal-type reason
+done   18:1xZ write/render split = bundle 4 (g4.18.5 -> .6 -> .7), not folded into 3; conditions: read-via-render lives in g4.18.7 only · g4.19 resolved in row 0 · g4.18.3 gate invariant carried into g4.18.5 · `read` leaves VERBS in the same row as the 23-file repoint
+done   18:2xZ row R (g6.41.1 recovery) into bundle 3 after H4g: one launcher (tmux ensure in _launch_window, scope in _shell_cmd) · leaf Out-of-scope/assignee fix · R falsifier = cgls negative + one-post kill · P5 via memory_alarm.read_psi
+done   18:3xZ row G -> bundle 4 as W-G (verified unbuilt at 9966e3050); now LANDED per CLAUDE.md (goal:g7.16.1.4.1, GOALS.md retired)
+done   18:4xZ bundle-3 lens review (9181cee26^..9966e3050) to alive: BETTER; 8 test files 367 passed / 6 skipped
+         owed before close: C1 write.py:2376 unpark GrepError exits 0 (fail closed) · C2 _cutover_plan/_cutover_to_scopes 0 callers -> "built, not wired" in g6.41.1 body · C3 ensure_tmux_session = 3rd systemd-run builder, no usable-check
+         bundle-4 inputs: B1 heal._launch_recovered copies _launch_window · B2 4 config:posts commit paths in rotate.py -> g4.18.5 one row write · B3 grep_live/parked_carriers homed in rotation_record · B4 heal's own config.json reader
+open   no reply seen from alive on C1-C3 placement or the council mur (mur-data-work-agi-council-bundle-3) before the stop
 ```
 Lens questions for every bundle: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
 
-## §2 Landed (this run)
-- bundle-1 draft reply: keep A-E; A narrowed (template = the existing kind, switch = one write.py set); D = count mint assigners; retire → park g7.32.5
-- conceded B first + park over retire (s-p); schema fix: park = status horizon (`held` is illegal, [goal].md:33)
-- bundle-1 lens review: BETTER — 9 copies → 2 single sources (THOUGHT regex 5→1, mint assigner 4→1); change: switch only listed wakes · marker literal x2 · check_formation's own rglob
-- park-as-TAG (existing `tags`, `parked:g<N>`) over a new field — alive + s-p adopted; migration gate recounted (16 real parks, minus 2 live-code)
-- chunk-1 residues: rotation records fixed at the WRITER, no anonymize exemption; conceded the 109-JSON scrub to one `~` shape; s-p added one transcript resolver
-
 ## 🔴 Where it stops
-18:4xZ 09-29 bundle 3 SM-clean at 9966e3050; my lens review sent (C1-C3 owed, B1-B4 -> bundle 4); idle until alive places C1-C3 / the council mur lands · stop 23:00Z
+23:00Z 09-29 stopped idle on the owner's stop; bundle-3 lens review sent, C1-C3 placement unanswered
 ```
-on SM clean: git diff --stat 900a4017a <SM tip>; lens: S1 send routes 2 -> 1 (send.py inbox refs from 152)? S2 no port of the five? copies -> one source? · single-file tests under /tmp -> SendMessage alive
+on resume: python3 extensions/agi/bin/send.py --from all-is-one read all-is-one ; tail the room .agi/comms/season-2/room/council-loop.md
+then check C1-C3 in the bytes at the bundle-3 close tip: git show <tip>:extensions/agi/bin/write.py | sed -n 2370,2385p (unpark failure must not exit 0)
+bundle 4 is live (DG3 residue 96 at 389afc3e1): lens review its range against B1-B4 when SM returns it clean
 ```
-Pre-read at the tip 9c54fb3c4 (15:3xZ, for that review):
-| row | reading |
-|---|---|
-| M | HOLDS: THOUGHT_BEGIN/END live only in node_writer.py:985/987 (0 literals in snapshot-goals / write) |
-| T | HOLDS (alive): one home .geometry/formations/, 3 templates each mapped to a goal, 1/3/4 retired; one `templates:` registry in config:formations |
-| R1 | HOLDS (alive): one resolve_transcript, rotate.py:445 |
-| CLASSES pointer | RESIDUE: skills/agi-master-gate/SKILL.md:66 still hand-lists "hostname / ip / mac / board / secret" — missing `home`, and still a copy |
-| F | NOT landed: no formation line in config:rotations first_turn (Prime-written, owed) |
 
 ## §4 Traps
 | trap | rule |
@@ -74,10 +54,12 @@ Pre-read at the tip 9c54fb3c4 (15:3xZ, for that review):
 | `grep -r` / `find` over .agi/ or the repo root io-stalls the box | `git grep PATTERN <sha> -- <paths>` |
 | `send.py read all-is-one` without `--from` | exits 2 (whoami = unknown): always `send.py --from all-is-one ...` |
 | town:local-maxxing board | ring-gated (owner/prime only): the measure line goes to room council-loop as [measure] |
-| tests | run touched files from a `git archive <tip> extensions` copy under /tmp, `--basetemp` under /tmp; check `.agi/sessions/verify-suite.lock` first |
-| .agi/sessions/quorum/all-is-one.md | a STALE tracked regular file (09-18), not a link to this node — do not read it as the card; not mine to re-point |
+| tests | `git archive <tip> extensions .agi/context/schemas` under /tmp (schemas too: formation_readback copies them), `--basetemp` under /tmp; check `.agi/sessions/verify-suite.lock` first |
+| write.py `sub` | a `\n` in a single-quoted script lands LITERAL: build the arg with python3 -c print(...) |
+| ack refused "own row dirty" | another post's ack is mid-write in posts.md: wait for it to commit, never touch its row |
+| .agi/sessions/quorum/all-is-one.md | a STALE tracked regular file (09-18 brief), not a link to this node — do not read it as the card; not mine to re-point |
 
-## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken · (`snapshot-goals.py --render --check` retires with row G)
+## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (GOALS.md render check retired, goal:g7.16.1.4.1)
 
 ## §6 BANKED
 (none)
