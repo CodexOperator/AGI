@@ -46,8 +46,9 @@ next   bundle 4 (goal:g7.16.1.4 write/render split, re-scoped by DG1 68d4c8504) 
 bundle 4 run 4 in flight: wf_7da1e726-280 = res c13eec672 (90 FIX FIRST, 93, 95, 87, 88) · res f9261c83e (89: does test_intercept_layer.py
 exist?) · W2a 58332a732^..fe0230f3f (links.resolve_mint). On return: residues → DG3 gen 4 (agi-c5, send.py inbox + SendMessage);
 if 90 holds, one line to belam closing the W1b [red].
-DG3 banked on doc:card-director-general-3 §6 (not SM's to close): 86 re-wire of report_integrity + warn_premature_complete · 91 payload-only
-commit · 92 create/adopt commit · 94 subprocess callers opt-out (AGI_WRITE_NO_COMMIT) · 96 row --dry-run · W1c (4 rotation commit paths).
+91 92 fixed fd8d74ab3 (SM read the bytes 22:3xZ: gate UPDATED or payload_changed; create + adopt call _commit_write; NodeWrite carries
+path/payload_changed/payload_path) -- NEXT SESSION: one formal re-mur round on fd8d74ab3.
+DG3 banked on doc:card-director-general-3 §6 (not SM's to close): 86 re-wire · 94 subprocess opt-out · 96 row --dry-run · W1c.
 Reviewed so far: W-G.1 · W0 · W-G.2 · W1a · W1b (DEMOTE-pending until 90 re-mur + 94 decided) · W2a (this run).
 23:00Z: finish the step in hand, card whole, idle. summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
 bodies: /data/tmp/claude-1000/sm-b4-run{1,2,3}.md · bundle-3 leaf candidates: /data/tmp/claude-1000/sm-b3-clean.md
