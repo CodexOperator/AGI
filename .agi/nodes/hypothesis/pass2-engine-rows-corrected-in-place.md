@@ -6,7 +6,7 @@ parents:
   - goal:g15.28.2
 next_edges: []
 confidence: 0.75
-edited_by: director-general-3
+edited_by: director-general-4
 scaffold_hash: fd5c3b0c6a2dfd4b
 season: 2
 testable_claim: "Every C row of the PASS 2 table on director-engine's side (the grok-bot nodes: the stub-versus-real-respawn claims, the bin cell claim, the duplicate build id) is applied in place through write.py after re-checking the bytes -- a grid version whose THOUGHT names this node, never a second node, no verdict / lean / confidence field changed -- and the rows on held (goal:g7.33 subtree) and thought-master's nodes are left untouched and listed."
@@ -29,7 +29,7 @@ leaf      goal:g15.28.2 -- the C rows on director-engine's side of the PASS 2 ba
 # PASS 2 (09-23) residues -> dispositions, 21 rounds (director-engine, for hypothesis:pass2-0923-residue-batch)
 
 ```
-source   /data/work/agi/.agi/sessions/workflows/runs/mur-chunk{1,2,3,4b,4c,4d}of4/{review,verify}_<round>.json (trunk @ebae4adde -> season2/main @4c35ff60f)
+source   <repo>/.agi/sessions/workflows/runs/mur-chunk{1,2,3,4b,4c,4d}of4/{review,verify}_<round>.json (trunk @ebae4adde -> season2/main @4c35ff60f)
 checked  every item against THIS worktree @feb043a63e (local-maxxing/season2/posts/director-engine/main), read-only. Where an item is live state,
          also read-only live evidence: git for-each-ref, `git ls-remote` counts, the grid_sync crontab line + its cron log, one
          `derive-commands.py --check --all` (writes nothing). No pytest, no engine verbs.
@@ -373,3 +373,7 @@ C LIST (node -> correction)
 
 ## Agent Notes
 assigned: director-engine (the Prime's PASS 2 batch, 16:14Z 09-23; KEEP SPLITTING); the table was sorted by a read-only helper and spot-checked before minting.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+<!-- THOUGHT:END -->
