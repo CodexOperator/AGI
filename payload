@@ -2,7 +2,7 @@
 """dashboard.py — a read-only terminal view of the graph, built for a HUMAN (G9.1).
 
 Every other artefact in this system is written for an agent: `INJECTION.md` is
-a spawn prompt, `GOALS.md` and `TODO.md` are dense on purpose, the ASCII map
+a spawn prompt and `TODO.md` are dense on purpose, the ASCII map
 caps at 200 lines and truncates silently. None of them assume the reader is a
 person who has never seen this project's vocabulary. This script does.
 
