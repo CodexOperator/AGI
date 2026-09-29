@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking
 next_edges: []
 confidence: 0.7
-edited_by: a00-bb0994fd
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-7cc30276-8db826
 loop: hypothesis:l4-a-check-that-answers-a-question-it-is-not-asking@s2
@@ -32,7 +32,7 @@ Completion pass on `hypothesis:l4-a-check-that-answers-a-question-it-is-not-aski
 - **`locations.sessions_dir` kept as the PER-WORKTREE join, now explicitly documented** as such (it is what iteration output wants) — no longer silently claiming to be the shared room.
 - Re-routed the named shared faces through `shared_sessions_dir`: `send._inbox_dir` (THE mail), `mail_alert._inbox_unread` (via `send._inbox_path`), `viewport._seat_sessions` (meter pins), `hierarchy.seat_sessions_dir` (meter pins), `grid.py:758` `.grid.lock` (grid `--all` serializes SHARED refs, so its flock must be one across worktrees).
 
-**G4 verified on the real tree:** from THIS seat worktree, `shared_sessions_dir(wt/.agi)` == `/home/ubuntu/work/agi/.agi/sessions` (the MAIN room) while `sessions_dir(wt/.agi)` correctly stays worktree-local — the fork honored for iteration, the room shared for pins/mail.
+**G4 verified on the real tree:** from THIS seat worktree, `shared_sessions_dir(wt/.agi)` == `<home>/work/agi/.agi/sessions` (the MAIN room) while `sessions_dir(wt/.agi)` correctly stays worktree-local — the fork honored for iteration, the room shared for pins/mail.
 
 **W4 — successor's first reply, measured, settles YES.** The predecessor's read-back and the successor's `--debug-file` are now the SAME shared file: `spawn_window` defaults its successor log to `_sessions_dir(root)/<name>.log` and `rotate_self` polls that exact path (`:1340`), so a successor first reply cannot be stranded in a file the predecessor cannot see — even when the rotation is driven from a linked worktree. New falsifier asserts path equality from both worktree and main (`_make_main_and_worktree` fixture) plus that the shared log is on the MAIN checkout. Both sides of a rotation now resolve the one `<name>.log`.
 
