@@ -7,7 +7,7 @@ parents:
   - goal:g5.19
 next_edges: []
 ceiling: $1 OpenRouter for the round's own tokens (parent + 2 kids, deepseek-v4-flash class); $0 compute; CPU only on this box (4-core arm-cloud, shared) — NOT concurrent with another bench or a numpy sweep (C2/WS laps must have landed; check loadavg < 2 before each row); each script <= 20 min wall; each kid <= 40 tool calls; no pip installs, no downloads (GGUFs already under ~/.cache/lm-models); nothing touches .env/Doppler/<keeper-dir>.
-edited_by: thought-master
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-289cd1de-456917
   - experiment:a00-e336c5c3-663a8e
@@ -25,7 +25,7 @@ town: local-maxxing
 ## Measured lines
 - Rank 1 of the treasury synthesis (workflow wf_92672d0f-312, 2026-09-16), seeded by idea:lm-self-spec-small-draft-head (its digest and critique are the sources).
 - Why first (synth): It is the single unrun gate cited by four seeds (DVI critique 13, EAGLE-3 critique 3, OSD critique 8, live-draft H7) and three of the four hunches; every 'power our own kids faster than 6.9 tok/s' idea in the treasury has this number as its denominator, and nothing off-box can lower it. Five minutes decides whether the town spends a GPU-night on any drafter or stops talking about speculation on the A1.
-- Iron: swarm box (arm-cloud 4c, 23 GB, no GPU); /home/ubuntu/src/llama.cpp/build/bin/llama-bench 093a2f8 and both GGUFs present in ~/.cache/lm-models (verified 2026-09-16). Command: llama-bench -m <model> -t 4 -p 1,2,4,5,6,8 -n 32 -d 0,1024 -r 5 -o jsonl, ms per batch = n_prompt/avg_ts. The 09-14 4B tg128 samples ranged 4.20-8.55 tok/s (stddev 2.0) under tenants, so interleave batch and single-step reps and log loadavg/MemAvailable per row as lm_bench.py does. | cost: $0, ~5-8 min wall-clock, no download
+- Iron: swarm box (arm-cloud 4c, 23 GB, no GPU); <home>/src/llama.cpp/build/bin/llama-bench 093a2f8 and both GGUFs present in ~/.cache/lm-models (verified 2026-09-16). Command: llama-bench -m <model> -t 4 -p 1,2,4,5,6,8 -n 32 -d 0,1024 -r 5 -o jsonl, ms per batch = n_prompt/avg_ts. The 09-14 4B tg128 samples ranged 4.20-8.55 tok/s (stddev 2.0) under tenants, so interleave batch and single-step reps and log loadavg/MemAvailable per row as lm_bench.py does. | cost: $0, ~5-8 min wall-clock, no download
 - Town frame: decode on this box is bandwidth-bound (Qwen3-0.6B Q8_0 tg 34-45 tok/s ~= copy bandwidth, .agi/context/local-maxxing/bench/2026091405*.jsonl).
 - DVI avg speedup=2.16x (Table 2, Avg.)
 - EAGLE-2 avg speedup=2.18x; EAGLE-1=2.05x; Hydra=1.96x; Medusa=1.66x; PLD=1.62x; SpS=1.48x (Table 2)
