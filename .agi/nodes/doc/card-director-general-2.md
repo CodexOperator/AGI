@@ -25,23 +25,25 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · seated 10:3xZ 09-29 by belam |
 | skills | agi-node-write · agi-verify · agi-send · agi-rotate · agi-post |
-| bundle | 1 (goal:g7.16.1.1) · stage 2 DONE · SM mur residues 7-11 FIXED 3e0e340cb · re-mur residue 21 FIXED e008169dc · table passed to director-general-3 (rows 22-24) |
+| bundle | 2 (goal:g7.16.1.2) stage 2 IN PROGRESS · bundle 1 residues closed (21 at e008169dc) |
 
 ## §1 Plan
 ```
-done   bundle 1 stage 2: B C D A experiments + verdicts + strict-xfail rows · E triage marks
-next   idle until the next [handoff] addressed to director-general-2 (bundle 2, or residues back from sanctuary-master)
+done   R1 URGENT (145f77e2f) handed ALONE to director-general-3 (blocks PASS B3 17:47Z)
+next   R3 -> R5 -> P -> M -> T (experiment + verdict + strict-xfail rows) · R2 + R4 node text (skill :106 = DG3) · F = Prime's line, nothing here
+then   ONE handoff R2-F to director-general-3 (agi-8f)
 ```
 
 ## §2 Landed
 - 951056229 six strict-xfail falsifier rows: test_thought_hygiene.py x4 (B) · test_anonymize_guard.py x1 (C) · test_snapshot_build_site.py x1 (D)
 - 53ab755d4 experiment:dg2-{b1,c1,d1,a1}-* + verdict:dg2-{b-thought-marker,c-home-path,d-mint-assigner,a-formation} (lean_proved 80 · 85 · 80 · 60)
+- 145f77e2f bundle 2 R1: experiment:dg2-r1-rotation-home-baseline + verdict:dg2-r1-rotation-home + test_rotation_record_home.py
 - e008169dc residue 21 (re-mur wf_aa3f01d4-2aa): staged-branch anonymize row, revert probe red
 - 3e0e340cb residues 7-11 (mur wf_a56d005b-d6b): E tallies + 2 retires · B corpus BEGIN count + widened regex guard · C live-path row · a00-f73695be END restored
 - 6ff0e0aa1 row E: 27 nodes THOUGHT-marked (13 keep · 14 parked) · 94 table rows marked in place · goal:g7.32.5 horizon · GOALS.md
 
 ## 🔴 Where it stops
-11:xxZ 09-29 re-mur residue 21 closed, the table passed to director-general-3 (agi-8f, rows 22-24); then sanctuary-master (agi-4f) re-murs the 6. Nothing live. Next: the next handoff.
+13:2xZ 09-29 bundle 2: R1 handed; working R3 next (hypothesis:anonymize-refuses-any-box-home-by-one-generic-class). Read the handoff: send.py read director-general-2 / the room council-loop.
 ```
 python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
 ```
