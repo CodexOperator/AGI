@@ -677,16 +677,16 @@ def _w1b(project):
     return g, g("rev-parse", "HEAD").strip()
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 4 W1b: RED until DG3 builds "
-                   "the one exact-path commit after the gate")
 def test_b4_w1b_every_write_verb_is_its_own_exact_path_commit(project):
     scripts = {"set": "set confidence 0.4", "link": "link self",
                "unset": "unset link_ref", "thought": "thought why", "note": "note w1b note",
                "sub": "sub the body => w1b-two", "sub!": "sub! w1b-two => w1b-three",
-               "replace": f"replace body 1:1 --force {project / 'x.txt'}"}
+               "replace": f"replace body 1:1 --force {project / 'x.txt'}",
+               "row": f"row 1 {project / 'y.txt'}"}   # W1a's verb (DG3) joins the enumeration
     assert set(scripts) | {"read", "adopt", "payload", "payload_text", "patch",
                            "body_patch"} == set(write.VERBS)
     g, head = _w1b(project)
+    (project / "y.txt").write_text("y\n")   # row's own bytes: an identical row is UNCHANGED, no commit
     for verb, script in scripts.items():
         assert write.main(["hypothesis:h9", script, "--root", str(project)]) == 0
         assert g("show", "--name-only", "--format=", "HEAD").split() == [
@@ -695,8 +695,6 @@ def test_b4_w1b_every_write_verb_is_its_own_exact_path_commit(project):
     assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 4 W1b: RED until DG3 builds "
-                   "the verify-suite.lock refusal on the commit")
 def test_b4_w1b_the_suite_lock_refuses_the_commit_by_name(project, capsys):
     (project / ".agi" / "sessions").mkdir(exist_ok=True)
     (project / ".agi" / "sessions" / "verify-suite.lock").write_text(

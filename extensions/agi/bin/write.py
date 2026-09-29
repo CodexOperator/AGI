@@ -53,6 +53,7 @@ from __future__ import annotations
 
 import difflib
 import os
+import subprocess
 import re
 import sys
 from dataclasses import dataclass, field
@@ -3611,7 +3612,36 @@ def main(argv: list[str] | None = None) -> int:
     if res.payload_changed is not None:
         print(f"payload: {res.payload_path} "
               + ("replaced" if res.payload_changed else "unchanged"))
+    if res.status == node_writer.UPDATED:   # goal:g4.18.5.2: a write is a commit
+        _note = _commit_write(root, edit.node_id, res, args.actor)
+        if _note:
+            print(_note, file=sys.stderr)
     return 1 if res.status == node_writer.REJECTED else 0
+
+
+def _commit_write(root, node_id: str, res, actor: str = "") -> str | None:
+    """goal:g4.18.5.2 -- the CLI write, after the gate, is ONE commit of its
+    own node (+ its payload) by exact path. In main() only: submit() is the
+    library rotate.py and send.py call on shared files. `git commit -- <paths>`
+    commits those paths alone: never -a, never a file another post staged. A
+    held verify-suite.lock refuses the commit by name (the write stays on
+    disk). Not a git checkout = nothing to commit. Unpark carriers a
+    formation switch writes are other nodes: they stay out."""
+    paths = [str(p if Path(p).is_absolute() else Path(root) / p)
+             for p in (res.path, res.payload_changed and res.payload_path) if p]
+    git = lambda *a: subprocess.run(["git", "-C", str(root), *a],  # noqa: E731
+                                    capture_output=True, text=True)
+    if not paths or git("rev-parse", "--is-inside-work-tree").returncode:
+        return None
+    lock = Path(root) / "sessions" / "verify-suite.lock"
+    if lock.exists():
+        return (f"commit refused: {lock} is held -- the write landed "
+                f"uncommitted; commit {' '.join(paths)} by exact path")
+    git("add", "--", *paths)
+    done = git("commit", "-q", "-m", f"write.py: {node_id}" + (f" ({actor})" if actor else ""),
+               "--", *paths)
+    return None if done.returncode == 0 else \
+        f"commit failed: {(done.stderr or done.stdout).strip()[:300]}"
 
 
 if __name__ == "__main__":
