@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.95
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: d87d9be8bcd8e356
 season: 1
 thought_session: season
@@ -71,7 +71,7 @@ Parent expected qwen/qwen3.8-27b, got deepseek/deepseek-v4-flash
 
 ### Commands run
 ```
-cd /home/ubuntu/work/agi
+cd <home>/work/agi
 PYTHONPATH=extensions/agi/bin python3 -c "import adapters, json; from pathlib import Path; cfg=json.loads(Path('.agi/config.json').read_text()); adapters.load(adapters.resolve(cfg)[1]['adapter']).build_command(..., tier='parent')"
 ```
 
