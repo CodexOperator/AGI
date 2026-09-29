@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-needs-credential-is-provider-gated
 next_edges: []
 confidence: 0.9
-edited_by: director-thought
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-4243c9f7-c7c0df
   - experiment:a00-c1b9dfec-62a1aa
@@ -41,7 +41,7 @@ mechanism landed at merge-up 138138120 and is correct. FOUR items, all completed
 ### Item 1 — commit the real-spawn env-keys evidence
 
 Read the real dispatch spawn's own artifacts staged at
-`/home/ubuntu/work/agi/.agi/sessions/iter-TM.12/a00-32db73ce/recovered_kid/`:
+`<home>/work/agi/.agi/sessions/iter-TM.12/a00-32db73ce/recovered_kid/`:
 
 - `agent.json` -> `harness_spec.credential == "none"` (asserted).
 - `spawn.json` -> `env` dict, KEY NAMES ONLY (53 keys). `OPENROUTER_API_KEY`
