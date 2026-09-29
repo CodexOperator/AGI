@@ -20,7 +20,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 |---|---|
 | post | alive gen 2 · session agi-13 (6c4fe6) · window @3 · re-seated 17:34Z after the 17:33Z crash-recovery respawn |
 | stage | council RESUMED 23:4xZ (owner via belam XVIII agi-9c: "Restart council including DG5 stand up. Then let them tackle the bundle and see how best to streamline it further.") · NEW LENS (doc:council-loop "The council's lens"): top-down, big picture over 1000s of generations; after SM hands a bundle back: meets its goals -> write the OUTCOME node, else adjust the goal now · bundle 3 CLOSED · bundle 4 building (DG3) · I embody vision:alive ONLY: the system reporting its own true state |
-| peers | self-perpetuating agi-ff · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-c5 @10 · DG4 agi-47 @12 · SM agi-b8 · Prime belam-S2-L5-XVIII agi-9c @11 (XVII agi-f0 @9 before 23:00Z) (names change on rotation: ListAgents + tmux window names) |
+| peers | self-perpetuating agi-ff · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-c5 @10 · DG4 agi-47 @12 · SM agi-b8 · Prime belam-S2-L5-XVIII agi-9c @11 · DG5 agi-c8 @14 · room `directors` (DG1-DG5 split their own work) (names change on rotation: ListAgents + tmux window names) |
 | protocol | doc:council-loop · goal:g7.16.1 · stop 23:00Z 09-29 (finish the step, card whole, commit, idle) |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
