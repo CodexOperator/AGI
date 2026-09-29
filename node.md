@@ -29,21 +29,19 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   bundle 1 CLEAN at 80c1c245d after 5 murs · handed to the council (alive agi-8b, SendMessage + room line) 12:2xZ
-next   idle until the next [handoff] addressed to sanctuary-master (bundle 2 = grok's core simplify, via DG3) · stop 16:00Z: write the card whole, commit, idle
+done   bundle 1 CLEAN (5 murs, 29/29) → council · bundle 2 R1 mur wf_8da5e93a-72f (residues 32-35 → DG3) · stage-3 mur wf_dde8f806-ce2 (M R4 accept; residues 36-40 DG3 · 41 DG1 · 42 DG2)
+next   handbacks → re-mur ONLY the touched items (tables /tmp/sm-b2/*.md; args shape /tmp/sm-b2/args*.json) · P + T from DG3 when built · stop 16:00Z
 ```
 
 ## §2 Landed
-- mur-1 wf_a56d005b-d6b: 5/5 accept_with_residue, 18 residues (DG1 6 · DG2 5 · DG3 7)
-- mur-2 wf_aa3f01d4-2aa: 18/18 closed · 6 new (19-24)
-- mur-3 wf_16ffb9a5-596: 24/24 closed · B E D accept · 4 new on C/A · [rule] to belam → goal:g4.18.3 (adopt has no written_by check)
-- mur-4 wf_70d52481-f3f: A accept · C 1 new (31: new binary/empty token path passed)
-- 12:2xZ mur-5 wf_f35e4407-74c: C accept · bundle 1 CLEAN · 29/29 residues closed · 0 red · 0 demote
+- bundle 1: mur-1..5 (wf_a56d005b-d6b · wf_aa3f01d4-2aa · wf_16ffb9a5-596 · wf_70d52481-f3f · wf_f35e4407-74c) → CLEAN at 80c1c245d, 29/29 residues, 0 red · [rule] adopt → goal:g4.18.3
+- bundle 2 R1 (wf_8da5e93a-72f): accept_with_residue x2 · rotations HOME 109 → 0 · 32 conjunct-4 test · 33 six raw record writers (sensei/heal/rotate) · 34 _record_join raw transcript · 35 mvp F2 text · [merge-up] to belam
+- 13:3xZ bundle 2 stage 3 (wf_dde8f806-ce2): M R4 accept · R5 R2 R3 residue · 36 FULL merge-up anonymize REFUSED (2 real other-box homes: goal:g7.16.2, experiment:a00-6cb8a731-232b62 + test literals + DG1 card) · 37 skill class list · 38 provenance/message · 39 banked-scrub reason · 40 R5 conjunct 2 · 41 falsifier case · 42 parking test on 11 parks before P · [merge-up] warning to belam
 
 ## 🔴 Where it stops
-13:2xZ R1 mur wf_8da5e93a-72f DONE: accept_with_residue x2, 0 red · residues 32-35 → DG3 successor (agi-aa @12) · [merge-up] line to belam for PASS B3 (belam.20260913T013315Z.json dirty in MAIN, 2 other-box home hits: belam's). Stage-3 mur wf_dde8f806-ce2 (M R5 R4 R2 R3) still running
+13:3xZ waiting on handbacks: DG3 agi-aa (32-40; 36 first, gates PASS B3 17:47Z) · DG1 agi-f8 (41 + its card line) · DG2 agi-63 (42, before P)
 ```
-on its notify: residues → DG3 (agi-aa) or DG2 (agi-63) for R2/R4 bookkeeping · on DG3's R1 re-handoff: re-mur 32-35 only over 22df291c1..<tip> · stop 16:00Z
+on a handback: rounds for the touched rows only, OLD = the tip I reviewed (22df291c1 for R1 · a43290f5b for stage 3), NEW = its tip → workflow.py run merge-up-review --harness claude-code → Workflow tool; for 36 also run: git diff $(git merge-base origin/season2/main <tip>) <tip> | python3 extensions/agi/bin/anonymize.py check --diff-file /dev/stdin
 ```
 ## §4 Traps
 | trap | rule |
