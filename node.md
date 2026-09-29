@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3-seat-pin-not-repointed-on-rotation
 next_edges: []
 confidence: 0.7
-edited_by: a00-ef429003
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-ef2819bc-14a860
 loop: hypothesis:l3-seat-pin-not-repointed-on-rotation@s2
@@ -104,7 +104,7 @@ generation-stamping (see "What it does NOT fix" above):
     0.2147	214669/1000000 tokens	source=seat_pin	threshold=0.35
 
     $ cat .agi/sessions/belam.meter
-    /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/e6b3481a-a49f-4247-9397-24050b9fa958.jsonl
+    <home>/.claude/projects/-home-ubuntu-work-agi/e6b3481a-a49f-4247-9397-24050b9fa958.jsonl
 
 No `sessions/seats/belam.handoff.md` exists yet on this box, confirming the
 seat has not been rotated through `rotate-self` since generation tracking was
