@@ -36,10 +36,10 @@ from spawn_gate import nearest_vision_town, vision_scope  # noqa: E402
 #: `... or os.getcwd()`: an env var, else whatever directory you happened to be
 #: standing in. Under the old layout that was harmless, because cwd *was* the
 #: graph root. Under `.agi/` it is not — the graph root is `<repo>/.agi` and cwd
-#: is `<repo>` — so `snapshot-goals.py --render` looked for `<repo>/nodes/goal`,
+#: is `<repo>` — so the (since retired) render looked for `<repo>/nodes/goal`,
 #: found nothing, and refused.
 #:
-#: **It refused rather than writing an empty `GOALS.md`, which is the only
+#: **It refused rather than writing an empty goal document (retired since), the only
 #: reason this is a bug report and not a data-loss incident** (goal:s12 added
 #: that guard). The failure was loud and safe; the resolver was simply wrong.
 #:
@@ -199,7 +199,7 @@ def strip_thought(body: str) -> str:
 
     Renderers strip; the node keeps it. That asymmetry is the whole point, and
     it is also the one hazard: anything parsing a *rendered* document back into
-    nodes would silently drop every thought. `GOALS.md` is generated and that
+    nodes would silently drop every thought. The goal document (retired) was generated and that
     direction is not run (goal:g6.9 reversed the arrow), but `parse_goals`
     still exists, so this is stated rather than assumed.
     """
@@ -323,7 +323,7 @@ def load_existing_nodes() -> dict:
     """Load all existing nodes. Returns dict keyed by node id.
     Each value: {path: Path, origin: str, fm: dict, body: str}
 
-    `body` was added for goal:g6.9 — rendering `GOALS.md` back out of the nodes
+    `body` was added for goal:g6.9 — rendering the goal document (retired) back out of the nodes
     needs the prose, not just the frontmatter. The line-anchored reader keeps a
     body containing its own `---` (the preamble has two) intact past the
     closing marker.
@@ -351,7 +351,7 @@ def load_existing_nodes() -> dict:
     return nodes
 
 
-# --- GOALS.md parsing ------------------------------------------------------
+# --- referential integrity ---------------------------------------------------
 
 
 def collect_parent_refs(existing: dict) -> dict:
