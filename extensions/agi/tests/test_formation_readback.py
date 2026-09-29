@@ -245,7 +245,7 @@ def test_set_active_refuses_when_the_carrier_grep_fails(groot, monkeypatch, caps
     monkeypatch.setattr(rotation_record, "parked_carriers", blind)
     rc = write.main(["config:formations", "set active doc:two-step", "--root", str(groot),
                      "--actor", "test", "--role", "director"])
-    assert rc != 0 and "set active refused" in capsys.readouterr().err
+    assert rc == 2 and "set active refused" in capsys.readouterr().err
     assert cell.read_bytes() == before  # nothing written
     assert "parked:g7.16.2" in (groot / "nodes" / "goal" / "g9.md").read_text("utf-8")
 

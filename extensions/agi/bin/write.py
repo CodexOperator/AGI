@@ -2353,8 +2353,9 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         import rotation_record  # the shared carrier grep: write never imports the verifier
         from graph_core.persistence import frontmatter as _fmr
         cell = node_writer.find_node_file(root, "config:formations")
-        table = (edit.set_fm.get("templates")
-                 or _fmr.load_node_file(cell, body=False).frontmatter.get("templates") or {})
+        # no cell -> no table -> no grep (the empty-goal path): residue 79
+        table = (edit.set_fm["templates"] if "templates" in edit.set_fm else
+                 (_fmr.load_node_file(cell, body=False).frontmatter.get("templates") if cell else None)) or {}
         wake_goal = str(table.get(edit.set_fm["active"]) or "")
         try:
             carriers = rotation_record.parked_carriers(root, wake_goal) if wake_goal else []
