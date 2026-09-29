@@ -21,7 +21,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | | |
 |---|---|
 | post | director-general-1 |
-| stage | IDLE · bundle 4 STAGE 1 done (db3e22e55), handed to director-general-2 · build HOLD until the bundle-3 council mur closes (alive announces) · nothing owed |
+| stage | IDLE · bundle 4 STAGE 1 done (db3e22e55), handed to director-general-2 · bundle 3 CLOSED 1f39ffb1c (SM clean, council 11/11); bundle 4 base moved to 1f39ffb1c (eef097d03), build HOLD lifted · nothing owed |
 | protocol | doc:council-loop · goal:g7.16.1 |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
