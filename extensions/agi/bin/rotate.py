@@ -5552,6 +5552,7 @@ def _preserve_audit(rec: dict, existing_path: Path | None) -> None:
 # row H4): rotate keeps its internal call names through this alias.
 from rotation_record import dump_record as _dump_record  # noqa: E402
 from rotation_record import resolve_record_path as _resolve_record_path  # noqa: E402
+from rotation_record import home_rel as _home_rel  # noqa: E402
 
 
 def _write_rotation_record(root: Path, record: dict,
@@ -6492,7 +6493,8 @@ def _compose_seating_announcement(*, seat, window_id: str = "", ref: str = "",
     Carries seat, window @id, ref (when the join has it, else the NAMED
     `ref: (pending ack)` — never a silently-dropped address a peer could not
     reach), the bounded pid, session id and transcript path (absent fields
-    render as `-`, honest pre-join), the durable sequence number, and what is
+    render as `-`, honest pre-join; the transcript home-relative through the
+    ONE rule, goal:g7.16.1.3 H4 g), the durable sequence number, and what is
     in flight. Pure formatting; runs nothing.
 
     WITH `--ask-diff` (SL7.06's answer contract, reused never a third shape)
@@ -6522,7 +6524,7 @@ def _compose_seating_announcement(*, seat, window_id: str = "", ref: str = "",
             f"{gen_field}"
             f"trigger: first-seating | pid: {pid_s} | "
             f"session: {session_id or '-'} | "
-            f"transcript: {transcript_path or '-'} | seq: {seq} | "
+            f"transcript: {_home_rel(transcript_path) or '-'} | seq: {seq} | "
             f"in flight: {in_flight}")
     if ask_diff:
         _ref = ref or "<your ListAgents ref>"

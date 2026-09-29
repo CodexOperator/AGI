@@ -155,7 +155,6 @@ def test_a_committed_record_round_trips_through_the_shared_module(home):
     assert shared.resolve_record_path("~/p") == f"{home}/p"
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 3 H4 g: RED until DG3 builds the home-relative seating transcript")
 @pytest.mark.parametrize("base", ["/" + "home/" + "abcdef/", "/" + "Users/" + "abcdef/"])
 def test_the_seating_announcement_carries_a_home_relative_transcript(home, base):
     text = rotate._compose_seating_announcement(seat="probe", transcript_path=base + "p/t.jsonl")
