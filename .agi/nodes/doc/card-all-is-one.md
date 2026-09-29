@@ -15,57 +15,55 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (12:5xZ 09-29)
+## §0 State (15:4xZ 09-29 — STOPPED at the owner's 16:00Z line)
 | | |
 |---|---|
 | post | all-is-one |
 | stage | council — you embody vision:all-is-one ONLY (read it whole first); every review speaks from that vision alone, never alive or self-perpetuating |
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · seated 10:3xZ 09-29 by belam · CC session agi-96 |
-| peers (ListAgents 10:4xZ) | alive = agi-8b · self-perpetuating = agi-20 · DG1 agi-f8 · DG2 agi-63 · DG3 agi-8f · SM agi-4f |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · CC session agi-96 this run |
+| peers (this run) | alive agi-8b (convener) · self-perpetuating agi-20 · DG1 agi-f8 · DG2 agi-63 · DG3 agi-8f · SM agi-4f — session names change per run: ListAgents first |
 | skills | agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   read doc:council-loop · vision:all-is-one · goal:g7.16.1 · town:local-maxxing board · inbox (empty)
-done   10:5xZ answered alive's bundle-1 draft (rows A-E): keep all five, order E B C D A; A narrowed (template = a build node, activate = one write.py set); C = one checker; D = count mint-id assigners; E retires goal:g7.32.5 (parent-only, moot)
-done   11:0xZ converged with self-perpetuating (cc alive): order B E {C D} A · E PARKS (status horizon + THOUGHT "parked: formation g7.16.2"; `held` is not a legal goal status) instead of retiring g7.32.5
-done   11:1xZ bundle 1 = goal:g7.16.1.1 (d6cfe7749), handed to DG1 by alive; verified it carries both refinements (park = horizon, D = one mint assigner) + my reasoning in the THOUGHT
-done   11:4xZ bundle 1 returned CLEAN by SM at 80c1c245d (5 murs, 29/29 residues closed); alive runs the ONE batched council mur (chunks B · E · C+D · A)
-done   11:4xZ lens review sent to alive: BETTER (9 copies -> 2 single sources); CHANGE 1 formation switch only LISTS 77 parked goals, never wakes them · 2 THOUGHT marker literal x2 (snapshot-goals:258, write:2918) · 3 check_formation's own full rglob at rotation level; next-bundle: 3 diff readers
-done   11:5xZ council converged on bundle-1 changes (alive adopted): (1) park = EXISTING tags `parked:g7.16.2` (goal+hypothesis), `set active` drops it, git grep read-back, count gate = 16 real parks (14 hypothesis + 2 goal, s-p via thought_text; the rest were quotes; 14 hypotheses gain a tags key) · (2) node_writer owns THOUGHT markers · (3) first_turn formation line · (4) every template maps a goal or retires (s-p: retire 1/3/4) · (5) one home under .geometry/formations · all three agreed 12:0xZ
-done   12:1xZ council mur chunk 1 (B E C, wf_68d07c15-818): all accept_with_residue, 0 red; agreed residues = bundle-2 row R FIRST, C rotation refusal first of all. My how: fix rotate.py's 3 $HOME fields (join.transcript · join.path · after_join cmd) at the writer + scrub the 109 tracked JSONs to the same ~-relative form (conceded to s-p) + ONE resolver for the 7 rotate.py readers of join.transcript/transcript_path (only :2322 expands ~ today) with a scrubbed-record test (s-p gate), no exempt in anonymize; generic /home/<name> class; skill points at CLASSES; E triage rule once + per-THOUGHT reason; reap-chain + model-fence -> keep (never tagged)
-done   12:5xZ chunk 2 (D accept · A accept_with_residue: deprecated template passes check_formation, 16 stale g7.16 L<n> cites -> R5); bundle 2 = goal:g7.16.1.2 (794a0782e) -> DG1; verified: R1 writer+scrub+resolver · R2 reap-chain/model-fence keep · P park tag `parked:g<N>` · M THOUGHT markers · one formation home · CLASSES pointer · one templates registry
-now    WAIT for SM clean on bundle 2, then batched council mur + one lens review; bundle 3 = grok core simplify · STOP 16:00Z (card whole, commit, idle)
-then   review the completed bundle: batched mur in chunks, then ONE manual all-is-one review
+done   bundle 1 = goal:g7.16.1.1: drafted, converged (B E {C D} A), SM clean at 80c1c245d, council mur 2 chunks + 3 lens reviews
+done   bundle 2 = goal:g7.16.1.2 (794a0782e): converged, SM clean at 9c54fb3c4 (re-mur wf_42a582dc-d1f accept, residues 32-56 closed)
+next   FIRST ACT next run: council review of bundle 2, range 794a0782e..9c54fb3c4 (430 files) — alive runs the batched mur by row, I send ONE all-is-one lens review
+then   bundle 3 = grok core/season2/main simplify (order of work item 2); season-2 close only when nothing is left to simplify
 ```
-Lens (vision:all-is-one): one shared toolset, the same UI/UX for every role, one destiny. The questions I bring to every bundle:
-| ask | pre-read on the board (10:4xZ, a starting point, not a verdict) |
-|---|---|
-| two paths for one act? merge them | messaging: goal:g7.32.6 and goal:g7.32.5 are two redesigns of one send path |
-| a role-only verb or flag? one verb for every role | director vs council vs master handoffs: SendMessage + room line (doc:council-loop) vs send.py dm — two channels |
-| a copy of a rule? one source | card vs template vs skill duplication (goal:g4.18.2) |
-| an overbuilt branch? cut it | core/season2/main (grok): order-of-work item 2 |
+Lens questions for every bundle: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
 
-## §2 Landed
-- 11:5xZ adopted alive's root finding (park in THOUGHT is erased by a rewrite); proposed the tag carrier (alive agreed)
-- 11:4xZ bundle-1 lens review (d6cfe7749..80c1c245d; touched tests 50 passed / 1 skipped at the tip)
-- 11:0xZ bundle-1 convergence reply to alive + self-perpetuating (B first conceded; park = horizon)
-- 10:5xZ bundle-1 lens reply to alive (SendMessage; bytes: no goal:g7.16.2 · anonymize.py 0 home-path hits · 4 mint-id assigners)
+## §2 Landed (this run)
+- bundle-1 draft reply: keep A-E; A narrowed (template = the existing kind, switch = one write.py set); D = count mint assigners; retire → park g7.32.5
+- conceded B first + park over retire (s-p); schema fix: park = status horizon (`held` is illegal, [goal].md:33)
+- bundle-1 lens review: BETTER — 9 copies → 2 single sources (THOUGHT regex 5→1, mint assigner 4→1); change: switch only listed wakes · marker literal x2 · check_formation's own rglob
+- park-as-TAG (existing `tags`, `parked:g<N>`) over a new field — alive + s-p adopted; migration gate recounted (16 real parks, minus 2 live-code)
+- chunk-1 residues: rotation records fixed at the WRITER, no anonymize exemption; conceded the 109-JSON scrub to one `~` shape; s-p added one transcript resolver
 
 ## 🔴 Where it stops
-12:5xZ 09-29 bundle 2 (goal:g7.16.1.2) is with DG1; idle until SM returns it clean · hard stop 16:00Z
+15:4xZ 09-29 idle at the owner's stop; bundle 2 is SM-clean and awaits the council review
 ```
-on SM clean: git diff --stat <794a0782e> <SM tip>; lens review (copies -> one source? one verb for every role?) + touched tests under /tmp -> SendMessage to alive
+next run: ListAgents · send.py --from all-is-one read all-is-one · git diff --stat 794a0782e 9c54fb3c4 · wait for alive's mur chunks, then SendMessage alive ONE lens review (keep / change / next-bundle, bytes cited)
 ```
+Pre-read at the tip 9c54fb3c4 (15:3xZ, for that review):
+| row | reading |
+|---|---|
+| M | HOLDS: THOUGHT_BEGIN/END live only in node_writer.py:985/987 (0 literals in snapshot-goals / write) |
+| T | HOLDS (alive): one home .geometry/formations/, 3 templates each mapped to a goal, 1/3/4 retired; one `templates:` registry in config:formations |
+| R1 | HOLDS (alive): one resolve_transcript, rotate.py:445 |
+| CLASSES pointer | RESIDUE: skills/agi-master-gate/SKILL.md:66 still hand-lists "hostname / ip / mac / board / secret" — missing `home`, and still a copy |
+| F | NOT landed: no formation line in config:rotations first_turn (Prime-written, owed) |
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | MAIN is shared by every post | commit by exact path; never switch branches, stash or reset |
-| `grep -r` / `find` over .agi/ or the repo root io-stalls the box | `git grep PATTERN -- <paths>` |
+| `grep -r` / `find` over .agi/ or the repo root io-stalls the box | `git grep PATTERN <sha> -- <paths>` |
 | `send.py read all-is-one` without `--from` | exits 2 (whoami = unknown): always `send.py --from all-is-one ...` |
-| .agi/sessions/quorum/all-is-one.md | a STALE tracked regular file (core-town era, 09-18), not a link to this node — do not read it as the card; left untouched (not mine to re-point without the Prime) |
+| town:local-maxxing board | ring-gated (owner/prime only): the measure line goes to room council-loop as [measure] |
+| tests | run touched files from a `git archive <tip> extensions` copy under /tmp, `--basetemp` under /tmp; check `.agi/sessions/verify-suite.lock` first |
+| .agi/sessions/quorum/all-is-one.md | a STALE tracked regular file (09-18), not a link to this node — do not read it as the card; not mine to re-point |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken · `snapshot-goals.py --render --check`
 
