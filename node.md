@@ -19,10 +19,10 @@ town: core
 # hypothesis:goals-md-retires-with-every-caller-in-one-row
 
 ## Measured
-- see goal:g7.16.1.4.1: 3 live render callers (driver.sh:240, rotate.py:8754 + :9370-9386, agi-round-review.js:64) · --from-doc :1123/:1135 + unlink :1256 · node_writer.py:76-80 · locations.py:86 + :706 · 16 code / 12 test / 5 skill files + CLAUDE.md + QUICKSTART.md name GOALS.md.
+- see goal:g7.16.1.4.1: 6 live render/check callers (experiment:dg2b4-wg-baseline): driver.sh:238-241 · rotate.py:8754 Prime step `render` (:9369-9389) · rotate.py:8733 worktree step `render_check` (:9185-9196) · verification.py:70-73 `goals-check` in LEVELS quick/rotation/full · agi-round-review.js:40-41,50,64 · review.json:12,22,38 · --from-doc :1123/:1135 + unlink :1256 · node_writer.py:76-80 · locations.py:86 + :706 · 16 code / 12 test / 5 skill files + CLAUDE.md + QUICKSTART.md name GOALS.md.
 
 ## CLAIM
-(1) the render and --check leave every live caller, closeout step and gate together (2) --from-doc and its unlink retire (3) node_writer's goal-type reason restated true (4) goals_file + DEFAULT_GOALS_FILE retire with readers (5) every reader line names today's one goal read (6) `git rm GOALS.md`, no node touched (7) --smoke prints the node count.
+(1) the render and --check leave all 6 live callers (both closeout steps, the goals-check level entries, both review files, the smoke) together (2) --from-doc and its unlink retire (3) node_writer's goal-type reason restated true (4) goals_file + DEFAULT_GOALS_FILE retire with readers (5) every reader line names today's one goal read (6) `git rm GOALS.md`, no node touched (7) --smoke prints the node count.
 
 ## Dispatch line
 config-max: the goals_file cell LEAVES config (a removal). template-max: the reader lines are skill/CLAUDE.md text, via the Prime for CLAUDE.md. code: cut callers only; snapshot-goals' non-render duties measured first and kept.
