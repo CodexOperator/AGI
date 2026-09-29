@@ -10557,8 +10557,19 @@ def _posts_load_error(content: str) -> str:
 
 
 def _row_names(text: str) -> set:
-    """The `name` cells of every posts row line in `text` (one row per line)."""
-    return set(re.findall(r'^  - \{"name": "([^"]+)"', text, re.M))
+    """The `name` cells of every posts row line in `text` (one row per line),
+    read by PARSING each row, never by key order (a role-first council row
+    counts: sanctuary-master mur wf_a3b15e54-c65 residue 58)."""
+    names = set()
+    for ln in text.splitlines():
+        if ln.startswith("  - {"):
+            try:
+                row = yaml.safe_load(ln[4:])
+            except yaml.YAMLError:
+                continue
+            if isinstance(row, dict) and row.get("name"):
+                names.add(str(row["name"]))
+    return names
 
 
 def _insert_row_into_frontmatter(base: str, row: str) -> str:
@@ -18378,6 +18389,11 @@ def _commit_stops_row(root: Path, seat: str, card_path: Path,
                              text=True, timeout=10)
         if _hs.returncode != 0 or _hs.stdout != own:
             _stage_seats = own   # the own row actually differs from HEAD
+    # goal:g4.18.4: a posts.md that does not load is never committed -- but the
+    # CARD (the resumability anchor) still commits alone, the refusal named
+    _seats_refused = ""
+    if _stage_seats is not None and (_why := _posts_load_error(_stage_seats)):
+        _seats_refused, _stage_seats = _why, None
     import tempfile  # noqa: PLC0415  (mirrors _ack_commit_seats / spawn_row)
     fd, tmp_index = tempfile.mkstemp(prefix="stoprow-idx-")
     os.close(fd)
@@ -18405,8 +18421,6 @@ def _commit_stops_row(root: Path, seat: str, card_path: Path,
             return (f"stop_commit: FAILED — card update-index: "
                     f"{upd.stderr.strip()}")
         if _stage_seats is not None:
-            if (why := _posts_load_error(_stage_seats)):  # goal:g4.18.4
-                return f"stop_commit: FAILED — seats.md does not load ({why})"
             sb = _tg(["hash-object", "-w", "--stdin"], input=_stage_seats)
             if sb.returncode != 0 or not sb.stdout.strip():
                 return "stop_commit: FAILED — seats hash-object"
@@ -18458,7 +18472,8 @@ def _commit_stops_row(root: Path, seat: str, card_path: Path,
         sha = ""
     _touched = card_rel + (f", {seats_rel}" if _stage_seats is not None else "")
     return (f"stop_commit: committed {_touched} (ONE rotate-out commit "
-            f"@{sha or '?'})")
+            f"@{sha or '?'})" + (f"; own row NOT committed: {seats_rel} does not "
+                                 f"load ({_seats_refused})" if _seats_refused else ""))
 
 
 def _stops_push(root: Path, label: str = "stops") -> str | None:
