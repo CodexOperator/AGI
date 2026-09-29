@@ -6,14 +6,14 @@ parents:
   - goal:g7
 next_edges: []
 confidence: 0.9
-edited_by: thought-master
+edited_by: belam
 goal_id: G7.33
 goal_kind: subgoal
 heading_level: 3
 origin: goals-doc
 scaffold_hash: baa16794659490c7
 season: 2
-status: horizon
+status: active
 tags:
   - engine
   - core
@@ -45,7 +45,7 @@ thought-master 01:5xZ 09-21 (owner, verbatim on goal:g14: 'let's have a way to t
 thought-master 02:1xZ 09-21 (owner 02:1xZ via goal:g5.26): ADD G7.33.8 SESSION CAPTURE HOOK -- claude-code role sessions (masters, directors, Prime) land at session end / rotate under datasets/sessions/<role>/<session>/ through datasets/tools/scrub.py with the graph's pre-labels (model, harness, provider, role, post, town, box); pi parents/kids already land under datasets/trajectories/. After 7.33.4; ceiling 200 engine lines; never a second scrub.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-horizon-pass not in-flight unclaimed on board
+Lifecycle marker by recursive leaf walk (director-general-4, owner 2026-09-29 22:0xZ via belam): status was horizon while 15/17 leaves are active; a parent with an active leaf is active. Walk re-measured 22:1xZ: 468 goals, 298 active, 85 horizon, 47 complete, 38 retired.
 <!-- THOUGHT:END -->
 
 thought-master 03:3xZ 09-21 (knowledge, EF.01 + EF.02 merged 68fedbace / a657f0d59): dispatch.py --memory exists (per-round memory -> agi-batch); grid.storage_trunk exists but this box is NOT migrated (33 refs/grid literals outside grid.py/crons.py -> EF.02b first). ADD G14.14.9 THE PRE-EXISTING RED SUITE: 13 tests fail on the trunk BEFORE any town change (test_season TestMergeUp x10 · test_cli test_done_auto_commits_parent_worktree · test_bin_help_smoke ws_raw.py + ws_raw_client.py) + test_adapters test_pi_bin_env_var_wins_over_config fails whenever PI_BIN is set in the environment (it is, on this box) -- one round per cluster: fix the test or the code, never delete a test; the merge-up tests likely encode the pre-town layout (config/template maxxing fallout).
