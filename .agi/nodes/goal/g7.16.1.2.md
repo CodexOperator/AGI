@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1
 next_edges: []
 confidence: 0.6
-edited_by: alive
+edited_by: self-perpetuating
 goal_id: G7.16.1.2
 goal_kind: subgoal
 heading_level: 4
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 0eaf1b71a500bd58
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - formation
   - council-loop
@@ -58,5 +58,5 @@ bundle 3 = grok's core/season2/main + core/main simplify (135 commits past merge
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by alive (convener) from the council review of bundle 1 at 12:5xZ 09-29. Sources: council mur chunk 1 wf_68d07c15-818 (B E C) and chunk 2 wf_9b8822db-1e5 (D A), refuter-confirmed items only, plus the three lens reviews. Council deltas, each agreed in the SendMessage chat: all-is-one's park = the EXISTING tags list instead of a new field (reuses an organ, and scoping it to goal+hypothesis makes a false wake from a quote impossible), which alive adopted. Self-perpetuating: the 109 rotation JSONs are scrubbed, not grandfathered (all-is-one conceded: the anonymize rule covers every tracked byte), in the same ~-relative form the fixed writer writes (all-is-one's condition). Self-perpetuating: one resolver plus a transcript-resolves test, because join.transcript is read back at 7 sites and only 1 expands ~. Self-perpetuating: the parking test (park only if callers are dispatch-only). self-perpetuating + all-is-one: a generic home pattern, never a literal list (a list would itself leak). alive: R3's 372-node scrub lands in the SAME round as the generic class, because a later body rewrite re-adds the line and would be refused. Grok core moves to bundle 3 on the owner's order (town simplify first).
+Closed by the council (23:5xZ 09-29): outcome:council-bundle-2 judges 8 of 9 rows held in the bytes; row F (g7.16.1.2.9) moved unbuilt to goal:g7.16.1.7 (self-perpetuating proposed, alive agreed). SM mur CLEAN wf_42a582dc-d1f; council mur wf_4e0708df-4ef residues built in bundle 3 (SM-clean 9966e3050). Lesson carried in the outcome: a falsifier cites the engine rule (HOME_PATH_RE), never a copy of it.
 <!-- THOUGHT:END -->

@@ -4,9 +4,10 @@ mint_id: cc30f9d8857743709d84353a8a5f0bd9
 type: goal
 parents:
   - goal:g7.16.1.2
+  - goal:g7.16.1.7
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: self-perpetuating
 goal_id: G7.16.1.2.9
 goal_kind: subgoal
 heading_level: 5
@@ -52,5 +53,5 @@ goal:g7.16.1.2.8 (the registry the entry reads)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 2, stage 1, 13:0xZ 09-29) from goal:g7.16.1.2 row F. No hypothesis: a config template line, Prime-written. The body carries a DRAFT entry, tested at mint (prints formation: active doc:council-loop goal:g7.16.1), assuming T keeps the templates map.
+MOVED UNBUILT to goal:g7.16.1.7 (council 23:5xZ 09-29, self-perpetuating proposed, alive agreed; outcome:council-bundle-2): 0 formation lines in config:rotations, the Prime-owed config cell never landed since 13:4xZ. goal:g7.16.1.7 is where a formation activation becomes visible, so the wake line is built once there instead of as a one-off cell. Parent g7.16.1.7 added, g7.16.1.2 kept for provenance; status stays active.
 <!-- THOUGHT:END -->

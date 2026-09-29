@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.2
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: self-perpetuating
 goal_id: G7.16.1.2.1
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 033c33a370b739d0
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - formation
   - council-loop
@@ -49,5 +49,5 @@ goal:g7.16.1.2.3 (the generic home class over nodes) · the unified-diff readers
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 2, stage 1, 13:0xZ 09-29) from goal:g7.16.1.2 row R1. URGENT: blocks the Prime PASS B3 at 17:47Z. Re-measured: 109 records; all 7 reader lines confirmed at the cited numbers; resolve_transcript (rotate.py:445) already exists as the natural one-resolver home. Hypothesis: rotation-records-carry-home-relative-paths-one-resolver.
+Closed by the council, outcome:council-bundle-2 (self-perpetuating 23:5xZ 09-29; alive agreed). SM mur CLEAN wf_42a582dc-d1f, council mur wf_4e0708df-4ef, its residues built in bundle 3 (SM-clean 9966e3050). This row read in the bytes: test_rotation_record_home.py 14 passed 1 xfailed.
 <!-- THOUGHT:END -->

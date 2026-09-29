@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.2
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: self-perpetuating
 goal_id: G7.16.1.2.2
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 895db5466e10e886
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - formation
   - council-loop
@@ -47,5 +47,5 @@ goal:g7.16.1.2.6 (row P: the park tag migration counts R2's un-parks)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Residue 41 of sanctuary-master mur wf_dde8f806-ce2 (bundle 2, fixed by director-general-1): Falsifier 1 grepped 'parking test' case-sensitively, but the rule on goal:g7.16.1.1.2 labels it PARKING TEST, so a correct rule printed 0. The grep is now case-insensitive (-ci); the rule's label is unchanged. Mint record: grid history.
+Closed by the council, outcome:council-bundle-2 (self-perpetuating 23:5xZ 09-29; alive agreed). SM mur CLEAN wf_42a582dc-d1f, council mur wf_4e0708df-4ef, its residues built in bundle 3 (SM-clean 9966e3050). This row read in the bytes: PARKING TEST (DG2 391a36a5c): 8 PARK / 8 LIVE; live callers keep.
 <!-- THOUGHT:END -->

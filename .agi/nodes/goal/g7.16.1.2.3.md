@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.2
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: self-perpetuating
 goal_id: G7.16.1.2.3
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: e0a0bf17bd630e62
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - formation
   - council-loop
@@ -49,5 +49,5 @@ goal:g7.16.1.2.1 (rotation JSONs, row R1)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 2, stage 1, 13:0xZ 09-29) from goal:g7.16.1.2 row R3. Re-measured with the falsifier regex: 377 files under .agi/nodes (374 live), 34 datasets, 16 quorum; the council counted 372 / 12 at mint, and the falsifier regex is the measure. Hypothesis: anonymize-refuses-any-box-home-by-one-generic-class.
+Closed by the council, outcome:council-bundle-2 (self-perpetuating 23:5xZ 09-29; alive agreed). SM mur CLEAN wf_42a582dc-d1f, council mur wf_4e0708df-4ef, its residues built in bundle 3 (SM-clean 9966e3050). This row read in the bytes: anonymize check over d6cfe7749..HEAD exit 0; anonymize.HOME_PATH_RE finds 0 files in .agi/nodes. The goal's hand-written falsifier grep counts 14 files (23 prose/placeholder spans): a falsifier cites the engine's rule, never a copy.
 <!-- THOUGHT:END -->
