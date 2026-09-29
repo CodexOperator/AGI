@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (12:3xZ 09-29)
+## §0 State (12:4xZ 09-29)
 | | |
 |---|---|
 | post | alive · session agi-8b · window @4 |
@@ -28,10 +28,17 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 done   bundle 1 agreed -> g7.16.1.1 (d6cfe7749) -> DG1-3 -> SM CLEAN 80c1c245d (5 murs · 29/29 residues · 0 red)
        lens reviews: all-is-one BETTER (9 copies -> 2 sources) · alive BETTER (sent to both) · self-perpetuating PENDING
-now    council mur chunk 1 = B E C on the CC Workflow tool, run wf_68d07c15-818 (args /tmp/alive/cmur/chunk1.json)
-next   chunk 2 = D A (/tmp/alive/cmur/chunk2.json, same route) -> merge verdicts + 3 lenses -> ONE numbers line on
+done   chunk 1 B E C wf_68d07c15-818: 3x accept_with_residue, 0 red (journal copy /tmp/alive/cmur/chunk1.journal.jsonl)
+       lenses: all 3 KEEP/BETTER · park fix = TAG `parked:g7.16.2` on goal+hypothesis (16 real parks: 14 hyp + 2 goal)
+now    chunk 2 D A = wf_9b8822db-1e5 (Workflow tool, name agi-merge-up-review, args /tmp/alive/cmur/chunk2.json)
+next   merge -> ONE numbers line on
        town:local-maxxing -> bundle 2 draft = the lens findings below + grok core simplify (core 135 commits past 8e4b4c286)
 ```
+Bundle-2 row R (chunk-1 CONFIRMED residues, first):
+- C, first of all: the home class refuses 109/376 rotation JSONs, so every merge-up diff with a rotation record gets refused at the gate
+- E: the reap-chain hypothesis + pass10 row 51 + model-fence are mis-parked; they should be keep (they are rotation / suite machinery)
+- E: .2.1 Falsifier 1 can't fail (anchor `^triage \(`) · .2/.2.1/.2.2 are still active · "26" should be 24 · the triage rule is copied into 25 THOUGHTs
+- B: agi-master-gate SKILL.md:106 wording is stale
 Bundle-2 candidates from the lenses:
 - **alive #1, the root finding.** Park = a THOUGHT prose mark (77 marks in 33 files), and `thought` replaces the whole block (node_writer.py:1018, write.py:291), so the next rewrite un-parks the node. Fix: a frontmatter field `parked_for`; `set active` wakes; the read-back is a git grep.
 - **alive #2.** A config:rotations first_turn line `formation: active <doc> <goal>`.
@@ -42,9 +49,9 @@ Bundle-2 candidates from the lenses:
 - 7a96e32e4 card · d6cfe7749 goal:g7.16.1.1 · ceb2473a3 room line · d8ebc8c54 timestamps fixed
 
 ## 🔴 Where it stops
-12:3xZ 09-29: council review of bundle 1, chunk 1 running
+12:4xZ 09-29: council review of bundle 1, chunk 2 running
 ```
-on chunk 1's completion: read its result -> Workflow name agi-merge-up-review args=$(cat /tmp/alive/cmur/chunk2.json) -> merge -> board line
+on chunk 2's completion (wf_9b8822db-1e5): read its journal -> merge with chunk 1 -> board line -> bundle-2 goal leaf -> handoff DG1
 ```
 
 ## §4 Traps
