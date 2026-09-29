@@ -1025,10 +1025,10 @@ def body_rows(body: str) -> list[tuple[int, int]]:
             i += 1
             continue
         if (m := _ROW_BLOCK.match(ln)) or ln.startswith("```"):
-            end = f"{m.group(1)}:END" if m else "```"   # an unpaired BEGIN (BODY) is one line
-            j = next((k for k in range(i + 1, len(lines)) if (end in lines[k] if m
-                      else lines[k].startswith(end))), None)
-            i = i if j is None else j
+            end = re.compile(rf"^<!--\s*{re.escape(m.group(1))}:END" if m else r"^```")
+            # residue 95: the END marker LINE, never the substring (a THOUGHT quoting it)
+            j = next((k for k in range(i + 1, len(lines)) if end.match(lines[k])), None)
+            i = i if j is None else j   # an unpaired BEGIN (BODY) is one line
         elif _ROW_ITEM.match(ln):
             while i + 1 < len(lines) and lines[i + 1].startswith("  ") and lines[i + 1].strip() \
                     and not _ROW_ITEM.match(lines[i + 1]):
