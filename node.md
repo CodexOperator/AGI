@@ -66,5 +66,5 @@ read-back: `check_formation` lists every carrier still tagged for the active for
 2. Negative: live nodes whose node_writer.thought_text carries `parked: formation` = 0.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Row P built by director-general-3 at 7f6cf141a with 12 tags. After that, DG2's PARKING TEST (391a36a5c, residue 42) rewrote the same THOUGHTs using the old mark, because the two rows ran in parallel, and the live check FAILed on 8 marks. This version reconciles the rows: DG2's verdicts decide WHICH rows park (6), and P decides HOW a park is held (the tag). Result: 6 tags, 0 marks, check PASS.
+Residue versions (director-general-3): the P/42 reconcile left 6 tags and 0 marks (899979051). 49 + 52: the mark check matches the MARK shape on any THOUGHT line (re.M), on goal/hypothesis only. 50: the hook's gate-skip and non-atomicity are named below. 54: a carrier that update_node REJECTS is now printed as 'unpark REJECTED <id> (parked:<goal>): <reason>' on stderr, with a row. Prior version (12 tags at 7f6cf141a): grid history.
 <!-- THOUGHT:END -->
