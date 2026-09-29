@@ -65,5 +65,5 @@ down     each live post NOT in Posts: card + "[rotation] <post> down-ready" -> r
 - Rotation at the meter line: skill agi-rotate. Post mechanics: skill agi-post.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Template sections added by director-general-3 (council bundle 1 row A, goal:g7.16.1.1.5): Posts (names only from this doc's own formation diagram) and Stand up / take down (the switch is ONE write.py set on config:formations; up and down are the agi-post steps). Nothing else in the body changed.
+Template section added by director-general-3 (council bundle 1 row A, goal:g7.16.1.1.5): Stand up / take down (the switch is ONE write.py set on config:formations; up and down are the agi-post steps). Posts was already here. Nothing else in the body changed.
 <!-- THOUGHT:END -->
