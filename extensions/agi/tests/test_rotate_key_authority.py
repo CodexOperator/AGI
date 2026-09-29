@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -886,3 +887,43 @@ def test_h2b_posts_md_that_fails_yaml_load_is_never_committed(tmp_path):
     _git(repo, "fetch", "-q", "origin", "season2/main")
     assert not out.startswith("authority: OK"), out
     assert _git(repo, "rev-parse", "origin/season2/main").stdout.strip() == pre
+
+
+# sanctuary-master mur wf_a3b15e54-c65 residue 58: a ROLE-FIRST row (the council
+# rows) is a row too -- the lone-row refusal reads names by parsing, not key order.
+def test_h2a_a_role_first_row_counts_as_missing(tmp_path):
+    repo, g, _posts, _bare = _fixture_no_seat(tmp_path)
+    _advance_authority(repo, "season2/main", _REL, _real_shape([_BB]))
+    pre = _git(repo, "rev-parse", "origin/season2/main").stdout.strip()
+    new = _real_shape([_BB, {"role": "council", "name": "cc"}, {"name": "aa", "pubkey": _NEW}])
+    out = rotate._publish_row_to_authority(g, "aa", new)
+    _git(repo, "fetch", "-q", "origin", "season2/main")
+    assert out.startswith("authority: REFUSED") and "'cc'" in out, out
+    assert _git(repo, "rev-parse", "origin/season2/main").stdout.strip() == pre
+
+
+# residue 59: the load gate on the three LOCAL commit paths -- an unloadable
+# posts.md is never committed (residue 60: the stop commit still lands the card).
+_BROKEN = _real_shape([{"name": "aa", "role": "parent", "pubkey": _NEW}, _BB], '  - {"name": "zz"}\n')
+
+
+@pytest.mark.parametrize("path", ["ack", "spawn_row", "stops_row"])
+def test_h2b_an_unloadable_posts_md_is_never_committed_locally(tmp_path, monkeypatch, path):
+    repo, g, posts, _bare = _fixture(tmp_path)
+    monkeypatch.setattr(rotate, "_seats_ownrow_content", lambda *a, **k: _BROKEN)
+    head = _git(repo, "rev-parse", "HEAD").stdout.strip()
+    if path == "ack":
+        ok, out = rotate._ack_commit_seats(g, "aa", SimpleNamespace(gen=2), "ref1")
+        assert not ok and "does not load" in out, out
+    elif path == "spawn_row":
+        out = rotate._commit_spawn_row(g, seat="aa", generation=2, session_id="sid", window="w", pid=1)
+        assert "FAILED" in out and "does not load" in out, out
+    else:
+        card = g / "card.md"
+        card.write_text("# card\n", encoding="utf-8")
+        out = rotate._commit_stops_row(g, "aa", card, "stop")
+        assert "committed" in out and "own row NOT committed" in out and "does not load" in out, out
+        assert _git(repo, "show", "HEAD:.agi/card.md").stdout == "# card\n"
+    assert _git(repo, "show", f"HEAD:{_REL}").stdout != _BROKEN
+    if path != "stops_row":
+        assert _git(repo, "rev-parse", "HEAD").stdout.strip() == head

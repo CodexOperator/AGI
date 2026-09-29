@@ -26,6 +26,8 @@ town: core
 ```
 write.py main   `if edit.adopt:` FIRST act = _enforce_written_by(root, <type>, --actor, <id>, --role, allow_self_row=True)
                  (the SAME gate submit runs) -> EditError = `ERR: ...` rc 2, nothing minted; then standalone / dry-run / repair_mint
+                 ADMISSION = written_by only: adopt carries no set_fm, so the self_row carve-out and the actor_rows grants never
+                 fire on a row-less adopt (same effect as a no-row submit; SM mur wf_a3b15e54-c65 residue 57)
 ```
 
 ## Tests
@@ -36,3 +38,7 @@ test_adopt_by_actor_outside_written_by_is_refused_nothing_minted (strict xfail -
 
 ## Falsifier
 1. the two tests above pass. 2. no `return` in the adopt branch precedes the gate (write.py `if edit.adopt:`).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Wording made true (residue 57): the gate adopt calls is submit's, but with no set_fm its self_row / actor_rows grants never apply -- admission is written_by alone. Prior THOUGHT: grid history.
+<!-- THOUGHT:END -->

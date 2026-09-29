@@ -2,8 +2,10 @@
 """rotation_record.py -- the ONE shared home of what rotate, heal, sensei,
 write and verification each read (goal:g7.16.1.3 row H4): the rotation-record
 serializer and path reader, and the live-node grep behind the park tag.
-Every name here is public: no module imports another's `_private` name, and
-write.py reads parked carriers without importing the verifier."""
+Every name here is public, so none of THESE crosses a module as a `_private`
+name (heal still reads other rotate privates, e.g. _write_rotation_record: out
+of this row's scope), and write.py reads parked carriers without importing
+the verifier."""
 from __future__ import annotations
 
 import json
@@ -48,7 +50,8 @@ def grep_live(groot: Path, needle: str) -> list[tuple[str, Path, dict]]:
     """Live nodes whose bytes carry `needle`: ONE `git grep` (no rglob),
     deprecated/ skipped -> (id, file, frontmatter), id-sorted. Raises
     GrepError when git exits >= 2, exits 1 with stderr (an unreadable file),
-    or a hit's frontmatter does not load (goal:g7.16.1.3 row H4 f)."""
+    or a hit has no frontmatter block, cannot be read, or its frontmatter does
+    not load (goal:g7.16.1.3 row H4 f)."""
     import yaml
     import node_writer
     r = subprocess.run(["git", "grep", "--no-index", "-lzF", "-e", needle, "--", "."],
@@ -60,8 +63,11 @@ def grep_live(groot: Path, needle: str) -> list[tuple[str, Path, dict]]:
         if not rel.startswith("deprecated/"):
             f = groot / "nodes" / rel
             try:
-                fm = yaml.safe_load(node_writer.split_frontmatter(f.read_text("utf-8", "replace"))[0])
-            except yaml.YAMLError as exc:
+                split = node_writer.split_frontmatter(f.read_text("utf-8", "replace"))
+                if split is None:
+                    raise GrepError(f"{rel}: no frontmatter block")
+                fm = yaml.safe_load(split[0])
+            except (yaml.YAMLError, OSError) as exc:
                 raise GrepError(f"{rel}: frontmatter does not load: {exc}") from None
             if isinstance(fm, dict) and fm.get("id"):
                 hits.append((str(fm["id"]), f, fm))

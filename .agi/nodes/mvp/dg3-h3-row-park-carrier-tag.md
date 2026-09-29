@@ -37,3 +37,7 @@ within the 10 prod line ceiling for the rule (carrier reads cached per goal).
 
 ## Falsifier
 1. `git grep -lE '^  - parked:g7\.16\.2$' -- <the 5 carriers>` = 5 and their status unchanged. 2. live check_formation PASS.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Residue 61 (sanctuary-master mur wf_a3b15e54-c65): rows parked for the ACTIVE formation's own goal are exempt -- set active drops the carrier tag while the rows stay (test_rows_parked_for_the_active_formation_pass_untagged). Prior THOUGHT: grid history.
+<!-- THOUGHT:END -->

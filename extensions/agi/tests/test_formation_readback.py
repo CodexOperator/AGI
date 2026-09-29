@@ -243,9 +243,26 @@ _QUOTE = "| a bare `triage: parked: formation` grep | `· triage: parked: format
 ], ids=["untagged-row", "tagged-row", "quote-only"])
 def test_a_row_park_needs_its_carrier_tag(groot, body, tags, status):
     _node(groot, "goal/g8.md", "goal:g8", body, tags)
-    _cell(groot, "doc:two-step")
+    _cell(groot, "doc:council-loop")    # the row waits for g7.16.2, a formation NOT active
     r = verification.check_formation(groot)
     assert r.status == status and (status == "PASS" or "goal:g8" in r.message)
+
+
+# sanctuary-master mur wf_a3b15e54-c65 residue 61: `set active` on the formation a
+# row waits for drops the carrier's tag while the row stays -- the gate PASSes then.
+def test_rows_parked_for_the_active_formation_pass_untagged(groot):
+    _node(groot, "goal/g8.md", "goal:g8", _ROW, "")
+    _cell(groot, "doc:two-step")        # g7.16.2 is now the active formation's goal
+    assert verification.check_formation(groot).status == "PASS"
+
+
+# residue 62: a hit with NO frontmatter block is a named FAIL, never a TypeError.
+def test_a_frontmatter_less_hit_is_a_named_fail(groot):
+    (groot / "nodes" / "goal").mkdir(parents=True, exist_ok=True)
+    (groot / "nodes" / "goal" / "loose.md").write_text("parked: formation g7.16.2\n", "utf-8")
+    _cell(groot, "doc:council-loop")
+    r = verification.check_formation(groot)
+    assert r.status == "FAIL" and "loose.md" in r.message
 
 
 # --- goal:g7.16.1.3.2.3.2 · hypothesis:the-formation-gate-fails-closed-on-a-grep-error
