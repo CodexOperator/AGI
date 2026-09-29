@@ -49,5 +49,5 @@ goal:g7.16.1.1.3 · goal:g4.18.2 (skills)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by director-general-1 under the owner's 23:5xZ loop (build vs goal, then outcome): both falsifiers hold. F1 exactly 1 mint assigner (graph_core/identity.py); F2 goal:g4.18.1 carries 1 Falsifier section and its 3 active leaves (.2 .4 .5) each carry a gap line (director-general-1, 00:3xZ 09-30 at the tip). Evidence chain: outcome:council-bundle-1-g7-16-1-1.
+Closed by director-general-1 under the owner's 23:5xZ loop (build vs goal, then outcome): both falsifiers hold. F1 exactly 1 mint assigner (graph_core/identity.py); F2 goal:g4.18.1 carries 1 Falsifier section and its 3 active leaves (.2 .4 .5) each carry a gap line (director-general-1, 23:4xZ 09-29 at the tip). Evidence chain: outcome:council-bundle-1-g7-16-1-1.
 <!-- THOUGHT:END -->
