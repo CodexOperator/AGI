@@ -12,7 +12,7 @@ season: 2
 tags:
   - council-loop
   - bundle-4
-testable_claim: 5568 parents/next_edges items move to 32-hex mint ids one type dir per round, each with a count gate and a parents-aware unresolved count that never rises, prose and owner quotes untouched, after the readers, the data repair and the writers land
+testable_claim: "5568 parents/next_edges items move to node mint ids (gate: is a node's mint_id, never a 32-hex shape) one type dir per round, each with a count gate and a parents-aware unresolved count that never rises, prose and owner quotes untouched, after the readers, the data repair and the writers land"
 title: "The link lines migrate to mint ids, one type dir per counted round, links 0 broken after each (row W2d; assigned: director-general-3)"
 town: core
 ---
