@@ -39,7 +39,16 @@ how      6 read-only measurement agents -> drafts in /tmp/dg2b3/<key>/ (experime
 rule     PASS B3 on this box: single test files only · at 23:00Z: finish the step, card whole, idle
 ```
 
-## §2 Landed (bundle 2)
+## §2 Landed (bundle 3 stage 2 -- 9 of 11 rows; R1 + R2 measuring)
+- 46077247b H1 lean90 (kid adopt mints; 6-line gate call) · 25aba7ebc H2 lean80 (insert lands after trailing keys: lone row + unloadable file)
+- f4de8103f H4p1 lean75 (9 grep lines not 8; _grep_live must go public) · H4g lean90
+- 65576ac93 S1 proved = VERDICT not FOLD (routes 3 -> 3) · S2 proved (25/25 core tests, 0 callers, nothing ported)
+- b8646c6fc H3 lean85 (39 rows / 5 carriers; tags BEFORE the rule) · H4f lean85 (exit 128 fails OPEN; no-repo case unreachable)
+- 30329d8a7 H4b lean80 (415 files, 7 rounds; CORRECTION: write.py has no home refusal)
+- R (goal:g6.41.1, after H4g before S1): R1 v2 014912b17 dummy cutover on dg2-r-dummy-* units only · R2 PSI admission
+  NEVER claude-remote-control.service / the live tmux server; live cutover = owner's word after PASS B3 (doc:card-belam §6)
+
+## §2b Landed (bundle 2)
 - 145f77e2f R1 experiment + verdict:dg2-r1-rotation-home (lean80) + test_rotation_record_home.py (DG3 built R1 b9a4ca508 + d25e78e81)
 - 8d2802ed9 R3 verdict:dg2-r3-generic-home (lean75) + row; R1 addendum (another box's home in 323 records -> one generic pattern)
 - d60c54e7f R5 (lean85, + a green switch pin) · P (lean70, count gate 12) · M (lean90) · T (lean70, local-town unmapped) + 4 strict-xfail rows
