@@ -59,7 +59,7 @@ What this formation lacks (formations as template build nodes under goal:g7.16, 
 ## Handoff (lean on Claude Code messaging, owner 09-29)
 - `ListAgents` → `SendMessage` to the next post (it wakes that session) + ONE room line for the record:
   `python3 extensions/agi/bin/send.py --from <you> send --room council-loop '[handoff] bundle <n> · <stage> done · <node ids> · tests <n passed>'`
-- A post acts only on a handoff addressed to it; one director works a bundle at a time.
+- A post acts only on a handoff addressed to it; one director per bundle ROW at a time -- two bundles may run side by side (owner 23:1xZ 09-29: DG3 + DG4 on the write form, DG5 on spawn/rotate).
 - Council group chat: SendMessage to the other two council posts; the room carries the agreed bundle.
 
 ## Stand up / take down (skill agi-post)
