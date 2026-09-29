@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.95
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: f6091b436fc8b3db
 season: 1
 thought_session: season
@@ -56,7 +56,7 @@ $ python3 -m pytest extensions/agi/tests/test_metrics.py -q
 .............................................................            [100%]
 61 passed in 4.14s   # parent re-run; pre-existing suite only, no test covers _load_traversable_fields
 
-$ python3 -c "import sys; sys.path.insert(0,'extensions/agi/bin'); import metrics; print(metrics._load_traversable_fields(Path('/home/ubuntu/work/agi/.agi')))"
+$ python3 -c "import sys; sys.path.insert(0,'extensions/agi/bin'); import metrics; print(metrics._load_traversable_fields(Path('<home>/work/agi/.agi')))"
 frozenset({'next_edges', 'parents'})
 
 $ python3 -m extensions.agi.bin.metrics 2>/dev/null | grep "node_count\|edge_count\|outcome_coverage\|longest_chain"
