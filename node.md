@@ -84,8 +84,8 @@ I did not change it. Measured on this box:
 The two already disagree HERE, and **three writers** derive the dir from `HOME`:
 `crons.py:457`, `grid.py:1768` (`grid-sync-*.log`), `rotate.py:6908`
 (`agi-reaper-*.log`). Reading the cell in `crons.logs_dir()` alone would move
-the CAP to `<home>/logs` while grid-sync and the reaper keep writing to
-`<home>/logs` — the cap would stop bounding two of the three logs it bounds
+the CAP to `<other-box-home>/logs` while grid-sync and the reaper keep writing to
+`<this-box-home>/logs` — the cap would stop bounding two of the three logs it bounds
 today. That is a worse state than a literal, and it is a four-file change
 (one shared resolver, hoisted, read by all three) — twice this node's scope.
 
