@@ -17,36 +17,34 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (17:3xZ 09-29) — RECOVERED seat (crash-recovery respawn, gen 3, acked as agi-b1); owner: "Keep working till 7pm" → runs until 23:00Z, then the same stop
+## §0 State (18:5xZ 09-29) — RECOVERED seat (gen 3, agi-b1, @8); owner: "Keep working till 7pm" → runs until 23:00Z, then the same stop
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests (a build may take [goal, idea]) |
 | protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN /data/work/agi on local-maxxing/season2/main, CC Opus 5.5 high |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
-| sessions | DG3 = agi-b1 (@8, recovered 17:3xZ) · peers: resolve with `send.py whois <post>` (every seat respawned 17:3xZ) — hand off by SendMessage + ONE council-loop room line |
-| now | bundle 2 CLOSED (SM mur clean 15:39Z). Bundle 3 = goal:g7.16.1.3 (H1 g4.18.3 → H2 g4.18.4 → H3 → H4 → G → S1 → S2), handed to DG1 17:15Z; order DG1 → DG2 → DG3. Waiting for DG2's handoff. PASS B3 on this box from 17:47Z: single-file test runs only |
+| sessions | DG3 = agi-b1 · DG2 = agi-40 (handoff 18:2xZ) · others: `send.py whois <post>` — hand off by SendMessage + ONE council-loop room line |
+| now | bundle 3 = goal:g7.16.1.3 + goal:g6.41.1 (DG2 handoff at e019d63b0; verdicts verdict:dg2-h*/r*/s*). H rows BUILT; R1/R2 next; then mvps + build nodes, then -> sanctuary-master |
 
-## §1 Plan — bundle 2 (DG2 handoff at 402a9187c; the table lives on the verdicts verdict:dg2-*)
+## §1 Plan — bundle 3 (the table lives on the verdicts)
 ```
-done   R1 b9a4ca508 + scrub d25e78e81 · M R5 R4-skill 641577466 · R3 df26adc55 (partial: scrub banked)
-done   P 7f6cf141a + reconcile 899979051 (6 tags = DG2's post-audit parks; 0 THOUGHT marks; check PASS)
-done   residues R1 32-35 + R3/R5 36-40 at 42137d050 (full merge-base anonymize ok)
-done   T e12ca48c7 (mvp:dg3-t-one-registry, partial): home = council-loop + two-step + local-town (-> g5.18); 1/3/4 retired;
-       6 pointers to agi-post; L-citations -> goal:g7.16.2 (closes R5 Falsifier 2)
-done   the Prime applied the formations templates cell + removed the strict xfail (fee990795) -> T ACCEPTED
-done   residues 45-51 at 22677d774 + follow-up dd10c923f (HOME_PATH_RE bare home, user-name segment; 2 more scrubs)
-done   residues 52-54 + notes at 97692ecfc · 55 + notes at 3eae1d26f · 56 + notes at 9c54fb3c4 -> agi-1c
-NEXT   any further SM residue -> close in-loop, hand back to agi-1c (or doc:card-sanctuary-master if it rotated)
-F      goal:g7.16.1.2.9 is the Prime's config line: no stage-3 work
+done   H3 + H4 f + H4 p1 bb153e89d (rotation_record.py: dump/resolve/grep_live/parked_carriers; grep fails closed; 5 carrier tags)
+done   H4 g 482da3853 · H1 e370bb4d6 (goal:g4.18.3) · H2 2c412e5bb (goal:g4.18.4: insert after last row, lone-row refusal, one load gate x4)
+done   H4 b a981ae47f da8b2cfbc 92f6f4883 fb57864a5 551908e4b 7baafa62b 0e3102a67 17f91868b (415 -> 0; grid 330 versions, 0 demoted)
+NEXT   R1 (verdict:dg2-r1-per-post-scope, test_rotate.py 5x) · R2 (verdict:dg2-r2-psi-admission, test_heal_watch.py 4x): code + dummies ONLY;
+       the LIVE cutover is the owner's word after PASS B3 (doc:card-belam §6) — never run it here
+then   mvps (one per row, parent the dg2 verdict) + build:bin-rotation-record ([mvp] shape) + grid commit; room line + SendMessage -> SM
+n/a    S1 / S2 = verdicts (proved), nothing to build · G landed by alive (30f4db55f, e662637ac)
+open   H4 (a)(c)(d)(e) + g7.32.5 status: not in DG2's table -> check whether DG1/DG2 closed them before the handoff to SM
 ```
 
 ## §2 Landed
-- bundle 1: 5a828b3ce 0055d30a2 396e3fa1d e27b43be2 · residues 6d00b84fd b886bdcdb 09123feeb 1ecf92bd3 80c1c245d -> CLEAN
-- bundle 2: b9a4ca508 R1 code · d25e78e81 R1 scrub (320 records) · 641577466 M R5 R4-skill · df26adc55 R3 generic class · 7f6cf141a P park tag + 899979051 reconcile (6 tags) · 42137d050 residues 32-40 · e12ca48c7 T one home · 22677d774 + dd10c923f residues 45-51 · 97692ecfc residues 52-54 · 3eae1d26f residue 55 · 9c54fb3c4 residue 56
+- bundle 1 + 2: see grid history of this card (bundle 2 CLOSED, SM mur clean 15:39Z)
+- bundle 3: bb153e89d · 482da3853 · e370bb4d6 · 2c412e5bb · H4 b x8 (above)
 
 ## 🔴 Where it stops
-17:3xZ 09-29: recovered, acked, inbox empty. Runs until 23:00Z (at 23:00Z: finish the step, write the card whole, go idle). Waiting on DG2's bundle-3 handoff (goal:g7.16.1.3); stage 3 = MVPs + build nodes + tests for the rows DG1/DG2 staged.
-PASS B3 runs on this box from 17:47Z: run ONE test file at a time. First command at wake:
+18:5xZ 09-29: H rows built + pushed. Next command: read verdict:dg2-r1-per-post-scope, then the 5 xfails in test_rotate.py.
+PASS B3 runs on this box: run ONE test file at a time. First command at wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
 ```
@@ -54,31 +52,23 @@ python3 extensions/agi/bin/send.py --from director-general-3 read director-gener
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN is shared by every post | commit by exact path, gated `[ ! -e .agi/sessions/verify-suite.lock ]`; never switch branches, stash or reset |
+| MAIN is shared by every post | commit by exact path, gated `[ ! -e .agi/sessions/verify-suite.lock ]`; never switch branches, stash or reset; a dirty foreign file: scrub HEAD into the index, keep its edit |
 | `send.py read <self>` | always `--from director-general-3` |
-| build parent shapes | [mvp] · [build, goal] · [goal, mvp] · [goal, idea] — keep a census idea/mvp parent, swap the goal to the version's motive |
-| BUILD-CONTRACT | regenerate via level3.build_node splice (/tmp script gone: rebuild), never by hand; scope = the named nodes |
-| config:* nodes | written_by [owner, prime_director]: NEVER file + adopt (adopt skips written_by = a guard bypass); put the exact command on the mvp for the Prime |
+| build parent shapes | [mvp] · [build, goal] · [goal, mvp] · [goal, idea] |
+| BUILD-CONTRACT | regenerated via level3, never by hand |
+| config:* nodes | written_by [owner, prime_director]: adopt NOW runs the gate too (H1) — put the exact command on the mvp for the Prime |
 | replace body on a heading/paragraph line | refused: widen to whole section or the blank line above |
-| new goal renders only with origin goals-doc + heading_level | set both |
-| anonymize check | judges ADDED lines + post-image paths only; hostname in records -> alias local-town · full range = git diff --cached <merge-base> (never concatenate two diffs: old + lines re-count) |
-| parallel rows | DG2 committed MY working-tree bytes in 697335c7c (shared MAIN): re-measure after any peer commit, never assume |
-| P ceiling | production +63/-9 vs 30, DISCLOSED on mvp:dg3-p-park-tag (shared git-grep reader) |
+| anonymize check | judges ADDED lines: a touched line's hostname -> alias local-town |
+| sub! on frontmatter | re-validates the field: a legacy wrong shape refuses (probes str -> list fixed on 2 experiments) |
 | tests while editing | a mid-run import mismatch fakes ImportErrors: rerun on settled bytes |
 
-## §5 Verification: links 0 broken · `snapshot-goals.py --render --check` · touched tests `--basetemp /tmp/...` · anonymize on the staged diff
+## §5 Verification: links 0 broken · touched tests one file at a time `--basetemp /tmp/...` · anonymize on the staged diff · live check_formation PASS
 
 ## §6 BANKED
-- R3 broad home scrub (measured on mvp:dg3-r3-generic-home-class: ~4800 hits, one other box's user = 4716, in nodes 373 / other 86 /
-  context 52 / comms 32 / tests 19 / engine 6 files). Options: (a) per-scope scrub rounds to <home>/ EXCEPT .agi/config.json path
-  cells, which the owning box's code reads (rewrite = broken paths there) -> those become paths.<town>.<key> config cells or ~-relative;
-  (b) leave existing text, refuse only additions (today's behaviour). Recommendation: (b) now + (a) as a season-close hygiene bundle,
-  config.json first by the Prime (config-owned).
+- (none open for this post)
 
 ## Findings for the next bundle
+- test_sensei_wake_audit item2 red (pre-existing): no live fact cites send.py whois
 - test_skills_first_turn_entry red: agi-post missing from config:rotations skills entry
-- test_sensei_wake_audit item2 red: no live fact cites send.py whois
 - write.py stamps town: core on local-maxxing nodes
-- write.py adopt runs no written_by check (SM sent belam)
-- FIXED by belam 15:0xZ at dcd06014e: config:posts on season2/main restored (send.py read works again; trunk sync #3 07f02d4a2)
-- 4 build nodes (bin-brief, bin-metrics, ...) carry very stale BUILD-CONTRACTs (older drift)
+- 4 build nodes (bin-brief, bin-metrics, ...) carry very stale BUILD-CONTRACTs
