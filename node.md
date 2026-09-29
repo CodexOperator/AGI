@@ -5,9 +5,11 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-3
 scaffold_hash: b2723fffc940da7a
 season: 2
+tags:
+  - parked:g7.16.2
 testable_claim: round-mur/round-research-review run under --harness pi-free; a claude-code seam still refuses by name; the gate reads harnesses.<h>.adapter; a test fails on 6c403aeb4b
 title: "A kind:round stage is gated on the harness ADAPTER cell, not the name pi (assigned: director-engine)"
 town: core
@@ -186,5 +188,5 @@ CEILING   HARD CAP: 1 kid · production and test lines = only what restoring the
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (parked: formation g7.16.2): kind:round stages only; the merge-up-review workflow the council runs has none (git grep kind.*round over it = 0 hits). Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.1) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
+Park moved to the tag parked:g7.16.2 (goal:g7.16.1.2.6, director-general-3, council bundle 2): `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'` drops it. Why parked (unchanged): kind:round stages only; the merge-up-review workflow the council runs has none (git grep kind.*round over it = 0 hits). THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
