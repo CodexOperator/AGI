@@ -15,28 +15,26 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (15:4xZ 09-29, STOPPED at the owner's 16:00Z line)
+## §0 State (17:1xZ 09-29, RESUMED to 23:00Z by the owner, 16:5xZ)
 | | |
 |---|---|
 | post | alive · session agi-8b · window @4 |
-| stage | council, convener. Bundle 2 is CLEAN from SM (tip 9c54fb3c4); the council review is deferred past the 16:00Z stop. I embody vision:alive ONLY |
+| stage | council, convener: bundle-2 council mur running + bundle-3 draft out (grok core simplify). I embody vision:alive ONLY |
 | peers | self-perpetuating agi-20 · all-is-one agi-96 · DG1 agi-f8 · DG2 agi-63 · DG3 agi-8f · SM agi-4f (SendMessage names) |
-| protocol | doc:council-loop · goal:g7.16.1 · stop ~16:00Z 09-29 (finish the atomic step, card whole, commit, idle) |
+| protocol | doc:council-loop · goal:g7.16.1 · stop 23:00Z 09-29 (belam relayed the owner; finish the step, card whole, commit, idle) · PASS B3 on this box from 17:47Z: single-file tests only |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundle 1 g7.16.1.1: agreed -> built -> SM clean -> council mur 2 chunks + 3 lenses -> [measure] (room council-loop)
-       bundle 2 g7.16.1.2: agreed -> DG1-3 -> SM clean 9c54fb3c4 (final re-mur wf_42a582dc-d1f accept, residues 32-56 closed,
-       anonymize ok over the full range) · my alive spot check at 15:4xZ: P ok (10 park tags, 0 THOUGHT marks; 16 grep hits
-       = quotes) · T ok (one home .geometry/formations/, 3 templates each with a goal, 1/3/4 retired) · R1 ok (one
-       resolve_transcript, rotate.py:445) · F NOT landed (no formation line in config:rotations; Prime-owed)
-       · all-is-one pre-read: M holds (markers only node_writer.py:985/987) · RESIDUE skills/agi-master-gate/SKILL.md:66 still
-       hand-lists hostname/ip/mac/board/secret (no home; a copy of CLASSES)
-next   (next run) council review of bundle 2: range 794a0782e..9c54fb3c4, chunked by row (R1 R2 R3 · R4 R5 M · P T F)
-       -> 3 lenses -> [measure] -> bundle 3 = grok core/season2/main + core/main simplify (135 commits past 8e4b4c286 ·
-       17 engine files +878/-167 · 6 conflicting paths vs the trunk) · leads: test_g7333_*.py named by goal id ·
-       write.py +125 · dispatch.py +86 · boxes.py +87
+done   bundles 1 + 2 built and SM-clean (g7.16.1.1 · g7.16.1.2 tip 9c54fb3c4) · belam's doc:council-loop-review-s2: the council
+       helps on quality/safety, throughput unproven
+       bundle-2 lenses: s-p KEEP (39 parked ROWS in 5 untagged carriers) · a-i-o KEEP (6 one-sources; residues: private
+       rotate._dump_record/_resolve_record_path imported by heal/sensei, write.py imports the verifier, heal swallows
+       ImportError on a record write, skill :66 CLASSES copy, g7.32.5 horizon leftover)
+now    bundle-2 council mur wf_4e0708df-4ef (3 rounds: b2-R1R3-home · b2-R2R4-park · b2-formation; args /tmp/alive/cmur/b2.json)
+       bundle-3 draft sent 17:3xZ: H1 g4.18.3 · H2 g4.18.4 · H3 carrier tags · H4 bundle-2 residues · S1 dm_* fold (measure first)
+       · S2 the unwired five NOT ported (verdict node) · S3 profile_sync / magic_pane by use · bundle 4 = core's edits to existing files
+next   council agrees → mint g7.16.1.3 (heading_level 4) → room [handoff] → SendMessage DG1 (check ListAgents: names change on rotation)
 ```
 Council mur route: build args like /tmp/alive/cmur/chunk{1,2}.json (one round per row, the COMMON focus + a SIMPLIFY pass,
 old_tip = the bundle base, new_tip = SM's clean tip) -> Workflow tool, name agi-merge-up-review, <= 3 rounds per chunk ->
@@ -47,9 +45,9 @@ read subagents/workflows/<run>/journal.jsonl (type=result), NOT the truncated no
 - [red] to belam (inbox): PASS B3 at 17:47Z will hit the anonymize refusal on rotation records (bundle 2 R1); please land the [measure] line
 
 ## 🔴 Where it stops
-15:4xZ 09-29: STOPPED at the owner's 16:00Z line; bundle 2 is clean and awaits the council review
+17:1xZ 09-29: bundle-3 draft with the council; bundle-2 council mur running
 ```
-next run: git diff --stat 794a0782e 9c54fb3c4 -> chunk args per row -> Workflow agi-merge-up-review -> alive lens -> SendMessage agi-20 + agi-96 (re-check the names with ListAgents)
+merge the council replies + the mur residues into row H -> skill agi-goal: mint goal:g7.16.1.3 -> room [handoff] -> SendMessage DG1
 ```
 
 ## §4 Traps
