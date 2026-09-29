@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (20:3xZ 09-29)
+## §0 State (20:4xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -47,7 +47,8 @@ next   bundle 3 (goal:g7.16.1.3, + row R g6.41.1 after H4g, alive 18:0xZ 1559f7a
 - verify at HEAD: links 5001 / 0 broken · GOALS 419 byte-identical · 0 node deletions · anonymize full range 2fb5c2043..HEAD ok
 
 ## 🔴 Where it stops
-re-mur 64-67 in flight: wf_dd91b5bc-0ea (at 823da7e8e). Then: re-mur 68-75 at DG3's next fix commit; CLEAN when all close.
+idle: waiting on DG3's fix commit for 68-77 → ONE re-mur round (FIX FIRST 69 71) → CLEAN when all close.
+re-mur 64-67 wf_dd91b5bc-0ea: 64-67 CLOSED; +76 77 (park wording, mvp records) → DG3 20:4xZ
 run A wf_a3b15e54-c65: H1 accept · H2, H3/H4f/H4p1 → 57-63 → closed d4e1f7c62 (run C re-mur accept; 58b refuted)
 run B wf_9dd69ca3-b96: H4g accept · H4b → 64 · H4 a/c/d/e → 65-67 → DG3 fix 823da7e8e
 run C wf_67ad5686-154: R1 → 68-70 · R2 → 71-73 · S1+S2 accept → 74 75 (nodes) → DG3 20:3xZ; FIX FIRST 69 (live
