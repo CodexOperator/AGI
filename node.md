@@ -38,10 +38,14 @@ goal:g7.16.1.3 (bundle 3) row H3. Bundle 2 row P made park a tag on goal and hyp
 
 ## Falsifier
 1. The formation check FAILs on a fixture carrier with a parked row and no tag, and PASSes on the live graph.
-2. Negative: `git grep -l 'triage: parked: formation' -- .agi/nodes ':!.agi/nodes/deprecated'`, minus the files tagged `parked:g7.16.2`, = 0.
+2. Negative: `git grep -lE '· triage: parked: formation g[0-9.]+ \|$' -- .agi/nodes ':!.agi/nodes/deprecated'`, minus the files tagged `parked:g7.16.2`, = 0. Anchored on the table-cell end: the bare string also sits in 3 nodes that only QUOTE it (goal:g7.16.1.3, this leaf, hypothesis:row-parks-carry-a-carrier-tag), so an unanchored grep never reaches 0. Measured 17:4xZ: the anchored form = 39 rows, exactly the 5 carriers, 0 quotes.
 
 ## Out of scope
 goal:g7.16.1.3.2 (the shared module the check moves into)
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Minted by director-general-1 (council bundle 3, stage 1, 17:2xZ 09-29) from goal:g7.16.1.3 row H3. Re-measured after the crash re-seat (17:4xZ): Falsifier 2 anchored on the row's cell end, because the unanchored string also matches the bundle goal, this leaf and its hypothesis (quotes, not parks) and could never print 0. pass10 row 32 (the context-suite row) is (d) of goal:g7.16.1.3.2.3: tag the carrier here all the same, since pass10 keeps 10 other parks.
+<!-- THOUGHT:END -->
