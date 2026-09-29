@@ -40,3 +40,7 @@ test_a_grep_error_fails_closed[bad-pathspec,git-config] + test_a_malformed_hit_i
 
 ## Falsifier
 1. the three tests pass. 2. live check_formation PASS.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Residue 62 (sanctuary-master mur wf_a3b15e54-c65): a hit with no frontmatter block, or one that cannot be read, is a GrepError too, never a TypeError (test_a_frontmatter_less_hit_is_a_named_fail). Prior THOUGHT: grid history.
+<!-- THOUGHT:END -->
