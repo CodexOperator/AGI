@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: director-general-3
+edited_by: belam
 scaffold_hash: e99976c6c09553f9
 season: 2
 title: Council loop
@@ -26,6 +26,7 @@ Seated 09-29 by belam-S2-L5-XV on the owner's word (goal:g7.16.1 holds it verbat
 | director-general-3 | MVPs + build nodes + tests; a build node may take the [goal, idea] parent set to shortcut chain growth |
 | sanctuary-master | review each finished bundle: standard mur (agi-merge-up-review) on claude-code, model claude-opus-5-5, effort high; residues back until clean |
 | belam (Prime) | merges into season2/main (PASS); reviews season 2's result through the five morals |
+| stream-master (SIDE post, town streaming-suite; template doc:stream-master-brief; skill agi-stream) | keeps the live stream: the Twitch relay of the private display :2 (the 3D dashboard or the masked feed), its delay, hold / cut / off; builds and reviews nothing (owner 09-29 16:5xZ: "It's more of a side post") |
 
 ## The loop
 ```
