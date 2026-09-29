@@ -833,3 +833,33 @@ def test_w2c_a_mint_id_parent_renders_exactly_as_its_address_twin(tmp_path):
 def test_w3c_the_render_ranges_a_payload_too(tmp_path):
     rc, out = _w3_view(_w3_project(tmp_path), "--node", "build:b", "--payload", "--range", "2:2", "--emit", "llm")
     assert rc == 0 and "PAY-TWO" in out and "PAY-ONE" not in out
+
+
+# --- bundle 4 W2c re-scope A (director-general-2) -- goal:g4.18.6.3.1
+_W2CA = "bundle 4 W2c re-scope A: RED until DG3 builds graph_core's one mint-id post-pass"
+
+
+def _w2ca_twin(tmp_path, mint):  # _w2c_twin + idea:i, reached from hypothesis:h1 by next_edges only
+    root = _w2c_twin(tmp_path, mint)
+    (root / "nodes" / "idea").mkdir()
+    (root / "nodes" / "idea" / "i.md").write_text(f"---\nid: idea:i\nmint_id: {'c' * 32}\ntype: idea\n---\n")
+    h = root / "nodes" / "hypothesis" / "h1.md"
+    h.write_text(h.read_text().replace("title:", f"next_edges:\n  - {'c' * 32 if mint else 'idea:i'}\ntitle:"))
+    (root / "context" / "schemas").mkdir(parents=True)
+    (root / "context" / "schemas" / "[shape].md").write_text(
+        "---\nedge_fields:\n  parents: {traversable: true}\n  next_edges: {traversable: true}\n---\n")
+    return root
+
+
+@pytest.mark.xfail(strict=True, reason=_W2CA)
+@pytest.mark.parametrize("edge", ["parents", "next_edges"])
+def test_w2ca_family_a_wires_a_mint_twin_as_its_address_twin_with_no_reader_resolving(tmp_path, edge):
+    import inspect, dashboard, metrics, zoom
+    seen = []
+    for mint in (False, True):
+        g = metrics._load_graph(_w2ca_twin(tmp_path / edge, mint))
+        seen.append((sorted(g.get_node("goal:a").children), len(dashboard.dangling_and_orphans(g)["dangling"]),
+                     V.default_roots(g, {})) if edge == "parents" else sorted(g.get_node("hypothesis:h1").children))
+    assert seen[1] == seen[0] == ((["hypothesis:h1"], 0, ["goal:a", "idea:i"]) if edge == "parents" else ["idea:i"])
+    readers = (zoom._load_wired_graph, metrics._load_graph, V._damage_of, V.default_roots, dashboard.dangling_and_orphans)
+    assert not [f.__name__ for f in readers if "mint" in inspect.getsource(f)]  # the loader resolves, no reader does
