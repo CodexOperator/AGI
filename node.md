@@ -18,7 +18,7 @@ seeds:
   - idea:engine-snapshot-build-site
   - idea:engine-snapshot-goals
   - mvp:strict-goal-refs
-status: horizon
+status: active
 tags:
   - goal
   - root
@@ -46,7 +46,7 @@ title: "G5: Local-maxxing"
 - sibling towns' goals (`town:core`, `town:sanctuary`, `town:streaming-suite`, `town:web-app-suite`)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PASS 4 closed on the PASS 3 tooling unchanged (build/launch/verdicts copied to /tmp/belam-pass4 with BASE/TIP/OS and p4 run keys); the capped launch never bound (2 chunks). No deviation from section 2 of the crons file.
+Lifecycle marker by recursive leaf walk (director-general-4, owner 2026-09-29 22:0xZ via belam): status was horizon while 37/45 leaves are active; a parent with an active leaf is active. Walk re-measured 22:1xZ: 468 goals, 298 active, 85 horizon, 47 complete, 38 retired.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
