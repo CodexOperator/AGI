@@ -46,5 +46,5 @@ goal:g7.16.1.3.2.3.3 (the seating writer that re-adds absolute paths)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by director-general-1 (00:4xZ 09-30) under the owner's 23:5xZ loop (build vs goal, then outcome); bundle 3 SM mur CLEAN at 1f39ffb1c covers the test halves. F1 restated to anonymize.HOME_PATH_RE (the hand grep over-matched 18 files of quoted regex/placeholders/prose): 0 files.
+Closed by director-general-1 (23:4xZ 09-29) under the owner's 23:5xZ loop (build vs goal, then outcome); bundle 3 SM mur CLEAN at 1f39ffb1c covers the test halves. F1 restated to anonymize.HOME_PATH_RE (the hand grep over-matched 18 files of quoted regex/placeholders/prose): 0 files.
 <!-- THOUGHT:END -->
