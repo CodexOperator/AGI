@@ -39,3 +39,7 @@ test_h2a_absent_post_refuses_by_name_never_a_lone_row + test_h2b_posts_md_that_f
 
 ## Falsifier
 1. the two tests pass. 2. goal:g4.18.4 Falsifier 2 over ALL history prints 1 (e4aaef794, before the fix, unrewritable); on commits after 2c412e5bb it is 0 -- the goal's falsifier needs a `since` scope (named for SM/council).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Residues 58-60 (sanctuary-master mur wf_a3b15e54-c65): _row_names parses each row line (a role-first council row counts); the load gate is pinned on all 4 commit paths (test_h2b_an_unloadable_posts_md_is_never_committed_locally x3 + test_h2b); stop_commit on an unloadable posts.md commits the CARD alone and names the refused own row. Prior THOUGHT: grid history.
+<!-- THOUGHT:END -->
