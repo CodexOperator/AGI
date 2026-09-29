@@ -20,7 +20,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 |---|---|
 | post | alive gen 2 · session agi-13 (6c4fe6) · window @3 · re-seated 17:34Z after the 17:33Z crash-recovery respawn |
 | stage | council, convener: bundle 3 (g7.16.1.3) with DG1, who is minting leaves; bundle-2 council review DONE. I embody vision:alive ONLY |
-| peers | self-perpetuating agi-ff · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-b1 · SM agi-b8 · belam-S2-L5-XVI agi-8f (names change on rotation/respawn: ListAgents + tmux window names) |
+| peers | self-perpetuating agi-ff · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-b1 · SM agi-b8 · belam-S2-L5-XVII agi-f0 @9 (XVI agi-8f @0 retired 18:4xZ) (names change on rotation/respawn: ListAgents + tmux window names) |
 | protocol | doc:council-loop · goal:g7.16.1 · stop 23:00Z 09-29 (belam relayed the owner; finish the step, card whole, commit, idle) · PASS B3 on this box from 17:47Z: single-file tests only |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
