@@ -274,3 +274,18 @@ def test_install_hook_writes_box_local_and_refuses_foreign(tmp_path):
     foreign.mkdir()
     (foreign / "pre-commit").write_text("#!/bin/sh\necho hi\n")
     assert anonymize.cmd_install_hook(root, str(foreign)) == 1
+
+
+# (8) goal:g7.16.1.1.3 · hypothesis:anonymize-check-refuses-the-home-path: the
+# box user's home path is one more token, read from HOME in every mode (it is
+# not hardware, so the fixture path carries it too). A tmp HOME only. Strict
+# xfail: RED on the trunk at 59ad74144 (the build removes the marker).
+@pytest.mark.xfail(strict=True,
+                   reason="hypothesis:anonymize-check-refuses-the-home-path")
+def test_check_refuses_the_home_path(tmp_path, fake_box, monkeypatch, capsys):
+    home = str(tmp_path / "home" / "someuser")
+    monkeypatch.setenv("HOME", home)
+    root = _graph(tmp_path)
+    assert anonymize.scan(f"see {home}/x.md", anonymize.box_tokens(root)) == ["home"]
+    assert anonymize.cmd_check(root, f"see {home}/x.md\n", None) == 1
+    assert home not in capsys.readouterr().err
