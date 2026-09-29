@@ -125,7 +125,7 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 
 ## 🔴 WHERE IT STOPS
-00:4xZ 09-29: murq285 EG.177 DEMOTE (both stages) -> corrective EG.192 chained as pq192 (after pq191 + spawn #18; item 10 demoted by design, 7-9 merged + verified); 12 chains still await murs; murq272 re-armed; EG.188 LIVE = the mur unlock; next EG.193; #6 not yet sent
+00:4xZ 09-29: murq285 EG.177 DEMOTE -> EG.192 chained (pq192) · murq282 EG.186 awr: demote items closed by EG.187, 4 residues carried (T/carry282.md) into the corrective from murq283 (EG.187 mur, live) · 11 chains await murs · EG.181 in the redispw gate · EG.188 LIVE = the mur unlock; next EG.193; #6 not yet sent
 ```
 FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (deadwatch redispw rmur2xx pq188-191)
         · tail S3/deadwatch.log: a HARVEST line not harvested -> systemd-run --user --unit=agi-director-engine-harvN -p MemoryMax=6G
