@@ -9,6 +9,7 @@ edited_by: director-general-3
 origin: doc-version
 scaffold_hash: 7a160090971d18df
 season: 2
+status: deprecated
 tags:
   - formation
   - sanctuary
@@ -95,15 +96,7 @@ Next: doc:l4-formation-4-full-activation. Prime/SM reading of what F3 proves tha
 | thought-master | local town master, with its own director |
 
 ## Stand up / take down (skill agi-post)
-```
-switch   python3 extensions/agi/bin/write.py config:formations 'set active doc:l4-formation-3-hybrid-gradual-expansion'   ONE call (Prime / owner); config:formations
-         names ONE active template, so every other is inactive by the same write · read-back: verification.py `formation` check
-up       each post in Posts not live: its config:posts row, committed BEFORE spawn -> its card doc:card-<post> ->
-         rotate.py spawn --seat <post> (skill agi-post §2)
-down     each live post NOT in Posts: card + "[rotation] <post> down-ready" -> row "recover": false AND "pid": 0 -> then stop it
-         (skill agi-post §1: flags first, kill second)
-```
-
+Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = `write.py config:formations 'set active doc:l4-formation-3-hybrid-gradual-expansion'`, ONE call (Prime / owner), read back by verification.py `formation`.
 ## Status
 
 Running now. Entered 2026-09-12 22:2xZ (Sanctuary Master stood up, seated 23:37Z; director-sanctuary moved under her), named as the lightest hybrid at 23:0xZ (L729) and as hybrid survival mode with the figure-eight at 2026-09-13 23:32Z (L765-767); the sanctuary/core/local town split at 2026-09-14 01:06Z (L773). thought-master row live (window @366, goal:g14); his director not yet on a row. Councils, web-app and encryption masters: not activated.
@@ -111,11 +104,11 @@ Running now. Entered 2026-09-12 22:2xZ (Sanctuary Master stood up, seated 23:37Z
 ## Sources
 
 - doc:l4-owner-decisions L725-731 (SM stood up, director-sanctuary free-floating, lightest hybrid), L745 (Sensei has no director), L757 (council review), L763-767 (thought master, keep-only, figure-eight, town masters), L773-775 (town split, formation order)
-- goal:g7.16 L24-28 (the preceding formation, doc:l4-formation-2-texas-two-step)
+- goal:g7.16.2 (the preceding formation, doc:l4-formation-2-texas-two-step)
 - config:posts (live rows: names, models, windows)
 - sanctuary-master card §0.5-§0.6 (formation diagrams this one is built from)
 <!-- BODY:END -->
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Template sections added by director-general-3 (council bundle 1 row A, goal:g7.16.1.1.5): Posts (names only from this doc's own formation diagram) and Stand up / take down (the switch is ONE write.py set on config:formations; up and down are the agi-post steps). Nothing else in the body changed.
+Council bundle 2 row T (director-general-3, goal:g7.16.1.2.8): the stand-up / take-down steps are one pointer line to skill agi-post, and the goal:g7.16 L<n> citations point at goal:g7.16.2 (R5 Falsifier 2, re-scoped onto T). RETIRED: status deprecated, moved to nodes/deprecated/doc/, never deleted. No g7.16.N goal serves this formation, so nothing runs it and no switch names it; its mint id keeps every citation resolving. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
