@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-pi-context-hook-trim-keeps-one-prompt-loops-under-the-slot
 next_edges: []
 confidence: 0.8
-edited_by: a00-27cbb7ca
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-0c148b16-60f4c5
 line_ceiling: 70
@@ -56,7 +56,7 @@ No model, no GPU, no pi, no subprocess, no git write. Nodes touched through
 | 6 the disqualified twin still runs green | FIXED (test :64, :170) | `TWIN_OF = {"a00-3c370e1e": "a00-cdde7530"}`, `INDEP_RUNS` drives the five claim tests (2 runs, not 3); `test_twin_run_is_excluded_from_the_independent_arms` asserts the twin differs from its source ONLY in `wall_seconds` and that `len(INDEP_RUNS) == 2`. Twin-of stays a stale-failing assertion if the logs ever diverge |
 | 7 caveat one node away | FIXED (hypothesis THOUGHT gen 34) | the THOUGHT now states the abort conjunct is UNMEASURED, names the four measured conjuncts, and explains the lean. `testable_claim` and `verdict: inconclusive_lean_proved:80` are untouched -- a claim is never re-worded after its data |
 | 8 UNVERIFIED probes | RAN (a); OUT OF SCOPE (b) | (a) `pytest .agi/context --collect-only -q` -> 127 tests collected, 18 modules ERROR at collection (the tree-wide gap of item 2, quantified). (b) a commit-path audit needs `git log -- <node>`, which a kid may not run; the frontmatter shape (`edited_by:`, THOUGHT block) is consistent with write.py but that is inference, not a record |
-| 9 config_max literal path | FIXED (test :43) | `REPO = Path(__file__).resolve().parents[4]` + the literal `datasets/brain-swap/2026-09-24` -> `paths.get_local("brain_swap_out_dir")`, with `paths.py` found by `__file__` (sibling module). `get_local` is the right reader here: `box.root` is /home/ubuntu/work/agi while the checkout is /data/work/agi. The node file for item 4 is discovered via `os.path.dirname(paths.config_path())` -- no literal |
+| 9 config_max literal path | FIXED (test :43) | `REPO = Path(__file__).resolve().parents[4]` + the literal `datasets/brain-swap/2026-09-24` -> `paths.get_local("brain_swap_out_dir")`, with `paths.py` found by `__file__` (sibling module). `get_local` is the right reader here: `box.root` is <home>/work/agi while the checkout is /data/work/agi. The node file for item 4 is discovered via `os.path.dirname(paths.config_path())` -- no literal |
 
 ## Evidence
 
