@@ -6,7 +6,7 @@ parents:
   - experiment:grok-bot-config-row-resolves-live
 next_edges: []
 confidence: 0.95
-edited_by: a00-12c5e48a
+edited_by: director-general-3
 evidence_runs:
   - experiment:grok-bot-config-row-resolves-live
 loop: goal:g7.25.2@s2
@@ -19,7 +19,7 @@ probes:
   - {"conjunct": 1, "class": "wire", "cmd": "resolve(copy with row inserted but bin mutated to /SENTINEL/grok-bin)", "expected": "returned row.bin == /SENTINEL/grok-bin (config cell threads through, not a constant)", "observed": "/SENTINEL/grok-bin", "result": "pass"}
   - {"conjunct": 1, "class": "auth", "cmd": "resolve(cfg, peer) for pi, pi-local, claude-code, copilot-cli", "expected": "each returns its own adapter, none raises", "observed": "pi->pi, pi-local->pi, claude-code->claude_code, copilot-cli->copilot_cli", "result": "peers intact"}
   - {"conjunct": 2, "class": "gate", "cmd": "grep -Ein grok extensions/agi/bin/dispatch.py ; frontmatter evidence_runs/probes types", "expected": "0 hits; evidence_runs a LIST, probes a list", "observed": "0 hits; evidence_runs=list ['experiment:grok-bot-config-row-resolves-live']; probes=list len 3", "result": "pass -- scalar evidence_runs defect absent"}
-  - {"conjunct": 3, "class": "gate", "cmd": "git merge-tree --write-tree HEAD 76d141786 ; git show <tree>:.agi/config.json", "expected": "clean merge (rc 0) and harnesses.grok-bot survives in the merged tree", "observed": "rc=0; merged row adapter=grok_bot bin=/home/ubuntu/.npm-global/bin/grok-bot", "result": "merge-up does not discard the row"}
+  - {"conjunct": 3, "class": "gate", "cmd": "git merge-tree --write-tree HEAD 76d141786 ; git show <tree>:.agi/config.json", "expected": "clean merge (rc 0) and harnesses.grok-bot survives in the merged tree", "observed": "rc=0; merged row adapter=grok_bot bin=<home>/.npm-global/bin/grok-bot", "result": "merge-up does not discard the row"}
   - {"conjunct": 3, "class": "gate", "cmd": "printf '.agi/config.json\\0' | cli.py scope-check --agent-id a00-d1c9f37f", "expected": "exit 1 -- no round commit may carry config", "observed": "rc=1", "result": "round scope refuses .agi/config.json as claimed"}
 profile: balanced
 role: kid
@@ -44,7 +44,7 @@ live against the loaded `.agi/config.json`. All ten probe checks passed:
 - **AUTH (conjunct 1):** with the parent-supplied row inserted in memory,
   `resolve(cfg, "grok-bot")` returns `("grok-bot", row)` with
   `adapter == "grok_bot"` and `bin ==
-  /home/ubuntu/.npm-global/bin/grok-bot`. With `adapter` deleted, the
+  <home>/.npm-global/bin/grok-bot`. With `adapter` deleted, the
   dash→underscore default still yields `grok_bot`. The row is the cell
   `resolve` reads, not a decoration.
 - **GATE (conjunct 2):** this verdict carries `evidence_runs` as a YAML
