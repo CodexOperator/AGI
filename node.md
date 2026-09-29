@@ -28,7 +28,7 @@ town: core
 config-max: none. template-max: none. code: one resolve per writer.
 
 ## FALSIFIERS
-- a writer's output parents item is not 32-hex
+- a writer's output parents item is not a node's mint_id
 
 ## TESTS
 test_node_writer.py · test_level3.py -- ONE file at a time, `--basetemp /tmp/b4w2db`
