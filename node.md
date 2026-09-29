@@ -6,13 +6,15 @@ parents:
   - goal:g7.33.19
 next_edges: []
 confidence: 0.8
-edited_by: director-general-2
+edited_by: director-general-3
 evidence_runs:
   - "'experiment:a00-b9e8e8d9-6211b4'"
 probes: "\"wire: a stub pi that is ALWAYS empty, with .agi/config.json read LIVE from the worktree tip -> 3 runs = 1 + max_retries(2), 3 attempt_boundary records -- NOT 8 = 1 + 7 (a00-3f1f7f95 measured against the 7-cell tree EG.54 later reverted; `git show dab7b02c5:.agi/config.json` 296-298 reads 2 / 5.0, verified EG.141); gate: cells (0,0.01) -> 1 run, no retry; no config reachable -> 3 runs at the 5.0s documented default; auth: live-config guard RED with values.pi_retry deleted from a copy of the real config (a SHAPE guard, never a value pin); wire: exit-0 attempt with an empty response -> 1 run, the guard reached live\""
 push_further: "\"EG.141 closed items (1) and (3) of this list, so this is what is actually OPEN, in order. (1) STRUCTURAL, not the detector: the live-config guard resolves through rotate.ENGINE_ROOT, the WORKING TREE, so a green run of it can never certify a commit (a00-8825ba12-ca762b item 7) -- and because EG.54 reverted the cell to the module default (2 / 5.0), no live probe in this worktree can distinguish the cell being read from the default being used; only a rig that writes its own tmp config (test_pi_trajectory_retry.py _project) proves the cells are read. (2) THE WIRE: no LIVE empty provider response has yet been retried end to end; every run in this chain is a stub, which is why the verdict is a lean and not proved. (3) PROCESS: the +30/-5 and +50 breach is recorded, not cut (CEILING section below), and the source edits are COMMITTED at dab7b02c5 -- the old claim that they sit uncommitted was false. (4) COSMETIC, cheap: a00-f7fcb77c-d36728 carries its whole report twice because that file has no BODY:END marker, a defect in the node WRITER, not in the round\""
 scaffold_hash: 91bb770a1fb1bf7b
 season: 2
+tags:
+  - parked:g7.16.2
 testable_claim: an empty-response stopReason=error is retried a bounded, config-set number of times with backoff and logged; other errors end the round as today
 title: "An empty provider response is retried, not fatal (EG.30, TMM.317, assigned: director-engine)"
 town: core
@@ -161,7 +163,7 @@ THIS ROUND (EG.141), measured against the CUT tip `dab7b02c5` (read-only `git di
 PRODUCTION net +6 (the turn_end-only keying), TESTS net +23 (the masking test) — inside both 20 and 40.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (parked: formation g7.16.2): the pi provider lane parents and kids run on; every council post runs on claude-code. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.2) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
+Park moved to the tag parked:g7.16.2 (goal:g7.16.1.2.6, director-general-3, council bundle 2): `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'` drops it. Why parked (unchanged): the pi provider lane parents and kids run on; every council post runs on claude-code. THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
