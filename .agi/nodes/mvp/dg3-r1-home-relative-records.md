@@ -40,4 +40,4 @@ A record another post has modified but not committed (skipped by name, never com
 
 ## Falsifier
 1. `env -u TMUX -u TMUX_PANE pytest extensions/agi/tests/test_rotation_record_home.py` exits 0: written `~`-relative (no xfail) · another box's home -> `<home>/` · the resolver expands `~` and passes the absolute form.
-2. Negative: `git grep -lE '/(home|Users)/[^/<]+/' -- .agi/sessions/rotations | wc -l` counts only records another post holds dirty.
+2. Negative (residue 35): run anonymize.HOME_PATH_RE (the ONE definition, never a looser re-spelling that spans prose spaces) over the TRACKED `.agi/sessions/rotations/*.json` at HEAD, so the .txt snapshots are excluded by construction. It prints 1 of 373 at ae4ca98ed: belam.20260913T013315Z.json (2 hits). That record is belam's, written by heal's watch path, which residue 33 now routes through _dump_record. sanctuary-master named it to belam for PASS B3, so this row does not touch it. Every other record: 0.

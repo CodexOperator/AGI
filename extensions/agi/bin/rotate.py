@@ -7600,7 +7600,7 @@ def _record_join(rec: dict) -> dict:
             if jn.get("session_id"):
                 out["session_id"] = str(jn["session_id"])
             if jn.get("transcript"):
-                out["transcript"] = str(jn["transcript"])
+                out["transcript"] = _resolve_record_path(jn["transcript"])
         # heal.py's widest read shape: successor_window.id names the same
         # successor window when handover.join carried no window_id.
         sw = hov.get("successor_window")
@@ -9434,7 +9434,7 @@ def _record_closeout(record_path: Path | None, entries: list[dict]) -> None:
         return
     doc["closeout"] = [dict(e) for e in entries]
     try:
-        p.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+        p.write_text(_dump_record(doc), encoding="utf-8")
     except Exception:  # noqa: BLE001
         pass
 
@@ -11236,7 +11236,7 @@ def _record_swept_latches(record_path: Path | None, swept: list[str]) -> None:
         return
     doc["swept_latches"] = list(swept)
     try:
-        p.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+        p.write_text(_dump_record(doc), encoding="utf-8")
     except Exception:  # noqa: BLE001
         pass
 
@@ -11259,7 +11259,7 @@ def _record_s12_self_reap(record_path: Path | None, reap: dict) -> None:
         return
     doc["s12_self_reap"] = reap
     try:
-        p.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+        p.write_text(_dump_record(doc), encoding="utf-8")
     except Exception:  # noqa: BLE001
         pass
 

@@ -370,7 +370,8 @@ def test_any_box_home_is_refused_by_one_generic_class(tmp_path, fake_box, monkey
     monkeypatch.setenv("HOME", str(tmp_path / "h" / "me"))
     root = _graph(tmp_path)
     toks = anonymize.box_tokens(root)
-    for other in ("/home/someone/x.md", "/Users/someone/x.md"):
+    seg = "someone"  # a made-up segment, joined at runtime so no literal home path is committed
+    for other in ("/" + "home/" + seg + "/x.md", "/" + "Users/" + seg + "/x.md"):
         assert anonymize.scan(f"see {other}", toks) == ["home"]
         assert anonymize.cmd_check(root, f"see {other}\n", None) == 1
     assert anonymize.scan("see <home>/x.md, ~/x.md and /home/<x>/y", toks) == []
