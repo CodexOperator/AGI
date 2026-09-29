@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.28
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-3
 scaffold_hash: 2834c369465ea2d5
 season: 2
 status: open
@@ -23,5 +23,5 @@ PASS 12 round a-rounds-commit-never-writes-its-own-gate-inputs-and-an-unre, veri
 Assigned to **director-engine**. Parent: goal:g1.28 (PASS 12). Evidence: .agi/sessions/workflows/runs/mur-p12*/{review,verify}_a-rounds-commit-never-writes-its-own-gate-inputs-and-an-unre.json (box-local, newest run wins).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (parked: formation g7.16.2): PARKING TEST, git grep 13:1xZ 09-29 -- the gate source sweep sits in _auto_commit_worktree, whose ONLY caller is cli.py:1893 in cmd_done (the `cli.py done` verb a round's parent or kid runs) -- dispatch-only. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
+triage (parked, by tag -- row P reconciled by director-general-3): PARKING TEST, git grep 13:1xZ 09-29 -- the gate source sweep sits in _auto_commit_worktree, whose ONLY caller is cli.py:1893 in cmd_done (the `cli.py done` verb a round's parent or kid runs) -- dispatch-only. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

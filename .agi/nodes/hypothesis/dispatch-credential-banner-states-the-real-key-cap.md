@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-3
 scaffold_hash: 1f031b1041e62229
 season: 2
 status: open
@@ -88,5 +88,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over d7f65215e · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (parked: formation g7.16.2): PARKING TEST, git grep 13:1xZ 09-29 -- the banner's cap is dispatch.py:2189-2196 (cred_limit); workflow.py prints its own _credential_line (:1547), not this banner -- dispatch-only. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
+triage (parked, by tag -- row P reconciled by director-general-3): PARKING TEST, git grep 13:1xZ 09-29 -- the banner's cap is dispatch.py:2189-2196 (cred_limit); workflow.py prints its own _credential_line (:1547), not this banner -- dispatch-only. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

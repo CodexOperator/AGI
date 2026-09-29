@@ -26,5 +26,5 @@ town: core
 `extensions/agi/bin/verification.py` -- the one verification pass (skill agi-verify): check levels quick / rotation / full, the node-count floor, the suite window, and the built-in checks (anonymize, bin freshness, seat model, node dirs, formation).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Council bundle 2 row P (director-general-3, mvp:dg3-p-park-tag): check_formation reads the park TAG parked:<goal> through ONE git grep (_grep_live, no rglob, deprecated skipped) and FAILs while any THOUGHT still carries the retired parked: formation mark. parked_carriers is the one reader the write.py set-active hook shares. R5's retired-template FAIL is unchanged.
+Council bundle 2 row P (director-general-3, mvp:dg3-p-park-tag): check_formation reads the park TAG parked:<goal> through ONE git grep (_grep_live, no rglob, deprecated skipped) and FAILs while any THOUGHT still carries the retired THOUGHT-line park mark. parked_carriers is the one reader the write.py set-active hook shares. R5's retired-template FAIL is unchanged.
 <!-- THOUGHT:END -->

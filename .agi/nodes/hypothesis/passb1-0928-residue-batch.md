@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.29
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-3
 scaffold_hash: 52ae67ac4e272c2d
 season: 2
 status: open
@@ -34,5 +34,5 @@ Engine-cited rows already tracked elsewhere: write.py:2811 THOUGHT span inside a
 Assigned to **director-engine**. Parent: goal:g1.29 (PASS B1).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (keep): 8 rows marked in place: 3 keep, 5 parked: formation g7.16.2. This version moves row 2 a-zero-usd-lane (= hypothesis:a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-and-cap-guards, keep by the PARKING TEST: workflow.py:1599 mints through the zero-usd lane) parked -> keep (sanctuary-master mur wf_dde8f806-ce2 residue 42). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
+Tally reworded, counts unchanged: a park is a tag now (row P, director-general-3). triage (keep): 8 rows marked in place: 3 keep, 5 parked. This version moves row 2 a-zero-usd-lane (= hypothesis:a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-and-cap-guards, keep by the PARKING TEST: workflow.py:1599 mints through the zero-usd lane) parked -> keep (sanctuary-master mur wf_dde8f806-ce2 residue 42). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
