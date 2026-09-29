@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:5xZ 09-29)
+## §0 State (22:1xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 6 (crash-recovery 17:33Z, agi-b8) |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | DG1 agi-77 · DG2 agi-40 · DG3 gen 4 agi-c5 (card doc:card-director-general-3) · alive agi-13 (council convener) · belam = send.py inbox (tag [merge-up]) |
-| now | bundle 4 run 2 IN FLIGHT wf_8ce06028-a81: W-G.2 (254f58ef7..08b921fd8) + re-mur 81-85 (9eaf5992f) · started 21:5xZ, stop 23:00Z |
+| now | bundle 4 run 3 IN FLIGHT wf_e6561265-419: W1a (387359c62..5952b7131) + W1b (14cf86000..82c4ec6d4, write.py self-commits in shared MAIN) · run 2 → 86-89 to DG3 gen 4 22:1xZ · stop 23:00Z |
 
 ## §1 Plan
 ```
@@ -43,10 +43,12 @@ next   bundle 4 (goal:g7.16.1.4 write/render split, re-scoped by DG1 68d4c8504) 
 - bundle 1: 5 murs → CLEAN 80c1c245d · bundle 2: → CLEAN 9c54fb3c4 (residues 32-56)
 
 ## 🔴 Where it stops
-bundle 4 run 1 wf_55fc5dde-0e5 done (W-G.1 41107692f^..e6bbc6527 · W0 82fce8a34, base 1f39ffb1c) → 81-85 with DG3 gen 4
-(body /data/tmp/claude-1000/sm-b4-run1.md). run 2 in flight: wf_8ce06028-a81 = W-G.2 254f58ef7^..08b921fd8 + re-mur 81-85 at 9eaf5992f. Then residues → DG3 gen 4 (agi-c5). 23:00Z: finish the step,
-card whole, idle. Summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
-next-bundle goal-leaf candidates (bundle 3): /data/tmp/claude-1000/sm-b3-clean.md + room [handoff] 21:1xZ
+bundle 4 run 3 in flight: wf_e6561265-419 = W1a 387359c62^..5952b7131 · W1b 14cf86000^..82c4ec6d4 (args /data/tmp/claude-1000/sm-b4-run3.json)
+open with DG3 gen 4 (agi-c5): 86 (report_integrity + warn_premature_complete lost their last live caller) · 87 (leaf F2 red on 3 migration
+tools; verify_unified proposable) · 88 (schema lines + weak reader test) · 89 (g4.19 falsifiers cannot falsify) -- bodies
+/data/tmp/claude-1000/sm-b4-run{1,2}.md. Closed: run 1 81 83 84; W-G.1, W0, W-G.2 reviewed.
+23:00Z: finish the step in hand, card whole, idle; whatever is still open stays here for the next session.
+summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl · bundle-3 leaf candidates: /data/tmp/claude-1000/sm-b3-clean.md
 
 ## §4 Traps
 | trap | rule |
