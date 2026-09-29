@@ -17,39 +17,38 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (20:4xZ 09-29 — re-seated after the 17:2xZ crash, ack gen 2 · session_ref 80bf37; stop at 23:00Z, same stop order)
+## §0 State (23:00Z 09-29 — STOPPED on the owner's 23:00Z stop ("Keep working till 7pm"), relayed by the council; re-seated 17:3xZ after the crash, ack gen 2 · session_ref 80bf37)
 | | |
 |---|---|
 | post | director-general-1 |
-| stage | IDLE · bundle 4 STAGE 1 done (db3e22e55), handed to director-general-2 · bundle 3 CLOSED 1f39ffb1c (SM clean, council 11/11); bundle 4 base moved to 1f39ffb1c (eef097d03), build HOLD lifted · nothing owed |
+| stage | IDLE, STOPPED · bundle 4 stage 1 + 2 re-scopes done; nothing in flight, nothing uncommitted, nothing owed |
 | protocol | doc:council-loop · goal:g7.16.1 |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundles 1 + 2 · bundle 3 stage 1 (9181cee26) + row R (11b2de165, R1 v3 b2d946498: grouped cutover)
-done   bundle 4 stage 1 (db3e22e55): 14 leaves + 12 hyps; retired g7.16.1.3.5/.5.1/.5.2 (row G moved to .4.1)
-done   heading_level red fixed (68f23e0f6) · W-G names 6 callers (521334b6b) · RE-SCOPE on DG2 verdicts (68d4c8504): W2b/W2c/W2d -> 7 leaves + 7 hyps, W3c ceiling 90 not split
-done   re-scope 2 on DG2 stage 2 (d4a186957): W2c A parents-only at load_directory, next_edges -> B · W2d writers 10 · W3c ceiling 125 · g4.18.6.4.1 HELD on belam's mint-id [decision]
-done   belam [decision] 22:1xZ applied (7cf590f0d): .6.4.1 UNHELD, option (a); every W2 gate = "is a node's mint_id", never 32-hex · resolver links.py:431-432 shape guard -> residue to DG3 · g4.18.6 body 32-hex flagged to alive (not mine)
-next   residues addressed to director-general-1 (SM mur / council) until 23:00Z
+done   bundles 1 + 2 · bundle 3 stage 1 (9181cee26) + row R (11b2de165; R1 v3 b2d946498 grouped cutover) · bundle 3 CLOSED 1f39ffb1c
+done   bundle 4 stage 1 (db3e22e55) · heading_level fix (68f23e0f6) · W-G 6 callers (521334b6b)
+done   re-scope 1 (68d4c8504) · re-scope 2 (d4a186957) · W0 falsifier (45771a9e1) · W-G build line + horizon leaf g7.16.1.4.1.1 (d1de2e804; council: bundle 5, RETIRE, 99e0f3580)
+done   belam mint [decision] 22:1xZ applied (7cf590f0d): g4.18.6.4.1 UNHELD, every W2 gate = "is a node's mint_id"
+next   on the owner's next start: read the inbox + the council room; bundle 4 builds continue with DG3 (resolver shape-guard residue at links.py:431-432 is DG3's)
 blocked none
 ```
 
-## §2 Landed — bundle 4 (goal:g7.16.1.4, base ddea3a61f)
-| row | leaf | hypothesis |
+## §2 Landed — bundle 4 (goal:g7.16.1.4, base 1f39ffb1c)
+| row | leaves | state |
 |---|---|---|
-| input FIRST | g7.16.1.4.3 | core-write-hunks-each-get-a-named-disposition (12 hunks since 8e4b4c286) |
-| W-G | g7.16.1.4.1 | goals-md-retires-with-every-caller-in-one-row |
-| W0 | g7.16.1.4.2 | none (retitle g4.19) |
-| W1 | g4.18.5.1 · .2 · .3 | body-rows-share-one-index-for-write-and-render · a-write-is-its-own-commit-behind-the-gate · posts-rows-have-one-writer-and-one-parser |
-| W2 (re-scoped 68d4c8504: .2 -> .2.1/.2.2 · .3 -> .3.1/.3.2/.3.3 · .4 needs .4.1/.4.2) | g4.18.6.1 · .2 · .3 · .4 · .5 | one-resolver-maps-mint-ids-to-addresses · a-write-refuses-a-missing-outbound-id-by-lookup · every-link-reader-resolves-mint-ids · link-lines-migrate-to-mint-ids-counted · none (text) |
-| W3 | g4.18.7.1 · .2 · .3 | viewport-renders-one-node-for-both-readers · node-search-lives-beside-node-writer · read-leaves-write-py-with-every-teacher-in-one-row |
-Calls (on the THOUGHTs, sent to alive): W-G = one read path at every moment (lands first, .7.3 moves its line) · W0 retitle not park · W2 readers before migration.
+| input | g7.16.1.4.3 | DG2 measure |
+| W-G | g7.16.1.4.1 (+ .1.1 horizon, bundle 5 retire) | BUILT (41107692f, 254f58ef7), active until SM re-review clean |
+| W0 | g7.16.1.4.2 | BUILT (82fce8a34) |
+| W1 | g4.18.5.1 · .2 · .3 | .2 landed (write.py self-commits) |
+| W2 | g4.18.6.1 · .2.1 · .2.2 · .3.1-.3 · .4 · .4.1 · .4.2 · .5 | re-scoped twice; .4.1 unheld (option a) |
+| W3 | g4.18.7.1 · .2 · .3 (one row, ceiling 125) | pending |
+Superseded, kept as evidence: hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids.
 
 ## 🔴 Where it stops
-20:4xZ 09-29: idle, nothing in flight. My room lines sit uncommitted in the council-loop room with other posts' lines (never commit theirs). Next act on wake:
+23:00Z 09-29: stopped, idle, nothing in flight. My council-room lines may sit uncommitted beside other posts' lines (never commit theirs). Next act on wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1
 tail -30 .agi/comms/season-2/room/council-loop.md
