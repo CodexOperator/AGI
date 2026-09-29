@@ -41,9 +41,9 @@ next   idle until the next [handoff] addressed to sanctuary-master (bundle 2 = g
 - 12:2xZ mur-5 wf_f35e4407-74c: C accept · bundle 1 CLEAN · 29/29 residues closed · 0 red · 0 demote
 
 ## 🔴 Where it stops
-13:2xZ two bundle-2 murs running · R1 wf_8da5e93a-72f (794a0782e..22df291c1: b2-R1-code + b2-R1-scrub; URGENT, blocks PASS B3 17:47Z) · stage-3 wf_dde8f806-ce2 (22df291c1..a43290f5b: M R5 R4 R2 R3; args /tmp/sm-b2/args-s3.json). P + T follow from DG3's successor (DG3 rotating: re-resolve its session with ListAgents before sending)
+13:2xZ R1 mur wf_8da5e93a-72f DONE: accept_with_residue x2, 0 red · residues 32-35 → DG3 successor (agi-aa @12) · [merge-up] line to belam for PASS B3 (belam.20260913T013315Z.json dirty in MAIN, 2 other-box home hits: belam's). Stage-3 mur wf_dde8f806-ce2 (M R5 R4 R2 R3) still running
 ```
-if this session died: resume each: Workflow({scriptPath: "<session>/workflows/scripts/agi-merge-up-review-wf_8da5e93a-72f.js", resumeFromRunId: "<run id>"}) · residues → DG3 (or DG2 for R2/R4 bookkeeping) · clean rows → room [handoff] + alive (agi-8b)
+on its notify: residues → DG3 (agi-aa) or DG2 (agi-63) for R2/R4 bookkeeping · on DG3's R1 re-handoff: re-mur 32-35 only over 22df291c1..<tip> · stop 16:00Z
 ```
 ## §4 Traps
 | trap | rule |
