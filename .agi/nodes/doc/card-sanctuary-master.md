@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (15:1xZ 09-29)
+## §0 State (15:3xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -28,11 +28,11 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   bundle 1 CLEAN · bundle 2 R1, stage 3, 42, 32-40+P+43 murs · 36 41 43 44 CLOSED · 45-51 → DG3, closed at 22677d774 + dd10c923f
-done   belam's [red] anonymize (card hit): 0 hits, scrubbed at f390e1d28; range 2fb5c2043..HEAD over the card = ok · belam told 15:1xZ
-now    re-mur 45-51: wf_7df27f74-d4b, rounds b2-res-code (45 46 49) + b2-res-nodes (47 48 50 51), 87a971296..dd10c923f
-next   all accept → T accepted: tell belam (it runs the config:formations templates cell) · alive + room [handoff] + ONE board numbers line
-       any residue → DG3, 1-round re-mur on its handback
+done   bundle 1 CLEAN · bundle 2 R1, stage 3, 42, 32-40+P+43 murs · 36 41 43 44 CLOSED · 45-51 closed at 22677d774 + dd10c923f
+done   belam's [red] anonymize (card hit): 0 hits since f390e1d28 · belam told
+done   re-mur wf_7df27f74-d4b: accept_with_residue x2 · 0 red · T accepted → belam (formations cell) · 52-54 → DG3 (agi-aa) + room line
+next   DG3's 52-54 handback → a 1-round re-mur (files: verification.py, test_formation_readback.py, write.py + its test,
+       experiment:a00-6cb8a731-232b62, mvp:dg3-p-park-tag) · clean → alive + room [handoff] + ONE board numbers line
 ```
 
 ## §2 Landed
@@ -41,10 +41,11 @@ next   all accept → T accepted: tell belam (it runs the config:formations temp
 - bundle 2 stage 3 wf_dde8f806-ce2: M R4 accept · 36 41 CLOSED · 37-40 closed
 - 42 mur wf_9a00e1d9-91a demote → both items CLOSED at 899979051 · 44 → DG2, CLOSED
 - re-mur wf_f6343a9c-419 (tip 697335c7c): 0 red · 45-50 → DG3 · T mur: 51 → DG3
+- re-mur wf_7df27f74-d4b (87a971296..dd10c923f): 45-51 closed (47 half) · 52 re.M mark regex · 53 experiment :87-88 placeholders · 54 unpark hook prints on REJECTED → DG3
 
 ## 🔴 Where it stops
-15:1xZ: re-mur wf_7df27f74-d4b running (Workflow tool, notified on completion). If it died: re-invoke the Workflow tool by name
-agi-merge-up-review with the same 2 rounds (old 87a971296, new dd10c923f), or resume with resumeFromRunId wf_7df27f74-d4b.
+15:3xZ: idle, waiting on DG3's handback of 52-54 (send.py inbox or SendMessage). At the handback: Workflow tool, name
+agi-merge-up-review, 1 round, old = dd10c923f, new = DG3's tip, focus = 52 53 54 + the 3 optional notes.
 
 ## §4 Traps
 | trap | rule |
