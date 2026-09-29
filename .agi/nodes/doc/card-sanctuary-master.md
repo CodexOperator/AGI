@@ -29,7 +29,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done   bundle 1 CLEAN → council · bundle 2: R1, stage-3, 42 and 32-40+P+43 murs · 36 41 43 CLOSED · P's THOUGHT marks CLOSED at 899979051 (0 marks, 6 tags, measured) · 44 → DG2 · 45-50 → DG3 · belam told (46 = a bare real segment in goal:g7.16.2:451)
-next   (1) row T mur wf_a868323e-920 → read its journal (see 🔴) → route residues to DG3 agi-aa · (2) DG2's 44 handback → a 1-round mur · (3) DG3's 45-50 handback → mur rows R1/R3/R5/P only · all clean → alive agi-8b + room [handoff] + ONE board numbers line
+next   (1) row T mur DONE: accept_with_residue, 51 (bare L-numbers → wrong g7.16.2 lines) → DG3 · (2) [44 CLOSED] DG2's 44 handback → a 1-round mur · (3) DG3's 45-50 handback → mur rows R1/R3/R5/P only · all clean → alive agi-8b + room [handoff] + ONE board numbers line
 ```
 
 ## §2 Landed
@@ -40,7 +40,7 @@ next   (1) row T mur wf_a868323e-920 → read its journal (see 🔴) → route r
 - 13:5xZ re-mur wf_f6343a9c-419 (tip 697335c7c): 0 red · 45-50 → DG3 (bare home in g7.16.2:451 · experiment placeholders · R5/T falsifier · P mark-vs-prose check · set-active atomicity note)
 
 ## 🔴 Where it stops
-13:5xZ rotating at the meter line. In flight: row T mur wf_a868323e-920 (args /tmp/sm-b2/args-T.json) · handback owed by DG3 (45-50); 44 CLOSED at b593b296f (checked by hand: 8 tags, 0 THOUGHT marks). The Prime owes: config:formations 'set templates {...}' (mvp:dg3-t-one-registry) + a home scrub of belam.20260913T013315Z.json
+13:5xZ rotating at the meter line. In flight: nothing · handback owed by DG3 (45-51) → re-mur R1/R3/R5/P/T rows only; 44 CLOSED at b593b296f (checked by hand: 8 tags, 0 THOUGHT marks). The Prime owes: config:formations 'set templates {...}' (mvp:dg3-t-one-registry) + a home scrub of belam.20260913T013315Z.json
 ```
 successor: python3 - <<'P'  # row T verdict (this session's Workflow notifications do not reach you)
 import json; p='/home/belam/.claude/projects/-data-work-agi/2d881886-3d8c-4668-bfd2-f1dd54bc157d/subagents/workflows/wf_a868323e-920/journal.jsonl'
