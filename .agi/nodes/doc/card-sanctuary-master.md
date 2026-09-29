@@ -28,21 +28,24 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   bundle 1 CLEAN (5 murs, 29/29) → council · bundle 2: R1 + stage-3 murs, residues 32-44 routed; 36 41 CLOSED; 43 + P reconcile verified by hand (tip 899979051: 6 tags, 0 THOUGHT marks)
-next   collect wf_f6343a9c-419 (32-40 + P + 43; judge P against 899979051, not 697335c7c) and wf_a868323e-920 (row T at e12ca48c7) → route residues (DG3 agi-aa) → re-mur on handback · DG2's 44 handback → 1-round check · all clean → alive (agi-8b) + room [handoff]
+done   bundle 1 CLEAN → council · bundle 2: R1, stage-3, 42 and 32-40+P+43 murs · 36 41 43 CLOSED · P's THOUGHT marks CLOSED at 899979051 (0 marks, 6 tags, measured) · 44 → DG2 · 45-50 → DG3 · belam told (46 = a bare real segment in goal:g7.16.2:451)
+next   (1) row T mur wf_a868323e-920 → read its journal (see 🔴) → route residues to DG3 agi-aa · (2) DG2's 44 handback → a 1-round mur · (3) DG3's 45-50 handback → mur rows R1/R3/R5/P only · all clean → alive agi-8b + room [handoff] + ONE board numbers line
 ```
 
 ## §2 Landed
-- bundle 1: 5 murs → CLEAN at 80c1c245d · 29/29 residues · 0 red · [rule] adopt → goal:g4.18.3
-- bundle 2 R1 wf_8da5e93a-72f: HOME in rotations 109 → 0 · residues 32-35 → DG3 (fixed 42137d050, under re-mur)
-- bundle 2 stage 3 wf_dde8f806-ce2: M R4 accept · 36-40 DG3 (fixed 42137d050) · 41 DG1 CLOSED (29babdf75) · 42 DG2 (391a36a5c)
-- 36 CLOSED: anonymize over the full merge-up 2fb5c2043..42137d050 ok (9.1 MB), belam told for PASS B3
-- 42 mur wf_9a00e1d9-91a: demote at 391a36a5c; both demote items CLOSED at 899979051 (43 = 697335c7c + P reconcile) · 13:5xZ 44 → DG2: an-empty-provider-response + a-zero-usd-lane fail the parking test (re-park) + why notes
+- bundle 1: 5 murs → CLEAN at 80c1c245d · 29/29 · 0 red · [rule] adopt → goal:g4.18.3
+- bundle 2 R1 wf_8da5e93a-72f: rotations HOME 109 → 0 · 32-35 closed at 42137d050 (45 = test row can't fail for 3/6 writers)
+- bundle 2 stage 3 wf_dde8f806-ce2: M R4 accept · 36 CLOSED (full-range anonymize ok) · 41 CLOSED · 37-40 closed (48 = R5→T re-scope one-sided)
+- 42 mur wf_9a00e1d9-91a demote at 391a36a5c → both demote items CLOSED at 899979051 · 44 (2 keeps fail the parking test) → DG2
+- 13:5xZ re-mur wf_f6343a9c-419 (tip 697335c7c): 0 red · 45-50 → DG3 (bare home in g7.16.2:451 · experiment placeholders · R5/T falsifier · P mark-vs-prose check · set-active atomicity note)
 
 ## 🔴 Where it stops
-13:5xZ two murs running: wf_f6343a9c-419 (args /tmp/sm-b2/args-remur.json) · wf_a868323e-920 (args /tmp/sm-b2/args-T.json); waiting on DG2's 44. The Prime owes: config:formations 'set templates {...}' (exact command on mvp:dg3-t-one-registry) + belam.20260913T013315Z.json home scrub
+13:5xZ rotating at the meter line. In flight: row T mur wf_a868323e-920 (args /tmp/sm-b2/args-T.json) · handbacks owed by DG2 (44) and DG3 (45-50). The Prime owes: config:formations 'set templates {...}' (mvp:dg3-t-one-registry) + a home scrub of belam.20260913T013315Z.json
 ```
-successor: the Workflow notifications come to THIS session only → read the verdicts from ~/.claude/projects/-data-work-agi/2d881886-3d8c-4668-bfd2-f1dd54bc157d/subagents/workflows/<wf_…>/journal.jsonl ("type":"result" lines), then route per §1 next
+successor: python3 - <<'P'  # row T verdict (this session's Workflow notifications do not reach you)
+import json; p='/home/belam/.claude/projects/-data-work-agi/2d881886-3d8c-4668-bfd2-f1dd54bc157d/subagents/workflows/wf_a868323e-920/journal.jsonl'
+[print(l[:3000]) for l in open(p) if '"type":"result"' in l]
+P
 ```
 ## §4 Traps
 | trap | rule |
