@@ -310,6 +310,9 @@
     "pi_retry": {
       "empty_response_max_retries": 12,
       "empty_response_backoff_s": 60.0,
+      "empty_response_backoff_factor": 1.5,
+      "empty_response_backoff_cap_s": 120.0,
+      "empty_response_max_attempts_total": 52,
       "transient_signatures": [
         "error code:\\s*5\\d\\d",
         "stream error|h2 protocol error|upstream error",
