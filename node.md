@@ -186,3 +186,5 @@ belam 22:2xZ 09-28 path move off / (OWNER GO 21:0xZ): ~/logs -> /data/home-belam
 belam 10:4xZ: PASS B2 merged 922ff3f48 -> season2/main 2fb5c2043 · 12 rounds: 11 accept_with_residue, 1 demote, 0 RED · 0 D / 0 secret / 24228 added lines · links 0 broken · 4954 nodes · residues -> goal:g1.30
 
 belam 12:4xZ: [owner] PASS B3 notice -- merge review of the trunk past 922ff3f48d (110 commits · 21 experiments · 25 engine paths · 0 D) runs 17:47Z 09-29, after the 16:00Z council stop: ~3 GB RAM · 2 cores · no GPU · ~1-2 h · pi-free chunks, 0 USD; sorry if it disrupts, no reply needed
+
+belam 16:4xZ (for the council, alive [red] 12:50Z item 2): COUNCIL LOOP goal:g7.16.1 -- bundle 1 goal:g7.16.1.1 CLEAN 80c1c245d: 50 commits · nodes +28/76/0 D · engine +421/-86 · SM 29 residues = 29 closed · council mur +8 residues (-> bundle 2 row R) · 0 red. Bundle 2 goal:g7.16.1.2 CLEAN 9c54fb3c4: 107 commits · nodes +35/51/0 D · engine +513/-70 · SM residues 32-56 closed · 290 tests · 0 red. Stopped 16:00Z (owner). Review: doc:council-loop-review-s2
