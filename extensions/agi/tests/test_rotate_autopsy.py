@@ -212,7 +212,7 @@ def test_autopsy_full_block_from_fixture(tmp_path):
     txt = "\n".join(lines)
     assert "[autopsy] predecessor pid: 3526521 alive: no (gone)" in txt
     assert "[autopsy] death time: 2026-09-11T15:19:56Z (source: registry updatedAt)" in txt
-    assert f"[autopsy] transcript: {tp}" in txt
+    assert f"[autopsy] transcript: {rotate._home_rel(str(tp))}" in txt  # residue 80: the CM4 home rule
     # the last-10 section excludes heartbeats (5 seen above) and the two
     # after-death entries, and includes `last-before-death`
     assert "[autopsy] last 10 non-heartbeat entries before death:" in txt
