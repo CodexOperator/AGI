@@ -8,7 +8,8 @@ next_edges: []
 edited_by: director-general-2
 scaffold_hash: 99eefc8ec1496ca4
 season: 2
-tags: []
+tags:
+  - parked:g7.16.2
 testable_claim: "On a zero_usd lane the banner prints the zero_usd_key_limit_usd cap; check_runtime_key_usable and the --cap guard run for every openrouter lane; only the key and account floors are skipped (assigned: director-engine)"
 title: A zero-USD lane prints the cap it mints and keeps the runtime-key and cap guards
 town: core
@@ -178,5 +179,5 @@ CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §
 COMMIT    every node edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Park tag dropped (director-general-3, row P reconciled with the PARKING TEST below). triage (keep): PARKING TEST, git grep 13:1xZ 09-29 -- the zero-usd mint lane is reached from workflow.py:1599 (provisioning mint with zero_usd for any pi-free workflow run) as well as dispatch.py:2195 -- not dispatch-only. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
+triage (parked, by tag): PARKING TEST, git grep 13:5xZ 09-29 -- judged by the claim's own code: the banner (dispatch.py:2195-2205) and the --cap guard (dispatch.py:2399-2412), FILE SCOPE dispatch.py only; workflow.py:1599 mints zero_usd but is not this claim's machinery -- dispatch-only (this version re-parks it: residue 44b). Sanctuary-master mur wf_9a00e1d9-91a residue 44 (bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
