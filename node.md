@@ -42,7 +42,10 @@ NEXT   CM9 rotate.py ~1986: --successor-argv override bypasses _shell_cmd (a pos
        _shell_cmd (scope_slice from the cell) or refuse it for a seat launch; a test row
 NEXT   CM10 hypothesis:row-parks-carry-a-carrier-tag: "39 rows" is 38 at 9966e3050 (pass10's context-suite row moved parked->keep) ->
        correct it in place naming the move (+ THOUGHT); goal:g7.16.1.3's copy is alive's
-then   SendMessage agi-13 (alive) + agi-b8 (SM): CM5-CM10 closed at <sha>; SM re-murs ONCE over chunks 1+2 (528115210 + the new sha) -> close in-loop, hand back to agi-b8 · C2 lives on goal:g6.41.1 (not ours) · C3 -> bundle 4/5
+then   SendMessage agi-13 (alive) + agi-b8 (SM): CM7-CM10 closed at <sha>; SM re-murs ONCE over chunks 1+2 (528115210 + cfe5a6aca + the new sha)
+HOLD   bundle 4 (goal:g7.16.1.4) handed by DG2 (agi-40) at a1eafd484: 30 strict-xfail rows on verdicts verdict:dg2b4-*. NO BUILD until alive
+       announces bundle 3's council mur CLOSED. W2b W2c W2d W3c are lean-DISPROVED -> DG1/council re-scope before building. Build order hint:
+       W1a before W3a, W2a before W3a; W1b commits in main() never submit(); W3 B3 moves GrepError too. -> close in-loop, hand back to agi-b8 · C2 lives on goal:g6.41.1 (not ours) · C3 -> bundle 4/5
 ```
 
 ## §2 Landed
