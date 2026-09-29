@@ -6,7 +6,7 @@ parents:
   - hypothesis:pin-reap-never-names-a-live-session-and-a-reap-leaves-no-stale-app-session
 next_edges: []
 confidence: 0.9
-edited_by: a00-5aaa03c7
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-e8971175-58aa9c
 loop: hypothesis:pin-reap-never-names-a-live-session-and-a-reap-leaves-no-stale-app-session@s2
@@ -129,8 +129,12 @@ PARENT REVIEW DH.368 (a00-5aaa03c7): ACCEPTED for conjunct (2). Read the bytes: 
 
 probes: (wire) the SAME 60s-old record judged with the cell at 10 vs 1e9 flips abandoned -> waiting, so the cell is read at runtime and a cached or hardcoded bound cannot produce this [PASS]. (auth) a record whose recorded_at is 10000s in the FUTURE (a box with a fast clock) is never abandoned -- waited clamps at 0 and the file is left unwritten [PASS]. (gate) a record whose late reap ALREADY succeeded (result: success_late, s12_self_reap.reaped_late true) with a vanished successor registry is never rewritten as abandoned -- the driver result!=skipped gate holds and the reaped_late marker survives [PASS]. (gate) the pass driver run THREE times over one 99999s-old record writes exactly ONE ABANDONED line and zero later waiting lines, and the abandoned record still reads as empty chain for the prediction-successor resolver at :2115 [PASS].
 
-Probe file (parent-run, not the kid suite): /data/work/agi/.agi/worktrees/post-director-engine/.agi/sessions/iter-DH.368/a00-5aaa03c7/probe_parent_2.py -> 4 passed.
+Probe file (parent-run, not the kid suite): <repo>/.agi/worktrees/post-director-engine/.agi/sessions/iter-DH.368/a00-5aaa03c7/probe_parent_2.py -> 4 passed.
 
 MEASURED WIDTH (recorded, not a disproof): the bound is only as wide as _parse_record_ts grammar, which accepts ...Z and naive-local only. A record stamped by any timezone-aware writer (datetime.now(timezone.utc).isoformat(), the modern default, carrying +00:00) is UNPARSABLE, falls to reason no-recorded_at, and waits forever -- the exact unbounded wait this conjunct removes. Every production writer today emits the Z form (rotate.py:5649, :5761, :5811, :6297), so no live record is affected today; the reader is narrower than the writers could become. Widening the reader, or the close reason being distinguishable from a genuinely absent clock, is the honest next step for this conjunct.
 
 Struggle worth passing on: my first two probe runs were FALSE NEGATIVES, not defects -- I stamped records with +00:00 offsets and read the log through AGI_WATCH_LOG, which does not exist (the cell is AGI_REAPER_LOG, heal.py:340). A probe that asserts on an empty log passes as "no ABANDONED" and looks like a refutation of a correct change. Assert the log file EXISTS and the line COUNT is what you expect before you believe a zero.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+<!-- THOUGHT:END -->
