@@ -5,7 +5,7 @@ type: idea
 parents:
   - goal:g5.22
 next_edges: []
-edited_by: thought-master
+edited_by: director-general-3
 scaffold_hash: c8a794f41979ac5c
 season: 2
 tags:
@@ -50,7 +50,7 @@ One kid, ~/.venv-lm, <= 40 min: (1) the batch-cost sweep on both resident models
 ## Actionable claims (structured)
 - CLAIM: Verify is near-free up to ~4 tokens on the swarm box: a batch-4 forward costs <= 1.5x a single decode token for Qwen3-0.6B Q8_0 and <= 2.0x for Qwen3.5-4B Q4_K_M, so a 2-3-token draft/verify block is amortised; the ceiling on useful accepted length is the pp/tg crossover (~4-6 tokens on 0.6B Q8, ~3.7 on 4B Q4), not a property of layers.
   - falsifier: t(batch-4)/t(1-token) >= 2x on the 0.6B: block verification pays < 2x here and every hierarchical/multi-token scheme (H2, H7, C5, the EAGLE-3 seed) is capped; >= 3x: dead on this iron.
-  - cheapest test: /home/ubuntu/src/llama.cpp/build/bin/llama-bench -m ~/.cache/lm-models/Qwen3-0.6B-Q8_0.gguf -t 4 -p 1,2,3,4,5,6,8 -n 0 -r 5 -o json, then -p 0 -n 32; repeat for Qwen3.5-4B-Q4_K_M; report ms per batch-k forward divided by ms per decode token, logged under the A1 protocol (loadavg, MemAvailable) since tg swings 34-45 tok/s with tenants. | iron: swarm box (arm-cloud 4c, 23 GB, no GPU); binaries and both GGUFs already on disk | cost: ~5 min wall-clock, $0
+  - cheapest test: <home>/src/llama.cpp/build/bin/llama-bench -m ~/.cache/lm-models/Qwen3-0.6B-Q8_0.gguf -t 4 -p 1,2,3,4,5,6,8 -n 0 -r 5 -o json, then -p 0 -n 32; repeat for Qwen3.5-4B-Q4_K_M; report ms per batch-k forward divided by ms per decode token, logged under the A1 protocol (loadavg, MemAvailable) since tg swings 34-45 tok/s with tenants. | iron: swarm box (arm-cloud 4c, 23 GB, no GPU); binaries and both GGUFs already on disk | cost: ~5 min wall-clock, $0
   - sources: .agi/context/local-maxxing/bench/20260914T053136Z.jsonl … 20260914T055208Z.jsonl (pp512 168-251 vs tg 33.9-45.2 on 0.6B Q8; 25.6 vs 6.86 on 4B Q4), .agi/context/local-maxxing/papers/baseten-eagle3-heads.md (critique item 3: verify-cost falsifier), .agi/context/local-maxxing/papers/arxiv-2510-05421.md (critique item 13), .agi/context/local-maxxing/papers/osd-2310-07177.md (Eq. 2: c is the ledger)
 - CLAIM: No untrained layer of Qwen2.5-0.5B can serve as the hunch's per-layer predictor: logit-lens top-1 (final norm + tied head applied to the layer-k residual) agrees with the model's final top-1 below the full-head break-even curve at every layer — a >= 0.7 needed for k <= 2, >= 0.8 for k <= 7, >= 0.9 for k <= 14 (1.2x target, k_spec 4, DVI block model: block = 0.0906k + 2.104 passes with 3.0%/layer + 27.6% head) — and agreement two tokens ahead is < 10% at every layer, so 'each layer predicts 2-3 tokens' exists only after training (DVI: 2,000 prompts KL-only -> MAT 1.933; full -> 3.04-3.61 on a 7B).
   - falsifier: Any layer k whose agreement a_k sits above the curve (e.g. >= 0.8 at k <= 7) — then a free self-speculative split with the existing head exists and must be run (claim 1's verify block) before any drafter is trained; or >= 10% agreement two tokens ahead at any layer (a free multi-token signal).
