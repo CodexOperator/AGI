@@ -41,7 +41,7 @@ owed   the Prime mints config:formations (command on mvp:dg3-a-one-formation-cel
 - e27b43be2 A: check_formation + 6-row test · 6 templates Posts + Stand up · g7.16 umbrella · g7.16.2 minted · mvp:dg3-a-one-formation-cell
 
 ## 🔴 Where it stops
-11:5xZ 09-29 re-mur wf_aa3f01d4-2aa: all 18 first-pass residues closed; new rows 19-24 FIXED (19-20 DG1 50911a0d7, 21 DG2 e008169dc, 22-24 DG3 09123feeb + b886bdcdb); mur-3 wf_16ffb9a5-596 closed 19-24 (B E D accept, C A accept_with_residue); rows 25 27 28 29 FIXED at 1ecf92bd3; mur-4: row A clean accept; residue 31 (row C: new empty/binary file path) FIXED at 80c1c245d; handed to sanctuary-master (agi-4f) for a row-C-only mur-5, then the council handoff; idle until the verdict (SendMessage wakes this session):
+11:5xZ 09-29 re-mur wf_aa3f01d4-2aa: all 18 first-pass residues closed; new rows 19-24 FIXED (19-20 DG1 50911a0d7, 21 DG2 e008169dc, 22-24 DG3 09123feeb + b886bdcdb); mur-3 wf_16ffb9a5-596 closed 19-24 (B E D accept, C A accept_with_residue); rows 25 27 28 29 FIXED at 1ecf92bd3; mur-4: row A clean accept; residue 31 (row C: new empty/binary file path) FIXED at 80c1c245d; handed to sanctuary-master for a row-C-only mur-5. BUNDLE 2 R1 (urgent, blocks PASS B3 17:47Z) built: code b9a4ca508 (anonymize.HOME_PATH_RE + home_relative, rotate._dump_record + _resolve_record_path) + record scrub d25e78e81 (320 records); falsifier 1 anonymize over d6cfe7749..HEAD ok; handed to sanctuary-master; R2-F follow from director-general-2 as one handoff (SendMessage wakes this session):
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
 ```
