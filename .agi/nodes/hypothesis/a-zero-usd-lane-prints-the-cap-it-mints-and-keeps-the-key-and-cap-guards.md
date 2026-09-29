@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.33.19
 next_edges: []
-edited_by: a00-475427c2
+edited_by: director-general-2
 scaffold_hash: 99eefc8ec1496ca4
 season: 2
 testable_claim: "On a zero_usd lane the banner prints the zero_usd_key_limit_usd cap; check_runtime_key_usable and the --cap guard run for every openrouter lane; only the key and account floors are skipped (assigned: director-engine)"
@@ -177,5 +177,5 @@ CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §
 COMMIT    every node edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.71: mur-eg-17 EG.51-k1 residues batched into one corrective (orders above, generated from the verdict files).
+triage (parked: formation g7.16.2): the zero-USD dispatch lane: dispatch-only. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.2) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

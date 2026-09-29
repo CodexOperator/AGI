@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: belam
+edited_by: director-general-2
 scaffold_hash: 054b0c984bfc460f
 season: 2
 testable_claim: a latched over-line seating prints no hold claim; captured and capture-no-spawn still return True, pinned; the stamp write re-reads before writing
@@ -26,5 +26,5 @@ rotation_alert.py:979-985 -> _gated_rotate :1575 -> gate (a) :1144-1147 -> :1577
 a latched over-line seating prints no hold claim; captured and capture-no-spawn still return True, pinned; the stamp write re-reads before writing
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-2026-09-27 04:2xZ belam: re-parented goal:g1 -> goal:g1.26 (the PASS 10 leaf), owner 04:1xZ: subgoals like directors (skill agi-goal §5); id and body unchanged.
+triage (keep): rotation_alert.py runs for every post in every formation, the council loop included. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.1) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

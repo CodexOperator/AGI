@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: director-engine
+edited_by: director-general-2
 scaffold_hash: 0c80f78e61f472c0
 season: 2
 testable_claim: "a TERM-honouring member third in a 3-member reap chain is never SIGKILLed (fixed rotate.py:11547-11548 shared chain clock: 15/3/0 s at the live cells); a SIGKILLed chain records reaped True; the new fixture test is RED on 6c403aeb4b, GREEN on the fix"
@@ -202,5 +202,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over b9eebb9f0 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.135: mur-eg-37 EG.96-k1 residues batched into one corrective (orders above, generated from the verdict files).
+triage (parked: formation g7.16.2): reaping a kid chain: dispatch-only. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.1) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.29
 next_edges: []
-edited_by: belam
+edited_by: director-general-2
 scaffold_hash: 52ae67ac4e272c2d
 season: 2
 status: open
@@ -19,16 +19,20 @@ PASS B1 residue table (verify-upheld; full text per round: .agi/sessions/workflo
 
 | # | round | verdict | upheld | first item |
 |---|---|---|---|---|
-| 1 | probe-gate-counts-claim-conjuncts-from-the-field-only | accept_with_residue | 9 | 1. Unbased line-number paste in the DH.541 correction -- a00-ea0222b3-4ed78e.md:126 cites cli.py:2028 / cli.py:1216 with no base; at ed34f49 they are  |
-| 2 | a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-an | accept_with_residue | 9 | 1. Corrective item 6 reported fixed with a no-op rewrite; the separator is still missing at the tip (a00-6273b184:216 'make.CONSEQUENCE:' vs a00-47542 |
-| 3 | engine-delta-3 | accept_with_residue | 8 | 1. config value re-stated and wrong in a skill — skills/agi-corrective/SKILL.md:65 names claude-sonnet-5 while .agi/config.json:98 says claude-opus-5- |
-| 4 | per-spawn-tasks-max-reads-the-spawn-tasks-max-cell | accept_with_residue | 8 | 1. FALSIFIER 1 greps a docstring -- hypothesis node:28 |
-| 5 | engine-delta-2 | accept_with_residue | 8 | 4. test_ladder_node.py:76 no longer distinguishes a declared empty settings cell from a removed key |
-| 6 | mint-offers-storage-categories-from-config-cells-p1 | accept_with_residue | 7 | 1. Hypothesis node trips the graph's own multi-THOUGHT gate (.agi/nodes/hypothesis/mint-offers-storage-categories-from-config-cells.md:199; 3 matches  |
-| 7 | engine-delta-1 | accept_with_residue | 7 | 1. boxes.py module docstring still teaches the REMOVED default_box fallback (boxes.py:6) |
-| 8 | every-live-row-carries-its-own-box-and-an-unset-box-is-refus | accept_with_residue | 6 | 1. Stale STATUS/ROUNDS block contradicted by its own file (hypothesis node:166-167) |
+| 1 | probe-gate-counts-claim-conjuncts-from-the-field-only | accept_with_residue | 9 | 1. Unbased line-number paste in the DH.541 correction -- a00-ea0222b3-4ed78e.md:126 cites cli.py:2028 / cli.py:1216 with no base; at ed34f49 they are · triage: parked: formation g7.16.2 |
+| 2 | a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-an | accept_with_residue | 9 | 1. Corrective item 6 reported fixed with a no-op rewrite; the separator is still missing at the tip (a00-6273b184:216 'make.CONSEQUENCE:' vs a00-47542 · triage: parked: formation g7.16.2 |
+| 3 | engine-delta-3 | accept_with_residue | 8 | 1. config value re-stated and wrong in a skill — skills/agi-corrective/SKILL.md:65 names claude-sonnet-5 while .agi/config.json:98 says claude-opus-5- · triage: parked: formation g7.16.2 |
+| 4 | per-spawn-tasks-max-reads-the-spawn-tasks-max-cell | accept_with_residue | 8 | 1. FALSIFIER 1 greps a docstring -- hypothesis node:28 · triage: parked: formation g7.16.2 |
+| 5 | engine-delta-2 | accept_with_residue | 8 | 4. test_ladder_node.py:76 no longer distinguishes a declared empty settings cell from a removed key · triage: parked: formation g7.16.2 |
+| 6 | mint-offers-storage-categories-from-config-cells-p1 | accept_with_residue | 7 | 1. Hypothesis node trips the graph's own multi-THOUGHT gate (.agi/nodes/hypothesis/mint-offers-storage-categories-from-config-cells.md:199; 3 matches · triage: keep |
+| 7 | engine-delta-1 | accept_with_residue | 7 | 1. boxes.py module docstring still teaches the REMOVED default_box fallback (boxes.py:6) · triage: keep |
+| 8 | every-live-row-carries-its-own-box-and-an-unset-box-is-refus | accept_with_residue | 6 | 1. Stale STATUS/ROUNDS block contradicted by its own file (hypothesis node:166-167) · triage: parked: formation g7.16.2 |
 
 Engine-cited rows already tracked elsewhere: write.py:2811 THOUGHT span inside a corrective order = the thought_hygiene quoted-marker red (detector fix at DE) · mem_cap.py:101 DRIFT env hook = retirement ordered on hypothesis:per-spawn-tasks-max-reads-the-spawn-tasks-max-cell. New here: send.py:2188-2198 box-refusal cell has no binding test (goal:g1.29 falsifier 2). Triage per agi-corrective; node-prose-only rows close in one director commit per chain (TMM.327); pure-text rows -> claude-code Opus text-fix kids.
 
 ## Agent Notes
 Assigned to **director-engine**. Parent: goal:g1.29 (PASS B1).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+triage (keep): 8 rows marked in place: 2 keep (row 6 = goal:g7.16.1.1.1; boxes.py:8 still teaches the removed default_box), 6 parked. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.1) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
+<!-- THOUGHT:END -->

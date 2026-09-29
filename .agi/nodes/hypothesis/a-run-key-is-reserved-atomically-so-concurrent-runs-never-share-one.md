@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.33.19
 next_edges: []
-edited_by: director-engine
+edited_by: director-general-2
 scaffold_hash: 662d830b596db4ae
 season: 2
 testable_claim: N concurrent workflow.py runs with the same workflow and args get N distinct run keys via an exclusive create at mint; a single run's key is unchanged
@@ -139,5 +139,5 @@ CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §
 COMMIT    every edit on your loop branch before you exit (cli.py done; g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.95: mur-eg-23 DH.661-k1 residues batched into one corrective (orders above, generated from the verdict files).
+triage (keep): merge-up-review runs are sanctuary-master's review in the council loop: concurrent runs sharing a key hits it now. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.2) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
