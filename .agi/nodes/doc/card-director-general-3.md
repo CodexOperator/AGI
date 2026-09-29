@@ -17,49 +17,37 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:1xZ 09-29) — gen 4 seat (agi-b1); owner: "Keep working till 7pm" → stop 23:00Z
+## §0 State (22:2xZ 09-29) — gen 4 seat (agi-b1); owner: "Keep working till 7pm" → stop 23:00Z
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests (a build may take [goal, idea]) |
 | protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN /data/work/agi on local-maxxing/season2/main, CC Opus 5.5 high |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
 | sessions | DG3 = agi-b1 · DG2 = agi-40 · DG1 = agi-77 · sanctuary-master = agi-b8 · alive = agi-13 · belam = agi-f0 — hand off by SendMessage + ONE council-loop room line |
-| now | bundle 3 CLOSED (SM re-confirmed at 1f39ffb1c). Bundle 4 HOLD lifted 21:1xZ, base 1f39ffb1c: W-G (.1 + .2) + W0 + W1a + W1b landed; 81-85 closed; SM reviewing W-G.2+81-85 (wf_8ce06028-a81) and W1a+W1b; next W1c |
+| now | bundle 3 CLOSED. Bundle 4 (base 1f39ffb1c): W-G (.1 + .2) · W0 · W1a · W1b · W2a landed; SM runs 1-3 residues 81-96 answered (closed or banked); W2a + fixes await SM's re-mur |
 
-## §1 Plan — bundle 3 (goal:g7.16.1.3 + goal:g6.41.1) → bundle 4 (goal:g7.16.1.4)
+## §1 Plan — bundle 4 (goal:g7.16.1.4; DG2 verdicts verdict:dg2b4-*, DG1 re-scopes 68d4c8504 + d4a186957 + d1de2e804)
 ```
-done   bundle 3 build + SM residues 57-79 (grid history of this card)
-done   council chunk 2 CM1-CM4 528115210 · chunk 1 CM5 CM6 CM8 cfe5a6aca
-done   CM7 3f5b2f455: check_formation ROW rule reads every live node; MARK rule stays goal/hypothesis (+2 test rows, doc node)
-done   CM9 e2ae6d5a5: --successor-argv stand-in wrapped by mem_cap.scope_argv(bash -c, post_scope slice, _post_unit(seat)); cell off = verbatim
-done   CM10 e2ae6d5a5: hypothesis:row-parks-carry-a-carrier-tag 39 -> 38 rows (7d928ffe4 moved pass10 row 6 parked -> keep), THOUGHT
-done   + e2ae6d5a5: rotation_record.py added to test_bin_help_smoke NO_HELP (bundle 3 H4 library; was red)
-done   SendMessage agi-13 + agi-b8 + council-loop room line (21:2xZ)
-done   residue 80 1f39ffb1c (autopsy test asserts the CM4 home-relative line) -> bundle 3 CLOSED
-done   W-G.1 41107692f + mvp 0a58fe968 + build:GOALS.md retired e6bbc6527: all 6 callers + gate + readers + git rm GOALS.md, smoke exit 0
-done   W0 82fce8a34: goal:g4.19 retitled (Read -> render path); sent to agi-b8 for review 21:4xZ; leaf falsifier self-match -> DG1
-done   W-G.2 254f58ef7 + mvp 08b921fd8: renderer + doc import + goals_path out; all 5 W-G rows green; smoke exit 0 node_count 5190
-done   SM residues 81-85 (wf_55fc5dde-0e5) closed 9eaf5992f; re-mur asked; leaf split note asked of DG1 (his node)
-done   W1a 387359c62 + mvp 5952b7131: node_writer.body_rows + write.py row <n>[:<i>-<j>]
-done   W1b 14cf86000 + mvp 82c4ec6d4: a write.py verb in MAIN commits itself by exact path (lock held -> lands uncommitted)
-NOW    W1c goal:g4.18.5.3 (config:posts commit paths, verdict:dg2b4-w1c lean 55): measure first
-then   W2a (.6.1) -> W2b/c/e -> W3a/b -> W3c-1 additive before W3c-2 atomic cut (SM checks: never two read paths taught)
-NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids (superseded, 68d4c8504) ·
-       goal:g4.18.6.4.1 + the W2d migration (HELD on belam's mint-id [decision], d4a186957)
-DG1 re-scope 2 (d4a186957): g4.18.6.3.1 PARENTS ONLY post-pass at loader.py:210-230, resolver passed in · g4.18.6.3.2 owns every next_edges reader ·
-       g4.18.6.4.2 = 10 writers (ceiling 50) · g4.18.7.3 ceiling 125, one row. DG2 table (703b4c07b, b8d667880): verdict:dg2b4-w2b1/w2b2/w2cA2/w2cB/w2cC/w2d2/w3cR2
-       Order hint: W1a before W3a, W2a before W3a; W1b commits in main() never submit(); W3 B3 moves GrepError too.
+done   W-G.1 41107692f (+mvp 0a58fe968, build:GOALS.md retired e6bbc6527) · W-G.2 254f58ef7 (+mvp 08b921fd8) · W0 82fce8a34
+done   W1a 387359c62 (+mvp 5952b7131): node_writer.body_rows + write.py row <n>[:<i>-<j>]
+done   W1b 14cf86000 (+mvp 82c4ec6d4): a write.py verb in MAIN commits itself by exact path
+done   W2a 58332a732 (+mvp fe0230f3f): links.resolve_mint (no shape check: the Prime 22:1xZ) + links.py mint + write.py mint target
+done   residues 81-85 9eaf5992f · 86 claim corrected on mvp:dg3b4-wg2 · 87 88 90 93 95 c13eec672 · 89 f9261c83e
+FIRST  read the inbox: SM's re-mur of W2a + c13eec672 + f9261c83e (wf key in the dm) -> close in-loop
+NEXT   banked residues (§6 BANKED 86 91 92 94 96), then W1c goal:g4.18.5.3 (plan in §6), then W2b.1 (.6.2.1) · W2b.2 (.6.2.2) ·
+       W2c A (.6.3.1 PARENTS ONLY, loader.py:210-230) · W2c B/C (.6.3.2/.3) · W2e (.6.5) · W2d .4.1 UNHELD (re-mint experiment:osc-band-call-run-a00-66d002ad ONCE,
+       old history under the old ref, old->new in its THOUGHT; hypothesis keeps c89ca4b1; write.py refuses a mint change -> ONE owner-cited path) ·
+       W3a/b (.7.1-.2) · W3c-1 additive before the W3c-2 atomic cut (ceiling 125, one row; SM checks: never two read paths taught)
+NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids (superseded)
 ```
 
 ## §2 Landed
-- bundle 1 + 2: grid history of this card (bundle 2 CLOSED 15:39Z)
-- bundle 3: bb153e89d 482da3853 e370bb4d6 2c412e5bb a981ae47f da8b2cfbc 92f6f4883 fb57864a5 551908e4b 7baafa62b 0e3102a67 17f91868b
-  63898e64f 429b86530 7d928ffe4 6211ebb40 d4e1f7c62 823da7e8e 0d33b10f4 4453af4d7 07ee9c46b 66da33b01 a1eabdebf 528115210 cfe5a6aca
-  3f5b2f455 e2ae6d5a5 1f39ffb1c
+- bundle 1-3: grid history of this card (bundle 3 CLOSED at 1f39ffb1c)
 - bundle 4: 41107692f 0a58fe968 e6bbc6527 82fce8a34 254f58ef7 08b921fd8 9eaf5992f 387359c62 5952b7131 14cf86000 82c4ec6d4
+  58332a732 fe0230f3f c13eec672 f9261c83e
 
 ## 🔴 Where it stops
-Bundle 4 W1c next (plan NOW row); SM reviews W-G.2 + 81-85 + W1a + W1b: residues come to the inbox, close them first. Stop 23:00Z. PASS B3 on this box: ONE test file at a time.
+Stopped at 23:00Z (owner) after W2a + residue fixes; SM re-murs W2a + c13eec672 + f9261c83e. The next session: FIRST row of §1, then NEXT.
 First command at wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
@@ -69,38 +57,36 @@ python3 extensions/agi/bin/send.py --from director-general-3 read director-gener
 | trap | rule |
 |---|---|
 | MAIN is shared by every post | commit by exact path, gated `[ ! -e .agi/sessions/verify-suite.lock ]`; never switch branches, stash or reset |
-| `send.py read <self>` | always `--from director-general-3` |
-| pytest --basetemp | the PARENT must exist: `/tmp/dg3n-<name>`, never `/tmp/dg3n/<name>` (every test ERRORs, 21:1xZ) |
-| pkill -f / pgrep -f <pattern> | match their own shell line: exit 144 kills the rest of the command; find by ppid chain instead |
-| pytest takes verify-suite.lock | conftest holds it for EVERY session, even one file: never two pytest at once (a 2nd one ERRORs 'LIVE runner') |
-| write.py verb in MAIN (since 14cf86000) | commits ITSELF by exact path: never a second git commit of that node (nothing to commit = exit 1) |
+| write.py verb in MAIN (since 14cf86000) | commits ITSELF by exact path; never a second git commit of that node. `create` does NOT: commit it by path |
+| pytest takes verify-suite.lock | conftest holds it for EVERY session, even one file: never two pytest at once; another post's loop flips it between files -> wait for absence per file |
+| pkill -f / pgrep -f <pattern> | match their own shell line (exit 144): find a process by its ppid chain |
 | derive-commands --all | appends the retired command table to CLAUDE.md (tables lag command:commands): edit the derived row by hand |
+| command:commands placeholders | an argv `<x>` must equal an arg name exactly (`<mint_id>`, not `<mint-id>`) |
+| `send.py read <self>` | always `--from director-general-3` |
 | build parent shapes | [mvp] · [build, goal] · [goal, mvp] · [goal, idea] |
-| BUILD-CONTRACT | regenerated via level3, never by hand |
-| config:* nodes | written_by [owner, prime_director]: put the exact command on the mvp for the Prime |
 | replace body on a heading/paragraph line | refused: widen to whole section or the blank line above |
-| anonymize check | judges ADDED lines: a touched line's hostname -> alias local-town |
-| tests while editing | a mid-run import mismatch fakes ImportErrors: rerun on settled bytes |
+| anonymize / manifest scanners | a dotted goal id like g7.16.1.4.1 reads as an IP in command:commands text: say "bundle 4 row W-G" there |
 
-## §5 Verification (21:4xZ): links 5156/0 · smoke exit 0 node_count 5189 · W-G files one at a time green (mvp:dg3b4-wg1 lists them)
+## §5 Verification (22:2xZ): links 5165/0 · smoke exit 0 node_count 5190 · every touched file green one at a time (the mvps list them)
 
 ## §6 BANKED
-- R1 slice (owner / council): agi.slice shares MemoryHigh 9.26G / MemoryMax 10.29G with agi-work + agi-engine; the remote-control
-  service holds 8.4G of posts. Options: (a) a dedicated uncapped posts slice (no '-' in its name), (b) raise agi.slice, (c) as is.
-  Recommend (a), then flip `spawn.post_scope.live` (the one edit) after PASS B3 with the owner present.
-- goal:g4.18.4 Falsifier 2 scans all history (pre-fix e4aaef794 = 1 forever): scope it to commits after 2c412e5bb, then complete it.
+- 86 (SM wf_8ce06028-a81): report_integrity + warn_premature_complete (goal:s26) have NO caller since cmd_render left; links.py does not check parents.
+  Options: (a) re-wire both into verification level quick as a `goals-integrity` command (recommended) · (b) retire both and re-point the W2c-B xfail row.
+- 91: payload-only writes never commit -> gate on UPDATED or res.payload_changed.   92: create + adopt return before _commit_write -> call it on the new path.
+- 94 ([red] with belam from SM): 4 engine subprocess callers of the write.py CLI now auto-commit: rotate.py closeout g17.1 note (keep-and-say: a closeout
+  commits anyway) · season.py:274 · sensei.py:2465 · failures.py:361 -> an explicit opt-out (AGI_WRITE_NO_COMMIT=1 in their subprocess env) until each is reviewed.
+- 96: row --dry-run shows an empty range + rc 0 on an out-of-range n -> resolve the range in the dry-run preview, refuse out of range.
+- W1c goal:g4.18.5.3 (verdict:dg2b4-w1c lean 55): 4 rotation commit paths = 621 lines (_ack_commit_seats 150 · _publish_row_to_authority 165 ·
+  _commit_spawn_row 188 · _commit_stops_row 118) own throwaway-index + FETCH_HEAD plumbing; W1b's working-tree commit is the WRONG primitive.
+  Plan: one `_commit_posts_row(root, content, *, parent_ref="HEAD", extra_blobs=(), push=None)` in rotate.py, then re-point one path per commit,
+  test_rotate after each; (3) first (drop _posts_load_error/_row_names onto the one parser; `frontmatter` name taken at rotate.py:78).
+- R1 slice (owner / council): a dedicated uncapped posts slice, then flip `spawn.post_scope.live` after PASS B3 with the owner present.
+- goal:g4.18.4 Falsifier 2 scans all history: scope it to commits after 2c412e5bb, then complete it.
 
 ## Findings for the next bundle
-- goal:g7.16.1.3.1 title still says 39 parked rows (alive's copy; told agi-13)
-- derived command tables (QUICKSTART, skills/agi, CLAUDE.md) lag command:commands; derive-commands --all re-grows CLAUDE.md
-- .agi/nodes/.geometry/commands.md.bak is TRACKED (09-18) and carries id command:commands too
-- test_workflow's leak detector flags --basetemp /tmp dirs as the real sessions dir (1 teardown error)
-- goal:g7.16.1.4.2 falsifier 2 matches its own title (told DG1)
-- test_sensei_wake_audit item2 red (pre-existing): no live fact cites send.py whois
-- test_skills_first_turn_entry red: agi-post missing from config:rotations skills entry
-- write.py stamps town: core on local-maxxing nodes · 4 build nodes carry very stale BUILD-CONTRACTs · memory_alarm.py has no build node
-- R1 latent: unit names unique per second only (same-second rotate + recover collide once the switch is ON) · R2 Prime-first sorts on the MAIN row
-- H4g: own-HOME -> ~ on the composer path unpinned; a Path arg bypasses home_rel (latent) · rotate ~3237 handoff path raw in the alert
-- tests that call heal._watch_seats unstubbed read the box's live PSI (flaky under pressure > 40)
+- derived command tables (QUICKSTART, skills/agi) lag command:commands; .agi/nodes/.geometry/commands.md.bak is TRACKED with id command:commands
+- test_workflow's leak detector flags --basetemp /tmp dirs as the real sessions dir · test_skills_first_turn_entry red: agi-post + agi-stream missing
+- write.py stamps town: core on local-maxxing nodes · 4 build nodes carry stale BUILD-CONTRACTs · memory_alarm.py has no build node
+- test_sensei_wake_audit item2 red (pre-existing) · heal._watch_seats tests read the live PSI (flaky under pressure)
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
