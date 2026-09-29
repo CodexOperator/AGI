@@ -39,6 +39,7 @@ gen 16 closed PASS B2 as its first act (the predecessor handed it on at f 0.41, 
 DONE   P. PASS B2 close · DG3 seating row (pid 2122319 @9) · CHECK + STOP crons armed
 NOW    L. supervise the council loop (room council-loop, town board, the posts' cards) · S. the 16:00Z stop
 then   M. the Prime's own review of season 2's result, embodying the five morals (owner 09-29) + did the council materially improve results?
+OWED   config:formations (bundle 1 row A): write.py create config is REFUSED by the spawn gate ([config].md structural); never --no-spawn-gate -> DG3 sent the gap 12:1xZ (residue 24+); run the corrected command when DG3 hands it back
 HELD   g1.30 [decision] dm to DE (DE down) · F facts window + G town note grant (TM/DE down) · OWNER 21:1xZ 09-27: stream · encryption-town config
 ```
 
