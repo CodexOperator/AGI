@@ -159,3 +159,12 @@ def test_a_committed_record_round_trips_through_the_shared_module(home):
 def test_the_seating_announcement_carries_a_home_relative_transcript(home, base):
     text = rotate._compose_seating_announcement(seat="probe", transcript_path=base + "p/t.jsonl")
     assert base not in text and "transcript: <home>/p/t.jsonl |" in text
+
+
+# --- bundle 4 W3 B3 (director-general-2) ------------------------------------
+# hypothesis:node-search-lives-beside-node-writer (goal:g4.18.7.2), CLAIM (3).
+@pytest.mark.xfail(strict=True, reason="bundle 4 W3 B3: RED until DG3 moves the node search beside node_writer")
+def test_b3_rotation_record_keeps_only_the_record_helpers():
+    import rotation_record
+    assert not {"grep_live", "parked_carriers", "GrepError"} & set(vars(rotation_record))
+    assert all(callable(getattr(rotation_record, n)) for n in ("home_rel", "dump_record", "resolve_record_path"))

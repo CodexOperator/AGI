@@ -734,3 +734,65 @@ def test_town_is_derived_via_the_shared_helper_from_the_frame(tmp_path):
     # Without a nodes_dir the annotation is absent, not guessed.
     frames_no_src = V.frame_stream(g, fm, "goal:g", 3)
     assert frames_no_src[0].town == ""
+
+
+# --- bundle 4 W3a (director-general-2) --------------------------------------
+# hypothesis:viewport-renders-one-node-for-both-readers (goal:g4.18.7.1). The
+# single-node flag is pinned as `--node` (`--range N:M` for a body slice);
+# DG3 may rename both in the build commit that flips these rows.
+_W3A = "bundle 4 W3a: RED until DG3 builds the viewport's single-node render"
+
+
+def _w3_project(tmp_path):
+    root = tmp_path / ".agi"
+    (root / "nodes" / "goal").mkdir(parents=True)
+    (root / "nodes" / "build").mkdir()
+    (root / "config.json").write_text("{}")
+    (tmp_path / "p.txt").write_text("PAY-ONE\nPAY-TWO\n")
+    for nid, extra, body in (("goal:p", "", "PARENT-BODY"),
+                             ("goal:x", "\nparents:\n  - goal:p", "## Why\nBODY-ONE\n\n| r | c |\n|---|---|\n| r1 | ROW-TWO |")):
+        (root / "nodes" / "goal" / f"{nid[5:]}.md").write_text(
+            f"---\nid: {nid}\ntype: goal\ntitle: 'G-{nid[5:].upper()}: t'\nstatus: active{extra}\n---\n# {nid}\n\n{body}\n")
+    (root / "nodes" / "build" / "b.md").write_text(
+        "---\nid: build:b\ntype: build\ntitle: B\npayload_ref: p.txt\n---\n# build:b\n")
+    return root
+
+
+def _w3_view(root, *argv):
+    import subprocess
+    r = subprocess.run([sys.executable, str(BIN / "viewport.py"), "--project", str(root), *argv],
+                       capture_output=True, text=True, timeout=120)
+    return r.returncode, r.stdout
+
+
+@pytest.mark.xfail(strict=True, reason=_W3A)
+@pytest.mark.parametrize("emit", ["llm", "human"])
+def test_w3a_one_node_renders_body_and_resolved_parent_for_each_reader(tmp_path, emit):
+    rc, out = _w3_view(_w3_project(tmp_path), "--node", "goal:x", "--emit", emit)
+    assert rc == 0 and "BODY-ONE" in out and "ROW-TWO" in out
+    assert "G-P: t" in out and "PARENT-BODY" not in out  # the parent by name, never its body
+
+
+@pytest.mark.xfail(strict=True, reason=_W3A)
+def test_w3a_one_build_node_renders_its_payload(tmp_path):
+    rc, out = _w3_view(_w3_project(tmp_path), "--node", "build:b", "--emit", "llm")
+    assert rc == 0 and "PAY-ONE" in out and "PAY-TWO" in out
+
+
+def test_w3a_verify_still_exits_zero_on_a_tiny_project(tmp_path):
+    assert _w3_view(_w3_project(tmp_path), "--verify")[0] == 0
+
+
+# --- bundle 4 W3c (director-general-2) --------------------------------------
+# hypothesis:read-leaves-write-py-with-every-teacher-in-one-row (goal:g4.18.7.3):
+# the render's --range is replace's coordinates, so `read N:M` -> `replace N:M`
+# survives the cut as render N:M -> replace N:M (fixture: _w3_project above).
+@pytest.mark.xfail(strict=True, reason="bundle 4 W3c: RED until DG3 builds the render's --range")
+@pytest.mark.parametrize("rng", ["1:3", "4:5", "7:9"])
+def test_w3c_the_render_range_is_the_replace_coordinates(tmp_path, rng):
+    import write
+    root = _w3_project(tmp_path)
+    want = write._slice_range(write._read_body_text(root, "goal:x"), rng)
+    rc, out = _w3_view(root, "--node", "goal:x", "--range", rng, "--emit", "llm")
+    assert rc == 0 and all(ln in out for ln in want.splitlines() if ln.strip())
+    assert all((s in out) == (s in want) for s in ("BODY-ONE", "ROW-TWO"))  # only that slice

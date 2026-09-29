@@ -1359,3 +1359,18 @@ def test_extra_suite_runs_at_suite_only(monkeypatch, tmp_path):
     on = verification.run_level(groot, "rotation", suite=True, verbose=False)
     assert "context-suite" not in [r.name for r in off]
     assert "context-suite" in [r.name for r in on]
+
+
+# --- bundle 4 W3 B3 (director-general-2) ------------------------------------
+# hypothesis:node-search-lives-beside-node-writer (goal:g4.18.7.2), CLAIM (1)(2)(4).
+@pytest.mark.xfail(strict=True, reason="bundle 4 W3 B3: RED until DG3 moves the node search beside node_writer")
+@pytest.mark.parametrize("caller", ["verification.py", "write.py"])
+def test_b3_no_caller_reaches_the_node_search_through_rotation_record(caller):
+    import re
+    assert not re.search(r"\brotation_record\.|import rotation_record|from rotation_record", (BIN / caller).read_text())
+
+
+@pytest.mark.parametrize("fn", ["grep_live", "parked_carriers"])
+def test_b3_each_node_search_function_has_one_def(fn):
+    import re
+    assert len([p for p in BIN.glob("*.py") if re.search(rf"^def {fn}\(", p.read_text(), re.M)]) == 1

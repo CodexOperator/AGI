@@ -2339,3 +2339,19 @@ def test_w2b_a_create_reads_no_node_outside_its_neighbourhood(project, monkeypat
     monkeypatch.setattr(io, "open", lambda f, *a, **k: (seen.append(str(f)), real(f, *a, **k))[1])
     assert write.create(project, "hypothesis", "near", ["goal:g1"])[0].written
     assert [s for s in seen if "/nodes/doc/" in s] == []
+
+
+# --- bundle 4 W3c (director-general-2) --------------------------------------
+# hypothesis:read-leaves-write-py-with-every-teacher-in-one-row (goal:g4.18.7.3):
+# the verb and every teacher leave in ONE row, so one test pins both. CLAUDE.md
+# is the Prime's (CLAIM 4): checked on the Prime's commit, not here.
+@pytest.mark.xfail(strict=True, reason="bundle 4 W3c: RED until DG3 cuts read from VERBS with every teacher in one row")
+def test_w3c_read_leaves_verbs_and_every_teaching_site_in_one_row():
+    assert "read" not in write.VERBS and not hasattr(write, "verb_read")  # no alias
+    import re
+    r = BIN.parents[2]
+    files = [*r.glob("skills/*/SKILL.md"), *r.glob(".agi/nodes/.geometry/*.md"), r / "QUICKSTART.md",
+             *BIN.glob("*.py"), *(BIN.parent / "workflows").glob("*.*")]
+    hits = [f"{p.name}:{i}" for p in files if p.is_file() for i, ln in enumerate(
+        p.read_text("utf-8", "replace").splitlines(), 1) if re.search(r"(?i)\bread <?(body|payload)\b", ln)]
+    assert not hits, hits
