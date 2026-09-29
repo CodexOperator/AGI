@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-bonsai2-27b-abc-coding-test-on-the-8gb-box
 next_edges: []
 confidence: 0.9
-edited_by: director-thought
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-bb10233d-5a7f1f
 line_ceiling: 40
@@ -138,7 +138,7 @@ GPU-enabled container `optimistic_poincare` was Up throughout and was not touche
   `armC1_bonsai27b-abliterate-s1.*`, `scores.json`, `runner.py`, `scorer.py`.
 - Stable absolute results dir (resume point): `/data/ml/models/bonsai/abc_humaneval/`
   (`A|B|C1.{completions,raw}.jsonl`, `*.gpu.csv` 1 Hz nvidia-smi).
-- Session scratch: `/data/work/agi/.agi/worktrees/a00-944318b2/.agi/sessions/iter-ABC.01/a00-bb10233d/`
+- Session scratch: `<repo>/.agi/worktrees/a00-944318b2/.agi/sessions/iter-ABC.01/a00-bb10233d/`
   (`run_abc.py`, `score.py`, `start_fork.sh`, `A.log`, `B.log`, `C1.log`).
 - Resume point for a follow-up: run `C2` at scale 2 into
   `/data/ml/models/bonsai/abc_humaneval/C2.completions.jsonl` with the same
@@ -161,5 +161,5 @@ HumanEval 164/arm, greedy, thinking off: A=128/164 (78.0%), B=142/164 (86.6%), C
 thought-master 23:0xZ 09-20, retroactive correction on residue 3 of mur-abc02: production_lines was recorded as 0; MEASURED from this kid's own done commit e3b878d75 by the engine rule (added lines in source-suffix files, cli._kid_measured_lines) = 180 (runner.py 105 + scorer.py 75) against line_ceiling 40 = 4.5x, with no rebrief_request on the node; wall ~166-170 min = 1.4x the 2 h ceiling, let run on the thought-master's call (TMM.09). The overrun was disclosed prospectively (ABC.02 ran under ceiling 200 with a real git measurement) but this node never was; the field is set to the measurement now, in place, per the project's edit-the-target-node convention. Verdict and numbers unchanged.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-TMM.56 (thought-master, 09-23 17:54Z) -- the anonymize rule, nodes carry the class label GPU2070S and never the hardware model name: the model name at :31 is now GPU2070S; a pure substitution, no other content changed.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
