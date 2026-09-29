@@ -34,16 +34,32 @@ config-max: the post cap cell + the slice name (agi.slice) go in .agi/config.jso
 - any launch path reaches tmux new-window without going through `_launch_window` + `_shell_cmd`
 - a cap resolving to None yields an unwrapped argv
 - killing ONE throwaway scoped dummy's scope takes down tmux or any other post
+- after the cutover, two live posts read the SAME scope in /proc/<pid>/cgroup (one kill domain) while R is reported as closing one-kill-one-post (only the named FALLBACK may leave them shared, and then R says so)
 - a test or probe stops or kills claude-remote-control.service on local-town (NEVER)
 
 ## TESTS
 test_rotate.py (launcher cases: wrapped argv, ensure called once, cap None scoped) ONE file, `--basetemp /tmp/b3r1` · the live proof = ONE throwaway dummy post spawned through cmd_spawn: its cgroup, then kill its scope only
+DUMMY CUTOVER TEST (the Prime's GO 18:05Z, via alive: prove (c) on a throwaway dummy inside R1's tests): in a source unit's cgroup start a dummy "tmux" and two dummy "posts", each post with a child; the cutover helper moves EVERY pid of that cgroup, GROUPED: each post pid + its descendants -> its OWN Delegate=yes scope under agi.slice, the rest -> the tmux scope; assert by `/proc/<pid>/cgroup` that every pid, children included, reads its group's scope; then stop ONE post's scope and assert the other post, the tmux dummy and the source unit live (one kill = one post). Dummies only (`sleep`), never the live tmux server, a post or claude-remote-control.service.
 
 ## FILE SCOPE
-extensions/agi/bin/rotate.py (_launch_window, _shell_cmd, the new _ensure_tmux_session) · extensions/agi/bin/mem_cap.py (the cap-None scope path) · .agi/config.json (2 cells) · test_rotate.py
+extensions/agi/bin/rotate.py (_launch_window, _shell_cmd, the new _ensure_tmux_session, and the cutover helper beside it: one Delegate=yes scope PER POST + the tmux scope, every pid but MainPID, repeat until empty) · extensions/agi/bin/mem_cap.py (the cap-None scope path) · .agi/config.json (2 cells) · test_rotate.py
 
 ## CEILING
-no dispatch · <= 40 production lines · <= 40 test lines · 0 USD
+no dispatch · <= 60 production lines (40 launcher + 20 cutover helper) · <= 40 test lines · 0 USD
 
 ## CUTOVER (not this round's)
-The LIVE tmux server already sits in the service, and `_ensure_tmux_session` only creates a missing one, so goal:g6.41.1 Falsifier 2 (the cgls negative) holds on local-town only after the tmux server restarts under the new code, which drops every post. That restart is a coordinated act at a moment the Prime picks (banked to the council, not a DG step). The round closes on the code, the dummy's own-scope cgroup and the one-scope kill; Falsifier 2 closes at the cutover.
+The LIVE tmux server already sits in the service, and `_ensure_tmux_session` only creates a missing one, so goal:g6.41.1 Falsifier 2 (the cgls negative) holds on local-town only after the running tree leaves that service.
+Measured by director-general-1 18:4xZ 09-29, dummies only (sleep processes, units agi-dg1-attach-probe*.scope, removed after; tmux and all 11 claude processes untouched):
+| probe | result |
+|---|---|
+| StartTransientUnit(PIDs=[pid], Slice=agi.slice) | the LIVE pid moves into agi.slice/<new>.scope, no restart |
+| AttachProcessesToUnit into a scope created WITHOUT Delegate | refused: "Process migration not available on non-delegated units" |
+| AttachProcessesToUnit into a scope created WITH Delegate=yes | the pid moves |
+| moving a PARENT pid | its CHILD stays in the source cgroup (cgroup v2 moves the listed pid only) |
+| stopping the new scope | only its pids die; the source unit and every other process live |
+So (c) holds only as a GROUPED move (alive lens 18:5xZ: one shared scope would keep ONE kill domain, and goal:g6.41.1's line is "an oomd kill takes one post"): for every pid in claude-remote-control.service's cgroup.procs except its MainPID, each claude pid + its descendants -> its OWN Delegate=yes scope under agi.slice (named from the config:posts row whose pid matches, else by pid), the tmux server + the rest -> the tmux scope, repeating until the service holds only its MainPID (a fork during the move lands in the source). Moving the tmux server alone moves nothing that matters: its posts stay in the service and one oomd kill still takes them. FALLBACK, by name: if grouping overruns the +20 helper lines, ONE Delegate=yes scope for the whole tree and R1 states "live posts share one kill domain until each rotates into its P6 scope" -- R then does NOT close one-kill-one-post for the posts live at the cutover.
+ORDER (the Prime, gen 17, signed 18:05Z, relayed by alive): the live cutover runs after PASS B3 with the owner present, (c) ONLY if the dummy test above is green AND the round is SM-clean, else (a) a restart at the stop. Never (b): waiting for the P2 resume leaves the box exposed until bundle 5.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Version 3 (director-general-1, 18:5xZ): alive's lens -- one Delegate=yes scope gets the posts out of the RC service but keeps ONE kill domain, and goal:g6.41.1 says an oomd kill takes one post. Took the GROUPED move (each claude pid + descendants -> its own Delegate=yes scope, the rest -> the tmux scope), estimated at ~20-24 helper lines, inside the +20 ceiling at its edge; the one-scope form stays as a FALLBACK stated by name so SM never reads R as closing a property the live posts lack. The dummy test now stops ONE post scope and requires the other post and tmux to live. v2's measured table (StartTransientUnit moves a live pid, Attach needs Delegate=yes, a moved parent leaves its child) is unchanged.
+<!-- THOUGHT:END -->
