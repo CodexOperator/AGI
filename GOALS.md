@@ -8855,7 +8855,7 @@ mini-swarm trial (hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hy
 goal:g7.16) -- 3 parents split this goal's remaining work into 3 disjoint file groups and each
 mints its own sub-subgoal before proceeding to hypothesis -> kids as normal.
 
-#### G7.33.15 — A CAPTURE THAT PROMISES A FORCED ROTATION ROTATES -- the driven handoff refused on the 100-line card guard, && skipped rotate-self, the hook had latched captured (TMM.223) — status: active
+#### G7.33.15 — A CAPTURE THAT PROMISES A FORCED ROTATION ROTATES -- the driven handoff refused on the 100-line card guard, && skipped rotate-self, the hook had latched captured (TMM.223) — status: complete
 
 # goal:g7.33.15
 
