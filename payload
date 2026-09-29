@@ -890,6 +890,16 @@ def iter_node_files(root: Path):
     yield from sorted((root / "nodes").rglob("*.md"))
 
 
+def is_retired_node_file(root: Path, path: Path) -> bool:
+    """True for a node under `nodes/deprecated/` — retired, moved, never
+    deleted (CLAUDE.md "Retire, never delete")."""
+    try:
+        rel = path.resolve().relative_to((root / "nodes").resolve())
+    except ValueError:
+        return False
+    return bool(rel.parts) and rel.parts[0] == "deprecated"
+
+
 class GridLock:
     """Exclusive advisory flock held across one `commit --all`.
 
@@ -1127,6 +1137,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
         errors = 0
         payloads = 0
         payload_missing = 0
+        payload_retired = 0
         for p in paths:
             if not p.exists():
                 print(f"skip (missing): {p}", file=sys.stderr)
@@ -1153,7 +1164,12 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
                 if payload_ref:
                     found = resolve_payload(root, payload_ref, engine_root,
                                             parse_location(p))
-                    if found is None:
+                    if found is None and is_retired_node_file(root, p):
+                        # A retired build node's file is retired with it; its
+                        # bytes live in the node's earlier grid versions. Counted
+                        # apart so `unresolved` means a LIVE node lost its file.
+                        payload_retired += 1
+                    elif found is None:
                         print(f"WARN: {node_id} payload_ref {payload_ref!r} resolves "
                               f"neither under {PAYLOAD_DIR}/ nor in {engine_root} — "
                               "committing the node without a payload entry",
@@ -1168,6 +1184,7 @@ def cmd_commit(root: Path, files: list[str], do_all: bool,
                 print(f"{v}  {ref.removeprefix(REF_NS + '/')}")
         print(f"grid: {written} new version(s), {errors} error(s) (missing mint_id), "
               f"{payloads} with payload, {payload_missing} payload(s) unresolved, "
+              f"{payload_retired} retired with their node, "
               f"{demoted} demoted by the evidence gate")
     finally:
         if lock is not None:
