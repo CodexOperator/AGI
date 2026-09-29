@@ -1,0 +1,112 @@
+---
+id: experiment:a00-05e11e61-af454c
+mint_id: cb2bc7f55e6347589de271c24cf40522
+type: experiment
+parents:
+  - hypothesis:one-mint-route-answers-file-validated-row-by-row
+next_edges: []
+confidence: 0.9
+edited_by: director-engine
+evidence_runs:
+  - experiment:a00-05e11e61-af454c
+loop: hypothesis:one-mint-route-answers-file-validated-row-by-row@s2
+model: claude-opus-5-5
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: b7f523123ebfd12c
+season: 2
+title: "--force is a source-argument prefix, not a missing flag: probe and corrected claim"
+town: core
+verdict: proved
+---
+<!-- BODY:BEGIN -->
+# experiment:a00-05e11e61-af454c
+
+## Experiment
+
+DH.EG.113 item 2: the claim on `experiment:a00-11971713-a82997` (OUTSIDE bullet) that "`--force` is named in the error yet is not a CLI flag (argparse rejects it)" -- settled by running `write.py` at the tip against a throwaway fixture node in a `mktemp -d /tmp` git repo (never a real mint).
+
+| form | exit | bytes |
+|---|---|---|
+| `replace body 3:4 -` (range ends on `## A`) | 2 | guard refuses, names `--force` |
+| `replace body 3:4 --force -` (prefix) | 0 | `updated: experiment:fx`, range spliced |
+| `write.py --force <id> ...` (argv flag) | 2 | argparse `unrecognized arguments: --force` |
+
+What the bytes do: `verb_replace` consumes `--force ` as a PREFIX of the source argument (`if source.startswith("--force "): edit.replace_force = True`); the guard (`_guard_headings` and its refusals) always names that escape. The argv form is refused, but the error never asks for it. So the original sentence was half-true in letter and false as a mechanism claim: it named a blocker the tool does not have.
+
+Fix: the bullet on `a00-11971713-a82997` rewritten with `write.py ... 'replace body 74:74 --force -'` -- the guard refused the one-line range without the prefix (mid-paragraph list item), and the prefix landed it: the escape proved itself on the very edit.
+
+## Evidence
+
+Probe, verbatim (paths anonymised; the session-scratch copy named in an earlier version is NOT in the tree -- this paste is the only record, director note mur-eg-46 M4):
+
+```
+$ write.py experiment:fx "read body 1:20"
+<!-- BODY:BEGIN -->
+# fx
+
+## A
+
+alpha line
+
+## B
+
+beta line
+exit=0
+$ echo X | write.py experiment:fx "replace body 3:4 -"   # no prefix
+ERR: replace body 3:4 ends on the heading '## A' -- the heading is removed while its text (line 5..7) survives. Widen the range past its section or pass --force (hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices)
+exit=2
+$ echo X | write.py experiment:fx "replace body 3:4 --force -"
+updated: experiment:fx
+exit=0
+$ write.py experiment:fx "read body 1:20"   # after
+<!-- BODY:BEGIN -->
+# fx
+X
+
+alpha line
+
+## B
+
+beta line
+exit=0
+$ write.py --force experiment:fx "read body 1:2"   # as a CLI flag
+usage: write.py [-h] [--parent PARENTS] [--payload PAYLOAD] [--body-file PATH]
+                [--set SETS] [--answers PATH] [--no-spawn-gate] [--root ROOT]
+                [--actor ACTOR] [--role ROLE] [--session SESSION] [--dry-run]
+                [--ring-sig RING_SIGS] [--ring-fresh TS|NONCE] [--ring-fields]
+                node_id [script] [slug]
+write.py: error: unrecognized arguments: --force
+exit=2
+```
+
+Anchors at the tip (`git grep -n`):
+
+```
+extensions/agi/bin/write.py:420:def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
+extensions/agi/bin/write.py:448:    if source.startswith("--force "):
+extensions/agi/bin/write.py:2528:def _guard_headings(lines: list[str]) -> list[bool]:
+```
+
+Numstat, working tree vs the CUT tip, measured BEFORE this node's paste and before any commit (the parent commits):
+
+```
+$ git diff --numstat 5c6eb78aa
+2	2	.agi/nodes/experiment/a00-11971713-a82997.md
+```
+
+Production lines 0, test lines 0 (no code touched; ceiling 15/40 held). This node itself is untracked and absent from that range.
+
+Tests: `env -u TMUX -u TMUX_PANE timeout 900 python3 -m pytest extensions/agi/tests/test_bin_help_smoke.py -q --basetemp /tmp/...` -> `72 passed, 6 skipped in 11.45s`. (Director note, mur-eg-46 EG.113-k1 V3: the skipped count is BOX-DEPENDENT -- a re-measure on another tree read 7 skipped, as sibling a00-11971713 records; the passed count is the claim.)
+
+## OUTSIDE
+
+None: the fix is node text inside FILE SCOPE.
+
+## Agent Notes
+DH.EG.113 item 2 settled by tmp-fixture probe: 'replace body N:M --force -' exits 0 (verb_replace prefix), unprefixed refuses exit 2, argv --force refused by argparse; false blocker claim on a00-11971713 rewritten via the --force prefix itself; 0 prod/0 test lines; help smoke 72 passed
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Director close (TMM.327 C) of mur-eg-46 EG.113-k1: the skip count is labelled box-dependent and the probe's only record is this paste.
+<!-- THOUGHT:END -->

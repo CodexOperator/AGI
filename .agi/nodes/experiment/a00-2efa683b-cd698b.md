@@ -1,0 +1,135 @@
+---
+id: experiment:a00-2efa683b-cd698b
+mint_id: 7c2eadad066844619cc4421e5606a80a
+type: experiment
+parents:
+  - hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes
+next_edges: []
+confidence: 0.8
+edited_by: a00-c339cb91
+evidence_runs:
+  - experiment:a00-2efa683b-cd698b
+loop: hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes@s2
+model: stealth/space-bunny-alpha
+production_lines: 0
+profile: balanced
+role: kid
+scaffold_hash: 112a3d6fcd8bb512
+season: 2
+title: "DH.591 corrective: 14b direction 2 re-aimed at a leak root, fake-box assertion and self-referential red-first removed, UNIT_DIR_CELL narrowed, row inventory de-duplicated"
+town: core
+verdict: disproved
+---
+# DH.591 corrective round: 14b direction 2 re-aimed at the checkout root (STILL tautological), fake-box assert and self-referential red-first removed, UNIT_DIR_CELL narrowed, row inventory NOT de-duplicated here (DH.615)
+
+## What the director's five items were, and what I did with each
+
+| item | verdict from the bytes | the fix |
+| 1 -- 14b's direction-2 assertion unfalsifiable under the fake denylist | **CONFIRMED, disproved** (probe B) | the FAKE_BOX value was replaced by `LEAK_ROOTS[0]` — but that half is STILL a tautology, which this node misread as a fix: a leak root is in `_leaks` by construction, so no state can falsify it and the two halves are NOT both reachable. Closed in DH.615: the kit half now names a token outside `LEAK_ROOTS` and goes RED under a real mutation (experiment:a00-77817316-57d27a) |
+| 2 -- the session-state assertion is true by construction of its own fixture | **CONFIRMED** | deleted (3 lines) rather than re-aimed: the only state worth asserting is the fixture's own teardown, which no assertion inside the fixture can see |
+| 3 -- the node's own red-first for direction 2 is self-referential | **CONFIRMED, and the merge claim was unsupported** | a real mutation was run and pasted (probe C) -- and probe C was later WITHDRAWN (DH.634, restated by DH.653 item 2): it measured the row as DH.591 SHIPPED it, with the tautological checkout-root token. The comment in the file now names a mutation that CAN fire (DH.653 item 1): adding the row-14b CANDIDATE itself to anonymize.box_tokens, NOT the kit's LEAK_ROOTS, which cannot fire because the candidate is drawn from outside them |
+| 4 -- the hand-kept row index drifted one commit after being written | **CONFIRMED, NOT FIXED in this round** | this table said "second copy deleted: the header no longer enumerates rows" while the PARENT REVIEW in this same file says the header at test:4 still enumerated `(7b-7d, 11a-11g, 14b)` — no row 11a exists, 6b-6e, 7f and 13b were unlisted. The item was OPEN when this round ended. Closed in DH.615: the header names the RULE (a row is named only by the comment above its own test) and the stale "test 10b" citations are gone. CORRECTED BY DH.653 item 5: the parenthetical "no list of row names exists" was FALSE -- the docstring IS an inventory, and the header now says so and is CHECKED by row 15 (experiment:a00-3981a5ee-3dcaba) |
+| 5 -- undisclosed widening in the derived `UNIT_DIR_CELL` | **CONFIRMED as a real loosening** (probe B, red) | narrowed with a lookahead and the narrowing itself is asserted |
+
+## The bytes
+
+All changes are in `extensions/agi/tests/test_boxkit_templates.py` (0 production lines;
+`git diff --numstat` over non-test paths is empty).
+
+- 14b comment + body: direction 2 planted `LEAK_ROOTS[0]` -- the CHECKOUT ROOT, the first
+  element of the box's own leak-root set -- instead of a `FAKE_BOX` value. That token is
+  NOT what row 14b needs, and this round did not know it: a checkout root is carried by
+  `_leaks` by construction, so naming it makes the kit half unreachable-by-construction.
+  The old `assert _leaks(planted) == []` is gone -- it asked whether a *synthetic* value
+  is on a denylist of real box values, which no state can make false. The two surviving
+  asserts are the two DIRECTIONS: the kit's denylist SEES the token, the engine's denylist
+  does NOT. AS SHIPPED HERE both were still tautological. DH.615 re-aimed the kit half at
+  a token DRAWN FROM the kit rule's own token source (now `KIT_TOKENS`, test:153) instead
+  of a leak root, and DH.634 made that one source shared with `_leaks` so the candidate
+  cannot drift out of the rule it probes.
+- Row 14: the `sys.path` / `sys.modules` session-state assert removed with its comment.
+- `UNIT_DIR_CELL`: `r"/systemd/(?![\w.@%{}$-]*\.d$)[\w.@%{$-}+]..."` -- a trailing `.d`
+  component is a config drop-in dir (`etc/systemd/system.conf.d`), not a unit dir, and
+  reading it as one would ACCEPT a piece the removed literal tails rejected.
+- Row 11g: two lines plant `boxkit_conf_dropin_dir` and assert the tails do not absorb it,
+  so the narrowing is falsifiable and not a claim.
+- File header: **no change landed in this round** -- the header still enumerated row
+  numbers, which is why the item above now reads NOT FIXED. DH.615 names the rule there.
+
+## Probe B -- the old assertion cannot go red, and the 11g narrowing can
+
+Source: `.agi/sessions/iter-DH.591/a00-2efa683b/probe_b.py`, run verbatim.
+
+```
+old assert, cls=hostname _leaks(planted) on the WIDEST denylist: [] -> can never go RED
+old assert, cls=ip       _leaks(planted) on the WIDEST denylist: [] -> can never go RED
+old assert, cls=mac      _leaks(planted) on the WIDEST denylist: [] -> can never go RED
+old assert, cls=board    _leaks(planted) on the WIDEST denylist: [] -> can never go RED
+old assert, cls=secret   _leaks(planted) on the WIDEST denylist: [] -> can never go RED
+11g MUTATED (narrowing removed) -> tails: ['systemd/system', 'systemd/system.conf.d', 'systemd/user'] -> assert 'systemd/system.conf.d' not in tails is RED
+```
+
+The "widest denylist" is home, every leak root, every committed cell value and the
+shared roots -- strictly more than any real kit denylist -- and the planted FAKE_BOX
+value is still not on it. That is the whole defect: it was not a weak check, it was
+an unreachable one.
+
+## Probe C -- WITHDRAWN (kept for the record; NOT this round's evidence)
+
+DH.634 withdraws probe C. It measured the row as DH.591 SHIPPED IT -- direction 2
+planting the checkout root -- and that planted token is unreachable-by-construction
+(`_leaks` carries every leak root by rule), so "as committed" was true and "merged"
+was the only half that carried information. The PARENT REVIEW `probes:` line of this
+same file (parent a00-36e29ed9) is the surviving evidence for direction 2; DH.615
+re-aimed the row at a token outside `LEAK_ROOTS` and DH.634 made that token DRAWN
+from the kit rule's own `KIT_TOKENS` source rather than re-typed.
+
+Historical output, pasted as what it was and superseded by the line above:
+
+```
+direction 2 AS COMMITTED  -> _leaks sees it: True | engine scan sees it: []
+direction 2 MERGED        -> _leaks sees it: True | engine scan sees it: ['secret'] -> assert scan(...) == [] is RED
+```
+
+## Suite
+```
+env -u TMUX -u TMUX_PANE timeout 900 prlimit --nproc=4096 python3 -m pytest extensions/agi/tests/test_boxkit_templates.py extensions/agi/tests/test_bin_help_smoke.py -q --basetemp=/tmp/bt-dh634-l -p no:cacheprovider
+269 passed, 6 skipped in 55.48s
+```
+
+Re-measured on this worktree by DH.634 -- the count printed above had never been run by
+the director, so it stood as a CLAIM until now. FENCE NOTE: the same command at
+`prlimit --nproc=300` reports `72 failed, 197 passed, 6 skipped`, every help-smoke
+subprocess dying `BlockingIOError: [Errno 11]` on fork. Artefact, not a regression: the
+boxkit file alone is `197 passed`, help-smoke alone `72 passed, 6 skipped`, and
+`--nproc=4096` runs the pair green twice running. The brief's own command (no prlimit)
+also gives 269/6.
+
+## What this round does NOT claim
+
+The disjointness itself is still a *statement about two denylist sources*, and the
+withdrawn probe C showed it by mutating the token list, not by editing `anonymize.py`
+and re-running the engine's own hook. A production merge that keeps the roots out of
+`box_tokens` -- e.g. one that adds a new class the kit's `_leaks` never consults -- is
+outside what this row can see. That is the same defect class already recorded on this
+hypothesis at experiment:a00-0acacf93 P8/P9, one level down: the row is now falsifiable,
+but the stronger property (the two guards are disjoint *as shipped*) is still a probe,
+not a test.
+
+## Agent Notes
+DH.591 tally, corrected DH.634 to match the table below: probe B proved 14b's direction-2 assertion could never go red and that UNIT_DIR_CELL's widening accepted a drop-in dir (narrowed + asserted) -- those two hold; the row-14 session-state assert was deleted, also true. But NOT all four items were closed in this round: item 1's replacement (`LEAK_ROOTS[0]`, the checkout root) was still a tautology and survived into DH.615, and item 4 (the row inventory) was NOT de-duplicated here either -- DH.615 did both. Probe C is WITHDRAWN as this round's evidence (see its section). 0 production lines; suite re-measured DH.634: 269 passed, 6 skipped.
+
+PARENT REVIEW DH.591 (a00-36e29ed9) -- probes run BY ME, output pasted; the kid suite is not my evidence. probe file: .agi/sessions/iter-DH.591/a00-36e29ed9/probe_parent_591.py
+
+WIRE the running bytes are the changed bytes: 14b plants LEAK_ROOTS[0]: True | the vacuous "_leaks(planted) == []" form is GONE: True | row-14 session-state assert gone: True | the running UNIT_DIR_CELL rejects etc/systemd/system.conf.d: True, still accepts systemd/system + systemd/user: True
+GATE 1 (a broken probe, recorded not hidden) my first merge probe called anonymize.scan and waited for an exception; scan RETURNS A LIST, so it printed "NO RED". A probe that measures nothing: the assertion lives in the caller, not in scan.
+GATE 2 the REAL committed test function, called with the kit root added to box_tokens: raises AssertionError("the guard now sees the root"). The asserted expression itself flips under a named change to the ENGINE side, not under a rewrite of the assertion. This is the red-first DH.580 lacked (director item 3). HOLDS.
+AUTH the unauthorised caller: direction 2's token was `LEAK_ROOTS[0]`, this box's checkout root. Handing the row an EMPTY LEAK_ROOTS (a checkout the shared-root filter would drop) raises IndexError, not a refusal BY NAME. Red, not a false pass: a caveat, not a disproof.
+RESIDUE -- item 4, as DH.591 left it, is now CLOSED and the pointer corrected (DH.634). Settled by the bytes: `grep -n "10b\|SUB-ROWS" extensions/agi/tests/test_boxkit_templates.py; echo rc=$?` -> no output, `rc=1`. The stale "test 10b" citation at test:44 and the "lettered SUB-ROWS (7b-7d, 11a-11g, 14b)" enumeration are GONE; the header named the RULE. CORRECTED BY DH.653 item 5: the header ALSO claimed "no list of row names kept anywhere -- test:4-7", and that is FALSE of the same file -- the header itself enumerates rows 1-10 and 14, while rows 11, 12 and 13 are named at test:657/717/896 and listed NOWHERE. The rc=1 grep above is too narrow to see an inventory not spelled "SUB-ROWS" or "10b": the DH.591 class, closed a second time by a grep. DH.653 fixed the BYTES -- the header now says the inventory EXISTS and is CHECKED, entries 11/12/13 were added, and row 15 (`test_the_row_inventory_here_lists_every_row_the_file_names`) fails if any `row N` the file names is absent from it, so the copy goes red instead of stale. The two lines below are the DH.591 review kept verbatim as history: at the time item 4 WAS open, and the node then claimed it closed, which is why the tally above had to be corrected.
+Items 1, 2, 3, 5 are CONFIRMED against the bytes and hold under my probes. Item 4 is the open residue; the node claims it closed, so the claim as stated is not carried by the diff.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+DH.615 correction of this node: its table claimed item 4 closed and item 1 closed, and the PARENT REVIEW in the same file contradicts both. The bytes were right and the table was wrong. Item 1 stayed a tautology through two rounds because a LEAK_ROOT reads as "a value the kit rule sees" while being unreachable-by-construction; item 4 stayed open because a range notation is still a second copy. Both rows now state the open state and name where they were closed. This node verdict stays disproved: its own item-1 defect is real.
+<!-- THOUGHT:END -->
+
+probes: (parent a00-36e29ed9, DH.591, each run by ME -- .agi/sessions/iter-DH.591/a00-36e29ed9/probe_parent_591.py) conjunct 'no literal host/path + anonymize clean' -> GATE 2 auth: the committed 14b called with the kit root added to anonymize.box_tokens raises AssertionError(the guard now sees the root), the asserted expression itself flipping; GATE 3 gate: the 11g narrowing re-planted to its pre-fix form turns the row RED; AUTH: the unauthorised caller is an EMPTY LEAK_ROOTS, which yields IndexError, not a refusal BY NAME (red, not a false pass). conjunct 'every piece is a manifest row whose rule is derived from the committed cells' -> GATE 3 above plus the row-11g rename mutation already in the file. conjunct 'renders to the live bytes' -> NOT probed this round: the live-bytes comparison stays the parent probe and the kid moved no render rule; its own suite (269 passed) is the kid CLAIM, not my evidence, and I did not re-run it as evidence. RESIDUE: item 4 (test:4 inventory) was OPEN at DH.591; it is CLOSED as of DH.615 (the header names the rule) and DH.634 re-grepped it: grep -n 10b\|SUB-ROWS returns nothing, rc=1. DH.634 corrections to this probes line: probe C is WITHDRAWN as this round's evidence (it measured the tautological checkout-root form), and the suite count is now MEASURED, not claimed: 269 passed, 6 skipped.

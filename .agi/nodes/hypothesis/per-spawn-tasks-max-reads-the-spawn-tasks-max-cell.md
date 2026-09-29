@@ -119,8 +119,24 @@ FILE SCOPE extensions/agi/tests/test_mem_cap_tasks_max.py · .agi/nodes/experime
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 4490089b8 · <= 40 test lines net over 4490089b8 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 4490089b8 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.139 -- closes mur-eg-47 EG.110-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-per-spawn-tasks-max-r-a00-583115ef tip 1876e5d23 (branch de-base-EG.139; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. RESOLVED BY THE DIRECTOR, NO ACTION: the chain merges WHOLE (never a range cherry-pick), so the EG.31 retirement commits and this node text land together.
+2. UNMACHINE-CHECKABLE EVIDENCE IN THE ROUND'S OWN NEW NODE (residue, not demote). experiment:a00-583115ef-1f1050 has no `probes:` frontmatter field at all (git show 1876e5d23:... | grep '^probes:' returns nothing) -- its probe evidence is pasted prose in the body at the 'Probes (session scratch `probes.py`)' block, from a file that is not committed. This is the same class of defect the round's own item 2 fixed on its sibling: a00-aa4ebef6's four prose strings were rewritten as 5 dicts. Severity is bounded because the gate is inactive for all three nodes -- cli.py:1216 `_parent_probe_gate` returns early on `rec.get("tier") != "parent"` and none of the three nodes carries a `tier:` field, so `_probe_defect` is never consulted for them. Worth the next round's residue row, not a demote.
+3. HALF-APPLIED ITEM 2 (residue, not demote). Item 2 rewrote only a00-aa4ebef6's probes. Its sibling in the same chain, a00-bf749770-1f7083, was touched in this very diff (edited_by a00-aa4ebef6 -> a00-583115ef, diff hunk at line 9) and its `probes:` block is STILL 4 bare prose strings (4 matches for '^ - "gate:|"auth:|"wire:'). Same inactive gate, so same bounded severity: the one-source-per-rule nit is that the corrective normalised one probe list in the chain and left the other.
+KIDBRIEF  (mur-eg-31 EG.97 parent finding: the corrective reached the parent only, so the kid wrote code over a 0 cap) -- PARENT: dispatch your kid with --orders pointing at a file holding THIS WHOLE SECTION, and paste its FILE SCOPE + CEILING into the kid prompt; verify the kid's context carries the word CORRECTIVE before it starts.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_mem_cap_tasks_max.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE .agi/nodes/experiment/a00-bf749770-1f7083.md (its probes: block, item 3) ·  · .agi/nodes/experiment/a00-583115ef-1f1050.md · .agi/nodes/experiment/a00-aa4ebef6-aa5cf6.md · .agi/nodes/experiment/a00-bf749770-1f7083.md · .agi/nodes/hypothesis/per-spawn-tasks-max-reads-the-spawn-tasks-max-cell.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 1876e5d23 · <= 40 test lines net over 1876e5d23 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 1876e5d23 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.110: mur-eg-26 EG.49-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.139: mur-eg-47 EG.110-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
 
 ## Agent Notes

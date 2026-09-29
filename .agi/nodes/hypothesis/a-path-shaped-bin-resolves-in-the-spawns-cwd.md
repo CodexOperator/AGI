@@ -151,6 +151,27 @@ FILE SCOPE extensions/agi/bin/adapters/__init__.py · extensions/agi/bin/adapter
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over a8fcf1574 · <= 40 test lines · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.108 -- closes mur-eg-26 DH.678-k1 demote
+BASE      CUT FROM season2/loops/hypothesis-a-path-shaped-bin-res-a00-7ddbf958 tip 75e6114fa (branch de-base-EG.108; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 1. Items 3/4 claim FIXED IN BYTES while the three cited node files are byte-identical base..tip (no ATTRIBUTION CORRECTED note; :2642/:2646 citations unchanged)
+2. 3. A bare os.chdir into a soon-deleted basetemp (also :131) leaks cwd across files and reddens help_smoke[sensei.py] in the pair run
+5. 7. The ast pin dies on ast.parse SyntaxError rather than a semantic message
+7. test_adapters_spawn_cwd.py:400 `assert str(main) not in argv[0]` is VACUOUS. Line :399 already asserts `argv[0] == str(worktree / "tools" / "pi")`, and worktree is tmp_path/"worktree" while main is tmp_path/"main", so the second assert cannot fail once the first passes. It reads as the l3-branch-isolation guard but carries zero evidence; a green assertion that can never go red is the mirror of a green test that requires a defect.
+8. Blast radius of the :306 cwd leak is wider than either the round or the first reviewer scoped it. Both name only help_smoke[sensei.py]; the leaked cwd (a soon-deleted basetemp) is inherited by EVERY later test in the same pytest session that shells out, and the pair run only exercises one such test. UNVERIFIED for the rest — the probe I WOULD run and did not: run the whole tests/ directory in file order and list every failure that disappears under `--deselect ...::test_a_deleted_resolver_cwd_refuses_by_name_rather_than_raising_raw` (never here: that is the whole suite).
+DIRECTOR NOTES (no action): V4 + M1 grid-version lag = the land's grid.py commit --all (the trunk's step, never a round's) -- demoted · V6 help_smoke[suite_guards.py] is FIXED on the trunk (8f9e3d5da exempts it as a library module): the chain inherits it at merge, never re-fix it here.
+DIRECTOR: V3 + M3 are ONE fix -- no test may os.chdir into a basetemp and leave it: use monkeypatch.chdir (restored at teardown) at BOTH sites, then prove it with the pair run the reviewer used (test_adapters_spawn_cwd.py then test_bin_help_smoke.py in ONE pytest session) and paste its line.
+DIRECTOR (anchor rule): cite a function / heading / cell key; a line number only where the claim IS the line; paste a git grep -n hit for each name at your tip.
+DIRECTOR (numstat self-reference): measure `git diff --numstat 75e6114fa <tip BEFORE your paste commit>`, paste it, label it so.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_adapters_spawn_cwd.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_adapters_spawn_cwd.py · .agi/nodes/experiment/a00-2ce5b70d-4c5e52.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 0 production lines net over 75e6114fa (test + node text only) · <= 40 test lines net over 75e6114fa · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 75e6114fa <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective DH.678: mur-director-engine-44 DH.647-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.108: mur-eg-26 DH.678-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->

@@ -121,6 +121,22 @@ FILE SCOPE extensions/agi/tests/test_declared_suite_guards.py · .agi/nodes/expe
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 614ec6700 · <= 40 test lines net over 614ec6700 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 614ec6700 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.117 -- closes mur-eg-29 EG.76-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-context-suite-guards--a00-e833efcc tip dee711cfc (branch de-base-EG.117; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. No committed gate refuses a new unwrapped child: the invariant rests on exactly two call sites (extensions/agi/tests/test_declared_suite_guards.py:97 and :307, the only two subprocess.run sites) and on the module docstring's prose at :16-17. A third bare spawn would leave the file green; the round used 17 of its 40 test lines. Mechanism, not wording — this is the residue I would carry.
+DIRECTOR: M2 + M3 are CLOSED by director commit dee711cfc (TMM.327) -- never touch them. Your ONE item: a COMMITTED test that FAILS when a new subprocess spawn in test_declared_suite_guards.py bypasses _guarded (e.g. an AST walk over the module: every subprocess.run / Popen call sits inside _guarded), proved by a pasted revert run (add one bare spawn on a scratch copy -> red; remove -> green).
+DIRECTOR (anchor rule): cite a function / heading / cell key; a line number only where the claim IS the line.
+DIRECTOR (numstat self-reference): measure `git diff --numstat dee711cfc <tip BEFORE your paste commit>`, paste it, label it so.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_declared_suite_guards.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_declared_suite_guards.py · .agi/nodes/experiment/a00-08865efb-29156d.md · .agi/nodes/experiment/a00-7745d633-01f319.md · .agi/nodes/experiment/a00-d5fc548f-4c1aff.md · .agi/nodes/hypothesis/context-suite-guards-cost-no-seconds-and-leak-no-standin.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 0 production lines net over dee711cfc (test only) · <= 40 test lines net over dee711cfc · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat dee711cfc <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.76: mur-eg-20 EG.36-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.117: mur-eg-29 EG.76-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->

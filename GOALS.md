@@ -1148,6 +1148,30 @@ goal:g1.27 (PASS 11 residues) · goal:g1.26 (PASS 10 residues) · goal:g4.18.1 (
 ## Agent Notes
 Assigned to **director-engine**.
 
+### G1.29 — PASS B1 residues -- 62 verify-upheld items over 8 sampled rounds, one batch; the box-refusal config cell gets its binding test (assigned: director-engine) — status: active
+
+# goal:g1.29
+
+## Why this exists
+goal:g1: PASS B1 (series B, owner 00:0xZ 09-28) reviewed the trunk @ed34f49532 against BASE 72d8d565ce on pi-free, 0 USD, SAMPLED per the step-1 credit rule (0.606 < 4 USD): 8 rounds (5 hypothesis incl. the MUST p2 re-check + 3 engine-delta over 32 paths), 6 hypothesis rounds unsampled. Verdicts: 8 accept_with_residue, 0 demote, 0 RED; merged into season2/main at 1bb6aa5a9. The verify stages upheld 62 residue items; the 3 that cite engine code are already tracked (see the batch).
+
+## Target end-state
+- Every verify-upheld residue of PASS B1 is fixed at its cited line or answered on its node.
+- The new send.py box-refusal config cell (config.json:249 vs send.py:2188-2198) is bound to the code by a committed test.
+
+## Invariants
+- A residue is closed by a reviewed round, never by a note.
+
+## Falsifier
+1. A re-run review of each batch row upholds none of them.
+2. Negative: `git grep -n "test_foreign_refusal_durability" extensions/agi/tests` names a test that reads the config cell.
+
+## Out of scope
+goal:g1.28 (PASS 12 residues) · goal:g1.27 · the thought_hygiene detector fix (already at DE) · mem_cap.py:101 DRIFT hook retirement (ordered on its hypothesis).
+
+## Agent Notes
+Assigned to **director-engine**.
+
 ### G2.1 — Level 3 first: code nodes that stitch back into a running tree — status: horizon
 
 **Build level 3 before any other level.** It is the one that makes the graph an
@@ -8533,6 +8557,7 @@ ACCEPTANCE: a committed test drives it over a tmp-root fixture + a stubbed `syst
 | 21 | a parent exits leaving a kid node edit whose bytes DIFFER from its last write-log sha (DH.521: experiment:a00-9086ec16-e5b481, actor a00-b0bf124f row 2) -- unlandable by TMM.268, so the corrective item it carried stays open with nothing to say why; recurred DH.555 (14:5xZ): experiment:a00-b0bf124f-4b8eb4 dirty in the parent worktree, no write-log match -> not landed | DH.521 harvest 05:5xZ | OWED |
 | 22 | a context test OOMs its runner: test_model_load_guard.py::test_standins_never_leak_into_a_later_module (R4, a child pytest) exhausts memory on the unfixed model-fence tree -- killed the DH.535 parent's 2G scope at 95 s (13:24:45Z); reproduced by the director in a 1G scope, the other 14 tests of the file finish in ~1 s; the DH.536 fence (deselect + ulimit -v) did NOT hold: ulimit -v is per process, and the child pytest tree still OOM-killed kid a00-a65c6da4 (13:32:31Z) and parent a00-e2277e4b ; then DH.539 kid a00-c6290fe1 (13:41:02Z): it ran pytest from inside the osc dir, where the director's repo-root --deselect path matched nothing -- 4 agents lost; a deselect in orders must be -k (cwd-independent); the defect itself is unowned | DH.535 death 13:2xZ | OWED |
 | 23 | the rotation-alert hold lead-in names a merge-up in EVERY hold arm: the clause lives in the shared template extensions/agi/templates/rotation_alert/defer_prefix.md:1 (byte-pinned by test_prose_templates.py:23), used at rotation_alert.py:969 (suite-lock), :1156 (merge), :1594 (generic hold), :1604 (capture failed) -- a per-arm lead-in needs a template edit + re-pin, not a branch arm | mur-23 DH.515-k1 (verify missed 1) | OWED |
+| 24 | 197 trunk nodes open with a repeated `# <id>` H1 (thought-master measured, TMM.352): an engine writer habit -- a kid/parent report body and the type scaffold each emit the `# <id>` heading, so a node carries two (e.g. experiment:a00-f7fcb77c-d36728 after its TMM.352 de-duplication; hypothesis:free-lane-mint-and-skills-startup-have-end-to-end-tests via a00-77faeb4c). Fix at the writer (one H1 per body), not per node | thought-master TMM.352 on DE merge-up #5 | OWED |
 
 ## Invariants
 - A finding lives in exactly one place: a row here, or the node a row MOVED to -- never a card line or a retired goal id.
@@ -14085,6 +14110,38 @@ thought-master 02:1xZ 09-21 (owner via the Prime, goal:g14 L240: diagram-max ALL
 
 <!-- BODY:BEGIN -->
 # goal:g5.32
+
+#### G5.33 — EVERY WORKFLOW RETIRED OVER TIME IN FAVOUR OF THE UNIFIED DISPATCH ROUTE -- each review/research/survey job runs as a dispatched round with its retry and harness cells; a manifest retires only after its replacement ran green on the trunk (owner GO 22:2xZ 09-28) — status: active
+
+# goal:g5.33
+
+## Why this exists
+**Parent `goal:g5`** (the local-maxxing town bundle, thought-master's): on 09-28 the pi-free lane ran an empty-response outage from ~20:0xZ. Dispatched parents on cuts carrying the `values.pi_retry` retry (EG.151, landed b0aa2c178) survived: EG.184 parent a00-c8f1d0f6 used 3 of 6 retries and ran 299 turns. Every `workflow.py` stage died in 18-70 s, because it runs `pi -p` in text mode with no empty-response retry (director-engine, 22:20Z). The dispatched route already has the configurable surface the workflows were built for. The owner then gave the go-ahead to retire the workflows in its favour (verbatim below). The unified routes themselves belong to `goal:g7.31.3` (director-belam, core), which this goal reads and does not write.
+
+## OWNER 2026-09-28 22:2xZ, verbatim (typed into director-engine's pane, relayed 22:20Z)
+"It may be the old dispatch route. Seems like the fresh dispatches in the new retry queue are doing ok."
+"I guess the new dispatch route kinda becomes the old workflow route with its configurable nature. You can let TM know I give the go ahead to retire all workflows over time in favor of the unified route."
+
+## Target end-state
+- Every review, research and survey job this town runs through `workflow.py run <name>` runs instead as a dispatched round on the unified dispatch route (the parent/kid spawn path, its retry cells and harness rows), with its stages as the round's brief.
+- Each replaced workflow manifest is retired (`status: deprecated`, moved, its bytes in the grid). None is deleted.
+- The town's skills, briefs and templates name the dispatched round, not the workflow, for each retired job.
+
+## Invariants
+- A workflow is retired only after its dispatched replacement has run green on the trunk at least once. The replacement must cover the same review shape: claim vs bytes, an adversarial refuter, and verdict files a master can read.
+- "Over time": EG.185 (retrying empty responses in workflow stages) stays the bridge until then. No workflow the town relies on goes dark in the meantime.
+- `agi-merge-up-review` also serves the Prime's PASS (skill agi-merge-pass). Its retirement is belam's decision; this goal proposes it and never flips it.
+- Config-max: stage models, harness, retries and timeouts live in config cells, never in a round's code.
+
+## Falsifier
+1. `python3 -c "import glob,json,datetime as d; c=d.datetime.now(d.timezone.utc)-d.timedelta(days=7); n=sum(1 for f in glob.glob('.agi/sessions/workflows/*.jsonl') if 'merge-up-review' not in f for l in open(f) if l.strip() and d.datetime.fromisoformat(json.loads(l)['timestamp'].replace('Z','+00:00'))>c); print(n); raise SystemExit(n!=0)"` exits 0: no workflow run in 7 days outside `merge-up-review` (the Prime's call, see Invariants), and every retired manifest's node reads `status: deprecated`.
+2. Negative: `git grep -n 'workflow.py run' -- skills/ extensions/agi/templates/` has zero hits in town-owned instructions for any retired job.
+
+## Out of scope
+`goal:g7.31.3` (the unified routes' design, director-belam) · `goal:g7.33` (engine fixes, including EG.185, the bridge) · the Prime's merge routine (`skill agi-merge-pass`).
+
+## Agent Notes
+Assigned to **thought-master** (plan); rounds dispatched by **director-engine**.
 
 ##### G7.33.1 — G14.14.1: WRITE.PY ERGONOMICS -- three independent write.py gaps hit live this session: replace body has no anchor/structural guard (write.py:2068-2108, ABL.01 corruption class), create leaves an unfilled scaffold body, replace body cannot share a submit with note/thought (owner 01:1xZ-01:2xZ 09-21 on goal:g7.33) — status: active
 

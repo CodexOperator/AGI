@@ -257,7 +257,8 @@
       "user_systemd_dir": "{home}/.config/systemd/user",
       "watchdog_conf": "etc/watchdog.conf",
       "user_systemd_data_dir": "{home}/.local/share/systemd/user",
-      "guard_dir": "{repo_parent}/.sanctuary/guard"
+      "guard_dir": "{repo_parent}/.sanctuary/guard",
+      "fixtures_dir": "extensions/agi/tests/fixtures/boxkit"
     },
     "local_maxxing": {
       "worktree_a00_2f819956": ".agi/worktrees/a00-2f819956",
@@ -306,6 +307,20 @@
     }
   },
   "values": {
+    "pi_retry": {
+      "empty_response_max_retries": 12,
+      "empty_response_backoff_s": 60.0,
+      "empty_response_backoff_factor": 1.5,
+      "empty_response_backoff_cap_s": 120.0,
+      "empty_response_max_attempts_total": 52,
+      "transient_signatures": [
+        "error code:\\s*5\\d\\d",
+        "stream error|h2 protocol error|upstream error",
+        "connection reset|econnreset",
+        "http(?:/\\d+(?:\\.\\d+)?)?\\s*5\\d\\d",
+        "Provider returned an empty response"
+      ]
+    },
     "boxkit": {
       "user_high_ratio": 0.9,
       "swap_ratio": 0.5,
