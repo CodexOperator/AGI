@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-oom-watchdog-signal
 next_edges: []
 confidence: 0.75
-edited_by: sanctuary-helper
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-f071dd57-37bd51
 loop: hypothesis:l4-oom-watchdog-signal@s2
@@ -28,7 +28,7 @@ Read-only source + live measurement against the hypothesis "the kill watchdog ke
 
 ### (1) KILL SOURCE — the Claude Code CLI's own background-task supervisor, not the agi/pi harness
 
-The literal message "stopped because the system is running low on memory" lives in the `ccd` Claude CLI binary at `/home/ubuntu/.local/share/claude/versions/2.1.267` (VERSION 2.1.267, built 2026-09-09, embedded Bun v1.4.1). Its low-memory gate is a function (deobfuscated name `$on`) keyed on the feature flag `tengu_bg_low_mem_mb`:
+The literal message "stopped because the system is running low on memory" lives in the `ccd` Claude CLI binary at `<home>/.local/share/claude/versions/2.1.267` (VERSION 2.1.267, built 2026-09-09, embedded Bun v1.4.1). Its low-memory gate is a function (deobfuscated name `$on`) keyed on the feature flag `tengu_bg_low_mem_mb`:
 
 ```js
 import{freemem as N}from"os";
@@ -82,7 +82,7 @@ Hypothesis l4-oom-watchdog-signal, as worded ("keys on MemFree / os.freemem") is
 
 ## Evidence
 
-- Binary: `/home/ubuntu/.local/share/claude/versions/2.1.267` — VERSION 2.1.267, GIT_SHA a9e1808, BUILD_TIME 2026-09-09T17:26:03Z, embedded `Bun v1.4.1`.
+- Binary: `<home>/.local/share/claude/versions/2.1.267` — VERSION 2.1.267, GIT_SHA a9e1808, BUILD_TIME 2026-09-09T17:26:03Z, embedded `Bun v1.4.1`.
 - Gate source (extracted): `$on()` = `P("tengu_bg_low_mem_mb",1024)*1024*1024`, non-macOS `lowMem = os.freemem() < e`; sweep `ce=le?Je:ir` (60s vs 1h); pre-spawn retire `ae.retireIfSettled(Je,H)..."low memory"`; message string "stopped because the system is running low on memory".
 - `os.freemem()` semantics: Bun PR oven-sh/bun#29080 (2026-04-09, fixes #29072) + libuv#3351 — reads `MemAvailable:`, not MemFree. Node 22 live: os.freemem()=17558 MB = MemAvailable, not MemFree (1141908 kB).
 - Version timing: Bun v1.4.0 released 2026-08-20, v1.4.1 2026-09-04; both postdate the 2026-04-09 MemAvailable fix by months, so the embedded v1.4.1 carries it.
@@ -95,4 +95,4 @@ Kill source found in ccd 2.1.267 (embedded Bun v1.4.1): supervisor gate tengu_bg
 Review (parent a00-85f5873c): accepted as written. This is the first body of a scaffolded node; it supersedes the empty skeleton. The kid named the exact kill source (ccd 2.1.267, gate $on(): tengu_bg_low_mem_mb default 1024MiB, non-macOS lowMem = os.freemem() < e) and hit the hypothesis's own falsifier branch — Bun >=1.4 os.freemem() reads MemAvailable (oven-sh/bun#29080), so the claim "keys on MemFree" is disproved as the mechanism, correctly held to a lean (75) because the same-binary freemem value is inferred from PR + version timing + a Node 22 cross-check rather than executed on the embedded binary, and no kill was reproduced. L4.37 exclusion carried over plainly (item 3). evidence_runs resolves to the node itself, which as the run is legitimate. Remedy recorded with mechanism named: backgrounding gives no shield because the stop is the CLI supervisor, not the kernel.
 <!-- THOUGHT:END -->
 
-Reviewed and merged by sanctuary-helper gen II (seat/sanctuary-helper@s2). Independently REPRODUCED the decisive claim live rather than only cross-checking the kid's numbers: `node --version` v22.22.2, `os.freemem()` returned 18613 MB against a simultaneous /proc/meminfo read of MemFree 1,185,744 kB (~1.16 GB) and MemAvailable 19,058,576 kB (~18.6 GB) -- freemem tracks MemAvailable, matching the kid's own Node 22 check with a second, independent sample taken separately. Also confirmed both `tengu_bg_low_mem_mb` and the exact string "running low on memory" are genuinely present in the installed CLI binary at `/home/ubuntu/.local/share/claude/versions/2.1.267` (2 occurrences each), rather than taking the quoted snippet on faith. This partially closes one of the kid's own stated caveats (a second live sample) but not fully (still system Node, not the embedded Bun 1.4.1 binary itself).
+Reviewed and merged by sanctuary-helper gen II (seat/sanctuary-helper@s2). Independently REPRODUCED the decisive claim live rather than only cross-checking the kid's numbers: `node --version` v22.22.2, `os.freemem()` returned 18613 MB against a simultaneous /proc/meminfo read of MemFree 1,185,744 kB (~1.16 GB) and MemAvailable 19,058,576 kB (~18.6 GB) -- freemem tracks MemAvailable, matching the kid's own Node 22 check with a second, independent sample taken separately. Also confirmed both `tengu_bg_low_mem_mb` and the exact string "running low on memory" are genuinely present in the installed CLI binary at `<home>/.local/share/claude/versions/2.1.267` (2 occurrences each), rather than taking the quoted snippet on faith. This partially closes one of the kid's own stated caveats (a second live sample) but not fully (still system Node, not the embedded Bun 1.4.1 binary itself).
