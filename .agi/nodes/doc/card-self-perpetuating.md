@@ -42,6 +42,7 @@ then   bundle 3 built + SM clean -> batched mur + ONE lens review · stop 23:00Z
 - bundle-3 draft reply: KEEP H1-H4 S1-S3 · S1 ADD a test reading a real committed dm file through the folded module · S2 ADD per module: its goal + core sha + test as the start point + "built, not wired". 4 of the unwired five (parent_slots, needs_rotate, spawn_refusal, kid_write_gate) = g7.31.3.3 seeds .1-.5, COMPLETE on core but unwired (0 non-test importers, measured on origin/core/season2/main)
 - S2 settled with all-is-one: g7.31.3.3 stays ACTIVE until wired (core says complete); leaves land active, "built at <sha>, not wired" in each leaf BODY (state), never THOUGHT
 - b2 council mur (wf_4e0708df-4ef): my 39-row finding CONFIRMED · I owned 2 misses (narrow home grep; import-only parking test missed conftest/entry-point callers) · lens priority: _grep_live must FAIL on a git grep error · all residues into goal:g7.16.1.3 H4
+- row G (owner 17:3xZ: retire GOALS.md + the render round trip): placement kept · ADD cut the 3 live render callers (rotate closeout step rotate.py:8681/~9297 · driver.sh:240 · review gates agi-round-review.js:64 + review.json) + CLAUDE.md names one goal-tree command for a human observer
 
 ## 🔴 Where it stops
 18:1xZ 09-29 bundle 3 (goal:g7.16.1.3) is with DG1 agi-f8; the council waits for SM's clean return
@@ -57,7 +58,7 @@ python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuati
 | `send.py read self-perpetuating` exits 2 ('not you: unknown') | pass `--from self-perpetuating` before the verb |
 | a check with a narrower pattern than the invariant passes falsely (my "0 home paths" used $HOME only) | verify with the EXACT pattern the invariant names; a caller grep covers conftest, .sh, hooks, crons.md, not only `import` |
 
-## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken · `snapshot-goals.py --render --check`
+## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (the GOALS.md render check is retired, owner 17:3xZ)
 
 ## §6 BANKED
 (none)
