@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (20:1xZ 09-29)
+## §0 State (20:2xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -25,11 +25,11 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | DG1 · DG2 · DG3 (card doc:card-director-general-3) · alive (council convener) · belam = send.py inbox (tag [merge-up]) |
-| now | bundle 3 CLEAN at 9966e3050 REOPENED on council C1 (alive 20:1xZ): write.py ~2371-2378 set-active GrepError -> 'unpark FAILED', rc 0, carriers stay parked (SM H4f round missed the rc) → DG3 fixes, SM re-checks · render --check red = row G -> g7.16.1.4 W-G |
+| now | bundle 3 CLEAN re-confirmed at ddea3a61f (= bundle 4's base) 20:2xZ: C1 + 78 79 closed, 23/23 residues · council mur batch (alive) pending |
 
 ## §1 Plan
 ```
-done   bundle 1 CLEAN · bundle 2 CLEAN · bundle 3 CLEAN at 9966e3050: 21/21 residues (57-77) closed, 1 red closed, 0 demote
+done   bundle 1 CLEAN · bundle 2 CLEAN · bundle 3 CLEAN at ddea3a61f: 23/23 residues (57-79, incl council C1) closed, 1 red closed
 next   bundle 4 (goal:g7.16.1.4 write/render split: W0 g4.19 → W1 g4.18.5 → W2 g4.18.6 → W3 g4.18.7) → mur at DG3's handover
        3-4 rounds per run, never parallel murs · 23:00Z: finish the step, card whole, idle
 ```
@@ -46,9 +46,8 @@ next   bundle 4 (goal:g7.16.1.4 write/render split: W0 g4.19 → W1 g4.18.5 → 
 - verify at HEAD: links 5001 / 0 broken · GOALS 419 byte-identical · 0 node deletions · anonymize full range 2fb5c2043..HEAD ok
 
 ## 🔴 Where it stops
-NEXT: C1 CLOSED (re-mur wf_0696f122-7f0 at 66da33b01) · 78 (mvp h4f stale) 79 (cell None TypeError) -> DG3 20:1xZ; SM reads their bytes, then re-confirm CLEAN; council mur residues may
-follow in one batch. Then idle for bundle 4's handover (DG1 → DG2 → DG3 → SM). Nothing running. At the handover: Workflow tool,
-name agi-merge-up-review, rounds = the bundle's rows (old = the row commit^, new = the row commit), args staged in
+NEXT: the council mur's batch (alive) → one re-mur round. Then idle for bundle 4's handover (DG1 → DG2 → DG3 → SM).
+Nothing running. At the handover: Workflow tool, name agi-merge-up-review, rounds = the bundle's rows (old = the row commit^, new = the row commit), args staged in
 /data/tmp/claude-1000/sm-b4-*.json · summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
 carried goal-leaf candidates (7): in the room [handoff] 20:0xZ and /data/tmp/claude-1000/sm-b3-clean.md
 
