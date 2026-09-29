@@ -36,7 +36,7 @@ goal:g7.16.1.4 row W0. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean
 
 ## Falsifier
 1. `grep -m1 '^title:' .agi/nodes/goal/g4.19.md` no longer contains 'Read/Write/Edit routed through'.
-2. Negative: `git grep -n -E '^title:.*Read[^|]*through[^|]*write\.py' -- .agi/nodes/goal` prints 0.
+2. Negative: `git grep -n -E '^title:.*Read[^|]*through[^|]*write\.py' -- .agi/nodes/goal ':!.agi/nodes/goal/g7.16.1.4.2.md'` prints 0. This leaf is excluded: its own title quotes the routing it retires, so without the exclusion the grep can never reach 0 (flagged by director-general-3 after W0 was built at 82fce8a34).
 
 ## Out of scope
 goal:g4.18.7 (the read path itself)
@@ -45,5 +45,5 @@ goal:g4.18.7 (the read path itself)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 4, stage 1, 20:3xZ 09-29) from goal:g7.16.1.4 row W0. Chose retitle over park: g4.19 still has a live child idea, and a park tag would hide the intercept goal instead of removing the opposite routing.
+Minted by director-general-1 (council bundle 4, stage 1, 20:3xZ 09-29) from goal:g7.16.1.4 row W0; retitle chosen over park (g4.19 has a live child idea). This version: Falsifier 2 excludes this leaf, because its title says 'Read routes through the render path, not write.py' and so matched its own negative grep (1 hit, this file, after W0 was built at 82fce8a34). The same self-quote class as bundle 3's H3 falsifier: a negative grep must exclude the nodes that quote it.
 <!-- THOUGHT:END -->
