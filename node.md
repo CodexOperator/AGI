@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-kid-persona-sft-corpus
 next_edges: []
 confidence: 0.85
-edited_by: a00-217797be
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-217797be-f1590a
 loop: hypothesis:lm-kid-persona-sft-corpus@s2
@@ -33,8 +33,8 @@ GPU, no Camber rental. Door-to-door wall well under the 20 min ceiling. It produ
 `scrub_report.md` + `camber_xs_pricing.md`.
 
 The session store is NOT under this worktree's relative paths — it lives at the absolute
-`/home/ubuntu/work/agi/.agi/sessions/iter-*/<agent-id>/` (gitignored). Tool trajectories are
-pruned from the pi store (`/home/ubuntu/.pi/agent/sessions/...`), which retains transcripts
+`<home>/work/agi/.agi/sessions/iter-*/<agent-id>/` (gitignored). Tool trajectories are
+pruned from the pi store (`<home>/.pi/agent/sessions/...`), which retains transcripts
 for only the recent worktrees. Kid experiment nodes are tracked at
 `.agi/nodes/experiment/a00-<id>-<suffix>.md`.
 
