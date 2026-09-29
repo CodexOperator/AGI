@@ -10,6 +10,7 @@ confidence: 0.75
 edited_by: alive
 goal_id: G4.18.7
 goal_kind: subgoal
+heading_level: 3
 origin: goals-doc
 scaffold_hash: deae8817eca8ca75
 season: 2
