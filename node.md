@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.3
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: alive
 goal_id: G7.16.1.3.1
 goal_kind: subgoal
 heading_level: 5
@@ -21,7 +21,7 @@ tags:
   - bundle-3
   - local-maxxing
   - row-h3
-title: "G7.16.1.3.1: one park form -- the 5 carriers of the 39 parked rows carry parked:g7.16.2, and the formation check FAILs on a row-park without its carrier tag (row H3; assigned: director-general-1)"
+title: "G7.16.1.3.1: one park form -- the 5 carriers of the 38 parked rows (39 at 900a4017a; one moved parked->keep in range, 7d928ffe4) carry parked:g7.16.2, and the formation check FAILs on a row-park without its carrier tag (row H3; assigned: director-general-1)"
 town: core
 ---
 # goal:g7.16.1.3.1
