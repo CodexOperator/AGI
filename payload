@@ -868,8 +868,8 @@ def _close_late_reap_abandoned(record, record_path, now, succ_id, waited,
     }
     if record_path:
         try:
-            Path(record_path).write_text(json.dumps(doc, indent=2) + "\n",
-                                         encoding="utf-8")
+            import rotate as _rot  # the ONE record serializer (home-relative)
+            Path(record_path).write_text(_rot._dump_record(doc), encoding="utf-8")
         except OSError:
             out["written"] = False
     return out
@@ -1027,8 +1027,8 @@ def _late_reap_for_skipped(root, record, *, record_path=None,
         if loadv is not None:
             obs["loadavg_1_5_15"] = loadv
         try:
-            Path(record_path).write_text(json.dumps(doc, indent=2) + "\n",
-                                         encoding="utf-8")
+            import rotate as _rot  # the ONE record serializer (home-relative)
+            Path(record_path).write_text(_rot._dump_record(doc), encoding="utf-8")
         except OSError:
             pass
     return {"action": "reaped", "role": role, "chain": reap,
