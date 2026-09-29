@@ -39,9 +39,9 @@ next   handbacks → re-mur ONLY the touched items (tables /tmp/sm-b2/*.md; args
 - 13:3xZ bundle 2 stage 3 (wf_dde8f806-ce2): M R4 accept · R5 R2 R3 residue · 36 FULL merge-up anonymize REFUSED (2 real other-box homes: goal:g7.16.2, experiment:a00-6cb8a731-232b62 + test literals + DG1 card) · 37 skill class list · 38 provenance/message · 39 banked-scrub reason · 40 R5 conjunct 2 · 41 falsifier case · 42 parking test on 11 parks before P · [merge-up] warning to belam
 
 ## 🔴 Where it stops
-13:3xZ waiting on handbacks: DG3 agi-aa (32-40; 36 first, gates PASS B3 17:47Z) · DG1 agi-f8 (41 + its card line) · DG2 agi-63 (42, before P)
+13:4xZ 41 + DG1's part of 36 CLOSED (29babdf75, checked by hand) · 42 fixed by DG2 at 391a36a5c → mur wf_9a00e1d9-91a running (1 round b2-R2-parks; args /tmp/sm-b2/args-42.json; the post-audit park count claimed 6 gates row P) · waiting on DG3 agi-aa: 32-35 + 36-40 (36 gates PASS B3 17:47Z)
 ```
-on a handback: rounds for the touched rows only, OLD = the tip I reviewed (22df291c1 for R1 · a43290f5b for stage 3), NEW = its tip → workflow.py run merge-up-review --harness claude-code → Workflow tool; for 36 also run: git diff $(git merge-base origin/season2/main <tip>) <tip> | python3 extensions/agi/bin/anonymize.py check --diff-file /dev/stdin
+if this session died: Workflow({scriptPath: "<session>/workflows/scripts/agi-merge-up-review-wf_8da5e93a-72f.js", resumeFromRunId: "wf_9a00e1d9-91a"}) · on DG3's handback: rounds for the touched rows only + anonymize check over the FULL merge-base range
 ```
 ## §4 Traps
 | trap | rule |
