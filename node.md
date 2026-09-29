@@ -15,55 +15,51 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:5xZ 09-29 — RESUMED: the owner restarted the council, DG5 stood up; peers alive agi-13 · self-perpetuating agi-ff · DG5 agi-c8)
+## §0 State (00:5xZ 09-30 — council RESUMED, full steam to ~04:00Z)
 | | |
 |---|---|
 | post | all-is-one |
-| stage | council — you embody vision:all-is-one ONLY (read it whole first); every review speaks from that vision alone, never alive or self-perpetuating |
-| protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · gen 2 (re-seated 17:33Z crash-recovery respawn), CC session agi-86 / 081012 |
-| peers | session names change per run: ListAgents / posts row session_ref first (alive was agi-13 this run) |
+| stage | council — embody vision:all-is-one ONLY ("everyone uses a unified set of tools ... same UI/UX by any role"); TOP-DOWN, generations, never the nitty gritty (doc:council-loop "The council's lens") |
+| loop (owner 23:5xZ, doc:council-loop fbff64dc1) | DG1 finalizes ONE outcome per goal (parent = goal) · SM writes bigger_outcomes · council REVIEWS them -> new goals / bundles / nested goals, or none -> season OVERVIEW nodes for belam |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · gen 2, CC session agi-86 / 081012 |
+| peers (00:5xZ) | alive gen 3 = agi-a0 (@16) · self-perpetuating agi-ff · SM agi-e8 · DG1 agi-77 · DG2 agi-40 · DG5 agi-c8 · belam agi-9c — names change: ListAgents + posts row first |
 | skills | agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundle 1 (g7.16.1.1) + bundle 2 (g7.16.1.2): converged, SM clean, council mur + lens reviews sent (see git history of this node)
-done   17:3xZ row G couplings sent: closeout --check gate · --from-doc unlink · node_writer goal-type reason
-done   18:1xZ write/render split = bundle 4 (g4.18.5 -> .6 -> .7), not folded into 3; conditions: read-via-render lives in g4.18.7 only · g4.19 resolved in row 0 · g4.18.3 gate invariant carried into g4.18.5 · `read` leaves VERBS in the same row as the 23-file repoint
-done   18:2xZ row R (g6.41.1 recovery) into bundle 3 after H4g: one launcher (tmux ensure in _launch_window, scope in _shell_cmd) · leaf Out-of-scope/assignee fix · R falsifier = cgls negative + one-post kill · P5 via memory_alarm.read_psi
-done   18:3xZ row G -> bundle 4 as W-G (verified unbuilt at 9966e3050); now LANDED per CLAUDE.md (goal:g7.16.1.4.1, GOALS.md retired)
-done   18:4xZ bundle-3 lens review (9181cee26^..9966e3050) to alive: BETTER; 8 test files 367 passed / 6 skipped
-         owed before close: C1 write.py:2376 unpark GrepError exits 0 (fail closed) · C2 _cutover_plan/_cutover_to_scopes 0 callers -> "built, not wired" in g6.41.1 body · C3 ensure_tmux_session = 3rd systemd-run builder, no usable-check
-         bundle-4 inputs: B1 heal._launch_recovered copies _launch_window · B2 4 config:posts commit paths in rotate.py -> g4.18.5 one row write · B3 grep_live/parked_carriers homed in rotation_record · B4 heal's own config.json reader
-open   no reply seen from alive on C1-C3 placement or the council mur (mur-data-work-agi-council-bundle-3)
-done   23:5xZ RESUME (owner: council restarted, DG5 up; NEW lens = doc:council-loop "The council's lens": top-down, generations; SM-clean -> OUTCOME node or adjust goal) · to alive: outcomes for g7.16.1.1 + .2 now (0 outcome nodes, all active) · .6 SUPERSEDES W1 branch commit (one switch; rotate 4 posts paths + ack/stop_commit + skills absorbed) · split .7 = 7a stand-up verb/heal keys/one pi template (DG5 now) + 7b link rows after .6 + g4.18.6 · override-equal-to-inherited refused · adapter map = the spine · push moved refs only
-done   23:5xZ CONVERGED with s-p (agi-ff) on .6: truth = refs/grid/<mint> tip; snapshot commits a dirty file only when bytes == its ref tip, else REFUSE + name (replaces the "catch-all" line)
+done   bundles 1-3 (g7.16.1.1-.3): converged, SM clean, council reviewed; C1 fixed 66da33b01; bundle 3 closed 1f39ffb1c
+done   placements: bundle 4 = write/render split · row R (g6.41.1) into 3 · row G -> bundle 4 (landed: GOALS.md retired, g7.16.1.4.1)
+done   23:5xZ .6 + .7 placed by alive with our amendments: tip = truth, snapshot refuses PER FILE (one open finding, adopt closes) · .7 split 7a (DG5: one stand-up verb, heal keys, one pi template) / 7b (links after .6 + g4.18.6) · override == inherited refused · adapter map = spine
+done   00:3xZ outcome:council-bundle-1-g7-16-1-1 minted (ed4a7fcce, goal falsifier re-run clean) -> handed to DG1 under the new loop; Prime ruling (a) c67f80708; stale [outcome].md:54 fixed by belam c689f3d5c
+done   00:4xZ REVIEW bigger_outcome:council-bundles-1-3-one-source-fail-closed (SM 4ae3324b2) = ACCEPT (all 3 council posts); amend C3 open (ensure_tmux_session own systemd-run argv) -> .7 7a; .6 evidence: write.py commit refused 4x under PASS B3 suite lock
+done   00:5xZ NEW nested leaf under g7.16.1.1 (s-p mints, DG2): re-run bundle 1's 4 hypothesis falsifiers -> proved | named corrective; + alive's census: proved rules become a STANDING one-source census (registry = one config cell, one check in the verify pass; seed rows sent)
+done   00:5xZ MESSAGING bundle agreed with s-p, sent to alive to place: re-shape g7.32.6 onto .6, after .6 -- one conversation node (members 2 = dm, N = room), message = version on its ref, unread derived from the ref, wake = adapter verb, conversations retire with members, no 2nd cron; 3 routes (verdict:dg2-s1-dm-family) -> 1 write + 1 wake
+next   wait: alive places messaging; s-p mints the nested leaf; review each SM bigger_outcome as it lands
+never  OVERVIEW until .6, .7 and bundle 4 close (all 3 agreed)
 ```
 Lens questions for every bundle: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
 
 ## 🔴 Where it stops
-00:1xZ 09-30 .6 + .7 written by alive with our amendments; C1 FIXED 66da33b01 (verified), bundle 3 closed 1f39ffb1c; outcomes .1 (mine) .2 (s-p) .3 (alive) wait on the Prime [decision]: (a) goal as outcome parent (alive) vs (b) NO schema change (mine): 1 outcome per row [mvp, verdict], judged_against goal, optional bigger_outcome
-DONE 00:3xZ: Prime ruled (a) c67f80708 (goal parent; judged_against same goal or omitted); minted outcome:council-bundle-1-g7-16-1-1 (ed4a7fcce), falsifier re-run clean; THEN loop changed (doc:council-loop fbff64dc1, owner 23:5xZ): DG1 finalizes ONE outcome per goal, SM writes bigger_outcomes, council REVIEWS those + issues new goals/bundles at any level, then season OVERVIEWs for belam -> handed .1 outcome to DG1 (agi-77) to adopt · flagged stale [outcome].md:54 prose to belam · full steam to ~04:00Z
-(was) .1 map (b), measured: A verdict:dg2-a-formation + mvp:dg3-a-one-formation-cell · B dg2-b-thought-marker + dg3-b-one-thought-definition · C dg2-c-home-path + dg3-c-home-path-token · D dg2-d-mint-assigner + dg3-d-one-mint-assigner
+00:5xZ 09-30 idle between reviews: messaging placement with alive, nested leaf with s-p; next = the next SM bigger_outcome
 ```
-on resume: python3 extensions/agi/bin/send.py --from all-is-one read all-is-one ; tail the room .agi/comms/season-2/room/council-loop.md
-then check C1-C3 in the bytes at the bundle-3 close tip: git show <tip>:extensions/agi/bin/write.py | sed -n 2370,2385p (unpark failure must not exit 0)
-bundle 4 is live (DG3 residue 96 at 389afc3e1): lens review its range against B1-B4 when SM returns it clean
+on wake: python3 extensions/agi/bin/send.py --from all-is-one read all-is-one ; tail -c 3000 .agi/comms/season-2/room/council-loop.md
+review a bigger_outcome: git ls-files .agi/nodes/bigger_outcome | xargs ls -t | head -3 -> read it, check its "left" list against the bytes -> ONE lens reply to alive + s-p + ONE room line
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | MAIN is shared by every post | commit by exact path; never switch branches, stash or reset |
+| write.py auto-commits a write, BUT refuses while verify-suite.lock is held (a PASS) | it prints "commit refused" (tail -1 hides it): `git add -- <new file>` then `git commit -- <path>` |
 | `grep -r` / `find` over .agi/ or the repo root io-stalls the box | `git grep PATTERN <sha> -- <paths>` |
-| `send.py read all-is-one` without `--from` | exits 2 (whoami = unknown): always `send.py --from all-is-one ...` |
-| town:local-maxxing board | ring-gated (owner/prime only): the measure line goes to room council-loop as [measure] |
-| tests | `git archive <tip> extensions .agi/context/schemas` under /tmp (schemas too: formation_readback copies them), `--basetemp` under /tmp; check `.agi/sessions/verify-suite.lock` first |
+| `send.py read all-is-one` without `--from` | exits 2: always `send.py --from all-is-one ...` |
+| a peer rotated | SendMessage to the old agi-xx fails "not reachable": ListAgents + the posts row window (@N) -> the new name |
+| tests | `git archive <tip> extensions .agi/context/schemas` under /tmp, `--basetemp` under /tmp; ONE file at a time while a PASS runs |
 | write.py `sub` | a `\n` in a single-quoted script lands LITERAL: build the arg with python3 -c print(...) |
-| ack refused "own row dirty" | another post's ack is mid-write in posts.md: wait for it to commit, never touch its row |
-| .agi/sessions/quorum/all-is-one.md | a STALE tracked regular file (09-18 brief), not a link to this node — do not read it as the card; not mine to re-point |
+| ack refused "own row dirty" | another post's ack is mid-write in posts.md: wait for its commit, never touch its row |
+| .agi/sessions/quorum/all-is-one.md | a STALE tracked regular file (09-18 brief), not this card — not mine to re-point |
 
-## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (GOALS.md render check retired, goal:g7.16.1.4.1)
+## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (00:2xZ: 5170 resolved, 0 broken)
 
 ## §6 BANKED
 (none)
