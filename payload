@@ -3,7 +3,7 @@ name: agi-master-gate
 description: >
   A master's gate for a director's merge-up onto its town trunk: the merge-tree / commit-tree
   landing that never stages a merge, what the range carries (config:posts cells, evidence
-  demotions, kid-committed nodes, stale GOALS.md), the suite on tmpfs and how to attribute a
+  demotions, kid-committed nodes), the suite on tmpfs and how to attribute a
   red, the .agi/context runs the engine suite cannot see, and reading verdicts, reviews and
   residues from the bytes. Use whenever a master gates, lands or returns a merge-up.
 ---
@@ -30,9 +30,7 @@ merge-ups    the WHOLE history rides: list the tip's merges yourself (git log --
              · locations.shared_project_root(<any worktree>) = MAIN's .agi: a gate-worktree run reads MAIN's config -> to measure a config
              change before landing, patch locations.load_config in-process with the gated config.json
              · a PARTIAL research round may land when its node says pending by its own preregistered rule; the landing message says what is missing
-             · a tip's GOALS.md can be STALE against its own goal-node edits (mu 12, gen 27: --check MISMATCH on the gate tree) -> render in a
-               SECOND worktree of M, hash-object -w, land T2 with that blob swapped in (temp index), name it; tell the director the rule
-             · EVERY landing runs snapshot-goals.py --render --check, code merge-ups too: #13 minted goal:g7.33.12 without heading_level and the render has refused since
+             · GOALS.md and its render --check gate retired 2026-09-29 (goal:g7.16.1.4.1): no landing renders or checks it
              · commit-tree <gated tree> -p HEAD is ONLY safe when HEAD^{tree} == the gated base tree: ASSERT it and ABORT on a mismatch
                (13:31Z 09-27: the watch committed DE's gen-30 rotation between gate + land; my `[ ] && echo` printed nothing and I landed anyway
                -> reverted 3 rotation files, pushed; restored d0c1eba0b) -- else re-derive T2 = merge-tree(live HEAD, gated commit)
