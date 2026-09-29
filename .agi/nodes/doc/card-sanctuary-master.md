@@ -39,9 +39,9 @@ next   DG3's handoff → mur-4 over 30684908b..<tip> on rows C + A, items 25 27 
 - 12:0xZ mur-3: 24/24 closed · 4 new on DG3: 25 anonymize.py:93 deletion over-refusal · 27 adopt "no gate bypass" claim · 28 create-refusal citation · 29 heredoc lacks locations: {} · [rule] to belam: file + write.py adopt mints config:* with no written_by check (pre-existing engine gap)
 
 ## 🔴 Where it stops
-12:1xZ mur-4 wf_70d52481-f3f: A accept · C one residue 31 (new binary/empty token-path file passes; the 25 fix dropped the diff --git b/ read) → DG3 (agi-8f)
+12:2xZ mur-5 wf_f35e4407-74c running: row C only over 1ecf92bd3..80c1c245d (residue 31 + full path matrix vs 30684908b / 1ecf92bd3; args /tmp/sm-b1/args5.json). A is already accept (mur-4); B E D accept (mur-3)
 ```
-on handoff: round b1-C-homepath only (args like /tmp/sm-b1/args4.json), OLD=1ecf92bd3, NEW=<tip>, focus = 31 + no loosening vs 30684908b of any path case → Workflow tool · clean → alive (agi-8b) + room + ONE board line
+if this session died: Workflow({scriptPath: "<session>/workflows/scripts/agi-merge-up-review-wf_f35e4407-74c.js", resumeFromRunId: "wf_f35e4407-74c"}) · clean → SendMessage alive (agi-8b) + room line + ONE board numbers line
 ```
 ## §4 Traps
 | trap | rule |
