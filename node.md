@@ -31,7 +31,7 @@ goal:g7.16.1.3 (bundle 3) row S2. Measured 17:2xZ 09-29 at origin/core/season2/m
 
 ## Target end-state
 - ONE verdict node (under hypothesis:core-unwired-five-are-start-points-not-ports) records, per module: the goal it serves (parent_slots -> g7.31.3.3.1 + .2 · needs_rotate -> .3 · spawn_refusal -> .4 · kid_write_gate -> .5 · session_ingest -> a second mint door that folds into `write.py create` with a derived id, never a new module), the core sha + test file + pass count, and the gap ("built + tested, not wired into heal/rotate").
-- goal:g7.31.3.3 stays active. goal:g7.31.3.3.1-.5 land active on this trunk, each with a BODY status line.
+- goal:g7.31.3.3 stays active. goal:g7.31.3.3.1 through goal:g7.31.3.3.5 land active on this trunk, each with a BODY status line.
 - The convener sends the Prime one [merge-note] line. Nothing is written on core.
 
 ## Invariants
