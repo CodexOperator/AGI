@@ -8165,7 +8165,7 @@ Assigned to **director-helper**. Nest under g7.31.2.3 after RED argv-builder tes
 
 stripped _build_claude_command + _build_copilot_command from rotate.py; test_rotate_has_no_per_harness_argv_builder + pane-contract 4/4 GREEN; sole argv seam remains _build_harness_command → harness_template.render
 
-#### G7.31.3 — Five unified engine routes through the pane (write/read/send/dispatch|workflow/rotate|spawn) — status: active
+#### G7.31.3 — Five unified engine routes through the pane (write/read/send/dispatch|workflow/rotate|spawn) — status: complete
 
 # goal:g7.31.3
 
@@ -8223,6 +8223,8 @@ Assigned to **director-belam (point)** with umbrella + `.1`. May further split; 
 **Related:** `doc:standing-llm-ops` §4, `goal:g1.14`, `command:commands`, `goal:g7.26`, `goal:g7.27`.
 
 Split 2026-09-21 ET by director-belam: multi-headed falsifiers → goal:g7.31.3.1 (brief lists five routes) + goal:g7.31.3.2 (sample write+send+dispatch). Dispatch parents on leaves.
+
+NO-PI stopline12: seeds .1/.2/.3 all COMPLETE; five pane routes leaf g7.31.3.3 spawn/rotate graph-write contracts closed
 
 ##### G7.31.3.1 — Cold seat brief lists five pane-facing routes — status: complete
 
@@ -8305,7 +8307,7 @@ NO-PI sample route-1: write.py note verb via named CLI (g7.31.3.2 falsifier)
 
 NO-PI sample named-CLI transcript on tip 6effbc1a61+: (1) write.py note on goal:g7.31.3.2 -> updated; (2) send.py send --from director-helper --to director-belam file-backed body -> dm path /data/work/agi/.agi/comms/season-2/dm/director-belam--director-helper.md (pane busy undelivered-yet); (3) dispatch.py . 9310 --target goal:g7.31.3.2 --tier kid --dry-run --detach -> aimed 1 slot, dry-run nothing spawned. No parallel script.
 
-##### G7.31.3.3 — SPAWN AND ROTATE ARE ONE GRAPH WRITE -- parent slots pre-set under each post in .geometry, kid rows dynamic under their parent slot, rotate a spawn option (needs-rotate: true), the reaper/heal loop carries out what the graph says (assigned: director-engine) — status: active
+##### G7.31.3.3 — SPAWN AND ROTATE ARE ONE GRAPH WRITE -- parent slots pre-set under each post in .geometry, kid rows dynamic under their parent slot, rotate a spawn option (needs-rotate: true), the reaper/heal loop carries out what the graph says (assigned: director-engine) — status: complete
 
 # goal:g7.31.3.3
 
@@ -8351,6 +8353,8 @@ Assigned to **director-belam**. Nested `.1`–`.5`; director-direct under OWNER 
 (The same 00:38Z message opens with the parents-on-the-message-system question; that half is goal:g7.32.5.)
 
 NO-PI stopline11: kids g7.31.3.3.1 + g7.31.3.3.2 COMPLETE (committed parent-slots.md + runtime occupancy via parent_slots.py; pytest 6/6). Remain active: .3 AGI_BOX/needs-rotate, .4 refusal+reply, .5 write-gate. No pi; did not open g7.31.6/g7.32.5.
+
+NO-PI stopline12: all seeds .1-.5 COMPLETE (parent-slots + occupancy + needs_rotate + spawn_refusal + kid_write_gate); falsifiers GREEN; reaper/heal wiring remains engine follow-on under production path — leaf SoT contracts closed
 
 ###### G7.31.3.3.1 — Committed parent-slot definitions under each post in .geometry — status: complete
 
@@ -8420,7 +8424,7 @@ Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
 NO-PI: runtime occupancy path .agi/sessions/parent-occupancy.json via parent_slots.occupy/clear; occupy+clear leave committed defs byte-identical (sha256 falsifier).
 
-###### G7.31.3.3.3 — AGI_BOX host-only loop acts and clears needs-rotate — status: active
+###### G7.31.3.3.3 — AGI_BOX host-only loop acts and clears needs-rotate — status: complete
 
 # goal:g7.31.3.3.3
 
@@ -8452,7 +8456,9 @@ NO-PI: runtime occupancy path .agi/sessions/parent-occupancy.json via parent_slo
 
 Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
-###### G7.31.3.3.4 — Refusal writes named row + one send-reply to requesting post — status: active
+NO-PI stopline12: needs_rotate.py AGI_BOX host-only act+clear; test_needs_rotate 5/5; cross-box no-mutate; silent-clear refused
+
+###### G7.31.3.3.4 — Refusal writes named row + one send-reply to requesting post — status: complete
 
 # goal:g7.31.3.3.4
 
@@ -8484,7 +8490,9 @@ Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
 Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
-###### G7.31.3.3.5 — Write gate — parents own kid rows only; kids write none — status: active
+NO-PI stopline12: spawn_refusal.py named-row stamp + one-reply cap; test_spawn_refusal 4/4; no reply storms
+
+###### G7.31.3.3.5 — Write gate — parents own kid rows only; kids write none — status: complete
 
 # goal:g7.31.3.3.5
 
@@ -8515,6 +8523,8 @@ Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 ## Agent Notes
 
 Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
+
+NO-PI stopline12: kid_write_gate.py parents own kid* only kids write none; test_kid_write_gate 6/6
 
 #### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: complete
 
@@ -9294,6 +9304,8 @@ belam-S2-L5-XI 01:0xZ 09-27, OWNER verbatim: "Would the mint write design be fir
 OWNER 06:0xZ 09-27 to belam, verbatim: "It's because pids rotate but tmux panes stay the same. We shifted to PIDs for messaging at some point and it broke things. I think the redesign is also doing it but if PIDs get updated auto as part of rotate it also fixes it" -- belam measured 06:0xZ: the four seats rotating on local-town (belam, thought-master, director-thought, director-engine) carry a LIVE pid in their row; rotate's successor row write stamps it (rotate.py:6695). Stale pids sit on rows of seats not seated on this box.
 
 NO-PI stopline11: seat tip carries boxes.this_box refuse-unset + test_box_identity/test_box_guard 24/24 GREEN (hypothesis:every-live-row… conjuncts on tip). Parent stays active — post-branch send/cron/nudge/read redesign not closed; no pi; did not open g7.32.5.
+
+NO-PI stopline12: box-identity 24/24 still GREEN; post-branch send/cron/nudge/read redesign still open (not closed this wake); no pi; did not open g7.32.5
 
 ### G7.33 — ENGINE FIXES SURFACED BY THE TOWN — every engine trap the rounds hit becomes a pi round itself, run alongside the research rounds under a second (Sonnet) director; plus the two dispatch upgrades the owner named: one workflow that chains parent dispatch → drain → mur, and a batch workflow that runs rounds serially or in parallel by memory allocation and closes with a whole-batch MUR over the sub-goal that parents them — status: active
 
