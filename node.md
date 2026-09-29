@@ -59,14 +59,14 @@ belam (Prime, Opus) ── the loop brief · rows/spawn · merge-up review · KE
   upward traffic: a merge-up (numbers), a Prime-only decision, a rotation line, a red merge, a rule change
 ```
 
-Prime/SM reading: two persistent Claude seats plus one Sonnet helper is the whole active set; every other post idle. Neither director is pinned to a goal — goal:g7.16 records the formation, nobody owns it (L28 above). The point is the helper's Keep: director-to-director talk is otherwise forbidden, and this is the one sanctioned exception (goal:g7.16.2). Work lands per seat on `seat/<name>@s2` branches and is merged by the point at session complete, never per rotation (goal:g7.16.2); grid commits run only on the season branch after that merge (goal:g7.16.2).
+Prime/SM reading: two persistent Claude seats plus one Sonnet helper is the whole active set; every other post idle. Neither director is pinned to a goal — goal:g7.16 records the formation, nobody owns it (the owner verbatim quoted above). The point is the helper's Keep: director-to-director talk is otherwise forbidden, and this is the one sanctioned exception (goal:g7.16.2). Work lands per seat on `seat/<name>@s2` branches and is merged by the point at session complete, never per rotation (goal:g7.16.2); grid commits run only on the season branch after that merge (goal:g7.16.2).
 
 ## What it bootstraps in the next (doc:l4-formation-3-hybrid-gradual-expansion)
 
 Prime/SM reading, each item traceable to a line above or in the sources:
 - **The two-seat split-and-merge is the atom F3 repeats.** A master handing a brief to ONE director, who works in its own worktree and merges up for review by name, is the point/helper shape re-pointed one rung up. F3 was declared as exactly that: "a single director to do their bidding" per activated master (doc:l4-owner-decisions L765).
 - **The relay path became the figure-eight.** Owner input entering at a director seat and reaching the Prime verbatim (L573) is the upward half of F3's loop — directors "circle around in a figure eight towards you, reporting their completion status" (doc:l4-owner-decisions L765).
-- **The report rule is now standing for every director** (L105), so each F3 director arrives already bound to numbers-only merge-ups and reads-the-bytes review.
+- **The report rule is now standing for every director** (goal:g7.16.2, "a new standing order for all directors"), so each F3 director arrives already bound to numbers-only merge-ups and reads-the-bytes review.
 - **The helper seat survived as the first specialised post.** F3 opened by pulling the helper down (doc:l4-owner-decisions L725) and the same night the owner offered to keep him as director-review: "if you wanted to leave the director-helper up, you could make him your director-review and send mur's to him to execute and review the consolidate/verify workflow for you" (doc:l4-owner-decisions L729) — the Prime took it (L731). The merge-up review being run by name through the workflow router was itself a two-step ruling (goal:g7.16.2).
 - **Rotation as a monitor, not a memory.** The helper missing its own meter — "also helper is not rotating they forgot to track their context meter. This too is a coin flip action that needs a monitor and automated reminder to populate into a turn once its time to rotate" (goal:g7.16.2) — is the defect that makes every F3 post rotate on a hook, not on recall.
 - **Town branches.** The rule that other towns branch off core so "the two-step works in another town" without touching core (doc:l4-owner-decisions L585) is the branch grammar F3's town masters (stream, thought) inherit.
@@ -83,11 +83,11 @@ Prime/SM reading, each item traceable to a line above or in the sources:
 Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'`, ONE call (Prime / owner), read back by verification.py `formation`.
 ## Status
 
-Ran. Ordered 2026-09-09 in the L4-I plan session (goal:g7.16.2); first split round measured 2026-09-10 (goal:g7.16.2); parallel rounds from 2026-09-10 (L57). Ended as a formation 2026-09-12 22:2xZ when the owner ordered the helper pulled down and the Sanctuary Master stood up (doc:l4-owner-decisions L725) — the point went on answering to the Prime direct with no helper, and the helper post was re-seated as director-review at 23:0xZ (L729, L731). Season 2 throughout. The predecessor is doc:l4-formation-1-prime-only; the successor doc:l4-formation-3-hybrid-gradual-expansion.
+Ran. Ordered 2026-09-09 in the L4-I plan session (goal:g7.16.2); first split round measured 2026-09-10 (goal:g7.16.2); parallel rounds from 2026-09-10 (goal:g7.16.2, "go for parallel rounds"). Ended as a formation 2026-09-12 22:2xZ when the owner ordered the helper pulled down and the Sanctuary Master stood up (doc:l4-owner-decisions L725) — the point went on answering to the Prime direct with no helper, and the helper post was re-seated as director-review at 23:0xZ (L729, L731). Season 2 throughout. The predecessor is doc:l4-formation-1-prime-only; the successor doc:l4-formation-3-hybrid-gradual-expansion.
 
 ## Sources
 
-- goal:g7.16.2 (the formation, owner verbatim L26/L28 and the seat diagram), L53-L57 (worktree protocol, parallel-rounds order), L103-L105 (seat protocol), L157 (meter/rotation), L263 (review by name), L392 (the pull-down applied).
+- goal:g7.16.2, anchored by topic, never by line (its body moved and the lines shifted): the formation (owner verbatim + the seat diagram) · worktree protocol + the parallel-rounds order · seat protocol · meter / rotation · review by name · the pull-down applied.
 - doc:l4-owner-decisions L265 (survival mode base), L311/L364/L391 (survival mode GO), L541 (dial up pi concurrency), L573 (two-step relay), L585 (town branches), L725/L729/L731 (F2 → F3 transition), L765-L767 (the figure-eight), L773-L775 (the formations order).
 - goal:g15 (parent; the sanctuary goal the owner named as the formations' home).
 - doc:l3-command-ladder-brief L338 (the 2026-09-08 owner text that began survival mode).
