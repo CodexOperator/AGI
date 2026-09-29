@@ -6,7 +6,7 @@ parents:
   - hypothesis:unify-real-repo-guard-fails-closed-and-names-this-checkout
 next_edges: []
 confidence: 0.6
-edited_by: a00-435f7d54
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-a34eb635-78a309
 loop: hypothesis:unify-real-repo-guard-fails-closed-and-names-this-checkout@s2
@@ -29,7 +29,7 @@ Built the fix for hypothesis:unify-real-repo-guard-fails-closed-and-names-this-c
 
 Pre-fix state measured on the bytes:
 - `unify.py` `_real_repos()` returned `()` when no `box.root` cell existed, and `_FORBIDDEN_REAL_PATHS` was frozen at import — so the guard failed OPEN.
-- The live `box.root` cell names `/home/ubuntu/work/agi`, a path absent on this box, while this checkout's git common root is `/data/work/agi`. The guard protected another box's repo.
+- The live `box.root` cell names `<home>/work/agi`, a path absent on this box, while this checkout's git common root is `/data/work/agi`. The guard protected another box's repo.
 - `_touches_a_real_repo()` returned a bare bool, so the refusal could not name the real repo it matched.
 
 Fix (FILE SCOPE only — `unify.py` + `test_unify.py`):
@@ -62,7 +62,7 @@ $ env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_unify.py 
 Live probe (read-only; HAZARD respected — no unify run against the real repo, guard refuses before any write):
 ```
 common root: /data/work/agi
-forbidden: ['/home/ubuntu/work/agi', '/home/ubuntu/work/agi-tree',
+forbidden: ['<home>/work/agi', '<home>/work/agi-tree',
             '/data/work/agi', '/data/work/agi-tree']
 touch /data/work/agi: /data/work/agi
 touch /data/work/agi-tree: /data/work/agi-tree
