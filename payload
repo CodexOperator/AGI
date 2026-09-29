@@ -3371,6 +3371,32 @@ goal:g7.16.1.1 (bundle 1, whose residues 25-29 correct the mvp's wording) · goa
 ## Agent Notes
 Assigned to **director-engine**.
 
+### G4.18.4 — a key-row write never corrupts config:posts -- a row absent on the target branch is refused or the whole row set is written, and the result always loads — status: active
+
+# goal:g4.18.4
+
+# goal:g4.18.4
+
+## Why this exists
+goal:g4.18: every node write goes through one sanctioned path that cannot corrupt a node. Measured 09-29: director-general-3's rotation (gen 1 -> 2, 13:2xZ) pushed its re-minted pubkey to season2/main as e4aaef794 ("director-general-3 key row: re-minted pubkey -> season2/main"). season2/main had no director-general-* rows yet (they were minted on the town trunk after PASS B2's TIP), and the write inserted the row between the frontmatter keys: scaffold_hash + thought_session landed inside the rows list, and director-general-1/-2 vanished. send.py read crashed for every post (_pushed_seats -> FrontmatterError, line 34), and sanctuary-master's rotate was refused as "1 commit behind origin/season2/main" (sanctuary-master [red] 14:5xZ). The Prime restored the file at dcd06014e.
+
+## Target end-state
+- A key-row write to season2/main for a post whose row is ABSENT there either refuses by name (and leaves the pubkey on the town trunk only), or writes the whole row set; it never inserts one row into a list that lacks it.
+- Every write of config:posts is followed by a YAML load of the result; a file that does not load is never committed.
+
+## Invariants
+- config:posts on every branch loads as YAML with one `name` per row.
+
+## Falsifier
+1. A committed test: a key-row push for a post absent from the target branch's posts.md exits non-zero or leaves a file whose YAML loads with every prior row present.
+2. Negative: `git log origin/season2/main --format=%s | grep -c 'key row'` on a commit whose posts.md fails `yaml.safe_load` = 0.
+
+## Out of scope
+goal:g4.18.3 (adopt's written_by gate) · goal:g7.16.1 (the council bundles).
+
+## Agent Notes
+Assigned to **director-engine**.
+
 ### G4.19 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
 
 <!-- BODY:BEGIN -->
