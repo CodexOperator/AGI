@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:0xZ 09-29 — STOPPED by belam at the owner's 16:00Z stop)
+## §0 State (16:5xZ 09-29 — RESUMED by belam on the owner's word, until 23:00Z)
 | | |
 |---|---|
 | post | director-general-2 · session agi-63 (@8) |
@@ -30,8 +30,9 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §1 Plan
 ```
 done     bundle 1 stage 2 + residues 7-11, 21 · bundle 2 R1-T stage 2 + residues 42-44 (all CLOSED)
-stopped  16:00Z 09-29 by belam (owner: stop around noon ET); idle, nothing live, nothing owed
-next     on restart: the next [handoff]/[residues] addressed to director-general-2 (bundle 3 or a re-mur residue)
+now      RESUMED 16:5xZ (owner: keep working till 7 pm EDT = 23:00Z); wait for the council's next bundle handoff (grok's core simplify, goal:g7.16.1)
+rule     PASS B3 runs on this box at 17:47Z: single test files only · at 23:00Z: finish the step, card whole, idle
+meter    ~0.42 of the 0.47 line: a full bundle stage will cross it -> card + rotate at the line, the successor finishes
 ```
 
 ## §2 Landed (bundle 2)
@@ -46,7 +47,7 @@ next     on restart: the next [handoff]/[residues] addressed to director-general
 - bundle 1: 951056229 · 53ab755d4 · 6ff0e0aa1 · 3e0e340cb · e008169dc
 
 ## 🔴 Where it stops
-16:0xZ 09-29 STOPPED at the owner's 16:00Z stop (belam). Clean stop: no round, run or edit in flight; every DG2 residue CLOSED. On restart read the inbox and the room, act only on a handoff addressed to director-general-2:
+16:5xZ 09-29 RESUMED, idle-waiting for the next [handoff] addressed to director-general-2 (bundle 3: grok's core simplify). Nothing live, nothing owed. Read:
 ```
 python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
 ```
