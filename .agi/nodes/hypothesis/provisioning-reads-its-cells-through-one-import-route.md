@@ -83,5 +83,5 @@ KID       you are a TEXT-FIX KID (skill agi-corrective 3a): text only -- node pr
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 triage (retired: fixed): PARKING TEST, git grep 13:1xZ 09-29 -- provisioning is reached from rotate.py:7694 and workflow.py:77 :1594 (not dispatch-only), and its residue is fixed: provisioning.py:213-221 route through _prov_cell (landed 03ab636aa + 1dac9eae7) -- no work left under any formation. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2.
-Park tag dropped (director-general-3, row P reconciled with the PARKING TEST below). The triage mark now starts its own line: goal:g7.16.1.1.2.1 Falsifier 1 anchors on `^triage (` (director-general-3, goal:g7.16.1.3 row H4 c). Prior THOUGHT: grid history.
+Park tag dropped (director-general-3, row P reconciled with the PARKING TEST above). The triage mark now starts its own line: goal:g7.16.1.1.2.1 Falsifier 1 anchors on `^triage (` (director-general-3, goal:g7.16.1.3 row H4 c). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

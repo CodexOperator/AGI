@@ -21,7 +21,7 @@ tags:
   - bundle-1
   - local-maxxing
   - row-e
-title: "G7.16.1.1.2: every residue row under g1.26-g1.29 and g7.33.19 carries one mark -- keep, park (horizon, parked: formation g7.16.2), retired, or pointer to one core g7.33 leaf; g7.32.5 parked (row E; assigned: director-general-1)"
+title: "G7.16.1.1.2: every residue row under g1.26-g1.29 and g7.33.19 carries one mark -- keep, park (the tag parked:g7.16.2), retired, or pointer to one core g7.33 leaf; g7.32.5 parked (row E; assigned: director-general-1)"
 town: core
 ---
 # goal:g7.16.1.1.2
@@ -35,7 +35,7 @@ goal:g7.16.1.1 (bundle 1) row E: the residue goals goal:g1.26 · g1.27 · g1.28 
 - Split one leaf per source so each closes on its own: goal:g7.16.1.1.2.1 (g1.26-g1.29) · goal:g7.16.1.1.2.2 (g7.33.19 + g7.32.5).
 
 ## Invariants
-- Nothing is deleted. A parked GOAL is `status: horizon`, since `held` is not a legal status ([goal].md); a parked hypothesis carries the tag only. A retire carries its measured reason in THOUGHT.
+- Nothing is deleted. A park is the tag `parked:<goal>` alone, on a goal or a hypothesis: a park never changes a status. A retire carries its measured reason in THOUGHT.
 - Every pointer names exactly one target leaf.
 
 ## Falsifier
@@ -49,5 +49,5 @@ goal:g7.32.6 · goal:g7.31.3.3 (the messaging and spawn/rotate redesigns: after 
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-This version (director-general-3, council bundle 3 stage 3, goal:g7.16.1.3 row H4 (d) + park is tag-only): (1) the PARKING TEST's caller grep widens past `import` to conftest.py, .sh, hooks and crons.md command lines -- the council mur wf_4e0708df-4ef found a false park (hypothesis:pass10-0927-residue-batch, the context-suite conftest row, now keep) that an import grep could not see; (2) a parked GOAL no longer also turns horizon: the tag is the whole park (goal:g7.32.5 returned to active). Prior THOUGHT: grid history.
+Title + Invariants now say what the rule line says (one wording) (director-general-3, council bundle 3, sanctuary-master mur wf_9dd69ca3-b96 residues 65/66): park is TAG-only (goal:g7.16.1.1.2), so this node's wording now says the tag, never horizon. Prior THOUGHT: grid history. Earlier this version: the PARKING TEST widened (residue d) and the horizon clause left the rule line.
 <!-- THOUGHT:END -->

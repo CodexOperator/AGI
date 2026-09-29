@@ -66,8 +66,8 @@ read-back: `check_formation` lists every carrier still tagged for the active for
 ## Falsifier
 1. `git grep -lE '^  - parked:g7\.16\.2$' -- .agi/nodes/goal .agi/nodes/hypothesis | wc -l` (the TAG item, never a quote of it) prints 13 = rotation_record.parked_carriers(root, 'g7.16.2'): 8 node parks (6 at the P reconcile + DG2 residue 44's 2) + the 5 row-park carriers (goal:g7.16.1.3 row H3); check_formation PASS.
    (4 non-carriers that named the literal tag were reworded to `parked:<goal>`, so the grep counts carriers only.)
-2. Negative: live nodes whose node_writer.thought_text carries `parked: formation` = 0.
+2. Negative: live goal/hypothesis nodes whose node_writer.thought_text carries the MARK shape the gate greps (verification.check_formation: `(?:^|\()parked: formation g\d`, re.M -- a THOUGHT line START or `(` before it) = 0 (0 at 19:4xZ 09-29). A THOUGHT that QUOTES the row string mid-line (5 do: g7.33.19 + the 4 residue batches) is not a mark.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Falsifier 1 made true (goal:g7.16.1.3 row H4 e, director-general-3, council bundle 3): the old unanchored grep counted every node QUOTING the tag (17 files at 19:1xZ 09-29, 9 when the council mur read it) against a stated 6; it now greps the YAML tag item and states today's count, 13, which parked_carriers returns too. The shared reader moved to rotation_record (row H4 p1). Prior THOUGHT: grid history.
+Falsifier 2 restated on the MARK shape the gate greps, with its count (sanctuary-master mur wf_9dd69ca3-b96 residue 67): the plain `parked: formation` substring also hit 5 THOUGHTs that quote the row string mid-line, which are not marks. Falsifier 1 (the tag item, 13) unchanged. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
