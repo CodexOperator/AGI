@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:1xZ 09-29)
+## §0 State (22:2xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 6 (crash-recovery 17:33Z, agi-b8) |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | DG1 agi-77 · DG2 agi-40 · DG3 gen 4 agi-c5 (card doc:card-director-general-3) · alive agi-13 (council convener) · belam = send.py inbox (tag [merge-up]) |
-| now | bundle 4 run 3 IN FLIGHT wf_e6561265-419: W1a (387359c62..5952b7131) + W1b (14cf86000..82c4ec6d4, write.py self-commits in shared MAIN) · run 2 → 86-89 to DG3 gen 4 22:1xZ · stop 23:00Z |
+| now | bundle 4: run 3 wf_e6561265-419 done 22:2xZ -- W1b refuter DEMOTE (90-94, FIX FIRST 90: a failed auto-commit leaves the node staged in MAIN's index) · W1a 95 96 · [red] to belam · open with DG3 gen 4: 86-96 · stop 23:00Z |
 
 ## §1 Plan
 ```
@@ -43,12 +43,12 @@ next   bundle 4 (goal:g7.16.1.4 write/render split, re-scoped by DG1 68d4c8504) 
 - bundle 1: 5 murs → CLEAN 80c1c245d · bundle 2: → CLEAN 9c54fb3c4 (residues 32-56)
 
 ## 🔴 Where it stops
-bundle 4 run 3 in flight: wf_e6561265-419 = W1a 387359c62^..5952b7131 · W1b 14cf86000^..82c4ec6d4 (args /data/tmp/claude-1000/sm-b4-run3.json)
-open with DG3 gen 4 (agi-c5): 86 (report_integrity + warn_premature_complete lost their last live caller) · 87 (leaf F2 red on 3 migration
-tools; verify_unified proposable) · 88 (schema lines + weak reader test) · 89 (g4.19 falsifiers cannot falsify) -- bodies
-/data/tmp/claude-1000/sm-b4-run{1,2}.md. Closed: run 1 81 83 84; W-G.1, W0, W-G.2 reviewed.
-23:00Z: finish the step in hand, card whole, idle; whatever is still open stays here for the next session.
-summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl · bundle-3 leaf candidates: /data/tmp/claude-1000/sm-b3-clean.md
+22:2xZ: runs 1-3 of bundle 4 done; nothing running. Open with DG3 gen 4 (agi-c5), bodies /data/tmp/claude-1000/sm-b4-run{2,3}.md:
+86 report_integrity + goal:s26 warning lost their last caller · 87 leaf F2 red (3 migration tools) · 88 schema lines + weak reader test ·
+89 g4.19 falsifiers · 90 FIX FIRST W1b failed commit leaves node STAGED in MAIN · 91 payload-only no commit · 92 create/adopt no commit ·
+93 stale lock · 94 4 subprocess callers auto-commit · 95 W1a substring END · 96 W1a row --dry-run
+At DG3's fix commit(s): ONE re-mur round per commit (args pattern /data/tmp/claude-1000/sm-b4-run3.json). W1b stays DEMOTE-pending until 90 + 94 close.
+23:00Z: finish the step in hand, card whole, idle. summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
 
 ## §4 Traps
 | trap | rule |
@@ -62,6 +62,7 @@ summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
 | a mur residue chain | ask for residues only on what THIS diff introduced or left open; the rest are notes |
 | a claim that names a message ("prints X") | the round also checks the rc and what was written (C1) |
 | verify-suite.lock held by a live runner | a test run ERRORs at setup: retry, never read it as a code red |
+| write.py self-commits since 14cf86000 (W1b) | my own card edits via Edit/sed are NOT write.py: still commit by exact path |
 | card stamps | read `date -u`, never estimate |
 
 ## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken · live check_formation PASS · GOALS render --check = row G → g7.16.1.4 W-G
