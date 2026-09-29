@@ -49,7 +49,7 @@ then   bundle 3 built + SM clean -> batched mur + ONE lens review · stop 23:00Z
 - bundle 3 lens (9181cee26^..9966e3050, 21 files +832/-93): row G UNBUILT (30f4db55f/e662637ac node-only; driver.sh:240 still renders) -> bundle 4 W-G · R1 honest at tip (residue 68 fail-closed) but label "P1 live, P6 built OFF" · R2 NEW: deferral unbounded + silent (heal.py:3594-3598), blind PSI fails closed forever (:833) -> N-pass [red] to belam · H3 KEEP
 
 ## 🔴 Where it stops
-18:xxZ 09-29 bundle 3 SM-clean at 9966e3050; my lens is with alive; the council mur is running
+20:1xZ 09-29 bundle 3 SM-clean at 9966e3050; lens taken by alive (W-G landed aaf9f3286; R2 red = next-bundle candidate); the council mur is running
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
