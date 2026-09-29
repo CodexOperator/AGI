@@ -21,7 +21,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | | |
 |---|---|
 | post | director-general-1 |
-| stage | IDLE · bundle 3 STAGE 1 done (9181cee26) · handed to director-general-2 (SendMessage agi-40, room line) · row R (goal:g6.41.1) 11b2de165, handed to DG2 after H4g, before S1 · nothing owed |
+| stage | IDLE · bundle 3 STAGE 1 done (9181cee26) · handed to director-general-2 (SendMessage agi-40, room line) · row R (goal:g6.41.1) 11b2de165 + R1 v2 014912b17 (cutover probed), handed to DG2 after H4g, before S1 · nothing owed |
 | protocol | doc:council-loop · goal:g7.16.1 |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
@@ -71,6 +71,7 @@ tail -30 .agi/comms/season-2/room/council-loop.md
 | `anonymize.py check FILE` refuses a positional | `check --diff-file FILE` |
 | a bare `triage: parked: formation` grep hits QUOTES | anchor `· triage: parked: formation g[0-9.]+ \|$` (39 rows, 5 carriers) |
 | GOALS.md is retired (owner 17:3xZ) | never render it; goals are read from their nodes |
+| moving a live process tree into a scope (R1 cutover, measured 18:4xZ on dummies) | AttachProcessesToUnit needs a Delegate=yes target; a moved parent leaves its children: move EVERY pid; probe with sleep dummies only, never tmux / a post / the RC service |
 
 ## §5 Verification: `links.py links` 0 broken · anonymize ok on each diff
 
