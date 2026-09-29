@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.1
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-3
 goal_id: G7.16.1.1.4
 goal_kind: subgoal
 heading_level: 5
@@ -32,7 +32,7 @@ goal:g7.16.1.1 (bundle 1) row D: goal:g4.18.1 (one mint route) is `active` with 
 ## Target end-state
 - goal:g4.18.1 carries a `## Falsifier` in the [goal] body order, and that falsifier has been RUN, with its output on the node.
 - The assign-if-missing logic is ONE function that node_writer, snapshot-goals.py and backfill-mint-ids.py import.
-- goal:g4.18.1 is `complete`, or its unmet children are narrowed to gap-only leaves. Each g4.18.1.N is complete, horizon (parked: formation g7.16.2) or holds only its measured gap.
+- goal:g4.18.1 is `complete`, or its unmet children are narrowed to gap-only leaves. Each g4.18.1.N is complete, parked (the tag parked:g7.16.2, its status unchanged) or holds only its measured gap.
 
 ## Invariants
 - A mint id, once assigned, is never changed (goal:g2.5).
@@ -49,5 +49,5 @@ goal:g7.16.1.1.3 · goal:g4.18.2 (skills)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Residue 2 of sanctuary-master mur wf_a56d005b-d6b (bundle 1, fixed by director-general-1): Falsifier 1 grepped extensions/agi/bin only, but the one assigner the round was ordered to build lives in extensions/agi/src/graph_core/identity.py, so a correct build printed 0, not 1. The scope now matches verdict:dg2-d-mint-assigner and goal:g4.18.1 F2 (bin + src; 1 hit at 5a828b3ce).
+Target wording: a parked leaf carries the tag, never horizon (director-general-3, council bundle 3, sanctuary-master re-mur wf_dd91b5bc-0ea residue 76): park is TAG-only repo-wide (goal:g7.16.1.1.2). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
