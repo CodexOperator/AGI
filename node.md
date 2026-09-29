@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: alive
 goal_id: G7.16.1.7
 goal_kind: subgoal
 heading_level: 4
@@ -35,6 +35,12 @@ town: core
 "So formations are templates containing empty link rows pointing to "null" that are set as part of formation activation, which writes the template into .geometry while filling in the link rows dynamically at stand up using a post template + customizations, which itself links a harness template, which can link various model templates. All graph based reusing existing graph machinery for the most part. We are basically implementing recursive dynamically linkable templates during the spawn rotate unification so we can leave all this template duplication behind in favor of nested templates."
 "Does that make sense? Then we can bring in the magic pane system as well since tmux is linked to posts."
 
+## OWNER 2026-09-29 23:3xZ, verbatim (Prime pane) -- answers to the Prime's three design points (override order · recursion guard · atomic swap)
+"1. Agreed. Makes it compatible with users, security groups, domain controller infra.
+2. Sounds good. Walk only across a max of say 5 steps. If it took more than that the template/.geometry formation graph likely got too complicated or templates got too complicated and need to be simplified again.
+3. Yup that works.
+Restart council including DG5 stand up. Then let them tackle the bundle and see how best to streamline it further."
+Settled: (1) nearest wins -- post customizations over the harness template over the model default (the locations.py rule); (2) a link walk stops at 5 hops with a cycle guard, and needing more is itself a finding: simplify the templates; (3) a config switch writes beside the old file and swaps the symlink by one rename.
 ## Why this exists
 goal:g7.16.1 (the council loop): the owner's next bundle after bundle 4 (goal:g7.16.1.4), minted by the Prime so the council places it whole. It stands on bundle 4: link rows are mint ids (goal:g4.18.6), a template is addressable by row (goal:g4.18.5 W1a), and every template version is a per-node grid commit (goal:g7.16.1.6). Today the same facts are copied across config:posts cells, config:brief parts, per-harness templates (pi-free vs pi local) and rotate.py / heal.py launch paths.
 
@@ -58,7 +64,7 @@ goal:g7.16.1 (the council loop): the owner's next bundle after bundle 4 (goal:g7
 
 ## Out of scope
 goal:g7.16.1.4 (bundle 4) · goal:g7.16.1.6 · the messaging-system redesign (its own bundle) · the magic pane system (after this bundle: tmux is linked to posts) · season-3 key templates and per-post user accounts.
-Inputs to absorb or retire BY NAME at placement, never duplicate: goal:g4.20.1 (one harness source) · goal:g1.9 + goal:g1.9.2 (one brief, the first turn is the render) · goal:g6.36 (rotate driven) · goal:g6.41.1 P2-P4 (one launcher, resume) · goal:g6.43 · goal:g6.46 · goal:g7.25 (third-party harness adapter) · goal:g1.11 (per-spawn keys).
+Inputs to absorb or retire BY NAME at placement, never duplicate: goal:g4.20.1 (one harness source) · goal:g1.9 + goal:g1.9.2 (one brief, the first turn is the render) · goal:g6.36 (rotate driven) · goal:g6.41.1 P2-P4 (one launcher, resume) · goal:g6.43 · goal:g6.46 · goal:g7.25 (third-party harness adapter) · goal:g1.11 (per-spawn keys). SPLIT BY DEPENDENCY (all-is-one lens 23:5xZ, council agrees): 7a NOW (DG5) = ONE stand-up verb for spawn, rotate, heal recover and hand restart (absorbs goal:g6.41.1 P2-P4 and heal's launcher copy) · heal assigns keys · ONE pi template with JSON model rows; 7b AFTER goal:g7.16.1.6 + goal:g4.18.6 = the formation -> post -> harness -> model link rows, the walk, the atomic swap. Long-horizon guards: an override EQUAL to what it inherits is REFUSED (customizations never accrete); the harness adapter map IS the spine (every harness maps onto the same engine verbs: write · send · render · stand-up; never a harness-only verb). PLACEMENT (council, alive 23:4xZ, on belam XVIII's resume + owner 23:4xZ): the SPAWN line, side by side with bundle 4 NOW; it never waits on goal:g7.16.1.6 -- write.py is the one writer, so this line's writes take the new write form automatically when it lands. Also absorbs, by name, the launch-path half of the old bundle-5 list on goal:g7.16.1.4: C3 one scope-argv builder through mem_cap · B1 one launcher (heal._launch_recovered -> rotate._launch_window) · B4 one config reader · the R2 alert (N deferred recoveries -> ONE [red]) · SM's rotate candidates (_launch_window ensure_tmux_session without root; same-second unit names; the rotation announcement's absolute handoff path). Shape conditions (self-perpetuating lens 23:5xZ): the walk limit (5 hops) is a CONFIG CELL, and a walk that exceeds it names the chain in ONE finding (a simplify leaf or a [red]), never a silent error; COLD-START falsifier: a fresh clone + ONE formation activation = a running formation, nothing else typed. Keep "absorb or retire BY NAME" for every input: duplicates breed at nine. OUTCOME test through vision:alive: a recovered or rotated post's brief IS its live card, every time (09-29 17:33Z: the recovery brief was rendered from a stale 09-18 file).
 
 ## Agent Notes
 Assigned to **the council** (placement).
