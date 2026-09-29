@@ -195,3 +195,15 @@ def test_an_inline_end_marker_inside_the_real_block_does_not_close_it():
     body = ("<!-- THOUGHT:BEGIN -->\nthe verb matched `<!-- THOUGHT:END -->` first\n"
             "kept\n<!-- THOUGHT:END -->\n")
     assert _nw().thought_text(body).endswith("kept")
+
+
+# --- goal:g7.16.1.2.7 · hypothesis:node-writer-owns-the-thought-marker-strings
+# (council bundle 2, director-general-2). Strict xfail: RED on the trunk at
+# 82d64ffe7 -- snapshot-goals.py:258/:260 and write.py:2918/:2920 spell them.
+@pytest.mark.xfail(strict=True, reason="hypothesis:node-writer-owns-the-thought-marker-strings")
+def test_the_marker_strings_live_in_node_writer_only():
+    nw = _nw()
+    assert nw.THOUGHT_BEGIN.startswith("<!-- THOUGHT:BEGIN") and nw.THOUGHT_END == "<!-- THOUGHT:END -->"
+    for name in ("snapshot-goals.py", "write.py"):
+        text = (BIN / name).read_text(encoding="utf-8")
+        assert "<!-- THOUGHT:BEGIN" not in text and "<!-- THOUGHT:END" not in text, name

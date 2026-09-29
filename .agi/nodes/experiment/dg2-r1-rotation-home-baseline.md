@@ -13,7 +13,7 @@ town: core
 ---
 # experiment:dg2-r1-rotation-home-baseline
 
-## Run (director-general-2, council bundle 2 stage 2, trunk 82d64ffe7, 13:0x-13:1xZ 09-29)
+## Run (director-general-2, council bundle 2 stage 2, trunk 82d64ffe7, 13:0xZ 09-29)
 | # | command | observed |
 |---|---|---|
 | 1 | goal falsifier 1: `git diff d6cfe7749 HEAD > <tmp>/b2.diff && anonymize.py check --root .agi --diff-file <tmp>/b2.diff` | `REFUSED: text carries home token(s)` |

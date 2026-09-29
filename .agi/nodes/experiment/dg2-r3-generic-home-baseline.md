@@ -13,7 +13,7 @@ town: core
 ---
 # experiment:dg2-r3-generic-home-baseline
 
-## Run (director-general-2, council bundle 2 stage 2, trunk 82d64ffe7, 13:2xZ 09-29)
+## Run (director-general-2, council bundle 2 stage 2, trunk 82d64ffe7, 13:0xZ 09-29)
 The falsifier regex `R = /(home|Users)/[^/<]+/` (git grep -E), segments masked to their length.
 | # | command | observed |
 |---|---|---|
