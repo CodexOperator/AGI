@@ -2319,8 +2319,8 @@ def cmd_spawn(args: argparse.Namespace, root: Path | None) -> int:
             pred_pid = int(pred_pid)
             dead = _pid_gone(pred_pid)
             _data = _registry_read(getattr(args, "registry_dir", None), pred_pid)
-            _tp = Path((_data.get("transcript") or transcript_from_registry_dict(_data)
-                        or "")).expanduser() if (_data.get("transcript")
+            _tp = Path(_resolve_record_path(_data.get("transcript")
+                        or transcript_from_registry_dict(_data))) if (_data.get("transcript")
                         or transcript_from_registry_dict(_data)) else None
             pred_death = _death_timestamp(_data, _tp)
         for ln in _compose_seating_base_block(
@@ -3008,7 +3008,7 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                 # The meter pin is the lease (prime XI 19:38Z): pin the
                 # successor's OWN transcript from the JOIN, but ONLY when no
                 # pin exists — never overwrite an EXISTING pin.
-                trans = join.get("transcript") or ""
+                trans = _resolve_record_path(join.get("transcript"))
                 if trans:
                     pinp = _sessions_dir(root) / f"{seat}{METER_PIN_EXT}"
                     if pinp.exists():
@@ -3076,7 +3076,7 @@ def cmd_ack(args: argparse.Namespace, root: Path) -> int:
                 window_path=getattr(args, "window_path", None),
                 ref=ref,
                 session_id=(srow.get("session_id") or "") if srow else "",
-                transcript_path=((srow.get("transcript_path") or "")
+                transcript_path=(_resolve_record_path(srow.get("transcript_path"))
                                  if srow else ""),
                 registry_dir=getattr(args, "registry_dir", None),
                 generation=args.gen)
@@ -5548,6 +5548,33 @@ def _preserve_audit(rec: dict, existing_path: Path | None) -> None:
         rec["audit"] = doc["audit"]
 
 
+def _home_rel(obj):
+    """`obj` with every string value home-relative (goal:g7.16.1.2.1): this
+    box's HOME -> `~`, any other box's home dir -> `<home>/`, through
+    anonymize's ONE definition. A committed rotation record never carries a
+    home path -- the path fields AND the log text (after_join cmd/output, ps
+    snapshots, re-homed records from another box)."""
+    if isinstance(obj, dict):
+        return {k: _home_rel(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_home_rel(v) for v in obj]
+    if isinstance(obj, str):
+        from anonymize import home_relative
+        return home_relative(obj)
+    return obj
+
+
+def _dump_record(obj) -> str:
+    """The ONE serializer for rotation records: home-relative, indent 2."""
+    return json.dumps(_home_rel(obj), indent=2) + "\n"
+
+
+def _resolve_record_path(value) -> str:
+    """The ONE reader for a path a record (or registry) carries: `~` expanded,
+    the absolute legacy form passed through unchanged; '' when absent."""
+    return os.path.expanduser(str(value)) if value else ""
+
+
 def _write_rotation_record(root: Path, record: dict,
                            path: Path | None = None) -> Path:
     """Write one JSON rotation record under `.agi/sessions/rotations/`.
@@ -5580,7 +5607,7 @@ def _write_rotation_record(root: Path, record: dict,
     _preserve_stops_sha(record, path)
     # (L5.02) nor the boundary rename's applied-surface table.
     _preserve_applied_rename(record, path)
-    path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    path.write_text(_dump_record(record), encoding="utf-8")
     return path
 
 
@@ -5682,7 +5709,7 @@ def _write_rotate_self_started(path: Path, *, seat: str, steps: list[str],
     # (L5.02) nor the boundary rename's applied-surface table.
     _preserve_applied_rename(rec, path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+    path.write_text(_dump_record(rec), encoding="utf-8")
 
 
 def _preserve_stops_sha(rec: dict, existing_path: Path | None) -> None:
@@ -6339,7 +6366,7 @@ def _write_seating_record(root: Path, record: dict) -> Path:
     seat = str(record.get("seat") or "anonymous")
     stamp = datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
     path = rot / f"{seat}.{stamp}.seating.json"
-    path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+    path.write_text(_dump_record(record), encoding="utf-8")
     return path
 
 
@@ -6386,7 +6413,7 @@ def _seating_record_merge_handover(root: Path, record: dict) -> str:
         merged = dict(rec.get("handover") or {})
         merged.update(handover)
         rec["handover"] = merged
-        target.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+        target.write_text(_dump_record(rec), encoding="utf-8")
     except (OSError, ValueError):
         return ""
     return str(target)
@@ -6578,7 +6605,7 @@ def _first_seating_announce(root: Path, croot, *, seat: str, role: str,
         if join.get("found"):
             pid = join.get("pid")
             session_id = join.get("session_id") or ""
-            transcript_path = join.get("transcript") or ""
+            transcript_path = _resolve_record_path(join.get("transcript"))
     if generation is None:
         _rg = _seat_row_generation(root, seat)
         generation = _rg if _rg is not None else FIRST_SEATING_GEN
@@ -6747,7 +6774,7 @@ def transcript_from_registry_dict(data: dict) -> str:
     else `cwd` + `sessionId` derive `~/.claude/projects/<slug>/<sessionId>\n"
     `.jsonl` where slug = every '/' and '.' in cwd replaced by '-'. The
     autopsy and the join call this SAME helper — never a copy."""
-    transc = str(data.get("transcript") or data.get("transcript_path") or "")
+    transc = _resolve_record_path(data.get("transcript") or data.get("transcript_path"))
     sess = data.get("session_id") or data.get("sessionId") or ""
     if not transc and sess and data.get("cwd"):
         slug = str(data["cwd"]).replace("/", "-").replace(".", "-")
@@ -7016,7 +7043,7 @@ def _run_autopsy(*, seat: str, pid: int, registry_dir: str | None,
     lines.append(f"{AUTOPSY_TAG} predecessor pid: {pid} "
                  + (f"alive: yes" if alive else f"alive: no (gone)"))
     transc = data.get("transcript") or transcript_from_registry_dict(data) or ""
-    transc_path = Path(transc).expanduser() if transc else None
+    transc_path = Path(_resolve_record_path(transc)) if transc else None
     death = _death_timestamp(data, transc_path)
     if data.get("statusUpdatedAt") or data.get("updatedAt"):
         src = "registry updatedAt"
@@ -7560,7 +7587,7 @@ def _record_join(rec: dict) -> dict:
     # accessor mirrors. The RICHER `handover.join.transcript` still wins
     # below when present.
     if rec.get("transcript_path"):
-        out["transcript"] = str(rec["transcript_path"])
+        out["transcript"] = _resolve_record_path(rec["transcript_path"])
     # rotate-self shape: the RICHER handover.join.* wins when present.
     hov = rec.get("handover")
     if isinstance(hov, dict):
@@ -10919,8 +10946,7 @@ def _commit_after_join_record(root: Path, *, record: dict,
         # never attributed to a commit that did not happen.
         try:
             record["after_join"]["record_commit"] = outcome
-            rp.write_text(json.dumps(record, indent=2) + "\n",
-                          encoding="utf-8")
+            rp.write_text(_dump_record(record), encoding="utf-8")
         except Exception:  # noqa: BLE001
             pass
         return outcome
@@ -10983,8 +11009,7 @@ def _commit_rotation_record(root: Path, *, seat: str, gen_before: int,
         _r = json.loads(rec.read_text(encoding="utf-8"))
         if isinstance(_r, dict):
             _r["committed_by"] = "rotate-self"
-            rec.write_text(json.dumps(_r, indent=2) + "\n",
-                           encoding="utf-8")
+            rec.write_text(_dump_record(_r), encoding="utf-8")
     except (OSError, ValueError, json.JSONDecodeError):
         pass
     rels = [os.path.relpath(rec, top), os.path.relpath(seq, top)]
@@ -14434,7 +14459,7 @@ def _claim_after_join(root, seat, record_path, performer,
         "claim_key": str(rec.get("recorded_at") or ""),
     }
     try:
-        rp.write_text(json.dumps(rec, indent=2) + "\n", encoding="utf-8")
+        rp.write_text(_dump_record(rec), encoding="utf-8")
         _commit_after_join_record(root, record=rec, record_path=str(rp),
                                   seat=seat, performer=performer,
                                   commit_label="claim")
@@ -15300,7 +15325,7 @@ def run_after_join(root, *, seat: str, gen: str | int = "",
                     if performed_after_s is not None:
                         rec["after_join"]["age_s"] = float(performed_after_s)
                 record_commit = None
-                rp.write_text(json.dumps(rec, indent=2) + "\n",
+                rp.write_text(_dump_record(rec),
                               encoding="utf-8")
                 # (hypothesis:l4-the-after-join-record-rewrite-is-committed-
                 # by-pathspec-and-a-worktree-seats-record-names-its-committer
@@ -15586,7 +15611,7 @@ def run_after_join_for_seat(root, seat: str, *, now: float | None = None,
                     # reads `M` on the marker (a marker left local/uncommitted
                     # made the next restart RE-see the record and re-skip). On
                     # a gitless fixture the helper SKIPPEDs harmlessly.
-                    rp.write_text(json.dumps(mark, indent=2) + "\n",
+                    rp.write_text(_dump_record(mark),
                                   encoding="utf-8")
                     _commit_after_join_record(
                         root, record=mark, record_path=str(path),
@@ -19600,7 +19625,7 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
                 _rec0 = json.loads(Path(rec_path).read_text())
                 _rec0["applied_rename"] = _applied_rename
                 Path(rec_path).write_text(
-                    json.dumps(_rec0, indent=2) + "\n", encoding="utf-8")
+                    _dump_record(_rec0), encoding="utf-8")
             print(f"(0.9) rename boundary: {_applied_rename.get('old')} -> "
                   f"{seat}: {_applied_rename.get('applied')} applied, "
                   f"{_applied_rename.get('skipped')} skipped; stage consumed")
