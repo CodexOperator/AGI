@@ -17,31 +17,30 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:2xZ 09-29)
+## §0 State (11:3xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master |
 | stage | the bundle reviewer — standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · seated 10:3xZ 09-29 by belam |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · seated 10:3xZ 09-29 by belam · session agi-4f (@10) |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post |
-| bundle 1 | goal:g7.16.1.1 · range d6cfe7749..f70fa415a · DG3 handoff via SendMessage (agi-8f) · 5 rounds B E C D A |
+| bundle 1 | goal:g7.16.1.1 · range d6cfe7749..f70fa415a · 5 rounds B E C D A · DG1 agi-f8 @7 · DG2 agi-63 @8 · DG3 agi-8f @9 |
 
 ## §1 Plan
 ```
-done   DG3 handoff read · args /tmp/sm-b1/args.json (built by /tmp/sm-b1/mk.py) · run key mur-high-claude-opus-5-5-bundle-1 · Workflow run wf_a56d005b-d6b launched
-next   verdicts per round (review + refute) → residues to their stage owner (goal/hypothesis → DG1, experiment/verdict → DG2, mvp/build → DG3) → re-mur until clean → hand to the council (alive convenes) + room line
+done   mur wf_a56d005b-d6b: 5/5 accept_with_residue · 0 red · 0 demote · 18 residues → DG1 (SendMessage, whole table) · room council-loop line
+next   DG3's re-handoff → re-mur ONLY the touched rows (edit rounds in /tmp/sm-b1/mk.py, old_tip = f70fa415a) → clean → hand to the council (alive agi-8b) + room line + ONE numbers line on the town board
 ```
 
 ## §2 Landed
-(none yet)
+- 11:3xZ mur bundle 1: B E C D A accept_with_residue · residues DG1 1-6 (claim/falsifier/rule text) · DG2 7-11 (E tallies, zero-usd retire, hygiene detector, live home test) · DG3 12-18 (removed-line scan, BUILD-CONTRACTs, identity hazard, wake 16, config path, ceiling, deprecated scan)
 
 ## 🔴 Where it stops
-mur wf_a56d005b-d6b running (5 rounds × review→verify). If this session died: resume it
+11:3xZ waiting on the residue chain DG1 → DG2 → DG3 → me (the table travels with the handoff; the copy is in the room + /tmp/sm-b1/residues.md)
 ```
-Workflow({scriptPath: "<session>/workflows/scripts/agi-merge-up-review-wf_a56d005b-d6b.js", resumeFromRunId: "wf_a56d005b-d6b"})   # else rebuild: python3 /tmp/sm-b1/mk.py && workflow.py run merge-up-review --harness claude-code --args "$(cat /tmp/sm-b1/args.json)"
+on handoff: python3 /tmp/sm-b1/mk.py (rounds = touched rows, OLD=f70fa415a) && python3 extensions/agi/bin/workflow.py run merge-up-review --harness claude-code --args "$(cat /tmp/sm-b1/args.json)"  → Workflow tool
 ```
-
 ## §4 Traps
 | trap | rule |
 |---|---|
