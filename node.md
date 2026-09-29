@@ -48,9 +48,9 @@ A THOUGHT rewrite can no longer un-park a node: the park is frontmatter data (fa
 | test_a_thought_park_mark_fails_the_check | - | new, passes |
 | test_the_schema_holds_the_park_tag_form (3 cases) | - | new, passes |
 | test_one_active_passes_and_wakes_only_the_tag | read the THOUGHT mark | reads the tag |
-| test_only_the_mark_shape_on_a_carrier_trips_the_check (5 cases) | - | new (residues 49, 52, 55): THOUGHT line 2 without a paren FAILs only with re.M (mutation-proven) |
-| test_a_rejected_carrier_is_named_on_stderr | - | new (residue 54): update_node refusing one carrier -> its REJECTED line |
-Neighbourhood (formation_readback, write, write_answers_file, write_schema_checked, bin_help_smoke): 280 passed, 7 skipped, 1 xfailed (row T).
+| test_only_the_mark_shape_on_a_carrier_trips_the_check (6 cases) | - | new (residues 49, 52, 55): THOUGHT line 2 without a paren FAILs only with re.M (mutation-proven); prose naming the mark on a GOAL passes |
+| test_a_rejected_carrier_is_named_on_stderr (2 cases: rejected, oserror) | - | new (residues 54, 56): the failing carrier gets its REJECTED line AND the carrier after it is still unparked (a break in the loop turns both cases red) |
+Neighbourhood (formation_readback, write, write_answers_file, write_schema_checked, bin_help_smoke): 290 passed, 7 skipped (measured at residue 56; the row-T xfail went green at fee990795).
 
 ## CEILING, disclosed
 Production: +63 / -9 over the ceiling's 30 (engine 55 added incl. docstrings; schemas 8). The overage is the shared git-grep reader
