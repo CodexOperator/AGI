@@ -5,10 +5,12 @@ type: hypothesis
 parents:
   - goal:g7.33.19
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-3
 push_further: "\"DH.627 (a00-064385b1) CORRECTION: the clause (1) conjunct 1 -- a non-git, unreadable holder still loses its lock (P-B on a00-76c416dd) -- is STALE and RETIRED; do not re-litigate the comm allowlist, it is gone, and the sibling Agent Notes already say so. The allowlist-vs-strict trade is settled BY MEASUREMENT (4 same-uid uninspectable pids per walk, 0 of them git) and needs no further round. What is actually LEFT, measured this round on this host, in the order it should be taken: (a) a NON-DUMPABLE same-uid daemon with a uid-0 fd dir: MEASURED, 3 of them (sd-pam, gpg-agent, ssh-agent), 0 of them git -- the cli.py:2406 exit is exercised, correct for this host, and untested in the suite; (b) an individually-unreadable /proc/<pid>/fd/N under `except OSError: continue` (cli.py:2455): REFUTED on this host (a same-uid dumpable process, non-child and child alike, had every fd readlink-able; ptrace_scope=1 and CapEff=0), so it is a Yama-conditional hole, not a live one, and the cwd backstop removed in the same diff is likewise unmeasured here; (c) the stat arm of _uninspectable -- a pid that exits between its fd listing and the stat was returned as an UNKNOWN HOLDER and refused the whole commit: FIXED this round (a stat ENOENT now takes the listings exit, every other errno still refuses) with a real-same-uid-pid test and a base-vs-tree falsifier. Do not rebuild (c). Do not rebuild the exit-3 dm link; it is closed by experiment:a00-064385b1-d30690. Next, if a round is spent here, it belongs on (a): a real test for the non-dumpable exit, and a decision on whether a session daemon may EVER be waved through.\""
 scaffold_hash: 22edeb67ab7bcbef
 season: 2
+tags:
+  - parked:g7.16.2
 testable_claim: a stale index.lock (older than values.core.stale_index_lock_s, no live git holder) is removed with a named line before the round commit; a fresh or held one refuses by name; a failed round commit exits non-zero and the harvest dm names it
 title: "A stale index.lock is cleared or named, and a failed round commit is never silent (g7.33.19 row 18; assigned: director-engine)"
 town: local-maxxing
@@ -249,7 +251,7 @@ CEILING   HARD CAP: this kid only (claude-code text-fix, skill agi-corrective §
 KID       you ARE the round: commit every edit on your loop branch (cli.py done) before you exit; a version delta goes in the node THOUGHT (write.py), never the body
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (parked: formation g7.16.2): a round worktree's commit: dispatch-only. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.2) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
+Park moved to the tag parked:g7.16.2 (goal:g7.16.1.2.6, director-general-3, council bundle 2): `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'` drops it. Why parked (unchanged): a round worktree's commit: dispatch-only. THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
