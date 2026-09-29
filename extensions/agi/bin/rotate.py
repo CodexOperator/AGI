@@ -633,6 +633,31 @@ def _check_branch_guard(root: Path | None) -> str | None:
     return None
 
 
+
+def _check_profile_drift(root: Path | None) -> str | None:
+    """Refuse rotation when a linked profile artifact disagrees with its node.
+
+    The graph is the SoT (`goal:g7.31.5.3`); drift is refused BY NAME before
+    any side effect, and nothing-linked/nothing-drifted is a no-op.
+    """
+    if root is None:
+        return None
+    import profile_sync  # inline: keep rotate's module load free of it
+    try:
+        bad = [r for r in profile_sync.check_all(root) if r["status"] != "ok"]
+    except Exception as e:
+        # `check_all` already tolerates malformed node files (a non-profile
+        # parse error must never block rotation), so reaching here is a
+        # guard failure, not drift. Say so, and do not let it pass silently.
+        return f"rotate refused: profile guard failure: {e}"
+    if not bad:
+        return None
+    names = ", ".join(
+        f"{r.get('path') or r['node_id']} ({r['status']})" for r in bad)
+    return (f"rotate refused: profile drift — {len(bad)} linked node(s) "
+            f"out of sync: {names}")
+
+
 # ---- role resolution (ladder roles table, else config.json, else defaults)
 
 
@@ -898,17 +923,6 @@ def _session_label(row: dict | None, gen: int) -> str | None:
 # ---- successor command ----------------------------------------------------
 
 
-def _build_claude_command(name: str, prompt_text: str, debug_file: str,
-                          model=None, effort=None, settings=None) -> list[str]:
-    """The remote-control argv: `claude --remote-control NAME ... <prompt>`.
-
-    Thin hook: the argv is rendered from `templates/harness/claude-code.toml`,
-    so no claude flag literal lives in this file (hypothesis:harness-arg-
-    builders-are-templates-only).
-    """
-    return harness_template.render(
-        "claude-code", prompt=prompt_text, name=name, debug_file=debug_file,
-        model=model, effort=effort, settings=settings)
 
 
 def _harness_row(root: Path | None, harness: str | None) -> dict:
@@ -1041,22 +1055,6 @@ def _validate_harness(root: Path | None,
     return 0, ""
 
 
-def _build_copilot_command(*, prompt_text: str, model=None, effort=None,
-                           bin_path: str | None = None,
-                           extra_args=None) -> list[str]:
-    """The interactive GitHub Copilot CLI argv for a seat.
-
-    The argv is rendered from `templates/harness/copilot-cli.toml` — no flag
-    construction lives here; this is the thin hook that names the template.
-    `-i, --interactive <prompt>` starts interactive mode (the post stays up
-    in the tmux window and `send.py` can type into its input box); `--remote`
-    enables remote control from GitHub web and mobile; `--allow-all` keeps the
-    first tool call from blocking on a confirmation, which is what a SEAT (not
-    a fire-and-forget kid) needs.
-    """
-    return harness_template.render(
-        "copilot-cli", prompt=prompt_text, model=model, effort=effort,
-        bin_path=bin_path, extra_args=extra_args)
 
 
 def _build_harness_command(harness: str | None, *, name: str,
@@ -3104,6 +3102,13 @@ def cmd_loop(args: argparse.Namespace, root: Path) -> int:
     guard = _check_branch_guard(root)
     if guard:
         print(guard, file=sys.stderr)
+        return 1
+
+    # goal:g7.31.5.3: as in `cmd_rotate_self`, drift refuses BEFORE the meter
+    # (which writes) and before any spawn. Same guard, same text.
+    pguard = _check_profile_drift(root)
+    if pguard:
+        print(pguard, file=sys.stderr)
         return 1
 
     if not args.force:
@@ -19023,6 +19028,10 @@ def cmd_rotate_self(args: argparse.Namespace, root: Path) -> int:
     guard = _check_branch_guard(root)
     if guard:
         print(guard, file=sys.stderr)
+        return 1
+    pguard = _check_profile_drift(root)
+    if pguard:
+        print(pguard, file=sys.stderr)
         return 1
     seat = args.name
     # goal:g15.14 P1-c — the registry gate runs FIRST: before the geometry

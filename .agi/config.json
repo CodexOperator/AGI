@@ -135,7 +135,7 @@
       "workspace_id": "7e12bcd2-321e-51ec-b3f5-80efeb4fdaf0"
     },
     "parent_max_kids": 10,
-    "memory_max": "6G",
+    "memory_max": "8G",
     "tasks_max": 96
   },
   "provisioning": {
@@ -207,6 +207,9 @@
     "memcap": {
       "probe_cache_dir_name": "agi-memcap",
       "probe_cache_file": "probe"
+    },
+    "dm": {
+      "sync_interval_min": 3
     }
   }
 }

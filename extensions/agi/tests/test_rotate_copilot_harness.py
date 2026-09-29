@@ -3,7 +3,7 @@ hooks-as-claude-code-and-pi`: `rotate.py`'s ONE launch path carries a THIRD
 harness.
 
 All fixture-only: no test starts a live `copilot`. The copilot argv is either
-read from a dry-run string or built by `_build_copilot_command` directly; the
+read from a dry-run string or built by `_build_harness_command` directly; the
 config rows are written into a tmp graph root, so a copy of the live model
 list would not certify anything.
 """
