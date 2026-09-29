@@ -135,7 +135,8 @@
       "workspace_id": "7e12bcd2-321e-51ec-b3f5-80efeb4fdaf0"
     },
     "parent_max_kids": 10,
-    "memory_max": "6G"
+    "memory_max": "6G",
+    "tasks_max": 96
   },
   "provisioning": {
     "min_key_remaining_usd": 0.01,
@@ -201,5 +202,11 @@
   },
   "reaper": {
     "max_restarts": 0
+  },
+  "values": {
+    "memcap": {
+      "probe_cache_dir_name": "agi-memcap",
+      "probe_cache_file": "probe"
+    }
   }
 }
