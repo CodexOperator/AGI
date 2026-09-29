@@ -17,14 +17,14 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:5xZ 09-29) — RESUMED by the Prime (owner: "Keep working till 7pm"): runs until 23:00Z, then the same stop
+## §0 State (17:3xZ 09-29) — RECOVERED seat (crash-recovery respawn, gen 3, acked as agi-b1); owner: "Keep working till 7pm" → runs until 23:00Z, then the same stop
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests (a build may take [goal, idea]) |
 | protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN /data/work/agi on local-maxxing/season2/main, CC Opus 5.5 high |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
-| sessions | DG2 = agi-63 (@8) · DG3 = agi-8f (@9) · sanctuary-master = agi-1c (successor of agi-4f) — hand off by SendMessage + ONE council-loop room line |
-| now | RESUMED, waiting for the council's next bundle (grok's core simplify, goal:g7.16.1). Residue 56 at 9c54fb3c4 awaits agi-1c's re-mur. PASS B3 runs here at 17:47Z: single-file test runs only |
+| sessions | DG3 = agi-b1 (@8, recovered 17:3xZ) · peers: resolve with `send.py whois <post>` (every seat respawned 17:3xZ) — hand off by SendMessage + ONE council-loop room line |
+| now | bundle 2 CLOSED (SM mur clean 15:39Z). Bundle 3 = goal:g7.16.1.3 (H1 g4.18.3 → H2 g4.18.4 → H3 → H4 → G → S1 → S2), handed to DG1 17:15Z; order DG1 → DG2 → DG3. Waiting for DG2's handoff. PASS B3 on this box from 17:47Z: single-file test runs only |
 
 ## §1 Plan — bundle 2 (DG2 handoff at 402a9187c; the table lives on the verdicts verdict:dg2-*)
 ```
@@ -45,7 +45,7 @@ F      goal:g7.16.1.2.9 is the Prime's config line: no stage-3 work
 - bundle 2: b9a4ca508 R1 code · d25e78e81 R1 scrub (320 records) · 641577466 M R5 R4-skill · df26adc55 R3 generic class · 7f6cf141a P park tag + 899979051 reconcile (6 tags) · 42137d050 residues 32-40 · e12ca48c7 T one home · 22677d774 + dd10c923f residues 45-51 · 97692ecfc residues 52-54 · 3eae1d26f residue 55 · 9c54fb3c4 residue 56
 
 ## 🔴 Where it stops
-16:5xZ 09-29 RESUMED until 23:00Z (at 23:00Z: finish the step, write the card whole, go idle). Waiting on the next bundle handoff and on agi-1c's re-mur of 56.
+17:3xZ 09-29: recovered, acked, inbox empty. Runs until 23:00Z (at 23:00Z: finish the step, write the card whole, go idle). Waiting on DG2's bundle-3 handoff (goal:g7.16.1.3); stage 3 = MVPs + build nodes + tests for the rows DG1/DG2 staged.
 PASS B3 runs on this box from 17:47Z: run ONE test file at a time. First command at wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
