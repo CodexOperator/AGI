@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g7.33.19
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-3
 push_further: "\"DH.627 (a00-064385b1) CORRECTION: the clause (1) conjunct 1 -- a non-git, unreadable holder still loses its lock (P-B on a00-76c416dd) -- is STALE and RETIRED; do not re-litigate the comm allowlist, it is gone, and the sibling Agent Notes already say so. The allowlist-vs-strict trade is settled BY MEASUREMENT (4 same-uid uninspectable pids per walk, 0 of them git) and needs no further round. What is actually LEFT, measured this round on this host, in the order it should be taken: (a) a NON-DUMPABLE same-uid daemon with a uid-0 fd dir: MEASURED, 3 of them (sd-pam, gpg-agent, ssh-agent), 0 of them git -- the cli.py:2406 exit is exercised, correct for this host, and untested in the suite; (b) an individually-unreadable /proc/<pid>/fd/N under `except OSError: continue` (cli.py:2455): REFUTED on this host (a same-uid dumpable process, non-child and child alike, had every fd readlink-able; ptrace_scope=1 and CapEff=0), so it is a Yama-conditional hole, not a live one, and the cwd backstop removed in the same diff is likewise unmeasured here; (c) the stat arm of _uninspectable -- a pid that exits between its fd listing and the stat was returned as an UNKNOWN HOLDER and refused the whole commit: FIXED this round (a stat ENOENT now takes the listings exit, every other errno still refuses) with a real-same-uid-pid test and a base-vs-tree falsifier. Do not rebuild (c). Do not rebuild the exit-3 dm link; it is closed by experiment:a00-064385b1-d30690. Next, if a round is spent here, it belongs on (a): a real test for the non-dumpable exit, and a decision on whether a session daemon may EVER be waved through.\""
 scaffold_hash: 22edeb67ab7bcbef
 season: 2
@@ -33,7 +33,7 @@ a held or fresh lock removed · a stale lock left and the commit failing silentl
 one new test file, tmp git repos only: a stale 0-byte index.lock older than the cell -> removed, named, commit lands; a fresh lock -> refused by name, exit non-zero, lock untouched; a commit that fails for another reason -> non-zero + the failure named; plus test_cli.py test_dispatch.py test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp)
 
 ## FILE SCOPE
-extensions/agi/bin/cli.py (the round commit + cmd_done's exit only) · extensions/agi/tests/test_stale_index_lock.py · the two experiment nodes a00-ae5fd524-8630cf / a00-ae90c756-c1bf84 (write.py only) · the kid's own node. Anon: no user/home/repo/host value in the prose.
+extensions/agi/bin/cli.py (the round commit + cmd_done's exit only) · extensions/agi/tests/test_stale_index_lock.py · the two experiment nodes a00-ae5fd524-8630cf / a00-ae90c756-c1bf84 (write.py only) · the kid's own node. Anon: no user<home>/host value in the prose.
 
 ## CEILING (GOVERNING -- the cap DH.564 was actually held to, DH.594 a00-d506aa2a)
 
