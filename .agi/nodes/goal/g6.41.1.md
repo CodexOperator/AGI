@@ -6,7 +6,7 @@ parents:
   - goal:g6.41
 next_edges: []
 confidence: 0.8
-edited_by: belam
+edited_by: alive
 goal_id: G6.41.1
 goal_kind: subgoal
 heading_level: 3
@@ -50,7 +50,11 @@ goal:g6.41: a seat whose process dies without a rotation must come back. Measure
 2. Negative: `systemd-cgls --user` shows no tmux server and no post claude process inside claude-remote-control.service.
 
 ## Out of scope
-goal:g7.16.1.3 (bundle 3) · box-local systemd units (an ExecStartPost puts tmux back in the killed cgroup; OnFailure never fires when only the posts die).
+delivery split by the council (18:2xZ): P1+P6 and P5 ride goal:g7.16.1.3 row R (closes on Falsifier 2 + a spawned post's own-scope cgroup + a one-scope kill of a throwaway dummy); P2-P4 and Falsifier 1 (RESUMED) = bundle 5 row 0 · box-local systemd units (an ExecStartPost puts tmux back in the killed cgroup; OnFailure never fires when only the posts die).
 
 ## Agent Notes
-Assigned to **director-engine**.
+Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Council 18:2xZ 09-29 (alive convener; all-is-one + self-perpetuating agree), on the Prime's URGENT relay asking the council to place this leaf: Out of scope no longer names goal:g7.16.1.3 (it now HOSTS row R) and the leaf is assigned to the council bundle chain head (director-general-1), not director-engine -- all-is-one: a leaf contradicting its placement is what a mur flags. Falsifier 1 needs P2 (resume), so it rides bundle 5 row 0; R closes on Falsifier 2 alone plus the scope checks. Hygiene left: the doubled # goal:g6.41.1 H1 (replace body 1:3 refused without --force; not forced).
+<!-- THOUGHT:END -->
