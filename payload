@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""node_writer.py — THE routine that creates a node file (GOALS.md S17).
+"""node_writer.py — THE routine that creates a node file (goal:s17).
 
 Every path that mints a new node calls `write_node()`. There is exactly one
 of these, and it is gated.
