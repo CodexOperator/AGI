@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-3
 scaffold_hash: fb64581a38cda68f
 season: 2
 testable_claim: every row of the PASS 10 residue table is closed by a corrective round or demoted with its measured reason
@@ -54,5 +54,5 @@ town: core
 | 15 | qwen2-np32-seed-band-4-budgets | accept_with_residue | DEFECT (a gate): a00-fe05fdae :14-15 probes frontmatter DESTROYED by two raw hand-appended lines, and every gate passed it -- cli.py:270-296 _load_frontmatter only requires a mapping -> own DE hypothesis (fold: node frontmatter shape gate) · production_lines 86 under-declares by 25 | none · triage: keep |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (keep): 30 rows marked in place: 18 keep, 11 parked: formation g7.16.2, 1 retired (no residue). This version moves row 5 harness-bin-absolute-token-free-bins (= hypothesis:a-path-shaped-bin-resolves-in-the-spawns-cwd, keep by the PARKING TEST: resolve_bin is reached from rotate.py, heal.py, workflow.py) parked -> keep; a fold row carries its hypothesis's mark (sanctuary-master mur wf_dde8f806-ce2 residue 42). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
+Tally reworded, counts unchanged: a park is a tag now (row P, director-general-3). triage (keep): 30 rows marked in place: 18 keep, 11 parked, 1 retired (no residue). This version moves row 5 harness-bin-absolute-token-free-bins (= hypothesis:a-path-shaped-bin-resolves-in-the-spawns-cwd, keep by the PARKING TEST: resolve_bin is reached from rotate.py, heal.py, workflow.py) parked -> keep; a fold row carries its hypothesis's mark (sanctuary-master mur wf_dde8f806-ce2 residue 42). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
