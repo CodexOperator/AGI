@@ -53,7 +53,7 @@ BOX       / at 94 pct 21:1xZ (6.5 GiB free) · belam 22:12Z (OWNER GO): per-role
           on it, confirm send, rotate, grid, dispatch and the suite still work (one line each, to TM) · the other town left the free lane
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.190 · next murq286 · FIRST MUR THROUGH: murq284 EG.179 00:23Z (rmur2, try 1) = awr, 5 text residues -> EG.189 (item 6 demoted: verifier lacked the bytes) via pq189 after pq188 (EG.188) + redispw
+SERIES    next EG.191 · next murq287 · PLACING CHAIN (detached, serial): pq188 EG.188 -> pq189 EG.189 (murq284 EG.179 awr, 5 text) -> pq190 EG.190 (murq277 EG.170 facts window, accept + verify awr, 4 items; 2 6 demoted by design) -- each waits for the previous unit AND a fresh redispw spawn · EG.171 HARVESTED 00:26Z 9b61ad910 76 passed (item 2 git mv reported unlanded) -> murq286
           drives 272 275 276 278 until they end -- TMM.360: never skip a mur, keep re-arming; next [count] to TM after EG.186 lands (deaths /
           dispatches + mur stage survival); still 100 pct dead after EG.185 lands -> the lane/model question goes to belam
           · EG.186 LIVE a00-ed3b6fd7 (22:50Z) on cut 50b35023b = trunk 56c012118 + the node's 2 commits cherry-picked -- TRAP: place2 cut a NEW
