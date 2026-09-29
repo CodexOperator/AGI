@@ -20,7 +20,7 @@ PASS B1 residue table (verify-upheld; full text per round: .agi/sessions/workflo
 | # | round | verdict | upheld | first item |
 |---|---|---|---|---|
 | 1 | probe-gate-counts-claim-conjuncts-from-the-field-only | accept_with_residue | 9 | 1. Unbased line-number paste in the DH.541 correction -- a00-ea0222b3-4ed78e.md:126 cites cli.py:2028 / cli.py:1216 with no base; at ed34f49 they are · triage: parked: formation g7.16.2 |
-| 2 | a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-an | accept_with_residue | 9 | 1. Corrective item 6 reported fixed with a no-op rewrite; the separator is still missing at the tip (a00-6273b184:216 'make.CONSEQUENCE:' vs a00-47542 · triage: parked: formation g7.16.2 |
+| 2 | a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-an | accept_with_residue | 9 | 1. Corrective item 6 reported fixed with a no-op rewrite; the separator is still missing at the tip (a00-6273b184:216 'make.CONSEQUENCE:' vs a00-47542 · triage: keep |
 | 3 | engine-delta-3 | accept_with_residue | 8 | 1. config value re-stated and wrong in a skill — skills/agi-corrective/SKILL.md:65 names claude-sonnet-5 while .agi/config.json:98 says claude-opus-5- · triage: parked: formation g7.16.2 |
 | 4 | per-spawn-tasks-max-reads-the-spawn-tasks-max-cell | accept_with_residue | 8 | 1. FALSIFIER 1 greps a docstring -- hypothesis node:28 · triage: parked: formation g7.16.2 |
 | 5 | engine-delta-2 | accept_with_residue | 8 | 4. test_ladder_node.py:76 no longer distinguishes a declared empty settings cell from a removed key · triage: parked: formation g7.16.2 |
