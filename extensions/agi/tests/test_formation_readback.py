@@ -195,6 +195,7 @@ def test_the_live_formation_home_holds_pointers_not_copies():
     ("build/b.md", "build:b", "triage (parked: formation g7.16.2)", "PASS"),         # not a carrier type
     ("goal/g6.md", "goal:g6", "11 parked: formation g7.16.2 -- rows 2 4", "PASS"),   # a tally
     ("build/b.md", "build:b", "FAILs on the retired parked: formation mark", "PASS"),  # prose
+    ("goal/g6.md", "goal:g6", "prose names the parked: formation g7.16.2 mark", "PASS"),  # prose on a goal
 ])
 def test_only_the_mark_shape_on_a_carrier_trips_the_check(groot, rel, nid, thought, status):
     """Residues 49 + 52: the MARK shape, on any THOUGHT line, on goal/hypothesis only."""
@@ -219,6 +220,10 @@ def test_a_rejected_carrier_is_named_on_stderr(groot, monkeypatch, capsys, how):
             raise OSError("probe")
         return node_writer.NodeWrite(status=node_writer.REJECTED, node_id=nid, reason="probe")
     monkeypatch.setattr(node_writer, "update_node", refuse_g1)
+    _node(groot, "goal/g9.md", "goal:g9", tags="parked:g7.16.2")  # sorts AFTER goal:g1 (residue 56)
     write.submit(groot, write.Edit(node_id="config:formations", set_fm={"active": "doc:two-step"}),
                  actor="test", role="director")
-    assert "unpark REJECTED goal:g1 (parked:g7.16.2): probe" in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert "unpark REJECTED goal:g1 (parked:g7.16.2): probe" in err
+    assert "unparked goal:g9 (parked:g7.16.2)" in err  # the loop went on
+    assert "parked:g7.16.2" not in (groot / "nodes" / "goal" / "g9.md").read_text("utf-8")
