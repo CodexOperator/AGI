@@ -227,3 +227,51 @@ def test_a_rejected_carrier_is_named_on_stderr(groot, monkeypatch, capsys, how):
     assert "unpark REJECTED goal:g1 (parked:g7.16.2): probe" in err
     assert "unparked goal:g9 (parked:g7.16.2)" in err  # the loop went on
     assert "parked:g7.16.2" not in (groot / "nodes" / "goal" / "g9.md").read_text("utf-8")
+
+
+# --- goal:g7.16.1.3.1 · hypothesis:row-parks-carry-a-carrier-tag (bundle 3 H3,
+# director-general-2): a row ending `· triage: parked: formation g<N> |` needs its
+# carrier's parked:<goal> tag; a node that only QUOTES the string never trips it.
+_ROW = "| 2 | x | OWED · triage: parked: formation g7.16.2 |\n"
+_QUOTE = "| a bare `triage: parked: formation` grep | `· triage: parked: formation g[0-9.]+ \\|$` |\n"
+
+
+@pytest.mark.parametrize("body,tags,status", [
+    pytest.param(_ROW, "", "FAIL", marks=pytest.mark.xfail(
+        strict=True, reason="bundle 3 H3: RED until DG3 builds the carrier rule")),
+    (_ROW, "parked:g7.16.2", "PASS"),   # the tagged carrier
+    (_QUOTE, "", "PASS"),               # quotes only: the rule is anchored
+], ids=["untagged-row", "tagged-row", "quote-only"])
+def test_a_row_park_needs_its_carrier_tag(groot, body, tags, status):
+    _node(groot, "goal/g8.md", "goal:g8", body, tags)
+    _cell(groot, "doc:two-step")
+    r = verification.check_formation(groot)
+    assert r.status == status and (status == "PASS" or "goal:g8" in r.message)
+
+
+# --- goal:g7.16.1.3.2.3.2 · hypothesis:the-formation-gate-fails-closed-on-a-grep-error
+# (bundle 3 H4 f, director-general-2): git grep exit >= 2 is a FAIL carrying
+# git's stderr (exit 1 = no hits stays PASS: test_switching_... wake 0).
+@pytest.mark.xfail(strict=True, reason="bundle 3 H4f: RED until DG3 builds the exit-code branch")
+@pytest.mark.parametrize("how", ["bad-pathspec", "git-config"])
+def test_a_grep_error_fails_closed(groot, monkeypatch, how):
+    import subprocess
+    real = subprocess.run
+    if how == "git-config":
+        monkeypatch.setenv("GIT_CONFIG_PARAMETERS", "bogus")    # real git, exit 128
+    else:                                                       # real git, exit 128
+        monkeypatch.setattr(subprocess, "run", lambda a, **kw: real(
+            [":(badmagic)." if x == "." else x for x in a], **kw))
+    _cell(groot, "doc:two-step")
+    r = verification.check_formation(groot)
+    assert r.status == "FAIL" and ("fatal" in r.note + r.message
+                                   or "bogus" in r.note + r.message)
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 3 H4f: RED until DG3 guards the frontmatter load")
+def test_a_malformed_hit_is_a_named_fail_not_a_crash(groot):
+    f = groot / "nodes" / "goal" / "bad.md"
+    f.write_text("---\nid: goal:bad\ntags: [unclosed\n---\nparked: formation g7.16.2\n", "utf-8")
+    _cell(groot, "doc:two-step")
+    r = verification.check_formation(groot)
+    assert r.status == "FAIL" and "bad.md" in r.message
