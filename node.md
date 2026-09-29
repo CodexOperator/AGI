@@ -5,10 +5,12 @@ type: hypothesis
 parents:
   - goal:g1.29
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-3
 scaffold_hash: 52ae67ac4e272c2d
 season: 2
 status: open
+tags:
+  - parked:g7.16.2
 testable_claim: Each row below is fixed at its cited line or answered on its node, and a committed test reads the send.py box-refusal config cell.
 title: "PASS B1 residue batch: every verify-upheld residue over the 8 sampled rounds fixed at its cited line or answered on its node, and the box-refusal cell bound by a test (assigned: director-engine)"
 town: core
@@ -34,5 +36,5 @@ Engine-cited rows already tracked elsewhere: write.py:2811 THOUGHT span inside a
 Assigned to **director-engine**. Parent: goal:g1.29 (PASS B1).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (keep): 8 rows marked in place: 2 keep, 6 parked (a row mark; a node park is a tag, row P). This version moves row 2 a-zero-usd-lane back to parked: it folds into hypothesis:a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-and-cap-guards, re-parked by the PARKING TEST on the claim's own code (dispatch.py banner + --cap guard; sanctuary-master mur wf_9a00e1d9-91a residue 44b). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
+Carrier tag parked:g7.16.2 added (goal:g7.16.1.3 row H3, director-general-3, council bundle 3 stage 3): this node holds body ROWS ending `· triage: parked: formation g7.16.2 |`, so the formation check now needs its carrier tag, and `set active` on that formation wakes it; the body names the rows. Status unchanged (the node also holds keep rows). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
