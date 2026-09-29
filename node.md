@@ -12,7 +12,7 @@ heading_level: 3
 origin: goals-doc
 season: 1
 seeds: []
-status: horizon
+status: active
 tags:
   - goal
   - subgoal
@@ -97,20 +97,5 @@ edited by hand.** Until that second half holds, the drift this goal exists to
 remove is still possible, and the first half alone is a convenience.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Raised by the owner while setting up hierarchical loops, with the note that a
-related goal already existed. It does — several — and the first draft of this
-node tried to be all of them. The distinction that made it its own goal: G1.6
-is about the *cost of invoking* a command, G1.1 about *how little an agent
-needs to orient*, G1.4 about *what it may touch*. None of them says the brief
-itself should be assembled rather than typed, and SKILL.md still instructs a
-parent to type it, ingredient by ingredient.
-
-Written as active rather than horizon because the session that raised it also
-produced its evidence twice over: the wrong-runtime contract and the
-ambiguous `:N` were both hand-maintained copies of a contract enforced
-elsewhere, and both cost a live kid something. That reframes the goal —
-assembly is not an ergonomic upgrade, it is the only way the brief and the
-gate can be the same fact. The falsifier is written to test that half
-specifically, because the convenience half will look done long before the
-drift half is.
+Lifecycle marker by recursive leaf walk (director-general-4, owner 2026-09-29 22:0xZ via belam): status was horizon while 4 of 4 leaves are active; a parent with an active leaf is active. Walk re-measured 22:1xZ: 468 goals, 298 active, 85 horizon, 47 complete, 38 retired.
 <!-- THOUGHT:END -->
