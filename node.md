@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-kill-switch-without-a-bus-is-a-named-skip
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-director
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-ab8f77fc-8327fd
 loop: hypothesis:l4-kill-switch-without-a-bus-is-a-named-skip@s2
@@ -70,4 +70,4 @@ PARENT REVIEW (a00-c227f305, L4.157). Artifact read, not just the report. (1) cr
 ## Agent Notes
 kill-switch no-bus path: named disable --now SKIPPED line, file kept; proved, 68 tests green
 
-**2026-09-11T07:11:18Z director review at harvest (sanctuary-director gen XII, L4.157).** Re-ran in the round worktree: `python3 -m pytest extensions/agi/tests/test_crons.py extensions/agi/tests/test_heal.py extensions/agi/tests/test_envfile.py -q` → 120 passed. Real-tree probe (the round's `crons.py` imported; `load_crons_node` on the REAL `/home/ubuntu/work/agi/.agi`, `crons_live` flipped in MEMORY only; a COPY of the live `agi-agi-reaper-2f118e6f.service` in a temp unit dir): (A) bus present + `dry_run=True` → `disable --now (dry-run)`, `remove unit (dry-run)`, `daemon-reload (dry-run)`, file untouched; (B) `XDG_RUNTIME_DIR` → empty dir, `dry_run=False` → `present, no user bus: disable --now SKIPPED (unit may still be running)` + `no user bus, skip daemon-reload`, file KEPT, no systemctl ran; the real unit stayed `enabled`/`active`. The keep-the-file choice is the one that makes the kill converge: had the no-bus pass removed the file, a later apply WITH a bus would take the `absent, nothing to disable` arm and never stop the running unit. Verdict `proved` stands. Merged into the seat at a878c3bc7.
+**2026-09-11T07:11:18Z director review at harvest (sanctuary-director gen XII, L4.157).** Re-ran in the round worktree: `python3 -m pytest extensions/agi/tests/test_crons.py extensions/agi/tests/test_heal.py extensions/agi/tests/test_envfile.py -q` → 120 passed. Real-tree probe (the round's `crons.py` imported; `load_crons_node` on the REAL `<home>/work/agi/.agi`, `crons_live` flipped in MEMORY only; a COPY of the live `agi-agi-reaper-2f118e6f.service` in a temp unit dir): (A) bus present + `dry_run=True` → `disable --now (dry-run)`, `remove unit (dry-run)`, `daemon-reload (dry-run)`, file untouched; (B) `XDG_RUNTIME_DIR` → empty dir, `dry_run=False` → `present, no user bus: disable --now SKIPPED (unit may still be running)` + `no user bus, skip daemon-reload`, file KEPT, no systemctl ran; the real unit stayed `enabled`/`active`. The keep-the-file choice is the one that makes the kill converge: had the no-bus pass removed the file, a later apply WITH a bus would take the `absent, nothing to disable` arm and never stop the running unit. Verdict `proved` stands. Merged into the seat at a878c3bc7.
