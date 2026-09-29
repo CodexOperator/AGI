@@ -15788,7 +15788,7 @@ First chunk, minted next: hypothesis:lm-grid-storage-trunk-is-config-declared, t
 
 Belam NO-PI 20260928T235231Z: BARE complete — tip already carries EF.02/07/08/09 (storage_trunk config · literal sites CLOSED · migrate-trunk live cutover · commit guard lifts branch-blind + live cron proof). Done-when met. No new code this slice; graph closeout only.
 
-##### G7.33.8 — G14.14.8: SESSION CAPTURE HOOK -- claude-code role sessions (masters, directors, Prime) land at session end/rotate under datasets/sessions/<role>/<session>/ through the existing scrub.py, with the graph pre-labels; it is the magic pane corpus (moved up per owner 05:4xZ, TME.13/16) — status: active
+##### G7.33.8 — G14.14.8: SESSION CAPTURE HOOK -- claude-code role sessions (masters, directors, Prime) land at session end/rotate under datasets/sessions/<role>/<session>/ through the existing scrub.py, with the graph pre-labels; it is the magic pane corpus (moved up per owner 05:4xZ, TME.13/16) — status: complete
 
 <!-- BODY:BEGIN -->
 # goal:g14.14.8
