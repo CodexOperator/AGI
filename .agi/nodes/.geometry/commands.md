@@ -929,6 +929,20 @@ manifest:
     purpose: replace a body or payload slice with text on stdin
     side_effects: graph-write
     proposable: true
+  write.py:row:
+    cli: write.py
+    verb: row
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/write.py
+      - <node-id>
+      - row <ref> <source>
+    args:
+      - {"name": "ref", "type": "str", "required": true, "choices": []}
+      - {"name": "source", "type": "str", "required": true, "choices": ["-"]}
+    purpose: replace one body row (node_writer.body_rows), or lines i-j inside it (<n>:<i>-<j>)
+    side_effects: graph-write
+    proposable: true
   write.py:adopt:
     cli: write.py
     verb: adopt

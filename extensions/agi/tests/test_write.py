@@ -2349,8 +2349,6 @@ def test_w3c_read_leaves_verbs_and_every_teaching_site_in_one_row():
 
 # --- bundle 4 W1a (director-general-2) ---------------------------------------
 # goal:g4.18.5.1: `row <n> <file>` replaces row n of node_writer.body_rows only.
-@pytest.mark.xfail(strict=True, reason="bundle 4 W1a: RED until DG3 builds "
-                   "the `row <n> <file>` verb on node_writer.body_rows")
 def test_b4_w1a_row_verb_replaces_exactly_one_row(project, tmp_path):
     body = ("\n# hypothesis:h1\n\n## Table\n\n| k | v |\n|---|---|\n| a | 1 |\n"
             "| b | 2 |\n\n## List\n\n- one\n- two\n\n" + THOUGHT + "\n")
@@ -2365,6 +2363,27 @@ def test_b4_w1a_row_verb_replaces_exactly_one_row(project, tmp_path):
                        "--root", str(project)]) == 0
     assert write._read_body_text(project, "hypothesis:h1") == \
         body.replace("| b | 2 |", "| b | 20 |")
+
+
+# goal:g4.18.5.1 conjunct (3), DG3's own row: `row <n>:<i>-<j>` edits lines
+# INSIDE a block row (the THOUGHT block), every other byte identical; a row
+# past the index and a sub-range past the row refuse, nothing written.
+def test_b4_w1a_row_sub_range_edits_inside_a_block_row(project, tmp_path):
+    body = "\n# hypothesis:h1\n\n- one\n\n" + THOUGHT + "\n"
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(node.read_text().split("---\n\n", 1)[0] + "---\n" + body)
+    body = write._read_body_text(project, "hypothesis:h1")
+    rows = node_writer.body_rows(body)
+    n, (a, b) = len(rows), rows[-1]
+    assert body.split("\n")[a - 1].startswith("<!-- THOUGHT:BEGIN") and b - a >= 2
+    (tmp_path / "in.txt").write_text("rewritten why\n")
+    assert write.main(["hypothesis:h1", f"row {n}:2-2 {tmp_path / 'in.txt'}", "--root", str(project)]) == 0
+    after = write._read_body_text(project, "hypothesis:h1").split("\n")
+    before = body.split("\n")
+    assert after[a] == "rewritten why" and after[:a] == before[:a] and after[a + 1:] == before[a + 1:]
+    for ref in (f"{n + 1}", f"{n}:1-{b - a + 5}"):
+        assert write.main(["hypothesis:h1", f"row {ref} {tmp_path / 'in.txt'}", "--root", str(project)]) != 0
+    assert write._read_body_text(project, "hypothesis:h1").split("\n") == after
 
 
 
