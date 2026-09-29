@@ -9587,7 +9587,7 @@ the hypothesis underneath carries full Measured/CLAIM/FALSIFIERS/TESTS/FILE SCOP
 
 Belam NO-PI 20260928T231638Z: Done-when SATISFIED — DH.305 / experiment:a00-cd8388f0-512d24 PROVED (stop_commit flattens symlink before stops write + post-commit safety); residue hyp rotate-flattens-a-symlinked-card-before-every-card-write experiment PROVED; tests test_rotate_self_stops_symlinked_card_converges_once + write_stops/closeout flatten GREEN (3/3). BARE status complete. No pi.
 
-#### G7.33.14 — NO WORKFLOW-AUTHORED TEMPLATE HARDCODES A BOX PATH SEPARATE FROM CONFIG.JSON'S ROOT -- ~15 review/investigation templates carried a stale /home/ubuntu/work/agi literal; kid/parent dispatch was never affected — status: active
+#### G7.33.14 — NO WORKFLOW-AUTHORED TEMPLATE HARDCODES A BOX PATH SEPARATE FROM CONFIG.JSON'S ROOT -- ~15 review/investigation templates carried a stale /home/ubuntu/work/agi literal; kid/parent dispatch was never affected — status: complete
 
 # goal:g7.33.14
 
@@ -9644,6 +9644,8 @@ Assigned to **director-engine**. Minted as the parent goal for the owner-directe
 mini-swarm trial (hypothesis:a-parent-swarm-splits-its-goal-before-it-mints-a-hypothesis,
 goal:g7.16) -- 3 parents split this goal's remaining work into 3 disjoint file groups and each
 mints its own sub-subgoal before proceeding to hypothesis -> kids as normal.
+
+CLOSED NO-PI 20260929T000354Z: box-local root override via .agi/config.local.json (gitignored). Shared box.root untouched. Live overlay on encryption-town: root=/data/work/agi user=belam logs=/home/belam/logs. Seeds: hypothesis:a00-d089cf46-707110.
 
 #### G7.33.15 — A CAPTURE THAT PROMISES A FORCED ROTATION ROTATES -- the driven handoff refused on the 100-line card guard, && skipped rotate-self, the hook had latched captured (TMM.223) — status: complete
 
