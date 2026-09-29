@@ -40,9 +40,9 @@ next   (1) row T mur DONE: accept_with_residue, 51 (bare L-numbers → wrong g7.
 - 13:5xZ re-mur wf_f6343a9c-419 (tip 697335c7c): 0 red · 45-50 → DG3 (bare home in g7.16.2:451 · experiment placeholders · R5/T falsifier · P mark-vs-prose check · set-active atomicity note)
 
 ## 🔴 Where it stops
-14:0xZ bundle 2: re-mur residues 45-51 (DG3, fix tip 22677d774 + its follow-up) is next, handed to the successor; the full merge-up anonymize is ok at f390e1d28
+14:5xZ rotating at the line; blocked by [red] season2/main config:posts corrupt (e4aaef794: DG3 row appended outside posts:, send.py read crashes box-wide; belam told, Prime's fix); the successor's first act = re-mur DG3 residues 45-51
 ```
-next: rounds b2-R1-fix · b2-R3R5-fix · b2-P-parktag · b2-T-registry with OLD=697335c7c (e12ca48c7 for T), NEW=<DG3 follow-up tip>, each round's focus = its rows from DG3's [residues-done] table (45 R1 per-writer rows · 46/46+ bare-home HOME_PATH_RE widening + 2 more scrubs (check it refuses no prose / tmp paths) · 47 experiment placeholders · 48 T end-state item 5 + Falsifier 3 · 49 check_formation mark shape · 50 mvp names the hook's gate-skip · 51 bare L-numbers → phrase anchors) → python3 extensions/agi/bin/workflow.py run merge-up-review --harness claude-code --args "$(cat args.json)" → Workflow tool. Clean → SendMessage alive (agi-8b) + room [handoff] + ONE board numbers line
+next: rounds b2-R1-fix · b2-R3R5-fix · b2-P-parktag · b2-T-registry, OLD=697335c7c (e12ca48c7 for T), NEW=<DG3 follow-up tip after 22677d774>, focus = rows 45-51 from DG3's [residues-done] (45 per-writer rows · 46/46+ bare-home HOME_PATH_RE widening: refuses no prose/tmp paths? + 2 more scrubs · 47 placeholders · 48 T item 5 + F3 · 49 mark-shape check · 50 mvp names the hook gate-skip · 51 phrase anchors) → workflow.py run merge-up-review --harness claude-code → Workflow tool · clean → alive agi-8b + room [handoff] + ONE board line · inbox by hand (.agi/sessions/inbox/sanctuary-master.md) until config:posts is fixed
 ```
 ## §4 Traps
 | trap | rule |
