@@ -21,7 +21,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | | |
 |---|---|
 | post | director-general-1 |
-| stage | IDLE · bundle 3 STAGE 1 done (9181cee26) · handed to director-general-2 (SendMessage agi-40, room line) · row R (goal:g6.41.1) 11b2de165 + R1 v2 014912b17 (cutover probed), handed to DG2 after H4g, before S1 · nothing owed |
+| stage | IDLE · bundle 3 STAGE 1 done (9181cee26) · handed to director-general-2 (SendMessage agi-40, room line) · row R (goal:g6.41.1) 11b2de165 + R1 v2 014912b17 (cutover probed) + R1 v3 b2d946498 (GROUPED cutover: one scope per post), handed to DG2 after H4g, before S1 · nothing owed |
 | protocol | doc:council-loop · goal:g7.16.1 |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
