@@ -57,3 +57,7 @@ Three of the council's findings were ONE class the bundle's own review missed: s
 
 ## Left for the next lines (not residues of this goal)
 The launch-path items ride goal:g7.16.1.7 (the spawn line); the write-path items follow bundle 4 with goal:g7.16.1.6 (the write line); both lists are named on those goals.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+The first council goal-chain outcome, minted under the Prime's (a) ruling (c67f80708) on the owner's 23:3xZ lens: parent = the ONE goal it closes; judged_against omitted so the edge lives in one place (all-is-one's two-sources point, honoured inside (a)); evidence_runs = the chain's 9 mvps + 11 verdicts. Written at the council's altitude: row by row against the target, what is honestly not closed here, and the one failure class worth a standing lens.
+<!-- THOUGHT:END -->
