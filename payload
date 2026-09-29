@@ -144,6 +144,9 @@ class Edit:
     # payload file is editable by exactly the routine a node body is.
     replace_target: str = ""
     replace_range: str = ""
+    #: goal:g4.18.5.1 -- `row <n>[:<i>-<j>]`: resolved to replace_range at
+    #: submit, on node_writer.body_rows of the body as it is then
+    row_ref: str = ""
     replace_from: str = ""
     replace_text: str = ""
     # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-splices --
@@ -455,6 +458,19 @@ def verb_replace(edit: Edit, target: str, rng: str, source: str) -> Edit:
     return edit
 
 
+def verb_row(edit: Edit, ref: str, source: str) -> Edit:
+    """`row <n> <path|->` -- replace body row n of node_writer.body_rows (the
+    ONE row index, goal:g4.18.5.1); `row <n>:<i>-<j> <path|->` replaces lines
+    i..j INSIDE row n (a block row: THOUGHT, a fence). Every other byte stays.
+    It rides the replace path (one reader, one splice, the same gate); the
+    index, not a counted offset, picks the range, so the offset guard skips."""
+    if not re.fullmatch(r"\d+(:\d+-\d+)?", ref):
+        raise EditError(f"row wants <n> or <n>:<i>-<j>, got {ref!r}")
+    edit.replace_target, edit.row_ref = "body", ref
+    edit.replace_from, edit.replace_force = source.strip(), True
+    return edit
+
+
 def verb_sub(edit: Edit, spec: str) -> Edit:
     """`sub <old> => <new>` -- one literal occurrence."""
     text = spec.strip()
@@ -542,6 +558,7 @@ VERBS = {
     "body_patch": verb_body_patch,
     "read": verb_read,
     "replace": verb_replace,
+    "row": verb_row,
     "adopt": verb_adopt,
 }
 
@@ -557,7 +574,7 @@ VERBS = {
 ARITY = {"set": 2, "unset": 1, "link": 1, "thought": 1, "note": 1,
          "sub": 1, "sub!": 1,
          "payload": 1, "payload_text": 1, "patch": 1, "body_patch": 1,
-         "read": 2, "replace": 3, "adopt": 0}
+         "read": 2, "replace": 3, "row": 2, "adopt": 0}
 #: hypothesis:l5-write-py-splits-a-script-only-at-an-ampersand-pair-that-
 #: begins-a-verb -- a `&&` separates chunks ONLY when what follows, stripped,
 #: is a known verb name ending at whitespace or end-of-string; any other `&&`
@@ -600,6 +617,7 @@ VERB_EXAMPLES = {
     #: note/thought/body_patch (one body writer per submit). The rendered
     #: NOTES block below carries that rule into `-h`.
     "replace": "replace body 4:9 path/to/file",
+    "row": "row 3 path/to/file",
     "adopt": "adopt",
 }
 
@@ -2298,6 +2316,18 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
                 "note, thought or body_patch (one body writer per submit)")
         _current = _target_text(root, edit, edit.replace_target,
                                 payload_ref, location)
+        if edit.row_ref:   # goal:g4.18.5.1: the index picks the range
+            n, _, sub = edit.row_ref.partition(":")
+            rows = node_writer.body_rows(_current)
+            if not 1 <= int(n) <= len(rows):
+                raise EditError(f"row {n}: the body has {len(rows)} row(s)")
+            a, b = rows[int(n) - 1]
+            if sub:
+                i, j = (int(x) for x in sub.split("-"))
+                if not 1 <= i <= j <= b - a + 1:
+                    raise EditError(f"row {edit.row_ref}: row {n} has {b - a + 1} line(s)")
+                a, b = a + i - 1, a + j - 1
+            edit.replace_range = f"{a}:{b}"
         # hypothesis:lm-replace-body-anchor-guards-against-mis-offset-
         # splices -- the body-only structural guard, before the splice and
         # before any write. A payload is arbitrary bytes and is never
