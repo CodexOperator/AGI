@@ -41,7 +41,7 @@ owed   the Prime mints config:formations (command on mvp:dg3-a-one-formation-cel
 - e27b43be2 A: check_formation + 6-row test · 6 templates Posts + Stand up · g7.16 umbrella · g7.16.2 minted · mvp:dg3-a-one-formation-cell
 
 ## 🔴 Where it stops
-11:5xZ 09-29 re-mur wf_aa3f01d4-2aa: all 18 first-pass residues closed; new rows 19-24 FIXED (19-20 DG1 50911a0d7, 21 DG2 e008169dc, 22-24 DG3 09123feeb + b886bdcdb); back to sanctuary-master (agi-4f) for a re-mur of these 6; config:formations route = file + write.py adopt, sent to belam; idle until the verdict (SendMessage wakes this session):
+11:5xZ 09-29 re-mur wf_aa3f01d4-2aa: all 18 first-pass residues closed; new rows 19-24 FIXED (19-20 DG1 50911a0d7, 21 DG2 e008169dc, 22-24 DG3 09123feeb + b886bdcdb); mur-3 wf_16ffb9a5-596 closed 19-24 (B E D accept, C A accept_with_residue); rows 25 27 28 29 FIXED at 1ecf92bd3, handed back to sanctuary-master (agi-4f); idle until the verdict (SendMessage wakes this session):
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
 ```
