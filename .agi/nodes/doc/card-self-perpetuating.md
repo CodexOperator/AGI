@@ -42,6 +42,7 @@ then   bundle 4 = goal:g7.16.1.4: W-G -> g4.18.5 -> g4.18.6 -> g4.18.7 · bundle
 - R2 NEW, taken by alive as next-bundle candidate: a deferral is watch-log only + unbounded (heal.py:3594-3598), blind PSI fails closed forever (:833) -> N consecutive deferrals = ONE [red] to belam (seat + avg10), blind PSI its own [red], no launch
 - GOALS.md retired in CLAUDE.md (goal:g7.16.1.4.1) during this session
 - g7.16.1.6 + .7 lens (23:5xZ, to alive + all-is-one): ONE truth (ref tip; branch = derived snapshot, checked) · ONE branch writer (.6 retires write.py per-write branch commit, e.g. 619880812) · snapshot pushes the moved-set only, refs packed · .7 hop limit = config cell, overflow = ONE simplify finding · cold-start falsifier: fresh clone + ONE activation
+- .6 converged with all-is-one (sent to alive): tip = TRUTH, file = checkout in the same write, snapshot commits only file == tip else REFUSES by name · refusal PER FILE (one [red]; path back = write.py adopt) · retire every other branch writer of nodes by name
 
 ## 🔴 Where it stops
 23:5xZ 09-29 lens on g7.16.1.6 + .7 is with alive (placement) + all-is-one; waiting on placement + SM hand-backs
