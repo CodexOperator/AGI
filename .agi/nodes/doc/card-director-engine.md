@@ -53,7 +53,7 @@ BOX       / at 94 pct 21:1xZ (6.5 GiB free) · belam 22:12Z (OWNER GO): per-role
           on it, confirm send, rotate, grid, dispatch and the suite still work (one line each, to TM) · the other town left the free lane
 TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
           (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.192 · next murq287 · murq280 EG.174 awr -> EG.191 (7 text items) via pq191 · PLACING CHAIN (detached, serial): pq188 EG.188 -> pq189 EG.189 (murq284 EG.179 awr, 5 text) -> pq190 EG.190 (murq277 EG.170 facts window, accept + verify awr, 4 items; 2 6 demoted by design) -- each waits for the previous unit AND a fresh redispw spawn · EG.171 HARVESTED 00:26Z 9b61ad910 76 passed (item 2 git mv reported unlanded) -> murq286
+SERIES    next EG.192 · next murq288 · EG.180 HARVESTED 00:30Z (old cut 7880395b2, tip 860501320, 92 passed, 2 parent node edits landed) -> murq287; its chain needs a merge-resolution round before landing (engine-code conflict) · murq280 EG.174 awr -> EG.191 (7 text items) via pq191 · PLACING CHAIN (detached, serial): pq188 EG.188 -> pq189 EG.189 (murq284 EG.179 awr, 5 text) -> pq190 EG.190 (murq277 EG.170 facts window, accept + verify awr, 4 items; 2 6 demoted by design) -- each waits for the previous unit AND a fresh redispw spawn · EG.171 HARVESTED 00:26Z 9b61ad910 76 passed (item 2 git mv reported unlanded) -> murq286
           drives 272 275 276 278 until they end -- TMM.360: never skip a mur, keep re-arming; next [count] to TM after EG.186 lands (deaths /
           dispatches + mur stage survival); still 100 pct dead after EG.185 lands -> the lane/model question goes to belam
           · EG.186 LIVE a00-ed3b6fd7 (22:50Z) on cut 50b35023b = trunk 56c012118 + the node's 2 commits cherry-picked -- TRAP: place2 cut a NEW
@@ -125,7 +125,7 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 
 ## 🔴 WHERE IT STOPS
-00:3xZ 09-29: 11 chains harvested await murs on EG.183's runner; correctives EG.188-191 placing serially; #6 not yet sent
+00:3xZ 09-29: 12 chains harvested await murs (3 judged -> EG.189 190 191); EG.188 is the mur unlock; #6 not yet sent
 ```
 FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (deadwatch redispw rmur2xx pq188-191)
         · tail S3/deadwatch.log: a HARVEST line not harvested -> systemd-run --user --unit=agi-director-engine-harvN -p MemoryMax=6G
