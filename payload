@@ -1211,8 +1211,6 @@ def test_adopt_dry_run_writes_nothing(project):
 
 
 # hypothesis:adopt-runs-the-written-by-gate-before-it-mints (bundle 3 H1)
-@pytest.mark.xfail(strict=True, reason="bundle 3 H1: RED until DG3 builds "
-                   "the _enforce_written_by call on the adopt branch")
 def test_adopt_by_actor_outside_written_by_is_refused_nothing_minted(
         project, capsys):
     _written_by_schema(project, "config", "[owner, prime_director]")
