@@ -64,6 +64,7 @@ F.  row F: one first_turn entry in BOTH first_turn lists (director + prime_direc
 S.  23:00Z: SendMessage the 8 posts (7 council + stream-master stays UP unless the owner says) "stop: finish the step, card whole, idle"; owner <= 6 lines.
 V.  the video: /data/home-belam/manim-agi/agi_explainer.mp4 is on the owner's device; Drive/YouTube need the owner's own sign-in.
 D.  /data: < 10 GB free -> no PASS launch. W. AFTER B3 closes: resume the worktree prune (goal:g7.16.1.5 body; 7/881 done, every byte kept under refs/archive/worktrees/*): systemd-run --user --unit=agi-wt-prune --slice=agi-work.slice --nice=19 --collect /usr/bin/python3 /data/home-belam/wt-prune/prune.py --apply --sleep 1 -- stop it while io PSI some avg10 > 60. RAM disk /mnt/agi-ram 7 GiB is UP (fstab nofail).
+K.  KEYSYNC (00:1xZ 09-30): every rotation re-mints a key on season2/main and blocks every rotate until the trunk has it; timer agi-keysync (every 2 min, transient: re-arm after a reboot with systemd-run --user --unit=agi-keysync --slice=agi-engine.slice --on-calendar="*:0/2" --working-directory=/data/work/agi /usr/bin/python3 /data/home-belam/prime-merge-tools/trunk-sync/keysync.py) makes an ancestry-only merge ONLY when the pending commits touch posts.md alone and the trunk already carries every changed row pubkey; anything else -> ONE [red] to belam. Log keysync.log. Hand syncs tonight: ce35d8c6f 578650193 93f4567b5 90fb2b640.
 R.  RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /etc/hosts + guard-init --status, ONE window.
 ```
 
