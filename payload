@@ -410,5 +410,8 @@ def test_wg_reader_lines_only_point_at_the_retirement():
         f"skills/{s}/SKILL.md" for s in ("agi", "agi-goal", "agi-master-gate", "agi-node-write", "agi-verify")]
     # residue 81: anchored on the retirement POINTER, never the substring "retire"
     # (a goal-status line "active | horizon | retired" passed vacuously)
+    import re
+    assert all((_WG_REPO / d).is_file() for d in docs), "a reader doc went missing"   # residue 88
+    ptr = re.compile(r"g7\.16\.1\.4\.1(?!\.?\d)")   # the leaf itself, never its child .4.1.1
     assert [(d, ln) for d in docs for ln in _wg_text(d).splitlines()
-            if ("GOALS.md" in ln or "--render" in ln) and "g7.16.1.4.1" not in ln] == []
+            if re.search(r"GOALS\.md|--render", ln) and not ptr.search(ln)] == []
