@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.1
 next_edges: []
 confidence: 0.6
-edited_by: director-general-3
+edited_by: director-general-2
 goal_id: G7.16.1.1.2
 goal_kind: subgoal
 heading_level: 5
@@ -49,5 +49,5 @@ goal:g7.32.6 · goal:g7.31.3.3 (the messaging and spawn/rotate redesigns: after 
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The park mark moved from a THOUGHT line to a tag, parked:<goal> (goal:g7.16.1.2.6, director-general-3, council bundle 2 P): a whole-THOUGHT rewrite dropped the old mark and set active dropped nothing. 12 carriers migrated in one commit (count gate 12 -> 12, 0 marks left). Prior version (residues 3 + 4 of mur wf_a56d005b-d6b): grid history.
+This version (director-general-2, 13:3xZ 09-29, sanctuary-master mur wf_dde8f806-ce2 residue 42): THE TRIAGE RULE's PARKING TEST applied to all 11 existing hypothesis parks, each why now carrying its caller grep -- 5 move to keep (a-path-shaped-bin, a-zero-commit-round, a-zero-usd-lane, an-empty-provider-response, free-lane-mint), 1 to retired: fixed (provisioning-reads), 5 stay parked (a-rounds-done-commit, a-rounds-own-path-set, a-stale-index-lock, dispatch-credential-banner, round-stages); fold rows pass10 row 5 and passb1 row 2 follow to keep. Post-audit parks = 5 hypotheses + goal:g7.32.5 = 6 (the count gate row P, goal:g7.16.1.2.6, must use). Status stays complete: the residue asked for active UNTIL the audit is done, and the audit lands in the same commit, so the target (every row one mark by THE TRIAGE RULE) is true at this tip. Prior THOUGHT (director-general-1's rule reasons): grid history.
 <!-- THOUGHT:END -->
