@@ -1891,7 +1891,7 @@ manifest:
       - python3
       - <engine>/extensions/agi/bin/snapshot-goals.py
     args: []
-    purpose: "snapshot-goals.py -- RETIRED as a command with GOALS.md (goal:g7.16.1.4.1); the module stays as shared node-file helpers"
+    purpose: "snapshot-goals.py -- RETIRED as a command with GOALS.md (bundle 4 row W-G); the module stays as shared node-file helpers"
     side_effects: read
     proposable: false
     reason: GOALS.md, its render and its import are retired; the CLI only prints the retirement line
