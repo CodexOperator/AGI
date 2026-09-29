@@ -24,14 +24,14 @@ Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.m
 gen 16 rotates at f 0.36 BEFORE PASS B3, not at the 0.47 line: a PASS is multi-ref and runs 1-2 h of monitoring, so it cannot finish inside this window, and the Prime rule hands such a step on whole rather than starting it (the near miss: starting B3 at 17:47Z obeys the cron and strands the merge mid-step at the line). Row F (a config:rotations first_turn entry) is handed on for the same reason: it edits what every post runs at wake, and it needs an in-process judge plus a dry wake read, not a rushed write.
 <!-- THOUGHT:END -->
 
-## §0 State (17:2xZ 09-29)
+## §0 State (17:4xZ 09-29, after the 17:27Z oomd kill + the owner's --resume)
 | | |
 |---|---|
-| post | belam-S2-L5-XVI gen 16 → successor gen 17 |
+| post | belam-S2-L5-XVI gen 16 RESUMED (row re-seated 21e7bce28: pid 2449918, @0, agi-8f [326913]); the 17:23Z rotation to gen 17 died in the kill; all posts re-seated by ack at new windows @1-@8 |
 | formation | council loop LIVE until 23:00Z (owner 16:5xZ: "Keep working till 7pm next and I'll check my CC sub then") · bundle 3 = goal:g7.16.1.3 (grok core simplify; H1 g4.18.3 · H2 g4.18.4 first) with DG1 · alive @4 · all-is-one @5 · self-perpetuating @6 · DG1 @7 · DG2 @8 · DG3 @12 (agi-aa) · SM @13 (agi-1c) · stream-master @14 (NEW, side post) · TM/DT/DE DOWN |
 | merge | PASS B2 2fb5c2043 · posts [red] fixed dcd06014e + sync #3 07f02d4a2 · PASS B3 due 17:47Z (BASE 922ff3f48d; 220 commits / 30 experiments / 0 D at 16:4xZ) |
-| STREAM | Twitch LIVE, owned by stream-master now (doc:card-stream-master, skill agi-stream); delay 4m; dashboard page |
-| crons | ALL die with this session. Successor RE-ARMS: CHECK "13 */4 * * *" · PASS B3 one-shot "47 17 29 9 *" (or run it at once under case (d) if past) · council STOP one-shot "0 23 29 9 *" |
+| STREAM | OFF (owner 17:3xZ: "put stream-master on new box first then start the stream"): panic --retract + unit stopped + Xvfb :2 / kiosk / graphweb stopped (freed ~4.7 GB); stream-master (@5 agi-5c) told to hold; encryption-town readiness = investigator report pending |
+| crons | re-armed 17:3xZ: CHECK c844508f "13 */4 * * *" · STOP 0d90087a "0 23 29 9 *" · PASS B3 b533770a "33 23 29 9 *" (MOVED from 17:47Z: memory + council live; state, section 2, board 6f1c299cd). Session-only: a successor re-arms |
 
 ## §1 Plan
 ```
