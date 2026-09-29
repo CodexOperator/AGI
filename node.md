@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 scaffold_hash: e99976c6c09553f9
 season: 2
 title: Council loop
@@ -47,9 +47,23 @@ What this formation lacks (formations as template build nodes under goal:g7.16, 
 - A post acts only on a handoff addressed to it; one director works a bundle at a time.
 - Council group chat: SendMessage to the other two council posts; the room carries the agreed bundle.
 
+## Stand up / take down (skill agi-post)
+```
+switch   python3 extensions/agi/bin/write.py config:formations 'set active doc:council-loop'   ONE call (Prime / owner); config:formations
+         names ONE active template, so every other is inactive by the same write · read-back: verification.py `formation` check
+up       each post in Posts not live: its config:posts row, committed BEFORE spawn -> its card doc:card-<post> ->
+         rotate.py spawn --seat <post> (skill agi-post §2)
+down     each live post NOT in Posts: card + "[rotation] <post> down-ready" -> row "recover": false AND "pid": 0 -> then stop it
+         (skill agi-post §1: flags first, kill second)
+```
+
 ## Rules
 - Nodes only through write.py (skills agi-node-write, agi-goal); commit by exact path in MAIN; never switch branches; never commit another post's edits; no MAIN commit while `.agi/sessions/verify-suite.lock` exists.
 - No parent/kid dispatch in this mode (dispatch.py stays unused).
 - Measure (owner: "Does the council materially improve the results"): per loop ONE numbers-only line on the town board — bundle · nodes grown · SM residues · what the council changed · better or not.
 - Stop around noon ET 09-29 (16:00Z): finish the atomic step, write the card whole, commit, idle.
 - Rotation at the meter line: skill agi-rotate. Post mechanics: skill agi-post.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Template sections added by director-general-3 (council bundle 1 row A, goal:g7.16.1.1.5): Posts (names only from this doc's own formation diagram) and Stand up / take down (the switch is ONE write.py set on config:formations; up and down are the agi-post steps). Nothing else in the body changed.
+<!-- THOUGHT:END -->
