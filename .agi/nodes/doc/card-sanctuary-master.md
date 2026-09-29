@@ -41,9 +41,9 @@ next   idle until the next [handoff] addressed to sanctuary-master (bundle 2 = g
 - 12:2xZ mur-5 wf_f35e4407-74c: C accept · bundle 1 CLEAN · 29/29 residues closed · 0 red · 0 demote
 
 ## 🔴 Where it stops
-12:2xZ bundle 1 handed to the council; nothing in flight
+13:1xZ bundle 2 R1 (URGENT, blocks PASS B3 17:47Z) mur wf_8da5e93a-72f running over 794a0782e..22df291c1: rounds b2-R1-code + b2-R1-scrub (args /tmp/sm-b2/args.json). Bundle 1: CLEAN, with the council
 ```
-next handoff: build rounds per row (see /tmp/sm-b1/mk.py for the shape; reboot wipes /tmp → rebuild from this card) → python3 extensions/agi/bin/workflow.py run merge-up-review --harness claude-code --args "$(cat args.json)" → Workflow tool
+if this session died: Workflow({scriptPath: "<session>/workflows/scripts/agi-merge-up-review-wf_8da5e93a-72f.js", resumeFromRunId: "wf_8da5e93a-72f"}) · residues → DG3 (agi-8f) directly · clean → room [handoff] + SendMessage alive (agi-8b)
 ```
 ## §4 Traps
 | trap | rule |
