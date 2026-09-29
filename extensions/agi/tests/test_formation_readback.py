@@ -187,3 +187,11 @@ def test_the_live_formation_home_holds_pointers_not_copies():
         text = f.read_text("utf-8")
         assert "rotate.py spawn --seat" not in text and "skill agi-post" in text, f.name
         assert not re.search(r"goal:g7\.16 L\d", text), f.name
+
+
+def test_a_tally_or_prose_naming_the_mark_passes(groot):
+    """Residue 49: only the MARK shape on a goal/hypothesis trips the check."""
+    _node(groot, "goal/g6.md", "goal:g6", _T.format("11 parked: formation g7.16.2 -- rows 2 4"))
+    _node(groot, "build/b.md", "build:b", _T.format("FAILs on the retired parked: formation mark"))
+    _cell(groot, "doc:two-step")
+    assert verification.check_formation(groot).status == "PASS"

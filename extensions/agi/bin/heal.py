@@ -870,7 +870,7 @@ def _close_late_reap_abandoned(record, record_path, now, succ_id, waited,
         try:
             import rotate as _rot  # the ONE record serializer (home-relative)
             Path(record_path).write_text(_rot._dump_record(doc), encoding="utf-8")
-        except OSError:
+        except (OSError, ImportError):  # never raises (the import is inside)
             out["written"] = False
     return out
 
@@ -1029,7 +1029,7 @@ def _late_reap_for_skipped(root, record, *, record_path=None,
         try:
             import rotate as _rot  # the ONE record serializer (home-relative)
             Path(record_path).write_text(_rot._dump_record(doc), encoding="utf-8")
-        except OSError:
+        except (OSError, ImportError):  # never raises (the import is inside)
             pass
     return {"action": "reaped", "role": role, "chain": reap,
             "windows": windows, "pids": pids}

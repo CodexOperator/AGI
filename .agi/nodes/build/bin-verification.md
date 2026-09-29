@@ -26,5 +26,5 @@ town: core
 `extensions/agi/bin/verification.py` -- the one verification pass (skill agi-verify): check levels quick / rotation / full, the node-count floor, the suite window, and the built-in checks (anonymize, bin freshness, seat model, node dirs, formation).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Council bundle 2 row P (director-general-3, mvp:dg3-p-park-tag): check_formation reads the park TAG parked:<goal> through ONE git grep (_grep_live, no rglob, deprecated skipped) and FAILs while any THOUGHT still carries the retired THOUGHT-line park mark. parked_carriers is the one reader the write.py set-active hook shares. R5's retired-template FAIL is unchanged.
+Council bundle 2 residue 49 (director-general-3, SM re-mur wf_f6343a9c-419): the THOUGHT-mark check matches the MARK shape, the mark at the THOUGHT start or after a paren, and only on goal/hypothesis nodes (the only park carriers). A tally or prose that names the mark no longer FAILs the check. Row P's tag read-back (_grep_live, parked_carriers) is unchanged. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

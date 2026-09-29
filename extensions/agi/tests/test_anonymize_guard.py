@@ -375,3 +375,15 @@ def test_any_box_home_is_refused_by_one_generic_class(tmp_path, fake_box, monkey
         assert anonymize.scan(f"see {other}", toks) == ["home"]
         assert anonymize.cmd_check(root, f"see {other}\n", None) == 1
     assert anonymize.scan("see <home>/x.md, ~/x.md and /home/<x>/y", toks) == []
+
+
+# bundle 2 residue 46 (sanctuary-master re-mur wf_f6343a9c-419): a BARE home --
+# no trailing slash -- is the same class; the rewrite keeps the terminator.
+def test_a_bare_home_is_the_same_generic_class(tmp_path, fake_box, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path / "h" / "me"))
+    toks = anonymize.box_tokens(_graph(tmp_path))
+    bare = "/" + "home/" + "zqxwv"  # made up, joined at runtime
+    for text in (f"for {bare}", f"pre-set for {bare} at spawn", f'"{bare}"'):
+        assert anonymize.scan(text, toks) == ["home"], text
+    assert anonymize.home_relative(f"for {bare} at spawn", home="/h/me") == "for <home> at spawn"
+    assert anonymize.scan("see /home/<seg> and ~/x", toks) == []

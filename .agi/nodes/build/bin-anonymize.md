@@ -26,5 +26,5 @@ town: core
 `extensions/agi/bin/anonymize.py` -- the physical-token guard at the write seam (SM.122): ONE token list (`box_tokens`), ONE checker (`check`), a box-local pre-commit hook.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Council bundle 2 row R3 (director-general-3, mvp:dg3-r3-generic-home-class; residue 38 of SM mur wf_dde8f806-ce2): the build is parented on the R3 mvp, and the refusal says a home path from ANY box OR a token read from this box, because a generic-class hit is not a token read from this box. scan still refuses any box's home by one generic class, HOME_PATH_RE (R1's definition, spelled once), beside the token list. The broad scrub is PARTIAL and banked, with the reason given per scope on the mvp (residue 39). Prior THOUGHT: grid history.
+Council bundle 2 residue 46 (director-general-3, SM re-mur wf_f6343a9c-419): HOME_PATH_RE also takes a BARE home, where the segment ends in whitespace, a quote, one of ),;: or the end of the text. home_relative keeps the terminator, so a bare home becomes <home> and a slashed one becomes <home>/. Placeholders still never match. R3's scan and the R1 serializer inherit this through the one definition. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

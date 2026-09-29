@@ -1695,9 +1695,11 @@ def audit_finding_line(seat: str, side: str, record_stamp: str | None,
 def write_audit_into_record(rec_path, side: str, payload: dict) -> None:
     """Read-modify-write the ONE top-level `audit` key of a rotation record.
 
-    `rotate.py` writes every rotation record as
-    `json.dumps(record, indent=2) + "\n"` (rotate.py:4566,5304), so parsing
-    and re-dumping with the SAME call is byte-preserving for every other key.
+    `rotate.py` writes every rotation record through ONE serializer,
+    `rotate._dump_record` (indent 2, home-relative), and this re-dump uses
+    that SAME serializer: every other key is byte-preserved EXCEPT a raw home
+    path a legacy record still carries, which is rewritten `~` / `<home>/`
+    (bundle 2 R1 residue 33 -- the point of the one serializer).
     `audit` is assigned LAST, so a fresh record gains the key after its
     existing keys; on a re-run the existing `audit` dict keeps its position
     and only its OWN side is replaced -- a re-run replaces its side and never

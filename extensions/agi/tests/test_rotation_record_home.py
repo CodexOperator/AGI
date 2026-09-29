@@ -80,21 +80,51 @@ def _record(tmp_path, home, extra=None) -> Path:
     return p
 
 
-@pytest.mark.parametrize("family", ["rotate", "heal", "sensei"])
-def test_every_record_writer_family_writes_home_relative(tmp_path, home, family):
-    """Residue 33: the writers outside _write_rotation_record re-dump through
-    rotate._dump_record, so no HOME (this box's or another's) lands raw."""
+def _late_reap(p, raw, tmp_path, monkeypatch):
+    """heal._late_reap_for_skipped's REAP write (heal.py late-reap branch):
+    a registry that now holds the successor, one older chain window."""
+    import heal
+    monkeypatch.setattr(rotate, "_reap_chain", lambda pids, **kw: {"chain": [{"ps_before": raw}]})
+    rec = {"seat": "p", "result": "skipped", "refusal_reason": "no registry file for @6",
+           "handover": {"own_window": {"name": "p-S1-L4-V", "id": "@5"},
+                        "successor_window": {"name": "p-S1-L4-VI", "id": "@6"}}}
+    p.write_text(json.dumps(rec, indent=2) + "\n", "utf-8")
+    (tmp_path / "reg").mkdir()
+    (tmp_path / "reg" / "1.json").write_text('{"window_id": "@6"}', "utf-8")
+    (tmp_path / "win.txt").write_text("@5 p-S1-L4-V\n@6 p-S1-L4-VI\n", "utf-8")
+    out = heal._late_reap_for_skipped(tmp_path, rec, record_path=str(p), rows=[{"name": "p", "role": "director"}],
+                                      window_path=str(tmp_path / "win.txt"), registry_dir=str(tmp_path / "reg"),
+                                      pids_for=lambda n: [1], rot=rotate, now=1234)
+    assert out["action"] == "reaped", out
+
+
+def _heal_abandoned(p, raw, *_):
+    import heal
+    heal._close_late_reap_abandoned({}, str(p), 0.0, raw, 1.0, 2.0)
+
+
+def _sensei_audit(p, raw, *_):
+    import sensei
+    sensei.write_audit_into_record(p, "left", {"transcript": raw})
+
+
+WRITERS = {
+    "rotate._record_closeout": lambda p, raw, *_: rotate._record_closeout(p, [{"step": "s", "detail": raw}]),
+    "rotate._record_swept_latches": lambda p, raw, *_: rotate._record_swept_latches(p, [raw]),
+    "rotate._record_s12_self_reap": lambda p, raw, *_: rotate._record_s12_self_reap(p, {"chain": [{"ps_before": raw}]}),
+    "heal._close_late_reap_abandoned": _heal_abandoned,
+    "heal._late_reap_for_skipped": _late_reap,
+    "sensei.write_audit_into_record": _sensei_audit,
+}
+
+
+@pytest.mark.parametrize("writer", sorted(WRITERS))
+def test_every_record_writer_writes_home_relative(tmp_path, home, monkeypatch, writer):
+    """Residues 33 + 45: EACH writer outside _write_rotation_record, alone on
+    its own fresh record, re-dumps through rotate._dump_record -- no HOME
+    (this box's or another's) lands raw, and no later writer can mask it."""
     p, raw = _record(tmp_path, home), f"cwd={home}/p x {OTHER}w"
-    if family == "rotate":
-        rotate._record_closeout(p, [{"step": "s", "detail": raw}])
-        rotate._record_swept_latches(p, [raw])
-        rotate._record_s12_self_reap(p, {"chain": [{"ps_before": raw}]})
-    elif family == "heal":
-        import heal
-        heal._close_late_reap_abandoned({}, str(p), 0.0, raw, 1.0, 2.0)
-    else:
-        import sensei
-        sensei.write_audit_into_record(p, "left", {"transcript": raw})
+    WRITERS[writer](p, raw, tmp_path, monkeypatch)
     text = p.read_text("utf-8")
     assert str(home) not in text and OTHER not in text
     assert "cwd=~/p x <home>/w" in text

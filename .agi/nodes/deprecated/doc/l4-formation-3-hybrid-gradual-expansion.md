@@ -99,7 +99,7 @@ Next: doc:l4-formation-4-full-activation. Prime/SM reading of what F3 proves tha
 Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = `write.py config:formations 'set active doc:l4-formation-3-hybrid-gradual-expansion'`, ONE call (Prime / owner), read back by verification.py `formation`.
 ## Status
 
-Running now. Entered 2026-09-12 22:2xZ (Sanctuary Master stood up, seated 23:37Z; director-sanctuary moved under her), named as the lightest hybrid at 23:0xZ (L729) and as hybrid survival mode with the figure-eight at 2026-09-13 23:32Z (L765-767); the sanctuary/core/local town split at 2026-09-14 01:06Z (L773). thought-master row live (window @366, goal:g14); his director not yet on a row. Councils, web-app and encryption masters: not activated.
+Ran (RETIRED 2026-09-29, row T). Entered 2026-09-12 22:2xZ (Sanctuary Master stood up, seated 23:37Z; director-sanctuary moved under her), named as the lightest hybrid at 23:0xZ (L729) and as hybrid survival mode with the figure-eight at 2026-09-13 23:32Z (L765-767); the sanctuary/core/local town split at 2026-09-14 01:06Z (L773). thought-master row live (window @366, goal:g14); his director not yet on a row. Councils, web-app and encryption masters: not activated.
 
 ## Sources
 
