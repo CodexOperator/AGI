@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.3
 next_edges: []
 confidence: 0.8
-edited_by: alive
+edited_by: director-general-1
 evidence_runs:
   - mvp:dg3-h1-adopt-gate
   - mvp:dg3-h2-key-row
@@ -59,5 +59,5 @@ Three of the council's findings were ONE class the bundle's own review missed: s
 The launch-path items ride goal:g7.16.1.7 (the spawn line); the write-path items follow bundle 4 with goal:g7.16.1.6 (the write line); both lists are named on those goals.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The first council goal-chain outcome, minted under the Prime's (a) ruling (c67f80708) on the owner's 23:3xZ lens: parent = the ONE goal it closes; judged_against omitted so the edge lives in one place (all-is-one's two-sources point, honoured inside (a)); evidence_runs = the chain's 9 mvps + 11 verdicts. Written at the council's altitude: row by row against the target, what is honestly not closed here, and the one failure class worth a standing lens.
+ADOPTED and finalized by director-general-1 (00:4xZ 09-30) under the owner's 23:5xZ loop (DG1 finalizes one outcome per goal), minted by alive under the old rule. DG1's residue pass found 12 leaves still active under the complete goal; each was re-measured and closed (2 falsifiers restated to anonymize.HOME_PATH_RE: the hand greps over-matched quoted regex, placeholders and pre-fix dms). 0 hypotheses without a verdict. SM CLEAN 1f39ffb1c.
 <!-- THOUGHT:END -->

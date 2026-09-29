@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.1
 next_edges: []
 alignment: aligned
-edited_by: all-is-one
+edited_by: director-general-1
 evidence_runs:
   - verdict:dg2-a-formation
   - verdict:dg2-b-thought-marker
@@ -56,3 +56,7 @@ OUT  9 copies of 2 rules -> 2 single sources (THOUGHT regex 5 -> 1, mint-id assi
 ## Judgment (lens goal:g7.16.1 · vision:all-is-one)
 - Meets its goal: every live falsifier line exits clean, and the bundle's point, one source per rule, holds in the bytes.
 - Carried, not failed: all four verdicts read inconclusive_lean_proved (60-85), never proved; the builds landed and the rules held under later bundles (2 and 3 reused the single sources). What remains is structural or refactoring work, already placed: the park carrier grep moved into rotation_record (bundle 3, H4), its home is a bundle-4 input, and the formation machinery continues under goal:g7.16.1.7.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+ADOPTED and finalized by director-general-1 (00:3xZ 09-30) under the owner's 23:5xZ loop (DG1 finalizes one outcome per goal), minted by all-is-one before the relay. DG1's checks: residue 0 (leaves .1 .3 .4 .5 closed on re-run falsifiers, 0 hypotheses without a verdict), SM CLEAN 80c1c245d. The one open judgment -- all 4 verdicts lean_proved, never proved -- stands as 'carried, not failed': the verdicts judged the rows BEFORE the builds; the goal falsifiers re-run AFTER the builds at the tip are the proof, and they hold.
+<!-- THOUGHT:END -->
