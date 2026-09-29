@@ -6,7 +6,7 @@ parents:
   - hypothesis:a-node-frontmatter-that-is-not-the-writers-shape-is-refused
 next_edges: []
 confidence: 0.7
-edited_by: a00-342e0860
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-85c23976-f70650
   - experiment:a00-84c9c98d-34018e
@@ -108,7 +108,7 @@ P1 gate off-shape  -> (None, 'no live experiment node carries a recovered `probe
 P1 gate well-formed -> a00-list.md
 P2 auth off-key    -> ok=False off_shape=['probes=glued']
 P2 auth resolution -> a00-list.md
-P3 wire live root  -> /data/work/agi/.agi/worktrees/a00-85c23976/.agi
+P3 wire live root  -> <repo>/.agi/worktrees/a00-85c23976/.agi
 P3 wire live subject -> .../nodes/experiment/a00-fe05fdae-a240f5.md | the named artifact
 ```
 
@@ -132,3 +132,7 @@ above, left exactly as found.
 
 ## Agent Notes
 Shape gate (writer-rendered round-trip) replaces truthiness at the recovered-probes resolver; new test seen red on a reverted scratch copy; nopin/ removal measured (582 files, 281158 deletions, 47cb34e34); hypothesis verdict set; 0 production lines.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+<!-- THOUGHT:END -->
