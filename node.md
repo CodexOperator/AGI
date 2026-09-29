@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-test-zoom-unresolvable-tier-id-errors-only-inside-the-full-suite
 next_edges: []
 confidence: 0.85
-edited_by: a00-e2977dc6
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-6b761b8c-b6ae8b
 loop: hypothesis:l4-test-zoom-unresolvable-tier-id-errors-only-inside-the-full-suite@s2
@@ -58,7 +58,7 @@ ________________ ERROR at teardown of test_errors_do_not_abort _________________
         changed |= {p for p in after if p not in before}
 >       assert not changed, (
 E       AssertionError: workflow tests leaked rows into the real sessions dir
-    (changed/added: ['/home/ubuntu/work/agi/.agi/sessions/workflows/merge-up-review.jsonl']);
+    (changed/added: ['<home>/work/agi/.agi/sessions/workflows/merge-up-review.jsonl']);
     a non-dry workflow run test must redirect tracking to a tmp root via
     _tmp_session_root, never run against the real project root.
 extensions/agi/tests/test_workflow.py:1033: AssertionError
@@ -70,7 +70,7 @@ The changed file's last row is not a test artefact — it is a **live season
 merge-up review run by another seat**, written 28 s before my suite ended:
 
 ```
-$ tail -1 /home/ubuntu/work/agi/.agi/sessions/workflows/merge-up-review.jsonl
+$ tail -1 <home>/work/agi/.agi/sessions/workflows/merge-up-review.jsonl
 {"failed": 1, "harness": "pi", "harness_id": [], "ok": 0, "returns": {},
  "run_key": "mur-sm-36", "stages": {"review:SM.36": "failed", "verify:SM.36": "pending"},
  "timestamp": "2026-09-16T11:57:04.916706+00:00", "workflow": "merge-up-review"}
@@ -247,7 +247,7 @@ NEAR MISS — the plausible implementation that satisfies the words and loses th
 DEVIATION FROM A STANDING RULE, and why the case exempts itself: I did not re-run the kid's full suite as evidence (the parent task forbids it) — the end-to-end claim rests on the kid's `postfix-suite.log` plus my own probes, which is a softer footing than a re-run. My three probes are gate/wire evidence on the changed bytes and they are the reason `proved` is kept rather than demoted.
 
 RESIDUE, accepted, named for the next reader:
-(a) The whitelist is a PATH PREFIX test — `not str(wf_dir).startswith(tempfile.gettempdir())`. On a box whose repository itself lives under the temp root, every real leak would be whitelisted and the guard would go silent. Not the case here (repo under /home/ubuntu/work), but it is a silent-failure shape, not a loud one.
+(a) The whitelist is a PATH PREFIX test — `not str(wf_dir).startswith(tempfile.gettempdir())`. On a box whose repository itself lives under the temp root, every real leak would be whitelisted and the guard would go silent. Not the case here (repo under <home>/work), but it is a silent-failure shape, not a loud one.
 (b) The ledger is per-process BY DESIGN, so a leak made by a child process a future test spawns is invisible — my PROBE 3 measured exactly that blind spot. The kid named it under "Limits". It is not a regression (the count guard could not tell that case apart from a live seat either, which IS the defect), but a successor who adds a subprocess-driving test to test_workflow.py must know the guard will not see it.
 (c) This node's title is the scaffold default ("A00 6b761b8c b6ae8b") — cosmetic, the body carries the work.
 (d) The one line the kid's brief and mine both got wrong is mine, not the kid's: never assert a constant from memory; read it from the installed package. Recorded here so the next parent brief does not repeat it.
