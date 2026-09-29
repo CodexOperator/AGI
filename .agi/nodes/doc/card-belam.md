@@ -55,7 +55,7 @@ B0. RE-ARM (session crons die with a session): CHECK "13 */4 * * *" · council S
 B3. 23:33Z: section 2 of .agi/sessions/prime-merge.crons.md (skill agi-merge-pass §2-§4): copy /data/home-belam/passB2 -> passB3, retag pb3 (grep every pb2 after copying).
     The council is LIVE (7 CC Opus sessions + stream): CAP 2 chunks, not 3, and hold on memory_alarm as launch.sh does.
     RED gates beyond the skill: anonymize over BASE..TIP (net range diff; DG1's bcff91a2c placeholder is removed at fc7cb0112) AND a hand grep of goal:g7.16.2
-        for the other-box user segment (residue 46). Either open = hold the merge. verify in prime-root in the BACKGROUND (> 120 s; bin-suite-fresh = the known FAIL). B3 ALSO: goal:g7.31.3.3.1-.5 must carry core's mint_ids (residue 75 -> (a), DG3, 18:3xZ); if not landed, the merge note names the fork.
+        for the other-box user segment (residue 46). Either open = hold the merge. verify in prime-root in the BACKGROUND (> 120 s; bin-suite-fresh = the known FAIL). Residue 75 (a) LANDED 07ee9c46b (DG3; 5/5 match core's mint_ids, checked by the Prime): B3 carries it, nothing to check.
     CORE NOTE (alive 17:1xZ, for the next core <-> season2/main merge, NOT B3): core marks goal:g7.31.3.3 + .1-.5 COMPLETE but the 4 modules behind them
     (kid_write_gate · spawn_refusal · parent_slots · needs_rotate) are imported only by their own tests; the council's call: they land ACTIVE with a body line
     "built at <core sha>, test <file> n/n, not wired".
