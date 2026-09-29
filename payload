@@ -1007,6 +1007,42 @@ def thought_blocks(text: str) -> list[str]:
     return _THOUGHT_RE.findall(text or "")
 
 
+_ROW_ITEM = re.compile(r"^\s{0,3}([-*+]|\d+[.)])\s")
+_ROW_BLOCK = re.compile(r"^<!--\s*([A-Z][A-Z-]*):BEGIN")
+
+
+def body_rows(body: str) -> list[tuple[int, int]]:
+    """goal:g4.18.5.1 -- THE row index: `body` -> [(start, end)], 1-based and
+    inclusive in `read body N:M` coordinates, document order. One row = a
+    heading line, a table row, a list item (with its indented continuation),
+    a whole `<!-- X:BEGIN -->`..`X:END -->` or fenced block (an unpaired BEGIN
+    marker is one line), or a paragraph.
+    Blank lines are never rows. write.py's `row` verb addresses by it."""
+    lines, rows, i = body.split("\n"), [], 0
+    while i < len(lines):
+        ln, start = lines[i], i
+        if not ln.strip():
+            i += 1
+            continue
+        if (m := _ROW_BLOCK.match(ln)) or ln.startswith("```"):
+            end = f"{m.group(1)}:END" if m else "```"   # an unpaired BEGIN (BODY) is one line
+            j = next((k for k in range(i + 1, len(lines)) if (end in lines[k] if m
+                      else lines[k].startswith(end))), None)
+            i = i if j is None else j
+        elif _ROW_ITEM.match(ln):
+            while i + 1 < len(lines) and lines[i + 1].startswith("  ") and lines[i + 1].strip() \
+                    and not _ROW_ITEM.match(lines[i + 1]):
+                i += 1
+        elif not (ln.startswith("#") or ln.startswith("|")):
+            while i + 1 < len(lines) and lines[i + 1].strip() and not (
+                    lines[i + 1][:1] in "#|" or _ROW_ITEM.match(lines[i + 1])
+                    or lines[i + 1].startswith(("<!--", "```"))):
+                i += 1
+        rows.append((start + 1, i + 1))
+        i += 1
+    return rows
+
+
 def thought_text(body: str) -> str | None:
     """The authored words: the region minus both marker comments, stripped."""
     block = extract_thought(body)
