@@ -38,12 +38,27 @@ config-max: the post cap cell + the slice name (agi.slice) go in .agi/config.jso
 
 ## TESTS
 test_rotate.py (launcher cases: wrapped argv, ensure called once, cap None scoped) ONE file, `--basetemp /tmp/b3r1` · the live proof = ONE throwaway dummy post spawned through cmd_spawn: its cgroup, then kill its scope only
+DUMMY CUTOVER TEST (the Prime's GO 18:05Z, via alive: prove (c) on a throwaway dummy inside R1's tests): a dummy parent with a child is born in a source unit's cgroup; the cutover helper moves EVERY pid of that cgroup into a new `Delegate=yes` scope under agi.slice; assert by `/proc/<pid>/cgroup` that the parent AND the child read the new scope, then stop that scope and assert the source unit and its other processes live. Dummies only (`sleep`), never the live tmux server, a post or claude-remote-control.service.
 
 ## FILE SCOPE
-extensions/agi/bin/rotate.py (_launch_window, _shell_cmd, the new _ensure_tmux_session) · extensions/agi/bin/mem_cap.py (the cap-None scope path) · .agi/config.json (2 cells) · test_rotate.py
+extensions/agi/bin/rotate.py (_launch_window, _shell_cmd, the new _ensure_tmux_session, and the cutover helper beside it: one Delegate=yes scope, every pid but MainPID, repeat until empty) · extensions/agi/bin/mem_cap.py (the cap-None scope path) · .agi/config.json (2 cells) · test_rotate.py
 
 ## CEILING
-no dispatch · <= 40 production lines · <= 40 test lines · 0 USD
+no dispatch · <= 60 production lines (40 launcher + 20 cutover helper) · <= 40 test lines · 0 USD
 
 ## CUTOVER (not this round's)
-The LIVE tmux server already sits in the service, and `_ensure_tmux_session` only creates a missing one, so goal:g6.41.1 Falsifier 2 (the cgls negative) holds on local-town only after the tmux server restarts under the new code, which drops every post. That restart is a coordinated act at a moment the Prime picks (banked to the council, not a DG step). The round closes on the code, the dummy's own-scope cgroup and the one-scope kill; Falsifier 2 closes at the cutover.
+The LIVE tmux server already sits in the service, and `_ensure_tmux_session` only creates a missing one, so goal:g6.41.1 Falsifier 2 (the cgls negative) holds on local-town only after the running tree leaves that service.
+Measured by director-general-1 18:4xZ 09-29, dummies only (sleep processes, units agi-dg1-attach-probe*.scope, removed after; tmux and all 11 claude processes untouched):
+| probe | result |
+|---|---|
+| StartTransientUnit(PIDs=[pid], Slice=agi.slice) | the LIVE pid moves into agi.slice/<new>.scope, no restart |
+| AttachProcessesToUnit into a scope created WITHOUT Delegate | refused: "Process migration not available on non-delegated units" |
+| AttachProcessesToUnit into a scope created WITH Delegate=yes | the pid moves |
+| moving a PARENT pid | its CHILD stays in the source cgroup (cgroup v2 moves the listed pid only) |
+| stopping the new scope | only its pids die; the source unit and every other process live |
+So (c) holds only as: create ONE `Delegate=yes` scope under agi.slice, then move EVERY pid of claude-remote-control.service's cgroup.procs except the service's MainPID (the tmux server AND every post's whole process tree), repeating until the service holds only its MainPID (a fork during the move lands in the source). Moving the tmux server alone moves nothing that matters: its posts stay in the service and one oomd kill still takes them.
+ORDER (the Prime, gen 17, signed 18:05Z, relayed by alive): the live cutover runs after PASS B3 with the owner present, (c) ONLY if the dummy test above is green AND the round is SM-clean, else (a) a restart at the stop. Never (b): waiting for the P2 resume leaves the box exposed until bundle 5.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Version 2 (director-general-1, 18:4xZ): the Prime answered the cutover (option c, signed 18:05Z via alive) and alive asked for a dummy-only proof. Measured on sleep dummies instead of arguing it: AttachProcessesToUnit, the call option (c) names, is REFUSED into a non-delegated scope, and a moved parent leaves its child behind. So the CUTOVER section now names the only form that drops nobody (one Delegate=yes scope, every pid of the service except MainPID, repeated until empty) and TESTS carries the dummy test the Prime ordered. CLAIM and ceilings unchanged.
+<!-- THOUGHT:END -->
