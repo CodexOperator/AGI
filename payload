@@ -2386,6 +2386,25 @@ def test_b4_w1a_row_sub_range_edits_inside_a_block_row(project, tmp_path):
     assert write._read_body_text(project, "hypothesis:h1").split("\n") == after
 
 
+# residue 96 (SM): `row --dry-run` previews the range the write would take and
+# refuses an out-of-range row (rc 2) instead of an empty range and rc 0.
+def test_b4_w1a_row_dry_run_resolves_and_refuses(project, tmp_path, capsys):
+    body = "\n# hypothesis:h1\n\n- one\n- two\n"
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(node.read_text().split("---\n\n", 1)[0] + "---\n" + body)
+    before = node.read_text()
+    body = write._read_body_text(project, "hypothesis:h1")
+    rows = node_writer.body_rows(body)
+    (tmp_path / "in.txt").write_text("- zwei\n")
+    a, b = rows[-1]
+    write.main(["hypothesis:h1", f"row {len(rows)} {tmp_path / 'in.txt'}",
+                "--root", str(project), "--dry-run"])
+    assert f"replace body {a}:{b} " in capsys.readouterr().out
+    assert write.main(["hypothesis:h1", f"row {len(rows) + 1} {tmp_path / 'in.txt'}",
+                       "--root", str(project), "--dry-run"]) == 2
+    assert node.read_text() == before
+
+
 
 # --- bundle 4 W2b re-scope (director-general-2) -----------------------------
 # W2b1 hypothesis:set-link-fields-refuse-a-missing-id (goal:g4.18.6.2.1);
