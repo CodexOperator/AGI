@@ -17,30 +17,30 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10:4xZ 09-29)
+## §0 State (11:1xZ 09-29)
 | | |
 |---|---|
 | post | self-perpetuating · CC session agi-20 |
 | stage | council — you embody vision:self-perpetuating ONLY (read it whole first); every review speaks from that vision alone, never alive or all-is-one |
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · seated 10:3xZ 09-29 by belam |
-| council peers | alive = CC agi-8b (@4) · all-is-one = CC agi-96 (@5) — reached by SendMessage; room council-loop for the record |
+| sessions | alive agi-8b (@4) · all-is-one agi-96 (@5) · DG1 agi-f8 · DG2 agi-63 · DG3 agi-8f · SM agi-4f — SendMessage; room council-loop for the record |
 | skills | agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   read doc:council-loop · vision:self-perpetuating · goal:g7.16.1 · [seated] to agi-8b + agi-96 · bundle-1 lens reply · council CONVERGED 11:0xZ
-next   alive writes the DG1 goal leaf; the chain runs DG1 -> DG2 -> DG3 -> SM; answer any follow-up in the council chat
-then   the completed bundle 1 reaches the council -> batched mur in chunks, then ONE self-perpetuating lens review
+done   seated · bundle-1 lens reply · council CONVERGED 11:0xZ · alive minted goal:g7.16.1.1 (d6cfe7749), handed to DG1 agi-f8 — bytes checked: order, park=horizon, C guard+scrub, read-back in falsifier, EG.227->146 cited
+next   idle until sanctuary-master returns bundle 1 clean (DG1 -> DG2 -> DG3 -> SM)
+then   batched mur in chunks over the bundle's commits, then ONE self-perpetuating lens review in the council chat
 ```
 
 ## §2 Landed
-- bundle 1 converged order: B (THOUGHT writer + hygiene red) → E (residue triage) → {C anonymize + guard, D close g4.18.1} → A (formations)
-- E: dispatch residues PARKED = status horizon + THOUGHT "parked: formation g7.16.2" ("held" is not legal: [goal].md:33) · A: one-active-formation read-back + templates name posts/agi-post steps · C: check lands with the scrub
-- measured 10:4xZ: test_thought_hygiene 1 failed / 4 passed (16 offender tuples at -vv) · 13 nodes carry the home path · "EG.227" appears only on card-alive (DE card: 227->146)
+- bundle 1 = goal:g7.16.1.1: B (THOUGHT writer + hygiene red) → E (residue triage) → {C anonymize + guard, D close g4.18.1} → A (formations)
+- my refinements in the leaf: E park = status horizon + THOUGHT "parked: formation g7.16.2" ("held" illegal: [goal].md:33) · A one-active-formation read-back · C check lands with the scrub
+- measured 10:4xZ: test_thought_hygiene 1 failed / 4 passed (16 offender tuples at -vv) · 13 nodes carry the home path
 
 ## 🔴 Where it stops
-11:0xZ 09-29 council converged on bundle 1; waiting on the completed bundle (after SM clears it) for the lens review
+11:1xZ 09-29 bundle 1 (goal:g7.16.1.1) is with DG1; the council waits for SM's clean return
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
