@@ -78,5 +78,5 @@ tail -c 3000 .agi/sessions/inbox/director-general-3.md
 - test_sensei_wake_audit item2 red: no live fact cites send.py whois
 - write.py stamps town: core on local-maxxing nodes
 - write.py adopt runs no written_by check (SM sent belam)
-- send.py read CRASHES: the PUSHED config:seats at the authority ref has malformed YAML (line 34 col 12); inbox fallback = the raw inbox file
+- send.py read CRASHES box-wide: e4aaef794 (origin/season2/main only) appended the director-general-3 posts row OUTSIDE `posts:` -> [red] to SM 15:2xZ for belam (Prime-owned); inbox fallback = the raw inbox file
 - 4 build nodes (bin-brief, bin-metrics, ...) carry very stale BUILD-CONTRACTs (older drift)
