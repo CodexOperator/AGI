@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-seat-session-iter-dirs
 next_edges: []
 confidence: 0.85
-edited_by: a00-bad8beca
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-6b9a041c-54e161
 loop: hypothesis:l4-seat-session-iter-dirs@s2
@@ -69,7 +69,7 @@ local lacks it → shared-fallback → done completes against main).
 Live checks from THIS worktree (a00-bad8beca):
 - `cli.py status L4.37` → found the in-flight manifest (which lives in MAIN)
   via shared-fallback: `iter L4.37: 2 agents` — a seat still sees its round.
-- `spawn_budget.py status` → ONE budget, `dir=/home/ubuntu/work/agi/.agi/
+- `spawn_budget.py status` → ONE budget, `dir=<home>/work/agi/.agi/
   sessions/.spawn-budget` (MAIN checkout) — budget did not split per worktree.
 
 ## Evidence
