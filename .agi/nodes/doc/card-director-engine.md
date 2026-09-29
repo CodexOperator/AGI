@@ -128,7 +128,7 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 
 ## 🔴 WHERE IT STOPS
-01:2xZ 09-29: MUR CONTROLLER FIXED (S3/rmur3.sh): 7 finished murs recovered from .fail logs -> 5 correctives EG.193-197 chained (pq193-197, place3 = retry sync at the cut; bases 193-195 lacked the retry) · EG.190 merge cut b7ce76fcf + EG.181/173 retry-synced cuts (EG.173 LIVE a00-b940495d with 12 x 60) · murq288 = EG.185 chain (with murq274 EG.183 = its base): LAND before 01:43Z or after PASS B2 · murq283 re-run · murq282 carry -> the murq283 corrective (T/carry282.md) · next EG.198, murq289; #6 not yet sent
+01:2xZ 09-29: MUR CONTROLLER FIXED (S3/rmur3.sh): 7 finished murs recovered -> correctives EG.193-197 chained (pq193-197, place3 = retry sync at the cut) · EG.189 HARVESTED d4a2770a4 162 passed -> murq289 (rmur3) · EG.182 parent reported (1 acc 1 dem, ceiling 134/16 test swept pre-existing bytes) -> harvest at its HARVEST line · live: EG.173 a00-b940495d (retry-synced cut) · EG.191 a00-547f2313 · EG.192 placing (pq192) · murq288 = EG.185 chain (+ murq274 EG.183 base): LAND before 01:43Z or after PASS B2 · murq283 re-run · next EG.198, murq290; #6 not yet sent
 ```
 FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (deadwatch redispw rmur2xx pq188-191)
         · tail S3/deadwatch.log: a HARVEST line not harvested -> systemd-run --user --unit=agi-director-engine-harvN -p MemoryMax=6G
