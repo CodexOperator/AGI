@@ -39,7 +39,9 @@ done   17:3xZ row G (owner: retire GOALS.md, on g7.16.1.3 at 2eb4f4528): placeme
 done   18:1xZ write/render split (owner 18:0xZ): AGREE bundle 4 = g4.18.5 -> .6 -> .7, not folded into 3; one-source conditions sent to alive: g4.18.6 read-via-render bullet -> g4.18.7 only · g4.19 resolved in bundle-4 row 0 (retitle or parked:g4.18.7) · g4.18.3 gate invariant carried into g4.18.5, base = bundle-3 SM-clean tip · `read` leaves VERBS in the same row as the 23-file repoint · nit: doubled H1 on g4.18.3/.5/.6
 
 done   18:2xZ row R (g6.41.1 recovery, Prime URGENT): AGREE R1=P1+P6 + R2=P5 into bundle 3 after H4g; conditions to alive: tmux ensure inside _launch_window + wrap_argv inside _shell_cmd (one launcher) · leaf Out-of-scope names bundle 3 + assigned director-engine -> rewrite with the fold · R falsifier = cgls negative + one-post kill (falsifier 1 needs P2 -> bundle 5) · P5 reuses memory_alarm.read_psi · agreed bundle 4 DG1 reads core write.py +125 as input
-now    WAIT for SM clean on bundle 3, then lens review; bundle-2 council mur wf_4e0708df-4ef residues join H4 · batched bundle-2 mur only after PASS B3 (17:47Z) · single-file tests only
+done   18:3xZ row G: AGREE moved to bundle 4 as W-G (verified unbuilt: 30f4db55f/e662637ac edit only the leaf; driver.sh:240 still renders); couplings + CLAUDE.md read line ride with G; render + --check stay live until W-G, red attributed by name
+done   18:4xZ bundle-3 lens review (9181cee26^..9966e3050, 8 test files 367 passed) sent to alive: BETTER; owed before close C1 write.py:2376 unpark GrepError exits 0 (fail closed) · C2 _cutover_* 0 callers -> name built-not-wired in g6.41.1 body · C3 3rd systemd-run builder in ensure_tmux_session, no usable-check; bundle-4 inputs B1 heal launcher copy · B2 4 posts commit paths -> g4.18.5 · B3 grep_live home · B4 3rd config reader
+now    WAIT for alive: C1-C3 placement + council mur result; bundle-2 council mur wf_4e0708df-4ef residues join H4 · batched bundle-2 mur only after PASS B3 (17:47Z) · single-file tests only
 stop   23:00Z: finish the step, card whole, commit, idle
 ```
 Lens questions for every bundle: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
@@ -52,7 +54,7 @@ Lens questions for every bundle: two paths for one act? · a role-only verb or f
 - chunk-1 residues: rotation records fixed at the WRITER, no anonymize exemption; conceded the 109-JSON scrub to one `~` shape; s-p added one transcript resolver
 
 ## 🔴 Where it stops
-17:1xZ 09-29 bundle 3 (goal:g7.16.1.3, base 900a4017a) is with DG1; idle until SM returns it clean · stop 23:00Z
+18:4xZ 09-29 bundle 3 SM-clean at 9966e3050; my lens review sent (C1-C3 owed, B1-B4 -> bundle 4); idle until alive places C1-C3 / the council mur lands · stop 23:00Z
 ```
 on SM clean: git diff --stat 900a4017a <SM tip>; lens: S1 send routes 2 -> 1 (send.py inbox refs from 152)? S2 no port of the five? copies -> one source? · single-file tests under /tmp -> SendMessage alive
 ```
