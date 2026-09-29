@@ -10329,6 +10329,7 @@ def test_r1_every_post_argv_is_scoped_even_when_cap_is_none(monkeypatch, seat):
 def test_r1_launch_window_ensures_agi_rc_in_its_own_scope_first(monkeypatch, cell):
     import mem_cap  # residue 68: the ensure's slice follows spawn.post_scope; off = own scope, NO slice
     monkeypatch.setattr(mem_cap, "resolve_post_scope", lambda cfg: cell)
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda *a, **k: True)  # C3: the probe is the builder's now
     calls = []  # agi-rc absent: has-session rc 1
     monkeypatch.setattr(rotate.subprocess, "run", lambda a, **k: calls.append(list(a)) or subprocess.CompletedProcess(a, int("has-session" in a), stdout="@9\n", stderr=""))
     assert rotate._launch_window("agi-rc", "p1", "echo hi") == 0
@@ -10336,6 +10337,25 @@ def test_r1_launch_window_ensures_agi_rc_in_its_own_scope_first(monkeypatch, cel
     assert len(new) == 1 and win and new[0] < win[0], calls
     assert calls[new[0]][:3] == ["systemd-run", "--user", "--scope"]
     assert ("--slice=agi.slice" in calls[new[0]]) is (cell is not None), calls[new[0]]
+
+
+# goal:g7.16.1.7.1.1 C3: ONE scope builder -- no usable systemd-run = a plain tmux server, never a failed scope
+def test_c3_ensure_falls_back_to_plain_tmux_without_systemd_run(monkeypatch):
+    import mem_cap
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda *a, **k: False)
+    calls = []
+    monkeypatch.setattr(rotate.subprocess, "run", lambda a, **k: calls.append(list(a)) or subprocess.CompletedProcess(a, int("has-session" in a), stdout="", stderr=""))
+    rotate.ensure_tmux_session("agi-rc", root=None)
+    assert calls[-1] == ["tmux", "new-session", "-d", "-s", "agi-rc"], calls
+
+
+# goal:g7.16.1.7.1.1 SM rotate candidate: two launches of one name in the same second get distinct units
+def test_unit_names_never_collide_within_one_second(monkeypatch):
+    import mem_cap
+    monkeypatch.setattr(rotate.time, "time", lambda: 1_000_000.0)  # the old int(time.time()) suffix collided here
+    a, b = rotate._post_unit("p1"), rotate._post_unit("p1")
+    assert a != b and a.startswith("agi-post-p1-") and b.startswith("agi-post-p1-"), (a, b)
+    assert mem_cap.unit_name("agi-tmux", "agi rc").startswith("agi-tmux-agi_rc-")
 
 
 # residue 70: the one switch -- resolve_post_scope and spawn_window threading it
