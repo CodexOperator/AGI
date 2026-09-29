@@ -4,7 +4,7 @@ mint_id: 2f7402938a954f18b115d44b1a632e6e
 type: build
 parents:
   - goal:g7.16.1.1.1
-  - mvp:dg3-b-one-thought-definition
+  - idea:engine-metrics
 build_kind: code
 confidence: 1.0
 edited_by: director-general-3

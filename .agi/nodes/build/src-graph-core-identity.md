@@ -4,7 +4,7 @@ mint_id: 3d0741824921496fb21882d0711fbb44
 type: build
 parents:
   - goal:g7.16.1.1.4
-  - mvp:dg3-d-one-mint-assigner
+  - idea:engine-graph-core
 build_kind: code
 confidence: 1.0
 edited_by: director-general-3
