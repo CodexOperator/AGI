@@ -128,7 +128,7 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 
 ## 🔴 WHERE IT STOPS
-02:5xZ 09-29: [decision] kids-per-parent cap (5 template vs 10 cell spawn.parent_max_kids; recommend A = cell to 5) SENT to TM 02:5xZ, [delivered] -- the residue is held out of EG.207 until the answer · judged: 296 EG.192 demote -> EG.207 (11 items, +test_rotate_tail.py) · EG.196 director close dce48998c -> murq299 · EG.190 -> murq298 · live parents: EG.205 (EG.185 chain) EG.194 EG.195 EG.197 EG.198 EG.199 · pq200 next, 201-204 206 207 serial · murs live (rmur3): 292 293 294 297 298 299 · after EG.205 harvest: ONE mur c2404cc17..EG.205 tip, LAND after PASS B2 · next EG.208, murq300; #6 not yet sent
+03:0xZ 09-29: HARVESTED -> mur: EG.195 d571c9b44 -> 300 (DIRECTOR-MEASURED RED: test_thought_hygiene 45 green at the cut -> 8 failed at the tip; parent ran 4 kids vs HARD CAP 1 and edited node_writer.py OUTSIDE its FILE SCOPE) · EG.194 39388a801 -> 301 · EG.199 5eccd283f -> 302 (2 NOLAND raw edits, no write-log) · FINDINGS for the next [merge-up]: parents make RAW node edits that bypass write.py (NOLAND actor None: EG.190 a00-0575f123, EG.199 a00-7ca57e2a + a00-91cd4202) · EG.195 cap + scope breach · [decision] kid cap SENT to TM 02:5xZ, awaiting · live parents: EG.205 (EG.185 chain) EG.197 EG.198 EG.200 EG.201 EG.202 · pq203 204 206 207 serial · murs live (rmur3): 292 293 294 297 298 299 300 301 302 · next EG.208, murq303; #6 not yet sent
 ```
 FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (deadwatch redispw rmur2xx pq188-191)
         · tail S3/deadwatch.log: a HARVEST line not harvested -> systemd-run --user --unit=agi-director-engine-harvN -p MemoryMax=6G
