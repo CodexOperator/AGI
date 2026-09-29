@@ -39,7 +39,7 @@ next   handbacks → re-mur ONLY the touched items (tables /tmp/sm-b2/*.md; args
 - 13:3xZ bundle 2 stage 3 (wf_dde8f806-ce2): M R4 accept · R5 R2 R3 residue · 36 FULL merge-up anonymize REFUSED (2 real other-box homes: goal:g7.16.2, experiment:a00-6cb8a731-232b62 + test literals + DG1 card) · 37 skill class list · 38 provenance/message · 39 banked-scrub reason · 40 R5 conjunct 2 · 41 falsifier case · 42 parking test on 11 parks before P · [merge-up] warning to belam
 
 ## 🔴 Where it stops
-13:4xZ two murs running: wf_9a00e1d9-91a (residue 42 at 391a36a5c) · wf_f6343a9c-419 (32-40 + row P + 43 at 697335c7c; args /tmp/sm-b2/args-remur.json). 36 CLOSED + belam told (PASS B3 unblocked on anonymize) · 41 CLOSED · T next from DG3 (agi-aa)
+13:4xZ two murs running: wf_9a00e1d9-91a (residue 42 at 391a36a5c) · wf_f6343a9c-419 (32-40 + row P + 43 at 697335c7c; args /tmp/sm-b2/args-remur.json). 36 CLOSED + belam told (PASS B3 unblocked on anonymize) · 41 CLOSED · P reconciled by DG3 at 899979051 (6 tags, 0 THOUGHT marks, Falsifier 1 = 6) AFTER the re-mur tip: judge P findings against 899979051 · T next from DG3 (agi-aa)
 ```
 if this session died: Workflow({scriptPath: "<session>/workflows/scripts/agi-merge-up-review-wf_8da5e93a-72f.js", resumeFromRunId: "<run id>"}) for each · clean → room [handoff] + alive (agi-8b) · stop 16:00Z; rotate at the meter line 0.47 (now ~0.39)
 ```
