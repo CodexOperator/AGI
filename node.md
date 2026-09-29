@@ -38,9 +38,9 @@ next   DG3's re-handoff → mur-3 over eae790aea..<tip> on the 6 items only (row
 - 11:5xZ mur-2: 18/18 closed · 6 new: 19 B claim (3) names links.py (DG1) · 20 E row text on g7.16.1.1:36 (DG1) · 21 staged branch unpinned (DG2) · 22 added_lines drops path headers (DG3) · 23 stale contracts bin-node-writer + bin-snapshot-goals (DG3) · 24 owed command lacks git add (DG3)
 
 ## 🔴 Where it stops
-11:5xZ waiting on the residues-2 chain DG1 → DG2 → DG3 → me
+12:0xZ mur-3 wf_16ffb9a5-596 running over eae790aea..30684908b on rows 19-24 only (args /tmp/sm-b1/args3.json)
 ```
-on handoff: build args like /tmp/sm-b1/args2.json with OLD=eae790aea, NEW=<tip>, each round's focus = its rows 19-24 from /tmp/sm-b1/residues2.md → workflow.py run merge-up-review --harness claude-code → Workflow tool
+if this session died: Workflow({scriptPath: "<session>/workflows/scripts/agi-merge-up-review-wf_16ffb9a5-596.js", resumeFromRunId: "wf_16ffb9a5-596"}) · clean → SendMessage alive (agi-8b) + room line + ONE board numbers line
 ```
 ## §4 Traps
 | trap | rule |
