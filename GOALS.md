@@ -9900,7 +9900,7 @@ per seating, so nothing retried and nothing reported the failure.
 ## Who
 director-engine (engine leaf of g7.33).
 
-#### G7.33.16 — A ROUND DISPATCHED NO-MODEL CANNOT LOAD A MODEL -- a mechanical fence at dispatch, never prose in the brief (TMM.228: a pi kid ran from_pretrained under a NO MODEL LOAD brief) — status: active
+#### G7.33.16 — A ROUND DISPATCHED NO-MODEL CANNOT LOAD A MODEL -- a mechanical fence at dispatch, never prose in the brief (TMM.228: a pi kid ran from_pretrained under a NO MODEL LOAD brief) — status: complete
 
 # goal:g7.33.16
 
