@@ -2304,3 +2304,38 @@ def test_empty_source_guards_are_asymmetric_file_refused_stdin_lands(
     assert rc == 0, f"empty STDIN must land; got rc={rc}"
     after = write._read_body_text(project, "hypothesis:h1")
     assert "the body" not in after, "the range must actually be gone"
+
+
+# --- bundle 4 W2b (director-general-2) ------------------------------------
+_W2B = "bundle 4 W2b: RED until DG3 builds the outbound-id set-lookup check"
+
+
+def test_w2b_a_create_onto_a_missing_parent_is_refused_by_name(project):
+    _schemas(project)
+    res, _ = write.create(project, "hypothesis", "orphan", ["goal:nope"])
+    assert res.rejected and "goal:nope" in res.reason
+    assert not (project / "nodes/hypothesis/orphan.md").exists()
+
+
+@pytest.mark.xfail(strict=True, reason=_W2B)
+@pytest.mark.parametrize("key", ["parents", "next_edges"])
+def test_w2b_a_set_naming_a_missing_id_is_refused(project, key):
+    node = project / "nodes/hypothesis/h1.md"
+    before = node.read_text()
+    rc = write.main(["hypothesis:h1", f"set {key} [goal:nope]",
+                     "--root", str(project)])
+    assert rc != 0 and node.read_text() == before, "a missing id was written"
+
+
+@pytest.mark.xfail(strict=True, reason=_W2B)
+def test_w2b_a_create_reads_no_node_outside_its_neighbourhood(project, monkeypatch):
+    import io
+    _schemas(project)
+    far = project / "nodes" / "doc"
+    far.mkdir()
+    for i in range(3):
+        (far / f"far{i}.md").write_text(f'---\nid: "doc:far{i}"\ntype: doc\n---\n')
+    seen, real = [], io.open
+    monkeypatch.setattr(io, "open", lambda f, *a, **k: (seen.append(str(f)), real(f, *a, **k))[1])
+    assert write.create(project, "hypothesis", "near", ["goal:g1"])[0].written
+    assert [s for s in seen if "/nodes/doc/" in s] == []
