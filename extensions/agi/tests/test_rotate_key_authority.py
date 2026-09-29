@@ -848,3 +848,43 @@ def test_ef86_fetch_oserror_fails_and_never_raises(tmp_path, monkeypatch):
     assert out.startswith("authority: FAILED"), out
     assert "authority: SKIPPED" not in out, out
     assert "could not launch git fetch" in out, out
+
+
+# bundle 3 H2: e4aaef794 put a lone row after `thought_session:` -- unloadable
+_REL = ".agi/nodes/.geometry/posts.md"
+_BB = {"name": "bb", "role": "kid", "pubkey": "c" * 64}
+
+
+def _real_shape(rows, tail=""):
+    return _posts_text(rows)[:-4] + "scaffold_hash: x\nthought_session: y\n" + tail + "---\n"
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 3 H2(a): RED until DG3 builds the absent-row refusal")
+def test_h2a_absent_post_refuses_by_name_never_a_lone_row(tmp_path):
+    import yaml
+    repo, g, _posts, _bare = _fixture_no_seat(tmp_path)
+    _advance_authority(repo, "season2/main", _REL, _real_shape([_BB]))
+    pre = _git(repo, "rev-parse", "origin/season2/main").stdout.strip()
+    new = _real_shape([_BB, {"name": "cc"}, {"name": "aa", "pubkey": _NEW}])
+    out = rotate._publish_row_to_authority(g, "aa", new)
+    _git(repo, "fetch", "-q", "origin", "season2/main")
+    if out.startswith("authority: REFUSED"):  # refuse by name, ref unmoved
+        assert "'aa'" in out and _git(repo, "rev-parse", "origin/season2/main").stdout.strip() == pre
+    else:  # ... or the WHOLE row set, in a file that loads
+        fm = yaml.safe_load(_git(repo, "show", f"origin/season2/main:{_REL}").stdout.split("---\n")[1])
+        assert {"aa", "bb", "cc"} <= {r.get("name") for r in fm["posts"]}, out
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 3 H2(b): RED until DG3 builds the yaml.safe_load check before commit")
+def test_h2b_posts_md_that_fails_yaml_load_is_never_committed(tmp_path):
+    import yaml
+    repo, g, posts, _bare = _fixture(tmp_path)
+    broken = _real_shape([{"name": "aa", "role": "parent", "pubkey": _OLD}, _BB], '  - {"name": "zz"}\n')
+    with pytest.raises(yaml.YAMLError):  # the e4aaef794 shape does not load
+        yaml.safe_load(broken.split("---\n")[1])
+    _advance_authority(repo, "season2/main", _REL, broken)
+    pre = _git(repo, "rev-parse", "origin/season2/main").stdout.strip()
+    out = rotate._publish_row_to_authority(g, "aa", posts.read_text())
+    _git(repo, "fetch", "-q", "origin", "season2/main")
+    assert not out.startswith("authority: OK"), out
+    assert _git(repo, "rev-parse", "origin/season2/main").stdout.strip() == pre
