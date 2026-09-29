@@ -67,6 +67,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import envfile  # noqa: E402
 import spawn_budget  # noqa: E402
+import locations  # noqa: E402
 
 #: OpenRouter's key-management endpoint.
 API_BASE = "https://openrouter.ai/api/v1/keys"
@@ -203,19 +204,20 @@ def _cfg(root) -> dict:
     if root is None:
         return {}
     try:
-        sys.path.insert(0, str(Path(__file__).resolve().parent))
-        import locations  # noqa: E402
         graph = locations.find_project_root(Path(root).resolve()) or Path(root)
         return locations.load_config(graph)
     except Exception:  # noqa: BLE001 -- an unreadable config reads as empty
         return {}
 
 
-def _prov_cell(root, name: str, default: float) -> float:
-    """One `provisioning.<name>` dollar cell from the project config."""
+def _prov_cell(root, name: str, default: float, cfg: dict | None = None) -> float:
+    """One `provisioning.<name>` dollar cell; a pre-loaded `cfg` wins over `root`."""
+    if cfg is None:
+        cfg = _cfg(root)
     try:
-        return float((_cfg(root).get("provisioning") or {}).get(name, default))
-    except Exception:  # noqa: BLE001 -- an unreadable value keeps the default
+        val = (cfg.get("provisioning") or {}).get(name, default)
+        return default if val is None else float(val)
+    except Exception:  # noqa: BLE001 -- an absent/blank/unreadable cell keeps the default
         return default
 
 
@@ -325,8 +327,8 @@ def min_key_remaining_floor(cfg: dict) -> float:
     how low the runtime key may sink before the loop stops spending slots on
     it is a run parameter, not a buried constant.
     """
-    prov = ((cfg.get("provisioning") or {}))
-    return float(prov.get("min_key_remaining_usd", DEFAULT_MIN_KEY_REMAINING_USD))
+    return _prov_cell(None, "min_key_remaining_usd",
+                      DEFAULT_MIN_KEY_REMAINING_USD, cfg=cfg)
 
 
 def check_runtime_key_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, str | None]:
@@ -545,13 +547,14 @@ def min_account_remaining_floor(cfg: dict) -> float | None:
     than a bare default is the difference between "no floor declared" and "a
     floor of a dollar" — only the former is a no-op.
     """
-    prov = ((cfg.get("provisioning") or {}))
-    if "min_account_remaining_usd" not in prov:
+    # A KEY-PRESENCE test, not a dollar read: "absent" and "declared" must
+    # stay distinguishable, and only the declared case reaches the resolver
+    # below for its VALUE. The value itself is read through `_prov_cell`, so
+    # a configured floor still wins here exactly as it does everywhere else.
+    if "min_account_remaining_usd" not in (cfg.get("provisioning") or {}):
         return None
-    val = prov.get("min_account_remaining_usd")
-    if val is None:
-        val = DEFAULT_MIN_ACCOUNT_REMAINING_USD
-    return float(val)
+    return _prov_cell(None, "min_account_remaining_usd",
+                      DEFAULT_MIN_ACCOUNT_REMAINING_USD, cfg=cfg)
 
 
 def check_account_floor(cfg: dict, root: Path | str | None = None) -> tuple[bool, str | None]:
@@ -875,8 +878,6 @@ def _configured_limit(root: Path | str) -> float:
     a reason to refuse a mint, only to fall back to the documented default.
     """
     try:
-        sys.path.insert(0, str(Path(__file__).resolve().parent))
-        import locations  # noqa: E402
         graph = locations.find_project_root(Path(root).resolve()) or Path(root)
         cfg = locations.load_config(graph)
         return settings(cfg)[0]
@@ -1232,8 +1233,6 @@ def _captures_dir(root: Path | str) -> Path:
     """Where capture JSON files live: the MAIN checkout's `sessions/` dir, so
     a diff in any worktree reads the same file (the same anchor `spawn_budget`
     uses for leases — captures are spend state, shared across worktrees)."""
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import locations  # noqa: E402
     graph = locations.find_project_root(Path(root).resolve()) or Path(root)
     return graph / locations.SESSIONS_DIR_NAME / ".spend-captures"
 
@@ -1293,8 +1292,6 @@ def _activity_workspace(root: Path | str | None = None) -> str | None:
     WHICH workspace it read — the owner's question cannot be answered without
     it. Absent means absent; it is recorded as null, never guessed."""
     try:
-        sys.path.insert(0, str(Path(__file__).resolve().parent))
-        import locations  # noqa: E402
         graph = (locations.find_project_root(Path(root).resolve())
                  if root else None)
         cfg = locations.load_config(graph) if graph else {}
@@ -1570,8 +1567,6 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     # reap
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-    import locations  # noqa: E402
     import spawn_budget  # noqa: E402
 
     root = locations.find_project_root(Path(args.root).resolve())

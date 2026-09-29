@@ -270,6 +270,40 @@ def test_can_fund_passes_when_key_is_absent(tmp_path):
     assert reason is None, "absence is supported, not a budget error"
 
 
+def test_a_cell_read_reaches_config_by_one_import_route(tmp_path, monkeypatch):
+    """hypothesis:provisioning-reads-its-cells-through-one-import-route.
+
+    `_prov_cell` used to `sys.path.insert` the bin dir and re-import
+    `locations` on EVERY call, so 100 can_fund calls added 100 entries and
+    removed none. The bin dir is already on sys.path at module scope (next to
+    `import envfile`), so `locations` is imported ONCE, there -- and the cell
+    still reads its value, keeps its default on root=None, and falls back
+    rather than raising when the config will not load.
+    """
+    (tmp_path / ".agi").mkdir()
+    (tmp_path / ".agi" / "config.json").write_text(
+        json.dumps({"provisioning": {"min_mint_remaining_usd": 0.75}}))
+    # `credit_balance` MUST be stubbed non-None: when it returns None can_fund
+    # short-circuits at provisioning.py:227 and never reaches `_prov_cell`, so
+    # the sys.path assertion below would be vacuous on the pre-fix bytes.
+    monkeypatch.setattr(provisioning, "credit_balance",
+                        lambda root=None: (2.0, 1.50, 0.50))
+    before = len(sys.path)
+    for _ in range(100):
+        ok, reason = provisioning.can_fund(tmp_path)  # a real cell read
+    assert ok is False, "remaining under the floor must refuse"
+    assert "$0.50" in reason and "$0.75" in reason, (
+        f"the refusal must name the CONFIGURED floor, so the cell was read: {reason}")
+    assert len(sys.path) == before, "a config cell read must not touch sys.path"
+    assert Path(provisioning.__file__).read_text().count("import locations") == 1
+    assert provisioning.locations is sys.modules["locations"]
+    assert provisioning._prov_cell(tmp_path, "min_mint_remaining_usd", 0.5) == 0.75
+    assert provisioning._prov_cell(None, "min_mint_remaining_usd", 0.5) == 0.5
+    monkeypatch.setattr(provisioning.locations, "load_config",
+                        lambda *a, **k: (_ for _ in ()).throw(OSError("nope")))
+    assert provisioning._prov_cell(tmp_path, "min_mint_remaining_usd", 0.5) == 0.5
+
+
 def test_mint_refuses_when_credits_are_exhausted(monkeypatch):
     """A fixture with an exhausted budget makes mint raise ProvisioningError.
 
@@ -1866,3 +1900,42 @@ def test_cap_headroom_with_no_declared_floor_treats_it_as_zero(monkeypatch):
     monkeypatch.setattr(provisioning, "list_all_keys", lambda root=None: [])
     ok, msg = provisioning.cap_headroom({}, None, 1.0)
     assert ok is False and "floor $0.00" in msg, msg
+
+
+def test_both_floor_readers_route_through_prov_cell(monkeypatch):
+    """Residue of hypothesis:provisioning-reads-its-cells-through-one-import-route:
+    the two pre-loaded `cfg` floor readers read their DOLLAR cell inline instead
+    of through `_prov_cell`, the module's one resolver.
+
+    Two assertions, and the second is the one that matters. A half-fix that
+    dropped the passed `cfg` (`_prov_cell(None, ...)` returns the default) would
+    still satisfy the first -- the cell is read through the resolver -- while
+    silently discarding the configured floor. The CONFIGURED value must WIN.
+    """
+    seen = []
+    real = provisioning._prov_cell
+
+    def spy(root, name, default, cfg=None):
+        seen.append(name)
+        return real(root, name, default, cfg=cfg)
+
+    monkeypatch.setattr(provisioning, "_prov_cell", spy)
+    assert provisioning.min_key_remaining_floor(
+        {"provisioning": {"min_key_remaining_usd": 2.5}}) == 2.5
+    assert provisioning.min_account_remaining_floor(
+        {"provisioning": {"min_account_remaining_usd": 3.25}}) == 3.25
+    assert seen == ["min_key_remaining_usd", "min_account_remaining_usd"], seen
+    # Absent stays absent (None, not a dollar) -- the opt-in contract, and it
+    # must not be a $1.00 default smuggled in through the new route.
+    assert provisioning.min_account_remaining_floor({}) is None
+    assert provisioning.min_key_remaining_floor({}) == \
+        provisioning.DEFAULT_MIN_KEY_REMAINING_USD
+    # A declared-but-blank cell falls back to the default, not to a raise.
+    assert provisioning.min_key_remaining_floor(
+        {"provisioning": None}) == provisioning.DEFAULT_MIN_KEY_REMAINING_USD
+    assert provisioning.min_key_remaining_floor(
+        {"provisioning": {"min_key_remaining_usd": None}}) == \
+        provisioning.DEFAULT_MIN_KEY_REMAINING_USD
+    # The root route is untouched: root=None with no pre-loaded cfg still
+    # yields the default.
+    assert real(None, "min_key_remaining_usd", 0.5) == 0.5
