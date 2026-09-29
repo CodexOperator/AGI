@@ -806,6 +806,37 @@ def _late_reap_wait_max_s(root) -> float:
     return 1800.0
 
 
+def _recovery_psi_max_pct(root) -> float:
+    """`reaper.recovery_psi_max_pct` from `.agi/config.json` (goal:g6.41.1 P5):
+    the memory-PSI line a recovery launch waits under; the code default (40,
+    below oomd's OOMD_PRESSURE_PCT 60) resolves a missing or malformed cell,
+    compared numerically (a string cell like "40" reads too). Never raises."""
+    try:
+        cfg_path = locations.config_path(root)
+        if cfg_path is not None:
+            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+            v = float((cfg.get("reaper") or {}).get("recovery_psi_max_pct"))
+            if 0 < v <= 100:
+                return v
+    except (OSError, json.JSONDecodeError, TypeError, AttributeError, ValueError):
+        pass
+    return 40.0
+
+
+def _recovery_admitted(root) -> tuple[bool, str]:
+    """goal:g6.41.1 P5 -- may a recovery launch now? Box memory PSI `some.avg10`
+    through memory_alarm.read_psi (the ONE PSI reader, its BOX_PSI) under the
+    cell. Blind (no some.avg10: unreadable or malformed) FAILS CLOSED, by name."""
+    import memory_alarm
+    avg10 = (memory_alarm.read_psi(memory_alarm.BOX_PSI).get("some") or {}).get("avg10")
+    line = _recovery_psi_max_pct(root)
+    if not isinstance(avg10, (int, float)):
+        return False, f"memory psi unreadable (no some.avg10): fails closed under {line:g}"
+    if avg10 >= line:
+        return False, f"memory psi some.avg10 {avg10:g} >= {line:g}"
+    return True, f"memory psi some.avg10 {avg10:g} < {line:g}"
+
+
 #: heal's PERSISTED reaper-state dir name under the shared sessions dir.
 REAPER_STATE_SUBDIR = "reaper"
 
@@ -3446,7 +3477,8 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
                     pid_alive=None, window_path: str | None = None,
                     launcher=None, pin_table=None, seat_sessions=None,
                     rows=None, registry_dir: str | None = None,
-                    pane_pids: dict | None = None) -> dict:
+                    pane_pids: dict | None = None,
+                    admission: dict | None = None) -> dict:
     """Decide DEAD for one seat row; NAME it once; then, if the seat is
     recoverable, RESPAWN it through its existing spawn path, write its row, dm
     the holder + Sensei, and record the crash-recovery OUTCOME once. Returns an
@@ -3555,6 +3587,16 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
         _watch_log(f"watch: {seat} is recover:false; named only, no "
                    f"crash-recovery record")
         return {"seat": seat, "probable_cause": cause, "recorded": False}
+    if admission is not None:  # goal:g6.41.1 P5: one launch per pass, under the PSI line
+        if "why" not in admission:
+            admission["ok"], admission["why"] = _recovery_admitted(root)
+        why = admission["why"] if not admission["ok"] else (
+            "one recovery launch per pass already used" if admission["left"] <= 0 else "")
+        if why:
+            _watch_log(f"watch: {seat} recovery deferred: {why}")
+            return {"seat": seat, "probable_cause": cause, "recorded": False,
+                    "deferred": why}
+        admission["left"] -= 1
     outcome = _recover_seat(root, row, cause, _rotate, windows=windows,
                             window_path=window_path, launcher=launcher,
                             now=now)
@@ -3605,12 +3647,17 @@ def _watch_seats(root: Path, *, now: float | None = None, pid_alive=None,
         _watch_log("watch: skipped foreign-box seat(s) by name: "
                    + ", ".join(foreign))
     acted: list[dict] = []
+    # goal:g6.41.1 P5: at most ONE recovery launch per pass, the Prime (the
+    # `role: prime_director` row) first; the PSI read happens once, lazily.
+    admission: dict = {"left": 1}
+    pid_rows.sort(key=lambda r: r.get("role") != "prime_director")
     for row in pid_rows:
         summary = _watch_one_seat(root, row, windows, _rotate,
                                   now=now, pid_alive=pid_alive,
                                   window_path=window_path, launcher=launcher,
                                   pin_table=pins, seat_sessions=seat_sess,
-                                  rows=rows, pane_pids=pane_pids)
+                                  rows=rows, pane_pids=pane_pids,
+                                  admission=admission)
         if summary:
             acted.append(summary)
     _watch_log(f"watch: seat-dead scan over {len(pid_rows)} configured pid "

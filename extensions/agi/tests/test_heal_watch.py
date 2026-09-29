@@ -2505,20 +2505,17 @@ def _r2_one_pass(graph_project, monkeypatch, psi) -> tuple[list, str]:
 _R2_PSI = lambda v: {k: {"avg10": v, "avg60": v, "avg300": v} for k in ("some", "full")}
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 3 R2: RED until DG3 builds _recovery_admitted (over the cell)")
 def test_r2_recovery_over_the_psi_cell_is_deferred_by_name(graph_project, monkeypatch):
     launched, log = _r2_one_pass(graph_project, monkeypatch, _R2_PSI(60.0))  # at oomd's line
     assert launched == [] and "deferred" in log and "60" in log, (launched, log)
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 3 R2: RED until DG3 builds the fail-closed blind arm")
 @pytest.mark.parametrize("psi", [{}, {"some": {}}], ids=["unreadable", "no-avg"])
 def test_r2_unreadable_psi_fails_closed_by_name(graph_project, monkeypatch, psi):
     launched, log = _r2_one_pass(graph_project, monkeypatch, psi)
     assert launched == [] and "deferred" in log and "psi" in log.lower(), (launched, log)
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 3 R2: RED until DG3 builds one-launch-per-pass, Prime first")
 def test_r2_under_the_cell_one_launch_per_pass_prime_first(graph_project, monkeypatch):
     launched, _log = _r2_one_pass(graph_project, monkeypatch, _R2_PSI(0.0))
     assert launched == ["belam"], launched

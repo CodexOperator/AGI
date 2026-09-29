@@ -45,6 +45,9 @@ STATE_FILE = "memory-alarm.state.json"
 
 LEVELS = {"ok": 0, "warn": 1, "crit": 2}
 
+#: the box's memory PSI file: the ONE place it is named (heal's recovery gate reads it here)
+BOX_PSI = Path("/proc/pressure/memory")
+
 
 def read_psi(path: Path) -> dict:
     """{'some': {'avg10': f, 'avg60': f, ...}, 'full': {...}}; {} if unreadable."""
@@ -80,7 +83,7 @@ def read_int(path: Path) -> int | None:
 
 def read_signals(cgroup: Path | None) -> dict:
     sig = {"avail_mib": read_meminfo_mib("MemAvailable"),
-           "box_psi": read_psi(Path("/proc/pressure/memory")),
+           "box_psi": read_psi(BOX_PSI),
            "cg_psi": {}, "cg_current": None, "cg_max": None}
     if cgroup is not None:
         sig["cg_psi"] = read_psi(cgroup / "memory.pressure")
