@@ -185,7 +185,7 @@ commands:
       - gw
     about: "the overlay hub (gw): owner ops only (lock or unlock a farm box); agents have no business here -- listed so a cold session knows the name it sees in the mesh files."
     workflow: mesh
-edited_by: director-general-3
+edited_by: director-general-4
 excluded:
   write.py:patch:
     cli: write.py
@@ -2605,27 +2605,6 @@ manifest:
     side_effects: graph-write
     proposable: false
     reason: bulk-wires agent verdicts into the graph from the harness; loop-owned, operator-only
-  unify.py::
-    cli: unify.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/unify.py
-      - "--engine"
-      - <engine>
-    args:
-      - {"name": "engine", "type": "str", "required": true, "choices": []}
-      - {"name": "tree", "type": "str", "required": false, "choices": []}
-      - {"name": "rollback", "type": "bool", "required": false, "choices": []}
-      - {"name": "yes", "type": "bool", "required": false, "choices": []}
-      - {"name": "dry_run", "type": "bool", "required": false, "choices": []}
-      - {"name": "this_is_the_real_migration", "type": "bool", "required": false, "choices": []}
-      - {"name": "force", "type": "bool", "required": false, "choices": []}
-      - {"name": "report_json", "type": "bool", "required": false, "choices": []}
-    purpose: merge the two-repo layout into one
-    side_effects: destructive
-    proposable: false
-    reason: destructive one-repo migration and rollback; owner-ops, never proposed
   hierarchy.py:render:
     cli: hierarchy.py
     verb: render
@@ -3024,24 +3003,6 @@ manifest:
     purpose: one live read of every seat, the spawn budget and the telemetry roll-up
     side_effects: read
     proposable: true
-  verify_unified.py::
-    cli: verify_unified.py
-    verb: ""
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/verify_unified.py
-      - "--before"
-      - <before>
-      - "--after"
-      - <after>
-    args:
-      - {"name": "before", "type": "str", "required": true, "choices": []}
-      - {"name": "after", "type": "str", "required": true, "choices": []}
-      - {"name": "json", "type": "bool", "required": false, "choices": []}
-    purpose: "before vs after: did the goal:g11 migration lose anything? read-only"
-    side_effects: read
-    proposable: false
-    reason: a one-repo migration verifier; its goals_at_repo_root check fails on every repo since GOALS.md retired (the DG4 leftovers leaf under bundle 4 row W-G decides its fate)
   write_guard.py:check:
     cli: write_guard.py
     verb: check
@@ -3285,5 +3246,5 @@ graph carries only what is below: the alias, the label, and the one command.
   A box added to the farm gets a row here, a label, and nothing else.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-09-23 EF.21 kid a00-deb4f918: added the `manifest:` and `excluded:` frontmatter maps declaring the write.py verb surface (VERBS + create) so `commands.py manifest` has ONE typed choice set to print. The 25 `commands:` entries are untouched byte-for-byte (`manifest:` only ADDS metadata; the manifest action DERIVES cli/verb from a command's own argv when no override is present, so no existing entry needed editing). Deviation from the kid brief: it asked the manifest to contain no `<home>`, but the five mesh entries carry `<home>/work/.sanctuary/ssh/config` by design and the same brief forbids editing them -- `<home>` is a clone-agnostic placeholder resolved at run time, not a box value, so it stays. Frontmatter written directly because write.py has no verb for a nested map entry (patch = payload only); disclosed here, not silent.
+L2a(a) (director-general-4, council-loop; placed by alive 22:1xZ, option 1 22:4xZ): the unify.py and verify_unified.py rows are removed together with their files, tests and build nodes -- goal:g11 one-repo migration tools, no live path (0 crontab hits, no importer), verify_unified check 6 fails on every repo since GOALS.md retired. Removed through DG3 BUILD1 row verb (8756efd6b); the rows stay readable in this node grid history.
 <!-- THOUGHT:END -->
