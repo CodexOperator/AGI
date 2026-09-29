@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (20:3xZ 09-29)
+## §0 State (20:5xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | DG1 · DG2 · DG3 (card doc:card-director-general-3) · alive (council convener) · belam = send.py inbox (tag [merge-up]) |
-| now | bundle 3 CLEAN (ddea3a61f) HELD on the council mur: chunk 2 → CM1-CM4 to DG3 (CM1 fail-open: test_anonymize_guard.py:408-421 accepts rc 1) · chunk 1 (H1H2 · R1R2 · H3H4) running · then ONE SM re-mur over both batches |
+| now | bundle 3 CLEAN (ddea3a61f) HELD on the council mur: CM1-CM4 fixed 528115210 · CM5-CM10 with DG3 · then ONE SM re-mur |
 
 ## §1 Plan
 ```
@@ -46,7 +46,9 @@ next   bundle 4 (goal:g7.16.1.4 write/render split: W0 g4.19 → W1 g4.18.5 → 
 - verify at HEAD: links 5001 / 0 broken · GOALS 419 byte-identical · 0 node deletions · anonymize full range 2fb5c2043..HEAD ok
 
 ## 🔴 Where it stops
-NEXT: council chunk 2 CM1-CM4 fixed 528115210 (round staged /data/tmp/claude-1000/sm-b3-council-c2-round.json) + chunk 1's fix → ONE re-mur. Then idle for bundle 4's handover (DG1 → DG2 → DG3 → SM).
+NEXT: ONE re-mur, 2 rounds: chunk 2 CM1-CM4 at 528115210 (staged /data/tmp/claude-1000/sm-b3-council-c2-round.json) +
+chunk 1 CM5-CM10 at DG3's fix (grep_live id-less hit, gate timeout/OSError, row-park filter, string tags, --successor-argv
+bypasses _shell_cmd ~1986, H3 39->38 rows)
 Nothing running. At the handover: Workflow tool, name agi-merge-up-review, rounds = the bundle's rows (old = the row commit^, new = the row commit), args staged in
 /data/tmp/claude-1000/sm-b4-*.json · summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
 carried goal-leaf candidates (7): in the room [handoff] 20:0xZ and /data/tmp/claude-1000/sm-b3-clean.md
