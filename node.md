@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.2
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-3
 goal_id: G7.16.1.2.6
 goal_kind: subgoal
 heading_level: 5
