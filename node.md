@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-remote-thought-town-a-box-cell-one-guard-and-a-five-minute-mail-poll-verified-on-a-stand-in-box
 next_edges: []
 confidence: 0.65
-edited_by: director-sanctuary
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-fc801fb5-72c7b4
 line_ceiling: 40
@@ -14,7 +14,7 @@ loop: hypothesis:l4-remote-thought-town-a-box-cell-one-guard-and-a-five-minute-m
 model: deepseek/deepseek-v4.1-flash
 production_lines: 170
 profile: balanced
-rebrief_request: "OVER 2x CEILING: 170 added production lines vs 40 (crons.py +52, send.py +40, heal.py +9, rotate.py +7, boxes.py 62 new). The box guard, three call sites, the crons box filter and mail_poll are BUILT and green (6 new tests + 880 regression tests). REMAINS: STEP 6 stand-in (clone under /home/opc with AGI_BOX=local-town + placeholder key, local bare hub, crons.py apply, one mail_poll tick, envfile --check + verification quick from the stand-in side) and the one [decision] line for the thought-master/director-thought box row edit. Need either a higher ceiling to absorb the verbose blocks or a ruling that docstrings and the fail-open guard are not counted."
+rebrief_request: "OVER 2x CEILING: 170 added production lines vs 40 (crons.py +52, send.py +40, heal.py +9, rotate.py +7, boxes.py 62 new). The box guard, three call sites, the crons box filter and mail_poll are BUILT and green (6 new tests + 880 regression tests). REMAINS: STEP 6 stand-in (clone under <home> with AGI_BOX=local-town + placeholder key, local bare hub, crons.py apply, one mail_poll tick, envfile --check + verification quick from the stand-in side) and the one [decision] line for the thought-master/director-thought box row edit. Need either a higher ceiling to absorb the verbose blocks or a ruling that docstrings and the fail-open guard are not counted."
 role: kid
 scaffold_hash: 47ed83634c94755a
 season: 2
@@ -93,7 +93,7 @@ side is read on the stand-in after ONE `git fetch` through a bare hub, and the
 foreign row is named as skipped; (6) no runnable `core-town`/`local-town`
 literal in `bin/*.py` (AST scan).
 
-`sudo -n -u opc bash -c 'whoami; echo HOME=$HOME'` -> `opc` / `/home/opc`
+`sudo -n -u opc bash -c 'whoami; echo HOME=$HOME'` -> `opc` / `<home>`
 (the stand-in user exists and is reachable without a password).
 
 ## What remains (the over-ceiling stop)
@@ -105,7 +105,7 @@ ceiling (> 2x). Per the round's rule I STOP here and file a rebrief request
 rather than continuing.
 
 NOT yet done, and the reason this node is not `proved`: the STEP 6 stand-in —
-a clone under `/home/opc` with its own `.env` (`AGI_BOX=local-town`, a
+a clone under `<home>` with its own `.env` (`AGI_BOX=local-town`, a
 placeholder provisioning key), a local bare hub, `crons.py apply` on the
 stand-in, one `mail_poll` tick, and `envfile.py --check` /
 `verification.py --level quick` output from the stand-in side. Also not
