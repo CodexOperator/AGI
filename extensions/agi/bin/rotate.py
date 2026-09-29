@@ -1829,7 +1829,8 @@ def _cutover_to_scopes(cgroup_dir, keep: int, posts: dict, *,
 
 def _launch_window(tmux_session: str, name: str, shell_cmd: str, *,
                    cwd: str | None = None) -> int:
-    """Run `shell_cmd` in a new tmux window. Returns 0 on success.
+    """Run `shell_cmd` in a new tmux window. Returns 0 on success. The rc-only
+    face of `launch_in_window`, kept for the callers and stubs that take 3 args.
 
     `cwd` (hypothesis:l4-spawn-cds-into-the-row-worktree-cell-when-set) is
     the directory the launch line cds into. Absent/None is byte-for-byte
@@ -1847,50 +1848,87 @@ def _launch_window(tmux_session: str, name: str, shell_cmd: str, *,
        one worked and one did not -- a knife-edge, not a design. Above
        `_TMUX_ARG_SAFE` the command is written to a mode-0600 script and tmux
        is handed `bash <script>`, a few dozen bytes, so growth in the head or
-       the prompt can no longer break rotation. The script is deliberately
-       NOT deleted: bash reads a script incrementally, so removing it early
-       can truncate a running successor.
+       the prompt can no longer break rotation. The script is never deleted
+       EARLY: bash reads a script incrementally, so its own last line removes
+       it only after the successor exits (launch_in_window).
     2. **The return code was discarded.** `subprocess.run` captured tmux's
        stderr into a variable that was thrown away and the function returned
        0 unconditionally, so `command too long` never reached a human. The
        downstream window-existence check added at L3.33 caught the *symptom*;
        this returns the *cause*.
     """
-    ensure_tmux_session(tmux_session)  # goal:g6.41.1 P1: a server first, in its own scope
-    launch_cmd = f"cd {shlex.quote(cwd or os.getcwd())} && {shell_cmd}"
-    if len(launch_cmd) > _TMUX_ARG_SAFE:
-        fd, script = tempfile.mkstemp(prefix=f"agi-launch-{name}-",
-                                      suffix=".sh")
-        with os.fdopen(fd, "w", encoding="utf-8") as fh:
-            fh.write("#!/usr/bin/env bash\n")
-            fh.write(launch_cmd + "\n")
-        launch_cmd = f"bash {shlex.quote(script)}"
+    return launch_in_window(tmux_session, name, shell_cmd, cwd=cwd)[0]
+
+
+def launch_in_window(tmux_session: str, name: str, shell_cmd: str, *,
+                     cwd: str | Path | None = None, root: Path | None = None,
+                     inline_max: int = _TMUX_ARG_SAFE,
+                     timeout_ok: bool = True) -> tuple[int, str]:
+    """THE one tmux launch (goal:g7.16.1.7.1.1, B1): spawn, rotate, heal
+    recover and a hand restart all hand their shell line HERE. Returns
+    `(rc, window @id)`; rc 0 = handed to tmux. Never raises.
+
+    A line past `inline_max` bytes goes to a mode-0600 launch file and tmux
+    gets `bash <file>`; the file's last line deletes it once the pane's shell
+    is done (`rm -f "$0"`, after the command, so a running successor is never
+    truncated). heal passes `inline_max=0`: a recovery never hands tmux its
+    prompt inline. The file is KEPT iff the launch counts as handed off --
+    every other outcome unlinks it here, so no prompt is left in /tmp.
+    `timeout_ok` says whether a tmux timeout counts as handed off (rotate:
+    the window may still appear; heal: not launched, the next pass retries).
+    `root` reaches ensure_tmux_session, so the server scope follows the
+    project's spawn.post_scope cell, not the cwd's."""
+    script: str | None = None
+    handed_off = False
     try:
+        cd = f"cd {shlex.quote(str(cwd or os.getcwd()))} && "
+        launch_cmd = cd + shell_cmd
+        if len(launch_cmd) > inline_max:  # the file first: unwritable = tmux is never called
+            fd, script = tempfile.mkstemp(prefix=f"agi-launch-{name}-",
+                                          suffix=".sh")
+            with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                fh.write("#!/usr/bin/env bash\n")
+                fh.write(shell_cmd.rstrip("\n") + "\n")
+                fh.write('rm -f "$0" 2>/dev/null || true\n')
+            launch_cmd = cd + f"bash {shlex.quote(script)}"
+        if root is None and cwd:  # SM rotate candidate: the launch tree's project, not the spawner's cwd
+            root = locations.find_project_root(cwd)
+        ensure_tmux_session(tmux_session, root)  # goal:g6.41.1 P1: a server first, in its own scope
         # L4.114 (s3): `-P -F '#{window_id}'` makes tmux print the new
         # window's @id on stdout so the caller can JOIN the successor by its
-        # WINDOW @id (the `-P` flag was missing here before this round; a
-        # rename/kill addressed the window by dotted name, which real tmux
-        # refuses — see proof (d), owned by kid 2). The @id is discarded when
-        # no one reads it; capture happens in _successor_window_id.
+        # WINDOW @id.
         proc = subprocess.run(
             ["tmux", "new-window", "-t", tmux_session, "-n", name,
              "-P", "-F", "#{window_id}", launch_cmd],
             capture_output=True, text=True, timeout=10,
         )
-    except FileNotFoundError:
-        print("ERR: tmux not found. Install tmux or pass --dry-run to preview.",
-              file=sys.stderr)
-        return 1
+        handed_off = proc.returncode == 0
+    except FileNotFoundError as exc:
+        print(f"ERR: {exc.filename or 'tmux'} not found (tmux absent? "
+              f"pass --dry-run to preview).", file=sys.stderr)
+        return 1, ""
     except subprocess.TimeoutExpired:
         print("warn: tmux new-window timed out — window may still be created.",
               file=sys.stderr)
-        return 0
+        handed_off = timeout_ok
+        return (0 if timeout_ok else 1), ""
+    except Exception as exc:  # noqa: BLE001 -- never raises (heal's watch pass)
+        print(f"ERR: launch of {name!r} failed: {exc}", file=sys.stderr)
+        return 1, ""
+    finally:
+        if script and not handed_off:
+            try:
+                os.unlink(script)
+            except OSError as exc:
+                print(f"warn: launch file {script} for {name!r} not removed: "
+                      f"{exc}", file=sys.stderr)
     if proc.returncode != 0:
         detail = (proc.stderr or proc.stdout or "").strip() or "<no output>"
         print(f"ERR: tmux new-window failed for {name!r} "
               f"(rc={proc.returncode}): {detail}", file=sys.stderr)
-        return proc.returncode
-    return 0
+        return proc.returncode, ""
+    out = (proc.stdout or "").strip()
+    return 0, (out.splitlines()[-1] if out else "")
 
 
 def spawn_window(*, name: str, tier: str, prompt_file: str,

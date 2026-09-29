@@ -899,7 +899,7 @@ def test_launch_recovered_never_hands_tmux_the_prompt_inline(tmp_path,
                                                              monkeypatch):
     """(a) A prompt far over tmux's 64 KiB argv limit (the 22:19Z
     `command too long`) still launches: the shell line goes to a launch file
-    and tmux is handed `cd <tree> && sh <file>` — a tiny argv carrying no
+    and tmux is handed `cd <tree> && bash <file>` — a tiny argv carrying no
     prompt bytes at all. The file runs correctly and deletes itself."""
     graph = tmp_path / ".agi"
     graph.mkdir()
@@ -921,8 +921,8 @@ def test_launch_recovered_never_hands_tmux_the_prompt_inline(tmp_path,
     assert max(len(a) for a in tmux_argv) < 4096, \
         f"argv still carries the prompt: {[len(a) for a in tmux_argv]}"
     assert "P" * 1000 not in tmux_argv[-1], "the prompt reached tmux inline"
-    launch_file = tmux_argv[-1].split("&& sh ", 1)[1]
-    assert Path(launch_file).read_text(encoding="utf-8").startswith(big), \
+    launch_file = tmux_argv[-1].split("&& bash ", 1)[1]  # the ONE launcher (goal:g7.16.1.7.1.1)
+    assert Path(launch_file).read_text(encoding="utf-8").splitlines()[1] == big, \
         "the launch file does not carry the whole shell line"
     # it RUNS, and it leaves nothing behind
     proc = real_run(["sh", launch_file], capture_output=True, text=True,
@@ -946,7 +946,7 @@ def test_launch_recovered_refuses_loudly_when_no_launch_file(tmp_path,
     def never(cmd, **kwargs):  # pragma: no cover - the assertion is the point
         raise AssertionError(f"tmux was called with {cmd!r}")
 
-    monkeypatch.setattr(heal.tempfile, "mkstemp", boom)
+    monkeypatch.setattr(__import__("tempfile"), "mkstemp", boom)  # the ONE launcher (rotate.launch_in_window) writes it
     monkeypatch.setattr(heal.subprocess, "run", never)
     assert heal._launch_recovered(graph, "seat-wt", "echo hi", cwd=graph) \
         == (0, ""), "an unwritable launch file must read as not-spawned"

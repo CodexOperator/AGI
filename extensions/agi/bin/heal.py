@@ -31,7 +31,6 @@ import shlex
 import signal
 import subprocess
 import sys
-import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -2994,24 +2993,6 @@ def _seat_tree_dir(root: Path, row: dict) -> Path:
     return base / wt
 
 
-def _unlink_launch_file(launch_path: str | None, name: str) -> None:
-    """WRITER-side unlink for the recovery launch file. Every path where the
-    pane's own `sh` never got to run the file (write failed mid-way, tmux
-    absent/down, `new-window` non-zero, timeout) otherwise leaves the file --
-    and the whole startup PROMPT it carries -- in /tmp for any process to
-    read, one per failed recovery. The SUCCESS case still deletes ITSELF
-    (`rm -f "$0"`, unlinked by the very shell running it, which is why this
-    does not fire there: unlinking from here would race the pane). Best-effort,
-    never raises."""
-    if not launch_path:
-        return
-    try:
-        os.unlink(launch_path)
-    except Exception as exc:  # noqa: BLE001 -- never raise into the watch pass
-        print(f"warn: orphan recovery launch file {launch_path} for {name!r} "
-              f"not removed: {exc}", file=sys.stderr)
-
-
 def _launch_recovered(root: Path, name: str, shell_cmd: str,
                       window_path: str | None = None,
                       cwd: Path | str | None = None) -> tuple[int | None, str]:
@@ -3028,64 +3009,17 @@ def _launch_recovered(root: Path, name: str, shell_cmd: str,
     successor wakes already standing in the tree it edits (hypothesis:l4-a-
     dead-seat-is-recovered-by-the-loop-not-by-a-human, (3))."""
     import rotate as _rotate  # noqa: PLC0415 -- lazy, same bin dir
-    tmux_session = _rotate.DEFAULT_TMUX_SESSION
     tree = Path(cwd) if cwd is not None else _seat_tree_dir(root, {})
-    # (a) the launch never hands tmux the prompt INLINE (hypothesis:heal-lands-
-    # a-reseat-after-a-tmux-server-restart, conjunct (a)): the whole shell line
-    # goes to a launch file and tmux is given `sh <file>`, so the argv stays
-    # small no matter how big the startup prompt is (the 22:19Z `command too
-    # long`). An unwritable file REFUSES LOUDLY and returns not-spawned --
-    # falling back to the inline prompt is the very bug this removes, and
-    # pairing it with a success record would lie to the next pass. The file
-    # delete ITSELF on exit (`$0`), so a prompt file per recovery does not
-    # accumulate in /tmp forever; unlinking it on the SUCCESS path here would
-    # race the pane's own `sh`. `$0` cannot run at all on a FAILED launch, so
-    # `_unlink_launch_file` owns those paths (defect (3)).
-    # LIFETIME, not an except list: whatever raises or returns out of the
-    # write+launch region, the file dies with it UNLESS tmux already took it
-    # (`handed_off`; there the pane's own `sh` owns the `rm -f "$0"`). A
-    # non-OSError from the write used to escape AND orphan the prompt, killing
-    # the heal loop for every other seat.
-    launch_path: str | None = None
-    handed_off = False
-    try:
-        try:
-            fd, launch_path = tempfile.mkstemp(prefix=f"agi-recover-{name}-",
-                                               suffix=".sh")
-            with os.fdopen(fd, "w", encoding="utf-8") as fh:
-                if not shell_cmd.endswith("\n"):
-                    fh.write(shell_cmd + "\n")
-                fh.write('rm -f "$0" 2>/dev/null || true\n')
-        except Exception as exc:  # noqa: BLE001 -- any failure refuses loudly
-            print(f"warn: recovery launch file for {name!r} unwritable: {exc}; "
-                  f"refusing to hand tmux the prompt inline", file=sys.stderr)
-            return 0, ""
-        launch_cmd = (f"cd {shlex.quote(str(tree))} && "
-                      f"sh {shlex.quote(launch_path)}")
-        _rotate.ensure_tmux_session(tmux_session, root)  # goal:g6.41.1 P1 (the heal recover path)
-        try:
-            proc = subprocess.run(
-                ["tmux", "new-window", "-t", tmux_session, "-n", name,
-                 "-P", "-F", "#{window_id}", launch_cmd],
-                capture_output=True, text=True, timeout=10)
-        except Exception:  # noqa: BLE001 — tmux absent/down counts as not-spawned
-            return 0, ""
-        if proc.returncode != 0:
-            detail = (proc.stderr or proc.stdout or "").strip() or "<no output>"
-            print(f"warn: recovered spawn of {name!r} failed: {detail}",
-                  file=sys.stderr)
-            return 0, ""
-        handed_off = True
-        wid = (proc.stdout.strip().splitlines()[-1]
-               if proc.stdout.strip() else "")
-        return None, wid
-    except Exception as exc:  # noqa: BLE001 -- "Never raises into the watch pass"
-        print(f"warn: recovery launch of {name!r} failed: {exc}",
-              file=sys.stderr)
-        return 0, ""
-    finally:
-        if not handed_off:
-            _unlink_launch_file(launch_path, name)
+    # goal:g7.16.1.7.1.1 (B1): the ONE launcher. `inline_max=0` = the launch
+    # never hands tmux the prompt INLINE (hypothesis:heal-lands-a-reseat-after-
+    # a-tmux-server-restart (a), the 22:19Z `command too long`); a file is
+    # kept only when tmux took it (it deletes itself after the successor), so
+    # no failed recovery leaves its prompt in /tmp; a timeout is NOT a launch
+    # here (`timeout_ok=False`): the next pass retries.
+    rc, wid = _rotate.launch_in_window(
+        _rotate.DEFAULT_TMUX_SESSION, name, shell_cmd, cwd=tree, root=root,
+        inline_max=0, timeout_ok=False)
+    return (None, wid) if rc == 0 else (0, "")
 
 
 def _load_launcher(launcher) -> callable | None:

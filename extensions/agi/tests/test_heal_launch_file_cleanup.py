@@ -52,7 +52,7 @@ def _mine_tmpdir(monkeypatch, tmp_path: Path) -> Path:
 
 
 def _orphans(d: Path) -> list[Path]:
-    return sorted(d.glob("agi-recover-*"))
+    return sorted(d.glob("agi-launch-*"))  # the ONE launcher's prefix (goal:g7.16.1.7.1.1)
 
 
 def test_tmux_nonzero_leaves_no_launch_file(monkeypatch, tmp_path):

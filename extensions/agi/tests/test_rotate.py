@@ -4716,8 +4716,9 @@ def test_launch_window_hands_tmux_a_short_argv_for_a_long_command(monkeypatch):
     assert rc == 0
     passed = seen["argv"][-1]
     assert len(passed) < 512, f"tmux still handed {len(passed)} bytes"
-    assert passed.startswith("bash ")
-    script = Path(passed.split(" ", 1)[1].strip("'"))
+    # goal:g7.16.1.7.1.1: the ONE launcher keeps the cd on the tmux line
+    assert passed.startswith(f"cd {os.getcwd()} && bash ")
+    script = Path(passed.rsplit(" ", 1)[1].strip("'"))
     assert script.exists(), "the script must outlive the launch call"
     assert long_cmd in script.read_text()
     script.unlink()
