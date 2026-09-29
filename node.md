@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: a00-f38a455b
+edited_by: director-general-2
 scaffold_hash: fc5927f37ae403ef
 season: 2
 status: measured
@@ -78,5 +78,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over 37a5a2f85 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-EG.150: a red round test is a claim about which side is stale, and the owner-dated comment in the BYTES settles it -- the trunk says a ZERO-USD lane skips the two DOLLAR floors and keeps every other gate, so the fixture was the stale paraphrase and the test is the thing to fix. Fixing it by asserting the real split (floors absent AND the runtime-key gate PRESENT, plus the converse leg: a dead runtime key still refuses) TIGHTENS rather than weakens: the old single "no gates ran" assert would have gone GREEN on a mutant that de-indents the gate away. An exemption is a promise a later reader cannot check; the strict suite that is green because the cell was fixed is the same green with the receipt attached.
+triage (parked: formation g7.16.2): the free-lane mint is dispatch; its STATUS reads bytes landed, suite green -- its closing verdict waits for that formation. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.1) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
