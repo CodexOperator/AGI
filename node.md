@@ -24,7 +24,7 @@ town: core
 # goal:g4.18.7.3
 
 ## Why this exists
-goal:g4.18.7 bullets 1 and 3. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): VERBS still holds "read" (write.py:543); `viewport.py` has --anchor, --emit human|llm|both and --verify, no single-node body render; grep_live and parked_carriers live in rotation_record.py (:49, :77), imported by write.py:2353 to unpark; the literal teaching form `write.py <id> 'read body|payload` sits in 8 files / 13 lines (10 files on a broader 'read body' grep), not the 23 the goal cites. The row's first act re-measures the teaching sites (the literal regex, the broader grep, and the goal's 23) and lists them on the hypothesis.
+goal:g4.18.7 bullets 1 and 3. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): VERBS still holds "read" (write.py:543); `viewport.py` has --anchor, --emit human|llm|both and --verify, no single-node body render; grep_live and parked_carriers live in rotation_record.py (:49, :77), imported by write.py:2353 to unpark; the literal teaching form `write.py <id> 'read body|payload` sits in 8 files / 13 lines (10 files on a broader 'read body' grep), the count goal:g4.18.7 now carries (a5848c5a2; its earlier 23 counted a wider scope incl. tests). The row's first act re-measures the teaching sites (the literal regex and the broader grep) and lists them on the hypothesis.
 
 ## Target end-state
 - "read" is gone from VERBS; a write prints only its own diff.
