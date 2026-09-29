@@ -1401,6 +1401,20 @@ manifest:
     purpose: links.py roles
     side_effects: read
     proposable: true
+  links.py:mint:
+    cli: links.py
+    verb: mint
+    argv:
+      - python3
+      - <engine>/extensions/agi/bin/links.py
+      - mint
+      - <mint_id>
+    args:
+      - {"name": "mint_id", "type": "str", "required": true, "choices": []}
+      - {"name": "root", "type": "str", "required": false, "choices": []}
+    purpose: resolve a mint id to the one live node carrying it (id, title, status)
+    side_effects: read
+    proposable: true
   links.py:schema:
     cli: links.py
     verb: schema

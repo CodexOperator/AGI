@@ -827,7 +827,6 @@ _W2A = "bundle 4 W2a: RED until DG3 builds the one mint-id resolver"
 _W2A_MINT = "d" * 32
 
 
-@pytest.mark.xfail(strict=True, reason=_W2A)
 def test_w2a_a_renumbered_mint_id_resolves_to_its_new_address(project):
     fm = [f"mint_id: {_W2A_MINT}", "type: goal", 'title: "T"', "status: active"]
     old = _node(project, "goal:g9.1", ['id: "goal:g9.1"'] + fm, "b\n")
@@ -838,7 +837,6 @@ def test_w2a_a_renumbered_mint_id_resolves_to_its_new_address(project):
     assert tuple(got) == ("goal:g9.2", "T", "active"), got
 
 
-@pytest.mark.xfail(strict=True, reason=_W2A)
 def test_w2a_one_resolver_def_and_links_and_write_call_it():
     import re
     src = {p.name: p.read_text() for p in BIN.glob("*.py")}
