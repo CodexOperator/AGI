@@ -24,7 +24,7 @@
       ],
       "source": "tmux list-windows -t agi-rc -F #{window_name}"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/director-thought.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/director-thought.log",
     "d_stale_continue_cursor": {
       "start_offset": 1379673,
       "read_before_write": true,
@@ -77,16 +77,16 @@
       "window_id": "@401",
       "pid": 3495579,
       "session_id": "4accbcc1-b435-405c-a4dc-5fb0aeecf529",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/4accbcc1-b435-405c-a4dc-5fb0aeecf529.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/4accbcc1-b435-405c-a4dc-5fb0aeecf529.jsonl",
       "name": "agi-21",
-      "path": "/home/ubuntu/.claude/sessions/3495579.json",
+      "path": "<home>/.claude/sessions/3495579.json",
       "note": "joined by @401 in registry file 3495579.json"
     },
     "successor_row": "config:seats row 'director-thought': session_ref= session_name=agi-21 session_label=director-thought session_id=4accbcc1-b435-405c-a4dc-5fb0aeecf529 pid=3495579 generation=(none: non-prime is generation-less) window='@401' source=registry pubkey=163f0684d7736b9e... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha c5c19ac4f) -- own-row only: director-thought spawn row: gen 2, session_id 4accbcc1-b435-405c-a4dc-5fb0aeecf529, window @401, pid 3495579\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/director-thought.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/director-thought.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/director-thought.ack.4accbcc1.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/director-thought.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/director-thought.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/director-thought.ack.4accbcc1.json",
     "own_authority_released": "generation 1 of seat 'director-thought' retired; successor generation 2 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "button_down": "grid committed \u2014 record+row on branch season2/main",
     "livestream_repoint": {
@@ -108,7 +108,7 @@
       "verdict": "ok",
       "confirm_at": "after_join"
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/director-thought.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/director-thought.bootstrap.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -139,7 +139,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/director-thought.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/4accbcc1-b435-405c-a4dc-5fb0aeecf529.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/director-thought.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi/4accbcc1-b435-405c-a4dc-5fb0aeecf529.jsonl",
         "rc": 0,
         "output": "0.0791\t79103/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,
@@ -172,7 +172,7 @@
       "d": 0,
       "floor": 1,
       "excess": 0,
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/1f1ba501-4c37-44fd-9ace-5698802dc4d5.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/1f1ba501-4c37-44fd-9ace-5698802dc4d5.jsonl",
       "window_start": {
         "call_index": null,
         "line": 1682,
@@ -194,7 +194,7 @@
       "d": 1,
       "floor": 0,
       "excess": 1,
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/4accbcc1-b435-405c-a4dc-5fb0aeecf529.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/4accbcc1-b435-405c-a4dc-5fb0aeecf529.jsonl",
       "window_start": {
         "call_index": 1,
         "line": null,

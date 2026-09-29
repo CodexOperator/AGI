@@ -71,9 +71,9 @@
       "window_id": "@33",
       "pid": 3377755,
       "session_id": "d8b83f31-b1b8-482d-a723-3fba6200cc13",
-      "transcript": "/home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/d8b83f31-b1b8-482d-a723-3fba6200cc13.jsonl",
+      "transcript": "~/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/d8b83f31-b1b8-482d-a723-3fba6200cc13.jsonl",
       "name": "post-director-engine-dc",
-      "path": "/home/belam/.claude/sessions/3377755.json",
+      "path": "~/.claude/sessions/3377755.json",
       "note": "joined by @33 in registry file 3377755.json"
     },
     "successor_row": "config:seats row 'director-engine': session_ref= session_name=post-director-engine-dc session_label=director-engine session_id=d8b83f31-b1b8-482d-a723-3fba6200cc13 pid=3377755 generation=7 window='@33' source=registry pubkey=2ef7ca3f5e906cc4... key_history=5",
@@ -139,9 +139,9 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-engine.meter --session-log /home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/d8b83f31-b1b8-482d-a723-3fba6200cc13.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-engine.meter --session-log ~/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/d8b83f31-b1b8-482d-a723-3fba6200cc13.jsonl",
         "rc": 0,
-        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in /home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/d8b83f31-b1b8-482d-a723-3fba6200cc13.jsonl (via claude-code transcript (explicit)).",
+        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in ~/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/d8b83f31-b1b8-482d-a723-3fba6200cc13.jsonl (via claude-code transcript (explicit)).",
         "truncated": false,
         "byte_cap": 8000
       },

@@ -20,7 +20,7 @@
       ],
       "source": "tmux list-windows -t agi-rc -F #{window_name}"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/seats/belam-S1-L4-VII.ack.json",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/seats/belam-S1-L4-VII.ack.json",
     "d_reply_decision": "diff"
   }
 }

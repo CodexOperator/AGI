@@ -71,9 +71,9 @@
       "window_id": "@35",
       "pid": 3196467,
       "session_id": "ecd1599c-c66d-4c00-a5dc-9333bb82989d",
-      "transcript": "/home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-thought/ecd1599c-c66d-4c00-a5dc-9333bb82989d.jsonl",
+      "transcript": "~/.claude/projects/-data-work-agi--agi-worktrees-post-director-thought/ecd1599c-c66d-4c00-a5dc-9333bb82989d.jsonl",
       "name": "post-director-thought-2d",
-      "path": "/home/belam/.claude/sessions/3196467.json",
+      "path": "~/.claude/sessions/3196467.json",
       "note": "joined by @35 in registry file 3196467.json"
     },
     "successor_row": "config:seats row 'director-thought': session_ref= session_name=post-director-thought-2d session_label=director-thought session_id=ecd1599c-c66d-4c00-a5dc-9333bb82989d pid=3196467 generation=21 window='@35' source=registry pubkey=b370e020633a84d5... key_history=5",
@@ -152,7 +152,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-thought.meter --session-log /home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-thought/ecd1599c-c66d-4c00-a5dc-9333bb82989d.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-thought.meter --session-log ~/.claude/projects/-data-work-agi--agi-worktrees-post-director-thought/ecd1599c-c66d-4c00-a5dc-9333bb82989d.jsonl",
         "rc": 0,
         "output": "0.0588\t58768/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,

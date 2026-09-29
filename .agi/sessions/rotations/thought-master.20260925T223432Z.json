@@ -47,7 +47,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/thought-master.meter --session-log /home/belam/.claude/projects/-data-work-agi/7ebbee44-a033-466c-9339-608b497c220f.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/thought-master.meter --session-log ~/.claude/projects/-data-work-agi/7ebbee44-a033-466c-9339-608b497c220f.jsonl",
         "rc": 0,
         "output": "0.1210\t120986/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,

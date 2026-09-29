@@ -23,7 +23,7 @@
       "before": 9,
       "after": 10
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sanctuary-director.log",
     "d_stale_continue_cursor": {
       "start_offset": 5076746,
       "read_before_write": true,
@@ -68,13 +68,13 @@
       "session_id": "f4580111-6984-404c-aa5a-f15610f93f26",
       "transcript": "",
       "name": "seat-sanctuary-director-04",
-      "path": "/home/ubuntu/.claude/sessions/3917019.json",
+      "path": "<home>/.claude/sessions/3917019.json",
       "note": "joined by @268 in registry file 3917019.json"
     },
     "successor_row": "config:seats row 'sanctuary-director': session_ref=f4580111-6984-404c-aa5a-f15610f93f26 session_id=f4580111-6984-404c-aa5a-f15610f93f26 pid=3917019 generation=10 window='sanctuary-director' source=registry",
     "model_confirm": "skipped: no assistant turn in the successor transcript \u2014 cannot confirm model/effort",
     "meter_pin": "skipped: no successor transcript from the JOIN",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.json",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.json",
     "own_authority_released": "generation 9 of seat 'sanctuary-director' retired; successor generation 10 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "reap_own_pid": {
       "pid": null,
@@ -103,7 +103,7 @@
         "@254 0"
       ]
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.bootstrap.json"
   },
   "s12_self_reap": {
     "order": "deepest-first",

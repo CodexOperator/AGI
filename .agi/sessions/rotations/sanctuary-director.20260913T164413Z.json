@@ -27,7 +27,7 @@
       "before": 28,
       "after": 29
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sanctuary-director.log",
     "d_stale_continue_cursor": {
       "start_offset": 4567812,
       "read_before_write": true,
@@ -74,16 +74,16 @@
       "window_id": "@358",
       "pid": 2758752,
       "session_id": "4f7da7e2-dd1b-4c20-b29b-5517dde3a523",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/4f7da7e2-dd1b-4c20-b29b-5517dde3a523.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/4f7da7e2-dd1b-4c20-b29b-5517dde3a523.jsonl",
       "name": "post-sanctuary-director-5f",
-      "path": "/home/ubuntu/.claude/sessions/2758752.json",
+      "path": "<home>/.claude/sessions/2758752.json",
       "note": "joined by @358 in registry file 2758752.json"
     },
     "successor_row": "config:seats row 'sanctuary-director': session_ref= session_name=post-sanctuary-director-5f session_label=sanctuary-director-main-g29 session_id=4f7da7e2-dd1b-4c20-b29b-5517dde3a523 pid=2758752 generation=29 window='@358' source=registry pubkey=b6a7fc42f3a89d5f... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha 5d4ca94d6) -- own-row only: sanctuary-director spawn row: gen 29, session_id 4f7da7e2-dd1b-4c20-b29b-5517dde3a523, window @358, pid 2758752\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen29.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/sanctuary-director.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/sanctuary-director.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.gen29.json",
     "own_authority_released": "generation 28 of seat 'sanctuary-director' retired; successor generation 29 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "button_down": "grid committed \u2014 record+row on branch season2/posts/sanctuary-director",
     "livestream_repoint": {
@@ -112,8 +112,8 @@
       ]
     },
     "model_confirm": "skipped: no assistant turn within 60s (after_join poll waited 60s) \u2014 successor has not answered",
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.bootstrap.json",
-    "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.bootstrap.json",
+    "ack_written_at_spawn": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -147,9 +147,9 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sanctuary-director.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/4f7da7e2-dd1b-4c20-b29b-5517dde3a523.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/sanctuary-director.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/4f7da7e2-dd1b-4c20-b29b-5517dde3a523.jsonl",
         "rc": 0,
-        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/4f7da7e2-dd1b-4c20-b29b-5517dde3a523.jsonl (via claude-code transcript (explicit)).",
+        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-director/4f7da7e2-dd1b-4c20-b29b-5517dde3a523.jsonl (via claude-code transcript (explicit)).",
         "truncated": false,
         "byte_cap": 8000
       },

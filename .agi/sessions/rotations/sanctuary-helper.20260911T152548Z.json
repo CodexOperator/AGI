@@ -24,7 +24,7 @@
       "before": 3,
       "after": 4
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sanctuary-helper.log",
     "d_stale_continue_cursor": {
       "start_offset": 1594151,
       "read_before_write": true,
@@ -68,14 +68,14 @@
       "window_id": "@284",
       "pid": 3856277,
       "session_id": "ec486517-f378-4dbb-95f2-d0e0c6210f05",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-helper/ec486517-f378-4dbb-95f2-d0e0c6210f05.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-helper/ec486517-f378-4dbb-95f2-d0e0c6210f05.jsonl",
       "name": "seat-sanctuary-helper-a7",
-      "path": "/home/ubuntu/.claude/sessions/3856277.json",
+      "path": "<home>/.claude/sessions/3856277.json",
       "note": "joined by @284 in registry file 3856277.json"
     },
     "successor_row": "config:seats row 'sanctuary-helper': session_ref= session_id=ec486517-f378-4dbb-95f2-d0e0c6210f05 pid=3856277 generation=4 window='@284' source=registry",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.ack.json",
+    "meter_pin": "<home>/work/agi/.agi/sessions/sanctuary-helper.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/sanctuary-helper.ack.json",
     "own_authority_released": "generation 3 of seat 'sanctuary-helper' retired; successor generation 4 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "reap_own_pid": {
       "pid": null,
@@ -105,7 +105,7 @@
         "@247 0"
       ]
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.bootstrap.json",
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/sanctuary-helper.bootstrap.json",
     "model_confirm": {
       "expected": {
         "model": "claude-sonnet-5",

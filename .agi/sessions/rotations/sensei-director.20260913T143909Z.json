@@ -27,7 +27,7 @@
       "before": 21,
       "after": 22
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sensei-director.log",
     "d_stale_continue_cursor": {
       "start_offset": 3022979,
       "read_before_write": true,
@@ -74,16 +74,16 @@
       "window_id": "@356",
       "pid": 1723724,
       "session_id": "f280149c-ad33-4d76-ae03-aca66f50c0c0",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/f280149c-ad33-4d76-ae03-aca66f50c0c0.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/f280149c-ad33-4d76-ae03-aca66f50c0c0.jsonl",
       "name": "post-sensei-director-70",
-      "path": "/home/ubuntu/.claude/sessions/1723724.json",
+      "path": "<home>/.claude/sessions/1723724.json",
       "note": "joined by @356 in registry file 1723724.json"
     },
     "successor_row": "config:seats row 'sensei-director': session_ref= session_name=post-sensei-director-70 session_label=sensei-director-sanctuary-g22 session_id=f280149c-ad33-4d76-ae03-aca66f50c0c0 pid=1723724 generation=22 window='@356' source=registry pubkey=ef3cb4d5dbd18346... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha afcff70e4) -- own-row only: sensei-director spawn row: gen 22, session_id f280149c-ad33-4d76-ae03-aca66f50c0c0, window @356, pid 1723724\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.gen22.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/sensei-director.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/sensei-director.ack.gen22.json",
     "own_authority_released": "generation 21 of seat 'sensei-director' retired; successor generation 22 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "button_down": "grid committed \u2014 record+row on branch season2/posts/sensei-director",
     "livestream_repoint": {
@@ -112,8 +112,8 @@
       ]
     },
     "model_confirm": "skipped: no assistant turn within 60s (after_join poll waited 60s) \u2014 successor has not answered",
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json",
-    "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json",
+    "ack_written_at_spawn": "<home>/work/agi/.agi/sessions/seats/sensei-director.ack.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -148,9 +148,9 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/f280149c-ad33-4d76-ae03-aca66f50c0c0.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/sensei-director.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/f280149c-ad33-4d76-ae03-aca66f50c0c0.jsonl",
         "rc": 0,
-        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/f280149c-ad33-4d76-ae03-aca66f50c0c0.jsonl (via claude-code transcript (explicit)).",
+        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/f280149c-ad33-4d76-ae03-aca66f50c0c0.jsonl (via claude-code transcript (explicit)).",
         "truncated": false,
         "byte_cap": 8000
       },

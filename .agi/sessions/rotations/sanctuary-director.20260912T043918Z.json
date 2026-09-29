@@ -26,7 +26,7 @@
       "before": 19,
       "after": 20
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sanctuary-director.log",
     "d_stale_continue_cursor": {
       "start_offset": 799057,
       "read_before_write": true,
@@ -72,16 +72,16 @@
       "window_id": "@315",
       "pid": 1228285,
       "session_id": "7d336e6a-f143-4217-b120-6973b8fc9447",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-director/7d336e6a-f143-4217-b120-6973b8fc9447.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-seat-sanctuary-director/7d336e6a-f143-4217-b120-6973b8fc9447.jsonl",
       "name": "seat-sanctuary-director-60",
-      "path": "/home/ubuntu/.claude/sessions/1228285.json",
+      "path": "<home>/.claude/sessions/1228285.json",
       "note": "joined by @315 in registry file 1228285.json"
     },
     "successor_row": "config:seats row 'sanctuary-director': session_ref= session_id=7d336e6a-f143-4217-b120-6973b8fc9447 pid=1228285 generation=20 window='@315' source=registry",
     "spawn_row_commit": "spawn_row_commit: committed (sha 7bca4a9d6) \u2014 seats.md only: sanctuary-director spawn row: gen 20, session_id 7d336e6a-f143-4217-b120-6973b8fc9447, window @315, pid 1228285",
     "key_replace": "",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-director.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.ack.json",
+    "meter_pin": "<home>/work/agi/.agi/sessions/sanctuary-director.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.ack.json",
     "own_authority_released": "generation 19 of seat 'sanctuary-director' retired; successor generation 20 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "reap_own_pid": {
       "pid": null,
@@ -126,7 +126,7 @@
       },
       "verdict": "ok"
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-director.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/sanctuary-director.bootstrap.json"
   },
   "s12_self_reap": {
     "order": "deepest-first",

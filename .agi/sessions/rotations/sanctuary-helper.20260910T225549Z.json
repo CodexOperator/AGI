@@ -26,7 +26,7 @@
       "before": 2,
       "after": 3
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sanctuary-helper.log",
     "d_stale_continue_cursor": {
       "start_offset": 0,
       "read_before_write": true,

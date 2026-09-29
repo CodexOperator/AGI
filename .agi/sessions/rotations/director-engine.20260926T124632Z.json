@@ -63,9 +63,9 @@
       "window_id": "@7",
       "pid": 1204042,
       "session_id": "8967ee51-49f4-439d-af11-143b39849fc5",
-      "transcript": "/home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/8967ee51-49f4-439d-af11-143b39849fc5.jsonl",
+      "transcript": "~/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/8967ee51-49f4-439d-af11-143b39849fc5.jsonl",
       "name": "post-director-engine-03",
-      "path": "/home/belam/.claude/sessions/1204042.json",
+      "path": "~/.claude/sessions/1204042.json",
       "note": "joined by @7 in registry file 1204042.json"
     },
     "successor_row": "config:seats row 'director-engine': session_ref= session_name=post-director-engine-03 session_label=director-engine session_id=8967ee51-49f4-439d-af11-143b39849fc5 pid=1204042 generation=23 window='@7' source=registry pubkey=b0294badea4c341c... key_history=5",
@@ -109,7 +109,7 @@
         "was_alive": true,
         "termd": true,
         "gone_after": true,
-        "ps_before": "1201496 /bin/bash -c source /home/belam/.claude/shell-snapshots/snapshot-bash-1790396105748-aifgr5.sh 2>/dev/null || true && shopt -u extglob 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'git fetch -q origin season2/main local-maxxing/season2/main && git merge -q --no-edit origin/local-maxxing/season2/main 2>&1 | tail -2; git merge --no-edit -q origin/season2/main 2>&1 | tail -2; git status -s | head -3; git log --oneline -1; timeout 600 python3 extensions/agi/bin/rotate.py rotate 2>&1 | tail -20' < /dev/null && pwd -P >| /tmp/claude-4436-cwd",
+        "ps_before": "1201496 /bin/bash -c source ~/.claude/shell-snapshots/snapshot-bash-1790396105748-aifgr5.sh 2>/dev/null || true && shopt -u extglob 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'git fetch -q origin season2/main local-maxxing/season2/main && git merge -q --no-edit origin/local-maxxing/season2/main 2>&1 | tail -2; git merge --no-edit -q origin/season2/main 2>&1 | tail -2; git status -s | head -3; git log --oneline -1; timeout 600 python3 extensions/agi/bin/rotate.py rotate 2>&1 | tail -20' < /dev/null && pwd -P >| /tmp/claude-4436-cwd",
         "ps_after": ""
       },
       {
@@ -148,7 +148,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-engine.meter --session-log /home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/8967ee51-49f4-439d-af11-143b39849fc5.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/director-engine.meter --session-log ~/.claude/projects/-data-work-agi--agi-worktrees-post-director-engine/8967ee51-49f4-439d-af11-143b39849fc5.jsonl",
         "rc": 0,
         "output": "0.0936\t93646/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,

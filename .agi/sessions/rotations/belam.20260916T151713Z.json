@@ -27,7 +27,7 @@
       "before": 23,
       "after": 24
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/belam.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/belam.log",
     "d_stale_continue_cursor": {
       "start_offset": 138759,
       "read_before_write": true,
@@ -75,16 +75,16 @@
       "window_id": "@399",
       "pid": 3027066,
       "session_id": "4eb3aad9-703c-4528-b1fd-1f5ce5041f65",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/4eb3aad9-703c-4528-b1fd-1f5ce5041f65.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/4eb3aad9-703c-4528-b1fd-1f5ce5041f65.jsonl",
       "name": "agi-50",
-      "path": "/home/ubuntu/.claude/sessions/3027066.json",
+      "path": "<home>/.claude/sessions/3027066.json",
       "note": "joined by @399 in registry file 3027066.json"
     },
     "successor_row": "config:seats row 'belam': session_ref= session_name=agi-50 session_label= session_id=4eb3aad9-703c-4528-b1fd-1f5ce5041f65 pid=3027066 generation=24 window='@399' source=registry pubkey=02ece009b35b6ad3... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha 4611fcbf4) -- own-row only: belam spawn row: gen 24, session_id 4eb3aad9-703c-4528-b1fd-1f5ce5041f65, window @399, pid 3027066\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/belam.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/belam.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/belam.ack.gen24.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/belam.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/belam.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/belam.ack.gen24.json",
     "own_authority_released": "generation 23 of seat 'belam' retired; successor generation 24 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "belam_cap": {
       "prefix": "belam",
@@ -118,8 +118,8 @@
       "verdict": "ok",
       "confirm_at": "after_join"
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/belam.bootstrap.json",
-    "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/belam.ack.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/belam.bootstrap.json",
+    "ack_written_at_spawn": "<home>/work/agi/.agi/sessions/seats/belam.ack.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -150,7 +150,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/belam.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/4eb3aad9-703c-4528-b1fd-1f5ce5041f65.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/belam.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi/4eb3aad9-703c-4528-b1fd-1f5ce5041f65.jsonl",
         "rc": 0,
         "output": "0.1012\t101189/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,
@@ -173,7 +173,7 @@
         "label": "sensei-wake",
         "cmd": "python3 extensions/agi/bin/send.py send master-sensei 'rotation-alert: belam gen 24 is live - audit its wake per your standing order (owner 2026-09-11 14:0xZ)'",
         "rc": 0,
-        "output": "/home/ubuntu/work/agi/.agi/sessions/inbox/master-sensei.md\n\nnudge: re-fired (stale marker 45s)",
+        "output": "<home>/work/agi/.agi/sessions/inbox/master-sensei.md\n\nnudge: re-fired (stale marker 45s)",
         "truncated": false,
         "byte_cap": 40000
       }
@@ -199,7 +199,7 @@
       "d": 2,
       "floor": 1,
       "excess": 3,
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/c11834f8-24bb-4d4c-b5a9-635cf3dc56f5.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/c11834f8-24bb-4d4c-b5a9-635cf3dc56f5.jsonl",
       "window_start": 965,
       "window_end": "2026-09-16T15:19:16.591221Z",
       "audited_at": "2026-09-16T15:20:28Z",
@@ -213,7 +213,7 @@
       "d": 1,
       "floor": 0,
       "excess": 4,
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/4eb3aad9-703c-4528-b1fd-1f5ce5041f65.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/4eb3aad9-703c-4528-b1fd-1f5ce5041f65.jsonl",
       "window_start": {
         "call_index": 1,
         "line": null,

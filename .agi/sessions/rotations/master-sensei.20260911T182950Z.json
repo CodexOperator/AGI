@@ -25,7 +25,7 @@
       "before": 0,
       "after": 1
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/master-sensei.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/master-sensei.log",
     "d_stale_continue_cursor": {
       "start_offset": 1145592,
       "read_before_write": true,
@@ -70,14 +70,14 @@
       "window_id": "@292",
       "pid": 582621,
       "session_id": "3ca02a29-4bc5-4e74-add0-3b1e9bc860cc",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/3ca02a29-4bc5-4e74-add0-3b1e9bc860cc.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/3ca02a29-4bc5-4e74-add0-3b1e9bc860cc.jsonl",
       "name": "agi-88",
-      "path": "/home/ubuntu/.claude/sessions/582621.json",
+      "path": "<home>/.claude/sessions/582621.json",
       "note": "joined by @292 in registry file 582621.json"
     },
     "successor_row": "config:seats row 'master-sensei': session_ref= session_id=3ca02a29-4bc5-4e74-add0-3b1e9bc860cc pid=582621 generation=1 window='@292' source=registry",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/master-sensei.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/master-sensei.ack.json",
+    "meter_pin": "<home>/work/agi/.agi/sessions/master-sensei.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/master-sensei.ack.json",
     "own_authority_released": "generation 0 of seat 'master-sensei' retired; successor generation 1 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "reap_own_pid": {
       "pid": null,
@@ -121,7 +121,7 @@
       },
       "verdict": "ok"
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/master-sensei.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/master-sensei.bootstrap.json"
   },
   "s12_self_reap": {
     "order": "deepest-first",

@@ -19,7 +19,7 @@
       "before": 20,
       "after": 21
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/belam.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/belam.log",
     "d_stale_continue_cursor": {
       "start_offset": 6348148,
       "read_before_write": true,
@@ -59,16 +59,16 @@
       "window_id": "@370",
       "pid": 1703008,
       "session_id": "d5bde272-b125-4849-9d77-e697973f71d4",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/d5bde272-b125-4849-9d77-e697973f71d4.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/d5bde272-b125-4849-9d77-e697973f71d4.jsonl",
       "name": "agi-c6",
-      "path": "/home/ubuntu/.claude/sessions/1703008.json",
+      "path": "<home>/.claude/sessions/1703008.json",
       "note": "joined by @370 in registry file 1703008.json"
     },
     "successor_row": "config:seats row 'belam': session_ref= session_name=agi-c6 session_label= session_id=d5bde272-b125-4849-9d77-e697973f71d4 pid=1703008 generation=21 window='@370' source=registry pubkey=26edd9d6a10a53a4... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha 25cde7026) -- own-row only: belam spawn row: gen 21, session_id d5bde272-b125-4849-9d77-e697973f71d4, window @370, pid 1703008\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/belam.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/belam.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/belam.ack.gen21.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/belam.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/belam.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/belam.ack.gen21.json",
     "own_authority_released": "generation 20 of seat 'belam' retired; successor generation 21 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "belam_cap": {
       "prefix": "belam",
@@ -86,8 +86,8 @@
       "skipped": "view session view-belam absent"
     },
     "model_confirm": "skipped: no assistant turn within 120s (after_join poll waited 120s) \u2014 successor has not answered",
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/belam.bootstrap.json",
-    "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/belam.ack.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/belam.bootstrap.json",
+    "ack_written_at_spawn": "<home>/work/agi/.agi/sessions/seats/belam.ack.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -116,9 +116,9 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/belam.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/d5bde272-b125-4849-9d77-e697973f71d4.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/belam.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi/d5bde272-b125-4849-9d77-e697973f71d4.jsonl",
         "rc": 0,
-        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/d5bde272-b125-4849-9d77-e697973f71d4.jsonl (via claude-code transcript (explicit)).",
+        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in <home>/.claude/projects/-home-ubuntu-work-agi/d5bde272-b125-4849-9d77-e697973f71d4.jsonl (via claude-code transcript (explicit)).",
         "truncated": false,
         "byte_cap": 40000
       },
@@ -139,7 +139,7 @@
         "label": "sensei-wake",
         "cmd": "python3 extensions/agi/bin/send.py send master-sensei 'rotation-alert: belam gen 21 is live - audit its wake per your standing order (owner 2026-09-11 14:0xZ)'",
         "rc": 0,
-        "output": "/home/ubuntu/work/agi/.agi/sessions/inbox/master-sensei.md\n",
+        "output": "<home>/work/agi/.agi/sessions/inbox/master-sensei.md\n",
         "truncated": false,
         "byte_cap": 40000
       }

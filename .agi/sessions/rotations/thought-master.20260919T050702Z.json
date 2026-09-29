@@ -24,7 +24,7 @@
       ],
       "source": "tmux list-windows -t agi-rc -F #{window_name}"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/thought-master.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/thought-master.log",
     "d_stale_continue_cursor": {
       "start_offset": 8318103,
       "read_before_write": true,
@@ -77,16 +77,16 @@
       "window_id": "@465",
       "pid": 2734327,
       "session_id": "51da57be-5050-4b0d-8f6b-bd1dd23fbaa5",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/51da57be-5050-4b0d-8f6b-bd1dd23fbaa5.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/51da57be-5050-4b0d-8f6b-bd1dd23fbaa5.jsonl",
       "name": "agi-d8",
-      "path": "/home/ubuntu/.claude/sessions/2734327.json",
+      "path": "<home>/.claude/sessions/2734327.json",
       "note": "joined by @465 in registry file 2734327.json"
     },
     "successor_row": "config:seats row 'thought-master': session_ref= session_name=agi-d8 session_label=thought-master session_id=51da57be-5050-4b0d-8f6b-bd1dd23fbaa5 pid=2734327 generation=8 window='@465' source=registry pubkey=fdf3af531af0f989... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha 14f58fa10, retried 0) -- own-row only: thought-master spawn row: gen 8, session_id 51da57be-5050-4b0d-8f6b-bd1dd23fbaa5, window @465, pid 2734327\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/thought-master.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/thought-master.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/thought-master.ack.51da57be.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/thought-master.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/thought-master.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/thought-master.ack.51da57be.json",
     "own_authority_released": "generation 7 of seat 'thought-master' retired; successor generation 8 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "button_down": "grid committed \u2014 record+row on branch season2/main",
     "livestream_repoint": {
@@ -108,7 +108,7 @@
       "verdict": "ok",
       "confirm_at": "after_join"
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/thought-master.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/thought-master.bootstrap.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -143,7 +143,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/thought-master.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/51da57be-5050-4b0d-8f6b-bd1dd23fbaa5.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/thought-master.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi/51da57be-5050-4b0d-8f6b-bd1dd23fbaa5.jsonl",
         "rc": 0,
         "output": "0.0910\t91045/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,

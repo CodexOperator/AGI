@@ -25,7 +25,7 @@
       ],
       "source": "tmux list-windows -t agi-rc -F #{window_name}"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/thought-master.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/thought-master.log",
     "d_stale_continue_cursor": {
       "start_offset": 3887091,
       "read_before_write": true,
@@ -78,18 +78,18 @@
       "window_id": "@415",
       "pid": 194076,
       "session_id": "f7eab981-f253-4f88-9633-c73dc2b9007d",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/f7eab981-f253-4f88-9633-c73dc2b9007d.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/f7eab981-f253-4f88-9633-c73dc2b9007d.jsonl",
       "name": "agi-13",
-      "path": "/home/ubuntu/.claude/sessions/194076.json",
+      "path": "<home>/.claude/sessions/194076.json",
       "note": "joined by @415 in registry file 194076.json"
     },
     "successor_row": "config:seats row 'thought-master': session_ref= session_name=agi-13 session_label=thought-master session_id=f7eab981-f253-4f88-9633-c73dc2b9007d pid=194076 generation=(none: non-prime is generation-less) window='@415' source=registry pubkey=189005c6edbb54ac... key_history=5",
     "spawn_row_commit": "spawn_row_commit: FAILED \u2014 git commit: fatal: cannot lock ref 'HEAD': is at fbd3ee5bd56baeea12122c0e79ce4a2789693353 but expected 63ce773e152d1e05dd3e9eb42cfb917f76f51a1a",
-    "key_replace": "key_replace: NOT applied -- commit did not succeed; /home/ubuntu/work/agi/.agi/sessions/seats/thought-master.key left byte-identical with the predecessor key, NO successor key written (deferred swap on later join-origin) (row=\"config:seats row 'thought-master': session_ref= session_name=agi-13 session_label=thought-master session_id=f7eab981-f253-4f88-9633-c73dc2b9007d pid=194076 generation=(none: non-prime is generation-less) window='@415' source=registry pubkey=189005c6edbb54ac... key_history=5\" commit=\"spawn_row_commit: FAILED \u2014 git commit: fatal: cannot lock ref 'HEAD': is at fbd3ee5bd56baeea12122c0e79ce4a2789693353 but expected 63ce773e152d1e05dd3e9eb42cfb917f76f51a1a\" push=\"spawn_row_commit: FAILED \u2014 git commit: fatal: cannot lock ref 'HEAD': is at fbd3ee5bd56baeea12122c0e79ce4a2789693353 but expected 63ce773e152d1e05dd3e9eb42cfb917f76f51a1a\")",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/thought-master.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/thought-master.ack.f7eab981.json",
+    "key_replace": "key_replace: NOT applied -- commit did not succeed; <home>/work/agi/.agi/sessions/seats/thought-master.key left byte-identical with the predecessor key, NO successor key written (deferred swap on later join-origin) (row=\"config:seats row 'thought-master': session_ref= session_name=agi-13 session_label=thought-master session_id=f7eab981-f253-4f88-9633-c73dc2b9007d pid=194076 generation=(none: non-prime is generation-less) window='@415' source=registry pubkey=189005c6edbb54ac... key_history=5\" commit=\"spawn_row_commit: FAILED \u2014 git commit: fatal: cannot lock ref 'HEAD': is at fbd3ee5bd56baeea12122c0e79ce4a2789693353 but expected 63ce773e152d1e05dd3e9eb42cfb917f76f51a1a\" push=\"spawn_row_commit: FAILED \u2014 git commit: fatal: cannot lock ref 'HEAD': is at fbd3ee5bd56baeea12122c0e79ce4a2789693353 but expected 63ce773e152d1e05dd3e9eb42cfb917f76f51a1a\")",
+    "meter_pin": "<home>/work/agi/.agi/sessions/thought-master.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/thought-master.ack.f7eab981.json",
     "own_authority_released": "generation 2 of seat 'thought-master' retired; successor generation 3 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
-    "button_down": "FAILED: Command '['/usr/bin/python3', '/home/ubuntu/work/agi/extensions/agi/bin/grid.py', 'commit', '--all']' timed out after 60 seconds",
+    "button_down": "FAILED: Command '['/usr/bin/python3', '<home>/work/agi/extensions/agi/bin/grid.py', 'commit', '--all']' timed out after 60 seconds",
     "livestream_repoint": {
       "session": "view-thought-master",
       "target": "@415",
@@ -109,7 +109,7 @@
       "verdict": "ok",
       "confirm_at": "after_join"
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/thought-master.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/thought-master.bootstrap.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -144,7 +144,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/thought-master.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/f7eab981-f253-4f88-9633-c73dc2b9007d.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/thought-master.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi/f7eab981-f253-4f88-9633-c73dc2b9007d.jsonl",
         "rc": 0,
         "output": "0.0742\t74235/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,
@@ -181,7 +181,7 @@
       "d": 0,
       "floor": 1,
       "excess": 2,
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/d98fb21a-e5aa-4072-94c8-048ab651fbef.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/d98fb21a-e5aa-4072-94c8-048ab651fbef.jsonl",
       "window_start": {
         "call_index": null,
         "line": 1730,
@@ -204,7 +204,7 @@
       "d": 1,
       "floor": 0,
       "excess": 3,
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/f7eab981-f253-4f88-9633-c73dc2b9007d.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/f7eab981-f253-4f88-9633-c73dc2b9007d.jsonl",
       "window_start": {
         "call_index": 1,
         "line": null,

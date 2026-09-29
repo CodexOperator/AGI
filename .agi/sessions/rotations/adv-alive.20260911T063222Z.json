@@ -11,13 +11,13 @@
         "adv-alive.gen1",
         "adv-alive"
       ],
-      "source": "window-path file /home/ubuntu/work/agi/.agi/worktrees/a00-22d82961/.agi/sessions/btprobe/test_rotate_self_ignores_debug0/windows.txt"
+      "source": "window-path file <home>/work/agi/.agi/worktrees/a00-22d82961/.agi/sessions/btprobe/test_rotate_self_ignores_debug0/windows.txt"
     },
     "b_generation": {
       "before": 0,
       "after": 1
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/worktrees/a00-22d82961/.agi/sessions/btprobe/test_rotate_self_ignores_debug0/adv-alive.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/worktrees/a00-22d82961/.agi/sessions/btprobe/test_rotate_self_ignores_debug0/adv-alive.log",
     "d_stale_continue_cursor": {
       "start_offset": 9,
       "read_before_write": true,

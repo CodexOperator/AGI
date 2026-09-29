@@ -43,7 +43,7 @@
     },
     {
       "label": "git-state",
-      "cmd": "git -C /home/ubuntu/work/agi status -sb | head -5; git -C /home/ubuntu/work/agi status -sb | head -3",
+      "cmd": "git -C <home>/work/agi status -sb | head -5; git -C <home>/work/agi status -sb | head -3",
       "rc": 0,
       "output": "## season2/main...origin/season2/main\n M .agi/comms/season-2/dm/belam--master-sensei.md\n M .agi/comms/season-2/dm/belam--sanctuary-director.md\n M .agi/comms/season-2/dm/belam--sanctuary-helper.md\n M .agi/comms/season-2/dm/belam--sensei-director.md\n\n## season2/main...origin/season2/main\n M .agi/comms/season-2/dm/belam--master-sensei.md\n M .agi/comms/season-2/dm/belam--sanctuary-director.md\n",
       "truncated": false,
@@ -51,7 +51,7 @@
     },
     {
       "label": "predecessor-log",
-      "cmd": "git -C /home/ubuntu/work/agi log --oneline -12; git -C /home/ubuntu/work/agi log --oneline -3",
+      "cmd": "git -C <home>/work/agi log --oneline -12; git -C <home>/work/agi log --oneline -3",
       "rc": 0,
       "output": "137dc707b posts row director-thought: copilot-cli harness (auto), town local-maxxing, under the thought master (owner: CC at 3%, Copilot for the roles)\nd74ef931c GOALS.md re-rendered after merge-up L4.366 (derived; the merge carried goal notes)\n7b01de287 merge-up L4.366: Copilot CLI harness \u2014 adapter + dispatch spawn/loop --harness copilot-cli + fixture tests (owner URGENT 03:0xZ; Prime-harvested under the paused formation)\ne8767adda director-thought first dispatch order (harvest TM.1, review TM.2, next rounds) + deviation recorded on the TM.1 node: master launched the parent directly (CC at 3%); seat requested from the Prime\n42f1935d4 a00-cd9b4aa1 done: experiment:a00-4e3f8a7b-8edc1e verdict=pending\nf34bf4b76 thought-master card: TM.2 paper digest live on pi (owner GO concurrent), pi-runner persistence finding\n281208925 workflows: paper-digest (pi route: read:{key} -> chained critique:{key}, full digest written to .agi/context/local-maxxing/papers/<key>.md) \u2014 the pi runner persists only 200 chars of a stage return and crosses no other stage boundary, so file output is the carrier; type trove-survey, validate clean\n59ca1c893 local-maxxing visions: three rulers minted/updated by the Prime on the owner's GO (~03:5xZ, verbatim on goal:g14): vision:local-maxxing (efficiency) body + vision:local-maxxing-smarter + vision:local-maxxing-together; town lists all three\n2504af988 local-maxxing visions: three FAITH+RULER pairs drafted for the Prime's mint (owner GO 03:5xZ); four treasury papers banked on goal:g14\n958d1ea44 g17.1: Prime-dispatched L4.366 (Copilot CLI harness) under the paused formation \u2014 deviation documented\n0b1c56d80 thought-master card: TM.1 live, owner 03:0xZ decisions, Copilot urgency relayed, banked infra\nbcd10d546 hypothesis: Copilot CLI as a third harness (owner URGENT 03:0xZ via the thought master; CC sub at 3%); banked the relay\n\n137dc707b posts row director-thought: copilot-cli harness (auto), town local-maxxing, under the thought master (owner: CC at 3%, Copilot for the roles)\nd74ef931c GOALS.md re-rendered after merge-up L4.366 (derived; the merge carried goal notes)\n7b01de287 merge-up L4.366: Copilot CLI harness \u2014 adapter + dispatch spawn/loop --harness copilot-cli + fixture tests (owner URGENT 03:0xZ; Prime-harvested under the paused formation)\n",
       "truncated": false,
@@ -69,7 +69,7 @@
       "label": "live-spawns",
       "cmd": "python3 extensions/agi/bin/spawn_budget.py status; python3 extensions/agi/bin/provisioning.py status | head -4",
       "rc": 0,
-      "output": "budget: 0/25 live  load 0.7/0.8/0.9  dir=/home/ubuntu/work/agi/.agi/sessions/.spawn-budget\n\nprovisioning: available  keys_visible=2  engine_minted=1\n  outstanding: agi-2 used=0.59690858 expires=None\n  OPENROUTER_API_KEY: unknown \u2014 key_usage failed: HTTP 401 {\"error\":{\"message\":\"User not found.\",\"code\":401}}\n",
+      "output": "budget: 0/25 live  load 0.7/0.8/0.9  dir=<home>/work/agi/.agi/sessions/.spawn-budget\n\nprovisioning: available  keys_visible=2  engine_minted=1\n  outstanding: agi-2 used=0.59690858 expires=None\n  OPENROUTER_API_KEY: unknown \u2014 key_usage failed: HTTP 401 {\"error\":{\"message\":\"User not found.\",\"code\":401}}\n",
       "truncated": false,
       "byte_cap": 8000
     },

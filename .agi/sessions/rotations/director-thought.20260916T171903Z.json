@@ -24,7 +24,7 @@
       ],
       "source": "tmux list-windows -t agi-rc -F #{window_name}"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/director-thought.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/director-thought.log",
     "d_stale_continue_cursor": {
       "start_offset": 1787723,
       "read_before_write": true,
@@ -77,16 +77,16 @@
       "window_id": "@403",
       "pid": 4152335,
       "session_id": "d80cf7ba-d41d-45de-8326-9a79b2544e52",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/d80cf7ba-d41d-45de-8326-9a79b2544e52.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/d80cf7ba-d41d-45de-8326-9a79b2544e52.jsonl",
       "name": "agi-d6",
-      "path": "/home/ubuntu/.claude/sessions/4152335.json",
+      "path": "<home>/.claude/sessions/4152335.json",
       "note": "joined by @403 in registry file 4152335.json"
     },
     "successor_row": "config:seats row 'director-thought': session_ref= session_name=agi-d6 session_label=director-thought session_id=d80cf7ba-d41d-45de-8326-9a79b2544e52 pid=4152335 generation=(none: non-prime is generation-less) window='@403' source=registry pubkey=3465405cb316b54d... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha faaa01500) -- own-row only: director-thought spawn row: gen 3, session_id d80cf7ba-d41d-45de-8326-9a79b2544e52, window @403, pid 4152335\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/director-thought.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/director-thought.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/director-thought.ack.d80cf7ba.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/director-thought.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/director-thought.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/director-thought.ack.d80cf7ba.json",
     "own_authority_released": "generation 2 of seat 'director-thought' retired; successor generation 3 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "button_down": "grid committed \u2014 record+row on branch season2/main",
     "livestream_repoint": {
@@ -95,7 +95,7 @@
       "skipped": "view session view-director-thought absent"
     },
     "model_confirm": "skipped: no assistant turn within 60s (after_join poll waited 60s) \u2014 successor has not answered",
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/director-thought.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/director-thought.bootstrap.json"
   },
   "swept_latches": [
     "hook-director-thought-1f1ba501.lock"
@@ -131,9 +131,9 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/director-thought.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/d80cf7ba-d41d-45de-8326-9a79b2544e52.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/director-thought.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi/d80cf7ba-d41d-45de-8326-9a79b2544e52.jsonl",
         "rc": 0,
-        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/d80cf7ba-d41d-45de-8326-9a79b2544e52.jsonl (via claude-code transcript (explicit)).",
+        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in <home>/.claude/projects/-home-ubuntu-work-agi/d80cf7ba-d41d-45de-8326-9a79b2544e52.jsonl (via claude-code transcript (explicit)).",
         "truncated": false,
         "byte_cap": 8000
       },
@@ -167,7 +167,7 @@
       "d": 35,
       "floor": 1,
       "excess": 48,
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/4accbcc1-b435-405c-a4dc-5fb0aeecf529.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/4accbcc1-b435-405c-a4dc-5fb0aeecf529.jsonl",
       "window_start": {
         "call_index": null,
         "line": 716,
@@ -189,7 +189,7 @@
       "d": 0,
       "floor": 0,
       "excess": 0,
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/d80cf7ba-d41d-45de-8326-9a79b2544e52.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/d80cf7ba-d41d-45de-8326-9a79b2544e52.jsonl",
       "window_start": {
         "call_index": 1,
         "line": null,

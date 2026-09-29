@@ -24,7 +24,7 @@
       ],
       "source": "tmux list-windows -t agi-rc -F #{window_name}"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sensei-director.log",
     "d_stale_continue_cursor": {
       "start_offset": 105152,
       "read_before_write": true,
@@ -77,16 +77,16 @@
       "window_id": "@420",
       "pid": 761598,
       "session_id": "bf7f657f-28fa-42ae-827e-28c397a29405",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/bf7f657f-28fa-42ae-827e-28c397a29405.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/bf7f657f-28fa-42ae-827e-28c397a29405.jsonl",
       "name": "post-sensei-director-2a",
-      "path": "/home/ubuntu/.claude/sessions/761598.json",
+      "path": "<home>/.claude/sessions/761598.json",
       "note": "joined by @420 in registry file 761598.json"
     },
     "successor_row": "config:seats row 'sensei-director': session_ref= session_name=post-sensei-director-2a session_label=sensei-director session_id=bf7f657f-28fa-42ae-827e-28c397a29405 pid=761598 generation=(none: non-prime is generation-less) window='@420' source=registry pubkey=8297fdaa7f9b1c64... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha 063d4e9a7) -- own-row only: sensei-director spawn row: gen 34, session_id bf7f657f-28fa-42ae-827e-28c397a29405, window @420, pid 761598\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.bf7f657f.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/sensei-director.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/sensei-director.ack.bf7f657f.json",
     "own_authority_released": "generation 33 of seat 'sensei-director' retired; successor generation 34 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "button_down": "grid committed \u2014 record+row on branch core/season2/posts/sensei-director/main",
     "livestream_repoint": {
@@ -95,7 +95,7 @@
       "skipped": "view session view-sensei-director absent"
     },
     "model_confirm": "skipped: no assistant turn within 60s (after_join poll waited 60s) \u2014 successor has not answered",
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -130,9 +130,9 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/bf7f657f-28fa-42ae-827e-28c397a29405.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/sensei-director.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/bf7f657f-28fa-42ae-827e-28c397a29405.jsonl",
         "rc": 0,
-        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/bf7f657f-28fa-42ae-827e-28c397a29405.jsonl (via claude-code transcript (explicit)).",
+        "output": "0.0\t(no usage data)\tsource=claude-code transcript (explicit)\tthreshold=0.47\n\nwarn: no usage data found in <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/bf7f657f-28fa-42ae-827e-28c397a29405.jsonl (via claude-code transcript (explicit)).",
         "truncated": false,
         "byte_cap": 8000
       },
@@ -168,7 +168,7 @@
       "d": 7,
       "floor": 1,
       "excess": 11,
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/c59217a7-911e-4e98-b175-fba4af66b92b.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/c59217a7-911e-4e98-b175-fba4af66b92b.jsonl",
       "window_start": {
         "call_index": null,
         "line": 1597,
@@ -191,7 +191,7 @@
       "d": 1,
       "floor": 0,
       "excess": 0,
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/bf7f657f-28fa-42ae-827e-28c397a29405.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/bf7f657f-28fa-42ae-827e-28c397a29405.jsonl",
       "window_start": {
         "call_index": 1,
         "line": null,

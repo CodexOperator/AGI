@@ -24,7 +24,7 @@
       ],
       "source": "tmux list-windows -t agi-rc -F #{window_name}"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-master.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sanctuary-master.log",
     "d_stale_continue_cursor": {
       "start_offset": 7351123,
       "read_before_write": true,
@@ -78,18 +78,18 @@
       "window_id": "@417",
       "pid": 209629,
       "session_id": "86f40651-1ff6-4e5c-959d-9d58110ecef7",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/86f40651-1ff6-4e5c-959d-9d58110ecef7.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/86f40651-1ff6-4e5c-959d-9d58110ecef7.jsonl",
       "name": "agi-04",
-      "path": "/home/ubuntu/.claude/sessions/209629.json",
+      "path": "<home>/.claude/sessions/209629.json",
       "note": "joined by @417 in registry file 209629.json"
     },
     "successor_row": "config:seats row 'sanctuary-master': session_ref= session_name=agi-04 session_label=sanctuary-master session_id=86f40651-1ff6-4e5c-959d-9d58110ecef7 pid=209629 generation=(none: non-prime is generation-less) window='@417' source=registry pubkey=d5b6667730433f8f... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha db04f9d7c) -- own-row only: sanctuary-master spawn row: gen 5, session_id 86f40651-1ff6-4e5c-959d-9d58110ecef7, window @417, pid 209629\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-master.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-master.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-master.ack.86f40651.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/sanctuary-master.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/sanctuary-master.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/sanctuary-master.ack.86f40651.json",
     "own_authority_released": "generation 4 of seat 'sanctuary-master' retired; successor generation 5 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
-    "button_down": "FAILED: Command '['/usr/bin/python3', '/home/ubuntu/work/agi/extensions/agi/bin/grid.py', 'commit', '--all']' timed out after 60 seconds",
+    "button_down": "FAILED: Command '['/usr/bin/python3', '<home>/work/agi/extensions/agi/bin/grid.py', 'commit', '--all']' timed out after 60 seconds",
     "livestream_repoint": {
       "session": "view-sanctuary-master",
       "target": "@417",
@@ -109,7 +109,7 @@
       "verdict": "ok",
       "confirm_at": "after_join"
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-master.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/sanctuary-master.bootstrap.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -144,7 +144,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sanctuary-master.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/86f40651-1ff6-4e5c-959d-9d58110ecef7.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/sanctuary-master.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi/86f40651-1ff6-4e5c-959d-9d58110ecef7.jsonl",
         "rc": 0,
         "output": "0.0971\t97100/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,
@@ -181,7 +181,7 @@
       "d": 1,
       "floor": 1,
       "excess": 3,
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/64139d89-d5f5-41de-b861-93b08d6274f4.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/64139d89-d5f5-41de-b861-93b08d6274f4.jsonl",
       "window_start": {
         "call_index": null,
         "line": 1991,
@@ -204,7 +204,7 @@
       "d": 1,
       "floor": 0,
       "excess": 2,
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/86f40651-1ff6-4e5c-959d-9d58110ecef7.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/86f40651-1ff6-4e5c-959d-9d58110ecef7.jsonl",
       "window_start": {
         "call_index": 1,
         "line": null,

@@ -22,7 +22,7 @@
       ],
       "source": "tmux list-windows -t agi-rc -F #{window_name}"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sensei-director.log",
     "d_stale_continue_cursor": {
       "start_offset": 6174693,
       "read_before_write": true,
@@ -73,16 +73,16 @@
       "window_id": "@392",
       "pid": 491846,
       "session_id": "9da25c06-dffa-405f-b178-af986ec75814",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/9da25c06-dffa-405f-b178-af986ec75814.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/9da25c06-dffa-405f-b178-af986ec75814.jsonl",
       "name": "post-sensei-director-a3",
-      "path": "/home/ubuntu/.claude/sessions/491846.json",
+      "path": "<home>/.claude/sessions/491846.json",
       "note": "joined by @392 in registry file 491846.json"
     },
     "successor_row": "config:seats row 'sensei-director': session_ref= session_name=post-sensei-director-a3 session_label=sensei-director session_id=9da25c06-dffa-405f-b178-af986ec75814 pid=491846 generation=(none: non-prime is generation-less) window='@392' source=registry pubkey=7d3d1781094a2344... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha b78f7c469) -- own-row only: sensei-director spawn row: gen 26, session_id 9da25c06-dffa-405f-b178-af986ec75814, window @392, pid 491846\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sensei-director.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.ack.9da25c06.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/sensei-director.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/sensei-director.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/sensei-director.ack.9da25c06.json",
     "own_authority_released": "generation 25 of seat 'sensei-director' retired; successor generation 26 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "button_down": "grid committed \u2014 record+row on branch core/season2/posts/sensei-director/main",
     "livestream_repoint": {
@@ -104,7 +104,7 @@
       "verdict": "ok",
       "confirm_at": "after_join"
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/sensei-director.bootstrap.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -139,7 +139,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sensei-director.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/9da25c06-dffa-405f-b178-af986ec75814.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/sensei-director.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sensei-director/9da25c06-dffa-405f-b178-af986ec75814.jsonl",
         "rc": 0,
         "output": "0.0831\t83106/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,

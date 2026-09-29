@@ -27,7 +27,7 @@
       "before": 8,
       "after": 9
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/sanctuary-helper.log",
     "d_stale_continue_cursor": {
       "start_offset": 5610652,
       "read_before_write": true,
@@ -74,16 +74,16 @@
       "window_id": "@339",
       "pid": 1953436,
       "session_id": "b549c5cc-d7d7-4351-b484-cbc9b48f7c39",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-helper/b549c5cc-d7d7-4351-b484-cbc9b48f7c39.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-helper/b549c5cc-d7d7-4351-b484-cbc9b48f7c39.jsonl",
       "name": "post-sanctuary-helper-90",
-      "path": "/home/ubuntu/.claude/sessions/1953436.json",
+      "path": "<home>/.claude/sessions/1953436.json",
       "note": "joined by @339 in registry file 1953436.json"
     },
     "successor_row": "config:seats row 'sanctuary-helper': session_ref= session_name=post-sanctuary-helper-90 session_id=b549c5cc-d7d7-4351-b484-cbc9b48f7c39 pid=1953436 generation=9 window='@339' source=registry",
     "spawn_row_commit": "spawn_row_commit: committed (sha a696b7c67) -- own-row only: sanctuary-helper spawn row: gen 9, session_id b549c5cc-d7d7-4351-b484-cbc9b48f7c39, window @339, pid 1953436\npush: push: OK -- season2/main",
     "key_replace": "",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.ack.gen9.json",
+    "meter_pin": "<home>/work/agi/.agi/sessions/sanctuary-helper.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/sanctuary-helper.ack.gen9.json",
     "own_authority_released": "generation 8 of seat 'sanctuary-helper' retired; successor generation 9 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "button_down": "grid committed \u2014 record+row on branch season2/posts/sanctuary-helper",
     "livestream_repoint": {
@@ -125,8 +125,8 @@
       "verdict": "mismatch",
       "confirm_at": "after_join"
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.bootstrap.json",
-    "ack_written_at_spawn": "/home/ubuntu/work/agi/.agi/sessions/seats/sanctuary-helper.ack.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/sanctuary-helper.bootstrap.json",
+    "ack_written_at_spawn": "<home>/work/agi/.agi/sessions/seats/sanctuary-helper.ack.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -157,7 +157,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/sanctuary-helper.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-helper/b549c5cc-d7d7-4351-b484-cbc9b48f7c39.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/sanctuary-helper.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi--agi-worktrees-post-sanctuary-helper/b549c5cc-d7d7-4351-b484-cbc9b48f7c39.jsonl",
         "rc": 0,
         "output": "0.0710\t70987/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,

@@ -70,9 +70,9 @@
       "window_id": "@29",
       "pid": 462816,
       "session_id": "cf965b4a-1eeb-40bd-baaf-a58760c76806",
-      "transcript": "/home/belam/.claude/projects/-data-work-agi/cf965b4a-1eeb-40bd-baaf-a58760c76806.jsonl",
+      "transcript": "~/.claude/projects/-data-work-agi/cf965b4a-1eeb-40bd-baaf-a58760c76806.jsonl",
       "name": "agi-e8",
-      "path": "/home/belam/.claude/sessions/462816.json",
+      "path": "~/.claude/sessions/462816.json",
       "note": "joined by @29 in registry file 462816.json"
     },
     "successor_row": "config:seats row 'thought-master': session_ref= session_name=agi-e8 session_label=thought-master session_id=cf965b4a-1eeb-40bd-baaf-a58760c76806 pid=462816 generation=32 window='@29' source=registry pubkey=c4ddeb80f1e3707d... key_history=5",
@@ -133,7 +133,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/thought-master.meter --session-log /home/belam/.claude/projects/-data-work-agi/cf965b4a-1eeb-40bd-baaf-a58760c76806.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /data/work/agi/.agi/sessions/thought-master.meter --session-log ~/.claude/projects/-data-work-agi/cf965b4a-1eeb-40bd-baaf-a58760c76806.jsonl",
         "rc": 0,
         "output": "0.0772\t77191/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,

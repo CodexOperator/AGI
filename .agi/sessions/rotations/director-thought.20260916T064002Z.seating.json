@@ -18,7 +18,7 @@
   "window_id": "@387",
   "pid": 1862268,
   "session_id": "089257e1-6f12-487c-92a8-e20c0a40a646",
-  "transcript_path": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/089257e1-6f12-487c-92a8-e20c0a40a646.jsonl",
+  "transcript_path": "<home>/.claude/projects/-home-ubuntu-work-agi/089257e1-6f12-487c-92a8-e20c0a40a646.jsonl",
   "first_turn": [
     {
       "label": "rotation-record",
@@ -46,7 +46,7 @@
     },
     {
       "label": "git-state",
-      "cmd": "git -C /home/ubuntu/work/agi status -sb | head -5; git -C /home/ubuntu/work/agi status -sb | head -3",
+      "cmd": "git -C <home>/work/agi status -sb | head -5; git -C <home>/work/agi status -sb | head -3",
       "rc": 0,
       "output": "## season2/main...origin/season2/main\n M .agi/comms/season-2/dm/belam--master-sensei.md\n M .agi/comms/season-2/dm/belam--sanctuary-director.md\n M .agi/comms/season-2/dm/belam--sanctuary-helper.md\n M .agi/comms/season-2/dm/belam--sensei-director.md\n\n## season2/main...origin/season2/main\n M .agi/comms/season-2/dm/belam--master-sensei.md\n M .agi/comms/season-2/dm/belam--sanctuary-director.md\n",
       "truncated": false,
@@ -54,7 +54,7 @@
     },
     {
       "label": "predecessor-log",
-      "cmd": "git -C /home/ubuntu/work/agi log --oneline -12; git -C /home/ubuntu/work/agi log --oneline -3",
+      "cmd": "git -C <home>/work/agi log --oneline -12; git -C <home>/work/agi log --oneline -3",
       "rc": 0,
       "output": "926aecbda thought-master seating row: gen 1, session_id e55ef12e-f004-400b-a40e-70713e1decad, window @386, pid 1861452\n79a71083c sanctuary-director seating row: gen 31, session_id a9b37e07-04f4-4f2d-a77c-48f31b78ffc2, window @385, pid 1859857\ncd724945b sensei-director seating row: gen 23, session_id fc9919a5-ce8f-4909-8f88-627ce722a89a, window @384, pid 1858902\n13c034fdd sanctuary-helper seating row: gen 12, session_id 8cc9fa56-df9d-4843-bcd1-6c41b493f8f7, window @383, pid 1855933\nad6df2908 sanctuary-director seating row: gen 31, session_id 5ebd0fb3-f90a-493f-8e44-264858a3eb4f, window @382, pid 1852552\n9b6fb9aea sanctuary-helper seating row: gen 12, session_id 3b0ba931-2370-4aaf-9270-60af9517b359, window @381, pid 1851136\neaf41c7aa sanctuary-director seating row: gen 31, session_id , window , pid\n967b4a244 sensei-director seating row: gen 23, session_id d7ea4dc9-93a7-44a6-b4f7-c406e592f55f, window @379, pid 1845593\n8d02de429 master-sensei seating row: gen 7, session_id ae570747-8b77-4675-8299-07a3ac11f829, window @378, pid 1839090\n271689dae sanctuary-master seating row: gen 2, session_id af2b6be5-9764-4c7c-9946-723e97e70eef, window @377, pid 1835009\nf16f87964 g15: the Prime hears only needed comms (owner 2026-09-16 06:3xZ, asap) \u2014 send.py refuses an untagged CLI dm to the Prime before any write (PRIME_DM_TAGS: merge-up/decision/rotation/red/rule/complete/owner); a typed after_join stamps the wake sidecar so wake never re-nudges it; hypothesis:l4-the-prime-hears-only-needed-comms minted under goal:g15, written in directly by the Prime on the owner ruling (banked verbatim); 6 tests\ndbe33422e test_workflow: fixture rows for recovery-survey (the live-manifest resolve test mirrors config:workflows inline; caught by the 06:05Z suite because the registration was written mid-run \u2014 0al)\n\n926aecbda thought-master seating row: gen 1, session_id e55ef12e-f004-400b-a40e-70713e1decad, window @386, pid 1861452\n79a71083c sanctuary-director seating row: gen 31, session_id a9b37e07-04f4-4f2d-a77c-48f31b78ffc2, window @385, pid 1859857\ncd724945b sensei-director seating row: gen 23, session_id fc9919a5-ce8f-4909-8f88-627ce722a89a, window @384, pid 1858902\n",
       "truncated": false,
@@ -72,7 +72,7 @@
       "label": "live-spawns",
       "cmd": "python3 extensions/agi/bin/spawn_budget.py status; python3 extensions/agi/bin/provisioning.py status | head -4",
       "rc": 0,
-      "output": "budget: 0/25 live  load 1.0/1.1/1.2  dir=/home/ubuntu/work/agi/.agi/sessions/.spawn-budget\n\nprovisioning: available  keys_visible=2  engine_minted=1\n  outstanding: agi-2 used=0.59690858 expires=None\n  OPENROUTER_API_KEY: unknown \u2014 key_usage failed: HTTP 401 {\"error\":{\"message\":\"User not found.\",\"code\":401}}\n",
+      "output": "budget: 0/25 live  load 1.0/1.1/1.2  dir=<home>/work/agi/.agi/sessions/.spawn-budget\n\nprovisioning: available  keys_visible=2  engine_minted=1\n  outstanding: agi-2 used=0.59690858 expires=None\n  OPENROUTER_API_KEY: unknown \u2014 key_usage failed: HTTP 401 {\"error\":{\"message\":\"User not found.\",\"code\":401}}\n",
       "truncated": false,
       "byte_cap": 8000
     },

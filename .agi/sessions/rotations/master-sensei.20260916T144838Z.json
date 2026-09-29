@@ -23,7 +23,7 @@
       ],
       "source": "tmux list-windows -t agi-rc -F #{window_name}"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/master-sensei.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/master-sensei.log",
     "d_stale_continue_cursor": {
       "start_offset": 5947423,
       "read_before_write": true,
@@ -75,16 +75,16 @@
       "window_id": "@398",
       "pid": 2766851,
       "session_id": "5b90ce6d-a20b-4d73-9733-64affaa382c6",
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/5b90ce6d-a20b-4d73-9733-64affaa382c6.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/5b90ce6d-a20b-4d73-9733-64affaa382c6.jsonl",
       "name": "agi-c6",
-      "path": "/home/ubuntu/.claude/sessions/2766851.json",
+      "path": "<home>/.claude/sessions/2766851.json",
       "note": "joined by @398 in registry file 2766851.json"
     },
     "successor_row": "config:seats row 'master-sensei': session_ref= session_name=agi-c6 session_label=master-sensei session_id=5b90ce6d-a20b-4d73-9733-64affaa382c6 pid=2766851 generation=(none: non-prime is generation-less) window='@398' source=registry pubkey=aaafc4bd101074a1... key_history=5",
     "spawn_row_commit": "spawn_row_commit: committed (sha aff03ad0c) -- own-row only: master-sensei spawn row: gen 9, session_id 5b90ce6d-a20b-4d73-9733-64affaa382c6, window @398, pid 2766851\npush: push: OK -- season2/main",
-    "key_replace": "key_replace: wrote successor key to /home/ubuntu/work/agi/.agi/sessions/seats/master-sensei.key (0600, atomic replace)",
-    "meter_pin": "/home/ubuntu/work/agi/.agi/sessions/master-sensei.meter",
-    "ack_written": "/home/ubuntu/work/agi/.agi/sessions/seats/master-sensei.ack.5b90ce6d.json",
+    "key_replace": "key_replace: wrote successor key to <home>/work/agi/.agi/sessions/seats/master-sensei.key (0600, atomic replace)",
+    "meter_pin": "<home>/work/agi/.agi/sessions/master-sensei.meter",
+    "ack_written": "<home>/work/agi/.agi/sessions/seats/master-sensei.ack.5b90ce6d.json",
     "own_authority_released": "generation 8 of seat 'master-sensei' retired; successor generation 9 owns it (release by RECORD: the config:seats self_row schema has no retired field)",
     "button_down": "grid committed \u2014 record+row on branch season2/main",
     "livestream_repoint": {
@@ -106,7 +106,7 @@
       "verdict": "ok",
       "confirm_at": "after_join"
     },
-    "bootstrap": "/home/ubuntu/work/agi/.agi/sessions/seats/master-sensei.bootstrap.json"
+    "bootstrap": "<home>/work/agi/.agi/sessions/seats/master-sensei.bootstrap.json"
   },
   "swept_latches": [],
   "inherited": true,
@@ -138,7 +138,7 @@
       },
       {
         "label": "pin",
-        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin /home/ubuntu/work/agi/.agi/sessions/master-sensei.meter --session-log /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/5b90ce6d-a20b-4d73-9733-64affaa382c6.jsonl",
+        "cmd": "python3 extensions/agi/bin/rotate.py meter --pin <home>/work/agi/.agi/sessions/master-sensei.meter --session-log <home>/.claude/projects/-home-ubuntu-work-agi/5b90ce6d-a20b-4d73-9733-64affaa382c6.jsonl",
         "rc": 0,
         "output": "0.0717\t71679/1000000 tokens\tsource=claude-code transcript (explicit)\tthreshold=0.47\n",
         "truncated": false,
@@ -174,7 +174,7 @@
       "d": 1,
       "floor": 1,
       "excess": 2,
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/59ca602d-64ea-4556-957e-a4027ea6c1ab.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/59ca602d-64ea-4556-957e-a4027ea6c1ab.jsonl",
       "window_start": 1625,
       "window_end": "2026-09-16T14:49:38.943618Z",
       "audited_at": "2026-09-16T14:51:22Z",
@@ -188,7 +188,7 @@
       "d": 0,
       "floor": 0,
       "excess": 2,
-      "transcript": "/home/ubuntu/.claude/projects/-home-ubuntu-work-agi/5b90ce6d-a20b-4d73-9733-64affaa382c6.jsonl",
+      "transcript": "<home>/.claude/projects/-home-ubuntu-work-agi/5b90ce6d-a20b-4d73-9733-64affaa382c6.jsonl",
       "window_start": 1,
       "window_end": 2,
       "audited_at": "2026-09-16T14:51:23Z",

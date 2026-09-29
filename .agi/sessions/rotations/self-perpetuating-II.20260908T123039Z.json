@@ -58,7 +58,7 @@
       ],
       "source": "tmux list-windows -t agi-rc -F #{window_name}"
     },
-    "c_readback_log_path": "/home/ubuntu/work/agi/.agi/sessions/self-perpetuating-II.log",
+    "c_readback_log_path": "<home>/work/agi/.agi/sessions/self-perpetuating-II.log",
     "d_reply_decision": "no_reply"
   }
 }
