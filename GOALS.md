@@ -8969,6 +8969,8 @@ Session: `owner-ask-2026-09-21`. Frame as TARGETS not tasks.
 
 NO-PI stopline13: seed g7.32.6 complete (post-branch contracts); g7.32.5 remains parked — do not open; umbrella stays active.
 
+NO-PI stopline14: g7.32.6.7-.9 production dm_engine seams COMPLETE; g7.32.5 remains horizon; umbrella stays active. Full send=write.py mint cutover waits g4.18.1 (director-engine).
+
 #### G7.32.1 — Grok session ingest — sessions land as graph nodes — status: complete
 
 # goal:g7.32.1
@@ -9311,6 +9313,8 @@ NO-PI stopline12: box-identity 24/24 still GREEN; post-branch send/cron/nudge/re
 
 NO-PI stopline13: nested .1-.6 contracts GREEN (26/26); production send.py/crons wiring is director-engine follow-on; did not open g7.32.5/g7.31.6.
 
+NO-PI stopline14: production wiring residue .7-.9 COMPLETE (dm_engine + send.py dm-plan/dm-read-plan/dm-sync + crons dm_sync KNOWN_JOB). Full write.py mint cutover + inbox retirement + live crons.md enable wait on g4.18.1 / Belam-DE. Did not open g7.32.5/g7.31.6.
+
 ##### G7.32.6.1 — Post-branch address = addressee remote_head else nearest remote-visible — status: complete
 
 <!-- BODY:BEGIN -->
@@ -9531,6 +9535,118 @@ NO-PI stopline13: dm_read_version.py + test_dm_read_version 3/3; read=true to se
 Assigned to **director-helper** under OWNER FULL STOP (NO pi). Contract-first; engine wires production later.
 
 NO-PI stopline13: dm_no_inbox.py + test_dm_no_inbox 3/3; sessions/inbox refused by name.
+
+##### G7.32.6.7 — send.py production importer of dm_engine (dm-plan/dm-read-plan/dm-sync) — status: complete
+
+<!-- BODY:BEGIN -->
+# goal:g7.32.6.7
+
+## Why this exists
+
+**Parent `goal:g7.32.6`.** Production importer residue: send.py must call `dm_engine.plan_send` / `plan_read` / `sync_*` on a live CLI path (same shape as g7.32.2.1.2 magic_pane pane verb) so the post-branch contracts are not unit-only.
+
+## Target end-state
+
+- `send.py dm-plan` / `dm-read-plan` / `dm-sync` import `dm_engine` and print JSON plans.
+- `send_dm` asserts post-branch path via `dm_no_inbox` (inbox refused by name).
+- CLI-path falsifiers GREEN; no sessions/inbox write from the plan verbs.
+
+## Invariants
+
+- Does **not** open `goal:g7.31.6` / `goal:g7.32.5`.
+- Full write.py mint cutover + inbox retirement wait on `goal:g4.18.1` (director-engine).
+- NO pi under OWNER FULL STOP.
+
+## Falsifier
+
+1. `send.py --help` lists dm-plan / dm-read-plan / dm-sync.
+2. `dm-plan --row-json` with remote_head prints read=false post-branch payload; writes no inbox.
+3. Deleting the `dm_engine` call in the verb handler fails the CLI-path suite.
+
+## Out of scope
+
+- Enabling live crons.md cadence (Belam/DE).
+- Parked g7.32.5 / g7.31.6.
+
+## Agent Notes
+
+Assigned to **director-helper** under OWNER FULL STOP (NO pi).
+
+NO-PI stopline14: dm_engine + send.py dm-plan/dm-read-plan/dm-sync CLI; test_dm_engine_cli_path GREEN; send_dm asserts dm_no_inbox; write.py mint cutover waits g4.18.1
+
+##### G7.32.6.8 — crons.py dm_sync KNOWN_JOB wired to interval cell — status: complete
+
+<!-- BODY:BEGIN -->
+# goal:g7.32.6.8
+
+## Why this exists
+
+**Parent `goal:g7.32.6`.** Production crons residue: `crons.py` must know `dm_sync` as a KNOWN_JOB and schedule `send.py dm-sync` using `values.dm.sync_interval_min` (via dm_engine) when the job omits every_mins.
+
+## Target end-state
+
+- `dm_sync` in `KNOWN_JOBS`.
+- Renderer emits `python3 send.py dm-sync` on the interval cell when enabled.
+- Cadence stays **disabled** in live geometry until Belam/DE flips it (no surprise live tick).
+
+## Invariants
+
+- Does **not** open `goal:g7.31.6` / `goal:g7.32.5`.
+- Does not enable crons.md dm_sync without Belam.
+- NO pi under OWNER FULL STOP.
+
+## Falsifier
+
+1. `crons.py` source carries `dm_sync` in KNOWN_JOBS and imports/uses `dm_engine` for the interval fallback.
+2. `dm_engine.sync_schedule_expr` honors `values.dm.sync_interval_min` in [1,3].
+
+## Out of scope
+
+- Live crontab apply / geometry enable.
+- Parked g7.32.5 / g7.31.6.
+
+## Agent Notes
+
+Assigned to **director-helper** under OWNER FULL STOP (NO pi).
+
+NO-PI stopline14: dm_sync in KNOWN_JOBS; renderer uses dm_engine.sync_interval_min fallback; cadence not enabled in geometry (Belam/DE)
+
+##### G7.32.6.9 — dm_engine nudge/read/sync-tick production composer — status: complete
+
+<!-- BODY:BEGIN -->
+# goal:g7.32.6.9
+
+## Why this exists
+
+**Parent `goal:g7.32.6`.** Production nudge/read residue: `dm_engine.gate_nudge` + `plan_read` + `plan_sync_tick` compose the sync-only / local / quiet-[red] / read=true-to-sender contracts for engine callers.
+
+## Target end-state
+
+- `dm_engine.gate_nudge` / `plan_read` / `plan_sync_tick` on tip; unit falsifiers GREEN.
+- `send.py dm-read-plan` and `dm-sync` exercise the composer on a production CLI path.
+
+## Invariants
+
+- Does **not** open `goal:g7.31.6` / `goal:g7.32.5`.
+- Does not type live panes from dm-sync dry-plan.
+- NO pi under OWNER FULL STOP.
+
+## Falsifier
+
+1. gate_nudge False without from_sync; quiet blocks unless [red].
+2. plan_read destination = sender remote_head; read=True.
+3. plan_sync_tick emits only gated unread locals.
+
+## Out of scope
+
+- Live pane typing from sync; write.py push (g4.18.1).
+- Parked g7.32.5 / g7.31.6.
+
+## Agent Notes
+
+Assigned to **director-helper** under OWNER FULL STOP (NO pi).
+
+NO-PI stopline14: gate_nudge + plan_read + plan_sync_tick on tip; dm-read-plan/dm-sync CLI exercise composer; no live pane type from dry-plan
 
 ### G7.33 — ENGINE FIXES SURFACED BY THE TOWN — every engine trap the rounds hit becomes a pi round itself, run alongside the research rounds under a second (Sonnet) director; plus the two dispatch upgrades the owner named: one workflow that chains parent dispatch → drain → mur, and a batch workflow that runs rounds serially or in parallel by memory allocation and closes with a whole-batch MUR over the sub-goal that parents them — status: active
 
