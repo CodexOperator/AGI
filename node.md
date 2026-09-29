@@ -22,14 +22,14 @@ town: core
 - 39 parked rows in 5 body tables: goal:g7.33.19 11 · pass10-0927 11 · pass11-0927 3 · pass12-0928 8 · passb1-0928 6 (council, 17:1xZ 09-29). Rows have no tags, so set active wakes none.
 
 ## CLAIM
-(1) tags added through write.py on the 5 carriers (2) one extra rule in the formation check: a `triage: parked: formation` row with no carrier tag = FAIL, naming the node
+(1) tags added through write.py on the 5 carriers (2) one extra rule in the formation check: a table row ending `· triage: parked: formation g<N> |` (anchored on the cell end, never the bare string) with no carrier tag = FAIL, naming the node
 
 ## Dispatch line
 config-max: the park is a tag (data). template-max: none. code: one carrier rule in the existing check.
 
 ## FALSIFIERS
 - a fixture carrier with a parked row and no tag passes
-- the live graph fails after the tags land
+- the live graph fails after the tags land (goal:g7.16.1.3 and goal:g7.16.1.3.1 QUOTE the string and must pass: an unanchored rule fails the live graph forever)
 
 ## TESTS
 test_formation_readback.py (+1 fixture row) ONE file, `--basetemp /tmp/b3h3`
