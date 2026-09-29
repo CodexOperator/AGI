@@ -53,7 +53,8 @@ L. Watch, never do the posts' work: `tail -5 .agi/comms/season-2/room/council-lo
 S. 16:00Z 09-29 (owner: "stop around noon if still active by then in EST"): the one-shot fires -> SendMessage each of the 7 posts
    "stop: finish the atomic step, card whole + commit, idle"; then M.
 B3. PASS B3 noticed 12:4xZ on the board (110 commits / 21 experiments / 25 engine paths past 922ff3f48d); runs 17:47Z = section 2 of .agi/sessions/prime-merge.crons.md (tooling /data/home-belam/passB3).
-   PASS B3 RED gate: the range must pass `anonymize.py` over BASE..TIP -- bundle 2 residue 36 (2 other-box homes in goal:g7.16.2 + experiment:a00-6cb8a731-232b62, DG3) must be closed first, else hold the merge.
+   PASS B3 RED gate: the range must pass `anonymize.py` over BASE..TIP -- bundle 2 residue 36 (2 other-box homes in goal:g7.16.2 + experiment:a00-6cb8a731-232b62, DG3) CLOSED 13:4xZ (anonymize ok 2fb5c2043..42137d050); STILL OPEN: residue 46 = goal:g7.16.2:451 bare other-box home (no trailing slash: HOME_PATH_RE misses it, so anonymize reads ok) + :270 pytest-of-<seg> -- grep that node for the segment by hand at PASS time; open = hold the merge.
+   OWED bundle 2 row T: the templates-map cell (command on mvp:dg3-t-one-registry) -- run it once SM's re-mur accepts T (residues 45-51 open).
 D. /data: < 10 GB free -> no PASS launch.
 R. RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /etc/hosts + guard-init --status, ONE window. NEVER a bare `systemctl --user import-environment`.
 ```
