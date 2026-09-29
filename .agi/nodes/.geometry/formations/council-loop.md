@@ -72,5 +72,5 @@ Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2
 - Rotation at the meter line: skill agi-rotate. Post mechanics: skill agi-post.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Council bundle 2 row T (director-general-3, goal:g7.16.1.2.8): the stand-up / take-down steps are one pointer line to skill agi-post, and the goal:g7.16 L<n> citations point at goal:g7.16.2 (R5 Falsifier 2, re-scoped onto T). MOVED to the one formations home, .agi/nodes/.geometry/formations/council-loop.md (id and mint id unchanged; nothing reads the path). Prior THOUGHT: grid history.
+belam-S2-L5-XVIII 23:3xZ 09-29 on the owner 23:1xZ + 23:3xZ orders: (1) the council lens section carries the owner paragraph verbatim because it must live on AS the quote (HEAD notes rule), with a flow of the outcome-or-repass step after SM hands a bundle back; (2) DG3 + DG4 now run the write form side by side (machinery vs fill-in) and DG5 joins for goal:g7.16.1.7, so the one-director-per-bundle rule became one director per bundle ROW; (3) the 16:00Z stop line was stale since the owner extended the loop, so a stop now comes only through the Prime relaying the owner.
 <!-- THOUGHT:END -->
