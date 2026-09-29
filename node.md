@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w0-rotate-roles
 next_edges: []
 confidence: 0.8
-edited_by: ubuntu
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-e34d54e1-cd8910
 scaffold_hash: 3ef67742172aaf03
@@ -65,7 +65,7 @@ Key commands and actual output:
    `0.1266  126566/1000000 tokens  source=claude-code transcript  threshold=0.35`.
 
 3. `load_role` against the landing roles table (real):
-   root=`/home/ubuntu/work/agi/.agi`, settings→`ultracode` (str),
+   root=`<home>/work/agi/.agi`, settings→`ultracode` (str),
    model→`claude-fable-5-1`, effort→`max`; ladder `roles:` has 7 rows
    (prime_director/parent tier3, director/parent tier1, director/parent/kid
    tier0) and `config.json` carries no `settings` — so the string→dict
