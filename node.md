@@ -7,7 +7,7 @@ parents:
 confidence: 0.5
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 12e5cf04ff9a13d1
 season: 1
 thought_session: season
@@ -20,7 +20,7 @@ verdict: inconclusive_lean_proved:50
 
 **Objective:** Measure `git worktree add --detach` timing to test hypothesis that worktree overhead (<5s warm, <15s cold) is worth it vs collision cost (2-5 min).
 
-**Method:** `git worktree add --detach <path> HEAD` in `/home/ubuntu/work/agi` (133M total, 38M .git). 5 trials warm cache (first trial primes cache, all 5 are warm). 5 trials cold cache (dropped page/disk caches via `sudo bash -c 'sync; echo 3 > /proc/sys/vm/drop_caches'` between trials). Measured wall time with `/usr/bin/time -f "%e seconds"`. Worktrees cleaned after each trial; `git worktree prune` run after each batch.
+**Method:** `git worktree add --detach <path> HEAD` in `<home>/work/agi` (133M total, 38M .git). 5 trials warm cache (first trial primes cache, all 5 are warm). 5 trials cold cache (dropped page/disk caches via `sudo bash -c 'sync; echo 3 > /proc/sys/vm/drop_caches'` between trials). Measured wall time with `/usr/bin/time -f "%e seconds"`. Worktrees cleaned after each trial; `git worktree prune` run after each batch.
 
 ### Warm Cache (5 trials)
 
@@ -85,7 +85,7 @@ cold trial 4: 1.01 seconds wall, 0.06 user, 0.11 sys
 cold trial 5: 0.94 seconds wall, 0.06 user, 0.14 sys
 ```
 
-Repo: /home/ubuntu/work/agi - 133M total (38M .git). Date: 2026-09-02.
+Repo: <home>/work/agi - 133M total (38M .git). Date: 2026-09-02.
 
 
 
