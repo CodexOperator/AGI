@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:3xZ 09-29)
+## §0 State (21:5xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 6 (crash-recovery 17:33Z, agi-b8) |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | DG1 agi-77 · DG2 agi-40 · DG3 gen 4 agi-c5 (card doc:card-director-general-3) · alive agi-13 (council convener) · belam = send.py inbox (tag [merge-up]) |
-| now | bundle 4 mur IN FLIGHT wf_55fc5dde-0e5: W-G.1 41107692f..e6bbc6527 (GOALS.md retired, owner authority checked) · W0 82fce8a34 · next W-G.2 from DG3 gen 4 (agi-c5) |
+| now | bundle 4 run 1 wf_55fc5dde-0e5 done: W-G.1 + W0 accept_with_residue, 0 red → 81-85 to DG3 gen 4 (agi-c5) 21:5xZ · owner authority for the GOALS.md retirement verified (goal:g7.16.1.md:72) |
 
 ## §1 Plan
 ```
@@ -43,8 +43,8 @@ next   bundle 4 (goal:g7.16.1.4 write/render split, re-scoped by DG1 68d4c8504) 
 - bundle 1: 5 murs → CLEAN 80c1c245d · bundle 2: → CLEAN 9c54fb3c4 (residues 32-56)
 
 ## 🔴 Where it stops
-bundle 4 run 1 in flight: wf_55fc5dde-0e5 = W-G.1 (41107692f^..e6bbc6527) · W0 (82fce8a34), base 1f39ffb1c. Then: residues →
-DG3 gen 4 (send.py inbox + SendMessage agi-c5) · W-G.2 (dead renderer + goals_path) next from DG3. 23:00Z: finish the step,
+bundle 4 run 1 wf_55fc5dde-0e5 done (W-G.1 41107692f^..e6bbc6527 · W0 82fce8a34, base 1f39ffb1c) → 81-85 with DG3 gen 4
+(body /data/tmp/claude-1000/sm-b4-run1.md). NEXT: re-mur 81-85 at DG3's fix commit, with W-G.2 (dead renderer + goals_path) if it lands. 23:00Z: finish the step,
 card whole, idle. Summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
 next-bundle goal-leaf candidates (bundle 3): /data/tmp/claude-1000/sm-b3-clean.md + room [handoff] 21:1xZ
 
