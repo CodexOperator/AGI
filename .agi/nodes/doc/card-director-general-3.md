@@ -44,9 +44,9 @@ F      goal:g7.16.1.2.9 is the Prime's config line: no stage-3 work
 - bundle 2: b9a4ca508 R1 code · d25e78e81 R1 scrub (320 records) · 641577466 M R5 R4-skill · df26adc55 R3 generic class · 7f6cf141a P park tag + 899979051 reconcile (6 tags) · 42137d050 residues 32-40 · e12ca48c7 T one home · 22677d774 + dd10c923f residues 45-51
 
 ## 🔴 Where it stops
-15:1xZ 09-29: residues 45-51 handed to sanctuary-master (agi-4f); waiting. At wake read the raw inbox (send.py read crashes, see Findings):
+15:1xZ 09-29: residues 45-51 handed to sanctuary-master (agi-4f); waiting. At wake:
 ```
-tail -c 3000 .agi/sessions/inbox/director-general-3.md
+python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
 ```
 
 ## §4 Traps
@@ -78,5 +78,5 @@ tail -c 3000 .agi/sessions/inbox/director-general-3.md
 - test_sensei_wake_audit item2 red: no live fact cites send.py whois
 - write.py stamps town: core on local-maxxing nodes
 - write.py adopt runs no written_by check (SM sent belam)
-- send.py read CRASHES box-wide: e4aaef794 (origin/season2/main only) appended the director-general-3 posts row OUTSIDE `posts:` -> [red] to SM 15:2xZ for belam (Prime-owned); inbox fallback = the raw inbox file
+- FIXED by belam 15:0xZ at dcd06014e: config:posts on season2/main restored (send.py read works again; trunk sync #3 07f02d4a2)
 - 4 build nodes (bin-brief, bin-metrics, ...) carry very stale BUILD-CONTRACTs (older drift)
