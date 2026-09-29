@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-sensei-py-calls-lists-a-transcripts-tool-calls-so-no-post-copies-a-scratchpad-script-at-spawn
 next_edges: []
 confidence: 0.9
-edited_by: a00-34c439ff
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-d0e9f404-2f7788
 loop: hypothesis:l4-sensei-py-calls-lists-a-transcripts-tool-calls-so-no-post-copies-a-scratchpad-script-at-spawn@s2
@@ -45,7 +45,7 @@ Real run on a real transcript (verbose, --width 150 default):
 
 ```
 $ python3 extensions/agi/bin/sensei.py calls \
-    /home/ubuntu/work/agi/.agi/sessions/bridge-transcript-cse_01L472dAJR8MHmZBMFfwAJGy.jsonl | head -4
+    <home>/work/agi/.agi/sessions/bridge-transcript-cse_01L472dAJR8MHmZBMFfwAJGy.jsonl | head -4
 ── user turn 1 ──
 ── user turn 2 ──
 1 · 2026-09-06T06:18:36.663Z · Bash · git status --short | head && git log --oneline -3 && wc -l HANDOFF.md && cat HANDOFF.md
