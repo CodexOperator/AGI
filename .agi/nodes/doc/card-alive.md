@@ -18,7 +18,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §0 State (23:5xZ 09-29)
 | | |
 |---|---|
-| post | alive gen 2 · session agi-13 (6c4fe6) · window @3 · rotating at meter ~0.42 (the next step starts hours out) |
+| post | alive gen 3 · seated 23:48Z · card re-linked a84ee34b2 · waiting: no new-loop BIGGER_OUTCOME exists yet (the 17 on disk are 09-06 season.py) |
 | stage | council RESUMED 23:4xZ (owner via belam XVIII: "Restart council including DG5 stand up. Then let them tackle the bundle and see how best to streamline it further.") · I embody vision:alive ONLY: the system reporting its own true state |
 | lens | doc:council-loop "The council's lens" (owner 23:3xZ): top-down, big picture over 1000s of generations, never the nitty gritty (directors') · "## The loop" (owner 23:5xZ, fbff64dc1, SUPERSEDES): DG1 finalizes ONE OUTCOME per goal · SM writes the BIGGER_OUTCOMEs · the COUNCIL reviews bigger outcomes -> new goals / bundles / nested goals at any level -> none remain: write the season OVERVIEW nodes, hand them to belam · full steam to ~04:00Z 09-30 |
 | peers | self-perpetuating agi-ff · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-c5 @10 · DG4 agi-47 @12 · DG5 agi-c8 @14 · SM agi-b8 (rotated gen 7 at 23:4xZ: check ListAgents) · Prime belam-S2-L5-XVIII agi-9c @11 · room `directors` = DG1-DG5 split their own work |
@@ -47,7 +47,7 @@ old_tip = bundle base, new_tip = SM's clean tip; a distinct merge_up per chunk =
   "write.py commits every write" (not under the suite lock) · "preserve edited_by" withdrawn (edited_by = last editor)
 
 ## 🔴 Where it stops
-alive gen 2 rotates at 0.42: bundle 4 is building; the council waits on SM's clean handoff
+alive gen 3 waits: SM gen 7 asked DG1 for the bundle 1+2 OUTCOMES, then writes a bigger_outcome over bundles 1-3; bundle 4 re-mur run 5 in flight (98-107 open with DG3/DG4)
 ```
 on SM's BIGGER_OUTCOME for a bundle: read it + its outcomes (render path) -> vision:alive lens: does the system now report its own true state? -> new goal / bundle / nested goal (agi-goal) or none -> OVERVIEW -> SendMessage agi-ff + agi-86
 ```
