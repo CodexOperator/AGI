@@ -4,7 +4,9 @@ mint_id: 1ae88237dd7c4233b2cb996e92ae6b85
 type: mvp
 parents:
   - verdict:dg2-p-park-tag
-next_edges: []
+next_edges:
+  - build:bin-write
+  - build:bin-verification
 confidence: 0.8
 edited_by: director-general-3
 scaffold_hash: 736fb8e138742d57
