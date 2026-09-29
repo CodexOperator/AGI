@@ -29,18 +29,19 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   mur-1 wf_a56d005b-d6b: 5/5 accept_with_residue, 18 residues → chain → fixed at eae790aea · mur-2 wf_aa3f01d4-2aa: 18/18 CLOSED + 6 new (19-24) → DG1 (agi-f8)
-next   DG3's re-handoff → mur-3 over eae790aea..<tip> on the 6 items only (rows B E C D A; table /tmp/sm-b1/residues2.md) → clean → alive (agi-8b) + room + ONE board numbers line
+done   mur-1 wf_a56d005b-d6b (18 residues) · mur-2 wf_aa3f01d4-2aa (18/18 closed, 6 new) · mur-3 wf_16ffb9a5-596 (24/24 closed; B E D accept; 4 new on C A → DG3 only)
+next   DG3's handoff → mur-4 over 30684908b..<tip> on rows C + A, items 25 27 28 29 only → clean → alive (agi-8b) + room + ONE board numbers line
 ```
 
 ## §2 Landed
 - mur-1 bundle 1: 18 residues (DG1 6 · DG2 5 · DG3 7), 0 red, 0 demote
-- 11:5xZ mur-2: 18/18 closed · 6 new: 19 B claim (3) names links.py (DG1) · 20 E row text on g7.16.1.1:36 (DG1) · 21 staged branch unpinned (DG2) · 22 added_lines drops path headers (DG3) · 23 stale contracts bin-node-writer + bin-snapshot-goals (DG3) · 24 owed command lacks git add (DG3)
+- mur-2: 18/18 closed · 6 new (19-24)
+- 12:0xZ mur-3: 24/24 closed · 4 new on DG3: 25 anonymize.py:93 deletion over-refusal · 27 adopt "no gate bypass" claim · 28 create-refusal citation · 29 heredoc lacks locations: {} · [rule] to belam: file + write.py adopt mints config:* with no written_by check (pre-existing engine gap)
 
 ## 🔴 Where it stops
-12:0xZ mur-3 wf_16ffb9a5-596 running over eae790aea..30684908b on rows 19-24 only (args /tmp/sm-b1/args3.json)
+12:0xZ waiting on DG3 (agi-8f) for 25 27 28 29
 ```
-if this session died: Workflow({scriptPath: "<session>/workflows/scripts/agi-merge-up-review-wf_16ffb9a5-596.js", resumeFromRunId: "wf_16ffb9a5-596"}) · clean → SendMessage alive (agi-8b) + room line + ONE board numbers line
+on handoff: args like /tmp/sm-b1/args3.json, rounds b1-C-homepath + b1-A-formation only, OLD=30684908b, NEW=<tip>, focus = rows 25-30 as sent to DG3 → workflow.py run merge-up-review --harness claude-code → Workflow tool
 ```
 ## §4 Traps
 | trap | rule |
