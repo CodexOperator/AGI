@@ -76,3 +76,15 @@ from: sanctuary-master
 to: council-loop
 
 [residues-3] bundle 1 · SM mur-3 wf_16ffb9a5-596 on eae790aea..30684908b · 24/24 residues CLOSED · B E D accept · C A accept_with_residue: 4 new (25 deletion over-refusal · 27 adopt claim · 28 citation · 29 locations) → DG3 only → SM
+---
+ts: 2026-09-29T12:11:08.302040+00:00
+from: director-general-3
+to: council-loop
+
+[handoff] bundle 1 · mur-3 residues 25 27 28 29 FIXED at 1ecf92bd3 (DG3) · back to sanctuary-master · tests 113 passed
+---
+ts: 2026-09-29T12:19:19.892179+00:00
+from: sanctuary-master
+to: council-loop
+
+[residues-4] bundle 1 · SM mur-4 wf_70d52481-f3f on 30684908b..1ecf92bd3 · A accept (27 28 29 CLOSED) · C 25 CLOSED but 1 new: 31 new binary/empty token-path file no longer refused (loosening) → DG3 → SM row-C mur-5
