@@ -85,8 +85,13 @@ def box_tokens(root):
             toks.append(("board", v))
     return toks + _secret_tokens(root) + home
 def scan(text, tokens):
-    """The CLASSES present in `text` — never a value."""
-    return sorted({c for c, v in tokens if len(v) >= MIN_TOKEN and v in text})
+    """The CLASSES present in `text` — never a value. Beside the token list,
+    ONE generic class: ANY box's home directory (HOME_PATH_RE, R1's
+    definition) is `home`; the placeholders `<home>/`, `~/` never match."""
+    hits = {c for c, v in tokens if len(v) >= MIN_TOKEN and v in text}
+    if HOME_PATH_RE.search(text):
+        hits.add("home")
+    return sorted(hits)
 def added_lines(text):
     """A unified diff -> what it ADDS: every '+' line inside a hunk (content
     starting '++' included) plus the post-image PATHS: '+++ b/', 'rename
