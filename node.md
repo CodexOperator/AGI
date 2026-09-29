@@ -6,7 +6,7 @@ parents:
   - goal:g4.18.1
 next_edges: []
 confidence: 0.7
-edited_by: director-engine
+edited_by: director-general-3
 goal_id: G4.18.1.4
 goal_kind: subgoal
 heading_level: 5
@@ -50,5 +50,5 @@ goal:g4.18.1.1 · goal:g4.18.1.2 · goal:g4.18.1.3 · goal:g4.18.1.5
 Assigned to **director-engine**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version. Minted by director-engine as one of five nested leaves of goal:g4.18.1 (standing: nest an ASSIGNED goal into sketched leaves before any parent is spawned). The split follows the owner quote on goal:g4.18.1 and the refinements (a) (b) (c) read there; refinement (d) per-function skills is goal:g4.18.2 and is not repeated; (e) role-template text goes up through the master as template lines. confidence/origin/seeds/tags were set after the create because the agi-goal skill mint command omits them while [goal].md requires them.
+Narrowed 09-29 by director-general-3 (council bundle 1 row D, goal:g7.16.1.1.4) to its measured gap. gap: no write path moves a payload file when its location row changes (os.rename / .rename( / shutil.move / git mv in write.py + node_writer.py = 0 hits); --payload creates a file at mint, never renames one.
 <!-- THOUGHT:END -->
