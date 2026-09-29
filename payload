@@ -47,6 +47,18 @@ def _count_thought_blocks(text: str) -> int:
     return len(node_writer.thought_blocks(text))
 
 
+#: A column-0 BEGIN line. `thought_blocks` pairs a BEGIN with the next END, so
+#: a second BEGIN with no END of its own (B,B,E) or an unclosed one (BE,B) is
+#: silently one block; counting the openers keeps the row as strict as it was
+#: before the detector moved to the one definition (mur wf_a56d005b-d6b row 9).
+_COL0_BEGIN = re.compile(r"^<!--\s*THOUGHT:BEGIN", re.MULTILINE)
+
+
+def _offends(text: str) -> bool:
+    blocks = _count_thought_blocks(text)
+    return blocks > 1 or len(_COL0_BEGIN.findall(text)) != blocks
+
+
 def _project_root() -> Path | None:
     return locations.find_project_root(Path(__file__).resolve())
 
@@ -64,9 +76,10 @@ def test_the_real_corpus_has_no_node_with_two_thought_blocks():
 
     offenders = []
     for nf in sorted(nodes_dir.rglob("*.md")):
-        count = _count_thought_blocks(nf.read_text(encoding="utf-8", errors="replace"))
-        if count > 1:
-            offenders.append((str(nf.relative_to(root)), count))
+        text = nf.read_text(encoding="utf-8", errors="replace")
+        if _offends(text):
+            offenders.append((str(nf.relative_to(root)), _count_thought_blocks(text),
+                              len(_COL0_BEGIN.findall(text))))
 
     assert offenders == [], (
         "node(s) carrying more than one THOUGHT:BEGIN block (schema allows "
@@ -148,13 +161,27 @@ def test_a_version_write_carries_the_real_block_past_a_quoted_one():
 
 
 def test_no_thought_marker_regex_outside_node_writer():
-    """A raw-string pattern carrying the marker is a regex copy; bin/ holds one."""
+    """A raw-string pattern carrying the marker is a regex copy. The surface is
+    every engine .py outside tests/ plus the graph's context/ tree (the sql
+    mirror lives there), not bin/ alone (mur wf_a56d005b-d6b row 10); tests/
+    holds fixture patterns by design. node_writer.py is exempt by PATH."""
     raw = re.compile(r"""\br["'][^"']*THOUGHT:BEGIN""")
-    copies = [f"{p.name}:{i}" for p in sorted(BIN.glob("*.py"))
-              if p.name != "node_writer.py"
-              for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1)
+    skip = {"tests", "__pycache__", "node_modules", ".venv", "venv"}
+    root = _project_root()
+    surfaces = [BIN.parent] + ([root / "context"] if root else [])
+    copies = [f"{p}:{i}" for s in surfaces for p in sorted(s.rglob("*.py"))
+              if p != BIN / "node_writer.py" and not skip & set(p.relative_to(s).parts)
+              for i, line in enumerate(p.read_text(encoding="utf-8", errors="replace").splitlines(), 1)
               if raw.search(line)]
     assert copies == []
+
+
+def test_a_begin_without_its_own_end_is_an_offender():
+    B, E = "<!-- THOUGHT:BEGIN -->\n", "<!-- THOUGHT:END -->\n"
+    assert _offends(B + "a\n" + B + "b\n" + E)          # B,B,E
+    assert _offends(B + "a\n" + E + B + "b\n")          # BE,B (unclosed)
+    assert not _offends(B + "a\n" + E)
+    assert not _offends(_QUOTED + B + "a\n" + E)
 
 
 def test_the_thought_verb_rewrites_the_real_block_and_leaves_the_quote():
