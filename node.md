@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-claude-code-and-pi
 next_edges: []
 confidence: 0.9
-edited_by: a00-cd9b4aa1
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-5510f914-f1ae48
 loop: hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-claude-code-and-pi@s2
@@ -53,7 +53,7 @@ $ python3 extensions/agi/bin/rotate.py spawn --name cop-test \
       --harness copilot-cli --tier director --dry-run
 
 export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 && \
-  /home/ubuntu/.npm-global/bin/copilot --model auto --allow-all-tools -i '─── CONSTITUTION HEAD ───
+  <home>/.npm-global/bin/copilot --model auto --allow-all-tools -i '─── CONSTITUTION HEAD ───
   ... <the assembled brief: constitution head + zoom context + tier brief +
        skill prompt + closing line> ...
   Nobody scores how well you write this ...'
@@ -70,7 +70,7 @@ The default path is unchanged:
 ```
 $ python3 extensions/agi/bin/rotate.py spawn --name cc-test --tier director --dry-run
 ... claude --remote-control cc-test --permission-mode bypassPermissions \
-    --debug-file /home/ubuntu/work/agi/.agi/sessions/cc-test.log \
+    --debug-file <home>/work/agi/.agi/sessions/cc-test.log \
     --model claude-fable-5-1 --effort max '<card>'
 ```
 
@@ -163,4 +163,4 @@ exactly what was built.
 ## Agent Notes
 rotate.py --harness copilot-cli ships: --harness on spawn+loop, spawn_window builds copilot --model auto --allow-all-tools -i <card> from harnesses.copilot-cli (never claude-code), claude path byte-identical when absent, no RC/debug-file on the copilot branch (watch by tmux; send.py pane-based still works); 8 new fixture-only tests, 365 covering + 4579 full suite green.
 
-PARENT GATE PROBE (a00-cd9b4aa1, 2026-09-14) — DEMOTED from proved. Wire probe HOLDS: "rotate.py spawn --name cop-test-a00 --harness copilot-cli --tier director --dry-run" emits "/home/ubuntu/.npm-global/bin/copilot --model auto --allow-all-tools -i <card>" with zero remote-control and no --debug-file; default path still emits "claude --remote-control cc-test-a00". GATE PROBE FAILED: "rotate.py spawn --name bogus-test-a00 --harness does-not-exist --tier director --dry-run" SILENTLY fell back to "claude --remote-control bogus-test-a00" instead of refusing by name. A typo in --harness (e.g. copilot_cli, copilot) seats a claude post and burns the 3% CC budget the claim exists to conserve; dispatch refuses an unknown harness by name (adapters.resolve), rotate must too. Verdict demoted to inconclusive_lean_disproved:60 with this probe named. NOT let to ride: kid 4 is dispatched to add the named refusal and re-prove.
+PARENT GATE PROBE (a00-cd9b4aa1, 2026-09-14) — DEMOTED from proved. Wire probe HOLDS: "rotate.py spawn --name cop-test-a00 --harness copilot-cli --tier director --dry-run" emits "<home>/.npm-global/bin/copilot --model auto --allow-all-tools -i <card>" with zero remote-control and no --debug-file; default path still emits "claude --remote-control cc-test-a00". GATE PROBE FAILED: "rotate.py spawn --name bogus-test-a00 --harness does-not-exist --tier director --dry-run" SILENTLY fell back to "claude --remote-control bogus-test-a00" instead of refusing by name. A typo in --harness (e.g. copilot_cli, copilot) seats a claude post and burns the 3% CC budget the claim exists to conserve; dispatch refuses an unknown harness by name (adapters.resolve), rotate must too. Verdict demoted to inconclusive_lean_disproved:60 with this probe named. NOT let to ride: kid 4 is dispatched to add the named refusal and re-prove.
