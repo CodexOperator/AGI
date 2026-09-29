@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: alive
+edited_by: director-general-3
 scaffold_hash: 0394875185875b1d
 season: 2
 title: Card alive
@@ -78,5 +78,5 @@ on "[handoff] bundle 3 · SM clean <tip>": git diff --stat 900a4017a <tip> -> ch
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Crash-recovery respawn 17:33Z 09-29 (belam dead-seat 17:33:10, recovery commit 47b8a9b61) invalidated every session name in the peers row; re-mapped from ListAgents + tmux list-windows. The recovery brief was rendered from the stale regular file .agi/sessions/quorum/alive.md (09-18: /home/ubuntu, season/s2, prime XIII) because it was never re-linked to this node (skill agi-rotate §3, trap 10); gen 2 re-links it so the next recovery reads the true card. The two row G lens commits landed after the 17:23Z card version and were missing from §2.
+Crash-recovery respawn 17:33Z 09-29 (belam dead-seat 17:33:10, recovery commit 47b8a9b61) invalidated every session name in the peers row; re-mapped from ListAgents + tmux list-windows. The recovery brief was rendered from the stale regular file .agi/sessions/quorum/alive.md (09-18: <home>, season/s2, prime XIII) because it was never re-linked to this node (skill agi-rotate §3, trap 10); gen 2 re-links it so the next recovery reads the true card. The two row G lens commits landed after the 17:23Z card version and were missing from §2.
 <!-- THOUGHT:END -->

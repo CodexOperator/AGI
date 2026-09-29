@@ -6,7 +6,7 @@ parents:
   - goal:g11.1
 next_edges: []
 confidence: 0.93
-edited_by: season.py
+edited_by: director-general-3
 season: 1
 source_files:
   - extensions/agi/bin/benchmark.py
@@ -44,7 +44,7 @@ which the legacy marker list does not name, so every copy of the old walk ran
 to `/` and found nothing.
 
 ```
-$ find /home/ubuntu/work/agi -name 'agi-tree.config.json' -o -name 'autoresearch-tree.config.json'
+$ find <home>/work/agi -name 'agi-tree.config.json' -o -name 'autoresearch-tree.config.json'
 (no output)
 ```
 
@@ -99,9 +99,9 @@ guard at `snapshot-build-site.py:277` returns *before* the prune when
 Counts, before and after every edit:
 
 ```
-$ find /home/ubuntu/work/agi/.agi/nodes -name '*.md' | wc -l
+$ find <home>/work/agi/.agi/nodes -name '*.md' | wc -l
 812                     # before, and after
-$ grep -rl '^origin: build-site$' /home/ubuntu/work/agi/.agi/nodes/ | wc -l
+$ grep -rl '^origin: build-site$' <home>/work/agi/.agi/nodes/ | wc -l
 159                     # before, and after
 ```
 

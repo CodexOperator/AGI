@@ -5,7 +5,7 @@ type: mvp
 parents:
   - verdict:a00-b4570cd1-0b9427
 next_edges: []
-edited_by: season.py
+edited_by: director-general-3
 season: 1
 thought_session: season
 title: Mvp:a00 b4570cd1 context injection fix
@@ -13,8 +13,8 @@ title: Mvp:a00 b4570cd1 context injection fix
 **MVP:** Context injection now reports accurate chain state
 
 **Files changed:**
-- `/home/ubuntu/.hermes/agi-tree/bin/render-context.py` — `_longest_chain_length()` now walks `next_edges` adjacency
-- `/home/ubuntu/autoresearch-tree/extensions/autoresearch-tree/bin/render-context.py` — same fix + uses `find_chains()` for accurate stats
+- `<home>/.hermes/agi-tree/bin/render-context.py` — `_longest_chain_length()` now walks `next_edges` adjacency
+- `<home>/autoresearch-tree/extensions/autoresearch-tree/bin/render-context.py` — same fix + uses `find_chains()` for accurate stats
 
 **Before:** `longest chain: 0 hops`
 **After:** `longest chain: 199 hops (via next edges), chain count: 11`

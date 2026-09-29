@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.99
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: 0bf3eed9218cf441
 season: 1
 thought_session: season
@@ -213,13 +213,13 @@ if __name__ == "__main__":
 ```bash
 # Run a test suite in isolation
 python3 isolated-runner.py \
-  --repo-path /home/ubuntu/work/agi \
+  --repo-path <home>/work/agi \
   --agent-id kid-01 \
   --command "python3 -m pytest extensions/agi/tests/ -q"
 
 # With explicit ref and kept worktree for debugging
 python3 isolated-runner.py \
-  --repo-path /home/ubuntu/work/agi \
+  --repo-path <home>/work/agi \
   --ref HEAD~3 \
   --agent-id debug-01 \
   --command "ls -la && git log -1" \
