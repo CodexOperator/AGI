@@ -269,6 +269,16 @@ def test_a_row_park_needs_its_carrier_tag(groot, body, tags, status):
     assert r.status == status and (status == "PASS" or "goal:g8" in r.message)
 
 
+# council mur CM7: the ROW rule claims "a live node", so a row-park on a doc
+# (not a MARK carrier type) needs its tag too; the MARK rule stays goal/hypothesis.
+@pytest.mark.parametrize("tags,status", [("", "FAIL"), ("parked:g7.16.2", "PASS")])
+def test_a_row_park_on_any_live_node_needs_its_tag(groot, tags, status):
+    _node(groot, "doc/d.md", "doc:d", _ROW, tags)
+    _cell(groot, "doc:council-loop")
+    r = verification.check_formation(groot)
+    assert r.status == status and (status == "PASS" or r.message == "untagged doc:d (parked:g7.16.2)")
+
+
 # sanctuary-master mur wf_a3b15e54-c65 residue 61: `set active` on the formation a
 # row waits for drops the carrier's tag while the row stays -- the gate PASSes then.
 def test_rows_parked_for_the_active_formation_pass_untagged(groot):

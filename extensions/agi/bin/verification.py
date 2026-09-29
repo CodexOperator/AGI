@@ -1311,12 +1311,14 @@ def check_formation(groot: Path) -> CheckResult:
     # row H3), anchored at the row's end: a node QUOTING the string never trips it
     row = re.compile(r"· triage: parked: formation (g\d+(?:\.\d+)*) \|$", re.M)
     try:
-        live = [(i, f) for i, f, _ in rotation_record.grep_live(groot, "parked: formation")
-                if i.split(":")[0] in ("goal", "hypothesis")]
+        # the ROW rule reads EVERY live node (its claim: "a live node", CM7);
+        # the MARK rule stays on the carrier types (goal/hypothesis)
+        hits = [(i, f) for i, f, _ in rotation_record.grep_live(groot, "parked: formation")]
+        live = [(i, f) for i, f in hits if i.split(":")[0] in ("goal", "hypothesis")]
         goal = str(table[active] or "")
         # rows parked for the ACTIVE formation's own goal are awake: `set active`
         # drops that tag (write.py) while the rows stay, so they never FAIL here
-        rows = {i: sorted(set(row.findall(f.read_text("utf-8", "replace"))) - {goal}) for i, f in live}
+        rows = {i: sorted(set(row.findall(f.read_text("utf-8", "replace"))) - {goal}) for i, f in hits}
         tagged = {g: {c for c, _, _ in rotation_record.parked_carriers(groot, g)}
                   for g in {g for gs in rows.values() for g in gs}}
         untagged = [f"untagged {i} (parked:{g})" for i, gs in rows.items()
