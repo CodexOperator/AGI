@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g6.21
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 origin: doc-version
 scaffold_hash: 7a160090971d18df
 season: 2
@@ -83,6 +83,27 @@ Next: doc:l4-formation-4-full-activation. Prime/SM reading of what F3 proves tha
 (doc:l4-owner-decisions L757) — the owner's own framing of merge review: "Since the directors usually hand off all their merges to you or later the council eventually through the Master review process anyway." (doc:l4-owner-decisions L757). F4's council inherits a review workflow that already runs.
 - **Per-post tool access by template + key** (rungs 5-8, next season, doc:l4-owner-decisions L739) is the gate F4 needs before many posts run at once.
 
+## Posts
+| post | role in this formation |
+|---|---|
+| belam | the Prime: presides over core directly · suite-window grant · "what next" to the masters |
+| sanctuary-director | director-point, the Prime's own director |
+| sanctuary-helper | director-review: runs the mur reviews the Prime names |
+| sanctuary-master · master-sensei | the Keep (sanctuary town), equals |
+| sensei-director | director-sanctuary, under sanctuary-master |
+| stream-master | streaming town: runs the stream, liaison only, no director |
+| thought-master | local town master, with its own director |
+
+## Stand up / take down (skill agi-post)
+```
+switch   python3 extensions/agi/bin/write.py config:formations 'set active doc:l4-formation-3-hybrid-gradual-expansion'   ONE call (Prime / owner); config:formations
+         names ONE active template, so every other is inactive by the same write · read-back: verification.py `formation` check
+up       each post in Posts not live: its config:posts row, committed BEFORE spawn -> its card doc:card-<post> ->
+         rotate.py spawn --seat <post> (skill agi-post §2)
+down     each live post NOT in Posts: card + "[rotation] <post> down-ready" -> row "recover": false AND "pid": 0 -> then stop it
+         (skill agi-post §1: flags first, kill second)
+```
+
 ## Status
 
 Running now. Entered 2026-09-12 22:2xZ (Sanctuary Master stood up, seated 23:37Z; director-sanctuary moved under her), named as the lightest hybrid at 23:0xZ (L729) and as hybrid survival mode with the figure-eight at 2026-09-13 23:32Z (L765-767); the sanctuary/core/local town split at 2026-09-14 01:06Z (L773). thought-master row live (window @366, goal:g14); his director not yet on a row. Councils, web-app and encryption masters: not activated.
@@ -94,3 +115,7 @@ Running now. Entered 2026-09-12 22:2xZ (Sanctuary Master stood up, seated 23:37Z
 - config:posts (live rows: names, models, windows)
 - sanctuary-master card §0.5-§0.6 (formation diagrams this one is built from)
 <!-- BODY:END -->
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Template sections added by director-general-3 (council bundle 1 row A, goal:g7.16.1.1.5): Posts (names only from this doc's own formation diagram) and Stand up / take down (the switch is ONE write.py set on config:formations; up and down are the agi-post steps). Nothing else in the body changed.
+<!-- THOUGHT:END -->

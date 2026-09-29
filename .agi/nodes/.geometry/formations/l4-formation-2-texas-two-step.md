@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g6.10
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 origin: doc-version
 scaffold_hash: 9f8e63a970fbb9cd
 season: 2
@@ -71,6 +71,24 @@ Prime/SM reading, each item traceable to a line above or in the sources:
 - **Rotation as a monitor, not a memory.** The helper missing its own meter — "also helper is not rotating they forgot to track their context meter. This too is a coin flip action that needs a monitor and automated reminder to populate into a turn once its time to rotate" (goal:g7.16 L157) — is the defect that makes every F3 post rotate on a hook, not on recall.
 - **Town branches.** The rule that other towns branch off core so "the two-step works in another town" without touching core (doc:l4-owner-decisions L585) is the branch grammar F3's town masters (stream, thought) inherit.
 
+## Posts
+| post | role in this formation |
+|---|---|
+| belam | the Prime: the loop brief · rows/spawn · merge-up review · key floor · suite window |
+| sanctuary-director | POINT: receives the brief, splits the list, keeps half, merges at the end |
+| sanctuary-helper | HELPER: takes the other half, reports to the POINT only |
+| (pi parents -> kids) | per seat, several at once |
+
+## Stand up / take down (skill agi-post)
+```
+switch   python3 extensions/agi/bin/write.py config:formations 'set active doc:l4-formation-2-texas-two-step'   ONE call (Prime / owner); config:formations
+         names ONE active template, so every other is inactive by the same write · read-back: verification.py `formation` check
+up       each post in Posts not live: its config:posts row, committed BEFORE spawn -> its card doc:card-<post> ->
+         rotate.py spawn --seat <post> (skill agi-post §2)
+down     each live post NOT in Posts: card + "[rotation] <post> down-ready" -> row "recover": false AND "pid": 0 -> then stop it
+         (skill agi-post §1: flags first, kill second)
+```
+
 ## Status
 
 Ran. Ordered 2026-09-09 in the L4-I plan session (goal:g7.16 L26); first split round measured 2026-09-10 (goal:g7.16 L55); parallel rounds from 2026-09-10 (L57). Ended as a formation 2026-09-12 22:2xZ when the owner ordered the helper pulled down and the Sanctuary Master stood up (doc:l4-owner-decisions L725) — the point went on answering to the Prime direct with no helper, and the helper post was re-seated as director-review at 23:0xZ (L729, L731). Season 2 throughout. The predecessor is doc:l4-formation-1-prime-only; the successor doc:l4-formation-3-hybrid-gradual-expansion.
@@ -82,3 +100,7 @@ Ran. Ordered 2026-09-09 in the L4-I plan session (goal:g7.16 L26); first split r
 - goal:g15 (parent; the sanctuary goal the owner named as the formations' home).
 - doc:l3-command-ladder-brief L338 (the 2026-09-08 owner text that began survival mode).
 <!-- BODY:END -->
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Template sections added by director-general-3 (council bundle 1 row A, goal:g7.16.1.1.5): Posts (names only from this doc's own formation diagram) and Stand up / take down (the switch is ONE write.py set on config:formations; up and down are the agi-post steps). Nothing else in the body changed.
+<!-- THOUGHT:END -->

@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g6.10
 next_edges: []
-edited_by: belam
+edited_by: director-general-3
 origin: doc-version
 scaffold_hash: f28ce2413e478238
 season: 2
@@ -83,6 +83,22 @@ Next: **doc:l4-formation-2-texas-two-step** (goal:g7.16).
 
 **Prime/SM reading:** what F1 leaves the two-step is the thing it could not do itself — a director who has already carried a brief alone, so that splitting one brief across point + helper is a small step, not a new trust. What it never bootstraps is the Prime's own relief: even in F3 the owner keeps "Prime resides over core town himself directly during hybrid survival mode." (doc:l4-owner-decisions L773) — the Prime's weight is shed only in F4.
 
+## Posts
+| post | role in this formation |
+|---|---|
+| belam | the Prime: every role at once (trajectory · goals · briefs · dispatch · review · merge · push · handoff) |
+| (pi parents -> kids) | paid workers per round, no persistent seat |
+
+## Stand up / take down (skill agi-post)
+```
+switch   python3 extensions/agi/bin/write.py config:formations 'set active doc:l4-formation-1-prime-only'   ONE call (Prime / owner); config:formations
+         names ONE active template, so every other is inactive by the same write · read-back: verification.py `formation` check
+up       each post in Posts not live: its config:posts row, committed BEFORE spawn -> its card doc:card-<post> ->
+         rotate.py spawn --seat <post> (skill agi-post §2)
+down     each live post NOT in Posts: card + "[rotation] <post> down-ready" -> row "recover": false AND "pid": 0 -> then stop it
+         (skill agi-post §1: flags first, kill second)
+```
+
 ## Status
 
 Ran: season 1 (the graph's first season, closed at the first rollover). Superseded: survival mode (Prime + one director) by 2026-09-09 (L30), the Texas two-step from 2026-09-09 (goal:g7.16 L26), hybrid survival from 2026-09-12/13. Not a live formation; kept as the baseline every later formation is measured against.
@@ -94,3 +110,7 @@ Ran: season 1 (the graph's first season, closed at the first rollover). Supersed
 - goal:g15 (parent; the sanctuary goal)
 - vision nodes, season-1 line: `season 1 vision, closed at the first rollover per goal:g12`
 <!-- BODY:END -->
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Template sections added by director-general-3 (council bundle 1 row A, goal:g7.16.1.1.5): Posts (names only from this doc's own formation diagram) and Stand up / take down (the switch is ONE write.py set on config:formations; up and down are the agi-post steps). Nothing else in the body changed.
+<!-- THOUGHT:END -->

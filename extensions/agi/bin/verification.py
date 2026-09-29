@@ -1282,6 +1282,34 @@ def check_anonymize(groot: Path) -> CheckResult:
                        note="" if proc.returncode == 0 else (tail[-1] if tail else ""))
 
 
+def check_formation(groot: Path) -> CheckResult:
+    """goal:g7.16.1.1.5 -- exactly ONE formation is active: config:formations
+    `active` names a template registered in its `templates` map that exists.
+    Then lists as wakeable every node whose THOUGHT (node_writer's one
+    definition) carries `parked: formation <that template's goal>`. No cell =
+    SKIP: a project that runs no formations."""
+    import yaml
+    import node_writer
+    t0 = time.monotonic()
+    cell = node_writer.find_node_file(groot, "config:formations")
+    if cell is None:
+        return CheckResult("formation", "SKIP", 0.0, note="no config:formations cell")
+    fm = yaml.safe_load(node_writer.split_frontmatter(cell.read_text("utf-8"))[0]) or {}
+    active, table = fm.get("active"), fm.get("templates") or {}
+    if (not isinstance(active, str) or active not in table
+            or node_writer.find_node_file(groot, active) is None):
+        return CheckResult("formation", "FAIL", time.monotonic() - t0,
+                           note=f"want ONE active registered template, got {active!r}")
+    goal = str(table[active] or "")
+    mark = re.compile(rf"parked: formation {re.escape(goal)}(?!\d|\.\d)")
+    wake = sorted(m.group(1) for f in (groot / "nodes").rglob("*.md") if goal
+                  and mark.search(node_writer.thought_text(f.read_text("utf-8", "replace")) or "")
+                  and (m := re.search(r"^id: *\"?([^\"\n]+)", f.read_text("utf-8", "replace"), re.M)))
+    return CheckResult("formation", "PASS", time.monotonic() - t0, number={"wake": len(wake)},
+                       note=f"active {active} {goal or '-'}",
+                       message="\n".join(f"wake {w}" for w in wake))
+
+
 def check_seat_model(groot: Path) -> CheckResult:
     """FAIL when any config:seats row's live transcript model drifted from its
     declared model; PASS otherwise. Detect, never repair. (Surface 2 of
@@ -1703,6 +1731,7 @@ def run_level(groot: Path, level: str, suite: bool, verbose: bool,
     # a graph-wide directory scan. Read-only, so it is safe at rotation.
     if level in ("rotation", "full"):
         results.append(check_node_dirs(groot))
+        results.append(check_formation(groot))   # goal:g7.16.1.1.5
     smoke = next((r for r in results if r.name == "smoke"), None)
     current = smoke.number if smoke is not None else None
     # --stamp FORCED smoke above, so `current` is this run's fresh count and a
