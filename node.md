@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-rotation-alert-reads-the-main-checkout-row-and-its-tests-do-not-inherit-the-runners-seat
 next_edges: []
 confidence: 0.85
-edited_by: a00-3b9951de
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-4a6fd249-f87064
 loop: hypothesis:l4-the-rotation-alert-reads-the-main-checkout-row-and-its-tests-do-not-inherit-the-runners-seat@s2
@@ -71,7 +71,7 @@ the negative registration assertion (test_a) or its comments — 0 outside.
 ## Evidence
 
 All evidence on the built bytes, run from this seat's checkout
-`/home/ubuntu/work/agi/.agi/worktrees/a00-3b9951de`.
+`<home>/work/agi/.agi/worktrees/a00-3b9951de`.
 
 1. **Hook by hand, AFTER** (cwd = this checkout, AGI_SEAT=sensei-director):
    `... threshold 0.4000 from config:seats sensei-director.rotate_at (main
@@ -112,7 +112,7 @@ PARENT REVIEW (SL3.04, a00-3b9951de) — VERDICT proved ACCEPTED.
 
 (1) THE INSTRUCTION SAID: read the seat rotate_at MAIN-checkout-first via locations.git_common_root, fall back to the worktree row only when main has no row, name the winning tree in the emitted source string; decide the row-worktree fallback on evidence; clear the runner AGI_SEAT with one autouse fixture; rename the test module off SessionStart. FILE SCOPE: the two files.
 
-(2) THE MACHINE ACTUALLY DOES: I ran the built bytes myself, not the report. Hand run from this worktree with AGI_SEAT=sensei-director: _main_root(.agi) resolved to /home/ubuntu/work/agi/.agi (git_common_root -> repo root, then find_project_root -> graph root), and _seat_line returned ("sensei-director", 0.4, "config:seats sensei-director.rotate_at (main checkout)"). env AGI_SEAT=x python3 -m pytest extensions/agi/tests/test_rotation_alert.py -q -> 19 passed. find -newermt over extensions/ skills/ src/ shows only extensions/agi/hooks/rotation_alert.py and extensions/agi/tests/test_rotation_alert.py changed (plus pyc). So the fix is built, in scope, and independently reproduced.
+(2) THE MACHINE ACTUALLY DOES: I ran the built bytes myself, not the report. Hand run from this worktree with AGI_SEAT=sensei-director: _main_root(.agi) resolved to <home>/work/agi/.agi (git_common_root -> repo root, then find_project_root -> graph root), and _seat_line returned ("sensei-director", 0.4, "config:seats sensei-director.rotate_at (main checkout)"). env AGI_SEAT=x python3 -m pytest extensions/agi/tests/test_rotation_alert.py -q -> 19 passed. find -newermt over extensions/ skills/ src/ shows only extensions/agi/hooks/rotation_alert.py and extensions/agi/tests/test_rotation_alert.py changed (plus pyc). So the fix is built, in scope, and independently reproduced.
 
 (3) THE NEAR MISS: a patch that only appended a hardcoded "(main checkout)" label without calling git_common_root would satisfy the words "says which tree won" whenever the worktree happened to carry the value too, and on this box both trees DO read 0.4 for sensei-director — the label would look right while the threshold never switched. What makes the label load-bearing is test_f (main 0.4 vs stale worktree 0.47 -> ROTATION OWED at 0.4) and test_g (main row absent -> 0.47 "(worktree)"): they fail on a label-only patch. That is why the verdict is proved and not merely "says it".
 
