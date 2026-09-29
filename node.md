@@ -7,7 +7,7 @@ parents:
 next_edges: []
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved' [caught at grid commit, not by a writer path]
 demoted_from: proved
-edited_by: director-engine
+edited_by: director-general-3
 loop: goal:g7.33.14.1-workflow-template-seam@s2
 model: stealth/space-bunny-alpha
 production_lines: 6
@@ -27,7 +27,7 @@ Ran the claim of hypothesis:a00-a5f94936-a89712 on the EDITED templates.
 | probe | before | after |
 |---|---|---|
 | `grep -rn '/\${ROOT}' extensions/agi/workflows/` | 6 hits / 4 files | 0 |
-| `grep -rn '/home/ubuntu/work/agi' extensions/agi/workflows/` | 0 (green since the last kid) | 0 |
+| `grep -rn '<home>/work/agi' extensions/agi/workflows/` | 0 (green since the last kid) | 0 |
 | `pytest extensions/agi/tests/test_workflow_template_seam_js.py …seam_json.py -q` | — | 11 passed |
 | `pytest extensions/agi/tests/test_workflow.py -q` | — | 121 passed |
 | `git diff --numstat` on the 4 js | — | 6 added / 6 deleted |
