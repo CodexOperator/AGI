@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16
 next_edges: []
-edited_by: belam
+edited_by: director-general-4
 scaffold_hash: cc992c67c9df3edc
 season: 2
 status: active
@@ -48,8 +48,8 @@ Post fill examples (not a second SoT):
 
 | post | POST | SCOPE | TREE | BRANCH | REMOTE_POLICY | REPORTS_TO | SEAT_LABEL |
 |---|---|---|---|---|---|---|---|
-| point | director-belam | this post only (DT.* parents / this-director MURs / suite) | /data/work/agi/.agi/worktrees/seat-director-belam | core/season2/main | push season2 (= `core/season2/main` only) | Belam daily-pass / graph board | director CORE TOWN |
-| helper | director-helper | this post only (DH.* parents / this-director MURs / suite) | /data/work/agi/.agi/worktrees/seat-director-helper | local-only | never new remote head | director-belam point | free-floating helper director |
+| point | director-belam | this post only (DT.* parents / this-director MURs / suite) | <repo>/.agi/worktrees/seat-director-belam | core/season2/main | push season2 (= `core/season2/main` only) | Belam daily-pass / graph board | director CORE TOWN |
+| helper | director-helper | this post only (DH.* parents / this-director MURs / suite) | <repo>/.agi/worktrees/seat-director-helper | local-only | never new remote head | director-belam point | free-floating helper director |
 
 ---
 ### SECTION:PROFILE (copy into agent description)
@@ -107,7 +107,7 @@ GRAPH SoT (all 3 roles: Belam · director-belam · director-helper):
          after ANY graph doc SoT mod → write.py route ONLY · push tips as roles say
          → sync ALL post WTs (seat-director-belam · seat-director-helper · other grok post WTs)
          → CROSS-DIR LOCAL SYNC ALLOWED: either director may ff|merge-keep-WIP
-            the other's /data/work/agi/.agi/worktrees/seat-director-* (never reset --hard)
+            the other's <repo>/.agi/worktrees/seat-director-* (never reset --hard)
          → push season2 = core/season2/main ONLY · NEVER seat remote head · no new remote branch
          → no UpdateAgent/profile hand-edit · no ping
 BELAM    no mid-batch talk · daily graph pass only
@@ -218,7 +218,7 @@ pins (post-local DH/DT — fill placeholders):
   SCOPE  {{SCOPE}}
   TREE   {{TREE}}
   BRANCH {{BRANCH}}
-  HOST   SSH encryption-town → /data/work/agi  (never /workspace/agi)
+  HOST   SSH encryption-town → <repo>  (never /workspace/agi)
   POLICY {{REMOTE_POLICY}}
   REPORT {{REPORTS_TO}}
 
@@ -277,5 +277,5 @@ ZERO-RESIDUE
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-owner-fix: soft floor ≥5→≥10; CAP-RULER > soft floor (≤18 real target); no early-exit after MUR-only fill; residual parents + horizon-under-active scan; ACTIVE⇒SPAWN SAME TURN; FILL ORDER MUR→residual→horizon; morals up-down + verify-suite forward metric after 0-residue merge-up; cadence/pins unchanged
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 4 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
