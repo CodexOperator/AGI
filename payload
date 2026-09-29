@@ -1706,3 +1706,32 @@ def test_a_project_with_no_schemas_loaded_still_writes(tmp_path):
 @pytest.mark.xfail(strict=True, reason="bundle 4 W-G: RED until DG3 restates node_writer's goal-type reason")
 def test_wg_goal_type_reason_no_longer_cites_goals_md_regeneration():
     assert "from GOALS.md" not in (BIN / "node_writer.py").read_text(encoding="utf-8")
+
+
+# --- bundle 4 W1a (director-general-2) ---------------------------------------
+# goal:g4.18.5.1 seam: nw.body_rows(body) -> [(start, end)], 1-based inclusive
+# spans in `read body N:M` coordinates, document order.
+W1A_BODY = ("\n# hypothesis:h2\n\n## Table\n\n| k | v |\n|---|---|\n| a | 1 |\n"
+            "| b | 2 |\n\n## List\n\n- one\n- two\n\n<!-- THOUGHT:BEGIN -->\n"
+            "why\nmore why\n<!-- THOUGHT:END -->\n")
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 4 W1a: RED until DG3 builds "
+                   "node_writer.body_rows (the one row index)")
+def test_b4_w1a_one_row_per_table_row_list_item_and_block():
+    lines = W1A_BODY.split("\n")
+    spans = [lines[a - 1:b] for a, b in nw.body_rows(W1A_BODY)]
+    for one in (["| a | 1 |"], ["| b | 2 |"], ["- one"], ["- two"], [
+            "<!-- THOUGHT:BEGIN -->", "why", "more why", "<!-- THOUGHT:END -->"]):
+        assert spans.count(one) == 1, (one, spans)
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 4 W1a: RED until DG3 builds "
+                   "node_writer.body_rows, defined once")
+def test_b4_w1a_the_row_index_has_one_definition():
+    import ast
+    defs = [p.name for p in sorted(BIN.glob("*.py"))
+            for n in ast.walk(ast.parse(p.read_text(encoding="utf-8")))
+            if isinstance(n, ast.FunctionDef)
+            and n.name in ("body_rows", "_resolve_body_row_range")]
+    assert defs == ["node_writer.py"], defs
