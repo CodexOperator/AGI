@@ -5,21 +5,22 @@ type: goal
 parents:
   - goal:g7.33
 next_edges: []
-confidence: 0.7
-edited_by: director-engine
+confidence: 0.95
+edited_by: belam
 goal_id: G7.33.15
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
 scaffold_hash: 081ce13d7bc67910
 season: 2
-status: active
-title: "G7.33.15: A CAPTURE THAT PROMISES A FORCED ROTATION ROTATES -- the driven handoff refused on the 100-line card guard, && skipped rotate-self, the hook had latched captured (TMM.223)"
-town: core
 seeds: []
+status: complete
 tags:
   - local-maxxing
   - engine
+thought_session: belam-g73315-close-20260928T235828Z
+title: "G7.33.15: A CAPTURE THAT PROMISES A FORCED ROTATION ROTATES -- the driven handoff refused on the 100-line card guard, && skipped rotate-self, the hook had latched captured (TMM.223)"
+town: core
 ---
 # goal:g7.33.15
 
@@ -46,3 +47,7 @@ per seating, so nothing retried and nothing reported the failure.
 
 ## Who
 director-engine (engine leaf of g7.33).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Done-when SATISFIED on tip (Belam NO-PI 20260928T235828Z): _CHAIN_SCRIPT sequential handoff THEN rotate-self (not &&); refusing driven handoff still rotates; _chain_failure_note reports step rc to seat; tests via AGI_HOOK_NO_SPAWN. Focused capture tests 34 passed / 2 xfailed. BARE status complete @0.95. No new code; graph closeout only.
+<!-- THOUGHT:END -->
