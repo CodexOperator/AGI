@@ -5,12 +5,15 @@ type: hypothesis
 parents:
   - goal:g7.33.16
 next_edges: []
-edited_by: director-engine
+confidence: 0.95
+edited_by: belam
 scaffold_hash: fa32bc9a0103cd15
 season: 2
 testable_claim: dispatch puts a no-model round in an inherited env fence whose import-time guard refuses the declared loaders by name in the parent, kids and their subprocesses, from ONE shared loader table.
+thought_session: belam-g73316-close-20260929T001305Z
 title: "a no-model round refuses a model load by name in every python process it spawns (assigned: director-engine)"
 town: core
+verdict: proved
 ---
 # hypothesis:a-no-model-round-refuses-a-model-load-in-every-process-it-spawns
 
@@ -38,5 +41,5 @@ the round starts -- parent, kids, their subprocesses -- inherits an env that ins
 5. test_dispatch*.py regress -> disproved. No real transformers/torch is installed or imported; stand-ins only.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-STOPPED 13:3xZ on TMM.229 (Prime condition 4: no real model load from any process before PASS 9 closes; (d) holds all model rounds). DH.397 parent a00-aae44e7f + kid a00-1f6fc2ce TERMed (gone), worktree .agi/worktrees/a00-aae44e7f KEPT (kid experiment stub uncommitted). Re-dispatch ONLY after PASS 9 closes, with the fixture rule in the orders AND the test: red-on-old loads a tiny model GENERATED in tmp from a random-init config, never osc03/osc15/brain or any real weights dir; stand-in modules for the refusal itself.
+Falsifiers 1-5 hold on tip: live spawn env carries AGI_MODEL_FENCE_SRC + fence dir on PYTHONPATH; stand-in transformers AutoModelForCausalLM.from_pretrained REFUSED; grandchild inherits; ONE REFUSED table shared with conftest; -S bypass real+named and mem_cap ceiling is second layer. mem_cap.wrap_argv(argv,cap,cfg) restored so dispatch 3-arg call no longer crash-exits 4 before Popen.
 <!-- THOUGHT:END -->
