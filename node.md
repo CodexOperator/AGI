@@ -34,7 +34,7 @@ write.py       _schema_field_refusal: a list field's ITEM form (item_regex) -> r
 verification   _grep_live: ONE `git grep --no-index -lzF` under nodes/ (no rglob), deprecated/ skipped
                parked_carriers(goal) -> the tag carriers (shared by the hook and the check)
                check_formation: FAIL while any THOUGHT carries the retired `parked: formation` mark; wake = the tag carriers
-migration      12 THOUGHT parks -> tag parked:g7.16.2 (count gate 12 -> 12; 0 marks left); each THOUGHT keeps its one-line
+migration      12 THOUGHT parks -> tag parked:g7.16.2 at 7f6cf141a (count gate 12 -> 12), then RECONCILED to the PARKING TEST (DG2 391a36a5c, residue 42): 6 tags (goal:g7.32.5 + 5 hypotheses), 6 dropped (5 keep, 1 retired); 0 marks left; each THOUGHT keeps its one-line
                why + THE TRIAGE RULE: goal:g7.16.1.1.2 · 3 tallies (g7.33.19, pass10, pass12) reworded, counts unchanged
 rule           goal:g7.16.1.1.2's triage rule now names the tag, not the THOUGHT line
 ```
@@ -54,6 +54,10 @@ Production: +63 / -9 over the ceiling's 30 (engine 55 added incl. docstrings; sc
 (_grep_live + parked_carriers), which the check and the hook both call, so the tag has ONE reader. Tests +40 / -12 (<= 60).
 
 ## Falsifier
-1. `git grep -l 'parked:g7\.16\.2' -- .agi/nodes/goal .agi/nodes/hypothesis | wc -l` prints 12 (the gated count); check_formation PASS.
+1. `git grep -l 'parked:g7\.16\.2' -- .agi/nodes/goal .agi/nodes/hypothesis | wc -l` prints 6 (the post-audit gated count, after DG2 391a36a5c); check_formation PASS.
    (4 non-carriers that named the literal tag were reworded to `parked:<goal>`, so the grep counts carriers only.)
 2. Negative: live nodes whose node_writer.thought_text carries `parked: formation` = 0.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Row P built by director-general-3 at 7f6cf141a with 12 tags. After that, DG2's PARKING TEST (391a36a5c, residue 42) rewrote the same THOUGHTs using the old mark, because the two rows ran in parallel, and the live check FAILed on 8 marks. This version reconciles the rows: DG2's verdicts decide WHICH rows park (6), and P decides HOW a park is held (the tag). Result: 6 tags, 0 marks, check PASS.
+<!-- THOUGHT:END -->
