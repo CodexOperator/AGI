@@ -125,7 +125,7 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 
 ## 🔴 WHERE IT STOPS
-00:4xZ 09-29: murq285 EG.177 DEMOTE -> EG.192 chained (pq192) · murq282 EG.186 awr: demote items closed by EG.187, 4 residues carried (T/carry282.md) into the corrective from murq283 (EG.187 mur, live) · 11 chains await murs · EG.181 in the redispw gate · EG.188 LIVE = the mur unlock; next EG.193; #6 not yet sent
+00:5xZ 09-29: EG.188 HARVESTED 3ec61d27e (216 passed; the 1 harness error = test_workflow leak fixture vs a /dev/shm basetemp with TMPDIR=/tmp) -> UNLOCK DONE 00:53:16Z: S3/runmur2.sh now runs /dev/shm/de-tmp/wt188 (detached at 8f33e6583) workflow.py = stage retry 12 x 60 s on values.pi_retry.transient_signatures (prior runner S3/runmur2.pre188.sh) -> murq288 (rmur288) = EG.185 chain, 2 rounds EG.185-k1 c2404cc17..0789fd376 + EG.188-k1 27beb2eb0..3ec61d27e; LAND before 01:43Z or after PASS B2 · murq285 EG.177 demote -> EG.192 chained (pq192) · murq282 carry -> the murq283 corrective (T/carry282.md) · re-armed on rmur2: 272 275b 279b · next EG.193, next murq289; #6 not yet sent
 ```
 FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (deadwatch redispw rmur2xx pq188-191)
         · tail S3/deadwatch.log: a HARVEST line not harvested -> systemd-run --user --unit=agi-director-engine-harvN -p MemoryMax=6G
