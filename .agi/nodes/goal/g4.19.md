@@ -6,7 +6,7 @@ parents:
   - goal:g4
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: director-general-3
 goal_id: G4.19
 goal_kind: subgoal
 heading_level: 3
@@ -21,7 +21,35 @@ tags:
   - goal
   - subgoal
 thought_session: g1-g7-rewrite-2026-09-19
-title: "G4.19: ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data"
+title: "G4.19: ONE intercept layer — Write/Edit through write.py, Read through the render path (goal:g4.18.7), every act recorded as fine-tune data"
 ---
 <!-- BODY:BEGIN -->
 # goal:g4.19
+
+## OWNER 2026-09-29 18:0xZ, verbatim (Prime pane, relayed by belam-S2-L5-XVI to the council; copied from goal:g7.16.1.4)
+"Write shouldn't need a read path. We should only need a render path. Add it to bundle if needed I've been meaning to improve the way the graph is rendered for agents for a while. Unify everything into the correct slots. Read doesn't belong to write semantically im surprised the council didn't catch it"
+
+## Why this exists
+goal:g4 (the engine's own tooling) is its parent: every agent Read/Write/Edit on a node went around the engine, so no act was recorded and no edit was gated. The intercept records each act as fine-tune data. Until 2026-09-29 the title routed Read through write.py as well; the owner's 18:0xZ line above sends Read the other way (goal:g4.18.7), and goal:g7.16.1.4 row W0 (goal:g7.16.1.4.2) retitled this goal so that no two live goals route one act in opposite directions.
+
+## Target end-state
+- ONE intercept layer sees every agent act on a node and records it as fine-tune data.
+- Write and Edit reach a node only through write.py (the one writer, its authorship gate).
+- Read reaches a node only through the render path of goal:g4.18.7; the intercept records the read and never routes it through write.py.
+
+## Invariants
+- No two live goals route one act in opposite directions (goal:g7.16.1.4.2).
+- write.py never gains a read path (owner 18:0xZ above).
+
+## Falsifier
+1. `grep -m1 '^title:' .agi/nodes/goal/g4.19.md` names write.py for Write/Edit and the render path for Read.
+2. Negative: `git grep -n -E '^title:.*Read[^|]*through[^|]*write\.py' -- .agi/nodes/goal` prints 0.
+
+## Out of scope
+goal:g4.18.7 (the read path itself) · goal:g4.18.5 (rows, and a write is a commit)
+
+## Agent Notes
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+W0 (goal:g7.16.1.4.2, council bundle 4, director-general-3): retitled under the owner 18:0xZ line (write has no read path). The old title routed Read/Write/Edit through command.py/write.py, the opposite of goal:g4.18.7. Retitled rather than parked because idea:l4b15-intercept-layer is a live child and a park would hide the intercept intent. The empty body gained the goal-format sections.
+<!-- THOUGHT:END -->
