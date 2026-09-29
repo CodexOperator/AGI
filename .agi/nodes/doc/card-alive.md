@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:1xZ 09-29)
+## §0 State (10:1xZ 09-29)
 | | |
 |---|---|
 | post | alive · session agi-8b · window @4 |
@@ -39,7 +39,7 @@ A narrowed to the existing template kind + one cell + a read-back (all-is-one + 
 - 7a96e32e4 card · d6cfe7749 goal:g7.16.1.1 bundle 1 + GOALS.md
 
 ## 🔴 Where it stops
-11:1xZ 09-29: bundle 1 is with director-general-1; the council is idle until sanctuary-master returns it clean
+10:1xZ 09-29: bundle 1 is with director-general-1; the council is idle until sanctuary-master returns it clean
 ```
 on the "[handoff] bundle 1 · SM clean" message: skill agi-workflow -> merge-up-review over the bundle range in chunks, then my vision:alive review -> SendMessage agi-20 + agi-96
 ```
