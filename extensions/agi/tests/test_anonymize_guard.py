@@ -396,3 +396,27 @@ def test_prose_naming_the_home_dir_is_not_a_home(tmp_path, fake_box, monkeypatch
     assert anonymize.scan("anonymize grep (user name, /home/, IPs)", toks) == []
     assert anonymize.scan("a tmp HOME: <tmp>/home/.npm-global/bin/pi", toks) == []
     assert anonymize.home_relative("for /" + "home/zqxwv, next", home="/h/me") == "for <home>, next"
+
+
+# bundle 3 row H4 b (goal:g7.16.1.3.2.3.1): the generic home class reaches 0
+# over the four scrub scopes, read from COMMITTED bytes (`git grep HEAD`)
+# through anonymize's ONE pattern -- never a new regex. Only FILE counts per
+# scope come back; no matched text is ever printed.
+SCRUB_SCOPES = (".agi/sessions/rotations", ".agi/sessions/quorum", "datasets", ".agi/nodes")
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 3 H4 b: RED until DG3 scrubs the four "
+                   "scopes (415 files at 99c6043c7)")
+def test_no_committed_home_path_in_the_four_scrub_scopes():
+    repo = Path(__file__).resolve().parents[3]
+    top = subprocess.run(["git", "-C", str(repo), "rev-parse", "--show-toplevel"],
+                         capture_output=True, text=True)
+    if top.returncode != 0 or Path(top.stdout.strip()).resolve() != repo:
+        pytest.skip("not a git checkout of this repo")
+    p = subprocess.run(["git", "-C", str(repo), "grep", "-lP",
+                        anonymize.HOME_PATH_RE.pattern, "HEAD", "--", *SCRUB_SCOPES],
+                       capture_output=True, text=True)
+    assert p.returncode in (0, 1), p.stderr[-200:]
+    per = {s: sum(1 for f in p.stdout.splitlines() if f.startswith(f"HEAD:{s}/"))
+           for s in SCRUB_SCOPES}
+    assert per == dict.fromkeys(SCRUB_SCOPES, 0)
