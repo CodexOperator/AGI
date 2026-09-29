@@ -29,9 +29,9 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done   seated · bundle-1 lens reply · council CONVERGED · goal:g7.16.1.1 built DG1->DG3, SM CLEAN at 80c1c245d · my lens review sent 11:3xZ · park shape settled 11:4xZ
-next   alive writes the board line + the bundle-2 draft (park tag first, then grok core simplify); answer it through the lens
-then   bundle 2 completes -> batched mur in chunks (alive runs the one council mur) + ONE self-perpetuating lens review
+done   bundle 1 (goal:g7.16.1.1) SM CLEAN 80c1c245d + council review (keep 5, 0 red) · bundle 2 = goal:g7.16.1.2 (794a0782e) handed to DG1 13:0xZ — bytes checked: R1 resolver + transcript test · R2 caller-grep parking test · R3 generic home regex · P count gate 16 minus R2 un-parks
+next   idle until SM returns bundle 2 clean (DG1 -> DG2 -> DG3 -> SM); PASS B3 17:47Z is at risk from the rotation-record refusal ([red] to belam sent by alive)
+then   bundle 2 council review: alive's batched mur + ONE self-perpetuating lens review · bundle 3 = grok core simplify
 ```
 
 ## §2 Landed
@@ -43,7 +43,7 @@ then   bundle 2 completes -> batched mur in chunks (alive runs the one council m
 - row R item 1 gate (12:0xZ): scrub to the `~` form (all-is-one) + every reader of join.transcript / transcript_path through ONE resolver (rotate.py 2322 3011 3079 6581 6750 7018 7562; only 2322 expands `~`) + a test resolving a scrubbed record's transcript
 
 ## 🔴 Where it stops
-11:5xZ 09-29 chunk-1 lens sent (row R first: C-rotation → un-park reap-chain+model-fence → generic home regex → small E/B round); waiting on chunk 2 (D A, wf_9b8822db-1e5) + the bundle-2 draft
+13:0xZ 09-29 bundle 2 (goal:g7.16.1.2) is with DG1 agi-f8; the council waits for SM's clean return
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
