@@ -7544,7 +7544,7 @@ Nested .1 help-measurement + .2 stub-flag retire; adapter still stub -p pending 
 
 stop-line 2026-09-28: nested g7.31.1.1.1 + g7.31.1.1.2; NO pi.
 
-###### G7.31.1.1.1 — Record grok-bot --help measurement on node or experiment — status: complete
+###### G7.31.1.1.1 — Record grok-bot --help measurement on node or experiment — status: active
 
 # goal:g7.31.1.1.1
 
@@ -7575,20 +7575,6 @@ stop-line 2026-09-28: nested g7.31.1.1.1 + g7.31.1.1.2; NO pi.
 ## Agent Notes
 
 Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
-
-## Measurement 2026-09-28 ~18:50 ET (belam-prime) — refused-by-name
-
-```
-host: belam-prime
-probe: command -v grok-bot; type grok-bot; PATH + GROK_BOT_BIN candidates
-result: GROK_BOT_ABSENT
-exit: non-zero / empty PATH resolution
-DEFAULT_BIN in adapters/grok_bot_adapter.py = "grok-bot" (PATH-resolved by Popen)
-adapter note (docstring): flag SHAPE is still a stub (`<bin> --help` has not been read)
-emitted stub argv today: `<bin> [--model M] -p <prompt>` (copilot spelling)
-```
-
-No `--help` paste possible until `grok-bot` (or `GROK_BOT_BIN` / harness bin cell) is present on a measurable host. This refused-by-name block is the measurement artifact for this leaf.
 
 ###### G7.31.1.1.2 — Retire stub build_command flags to match recorded help — status: active
 
@@ -7662,107 +7648,6 @@ Split from `goal:g7.31.1` by director-belam (point) 2026-09-21 ET — multi-head
 MUR-demote kids .1–.3 fleshed to format; seeds wired; director-direct NO-pi (OWNER FULL STOP supersedes ACTIVE⇒SPAWN).
 
 MUR-demote kids .1-.3 fleshed to format; seeds wired; director-direct NO-pi (OWNER FULL STOP supersedes ACTIVE=>SPAWN).
-
-###### G7.31.1.2.1 — hold restart preserves child_env — status: active
-
-# goal:g7.31.1.2.1
-
-## Why this exists
-
-**Parent `goal:g7.31.1.2`.** MUR `mur-g7-31-1-2-dt-102-2e6a8bf47-2` (2026-09-23) **demote** defect 1: held restart returns before `env = child_env(...)`; `tmux_hold` start/reattach/`_cmd` take/pass no env — credential-none drop and harness env skipped on DEFAULT restart (`HOLD_PANE=True`).
-
-## Target end-state
-
-- Hold restart computes `child_env(...)` (or equivalent) **before** returning the held pid.
-- Respawn/reattach carries that env into the pane (not bare tmux-server inheritance).
-- Proof: spy/assert env keys on held restart; `OPENROUTER_API_KEY` popped when `needs_credential` is false.
-
-## Invariants
-
-- First-spawn founding is OOS (`goal:g7.31.1.2.2`).
-- Build coverage / Popen fallback is OOS (`goal:g7.31.1.2.3`).
-- Credential drop rule stays inside `child_env` (no second drop path).
-
-## Falsifier
-
-1. On tip, held restart path reaches `child_env` / drop_unneeded_credential; a probe shows the held pane does not inherit the forbidden runtime key the pre-hold Popen path would have dropped.
-2. Negative: zero held-restart returns that skip `child_env` when `HOLD_PANE=True`.
-
-## Out of scope
-
-- `goal:g7.31.1.2.2` first-spawn named pane.
-- `goal:g7.31.1.2.3` build node + Popen fallback.
-- Measured CLI argv (`goal:g7.31.1.1`).
-
-## Agent Notes
-
-Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
-
-###### G7.31.1.2.2 — first-spawn founds named held pane — status: active
-
-# goal:g7.31.1.2.2
-
-## Why this exists
-
-**Parent `goal:g7.31.1.2`.** MUR DT.102 demote defect 2: invariant "one named pane per seat / no anonymous fire-and-forget" unmet on **first spawn** — hold only on restart; `dispatch._open_round` still direct `Popen`.
-
-## Target end-state
-
-- First spawn founds the named held pane (`tmux_hold.start` or equivalent) — not only restart.
-- Production path does not stamp `created=true` fabrication on the first restart after anonymous Popen.
-
-## Invariants
-
-- Env-on-hold-restart is OOS (`goal:g7.31.1.2.1`).
-- Build coverage / Popen fallback is OOS (`goal:g7.31.1.2.3`).
-- One named pane per seat; no parallel anonymous Popen then "upgrade".
-
-## Falsifier
-
-1. First-spawn under production `_open_round` uses the hold/start seam; probe shows stable pane_id across kill -9 without out-of-band `tmux_hold.start()`.
-2. Negative: zero production first-spawn paths that only `subprocess.Popen` with no hold/start.
-
-## Out of scope
-
-- `goal:g7.31.1.2.1` child_env on held restart.
-- `goal:g7.31.1.2.3` grid coverage + no-tmux fallback.
-- Persistent dispatch mode umbrella (`goal:g7.28`, helper seat).
-
-## Agent Notes
-
-Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
-
-###### G7.31.1.2.3 — tmux_hold build+Popen fallback — status: active
-
-# goal:g7.31.1.2.3
-
-## Why this exists
-
-**Parent `goal:g7.31.1.2`.** MUR DT.102 demote defects 3–4: no build node/payload_ref for hold module (grid gap); no Popen fallback when tmux/session missing — default-on hold can brick restart. Sense 2026-09-28: `extensions/agi/bin/adapters/tmux_hold.py` **absent** on tip — residue still live.
-
-## Target end-state
-
-- Build node (or grid coverage entry) versions the hold module path once it lands.
-- Restart falls back to direct Popen when tmux absent or session unset — seat can still restart.
-
-## Invariants
-
-- Env carry and first-spawn founding stay on sibling leaves (`.1` / `.2`).
-- Fallback is restart-safety, not a permanent anonymous path (`.2` still owns founding).
-
-## Falsifier
-
-1. `grid_coverage_check` (or build payload_ref) covers the hold module on tip; a no-tmux / no-session probe still restarts via Popen fallback.
-2. Negative: default-on hold must not hard-fail restart when tmux/session is missing.
-
-## Out of scope
-
-- `goal:g7.31.1.2.1` / `goal:g7.31.1.2.2`.
-- Measured CLI (`goal:g7.31.1.1`).
-
-## Agent Notes
-
-Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
 #### G7.31.2 — Pane anchor registers seat occupation across post/pin/formation/auto-rotation — status: active
 
@@ -7949,46 +7834,38 @@ Director-direct under OWNER FULL STOP (NO pi); supersedes prior Launch-pi Agent 
 
 # goal:g7.31.3.3
 
-## Why this exists
-
-**Parent `goal:g7.31.3`.** Owner 2026-09-27 (belam-S2-L5-X pane): parents and posts must share one spawn route; concurrency×parallel become pre-set parent slots under each post in `.geometry`; kids are dynamic `kid*` rows; rotate is a spawn option (`needs-rotate: true`); reaper/heal executes what the graph says. This leaf owns that graph-write redesign (third of three after mint + send). Messaging half of the same owner message is `goal:g7.32.5` (parked / helper).
-
-## Target end-state
-
-- Spawn and rotate are one graph-write path: committed parent-slot defs under each post; live occupancy in a local runtime file; AGI_BOX-gated loop clears `needs-rotate`; refusal stamps named row + one reply; parents write only own kid rows.
-- Nested kids `.1`–`.5` each own one owner-design residue (slots / runtime / AGI_BOX / refusal-reply / write-gate).
-- Falsifiers on kids GREEN independently; this parent stays the umbrella contract.
-
-## Invariants
-
-- GUARD BY PLACEMENT (Prime 03:2xZ 09-27): every spawn — post, parent, kid, and rotate-as-spawn — is a `systemd-run --user` transient SERVICE named `agi-<town>-<post>[-<slot>]`; tmux is only a view. Near miss: unifying on today's post route (tmux) would move parents OUT of the cap.
-- Kid worktrees follow `hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram`.
-- Does **not** open `goal:g7.31.6` / `goal:g7.32.5` / `goal:g7.34` from this leaf.
-- OWNER verbatim below wins over any paraphrase.
-
-## Falsifier
-
-1. Kids `goal:g7.31.3.3.1`–`.5` exist, seeded from this node, each with fixed-order body + CLI/grep falsifier naming its slice.
-2. Negative: zero production path that treats rotate as a separate non-graph write while this leaf is the SoT for the unified design.
-
-## Out of scope
-
-- `goal:g7.32.5` parents' dm-append / messaging half of the same owner message.
-- `goal:g7.31.6` / `goal:g7.34` (parked — do not open).
-- Cold brief / sample CLI leaves (`goal:g7.31.3.1` / `.2`).
-- Impl of systemd placement itself (engine / sanctuary guard).
-
-## Agent Notes
-
-Assigned to **director-belam**. Nested `.1`–`.5`; director-direct under OWNER FULL STOP (NO pi). Routing note: assigned director-engine for impl; Belam holds format/nest on stop-line.
-
 ## OWNER 2026-09-27 00:38Z + 00:45Z (belam-S2-L5-X's pane), verbatim -- the spawn/rotate part
-
 "One thing that bothered me is that parents get a different spawn route than posts. I want parents and posts to share the same spawn route so spawn/rotate becomes one and uses individual post info and/or generic templates to decide who gets what messages. And also it creates the parent seats in-graph under the post seat that spawned them in the .geometry directory, and get removed as part of the reaper routine. So the concurrency limit and the parallel limit together become the amount of pre-set parent post slots each post has under it, and each kid also becomes a row entry in the parent slot “kid*” row. Rows added dynamically on each kid spawn and removed on kid exit. All using the unified spawn route. Rotate just becomes an option for spawn and parents can be rotated in place instead of re dispatched. Everything is still just a unified write/mint of nodes with a new version. The reaper/heal routine just then executes actions as put into the graph via post updates and linked templates. If a post needs rotation  just set the needs-rotate: true and wait on the loop to do it. So everything becomes a graph write even spawn/rotation commands. Parents just spawn kids but all it does is write the rows and points to where in the graph that kid needs to put its next node."
 
 "One addition to 3: a refusal also activated the message send reply route to update the relevant sending post which can be found via graph of what failed and for whom."
 
 (The same 00:38Z message opens with the parents-on-the-message-system question; that half is goal:g7.32.5.)
+
+## The design as the owner confirmed it (gen 10's reading, pasted into the Prime's pane, confirmed 00:5xZ 09-27; the owner's words above win)
+Unify spawn and rotate as graph writes. Parents become rows under the post that spawned them in .geometry, with pre-set parent slots per post. Kids become dynamic kid rows under their parent's slot. Rotate becomes a spawn option (needs-rotate: true), and the reaper/heal loop carries out whatever the graph says. Refinements:
+1. Slot definitions are committed; live occupancy lives in a local runtime file.
+2. Only the box hosting the post acts (checked via AGI_BOX), and the loop clears the flag.
+3. A refusal is written into the row by name AND sent to the requesting post through the reply route, found via the graph. Cap it at one reply per failed request.
+4. Gate who may write which rows: parents write only their own kid rows, kids write none.
+
+## Invariants
+- GUARD BY PLACEMENT (Prime 03:2xZ 09-27, on the owner's question 'Will the guard work with the new spawn/rotate unified redesign?'): every spawn -- post, parent, kid, and rotate as a spawn option -- is a `systemd-run --user` transient SERVICE named `agi-<town>-<post>[-<slot>]`; tmux is only a view attached to it. The sanctuary guard caps by systemd placement (user@1000 high/max 12618/14021M; `agi-*.service` -> agi-work.slice 9302M), so a unit so named is guarded with no guard change. Measured 03:2xZ: 25 claude processes of the tmux-spawned seats sit in session-73.scope, OUTSIDE user@1000 (uncapped); dispatch.py parents are --scope units in app.slice (user@ cap only).
+- Near miss: unifying on today's post route (tmux) would move parents OUT of the cap too -- a silent regression nothing refuses.
+- Kid worktrees follow hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram (paths.<town>.worktrees_root; the guard-owned RAM disk; reaper eviction).
+
+## Relations
+- parent goal:g7.31.3 -- the rotate|spawn route of the five unified engine routes; this makes it one graph write.
+- goal:g7.32.5 -- the parents' dm-append push grant, the messaging half of the same owner message.
+- goal:g4.18.1 -- one mint route: slot and kid rows go through the same write flow.
+- goal:g7.32.6 -- the reply route refinement 3 uses; its (default)-box note (46d1d17e1): refinement 2 acts only on the box a row names.
+
+## Routing
+assigned: director-engine. THIRD of the three graph redesigns, after node spawn/mint (goal:g4.18.1) and the send hub-only work (OWNER 01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): refinement 3's refusal rides send's reply route.
+
+## Agent Notes
+Nested .1–.5 (slots/runtime/AGI_BOX/refusal-reply/write-gate); stays under g7.31.3 stop-line.
+
+Nested .1-.5 (slots/runtime/AGI_BOX/refusal-reply/write-gate); stays under g7.31.3 stop-line.
 
 ###### G7.31.3.3.1 — Committed parent-slot definitions under each post in .geometry — status: active
 
@@ -8937,16 +8814,19 @@ each row becomes its own round (and its own sub-leaf if it grows) when it is dis
 | 12 | EF.92 (LH-2) | held by TM (TMM.91 list) | VOID: DONE c876dbf72 on 09-24 (TMM.241) |
 | 13 | E6 the coalesced-nudge sweep | 09-25 queue | OWED: content re-read before dispatch |
 | 14 | test_f1_rename_mode_strands_the_live_writer_on_a_BOUNDED_archive trunk load flake: freeze the stranded writer across the apply like 569ea9a1b | TMM.241 (1) | DONE 071f2ec15 (test-only; 12/12 under load; red not reproduced -- rare) |
-| 15 | DH.401 successor shape: a slot [P, fence(n)[P, ```...```]] still compounds +1 per rotation -> drop the outer fence + the duplicated P; prove on the successor shape | TMM.241 (2) | LIVE DH.409 a00-f28911bd |
+| 15 | DH.401 successor shape: a slot [P, fence(n)[P, ```...```]] still compounds +1 per rotation -> drop the outer fence + the duplicated P; prove on the successor shape | TMM.241 (2) | DONE DH.409 c36ed7d1a9 (where-it-stops slot is a fixed point at the WRITE seam; kid a00-a177f505 proved; on tip) |
 | 16 | a capture refuses whenever trunk moved (rotate-self skips the bare rotate's origin merge) -- goal:g7.33.15 residue | TMM.241 (3) + DE 17:01Z [red] | DONE DH.408 242dd3475 (registered behind seat merges at the guard; red 3/green) |
 | 17 | model_fence: _cap_from_config KeyError at import when a config lacks the cell (-> cap 0, fail closed) + the refusal names model_slot.py, not 'this suite asserts on bytes' | TMM.256 + TMM.260 (2) | DONE (director, direct; test_model_fence_cap.py red 5/green 6) |
 | 18 | a round's kid cannot fan out pytest past the box's bound -- an ENGINE fence (the suite lock and spawn_budget did not stop DH.419's 127 procs) | TMM.258/260 (1) | DONE DH.421 091808547 (TasksMax on the round scope; peaks sent to TM; the seat-wrap half NOT taken) |
 | 19 | DH.410's first live render (TMM.261): the render INLINES CLAUDE.md (26,597 B + COMMANDS) where the claude-code harness already loads it as project instructions, and prints the role template heading twice (the render's + the node's own) -> 106,144 vs 64,896 chars (+64 pct). Drop the inline CLAUDE.md for a harness that loads it itself; one template heading | TMM.261 | DONE DH.423 e636d7aa9 (director-engine render 62,304 -> 35,589 chars; only CLAUDE.md dropped) |
-| 20 | send.py read prints 'inbox ... empty' while unread dm blocks sit in the raw inbox file with the read marker already past them (TM inbox 02:20:05Z: DE 01:49Z [red] + 02:16Z [rule]), and a dm-file send can skip the nudge (DT 21:37Z [merge-up] never nudged) -> find what advances the marker without printing, and why a dm-file send skips the nudge | TMM.270 (owner in TM's pane 02:28:27Z) | DISPATCHED DH.490 a00-5bde5739 (TMM.271 dispatch now): harvested, 1 red (withheld-block test) -> mur490 + corrective |
-| 21 | the captive AUTO-CAPTURE (rotation_alert.py ~971 -> _force_capture) REPLACES a card's 'Where it stops' slot body AND its BANKED section with its one 'auto-captured at f=...' line -- a successor loses the whole owed list (DT 03:02Z; restored from f76c09619 by 8384aa443) -> a capture keeps the slot + BANKED byte-identical and APPENDS its line; test: a captured card with a multi-line slot + BANKED diffed before/after | TMM.277 | DISPATCHED DH.493 a00-7af19a42 (hypothesis:captive-capture-keeps-the-slot-and-banked-and-appends-its-line, 43447b04e) |
+| 20 | send.py read prints 'inbox ... empty' while unread dm blocks sit in the raw inbox file with the read marker already past them (TM inbox 02:20:05Z: DE 01:49Z [red] + 02:16Z [rule]), and a dm-file send can skip the nudge (DT 21:37Z [merge-up] never nudged) -> find what advances the marker without printing, and why a dm-file send skips the nudge | TMM.270 (owner in TM's pane 02:28:27Z) | DONE tip fbf5abe216 (send.py read sweeps read_dms after inbox; dm send nudges; L4 one-read 073b9378e1 proved; EG.137 also landed on lm 165c99e6ac; DH.490 red superseded) |
+| 21 | the captive AUTO-CAPTURE (rotation_alert.py ~971 -> _force_capture) REPLACES a card's 'Where it stops' slot body AND its BANKED section with its one 'auto-captured at f=...' line -- a successor loses the whole owed list (DT 03:02Z; restored from f76c09619 by 8384aa443) -> a capture keeps the slot + BANKED byte-identical and APPENDS its line; test: a captured card with a multi-line slot + BANKED diffed before/after | TMM.277 | DONE e3e730e3b0 (DH.679 / hypothesis:captive-capture-keeps-the-slot-and-banked-and-appends-its-line; APPEND path on tip; mur-eg-26 awr) |
 
 ## Who
 director-engine (engine leaf of g7.33). Model-free rounds; one row per round.
+
+## Agent Notes
+Belam NO-PI 2026-09-29: rows 15/20/21 reconciled DONE from tip bytes (DH.409, read_dms+L4 one-read, captive-capture e3e730e3b0). OWED 9/10/11/13 remain — close blocked; no pi.
 
 #### G7.33.18 — HELD (OWNER 21:1xZ via the Prime): ONE BOX MEMORY-GUARD KIT -- every box that runs seats carries local-town's memory-watch stack, sized to its own RAM, installed from the repo (assigned director-engine) — status: active
 
@@ -9024,7 +8904,7 @@ ACCEPTANCE: a committed test drives it over a tmp-root fixture + a stubbed `syst
 | 7 | the mur verify stage times out at 3600 s under load (loadavg 10-12 / 16 cores) | DH.450, 467, 469 | OWED (smaller slices or the timeout cell) |
 | 8 | the mur verify stage can return its JSON inside `unstructured`: the verdict parses only by hand | DH.466 mur-11 | OWED |
 | 9 | rotation-alert reports 'capture-chain step FAILED: rotate-self rc=1' AFTER the successor seated | 09-27 01:2xZ; recurred 13:2xZ at the director-engine wake as rc=3 (record `started`, seat live) | OWED |
-| 10 | `cli._claim_conjunct_numbers` unions testable_claim with every (n) in the body: quoted review prose inflates the conjunct count | mur-10 DH.465 | DISPATCHED DH.492 (hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only) |
+| 10 | `cli._claim_conjunct_numbers` unions testable_claim with every (n) in the body: quoted review prose inflates the conjunct count | mur-10 DH.465 | DONE EG.90 51eab0b700 (hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only; field wins over body; 0 conjunct sets change over 1309 hyps; on tip) |
 | 11 | after_join output delivered twice (pane input + a self-signed inbox dm) | 09-27 01:27Z | OWED |
 | 12 | a dispatch stale-base refusal prints the JSON then 'aimed: 1 slot' with no spawn -- reads as success | DE dispatches 09-26 | OWED |
 | 13 | a parent can harvest and exit leaving its kid's (DH.486, 488, 495) or its own (DH.489) node edits UNCOMMITTED; recurred 09-27 13:3x-14:1xZ in 3 of 5 harvests (DH.533 config cell, DH.544 x3 nodes, DH.543 x4 nodes -- every byte == write-log, landed by the director) | DH.486-495 | OWED (director lands logged bytes, TMM.268; skill agi-dispatch §5) |
@@ -9032,8 +8912,8 @@ ACCEPTANCE: a committed test drives it over a tmp-root fixture + a stubbed `syst
 | 15 | write.py `thought` rewrites the FIRST THOUGHT pair anywhere, a QUOTED pair included (node_writer.py `_THOUGHT_RE`); same regex in snapshot-goals.py, metrics.py, brief.py | mur-13 DH.481, mur-14 DH.486 | DISPATCHED DH.487 (hypothesis:thought-verb-edits-only-the-top-level-thought-block) |
 | 16 | the reaper skips REFUSED rounds (R3b) | mur-12 DH.470 | OWED |
 | 17 | parents ignore the round CEILING: DH.479, 504, 510 spawned 3-4 kids vs a 1-kid ceiling; DH.497, 506, 510 shipped 2-3x the production-line cap (108 vs 45, 79 net vs 36, +100 vs 40) -- the ceiling is prose the parent reads, never a fence (and spawn_budget._ceiling_clause reads nothing when the number sits on the next line, mur-15 DH.493); DH.533 (09-27 13:3xZ): ~240 test lines in TWO new files vs <= 100 in one; DH.537 tests +113 vs <= 50; DH.534 cli.py net +84 over the post branch vs <= 30 (the kid measured +30 against its own base, which already carried +54 -- a CEILING written relative to the post branch is misread against the round base); DH.542 send.py net +38 vs <= 15; tests over cap in DH.540 (~121/80), 550 (125/40), 551 (93/40), 554 (65/40), 555 (54/40) | DE rounds 09-27 | OWED |
-| 18 | a stale `index.lock` in a round worktree makes the parent's commit fail and the parent exits SILENT (DH.503: lock 04:01:16Z, 0 bytes, no holder; kid work left uncommitted and unreviewed); 4 more kid worktrees held one at 04:24Z | DH.503 | DISPATCHED DH.532 (hypothesis:a-stale-index-lock-is-cleared-or-named-and-a-failed-round-commit-is-never-silent) |
-| 19 | two concurrent `workflow.py run merge-up-review` launches got the SAME run key: mur511 (05:24:37Z) and murb1 (05:36Z) both print `[run-key] mur-director-engine-19` and write into one run dir -- labels differed so no verdict was lost, but run-level state is shared; the key allocation is not atomic; recurred 13:2xZ: murq (13:20:51Z) and murq8 (13:2xZ) both mur-director-engine-21 (labels differed, no clash) -- fix = DH.531, under review | director-engine 05:4xZ, /tmp logs of both units; again x8 on mur-20 | DISPATCHED DH.531 (hypothesis:a-run-key-is-reserved-atomically-so-concurrent-runs-never-share-one) |
+| 18 | a stale `index.lock` in a round worktree makes the parent's commit fail and the parent exits SILENT (DH.503: lock 04:01:16Z, 0 bytes, no holder; kid work left uncommitted and unreviewed); 4 more kid worktrees held one at 04:24Z | DH.503 | DONE EG.64 2beb0aba32 (hypothesis:a-stale-index-lock-is-cleared-or-named-and-a-failed-round-commit-is-never-silent; cli._clear_stale_index_lock + values.core.stale_index_lock_s=900; mur-eg-19 ACCEPT; on tip) |
+| 19 | two concurrent `workflow.py run merge-up-review` launches got the SAME run key: mur511 (05:24:37Z) and murb1 (05:36Z) both print `[run-key] mur-director-engine-19` and write into one run dir -- labels differed so no verdict was lost, but run-level state is shared; the key allocation is not atomic; recurred 13:2xZ: murq (13:20:51Z) and murq8 (13:2xZ) both mur-director-engine-21 (labels differed, no clash) -- fix = DH.531, under review | director-engine 05:4xZ, /tmp logs of both units; again x8 on mur-20 | DONE EG.95 c6a9757217 (hypothesis:a-run-key-is-reserved-atomically-so-concurrent-runs-never-share-one; O_EXCL run-keys marker; on tip) |
 | 20 | `replace body` traps: (a) no END keyword (`read body 1:END` refuses; skill agi-node-write said `1:END`, fixed 75b57c221); (b) the paragraph guard counts a trailing THOUGHT block into the LAST section, so a range starting at that section's heading must run through THOUGHT:END (DH.524 refused at 28:29, section end 33); a paragraph-only range passes | director-engine 05:2x-05:5xZ (DH.520, DH.522, DH.524 appends) | OWED (b); DONE (a) in the skill |
 | 21 | a parent exits leaving a kid node edit whose bytes DIFFER from its last write-log sha (DH.521: experiment:a00-9086ec16-e5b481, actor a00-b0bf124f row 2) -- unlandable by TMM.268, so the corrective item it carried stays open with nothing to say why; recurred DH.555 (14:5xZ): experiment:a00-b0bf124f-4b8eb4 dirty in the parent worktree, no write-log match -> not landed | DH.521 harvest 05:5xZ | OWED |
 | 22 | a context test OOMs its runner: test_model_load_guard.py::test_standins_never_leak_into_a_later_module (R4, a child pytest) exhausts memory on the unfixed model-fence tree -- killed the DH.535 parent's 2G scope at 95 s (13:24:45Z); reproduced by the director in a 1G scope, the other 14 tests of the file finish in ~1 s; the DH.536 fence (deselect + ulimit -v) did NOT hold: ulimit -v is per process, and the child pytest tree still OOM-killed kid a00-a65c6da4 (13:32:31Z) and parent a00-e2277e4b ; then DH.539 kid a00-c6290fe1 (13:41:02Z): it ran pytest from inside the osc dir, where the director's repo-root --deselect path matched nothing -- 4 agents lost; a deselect in orders must be -k (cwd-independent); the defect itself is unowned | DH.535 death 13:2xZ | OWED |
@@ -9051,6 +8931,8 @@ goal:g7.33.17 (the 09-25 queue) · goal:g7.33.15 · goal:g7.33.16 · goal:g7.33.
 
 ## Agent Notes
 Assigned to **director-engine**.
+
+Belam NO-PI 2026-09-29: rows 10/18/19 reconciled DONE from tip lands (EG.90/64/95). Row 15 thought-verb stays DISPATCHED (EG.142 0 code). Many OWED remain — close blocked; no pi.
 
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
