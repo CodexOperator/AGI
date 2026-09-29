@@ -1230,3 +1230,14 @@ def test_nof_flag_default_resolves_a_valid_env_root(tmp_path):
                        env=env)
     assert r.returncode == 0, r.stderr
     assert f"target dir: {proj / '.agi' / 'nodes' / 'build'}" in r.stdout
+
+
+# --- bundle 4 W2c (director-general-2)
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2c: RED until DG3 builds mint-id "
+                   "acceptance into level3.read_mvp_map (startswith('mvp:') drops it)")
+def test_w2c_mvp_map_accepts_a_mint_id_like_an_address(tmp_path):
+    f = tmp_path / "mvp-map.txt"
+    f.write_text("bin/ | mvp:engine-bin\n")
+    addr = l3.mvp_parent_for("bin/x.py", l3.read_mvp_map(f))
+    f.write_text("bin/ | " + "c" * 32 + "\n")
+    assert addr == "mvp:engine-bin" and l3.mvp_parent_for("bin/x.py", l3.read_mvp_map(f))
