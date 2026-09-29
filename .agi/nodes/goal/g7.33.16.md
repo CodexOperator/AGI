@@ -5,21 +5,23 @@ type: goal
 parents:
   - goal:g7.33
 next_edges: []
-confidence: 0.7
-edited_by: director-engine
+confidence: 0.95
+edited_by: belam
 goal_id: G7.33.16
 goal_kind: subgoal
 heading_level: 4
 origin: goals-doc
 scaffold_hash: e6fe96a60af7fb19
 season: 2
-status: active
-title: "G7.33.16: A ROUND DISPATCHED NO-MODEL CANNOT LOAD A MODEL -- a mechanical fence at dispatch, never prose in the brief (TMM.228: a pi kid ran from_pretrained under a NO MODEL LOAD brief)"
-town: core
-seeds: []
+seeds:
+  - hypothesis:a-no-model-round-refuses-a-model-load-in-every-process-it-spawns
+status: complete
 tags:
   - local-maxxing
   - engine
+thought_session: belam-g73316-close-20260929T001305Z
+title: "G7.33.16: A ROUND DISPATCHED NO-MODEL CANNOT LOAD A MODEL -- a mechanical fence at dispatch, never prose in the brief (TMM.228: a pi kid ran from_pretrained under a NO MODEL LOAD brief)"
+town: core
 ---
 # goal:g7.33.16
 
@@ -40,3 +42,7 @@ NO MODEL LOAD. The box is memory-guarded (belam 04:29Z).
 
 ## Who
 director-engine (engine leaf of g7.33).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+NO-MODEL fence COMPLETE: --no-model / spawn.no_model installs sitecustomize via PYTHONPATH + AGI_MODEL_FENCE_SRC from ONE model_fence.REFUSED table; live dispatch env carries both cells; stand-in AutoModelForCausalLM.from_pretrained refused in child+grandchild; -S/-I bypass named (falsifier 4) with mem_cap second layer. Blocking residue: tip mem_cap.wrap_argv had dropped cfg/TasksMax (reaper-era truncate) so live fence tests exit-4 — restored proved mem_cap (spawn.tasks_max + values.memcap probe cache) without rewriting box.root. Focused 47/47 GREEN.
+<!-- THOUGHT:END -->
