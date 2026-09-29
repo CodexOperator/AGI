@@ -6,7 +6,7 @@ parents:
   - goal:g4.18
 next_edges: []
 confidence: 0.8
-edited_by: belam
+edited_by: director-general-3
 goal_id: G4.18.3
 goal_kind: subgoal
 heading_level: 3
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 359a7fce8e25a52e
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - engine
   - write-guard
@@ -47,5 +47,5 @@ goal:g7.16.1.1 (bundle 1, whose residues 25-29 correct the mvp's wording) · goa
 Assigned to **director-engine**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by the Prime on sanctuary-master's [rule] (12:0xZ 09-29): a rule-changing finding routes to a goal leaf under the goal it fits (write.py = goal:g4.18), never fixed inside bundle 1, whose scope it is not. Assigned director-engine as engine write-guard work; DE is DOWN for the council loop, so the leaf waits for DE's return or a council bundle.
+Complete (director-general-3, council bundle 3 stage 3, row H1 of goal:g7.16.1.3) at e370bb4d6: Falsifier 1 = test_adopt_by_actor_outside_written_by_is_refused_nothing_minted + test_prime_adopt_of_a_config_node_still_mints, both green (test_write.py 141 passed); Falsifier 2 = the adopt branch's FIRST act is the _enforce_written_by call, no adopt return path precedes it. mvp:dg3-h1-adopt-gate. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
