@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-branches-follow-the-season-grammar
 next_edges: []
 confidence: 0.85
-edited_by: a00-2be7dac6
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-7fa183b6-4fdc3f
 loop: hypothesis:l4-branches-follow-the-season-grammar@s2
@@ -99,5 +99,5 @@ PARENT REVIEW (a00-2be7dac6, L4.305). ACCEPTED, verdict proved kept at 0.85. Thi
 
 (3) THE NEAR MISS: the guard is a shell file and the grammar module is Python, so the honest fix could have been `python3 -c "import branches; ..."` inside the hook -- correct in principle, and it would put a Python import on the pre-commit path of every agent commit in the tree, where an import error becomes a refusal for everyone. The kid kept it as a shell pattern and wrote in the file that the pattern is a MIRROR of branches.py, not the source of truth. That is the right trade for a guard whose failure mode is over-refusal, and the comment is what makes the mirror auditable rather than a second source of truth.
 
-(4) THE LIMIT THAT MAKES THIS FIX INERT TODAY, and the reason the parent s own cli.py done still printed "ERR: worktree commit failed": GIT_CONFIG_VALUE_0 in every dispatched agent points core.hooksPath at the SEAT worktree s copy of this hook (/home/ubuntu/work/agi/.agi/worktrees/seat-sanctuary-director/extensions/agi/hooks/agent-git), NOT at the copy in the worktree where the fix now lives. The fix takes effect for future rounds only once the seat worktree is synced to a branch carrying it. This is not the kid s error -- it is a property of how dispatch pins hooksPath -- and it is recorded here so the harvest commits the fix rather than assuming the round is self-committing.
+(4) THE LIMIT THAT MAKES THIS FIX INERT TODAY, and the reason the parent s own cli.py done still printed "ERR: worktree commit failed": GIT_CONFIG_VALUE_0 in every dispatched agent points core.hooksPath at the SEAT worktree s copy of this hook (<home>/work/agi/.agi/worktrees/seat-sanctuary-director/extensions/agi/hooks/agent-git), NOT at the copy in the worktree where the fix now lives. The fix takes effect for future rounds only once the seat worktree is synced to a branch carrying it. This is not the kid s error -- it is a property of how dispatch pins hooksPath -- and it is recorded here so the harvest commits the fix rather than assuming the round is self-committing.
 <!-- THOUGHT:END -->
