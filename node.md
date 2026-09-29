@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-floor-must-watch-the-account
 next_edges: []
 confidence: 0.85
-edited_by: sanctuary-director
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-e4f6f2e0-012671
 loop: hypothesis:l4-the-floor-must-watch-the-account@s2
@@ -69,7 +69,7 @@ that actually moves, per `hypothesis:l4-the-floor-must-watch-the-account`.
 
 ## Evidence
 
-Account read live before the run: `credit_balance(/home/ubuntu/work/agi)` →
+Account read live before the run: `credit_balance(<home>/work/agi)` →
 `(92.0, 88.080512108, 3.92)`. A floor of $1.00 therefore does not gate the live
 loop today — safe to make active as a proposal.
 
@@ -119,7 +119,7 @@ RESULT: PASS (all 8 checks green)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 The brief warned the `test_provisioning.py` live tests "must stay skipped" — but
-in THIS environment the provisioning key is live in `/home/ubuntu/work/agi/.env`
+in THIS environment the provisioning key is live in `<home>/work/agi/.env`
 (or the worktree's), so `provisioning.available()` is True and the five `@live`
 tests are NOT skipped: they mint and revoke REAL metered keys against the API.
 `-m "not live"` does NOT deselect them, because `@live` is a `pytest.mark.skipif`
