@@ -17,14 +17,14 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:4xZ 09-29) — gen 4 seat (agi-b1); owner: "Keep working till 7pm" → stop 23:00Z
+## §0 State (21:5xZ 09-29) — gen 4 seat (agi-b1); owner: "Keep working till 7pm" → stop 23:00Z
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests (a build may take [goal, idea]) |
 | protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN /data/work/agi on local-maxxing/season2/main, CC Opus 5.5 high |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
 | sessions | DG3 = agi-b1 · DG2 = agi-40 · DG1 = agi-77 · sanctuary-master = agi-b8 · alive = agi-13 · belam = agi-f0 — hand off by SendMessage + ONE council-loop room line |
-| now | bundle 3 CLOSED (SM re-confirmed at 1f39ffb1c). Bundle 4 HOLD lifted 21:1xZ, base 1f39ffb1c: W-G.1 + W0 landed, sent to SM for review; building W-G.2 |
+| now | bundle 3 CLOSED (SM re-confirmed at 1f39ffb1c). Bundle 4 HOLD lifted 21:1xZ, base 1f39ffb1c: W-G.1 + W0 + W-G.2 landed; SM residues 81-85 closed 9eaf5992f; SM re-murs W-G.2 + 81-85; building W1 |
 
 ## §1 Plan — bundle 3 (goal:g7.16.1.3 + goal:g6.41.1) → bundle 4 (goal:g7.16.1.4)
 ```
@@ -38,10 +38,10 @@ done   SendMessage agi-13 + agi-b8 + council-loop room line (21:2xZ)
 done   residue 80 1f39ffb1c (autopsy test asserts the CM4 home-relative line) -> bundle 3 CLOSED
 done   W-G.1 41107692f + mvp 0a58fe968 + build:GOALS.md retired e6bbc6527: all 6 callers + gate + readers + git rm GOALS.md, smoke exit 0
 done   W0 82fce8a34: goal:g4.19 retitled (Read -> render path); sent to agi-b8 for review 21:4xZ; leaf falsifier self-match -> DG1
-NOW    W-G.2 (goal:g7.16.1.4.1, dead code): snapshot-goals --from-doc + unlink + cmd_render/--render/--check; locations DEFAULT_GOALS_FILE +
-       goals_path + goals_file cell + readers (locations :1186, verify_unified :340, unify comments); test_snapshot_goals render/from-doc rows;
-       flips test_wg_from_doc_and_goals_file_retire. snapshot-goals.py STAYS (write_frontmatter imported by level3, build-site, backfill, decompose, post_wire)
-then   W1 (.5.1-.3) -> W2a (.6.1) -> W2b/c/e -> W3a/b -> W3c-1 additive before W3c-2 atomic cut (SM checks: never two read paths taught)
+done   W-G.2 254f58ef7 + mvp 08b921fd8: renderer + doc import + goals_path out; all 5 W-G rows green; smoke exit 0 node_count 5190
+done   SM residues 81-85 (wf_55fc5dde-0e5) closed 9eaf5992f; re-mur asked; leaf split note asked of DG1 (his node)
+NOW    W1a goal:g4.18.5.1: node_writer.body_rows (the one row index) -- strict-xfail rows in test_node_writer (verdict:dg2b4-w1a)
+then   W1b (.5.2) · W1c/B2 (.5.3) -> W2a (.6.1) -> W2b/c/e -> W3a/b -> W3c-1 additive before W3c-2 atomic cut (SM checks: never two read paths taught)
 NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids (superseded, 68d4c8504) ·
        goal:g4.18.6.4.1 + the W2d migration (HELD on belam's mint-id [decision], d4a186957)
 DG1 re-scope 2 (d4a186957): g4.18.6.3.1 PARENTS ONLY post-pass at loader.py:210-230, resolver passed in · g4.18.6.3.2 owns every next_edges reader ·
@@ -54,10 +54,10 @@ DG1 re-scope 2 (d4a186957): g4.18.6.3.1 PARENTS ONLY post-pass at loader.py:210-
 - bundle 3: bb153e89d 482da3853 e370bb4d6 2c412e5bb a981ae47f da8b2cfbc 92f6f4883 fb57864a5 551908e4b 7baafa62b 0e3102a67 17f91868b
   63898e64f 429b86530 7d928ffe4 6211ebb40 d4e1f7c62 823da7e8e 0d33b10f4 4453af4d7 07ee9c46b 66da33b01 a1eabdebf 528115210 cfe5a6aca
   3f5b2f455 e2ae6d5a5 1f39ffb1c
-- bundle 4: 41107692f 0a58fe968 e6bbc6527 82fce8a34
+- bundle 4: 41107692f 0a58fe968 e6bbc6527 82fce8a34 254f58ef7 08b921fd8 9eaf5992f
 
 ## 🔴 Where it stops
-Building bundle 4 W-G.2 (plan NOW row); W-G.1 + W0 await SM's review. Stop 23:00Z. PASS B3 on this box: ONE test file at a time.
+Building bundle 4 W1a (plan NOW row); SM re-murs W-G.2 + 81-85. Stop 23:00Z. PASS B3 on this box: ONE test file at a time.
 First command at wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
