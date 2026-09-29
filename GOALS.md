@@ -3397,6 +3397,36 @@ goal:g4.18.3 (adopt's written_by gate) · goal:g7.16.1 (the council bundles).
 ## Agent Notes
 Assigned to **director-engine**.
 
+### G4.18.5 — a node body is addressable rows -- one verb replaces a row, one edits lines inside a block row, and every write is a git commit behind the permission layer — status: active
+
+# goal:g4.18.5
+
+# goal:g4.18.5
+
+## OWNER 2026-09-29 17:2xZ, verbatim (Prime pane)
+"Is our new unified mint/wrote working better. We could add more verbs to mint single row changes and to change specific lines inside of a row that is a block of text not just one line."
+"Actually, if we have a one-row replace verb we can split all the different body sections into their own rows. But also still have a way to overwrite specific lines. Maybe something got based that piggybacks off of git commits. Maybe a write could be a commit also and just drive all the existing git machinery just with permissions layered on top."
+
+## Why this exists
+goal:g4.18: write.py is the one node writer. Measured friction on 09-29 (belam-S2-L5-XVI): no single-row verb (re-homing stream-master rewrote the whole 25-row config:posts list via write.submit); `replace body` refuses a line inside a table paragraph (the council-loop Posts table was replaced whole to add one row); `create config` has no route (spawn gate) and `adopt` skips written_by (goal:g4.18.3); a key-row write corrupted config:posts on season2/main (goal:g4.18.4).
+
+## Target end-state
+- A node body is a list of addressable ROWS (one per section / table row / list item); one verb replaces one row, one verb edits lines inside a block row.
+- A write IS a git commit: the permission layer (written_by, self_row, actor_rows, schema) runs first, then the write commits the one node by path; the grid and history are git's, not a second mechanism.
+
+## Invariants
+- Every write passes the same authorship + schema gate before any byte lands; no verb returns ahead of it.
+
+## Falsifier
+1. `write.py <id> 'row <n> <file>'` replaces exactly one row, and `git log -1 -- <node>` is that write's commit.
+2. Negative: zero write.py verbs that change a node without producing a commit.
+
+## Out of scope
+goal:g4.18.3 · goal:g4.18.4 (bundle 3, H1-H2).
+
+## Agent Notes
+Assigned to **director-engine**.
+
 ### G4.19 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
 
 <!-- BODY:BEGIN -->
@@ -7014,7 +7044,7 @@ Rows in council order. A row closes when its line holds in the bytes.
 - **H1 · one gate for every verb.** goal:g4.18.3: `write.py <id> adopt` applies the type's written_by (and its self_row / actor_rows grants) before any mint; an actor outside written_by is refused by name and nothing is minted.
 - **H2 · the organ every post reads always loads.** goal:g4.18.4: a key-row write never inserts one row into a config:posts that lacks it (refuse by name, or write the whole row set), and every config:posts write is YAML-loaded before it is committed.
 - **H3 · one park form.** The 5 body-table carriers of parked ROWS (goal:g7.33.19 · 11, hypothesis:pass10-0927-residue-batch · 11, pass11-0927 · 3, pass12-0928 · 8, passb1-0928 · 6 = 39 rows) carry the tag `parked:g7.16.2`, with no status change on a carrier that also holds keep rows. The formation check FAILs when a live node holds a `triage: parked: formation` row but no carrier tag, so a switch to g7.16.2 wakes the carrier and its body names the rows.
-- **H4 · bundle-2 residues.** rotate._dump_record / rotate._resolve_record_path and verification's parked_carriers move to ONE small shared module that rotate, heal, sensei, write and verification import. No `_private` name is imported across modules, and write.py never imports the verifier. heal never swallows ImportError on a rotation-record write. skills/agi-master-gate/SKILL.md:66 points at anonymize.CLASSES + HOME_PATH_RE instead of hand-listing classes. goal:g7.32.5 returns to its pre-park status (park is tag-only). Plus every refuter-confirmed residue of the council mur wf_4e0708df-4ef over 794a0782e..9c54fb3c4 (the convener sends them to director-general-1 by name).
+- **H4 · bundle-2 residues.** rotate._dump_record / rotate._resolve_record_path and verification's parked_carriers move to ONE small shared module that rotate, heal, sensei, write and verification import. No `_private` name is imported across modules, and write.py never imports the verifier. heal never swallows ImportError on a rotation-record write. skills/agi-master-gate/SKILL.md:66 points at anonymize.CLASSES + HOME_PATH_RE instead of hand-listing classes. goal:g7.32.5 returns to its pre-park status (park is tag-only). Plus the refuter-confirmed residues of the council mur wf_4e0708df-4ef over 794a0782e..9c54fb3c4 (3 rounds, all accept_with_residue, 0 red): (a) skills/agi-master-gate/SKILL.md:66 hand-lists 6 classes, already stale against HOME_PATH_RE's bare-home match (the pointer fix above). (b) goal:g7.16.1.2.3 invariant 'class and scrub land in the SAME round' is unmet: the generic home class still matches 424 files (.agi/nodes 367 · datasets 31 · .agi/sessions/quorum 15, + rotations), banked as SM residue 39. Every write.py edit that re-adds such a line is now refused. Scrub one scope per round until `git grep -lP '/(?:home|Users)/[\w-][\w.-]*' -- .agi/nodes datasets .agi/sessions/quorum .agi/sessions/rotations | wc -l` = 0. (c) goal:g7.16.1.1.2.1 reads complete, but its anchored Falsifier 1 fails on 3 of 21 nodes: fix the 3 marks or re-open the leaf. (d) hypothesis:pass10-0927-residue-batch row 32 is a false park (context-suite conftest machinery runs in every formation): keep. (e) mvp:dg3-p-park-tag states 6 parks while its own falsifier grep prints 9 · mvp:dg3-t-one-registry still reads partial / strict-xfail after the cell landed (fee990795): make both true. (f) verification._grep_live ignores git grep's exit code (the mark gate fails open) and yaml.safe_load raises on a malformed hit (verification.py:1290, :1297). (g) rotate.py _compose_seating_announcement (~:6179/:6546) writes the absolute transcript path into tracked comms: route it through the same home-relative serializer.
 - **S1 · messaging is ONE route, or a verdict.** The first leaf MEASURES: send routes on the trunk before and after, and which goal:g7.32.6 targets the trunk lacks. S1 lands ONLY as a replacement: the dm_* family + send_transport fold into ONE module (or send.py itself) on this trunk, carrying the union of their tests, and the SAME row retires the inbox route (152 refs down to what a retirement pointer needs), so routes go 2 -> 1, with CC SendMessage as the interim. The dm file format stays byte-compatible: one test reads a real committed .agi/comms/**/dm/*.md file through the folded module. If the retirement does not fit, S1 becomes a verdict node like S2, and nothing is ported. adapters/magic_pane follows S1's outcome.
 - **S2 · the unwired five are explained, not dropped.** None is ported. ONE verdict node on this trunk carries, per module: (a) the goal it serves (g7.31.3.3 .1-.5 for kid_write_gate, spawn_refusal, parent_slots, needs_rotate; session_ingest = a SECOND mint door that folds into `write.py create` with a derived id, never a new module); (b) the start point for when that goal is worked: core sha + its test file + its pass count; (c) the gap in one line ("built + tested, not wired into heal/rotate"). Our goal:g7.31.3.3 records module != wired, so no successor reads core's COMPLETE as done. ONE TRUTH ACROSS TOWNS: core marks g7.31.3.3 and .1-.5 complete while our trunk has g7.31.3.3 active and no .1-.5. The verdict node names this for the Prime's merge: the true status is ACTIVE until wired, so g7.31.3.3 stays active and its leaves land active, each with a BODY status line in Target end-state ("built at <core sha>, test <file> <n>/<n>, not wired into heal/rotate"), never in THOUGHT, because it is state, not delta. The convener sends the Prime one [merge-note] line; nothing is written on core.
 - **Convention for every port:** a folded or ported module names its core module + sha in its build node (provenance lives on THIS trunk, never a write on core), and its tests are named by behaviour, never by goal id.
@@ -7030,6 +7060,149 @@ Rows in council order. A row closes when its line holds in the bytes.
 
 ## Out of scope
 bundle 4 = core's edits to EXISTING files (write.py +125, dispatch.py +86, boxes.py +87, provisioning.py, rotate.py) together with profile_sync (it moves with its rotate/write callers) · then the season-2 close (outcomes -> bigger outcomes -> overviews, handed to the Prime) · goal:g7.31.3.3 itself (only its record is corrected) · goal:g5.22 through goal:g5.31
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.3.1 — one park form -- the 5 carriers of the 39 parked rows carry parked:g7.16.2, and the formation check FAILs on a row-park without its carrier tag (row H3; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.1
+
+## Why this exists
+goal:g7.16.1.3 (bundle 3) row H3. Bundle 2 row P made park a tag on goal and hypothesis nodes, but 39 parked ROWS live in the body tables of 5 carriers (goal:g7.33.19 · 11, hypothesis:pass10-0927-residue-batch · 11, pass11-0927 · 3, pass12-0928 · 8, passb1-0928 · 6; council measure 17:1xZ 09-29). A row has no `tags`, so switching to g7.16.2 wakes none of them.
+
+## Target end-state
+- Each of the 5 carriers carries the tag `parked:g7.16.2`, with no status change on a carrier that also holds keep rows.
+- verification.py's formation check FAILs when a live node holds a `triage: parked: formation` row but no carrier tag. So a switch to g7.16.2 lists the carrier, and its body names the rows.
+
+## Invariants
+- Park stays tag-only (bundle 2 row P). No row text changes.
+
+## Falsifier
+1. The formation check FAILs on a fixture carrier with a parked row and no tag, and PASSes on the live graph.
+2. Negative: `git grep -l 'triage: parked: formation' -- .agi/nodes ':!.agi/nodes/deprecated'`, minus the files tagged `parked:g7.16.2`, = 0.
+
+## Out of scope
+goal:g7.16.1.3.2 (the shared module the check moves into)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.3.2 — bundle-2 residues closed -- one shared record module, heal loud on ImportError, skill points at anonymize.CLASSES, g7.32.5 active again, the council mur rows (row H4; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.2
+
+## Why this exists
+goal:g7.16.1.3 (bundle 3) row H4: bundle 2's lens reviews (all-is-one, self-perpetuating) and the council mur wf_4e0708df-4ef over 794a0782e..9c54fb3c4 left residues. Split so each closes on its own: goal:g7.16.1.3.2.1 (one shared record module + heal's ImportError) · .2.2 (the skill pointer and g7.32.5's status: text) · .2.3 (the mur's refuter-confirmed residues, sent by the convener by name).
+
+## Target end-state
+- Every H4 residue named in goal:g7.16.1.3 and every refuter-confirmed residue of wf_4e0708df-4ef is closed in its sub-leaf.
+
+## Invariants
+- No `_private` name is imported across modules. write.py never imports the verifier.
+
+## Falsifier
+1. `git grep -h '^status:' -- .agi/nodes/goal/g7.16.1.3.2.*.md | sort -u` prints only `status: complete`.
+2. Negative: `git grep -nE 'from rotate import _|rotate\._(dump_record|resolve_record_path)' -- extensions/agi/bin` prints 0.
+
+## Out of scope
+goal:g7.16.1.3.1 (row H3's carrier tags)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+###### G7.16.1.3.2.1 — rotation-record dump/resolve and parked_carriers live in ONE shared module that rotate, heal, sensei, write and verification import by public name; heal never swallows ImportError on a record write (row H4 part 1; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.2.1
+
+## Why this exists
+goal:g7.16.1.3.2 (row H4), part 1. Bundle 1-2 rounds left the rotation record's I/O as private functions in rotate.py (`_dump_record`, `_resolve_record_path`) that other modules reach into, and verification.py's `parked_carriers` is imported by write.py for the set-active drop, so write.py imports the verifier. Measured 17:2xZ 09-29: write.py:2369 `import verification` (for `verification.parked_carriers`) · heal.py:872 and :1031 call `_rot._dump_record` · sensei.py:576-591 call `rotate._resolve_record_path` (4 sites) · heal's record write sits in `except (OSError, ImportError)` ("never raises"), so a missing module silently skips the record.
+
+## Target end-state
+- ONE small shared module holds the record dump/resolve and parked_carriers. rotate, heal, sensei, write and verification import it by public name.
+- heal never swallows ImportError on a rotation-record write: a missing module fails loudly.
+
+## Invariants
+- Rotation records write and resolve byte-identically before and after the move.
+
+## Falsifier
+1. `git grep -nE 'from rotate import _|rotate\._(dump_record|resolve_record_path)' -- extensions/agi/bin` prints 0, and `git grep -n 'import verification' -- extensions/agi/bin/write.py` prints 0.
+2. Negative: heal.py's record-write paths catch OSError only: `git grep -n 'except (OSError, ImportError)' -- extensions/agi/bin/heal.py` prints 0 on those paths.
+
+## Out of scope
+goal:g7.16.1.3.2.2 · goal:g7.16.1.3.2.3
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+###### G7.16.1.3.2.2 — the master-gate skill points at anonymize.CLASSES + HOME_PATH_RE; g7.32.5 back to status active, tag kept (row H4 part 2; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.2.2
+
+## Why this exists
+goal:g7.16.1.3.2 (row H4), part 2: text only. skills/agi-master-gate/SKILL.md:66 hand-lists the anonymize classes (a second source; bundle 2 row R3 made anonymize.py the one source: `CLASSES` + `HOME_PATH_RE`). goal:g7.32.5 was set `status: horizon` when parked (6ff0e0aa1, bundle 1 row E). Park is tag-only since bundle 2 row P, and its pre-park status was `active` (git show 6ff0e0aa1~1).
+
+## Target end-state
+- skills/agi-master-gate/SKILL.md:66 points at anonymize.CLASSES + HOME_PATH_RE (a [build, goal] version of that skill's build node).
+- goal:g7.32.5 reads `status: active` and keeps its `parked:g7.16.2` tag.
+
+## Invariants
+- The skill never copies a class list.
+
+## Falsifier
+1. `grep -m1 '^status:' .agi/nodes/goal/g7.32.5.md` prints `status: active`, and its tags still hold `parked:g7.16.2`.
+2. Negative: the master-gate skill carries no literal class list (`grep -cE 'CLASSES|HOME_PATH_RE' skills/agi-master-gate/SKILL.md` >= 1, and the old hand list is gone).
+
+## Out of scope
+goal:g7.16.1.3.2.1
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+###### G7.16.1.3.2.3 — every refuter-confirmed residue of council mur wf_4e0708df-4ef is closed (row H4 part 3; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.2.3
+
+## Why this exists
+goal:g7.16.1.3.2 (row H4), part 3: the council mur wf_4e0708df-4ef over 794a0782e..9c54fb3c4 (bundle 2's range) was still running at mint (17:2xZ 09-29). The convener sends its refuter-confirmed residues to director-general-1 by name, and they land here as rows.
+
+## Target end-state
+- Every refuter-confirmed residue of wf_4e0708df-4ef is a row in this list, each closed by a fix in the bytes or a measured demote.
+- Rows: (pending the convener's list; director-general-1 adds them here by name)
+
+## Invariants
+- A residue needing more than one round splits into its own leaf under this one.
+
+## Falsifier
+1. Every row in this body reads closed, with a commit or a measured reason.
+2. Negative: open rows = 0.
+
+## Out of scope
+goal:g7.16.1.3.2.1 · goal:g7.16.1.3.2.2
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.3.3 — messaging is ONE route, or a verdict -- measure first, then fold the core dm family as a replacement that retires the inbox, or record why not (row S1; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.3
+
+## Why this exists
+goal:g7.16.1.3 (bundle 3) row S1. Core added messaging BESIDE the inbox, not instead of it. Measured 17:2xZ 09-29 at origin/core/season2/main fca147fe1: dm_address 115 · dm_engine 128 · dm_no_inbox 74 · dm_nudge_gate 75 · dm_read_version 64 · dm_send_version 80 · dm_sync_cron 92 lines + send_transport 39, with 8 tests. send.py `inbox` refs: trunk 152, core 149. The trunk has 0 dm_* modules. Porting as-is gives 2 routes. Split: goal:g7.16.1.3.3.1 MEASURES first, and goal:g7.16.1.3.3.2 lands a replacement or a verdict.
+
+## Target end-state
+- Messaging on this trunk is ONE route: either the folded dm module replaces the inbox route (routes 2 -> 1), or a verdict node records why not and nothing is ported. CC SendMessage is the interim.
+- adapters/magic_pane follows S1's outcome.
+
+## Invariants
+- Nothing is written on core. The dm file format stays byte-compatible.
+
+## Falsifier
+1. `git grep -h '^status:' -- .agi/nodes/goal/g7.16.1.3.3.*.md | sort -u` prints only `status: complete`.
+2. Negative: if S1 landed, `git ls-files extensions/agi/bin | grep -c '^extensions/agi/bin/dm_'` <= 1; if S1 is a verdict, 0.
+
+## Out of scope
+goal:g7.32.6 itself (S1 measures its targets only) · bundle 4 (core edits to existing files)
 
 ## Agent Notes
 Assigned to **director-general-1**.
