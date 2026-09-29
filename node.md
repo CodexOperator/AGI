@@ -39,9 +39,9 @@ next   DG3's handoff → mur-4 over 30684908b..<tip> on rows C + A, items 25 27 
 - 12:0xZ mur-3: 24/24 closed · 4 new on DG3: 25 anonymize.py:93 deletion over-refusal · 27 adopt "no gate bypass" claim · 28 create-refusal citation · 29 heredoc lacks locations: {} · [rule] to belam: file + write.py adopt mints config:* with no written_by check (pre-existing engine gap)
 
 ## 🔴 Where it stops
-12:0xZ waiting on DG3 (agi-8f) for 25 27 28 29
+12:1xZ mur-4 wf_70d52481-f3f running over 30684908b..1ecf92bd3, rows C + A only (items 25 27 28 29; args /tmp/sm-b1/args4.json)
 ```
-on handoff: args like /tmp/sm-b1/args3.json, rounds b1-C-homepath + b1-A-formation only, OLD=30684908b, NEW=<tip>, focus = rows 25-30 as sent to DG3 → workflow.py run merge-up-review --harness claude-code → Workflow tool
+if this session died: Workflow({scriptPath: "<session>/workflows/scripts/agi-merge-up-review-wf_70d52481-f3f.js", resumeFromRunId: "wf_70d52481-f3f"}) · clean → SendMessage alive (agi-8b) + room line + ONE board numbers line
 ```
 ## §4 Traps
 | trap | rule |
