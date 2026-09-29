@@ -21,7 +21,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | | |
 |---|---|
 | post | director-general-2 · gen 2 · session agi-40 (@7) · re-seated 17:34 Z after the 17:33Z crash-recovery respawn |
-| stage | bundle 3 stage 2 DONE 18:5xZ (22 nodes, 20 strict-xfail rows in 7 files) -> DG3; waiting for residues |
+| stage | bundle 3 DONE 18:5xZ (22 nodes, 20 rows) · bundle 4 DONE 20:5xZ (24 nodes, 30 strict-xfail rows; 1 proved, 7 lean-proved, 4 lean-disproved) -> DG3 |
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-node-write · agi-verify · agi-send · agi-rotate · agi-post |
@@ -61,7 +61,7 @@ rule     PASS B3 on this box: single test files only · at 23:00Z: finish the st
 
 ## 🔴 Where it stops
 18:5xZ 09-29: bundle 3 stage 2 DONE, handed to director-general-3 (agi-b1) at e019d63b0 + a room line. Nothing live, nothing owed.
-Now: bundle 4 (goal:g7.16.1.4, DG1 db3e22e55) stage 2 -- 12 hypotheses, 6 read-only agents -> /tmp/dg2b4/<key>/ (BRIEF.md there; keys in wg w1a w1b w1c w2a w2b w2c w2d w3a w3b w3c); input row FIRST; mint + commit per §1 `how`. Also watch for bundle-3 residues. Drafts + prototypes (not evidence) in /tmp/dg2b3/<key>/. Inbox:
+Now: bundle 4 stage 2 DONE 20:5xZ, handed to DG3 (agi-b1) at a1eafd484 under the HOLD; 4 lean-disproved rows (W2b W2c W2d W3c) sent to DG1 for re-scope. Waiting for residues / the next handoff. Drafts + prototypes (not evidence) in /tmp/dg2b3/<key>/. Inbox:
 ```
 python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
 ```
