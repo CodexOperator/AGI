@@ -1492,7 +1492,7 @@ def _read_seat_pin(root: Path, seat: str, cur_gen: int | None) -> tuple[Path | N
 
 
 def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None,
-               scope_slice: str | None = mem_cap.POST_SCOPE_SLICE) -> str:
+               scope_slice: str | None = None) -> str:
     """The quoted shell line that launches `claude_cmd`.
 
     Three exports may ride in front of the command, and all compose:
@@ -1522,10 +1522,11 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None,
     (HUP). The seatless line stays byte-identical to today — the wrapper is
     inserted only when `seat` is not None.
 
-    **Every post runs in its OWN scope** under `scope_slice` (goal:g6.41.1 P6,
-    mem_cap.scope_argv; cap-free, the slice holds the cap), wrapping the
-    launch-wrapper too, so an oomd kill takes one post. spawn_window, the ONE
-    caller, passes the `spawn.post_scope` cell: None (the cell off) = unscoped.
+    **With `scope_slice` set, every post runs in its OWN scope** under it
+    (goal:g6.41.1 P6, mem_cap.scope_argv; cap-free, the slice holds the cap),
+    wrapping the launch-wrapper too, so an oomd kill takes one post. The default
+    is None = unscoped, today's line; spawn_window, the ONE caller, passes the
+    `spawn.post_scope` cell (live:false -> None).
     """
     unit = f"agi-post-{re.sub(r'[^\w.-]', '_', seat)}-{int(time.time())}" if seat else None
     joined = " ".join(shlex.quote(c) for c in mem_cap.scope_argv(claude_cmd, scope_slice))
@@ -1739,17 +1740,21 @@ def cmd_launch_wrapper(args, root) -> int:
 _TMUX_ARG_SAFE = 8192
 
 
-def ensure_tmux_session(tmux_session: str,
-                        slice_: str = mem_cap.POST_SCOPE_SLICE) -> None:
-    """goal:g6.41.1 P1: create `tmux_session` when absent, in its OWN scope under
-    `slice_` (never inside the remote-control or reaper cgroup), so the next
-    new-window has a server. Present = no-op; a failure is a warning (the
-    new-window that follows names the real error)."""
+def ensure_tmux_session(tmux_session: str, root: Path | None = None) -> None:
+    """goal:g6.41.1 P1: create `tmux_session` when absent, in its OWN scope
+    (never inside the remote-control or reaper cgroup), so the next new-window
+    has a server. The slice follows the `spawn.post_scope` cell of `root` (else
+    the project found from cwd): live -> its slice; off -> NO slice, so the
+    server never lands under a shared cap the owner has not chosen (residue 68).
+    Present = no-op; a failure is a warning (the new-window names the error)."""
     try:
         if subprocess.run(["tmux", "has-session", "-t", tmux_session],
                           capture_output=True, text=True, timeout=10).returncode == 0:
             return
-        r = subprocess.run(["systemd-run", "--user", "--scope", "-q", f"--slice={slice_}",
+        root = root if root is not None else locations.find_project_root()
+        slice_ = mem_cap.resolve_post_scope(_config_json(root) if root is not None else {})
+        r = subprocess.run(["systemd-run", "--user", "--scope", "-q",
+                            *([f"--slice={slice_}"] if slice_ else []),
                             f"--unit=agi-tmux-{tmux_session}-{int(time.time())}", "--",
                             "tmux", "new-session", "-d", "-s", tmux_session],
                            capture_output=True, text=True, timeout=30)
