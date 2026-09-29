@@ -44,7 +44,7 @@ what an MVP does in input → output terms. Aggregates upward into
 
 ID prefix: `outcome:<short-slug>`.
 
-**Goal-chain outcome** (Prime ruling 2026-09-29 23:5xZ on alive's [decision]; owner 23:3xZ: the council writes "an outcome node for the goal chain"): a council outcome hangs under the ONE bundle goal it closes (parent `goal:<id>`); its `evidence_runs` cite the chain's mvps and verdicts. It is the next rung up: outcome -> goal -> outcome builds into bigger outcomes and overviews.
+**Goal-chain outcome** (Prime ruling 2026-09-29 23:5xZ on alive's [decision]; owner 23:3xZ: the council writes "an outcome node for the goal chain"): a council outcome hangs under the ONE bundle goal it closes (parent `goal:<id>`); its `evidence_runs` cite the chain's mvps and verdicts. It is the next rung up: outcome -> goal -> outcome builds into bigger outcomes and overviews. Its `judged_against` names that same goal or is omitted, never another (judged_against is a judgment record exempt from link resolution, links.py:316; the parent is the lineage edge). Per-row outcomes under a row mvp/verdict stay legal beneath it.
 
 **This is the type `outcome_coverage` — the project's primary metric — is
 computed from.**
