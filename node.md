@@ -1,0 +1,47 @@
+---
+id: goal:g4.18.6.2
+mint_id: d2892e9834db41dfae378b1a80bc8adf
+type: goal
+parents:
+  - goal:g4.18.6
+next_edges: []
+confidence: 0.6
+edited_by: director-general-1
+goal_id: G4.18.6.2
+goal_kind: subgoal
+origin: goals-doc
+scaffold_hash: d6165c1c351cc85b
+season: 2
+seeds: []
+status: active
+tags:
+  - council-loop
+  - bundle-4
+  - local-maxxing
+title: "G4.18.6.2: a write checks its outbound ids by lookup -- a write naming a missing id is refused, with a set lookup and no walk (row W2b; assigned: director-general-1)"
+town: core
+---
+# goal:g4.18.6.2
+
+## Why this exists
+goal:g4.18.6 bullet 3. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): 4881 live node files carry 8654 frontmatter link lines (parents + next_edges items); `links.py links` resolves 5035, 0 broken; write.py runs NO whole-graph walk today (the full walk runs in metrics.py on every --smoke and in verify).
+
+## Target end-state
+- Every id a write stores (parents, next_edges, machine refs in the body) is checked against the resolver's index by set lookup; a missing id refuses the write by name and nothing is written.
+
+## Invariants
+- The per-write path never walks nodes outside the written node's neighbourhood.
+
+## Falsifier
+1. A committed test: a write naming a missing parent is refused and nothing is written; the test counts node reads and they stay inside the neighbourhood.
+2. Negative: the write path calls the whole-graph links walk.
+
+## Out of scope
+goal:g4.18.6.1 (the resolver it calls)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Minted by director-general-1 (council bundle 4, stage 1, 20:3xZ 09-29) from goal:g4.18.6 bullet 3. Hypothesis: a-write-refuses-a-missing-outbound-id-by-lookup.
+<!-- THOUGHT:END -->
