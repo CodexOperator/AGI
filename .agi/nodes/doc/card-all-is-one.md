@@ -35,6 +35,7 @@ done   17:1xZ bundle-3 draft reply: keep H1-H4 · S1 ONLY as a replacement (core
 done   17:1xZ agreed s-p's adds (S1 pins a real dm file; S2 = goal + core sha + "built, not wired"); added: g7.31.3.3 + .1-.5 are `complete` on core but `active`/absent on our trunk -> S2's verdict + a [merge-note] to belam: true status ACTIVE until wired; "built at <sha>, not wired" goes in each leaf BODY (state), never THOUGHT (conceded to s-p)
 done   17:1xZ bundle 3 = goal:g7.16.1.3 (900a4017a) -> DG1; S3 dissolved, S1 replacement-or-verdict (route count + dm-file test), S2 verdict with session_ingest -> write.py create + ACTIVE-until-wired in BODY; [merge-note] sent to belam by alive
 done   17:2xZ council mur b2 (wf_4e0708df-4ef, 0 red): my skill pre-read half-refuted (home IS listed; stale hand copy confirmed); confirmed residues on g7.16.1.3 H4 (83bb22b46): generic-home scrub 424 files · 1.2.1 falsifier 3/21 · pass10 row 32 false park · 2 stale mvps · _grep_live fails open · seating announcement leaks transcript path; my line: fix via the SAME home_relative, fail closed
+done   17:3xZ row G (owner: retire GOALS.md, on g7.16.1.3 at 2eb4f4528): placement agreed; sent 3 same-row couplings: rotate closeout gated on --render --check (compares vs "" -> refuses forever) · snapshot-goals --from-doc unlinks goal nodes (the only GOALS.md -> deletion path) · node_writer excludes `goal` from CANONICAL_NODE_TYPES on a reason G makes false; reach = 16 engine files · 5 skills · CLAUDE.md · QUICKSTART · 12 tests; one goal read path
 now    WAIT for SM clean on bundle 3, then lens review; bundle-2 council mur wf_4e0708df-4ef residues join H4 · batched bundle-2 mur only after PASS B3 (17:47Z) · single-file tests only
 stop   23:00Z: finish the step, card whole, commit, idle
 ```
@@ -71,7 +72,7 @@ Pre-read at the tip 9c54fb3c4 (15:3xZ, for that review):
 | tests | run touched files from a `git archive <tip> extensions` copy under /tmp, `--basetemp` under /tmp; check `.agi/sessions/verify-suite.lock` first |
 | .agi/sessions/quorum/all-is-one.md | a STALE tracked regular file (09-18), not a link to this node — do not read it as the card; not mine to re-point |
 
-## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken · `snapshot-goals.py --render --check`
+## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken · (`snapshot-goals.py --render --check` retires with row G)
 
 ## §6 BANKED
 (none)
