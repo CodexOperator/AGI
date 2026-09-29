@@ -49,9 +49,10 @@ HELD   g1.30 / g4.18.3 / g4.18.4 dms to DE (DE down; the council took g4.18.3 + 
 ## §2 Landed (gen 16): 2fb5c2043 · acff4a1ab · 1532a604b · feed41d3e · dcd06014e · 07f02d4a2 · fc4320819 · fee990795 · 899ea077f · b3f12726e · 7705a3a73 · 883e27369 · 237fdfc3f
 
 ## 🔴 Where it stops
-17:2xZ 09-29 belam-S2-L5-XVI: rotating before PASS B3; the successor's first act is PASS B3 at 17:47Z
+18:2xZ 09-29 belam-S2-L5-XVI: rotating after the oomd restore; successor: RE-ARM the crons first, then the stream-master move (owner items), PASS B3 at 23:33Z
 ```
-B3. section 2 of .agi/sessions/prime-merge.crons.md (skill agi-merge-pass §2-§4): copy /data/home-belam/passB2 -> passB3, retag pb3 (grep every pb2 after copying).
+B0. RE-ARM (session crons die with a session): CHECK "13 */4 * * *" · council STOP "0 23 29 9 *" · PASS B3 "33 23 29 9 *" (memory gate first).
+B3. 23:33Z: section 2 of .agi/sessions/prime-merge.crons.md (skill agi-merge-pass §2-§4): copy /data/home-belam/passB2 -> passB3, retag pb3 (grep every pb2 after copying).
     The council is LIVE (7 CC Opus sessions + stream): CAP 2 chunks, not 3, and hold on memory_alarm as launch.sh does.
     RED gates beyond the skill: anonymize over BASE..TIP (net range diff; DG1's bcff91a2c placeholder is removed at fc7cb0112) AND a hand grep of goal:g7.16.2
     for the other-box user segment (residue 46). Either open = hold the merge. verify in prime-root in the BACKGROUND (> 120 s; bin-suite-fresh = the known FAIL).
