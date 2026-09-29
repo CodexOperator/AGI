@@ -217,6 +217,28 @@ FILE SCOPE extensions/agi/tests/test_logs_dir_resolves_from_one_cell.py · .agi/
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over 24634a90c · <= 40 test lines net over 24634a90c · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 24634a90c <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.202 -- closes mur-eg-x562904-eb04f7 EG.191-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-box-logs-dir-resolves-a00-547f2313 tip 25e2ba8d4 (branch de-base-EG.202; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. Section heading destroyed by the corrective's write.py range
+2. Half-application of items 1/2/4 — Agent Notes :172, THOUGHT :168 and Notes-for-director :145 still carry the false mechanism
+3. New annotation decorates a stale count ('12 passed' vs 13 collected)
+4. Item 6 settled by a paste over gitignored bytes (mutate_reaper_env.py)
+5. Orphan scaffold fragment 'Raw output, screenshots, logs.'
+6. Citation range stops mid-body: the corrected chain names the live fixture as `suite_guards.py:139-151` (test file:53-54, a00-421b37b6:36 and :100, a00-8ee2a57e:57 and :155), but `make_agi_env_stripped_fixture` spans suite_guards.py:139-155 — the teardown `restore_dispatch_env(stripped)` at :153 falls outside the cited range, so a reader following the pin for what the fixture does sees the strip and not the restore. Same class as item 7 (a citation that stops at the wrong line), and it is the one surface this round existed to correct.
+7. The load-bearing authority claim overstates its own evidence: a00-8ee2a57e:164 says `git grep _strip_agi_env -- extensions/agi returns only the def at conftest.py:54 plus two by-path drivers`. At 25e2ba8d4 that grep also returns extensions/agi/tests/probes/probe_strip_predicate.py:3, extensions/agi/tests/test_round_own_path_set_fails_closed.py:23,50 and extensions/agi/tests/test_agi_env_strip.py:120,122. The conclusion (no fixture calls the wrapper — true) survives, but the OUTSIDE inventory at :150-153 ("three test files still name it") omits the probes/ file, i.e. the same inventory-omission class as the reviewer's item 5.
+DEMOTED   by the director at triage: generated item(s) 5 7 -- item 5 = an OUTSIDE finding in conftest.py (outside FILE SCOPE: a director findings row, never this kid's edit); item 7 = the parent-leaves-node-edits-uncommitted class (g7.33.19 row 13), already salvaged by the director -- a process row, not a byte fix
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANCHOR    every cite you write or touch names a heading, a function or a cell key; add a line number ONLY where the claim IS that line (TEXT-FIX CHURN: line pointers go stale on the next edit). A pointer you cannot anchor that way, delete it.
+NUMSTAT   a commit never pastes a numstat that includes itself: measure <cut>..<the tip BEFORE the paste commit>, labelled so. A write.py range edit keeps every heading it spans (read the range first).
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_logs_dir_resolves_from_one_cell.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tests you WRITE use tmp repos only (test_bin_help_smoke.py is the one exempt read-only check: --help over the committed bin); never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_logs_dir_resolves_from_one_cell.py · .agi/nodes/experiment/a00-421b37b6-b0a06b.md · .agi/nodes/experiment/a00-8ee2a57e-9648d7.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 25e2ba8d4 · <= 40 test lines net over 25e2ba8d4 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 25e2ba8d4 <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.191: mur-eg-x4137229-8ecc96 EG.174-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.202: mur-eg-x562904-eb04f7 EG.191-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
