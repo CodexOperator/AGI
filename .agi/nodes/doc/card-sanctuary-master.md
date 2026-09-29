@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:2xZ 09-29)
+## §0 State (16:3xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -47,8 +47,8 @@ next   DG3's 56 handback → a 1-round re-mur (test_formation_readback.py + mvp:
 - re-mur wf_217c7a0a-fc7 (3eae1d26f): 55 closed · 56 (2nd carrier row for the OSError/REJECTED loop) → DG3 · tests 22 · 139 · 15
 
 ## 🔴 Where it stops
-16:2xZ: idle, waiting on DG3's handback of 56. At the handback: Workflow tool, name agi-merge-up-review, 1 round,
-old = 3eae1d26f, new = DG3's tip, focus = 56 (a break in write.py's except goes red) + mvp:dg3-p-park-tag:52-53.
+16:3xZ: re-mur 56 running wf_42a582dc-d1f (1 round b2-res-56, 9c54fb3c4^..9c54fb3c4). If it died: resume the Workflow tool
+with resumeFromRunId wf_42a582dc-d1f. Clean → alive agi-8b + room [handoff] + ONE board numbers line.
 
 ## §4 Traps
 | trap | rule |
