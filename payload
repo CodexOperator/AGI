@@ -11,6 +11,16 @@ DMI_FILES = ("board_name", "board_serial", "board_vendor", "product_name",
 SECRETS_NODE = Path("nodes") / ".geometry" / "secrets.md"
 CLASSES = ("hostname", "ip", "mac", "board", "secret", "home")
 MIN_TOKEN = 4
+#: ONE spelling of a home-directory path, ANY box (goal:g7.16.1.2.1): the
+#: rotation-record writer rewrites it and the check (R3) reuses it.
+HOME_PATH_RE = re.compile(r"/(?:home|Users)/[^/<>\s\"']+/")
+def home_relative(text, home=None):
+    """`text` with this box's HOME written `~` and any other box's home
+    directory written `<home>/`: no home path survives, any box."""
+    home = (os.path.expanduser("~") if home is None else home).rstrip("/")
+    if len(home) > 1:
+        text = re.sub(re.escape(home) + r"(?![\w.-])", "~", text)
+    return HOME_PATH_RE.sub("<home>/", text)
 def _run(argv):
     try:
         p = subprocess.run(argv, capture_output=True, text=True, timeout=5)
