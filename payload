@@ -825,10 +825,10 @@ def _recovery_psi_max_pct(root) -> float:
 
 def _recovery_admitted(root) -> tuple[bool, str]:
     """goal:g6.41.1 P5 -- may a recovery launch now? Box memory PSI `some.avg10`
-    through memory_alarm.read_psi (the ONE /proc/pressure reader) under the
+    through memory_alarm.read_psi (the ONE PSI reader, its BOX_PSI) under the
     cell. Blind (no some.avg10: unreadable or malformed) FAILS CLOSED, by name."""
     import memory_alarm
-    avg10 = (memory_alarm.read_psi(Path("/proc/pressure/memory")).get("some") or {}).get("avg10")
+    avg10 = (memory_alarm.read_psi(memory_alarm.BOX_PSI).get("some") or {}).get("avg10")
     line = _recovery_psi_max_pct(root)
     if not isinstance(avg10, (int, float)):
         return False, f"memory psi unreadable (no some.avg10): fails closed under {line:g}"
