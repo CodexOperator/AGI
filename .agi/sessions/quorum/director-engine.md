@@ -143,6 +143,7 @@ THEN    a CLEAN chain (review accept + verify accept, or prose-only residues clo
 NEVER   place by hand while redispw is inside redispatch2 · restart a q-unit without reading its log · edit a RUNNING unit's script ·
         cut a NEW node from the trunk without its node commits (dispatch: 'no context for target') · write .agi/config.json (TM's)
 auto-captured at f=0.4063 at the captive ratio 0.85 x the line, no self-rotate
+auto-captured at f=0.4014 at the captive ratio 0.85 x the line, no self-rotate
 ```
 
 ## §4 TRAPS
