@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-suite-refuses-to-start-when-its-basetemp-resolves-to-the-live-checkout-and-the-runner-basetemp-lives-under-tmp
 next_edges: []
 confidence: 0.85
-edited_by: a00-d268e091
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-45a032bd-f33d2f
 line_ceiling: 12
@@ -65,7 +65,7 @@ $ python3 -m pytest test_suite_live_checkout.py test_suite_live_checkout_worktre
 ```
 
 git_common_root of the runner worktree resolves to the main checkout
-`/home/ubuntu/work/agi` (LIVE); a basetemp inside a /tmp throwaway worktree of
+`<home>/work/agi` (LIVE); a basetemp inside a /tmp throwaway worktree of
 that repo resolves to the SAME main checkout, so the gate fires — conjunct (4)
 proves a basetemp inside ANY worktree of the live repo is refused by name and
 writes nothing.
