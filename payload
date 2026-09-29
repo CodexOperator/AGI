@@ -663,3 +663,53 @@ def test_write_guard_silent_on_hand_edit_to_schema_file(project):
     assert "schemas" not in out, \
         "a schema edit is git-versioned engine config, not a node write"
     assert _check(project, []) == 0
+
+
+# --- bundle 4 W1b (director-general-2) -- goal:g4.18.5.2 ---------------------
+def _w1b(project):
+    g = lambda *a: subprocess.run(["git", "-C", str(project), *a],  # noqa: E731
+                                  capture_output=True, text=True).stdout
+    nw.write_node(project / ".agi", "hypothesis", "h9", parents=["goal:g1"],
+                  announce=False, body="\nthe body\n")
+    (project / "other.txt").write_text("another post's staged file\n")
+    (project / "x.txt").write_text("x\n")
+    g("add", ".agi/nodes"), g("commit", "-qm", "h9"), g("add", "other.txt")
+    return g, g("rev-parse", "HEAD").strip()
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 4 W1b: RED until DG3 builds "
+                   "the one exact-path commit after the gate")
+def test_b4_w1b_every_write_verb_is_its_own_exact_path_commit(project):
+    scripts = {"set": "set confidence 0.4", "link": "link self",
+               "unset": "unset link_ref", "thought": "thought why", "note": "note w1b note",
+               "sub": "sub the body => w1b-two", "sub!": "sub! w1b-two => w1b-three",
+               "replace": f"replace body 1:1 --force {project / 'x.txt'}"}
+    assert set(scripts) | {"read", "adopt", "payload", "payload_text", "patch",
+                           "body_patch"} == set(write.VERBS)
+    g, head = _w1b(project)
+    for verb, script in scripts.items():
+        assert write.main(["hypothesis:h9", script, "--root", str(project)]) == 0
+        assert g("show", "--name-only", "--format=", "HEAD").split() == [
+            ".agi/nodes/hypothesis/h9.md"], verb
+    assert g("rev-list", "--count", f"{head}..HEAD").strip() == str(len(scripts))
+    assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 4 W1b: RED until DG3 builds "
+                   "the verify-suite.lock refusal on the commit")
+def test_b4_w1b_the_suite_lock_refuses_the_commit_by_name(project, capsys):
+    (project / ".agi" / "sessions").mkdir(exist_ok=True)
+    (project / ".agi" / "sessions" / "verify-suite.lock").write_text(
+        f"{__import__('os').getppid()}\n")
+    g, head = _w1b(project)
+    write.main(["hypothesis:h9", "set confidence 0.5", "--root", str(project)])
+    assert g("rev-parse", "HEAD").strip() == head
+    assert "verify-suite.lock" in "".join(capsys.readouterr())
+
+
+def test_b4_w1b_dry_run_and_a_refused_gate_commit_nothing(project):
+    g, head = _w1b(project)
+    for argv in (["set confidence 0.5", "--dry-run"], ["set id hypothesis:zz"]):
+        write.main(["hypothesis:h9", *argv, "--root", str(project)])
+        assert g("rev-parse", "HEAD").strip() == head, argv
+    assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
