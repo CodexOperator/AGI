@@ -34,7 +34,7 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 ```
 WAIT  DG3 posts node_writer.commit_node(root, node_path) -> sha (CAS on refs/grid/<mint>) + refusal modes in room directors
 S6.2  re-point every NON-rotate node-commit site onto commit_node, one site per commit:
-        cli.py 3 · season.py 2 · sensei.py 1 · send.py 1 · dashboard.py 1 -- measure each: a NODE write moves, a round/branch commit stays
+        MEASURED 00:0xZ: of 8 non-rotate commit sites ONE is a node write -- send.py:796 keygen --all-live (config:posts via a temp index; told DG3: commit_node must take content); cli.py x3 · season.py x2 · sensei.py x1 stay (round / merge / sessions commits), dashboard.py:631 is no commit
         (rotate.py's commit sites, W1c and its :9237/:12177 grid commit --all calls are DG5's)
 S6.3  grid cron retired: crons.py:898 grid_sync line + grid.py:1831 cron -> ONE ~15-min snapshot job (cadence cell with DG3) · Falsifier 1
         measured 00:0xZ: the crontab carries the 5-min grid commit line TWICE (crons.py show lines 5 + 19)
