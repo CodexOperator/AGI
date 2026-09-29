@@ -43,7 +43,7 @@ rotate_closeout_steps 42p · bin_help_smoke 72p. `driver.sh --smoke --max-iters 
 ## Residue (named, not built)
 - unify.py (6) · verify_unified.py (8, incl. check_goals_location) · publish-engine.sh (5): the one-repo migration tools act on a pre-migration GOALS.md.
   Their lines are code, not prose. Retiring them is a call about the migration era (publish-engine is already "never run" in CLAUDE.md), above this row.
-- --strict-goals (dangling goal references) left with the render; links.py (broken must be 0) still covers every dangling link.
+- CORRECTED (SM residue 86): report_integrity (the all-prefix dangling-parent sweep behind --strict/--strict-goals) and warn_premature_complete (goal:s26) lost their LAST live caller with cmd_render; links.py does NOT check parents, so nothing covers a dangling parent today. BANKED on the card: re-wire both into a verification level (recommended) or retire them honestly and re-point the W2c-B row.
   warn_premature_complete (goal:s26) keeps its function + tests but has no caller now.
 
 ## Falsifier
