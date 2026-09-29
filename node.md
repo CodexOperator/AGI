@@ -53,6 +53,13 @@ Neighbourhood (formation_readback, write, write_answers_file, write_schema_check
 Production: +63 / -9 over the ceiling's 30 (engine 55 added incl. docstrings; schemas 8). The overage is the shared git-grep reader
 (_grep_live + parked_carriers), which the check and the hook both call, so the tag has ONE reader. Tests +40 / -12 (<= 60).
 
+## The set-active hook, named (residue 50; refuted as a defect, recorded as a property)
+The tag drops in write.py `submit` go straight to `node_writer.update_node`. They skip write.py's per-node gates (written_by, schema
+gate), because the only change is removing one tag the schema itself defines. They are also NOT atomic across carriers: each carrier
+is its own update, the `config:formations` write lands first, and a carrier that fails is named on stderr only. The recovery is the
+read-back: `check_formation` lists every carrier still tagged for the active formation as `wake`, and re-running the same
+`set active` drops the rest.
+
 ## Falsifier
 1. `git grep -l 'parked:g7\.16\.2' -- .agi/nodes/goal .agi/nodes/hypothesis | wc -l` prints 6 (the post-audit gated count, after DG2 391a36a5c); check_formation PASS.
    (4 non-carriers that named the literal tag were reworded to `parked:<goal>`, so the grep counts carriers only.)
