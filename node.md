@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: sanctuary-master
+edited_by: belam
 scaffold_hash: 3e856c7e9b80c2ab
 season: 2
 title: Card sanctuary master
@@ -17,22 +17,26 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:3xZ 09-29) — RESUMED by belam 23:4xZ (owner: "Restart council including DG5 stand up"); rotating at meter 0.45
+## §0 State (00:0xZ 09-30) — gen 7, woke 23:38Z; NEW LOOP (owner 23:5xZ, doc:council-loop "The loop"); STOP ~04:00Z 09-30
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
-| protocol | doc:council-loop · goal:g7.16.1 |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 6 (crash-recovery 17:33Z) · meter 0.44 at stop |
+| protocol | doc:council-loop "The loop" · goal:g7.16.1 |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 7 |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
-| peers | DG1 · DG2 · DG3 (card doc:card-director-general-3) · DG5 (new, agi-c8) · alive (council convener) · belam = send.py inbox ([merge-up] / [red]) · room `directors` + room council-loop |
-| now | council RESUMED: bundle 4 continues + goal:g7.16.1.6 (a node write = one commit on its own refs/grid/<mint>) + goal:g7.16.1.7 (spawn/rotate unification on recursive linkable templates) · DG5 new (@14, agi-c8) · directors split work among themselves (room `directors`) · alive places .6/.7 (two bundles may run side by side) · PASS B3 on box: tests ONE file at a time |
+| peers | DG1 (outcomes) · DG2 · DG3 · DG4 · DG5 (room `directors`) · alive · all-is-one · self-perpetuating (council) · belam |
+| duty | the bundle arrives AFTER the directors' inner loops (DG2 MVP-vs-hypotheses forks · DG1 builds-vs-goals nested subgoals · DG1 one OUTCOME per goal) ─► mur through my lens ─► residues back to the directors ─► nothing left to dispatch ─► I write the BIGGER_OUTCOME nodes ([bigger_outcome].md: parents outcome|verdict, 1-4) ─► hand the grown chain to the council |
+| now | run 5 DONE: 96 · 91+92 · 97 closed → 106 107 sent to DG3 (agi-6b) · waiting: DG3 fix SHAs · DG1 (agi-77) outcomes for bundles 1+2 |
 
 ## §1 Plan
 ```
-done   bundle 1 CLEAN 80c1c245d · bundle 2 CLEAN 9c54fb3c4 · bundle 3 CLEAN 1f39ffb1c (SM 57-80 24/24 + council C1, CM1-CM10 11/11)
-done   bundle 4 murs: run 1 W-G.1 + W0 · run 2 W-G.2 + re 81-85 · run 3 W1a + W1b · run 4 re 90/93/95/87/88 + re 89 + W2a
-NEXT   re-mur (one round per commit) DG3-successor's fixes for 97-105 · formal round on fd8d74ab3 (91 92, bytes already read)
-       then W1c / W2b-e / W3 as DG3 lands them; bundle 4 CLEAN → [handoff] room + alive + belam [merge-up]
+done   bundle 1 CLEAN 80c1c245d · bundle 2 CLEAN 9c54fb3c4 · bundle 3 CLEAN 1f39ffb1c (outcome:g7-16-1-3-bundle-3-closed exists)
+done   bundle 4 murs runs 1-4 (see §2)
+done   run 5 wf_884739ac-f61: 96 CLOSED · 91 92 CLOSED (→106) · 97 CLOSED (→107) · sent DG3 + room
+NEXT   bundles 1 + 2: goals still `active`, no outcome → DG1 writes their outcomes (new loop) → then I write the bigger_outcome
+       tying bundles 1-3 (parents: the 3 outcomes; judged_against goal:g7.16.1; lens = the council's)
+       bundle 4: re-mur 98-105 fixes as DG3/DG4 land them · W1c / W2b-e / W3 · CLEAN → DG1 outcome → bigger_outcome
+       .6 / .7 bundles (DG4 / DG5) as they deliver
 ```
 
 ## §2 Landed
@@ -40,23 +44,20 @@ NEXT   re-mur (one round per commit) DG3-successor's fixes for 97-105 · formal 
   council wf_868fe677-21c · wf_4fa09963-e62 → CLEAN 1f39ffb1c · 1 red (R2 heal budget) closed 0d33b10f4
 - bundle 4: wf_55fc5dde-0e5 · wf_8ce06028-a81 · wf_e6561265-419 · wf_7da1e726-280 (18 CC opus agents, 0 err)
   closed: 81 83 84 87 88 89(part) 90(mostly) 91 92 93 95 · owner line for the GOALS.md retirement verified (goal:g7.16.1.md:72)
-- W1b [red] to belam 22:2xZ: a failed auto-commit left the node staged in MAIN's index → 90 fixed c13eec672, 98 still open
-- SM miss, owned: bundle-3 H4f round took "prints unpark FAILED" as the claim, never the rc (council C1 caught it)
-- [merge-up] to belam 22:4xZ: bundle 3 CLEAN, bundle 4 state, the new suite red (97)
+- gen 7 wake: quorum card re-linked c2e2fd14c · alive's key-row [red] = adjacency-only, synced by belam 93f4567b5
+- run 5 wf_884739ac-f61 (6 CC opus, 0 err): closed 91 92 96 97 · opened 106 107 (body /data/tmp/claude-1000/sm-b4-run5.md)
 
 ## 🔴 Where it stops
-Rotated at meter 0.45 right after the 23:4xZ council resume; nothing running. Successor, in order: (1) READ doc:council-loop, new section
-"The council's lens" (owner verbatim: council posts stay top-down, whole-system over generations; after SM hands a bundle back the
-council judges goals met -> OUTCOME node, else adjust the goal + another pass) · (2) send.py read · (3) re-mur each fix commit as it lands.
-Open with DG3's successor (bodies /data/tmp/claude-1000/sm-b4-run{2,3,4}.md):
-97 FIX FIRST suite red on HEAD: test_commands_manifest names_no_box_detail (commands.md:3036 'g7.16.1.4.1.1' reads as an IP)
-98 write.py _commit_write ignores reset rc (index.lock → still staged, message says unstaged) · 99 [config].md:227 config_path claim
-100 tests that cannot fail (95 self-quoting THOUGHT, 93 stale lock, 90 index-lock case) · 101 g4.19 F1 missing test file, invariant unguarded
-102 links.py mint GrepError rc 1 = not-found · 103 resolve_mint counts .md.bak · 104 deprecated/ excluded · 105 mvp rc claim + untested paths
-banked on DG3's card (theirs): 86 report_integrity/s26 re-wire · 94 subprocess auto-commit opt-out · 96 row --dry-run · W1c
+```
+Nothing running. Waiting on DG3 fix SHAs (re-mur one round per commit) and DG1's bundle 1+2 OUTCOMES (then bigger_outcome over 1-3).
+Open with DG3 (bodies /data/tmp/claude-1000/sm-b4-run{2,3,4,5}.md):
+106 falsifier 2 of g4.18.5.2: payload-only / adopt / create --payload untested · 107 commands.md:3044 reason unresolvable + guard eats 5-part goal ids
+98 write.py _commit_write ignores reset rc · 99 [config].md:227 config_path claim · 100 tests that cannot fail (95 93 90)
+101 g4.19 F1 missing test file · 102 links.py mint GrepError rc 1 · 103 resolve_mint counts .md.bak · 104 deprecated/ excluded · 105 mvp rc claim
+banked on DG3's card (theirs): 86 report_integrity/s26 re-wire · 94 subprocess auto-commit opt-out · W1c
 First command at wake: python3 extensions/agi/bin/send.py --from sanctuary-master read sanctuary-master
-Round args pattern: /data/tmp/claude-1000/sm-b4-run3.json · summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
-
+Summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl · round args pattern: /data/tmp/claude-1000/sm-b4-run3.json
+```
 ## §4 Traps
 | trap | rule |
 |---|---|
@@ -65,15 +66,15 @@ Round args pattern: /data/tmp/claude-1000/sm-b4-run3.json · summary: python3 /d
 | rotate flattens the quorum card | re-link: `ln -sfn ../../nodes/doc/card-sanctuary-master.md .agi/sessions/quorum/sanctuary-master.md` |
 | a home path in a card or dm | write `<home>`; check: `anonymize.py check --text "$(cat <card>)"` |
 | a peer's commits land between a row's commits | one round per commit, never a range across a foreign commit |
-| town:local-maxxing is ring-gated (owner, prime_director) | the board numbers line goes to belam in the [merge-up] |
 | a mur residue chain | ask for residues only on what THIS diff introduced or left open; the rest are notes |
 | a claim that names a message ("prints X") | the round also checks the rc and what was written (C1) |
 | a dotted goal id like g7.16.1.4.1 in a rendered manifest | the dotted-quad guard reads 16.1.4.1 as an IP (97) |
 | verify-suite.lock held by a live runner | a test run ERRORs at setup: retry, never read it as a code red |
-| write.py self-commits since 14cf86000 (W1b) | my card edits via Write/sed are NOT write.py: still commit by exact path |
+| write.py self-commits since 14cf86000 (W1b) | card edits through write.py commit themselves |
+| a bigger_outcome before the directors' outcomes | never: DG1 writes one OUTCOME per goal first; mine ties them (max 4 parents) |
 | card stamps | read `date -u`, never estimate |
 
-## §5 Verification: `python3 extensions/agi/bin/links.py links` 5165 / 0 broken · live check_formation PASS · test_commands_manifest RED on HEAD (97)
+## §5 Verification: links.py links 5165 / 0 broken (gen 6) · test_commands_manifest 181/181 at HEAD (run 5 R97) · test_write 146p/5x at 389afc3e1
 
 ## §6 BANKED
 (none)
