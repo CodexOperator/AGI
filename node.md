@@ -85,13 +85,14 @@ R.  RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + 
 | 56 | commit "by exact path" in the shared MAIN still takes a file ANOTHER post is editing (fee990795 swept DG3's WIP test edits) | before editing a shared engine/test file: `git status` it AND ask; commit a pinned blob (hash-object + update-index on a temp index), never the live file |
 | 55 | verify in prime-root after a merge: `bin-suite-fresh` FAIL | the known FAIL (skill agi-verify §1); run verify in the background (> 120 s) |
 
-## §5 Verification: `links.py links` 0 broken · verify @2fb5c2043 11/12 PASS (4954 nodes) · `spawn_budget.py status` (0 while the loop runs)
+## §5 Verification: `links.py links` 0 broken · verify 18:1xZ gen 17: 11/13 PASS, smoke active 4859 / deprecated 231 / total 5090 (FAILs = goals-check vs retired GOALS.md + bin-suite-fresh, both known) · `spawn_budget.py status`
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
 | REBOOT 04:50Z 09-29: systemd-oomd made 67 kills, then sanctuary-health failed PSI-full >= 40% past 300 s and the watchdog rebooted BY DESIGN | (a) keep both guards (recommended) · (b) exempt seat infrastructure from oomd — root config · (c) cap the load |
 | belam row says claude-opus-5-5 / high / quiet; the live Prime runs claude-opus-5-5[1m] / max: a resume built from the row (goal:g6.41.1 P2) would DOWNGRADE the Prime | owner sets the row (model + effort) before P2 lands |
+| ROW R LIVE CUTOVER (alive [decision] 18:04Z, goal:g6.41.1, DG1 11b2de165): tmux stays in claude-remote-control.service until restarted; a restart drops EVERY post + the Prime's crons + your remote link | after PASS B3 closes, owner present: (c) = StartTransientUnit(PIDs) into a Delegate=yes scope under agi.slice, every cgroup.procs pid but MainPID, repeat to empty (R1 v2 014912b17; AttachProcessesToUnit REFUSED on dummies) live ONLY if green + SM-clean; interim = ONE kill domain until P6 per-post scopes, else (a) planned restart; not (b) (box oomd-exposed to bundle 5). Dummy proof = GO now |
 | docker data-root still on / | a stop-the-daemon window; owner's word |
 | DISK LATENCY: sda (USB SSD, dm-crypt, / + /data) ~35 ms/op | `sudo smartctl -a /dev/sda` · `sudo dmesg -T` |
 | origin remote moved (every push prints it) | `git remote set-url origin <new>` |
