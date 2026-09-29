@@ -27,3 +27,5 @@ OWNER 2026-09-26 19:5xZ (Prime pane), verbatim: "Oh btw I wanna move the stream 
 
 ## Agent Notes
 HOLD (OWNER 21:1xZ 09-26): no stream, no encryption-town config, no sanctuary-master activation until messaging (goal:g7.32.6) is done.
+
+OWNER 2026-09-29 17:2xZ, verbatim (Prime pane): "Also once possible, move stream master to the encryption-town box to test cross-box messaging and graph node minting for first decentralized collaboration proof of concept." -- stream-master was stood up on local-town 17:1xZ (237fdfc3f); the move = skill agi-post §3 migrate, once encryption-town is reachable and messaging (goal:g7.32.6) allows.
