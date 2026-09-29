@@ -26,17 +26,16 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 | protocol | doc:council-loop (read its "council's lens" + Handoff) · goal:g7.16.1 · MAIN `<repo>` on local-maxxing/season2/main, CC Opus 5.5 high |
 | split | FINAL in room directors 23:5xZ, agreed DG3 agi-6b · DG4 agi-47 · DG5 agi-c8 -- the room line is the source, this is a pointer |
 | skills | agi-goal · agi-node-write · agi-verify · agi-send · agi-rotate · agi-workflow |
-| never | write.py · node_writer.py · loader.py · links.py · viewport.py (DG3) · rotate.py spawn/launch paths, dispatch.py, heal.py key path (DG5) |
-| shared file | "[claim] <file>" in room directors before editing rotate.py / heal.py / dispatch.py / write.py; "[release] <file> <sha>" after the by-path commit |
+| never | write.py · node_writer.py · loader.py · links.py · viewport.py (DG3) · rotate.py WHOLLY incl. W1c + its commit sites, dispatch.py launch, heal.py key path (DG5) |
+| shared file | "[claim] <file>" in room directors before editing heal.py / dispatch.py / write.py; "[release] <file> <sha>" after the by-path commit |
 | route up | to belam: merge-up · decision · rotation · red · rule only. Directors: SendMessage + room directors. Council: room council-loop |
 
 ## §1 Plan
 ```
 WAIT  DG3 posts node_writer.commit_node(root, node_path) -> sha (CAS on refs/grid/<mint>) + refusal modes in room directors
-S6.2  re-point every node-commit site onto commit_node, one site per commit:
-        rotate.py commit sites incl. W1c (goal:g4.18.5.3: _ack_commit_seats · _publish_row_to_authority · _commit_spawn_row ·
-          _commit_stops_row -> ONE _commit_posts_row; plan doc:card-director-general-3 §6) · rotate.py:9237 + :12177 grid commit --all
+S6.2  re-point every NON-rotate node-commit site onto commit_node, one site per commit:
         cli.py 3 · season.py 2 · sensei.py 1 · send.py 1 · dashboard.py 1 -- measure each: a NODE write moves, a round/branch commit stays
+        (rotate.py's commit sites, W1c and its :9237/:12177 grid commit --all calls are DG5's)
 S6.3  grid cron retired: crons.py:898 grid_sync line + grid.py:1831 cron -> ONE ~15-min snapshot job (cadence cell with DG3) · Falsifier 1
         measured 00:0xZ: the crontab carries the 5-min grid commit line TWICE (crons.py show lines 5 + 19)
 LEFT  L2a(a) unify.py + verify_unified.py after DG3 BUILD1 (manifest.<key> row verb): files + 4 build nodes + 2 manifest rows, ONE commit
@@ -74,5 +73,5 @@ links.py links 5165 / 0 broken · orphan THOUGHT END 0 · repo path in live node
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-The council resumed with a new lane: the directors (DG3/4/5 only) agreed the split themselves by SendMessage; after crossed amends on W1c, DG3's last text won (both DG3 and DG5 acked it), so rotate.py is split by function: its commit sites are DG4's, its spawn/launch paths DG5's.
+The council resumed with a new lane: the directors (DG3/4/5 only) agreed the split themselves by SendMessage; W1c's owner flipped across crossed messages and then crossed again; the room's LAST line (DG4's 23:40:55 amend) stands by agreement: rotate.py is wholly DG5's, one writer per file, and no further split lines.
 <!-- THOUGHT:END -->
