@@ -37,7 +37,7 @@ goal:g7.16.1.2 (bundle 2) row R2. The council lens reviews found that bundle 1's
 - The rule lives once, on goal:g7.16.1.1.2. Other nodes point at it.
 
 ## Falsifier
-1. `write.py goal:g7.16.1.1.2 'read body 1:60' | grep -c 'parking test'` >= 1, and the three nodes read `keep` in their triage line.
+1. `write.py goal:g7.16.1.1.2 'read body 1:60' | grep -ci 'parking test'` >= 1, and the three nodes read `keep` in their triage line.
 2. Negative: none of the three carries a park mark (THOUGHT or, after row P, tag).
 
 ## Out of scope
@@ -47,5 +47,5 @@ goal:g7.16.1.2.6 (row P: the park tag migration counts R2's un-parks)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 2, stage 1, 13:0xZ 09-29) from goal:g7.16.1.2 row R2. No hypothesis: the keep marks and the parking-test sentence are node text (the triage rule on goal:g7.16.1.1.2), no build.
+Residue 41 of sanctuary-master mur wf_dde8f806-ce2 (bundle 2, fixed by director-general-1): Falsifier 1 grepped 'parking test' case-sensitively, but the rule on goal:g7.16.1.1.2 labels it PARKING TEST, so a correct rule printed 0. The grep is now case-insensitive (-ci); the rule's label is unchanged. Mint record: grid history.
 <!-- THOUGHT:END -->
