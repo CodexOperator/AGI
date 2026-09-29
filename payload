@@ -3062,7 +3062,7 @@ def _launch_recovered(root: Path, name: str, shell_cmd: str,
             return 0, ""
         launch_cmd = (f"cd {shlex.quote(str(tree))} && "
                       f"sh {shlex.quote(launch_path)}")
-        _rotate.ensure_tmux_session(tmux_session)  # goal:g6.41.1 P1 (the heal recover path)
+        _rotate.ensure_tmux_session(tmux_session, root)  # goal:g6.41.1 P1 (the heal recover path)
         try:
             proc = subprocess.run(
                 ["tmux", "new-window", "-t", tmux_session, "-n", name,
@@ -3596,10 +3596,14 @@ def _watch_one_seat(root: Path, row: dict, windows: list[tuple[str, str]],
             _watch_log(f"watch: {seat} recovery deferred: {why}")
             return {"seat": seat, "probable_cause": cause, "recorded": False,
                     "deferred": why}
-        admission["left"] -= 1
     outcome = _recover_seat(root, row, cause, _rotate, windows=windows,
                             window_path=window_path, launcher=launcher,
                             now=now)
+    if admission is not None and outcome.get("respawned"):
+        # only a launch that HAPPENED spends the pass's one slot: a refused
+        # recovery (records "detected") never starves the seats behind it
+        # (sanctuary-master mur wf_67ad5686-154 residue 71)
+        admission["left"] -= 1
     _write_crash_recovery(root, seat, cause, cells, _rotate, now, outcome)
     return {"seat": seat, "probable_cause": cause, "recorded": True,
             "respawned": bool(outcome.get("respawned")), "outcome": outcome}
