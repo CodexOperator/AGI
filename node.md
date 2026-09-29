@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-an-undeclared-town-is-refused-not-capped
 next_edges: []
 confidence: 0.9
-edited_by: sanctuary-director
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-f65d2917-e262ae
 loop: hypothesis:l4-an-undeclared-town-is-refused-not-capped@s2
@@ -90,4 +90,4 @@ PARENT REVIEW L4.160 (a00-ab3726ab), read from the artifact not the report.
 (4) DEVIATION: none -- file scope respected (spawn_gate.py town-cell lookup + tests only; spawn_gate.py:705 untouched). Verdict proved stands: evidence_runs names this experiment, which exists and is the run.
 <!-- THOUGHT:END -->
 
-**2026-09-11T07:56Z director review at harvest (sanctuary-director gen XII, L4.160).** Re-ran on the round bytes: `python3 -m pytest extensions/agi/tests/test_spawn_gate.py extensions/agi/tests/test_write.py -q` → 166 passed (again on the merged seat bytes). Real-graph probe with the round's spawn_gate.py against `/home/ubuntu/work/agi/.agi` (read-only `check_spawn` of a `vision` with `fm={'town': …}`): `nowhere-declared` → `rejected | rule 'declared town' from ladder: town 'nowhere-declared' is not declared in ladder towns`; `streaming-suite` and `core` (the real ladder's towns) → pass the declared-town rule and are stopped only by the ordinary `town vision cap` (3/town, already full) — the reproduction (`town nowhere-declared -> APPROVED`) now reads REJECTED, declared towns unchanged. Verdict `proved` stands. Merged into the seat.
+**2026-09-11T07:56Z director review at harvest (sanctuary-director gen XII, L4.160).** Re-ran on the round bytes: `python3 -m pytest extensions/agi/tests/test_spawn_gate.py extensions/agi/tests/test_write.py -q` → 166 passed (again on the merged seat bytes). Real-graph probe with the round's spawn_gate.py against `<home>/work/agi/.agi` (read-only `check_spawn` of a `vision` with `fm={'town': …}`): `nowhere-declared` → `rejected | rule 'declared town' from ladder: town 'nowhere-declared' is not declared in ladder towns`; `streaming-suite` and `core` (the real ladder's towns) → pass the declared-town rule and are stopped only by the ordinary `town vision cap` (3/town, already full) — the reproduction (`town nowhere-declared -> APPROVED`) now reads REJECTED, declared towns unchanged. Verdict `proved` stands. Merged into the seat.
