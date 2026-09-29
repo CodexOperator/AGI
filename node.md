@@ -5,7 +5,7 @@ type: experiment
 parents:
   - exp:noncode-surface-census
 confidence: 0.9
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: 1
 season: 1
 subgraph: false
@@ -20,14 +20,14 @@ title: "Probe: stitch.py cannot express or detect a prose contract for SKILL.md"
 
 ```
 # 1. baseline verify, no probe node present
-cd /home/ubuntu/work/agi-tree
-python3 /home/ubuntu/work/agi/extensions/agi/bin/stitch.py \
-  --project /home/ubuntu/work/agi-tree --verify
+cd <home>/work/agi-tree
+python3 <home>/work/agi/extensions/agi/bin/stitch.py \
+  --project <home>/work/agi-tree --verify
 
 # 2. what the real generator would emit if pointed at SKILL.md — called
 #    level3.py's own analyze_file/build_node directly (imported by file
 #    path, not reimplemented) rather than guessing at the shape
-cd /home/ubuntu/work/agi/extensions/agi/bin
+cd <home>/work/agi/extensions/agi/bin
 python3 -c "
 import importlib.util
 from pathlib import Path
@@ -35,7 +35,7 @@ spec = importlib.util.spec_from_file_location('level3', 'level3.py')
 level3 = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(level3)
 rel = 'skills/agi/SKILL.md'
-abs_path = Path('/home/ubuntu/work/agi') / rel
+abs_path = Path('<home>/work/agi') / rel
 print(level3.build_node(rel, abs_path, parent_id=None))
 "
 
@@ -44,15 +44,15 @@ print(level3.build_node(rel, abs_path, parent_id=None))
 #    nodes/level3/skills-agi-SKILL.md.md
 
 # 4. verify again with the probe node present
-python3 /home/ubuntu/work/agi/extensions/agi/bin/stitch.py \
-  --project /home/ubuntu/work/agi-tree --verify
+python3 <home>/work/agi/extensions/agi/bin/stitch.py \
+  --project <home>/work/agi-tree --verify
 
 # 5. falsifier: edit one word of the LIVE SKILL.md, well past its
 #    frontmatter, verify, restore, verify the restore
-cd /home/ubuntu/work/agi
+cd <home>/work/agi
 cp skills/agi/SKILL.md /tmp/SKILL.md.backup
 sed -i '101s/spending tokens on those is waste;/spending tokens on those is wasteful;/' skills/agi/SKILL.md
-python3 extensions/agi/bin/stitch.py --project /home/ubuntu/work/agi-tree --verify
+python3 extensions/agi/bin/stitch.py --project <home>/work/agi-tree --verify
 cp /tmp/SKILL.md.backup skills/agi/SKILL.md
 git status --short   # must be empty
 ```
@@ -62,8 +62,8 @@ git status --short   # must be empty
 Baseline (before the probe node existed):
 
 ```
-stitch --verify: project=/home/ubuntu/work/agi-tree
-  engine root: /home/ubuntu/work/agi (ok)
+stitch --verify: project=<home>/work/agi-tree
+  engine root: <home>/work/agi (ok)
   level-3 nodes: 74
   in-scope engine files: 74
 
@@ -96,8 +96,8 @@ live `level3.py` run silently delete the probe on its very first pass.
 With the probe node present:
 
 ```
-stitch --verify: project=/home/ubuntu/work/agi-tree
-  engine root: /home/ubuntu/work/agi (ok)
+stitch --verify: project=<home>/work/agi-tree
+  engine root: <home>/work/agi (ok)
   level-3 nodes: 75
   in-scope engine files: 74
 
@@ -121,8 +121,8 @@ tokens on those is waste;` -> `spending tokens on those is wasteful;`, live
 file, then `--verify` again:
 
 ```
-stitch --verify: project=/home/ubuntu/work/agi-tree
-  engine root: /home/ubuntu/work/agi (ok)
+stitch --verify: project=<home>/work/agi-tree
+  engine root: <home>/work/agi (ok)
   level-3 nodes: 75
   in-scope engine files: 74
 
@@ -145,7 +145,7 @@ itself (or removed the em dash, which would just relocate the failure to
 whatever the next non-Python token is — still not a meaningful contract).
 The one-word edit at line 101 was never going to be visible to this
 machinery no matter what it said. Restored the file immediately after; `git
--C /home/ubuntu/work/agi status --short` came back empty.
+-C <home>/work/agi status --short` came back empty.
 
 **What a prose contract could be:**
 
