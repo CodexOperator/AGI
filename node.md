@@ -1890,16 +1890,11 @@ manifest:
     argv:
       - python3
       - <engine>/extensions/agi/bin/snapshot-goals.py
-    args:
-      - {"name": "strict", "type": "bool", "required": false, "choices": []}
-      - {"name": "strict_goals", "type": "bool", "required": false, "choices": []}
-      - {"name": "project", "type": "str", "required": false, "choices": []}
-      - {"name": "render", "type": "bool", "required": false, "choices": []}
-      - {"name": "check", "type": "bool", "required": false, "choices": []}
-      - {"name": "from_doc", "type": "bool", "required": false, "choices": []}
-    purpose: snapshot-goals.py
-    side_effects: graph-write
-    proposable: true
+    args: []
+    purpose: "snapshot-goals.py -- RETIRED as a command with GOALS.md (goal:g7.16.1.4.1); the module stays as shared node-file helpers"
+    side_effects: read
+    proposable: false
+    reason: GOALS.md, its render and its import are retired; the CLI only prints the retirement line
   spawn_budget.py:pause:
     cli: spawn_budget.py
     verb: pause
