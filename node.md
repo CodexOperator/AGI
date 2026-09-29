@@ -30,12 +30,12 @@ town: core
 goal:g7.16.1.1 (bundle 1) row E: the residue goals goal:g1.26 · g1.27 · g1.28 · g1.29 · g7.33.19 were written for the dispatch formation, which is off (goal:g7.16.1: no parent/kid dispatch). Measured 10:2xZ 09-29: 21 live hypotheses sit under g1.26-g1.29 (9 · 5 · 6 · 1 parent edges; four are residue-batch nodes holding their own rows), g7.33.19 holds 26 table rows and 6 child nodes, and goal:g7.32.5 has 0 children. Each of these goals has at most one THOUGHT pair, at column 0, so the goal-level writes here cannot trip row B's bug. The council ordered B before E because the thought verb can rewrite a quoted pair. Measured 10:4xZ: all 27 nodes carrying a g1.26-g1.29 / g7.33.19 parent edge hold at most one THOUGHT pair, at column 0, with no indented or quoted pair, so row E does not wait on B landing.
 
 ## Target end-state
-- Every row carries exactly one mark: **keep** (worked as a leaf in this loop) · **park** (status horizon + THOUGHT `parked: formation g7.16.2`: a dispatch-only row that wakes when that formation is active again) · **retired** (wrong under EVERY formation, reason in THOUGHT) · **pointer** (a duplicate of a core g7.33.* leaf: points at that ONE leaf, no twin).
+- Every row carries exactly one mark, by THE TRIAGE RULE (the one rule every triage THOUGHT cites): **keep** = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; worked as a leaf in this loop · **park** = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; marked by the THOUGHT line `parked: formation g7.16.2` and, on a GOAL, also `status: horizon` (a hypothesis has no status field in [hypothesis].md, so its THOUGHT line alone is the mark); it wakes when that formation is active again · **retired** = no work left under ANY formation: either wrong under every formation, or its residue already fixed, and the THOUGHT names the measure (the fixing commit or the green test); this is the row mark, distinct from a goal's `complete` · **pointer** = a duplicate of a core g7.33.* leaf: points at that ONE leaf, no twin.
 - goal:g7.32.5 (parents send on the hub route) is parked, not retired.
 - Split one leaf per source so each closes on its own: goal:g7.16.1.1.2.1 (g1.26-g1.29) · goal:g7.16.1.1.2.2 (g7.33.19 + g7.32.5).
 
 ## Invariants
-- Nothing is deleted. A park is `status: horizon`, since `held` is not a legal status ([goal].md). A retire carries its reason in THOUGHT.
+- Nothing is deleted. A parked GOAL is `status: horizon`, since `held` is not a legal status ([goal].md); a parked hypothesis carries the THOUGHT mark only. A retire carries its measured reason in THOUGHT.
 - Every pointer names exactly one target leaf.
 
 ## Falsifier
