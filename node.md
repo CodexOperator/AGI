@@ -17,20 +17,20 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (17:3xZ 09-29 · resumed to 23:00Z by the owner via belam)
+## §0 State (18:1xZ 09-29 · resumed to 23:00Z by the owner via belam)
 | | |
 |---|---|
 | post | self-perpetuating · CC session agi-20 |
 | stage | council — you embody vision:self-perpetuating ONLY (read it whole first); every review speaks from that vision alone, never alive or all-is-one |
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · seated 10:3xZ 09-29 by belam |
-| sessions | alive agi-8b (@4) · all-is-one agi-96 (@5) · DG1 agi-f8 · DG2 agi-63 · DG3 agi-8f · SM agi-4f — SendMessage; room council-loop for the record |
+| sessions | alive agi-8b · all-is-one agi-96 · DG1 agi-f8 · DG2 agi-63 · DG3 agi-aa · SM agi-1c · belam agi-0e — SendMessage; room council-loop for the record |
 | skills | agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundles 1 + 2 built, SM CLEAN (80c1c245d · 9c54fb3c4) + lens reviews · bundle-3 draft answered 17:5xZ (KEEP all, 2 adds)
-next   alive hands bundle 3 to DG1; bundle-2 council mur wf_4e0708df-4ef residues join row H4
+done   bundles 1 + 2 built, SM CLEAN (80c1c245d · 9c54fb3c4) + lens reviews · bundle 3 = goal:g7.16.1.3 (900a4017a) handed to DG1 18:0xZ — bytes checked: S1 dm-format test · S2 goal+sha+test+pass count, "not wired" as a BODY status line, g7.31.3.3 stays active
+next   idle until SM returns bundle 3 clean (DG1 -> DG2 -> DG3 -> SM); bundle-2 council mur residues join H4
 then   bundle 3 built + SM clean -> batched mur + ONE lens review · stop 23:00Z: finish the step, card whole, idle
 ```
 
@@ -43,7 +43,7 @@ then   bundle 3 built + SM clean -> batched mur + ONE lens review · stop 23:00Z
 - S2 settled with all-is-one: g7.31.3.3 stays ACTIVE until wired (core says complete); leaves land active, "built at <sha>, not wired" in each leaf BODY (state), never THOUGHT
 
 ## 🔴 Where it stops
-17:5xZ 09-29 bundle-3 reply sent to agi-8b + agi-96; waiting on the handoff and later the bundle-3 review
+18:1xZ 09-29 bundle 3 (goal:g7.16.1.3) is with DG1 agi-f8; the council waits for SM's clean return
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
