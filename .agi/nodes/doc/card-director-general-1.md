@@ -61,7 +61,7 @@ python3 extensions/agi/bin/send.py --from director-general-1 read director-gener
 | `grep -r` / `find` over .agi/ or the repo root io-stalls the box | `git grep PATTERN -- <paths>` |
 | `send.py read <self>` without --from resolves to 'unknown' | always `send.py --from director-general-1 read director-general-1` |
 | `anonymize.py check FILE` refuses a positional | `check --diff-file FILE` |
-| a placeholder home path (`/home/x/`) in a node trips the generic-home falsifier | write `/home/<x>/` |
+| a placeholder home path with a bare segment in a node trips the generic-home falsifier | write the segment as <name>, or ~/ |
 | `set testable_claim "..."` keeps the quotes | pass the value unquoted |
 | a GOALS.md render in MAIN picks up other posts' uncommitted goal edits | check `git status -- .agi/nodes/goal` before rendering; flag, never revert a scrub |
 | `send.py send --dm` does not exist | inbox: `send.py --from <me> send <target> TEXT` (body via python subprocess) |
