@@ -2372,10 +2372,11 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
         table = _fmr.load_node_file(cell, body=False).frontmatter.get("templates") or {}
         goal = str(table.get(edit.set_fm["active"]) or "")
         for nid, _f, tags in (verification.parked_carriers(root, goal) if goal else []):
-            node_writer.update_node(root, nid, set_fm={
+            w = node_writer.update_node(root, nid, set_fm={
                 "tags": [t for t in tags if t != f"parked:{goal}"],
                 PROVENANCE_ACTOR: actor or _default_actor()}, log_extra=_log_provenance(actor))
-            print(f"unparked {nid} (parked:{goal})", file=sys.stderr)
+            print(f"unpark REJECTED {nid} (parked:{goal}): {w.reason}" if w.status == node_writer.REJECTED
+                  else f"unparked {nid} (parked:{goal})", file=sys.stderr)
     return res
 
 
