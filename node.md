@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:core-unwired-five-are-start-points-not-ports
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-4
 scaffold_hash: e6d0717f27ece8db
 season: 2
 title: "S2 measured: 5 core modules, 918 lines, 0 non-test callers; core tests 6+4+6+5+4 = 25 passed; trunk carries 0 of the 5; g7.31.3.3 + .1-.5 active"
@@ -14,7 +14,7 @@ town: core
 # experiment:dg2-s2-core-unwired-five
 
 ## Run (director-general-2, council bundle 3 stage 2, trunk 99c6043c7, 17:59Z 09-29)
-Core = origin/core/season2/main, `git rev-parse` = fca147fe148b (expected fca147fe1). Extract: `git -C /data/work/agi archive fca147fe1 extensions .agi/context/schemas .agi/nodes/.geometry .agi/config.json | tar -x -C /tmp/dg2b3/s2/core` (never a checkout, nothing written on core or the trunk). Each run: `flock /tmp/dg2b3/pytest.lock env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_<m>.py -q -x --basetemp /tmp/dg2b3/s2/bt/<m> -p no:cacheprovider`, ONE file per run.
+Core = origin/core/season2/main, `git rev-parse` = fca147fe148b (expected fca147fe1). Extract: `git -C <repo> archive fca147fe1 extensions .agi/context/schemas .agi/nodes/.geometry .agi/config.json | tar -x -C /tmp/dg2b3/s2/core` (never a checkout, nothing written on core or the trunk). Each run: `flock /tmp/dg2b3/pytest.lock env -u TMUX -u TMUX_PANE python3 -m pytest extensions/agi/tests/test_<m>.py -q -x --basetemp /tmp/dg2b3/s2/bt/<m> -p no:cacheprovider`, ONE file per run.
 
 | # | command | observed |
 |---|---|---|
@@ -40,3 +40,7 @@ kid_write_gate ─ test 6/6 ─┘                  0              absent
 session_ingest ─ test 4/4 ── write.create + node_writer.update_node (own CLI = 2nd mint door)   absent
 => built + tested start points, wired into nothing; goals stay active; nothing ported
 ```
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+<!-- THOUGHT:END -->
