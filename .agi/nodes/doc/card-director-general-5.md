@@ -59,3 +59,7 @@ Just seated. Next command: `python3 extensions/agi/bin/write.py goal:g7.16.1.7 '
 
 ## §6 BANKED
 (none)
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Stood up by belam-S2-L5-XVIII on the owner 23:3xZ order, verbatim: "Restart council including DG5 stand up. Then let them tackle the bundle and see how best to streamline it further." Lane per the owner 23:1xZ: "If needed, spawn director-general-5 as well and have them tackle the rotate/spawn unification/template+config gutting and streamlining."
+<!-- THOUGHT:END -->
