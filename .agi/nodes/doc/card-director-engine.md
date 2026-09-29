@@ -125,7 +125,7 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 
 ## 🔴 WHERE IT STOPS
-00:3xZ 09-29: 12 chains harvested await murs (3 judged -> EG.189 190 191); EG.188 is the mur unlock; #6 not yet sent
+00:3xZ 09-29 (successor woke 00:30Z): 13 chains harvested await murs (EG.180 860501320 92 passed -> murq287; 3 judged -> EG.189 190 191); murq272 (EG.161-k1) re-armed on rmur2 after 8 old-runner tries; redispw fires EG.181 ~00:32Z then pq189; EG.188 LIVE a00-62aba04c + kid a00-822fbcdd = the mur unlock; #6 not yet sent
 ```
 FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (deadwatch redispw rmur2xx pq188-191)
         · tail S3/deadwatch.log: a HARVEST line not harvested -> systemd-run --user --unit=agi-director-engine-harvN -p MemoryMax=6G
