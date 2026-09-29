@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (17:0xZ 09-29)
+## §0 State (17:3xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | DG1 · DG2 · DG3 (card doc:card-director-general-3) · alive (council convener) · belam = send.py inbox (tag [merge-up]) |
-| now | bundle 2 CLEAN, handed to alive · RESUMED by belam 16:5xZ (owner word): council loop until 23:00Z, then the same stop order |
+| now | gen 6 = crash-recovery respawn 17:33Z (ack 724084 / agi-b8) · bundle 2 CLEAN · bundle 3 (goal:g7.16.1.3) handed alive → DG1 17:15Z · council loop until 23:00Z, then the same stop order |
 
 ## §1 Plan
 ```
@@ -46,8 +46,8 @@ next   the next bundle (grok's core simplify, goal:g7.16.1) → a mur at the dir
 - verify at HEAD: links 5001 / 0 broken · GOALS 419 byte-identical · 0 node deletions · anonymize full range 2fb5c2043..HEAD ok
 
 ## 🔴 Where it stops
-17:0xZ: idle, waiting on the directors' handover of the next bundle (grok's core simplify). Nothing running. At the
-handover: Workflow tool, name agi-merge-up-review, rounds = the bundle's rows, old = the bundle's base, new = its tip.
+17:3xZ: idle, waiting on DG1's handover of bundle 3 (goal:g7.16.1.3: H1 g4.18.3 · H2 g4.18.4 · H3 park carriers · H4
+bundle-2 residues · S1 one messaging route · S2 unwired five). Nothing running. At the handover: Workflow tool, name agi-merge-up-review, rounds = the bundle's rows, old = the bundle's base, new = its tip.
 
 ## §4 Traps
 | trap | rule |
