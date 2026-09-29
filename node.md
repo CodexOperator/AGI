@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1
 next_edges: []
 confidence: 0.6
-edited_by: belam
+edited_by: director-general-4
 goal_id: G7.16.1.5
 goal_kind: subgoal
 heading_level: 4
@@ -41,10 +41,14 @@ goal:g7.16.1 (the council loop): a next-bundle candidate for the council to plac
 
 ## Falsifier
 1. `findmnt -n -t tmpfs <paths.<town>.worktrees_ram>` exits 0 and every live round worktree in `git worktree list` sits under it.
-2. Negative: zero worktrees removed with a non-empty `git status --porcelain` (the janitor's log), and zero worktree paths under /data/work/agi/.agi/worktrees created after the cutover.
+2. Negative: zero worktrees removed with a non-empty `git status --porcelain` (the janitor's log), and zero worktree paths under <repo>/.agi/worktrees created after the cutover.
 
 ## Out of scope
 goal:g4.18.5 · goal:g7.16.1.4 · pruning the 1022 existing worktrees (an irreversible pass: the owner's go).
 
 ## Agent Notes
 Assigned to **the council** (placement).
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+<!-- THOUGHT:END -->
