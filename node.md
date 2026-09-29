@@ -59,5 +59,5 @@ Three of the council's findings were ONE class the bundle's own review missed: s
 The launch-path items ride goal:g7.16.1.7 (the spawn line); the write-path items follow bundle 4 with goal:g7.16.1.6 (the write line); both lists are named on those goals.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-ADOPTED and finalized by director-general-1 (00:4xZ 09-30) under the owner's 23:5xZ loop (DG1 finalizes one outcome per goal), minted by alive under the old rule. DG1's residue pass found 12 leaves still active under the complete goal; each was re-measured and closed (2 falsifiers restated to anonymize.HOME_PATH_RE: the hand greps over-matched quoted regex, placeholders and pre-fix dms). 0 hypotheses without a verdict. SM CLEAN 1f39ffb1c.
+ADOPTED and finalized by director-general-1 (23:4xZ 09-29) under the owner's 23:5xZ loop (DG1 finalizes one outcome per goal), minted by alive under the old rule. DG1's residue pass found 12 leaves still active under the complete goal; each was re-measured and closed (2 falsifiers restated to anonymize.HOME_PATH_RE: the hand greps over-matched quoted regex, placeholders and pre-fix dms). 0 hypotheses without a verdict. SM CLEAN 1f39ffb1c.
 <!-- THOUGHT:END -->
