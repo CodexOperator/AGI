@@ -1,0 +1,25 @@
+{
+  "rotation": "rotate-self",
+  "seat": "director-engine",
+  "recorded_at": "2026-09-29T00:30:37.079846Z",
+  "result": "started",
+  "steps_reached": [
+    "handoff"
+  ],
+  "box": {
+    "loadavg": [
+      4.71,
+      3.231,
+      2.777
+    ],
+    "cores": 16
+  },
+  "template_source": "worktree (geometry current)",
+  "stops_sha256": "859604cce2fa5464d7023397f476de7d7e0ece490cbe24afe0e199896cd30972",
+  "seated_at": "2026-09-29T00:30:37.079846Z",
+  "after_join": {
+    "claimed_at": "2026-09-29T00:41:40.953670+00:00",
+    "performer": "watch",
+    "claim_key": "2026-09-29T00:30:37.079846Z"
+  }
+}
