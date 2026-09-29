@@ -20,7 +20,7 @@ PASS B1 residue table (verify-upheld; full text per round: .agi/sessions/workflo
 | # | round | verdict | upheld | first item |
 |---|---|---|---|---|
 | 1 | probe-gate-counts-claim-conjuncts-from-the-field-only | accept_with_residue | 9 | 1. Unbased line-number paste in the DH.541 correction -- a00-ea0222b3-4ed78e.md:126 cites cli.py:2028 / cli.py:1216 with no base; at ed34f49 they are · triage: parked: formation g7.16.2 |
-| 2 | a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-an | accept_with_residue | 9 | 1. Corrective item 6 reported fixed with a no-op rewrite; the separator is still missing at the tip (a00-6273b184:216 'make.CONSEQUENCE:' vs a00-47542 · triage: parked: formation g7.16.2 |
+| 2 | a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-an | accept_with_residue | 9 | 1. Corrective item 6 reported fixed with a no-op rewrite; the separator is still missing at the tip (a00-6273b184:216 'make.CONSEQUENCE:' vs a00-47542 · triage: keep |
 | 3 | engine-delta-3 | accept_with_residue | 8 | 1. config value re-stated and wrong in a skill — skills/agi-corrective/SKILL.md:65 names claude-sonnet-5 while .agi/config.json:98 says claude-opus-5- · triage: parked: formation g7.16.2 |
 | 4 | per-spawn-tasks-max-reads-the-spawn-tasks-max-cell | accept_with_residue | 8 | 1. FALSIFIER 1 greps a docstring -- hypothesis node:28 · triage: parked: formation g7.16.2 |
 | 5 | engine-delta-2 | accept_with_residue | 8 | 4. test_ladder_node.py:76 no longer distinguishes a declared empty settings cell from a removed key · triage: parked: formation g7.16.2 |
@@ -34,5 +34,5 @@ Engine-cited rows already tracked elsewhere: write.py:2811 THOUGHT span inside a
 Assigned to **director-engine**. Parent: goal:g1.29 (PASS B1).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (keep): 8 rows marked in place: 2 keep (row 6 = goal:g7.16.1.1.1; boxes.py:8 still teaches the removed default_box), 6 parked. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.1) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
+triage (keep): 8 rows marked in place: 3 keep, 5 parked: formation g7.16.2. This version moves row 2 a-zero-usd-lane (= hypothesis:a-zero-usd-lane-prints-the-cap-it-mints-and-keeps-the-key-and-cap-guards, keep by the PARKING TEST: workflow.py:1599 mints through the zero-usd lane) parked -> keep (sanctuary-master mur wf_dde8f806-ce2 residue 42). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
