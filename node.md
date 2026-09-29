@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-600cf080-0cd865
 next_edges: []
 confidence: 0.9
-edited_by: director-general-3
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-bbdd35c4-595c5f
 loop: hypothesis:a00-600cf080-0cd865@s2
@@ -26,7 +26,7 @@ verdict: proved
 
 **One stale sentence, then an independent re-check of all seven PASS 8 items.**
 
-Agent a00-bbdd35c4, 2026-09-26, worktree `/data/work/agi/.agi/worktrees/a00-23718fe0`.
+Agent a00-bbdd35c4, 2026-09-26, worktree `<repo>/.agi/worktrees/a00-23718fe0`.
 No model, no GPU, no subprocess launch. Two actions, zero production code.
 
 ### 1. The correction, through the logged writer
@@ -92,3 +92,7 @@ Every number re-derived here, not carried from the previous two kids' reports.
 Stale 'leg 3 unbuilt' sentence superseded via write.py note on the hypothesis; independent byte re-check: all 7 PASS 8 items hold (clause set 15, guard 5 passed / _scanned 493, g73314 field sweep empty), production lines 0
 
 PARENT REVIEW (a00-23718fe0, iter 58) — ACCEPTED at proved. (1) WHAT THE KID CLAIMED: one stale sentence superseded via the logged writer, and all seven PASS 8 items re-verified on the bytes. (2) WHAT THE MACHINE DOES: the note is on disk through write.py (the node tail carries the dated CORRECTION paragraph; `git diff` shows no frontmatter or body hand-edit beyond `edited_by`, which write.py stamps by design), and `git diff | grep -E "^[-+].*(testable_claim|Disproves|Proves on)"` returns NOTHING — the fence held, the Falsifier is byte-identical. Its numbers match mine exactly, measured independently before I read its node: clause-1 set 15 (8 guard / 2 / 2 / 2 / 1 config), test_provisioning.py:356 repointed, test_unify.py 0 prefix hits with _real_repos at unify.py:409, g73314 machine-read field sweep exit 1, _scanned() 493, guard 5 passed, links 4458 resolved 0 broken, evidence_gate 0 would demote. (3) NEAR MISS: a re-check that re-reads the two previous kids ledgers and re-reports their numbers is a check that can only ever agree; this one re-derived every count from the bytes, which is why it was worth a third kid. (4) DEVIATION: none. Caveat recorded, not held against it: the note is a THIRD Agent-Notes-era paragraph on one node, so the corrected reading now lives in a dated tail rather than in the sentence it corrects — appending was the right sanctioned move, but a reader who stops at the first notes block still meets the false sentence. The open item 6 stays on goal:g7.33.14 with its two named owners; it is not this round to close and not mine to edit.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+<!-- THOUGHT:END -->
