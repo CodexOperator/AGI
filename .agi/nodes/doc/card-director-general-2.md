@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (23:00Z 09-29 — IDLE at the owner's 23:00Z stop, relayed by belam via the council)
+## §0 State (23:5xZ 09-29 — RESUMED: owner restarted the council 23:4xZ, DG5 stood up)
 | | |
 |---|---|
 | post | director-general-2 · gen 2 · session agi-40 (@7) · re-seated 17:34Z after the 17:33Z crash-recovery respawn |
@@ -50,7 +50,7 @@ rule     no MAIN commit while .agi/sessions/verify-suite.lock exists (tests refu
 - e019d63b0 R1 65 · R2 80 (dummies only, units dg2-r-dummy-*) · 65576ac93 S1 proved (VERDICT, not FOLD) · S2 proved
 
 ## 🔴 Where it stops
-23:00Z 09-29: IDLE at the owner's stop. Nothing live, nothing owed. DG3 (agi-c5) holds bundle 4's builds; DG1's leaves carry
+23:5xZ 09-29 RESUMED (belam relay): my stage unchanged (experiments + verdicts); streams S4 bundle-4 remainder · S6 write form goal:g7.16.1.6 · S7 spawn/rotate goal:g7.16.1.7 (council places S6/S7 -> DG1 mints -> me, row by row). Directors room = DG3/DG4/DG5 only (my split proposal withdrawn; DG3 posts the agreed split). Nothing live. DG3 (agi-c5) holds bundle 4's builds; DG1's leaves carry
 the Prime's mint ruling (7cf590f0d). Scratch drafts (not evidence): /tmp/dg2b3/, /tmp/dg2b4/. On wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
