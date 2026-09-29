@@ -6,14 +6,14 @@ parents:
   - hypothesis:l4-the-suite-record-names-the-run-start-never-the-write-time
 next_edges: []
 confidence: 0.6
-edited_by: a00-0ce0de0e
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-3fa020b7-7722aa
 line_ceiling: 20
 loop: hypothesis:l4-the-suite-record-names-the-run-start-never-the-write-time@s2
 model: ~deepseek/deepseek-v4-flash-latest
 probes:
-  - {"conjunct": 1, "class": "wire", "cmd": "python3 /home/ubuntu/work/agi/.agi/worktrees/post-sensei-director/.agi/sessions/iter-SM.66/a00-0ce0de0e/probes/probe_suite_record.py probe B -- live main([--suite,--level,rotation]) with a _git stub whose rev-parse return CHANGES from shaStart to shaWrite after the run starts", "expected": "the record carries the run-START sha and the run-START wall time, never the HEAD/time at write", "observed": "suite_ran_on=shaStart, suite_ran_at=1789586506.758657 (inside the before/after bracket around main), HEAD at write time was shaWrite", "result": "pass"}
+  - {"conjunct": 1, "class": "wire", "cmd": "python3 <home>/work/agi/.agi/worktrees/post-sensei-director/.agi/sessions/iter-SM.66/a00-0ce0de0e/probes/probe_suite_record.py probe B -- live main([--suite,--level,rotation]) with a _git stub whose rev-parse return CHANGES from shaStart to shaWrite after the run starts", "expected": "the record carries the run-START sha and the run-START wall time, never the HEAD/time at write", "observed": "suite_ran_on=shaStart, suite_ran_at=1789586506.758657 (inside the before/after bracket around main), HEAD at write time was shaWrite", "result": "pass"}
   - {"conjunct": 2, "class": "gate", "cmd": "probe A -- live main([--level,quick,--stamp]) with a suite record naming suite_ran_on=shaA while the tree HEAD is shaB (HEAD moved past the recorded run; the exact merge-up case the claim names)", "expected": "REFUSAL BY NAME -- the stamp path names the sha the suite ran on (suite_ran_on=shaA) and refuses to stamp shaB", "observed": "rc=0, RESULT: PASS, and the never-lower baseline was RE-STAMPED sha=shaB -- a HEAD the recorded suite never ran on. compare_count() (:442) reads _git rev-parse HEAD at check time; suite_ran_on is read only by _read_suite_ran_on for the WINDOW line (:1072); no --stamp path consults it", "result": "fail"}
   - {"conjunct": 3, "class": "wire", "cmd": "probe B -- the live main() -> run_level -> check_bin_freshness call site, kwargs captured (NOT a direct run_level(run_ts=...) call)", "expected": "bin-suite-fresh is handed the RUN START time, so a bin/*.py touched mid-run fails afterward", "observed": "effective_ts == suite_ran_at == the run start (1789586506.758657), not time.time() at the guard", "result": "pass"}
   - {"conjunct": 4, "class": "wire", "cmd": "probe C -- render_window() on a fixture whose suite record names deadbee and whose verify-count baseline names cafef00d", "expected": "`ran on <sha>` printed beside `stamped sha=<sha>`", "observed": "baseline: active=1 deprecated=0 total=1 stamped sha=cafef00d ran on deadbee reason=kept", "result": "pass"}
