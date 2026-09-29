@@ -69,6 +69,24 @@ FILE SCOPE extensions/agi/bin/workflow.py (_pi_transient_re + the deleted _PI_TR
 CEILING   HARD CAP: 1 kid · <= 20 production lines net over c2404cc17 (the tuple goes; item 5 adds the shared reader call) · <= 40 test lines net over c2404cc17 · pi-free tier-0 · 0 USD -- measure git diff --numstat c2404cc17 <tip before the paste commit>, labelled so
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit (the config:workflows node included) on the loop branch before you exit (g7.33.19 row 13) · WRITE THE NODE EARLY and commit after every run: the provider drops turns ('Provider returned an empty response'), and a round that dies mid-turn records nothing
 
+
+## CORRECTIVE DH.EG.188 -- TMM.361: the transient signatures live in values.pi_retry.transient_signatures (.agi/config.json), not config:workflows -- one source for the whole pi retry policy
+BASE      CUT 27beb2eb0 = the EG.185 loop tip 0789fd376 (parent a00-6ccb7e1d, kid a00-be655ee1) merged with the town trunk, which carries the cell (thought-master, trunk ee40e8211). Never rebase, never merge again.
+MEASURED  by the director at 0789fd376: _pi_transient_re reads pi_transient_signatures from config:workflows through _load_geometry_node, a config node only owner / prime_director may write (goal:g12: the EG.185 kid's write.py set was refused), so test_workflow::test_the_shipped_signature_cell_is_present_and_matches_empty_response is RED on the tip. thought-master put the five signatures where the retry policy already lives: values.pi_retry.transient_signatures, read the way _pi_retry_policy reads values.pi_retry.
+1. THE READER -- _pi_transient_re compiles values.pi_retry.transient_signatures read through _loc.load_config, the same reader path _pi_retry_policy uses; config:workflows is no longer consulted.
+2. THE GUARD -- keep the no-fallback rule and its ONE stderr line, now naming values.pi_retry.transient_signatures.
+3. THE TEST -- re-pin test_the_shipped_signature_cell_* (and any test naming config:workflows pi_transient_signatures) to the config.json cell; paste the orders' TESTS red on 0789fd376 and green on your tip.
+4. THE GEOMETRY KEY -- drop the pi_transient_signatures key from _load_geometry_node's return.
+TEXT RULES NUMSTAT SELF-REFERENCE: never paste a numstat that includes the commit it is pasted in · ANCHOR RULE: a cite names a function / heading / cell key and adds a line number only where the claim IS the line
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees
+PROBES    never author or run a probe that calls rotate / heal / send / dispatch functions or a live pi; fixtures and monkeypatch only
+TESTS     env -u TMUX -u TMUX_PANE python3 -m pytest -q -p no:cacheprovider --basetemp=/dev/shm/<dir> extensions/agi/tests/test_workflow.py extensions/agi/tests/test_live_config_cells.py extensions/agi/tests/test_pi_trajectory_retry.py extensions/agi/tests/test_bin_help_smoke.py (timeout 900) -- paste the summary line; help_smoke[zoom.py] ERRORS on the cut already (pre-existing, not yours)
+FILE SCOPE extensions/agi/bin/workflow.py (_pi_transient_re, its guard line, _load_geometry_node's return) · extensions/agi/tests/test_workflow.py · hypothesis:a-workflow-pi-stage-retries-an-empty-provider-response-from-one-signature-cell (write.py) · the kid's own node · NEVER .agi/config.json (the cell is thought-master's, already on the cut)
+CEILING   HARD CAP: 1 kid · <= 10 production lines net over 27beb2eb0 · <= 20 test lines net over 27beb2eb0 · pi-free tier-0 · 0 USD -- measure git diff --numstat 27beb2eb0 <tip before the paste commit>, labelled so
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13) · WRITE THE NODE EARLY and commit after every run
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.185 re-based and widened (TMM.360): the cut moves to c2404cc17 so its parent reads values.pi_retry 12 x 60 s from its own tree, and item 5 makes the workflow-stage retry read those same cells through pi_trajectory _retry_cells, deleting its own 15/45 s literal -- one retry source, so a mur stage gets the parents' tolerance.
+corrective EG.188: TMM.361 TMM.361 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
