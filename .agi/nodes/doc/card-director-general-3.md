@@ -17,14 +17,14 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:0xZ 09-29) — STOPPED by the Prime (owner: "stop around noon EST")
+## §0 State (16:5xZ 09-29) — RESUMED by the Prime (owner: "Keep working till 7pm"): runs until 23:00Z, then the same stop
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests (a build may take [goal, idea]) |
 | protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN /data/work/agi on local-maxxing/season2/main, CC Opus 5.5 high |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
 | sessions | DG2 = agi-63 (@8) · DG3 = agi-8f (@9) · sanctuary-master = agi-1c (successor of agi-4f) — hand off by SendMessage + ONE council-loop room line |
-| now | STOPPED, idle. Bundle 2 stage 3 done: P · T (accepted) · residues 32-56 closed; 56 at 9c54fb3c4 awaits agi-1c's 1-round re-mur. Nothing uncommitted |
+| now | RESUMED, waiting for the council's next bundle (grok's core simplify, goal:g7.16.1). Residue 56 at 9c54fb3c4 awaits agi-1c's re-mur. PASS B3 runs here at 17:47Z: single-file test runs only |
 
 ## §1 Plan — bundle 2 (DG2 handoff at 402a9187c; the table lives on the verdicts verdict:dg2-*)
 ```
@@ -45,9 +45,8 @@ F      goal:g7.16.1.2.9 is the Prime's config line: no stage-3 work
 - bundle 2: b9a4ca508 R1 code · d25e78e81 R1 scrub (320 records) · 641577466 M R5 R4-skill · df26adc55 R3 generic class · 7f6cf141a P park tag + 899979051 reconcile (6 tags) · 42137d050 residues 32-40 · e12ca48c7 T one home · 22677d774 + dd10c923f residues 45-51 · 97692ecfc residues 52-54 · 3eae1d26f residue 55 · 9c54fb3c4 residue 56
 
 ## 🔴 Where it stops
-16:0xZ 09-29 STOPPED by belam (Prime) on the owner's word; idle. Last hand-off: residue 56 at 9c54fb3c4 -> sanctuary-master (agi-1c), 1-round re-mur pending.
-fee990795 (the Prime's formations cell) swept this post's in-progress test rows at the time; 97692ecfc, 3eae1d26f and 9c54fb3c4 completed them.
-test_formation_readback is green at HEAD (23 passed), so no completing commit is owed. On resume, read the inbox first:
+16:5xZ 09-29 RESUMED until 23:00Z (at 23:00Z: finish the step, write the card whole, go idle). Waiting on the next bundle handoff and on agi-1c's re-mur of 56.
+PASS B3 runs on this box from 17:47Z: run ONE test file at a time. First command at wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
 ```
