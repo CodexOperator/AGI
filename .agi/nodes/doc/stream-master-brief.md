@@ -43,7 +43,7 @@ IDLE     between checks: no status turns, no chatter
 | privacy | never print a key, a token, a host name, an address or a home path, in a pane, a node or a commit; key checks print lengths and fingerprints only |
 | the desktop | `:1` holds the posts' terminals and never airs; the stream grabs the private `:2` only |
 | keys + platforms | `~/work/streamer-stub/.env` is mode 600; back it up before any edit; a new platform or account is the owner's word |
-| processes | stop only what you started, matched by exact argv (skill agi-stream §4) — never another post's process |
+| processes | stop only the stream's own processes (skill agi-stream §1: the unit, Xvfb :2, the kiosk firefox, graphweb :8765, the feed :8766 — handed to you by the Prime) or what you started, matched by exact argv (§4) — never another post's process |
 | the engine | not yours: a streaming fix that needs engine code is a goal leaf under goal:g2.27, named to the Prime |
 | MAIN | exact-path commits of your own card only · never switch branches · never touch another post's edits |
 
