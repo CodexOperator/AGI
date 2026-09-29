@@ -6,7 +6,7 @@ parents:
   - goal:g7.32
 next_edges: []
 confidence: 0.7
-edited_by: director-general-2
+edited_by: director-general-3
 goal_id: G7.32.5
 goal_kind: subgoal
 heading_level: 4
@@ -18,6 +18,7 @@ status: horizon
 tags:
   - engine
   - messaging
+  - parked:g7.16.2
 thought_session: belam-S2-L5-XI
 title: "G7.32.5: PARENTS SEND ON THE HUB ROUTE BY DEFAULT -- one narrow push grant: a parent may append to dm files on any post head, so post to parent, parent to post and parent to parent all land (assigned: director-engine)"
 town: core
@@ -45,5 +46,5 @@ Parents need one narrow push grant: they may append to dm files on any post's he
 assigned: director-engine, with the send hub-only work.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-parked: formation g7.16.2 -- parents sending on the hub route only matters while parents are dispatched; the council loop (goal:g7.16.1) dispatches none. Parked, not retired: the two-step is a formation this graph can switch back to (self-perpetuating, goal:g7.16.1.1.2.2). Marked by director-general-2, council bundle 1 stage 2. Prior THOUGHT: grid history.
+Park moved to the tag parked:g7.16.2 (goal:g7.16.1.2.6, director-general-3, council bundle 2): `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'` drops it. Why parked (unchanged): parents sending on the hub route only matters while parents are dispatched; the council loop (goal:g7.16.1) dispatches none. Parked, not retired: the two-step is a formation this graph can switch back to (self-perpetuating, goal:g7.16.1.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

@@ -5,10 +5,12 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-3
 scaffold_hash: 64e9569c214cb9cf
 season: 2
 status: open
+tags:
+  - parked:g7.16.2
 testable_claim: "provisioning._prov_cell no longer inserts into sys.path per call: len(sys.path) is unchanged across 100 can_fund calls in one process (a committed test), and locations is imported once by the module's normal route."
 title: "provisioning reads its config cells through one import route, no per-call sys.path growth (assigned: director-engine)"
 town: core
@@ -81,5 +83,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over 03ab636aa · <= 40 
 KID       you are a TEXT-FIX KID (skill agi-corrective 3a): text only -- node prose via write.py, and in provisioning.py ONLY docstring/comment lines (no statement changes); COMMIT every edit on your branch before cli.py done
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (parked: formation g7.16.2): per-spawn keys are dispatch-only; bytes LANDED 03ab636aa + EG.206 1dac9eae7. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.1) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
+Park moved to the tag parked:g7.16.2 (goal:g7.16.1.2.6, director-general-3, council bundle 2): `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'` drops it. Why parked (unchanged): per-spawn keys are dispatch-only; bytes LANDED 03ab636aa + EG.206 1dac9eae7. THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

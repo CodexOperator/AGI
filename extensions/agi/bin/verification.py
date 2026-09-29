@@ -1282,12 +1282,37 @@ def check_anonymize(groot: Path) -> CheckResult:
                        note="" if proc.returncode == 0 else (tail[-1] if tail else ""))
 
 
+def _grep_live(groot: Path, needle: str) -> list[tuple[str, Path, dict]]:
+    """Live nodes whose bytes carry `needle`: ONE `git grep` (no rglob),
+    deprecated/ skipped -> (id, file, frontmatter), id-sorted."""
+    import yaml
+    import node_writer
+    r = subprocess.run(["git", "grep", "--no-index", "-lzF", "-e", needle, "--", "."],
+                       cwd=groot / "nodes", capture_output=True, text=True)
+    hits = []
+    for rel in filter(None, r.stdout.split("\0")):
+        if not rel.startswith("deprecated/"):
+            f = groot / "nodes" / rel
+            fm = yaml.safe_load(node_writer.split_frontmatter(f.read_text("utf-8", "replace"))[0])
+            if isinstance(fm, dict) and fm.get("id"):
+                hits.append((str(fm["id"]), f, fm))
+    return sorted(hits, key=lambda h: h[0])
+
+
+def parked_carriers(groot: Path, goal: str) -> list[tuple[str, Path, list]]:
+    """goal:g7.16.1.2.6 -- live nodes whose `tags` hold `parked:<goal>` (the
+    tag form in [goal].md / [hypothesis].md) -> (id, file, tags)."""
+    tag = f"parked:{goal}"
+    return [(i, f, list(fm.get("tags") or [])) for i, f, fm in _grep_live(groot, tag)
+            if tag in (fm.get("tags") or [])]
+
+
 def check_formation(groot: Path) -> CheckResult:
     """goal:g7.16.1.1.5 -- exactly ONE formation is active: config:formations
     `active` names a template registered in its `templates` map that exists.
-    Then lists as wakeable every node whose THOUGHT (node_writer's one
-    definition) carries `parked: formation <that template's goal>`. No cell =
-    SKIP: a project that runs no formations."""
+    Then lists as wakeable every live node tagged `parked:<that template's
+    goal>` (goal:g7.16.1.2.6); FAIL while any THOUGHT still carries the retired
+    `parked: formation` mark. No cell = SKIP: a project that runs no formations."""
     import yaml
     import node_writer
     t0 = time.monotonic()
@@ -1301,13 +1326,14 @@ def check_formation(groot: Path) -> CheckResult:
             or tpl.relative_to(groot / "nodes").parts[0] == "deprecated"):
         return CheckResult("formation", "FAIL", time.monotonic() - t0,
                            note=f"want ONE active registered template, got {active!r}")
+    marks = [i for i, f, _ in _grep_live(groot, "parked: formation")
+             if "parked: formation" in (node_writer.thought_text(f.read_text("utf-8", "replace")) or "")]
+    if marks:
+        return CheckResult("formation", "FAIL", time.monotonic() - t0,
+                           note=f"{len(marks)} THOUGHT park mark(s): the park is the tag parked:<goal>",
+                           message="\n".join(f"mark {m}" for m in marks))
     goal = str(table[active] or "")
-    mark = re.compile(rf"parked: formation {re.escape(goal)}(?!\d|\.\d)")
-    live = (f for f in (groot / "nodes").rglob("*.md")
-            if f.relative_to(groot / "nodes").parts[0] != "deprecated")
-    wake = sorted(m.group(1) for f in live if goal
-                  and mark.search(node_writer.thought_text(f.read_text("utf-8", "replace")) or "")
-                  and (m := re.search(r"^id: *\"?([^\"\n]+)", f.read_text("utf-8", "replace"), re.M)))
+    wake = [i for i, _, _ in parked_carriers(groot, goal)] if goal else []
     return CheckResult("formation", "PASS", time.monotonic() - t0, number={"wake": len(wake)},
                        note=f"active {active} {goal or '-'}",
                        message="\n".join(f"wake {w}" for w in wake))

@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-3
 scaffold_hash: fb64581a38cda68f
 season: 2
 testable_claim: every row of the PASS 10 residue table is closed by a corrective round or demoted with its measured reason
@@ -54,5 +54,5 @@ town: core
 | 15 | qwen2-np32-seed-band-4-budgets | accept_with_residue | DEFECT (a gate): a00-fe05fdae :14-15 probes frontmatter DESTROYED by two raw hand-appended lines, and every gate passed it -- cli.py:270-296 _load_frontmatter only requires a mapping -> own DE hypothesis (fold: node frontmatter shape gate) · production_lines 86 under-declares by 25 | none · triage: keep |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (keep): 30 rows marked in place: 17 keep, 12 parked: formation g7.16.2, 1 retired (no residue). This version moves 3 rows parked -> keep (goal:g7.16.1.2.2): row 14 a-reap-chain-is-bounded (= hypothesis:reap-chain-members-get-their-full-term-grace-again, now keep) and rows 1 engine-delta-1 + 12r a-no-model-round (both fold into hypothesis:model-fence-is-one-module-one-class-one-config-read, now keep; a fold row carries its hypothesis's mark). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2 (council bundle 2). Prior THOUGHT: grid history.
+Tally reworded, counts unchanged: a node's park is now a tag, parked:<goal> and the formation read-back FAILs on the old THOUGHT form (goal:g7.16.1.2.6, director-general-3, council bundle 2). triage (keep): 30 rows marked in place: 17 keep, 12 parked, 1 retired (no residue). This version moves 3 rows parked -> keep (goal:g7.16.1.2.2): row 14 a-reap-chain-is-bounded (= hypothesis:reap-chain-members-get-their-full-term-grace-again, now keep) and rows 1 engine-delta-1 + 12r a-no-model-round (both fold into hypothesis:model-fence-is-one-module-one-class-one-config-read, now keep; a fold row carries its hypothesis's mark). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2 (council bundle 2). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

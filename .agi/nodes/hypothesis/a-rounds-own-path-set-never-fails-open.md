@@ -5,9 +5,11 @@ type: hypothesis
 parents:
   - goal:g1.26
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-3
 scaffold_hash: 4f0c04007360227f
 season: 2
+tags:
+  - parked:g7.16.2
 testable_claim: an absent agent_id refuses by name; --owns is bound to dispatch-time ids; a test fails on 6c403aeb4b
 title: "A round own-path set never fails open and has no unguarded kid route (assigned: director-engine)"
 town: core
@@ -217,5 +219,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over fdb7e3c61 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (parked: formation g7.16.2): a round's own-path set: dispatch-only; EG.125 chain landed at d0cb3bb35. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.1) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
+Park moved to the tag parked:g7.16.2 (goal:g7.16.1.2.6, director-general-3, council bundle 2): `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'` drops it. Why parked (unchanged): a round's own-path set: dispatch-only; EG.125 chain landed at d0cb3bb35. THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

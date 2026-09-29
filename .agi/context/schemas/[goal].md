@@ -31,6 +31,10 @@ validation:
     # drop-in reader must accept it, not survive one migration window.
     goal_kind: '^(long-term|perpetual|short-term|subgoal)$'
     status: '^(active|horizon|retired|phasing-out|complete)$'
+  # goal:g7.16.1.2.6 -- a park is a TAG: `parked:<goal id of the formation it
+  # waits for>`; `write.py config:formations 'set active <doc>'` drops it.
+  item_regex:
+    tags: '(?!parked:)[^\n]*|parked:g\d+(\.\d+)*'
 spawn:
   discriminator: goal_kind
   variants:
