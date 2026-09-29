@@ -32,79 +32,31 @@ Post `director-engine`, director, tier 1, town local-maxxing, master thought-mas
 
 ## §0 STATE (19:3xZ 09-28 · live during the work; per-chain history = git log of this node)
 ```
-MERGE-UP  #1 LANDED 165c99e6a · #2 LANDED d0cb3bb35 · #5 LANDED b0aa2c178 (TMM.353, after the a2ec45880 dedupe) · #3/#4 RETURNED, #4b superseded
-          · de-mu-EG151 = the CLEAN LANDING BRANCH: stack each cleared chain on it (merge-tree onto its tip first) as the next #N
-          · #6 carries: goal:g7.33.19 row 24 (132d494e1, TMM.352 H1 row) + TM's rows a-c + the first cleared item of TMM.353's queue
-QUEUE     TMM.353/356/360, in order: (1) EG.186 DISPATCH NOW (TMM.360 item 2): minted hypothesis:an-empty-response-budget-counts-consecutive-
-          empties-with-growing-backoff 1d563b262, placing via pq186 from trunk 56c012118 (consecutive bound + growing backoff, cells = reader;
-          factor/cap cell values PROPOSED by the kid, TM writes config.json at landing) (2) EG.185 (TMM.350 + TMM.360 item 3: item 5 = the
-          workflow-stage retry reads values.pi_retry via pi_trajectory _retry_cells, one source) -- orders amended d4255456f, cut c2404cc17
-          (12 x 60), the old-orders parent a00-573ce2a1 STOPPED 22:36Z -> redispw queue head; LAND before 01:43Z or after PASS B2
-          (3) EG.153 = EG.184 HARVESTED green (one call 591/0) -> murq279 (4) TMM.356 per-role roots, order 8af87980f (5) TM owed list
-POST      8abdcc7cf = trunk synced (86bbc1bd8 values.pi_retry 12 x 60 s); queued cuts re-merged: 185 166 177 179 171 182 168 172
-PIRETRY   TMM.354 DECIDED A: values.pi_retry 6 x 60 s on the trunk 9c0a427e6. A parent reads config from its OWN worktree (find_project_root
-          from cwd; load_config has no MAIN overlay) -> [red] correction sent to TM 21:4xZ. Cuts re-based: EG.184 + pick 66e7f3cf2 · EG.185
-          736f5602a (orders on the node re-based, a389fe585) · 174 166 177 179 171 182 168 merged with the trunk (SP/mergecut.sh +
-          bothsides.py, SP = <scratchpad 70b8087f-...>) · EG.180 181 173 = ENGINE-CODE conflicts, old cuts, no retry (chains need a
-          merge-resolution round). OWED to TM at 22:3xZ: deaths / dispatches since 21:45Z on the 6 x 60 cuts + empties per death
-          · C (growing backoff) = EG.186, QUEUED behind EG.185 and EG.153
-BOX       / at 94 pct 21:1xZ (6.5 GiB free) · belam 22:12Z (OWNER GO): per-role worktree roots ahead of tmpfs -- DE + parents on /data (as
-          now), kids as-is until tmpfs; belam's successor moves logs / TMPDIR / caches off / -> ONE notice with the new paths is OWED to me:
-          on it, confirm send, rotate, grid, dispatch and the suite still work (one line each, to TM) · the other town left the free lane
-TOOLS     T=<scratchpad 96494ce7-...> gen2 (gen3 = + de-* branches) place2 placecc mkmur runmur mur41.sh (N Q HARVLOG [focus]) qgn.sh
-          (WAIT_UNIT N MURK) · D=<scratchpad 4cf27ed6-...> verd.py Q · harvest-all.sh EG.N · gen logs <scratchpad 8884a411-...>
-SERIES    next EG.192 · next murq288 · EG.180 HARVESTED 00:30Z (old cut 7880395b2, tip 860501320, 92 passed, 2 parent node edits landed) -> murq287; its chain needs a merge-resolution round before landing (engine-code conflict) · murq280 EG.174 awr -> EG.191 (7 text items) via pq191 · PLACING CHAIN (detached, serial): pq188 EG.188 -> pq189 EG.189 (murq284 EG.179 awr, 5 text) -> pq190 EG.190 (murq277 EG.170 facts window, accept + verify awr, 4 items; 2 6 demoted by design) -- each waits for the previous unit AND a fresh redispw spawn · EG.171 HARVESTED 00:26Z 9b61ad910 76 passed (item 2 git mv reported unlanded) -> murq286
-          drives 272 275 276 278 until they end -- TMM.360: never skip a mur, keep re-arming; next [count] to TM after EG.186 lands (deaths /
-          dispatches + mur stage survival); still 100 pct dead after EG.185 lands -> the lane/model question goes to belam
-          · EG.186 LIVE a00-ed3b6fd7 (22:50Z) on cut 50b35023b = trunk 56c012118 + the node's 2 commits cherry-picked -- TRAP: place2 cut a NEW
-            node from the trunk, whose tree lacks the node -> dispatch 'no context for target' (rc 1); a cut not from the post must carry the
-            node commits · TRAP: redispw DEQUEUES then sleeps 10 min, so the queue head is NOT its next placement -- EG.174 and EG.186 placed
-            11 s apart 22:49Z (both spawned clean); check redispw.log's last '=== re-dispatch' + its sleep before any hand placement
-PLACING   serial12 (173 171 172 174 177 178 placed; all 5 died but 178?) -> serial14 (179) -> serial17 (180 181 182) · serial16 (EG.166) · serial18 (EG.164)
-AUTO      deadwatch (detector: every ended EG.16x-19x parent -> HARVEST line or DEAD + queue) · redispw (worker: serial redispatch2
-          of the queue, 10 min apart, cap 5 per round; queue <scratchpad 3e232af5>/redisp.queue) · rmur271 272 (re-run murs until no
-          empty-response stage) -- NEVER redispatch by hand while redispw runs (double placement)
-PROVIDER  since 20:0xZ the pi-free model returns 'Provider returned an empty response': 11+ parents died 0-commit, most mur stages die.
-          FIXES: EG.151 chain MERGED 63cc7e072 (parent-side retry, in #4) · EG.183 (TMM.350, workflow-stage signatures) harvested
-          2d0b3c8ed -> murq274; its config:workflows cell was NOT written -> the corrective must add it
-LIVE      00:0xZ 09-29: parents EG.177 a00-247f5c20 (redispw) · queue (redispw, 10 min apart): EG.171 180 181 182 173 168 172 -- all but 180
-          181 173 on 12 x 60 s cuts · HARVESTED, awaiting murs (none merged): EG.170 492d7397f (277) · EG.165 56d44d93e (278) · EG.184
-          a06ca6e3e one call 591/0 (279) · EG.174 24634a90c (280) · EG.166 74bb47d11 text (281) · EG.186 a2fa54dce parent DEMOTED no total
-          stop (282) + EG.187 c71d768f8 corrective 98 passed, ceiling +26/+48 recorded (283) · EG.179 15c89aa12 162 passed (284) · EG.185 0789fd376 parent lean_proved:75: its ONE red (the signature cell) -> TMM.361: thought-master put
-          values.pi_retry.transient_signatures in .agi/config.json (trunk ee40e8211, post 9020a6702) -> CORRECTIVE EG.188 (reader via _loc.load_config
-          like _pi_retry_policy; guard; re-pin the test; drop the geometry key) on cut 27beb2eb0 (= 0789fd376 + trunk, branch de-cut-EG.188),
-          placing via pq188 after redispw's next spawn; LAND before 01:43Z or after PASS B2 · EG.177 89614e720 smoke 72 passed (285;
-          it touched GOALS.md = derived: expect a finding)
-MURS      01:1xZ 09-29: runner = /dev/shm/de-tmp/wt188 workflow.py (EG.188 tip; 12 x 60 s stage retry) via S3/runmur2.sh · CONTROLLER = S3/rmur3.sh Q
-          (DONE = no [✗] + a [✓] verify; rmur.sh/rmur2.sh binned every run whose stage retry SUCCEEDED -- the retry line carries the
-          empty-response string: 7 finished murs sat in .fail logs, restored as murqQ.log 01:1xZ) · judged 01:1xZ: 275 EG.164 demote -> EG.193 ·
-          276 EG.178 awr -> EG.194 · 278 EG.165 awr -> EG.195 · 279 EG.184 awr -> EG.196 · 281 EG.166 demote -> EG.197 (pq193-197 on S3-free
-          T/pq3.sh -> T/place3.sh = place2 + T/retrysync.sh at the cut) · 274 EG.183 review awr / verify demote = the base of the EG.185 chain:
-          judge WITH murq288 (EG.185-k1 + EG.188-k1) · 283 EG.187 review stage None -> re-run (rmur3) · live on rmur3: 272 283 286 287 288
-TOOLS2    <scratchpad 3e232af5-...>: cardset.py KEY ENDKEY FILE · drop.py N "k.." "why" · textkid.py N · resnode.py FILE (hypothesis-node
-          merge conflict: post sections + chain side, ONE THOUGHT) · rmur.sh Q · deadwatch.sh + redispw.sh (units above)
-TRIAGED   223->144 (cut de-cut-EG.144 d7f65215e) · 229->145 · 227->146 · 231->147 · 232->148 · 230->143 · 235->149 (town "all" sentinel
-          refuses own board: policy question may come up) · 233->150 (cut de-cut-EG.150 f9fbf587a: merge reds test_free_lane_mints...)
-          · 234->151 · 241 DEMOTE->152 (conftest suite gate: fix or remove) · 237->153 · 240->154 · 242->155 · 238->156 (CC text kid) · 243 EG.125 director close d91b942f3 -> EG.157 · 245 EG.133 + 236 EG.137 director closes -> MERGED · 249 EG.138 DEMOTE -> EG.158 · 251 EG.157 -> director close 1da46ba3a -> MERGED 08177c25f
-          · 254 EG.132 (verify died) -> EG.159 · 19:0xZ batch (genbatch.py, verify-cleared items auto-demoted): 244 EG.140 -> 160
-          · 246 EG.135 -> 161 · 248 EG.143 -> 162 · 252 EG.145 -> 163 · 255 EG.156 -> 164 · 239 EG.142 -> 165 · 250 EG.139 -> 166 · 256 EG.149 -> 168
-OVERRIDE  EG.123 03ab636aa: kid code (28 prod vs 15) merged onto the parent's reviewed tip, disclosed; parent tree vanished
-KNOWN RED test_bin_help_smoke[suite_guards.py] on base lineages = fixed on the trunk 8f9e3d5da, heals at merge
-EG.5      FACTS WINDOW (TMM.348 19:57Z): belam/facts-window a1ccc2dee (F13 trim + cell facts_pointer_target_bytes 2000) pairs with the
-          EG.107 chain (tip db4157188). Cut de-cut-EG.163: e3d289056 = post 0f3ccf2c1 merged INTO db4157188 (trio = POST side, node =
-          post sections + chain falsifier 2) -> b49c5db9e = + a1ccc2dee (clean). EG.163 parent a00-13ea9b20 died 0-commit on the OLD
-          cut -> its 3 items FOLDED into EG.170 = parent a00-1d634168 on b49c5db9e (F13 re-pin + cell-read pin + byte-ceiling arm)
-          -> harvest -> mur b49c5db9e..tip (all test_rotate_templates green) -> [merge-up] to TM naming the chain tip + a1ccc2dee
-EG.9      chain tip 1a4046949 waits murq244 (EG.140). AFTER EG.9, in order (TMM.345): (1) the basetemp gate = the EG.128 chain
-          (EG.152) + a reaper for >24 h basetemp dirs no process holds -- a FIX, not a row (2) ONE goal:g7.33 hypothesis: repair
-          the off-shape frontmatter via write.py set (15 keys links.py MALFORMED + 106 nodes cli refuses), pi-free (3) TMM.347: ONE goal:g7.33 hypothesis
-          -- dispatch stamps dispatch_node_id into the kid agent.json at spawn (the --owns refusal makes a dead kid unownable); until
-          it lands, dead-kid salvage is the director's, NAMED in every [merge-up] (4) the g7.33 hypotheses TMM.328 b · 330 · 338 · 336
-          (TMM.336 (5) row absorbs [rule] V9) · findings (b)(c) accepted as rows; (c) merge-resolution ceiling cell = config-max round
-EG.102    chain HELD until EG.143 clears · HELD never land: EG.7 · EG.30 · EG.24 · EG.50 · DH.671 cell · EG.19
-GATE      TMM.306 load1 < 16 AND io avg60 < 50, two reads 5 min apart · arm 10 (TMM.343: hammer it) · CC: MemAvailable >= (live+2) x 2G
+TIME      03:1xZ 09-29 (successor of 00:30Z; runs detached -- reconcile with systemctl --user list-units 'agi-director-engine-*')
+MERGE-UP  #1 165c99e6a · #2 d0cb3bb35 · #5 b0aa2c178 LANDED · de-mu-EG151 = the clean landing branch · #6 NOT SENT: no chain has cleared a mur
+          #6 will carry: goal:g7.33.19 row 24 (132d494e1) + TM rows a-c + findings (FINDINGS line) + the first cleared chain
+DECISION  [decision] kid cap SENT to TM 02:5xZ [delivered]: 5 (template/skill/prime brief) vs spawn.parent_max_kids 10; recommend A (cell->5)
+          -- murq296 V7 held out of EG.207 until the answer
+EG.185    CHAIN (TMM.353/360 priority): EG.183 -> EG.185 -> EG.188 (3ec61d27e) -> corrective EG.205 LIVE a00-d97749e4 (7 items, from murq288
+          + murq274) -> harvest -> ONE mur c2404cc17..EG.205 tip -> clean -> merge-tree onto de-mu-EG151 + post -> [merge-up] #6; LAND after PASS B2
+RUNNER    murs: S3/runmur2.sh -> /dev/shm/de-tmp/wt188 workflow.py (EG.188: stage retry 12 x 60 s on values.pi_retry.transient_signatures);
+          controller S3/rmur3.sh Q (DONE = no [x] + a [ok] verify); judge with D/verd.py Q (recovers fenced/unstructured returns;
+          Q@runkey reads an older run); a verify-only death = the review stands (judge from it: murq287 precedent)
+PLACE     T/pq3.sh -> T/place3.sh = place2 + T/retrysync.sh at the cut (a cut without values.pi_retry dies on the first empty response)
+          + empty zero-USD pick skipped / conflict aborts undispatched · serial pqN units, each waits for pq(N-1)
+HARVEST   /dev/shm/de-tmp/harvq.sh N (detached memgate harvest + HARVEST-DONE line in S3/deadwatch.log) · harvest.sh names NOLAND paths
+          and never salvages goal/.geometry edits (NOLAND-FOREIGN) · the harvest is NOT automatic: deadwatch only prints HARVEST
+ORDERS    T/genbatch.py N:Q -> T/ordersEG.N.md (gen3 template carries ANCHOR + NUMSTAT; help-smoke = the exempt read-only check) ->
+          S3/drop.py N "k.." "why" -> fix FILE SCOPE/TESTS by hand (generated scopes miss nodes the items name) -> chain pqN
+LIVE      parents EG.197 EG.198(harvested) EG.200 EG.201 EG.202 EG.203 EG.205 · queued pq204 206 207 208 209 · redispw queue empty
+MURS      live: 292 EG.173 · 293 EG.168 · 298 EG.190 · 299 EG.196 (director close dce48998c) · 300 EG.195 (8 REDS at tip, 4 kids vs cap 1,
+          node_writer.py outside scope) · 301 EG.194 · 302 EG.199 (2 raw-edit NOLAND) · 303 EG.198
+CUTS      EG.181/173 = retry-synced cuts whose chains conflict with the trunk in ENGINE code: a merge-resolution round is owed before landing
+FINDINGS  for #6: raw node edits bypass write.py (EG.190, EG.199 x2) · EG.195 cap + scope breach · a kid retitled foreign goal:g1.7 (EG.181,
+          restored 77b817f04) · conftest.py before-collection wording (murq291 V5) · row 13 recurs · harvest salvage landed a foreign goal edit
+SERIES    next EG.210 · next murq304 · T/series.txt holds every EG line
+GATE      TMM.306 load1 < 16 AND io avg60 < 50 (in pq.sh / redispatch2) · spend 0 USD: every parent pi-free (agent.json harness)
 ```
-
 ## §1 PLAN
 ```
 loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = provider-dead -> redispatch2.sh) -> mkmur/runmur
