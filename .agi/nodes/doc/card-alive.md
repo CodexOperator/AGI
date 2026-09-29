@@ -15,12 +15,12 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (17:1xZ 09-29, RESUMED to 23:00Z by the owner, 16:5xZ)
+## §0 State (17:1xZ 09-29, resumed to 23:00Z)
 | | |
 |---|---|
 | post | alive · session agi-8b · window @4 |
-| stage | council, convener: bundle-2 council mur running + bundle-3 draft out (grok core simplify). I embody vision:alive ONLY |
-| peers | self-perpetuating agi-20 · all-is-one agi-96 · DG1 agi-f8 · DG2 agi-63 · DG3 agi-8f · SM agi-4f (SendMessage names) |
+| stage | council, convener: bundle 3 (g7.16.1.3, grok core simplify) with DG1; the bundle-2 council mur is running. I embody vision:alive ONLY |
+| peers | self-perpetuating agi-20 · all-is-one agi-96 · DG1 agi-f8 · DG2 agi-63 · DG3 agi-aa · SM agi-1c · belam agi-0e (names change on rotation: ListAgents + tmux window names) |
 | protocol | doc:council-loop · goal:g7.16.1 · stop 23:00Z 09-29 (belam relayed the owner; finish the step, card whole, commit, idle) · PASS B3 on this box from 17:47Z: single-file tests only |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
@@ -34,20 +34,22 @@ done   bundles 1 + 2 built and SM-clean (g7.16.1.1 · g7.16.1.2 tip 9c54fb3c4) �
 now    bundle-2 council mur wf_4e0708df-4ef (3 rounds: b2-R1R3-home · b2-R2R4-park · b2-formation; args /tmp/alive/cmur/b2.json)
        bundle-3 draft sent 17:3xZ: H1 g4.18.3 · H2 g4.18.4 · H3 carrier tags · H4 bundle-2 residues · S1 dm_* fold (measure first)
        · S2 the unwired five NOT ported (verdict node) · S3 profile_sync / magic_pane by use · bundle 4 = core's edits to existing files
-next   council agrees → mint g7.16.1.3 (heading_level 4) → room [handoff] → SendMessage DG1 (check ListAgents: names change on rotation)
+done   bundle 3 agreed → goal:g7.16.1.3 (900a4017a) → DG1 · [merge-note] to belam: g7.31.3.3 stays ACTIVE until wired
+next   on the wf_4e0708df-4ef result: SendMessage DG1 its confirmed residues as H4 items → wait for SM clean on bundle 3 → council
+       mur + lenses → bundle 4 (core's edits to existing files + profile_sync) or the season close
 ```
 Council mur route: build args like /tmp/alive/cmur/chunk{1,2}.json (one round per row, the COMMON focus + a SIMPLIFY pass,
 old_tip = the bundle base, new_tip = SM's clean tip) -> Workflow tool, name agi-merge-up-review, <= 3 rounds per chunk ->
 read subagents/workflows/<run>/journal.jsonl (type=result), NOT the truncated notification.
 
 ## §2 Landed
-- d6cfe7749 goal:g7.16.1.1 · 794a0782e goal:g7.16.1.2 + room [measure] + [handoff] · cards 7a96e32e4 ceb2473a3 d8ebc8c54 36ff07984 195512bbb
+- 900a4017a goal:g7.16.1.3 · d6cfe7749 goal:g7.16.1.1 · 794a0782e goal:g7.16.1.2 + room [measure] + [handoff] · cards 7a96e32e4 ceb2473a3 d8ebc8c54 36ff07984 195512bbb
 - [red] to belam (inbox): PASS B3 at 17:47Z will hit the anonymize refusal on rotation records (bundle 2 R1); please land the [measure] line
 
 ## 🔴 Where it stops
-17:1xZ 09-29: bundle-3 draft with the council; bundle-2 council mur running
+17:1xZ 09-29: bundle 3 with DG1; the bundle-2 council mur wf_4e0708df-4ef running
 ```
-merge the council replies + the mur residues into row H -> skill agi-goal: mint goal:g7.16.1.3 -> room [handoff] -> SendMessage DG1
+on its completion: read subagents/workflows/wf_4e0708df-4ef/journal.jsonl -> refuter-confirmed residues -> SendMessage agi-f8 (H4 addendum) + agi-20/agi-96
 ```
 
 ## §4 Traps
