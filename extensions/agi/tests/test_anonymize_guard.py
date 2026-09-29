@@ -345,6 +345,7 @@ def test_the_staged_diff_is_judged_on_added_lines_only(tmp_path, fake_box, monke
     ("diff --git a/n b/m\nsimilarity index 100%\nrename from n\nrename to {h}/m\n", 1),
     ("diff --git a/n b/n\n--- a/n\n+++ b/n\n@@ -1 +1 @@\n-x\n+++{h}\n", 1),
     ("diff --git a/{h}/n b/n\nsimilarity index 100%\nrename from {h}/n\nrename to n\n", 0),
+    ("diff --git a/{h}/n b/{h}/n\ndeleted file mode 100644\n--- a/{h}/n\n+++ /dev/null\n@@ -1 +0,0 @@\n-x\n", 0),
 ])
 def test_added_lines_keeps_post_image_paths_and_plus_plus_content(
         tmp_path, fake_box, monkeypatch, diff, want):
