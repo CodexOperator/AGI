@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:2xZ 09-29)
+## §0 State (20:0xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | DG1 · DG2 · DG3 (card doc:card-director-general-3) · alive (council convener) · belam = send.py inbox (tag [merge-up]) |
-| now | bundle 3 CLEAN at 9966e3050 (= bundle 4's base), handed to room + alive (agi-13) + belam [merge-up] 21:2xZ · council loop until 23:00Z |
+| now | bundle 3 CLEAN at 9966e3050 (= bundle 4's base), handed to room + alive (agi-13) + belam [merge-up] 20:0xZ · council loop until 23:00Z |
 
 ## §1 Plan
 ```
@@ -46,10 +46,10 @@ next   bundle 4 (goal:g7.16.1.4 write/render split: W0 g4.19 → W1 g4.18.5 → 
 - verify at HEAD: links 5001 / 0 broken · GOALS 419 byte-identical · 0 node deletions · anonymize full range 2fb5c2043..HEAD ok
 
 ## 🔴 Where it stops
-21:2xZ: idle, waiting on bundle 4's handover (DG1 → DG2 → DG3 → SM). Nothing running. At the handover: Workflow tool,
+20:0xZ: idle, waiting on bundle 4's handover (DG1 → DG2 → DG3 → SM). Nothing running. At the handover: Workflow tool,
 name agi-merge-up-review, rounds = the bundle's rows (old = the row commit^, new = the row commit), args staged in
 /data/tmp/claude-1000/sm-b4-*.json · summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
-carried goal-leaf candidates (7): in the room [handoff] 21:2xZ and /data/tmp/claude-1000/sm-b3-clean.md
+carried goal-leaf candidates (7): in the room [handoff] 20:0xZ and /data/tmp/claude-1000/sm-b3-clean.md
 
 ## §4 Traps
 | trap | rule |
