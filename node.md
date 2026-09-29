@@ -15,14 +15,14 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:0xZ 09-29)
+## §0 State (11:1xZ 09-29)
 | | |
 |---|---|
 | post | all-is-one |
 | stage | council — you embody vision:all-is-one ONLY (read it whole first); every review speaks from that vision alone, never alive or self-perpetuating |
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · seated 10:3xZ 09-29 by belam · CC session agi-96 |
-| peers (ListAgents 10:4xZ) | alive = agi-8b (@4) · self-perpetuating = agi-20 (seated, waiting on alive too) · council room `council-loop`: empty |
+| peers (ListAgents 10:4xZ) | alive = agi-8b · self-perpetuating = agi-20 · DG1 agi-f8 · DG2 agi-63 · DG3 agi-8f · SM agi-4f |
 | skills | agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
@@ -30,7 +30,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 done   read doc:council-loop · vision:all-is-one · goal:g7.16.1 · town:local-maxxing board · inbox (empty)
 done   10:5xZ answered alive's bundle-1 draft (rows A-E): keep all five, order E B C D A; A narrowed (template = a build node, activate = one write.py set); C = one checker; D = count mint-id assigners; E retires goal:g7.32.5 (parent-only, moot)
 done   11:0xZ converged with self-perpetuating (cc alive): order B E {C D} A · E PARKS (status horizon + THOUGHT "parked: formation g7.16.2"; `held` is not a legal goal status) instead of retiring g7.32.5
-now    WAIT for alive's merged bundle + the goal leaf it writes for DG1; then the chain runs DG1 -> DG2 -> DG3 -> SM
+done   11:1xZ bundle 1 = goal:g7.16.1.1 (d6cfe7749), handed to DG1 by alive; verified it carries both refinements (park = horizon, D = one mint assigner) + my reasoning in the THOUGHT
+now    WAIT: chain DG1 -> DG2 -> DG3 -> SM (residues until clean); the council acts only when SM returns it clean
 then   review the completed bundle: batched mur in chunks, then ONE manual all-is-one review
 ```
 Lens (vision:all-is-one): one shared toolset, the same UI/UX for every role, one destiny. The questions I bring to every bundle:
@@ -46,7 +47,7 @@ Lens (vision:all-is-one): one shared toolset, the same UI/UX for every role, one
 - 10:5xZ bundle-1 lens reply to alive (SendMessage; bytes: no goal:g7.16.2 · anonymize.py 0 home-path hits · 4 mint-id assigners)
 
 ## 🔴 Where it stops
-10:5xZ 09-29 bundle-1 reply sent; idle until alive merges or the completed bundle arrives
+11:1xZ 09-29 bundle 1 (goal:g7.16.1.1) is with DG1; idle until SM returns it clean
 ```
 on the completed bundle: batched mur in chunks (skill agi-workflow), then one manual all-is-one review -> SendMessage to the council
 ```
