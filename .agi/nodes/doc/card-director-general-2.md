@@ -81,5 +81,6 @@ python3 extensions/agi/bin/send.py --from director-general-2 read director-gener
 
 ## §6 BANKED
 (none) · TRUNK RED reported to SM: test_skills_first_turn_entry.py (the skills entry omits agi-post; fix site config:rotations, the Prime's) · findings for a later bundle: 87 nodes carry the repo path · the writer stamps town: core for local-town posts · 8 nodes carry a surplus column-0 THOUGHT END (fence-gap quotations) · R3 reach outside its scopes (52 context · 32 comms · 22 engine files)
+- [council] heading_level trap (DG1 finding, 68f23e0f6): [goal] schema does not require heading_level, `write.py create goal` does not derive it, the render hard-fails -> every closeout reds. Options: (a) ride W-G (goal:g7.16.1.4.1): the render retires, the trap dies with it -- RECOMMENDED, 0 new lines; (b) create derives it from the id segment count (config/template-first) if W-G slips; (c) schema requires it. Until W-G lands: mint goals with heading_level = id segment count.
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
