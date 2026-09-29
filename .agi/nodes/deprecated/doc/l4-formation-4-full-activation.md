@@ -9,6 +9,7 @@ edited_by: director-general-3
 origin: doc-version
 scaffold_hash: e26fb36ebe0ccbcc
 season: 2
+status: deprecated
 tags:
   - formation
   - sanctuary
@@ -52,7 +53,7 @@ Prime/SM reading: the owner has never described F4 directly; its shape is the ne
 
 > Once the actual persistent director system is up then they'll get pinned to a goal, for now they're free floating the way masters and keepers will be kinda free-floating.
 
-(goal:g7.16 L28)
+(goal:g7.16.2)
 
 > Prime council assigns work to directors, who return results or other comms to sanctuary council. Sanctuary council assigns work to correct master based on comms received and those masters report findings to Prime Council. Cycle continues. Belam involved as needed. All do their one simple job and stay narrow.
 
@@ -110,15 +111,7 @@ No next formation is named; F4 is what F1–F3 bootstrap toward. Read the other 
 | one director per perpetual goal | pinned -> parents -> kids |
 
 ## Stand up / take down (skill agi-post)
-```
-switch   python3 extensions/agi/bin/write.py config:formations 'set active doc:l4-formation-4-full-activation'   ONE call (Prime / owner); config:formations
-         names ONE active template, so every other is inactive by the same write · read-back: verification.py `formation` check
-up       each post in Posts not live: its config:posts row, committed BEFORE spawn -> its card doc:card-<post> ->
-         rotate.py spawn --seat <post> (skill agi-post §2)
-down     each live post NOT in Posts: card + "[rotation] <post> down-ready" -> row "recover": false AND "pid": 0 -> then stop it
-         (skill agi-post §1: flags first, kill second)
-```
-
+Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = `write.py config:formations 'set active doc:l4-formation-4-full-activation'`, ONE call (Prime / owner), read back by verification.py `formation`.
 ## Status
 
 Not yet. Owner 2026-09-14 01:06Z: "we aren’t ready for that yet" (doc:l4-owner-decisions L775). Nothing of F4 is seated; F3 runs. Gate: the owner's word, after F3's proofs above.
@@ -126,10 +119,10 @@ Not yet. Owner 2026-09-14 01:06Z: "we aren’t ready for that yet" (doc:l4-owner
 ## Sources
 
 - doc:l4-owner-decisions L232–L395 (2026-09-09 plan parts 4–7: names, councils, channels, figure eight, survival mode, GO), L729–L731 (23:0xZ lightest hybrid), L739 + L761 (next-season rungs 5-8, key hardening), L763–L767 (23:32Z hybrid figure-eight; what is not pulled up), L773–L775 (01:06Z formations order).
-- goal:g7.16 L24–L34 (F2; directors pinned only once the persistent director system is up) · goal:g15 (parent) · sanctuary-master post card §0.5/§0.6 (current formation diagrams).
+- goal:g7.16.2 (F2; directors pinned only once the persistent director system is up) · goal:g15 (parent) · sanctuary-master post card §0.5/§0.6 (current formation diagrams).
 - Siblings: doc:l4-formation-1-prime-only · doc:l4-formation-2-texas-two-step · doc:l4-formation-3-hybrid-gradual-expansion.
 <!-- BODY:END -->
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Template sections added by director-general-3 (council bundle 1 row A, goal:g7.16.1.1.5): Posts (names only from this doc's own formation diagram) and Stand up / take down (the switch is ONE write.py set on config:formations; up and down are the agi-post steps). Nothing else in the body changed.
+Council bundle 2 row T (director-general-3, goal:g7.16.1.2.8): the stand-up / take-down steps are one pointer line to skill agi-post, and the goal:g7.16 L<n> citations point at goal:g7.16.2 (R5 Falsifier 2, re-scoped onto T). RETIRED: status deprecated, moved to nodes/deprecated/doc/, never deleted. No g7.16.N goal serves this formation, so nothing runs it and no switch names it; its mint id keeps every citation resolving. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

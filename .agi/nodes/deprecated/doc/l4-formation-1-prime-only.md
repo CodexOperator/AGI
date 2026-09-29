@@ -9,6 +9,7 @@ edited_by: director-general-3
 origin: doc-version
 scaffold_hash: f28ce2413e478238
 season: 2
+status: deprecated
 tags:
   - formation
   - sanctuary
@@ -75,11 +76,11 @@ Next: **doc:l4-formation-2-texas-two-step** (goal:g7.16).
 
 > Let's gently dial up the concurrency: spawn a second director kid and let them collab together to split the work. Act after the workflow finishes. Let the current director take point though and the other one is like a helper to the first. Call it the Texas two step formation, goes under sanctuary goal as subgoal
 
-(goal:g7.16 L26)
+(goal:g7.16.2)
 
 > They're like the Council, the Keep, and the Masters all rolled into one role since this is survival mode
 
-(goal:g7.16 L28)
+(goal:g7.16.2)
 
 **Prime/SM reading:** what F1 leaves the two-step is the thing it could not do itself — a director who has already carried a brief alone, so that splitting one brief across point + helper is a small step, not a new trust. What it never bootstraps is the Prime's own relief: even in F3 the owner keeps "Prime resides over core town himself directly during hybrid survival mode." (doc:l4-owner-decisions L773) — the Prime's weight is shed only in F4.
 
@@ -90,27 +91,19 @@ Next: **doc:l4-formation-2-texas-two-step** (goal:g7.16).
 | (pi parents -> kids) | paid workers per round, no persistent seat |
 
 ## Stand up / take down (skill agi-post)
-```
-switch   python3 extensions/agi/bin/write.py config:formations 'set active doc:l4-formation-1-prime-only'   ONE call (Prime / owner); config:formations
-         names ONE active template, so every other is inactive by the same write · read-back: verification.py `formation` check
-up       each post in Posts not live: its config:posts row, committed BEFORE spawn -> its card doc:card-<post> ->
-         rotate.py spawn --seat <post> (skill agi-post §2)
-down     each live post NOT in Posts: card + "[rotation] <post> down-ready" -> row "recover": false AND "pid": 0 -> then stop it
-         (skill agi-post §1: flags first, kill second)
-```
-
+Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = `write.py config:formations 'set active doc:l4-formation-1-prime-only'`, ONE call (Prime / owner), read back by verification.py `formation`.
 ## Status
 
-Ran: season 1 (the graph's first season, closed at the first rollover). Superseded: survival mode (Prime + one director) by 2026-09-09 (L30), the Texas two-step from 2026-09-09 (goal:g7.16 L26), hybrid survival from 2026-09-12/13. Not a live formation; kept as the baseline every later formation is measured against.
+Ran: season 1 (the graph's first season, closed at the first rollover). Superseded: survival mode (Prime + one director) by 2026-09-09 (L30), the Texas two-step from 2026-09-09 (goal:g7.16.2), hybrid survival from 2026-09-12/13. Not a live formation; kept as the baseline every later formation is measured against.
 
 ## Sources
 
 - doc:l4-owner-decisions L773-775 (formations order, 2026-09-14 01:06Z); L236 (the Prime's seat, 2026-09-09); L30 (survival mode, 2026-09-09 07:5xZ); L265 (survival mode defined, part 4); L387 (GO in survival mode, part 7)
-- goal:g7.16 L24-28 (the two-step order; "first deliberate step up from survival mode's single director" is Prime prose, L24)
+- goal:g7.16.2 (the two-step order; "first deliberate step up from survival mode's single director" is Prime prose, L24)
 - goal:g15 (parent; the sanctuary goal)
 - vision nodes, season-1 line: `season 1 vision, closed at the first rollover per goal:g12`
 <!-- BODY:END -->
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Template sections added by director-general-3 (council bundle 1 row A, goal:g7.16.1.1.5): Posts (names only from this doc's own formation diagram) and Stand up / take down (the switch is ONE write.py set on config:formations; up and down are the agi-post steps). Nothing else in the body changed.
+Council bundle 2 row T (director-general-3, goal:g7.16.1.2.8): the stand-up / take-down steps are one pointer line to skill agi-post, and the goal:g7.16 L<n> citations point at goal:g7.16.2 (R5 Falsifier 2, re-scoped onto T). RETIRED: status deprecated, moved to nodes/deprecated/doc/, never deleted. No g7.16.N goal serves this formation, so nothing runs it and no switch names it; its mint id keeps every citation resolving. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

@@ -171,3 +171,19 @@ def test_the_live_registry_maps_every_template_to_a_goal_in_one_home():
     for doc in table:
         path = node_writer.find_node_file(root, doc)
         assert path is not None and path.parent == home, doc
+
+
+# --- goal:g7.16.1.2.8 conjuncts (2)+(3) · goal:g7.16.1.2.5 Falsifier 2 (re-scoped onto T)
+def test_the_live_formation_home_holds_pointers_not_copies():
+    """LIVE: the active formation sits in the one home, and no live template
+    carries the stand-up steps inline or a goal:g7.16 L<n> citation."""
+    import re, locations, node_writer
+    root = locations.find_project_root(Path(__file__).resolve())
+    if root is None:
+        pytest.skip("not running inside an agi project checkout")
+    home = root / "nodes" / ".geometry" / "formations"
+    assert node_writer.find_node_file(root, "doc:council-loop").parent == home
+    for f in sorted(home.glob("*.md")):
+        text = f.read_text("utf-8")
+        assert "rotate.py spawn --seat" not in text and "skill agi-post" in text, f.name
+        assert not re.search(r"goal:g7\.16 L\d", text), f.name
