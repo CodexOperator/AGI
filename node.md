@@ -21,7 +21,7 @@ tags:
   - engine
   - messaging
 thought_session: belam-S2-L5-XI
-title: "G7.32.6: SEND ROUTES BY POST-BRANCH ADDRESS -- every dm is a new dm-file node version pushed to the addressee post's own remote head (else the nearest, lowest-level remote branch); one per-box sync cron (1-3 min cell) syncs the local posts' dms and nudges; read pushes a read-flag version to the sender; no inbox (assigned: director-engine)"
+title: "G7.32.6: ONE conversation node per dm pair or room -- a message is a version on its own grid ref, unread = commits past the last read, wake is an adapter verb; 3 routes -> 1 write + 1 wake (council re-shape 09-30 onto goal:g7.16.1.6)"
 town: core
 ---
 # goal:g7.32.6
