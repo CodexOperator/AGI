@@ -422,7 +422,6 @@ out. If the project needs an engine clone, that clone sits gitignored beside
 ```
 fantasia/
   <game source>
-  GOALS.md                        long-term goals: active | horizon | retired | complete — repo root, deliberately
   .agi/
     config.json                   metrics, dispatch, timeouts
     nodes/<type>/*.md             the graph — frontmatter + body
@@ -444,7 +443,7 @@ you get the engine's own. That is what lets the engine improve itself from
 inside a project that is using it, and nothing branches on a project's name to
 make it true — it falls out of the filesystem.
 
-**Goals are the baseline.** `GOALS.md` defines what chains are for; seed nodes reference goals by id. Retire a goal by marking it `retired` and **deprecating — never deleting** its seed node; retired chains remain prior art.
+**Goals are the baseline.** The goal nodes define what chains are for; seed nodes reference goals by id. Retire a goal by marking it `retired` and **deprecating — never deleting** its seed node; retired chains remain prior art.
 
 **Status is a four-state lifecycle:** `active` (being worked), `horizon` (declared and committed to, not yet being worked), `retired` (stopped making sense), `complete` (achieved). `horizon` is what makes goal rotation expressible — you can declare more goals than `cc_dispatch.max_goals_active` without lying about which are in flight. Unknown values are **preserved verbatim** with a stderr warning, never rejected: a typo must not be able to drop a goal from the graph. `phasing-out` is the legacy spelling of `retired` and stays accepted permanently, for projects that predate the 2026-09-02 rename.
 

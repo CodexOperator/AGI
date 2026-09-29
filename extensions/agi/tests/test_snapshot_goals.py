@@ -406,7 +406,9 @@ def test_wg_from_doc_and_goals_file_retire():  # GREEN since DG3 W-G.2
 
 
 def test_wg_reader_lines_only_point_at_the_retirement():
-    docs = ["CLAUDE.md", "QUICKSTART.md"] + [f"skills/{s}/SKILL.md" for s in
-                                             ("agi", "agi-goal", "agi-master-gate", "agi-node-write", "agi-verify")]
+    docs = ["CLAUDE.md", "QUICKSTART.md", ".agi/context/schemas/[goal].md", ".agi/context/schemas/[config].md"] + [
+        f"skills/{s}/SKILL.md" for s in ("agi", "agi-goal", "agi-master-gate", "agi-node-write", "agi-verify")]
+    # residue 81: anchored on the retirement POINTER, never the substring "retire"
+    # (a goal-status line "active | horizon | retired" passed vacuously)
     assert [(d, ln) for d in docs for ln in _wg_text(d).splitlines()
-            if ("GOALS.md" in ln or "--render" in ln) and "retire" not in ln.lower()] == []
+            if ("GOALS.md" in ln or "--render" in ln) and "g7.16.1.4.1" not in ln] == []
