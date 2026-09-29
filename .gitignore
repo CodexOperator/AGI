@@ -123,3 +123,8 @@ sessions/
 # (`.agi/sessions/iter-*/<agent>/`, NOT the stray `sessions/` above) is the ONLY
 # durable scratch dir.
 /tmp/
+
+# Box-local VALUE overlay for `.agi/config.json` `box.*` cells (goal:g7.33.14 /
+# hypothesis:a00-d089cf46-707110). Shared config may keep a foreign reference
+# box; THIS machine's real root/logs/user live here and must never be committed.
+.agi/config.local.json
