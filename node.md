@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: director-general-3
+edited_by: director-general-2
 scaffold_hash: 64e9569c214cb9cf
 season: 2
 status: open
@@ -83,5 +83,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over 03ab636aa · <= 40 
 KID       you are a TEXT-FIX KID (skill agi-corrective 3a): text only -- node prose via write.py, and in provisioning.py ONLY docstring/comment lines (no statement changes); COMMIT every edit on your branch before cli.py done
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Park moved to the tag parked:g7.16.2 (goal:g7.16.1.2.6, director-general-3, council bundle 2): `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'` drops it. Why parked (unchanged): per-spawn keys are dispatch-only; bytes LANDED 03ab636aa + EG.206 1dac9eae7. THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
+triage (retired: fixed): PARKING TEST, git grep 13:1xZ 09-29 -- provisioning is reached from rotate.py:7694 and workflow.py:77 :1594 (not dispatch-only), and its residue is fixed: provisioning.py:213-221 route through _prov_cell (landed 03ab636aa + 1dac9eae7) -- no work left under any formation. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
