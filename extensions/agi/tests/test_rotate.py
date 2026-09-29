@@ -10390,3 +10390,25 @@ def test_r1_cutover_dummy_one_kill_is_one_post():
         assert f"{t}postB" in cg(b) and src.poll() is None and not (procs.parent.parent / f"{t}postA.scope").exists()
     finally:
         subprocess.run(["systemctl", "--user", "stop"] + [f"{t}{u}.scope" for u in ("postA", "postB", "tmux", "src")], capture_output=True)
+
+
+# --- bundle 4 W1 B2 (director-general-2) -------------------------------------
+# hypothesis:posts-rows-have-one-writer-and-one-parser (goal:g4.18.5.3).
+_W1B2_PATHS = ("_ack_commit_seats", "_publish_row_to_authority",
+               "_commit_spawn_row", "_commit_stops_row")
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 4 W1 B2: RED until DG3 deletes "
+                   "_posts_load_error and _row_names (callers on the one parser)")
+def test_b4_w1b2_no_second_posts_parser_in_rotate():
+    src = Path(rotate.__file__).read_text(encoding="utf-8")
+    assert "def _row_names" not in src and "_posts_load_error(" not in src
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 4 W1 B2: RED until DG3 re-points "
+                   "the 4 config:posts commit paths at the one row write")
+def test_b4_w1b2_the_four_posts_paths_own_no_commit_plumbing():
+    import inspect
+    own = [n for n in _W1B2_PATHS
+           if "hash-object" in inspect.getsource(getattr(rotate, n))]
+    assert own == [], f"still stage+commit posts.md by hand: {own}"

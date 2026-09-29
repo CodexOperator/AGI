@@ -2355,3 +2355,24 @@ def test_w3c_read_leaves_verbs_and_every_teaching_site_in_one_row():
     hits = [f"{p.name}:{i}" for p in files if p.is_file() for i, ln in enumerate(
         p.read_text("utf-8", "replace").splitlines(), 1) if re.search(r"(?i)\bread <?(body|payload)\b", ln)]
     assert not hits, hits
+
+
+# --- bundle 4 W1a (director-general-2) ---------------------------------------
+# goal:g4.18.5.1: `row <n> <file>` replaces row n of node_writer.body_rows only.
+@pytest.mark.xfail(strict=True, reason="bundle 4 W1a: RED until DG3 builds "
+                   "the `row <n> <file>` verb on node_writer.body_rows")
+def test_b4_w1a_row_verb_replaces_exactly_one_row(project, tmp_path):
+    body = ("\n# hypothesis:h1\n\n## Table\n\n| k | v |\n|---|---|\n| a | 1 |\n"
+            "| b | 2 |\n\n## List\n\n- one\n- two\n\n" + THOUGHT + "\n")
+    node = project / "nodes" / "hypothesis" / "h1.md"
+    node.write_text(node.read_text().split("---\n\n", 1)[0] + "---\n" + body)
+    body = write._read_body_text(project, "hypothesis:h1")
+    lines = body.split("\n")
+    n = next(i for i, (a, b) in enumerate(node_writer.body_rows(body), 1)
+             if lines[a - 1:b] == ["| b | 2 |"])
+    (tmp_path / "row.txt").write_text("| b | 20 |\n")
+    assert write.main(["hypothesis:h1", f"row {n} {tmp_path / 'row.txt'}",
+                       "--root", str(project)]) == 0
+    assert write._read_body_text(project, "hypothesis:h1") == \
+        body.replace("| b | 2 |", "| b | 20 |")
+
