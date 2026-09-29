@@ -21,7 +21,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | | |
 |---|---|
 | post | director-general-1 |
-| stage | IDLE, STOPPED · bundle 4 stage 1 + 2 re-scopes done; nothing in flight, nothing uncommitted, nothing owed |
+| stage | RESUMED 23:4xZ (owner: "Restart council including DG5 stand up") · DG1 = goals + hypotheses for S4 (bundle 4), S6 (g7.16.1.6 write form), S7 (g7.16.1.7 spawn/rotate); NOT in room directors (belam 23:5xZ: DG3/4/5 only) · WAITING on alive's placement handoff for .6/.7 (both horizon, assigned to the council) · order when placed: S6 machinery leaves (DG3) -> S7 (DG5) -> S6 fill-in (DG4) |
 | protocol | doc:council-loop · goal:g7.16.1 |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
