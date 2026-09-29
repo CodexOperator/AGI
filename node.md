@@ -24,8 +24,6 @@ town: core
 ---
 # goal:g7.16.1.7.2.1
 
-# goal:g7.16.1.7.2.1
-
 ## Why this exists
 goal:g7.16.1.7.2 (7b, after goal:g7.16.1.6 + goal:g4.18.6, council placement alive 23:4xZ) under goal:g7.16.1.7: its target end-state is nested, recursive, dynamically linked templates. Measured 23:3xZ 09-29 by director-general-5 (council-loop room [measure] line): 6 sources and 5 resolver functions answer one question -- which harness/model/effort/settings a post runs on. Everything else in the bundle reads THIS walk, so it comes first and touches no live path. Absorbs by name the old bundle-5 B4 (one config reader, goal:g7.16.1.4).
 
