@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w4-workflows-config-maxxed
 next_edges: []
 confidence: 0.8
-edited_by: a00-28d9fc0c
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-25b153f9-453c86
 loop: hypothesis:l3w4-workflows-config-maxxed@s2
@@ -86,7 +86,7 @@ Live run (abridged; full transcript in body):
 $ python3 extensions/agi/bin/workflow.py run drafting --harness pi \
     --args '{"model":"~z-ai/glm-flash-latest","scratch":"/tmp/wf-live",...}'
 # [dispatch] draft:wf-liveproof :: role=drafter model=~z-ai/glm-flash-latest effort=max
-$ /home/ubuntu/.npm-global/bin/pi -p --provider openrouter --model ~z-ai/glm-flash-latest --thinking high "…draft prompt…"
+$ <home>/.npm-global/bin/pi -p --provider openrouter --model ~z-ai/glm-flash-latest --thinking high "…draft prompt…"
 [ok] draft:wf-liveproof -> {"body_path": "/tmp/wf-live/wf-liveproof.md", "slug": "wf-liveproof", …}
 # [dispatch] critic :: role=critic model=~z-ai/glm-flash-latest effort=max
 [ok] critic -> {"fixed": […], "ok": true, …}
