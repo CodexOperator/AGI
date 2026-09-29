@@ -15,8 +15,12 @@ would have caught it: it scans this repo's own live `.agi/nodes/`, not a
 fixture, so a future edit that reintroduces the same replace-all mistake on
 any node fails here rather than being found by inspection again.
 
-Detection matches the actual HTML comment opening tag (`<!-- THOUGHT:BEGIN`),
-not a bare substring search for `THOUGHT:BEGIN` anywhere in the file. That
+Detection is node_writer's ONE definition (`thought_blocks`): both markers at
+column 0. An indented or inline marker is a QUOTATION -- the 15 "offenders" an
+unanchored count named on 09-29 were all quoted review evidence
+(verdict:dg2-b-thought-marker), and they stay byte-unchanged. Before that,
+detection matched the HTML comment opening tag (`<!-- THOUGHT:BEGIN`), not a
+bare substring search for `THOUGHT:BEGIN` anywhere in the file. That
 distinction is not cosmetic: the node this fix itself produced
 (`mvp:g11-crons-metrics-residual`) documents the `grep -c 'THOUGHT:BEGIN'
 ...` gate command in its own body, as plain text inside a fenced code block —
@@ -36,15 +40,11 @@ BIN = Path(__file__).resolve().parents[1] / "bin"
 sys.path.insert(0, str(BIN))
 
 import locations  # noqa: E402
-
-#: The real marker, anchored on its HTML comment open — not a bare substring
-#: match, which a node's own prose can legitimately quote as documentation
-#: (see module docstring).
-THOUGHT_OPEN_RE = re.compile(r"<!--\s*THOUGHT:BEGIN")
+import node_writer  # noqa: E402
 
 
 def _count_thought_blocks(text: str) -> int:
-    return len(THOUGHT_OPEN_RE.findall(text))
+    return len(node_writer.thought_blocks(text))
 
 
 def _project_root() -> Path | None:
@@ -119,9 +119,8 @@ def test_quoting_the_marker_as_documentation_is_not_a_false_positive():
 
 
 # --- goal:g7.16.1.1.1 · hypothesis:thought-verb-edits-only-the-top-level-thought-block
-# The falsifier rows (council bundle 1, director-general-2). Each is RED on the
-# trunk at 59ad74144 and pinned strict-xfail: the build that makes the claim
-# true turns each into an XPASS, which fails until its marker is removed.
+# The falsifier rows (council bundle 1, director-general-2): RED on the trunk at
+# 59ad74144, green since director-general-3's build (column-0 _THOUGHT_RE).
 _CLAIM = "hypothesis:thought-verb-edits-only-the-top-level-thought-block"
 _QUOTED = ("    <!-- THOUGHT:BEGIN -->\n    quoted review evidence\n"
            "    <!-- THOUGHT:END -->\n")
@@ -133,25 +132,21 @@ def _nw():
     return node_writer
 
 
-@pytest.mark.xfail(strict=True, reason=_CLAIM + " conjunct 1")
 def test_extract_thought_skips_an_indented_quoted_pair():
     body = "# n\n\n## Review\n" + _QUOTED + "\n" + _TOP
     assert "real top-level thought" in (_nw().extract_thought(body) or "")
 
 
-@pytest.mark.xfail(strict=True, reason=_CLAIM + " conjunct 1")
 def test_a_body_with_only_a_quoted_pair_has_no_thought():
     assert _nw().extract_thought("# n\n\n## Review\n" + _QUOTED) is None
 
 
-@pytest.mark.xfail(strict=True, reason=_CLAIM + " conjunct 2 (EG.227 item 9)")
 def test_a_version_write_carries_the_real_block_past_a_quoted_one():
     old = "# n\n\n## Review\n" + _QUOTED + "\n" + _TOP
     new = "# n\n\n## Review\n" + _QUOTED + "\nbody v2\n"
     assert "real top-level thought" in _nw()._carry_thought(old, new)
 
 
-@pytest.mark.xfail(strict=True, reason=_CLAIM + " conjunct 3")
 def test_no_thought_marker_regex_outside_node_writer():
     """A raw-string pattern carrying the marker is a regex copy; bin/ holds one."""
     raw = re.compile(r"""\br["'][^"']*THOUGHT:BEGIN""")
@@ -160,3 +155,16 @@ def test_no_thought_marker_regex_outside_node_writer():
               for i, line in enumerate(p.read_text(encoding="utf-8").splitlines(), 1)
               if raw.search(line)]
     assert copies == []
+
+
+def test_the_thought_verb_rewrites_the_real_block_and_leaves_the_quote():
+    body = "# n\n\n## Review\n" + _QUOTED + "\n" + _TOP
+    out = _nw().replace_thought(body, "<!-- THOUGHT:BEGIN -->\nv2\n<!-- THOUGHT:END -->")
+    assert _QUOTED in out and "\nv2\n" in out and "real top-level thought" not in out
+
+
+def test_an_inline_end_marker_inside_the_real_block_does_not_close_it():
+    """4 live experiment nodes quote the END marker inline inside their block."""
+    body = ("<!-- THOUGHT:BEGIN -->\nthe verb matched `<!-- THOUGHT:END -->` first\n"
+            "kept\n<!-- THOUGHT:END -->\n")
+    assert _nw().thought_text(body).endswith("kept")
