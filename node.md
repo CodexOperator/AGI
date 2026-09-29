@@ -29,7 +29,7 @@ verdict: inconclusive_lean_proved:75
 `extensions/agi/bin/paths.py`'s per-box audit is **keyed on the committed
 `box` cells, so it is structurally blind to the literals of the box it runs
 on and loud only on the literals of whichever box the shared `config.json`
-names**. The committed cells name a foreign box (`/home/ubuntu/work/agi`,
+names**. The committed cells name a foreign box (`<home>/work/agi`,
 user `ubuntu`); this box is `belam` at `/data/work/agi`. Therefore the audit's
 `box` / `logs` / `user` / `tmux` classes fire on the wrong truth and cannot
 fire on this box's.
@@ -48,7 +48,7 @@ root literal, or a `cells_for_this_box`-style overlay already in the tree.
 Cells as committed (`.agi/config.json`, identical in the main checkout):
 
 ```
-box: {root: /home/ubuntu/work/agi, logs_dir: /home/ubuntu/logs,
+box: {root: <home>/work/agi, logs_dir: <home>/logs,
       tmux_session: agi-rc, user: ubuntu, allow: []}
 this box: whoami=belam  HOME=<home>  root=/data/work/agi
 ```
@@ -59,9 +59,9 @@ this box: whoami=belam  HOME=<home>  root=/data/work/agi
 |---|---|
 | `ROOT = "/data/work/agi"` | **`[]`** |
 | `logs live in /data/work/agi/logs` | **`[]`** |
-| `ROOT = "/home/ubuntu/work/agi"` | `home, user, box` |
+| `ROOT = "<home>/work/agi"` | `home, user, box` |
 | `user: ubuntu` | `user` |
-| `LOGS=/home/ubuntu/logs` | `home, logs, user` |
+| `LOGS=<home>/logs` | `home, logs, user` |
 | `HOME=<home>` | `home` |
 
 The `box` class is a regex on the cell VALUE (`re.escape(v)` against the
@@ -138,8 +138,8 @@ PROBE 1 (gate, REPRODUCES the claim). I rebuilt the cells the way paths.py main(
   classify('REPO=/data/work/agi')                  -> []
   classify('cd /data/work/agi && true')            -> []
   classify('x=Path("/data/work/agi/extensions")') -> []
-  classify('REPO = "/home/ubuntu/work/agi"')      -> ['home','box','user','box']
-  classify('LOGS=/home/ubuntu/logs')               -> ['home','logs','user']
+  classify('REPO = "<home>/work/agi"')      -> ['home','box','user','box']
+  classify('LOGS=<home>/logs')               -> ['home','logs','user']
   classify('user: ubuntu')                         -> ['user']
   classify('tmux: agi-rc')                         -> ['tmux']
 The claim holds. The disprover clause is also answered: findings() has NO second gate that catches a local root, and boxes has no cells_for_this_box (hasattr -> False).
@@ -149,7 +149,7 @@ PROBE 2 (wire) -- THE FINDING THAT WEAKENS THIS NODE. Nothing calls the audit. g
 PROBE 3 (auth -- the live defect, and it is mine, in MY file scope). boxes.box_cells() is documented 'the box cells true of this box' and boxes.py:_box reads (root)/config.json. Handed a REPO root -- which is exactly what the root CELL names, a repo root, not a graph root -- it returns {} SILENTLY:
   box_schema_path('/data/work/agi/.agi/worktrees/a00-3b546363') -> .../context/schemas/[box].md  is_file()=False
   box_cells(that repo root) -> {}
-  box_cells(Path('.agi'))    -> {'root': '/home/ubuntu/work/agi', 'logs_dir': '/home/ubuntu/logs', 'tmux_session': 'agi-rc', 'user': 'ubuntu'}
+  box_cells(Path('.agi'))    -> {'root': '<home>/work/agi', 'logs_dir': '<home>/logs', 'tmux_session': 'agi-rc', 'user': 'ubuntu'}
 So the SAME audit, from the SAME tree, is 14568 home-only hits from a repo root and the full class set from a graph root, and nothing anywhere says which root the argument wants. This directly contradicts the doctrine three functions below in the same file (boxes.py:110-114): 'which this caller supplied EMPTY -- an empty render is the bug this resolver exists to prevent'. box_cells IS that empty render, and it returns {} instead of refusing by name.
 NEAR MISS this beats: 'the audit is keyed on the committed cells, so it is blind to this box' is true only for the graph-root call. A one-line fix that overlays this-box truth into box_cells would, from a repo-root call, still classify NOTHING -- the overlay would be written into a dict that is then discarded by the empty class list.
 
