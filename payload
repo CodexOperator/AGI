@@ -3370,6 +3370,18 @@ def main(argv: list[str] | None = None) -> int:
         print(f"ERR: not an agi project: {args.root}", file=sys.stderr)
         return 1
 
+    if ":" not in (args.node_id or "") and not node_writer.find_node_file(root, args.node_id):
+        # goal:g4.18.6.1: a mint id addresses its node (any shape: the Prime, 22:1xZ)
+        import links  # noqa: PLC0415
+        try:
+            hit = links.resolve_mint(root, args.node_id)
+        except ValueError as exc:
+            print(f"ERR: {exc}", file=sys.stderr)
+            return 2
+        if hit is None:
+            print(f"ERR: no live node carries mint id {args.node_id}", file=sys.stderr)
+            return 2
+        args.node_id = hit[0]
     edit = Edit(node_id=args.node_id)
     try:
         for name, verb_args in parse_script(args.script):
