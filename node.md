@@ -50,3 +50,5 @@ Belam NO-PI 2026-09-28: item (c) residue re-landed — mem_cap.resolve_memory_ca
 Belam NO-PI 2026-09-28: items (b)+(e) landed — dispatch.py where <kid-id> nested locator; rotate.season_branch canonical-first (no status alias warn). Focused tests 5/5. Items (a)(d) still open — goal stays active.
 
 Belam NO-PI 2026-09-28: item (a) landed — CEILING engine-units wording (brief + schema) + measured↔recorded print. Item (d) links.py schema still ≫3min wall (~6min+ prior measure) — left as note; switching to g7.33.7 hottest alternate. Goal stays active (d open).
+
+Belam NO-PI 2026-09-29: item (d) PARKED — links.py schema alone timed out at 180s wall (timeout exit 124; no output); still much greater than 3min; no under-3min slice exists to bring under 60s. Goal stays active (d open). No pi.
