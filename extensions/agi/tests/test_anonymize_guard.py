@@ -287,3 +287,20 @@ def test_check_refuses_the_home_path(tmp_path, fake_box, monkeypatch, capsys):
     assert anonymize.scan(f"see {home}/x.md", anonymize.box_tokens(root)) == ["home"]
     assert anonymize.cmd_check(root, f"see {home}/x.md\n", None) == 1
     assert home not in capsys.readouterr().err
+
+
+# (9) the home token rides the LIVE path too (anonymize.py box_tokens tail), not
+# only the fixture return (mur wf_a56d005b-d6b row 11). No fixture: the box
+# readers are stubbed, so nothing of this box is read; a tmp HOME only.
+def test_the_live_path_carries_the_home_token(tmp_path, monkeypatch):
+    home = str(tmp_path / "home" / "someuser")
+    monkeypatch.setenv("HOME", home)
+    monkeypatch.delenv("AGI_ANONYMIZE_FIXTURE", raising=False)
+    monkeypatch.setattr(anonymize, "_run", lambda argv: "")
+    monkeypatch.setattr(anonymize, "_secret_tokens", lambda root: [])
+    monkeypatch.setattr(anonymize, "DMI", tmp_path / "no-dmi")
+    monkeypatch.setattr(anonymize.socket, "gethostname", lambda: "stub-host-abc")
+    monkeypatch.setattr(anonymize.socket, "getfqdn", lambda: "stub-host-abc")
+    toks = anonymize.box_tokens(tmp_path)
+    assert ("home", home) in toks
+    assert anonymize.scan(f"see {home}/x.md", toks) == ["home"]
