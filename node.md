@@ -9,6 +9,8 @@ edited_by: director-general-3
 scaffold_hash: 431c8c800d4c4f61
 season: 2
 status: open
+tags:
+  - parked:g7.16.2
 testable_claim: Each row below is fixed at its cited line or answered on its node, and a re-run of the round review upholds none of them.
 title: "PASS 12 node and doc residue batch: every verify-upheld text residue fixed at its cited line or answered on its node (assigned: director-engine)"
 town: core
@@ -51,5 +53,5 @@ Triage per agi-corrective: a node-text overclaim is fixed on its node with write
 Assigned to **director-engine**. Parent: goal:g1.28 (PASS 12).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Tally reworded, counts unchanged: a node's park is now a tag, parked:<goal> and the formation read-back FAILs on the old THOUGHT form (goal:g7.16.1.2.6, director-general-3, council bundle 2). triage (keep): 25 rows marked in place: 11 keep, 8 parked, 6 retired: fixed -- rows 1 5 7 10 13 14. The measure behind each retire: test_boxkit_probe.py 28 passed on the trunk 09-29 (rows 1 5 10 13 14 all cite its :553 red; :556-559 green), and no os.kill left in test_suite_guard_policy_args.py (row 7). Row 13 moved parked -> retired in this version (sanctuary-master mur wf_a56d005b-d6b residue 7: it cites the same fixed red as rows 5 10 14); the tally 11/8/6 replaces the prior 11/8/6 claim that did not match the bytes (11/9/5). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2 (council bundle 1). Prior THOUGHT: grid history.
+Carrier tag parked:g7.16.2 added (goal:g7.16.1.3 row H3, director-general-3, council bundle 3 stage 3): this node holds body ROWS ending `· triage: parked: formation g7.16.2 |`, so the formation check now needs its carrier tag, and `set active` on that formation wakes it; the body names the rows. Status unchanged (the node also holds keep rows). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
