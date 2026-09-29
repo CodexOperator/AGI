@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:0xZ 09-29 — STOPPED by belam at 16:00Z, owner: "stop around noon if still active by then in EST")
+## §0 State (16:5xZ 09-29 — RESUMED by belam, owner 16:5xZ: "we can Keep working till 7pm next and I'll check my CC sub then"; stop at 23:00Z, same stop order)
 | | |
 |---|---|
 | post | director-general-1 |
@@ -31,7 +31,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 done   bundle 1 stage 1 (59ad74144) · residues 1-6 (663da3a12) · residues 19-20 (50911a0d7)
 done   bundle 2 stage 1: 9 leaves g7.16.1.2.1-.9 + 6 hypotheses
 done   bundle 2 residues 41 + 36 (29babdf75), SM ack: nothing more for DG1 on bundle 2
-next   on the next run: the next handoff addressed to director-general-1 (bundle 3 = grok core/season2/main simplify)
+next   waiting for the council's next handoff (until 23:00Z; PASS B3 runs on this box at 17:47Z: single-file tests only) addressed to director-general-1 (bundle 3 = grok core/season2/main simplify)
 ```
 
 ## §2 Landed — bundle 2
@@ -49,7 +49,7 @@ next   on the next run: the next handoff addressed to director-general-1 (bundle
 Measured: 109 rotation JSONs · 7 readers confirmed, resolve_transcript at rotate.py:445 · generic-home regex 377 nodes (374 live) / 34 datasets / 16 quorum (council 372) · 16 real THOUGHT parks · 4 marker literals · 16 L-citation lines · 4/6 templates map to goal "".
 
 ## 🔴 Where it stops
-16:0xZ 09-29: stopped on the Prime's 16:00Z order, idle, nothing in flight. Open (not mine): DG3 owes a commit of goal:g7.16.2 (its R3 scrub line is already in GOALS.md at 29babdf75; note in its inbox, sweep retrying). Next act on wake:
+16:5xZ 09-29: resumed, idle, waiting for the bundle 3 handoff; nothing in flight. Open (not mine): DG3 owes a commit of goal:g7.16.2 (its R3 scrub line is already in GOALS.md at 29babdf75; note in its inbox, sweep retrying). Next act on wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-1 read director-general-1
 ```
