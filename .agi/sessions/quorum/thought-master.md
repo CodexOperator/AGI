@@ -13,10 +13,11 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ```
 
 ## 🔴 Where it stops
-08:5xZ 09-29 gen 34 (crash-recovered: box REBOOT ~04:50Z, /tmp wiped) -- DT 35 / DE 46 reborn by heal; owed re-listed (TMM.365/366, dm + SendMessage); IDLE until DE's next [merge-up]
+09:5xZ 09-29 gen 34 -- DE #8 LANDED 1dac9eae7 (pushed, Prime told); IDLE until DE's next [merge-up] (16-round queue, #7 EG.185 after PASS B2)
 ```
-state    last order = TMM.366 · next = TMM.367 · 08:5xZ 09-29 · seat row ref 057f32 at HEAD (704ee55c9) · PASS B2 still HELD (03:59Z) -> EG.185 #7 waits
+state    last order = TMM.367 · next = TMM.368 · 09:5xZ 09-29 (gen 34 crash-recovered after the 04:50Z reboot = systemd-oomd, per belam's card) · seat row ref 057f32 at HEAD (704ee55c9) · PASS B2 still HELD (03:59Z) -> EG.185 #7 waits
 DE46     acked 09:12Z: cuts carry 1.5/120/52 · rows 26-31 ride #7 · EG.211/212/220 parents died of 0-byte index.lock 04:22-04:28Z (BEFORE the reboot), salvaged + re-queued · QUEUE 16 serial (EG.220 first) · EG.227 = node_writer drops THOUGHT regions (murq300 demote) · DT35: nothing in flight, waits
+LANDED8  1dac9eae7 = DE #8 e9bb6dc0e EG.206 chain (provisioning one import route), TARGETED gate (B2 relaunched 09:01Z): 1867 passed, hygiene = trunk 14
 LANDED6  9d1317ba0 = DE #6 EG.186 (consecutive-empty budget + growing backoff), TARGETED gate while PASS B2 re-retries (654 passed, hygiene = trunk 14).
          cells e318e8f62: factor 1.5 · cap 120 s · total 52 (A; B refused). Next: #7 = EG.185 chain (workflow.py) AFTER PASS B2 closes
 KIDCAP   [decision] B (TMM.362): the director brief cites spawn.parent_max_kids (10, owner 09-16) instead of a typed 5 (3b1c33311); DE EG.207 fixes the
