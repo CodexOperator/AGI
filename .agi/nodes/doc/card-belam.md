@@ -31,13 +31,14 @@ gen 16 rotates at f 0.36 BEFORE PASS B3, not at the 0.47 line: a PASS is multi-r
 | formation | council loop LIVE until 23:00Z (owner 16:5xZ: "Keep working till 7pm next and I'll check my CC sub then") · bundle 3 = goal:g7.16.1.3 (grok core simplify; H1 g4.18.3 · H2 g4.18.4 first) with DG1 · alive @4 · all-is-one @5 · self-perpetuating @6 · DG1 @7 · DG2 @8 · DG3 @12 (agi-aa) · SM @13 (agi-1c) · stream-master @14 (NEW, side post) · TM/DT/DE DOWN |
 | merge | PASS B2 2fb5c2043 · posts [red] fixed dcd06014e + sync #3 07f02d4a2 · PASS B3 due 17:47Z (BASE 922ff3f48d; 220 commits / 30 experiments / 0 D at 16:4xZ) |
 | STREAM | OFF (owner 17:3xZ: "put stream-master on new box first then start the stream"): panic --retract + unit stopped + Xvfb :2 / kiosk / graphweb stopped (freed ~4.7 GB); stream-master (@5 agi-5c) told to hold; encryption-town readiness = investigator report pending |
-| crons | re-armed 17:3xZ: CHECK c844508f "13 */4 * * *" · STOP 0d90087a "0 23 29 9 *" · PASS B3 b533770a "33 23 29 9 *" (MOVED from 17:47Z: memory + council live; state, section 2, board 6f1c299cd). Session-only: a successor re-arms |
+| crons | CHECK c844508f "13 */4 * * *" · STOP 0d90087a "0 23 29 9 *" · PASS B3 b533770a "33 23 29 9 *" (MOVED from 17:47Z; the old 17:47Z cron survived the --resume and fired: NOT run). Old duplicates 89c68201 + a743e484 deleted. Session-only: a successor re-arms |
 
 ## §1 Plan
 ```
 DONE   PASS B2 · config:formations + registry · posts [red] · goals g1.30 g4.18.3 g4.18.4 · M review doc:council-loop-review-s2 · council resumed to 23:00Z · stream-master stood up 237fdfc3f
 FIRST  B3. PASS B3 (below)
 then   F. row F: config:rotations first_turn `formation` line (goal:g7.16.1.2.9, exact draft at its body :35-38) · S. the 23:00Z stop -> owner <= 6 lines, hold for the CC-subscription call
+OWNER  17:4x-18:0xZ: THE WRITE/RENDER SPLIT -> sent to the council (alive, 18:0xZ) as one bundle: goal:g4.18.5 (rows; a write is a commit) · goal:g4.18.6 (links = raw mint ids; the renderer owns names + visibility) · NEW row, the council mints it: read leaves write.py -> ONE render path (viewport --emit llm, goal:g2.19). Owner: "Read doesn't belong to write semantically"
 OWNER  17:3xZ: RETIRE GOALS.md + the render round trip ("stop bothering with it") -> handed to alive as a bundle-3 row; NEVER render or --check GOALS.md again, never commit it
 OWNER  17:2xZ: goal:g4.18.5 (write.py rows + line edits; a write is a commit behind the permission layer; assigned DE, a council bundle may take it) · move stream-master to encryption-town "once possible" (town:streaming-suite note; skill agi-post §3; needs encryption-town reachable)
 HELD   g1.30 / g4.18.3 / g4.18.4 dms to DE (DE down; the council took g4.18.3 + .4 into bundle 3) · encryption-town config
