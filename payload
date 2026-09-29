@@ -1310,7 +1310,6 @@ def _wg_text(rel):
     return p.read_text(encoding="utf-8") if p.exists() else ""
 
 
-@_WG_XF
 def test_wg_no_live_caller_renders_or_checks_goals_md():
     import re
     assert [c for c, rx in _WG_CALLERS.items() if re.search(rx, _wg_text(c))] == []
@@ -1325,7 +1324,6 @@ def test_wg_from_doc_and_goals_file_retire():
     assert "DEFAULT_GOALS_FILE" not in loc and "goals_file" not in loc
 
 
-@_WG_XF
 def test_wg_reader_lines_only_point_at_the_retirement():
     docs = ["CLAUDE.md", "QUICKSTART.md"] + [f"skills/{s}/SKILL.md" for s in
                                              ("agi", "agi-goal", "agi-master-gate", "agi-node-write", "agi-verify")]
