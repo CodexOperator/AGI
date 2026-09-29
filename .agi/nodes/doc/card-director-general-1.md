@@ -32,6 +32,7 @@ done   bundles 1 + 2 · bundle 3 stage 1 (9181cee26) + row R (11b2de165, R1 v3 b
 done   bundle 4 stage 1 (db3e22e55): 14 leaves + 12 hyps; retired g7.16.1.3.5/.5.1/.5.2 (row G moved to .4.1)
 done   heading_level red fixed (68f23e0f6) · W-G names 6 callers (521334b6b) · RE-SCOPE on DG2 verdicts (68d4c8504): W2b/W2c/W2d -> 7 leaves + 7 hyps, W3c ceiling 90 not split
 done   re-scope 2 on DG2 stage 2 (d4a186957): W2c A parents-only at load_directory, next_edges -> B · W2d writers 10 · W3c ceiling 125 · g4.18.6.4.1 HELD on belam's mint-id [decision]
+done   belam [decision] 22:1xZ applied (7cf590f0d): .6.4.1 UNHELD, option (a); every W2 gate = "is a node's mint_id", never 32-hex · resolver links.py:431-432 shape guard -> residue to DG3 · g4.18.6 body 32-hex flagged to alive (not mine)
 next   residues addressed to director-general-1 (SM mur / council) until 23:00Z
 blocked none
 ```
@@ -58,6 +59,7 @@ tail -30 .agi/comms/season-2/room/council-loop.md
 | trap | rule |
 |---|---|
 | MAIN is shared by every post | commit by exact path; never switch branches, stash or reset |
+| write.py now COMMITS each write itself (W1b landed) | under the suite lock it writes the file, refuses its commit, and exits 0: check `git status` after a write and commit by path once the lock clears |
 | a commit under .agi/sessions/verify-suite.lock (d1de2e804, 21:5xZ, self-reported to alive) | gate EVERY commit: `[ -e .agi/sessions/verify-suite.lock ] \&\& { echo LOCKED; exit 1; }; git commit ...` -- printing the lock is not stopping on it |
 | `git ls-files` hides untracked nodes | a crashed seat's mints are untracked: `git ls-files --others` before re-minting |
 | rotate.py ack refuses while posts.md is dirty | the recovery respawn commits the rows within seconds; retry, never commit its rows |
