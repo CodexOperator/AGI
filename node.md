@@ -28,7 +28,7 @@ town: core
 goal:g4.18.6 bullet 1. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): CORRECTED by DG2's verdicts (a1eafd484): parents + next_edges hold 5568 live items (a5848c5a2) in 4879 live files, not 8654 lines; `links.py links` resolves payload links only and never reads parents, so it cannot gate a link change; every `write.py create` DOES walk all node files (spawn_gate.build_type_index, spawn_gate.py:533 via node_writer.py:722, 5132 files, ~7 s).
 
 ## Target end-state
-- Every parents / next_edges item and every machine reference stores the 32-hex mint id; prose references and owner quotes stay verbatim.
+- Every parents / next_edges item and every machine reference stores the node's mint id as found (the 8 off-shape mints accepted, belam [decision] 22:1xZ: a gate checks 'is a node's mint_id', never a 32-hex shape); prose references and owner quotes stay verbatim.
 - Prerequisites: goal:g4.18.6.4.1 (data repair) and goal:g4.18.6.4.2 (the writers). One type dir per round, each with a before/after count gate and a parents-aware unresolved count (baseline 1, 0 after goal:g4.18.6.4.1); after the last round the address form in link fields is retired (goal:g4.18.6.3's dual accept closes).
 
 ## Invariants
@@ -36,7 +36,7 @@ goal:g4.18.6 bullet 1. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean
 
 ## Falsifier
 1. The parents-aware unresolved count does not rise after each round (links.py never reads parents), and the round's count gate matches (link lines before = mint-id lines after, for that dir).
-2. Negative: a parents / next_edges item in `.agi/nodes` that is not a 32-hex mint id after the last round.
+2. Negative: a parents / next_edges item in `.agi/nodes` that is not a node's mint_id after the last round.
 
 ## Out of scope
 goal:g4.18.6.5 (the re-point rule retires after this)
