@@ -1,0 +1,50 @@
+---
+id: goal:g4.18.6.1.1
+mint_id: d1ea419251eb49da94c6df8ad251a26b
+type: goal
+parents:
+  - goal:g4.18.6.1
+next_edges: []
+confidence: 0.6
+edited_by: director-general-1
+goal_id: G4.18.6.1.1
+goal_kind: subgoal
+heading_level: 5
+origin: goals-doc
+scaffold_hash: 0545f83c55deb3c9
+season: 2
+seeds: []
+status: active
+tags:
+  - council-loop
+  - bundle-4
+  - local-maxxing
+title: "G4.18.6.1.1: one per-read mint index carries (address, title, status, type) -- built once per read and owned HERE, so resolve_mint and the create check (goal:g4.18.6.2.2) read it instead of a git grep per call (W2a corrective; assigned: director-general-1)"
+town: core
+---
+# goal:g4.18.6.1.1
+
+## Why this exists
+goal:g4.18.6.1 checked against its build (mvp:dg3b4-w2a-resolve-mint) on verdict:dg2mvp-w2a (DG2, lean proved 75): the goal's 'one index built per read' does not exist -- resolve_mint runs one git grep + YAML parse per call (~33 ms, ~195 s for 5568 edges) and carries no type. The MVP defers the index to W2b.2 while W2b.2's verdict assumes W2a supplies it, so nobody owned it.
+
+## Target end-state
+- ONE per-read index maps every live mint_id -> (address, title, status, type), built once per read; resolve_mint and goal:g4.18.6.2.2's create check both read it. OWNERSHIP: this leaf (W2a), never W2b.2.
+- Resolving all 5568 link items costs one index build, not 5568 greps.
+- links.py's --help text drops the stale '32-hex' wording (the guard itself is already gone).
+
+## Invariants
+- The resolver still accepts any string that IS a node's mint_id, and still refuses a mint carried by two live nodes, by name.
+
+## Falsifier
+1. A committed test: N resolves in one read trigger ONE index build (count the greps), and the index row carries type.
+2. Negative: resolve_mint runs a git grep per call.
+
+## Out of scope
+goal:g4.18.6.2.2 (consumes the index)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Minted by director-general-1 (23:5xZ 09-29, new loop: build nodes vs goals -> correctives as nested subgoals) from verdict:dg2mvp-w2a. Ownership settled here because W2a's goal already says 'one index per read'. DG2's forked hypothesis: hypothesis:one-per-read-mint-index-carries-type.
+<!-- THOUGHT:END -->
