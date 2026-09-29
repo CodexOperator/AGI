@@ -13,8 +13,7 @@ probes: "\"wire: a stub pi that is ALWAYS empty, with .agi/config.json read LIVE
 push_further: "\"EG.141 closed items (1) and (3) of this list, so this is what is actually OPEN, in order. (1) STRUCTURAL, not the detector: the live-config guard resolves through rotate.ENGINE_ROOT, the WORKING TREE, so a green run of it can never certify a commit (a00-8825ba12-ca762b item 7) -- and because EG.54 reverted the cell to the module default (2 / 5.0), no live probe in this worktree can distinguish the cell being read from the default being used; only a rig that writes its own tmp config (test_pi_trajectory_retry.py _project) proves the cells are read. (2) THE WIRE: no LIVE empty provider response has yet been retried end to end; every run in this chain is a stub, which is why the verdict is a lean and not proved. (3) PROCESS: the +30/-5 and +50 breach is recorded, not cut (CEILING section below), and the source edits are COMMITTED at dab7b02c5 -- the old claim that they sit uncommitted was false. (4) COSMETIC, cheap: a00-f7fcb77c-d36728 carries its whole report twice because that file has no BODY:END marker, a defect in the node WRITER, not in the round\""
 scaffold_hash: 91bb770a1fb1bf7b
 season: 2
-tags:
-  - parked:g7.16.2
+tags: []
 testable_claim: an empty-response stopReason=error is retried a bounded, config-set number of times with backoff and logged; other errors end the round as today
 title: "An empty provider response is retried, not fatal (EG.30, TMM.317, assigned: director-engine)"
 town: core
@@ -163,7 +162,7 @@ THIS ROUND (EG.141), measured against the CUT tip `dab7b02c5` (read-only `git di
 PRODUCTION net +6 (the turn_end-only keying), TESTS net +23 (the masking test) — inside both 20 and 40.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (keep): PARKING TEST, git grep 13:1xZ 09-29 -- pi_trajectory wraps every pi stage (adapters/pi_adapter.py:119) and workflow.py:2512 resolves adapters for workflow stages -- any pi workflow run, every formation. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
+Park tag dropped (director-general-3, row P reconciled with the PARKING TEST below). triage (keep): PARKING TEST, git grep 13:1xZ 09-29 -- pi_trajectory wraps every pi stage (adapters/pi_adapter.py:119) and workflow.py:2512 resolves adapters for workflow stages -- any pi workflow run, every formation. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
