@@ -1547,7 +1547,7 @@ def _shell_cmd(claude_cmd: list[str], settings, *, seat: str | None = None,
 def _post_unit(seat: str | None) -> str | None:
     """A seat launch's scope unit name (None = no seat, no unit): the ONE
     spelling `_shell_cmd` and the `successor_argv` stand-in share (CM9)."""
-    return f"agi-post-{re.sub(r'[^\w.-]', '_', seat)}-{int(time.time())}" if seat else None
+    return mem_cap.unit_name("agi-post", seat) if seat else None
 
 
 def _launch_wrapper_argv(seat: str, child_cmd: list[str]) -> list[str]:
@@ -1752,21 +1752,25 @@ def ensure_tmux_session(tmux_session: str, root: Path | None = None) -> None:
     has a server. The slice follows the `spawn.post_scope` cell of `root` (else
     the project found from cwd): live -> its slice; off -> NO slice, so the
     server never lands under a shared cap the owner has not chosen (residue 68).
-    Present = no-op; a failure is a warning (the new-window names the error)."""
+    No usable systemd-run -> a plain `tmux new-session` (C3, one builder:
+    mem_cap.scope_argv). Present = no-op; a failure is a warning (the
+    new-window names the error)."""
     try:
         if subprocess.run(["tmux", "has-session", "-t", tmux_session],
                           capture_output=True, text=True, timeout=10).returncode == 0:
             return
         root = root if root is not None else locations.find_project_root()
-        slice_ = mem_cap.resolve_post_scope(_config_json(root) if root is not None else {})
-        r = subprocess.run(["systemd-run", "--user", "--scope", "-q",
-                            *([f"--slice={slice_}"] if slice_ else []),
-                            f"--unit=agi-tmux-{tmux_session}-{int(time.time())}", "--",
-                            "tmux", "new-session", "-d", "-s", tmux_session],
-                           capture_output=True, text=True, timeout=30)
+        cfg = _config_json(root) if root is not None else {}
+        # C3 (goal:g7.16.1.7.1.1): the ONE scope builder; no usable systemd-run
+        # on this box -> a plain `tmux new-session` rather than a failed scope
+        argv = mem_cap.scope_argv(["tmux", "new-session", "-d", "-s", tmux_session],
+                                  mem_cap.resolve_post_scope(cfg),
+                                  mem_cap.unit_name("agi-tmux", tmux_session),
+                                  cfg, own_scope=True)
+        r = subprocess.run(argv, capture_output=True, text=True, timeout=30)
         if r.returncode != 0:
-            print(f"warn: could not create tmux session {tmux_session!r} in its own "
-                  f"scope: {(r.stderr or r.stdout).strip()}", file=sys.stderr)
+            print(f"warn: could not create tmux session {tmux_session!r}: "
+                  f"{(r.stderr or r.stdout).strip()}", file=sys.stderr)
     except (OSError, subprocess.SubprocessError) as exc:
         print(f"warn: tmux session ensure for {tmux_session!r} failed: {exc}",
               file=sys.stderr)
