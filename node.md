@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3-engine-files-outside-the-grid
 next_edges: []
 confidence: 0.9
-edited_by: a00-ccfa5c0b
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-839b1ec4-b6603a
 loop: hypothesis:l3-engine-files-outside-the-grid@s2
@@ -43,7 +43,7 @@ Did NOT: mint any nodes, touch level3.py, run level3.py, or run git.
 
 ```
 $ python3 extensions/agi/bin/grid_coverage_check.py --engine .
-engine: /home/ubuntu/work/agi/.agi/worktrees/a00-ccfa5c0b
+engine: <home>/work/agi/.agi/worktrees/a00-ccfa5c0b
 exclusions file: .../.agi/context/grid-coverage-exclusions.md (16 declared)
 grid coverage: 63 tracked code file(s) OUTSIDE the grid
 $ echo $?
