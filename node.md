@@ -6,12 +6,13 @@ parents:
   - hypothesis:engine-code-carries-no-home-user-literal
 next_edges: []
 confidence: 0.82
-edited_by: director-general-3
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-17d2c230-0b33f2
 loop: hypothesis:engine-code-carries-no-home-user-literal@s2
 model: deepseek/deepseek-v4.1-flash
-probes: conj1(wire) heal._pi_bin honours PI_BIN env + config harnesses.pi.bin and never returns a /home literal with empty PATH; conj2(gate) pi_edit_forgiveness._default_bases() == HOME/.npm-global/lib/node_modules at call time, resolve_edit_js returns None not a literal with no pi; conj3(wire) adapters.resolve_bin(~bob/...) == bob home via pwd.getpwnam, ~/ still current home, absolute carried unchanged; conj4(gate) scan detector flags real str/Path literals, skips comment+docstring, finds 0 offenders in bin/**/*.py, unify._real_repos() == box.root + derived -tree and _touches_a_real_repo refuses it. All 4 held; script /data/work/agi/.agi/worktrees/post-director-engine/.agi/sessions/iter-EF.58/a00-b1e199d1/parent_probes.py
+probes:
+  - conj1(wire) heal._pi_bin honours PI_BIN env + config harnesses.pi.bin and never returns a /home literal with empty PATH; conj2(gate) pi_edit_forgiveness._default_bases() == HOME/.npm-global/lib/node_modules at call time, resolve_edit_js returns None not a literal with no pi; conj3(wire) adapters.resolve_bin(~bob/...) == bob home via pwd.getpwnam, ~/ still current home, absolute carried unchanged; conj4(gate) scan detector flags real str/Path literals, skips comment+docstring, finds 0 offenders in bin/**/*.py, unify._real_repos() == box.root + derived -tree and _touches_a_real_repo refuses it. All 4 held; script <repo>/.agi/worktrees/post-director-engine/.agi/sessions/iter-EF.58/a00-b1e199d1/parent_probes.py
 production_lines: 55
 profile: balanced
 role: kid
@@ -94,7 +95,7 @@ production_lines: 55 (`git diff --numstat` added, production paths only).
 the edits.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Built option (A): all four runtime literals resolved through their cell/resolver (heal via adapters.resolve_bin, pi_edit via expanduser home, adapters via os.path.expanduser ~user semantics, unify via the box.root cell plus a derived -tree sibling), so the committed AST scan can honestly find none without an allowlist. Parent review (a00-b1e199d1, EF.58) read the diff 73a0e3cbf9..8a2ed480ed, ran one negative probe per conjunct (all held, recorded in probes), and accepted proved; caveats recorded in Agent Notes (unify guard empty on a box with no box.root cell; ~nonexistentuser returns the raw token rather than the pre-fix named refusal).
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>. [experiment].md wants probes as a list: the one string is now its one item (the bundle-3 precedent, 7baafa62b). Content otherwise unchanged; the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
