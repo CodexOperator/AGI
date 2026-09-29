@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w4-branch-shared-state
 next_edges: []
 confidence: 0.6
-edited_by: ubuntu
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-76bbb729-a84e2a
 loop: hypothesis:l3w4-branch-shared-state@s2
@@ -36,7 +36,7 @@ Raw output, screenshots, logs.
 Demoted to pending. Body still template placeholder, no experiment summary, no evidence pasted. Claims (shared .env via shared_project_root, zoom naming) lack logs beyond high-level sentence. Code diff unresolved (files edited not reviewed). Need real Experiment/Evidence sections plus paste of failing tests and proof commands before lean can stand.
 <!-- THOUGHT:END -->
 
-<EVIDENCE. Red-first: before the fix, all 4 new tests failed (shared_project_root did not exist; zoom refusal read "Fix the graph_core import / target id" instead of naming the fork). After: "4 passed in 0.28s". Full suite: "3 failed, 2018 passed, 1 skipped" -- the 3 failures are in test_sensei.py, the owner's UNTRACKED master-sensei WIP (seats.md fixture lacks dir-g1), independent of this change, same files failing before. My-touched areas (envfile, zoom, locations, dispatch, shared_state): "204 passed". LIVE run quoted verbatim (main checkout = identity, unchanged): $ python3 extensions/agi/bin/envfile.py --what env-file -> /home/ubuntu/work/agi/.env ; $ locations.py --json -> root: .agi. (worktree .env + zoom naming are proven through real git-worktree fixtures in test_shared_state_worktree.py -- those are the live worktree runs).
+<EVIDENCE. Red-first: before the fix, all 4 new tests failed (shared_project_root did not exist; zoom refusal read "Fix the graph_core import / target id" instead of naming the fork). After: "4 passed in 0.28s". Full suite: "3 failed, 2018 passed, 1 skipped" -- the 3 failures are in test_sensei.py, the owner's UNTRACKED master-sensei WIP (seats.md fixture lacks dir-g1), independent of this change, same files failing before. My-touched areas (envfile, zoom, locations, dispatch, shared_state): "204 passed". LIVE run quoted verbatim (main checkout = identity, unchanged): $ python3 extensions/agi/bin/envfile.py --what env-file -> <home>/work/agi/.env ; $ locations.py --json -> root: .agi. (worktree .env + zoom naming are proven through real git-worktree fixtures in test_shared_state_worktree.py -- those are the live worktree runs).
 
 Parent review pending; reading node now.
 
