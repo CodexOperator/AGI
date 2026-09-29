@@ -6935,6 +6935,177 @@ goal:g7.32.6 · goal:g7.31.3.3 (the messaging and spawn/rotate redesigns: deferr
 ## Agent Notes
 Assigned to **director-general-1**.
 
+##### G7.16.1.1.1 — write.py thought keeps every authored THOUGHT -- test_thought_hygiene green on the trunk, its 14 offenders fixed through write.py (row B; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.1.1
+
+## Why this exists
+goal:g7.16.1.1 (bundle 1) row B, first in the council's order B -> E -> {C, D} -> A: E, C, D and A all write through write.py, and the `thought` verb rewrites the FIRST THOUGHT pair anywhere in a body (node_writer.py `_THOUGHT_RE`, no line anchor), a quoted one included. Measured 10:1xZ 09-29 on the trunk: `pytest extensions/agi/tests/test_thought_hygiene.py` = 1 failed / 4 passed; `test_the_real_corpus_has_no_node_with_two_thought_blocks` names **14** offenders (12 experiment + 2 hypothesis nodes, 2-5 pairs each). That settles the recount (thought-master 14 · self-perpetuating 16 tuples at -vv): 14 nodes.
+
+## Target end-state
+- hypothesis:thought-verb-edits-only-the-top-level-thought-block holds on the trunk: a THOUGHT block is authored only at column 0 outside a quote; `write.py thought` rewrites that block only; `_carry_thought` carries it across a version write (EG.227 item 9); brief.py `_strip_thought` and graph2sql `thought_text` read the same one definition (EG.227 item 11).
+- The 14 offenders each carry exactly one top-level THOUGHT block, fixed through write.py (`replace body`), with no quoted evidence lost. The test is never loosened.
+
+## Invariants
+- Readers keep ONE definition of the marker (no second regex).
+- No authored THOUGHT is dropped by any writer path (create · update_node · thought verb · submit).
+
+## Falsifier
+1. `python3 -m pytest extensions/agi/tests/test_thought_hygiene.py -q --basetemp /tmp/b1h` exits 0.
+2. Negative: `git grep -c '^
+
+##### G7.16.1.1.2 — every residue row under g1.26-g1.29 and g7.33.19 carries one mark -- keep, park (horizon, parked: formation g7.16.2), retired, or pointer to one core g7.33 leaf; g7.32.5 parked (row E; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.1.2
+
+## Why this exists
+goal:g7.16.1.1 (bundle 1) row E: the residue goals goal:g1.26 · g1.27 · g1.28 · g1.29 · g7.33.19 were written for the dispatch formation, which is off (goal:g7.16.1: no parent/kid dispatch). Measured 10:2xZ 09-29: 21 live hypotheses sit under g1.26-g1.29 (9 · 5 · 6 · 1 parent edges; four are residue-batch nodes holding their own rows), g7.33.19 holds 26 table rows and 6 child nodes, and goal:g7.32.5 has 0 children. Each of these goals has at most one THOUGHT pair, at column 0, so the goal-level writes here cannot trip row B's bug. The council ordered B before E because the thought verb can rewrite a quoted pair. Measured 10:4xZ: all 27 nodes carrying a g1.26-g1.29 / g7.33.19 parent edge hold at most one THOUGHT pair, at column 0, with no indented or quoted pair, so row E does not wait on B landing.
+
+## Target end-state
+- Every row carries exactly one mark: **keep** (worked as a leaf in this loop) · **park** (status horizon + THOUGHT `parked: formation g7.16.2`: a dispatch-only row that wakes when that formation is active again) · **retired** (wrong under EVERY formation, reason in THOUGHT) · **pointer** (a duplicate of a core g7.33.* leaf: points at that ONE leaf, no twin).
+- goal:g7.32.5 (parents send on the hub route) is parked, not retired.
+- Split one leaf per source so each closes on its own: goal:g7.16.1.1.2.1 (g1.26-g1.29) · goal:g7.16.1.1.2.2 (g7.33.19 + g7.32.5).
+
+## Invariants
+- Nothing is deleted. A park is `status: horizon`, since `held` is not a legal status ([goal].md). A retire carries its reason in THOUGHT.
+- Every pointer names exactly one target leaf.
+
+## Falsifier
+1. Every leaf under this one reads `status: complete`: `git grep -h '^status:' -- .agi/nodes/goal/g7.16.1.1.2.*.md | sort | uniq -c` prints only `complete`.
+2. Negative: rows under g1.26-g1.29 / g7.33.19 without a keep|park|retired|pointer mark = 0 (counted by each sub-leaf's own falsifier).
+
+## Out of scope
+goal:g7.32.6 · goal:g7.31.3.3 (the messaging and spawn/rotate redesigns: after bundle 2) · the DE pi-lane queue (EG.185, EG.211-226)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+###### G7.16.1.1.2.1 — the 21 nodes under g1.26-g1.29 and the rows inside the four residue-batch bodies each carry keep, park, retired or pointer (row E, part 1; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.1.2.1
+
+## Why this exists
+goal:g7.16.1.1.2 (row E) split by source. Measured 10:2xZ 09-29: 21 live nodes carry a `goal:g1.26`-`goal:g1.29` parent edge (the PASS 10 / 11 / 12 / B1 defect hypotheses + the four residue-batch nodes pass10-0927 · pass11-0927 · pass12-0928 · passb1-0928, whose rows are lines in their bodies). All four goals are `assigned: director-engine`, a post that is down (config:posts recover:false, 09-29).
+
+## Target end-state
+- Every hypothesis under g1.26-g1.29 and every row inside the four residue-batch bodies carries one mark: keep · park · retired · pointer (definitions: goal:g7.16.1.1.2).
+- A goal whose rows are all park / retired / pointer is itself `horizon` (parked) or `complete`. It is never left `active` with no live row.
+
+## Invariants
+- Marks go on the nodes through write.py (a THOUGHT line or `status`). Nothing is deleted.
+
+## Falsifier
+1. For each of the 21 nodes, `write.py <id> 'read body 1:400' | grep -cE 'keep|parked: formation g7.16.2|retired:|pointer: goal:g7\.33\.'` is >= 1.
+2. Negative: `git grep -lE '^  - goal:g1\.2[6-9]$' -- .agi/nodes ':!.agi/nodes/deprecated'`, filtered to nodes with no mark = 0.
+
+## Out of scope
+goal:g7.16.1.1.2.2 (g7.33.19 + g7.32.5)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+###### G7.16.1.1.2.2 — the 26 rows and 6 child nodes of g7.33.19 each carry keep, park, retired or pointer; g7.32.5 is parked (horizon), not retired (row E, part 2; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.1.2.2
+
+## Why this exists
+goal:g7.16.1.1.2 (row E) split by source. Measured 10:2xZ 09-29: goal:g7.33.19 (director-engine's findings, owner 09-27 03:3xZ) holds 26 table rows and 6 child nodes. goal:g7.32.5 (parents send on the hub route) has 0 children and only makes sense under dispatch, so the council parks it (self-perpetuating: two-step is a formation this graph can switch back to).
+
+## Target end-state
+- Every g7.33.19 table row carries one mark in its row: keep · park · retired · pointer (definitions: goal:g7.16.1.1.2). Its 6 child nodes carry a mark too.
+- goal:g7.32.5 is `status: horizon` with THOUGHT `parked: formation g7.16.2`.
+
+## Invariants
+- A row is marked in place: it is never removed and never re-worded beyond the mark. Nothing is deleted.
+
+## Falsifier
+1. `git grep -h '^status:' -- .agi/nodes/goal/g7.32.5.md` prints `status: horizon`.
+2. Negative: the g7.33.19 table rows with no keep|park|retired|pointer cell = 0.
+
+## Out of scope
+goal:g7.16.1.1.2.1 (g1.26-g1.29)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.1.3 — anonymize.py existing check refuses the box home path, one token list and a test pin it, and the 13 nodes carrying it are scrubbed in the same round (row C; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.1.3
+
+## Why this exists
+goal:g7.16.1.1 (bundle 1) row C. Measured 10:2xZ 09-29: `git grep -lF "$HOME" -- .agi/nodes | wc -l` = 13 (9 experiment · 2 goal (g7.33.11, g7.33.14) · 2 hypothesis nodes). extensions/agi/bin/anonymize.py `box_tokens` (+ `_secret_tokens`) builds the one token list its `scan` / `check` refuse, and no home-path token is in it. The HEAD's anonymize rule forbids a home or repo path value in any node.
+
+## Target end-state
+- anonymize.py's EXISTING `box_tokens` list carries the box user's home path, and `check` refuses staged text holding it. There is no second checker, and one committed test pins the refusal.
+- The same round scrubs the 13 nodes through write.py (`sub <home> => <home>` style, text only). After that, no node holds the path.
+
+## Invariants
+- ONE token list, ONE checker (SM.122 seam).
+- A scrub changes path text only. Node count and frontmatter stay the same.
+
+## Falsifier
+1. `python3 -m pytest extensions/agi/tests/ -q -k anonymize --basetemp /tmp/b1c` exits 0, with a row that feeds `check` the home path and expects a refusal.
+2. Negative: `git grep -lF "$HOME" -- .agi/nodes | wc -l` prints 0.
+
+## Out of scope
+goal:g7.16.1.1.4 · paths outside .agi/nodes (the engine's own test fixtures)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.1.4 — g4.18.1 gains and runs a falsifier and closes or narrows to gap-only leaves; assign-a-mint-id-if-missing is one function the other 3 sites import (row D; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.1.4
+
+## Why this exists
+goal:g7.16.1.1 (bundle 1) row D: goal:g4.18.1 (one mint route) is `active` with 5 active children (g4.18.1.1-.5), assigned to director-engine, which is down. Measured 10:2xZ 09-29: g4.18.1's body has NO `## Falsifier` section (headings: OWNER 09-26 · predecessor's reading · Evidence · Routing), so "run its falsifier" first needs one written. The id GENERATOR is already one function (`graph_core.identity.mint_permanent_id`), but "assign a mint id if missing" lives in 4 places: node_writer.py create (the `mint_id` key in the create frontmatter) and `adopt` · snapshot-goals.py `ensure_mint_id` (re-exported by snapshot-build-site.py, a no-op here) · backfill-mint-ids.py's own loop.
+
+## Target end-state
+- goal:g4.18.1 carries a `## Falsifier` in the [goal] body order, and that falsifier has been RUN, with its output on the node.
+- The assign-if-missing logic is ONE function that node_writer, snapshot-goals.py and backfill-mint-ids.py import.
+- goal:g4.18.1 is `complete`, or its unmet children are narrowed to gap-only leaves. Each g4.18.1.N is complete, horizon (parked: formation g7.16.2) or holds only its measured gap.
+
+## Invariants
+- A mint id, once assigned, is never changed (goal:g2.5).
+- No new id generator. `mint_permanent_id` stays the one source of entropy.
+
+## Falsifier
+1. `git grep -nE "\[.mint_id.\] *= *mint|new_fm\[.mint_id.\] *=|\"mint_id\": *mint_permanent_id" -- extensions/agi/bin | wc -l` prints 1 (the one assigner).
+2. Negative: `grep -c '^## Falsifier' .agi/nodes/goal/g4.18.1.md` prints 1, and no g4.18.1.N reads `active` without a gap line.
+
+## Out of scope
+goal:g7.16.1.1.3 · goal:g4.18.2 (skills)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.1.5 — formations are switchable template docs -- g7.16 the umbrella, g7.16.2 the two-step, one .geometry cell activates one formation and wakes its parked goals, a read-back prints exactly one active (row A; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.1.5
+
+## Why this exists
+goal:g7.16.1.1 (bundle 1) row A, last in order, because activating a formation wakes the goals row E parks. Measured 10:2xZ 09-29: .agi/nodes/.geometry/formations/ holds 5 `type: doc` formation nodes (doc:formation-local-town · doc:l4-formation-1-prime-only · -2-texas-two-step · -3-hybrid-gradual-expansion · -4-full-activation), and none marks itself active. The role templates (doc:unified-director-brief, doc:unified-head) are the same kind, `type: doc`. goal:g7.16 is titled "The Texas two-step formation", yet its child goal:g7.16.1 is the council loop, a different formation.
+
+## Target end-state
+- goal:g7.16 is retitled as the formations umbrella. goal:g7.16.2 (the two-step) is minted under it and carries the two-step body.
+- The 5 formation docs plus the council loop (doc:council-loop) are template nodes of the SAME kind as the role templates (`type: doc`, no new type). Each names its posts and the agi-post stand-up / take-down steps.
+- ONE .geometry cell names the active formation. Activating a formation is ONE `write.py config:<cell> 'set ...'`, which also wakes that formation's parked goals (row E's `parked: formation <id>`).
+- A read-back check, the same for every formation, prints exactly one active formation. This is config-max: code only for the check.
+
+## Invariants
+- Exactly one formation is active at any moment.
+- No formation doc is deleted. A superseded one is retired (deprecated + moved).
+
+## Falsifier
+1. The read-back check exits 0 and prints exactly one `active` line.
+2. Negative: the read-back check exits non-zero when two formations are marked active (a committed test row).
+
+## Out of scope
+goal:g7.16.1.1.2 (the park marks this wakes) · goal:g7.32.6 · goal:g7.31.3.3
+
+## Agent Notes
+Assigned to **director-general-1**.
+
 ### G7.17 — Every perpetual goal has a director, and the seats stay unbuilt until the cap allows — status: active
 
 <!-- BODY:BEGIN -->

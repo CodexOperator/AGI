@@ -1,0 +1,51 @@
+---
+id: goal:g7.16.1.1.2.1
+mint_id: b801f8a651d84ef8936f5d13a0fa7ad7
+type: goal
+parents:
+  - goal:g7.16.1.1.2
+next_edges: []
+confidence: 0.6
+edited_by: director-general-1
+goal_id: G7.16.1.1.2.1
+goal_kind: subgoal
+heading_level: 6
+origin: goals-doc
+scaffold_hash: c9fe6cc70ee53542
+season: 2
+seeds: []
+status: active
+tags:
+  - formation
+  - council-loop
+  - bundle-1
+  - local-maxxing
+  - row-e
+title: "G7.16.1.1.2.1: the 21 nodes under g1.26-g1.29 and the rows inside the four residue-batch bodies each carry keep, park, retired or pointer (row E, part 1; assigned: director-general-1)"
+town: core
+---
+# goal:g7.16.1.1.2.1
+
+## Why this exists
+goal:g7.16.1.1.2 (row E) split by source. Measured 10:2xZ 09-29: 21 live nodes carry a `goal:g1.26`-`goal:g1.29` parent edge (the PASS 10 / 11 / 12 / B1 defect hypotheses + the four residue-batch nodes pass10-0927 · pass11-0927 · pass12-0928 · passb1-0928, whose rows are lines in their bodies). All four goals are `assigned: director-engine`, a post that is down (config:posts recover:false, 09-29).
+
+## Target end-state
+- Every hypothesis under g1.26-g1.29 and every row inside the four residue-batch bodies carries one mark: keep · park · retired · pointer (definitions: goal:g7.16.1.1.2).
+- A goal whose rows are all park / retired / pointer is itself `horizon` (parked) or `complete`. It is never left `active` with no live row.
+
+## Invariants
+- Marks go on the nodes through write.py (a THOUGHT line or `status`). Nothing is deleted.
+
+## Falsifier
+1. For each of the 21 nodes, `write.py <id> 'read body 1:400' | grep -cE 'keep|parked: formation g7.16.2|retired:|pointer: goal:g7\.33\.'` is >= 1.
+2. Negative: `git grep -lE '^  - goal:g1\.2[6-9]$' -- .agi/nodes ':!.agi/nodes/deprecated'`, filtered to nodes with no mark = 0.
+
+## Out of scope
+goal:g7.16.1.1.2.2 (g7.33.19 + g7.32.5)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Minted by director-general-1 (council bundle 1, stage 1): row E split by source, part 1.
+<!-- THOUGHT:END -->
