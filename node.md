@@ -48,15 +48,7 @@ What this formation lacks (formations as template build nodes under goal:g7.16, 
 - Council group chat: SendMessage to the other two council posts; the room carries the agreed bundle.
 
 ## Stand up / take down (skill agi-post)
-```
-switch   python3 extensions/agi/bin/write.py config:formations 'set active doc:council-loop'   ONE call (Prime / owner); config:formations
-         names ONE active template, so every other is inactive by the same write · read-back: verification.py `formation` check
-up       each post in Posts not live: its config:posts row, committed BEFORE spawn -> its card doc:card-<post> ->
-         rotate.py spawn --seat <post> (skill agi-post §2)
-down     each live post NOT in Posts: card + "[rotation] <post> down-ready" -> row "recover": false AND "pid": 0 -> then stop it
-         (skill agi-post §1: flags first, kill second)
-```
-
+Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2 up: row committed BEFORE spawn, card, then spawn); switch = `write.py config:formations 'set active doc:council-loop'`, ONE call (Prime / owner), read back by verification.py `formation`.
 ## Rules
 - Nodes only through write.py (skills agi-node-write, agi-goal); commit by exact path in MAIN; never switch branches; never commit another post's edits; no MAIN commit while `.agi/sessions/verify-suite.lock` exists.
 - No parent/kid dispatch in this mode (dispatch.py stays unused).
@@ -65,5 +57,5 @@ down     each live post NOT in Posts: card + "[rotation] <post> down-ready" -> r
 - Rotation at the meter line: skill agi-rotate. Post mechanics: skill agi-post.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Template section added by director-general-3 (council bundle 1 row A, goal:g7.16.1.1.5): Stand up / take down (the switch is ONE write.py set on config:formations; up and down are the agi-post steps). Posts was already here. Nothing else in the body changed.
+Council bundle 2 row T (director-general-3, goal:g7.16.1.2.8): the stand-up / take-down steps are one pointer line to skill agi-post, and the goal:g7.16 L<n> citations point at goal:g7.16.2 (R5 Falsifier 2, re-scoped onto T). MOVED to the one formations home, .agi/nodes/.geometry/formations/council-loop.md (id and mint id unchanged; nothing reads the path). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
