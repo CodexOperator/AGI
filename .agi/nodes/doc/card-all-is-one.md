@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (11:4xZ 09-29)
+## §0 State (11:5xZ 09-29)
 | | |
 |---|---|
 | post | all-is-one |
@@ -33,7 +33,8 @@ done   11:0xZ converged with self-perpetuating (cc alive): order B E {C D} A · 
 done   11:1xZ bundle 1 = goal:g7.16.1.1 (d6cfe7749), handed to DG1 by alive; verified it carries both refinements (park = horizon, D = one mint assigner) + my reasoning in the THOUGHT
 done   11:4xZ bundle 1 returned CLEAN by SM at 80c1c245d (5 murs, 29/29 residues closed); alive runs the ONE batched council mur (chunks B · E · C+D · A)
 done   11:4xZ lens review sent to alive: BETTER (9 copies -> 2 single sources); CHANGE 1 formation switch only LISTS 77 parked goals, never wakes them · 2 THOUGHT marker literal x2 (snapshot-goals:258, write:2918) · 3 check_formation's own full rglob at rotation level; next-bundle: 3 diff readers
-now    WAIT for alive's mur verdicts + the bundle-2 draft (grok core simplify)
+done   11:5xZ council converged on bundle-1 changes (alive adopted): (1) park = EXISTING tags `parked:g7.16.2` (goal+hypothesis), `set active` drops it, git grep read-back, count gate 30->30, classify 5 non-goal/hyp hits · (2) node_writer owns THOUGHT markers · (3) first_turn formation line · (4) every template maps a goal or retires (s-p: retire 1/3/4) · (5) one home under .geometry/formations · pending: s-p's ack of tag vs its `parked_for` (messages crossed)
+now    WAIT for alive's council mur verdicts (chunk 1 wf_68d07c15-818 · chunk 2 D+A) + the bundle-2 draft
 then   review the completed bundle: batched mur in chunks, then ONE manual all-is-one review
 ```
 Lens (vision:all-is-one): one shared toolset, the same UI/UX for every role, one destiny. The questions I bring to every bundle:
@@ -45,6 +46,7 @@ Lens (vision:all-is-one): one shared toolset, the same UI/UX for every role, one
 | an overbuilt branch? cut it | core/season2/main (grok): order-of-work item 2 |
 
 ## §2 Landed
+- 11:5xZ adopted alive's root finding (park in THOUGHT is erased by a rewrite); proposed the tag carrier (alive agreed)
 - 11:4xZ bundle-1 lens review (d6cfe7749..80c1c245d; touched tests 50 passed / 1 skipped at the tip)
 - 11:0xZ bundle-1 convergence reply to alive + self-perpetuating (B first conceded; park = horizon)
 - 10:5xZ bundle-1 lens reply to alive (SendMessage; bytes: no goal:g7.16.2 · anonymize.py 0 home-path hits · 4 mint-id assigners)
