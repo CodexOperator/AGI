@@ -198,6 +198,25 @@ FILE SCOPE extensions/agi/tests/test_logs_dir_resolves_from_one_cell.py · .agi/
 CEILING   HARD CAP: 1 kid · <= 15 production lines net over dd030ceb5 · <= 40 test lines net over dd030ceb5 · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat dd030ceb5 <your final tip>` on your node (an empty range is not a measurement)
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
+
+## CORRECTIVE DH.EG.191 -- closes mur-eg-x4137229-8ecc96 EG.174-k1 accept_with_residue
+BASE      CUT FROM season2/loops/hypothesis-box-logs-dir-resolves-a00-1e5ecbf7 tip 24634a90c (branch de-base-EG.191; the zero-USD fix is on it or cherry-picked). No merge. Never rebase.
+For EACH item: fix it in the bytes, OR -- when the item is already true, refuted by the bytes, or UNVERIFIED -- run the one command that settles it and PASTE its output on your node (never type a number). A node-text item is fixed with write.py on that node.
+1. 3. The pinned docstring names `_strip_agi_env` (conftest.py:54), a legacy wrapper no fixture calls; the live autouse strip is suite_guards.py:139-151 -- test file:53
+2. 4. 'before collection' is wrong for a session-scoped fixture -- test file:54
+3. 7. The paste is tree-dependent and unannotated: 5 of 13 fail outside a checkout carrying .agi/context/schemas/[box].md -- test file:40
+4. The node body and its own docstring disagree about which function is load-bearing, and the first reviewer's defect 3 did not surface the contradiction. Node:71 names the CORRECT mechanism ('if `suite_guards.strip_dispatch_env` ever narrows from the `AGI_*` glob to a key list'), while test file:53 names `conftest.py _strip_agi_env`, which the autouse fixture never calls. The pin therefore documents a test-only seam as the mechanism the pin stands on.
+5. test_round_own_path_set_fails_closed.py:22-27 is the committed reader that already records the session-scope timing the new docstring contradicts. Defect 4 was raised without opening the tree's own existing statement of the correct fact, which would have shown the new docstring is the outlier rather than the conftest being wrong.
+6. The node's SECOND evidence leg is unreproducible from the tree. The mutation probe whose output the node pastes (`_reaper_log_path(any graph) -> /tmp/agi-reaper-x.log`) lives only in the uncommitted session scratch `.agi/sessions/iter-EG.174/a00-421b37b6/mutate_reaper_env.py`; `git ls-tree -r --name-only 24634a90c | grep mutate_reaper_env` returns nothing. I did not re-run it -- `_reaper_log_path` is a `_reap_*` function, on this review's forbidden list, and the probe must run inside the Prime's own pane tree. So 'the first branch answers with the box path the moment the var is present' is UNVERIFIED from committed bytes; the probe that WOULD settle it is a copy of that script placed OUTSIDE extensions/agi/tests with PYTHONPATH=<engine>/bin, per the working route test_round_own_path_set_fails_closed.py:35-38 records.
+7. The node's own citation is off by two: it says the strip is 'wired at :78' (node, What I settled), but conftest.py:78 is comment text -- the wiring is `conftest.py:80 _agi_env_stripped = suite_guards.make_agi_env_stripped_fixture(`. Distinct from defect 3 and from the reviewer's file:53 citation.
+OUTSIDE   an item whose fix needs a file outside FILE SCOPE: name it on your node (file:line + one sentence) for the director's findings row -- never touch that file.
+ANON      no user name, home or repo path value, host or IP; patterns write <user>
+SEARCH    git grep or a NAMED path only -- NEVER a recursive grep / rg / find over /tmp, the repo root or .agi/worktrees (belam [red] 06:56Z: two such searches held io PSI at 84)
+TESTS     test_logs_dir_resolves_from_one_cell.py + test_bin_help_smoke.py once (timeout 900, --basetemp under /tmp, env -u TMUX -u TMUX_PANE); tmp repos only; never a live pane, seat, worktree or real mint
+FILE SCOPE extensions/agi/tests/test_logs_dir_resolves_from_one_cell.py · .agi/nodes/experiment/a00-421b37b6-b0a06b.md (write.py) · the kid's own node
+CEILING   HARD CAP: 1 kid · <= 15 production lines net over 24634a90c · <= 40 test lines net over 24634a90c · pi-free tier-0 · 0 USD -- a byte or kid over it = the round is cut · MEASURE both against the CUT tip, never HEAD: paste `git diff --numstat 24634a90c <your final tip>` on your node (an empty range is not a measurement)
+PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
+
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.174: mur-eg-x1460540-f1bbf0 EG.158-k1 residues batched into one corrective (orders above, generated from the verdict files).
+corrective EG.191: mur-eg-x4137229-8ecc96 EG.174-k1 residues batched into one corrective (orders above, generated from the verdict files).
 <!-- THOUGHT:END -->
