@@ -15,11 +15,11 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (17:1xZ 09-29, resumed to 23:00Z)
+## §0 State (17:2xZ 09-29, resumed to 23:00Z)
 | | |
 |---|---|
 | post | alive · session agi-8b · window @4 |
-| stage | council, convener: bundle 3 (g7.16.1.3, grok core simplify) with DG1; the bundle-2 council mur is running. I embody vision:alive ONLY |
+| stage | council, convener: bundle 3 (g7.16.1.3) with DG1, who is minting leaves; bundle-2 council review DONE. I embody vision:alive ONLY |
 | peers | self-perpetuating agi-20 · all-is-one agi-96 · DG1 agi-f8 · DG2 agi-63 · DG3 agi-aa · SM agi-1c · belam agi-0e (names change on rotation: ListAgents + tmux window names) |
 | protocol | doc:council-loop · goal:g7.16.1 · stop 23:00Z 09-29 (belam relayed the owner; finish the step, card whole, commit, idle) · PASS B3 on this box from 17:47Z: single-file tests only |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
@@ -35,8 +35,11 @@ now    bundle-2 council mur wf_4e0708df-4ef (3 rounds: b2-R1R3-home · b2-R2R4-p
        bundle-3 draft sent 17:3xZ: H1 g4.18.3 · H2 g4.18.4 · H3 carrier tags · H4 bundle-2 residues · S1 dm_* fold (measure first)
        · S2 the unwired five NOT ported (verdict node) · S3 profile_sync / magic_pane by use · bundle 4 = core's edits to existing files
 done   bundle 3 agreed → goal:g7.16.1.3 (900a4017a) → DG1 · [merge-note] to belam: g7.31.3.3 stays ACTIVE until wired
-next   on the wf_4e0708df-4ef result: SendMessage DG1 its confirmed residues as H4 items → wait for SM clean on bundle 3 → council
-       mur + lenses → bundle 4 (core's edits to existing files + profile_sync) or the season close
+done   row G (retire GOALS.md, owner via belam) added to g7.16.1.3 before S1/S2 (2eb4f4528) · H4 council adds (c0c8d3f82)
+       bundle-2 council mur wf_4e0708df-4ef: 3x accept_with_residue, 0 red, 8 confirmed → written onto g7.16.1.3 H4 (a)-(g) (83bb22b46),
+       sent to DG1 · [measure] b2 line in room council-loop
+next   wait for "[handoff] bundle 3 · SM clean" → council mur + lenses → bundle 4 (core's edits to existing files + profile_sync)
+       or the season close
 ```
 Council mur route: build args like /tmp/alive/cmur/chunk{1,2}.json (one round per row, the COMMON focus + a SIMPLIFY pass,
 old_tip = the bundle base, new_tip = SM's clean tip) -> Workflow tool, name agi-merge-up-review, <= 3 rounds per chunk ->
@@ -47,9 +50,9 @@ read subagents/workflows/<run>/journal.jsonl (type=result), NOT the truncated no
 - [red] to belam (inbox): PASS B3 at 17:47Z will hit the anonymize refusal on rotation records (bundle 2 R1); please land the [measure] line
 
 ## 🔴 Where it stops
-17:1xZ 09-29: bundle 3 with DG1; the bundle-2 council mur wf_4e0708df-4ef running
+17:2xZ 09-29: bundle 3 with DG1 (leaves being minted); the council is idle until SM hands bundle 3 back clean
 ```
-on its completion: read subagents/workflows/wf_4e0708df-4ef/journal.jsonl -> refuter-confirmed residues -> SendMessage agi-f8 (H4 addendum) + agi-20/agi-96
+on "[handoff] bundle 3 · SM clean <tip>": git diff --stat 900a4017a <tip> -> chunk args per row -> Workflow agi-merge-up-review -> alive lens -> SendMessage agi-20 + agi-96
 ```
 
 ## §4 Traps
@@ -61,9 +64,9 @@ on its completion: read subagents/workflows/wf_4e0708df-4ef/journal.jsonl -> ref
 | .agi/sessions/quorum/alive.md is a stale 09-18 file | the card = doc:card-alive, through write.py |
 | my timestamps were guessed once | `date -u` before writing any time |
 | town:local-maxxing refuses a council write (ring gate: owner/prime only) | the [measure] line goes to room council-loop; the Prime lands it |
-| a new goal lacks heading_level -> the render errors | `set heading_level 4` for a g7.16.1.N leaf |
+| GOALS.md (retired by the owner 17:3xZ; bundle 3 row G removes it) | never render or commit it; commit goal nodes alone |
 
-## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken · `snapshot-goals.py --render --check` (409 goals ok at 794a0782e)
+## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken · GOALS.md is RETIRED (owner 17:3xZ): never render, check or commit it; read goals from their nodes
 
 ## §6 BANKED
 | question | options | recommendation |
