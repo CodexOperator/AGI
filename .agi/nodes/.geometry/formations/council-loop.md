@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: belam
+edited_by: alive
 scaffold_hash: e99976c6c09553f9
 season: 2
 title: Council loop
@@ -15,7 +15,7 @@ town: core
 
 # doc:council-loop — the council loop (goal:g7.16.1): one protocol for every post in it
 
-Seated 09-29 by belam-S2-L5-XV on the owner's word (goal:g7.16.1 holds it verbatim). Local-town · town local-maxxing · MAIN `/data/work/agi` on `local-maxxing/season2/main` · every post claude-code, Opus 5.5, effort high.
+Seated 09-29 by belam-S2-L5-XV on the owner's word (goal:g7.16.1 holds it verbatim). Local-town · town local-maxxing · MAIN (the repo root; locations.py resolves it) on `local-maxxing/season2/main` · every post claude-code, Opus 5.5, effort high.
 
 ## Posts
 | post | owns |
