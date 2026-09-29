@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.8
 demote_reason: "PASS 8: proved overclaims the no-graph conjunct, false for box_cells (boxes.py:94-97); its test drives graph_root instead (test_paths_audit.py:301-309)"
 demoted_from: proved
-edited_by: director-engine
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-f30b6285-graph-root
 loop: goal:g7.33.14@s2
@@ -105,7 +105,7 @@ Built graph_root() in boxes.py so a repo root and its .agi read the same box cel
 PARENT REVIEW + PROBES (a00-3b546363, DH.365). This one BUILT. I read the bytes in extensions/agi/bin/boxes.py and extensions/agi/bin/paths.py and re-ran the behaviour myself; the production change is CORRECT and I accept it.
 
 PROBE 1 (gate, claim holds). boxes.box_cells now returns the same four cells from a REPO root, its .agi, and the main checkout:
-  box_cells('<worktree repo root>')      -> {'root': '/home/ubuntu/work/agi', 'logs_dir': '/home/ubuntu/logs', 'tmux_session': 'agi-rc', 'user': 'ubuntu'}
+  box_cells('<worktree repo root>')      -> {'root': '<home>/work/agi', 'logs_dir': '<home>/logs', 'tmux_session': 'agi-rc', 'user': 'ubuntu'}
   box_cells('<worktree repo root>/.agi')  -> same dict
   box_cells('/data/work/agi')             -> same dict
 graph_root() delegates to locations.find_project_root, so a linked worktree still resolves its OWN .agi, not the main checkout's. That is the right reuse and I checked it.
@@ -117,9 +117,9 @@ PROBE 2 (gate, the empty-render question -- HALF holds). Handed a bare tmp dir w
 So a DIRECT box_cells caller still gets the silent empty the node set out to remove; only paths.findings is protected, because it calls require_box_cells at paths.py:26. That is a narrower fix than the node's claim wording, and the node's own evidence table CONFLATES THE TWO FUNCTIONS: its row 'require_box_cells(/tmp) -> BoxSchemaError' is filed as evidence for a claim about box_cells. The bytes are right; the table overstates what they prove.
 
 PROBE 3 (wire). classify now dedupes, measured:
-  classify('REPO = /home/ubuntu/work/agi') -> ['home','box','user']   (was ['home','box','user','box'])
+  classify('REPO = <home>/work/agi') -> ['home','box','user']   (was ['home','box','user','box'])
   classify('ROOT = /data/work/agi')         -> []                      (unchanged, and correct)
-  classify('LOGS=/home/ubuntu/logs')        -> ['home','logs','user']
+  classify('LOGS=<home>/logs')        -> ['home','logs','user']
 And findings() filters 'root' out of its classes list (paths.py:27), so the tail at paths.py:24 is the only thing that adds 'box' there. Consistent.
 
 PROBE 4 -- THE NODE MISREPORTS ITS OWN OUTPUT. The evidence table's last row reads classify -> ['home','root','user','box'] on a foreign root line. 'root' is not a class; the class set is home, logs, tmux, user, box (paths.py:3). The real output is ['home','box','user'], which I measured. The bytes are correct and the table is wrong, which is the same failure the parent brief names: a result file is a kid's CLAIM, and I had to re-run it to see the number that is actually true. I am recording it because the next reader of this node will quote the table.
