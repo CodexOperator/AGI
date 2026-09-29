@@ -848,3 +848,22 @@ def test_w2a_one_resolver_def_and_links_and_write_call_it():
     callers = [n for n in ("links.py", "write.py")
                if "resolve_mint(" in src[n].replace("def resolve_mint(", "")]
     assert callers == ["links.py", "write.py"], callers
+
+
+# --- bundle 4 W2c (director-general-2)
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2c: RED until DG3 builds mint-id "
+                   "resolution into links._verdict_class_disagreements (parents/evidence_runs)")
+def test_w2c_verdict_class_check_resolves_a_mint_id_like_its_address(tmp_path):
+    seen = []
+    for form in ("address", "mint"):
+        root = tmp_path / form / ".agi"
+        (root / "nodes").mkdir(parents=True)
+        (root / "config.json").write_text("{}")
+        ref = "e" * 32 if form == "mint" else "experiment:e1"
+        _node(root, "experiment:e1", ["id: experiment:e1", "mint_id: " + "e" * 32,
+                                      "type: experiment", "verdict: disproved"], "run")
+        _node(root, "verdict:v1", ["id: verdict:v1", "mint_id: " + "f" * 32, "type: verdict",
+                                   "parents:", f"  - {ref}", "evidence_runs:", f"  - {ref}",
+                                   "verdict: proved"], "judged")
+        seen.append(len(links._verdict_class_disagreements(root)))
+    assert seen == [1, 1]
