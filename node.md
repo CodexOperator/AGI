@@ -24,8 +24,6 @@ town: core
 ---
 # goal:g7.16.1.7.1.3
 
-# goal:g7.16.1.7.1.3
-
 ## Why this exists
 goal:g7.16.1.7.1 (7a, NOW in the council placement) under goal:g7.16.1.7: the owner, verbatim there: "No more templates for pi free vs pi local. Just standard pi template that lists all the different model + thinking level + extendable to other harness settings as rows containing jsons." Measured: .agi/config.json carries 3 pi blocks (pi, pi-free, pi-local) with adapter, bin and forward_env copied 3x, differing only in provider / models / thinking / zero_usd; spawn.harness and workflows.*.provider name pi-free. Absorbs by name goal:g4.20.1 (one harness source).
 
