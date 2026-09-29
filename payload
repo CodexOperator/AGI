@@ -1881,18 +1881,19 @@ def launch_in_window(tmux_session: str, name: str, shell_cmd: str, *,
     script: str | None = None
     handed_off = False
     try:
-        if root is None and cwd:  # SM rotate candidate: the launch tree's project, not the spawner's cwd
-            root = locations.find_project_root(cwd)
-        ensure_tmux_session(tmux_session, root)  # goal:g6.41.1 P1: a server first, in its own scope
-        launch_cmd = f"cd {shlex.quote(str(cwd or os.getcwd()))} && {shell_cmd}"
-        if len(launch_cmd) > inline_max:
+        cd = f"cd {shlex.quote(str(cwd or os.getcwd()))} && "
+        launch_cmd = cd + shell_cmd
+        if len(launch_cmd) > inline_max:  # the file first: unwritable = tmux is never called
             fd, script = tempfile.mkstemp(prefix=f"agi-launch-{name}-",
                                           suffix=".sh")
             with os.fdopen(fd, "w", encoding="utf-8") as fh:
                 fh.write("#!/usr/bin/env bash\n")
-                fh.write(launch_cmd + "\n")
+                fh.write(shell_cmd.rstrip("\n") + "\n")
                 fh.write('rm -f "$0" 2>/dev/null || true\n')
-            launch_cmd = f"bash {shlex.quote(script)}"
+            launch_cmd = cd + f"bash {shlex.quote(script)}"
+        if root is None and cwd:  # SM rotate candidate: the launch tree's project, not the spawner's cwd
+            root = locations.find_project_root(cwd)
+        ensure_tmux_session(tmux_session, root)  # goal:g6.41.1 P1: a server first, in its own scope
         # L4.114 (s3): `-P -F '#{window_id}'` makes tmux print the new
         # window's @id on stdout so the caller can JOIN the successor by its
         # WINDOW @id.
@@ -1902,9 +1903,9 @@ def launch_in_window(tmux_session: str, name: str, shell_cmd: str, *,
             capture_output=True, text=True, timeout=10,
         )
         handed_off = proc.returncode == 0
-    except FileNotFoundError:
-        print("ERR: tmux not found. Install tmux or pass --dry-run to preview.",
-              file=sys.stderr)
+    except FileNotFoundError as exc:
+        print(f"ERR: {exc.filename or 'tmux'} not found (tmux absent? "
+              f"pass --dry-run to preview).", file=sys.stderr)
         return 1, ""
     except subprocess.TimeoutExpired:
         print("warn: tmux new-window timed out — window may still be created.",
