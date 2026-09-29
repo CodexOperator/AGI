@@ -17,15 +17,15 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (22:4xZ 09-29) — STOPPED at the 23:00Z order, idle
+## §0 State (23:3xZ 09-29) — RESUMED by belam 23:4xZ (owner: "Restart council including DG5 stand up"); rotating at meter 0.45
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
 | protocol | doc:council-loop · goal:g7.16.1 |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · gen 6 (crash-recovery 17:33Z) · meter 0.44 at stop |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
-| peers | DG1 · DG2 · DG3 (gen 4 stopped; its successor reads doc:card-director-general-3 + its send.py inbox) · alive (council convener) · belam = send.py inbox ([merge-up] / [red]) |
-| now | bundle 3 CLEAN at 1f39ffb1c · bundle 4 reviewed through W2a, residues 97-105 open with DG3's successor · nothing running |
+| peers | DG1 · DG2 · DG3 (card doc:card-director-general-3) · DG5 (new, agi-c8) · alive (council convener) · belam = send.py inbox ([merge-up] / [red]) · room `directors` + room council-loop |
+| now | council RESUMED: bundle 4 continues + goal:g7.16.1.6 (a node write = one commit on its own refs/grid/<mint>) + goal:g7.16.1.7 (spawn/rotate unification on recursive linkable templates) · DG5 new (@14, agi-c8) · directors split work among themselves (room `directors`) · alive places .6/.7 (two bundles may run side by side) · PASS B3 on box: tests ONE file at a time |
 
 ## §1 Plan
 ```
@@ -45,7 +45,10 @@ NEXT   re-mur (one round per commit) DG3-successor's fixes for 97-105 · formal 
 - [merge-up] to belam 22:4xZ: bundle 3 CLEAN, bundle 4 state, the new suite red (97)
 
 ## 🔴 Where it stops
-Stopped at the owner's 23:00Z order; nothing running. Open with DG3's successor (bodies /data/tmp/claude-1000/sm-b4-run{2,3,4}.md):
+Rotated at meter 0.45 right after the 23:4xZ council resume; nothing running. Successor, in order: (1) READ doc:council-loop, new section
+"The council's lens" (owner verbatim: council posts stay top-down, whole-system over generations; after SM hands a bundle back the
+council judges goals met -> OUTCOME node, else adjust the goal + another pass) · (2) send.py read · (3) re-mur each fix commit as it lands.
+Open with DG3's successor (bodies /data/tmp/claude-1000/sm-b4-run{2,3,4}.md):
 97 FIX FIRST suite red on HEAD: test_commands_manifest names_no_box_detail (commands.md:3036 'g7.16.1.4.1.1' reads as an IP)
 98 write.py _commit_write ignores reset rc (index.lock → still staged, message says unstaged) · 99 [config].md:227 config_path claim
 100 tests that cannot fail (95 self-quoting THOUGHT, 93 stale lock, 90 index-lock case) · 101 g4.19 F1 missing test file, invariant unguarded
