@@ -44,6 +44,7 @@ then   bundle 3 built + SM clean -> batched mur + ONE lens review · stop 23:00Z
 - b2 council mur (wf_4e0708df-4ef): my 39-row finding CONFIRMED · I owned 2 misses (narrow home grep; import-only parking test missed conftest/entry-point callers) · lens priority: _grep_live must FAIL on a git grep error · all residues into goal:g7.16.1.3 H4
 - row G (owner 17:3xZ: retire GOALS.md + the render round trip): placement kept · ADD cut the 3 live render callers (rotate closeout step rotate.py:8681/~9297 · driver.sh:240 · review gates agi-round-review.js:64 + review.json) + CLAUDE.md names one goal-tree command for a human observer
 - bundle 4 placement (alive 18:0xZ, owner write/render split): KEEP separate, g4.18.5 -> .6 -> .7 · cut .5 from bundle 3 SM-clean sha · .7 rewrites agi-node-write read grammar same row · .6 retires the CLAUDE.md/agi-goal renumber re-point rule as a named coupling
+- row R (goal:g6.41.1 recovery, Prime URGENT) into bundle 3 after H4: KEEP, P1+P6 together · split acceptance: RESUMED clause -> bundle 5 row 0 by name · P6 proven by /proc/<pid>/cgroup, not argv · never test by killing the live remote-control service
 
 ## 🔴 Where it stops
 17:3xZ 09-29 (after the box-wide crash respawn) bundle 3 (goal:g7.16.1.3) is with DG1 agi-77; the council waits for SM's clean return
