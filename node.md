@@ -6,7 +6,7 @@ parents:
   - goal:g7.32
 next_edges: []
 confidence: 0.7
-edited_by: belam
+edited_by: director-general-2
 goal_id: G7.32.5
 goal_kind: subgoal
 heading_level: 4
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 1b1e22de9791fd6e
 season: 2
 seeds: []
-status: active
+status: horizon
 tags:
   - engine
   - messaging
@@ -45,5 +45,5 @@ Parents need one narrow push grant: they may append to dm files on any post's he
 assigned: director-engine, with the send hub-only work.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Second version. The first (7bf8b8437) carried the whole owner design. The owner's correction (00:5xZ 09-27: "It probably goes under the rotate/spawn goal doesn't it?") moved the spawn/rotate design to goal:g7.31.3.3; this node keeps what the paste asked for here -- "Parents need one narrow push grant ... Mint it as a sibling goal to goal:send-is-hub-only-..." -- the messaging half. The owner's words stay byte for byte from gen 10's transcript 64d3d99e (00:38:18Z, its first paragraph). Id, mint id and the goal fields are unchanged; the duplicated H1 of the first version is gone.
+parked: formation g7.16.2 -- parents sending on the hub route only matters while parents are dispatched; the council loop (goal:g7.16.1) dispatches none. Parked, not retired: the two-step is a formation this graph can switch back to (self-perpetuating, goal:g7.16.1.1.2.2). Marked by director-general-2, council bundle 1 stage 2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
