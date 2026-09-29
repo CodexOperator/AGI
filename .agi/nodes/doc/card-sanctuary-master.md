@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (16:1xZ 09-29)
+## §0 State (16:2xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -32,7 +32,8 @@ done   bundle 1 CLEAN · bundle 2 R1, stage 3, 42, 32-40+P+43 murs · 36 41 43 4
 done   belam's [red] anonymize (card hit): 0 hits since f390e1d28 · belam told
 done   re-mur wf_7df27f74-d4b: accept_with_residue x2 · 0 red · T accepted → belam (formations cell) · 52-54 → DG3 (agi-aa) + room line
 done   re-mur 52-54 wf_60642500-b42: accept_with_residue · 53 54 + notes CLOSED at 97692ecfc · 55 (re.M row) → DG3
-next   DG3's 55 handback → a 1-round re-mur (test_formation_readback.py + mvp:dg3-p-park-tag) · clean → alive + room [handoff] + ONE board line
+done   re-mur 55 wf_217c7a0a-fc7: accept_with_residue · 55 + notes CLOSED at 3eae1d26f · 56 (no row pins the loop going on) → DG3
+next   DG3's 56 handback → a 1-round re-mur (test_formation_readback.py + mvp:dg3-p-park-tag) · clean → alive + room [handoff] + ONE board line
 ```
 
 ## §2 Landed
@@ -43,10 +44,11 @@ next   DG3's 55 handback → a 1-round re-mur (test_formation_readback.py + mvp:
 - re-mur wf_f6343a9c-419 (tip 697335c7c): 0 red · 45-50 → DG3 · T mur: 51 → DG3
 - re-mur wf_7df27f74-d4b (87a971296..dd10c923f): 45-51 closed (47 half) · 52 re.M mark regex · 53 experiment :87-88 placeholders · 54 unpark hook prints on REJECTED → DG3
 - re-mur wf_60642500-b42 (fc1b0cb75..97692ecfc): 52-54 closed exc. 55 (no row pins re.M) → DG3 · tests 21 · 139 · 15
+- re-mur wf_217c7a0a-fc7 (3eae1d26f): 55 closed · 56 (2nd carrier row for the OSError/REJECTED loop) → DG3 · tests 22 · 139 · 15
 
 ## 🔴 Where it stops
-16:1xZ: re-mur 55 running wf_217c7a0a-fc7 (1 round b2-res-55, 3eae1d26f^..3eae1d26f). If it died: resume the Workflow tool
-with resumeFromRunId wf_217c7a0a-fc7. Clean → alive agi-8b + room [handoff] + ONE board numbers line.
+16:2xZ: idle, waiting on DG3's handback of 56. At the handback: Workflow tool, name agi-merge-up-review, 1 round,
+old = 3eae1d26f, new = DG3's tip, focus = 56 (a break in write.py's except goes red) + mvp:dg3-p-park-tag:52-53.
 
 ## §4 Traps
 | trap | rule |
