@@ -859,7 +859,6 @@ def _real_shape(rows, tail=""):
     return _posts_text(rows)[:-4] + "scaffold_hash: x\nthought_session: y\n" + tail + "---\n"
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 3 H2(a): RED until DG3 builds the absent-row refusal")
 def test_h2a_absent_post_refuses_by_name_never_a_lone_row(tmp_path):
     import yaml
     repo, g, _posts, _bare = _fixture_no_seat(tmp_path)
@@ -875,7 +874,6 @@ def test_h2a_absent_post_refuses_by_name_never_a_lone_row(tmp_path):
         assert {"aa", "bb", "cc"} <= {r.get("name") for r in fm["posts"]}, out
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 3 H2(b): RED until DG3 builds the yaml.safe_load check before commit")
 def test_h2b_posts_md_that_fails_yaml_load_is_never_committed(tmp_path):
     import yaml
     repo, g, posts, _bare = _fixture(tmp_path)

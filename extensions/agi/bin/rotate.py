@@ -10255,6 +10255,8 @@ def _ack_commit_seats(root: Path, seat: str, args: argparse.Namespace,
     new_content = _seats_ownrow_content(root, top, seat)
     if new_content is None:
         return (True, "ack: no change to seats.md — nothing committed")
+    if (why := _posts_load_error(new_content)):  # goal:g4.18.4
+        return (False, f"ERR: {rel} does not load ({why}); nothing committed")
     row = _find_seat(root, seat) or {}
     gen = getattr(args, "gen", None)
     win = str(row.get("window") or "")
@@ -10455,6 +10457,23 @@ def _authority_row_content(base: str, new: str, seat: str) -> str:
     return "".join(merged_line if _own_row_line(ln, seat) else ln for ln in b)
 
 
+def _posts_load_error(content: str) -> str:
+    """'' when a posts.md text's frontmatter loads as a YAML mapping, else the
+    reason (goal:g4.18.4: a config:posts that does not load is never committed)."""
+    import yaml
+    try:
+        if not isinstance(yaml.safe_load(content.split("---\n")[1]), dict):
+            return "frontmatter is not a mapping"
+    except (yaml.YAMLError, IndexError) as exc:
+        return str(exc).splitlines()[0] if str(exc) else type(exc).__name__
+    return ""
+
+
+def _row_names(text: str) -> set:
+    """The `name` cells of every posts row line in `text` (one row per line)."""
+    return set(re.findall(r'^  - \{"name": "([^"]+)"', text, re.M))
+
+
 def _insert_row_into_frontmatter(base: str, row: str) -> str:
     """`base` with `row` inserted as the LAST entry of the frontmatter before
     the closing ``---`` -- inside the `posts:` list the loader reads.
@@ -10463,14 +10482,19 @@ def _insert_row_into_frontmatter(base: str, row: str) -> str:
     ever sees: `load_node_file` stops at the closing `---` (EF.51 C4 parent
     probe -- the commit moved but `send._pushed_seats` returned no row).
     A base with no frontmatter delimiter falls back to a plain append, which
-    is the only shape left that can carry the row at all."""
+    is the only shape left that can carry the row at all.
+    goal:g4.18.4: the row lands after the LAST existing row, never merely
+    before the closing ``---`` -- keys that follow `posts:` (scaffold_hash,
+    thought_session) put a row there outside the list (e4aaef794)."""
     lines = base.splitlines(keepends=True)
     if lines and lines[0].strip() == "---":
         for i in range(1, len(lines)):
             if lines[i].strip() == "---":
                 if not row.endswith("\n"):
                     row += "\n"
-                return "".join(lines[:i]) + row + "".join(lines[i:])
+                last = max((j for j in range(1, i) if lines[j].startswith("  - {")),
+                           default=i - 1)
+                return "".join(lines[:last + 1]) + row + "".join(lines[last + 1:])
     if base and not base.endswith("\n"):
         base += "\n"
     return base + row
@@ -10546,9 +10570,18 @@ def _publish_row_to_authority(root: Path, seat: str, new_content: str) -> str:
             if row is None:
                 return (f"authority: REFUSED -- the new content carries no "
                         f"{seat!r} row to seat on {branch}")
+            # goal:g4.18.4: one row lands only when it completes the row set;
+            # never a lone row beside rows the authority does not hold yet
+            missing = sorted(_row_names(new_content) - _row_names(base) - {seat})
+            if missing:
+                return (f"authority: REFUSED -- {seat!r} is absent on {branch} "
+                        f"and so are {missing}: a lone row never lands")
             content = _insert_row_into_frontmatter(base, row)
         if content == base:
             return f"authority: SKIPPED -- no {seat!r} row to replace on {branch}"
+        if (why := _posts_load_error(content)):  # goal:g4.18.4
+            return (f"authority: REFUSED -- the composed {rel} does not load "
+                    f"({why}); nothing committed")
         fd, idx = tempfile.mkstemp(prefix="authrow-idx-")
         os.close(fd)
         env = dict(os.environ, GIT_INDEX_FILE=idx)
@@ -10705,6 +10738,9 @@ def _commit_spawn_row(root: Path, *, seat: str, generation: int,
     if _head_content and _head_content == new_content:
         return ("spawn_row_commit: SKIPPED — seats.md already clean after "
                 "the write (row was byte-identical); nothing committed")
+    if (why := _posts_load_error(new_content)):  # goal:g4.18.4
+        return (f"spawn_row_commit: FAILED — seats.md does not load ({why}); "
+                "nothing committed")
     msg = (f"{seat} {verb}: gen {generation}, session_id "
            f"{session_id or ''}, window {window or ''}, pid {pid or ''}")
     import tempfile  # noqa: PLC0415  (local, mirrors _ack_commit_seats)
@@ -18282,6 +18318,8 @@ def _commit_stops_row(root: Path, seat: str, card_path: Path,
             return (f"stop_commit: FAILED — card update-index: "
                     f"{upd.stderr.strip()}")
         if _stage_seats is not None:
+            if (why := _posts_load_error(_stage_seats)):  # goal:g4.18.4
+                return f"stop_commit: FAILED — seats.md does not load ({why})"
             sb = _tg(["hash-object", "-w", "--stdin"], input=_stage_seats)
             if sb.returncode != 0 or not sb.stdout.strip():
                 return "stop_commit: FAILED — seats hash-object"
