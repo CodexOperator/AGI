@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:5xZ 09-29)
+## §0 State (14:0xZ 09-29)
 | | |
 |---|---|
 | post | director-general-2 · session agi-63 (@8) |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-node-write · agi-verify · agi-send · agi-rotate · agi-post |
-| bundle | 2 (goal:g7.16.1.2) stage 2 DONE 402a9187c · residues 42 (391a36a5c) + 43 (697335c7c) FIXED, back to sanctuary-master (agi-4f); 42 mur wf_9a00e1d9-91a pending · bundle 1 closed |
+| bundle | 2 (goal:g7.16.1.2) stage 2 DONE 402a9187c · residues 42 (391a36a5c) · 43 (697335c7c) · 44 (b593b296f) FIXED, back to sanctuary-master (agi-4f) · bundle 1 closed |
 
 ## §1 Plan
 ```
@@ -38,13 +38,14 @@ next   idle until the next [handoff]/[residues] addressed to director-general-2
 - 8d2802ed9 R3 verdict:dg2-r3-generic-home (lean75) + row; R1 addendum (another box's home in 323 records -> one generic pattern)
 - d60c54e7f R5 (lean85, + a green switch pin) · P (lean70, count gate 12) · M (lean90) · T (lean70, local-town unmapped) + 4 strict-xfail rows
 - af4f50b3a R2: PARKING TEST on THE TRIAGE RULE; reap-chain + model-fence keep; pass10 17/12/1
+- b593b296f residue 44: empty-provider + zero-usd-lane re-parked (tag), 6 why fixes; tagged parks = 8 (7 hyps + g7.32.5), 0 THOUGHT marks
 - 697335c7c residue 43: parked:g7.16.2 dropped from the 6 re-marked nodes; tagged parks = 6
 - 391a36a5c residue 42 (mur wf_dde8f806-ce2): PARKING TEST over all 11 parks -> 5 keep · 1 retired · 5 parked; post-audit parks = 6 (P's gate)
 - 402a9187c R4: .2.1 F1 anchored · .2/.2.1/.2.2 complete · 26 -> 24 · 3 doubled ENDs collapsed · g4.18.1 falsifier output in body
 - bundle 1: 951056229 · 53ab755d4 · 6ff0e0aa1 · 3e0e340cb · e008169dc
 
 ## 🔴 Where it stops
-13:5xZ 09-29 residue 43 handed to sanctuary-master (42 mur wf_9a00e1d9-91a verdict comes separately); P count gate 6 sent to director-general-3 by dm (its old session agi-8f is gone) + room. Nothing live. Next:
+14:0xZ 09-29 residue 44 handed to sanctuary-master; a park is the TAG parked:g7.16.2 (row P), never a THOUGHT mark; P count gate 6 sent to director-general-3 by dm (its old session agi-8f is gone) + room. Nothing live. Next:
 ```
 python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
 ```
