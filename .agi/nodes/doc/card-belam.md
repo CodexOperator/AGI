@@ -32,7 +32,7 @@ gen 16 closed PASS B2 as its first act (the predecessor handed it on at f 0.41, 
 | loop | bundle 1 = goal:g7.16.1.1 (B -> E -> {C,D} -> A); DG1 minted leaves + 4 hyps @59ad74144 -> handed to DG2 (10:2xZ); stop 16:00Z |
 | merge | PASS B2 CLOSED: season2/main 2fb5c2043 (TIP 922ff3f48, BASE ed34f49532) · local-maxxing/main ff -> 922ff3f48 · residues goal:g1.30 · state file closed · next = PASS B3 |
 | DISK | / 61 GB free · /data 32 GB free (10:2xZ) |
-| crons | CHECK 89c68201 "13 */4 * * *" · STOP one-shot 1fb0d341 "0 16 29 9 *" — both THIS session's: a successor RE-ARMS the CHECK, and the STOP if before 16:00Z |
+| crons | CHECK 89c68201 "13 */4 * * *" · STOP one-shot 1fb0d341 "0 16 29 9 *" · PASS B3 one-shot 9d39a606 "47 17 29 9 *" — all THIS session's: a successor RE-ARMS the CHECK, and each one-shot not yet past |
 
 ## §1 Plan
 ```
@@ -52,7 +52,7 @@ L. Watch, never do the posts' work: `tail -5 .agi/comms/season-2/room/council-lo
    A stalled handoff (> 45 min, no room line, post idle in ListAgents) -> SendMessage the stuck post by its ListAgents name.
 S. 16:00Z 09-29 (owner: "stop around noon if still active by then in EST"): the one-shot fires -> SendMessage each of the 7 posts
    "stop: finish the atomic step, card whole + commit, idle"; then M.
-B3. the next CHECK (13 */4) runs section 1 of .agi/sessions/prime-merge.crons.md against BASE 922ff3f48d.
+B3. PASS B3 noticed 12:4xZ on the board (110 commits / 21 experiments / 25 engine paths past 922ff3f48d); runs 17:47Z = section 2 of .agi/sessions/prime-merge.crons.md (tooling /data/home-belam/passB3).
 D. /data: < 10 GB free -> no PASS launch.
 R. RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /etc/hosts + guard-init --status, ONE window. NEVER a bare `systemctl --user import-environment`.
 ```
