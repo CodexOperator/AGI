@@ -732,3 +732,13 @@ def test_b4_w1b_a_failed_commit_unstages_its_paths(project, shape):
     assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
     assert "0.3" in (project / ".agi" / "nodes" / "hypothesis" / "h9.md").read_text()
 
+
+# SM residue 92: `create` is a write too -- one exact-path commit of the new
+# node, another post's staged file untouched.
+def test_b4_w1b_create_commits_its_new_node(project):
+    g, head = _w1b(project)
+    assert write.main(["create", "hypothesis", "h10", "--parent", "goal:g1",
+                       "--root", str(project)]) == 0
+    assert g("show", "--name-only", "--format=", "HEAD").split() == [".agi/nodes/hypothesis/h10.md"]
+    assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
+
