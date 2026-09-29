@@ -10314,7 +10314,6 @@ def test_rename_post_default_reader_is_real_git_and_preserves_the_real_ref(
     assert surfs["branch"]["dst"] == "season2/posts/adv2", surfs["branch"]
 
 # ── bundle 3 row R1 (goal:g6.41.1 P1+P6): every post launch in its OWN scope
-@pytest.mark.xfail(strict=True, reason="bundle 3 R1: RED until DG3 builds the post scope in _shell_cmd (cap None too)")
 @pytest.mark.parametrize("seat", [None, "p1"])
 def test_r1_every_post_argv_is_scoped_even_when_cap_is_none(monkeypatch, seat):
     import mem_cap  # no post cap cell here -> None; wrap_argv's shared `is argv` stays
@@ -10323,7 +10322,6 @@ def test_r1_every_post_argv_is_scoped_even_when_cap_is_none(monkeypatch, seat):
     assert "--slice=agi.slice" in line and line.index("systemd-run --user --scope") < line.index("--remote-control")
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 3 R1: RED until DG3 builds _ensure_tmux_session in _launch_window")
 def test_r1_launch_window_ensures_agi_rc_in_its_own_scope_first(monkeypatch):
     calls = []  # agi-rc absent: has-session rc 1
     monkeypatch.setattr(rotate.subprocess, "run", lambda a, **k: calls.append(list(a)) or subprocess.CompletedProcess(a, int("has-session" in a), stdout="@9\n", stderr=""))
@@ -10333,14 +10331,12 @@ def test_r1_launch_window_ensures_agi_rc_in_its_own_scope_first(monkeypatch):
     assert calls[new[0]][:3] == ["systemd-run", "--user", "--scope"] and "--slice=agi.slice" in calls[new[0]]
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 3 R1: RED until DG3 builds the grouped cutover plan")
 def test_r1_cutover_plan_gives_each_post_tree_its_own_scope():
     procs = {10: (1, "sleep"), 20: (10, "tmux: server"), 30: (20, "claude"), 31: (30, "node"), 40: (20, "claude"), 41: (40, "sleep"), 50: (20, "bash")}  # {pid: (ppid, comm)}
     plan = rotate._cutover_plan(procs, keep=10, posts={30: "belam"})
     assert sorted(map(sorted, plan.values())) == [[20, 50], [30, 31], [40, 41]] and any("belam" in u for u in plan)
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 3 R1: RED until DG3 builds _cutover_to_scopes (dummies only)")
 def test_r1_cutover_dummy_one_kill_is_one_post():
     move = rotate._cutover_to_scopes  # absent -> RED before any unit exists
     if not shutil.which("busctl") or subprocess.run(["systemctl", "--user", "is-system-running"], capture_output=True).returncode not in (0, 1): pytest.skip("no user systemd / busctl")
