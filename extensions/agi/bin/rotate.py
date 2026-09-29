@@ -7125,7 +7125,8 @@ def _run_autopsy(*, seat: str, pid: int, registry_dir: str | None,
     else:
         src = "unmeasured"
     lines.append(f"{AUTOPSY_TAG} death time: {death} (source: {src})")
-    lines.append(f"{AUTOPSY_TAG} transcript: {transc_path or '-'}")
+    # printed home-relative through the ONE rule (council CM4, the H4 g class)
+    lines.append(f"{AUTOPSY_TAG} transcript: {_home_rel(str(transc_path)) if transc_path else '-'}")
     # last 10 non-heartbeat entries before death
     lines.append(f"{AUTOPSY_TAG} last {AUTOPSY_LAST_ENTRIES} non-heartbeat entries before death:")
     if transc_path is not None and transc_path.exists():

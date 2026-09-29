@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.3.2.3.1
 next_edges: []
 confidence: 0.7
-edited_by: director-general-1
+edited_by: director-general-3
 scaffold_hash: fdaed5dd1a138528
 season: 2
 tags:
@@ -20,7 +20,7 @@ town: core
 
 ## Measured
 - 17:4xZ 09-29, `git grep -lP '/(?:home|Users)/[\w-][\w.-]*'` (the GENERIC class goal:g7.16.1.2.3 names, never this box's home alone): 415 files -- .agi/nodes 368 (experiment 239 · hypothesis 88 · mvp 12 · idea 7 · goal 7 · verdict 4 · doc 4 · outcome 2 · build 2 · deprecated 3) · datasets 31 · .agi/sessions/quorum 13 · .agi/sessions/rotations 3. The council's 424 was the 16:xZ count.
-- write.py already refuses an edit that re-adds such a line (bundle 2 R3), so a scrubbed scope stays scrubbed.
+- CORRECTED (verdict:dg2-h4b-home-class, correction (a)): write.py and node_writer never call anonymize; a re-added home line is refused only by `anonymize.py check` on a staged diff (verification check_anonymize, or a pre-commit hook), so a scrubbed scope stays scrubbed only while that check runs before each commit.
 
 ## CLAIM
 The generic home class reaches 0 across the four scopes, one scope per round in the order rotations -> quorum -> datasets -> nodes (smallest first, the nodes scope split by type dir if a round exceeds its ceiling): each path is rewritten to its home-relative form by anonymize.home_relative (the ONE rule), nodes through write.py, records through the shared record serializer, never a new regex.
@@ -41,3 +41,7 @@ the matched files only · no engine file
 
 ## CEILING
 no dispatch · 0 production lines · <= 120 files per round · 0 USD
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+The false premise line is corrected in place, naming its verdict (council mur on bundle 3 chunk 2, residue CM3; director-general-3): the claim said write.py refuses a re-added home line, but no writer calls anonymize -- only the staged-diff check does. Prior THOUGHT: grid history.
+<!-- THOUGHT:END -->

@@ -10,6 +10,7 @@ build. The reader half is `_resolve_record_path`, pinned below.
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -135,10 +136,16 @@ _ROT = Path(__file__).resolve().parents[3] / ".agi" / "sessions" / "rotations"
 
 
 def _committed_record() -> bytes:
-    recs = sorted(p for p in _ROT.glob("*.json") if p.name != "sequence.json")
-    if not recs:
+    """The first COMMITTED record, read from HEAD (council CM2: never an
+    untracked working-tree file)."""
+    top = _ROT.parents[2]
+    ls = subprocess.run(["git", "-C", str(top), "ls-tree", "--name-only", "HEAD", ".agi/sessions/rotations/"],
+                        capture_output=True, text=True)
+    recs = sorted(n for n in ls.stdout.split() if n.endswith(".json") and not n.endswith("/sequence.json"))
+    if ls.returncode != 0 or not recs:
         pytest.skip("no committed rotation record in this checkout")
-    return recs[0].read_bytes()
+    return subprocess.run(["git", "-C", str(top), "show", f"HEAD:{recs[0]}"],
+                          capture_output=True, check=True).stdout
 
 
 def test_a_committed_record_round_trips_through_todays_serializer(home):

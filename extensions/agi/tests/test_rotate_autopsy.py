@@ -763,3 +763,14 @@ def test_spawn_dead_rewind_dry_run_prints_would_and_writes_nothing(
     # dry-run: the state file on disk is UNTOUCHED
     assert json.loads(Path(str(dm) + ".state.json").read_text()) == \
         {"rewindseat": 12}
+
+
+def test_autopsy_prints_the_transcript_home_relative(tmp_path, monkeypatch):
+    """Council CM4 (the H4 g class): the autopsy's transcript line goes through
+    the ONE home rule -- a transcript under HOME prints `~/...`, never raw."""
+    root, reg, tp = _fixture(tmp_path)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    txt = "\n".join(rotate._run_autopsy(seat="deadseat", pid=DEAD_PID,
+                                        registry_dir=str(reg), root=root))
+    rel = "~/" + str(Path(tp).relative_to(tmp_path))
+    assert f"[autopsy] transcript: {rel}" in txt and str(tmp_path) + "/" not in txt.split("transcript: ", 1)[1].split("\n", 1)[0]

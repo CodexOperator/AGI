@@ -411,6 +411,12 @@ def test_no_committed_home_path_in_the_four_scrub_scopes():
                          capture_output=True, text=True)
     if top.returncode != 0 or Path(top.stdout.strip()).resolve() != repo:
         pytest.skip("not a git checkout of this repo")
+    # council CM1: a scope that no longer exists would count 0 and pass while
+    # checking nothing -- every scope must carry tracked files at HEAD first
+    for scope in SCRUB_SCOPES:
+        tracked = subprocess.run(["git", "-C", str(repo), "ls-tree", "-r", "--name-only", "HEAD", "--", scope],
+                                 capture_output=True, text=True).stdout.split()
+        assert tracked, f"scrub scope {scope!r} has no tracked file at HEAD: the guard would check nothing"
     p = subprocess.run(["git", "-C", str(repo), "grep", "-lP",
                         anonymize.HOME_PATH_RE.pattern, "HEAD", "--", *SCRUB_SCOPES],
                        capture_output=True, text=True)
