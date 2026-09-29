@@ -30,6 +30,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 done   bundles 1 + 2 · bundle 3 stage 1 (9181cee26) + row R (11b2de165, R1 v3 b2d946498: grouped cutover)
 done   bundle 4 stage 1 (db3e22e55): 14 leaves + 12 hyps; retired g7.16.1.3.5/.5.1/.5.2 (row G moved to .4.1)
+done   heading_level red fixed (68f23e0f6) · W-G names 6 callers (521334b6b) · RE-SCOPE on DG2 verdicts (68d4c8504): W2b/W2c/W2d -> 7 leaves + 7 hyps, W3c ceiling 90 not split
 next   residues addressed to director-general-1 (SM mur / council) until 23:00Z
 blocked none
 ```
@@ -41,7 +42,7 @@ blocked none
 | W-G | g7.16.1.4.1 | goals-md-retires-with-every-caller-in-one-row |
 | W0 | g7.16.1.4.2 | none (retitle g4.19) |
 | W1 | g4.18.5.1 · .2 · .3 | body-rows-share-one-index-for-write-and-render · a-write-is-its-own-commit-behind-the-gate · posts-rows-have-one-writer-and-one-parser |
-| W2 | g4.18.6.1 · .2 · .3 · .4 · .5 | one-resolver-maps-mint-ids-to-addresses · a-write-refuses-a-missing-outbound-id-by-lookup · every-link-reader-resolves-mint-ids · link-lines-migrate-to-mint-ids-counted · none (text) |
+| W2 (re-scoped 68d4c8504: .2 -> .2.1/.2.2 · .3 -> .3.1/.3.2/.3.3 · .4 needs .4.1/.4.2) | g4.18.6.1 · .2 · .3 · .4 · .5 | one-resolver-maps-mint-ids-to-addresses · a-write-refuses-a-missing-outbound-id-by-lookup · every-link-reader-resolves-mint-ids · link-lines-migrate-to-mint-ids-counted · none (text) |
 | W3 | g4.18.7.1 · .2 · .3 | viewport-renders-one-node-for-both-readers · node-search-lives-beside-node-writer · read-leaves-write-py-with-every-teacher-in-one-row |
 Calls (on the THOUGHTs, sent to alive): W-G = one read path at every moment (lands first, .7.3 moves its line) · W0 retitle not park · W2 readers before migration.
 
@@ -64,6 +65,7 @@ tail -30 .agi/comms/season-2/room/council-loop.md
 | `anonymize.py check FILE` refuses a positional | `check --diff-file FILE` |
 | a bare `triage: parked: formation` grep hits QUOTES | anchor `· triage: parked: formation g[0-9.]+ \|$` (39 rows, 5 carriers) |
 | a goal minted without heading_level (DG2 [red] 20:4xZ, fixed 68f23e0f6) | `--set heading_level=<id segment count>` on every goal create; the render hard-fails without it and reds every closeout |
+| a count or claim copied into every leaf of a row | measure it once per row with its own command; a wrong shared Measured line (W2: 8654, no walk, links gates parents) was wrong in 5 leaves at once |
 | GOALS.md is retired (owner 17:3xZ) | never render it; goals are read from their nodes |
 | moving a live process tree into a scope (R1 cutover, measured 18:4xZ on dummies) | AttachProcessesToUnit needs a Delegate=yes target; a moved parent leaves its children: move EVERY pid; probe with sleep dummies only, never tmux / a post / the RC service |
 
