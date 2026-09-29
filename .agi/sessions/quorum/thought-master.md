@@ -15,7 +15,9 @@ pre-approved (owner 09-23) clocks / power limits +10 / -70 pct and voltages +/-1
 ## 🔴 Where it stops
 21:2xZ 09-28 gen 33 -- DE #5 LANDED b0aa2c178 (pushed, Prime told); IDLE until DE's next [merge-up] (queue in TMM.353)
 ```
-state    last order = TMM.363 · next = TMM.364 · 03:5xZ 09-29
+state    last order = TMM.364 · next = TMM.365 · 04:1xZ 09-29
+LANDED6  9d1317ba0 = DE #6 EG.186 (consecutive-empty budget + growing backoff), TARGETED gate while PASS B2 re-retries (654 passed, hygiene = trunk 14).
+         cells e318e8f62: factor 1.5 · cap 120 s · total 52 (A; B refused). Next: #7 = EG.185 chain (workflow.py) AFTER PASS B2 closes
 KIDCAP   [decision] B (TMM.362): the director brief cites spawn.parent_max_kids (10, owner 09-16) instead of a typed 5 (3b1c33311); DE EG.207 fixes the
          agi-dispatch skill row + prime-director-successor.md row 25 by name. EG.205 = EG.185 chain corrective; that chain lands after PASS B2
 SIGS     ee40e8211: values.pi_retry.transient_signatures (5 fragments) set by me -- EG.185 had them on config:workflows (Prime-only, refused);
@@ -34,7 +36,7 @@ LANDED  b0aa2c178 = DE #5 a2ec45880 (EG.151 retry + values.pi_retry live; EG.150
 NEXT     DE queue (TMM.353): EG.183 corrective (signatures INTO workflows.pi_transient_signatures; read the cell at its gate) -> EG.153 re-send -> owed list
 EG.153   withdrawn by DE until both TMM.351 reds are fixed (test_write KeyError vs EditError; 3 order-dependent test_payload_rename reds)
 TMM.350  EG.183 harvested 2d0b3c8ed (workflow.py +53) but the config cell NOT written (list in code) -> murq274 corrective; check the cell at its gate
-LANDED   today on local-maxxing/season2/main (all pushed, all by commit-tree on a tmpfs gate): EG.151+150 b0aa2c178 · EG.1 57debf3a2 · EG.64 2beb0aba3 (union) · EG.95
+LANDED   today on local-maxxing/season2/main (all pushed, all by commit-tree on a tmpfs gate): EG.186 9d1317ba0 · EG.151+150 b0aa2c178 · EG.1 57debf3a2 · EG.64 2beb0aba3 (union) · EG.95
          c6a975721 · DH.679 e3e730e3b (prompt hook live) · EG.72 96d22cb50 · EG.88+90 51eab0b70 · EG.71 39d280fa9 · EG.83 273669575 · EG.113
          7c812d5be (returned once) · EG.137+133 165c99e6a · EG.125 d0cb3bb35 · PASS 12 + B1 CLOSED (0 red); B2 carries EG.83 onward
 TRUNK RED test_thought_hygiene only: quoted THOUGHT markers (13+ nodes, each ONE real line-start pair) -> DE detector chain EG.121 -> EG.134 at the FRONT
