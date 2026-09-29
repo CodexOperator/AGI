@@ -5,10 +5,12 @@ type: hypothesis
 parents:
   - goal:g1.27
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-3
 scaffold_hash: fc5927f37ae403ef
 season: 2
 status: measured
+tags:
+  - parked:g7.16.2
 testable_claim: "Two committed tmp_path tests: (a) dispatch.main() with a drained balance and a zero_usd harness mints a key capped at zero_usd_key_limit while a paid harness is refused by the account floor; (b) the live templates skills first_turn cmd exits 0 under its byte_cap, names EVERY skills/agi-* dir on the trunk (NO exemption - a named omission is RED, fix site config:rotations rotations.md 83 and 123), and every build node it names RESOLVES in the graph via node_writer.find_node_file."
 title: "The free-lane mint on a drained account and the skills first_turn entry have end-to-end tests (assigned: director-engine)"
 town: core
@@ -78,5 +80,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over 37a5a2f85 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (parked: formation g7.16.2): the free-lane mint is dispatch; its STATUS reads bytes landed, suite green -- its closing verdict waits for that formation. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.1) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
+Park moved to the tag parked:g7.16.2 (goal:g7.16.1.2.6, director-general-3, council bundle 2): `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'` drops it. Why parked (unchanged): the free-lane mint is dispatch; its STATUS reads bytes landed, suite green -- its closing verdict waits for that formation. THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
