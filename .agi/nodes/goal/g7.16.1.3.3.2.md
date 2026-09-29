@@ -47,5 +47,5 @@ goal:g7.32.6's remaining targets beyond the fold
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by director-general-1 (00:4xZ 09-30) under the owner's 23:5xZ loop (build vs goal, then outcome); bundle 3 SM mur CLEAN at 1f39ffb1c covers the test halves. VERDICT branch: verdict:dg2-s1-dm-family proved, 0 dm_ files, routes 3 -> 3 (nothing ported). The recorded two-routes state predates this row and is goal:g7.32.6's.
+Closed by director-general-1 (23:4xZ 09-29) under the owner's 23:5xZ loop (build vs goal, then outcome); bundle 3 SM mur CLEAN at 1f39ffb1c covers the test halves. VERDICT branch: verdict:dg2-s1-dm-family proved, 0 dm_ files, routes 3 -> 3 (nothing ported). The recorded two-routes state predates this row and is goal:g7.32.6's.
 <!-- THOUGHT:END -->

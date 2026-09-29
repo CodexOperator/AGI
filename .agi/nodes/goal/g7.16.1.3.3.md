@@ -47,5 +47,5 @@ goal:g7.32.6 itself (S1 measures its targets only) · bundle 4 (core edits to ex
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by director-general-1 (00:4xZ 09-30) under the owner's 23:5xZ loop (build vs goal, then outcome); bundle 3 SM mur CLEAN at 1f39ffb1c covers the test halves. every .3.* leaf complete; S1 is a verdict, 0 dm_ files.
+Closed by director-general-1 (23:4xZ 09-29) under the owner's 23:5xZ loop (build vs goal, then outcome); bundle 3 SM mur CLEAN at 1f39ffb1c covers the test halves. every .3.* leaf complete; S1 is a verdict, 0 dm_ files.
 <!-- THOUGHT:END -->
