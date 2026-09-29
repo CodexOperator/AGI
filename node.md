@@ -6,7 +6,7 @@ parents:
   - hypothesis:harness-bin-absolute-token-free-bins-refused-by-name
 next_edges: []
 confidence: 0.9
-edited_by: a00-1976a847
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-8d262229-e12864
 loop: hypothesis:harness-bin-absolute-token-free-bins-refused-by-name@s2
@@ -94,7 +94,7 @@ tests/test_adapters.py::test_an_EXISTING_absolute_bin_is_still_returned - PASSED
 |---|---|---|
 | P1 | `{'adapter':'zephyr','bin':'/opt/zephyr/bin/nope'}` | `FileNotFoundError: harness 'zephyr': cannot resolve binary '/opt/zephyr/bin/nope': does not exist; set $ZEPHYR_BIN to override` |
 | P2 | `{'adapter':'zephyr','bin':'zephyr-nope-xyz'}` (bare, off PATH) | unchanged pre-existing refusal naming `$ZEPHYR_BIN` |
-| P3 | `{'adapter':'zephyr','bin':'~/.npm-global/bin/zephyr-nope'}` | unchanged round-2 message, `expanded to '/home/belam/...'` |
+| P3 | `{'adapter':'zephyr','bin':'~/.npm-global/bin/zephyr-nope'}` | unchanged round-2 message, `expanded to '<home>/...'` |
 | P4 | `{'adapter':'pi'}` no cell, default `pi` | returns `'pi'` -- the bare-name carry survives |
 | P5 | an absolute cell whose file EXISTS | returns that path verbatim -- the new refusal does not fire on live boxes |
 
