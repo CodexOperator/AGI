@@ -39,7 +39,7 @@ goal:g7.16.1.1 (bundle 1) row D: goal:g4.18.1 (one mint route) is `active` with 
 - No new id generator. `mint_permanent_id` stays the one source of entropy.
 
 ## Falsifier
-1. `git grep -nE "\[.mint_id.\] *= *mint|new_fm\[.mint_id.\] *=|\"mint_id\": *mint_permanent_id" -- extensions/agi/bin | wc -l` prints 1 (the one assigner).
+1. `git grep -nE "\[.mint_id.\] *= *mint|new_fm\[.mint_id.\] *=|\"mint_id\": *mint_permanent_id" -- extensions/agi/bin extensions/agi/src | wc -l` prints 1 (the one assigner, which lives in extensions/agi/src/graph_core/identity.py; a bin-only scope prints 0 on a correct build).
 2. Negative: `grep -c '^## Falsifier' .agi/nodes/goal/g4.18.1.md` prints 1, and no g4.18.1.N reads `active` without a gap line.
 
 ## Out of scope
@@ -49,5 +49,5 @@ goal:g7.16.1.1.3 · goal:g4.18.2 (skills)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 1, stage 1) as row D. Measured: the generator is already one (mint_permanent_id); what is quadrupled is assign-if-missing (4 grep hits), so the round consolidates the existing ensure_mint_id, not a new function. g4.18.1 has no Falsifier section, so running it first means writing one.
+Residue 2 of sanctuary-master mur wf_a56d005b-d6b (bundle 1, fixed by director-general-1): Falsifier 1 grepped extensions/agi/bin only, but the one assigner the round was ordered to build lives in extensions/agi/src/graph_core/identity.py, so a correct build printed 0, not 1. The scope now matches verdict:dg2-d-mint-assigner and goal:g4.18.1 F2 (bin + src; 1 hit at 5a828b3ce).
 <!-- THOUGHT:END -->

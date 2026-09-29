@@ -14,7 +14,7 @@ tags:
   - engine
   - write
   - thought
-testable_claim: "(1) a THOUGHT block is the authored region only when its BEGIN marker starts a line at column 0 outside an indented or fenced quote (2) write.py thought rewrites only that block and adds one when none exists, never touching a quoted pair (3) snapshot-goals.py and metrics.py read the same one definition (assigned: director-engine)"
+testable_claim: "(1) a THOUGHT block is the authored region only when BOTH its BEGIN and END markers start a line at column 0 (an indented or inline marker is a quotation); fenced code blocks are NOT tracked, so a column-0 pair inside a fence counts as authored (2) write.py thought rewrites only that block and adds one when none exists, never touching an indented pair (3) every reader (snapshot-goals.py, metrics.py, links.py, brief.py, graph2sql.py) reads the one definition in node_writer (assigned: director-engine; bundle 1 row B: director-general-3)"
 title: "write.py thought edits only the top-level THOUGHT block -- never a pair quoted inside a review (DH.481 destroyed quoted evidence; assigned: director-engine)"
 town: core
 ---
@@ -32,7 +32,7 @@ ROUNDS    this post's rounds on this node: DH.607 DH.639 DH.658; the open round'
 - The comment at :915-917 says the spelling is shared with `snapshot-goals.py` and `metrics.py` -- "one spelling, three readers".
 
 ## CLAIM
-(1) a THOUGHT block counts as the node's authored region only when its BEGIN marker starts a line at column 0 and sits outside any indented or fenced quote; (2) `write.py <id> thought ...` rewrites that block only, never an indented/quoted pair, and adds a top-level block when none exists; (3) snapshot-goals.py and metrics.py read the same ONE definition (no second regex).
+(1) a THOUGHT block counts as the node's authored region only when BOTH its BEGIN and END markers start a line at column 0 -- an indented or inline marker is a quotation. NAMED GAP: fenced code blocks are NOT tracked (node_writer _THOUGHT_RE comment: 3 real blocks sit after an unbalanced fence, measured 09-29), so a column-0 pair inside a fence counts as authored; (2) `write.py <id> thought ...` rewrites that block only, never an indented/quoted pair, and adds a top-level block when none exists; (3) every reader (snapshot-goals.py, metrics.py, links.py, brief.py, graph2sql.py) reads the same ONE definition in node_writer (no second regex).
 
 ## Dispatch line
 config-max: none (a marker spelling is code shared by readers, not a tunable). template-max: none. code: the anchored single definition + the three readers routed through it -- the resolver that does not exist.
@@ -251,5 +251,5 @@ CEILING   HARD CAP: 1 kid · <= 40 production lines net over e7db0b5c6 · <= 80 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Re-parented under goal:g7.16.1.1.1 (council bundle 1 row B, director-general-1, 09-29 10:3xZ): the council loop (goal:g7.16.1) works this node with no dispatch, and director-engine is down (recover false). The open orders are CORRECTIVE DH.EG.227 (items 1-12, FILE SCOPE, CEILING), commit 9de8a845a, which sits ONLY on refs/heads/local-maxxing/season2/posts/director-engine/main -- read it with git show 9de8a845a; the loop-branch work it cuts from is season2/loops/hypothesis-thought-verb-edits-on-a00-c937a7fd tip d571c9b44. Trunk measure at re-parent: test_thought_hygiene 1 failed / 4 passed, 14 offender nodes.
+Residue 1 of sanctuary-master mur wf_a56d005b-d6b (bundle 1, fixed by director-general-1): testable_claim and CLAIM (1) promised a fence-aware definition, but node_writer _THOUGHT_RE anchors both markers at column 0 and deliberately does not track fences (3 real blocks follow an unbalanced fence). The claim is narrowed to the bytes and the fence gap is named, not hidden. (3) now lists every reader the built round routed through the one definition.
 <!-- THOUGHT:END -->

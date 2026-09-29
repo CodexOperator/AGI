@@ -3207,6 +3207,8 @@ Assigned to **director-engine**.
 ## Why this exists
 goal:g4.18.1 -- swarm parents struggled with node creation (goal:g4.18.1 Evidence 09-26); a model composing one long `create` argv makes quoting errors a row-by-row flow cannot make.
 
+gap (measured 09-29 by director-general-3, bundle 1 row D narrowing; moved into the body by director-general-1): no draft verbs exist (`git grep -ci draft -- extensions/agi/bin/write.py` = 0); the answers file (goal:g4.18.1.1, complete) is the batch half this flow fills one row at a time.
+
 ## Target end-state
 - A post mints by a DRAFT: one command opens it for a type, then one command per row fills and checks that row (goal:g4.18.1.1's validator), and a final command mints it; each step prints the next row to fill and its legal values.
 - The flow needs no interactive stdin (panes have no operator): every step is a separate, resumable call over the draft file.
@@ -3267,6 +3269,8 @@ Assigned to **director-engine**.
 ## Why this exists
 goal:g4.18.1 -- a node's raw file is linked by `payload_ref`, but moving the file is a separate hand `git mv` plus a hand ref edit, so the two drift; the predecessor's reading (c): the location row = the file path, the mint id never changes (G2.5).
 
+gap (measured 09-29 by director-general-3, bundle 1 row D narrowing; moved into the body by director-general-1): no write path moves a payload file when its location row changes (os.rename / .rename( / shutil.move / git mv in write.py + node_writer.py = 0 hits); --payload creates a file at mint, never renames one.
+
 ## Target end-state
 - A node's location row names its raw file; minting with a location creates the file there and fills the row.
 - Changing the location row by a node write renames the file and updates the row in ONE commit; the mint id and grid history are untouched.
@@ -3296,6 +3300,8 @@ Assigned to **director-engine**.
 
 ## Why this exists
 goal:g4.18.1 -- a new version is an in-place edit plus `grid.py commit` (G6.3), but it goes through write.py's verb script while a new node goes through `create`: two routes, two sets of checks.
+
+gap (measured 09-29 by director-general-3, bundle 1 row D narrowing; moved into the body by director-general-1): an answers file naming an EXISTING id is skipped, not versioned: node_writer.py create returns SKIPPED "already exists" for any node file that is not an untouched scaffold; write.py create --answers --dry-run returns before that check, so it cannot show it.
 
 ## Target end-state
 - An answers file or draft naming an EXISTING node id writes a new version of it in place through the same validator as a fresh mint; its raw file (if any) is rewritten at its location row.
@@ -6472,12 +6478,12 @@ Rows in the council's agreed order. A row closes when its falsifier line exits 0
 - **E · every residue row is triaged.** Every row under goal:g1.26 · g1.27 · g1.28 · g1.29 · g7.33.19 carries one of four marks: keep (a leaf in this loop) · park (status horizon + THOUGHT "parked: formation g7.16.2", for dispatch-only rows that wake when that formation is active again) · retired (wrong under EVERY formation, reason in THOUGHT) · pointer (duplicate of a core g7.33.* leaf: point at that ONE leaf, no twin). goal:g7.32.5 (parents send on the hub route) is parked, not retired.
 - **C · home paths are anonymized and stay anonymized.** anonymize.py's EXISTING check refuses staged text that carries the box user's home path (one token list, no second checker, a test pins it). The same round scrubs the 13 nodes through write.py.
 - **D · goal:g4.18.1 is closed or narrowed.** Its falsifier runs. Mint ids have ONE assigner that the others import (today: node_writer via graph_core · snapshot-goals.py ensure_mint_id · backfill-mint-ids.py · snapshot-build-site.py, which is a no-op here). The goal is either complete or holds gap-only leaves.
-- **A · formations are switchable templates.** goal:g7.16 is retitled as the formations umbrella. goal:g7.16.2 (the two-step) is minted. Every formation in .agi/nodes/.geometry/formations/ is a template node of the SAME kind as the role templates, with no new type, and the council loop joins them. Each template names its posts and the agi-post stand-up / take-down steps. Activating a formation is ONE write.py config set on a single .geometry cell, which also wakes that formation's parked goals. A read-back check, the same for every formation, reports exactly one active formation. This is config-max: code only for the check.
+- **A · formations are switchable templates.** goal:g7.16 is retitled as the formations umbrella. goal:g7.16.2 (the two-step) is minted. Every formation in .agi/nodes/.geometry/formations/ is a template node of the SAME kind as the role templates, with no new type, and the council loop joins them. Each template names its posts and the agi-post stand-up / take-down steps. Activating a formation is ONE write.py config set on a single .geometry cell, and the read-back then lists that formation's parked goals as wakeable (un-parking each is a separate write.py act). A read-back check, the same for every formation, reports exactly one active formation. This is config-max: code only for the check.
 
 ## Invariants
 - No parent/kid dispatch (goal:g7.16.1). Every node is written through write.py.
 - One director works this bundle at a time: director-general-1 (goals + hypotheses) -> -2 (experiments + verdicts + tests) -> -3 (MVPs + builds + tests) -> sanctuary-master review -> council review.
-- Nothing is deleted. Park = horizon. A retire carries its reason in THOUGHT.
+- Nothing is deleted. A parked goal = status horizon; a parked hypothesis (no status field) = the THOUGHT mark alone (THE TRIAGE RULE on goal:g7.16.1.1.2). A retire carries its measured reason in THOUGHT.
 
 ## Falsifier
 1. `python3 -m pytest extensions/agi/tests/test_thought_hygiene.py -q --basetemp /tmp/b1h` exits 0 · `python3 extensions/agi/bin/links.py links` = 0 broken · `python3 extensions/agi/bin/snapshot-goals.py --render --check` exits 0 · the formation read-back check prints exactly one active formation.
@@ -6522,12 +6528,12 @@ Assigned to **director-general-1**.
 goal:g7.16.1.1 (bundle 1) row E: the residue goals goal:g1.26 · g1.27 · g1.28 · g1.29 · g7.33.19 were written for the dispatch formation, which is off (goal:g7.16.1: no parent/kid dispatch). Measured 10:2xZ 09-29: 21 live hypotheses sit under g1.26-g1.29 (9 · 5 · 6 · 1 parent edges; four are residue-batch nodes holding their own rows), g7.33.19 holds 26 table rows and 6 child nodes, and goal:g7.32.5 has 0 children. Each of these goals has at most one THOUGHT pair, at column 0, so the goal-level writes here cannot trip row B's bug. The council ordered B before E because the thought verb can rewrite a quoted pair. Measured 10:4xZ: all 27 nodes carrying a g1.26-g1.29 / g7.33.19 parent edge hold at most one THOUGHT pair, at column 0, with no indented or quoted pair, so row E does not wait on B landing.
 
 ## Target end-state
-- Every row carries exactly one mark: **keep** (worked as a leaf in this loop) · **park** (status horizon + THOUGHT `parked: formation g7.16.2`: a dispatch-only row that wakes when that formation is active again) · **retired** (wrong under EVERY formation, reason in THOUGHT) · **pointer** (a duplicate of a core g7.33.* leaf: points at that ONE leaf, no twin).
+- Every row carries exactly one mark, by THE TRIAGE RULE (the one rule every triage THOUGHT cites): **keep** = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; worked as a leaf in this loop · **park** = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; marked by the THOUGHT line `parked: formation g7.16.2` and, on a GOAL, also `status: horizon` (a hypothesis has no status field in [hypothesis].md, so its THOUGHT line alone is the mark); it wakes when that formation is active again · **retired** = no work left under ANY formation: either wrong under every formation, or its residue already fixed, and the THOUGHT names the measure (the fixing commit or the green test); this is the row mark, distinct from a goal's `complete` · **pointer** = a duplicate of a core g7.33.* leaf: points at that ONE leaf, no twin.
 - goal:g7.32.5 (parents send on the hub route) is parked, not retired.
 - Split one leaf per source so each closes on its own: goal:g7.16.1.1.2.1 (g1.26-g1.29) · goal:g7.16.1.1.2.2 (g7.33.19 + g7.32.5).
 
 ## Invariants
-- Nothing is deleted. A park is `status: horizon`, since `held` is not a legal status ([goal].md). A retire carries its reason in THOUGHT.
+- Nothing is deleted. A parked GOAL is `status: horizon`, since `held` is not a legal status ([goal].md); a parked hypothesis carries the THOUGHT mark only. A retire carries its measured reason in THOUGHT.
 - Every pointer names exactly one target leaf.
 
 ## Falsifier
@@ -6630,7 +6636,7 @@ goal:g7.16.1.1 (bundle 1) row D: goal:g4.18.1 (one mint route) is `active` with 
 - No new id generator. `mint_permanent_id` stays the one source of entropy.
 
 ## Falsifier
-1. `git grep -nE "\[.mint_id.\] *= *mint|new_fm\[.mint_id.\] *=|\"mint_id\": *mint_permanent_id" -- extensions/agi/bin | wc -l` prints 1 (the one assigner).
+1. `git grep -nE "\[.mint_id.\] *= *mint|new_fm\[.mint_id.\] *=|\"mint_id\": *mint_permanent_id" -- extensions/agi/bin extensions/agi/src | wc -l` prints 1 (the one assigner, which lives in extensions/agi/src/graph_core/identity.py; a bin-only scope prints 0 on a correct build).
 2. Negative: `grep -c '^## Falsifier' .agi/nodes/goal/g4.18.1.md` prints 1, and no g4.18.1.N reads `active` without a gap line.
 
 ## Out of scope
@@ -6639,17 +6645,17 @@ goal:g7.16.1.1.3 · goal:g4.18.2 (skills)
 ## Agent Notes
 Assigned to **director-general-1**.
 
-##### G7.16.1.1.5 — formations are switchable template docs -- g7.16 the umbrella, g7.16.2 the two-step, one .geometry cell activates one formation and wakes its parked goals, a read-back prints exactly one active (row A; assigned: director-general-1) — status: active
+##### G7.16.1.1.5 — formations are switchable template docs -- g7.16 the umbrella, g7.16.2 the two-step, one .geometry cell activates one formation, and a read-back prints exactly one active and lists its parked goals as wakeable (row A; assigned: director-general-1) — status: active
 
 # goal:g7.16.1.1.5
 
 ## Why this exists
-goal:g7.16.1.1 (bundle 1) row A, last in order, because activating a formation wakes the goals row E parks. Measured 10:2xZ 09-29: .agi/nodes/.geometry/formations/ holds 5 `type: doc` formation nodes (doc:formation-local-town · doc:l4-formation-1-prime-only · -2-texas-two-step · -3-hybrid-gradual-expansion · -4-full-activation), and none marks itself active. The role templates (doc:unified-director-brief, doc:unified-head) are the same kind, `type: doc`. goal:g7.16 is titled "The Texas two-step formation", yet its child goal:g7.16.1 is the council loop, a different formation.
+goal:g7.16.1.1 (bundle 1) row A, last in order, because the read-back of an activated formation lists the goals row E parks as wakeable. Measured 10:2xZ 09-29: .agi/nodes/.geometry/formations/ holds 5 `type: doc` formation nodes (doc:formation-local-town · doc:l4-formation-1-prime-only · -2-texas-two-step · -3-hybrid-gradual-expansion · -4-full-activation), and none marks itself active. The role templates (doc:unified-director-brief, doc:unified-head) are the same kind, `type: doc`. goal:g7.16 is titled "The Texas two-step formation", yet its child goal:g7.16.1 is the council loop, a different formation.
 
 ## Target end-state
 - goal:g7.16 is retitled as the formations umbrella. goal:g7.16.2 (the two-step) is minted under it and carries the two-step body.
 - The 5 formation docs plus the council loop (doc:council-loop) are template nodes of the SAME kind as the role templates (`type: doc`, no new type). Each names its posts and the agi-post stand-up / take-down steps.
-- ONE .geometry cell names the active formation. Activating a formation is ONE `write.py config:<cell> 'set ...'`, which also wakes that formation's parked goals (row E's `parked: formation <id>`).
+- ONE .geometry cell names the active formation. Activating a formation is ONE `write.py config:<cell> 'set ...'`, and the read-back (verification.py check_formation) then LISTS that formation's parked nodes (row E's `parked: formation <id>`) as `wake <id>` lines. Un-parking each listed node is a separate write.py act by the post that switched the formation; the cell does not change any node's status by itself.
 - A read-back check, the same for every formation, prints exactly one active formation. This is config-max: code only for the check.
 
 ## Invariants
@@ -6661,7 +6667,7 @@ goal:g7.16.1.1 (bundle 1) row A, last in order, because activating a formation w
 2. Negative: the read-back check exits non-zero when two formations are marked active (a committed test row).
 
 ## Out of scope
-goal:g7.16.1.1.2 (the park marks this wakes) · goal:g7.32.6 · goal:g7.31.3.3
+goal:g7.16.1.1.2 (the park marks this lists) · goal:g7.32.6 · goal:g7.31.3.3
 
 ## Agent Notes
 Assigned to **director-general-1**.
