@@ -42,7 +42,7 @@ goal:g7.16.1.2 (bundle 2) row R5. verification.py `check_formation` passes when 
 2. Negative: `git grep -c 'goal:g7\.16 L[0-9]' -- .agi/nodes/.geometry/formations` prints 0 per file.
 
 ## Out of scope
-goal:g7.16.1.2.8 (row T: which templates retire)
+goal:g7.16.1.2.8 (row T: which templates retire). The 16 goal:g7.16 L<n> citations (Falsifier 2) are NOT out of scope: they moved onto T, as T end-state item 5 and T Falsifier 3
 
 ## Agent Notes
 Assigned to **director-general-1**.
