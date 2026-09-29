@@ -7228,7 +7228,7 @@ Parent `goal:g17` (seat / post system). Owner 2026-09-19: post briefs must be se
 - Cross-cut: `goal:g4.20` (everything is a node), `goal:g7.11` (batch verify on merge-up), `goal:g1.18` (graph-native handoffs).
 # goal:g7.26
 
-### G7.27 — Templates are the sole harness arg builders — status: complete
+### G7.27 — Templates are the sole harness arg builders — status: horizon
 
 # goal:g7.27
 
@@ -7270,51 +7270,7 @@ Owner voice 2026-09-19: templates sole arg builders; thin hook only when format 
 
 Owner 2026-09-20 voice: assigned to director-helper. Split into sub-goals as you see fit — reasonable and doable. Spawn parallel pi parents for those sub-goals (spawn.parallel=1 per command; soft ≤7 live via separate dispatches). Continue from harness-template land already on MAIN.
 
-#### G7.27.1 — Retire dead rotate _build_claude/_build_copilot hooks — status: complete
-
-<!-- BODY:BEGIN -->
-# goal:g7.27.1
-
-## Why this exists
-
-Parent `goal:g7.27` (templates sole harness arg builders) landed on MAIN at `0b89f5b24`. Residue: `rotate.py` still defines unused `_build_claude_command` and `_build_copilot_command` (each referenced only at their def). The live seam is already `_build_harness_command` -> `harness_template.render`. Dead named builders contradict the invariant "no harness argv builder remains in rotate.py" and invite drift.
-
-## Target end-state
-
-- `_build_claude_command` and `_build_copilot_command` are deleted from `extensions/agi/bin/rotate.py`.
-- Sole rotate argv seam remains `_build_harness_command` (thin hook naming the template).
-- Regression test asserts those two names are absent from rotate.py source.
-- Zero `dispatch.py` edits. Zero template format changes. No MAIN push from this parent.
-
-## Falsifier
-
-1. `grep -n "_build_claude_command\|_build_copilot_command" extensions/agi/bin/rotate.py` is empty.
-2. Existing harness template / rotate copilot / dispatch-shape tests still pass.
-3. `spawn_window` / successor dry path still renders argv only via `harness_template.render`.
-
-#### G7.27.2 — Reparent hypothesis + falsifier verdict close-out — status: complete
-
-<!-- BODY:BEGIN -->
-# goal:g7.27.2
-
-## Why this exists
-
-Parent `goal:g7.27` renumbered from `goal:g17.16` (mint_id unchanged; renumber @ 737748908). Graph residue: `hypothesis:harness-arg-builders-are-templates-only` still lists `parents: [goal:g17.16]`. Done-state also needs a committed verdict that the three G7.27 falsifiers hold on current MAIN tip (templates-only argv; fourth harness adds a `.toml` with no rotate allowlist/`_build_*` edit; unexpressible bits stay behind named thin hooks).
-
-## Target end-state
-
-- Hypothesis parent edge points at `goal:g7.27` (not g17.16).
-- A `verdict:` node under the hypothesis records measured evidence for the three falsifiers against tip >= `0b89f5b24` / `737748908`.
-- If all green, set `goal:g7.27` `status: done` (or equivalent close spelling already used on peer goals); if red, leave active and name the gap.
-- Zero production code edits unless a falsifier fails (then fix in-loop). No MAIN push.
-
-## Falsifier
-
-1. `hypothesis:harness-arg-builders-are-templates-only` frontmatter `parents` contains `goal:g7.27` and not `goal:g17.16`.
-2. Verdict cites concrete file/test evidence for each of the three parent falsifiers.
-3. Goal status matches the verdict (done iff all three green).
-
-### G7.28 — Dispatch persistent mode for occupied seats — status: complete
+### G7.28 — Dispatch persistent mode for occupied seats — status: active
 
 # goal:g7.28
 
@@ -7350,150 +7306,6 @@ Parent `goal:g7.27` renumbered from `goal:g17.16` (mint_id unchanged; renumber @
 
 Assigned to **director-helper**. Point director-belam stays on current batch — do not interrupt.
 Depends on / pairs with `goal:g7.27` for restart argv source.
-
-2026-09-28 ~18:20 ET: seeds wired to .1/.2 via write.py (director-direct no-pi FULL STOP). residual active under helper stop-line.
-
-g7.28.1 seeds wired to residue nests .1.1+.1.2; persistent pytest currently RED (resolve_memory_cap kwarg). NO pi.
-
-both seeds done: g7.28.1 persistent hold+restart+posts-row + g7.28.2 non-persistent kid/parent regression; falsifiers 1-3 hold; test_dispatch_persistent 9/9 GREEN
-
-#### G7.28.1 — persistent hold+restart + seat registry occupation — status: complete
-
-# goal:g7.28.1
-
-## Why this exists
-**Parent `goal:g7.28`.** Falsifiers 1+2 (multi-head split ≤2): persistent mode must hold/restart a seat process without rotate rebuilding argv, and the seat registry / posts row must show occupation with the live pid/session pin.
-
-```
-dispatch --persistent
-   │ hold + watch
-   ├─ kill ──▶ restart via same adapter/template seam (g7.27)
-   └─ registry / posts row shows occupied + live pid
-```
-
-## Target end-state
-- `dispatch … --persistent` (or equivalent) keeps a seat process alive across deliberate kill+restart without rotate rebuilding argv.
-- After start, seat registry / posts row shows the seat occupied with the live pid/session pin.
-- Restart uses the same adapter/template seam as first spawn (`goal:g7.27`).
-
-## Invariants
-- Fire-and-forget remains the default; persistent is opt-in.
-- No second argv path for restart.
-- Occupation visible in graph/config posts row, not only tmux.
-
-## Falsifier
-1. `dispatch … --persistent` keeps a seat process alive across deliberate kill+restart without rotate rebuilding argv.
-2. After start, the seat registry / posts row shows the seat occupied with the live pid/session pin.
-
-## Out of scope
-- Non-persistent regression (`goal:g7.28.2`).
-- Template authorship (`goal:g7.27`).
-- Stripping rotate argv builders (`goal:g7.29`).
-
-## Agent Notes
-Assigned to **director-helper**. Split from multi-headed `goal:g7.28`. No MAIN push.
-# goal:g7.28.1
-# goal:g7.28.1
-
-PARENT REVIEW (DH.49): falsifiers 1 and 3 of goal:g7.28.1 hold on 3 parent probes (stop gate, zero bound, no-rebuild); falsifier 2 FALSIFIED by probe C -- after restarts exhaust the record names a dead pid under persistent:true, and the posts-row surface is untouched. Judged inconclusive_lean_disproved:55.
-
-seed g7.28.1.1 complete (live-pid); g7.28.1.2 posts-row still open
-
-both seeds complete: .1.1 live-pid + .1.2 posts-row occupation; test_dispatch_persistent 5/5 GREEN
-
-##### G7.28.1.1 — persistent restart keeps live pid pin — status: complete
-
-# goal:g7.28.1.1
-
-## Why this exists
-**Parent `goal:g7.28.1`.** Parent review of hypothesis:a00-c3a24084-4190b2 (lean_disproved:55) named probe C: with max_restarts>0 and an instantly-dead reopen, `record.pid` / `agent.json` pid stayed on the corpse. Conjunct 2 of the parent falsifier (live pid/session pin) does not hold until this leaf closes.
-
-## Target end-state
-- After a supervised restart under `--persistent`, the seat record and `agent.json` carry the **live** child pid (not the dead predecessor).
-- A deliberate kill+reopen cycle updates the pin before the next supervise loop tick.
-
-## Invariants
-- Restart still reuses the same rendered argv (no second `build_command` / template render) — shared with sibling evidence under g7.28.1.
-- Non-persistent fire-and-forget path untouched (`goal:g7.28.2`).
-
-## Falsifier
-1. Parent-style probe C against tip: after reopen of a dead child, `record.pid == live_child.pid` and `agent.json` pid matches; a corpse pid fails the probe.
-2. Negative: with `_persistent_stop` asserted, restarts stay 0 and pid is not rewritten to a fiction.
-
-## Out of scope
-- Posts/seat-registry occupation row (`goal:g7.28.1.2`).
-- Non-persistent regression (`goal:g7.28.2`).
-- Template authorship (`goal:g7.27`).
-
-## Agent Notes
-Assigned to **director-helper**. Split from g7.28.1 residue (probe C). NO pi; director-direct write.py only under OWNER FULL STOP.
-
-restored mem_cap.py (override + wrap_argv cfg + tasks_max) from finished engine 6d78c51bf9; TypeError gone; test_dispatch_persistent 3/3 GREEN incl live-pid after restart
-
-##### G7.28.1.2 — persistent start updates seats/posts occupation row — status: complete
-
-# goal:g7.28.1.2
-
-## Why this exists
-**Parent `goal:g7.28.1`.** Parent review named posts-row occupation as untouched by the kid that landed `_supervise_persistent`. Conjunct 2 of the parent also requires the seat registry / posts row to show occupied with the live pid/session pin — not only `agent.json`.
-
-## Target end-state
-- After `dispatch … --persistent` start (and after each supervised restart), the seats/posts registry row for that seat shows occupied with the live pid/session pin.
-- Registry pin and persistent record stay coherent (one-writer facts).
-
-## Invariants
-- Same persistent hold contract as `goal:g7.28.1` / `.1.1`; no second argv builder on restart.
-- Pane-anchor registry work under `goal:g7.31.2.1` may share readers; this leaf owns the persistent-dispatch writer path.
-
-## Falsifier
-1. After persistent start: seats/posts row occupied + live pid/session pin matches the supervised child.
-2. After supervised restart: row pin updates to the new live pid (never stale corpse).
-
-## Out of scope
-- Live-pid field inside agent.json alone (`goal:g7.28.1.1`).
-- Non-persistent regression (`goal:g7.28.2`).
-- Rotate pane-contract (`goal:g7.31.2.*`).
-
-## Agent Notes
-Assigned to **director-helper**. Split from g7.28.1 residue (posts-row untouched). NO pi; director-direct write.py only under OWNER FULL STOP.
-
-dispatch._pin_posts_row_occupation stamps live pid+session_id onto config:posts/seats via rotate._write_identity_cells on persistent start and each restart; test_dispatch_persistent 5/5 GREEN (2 new posts-row falsifiers)
-
-#### G7.28.2 — non-persistent kid/parent spawns unchanged — status: complete
-
-# goal:g7.28.2
-
-## Why this exists
-**Parent `goal:g7.28`.** Falsifier 3 (multi-head split ≤2): adding persistent mode must not change kid/parent non-persistent spawn behavior.
-
-```
-kid/parent spawn (no --persistent)
-   │
-   ▼
-behavior identical to pre-g7.28 (regression dry-run)
-```
-
-## Target end-state
-- Kid/parent non-persistent spawns are unchanged (regression dry-run / argv parity).
-- Persistent remains opt-in; default path untouched.
-
-## Invariants
-- Fire-and-forget (kid/parent) remains the default.
-- No silent change to non-persistent argv or lifecycle.
-
-## Falsifier
-1. Kid/parent non-persistent spawns are unchanged (regression dry-run).
-
-## Out of scope
-- Persistent hold/restart + registry (`goal:g7.28.1`).
-- Template authorship (`goal:g7.27`).
-
-## Agent Notes
-Assigned to **director-helper**. Queued behind soft-slot headroom after g7.28.1. No MAIN push.
-# goal:g7.28.2
-# goal:g7.28.2
-
-both kid+parent fire-and-forget locked: 4 new falsifiers GREEN (parent no-supervisor, posts-row untouched without --persistent, kid+parent dry-run no side effects); prior kid fire-and-forget already green; test_dispatch_persistent 9/9
 
 ### G7.29 — Shrink rotate.py to pure orchestration (no harness argv) — status: horizon
 
@@ -7732,7 +7544,7 @@ Nested .1 help-measurement + .2 stub-flag retire; adapter still stub -p pending 
 
 stop-line 2026-09-28: nested g7.31.1.1.1 + g7.31.1.1.2; NO pi.
 
-###### G7.31.1.1.1 — Record grok-bot --help measurement on node or experiment — status: complete
+###### G7.31.1.1.1 — Record grok-bot --help measurement on node or experiment — status: active
 
 # goal:g7.31.1.1.1
 
@@ -7763,20 +7575,6 @@ stop-line 2026-09-28: nested g7.31.1.1.1 + g7.31.1.1.2; NO pi.
 ## Agent Notes
 
 Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
-
-## Measurement 2026-09-28 ~18:50 ET (belam-prime) — refused-by-name
-
-```
-host: belam-prime
-probe: command -v grok-bot; type grok-bot; PATH + GROK_BOT_BIN candidates
-result: GROK_BOT_ABSENT
-exit: non-zero / empty PATH resolution
-DEFAULT_BIN in adapters/grok_bot_adapter.py = "grok-bot" (PATH-resolved by Popen)
-adapter note (docstring): flag SHAPE is still a stub (`<bin> --help` has not been read)
-emitted stub argv today: `<bin> [--model M] -p <prompt>` (copilot spelling)
-```
-
-No `--help` paste possible until `grok-bot` (or `GROK_BOT_BIN` / harness bin cell) is present on a measurable host. This refused-by-name block is the measurement artifact for this leaf.
 
 ###### G7.31.1.1.2 — Retire stub build_command flags to match recorded help — status: active
 
@@ -7851,108 +7649,7 @@ MUR-demote kids .1–.3 fleshed to format; seeds wired; director-direct NO-pi (O
 
 MUR-demote kids .1-.3 fleshed to format; seeds wired; director-direct NO-pi (OWNER FULL STOP supersedes ACTIVE=>SPAWN).
 
-###### G7.31.1.2.1 — hold restart preserves child_env — status: active
-
-# goal:g7.31.1.2.1
-
-## Why this exists
-
-**Parent `goal:g7.31.1.2`.** MUR `mur-g7-31-1-2-dt-102-2e6a8bf47-2` (2026-09-23) **demote** defect 1: held restart returns before `env = child_env(...)`; `tmux_hold` start/reattach/`_cmd` take/pass no env — credential-none drop and harness env skipped on DEFAULT restart (`HOLD_PANE=True`).
-
-## Target end-state
-
-- Hold restart computes `child_env(...)` (or equivalent) **before** returning the held pid.
-- Respawn/reattach carries that env into the pane (not bare tmux-server inheritance).
-- Proof: spy/assert env keys on held restart; `OPENROUTER_API_KEY` popped when `needs_credential` is false.
-
-## Invariants
-
-- First-spawn founding is OOS (`goal:g7.31.1.2.2`).
-- Build coverage / Popen fallback is OOS (`goal:g7.31.1.2.3`).
-- Credential drop rule stays inside `child_env` (no second drop path).
-
-## Falsifier
-
-1. On tip, held restart path reaches `child_env` / drop_unneeded_credential; a probe shows the held pane does not inherit the forbidden runtime key the pre-hold Popen path would have dropped.
-2. Negative: zero held-restart returns that skip `child_env` when `HOLD_PANE=True`.
-
-## Out of scope
-
-- `goal:g7.31.1.2.2` first-spawn named pane.
-- `goal:g7.31.1.2.3` build node + Popen fallback.
-- Measured CLI argv (`goal:g7.31.1.1`).
-
-## Agent Notes
-
-Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
-
-###### G7.31.1.2.2 — first-spawn founds named held pane — status: active
-
-# goal:g7.31.1.2.2
-
-## Why this exists
-
-**Parent `goal:g7.31.1.2`.** MUR DT.102 demote defect 2: invariant "one named pane per seat / no anonymous fire-and-forget" unmet on **first spawn** — hold only on restart; `dispatch._open_round` still direct `Popen`.
-
-## Target end-state
-
-- First spawn founds the named held pane (`tmux_hold.start` or equivalent) — not only restart.
-- Production path does not stamp `created=true` fabrication on the first restart after anonymous Popen.
-
-## Invariants
-
-- Env-on-hold-restart is OOS (`goal:g7.31.1.2.1`).
-- Build coverage / Popen fallback is OOS (`goal:g7.31.1.2.3`).
-- One named pane per seat; no parallel anonymous Popen then "upgrade".
-
-## Falsifier
-
-1. First-spawn under production `_open_round` uses the hold/start seam; probe shows stable pane_id across kill -9 without out-of-band `tmux_hold.start()`.
-2. Negative: zero production first-spawn paths that only `subprocess.Popen` with no hold/start.
-
-## Out of scope
-
-- `goal:g7.31.1.2.1` child_env on held restart.
-- `goal:g7.31.1.2.3` grid coverage + no-tmux fallback.
-- Persistent dispatch mode umbrella (`goal:g7.28`, helper seat).
-
-## Agent Notes
-
-Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
-
-###### G7.31.1.2.3 — tmux_hold build+Popen fallback — status: active
-
-# goal:g7.31.1.2.3
-
-## Why this exists
-
-**Parent `goal:g7.31.1.2`.** MUR DT.102 demote defects 3–4: no build node/payload_ref for hold module (grid gap); no Popen fallback when tmux/session missing — default-on hold can brick restart. Sense 2026-09-28: `extensions/agi/bin/adapters/tmux_hold.py` **absent** on tip — residue still live.
-
-## Target end-state
-
-- Build node (or grid coverage entry) versions the hold module path once it lands.
-- Restart falls back to direct Popen when tmux absent or session unset — seat can still restart.
-
-## Invariants
-
-- Env carry and first-spawn founding stay on sibling leaves (`.1` / `.2`).
-- Fallback is restart-safety, not a permanent anonymous path (`.2` still owns founding).
-
-## Falsifier
-
-1. `grid_coverage_check` (or build payload_ref) covers the hold module on tip; a no-tmux / no-session probe still restarts via Popen fallback.
-2. Negative: default-on hold must not hard-fail restart when tmux/session is missing.
-
-## Out of scope
-
-- `goal:g7.31.1.2.1` / `goal:g7.31.1.2.2`.
-- Measured CLI (`goal:g7.31.1.1`).
-
-## Agent Notes
-
-Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
-
-#### G7.31.2 — Pane anchor registers seat occupation across post/pin/formation/auto-rotation — status: complete
+#### G7.31.2 — Pane anchor registers seat occupation across post/pin/formation/auto-rotation — status: active
 
 # goal:g7.31.2
 
@@ -7999,173 +7696,7 @@ Assigned to **director-helper** with `.4` + `.5` AND keep `g7.26`–`g7.30` land
 
 **Related:** `goal:g7.28`, `goal:g7.29`, `goal:g7.30`, `goal:g7.31.1`.
 
-2026-09-28 ~18:20 ET: seeds wired to .1/.2/.3 via write.py. director-direct no-pi.
-
-leaf g7.31.2.1 complete (pane registry tests GREEN); .2 residues open; .3 seeds=[.3.1] argv-builder strip nest. NO pi.
-
-2026-09-28 ~19:30 ET NO-PI helper: all three seeds complete (.1 registry, .2 pane-contract rotate reuse, .3 argv-builder strip); test_seat_pane_registry 17/17 + test_rotate_pane_contract 4/4 GREEN
-
-##### G7.31.2.1 — Seat-start registry occupation matches tmux pane pin — status: complete
-
-# goal:g7.31.2.1
-
-## Why this exists
-**Parent `goal:g7.31.2`.** Falsifier-1 of the multi-headed pane-anchor goal: after seat start, posts/seat registry must show occupied with the live pane/session pin matching `tmux`. Without this, pin/formation/rotate are theater.
-
-```
-seat start ──▶ pane attach
-                 │
-                 ├─▶ posts/seat registry = occupied
-                 └─▶ pin == tmux live pane/session
-```
-
-## Target end-state
-- Attaching the named pane **is** registering occupation (posts/seat registry coherent with tmux).
-- Formation and pin readers see the live holder without ad-hoc pane scrapes.
-- Measurable: registry pin matches `tmux` list for that seat.
-
-## Invariants
-- Pane name / seat pin are one-writer facts (no dual registries that disagree).
-- Soft-depends on durable hold from `goal:g7.31.1` but may design the registry contract in parallel.
-
-## Falsifier
-1. After seat start: posts/seat registry shows occupied with the live pane/session pin matching `tmux`.
-
-## Out of scope
-- Rotate / auto-rotation successor contract (`goal:g7.31.2.2`).
-- Grep for new argv builders in rotate (`goal:g7.31.2.3`).
-- Messaging / handbacks (`goal:g7.31.4`).
-
-## Agent Notes
-Assigned to **director-helper**. One falsifier head of `goal:g7.31.2`. Diagram-max; batch-max; spawn.parallel=1; no MAIN push; zero `--post`/`--seat` on parent/kid dispatch.
-# goal:g7.31.2.1
-
-##### G7.31.2.2 — Rotate/auto-rotation reuses same pane contract — status: complete
-
-# goal:g7.31.2.2
-
-## Why this exists
-**Parent `goal:g7.31.2`.** Falsifier-2: rotate / auto-rotation must reuse the same pane-contract; no second argv builder path for grok in `rotate.py`.
-
-```
-rotate / auto-rotation
-   │ template + persistent dispatch
-   ▼
-successor holds SAME pane-contract
-   (name or documented successor rename)
-   NO _build_*_command reappears for grok
-```
-
-## Target end-state
-- Rotate / auto-rotation reuses the pane contract via template + persistent dispatch.
-- Successor holds the same pane-contract (name or documented successor rename).
-- No second argv builder for grok appears in rotate.
-
-## Invariants
-- Single argv seam: adapter + template (`goal:g7.27`) + persistent dispatch (`goal:g7.28`); rotate stays orchestration (`goal:g7.29`).
-
-## Falsifier
-1. After rotate-self (or auto-rotation): successor holds the **same** pane-contract; no `_build_*_command` path reappears in rotate for grok.
-
-## Out of scope
-- Seat-start registry occupation (`goal:g7.31.2.1`).
-- Blanket argv-builder grep closeout (`goal:g7.31.2.3`) except as shared evidence.
-- Doc sync (`goal:g7.31.5`).
-
-## Agent Notes
-## Agent Notes
-Assigned to **director-helper**. One falsifier head of `goal:g7.31.2`. Prefer proving via rotate dry-path + template render; no MAIN push.
-
-### Residue round (MUR `mur-g7-31-2-2-dh-45-3aa3715da-2` — accept_with_residue)
-
-| sev | defect | locus | close |
-|-----|--------|-------|-------|
-| residue | Experiment Result asserts probes declared in validation.types + marks own probe pass; tip schema omits probes | `.agi/nodes/experiment/a00-33653715-dh45-verify.md:67-68` | align Result to tip schema (or land probes typing) and demote/refute the false pass mark |
-| residue | Disproved hyp body still asserts all three residues closed | `.agi/nodes/hypothesis/a00-33653715-0d018f.md:91` vs `:31` verdict + `:102` THOUGHT | rewrite closure claim to match lean_disproved:60 / open residues |
-| residue | Same stale-body class: body names edited_by delta / All three residues closed while THOUGHT denies | `.agi/nodes/hypothesis/a00-3c0140ac-0fa4dd.md:41,:68` vs `:75` | rewrite body claims to match THOUGHT/committed delta |
-| note | production_lines:2 vs body 0 code lines / siblings 0 | `.agi/nodes/hypothesis/a00-f4f7eb39-a27b6a.md:22,:90` | set production_lines:0 or justify metric |
-
-**Central claim held:** kid3 lean_proved:90 with predecessor-named THOUGHT + correct reader. NO merge-up while residues>0. Next parent: DH.54 @ tip after this §3d write. spawn.parallel=1.
-
-2026-09-28 ~19:30 ET NO-PI helper: falsifier GREEN — test_rotate_pane_contract 4/4 (pane name reused + staged rename + no per-harness argv builder + grok refused by name); siblings .1/.3 already complete
-
-##### G7.31.2.3 — Zero new harness argv builders in rotate.py — status: complete
-
-# goal:g7.31.2.3
-
-## Why this exists
-**Parent `goal:g7.31.2`.** Falsifier-3: rotate stays orchestration — grep finds **zero** new harness argv builders.
-
-```
-rotate.py
-  ├─ orchestration OK
-  └─ new harness argv builders ──▶ MUST be zero
-```
-
-## Target end-state
-- `rotate.py` contains no new harness argv builders for any harness (including grok).
-- Sole argv seam remains template render via the thin orchestration hook.
-
-## Invariants
-- Aligns with `goal:g7.27` / `goal:g7.29`: rotate does not grow `_build_*_command` surfaces.
-
-## Falsifier
-1. Grep `rotate.py` for new harness argv builders: **zero** (orchestration only).
-
-## Out of scope
-- Registry occupation (`goal:g7.31.2.1`).
-- Successor pane-contract behavior beyond the grep gate (`goal:g7.31.2.2`).
-- Adapter / template content changes unless required for the grep to stay green.
-
-## Agent Notes
-Assigned to **director-helper**. Prefer regression test + source grep. No MAIN push.
-# goal:g7.31.2.3
-
-### Residue round (MUR `mur-g7-31-2-3-dh-40-a5b82056a-lean2-3` @19:20Z — accept_with_residue)
-
-| sev | defect | locus | close |
-|-----|--------|-------|-------|
-| residue | hyp self-cites in evidence_runs (metrics counts; gate inert for non-decisive) | `.agi/nodes/hypothesis/a00-9fa7f4f5-60c4ba.md:12` | drop self-id from evidence_runs |
-| residue | fresh rotate.py byte/sha literal accurate at a5b82056a, stale vs core/season2/main | `.agi/nodes/hypothesis/a00-bc25f6f9-5c369a.md:28`+body | drop literal or re-measure at merge target |
-| residue | new hyp missing schema-required testable_claim | `.agi/nodes/hypothesis/a00-a267ee09-3bbf9c.md` | add testable_claim |
-| residue | duplicated dangling `with `_KNOWN_HARNESS_IDS`.` fragment | `.agi/nodes/hypothesis/a00-cf0076c2-41525b.md:53-54` | dedupe line |
-| note | empty `## Hypothesis` section (claim only in FM) | `a00-9fa7f4f5-60c4ba.md:28` | fill or drop heading |
-
-**Central claim held:** profile-sync evidence_runs scalar→list so decisive proved passes commit-path gate; static re-derive 0 would-demote. NO merge-up while residues>0. Next parent: DH.50 @ tip after this §3d write (base a5b82056a ancestor of seat). spawn.parallel=1.
-
-seed g7.31.2.3.1 complete; argv-builder falsifier GREEN on tip (no _build_claude/_copilot/_pi/_grok*_command; grok absent)
-
-###### G7.31.2.3.1 — strip _build_*_command argv builders from rotate.py — status: complete
-
-# goal:g7.31.2.3.1
-
-## Why this exists
-**Parent `goal:g7.31.2.3`.** Committed test `test_rotate_has_no_per_harness_argv_builder` fails on tip: `_build_claude_command` (and sibling `_build_*_command` helpers) still live in `rotate.py`. Parent falsifier demands zero new harness argv builders — orchestration only, argv via template seam.
-
-## Target end-state
-- `rotate.py` contains no `_build_claude_command` / `_build_copilot_command` / `_build_harness_command` (or equivalent per-harness argv builders).
-- Sole argv seam remains template render (`harness_template`) + thin orchestration hook.
-- `test_rotate_has_no_per_harness_argv_builder` passes on tip.
-
-## Invariants
-- Successor pane-contract reuse (`goal:g7.31.2.2`) stays green while builders are removed.
-- No MAIN push; edit only seat/director-helper worktree.
-
-## Falsifier
-1. Grep/AST of `rotate.py`: zero `_build_*_command` harness argv builders; committed `test_rotate_has_no_per_harness_argv_builder` exits 0.
-2. Negative: reintroducing `_build_claude_command` makes that test fail.
-
-## Out of scope
-- Seat-start registry occupation (`goal:g7.31.2.1`).
-- Messaging / handbacks (`goal:g7.31.4`).
-- Persistent dispatch (`goal:g7.28`).
-
-## Agent Notes
-Assigned to **director-helper**. Nest under g7.31.2.3 after RED argv-builder test on tip. NO pi; director-direct write.py only under OWNER FULL STOP.
-
-stripped _build_claude_command + _build_copilot_command from rotate.py; test_rotate_has_no_per_harness_argv_builder + pane-contract 4/4 GREEN; sole argv seam remains _build_harness_command → harness_template.render
-
-#### G7.31.3 — Five unified engine routes through the pane (write/read/send/dispatch|workflow/rotate|spawn) — status: complete
+#### G7.31.3 — Five unified engine routes through the pane (write/read/send/dispatch|workflow/rotate|spawn) — status: active
 
 # goal:g7.31.3
 
@@ -8224,9 +7755,7 @@ Assigned to **director-belam (point)** with umbrella + `.1`. May further split; 
 
 Split 2026-09-21 ET by director-belam: multi-headed falsifiers → goal:g7.31.3.1 (brief lists five routes) + goal:g7.31.3.2 (sample write+send+dispatch). Dispatch parents on leaves.
 
-NO-PI stopline12: seeds .1/.2/.3 all COMPLETE; five pane routes leaf g7.31.3.3 spawn/rotate graph-write contracts closed
-
-##### G7.31.3.1 — Cold seat brief lists five pane-facing routes — status: complete
+##### G7.31.3.1 — Cold seat brief lists five pane-facing routes — status: active
 
 # goal:g7.31.3.1
 
@@ -8264,9 +7793,7 @@ Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-head
 
 Director-direct under OWNER FULL STOP (NO pi); supersedes prior Launch-pi Agent Notes.
 
-NO-PI falsifier GREEN: restored ## The five pane-facing routes into extensions/agi/lib/agent-prompt.md (dispatch skill_prompt) + test_agent_prompt_routes.py from proved tip e987bdc455; pytest 6/6. Names match goal:g7.31.3 table (write/read/send/dispatch|workflow/rotate|spawn).
-
-##### G7.31.3.2 — Sample write+send+dispatch through named CLIs — status: complete
+##### G7.31.3.2 — Sample write+send+dispatch through named CLIs — status: active
 
 # goal:g7.31.3.2
 
@@ -8303,60 +7830,44 @@ Split from `goal:g7.31.3` by director-belam (point) 2026-09-21 ET — multi-head
 
 Director-direct under OWNER FULL STOP (NO pi); supersedes prior Launch-pi Agent Notes.
 
-NO-PI sample route-1: write.py note verb via named CLI (g7.31.3.2 falsifier)
-
-NO-PI sample named-CLI transcript on tip 6effbc1a61+: (1) write.py note on goal:g7.31.3.2 -> updated; (2) send.py send --from director-helper --to director-belam file-backed body -> dm path /data/work/agi/.agi/comms/season-2/dm/director-belam--director-helper.md (pane busy undelivered-yet); (3) dispatch.py . 9310 --target goal:g7.31.3.2 --tier kid --dry-run --detach -> aimed 1 slot, dry-run nothing spawned. No parallel script.
-
-##### G7.31.3.3 — SPAWN AND ROTATE ARE ONE GRAPH WRITE -- parent slots pre-set under each post in .geometry, kid rows dynamic under their parent slot, rotate a spawn option (needs-rotate: true), the reaper/heal loop carries out what the graph says (assigned: director-engine) — status: complete
+##### G7.31.3.3 — SPAWN AND ROTATE ARE ONE GRAPH WRITE -- parent slots pre-set under each post in .geometry, kid rows dynamic under their parent slot, rotate a spawn option (needs-rotate: true), the reaper/heal loop carries out what the graph says (assigned: director-engine) — status: active
 
 # goal:g7.31.3.3
 
-## Why this exists
-
-**Parent `goal:g7.31.3`.** Owner 2026-09-27 (belam-S2-L5-X pane): parents and posts must share one spawn route; concurrency×parallel become pre-set parent slots under each post in `.geometry`; kids are dynamic `kid*` rows; rotate is a spawn option (`needs-rotate: true`); reaper/heal executes what the graph says. This leaf owns that graph-write redesign (third of three after mint + send). Messaging half of the same owner message is `goal:g7.32.5` (parked / helper).
-
-## Target end-state
-
-- Spawn and rotate are one graph-write path: committed parent-slot defs under each post; live occupancy in a local runtime file; AGI_BOX-gated loop clears `needs-rotate`; refusal stamps named row + one reply; parents write only own kid rows.
-- Nested kids `.1`–`.5` each own one owner-design residue (slots / runtime / AGI_BOX / refusal-reply / write-gate).
-- Falsifiers on kids GREEN independently; this parent stays the umbrella contract.
-
-## Invariants
-
-- GUARD BY PLACEMENT (Prime 03:2xZ 09-27): every spawn — post, parent, kid, and rotate-as-spawn — is a `systemd-run --user` transient SERVICE named `agi-<town>-<post>[-<slot>]`; tmux is only a view. Near miss: unifying on today's post route (tmux) would move parents OUT of the cap.
-- Kid worktrees follow `hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram`.
-- Does **not** open `goal:g7.31.6` / `goal:g7.32.5` / `goal:g7.34` from this leaf.
-- OWNER verbatim below wins over any paraphrase.
-
-## Falsifier
-
-1. Kids `goal:g7.31.3.3.1`–`.5` exist, seeded from this node, each with fixed-order body + CLI/grep falsifier naming its slice.
-2. Negative: zero production path that treats rotate as a separate non-graph write while this leaf is the SoT for the unified design.
-
-## Out of scope
-
-- `goal:g7.32.5` parents' dm-append / messaging half of the same owner message.
-- `goal:g7.31.6` / `goal:g7.34` (parked — do not open).
-- Cold brief / sample CLI leaves (`goal:g7.31.3.1` / `.2`).
-- Impl of systemd placement itself (engine / sanctuary guard).
-
-## Agent Notes
-
-Assigned to **director-belam**. Nested `.1`–`.5`; director-direct under OWNER FULL STOP (NO pi). Routing note: assigned director-engine for impl; Belam holds format/nest on stop-line.
-
 ## OWNER 2026-09-27 00:38Z + 00:45Z (belam-S2-L5-X's pane), verbatim -- the spawn/rotate part
-
 "One thing that bothered me is that parents get a different spawn route than posts. I want parents and posts to share the same spawn route so spawn/rotate becomes one and uses individual post info and/or generic templates to decide who gets what messages. And also it creates the parent seats in-graph under the post seat that spawned them in the .geometry directory, and get removed as part of the reaper routine. So the concurrency limit and the parallel limit together become the amount of pre-set parent post slots each post has under it, and each kid also becomes a row entry in the parent slot “kid*” row. Rows added dynamically on each kid spawn and removed on kid exit. All using the unified spawn route. Rotate just becomes an option for spawn and parents can be rotated in place instead of re dispatched. Everything is still just a unified write/mint of nodes with a new version. The reaper/heal routine just then executes actions as put into the graph via post updates and linked templates. If a post needs rotation  just set the needs-rotate: true and wait on the loop to do it. So everything becomes a graph write even spawn/rotation commands. Parents just spawn kids but all it does is write the rows and points to where in the graph that kid needs to put its next node."
 
 "One addition to 3: a refusal also activated the message send reply route to update the relevant sending post which can be found via graph of what failed and for whom."
 
 (The same 00:38Z message opens with the parents-on-the-message-system question; that half is goal:g7.32.5.)
 
-NO-PI stopline11: kids g7.31.3.3.1 + g7.31.3.3.2 COMPLETE (committed parent-slots.md + runtime occupancy via parent_slots.py; pytest 6/6). Remain active: .3 AGI_BOX/needs-rotate, .4 refusal+reply, .5 write-gate. No pi; did not open g7.31.6/g7.32.5.
+## The design as the owner confirmed it (gen 10's reading, pasted into the Prime's pane, confirmed 00:5xZ 09-27; the owner's words above win)
+Unify spawn and rotate as graph writes. Parents become rows under the post that spawned them in .geometry, with pre-set parent slots per post. Kids become dynamic kid rows under their parent's slot. Rotate becomes a spawn option (needs-rotate: true), and the reaper/heal loop carries out whatever the graph says. Refinements:
+1. Slot definitions are committed; live occupancy lives in a local runtime file.
+2. Only the box hosting the post acts (checked via AGI_BOX), and the loop clears the flag.
+3. A refusal is written into the row by name AND sent to the requesting post through the reply route, found via the graph. Cap it at one reply per failed request.
+4. Gate who may write which rows: parents write only their own kid rows, kids write none.
 
-NO-PI stopline12: all seeds .1-.5 COMPLETE (parent-slots + occupancy + needs_rotate + spawn_refusal + kid_write_gate); falsifiers GREEN; reaper/heal wiring remains engine follow-on under production path — leaf SoT contracts closed
+## Invariants
+- GUARD BY PLACEMENT (Prime 03:2xZ 09-27, on the owner's question 'Will the guard work with the new spawn/rotate unified redesign?'): every spawn -- post, parent, kid, and rotate as a spawn option -- is a `systemd-run --user` transient SERVICE named `agi-<town>-<post>[-<slot>]`; tmux is only a view attached to it. The sanctuary guard caps by systemd placement (user@1000 high/max 12618/14021M; `agi-*.service` -> agi-work.slice 9302M), so a unit so named is guarded with no guard change. Measured 03:2xZ: 25 claude processes of the tmux-spawned seats sit in session-73.scope, OUTSIDE user@1000 (uncapped); dispatch.py parents are --scope units in app.slice (user@ cap only).
+- Near miss: unifying on today's post route (tmux) would move parents OUT of the cap too -- a silent regression nothing refuses.
+- Kid worktrees follow hypothesis:kid-worktrees-resolve-from-one-cell-and-can-live-in-ram (paths.<town>.worktrees_root; the guard-owned RAM disk; reaper eviction).
 
-###### G7.31.3.3.1 — Committed parent-slot definitions under each post in .geometry — status: complete
+## Relations
+- parent goal:g7.31.3 -- the rotate|spawn route of the five unified engine routes; this makes it one graph write.
+- goal:g7.32.5 -- the parents' dm-append push grant, the messaging half of the same owner message.
+- goal:g4.18.1 -- one mint route: slot and kid rows go through the same write flow.
+- goal:g7.32.6 -- the reply route refinement 3 uses; its (default)-box note (46d1d17e1): refinement 2 acts only on the box a row names.
+
+## Routing
+assigned: director-engine. THIRD of the three graph redesigns, after node spawn/mint (goal:g4.18.1) and the send hub-only work (OWNER 01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): refinement 3's refusal rides send's reply route.
+
+## Agent Notes
+Nested .1–.5 (slots/runtime/AGI_BOX/refusal-reply/write-gate); stays under g7.31.3 stop-line.
+
+Nested .1-.5 (slots/runtime/AGI_BOX/refusal-reply/write-gate); stays under g7.31.3 stop-line.
+
+###### G7.31.3.3.1 — Committed parent-slot definitions under each post in .geometry — status: active
 
 # goal:g7.31.3.3.1
 
@@ -8388,9 +7899,7 @@ NO-PI stopline12: all seeds .1-.5 COMPLETE (parent-slots + occupancy + needs_rot
 
 Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
-NO-PI: committed parent-slot defs landed at .agi/nodes/.geometry/parent-slots.md + parent_slots.py reader; pytest test_parent_slots 6/6; defs hold no occupancy SoT (assert_defs_hold_no_occupancy).
-
-###### G7.31.3.3.2 — Live occupancy in local runtime file (not committed defs) — status: complete
+###### G7.31.3.3.2 — Live occupancy in local runtime file (not committed defs) — status: active
 
 # goal:g7.31.3.3.2
 
@@ -8422,9 +7931,7 @@ NO-PI: committed parent-slot defs landed at .agi/nodes/.geometry/parent-slots.md
 
 Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
-NO-PI: runtime occupancy path .agi/sessions/parent-occupancy.json via parent_slots.occupy/clear; occupy+clear leave committed defs byte-identical (sha256 falsifier).
-
-###### G7.31.3.3.3 — AGI_BOX host-only loop acts and clears needs-rotate — status: complete
+###### G7.31.3.3.3 — AGI_BOX host-only loop acts and clears needs-rotate — status: active
 
 # goal:g7.31.3.3.3
 
@@ -8456,9 +7963,7 @@ NO-PI: runtime occupancy path .agi/sessions/parent-occupancy.json via parent_slo
 
 Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
-NO-PI stopline12: needs_rotate.py AGI_BOX host-only act+clear; test_needs_rotate 5/5; cross-box no-mutate; silent-clear refused
-
-###### G7.31.3.3.4 — Refusal writes named row + one send-reply to requesting post — status: complete
+###### G7.31.3.3.4 — Refusal writes named row + one send-reply to requesting post — status: active
 
 # goal:g7.31.3.3.4
 
@@ -8490,9 +7995,7 @@ NO-PI stopline12: needs_rotate.py AGI_BOX host-only act+clear; test_needs_rotate
 
 Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
-NO-PI stopline12: spawn_refusal.py named-row stamp + one-reply cap; test_spawn_refusal 4/4; no reply storms
-
-###### G7.31.3.3.5 — Write gate — parents own kid rows only; kids write none — status: complete
+###### G7.31.3.3.5 — Write gate — parents own kid rows only; kids write none — status: active
 
 # goal:g7.31.3.3.5
 
@@ -8524,9 +8027,7 @@ NO-PI stopline12: spawn_refusal.py named-row stamp + one-reply cap; test_spawn_r
 
 Assigned to **director-belam**. Director-direct under OWNER FULL STOP (NO pi).
 
-NO-PI stopline12: kid_write_gate.py parents own kid* only kids write none; test_kid_write_gate 6/6
-
-#### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: complete
+#### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: active
 
 # goal:g7.31.4
 
@@ -8579,141 +8080,7 @@ Assigned to **director-helper** with `.2` + `.5` AND keep `g7.26`–`g7.30` land
 
 **Related:** `goal:g7.25` (deferred same-harness handback), `send.py`, mesh commands in `command:commands`, `doc:standing-llm-ops` §4 send.
 
-2026-09-28 ~18:20 ET: seeds wired to .1/.2/.3 via write.py. director-direct no-pi.
-
-NO-PI stopline7: umbrella complete — seeds .1 inbox+nudge / .2 ssh-or-not surface 7/7 / .3 no message daemon all complete; residues=0
-
-##### G7.31.4.1 — Grok-pane outbound lands inbox plus recipient nudge — status: complete
-
-# goal:g7.31.4.1
-
-## Why this exists
-**Parent `goal:g7.31.4`.** Falsifier-1: from a grok pane, one outbound message must land in the recipient inbox **and** a nudge must appear in the recipient pane.
-
-```
-grok pane ──native harness message──▶ recipient inbox
-                 │
-                 └─▶ small nudge in recipient pane (wake token ≠ body)
-```
-
-## Target end-state
-- Pane-initiated messaging uses the harness-native channel when available (`send.py` seam).
-- Recipients get a small nudge in their own pane, not a pasted body dump.
-- Capture or send.py proof exists for both landing + nudge.
-
-## Invariants
-- Wake token ≠ message body (send.py nudge contract).
-- Authority / identity verified against the graph (`config:seats`), never pane string alone.
-- No daemon required for messages (standing L4).
-
-## Falsifier
-1. From a grok pane: one outbound message lands in recipient inbox **and** a nudge appears in the recipient pane (capture or send.py proof).
-
-## Out of scope
-- SSH-or-not same-surface proof (`goal:g7.31.4.2`).
-- Daemon absence on heal/cron (`goal:g7.31.4.3`).
-- Five-route catalog (`goal:g7.31.3`).
-
-## Agent Notes
-Assigned to **director-helper**. One falsifier head of `goal:g7.31.4`. No MAIN push; zero `--post`/`--seat` on dispatches.
-# goal:g7.31.4.1
-
-### Residue round (MUR `mur-g7-31-4-1-dh-46-fd4bf5387-4` @20:43Z — accept_with_residue)
-
-| sev | defect | locus | close |
-|-----|--------|-------|-------|
-| residue | false links count 3926 claimed vs 3923 measured at DH.46 tip | `.agi/nodes/hypothesis/a00-c8301e71-01b0ea.md:84,:93,:117,:134` | re-run `links.py links` at tip; rewrite all four sites to measured 3923 (base 3922) |
-| note | DH.41 tip count misstated as 3917 (measured 3918 at 5a76558f8) | same hyp line-84 parenthetical | cite measured 3918 or drop parenthetical |
-| note | R3 3918→3917 aligns body; THOUGHT calls 3918 MUR outlier unmeasured | `a00-e3764563` Agent Notes + `a00-c8301e71` THOUGHT:120 | measure both tips before labeling outlier |
-
-**Central claim held:** R1/R2 verified from bytes; 0 production lines; tests green. NO merge-up while residues>0. Next parent: DH.52 @ tip after this §3d write (base fd4bf5387 ancestor of seat). spawn.parallel=1.
-
-NO-PI stopline7: falsifier GREEN — send inbox+nudge (test_send creates inbox + nudge token; test_send_nudge_classes post-dm nudge; hyp a00-c8301e71 links residue closed 3926→4997 measured)
-
-##### G7.31.4.2 — Same send/nudge function surface SSH-or-not — status: complete
-
-# goal:g7.31.4.2
-
-## Why this exists
-**Parent `goal:g7.31.4`.** Falsifier-2: mixed topology (SSH-mesh and non-mesh) must expose the **same** caller-facing function names/args; engine fills transport gaps.
-
-```
-caller
-  │ same function names/args
-  ├─▶ SSH-mesh peer
-  └─▶ non-mesh peer
-engine gap-fill (no caller branch on is_ssh)
-```
-
-## Target end-state
-- Same send/read/nudge function surface whether peer is mesh-reachable or local.
-- Engine fills transport gaps without a second API.
-- Documented dry-run of both transports is acceptable proof when live dual topology is unavailable.
-
-## Invariants
-- Same caller-facing functions whether peer is mesh-reachable or local.
-- No caller branch on `is_ssh`.
-
-## Falsifier
-1. Repeat with one peer on SSH-mesh and one not (or documented dry-run of both transports): **same** function names/args succeed; no caller branch on "is_ssh".
-
-## Out of scope
-- Single-path inbox+nudge proof (`goal:g7.31.4.1`) except as shared setup.
-- Daemon absence (`goal:g7.31.4.3`).
-- Full sanctuary migration of every town onto Grok Bot.
-
-## Agent Notes
-Assigned to **director-helper**. Prefer API-surface test over live dual-host if topology missing. No MAIN push.
-# goal:g7.31.4.2
-
-### Residue round (MUR `mur-g7-31-4-2-dh-43-5ef0dc14b-3` @19:42Z — accept_with_residue)
-
-| sev | defect | locus | close |
-|-----|--------|-------|-------|
-| residue | parent hyp Agent Notes still "6 passed" while module is SEVEN | `.agi/nodes/hypothesis/a00-ac47d671-4fc781.md:56` | rewrite to measured 7 / SEVEN |
-| note | probe overstates stale "6 passed" survives only in THOUGHT | `experiment:tmux-seam-residue-closed-a00-ac47d671` probes[0].observed | amend observed; hyp body also carries it |
-| note | wording-fix mis-cite `_leave_copy_mode (send.py:1884/1908)` | `hypothesis:a00-768e0fd0-6e3cb8.md:83` | 1884 is `_pane_in_mode`; `_leave_copy_mode` def@1894 call@1908 |
-| note | body-verb deviation pointer names experiment THOUGHT | `hypothesis:a00-b11f67e2-f2ed9b.md:53` | deviation lives on hyp node, not experiment THOUGHT |
-| note | broader historical counts (DH.25-era) | `experiment:send-surface-real-path-and-residues-a00-e2960dc3.md:53`, `experiment:send-surface-ssh-or-not-a00-dd757e64.md:120` | leave as historical or align if still load-bearing |
-
-**Central claim held:** experiment:tmux-seam-residue-closed-a00-ac47d671 body now SEVEN; sibling module-wide agrees; 0 production lines. NO merge-up while residues>0. Next parent: DH.51 @ tip after this §3d write (base 5ef0dc14b ancestor of seat). spawn.parallel=1.
-
-NO-PI stopline7: falsifier GREEN — test_send_surface_ssh_or_not 7/7 after process-memo isolation (_clear_foreign_refusals); no is_ssh in caller bodies; same send_dm surface SSH-or-not
-
-##### G7.31.4.3 — No new message daemon on heal/cron surface — status: complete
-
-# goal:g7.31.4.3
-
-## Why this exists
-**Parent `goal:g7.31.4`.** Falsifier-3: standing L4 ruling — repo + nudge, not a router process. No new message daemon on heal/cron for this goal.
-
-```
-heal / cron surface
-  └─ new message daemon for g7.31.4 ──▶ MUST NOT appear
-```
-
-## Target end-state
-- Messaging works without a dedicated message daemon.
-- Heal/cron surface gains no new message-router process for this goal.
-
-## Invariants
-- No daemon required for messages (standing L4).
-- Repo + nudge remains the transport model.
-
-## Falsifier
-1. No new message daemon process appears in the heal/cron surface for this goal.
-
-## Out of scope
-- Implementing send/nudge paths (`goal:g7.31.4.1`, `goal:g7.31.4.2`) beyond checking they do not introduce a daemon.
-- Pane hold / pin wiring (`.1` / `.2`).
-
-## Agent Notes
-Assigned to **director-helper**. Prefer inventory grep of heal/cron + process list before/after. No MAIN push.
-# goal:g7.31.4.3
-
-NO-PI stopline7: falsifier GREEN — no new message daemon on heal/cron (crons.md untouched by g7.31.4; send.py no Popen/fork/daemon; live = nudge_sweep one-shot + alarms/reaper only)
-
-#### G7.31.5 — Graph↔harness-doc sync — write route keeps Grok Bot profile/settings driftless — status: complete
+#### G7.31.5 — Graph↔harness-doc sync — write route keeps Grok Bot profile/settings driftless — status: active
 
 # goal:g7.31.5
 
@@ -8761,135 +8128,6 @@ graph nodes   ◄── no durable drift
 Assigned to **director-helper** with `.2` + `.4` AND keep `g7.26`–`g7.30` land batch. May further split; launch pi parent batches; diagram-max; batch-max; merge-up to Belam; blockers to owner only.
 
 **Related:** `write.py`, pane write route (`goal:g7.31.3`), `goal:g7.26` (post briefs / custom instructions), `doc:standing-llm-ops`.
-
-2026-09-28 ~18:20 ET: seeds wired to .1/.2/.3 via write.py. director-direct no-pi.
-
-all three seeds complete: .1 forward write->profile, .2 reverse-absent documented, .3 drift sweep+rotate guard; test_profile_sync 18/18 GREEN
-
-##### G7.31.5.1 — write.py standing/instruction updates linked Grok profile — status: complete
-
-# goal:g7.31.5.1
-
-## Why this exists
-**Parent `goal:g7.31.5`.** Falsifier-1: a write to a linked standing/instruction (etc.) via `write.py` must update the corresponding Grok Bot profile/settings artefact.
-
-```
-write.py → standing/instruction/routine/todo
-              │ same action (or non-skippable follow-up)
-              ▼
-Grok Bot profile / settings bytes match
-```
-
-## Target end-state
-- Linked write updates Grok Bot profile/settings in the same action (or tightly coupled follow-up that cannot be skipped silently).
-- Graph remains SoT; profile surfaces are projections.
-
-## Invariants
-- Uses unified write route (`goal:g7.31.3`); no side-channel editor bypassing `write.py`.
-- Never invent a second SoT — if conflict, graph wins and profile is repaired.
-
-## Falsifier
-1. Edit a linked standing/instruction node via `write.py`; linked Grok Bot profile/settings bytes change to match (or a named sync command exits 0 with proof).
-
-## Out of scope
-- Reverse bridge (`goal:g7.31.5.2`).
-- Automated drift detector (`goal:g7.31.5.3`).
-- Authoring the five routes (`goal:g7.31.3`).
-
-## Agent Notes
-Assigned to **director-helper**. One falsifier head of `goal:g7.31.5`. No MAIN push.
-# goal:g7.31.5.1
-
-falsifier GREEN: write.py same-action profile_sync.sync_node; test_write_cli + sibling .1 tests GREEN (BODY non-heading so heading-section guard no longer masks sync)
-
-##### G7.31.5.2 — Reverse harness-doc bridge or explicit absence recorded — status: complete
-
-# goal:g7.31.5.2
-
-## Why this exists
-**Parent `goal:g7.31.5`.** Falsifier-2: if a reverse bridge (harness doc → graph) is claimed it must work; otherwise the node explicitly records "reverse bridge absent".
-
-```
-harness doc edit
-  ├─ reverse bridge exists ──▶ linked graph node updates
-  └─ absent ──▶ node records "reverse bridge absent" (falsifier N/A until built)
-```
-
-## Target end-state
-- Either reverse bridge reconverges harness-side edits to the node, **or** this node explicitly records absence with a falsifier for when it lands.
-- No silent claim of a bridge that does not exist.
-
-## Invariants
-- Graph remains SoT for goal/contract content.
-- Honest gap documentation beats a fake bridge.
-
-## Falsifier
-1. (If reverse bridge claimed) edit harness doc; linked node updates — **or** the node explicitly records "reverse bridge absent" and falsifier is N/A until built.
-
-## Out of scope
-- Forward write→profile sync (`goal:g7.31.5.1`).
-- Drift check automation (`goal:g7.31.5.3`).
-- Replacing `doc:standing-llm-ops` as the ops contract.
-
-## Agent Notes
-Assigned to **director-helper**. Prefer documenting absence if bridge not found this pass; no MAIN push.
-# goal:g7.31.5.2
-
-reverse bridge (harness doc -> graph) is ABSENT on this tip. Evidence: experiment:a00-fcd60995-reverse-bridge-absent (committed) -- editing a profile_ref artifact and running profile_sync.py --check yields DRIFT rc=1 with the node unchanged; profile_sync.py overwrites the artifact toward the node, never the reverse; no import/reverse/artifact verb exists. Independently re-probed this round (hypothesis:a00-ce81c047-f9185d): node sha 6e1b665e unchanged across --check (DRIFT rc=1) and forward sync. FALSIFIER for when it lands: when a reverse bridge lands, editing the artifact named by a node profile_ref and running the named command MUST change the node body to match; until then absence stands and falsifier-2 is N/A.
-
-reverse bridge ABSENT recorded on node (experiment:a00-fcd60995); falsifier-2 N/A until bridge lands; re-probed tip 92b46487bf+
-
-##### G7.31.5.3 — Automated graph↔profile drift check exits non-zero on desync — status: complete
-
-# goal:g7.31.5.3
-
-## Why this exists
-**Parent `goal:g7.31.5`.** Falsifier-3: deliberate desync must be detected by an automated check (exit non-zero) before the next seat rotation.
-
-```
-deliberate desync
-   │
-   ▼
-automated drift_check / hash / content equality
-   │ exit non-zero
-   ▼
-before next seat rotation
-```
-
-## Target end-state
-- Drift check is measurable (hash / content equality / `drift_check` style), not vibes.
-- A forced desync fails the check before the next rotation.
-
-## Invariants
-- Graph SoT; profile is projection repaired on conflict.
-- Check is runnable without human judgment.
-
-## Falsifier
-1. A deliberate desync is detected by an automated check (exit non-zero) before the next seat rotation.
-
-## Out of scope
-- Implementing forward sync (`goal:g7.31.5.1`) beyond needing bytes to compare.
-- Reverse bridge policy (`goal:g7.31.5.2`).
-- Pane hold / handback transport.
-
-## Agent Notes
-## Agent Notes
-Assigned to **director-helper**. Prefer a small CLI/check script or pytest; no MAIN push.
-
-### Residue round (MUR `mur-g7-31-5-3-dh-48-653e635eb` — accept_with_residue)
-
-| sev | defect | locus | close |
-|-----|--------|-------|-------|
-| residue | cmd_loop rotation bypasses the drift guard | `rotate.py:3019` (cmd_loop ~:3006) | wire `_check_profile_drift` into cmd_loop before spawn_win (same as seat-rotate path) |
-| residue | Guard wire/order asserted by source-string grep, not behaviour | `test_profile_sync.py:233-236` | add behavioural probe that fails when cmd_loop omits pguard |
-| residue | Node body contradicts demoted verdict | `.agi/nodes/hypothesis/a00-5ffe6174-59e3aa.md:54` vs `:31` lean_disproved:50 | rewrite body to match demote_reason / verdict |
-| note | cmd_spawn also skips `_check_profile_drift` | `rotate.py:1967` | wire or document successor-spawn exception |
-| note | unreadable heuristic is whole-file substring profile_ref: | `profile_sync.py:77` | tighten heuristic (frontmatter-only) |
-| note | except-branch read_text unguarded | `profile_sync.py:76` | guard permission errors inside check_all |
-
-**Central claim held:** check_all + rotate-seat drift gate real. NO merge-up while residues>0. Next parent: DH.55 @ tip after this §3d write. spawn.parallel=1.
-
-falsifier GREEN: check_all sweep + _check_profile_drift restored on cmd_rotate_self + cmd_loop; test_profile_sync 18/18 GREEN (was 5F)
 
 #### G7.31.6 — spawn/rotate via skills after write/mint (caps ≤10/≤20) — status: horizon
 
@@ -8967,11 +8205,7 @@ Owner vision covered (no duplicate of g7.31.1–.5 meanings):
 
 Session: `owner-ask-2026-09-21`. Frame as TARGETS not tasks.
 
-NO-PI stopline13: seed g7.32.6 complete (post-branch contracts); g7.32.5 remains parked — do not open; umbrella stays active.
-
-NO-PI stopline14: g7.32.6.7-.9 production dm_engine seams COMPLETE; g7.32.5 remains horizon; umbrella stays active. Full send=write.py mint cutover waits g4.18.1 (director-engine).
-
-#### G7.32.1 — Grok session ingest — sessions land as graph nodes — status: complete
+#### G7.32.1 — Grok session ingest — sessions land as graph nodes — status: active
 
 # goal:g7.32.1
 
@@ -9015,9 +8249,7 @@ grok session artifact
 
 **Related:** `goal:g7.32`, `goal:g7.31.5` (sync, not ingest). Session: `owner-ask-2026-09-21`.
 
-landed session_ingest.py from proved tip a419f03419; falsifiers 1+2 green (mint + re-ingest no-fork); NO-PI seat tip
-
-#### G7.32.2 — Magic-pane messaging — grok↔grok native; grok→claude/pi nudge→send — status: complete
+#### G7.32.2 — Magic-pane messaging — grok↔grok native; grok→claude/pi nudge→send — status: active
 
 # goal:g7.32.2
 
@@ -9063,113 +8295,7 @@ g7.31.1 is the durable pane **precursor**; this child is the **messaging product
 
 **Extends:** `goal:g7.31.1` (pane precursor). **Feeds:** `goal:g7.32.4`. Session: `owner-ask-2026-09-21`.
 
-seed g7.32.2.1 complete; magic-pane messaging entrypoint landed (route+deliver+send pane)
-
-##### G7.32.2.1 — deliver() gates transports via route() — status: complete
-
-# goal:g7.32.2.1
-
-## Why this exists
-
-**Parent `goal:g7.32.2`.** MUR `mur-g7-32-2-dt-97-e30b64b5e-2` (2026-09-23T07:42Z) returned `accept_with_residue`. Parent tip lands `magic_pane.route()` / `native_send` / `cross_send` with unit proof, but `route()` never gates the transports — `native_send` takes no harness args and `cross_send` always returns `nudge_send`. This leaf owns the enforcing entrypoint.
-
-## Target end-state
-
-- A single public entrypoint (e.g. `deliver(from_harness, to_harness, ...)`) calls `route()` and dispatches to native vs nudge+`send.py` by that decision alone.
-- Same-harness cannot claim nudge/`send.py`; cross-harness cannot claim native `tmux send-keys`.
-- Unit tests prove the gate (spy on which transport ran) without a live pane.
-
-## Invariants
-
-- Routing by equality of the two harness strings alone (no harness-name special case).
-- Messaging module imports no rotate/dispatch internals.
-- No new remote heads; no `core/main` push; edit only own `--branch` worktree.
-
-## Falsifier
-
-1. `deliver()` (or equivalent) consults `route()` and the chosen transport matches same vs cross; a same-harness call never invokes `send.py`; a cross-harness call never builds native `tmux send-keys` argv (unit spy proof on tip).
-
-## Out of scope
-
-- Live grok pane / live send.py inbox delivery.
-- Prime merge of loop tip into `core/season2/main`.
-- Auto-mint build: node for `magic_pane.py`.
-
-## Agent Notes
-
-Minted by director-belam hourly watch 2026-09-23 after DT.97 MUR AWR. Parent spawn DT.110 same wake. Helper may hold `goal:g7.32.2`; belam owns this nested kid.
-
-2026-09-28 ~18:20 ET: filled required schema (goal_id/origin/confidence/seeds/tags) via write.py; seeds=[.1.1,.1.2]. director-direct no-pi; no claim spawn.
-
-deliver() gates via globals()[route]; seeds .1.1/.1.2 complete; magic_pane.py landed under adapters/
-
-###### G7.32.2.1.1 — deliver must call route() before transport (spy test) — status: complete
-
-# goal:g7.32.2.1.1
-
-## Why this exists
-
-**Parent `goal:g7.32.2.1`.** MUR `mur-g7-32-2-1-dt-110-f4c3a72d0` AWR missed: committed tests vary harness strings, not that transport is chosen SOLELY from `route()`. A `deliver()` that re-derives equality and never calls `route()` still passes the three tests.
-
-## Target end-state
-
-- At least one committed test spies/fails if `deliver()` does not call `route()` (or equivalent gate) before choosing native vs nudge.
-- Near-miss named in the parent MUR is falsified by the suite on tip.
-
-## Invariants
-
-- No harness-name special case; equality of harness strings alone.
-- No new remote heads; no MAIN; edit only own `--branch` worktree.
-
-## Falsifier
-
-1. Mutating `deliver()` to skip `route()` and re-derive equality makes a committed test fail (red), while the tip (calls `route()`) stays green.
-
-## Out of scope
-
-- Live pane delivery; Prime build-node mint; importer wiring (sibling leaf).
-
-## Agent Notes
-
-Assigned to **director-helper**. Nested by director-belam after DT.110 AWR; claimed under OWNER FULL STOP NO-PI (body format-fill from link_ref payload).
-# goal:g7.32.2.1.1
-
-spy suite test_magic_pane_deliver.py 5/5 GREEN: contradicted route decides transport; route called once; deliver body has no harness literal; leaf imports no rotate/dispatch
-
-###### G7.32.2.1.2 — production importer of deliver/magic_pane outside tests — status: complete
-
-# goal:g7.32.2.1.2
-
-## Why this exists
-
-**Parent `goal:g7.32.2.1`.** MUR DT.110 AWR missed: `magic_pane.py` has no importer at tip `f4c3a72d0` — `deliver()`/`route()` sit on no live path, so the enforcing entrypoint is unit-only.
-
-## Target end-state
-
-- A real production caller (send/adapter/messaging path already in scope of g7.32) imports and uses `deliver()` (or documents the single approved call site landed on tip).
-- `git grep` finds a non-test importer of `magic_pane` / `deliver(`.
-
-## Invariants
-
-- Messaging module still imports no rotate/dispatch internals.
-- No new remote heads; no MAIN; own `--branch` only.
-
-## Falsifier
-
-1. Tip shows a production importer of `deliver`/`magic_pane` outside tests; removing it breaks a named path or a committed integration test.
-
-## Out of scope
-
-- Auto-mint build: node (Prime); live grok pane smoke as sole proof.
-
-## Agent Notes
-
-Assigned to **director-helper**. Nested by director-belam after DT.110 AWR; claimed under OWNER FULL STOP NO-PI (body format-fill from link_ref payload).
-# goal:g7.32.2.1.2
-
-production importer send.py pane verb + test_magic_pane_cli_path.py 5/5 GREEN: nudge lands inbox; native writes no inbox; unsupported refuses nonzero
-
-#### G7.32.3 — One adapter/harness with optional pane methods — status: complete
+#### G7.32.3 — One adapter/harness with optional pane methods — status: active
 
 # goal:g7.32.3
 
@@ -9212,9 +8338,7 @@ grok_bot_adapter
 
 **Extends:** `goal:g7.25`, `goal:g7.31.1`. Session: `owner-ask-2026-09-21`.
 
-landed OPTIONAL_PANE + PaneNotHeld + pane_{attach,send,read} on grok_bot_adapter from proved tip eda6daa994; test_adapter_pane_methods green; NO-PI seat tip
-
-#### G7.32.4 — send.py thin router — transport choose, never policy — status: complete
+#### G7.32.4 — send.py thin router — transport choose, never policy — status: active
 
 # goal:g7.32.4
 
@@ -9258,14 +8382,12 @@ g7.31.3 lists `send` among five pane-facing routes; this child owns the **router
 
 **Extends:** `goal:g7.31.3` (send as a route). **Used by:** `goal:g7.32.2`. Session: `owner-ask-2026-09-21`.
 
-landed send_transport.py rotation adapter from proved tip bed84760ac; send.py has zero import rotate/dispatch; thin-router falsifier green; NO-PI seat tip
-
 #### G7.32.5 — messaging/magic-pane into active goals (after spawn/rotate) — status: horizon
 
 <!-- BODY:BEGIN -->
 # goal:g7.32.5
 
-#### G7.32.6 — SEND ROUTES BY POST-BRANCH ADDRESS -- every dm is a new dm-file node version pushed to the addressee post's own remote head (else the nearest, lowest-level remote branch); one per-box sync cron (1-3 min cell) syncs the local posts' dms and nudges; read pushes a read-flag version to the sender; no inbox (assigned: director-engine) — status: complete
+#### G7.32.6 — SEND ROUTES BY POST-BRANCH ADDRESS -- every dm is a new dm-file node version pushed to the addressee post's own remote head (else the nearest, lowest-level remote branch); one per-box sync cron (1-3 min cell) syncs the local posts' dms and nudges; read pushes a read-flag version to the sender; no inbox (assigned: director-engine) — status: active
 
 # goal:g7.32.6
 
@@ -9307,347 +8429,6 @@ belam-S2-L5-XI 01:0xZ 09-27, OWNER verbatim: "Would the mint write design be fir
 
 OWNER 06:0xZ 09-27 to belam, verbatim: "It's because pids rotate but tmux panes stay the same. We shifted to PIDs for messaging at some point and it broke things. I think the redesign is also doing it but if PIDs get updated auto as part of rotate it also fixes it" -- belam measured 06:0xZ: the four seats rotating on local-town (belam, thought-master, director-thought, director-engine) carry a LIVE pid in their row; rotate's successor row write stamps it (rotate.py:6695). Stale pids sit on rows of seats not seated on this box.
 
-NO-PI stopline11: seat tip carries boxes.this_box refuse-unset + test_box_identity/test_box_guard 24/24 GREEN (hypothesis:every-live-row… conjuncts on tip). Parent stays active — post-branch send/cron/nudge/read redesign not closed; no pi; did not open g7.32.5.
-
-NO-PI stopline12: box-identity 24/24 still GREEN; post-branch send/cron/nudge/read redesign still open (not closed this wake); no pi; did not open g7.32.5
-
-NO-PI stopline13: nested .1-.6 contracts GREEN (26/26); production send.py/crons wiring is director-engine follow-on; did not open g7.32.5/g7.31.6.
-
-NO-PI stopline14: production wiring residue .7-.9 COMPLETE (dm_engine + send.py dm-plan/dm-read-plan/dm-sync + crons dm_sync KNOWN_JOB). Full write.py mint cutover + inbox retirement + live crons.md enable wait on g4.18.1 / Belam-DE. Did not open g7.32.5/g7.31.6.
-
-##### G7.32.6.1 — Post-branch address = addressee remote_head else nearest remote-visible — status: complete
-
-<!-- BODY:BEGIN -->
-# goal:g7.32.6.1
-
-## Why this exists
-
-**Parent `goal:g7.32.6`.** Owner design line for the post-branch send redesign: ADDRESS = addressee post row `remote_head` (else nearest lowest-level remote-visible branch). Same route for same-box and cross-box DMs.
-
-## Target end-state
-
-- Contract library on tip encodes the owner residue for this leaf.
-- Falsifiers GREEN independently; production send.py/crons wiring is director-engine follow-on.
-
-## Invariants
-
-- Sibling slices under `goal:g7.32.6` own their own falsifiers — do not widen this leaf.
-- Does **not** open `goal:g7.31.6` / `goal:g7.32.5` (board parked).
-- NO pi under OWNER FULL STOP.
-
-## Falsifier
-
-1. `resolve_address` returns `remote_head` when set.
-2. Else nearest: `<town>/season<m>/main` > `<town>/main` > `season<n>/main`.
-3. Negative: `None` row refused by name.
-
-## Out of scope
-
-- Other `goal:g7.32.6.*` siblings.
-- Parked `goal:g7.32.5` / `goal:g7.31.6`.
-
-## Agent Notes
-
-Assigned to **director-helper** under OWNER FULL STOP (NO pi). Contract-first; engine wires production later.
-
-NO-PI stopline13: dm_address.py + test_dm_address 7/7; remote_head wins else nearest remote-visible.
-
-##### G7.32.6.2 — Send = ONE dm-file node version via write.py (read=false) — status: complete
-
-<!-- BODY:BEGIN -->
-# goal:g7.32.6.2
-
-## Why this exists
-
-**Parent `goal:g7.32.6`.** Owner design line for the post-branch send redesign: send = write.py: ONE new pairwise dm node version; read row = false; destination = post-branch address; no inbox write.
-
-## Target end-state
-
-- Contract library on tip encodes the owner residue for this leaf.
-- Falsifiers GREEN independently; production send.py/crons wiring is director-engine follow-on.
-
-## Invariants
-
-- Sibling slices under `goal:g7.32.6` own their own falsifiers — do not widen this leaf.
-- Does **not** open `goal:g7.31.6` / `goal:g7.32.5` (board parked).
-- NO pi under OWNER FULL STOP.
-
-## Falsifier
-
-1. `build_send_version` yields `read=False` and `destination=address`.
-2. path is `comms/dm/<a>--<b>.md` (sorted); never `sessions/inbox`.
-3. Negative: missing address refused (no hub fallback).
-
-## Out of scope
-
-- Other `goal:g7.32.6.*` siblings.
-- Parked `goal:g7.32.5` / `goal:g7.31.6`.
-
-## Agent Notes
-
-Assigned to **director-helper** under OWNER FULL STOP (NO pi). Contract-first; engine wires production later.
-
-NO-PI stopline13: dm_send_version.py + test_dm_send_version 4/4; read=false; no inbox path.
-
-##### G7.32.6.3 — ONE per-box DM sync cron; interval is a 1-3 min config cell — status: complete
-
-<!-- BODY:BEGIN -->
-# goal:g7.32.6.3
-
-## Why this exists
-
-**Parent `goal:g7.32.6`.** Owner design line for the post-branch send redesign: ONE cron per box syncs local posts' dms from each remote head. Interval = config cell `values.dm.sync_interval_min` in [1,3] (default 3).
-
-## Target end-state
-
-- Contract library on tip encodes the owner residue for this leaf.
-- Falsifiers GREEN independently; production send.py/crons wiring is director-engine follow-on.
-
-## Invariants
-
-- Sibling slices under `goal:g7.32.6` own their own falsifiers — do not widen this leaf.
-- Does **not** open `goal:g7.31.6` / `goal:g7.32.5` (board parked).
-- NO pi under OWNER FULL STOP.
-
-## Falsifier
-
-1. `interval_minutes` default 3; seconds 180.
-2. `values.dm.sync_interval_min` / `comms.dm_sync_interval_min` honored in range.
-3. Negative: out of [1,3] refused by name.
-
-## Out of scope
-
-- Other `goal:g7.32.6.*` siblings.
-- Parked `goal:g7.32.5` / `goal:g7.31.6`.
-
-## Agent Notes
-
-Assigned to **director-helper** under OWNER FULL STOP (NO pi). Contract-first; engine wires production later.
-
-NO-PI stopline13: dm_sync_cron.py + values.dm.sync_interval_min=3; test_dm_sync_cron 5/5.
-
-##### G7.32.6.4 — Nudge fires only from sync on unread local-post dms — status: complete
-
-<!-- BODY:BEGIN -->
-# goal:g7.32.6.4
-
-## Why this exists
-
-**Parent `goal:g7.32.6`.** Owner design line for the post-branch send redesign: nudge = the box sync; fires only from sync, on unread dm for a post local to this box (`AGI_BOX`). Quiet blocks unless `[red]`.
-
-## Target end-state
-
-- Contract library on tip encodes the owner residue for this leaf.
-- Falsifiers GREEN independently; production send.py/crons wiring is director-engine follow-on.
-
-## Invariants
-
-- Sibling slices under `goal:g7.32.6` own their own falsifiers — do not widen this leaf.
-- Does **not** open `goal:g7.31.6` / `goal:g7.32.5` (board parked).
-- NO pi under OWNER FULL STOP.
-
-## Falsifier
-
-1. `from_sync=False` never nudges.
-2. foreign box / already-read refuse.
-3. quiet blocks; `[red]` overrides quiet.
-
-## Out of scope
-
-- Other `goal:g7.32.6.*` siblings.
-- Parked `goal:g7.32.5` / `goal:g7.31.6`.
-
-## Agent Notes
-
-Assigned to **director-helper** under OWNER FULL STOP (NO pi). Contract-first; engine wires production later.
-
-NO-PI stopline13: dm_nudge_gate.py + test_dm_nudge_gate 4/4; sync-only local unread; quiet/[red].
-
-##### G7.32.6.5 — Read pushes read=true dm version to SENDER remote head — status: complete
-
-<!-- BODY:BEGIN -->
-# goal:g7.32.6.5
-
-## Why this exists
-
-**Parent `goal:g7.32.6`.** Owner design line for the post-branch send redesign: read = new dm node version with `read=true`, pushed to the SENDER remote head (not addressee). Others learn on next sync.
-
-## Target end-state
-
-- Contract library on tip encodes the owner residue for this leaf.
-- Falsifiers GREEN independently; production send.py/crons wiring is director-engine follow-on.
-
-## Invariants
-
-- Sibling slices under `goal:g7.32.6` own their own falsifiers — do not widen this leaf.
-- Does **not** open `goal:g7.31.6` / `goal:g7.32.5` (board parked).
-- NO pi under OWNER FULL STOP.
-
-## Falsifier
-
-1. `build_read_version` `read=True` and `destination=resolve_address(sender_row)`.
-2. `read_target=sender`; path is post-branch dm.
-3. Negative: nameless sender refused.
-
-## Out of scope
-
-- Other `goal:g7.32.6.*` siblings.
-- Parked `goal:g7.32.5` / `goal:g7.31.6`.
-
-## Agent Notes
-
-Assigned to **director-helper** under OWNER FULL STOP (NO pi). Contract-first; engine wires production later.
-
-NO-PI stopline13: dm_read_version.py + test_dm_read_version 3/3; read=true to sender remote.
-
-##### G7.32.6.6 — No separate inbox -- sessions/inbox retires on post-branch route — status: complete
-
-<!-- BODY:BEGIN -->
-# goal:g7.32.6.6
-
-## Why this exists
-
-**Parent `goal:g7.32.6`.** Owner design line for the post-branch send redesign: no inbox system: `.agi/sessions/inbox/*` retires once send/cron/nudge/read hold on the post-branch dm route.
-
-## Target end-state
-
-- Contract library on tip encodes the owner residue for this leaf.
-- Falsifiers GREEN independently; production send.py/crons wiring is director-engine follow-on.
-
-## Invariants
-
-- Sibling slices under `goal:g7.32.6` own their own falsifiers — do not widen this leaf.
-- Does **not** open `goal:g7.31.6` / `goal:g7.32.5` (board parked).
-- NO pi under OWNER FULL STOP.
-
-## Falsifier
-
-1. `assert_allowed_dm_path` accepts `comms/dm/<a>--<b>.md`.
-2. Negative: `sessions/inbox/*` refused by name.
-
-## Out of scope
-
-- Other `goal:g7.32.6.*` siblings.
-- Parked `goal:g7.32.5` / `goal:g7.31.6`.
-
-## Agent Notes
-
-Assigned to **director-helper** under OWNER FULL STOP (NO pi). Contract-first; engine wires production later.
-
-NO-PI stopline13: dm_no_inbox.py + test_dm_no_inbox 3/3; sessions/inbox refused by name.
-
-##### G7.32.6.7 — send.py production importer of dm_engine (dm-plan/dm-read-plan/dm-sync) — status: complete
-
-<!-- BODY:BEGIN -->
-# goal:g7.32.6.7
-
-## Why this exists
-
-**Parent `goal:g7.32.6`.** Production importer residue: send.py must call `dm_engine.plan_send` / `plan_read` / `sync_*` on a live CLI path (same shape as g7.32.2.1.2 magic_pane pane verb) so the post-branch contracts are not unit-only.
-
-## Target end-state
-
-- `send.py dm-plan` / `dm-read-plan` / `dm-sync` import `dm_engine` and print JSON plans.
-- `send_dm` asserts post-branch path via `dm_no_inbox` (inbox refused by name).
-- CLI-path falsifiers GREEN; no sessions/inbox write from the plan verbs.
-
-## Invariants
-
-- Does **not** open `goal:g7.31.6` / `goal:g7.32.5`.
-- Full write.py mint cutover + inbox retirement wait on `goal:g4.18.1` (director-engine).
-- NO pi under OWNER FULL STOP.
-
-## Falsifier
-
-1. `send.py --help` lists dm-plan / dm-read-plan / dm-sync.
-2. `dm-plan --row-json` with remote_head prints read=false post-branch payload; writes no inbox.
-3. Deleting the `dm_engine` call in the verb handler fails the CLI-path suite.
-
-## Out of scope
-
-- Enabling live crons.md cadence (Belam/DE).
-- Parked g7.32.5 / g7.31.6.
-
-## Agent Notes
-
-Assigned to **director-helper** under OWNER FULL STOP (NO pi).
-
-NO-PI stopline14: dm_engine + send.py dm-plan/dm-read-plan/dm-sync CLI; test_dm_engine_cli_path GREEN; send_dm asserts dm_no_inbox; write.py mint cutover waits g4.18.1
-
-##### G7.32.6.8 — crons.py dm_sync KNOWN_JOB wired to interval cell — status: complete
-
-<!-- BODY:BEGIN -->
-# goal:g7.32.6.8
-
-## Why this exists
-
-**Parent `goal:g7.32.6`.** Production crons residue: `crons.py` must know `dm_sync` as a KNOWN_JOB and schedule `send.py dm-sync` using `values.dm.sync_interval_min` (via dm_engine) when the job omits every_mins.
-
-## Target end-state
-
-- `dm_sync` in `KNOWN_JOBS`.
-- Renderer emits `python3 send.py dm-sync` on the interval cell when enabled.
-- Cadence stays **disabled** in live geometry until Belam/DE flips it (no surprise live tick).
-
-## Invariants
-
-- Does **not** open `goal:g7.31.6` / `goal:g7.32.5`.
-- Does not enable crons.md dm_sync without Belam.
-- NO pi under OWNER FULL STOP.
-
-## Falsifier
-
-1. `crons.py` source carries `dm_sync` in KNOWN_JOBS and imports/uses `dm_engine` for the interval fallback.
-2. `dm_engine.sync_schedule_expr` honors `values.dm.sync_interval_min` in [1,3].
-
-## Out of scope
-
-- Live crontab apply / geometry enable.
-- Parked g7.32.5 / g7.31.6.
-
-## Agent Notes
-
-Assigned to **director-helper** under OWNER FULL STOP (NO pi).
-
-NO-PI stopline14: dm_sync in KNOWN_JOBS; renderer uses dm_engine.sync_interval_min fallback; cadence not enabled in geometry (Belam/DE)
-
-##### G7.32.6.9 — dm_engine nudge/read/sync-tick production composer — status: complete
-
-<!-- BODY:BEGIN -->
-# goal:g7.32.6.9
-
-## Why this exists
-
-**Parent `goal:g7.32.6`.** Production nudge/read residue: `dm_engine.gate_nudge` + `plan_read` + `plan_sync_tick` compose the sync-only / local / quiet-[red] / read=true-to-sender contracts for engine callers.
-
-## Target end-state
-
-- `dm_engine.gate_nudge` / `plan_read` / `plan_sync_tick` on tip; unit falsifiers GREEN.
-- `send.py dm-read-plan` and `dm-sync` exercise the composer on a production CLI path.
-
-## Invariants
-
-- Does **not** open `goal:g7.31.6` / `goal:g7.32.5`.
-- Does not type live panes from dm-sync dry-plan.
-- NO pi under OWNER FULL STOP.
-
-## Falsifier
-
-1. gate_nudge False without from_sync; quiet blocks unless [red].
-2. plan_read destination = sender remote_head; read=True.
-3. plan_sync_tick emits only gated unread locals.
-
-## Out of scope
-
-- Live pane typing from sync; write.py push (g4.18.1).
-- Parked g7.32.5 / g7.31.6.
-
-## Agent Notes
-
-Assigned to **director-helper** under OWNER FULL STOP (NO pi).
-
-NO-PI stopline14: gate_nudge + plan_read + plan_sync_tick on tip; dm-read-plan/dm-sync CLI exercise composer; no live pane type from dry-plan
-
 ### G7.33 — ENGINE FIXES SURFACED BY THE TOWN — every engine trap the rounds hit becomes a pi round itself, run alongside the research rounds under a second (Sonnet) director; plus the two dispatch upgrades the owner named: one workflow that chains parent dispatch → drain → mur, and a batch workflow that runs rounds serially or in parallel by memory allocation and closes with a whole-batch MUR over the sub-goal that parents them — status: active
 
 <!-- BODY:BEGIN -->
@@ -9676,10 +8457,6 @@ thought-master 02:1xZ 09-21 (owner 02:1xZ via goal:g5.26): ADD G7.33.8 SESSION C
 Belam 2026-09-28: activate for write/mint foundation (redesign order skills→write/mint→spawn/rotate→messaging); nest g7.33.9 skills adoption under this
 
 Belam 20260928 ET: g7.33.9 foundation fleshed + kids g7.33.9.1/.2 minted via write.py (skills→write/mint); NO pi. Board still lists g7.33 horizon — Belam to move into stop-line when ready.
-
-helper 18:14ET FULL STOP director-direct: g7.33.9 body+kids .1/.2; .1 complete skills audit; no DH pi.
-
-2026-09-28 ~18:20 ET helper: g7.33.9.1+.2 complete (skills audit + write/mint adoption). foundation step 1-2 green on seat; NO pi; do not open g7.31.6/g7.32.5 yet (Belam board order).
 
 ##### G7.33.1.1 — BODY:BEGIN always emitted — even with create --body-file / explicit body= (residue d from g7.33.1b) — status: complete
 
@@ -9804,37 +8581,6 @@ Assigned to **director-belam**.
 
 ## Agent Notes
 Assigned to **director-belam**.
-
-###### G7.33.9.2.1 — write-log coverage audit for g7.33.9* foundation — status: complete
-
-# goal:g7.33.9.2.1
-
-# goal:g7.33.9.2.1
-
-## Why this exists
-Parent **goal:g7.33.9.2** falsifier 1: a helper commit that modifies `.agi/nodes/goal/g7.33.9*` without a matching write.py write-log entry → not done. This leaf measures write-log coverage for the foundation commit and subsequent seat writes under FULL STOP.
-
-## Target end-state
-Every committed path under `.agi/nodes/goal/g7.33.9*` on seat tip has ≥1 `write_node`/`update_node` row in `.agi/sessions/write-log.jsonl` with actor=director-helper; no hand-edit bypass after foundation land.
-
-## Invariants
-- write.py is the only writer (skill:agi-node-write / agi-goal)
-- director-direct (no-pi) under OWNER FULL STOP
-- caps ≤10/dir · ≤20 box untouched
-
-## Falsifier
-1. `python3` coverage probe: for each tip blob path matching `.agi/nodes/goal/g7.33.9*.md`, count write-log rows with matching `node_id`; any path with count=0 → not done
-2. any new `agi-helper-dispatch-DH.*` unit started for this leaf → FULL STOP violated
-
-## Out of scope
-- engine write.py traps (g7.33.1)
-- board assignment SoT lag (Belam-only)
-- activating g7.31.6 / g7.32.5
-
-## Agent Notes
-Assigned to **director-helper**. Director-direct (no-pi).
-
-2026-09-28 ~18:19 ET audit GREEN: all g7.33.9* tip paths have write-log hits (actor=director-helper); foundation commit 6007b718d4 covered; running agi-helper-dispatch DH units=0. director-direct no-pi.
 
 ##### G7.33.9.3 — [goal] title regex — id-prefix format refused/admitted by write.py — status: complete
 
@@ -10068,16 +8814,19 @@ each row becomes its own round (and its own sub-leaf if it grows) when it is dis
 | 12 | EF.92 (LH-2) | held by TM (TMM.91 list) | VOID: DONE c876dbf72 on 09-24 (TMM.241) |
 | 13 | E6 the coalesced-nudge sweep | 09-25 queue | OWED: content re-read before dispatch |
 | 14 | test_f1_rename_mode_strands_the_live_writer_on_a_BOUNDED_archive trunk load flake: freeze the stranded writer across the apply like 569ea9a1b | TMM.241 (1) | DONE 071f2ec15 (test-only; 12/12 under load; red not reproduced -- rare) |
-| 15 | DH.401 successor shape: a slot [P, fence(n)[P, ```...```]] still compounds +1 per rotation -> drop the outer fence + the duplicated P; prove on the successor shape | TMM.241 (2) | LIVE DH.409 a00-f28911bd |
+| 15 | DH.401 successor shape: a slot [P, fence(n)[P, ```...```]] still compounds +1 per rotation -> drop the outer fence + the duplicated P; prove on the successor shape | TMM.241 (2) | DONE DH.409 c36ed7d1a9 (where-it-stops slot is a fixed point at the WRITE seam; kid a00-a177f505 proved; on tip) |
 | 16 | a capture refuses whenever trunk moved (rotate-self skips the bare rotate's origin merge) -- goal:g7.33.15 residue | TMM.241 (3) + DE 17:01Z [red] | DONE DH.408 242dd3475 (registered behind seat merges at the guard; red 3/green) |
 | 17 | model_fence: _cap_from_config KeyError at import when a config lacks the cell (-> cap 0, fail closed) + the refusal names model_slot.py, not 'this suite asserts on bytes' | TMM.256 + TMM.260 (2) | DONE (director, direct; test_model_fence_cap.py red 5/green 6) |
 | 18 | a round's kid cannot fan out pytest past the box's bound -- an ENGINE fence (the suite lock and spawn_budget did not stop DH.419's 127 procs) | TMM.258/260 (1) | DONE DH.421 091808547 (TasksMax on the round scope; peaks sent to TM; the seat-wrap half NOT taken) |
 | 19 | DH.410's first live render (TMM.261): the render INLINES CLAUDE.md (26,597 B + COMMANDS) where the claude-code harness already loads it as project instructions, and prints the role template heading twice (the render's + the node's own) -> 106,144 vs 64,896 chars (+64 pct). Drop the inline CLAUDE.md for a harness that loads it itself; one template heading | TMM.261 | DONE DH.423 e636d7aa9 (director-engine render 62,304 -> 35,589 chars; only CLAUDE.md dropped) |
-| 20 | send.py read prints 'inbox ... empty' while unread dm blocks sit in the raw inbox file with the read marker already past them (TM inbox 02:20:05Z: DE 01:49Z [red] + 02:16Z [rule]), and a dm-file send can skip the nudge (DT 21:37Z [merge-up] never nudged) -> find what advances the marker without printing, and why a dm-file send skips the nudge | TMM.270 (owner in TM's pane 02:28:27Z) | DISPATCHED DH.490 a00-5bde5739 (TMM.271 dispatch now): harvested, 1 red (withheld-block test) -> mur490 + corrective |
-| 21 | the captive AUTO-CAPTURE (rotation_alert.py ~971 -> _force_capture) REPLACES a card's 'Where it stops' slot body AND its BANKED section with its one 'auto-captured at f=...' line -- a successor loses the whole owed list (DT 03:02Z; restored from f76c09619 by 8384aa443) -> a capture keeps the slot + BANKED byte-identical and APPENDS its line; test: a captured card with a multi-line slot + BANKED diffed before/after | TMM.277 | DISPATCHED DH.493 a00-7af19a42 (hypothesis:captive-capture-keeps-the-slot-and-banked-and-appends-its-line, 43447b04e) |
+| 20 | send.py read prints 'inbox ... empty' while unread dm blocks sit in the raw inbox file with the read marker already past them (TM inbox 02:20:05Z: DE 01:49Z [red] + 02:16Z [rule]), and a dm-file send can skip the nudge (DT 21:37Z [merge-up] never nudged) -> find what advances the marker without printing, and why a dm-file send skips the nudge | TMM.270 (owner in TM's pane 02:28:27Z) | DONE tip fbf5abe216 (send.py read sweeps read_dms after inbox; dm send nudges; L4 one-read 073b9378e1 proved; EG.137 also landed on lm 165c99e6ac; DH.490 red superseded) |
+| 21 | the captive AUTO-CAPTURE (rotation_alert.py ~971 -> _force_capture) REPLACES a card's 'Where it stops' slot body AND its BANKED section with its one 'auto-captured at f=...' line -- a successor loses the whole owed list (DT 03:02Z; restored from f76c09619 by 8384aa443) -> a capture keeps the slot + BANKED byte-identical and APPENDS its line; test: a captured card with a multi-line slot + BANKED diffed before/after | TMM.277 | DONE e3e730e3b0 (DH.679 / hypothesis:captive-capture-keeps-the-slot-and-banked-and-appends-its-line; APPEND path on tip; mur-eg-26 awr) |
 
 ## Who
 director-engine (engine leaf of g7.33). Model-free rounds; one row per round.
+
+## Agent Notes
+Belam NO-PI 2026-09-29: rows 15/20/21 reconciled DONE from tip bytes (DH.409, read_dms+L4 one-read, captive-capture e3e730e3b0). OWED 9/10/11/13 remain — close blocked; no pi.
 
 #### G7.33.18 — HELD (OWNER 21:1xZ via the Prime): ONE BOX MEMORY-GUARD KIT -- every box that runs seats carries local-town's memory-watch stack, sized to its own RAM, installed from the repo (assigned director-engine) — status: active
 
@@ -10155,7 +8904,7 @@ ACCEPTANCE: a committed test drives it over a tmp-root fixture + a stubbed `syst
 | 7 | the mur verify stage times out at 3600 s under load (loadavg 10-12 / 16 cores) | DH.450, 467, 469 | OWED (smaller slices or the timeout cell) |
 | 8 | the mur verify stage can return its JSON inside `unstructured`: the verdict parses only by hand | DH.466 mur-11 | OWED |
 | 9 | rotation-alert reports 'capture-chain step FAILED: rotate-self rc=1' AFTER the successor seated | 09-27 01:2xZ; recurred 13:2xZ at the director-engine wake as rc=3 (record `started`, seat live) | OWED |
-| 10 | `cli._claim_conjunct_numbers` unions testable_claim with every (n) in the body: quoted review prose inflates the conjunct count | mur-10 DH.465 | DISPATCHED DH.492 (hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only) |
+| 10 | `cli._claim_conjunct_numbers` unions testable_claim with every (n) in the body: quoted review prose inflates the conjunct count | mur-10 DH.465 | DONE EG.90 51eab0b700 (hypothesis:probe-gate-counts-claim-conjuncts-from-the-field-only; field wins over body; 0 conjunct sets change over 1309 hyps; on tip) |
 | 11 | after_join output delivered twice (pane input + a self-signed inbox dm) | 09-27 01:27Z | OWED |
 | 12 | a dispatch stale-base refusal prints the JSON then 'aimed: 1 slot' with no spawn -- reads as success | DE dispatches 09-26 | OWED |
 | 13 | a parent can harvest and exit leaving its kid's (DH.486, 488, 495) or its own (DH.489) node edits UNCOMMITTED; recurred 09-27 13:3x-14:1xZ in 3 of 5 harvests (DH.533 config cell, DH.544 x3 nodes, DH.543 x4 nodes -- every byte == write-log, landed by the director) | DH.486-495 | OWED (director lands logged bytes, TMM.268; skill agi-dispatch §5) |
@@ -10163,8 +8912,8 @@ ACCEPTANCE: a committed test drives it over a tmp-root fixture + a stubbed `syst
 | 15 | write.py `thought` rewrites the FIRST THOUGHT pair anywhere, a QUOTED pair included (node_writer.py `_THOUGHT_RE`); same regex in snapshot-goals.py, metrics.py, brief.py | mur-13 DH.481, mur-14 DH.486 | DISPATCHED DH.487 (hypothesis:thought-verb-edits-only-the-top-level-thought-block) |
 | 16 | the reaper skips REFUSED rounds (R3b) | mur-12 DH.470 | OWED |
 | 17 | parents ignore the round CEILING: DH.479, 504, 510 spawned 3-4 kids vs a 1-kid ceiling; DH.497, 506, 510 shipped 2-3x the production-line cap (108 vs 45, 79 net vs 36, +100 vs 40) -- the ceiling is prose the parent reads, never a fence (and spawn_budget._ceiling_clause reads nothing when the number sits on the next line, mur-15 DH.493); DH.533 (09-27 13:3xZ): ~240 test lines in TWO new files vs <= 100 in one; DH.537 tests +113 vs <= 50; DH.534 cli.py net +84 over the post branch vs <= 30 (the kid measured +30 against its own base, which already carried +54 -- a CEILING written relative to the post branch is misread against the round base); DH.542 send.py net +38 vs <= 15; tests over cap in DH.540 (~121/80), 550 (125/40), 551 (93/40), 554 (65/40), 555 (54/40) | DE rounds 09-27 | OWED |
-| 18 | a stale `index.lock` in a round worktree makes the parent's commit fail and the parent exits SILENT (DH.503: lock 04:01:16Z, 0 bytes, no holder; kid work left uncommitted and unreviewed); 4 more kid worktrees held one at 04:24Z | DH.503 | DISPATCHED DH.532 (hypothesis:a-stale-index-lock-is-cleared-or-named-and-a-failed-round-commit-is-never-silent) |
-| 19 | two concurrent `workflow.py run merge-up-review` launches got the SAME run key: mur511 (05:24:37Z) and murb1 (05:36Z) both print `[run-key] mur-director-engine-19` and write into one run dir -- labels differed so no verdict was lost, but run-level state is shared; the key allocation is not atomic; recurred 13:2xZ: murq (13:20:51Z) and murq8 (13:2xZ) both mur-director-engine-21 (labels differed, no clash) -- fix = DH.531, under review | director-engine 05:4xZ, /tmp logs of both units; again x8 on mur-20 | DISPATCHED DH.531 (hypothesis:a-run-key-is-reserved-atomically-so-concurrent-runs-never-share-one) |
+| 18 | a stale `index.lock` in a round worktree makes the parent's commit fail and the parent exits SILENT (DH.503: lock 04:01:16Z, 0 bytes, no holder; kid work left uncommitted and unreviewed); 4 more kid worktrees held one at 04:24Z | DH.503 | DONE EG.64 2beb0aba32 (hypothesis:a-stale-index-lock-is-cleared-or-named-and-a-failed-round-commit-is-never-silent; cli._clear_stale_index_lock + values.core.stale_index_lock_s=900; mur-eg-19 ACCEPT; on tip) |
+| 19 | two concurrent `workflow.py run merge-up-review` launches got the SAME run key: mur511 (05:24:37Z) and murb1 (05:36Z) both print `[run-key] mur-director-engine-19` and write into one run dir -- labels differed so no verdict was lost, but run-level state is shared; the key allocation is not atomic; recurred 13:2xZ: murq (13:20:51Z) and murq8 (13:2xZ) both mur-director-engine-21 (labels differed, no clash) -- fix = DH.531, under review | director-engine 05:4xZ, /tmp logs of both units; again x8 on mur-20 | DONE EG.95 c6a9757217 (hypothesis:a-run-key-is-reserved-atomically-so-concurrent-runs-never-share-one; O_EXCL run-keys marker; on tip) |
 | 20 | `replace body` traps: (a) no END keyword (`read body 1:END` refuses; skill agi-node-write said `1:END`, fixed 75b57c221); (b) the paragraph guard counts a trailing THOUGHT block into the LAST section, so a range starting at that section's heading must run through THOUGHT:END (DH.524 refused at 28:29, section end 33); a paragraph-only range passes | director-engine 05:2x-05:5xZ (DH.520, DH.522, DH.524 appends) | OWED (b); DONE (a) in the skill |
 | 21 | a parent exits leaving a kid node edit whose bytes DIFFER from its last write-log sha (DH.521: experiment:a00-9086ec16-e5b481, actor a00-b0bf124f row 2) -- unlandable by TMM.268, so the corrective item it carried stays open with nothing to say why; recurred DH.555 (14:5xZ): experiment:a00-b0bf124f-4b8eb4 dirty in the parent worktree, no write-log match -> not landed | DH.521 harvest 05:5xZ | OWED |
 | 22 | a context test OOMs its runner: test_model_load_guard.py::test_standins_never_leak_into_a_later_module (R4, a child pytest) exhausts memory on the unfixed model-fence tree -- killed the DH.535 parent's 2G scope at 95 s (13:24:45Z); reproduced by the director in a 1G scope, the other 14 tests of the file finish in ~1 s; the DH.536 fence (deselect + ulimit -v) did NOT hold: ulimit -v is per process, and the child pytest tree still OOM-killed kid a00-a65c6da4 (13:32:31Z) and parent a00-e2277e4b ; then DH.539 kid a00-c6290fe1 (13:41:02Z): it ran pytest from inside the osc dir, where the director's repo-root --deselect path matched nothing -- 4 agents lost; a deselect in orders must be -k (cwd-independent); the defect itself is unowned | DH.535 death 13:2xZ | OWED |
@@ -10182,6 +8931,8 @@ goal:g7.33.17 (the 09-25 queue) · goal:g7.33.15 · goal:g7.33.16 · goal:g7.33.
 
 ## Agent Notes
 Assigned to **director-engine**.
+
+Belam NO-PI 2026-09-29: rows 10/18/19 reconciled DONE from tip lands (EG.90/64/95). Row 15 thought-verb stays DISPATCHED (EG.142 0 code). Many OWED remain — close blocked; no pi.
 
 ### G7.34 — geometry-town + trajectory spine (umbrella) — status: horizon
 
