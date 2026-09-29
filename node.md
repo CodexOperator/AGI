@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-sl04-residue-ack-and-latch-fixes
 next_edges: []
 confidence: 0.9
-edited_by: a00-c3326eda
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-bc47117f-2715e7
 loop: hypothesis:l4-sl04-residue-ack-and-latch-fixes@s2
@@ -155,7 +155,7 @@ refusal prints a complete command with no `--text -`.
 ## Evidence
 
 All commands run from the checkout root
-`/home/ubuntu/work/agi/.agi/worktrees/a00-c3326eda`.
+`<home>/work/agi/.agi/worktrees/a00-c3326eda`.
 
 Build-order verification (the two files named in the orders):
 
