@@ -157,7 +157,6 @@ def test_the_schema_holds_the_park_tag_form(groot, tags, ok):
 # registered template maps to a goal and lives in the one formations home.
 # Strict xfail: RED on the trunk at 82d64ffe7 -- 4 of 6 map to "", and
 # doc:council-loop sits under nodes/doc/ (council bundle 2, director-general-2).
-@pytest.mark.xfail(strict=True, reason="hypothesis:formations-are-one-registry-with-one-home")
 def test_the_live_registry_maps_every_template_to_a_goal_in_one_home():
     import locations, node_writer, yaml
     root = locations.find_project_root(Path(__file__).resolve())
@@ -189,9 +188,31 @@ def test_the_live_formation_home_holds_pointers_not_copies():
         assert not re.search(r"goal:g7\.16 L\d", text), f.name
 
 
-def test_a_tally_or_prose_naming_the_mark_passes(groot):
-    """Residue 49: only the MARK shape on a goal/hypothesis trips the check."""
-    _node(groot, "goal/g6.md", "goal:g6", _T.format("11 parked: formation g7.16.2 -- rows 2 4"))
-    _node(groot, "build/b.md", "build:b", _T.format("FAILs on the retired parked: formation mark"))
+@pytest.mark.parametrize("rel,nid,thought,status", [
+    ("goal/g6.md", "goal:g6", "why\ntriage (parked: formation g7.16.2): x", "FAIL"),  # 52: line 2
+    ("goal/g6.md", "goal:g6", "parked: formation g7.16.2 -- why", "FAIL"),           # the ^ branch
+    ("build/b.md", "build:b", "triage (parked: formation g7.16.2)", "PASS"),         # not a carrier type
+    ("goal/g6.md", "goal:g6", "11 parked: formation g7.16.2 -- rows 2 4", "PASS"),   # a tally
+    ("build/b.md", "build:b", "FAILs on the retired parked: formation mark", "PASS"),  # prose
+])
+def test_only_the_mark_shape_on_a_carrier_trips_the_check(groot, rel, nid, thought, status):
+    """Residues 49 + 52: the MARK shape, on any THOUGHT line, on goal/hypothesis only."""
+    _node(groot, rel, nid, _T.format(thought))
     _cell(groot, "doc:two-step")
-    assert verification.check_formation(groot).status == "PASS"
+    assert verification.check_formation(groot).status == status
+
+
+def test_a_rejected_carrier_is_named_on_stderr(groot, monkeypatch, capsys):
+    """Residue 54: the set-active hook reports a carrier update_node REJECTS."""
+    import node_writer, write
+    (groot / "config.json").write_text("{}\n", "utf-8")
+    _cell(groot, "doc:council-loop")
+    real = node_writer.update_node
+
+    def refuse_g1(root, nid, **kw):
+        return node_writer.NodeWrite(status=node_writer.REJECTED, node_id=nid, reason="probe") \
+            if nid == "goal:g1" else real(root, nid, **kw)
+    monkeypatch.setattr(node_writer, "update_node", refuse_g1)
+    write.submit(groot, write.Edit(node_id="config:formations", set_fm={"active": "doc:two-step"}),
+                 actor="test", role="director")
+    assert "unpark REJECTED goal:g1 (parked:g7.16.2): probe" in capsys.readouterr().err
