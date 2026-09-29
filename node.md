@@ -34,6 +34,9 @@ done   W1b 14cf86000 (+mvp 82c4ec6d4): a write.py verb in MAIN commits itself by
 done   W2a 58332a732 (+mvp fe0230f3f): links.resolve_mint (no shape check: the Prime 22:1xZ) + links.py mint + write.py mint target
 done   residues 81-85 9eaf5992f · 86 claim corrected on mvp:dg3b4-wg2 · 87 88 90 93 95 c13eec672 · 89 f9261c83e · 91 92 fd8d74ab3
 FIRST  read the inbox: SM's re-mur of W2a + c13eec672 + f9261c83e + fd8d74ab3 (wf key in the dm) -> close in-loop
+BUILD1 W1 nested row (alive 841857ddb, council input on goal:g7.16.1.4): `row` must address a NESTED frontmatter row -- manifest.<key> in
+       command:commands (~2600, ~3019): unset drops only top-level keys, `set manifest` re-serialises ~2400 lines. NO new verb: extend `row`
+       (e.g. `row manifest.<key> <src|->` replace, empty src = remove). BLOCKS DG4's retire of unify.py + verify_unified.py -- build it FIRST
 NEXT   banked residues (§6 BANKED 86 94 96), then W1c goal:g4.18.5.3 (plan in §6), then W2b.1 (.6.2.1) · W2b.2 (.6.2.2) ·
        W2c A (.6.3.1 PARENTS ONLY, loader.py:210-230) · W2c B/C (.6.3.2/.3) · W2e (.6.5) · W2d .4.1 UNHELD (re-mint experiment:osc-band-call-run-a00-66d002ad ONCE,
        old history under the old ref, old->new in its THOUGHT; hypothesis keeps c89ca4b1; write.py refuses a mint change -> ONE owner-cited path) ·
