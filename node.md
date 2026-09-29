@@ -3,8 +3,8 @@ id: build:bin-write
 mint_id: e182844f902942749470304cda98f744
 type: build
 parents:
-  - goal:g7.16.1.2.7
-  - mvp:dg3-m-marker-strings
+  - goal:g7.16.1.2.6
+  - mvp:dg3-p-park-tag
 next_edges: []
 build_kind: code
 confidence: 1.0
@@ -22,5 +22,5 @@ title: "Build: extensions/agi/bin/write.py"
 # build:bin-write
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Council bundle 2 row M (director-general-3, mvp:dg3-m-marker-strings): the THOUGHT marker strings THOUGHT_BEGIN/THOUGHT_END now live in node_writer only, moved verbatim from snapshot-goals.py; snapshot-goals re-exports them and write.py's thought verb imports them. The GOALS render stays byte-identical. Bundle 1's column-0 definition (row B) is unchanged.
+Council bundle 2 row P (director-general-3, mvp:dg3-p-park-tag): a list field's ITEM form is schema data (validation.item_regex), judged by the same refusal on set and create --set; the park tag's form lives in [goal].md and [hypothesis].md. submit drops parked:<goal> from every carrier when config:formations 'set active <doc>' lands, in the same call, reading the carriers through verification.parked_carriers (one git-grep reader).
 <!-- THOUGHT:END -->
