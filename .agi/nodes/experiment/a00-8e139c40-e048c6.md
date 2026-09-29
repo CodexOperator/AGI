@@ -6,7 +6,7 @@ parents:
   - goal:g7.25.2
 next_edges: []
 confidence: 0.85
-edited_by: belam
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-8e139c40-e048c6
 line_ceiling: 40
@@ -97,8 +97,8 @@ the live node (never a copied list).
   neighbour style (`copilot_cli`, `claude_code`). Verified resolvable (1+2).
 - **`bin`** — MEASURED ABSENT, PATTERN USED. Probes run on this box:
   `ls /home/ubuntu/.npm-global/bin/ | grep -i grok` -> no output,
-  `ls /home/belam/.npm-global/bin/ | grep -i grok` -> no output,
-  `which grok` -> exit 1, `find /home/belam /usr/local /opt -maxdepth 4
+  `ls <home>/.npm-global/bin/ | grep -i grok` -> no output,
+  `which grok` -> exit 1, `find <home> /usr/local /opt -maxdepth 4
   -iname '*grok*'` -> no output, `env | grep -iE 'xai|grok'` -> empty.
   No grok binary and no grok CLI package exist on this box. The value
   `/home/ubuntu/.npm-global/bin/grok` is **the peer path pattern**, not a

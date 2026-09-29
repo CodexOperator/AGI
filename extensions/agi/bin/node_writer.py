@@ -68,7 +68,7 @@ from frontmatter import split_frontmatter  # noqa: E402
 # from a backfill run afterwards. The ENGINE's graph_core, never a project's
 # vendored src/ (which predates `mint_permanent_id` entirely).
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from graph_core.identity import mint_permanent_id  # noqa: E402
+from graph_core.identity import ensure_mint_id  # noqa: E402
 
 
 # goal:s17 -- underscore is canonical (`context/schemas/[shape].md`).
@@ -815,9 +815,8 @@ def write_node(
             res.reason = f"{node_file} already exists"
             return res
 
-    fm = {
-        "id": node_id,
-        "mint_id": mint_permanent_id(),
+    fm = ensure_mint_id({"id": node_id})   # always fresh: the id is new
+    fm.update({
         "type": ntype,
         "parents": list(plist),
         "next_edges": [],
@@ -825,7 +824,7 @@ def write_node(
         # from the scaffold placeholder", and the placeholder's identity is
         # captured here, at write time, not re-derived at check time.
         "scaffold_hash": scaffold_hash(scaffold_body),
-    }
+    })
     fm.update(extra_fm or {})
     assert set(MINTED_IDENTITY) <= set(fm), (
         "MINTED_IDENTITY names a row write_node does not build")
@@ -974,11 +973,17 @@ def _stamp_env_fields(fm: dict, *, current_season: int | None = None,
 #      `grid.py commit --all` does not mint a version recording no change.
 # ---------------------------------------------------------------------------
 
-#: The authored region, matched exactly as `snapshot-goals.py` and `metrics.py`
-#: match it. One spelling, three readers -- a fourth regex here would be the
-#: hand-maintained second copy this project keeps paying for (`goal:s17`).
+#: The authored region: BOTH markers at column 0. An indented or inline marker
+#: is a QUOTATION -- review evidence pasted into a body, or prose naming the
+#: marker -- never the authored block
+#: (hypothesis:thought-verb-edits-only-the-top-level-thought-block). Fences are
+#: NOT tracked: 3 real blocks sit after an unbalanced fence (measured 09-29).
+#: The ONE definition: brief.py, links.py, metrics.py, snapshot-goals.py and
+#: graph2sql.py read it through the functions below (`goal:s17`).
 _THOUGHT_RE = re.compile(
-    r"<!--\s*THOUGHT:BEGIN.*?<!--\s*THOUGHT:END\s*-->", re.DOTALL)
+    r"^<!--\s*THOUGHT:BEGIN.*?^<!--\s*THOUGHT:END\s*-->",
+    re.DOTALL | re.MULTILINE)
+_THOUGHT_STRIP_RE = re.compile(r"\n*" + _THOUGHT_RE.pattern, _THOUGHT_RE.flags)
 
 
 def extract_thought(body: str) -> str | None:
@@ -989,6 +994,36 @@ def extract_thought(body: str) -> str | None:
     """
     match = _THOUGHT_RE.search(body or "")
     return match.group(0) if match else None
+
+
+def thought_blocks(text: str) -> list[str]:
+    """Every authored region in `text`; the schema allows at most one."""
+    return _THOUGHT_RE.findall(text or "")
+
+
+def thought_text(body: str) -> str | None:
+    """The authored words: the region minus both marker comments, stripped."""
+    block = extract_thought(body)
+    if block is None:
+        return None
+    inner = block.split("-->", 1)[1]
+    return inner[: inner.rfind("<!--")].strip()
+
+
+def strip_thought(text: str) -> str:
+    """`text` without its authored region(s) or the newlines leading into them."""
+    return _THOUGHT_STRIP_RE.sub("", text or "")
+
+
+def replace_thought(body: str, block: str) -> str:
+    """`body` with its authored region replaced by `block`, else `block` appended.
+
+    Span-based: a quotation of the old block elsewhere in the body is untouched.
+    """
+    match = _THOUGHT_RE.search(body or "")
+    if match is None:
+        return (body or "").rstrip() + "\n\n" + block + "\n"
+    return body[: match.start()] + block + body[match.end():]
 
 
 def _carry_thought(old_body: str, new_body: str) -> str:
@@ -1250,8 +1285,8 @@ def repair_mint(root, node_id, *, announce=True) -> NodeWrite:
                       "a mint id is assigned once and never changed "
                       "(goal:g2.5) -- refusing")
         return res
-    mint = mint_permanent_id()
-    fm["mint_id"] = mint
+    fm = ensure_mint_id(fm)
+    mint = fm["mint_id"]
     # Stamp as complete, not as an untouched scaffold: this node already holds
     # real content (the reason it is being adopted at all), so the stamp is
     # the *placeholder* hash -- completion reads "body differs from stamp" ->

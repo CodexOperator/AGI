@@ -6,7 +6,7 @@ parents:
   - hypothesis:engine-tests-read-no-live-home-resource
 next_edges: []
 confidence: 0.9
-edited_by: a00-d8394ada
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-6285ca89-484879
 loop: hypothesis:engine-tests-read-no-live-home-resource@s2
@@ -98,7 +98,7 @@ Probe 2 — fixture redirection is live at call time:
 
 ```
 PROBE2 dest = /tmp/tmp0crimpym/.claude/projects/-home-x--agi-worktrees-p/sess-1.jsonl
-PROBE2 redirection live; real CC_PROJECTS_DIR = /home/belam/.claude/projects
+PROBE2 redirection live; real CC_PROJECTS_DIR = <home>/.claude/projects
 ```
 
 `rotate.CC_PROJECTS_DIR` was monkeypatched to a `tmp_path` sentinel and

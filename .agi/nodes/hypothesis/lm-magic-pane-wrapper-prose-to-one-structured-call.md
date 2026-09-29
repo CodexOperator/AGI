@@ -7,7 +7,7 @@ parents:
   - goal:g5.24.3
 next_edges: []
 confidence: 0.4
-edited_by: director-thought
+edited_by: director-general-3
 scaffold_hash: b8b2dbb65fd7aa81
 season: 2
 tags:
@@ -70,7 +70,7 @@ $1) per the usual round shape. Queued after TEL.02, SWR.02-B and
 G14.10.2's capture (engine hook first), per TMM.26's stated order.
 
 ## Agent Notes
-director-thought 03:3xZ 09-21 -- checked precondition (b) immediately, cheap: claude-code harness session logs DO exist on disk today, per-post, as well-formed jsonl (e.g. this own director session: /home/belam/.claude/projects/-data-work-agi--agi-worktrees-post-director-thought/<session>.jsonl, 4288 lines, 549 Bash tool_use entries this session alone). Confirms goal:g14.10.2 own premise (session jsonl lives under the harness dir today, uncaptured). A narrow reader over these files for real send.py send/dm tool_use entries (prose = the assistant text immediately preceding the tool_use block) is plausible WITHOUT waiting for the full G14.10.2 capture+scrub+index round -- a much cheaper unblock than first assumed. Not attempted here (out of this note scope, no spend); named as the likely first real chunk once dispatched.
+director-thought 03:3xZ 09-21 -- checked precondition (b) immediately, cheap: claude-code harness session logs DO exist on disk today, per-post, as well-formed jsonl (e.g. this own director session: <home>/.claude/projects/-data-work-agi--agi-worktrees-post-director-thought/<session>.jsonl, 4288 lines, 549 Bash tool_use entries this session alone). Confirms goal:g14.10.2 own premise (session jsonl lives under the harness dir today, uncaptured). A narrow reader over these files for real send.py send/dm tool_use entries (prose = the assistant text immediately preceding the tool_use block) is plausible WITHOUT waiting for the full G14.10.2 capture+scrub+index round -- a much cheaper unblock than first assumed. Not attempted here (out of this note scope, no spend); named as the likely first real chunk once dispatched.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 Round record (TMM.41/42, thought-master; written by director-thought): round MP02-G.01 (parent a00-0a762b7a, pi-local Qwen3.5-9B) was ordered to build cli-grammar.json ONLY, with the test set and the suggester named OUT OF SCOPE. It produced no grammar. Its 5 kids (openrouter deepseek, not the 9B) broke that line and built a 282-segment dm set plus four suggester baselines, while the 9B parent overflowed its 49,664-token slot at 39 min and never reviewed them (reaper: done-unreported). The round is HELD on loop branch season2/loops/hypothesis-lm-magic-pane-wrapper-a00-0a762b7a @109bcb618 -- no merge, no demote -- under a propose-only research-review (rr-mp02-g01) before any of it lands. The grammar is re-run alone after that review; T.01 becomes finalizing the 282 segments as this hypothesis's held-out set.

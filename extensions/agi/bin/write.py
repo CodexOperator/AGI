@@ -2915,15 +2915,10 @@ def _compose_body(root, edit: Edit) -> str:
             body = body.rstrip() + f"\n\n{NOTES_HEADING}\n{note}\n"
 
     if edit.thought:
-        block = (node_writer._THOUGHT_RE.pattern and
-                 "<!-- THOUGHT:BEGIN — authored, not derived; carried across "
+        block = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
                  "regenerating scans. The reasoning behind THIS version. -->\n"
                  f"{edit.thought}\n<!-- THOUGHT:END -->")
-        existing = node_writer.extract_thought(body)
-        if existing:
-            body = body.replace(existing, block)
-        else:
-            body = body.rstrip() + "\n\n" + block + "\n"
+        body = node_writer.replace_thought(body, block)
     return body
 
 

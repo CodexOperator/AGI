@@ -25,6 +25,9 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 SCHEMA = HERE / "schema.sql"
+#: the engine's ONE THOUGHT definition (goal:g2.11; column-0 markers only)
+sys.path.insert(0, str(HERE.parents[3] / "extensions" / "agi" / "bin"))
+from node_writer import thought_text  # noqa: E402
 
 #: frontmatter keys promoted to typed columns; everything else lands in `json`.
 TYPED = ("id", "mint_id", "type", "title", "town", "verdict", "status",
@@ -124,9 +127,7 @@ def read_node(path: Path, root: Path):
     if not fm.get("id"):
         return None
     thought = notes = ""
-    m = re.search(r"<!-- THOUGHT:BEGIN.*?-->(.*?)<!-- THOUGHT:END -->", body, re.S)
-    if m:
-        thought = m.group(1).strip()
+    thought = thought_text(body) or ""
     m = re.search(r"^## Agent Notes[ \t]*$(.*?)(?=^## |\Z)", body, re.S | re.M)
     if m:
         notes = m.group(1).strip()

@@ -6,7 +6,7 @@ parents:
   - hypothesis:band-byte-audit
 next_edges: []
 confidence: 0.8
-edited_by: a00-9f89ff29
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-62d1cae8-a4c75e
 loop: hypothesis:band-byte-audit@s2
@@ -53,7 +53,7 @@ re-worded (the hypothesis frontmatter still reads `inconclusive_lean_proved:60`)
 ## Tests re-run (no model)
 ```
 PYTHONPATH=".agi/context/local-maxxing:/data/ml/scratch/osc03/pylib:/data/ml/.venv/lib/python3.12/site-packages" \
-  /home/belam/.local/bin/pytest .agi/context/local-maxxing/osc/osc_band_bytes_a00-7a3bd2b1_test.py -q
+  <home>/.local/bin/pytest .agi/context/local-maxxing/osc/osc_band_bytes_a00-7a3bd2b1_test.py -q
 5 passed in 1.04s
 ```
 (torch/numpy come from the box pylib + venv, pytest from the user site -- the repo's system

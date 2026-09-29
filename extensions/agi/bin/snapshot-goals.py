@@ -56,6 +56,7 @@ PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 # every entry point here, so this is a plain sibling import.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+import node_writer  # noqa: E402 -- the ONE THOUGHT definition
 from node_writer import log_write  # noqa: E402
 from spawn_gate import nearest_vision_town, vision_scope  # noqa: E402
 
@@ -83,38 +84,13 @@ PROJECT_ROOT = locations.project_root_from_env() or Path(os.getcwd()).resolve()
 _graph_core_src = str(PLUGIN_ROOT / "src")
 if _graph_core_src not in sys.path:
     sys.path.insert(0, _graph_core_src)
-from graph_core.identity import mint_permanent_id, is_valid_mint_id  # noqa: E402
+from graph_core.identity import ensure_mint_id as _ensure_mint_id  # noqa: E402
 from frontmatter import split_frontmatter  # noqa: E402
 
 
-def ensure_mint_id(fm: dict) -> dict:
-    """Give `fm` a `mint_id` if it does not already carry a valid one.
-
-    **goal:s14.** Until this existed, `bin/backfill-mint-ids.py` was the only
-    thing in the system that assigned a mint id, so every node a generator
-    created arrived without one and was skipped — loudly, but skipped — by
-    `grid.py commit --all` until someone remembered to run the backfill. A
-    forgotten backfill silently cost a node its version history, which is the
-    one thing goal:g7 exists to make impossible. "Run the backfill after any
-    generator" was an unscripted manual step; this is the script.
-
-    Minting here rather than in each caller is deliberate: this is the one
-    serializer `level3.py`, `decompose-engine.py`, `backfill-mint-ids.py` and
-    this file all write through, so one hook covers every generator at once.
-
-    **Never overwrites.** A mint id is assigned once and never changes
-    (goal:g2.5), so an existing valid value is left exactly as found. An
-    *invalid* value is also left alone and reported — rewriting it would
-    silently fork the node's grid history, and a human needs to see it.
-    """
-    existing = fm.get("mint_id")
-    if isinstance(existing, str) and existing.strip():
-        if not is_valid_mint_id(existing.strip()):
-            print(f"WARN: mint_id {existing!r} is not 32 lowercase hex chars; "
-                  "leaving it as found (rewriting it would fork the node's "
-                  "grid history)", file=sys.stderr)
-        return fm
-    return {**fm, "mint_id": mint_permanent_id()}
+#: goal:s14's hook, moved to graph_core.identity (goal:g7.16.1.1.4): the one
+#: serializer every generator writes through still mints here, by import.
+ensure_mint_id = _ensure_mint_id
 
 
 #: **goal:g11.1.** Re-exported from `locations`, which is where it always
@@ -282,8 +258,6 @@ def _upsert_node_to_db(node_id: str, fm: dict, body: str, origin: str) -> None:
 THOUGHT_BEGIN = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
                  "regenerating scans. The reasoning behind THIS version. -->")
 THOUGHT_END = "<!-- THOUGHT:END -->"
-_THOUGHT_RE = re.compile(
-    r"<!--\s*THOUGHT:BEGIN.*?<!--\s*THOUGHT:END\s*-->", re.DOTALL)
 
 
 def extract_thought(body: str | None) -> str | None:
@@ -295,8 +269,7 @@ def extract_thought(body: str | None) -> str | None:
     """
     if not body:
         return None
-    m = _THOUGHT_RE.search(body)
-    return m.group(0) if m else None
+    return node_writer.extract_thought(body)
 
 
 def strip_thought(body: str) -> str:
@@ -315,7 +288,7 @@ def strip_thought(body: str) -> str:
     """
     if not body:
         return body
-    return re.sub(r"\n*" + _THOUGHT_RE.pattern, "", body, flags=re.DOTALL).rstrip()
+    return node_writer.strip_thought(body).rstrip()
 
 
 def splice_thought(new_body: str, old_body: str | None) -> str:

@@ -9,7 +9,7 @@ DMI = Path("/sys/class/dmi/id")
 DMI_FILES = ("board_name", "board_serial", "board_vendor", "product_name",
              "product_serial", "product_uuid", "chassis_serial")
 SECRETS_NODE = Path("nodes") / ".geometry" / "secrets.md"
-CLASSES = ("hostname", "ip", "mac", "board", "secret")
+CLASSES = ("hostname", "ip", "mac", "board", "secret", "home")
 MIN_TOKEN = 4
 def _run(argv):
     try:
@@ -41,11 +41,16 @@ def _secret_tokens(root):
     env = envfile.read_env(envfile.resolve(root).env_file)
     return [("secret", env[k]) for k in keys if env.get(k)]
 def box_tokens(root):
-    """[(class, value)] of physical identifiers; a fake box under a fixture."""
+    """[(class, value)] of physical identifiers; a fake box under a fixture.
+
+    The box user's home path is ENVIRONMENT, not hardware, so it rides both
+    paths (goal:g7.16.1.1.3): a fixture box still has the caller's HOME.
+    """
+    home = [("home", os.environ.get("HOME") or "")]
     fixture = os.environ.get("AGI_ANONYMIZE_FIXTURE")
     if fixture:
         data = json.loads(Path(fixture).read_text(encoding="utf-8"))
-        return [(c, str(v)) for c in CLASSES for v in data.get(c, [])]
+        return [(c, str(v)) for c in CLASSES for v in data.get(c, [])] + home
     toks = [("hostname", socket.gethostname()), ("hostname", socket.getfqdn())]
     for line in (_run(["ip", "-o", "addr"]) + _run(["ip", "-o", "link"])).splitlines():
         m = re.search(r"inet6?\s+([0-9a-fA-F:.]+)", line)
@@ -68,7 +73,7 @@ def box_tokens(root):
             continue
         if v:
             toks.append(("board", v))
-    return toks + _secret_tokens(root)
+    return toks + _secret_tokens(root) + home
 def scan(text, tokens):
     """The CLASSES present in `text` — never a value."""
     return sorted({c for c, v in tokens if len(v) >= MIN_TOKEN and v in text})

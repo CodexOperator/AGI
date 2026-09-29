@@ -6980,7 +6980,13 @@ goal:g7.16.1.1 (bundle 1) row B, first in the council's order B -> E -> {C, D} -
 
 ## Falsifier
 1. `python3 -m pytest extensions/agi/tests/test_thought_hygiene.py -q --basetemp /tmp/b1h` exits 0.
-2. Negative: `git grep -c '^
+2. Negative: `git grep -c '^<!-- THOUGHT:BEGIN' -- .agi/nodes ':!.agi/nodes/deprecated' | grep -v ':1$' | wc -l` prints 0.
+
+## Out of scope
+goal:g7.16.1.1.2 (the triage that writes through this writer) · the DE pi-lane queue (EG.185, EG.211-226)
+
+## Agent Notes
+Assigned to **director-general-1**.
 
 ##### G7.16.1.1.2 — every residue row under g1.26-g1.29 and g7.33.19 carries one mark -- keep, park (horizon, parked: formation g7.16.2), retired, or pointer to one core g7.33 leaf; g7.32.5 parked (row E; assigned: director-general-1) — status: active
 
@@ -8607,7 +8613,7 @@ merge-up-review could safely be re-dispatched, found `.agi/config.json` declares
 `root: "/home/ubuntu/work/agi"` and that exact literal (not a `{template}` var) is hardcoded
 into the prompt text of ~15 workflow.py-authored review/investigation templates. MEASURED on
 this box: `ls /home/ubuntu/work/agi` -> No such file or directory; `whoami` -> belam; `$HOME` ->
-/home/belam; the real repo root is /data/work/agi (confirmed via `ps -ef` showing real
+<home>; the real repo root is /data/work/agi (confirmed via `ps -ef` showing real
 launch-wrapper processes running from /data/work/agi). thought-master independently verified
 the same absence (TMM.183, 2026-09-25 23:0xZ) and named this the right home for the fix.
 

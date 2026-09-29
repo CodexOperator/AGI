@@ -6,7 +6,7 @@ parents:
   - hypothesis:harness-bin-paths-resolve-per-box
 next_edges: []
 confidence: 0.85
-edited_by: a00-402306e7
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-20d23796-5c4ad4
 loop: hypothesis:harness-bin-paths-resolve-per-box@s2
@@ -131,14 +131,14 @@ profile export:
 
 ```
 config bin cell     : ~/.npm-global/bin/pi
-resolved argv[0]    : /home/belam/.npm-global/bin/pi     (PI_BIN set)
-resolved (no PI_BIN): /home/belam/.npm-global/bin/pi     (cell expanded against HOME)
+resolved argv[0]    : <home>/.npm-global/bin/pi     (PI_BIN set)
+resolved (no PI_BIN): <home>/.npm-global/bin/pi     (cell expanded against HOME)
 ```
 
 And the live stage's printed command at `_run_stage_pi`:
 
 ```
-$ /home/belam/.npm-global/bin/pi -p --provider openrouter --model deepseek/deepseek-v4.1-flash --thinking high ...
+$ <home>/.npm-global/bin/pi -p --provider openrouter --model deepseek/deepseek-v4.1-flash --thinking high ...
 ```
 
 (`cmd[0]` is `prlimit`, the memory-cap wrapper; the resolved pi path is inside
@@ -194,9 +194,9 @@ harness_template._first_arg all resolve through adapters.resolve_bin; the
 /home/ubuntu literal and config-before-env precedence are gone. Five new tests
 RED on HEAD bytes, GREEN after; 344 + 346 neighbourhood tests pass with only
 the known core-sync R2 help-smoke red. Real dry run resolves argv[0] to
-/home/belam/.npm-global/bin/pi.
+<home>/.npm-global/bin/pi.
 
 ## Agent Notes
-Round 3: workflow._pi_harness_cfg, rotate._resolved_harness_bin and harness_template._first_arg all resolve the harness bin through the one adapters.resolve_bin; the /home/ubuntu literal and config-before-env precedence are gone. Five new tests RED on HEAD pre-fix bytes and GREEN after; 344+346 neighbourhood tests pass with only the known core-sync R2 harness_template help-smoke red; real dry run resolves argv[0] to /home/belam/.npm-global/bin/pi.
+Round 3: workflow._pi_harness_cfg, rotate._resolved_harness_bin and harness_template._first_arg all resolve the harness bin through the one adapters.resolve_bin; the /home/ubuntu literal and config-before-env precedence are gone. Five new tests RED on HEAD pre-fix bytes and GREEN after; 344+346 neighbourhood tests pass with only the known core-sync R2 harness_template help-smoke red; real dry run resolves argv[0] to <home>/.npm-global/bin/pi.
 
 Round 3 kid reviewed by parent a00-402306e7 on the d77c5a852..20542b83c diff. Four conjuncts HOLD by parent-run probes on the real call sites: workflow's live _run_stage_pi argv carries the EXPANDED tmp-HOME path with no raw tilde, $PI_BIN wins and an absent file refuses by name; rotate's live copilot row resolves through the adapter so $COPILOT_BIN wins, $PI_BIN does not leak, and a missing expanded file refuses naming harness+path+var; render expands a ~ cell and refuses by name. ONE probe FAILED and demoted the round: harness_template._first_arg derives $CLAUDE_CODE_BIN/$COPILOT_CLI_BIN for the hyphenated ids, so the CONVENTIONAL $CLAUDE_BIN/$COPILOT_BIN that the adapters and dispatch honour is silently ignored on the claude seat path (render('claude-code') argv[0]='claude'). Verdict proved -> inconclusive_lean_disproved:60 with probes recorded.

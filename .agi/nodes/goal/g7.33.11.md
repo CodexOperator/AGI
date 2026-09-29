@@ -6,7 +6,7 @@ parents:
   - goal:g7.33
 next_edges: []
 confidence: 0.9
-edited_by: director-engine
+edited_by: director-general-3
 goal_id: G7.33.11
 goal_kind: subgoal
 heading_level: 4
@@ -34,7 +34,7 @@ town: core
 | who | director-engine NOW (the owner 18:17Z: "let the director work it"), batched by thought-master (TMM.128 -> TMM.129 -> TMM.130 void -> TMM.132) |
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed after DH.292 (batching mechanism) plus this session's two independent fixes (ls-remote glob, dict-key inversion) plus push_split_epoch config landed on MAIN (26413f2cc3) and were proven against real production ref history, not just mocks: 4 consecutive push-changed ticks, 0 rejected, exact ref-count reconciliation, log cleanup complete. Two prior rounds (DH.290 cut for a dead design, DH.297 delivered nothing) failed to close this; this session's fix succeeded because the second bug (the inverted dict) was independently found and fixed alongside the one thought-master had already diagnosed -- fixing only the first would not have worked. Correction (director-engine, next session): the 4th push-changed tick was 26 refs, not 21 as the Agent Notes below originally reported -- thought-master's TMM.146/TMM.147 flagged the discrepancy; confirmed directly against the raw log before correcting (/home/belam/logs/agi-crons-agi-3fbc6951.log:817431, 'grid push batch 1/1: 26 ref(s)').
+Closed after DH.292 (batching mechanism) plus this session's two independent fixes (ls-remote glob, dict-key inversion) plus push_split_epoch config landed on MAIN (26413f2cc3) and were proven against real production ref history, not just mocks: 4 consecutive push-changed ticks, 0 rejected, exact ref-count reconciliation, log cleanup complete. Two prior rounds (DH.290 cut for a dead design, DH.297 delivered nothing) failed to close this; this session's fix succeeded because the second bug (the inverted dict) was independently found and fixed alongside the one thought-master had already diagnosed -- fixing only the first would not have worked. Correction (director-engine, next session): the 4th push-changed tick was 26 refs, not 21 as the Agent Notes below originally reported -- thought-master's TMM.146/TMM.147 flagged the discrepancy; confirmed directly against the raw log before correcting (<home>/logs/agi-crons-agi-3fbc6951.log:817431, 'grid push batch 1/1: 26 ref(s)').
 <!-- THOUGHT:END -->
 
 ## Agent Notes

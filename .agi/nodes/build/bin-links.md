@@ -3,12 +3,12 @@ id: build:bin-links
 mint_id: af3bbccbaa6f4aec8908e46e37816ce1
 type: build
 parents:
-  - mvp:the-modal-shell-over-the-verbs
-  - goal:g4.18
+  - goal:g7.16.1.1.1
+  - mvp:dg3-b-one-thought-definition
 next_edges: []
 build_kind: code
 confidence: 1.0
-edited_by: season.py
+edited_by: director-general-3
 location: source_root
 origin: build-scan
 payload_ref: extensions/agi/bin/links.py
@@ -23,5 +23,5 @@ title: "Build: extensions/agi/bin/links.py"
 # build:bin-links
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version as a node -- links.py had no build node until now, found while recording this change. link_path takes the nodes location and resolves through locations.resolve_payload_path, so link resolution and payload resolution agree by construction instead of by coincidence; resolve() reads location off the frontmatter it already has.
+Council bundle 1 row B (director-general-3): this file now reads the THOUGHT region through node_writer's ONE column-0 definition (extract_thought / thought_text / strip_thought / replace_thought) instead of its own regex; verdict:dg2-b-thought-marker measured the 15 corpus offenders as quotations and a carry that dropped the real block.
 <!-- THOUGHT:END -->
