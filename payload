@@ -359,8 +359,8 @@ def scan_retired_refs(root, cfg=None) -> list[tuple[str, int, str, str]]:
     for nid, fm, body in _iter_corpus(root):   # deprecated tree is status: deprecated
         known.add(nid)
         if str(fm.get("status") or "").lower() == "retired":
-            b = re.search(r"THOUGHT:BEGIN(.*?)THOUGHT:END", body, re.S)
-            retired[nid] = _successor(b.group(1)) if b else "none"
+            b = node_writer.thought_text(body)
+            retired[nid] = _successor(b) if b is not None else "none"
     src, nodes = locations.source_root(Path(root)), Path(root) / "nodes"
     no_path = [str(e) for e in cfg["exempt"] if str(e).endswith("/")]
     no_field = {str(e) for e in cfg["exempt"] if not str(e).endswith("/") and e != "THOUGHT"}
