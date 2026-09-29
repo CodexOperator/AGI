@@ -80,7 +80,7 @@ def handoff_path(root: Path) -> Path:
     """`HANDOFF.md` at the repo root, like rotate.py.
 
     `HANDOFF.md` is the deliberate exception that lives at the repo root
-    (next to `GOALS.md`), not inside the `.agi/` graph dir. `find_project_root`
+    (where the retired `GOALS.md` sat), not inside the `.agi/` graph dir. `find_project_root`
     resolves to the graph dir, so the handoff is at `repo_root(graph) / "HANDOFF.md"`
     under G11; under the legacy layout repo_root is the identity.
     """

@@ -337,21 +337,17 @@ def check_resolver(after: Path) -> CheckResult:
 
     repo_root = locations.repo_root(root)
     source_root = locations.source_root(root)
-    goals_path = locations.goals_path(root)
-    expected_goals = after / "GOALS.md"
 
     detail = {
         "find_project_root": str(root), "expected_root": str(expected_root),
         "repo_root": str(repo_root), "expected_repo_root": str(after),
         "source_root": str(source_root), "expected_source_root": str(after),
-        "goals_path": str(goals_path), "expected_goals_path": str(expected_goals),
     }
     passed = (
         root == expected_root
         and repo_root == after
         and source_root == after
-        and goals_path == expected_goals
-    )
+    )  # goals_path retired with GOALS.md (goal:g7.16.1.4.1 W-G)
     return CheckResult(
         "resolver_agrees", passed,
         "resolver agrees with the .agi layout" if passed else

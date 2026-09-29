@@ -24,7 +24,7 @@ generalises that from one node type to every node type.
    body it is handed — this module never writes a body at all.
 2. **A goal node links to itself** — `link_ref: self`. The body *is* the data,
    said uniformly rather than as an absent field, so `goal:g6.9` stands and
-   `GOALS.md` keeps rendering *from* goal bodies. **A reader never branches on
+   the goal body is the whole goal (GOALS.md retired). **A reader never branches on
    `type == goal`;** it resolves `self` like any other link. That is the whole
    difference between an exception with a name and a hole.
 3. **A missing link raises where a caller can act and is counted where it

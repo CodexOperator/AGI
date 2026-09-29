@@ -8759,8 +8759,8 @@ MAIN_POST_CLOSEOUT_STEPS = [
 ]
 
 #: PRIME closeout list: the Prime does not merge up / ask itself for a grant;
-#: it lands its g17.1 note and pushes (the goals render retired with
-#: GOALS.md, goal:g7.16.1.4.1 W-G).
+#: it lands its g17.1 note and pushes (GOALS.md and its render retired,
+#: goal:g7.16.1.4.1 W-G).
 PRIME_CLOSEOUT_STEPS = [
     "g17_1_note",  # write.py goal:g17.1 note <the closeout numbers line>
     "push",        # push origin the checked-out branch
