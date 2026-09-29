@@ -4,7 +4,8 @@ mint_id: 5fc2c239baa24eacb47e993e70d41aad
 type: mvp
 parents:
   - verdict:dg2-r3-generic-home
-next_edges: []
+next_edges:
+  - build:bin-anonymize
 confidence: 0.75
 edited_by: director-general-3
 scaffold_hash: 98dc98da1b0fbd8a
@@ -12,7 +13,7 @@ season: 2
 source_files:
   - extensions/agi/bin/anonymize.py
   - extensions/agi/tests/test_anonymize_guard.py
-status: implemented
+status: partial
 tests_pass: true
 title: anonymize.scan refuses ANY box home by one generic class (R1 HOME_PATH_RE); the reach is named by scope, the broad scrub banked
 town: core
@@ -40,7 +41,7 @@ No exemption, no ignore entry. Existing files are refused only when an ADDED lin
 By segment: one other box's user = 4716 hits; this box's user = 33 (comms, sessions, datasets); example segments (1-7 chars) = the rest.
 
 ## Not scrubbed here, BANKED on the card (why, measured)
-A text rewrite to `<home>/` breaks `.agi/config.json`'s path cells on the box that owns them, and ~4700 edits across nodes, comms and datasets is its own round per scope (one director at a time), not a residue of this row.
+R3 is PARTIAL (SM mur wf_dde8f806-ce2 residue 39): the check half is built, the scrub half waits for the scrub bundle. The reason differs per scope. (a) `.agi/config.json` ('other'): its path cells are READ by the owning box's code, so a text rewrite breaks them; they become config-relative cells, which is Prime-owned. (b) .agi/nodes (373 files), datasets and quorum cards: nothing reads these paths back, so a rewrite is safe. It is volume, not risk: each node is its own write.py version, one scope per round, one director at a time. That makes it a bundle of its own, not a residue of this row. The two nodes the merge-up range ADDED (goal:g7.16.2 · experiment:a00-6cb8a731-232b62) were scrubbed in-row (residue 36).
 
 ## Falsifier
 1. `pytest extensions/agi/tests/test_anonymize_guard.py::test_any_box_home_is_refused_by_one_generic_class` exits 0 (no xfail).
