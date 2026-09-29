@@ -7,7 +7,7 @@ next_edges:
   - verdict:hypothesis_a00-72d9d3ef-3fdc1e
 demote_reason: no experiment evidence (evidence_runs=0) for 'proved'
 demoted_from: proved
-edited_by: season.py
+edited_by: director-general-3
 season: 1
 status: inconclusive_lean_proved:50
 thought_session: season
@@ -41,7 +41,7 @@ from graph_core.loader import load_directory
 from chain_engine.chains import find_chains
 from chain_engine.attractiveness import task_attractiveness
 
-NODES_DIR = '/home/ubuntu/.hermes/agi-tree/nodes'
+NODES_DIR = '<home>/.hermes/agi-tree/nodes'
 ITERATIONS = 5
 PARALLEL_AGENTS = 10
 
