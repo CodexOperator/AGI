@@ -405,8 +405,6 @@ def test_prose_naming_the_home_dir_is_not_a_home(tmp_path, fake_box, monkeypatch
 SCRUB_SCOPES = (".agi/sessions/rotations", ".agi/sessions/quorum", "datasets", ".agi/nodes")
 
 
-@pytest.mark.xfail(strict=True, reason="bundle 3 H4 b: RED until DG3 scrubs the four "
-                   "scopes (415 files at 99c6043c7)")
 def test_no_committed_home_path_in_the_four_scrub_scopes():
     repo = Path(__file__).resolve().parents[3]
     top = subprocess.run(["git", "-C", str(repo), "rev-parse", "--show-toplevel"],
