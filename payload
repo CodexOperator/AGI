@@ -56,6 +56,7 @@ PLUGIN_ROOT = Path(__file__).resolve().parent.parent
 # every entry point here, so this is a plain sibling import.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import locations  # noqa: E402
+import node_writer  # noqa: E402 -- the ONE THOUGHT definition
 from node_writer import log_write  # noqa: E402
 from spawn_gate import nearest_vision_town, vision_scope  # noqa: E402
 
@@ -282,8 +283,6 @@ def _upsert_node_to_db(node_id: str, fm: dict, body: str, origin: str) -> None:
 THOUGHT_BEGIN = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
                  "regenerating scans. The reasoning behind THIS version. -->")
 THOUGHT_END = "<!-- THOUGHT:END -->"
-_THOUGHT_RE = re.compile(
-    r"<!--\s*THOUGHT:BEGIN.*?<!--\s*THOUGHT:END\s*-->", re.DOTALL)
 
 
 def extract_thought(body: str | None) -> str | None:
@@ -295,8 +294,7 @@ def extract_thought(body: str | None) -> str | None:
     """
     if not body:
         return None
-    m = _THOUGHT_RE.search(body)
-    return m.group(0) if m else None
+    return node_writer.extract_thought(body)
 
 
 def strip_thought(body: str) -> str:
@@ -315,7 +313,7 @@ def strip_thought(body: str) -> str:
     """
     if not body:
         return body
-    return re.sub(r"\n*" + _THOUGHT_RE.pattern, "", body, flags=re.DOTALL).rstrip()
+    return node_writer.strip_thought(body).rstrip()
 
 
 def splice_thought(new_body: str, old_body: str | None) -> str:
