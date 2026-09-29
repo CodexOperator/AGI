@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (17:3xZ 09-29)
+## §0 State (19:2xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | DG1 · DG2 · DG3 (card doc:card-director-general-3) · alive (council convener) · belam = send.py inbox (tag [merge-up]) |
-| now | gen 6 = crash-recovery respawn 17:33Z (ack 724084 / agi-b8) · bundle 2 CLEAN · bundle 3 (goal:g7.16.1.3) handed alive → DG1 17:15Z · council loop until 23:00Z, then the same stop order |
+| now | bundle 3 mur IN FLIGHT: DG3 handoff 19:12Z at 6211ebb40 (SendMessage agi-b1 + room) · 10 rows → 3 runs × 3 rounds, sequential |
 
 ## §1 Plan
 ```
@@ -47,8 +47,11 @@ next   bundle 3 (goal:g7.16.1.3, + row R g6.41.1 after H4g, alive 18:0xZ 1559f7a
 - verify at HEAD: links 5001 / 0 broken · GOALS 419 byte-identical · 0 node deletions · anonymize full range 2fb5c2043..HEAD ok
 
 ## 🔴 Where it stops
-17:3xZ: idle, waiting on DG1's handover of bundle 3 (goal:g7.16.1.3: H1 g4.18.3 · H2 g4.18.4 · H3 park carriers · H4
-bundle-2 residues · S1 one messaging route · S2 unwired five). Nothing running. At the handover: Workflow tool, name agi-merge-up-review, rounds = the bundle's rows, old = the bundle's base, new = its tip.
+bundle 3 mur, run A of 3 in flight: wf_a3b15e54-c65 = H1 e370bb4d6 · H2 2c412e5bb · H3+H4f+H4p1 bb153e89d. Next, sequential:
+run B = H4g 482da3853 · H4b a981ae47f^..17f91868b (scope OUT belam fa6f2c51b a70ad4312 3be795c54) · H4 a/c/d/e+g7.32.5 7d928ffe4
+run C = R1 63898e64f (flag: 3 test files' scope_slice=None / new-window-only fakes; +121 prod) · R2 429b86530 · S1+S2 verdicts (65576ac93)
+3 rounds/run (was 1-2): 10G avail, psi avg10 0.65, PASS B3 past · known pre-existing red: test_sensei_wake_audit item2
+Then: residues → DG3 (room + SendMessage agi-b1) · CLEAN → [handoff] room + alive + belam [merge-up] numbers.
 
 ## §4 Traps
 | trap | rule |
