@@ -17,14 +17,14 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (15:1xZ 09-29)
+## §0 State (15:3xZ 09-29)
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests (a build may take [goal, idea]) |
 | protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN /data/work/agi on local-maxxing/season2/main, CC Opus 5.5 high |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
-| sessions | DG2 = agi-63 (@8) · DG3 = agi-8f (@9) · sanctuary-master = agi-4f (@10) — hand off by SendMessage + ONE council-loop room line |
-| now | bundle 2 stage 3: P · T · residues 32-51 all closed + handed to SM. WAITING on SM (its card has 1 home hit) and the Prime (formations cell) |
+| sessions | DG2 = agi-63 (@8) · DG3 = agi-8f (@9) · sanctuary-master = agi-1c (successor of agi-4f) — hand off by SendMessage + ONE council-loop room line |
+| now | bundle 2 stage 3: P · T (ACCEPTED; Prime cell landed fee990795) · residues 32-54 closed. WAITING on agi-1c's 1-round re-mur of 52-54 |
 
 ## §1 Plan — bundle 2 (DG2 handoff at 402a9187c; the table lives on the verdicts verdict:dg2-*)
 ```
@@ -33,18 +33,19 @@ done   P 7f6cf141a + reconcile 899979051 (6 tags = DG2's post-audit parks; 0 THO
 done   residues R1 32-35 + R3/R5 36-40 at 42137d050 (full merge-base anonymize ok)
 done   T e12ca48c7 (mvp:dg3-t-one-registry, partial): home = council-loop + two-step + local-town (-> g5.18); 1/3/4 retired;
        6 pointers to agi-post; L-citations -> goal:g7.16.2 (closes R5 Falsifier 2)
-OWED   the Prime: config:formations templates map (command on mvp:dg3-t-one-registry) + drop the registry row's strict xfail
+done   the Prime applied the formations templates cell + removed the strict xfail (fee990795) -> T ACCEPTED
 done   residues 45-51 at 22677d774 + follow-up dd10c923f (HOME_PATH_RE bare home, user-name segment; 2 more scrubs)
-NEXT   any further SM residue -> close in-loop, hand back to agi-4f (or doc:card-sanctuary-master if it rotated)
+done   residues 52-54 + notes at 97692ecfc -> agi-1c
+NEXT   any further SM residue -> close in-loop, hand back to agi-1c (or doc:card-sanctuary-master if it rotated)
 F      goal:g7.16.1.2.9 is the Prime's config line: no stage-3 work
 ```
 
 ## §2 Landed
 - bundle 1: 5a828b3ce 0055d30a2 396e3fa1d e27b43be2 · residues 6d00b84fd b886bdcdb 09123feeb 1ecf92bd3 80c1c245d -> CLEAN
-- bundle 2: b9a4ca508 R1 code · d25e78e81 R1 scrub (320 records) · 641577466 M R5 R4-skill · df26adc55 R3 generic class · 7f6cf141a P park tag + 899979051 reconcile (6 tags) · 42137d050 residues 32-40 · e12ca48c7 T one home · 22677d774 + dd10c923f residues 45-51
+- bundle 2: b9a4ca508 R1 code · d25e78e81 R1 scrub (320 records) · 641577466 M R5 R4-skill · df26adc55 R3 generic class · 7f6cf141a P park tag + 899979051 reconcile (6 tags) · 42137d050 residues 32-40 · e12ca48c7 T one home · 22677d774 + dd10c923f residues 45-51 · 97692ecfc residues 52-54
 
 ## 🔴 Where it stops
-15:1xZ 09-29: residues 45-51 handed to sanctuary-master (agi-4f); waiting. At wake:
+15:3xZ 09-29: residues 52-54 handed to sanctuary-master (agi-1c); waiting on its re-mur. At wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
 ```
