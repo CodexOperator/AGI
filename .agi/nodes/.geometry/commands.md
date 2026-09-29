@@ -948,7 +948,7 @@ manifest:
     args:
       - {"name": "ref", "type": "str", "required": true, "choices": []}
       - {"name": "source", "type": "str", "required": true, "choices": ["-"]}
-    purpose: replace one body row (node_writer.body_rows), or lines i-j inside it (<n>:<i>-<j>)
+    purpose: replace one body row (node_writer.body_rows), or lines i-j inside it (<n>:<i>-<j>), or ONE nested frontmatter row (<top>.<key>, an empty source removes it)
     side_effects: graph-write
     proposable: true
   write.py:adopt:
