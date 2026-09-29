@@ -155,8 +155,9 @@ def test_the_schema_holds_the_park_tag_form(groot, tags, ok):
 # --- goal:g7.16.1.2.8 · hypothesis:formations-are-one-registry-with-one-home
 # The LIVE registry (a corpus row, like the thought-hygiene corpus test): every
 # registered template maps to a goal and lives in the one formations home.
-# Strict xfail: RED on the trunk at 82d64ffe7 -- 4 of 6 map to "", and
-# doc:council-loop sits under nodes/doc/ (council bundle 2, director-general-2).
+# RED on the trunk at 82d64ffe7 -- 4 of 6 map to "", and doc:council-loop sat
+# under nodes/doc/ (council bundle 2, director-general-2); green since the
+# home move (e12ca48c7) and the Prime's templates cell (fee990795).
 def test_the_live_registry_maps_every_template_to_a_goal_in_one_home():
     import locations, node_writer, yaml
     root = locations.find_project_root(Path(__file__).resolve())

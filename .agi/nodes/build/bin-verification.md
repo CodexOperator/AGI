@@ -26,5 +26,5 @@ town: core
 `extensions/agi/bin/verification.py` -- the one verification pass (skill agi-verify): check levels quick / rotation / full, the node-count floor, the suite window, and the built-in checks (anonymize, bin freshness, seat model, node dirs, formation).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Council bundle 2 residue 49 (director-general-3, SM re-mur wf_f6343a9c-419): the THOUGHT-mark check matches the MARK shape, the mark at the THOUGHT start or after a paren, and only on goal/hypothesis nodes (the only park carriers). A tally or prose that names the mark no longer FAILs the check. Row P's tag read-back (_grep_live, parked_carriers) is unchanged. Prior THOUGHT: grid history.
+Council bundle 2 residues 49 + 52 (director-general-3): the THOUGHT-mark check matches the MARK shape on ANY THOUGHT line (re.M), at a line start or after a paren, and only on goal/hypothesis nodes. A tally or prose naming it passes. Row P's tag read-back is unchanged. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

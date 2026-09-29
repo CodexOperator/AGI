@@ -28,7 +28,7 @@ verdict:dg2-r1-rotation-home (lean_proved:80): 109 rotation records carried this
 
 ## The minimum (built)
 ```
-definition   anonymize.HOME_PATH_RE  /(home|Users)/<segment>/  + anonymize.home_relative(text): this box's HOME -> "~",
+definition   anonymize.HOME_PATH_RE  /(home|Users)/<user>[/]  (<user> = [\w-][\w.-]*, trailing / optional; residue 46)  + anonymize.home_relative(text): this box's HOME -> "~",
              any other box's home dir -> "<home>/". ONE spelling; R3's check reuses it
 writer       rotate._dump_record = json.dumps(_home_rel(obj), indent=2): every string value, every record writer
              (_write_rotation_record + 9 direct dumps: seating, handover merge, after_join record_commit,
@@ -48,3 +48,7 @@ A record another post has modified but not committed (skipped by name, never com
 ## Falsifier
 1. `env -u TMUX -u TMUX_PANE pytest extensions/agi/tests/test_rotation_record_home.py` exits 0: written `~`-relative (no xfail) · another box's home -> `<home>/` · the resolver expands `~` and passes the absolute form.
 2. Negative (residue 35): run anonymize.HOME_PATH_RE (the ONE definition, never a looser re-spelling that spans prose spaces) over the TRACKED `.agi/sessions/rotations/*.json` at HEAD, so the .txt snapshots are excluded by construction. It prints 1 of 373 at ae4ca98ed: belam.20260913T013315Z.json (2 hits). That record is belam's, written by heal's watch path, which residue 33 now routes through _dump_record. sanctuary-master named it to belam for PASS B3, so this row does not touch it. Every other record: 0.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Residue versions (director-general-3): 45 made the test rows one per writer, each able to fail; 46 widened HOME_PATH_RE to a bare home with a user-name segment. The definition line now spells that form. Prior version (R1 built, residues 32-35): grid history.
+<!-- THOUGHT:END -->

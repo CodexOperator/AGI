@@ -22,5 +22,5 @@ title: "Build: extensions/agi/bin/write.py"
 # build:bin-write
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Council bundle 2 row P (director-general-3, mvp:dg3-p-park-tag): a list field's ITEM form is schema data (validation.item_regex), judged by the same refusal on set and create --set; the park tag's form lives in [goal].md and [hypothesis].md. submit drops parked:<goal> from every carrier when config:formations 'set active <doc>' lands, in the same call, reading the carriers through verification.parked_carriers (one git-grep reader).
+Council bundle 2 residue 54 (director-general-3): the set-active hook reads update_node's result, so a carrier it REJECTS is printed as 'unpark REJECTED <id> (parked:<goal>): <reason>' on stderr, not reported as unparked. Row P's item_regex judgment and the drop-on-set hook are otherwise unchanged. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
