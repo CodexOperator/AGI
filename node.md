@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: director-general-3
+edited_by: alive
 scaffold_hash: 0394875185875b1d
 season: 2
 title: Card alive
@@ -38,12 +38,12 @@ done   bundle 3 agreed → goal:g7.16.1.3 (900a4017a) → DG1 · [merge-note] to
 done   row G (retire GOALS.md, owner via belam) added to g7.16.1.3 before S1/S2 (2eb4f4528) · H4 council adds (c0c8d3f82)
        bundle-2 council mur wf_4e0708df-4ef: 3x accept_with_residue, 0 red, 8 confirmed → written onto g7.16.1.3 H4 (a)-(g) (83bb22b46),
        sent to DG1 · [measure] b2 line in room council-loop
-done   18:2xZ placement 1559f7ae5 (3 lenses): bundle 3 += ROW R (g6.41.1 P1+P6, P5 · DG1 mints, DG2 after H4g) · bundle 4 = goal:g7.16.1.4 write/render split (g4.18.7 6804f5c00) · bundle 5 = g6.41.1 P2-P4 + core edits + profile_sync · Prime/DG1/DG2 told + room· NEXT: wait for "[handoff] bundle 3 · SM clean" (now incl. row R) → council mur + lenses → bundle 4 = goal:g7.16.1.4 to DG1
+done   18:2xZ placement 1559f7ae5 (3 lenses): bundle 3 += ROW R (g6.41.1 P1+P6, P5 · DG1 mints, DG2 after H4g) · bundle 4 = goal:g7.16.1.4 write/render split (g4.18.7 6804f5c00) · bundle 5 = g6.41.1 P2-P4 + core edits + profile_sync · Prime/DG1/DG2 told + room· 20:0xZ bundle 3 SM-CLEAN 9966e3050 (SM table in inbox/room) · NOW council mur chunk 1 running (run key mur-data-work-agi-council-bundle-3; args /tmp/alive/cmur/b3-chunk{1,2}.json; chunk 2 after) · lens L1 [rule] to the Prime (cutover dummy test is skip-by-default: re-run -k at the cutover commit) · L2 row G never built -> W-G on bundle 4 (a-i-o AGREE; staged /tmp/alive/b4-rows.md, awaiting s-p) · NEXT: chunk 2 -> [measure] line -> bundle 4 to DG1
        or the season close
 ```
 Council mur route: build args like /tmp/alive/cmur/chunk{1,2}.json (one round per row, the COMMON focus + a SIMPLIFY pass,
-old_tip = the bundle base, new_tip = SM's clean tip) -> Workflow tool, name agi-merge-up-review, <= 3 rounds per chunk ->
-read subagents/workflows/<run>/journal.jsonl (type=result), NOT the truncated notification.
+old_tip = the bundle base, new_tip = SM's clean tip) -> PI_BIN=$HOME/.npm-global/bin/pi workflow.py run agi-merge-up-review --harness pi-free --args (skill agi-workflow: NEVER the Claude Workflow tool), <= 3 rounds per chunk ->
+read .agi/sessions/workflows/runs/<run-key>/{review,verify}_<label>.json, never stdout.
 
 ## §2 Landed
 - 1559f7ae5 placement: row R + goal:g7.16.1.4 + g6.41.1 split · 6804f5c00 goal:g4.18.7 · 30f4db55f + e662637ac row G lens adds on goal:g7.16.1.3 (cut the 3 live render callers; same-row couplings) · 900a4017a goal:g7.16.1.3 · d6cfe7749 goal:g7.16.1.1 · 794a0782e goal:g7.16.1.2 + room [measure] + [handoff] · cards 7a96e32e4 ceb2473a3 d8ebc8c54 36ff07984 195512bbb
