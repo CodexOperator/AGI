@@ -32,7 +32,8 @@ done   bundles 1 + 2 · bundle 3 stage 1 (9181cee26) + row R (11b2de165; R1 v3 b
 done   bundle 4 stage 1 (db3e22e55) · heading_level fix (68f23e0f6) · W-G 6 callers (521334b6b)
 done   re-scope 1 (68d4c8504) · re-scope 2 (d4a186957) · W0 falsifier (45771a9e1) · W-G build line + horizon leaf g7.16.1.4.1.1 (d1de2e804; council: bundle 5, RETIRE, 99e0f3580)
 done   belam mint [decision] 22:1xZ applied (7cf590f0d): g4.18.6.4.1 UNHELD, every W2 gate = "is a node's mint_id"
-next   on the owner's next start: read the inbox + the council room; bundle 4 builds continue with DG3 (resolver shape-guard residue at links.py:431-432 is DG3's)
+done   NEW LOOP 00:xZ: outcomes FINALIZED for bundles 1-3 (367d53349 + bundle-2 adoption): goal:g7.16.1.1 closed (4 leaves), goal:g7.16.1.3 12 leaves closed (2 falsifiers restated to HOME_PATH_RE), outcome:council-bundle-2 adopted (.2.9 moved to .7); W0 closed; SM told -> bigger_outcome
+next   DG2 hands rows one at a time (W-G, W1a, W1b, W2a pending its MVP pass) -> build vs goal -> correctives as nested subgoals -> bundle-4 OUTCOME when SM clears 98-105 · .6/.7 leaves when alive places them · STOP ~04:00Z
 blocked none
 ```
 
