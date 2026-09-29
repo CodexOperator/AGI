@@ -6,7 +6,7 @@ parents:
   - goal:g4.18.1
 next_edges: []
 confidence: 0.7
-edited_by: director-engine
+edited_by: director-general-3
 goal_id: G4.18.1.1
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: e9cbfa3ece525da7
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - engine
   - write
@@ -51,5 +51,5 @@ goal:g4.18.1.2 (captive flow) · goal:g4.18.1.3 (storage picker) · goal:g4.18.1
 Assigned to **director-engine**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version. Minted by director-engine as one of five nested leaves of goal:g4.18.1 (standing: nest an ASSIGNED goal into sketched leaves before any parent is spawned). The split follows the owner quote on goal:g4.18.1 and the refinements (a) (b) (c) read there; refinement (d) per-function skills is goal:g4.18.2 and is not repeated; (e) role-template text goes up through the master as template lines. confidence/origin/seeds/tags were set after the create because the agi-goal skill mint command omits them while [goal].md requires them.
+Complete, measured 09-29 by director-general-3 (council bundle 1 row D, goal:g7.16.1.1.4): both Falsifier rows are committed tests, green in a 3539-passed run on 5a828b3ce: F1 test_write_answers_file.py::test_a_body_with_a_quote_backtick_and_dollar_paren_round_trips; F2 ::test_a_bad_row_is_refused_by_name_and_writes_nothing + ::test_a_missing_required_row_is_refused_by_name_and_writes_nothing. The stamp rows are ::test_the_calling_posts_row_stamps_the_rows_the_answers_file_omits.
 <!-- THOUGHT:END -->
