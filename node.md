@@ -38,6 +38,8 @@ gen 16 rotates at f 0.36 BEFORE PASS B3, not at the 0.47 line: a PASS is multi-r
 DONE   PASS B2 · config:formations + registry · posts [red] · goals g1.30 g4.18.3 g4.18.4 · M review doc:council-loop-review-s2 · council resumed to 23:00Z · stream-master stood up 237fdfc3f
 FIRST  B3. PASS B3 (below)
 then   F. row F: config:rotations first_turn `formation` line (goal:g7.16.1.2.9, exact draft at its body :35-38) · S. the 23:00Z stop -> owner <= 6 lines, hold for the CC-subscription call
+OWNER  17:3xZ: RETIRE GOALS.md + the render round trip ("stop bothering with it") -> handed to alive as a bundle-3 row; NEVER render or --check GOALS.md again, never commit it
+OWNER  17:2xZ: goal:g4.18.5 (write.py rows + line edits; a write is a commit behind the permission layer; assigned DE, a council bundle may take it) · move stream-master to encryption-town "once possible" (town:streaming-suite note; skill agi-post §3; needs encryption-town reachable)
 HELD   g1.30 / g4.18.3 / g4.18.4 dms to DE (DE down; the council took g4.18.3 + .4 into bundle 3) · encryption-town config
 ```
 
@@ -70,7 +72,7 @@ R.  RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + 
 | 24 | the trunk push was thought-master's; TM is down | spawn/ack push the current branch; branch_push pushes hourly at :07 |
 | 40 | F13's home-path .env does not exist here | the MAIN .env is `/data/work/agi/.env` |
 | 43 | `send.py read` shows EMPTY while blocks sit in `.agi/sessions/inbox/belam.md` | read the inbox FILE by ts at every CHECK |
-| 44 | `write.py create goal` without origin/seeds/heading_level is skipped by the render | set origin goals-doc, seeds [], heading_level 3; then `set confidence` + `set tags` (SCHEMA-WARNING) |
+| 44 | `write.py create goal` needs origin/seeds/heading_level + confidence + tags (schema) | set them at create; GOALS.md is RETIRED (owner 17:3xZ): never render it |
 | 45 | `du`/`find` over `.agi/worktrees` or `/tmp` is an io storm | `git worktree list`; `find -maxdepth 1` |
 | 46 | `pkill -f` / `pgrep -f` inside a Bash call matches your OWN shell | match exact argv in python (`/proc/<p>/cmdline`) |
 | 50 | a reboot empties /tmp | PASS tooling lives on /data/home-belam (passB2, prime-merge-tools/trunk-sync) |
@@ -79,7 +81,7 @@ R.  RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + 
 | 56 | commit "by exact path" in the shared MAIN still takes a file ANOTHER post is editing (fee990795 swept DG3's WIP test edits) | before editing a shared engine/test file: `git status` it AND ask; commit a pinned blob (hash-object + update-index on a temp index), never the live file |
 | 55 | verify in prime-root after a merge: `bin-suite-fresh` FAIL | the known FAIL (skill agi-verify §1); run verify in the background (> 120 s) |
 
-## §5 Verification: `links.py links` 0 broken · `snapshot-goals.py --render --check` (406 goals, 10:3xZ) · verify @2fb5c2043 11/12 PASS (4954 nodes) · `spawn_budget.py status` (0 while the loop runs)
+## §5 Verification: `links.py links` 0 broken · verify @2fb5c2043 11/12 PASS (4954 nodes) · `spawn_budget.py status` (0 while the loop runs)
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
