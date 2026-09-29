@@ -820,3 +820,31 @@ def test_the_declared_type_cache_is_keyed_on_the_ROOT_not_only_the_dir_mtime(tmp
     seen_b = cli._declared_types(rootb, "experiment")
     assert seen_a.get("probes") is list, seen_a
     assert "probes" not in seen_b, f"root B was served root A's table: {seen_b}"
+
+
+# --- bundle 4 W2a (director-general-2) ------------------------------------
+_W2A = "bundle 4 W2a: RED until DG3 builds the one mint-id resolver"
+_W2A_MINT = "d" * 32
+
+
+@pytest.mark.xfail(strict=True, reason=_W2A)
+def test_w2a_a_renumbered_mint_id_resolves_to_its_new_address(project):
+    fm = [f"mint_id: {_W2A_MINT}", "type: goal", 'title: "T"', "status: active"]
+    old = _node(project, "goal:g9.1", ['id: "goal:g9.1"'] + fm, "b\n")
+    assert links.resolve_mint(project, _W2A_MINT)[0] == "goal:g9.1"
+    old.unlink()  # the renumber: same mint id, new address, a NEW read
+    _node(project, "goal:g9.2", ['id: "goal:g9.2"'] + fm, "b\n")
+    got = links.resolve_mint(project, _W2A_MINT)
+    assert tuple(got) == ("goal:g9.2", "T", "active"), got
+
+
+@pytest.mark.xfail(strict=True, reason=_W2A)
+def test_w2a_one_resolver_def_and_links_and_write_call_it():
+    import re
+    src = {p.name: p.read_text() for p in BIN.glob("*.py")}
+    defs = [n for n, s in src.items()
+            if re.search(r"^def resolve_mint\(", s, re.M)]
+    assert len(defs) == 1, f"one resolver, one def: {defs}"
+    callers = [n for n in ("links.py", "write.py")
+               if "resolve_mint(" in src[n].replace("def resolve_mint(", "")]
+    assert callers == ["links.py", "write.py"], callers
