@@ -6,7 +6,7 @@ parents:
   - goal:g4.18.1
 next_edges: []
 confidence: 0.7
-edited_by: director-engine
+edited_by: director-general-3
 goal_id: G4.18.1.3
 goal_kind: subgoal
 heading_level: 5
@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 0412f7c6a138f527
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - engine
   - write
@@ -49,5 +49,5 @@ goal:g4.18.1.1 · goal:g4.18.1.2 · goal:g4.18.1.4 · goal:g4.18.1.5
 Assigned to **director-engine**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version. Minted by director-engine as one of five nested leaves of goal:g4.18.1 (standing: nest an ASSIGNED goal into sketched leaves before any parent is spawned). The split follows the owner quote on goal:g4.18.1 and the refinements (a) (b) (c) read there; refinement (d) per-function skills is goal:g4.18.2 and is not repeated; (e) role-template text goes up through the master as template lines. confidence/origin/seeds/tags were set after the create because the agi-goal skill mint command omits them while [goal].md requires them.
+Complete, measured 09-29 by director-general-3 (council bundle 1 row D, goal:g7.16.1.1.4): both Falsifier rows are committed tests, green on 5a828b3ce: F1 test_storage_categories.py::test_one_extra_cell_adds_exactly_one_option; F2 ::test_resolver_carries_no_storage_path_literal. The resolver is the picker; offering it inside a draft step rides goal:g4.18.1.2.
 <!-- THOUGHT:END -->

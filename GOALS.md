@@ -3160,7 +3160,11 @@ Most of the plumbing exists: `write.py create`'s spawn gate, `--payload` (links 
 ## Routing
 assigned: director-engine. FIRST of the three graph redesigns (OWNER 01:0xZ 09-27, verbatim: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): the hub-only send is written through write.py, so it builds on this route; spawn/rotate (goal:g7.31.3.3) comes after send.
 
-##### G4.18.1.1 — one row validator + an answers file -- a mint is rows checked against the type schema, stamped from the calling post, no shell-quoted values — status: active
+## Falsifier
+1. `for i in 1 2 3 4 5; do grep -m1 '^status:' .agi/nodes/goal/g4.18.1.$i.md; done | grep -vc complete` prints 0: every leaf's own Falsifier has run green (.1 `test_write_answers_file.py` · .3 `test_storage_categories.py` · .2 .4 .5 the rows their builds commit).
+2. Negative: `git grep -nE "\[.mint_id.\] *= *mint|new_fm\[.mint_id.\] *=|\"mint_id\": *mint_permanent_id" -- extensions/agi/bin extensions/agi/src | wc -l` prints 1: one mint route assigns ids (goal:g7.16.1.1.4; 4 before 5a828b3ce).
+
+##### G4.18.1.1 — one row validator + an answers file -- a mint is rows checked against the type schema, stamped from the calling post, no shell-quoted values — status: complete
 
 # goal:g4.18.1.1
 
@@ -3222,7 +3226,7 @@ goal:g4.18.1.1 · goal:g4.18.1.3 · goal:g4.18.1.4 · goal:g4.18.1.5
 ## Agent Notes
 Assigned to **director-engine**.
 
-##### G4.18.1.3 — the storage picker -- location options derived from config paths cells and schemas, pick + append or custom — status: active
+##### G4.18.1.3 — the storage picker -- location options derived from config paths cells and schemas, pick + append or custom — status: complete
 
 # goal:g4.18.1.3
 
