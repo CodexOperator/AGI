@@ -7,7 +7,7 @@ parents:
 next_edges: []
 confidence: 0.95
 contradicts: []
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-b393b716-70ff40
 scaffold_hash: ccb3df8f305a07be
@@ -31,7 +31,7 @@ The hypothesis claims two things:
 ### Input
 
 ```bash
-cd /home/ubuntu/work/agi
+cd <home>/work/agi
 python3 extensions/agi/bin/write.py "task:t-011" "set tier -1" \
   --actor "exp-a00-b393b716" --session "iter-1068"
 ```
