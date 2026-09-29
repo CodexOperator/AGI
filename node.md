@@ -6,7 +6,7 @@ parents:
   - goal:g7.33.14
 next_edges: []
 confidence: 0.75
-edited_by: a00-3b546363
+edited_by: director-general-3
 evidence_runs:
   - hypothesis:a00-6c0fde58-e25ca1
 loop: goal:g7.33.14@s2
@@ -50,7 +50,7 @@ Cells as committed (`.agi/config.json`, identical in the main checkout):
 ```
 box: {root: /home/ubuntu/work/agi, logs_dir: /home/ubuntu/logs,
       tmux_session: agi-rc, user: ubuntu, allow: []}
-this box: whoami=belam  HOME=/home/belam  root=/data/work/agi
+this box: whoami=belam  HOME=<home>  root=/data/work/agi
 ```
 
 `paths.classify` (`paths.py:18-24`) with those live cells:
@@ -62,7 +62,7 @@ this box: whoami=belam  HOME=/home/belam  root=/data/work/agi
 | `ROOT = "/home/ubuntu/work/agi"` | `home, user, box` |
 | `user: ubuntu` | `user` |
 | `LOGS=/home/ubuntu/logs` | `home, logs, user` |
-| `HOME=/home/belam` | `home` |
+| `HOME=<home>` | `home` |
 
 The `box` class is a regex on the cell VALUE (`re.escape(v)` against the
 line), so a foreign cell value cannot match a local literal by construction.
