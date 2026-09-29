@@ -68,7 +68,7 @@ from frontmatter import split_frontmatter  # noqa: E402
 # from a backfill run afterwards. The ENGINE's graph_core, never a project's
 # vendored src/ (which predates `mint_permanent_id` entirely).
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from graph_core.identity import mint_permanent_id  # noqa: E402
+from graph_core.identity import ensure_mint_id  # noqa: E402
 
 
 # goal:s17 -- underscore is canonical (`context/schemas/[shape].md`).
@@ -815,9 +815,8 @@ def write_node(
             res.reason = f"{node_file} already exists"
             return res
 
-    fm = {
-        "id": node_id,
-        "mint_id": mint_permanent_id(),
+    fm = ensure_mint_id({"id": node_id})   # always fresh: the id is new
+    fm.update({
         "type": ntype,
         "parents": list(plist),
         "next_edges": [],
@@ -825,7 +824,7 @@ def write_node(
         # from the scaffold placeholder", and the placeholder's identity is
         # captured here, at write time, not re-derived at check time.
         "scaffold_hash": scaffold_hash(scaffold_body),
-    }
+    })
     fm.update(extra_fm or {})
     assert set(MINTED_IDENTITY) <= set(fm), (
         "MINTED_IDENTITY names a row write_node does not build")
@@ -1286,8 +1285,8 @@ def repair_mint(root, node_id, *, announce=True) -> NodeWrite:
                       "a mint id is assigned once and never changed "
                       "(goal:g2.5) -- refusing")
         return res
-    mint = mint_permanent_id()
-    fm["mint_id"] = mint
+    fm = ensure_mint_id(fm)
+    mint = fm["mint_id"]
     # Stamp as complete, not as an untouched scaffold: this node already holds
     # real content (the reason it is being adopted at all), so the stamp is
     # the *placeholder* hash -- completion reads "body differs from stamp" ->
