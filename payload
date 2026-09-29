@@ -12183,7 +12183,7 @@ def _button_down(*, root: Path, branch_allow: bool = True,
 
 
 # -- s11: the cheapest verification level rotate-self cites (<15s) -------
-VERIFICATION_LEVEL = "quick"  # links + goals-check + write-guard (verification.py:14)
+VERIFICATION_LEVEL = "quick"  # links + write-guard (verification.py:14)
 BOOTSTRAP_SHAPE = "v1"        # shape id of <sessions>/seats/<seat>.bootstrap.json
 
 
@@ -12191,7 +12191,7 @@ def _run_verification(root: Path, argv: list[str] | None = None) -> dict:
     """s11 — run verification.py at the cheapest existing level and return it.
 
     Level `quick` (`--json`) is the cheapest existing level
-    (links + goals-check + write-guard, <15s — verification.py:14) and is the
+    (links + write-guard, <15s — verification.py:14) and is the
     one this round actually cites; it never runs pytest (the suite window is
     the prime's, verification.py is read/ran, never edited). `argv` is the
     test seam (a fixture root has no graph to verify). NEVER raises: any
