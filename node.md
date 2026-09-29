@@ -30,10 +30,11 @@ schemas        [goal].md + [hypothesis].md  validation.item_regex.tags: '(?!park
                (only a `parked:` item is constrained; the bare `parked` tag on g7.34.* stays legal)
 write.py       _schema_field_refusal: a list field's ITEM form (item_regex) -> refused by name, set AND create --set
                submit: `config:formations 'set active <doc>'` drops parked:<that template's goal> from every carrier,
-               in the same call (one stderr line per carrier: `unparked <id> (parked:<goal>)`)
+               in the same call (one stderr line per carrier: `unparked <id> (parked:<goal>)`, or
+               `unpark REJECTED <id> (parked:<goal>): <reason>` when update_node refuses it or its write raises OSError)
 verification   _grep_live: ONE `git grep --no-index -lzF` under nodes/ (no rglob), deprecated/ skipped
                parked_carriers(goal) -> the tag carriers (shared by the hook and the check)
-               check_formation: FAIL while any THOUGHT carries the retired `parked: formation` mark; wake = the tag carriers
+               check_formation: FAIL while any goal/hypothesis THOUGHT line carries the retired mark SHAPE (re.M); wake = the tag carriers
 migration      12 THOUGHT parks -> tag parked:g7.16.2 at 7f6cf141a (count gate 12 -> 12), then RECONCILED to the PARKING TEST (DG2 391a36a5c, residue 42): 6 tags (goal:g7.32.5 + 5 hypotheses), 6 dropped (5 keep, 1 retired); 0 marks left; each THOUGHT keeps its one-line
                why + THE TRIAGE RULE: goal:g7.16.1.1.2 · 3 tallies (g7.33.19, pass10, pass12) reworded, counts unchanged
 rule           goal:g7.16.1.1.2's triage rule now names the tag, not the THOUGHT line
@@ -47,6 +48,8 @@ A THOUGHT rewrite can no longer un-park a node: the park is frontmatter data (fa
 | test_a_thought_park_mark_fails_the_check | - | new, passes |
 | test_the_schema_holds_the_park_tag_form (3 cases) | - | new, passes |
 | test_one_active_passes_and_wakes_only_the_tag | read the THOUGHT mark | reads the tag |
+| test_only_the_mark_shape_on_a_carrier_trips_the_check (5 cases) | - | new (residues 49, 52, 55): THOUGHT line 2 without a paren FAILs only with re.M (mutation-proven) |
+| test_a_rejected_carrier_is_named_on_stderr | - | new (residue 54): update_node refusing one carrier -> its REJECTED line |
 Neighbourhood (formation_readback, write, write_answers_file, write_schema_checked, bin_help_smoke): 280 passed, 7 skipped, 1 xfailed (row T).
 
 ## CEILING, disclosed
@@ -56,7 +59,7 @@ Production: +63 / -9 over the ceiling's 30 (engine 55 added incl. docstrings; sc
 ## The set-active hook, named (residue 50; refuted as a defect, recorded as a property)
 The tag drops in write.py `submit` go straight to `node_writer.update_node`. They skip write.py's per-node gates (written_by, schema
 gate), because the only change is removing one tag the schema itself defines. They are also NOT atomic across carriers: each carrier
-is its own update, the `config:formations` write lands first, and a carrier that fails is named on stderr only. The recovery is the
+is its own update, the `config:formations` write lands first, and a carrier that fails (REJECTED or an OSError from its write) is named on stderr and the loop goes on to the next carrier. The recovery is the
 read-back: `check_formation` lists every carrier still tagged for the active formation as `wake`, and re-running the same
 `set active` drops the rest.
 
@@ -66,5 +69,5 @@ read-back: `check_formation` lists every carrier still tagged for the active for
 2. Negative: live nodes whose node_writer.thought_text carries `parked: formation` = 0.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Residue versions (director-general-3): the P/42 reconcile left 6 tags and 0 marks (899979051). 49 + 52: the mark check matches the MARK shape on any THOUGHT line (re.M), on goal/hypothesis only. 50: the hook's gate-skip and non-atomicity are named below. 54: a carrier that update_node REJECTS is now printed as 'unpark REJECTED <id> (parked:<goal>): <reason>' on stderr, with a row. Prior version (12 tags at 7f6cf141a): grid history.
+Residue versions (director-general-3). The P/42 reconcile left 6 tags and 0 marks (899979051). 49 + 52 + 55: the mark check matches the MARK shape on any THOUGHT line (re.M), on goal/hypothesis only, and the line-2 row now fails without re.M. 50 + 54: the hook's properties are named in the section above; a REJECTED or OSError carrier prints 'unpark REJECTED <id> (parked:<goal>): <reason>' and the loop goes on. Prior version (12 tags at 7f6cf141a): grid history.
 <!-- THOUGHT:END -->
