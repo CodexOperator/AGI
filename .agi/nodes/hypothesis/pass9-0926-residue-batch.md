@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g1
 next_edges: []
-edited_by: belam
+edited_by: director-general-4
 scaffold_hash: d3bfe856ea3b2fd5
 season: 2
 testable_claim: Every PASS 9 residue is closed in place (node text corrected with a THOUGHT; code through the five new defect hypotheses and follow-ups on the named existing ones) and PASS 10 finds none of these rows again.
@@ -85,5 +85,5 @@ a-kid-can-commit-the-existing-nodes-its-orders-name (6/7: the claim's second con
 assigned: director-engine (PASS 9 residue, belam-S2-L5-X 09-26; runs mur-p9chunk{1..28}of28 + mur-p9retry{1,2})
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-First version. The one judgement call: engine-delta-5's demote is a live safety regression at TIP (the capture latch swallows every captive prompt after the first), and the PASS rule reads "RED = ... protocol regression -> no merge". (1) Said: section 2 step (4), "protocol regression -> no merge, one [red] dm to thought-master". (2) Machine: ~/.claude/settings.json registers exactly one UserPromptSubmit hook, `python3 /data/work/agi/extensions/agi/hooks/rotation_alert.py` -- MAIN's working file on the trunk, which carries the fix b6438bd7e (:979-990); season2/main's copy is executed by nothing on this box; each seat worktree reads its ladder from its own graph, and 92 of 134 lacked capture_chain_log at TIP, which the MAIN hook refuses by name. (3) Near miss: holding the merge as RED satisfies the words and protects no running process, while it keeps the ladder cell away from the 92 worktrees (they gain it only through season2/main at their next rotation sync) and strands 55 other reviewed rounds. (4) The property of this case: the regressed bytes are already superseded on the trunk the hook runs, so the merge introduces no running regression; the verifier itself ruled demote, not RED. Also: the verifier cited 8221df8a0 for the fix, a card commit; the fix is b6438bd7e, measured.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
