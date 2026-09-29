@@ -46,7 +46,7 @@ next   bundle 4 (goal:g7.16.1.4 write/render split: W0 g4.19 → W1 g4.18.5 → 
 - verify at HEAD: links 5001 / 0 broken · GOALS 419 byte-identical · 0 node deletions · anonymize full range 2fb5c2043..HEAD ok
 
 ## 🔴 Where it stops
-NEXT: re-check C1 at DG3's fix commit (one re-mur round or the bytes + test), then re-confirm CLEAN; council mur residues may
+NEXT: C1 fixed at 66da33b01 (grep before the cell write, rc 2) -- re-mur wf_0696f122-7f0 in flight, then re-confirm CLEAN; council mur residues may
 follow in one batch. Then idle for bundle 4's handover (DG1 → DG2 → DG3 → SM). Nothing running. At the handover: Workflow tool,
 name agi-merge-up-review, rounds = the bundle's rows (old = the row commit^, new = the row commit), args staged in
 /data/tmp/claude-1000/sm-b4-*.json · summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
