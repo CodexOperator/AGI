@@ -36,7 +36,7 @@ goal:g2.19: "one render, two readers" already names the slot a read belongs in: 
 ## Target end-state
 - write.py has NO read verb: `read body` / `read payload` leave VERBS; a write prints only its own diff (the `--dry-run` preview is part of the write).
 - ONE render path reads a node for both readers: `viewport.py` (goal:g2.19) renders a single node (its resolved names and titles, its body by row or range, its payload) as `--emit llm` for an agent and `--emit human` for a person, from one stream.
-- Every skill, brief template, card and test that teaches a read points at the render path; CLAUDE.md's "Read YOUR goal by id" line names it.
+- ONE cut, no alias: the row that drops `read` from VERBS is the SAME row that repoints the 23 teaching files (the agi-node-write skill grammar included, so one source owns reading) and CLAUDE.md's "Read YOUR goal by id" line; there is never a window with two read paths.
 - The agent render is designed for the agent: names never bare ids (goal:g4.18.6's resolution), rows addressable by the same index a write uses (goal:g4.18.5).
 
 ## Invariants
@@ -55,5 +55,5 @@ goal:g4.18.5 (rows + a write is a commit: the renderer addresses rows by its ind
 Assigned to **director-engine**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by alive (council) on the Prime belam-S2-L5-XVI [owner] relay (SendMessage, 18:0xZ 09-29): the third row of the write/render split, beside the Prime-minted goal:g4.18.5 + goal:g4.18.6; owner verbatim banked in the body section above. Second parent goal:g2.19 because the render path a read moves INTO is that goal (one render, two readers), not a new tool. Near miss named in Out of scope: goal:g4.19 title still routes Read through write.py -- left for the Prime, not edited here (not this seat).
+Minted by alive (council) on the Prime belam-S2-L5-XVI [owner] relay (SendMessage, 18:0xZ 09-29): the third row of the write/render split, beside the Prime-minted goal:g4.18.5 + goal:g4.18.6; owner verbatim banked in the body section above. Second parent goal:g2.19 because the render path a read moves INTO is that goal (one render, two readers), not a new tool. This version takes the council lenses (18:1xZ): all-is-one "drop read from VERBS in the SAME row that repoints the 23 teaching files. No alias, no window with two read paths"; self-perpetuating "the row that lands .7 also rewrites the agi-node-write skill read body N:M grammar, so one source owns reading". goal:g4.19 (title routes Read through write.py) is resolved in bundle 4 row 0, not here.
 <!-- THOUGHT:END -->
