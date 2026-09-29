@@ -202,5 +202,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over b9eebb9f0 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (parked: formation g7.16.2): reaping a kid chain: dispatch-only. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.1) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
+triage (keep): the PARKING TEST fails -- git grep -n '_reap_chain(' -- 'extensions/agi/bin/*.py' (13:0xZ 09-29) = heal.py:989 and :2751 (heal, every formation) + rotate.py:11766 and :20830 (rotation, every formation); no caller is dispatch-only. This version moves the mark parked -> keep (council lens review, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2 (council bundle 2). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
