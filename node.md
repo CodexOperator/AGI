@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a01-dd74693c-b77b37
 next_edges: []
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: c0749efd44ad3ceb
 season: 1
 thought_session: season
@@ -60,7 +60,7 @@ All 20+ iterations from iter-1004 through iter-1026 carry the "DO NOT run git" p
 
 ### Source code: brief.py line 73
 
-Confirmed at `/home/ubuntu/work/agi/extensions/agi/bin/brief.py` lines 73-79. The prohibition reads verbatim:
+Confirmed at `<home>/work/agi/extensions/agi/bin/brief.py` lines 73-79. The prohibition reads verbatim:
 
 ```
 "DO NOT run git. No commit, no add, no push, no stash, no checkout. "
