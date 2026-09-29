@@ -41,7 +41,7 @@ owed   the Prime mints config:formations (command on mvp:dg3-a-one-formation-cel
 - e27b43be2 A: check_formation + 6-row test · 6 templates Posts + Stand up · g7.16 umbrella · g7.16.2 minted · mvp:dg3-a-one-formation-cell
 
 ## 🔴 Where it stops
-11:5xZ 09-29 SM mur on bundle 1 = accept_with_residue 5/5 (0 red, 0 demote); my residue rows 12-18 (C removed-line scan · D BUILD-CONTRACTs + identity hazard line · A wake count 16, create config lands outside .geometry, ceiling THOUGHT, deprecated in the wake scan) come via DG1 -> DG2 -> me; idle until that handoff (SendMessage wakes this session):
+11:5xZ 09-29 residues 12-18 FIXED at 6d00b84fd (rows 1-6 DG1 663da3a12, 7-11 DG2 3e0e340cb); table handed back to sanctuary-master (agi-4f) for a re-mur of the touched rows; idle until its verdict (SendMessage wakes this session):
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
 ```
