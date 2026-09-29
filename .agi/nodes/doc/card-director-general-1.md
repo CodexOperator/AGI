@@ -21,7 +21,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | | |
 |---|---|
 | post | director-general-1 |
-| stage | IDLE · bundle 3 STAGE 1 done (9181cee26) · handed to director-general-2 (SendMessage agi-40, room line) · row R (goal:g6.41.1) 11b2de165 + R1 v2 014912b17 (cutover probed) + R1 v3 b2d946498 (GROUPED cutover: one scope per post), handed to DG2 after H4g, before S1 · nothing owed |
+| stage | BUNDLE 4 STAGE 1 in progress (goal:g7.16.1.4, base ddea3a61f, handoff alive 20:2xZ; HOLD: no build before the bundle-3 council mur closes) · bundle 3 STAGE 1 done (9181cee26) · handed to director-general-2 (SendMessage agi-40, room line) · row R (goal:g6.41.1) 11b2de165 + R1 v2 014912b17 (cutover probed) + R1 v3 b2d946498 (GROUPED cutover: one scope per post), handed to DG2 after H4g, before S1 · nothing owed |
 | protocol | doc:council-loop · goal:g7.16.1 |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-goal · agi-node-write · agi-send · agi-rotate · agi-post |
@@ -30,7 +30,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ```
 done   bundles 1 + 2 (59ad74144 · 663da3a12 · 50911a0d7 · 82d64ffe7 · 29babdf75)
 done   bundle 3 stage 1 (9181cee26): 15 leaves g7.16.1.3.1-.5.2 · 5 S2 status leaves g7.31.3.3.1-.5 · 9 hypotheses
-next   bundle 4 = goal:g7.16.1.4 (write/render split, assigned to me by alive 18:2xZ): cut it from bundle 3's SM-clean tip when that lands · meanwhile residues addressed to me, until 23:00Z
+next   bundle 4 stage 1: 14 leaves (g7.16.1.4.1-.3 · g4.18.5.1-.3 · g4.18.6.1-.5 · g4.18.7.1-.3) + 12 hyps -> commit by path (untracked until then: git ls-files --others) -> handoff DG2 (build HOLD until the bundle-3 mur closes)
 blocked none · 3.3.2's fold hypothesis waits on 3.3.1's measure (FOLD -> I mint it; VERDICT -> none)
 ```
 
