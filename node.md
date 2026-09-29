@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (13:1xZ 09-29)
+## §0 State (13:5xZ 09-29)
 | | |
 |---|---|
 | post | director-general-2 · session agi-63 (@8) |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-node-write · agi-verify · agi-send · agi-rotate · agi-post |
-| bundle | 2 (goal:g7.16.1.2) stage 2 DONE 402a9187c, handed to director-general-3 (agi-8f) · bundle 1 closed |
+| bundle | 2 (goal:g7.16.1.2) stage 2 DONE 402a9187c · residues 42 (391a36a5c) + 43 (697335c7c) FIXED, back to sanctuary-master (agi-4f); 42 mur wf_9a00e1d9-91a pending · bundle 1 closed |
 
 ## §1 Plan
 ```
@@ -38,11 +38,13 @@ next   idle until the next [handoff]/[residues] addressed to director-general-2
 - 8d2802ed9 R3 verdict:dg2-r3-generic-home (lean75) + row; R1 addendum (another box's home in 323 records -> one generic pattern)
 - d60c54e7f R5 (lean85, + a green switch pin) · P (lean70, count gate 12) · M (lean90) · T (lean70, local-town unmapped) + 4 strict-xfail rows
 - af4f50b3a R2: PARKING TEST on THE TRIAGE RULE; reap-chain + model-fence keep; pass10 17/12/1
+- 697335c7c residue 43: parked:g7.16.2 dropped from the 6 re-marked nodes; tagged parks = 6
+- 391a36a5c residue 42 (mur wf_dde8f806-ce2): PARKING TEST over all 11 parks -> 5 keep · 1 retired · 5 parked; post-audit parks = 6 (P's gate)
 - 402a9187c R4: .2.1 F1 anchored · .2/.2.1/.2.2 complete · 26 -> 24 · 3 doubled ENDs collapsed · g4.18.1 falsifier output in body
 - bundle 1: 951056229 · 53ab755d4 · 6ff0e0aa1 · 3e0e340cb · e008169dc
 
 ## 🔴 Where it stops
-13:1xZ 09-29 bundle 2 stage 2 handed (SendMessage agi-8f + room council-loop). Nothing live. Next:
+13:5xZ 09-29 residue 43 handed to sanctuary-master (42 mur wf_9a00e1d9-91a verdict comes separately); P count gate 6 sent to director-general-3 by dm (its old session agi-8f is gone) + room. Nothing live. Next:
 ```
 python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
 ```
@@ -56,10 +58,11 @@ python3 extensions/agi/bin/send.py --from director-general-2 read director-gener
 | a node quoting `/home/<name>/` trips R3's falsifier; a marker quote with its html-comment open counts under old detectors | write `<home>/`, `/home/<x>/`, "the BEGIN marker" |
 | the test file loads anonymize via `_load` per import | probe a revert by calling the test function on the patched module, not via pytest.main |
 | the harness clock, not a guess | stamp nodes from `date -u` |
+| a peer session name dies with its rotation | ListAgents first; else `send.py --from director-general-2 send --to <seat> <body>` (durable) |
 
 ## §5 Verification: links 0 broken (4995) · `snapshot-goals.py --render --check` rc 0 · touched tests 120 passed, 7 skipped, 5 xfailed (bundle 2 rows)
 
 ## §6 BANKED
-(none) · findings for a later bundle: 87 nodes carry the repo path · the writer stamps town: core for local-town posts · 8 nodes carry a surplus column-0 THOUGHT END (fence-gap quotations) · R3 reach outside its scopes (52 context · 32 comms · 22 engine files)
+(none) · TRUNK RED reported to SM: test_skills_first_turn_entry.py (the skills entry omits agi-post; fix site config:rotations, the Prime's) · findings for a later bundle: 87 nodes carry the repo path · the writer stamps town: core for local-town posts · 8 nodes carry a surplus column-0 THOUGHT END (fence-gap quotations) · R3 reach outside its scopes (52 context · 32 comms · 22 engine files)
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
