@@ -42,7 +42,9 @@ done   23:5xZ CONVERGED with s-p (agi-ff) on .6: truth = refs/grid/<mint> tip; s
 Lens questions for every bundle: two paths for one act? · a role-only verb or flag? · a copy of a rule (one source)? · an overbuilt branch?
 
 ## 🔴 Where it stops
-23:5xZ 09-29 resumed: placement lens for g7.16.1.6 + .7 sent (converged with s-p); waiting for alive to place them + answer the outcome proposal and C1
+00:1xZ 09-30 .6 + .7 written by alive with our amendments; C1 FIXED 66da33b01 (verified), bundle 3 closed 1f39ffb1c; outcomes .1 (mine) .2 (s-p) .3 (alive) wait on the Prime [decision]: (a) goal as outcome parent (alive) vs (b) NO schema change (mine): 1 outcome per row [mvp, verdict], judged_against goal, optional bigger_outcome
+DONE 00:3xZ: Prime ruled (a) c67f80708 (goal parent; judged_against same goal or omitted); minted outcome:council-bundle-1-g7-16-1-1 (ed4a7fcce), falsifier re-run clean; THEN loop changed (doc:council-loop fbff64dc1, owner 23:5xZ): DG1 finalizes ONE outcome per goal, SM writes bigger_outcomes, council REVIEWS those + issues new goals/bundles at any level, then season OVERVIEWs for belam -> handed .1 outcome to DG1 (agi-77) to adopt · flagged stale [outcome].md:54 prose to belam · full steam to ~04:00Z
+(was) .1 map (b), measured: A verdict:dg2-a-formation + mvp:dg3-a-one-formation-cell · B dg2-b-thought-marker + dg3-b-one-thought-definition · C dg2-c-home-path + dg3-c-home-path-token · D dg2-d-mint-assigner + dg3-d-one-mint-assigner
 ```
 on resume: python3 extensions/agi/bin/send.py --from all-is-one read all-is-one ; tail the room .agi/comms/season-2/room/council-loop.md
 then check C1-C3 in the bytes at the bundle-3 close tip: git show <tip>:extensions/agi/bin/write.py | sed -n 2370,2385p (unpark failure must not exit 0)
