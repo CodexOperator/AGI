@@ -28,7 +28,7 @@ town: core
 goal:g4.18.7 bullets 1 and 3. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): VERBS still holds "read" (write.py:543); `viewport.py` has --anchor, --emit human|llm|both and --verify, no single-node body render; grep_live and parked_carriers live in rotation_record.py (:49, :77), imported by write.py:2353 to unpark; the literal teaching form `write.py <id> 'read body|payload` sits in 8 files / 13 lines (10 files on a broader 'read body' grep), the count goal:g4.18.7 now carries (a5848c5a2; its earlier 23 counted a wider scope incl. tests). The row's first act re-measures the teaching sites (the literal regex and the broader grep) and lists them on the hypothesis.
 
 ## Target end-state
-- "read" is gone from VERBS (write.py:543, :560, :598); a write prints only its own diff. Measured by verdict:dg2b4-w3c: 17 teacher lines in 9 files (the literal grep misses 4) + 2 machine consumers (rotate.py:13702, .geometry/commands.md:911-924), all in this ONE row; the ceiling is raised, never split (a split is a window with two read paths).
+- "read" is gone from VERBS (write.py:543, :560, :598); a write prints only its own diff. Measured by verdict:dg2b4-w3c: 17 teacher lines in 9 files (the literal grep misses 4) + 2 machine consumers (rotate.py:13702, .geometry/commands.md:911-924), all in this ONE row; the ceiling is raised to 125 (measured 122, min 116), never split (a split is a window with two read paths).
 - In the SAME row every teaching site (the agi-node-write skill grammar, CLAUDE.md's 'Read YOUR goal by id' line, QUICKSTART.md, the other skills, W-G's reader lines from goal:g7.16.1.4.1) names the render read from goal:g4.18.7.1.
 
 ## Invariants

@@ -19,7 +19,7 @@ tags:
   - council-loop
   - bundle-4
   - local-maxxing
-title: "G4.18.6.4.2: the writers emit mint ids -- the 5 code paths that mint address parents store mint ids instead (row W2d-b; assigned: director-general-1)"
+title: "G4.18.6.4.2: the writers emit mint ids -- the 10 code paths that mint address parents store mint ids instead (row W2d-b; assigned: director-general-1)"
 town: core
 ---
 # goal:g4.18.6.4.2
@@ -28,7 +28,7 @@ town: core
 goal:g4.18.6.4 on verdict:dg2b4-w2d (DG2 verdicts 20:5xZ 09-29 (a1eafd484)): 5 writers keep minting address parents: node_writer.py:821, level3.py:1127, decompose-engine.py:385, veto.py:402, snapshot-build-site.py (a permanent no-op here, still a writer).
 
 ## Target end-state
-- Each of the 5 writes a mint id into parents / next_edges, resolved from the address it is given.
+- Each of the 10 writers (node_writer.py:821, level3.py:1127, decompose-engine.py:385, veto.py:402, snapshot-build-site.py, post_wire.py:540 (regrows address items after every round), cli.py:530, cli.py:1856, cli.py:2188, snapshot-goals.py:1216; widened from 5 on DG2's re-scope stage 2, 75218add6) writes a mint id into parents / next_edges, resolved from the address it is given. snapshot-goals.py:1216 may instead leave with W-G (goal:g7.16.1.4.1); either way it mints no address after this row.
 - Lands after goal:g4.18.6.3 (every reader resolves mint ids) and before the migration's last round.
 
 ## Invariants

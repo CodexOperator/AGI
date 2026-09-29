@@ -19,7 +19,7 @@ tags:
   - council-loop
   - bundle-4
   - local-maxxing
-title: "G4.18.6.3.1: the loader resolves mint ids in one post-pass -- every reader built on graph_core's loader gets resolved parents and next_edges from graph_core/loader.py:90 (row W2c family A; assigned: director-general-1)"
+title: "G4.18.6.3.1: the loader resolves parent mint ids in one post-pass -- every reader built on graph_core's loader gets resolved parents from load_directory (loader.py:210-230), the resolver passed in (row W2c family A; assigned: director-general-1)"
 town: core
 ---
 # goal:g4.18.6.3.1
@@ -28,7 +28,7 @@ town: core
 goal:g4.18.6.3 split by family on verdict:dg2b4-w2c (DG2 verdicts 20:5xZ 09-29 (a1eafd484)): 17 reader modules, ~40 sites, 3 families; 0 of 17 call a resolver; 15 of 17 print differently for a mint-id twin. Family A is every reader that loads through graph_core/loader.py.
 
 ## Target end-state
-- One post-pass at graph_core/loader.py:90 resolves each parents / next_edges item through goal:g4.18.6.1; a mint-id fixture loads identical to its address twin for every family-A reader.
+- PARENTS ONLY (graph_core's Node has no next_edges field; next_edges readers are family B, goal:g4.18.6.3.2): one post-pass in load_directory (graph_core/loader.py:210-230, not :90) resolves each parents item through goal:g4.18.6.1's resolver, PASSED IN by the caller (graph_core imports nothing from bin); a mint-id fixture loads identical to its address twin for every family-A reader.
 
 ## Invariants
 - One resolver; the post-pass is its only caller in family A.

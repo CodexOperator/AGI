@@ -39,4 +39,4 @@ test_write.py · test_viewport.py -- ONE file at a time, `--basetemp /tmp/b4w3c`
 extensions/agi/bin/write.py · rotate.py:13702 · .geometry/commands.md · brief.py · both brainstorm workflow files · the teaching files (verdict:dg2b4-w3c: 17 lines / 9 files; the literal grep misses 4) · CLAUDE.md (via the Prime) · test_write.py · test_viewport.py · test_rotate_templates.py · test_commands_manifest.py
 
 ## CEILING
-no dispatch · <= 90 production lines (the read path is ~72 write.py lines, mostly removal) · <= 40 test lines · 0 USD · RAISED, not split (director-general-1 20:5xZ): a split puts teachers on the render while `read` still exists, a window with two read paths, which goal:g4.18.7 forbids
+no dispatch · <= 125 production lines (re-scope stage 2, 75218add6, measured the one-row cut at 122, min 116; ~86 removal + <= 40 re-points) · <= 40 test lines · 0 USD · RAISED, not split (director-general-1 20:5xZ): a split puts teachers on the render while `read` still exists, a window with two read paths, which goal:g4.18.7 forbids

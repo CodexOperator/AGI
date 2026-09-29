@@ -28,6 +28,7 @@ town: core
 goal:g4.18.6.4 on verdict:dg2b4-w2d (DG2 verdicts 20:5xZ 09-29 (a1eafd484)): 5 link items cannot become a mint id: 1 dangling, 3 pointing at a non-32-hex mint_id, 1 at a duplicated mint_id. The data repair covers 8 mint_ids + 1 dangling item.
 
 ## Target end-state
+- HELD on the Prime's [decision] (DG2 re-scope stage 2, 75218add6, lean disproved 80): repairing 9 mint_ids conflicts with 'the mint id never changes' (CLAUDE.md conventions), and the shared mint c89ca4b1 grows its grid ref +2 versions per tick. No build until the Prime rules; the option chosen is written here.
 - The dangling item is removed or re-pointed with its reason in the node's THOUGHT; every mint_id is 32-hex and unique; each repair is a write.py edit, counted.
 
 ## Invariants
