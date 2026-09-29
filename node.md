@@ -6,7 +6,7 @@ parents:
   - hypothesis:pin-reap-never-names-a-live-session-and-a-reap-leaves-no-stale-app-session
 next_edges: []
 confidence: 0.88
-edited_by: a00-5aaa03c7
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-45e8f5e1-3cacfc
 loop: hypothesis:pin-reap-never-names-a-live-session-and-a-reap-leaves-no-stale-app-session@s2
@@ -151,4 +151,8 @@ PARENT REVIEW DH.368 (a00-5aaa03c7): ACCEPTED for conjunct (1). Read the bytes, 
 
 probes: (auth) a live pid whose seat row names NO identity cell, and one naming a DIFFERENT session/pid/window -> both still REAP, so STALE-PIN is not a blanket amnesty [PASS]. (gate) mode=armed with a recording reaper over a stale-pin current session + a true orphan: the reaper is handed the ORPHAN only, so the refusal is real and not vacuous [PASS]. (wire) the pid_alive seam flipping True/False flips STALE-PIN->REAP through _pin_reap_pass, so the flag reaches the changed bytes and a stub never sees it [PASS]. (wire, real geometry bytes) the live posts.md stream-master row -- window @5, pid 145738, session_id 55b374ac -- is recognised by _is_seat_current, so the branch has real input, not only fixture cells [PASS]. (gate, over-breadth, NOT a disproof) a session with a DIFFERENT session_id and pid that merely SHARES the row window cell also earns STALE-PIN; a pane id is reusable, so the amnesty is wider than the CURRENT session. Fails safe (non-arming), but the width is recorded for the next round.
 
-Probe file (parent-run, not the kid suite): /data/work/agi/.agi/worktrees/post-director-engine/.agi/sessions/iter-DH.368/a00-5aaa03c7/probe_parent_1.py -> 5 passed. Note the fixture shape cost me two turns: the seats file is nodes/.geometry/seats.md with a `seats:` key (not posts.md) and a registry file needs sessionId plus a tmux cell "agi:@N.%N" -- without both the pass lists nothing and reads as a green run with zero judgements.
+Probe file (parent-run, not the kid suite): <repo>/.agi/worktrees/post-director-engine/.agi/sessions/iter-DH.368/a00-5aaa03c7/probe_parent_1.py -> 5 passed. Note the fixture shape cost me two turns: the seats file is nodes/.geometry/seats.md with a `seats:` key (not posts.md) and a registry file needs sessionId plus a tmux cell "agi:@N.%N" -- without both the pass lists nothing and reads as a green run with zero judgements.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
+<!-- THOUGHT:END -->
