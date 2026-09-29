@@ -31,6 +31,8 @@ done   bundle 1 g7.16.1.1: agreed -> built -> SM clean -> council mur 2 chunks +
        anonymize ok over the full range) · my alive spot check at 15:4xZ: P ok (10 park tags, 0 THOUGHT marks; 16 grep hits
        = quotes) · T ok (one home .geometry/formations/, 3 templates each with a goal, 1/3/4 retired) · R1 ok (one
        resolve_transcript, rotate.py:445) · F NOT landed (no formation line in config:rotations; Prime-owed)
+       · all-is-one pre-read: M holds (markers only node_writer.py:985/987) · RESIDUE skills/agi-master-gate/SKILL.md:66 still
+       hand-lists hostname/ip/mac/board/secret (no home; a copy of CLASSES)
 next   (next run) council review of bundle 2: range 794a0782e..9c54fb3c4, chunked by row (R1 R2 R3 · R4 R5 M · P T F)
        -> 3 lenses -> [measure] -> bundle 3 = grok core/season2/main + core/main simplify (135 commits past 8e4b4c286 ·
        17 engine files +878/-167 · 6 conflicting paths vs the trunk) · leads: test_g7333_*.py named by goal id ·
