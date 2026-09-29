@@ -1326,8 +1326,12 @@ def check_formation(groot: Path) -> CheckResult:
             or tpl.relative_to(groot / "nodes").parts[0] == "deprecated"):
         return CheckResult("formation", "FAIL", time.monotonic() - t0,
                            note=f"want ONE active registered template, got {active!r}")
+    # the MARK shape only (THOUGHT start or "(" before it), on park carriers only:
+    # a tally ("11 parked: ...") or prose naming the mark never trips it
+    mark = re.compile(r"(?:^|\()parked: formation g\d")
     marks = [i for i, f, _ in _grep_live(groot, "parked: formation")
-             if "parked: formation" in (node_writer.thought_text(f.read_text("utf-8", "replace")) or "")]
+             if i.split(":")[0] in ("goal", "hypothesis")
+             and mark.search(node_writer.thought_text(f.read_text("utf-8", "replace")) or "")]
     if marks:
         return CheckResult("formation", "FAIL", time.monotonic() - t0,
                            note=f"{len(marks)} THOUGHT park mark(s): the park is the tag parked:<goal>",
