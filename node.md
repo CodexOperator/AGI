@@ -21,42 +21,44 @@ town: core
 Owner 09-23: the card is the handoff scratch space and a doc node — `HANDOFF.md` and `.agi/sessions/quorum/belam.md` are symlinks to this file. Role = the Prime template (`build:briefs-prime-director-successor`) + the HEAD (`doc:unified-head`). Replaced whole; ≤ 100 lines; rules live in skills + role docs, never here; progress lives on the town board.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-gen 16 at the 16:00Z council stop. Every Prime-owed write this gen (config:formations twice) waited for sanctuary-master's review, and each wait paid: the review caught 3 defects in the owed commands before they ran (residues 16, 24, 27). The one [red] of the day was the rotation machinery's (e4aaef794 corrupted config:posts on season2/main), not the council's; the file was restored by hand and the cause is goal:g4.18.4. PASS B3 is the next multi-ref act, 17:47Z.
+gen 16 rotates at f 0.36 BEFORE PASS B3, not at the 0.47 line: a PASS is multi-ref and runs 1-2 h of monitoring, so it cannot finish inside this window, and the Prime rule hands such a step on whole rather than starting it (the near miss: starting B3 at 17:47Z obeys the cron and strands the merge mid-step at the line). Row F (a config:rotations first_turn entry) is handed on for the same reason: it edits what every post runs at wake, and it needs an in-process judge plus a dry wake read, not a rushed write.
 <!-- THOUGHT:END -->
 
-## §0 State (16:1xZ 09-29)
+## §0 State (17:2xZ 09-29)
 | | |
 |---|---|
-| post | belam-S2-L5-XVI gen 16 · window @11 · ListAgents agi-0e [8c6a5d] · meter ~0.31 |
-| formation | council loop RESUMED 16:5xZ until 23:00Z (owner: "Keep working till 7pm next and I'll check my CC sub then"; STOP one-shot a743e484 "0 23 29 9 *") · alive @4 · all-is-one @5 · self-perpetuating @6 · DG1 @7 · DG2 @8 · DG3 gen 2 @12 (agi-aa) · SM gen 2 @13 (agi-1c) · TM/DT/DE DOWN |
-| loop | bundle 1 CLEAN 80c1c245d · bundle 2 CLEAN 9c54fb3c4 (R1 R3 R5 M P T) · bundle 3 = grok core simplify, not started · review doc:council-loop-review-s2 (899ea077f) |
-| merge | PASS B2 closed 2fb5c2043 · posts [red] fixed on season2/main dcd06014e · trunk sync #3 07f02d4a2 · PASS B3 17:47Z (BASE 922ff3f48d) |
-| STREAM | Twitch LIVE (T below) |
-| crons | CHECK 89c68201 "13 */4 * * *" · PASS B3 one-shot 9d39a606 "47 17 29 9 *": both THIS session's; a successor RE-ARMS the CHECK and B3 if not yet past |
+| post | belam-S2-L5-XVI gen 16 → successor gen 17 |
+| formation | council loop LIVE until 23:00Z (owner 16:5xZ: "Keep working till 7pm next and I'll check my CC sub then") · bundle 3 = goal:g7.16.1.3 (grok core simplify; H1 g4.18.3 · H2 g4.18.4 first) with DG1 · alive @4 · all-is-one @5 · self-perpetuating @6 · DG1 @7 · DG2 @8 · DG3 @12 (agi-aa) · SM @13 (agi-1c) · stream-master @14 (NEW, side post) · TM/DT/DE DOWN |
+| merge | PASS B2 2fb5c2043 · posts [red] fixed dcd06014e + sync #3 07f02d4a2 · PASS B3 due 17:47Z (BASE 922ff3f48d; 220 commits / 30 experiments / 0 D at 16:4xZ) |
+| STREAM | Twitch LIVE, owned by stream-master now (doc:card-stream-master, skill agi-stream); delay 4m; dashboard page |
+| crons | ALL die with this session. Successor RE-ARMS: CHECK "13 */4 * * *" · PASS B3 one-shot "47 17 29 9 *" (or run it at once under case (d) if past) · council STOP one-shot "0 23 29 9 *" |
 
 ## §1 Plan
 ```
-DONE   PASS B2 · DG3 row · config:formations 1532a604b + registry fee990795 · posts [red] dcd06014e + sync 07f02d4a2 · goals g1.30 g4.18.3 g4.18.4 · council stop 16:00Z · M review 899ea077f
-NEXT   B3. PASS B3 17:47Z (below) · T. the stream until the owner ends it
-HELD   g1.30 / g4.18.3 / g4.18.4 [decision] dms to DE (DE down) · bundle 3 on the owner's word · OWNER 21:1xZ 09-27 encryption-town config
+DONE   PASS B2 · config:formations + registry · posts [red] · goals g1.30 g4.18.3 g4.18.4 · M review doc:council-loop-review-s2 · council resumed to 23:00Z · stream-master stood up 237fdfc3f
+FIRST  B3. PASS B3 (below)
+then   F. row F: config:rotations first_turn `formation` line (goal:g7.16.1.2.9, exact draft at its body :35-38) · S. the 23:00Z stop -> owner <= 6 lines, hold for the CC-subscription call
+HELD   g1.30 / g4.18.3 / g4.18.4 dms to DE (DE down; the council took g4.18.3 + .4 into bundle 3) · encryption-town config
 ```
 
-## §2 Landed (gen 16): 519768b2c · 98cb94453 · 2fb5c2043 · acff4a1ab · 1532a604b · feed41d3e · dcd06014e · 07f02d4a2 · fc4320819 · fee990795 · 899ea077f
+## §2 Landed (gen 16): 2fb5c2043 · acff4a1ab · 1532a604b · feed41d3e · dcd06014e · 07f02d4a2 · fc4320819 · fee990795 · 899ea077f · b3f12726e · 7705a3a73 · 883e27369 · 237fdfc3f
 
 ## 🔴 Where it stops
-16:1xZ 09-29 belam-S2-L5-XVI: council stopped, review written; PASS B3 at 17:47Z; the Twitch stream is live
+17:2xZ 09-29 belam-S2-L5-XVI: rotating before PASS B3; the successor's first act is PASS B3 at 17:47Z
 ```
-B3. 17:47Z one-shot = section 2 of .agi/sessions/prime-merge.crons.md (tooling: copy /data/home-belam/passB2 -> passB3, retag pb3). RED gates beyond the skill:
-   anonymize over BASE..TIP (net range diff; DG1's bcff91a2c placeholder is removed again at fc7cb0112) AND a hand grep of goal:g7.16.2 for
-   the other-box user segment (residue 46: a bare home path the regex once missed; closed 45-51 at 22677d774). Either open = hold the merge.
-T. TWITCH STREAM LIVE (owner 14:3xZ "only livestream on twitch"; 15:0xZ dashboard + `live 0`; 16:5xZ "delay the stream by 4 minutes again" = `live 4m`, grown into at 1.15x):
-   streamer-stub systemd unit grabs a PRIVATE Xvfb :2 (/data/home-belam/xvfb) = kiosk firefox on graphweb :8765 (3D dashboard);
-   the masked feed /data/home-belam/classfeed/feed.py :8766 is the other page. X_KEY commented in ~/work/streamer-stub/.env (backup .env.pre-class).
-   Controls: ~/bin/sb-status · brb · retract · back · panic. OFF on the owner's word -> `panic`, `systemctl --user stop streamer-stub`, restore .env.
-   Start the unit with `systemctl --user start streamer-stub`: bin/stream.sh runs FOREGROUND when INVOCATION_ID is set (it is, in a CC shell).
-V. The video (owner): /data/home-belam/manim-agi/agi_explainer.mp4 sent to the owner's device; Drive/YouTube need the owner's own sign-in.
-D. /data: < 10 GB free -> no PASS launch.
-R. RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /etc/hosts + guard-init --status, ONE window. NEVER a bare `systemctl --user import-environment`.
+B3. section 2 of .agi/sessions/prime-merge.crons.md (skill agi-merge-pass §2-§4): copy /data/home-belam/passB2 -> passB3, retag pb3 (grep every pb2 after copying).
+    The council is LIVE (7 CC Opus sessions + stream): CAP 2 chunks, not 3, and hold on memory_alarm as launch.sh does.
+    RED gates beyond the skill: anonymize over BASE..TIP (net range diff; DG1's bcff91a2c placeholder is removed at fc7cb0112) AND a hand grep of goal:g7.16.2
+    for the other-box user segment (residue 46). Either open = hold the merge. verify in prime-root in the BACKGROUND (> 120 s; bin-suite-fresh = the known FAIL).
+    CORE NOTE (alive 17:1xZ, for the next core <-> season2/main merge, NOT B3): core marks goal:g7.31.3.3 + .1-.5 COMPLETE but the 4 modules behind them
+    (kid_write_gate · spawn_refusal · parent_slots · needs_rotate) are imported only by their own tests; the council's call: they land ACTIVE with a body line
+    "built at <core sha>, test <file> n/n, not wired".
+F.  row F: one first_turn entry in BOTH first_turn lists (director + prime_director) of config:rotations, text at goal:g7.16.1.2.9 :38;
+    judge it in-process first (F12: `None` = allowed), then a write.py write as prime_director, commit by path.
+S.  23:00Z: SendMessage the 8 posts (7 council + stream-master stays UP unless the owner says) "stop: finish the step, card whole, idle"; owner <= 6 lines.
+V.  the video: /data/home-belam/manim-agi/agi_explainer.mp4 is on the owner's device; Drive/YouTube need the owner's own sign-in.
+D.  /data: < 10 GB free -> no PASS launch.
+R.  RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /etc/hosts + guard-init --status, ONE window.
 ```
 
 ## §4 Traps (the rest live in the skills)
