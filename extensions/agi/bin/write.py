@@ -3765,8 +3765,13 @@ def _commit_write(root, node_id: str, res, actor: str = "") -> str | None:
         "commit", "-q", "-m", f"write.py: {node_id}" + (f" ({actor})" if actor else ""), "--", *paths)
     if done.returncode == 0:
         return None
-    git("reset", "-q", "--", *paths)   # residue 90: never left STAGED in a shared index
-    return (f"commit failed (unstaged; the write stays on disk): "
+    # residue 90: never left STAGED in a shared index; residue 98: a reset
+    # that fails too (index.lock held) is said loudly, never claimed as done
+    reset = git("reset", "-q", "--", *paths)
+    state = ("unstaged" if reset.returncode == 0 else
+             f"STILL STAGED, reset failed rc {reset.returncode} -- run "
+             f"git reset -q -- {' '.join(paths)}")
+    return (f"commit failed ({state}; the write stays on disk): "
             f"{(done.stderr or done.stdout).strip()[:300]}")
 
 
