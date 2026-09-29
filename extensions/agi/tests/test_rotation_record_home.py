@@ -128,3 +128,36 @@ def test_every_record_writer_writes_home_relative(tmp_path, home, monkeypatch, w
     text = p.read_text("utf-8")
     assert str(home) not in text and OTHER not in text
     assert "cwd=~/p x <home>/w" in text
+
+
+# --- council bundle 3 (director-general-2, stage 2) -------------------------
+_ROT = Path(__file__).resolve().parents[3] / ".agi" / "sessions" / "rotations"
+
+
+def _committed_record() -> bytes:
+    recs = sorted(p for p in _ROT.glob("*.json") if p.name != "sequence.json")
+    if not recs:
+        pytest.skip("no committed rotation record in this checkout")
+    return recs[0].read_bytes()
+
+
+def test_a_committed_record_round_trips_through_todays_serializer(home):
+    """H4 p1 baseline: the bytes the move must preserve, today via rotate."""
+    raw = _committed_record()
+    assert rotate._dump_record(json.loads(raw)).encode("utf-8") == raw
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 3 H4 p1: RED until DG3 builds the shared public record module")
+def test_a_committed_record_round_trips_through_the_shared_module(home):
+    import importlib
+    shared = importlib.import_module("rotation_record")
+    raw = _committed_record()
+    assert shared.dump_record(json.loads(raw)).encode("utf-8") == raw
+    assert shared.resolve_record_path("~/p") == f"{home}/p"
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 3 H4 g: RED until DG3 builds the home-relative seating transcript")
+@pytest.mark.parametrize("base", ["/" + "home/" + "abcdef/", "/" + "Users/" + "abcdef/"])
+def test_the_seating_announcement_carries_a_home_relative_transcript(home, base):
+    text = rotate._compose_seating_announcement(seat="probe", transcript_path=base + "p/t.jsonl")
+    assert base not in text and "transcript: <home>/p/t.jsonl |" in text
