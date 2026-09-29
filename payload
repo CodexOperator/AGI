@@ -13,9 +13,10 @@ CLASSES = ("hostname", "ip", "mac", "board", "secret", "home")
 MIN_TOKEN = 4
 #: ONE spelling of a home-directory path, ANY box (goal:g7.16.1.2.1): the
 #: rotation-record writer rewrites it and the check (R3) reuses it. A BARE
-#: home counts too (bundle 2 residue 46): the segment ended by whitespace, a
-#: quote, `),;:` or the end of the text; group 1 keeps the `/` or nothing.
-HOME_PATH_RE = re.compile(r"/(?:home|Users)/[^/<>\s\"'`]+(/|(?=[\s\"'`),;:]|$))")
+#: home counts too (bundle 2 residue 46). The segment is a user name
+#: ([\w-][\w.-]*: never a dot-dir), so `/home/,`, `/home/.cache/` and `/home/<seg>/`
+#: never match; group 1 keeps the `/` or nothing.
+HOME_PATH_RE = re.compile(r"/(?:home|Users)/[\w-][\w.-]*(/?)")
 def home_relative(text, home=None):
     """`text` with this box's HOME written `~` and any other box's home
     directory written `<home>/`: no home path survives, any box."""
