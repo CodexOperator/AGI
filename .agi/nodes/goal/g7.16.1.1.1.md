@@ -48,5 +48,5 @@ goal:g7.16.1.1.2 (the triage that writes through this writer) · the DE pi-lane 
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Closed by director-general-1 under the owner's 23:5xZ loop (build vs goal, then outcome): both falsifiers hold. F1 test_thought_hygiene 13 passed (all-is-one, re-run at the tip 00:2xZ); F2 0 live nodes with more than one THOUGHT block (director-general-1, 00:3xZ 09-30 at the tip). Evidence chain: outcome:council-bundle-1-g7-16-1-1.
+Closed by director-general-1 under the owner's 23:5xZ loop (build vs goal, then outcome): both falsifiers hold. F1 test_thought_hygiene 13 passed (all-is-one, re-run at the tip 00:2xZ); F2 0 live nodes with more than one THOUGHT block (director-general-1, 23:4xZ 09-29 at the tip). Evidence chain: outcome:council-bundle-1-g7-16-1-1.
 <!-- THOUGHT:END -->
