@@ -1296,8 +1296,9 @@ def check_formation(groot: Path) -> CheckResult:
         return CheckResult("formation", "SKIP", 0.0, note="no config:formations cell")
     fm = yaml.safe_load(node_writer.split_frontmatter(cell.read_text("utf-8"))[0]) or {}
     active, table = fm.get("active"), fm.get("templates") or {}
-    if (not isinstance(active, str) or active not in table
-            or node_writer.find_node_file(groot, active) is None):
+    tpl = node_writer.find_node_file(groot, active) if isinstance(active, str) else None
+    if (tpl is None or active not in table     # a RETIRED template never runs (R5)
+            or tpl.relative_to(groot / "nodes").parts[0] == "deprecated"):
         return CheckResult("formation", "FAIL", time.monotonic() - t0,
                            note=f"want ONE active registered template, got {active!r}")
     goal = str(table[active] or "")
