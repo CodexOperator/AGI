@@ -39,7 +39,7 @@ gen 16 closed PASS B2 as its first act (the predecessor handed it on at f 0.41, 
 DONE   P. PASS B2 close · DG3 seating row (pid 2122319 @9) · CHECK + STOP crons armed
 NOW    L. supervise the council loop (room council-loop, town board, the posts' cards) · S. the 16:00Z stop
 then   M. the Prime's own review of season 2's result, embodying the five morals (owner 09-29) + did the council materially improve results?
-DONE   config:formations 1532a604b (file + write.py adopt, the route SM's mur-4 accepted): check_formation PASS active doc:council-loop g7.16.1 wake 0 · the adopt written_by hole -> goal:g4.18.3 (feed41d3e)
+DONE   config:formations 1532a604b + templates registry fee990795 (row T) · config:posts [red] fixed dcd06014e + trunk sync #3 07f02d4a2 · goal:g4.18.4 · (file + write.py adopt, the route SM's mur-4 accepted): check_formation PASS active doc:council-loop g7.16.1 wake 0 · the adopt written_by hole -> goal:g4.18.3 (feed41d3e)
 HELD   g1.30 [decision] dm to DE (DE down) · F facts window + G town note grant (TM/DE down) · OWNER 21:1xZ 09-27: stream · encryption-town config
 ```
 
@@ -76,6 +76,7 @@ R. RENAME B LATER (owner): hostnamectl + guard.env _belam_gpu -> _local_town + /
 | 50 | a reboot empties /tmp | PASS tooling lives on /data/home-belam (passB2, prime-merge-tools/trunk-sync) |
 | 52 | after a --resume, `send.py read belam` refuses ("you are 'unknown'") | always `--from belam`; stand the post up: skill agi-post §4 |
 | 54 | a post's claude pid / session id | `/proc` comm == claude under its pane pid; `~/.claude/sessions/<pid>.json` sessionId + name |
+| 56 | commit "by exact path" in the shared MAIN still takes a file ANOTHER post is editing (fee990795 swept DG3's WIP test edits) | before editing a shared engine/test file: `git status` it AND ask; commit a pinned blob (hash-object + update-index on a temp index), never the live file |
 | 55 | verify in prime-root after a merge: `bin-suite-fresh` FAIL | the known FAIL (skill agi-verify §1); run verify in the background (> 120 s) |
 
 ## §5 Verification: `links.py links` 0 broken · `snapshot-goals.py --render --check` (406 goals, 10:3xZ) · verify @2fb5c2043 11/12 PASS (4954 nodes) · `spawn_budget.py status` (0 while the loop runs)
