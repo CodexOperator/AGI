@@ -10318,17 +10318,48 @@ def test_rename_post_default_reader_is_real_git_and_preserves_the_real_ref(
 def test_r1_every_post_argv_is_scoped_even_when_cap_is_none(monkeypatch, seat):
     import mem_cap  # no post cap cell here -> None; wrap_argv's shared `is argv` stays
     monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda *a, **k: True)
-    line = rotate._shell_cmd(["claude", "--remote-control", "p1"], None, seat=seat)
+    line = rotate._shell_cmd(["claude", "--remote-control", "p1"], None, seat=seat, scope_slice="agi.slice")
     assert "--slice=agi.slice" in line and line.index("systemd-run --user --scope") < line.index("--remote-control")
+    # residue 70: the DEFAULT call is unscoped (the switch lives in the cell, not the kwarg)
+    assert "systemd-run" not in rotate._shell_cmd(["claude", "--remote-control", "p1"], None, seat=seat)
 
 
-def test_r1_launch_window_ensures_agi_rc_in_its_own_scope_first(monkeypatch):
+@pytest.mark.parametrize("cell", ["agi.slice", None], ids=["cell-live", "cell-off"])
+def test_r1_launch_window_ensures_agi_rc_in_its_own_scope_first(monkeypatch, cell):
+    import mem_cap  # residue 68: the ensure's slice follows spawn.post_scope; off = own scope, NO slice
+    monkeypatch.setattr(mem_cap, "resolve_post_scope", lambda cfg: cell)
     calls = []  # agi-rc absent: has-session rc 1
     monkeypatch.setattr(rotate.subprocess, "run", lambda a, **k: calls.append(list(a)) or subprocess.CompletedProcess(a, int("has-session" in a), stdout="@9\n", stderr=""))
     assert rotate._launch_window("agi-rc", "p1", "echo hi") == 0
     new, win = ([i for i, a in enumerate(calls) if k in a] for k in ("new-session", "new-window"))
     assert len(new) == 1 and win and new[0] < win[0], calls
-    assert calls[new[0]][:3] == ["systemd-run", "--user", "--scope"] and "--slice=agi.slice" in calls[new[0]]
+    assert calls[new[0]][:3] == ["systemd-run", "--user", "--scope"]
+    assert ("--slice=agi.slice" in calls[new[0]]) is (cell is not None), calls[new[0]]
+
+
+# residue 70: the one switch -- resolve_post_scope and spawn_window threading it
+@pytest.mark.parametrize("cell,want", [
+    (None, None), ({"live": False, "slice": "agi.slice"}, None), ({"live": "true"}, None),
+    ({"live": True}, "agi.slice"), ({"live": True, "slice": "posts.slice"}, "posts.slice"),
+], ids=["absent", "off", "string-true", "live-default", "live-slice"])
+def test_r1_resolve_post_scope_is_the_one_switch(cell, want):
+    import mem_cap
+    assert mem_cap.resolve_post_scope({"spawn": {"post_scope": cell}} if cell is not None else {}) == want
+
+
+@pytest.mark.parametrize("live", [False, True])
+def test_r1_spawn_window_threads_the_cell(tmp_path, monkeypatch, capsys, live):
+    import mem_cap
+    monkeypatch.setattr(mem_cap, "systemd_run_usable", lambda *a, **k: True)
+    g = tmp_path / ".agi"
+    g.mkdir()
+    (g / "config.json").write_text(json.dumps({"spawn": {"post_scope": {"live": live, "slice": "agi.slice"}}}))
+    prompt = tmp_path / "prompt.md"
+    prompt.write_text("You are {name}\n")
+    rc, shell = rotate.spawn_window(name="adv-alive", tier="parent", prompt_file=str(prompt),
+                                    dry_run=True, root=g)
+    assert rc == 0 and ("--slice=agi.slice" in shell) is live, shell
+    assert ("systemd-run" in shell) is live, shell   # cell off: no scope at all
 
 
 def test_r1_cutover_plan_gives_each_post_tree_its_own_scope():
@@ -10337,6 +10368,8 @@ def test_r1_cutover_plan_gives_each_post_tree_its_own_scope():
     assert sorted(map(sorted, plan.values())) == [[20, 50], [30, 31], [40, 41]] and any("belam" in u for u in plan)
 
 
+@pytest.mark.skipif(os.environ.get("AGI_LIVE_SYSTEMD") != "1",
+                    reason="real systemd scopes: opt in with AGI_LIVE_SYSTEMD=1 (never in the engine suite)")
 def test_r1_cutover_dummy_one_kill_is_one_post():
     move = rotate._cutover_to_scopes  # absent -> RED before any unit exists
     if not shutil.which("busctl") or subprocess.run(["systemctl", "--user", "is-system-running"], capture_output=True).returncode not in (0, 1): pytest.skip("no user systemd / busctl")
@@ -10345,6 +10378,9 @@ def test_r1_cutover_dummy_one_kill_is_one_post():
     cg = lambda p: Path(f"/proc/{p}/cgroup").read_text()
     try:
         time.sleep(1.5)
+        # never move a cgroup that is not the dummy's own scope (the CALLER's
+        # cgroup holds tmux + the posts when the scope job lags): residue 69
+        assert f"{t}src.scope" in cg(src.pid), cg(src.pid)
         procs = Path("/sys/fs/cgroup" + cg(src.pid).split(":", 2)[2].strip()) / "cgroup.procs"
         pids = [int(p) for p in procs.read_text().split() if int(p) != src.pid]
         a, b = sorted(p for p in pids if Path(f"/proc/{p}/comm").read_text().strip() == "sh")
