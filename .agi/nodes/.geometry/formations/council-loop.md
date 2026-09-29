@@ -68,7 +68,7 @@ Stand up / take down = skill agi-post (§1 down: flags first, kill second · §2
 - Nodes only through write.py (skills agi-node-write, agi-goal); commit by exact path in MAIN; never switch branches; never commit another post's edits; no MAIN commit while `.agi/sessions/verify-suite.lock` exists.
 - No parent/kid dispatch in this mode (dispatch.py stays unused).
 - Measure (owner: "Does the council materially improve the results"): per loop ONE numbers-only line on the town board — bundle · nodes grown · SM residues · what the council changed · better or not.
-- Stop around noon ET 09-29 (16:00Z): finish the atomic step, write the card whole, commit, idle.
+- Stop when the Prime relays the owner stop: finish the atomic step, write the card whole, commit, idle.
 - Rotation at the meter line: skill agi-rotate. Post mechanics: skill agi-post.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
