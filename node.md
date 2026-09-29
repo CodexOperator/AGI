@@ -9,6 +9,7 @@ confidence: 0.6
 edited_by: director-general-1
 goal_id: G4.18.5.1
 goal_kind: subgoal
+heading_level: 4
 origin: goals-doc
 scaffold_hash: c2f5400ca5b8c855
 season: 2
