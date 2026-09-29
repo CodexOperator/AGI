@@ -17,34 +17,31 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (18:5xZ 09-29) — RECOVERED seat (gen 3, agi-b1, @8); owner: "Keep working till 7pm" → runs until 23:00Z, then the same stop
+## §0 State (19:1xZ 09-29) — RECOVERED seat (gen 3, agi-b1, @8); owner: "Keep working till 7pm" → runs until 23:00Z, then the same stop
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests (a build may take [goal, idea]) |
 | protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN /data/work/agi on local-maxxing/season2/main, CC Opus 5.5 high |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
-| sessions | DG3 = agi-b1 · DG2 = agi-40 (handoff 18:2xZ) · others: `send.py whois <post>` — hand off by SendMessage + ONE council-loop room line |
-| now | bundle 3 = goal:g7.16.1.3 + goal:g6.41.1 (DG2 handoff at e019d63b0; verdicts verdict:dg2-h*/r*/s*). H rows BUILT; R1/R2 next; then mvps + build nodes, then -> sanctuary-master |
+| sessions | DG3 = agi-b1 · DG2 = agi-40 · sanctuary-master = agi-b8 (@4) · alive = agi-13 — hand off by SendMessage + ONE council-loop room line |
+| now | bundle 3 stage 3 DONE at 6211ebb40 (pushed) -> handed to sanctuary-master for its mur; waiting for residues |
 
-## §1 Plan — bundle 3 (the table lives on the verdicts)
+## §1 Plan — bundle 3 (goal:g7.16.1.3 + goal:g6.41.1; the table lives on mvp:dg3-h*/r*)
 ```
-done   H3 + H4 f + H4 p1 bb153e89d (rotation_record.py: dump/resolve/grep_live/parked_carriers; grep fails closed; 5 carrier tags)
-done   H4 g 482da3853 · H1 e370bb4d6 (goal:g4.18.3) · H2 2c412e5bb (goal:g4.18.4: insert after last row, lone-row refusal, one load gate x4)
-done   H4 b a981ae47f da8b2cfbc 92f6f4883 fb57864a5 551908e4b 7baafa62b 0e3102a67 17f91868b (415 -> 0; grid 330 versions, 0 demoted)
-NEXT   R1 (verdict:dg2-r1-per-post-scope, test_rotate.py 5x) · R2 (verdict:dg2-r2-psi-admission, test_heal_watch.py 4x): code + dummies ONLY;
-       the LIVE cutover is the owner's word after PASS B3 (doc:card-belam §6) — never run it here
-then   mvps (one per row, parent the dg2 verdict) + build:bin-rotation-record ([mvp] shape) + grid commit; room line + SendMessage -> SM
-n/a    S1 / S2 = verdicts (proved), nothing to build · G landed by alive (30f4db55f, e662637ac)
-open   H4 (a)(c)(d)(e) + g7.32.5 status: not in DG2's table -> check whether DG1/DG2 closed them before the handoff to SM
+done   H3 + H4 f + H4 p1 bb153e89d · H4 g 482da3853 · H1 e370bb4d6 (g4.18.3 COMPLETE) · H2 2c412e5bb (g4.18.4 stays active: F2 history)
+done   H4 b 415 -> 0 in 8 rounds (a981ae47f .. 17f91868b) · H4 (a)(c)(d)(e) + g7.32.5 active 7d928ffe4
+done   R1 63898e64f (P1 ensure live; P6 scope behind spawn.post_scope live:false) · R2 429b86530 (PSI gate, 1/pass, Prime first)
+done   9 mvps + build:bin-rotation-record + grid 6211ebb40
+NEXT   SM residues -> close in-loop, hand back to agi-b8
+n/a    S1 / S2 verdicts (nothing to build) · G landed by alive
 ```
 
 ## §2 Landed
-- bundle 1 + 2: see grid history of this card (bundle 2 CLOSED, SM mur clean 15:39Z)
-- bundle 3: bb153e89d · 482da3853 · e370bb4d6 · 2c412e5bb · H4 b x8 (above)
+- bundle 1 + 2: grid history of this card (bundle 2 CLOSED, SM mur clean 15:39Z)
+- bundle 3: bb153e89d 482da3853 e370bb4d6 2c412e5bb a981ae47f da8b2cfbc 92f6f4883 fb57864a5 551908e4b 7baafa62b 0e3102a67 17f91868b 63898e64f 429b86530 7d928ffe4 6211ebb40
 
 ## 🔴 Where it stops
-18:5xZ 09-29: H rows built + pushed. Next command: read verdict:dg2-r1-per-post-scope, then the 5 xfails in test_rotate.py.
-PASS B3 runs on this box: run ONE test file at a time. First command at wake:
+19:1xZ 09-29: stage 3 handed to sanctuary-master (agi-b8). Wait for its mur residues. PASS B3 on this box: ONE test file at a time. First command at wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
 ```
@@ -65,10 +62,15 @@ python3 extensions/agi/bin/send.py --from director-general-3 read director-gener
 ## §5 Verification: links 0 broken · touched tests one file at a time `--basetemp /tmp/...` · anonymize on the staged diff · live check_formation PASS
 
 ## §6 BANKED
-- (none open for this post)
+- R1 slice (owner / council): agi.slice shares MemoryHigh 9.26G / MemoryMax 10.29G with agi-work + agi-engine; the remote-control
+  service holds 8.4G of posts. Options: (a) a dedicated uncapped posts slice (no '-' in its name), (b) raise agi.slice, (c) agi.slice
+  as is. Recommend (a), then flip `spawn.post_scope.live` (the one edit) after PASS B3 with the owner present.
+- goal:g4.18.4 Falsifier 2 scans all history (pre-fix e4aaef794 = 1 forever): scope it to commits after 2c412e5bb, then complete it.
 
 ## Findings for the next bundle
 - test_sensei_wake_audit item2 red (pre-existing): no live fact cites send.py whois
 - test_skills_first_turn_entry red: agi-post missing from config:rotations skills entry
 - write.py stamps town: core on local-maxxing nodes
 - 4 build nodes (bin-brief, bin-metrics, ...) carry very stale BUILD-CONTRACTs
+- memory_alarm.py has no build node
+- tests that call heal._watch_seats unstubbed read the box's live PSI (flaky under pressure > 40)
