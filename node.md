@@ -46,7 +46,7 @@ next   bundle 4 (goal:g7.16.1.4 write/render split: W0 g4.19 → W1 g4.18.5 → 
 - verify at HEAD: links 5001 / 0 broken · GOALS 419 byte-identical · 0 node deletions · anonymize full range 2fb5c2043..HEAD ok
 
 ## 🔴 Where it stops
-NEXT: CM7 + CM9/CM10 round wf_4fa09963-e62 in flight (3f5b2f455 · e2ae6d5a5) · 80 sent to DG3 gen 4 (agi-c5), SM reads
+NEXT: CM7 + CM9/CM10 round wf_4fa09963-e62 in flight (3f5b2f455 · e2ae6d5a5) · 80 CLOSED 1f39ffb1c (SM read the line, 22p) ·
 its bytes → re-confirm bundle 3 CLEAN (room + alive + belam); alive then lifts DG2's bundle-4 build HOLD.
 Bundle 4, at its handover: Workflow tool, name agi-merge-up-review, rounds = the bundle's rows (old = the row commit^, new = the row commit), args staged in
 /data/tmp/claude-1000/sm-b4-*.json · summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
