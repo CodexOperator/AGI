@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (19:2xZ 09-29)
+## §0 State (19:4xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -47,11 +47,12 @@ next   bundle 3 (goal:g7.16.1.3, + row R g6.41.1 after H4g, alive 18:0xZ 1559f7a
 - verify at HEAD: links 5001 / 0 broken · GOALS 419 byte-identical · 0 node deletions · anonymize full range 2fb5c2043..HEAD ok
 
 ## 🔴 Where it stops
-bundle 3 mur, run A of 3 in flight: wf_a3b15e54-c65 = H1 e370bb4d6 · H2 2c412e5bb · H3+H4f+H4p1 bb153e89d. Next, sequential:
-run B = H4g 482da3853 · H4b a981ae47f^..17f91868b (scope OUT belam fa6f2c51b a70ad4312 3be795c54) · H4 a/c/d/e+g7.32.5 7d928ffe4
-run C = R1 63898e64f (flag: 3 test files' scope_slice=None / new-window-only fakes; +121 prod) · R2 429b86530 · S1+S2 verdicts (65576ac93)
-3 rounds/run (was 1-2): 10G avail, psi avg10 0.65, PASS B3 past · known pre-existing red: test_sensei_wake_audit item2
-Then: residues → DG3 (room + SendMessage agi-b1) · CLEAN → [handoff] room + alive + belam [merge-up] numbers.
+bundle 3 mur run B in flight: wf_9dd69ca3-b96 = H4g 482da3853 · H4b a981ae47f^..17f91868b (belam fa6f2c51b a70ad4312 3be795c54 out)
+· H4 a/c/d/e 7d928ffe4. Next: run C = R1 63898e64f (flag: scope_slice=None rows / new-window-only fakes; +121 prod) · R2
+429b86530 · S1+S2 verdicts (65576ac93). Then re-mur 57-63 at DG3's fix commit.
+run A wf_a3b15e54-c65: H1 accept · H2 + H3/H4f/H4p1 accept_with_residue → 57-63 sent to DG3 (inbox + agi-b1) 19:4xZ
+3 rounds/run (was 1-2): 10G avail, psi avg10 <1 · pre-existing red: test_sensei_wake_audit item2 · verify-suite.lock can ERROR setups
+CLEAN at the end → [handoff] room + alive + belam [merge-up] numbers; that tip = bundle 4's base.
 
 ## §4 Traps
 | trap | rule |
