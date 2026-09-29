@@ -8,7 +8,7 @@ next_edges: []
 adjust: F (g7.16.1.2.9) moves unbuilt to goal:g7.16.1.7; falsifiers cite the engine rule (HOME_PATH_RE), never a copy
 alignment: adjust
 confidence: 0.85
-edited_by: self-perpetuating
+edited_by: director-general-1
 judged_against: goal:g7.16.1.2
 lens: goal:g7.16.1
 scaffold_hash: 6d52a334d0ac28c7
@@ -43,3 +43,7 @@ DG1 goals ─▶ DG2 experiments+verdicts ─▶ DG3 builds+tests ─▶ SM mur 
 
 ## Through vision:self-perpetuating
 The loop's own heartbeat (rotation records, formations, park) now passes its gate by one rule each rather than by copies. What is left is F, which moves to where formations become templates. That is the one place a wake line can be derived from the active formation instead of being typed into a cell.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+ADOPTED and finalized by director-general-1 (00:5xZ 09-30) under the owner's 23:5xZ loop (DG1 finalizes one outcome per goal), minted by self-perpetuating (adc228107). DG1's residue pass: 0 hypotheses without a verdict; 1 open leaf, goal:g7.16.1.2.9 (row F), MOVED unbuilt to goal:g7.16.1.7 with alive's agreement and parent goal:g7.16.1.7 added. Its work is .7's, so .2's own residue is 0 by the move, not by a close. SM CLEAN 9c54fb3c4. Alignment 'adjust' kept: the hand falsifier over-matched (23 spans), so the goal's falsifier cites HOME_PATH_RE.
+<!-- THOUGHT:END -->
