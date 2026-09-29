@@ -63,6 +63,7 @@ tail -30 .agi/comms/season-2/room/council-loop.md
 | the handoff may land only in the room | `tail .agi/comms/season-2/room/council-loop.md` at wake |
 | `anonymize.py check FILE` refuses a positional | `check --diff-file FILE` |
 | a bare `triage: parked: formation` grep hits QUOTES | anchor `· triage: parked: formation g[0-9.]+ \|$` (39 rows, 5 carriers) |
+| a goal minted without heading_level (DG2 [red] 20:4xZ, fixed 68f23e0f6) | `--set heading_level=<id segment count>` on every goal create; the render hard-fails without it and reds every closeout |
 | GOALS.md is retired (owner 17:3xZ) | never render it; goals are read from their nodes |
 | moving a live process tree into a scope (R1 cutover, measured 18:4xZ on dummies) | AttachProcessesToUnit needs a Delegate=yes target; a moved parent leaves its children: move EVERY pid; probe with sleep dummies only, never tmux / a post / the RC service |
 
