@@ -11,8 +11,11 @@ scaffold_hash: 932987647aaa570b
 season: 2
 source_files:
   - extensions/agi/bin/rotate.py
+  - extensions/agi/bin/heal.py
+  - extensions/agi/bin/sensei.py
   - extensions/agi/bin/anonymize.py
   - extensions/agi/tests/test_rotation_record_home.py
+  - extensions/agi/tests/test_anonymize_guard.py
 status: implemented
 tests_pass: true
 title: "Rotation records are written home-relative through ONE definition (anonymize.home_relative: HOME -> ~, any other box -> <home>/); one resolver reads them back"
@@ -29,9 +32,13 @@ definition   anonymize.HOME_PATH_RE  /(home|Users)/<segment>/  + anonymize.home_
              any other box's home dir -> "<home>/". ONE spelling; R3's check reuses it
 writer       rotate._dump_record = json.dumps(_home_rel(obj), indent=2): every string value, every record writer
              (_write_rotation_record + 9 direct dumps: seating, handover merge, after_join record_commit,
-             committed_by, claim, outcome marks, _rec0)
+                          committed_by, claim, outcome marks, _rec0) + residue 33 (42137d050): 6 more writers through _dump_record --
+             rotate _record_closeout / _record_swept_latches / _record_s12_self_reap · heal _close_late_reap_abandoned +
+             _late_reap_for_skipped · sensei write_audit_into_record; one test row PER writer on a fresh record (residue 45)
 reader       rotate._resolve_record_path(value): `~` expanded, absolute legacy form unchanged, '' when absent;
-             7 readers (2 registry readers included) route through it
+                          7 readers (2 registry readers included) route through it; + residue 34: rotate._record_join
+             (handover.join.transcript) and sensei._record_transcript (5 spellings) = 9 readers
+home class   anonymize.HOME_PATH_RE also takes a BARE home (residue 46); home_relative keeps the terminator
 records      one-off text-level scrub of tracked, clean rotations/*.json through the same home_relative (run last)
 ```
 
