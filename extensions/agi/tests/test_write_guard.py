@@ -711,3 +711,24 @@ def test_b4_w1b_dry_run_and_a_refused_gate_commit_nothing(project):
         write.main(["hypothesis:h9", *argv, "--root", str(project)])
         assert g("rev-parse", "HEAD").strip() == head, argv
     assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
+
+
+# SM residue 90 (wf_e6561265-419): a FAILED commit never leaves the node staged
+# in the shared index for the next pathless commit; the write stays on disk.
+@pytest.mark.parametrize("shape", ["hook-refuses", "index-lock"])
+def test_b4_w1b_a_failed_commit_unstages_its_paths(project, shape):
+    g, head = _w1b(project)
+    gitdir = Path(g("rev-parse", "--absolute-git-dir").strip())
+    if shape == "hook-refuses":
+        hook = gitdir / "hooks" / "pre-commit"
+        hook.parent.mkdir(parents=True, exist_ok=True)
+        hook.write_text("#!/bin/sh\nexit 1\n")
+        hook.chmod(0o755)
+    else:
+        (gitdir / "index.lock").write_text("")
+    write.main(["hypothesis:h9", "set confidence 0.3", "--root", str(project)])
+    (gitdir / "index.lock").unlink(missing_ok=True)
+    assert g("rev-parse", "HEAD").strip() == head
+    assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
+    assert "0.3" in (project / ".agi" / "nodes" / "hypothesis" / "h9.md").read_text()
+

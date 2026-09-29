@@ -13,7 +13,7 @@ fields:
   goal_id: {type: str}        # G7 | S4 | G7.2 -- never renumbered
   goal_kind: {type: str}      # THE DISCRIMINATOR: perpetual | long-term(legacy) | short-term | subgoal
   status: {type: str}         # active | horizon | retired | complete  (`phasing-out` = legacy `retired`)
-  origin: {type: str}         # goals-doc -- derived by snapshot-goals.py
+  origin: {type: str}         # goals-doc -- a legacy marker; its deriver (the GOALS.md import) retired, goal:g7.16.1.4.1
   seeds: {type: list}         # node ids seeded from this goal
   parents: {type: list}       # subgoal: >=1 goal; any variant may add a build
   confidence: {type: float}

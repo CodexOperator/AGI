@@ -223,10 +223,9 @@ eleven times — ten `CONFIG_NAMES`-plus-walk copies under `bin/`
 `spawn_gate.py`, `zoom.py`), plus `lib/find-root.sh`. That shell file is not
 one of the residuals — it is the deliberate bash half of the same rule,
 cross-checked against `locations.py` by `test_bash_and_python_agree` rather
-than trusted to agree on faith. `snapshot-goals.py` is a half-case: it already
-calls `locations.goals_path()` but still declares its own `CONFIG_NAMES` and
-`config_path()`, so it counts as one of the ten residuals despite already
-being a consumer of the new resolver. The other nine still carry their own
+than trusted to agree on faith. `snapshot-goals.py` was a half-case (its
+goals_path() call retired with GOALS.md, goal:g7.16.1.4.1); it still declares its
+own `config_path()`, so it counts as one of the ten residuals. The other nine still carry their own
 copy untouched. That residual is tracked as `goal:g11.1`. `engine_root` also
 remains defined twice in Python with two different index arithmetics, off by
 one because `level3.py` counts from a directory and `grid.py` counts from a

@@ -3032,7 +3032,8 @@ manifest:
       - {"name": "json", "type": "bool", "required": false, "choices": []}
     purpose: "before vs after: did the goal:g11 migration lose anything? read-only"
     side_effects: read
-    proposable: true
+    proposable: false
+    reason: a one-repo migration verifier; its goals_at_repo_root check fails on every repo since GOALS.md retired (goal:g7.16.1.4.1.1 decides its fate)
   write_guard.py:check:
     cli: write_guard.py
     verb: check
