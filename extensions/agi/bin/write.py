@@ -2344,6 +2344,24 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
     # the body-only path and this gate is the load-bearing confinement.
     _enforce_master_sensei_facts_body(root, edit.node_id, actor, body)
 
+    # goal:g7.16.1.2.6 -- `set active` wakes that formation's parked nodes. The
+    # carrier grep runs BEFORE the write and fails CLOSED (council C1 on bundle
+    # 3, check_formation's stance): a grep that cannot look refuses the set,
+    # nothing written -- never rc 0 with every carrier still parked.
+    wake_goal, carriers = "", []
+    if edit.node_id == "config:formations" and "active" in edit.set_fm:
+        import rotation_record  # the shared carrier grep: write never imports the verifier
+        from graph_core.persistence import frontmatter as _fmr
+        cell = node_writer.find_node_file(root, "config:formations")
+        table = (edit.set_fm.get("templates")
+                 or _fmr.load_node_file(cell, body=False).frontmatter.get("templates") or {})
+        wake_goal = str(table.get(edit.set_fm["active"]) or "")
+        try:
+            carriers = rotation_record.parked_carriers(root, wake_goal) if wake_goal else []
+        except rotation_record.GrepError as exc:
+            raise EditError(f"set active refused: the parked-carrier grep for parked:{wake_goal} "
+                            f"failed ({exc}); nothing written -- the wake cannot be delivered")
+
     res = node_writer.update_node(root, edit.node_id, set_fm=set_fm,
                                   unset_fm=edit.unset_fm, body=body,
                                   log_extra=_log_provenance(actor))
@@ -2362,20 +2380,9 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
             log_extra=_log_provenance(actor))
         res.payload_changed = changed
         res.payload_path = str(dest)
-    # goal:g7.16.1.2.6 -- `set active` wakes that formation's parked nodes:
-    # its `parked:<goal>` tag leaves every carrier in the same call.
-    if (edit.node_id == "config:formations" and "active" in edit.set_fm
-            and res.status != node_writer.REJECTED):
-        import rotation_record  # the shared carrier grep: write never imports the verifier
-        cell = node_writer.find_node_file(root, "config:formations")
-        from graph_core.persistence import frontmatter as _fmr
-        table = _fmr.load_node_file(cell, body=False).frontmatter.get("templates") or {}
-        goal = str(table.get(edit.set_fm["active"]) or "")
-        try:
-            carriers = rotation_record.parked_carriers(root, goal) if goal else []
-        except rotation_record.GrepError as exc:  # set active stands; the wake is named as failed
-            carriers = []
-            print(f"unpark FAILED (parked:{goal}): {exc}", file=sys.stderr)
+    # ... and, the set written, its `parked:<goal>` tag leaves every carrier found above.
+    goal = wake_goal
+    if res.status != node_writer.REJECTED:
         for nid, _f, tags in carriers:
             try:
                 w = node_writer.update_node(root, nid, set_fm={

@@ -229,6 +229,27 @@ def test_a_rejected_carrier_is_named_on_stderr(groot, monkeypatch, capsys, how):
     assert "parked:g7.16.2" not in (groot / "nodes" / "goal" / "g9.md").read_text("utf-8")
 
 
+# council C1 on bundle 3 (alive, all-is-one's lens): a carrier grep that cannot
+# look REFUSES `set active` with nothing written -- never rc 0 with every carrier
+# still parked (check_formation's fail-closed stance, on the write side).
+def test_set_active_refuses_when_the_carrier_grep_fails(groot, monkeypatch, capsys):
+    import rotation_record, write
+    (groot / "config.json").write_text("{}\n", "utf-8")
+    _cell(groot, "doc:council-loop")
+    _node(groot, "goal/g9.md", "goal:g9", tags="parked:g7.16.2")
+    cell = groot / "nodes" / ".geometry" / "formations.md"
+    before = cell.read_bytes()
+
+    def blind(root, goal):
+        raise rotation_record.GrepError("git grep exit 128: fatal: probe")
+    monkeypatch.setattr(rotation_record, "parked_carriers", blind)
+    rc = write.main(["config:formations", "set active doc:two-step", "--root", str(groot),
+                     "--actor", "test", "--role", "director"])
+    assert rc != 0 and "set active refused" in capsys.readouterr().err
+    assert cell.read_bytes() == before  # nothing written
+    assert "parked:g7.16.2" in (groot / "nodes" / "goal" / "g9.md").read_text("utf-8")
+
+
 # --- goal:g7.16.1.3.1 · hypothesis:row-parks-carry-a-carrier-tag (bundle 3 H3,
 # director-general-2): a row ending `· triage: parked: formation g<N> |` needs its
 # carrier's parked:<goal> tag; a node that only QUOTES the string never trips it.
