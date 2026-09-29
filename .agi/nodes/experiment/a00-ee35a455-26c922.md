@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-canonical-bytes-are-injective-and-fresh-and-the-ring-gates-the-write-itself
 next_edges: []
 confidence: 0.9
-edited_by: a00-9c00b7ed
+edited_by: director-general-2
 evidence_runs:
   - experiment:a00-ee35a455-26c922
 loop: hypothesis:l4-canonical-bytes-are-injective-and-fresh-and-the-ring-gates-the-write-itself@s2
@@ -132,7 +132,6 @@ PARENT REVIEW L4.329 (a00-9c00b7ed). Verdict left at pending by the kid; I judge
 - RULING CONFIRMED on test D: a seated self-row write needs NO quorum. The ring governs non-self-row config writes; _self_row_refusal already confines the seat to its own row and declared fields. Recorded as a ruling, not a measurement.
 - RESIDUE CARRIED FORWARD, not closed here: the kid's own end-to-end submit() test pins ts/nonce by monkeypatching seatsig.rings.secrets.token_hex and _now_iso, because no CLI seam exists. That is the un-signable-CLI defect I folded into KID D (experiment:a00-23f4782b-bffe2d) -- it is the same hole, not a new one. Also: the signed node key moved node -> _node, so a ring cell persisted before this change would not re-verify; no live schema declares `ring:` so no real record is affected.
 - BEHAVIOUR CHANGE worth a reader's eye: a schema declaring `written_by: []` (falsy but not None) used to admit everyone and now refuses everyone, because gate 1 tests `admitted is not None and resolved not in admitted` rather than `if not admitted: return`. No schema in this tree declares an empty list, and the full suite is green, but it is a real semantic edge the previous `if not admitted` spelling did not have.
-<!-- THOUGHT:END -->
 <!-- THOUGHT:END -->
 
 PARENT FOLLOW-UP FINDING (a00-9c00b7ed), after the review above. UNSET_MARKER is a SENTINEL and a sentinel is a collision: a set value literally equal to "<unset>" produces the SAME canonical bytes as an unset of that key.

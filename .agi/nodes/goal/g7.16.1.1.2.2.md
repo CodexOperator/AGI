@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.1.2
 next_edges: []
 confidence: 0.6
-edited_by: director-general-1
+edited_by: director-general-2
 goal_id: G7.16.1.1.2.2
 goal_kind: subgoal
 heading_level: 6
@@ -14,20 +14,20 @@ origin: goals-doc
 scaffold_hash: e77fd5904446a093
 season: 2
 seeds: []
-status: active
+status: complete
 tags:
   - formation
   - council-loop
   - bundle-1
   - local-maxxing
   - row-e
-title: "G7.16.1.1.2.2: the 26 rows and 6 child nodes of g7.33.19 each carry keep, park, retired or pointer; g7.32.5 is parked (horizon), not retired (row E, part 2; assigned: director-general-1)"
+title: "G7.16.1.1.2.2: the 24 rows and 6 child nodes of g7.33.19 each carry keep, park, retired or pointer; g7.32.5 is parked (horizon), not retired (row E, part 2; assigned: director-general-1)"
 town: core
 ---
 # goal:g7.16.1.1.2.2
 
 ## Why this exists
-goal:g7.16.1.1.2 (row E) split by source. Measured 10:2xZ 09-29: goal:g7.33.19 (director-engine's findings, owner 09-27 03:3xZ) holds 26 table rows and 6 child nodes. goal:g7.32.5 (parents send on the hub route) has 0 children and only makes sense under dispatch, so the council parks it (self-perpetuating: two-step is a formation this graph can switch back to).
+goal:g7.16.1.1.2 (row E) split by source. Measured 10:2xZ 09-29: goal:g7.33.19 (director-engine's findings, owner 09-27 03:3xZ) holds 24 table rows (the mint read 26; 24 in the bytes) and 6 child nodes. goal:g7.32.5 (parents send on the hub route) has 0 children and only makes sense under dispatch, so the council parks it (self-perpetuating: two-step is a formation this graph can switch back to).
 
 ## Target end-state
 - Every g7.33.19 table row carries one mark in its row: keep · park · retired · pointer (definitions: goal:g7.16.1.1.2). Its 6 child nodes carry a mark too.
