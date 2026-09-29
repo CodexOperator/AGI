@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w4-master-sensei
 next_edges: []
 confidence: 0.8
-edited_by: director-engine
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-2931de88-bc6cdd
 loop: hypothesis:l3w4-master-sensei@s2
@@ -24,7 +24,7 @@ verdict: inconclusive_lean_disproved:80
 ## Experiment
 
 Re-ran the `hypothesis:l3w4-master-sensei` gate against the CURRENT tree
-(`/home/ubuntu/work/agi/.agi/worktrees/a00-7fcff527`) to test whether the
+(`<home>/work/agi/.agi/worktrees/a00-7fcff527`) to test whether the
 Sensei feature has been built since prior experiment a00-2931de88
 (verdict inconclusive_lean_disproved:80). Prior review said the next chain
 step is the MVP build (seat row + sensei.py + tests), so this run checks
