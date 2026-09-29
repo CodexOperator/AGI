@@ -1854,6 +1854,12 @@ def _schema_field_refusal(schema, node_type: str, key, value, *,
                     or re.fullmatch(pattern, value) is None):
         return (f"{verb} {node_type} refused by name: {key!r} must match "
                 f"{pattern!r}, got {value!r} (schema validation.regex)")
+    # goal:g7.16.1.2.6 -- a list field's ITEM form (the park tag parked:<goal>)
+    item = (validation.get("item_regex") or {}).get(key)
+    for v in (value if item and isinstance(value, list) else []):
+        if re.fullmatch(item, str(v)) is None:
+            return (f"{verb} {node_type} refused by name: {key!r} item {v!r} must "
+                    f"match {item!r} (schema validation.item_regex)")
     return None
 
 
@@ -2356,6 +2362,20 @@ def submit(root, edit: Edit, actor: str = "", session: str = "",
             log_extra=_log_provenance(actor))
         res.payload_changed = changed
         res.payload_path = str(dest)
+    # goal:g7.16.1.2.6 -- `set active` wakes that formation's parked nodes:
+    # its `parked:<goal>` tag leaves every carrier in the same call.
+    if (edit.node_id == "config:formations" and "active" in edit.set_fm
+            and res.status != node_writer.REJECTED):
+        import verification
+        cell = node_writer.find_node_file(root, "config:formations")
+        from graph_core.persistence import frontmatter as _fmr
+        table = _fmr.load_node_file(cell, body=False).frontmatter.get("templates") or {}
+        goal = str(table.get(edit.set_fm["active"]) or "")
+        for nid, _f, tags in (verification.parked_carriers(root, goal) if goal else []):
+            node_writer.update_node(root, nid, set_fm={
+                "tags": [t for t in tags if t != f"parked:{goal}"],
+                PROVENANCE_ACTOR: actor or _default_actor()}, log_extra=_log_provenance(actor))
+            print(f"unparked {nid} (parked:{goal})", file=sys.stderr)
     return res
 
 
