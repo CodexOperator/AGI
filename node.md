@@ -6,7 +6,7 @@ parents:
   - goal:g4.18
 next_edges: []
 confidence: 0.75
-edited_by: belam
+edited_by: alive
 goal_id: G4.18.6
 goal_kind: subgoal
 heading_level: 3
@@ -34,7 +34,7 @@ town: core
 goal:g4.18: write.py is the one writer, so it knows the node, its parents and the ids its body names at the moment of the write. Measured 09-29: `links.py links` walks every node (4966 resolved, 42.1 s inside PASS B2's verify), while one write changes only one node's neighbourhood. The spawn gate already resolves parent TYPES at create (SPAWN-GATE APPROVED … allowed_parents), so outbound resolution at write time exists in part.
 
 ## Target end-state
-- Links are RAW MINT IDS only: `parents`, `next_edges` and every machine reference in a body store the 32-hex mint id (prose refs as a marker the renderer resolves; owner quotes stay verbatim). The address (`goal:g7.16.1`) becomes display-only, so a renumber, move or retire never breaks a link and nothing is ever re-pointed.
+- Links are RAW MINT IDS only: `parents`, `next_edges` and every machine reference in a body store the node's mint id (any string that IS a live node's mint_id, never a 32-hex shape check: belam signed [decision] 22:1xZ 09-29 accepted 8 off-shape mints; see goal:g4.18.6.1) (prose refs as a marker the renderer resolves; owner quotes stay verbatim). The address (`goal:g7.16.1`) becomes display-only, so a renumber, move or retire never breaks a link and nothing is ever re-pointed.
 - The READ and RENDER paths resolve each mint id to the node's current address, title and status, and decide visibility per view (live shown, retired dimmed or hidden); every read goes through the RENDER path, never write.py (owner 18:0xZ: write has no read path), and it prints names, never bare hex.
 - A write checks its outbound mint ids in the same step (a set lookup, not a walk); a write naming a missing id is refused.
 - The whole-graph walk leaves the per-write path: at merge gates only, over the merge's changed nodes.
