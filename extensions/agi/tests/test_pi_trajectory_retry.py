@@ -290,14 +290,24 @@ def _waits(text: str) -> list[float]:
 def test_more_total_empties_than_the_bound_still_finishes(tmp_path):
     """RED on the base: the bound was PER RUN, so a third empty -- never more
     than one IN A ROW, each after a completed turn -- killed a progressing
-    round. A completed turn zeroes the count: the run FINISHES."""
-    root = _project(tmp_path, 1, 0.0)
+    round. A completed turn zeroes the count: the run FINISHES.
+
+    The TOTAL ceiling is set explicitly to 12, well above this run's 4
+    attempts, because the finishing guarantee FALSIFIER 1 claims is now
+    BOUNDED by it (EG.187): left at the derived 4 x (max_retries + 1) = 8 the
+    fixture would sit under the ceiling by luck, not by construction."""
+    root = _project(tmp_path, 1, 0.0, empty_response_max_attempts_total=12)
     stub, counter = _stub_pi(tmp_path, [[OK, OK_END, GOOD, EMPTY]] * 3 +
                                         [[OK, OK_END, GOOD]])
     text, runs = _run(root, stub, counter, root / "trajectory.jsonl")
     assert len(runs) == 4, f"3 empties > max_retries=1, never 2 in a row: {runs}"
     assert text.count("retry: empty provider response 1/1") == 3, \
         f"every empty of the run was retried and counted: {text!r}"
+    for ordinal in (2, 3, 4):
+        assert f"(attempt {ordinal}/12)" in text, \
+            f"the retry line names the TOTAL attempt ordinal: {text!r}"
+    assert "total empty-response attempts" not in text, \
+        f"the total ceiling never cut this run: {text!r}"
 
 
 def test_the_consecutive_bound_is_real(tmp_path):
