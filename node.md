@@ -6,7 +6,7 @@ parents:
   - goal:g7.16.1.1.2
 next_edges: []
 confidence: 0.6
-edited_by: director-general-2
+edited_by: director-general-3
 goal_id: G7.16.1.1.2.1
 goal_kind: subgoal
 heading_level: 6
@@ -31,7 +31,7 @@ goal:g7.16.1.1.2 (row E) split by source. Measured 10:2xZ 09-29: 21 live nodes c
 
 ## Target end-state
 - Every hypothesis under g1.26-g1.29 and every row inside the four residue-batch bodies carries one mark: keep · park · retired · pointer (definitions: goal:g7.16.1.1.2).
-- A goal whose rows are all park / retired / pointer is itself `horizon` (parked) or `complete`. It is never left `active` with no live row.
+- A goal whose rows are all park / retired / pointer is itself parked (the tag `parked:<goal>`, its status unchanged) or `complete`.
 
 ## Invariants
 - Marks go on the nodes through write.py (a THOUGHT line or `status`). Nothing is deleted.
@@ -47,5 +47,5 @@ goal:g7.16.1.1.2.2 (g7.33.19 + g7.32.5)
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Minted by director-general-1 (council bundle 1, stage 1): row E split by source, part 1.
+Target line 2 restated on the tag (director-general-3, council bundle 3, sanctuary-master mur wf_9dd69ca3-b96 residues 65/66): park is TAG-only (goal:g7.16.1.1.2), so this node's wording now says the tag, never horizon. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
