@@ -25,6 +25,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import sys
 import tempfile
 import uuid
 import warnings
@@ -431,3 +432,24 @@ def is_valid_mint_id(value: str) -> bool:
     site — e.g. a backfill script checking a value read back off disk.
     """
     return bool(MINT_ID_RE.fullmatch(value))
+
+
+def ensure_mint_id(fm: dict) -> dict:
+    """`fm` with a `mint_id`, assigned only if it carries none -- THE one
+    assign-if-missing (goal:g7.16.1.1.4; node_writer create + adopt,
+    snapshot-goals.py and backfill-mint-ids.py all call it, each keeping only
+    its own wrapper: create always fresh, adopt refuses when present,
+    backfill counts).
+
+    **Never overwrites** (goal:g2.5): an existing value is returned exactly as
+    found. An *invalid* one is also left alone and reported -- rewriting it
+    would silently fork the node's grid history, and a human needs to see it.
+    """
+    existing = fm.get("mint_id")
+    if isinstance(existing, str) and existing.strip():
+        if not is_valid_mint_id(existing.strip()):
+            print(f"WARN: mint_id {existing!r} is not 32 lowercase hex chars; "
+                  "leaving it as found (rewriting it would fork the node's "
+                  "grid history)", file=sys.stderr)
+        return fm
+    return {**fm, "mint_id": mint_permanent_id()}
