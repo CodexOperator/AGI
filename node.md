@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g7.16.1
 next_edges: []
-edited_by: belam
+edited_by: director-general-4
 scaffold_hash: 83e9e4c0ac970627
 season: 2
 tags:
@@ -27,42 +27,48 @@ Role = the director template + the HEAD (`doc:unified-head`). This card is the O
 | skills | agi-goal · agi-node-write · agi-verify · agi-send · agi-rotate · agi-workflow |
 | never | a bundle-4 row (goal:g7.16.1.4: DG1 -> DG2 -> DG3 -> SM own it) · write.py · node_writer.py · loader.py · links.py · viewport.py · rotate.py's posts paths |
 | route up | to belam: merge-up · decision · rotation · red · rule only. Council: ONE council-loop room line per landing |
+| convener | alive placed L2a/L2b/L2c 22:1xZ (records on goal:g7.16.1.4 at e47c0d98e) |
 
 ## §1 Plan
 ```
-L1  GOAL LIFECYCLE MARKERS by a recursive leaf walk (owner 22:0xZ). Measured by belam 22:0xZ over .agi/nodes/goal:
-      467 goals = 298 active · 84 horizon · 47 complete · 38 retired
-      8 horizon parents over an ACTIVE leaf: g1 g1.9 g2 g3 g4 g5 g6 g7.33  -> active
-      1 active parent, every leaf complete/retired: g6.49                  -> complete ONLY if its own falsifier holds, else name what is missing
-    re-measure first (the numbers move) · each fix = write.py goal:<id> 'set status <s> && thought <why>' (skill agi-goal)
-    then COUNT (numbers only, never demote): active leaves with no hypothesis and no commit touching them since 09-26
-L1b the walk as a durable check: propose ONE shape to the council room (a verification.py check vs an agi-goal lifecycle section);
-    the owner is unifying skills on core, so the trunk edit stays one section / one check, never a new skill
-L2  leftovers the council places (ask alive, the convener; never self-place over a bundle row):
-      goal:g7.16.1.4.1.1 retire unify.py · verify_unified.py · publish-engine.sh (horizon, placed in bundle 5)
-      DG2 §6 findings: 87 nodes carry the repo path · the writer stamps town: core for local-town posts · 8 nodes carry a surplus THOUGHT END
+L1  DONE e1d710942 -- 8 horizon parents over an active leaf -> active (g1 g1.9 g2 g3 g4 g5 g6 g7.33)
+      walk: 468 goals = 306 active · 77 horizon · 47 complete · 38 retired
+      g6.49 kept active: 3/3 leaves complete but NO Falsifier on it or any leaf (the missing piece)
+      count: 250 active leaves · 76 no hypothesis · 57 of those untouched since 09-26
+L1b NEXT  propose ONE durable shape to the council room (verification.py check vs an agi-goal lifecycle section)
+L2c DONE 259d75164 -- orphan column-0 THOUGHT END 6 -> 0, de-marked to [THOUGHT:END marker line]
+L2a MEASURED, not started -- publish-engine.sh still wired (dormant): hook publish alarm (g7.10), grid.py cron --publish-engine,
+      crons.py publish_engine job; proposed split of goal:g7.16.1.4.1.1 into (a) unify.py+verify_unified.py (b) publish-engine.sh+wiring
+L2b HELD  -- write.py always stamps edited_by (see BANKED)
 ```
 
 ## §2 Landed
-(none yet)
+- e1d710942 L1 goal lifecycle markers (8 goals)
+- 259d75164 L2c orphan THOUGHT END (6 nodes)
+- council room: 2 lines (L1 landed · L2c landed + L2a finding + L2b decision)
 
 ## 🔴 Where it stops
-23:00Z 09-29 = the council STOP (owner: "Keep working till 7pm"): finish the step, card whole, idle. Next command at wake: re-run the L1 walk.
+23:00Z 09-29 council STOP. At wake: `python3 /tmp/dg4walk.py` is gone with /tmp -- re-run the walk (goal-parent leaf walk over .agi/nodes/goal: horizon/complete/retired parent over an active leaf, active parent over all-done leaves), then read the council-loop room for alive's answer on L2a split + L2b.
 
 ## §4 Traps
 | trap | rule |
 |---|---|
 | MAIN is shared with 7 posts | commit by exact path; never commit, reset or stash another post's file |
-| PASS B3 runs 23:33Z on this box | tests ONE file at a time; no MAIN commit while .agi/sessions/verify-suite.lock exists |
+| verify-suite.lock flaps (runs 1-5 min) | write.py leaves the write uncommitted while held; wait for the lock, then commit by exact path |
+| replace body anchor guard | a one-line range mid-paragraph is refused; widen to paragraph bounds, never --force |
+| grid.py commit --all | versions EVERY changed node incl. other posts' uncommitted edits (14 on the first run) |
 | GOALS.md is retired (owner 17:3xZ) | never render, --check or recreate it; read a goal by id |
 | council invariant | no parent/kid dispatch; every node written through write.py; nothing deleted |
 
 ## §5 Verification
-`python3 extensions/agi/bin/links.py links` 0 broken · `python3 extensions/agi/bin/links.py schema` · the L1 walk re-run shows 0 mismatches
+links.py links = 5164 resolved / 0 broken (22:2xZ) · orphan THOUGHT END = 0 · walk mismatches left: g6.49 (falsifier), g15 + g26 (retired over active)
 
 ## §6 BANKED
-(none)
+1. g15 retired over 32 active leaves, g26 retired over 1 -- re-parent to g1 (g15 -> g20 -> g1 per agi-goal §6) or retire the leaves. Rec: re-parent, the Prime's call.
+2. L2b edited_by: (1) a provenance-preserving write.py verb (DG3's W1 lane) (2) accept edited_by = DG4, original named in THOUGHT (3) hold. Rec (1).
+
+Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Stood up by belam-S2-L5-XVIII on the owner's 22:0xZ order, verbatim: "Can we spin up another director-general to tackle more of the leftover graph growth from the bundle? The goals should have proper active markers since the lifecycle skill should include recursive leaf walking from the core/season2/main branch." Then: "It may be in the director briefs in that branch" and "I'm still working on unifying things. That branch is working on the magic pane system". The Prime searched core/season2/main (briefs, skills, bin): no leaf walk exists there yet, so L1 measures and fixes the markers here and L1b only proposes the durable shape. The lane stays disjoint from bundle 4 because the council invariant is one director per bundle.
+Gen 1's first work version: L1 and L2c landed, L2a measured (live wiring alive's placement did not name), L2b held on a writer property (write.py:72 stamps edited_by), two items banked. The stand-up version carried the owner's 22:0xZ verbatim; it lives on in this node's grid history.
 <!-- THOUGHT:END -->
