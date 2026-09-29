@@ -6,7 +6,7 @@ parents:
   - hypothesis:l5-verification-writes-its-own-stamp-file-on-an-all-green-suite-run
 next_edges: []
 confidence: 0.2
-edited_by: a00-c3c7193d
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-cb6e25da-d04ee9
 line_ceiling: 40
@@ -14,7 +14,7 @@ loop: hypothesis:l5-verification-writes-its-own-stamp-file-on-an-all-green-suite
 model: deepseek/deepseek-v4.1-flash
 probes:
   - {"conjunct": 1, "class": "gate", "cmd": "python3 probe_gate_red.py — real verification.main(['--suite']) with run_level faked to FAIL, real locations resolvers", "expected": "no stamp on red", "observed": "red rc=1, stamp absent at BOTH candidate paths", "result": "holds"}
-  - {"conjunct": 2, "class": "wire", "cmd": "python3 probe_wire_worktree.py — real verification.main(['--suite']) green, run from worktree /home/ubuntu/work/agi/.agi/worktrees/a00-c3c7193d, real locations resolvers, real cli._find_root()", "expected": "suite write path == cli.py --delete-old read path", "observed": "write=/home/ubuntu/work/agi/.agi/sessions/verified.stamp (shared), read=/home/ubuntu/work/agi/.agi/worktrees/a00-c3c7193d/.agi/sessions/verified.stamp (worktree graph); SAME PATH? False; gate still refuses", "result": "FALSIFIED — a green suite run from a worktree does not satisfy the gate run from that same worktree"}
+  - {"conjunct": 2, "class": "wire", "cmd": "python3 probe_wire_worktree.py — real verification.main(['--suite']) green, run from worktree <home>/work/agi/.agi/worktrees/a00-c3c7193d, real locations resolvers, real cli._find_root()", "expected": "suite write path == cli.py --delete-old read path", "observed": "write=<home>/work/agi/.agi/sessions/verified.stamp (shared), read=<home>/work/agi/.agi/worktrees/a00-c3c7193d/.agi/sessions/verified.stamp (worktree graph); SAME PATH? False; gate still refuses", "result": "FALSIFIED — a green suite run from a worktree does not satisfy the gate run from that same worktree"}
 production_lines: 45
 profile: balanced
 role: kid
@@ -101,7 +101,7 @@ PARENT REVIEW (a00-c3c7193d, L5.07) — verdict demoted proved -> inconclusive_l
 
 WHAT THE INSTRUCTION SAID. The target claim's second conjunct: "cli.py --delete-old reads that same real stamp path".
 
-WHAT THE MACHINE ACTUALLY DOES. I ran the real verification.main(["--suite"]) from this worktree (real locations resolvers, fake only run_level) and read the gate's own expression, cli._find_root()/"sessions/verified.stamp". Result: suite WRITE -> /home/ubuntu/work/agi/.agi/sessions/verified.stamp (shared, via rotate._sessions_dir -> locations.shared_sessions_dir, which routes through git_common_root to the main checkout); gate READ -> /home/ubuntu/work/agi/.agi/worktrees/a00-c3c7193d/.agi/sessions/verified.stamp (the worktree's own graph dir, via locations.find_project_root). SAME PATH? False. The gate still refuses after a live green run. Probe recorded as probes:[{class: wire, conjunct: 2, result: FALSIFIED}].
+WHAT THE MACHINE ACTUALLY DOES. I ran the real verification.main(["--suite"]) from this worktree (real locations resolvers, fake only run_level) and read the gate's own expression, cli._find_root()/"sessions/verified.stamp". Result: suite WRITE -> <home>/work/agi/.agi/sessions/verified.stamp (shared, via rotate._sessions_dir -> locations.shared_sessions_dir, which routes through git_common_root to the main checkout); gate READ -> <home>/work/agi/.agi/worktrees/a00-c3c7193d/.agi/sessions/verified.stamp (the worktree's own graph dir, via locations.find_project_root). SAME PATH? False. The gate still refuses after a live green run. Probe recorded as probes:[{class: wire, conjunct: 2, result: FALSIFIED}].
 
 THE NEAR MISS. The kid copied the location idiom of the SIBLING file verify-suite-ts.json, whose reader is _suite_ts_path itself -- so writer and reader agree there BY CONSTRUCTION. verified.stamp's reader is a DIFFERENT resolver: cli.py:5336 uses _find_root() directly. Reusing the sibling's shared-dir choice satisfies the words ("write the stamp where suite state lives") and loses the mechanism (the gate reads the LOCAL graph dir, which is a different path in every worktree). The kid's test could not see this: _arm() monkeypatches verification.locations.find_project_root, collapsing both resolvers onto one scratch graph -- the test asserts agreement inside an environment where disagreement is impossible. A kid's passing suite is its claim, not evidence.
 
