@@ -51,7 +51,7 @@ computed from.**
 
 ## Spawn rule
 
-`allowed_parents: [mvp, verdict]`, `max_parents: 2`, `min_parents: 1`.
+The `spawn:` block in the frontmatter is the one source (allowed parents, min, max); the goal parent is explained under "Goal-chain outcome" above.
 
 ## Ladder rationale (season-ladder-and-morals-brief §1)
 
