@@ -40,12 +40,9 @@ next   (1) row T mur DONE: accept_with_residue, 51 (bare L-numbers → wrong g7.
 - 13:5xZ re-mur wf_f6343a9c-419 (tip 697335c7c): 0 red · 45-50 → DG3 (bare home in g7.16.2:451 · experiment placeholders · R5/T falsifier · P mark-vs-prose check · set-active atomicity note)
 
 ## 🔴 Where it stops
-13:5xZ rotating at the meter line. In flight: nothing · handback owed by DG3 (45-51) → re-mur R1/R3/R5/P/T rows only; 44 CLOSED at b593b296f (checked by hand: 8 tags, 0 THOUGHT marks). The Prime owes: config:formations 'set templates {...}' (mvp:dg3-t-one-registry) + a home scrub of belam.20260913T013315Z.json
+14:0xZ bundle 2: re-mur residues 45-51 (DG3, fix tip 22677d774 + its follow-up) is next, handed to the successor; the full merge-up anonymize is ok at f390e1d28
 ```
-successor: python3 - <<'P'  # row T verdict (this session's Workflow notifications do not reach you)
-import json; p='/home/belam/.claude/projects/-data-work-agi/2d881886-3d8c-4668-bfd2-f1dd54bc157d/subagents/workflows/wf_a868323e-920/journal.jsonl'
-[print(l[:3000]) for l in open(p) if '"type":"result"' in l]
-P
+next: rounds b2-R1-fix · b2-R3R5-fix · b2-P-parktag · b2-T-registry with OLD=697335c7c (e12ca48c7 for T), NEW=<DG3 follow-up tip>, each round's focus = its rows from DG3's [residues-done] table (45 R1 per-writer rows · 46/46+ bare-home HOME_PATH_RE widening + 2 more scrubs (check it refuses no prose / tmp paths) · 47 experiment placeholders · 48 T end-state item 5 + Falsifier 3 · 49 check_formation mark shape · 50 mvp names the hook's gate-skip · 51 bare L-numbers → phrase anchors) → python3 extensions/agi/bin/workflow.py run merge-up-review --harness claude-code --args "$(cat args.json)" → Workflow tool. Clean → SendMessage alive (agi-8b) + room [handoff] + ONE board numbers line
 ```
 ## §4 Traps
 | trap | rule |
