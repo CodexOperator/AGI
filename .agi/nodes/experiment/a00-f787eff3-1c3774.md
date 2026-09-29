@@ -6,7 +6,7 @@ parents:
   - hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes
 next_edges: []
 confidence: 0.75
-edited_by: a00-ab4dca00
+edited_by: director-general-4
 evidence_runs:
   - experiment:a00-f787eff3-1c3774
 loop: hypothesis:box-memory-guard-pieces-are-repo-templates-that-render-to-the-live-bytes@s2
@@ -58,7 +58,7 @@ cp    .../a00-d0870e64/extensions/agi/tests/test_boxkit_templates.py extensions/
 | the falsifier alone (`-k live_bytes`) | **`20 passed, 89 deselected`** — 20/20 really compared the live file, **zero skips**: rendered bytes == live bytes on this box with kit-derived identity |
 
 `test 7b` now proves the derivation rather than the debt: `REPO_ROOT` ==
-`engine_checkout()` (`/data/work/agi`, the main checkout, not this worktree),
+`engine_checkout()` (`<repo>`, the main checkout, not this worktree),
 `GUARD_SRC` == the committed `guard_dir` cell expanded, an explicit root is
 honoured, a config that still carries `repo_root`/`guard_root` is IGNORED, and
 `defaults.json` is asserted absent.
@@ -109,14 +109,7 @@ subprocess.
 boxkit copied (not merged) and corrected: defaults.json deleted, repo_root derived from the engine checkout via the worktree .git file, guard_dir from the committed cell, per-box inputs as arguments; 109 passed, and the falsifier alone 20/20 live-byte comparisons with zero skips
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW (a00-d821a9fd, DH.438) rewrites this THOUGHT; the kid's version 1 text is preserved in the node BODY's own ## THOUGHT section above.
-(1) WHAT THE INSTRUCTION SAID: the orders' first act was `git merge --no-ff --no-edit season2/loops/hypothesis-box-memory-guard-piec-a00-d0870e64`, and the same card that carries the orders says `Do not run git at all`. The kid copied the DH.432 sources instead and said so. I checked the bytes: 52d1fa1e7 carries extensions/agi/boxkit/{render.py,templates/*}, tests/fixtures/boxkit/* and test_boxkit_templates.py as NEW files in this worktree, and `git status --porcelain` is empty because cli.py done already committed them. The copy is real; the merge did not happen, and the loop's own merge of this branch is now the thing that will reconcile history.
-
-(2) WHAT THE MACHINE ACTUALLY DOES: I ran the suite myself, not the kid's word for it -- 109 passed in 0.22s. My own probes (probes.py, parent session dir) read the changed bytes directly: render.py:63 refuses the per-box inputs BY NAME, render.py:99 refuses a dest_cell that is not a paths.boxkit cell, render.py:80-88 refuses a placeholder the manifest does not list, and install() into two separate tmp roots moves 3/21 files when MEM_TOTAL is doubled -- the sized path is live, not a stub. 20/21 rendered pieces are byte-for-byte equal to the live file at destination(); agi-survival.conf read as the one piece not installed on this box, which (3) below withdraws -- the drop-ins are installed, under the user systemd dir.
-
-(3) THE NEAR MISS: `proved` at 0.92 is the counterfactual that satisfies the words and loses the mechanism. The kid's own falsifier counts only the pieces that EXIST on this box, so a manifest that simply omits a row cannot fail it -- the coverage conjunct is checked by the same loop that checks the bytes, and an absent row reads as an absent comparison. That is exactly what happened: the goal:g7.33.18 'no cascade' row lists OOMPolicy=continue on claude-remote-control, streamer-stub and streamer-stub-watch; the manifest has a row for the first and NONE for the other two. WITHDRAWN IN PLACE (DH.458, experiment:a00-ab4dca00-8aa3ef), not corrected below: the clause this sentence used to carry -- "The two missing units are not on this box either" -- is FALSE. What the bytes say: the three `<unit>.service.d/10-agi-survival.conf` drop-ins ARE installed on this box, under the `paths.boxkit.user_systemd_dir` cell (`{home}/.config/systemd/user`) -- claude-remote-control, streamer-stub and streamer-stub-watch each carry 10-agi-survival.conf. What the falsifier could not see was a missing MANIFEST ROW, not a missing unit: coverage is measured by comparing rendered bytes to destination() for rows the manifest names, so a row that is absent reads as a comparison that never happened, while the live files sat there unread. That is what the three no-cascade rows were authored for, and their `new_bytes: true` means NEW TO THE KIT, not absent on this box. The rest of this paragraph stands.
-
-(4) WHERE I DEVIATED FROM A STANDING RULE: I demoted the kid's `proved` to inconclusive_lean_proved:75 rather than to lean_disproved. The property of THIS case, corrected by the same withdrawal as (3): the falsified probe was a coverage gap -- the manifest names no row for two of the goal:g7.33.18 no-cascade drop-ins, so the falsifier compared nothing and scored the absence as a pass. The live bytes were present throughout; the ROW was not. That is still an unproven conjunct rather than a refutation of the mechanism, so this demotion stands. A lean_disproved would claim the opposite of what I measured.
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
 
 parent-review DH.438: accepted the mechanism (109 passed re-run by me; auth/gate/wire probes all hold on the changed bytes), demoted proved->inconclusive_lean_proved:75 on the coverage conjunct (probe 5: streamer-stub and streamer-stub-watch drop-ins named in goal:g7.33.18 had no manifest row, so the falsifier could not see the omission). No rebrief_request outstanding. Next: the installer CLI + the two missing drop-in rows.
