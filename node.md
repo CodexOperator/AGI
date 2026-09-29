@@ -24,7 +24,7 @@ town: core
 # goal:g4.18.7.1
 
 ## Why this exists
-goal:g4.18.7 bullets 2 and 4, placed by goal:g7.16.1.4 row W3. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): VERBS still holds "read" (write.py:543); `viewport.py` has --anchor, --emit human|llm|both and --verify, no single-node body render; grep_live and parked_carriers live in rotation_record.py (:49, :77), imported by write.py:2353 to unpark; the literal teaching form `write.py <id> 'read body|payload` sits in 8 files / 13 lines (10 files on a broader 'read body' grep), not the 23 the goal cites.
+goal:g4.18.7 bullets 2 and 4, placed by goal:g7.16.1.4 row W3. Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): VERBS still holds "read" (write.py:543); `viewport.py` has --anchor, --emit human|llm|both and --verify, no single-node body render; grep_live and parked_carriers live in rotation_record.py (:49, :77), imported by write.py:2353 to unpark; the literal teaching form `write.py <id> 'read body|payload` sits in 8 files / 13 lines (10 files on a broader 'read body' grep), the count goal:g4.18.7 now carries (a5848c5a2; its earlier 23 counted a wider scope incl. tests).
 
 ## Target end-state
 - `viewport.py` renders a single node: its names resolved (goal:g4.18.6.1), its body by goal:g4.18.5.1's row index or a line range, its payload, as --emit llm and --emit human from ONE stream.
