@@ -38,6 +38,7 @@ gen 16 rotates at f 0.36 BEFORE PASS B3, not at the 0.47 line: a PASS is multi-r
 DONE   PASS B2 · config:formations + registry · posts [red] · goals g1.30 g4.18.3 g4.18.4 · M review doc:council-loop-review-s2 · council resumed to 23:00Z · stream-master stood up 237fdfc3f
 FIRST  B3. PASS B3 (below)
 then   F. row F: config:rotations first_turn `formation` line (goal:g7.16.1.2.9, exact draft at its body :35-38) · S. the 23:00Z stop -> owner <= 6 lines, hold for the CC-subscription call
+STREAM-MASTER -> encryption-town: CONDITIONAL GO (plan /data/home-belam/enc-town-plan.md). OWNER must: grant sudo there (firefox + xvfb) and pick the branch of a separate s2 clone; formal migrate NO-GO today; air the masked FEED, never the 3D dashboard (7.6 cores of software WebGL)
 URGENT goal:g6.41.1 (owner 17:3xZ "Make the recovery path restart tmux and your session as well"): root cause = tmux lives in claude-remote-control.service's cgroup; heal respawned 8 posts FRESH at gen+1; patch P1-P6 on the node; sent to the council 18:1xZ as urgent (P1 + P5 first). The box stays EXPOSED until P1 lands
 OWNER  17:4x-18:0xZ: THE WRITE/RENDER SPLIT -> sent to the council (alive, 18:0xZ) as one bundle: goal:g4.18.5 (rows; a write is a commit) · goal:g4.18.6 (links = raw mint ids; the renderer owns names + visibility) · NEW row, the council mints it: read leaves write.py -> ONE render path (viewport --emit llm, goal:g2.19). Owner: "Read doesn't belong to write semantically"
 OWNER  17:3xZ: RETIRE GOALS.md + the render round trip ("stop bothering with it") -> handed to alive as a bundle-3 row; NEVER render or --check GOALS.md again, never commit it
@@ -48,9 +49,10 @@ HELD   g1.30 / g4.18.3 / g4.18.4 dms to DE (DE down; the council took g4.18.3 + 
 ## §2 Landed (gen 16): 2fb5c2043 · acff4a1ab · 1532a604b · feed41d3e · dcd06014e · 07f02d4a2 · fc4320819 · fee990795 · 899ea077f · b3f12726e · 7705a3a73 · 883e27369 · 237fdfc3f
 
 ## 🔴 Where it stops
-17:2xZ 09-29 belam-S2-L5-XVI: rotating before PASS B3; the successor's first act is PASS B3 at 17:47Z
+18:2xZ 09-29 belam-S2-L5-XVI: rotating after the oomd restore; successor: RE-ARM the crons first, then the stream-master move (owner items), PASS B3 at 23:33Z
 ```
-B3. section 2 of .agi/sessions/prime-merge.crons.md (skill agi-merge-pass §2-§4): copy /data/home-belam/passB2 -> passB3, retag pb3 (grep every pb2 after copying).
+B0. RE-ARM (session crons die with a session): CHECK "13 */4 * * *" · council STOP "0 23 29 9 *" · PASS B3 "33 23 29 9 *" (memory gate first).
+B3. 23:33Z: section 2 of .agi/sessions/prime-merge.crons.md (skill agi-merge-pass §2-§4): copy /data/home-belam/passB2 -> passB3, retag pb3 (grep every pb2 after copying).
     The council is LIVE (7 CC Opus sessions + stream): CAP 2 chunks, not 3, and hold on memory_alarm as launch.sh does.
     RED gates beyond the skill: anonymize over BASE..TIP (net range diff; DG1's bcff91a2c placeholder is removed at fc7cb0112) AND a hand grep of goal:g7.16.2
     for the other-box user segment (residue 46). Either open = hold the merge. verify in prime-root in the BACKGROUND (> 120 s; bin-suite-fresh = the known FAIL).
