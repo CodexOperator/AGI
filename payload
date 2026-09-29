@@ -3397,6 +3397,36 @@ goal:g4.18.3 (adopt's written_by gate) · goal:g7.16.1 (the council bundles).
 ## Agent Notes
 Assigned to **director-engine**.
 
+### G4.18.5 — a node body is addressable rows -- one verb replaces a row, one edits lines inside a block row, and every write is a git commit behind the permission layer — status: active
+
+# goal:g4.18.5
+
+# goal:g4.18.5
+
+## OWNER 2026-09-29 17:2xZ, verbatim (Prime pane)
+"Is our new unified mint/wrote working better. We could add more verbs to mint single row changes and to change specific lines inside of a row that is a block of text not just one line."
+"Actually, if we have a one-row replace verb we can split all the different body sections into their own rows. But also still have a way to overwrite specific lines. Maybe something got based that piggybacks off of git commits. Maybe a write could be a commit also and just drive all the existing git machinery just with permissions layered on top."
+
+## Why this exists
+goal:g4.18: write.py is the one node writer. Measured friction on 09-29 (belam-S2-L5-XVI): no single-row verb (re-homing stream-master rewrote the whole 25-row config:posts list via write.submit); `replace body` refuses a line inside a table paragraph (the council-loop Posts table was replaced whole to add one row); `create config` has no route (spawn gate) and `adopt` skips written_by (goal:g4.18.3); a key-row write corrupted config:posts on season2/main (goal:g4.18.4).
+
+## Target end-state
+- A node body is a list of addressable ROWS (one per section / table row / list item); one verb replaces one row, one verb edits lines inside a block row.
+- A write IS a git commit: the permission layer (written_by, self_row, actor_rows, schema) runs first, then the write commits the one node by path; the grid and history are git's, not a second mechanism.
+
+## Invariants
+- Every write passes the same authorship + schema gate before any byte lands; no verb returns ahead of it.
+
+## Falsifier
+1. `write.py <id> 'row <n> <file>'` replaces exactly one row, and `git log -1 -- <node>` is that write's commit.
+2. Negative: zero write.py verbs that change a node without producing a commit.
+
+## Out of scope
+goal:g4.18.3 · goal:g4.18.4 (bundle 3, H1-H2).
+
+## Agent Notes
+Assigned to **director-engine**.
+
 ### G4.19 — ONE intercept layer — Read/Write/Edit routed through command.py/write.py, recorded as fine-tune data — status: active
 
 <!-- BODY:BEGIN -->
@@ -6519,6 +6549,8 @@ Answers to the Prime's five questions (1 council = alive / all-is-one / self-per
 
 OWNER 16:5xZ 09-29, verbatim (Prime pane): "let the team know we can Keep working till 7pm next and I'll check my CC sub then" -- the council loop resumes after the 16:00Z stop and runs to 23:00Z (7 pm EDT); the next bundle per this goal's order = grok's core simplify.
 
+OWNER 17:3xZ 09-29, verbatim (Prime pane): "Go ahead and retire GOALS.md. We don't need it anymore stop bothering with it or the render byte round trip script" -- handed to the council as a bundle-3 simplification row (verify goals-check, driver --smoke render, snapshot-goals.py --render/--check, CLAUDE.md + skill citations); GOALS.md itself retires in git history, never hand-deleted mid-bundle.
+
 #### G7.16.1.1 — COUNCIL BUNDLE 1 -- B the writer keeps every authored THOUGHT (trunk hygiene green) -> E every residue row triaged keep|park|retired|pointer -> C home paths anonymized with a check -> D g4.18.1 one mint assigner -> A formations as switchable templates, one active — status: active
 
 # goal:g7.16.1.1
@@ -7014,8 +7046,8 @@ Rows in council order. A row closes when its line holds in the bytes.
 - **H1 · one gate for every verb.** goal:g4.18.3: `write.py <id> adopt` applies the type's written_by (and its self_row / actor_rows grants) before any mint; an actor outside written_by is refused by name and nothing is minted.
 - **H2 · the organ every post reads always loads.** goal:g4.18.4: a key-row write never inserts one row into a config:posts that lacks it (refuse by name, or write the whole row set), and every config:posts write is YAML-loaded before it is committed.
 - **H3 · one park form.** The 5 body-table carriers of parked ROWS (goal:g7.33.19 · 11, hypothesis:pass10-0927-residue-batch · 11, pass11-0927 · 3, pass12-0928 · 8, passb1-0928 · 6 = 39 rows) carry the tag `parked:g7.16.2`, with no status change on a carrier that also holds keep rows. The formation check FAILs when a live node holds a `triage: parked: formation` row but no carrier tag, so a switch to g7.16.2 wakes the carrier and its body names the rows.
-- **H4 · bundle-2 residues.** rotate._dump_record / rotate._resolve_record_path and verification's parked_carriers move to ONE small shared module that rotate, heal, sensei, write and verification import. No `_private` name is imported across modules, and write.py never imports the verifier. heal never swallows ImportError on a rotation-record write. skills/agi-master-gate/SKILL.md:66 points at anonymize.CLASSES + HOME_PATH_RE instead of hand-listing classes. goal:g7.32.5 returns to its pre-park status (park is tag-only). Plus every refuter-confirmed residue of the council mur wf_4e0708df-4ef over 794a0782e..9c54fb3c4 (the convener sends them to director-general-1 by name).
-- **S1 · messaging is ONE route, or a verdict.** The first leaf MEASURES: send routes on the trunk before and after, and which goal:g7.32.6 targets the trunk lacks. S1 lands ONLY as a replacement: the dm_* family + send_transport fold into ONE module (or send.py itself) on this trunk, carrying the union of their tests, and the SAME row retires the inbox route (152 refs down to what a retirement pointer needs), so routes go 2 -> 1, with CC SendMessage as the interim. The dm file format stays byte-compatible: one test reads a real committed .agi/comms/**/dm/*.md file through the folded module. If the retirement does not fit, S1 becomes a verdict node like S2, and nothing is ported. adapters/magic_pane follows S1's outcome.
+- **H4 · bundle-2 residues.** rotate._dump_record / rotate._resolve_record_path and verification's parked_carriers move to ONE small shared module that rotate, heal, sensei, write and verification import. No `_private` name is imported across modules, and write.py never imports the verifier. heal never swallows ImportError on a rotation-record write. skills/agi-master-gate/SKILL.md:66 points at anonymize.CLASSES + HOME_PATH_RE instead of hand-listing classes. goal:g7.32.5 returns to its pre-park status (park is tag-only). Plus the refuter-confirmed residues of the council mur wf_4e0708df-4ef over 794a0782e..9c54fb3c4 (3 rounds, all accept_with_residue, 0 red): (a) skills/agi-master-gate/SKILL.md:66 hand-lists 6 classes, already stale against HOME_PATH_RE's bare-home match (the pointer fix above). (b) goal:g7.16.1.2.3 invariant 'class and scrub land in the SAME round' is unmet: the generic home class still matches 424 files (.agi/nodes 367 · datasets 31 · .agi/sessions/quorum 15, + rotations), banked as SM residue 39. Every write.py edit that re-adds such a line is now refused. Scrub one scope per round until `git grep -lP '/(?:home|Users)/[\w-][\w.-]*' -- .agi/nodes datasets .agi/sessions/quorum .agi/sessions/rotations | wc -l` = 0. (c) goal:g7.16.1.1.2.1 reads complete, but its anchored Falsifier 1 fails on 3 of 21 nodes: fix the 3 marks or re-open the leaf. (d) hypothesis:pass10-0927-residue-batch row 32 is a false park (context-suite conftest machinery runs in every formation): keep. (e) mvp:dg3-p-park-tag states 6 parks while its own falsifier grep prints 9 · mvp:dg3-t-one-registry still reads partial / strict-xfail after the cell landed (fee990795): make both true. (f) verification._grep_live ignores git grep's exit code (the mark gate fails open) and yaml.safe_load raises on a malformed hit (verification.py:1290, :1297). (g) rotate.py _compose_seating_announcement (~:6179/:6546) writes the absolute transcript path into tracked comms: route it through the same home-relative serializer. COUNCIL ADDS (self-perpetuating + all-is-one, 17:4xZ): (f) FIRST in H4: git grep exit >= 2 = FAIL with the error, pinned by a test that injects a bad pathspec and expects FAIL (a guard that can't look must fail closed). (d) widen the PARKING TEST: its caller grep also covers conftest.py, .sh, hooks and .agi/nodes/.geometry/crons.md command lines, not only `import` (a caller reached through pytest collection or by path is invisible to an import grep). (b)'s falsifier uses the GENERIC pattern the invariant names, never the live box's $HOME alone (verify with the pattern the invariant names). (c)/(e): a goal or mvp whose falsifier exits non-zero goes back to active; never complete over a red falsifier. (g) uses the ONE rule every outbound text uses (anonymize.home_relative via R1's serializer), never a new strip at that site.
+- **G · GOALS.md is retired (OWNER 17:3xZ 09-29, verbatim on goal:g7.16.1: "Go ahead and retire GOALS.md. We don't need it anymore stop bothering with it or the render byte round trip script").** Goals are read from their nodes only (`write.py goal:<id> 'read body ...'`). The row's reach: verification.py's goals check · driver.sh --smoke's render step · snapshot-goals.py --render / --check (the render path retires; whatever non-render duty snapshot-goals still carries is measured first and kept or folded) · the GOALS.md citations in CLAUDE.md and skills agi-goal, agi-verify and agi-node-write. GOALS.md leaves through this reviewed row with `git rm` of the DERIVED file only (a derived render is not a node; git history keeps it); no goal node is touched. Until the row lands, GOALS.md in MAIN is stale and nobody re-renders or commits it. Falsifier: `git ls-files GOALS.md` prints nothing · `git grep -n 'GOALS.md' -- CLAUDE.md skills extensions/agi/bin extensions/agi/driver.sh` prints only a retirement pointer · the verify pass and `driver.sh --smoke --max-iters 1` exit 0 with no render step. CUT THE CALLERS, NOT ONLY THE FILE (self-perpetuating, measured 17:5xZ: 28 non-node code files + 50 docs name GOALS.md; not a root marker). Three LIVE render paths would go red: (1) the rotation closeout step "render" (rotate.py ~:8681, handler ~:9297) refuses on a failed render/--check, which is EVERY rotation's closeout: drop the step and its row in test_rotate_closeout_steps.py; (2) driver.sh ~:240 renders on every --smoke: drop the line (the smoke keeps snapshot + metrics); (3) the review gates workflows/agi-round-review.js ~:64 + workflows/review.json run render --check: drop the item. locations.py DEFAULT_GOALS_FILE retires with its test. Falsifier add: `git grep -n 'snapshot-goals.py --render' -- extensions ':!extensions/agi/tests'` prints 0 · one rotate closeout runs clean after the cut. THE HUMAN READER (alive + self-perpetuating): GOALS.md was the one page a new human observer opened first, so CLAUDE.md's replacement line names the ONE live command that shows the goal tree (viewport.py --live or what DG1 measures as best). The human UI stays live and interactive, never a stale render. SAME-ROW COUPLINGS (all-is-one, measured 17:5xZ): (4) retire snapshot-goals.py --from-doc AND its unlink (:1135-1145, :1256), the ONLY code that turns GOALS.md into goal-node DELETIONS: a stale GOALS.md restored from git plus one --from-doc run would prune live goals. Nodes are the only direction left, so no second source can delete the first (the paid-for class in CLAUDE.md's two rules). (5) the closeout's --check gate (rotate.py ~:9296-9310) compares against "" once the file is gone (snapshot-goals.py:1004) and would refuse forever: it drops WITH the render step. (6) node_writer.py:76-84 keeps `goal` out of CANONICAL_NODE_TYPES because snapshot-goals regenerates nodes/goal/ from GOALS.md: after G that reason is false; restate it or admit `goal`. (7) config-max: the goals_file config cell leaves with locations.DEFAULT_GOALS_FILE; the verify_unified / links / unify / dashboard readers are cut. ONE READ PATH: CLAUDE.md, QUICKSTART.md and every skill (agi · agi-goal · agi-master-gate · agi-node-write · agi-verify) cite the SAME goal read (write.py goal:<id> 'read body N:M' / viewport.py), never a per-skill substitute. Docstrings citing 'GOALS.md S17' sections re-point to goal ids (low priority).- **S1 · messaging is ONE route, or a verdict.** The first leaf MEASURES: send routes on the trunk before and after, and which goal:g7.32.6 targets the trunk lacks. S1 lands ONLY as a replacement: the dm_* family + send_transport fold into ONE module (or send.py itself) on this trunk, carrying the union of their tests, and the SAME row retires the inbox route (152 refs down to what a retirement pointer needs), so routes go 2 -> 1, with CC SendMessage as the interim. The dm file format stays byte-compatible: one test reads a real committed .agi/comms/**/dm/*.md file through the folded module. If the retirement does not fit, S1 becomes a verdict node like S2, and nothing is ported. adapters/magic_pane follows S1's outcome.
 - **S2 · the unwired five are explained, not dropped.** None is ported. ONE verdict node on this trunk carries, per module: (a) the goal it serves (g7.31.3.3 .1-.5 for kid_write_gate, spawn_refusal, parent_slots, needs_rotate; session_ingest = a SECOND mint door that folds into `write.py create` with a derived id, never a new module); (b) the start point for when that goal is worked: core sha + its test file + its pass count; (c) the gap in one line ("built + tested, not wired into heal/rotate"). Our goal:g7.31.3.3 records module != wired, so no successor reads core's COMPLETE as done. ONE TRUTH ACROSS TOWNS: core marks g7.31.3.3 and .1-.5 complete while our trunk has g7.31.3.3 active and no .1-.5. The verdict node names this for the Prime's merge: the true status is ACTIVE until wired, so g7.31.3.3 stays active and its leaves land active, each with a BODY status line in Target end-state ("built at <core sha>, test <file> <n>/<n>, not wired into heal/rotate"), never in THOUGHT, because it is state, not delta. The convener sends the Prime one [merge-note] line; nothing is written on core.
 - **Convention for every port:** a folded or ported module names its core module + sha in its build node (provenance lives on THIS trunk, never a write on core), and its tests are named by behaviour, never by goal id.
 
@@ -7030,6 +7062,319 @@ Rows in council order. A row closes when its line holds in the bytes.
 
 ## Out of scope
 bundle 4 = core's edits to EXISTING files (write.py +125, dispatch.py +86, boxes.py +87, provisioning.py, rotate.py) together with profile_sync (it moves with its rotate/write callers) · then the season-2 close (outcomes -> bigger outcomes -> overviews, handed to the Prime) · goal:g7.31.3.3 itself (only its record is corrected) · goal:g5.22 through goal:g5.31
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.3.1 — one park form -- the 5 carriers of the 39 parked rows carry parked:g7.16.2, and the formation check FAILs on a row-park without its carrier tag (row H3; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.1
+
+## Why this exists
+goal:g7.16.1.3 (bundle 3) row H3. Bundle 2 row P made park a tag on goal and hypothesis nodes, but 39 parked ROWS live in the body tables of 5 carriers (goal:g7.33.19 · 11, hypothesis:pass10-0927-residue-batch · 11, pass11-0927 · 3, pass12-0928 · 8, passb1-0928 · 6; council measure 17:1xZ 09-29). A row has no `tags`, so switching to g7.16.2 wakes none of them.
+
+## Target end-state
+- Each of the 5 carriers carries the tag `parked:g7.16.2`, with no status change on a carrier that also holds keep rows.
+- verification.py's formation check FAILs when a live node holds a `triage: parked: formation` row but no carrier tag. So a switch to g7.16.2 lists the carrier, and its body names the rows.
+
+## Invariants
+- Park stays tag-only (bundle 2 row P). No row text changes.
+
+## Falsifier
+1. The formation check FAILs on a fixture carrier with a parked row and no tag, and PASSes on the live graph.
+2. Negative: `git grep -l 'triage: parked: formation' -- .agi/nodes ':!.agi/nodes/deprecated'`, minus the files tagged `parked:g7.16.2`, = 0.
+
+## Out of scope
+goal:g7.16.1.3.2 (the shared module the check moves into)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.3.2 — bundle-2 residues closed -- one shared record module, heal loud on ImportError, skill points at anonymize.CLASSES, g7.32.5 active again, the council mur rows (row H4; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.2
+
+## Why this exists
+goal:g7.16.1.3 (bundle 3) row H4: bundle 2's lens reviews (all-is-one, self-perpetuating) and the council mur wf_4e0708df-4ef over 794a0782e..9c54fb3c4 left residues. Split so each closes on its own: goal:g7.16.1.3.2.1 (one shared record module + heal's ImportError) · .2.2 (the skill pointer and g7.32.5's status: text) · .2.3 (the mur's refuter-confirmed residues, sent by the convener by name).
+
+## Target end-state
+- Every H4 residue named in goal:g7.16.1.3 and every refuter-confirmed residue of wf_4e0708df-4ef is closed in its sub-leaf.
+
+## Invariants
+- No `_private` name is imported across modules. write.py never imports the verifier.
+
+## Falsifier
+1. `git grep -h '^status:' -- .agi/nodes/goal/g7.16.1.3.2.*.md | sort -u` prints only `status: complete`.
+2. Negative: `git grep -nE 'from rotate import _|rotate\._(dump_record|resolve_record_path)' -- extensions/agi/bin` prints 0.
+
+## Out of scope
+goal:g7.16.1.3.1 (row H3's carrier tags)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+###### G7.16.1.3.2.1 — rotation-record dump/resolve and parked_carriers live in ONE shared module that rotate, heal, sensei, write and verification import by public name; heal never swallows ImportError on a record write (row H4 part 1; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.2.1
+
+## Why this exists
+goal:g7.16.1.3.2 (row H4), part 1. Bundle 1-2 rounds left the rotation record's I/O as private functions in rotate.py (`_dump_record`, `_resolve_record_path`) that other modules reach into, and verification.py's `parked_carriers` is imported by write.py for the set-active drop, so write.py imports the verifier. Measured 17:2xZ 09-29: write.py:2369 `import verification` (for `verification.parked_carriers`) · heal.py:872 and :1031 call `_rot._dump_record` · sensei.py:576-591 call `rotate._resolve_record_path` (4 sites) · heal's record write sits in `except (OSError, ImportError)` ("never raises"), so a missing module silently skips the record.
+
+## Target end-state
+- ONE small shared module holds the record dump/resolve and parked_carriers. rotate, heal, sensei, write and verification import it by public name.
+- heal never swallows ImportError on a rotation-record write: a missing module fails loudly.
+
+## Invariants
+- Rotation records write and resolve byte-identically before and after the move.
+
+## Falsifier
+1. `git grep -nE 'from rotate import _|rotate\._(dump_record|resolve_record_path)' -- extensions/agi/bin` prints 0, and `git grep -n 'import verification' -- extensions/agi/bin/write.py` prints 0.
+2. Negative: heal.py's record-write paths catch OSError only: `git grep -n 'except (OSError, ImportError)' -- extensions/agi/bin/heal.py` prints 0 on those paths.
+
+## Out of scope
+goal:g7.16.1.3.2.2 · goal:g7.16.1.3.2.3
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+###### G7.16.1.3.2.2 — the master-gate skill points at anonymize.CLASSES + HOME_PATH_RE; g7.32.5 back to status active, tag kept (row H4 part 2; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.2.2
+
+## Why this exists
+goal:g7.16.1.3.2 (row H4), part 2: text only. skills/agi-master-gate/SKILL.md:66 hand-lists the anonymize classes (a second source; bundle 2 row R3 made anonymize.py the one source: `CLASSES` + `HOME_PATH_RE`). goal:g7.32.5 was set `status: horizon` when parked (6ff0e0aa1, bundle 1 row E). Park is tag-only since bundle 2 row P, and its pre-park status was `active` (git show 6ff0e0aa1~1).
+
+## Target end-state
+- skills/agi-master-gate/SKILL.md:66 points at anonymize.CLASSES + HOME_PATH_RE (a [build, goal] version of that skill's build node).
+- goal:g7.32.5 reads `status: active` and keeps its `parked:g7.16.2` tag.
+
+## Invariants
+- The skill never copies a class list.
+
+## Falsifier
+1. `grep -m1 '^status:' .agi/nodes/goal/g7.32.5.md` prints `status: active`, and its tags still hold `parked:g7.16.2`.
+2. Negative: the master-gate skill carries no literal class list (`grep -cE 'CLASSES|HOME_PATH_RE' skills/agi-master-gate/SKILL.md` >= 1, and the old hand list is gone).
+
+## Out of scope
+goal:g7.16.1.3.2.1
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+###### G7.16.1.3.2.3 — every refuter-confirmed residue of council mur wf_4e0708df-4ef is closed (row H4 part 3; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.2.3
+
+## Why this exists
+goal:g7.16.1.3.2 (row H4), part 3: the council mur wf_4e0708df-4ef over 794a0782e..9c54fb3c4 (bundle 2's range) was still running at mint (17:2xZ 09-29). The convener sends its refuter-confirmed residues to director-general-1 by name, and they land here as rows.
+
+## Target end-state
+- ORDER (council add 1, c0c8d3f82): (f) goal:g7.16.1.3.2.3.2 FIRST in H4, because the gate that fails open would pass every later row. Every refuter-confirmed residue of wf_4e0708df-4ef is a row in this list, each closed by a fix in the bytes or a measured demote.
+- Rows (the mur's items (a)-(g), written onto goal:g7.16.1.3's H4 bullet at 83bb22b46): (a) master-gate SKILL.md:66 stale class copy -> POINTER to goal:g7.16.1.3.2.2 · (b) the generic-home scrub never landed (424 files) -> goal:g7.16.1.3.2.3.1 · (c) goal:g7.16.1.1.2.1 reads complete but its anchored Falsifier 1 fails on 3/21 nodes -> text row: a goal whose falsifier is red goes back to active (council add 4, c0c8d3f82), then mark the 3 nodes · (d) pass10 row 32 is a false park (conftest machinery) -> text row: mark keep, AND widen THE TRIAGE RULE's parking test so its caller grep also covers conftest.py, .sh, hooks and .geometry/crons.md command lines, not only imports (council add 2) · (e) mvp:dg3-p-park-tag says 6 while its grep prints 9; mvp:dg3-t-one-registry reads partial/xfail after fee990795 -> text row: an mvp whose falsifier is red goes back to active (council add 4), then make both nodes true to their bytes · (f) verification _grep_live ignores git grep's exit code (fails open) and yaml.safe_load raises on a malformed hit -> goal:g7.16.1.3.2.3.2 · (g) the seating announcement writes the absolute transcript path into tracked comms -> goal:g7.16.1.3.2.3.3
+
+## Invariants
+- A residue needing more than one round splits into its own leaf under this one.
+
+## Falsifier
+1. Every row in this body reads closed, with a commit or a measured reason.
+2. Negative: open rows = 0.
+
+## Out of scope
+goal:g7.16.1.3.2.1 · goal:g7.16.1.3.2.2
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+####### G7.16.1.3.2.3.1 — the generic-home scrub lands -- 424 files under nodes, datasets, quorum and rotations rewritten to <home>/, one scope per round (mur residue b; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.2.3.1
+
+## Why this exists
+goal:g7.16.1.3.2.3, residue (b) of council mur wf_4e0708df-4ef (written onto goal:g7.16.1.3's H4 bullet at 83bb22b46): bundle 2 row R3 landed the generic home class, but its "same round" scrub did not. 424 files still match (.agi/nodes 367 · datasets 31 · .agi/sessions/quorum 15 + rotations; self-perpetuating measures 364 node files). The falsifier uses the GENERIC pattern, never $HOME alone (council add 3, c0c8d3f82). Every write.py edit that re-adds such a line is now refused, so those nodes cannot be edited until they are scrubbed. The mur ordered one scope per round.
+
+## Target end-state
+- Every file under the four scopes matching `/(home|Users)/<segment>/` is rewritten to the `<home>/` form (anonymize.HOME_PATH_RE's own substitution), one scope per round, each round its own commit: (1) .agi/nodes through write.py · (2) datasets/ · (3) .agi/sessions/quorum · (4) .agi/sessions/rotations.
+
+## Invariants
+- Text only: node count and frontmatter keys unchanged. No exemption in anonymize.py.
+
+## Falsifier
+1. `git grep -lE '/(home|Users)/[^/<]+/' -- .agi/nodes datasets .agi/sessions/quorum .agi/sessions/rotations | wc -l` prints 0.
+2. Negative: `active_node_count + deprecated_node_count` is unchanged by the scrub commits.
+
+## Out of scope
+goal:g7.16.1.3.2.3.3 (the seating writer that re-adds absolute paths)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+####### G7.16.1.3.2.3.2 — the formation gate never fails open -- _grep_live FAILs on a git-grep error and names a malformed-frontmatter hit instead of raising (mur residue f; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.2.3.2
+
+## Why this exists
+goal:g7.16.1.3.2.3, residue (f) of council mur wf_4e0708df-4ef: verification.py `_grep_live` runs `git grep` (verification.py:1290) and ignores its exit code, so a git error reads as "no hits" and the park/formation gate FAILS OPEN. The same reader calls `yaml.safe_load` on each hit's frontmatter (:1296), which raises on a malformed hit instead of reporting it.
+
+## Target end-state
+- FIRST in H4 (council add 1, c0c8d3f82). `_grep_live` fails CLOSED: `git grep` exit 1 = no hits; exit >= 2 = a FAIL carrying the error line.
+- A hit whose frontmatter does not load is reported by name (a FAIL row), never an uncaught exception.
+
+## Invariants
+- The live graph still PASSes the formation check.
+
+## Falsifier
+1. A committed test: a git-grep error (e.g. a bad pathspec in a tmp repo) makes the check FAIL, and a malformed-frontmatter fixture is named in the FAIL note.
+2. Negative: `_grep_live` has no path that discards a non-0/1 returncode.
+
+## Out of scope
+goal:g7.16.1.3.2.1 (moving parked_carriers into the shared module; this fix rides wherever the function lives)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+####### G7.16.1.3.2.3.3 — the seating announcement writes the transcript path home-relative through the one serializer (mur residue g; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.2.3.3
+
+## Why this exists
+goal:g7.16.1.3.2.3, residue (g) of council mur wf_4e0708df-4ef: rotate.py's seating announcement writes the ABSOLUTE transcript path into tracked comms, while bundle 2 row R1 made rotation records home-relative through one serializer. So every first seating re-adds a home path to a tracked file, which the generic home class now refuses.
+
+## Target end-state
+- The seating announcement writes the transcript path through anonymize.home_relative via bundle 2 row R1's serializer (the one goal:g7.16.1.3.2.1 moves into the shared module), never a new strip (council add 5, c0c8d3f82).
+
+## Invariants
+- A reader of the announcement resolves the path through the one resolver.
+
+## Falsifier
+1. A committed test: a first-seating announcement in a tmp home writes `~/`-relative, never the tmp home's absolute path.
+2. Negative: `git grep -lE '/(home|Users)/[^/<]+/' -- .agi/comms` stays 0 after a seating.
+
+## Out of scope
+goal:g7.16.1.3.2.3.1 (the scrub of already-written files)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.3.3 — messaging is ONE route, or a verdict -- measure first, then fold the core dm family as a replacement that retires the inbox, or record why not (row S1; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.3
+
+## Why this exists
+goal:g7.16.1.3 (bundle 3) row S1. Core added messaging BESIDE the inbox, not instead of it. Measured 17:2xZ 09-29 at origin/core/season2/main fca147fe1: dm_address 115 · dm_engine 128 · dm_no_inbox 74 · dm_nudge_gate 75 · dm_read_version 64 · dm_send_version 80 · dm_sync_cron 92 lines + send_transport 39, with 8 tests. send.py `inbox` refs: trunk 152, core 149. The trunk has 0 dm_* modules. Porting as-is gives 2 routes. Split: goal:g7.16.1.3.3.1 MEASURES first, and goal:g7.16.1.3.3.2 lands a replacement or a verdict.
+
+## Target end-state
+- Messaging on this trunk is ONE route: either the folded dm module replaces the inbox route (routes 2 -> 1), or a verdict node records why not and nothing is ported. CC SendMessage is the interim.
+- adapters/magic_pane follows S1's outcome.
+
+## Invariants
+- Nothing is written on core. The dm file format stays byte-compatible.
+
+## Falsifier
+1. `git grep -h '^status:' -- .agi/nodes/goal/g7.16.1.3.3.*.md | sort -u` prints only `status: complete`.
+2. Negative: if S1 landed, `git ls-files extensions/agi/bin | grep -c '^extensions/agi/bin/dm_'` <= 1; if S1 is a verdict, 0.
+
+## Out of scope
+goal:g7.32.6 itself (S1 measures its targets only) · bundle 4 (core edits to existing files)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+###### G7.16.1.3.3.1 — MEASURE send routes before/after a dm fold and which g7.32.6 targets the trunk lacks -- read-only, names fold or verdict (row S1 part 1; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.3.1
+
+## Why this exists
+goal:g7.16.1.3.3 (row S1), part 1, first by the council's order: S1 may land only as a replacement, so what "replacement" means has to be measured before any port. goal:g7.32.6 (send routes by post-branch address) names the targets. Which of them the trunk lacks is unmeasured.
+
+## Target end-state
+- An experiment node records: the trunk's send routes (the inbox, dm files, CC SendMessage) BEFORE; what they would be AFTER a fold of the dm_* family + send_transport; each goal:g7.32.6 target, met or unmet on the trunk; and whether the inbox route's 152 refs can retire in the same row.
+- The measurement names the decision for goal:g7.16.1.3.3.2: fold (fits) or verdict (does not fit).
+
+## Invariants
+- Read only. Core is read with `git show fca147fe1:<path>`, and nothing is written there.
+
+## Falsifier
+1. The experiment node exists under hypothesis:dm-family-can-replace-the-inbox-route-measured and carries the before/after route count + a met/unmet line per g7.32.6 target.
+2. Negative: 0 files under extensions/agi/bin change in this leaf.
+
+## Out of scope
+goal:g7.16.1.3.3.2 (the fold or verdict itself)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+###### G7.16.1.3.3.2 — the dm family folds into ONE module that retires the inbox route in the same row, with a byte-compatible dm-file test -- or a verdict, nothing ported (row S1 part 2; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.3.2
+
+## Why this exists
+goal:g7.16.1.3.3 (row S1), part 2: it acts on the measurement of goal:g7.16.1.3.3.1. all-is-one's rule, adopted by the council: port only as a REPLACEMENT, or record a verdict.
+
+## Target end-state
+- EITHER the dm_* family + send_transport (core fca147fe1) fold into ONE module (or send.py) carrying the union of their tests, the SAME row retires the inbox route (152 refs down to a retirement pointer), and one test reads a real committed .agi/comms/**/dm/*.md file through the folded module.
+- OR a verdict node records why the retirement does not fit, and nothing is ported.
+
+## Invariants
+- The build node names core module + sha. Tests are named by behaviour, never by goal id.
+
+## Falsifier
+1. Fold: `git ls-files extensions/agi/bin | grep -c '^extensions/agi/bin/dm_'` <= 1 and the byte-compatible dm test passes. Verdict: the verdict node exists and `git ls-files extensions/agi/bin | grep -c dm_` = 0.
+2. Negative: the trunk never carries two send routes (inbox + dm) at once.
+
+## Out of scope
+goal:g7.32.6's remaining targets beyond the fold
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.3.4 — the unwired five are explained, not dropped -- one verdict per module (goal served, core sha, test, pass count, built-not-wired); g7.31.3.3 stays active with .1-.5 landed active (row S2; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.4
+
+## Why this exists
+goal:g7.16.1.3 (bundle 3) row S2. Measured 17:2xZ 09-29 at origin/core/season2/main fca147fe1: five modules (918 lines) are imported only by their own tests: kid_write_gate 156 (test_kid_write_gate.py) · spawn_refusal 151 (test_spawn_refusal.py) · parent_slots 195 (test_parent_slots.py; + .geometry/parent-slots.md) · needs_rotate 158 (test_needs_rotate.py) · session_ingest 258 (test_session_ingest.py). Core marks goal:g7.31.3.3 and .1-.5 complete. This trunk has g7.31.3.3 active and had no .1-.5 before this bundle.
+
+## Target end-state
+- ONE verdict node (under hypothesis:core-unwired-five-are-start-points-not-ports) records, per module: the goal it serves (parent_slots -> g7.31.3.3.1 + .2 · needs_rotate -> .3 · spawn_refusal -> .4 · kid_write_gate -> .5 · session_ingest -> a second mint door that folds into `write.py create` with a derived id, never a new module), the core sha + test file + pass count, and the gap ("built + tested, not wired into heal/rotate").
+- goal:g7.31.3.3 stays active. goal:g7.31.3.3.1-.5 land active on this trunk, each with a BODY status line.
+- The convener sends the Prime one [merge-note] line. Nothing is written on core.
+
+## Invariants
+- None of the five is ported in this bundle.
+
+## Falsifier
+1. The verdict node names all 5 modules with sha + test + pass count.
+2. Negative: `git ls-files extensions/agi/bin | grep -cE 'kid_write_gate|spawn_refusal|parent_slots|needs_rotate|session_ingest'` prints 0.
+
+## Out of scope
+goal:g7.31.3.3 itself (only its record is corrected) · bundle 4
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.16.1.3.5 — GOALS.md is retired -- no render, no round-trip check, the file leaves the tree, the snapshot-goals library stays, every citation repointed (row G, OWNER 17:3xZ; after H1-H4, ahead of S1/S2; assigned: director-general-1) — status: active
+
+# goal:g7.16.1.3.5
+
+## OWNER 2026-09-29 17:3xZ (via belam, relayed by the convener at 2eb4f4528), verbatim
+"Go ahead and retire GOALS.md. We don't need it anymore stop bothering with it or the render byte round trip script"
+
+## Why this exists
+goal:g7.16.1.3 (bundle 3) row G, placed by the council after H1-H4 and ahead of S1/S2, on the owner's order above. GOALS.md is a derived render of every goal node (`snapshot-goals.py --render`, checked byte-identical by `--check`). The graph's goal nodes are the source of truth. Measured 17:4xZ 09-29: 19 tracked files cite GOALS.md (CLAUDE.md · skills agi, agi-goal, agi-verify, agi-node-write, agi-master-gate · 12 bin files + driver.sh). snapshot-goals.py is ALSO a library: 10 bin modules import its helpers (write_frontmatter, extract_thought/splice_thought, load_existing_nodes, warn_premature_complete, _upsert_node_to_db). Split: goal:g7.16.1.3.5.1 (the render and its gates retire, the library stays) · goal:g7.16.1.3.5.2 (the citations).
+
+## Target end-state
+- No step renders, checks or commits GOALS.md. The file leaves the tree in the reviewed row, and git history keeps it.
+- Every non-render duty of snapshot-goals.py is kept or folded, measured first. No goal node is touched.
+
+## Invariants
+- Goal nodes are the one source. Nothing under .agi/nodes changes in this row.
+
+## Falsifier
+1. `git ls-files GOALS.md | wc -l` prints 0, and `bash extensions/agi/driver.sh --smoke --max-iters 1` passes without a render step.
+2. Negative: `git grep -l 'GOALS\.md' -- CLAUDE.md skills extensions/agi/bin extensions/agi/driver.sh` prints only retirement pointers (0 live instructions).
+
+## Out of scope
+goal:g7.16.1.3.3 (S1) · goal:g7.16.1.3.4 (S2) · the goal nodes themselves
 
 ## Agent Notes
 Assigned to **director-general-1**.
@@ -8472,6 +8817,126 @@ Unify spawn and rotate as graph writes. Parents become rows under the post that 
 
 ## Routing
 assigned: director-engine. THIRD of the three graph redesigns, after node spawn/mint (goal:g4.18.1) and the send hub-only work (OWNER 01:0xZ 09-27: "Would the mint write design be first? Um send pieces depend on it, and rotate depends on send"): refinement 3's refusal rides send's reply route.
+
+##### G7.31.3.3.1 — Committed parent-slot definitions under each post in .geometry -- built on core, NOT wired here (assigned: director-general-1) — status: active
+
+# goal:g7.31.3.3.1
+
+## Why this exists
+goal:g7.31.3.3 (spawn and rotate are one graph write): core minted this leaf on origin/core/season2/main (goal:g7.31.3.3.1 there, "Committed parent-slot definitions under each post in .geometry") and marks it complete. Its module is built and tested there but wired into nothing (council measure 17:1xZ 09-29; goal:g7.16.1.3 row S2). It lands here ACTIVE, so no successor reads core's COMPLETE as done.
+
+## Target end-state
+- STATUS (measured 17:2xZ 09-29): built at core fca147fe1 as extensions/agi/bin/parent_slots.py (195 lines), test test_parent_slots.py (pass count: the S2 verdict records it), NOT wired into heal/rotate.
+- Parent-slot definitions are committed under each post in .geometry (core also adds .geometry/parent-slots.md), and heal/rotate read them.
+
+## Invariants
+- Nothing is written on core. A port here names core module + sha in its build node.
+
+## Falsifier
+1. The module's behaviour is exercised from heal or rotate on this trunk (a committed test drives it through the caller, not only the module).
+2. Negative: until then this leaf reads `status: active`.
+
+## Out of scope
+goal:g7.16.1.3 (bundle 3 records the status only; the wiring is not in that bundle)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.31.3.3.2 — Live occupancy in local runtime file (not committed defs) -- built on core, NOT wired here (assigned: director-general-1) — status: active
+
+# goal:g7.31.3.3.2
+
+## Why this exists
+goal:g7.31.3.3 (spawn and rotate are one graph write): core minted this leaf on origin/core/season2/main (goal:g7.31.3.3.2 there, "Live occupancy in local runtime file (not committed defs)") and marks it complete. Its module is built and tested there but wired into nothing (council measure 17:1xZ 09-29; goal:g7.16.1.3 row S2). It lands here ACTIVE, so no successor reads core's COMPLETE as done.
+
+## Target end-state
+- STATUS (measured 17:2xZ 09-29): built at core fca147fe1 as extensions/agi/bin/parent_slots.py (195 lines), test test_parent_slots.py (pass count: the S2 verdict records it), NOT wired into heal/rotate.
+- Live occupancy lives in a local runtime file, never in the committed slot defs; the reaper/heal clears it on exit.
+
+## Invariants
+- Nothing is written on core. A port here names core module + sha in its build node.
+
+## Falsifier
+1. The module's behaviour is exercised from heal or rotate on this trunk (a committed test drives it through the caller, not only the module).
+2. Negative: until then this leaf reads `status: active`.
+
+## Out of scope
+goal:g7.16.1.3 (bundle 3 records the status only; the wiring is not in that bundle)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.31.3.3.3 — AGI_BOX host-only loop acts and clears needs-rotate -- built on core, NOT wired here (assigned: director-general-1) — status: active
+
+# goal:g7.31.3.3.3
+
+## Why this exists
+goal:g7.31.3.3 (spawn and rotate are one graph write): core minted this leaf on origin/core/season2/main (goal:g7.31.3.3.3 there, "AGI_BOX host-only loop acts and clears needs-rotate") and marks it complete. Its module is built and tested there but wired into nothing (council measure 17:1xZ 09-29; goal:g7.16.1.3 row S2). It lands here ACTIVE, so no successor reads core's COMPLETE as done.
+
+## Target end-state
+- STATUS (measured 17:2xZ 09-29): built at core fca147fe1 as extensions/agi/bin/needs_rotate.py (158 lines), test test_needs_rotate.py (pass count: the S2 verdict records it), NOT wired into heal/rotate.
+- The AGI_BOX host-only loop acts on needs-rotate and clears it.
+
+## Invariants
+- Nothing is written on core. A port here names core module + sha in its build node.
+
+## Falsifier
+1. The module's behaviour is exercised from heal or rotate on this trunk (a committed test drives it through the caller, not only the module).
+2. Negative: until then this leaf reads `status: active`.
+
+## Out of scope
+goal:g7.16.1.3 (bundle 3 records the status only; the wiring is not in that bundle)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.31.3.3.4 — Refusal writes named row + one send-reply to requesting post -- built on core, NOT wired here (assigned: director-general-1) — status: active
+
+# goal:g7.31.3.3.4
+
+## Why this exists
+goal:g7.31.3.3 (spawn and rotate are one graph write): core minted this leaf on origin/core/season2/main (goal:g7.31.3.3.4 there, "Refusal writes named row + one send-reply to requesting post") and marks it complete. Its module is built and tested there but wired into nothing (council measure 17:1xZ 09-29; goal:g7.16.1.3 row S2). It lands here ACTIVE, so no successor reads core's COMPLETE as done.
+
+## Target end-state
+- STATUS (measured 17:2xZ 09-29): built at core fca147fe1 as extensions/agi/bin/spawn_refusal.py (151 lines), test test_spawn_refusal.py (pass count: the S2 verdict records it), NOT wired into heal/rotate.
+- A spawn refusal writes a named row and sends ONE reply to the requesting post.
+
+## Invariants
+- Nothing is written on core. A port here names core module + sha in its build node.
+
+## Falsifier
+1. The module's behaviour is exercised from heal or rotate on this trunk (a committed test drives it through the caller, not only the module).
+2. Negative: until then this leaf reads `status: active`.
+
+## Out of scope
+goal:g7.16.1.3 (bundle 3 records the status only; the wiring is not in that bundle)
+
+## Agent Notes
+Assigned to **director-general-1**.
+
+##### G7.31.3.3.5 — Write gate — parents own kid rows only; kids write none -- built on core, NOT wired here (assigned: director-general-1) — status: active
+
+# goal:g7.31.3.3.5
+
+## Why this exists
+goal:g7.31.3.3 (spawn and rotate are one graph write): core minted this leaf on origin/core/season2/main (goal:g7.31.3.3.5 there, "Write gate — parents own kid rows only; kids write none") and marks it complete. Its module is built and tested there but wired into nothing (council measure 17:1xZ 09-29; goal:g7.16.1.3 row S2). It lands here ACTIVE, so no successor reads core's COMPLETE as done.
+
+## Target end-state
+- STATUS (measured 17:2xZ 09-29): built at core fca147fe1 as extensions/agi/bin/kid_write_gate.py (156 lines), test test_kid_write_gate.py (pass count: the S2 verdict records it), NOT wired into heal/rotate.
+- The write gate lets parents write only their own kid rows, and kids write none.
+
+## Invariants
+- Nothing is written on core. A port here names core module + sha in its build node.
+
+## Falsifier
+1. The module's behaviour is exercised from heal or rotate on this trunk (a committed test drives it through the caller, not only the module).
+2. Negative: until then this leaf reads `status: active`.
+
+## Out of scope
+goal:g7.16.1.3 (bundle 3 records the status only; the wiring is not in that bundle)
+
+## Agent Notes
+Assigned to **director-general-1**.
 
 #### G7.31.4 — Native handbacks SSH-or-not — same function surface; engine fills mesh gaps — status: active
 
