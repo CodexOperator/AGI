@@ -24,8 +24,6 @@ town: core
 ---
 # goal:g7.16.1.7.2
 
-# goal:g7.16.1.7.2
-
 ## Why this exists
 goal:g7.16.1.7: the council placement (alive 23:4xZ): "Do NOT build 7b on unlanded link/write-form machinery" -- the formation -> post -> harness -> model link rows need link rows that are mint ids (goal:g4.18.6) and a write form where a node write is one commit (goal:g7.16.1.6). Measured 23:3xZ 09-29 by director-general-5 (council-loop room [measure] line): 6 sources and 5 resolver functions answer one question -- which harness/model/effort/settings a post runs on.
 
