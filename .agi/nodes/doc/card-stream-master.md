@@ -5,7 +5,7 @@ type: doc
 parents:
   - goal:g2.27
 next_edges: []
-edited_by: belam
+edited_by: stream-master
 scaffold_hash: cd47540c07cbaf5a
 season: 2
 tags:
@@ -22,37 +22,40 @@ Role = `doc:stream-master-brief` (your template) + the HEAD. Replaced whole; ≤
 
 ## Skills (read the matching one BEFORE the act)
 agi-stream (THE stream: setup, commands, what may air, traps) · agi-send · agi-rotate · agi-memory-guard · agi-node-write
-Stub docs: `~/work/streamer-stub/QUICKSTART.md` (runbook, read first) · `~/work/streamer-stub/README.md` (the why) · `~/work/streamer-stub/HANDOFF.md` (the stub's own history)
+Stub docs: `~/work/streamer-stub/QUICKSTART.md` (runbook; its bring-up section still says DISPLAY=:1, the skill says :2) · `README.md` · `HANDOFF.md`
 
-## §0 State (stood up 17:0xZ 09-29 by belam-S2-L5-XVI)
+## §0 State (gen 5 seated 17:34Z 09-29, ack committed; updated 17:40Z)
 | | |
 |---|---|
-| on air | Twitch LIVE since 14:3xZ 09-29 · page: graphweb 3D dashboard (:8765) on the private Xvfb :2 · delay target 4m (owner 16:5xZ), grown into at 1.15x |
-| started by | the Prime: streamer-stub systemd unit · Xvfb :2 · kiosk firefox · graphweb :8765 · feed :8766 (all box-local, see skill agi-stream §1) |
-| platforms | Twitch only: X_KEY commented in .env (backup .env.pre-class); YT_KEY empty |
-| formation | side post of the council loop (config:formations active doc:council-loop); the council runs until 23:00Z 09-29 |
+| stream on local-town | DOWN. Prime hard-stopped it 17:3xZ (`panic --retract`, ring destroyed, streamer-stub failed, Xvfb :2 + kiosk + graphweb stopped) |
+| why | owner via Prime: "OOM kill likely due to stream. Memory crossed 75% likely due to buffer building up. So new plan put stream-master on new box first then start the stream" |
+| my one act here | 17:35Z, before the stop reached me: started agi-xvfb2 / agi-graphweb / agi-graph-kiosk (transient units), all killed by the stop; reported to belam |
+| platforms | Twitch only (X_KEY commented, backup .env.pre-class); YT_KEY empty |
 
 ## §1 Plan
 ```
-NOW    take over the running stream: sb-status + one :2 screenshot read (skill agi-stream §2); change nothing on arrival
-KEEP   delay 4m · the dashboard page · Twitch only — until the owner or the Prime says otherwise
-HELD   YouTube / X (the owner's word) · the full streaming-suite charter (vision:streaming-suite) on encryption-town (owner HOLD 09-26, not lifted for that)
+NOW    HOLD IDLE on local-town — start nothing (Xvfb, graphweb, kiosk, streamer-stub) here
+NEXT   the Prime moves this post to the new box (rows + spawns are the Prime's); then read that box's QUICKSTART equivalent, stand up Xvfb + graphweb + kiosk, screenshot, start the stub
+GUARD  the new box: watch memory (agi-memory-guard) — the ring/buffer growth crossed 75% here; bound the delay ring before going live
+HELD   YouTube / X (owner) · full streaming-suite charter (owner HOLD 09-26)
 ```
 
 ## 🔴 Where it stops
-17:0xZ 09-29 stream-master: seated; first act = `~/bin/sb-status` then the §2 screenshot of :2, read it, report nothing unless something is wrong
+17:4xZ stream-master: idle on local-town awaiting the Prime's new-box row; next command after the move: `~/bin/sb-status` on the new box
 ```
-~/bin/sb-status
-ffmpeg -v error -y -f x11grab -video_size 1920x1200 -i :2 -frames:v 1 -vf scale=960:-1 /tmp/air.png   # then Read it
+python3 extensions/agi/bin/send.py read stream-master     # once, when the Prime nudges
 ```
 
-## §4 Traps (the rest live in skill agi-stream §4)
+## §4 Traps
 | trap | rule |
 |---|---|
-| the stream outlives your session (systemd unit) | a rotation never stops it; `panic` does |
-| the old quorum file (12.5 KB, core-town era) is in git history | it described a core-town stream; this card replaces it |
+| my ffmpeg x11grab of :2 fails from the Bash sandbox ("Cannot open display :2") | read a ring segment instead: `ffmpeg -i out/ring/<older .ts> -frames:v 1 x.png` into /data/tmp (newest 2 segments are mid-write; /tmp is not shared) |
+| `-sseof` on a 2 s ts yields no frame | seek-less first frame of a complete older segment |
+| an idle Xvfb/firefox/graphweb restart during a Prime stop is wasted and confusing | read the inbox before restoring a downed stack: `send.py read stream-master` |
+| the stream outlives a session (systemd unit) | rotation never stops it; `panic` does (owner-only) |
 
 ## §6 BANKED (owner-only)
 | item | recommendation |
 |---|---|
 | X / YouTube simulcast | re-enable X_KEY from .env.pre-class on the owner's word |
+| QUICKSTART bring-up says DISPLAY=:1 | correct it to the :2 private display once the new box setup is known |
