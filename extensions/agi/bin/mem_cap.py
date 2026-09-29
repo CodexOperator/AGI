@@ -307,6 +307,34 @@ def systemd_run_usable(cfg: "dict | None" = None) -> bool:
     return _PROBE
 
 
+#: goal:g6.41.1 P1/P6 -- the slice the tmux server's scope and every post's own
+#: scope land in. NAMED RISK (verdict:dg2-r1-per-post-scope): on local-town this
+#: slice carries MemoryHigh/MemoryMax shared with agi-work + agi-engine.
+POST_SCOPE_SLICE = "agi.slice"
+
+
+def resolve_post_scope(cfg: "dict | None") -> "str | None":
+    """`spawn.post_scope` = {live: true, slice: <name>} -> that slice (default
+    POST_SCOPE_SLICE); absent, or `live` not true -> None: post launches stay
+    unscoped. The live cutover is this ONE cell (owner's word, goal:g6.41.1)."""
+    cell = _spawn_block(cfg).get("post_scope")
+    if not isinstance(cell, dict) or cell.get("live") is not True:
+        return None
+    return str(cell.get("slice") or POST_SCOPE_SLICE)
+
+
+def scope_argv(argv: list, slice_: "str | None", unit: "str | None" = None,
+               cfg: "dict | None" = None) -> list:
+    """A POST's launch argv in its OWN scope under `slice_`, cap-free (the slice
+    holds the cap), so an oomd kill takes one post, never tmux and every post
+    (goal:g6.41.1 P6). `slice_` None or no usable systemd-run -> the SAME argv.
+    wrap_argv's shared `cap None -> argv` contract is untouched."""
+    if not slice_ or not systemd_run_usable(cfg):
+        return argv
+    return ["systemd-run", "--user", "--scope", "-q", f"--slice={slice_}",
+            *([f"--unit={unit}"] if unit else []), "--", *argv]
+
+
 def wrap_argv(argv: list, cap: "str | None",
               cfg: "dict | None" = None) -> list:
     """`cap is None` -> the SAME argv object, unwrapped; else systemd-run when

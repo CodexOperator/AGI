@@ -3031,6 +3031,7 @@ def _launch_recovered(root: Path, name: str, shell_cmd: str,
             return 0, ""
         launch_cmd = (f"cd {shlex.quote(str(tree))} && "
                       f"sh {shlex.quote(launch_path)}")
+        _rotate.ensure_tmux_session(tmux_session)  # goal:g6.41.1 P1 (the heal recover path)
         try:
             proc = subprocess.run(
                 ["tmux", "new-window", "-t", tmux_session, "-n", name,
