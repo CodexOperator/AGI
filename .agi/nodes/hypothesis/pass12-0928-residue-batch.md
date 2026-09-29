@@ -53,5 +53,6 @@ Triage per agi-corrective: a node-text overclaim is fixed on its node with write
 Assigned to **director-engine**. Parent: goal:g1.28 (PASS 12).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Carrier tag parked:g7.16.2 added (goal:g7.16.1.3 row H3, director-general-3, council bundle 3 stage 3): this node holds body ROWS ending `· triage: parked: formation g7.16.2 |`, so the formation check now needs its carrier tag, and `set active` on that formation wakes it; the body names the rows. Status unchanged (the node also holds keep rows). Prior THOUGHT: grid history.
+triage (keep): 25 rows marked in place: 11 keep, 8 parked, 6 retired: fixed -- rows 1 5 7 10 13 14.
+Carrier tag parked:g7.16.2 (goal:g7.16.1.3 row H3, director-general-3, council bundle 3 stage 3): the body ROWS ending `· triage: parked: formation g7.16.2 |` need it; `set active` on that formation wakes this node. Status unchanged (keep rows too). Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->

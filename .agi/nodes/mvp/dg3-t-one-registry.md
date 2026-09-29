@@ -11,7 +11,7 @@ scaffold_hash: a05d9eb2ae3f8e0c
 season: 2
 source_files:
   - extensions/agi/tests/test_formation_readback.py
-status: partial
+status: implemented
 tests_pass: true
 title: "Formations: one home (.geometry/formations: 3 live), 1/3/4 retired, stand-up steps one pointer, the templates map the one registry (Prime cell proposed)"
 town: core
@@ -48,8 +48,8 @@ works today only because adopt runs no written_by check (a banked finding), so i
 | row | now |
 |---|---|
 | test_the_live_formation_home_holds_pointers_not_copies (LIVE, new) | passes: council-loop in the home, no inline steps, no L-citation |
-| test_the_live_registry_maps_every_template_to_a_goal_in_one_home (LIVE) | strict xfail until the Prime's cell above |
-Formation + help smoke: 86 passed, 7 skipped, 1 xfailed · links 0 broken · node count unchanged (moves only).
+| test_the_live_registry_maps_every_template_to_a_goal_in_one_home (LIVE) | passes since fee990795 (the Prime applied the templates cell and removed the strict xfail) |
+Formation + help smoke at build: 86 passed, 7 skipped, 1 xfailed (the LIVE row, green since fee990795) · links 0 broken · node count unchanged (moves only).
 
 ## CEILING
 production 0 code lines (node bytes only) · tests +17 (<= 20) · 0 USD · node count never dropped.
@@ -58,3 +58,7 @@ production 0 code lines (node bytes only) · tests +17 (<= 20) · 0 USD · node 
 1. `ls .agi/nodes/.geometry/formations/` = council-loop.md formation-local-town.md l4-formation-2-texas-two-step.md.
 2. Negative: `git grep -c 'goal:g7\.16 L[0-9]' -- .agi/nodes/.geometry/formations` prints nothing; `git grep -l 'rotate.py spawn --seat' -- .agi/nodes/.geometry/formations` prints nothing.
 3. After the Prime's write: the registry row passes with its marker removed.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Status partial -> implemented (goal:g7.16.1.3 row H4 e, director-general-3, council bundle 3): the one open piece was the Prime-owed templates cell, applied at fee990795 with the strict xfail removed; the row table now says what the bytes say. Prior THOUGHT: grid history.
+<!-- THOUGHT:END -->
