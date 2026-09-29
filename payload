@@ -3645,15 +3645,20 @@ def _commit_write(root, node_id: str, res, actor: str = "") -> str | None:
                                     capture_output=True, text=True)
     if not paths or git("rev-parse", "--is-inside-work-tree").returncode:
         return None
-    lock = Path(root) / "sessions" / "verify-suite.lock"
-    if lock.exists():
-        return (f"commit refused: {lock} is held -- the write landed "
-                f"uncommitted; commit {' '.join(paths)} by exact path")
-    git("add", "--", *paths)
-    done = git("commit", "-q", "-m", f"write.py: {node_id}" + (f" ({actor})" if actor else ""),
-               "--", *paths)
-    return None if done.returncode == 0 else \
-        f"commit failed: {(done.stderr or done.stdout).strip()[:300]}"
+    import verification  # noqa: PLC0415 -- the ONE live-holder read (residue 93)
+    holder = verification.suite_lock_holder(Path(root))
+    if holder:
+        return (f"commit refused: {Path(root) / 'sessions' / verification.SUITE_LOCK} is held "
+                f"by live pid {holder} -- the write landed uncommitted; commit "
+                f"{' '.join(paths)} by exact path")
+    add = git("add", "--", *paths)
+    done = add if add.returncode else git(
+        "commit", "-q", "-m", f"write.py: {node_id}" + (f" ({actor})" if actor else ""), "--", *paths)
+    if done.returncode == 0:
+        return None
+    git("reset", "-q", "--", *paths)   # residue 90: never left STAGED in a shared index
+    return (f"commit failed (unstaged; the write stays on disk): "
+            f"{(done.stderr or done.stdout).strip()[:300]}")
 
 
 if __name__ == "__main__":
