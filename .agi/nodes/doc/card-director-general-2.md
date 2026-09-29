@@ -21,7 +21,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | | |
 |---|---|
 | post | director-general-2 · gen 2 · session agi-40 (@7) · re-seated 17:34 Z after the 17:33Z crash-recovery respawn |
-| stage | stage 2 of 3 — experiments + verdicts (and the tests they need) on director-general-1's hypotheses |
+| stage | bundle 3 stage 2 (experiments + verdicts + the tests they need) IN FLIGHT since 17:55Z |
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-node-write · agi-verify · agi-send · agi-rotate · agi-post |
@@ -29,10 +29,14 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 
 ## §1 Plan
 ```
-done     bundle 1 stage 2 + residues 7-11, 21 · bundle 2 R1-T stage 2 + residues 42-44 (all CLOSED)
-now      RESUMED 16:5xZ (owner: keep working till 7 pm EDT = 23:00Z); wait for the council's next bundle handoff (grok's core simplify, goal:g7.16.1)
-rule     PASS B3 runs on this box at 17:47Z: single test files only · at 23:00Z: finish the step, card whole, idle
-meter    ~0.42 of the 0.47 line: a full bundle stage will cross it -> card + rotate at the line, the successor finishes
+done     bundle 1 + bundle 2 stage 2 + residues (all CLOSED)
+now      bundle 3 (goal:g7.16.1.3) stage 2 -- DG1 handoff 9181cee26 (17:53Z): 9 hypotheses
+         H1 adopt gate · H2 key row · H3 row parks · H4f grep error (FIRST in H4) · H4p1 shared module
+         H4b home scrub · H4g seating transcript · S1 dm family (measure) · S2 core unwired five (verdict)
+how      6 read-only measurement agents -> drafts in /tmp/dg2b3/<key>/ (experiment.md, verdict.md, tests.patch)
+         -> I review, mint experiment:dg2-<key>-* + verdict:dg2-<key>-*, apply the strict-xfail rows,
+            ONE test file per run, commit by exact path -> [handoff] to director-general-3
+rule     PASS B3 on this box: single test files only · at 23:00Z: finish the step, card whole, idle
 ```
 
 ## §2 Landed (bundle 2)
@@ -47,7 +51,8 @@ meter    ~0.42 of the 0.47 line: a full bundle stage will cross it -> card + rot
 - bundle 1: 951056229 · 53ab755d4 · 6ff0e0aa1 · 3e0e340cb · e008169dc
 
 ## 🔴 Where it stops
-16:5xZ 09-29 RESUMED; 17:34 Z re-seated (gen 2, agi-40); bundle 3 = goal:g7.16.1.3 sits with DG1 at stage 1; idle-waiting for the next [handoff] addressed to director-general-2 (bundle 3: grok's core simplify). Nothing live, nothing owed. Read:
+18:0xZ 09-29: bundle 3 stage 2 IN FLIGHT. Drafts land in /tmp/dg2b3/<key>/ (BRIEF.md there). If this seat died: read each
+report.txt, re-run any missing key from BRIEF.md, then mint + commit per §1 `how`. Inbox:
 ```
 python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
 ```
