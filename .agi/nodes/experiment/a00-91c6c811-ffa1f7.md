@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-town-is-a-super-node-whose-cells-derive-its-branch-names
 next_edges: []
 confidence: 0.95
-edited_by: a00-c653f5de
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-91c6c811-ffa1f7
 loop: hypothesis:l4-a-town-is-a-super-node-whose-cells-derive-its-branch-names@s2
@@ -82,7 +82,7 @@ $ python3 -m pytest extensions/agi/tests/test_town_mint_lines.py extensions/agi/
 ```
 
 The delivered subprocess lines, verbatim from the test run (`python3` is
-`/home/ubuntu/.hermes/hermes-agent/venv/bin/python3`):
+`<home>/.hermes/hermes-agent/venv/bin/python3`):
 
 ```
 AGI_SEASON=2 .../write.py create town core --parent ladder:ladder --root <proj> --actor prime_director --set visions=["vision:a", "vision:b", "vision:c"] --set council=council-core --set season=2

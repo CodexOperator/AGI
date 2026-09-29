@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-wake-window-ends-at-the-ack-and-both-audits-share-one-tool-wrapper-and-one-transcript-resolver
 next_edges: []
 confidence: 0.95
-edited_by: a00-57969758
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-b2e4a8b4-f60901
 loop: hypothesis:l4-the-wake-window-ends-at-the-ack-and-both-audits-share-one-tool-wrapper-and-one-transcript-resolver@s2
@@ -36,7 +36,7 @@ python3 extensions/agi/bin/sensei.py rotate-out-audit --seat belam --gen 9
 ```
 The record's `handover.join.transcript` ALREADY resolves belam gen IX (exit 0, **1 call**, not 0):
 ```
-predecessor transcript: /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/b7205ab1-b47a-422d-80da-7da168eeebe1.jsonl (previous record b_generation.after==9 handover.join.transcript)
+predecessor transcript: <home>/.claude/projects/-home-ubuntu-work-agi/b7205ab1-b47a-422d-80da-7da168eeebe1.jsonl (previous record b_generation.after==9 handover.join.transcript)
 window: [last real input 1502 2026-09-11T14:04:53.118Z -> 2026-09-11T14:05:13.525226Z] 1 calls
 counts: a=1 b=0 c=0 d=0
   1 [a] Bash: {cmd="f=~/.claude/projects/-home-ubuntu-work-agi/a82206b9-...jsonl; s0=$(stat …"}

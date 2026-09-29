@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-branch-kid-commits-its-own-bytes-under-the-agent-git-hook
 next_edges: []
 confidence: 0.85
-edited_by: a00-a06551ee
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-e32c5ec1-13453e
 loop: hypothesis:l4-a-branch-kid-commits-its-own-bytes-under-the-agent-git-hook@s2
@@ -159,7 +159,7 @@ This round's own `cli.py done` **FAILED TO COMMIT**, and that is evidence FOR
 the fixed hook rather than against it:
 
 ```
-ERR: worktree commit failed in /home/ubuntu/work/agi/.agi/worktrees/a00-a06551ee:
+ERR: worktree commit failed in <home>/work/agi/.agi/worktrees/a00-a06551ee:
 agi: tier kid may not commit — automation owns git (goal:s27)
 ```
 

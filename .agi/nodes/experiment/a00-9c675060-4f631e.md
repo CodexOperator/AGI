@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-signed-decision-covers-every-written-key-and-a-nonce-is-never-spent-on-a-failed-write
 next_edges: []
 confidence: 0.9
-edited_by: a00-085283ea
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-9c675060-4f631e
 loop: hypothesis:l4-a-signed-decision-covers-every-written-key-and-a-nonce-is-never-spent-on-a-failed-write@s2
@@ -54,7 +54,7 @@ $ python3 -m pytest extensions/agi/tests/test_rings.py extensions/agi/tests/test
 211 passed in 9.17s
 ```
 
-Live verification: `rings.load_rings('/home/ubuntu/work/agi/.agi') == []` (unchanged, no live ring); no `.geometry/ring-nonces.json` nor `sessions/ring-nonces.json` in the real graph; NO schema cell edited.
+Live verification: `rings.load_rings('<home>/work/agi/.agi') == []` (unchanged, no live ring); no `.geometry/ring-nonces.json` nor `sessions/ring-nonces.json` in the real graph; NO schema cell edited.
 
 ## Notes
 

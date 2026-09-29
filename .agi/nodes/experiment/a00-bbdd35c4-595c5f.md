@@ -6,7 +6,7 @@ parents:
   - hypothesis:a00-600cf080-0cd865
 next_edges: []
 confidence: 0.9
-edited_by: a00-23718fe0
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-bbdd35c4-595c5f
 loop: hypothesis:a00-600cf080-0cd865@s2
@@ -44,12 +44,12 @@ Every number re-derived here, not carried from the previous two kids' reports.
 
 | item | claim | measured now | holds |
 |---|---|---|---|
-| 1 | clause-1 set is 15, all classified | `grep -rn '/home/ubuntu/work/agi' extensions/ .claude/ .agi/config.json` minus the frozen fixture → **15**: 8 in the guard itself, 2 each in `test_workflow.py` / `test_workflow_template_seam_json.py` / `test_workflow_template_seam_js.py`, 1 in `.agi/config.json` | yes |
+| 1 | clause-1 set is 15, all classified | `grep -rn '<home>/work/agi' extensions/ .claude/ .agi/config.json` minus the frozen fixture → **15**: 8 in the guard itself, 2 each in `test_workflow.py` / `test_workflow_template_seam_json.py` / `test_workflow_template_seam_js.py`, 1 in `.agi/config.json` | yes |
 | 2 | `unify.py:409 _real_repos()` reads the set from `box.root`; `test_unify.py` carries 0 prefix hits | `grep -n _real_repos` → `409:def`, `426` freeze; `grep -c` in `test_unify.py` → **0** | yes |
 | 3 | `test_provisioning.py:356` is `ROOT = str(BIN.parent.parent.parent)`; :351 is a comment | both lines read as claimed | yes |
 | 4 | machine-read field sweep for the never-minted `goal:g73314-a-nonworkflow-residue` is empty | `grep -rnE "^\s*-\s*\|^loop:\|^parents:" .agi/nodes extensions/ .claude/` \| `grep g73314` → **exit 1, zero fields**; `goal/g7.33.14.md` exists, `g73314-*.md` does not. The 5 surviving mentions are prose, each saying it was never minted | yes |
 | 5 | guard scan set spans clause 1's own set | `SCAN_DIRS = ("bin","hooks","briefs","tests","workflows")`, `SCAN_ROOTS = (".claude",)`, `SCAN_FILES = config.json`; `_scanned()` = **493** files (28 workflows + 15 `.claude`), `_hits()` = **7**, all inside `EXEMPT`; `workflows/` = 0 hits, `.claude/` = 0 hits | yes |
-| 6 | the one live hit stays OPEN on `goal:g7.33.14` with two named owners | `.agi/config.json:188 "root": "/home/ubuntu/work/agi"`; the OPEN item is recorded at `goal:g7.33.14.md:81` naming group a00-3b546363 and the config-cell-exemption alternative | yes, still open, not mine |
+| 6 | the one live hit stays OPEN on `goal:g7.33.14` with two named owners | `.agi/config.json:188 "root": "<home>/work/agi"`; the OPEN item is recorded at `goal:g7.33.14.md:81` naming group a00-3b546363 and the config-cell-exemption alternative | yes, still open, not mine |
 | 7 | the retracted "24" is annotated at every surviving mention | body paragraph + THOUGHT both carry the retraction; the Falsifier field untouched | yes |
 
 **All seven hold.** No manufactured fix, no production edit.
@@ -60,7 +60,7 @@ Every number re-derived here, not carried from the previous two kids' reports.
     .....                                                                    [100%]
     5 passed in 0.44s
 
-    $ grep -rn '/home/ubuntu/work/agi' extensions/ .claude/ .agi/config.json | grep -v l4_85_frozen | wc -l
+    $ grep -rn '<home>/work/agi' extensions/ .claude/ .agi/config.json | grep -v l4_85_frozen | wc -l
     15
     1 .agi/config.json
     8 extensions/agi/tests/test_retired_box_prefix.py

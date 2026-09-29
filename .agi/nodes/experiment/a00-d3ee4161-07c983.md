@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-claude-code-and-pi
 next_edges: []
 confidence: 0.85
-edited_by: a00-cd9b4aa1
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-d3ee4161-07c983
 loop: hypothesis:l4-copilot-cli-is-a-third-harness-with-the-same-hooks-as-claude-code-and-pi@s2
@@ -75,7 +75,7 @@ RC=1                      # stderr; stdout empty
 $ python3 extensions/agi/bin/rotate.py spawn --name cop-test-a00 \
       --harness copilot-cli --tier director --dry-run
 export CLAUDE_CODE_DISABLE_BG_SHELL_PRESSURE_REAP=1 && \
-  /home/ubuntu/.npm-global/bin/copilot --model auto --allow-all-tools -i '<card>'
+  <home>/.npm-global/bin/copilot --model auto --allow-all-tools -i '<card>'
 # no --remote-control, no --debug-file
 
 $ python3 extensions/agi/bin/rotate.py spawn --name cc-test-a00 --tier director --dry-run

@@ -7,7 +7,7 @@ parents:
 next_edges:
   - verdict:a00-a667efeb-43f94e
 confidence: 0.85
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs: 0
 scaffold_hash: 76ae5837c99694c2
 season: 1
@@ -25,7 +25,7 @@ Differential parser run over the live corpus, the first of the hypothesis's
 three "what would prove it" criteria (and the third, the downstream check). One
 script, `/tmp/g13-diff-parsers.py` (path may not survive; method is fully
 described below, output below verbatim), run 2026-09-01 from
-`/home/ubuntu/work/agi` with `python3 /tmp/g13-diff-parsers.py`:
+`<home>/work/agi` with `python3 /tmp/g13-diff-parsers.py`:
 
 1. **Five read paths, one file walk** over every `.agi/nodes/**/*.md` (848
    files = 847 measured by the hypothesis + this scaffold):

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps
 next_edges: []
 confidence: 0.85
-edited_by: a00-d7f4b9bf
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-eefa5037-2dd20d
 loop: hypothesis:l4-the-window-reply-and-harvest-or-cut-are-captive-steps@s2
@@ -60,7 +60,7 @@ sha.
   lock: free
   tip: season/s2 = 398572f (MAIN HEAD 9ac39fd != tip → no)
   baseline: ...
-- `verification.py --level quick --root /home/ubuntu/work/agi` → PASS 3/3
+- `verification.py --level quick --root <home>/work/agi` → PASS 3/3
   (window arg does not disturb the normal verify path).
 
 The 6 pre-fix hand calls now collapsed into ONE command: the command performs
@@ -75,7 +75,7 @@ REVIEWED by parent a00-d7f4b9bf: step 3 landed and verified on real bytes in MAI
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 (1) WHAT THE INSTRUCTION SAID (node testable_claim, step 3): "one subcommand in the tool that OWNS the lock and the baseline (verification.py, which holds SUITE_LOCK verify-suite.lock and STATE_FILE verify-count.json) ... prints the reply in the shape the point holds for (lock state + tip + baseline) ... --grant SEAT additionally names the seat in the reply text so the line is paste-ready -- the DECISION to grant stays the Prime's (the command prints, it does not send)."
 
-(2) WHAT THE MACHINE ACTUALLY DOES: render_window at verification.py:623-690 + the positional wiring at :856. Built and ran from MAIN: python3 <worktree>/extensions/agi/bin/verification.py window --root /home/ubuntu/work/agi --grant sanctuary-director => "GRANT sanctuary-director -- merge-up window open / lock: free / tip: season/s2 = b86f43634157724513b36db720a2aa48ab065d1b (MAIN HEAD b86f436... == tip -> yes) / baseline: active=2141 deprecated=195 total=2336 stamped sha=b86f436... reason=explicit --stamp". Own suite test_verification_window.py 4 passed; neighbours test_verification.py + test_bin_help_smoke.py => 97 passed, 1 skipped. The six hand calls 40-45 in belam 140328Z are all performed by the one command, and it sends nothing.
+(2) WHAT THE MACHINE ACTUALLY DOES: render_window at verification.py:623-690 + the positional wiring at :856. Built and ran from MAIN: python3 <worktree>/extensions/agi/bin/verification.py window --root <home>/work/agi --grant sanctuary-director => "GRANT sanctuary-director -- merge-up window open / lock: free / tip: season/s2 = b86f43634157724513b36db720a2aa48ab065d1b (MAIN HEAD b86f436... == tip -> yes) / baseline: active=2141 deprecated=195 total=2336 stamped sha=b86f436... reason=explicit --stamp". Own suite test_verification_window.py 4 passed; neighbours test_verification.py + test_bin_help_smoke.py => 97 passed, 1 skipped. The six hand calls 40-45 in belam 140328Z are all performed by the one command, and it sends nothing.
 
 (3) THE NEAR MISS: a version that reads HEAD and verify-count.json relative to groot satisfies the words "prints lock+tip+baseline" and loses the mechanism when run from a SEAT worktree -- measured live: from this worktree the same command printed "baseline: none recorded (verify-count.json absent)" and labelled the WORKTREE head as "MAIN HEAD" (the two shas differed because this branch is not MAIN). The intended caller is the Prime in MAIN, where both are correct (measured above), so this is a caveat, not a disproval -- but the label lies if a seat ever runs it, and that is the next fix.
 

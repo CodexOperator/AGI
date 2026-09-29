@@ -6,7 +6,7 @@ parents:
   - hypothesis:lm-bend2-cuda-binary-carries-no-device-code
 next_edges: []
 confidence: 0.9
-edited_by: a00-fb08ab32
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-fb08ab32-529654
 line_ceiling: 40
@@ -27,7 +27,7 @@ verdict: disproved
 ## What I did
 
 Ran the target hypothesis against the EXACT artifacts TM.35/TM.44 used, on
-GPU2070S, over ssh (`ssh -F /home/ubuntu/work/.sanctuary/ssh/config local-town`,
+GPU2070S, over ssh (`ssh -F <home>/work/.sanctuary/ssh/config local-town`,
 host `GPU2070S`, user `belam`; artifacts in `<rig-home>/bend-work/`). Every
 parent lead (a)-(e) was re-run by me; every row below is my own raw output, saved
 under `.agi/sessions/iter-TM.49/a00-fb08ab32/raw/` (row1..row6).

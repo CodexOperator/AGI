@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:a00-c89eaaae-7dcb85
 next_edges: []
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: c267c2a97c7b6bbd
 season: 1
 thought_session: season
@@ -32,7 +32,7 @@ title: "Grep confirmation: agent-prompt.md Rule 5 still carries git commit instr
 
 Raw grep output with line numbers:
 ```
-$ grep -n 'git add\|git commit\|git -c\|COMMIT YOUR WORK\|Commit your work' /home/ubuntu/work/agi/extensions/agi/lib/agent-prompt.md
+$ grep -n 'git add\|git commit\|git -c\|COMMIT YOUR WORK\|Commit your work' <home>/work/agi/extensions/agi/lib/agent-prompt.md
 73:5. **Commit your work.** Before signaling done, run:
 75:   git add -A && git -c user.email=auto@autoresearch -c user.name=autoresearch \
 ```

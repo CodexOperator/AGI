@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-join-matches-the-delimited-window-token-and-keep-both-is-tested
 next_edges: []
 confidence: 0.92
-edited_by: a00-e7441bfe
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-e1e56b9b-ec05cd
 loop: hypothesis:l4-a-join-matches-the-delimited-window-token-and-keep-both-is-tested@s2
@@ -74,7 +74,7 @@ PARENT REVIEW (a00-e7441bfe, L4.295) — ACCEPTED proved, confidence 0.9.
 
 WHAT THE INSTRUCTION SAID: the target node says "[A] the join matches the window token as a DELIMITED value ... never a bare substring" and "[B] one test on a temp fixture ... seeds a row with the same ref and a stale pid, runs the ack, and asserts the pid is rewritten, the +/- lines print, and a second identical ack prints already".
 
-WHAT THE MACHINE ACTUALLY DOES (artifact read + run, not appearance): I read the diff at extensions/agi/bin/rotate.py:5697-5765 — json.loads now runs BEFORE the match and the bare substring test is replaced by _registry_matches_window_id(data, token), a regex @<digits>(?![0-9A-Za-z_]) over parsed scalar VALUES. I ran the helper directly against the real registry shape measured at /home/ubuntu/.claude/sessions/1847231.json (tmux = "view-master-sensei:@305.%305"): @30 vs @302 -> False, @30 vs "v:@30.%30" -> True, @30 vs "v:@1030.%1030" -> False, nested/list scalars -> True, empty dict (JSON parse failure) -> False (fails closed, which the old substring test did not). I reproduced the kid suite myself: 205 passed in 43.11s across test_rotate_handover + test_rotate_tail + test_rotate + test_rotate_identity_main. The kid's two fixtures assert exactly what clause B demands: first ack rewrites pid 999999->4242 with +/- lines and no "already"; second identical ack prints "row already carries session_ref=r1 -- nothing to back-fill or commit" and does not commit.
+WHAT THE MACHINE ACTUALLY DOES (artifact read + run, not appearance): I read the diff at extensions/agi/bin/rotate.py:5697-5765 — json.loads now runs BEFORE the match and the bare substring test is replaced by _registry_matches_window_id(data, token), a regex @<digits>(?![0-9A-Za-z_]) over parsed scalar VALUES. I ran the helper directly against the real registry shape measured at <home>/.claude/sessions/1847231.json (tmux = "view-master-sensei:@305.%305"): @30 vs @302 -> False, @30 vs "v:@30.%30" -> True, @30 vs "v:@1030.%1030" -> False, nested/list scalars -> True, empty dict (JSON parse failure) -> False (fails closed, which the old substring test did not). I reproduced the kid suite myself: 205 passed in 43.11s across test_rotate_handover + test_rotate_tail + test_rotate + test_rotate_identity_main. The kid's two fixtures assert exactly what clause B demands: first ack rewrites pid 999999->4242 with +/- lines and no "already"; second identical ack prints "row already carries session_ref=r1 -- nothing to back-fill or commit" and does not commit.
 
 THE NEAR MISS: a fix that keeps the raw pre-check and only ADDS the parsed comparison afterwards satisfies the words "where a raw pre-check is kept for speed" and still loses clause A — the raw substring would match @302 first in sorted glob order, and a file whose JSON fails to parse would fall into the data = {} branch and still be accepted by the parsed test as an empty dict if the comparison were written as a raw fallback. The kid did it the other way — parse first, no raw check — which is the stronger read; noted as a deviation in the SAFE direction, not an overclaim.
 

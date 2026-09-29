@@ -8,7 +8,7 @@ next_edges: []
 confidence: 0.8
 demote_reason: "parent review: the drift integration (config field + drift_check.py + driver.sh inline check) was already committed (18921b3c) by prior parallel work — this experiment validated it, did not author it. Body reattributed; stale HEAD and misclaimed authorship corrected in THOUGHT."
 demoted_from: inconclusive_lean_proved:85
-edited_by: season.py
+edited_by: director-general-3
 scaffold_hash: d98236e11e00e151
 season: 1
 thought_session: season
@@ -36,7 +36,7 @@ Non-fatal: the `|| true` guard means a missing `git`, a bad config JSON, or any 
 **Current state with the integration live:** `driver.sh --smoke` now emits:
 ```
 [driver] DRIFT WARNING: engine HEAD is 18921b3c6c5c but config pins 179f95602839
-[driver]   Fix: git -C /home/ubuntu/work/agi/extensions/agi pull, or update engine_commit in config.json
+[driver]   Fix: git -C <home>/work/agi/extensions/agi pull, or update engine_commit in config.json
 ```
 — a real drift warning, because the existing `engine_commit` field points to a superseded commit (the HEAD has moved on since the field was written). The check correctly detects this and continues past the warning.
 
@@ -55,7 +55,7 @@ Config without `engine_commit` or `engine_ref`. Check silently exits. No output.
 ```
 $ bash extensions/agi/driver.sh --smoke --max-iters 1 2>&1 | grep -E 'engine|DRIFT|pinned'
 [driver] DRIFT WARNING: engine HEAD is 18921b3c6c5c but config pins 179f95602839
-[driver]   Fix: git -C /home/ubuntu/work/agi/extensions/agi pull, or update engine_commit in config.json
+[driver]   Fix: git -C <home>/work/agi/extensions/agi pull, or update engine_commit in config.json
 ```
 
 **Test suite:** `python3 -m pytest extensions/agi/tests/ -q` — 1464 passed, 0 failed. No regressions.

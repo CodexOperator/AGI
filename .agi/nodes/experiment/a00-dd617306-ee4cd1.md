@@ -6,7 +6,7 @@ parents:
   - hypothesis:l5-why-parents-die-before-the-review-step-measured-before-any-fix
 next_edges: []
 confidence: 0.85
-edited_by: a00-baa8e365
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-dd617306-ee4cd1
 line_ceiling: 0
@@ -33,7 +33,7 @@ verdict: proved
 
 MEASUREMENT ROUND. Ceiling 0 production lines: no engine file, no test, no other node, no other checkout touched. The whole artefact is this body.
 
-**Method.** Scanned every `manifest.json` under `<main>/.agi/sessions/iter-*/` and `<main>/.agi/worktrees/*/.agi/sessions/iter-*/` (890 manifests, 2351 agent records; main = `/home/ubuntu/work/agi`). Selected records with `tier` in {parent, director} whose `status` is in {failed, timeout, done-unreported} or that carry a `death` key, and whose child (linked by `spawned_by_agent` or `dispatched_by`) has `status` in {done, running, done-unreported} — i.e. the kid outlived the parent. Scoped to the live season-2 window `started_at >= 2026-09-18T05:00Z`. For each survivor-parent I read the manifest record, the parent harness log (`output.log`) last lines and its LAST `{"type":"result"}` event, the parent's final assistant text, `journalctl --user`, `journalctl -u earlyoom`, and `dmesg`.
+**Method.** Scanned every `manifest.json` under `<main>/.agi/sessions/iter-*/` and `<main>/.agi/worktrees/*/.agi/sessions/iter-*/` (890 manifests, 2351 agent records; main = `<home>/work/agi`). Selected records with `tier` in {parent, director} whose `status` is in {failed, timeout, done-unreported} or that carry a `death` key, and whose child (linked by `spawned_by_agent` or `dispatched_by`) has `status` in {done, running, done-unreported} — i.e. the kid outlived the parent. Scoped to the live season-2 window `started_at >= 2026-09-18T05:00Z`. For each survivor-parent I read the manifest record, the parent harness log (`output.log`) last lines and its LAST `{"type":"result"}` event, the parent's final assistant text, `journalctl --user`, `journalctl -u earlyoom`, and `dmesg`.
 
 **Measured count.** 16 rounds on the sanctuary seat (`post-sensei-director`), 2 more on the thought-town seat (`post-director-thought`): **18 rows are tabulated below, but the committed cross-manifest probe (conjunct 1) recomputed 17 parent-dead/kid-survived rows and the parent review agrees at 17.** Row 18 (TM.32) carries no `death` key, so it is a lost report, not a reaper death. Both numbers are stated; 17 is the one the committed probe supports. Sanity totals over the same 890 manifests: 55 records carry a `death` key, 190 are `failed`, 2351 records total.
 

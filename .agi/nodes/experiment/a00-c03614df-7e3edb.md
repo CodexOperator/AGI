@@ -5,7 +5,7 @@ type: experiment
 parents:
   - hypothesis:l4-apply-runs-the-v3-tail-delete-old-admits-v3-posts-and-master-pushes-by-sha
 confidence: 0.9
-edited_by: a00-22d92510
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-c03614df-7e3edb
 scaffold_hash: 728ca521f7ae4229
@@ -19,7 +19,7 @@ verdict: proved
 FIX-ONLY round (g15) on the branch-reshuffle apply/delete-old path, building
 claims (b), (c), (d) of hypothesis:l4-apply-runs-the-v3-tail-delete-old-
 admits-v3-posts-and-master-pushes-by-sha. Claim (a) had already landed at
-L4.340. Worktrees path `/home/ubuntu/work/agi/.agi/worktrees/a00-22d92510`,
+L4.340. Worktrees path `<home>/work/agi/.agi/worktrees/a00-22d92510`,
 seed commit `8547fb822`.
 
 All three defects were REPRODUCED empirically on tmp bare-origin fixtures

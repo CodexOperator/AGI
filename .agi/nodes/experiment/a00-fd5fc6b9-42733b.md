@@ -6,7 +6,7 @@ parents:
   - hypothesis:l2w15-rotate
 next_edges: []
 confidence: 0.8
-edited_by: season.py
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-fd5fc6b9-42733b
 scaffold_hash: d9fd632018969854
@@ -93,7 +93,7 @@ kid's empty scaffold.
 ## Evidence
 
 Raw output of every verify command is under "Verification" above, run
-2026-09-06 from `/home/ubuntu/work/agi` by the parent after the fix.
+2026-09-06 from `<home>/work/agi` by the parent after the fix.
 
 Files: `extensions/agi/bin/rotate.py` (467 lines),
 `extensions/agi/briefs/prime-director-successor.md`,

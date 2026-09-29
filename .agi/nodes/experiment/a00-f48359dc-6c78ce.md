@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-sensei-classifier-reads-own-scratchpad-harvests-nudge-reads-and-backgrounded-audits-right-and-a-settled-verb-makes-wake-zero
 next_edges: []
 confidence: 0.75
-edited_by: a00-bfbd3aea
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-f48359dc-6c78ce
 line_ceiling: 25
@@ -88,7 +88,7 @@ Falsifiers: the 222924Z records no longer read out 1 / wake 6; no scratchpad
 read classes b on either real record. Command to reproduce:
 ```
 python3 extensions/agi/bin/sensei.py wake-audit --seat master-sensei \
-  --transcript /home/ubuntu/.claude/projects/-home-ubuntu-work-agi/2017ecbd-cc62-4a9e-841f-31bf81179929.jsonl
+  --transcript <home>/.claude/projects/-home-ubuntu-work-agi/2017ecbd-cc62-4a9e-841f-31bf81179929.jsonl
 python3 extensions/agi/bin/sensei.py rotate-out-audit --seat master-sensei \
   --record 20260916T222924Z
 ```

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l5-the-meter-captures-the-final-card-and-forces-the-rotation-itself
 next_edges: []
 confidence: 0.85
-edited_by: a00-baa8e365
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-931b52d8-2c24f6
 line_ceiling: 44
@@ -112,7 +112,7 @@ run these bytes:
   would render it as `agi-agi-alarms-sanctuary-master-<hash>.service`.
 - actually running: a TRANSIENT hand-made unit
   `agi-sanctuary-master-alarms.service` (active, running, MainPID 2672828,
-  since 01:03:06 EDT), `WorkingDirectory=/home/ubuntu/work/agi/.agi/worktrees/alarms-trunk`,
+  since 01:03:06 EDT), `WorkingDirectory=<home>/work/agi/.agi/worktrees/alarms-trunk`,
   ExecStart `/usr/bin/python3 extensions/agi/bin/rotate.py alarms --holder
   sanctuary-master --interval 120` (relative path, no `--root`, no `--once`).
   `~/.config/systemd/user/` holds no alarms unit file (only the reaper,

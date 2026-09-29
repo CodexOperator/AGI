@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-config-max-and-template-max-are-required-verdict-fields-of-every-merge-up-review-and-a-named-line-of-every-dispatch-order
 next_edges: []
 confidence: 0.9
-edited_by: a00-f796485b
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-df88db0f-a2ec45
 line_ceiling: 40
@@ -37,7 +37,7 @@ verdict: inconclusive_lean_disproved:75
 - **config-max:** the box's four names move to `.agi/config.json` under a new
   `box` object -- `root`, `logs_dir`, `tmux_session`, `user` -- plus `allow`
   (the file list the audit exempts). Values true of this box: root
-  `/home/ubuntu/work/agi`, logs_dir `/home/ubuntu/logs` (= `crons.py`'s
+  `<home>/work/agi`, logs_dir `<home>/logs` (= `crons.py`'s
   `Path.home()/"logs"`), tmux_session `agi-rc` (live session group),
   user `ubuntu`.
 - **template-max:** nothing in this diff is template/brief text. The brief's
@@ -90,7 +90,7 @@ the testable_claim's `CEILING 10` belongs to the already-landed schema half.
 Measured 80 (paths 48 + boxes 32), config-cell text excluded.
 
 ## Agent Notes
-Built SM.125 path_max audit + seam: new read-only paths.py audit (file:line: class: for home/logs/tmux/user/box, exit 1 outside allowlist, 0 clean) and boxes.py box_cells/allow_paths/resolve_placeholders reading four new .agi/config.json box cells (root,logs_dir=/home/ubuntu/logs,tmux_session=agi-rc,user=ubuntu); allowlist comes from box.allow, not a second list. 5 new tests in test_paths_audit.py green, 102 passed with test_box_guard/test_crons/test_config_max_template_max_required. Measured production_lines=80 (paths 48 + boxes 32), line_ceiling=40 for this slice (brief's 10 belongs to the landed schema half); config-cell text excluded. No file migrated (kid 2's slice).
+Built SM.125 path_max audit + seam: new read-only paths.py audit (file:line: class: for home/logs/tmux/user/box, exit 1 outside allowlist, 0 clean) and boxes.py box_cells/allow_paths/resolve_placeholders reading four new .agi/config.json box cells (root,logs_dir=<home>/logs,tmux_session=agi-rc,user=ubuntu); allowlist comes from box.allow, not a second list. 5 new tests in test_paths_audit.py green, 102 passed with test_box_guard/test_crons/test_config_max_template_max_required. Measured production_lines=80 (paths 48 + boxes 32), line_ceiling=40 for this slice (brief's 10 belongs to the landed schema half); config-cell text excluded. No file migrated (kid 2's slice).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
 parent a00-f796485b review of a00-df88db0f (iter 137): built the SM.125 path_max audit+seam; DEMOTED proved -> inconclusive_lean_disproved:75. Two parent-run falsifiers. (1) WIRE/gate: the four box cells live only in .agi/config.json, a path the round-done commit rule never commits (_round_scope_ok in cli.py returns False for .agi/config.json), so the branch diff does NOT carry them; boxes.box_cells over HEAD:.agi/config.json returns all four cells empty and test_live_config_declares_the_four_cells is RED against the branch's own committed bytes. (2) GATE: a fixture tree whose only literal is a tmux session name, with a graph whose config has no box cells, makes paths.py audit exit 0 -- the tmux/logs/user classes silently skip when cells are absent, so the audit fails open on exactly the state it exists to refuse. The code (paths.py 48 + boxes.py 32) is real, committed and its fixture tests pass (5 passed); the schema/brief half of the hypothesis is intact (validate_return names a missing template_max; brief line 34 carries the named line). NEXT ROUND: land the box cells in a committed file (or a committed fixture) and make the audit fail closed when cells are missing, then migrate the measured baseline file by file.

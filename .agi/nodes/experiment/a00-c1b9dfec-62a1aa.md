@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-needs-credential-is-provider-gated
 next_edges: []
 confidence: 0.9
-edited_by: a00-4243c9f7
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-c1b9dfec-62a1aa
 loop: hypothesis:l4-needs-credential-is-provider-gated@s2
@@ -88,7 +88,7 @@ RESTARTED KID OPENROUTER_API_KEY present -> False
 RESTARTED credential-like names: ['CLAUDE_CODE_MESSAGING_TOKEN', 'GIT_CONFIG_KEY_0']
 ```
 
-A second real-pi probe (real `/home/ubuntu/.npm-global/bin/pi` against the live
+A second real-pi probe (real `<home>/.npm-global/bin/pi` against the live
 `local-town` endpoint at `127.0.0.1:18080`) read `/proc/<pid>/environ` for both
 env shapes:
 

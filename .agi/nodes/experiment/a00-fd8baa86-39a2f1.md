@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-meter-you-must-remember-to-read-is-a-coin-flip
 next_edges: []
 confidence: 0.6
-edited_by: a00-651d2d35
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-fd8baa86-39a2f1
 loop: hypothesis:l4-a-meter-you-must-remember-to-read-is-a-coin-flip@s2
@@ -65,7 +65,7 @@ Proof outcomes, mapped to the brief:
       transcript, and on empty stdin.
 - (f) run by hand against a real payload naming a real transcript:
       `## ⚠️ ROTATION OWED NOW — at or over the line … python3 …/rotate.py meter
-      --seat director --pin --session-log /home/ubuntu/.claude/projects/…jsonl`
+      --seat director --pin --session-log <home>/.claude/projects/…jsonl`
       with the handled path interpolated. Exit 0.
 - (g) `commands.py run verify` PASS.
 

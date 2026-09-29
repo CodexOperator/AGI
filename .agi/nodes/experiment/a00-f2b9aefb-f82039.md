@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-stream-fragment-argv-resolves-to-executables
 next_edges: []
 confidence: 0.85
-edited_by: a00-ede39964
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-f2b9aefb-f82039
 loop: hypothesis:l4-the-stream-fragment-argv-resolves-to-executables@s2
@@ -29,7 +29,7 @@ command group's argv must resolve (after `locations.streamer_stub`
 substitution) to existing **executable files**, each reaching its intended
 mode.
 
-**Measured mechanism** (`/home/ubuntu/work/streamer-stub/bin/hold.sh:21-25`):
+**Measured mechanism** (`<home>/work/streamer-stub/bin/hold.sh:21-25`):
 
 ```
 case "${0##*/}" in
@@ -94,5 +94,5 @@ sandboxed only.
 Fixed the stream fragment so each argv resolves to an executable FILE reaching its mode (hold.sh --status/--pause/--off, panic.sh) and added a test reading the REAL fragment asserting isfile+X_OK+mode and panic owner_only; sandboxed hold.sh brb → exit 2 falsifies the proposed spelling
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review (a00-ede39964, L4.143). Demoted proved -> inconclusive_lean_proved:85. WHAT THE INSTRUCTION SAID: the target claim names the rewrite "brb/back -> <stub>/bin/hold.sh brb / <stub>/bin/hold.sh back". WHAT THE MACHINE ACTUALLY DOES: /home/ubuntu/work/streamer-stub/bin/hold.sh:21-25 dispatches on argv[0] basename, case "${0##*/}" in brb) MODE="${1:---pause}"; a hold.sh basename falls to *) MODE="$1"="brb", which is not a known MODE at the case "$MODE" table, so the command reaches hold.sh:81 *) echo "usage: ..."; exit 2. Measured by the kid in a sandboxed SB_HOME (exit 2, does not pause); confirmed by the parent by reading the two cases. THE NEAR MISS: a fix that satisfies the words "argv[0] is a file" and loses the mechanism -- hold.sh brb IS an existing executable file that passes isfile+X_OK and still never pauses; that is exactly why the landed test asserts argv[1] equals --pause/--off and not merely that argv[0] exists. IF DEVIATED FROM A STANDING RULE: none; the deviation is from the CLAIM, not from a rule, and it is documented in the body. WHY NOT proved: the node is cleared on its stated falsifier (no argv[0] is a directory or absent) and the guard is mutation-checked, but the claim letter itself was corrected in flight -- the named brb/back spelling was disproved and replaced -- and one run with no independent replication is thin ground for a strong claim.
+Parent review (a00-ede39964, L4.143). Demoted proved -> inconclusive_lean_proved:85. WHAT THE INSTRUCTION SAID: the target claim names the rewrite "brb/back -> <stub>/bin/hold.sh brb / <stub>/bin/hold.sh back". WHAT THE MACHINE ACTUALLY DOES: <home>/work/streamer-stub/bin/hold.sh:21-25 dispatches on argv[0] basename, case "${0##*/}" in brb) MODE="${1:---pause}"; a hold.sh basename falls to *) MODE="$1"="brb", which is not a known MODE at the case "$MODE" table, so the command reaches hold.sh:81 *) echo "usage: ..."; exit 2. Measured by the kid in a sandboxed SB_HOME (exit 2, does not pause); confirmed by the parent by reading the two cases. THE NEAR MISS: a fix that satisfies the words "argv[0] is a file" and loses the mechanism -- hold.sh brb IS an existing executable file that passes isfile+X_OK and still never pauses; that is exactly why the landed test asserts argv[1] equals --pause/--off and not merely that argv[0] exists. IF DEVIATED FROM A STANDING RULE: none; the deviation is from the CLAIM, not from a rule, and it is documented in the body. WHY NOT proved: the node is cleared on its stated falsifier (no argv[0] is a directory or absent) and the guard is mutation-checked, but the claim letter itself was corrected in flight -- the named brb/back spelling was disproved and replaced -- and one run with no independent replication is thin ground for a strong claim.
 <!-- THOUGHT:END -->

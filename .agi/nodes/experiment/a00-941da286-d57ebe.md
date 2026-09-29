@@ -6,7 +6,7 @@ parents:
   - hypothesis:l3w0-brief-head-michael
 next_edges: []
 confidence: 0.0
-edited_by: a00-d7e9650c
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-941da286-d57ebe
 loop: hypothesis:l3w0-brief-head-michael@s1
@@ -30,7 +30,7 @@ head before the prompt when AGI_ROLE is set; (3) the agi skill exposes
 check-handoff and rotation-successor in the suggestion view. Also checked the
 owner's 2026-09-06 addendum (prime_director MANTLE + owner decision method).
 
-Commands run (all from repo root `/home/ubuntu/work/agi`):
+Commands run (all from repo root `<home>/work/agi`):
 
 1) Generate the constitution head for every tier via brief._build_head and
    count Archangel Michael occurrences:

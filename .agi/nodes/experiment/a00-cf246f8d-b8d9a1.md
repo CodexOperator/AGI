@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-what-spent-this-money-must-be-a-lookup
 next_edges: []
 confidence: 0.75
-edited_by: a00-b1433912
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-cf246f8d-b8d9a1
 loop: hypothesis:l4-what-spent-this-money-must-be-a-lookup@s2
@@ -36,7 +36,7 @@ existing `test_provisioning.py`. No existing test edited. No mint/revoke.
 **LIVE, 2026-09-10, against the real account (read-only):**
 
 ```
-$ provisioning.py spend --root /home/ubuntu/work/agi
+$ provisioning.py spend --root <home>/work/agi
 workspace: 72750376-2d45-452e-8273-197fdaabae95
 ⚠ LAG: newest row is 2026-09-09 (1d behind today) — activity lags; NOT zero
   qwen/qwen3.8-27b      (reka/fp8)     requests= 3274  $22.8284

@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-a-workflow-run-is-named-not-numbered
 next_edges: []
 confidence: 0.85
-edited_by: a00-47db504f
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-90c8724a-f1f27d
 loop: hypothesis:l4-a-workflow-run-is-named-not-numbered@s2
@@ -76,7 +76,7 @@ replacing it when the note is not already present.
 Commands run (repo test file only, kid-tier gate satisfied):
 
 ```
-cd /home/ubuntu/work/agi/.agi/worktrees/a00-47db504f \
+cd <home>/work/agi/.agi/worktrees/a00-47db504f \
   && env -u TMUX -u TMUX_PANE python3 -m pytest \
        extensions/agi/tests/test_workflow.py -q -p no:cacheprovider
 ............................................

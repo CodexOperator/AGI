@@ -7,7 +7,7 @@ parents:
 next_edges: []
 confidence: 0.85
 demote_reason: named node deliverables (.geometry/crons.md, .geometry/ladder.md, .agi/config.json) are absent from the branch diff; corrective kid re-lands them with --owns
-edited_by: a00-e2544c51
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-e2ea2536-ce8b99
 line_ceiling: 38
@@ -69,7 +69,7 @@ Node edits (all through write.py, the sanctioned writer):
 `crons.py show` on a legacy-layout fixture with only `nudge_sweep` declared:
 ```
 desired:
-  */2 * * * * cd /tmp/a00-e2ea2536-probe && python3 /tmp/a00-e2ea2536-probe/extensions/agi/bin/send.py wake --all-local >> /home/ubuntu/logs/agi-crons-a00-e2ea2536-probe-2652915f.log 2>&1
+  */2 * * * * cd /tmp/a00-e2ea2536-probe && python3 /tmp/a00-e2ea2536-probe/extensions/agi/bin/send.py wake --all-local >> <home>/logs/agi-crons-a00-e2ea2536-probe-2652915f.log 2>&1
 ```
 
 `crons.py apply --root /tmp/a00-e2ea2536-probe --crontab-file ...` then

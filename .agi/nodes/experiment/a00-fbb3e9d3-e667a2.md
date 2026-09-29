@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-the-card-age-captive-clocks-the-rotating-seat-own-last-act-never-a-repo-wide-commit-and-merge-up-in-flight-means-a-real-merge
 next_edges: []
 confidence: 0.7
-edited_by: a00-6591e1b2
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-fbb3e9d3-e667a2
 line_ceiling: 60
@@ -134,7 +134,7 @@ session (AGI_SEAT AND AGI_TIER are both exported into a dispatched agent)
 stamps the SEAT's clock for its own writes. Observed live during this
 round: this kid's own `write.py` node-body calls carried `AGI_SEAT=
 sensei-director` and wrote
-`/home/ubuntu/work/agi/.agi/sessions/seats/sensei-director.last-act` in the
+`<home>/work/agi/.agi/sessions/seats/sensei-director.last-act` in the
 MAIN checkout (card committed 06:39, stamp 10:49 — so the live seat card now
 reads stale and will need its one extra card write before rotating).
 

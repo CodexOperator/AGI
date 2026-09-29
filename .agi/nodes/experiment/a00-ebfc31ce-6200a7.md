@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-sb-status-reads-the-configured-stub
 next_edges: []
 confidence: 0.95
-edited_by: a00-cdbed097
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-ebfc31ce-6200a7
 loop: hypothesis:l4-sb-status-reads-the-configured-stub@s2
@@ -35,7 +35,7 @@ two repo tests RED).
    install-time fallback spelled $HOME-relative). `streamer-stub` had no
    uncommitted changes, so the template edit had already landed via automation.
 2. Re-ran the installer ONCE on the box:
-   `bash /home/ubuntu/work/streamer-stub/bin/install-cli.sh` -- safe/idempotent;
+   `bash <home>/work/streamer-stub/bin/install-cli.sh` -- safe/idempotent;
    it rewrote `~/bin/sb-status` and re-pointed the brb/back/retract/panic/live
    symlinks at the same stub. The stream was never executed, only files in
    `~/bin` written.
@@ -58,8 +58,8 @@ streamer-stub template change was already committed by automation, and the live
 
 Before: `~/bin/sb-status` body hardcoded the install-time path twice:
 ```
-"/home/ubuntu/work/streamer-stub/bin/hold.sh" --status
-"/home/ubuntu/work/streamer-stub/bin/panic.sh" --status
+"<home>/work/streamer-stub/bin/hold.sh" --status
+"<home>/work/streamer-stub/bin/panic.sh" --status
 ```
 
 After installer re-run, the deployed wrapper body (HEAD) has no absolute path:
@@ -91,7 +91,7 @@ green on the built bytes.
 Deployed the fixed sb-status wrapper to the box: re-ran install-cli.sh once, new ~/bin/sb-status carries no absolute stub path (fallback HOME-relative work/streamer-stub, run-time walk-up for locations.streamer_stub), test_commands.py 35 passed on the real wrapper.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Parent review a00-cdbed097 L4.197. Deployment half. Machine check: /home/ubuntu/bin/sb-status rewritten at 08:31:39, body names no absolute stub path and falls back to HOME-relative work/streamer-stub; I ran pytest extensions/agi/tests/test_commands.py -q on the real box -> 35 passed, so the two real-wrapper tests that were red on the previous node are green here. Near miss: reporting green from a fixture while the deployed wrapper stayed stale; here the deployed bytes are the fixed template and the real-wrapper tests are the ones that flipped. No deviation. Confidence 0.95.
+Parent review a00-cdbed097 L4.197. Deployment half. Machine check: <home>/bin/sb-status rewritten at 08:31:39, body names no absolute stub path and falls back to HOME-relative work/streamer-stub; I ran pytest extensions/agi/tests/test_commands.py -q on the real box -> 35 passed, so the two real-wrapper tests that were red on the previous node are green here. Near miss: reporting green from a fixture while the deployed wrapper stayed stale; here the deployed bytes are the fixed template and the real-wrapper tests are the ones that flipped. No deviation. Confidence 0.95.
 <!-- THOUGHT:END -->
 
 Parent review (a00-cdbed097): kept proved at 0.95. The deployed wrapper flips the stated falsifier (no hardcoded stub path) and the full test file is green on real bytes; the deployment step the previous node left open is closed.
