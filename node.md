@@ -32,7 +32,7 @@ verdict: inconclusive_lean_disproved:60
 ## What was built
 
 The four adapters each kept a private, identical `resolve_bin` with no `~`
-expansion and no existence check, and two of them baked a `/home/ubuntu`
+expansion and no existence check, and two of them baked a `<home>`
 literal in CODE. They now delegate to ONE resolver:
 
 - `extensions/agi/bin/adapters/__init__.py` gains `resolve_bin(harness,
@@ -63,10 +63,10 @@ $ grep -n '"bin"' .agi/config.json
 96:      "bin": "~/.npm-global/bin/copilot",
 113:      "bin": "~/.npm-global/bin/grok-bot",
 $ grep -n '/home/' .agi/config.json
-167:    "pi_home": "/home/ubuntu/.pi/agent"       <- out of scope
-168:    "claude_home": "/home/ubuntu/.claude"     <- out of scope
-171:    "root": "/home/ubuntu/work/agi"           <- locations, out of scope
-172:    "logs_dir": "/home/ubuntu/logs"           <- locations, out of scope
+167:    "pi_home": "<home>/.pi/agent"       <- out of scope
+168:    "claude_home": "<home>/.claude"     <- out of scope
+171:    "root": "<home>/work/agi"           <- locations, out of scope
+172:    "logs_dir": "<home>/logs"           <- locations, out of scope
 ```
 
 ## UNCOMMITTED DELIVERABLE FOR THE DIRECTOR
@@ -93,7 +93,7 @@ $ python3 -m pytest <scratch>/pre-fix/tests/test_adapters.py -q \
   test_env_override_wins_over_the_config_cell                  AttributeError
   test_path_fallback_resolves_a_bare_name                      AttributeError
   test_a_missing_override_refuses_by_name                      AttributeError
-  test_no_home_user_literal_survives_in_any_adapter            assert ['copilot_cli_adapter.py:63: DEFAULT_BIN = "/home/ubuntu/.npm-global/bin/copilot"', ...] == []
+  test_no_home_user_literal_survives_in_any_adapter            assert ['copilot_cli_adapter.py:63: DEFAULT_BIN = "<home>/.npm-global/bin/copilot"', ...] == []
 ```
 
 Full output: `.agi/sessions/iter-EF.29/a00-3f33e0f6/pre-fix-red.txt`.
@@ -147,7 +147,7 @@ it always was.
 
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-PARENT REVIEW (a00-7b3dfdef) of this kid's version. (1) WHAT THE INSTRUCTION SAID: the kid brief item 5 demanded "a missing binary refuses BY NAME", and the node's TESTS list repeats it: "a missing binary refuses by name"; the kid's own body claims "an explicit override naming anything other than the built-in default that resolves nowhere raises FileNotFoundError naming the harness and the binary". (2) WHAT THE MACHINE ACTUALLY DOES: measured on the committed bytes at extensions/agi/bin/adapters/__init__.py:54-66, the refusal branch is reached only when the raw cell contains no path separator. A path-shaped cell -- the exact shape this round wrote into .agi/config.json ("~/.npm-global/bin/copilot") -- takes the `os.sep in path` branch and returns `path if os.path.exists(path) else raw`, i.e. the RAW unexpanded `~` literal. My gate probe: adapters.load("copilot_cli").resolve_bin({"adapter":"copilot-cli","bin":"~/.npm-global/bin/copilot"}) returned '~/.npm-global/bin/copilot', and subprocess.run([that,...]) raised a bare FileNotFoundError('~/.npm-global/bin/copilot'). So the named refusal the node lists as an acceptance test is NOT carried for the config's own shape. (3) THE NEAR MISS: the kid's own test test_a_missing_override_refuses_by_name uses "pi-not-installed-xyz" -- a name with no separator -- which satisfies the words of the requirement while losing its mechanism; the path-shaped case, which is what the new config actually holds, is never exercised. A second near miss: the kid's no-literal test globs only *_adapter.py, so the /home/ubuntu literal in workflow.py:1382 and heal.py:3113 survives the falsifier's scan. (4) DEVIATION FROM THE KID'S OWN NODE BODY: the body asserts the refusal generally; the observed behaviour refuses only bare names. The kid's Deviations section discloses the narrower scope (it kept the existing live-config tests green, which assert the raw cell is carried even when the binary is absent) but the body was not narrowed to match, so the node overclaimed. Verdict demoted from proved to inconclusive_lean_disproved:60. The four conjuncts I could verify positively (one resolver in the adapter path; env override with no cross-harness leak; ~/{home} expansion against the CURRENT HOME; no /home/<user> literal left in the merge-shared config's bin cells) all HELD -- probes recorded in this node's frontmatter; the headline PI_BIN-unset test resolves the config cell to <home>/.npm-global/bin/pi with no symlink. The kid is not asked to redo them.
+PARENT REVIEW (a00-7b3dfdef) of this kid's version. (1) WHAT THE INSTRUCTION SAID: the kid brief item 5 demanded "a missing binary refuses BY NAME", and the node's TESTS list repeats it: "a missing binary refuses by name"; the kid's own body claims "an explicit override naming anything other than the built-in default that resolves nowhere raises FileNotFoundError naming the harness and the binary". (2) WHAT THE MACHINE ACTUALLY DOES: measured on the committed bytes at extensions/agi/bin/adapters/__init__.py:54-66, the refusal branch is reached only when the raw cell contains no path separator. A path-shaped cell -- the exact shape this round wrote into .agi/config.json ("~/.npm-global/bin/copilot") -- takes the `os.sep in path` branch and returns `path if os.path.exists(path) else raw`, i.e. the RAW unexpanded `~` literal. My gate probe: adapters.load("copilot_cli").resolve_bin({"adapter":"copilot-cli","bin":"~/.npm-global/bin/copilot"}) returned '~/.npm-global/bin/copilot', and subprocess.run([that,...]) raised a bare FileNotFoundError('~/.npm-global/bin/copilot'). So the named refusal the node lists as an acceptance test is NOT carried for the config's own shape. (3) THE NEAR MISS: the kid's own test test_a_missing_override_refuses_by_name uses "pi-not-installed-xyz" -- a name with no separator -- which satisfies the words of the requirement while losing its mechanism; the path-shaped case, which is what the new config actually holds, is never exercised. A second near miss: the kid's no-literal test globs only *_adapter.py, so the <home> literal in workflow.py:1382 and heal.py:3113 survives the falsifier's scan. (4) DEVIATION FROM THE KID'S OWN NODE BODY: the body asserts the refusal generally; the observed behaviour refuses only bare names. The kid's Deviations section discloses the narrower scope (it kept the existing live-config tests green, which assert the raw cell is carried even when the binary is absent) but the body was not narrowed to match, so the node overclaimed. Verdict demoted from proved to inconclusive_lean_disproved:60. The four conjuncts I could verify positively (one resolver in the adapter path; env override with no cross-harness leak; ~/{home} expansion against the CURRENT HOME; no /home/<user> literal left in the merge-shared config's bin cells) all HELD -- probes recorded in this node's frontmatter; the headline PI_BIN-unset test resolves the config cell to <home>/.npm-global/bin/pi with no symlink. The kid is not asked to redo them.
 <!-- THOUGHT:END -->
 
 ## Agent Notes
