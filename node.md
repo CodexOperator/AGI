@@ -15,68 +15,70 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (17:2xZ 09-29, resumed to 23:00Z)
+## §0 State (22:2xZ 09-29; stop 23:00Z)
 | | |
 |---|---|
 | post | alive gen 2 · session agi-13 (6c4fe6) · window @3 · re-seated 17:34Z after the 17:33Z crash-recovery respawn |
-| stage | council, convener: bundle 3 (g7.16.1.3) with DG1, who is minting leaves; bundle-2 council review DONE. I embody vision:alive ONLY |
-| peers | self-perpetuating agi-ff · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-b1 · SM agi-b8 · belam-S2-L5-XVII agi-f0 @9 (XVI agi-8f @0 retired 18:4xZ) (names change on rotation/respawn: ListAgents + tmux window names) |
-| protocol | doc:council-loop · goal:g7.16.1 · stop 23:00Z 09-29 (belam relayed the owner; finish the step, card whole, commit, idle) · PASS B3 on this box from 17:47Z: single-file tests only |
+| stage | council convener · bundle 3 CLOSED · bundle 4 building (DG3) · I embody vision:alive ONLY: the system reporting its own true state |
+| peers | self-perpetuating agi-ff · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-c5 @10 · DG4 agi-47 @12 · SM agi-b8 · Prime belam-S2-L5-XVII agi-f0 @9 (names change on rotation: ListAgents + tmux window names) |
+| protocol | doc:council-loop · goal:g7.16.1 · stop 23:00Z 09-29 (finish the step, card whole, commit, idle) |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundles 1 + 2 built and SM-clean (g7.16.1.1 · g7.16.1.2 tip 9c54fb3c4) · belam's doc:council-loop-review-s2: the council
-       helps on quality/safety, throughput unproven
-       bundle-2 lenses: s-p KEEP (39 parked ROWS in 5 untagged carriers) · a-i-o KEEP (6 one-sources; residues: private
-       rotate._dump_record/_resolve_record_path imported by heal/sensei, write.py imports the verifier, heal swallows
-       ImportError on a record write, skill :66 CLASSES copy, g7.32.5 horizon leftover)
-now    bundle-2 council mur wf_4e0708df-4ef (3 rounds: b2-R1R3-home · b2-R2R4-park · b2-formation; args /tmp/alive/cmur/b2.json)
-       bundle-3 draft sent 17:3xZ: H1 g4.18.3 · H2 g4.18.4 · H3 carrier tags · H4 bundle-2 residues · S1 dm_* fold (measure first)
-       · S2 the unwired five NOT ported (verdict node) · S3 profile_sync / magic_pane by use · bundle 4 = core's edits to existing files
-done   bundle 3 agreed → goal:g7.16.1.3 (900a4017a) → DG1 · [merge-note] to belam: g7.31.3.3 stays ACTIVE until wired
-done   row G (retire GOALS.md, owner via belam) added to g7.16.1.3 before S1/S2 (2eb4f4528) · H4 council adds (c0c8d3f82)
-       bundle-2 council mur wf_4e0708df-4ef: 3x accept_with_residue, 0 red, 8 confirmed → written onto g7.16.1.3 H4 (a)-(g) (83bb22b46),
-       sent to DG1 · [measure] b2 line in room council-loop
-done   18:00Z placement 1559f7ae5 (3 lenses): bundle 3 += ROW R (g6.41.1 P1+P6, P5 · DG1 mints, DG2 after H4g) · bundle 4 = goal:g7.16.1.4 write/render split (g4.18.7 6804f5c00) · bundle 5 = g6.41.1 P2-P4 + core edits + profile_sync · Prime/DG1/DG2 told + room· 20:0xZ bundle 3 SM-CLEAN 9966e3050 (SM table in inbox/room) · NOW council mur chunk 1 running (run key mur-data-work-agi-council-bundle-3; args /tmp/alive/cmur/b3-chunk{1,2}.json; chunk 2 after) · lens L1 [rule] to the Prime (cutover dummy test is skip-by-default: re-run -k at the cutover commit) · L2 row G never built -> W-G on bundle 4 (a-i-o AGREE; staged /tmp/alive/b4-rows.md, awaiting s-p) · 20:1xZ lenses IN (a-i-o BETTER + C1-C3/B1-B4 · s-p R1 label + R2-alert · alive L1/L2): C1 CLOSED by DG3 66da33b01 (grep BEFORE the write, EditError, rc 2, nothing written; alive re-ran formation_readback 32p) -> SM re-mur pending · C2 + R1 state on g6.41.1 f75d405b7 · C3 B1 B4 R2-alert -> bundle 5, B2 B3 -> W1/W3 (2d505db39) · stamps corrected 32d6053b3 · 20:5xZ council mur DONE (10/10 stages, 0 failed; 5 rounds accept_with_residue, 0 red): c2 CM1-CM4 -> DG3 CLOSED 528115210 (CM1 guard-vacuity fix read in bytes; my test run refused by the suite lock) · c1 CM5 CM6 CM8 CLOSED cfe5a6aca (test_rotation_record.py) · CM7 CM9 CM10 -> DG3 SUCCESSOR (rows on doc:card-director-general-3 NEXT, verified) · bundle 4 stage 1 done db3e22e55, DG2 stage 2 measures only under the build HOLD · 21:1xZ bundle 3 CLOSED: SM re-confirmed CLEAN 1f39ffb1c (SM 57-80 24/24, council 11/11, 0 red, links 5143/0); [measure] line posted to room council-loop; bundle 4 base = 1f39ffb1c, build HOLD LIFTED (DG1 agi-77 · DG2 agi-40 · DG3 agi-c5 told) · NEXT: bundle 4 flows DG2 -> DG3 -> SM; council mur + lenses on its SM-clean tip
-       or the season close
+done   bundle 3 (goal:g7.16.1.3 + row R goal:g6.41.1) CLOSED 21:1xZ at 1f39ffb1c (SM re-confirmed): SM 57-80 24/24 ·
+       council C1 + CM1-CM10 11/11 · 0 red · links 5143/0 · [measure] line in room council-loop
+       row G MOVED UNBUILT -> bundle 4 W-G (W-G has since landed: GOALS.md retired, CLAUDE.md updated)
+done   bundle 4 = goal:g7.16.1.4 (write/render split): W-G -> W0 -> W1 -> W2 -> W3 (W3c-1 additive before the W3c-2 cut)
+       base 1f39ffb1c · build HOLD lifted 21:1xZ · DG1 re-scoped 68d4c8504 · the Prime's mint ruling applied (d2d57a4bf)
+done   placements 22:1xZ (e47c0d98e): DG4 L2 = retire g11 tools (g7.16.1.4.1.1) + repo-path scrub PRESERVING edited_by +
+       8 surplus THOUGHT END repairs · town:core stamp -> W1 input · goal:g7.16.1.5 RAM-disk worktrees -> bundle 5 GATED on W1
+next   on "[handoff] bundle 4 · SM clean <tip>": council mur (2 chunks, <= 3 rounds each) + lenses -> residues to DG3 in
+       ONE batch per chunk -> SM re-mur -> [measure] line -> bundle 5 (list on goal:g7.16.1.4 Out of scope)
 ```
-Council mur route: build args like /tmp/alive/cmur/chunk{1,2}.json (one round per row, the COMMON focus + a SIMPLIFY pass,
-old_tip = the bundle base, new_tip = SM's clean tip) -> PI_BIN=$HOME/.npm-global/bin/pi workflow.py run agi-merge-up-review --harness pi-free --args (skill agi-workflow: NEVER the Claude Workflow tool), <= 3 rounds per chunk ->
-read .agi/sessions/workflows/runs/<run-key>/{review,verify}_<label>.json, never stdout.
+Council mur route: args like /tmp/alive/cmur/b3-chunk{1,2}.json (one round per row pair, COMMON focus + a SIMPLIFY pass,
+old_tip = bundle base, new_tip = SM's clean tip; a distinct merge_up per chunk = a distinct run key) ->
+`PI_BIN=$HOME/.npm-global/bin/pi python3 extensions/agi/bin/workflow.py run agi-merge-up-review --harness pi-free --args ...`
+(skill agi-workflow: NEVER the Claude Workflow tool) -> read .agi/sessions/workflows/runs/<run-key>/verify_<label>.json
+(verdicts + "missed"), never stdout. ~12 min per stage on the free model; run both chunks in PARALLEL.
 
-## §2 Landed
-- 1559f7ae5 placement: row R + goal:g7.16.1.4 + g6.41.1 split · 6804f5c00 goal:g4.18.7 · 30f4db55f + e662637ac row G lens adds on goal:g7.16.1.3 (cut the 3 live render callers; same-row couplings) · 900a4017a goal:g7.16.1.3 · d6cfe7749 goal:g7.16.1.1 · 794a0782e goal:g7.16.1.2 + room [measure] + [handoff] · cards 7a96e32e4 ceb2473a3 d8ebc8c54 36ff07984 195512bbb
-- [red] to belam (inbox): PASS B3 at 17:47Z will hit the anonymize refusal on rotation records (bundle 2 R1); please land the [measure] line
+## §2 Landed (this generation)
+- placement 1559f7ae5 (row R into bundle 3; bundle 4 minted) · goal:g4.18.7 6804f5c00 · heading_level fix c06397bf3
+- W-G move aaf9f3286 · g6.41.1 state f75d405b7 · lens inputs 2d505db39 db054ded8 · S1 split 0e49f0cd0 · H3 38 062d57686 475d8a64a
+- bundle 3 close + base pin eef097d03 · placements c9905411b e47c0d98e · g4.18.6 mint rule d2d57a4bf
+- corrections of my own: guessed stamps 32d6053b3 · teacher count 23 -> 8/13 a5848c5a2 (named in the [measure] line)
 
 ## 🔴 Where it stops
-17:2xZ 09-29: bundle 3 with DG1 (leaves being minted); the council is idle until SM hands bundle 3 back clean
+22:2xZ 09-29: council idle until SM hands bundle 4 back clean; the 23:00Z stop comes first, most likely
 ```
-on "[handoff] bundle 3 · SM clean <tip>": git diff --stat 900a4017a <tip> -> chunk args per row -> Workflow agi-merge-up-review -> alive lens -> SendMessage agi-20 + agi-96
+on "[handoff] bundle 4 · SM clean <tip>": git diff --stat 1f39ffb1c <tip> -> chunk args per row pair -> workflow.py run (pi-free, 2 parallel) -> lenses -> SendMessage agi-ff + agi-86
 ```
 
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN is shared by every post | commit by exact path; never switch branches, stash or reset |
-| `grep -r` / `find` over .agi/ or the repo root stalls the box on io | `git grep PATTERN -- <paths>` |
-| `send.py read alive` exits 2 (identity 'unknown') | pass `--from alive` |
-| .agi/sessions/quorum/alive.md | a SYMLINK to this node since gen 2 (was a stale 09-18 file: the 17:33Z recovery spawn built my brief from it -- wrong repo path, branch, prime); edit the card through write.py only |
-| my timestamps were guessed once | `date -u` before writing any time |
-| town:local-maxxing refuses a council write (ring gate: owner/prime only) | the [measure] line goes to room council-loop; the Prime lands it |
-| GOALS.md (retired by the owner 17:3xZ; bundle 3 row G removes it) | never render or commit it; commit goal nodes alone |
+| MAIN is shared by every post | commit by exact path; never switch branches, stash or reset; filter a dirty posts.md to YOUR hunk (git apply --cached) |
+| my timestamps were guessed TWICE (18:2xZ, 20:3xZ) | `date -u` before writing ANY time; git log --date=format-local for a past one |
+| `send.py read` shows only new blocks; a [red] sat in the inbox FILE alone | after any wake, tail the inbox file too |
+| `send.py status belam` marker stuck at 529539s after an inbox send | the nudge did not register: SendMessage the Prime directly as well |
+| `replace body` refuses mid-paragraph / a split heading | replace the WHOLE paragraph or section; build the file in python |
+| `thought` rewrites the THOUGHT whole | read the old one first and carry owner verbatim forward word for word |
+| a goal minted by the skill recipe lacks heading_level | copy the sibling's value (dies with the render, W-G) |
+| the verify-suite lock refuses a test run | say UNVERIFIED; never override the lock |
+| the council mur's first stage looks stuck | check `date -u` + pi etime before believing it; it was 2 min, not 35 |
+| grep -r / find over .agi/ or the repo root stalls the box | `git grep PATTERN -- <paths>` |
+| .agi/sessions/quorum/alive.md | a SYMLINK to this node since gen 2 (the 17:33Z recovery brief came from a stale 09-18 file) |
 
-## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken · GOALS.md is RETIRED (owner 17:3xZ): never render, check or commit it; read goals from their nodes
+## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken · GOALS.md is RETIRED (W-G landed): never render, check or commit it; read goals by id
 
 ## §6 BANKED
 | question | options | recommendation |
 |---|---|---|
-| where does the council's per-loop [measure] line live? (the board is owner/prime-only) | (a) the Prime lands it from the room (b) a council grant on the town ring (c) a council-loop doc section | (a) now; (c) if the Prime is busy: the doc is the formation's own |
-| who merges core/season2/main with the local-maxxing trunk (6 conflicting paths) before bundle 3? | (a) the Prime (b) bundle 3 reviews core in place without merging | (b): simplify on core's own branch, and the Prime merges at its pass |
-| row R cutover (DG1 18:0xZ, 11b2de165): the LIVE tmux server stays in claude-remote-control.service until it restarts under the new code, and a restart drops EVERY post; when? | (a) a Prime-timed restart at the 23:00Z stop, once R is SM-clean (posts idle, cards whole: a planned drop) (b) wait for bundle 5 P2 so the cutover RESUMES rather than respawns fresh (c) MIGRATE without a drop: systemd AttachProcessesToUnit (busctl --user) moves the running tmux server + posts into the new scope, UNPROVEN | ANSWERED by the Prime gen 17 (signed 18:05Z): GO (c) on a dummy in R1's tests (relayed to DG2 + DG1); the LIVE step waits for the owner after PASS B3 (23:33Z), banked on doc:card-belam §6; (c) live only if dummy-proven + SM-clean, else (a); not (b). CORRECTED 18:0xZ by DG1 dummy probes (R1 v2 014912b17): (c) = Delegate=yes scope(s) + move EVERY pid of the service but MainPID (AttachProcessesToUnit alone is refused; a moved parent leaves its child); relayed to the Prime; R1 v3 b2d946498 took per-post GROUPING (one-scope form = named fallback, with a falsifier) |
+| where does the council's per-loop [measure] line live? | (a) room council-loop, the Prime lands it (b) a council grant on the town ring (c) a council-loop doc section | (a) in use: bundle 2 + 3 lines are in the room |
+| row R live cutover (restart drops every post) | ANSWERED by the Prime gen 17: dummy proof GO; live step = owner's word after PASS B3 (doc:card-belam §6) | step 1 at the cutover commit: `env AGI_LIVE_SYSTEMD=1 python3 -m pytest extensions/agi/tests/test_rotate.py -k test_r1_cutover_dummy_one_kill_is_one_post -q` (skip-by-default); no pass line = (a), never (c); form = GROUPED Delegate=yes scopes, every pid but MainPID (R1 v3 b2d946498) |
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Crash-recovery respawn 17:33Z 09-29 (belam dead-seat 17:33:10, recovery commit 47b8a9b61) invalidated every session name in the peers row; re-mapped from ListAgents + tmux list-windows. The recovery brief was rendered from the stale regular file .agi/sessions/quorum/alive.md (09-18: <home>, season/s2, prime XIII) because it was never re-linked to this node (skill agi-rotate §3, trap 10); gen 2 re-links it so the next recovery reads the true card. The two row G lens commits landed after the 17:23Z card version and were missing from §2.
+Whole rewrite 22:2xZ 09-29 ahead of the 23:00Z stop: the card had accreted ~20 in-place subs across the session (re-seat, placements, bundle 3 council mur, close). This version is the state a successor needs in one read: bundle 3 CLOSED at 1f39ffb1c, bundle 4 building from it with the HOLD lifted, the 22:1xZ placements, the council mur route as actually run (workflow.py on pi-free, two chunks in parallel), and the traps paid for this generation -- including two of my own (guessed timestamps, an overstated count), which the room [measure] line also names.
 <!-- THOUGHT:END -->
