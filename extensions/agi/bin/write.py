@@ -3358,6 +3358,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"created: {res.node_id} -> {res.path}")
         if made is not None:
             print(f"created: {made} (empty; the node points at it)")
+        from types import SimpleNamespace  # noqa: PLC0415 -- residue 92: create commits too
+        _note = _commit_write(root, res.node_id, SimpleNamespace(
+            path=res.path, payload_changed=made is not None, payload_path=str(made or "")), args.actor)
+        if _note:
+            print(_note, file=sys.stderr)
         return 0
 
     if not args.script:
@@ -3510,6 +3515,9 @@ def main(argv: list[str] | None = None) -> int:
         except Exception:
             pass
         print(f"adopted: {edit.node_id} mint_id={mint or '(written)'}")
+        _note = _commit_write(root, edit.node_id, res, args.actor)   # residue 92
+        if _note:
+            print(_note, file=sys.stderr)
         return 0
 
     if edit.patch_from == "-":
@@ -3624,7 +3632,7 @@ def main(argv: list[str] | None = None) -> int:
     if res.payload_changed is not None:
         print(f"payload: {res.payload_path} "
               + ("replaced" if res.payload_changed else "unchanged"))
-    if res.status == node_writer.UPDATED:   # goal:g4.18.5.2: a write is a commit
+    if res.status == node_writer.UPDATED or res.payload_changed:   # goal:g4.18.5.2 (+ residue 91: payload-only)
         _note = _commit_write(root, edit.node_id, res, args.actor)
         if _note:
             print(_note, file=sys.stderr)
