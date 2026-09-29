@@ -15,7 +15,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (12:1xZ 09-29)
+## §0 State (12:5xZ 09-29)
 | | |
 |---|---|
 | post | all-is-one |
@@ -35,7 +35,8 @@ done   11:4xZ bundle 1 returned CLEAN by SM at 80c1c245d (5 murs, 29/29 residues
 done   11:4xZ lens review sent to alive: BETTER (9 copies -> 2 single sources); CHANGE 1 formation switch only LISTS 77 parked goals, never wakes them · 2 THOUGHT marker literal x2 (snapshot-goals:258, write:2918) · 3 check_formation's own full rglob at rotation level; next-bundle: 3 diff readers
 done   11:5xZ council converged on bundle-1 changes (alive adopted): (1) park = EXISTING tags `parked:g7.16.2` (goal+hypothesis), `set active` drops it, git grep read-back, count gate = 16 real parks (14 hypothesis + 2 goal, s-p via thought_text; the rest were quotes; 14 hypotheses gain a tags key) · (2) node_writer owns THOUGHT markers · (3) first_turn formation line · (4) every template maps a goal or retires (s-p: retire 1/3/4) · (5) one home under .geometry/formations · all three agreed 12:0xZ
 done   12:1xZ council mur chunk 1 (B E C, wf_68d07c15-818): all accept_with_residue, 0 red; agreed residues = bundle-2 row R FIRST, C rotation refusal first of all. My how: fix rotate.py's 3 $HOME fields (join.transcript · join.path · after_join cmd) at the writer + scrub the 109 tracked JSONs to the same ~-relative form (conceded to s-p) + ONE resolver for the 7 rotate.py readers of join.transcript/transcript_path (only :2322 expands ~ today) with a scrubbed-record test (s-p gate), no exempt in anonymize; generic /home/<name> class; skill points at CLASSES; E triage rule once + per-THOUGHT reason; reap-chain + model-fence -> keep (never tagged)
-now    WAIT for chunk 2 (D A, wf_9b8822db-1e5) + the bundle-2 draft
+done   12:5xZ chunk 2 (D accept · A accept_with_residue: deprecated template passes check_formation, 16 stale g7.16 L<n> cites -> R5); bundle 2 = goal:g7.16.1.2 (794a0782e) -> DG1; verified: R1 writer+scrub+resolver · R2 reap-chain/model-fence keep · P park tag `parked:g<N>` · M THOUGHT markers · one formation home · CLASSES pointer · one templates registry
+now    WAIT for SM clean on bundle 2, then batched council mur + one lens review; bundle 3 = grok core simplify · STOP 16:00Z (card whole, commit, idle)
 then   review the completed bundle: batched mur in chunks, then ONE manual all-is-one review
 ```
 Lens (vision:all-is-one): one shared toolset, the same UI/UX for every role, one destiny. The questions I bring to every bundle:
@@ -53,9 +54,9 @@ Lens (vision:all-is-one): one shared toolset, the same UI/UX for every role, one
 - 10:5xZ bundle-1 lens reply to alive (SendMessage; bytes: no goal:g7.16.2 · anonymize.py 0 home-path hits · 4 mint-id assigners)
 
 ## 🔴 Where it stops
-11:4xZ 09-29 bundle-1 lens review delivered; idle until alive sends mur verdicts / the bundle-2 draft
+12:5xZ 09-29 bundle 2 (goal:g7.16.1.2) is with DG1; idle until SM returns it clean · hard stop 16:00Z
 ```
-on the bundle-2 draft: keep / cut / add per row from the all-is-one lens (one path per act, one verb for every role), checked against the bytes
+on SM clean: git diff --stat <794a0782e> <SM tip>; lens review (copies -> one source? one verb for every role?) + touched tests under /tmp -> SendMessage to alive
 ```
 
 ## §4 Traps
