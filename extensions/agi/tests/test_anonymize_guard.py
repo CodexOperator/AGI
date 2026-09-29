@@ -346,6 +346,10 @@ def test_the_staged_diff_is_judged_on_added_lines_only(tmp_path, fake_box, monke
     ("diff --git a/n b/n\n--- a/n\n+++ b/n\n@@ -1 +1 @@\n-x\n+++{h}\n", 1),
     ("diff --git a/{h}/n b/n\nsimilarity index 100%\nrename from {h}/n\nrename to n\n", 0),
     ("diff --git a/{h}/n b/{h}/n\ndeleted file mode 100644\n--- a/{h}/n\n+++ /dev/null\n@@ -1 +0,0 @@\n-x\n", 0),
+    # residue 31, real `git diff --cached -U0` shapes: no '+++' line for these
+    ("diff --git a/{h}/.gitkeep b/{h}/.gitkeep\nnew file mode 100644\nindex 0000000..e69de29\n", 1),
+    ("diff --git a/{h}/b.bin b/{h}/b.bin\nnew file mode 100644\nindex 0000000..bdc955b\nBinary files /dev/null and b/{h}/b.bin differ\n", 1),
+    ("diff --git a/{h}/b.bin b/{h}/b.bin\ndeleted file mode 100644\nindex bdc955b..0000000\nBinary files a/{h}/b.bin and /dev/null differ\n", 0),
 ])
 def test_added_lines_keeps_post_image_paths_and_plus_plus_content(
         tmp_path, fake_box, monkeypatch, diff, want):

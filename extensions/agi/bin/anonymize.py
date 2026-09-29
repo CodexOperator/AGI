@@ -79,18 +79,19 @@ def scan(text, tokens):
     return sorted({c for c, v in tokens if len(v) >= MIN_TOKEN and v in text})
 def added_lines(text):
     """A unified diff -> what it ADDS: every '+' line inside a hunk (content
-    starting '++' included) plus the post-image PATHS ('+++ b/' header,
-    'rename to'/'copy to'). Removed lines, pre-image paths and the
-    'diff --git' header (a deletion names its path on both sides) are text
-    leaving the repo: a scrub must never refuse itself. Any other text is
-    returned unchanged."""
+    starting '++' included) plus the post-image PATHS: '+++ b/', 'rename
+    to'/'copy to', 'Binary files ... and b/<path> differ', and the 'diff
+    --git' b/ side ONLY when 'new file mode' follows (a new empty or binary
+    file prints no '+++'). Removed lines, pre-image paths and a deletion's
+    header are text leaving the repo: a scrub must never refuse itself. Any
+    other text is returned unchanged."""
     lines = text.splitlines()
     if not any(l.startswith(("@@", "diff --git")) for l in lines):
         return text
-    out, hunk = [], False
+    out, hunk, head = [], False, ""
     for l in lines:
         if l.startswith("diff --git"):
-            hunk = False
+            hunk, head = False, l.split(" b/", 1)[-1]
         elif l.startswith("@@"):
             hunk = True
         elif hunk:
@@ -100,6 +101,12 @@ def added_lines(text):
             out.append(l[4:])
         elif l.startswith(("rename to ", "copy to ")):
             out.append(l)
+        elif l.startswith("new file mode"):
+            out.append(head)
+        elif l.startswith("Binary files ") and l.endswith(" differ"):
+            post = l[:-len(" differ")].rsplit(" and ", 1)[-1]
+            if post != "/dev/null":
+                out.append(post)
     return "\n".join(out)
 def cmd_check(root, text, diff_file):
     if diff_file:
