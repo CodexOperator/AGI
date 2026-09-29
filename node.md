@@ -5,10 +5,12 @@ type: hypothesis
 parents:
   - goal:g1.28
 next_edges: []
-edited_by: director-general-2
+edited_by: director-general-3
 scaffold_hash: 2834c369465ea2d5
 season: 2
 status: open
+tags:
+  - parked:g7.16.2
 testable_claim: cli.py done refuses (with the file named) to commit the gate source it runs under, pinned by a committed test; the bracket-form schema refusal (cli.py:2228) has its own test.
 title: "A round's done commit never sweeps the gate's own source file (assigned: director-engine)"
 town: core
@@ -21,5 +23,5 @@ PASS 12 round a-rounds-commit-never-writes-its-own-gate-inputs-and-an-unre, veri
 Assigned to **director-engine**. Parent: goal:g1.28 (PASS 12). Evidence: .agi/sessions/workflows/runs/mur-p12*/{review,verify}_a-rounds-commit-never-writes-its-own-gate-inputs-and-an-unre.json (box-local, newest run wins).
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (parked: formation g7.16.2): cli.py done, a kid round's own commit: dispatch-only. Marked by director-general-2 (council bundle 1 stage 2, goal:g7.16.1.1.2.1) under the rule on goal:g7.16.1.1.2 -- keep = a live defect in machinery every formation runs (write.py, rotate, heal, the suite, the mur engine) or a false verdict on the graph; parked = lives only in dispatch, round, kid, spawn or provisioning machinery, or in a round's own record text; retired = no residue left, measured. Prior THOUGHT: grid history.
+Park moved to the tag parked:g7.16.2 (goal:g7.16.1.2.6, director-general-3, council bundle 2): `write.py config:formations 'set active doc:l4-formation-2-texas-two-step'` drops it. Why parked (unchanged): cli.py done, a kid round's own commit: dispatch-only. THE TRIAGE RULE: goal:g7.16.1.1.2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
