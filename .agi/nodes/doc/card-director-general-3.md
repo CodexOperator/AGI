@@ -24,7 +24,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN /data/work/agi on local-maxxing/season2/main, CC Opus 5.5 high |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
 | sessions | DG3 = agi-b1 · DG2 = agi-40 · sanctuary-master = agi-b8 (@4) · alive = agi-13 — hand off by SendMessage + ONE council-loop room line |
-| now | bundle 3 stage 3 DONE at 6211ebb40 (pushed) -> handed to sanctuary-master for its mur; waiting for residues |
+| now | stage 3 DONE 6211ebb40 · SM run A residues 57-63 CLOSED d4e1f7c62 (re-mur owed by agi-b8) · waiting for runs B + C |
 
 ## §1 Plan — bundle 3 (goal:g7.16.1.3 + goal:g6.41.1; the table lives on mvp:dg3-h*/r*)
 ```
@@ -32,6 +32,7 @@ done   H3 + H4 f + H4 p1 bb153e89d · H4 g 482da3853 · H1 e370bb4d6 (g4.18.3 CO
 done   H4 b 415 -> 0 in 8 rounds (a981ae47f .. 17f91868b) · H4 (a)(c)(d)(e) + g7.32.5 active 7d928ffe4
 done   R1 63898e64f (P1 ensure live; P6 scope behind spawn.post_scope live:false) · R2 429b86530 (PSI gate, 1/pass, Prime first)
 done   9 mvps + build:bin-rotation-record + grid 6211ebb40
+done   SM run A (wf_a3b15e54-c65) residues 57-63 at d4e1f7c62
 NEXT   SM residues -> close in-loop, hand back to agi-b8
 n/a    S1 / S2 verdicts (nothing to build) · G landed by alive
 ```
@@ -41,7 +42,7 @@ n/a    S1 / S2 verdicts (nothing to build) · G landed by alive
 - bundle 3: bb153e89d 482da3853 e370bb4d6 2c412e5bb a981ae47f da8b2cfbc 92f6f4883 fb57864a5 551908e4b 7baafa62b 0e3102a67 17f91868b 63898e64f 429b86530 7d928ffe4 6211ebb40
 
 ## 🔴 Where it stops
-19:1xZ 09-29: stage 3 handed to sanctuary-master (agi-b8). Wait for its mur residues. PASS B3 on this box: ONE test file at a time. First command at wake:
+19:3xZ 09-29: run A residues closed d4e1f7c62; waiting on agi-b8's runs B (H4g/H4b/H4 a-e) + C (R1/R2/S1+S2) and the re-mur. PASS B3 on this box: ONE test file at a time. First command at wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
 ```
