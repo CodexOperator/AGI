@@ -12,7 +12,7 @@ THROUGH `commands.py` from `command:commands`
 (`.agi/nodes/.geometry/commands.md`) — never argv written literally here.
 
 Levels (`--level quick|rotation|full`, default `rotation`):
-  quick    = links + goals-check + write-guard + anonymize   (pre-commit set)
+  quick    = links + write-guard + anonymize   (pre-commit set; the GOALS.md round trip retired, W-G)
   rotation = quick + smoke + viewport-verify + dispatch-help + budget
   full     = rotation + schema + credentials + secrets + crons
 NO level runs pytest. `--suite` is OPT-IN and ORTHOGONAL to level: it adds the
@@ -67,10 +67,10 @@ SUITE_TIMEOUT = 1800
 #: How each level is composed. Names are COMMAND NAMES resolved through
 #: `commands.py` against the node — never argv written here.
 LEVELS: dict[str, list[str]] = {
-    "quick": ["links", "goals-check", "write-guard"],
-    "rotation": ["links", "goals-check", "write-guard",
+    "quick": ["links", "write-guard"],
+    "rotation": ["links", "write-guard",
                  "smoke", "viewport-verify", "dispatch-help", "budget"],
-    "full": ["links", "goals-check", "write-guard",
+    "full": ["links", "write-guard",
              "smoke", "viewport-verify", "dispatch-help", "budget",
              "schema", "credentials", "secrets", "crons"],
 }
@@ -226,8 +226,8 @@ def _parse_pytest_durations(output: str) -> list[dict]:
 def _parse_number(name: str, exitcode: int, output: str) -> dict | None:
     """The one number each check exists to produce.
 
-    Four checks carry a real number: smoke's active/deprecated/total triple,
-    links' broken count, goals-check's byte-identity yes/no, and the suite's
+    Three checks carry a real number: smoke's active/deprecated/total triple,
+    links' broken count, and the suite's
     pytest counts (passed/skipped/failed/errors). Everywhere else the exit
     code is the fact and the number column is empty. A `tests` count is a
     number for the reader, never a verdict — pass/fail still comes from the
@@ -246,8 +246,6 @@ def _parse_number(name: str, exitcode: int, output: str) -> dict | None:
     if name == "links":
         m = re.search(r"(\d+)\s+broken", output)
         return {"broken": int(m.group(1)) if m else -1}
-    if name == "goals-check":
-        return {"byte-identical": 1 if exitcode == 0 else 0}
     return None
 
 

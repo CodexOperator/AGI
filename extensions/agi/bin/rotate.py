@@ -8742,7 +8742,6 @@ WORKTREE_POST_CLOSEOUT_STEPS = [
     "merge_up_ask",  # send.py: one merge-up ASK line to the Prime
     "wait_grant",    # poll the inbox for a signed Prime GRANT|GO, bounded
     "merge_up",      # merge --no-ff into season2/main in MAIN
-    "render_check",  # render --check
     "suite",         # verify-suite, logged to a file, waited in-process
     "grid_commit",   # grid commit --all
     "push",          # push origin season2/main and refs/grid
@@ -8760,10 +8759,10 @@ MAIN_POST_CLOSEOUT_STEPS = [
 ]
 
 #: PRIME closeout list: the Prime does not merge up / ask itself for a grant;
-#: it lands its g17.1 note, renders the goals, and pushes.
+#: it lands its g17.1 note and pushes (the goals render retired with
+#: GOALS.md, goal:g7.16.1.4.1 W-G).
 PRIME_CLOSEOUT_STEPS = [
     "g17_1_note",  # write.py goal:g17.1 note <the closeout numbers line>
-    "render",      # snapshot-goals.py --render
     "push",        # push origin the checked-out branch
 ]
 
@@ -9194,19 +9193,6 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
                 + (f" ({ignored} cron-owned dirty path(s) ignored)"
                    if ignored else ""))
 
-    def _render_check():
-        # run in MAIN (the tree the merge landed in) -- never the seat tree.
-        main = _closeout_main(root)
-        if main is None:
-            return (False, "refused", "render_check: could not resolve MAIN")
-        binp = Path(__file__).with_name("snapshot-goals.py")
-        res = _closeout_pop_and_run(
-            root, [sys.executable, str(binp), "--render", "--check"],
-            cwd=main)
-        if res["ok"]:
-            return (True, "ok", "render --check clean")
-        return (False, "failed", "render --check refused")
-
     def _suite():
         # verify-suite = verification.py's opt-in pytest (`--suite`), logged
         # to a file under MAIN's sessions dir and WAITED in-process (REUSE:
@@ -9378,33 +9364,11 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
                 f"g17_1_note refused: "
                 f"{(out.stderr or out.stdout).strip() or 'nonzero exit'}")
 
-    def _render():
-        # snapshot-goals.py --render with cwd=root AND the project root made
-        # explicit (--project), so a closeout run never resolves the project
-        # from the SUBPROCESS cwd (a worktree cwd would render the wrong
-        # tree); then --render --check, whose result is the verdict -- the
-        # note is only written if GOALS.md round-trips byte-identical.
-        binp = Path(__file__).with_name("snapshot-goals.py")
-        res = _closeout_pop_and_run(
-            root, [sys.executable, str(binp), "--render",
-                   "--project", str(root)], cwd=root)
-        if not res["ok"]:
-            return (False, "refused",
-                    f"render refused: {res.get('detail') or res}")
-        chk = _closeout_pop_and_run(
-            root, [sys.executable, str(binp), "--render", "--check",
-                   "--project", str(root)], cwd=root)
-        if chk["ok"]:
-            return (True, "ok", "snapshot-goals.py --render + --check clean")
-        return (False, "failed",
-                f"render --check refused: {chk.get('detail') or chk}")
-
     return {
         "post_verify": _verify,
         "merge_up_ask": _ask,
         "wait_grant": _wait_grant,
         "merge_up": _merge_up,
-        "render_check": _render_check,
         "suite": _suite,
         "grid_commit": _grid_commit,
         "push": _push,
@@ -9412,7 +9376,6 @@ def _make_closeout_seams(root: Path, record: dict, *, seat: str = "",
         "numbers": _numbers,
         "pathspec_commit": _pathspec_commit,
         "g17_1_note": _g17_1_note,
-        "render": _render,
     }
 
 

@@ -73,11 +73,12 @@ from graph_core.identity import ensure_mint_id  # noqa: E402
 
 # goal:s17 -- underscore is canonical (`context/schemas/[shape].md`).
 #
-# `goal` and `level3` are deliberately absent. Both are *derived*:
-# `snapshot-goals.py` regenerates `nodes/goal/` from GOALS.md and deletes every
-# `origin: goals-doc` node it does not re-derive, and `level3.py` regenerates
-# the census. A hand-scaffolded node of either type is a stray the next loop
-# run silently removes -- offering the option would be offering a trap.
+# `goal` and `level3` are deliberately absent, each with its own writer:
+# a goal is minted through `write.py create goal` against the [goal] schema
+# (skill agi-goal: fields, legal parents, the fixed body order), and
+# `level3.py` regenerates the census. A generic scaffold of either type skips
+# that writer's contract -- offering the option would be offering a trap.
+# (GOALS.md and its import direction retired 2026-09-29, goal:g7.16.1.4.1.)
 CANONICAL_NODE_TYPES = (
     "idea", "hypothesis", "task", "experiment", "verdict", "mvp", "outcome",
     "bigger_outcome", "overview", "vision",

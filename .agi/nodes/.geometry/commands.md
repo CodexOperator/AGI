@@ -23,14 +23,6 @@ commands:
       - "-q"
     about: the engine's own suite
     workflow: verify
-  goals-check:
-    argv:
-      - python3
-      - <engine>/extensions/agi/bin/snapshot-goals.py
-      - "--render"
-      - "--check"
-    about: GOALS.md and the goal nodes are byte-identical inverses
-    workflow: verify
   viewport-verify:
     argv:
       - python3
@@ -2751,8 +2743,6 @@ manifest:
     reason: writes a git pre-commit hook; operator-only
   smoke:
     side_effects: graph-write
-  goals-check:
-    side_effects: graph-write
   grid-commit:
     side_effects: graph-write
   session-complete:
@@ -3155,7 +3145,6 @@ workflows:
   verify:
     - smoke
     - tests
-    - goals-check
     - viewport-verify
     - grid-commit
   read:

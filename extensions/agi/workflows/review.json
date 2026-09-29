@@ -9,7 +9,7 @@
       "role": "global",
       "model_hint": "sonnet",
       "effort_hint": "low",
-      "prompt": "You run the global health checks for an agi round review. Inspect the repo at {project_root} and report: git status dirtiness, broken graph links, whether GOALS.md and the goal nodes are byte-identical inverses, and the pytest suite result counts.\n\nRespond with EXACTLY ONE JSON object and nothing else, matching this schema: {\"git_status\":[\"...\"],\"links_broken\":0,\"goals_check_ok\":true,\"suite_passed\":0,\"suite_failed\":0,\"summary\":\"...\"}.",
+      "prompt": "You run the global health checks for an agi round review. Inspect the repo at {project_root} and report: git status dirtiness, broken graph links, and the pytest suite result counts.\n\nRespond with EXACTLY ONE JSON object and nothing else, matching this schema: {\"git_status\":[\"...\"],\"links_broken\":0,\"suite_passed\":0,\"suite_failed\":0,\"summary\":\"...\"}.",
       "schema": {
         "type": "object",
         "properties": {
@@ -18,9 +18,6 @@
           },
           "links_broken": {
             "type": "integer"
-          },
-          "goals_check_ok": {
-            "type": "boolean"
           },
           "suite_passed": {
             "type": "integer"
@@ -35,7 +32,6 @@
         "required": [
           "git_status",
           "links_broken",
-          "goals_check_ok",
           "summary"
         ]
       }
