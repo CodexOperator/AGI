@@ -79,10 +79,11 @@ def scan(text, tokens):
     return sorted({c for c, v in tokens if len(v) >= MIN_TOKEN and v in text})
 def added_lines(text):
     """A unified diff -> what it ADDS: every '+' line inside a hunk (content
-    starting '++' included) plus the post-image PATHS ('diff --git' b/ side,
-    '+++ ' header, 'rename to'/'copy to'). Removed lines and pre-image paths
-    are text leaving the repo: a scrub must never refuse itself. Any other
-    text is returned unchanged."""
+    starting '++' included) plus the post-image PATHS ('+++ b/' header,
+    'rename to'/'copy to'). Removed lines, pre-image paths and the
+    'diff --git' header (a deletion names its path on both sides) are text
+    leaving the repo: a scrub must never refuse itself. Any other text is
+    returned unchanged."""
     lines = text.splitlines()
     if not any(l.startswith(("@@", "diff --git")) for l in lines):
         return text
@@ -90,13 +91,12 @@ def added_lines(text):
     for l in lines:
         if l.startswith("diff --git"):
             hunk = False
-            out.append(l.split(" b/", 1)[-1])
         elif l.startswith("@@"):
             hunk = True
         elif hunk:
             if l.startswith("+"):
                 out.append(l[1:])
-        elif l.startswith("+++ "):
+        elif l.startswith("+++ ") and l != "+++ /dev/null":
             out.append(l[4:])
         elif l.startswith(("rename to ", "copy to ")):
             out.append(l)
