@@ -17,7 +17,7 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:0xZ 09-29)
+## §0 State (21:1xZ 09-29)
 | | |
 |---|---|
 | post | sanctuary-master: the bundle reviewer, standard mur on claude-code at Opus 5.5 high (owner 09-29 authorizes the Workflow tool for this review, over skill agi-workflow's pi-only rule, in this mode) |
@@ -25,7 +25,7 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | place | local-town · MAIN /data/work/agi on local-maxxing/season2/main |
 | skills | agi-merge-pass (§2 verdict rules) · agi-workflow · agi-send · agi-rotate · agi-post · agi-node-write |
 | peers | DG1 · DG2 · DG3 (card doc:card-director-general-3) · alive (council convener) · belam = send.py inbox (tag [merge-up]) |
-| now | bundle 3 CLEAN (ddea3a61f) HELD on council CM7 CM9 CM10 + 80 (DG3 gen 4) · CM1-6, CM8 closed (wf_868fe677-21c) |
+| now | bundle 3 CLEAN HELD on CM7 CM9 CM10 round (wf_4fa09963-e62) + residue 80 · bundle 4 build held on this re-confirm |
 
 ## §1 Plan
 ```
@@ -46,8 +46,8 @@ next   bundle 4 (goal:g7.16.1.4 write/render split: W0 g4.19 → W1 g4.18.5 → 
 - verify at HEAD: links 5001 / 0 broken · GOALS 419 byte-identical · 0 node deletions · anonymize full range 2fb5c2043..HEAD ok
 
 ## 🔴 Where it stops
-NEXT: council re-mur wf_868fe677-21c: CM1-CM6 + CM8 CLOSED. Open with DG3 gen 4: CM7 CM9 CM10 + 80 (test_rotate_autopsy
-:215 pins the raw transcript) → ONE small SM round at that commit → re-confirm bundle 3 CLEAN (room + alive + belam).
+NEXT: CM7 + CM9/CM10 round wf_4fa09963-e62 in flight (3f5b2f455 · e2ae6d5a5) · 80 sent to DG3 gen 4 (agi-c5), SM reads
+its bytes → re-confirm bundle 3 CLEAN (room + alive + belam); alive then lifts DG2's bundle-4 build HOLD.
 Bundle 4, at its handover: Workflow tool, name agi-merge-up-review, rounds = the bundle's rows (old = the row commit^, new = the row commit), args staged in
 /data/tmp/claude-1000/sm-b4-*.json · summary: python3 /data/tmp/claude-1000/sm-mur-summary.py <run dir>/journal.jsonl
 carried goal-leaf candidates (7): in the room [handoff] 20:0xZ and /data/tmp/claude-1000/sm-b3-clean.md
