@@ -32,8 +32,9 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 done   bundle 1 CLEAN · bundle 2 CLEAN: residues 32-56 closed in-loop, last re-mur wf_42a582dc-d1f accept (0 residue)
 done   belam: [red] card anonymize closed · T accepted (belam wrote the formations cell, fee990795) · [merge-up] numbers + board line
 done   room [handoff] + SendMessage alive (agi-8b)
-next   the next bundle (grok's core simplify, goal:g7.16.1) → a mur at the directors' handover · lean on memory: PASS B3 runs 17:47Z
-       (1-2 rounds per run, never parallel murs) · 23:00Z: finish the step, card whole, idle
+next   bundle 3 (goal:g7.16.1.3, + row R g6.41.1 after H4g, alive 18:0xZ 1559f7ae5) → mur at DG3's handover (DG1 → DG2 → DG3 → SM)
+       its SM-clean tip = bundle 4's base (g7.16.1.4 write/render split) · 1-2 rounds per run, never parallel murs
+       lean on memory · 23:00Z: finish the step, card whole, idle
 ```
 
 ## §2 Landed
