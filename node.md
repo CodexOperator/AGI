@@ -17,39 +17,33 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (18:1xZ 09-29 · resumed to 23:00Z by the owner via belam)
+## §0 State (23:0xZ 09-29 · STOPPED at the owner's 23:00Z stop, via belam agi-9c)
 | | |
 |---|---|
-| post | self-perpetuating · CC session agi-ff (ref 1d75c4, gen 2 crash-recovery 17:33Z) |
-| stage | council — you embody vision:self-perpetuating ONLY (read it whole first); every review speaks from that vision alone, never alive or all-is-one |
-| protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · seated 10:3xZ 09-29 by belam |
-| sessions | alive agi-13 · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-b1 · SM agi-b8 (acks 17:33Z; belam re-seating) — SendMessage; room council-loop for the record |
+| post | self-perpetuating · CC session agi-ff (ref 1d75c4) · gen 2 (crash-recovery respawn 17:33Z) |
+| stage | council: you embody vision:self-perpetuating ONLY (read it whole first); every review speaks from that vision alone |
+| protocol | doc:council-loop · goal:g7.16.1 (the owner's words) |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
+| sessions | alive agi-13 · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-b1 · SM agi-b8 · belam agi-9c (acks 17:33Z; SendMessage, room council-loop for the record) |
 | skills | agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundles 1 + 2 built, SM CLEAN (80c1c245d · 9c54fb3c4) + lens reviews · bundle 3 = goal:g7.16.1.3 (900a4017a) handed to DG1 18:0xZ — bytes checked: S1 dm-format test · S2 goal+sha+test+pass count, "not wired" as a BODY status line, g7.31.3.3 stays active
-done   bundle 3 SM-CLEAN at 9966e3050 · my lens sent to alive (G -> bundle 4 W-G; R1 label; R2 deferral red)
-next   idle until the council mur (mur-data-work-agi-council-bundle-3) returns; bundle 4 = W-G -> g4.18.5 -> .6 -> .7
-then   bundle 3 built + SM clean -> batched mur + ONE lens review · stop 23:00Z: finish the step, card whole, idle
+done   bundles 1 + 2 · bundle 3 (goal:g7.16.1.3) SM-CLEAN at 9966e3050 + my lens · row G MOVED UNBUILT -> bundle 4 W-G (aaf9f3286)
+next   on resume: read the council mur (run key mur-data-work-agi-council-bundle-3), then ONE lens on its residues
+then   bundle 4 = goal:g7.16.1.4: W-G -> g4.18.5 -> g4.18.6 -> g4.18.7 · bundle 5 = P2-P4 + core's edits + profile_sync
 ```
 
 ## §2 Landed
-- bundle 1 lens: KEEP 5, 0 red · conditions carried into bundle 2 (one `~` resolver, caller-grep parking test, generic home regex, park count gate)
-- bundle 2 lens (17:2xZ): test_rotation_record_home 10 passed · anonymize over 794a0782e..9c54fb3c4 exit 0 (live-box token only: MISSED 364 node files on the generic /home|/Users pattern, CONFIRMED by council mur wf_4e0708df-4ef) · 8 park tags, 0 THOUGHT marks · of 16 parks: 8 PARK / 8 LIVE, 7 of the 8 un-parks record their caller reason · F (config:rotations formation line) still owed
-- FINDING: 39 parked rows in body tables whose carrier has no tag (g7.33.19 11 · pass10 11 · pass11 3 · pass12 8 · passb1 6): a g7.16.2 switch wakes none. Proposed: tag the carriers + the check FAILs on an untagged row-park
-- bundle 3 votes: g4.18.3/.4 first · simplify on our trunk; each folded node names its core module + sha (pointer on OUR trunk: core is read-only, conceded to all-is-one) · every fold carries its test
-- bundle-3 draft reply: KEEP H1-H4 S1-S3 · S1 ADD a test reading a real committed dm file through the folded module · S2 ADD per module: its goal + core sha + test as the start point + "built, not wired". 4 of the unwired five (parent_slots, needs_rotate, spawn_refusal, kid_write_gate) = g7.31.3.3 seeds .1-.5, COMPLETE on core but unwired (0 non-test importers, measured on origin/core/season2/main)
-- S2 settled with all-is-one: g7.31.3.3 stays ACTIVE until wired (core says complete); leaves land active, "built at <sha>, not wired" in each leaf BODY (state), never THOUGHT
-- b2 council mur (wf_4e0708df-4ef): my 39-row finding CONFIRMED · I owned 2 misses (narrow home grep; import-only parking test missed conftest/entry-point callers) · lens priority: _grep_live must FAIL on a git grep error · all residues into goal:g7.16.1.3 H4
-- row G (owner 17:3xZ: retire GOALS.md + the render round trip): placement kept · ADD cut the 3 live render callers (rotate closeout step rotate.py:8681/~9297 · driver.sh:240 · review gates agi-round-review.js:64 + review.json) + CLAUDE.md names one goal-tree command for a human observer
-- bundle 4 placement (alive 18:0xZ, owner write/render split): KEEP separate, g4.18.5 -> .6 -> .7 · cut .5 from bundle 3 SM-clean sha · .7 rewrites agi-node-write read grammar same row · .6 retires the CLAUDE.md/agi-goal renumber re-point rule as a named coupling
-- row R (goal:g6.41.1 recovery, Prime URGENT) into bundle 3 after H4: KEEP, P1+P6 together · split acceptance: RESUMED clause -> bundle 5 row 0 by name · P6 proven by /proc/<pid>/cgroup, not argv · never test by killing the live remote-control service
-- bundle 3 lens (9181cee26^..9966e3050, 21 files +832/-93): row G UNBUILT (30f4db55f/e662637ac node-only; driver.sh:240 still renders) -> bundle 4 W-G · R1 honest at tip (residue 68 fail-closed) but label "P1 live, P6 built OFF" · R2 NEW: deferral unbounded + silent (heal.py:3594-3598), blind PSI fails closed forever (:833) -> N-pass [red] to belam · H3 KEEP
+- bundles 1 + 2 lenses: KEEP, 0 red · 39 untagged row-parks FOUND, council mur CONFIRMED · 2 own misses owned (narrow home grep, import-only caller test)
+- bundle 4 placement: KEEP separate, g4.18.5 -> .6 -> .7 · cut .5 from bundle 3's SM-clean sha · .7 rewrites agi-node-write read grammar in the same row · .6 retires the renumber re-point rule (CLAUDE.md + agi-goal) as a named coupling
+- row R (goal:g6.41.1) into bundle 3 after H4: P1+P6 together · RESUMED clause -> bundle 5 row 0 by name · P6 proven by /proc/<pid>/cgroup · never test by killing the live remote-control service
+- bundle 3 lens (9181cee26^..9966e3050, 21 files +832/-93): G unbuilt (node-only commits; driver.sh:240 still rendered) -> W-G · R1 honest at tip (residue 68 fail-closed) · close label "P1 live; P6 built, OFF until the owner says" · H3 KEEP
+- R2 NEW, taken by alive as next-bundle candidate: a deferral is watch-log only + unbounded (heal.py:3594-3598), blind PSI fails closed forever (:833) -> N consecutive deferrals = ONE [red] to belam (seat + avg10), blind PSI its own [red], no launch
+- GOALS.md retired in CLAUDE.md (goal:g7.16.1.4.1) during this session
 
 ## 🔴 Where it stops
-20:1xZ 09-29 bundle 3 SM-clean at 9966e3050; lens taken by alive (W-G landed aaf9f3286; R2 red = next-bundle candidate); the council mur is running
+23:0xZ 09-29 STOPPED at the owner's 23:00Z council stop; idle until a Prime/owner line resumes the council
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
@@ -57,12 +51,14 @@ python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuati
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN is shared by every post | commit by exact path; never switch branches, stash or reset |
-| `grep -r` / `find` over .agi/ or the repo root io-stalls the box | `git grep PATTERN -- <paths>` |
-| `send.py read self-perpetuating` exits 2 ('not you: unknown') | pass `--from self-perpetuating` before the verb |
-| a check with a narrower pattern than the invariant passes falsely (my "0 home paths" used $HOME only) | verify with the EXACT pattern the invariant names; a caller grep covers conftest, .sh, hooks, crons.md, not only `import` |
+| MAIN is shared by every post | commit by exact path; retry on .git/index.lock; never switch branches, stash or reset |
+| `send.py send --to council-loop` writes a DM FILE | the room is `send --room council-loop` |
+| `send.py read` empty is not proof | check `.agi/comms/season-2/dm/*self-perpetuating*.md` directly (all-is-one's 17:34Z dm sat behind an empty read) |
+| ack refused: posts row dirty | if the dirty rows are OTHER posts', wait for their commit, then re-run the ack; the session_ref back-fill needs a clean file |
+| a commit subject is not the bytes (row G "cut the callers" touched only the goal node) | `git show --stat` + the file at the tip before any "built" |
+| a check narrower than its invariant passes falsely | verify with the EXACT pattern the invariant names; caller greps cover conftest, .sh, hooks, crons.md |
 
-## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (the GOALS.md render check is retired, owner 17:3xZ)
+## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken
 
 ## §6 BANKED
 (none)
