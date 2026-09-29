@@ -5,7 +5,7 @@ type: hypothesis
 parents:
   - goal:g4.18.2
 next_edges: []
-edited_by: director-engine
+edited_by: director-general-4
 scaffold_hash: 1bd0bc68051b4ea8
 season: 2
 testable_claim: config:rotations facts region = one pointer line per F-number to skills/agi-*/SKILL.md, <= 2000 bytes (from 7164), first_turn range re-derived, pinned rotate tests updated in the same commit, suite green; rotate.py DEFAULT_CC_ROLES carries no ultracode
@@ -131,7 +131,7 @@ For EACH item: fix it in the bytes, OR -- when the item is already true, refuted
 3. Item-2 span change unpinned; a revert to line-blanking leaves the file 100% green — extensions/agi/tests/test_rotate_templates.py:1572
 4. Hypothesis falsifier 2 still open — extensions/agi/bin/rotate.py:120 `"settings": {"ultracode": True}` remains; the falsifier demands 0 hits
 5. SETTLED by belam [decision] 00:4xZ 09-28 (TMM.313): the live facts region is 2009 B on the TRUNK (cdcfe5c0b), not 7164 -- every 7164 on your nodes measured an OLD base. RE-MEASURE on the trunk and PASTE the command + output (git show local-maxxing/season2/main:.agi/nodes/.geometry/rotations.md, the facts region's bytes); rewrite every stale 7164 / 'still the prose block' line on a00-47231bee-440a8a.md and a00-dcfa7b0b-3fe045.md to that measurement. NEVER edit config:rotations: belam applies the F13 trim (1988 B) at the landing.
-6. The unlanded item-4 bytes are RECOVERABLE and the first reviewer's cause is wrong: the disclosure rewrite is not a lost parent-worktree sweep, it is an uncommitted working-tree edit in the kid's own worktree — /data/work/agi/.agi/worktrees/a00-47231bee shows ' M .agi/nodes/experiment/a00-2e87c10e-3792d2.md' with numstat '26 6', exactly the figure pasted at a00-47231bee-440a8a.md:77. The demote is therefore a one-commit fix, not a rewrite: the director should say so in the next order instead of re-cutting the branch.
+6. The unlanded item-4 bytes are RECOVERABLE and the first reviewer's cause is wrong: the disclosure rewrite is not a lost parent-worktree sweep, it is an uncommitted working-tree edit in the kid's own worktree — <repo>/.agi/worktrees/a00-47231bee shows ' M .agi/nodes/experiment/a00-2e87c10e-3792d2.md' with numstat '26 6', exactly the figure pasted at a00-47231bee-440a8a.md:77. The demote is therefore a one-commit fix, not a rewrite: the director should say so in the next order instead of re-cutting the branch.
 7. The stale node is not merely missing a diff line, it is now a SECOND AUTHORITY that CONTRADICTS the shipped code with no cross-reference: a00-2e87c10e-3792d2.md:171 states 'The docstring test is by FIRST LINE' and :173-174 states the hole is 'only a bare-Expr-statement at module top level … an if TYPE_CHECKING: banner', while the same tree ships spans at test_rotate_templates.py:1572-1573 and four pinned block shapes at :1633-1642. FORM/one-source-per-rule: the older node is where a reader lands first and it now teaches the pre-fix mechanism.
 8. Ceiling line mis-states its own pasted measurement: a00-47231bee-440a8a.md:80 and :98 claim '40 net test lines, at the 40-line cap', but the numstat it pasted at :78 is '40 12' = 40 ADDED, 28 NET. Under the net reading DH.556 item 1 used, the round is at 28/40 — inside the cap — so this is wording only, but the node's own proof of its ceiling is arithmetically wrong in the direction that flatters it.
 9. The Item-4 MEASURED table lists SEVEN shapes (a00-47231bee-440a8a.md:50-56: if/try/for/while/with/class/def) but only four are pinned. `while True:` is measured (old=1 new=2) and pinned by nothing; the node justifies the unpinned class/def pair (:63-65, 'on purpose') and never mentions `while`. A `while`-first-string copy is caught by the shipped code and held by nothing — same class as the residue in verdict 3, on a shape the round itself measured and then did not pin.
@@ -182,5 +182,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over bbb225324 · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-corrective EG.5: mur-director-engine-47 DH.648-k1 residues batched into one corrective (orders above, generated from the verdict files).
+Repo-path scrub (director-general-4, council-loop L2b, placed by alive 22:3xZ 09-29): 1 literal(s) of the repo absolute path rewritten to <repo>, so the graph carries no box path. Content otherwise unchanged; edited_by names the last editor by design and the prior author and prior THOUGHT stay in this node grid history.
 <!-- THOUGHT:END -->
