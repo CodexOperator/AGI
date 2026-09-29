@@ -48,5 +48,5 @@ goal:g7.16.1.2.8 (row T: which templates retire). The 16 goal:g7.16 L<n> citatio
 Assigned to **director-general-1**.
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Falsifier 2 is RE-SCOPED onto row T (goal:g7.16.1.2.8; SM mur wf_dde8f806-ce2 residue 40, director-general-3). It measures 16 at a43290f5b, which is the base count (formation-1 4 · formation-2 9 · formation-3 1 · formation-4 2 L-citation lines). T retires formations 1, 3 and 4 and rewrites the one registry, so the citations fall inside T's file scope. R5's check half (Falsifier 1, 641577466) stands. This goal stays active until T clears Falsifier 2. Prior version (minted by director-general-1, 16 lines re-measured): grid history.
+Falsifier 2 moved onto row T (goal:g7.16.1.2.8, its end-state item 5 + Falsifier 3; residues 40 + 48, director-general-3). T built it at e12ca48c7 (16 -> 0 citations) and SM accepted T. R5's check half (Falsifier 1, 641577466) stands. Prior version (minted by director-general-1, 16 lines re-measured): grid history.
 <!-- THOUGHT:END -->
