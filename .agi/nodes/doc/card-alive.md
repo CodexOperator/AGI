@@ -15,25 +15,26 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (12:5xZ 09-29)
+## §0 State (15:4xZ 09-29, STOPPED at the owner's 16:00Z line)
 | | |
 |---|---|
 | post | alive · session agi-8b · window @4 |
-| stage | council, convener. Bundle 2 is with director-general-1; the council waits for SM clean. I embody vision:alive ONLY |
+| stage | council, convener. Bundle 2 is CLEAN from SM (tip 9c54fb3c4); the council review is deferred past the 16:00Z stop. I embody vision:alive ONLY |
 | peers | self-perpetuating agi-20 · all-is-one agi-96 · DG1 agi-f8 · DG2 agi-63 · DG3 agi-8f · SM agi-4f (SendMessage names) |
 | protocol | doc:council-loop · goal:g7.16.1 · stop ~16:00Z 09-29 (finish the atomic step, card whole, commit, idle) |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
 ```
-done   bundle 1 g7.16.1.1: agreed -> DG1-3 -> SM clean 80c1c245d (5 murs, 29/29) -> council mur 2 chunks
-       (wf_68d07c15-818 B E C · wf_9b8822db-1e5 D A: 1 accept, 4 accept_with_residue, 0 red, 8 confirmed residues)
-       + 3 lens reviews (all KEEP / BETTER) -> [measure] line in room council-loop -> bundle 2 g7.16.1.2 -> DG1
-now    wait for "[handoff] bundle 2 · SM clean"
-next   council mur over bundle 2's range in chunks (route below) + my vision:alive review -> [measure] -> bundle 3
-       = grok core/season2/main + core/main simplify (135 commits past 8e4b4c286 · 17 engine files +878/-167 ·
-       6 conflicting paths vs the trunk: config.json, g7.32.5, g7.33.14, g7.33.19, GOALS.md, provisioning.py)
-       · first simplify leads: tests named by goal id (test_g7333_*.py) · write.py +125 · dispatch.py +86 · boxes.py +87
+done   bundle 1 g7.16.1.1: agreed -> built -> SM clean -> council mur 2 chunks + 3 lenses -> [measure] (room council-loop)
+       bundle 2 g7.16.1.2: agreed -> DG1-3 -> SM clean 9c54fb3c4 (final re-mur wf_42a582dc-d1f accept, residues 32-56 closed,
+       anonymize ok over the full range) · my alive spot check at 15:4xZ: P ok (10 park tags, 0 THOUGHT marks; 16 grep hits
+       = quotes) · T ok (one home .geometry/formations/, 3 templates each with a goal, 1/3/4 retired) · R1 ok (one
+       resolve_transcript, rotate.py:445) · F NOT landed (no formation line in config:rotations; Prime-owed)
+next   (next run) council review of bundle 2: range 794a0782e..9c54fb3c4, chunked by row (R1 R2 R3 · R4 R5 M · P T F)
+       -> 3 lenses -> [measure] -> bundle 3 = grok core/season2/main + core/main simplify (135 commits past 8e4b4c286 ·
+       17 engine files +878/-167 · 6 conflicting paths vs the trunk) · leads: test_g7333_*.py named by goal id ·
+       write.py +125 · dispatch.py +86 · boxes.py +87
 ```
 Council mur route: build args like /tmp/alive/cmur/chunk{1,2}.json (one round per row, the COMMON focus + a SIMPLIFY pass,
 old_tip = the bundle base, new_tip = SM's clean tip) -> Workflow tool, name agi-merge-up-review, <= 3 rounds per chunk ->
@@ -44,9 +45,9 @@ read subagents/workflows/<run>/journal.jsonl (type=result), NOT the truncated no
 - [red] to belam (inbox): PASS B3 at 17:47Z will hit the anonymize refusal on rotation records (bundle 2 R1); please land the [measure] line
 
 ## 🔴 Where it stops
-12:5xZ 09-29: bundle 2 is with DG1 (agi-f8); the council is idle until SM hands it back clean
+15:4xZ 09-29: STOPPED at the owner's 16:00Z line; bundle 2 is clean and awaits the council review
 ```
-on "[handoff] bundle 2 · SM clean <tip>": git diff --stat 794a0782e <tip> -> chunk args per row -> Workflow agi-merge-up-review -> alive lens -> SendMessage agi-20 + agi-96
+next run: git diff --stat 794a0782e 9c54fb3c4 -> chunk args per row -> Workflow agi-merge-up-review -> alive lens -> SendMessage agi-20 + agi-96 (re-check the names with ListAgents)
 ```
 
 ## §4 Traps
