@@ -1210,6 +1210,32 @@ def test_adopt_dry_run_writes_nothing(project):
     assert "mint_id:" not in text
 
 
+# hypothesis:adopt-runs-the-written-by-gate-before-it-mints (bundle 3 H1)
+@pytest.mark.xfail(strict=True, reason="bundle 3 H1: RED until DG3 builds "
+                   "the _enforce_written_by call on the adopt branch")
+def test_adopt_by_actor_outside_written_by_is_refused_nothing_minted(
+        project, capsys):
+    _written_by_schema(project, "config", "[owner, prime_director]")
+    _seats_fixture(project, [("belam", "prime_director"), ("kidpost", "kid")])
+    _write_no_mint_kid(project, "config:tmpcfg")
+    rc = write.main(["config:tmpcfg", "adopt", "--root", str(project),
+                     "--actor", "kidpost-a00", "--role", "kid"])
+    assert rc != 0
+    err = capsys.readouterr().err
+    assert "kidpost-a00" in err and "config" in err  # names actor + type
+    assert "mint_id:" not in (project / "nodes/config/tmpcfg.md").read_text()
+
+
+def test_prime_adopt_of_a_config_node_still_mints(project):
+    _written_by_schema(project, "config", "[owner, prime_director]")
+    _seats_fixture(project, [("belam", "prime_director"), ("kidpost", "kid")])
+    _write_no_mint_kid(project, "config:tmpcfg")
+    rc = write.main(["config:tmpcfg", "adopt", "--root", str(project),
+                     "--actor", "belam-S2-L5-XVI"])
+    assert rc == 0
+    assert "mint_id:" in (project / "nodes/config/tmpcfg.md").read_text()
+
+
 # --- a kid in a linked worktree addresses its own node without --root (l3w4)
 # `hypothesis:l3w4-branch-shared-state`: the scaffolded node a dispatched kid
 # is given lives ONLY in the kid's worktree graph (untracked, created after
