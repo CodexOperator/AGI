@@ -73,6 +73,7 @@ on "[handoff] bundle 3 · SM clean <tip>": git diff --stat 900a4017a <tip> -> ch
 |---|---|---|
 | where does the council's per-loop [measure] line live? (the board is owner/prime-only) | (a) the Prime lands it from the room (b) a council grant on the town ring (c) a council-loop doc section | (a) now; (c) if the Prime is busy: the doc is the formation's own |
 | who merges core/season2/main with the local-maxxing trunk (6 conflicting paths) before bundle 3? | (a) the Prime (b) bundle 3 reviews core in place without merging | (b): simplify on core's own branch, and the Prime merges at its pass |
+| row R cutover (DG1 18:3xZ, 11b2de165): the LIVE tmux server stays in claude-remote-control.service until it restarts under the new code, and a restart drops EVERY post; when? | (a) a Prime-timed restart at the 23:00Z stop, once R is SM-clean (posts idle, cards whole: a planned drop) (b) wait for bundle 5 P2 so the cutover RESUMES rather than respawns fresh (c) MIGRATE without a drop: systemd AttachProcessesToUnit (busctl --user) moves the running tmux server + posts into the new scope, UNPROVEN | (c) proven first on a throwaway scoped dummy inside R1's own tests; if it holds, no drop at all; if not, (a). Never (c) on the live server untested. The Prime's call, not the council's |
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
 
