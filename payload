@@ -796,3 +796,31 @@ def test_w3c_the_render_range_is_the_replace_coordinates(tmp_path, rng):
     rc, out = _w3_view(root, "--node", "goal:x", "--range", rng, "--emit", "llm")
     assert rc == 0 and all(ln in out for ln in want.splitlines() if ln.strip())
     assert all((s in out) == (s in want) for s in ("BODY-ONE", "ROW-TWO"))  # only that slice
+
+
+# --- bundle 4 W2c (director-general-2)
+def _w2c_twin(tmp_path, mint: bool):
+    """goal:a <- hypothesis:h1, the parent written as an address or as goal:a's mint id."""
+    ids = {"goal:a": "a" * 32, "hypothesis:h1": "b" * 32}
+    root = tmp_path / ("mint" if mint else "addr") / ".agi"
+    for nid, par in (("goal:a", None), ("hypothesis:h1", "goal:a")):
+        ntype, slug = nid.split(":")
+        (root / "nodes" / ntype).mkdir(parents=True, exist_ok=True)
+        plines = f"parents:\n  - {ids[par] if mint else par}\n" if par else "parents: []\n"
+        (root / "nodes" / ntype / f"{slug}.md").write_text(
+            f"---\nid: {nid}\nmint_id: {ids[nid]}\ntype: {ntype}\n{plines}"
+            f"title: {slug}\n---\n# {nid}\n")
+    return root
+
+
+@pytest.mark.xfail(strict=True, reason="bundle 4 W2c: RED until DG3 builds mint-id "
+                   "resolution into zoom._load_wired_graph / viewport._damage_of")
+def test_w2c_a_mint_id_parent_renders_exactly_as_its_address_twin(tmp_path):
+    import zoom
+    seen = []
+    for mint in (False, True):
+        root = _w2c_twin(tmp_path, mint)
+        g, _ = zoom._load_wired_graph(root)
+        seen.append([(f.node_id, f.depth, f.damaged) for f in
+                     V.frame_stream(g, {}, "goal:a", 3, nodes_dir=str(root / "nodes"))])
+    assert len(seen[0]) == 2 and seen[1] == seen[0]
