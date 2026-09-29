@@ -1700,3 +1700,9 @@ def test_a_project_with_no_schemas_loaded_still_writes(tmp_path):
     res = nw.write_node(tmp_path, "notown", "unconfigured", ["idea:i1"])
     assert res.written, f"{res.status}: {res.reason}"
     assert (tmp_path / "nodes" / "notown" / "unconfigured.md").exists()
+
+
+# --- bundle 4 W-G (director-general-2)
+@pytest.mark.xfail(strict=True, reason="bundle 4 W-G: RED until DG3 restates node_writer's goal-type reason")
+def test_wg_goal_type_reason_no_longer_cites_goals_md_regeneration():
+    assert "from GOALS.md" not in (BIN / "node_writer.py").read_text(encoding="utf-8")
