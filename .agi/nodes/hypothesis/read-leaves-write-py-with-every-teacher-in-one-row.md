@@ -19,7 +19,7 @@ town: core
 # hypothesis:read-leaves-write-py-with-every-teacher-in-one-row
 
 ## Measured
-- literal form 8 files / 13 lines, broader 'read body' 10 files, the goal cites 23: the round's first act re-measures and lists every site on this node.
+- literal form 8 files / 13 lines, broader 'read body' 10 files, the goal carries 8 / 13 since a5848c5a2 (its earlier 23 included tests): the round's first act re-measures and lists every site on this node.
 
 ## CLAIM
 (1) read gone from VERBS (2) every listed site repointed in the SAME commit (3) no alias verb (4) CLAUDE.md lines handed to the Prime as exact text.

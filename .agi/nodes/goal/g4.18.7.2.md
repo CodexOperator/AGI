@@ -24,7 +24,7 @@ town: core
 # goal:g4.18.7.2
 
 ## Why this exists
-goal:g4.18.7 via goal:g7.16.1.4 row W3, input B3 (all-is-one). Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): VERBS still holds "read" (write.py:543); `viewport.py` has --anchor, --emit human|llm|both and --verify, no single-node body render; grep_live and parked_carriers live in rotation_record.py (:49, :77), imported by write.py:2353 to unpark; the literal teaching form `write.py <id> 'read body|payload` sits in 8 files / 13 lines (10 files on a broader 'read body' grep), not the 23 the goal cites.
+goal:g4.18.7 via goal:g7.16.1.4 row W3, input B3 (all-is-one). Measured 20:3xZ 09-29 at ddea3a61f (the bundle's SM-clean base): VERBS still holds "read" (write.py:543); `viewport.py` has --anchor, --emit human|llm|both and --verify, no single-node body render; grep_live and parked_carriers live in rotation_record.py (:49, :77), imported by write.py:2353 to unpark; the literal teaching form `write.py <id> 'read body|payload` sits in 8 files / 13 lines (10 files on a broader 'read body' grep), the count goal:g4.18.7 now carries (a5848c5a2; its earlier 23 counted a wider scope incl. tests).
 
 ## Target end-state
 - grep_live and parked_carriers move to one node-search module beside node_writer; write.py, verification.py and every other caller import them from there.
