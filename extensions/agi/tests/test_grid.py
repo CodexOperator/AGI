@@ -1212,6 +1212,24 @@ def test_unresolvable_payload_ref_warns_and_still_commits_the_node(
     assert grid.read_tree_entry(project, ref, grid.PAYLOAD_ENTRY) is None
 
 
+def test_retired_node_payload_is_counted_apart_not_warned(
+        project, engine, capsys):
+    """A node under nodes/deprecated/ retired its file with it: no WARN, not
+    counted unresolved, still versioned. A LIVE node with a vanished file
+    still warns — `unresolved` keeps meaning a live node lost its payload."""
+    live = _payload_node(project, "gone", "level3:gone", "bin/does-not-exist.py")
+    retired = project / "nodes" / "deprecated" / "level3" / "old.md"
+    retired.parent.mkdir(parents=True)
+    retired.write_text(live.read_text().replace("level3:gone", "level3:old")
+                       .replace(MINT_P, "b" * 32))
+    grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
+    err, out = capsys.readouterr()[::-1]
+    assert "level3:gone payload_ref" in err
+    assert "level3:old payload_ref" not in err
+    assert "1 payload(s) unresolved, 1 retired with their node" in out
+    assert versions(project, "level3:old") == 1
+
+
 def test_status_sees_a_payload_only_edit(project, engine, capsys):
     _payload_node(project, "plain", "level3:plain", "bin/plain.py")
     grid.cmd_commit(project, [], do_all=True, session=None, engine_root=engine)
