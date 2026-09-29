@@ -18,9 +18,9 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 ## §0 State (17:2xZ 09-29, resumed to 23:00Z)
 | | |
 |---|---|
-| post | alive · session agi-8b · window @4 |
+| post | alive gen 2 · session agi-13 (6c4fe6) · window @3 · re-seated 17:34Z after the 17:33Z crash-recovery respawn |
 | stage | council, convener: bundle 3 (g7.16.1.3) with DG1, who is minting leaves; bundle-2 council review DONE. I embody vision:alive ONLY |
-| peers | self-perpetuating agi-20 · all-is-one agi-96 · DG1 agi-f8 · DG2 agi-63 · DG3 agi-aa · SM agi-1c · belam agi-0e (names change on rotation: ListAgents + tmux window names) |
+| peers | self-perpetuating agi-ff · all-is-one agi-86 · DG1 agi-77 · DG2 agi-40 · DG3 agi-b1 · SM agi-b8 · belam-S2-L5-XVI agi-8f (names change on rotation/respawn: ListAgents + tmux window names) |
 | protocol | doc:council-loop · goal:g7.16.1 · stop 23:00Z 09-29 (belam relayed the owner; finish the step, card whole, commit, idle) · PASS B3 on this box from 17:47Z: single-file tests only |
 | skills | agi-goal · agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
@@ -46,7 +46,7 @@ old_tip = the bundle base, new_tip = SM's clean tip) -> Workflow tool, name agi-
 read subagents/workflows/<run>/journal.jsonl (type=result), NOT the truncated notification.
 
 ## §2 Landed
-- 900a4017a goal:g7.16.1.3 · d6cfe7749 goal:g7.16.1.1 · 794a0782e goal:g7.16.1.2 + room [measure] + [handoff] · cards 7a96e32e4 ceb2473a3 d8ebc8c54 36ff07984 195512bbb
+- 30f4db55f + e662637ac row G lens adds on goal:g7.16.1.3 (cut the 3 live render callers; same-row couplings) · 900a4017a goal:g7.16.1.3 · d6cfe7749 goal:g7.16.1.1 · 794a0782e goal:g7.16.1.2 + room [measure] + [handoff] · cards 7a96e32e4 ceb2473a3 d8ebc8c54 36ff07984 195512bbb
 - [red] to belam (inbox): PASS B3 at 17:47Z will hit the anonymize refusal on rotation records (bundle 2 R1); please land the [measure] line
 
 ## 🔴 Where it stops
@@ -61,7 +61,7 @@ on "[handoff] bundle 3 · SM clean <tip>": git diff --stat 900a4017a <tip> -> ch
 | MAIN is shared by every post | commit by exact path; never switch branches, stash or reset |
 | `grep -r` / `find` over .agi/ or the repo root stalls the box on io | `git grep PATTERN -- <paths>` |
 | `send.py read alive` exits 2 (identity 'unknown') | pass `--from alive` |
-| .agi/sessions/quorum/alive.md is a stale 09-18 file | the card = doc:card-alive, through write.py |
+| .agi/sessions/quorum/alive.md | a SYMLINK to this node since gen 2 (was a stale 09-18 file: the 17:33Z recovery spawn built my brief from it -- wrong repo path, branch, prime); edit the card through write.py only |
 | my timestamps were guessed once | `date -u` before writing any time |
 | town:local-maxxing refuses a council write (ring gate: owner/prime only) | the [measure] line goes to room council-loop; the Prime lands it |
 | GOALS.md (retired by the owner 17:3xZ; bundle 3 row G removes it) | never render or commit it; commit goal nodes alone |
@@ -75,3 +75,7 @@ on "[handoff] bundle 3 · SM clean <tip>": git diff --stat 900a4017a <tip> -> ch
 | who merges core/season2/main with the local-maxxing trunk (6 conflicting paths) before bundle 3? | (a) the Prime (b) bundle 3 reviews core in place without merging | (b): simplify on core's own branch, and the Prime merges at its pass |
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Crash-recovery respawn 17:33Z 09-29 (belam dead-seat 17:33:10, recovery commit 47b8a9b61) invalidated every session name in the peers row; re-mapped from ListAgents + tmux list-windows. The recovery brief was rendered from the stale regular file .agi/sessions/quorum/alive.md (09-18: /home/ubuntu, season/s2, prime XIII) because it was never re-linked to this node (skill agi-rotate §3, trap 10); gen 2 re-links it so the next recovery reads the true card. The two row G lens commits landed after the 17:23Z card version and were missing from §2.
+<!-- THOUGHT:END -->
