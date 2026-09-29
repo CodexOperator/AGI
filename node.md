@@ -14,7 +14,7 @@ blocked_by:
   - task:t-078
   - task:t-081
 cavekit_req: autoresearch-tree-skill/R9
-edited_by: season.py
+edited_by: director-general-3
 effort: M
 origin: build-site
 season: 1
@@ -218,7 +218,7 @@ title: "T-089: Agent timeout and healer dispatch mechanism"
 
 - T-088: Skill repository scaffolding → autoresearch-tree-skill/R1 (structural prep)
 
-- The predecessor at `/home/ubuntu/.hermes/agi/` is FROZEN. Read `agi/graph_builder.py` only for inspiration on warm-load `lru_cache` patterns and gitnexus-port lessons; re-implement under the schema-registry contracts defined here.
+- The predecessor at `<home>/.hermes/agi/` is FROZEN. Read `agi/graph_builder.py` only for inspiration on warm-load `lru_cache` patterns and gitnexus-port lessons; re-implement under the schema-registry contracts defined here.
 
 - Every node payload field beyond the seven in T-001 belongs to a schema, not graph-core.
 
