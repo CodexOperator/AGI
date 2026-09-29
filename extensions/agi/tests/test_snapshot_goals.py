@@ -1294,3 +1294,40 @@ def test_render_town_goal_nests_strictly_below_the_app_head(tmp_path):
             f"{want} renders at {hashes}x'#' but must nest strictly below "
             f"the app head's {head_hashes}x'#'")
         assert rendered.index(line) > head_idx
+
+
+# --- bundle 4 W-G (director-general-2)
+_WG_REPO = Path(__file__).resolve().parents[3]
+_WG_XF = pytest.mark.xfail(strict=True, reason="bundle 4 W-G: RED until DG3 builds the GOALS.md retire (goal:g7.16.1.4.1)")
+_WG_CALLERS = {"extensions/agi/driver.sh": r"snapshot-goals\.py", "extensions/agi/bin/verification.py": r"goals-check",
+               "extensions/agi/bin/rotate.py": r'"render"|"render_check"|"--render"', ".agi/nodes/.geometry/commands.md": r"goals-check",
+               "extensions/agi/workflows/agi-round-review.js": r"snapshot-goals|goals_check",
+               "extensions/agi/workflows/review.json": r"GOALS\.md|goals_check"}
+
+
+def _wg_text(rel):
+    p = _WG_REPO / rel
+    return p.read_text(encoding="utf-8") if p.exists() else ""
+
+
+@_WG_XF
+def test_wg_no_live_caller_renders_or_checks_goals_md():
+    import re
+    assert [c for c, rx in _WG_CALLERS.items() if re.search(rx, _wg_text(c))] == []
+    assert "emit_metrics" in _wg_text("extensions/agi/driver.sh")      # the smoke keeps its node count
+    assert not (_WG_REPO / "GOALS.md").exists()                         # git rm of the derived file
+
+
+@_WG_XF
+def test_wg_from_doc_and_goals_file_retire():
+    src, loc = BIN.read_text(encoding="utf-8"), _wg_text("extensions/agi/bin/locations.py")
+    assert "--from-doc" not in src and "from_doc" not in src
+    assert "DEFAULT_GOALS_FILE" not in loc and "goals_file" not in loc
+
+
+@_WG_XF
+def test_wg_reader_lines_only_point_at_the_retirement():
+    docs = ["CLAUDE.md", "QUICKSTART.md"] + [f"skills/{s}/SKILL.md" for s in
+                                             ("agi", "agi-goal", "agi-master-gate", "agi-node-write", "agi-verify")]
+    assert [(d, ln) for d in docs for ln in _wg_text(d).splitlines()
+            if ("GOALS.md" in ln or "--render" in ln) and "retire" not in ln.lower()] == []

@@ -1465,3 +1465,11 @@ def test_unfrozen_prime_pushes_a_trunk_resolved_stops_push(
     calls = _faked_stops_push_git(monkeypatch, "season2/main")
     assert rotate._stops_push(tmp_path, "stops") is None
     assert _pushed(calls), "an unfrozen prime's trunk push must proceed"
+
+
+# --- bundle 4 W-G (director-general-2)
+@pytest.mark.xfail(strict=True, reason="bundle 4 W-G: RED until DG3 cuts the closeout render step + its --check gate")
+def test_wg_closeout_has_no_render_step_or_check_gate():
+    assert "render" not in rotate.PRIME_CLOSEOUT_STEPS
+    assert "render_check" not in rotate.WORKTREE_POST_CLOSEOUT_STEPS
+    assert not {"render", "render_check"} & set(rotate._make_closeout_seams(Path("/tmp/co-root"), {}))
