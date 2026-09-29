@@ -148,7 +148,12 @@
     },
     "parent_max_kids": 10,
     "memory_max": "2G",
-    "tasks_max": 150
+    "tasks_max": 150,
+    "post_scope": {
+      "live": false,
+      "slice": "agi.slice",
+      "why": "goal:g6.41.1 P6 (director-general-3, bundle 3 R1): true = every post launch in its OWN scope under slice. OFF until the owner's word after PASS B3 (doc:card-belam s6) and the slice decision (agi.slice shares MemoryHigh 9.26G / MemoryMax 10.29G with agi-work + agi-engine on local-town)."
+    }
   },
   "provisioning": {
     "min_key_remaining_usd": 1.0,
