@@ -733,6 +733,37 @@ def test_b4_w1b_a_failed_commit_unstages_its_paths(project, shape):
     assert "0.3" in (project / ".agi" / "nodes" / "hypothesis" / "h9.md").read_text()
 
 
+# SM residue 106 (wf_884739ac-f61): the payload verbs, adopt and create --payload
+# driven through main() -- each ONE exact-path commit (node and/or payload),
+# nothing of theirs left dirty, another post's staged file untouched.
+def test_b4_w1b_payload_verbs_adopt_and_create_payload_commit(project, tmp_path):
+    g, head = _w1b(project)
+    doc, pay = ".agi/nodes/doc/d9.md", ".agi/context/d9.md"
+    assert write.main(["create", "doc", "d9", "--parent", "goal:g1", "--payload", pay,
+                       "--set", "tags=[doc]", "--root", str(project)]) == 0
+    assert sorted(g("show", "--name-only", "--format=", "HEAD").split()) == [pay, doc]
+    (tmp_path / "p.md").write_text("from a file\n")
+    (tmp_path / "p.diff").write_text("--- a\n+++ b\n@@ -1 +1 @@\n-inline\n+patched\n")
+    for script in (f"payload {tmp_path / 'p.md'}", "payload_text inline",
+                   f"patch {tmp_path / 'p.diff'}"):
+        n = g("rev-list", "--count", "HEAD").strip()
+        assert write.main(["doc:d9", script, "--root", str(project)]) == 0, script
+        assert int(g("rev-list", "--count", "HEAD")) == int(n) + 1, script
+        assert pay in g("show", "--name-only", "--format=", "HEAD").split(), script
+        assert g("status", "--short", "--", pay, doc) == "", script
+    body = (project / doc).read_text().split("---\n", 2)[2]
+    first = next(line for line in body.split("\n") if line.strip())
+    (tmp_path / "b.diff").write_text(f"--- a\n+++ b\n@@ -2 +2 @@\n-{first}\n+{first} patched\n")
+    assert write.main(["doc:d9", f"body_patch {tmp_path / 'b.diff'}", "--root", str(project)]) == 0
+    assert g("show", "--name-only", "--format=", "HEAD").split() == [doc]
+    kid = project / ".agi" / "nodes" / "hypothesis" / "k9.md"
+    kid.write_text('---\nid: "hypothesis:k9"\ntype: hypothesis\nparents: [goal:g1]\n---\n\nkid bytes\n')
+    assert write.main(["hypothesis:k9", "adopt", "--root", str(project)]) == 0
+    assert g("show", "--name-only", "--format=", "HEAD").split() == [".agi/nodes/hypothesis/k9.md"]
+    assert g("status", "--short", "--", ".agi/nodes", ".agi/context") == ""
+    assert g("diff", "--cached", "--name-only").split() == ["other.txt"]
+
+
 # SM residue 92: `create` is a write too -- one exact-path commit of the new
 # node, another post's staged file untouched.
 def test_b4_w1b_create_commits_its_new_node(project):
