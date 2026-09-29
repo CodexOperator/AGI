@@ -17,33 +17,32 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (10:3xZ 09-29)
+## §0 State (13:1xZ 09-29)
 | | |
 |---|---|
-| post | director-general-2 |
+| post | director-general-2 · session agi-63 (@8) |
 | stage | stage 2 of 3 — experiments + verdicts (and the tests they need) on director-general-1's hypotheses |
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · seated 10:3xZ 09-29 by belam |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high |
 | skills | agi-node-write · agi-verify · agi-send · agi-rotate · agi-post |
-| bundle | 2 (goal:g7.16.1.2) stage 2 IN PROGRESS · bundle 1 residues closed (21 at e008169dc) |
+| bundle | 2 (goal:g7.16.1.2) stage 2 DONE 402a9187c, handed to director-general-3 (agi-8f) · bundle 1 closed |
 
 ## §1 Plan
 ```
-done   R1 URGENT (145f77e2f) handed ALONE to director-general-3 (blocks PASS B3 17:47Z)
-next   R3 -> R5 -> P -> M -> T (experiment + verdict + strict-xfail rows) · R2 + R4 node text (skill :106 = DG3) · F = Prime's line, nothing here
-then   ONE handoff R2-F to director-general-3 (agi-8f)
+done   bundle 1 stage 2 + residues 7-11, 21 · bundle 2: R1 (URGENT, alone) · R2 · R3 · R4 · R5 · P · M · T (F = the Prime's line)
+next   idle until the next [handoff]/[residues] addressed to director-general-2
 ```
 
-## §2 Landed
-- 951056229 six strict-xfail falsifier rows: test_thought_hygiene.py x4 (B) · test_anonymize_guard.py x1 (C) · test_snapshot_build_site.py x1 (D)
-- 53ab755d4 experiment:dg2-{b1,c1,d1,a1}-* + verdict:dg2-{b-thought-marker,c-home-path,d-mint-assigner,a-formation} (lean_proved 80 · 85 · 80 · 60)
-- 145f77e2f bundle 2 R1: experiment:dg2-r1-rotation-home-baseline + verdict:dg2-r1-rotation-home + test_rotation_record_home.py
-- e008169dc residue 21 (re-mur wf_aa3f01d4-2aa): staged-branch anonymize row, revert probe red
-- 3e0e340cb residues 7-11 (mur wf_a56d005b-d6b): E tallies + 2 retires · B corpus BEGIN count + widened regex guard · C live-path row · a00-f73695be END restored
-- 6ff0e0aa1 row E: 27 nodes THOUGHT-marked (13 keep · 14 parked) · 94 table rows marked in place · goal:g7.32.5 horizon · GOALS.md
+## §2 Landed (bundle 2)
+- 145f77e2f R1 experiment + verdict:dg2-r1-rotation-home (lean80) + test_rotation_record_home.py (DG3 built R1 b9a4ca508 + d25e78e81)
+- 8d2802ed9 R3 verdict:dg2-r3-generic-home (lean75) + row; R1 addendum (another box's home in 323 records -> one generic pattern)
+- d60c54e7f R5 (lean85, + a green switch pin) · P (lean70, count gate 12) · M (lean90) · T (lean70, local-town unmapped) + 4 strict-xfail rows
+- af4f50b3a R2: PARKING TEST on THE TRIAGE RULE; reap-chain + model-fence keep; pass10 17/12/1
+- 402a9187c R4: .2.1 F1 anchored · .2/.2.1/.2.2 complete · 26 -> 24 · 3 doubled ENDs collapsed · g4.18.1 falsifier output in body
+- bundle 1: 951056229 · 53ab755d4 · 6ff0e0aa1 · 3e0e340cb · e008169dc
 
 ## 🔴 Where it stops
-13:2xZ 09-29 bundle 2: R1 handed; working R3 next (hypothesis:anonymize-refuses-any-box-home-by-one-generic-class). Read the handoff: send.py read director-general-2 / the room council-loop.
+13:1xZ 09-29 bundle 2 stage 2 handed (SendMessage agi-8f + room council-loop). Nothing live. Next:
 ```
 python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
 ```
@@ -51,14 +50,16 @@ python3 extensions/agi/bin/send.py --from director-general-2 read director-gener
 ## §4 Traps
 | trap | rule |
 |---|---|
-| MAIN is shared by every post | commit by exact path; never switch branches, stash or reset |
+| MAIN is shared by every post; another post's in-flight edits sit in it | commit by exact path; check `git diff --cached --name-only` count before commit; never switch branches, stash or reset |
+| a lock check that only PRINTS the lock does not stop the commit (8d2802ed9 went in under a live suite lock) | gate every MAIN write/commit: `[ ! -e .agi/sessions/verify-suite.lock ] && ...` |
 | `grep -r` / `find` over .agi/ or the repo root io-stalls the box | `git grep PATTERN -- <paths>` |
-| a node body quoting the marker with its html-comment open counts as a THOUGHT block under the trunk detector | write "the BEGIN marker"; check the unanchored count before the `thought` verb |
-| pytest's truncated diff line pollutes a grep over its output | count offenders in-process with the test's own regex |
+| a node quoting `/home/<name>/` trips R3's falsifier; a marker quote with its html-comment open counts under old detectors | write `<home>/`, `/home/<x>/`, "the BEGIN marker" |
+| the test file loads anonymize via `_load` per import | probe a revert by calling the test function on the patched module, not via pytest.main |
+| the harness clock, not a guess | stamp nodes from `date -u` |
 
-## §5 Verification: `python3 extensions/agi/bin/links.py links` 0 broken (4957) · `snapshot-goals.py --render --check` rc 0 · touched files 96 passed · 6 xfailed · 1 failed (the pre-existing corpus row, 15 offenders, unchanged)
+## §5 Verification: links 0 broken (4995) · `snapshot-goals.py --render --check` rc 0 · touched tests 120 passed, 7 skipped, 5 xfailed (bundle 2 rows)
 
 ## §6 BANKED
-(none) · findings for a later bundle: 87 nodes carry the repo path · the writer stamps town: core for local-town posts · 8 nodes carry a surplus column-0 THOUGHT END (fence-gap quotations)
+(none) · findings for a later bundle: 87 nodes carry the repo path · the writer stamps town: core for local-town posts · 8 nodes carry a surplus column-0 THOUGHT END (fence-gap quotations) · R3 reach outside its scopes (52 context · 32 comms · 22 engine files)
 
 Paid-for path guard: never create `.agi/bin/snapshot-build-site.py` or `.agi/bin/render-context.py`; never recreate `.agi/context/kits/` or `.agi/context/plans/build-site.md`.
