@@ -1785,8 +1785,7 @@ def cron_log(root: Path) -> Path:
     return Path.home() / "logs" / f"grid-sync-{repo_root(root).name}.log"
 
 
-def cron_lines(root: Path, branch: str, mins: int, log: Path,
-               publish_engine: bool = False) -> list[str]:
+def cron_lines(root: Path, branch: str, mins: int, log: Path) -> list[str]:
     """The cadence entries. The `cd` is load-bearing: cron runs from $HOME
     and find_project_root walks up from cwd — a cd-less line fails silently.
 
@@ -1800,30 +1799,9 @@ def cron_lines(root: Path, branch: str, mins: int, log: Path,
 
     Two cadences always: snapshot+grid-push every `mins`, branch push hourly.
 
-    A third, **only** with `publish_engine` (goal:g6.5 step 2): rebuild the
-    engine repo from the graph and commit it. Opt-in and off by default on
-    purpose — G6.5's own sequencing says a cron that writes the engine before
-    the version layer is trusted is a data-loss defect waiting to happen, and
-    `cron install` runs on projects where it is not yet trusted. Deciding that
-    for a project is the project's call, not the installer's.
-
-    It runs at :37, after the :07 branch push, so a publish is never racing the
-    push of the graph commit it cites.
-
-    A **fourth**, also gated on `publish_engine`: push the engine repo at :47,
-    ten minutes after the publish that writes it. `publish-engine.sh` commits
-    the engine and deliberately does not push — "pushing is the hourly cron's
-    job" — but for the engine repo that cron did not exist, so its commits
-    accumulated locally and the remote went 3 days and 25 commits stale before
-    anyone noticed. A design that hands a job to a cron has to install that
-    cron; the two halves shipped apart and the gap was invisible from both
-    sides.
-
-    It pushes `HEAD`, not a branch captured at install time. That is the
-    lesson of the `iter24-extend-300hop` incident from the other direction:
-    work accumulated on a feature branch while a cron pushed `master` and
-    published nothing. Pushing whatever is checked out cannot silently push
-    the wrong branch — at worst it creates a remote branch, which is visible.
+    (A third and fourth, gated on `--publish-engine`, ran `publish-engine.sh` at
+    :37 and pushed the engine repo at :47 -- retired with that script, goal:g11's
+    two-repo carry, by goal:g7.16.1.4.1.1.)
     """
     script = Path(__file__).resolve()
     repo = repo_root(root)
@@ -1831,14 +1809,7 @@ def cron_lines(root: Path, branch: str, mins: int, log: Path,
             f"python3 {script} commit --all --prefix 'cron: ' >> {log} 2>&1 && "
             f"git push -q origin '{PUSH_SPEC}' >> {log} 2>&1")
     d1 = f"7 * * * * git -C {repo} push -q origin {branch} >> {log} 2>&1"
-    lines = [snap, d1]
-    if publish_engine:
-        publisher = script.parent / "publish-engine.sh"
-        engine_root = script.parents[3]
-        lines.append(f"37 * * * * cd {repo} && bash {publisher} >> {log} 2>&1")
-        lines.append(
-            f"47 * * * * git -C {engine_root} push -q origin HEAD >> {log} 2>&1")
-    return lines
+    return [snap, d1]
 
 
 def read_crontab() -> list[str]:
@@ -1854,8 +1825,7 @@ def write_crontab(lines: list[str]) -> None:
         sys.exit(f"ERR: crontab install failed: {res.stderr.strip()}")
 
 
-def cmd_cron(root: Path, action: str, mins: int,
-             publish_engine: bool = False) -> None:
+def cmd_cron(root: Path, action: str, mins: int) -> None:
     ensure_repo(root)
     log = cron_log(root)
     marker = str(log)  # unique per project; filters our entries only
@@ -1874,10 +1844,9 @@ def cmd_cron(root: Path, action: str, mins: int,
     if "origin" not in git(root, "remote").splitlines():
         sys.exit("ERR: no origin remote — `grid.py sync <remote-url>` first")
     log.parent.mkdir(parents=True, exist_ok=True)
-    new = cron_lines(root, branch, mins, log, publish_engine)
+    new = cron_lines(root, branch, mins, log)
     write_crontab(keep + new)
-    extra = ", engine published hourly" if publish_engine else ""
-    print(f"grid cron: installed (snapshot every {mins}m, {branch} hourly{extra}):")
+    print(f"grid cron: installed (snapshot every {mins}m, {branch} hourly):")
     print("\n".join(new))
 
 
@@ -1963,11 +1932,6 @@ def main() -> None:
     cr = sub.add_parser("cron")
     cr.add_argument("action", choices=["install", "show", "remove"])
     cr.add_argument("--snapshot-mins", type=int, default=5)
-    cr.add_argument("--publish-engine", action="store_true",
-                    help="goal:g6.5 step 2 — also install an hourly entry that "
-                         "rebuilds the engine repo from the graph and commits "
-                         "it. Off by default: only a project whose version "
-                         "layer is trusted should enable this.")
     args = ap.parse_args()
     root = find_project_root()
     apply_storage_trunk(root)
@@ -2007,7 +1971,7 @@ def main() -> None:
     elif args.cmd == "push-changed":
         cmd_push_changed(root)
     elif args.cmd == "cron":
-        cmd_cron(root, args.action, args.snapshot_mins, args.publish_engine)
+        cmd_cron(root, args.action, args.snapshot_mins)
 
 
 if __name__ == "__main__":
