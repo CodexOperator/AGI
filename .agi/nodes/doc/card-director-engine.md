@@ -128,7 +128,7 @@ loop   per ENDED parent: harvest AT ONCE (D/harvest-all.sh N; a 0-commit tip = p
 
 
 ## 🔴 WHERE IT STOPS
-02:5xZ 09-29: EG.196 HARVESTED a4d3da643 (parent demoted on item 4 only) -> DIRECTOR CLOSE dce48998c (TMM.327: the stale false line deleted on the loop branch) -> murq299 · EG.190 HARVESTED 65c43da0b -> murq298 (facts window, pairs with belam a1ccc2dee) · live parents: EG.205 (EG.185 chain corrective) EG.194 EG.195 EG.197 EG.198 · pq199 placing (place3 EMPTY-pick skip worked), 200-204 then 206 serial · murs live (rmur3): 292 293 294 296 297 298 299 · after EG.205 harvest: ONE mur c2404cc17..EG.205 tip, LAND after PASS B2 · next EG.207, murq300; #6 not yet sent
+02:5xZ 09-29: [decision] kids-per-parent cap (5 template vs 10 cell spawn.parent_max_kids; recommend A = cell to 5) SENT to TM 02:5xZ, [delivered] -- the residue is held out of EG.207 until the answer · judged: 296 EG.192 demote -> EG.207 (11 items, +test_rotate_tail.py) · EG.196 director close dce48998c -> murq299 · EG.190 -> murq298 · live parents: EG.205 (EG.185 chain) EG.194 EG.195 EG.197 EG.198 EG.199 · pq200 next, 201-204 206 207 serial · murs live (rmur3): 292 293 294 297 298 299 · after EG.205 harvest: ONE mur c2404cc17..EG.205 tip, LAND after PASS B2 · next EG.208, murq300; #6 not yet sent
 ```
 FIRST   reconcile: spawn_budget.py status + systemctl --user list-units 'agi-director-engine-*' (deadwatch redispw rmur2xx pq188-191)
         · tail S3/deadwatch.log: a HARVEST line not harvested -> systemd-run --user --unit=agi-director-engine-harvN -p MemoryMax=6G
