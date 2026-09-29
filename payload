@@ -255,9 +255,8 @@ def _upsert_node_to_db(node_id: str, fm: dict, body: str, origin: str) -> None:
 # snapshots `node.md` once per version, so every grid commit carries the
 # thought current at that time and `grid.py diff` reads as a reasoning
 # changelog.
-THOUGHT_BEGIN = ("<!-- THOUGHT:BEGIN — authored, not derived; carried across "
-                 "regenerating scans. The reasoning behind THIS version. -->")
-THOUGHT_END = "<!-- THOUGHT:END -->"
+THOUGHT_BEGIN = node_writer.THOUGHT_BEGIN   # the ONE spelling lives in node_writer
+THOUGHT_END = node_writer.THOUGHT_END
 
 
 def extract_thought(body: str | None) -> str | None:
