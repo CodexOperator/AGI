@@ -63,16 +63,23 @@ OK = {"type": "tool_execution_start", "toolName": "bash", "toolCallId": "1",
 OK_END = {"type": "tool_execution_end", "toolName": "bash",
           "toolCallId": "1", "isError": False,
           "result": {"content": [{"type": "text", "text": "a\n"}]}}
+# A COMPLETED, non-empty turn: what PROGRESS looks like on the wire (pi ends
+# every turn with a turn_end), and so what zeroes the consecutive count.
+GOOD = {"type": "turn_end", "toolResults": [],
+        "message": {"role": "assistant", "stopReason": "stop"}}
 
 
-def _project(tmp_path: Path, max_retries: int, backoff: float) -> Path:
+def _project(tmp_path: Path, max_retries: int, backoff: float,
+             **cells) -> Path:
     """A .agi/ project the wrapper's OWN config loader walks up to, carrying
-    only the two cells under test."""
+    only the cells under test. Extra kwargs are the two backoff cells;
+    omitting them IS the missing-cell case."""
     root = tmp_path / "proj"
     (root / ".agi").mkdir(parents=True)
     (root / ".agi" / "config.json").write_text(json.dumps(
-        {"values": {"pi_retry": {"empty_response_max_retries": max_retries,
-                                 "empty_response_backoff_s": backoff}}}),
+        {"values": {"pi_retry": dict(
+            {"empty_response_max_retries": max_retries,
+             "empty_response_backoff_s": backoff}, **cells)}}),
         encoding="utf-8")
     return root
 
@@ -274,6 +281,64 @@ def _cancel(root: Path, stub: Path, marker: str):
             proc.wait()
 
 
+def _waits(text: str) -> list[float]:
+    """The sleeps the wrapper RECORDED in its own log, in order."""
+    return [float(l.rsplit(" in ", 1)[1].rstrip("s")) for l in text.splitlines()
+            if l.startswith("retry: empty provider response")]
+
+
+def test_more_total_empties_than_the_bound_still_finishes(tmp_path):
+    """RED on the base: the bound was PER RUN, so a third empty -- never more
+    than one IN A ROW, each after a completed turn -- killed a progressing
+    round. A completed turn zeroes the count: the run FINISHES.
+
+    The TOTAL ceiling is set explicitly to 12, well above this run's 4
+    attempts, because the finishing guarantee FALSIFIER 1 claims is now
+    BOUNDED by it (EG.187): left at the derived 4 x (max_retries + 1) = 8 the
+    fixture would sit under the ceiling by luck, not by construction."""
+    root = _project(tmp_path, 1, 0.0, empty_response_max_attempts_total=12)
+    stub, counter = _stub_pi(tmp_path, [[OK, OK_END, GOOD, EMPTY]] * 3 +
+                                        [[OK, OK_END, GOOD]])
+    text, runs = _run(root, stub, counter, root / "trajectory.jsonl")
+    assert len(runs) == 4, f"3 empties > max_retries=1, never 2 in a row: {runs}"
+    assert text.count("retry: empty provider response 1/1") == 3, \
+        f"every empty of the run was retried and counted: {text!r}"
+    for ordinal in (2, 3, 4):
+        assert f"(attempt {ordinal}/12)" in text, \
+            f"the retry line names the TOTAL attempt ordinal: {text!r}"
+    assert "total empty-response attempts" not in text, \
+        f"the total ceiling never cut this run: {text!r}"
+
+
+def test_the_consecutive_bound_is_real(tmp_path):
+    """Not 'unlimited while progressing': an always-empty provider still costs
+    1 + max_retries attempts, then the round ends."""
+    root = _project(tmp_path, 2, 0.0)
+    stub, counter = _stub_pi(tmp_path, [[EMPTY]])
+    text, runs = _run(root, stub, counter, root / "trajectory.jsonl")
+    assert runs == ["run"] * 3, f"2 CONSECUTIVE retries, then the end: {runs}"
+    assert text.count("retry: empty provider response") == 2, text
+
+
+def test_the_growing_backoff_is_min_base_x_factor_pow_k_minus_1_capped(tmp_path):
+    """RED on the base: every retry waited the flat base cell. The wait before
+    retry k is min(base x factor^(k-1), cap) -- cells, one loader."""
+    root = _project(tmp_path, 3, 0.01, empty_response_backoff_factor=2.0,
+                    empty_response_backoff_cap_s=0.03)
+    stub, counter = _stub_pi(tmp_path, [[EMPTY]])
+    text, _ = _run(root, stub, counter, root / "trajectory.jsonl")
+    assert _waits(text) == [0.01, 0.02, 0.03], f"growing, then capped: {_waits(text)}"
+
+
+def test_a_missing_backoff_cell_falls_back_to_todays_flat_wait(tmp_path):
+    """A config written before the two cells exist waits exactly what it
+    waited before: factor 1.0, cap = base, so the default costs no waiting."""
+    root = _project(tmp_path, 2, 0.01)
+    stub, counter = _stub_pi(tmp_path, [[EMPTY]])
+    text, _ = _run(root, stub, counter, root / "trajectory.jsonl")
+    assert _waits(text) == [0.01, 0.01], f"no cells, no change: {_waits(text)}"
+
+
 def test_cancel_inside_the_backoff_dies_and_does_not_respawn(tmp_path):
     """RED on the base: the SIGTERM forwarder outlived the child, so a cancel
     landing in main's backoff was swallowed and the provider was RESPAWNED."""
@@ -298,3 +363,51 @@ def test_cancel_while_pi_runs_is_still_forwarded(tmp_path):
     rc, secs = _cancel(root, sleeper, "{}")
     assert rc is not None and secs < 2.0, \
         f"a live child's cancel is forwarded, not ignored: rc={rc} {secs:.1f}s"
+
+
+def _run_bounded(root: Path, stub: Path, timeout: float):
+    """(rc|None, runs, log) with a HARD timeout: rc None means the wrapper never
+    ended on its own, which is the defect F4 is about. Never an unbounded run."""
+    log = root / "output.log"
+    with log.open("wb") as logf:
+        try:
+            rc = subprocess.run(
+                [PY, WRAPPER, "--wrapper", str(stub),
+                 str(root / "trajectory.jsonl"), "--", "--mode", "json", "hello"],
+                cwd=str(root), stdout=logf, stderr=subprocess.STDOUT,
+                check=False, timeout=timeout).returncode
+        except subprocess.TimeoutExpired:
+            rc = None
+    counter = root.parent / "runs.txt"
+    runs = counter.read_text().splitlines() if counter.exists() else []
+    return rc, runs, log.read_text()
+
+
+def test_a_total_attempt_ceiling_ends_a_provider_that_always_progresses(
+        tmp_path):
+    """F4 (EG.187). RED on the cut a2fa54dce, where the run HANGS: main() zeroes
+    `empties` on ANY attempt that made progress, so a stub that completes a
+    turn and THEN ends empty, on every attempt, never spends the consecutive
+    bound -- the parent's GATE probe measured 606 attempts in 15 s and was
+    killed. The total-attempt ceiling is what ends such a run."""
+    root = _project(tmp_path, 1, 0.0, empty_response_max_attempts_total=5)
+    stub, _ = _stub_pi(tmp_path, [[OK, OK_END, GOOD, EMPTY]])
+    rc, runs, text = _run_bounded(root, stub, 20)
+    assert rc is not None, \
+        f"the run NEVER ends on its own: {len(runs)} attempts in 20 s"
+    assert len(runs) == 5, \
+        f"values.pi_retry.empty_response_max_attempts_total=5, got {len(runs)}"
+    assert "total empty-response attempts 5/5" in text, \
+        f"the ceiling names itself in the round log: {text!r}"
+    assert rc == 1, f"the round's own code is returned, got {rc}"
+
+
+def test_the_total_ceiling_default_is_derived_from_the_consecutive_bound(
+        tmp_path):
+    """Absent, the total ceiling is DERIVED (4 x (max_retries + 1)), never a
+    new magic number, and it is a cell: max_retries=2 -> 12 attempts."""
+    root = _project(tmp_path, 2, 0.0)
+    stub, _ = _stub_pi(tmp_path, [[OK, OK_END, GOOD, EMPTY]])
+    rc, runs, _ = _run_bounded(root, stub, 60)
+    assert rc is not None, f"never ends without the ceiling: {len(runs)}"
+    assert len(runs) == 12, f"4 x (2 + 1) attempts, got {len(runs)}"
