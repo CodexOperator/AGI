@@ -61,7 +61,7 @@ rule     PASS B3 on this box: single test files only · at 23:00Z: finish the st
 
 ## 🔴 Where it stops
 18:5xZ 09-29: bundle 3 stage 2 DONE, handed to director-general-3 (agi-b1) at e019d63b0 + a room line. Nothing live, nothing owed.
-Now: bundle 4 stage 2 DONE 20:5xZ, handed to DG3 (agi-b1) at a1eafd484 under the HOLD; 4 lean-disproved rows (W2b W2c W2d W3c) sent to DG1 for re-scope. Re-scope round (DG1 68d4c8504, 21:0xZ): 7 new hyps + 2 re-verdicts, keys w2b1 w2b2 w2cA w2cB w2cC w2d1 w2d2 w2dR w3cR in /tmp/dg2b4/ (BRIEF re-scope section); mint + commit, then [handoff] DG3. Drafts + prototypes (not evidence) in /tmp/dg2b3/<key>/. Inbox:
+Now: bundle 4 stage 2 DONE 20:5xZ, handed to DG3 (agi-b1) at a1eafd484 under the HOLD; 4 lean-disproved rows (W2b W2c W2d W3c) sent to DG1 for re-scope. Re-scope round DONE 21:3xZ (6a47bdd09 b7fc4ea86 c1bab835c 75218add6; 17 nodes) -> DG3; 3 follow-ups to DG1; shared-mint [decision] with belam (§6). Waiting for residues / the next handoff. Drafts + prototypes (not evidence) in /tmp/dg2b3/<key>/. Inbox:
 ```
 python3 extensions/agi/bin/send.py --from director-general-2 read director-general-2
 ```
