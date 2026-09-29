@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-sb-status-resolves-from-home-not-from-stub-depth
 next_edges: []
 confidence: 0.9
-edited_by: a00-569fe8ad
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-b0953a73-9da341
 loop: hypothesis:l4-sb-status-resolves-from-home-not-from-stub-depth@s2
@@ -61,7 +61,7 @@ executable). Also extended the manual substitution in
 ## Evidence
 
 **Resolved argv[0] for the depth-3 stub (fixed fragment):**
-`/home/ubuntu/bin/sb-status` (= `os.path.join(str(Path.home()), "bin",
+`<home>/bin/sb-status` (= `os.path.join(str(Path.home()), "bin",
 "sb-status")`) — an existing executable file.
 
 **Mutation, both directions (acceptance):**
@@ -69,7 +69,7 @@ executable). Also extended the manual substitution in
    ran the file → RED:
    ```
    AssertionError: sb-status: argv[0] should resolve from home to
-   /home/ubuntu/bin/sb-status (stub is
+   <home>/bin/sb-status (stub is
    /tmp/pytest-of-ubuntu/pytest-1033/.../a/b/stub, THREE levels deep),
    got /tmp/.../a/b/stub/../../bin/sb-status
    ```
@@ -89,7 +89,7 @@ PARENT REVIEW a00-569fe8ad, L4.178. ACCEPT the artifact, KEEP the verdict proved
 
 (1) WHAT THE INSTRUCTION SAID — hypothesis:l4-sb-status-resolves-from-home-not-from-stub-depth: CLAIM commands.py `_substitute` gains a `<home>` placeholder and the fragment names `<home>/bin/sb-status`; the resolves test asserts the path for a stub at another depth. FALSIFIER: a configured stub at depth 3 resolving sb-status to a missing path. FILE SCOPE: commands.py (_substitute only) + the fragment + test_commands.py.
 
-(2) WHAT THE MACHINE ACTUALLY DOES — re-read and re-ran, not read from the kid report: commands.py `_substitute` now ends `.replace("<home>", str(Path.home()))` after the untouched `<root>`/`<engine>`/`<stub>` lines; the fragment sb-status argv[0] is `<home>/bin/sb-status` with prose updated; the new `test_real_fragment_sb_status_resolves_from_home_not_stub_depth` pins `locations.streamer_stub` to `tmp_path/a/b/stub` (three levels deep) and asserts argv[0] == `~/bin/sb-status`, a file and executable, plus the both-halves wrapper check. My own mutation, independent of the kid: reverting the fragment argv to `<stub>/../../bin/sb-status` turned exactly that one test RED with `assert .../a/b/stub/../../bin/sb-status == /home/ubuntu/bin/sb-status` (1 failed, 33 passed), and restoring left the file byte-identical (md5 1dda48060d7c83f83b6ee0f9b5316796). `python3 -m pytest extensions/agi/tests/test_commands.py -q` = 34 passed.
+(2) WHAT THE MACHINE ACTUALLY DOES — re-read and re-ran, not read from the kid report: commands.py `_substitute` now ends `.replace("<home>", str(Path.home()))` after the untouched `<root>`/`<engine>`/`<stub>` lines; the fragment sb-status argv[0] is `<home>/bin/sb-status` with prose updated; the new `test_real_fragment_sb_status_resolves_from_home_not_stub_depth` pins `locations.streamer_stub` to `tmp_path/a/b/stub` (three levels deep) and asserts argv[0] == `~/bin/sb-status`, a file and executable, plus the both-halves wrapper check. My own mutation, independent of the kid: reverting the fragment argv to `<stub>/../../bin/sb-status` turned exactly that one test RED with `assert .../a/b/stub/../../bin/sb-status == <home>/bin/sb-status` (1 failed, 33 passed), and restoring left the file byte-identical (md5 1dda48060d7c83f83b6ee0f9b5316796). `python3 -m pytest extensions/agi/tests/test_commands.py -q` = 34 passed.
 
 (3) THE NEAR MISS — a reader could call this proved on the green suite alone and never check that the new test fails on the OLD spelling; a test that passes in both directions certifies nothing. I made that check myself. Second near miss: `proved` here survives because the claim LETTER is exactly what landed (placeholder added, fragment respelled, depth test added) — unlike L4.165, whose claim asked the fragment to name both argv and could not be satisfied by one flat argv[0]. The two-levels-up residual from L4.165 is now closed rather than re-labelled.
 
