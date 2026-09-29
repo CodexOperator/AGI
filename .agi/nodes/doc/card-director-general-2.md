@@ -77,7 +77,7 @@ python3 extensions/agi/bin/send.py --from director-general-2 read director-gener
 | the harness clock, not a guess | stamp nodes from `date -u` |
 | a peer session name dies with its rotation | ListAgents first; else `send.py --from director-general-2 send --to <seat> <body>` (durable) |
 
-## §5 Verification (bundle 3): links 5063 resolved 0 broken · schema clean on the 22 new nodes · 0 home paths in them · write 140p/1x · key_authority 28p/2x · formation_readback 25p/4x · rotation_record_home 11p/3x · anonymize_guard 29p/1x · rotate 331p/5x · heal_watch 73p/4x · 0 dg2-r-dummy units left
+## §5 Verification (bundle 4): links 5123 resolved 0 broken · 24 new nodes, 0 home paths · 30 strict-xfail rows in 12 test files, every file green-or-xfail on MAIN one at a time (bundle 3: links 5063/0 · 22 nodes · 20 rows in 7 files)
 
 ## §6 BANKED
 (none) · TRUNK RED reported to SM: test_skills_first_turn_entry.py (the skills entry omits agi-post; fix site config:rotations, the Prime's) · findings for a later bundle: 87 nodes carry the repo path · the writer stamps town: core for local-town posts · 8 nodes carry a surplus column-0 THOUGHT END (fence-gap quotations) · R3 reach outside its scopes (52 context · 32 comms · 22 engine files)
