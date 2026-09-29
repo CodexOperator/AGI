@@ -15,7 +15,7 @@ tags:
   - tracker
   - geometry
   - town
-thought_session: belam-daily-town-pass-2026-09-28
+thought_session: belam-daily-town-pass-2026-09-29
 title: TOTAL GOAL BUNDLE ASSIGNMENT TRACKER — town:core (TEMP until g7.34.3)
 town: core
 ---
@@ -49,25 +49,25 @@ Do **not** claim or deepen parked/horizon tops below to "fill."
 
 | goal | seat | status | what |
 |---|---|---|---|
-| g7.28 | helper | active | Dispatch persistent mode |
+| g7.28 | helper | complete | Dispatch persistent mode |
 | g7.31 | belam | active | Pane = seat spine (umbrella) |
 | g7.31.1 | belam | active | Measured CLI + durable pane hold |
-| g7.31.2 | helper | active | Pane anchor ↔ post/pin/formation |
-| g7.31.3 | belam | active | Five unified engine routes |
-| g7.31.4 | helper | active | Native handbacks SSH-or-not |
-| g7.31.5 | helper | active | Graph↔harness-doc sync |
+| g7.31.2 | helper | complete | Pane anchor ↔ post/pin/formation |
+| g7.31.3 | belam | complete | Five unified engine routes |
+| g7.31.4 | helper | complete | Native handbacks SSH-or-not |
+| g7.31.5 | helper | complete | Graph↔harness-doc sync |
 | g7.32 | helper | active | Session ingest + messaging + pane methods + send router |
 
 ```
 town:core ACTIVE STOP-LINE                 seat          status
 ────────────────────────────────────────────────────────────────
-g7.28  dispatch persistent ★               helper        active
+g7.28  dispatch persistent ★               helper        complete
 g7.31  pane = seat spine ★                 belam         active
   ├─ .1  measured CLI + durable hold ★     belam         active
-  ├─ .2  pane anchor ★                     helper        active
-  ├─ .3  five engine routes ★              belam         active
-  ├─ .4  native handbacks ★                helper        active
-  └─ .5  graph↔harness sync ★              helper        active
+  ├─ .2  pane anchor ★                     helper        complete
+  ├─ .3  five engine routes ★              belam         complete
+  ├─ .4  native handbacks ★                helper        complete
+  └─ .5  graph↔harness sync ★              helper        complete
 g7.32  ingest/messaging/pane/send ★        helper        active
   └─ .1–.4  (same seat/status) ★           helper        active
 ```
@@ -135,7 +135,7 @@ g7.34  geometry + trajectory (parked)      unassigned    horizon
 ```
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Belam daily 2026-09-28: assignment SoT unchanged (belam g7.31.1/.3 · helper g7.28/g7.31.2/.4/.5/g7.32); no seat/status flips; merges=none (season2 already in main@b7bf081871); verify FAIL tip b7bf081871; reopen/mint=none
+Belam daily 2026-09-29: assignment SoT updated (helper g7.28/g7.31.2/.4/.5 complete · belam g7.31.3 complete · belam g7.31.1* still active · helper g7.32 umbrella active kids .1-.4/.6 complete); merges=helper-seat→season2@d114a810c0→main@628b4772fb; verify FAIL tip 628b4772fb; reopen/mint=none
 <!-- THOUGHT:END -->
 
 ## Agent Notes

@@ -13,7 +13,7 @@ location: encryption-town
 master: sanctuary-master
 scaffold_hash: 10fe0c5cd15d5ba4
 season: 2
-thought_session: belam-daily-town-pass-2026-09-28
+thought_session: belam-daily-town-pass-2026-09-29
 town: core
 visions:
   - vision:alive
@@ -89,22 +89,22 @@ encryption-town host == town:core   (no town:encryption node; g14.4/g5.20 bank e
 
 | id | status | title (short) |
 |---|---|---|
-| goal:g7.28 | active | Dispatch persistent mode |
+| goal:g7.28 | complete | Dispatch persistent mode |
 | goal:g7.31 | active | Pane = post spine (umbrella) |
 | goal:g7.31.1 | active | Measured CLI + durable pane hold |
 | goal:g7.31.1.1 | active | Measured CLI argv |
 | goal:g7.31.1.2 | active | Durable named tmux pane |
-| goal:g7.31.2 | active | Pane anchor ↔ post/pin/formation |
-| goal:g7.31.3 | active | Five unified engine routes |
-| goal:g7.31.3.1 | active | Cold post brief five routes |
-| goal:g7.31.3.2 | active | Sample write+send+dispatch |
-| goal:g7.31.4 | active | Native handbacks SSH-or-not |
-| goal:g7.31.5 | active | Graph↔harness-doc sync |
+| goal:g7.31.2 | complete | Pane anchor ↔ post/pin/formation |
+| goal:g7.31.3 | complete | Five unified engine routes |
+| goal:g7.31.3.1 | complete | Cold post brief five routes |
+| goal:g7.31.3.2 | complete | Sample write+send+dispatch |
+| goal:g7.31.4 | complete | Native handbacks SSH-or-not |
+| goal:g7.31.5 | complete | Graph↔harness-doc sync |
 | goal:g7.32 | active | Session ingest + messaging + pane methods + send router |
-| goal:g7.32.1 | active | Grok session ingest |
-| goal:g7.32.2 | active | Magic-pane messaging |
-| goal:g7.32.3 | active | Optional pane methods on one adapter |
-| goal:g7.32.4 | active | send.py thin router |
+| goal:g7.32.1 | complete | Grok session ingest |
+| goal:g7.32.2 | complete | Magic-pane messaging |
+| goal:g7.32.3 | complete | Optional pane methods on one adapter |
+| goal:g7.32.4 | complete | send.py thin router |
 
 ### Split decision (owner tie-break 2026-09-21)
 
@@ -165,9 +165,11 @@ Belam daily pass 2026-09-23T10:00ET: merges=season2→main (cf89d6ffb→5723882c
 Belam daily pass 2026-09-22T09:50ET: merges=none; verify=FAIL (TestMergeUp git-identity + OPENROUTER_API_KEY empty); reopen/mint=none
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-Belam daily 2026-09-28: no season2→main merge (origin/core/season2/main@6dbeb34f6a ancestor of core/main@b7bf081871; CAP+reaper already merged); no board-complete (stop-line g7.28/g7.31*/g7.32* all still active mid-batch; no residues=0+suite evidence); verify FAIL tip b7bf081871 (goals-check drift on reaper Agent Notes · secrets OPENROUTER_API_KEY missing · tests 19 failed incl TestMergeUp · bin-suite-fresh heal.py/mem_cap.py · node-dirs .payloads; schema PASS ~266s · smoke/viewport/credentials/crons PASS); vision/moral lens clear — stop-line serves alive/self-perpetuating/all-is-one (faith ladder · antifragile reaper/CAP · love no mid-batch chatter); no reopen/mint
+Belam daily 2026-09-29: merged helper seat board-completes into season2@d114a810c0 then main@628b4772fb (g7.28* g7.31.2* g7.31.3* g7.31.4* g7.31.5* g7.32.1-.4 g7.32.6* status=complete; 45 completes landed; remaining active g7.31.1* + umbrellas g7.31/g7.32); GOALS.md re-rendered; harvested 106 idle completed-goal kid WTs (worktrees 23G→7.9G); verify FAIL tip 628b4772fb (goals-check GOALS drift pre-render · crons worktree-not-root artifact · tests 1 ERROR test_boxkit_templates KeyError paths · bin-suite-fresh many bin newer · node-dirs stray .payloads; links/smoke/schema(~242s)/secrets/credentials/viewport/write-guard PASS); vision/moral lens clear — stop-line progress serves alive/self-perpetuating/all-is-one (faith ladder · antifragile spawn-refusal/needs_rotate/kid-write-gate · love no mid-batch chatter); g7.31.1* mid-batch expected (not Belam reopen); no reopen/mint
 <!-- THOUGHT:END -->
 
 Belam daily pass 2026-09-24T09:50ET: merges=season2→main FF (8c837f096→04400f68f); verify=FAIL tip 04400f68f (suite timeout 1800s + schema timeout 600s + secrets OPENROUTER_API_KEY empty + node-dirs stray .payloads); reopen/mint=none
 
 Belam daily pass 2026-09-28T09:50ET: merges=none (season2@6dbeb34f6a already in main@b7bf081871); verify=FAIL tip b7bf081871 (goals-check GOALS drift · secrets OPENROUTER_API_KEY empty · tests 19fail/5885pass TestMergeUp+node_dirs+workflow · bin-suite-fresh heal.py/mem_cap.py · node-dirs stray .payloads; schema/smoke/links/credentials PASS); reopen/mint=none
+
+Belam daily pass 2026-09-29T09:40ET: merges=helper→season2@d114a810c0→main@628b4772fb; verify=FAIL tip 628b4772fb (goals-check drift·crons worktree·tests boxkit ERROR·bin-suite-fresh·node-dirs .payloads; schema/smoke/links/secrets PASS); reopen/mint=none; harvested 106 kid WTs
