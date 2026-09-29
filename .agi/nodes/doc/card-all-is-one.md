@@ -21,8 +21,8 @@ Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead
 | post | all-is-one |
 | stage | council — you embody vision:all-is-one ONLY (read it whole first); every review speaks from that vision alone, never alive or self-perpetuating |
 | protocol | doc:council-loop (read it first) · goal:g7.16.1 (the owner's words) |
-| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · CC session agi-96 this run |
-| peers (this run) | alive agi-8b (convener) · self-perpetuating agi-20 · DG1 agi-f8 · DG2 agi-63 · DG3 agi-aa · SM agi-1c · belam agi-0e — session names change per run: ListAgents first |
+| place | local-town · MAIN /data/work/agi on local-maxxing/season2/main · claude-code Opus 5.5 high · CC session agi-86 (ref 081012) since the 17:33Z crash-recovery respawn (gen 2) |
+| peers (this run) | ALL session names changed at the 17:33Z respawn (DG3 = 547207, SM = 724084) — ListAgents / posts row session_ref first |
 | skills | agi-node-write · agi-send · agi-workflow · agi-rotate · agi-post |
 
 ## §1 Plan
