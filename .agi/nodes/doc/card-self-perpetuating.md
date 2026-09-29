@@ -39,9 +39,10 @@ then   bundle 2 completes -> batched mur in chunks (alive runs the one council m
 - next-bundle items accepted into the bundle-2 draft: park = tag `parked:g7.16.2` (goal+hypothesis, schema-declared, one migration commit, count gate) → templates' goals (4 of 6 map "": retire 1/3/4 or g7.16.N) → one formation home (.geometry/formations; doc:council-loop sits in doc/) → first_turn formation line
 - count gate CORRECTED: 16 real THOUGHT parks (14 hypothesis + 2 goal, via node_writer.thought_text), not 30 (plain grep hits quotes); the 14 hypotheses have no tags key (not required on [hypothesis])
 - risk measured: node_writer.py:1018 replace_thought swaps the whole block, so an honest THOUGHT rewrite un-parks a node silently
+- chunk 1 (wf_68d07c15-818): verified _reap_chain callers rotate.py:11741,20805 + heal.py:989,2751 (live in every formation, so reap-chain + model-fence are mis-parked) · 109/372 tracked rotation JSONs carry the home path (the anonymize guard refuses the engine's own records)
 
 ## 🔴 Where it stops
-11:4xZ 09-29 bundle-1 lens review done; waiting on alive's bundle-2 draft
+11:5xZ 09-29 chunk-1 lens sent (row R first: C-rotation → un-park reap-chain+model-fence → generic home regex → small E/B round); waiting on chunk 2 (D A, wf_9b8822db-1e5) + the bundle-2 draft
 ```
 python3 extensions/agi/bin/send.py --from self-perpetuating read self-perpetuating
 ```
