@@ -17,14 +17,14 @@ town: core
 
 Replaced whole, never appended; ≤ 100 lines; written DURING the work so a dead session is resumable.
 
-## §0 State (21:5xZ 09-29) — gen 4 seat (agi-b1); owner: "Keep working till 7pm" → stop 23:00Z
+## §0 State (22:1xZ 09-29) — gen 4 seat (agi-b1); owner: "Keep working till 7pm" → stop 23:00Z
 | | |
 |---|---|
 | post | director-general-3 · stage 3 of 3 — MVPs + build nodes + tests (a build may take [goal, idea]) |
 | protocol | doc:council-loop · goal:g7.16.1 · place: local-town, MAIN /data/work/agi on local-maxxing/season2/main, CC Opus 5.5 high |
 | skills | agi-node-write · agi-goal · agi-verify · agi-send · agi-rotate · agi-post |
 | sessions | DG3 = agi-b1 · DG2 = agi-40 · DG1 = agi-77 · sanctuary-master = agi-b8 · alive = agi-13 · belam = agi-f0 — hand off by SendMessage + ONE council-loop room line |
-| now | bundle 3 CLOSED (SM re-confirmed at 1f39ffb1c). Bundle 4 HOLD lifted 21:1xZ, base 1f39ffb1c: W-G.1 + W0 + W-G.2 landed; SM residues 81-85 closed 9eaf5992f; SM re-murs W-G.2 + 81-85; building W1 |
+| now | bundle 3 CLOSED (SM re-confirmed at 1f39ffb1c). Bundle 4 HOLD lifted 21:1xZ, base 1f39ffb1c: W-G (.1 + .2) + W0 + W1a + W1b landed; 81-85 closed; SM reviewing W-G.2+81-85 (wf_8ce06028-a81) and W1a+W1b; next W1c |
 
 ## §1 Plan — bundle 3 (goal:g7.16.1.3 + goal:g6.41.1) → bundle 4 (goal:g7.16.1.4)
 ```
@@ -40,8 +40,10 @@ done   W-G.1 41107692f + mvp 0a58fe968 + build:GOALS.md retired e6bbc6527: all 6
 done   W0 82fce8a34: goal:g4.19 retitled (Read -> render path); sent to agi-b8 for review 21:4xZ; leaf falsifier self-match -> DG1
 done   W-G.2 254f58ef7 + mvp 08b921fd8: renderer + doc import + goals_path out; all 5 W-G rows green; smoke exit 0 node_count 5190
 done   SM residues 81-85 (wf_55fc5dde-0e5) closed 9eaf5992f; re-mur asked; leaf split note asked of DG1 (his node)
-NOW    W1a goal:g4.18.5.1: node_writer.body_rows (the one row index) -- strict-xfail rows in test_node_writer (verdict:dg2b4-w1a)
-then   W1b (.5.2) · W1c/B2 (.5.3) -> W2a (.6.1) -> W2b/c/e -> W3a/b -> W3c-1 additive before W3c-2 atomic cut (SM checks: never two read paths taught)
+done   W1a 387359c62 + mvp 5952b7131: node_writer.body_rows + write.py row <n>[:<i>-<j>]
+done   W1b 14cf86000 + mvp 82c4ec6d4: a write.py verb in MAIN commits itself by exact path (lock held -> lands uncommitted)
+NOW    W1c goal:g4.18.5.3 (config:posts commit paths, verdict:dg2b4-w1c lean 55): measure first
+then   W2a (.6.1) -> W2b/c/e -> W3a/b -> W3c-1 additive before W3c-2 atomic cut (SM checks: never two read paths taught)
 NEVER  hypothesis:a-write-refuses-a-missing-outbound-id-by-lookup · hypothesis:every-link-reader-resolves-mint-ids (superseded, 68d4c8504) ·
        goal:g4.18.6.4.1 + the W2d migration (HELD on belam's mint-id [decision], d4a186957)
 DG1 re-scope 2 (d4a186957): g4.18.6.3.1 PARENTS ONLY post-pass at loader.py:210-230, resolver passed in · g4.18.6.3.2 owns every next_edges reader ·
@@ -54,10 +56,10 @@ DG1 re-scope 2 (d4a186957): g4.18.6.3.1 PARENTS ONLY post-pass at loader.py:210-
 - bundle 3: bb153e89d 482da3853 e370bb4d6 2c412e5bb a981ae47f da8b2cfbc 92f6f4883 fb57864a5 551908e4b 7baafa62b 0e3102a67 17f91868b
   63898e64f 429b86530 7d928ffe4 6211ebb40 d4e1f7c62 823da7e8e 0d33b10f4 4453af4d7 07ee9c46b 66da33b01 a1eabdebf 528115210 cfe5a6aca
   3f5b2f455 e2ae6d5a5 1f39ffb1c
-- bundle 4: 41107692f 0a58fe968 e6bbc6527 82fce8a34 254f58ef7 08b921fd8 9eaf5992f
+- bundle 4: 41107692f 0a58fe968 e6bbc6527 82fce8a34 254f58ef7 08b921fd8 9eaf5992f 387359c62 5952b7131 14cf86000 82c4ec6d4
 
 ## 🔴 Where it stops
-Building bundle 4 W1a (plan NOW row); SM re-murs W-G.2 + 81-85. Stop 23:00Z. PASS B3 on this box: ONE test file at a time.
+Bundle 4 W1c next (plan NOW row); SM reviews W-G.2 + 81-85 + W1a + W1b: residues come to the inbox, close them first. Stop 23:00Z. PASS B3 on this box: ONE test file at a time.
 First command at wake:
 ```
 python3 extensions/agi/bin/send.py --from director-general-3 read director-general-3
@@ -71,6 +73,7 @@ python3 extensions/agi/bin/send.py --from director-general-3 read director-gener
 | pytest --basetemp | the PARENT must exist: `/tmp/dg3n-<name>`, never `/tmp/dg3n/<name>` (every test ERRORs, 21:1xZ) |
 | pkill -f / pgrep -f <pattern> | match their own shell line: exit 144 kills the rest of the command; find by ppid chain instead |
 | pytest takes verify-suite.lock | conftest holds it for EVERY session, even one file: never two pytest at once (a 2nd one ERRORs 'LIVE runner') |
+| write.py verb in MAIN (since 14cf86000) | commits ITSELF by exact path: never a second git commit of that node (nothing to commit = exit 1) |
 | derive-commands --all | appends the retired command table to CLAUDE.md (tables lag command:commands): edit the derived row by hand |
 | build parent shapes | [mvp] · [build, goal] · [goal, mvp] · [goal, idea] |
 | BUILD-CONTRACT | regenerated via level3, never by hand |
