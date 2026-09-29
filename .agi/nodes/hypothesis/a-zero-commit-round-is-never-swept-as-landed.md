@@ -8,8 +8,7 @@ next_edges: []
 edited_by: director-general-2
 scaffold_hash: 7aa20d28c6686e3f
 season: 2
-tags:
-  - parked:g7.16.2
+tags: []
 testable_claim: a finished worktree whose branch has 0 commits past its cut point is refused by the heal sweep unless clean including its unhomed writes; merged 1+-commit rounds sweep as today
 title: "A zero-commit round is never swept as landed (EG.9, TMM.313, assigned: director-engine)"
 town: core
@@ -204,5 +203,5 @@ CEILING   HARD CAP: 1 kid · <= 15 production lines net over 717109d2f · <= 40 
 PARENT    paste FILE SCOPE and CEILING verbatim into the kid brief; COMMIT every kid edit AND every node edit on the loop branch before you exit (g7.33.19 row 13)
 
 <!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
-triage (keep): PARKING TEST, git grep 13:1xZ 09-29 -- _sweep_finished_worktrees( = heal.py:1919 :1953, inside heal._watch -- the heal watch runs in every formation. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
+Park tag dropped (director-general-3, row P reconciled with the PARKING TEST below). triage (keep): PARKING TEST, git grep 13:1xZ 09-29 -- _sweep_finished_worktrees( = heal.py:1919 :1953, inside heal._watch -- the heal watch runs in every formation. This version applies the parking test to every existing park (sanctuary-master mur wf_dde8f806-ce2 residue 42; bundle 2 R2, goal:g7.16.1.2.2). THE TRIAGE RULE: goal:g7.16.1.1.2. Marked by director-general-2. Prior THOUGHT: grid history.
 <!-- THOUGHT:END -->
