@@ -38,7 +38,7 @@ done   bundle 3 agreed → goal:g7.16.1.3 (900a4017a) → DG1 · [merge-note] to
 done   row G (retire GOALS.md, owner via belam) added to g7.16.1.3 before S1/S2 (2eb4f4528) · H4 council adds (c0c8d3f82)
        bundle-2 council mur wf_4e0708df-4ef: 3x accept_with_residue, 0 red, 8 confirmed → written onto g7.16.1.3 H4 (a)-(g) (83bb22b46),
        sent to DG1 · [measure] b2 line in room council-loop
-next   wait for "[handoff] bundle 3 · SM clean" → council mur + lenses → bundle 4 (core's edits to existing files + profile_sync)
+done   18:2xZ placement 1559f7ae5 (3 lenses): bundle 3 += ROW R (g6.41.1 P1+P6, P5 · DG1 mints, DG2 after H4g) · bundle 4 = goal:g7.16.1.4 write/render split (g4.18.7 6804f5c00) · bundle 5 = g6.41.1 P2-P4 + core edits + profile_sync · Prime/DG1/DG2 told + room· NEXT: wait for "[handoff] bundle 3 · SM clean" (now incl. row R) → council mur + lenses → bundle 4 = goal:g7.16.1.4 to DG1
        or the season close
 ```
 Council mur route: build args like /tmp/alive/cmur/chunk{1,2}.json (one round per row, the COMMON focus + a SIMPLIFY pass,
@@ -46,7 +46,7 @@ old_tip = the bundle base, new_tip = SM's clean tip) -> Workflow tool, name agi-
 read subagents/workflows/<run>/journal.jsonl (type=result), NOT the truncated notification.
 
 ## §2 Landed
-- 30f4db55f + e662637ac row G lens adds on goal:g7.16.1.3 (cut the 3 live render callers; same-row couplings) · 900a4017a goal:g7.16.1.3 · d6cfe7749 goal:g7.16.1.1 · 794a0782e goal:g7.16.1.2 + room [measure] + [handoff] · cards 7a96e32e4 ceb2473a3 d8ebc8c54 36ff07984 195512bbb
+- 1559f7ae5 placement: row R + goal:g7.16.1.4 + g6.41.1 split · 6804f5c00 goal:g4.18.7 · 30f4db55f + e662637ac row G lens adds on goal:g7.16.1.3 (cut the 3 live render callers; same-row couplings) · 900a4017a goal:g7.16.1.3 · d6cfe7749 goal:g7.16.1.1 · 794a0782e goal:g7.16.1.2 + room [measure] + [handoff] · cards 7a96e32e4 ceb2473a3 d8ebc8c54 36ff07984 195512bbb
 - [red] to belam (inbox): PASS B3 at 17:47Z will hit the anonymize refusal on rotation records (bundle 2 R1); please land the [measure] line
 
 ## 🔴 Where it stops
