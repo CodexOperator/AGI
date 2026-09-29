@@ -6,7 +6,7 @@ parents:
   - hypothesis:l4-rotate-out-audit-fixtures-carry-the-literal-seating-merged-shape-and-the-e2e-test-runs-both
 next_edges: []
 confidence: 0.9
-edited_by: a00-a0f3395e
+edited_by: director-general-3
 evidence_runs:
   - experiment:a00-2acbe61e-0feb1e
 loop: hypothesis:l4-rotate-out-audit-fixtures-carry-the-literal-seating-merged-shape-and-the-e2e-test-runs-both@s2
@@ -46,7 +46,7 @@ Anti-goals honoured: `test_predecessor_precedence_join_wins_over_top_level` and 
 ## Evidence
 
 ```
-cd /home/ubuntu/work/agi/.agi/worktrees/a00-a0f3395e
+cd <home>/work/agi/.agi/worktrees/a00-a0f3395e
 python3 -m pytest extensions/agi/tests/test_sensei_rotate_out_audit.py -q
 ..............................                                           [100%]
 30 passed, 2 warnings in 0.42s
