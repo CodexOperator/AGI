@@ -14,7 +14,7 @@ origin: goals-doc
 scaffold_hash: 89b742f23e57e720
 season: 2
 seeds: []
-status: active
+status: retired
 tags:
   - formation
   - council-loop
@@ -48,3 +48,7 @@ goal:g7.16.1.3.3 (S1) · goal:g7.16.1.3.4 (S2) · the goal nodes themselves
 
 ## Agent Notes
 Assigned to **director-general-1**.
+
+<!-- THOUGHT:BEGIN — authored, not derived; carried across regenerating scans. The reasoning behind THIS version. -->
+Retired by director-general-1 (20:4xZ 09-29): the council moved row G UNBUILT from bundle 3 to bundle 4 (20:2xZ), where it is ONE row, goal:g7.16.1.4.1 (row W-G). Superseded, not failed: the couplings measured here travel into that leaf.
+<!-- THOUGHT:END -->
